@@ -3,7 +3,69 @@
 /* eslint-disable no-plusplus */
 
 import { toBase64, fromBase64 } from '../encoding';
-import DynamicDataView from '../helpers/dynamic-data-view';
+
+class ByteBuffer {
+  constructor(length) {
+    this.buffer = new Uint8Array(length);
+    this.pos = 0;
+  }
+
+  setData(data) {
+    this.buffer = data;
+    this.pos = 0;
+  }
+
+  readByte() {
+    if (this.pos + 1 > this.buffer.length) {
+      throw new Error('Tried to read past the buffer length');
+    }
+    const pos = this.pos;
+    this.pos += 1;
+    return this.buffer[pos];
+  }
+
+  readBytes(length) {
+    if (this.pos + length > this.buffer.length) {
+      throw new Error('Tried to read past the buffer length');
+    }
+    const res = this.buffer.subarray(this.pos, this.pos + length);
+    this.pos += length;
+    return res;
+  }
+
+  resetPointer() {
+    this.pos = 0;
+  }
+
+  pushByte(byte) {
+    if (this.pos + 1 > this.buffer.length) {
+      const newBuffer = new Uint8Array(this.buffer.length * 2);
+      newBuffer.set(this.buffer);
+      this.buffer = newBuffer;
+    }
+    const pos = this.pos;
+    this.pos += 1;
+    this.buffer[pos] = byte;
+  }
+
+  pushBytes(bytes) {
+    if (this.pos + bytes.length > this.buffer.length) {
+      const newBuffer = new Uint8Array((this.pos + bytes.length) * 2);
+      newBuffer.set(this.buffer);
+      this.buffer = newBuffer;
+    }
+    this.buffer.set(bytes, this.pos);
+    this.pos += bytes.length;
+  }
+
+  toBase64() {
+    return toBase64(this.buffer.subarray(0, this.pos));
+  }
+
+  fromBase64(data) {
+    this.pushBytes(fromBase64(data));
+  }
+}
 
 function bytesToEncode(len) {
   let sum = len + 1;
@@ -100,7 +162,7 @@ function padIfSigned(array) {
 function exportPrivateKey(key) {
   const origValues = ['AA==', key.n, key.e, key.d, key.p, key.q, key.dp, key.dq, key.qi];
   const values = origValues.map(x => padIfSigned(fromBase64(fromBase64url(x))));
-  const buffer = new DynamicDataView(2000);
+  const buffer = new ByteBuffer(2000);
 
   buffer.pushByte(0x30); // SEQUENCE
   const numBytes = values.reduce((a, x) => a + bytesToEncode(x.length), 0);
@@ -111,12 +173,12 @@ function exportPrivateKey(key) {
     pushLength(buffer, x.length);
     buffer.pushBytes(x);
   });
-  return toBase64(buffer.crop());
+  return buffer.toBase64();
 }
 function exportPublicKeySimple(key) {
   const origValues = [key.n, key.e];
   const values = origValues.map(x => padIfSigned(fromBase64(fromBase64url(x))));
-  const buffer = new DynamicDataView(2000);
+  const buffer = new ByteBuffer(2000);
 
   buffer.pushByte(0x30); // SEQUENCE
   const numBytes = values.reduce((a, x) => a + bytesToEncode(x.length), 0);
@@ -127,7 +189,7 @@ function exportPublicKeySimple(key) {
     pushLength(buffer, x.length);
     buffer.pushBytes(x);
   });
-  return toBase64(buffer.crop());
+  return buffer.toBase64();
 }
 /* RSAPublicKey ::= SEQUENCE {
     modulus           INTEGER,  -- n
@@ -135,21 +197,20 @@ function exportPublicKeySimple(key) {
 } */
 
 
-/* SEQUENCE(2 elem)
-    SEQUENCE(2 elem)
-        OBJECT IDENTIFIER 1.2.840.113549.1.1.1
-        NULL
-    BIT STRING(1 elem)
-        SEQUENCE(2 elem)
-            INTEGER(2048 bit) n
-            INTEGER e
-*/
+// SEQUENCE(2 elem)
+    // SEQUENCE(2 elem)
+        // OBJECT IDENTIFIER 1.2.840.113549.1.1.1
+        // NULL
+    // BIT STRING(1 elem)
+        // SEQUENCE(2 elem)
+            // INTEGER(2048 bit) n
+            // INTEGER e
 function exportPublicKey(key) {
   const origValues = [key.n, key.e];
   const values = origValues.map(x => padIfSigned(fromBase64(fromBase64url(x))));
   const numBytes = values.reduce((a, x) => a + bytesToEncode(x.length), 0);
 
-  const buffer = new DynamicDataView(2000);
+  const buffer = new ByteBuffer(2000);
 
   buffer.pushByte(0x30); // SEQUENCE
   pushLength(buffer, bytesToEncode(bytesToEncode(numBytes) + 1) + 15);
@@ -169,7 +230,7 @@ function exportPublicKey(key) {
     pushLength(buffer, x.length);
     buffer.pushBytes(x);
   });
-  return toBase64(buffer.crop());
+  return buffer.toBase64();
 }
 
 function exportPublicKeySPKI(key) {
@@ -181,7 +242,7 @@ function exportPrivateKeyPKCS8(key) {
   const values = origValues.map(x => padIfSigned(fromBase64(fromBase64url(x))));
   const numBytes = values.reduce((a, x) => a + bytesToEncode(x.length), 0);
 
-  const buffer = new DynamicDataView(2000);
+  const buffer = new ByteBuffer(2000);
 
   buffer.pushByte(0x30); // SEQUENCE
   pushLength(buffer, 3 + 15 + bytesToEncode(bytesToEncode(numBytes)));
@@ -200,16 +261,16 @@ function exportPrivateKeyPKCS8(key) {
     pushLength(buffer, x.length);
     buffer.pushBytes(x);
   });
-  return toBase64(buffer.crop());
+  return buffer.toBase64();
 }
 
 function readLength(buffer) {
-  const first = buffer.getByte();
+  const first = buffer.readByte();
   if (first & 0x80) {
     let numBytes = first & 0x7F;
     let res = 0;
     while (numBytes--) {
-      res = (res << 8) | buffer.getByte();
+      res = (res << 8) | buffer.readByte();
     }
     return res;
   }
@@ -217,12 +278,12 @@ function readLength(buffer) {
 }
 
 function readInteger(buffer) {
-  const tag = buffer.getByte();
+  const tag = buffer.readByte();
   if (tag !== 0x02) {
     throw new Error('invalid tag for integer value');
   }
   const len = readLength(buffer);
-  let val = buffer.getBytes(len);
+  let val = buffer.readBytes(len);
   if (val[0] === 0) { // Remove padding?
     val = val.subarray(1);
   }
@@ -231,7 +292,7 @@ function readInteger(buffer) {
 
 function __importKey(buffer, values) {
   const key = {};
-  if (buffer.getByte() === 0x30) {
+  if (buffer.readByte() === 0x30) {
     readLength(buffer);
     for (let i = 0; i < values.length; ++i) {
       let val = readInteger(buffer);
@@ -241,7 +302,9 @@ function __importKey(buffer, values) {
   } else {
     throw new Error('first value not correct');
   }
-
+  if (buffer.pos !== buffer.buffer.length) {
+    throw new Error('not all input data consumed');
+  }
   key.alg = 'RS256';
   key.ext = true;
   key.kty = 'RSA';
@@ -249,22 +312,22 @@ function __importKey(buffer, values) {
 }
 
 function _importKey(data, values) {
-  const buffer = new DynamicDataView(0);
-  buffer.set(fromBase64(data));
+  const buffer = new ByteBuffer(0);
+  buffer.setData(fromBase64(data));
   return __importKey(buffer, values);
 }
 
 function importPublicKey(data) {
-  const buffer = new DynamicDataView(0);
-  buffer.set(fromBase64(data));
-  if (buffer.getByte() === 0x30) {
+  const buffer = new ByteBuffer(0);
+  buffer.setData(fromBase64(data));
+  if (buffer.readByte() === 0x30) {
     readLength(buffer);
-    buffer.getBytes(15);
-    if (buffer.getByte() !== 0x03) {
+    buffer.readBytes(15);
+    if (buffer.readByte() !== 0x03) {
       throw new Error('format not correct');
     }
     readLength(buffer);
-    if (buffer.getByte() !== 0x00) {
+    if (buffer.readByte() !== 0x00) {
       throw new Error('format not correct');
     }
   } else {
@@ -274,13 +337,13 @@ function importPublicKey(data) {
 }
 
 function importPrivateKeyPKCS8(data) {
-  const buffer = new DynamicDataView(0);
-  buffer.set(fromBase64(data));
-  buffer.getByte();
+  const buffer = new ByteBuffer(0);
+  buffer.setData(fromBase64(data));
+  buffer.readByte();
   readLength(buffer);
-  buffer.getBytes(3);
-  buffer.getBytes(15);
-  buffer.getByte();
+  buffer.readBytes(3);
+  buffer.readBytes(15);
+  buffer.readByte();
   readLength(buffer);
   const res = __importKey(buffer, ['version', 'n', 'e', 'd', 'p', 'q', 'dp', 'dq', 'qi']);
   delete res.version;

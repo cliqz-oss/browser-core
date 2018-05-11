@@ -1,13 +1,11 @@
-/* eslint no-restricted-syntax: 'off' */
-/* eslint guard-for-in: 'off' */
-
 import * as persist from '../core/persistent-state';
 import md5 from '../core/helpers/md5';
-import events from '../core/events';
+import { events } from '../core/cliqz';
 import * as datetime from './time';
 
 
 export default class BlockLog {
+
   constructor(telemetry, config) {
     this.telemetry = telemetry;
     this.config = config;
@@ -78,7 +76,7 @@ export default class BlockLog {
     if (!(type in bl[tracker][key][value])) {
       bl[tracker][key][value][type] = 0;
     }
-    bl[tracker][key][value][type] += 1;
+    bl[tracker][key][value][type]++;
     this.blocked.setDirty();
   }
 
@@ -99,7 +97,7 @@ export default class BlockLog {
     if (!(hour in lb[source][s][k][v])) {
       lb[source][s][k][v][hour] = 0;
     }
-    lb[source][s][k][v][hour] += 1;
+    lb[source][s][k][v][hour]++;
     this.localBlocked.setDirty();
   }
 
@@ -155,7 +153,7 @@ export default class BlockLog {
       if (keyList === '*') {
         return true;
       } else if (key in keyList || md5(key) in keyList) {
-        const valueList = keyList[key] || keyList[md5(key)];
+        const valueList = keyList[k] || keyList[md5(key)];
         if (valueList === '*') {
           return true;
         } else if (value in valueList || md5(value) in valueList) {
@@ -169,7 +167,7 @@ export default class BlockLog {
   sendTelemetry() {
     if (Object.keys(this.blocked.value).length > 0) {
       this.telemetry({
-        message: {
+        message:{
           action: 'attrack.blocked',
           payload: this.blocked.value,
         }

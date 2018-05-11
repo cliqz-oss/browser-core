@@ -7,12 +7,12 @@ import checkIfChromeReady from './ready-promise';
 import PairingUI from './ui';
 
 function createSpananForModule(moduleName) {
-  return new Spanan(({ uuid, action, args }) => {
+  return new Spanan(({ uuid, functionName, args }) => {
     const message = {
       source: CHROME_MSG_SOURCE,
       target: 'cliqz',
       module: moduleName,
-      action,
+      action: functionName,
       requestId: uuid,
       args
     };
@@ -22,15 +22,12 @@ function createSpananForModule(moduleName) {
 
 class Cliqz {
   constructor() {
-    const pairingBridge = createSpananForModule('pairing');
-    const coreBridge = createSpananForModule('core');
-    const api = new Spanan();
-    this.pairing = pairingBridge.createProxy();
-    this.core = coreBridge.createProxy();
+    this.pairing = createSpananForModule('pairing').createProxy();
+    this.core = createSpananForModule('core').createProxy();
 
     const UI = new PairingUI(window, this.pairing, this.core.sendTelemetry.bind(this.core));
 
-    api.export({
+    Spanan.export({
       onPairingInit(message) {
         UI.oninit(message);
       },
@@ -56,10 +53,12 @@ class Cliqz {
       filter(message) {
         return Object.keys(this.actions).indexOf(message.action) >= 0;
       },
-      transform: message => ({
-        action: message.action,
-        args: [message.message],
-      }),
+      transform: message =>
+        ({
+          action: message.action,
+          args: [message.message],
+        })
+      ,
     });
 
     const onPostMessage = (event) => {
@@ -70,22 +69,17 @@ class Cliqz {
         return;
       }
 
-      api.handleMessage(message);
-      coreBridge.handleMessage(message);
-      pairingBridge.handleMessage(message);
+      Spanan.dispatch(message);
     };
 
     const onMessage = (message) => {
       if (!isCliqzContentScriptMsg(message)) {
         return;
       }
-      const msg = {
+      Spanan.dispatch({
         uuid: message.requestId,
-        response: message.response
-      };
-      api.handleMessage(msg);
-      coreBridge.handleMessage(msg);
-      pairingBridge.handleMessage(msg);
+        returnedValue: message.response
+      });
     };
 
     window.addEventListener('unload', () => {

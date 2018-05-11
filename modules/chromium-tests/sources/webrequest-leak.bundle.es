@@ -1,9 +1,4 @@
-/* eslint func-names: 'off' */
-/* eslint prefer-arrow-callback: 'off' */
-
 /* global testServer */
-/* global waitFor */
-/* global chai */
 
 import { newTab, updateTab } from '../platform/browser';
 import WebRequest from '../platform/webrequest';
@@ -13,6 +8,7 @@ describe('WebRequest Leak Test', function () {
   let onBeforeRequest = [];
   let onBeforeSendHeaders = [];
   let onHeadersReceived = [];
+  let hitCtr = 0;
 
   function onBeforeRequestCtr(req) {
     onBeforeRequest.push(req);
@@ -39,6 +35,7 @@ describe('WebRequest Leak Test', function () {
     onBeforeRequest = [];
     onBeforeSendHeaders = [];
     onHeadersReceived = [];
+    hitCtr = 0;
     WebRequest.onBeforeRequest.addListener(onBeforeRequestCtr, { urls: ['*://*/*'] });
     WebRequest.onBeforeSendHeaders.addListener(onBeforeHeadersCtr, { urls: ['*://*/*'] });
     WebRequest.onHeadersReceived.addListener(onHeadersReceiveCtr, { urls: ['*://*/*'] });
@@ -76,11 +73,11 @@ describe('WebRequest Leak Test', function () {
     });
   });
 
-  it('does not leak iframe request across pages', function () {
-    const baseUrl = 'http://localhost:3000';
-    const page1 = `${baseUrl}/leaktestiframe.html`;
-    const page2 = `${baseUrl}/thirdpartyscript.html`;
-    const iframe = `${baseUrl}/leaktest.html`;
+  it('does not leak iframe request across pages', function() {
+    var baseUrl = 'http://localhost:3000';
+    var page1 = baseUrl + '/leaktestiframe.html';
+    var page2 = baseUrl + '/thirdpartyscript.html';
+    var iframe = baseUrl + '/leaktest.html';
 
     return setupTabs(page1, page2).then(() => {
       onBeforeRequest.forEach((req) => {
@@ -94,5 +91,5 @@ describe('WebRequest Leak Test', function () {
         }
       });
     });
-  });
+  })
 });

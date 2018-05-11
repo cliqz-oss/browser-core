@@ -1,31 +1,16 @@
 import utils from '../core/utils';
-import events from '../core/events';
-import { nextTick } from '../core/decorators';
+import autocomplete from '../autocomplete/autocomplete';
+import SearchHistory from './search-history';
 import console from '../core/console';
-import { getCurrentTabId } from '../core/tabs';
-import { isOnionMode } from '../core/platform';
 
 const ACproviderName = 'cliqz-results';
-const lastEvent = new WeakMap();
 
 export default {
-  mouseup(event) {
-    if (event.originalTarget.getAttribute('anonid') === 'historydropmarker') {
-      events.pub('urlbar:dropmarker-click', {
-        windowId: this.windowId,
-        tabId: getCurrentTabId(this.window),
-      });
-    }
-  },
   /**
   * Urlbar focus event
   * @event focus
   */
   focus() {
-    if (this.urlbar.cliqzFocused) {
-      return;
-    }
-
     if (this.urlbar.getAttribute('autocompletesearch').indexOf(ACproviderName) === -1) {
       // BUMMER!! Something happened and our AC provider was overriden!
       // trying to set it back while keeping the new value in case Cliqz
@@ -41,16 +26,12 @@ export default {
     }
 
     // try to 'heat up' the connection
-    if (!isOnionMode) {
-      utils.pingCliqzResults();
-    }
+    utils.pingCliqzResults();
 
+    autocomplete.lastFocusTime = Date.now();
+    SearchHistory.hideLastQuery(this.window);
     utils.setSearchSession(utils.rand(32));
     this.urlbarEvent('focus');
-    events.pub('urlbar:focus', {
-      windowId: this.windowId,
-      tabId: getCurrentTabId(this.window),
-    });
   },
   /**
   * Urlbar blur event
@@ -58,9 +39,14 @@ export default {
   * @param ev
   */
   blur() {
-    if (this.urlbar.cliqzFocused) {
-      return;
+    if (autocomplete.spellCheck) {
+      autocomplete.spellCheck.resetState();
     }
+    // reset this flag as it can block the dropdown from opening
+    autocomplete.isPopupOpen = false;
+
+    // force a dropdown close on urlbar blur
+    this.window.CLIQZ.Core.popup.hidePopup();
 
     this.urlbarEvent('blur');
 
@@ -69,10 +55,8 @@ export default {
       this.urlbar.value = this.urlbar.mInputField.value;
     }
 
-    events.pub('urlbar:blur', {
-      windowId: this.windowId,
-      tabId: getCurrentTabId(this.window),
-    });
+    autocomplete.lastFocusTime = null;
+    this.window.CLIQZ.UI.sessionEnd();
   },
   /**
   * Urlbar keypress event
@@ -118,40 +102,8 @@ export default {
       });
     }
   },
-
-  input() {
-    nextTick(() => {
-      const input = this.urlbar.mInputField;
-      const hasSelection = input.selectionStart !== input.selectionEnd;
-      let query = input.value;
-      const ev = lastEvent.get(this.window);
-
-      if (hasSelection) {
-        query = query.slice(0, input.selectionStart);
-      }
-
-      events.pub('urlbar:input', {
-        isPrivate: utils.isPrivateMode(this.window),
-        isTyped: this.urlbar.valueIsTyped,
-        query,
-        tabId: getCurrentTabId(this.window),
-        windowId: this.windowId,
-        keyCode: (ev && ev.code) || null,
-        isPasted: ev && (ev.type === 'paste'),
-      });
-    });
-  },
-
-  keyup(ev) {
-    events.pub('urlbar:keyup', {
-      windowId: this.windowId,
-      tabId: getCurrentTabId(this.window),
-      code: ev.code,
-    });
-  },
-
   keydown(ev) {
-    lastEvent.set(this.window, ev);
+    autocomplete._lastKey = ev.keyCode;
     let cancel;
     try {
       cancel = this.window.CLIQZ.UI.keyDown(ev);
@@ -163,13 +115,6 @@ export default {
       ev.preventDefault();
       ev.stopImmediatePropagation();
     }
-    events.pub('urlbar:keydown', {
-      windowId: this.windowId,
-      tabId: getCurrentTabId(this.window),
-      isHandledByCliqz: cancel,
-      query: this.urlbar.value,
-      code: ev.code,
-    });
   },
   /**
   * Urlbar paste event
@@ -177,11 +122,11 @@ export default {
   * @param ev
   */
   paste(ev) {
-    lastEvent.set(this.window, ev);
     // wait for the value to change
     this.window.setTimeout(() => {
       // ensure the lastSearch value is always correct
       // although paste event has 1 second throttle time.
+      autocomplete.lastSearch = ev.target.value;
       utils.telemetry({
         type: 'activity',
         action: 'paste',

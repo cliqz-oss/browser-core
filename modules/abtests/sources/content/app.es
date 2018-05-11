@@ -1,5 +1,7 @@
 /* eslint { "prefer-arrow-callback": "off" } */
-/* global document, $, Handlebars */
+/* global document */
+import $ from 'jquery';
+import Handlebars from 'handlebars';
 import templates from '../templates';
 import CLIQZ from './cliqz';
 
@@ -26,7 +28,7 @@ function showCoreVersion() {
 
 function showDemographics() {
   CLIQZ.abtests.getDemographics().then((demographics) => {
-    document.getElementById('demographics').innerHTML = templates.demographics(demographics);
+    document.getElementById('demographics').innerHTML = templates.demographics(JSON.parse(demographics));
   });
 }
 

@@ -1,9 +1,7 @@
-/* eslint func-names: 'off' */
-
-import background from '../core/base/background';
-import MessageCenter from './message-center';
+import background from "../core/base/background";
+import MessageCenter from "./message-center";
 import MessageHandlerBase from './handlers/base';
-import Triggers from './triggers/triggers';
+import CliqzMsgTriggerLocal from "./triggers/local";
 
 /**
   @namespace message-center
@@ -16,13 +14,13 @@ export default background({
     @method init
     @param settings
   */
-  init() {
+  init(settings) {
     this.messageCenter = MessageCenter.getInstance();
-    (new Triggers()).init();
+    const localTrigger = new CliqzMsgTriggerLocal();
+    localTrigger.init();
   },
 
   unload() {
-
 
   },
 
@@ -31,11 +29,11 @@ export default background({
   },
 
   events: {
-    'msg_center:show_message': function (...args) {
-      this.messageCenter.showMessage.call(this.messageCenter, ...args);
+    'msg_center:show_message': function () {
+      this.messageCenter.showMessage.apply(this.messageCenter, arguments);
     },
-    'msg_center:hide_message': function (...args) {
-      this.messageCenter.hideMessage.call(this.messageCenter, ...args);
+    'msg_center:hide_message': function () {
+      this.messageCenter.hideMessage.apply(this.messageCenter, arguments);
     },
   },
 
@@ -46,10 +44,10 @@ export default background({
           handler(message);
         }
 
-        _hideMessage() {
+        _hideMessage(message) {
           // TODO
         }
-      }
+      };
       this.messageCenter.registerMessageHandler(id, new NewMessageHandler());
     },
     getHandlers() {
@@ -63,3 +61,4 @@ export default background({
     }
   },
 });
+

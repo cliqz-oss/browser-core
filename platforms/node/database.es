@@ -1,3 +1,5 @@
-import pouchdb from '@cliqz-oss/pouchdb';
+import PouchDB from 'pouchdb-react-native'
 
-export default (name, ...rest) => pouchdb(`tmp/${name}`, ...rest);
+export default function(dbName, options) {
+  return new PouchDB(dbName, options);
+}

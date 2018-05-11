@@ -9,7 +9,7 @@ export default class MiddleMessages extends React.Component {
   }
 
   handleCTAClick(message) {
-    messageClickSignal(message.id);
+    messageClickSignal();
     cliqz.freshtab.countMessageClick(message);
     this.props.handleLinkClick(message);
   }
@@ -36,9 +36,9 @@ export default class MiddleMessages extends React.Component {
     return (
       <div>
         {
-          this.props.messages.map(message =>
-            (<div
-              key={message.id}
+          this.props.messages.map((message, i) =>
+            <div
+              key={i}
               className={`middle-notification-box ${message.type}`}
             >
               <div
@@ -47,17 +47,9 @@ export default class MiddleMessages extends React.Component {
               />
               <div
                 className="icon"
-                style={{
-                  backgroundImage: `url(${message.icon})`,
-                  backgroundSize: message.icon_dimensions ? message.icon_dimensions.width : null,
-                  width: message.icon_dimensions ? message.icon_dimensions.width : null,
-                  height: message.icon_dimensions ? message.icon_dimensions.height : null
-                }}
+                style={{ backgroundImage: `url(./images/${message.icon})` }}
               />
-              <div
-                className="content"
-                style={{ width: `calc(100% - ${message.icon_dimensions ? message.icon_dimensions.width : null}px)` }}
-              >
+              <div className="content">
                 <h1>{message.title}</h1>
                 <p>{message.description}</p>
                 <button
@@ -69,23 +61,22 @@ export default class MiddleMessages extends React.Component {
 
                 {message.buttons && message.buttons.length > 0 &&
                   <div className="buttons">
-                    {message.buttons.map(button =>
-                      (<a
-                        key={button.id}
+                    {message.buttons.map((button, j) =>
+                      <a
+                        key={j}
                         href={button.link[this.props.locale]}
                         target="_blank"
                       >
                         <img
-                          alt={button.id}
                           className={button.class}
                           src={`./images/${button.src}`}
                         />
-                      </a>)
+                      </a>
                     )}
                   </div>
                 }
               </div>
-            </div>)
+            </div>
           )
         }
       </div>

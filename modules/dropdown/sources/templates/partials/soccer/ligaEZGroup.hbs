@@ -2,10 +2,11 @@
     <div class="wrapper dropdown-tabs">
         <div class="background-placeholder"></div>
         {{#if groupTableHeader}}
-            <label class="dropdown-tab-header">{{groupTableHeader}}</label>
+            <label class="dropdown-tab-label">{{groupTableHeader}}</label>
         {{/if}}
         {{#each ligaEZGroup}}
-            <label id="tab-{{@index}}" class="dropdown-tab {{#if @first}}checked{{/if}}">{{groupName}}</label>
+            <input class="tab-radio-input" type="radio" name="tabs" id="tab-{{@index}}" {{#if @first}}checked="checked"{{/if}}/>
+            <label class="dropdown-tab-label" for="tab-{{@index}}">{{groupName}}</label>
         {{/each}}
         {{#each ligaEZGroup}}
             <div id="tab-block-{{@index}}"

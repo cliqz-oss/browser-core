@@ -11,7 +11,7 @@ export default {
     "dropdown": null,
     "firefox-specific": null,
     "static": null,
-    "search": {
+    "autocomplete": {
       "visible": true,
       "state": [
         {
@@ -412,7 +412,7 @@ export default {
     },
     "control-center": null,
     "offers-v2": {
-      visible: true,
+      showSettings: true,
       userEnabled: true,
       locationEnabled: true,
     },

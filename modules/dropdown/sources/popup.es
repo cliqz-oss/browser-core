@@ -1,12 +1,16 @@
+import prefs from '../core/prefs';
+
 export default class Popup {
   constructor(window) {
     this.window = window;
   }
+
   get element() {
     return this.urlbar.popup;
   }
 
   get urlbar() {
+    // TODO: do not use global
     return this.window.gURLBar;
   }
 
@@ -30,35 +34,34 @@ export default class Popup {
     };
   }
 
-  get isOpen() {
-    return this.element.mPopupOpen;
+  get isNewSearchMode() {
+    return prefs.get('searchMode', 'autocomplete') !== 'autocomplete';
   }
 
-  getUrlbarAttributes() {
+  setDropdownPadding() {
     const urlbarRect = this.urlbar.getBoundingClientRect();
-    const urlbarLeftPos = Math.round(urlbarRect.left || urlbarRect.x || 0);
-    const urlbarWidth = urlbarRect.width;
     const extraPadding = 10;
-    let contentPadding = extraPadding + urlbarLeftPos;
+    let actualPadding = extraPadding + Math.round(urlbarRect.left || urlbarRect.x || 0);
 
     // Reset padding when there is a big space on the left of the urlbar
     // or when the browser's window is too narrow
-    if (contentPadding > 500 || this.window.innerWidth < 650) {
-      contentPadding = 50;
+    if (actualPadding > 500 || this.window.innerWidth < 650) {
+      actualPadding = 50;
     }
-
-    return {
-      padding: contentPadding,
-      left: urlbarLeftPos,
-      width: urlbarWidth,
-    };
+    const dropdown = this.element.querySelector('#cliqz-dropdown');
+    dropdown.style.setProperty('--url-padding-start', `${actualPadding}px`);
   }
 
   open() {
-    // handleCommand will clear the value of urlbar if mPopupOpen is falsy
-    this.element.mPopupOpen = true;
-    this.element.mInput = this.urlbar;
+    this.setDropdownPadding();
+
+    if (!this.isNewSearchMode) {
+      return;
+    }
     const navBar = this.window.document.querySelector('#nav-bar');
+
+    // without this ESC does not revert to the page url
+    this.element.mInput = this.urlbar;
 
     this.element.width = this.window.innerWidth;
 
@@ -66,17 +69,15 @@ export default class Popup {
   }
 
   close() {
-    this.element.mPopupOpen = false;
-    this.element.hidePopup();
+    if (!this.isNewSearchMode) {
+      return;
+    }
+    this.element.closePopup();
   }
 
-  execBrowserCommandHandler(url, ...args) {
+  execBrowserCommandHandler(...args) {
     const urlbar = this.element.mInput;
-    if (url) {
-      urlbar.value = url;
-    } else {
-      urlbar.value = urlbar.mInputField.value;
-    }
+    urlbar.value = urlbar.mInputField.value;
     this.element.mInput.handleCommand(...args);
   }
 }

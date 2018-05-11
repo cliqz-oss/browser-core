@@ -1,21 +1,22 @@
-import { readFile, writeFile } from '../fs';
+import { AsyncStorage } from 'react-native';
 
-const PREFIX = 'attrack-store';
+const PREFIX = "@cliqzstorage:";
 
 export default {
 
   getItem(id) {
-    return readFile(`${PREFIX}/${id}`).catch(() => '{}');
+    return AsyncStorage.getItem(PREFIX + id);
   },
 
   setItem(id, value) {
-    return writeFile(`${PREFIX}/${id}`, value);
+    return AsyncStorage.setItem(PREFIX + id, value);
   },
 
-  removeItem() {
-    return Promise.resolve();
+  removeItem(id) {
+    return AsyncStorage.removeItem(PREFIX + id);
   },
 
   clear() {
+    AsyncStorage.clear();
   }
 };

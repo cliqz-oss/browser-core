@@ -1,15 +1,15 @@
-import utils from '../core/utils';
+import { utils } from '../core/cliqz';
 import { fromUTF8 } from '../core/encoding';
 import MessageQueue from '../core/message-queue';
 
 import logger from './logger';
-import { AUTH_METHOD,
-  SOCKS5,
-  parseHandshake } from './socks-protocol';
-import { wrapOnionRequest,
-  sendOnionRequest,
-  decryptResponseFromExitNode,
-  ERROR_CODE } from './rtc-onion';
+import { AUTH_METHOD
+       , SOCKS5
+       , parseHandshake } from './socks-protocol';
+import { wrapOnionRequest
+       , sendOnionRequest
+       , decryptResponseFromExitNode
+       , ERROR_CODE } from './rtc-onion';
 import { generateAESKey, wrapAESKey } from '../core/crypto/utils';
 
 
@@ -59,6 +59,7 @@ function fetchRemotePeers(peerID, peersUrl) {
 
 
 class SocksConnection {
+
   constructor(tcpConnection, peer, route) {
     this.lastActivity = Date.now();
 

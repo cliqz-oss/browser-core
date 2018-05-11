@@ -7,7 +7,7 @@ import { Components } from '../platform/globals';
 
 Components.utils.import('resource://gre/modules/AddonManager.jsm');
 const versionChecker = Components.classes['@mozilla.org/xpcom/version-comparator;1']
-  .getService(Components.interfaces.nsIVersionComparator);
+    .getService(Components.interfaces.nsIVersionComparator);
 const ADDON_ID = 'https-everywhere@cliqz.com';
 const STATE_PREF = 'extensions.https_everywhere.globalEnabled';
 const FIRST_WEB_EXTENSION_VERSION = '2017.10.30';
@@ -76,7 +76,7 @@ export default background({
   },
 
   events: {
-    /**
+     /**
     * @event control-center:toggleHttpsEverywhere
     */
     'control-center:toggleHttpsEverywhere': function toggler(data) {

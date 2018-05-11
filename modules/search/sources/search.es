@@ -3,8 +3,8 @@ import Rx from '../platform/lib/rxjs';
 
 
 // streams
-import deepEqual from '../platform/lib/deep-equal';
 import handleQueries from './mixers/handle-queries';
+import deepEqual from '../platform/lib/deep-equal';
 
 // data structure:
 //
@@ -31,30 +31,21 @@ import handleQueries from './mixers/handle-queries';
 
 // wraps `handleQueries` to recursively call `handleQueries` if an
 // error during processing happens so that search continues to work
-const handleQueriesWrapper = (query$, highlight$, providers, config) => {
-  const results$ = handleQueries(query$, highlight$, providers, config);
-
-  return results$
-    .catch((error) => {
-      // recreate streams ('reset' on error); this is recursive, but invocation
-      // is limited by user input (`query$`)
-      logger.error('Failed handling queries', error);
-      return handleQueriesWrapper(query$, highlight$, providers, config);
-    });
-};
+const handleQueriesWrapper = (query$, providers, config) =>
+  handleQueries(query$, providers, config).catch((error) => {
+    // recreate streams ('reset' on error); this is recursive, but invocation
+    // is limited by user input (`query$`)
+    logger.error('Failed handling queries', error);
+    return handleQueriesWrapper(query$, providers, config);
+  });
 
 
-const search = ({ query$, focus$, highlight$ = Rx.Observable.empty() }, providers, config) => {
+const createResultStream = (query$, focus$, providers, config) => {
   const results$ = focus$
     .switchMap((event) => {
       if (event === 'focus') {
         logger.log('Search start (focus)');
-        if (config.clearResultsOnSessionStart) {
-          return handleQueriesWrapper(query$, highlight$, providers, config)
-            // clear dropdown when new search starts
-            .startWith([]);
-        }
-        return handleQueriesWrapper(query$, highlight$, providers, config);
+        return handleQueriesWrapper(query$, providers, config);
       }
       logger.log('Search end (blur)');
       return Rx.Observable.empty();
@@ -67,4 +58,4 @@ const search = ({ query$, focus$, highlight$ = Rx.Observable.empty() }, provider
   return results$;
 };
 
-export default search;
+export default createResultStream;

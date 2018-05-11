@@ -1,17 +1,4 @@
-html, body {
-    margin: 0;
-    padding: 0;
-    background-color: white;
-}
-
-body {
-    display: table;
-    width: 100%;
-    overflow-x: hidden;
-    overflow-y: auto;
-}
-
-$light-gray: #f2f2f2;
+$light-gray: #f5f5f5;
 
 @import 'helpers';
 @import 'partials/images';
@@ -35,14 +22,11 @@ $basic-line-height: (16 / 15) + 0em;
 #cliqz-dropdown {
     font-family: "-mac-system", "-apple-system", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
     font-weight: normal;
-    width: 100vw;
-    position: relative;
 
     @import 'results/sessions';
     @import 'results/lotto';
     @import 'results/soccer';
     @import 'results/time';
-    @import 'results/dialing-code';
     @import 'results/flight';
     @import 'results/movie-cinema';
     @import 'results/news-story';
@@ -63,7 +47,6 @@ $basic-line-height: (16 / 15) + 0em;
     font-size: $basic-font-size;
     line-height: $basic-line-height;
     position: relative;
-    color: black;
 
     overflow-y: auto;
 
@@ -85,8 +68,7 @@ $basic-line-height: (16 / 15) + 0em;
         color: #2385e7;
     }
 
-    /* We always have the line on the top as the first element */
-    & > div:nth-child(2) {
+    & > div:first-child {
         padding-top: 4px;
     }
 
@@ -143,19 +125,6 @@ $basic-line-height: (16 / 15) + 0em;
         }
     }
 
-    .white-background {
-        background-color: rgba(255, 255, 255, 0.55);
-    }
-
-    div.urlbar-bottom-line {
-        padding: 0;
-        position: absolute;
-        top: -1px;
-        height: 1px;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-        z-index: 1;
-    }
-
     .suggestions {
         padding-top: 10px;
         padding-right: 0px;
@@ -204,7 +173,7 @@ $basic-line-height: (16 / 15) + 0em;
         width: 2.133em;
         height: 2.133em;
         padding: 0.367em;
-        margin-left: 5px;
+        margin-left: 10px;
         -moz-box-sizing: border-box;
         box-sizing: border-box;
         border-radius: 2px;
@@ -232,9 +201,6 @@ $basic-line-height: (16 / 15) + 0em;
         border-bottom: 1px solid #e1e1e1;
         padding-bottom: 4px;
         margin-bottom: 4px;
-        &:last-of-type {
-            margin-bottom: 0;
-        }
     }
 
     .result {
@@ -293,7 +259,7 @@ $basic-line-height: (16 / 15) + 0em;
         .abstract {
             float: left;
             margin-left: 10px;
-            width: 90%;
+            width: 80%;
             overflow: hidden;
             display: inline-flex;
 
@@ -328,10 +294,6 @@ $basic-line-height: (16 / 15) + 0em;
                     padding-right: 2px;
                 }
 
-                .title {
-                  line-height: $basic-line-height;
-                }
-
                 .divider {
                     color: #B2B2B2;
                     display: inline-block;
@@ -344,6 +306,7 @@ $basic-line-height: (16 / 15) + 0em;
                     font-size: 0.833em;
                     line-height: ($basic-line-height / 0.833) + 0em;
                     max-width: 200px;
+                    font-weight: 500;
                 }
 
                 .description {
@@ -370,11 +333,11 @@ $basic-line-height: (16 / 15) + 0em;
                 .duration {
                     position: absolute;
                     bottom: 0;
-                    right: 10px;
+                    right: 11px;
                     font-size: 9px;
                     color: #fff;
                     background-color: rgba(0, 0, 0, 0.6);
-                    padding: 1px 4px;
+                    padding: 1px 2px;
                 }
 
                 img {
@@ -418,18 +381,6 @@ $basic-line-height: (16 / 15) + 0em;
             text-decoration: none;
             color: white !important;
             .abstract {
-                position:relative;
-                &:after {
-                    content: "";
-                    position: absolute;
-                    z-index: 1;
-                    bottom: 0;
-                    right: 0;
-                    pointer-events: none;
-                    background-image: linear-gradient(to right, rgba(255, 255, 255, 0), #2385e7 90%);
-                    width: 2%;
-                    height: 2em;
-                }
                 span {
                     color: white;
                 }
@@ -442,12 +393,6 @@ $basic-line-height: (16 / 15) + 0em;
                 .divider,
                 .description {
                     color: rgba(255, 255, 255, 0.8);
-                }
-
-                .url,
-                .description {
-                    /* expand on hover */
-                    max-width: 100%;
                 }
             }
 
@@ -668,8 +613,7 @@ $basic-line-height: (16 / 15) + 0em;
         }
     }
 
-    .history > .result,
-    .history > .news-story > .result,
+    .history .result,
     .result.search,
     .result.history {
         @extend .clearfix;
@@ -695,10 +639,6 @@ $basic-line-height: (16 / 15) + 0em;
         .abstract {
             .description {
                 display: none;
-            }
-
-            .title {
-                line-height: 1.28051em;
             }
 
             .url, .description, .divider {
@@ -782,11 +722,8 @@ $basic-line-height: (16 / 15) + 0em;
             }
 
             &.selected, &.selected:visited {
+
                 .abstract {
-                    .description,
-                    .title {
-                        max-width: 100%;
-                    }
                     .subtitle {
                         &.attention, &.normal {
                             color: white;
@@ -845,21 +782,6 @@ $basic-line-height: (16 / 15) + 0em;
             }
         }
 
-        &.news-story {
-            .result {
-                &.selected, &.selected:visited {
-                    .abstract {
-                        &:after {
-                            display: none;
-                        }
-                        .description {
-                            max-width: 500px;
-                        }
-                    }
-                }
-            }
-        }
-
         &.videos {
             .result {
                 .abstract {
@@ -869,15 +791,92 @@ $basic-line-height: (16 / 15) + 0em;
                 }
             }
         }
+    }
+    /* retirement */
+    .retirement {
+        max-width: 827px;
+        background-color: rgba(254,166,35,0.1);
+        border-color: rgba(254,166,35,1);
+        border-style: dashed;
+        border-width: 1.5px;
+        background-image: url-prefix("dropdown/images/chip-retirement.svg");
+        background-size: 56px;
+        background-repeat: no-repeat;
+        background-position: 18px center;
+        padding-left: 88px;
+        padding-bottom: 12px !important;
+        padding-top: 10px;
+        margin-left: calc(var(--url-padding-start) - 20px);
+        margin-top: 15px;
+        margin-bottom: 15px;
+        position: relative;
 
-        &.single-video {
-            .result {
-                padding-top: 4px;
-                padding-bottom: 4px;
+        div {
+            display: inline-block;
+        }
+        .close {
+            background-image: url-prefix("dropdown/images/Close - Small 16.svg");
+            background-size: 10px;
+            background-repeat: no-repeat;
+            position: absolute;
+            right: 11px;
+            width: 10px;
+            height: 10px;
+            top: 11px;
+            cursor: pointer;
+        }
 
-                .icons {
-                    margin-top: 7px;
+        .headline {
+            color: #4A4A4A;
+            font-weight: 500;
+            line-height: 25px;
+            width: calc(100% - 10px);
+        }
+        .content {
+            font-size: 0.833em;
+            .text {
+                width: calc(100% - 275px);
+            }
+            .action {
+                position: absolute;
+                right: 10px;
+                bottom: 12px;
+
+                a {
+                    float: left;
+                    display: inline-block;
+                    margin-left: 10px;
+                    height: 31px;
+                    vertical-align: top;
+                    padding: 8px 10px;
+                    font-weight: 500;
+                    border-radius: 3px;
+                    cursor: pointer;
+
+                    &.uninstall {
+                        border: 1px solid rgba(254, 166, 35, 1);
+                        color: #4A4A4A;
+                        &.selected, &:hover {
+                            background-color: #2385E7;
+                            border: 1px solid #2385E7;
+                            color: white;
+                        }
+                    }
+
+                    &.install {
+                        background-color: rgba(254, 166, 35, 1);
+                        color: white;
+
+                        &.selected, &:hover {
+                            background-color: #2385E7;
+                        }
+                    }
                 }
+            }
+
+            .result {
+                display: inline;
+                cursor: pointer;
             }
         }
     }
@@ -887,28 +886,124 @@ $basic-line-height: (16 / 15) + 0em;
 //===== DYNAMIC PADDING =====
 //===========================
 
-#cliqz-dropdown {
-    & > div, & > div > .thumbnail-blocks {
-        & > .result {
-            & > .icons {
-                width: calc(var(--content-padding-start) + 9px);
+#main-window {
+    #cliqz-dropdown {
+        & > div, & > div > .thumbnail-blocks {
+            & > .result {
+                & > .icons {
+                    width: calc(var(--url-padding-start) + 9px);
+                }
+
+                & > .abstract {
+                    max-width: calc(90% - var(--url-padding-start));
+                }
+            }
+        }
+
+        .history .buttons span.dot {
+            left: var(--url-padding-start);
+        }
+
+        .history.cluster span.timeline {
+            left: calc(var(--url-padding-start) + 2px);
+        }
+
+        .padded {
+            padding-left: calc(var(--url-padding-start) + 19px);
+        }
+    }
+}
+
+/*** STYLES FOR PAGE ACTION BUTTON ***/
+
+#nav-bar {
+    #urlbar {
+        /* we need this for FF56 and bellow only*/
+        #urlbar-icons {
+            toolbarbutton#page-action-browser-action {
+                .toolbarbutton-icon {
+                    max-width: 12px;
+                }
+            }
+        }
+        toolbarbutton {
+            &#page-action-browser-action {
+                margin: 0;
+                padding: 0;
+                margin-right: -4px;
+                height: auto;
+
+                &.toolbarbutton-1 {
+
+                    > .toolbarbutton-badge-stack {
+                        padding: 0 8px;
+                    }
+
+                    &:hover, &[open] {
+                        border-color: transparent;
+                        box-shadow: none;
+                        background: none;
+                    }
+                }
             }
 
-            & > .abstract {
-                max-width: calc(90% - var(--content-padding-start));
+            &.toolbarbutton-1 {
+                > .toolbarbutton-badge-stack {
+                    border-color: transparent;
+                    box-shadow: none;
+                    background: none;
+                }
+
+                :hover {
+                    border-color: transparent;
+                    box-shadow: none;
+                    background: none;
+                }
+            }
+
+            &:hover {
+                .toolbarbutton-icon {
+                    opacity: 0.6;
+                }
             }
         }
     }
 
-    .history .buttons span.dot {
-        left: var(--content-padding-start);
+    #customizationui-widget-multiview {
+        panelview#PanelUI-webext-page-action-browser-action-view:not([extension]),
+        panelview#PanelUI-webext-control-center-browser-action-view:not([extension]) {
+            max-width: 400px;
+        }
     }
 
-    .history.cluster span.timeline {
-        left: calc(var(--content-padding-start) + 2px);
+    /* dropdown width in FF42*/
+    #customizationui-widget-panel .panel-mainview {
+        max-width: 800px;
     }
 
-    .padded {
-        padding-left: calc(var(--content-padding-start) + 19px);
+    /* EX-6331: popup arrow was overlapping the gear icon in FF58 and above */
+    #customizationui-widget-panel[viewId='PanelUI-webext-page-action-browser-action-view'] {
+       margin-top: 0px;
     }
+}
+
+#PanelUI-mainView {
+    toolbarbutton#control-center-browser-action {
+        &.toolbarbutton-1 {
+            > .toolbarbutton-badge-stack {
+                .toolbarbutton-icon {
+                    list-style-image: var(--webextension-menupanel-image, inherit);
+                }
+            }
+        }
+    }
+}
+
+.toolbarbutton-badge {
+    background-color: #471647;
+}
+
+#pageActionPanel panelview#PanelUI-webext-control-center-browser-action-view,
+#widget-overflow panelview#PanelUI-webext-control-center-browser-action-view {
+    max-width: 400px;
 }

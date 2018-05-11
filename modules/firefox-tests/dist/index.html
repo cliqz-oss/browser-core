@@ -2,40 +2,47 @@
 <html>
 <head>
 
-  <link rel="stylesheet" type="text/css" href="../vendor/mocha.css"/>
-  <script type="text/javascript" src="../vendor/mocha.js"></script>
-  <script type="text/javascript" src="../vendor/chai.js"></script>
-  <script type="text/javascript" src="../vendor/chai-dom.js"></script>
-  <script type="text/javascript" src="../vendor/sinon.js"></script>
-  <script type="text/javascript" src="../vendor/sinon-chai.js"></script>
-  <script type="text/javascript" src="../vendor/jquery.min.js"></script>
-  <script type="text/javascript" src="../vendor/core.js"></script>
+  <link rel="stylesheet" type="text/css" href="../bower_components/mocha/mocha.css"/>
+  <script type="text/javascript" src="../bower_components/mocha/mocha.js"></script>
+  <script type="text/javascript" src="../bower_components/chai/chai.js"></script>
+  <script type="text/javascript" src="../bower_components/chai-dom/chai-dom.js"></script>
+  <script type="text/javascript" src="../bower_components/jquery/dist/jquery.js"></script>
+  <script type="text/javascript" src="../bower_components/core.js/client/core.js"></script>
   <script type="text/javascript" src="util/tap-reporter.js"></script>
   <script>window.TESTS = {};</script>
+  <script>window.DEPS = {};</script>
   <script src="test-helpers.js"></script>
   <script src="environment.js"></script>
   <script src="http-server.js"></script>
 
-  <script src="../core/integration-tests.bundle.js"></script>
+  <script src="unit/AttrackBloomFilterTest.js"></script>
+  <script src="unit/AttrackUnitTest.js"></script>
+  <script src="unit/CliqzAttrackTest.js"></script>
+  <script src="unit/CliqzCampaignManagerTest.js"></script>
+  <script src="unit/CliqzEventsTest.js"></script>
+  <script src="unit/CliqzHumanWeb.js"></script>
+  <script src="unit/CliqzMsgCenterTest.js"></script>
+  <script src="unit/CliqzPeer.js"></script>
+  <script src="unit/CliqzSecureMessage.js"></script>
+  <script src="unit/CliqzUtilsTest.js"></script>
+  <script src="unit/EncodingTest.js"></script>
+  <script src="unit/GzipTest.js"></script>
+  <script src="unit/HelpersTest.js"></script>
+  <script src="unit/WindowTreeTest.js"></script>
+
   <script src="dropdown-tests.bundle.js"></script>
+
   <script src="content-scripts/messaging.js"></script>
-
-<!--  TODO: CI-175
-  <script src="integration/AttrackBloomFilterTest.js"></script>
-  <script src="integration/AttrackIntegrationTest.js"></script>
-  <script src="integration/AttrackQSWhitelistsTest.js"></script>
-  <script src="integration/AttrackRequestBlockingTest.js"></script> -->
-
-  <script src="integration/HpnMonitoringTest.js"></script>
-  <script src="integration/HpnSecureMessageTest.js"></script>
-  <script src="integration/HumanWebTest.js"></script>
-  <script src="integration/MessageCenterTest.js"></script>
-  <script src="integration/P2pTest.js"></script>
-  <script src="integration/UtilsTest.js"></script>
+  <script src="integration/CliqzCalculatorTest.js"></script>
+  <script src="integration/CliqzCampaignManagerTest.js"></script>
+  <script src="integration/SmartCliqzTest.js"></script>
+  <script src="integration/UrlBarTest.js"></script>
   <script src="integration/Validations.js"></script>
   <script src="integration/WebRequestLeakTest.js"></script>
   <script src="integration/WebRequestPageTest.js"></script>
   <script src="integration/WebRequestTest.js"></script>
+
+  <script src="integration/CliqzAttrackIntegrationTest.js"></script>
 
   <style>
     .btn {

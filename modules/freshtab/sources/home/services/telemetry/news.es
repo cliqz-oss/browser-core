@@ -9,7 +9,7 @@ function getElement(ev) {
   return element;
 }
 
-export function newsClickSignal(ev, type, index, edition) {
+export function newsClickSignal(ev, type, index) {
   const element = getElement(ev);
   let target = type;
   target = type.replace(/-/g, ''); // remove '-'' from breaking-news
@@ -18,8 +18,7 @@ export function newsClickSignal(ev, type, index, edition) {
     action: 'click',
     target,
     index,
-    element,
-    edition,
+    element
   });
 }
 
@@ -32,7 +31,7 @@ export function newsPaginationClickSignal(index) {
   });
 }
 
-export function newsHoverSignal(ev, target, index, hoverTime, edition) {
+export function newsHoverSignal(ev, target, index, hoverTime) {
   const element = getElement(ev);
   telemetry({
     type: 'home',
@@ -40,7 +39,6 @@ export function newsHoverSignal(ev, target, index, hoverTime, edition) {
     target,
     index,
     hover_time: hoverTime,
-    element,
-    edition,
+    element
   });
 }

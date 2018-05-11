@@ -1,3 +1,4 @@
+import config from '../core/config';
 import utils from '../core/utils';
 import ContextMenu from './context-menu';
 
@@ -87,7 +88,7 @@ export default class Win {
       if (selection) {
         const isFreshtab = this.window.gBrowser.currentURI.spec === config.settings.NEW_TAB_URL;
         this.pageMenu.addMenuItem({
-          label: utils.getLocalizedString('context_menu_search_item', trim(selection)),
+          label: utils.getLocalizedString('context-menu-search-item', trim(selection)),
           onclick: () => {
             const query = selection;
             const options = { openInNewTab: !isFreshtab };

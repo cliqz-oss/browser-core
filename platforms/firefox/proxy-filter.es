@@ -28,14 +28,8 @@ export default class {
     // (This option is equivalent to 'socks5h://' in curl).
     const flags = Components.interfaces.nsIProxyInfo.TRANSPARENT_PROXY_RESOLVES_HOST;
 
-    return this.pps.newProxyInfo(
-      args.type,
-      args.host,
-      args.port,
-      flags,
-      args.failoverTimeout,
-      args.failoverProxy
-    );
+    return this.pps.newProxyInfo(args.type, args.host, args.port, flags,
+                                 args.failoverTimeout, args.failoverProxy);
   }
 
   /**

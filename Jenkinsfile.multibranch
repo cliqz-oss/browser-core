@@ -17,19 +17,8 @@ def matrix = [
         'config': 'react-native.json',
     ],
     'ghostery': [
-        'config': 'ghostery.js',
+        'config': 'ghostery.json',
     ],
-    'cliqzs': [
-        'config': 'experiments/cliqzs.json',
-    ],
-    'webextension': [
-        'config': 'webextension.js',
-    ],
-    /*
-    'anolysis': [
-        'config': 'experiments/anolysis.js',
-    ],
-    */
 ]
 
 if (isIntegrationBranch) {
@@ -247,7 +236,8 @@ stage('upload docs') {
                 ]]) {
                     def s3DocPath = 's3://internal.clyqz.com/docs/browser-core'
 
-                    sh "cd /app/docs && aws s3 sync . $s3DocPath --delete"
+                    sh "aws s3 rm $s3DocPath --recursive"
+                    sh "aws s3 cp docs $s3DocPath --recursive"
                 }
             }
         }

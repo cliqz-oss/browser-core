@@ -30,7 +30,7 @@ export default background({
 
   events: {
     'notifications:new-notification': function onNewNotification() {
-      forEachWindow((window) => {
+      forEachWindow(window => {
         this.newTabButton.windowAction(window, 'lightUp');
       });
 
@@ -41,7 +41,7 @@ export default background({
       });
     },
     'notifications:notifications-cleared': function onNotificationsCleared() {
-      forEachWindow((window) => {
+      forEachWindow(window => {
         this.newTabButton.windowAction(window, 'lightDown');
       });
     },

@@ -5,9 +5,8 @@ import WebRequest, { VALID_RESPONSE_PROPERTIES, EXTRA_INFO_SPEC } from '../core/
 import Pipeline from './pipeline';
 import WebRequestContext from './webrequest-context';
 import PageStore from './page-store';
-import { installFetchSanitizer } from './fetch-sanitizer';
 import logger from './logger';
-import { isChromium, isEdge } from '../core/platform';
+import { isChromium } from '../core/platform';
 
 
 /**
@@ -50,8 +49,7 @@ function createResponse(details) {
       if (!this.requestHeaders) {
         this.requestHeaders = [...(details.requestHeaders || [])];
       }
-      const name_ = name.toLowerCase();
-      const headerIndex = this.requestHeaders.findIndex(h => h.name.toLowerCase() === name_);
+      const headerIndex = this.requestHeaders.findIndex(h => h.name === name);
       if (isChromium && !value) {
         // empty value on chromium: remove header
         if (headerIndex > -1) {
@@ -128,8 +126,6 @@ export default background({
     this.pageStore.init();
 
     this.initialized = true;
-
-    this.installGlobalHandlers();
   },
 
   unload() {
@@ -204,41 +200,13 @@ export default background({
     // can call it: `webRequestPipeline.background.onBeforeRequest(details)`.
     this[event] = listener;
 
-    const urls = [
-      'http://*/*',
-      'https://*/*',
-    ];
-
-    // For unknown reason is we listen to ws:// or wss:// on Edge, the
-    // webRequest does not work
-    if (!isEdge) {
-      urls.push(
-        'ws://*/*',
-        'wss://*/*',
-      );
-    }
-
-    if (extraInfoSpec === undefined) {
-      WebRequest[event].addListener(
-        listener,
-        { urls },
-      );
-    } else {
-      WebRequest[event].addListener(
-        listener,
-        { urls },
-        extraInfoSpec,
-      );
-    }
+    WebRequest[event].addListener(
+      listener,
+      { urls: ['<all_urls>'] },
+      extraInfoSpec,
+    );
 
     return pipeline;
-  },
-
-  installGlobalHandlers() {
-    const addHandler = (stage, opts) => {
-      this.getPipeline(stage).addPipelineStep(opts);
-    };
-    installFetchSanitizer(addHandler);
   },
 
   events: {

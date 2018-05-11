@@ -1,7 +1,7 @@
 {{#if lottoResults}}
     <div class="padded">
-      <div class="lotto white-background">
-        <p class="lotto-date">{{ local 'lotto_gewinnzahlen' }} &#8226; {{ localeDate }}</p>
+      <div class="lotto">
+        <p class="lotto-date">{{ local 'lotto-gewinnzahlen' }} &#8226; {{ localeDate }}</p>
         {{#each lottoResults}}
           <div class="row">
             <div class="lotto-item-wrapper {{ classNames }}">
@@ -38,7 +38,7 @@
             {{/if}}
           </div>
         {{/each}}
-        <p class="no-guarantee">{{ local 'no_guarantee' }}</p>
+        <p class="no-guarantee">{{ local 'no-guarantee' }}</p>
       </div>
     </div>
 {{/if}}

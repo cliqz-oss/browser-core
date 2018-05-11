@@ -1,6 +1,7 @@
 import utils from '../../core/utils';
 import console from '../../core/console';
 import { Components } from '../globals';
+import prefs from '../../core/prefs';
 
 let _provider = null;
 
@@ -22,28 +23,28 @@ function getProvider() {
 export default function getHistory(q, callback, isPrivate = false) {
   const provider = getProvider();
   let lastMatchCount = 0;
-  let searchParams = ['enable-actions', 'prohibit-autofill'];
-  if (isPrivate) {
-    searchParams.push('disable-private-actions');
-    searchParams.push('private-window');
-  }
 
-  provider.startSearch(q, searchParams.join(' '), null, {
+  provider.startSearch(q, 'enable-actions', null, {
     onSearchResult: function(ctx, result) {
       const res = [];
       // TODO: remove this check when we switch to a new mixer completely
+      const isNewSearchMode = prefs.get('searchMode', 'autocomplete') !== 'autocomplete';
       for (let i = lastMatchCount; result && i < result.matchCount; i++) {
         let style = result.getStyleAt(i);
         if (result.getValueAt(i).indexOf('https://cliqz.com/search?q=') === 0) {
           continue;
         }
 
-        if(style.includes('heuristic') || style.includes('searchengine')) {
-          // filter out "heuristic" and "searchengine" results
+        if(style.indexOf('heuristic') !== -1) {
+          // filter out "heuristic" results
           continue;
         }
 
         if(style.indexOf('switchtab') !== -1) {
+          if (isPrivate) {
+            style = style.replace('switchtab', '');
+          }
+
           try {
             let [mozAction, cleanURL] = utils.cleanMozillaActions(result.getValueAt(i));
             let label;
@@ -83,7 +84,9 @@ export default function getHistory(q, callback, isPrivate = false) {
                 result.searchResult != result.RESULT_SUCCESS_ONGOING
       });
 
-      lastMatchCount = result.matchCount;
+      if (isNewSearchMode) {
+        lastMatchCount = result.matchCount;
+      }
     }
   });
 }

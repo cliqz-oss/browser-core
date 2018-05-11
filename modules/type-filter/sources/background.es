@@ -1,13 +1,11 @@
-/* eslint func-names: 'off' */
-
-import utils from '../core/utils';
+import { utils } from '../core/cliqz';
 import background from '../core/base/background';
 
 class TypeRemover {
   constructor() {
     this.name = 'type_filter';
     this.availableTypes = [];
-    ['type1', 'type2', 'type3'].forEach((t) => {
+    ['type1', 'type2', 'type3'].forEach(t => {
       if (utils.getPref(`type_filter_${t}`, true)) {
         this.availableTypes.push(t);
       }

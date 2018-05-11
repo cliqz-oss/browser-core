@@ -1,5 +1,3 @@
-/* eslint no-console: 'off' */
-
 import utils from '../core/utils';
 import CliqzAntiPhishing from './anti-phishing';
 import background from '../core/base/background';
@@ -22,10 +20,10 @@ function updateBlackWhiteStatus(req, md5Prefix) {
       h: hour,
     };
   }
-  for (let i = 0; i < blacklist.length; i += 1) {
+  for (let i = 0; i < blacklist.length; i++) {
     blackWhiteList[md5Prefix][blacklist[i][0]] = `black:${blacklist[i][1]}`;
   }
-  for (let i = 0; i < whitelist.length; i += 1) {
+  for (let i = 0; i < whitelist.length; i++) {
     blackWhiteList[md5Prefix][whitelist[i]] = 'white';
   }
   CliqzAntiPhishing.blackWhiteList.setDirty();
@@ -37,7 +35,7 @@ function checkStatus(url, md5Prefix, md5Surfix) {
   const status = md5Surfix in bw && bw[md5Surfix].includes('black');
   if (status) {
     addDataToUrl(url, 'anti-phishing', 'block')
-      .catch(() => console.log('failed to update url', url));
+    .catch(() => console.log('failed to update url', url));
   }
   return status;
 }
@@ -58,7 +56,7 @@ export default background({
 
   actions: {
     isPhishingURL(url) {
-      if (!CliqzAntiPhishing.isAntiPhishingActive()) {
+      if(!CliqzAntiPhishing.isAntiPhishingActive()) {
         return {
           block: false,
           type: 'phishingURL',
@@ -90,23 +88,24 @@ export default background({
           block: checkStatus(url, md5Prefix, md5Surfix),
           type: 'phishingURL',
         };
+      } else {
+        return new Promise((resolve, reject) => {
+          utils.httpGet(
+            CliqzAntiPhishing.BW_URL + md5Prefix,
+            (req) => {
+              updateBlackWhiteStatus(req, md5Prefix);
+              resolve({
+                block: checkStatus(url, md5Prefix, md5Surfix),
+                type: 'phishingURL',
+              });
+            },
+            (e) => {
+              reject(e);
+            },
+            3000
+          );
+        });
       }
-      return new Promise((resolve, reject) => {
-        utils.httpGet(
-          CliqzAntiPhishing.BW_URL + md5Prefix,
-          (req) => {
-            updateBlackWhiteStatus(req, md5Prefix);
-            resolve({
-              block: checkStatus(url, md5Prefix, md5Surfix),
-              type: 'phishingURL',
-            });
-          },
-          (e) => {
-            reject(e);
-          },
-          3000
-        );
-      });
     },
 
     activator(state, url) {
@@ -126,7 +125,7 @@ export default background({
           utils.setPref('cliqz-anti-phishing-enabled', false);
           break;
         default:
-          break;
+          break
       }
     }
   },

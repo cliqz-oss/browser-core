@@ -1,0 +1,56 @@
+/* ez stock */
+.cqz-ez-stock-exchange,
+.cqz-disclaimer {
+    font-size: 12px;
+    color: #cccccc;
+}
+
+.cqz-ez-stock-exchange {
+    @extend .cqz-ellipsis;
+
+    font-size: 14px;
+}
+
+.cqz-ez-stock-trend {
+    @extend .cqz-ellipsis;
+
+    margin-top: 13px;
+    font-size: 36px;
+    line-height: 1em;
+}
+
+.cqz-ez-img-trend {
+    width: 20px;
+    height: 27px;
+    display: inline-block;
+    margin: -5px 10px 0 18px;
+}
+
+.green {
+    color: #74d463;
+}
+
+.red {
+    color: #c3043e;
+}
+
+.cliqz-stock-price-table {
+    margin: 10px 0 10px;
+    border-spacing: 1;
+    color: #999999;
+    border-collapse: collapse;
+}
+
+.cliqz-stock-price-table td {
+    @extend .cqz-ellipsis;
+
+    padding-bottom: 4px;
+}
+
+.cliqz-stock-price-td {
+    padding-left: 28px;
+}
+
+.cliqz-stock-price-td:nth-child(4):last-child {
+    padding-left: 10px;
+}

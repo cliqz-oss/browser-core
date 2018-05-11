@@ -1,3 +1,5 @@
+
+
 $themes: (
     light: (
         base: (
@@ -55,16 +57,10 @@ $themes: (
             middle-box-bg-color: rgba(255, 255, 255, 0.2),
             middle-box-content-color: #333,
         ),
-        top-notifications: (
-            close-bg: url(../images/top-message-close.svg) no-repeat center center,
-        ),
         offer-middle-notifications: (
-            offer-mn-color: #494949,
+            offer-mn-color: #333,
             offer-mn-code-border-color: #c1c1c1,
         ),
-        offer-middle-feedback: (
-            offer-mn-color: #494949,
-        )
     ),
 
     dark: (
@@ -123,15 +119,9 @@ $themes: (
             middle-box-bg-color: rgba(255, 255, 255, 0.2),
             middle-box-content-color: #fff,
         ),
-        top-notifications: (
-            close-bg: url(../images/top-message-close.svg) no-repeat center center,
-        ),
         offer-middle-notifications: (
-            offer-mn-color: #494949,
+            offer-mn-color: #fff,
             offer-mn-code-border-color: #c1c1c1,
         ),
-        offer-middle-feedback: (
-            offer-mn-color: #494949,
-        )
     )
 );

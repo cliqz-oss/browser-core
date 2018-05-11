@@ -1,5 +1,6 @@
-/* global $, Handlebars */
-import QRCode from 'qrcodejs';
+import CliqzHandlebars from 'handlebars';
+import $ from 'jquery';
+import QRCode from 'qrcode';
 
 const images = {
   pairing_status_disconnected: './images/pairing-status-disconnected.png',
@@ -8,17 +9,6 @@ const images = {
 };
 
 export default class PairingUI {
-  isPreferencesPage() {
-    return this.window.parent.location.href.indexOf('about:preferences') === 0;
-  }
-  isConnectSection() {
-    return this.window.parent.location.hash === '#connect';
-  }
-  mustStartPairing() {
-    // If we are in about:preferences, start pairing only for Connect section.
-    // Otherwise (in video downloader), always start pairing.
-    return !this.isPreferencesPage() || this.isConnectSection();
-  }
   constructor(window, PeerComm, telemetry) {
     this.i18n = window.chrome.i18n.getMessage.bind(window.chrome.i18n);
     this.document = window.document;
@@ -35,10 +25,7 @@ export default class PairingUI {
     this.onHashChange();
 
     this.connectionChecker = setInterval(() => {
-      if (this.mustStartPairing()) {
-        this.startPairing();
-        PeerComm.checkMasterConnection().catch(() => {});
-      }
+      PeerComm.checkMasterConnection().catch(() => {});
     }, PairingUI.checkInterval);
 
     // Pairing events
@@ -57,7 +44,7 @@ export default class PairingUI {
     this.onpaired = this.renderPaired.bind(this);
     this.onunpaired = ({ isUnpaired }) => {
       this.renderUnpaired();
-      if (isUnpaired && this.mustStartPairing()) {
+      if (isUnpaired) {
         this.startPairing();
       }
     };
@@ -97,14 +84,14 @@ export default class PairingUI {
   compileTemplate() {
     return Promise.all(this.TEMPLATE_NAMES.map(this.fetchTemplate.bind(this))).then((templates) => {
       templates.forEach((tpl) => {
-        this.TEMPLATE_CACHE[tpl.name] = Handlebars.compile(tpl.html);
+        this.TEMPLATE_CACHE[tpl.name] = CliqzHandlebars.compile(tpl.html);
       });
       return Promise.resolve();
     });
   }
 
   updatePairingStatus(status) {
-    $('#page-container').attr('data-state', status);
+    $('#page-container').attr('state', status);
   }
 
   updateConnectionInfo(isMasterConnected, deviceName, masterName) {
@@ -115,12 +102,12 @@ export default class PairingUI {
     if (isMasterConnected) {
       $('#connection-status-img').attr('src', images.pairing_status_active);
       $('#connection-status-text').attr('class', 'connected');
-      $('#connection-status-text').text(this.i18n('pairing_online'));
+      $('#connection-status-text').text(this.i18n('pairing-online'));
       $('#on-disconnected-tip').css('display', 'none');
     } else {
       $('#connection-status-img').attr('src', images.pairing_status_disconnected);
       $('#connection-status-text').attr('class', 'disconnected');
-      $('#connection-status-text').text(this.i18n('pairing_offline'));
+      $('#connection-status-text').text(this.i18n('pairing-offline'));
       $('#on-disconnected-tip').css('display', 'block');
     }
   }
@@ -150,11 +137,6 @@ export default class PairingUI {
   }
 
   renderUnpaired() {
-    if (this.qr) {
-      this.qr.clear();
-      delete this.qr;
-      $('#qrcode').empty();
-    }
     this.updatePairingStatus('unpaired');
   }
 
@@ -169,28 +151,28 @@ export default class PairingUI {
     };
 
     data.i18n = {
-      title: this.i18n('pairing_title'),
-      instructionsTitle: this.i18n('pairing_instructions_title'),
-      instructionsAndroid: this.i18n('pairing_instructions_playstore'),
-      instructionsIOs: this.i18n('pairing_instructions_appstore'),
+      title: this.i18n('pairing-title'),
+      instructionsTitle: this.i18n('pairing-instructions-title'),
+      instructionsAndroid: this.i18n('pairing-instructions-playstore'),
+      instructionsIOs: this.i18n('pairing-instructions-appstore'),
 
-      videoDownloaderTitle: this.i18n('pairing_video_title'),
-      receiveTabTitle: this.i18n('pairing_receive_tab_title'),
-      sendTabTitle: this.i18n('pairing_send_tab_title'),
+      videoDownloaderTitle: this.i18n('pairing-video-title'),
+      receiveTabTitle: this.i18n('pairing-receive-tab-title'),
+      sendTabTitle: this.i18n('pairing-send-tab-title'),
 
-      connectedTitle: this.i18n('pairing_status_title'),
-      pairingBrowserPairWith: this.i18n('pairing_browser_pair_with'),
-      onDisconnectedTip: this.i18n('pairing_on_disconnected_tip'),
-      contactSupport: this.i18n('pairing_contact_support'),
-      contactLearnMore: this.i18n('pairing_contact_learn_more'),
+      connectedTitle: this.i18n('pairing-status-title'),
+      pairingBrowserPairWith: this.i18n('pairing-browser-pair-with'),
+      onDisconnectedTip: this.i18n('pairing-on-disconnected-tip'),
+      contactSupport: this.i18n('pairing-contact-support'),
+      contactLearnMore: this.i18n('pairing-contact-learn-more'),
 
-      pairingScanTitle: this.i18n('pairing_scan_title'),
-      pairingErrorMessage: this.i18n('pairing_error_message'),
+      pairingScanTitle: this.i18n('pairing-scan-title'),
+      pairingErrorMessage: this.i18n('pairing-error-message'),
 
-      pairingAllFeatures: this.i18n('pairing_all_features_title'),
-      pairingEnabledFeatures: this.i18n('pairing_enabled_features_title'),
+      pairingAllFeatures: this.i18n('pairing-all-features-title'),
+      pairingEnabledFeatures: this.i18n('pairing-enabled-features-title'),
 
-      unpair: this.i18n('pairing_unpair'),
+      unpair: this.i18n('pairing-unpair'),
     };
 
     $('#content').html(this.TEMPLATE_CACHE.template(data));
@@ -226,8 +208,7 @@ export default class PairingUI {
   }
 
   onHashChange() {
-    if (this.mustStartPairing()) {
-      this.startPairing();
+    if (this.window.parent.location.hash === '#connect') {
       this.telemetry({
         type: 'settings',
         version: 1,

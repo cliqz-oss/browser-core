@@ -1,26 +1,27 @@
+// FIXME: remove cirtular dependency
+import CliqzSecureMessage from './index';
+
 /*
 Function to clean string for calculating route hash
 */
-const punctuation = '!"\'()*,-./:;?[\\]^_`{|}~%$=&+#';
-const regex = new RegExp(`[${punctuation}]`, 'g');
-function cleanStr(_s) {
+var punctuation = '!"\'()*,-./:;?[\\]^_`{|}~%$=&+#'
+var regex =  new RegExp("[" + punctuation + "]","g");
+function cleanStr(s){
   // Replace all spaces
 
   // Because in some telemetry message we only create uniqu based on anti-duplicate.
   // Anti-duplicate is not a string, hence converting it to string.
-  let s = `${_s}`;
+  s = '' + s;
 
   // Decode uri component
   // Need to find lua equivalent
 
-  try {
+  try{
     s = decodeURIComponent(s);
-  } catch (e) {
-    // pass
-  }
+  }catch(e){};
 
 
-  s = s.replace(/\s+/g, '');
+  s = s.replace(/\s+/g,'');
 
   // Convert to lower
   s = s.toLowerCase();
@@ -29,32 +30,33 @@ function cleanStr(_s) {
   s = s.trim();
 
   // Clean the URL
-  s = s.replace(/^http:\/\//, '');
-  s = s.replace(/^https:\/\//, '');
-  s = s.replace(/^www\./, '');
+  s = s.replace(/^http:\/\//, "");
+  s = s.replace(/^https:\/\//, "");
+  s = s.replace(/^www\./,'');
 
 
   // Remove all punctuation marks
-  s = s.replace(regex, '');
+  s = s.replace(regex,'');
 
   return s;
+
 }
 
 function getField(obj, path) {
-  return path.split(/[.[\]]+/).filter(x => x).reduce((o, i) => o[i], obj);
+  return path.split(/[\.\[\]]+/).filter(x => x).reduce((o, i) => o[i], obj);
 }
 
 function orderedStringify(t, res, onlyKeys) {
   if (!t || typeof t !== 'object') {
     if (t === undefined) {
-      throw new Error('Found undefined field when trying to calculate msg routehash');
+      throw 'Found undefined field when trying to calculate msg routehash';
     }
     res.push(cleanStr(t));
   } else {
-    const keys = Object.keys(t);
+    let keys = Object.keys(t);
     keys.sort();
-    const isArray = Array.isArray(t);
-    keys.forEach((k) => {
+    let isArray = Array.isArray(t);
+    keys.forEach(k => {
       if (!isArray) {
         res.push(cleanStr(k));
       }
@@ -65,15 +67,44 @@ function orderedStringify(t, res, onlyKeys) {
   }
 }
 
-/* This method will return the string based on mapping of which keys to use to hash for routing.
-*/
-export function getRouteHash(obj, sourceMap) {
-  const action = obj.action;
-  const keys = sourceMap[action].keys;
-  const staticKeys = sourceMap[action].static || [];
-  const res = [];
+function getRouteHashStr(obj, sourceMap) {
+  let action = obj.action;
+  let keys = sourceMap[action].keys;
+  let staticKeys = sourceMap[action].static||[];
+  let res = [];
   keys.forEach(k => orderedStringify(getField(obj, k), res, staticKeys.some(sk => k.endsWith(sk))));
   return res.join('');
+}
+
+/* This method will return the string based on mapping of which keys to use to hash for routing.
+*/
+export function getRouteHash(msg){
+	return getRouteHashStr(msg, CliqzSecureMessage.sourceMap);
+}
+
+/*
+Converts given array to generator like object.
+*/
+function trkGen(trk) {
+  var trk = trk;
+  var idx = -1;
+  return {
+    next: function() {
+      idx += 1
+      if(idx < trk.length){
+        return{
+          value: idx, // Return the first yielded value.
+          done: false
+        }
+      }
+      else{
+        return{
+         value: undefined, // Return undefined.
+         done: true
+        }
+      }
+    }
+  }
 }
 
 /**
@@ -87,15 +118,15 @@ export function getRouteHash(obj, sourceMap) {
  * @returns string with payload created.
 */
 
-export function createPayloadBlindSignature(uPK, bm1, bm2, bm3, sig) {
-  const payload = {};
-  payload.uPK = uPK;
-  payload.bm1 = bm1;
-  payload.bm2 = bm2;
-  payload.bm3 = bm3;
-  payload.sig = sig;
-  return payload;
-}
+export function createPayloadBlindSignature(uPK, bm1, bm2, bm3, sig){
+    var payload = {};
+    payload["uPK"] = uPK;
+    payload["bm1"] = bm1;
+    payload["bm2"] = bm2;
+    payload["bm3"] = bm3;
+    payload["sig"] = sig;
+    return payload;
+ }
 
 /**
  * Method to create payload to send to proxy.
@@ -109,15 +140,16 @@ export function createPayloadBlindSignature(uPK, bm1, bm2, bm3, sig) {
  * @returns string with payload created.
  */
 
-export function createPayloadProxy(uPK, suPK, mP, dmC, bs1, bs2, bs3, sig) {
-  const payload = {};
-  payload.uPK = uPK;
-  payload.suPK = suPK;
-  payload.mP = mP;
-  payload.dmC = dmC;
-  payload.bs1 = bs1;
-  payload.bs2 = bs2;
-  payload.bs3 = bs3;
-  payload.sig = sig;
-  return payload;
+export function createPayloadProxy(uPK, suPK, mP, dmC, bs1, bs2, bs3, sig){
+    var payload = {};
+    payload["uPK"] = uPK;
+    payload["suPK"] = suPK;
+    payload["mP"] = mP;
+    payload["dmC"] = dmC;
+    payload["bs1"] = bs1;
+    payload["bs2"] = bs2;
+    payload["bs3"] = bs3;
+    payload["sig"] = sig;
+    return payload;
 }
+

@@ -10,42 +10,43 @@ import Evented from '../core/mixins/evented';
 
 
 const AVAILABLE_DOMAINS = {
-  // 'gmail.com': {
-  //   providerName: 'gmail',
-  //   config: {},
-  //   schedule: '*/1 *',
-  // },
+  //'gmail.com': {
+    //providerName: 'gmail',
+    //config: {},
+    //schedule: '*/1 *',
+  //},
   'mail.google.com': {
     providerName: 'gmail',
     config: {},
     schedule: utils.getPref('gmailNotificationsInterval', '*/30 *'),
   },
-  // 'twitter.com': {
-  //   providerName: 'pin-tab',
-  //   config: {
-  //     domain: 'twitter.com',
-  //     selector: '.with-count .count-inner',
-  //     attribute: 'innerText',
-  //   },
-  //   schedule: '*/1 *',
-  // },
-  // 'www.facebook.com': {
-  //   providerName: 'pin-tab',
-  //   config: {
-  //     domain: 'www.facebook.com',
-  //     selector: '[data-tooltip-content="Messages"] span span',
-  //     attribute: 'innerText',
-  //   },
-  //   schedule: '*/1 *',
-  // },
+  //'twitter.com': {
+    //providerName: 'pin-tab',
+    //config: {
+      //domain: 'twitter.com',
+      //selector: '.with-count .count-inner',
+      //attribute: 'innerText',
+    //},
+    //schedule: '*/1 *',
+  //},
+  //'www.facebook.com': {
+    //providerName: 'pin-tab',
+    //config: {
+      //domain: 'www.facebook.com',
+      //selector: '[data-tooltip-content="Messages"] span span',
+      //attribute: 'innerText',
+    //},
+    //schedule: '*/1 *',
+  //},
 };
 
 const AVAILABLE_PROVIDERS = {
-  gmail: GmailProvider,
+  'gmail': GmailProvider,
   'pin-tab': PinTabProvider,
 };
 
 export default Evented(class {
+
   constructor() {
     this.storage = new Storage();
     this.cron = new Cron();
@@ -88,7 +89,7 @@ export default Evented(class {
   notifications(domains = []) {
     const allWatchedDomains = new Set(this.domainList());
     const allAvailabledDomains = new Set(Object.keys(this.availableDomains()));
-    const self = this;
+    var self = this;
     const watchedDomains = domains.filter(
       domain => allWatchedDomains.has(domain) && (domain in self.availableDomains())
     );
@@ -99,12 +100,13 @@ export default Evented(class {
     );
 
     const notifications = this.storage.notifications(watchedDomains);
-    const availableNotifications = availableDomains.reduce((hash, domain) =>
-      Object.assign({}, hash, {
+    const availableNotifications = availableDomains.reduce((hash, domain) => {
+      return Object.assign({}, hash, {
         [domain]: {
           status: 'available',
         },
-      }), Object.create(null));
+      });
+    }, Object.create(null));
     return Object.assign({}, notifications, availableNotifications);
   }
 
@@ -117,9 +119,9 @@ export default Evented(class {
   activateDomain(domain) {
     const provider = this.getProvider(domain);
     provider.activate();
-    return this.updateDomain(domain).then(() =>
-      this.updateUnreadStatus()
-    );
+    return this.updateDomain(domain).then(() => {
+      return this.updateUnreadStatus();
+    });
   }
 
   getProviderCount(domain) {
@@ -129,40 +131,40 @@ export default Evented(class {
     return new Promise((resolve, reject) => {
       provider.count().then((count) => {
         console.log('Notification', `get notifications for ${domain}`);
-        return resolve(count);
-      }).catch((e) => {
+        return resolve(count)
+      }).catch(e => {
         this.storage.updateDomain(domain, {
           unread: false,
           status: 'inaccessible',
           error: e
         });
         console.error(`!!notifications for domain "${domain}" fail`, e);
-        return reject(e);
+        return reject(e)
       });
     });
   }
 
   updateDomain(domain, newCount, oldData) {
     const oldCount = (oldData && oldData.count) ? oldData.count : 0;
-    if (!oldData) {
+    if(!oldData) {
       this.storage.saveDomain(domain, {
         count: oldCount,
         status: 'enabled',
         error: null,
       });
     }
-    if (newCount !== oldCount || (oldData && oldData.status !== 'enabled')) {
+    if (newCount !== oldCount || oldData && oldData.status !== 'enabled') {
       this.storage.updateDomain(domain, {
-        count: newCount,
-        status: 'enabled',
-        error: null,
-        unread: newCount > oldCount
-      });
+         count: newCount,
+         status: 'enabled',
+         error: null,
+         unread: newCount > oldCount
+       });
       this.updateUnreadStatus(domain, newCount);
     }
 
-    if (oldData && oldData.status === 'inaccessible') {
-      // broadcast user has logged in again
+    if(oldData && oldData.status === 'inaccessible') {
+      //broadcast user has logged in again
       this.publishEvent('notifications-accessible', domain, newCount, newCount > oldCount);
     }
   }
@@ -172,10 +174,10 @@ export default Evented(class {
     const task = this.cron.schedule(
       () => {
         const oldCount = this.storage.getDomainData(domain);
-        return this.getProviderCount(domain).then((newCount) => {
+        return this.getProviderCount(domain).then( newCount => {
           this.updateDomain(domain, newCount, oldCount);
-        }).catch(() => {
-          // broadcast user is loggeout out
+        }).catch( e => {
+          //broadcast user is loggeout out
           this.publishEvent('notifications-inaccessible', domain);
         });
       },
@@ -186,10 +188,10 @@ export default Evented(class {
 
   refresh(domain) {
     const oldCount = this.storage.getDomainData(domain);
-    return this.getProviderCount(domain).then((newCount) => {
+    return this.getProviderCount(domain).then( newCount => {
       this.updateDomain(domain, newCount, oldCount);
-    }).catch(() => {
-      // broadcast user is loggeout out
+    }).catch( e => {
+      //broadcast user is loggeout out
       this.publishEvent('notifications-inaccessible', domain);
     });
   }
@@ -218,13 +220,13 @@ export default Evented(class {
 
   addDomain(domain) {
     this.storage.addWatchedDomain(domain);
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       this.getProviderCount(domain).then((count) => {
         this.updateDomain(domain, count);
         this.createSchedule(domain);
         return resolve();
-      }).catch((e) => {
-        console.log('prompt user to login', e);
+      }).catch(e => {
+        console.log("promt user to login", e)
         return resolve(e);
       });
     });

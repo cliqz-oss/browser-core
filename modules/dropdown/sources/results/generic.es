@@ -1,61 +1,46 @@
-import fastUrlParser from '../../core/fast-url-parser';
-import BaseResult, { Subresult } from './base';
+import utils from '../../core/utils';
+import console from '../../core/console';
+
+import BaseResult, { getDeepResults } from './base';
 import LocalResult, { ShareLocationButton } from './local';
 import { OfferResult } from './offer';
 import NewsResult from './news';
 import VideoResult from './video';
 
-function getDeepResults(rawResult, type) {
-  const deepResults = (rawResult.data && rawResult.data.deepResults) || [];
-  const deepResultsOfType = deepResults.find(dr => dr.type === type) || {
-    links: [],
-  };
-  return deepResultsOfType.links || [];
-}
-
-class ImageResult extends Subresult {
+class ImageResult extends BaseResult {
   get thumbnail() {
     return this.rawResult.thumbnail;
   }
 }
 
-class InternalResult extends Subresult {
+class InternalResult extends BaseResult {
 }
 
-class SocialResult extends Subresult {
+class SocialResult extends BaseResult {
 }
 
-class AnchorResult extends Subresult {
+class AnchorResult extends BaseResult {
 }
 
 export default class GenericResult extends BaseResult {
-  constructor(rawResult, resultTools) {
-    super(rawResult, resultTools);
+  constructor(rawResult, allResultsFlat, { offers } = {}) {
+    super(rawResult, allResultsFlat);
     this.internalResultsLimit = 4;
 
-    this.topResultProps = {
-      kind: rawResult.kind,
-      type: rawResult.type,
-      provider: rawResult.provider
-    };
-
-    const offers = this.resultTools.assistants.offers;
     if (offers) {
       this.offerStyle = offers.organicStyle;
       this.offerEnabled = offers.isEnabled;
-      this.offerLocationEnabled = offers.locationEnabled;
     }
   }
 
-  // cannot limit here - inheriting results may like to have filtering
+   // cannot limit here - inheriting results may like to have filtering
   get internalResults() {
     if (this.isAskingForLocation) { // Hide these buttons when asking for location sharing
       return [];
     }
     const deepLinks = getDeepResults(this.rawResult, 'buttons');
 
-    return deepLinks.map(({ url, title }) => new InternalResult(this, {
-      ...this.topResultProps,
+    return deepLinks.map(({ url, title }) => new InternalResult({
       url,
       title,
       text: this.query,
@@ -65,8 +50,7 @@ export default class GenericResult extends BaseResult {
   get socialResults() {
     const deepLinks = getDeepResults(this.rawResult, 'social');
 
-    return deepLinks.map(({ url, image }) => new SocialResult(this, {
-      ...this.topResultProps,
+    return deepLinks.map(({ url, image }) => new SocialResult({
       url,
       image,
       text: this.query,
@@ -75,8 +59,7 @@ export default class GenericResult extends BaseResult {
 
   get imageResults() {
     const deepLinks = getDeepResults(this.rawResult, 'images');
-    return deepLinks.map(({ image, extra }) => new ImageResult(this, {
-      ...this.topResultProps,
+    return deepLinks.map(({ image, extra }) => new ImageResult({
       url: (extra && extra.original_image) || image,
       thumbnail: image,
       text: this.query,
@@ -85,8 +68,7 @@ export default class GenericResult extends BaseResult {
 
   get anchorResults() {
     const deepLinks = getDeepResults(this.rawResult, 'simple_links');
-    return deepLinks.map(({ url, title }) => new AnchorResult(this, {
-      ...this.topResultProps,
+    return deepLinks.map(({ url, title }) => new AnchorResult({
       url,
       title,
       text: this.query,
@@ -95,8 +77,7 @@ export default class GenericResult extends BaseResult {
 
   get newsResults() {
     const deepLinks = getDeepResults(this.rawResult, 'news');
-    return deepLinks.map(({ url, title, extra = {} } = {}) => new NewsResult(this, {
-      ...this.topResultProps,
+    return deepLinks.map(({ url, title, extra = {} } = {}) => new NewsResult({
       url,
       domain: extra.domain,
       title,
@@ -105,8 +86,8 @@ export default class GenericResult extends BaseResult {
       creation_time: extra.creation_timestamp,
       tweet_count: extra.tweet_count,
       showLogo: this.url && (
-        fastUrlParser.parse(this.url).hostname.replace(/^(www\.)/, '') !==
-        fastUrlParser.parse(url).hostname.replace(/^(www\.)/, '')
+        utils.getDetailsFromUrl(this.url).domain !==
+        utils.getDetailsFromUrl(url).domain
       ),
       text: this.query,
     }));
@@ -114,8 +95,7 @@ export default class GenericResult extends BaseResult {
 
   get videoResults() {
     const deepLinks = getDeepResults(this.rawResult, 'videos');
-    return deepLinks.map(({ url, title, extra }) => new VideoResult(this, {
-      ...this.topResultProps,
+    return deepLinks.map(({ url, title, extra }) => new VideoResult({
       url,
       title,
       thumbnail: extra.thumbnail,
@@ -138,7 +118,7 @@ export default class GenericResult extends BaseResult {
 
   get isAskingForLocation() {
     const extra = this.rawResult.data.extra || {};
-    return (extra.no_location || false) && this.resultTools.assistants.location.isAskingForLocation;
+    return (extra.no_location || false) && this.actions.locationAssistant.isAskingForLocation;
   }
 
   get selectableResults() {
@@ -163,7 +143,7 @@ export default class GenericResult extends BaseResult {
   }
 
   get shareLocationButtons() {
-    const locationAssistant = this.resultTools.assistants.location;
+    const locationAssistant = this.actions.locationAssistant;
 
     if (!this._shareLocationButtons) {
       this._shareLocationButtons = !this.isAskingForLocation ? [] :
@@ -171,18 +151,17 @@ export default class GenericResult extends BaseResult {
           let additionalClassName = '';
           if (action.actionName === 'allowOnce') {
             additionalClassName = 'location-allow-once';
-          } else if (action.actionName === 'allow') {
-            additionalClassName = 'location-always-show';
           }
 
-          const result = new ShareLocationButton(this, {
+          const result = new ShareLocationButton({
             title: action.title,
             url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: action.actionName })}`,
             text: this.rawResult.text,
             className: additionalClassName,
-            onButtonClick: (actionName) => {
-              locationAssistant[actionName](this.query, this.rawResult)
-                .then(({ snippet, locationState }) => {
+            locationAssistant,
+            onButtonClick: () => {
+              this.actions.getSnippet(this.query, this.rawResult)
+                .then((snippet) => {
                   const newRawResult = Object.assign({}, this.rawResult);
                   newRawResult.data.extra = Object.assign(
                     {},
@@ -190,14 +169,19 @@ export default class GenericResult extends BaseResult {
                     snippet.extra,
                   );
 
-                  // Update Location assistante state
-                  Object.assign(this.resultTools.assistants.location, locationState);
-
-                  const newResult = new this.constructor(newRawResult, this.resultTools);
-                  this.resultTools.actions.replaceResult(this, newResult);
-                });
+                  const newResult = new this.constructor(newRawResult, [], {
+                    offers: {
+                      isEnabled: this.offerEnabled,
+                      organicStyle: this.offerStyle,
+                    }
+                  });
+                  newResult.actions = this.actions;
+                  this.actions.replaceResult(this, newResult);
+                })
+                .catch(console.error);
             }
           });
+          result.actions = this.actions;
 
           return result;
         });
@@ -211,32 +195,29 @@ export default class GenericResult extends BaseResult {
       return null;
     }
 
-    return new LocalResult(this, {
+    const result = new LocalResult({
       extra,
       text: this.query,
     });
+
+    result.actions = this.actions;
+    return result;
   }
 
   get offerResult() {
-    if (this._offerResult) {
-      return this._offerResult;
-    }
-
     const extra = this.rawResult.data.extra || {};
     const offerData = extra.offers_data || {};
-
-    if (this.isAd || !offerData.is_injected) {
+    if (this.isAd || !offerData.is_injected || !this.offerEnabled) {
       return null;
     }
 
-    const result = new OfferResult(this, {
+    const result = new OfferResult({
       offerData,
       showThumbnail: this.offerStyle === 'rich',
       text: this.query,
     });
 
-    this._offerResult = result;
-
+    result.actions = this.actions;
     return result;
   }
 }

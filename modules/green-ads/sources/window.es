@@ -1,9 +1,9 @@
 import utils from '../core/utils';
 import events from '../core/events';
 
-import { getGreenadsState,
-  toggleGreenAdsPref,
-  GREENADS_STATE } from './background';
+import { getGreenadsState
+       , toggleGreenAdsPref
+       , GREENADS_STATE } from './background';
 import logger from './logger';
 
 

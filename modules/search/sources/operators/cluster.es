@@ -1,44 +1,16 @@
 import { clean, getMainLink } from './normalize';
-import { isAutocompletable } from './results/utils';
 
 const group = (a, b) =>
   a.set(b.domain, [...(a.get(b.domain) || []), b]);
 
-// based https://stackoverflow.com/a/1917041
-const sharedStart = (array) => {
-  const A = array.concat().sort();
-  const a1 = A[0];
-  const a2 = A[A.length - 1];
-  const L = a1.length;
-  let i = 0;
-  while (i < L && a1.charAt(i) === a2.charAt(i)) {
-    i += 1;
-  }
-  return a1.substring(0, i);
-};
-
-const extractCommonPrefix = (links) => {
-  const paths = links
-    .map(getMainLink)
-    .filter(Boolean)
-    .map(r => r.href);
-  return sharedStart(paths);
-};
-
-const makeHeader = (domain, query, scheme = 'http', provider) => {
-  const url = `${scheme}://${domain}/`;
-  return clean({
-    title: domain,
-    url,
-    text: query,
-    provider,
-    meta: {
-      level: 0,
-      type: 'main',
-      isAutocompletable: isAutocompletable(query, url),
-    },
-  });
-};
+const makeHeader = (domain, scheme = 'http') => clean({
+  title: domain,
+  url: `${scheme}://${domain}`,
+  meta: {
+    level: 0,
+    type: 'main',
+  },
+});
 
 // TODO: cluster by subdomains (e.g., maps.google.com)
 // TODO: set max. domain count for clustering
@@ -50,7 +22,7 @@ const makeHeader = (domain, query, scheme = 'http', provider) => {
 const cluster = (({ results, ...response }) => {
   const clustered = Array
     .from(results
-      .map(result => ({ ...result, domain: getMainLink(result).meta.hostAndPort }))
+      .map(result => ({ ...result, domain: getMainLink(result).meta.domain }))
       .reduce(group, new Map())
       .entries()
     )
@@ -59,47 +31,18 @@ const cluster = (({ results, ...response }) => {
         return grouped[0];
       }
 
-      const prefix = extractCommonPrefix(grouped);
-      let main = grouped
-        .find(result => getMainLink(result).url === prefix);
-
-      if (!main) {
-        main = grouped
-          .find(result => getMainLink(result).meta.url === domain);
-      }
-
+      const main = grouped
+        .find(result => getMainLink(result).meta.url === domain);
       const isHttps = grouped
         .every(result => getMainLink(result).url.startsWith('https'));
       // TODO: can we use HTTPs everywhere to determine if a domain supports https?
       const scheme = isHttps ? 'https' : 'http';
       // TODO: there is a chance that the domain on its own does not exist
       //       (in particular without 'www')
-      const query = response.query;
-
-      let header;
-
-      if (main) {
-        // do not mutate original result but deep clone
-        const mainLink = getMainLink(main);
-        header = {
-          ...mainLink,
-          extra: {
-            ...mainLink.extra,
-          },
-          meta: {
-            ...mainLink.meta,
-          },
-          kind: [...mainLink.kind],
-        };
-      }
-
-      if (!header) {
-        header = makeHeader(domain, query, scheme, response.provider);
-      }
-
-      header.kind = ['C', ...header.kind];
-
-      const rest = grouped.filter(result => result !== main);
+      const header = (main && getMainLink(main)) || makeHeader(domain, scheme);
+      // TODO: set `kind`
+      const rest = grouped
+        .filter(result => getMainLink(result).meta.url !== domain);
 
       return {
         links: [
@@ -112,9 +55,7 @@ const cluster = (({ results, ...response }) => {
             .map(getMainLink)
             .map(link => ({
               ...link,
-              kind: ['C', ...link.kind],
               meta: {
-                ...link.meta,
                 level: 1,
                 type: 'history',
               }

@@ -7,7 +7,6 @@
     $news-box-height,
     $news-box-max-width,
     $news-font-size,
-    $news-box-flex-grow,
 
     $news-dash-span-bg-color,
     $news-dash-span-bg-color-active,
@@ -78,7 +77,7 @@
                 text-align: left;
 
                 .box {
-                    flex-grow: $news-box-flex-grow;
+                    flex: 1;
                     margin-left: $news-margin;
                     margin-right: $news-margin;
                     height: $news-box-height;

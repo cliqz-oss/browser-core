@@ -1,115 +1,101 @@
-/* eslint-disable no-param-reassign */
-
 /*
  * This module provides misc functions related to the FF history database.
  */
 
 import utils from '../core/utils';
-import Defer from '../core/app/defer';
+import CLIQZEnvironment from './environment';
 import { Components } from './globals';
 import PlacesUtils from './places-utils';
 
-const { classes: Cc, interfaces: Ci } = Components;
+const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
-const bookmarkService = Cc['@mozilla.org/browser/nav-bookmarks-service;1'].getService(Ci.nsINavBookmarksService);
+var bookmarkService = Cc["@mozilla.org/browser/nav-bookmarks-service;1"].getService(Ci.nsINavBookmarksService);
 
-function getUrlVariations(url) {
-  const match = url.match(/^((?:http)|(?:https))(:\/\/.*)$/i);
-  if (!match || match.length <= 2) {
-    return [url];
-  }
-  return [
-    `http${match[2]}`,
-    `https${match[2]}`,
-  ];
-}
-
-const CliqzHistoryManager = {
-  init() {
+var CliqzHistoryManager = {
+  init: function() {
   },
-  unload() {
+  unload: function() {
   },
-  getStats(callback) {
+  getStats: function(callback) {
     let historysize = 0;
-    const today = utils.getDay();
+    let daysVisited = {};
+    let visitedDomainOn = {};
+    let visitedSubDomain = {};
+    let today = utils.getDay();
     let history = today;
 
     this.PlacesInterestsStorage
-      ._execute(
-        'SELECT count(*) cnt, MIN(v.visit_date) first ' +
-        'FROM moz_historyvisits v ' +
-        'JOIN moz_places h ' +
-        'ON h.id = v.place_id ' +
-        'WHERE h.hidden = 0 AND h.visit_count > 0 ',
-        ['cnt', 'first'],
-        (result) => {
-          try {
-            history = Math.floor(result.first / 86400000000);
-            historysize = result.cnt;
-          } catch (ex) {
-            // empty
+        ._execute(
+          'SELECT count(*) cnt, MIN(v.visit_date) first ' +
+          'FROM moz_historyvisits v ' +
+          'JOIN moz_places h ' +
+          'ON h.id = v.place_id ' +
+          'WHERE h.hidden = 0 AND h.visit_count > 0 ',
+          ['cnt', 'first'],
+          function(result) {
+            try {
+              history = Math.floor(result.first / 86400000000);
+              historysize = result.cnt;
+            }
+            catch (ex) {}
           }
-        }
-      )
-      .then(() => {
-        if (utils) {
-          callback({
-            size: historysize,
-            days: utils.getDay() - history
-          });
-        }
-      });
+        )
+        .then(function() {
+          if (utils) {
+            callback({
+              size: historysize,
+              days: utils.getDay() - history
+            });
+          }
+        });
   },
   // Extract earliest and latest entry of Firefox history
-  historyTimeFrame(callback) {
-    let min;
-    let max;
+  historyTimeFrame: function(callback) {
+    var history = [];
+    var min, max;
     this.PlacesInterestsStorage._execute(
       'SELECT min(last_visit_date) as min_date, max(last_visit_date) as max_date FROM moz_places',
       ['min_date', 'max_date'],
-      (result) => {
+      function(result) {
         try {
-          min = parseInt(result.min_date / 1000, 10);
-          max = parseInt(result.max_date / 1000, 10);
-        } catch (ex) {
-          // empty
-        }
+          min = parseInt(result.min_date / 1000);
+          max = parseInt(result.max_date / 1000);
+        } catch (ex) {}
       }
     )
-      .then(() => {
-        callback(min, max);
-      });
+    .then(function() {
+      callback(min, max);
+    });
   },
   // moz_inputhistory records queries-to-URL mappings to adapt history
   // results to a user's query behavior; moz_inputhistory would be automatically
   // updated by Firefox's Places system if the dropdown was not overidden--
   // thus, we have to update moz_inputhistory manually whenever the user
   // selects a page from history or autocomplete
-  updateInputHistory(input, url) {
-    if (url.indexOf('://') === -1) {
-      url = `http://${url}`;
-    }
+  updateInputHistory: function(input, url) {
+    if (url.indexOf('://') == -1)
+        url = 'http://' + url;
 
     // copied from http://mxr.mozilla.org/mozilla-central/source/toolkit/components/places/nsNavHistory.cpp#4525
-    const sql =
+    var sql =
         'INSERT OR REPLACE INTO moz_inputhistory ' +
         'SELECT h.id, IFNULL(i.input, :input_text), IFNULL(i.use_count, 0) * .9 + 1 ' +
         'FROM moz_places h ' +
         'LEFT JOIN moz_inputhistory i ON i.place_id = h.id AND i.input = :input_text ' +
         'WHERE url = :page_url ';
-    utils.setTimeout(() => {
+    utils.setTimeout(function() {
       CliqzHistoryManager.PlacesInterestsStorage
         ._execute(
           sql,
           // no results for INSERT
           [],
-          () => { },
-          {
-            input_text: input,
-            page_url: url
-          }
+          function(results) { },
+            {
+              input_text: input,
+              page_url: url
+            }
         )
-        .then(() => {
+        .then(function() {
           // utils.log('updated moz_inputhistory', 'CLIQZ.HISTORY_MANAGER');
         });
     },
@@ -118,155 +104,151 @@ const CliqzHistoryManager = {
     5000);
   },
   // Update the title of a page in the FF history database
-  updatePageTitle(url, title) {
-    if (url.indexOf('://') === -1) {
-      url = `http://${url}`;
-    }
+  updatePageTitle: function(url, title) {
+    if (url.indexOf('://') == -1)
+        url = 'http://' + url;
 
-    const sql =
-      'UPDATE moz_places ' +
-      'SET title = :title ' +
-      'WHERE url = :page_url ';
+    var sql =
+        'UPDATE moz_places ' +
+        'SET title = :title ' +
+        'WHERE url = :page_url ';
 
     CliqzHistoryManager.PlacesInterestsStorage
       ._execute(
         sql,
         // no results for UPDATE
         [],
-        () => { },
-        {
-          title,
-          page_url: url
-        }
+        function(results) { },
+          {
+            title: title,
+            page_url: url
+          }
       )
-      .then(() => {
+      .then(function() {
       });
   },
-  getPageTitle(url) {
-    const hs = CliqzHistoryManager.getHistoryService();
-    const uri = CliqzHistoryManager.makeURI(url);
+  getPageTitle: function(url) {
+    var hs = CliqzHistoryManager.getHistoryService();
+    var uri = CliqzHistoryManager.makeURI(url);
     if (hs && uri) {
       return hs.getPageTitle(uri);
+    } else {
+      return undefined;
     }
-    return undefined;
   },
   historyService: null,
   ioService: null,
-  getHistoryService() {
+  getHistoryService: function() {
     if (!CliqzHistoryManager.historyService) {
       try {
         CliqzHistoryManager.historyService = Components
           .classes['@mozilla.org/browser/nav-history-service;1']
           .getService(Ci.nsINavHistoryService);
       } catch (e) {
-        utils.log(`unable to get history service: ${e}`);
+        utils.log('unable to get history service: ' + e);
       }
     }
     return CliqzHistoryManager.historyService;
   },
-  getIoService() {
+  getIoService: function() {
     if (!CliqzHistoryManager.ioService) {
       try {
         CliqzHistoryManager.ioService =
           Components.classes['@mozilla.org/network/io-service;1']
-            .getService(Ci.nsIIOService);
+          .getService(Ci.nsIIOService);
       } catch (e) {
-        utils.log(`unable to get IO service: ${e}`);
+        utils.log('unable to get IO service: ' + e);
       }
     }
     return CliqzHistoryManager.ioService;
   },
-  makeURI(url) {
-    const ios = CliqzHistoryManager.getIoService();
+  makeURI: function(url) {
+    var ios = CliqzHistoryManager.getIoService();
     if (ios) {
       return ios.newURI(url, null, null);
     }
     return false;
   },
   PlacesInterestsStorage: {
-    _execute: function pisExecute(sql, columns, onRow, parameters) {
-      const conn = PlacesUtils.history.QueryInterface(Ci.nsPIPlacesDatabase).DBConnection;
-      const statement = conn.createAsyncStatement(sql);
-      const deferredResult = new Defer();
+    _execute: function PIS__execute(sql, columns, onRow, parameters) {
+      var conn = PlacesUtils.history.QueryInterface(Ci.nsPIPlacesDatabase).DBConnection,
+          statement = conn.createAsyncStatement(sql),
+          onThen, //called after the async operation is finalized
+          promiseMock = {
+            then: function(func) {
+              onThen = func;
+            }
+          };
       if (parameters) {
-        Object.keys(parameters).forEach((key) => {
+        for (var key in parameters) {
           statement.params[key] = parameters[key];
-        });
+        }
       }
       statement.executeAsync({
-        handleCompletion(...args) {
-          deferredResult.resolve(...args);
+        handleCompletion: function(reason)  {
+          onThen();
         },
 
-        handleError(...args) {
-          deferredResult.reject(...args);
+        handleError: function(error)  {
         },
 
-        handleResult(resultSet) {
-          let row = resultSet.getNextRow();
-          while (row) {
+        handleResult: function(resultSet)  {
+          let row;
+          while ((row = resultSet.getNextRow())) {
             // Read out the desired columns from the row into an object
             let result;
-            if (columns !== null) {
+            if (columns != null) {
               // For just a single column, make the result that column
-              if (columns.length === 1) {
+              if (columns.length == 1) {
                 result = row.getResultByName(columns[0]);
-              } else {
-                // For multiple columns, put as values on an object
+              }
+              // For multiple columns, put as values on an object
+              else {
                 result = {};
-                for (let i = 0; i < columns.length; i += 1) {
-                  const column = columns[i];
+                for (var i = 0; i < columns.length; i++) {
+                  var column = columns[i];
                   result[column] = row.getResultByName(column);
                 }
               }
             }
-            // pass the result to the onRow handler
+            //pass the result to the onRow handler
             onRow(result);
-            row = resultSet.getNextRow();
           }
         }
       });
-      return deferredResult.promise;
+      return promiseMock;
     }
   },
-  removeFromHistory(url, { strict } = { strict: true }) {
-    const urls = strict ? [url] : getUrlVariations(url);
+  removeFromHistory: function(url) {
     try {
-      return Promise.all(urls.map(u => PlacesUtils.history.remove(u)));
-    } catch (e) {
+      PlacesUtils.history.remove(url);
+    } catch(e) {
       utils.log(e.message, 'Error removing entry from history');
     }
-    return Promise.resolve();
   },
-  removeFromBookmarks(url) {
-    // PlacesUtils.getBookmarksForURI is obsolete since Firefox 60
-    if (!PlacesUtils.getBookmarksForURI) {
-      return PlacesUtils.bookmarks.search({ url })
-        .then(bookmark => PlacesUtils.bookmarks.remove(bookmark))
-        .catch(e => utils.log(e.message, 'Error removing entry from bookmarks'));
-    }
-
-    // but PlacesUtils.bookmarks are not available in FF52 yet,
-    // have to do this the old way.
+  removeFromBookmarks: function(url) {
     try {
       const uri = CliqzHistoryManager.makeURI(url);
       const [itemId] = PlacesUtils.getBookmarksForURI(uri);
       if (itemId) {
         bookmarkService.removeItem(itemId);
       }
-    } catch (e) {
-      utils.log(e.message, 'Error removing entry from bookmarks');
+    } catch(e) {
+      utils.log(e.message, "Error removing entry from bookmarks");
     }
-    return Promise.resolve();
   },
-  isBookmarked(url) {
+  isBookmarked: function(url) {
     const uri = CliqzHistoryManager.makeURI(url);
     if (bookmarkService.isBookmarked) {
       return Promise.resolve(bookmarkService.isBookmarked(uri));
+    } else {
+      // isBookmarked is obsolete since Firefox 57
+      return PlacesUtils.bookmarks.fetch({url: url})
+        .then((res) => {
+          return res !== null;
+        })
     }
-    // isBookmarked is obsolete since Firefox 57
-    return PlacesUtils.bookmarks.fetch({ url })
-      .then(res => res !== null);
+
   }
 };
 

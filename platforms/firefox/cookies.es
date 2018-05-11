@@ -5,37 +5,6 @@ const DEFAULT_STORE = 'firefox-default';
 const PRIVATE_STORE = 'firefox-private';
 const CONTAINER_STORE = 'firefox-container-';
 
-// From webextensions
-// https://github.com/mozilla/gecko-dev/blob/master/toolkit/components/extensions/parent/ext-cookies.js
-const convertCookie = ({ cookie, isPrivate }) => {
-  const result = {
-    name: cookie.name,
-    value: cookie.value,
-    domain: cookie.host,
-    hostOnly: !cookie.isDomain,
-    path: cookie.path,
-    secure: cookie.isSecure,
-    httpOnly: cookie.isHttpOnly,
-    session: cookie.isSession,
-    firstPartyDomain: cookie.originAttributes.firstPartyDomain || '',
-  };
-
-  if (!cookie.isSession) {
-    result.expirationDate = cookie.expiry;
-  }
-
-  if (cookie.originAttributes.userContextId) {
-    // use of getCookieStoreIdForContainer removed
-    result.storeId = cookie.originAttributes.userContextId;
-  } else if (cookie.originAttributes.privateBrowsingId || isPrivate) {
-    result.storeId = PRIVATE_STORE;
-  } else {
-    result.storeId = DEFAULT_STORE;
-  }
-
-  return result;
-};
-
 export class Cookie {
   constructor(nativeCookie) {
     this._cookie = nativeCookie;
@@ -109,70 +78,6 @@ export class CookieStore {}
 
 export class OnChangeCause {}
 
-// based on webextensions implementation from
-// https://github.com/mozilla/gecko-dev/blob/master/toolkit/components/extensions/parent/ext-cookies.js
-class OnCookieChangedListener {
-  constructor() {
-    this._listeners = new Set();
-    this._observer = this._observer.bind(this);
-  }
-
-  _observer(subject, topic, data) {
-    const notify = (removed, cookie, cause) => {
-      cookie.QueryInterface(Components.interfaces.nsICookie2);
-      const event = {
-        removed,
-        cookie: convertCookie({ cookie, isPrivate: topic === 'private-cookie-changed' }),
-        cause,
-      };
-      this._listeners.forEach((fn) => {
-        setTimeout(() => fn(event), 0);
-      });
-    };
-
-    // We do our best effort here to map the incompatible states.
-    switch (data) {
-      case 'deleted':
-        notify(true, subject, 'explicit');
-        break;
-      case 'added':
-        notify(false, subject, 'explicit');
-        break;
-      case 'changed':
-        notify(true, subject, 'overwrite');
-        notify(false, subject, 'explicit');
-        break;
-      case 'batch-deleted':
-        subject.QueryInterface(Components.interfaces.nsIArray);
-        for (let i = 0; i < subject.length; i += 1) {
-          const cookie = subject.queryElementAt(i, Components.interfaces.nsICookie2);
-          if (!cookie.isSession && cookie.expiry * 1000 <= Date.now()) {
-            notify(true, cookie, 'expired');
-          } else {
-            notify(true, cookie, 'evicted');
-          }
-        }
-        break;
-      default:
-        break;
-    }
-  }
-
-  addListener(listener) {
-    if (this._listeners.size === 0) {
-      Services.obs.addObserver(this._observer, 'cookie-changed');
-    }
-    this._listeners.add(listener);
-  }
-
-  removeListener(listener) {
-    this._listeners.delete(listener);
-    if (this._listeners.size === 0) {
-      Services.obs.removeObserver(this._observer, 'cookie-changed');
-    }
-  }
-}
-
 export default {
   get({ url, name, storeId }) {
     return Promise.reject('not yet implemented');
@@ -180,52 +85,25 @@ export default {
   getAll({ url, name, domain, path, secure, session, storeId }) {
     // Currently only returns all cookies. Filtering is not yet implemented
     const cookies = [];
-    for (const cookie of XPCOMUtils.IterSimpleEnumerator(
-      Services.cookies.enumerator,
-      Components.interfaces.nsICookie2
-    )) {
+    for (const cookie of XPCOMUtils.IterSimpleEnumerator(Services.cookies.enumerator,
+                                                         Components.interfaces.nsICookie2)) {
       cookies.push(new Cookie(cookie));
     }
     return Promise.resolve(cookies);
   },
-  set(details, callback) {
-    const { url, name, value, domain, path, secure, httpOnly, expirationDate, storeId,
-      firstPartyDomain } = details;
-    const isSession = !expirationDate;
-    const expiry = isSession ? Number.MAX_SAFE_INTEGER : expirationDate;
-
-    // this is simplified because we assume we don't have containers here
-    const originAttributes = {
-      userContextId: 0,
-      privateBrowsingId: storeId === PRIVATE_STORE ? 1 : 0,
-      firstPartyDomain,
-    };
-    Services.cookies.add(domain, path, name, value,
-      secure, httpOnly, isSession, expiry, originAttributes);
-    if (callback) {
-      callback(details);
-    }
+  set({ url, name, value, domain, path, secure, httpOnly, expirationDate, storeId }) {
+    return Promise.reject('not yet implemented');
   },
-  remove({ url, name, cookie, storeId, firstPartyDomain }, callback) {
+  remove({ url, name, cookie, storeId }) {
     // cookie is non standard option
     if (cookie) {
       Services.cookies.remove(cookie.domain, cookie.name, cookie.path, false,
         cookie._cookie.originAttributes);
-      return;
+      return Promise.resolve();
     }
-    const originAttributes = {
-      userContextId: 0,
-      privateBrowsingId: storeId === PRIVATE_STORE ? 1 : 0,
-      firstPartyDomain,
-    };
-    const [,, domain, path] = url.split('/', 4);
-    Services.cookies.remove(domain, name, path, false, originAttributes);
-    if (callback) {
-      callback();
-    }
+    return Promise.reject('not yet implemented');
   },
   getAllCookieStores() {
     return Promise.resolve([DEFAULT_STORE, PRIVATE_STORE]);
-  },
-  onChanged: new OnCookieChangedListener(),
+  }
 };

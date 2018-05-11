@@ -1,92 +1,60 @@
 import * as datetime from './time';
+import { events } from '../core/cliqz';
+import Database from '../core/database';
 import console from '../core/console';
-import Rx from '../platform/lib/rxjs';
 import { migrateTokenDomain } from './legacy/database';
+import pacemaker from '../core/pacemaker';
 
 const DAYS_EXPIRE = 7;
+const DB_NAME = 'cliqz-attrack-token-domain';
 
 export default class TokenDomain {
-  constructor(config, db) {
+
+  constructor(config) {
     this.config = config;
-    this.db = db;
+    this.currentDay = datetime.getTime().substr(0, 8);
+    this.db = new Database(DB_NAME, { auto_compaction: true });
     this.blockedTokens = new Set();
     this.stagedTokenDomain = new Map();
-    // cache of currentDay string (YYYYMMDD)
-    this._currentDay = null;
-
-    this.subjectTokens = new Rx.Subject();
-
-    this.db.db.on('populate', () => {
-      // migrate old db
-      migrateTokenDomain(this, this.config.tokenDomainCountThreshold);
-    });
   }
 
   init() {
+    // migrate from old db
+    const init = migrateTokenDomain(this);
     // load current tokens over threshold
-    const startup = this.db.ready.then(() => this.loadBlockedTokens());
+    init.then(() => this.loadBlockedTokens());
 
-    // listen to the token tuples and update staged token data
-    // emit when a new token is added to the blockedTokens set
-    this._tokenSubscription = this.subjectTokens
-      .subscribe((v) => {
-        this._addTokenOnFirstParty(v);
-      });
-
-    // sample token events to trigger database persist a most
-    // once per minute.
-    // While a previous persist is running these messages will be suppressed.
-    const persistWhen = this.subjectTokens
-      .observeOn(Rx.Scheduler.async)
-      .auditTime(60000);
-
-    // Persist to disk controlled by the persistWhen Observable
-    this._persistSubscription = persistWhen.subscribe(() => {
-      this._persist();
-    });
-
-    // when cleanup is due: after startup, or when day changes
-    this._cleanupSubscription = Rx.Observable.merge(
-      Rx.Observable.fromPromise(startup).map(() => this.currentDay),
-      this.subjectTokens
-        .observeOn(Rx.Scheduler.async)
-        .pluck('day')
-    )
-      .distinctUntilChanged()
-      .delay(5000)
-      .subscribe(() => {
-        this.clean();
-      });
-    return startup;
+    this.onHourChanged = () => {
+      this.currentDay = datetime.getTime().substr(0, 8);
+      this.clean();
+    };
+    this._hourChangedListener = events.subscribe('attrack:hour_changed', this.onHourChanged);
+    this._persister = pacemaker.register(this._persist.bind(this), 120000);
+    return init;
   }
 
   unload() {
-    [this._persistSubscription, this._cleanupSubscription, this._tokenSubscription]
-      .forEach((sub) => {
-        if (sub) {
-          sub.unsubscribe();
-        }
-      });
-  }
-
-  get currentDay() {
-    if (!this._currentDay || Date.now() > this._nextDayCheck) {
-      const day = datetime.getTime().substr(0, 8);
-      if (day !== this._currentDay) {
-        this._nextDayCheck = Date.now() + (3600 * 1000);
-      }
-      this._currentDay = day;
+    if (this._hourChangedListener) {
+      this._hourChangedListener.unsubscribe();
+      this._hourChangedListener = null;
     }
-    return this._currentDay;
+    if (this._persister) {
+      pacemaker.deregister(this._persister);
+      this._persister = null;
+    }
   }
 
   loadBlockedTokens() {
-    // delete expired blocked tokens
-    return this.db.tokenBlocked.toCollection().uniqueKeys()
-      .then((blockedTokens) => {
-        this.blockedTokens.clear();
-        blockedTokens.forEach(tok => this.blockedTokens.add(tok));
-      });
+    return this.db.allDocs({ include_docs: true }).then(docs => docs.rows
+      .filter(row => Object.keys(row.doc.fps).length >= this.config.tokenDomainCountThreshold)
+      .map(doc => doc.id)
+    )
+    .then((toks) => {
+      if (this.config.debugMode) {
+        console.log('tokenDomain', 'blockedTokens:', toks.length);
+      }
+      toks.forEach(tok => this.blockedTokens.add(tok));
+    });
   }
 
   /**
@@ -98,44 +66,23 @@ export default class TokenDomain {
    */
   addTokenOnFirstParty(token, firstParty, day) {
     const tokenDay = day || this.currentDay;
-    // Pass the token tuples to the Rx Subject. Processing is handled via the _tokenSubscription
-    // subscription (synchronously), and data persistance by the _persistSubscription
-    // (asynchronously).
-    this.subjectTokens.next({
-      token,
-      firstParty,
-      day: tokenDay,
-    });
-  }
-
-  _addTokenOnFirstParty({ token, firstParty, day }) {
     if (!this.stagedTokenDomain.has(token)) {
-      this.stagedTokenDomain.set(token, new Map());
+      this.stagedTokenDomain.set(token, { fps: {} });
     }
     const tokens = this.stagedTokenDomain.get(token);
-    tokens.set(firstParty, day);
-    return this._checkThresholdReached(token, tokens);
+    tokens.mtime = this.currentDay > tokenDay ? this.currentDay : tokenDay;
+    tokens.fps[firstParty] = tokenDay;
+    this._checkThresholdReached(token, tokens);
+    return Promise.resolve();
   }
 
   _checkThresholdReached(token, tokens) {
-    if (tokens.size >= this.config.tokenDomainCountThreshold) {
-      this.addBlockedToken(token);
+    if (Object.keys(tokens.fps).length >= this.config.tokenDomainCountThreshold) {
+      if (this.config.debugMode) {
+        console.log('tokenDomain', 'will be blocked:', token);
+      }
+      this.blockedTokens.add(token);
     }
-    return this.blockedTokens.has(token);
-  }
-
-  addBlockedToken(token) {
-    if (this.config.debugMode) {
-      console.log('tokenDomain', 'will be blocked:', token);
-    }
-    const day = datetime.newUTCDate();
-    day.setDate(day.getDate() + DAYS_EXPIRE);
-    const expires = datetime.dateString(day);
-    this.blockedTokens.add(token);
-    return this.db.tokenBlocked.put({
-      token,
-      expires,
-    });
   }
 
   isTokenDomainThresholdReached(token) {
@@ -143,36 +90,31 @@ export default class TokenDomain {
   }
 
   _persist() {
-    const rows = [];
-    const tokens = [];
-    this.stagedTokenDomain.forEach((fps, token) => {
-      tokens.push(token);
-      fps.forEach((mtime, fp) => {
-        rows.push({
-          token,
-          fp,
-          mtime,
+    const upserts = [];
+    this.stagedTokenDomain.forEach((newDoc, token) => {
+      const op = this.db.get(token).catch((err) => {
+        if (err.name === 'not_found') {
+          return {
+            _id: token,
+            fps: {},
+          };
+        }
+        throw err;
+      }).then((_doc) => {
+        // merge existing doc with updated cached version
+        const doc = _doc;
+        doc.mtime = newDoc.mtime;
+        Object.keys(newDoc.fps).forEach((firstParty) => {
+          doc.fps[firstParty] = newDoc.fps[firstParty];
         });
-      });
+        this._checkThresholdReached(token, doc);
+        return doc;
+      }).then(doc => this.db.put(doc));
+      upserts.push(op);
     });
-
-    // upsert rows from staging to the db.
-    return this.db.tokenDomain.bulkPut(rows).catch((errors) => {
-      console.error('tokendomain', 'bulkPut errors', errors);
-    }).then(() =>
-      // for the tokens we have updated, check to see if the count exceeds the
-      // threshold. In these cases, save the blocked token
-      Promise.all(tokens.map(token =>
-        this.db.tokenDomain.where('token').equals(token).count((n) => {
-          if (n >= this.config.tokenDomainCountThreshold) {
-            this.stagedTokenDomain.delete(token);
-            return this.addBlockedToken(token);
-          }
-          return Promise.resolve();
-        })
-      ))
-    ).catch((e) => {
-      console.error('tokendomain', 'count error', e);
+    return Promise.all(upserts).then(() => {
+      console.log('tokenDomain', 'persist successful', this.stagedTokenDomain.size, 'tokens');
+      this.stagedTokenDomain.clear();
     });
   }
 
@@ -181,22 +123,39 @@ export default class TokenDomain {
     day.setDate(day.getDate() - DAYS_EXPIRE);
     const dayCutoff = datetime.dateString(day);
 
-    const cleanTokenBlocked = this.db.tokenBlocked.where('expires')
-      .below(this.currentDay)
-      .delete()
-      .then(() => this.loadBlockedTokens());
-    const cleanTokeDomain = this.db.tokenDomain.where('mtime')
-      .below(dayCutoff)
-      .delete();
-    return Promise.all([cleanTokenBlocked, cleanTokeDomain]);
+    return this.db.allDocs({ include_docs: true }).then((docs) => {
+      const modifiedDocs = docs.rows.reduce((acc, item) => {
+        const doc = item.doc;
+        if (doc.mtime < dayCutoff) {
+          // no hits for token
+          doc._deleted = true;
+          acc.push(doc);
+          this.blockedTokens.delete(doc._id);
+        } else {
+          // first parties to be removed
+          const oldFps = Object.keys(doc.fps).filter(fp => doc.fps[fp] < dayCutoff);
+          if (oldFps.length > 0) {
+            oldFps.forEach(fp => delete doc.fps[fp]);
+            acc.push(doc);
+            // check if this token still is over the threshold
+            if (Object.keys(doc.fps).length < this.config.tokenDomainCountThreshold) {
+              this.blockedTokens.delete(doc._id);
+            }
+          }
+        }
+        return acc;
+      }, []);
+      if (this.config.debugMode) {
+        console.log('tokenDomain', 'cleaning', modifiedDocs.length);
+      }
+      return this.db.bulkDocs(modifiedDocs);
+    });
   }
 
   clear() {
     this.blockedTokens.clear();
-    this.stagedTokenDomain.clear();
-    return Promise.all([
-      this.db.tokenBlocked.clear(),
-      this.db.tokenDomain.clear(),
-    ]);
+    this.db.destroy().then(() => {
+      this.db = new Database(DB_NAME, { auto_compaction: true });
+    });
   }
 }

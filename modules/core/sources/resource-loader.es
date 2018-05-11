@@ -1,11 +1,10 @@
 import config from './config';
 import console from './console';
 import utils from './utils';
-import { fetch } from './http';
 import Storage from '../platform/resource-loader-storage';
-import { fromUTF8 } from '../core/encoding';
+import TextDecoder from '../platform/text-decoder';
 import { inflate, deflate } from './zlib';
-import { isChromium, platformName } from '../core/platform';
+import { isChromium } from '../core/platform';
 
 
 // Common durations
@@ -14,7 +13,11 @@ const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
 
 function get(url) {
-  return fetch(url).then(response => response.text());
+  return new Promise((resolve, reject) => {
+    utils.httpGet(url, (res) => {
+      resolve(res.response);
+    }, reject, 300 * ONE_SECOND);
+  });
 }
 
 /* Abstract away the pattern `onUpdate` trigger list of
@@ -40,6 +43,7 @@ export class UpdateCallbackHandler {
  * also able to parse JSON automatically if `dataType` is 'json'.
  */
 export class Resource {
+
   constructor(name, options = {}) {
     this.name = (typeof name === 'string') ? [name] : name;
     this.remoteURL = options.remoteURL;
@@ -47,8 +51,8 @@ export class Resource {
     this.filePath = ['cliqz', ...this.name];
     this.chromeURL = options.chromeURL || `${config.baseURL}${this.name.join('/')}`;
     this.storage = new Storage(this.filePath);
-    this.remoteOnly = options.remoteOnly || platformName === 'mobile';
-    this.compress = options.compress || isChromium;
+    this.remoteOnly = options.remoteOnly || false;
+    this.compress = options.compress || isChromium ? true : false;
   }
 
   /**
@@ -67,7 +71,7 @@ export class Resource {
         try {
           // data might be a plain string in web extension case
           // for react native the TextDecoder.decode returns an empty string
-          return fromUTF8(data) || data;
+          return (new TextDecoder()).decode(data) || data;
         } catch (e) {
           return data;
         }
@@ -76,10 +80,10 @@ export class Resource {
       .catch(() => {
         if (this.remoteOnly) {
           return Promise.reject('Should update only from remote');
+        } else {
+          return this.updateFromURL(this.chromeURL);
         }
-        return this.updateFromURL(this.chromeURL);
-      })
-      .catch(() => this.updateFromRemote());
+      }).catch(() => this.updateFromRemote());
   }
 
   /**
@@ -98,7 +102,7 @@ export class Resource {
 
   /* *****************************************************************
    * Private API
-   ***************************************************************** */
+   ******************************************************************/
 
   updateFromURL(url) {
     if (url) {
@@ -112,8 +116,9 @@ export class Resource {
   compressData(data) {
     if (this.compress) {
       return deflate(data, { to: 'string' });
+    } else {
+      return data;
     }
-    return data;
   }
 
   decompressData(data) {
@@ -129,11 +134,11 @@ export class Resource {
   }
 
   persist(data) {
-    return this.parseData(data).then((parsed) => {
+    return this.parseData(data).then(parsed => {
       const saveData = this.compressData(data);
       return this.storage.save(saveData)
-        .catch(e => console.error('resource-loader error on persist: ', e))
-        .then(() => parsed);
+      .catch(e => console.error('resource-loader error on persist: ', e))
+      .then(() => parsed)
     });
   }
 
@@ -153,6 +158,7 @@ export class Resource {
 
 
 export default class ResourceLoader extends UpdateCallbackHandler {
+
   constructor(resourceName, options = {}) {
     super();
 
@@ -160,8 +166,8 @@ export default class ResourceLoader extends UpdateCallbackHandler {
     this.cron = options.cron || ONE_HOUR;
     this.updateInterval = options.updateInterval || 10 * ONE_MINUTE;
     this.intervalTimer = utils.setInterval(
-      this.updateFromRemote.bind(this),
-      this.updateInterval);
+        this.updateFromRemote.bind(this),
+        this.updateInterval);
   }
 
 
@@ -182,21 +188,18 @@ export default class ResourceLoader extends UpdateCallbackHandler {
    * triggered by `setInterval` and thus you cannot catch. If the update
    * fails, then the callback won't be called.
    */
-  updateFromRemote({ force = false } = {}) {
+  updateFromRemote() {
     const pref = `resource-loader.lastUpdates.${this.resource.name.join('/')}`;
     const lastUpdate = Number(utils.getPref(pref, 0));
     const currentTime = Date.now();
 
-    if (force || currentTime > this.cron + lastUpdate) {
+    if (currentTime > this.cron + lastUpdate) {
       return this.resource.updateFromRemote()
         .then((data) => {
           utils.setPref(pref, String(Date.now()));
           return data;
         })
-        .then((data) => {
-          this.triggerCallbacks(data);
-          return data;
-        })
+        .then(this.triggerCallbacks.bind(this))
         .catch(() => undefined);
     }
     return Promise.resolve();

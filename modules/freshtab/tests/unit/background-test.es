@@ -23,14 +23,7 @@ export default describeModule("freshtab/background",
       "platform/freshtab/history": {
         default: { getTopUrls(limit) { } }
       },
-      "platform/freshtab/browser-import-dialog": {
-        default: { openImportDialog() { } }
-      },
-      "core/utils": {
-        default: {
-          telemetry() {},
-        },
-      },
+      "core/utils": { default: {} },
       "freshtab/speed-dial": {
         default: function () { this.prototype.constructor.apply(this, arguments) }
       },
@@ -51,23 +44,14 @@ export default describeModule("freshtab/background",
       },
       "core/prefs": {
         default: {
-          get(pref, def) { return def; },
+          get() {},
           set() {},
           has() {},
-          getObject() { return {}; },
         }
       },
       "core/i18n": {
-        getLanguageFromLocale: function() {}
-      },
-      "platform/history-service": {
-        default: {
-          onVisitRemoved: {
-            addListener() {},
-            removeListener() {}
-          },
-        }
-      },
+        getLanguageFromLocale: function() {}  
+      }
     }
   },
   function () {
@@ -341,7 +325,7 @@ export default describeModule("freshtab/background",
             }
 
             return this.module().default.actions.addSpeedDial(url).then((result) => {
-              chai.expect(result).to.deep.equal({ error: true, reason: 'Error: duplicate'});
+              chai.expect(result).to.deep.equal({ error: true, reason: 'duplicate'});
             });
           });
 

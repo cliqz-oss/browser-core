@@ -1,24 +1,6 @@
 <div class="time padded">
-    {{#with mainResult}}
-    <div class="main-result">
-        <p class="main">{{time}} {{location}}</p>
-        <p class="timezone">{{expression}}, {{timeZone}}</p>
-    </div>
-    {{/with}}
-    {{#if timezoneResults}}
-    <div class="timezone-results">
-        {{#each (take timezoneResults rowsLimit)}}
-        <p class='timezone-results-row'>
-            <span class="main space">{{time}}</span>
-            <span class="main city">{{location}}</span>
-            <span class="timezone">&#183; {{expression}} ({{timeZone}})</span>
-        </p>
-        {{/each}}
-        {{#if expandButton.show}}
-        <a class="result expand-btn" data-url="{{expandButton.url}}">
-            {{local expandButton.title}}
-        </a>
-        {{/if}}
-    </div>
-    {{/if}}
+    <p>{{answer}} {{location}}</p>
+    <p>{{expression}}, {{timeZone}} &#183;
+        {{> partials/source}}
+    </p>
 </div>

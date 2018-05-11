@@ -77,26 +77,17 @@ class Urlbar extends React.Component {
     this._queryCliqz(input);
   }
 
-  handleInput = () => {
-
-  }
-
-  get classes() {
-    return 'search';
-  }
-
   render() {
     return (
       <div
-        className={this.classes}
+        className="search"
         style={{ ...styles, opacity: this.state.visible }}
       >
         <input
           type="text"
           ref={(input) => { this.textInput = input; }}
-          placeholder={t('urlbar_placeholder')}
+          placeholder={t('urlbar.placeholder')}
           onKeyDown={this.handleKeyDown}
-          onInput={this.handleInput}
           onPaste={this.handlePaste}
         />
       </div>

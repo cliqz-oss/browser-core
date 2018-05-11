@@ -13,6 +13,7 @@ const DEFAULT_STATE = Object.freeze({
 });
 
 export default class AddSpeedDial extends React.Component {
+
   static get propTypes() {
     return {
       addSpeedDial: PropTypes.func,
@@ -61,7 +62,7 @@ export default class AddSpeedDial extends React.Component {
 
     this.freshtab.addSpeedDial(url, null).then((resp) => {
       if (resp.error) {
-        if (resp.reason.indexOf('duplicate') > -1) {
+        if (resp.reason === 'duplicate') {
           this.setState({
             errorDuplicate: true
           });
@@ -101,11 +102,23 @@ export default class AddSpeedDial extends React.Component {
               role="link"
               onClick={this.handleClick}
             />
+            {
+              this.state.errorDuplicate &&
+                <div className="error">
+                  {t('app.speed-dial.exists-already')}
+                </div>
+            }
+            {
+              this.state.errorInvalid &&
+                <div className="error">
+                  {t('app.speed-dial.not-valid')}
+                </div>
+            }
             <input
               name="addUrl"
               type="text"
               className="addUrl"
-              placeholder={t('app_speed_dial_input_placeholder')}
+              placeholder={t('app.speed-dial.input.placeholder')}
               value={this.state.value}
               onChange={this.handleChange}
               ref={(el) => {
@@ -119,23 +132,9 @@ export default class AddSpeedDial extends React.Component {
             />
 
             <button className="submit" type="submit">
-              {t('app_speed_dial_add')}
+              {t('app.speed-dial.add')}
             </button>
           </form>
-          <div className="flex-container">
-            {
-              this.state.errorDuplicate &&
-                <div className="error">
-                  {t('app_speed_dial_exists_already')}
-                </div>
-            }
-            {
-              this.state.errorInvalid &&
-                <div className="error">
-                  {t('app.speed_dial_not_valid')}
-                </div>
-            }
-          </div>
         </ToggleDisplay>
       </div>
     );

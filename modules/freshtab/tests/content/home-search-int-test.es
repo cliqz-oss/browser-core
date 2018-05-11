@@ -1,13 +1,10 @@
 import {
-  clearIntervals,
   clone,
-  expect,
-  waitFor
-} from '../../core/test-helpers';
-import {
+  clearIntervals,
+  waitFor,
+  Subject,
   defaultConfig,
-  Subject
-} from '../../core/test-helpers-freshtab';
+} from './helpers';
 
 describe('Fresh tab interactions with search', function () {
   const searchAreaSelector = 'div.search input';
@@ -16,27 +13,47 @@ describe('Fresh tab interactions with search', function () {
   let listener;
   let searchConfig;
 
-  beforeEach(async function () {
+  beforeEach(function () {
     subject = new Subject();
-    subject.respondsWithEmptyTelemetry();
-    subject.respondsWithEmptySpeedDials();
-    subject.respondsWithEmptyNews();
+    subject.respondsWith({
+      module: 'core',
+      action: 'sendTelemetry',
+      response: ''
+    });
+
+    subject.respondsWith({
+      module: 'freshtab',
+      action: 'getSpeedDials',
+      response: {
+        history: [],
+        custom: []
+      },
+    });
+    subject.respondsWith({
+      module: 'freshtab',
+      action: 'getNews',
+      response: {
+        version: 0,
+        news: []
+      }
+    });
 
     searchConfig = clone(defaultConfig);
     searchConfig.response.componentsState.search.visible = true;
     subject.respondsWith(searchConfig);
 
-    await subject.load();
-    // Keep track of received messages
-    messages = new Map();
-    listener = function (msg) {
-      if (!messages.has(msg.action)) {
-        messages.set(msg.action, []);
-      }
+    return subject.load().then(() => {
+      // Keep track of received messages
+      messages = new Map();
+      listener = function (msg) {
+        if (!messages.has(msg.action)) {
+          messages.set(msg.action, []);
+        }
 
-      messages.get(msg.action).push(msg);
-    };
-    subject.chrome.runtime.onMessage.addListener(listener);
+        messages.get(msg.action).push(msg);
+      };
+      subject.chrome.runtime.onMessage.addListener(listener);
+    });
   });
 
   afterEach(function () {
@@ -57,12 +74,11 @@ describe('Fresh tab interactions with search', function () {
     describe('focusing on the input field', function () {
       /* TODO: fix me */
       xit('sends a "search_bar > focus" telemetry signal', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
         const telemetrySignals = messages.get('sendTelemetry');
         let signalExist = false;
         let count = 0;
 
-        expect(telemetrySignals.length).to.be.above(0);
         telemetrySignals.forEach(function (item) {
           if ((item.args[0].type === 'home') &&
               (item.args[0].target === 'search_bar') &&
@@ -72,8 +88,8 @@ describe('Fresh tab interactions with search', function () {
           }
         });
 
-        expect(signalExist).to.be.true;
-        expect(count).to.equal(1);
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
       });
 
       describe('and then moving the focus outside the input field', function () {
@@ -84,13 +100,12 @@ describe('Fresh tab interactions with search', function () {
 
         /* TODO: fix me */
         xit('sends a "search_bar > blur" telemetry signal', function () {
-          expect(messages.has('sendTelemetry')).to.equal(true);
+          chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
           const telemetrySignals = messages.get('sendTelemetry');
           let signalExist = false;
           let count = 0;
 
-          expect(telemetrySignals.length).to.be.above(0);
           telemetrySignals.forEach(function (item) {
             if ((item.args[0].type === 'home') &&
                 (item.args[0].target === 'search_bar') &&
@@ -100,8 +115,8 @@ describe('Fresh tab interactions with search', function () {
             }
           });
 
-          expect(signalExist).to.be.true;
-          expect(count).to.equal(1);
+          chai.expect(signalExist).to.be.true;
+          chai.expect(count).to.equal(1);
         });
       });
     });

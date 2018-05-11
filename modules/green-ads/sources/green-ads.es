@@ -1,5 +1,4 @@
 import md5 from '../core/helpers/md5';
-import { ifModuleEnabled } from '../core/kord/inject';
 
 import { AdBlocker } from '../adblocker/adblocker';
 
@@ -109,23 +108,17 @@ export default class GreenAds {
     const promises = [];
 
     if (this.onBeforeRequestListener) {
-      promises.push(ifModuleEnabled(
-        this.webRequestPipeline.action('removePipelineStep', 'open', 'greenads.open')
-      ));
+      promises.push(this.webRequestPipeline.action('removePipelineStep', 'open', 'greenads.open'));
       this.onBeforeRequestListener = undefined;
     }
 
     if (this.onBeforeSendHeadersListener) {
-      promises.push(ifModuleEnabled(
-        this.webRequestPipeline.action('removePipelineStep', 'modify', 'greenads.modify')
-      ));
+      promises.push(this.webRequestPipeline.action('removePipelineStep', 'modify', 'greenads.modify'));
       this.onBeforeSendHeadersListener = undefined;
     }
 
     if (this.onHeadersReceivedListener) {
-      promises.push(ifModuleEnabled(
-        this.webRequestPipeline.action('removePipelineStep', 'response', 'greenads.response')
-      ));
+      promises.push(this.webRequestPipeline.action('removePipelineStep', 'response', 'greenads.response'));
       this.onHeadersReceivedListener = undefined;
     }
 

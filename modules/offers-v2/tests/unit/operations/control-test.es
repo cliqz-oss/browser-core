@@ -3,14 +3,13 @@
 /* global require */
 /* eslint-disable func-names,prefer-arrow-callback,arrow-body-style */
 
-const tldjs = require('tldjs');
 
 var prefRetVal = {};
 var currentTS = Date.now();
 var currentDayHour = 0;
 var currentWeekDay = 0;
 let hookedResultOfLoggerInfo;
-let platformLaguage;
+
 
 const DAY_MS = 1000 * 60 * 60 * 24;
 
@@ -28,9 +27,6 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
   () => ({
     'core/platform': {
       isChromium: false
-    },
-    'platform/lib/tldjs': {
-      default: tldjs,
     },
     'platform/xmlhttprequest': {
       default: {}
@@ -83,23 +79,11 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         }
       }
     },
-    'core/utils': {
-      default: {
+    'core/cliqz': {
+      default: {},
+      utils: {
         setInterval: function() {},
       }
-    },
-    'core/utils': {
-      default: {
-        get PLATFORM_LANGUAGE() {
-          return platformLaguage;
-        },
-        getPref: function(prefName, defaultVal) {
-          if (prefRetVal) {
-            return prefRetVal;
-          }
-          return defaultVal;
-        }
-      },
     },
     'platform/console': {
       default: {},
@@ -113,9 +97,6 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         warn: () => { console.error(...args); },
         logObject: () => {},
       }
-    },
-    'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
     },
     'offers-v2/query_handler': {
       default: class {
@@ -321,6 +302,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         let ctx;
         beforeEach(function () {
           ctx = {};
+          prefRetVal = {};
         });
 
         it('/invalid args call', () => {
@@ -354,31 +336,31 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
 
         it('/simple checks exists but different value', () => {
           let o = ['$if_pref', ['test_pref', false]];
-          prefRetVal = true;
+          prefMock.setMockVal('test_pref', true);
           return testCase(o, false, ctx);
         });
 
         it('/simple checks exists and same value', () => {
           let o = ['$if_pref', ['test_pref', false]];
-          prefRetVal = false;
+          prefMock.setMockVal('test_pref', true);
           return testCase(o, false, ctx);
         });
 
         it('/simple checks not exists string', () => {
           let o = ['$if_pref', ['test_pref_str', 'value1']];
-          prefRetVal = true;
+          prefMock.setMockVal('test_pref', true);
           return testCase(o, false, ctx);
         });
 
         it('/simple checks exists string different value', () => {
           let o = ['$if_pref', ['test_pref_str', 'value1']];
-          prefRetVal = 'value2';
+          prefMock.setMockVal('test_pref_str', 'value2');
           return testCase(o, false, ctx);
         });
 
         it('/simple checks exists string same value', () => {
           let o = ['$if_pref', ['test_pref_str', 'value1']];
-          prefRetVal = 'value1';
+          prefMock.setMockVal('test_pref_str', 'value1');
           return testCase(o, true, ctx);
         });
       });
@@ -781,6 +763,59 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
 
       /**
        * ==================================================
+       * match operation tests
+       * ==================================================
+       */
+      describe('/match', () => {
+        let op;
+        let ctx;
+        beforeEach(function () {
+          ctx = {};
+          // ctx = {'#lc_url': 'https://amazon.com/basket'};
+          prefRetVal = {};
+        });
+
+        it('/invalid args call', () => {
+          let o = ['$match', []];
+          op = buildOp(o);
+          return op.evalExpr(ctx).then((result) => {
+            chai.assert.fail(result, 'error');
+          }).catch((err) => {
+            chai.expect(err).to.exist;
+          });
+        });
+
+        it('/invalid args call 2', () => {
+          let o = ['$match', ['sadasd']];
+          op = buildOp(o);
+          return op.evalExpr(ctx).then((result) => {
+            chai.assert.fail(result, 'error');
+          }).catch((err) => {
+            chai.expect(err).to.exist;
+          });
+        });
+
+        it('/simple check doesnt match', () => {
+          ctx = {'#lc_url': 'https://amazon.com/basket'};
+          let o = ['$match', ['https://amazon.com/basket', 'amazon.de/basket']];
+          return testCase(o, false, ctx);
+        });
+
+        it('/simple check matches', () => {
+          ctx = {'#lc_url': 'https://amazon.de/basket'};
+          let o = ['$match', ['https://amazon.de/basket', 'amazon.de/basket']];
+          return testCase(o, true, ctx);
+        });
+
+        it('/simple check matches in the third position', () => {
+          ctx = {'#lc_url': 'https://amazon.com/basket'};
+          let o = ['$match', ['https://amazon.com/basket', 'amazon.de/basket', 'amazon.de', 'amazon.com']];
+          return testCase(o, true, ctx);
+        });
+      });
+
+      /**
+       * ==================================================
        * timestamp operation tests
        * ==================================================
        */
@@ -839,6 +874,63 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
       });
 
+      /**
+       * ==================================================
+       * query_match operation tests
+       * ==================================================
+       */
+      describe('/match_query', () => {
+        let op;
+        let ctx;
+
+        beforeEach(function () {
+          ctx = {};
+          prefRetVal = {};
+        });
+
+        const testArgs = [{
+          keywords_list: [{
+            keywords: ['test'],
+            filter: [],
+          }]
+        }];
+
+        it('/simple checks query_info is valid', () => {
+          ctx = { '#query_info': { query: 'test', origin: 'google.de' } };
+          let o = ['$match_query', testArgs];
+          return testCase(o, true, ctx);
+        });
+
+        const testArgs2 = [{
+          keywords_list: [{
+            keywords: ['test'],
+            filter: [],
+          }]
+        }];
+
+        it('/simple checks no query_info', () => {
+          ctx = { '#queryinfo': { query: 'test', origin: 'google.de' } };
+          let o = ['$match_query', testArgs2];
+          return testCase(o, false, ctx);
+        });
+
+        const testArgs3 = [{
+          no_keywords_list: [{
+            keywords: ['test'],
+            filter: [],
+          }]
+        }];
+
+        it('/simple checks no keywords', () => {
+          ctx = { '#query_info': { query: 'test', origin: 'google.de' } };
+          let o = ['$match_query', testArgs3];
+          return testCase(o, false, ctx).catch(err => {
+            chai.expect(err).to.exist;
+          });
+        });
+
+      });
+
       //  *
       //  * ==================================================
       //  * is_feature_enabled operation
@@ -890,6 +982,303 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           featureHandlerMock.features = {feature_test: true, feature_test_2: false};
           return testCase(o, true, ctx);
         });
+
+      });
+
+
+      //  *
+      //  * ==================================================
+      //  * pattern_match operation
+      //  * ==================================================
+
+      describe('/pattern_match', () => {
+        let op;
+        let ctx;
+        const SAMPLE_URL = 'http://www.amazon.com';
+
+        beforeEach(function () {
+          ctx = {
+            '#url_data': new UrlData(SAMPLE_URL),
+          };
+          prefRetVal = {};
+          featureHandlerMock.clear();
+          patternMatchMock.clear();
+        });
+
+        function testInvalidArg(context, operation) {
+          const op = buildOp(operation);
+          return op.evalExpr(context).then((result) => {
+            chai.assert.fail(result, 'error');
+          }).catch((err) => {
+            chai.expect(err).to.exist;
+          });
+        }
+
+        it('/invalid args call', () => {
+          let o = ['$pattern_match', []];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args call 2', () => {
+          let o = ['$pattern_match', [{}]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args for current url 1', () => {
+          let o = ['$pattern_match', [{match_current: true}]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args for current url 2', () => {
+          const arg = {
+            match_current: true,
+            patterns: {},
+          };
+          let o = ['$pattern_match', [arg]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args for current url 3', () => {
+          const arg = {
+            match_current: true,
+            patterns: {
+              pid: 'x',
+            },
+          };
+          let o = ['$pattern_match', [arg]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args for current url 4', () => {
+          const arg = {
+            match_current: true,
+            patterns: {
+              p_list: ['x']
+            },
+          };
+          let o = ['$pattern_match', [arg]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args for history 1', () => {
+          let o = ['$pattern_match', [{match_current: false}]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args for history 2', () => {
+          const arg = {
+            match_current: false,
+            patterns: {},
+          };
+          let o = ['$pattern_match', [arg]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args for history 3', () => {
+          const arg = {
+            match_current: false,
+            patterns: {
+              pid: 'x',
+              p_list: [
+                '||google.de'
+              ],
+            },
+          };
+          let o = ['$pattern_match', [arg]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args for history min_matches_expected > 0', () => {
+          const arg = {
+            match_current: false,
+            patterns: {
+              pid: 'x',
+              p_list: [
+                '||google.de'
+              ],
+            },
+            min_matches_expected: -1,
+            till_secs: 4,
+            since_secs: 19,
+          };
+          let o = ['$pattern_match', [arg]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/invalid args for history till_secs < since_secs', () => {
+          const arg = {
+            match_current: false,
+            patterns: {
+              pid: 'x',
+              p_list: [
+                '||google.de'
+              ],
+            },
+            min_matches_expected: 1,
+            till_secs: 29,
+            since_secs: 19,
+          };
+          let o = ['$pattern_match', [arg]];
+          return testInvalidArg(ctx, o);
+        });
+
+        it('/simple test for current url true case', () => {
+          const arg = {
+            match_current: true,
+            patterns: {
+              pid: 'x',
+              p_list: [
+                '||google.de'
+              ],
+            }
+          };
+          let o = ['$pattern_match', [arg]];
+          patternMatchMock.setitMatchesResult(true);
+          return testCase(o, true, ctx).then(() => {
+            chai.expect(patternMatchMock.lastTokenizedURL).eql(SAMPLE_URL);
+            chai.expect(patternMatchMock.lastPatternObj).eql(arg.patterns);
+          });
+        });
+
+        it('/simple test for current url false acse', () => {
+          const arg = {
+            match_current: true,
+            patterns: {
+              pid: 'x',
+              p_list: [
+                '||google.de'
+              ],
+            }
+          };
+          let o = ['$pattern_match', [arg]];
+          patternMatchMock.setitMatchesResult(false);
+          return testCase(o, false, ctx).then(() => {
+            chai.expect(patternMatchMock.lastTokenizedURL).eql(SAMPLE_URL);
+            chai.expect(patternMatchMock.lastPatternObj).eql(arg.patterns);
+          });
+        });
+
+        // this.lastTokenizedURL = null;
+        // this.lastPatternObj = null;
+        // this.lastQuery = null;
+        // this.itMatchesResult = false;
+        // this.countHistoryMatchesResult = 0;
+
+        // test some history
+        it('/simple history case not reach minimum', () => {
+          const arg = {
+            match_current: false,
+            patterns: {
+              pid: 'x',
+              p_list: [
+                '||google.de'
+              ],
+            },
+            min_matches_expected: 1,
+            till_secs: 10,
+            since_secs: 19,
+          };
+          const expectedQuery = {
+            since_secs: 19,
+            till_secs: 10,
+          };
+          let o = ['$pattern_match', [arg]];
+          patternMatchMock.countHistoryMatchesResult = 0;
+          return testCase(o, false, ctx).then(() => {
+            chai.expect(patternMatchMock.lastQuery).eql(expectedQuery);
+            chai.expect(patternMatchMock.lastPatternObj).eql(arg.patterns);
+          });
+        });
+
+        it('/simple history case reaches the minimum', () => {
+          const arg = {
+            match_current: false,
+            patterns: {
+              pid: 'x',
+              p_list: [
+                '||google.de'
+              ],
+            },
+            min_matches_expected: 1,
+            till_secs: 10,
+            since_secs: 19,
+          };
+          const expectedQuery = {
+            since_secs: 19,
+            till_secs: 10,
+          };
+          let o = ['$pattern_match', [arg]];
+          patternMatchMock.countHistoryMatchesResult = 1;
+          return testCase(o, true, ctx).then(() => {
+            chai.expect(patternMatchMock.lastQuery).eql(expectedQuery);
+            chai.expect(patternMatchMock.lastPatternObj).eql(arg.patterns);
+          });
+        });
+
+        it('/simple history case reaches the minimum 2', () => {
+          const arg = {
+            match_current: false,
+            patterns: {
+              pid: 'x',
+              p_list: [
+                '||google.de'
+              ],
+            },
+            min_matches_expected: 1,
+            till_secs: 10,
+            since_secs: 19,
+          };
+          const expectedQuery = {
+            since_secs: 19,
+            till_secs: 10,
+          };
+          let o = ['$pattern_match', [arg]];
+          patternMatchMock.countHistoryMatchesResult = 10;
+          return testCase(o, true, ctx).then(() => {
+            chai.expect(patternMatchMock.lastQuery).eql(expectedQuery);
+            chai.expect(patternMatchMock.lastPatternObj).eql(arg.patterns);
+          });
+        });
+
+        it('/simple history case cache works the minimum', () => {
+          const arg = {
+            match_current: false,
+            patterns: {
+              pid: 'x',
+              p_list: [
+                '||google.de'
+              ],
+            },
+            cache_if_match_value_secs: 9999,
+            min_matches_expected: 1,
+            till_secs: 10,
+            since_secs: 19,
+          };
+          const expectedQuery = {
+            since_secs: 19,
+            till_secs: 10,
+          };
+          let o = ['$pattern_match', [arg]];
+          patternMatchMock.countHistoryMatchesResult = 1;
+          const e = buildOp(o);
+          return e.evalExpr(ctx).then((result) => {
+            chai.expect(result).to.eq(true);
+
+            chai.expect(patternMatchMock.lastQuery).eql(expectedQuery);
+            chai.expect(patternMatchMock.lastPatternObj).eql(arg.patterns);
+            patternMatchMock.countHistoryMatchesResult = 0;
+
+            // still the value is cached
+            patternMatchMock.lastQuery = null;
+            patternMatchMock.lastPatternObj = null;
+            return e.evalExpr(ctx).then((result) => {
+              chai.expect(result).to.eq(true);
+              chai.expect(patternMatchMock.lastPatternObj).eql(null);
+              chai.expect(patternMatchMock.lastQuery).eql(null);
+            });
+          });
+        });
+
 
       });
 
@@ -1083,76 +1472,6 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           return testCase(o, false, ctx);
         });
 
-      });
-
-      /**
-       * ==================================================
-       * $lang_is operation tests
-       * ==================================================
-       */
-      describe('/lang_is', () => {
-        let op;
-        let ctx;
-        beforeEach(function () {
-          ctx = {};
-          prefRetVal = {};
-        });
-
-        it('/invalid args call', () => {
-          const o = [
-            '$lang_is',
-            [
-              'not a language',
-              123456
-            ]
-          ];
-          op = buildOp(o);
-          return op.evalExpr(ctx).then((result) => {
-            chai.assert.fail(result, 'error');
-          }).catch((err) => {
-            chai.expect(err).to.exist;
-          });
-        });
-
-        it('/invalid args call 2', () => {
-          const o = [
-            '$lang_is',
-            [
-            ]
-          ];
-          op = buildOp(o);
-          return op.evalExpr(ctx).then((result) => {
-            chai.assert.fail(result, 'error');
-          }).catch((err) => {
-            chai.expect(err).to.exist;
-          });
-        });
-
-        it('/language in the list', () => {
-          const o = [
-            '$lang_is',
-            [
-              'en',
-              'de',
-              'fr'
-            ]
-          ];
-          platformLaguage = 'de';
-          return testCase(o, true, ctx);
-        });
-
-        it('/language not in the list', () => {
-          const o = [
-            '$lang_is',
-            [
-              'en',
-              'de',
-              'fr'
-            ]
-          ];
-          platformLaguage = 'es';
-          return testCase(o, false, ctx);
-        });
       });
 
     });

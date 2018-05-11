@@ -53,15 +53,9 @@ function clearRunloop() {
   _timers = [];
 }
 
-function stopTimers() {
-  clearRunloop();
-  this.setTimeout = this.setInterval = this.clearTimeout = this.clearInterval = function() {};
-}
-
 // Exports
 this.setTimeout = setTimeout;
 this.setInterval = setInterval;
 this.clearTimeout = clearTimeout;
 this.clearInterval = clearTimeout;
 this.clearRunloop = clearRunloop;
-this.stopTimers = stopTimers;

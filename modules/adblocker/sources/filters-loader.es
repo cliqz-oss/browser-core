@@ -1,9 +1,13 @@
+// TODO - this could be moved in `core/adblocker-base` if we refactor it in a
+// nicer way to make it more generic. Currently it's really coupled to our Cliqz
+// CDN and the way we distribute lists.
+
 import ResourceLoader, { Resource, UpdateCallbackHandler } from '../core/resource-loader';
 import Language from '../core/language';
 import { platformName } from '../core/platform';
 import logger from './logger';
+import utils from '../core/utils';
 import config from '../core/config';
-import { fetch } from '../core/http';
 
 // Disk persisting
 const RESOURCES_PATH = ['adblocker'];
@@ -41,13 +45,20 @@ function stripProtocol(url) {
 }
 
 
-export class FiltersList {
+class FiltersList {
   constructor(checksum, asset, remoteURL) {
     this.checksum = checksum;
     this.baseRemoteURL = remoteURL;
     this.assetName = stripProtocol(asset);
 
-    const load = () => fetch(this.remoteURL()).then(response => response.text());
+    const load = () => new Promise((resolve, reject) => {
+      utils.httpGet(
+        this.remoteURL(),
+        res => resolve(res.response),
+        reject,
+        300 * 1000
+      );
+    });
 
     // We still need caching for mobile
     if (platformName === 'mobile') {
@@ -64,7 +75,7 @@ export class FiltersList {
   }
 
   remoteURL() {
-    return `${this.baseRemoteURL}`;
+    return `${this.baseRemoteURL}?t=${parseInt(Date.now() / 60 / 60 / 1000, 10)}`;
   }
 
   load() {
@@ -281,7 +292,30 @@ export default class FiltersLoader extends UpdateCallbackHandler {
         // Load the list async
         updatedLists.push(
           list
-            .load()
+          .load()
+          .then((filters) => {
+            // Ignore any empty list
+            if (filters !== undefined) {
+              return {
+                asset,
+                filters,
+                isFiltersList,
+                checksum: list.checksum,
+              };
+            }
+
+            return undefined;
+          }),
+        );
+      } else {
+        // Retrieve existing list
+        const list = this.lists.get(asset);
+
+        // Update the list only if needed (checksum is different)
+        if (list.needsToUpdate(checksum)) {
+          updatedLists.push(
+            list
+            .updateFromChecksum(checksum)
             .then((filters) => {
               // Ignore any empty list
               if (filters !== undefined) {
@@ -295,31 +329,6 @@ export default class FiltersLoader extends UpdateCallbackHandler {
 
               return undefined;
             }),
-        );
-      } else {
-        // Retrieve existing list
-        let list = this.lists.get(asset);
-
-        // Update the list only if needed (checksum is different)
-        if (list.needsToUpdate(checksum)) {
-          // Make sure the filters list has a proper update url
-          list = new FiltersList(checksum, asset, remoteURL);
-          updatedLists.push(
-            list
-              .updateFromChecksum(checksum)
-              .then((filters) => {
-                // Ignore any empty list
-                if (filters !== undefined) {
-                  return {
-                    asset,
-                    filters,
-                    isFiltersList,
-                    checksum: list.checksum,
-                  };
-                }
-
-                return undefined;
-              }),
           );
         }
       }

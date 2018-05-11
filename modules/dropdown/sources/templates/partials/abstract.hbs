@@ -3,8 +3,8 @@
         {{#if thumbnail}}
             <div class="thumbnail">
                 <img src="{{thumbnail}}" data-extra="image" />
-                {{#if isVideo}}
-                <span class="duration">&#9658; {{duration}}</span>
+                {{#if duration}}
+                    <span class="duration">&#9658; {{duration}}</span>
                 {{/if}}
             </div>
         {{else}}
@@ -22,7 +22,7 @@
             <span data-extra="title" class="title">{{emphasis title query 2 true}}</span>
             {{#if friendlyUrl}}
                 <span class="divider">&#8212;</span>
-                <span data-extra="url" class="url">{{emphasis friendlyUrl query 2 true}}</span>
+                <span data-extra="url" class="url">{{friendlyUrl}}</span>
             {{/if}}
         </p>
 
@@ -40,7 +40,7 @@
                 {{/unless}}
                 <span class="description" data-extra="description">{{emphasis description query 2 true}}</span>
             {{else}}
-                <span class="description" data-extra="full-url">{{emphasis url query 2 true}}</span>
+                <span class="description" data-extra="full-url">{{url}}</span>
             {{/if}}
 
 

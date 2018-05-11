@@ -2,11 +2,7 @@
 /* global describeModule */
 /* global require */
 
-let buildSimplePatternIndex;
 const encoding = require('text-encoding');
-const tldjs = require('tldjs');
-
-const mockDexie = require('../../../core/unit/utils/dexie');
 
 const TextDecoder = encoding.TextDecoder;
 const TextEncoder = encoding.TextEncoder;
@@ -34,8 +30,6 @@ const GENERIC_HISTORY_DAY = [
 ];
 const DAY_MS = 1000 * 60 * 60 * 24;
 
-let CATEGORY_LIFE_TIME_SECS;
-
 // the real tokenize url method
 let tokenizeUrl;
 
@@ -49,21 +43,13 @@ const getDaysFromTimeRange = (start, end) => {
 };
 const getTodayDayKey = timeMs => `${Math.floor((timeMs / DAY_MS))}`;
 
-function wait(time) {
-  return new Promise(resolve => setTimeout(resolve, time));
-}
-
 export default describeModule('offers-v2/categories/category-handler',
   () => ({
-     ...mockDexie,
     'platform/text-decoder': {
       default: TextDecoder,
     },
     'platform/text-encoder': {
       default: TextEncoder,
-    },
-    'platform/lib/tldjs': {
-      default: tldjs,
     },
     'offers-v2/common/offers_v2_logger': {
       default: {
@@ -93,23 +79,18 @@ export default describeModule('offers-v2/categories/category-handler',
             if (self.db[docID]) {
               resolve(JSON.parse(JSON.stringify(self.db[docID])));
             } else {
-              resolve(null);
+              reject(new Error('invalid document'));
             }
           });
         }
         remove(docID) {}
       }
     },
-    'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
-    },
-    'core/utils': {
-      default: {
+    'core/cliqz': {
+      utils: {
         setInterval: function() {},
         clearInterval: function() {},
-        getPref: function(k, v) {
-          return v;
-        }
+        getPref: function () {},
       },
     },
     'platform/globals': {
@@ -118,12 +99,6 @@ export default describeModule('offers-v2/categories/category-handler',
       default: {}
     },
     'core/crypto/random': {
-    },
-    'platform/gzip': {
-      default: {}
-    },
-    'platform/xmlhttprequest': {
-      default: {}
     },
     'platform/console': {
       default: {}
@@ -140,7 +115,7 @@ export default describeModule('offers-v2/categories/category-handler',
         return getDaysFromTimeRange(startTS, endTS);
       },
       getDateFromDateKey: function(dateKey, hours = 0, min = 0, seconds = 0) {
-        return `${Number(dateKey) * DAY_MS + hours * 60 * 60 * 1000 + min * 60 * 1000}`;
+        return `${Number(dateKey) * DAY_MS}`;
       },
       timestamp: function() {
         return mockedTS;
@@ -158,7 +133,9 @@ export default describeModule('offers-v2/categories/category-handler',
       default: class {
         constructor() {
           this.dayData = [];
+          this.patternMatchingHandler = null;
         }
+        setPatternMatchingHandler(pmh) { this.patternMatchingHandler = pmh; }
         getName() { return 'history'; }
         init() { return true; }
         unload() { return true; }
@@ -210,7 +187,10 @@ export default describeModule('offers-v2/categories/category-handler',
               per_day: {},
             }
           };
-          const patternIndex = buildSimplePatternIndex(q.patterns);
+          const patternsObj = {
+            p_list: q.patterns,
+            pid: `pid-${Math.random()}`,
+          };
           dayList.forEach((day) => {
             const urls = this.dayData;
             const dayTS = day * DAY_MS;
@@ -218,7 +198,7 @@ export default describeModule('offers-v2/categories/category-handler',
             result.match_data.total.c += urls.length;
             urls.forEach((u) => {
               const turl = tokenizeUrl(u);
-              if (patternIndex.match(turl)) {
+              if (this.patternMatchingHandler.itMatches(turl, patternsObj)) {
                 result.match_data.per_day[day].m += 1;
                 result.match_data.total.m += 1;
               }
@@ -244,6 +224,7 @@ export default describeModule('offers-v2/categories/category-handler',
     describe('#category-handler-test', function() {
       let CategoryHandler;
       let sharedDB;
+      let PatternMatchingHandler;
       let FeatureHandler;
       let HistoryFeatureMock;
       let Category;
@@ -253,18 +234,17 @@ export default describeModule('offers-v2/categories/category-handler',
         CategoryHandler = this.module().default;
         HistoryFeatureMock = this.deps('offers-v2/features/history-feature').default;
         return Promise.all([
+            this.system.import('offers-v2/pattern-matching/pattern-matching-handler'),
             this.system.import('offers-v2/features/feature-handler'),
             this.system.import('offers-v2/categories/category'),
-            this.system.import('offers-v2/common/pattern-utils'),
+            this.system.import('offers-v2/pattern-matching/pattern-utils'),
           ]).then((mods) => {
-            FeatureHandler = mods[0].default;
-            Category = mods[1].default;
-            CATEGORY_LIFE_TIME_SECS = mods[1].CATEGORY_LIFE_TIME_SECS;
-            buildSimplePatternIndex = mods[2].buildSimplePatternIndex;
-            tokenizeUrl = mods[2].default;
+            PatternMatchingHandler = mods[0].default;
+            FeatureHandler = mods[1].default;
+            Category = mods[2].default;
+            tokenizeUrl = mods[3].default;
           });
       });
-
 
       function copyData(d) { return JSON.parse(JSON.stringify(d)); }
 
@@ -313,30 +293,30 @@ export default describeModule('offers-v2/categories/category-handler',
       }
 
       function waitForMultipleCatHistory(cats) {
-        return Promise.all(cats.map(c => waitForHistoryReady(c)) || []);
+        return Promise.all([] || cats.map(c => waitForHistoryReady(c)));
       }
 
       context('basic tests', function () {
+        let pmh;
         let fh;
         let historyFeatureMock;
         let catHandler;
-
         beforeEach(function () {
           mockedTS = Date.now();
           sharedDB = {};
           fh = new FeatureHandler();
           historyFeatureMock = fh.getFeature('history');
-          catHandler = new CategoryHandler(historyFeatureMock, sharedDB);
-          return catHandler.loadPersistentData();
+          pmh = new PatternMatchingHandler(fh);
+          historyFeatureMock.setPatternMatchingHandler(pmh);
+          catHandler = new CategoryHandler(historyFeatureMock, sharedDB, pmh);
         });
 
-        afterEach(() => catHandler.persistentHelper.destroyDB());
-
-        // // /////////////////////////////////////////////////////////////////////
-        // // /////////////////////////////////////////////////////////////////////
+        // /////////////////////////////////////////////////////////////////////
+        // /////////////////////////////////////////////////////////////////////
 
         it('/elements exists', function () {
           chai.expect(catHandler).to.exist;
+          chai.expect(pmh).to.exist;
         });
 
         it('/has category works for invalid category', function () {
@@ -412,11 +392,11 @@ export default describeModule('offers-v2/categories/category-handler',
           // still exists
           cats.forEach(c => chai.expect(catHandler.hasCategory(c.getName())).eql(true));
 
-          // after moving in time (max(+11 secs, CATEGORY_LIFE_TIME_SECS) should not exists anymore
+          // after moving in time (+11 secs) should not exists anymore
           mockedTS += 9 * 1000;
           catHandler.cleanUp();
           cats.forEach(c => chai.expect(catHandler.hasCategory(c.getName())).eql(true));
-          mockedTS += CATEGORY_LIFE_TIME_SECS * 1000;
+          mockedTS += 2 * 1000;
           catHandler.cleanUp();
           cats.forEach(c => chai.expect(catHandler.hasCategory(c.getName())).eql(false));
         });
@@ -547,7 +527,6 @@ export default describeModule('offers-v2/categories/category-handler',
           cats.forEach(c => catHandler.addCategory(c));
           catHandler.build();
           catHandler.cleanUp();
-
           return waitForMultipleCatHistory(cats).then(() => {
             catHandler.newUrlEvent(tokenizeUrl('http://www.google.com'));
             catHandler.newUrlEvent(tokenizeUrl('http://www.yahoo.com'));
@@ -555,20 +534,19 @@ export default describeModule('offers-v2/categories/category-handler',
             chai.expect(catHandler.getMatchesForCategory('c1')).eql(1);
             chai.expect(catHandler.getMatchesForCategory('c2')).eql(1);
             chai.expect(catHandler.getMatchesForCategory('c3')).eql(2);
-            // we need to do this thing here because it seems that the unload doesnt
-            // wait enough till close the DB and get stuck forever
-            return Promise.all([catHandler.persistentHelper.unloadDB(), wait(100)]).then(() => {
-              const catHandler2 = new CategoryHandler(historyFeatureMock, sharedDB);
-              chai.expect(catHandler2.hasCategory('c1')).eql(false);
-              chai.expect(catHandler2.hasCategory('c2')).eql(false);
-              chai.expect(catHandler2.hasCategory('c3')).eql(false);
-              return catHandler2.loadPersistentData().then(() => {
-                chai.expect(catHandler2.hasCategory('c1')).eql(true);
-                chai.expect(catHandler2.hasCategory('c2')).eql(true);
-                chai.expect(catHandler2.hasCategory('c3')).eql(true);
-                chai.expect(catHandler2.getMatchesForCategory('c1')).eql(1);
-                chai.expect(catHandler2.getMatchesForCategory('c2')).eql(1);
-                chai.expect(catHandler2.getMatchesForCategory('c3')).eql(2);
+
+            return catHandler.savePersistentData().then(() => {
+              catHandler = new CategoryHandler(historyFeatureMock, sharedDB, pmh);
+              chai.expect(catHandler.hasCategory('c1')).eql(false);
+              chai.expect(catHandler.hasCategory('c2')).eql(false);
+              chai.expect(catHandler.hasCategory('c3')).eql(false);
+              return catHandler.loadPersistentData().then(() => {
+                chai.expect(catHandler.hasCategory('c1')).eql(true);
+                chai.expect(catHandler.hasCategory('c2')).eql(true);
+                chai.expect(catHandler.hasCategory('c3')).eql(true);
+                chai.expect(catHandler.getMatchesForCategory('c1')).eql(1);
+                chai.expect(catHandler.getMatchesForCategory('c2')).eql(1);
+                chai.expect(catHandler.getMatchesForCategory('c3')).eql(2);
                 return Promise.resolve();
               });
             });
@@ -636,8 +614,7 @@ export default describeModule('offers-v2/categories/category-handler',
           });
         });
 
-        // TODO: we are not using this for now
-        xit('/check simple activation data works for multiple days for normalized func', function () {
+        it('/check simple activation data works for multiple days for normalized func', function () {
           const activationData = {
             activationTimeSecs: 10,
             func: 'normalized',
@@ -856,7 +833,7 @@ export default describeModule('offers-v2/categories/category-handler',
                 activationData: activationData
               }, { name: 'c2',
                 patterns: ['||google.com'],
-                timeRangeSecs: 0.7 * DAY_MS / 1000,
+                timeRangeSecs: 0.5 * DAY_MS / 1000,
                 activationData: activationData2
               }];
               historyFeatureMock.dayData = GENERIC_HISTORY_DAY;
@@ -904,8 +881,8 @@ export default describeModule('offers-v2/categories/category-handler',
               chai.expect(catHandler.isCategoryActive('c1'), 'c1 first check').eql(false);
               return waitForMultipleCatHistory(cats).then(function () {
                 chai.expect(catHandler.isCategoryActive('c1'), 'c1 snd check').eql(false);
-                // increment one day
-                // mockedTS += DAY_MS;
+                // increment 1 day => +3 hits, still after 1 more hit we should see it
+                mockedTS += DAY_MS;
                 catHandler.newUrlEvent(tokenizeUrl('http://www.google.com'));
                 chai.expect(catHandler.isCategoryActive('c1'), 'v1').eql(false);
                 catHandler.newUrlEvent(tokenizeUrl('http://www.google.com'));
@@ -1028,11 +1005,14 @@ export default describeModule('offers-v2/categories/category-handler',
             const cats = createCategories(catData);
             cats.forEach(c => catHandler.addCategory(c));
             catHandler.build();
-            // check the category is the old one
-            const cat = catHandler.getCategory('c1');
-            chai.expect(cat.getPatterns()).eql(['||xyz.com']);
+            return waitForMultipleCatHistory(cats).then(() => {
+              chai.expect(catHandler.isCategoryActive('c1')).eql(false);
+              return Promise.resolve();
+            });
           });
         });
+
+
       });
     });
   }

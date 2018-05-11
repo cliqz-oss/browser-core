@@ -47,6 +47,7 @@ class IsCategoryActiveExpr extends Expression {
       return Promise.reject(e);
     }
   }
+
 }
 
 /**
@@ -125,14 +126,13 @@ class AddCategoriesExpr extends Expression {
       logger.warning('invalid category object: ', catObj);
       return null;
     }
-    return new Category(
-      catObj.name,
-      catObj.patterns,
-      catObj.version,
-      catObj.timeRangeSecs,
-      catObj.activationData
-    );
+    return new Category(catObj.name,
+                        catObj.patterns,
+                        catObj.version,
+                        catObj.timeRangeSecs,
+                        catObj.activationData);
   }
+
 }
 
 

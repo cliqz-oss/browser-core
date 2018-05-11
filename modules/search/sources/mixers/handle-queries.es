@@ -1,34 +1,59 @@
-import Enricher from '../operators/enricher';
 import logger from '../logger';
+
+// operators
+import apply from '../operators/apply';
+import decrease from '../operators/decrease';
+import Enricher from '../operators/enricher';
+import limit from '../operators/limit';
+import merge from '../operators/merge';
+import reconstruct from '../operators/reconstruct';
+import update from '../operators/update';
+import trim from '../operators/trim';
+
+// streams
 import mixResults from '../mixers/mix-results';
 
-import { getResultOrder } from '../operators/results/utils';
-import finalize from '../operators/responses/finalize';
-
+// TODO: need some naming convention to distinguish streams from other variables
 /*
- * Takes a query stream, creates a (mixed) result stream for each query.
- * Stop updating if user highlighted a result.
+ * Takes a query stream, creates a (mixed) result stream for each query, and
+ * "smoothes" result sets over time using partial updates (by provider).
  */
-export default function handleQueries(query$, highlight$, providers, config) {
+const handleQueries = (query$, providers, config) => {
   const enricher = new Enricher();
 
-  let lastResults = [];
+  const currentResults$ = query$
+    .do(query => logger.log(`Query '${query}'`))
+    .switchMap(query => mixResults(query, providers, enricher, config))
+    .share();
 
-  const results$ = query$
-    .do(({ query }) => logger.log(`Query '${query}'`))
-    .switchMap(({ query, ...params }) =>
-      mixResults({
-        query,
-        ...params,
-        resultOrder: getResultOrder(lastResults),
-        // to allow 'merge' to pick the newest response (after smoothing)
-        ts: Date.now(),
-      }, providers, enricher, config)
-        // stop updating once user highlighted a result
-        .takeUntil(highlight$.do(() => logger.log('Highlight')))
-    )
-    .let(obs$ => finalize(obs$, config))
-    .do((results) => { lastResults = results; });
+  // TODO: rename, it's more like the latest responses with results (per provider)
+  const bestResults$ = currentResults$
+    .scan((current, incoming) => current
+      .map((cur, i) => {
+        const next = incoming[i];
+        if (next.state === 'pending' && next.results.length === 0) {
+          return cur;
+        }
+        return next;
+      })
+    );
 
-  return results$;
-}
+  const previousResults$ = query$
+    .withLatestFrom(bestResults$)
+    .map(([, results]) => results)
+    .startWith([]);
+
+  const updatedResults$ = currentResults$
+    .withLatestFrom(previousResults$)
+    .map(update);
+
+  return updatedResults$
+    .map(responses => responses.map(limit))
+    .map(merge)
+    .map(decrease)
+    .map(trim)
+    .map(response => apply(response, reconstruct))
+    .pluck('results');
+};
+
+export default handleQueries;

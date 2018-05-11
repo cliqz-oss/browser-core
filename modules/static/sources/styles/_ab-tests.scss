@@ -149,3 +149,69 @@
         }
     }
 }
+
+//===========================
+//A/B/C 1104 HUB
+//===========================
+$cliqz-blue-color: #00AEF0;
+
+#UITourTooltip[targetName='cliqz-offers'] {
+    .panel-arrow {
+        position: relative;
+        margin-top: 5px;
+        margin-bottom: -13px;
+        width: 18px;
+        height: 18px;
+        background: $cliqz-blue-color;
+        transform: rotate(45deg);
+        list-style-image: none;
+    }
+
+    .panel-arrowcontent {
+        margin-right: 0;
+        padding-left: 16px;
+        padding-right: 16px;
+        position: relative;
+        color: #fff;
+        background: $cliqz-blue-color;
+        box-shadow: none;
+        border: none;
+        border-radius: unset;
+        cursor: pointer;
+    }
+
+    #UITourTooltipBody {
+        margin-top: 3px;
+
+        #UITourTooltipTitleContainer {
+            margin-bottom: 0;
+        }
+
+        #UITourTooltipIcon {
+            margin-top: -5px;
+            margin-inline-end: 7px;
+            width: 24px;
+            height: 24px;
+        }
+
+        #UITourTooltipTitle {
+            font-size: 14px;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        #UITourTooltipDescription {
+            display: none;
+        }
+    }
+
+    .close-icon {
+        display: none;
+    }
+}
+
+@media (min-resolution: 2dppx) {
+    #UITourTooltip[targetName='cliqz-offers']  .close-icon:hover {
+        -moz-image-region: rect(0, 32px, 32px, 0px);
+    }
+}

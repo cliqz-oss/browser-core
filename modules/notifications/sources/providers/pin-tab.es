@@ -16,6 +16,7 @@ const activeUrlsForDomain = domain => activeTabsForDomain(domain)
   .map(tab => tab.url);
 
 export default class PinTab {
+
   constructor({ domain, selector, attribute }) {
     this.domain = domain;
     this.selector = selector;
@@ -39,10 +40,10 @@ export default class PinTab {
 
     return Promise.all(urls.map(countForUrl))
       .then(counts => counts.reduce((all, c) => [...all, ...c], [])) // flatten
-      .then((results) => {
+      .then(results => {
         const count = results.find(result => result) || 0;
         return Number(count);
-      });
+      })
   }
 
   canCount() {
@@ -53,7 +54,7 @@ export default class PinTab {
     const window = utils.getWindow();
     const domain = this.domain;
     let tab = getTabs(window).find(
-      _tab => isUrlBelongToDomain(domain, _tab.url)
+      tab => isUrlBelongToDomain(domain, tab.url)
     );
 
     if (!tab) {

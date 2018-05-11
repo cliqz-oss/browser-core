@@ -102,24 +102,14 @@
                         color: #0078CA;
                     }
                 }
-            }
 
-            .offer-description {
-                display: inline-block;
-                padding: 1px 0 0 0;
-                color: #999999;
-                font-size: 0.733em;
-                line-height: 20px;
-                vertical-align: 3px;
-                text-decoration: none;
-            }
-
-            .ad-label {
-                font-size: 0.733em;
-                position: absolute;
-                bottom: 5px;
-                right: 8px;
-                color: #999999;
+                .ad-label {
+                    font-size: 0.733em;
+                    position: absolute;
+                    bottom: 5px;
+                    right: 8px;
+                    color: #999999;
+                }
             }
         }
     }

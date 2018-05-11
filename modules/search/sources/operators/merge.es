@@ -8,12 +8,14 @@ const merge = (responses) => {
     return [];
   }
 
-  const latest = responses.reduce((min, cur) =>
-    (cur.params && min.params && cur.params.ts > min.params.ts ? cur : min),
-  responses.slice(-1)[0]);
+  const last = responses.slice(-1)[0];
+
   return {
-    ...latest,
-    results: [].concat(...responses.map(response => response.results)),
+    results: Array.concat(...responses.map(response => response.results)),
+    state: last.state,
+    provider: last.provider,
+    // config is set on new search (focus), thus is the same for all providers
+    config: last.config,
   };
 };
 

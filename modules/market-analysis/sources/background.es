@@ -1,5 +1,5 @@
 import background from '../core/base/background';
-import utils from '../core/utils';
+import { utils } from '../core/cliqz';
 
 import MAConfigs from './conf/ma_configs';
 import logger from './common/logger';

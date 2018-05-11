@@ -26,7 +26,7 @@ export default [
       extra: {
         lotto_list: {
           cur_date: {
-            date: '2017-07-19',
+            date: '2017-07-26',
             keno: {
               gewinnzahlen: [
                 '2',

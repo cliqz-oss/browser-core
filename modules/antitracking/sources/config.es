@@ -8,7 +8,7 @@ import config from '../core/config';
 const VERSIONCHECK_URL = `${config.settings.CDN_BASEURL}/anti-tracking/whitelist/versioncheck.json`;
 const CONFIG_URL = `${config.settings.CDN_BASEURL}/anti-tracking/config.json`;
 
-export const VERSION = '0.102';
+export const VERSION = '0.101';
 export const MIN_BROWSER_VERSION = 35;
 
 export const TELEMETRY = {
@@ -20,16 +20,14 @@ export const TELEMETRY = {
 export const DEFAULTS = {
   safekeyValuesThreshold: 4,
   shortTokenLength: 6,
-  placeHolder: config.settings.antitrackingPlaceholder,
-  cliqzHeader: config.settings.antitrackingHeader,
+  placeHolder: 'cliqz.com/tracking',
+  cliqzHeader: 'CLIQZ-AntiTracking',
   enabled: true,
   cookieEnabled: true,
   qsEnabled: true,
   bloomFilterEnabled: true,
   telemetryMode: TELEMETRY.ALL,
   sendAntiTrackingHeader: true,
-  blockCookieNewToken: false,
-  tpDomainDepth: 2,
 };
 
 export const PREFS = {
@@ -54,10 +52,9 @@ export const PREFS = {
 const REMOTELY_CONFIGURED = ['blockRules', 'reportList', 'cookieWhitelist', 'subdomainRewriteRules'];
 
 export default class Config {
-  constructor({
-    defaults = DEFAULTS,
-    versionUrl = VERSIONCHECK_URL
-  }) {
+
+  constructor({ defaults = DEFAULTS,
+                versionUrl = VERSIONCHECK_URL }) {
     this.debugMode = false;
     this.versionCheckUrl = versionUrl;
 
@@ -71,6 +68,8 @@ export default class Config {
                                   this.safekeyValuesThreshold;
     this.shortTokenLength = parseInt(persist.getValue('shortTokenLength'), 10) ||
                             this.shortTokenLength;
+    this.placeHolder = persist.getValue('placeHolder') || this.placeHolder;
+    this.cliqzHeader = persist.getValue('cliqzHeader') || this.cliqzHeader;
 
     this.paused = false;
 
@@ -117,6 +116,10 @@ export default class Config {
 
   _updateVersionCheck(versioncheck) {
     // config in versioncheck
+    if (versioncheck.placeHolder) {
+      persist.setValue('placeHolder', versioncheck.placeHolder);
+      this.placeHolder = versioncheck.placeHolder;
+    }
 
     if (versioncheck.shortTokenLength) {
       persist.setValue('shortTokenLength', versioncheck.shortTokenLength);
@@ -129,6 +132,11 @@ export default class Config {
                                     this.safekeyValuesThreshold;
     }
 
+    if (versioncheck.cliqzHeader) {
+      persist.setValue('cliqzHeader', versioncheck.cliqzHeader);
+      this.cliqzHeader = versioncheck.cliqzHeader;
+    }
+
     // fire events for list update
     events.pub('attrack:updated_config', versioncheck);
   }
@@ -138,4 +146,5 @@ export default class Config {
       this[key] = conf[key];
     });
   }
+
 }

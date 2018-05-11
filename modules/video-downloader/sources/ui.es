@@ -1,5 +1,5 @@
-import utils from '../core/utils';
-import { isVideoURL, getVideoInfo } from './video-downloader';
+import { utils } from '../core/cliqz';
+import { isVideoURL, getVideoInfo, getFormats } from './video-downloader';
 import Panel from '../core/ui/panel';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import config from '../core/config';
@@ -7,7 +7,6 @@ import CliqzEvents from '../core/events';
 import console from '../core/console';
 import UITour from '../platform/ui-tour';
 import History from '../platform/history/history';
-import history from '../platform/history-service';
 import { Components } from '../platform/globals';
 
 const events = CliqzEvents;
@@ -91,7 +90,7 @@ export default class UI {
     this.onButtonClicked = this.onButtonClicked.bind(this);
 
     this.pageActionBtn.addEventListener('click', this.onButtonClicked);
-    this.pageActionButtons.prepend(this.pageActionBtn);
+    this.pageActionButtons.appendChild(this.pageActionBtn);
     this.onEvent = this.onEvent.bind(this);
     this.onPaired = this.onPaired.bind(this);
   }
@@ -181,10 +180,10 @@ export default class UI {
 
     const promise = UITour.getTarget(this.window, UI_TOUR_ID);
     const icon = `${config.baseURL}video-downloader/images/video-downloader-uitour.svg`;
-    const title = utils.getLocalizedString('video_downloader_uitour_title');
-    const text = utils.getLocalizedString('video_downloader_uitour_description');
-    const btnTryLabel = utils.getLocalizedString('video_downloader_uitour_btn_try');
-    const btnSkipLabel = utils.getLocalizedString('video_downloader_uitour_btn_skip');
+    const title = utils.getLocalizedString('video-downloader-uitour-title');
+    const text = utils.getLocalizedString('video-downloader-uitour-description');
+    const btnTryLabel = utils.getLocalizedString('video-downloader-uitour-btn-try');
+    const btnSkipLabel = utils.getLocalizedString('video-downloader-uitour-btn-skip');
     const buttons = [
       {
         label: btnTryLabel,
@@ -264,8 +263,8 @@ export default class UI {
 
     const promise = UITour.getTarget(this.window, DONWLOADS_UITOUR_ID);
     const icon = null;
-    const title = utils.getLocalizedString('downloads_uitour_title');
-    const text = utils.getLocalizedString('downloads_uitour_description');
+    const title = utils.getLocalizedString('downloads-uitour-title');
+    const text = utils.getLocalizedString('downloads-uitour-description');
 
     const buttons = [
       {
@@ -280,7 +279,7 @@ export default class UI {
             target: 'apple',
           });
           this.background.actions.closeDownloadsUITour(false);
-          utils.openLink(this.window, utils.getLocalizedString('pairing_ios_app'), true, false, false, true);
+          utils.openLink(this.window, utils.getLocalizedString('pairing-ios-app'), true, false, false, true);
         }
       },
       {
@@ -295,7 +294,7 @@ export default class UI {
             target: 'google',
           });
           this.background.actions.closeDownloadsUITour(false);
-          utils.openLink(this.window, utils.getLocalizedString('pairing_android_app'), true, false, false, true);
+          utils.openLink(this.window, utils.getLocalizedString('pairing-android-app'), true, false, false, true);
         }
       }
     ];
@@ -460,12 +459,14 @@ export default class UI {
         return null;
       })
       .then(() => getVideoInfo(url))
-      .then((formats) => {
+      .then((info) => {
+        const formats = getFormats(info);
+
         if (formats.length > 0) {
           const options = JSON.parse(utils.getPref('videoDownloaderOptions', '{}'));
           const audioFile = formats.find(format => format.class === 'audio');
           if (audioFile) {
-            audioFile.name = utils.getLocalizedString('video_downloader_audio_label');
+            audioFile.name = utils.getLocalizedString('video-downloader-audio-label');
           }
           const desiredFormat = formats.find(format =>
             format.name.toLowerCase().replace(' ', '_') === options.quality) || formats[0];
@@ -503,7 +504,6 @@ export default class UI {
           action: 'pushData',
           data: {
             unSupportedFormat: true,
-            isLiveVideo: e.message === 'live_video',
           },
         });
         // Should we send a different telemetry message here?
@@ -575,7 +575,6 @@ export default class UI {
     fp.open((rv) => {
       if ((rv === nsIFilePicker.returnOK) || (rv === nsIFilePicker.returnReplace)) {
         let download;
-        let onVisited;
         const downloadPromise = this.Downloads.createDownload({
           source: url,
           target: fp.file
@@ -597,12 +596,7 @@ export default class UI {
             this.maybeShowingDownloadsUITour();
           }, 1000);
           if (origin) {
-            onVisited = (visit) => {
-              if (visit.url === url) {
-                History.fillFromVisit(url, origin);
-              }
-            };
-            history.onVisited.addListener(onVisited);
+            History.fillFromVisit(url, origin);
           }
           return download.whenSucceeded();
         }).then(() => {
@@ -613,9 +607,6 @@ export default class UI {
             size,
             is_success: true
           });
-          if (onVisited) {
-            history.onVisited.removeListener(onVisited);
-          }
         }, () => {
           utils.telemetry({
             type: TELEMETRY_TYPE,
@@ -624,9 +615,6 @@ export default class UI {
             size,
             is_success: false
           });
-          if (onVisited) {
-            history.onVisited.removeListener(onVisited);
-          }
         }).then(() => {
           download.finalize(true);
         });

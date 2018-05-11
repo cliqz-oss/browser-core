@@ -1,12 +1,31 @@
+import { NativeModules } from 'react-native';
 
-export function queryCliqz() {
+const unsupportedError = () => {
+  throw new Error('BrowserActions not supported by native');
+};
+
+const BrowserActions = NativeModules.BrowserActions || {
+  openLink: unsupportedError,
+  searchHistory: unsupportedError,
+  queryCliqz: unsupportedError,
+  openTab: unsupportedError,
+};
+
+export const openLink = BrowserActions.openLink;
+
+export function historySearch(q, callback) {
+  BrowserActions.searchHistory(q, (data) => {
+    const results = data.map(item => ({
+      style: 'facicon',
+      value: item.url,
+      image: '',
+      comment: item.title || 'no comment',
+      label: ''
+    }));
+    callback({ results, query: q, ready: true });
+  });
 }
 
-export function openLink() {
-}
-
-export function openTab() {}
-
-export function getOpenTabs() {}
-
-export function importBookmarks() {}
+export const queryCliqz = BrowserActions.queryCliqz;
+export const openTab = BrowserActions.openTab;
+export const getOpenTabs = BrowserActions.getOpenTabs;

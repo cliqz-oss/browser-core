@@ -6,6 +6,7 @@ import console from '../../core/console';
  * passed through the token logic.
  */
 export default class RedirectTagger {
+
   constructor() {
     this.redirectCache = new TempSet();
     this.cacheTimeout = 10000;

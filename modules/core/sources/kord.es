@@ -4,6 +4,6 @@ export default {
   inject,
 };
 
-export function setApp(app) {
+export function setGlobal(app) {
   injectSetGlobal(app);
 }

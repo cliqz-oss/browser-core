@@ -10,7 +10,13 @@
         width: 100%;
     }
 
-    label.dropdown-tab, label.dropdown-tab-header  {
+    input.tab-radio-input {
+        position: absolute;
+        top: 0;
+        left: -9999px;
+    }
+
+    label.dropdown-tab-label {
         position: relative;
         display: inline-block;
         min-width: 40px;
@@ -20,9 +26,6 @@
         margin: 0;
         vertical-align: -moz-middle-with-baseline;
         text-transform: capitalize;
-    }
-
-    label.dropdown-tab {
         cursor: pointer;
     }
 
@@ -31,12 +34,12 @@
         padding-top: 5px;
     }
 
-    [id^="tab"].checked {
+    [id^="tab"]:checked + label {
         background: #fff;
     }
 
     @for $i from 0 through 11 {
-        [id="tab-#{$i}"].checked ~ [id="tab-block-#{$i}"]
+        [id="tab-#{$i}"]:checked ~ [id="tab-block-#{$i}"]
         {
             display: block;
         }

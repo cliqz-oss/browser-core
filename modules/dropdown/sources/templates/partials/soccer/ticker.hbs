@@ -1,6 +1,6 @@
-<a class="table-row result non-selectable" data-extra="game_row_{{@index}}" data-url="{{url}}" href="{{url}}">
+<a class="table-row result non-selectable" data-extra="game_row_{{@index}}" data-url="{{url}}" href="#">
     <div class="table-cell club-logo">
-        <div class="club-logo-img" style="background-image:url({{hostLogo}})"></div>
+        <div style="background-image:url({{hostLogo}})"></div>
     </div>
     <div class="table-cell host fixed-width">{{emphasis host query 2 true}}</div>
     <div class="table-cell scored {{#if isLive}}live{{/if}}">
@@ -8,7 +8,7 @@
     </div>
     <div class="table-cell fixed-width">{{emphasis guest query 2 true}}</div>
     <div class="table-cell club-logo">
-        <div class="club-logo-img" style="background-image:url({{guestLogo}})"></div>
+        <div style="background-image:url({{guestLogo}})"></div>
     </div>
     <div class="table-cell time">{{gameTime}}</div>
     <div class="table-cell">

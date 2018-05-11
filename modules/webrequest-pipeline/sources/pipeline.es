@@ -1,4 +1,4 @@
-import utils from '../core/utils';
+import { utils } from '../core/cliqz';
 import logger from './logger';
 
 
@@ -11,6 +11,7 @@ import logger from './logger';
  * @namespace antitracking
  */
 export default class Pipeline {
+
   /**
    * Pipeline constructor. Creates an empty pipeline with the default
    * stages (open, modify and response).

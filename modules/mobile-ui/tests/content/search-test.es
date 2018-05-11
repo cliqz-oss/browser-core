@@ -7,7 +7,7 @@ describe('Search View', function() {
   let timeout = 15000;
   var testBox;
 
-  beforeEach(function () {
+  beforeEach(function (done) {
     // startup can be quite slow for the first time. Maybe there is better way
     // to warm it up.
     this.timeout(timeout);
@@ -25,7 +25,7 @@ describe('Search View', function() {
         }
       });
       document.body.appendChild(testBox);
-    });
+    }).then(done);
   });
 
   afterEach(function () {

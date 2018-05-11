@@ -1,3 +1,5 @@
+@import "tooltip";
+
 @font-face {
   font-family: "-mac-system", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
   font-weight: 300;
@@ -180,11 +182,9 @@ html {
                     }
                 }
             }
-
             .infobutton:hover {
-                cursor: default;
+                cursor: pointer;
             }
-
             #smallarrow {
                 margin: 0 0 -2px 2px;
             }
@@ -809,8 +809,9 @@ html {
 
     }
 
-    .tooltip-content {
-        display: none;
+    .infobutton:hover + .tooltip {
+        visibility: visible;
+        opacity: 1;
     }
 }
 
@@ -869,7 +870,7 @@ html {
     .infobutton {
         margin: 0 0 -3px 0;
         &:hover {
-            cursor: default;
+            cursor: pointer;
             #Oval-2 {
                 fill: $firefox-vivid-blue;
             }
@@ -907,8 +908,12 @@ html {
             }
         }
 
-        .no-tooltip-label {
-            padding-left: 19px;
+        & > span {
+            margin-left: 19px;
+        }
+
+        & > .tooltip + span {
+            margin-left: 0;
         }
 
         .location-more {
@@ -1424,24 +1429,4 @@ html {
     font-size: 0;
     height: 0;
     visibility: hidden;
-}
-
-.tooltipster-sidetip.tooltipster-shadow.tooltipster-shadow-customized {
-    pointer-events: auto;
-}
-
-.tooltipster-sidetip.tooltipster-shadow.tooltipster-shadow-customized .tooltipster-box {
-    padding-top: 5px;
-    padding-bottom: 7px;
-    font-family: "-mac-system", "-apple-system", "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-    max-width: 350px;
-    font-size: 11.5px;
-    color: #858585;
-
-    .title {
-        display: block;
-        margin-bottom: 5px;
-        font-size: 13.5px;
-        color: #000;
-    }
 }

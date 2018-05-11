@@ -1,43 +1,17 @@
-const urlParser = require('fast-url-parser');
-
 export default describeModule('dropdown/results/generic',
   function () {
     return {
       '../../core/events': {},
       '../../core/utils': {},
-      '../../core/url': {
-        urlStripProtocol() { return 'STRIPPED_URL' }
-      },
+      '../../core/url': {},
       '../../core/console': {},
-      'fast-url-parser': {
-        default: urlParser
-      },
     };
   },
   function () {
-    const resultTools = {
-      assistants: {
-
-      },
-    };
     let GenericResult;
 
     beforeEach(function () {
       GenericResult = this.module().default;
-    });
-
-    context('with no title', function () {
-      let result;
-
-      beforeEach(function () {
-        result = new GenericResult({
-          url: 'https://www.test.test',
-        }, resultTools);
-      });
-
-      it('should fill title with stripped url', function () {
-        chai.expect(result).to.have.property('title').that.equals('test.test');
-      });
     });
 
     context('with deep results', function () {
@@ -76,7 +50,7 @@ export default describeModule('dropdown/results/generic',
                   }
                 ]
               }
-            }, resultTools);
+            });
             subResults = result[testCase.methodName];
           });
 

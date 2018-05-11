@@ -1,0 +1,38 @@
+/* ez currency */
+.EZ-currency-result {
+    @extend .cqz-ellipsis;
+
+    margin-top: -6px;
+    font-size: 48px;
+    line-height: 1.3em;
+}
+
+.EZ-currency-rate {
+    @extend .cqz-ellipsis;
+
+    color: #999999;
+    margin: 11px 0 3px;
+}
+
+.EZ-currency-disclaimer {
+    color: #cccccc;
+    margin-left: 17px;
+    font-size: 14px;
+}
+
+.EZ-currency-result .cqz-currency-symbol {
+    margin-right: 4px;
+}
+
+.EZ-currency-result .cqz-currency-code {
+    margin-left: 5px;
+}
+
+.EZ-currency-rate {
+    color: #999999;
+    margin: 11px 0 3px;
+}
+
+.EZ-currency-rate .cqz-conv-rate .cqz-rate-last-digits {
+    color: #ccc;
+}

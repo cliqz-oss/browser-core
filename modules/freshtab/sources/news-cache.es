@@ -40,15 +40,12 @@ export default class NewsCache {
     } else {
       this.cacheWasRetrieved = false;
       Promise.resolve(this.isStale())
-        .then(isStale => (isStale ? this.updateCache() : Promise.resolve()))
-        .then(() => {
+        .then(isStale => isStale ? this.updateCache() : Promise.resolve())
+        .then(() =>
           this.updateTimer =
-          utils.setTimeout(
-            this.asynchronousUpdate.bind(this),
-            Math.max(this.getTimeToNextUpdate(), 1000)
-          );
-        });
-    }
+            utils.setTimeout(this.asynchronousUpdate.bind(this), Math.max(this.getTimeToNextUpdate(), 1000))
+        );
+      }
   }
 
   getNextUpdateTime() {
@@ -64,7 +61,7 @@ export default class NewsCache {
   }
 
   putDataToCache(data) {
-    log(`put data to cache ${this.cacheName}`);
+    log('put data to cache ' + this.cacheName);
     this.localStore.setItem(this.cacheName, JSON.stringify(data));
     this.updateLastUpdateTime();
   }
@@ -78,7 +75,7 @@ export default class NewsCache {
   }
 
   parseDataFromCache() {
-    try {
+    try{
       return JSON.parse(this.localStore.getItem(this.cacheName) || '{}');
     } catch (err) {
       log(`Error parsing cache ${this.cacheName} ${err}.`);
@@ -89,7 +86,7 @@ export default class NewsCache {
   updateCache() {
     return this.updateFunction(this.parseDataFromCache())
       .then(this.putDataToCache.bind(this))
-      .catch(e => log(`Error "${e}", cache ${this.cacheName} is not updated.`));
+      .catch((e) => log(`Error "${e}", cache ${this.cacheName} is not updated.`));
   }
 
   getData() {

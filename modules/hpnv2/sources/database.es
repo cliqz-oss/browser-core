@@ -75,62 +75,62 @@ export default class Database {
     }
 
     return nextTick(() => getDexie())
-      .then((Dexie) => {
-        this.db = new Dexie('hpnv2');
-        this.db.version(1).stores({
-          meta: 'key',
-          tags: 'tag,expireat',
-        });
-        return Promise.all([
-          this.db.meta.get('groupPubKeys'),
-          this.db.meta.get('userPK'),
-          this.db.meta.get('sourceMap'),
-          this.db.meta.get('lastConfigTime'),
-          this.db.meta.get('stats'),
-        ]);
-      })
-      .then(([groupPubKeys, userPK, sourceMap, lastConfigTime, stats]) => {
-        this.groupPubKeys = (groupPubKeys && groupPubKeys.value) || this.groupPubKeys;
-        this.userPK = (userPK && userPK.value) || this.userPK;
-        this.sourceMap = (sourceMap && sourceMap.value) || this.sourceMap;
-        this.lastConfigTime = (lastConfigTime && lastConfigTime.value) || this.lastConfigTime;
-        this.stats = (stats && stats.value) || this.stats;
-        this.isInit = true;
-      })
-      .catch((e) => {
-        // Assuming if there is an error here it's because indexedDB corruption
-        // In that case, fall back to memory only database
-        this.db = null;
-        this.isInit = true;
-        throw e;
+    .then((Dexie) => {
+      this.db = new Dexie('hpnv2');
+      this.db.version(1).stores({
+        meta: 'key',
+        tags: 'tag,expireat',
       });
+      return Promise.all([
+        this.db.meta.get('groupPubKeys'),
+        this.db.meta.get('userPK'),
+        this.db.meta.get('sourceMap'),
+        this.db.meta.get('lastConfigTime'),
+        this.db.meta.get('stats'),
+      ]);
+    })
+    .then(([groupPubKeys, userPK, sourceMap, lastConfigTime, stats]) => {
+      this.groupPubKeys = (groupPubKeys && groupPubKeys.value) || this.groupPubKeys;
+      this.userPK = (userPK && userPK.value) || this.userPK;
+      this.sourceMap = (sourceMap && sourceMap.value) || this.sourceMap;
+      this.lastConfigTime = (lastConfigTime && lastConfigTime.value) || this.lastConfigTime;
+      this.stats = (stats && stats.value) || this.stats;
+      this.isInit = true;
+    })
+    .catch((e) => {
+      // Assuming if there is an error here it's because indexedDB corruption
+      // In that case, fall back to memory only database
+      this.db = null;
+      this.isInit = true;
+      throw e;
+    });
   }
 
-  /**
-   * Tag is some hash value, and we want to find an integer x such that 0 <= x < limit
-   * and such that the value [tag, x] still has not been seen. If no such integer exists,
-   * we raise a message limit exceeded error. Also, we should choose this integer randomly
-   * from the non yet used integers, so that we minimize the information that can be deduced
-   * by looking at the sequence of integers for a given tag.
-   *
-   * So, if we repeatedly call this function several times with the same tag we will
-   * end up getting a random permutation of 0..(limit - 1).
-   *
-   * Right now for every tag we save a random seed, the limit and the number of generated numbers
-   * for it so far. This way, we can know which is the next number of the permutation when we need
-   * it. Not efficient if limit is high, since every call is linear. But for now this is not used,
-   * limit is always 1 or 0 (unlimited). A constant-time solution is Format-preserving encryption,
-   * or the tweakable Hasty Pudding cipher, but seems too much effort for something that is not used
-   * now.
-   *
-   * It is safe to remove the tag from the database after 'expireat' hours, since we will
-   * never use the same tag again (in practice).
-   *
-   * If limit <= 0, it means unlimited, we just return a random integer < 2^53
-   * @param {Uint8Array} tag
-   * @param {Number} expireat - timestamp in hours at which the tag can be forgotten
-   * @param {Number} limit - How many counters we can return for this tag
-   */
+/**
+ * Tag is some hash value, and we want to find an integer x such that 0 <= x < limit
+ * and such that the value [tag, x] still has not been seen. If no such integer exists,
+ * we raise a message limit exceeded error. Also, we should choose this integer randomly
+ * from the non yet used integers, so that we minimize the information that can be deduced
+ * by looking at the sequence of integers for a given tag.
+ *
+ * So, if we repeatedly call this function several times with the same tag we will
+ * end up getting a random permutation of 0..(limit - 1).
+ *
+ * Right now for every tag we save a random seed, the limit and the number of generated numbers
+ * for it so far. This way, we can know which is the next number of the permutation when we need
+ * it. Not efficient if limit is high, since every call is linear. But for now this is not used,
+ * limit is always 1 or 0 (unlimited). A constant-time solution is Format-preserving encryption,
+ * or the tweakable Hasty Pudding cipher, but seems too much effort for something that is not used
+ * now.
+ *
+ * It is safe to remove the tag from the database after 'expireat' hours, since we will
+ * never use the same tag again (in practice).
+ *
+ * If limit <= 0, it means unlimited, we just return a random integer < 2^53
+ * @param {Uint8Array} tag
+ * @param {Number} expireat - timestamp in hours at which the tag can be forgotten
+ * @param {Number} limit - How many counters we can return for this tag
+ */
   consumeFreshCounter(tag, expireat, limit) {
     if (limit <= 0) {
       return Promise.resolve(randomInt());
@@ -201,10 +201,10 @@ export default class Database {
     return this.db.tags.clear();
   }
 
-  /**
-   * Removes public keys older than the specified date
-   * @param {String} date - "YYYYMMDD" format
-   */
+/**
+ * Removes public keys older than the specified date
+ * @param {String} date - "YYYYMMDD" format
+ */
   purgeOldPubKeys(date) {
     // Lexicographical order preserves time order.
     Object.keys(this.groupPubKeys).forEach((x) => {

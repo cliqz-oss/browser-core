@@ -1,16 +1,17 @@
 import { NativeModules } from 'react-native';
+const { localeIdentifier } = NativeModules.I18nManager;
 
-const LocaleConstants = NativeModules.LocaleConstants;
-const defaultLocale = 'en';
+// TODO: Resolve locale on iOS
+const defaultLocale = 'de';
 
 export default {
 
-  lang: LocaleConstants ? LocaleConstants.lang : defaultLocale,
+  lang: localeIdentifier ? localeIdentifier.substr(0, 2) : defaultLocale,
 
-  state() {
+  state: function() {
     return ['de', 'en'];
   },
   stateToQueryString() {
-    return `&lang=${this.lang}`;
+    return '&lang=' + this.lang;
   }
 };

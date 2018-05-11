@@ -32,9 +32,7 @@ Node version required: is >= 4.x
 
 (use  [nvm](https://github.com/creationix/nvm) to manage multiple node versions)
 
-To install dependencies run:
-
-`yarn` or `npm install`
+`./fern.js install`
 
 ## Development
 

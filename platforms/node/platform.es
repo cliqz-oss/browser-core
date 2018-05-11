@@ -1,23 +1,6 @@
 export default {
-  isMobile: false,
+  isMobile: true,
   isFirefox: false,
   isChromium: false,
-  isEdge: false,
-  platformName: 'node',
+  platformName: "mobile",
 };
-
-export function isWindows() {
-  return false;
-}
-
-export function isLinux() {
-  return false;
-}
-
-export function isMac() {
-  return false;
-}
-
-export function isMobile() {
-  return false;
-}

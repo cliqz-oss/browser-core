@@ -15,10 +15,7 @@ export default function () {
       }
       const url = 'chrome://cliqz/content/vendor/dexie.min.js';
       const target = { global };
-      Services.scriptloader.loadSubScriptWithOptions(url, {
-        target,
-        ignoreCache: true
-      });
+      Services.scriptloader.loadSubScriptWithOptions(url, { target });
       return target.Dexie;
     });
   }

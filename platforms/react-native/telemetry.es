@@ -1,5 +1,5 @@
 import console from '../core/console';
-import utils from '../core/utils';
+import { utils } from '../core/cliqz';
 import { fetch, Request } from './fetch';
 import Database from '../core/database';
 import { NetInfo } from 'react-native';

@@ -1,396 +1,401 @@
-.voucher-wrapper {
+.cqz-ticket-offer {
     position: relative;
-    margin: -5px 0 0;
-    padding: 5px 0 8px;
-    box-shadow: 0px 0px 2px 0px rgba(0,0,0,0.25);
-    cursor: pointer;
-    background-color: #fff;
-    border-radius: 5px;
-    color: $color-text-black;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0;
 
-    .overview {
-        display: block;
-        min-height: 35px;
+    .cqz-offer-holder {
+        overflow: hidden;
+        max-height: 180px;
+        padding: 10px 100px 10px 100px;
+        border: 1px solid #ddd;
+        //box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
+        background-color: #fff;
+        background-repeat: no-repeat;
+        background-size: 70px auto;
+        background-position: 10px 50%;
+    }
 
-        & > * {
-            padding: 0 10px;
+    .logo-click {
+        cursor: pointer;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100px;
+        height: 100%;
+    }
+
+    .cqz-logo-holder {
+        overflow: hidden;
+        float: left;
+        width: 100px;
+        padding: 0 10px;
+        margin-left: -100px;
+        text-align: center;
+
+        &:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 94px;
+            width: 6px;
+            height: 100%;
+            background: url-prefix("offers-v2/images/ticket-tmpl/whole.gif") repeat-y;
         }
 
-        .benefit {
-            @include hyphenate;
-            font-size: 16px;
-            font-weight: 500;
+        img {
+            width: 100%;
+            max-width: 80px;
+        }
 
-            &.updated {
-                & > span {
+        table {
+            table-layout: fixed;
+            width: 100%;
+            height: 80px;
+
+            td {
+                vertical-align: middle;
+                text-align: center;
+
+                span {
+                    display: block;
+                    font-size: 20px;
+
                     &:first-child {
-                        text-decoration: line-through;
-                    }
-
-                    &:last-child {
-                        color: red;
+                        font-size: 25px;
+                        font-weight: bold;
                     }
                 }
             }
-        }
-
-        .headline {
-            @include hyphenate;
-            max-width: 142px;
-            font-size: 11.5px;
-            color: $color-text-grey;
         }
     }
 
-    .details {
-        overflow: hidden;
-        max-height: 0;
-        transition: max-height 1ms linear;
+    .cqz-call-to-action {
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        margin-top: -12px;
+        max-width: 100px;
+        text-align: center;
 
-        & > * {
-            padding: 0 10px 0 20px;
-        }
-
-        .left-labels {
-            padding-top: 6px;
-            height: 25px;
-
-            & > p {
-                margin-bottom: 1px;
-                padding-left: 14px;
-                color: $color-text-grey;
-                font-family: 'Arial Narrow', 'Impact';
-                letter-spacing: 1px;
-                text-transform: uppercase;
-                font-size: 8.5px;
-                font-weight: 400;
-
-                &.exclusive {
-                    background: url('../images/exclusive.svg') no-repeat left center;
-                    background-size: 13px 12px;
-                }
-
-                &.best_offer {
-                    background: url('../images/best-offer.svg') no-repeat left center;
-                    background-size: 13px 12px;
-                }
-
-                &.offer_of_the_week {
-                    background: url('../images/offer-of-the-week.svg') no-repeat left center;
-                }
-            }
-        }
-
-        .picture {
-            margin-top: 7px;
-            margin-bottom: -5px;
-            width: 100%;
-            height: 120px;
-            padding: 0;
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: contain;
-        }
-
-        .benefit {
-            @include hyphenate;
-
-            margin-top: 5px;
-            margin-bottom: -7px;
-            font-size: 34px;
-
-            &.updated {
-                & > span {
-                    &:first-child {
-                        text-decoration: line-through;
-                    }
-
-                    &:last-child {
-                        color: red;
-                    }
-                }
-            }
-        }
-
-        .headline {
-            @include hyphenate;
-            margin-top: 7px;
-            font-size: 16px;
-        }
-
-        .description {
-            @include hyphenate;
-            font-size: 12.5px;
-            line-height: 16px;
-            margin: 8px 0 9px;
-        }
-
-        .promocode-wrapper {
-            padding-left: 9px;
-            padding-top: 0;
-            padding-right: 5px;
-            margin: 7px 10px 0;
-            border: 1px solid $color-border-light-grey;
-            background-color: $color-bg-light-grey;
-            border-radius: 4px;
+        .cqz-btn {
+            display: inline-block;
+            padding: 6px 10px 5px;
+            color: #fff;
+            font-size: 13px;
+            line-height: 1.2em;
+            text-decoration: none;
+            border-radius: 7px;
+            text-align: center;
+            background: $call-to-action;
             cursor: pointer;
 
-            & > * {
-                height: 30px;
-            }
-
-            .code {
-                border: none;
-                width: 110px;
-                color: transparent;
-                text-shadow: 0 0 0 #000;
-                font-size: 12.5px;
-                background-color: transparent;
-                font-weight: 500;
-            }
-
-            .copy-code {
-                text-transform: uppercase;
-                padding: 0;
-                float: right;
-                color: $color-link-grey-blue;
-                font-size: 10.5px;
-            }
-
             &:hover {
-
-                .copy-code {
-                    color: $color-cliqz;
-                }
+                background: $call-to-action-hover;
             }
         }
+    }
 
-        .validity-wrapper {
-            padding-top: 2px;
-            height: 31px;
-
-            .validity {
-                font-size: 11.5px;
-                color: $color-text-grey;
-
-                &.red {
-                    color: red;
-                }
-            }
-
-            .condition {
-                margin-top: 4px;
-                float: right;
-                font-size: 11.5px;
-                color: $color-text-grey;
-
-                button {
-                    margin-left: 2px;
-                    padding: 0;
-                    width: 14px;
-                    height: 14px;
-                    background: url('../images/info-icon.svg') no-repeat center;
-                    vertical-align: 4px;
-                    cursor: default;
-                    background-size: 14px;
-                }
-
-                &:hover {
-                    color: $color-text-black;
-
-                    button {
-                        background-image: url('../images/info-icon-hover.svg');
-                    }
-                }
-            }
+    .cqz-content-holder {
+        padding: 0 0 0 10px;
+        .cqz-title {
+            cursor: pointer;
+            overflow: hidden;
+            font-size: 16px;
+            font-weight: bold;
+            line-height: 1.3em;
+            max-height: 2.6em;
+            margin-bottom: 10px;
         }
 
-        .cta-btn {
+        .cqz-descr {
+            cursor: pointer;
+            overflow: hidden;
+            font-size: 12px;
+            line-height: 1.2em;
+            max-height: 3.6em;
+        }
+    }
+
+    .cqz-offer-code-holder {
+        text-align: center;
+        margin-bottom: 10px;
+
+        .cqz-offer-code-info {
+            opacity: 0;
+            display: block;
+            font-size: 10px;
+            margin-top: -7px;
+            margin-bottom: -3px;
+            line-height: 1em;
+            background: #fff;
+            transition: 0.3s all;
+        }
+
+        &.copied .cqz-offer-code-info {
+            opacity: 1;
+        }
+
+        .cqz-offer-code {
+            display: block;
+            overflow: hidden;
+            white-space: nowrap;
+            padding: 8px 20px 6px;
+            margin: 5px 0;
+            height: 30px;
+            line-height: 20px;
+            font-size: 18px;
+            border-radius: 5px;
+            background: #eee;
+        }
+
+        & + .cqz-descr {
+            max-height: 2.4em;
+        }
+    }
+
+    .cqz-power-by {
+        display: inline-block;
+        font-size: 11px;
+        color: #ccc;
+        text-decoration: none;
+        margin-top: 7px;
+
+        &[href]:hover {
+            text-decoration: underline;
+        }
+
+        i {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            margin-top: -2px;
+            vertical-align: middle;
+
+            svg {
+                fill: #ccc;
+                max-width: 100%;
+                max-height: 100%;
+                margin-right: 8px;
+            }
+        }
+    }
+}
+
+.descr-read-more {
+    position: relative;
+    color: #ccc;
+    font-size: 12px;
+    cursor: default;
+
+    .hover-wrapper {
+        display: none;
+        position: absolute;
+        left: -10px;
+        bottom: 25px;
+        width: 250px;
+        padding: 8px;
+        border-radius: 5px;
+        border: 1px solid #999;
+        background: #dfdfdf;
+        font-size: 12px;
+        color: #333;
+
+        .text-holder {
+            overflow: auto;
             display: block;
             width: 100%;
-            height: 41px;
-            color: #fff;
-            font-size: 14px;
-            text-transform: uppercase;
-            border-bottom-left-radius: 4px;
-            border-bottom-right-radius: 4px;
-            background-color: $color-cliqz;
-            font-weight: 500;
+            max-height: 64px;
+        }
+    }
 
-            &:hover {
-                background-color: #0078CA;
-            }
+    &.size-l .hover-wrapper {
+        width: 40vw;
+        font-size: 11px;
+    }
+
+    i {
+        display: inline-block;
+        width: 15px;
+        height: 15px;
+        margin-top: -2px;
+        vertical-align: middle;
+
+        svg {
+            fill: #ccc;
+            max-width: 100%;
+            max-height: 100%;
+            margin-right: 8px;
+        }
+    }
+
+    &:hover {
+        &:after {
+            display: block;
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 200%;
         }
 
-        #voucher-feedback {
-            padding: 0;
+        .hover-wrapper {
+            display: block;
+        }
+    }
 
-            & > p {
-                padding: 7px 0 0 20px;
+    .hover-wrapper:before,
+    .hover-wrapper:after {
+        display: block;
+        content: '';
+        position: absolute;
+        bottom: -7px;
+        left: 10px;
+        width: 0;
+        height: 0;
+        border-left: 7px solid transparent;
+        border-right: 7px solid transparent;
+
+        border-top: 7px solid #999;
+    }
+
+    .hover-wrapper:after {
+        bottom: -5px;
+        border-top-color: #dfdfdf;
+        z-index: 100;
+    }
+}
+
+.cqz-ticket-offer.cqz-no-call-to-action {
+    .cqz-offer-holder {
+        padding-right: 20px;
+    }
+}
+
+.cqz-ticket-offer.cqz-voucher-big-title {
+     .cqz-title {
+         overflow: hidden;
+         font-size: 25px;
+         line-height: 1.2em;
+         max-height: 2.4em;
+     }
+
+    .cqz-descr,
+    .cqz-offer-code {
+        display: none;
+    }
+}
+.cqz-ticket-offer:hover .cqz-close{
+    display: block;
+}
+.cqz-close {
+    display: none;
+    cursor: pointer;
+    position: absolute;
+    top: -6px;
+    right: -5px;
+    width: 20px;
+    height: 20px;
+    line-height: 16px;
+    text-align: center;
+    font-size: 16px;
+    border-radius: 100%;
+    border: 1px solid #dedede;
+    background: #fff;
+    opacity: 0.7;
+
+    &:after {
+        content: "×";
+    }
+
+    &:hover {
+        color: #fff;
+        border-color: #aaa;
+        background: #aaa;
+    }
+}
+
+@media (max-width: 800px) {
+    .cqz-ticket-offer  {
+        .cqz-content-holder {
+            .cqz-title {
                 font-size: 16px;
-                font-weight: 500;
+                max-height: 2.6em;
             }
+        }
+    }
+    .cqz-ticket-offer.cqz-voucher-big-title {
+        .cqz-title {
+            font-size: 20px;
+            max-height: 3.6em;
+        }
+    }
+}
 
-            & > ul {
-                padding: 20px 0 15px 20px;
 
-                & > li {
-                    padding: 3px 0;
+@media (max-width: 600px) {
+    .cqz-ticket-offer  {
+        .cqz-offer-holder {
+            padding-left: 100px;
+            padding-right: 150px;
+            background-size: 70px auto;
+            background-position: 10px 50%;
 
-                    & > label {
-                        font-size: 12.5px;
-                    }
+            .cqz-logo-holder {
+                margin-left: -100px;
+                width: 100px;
+                padding: 0 20px 0 10px;
 
-                    & > input {
-                        margin-left: 0;
-                    }
+                //&:before {
+                //    left: 106px;
+                //}
 
-                    &:last-child {
+                table {
+                    td {
+                        span {
+                            font-size: 20px;
 
-                        input[type='radio'] {
-                            vertical-align: 37px;
-                        }
-
-                        textarea {
-                            resize: none;
-                            margin-top: 6px;
-                            padding: 3px;
-                            border: 1px solid $color-border-light-grey;
-                            border-radius: 4px;
-                            max-width: 180px;
-                            vertical-align: 34px;
-
-                            &[disabled] {
-                                background-color: $color-bg-light-grey;
+                            &:first-child {
+                                font-size: 25px;
                             }
                         }
                     }
                 }
             }
+        }
 
-            #close-feedback {
-                display: block;
-                width: 100%;
-                height: 41px;
-                color: #fff;
+        .cqz-call-to-action {
+            max-width: 150px;
+
+            .cqz-btn {
+                padding: 10px 10px 7px;
                 font-size: 14px;
-                text-transform: uppercase;
-                border-bottom-left-radius: 4px;
-                border-bottom-right-radius: 4px;
-                background-color: $color-bg-grey;
-                font-weight: 500;
+                line-height: 1.2em;
+                border-radius: 4px;
+            }
+        }
+
+
+        .cqz-offer-code-holder{
+            .cqz-offer-code {
+                font-size: 14px;
+                line-height: 20px;
+            }
+        }
+
+        .cqz-content-holder {
+            .cqz-title {
+                font-size: 16px;
+                max-height: 2.6em;
             }
         }
     }
-
-    .cta-element {
-        cursor: pointer;
-    }
-
-    .logo-wrapper {
-        position: absolute;
-        top: 5px;
-        right: 0;
-        width: 100%;
-        text-align: right;
-        overflow: hidden;
-        padding-right: 10px;
-
-        .setting {
-            margin-right: -7px;
-            margin-left: -2px;
-            display: none;
-            vertical-align: 16px;
-            width: 10px;
-            height: 18px;
-            background: url('../images/3dots-menu.svg') no-repeat center;
-
-            &:hover {
-                background-image: url('../images/3dots-menu-hover.svg');
-            }
+    .cqz-ticket-offer.cqz-voucher-big-title {
+        .cqz-title {
+            font-size: 20px;
+            max-height: 3.6em;
         }
-
-        &.menu-opened {
-
-            .setting {
-                background-image: url('../images/3dots-menu-hover.svg');
-            }
-
-            & + .settings {
-                display: block;
-            }
-        }
-    }
-
-    .settings {
-        display: none;
-        position: absolute;
-        top: 10px;
-        right: 20px;
-        background-color: #fff;
-        box-shadow: 3px 2px 10px rgba(0,0,0,0.25);
-        text-align: left;
-        border-radius: 4px;
-
-        & > li {
-            padding: 10px 15px;
-            font-size: 13.5px;
-
-            &:hover {
-                background-color: $color-bg-light-grey;
-            }
-
-            &:first-child {
-                border-top-left-radius: 4px;
-                border-top-right-radius: 4px;
-            }
-
-            &:last-child {
-                border-bottom-left-radius: 4px;
-                border-bottom-right-radius: 4px;
-            }
-        }
-    }
-
-    &.active {
-
-        margin: 7px 0 12px;
-        cursor: default;
-        background-color: #fff;
-        box-shadow: 0px 1px 3px 0px rgba(0,0,0,0.2);
-        padding-bottom: 0;
-
-        .overview {
-            display: none;
-        }
-
-        .details {
-            transition-duration: 150ms;
-            max-height: 450px;
-            border-bottom-left-radius: 4px;
-            border-bottom-right-radius: 4px;
-        }
-
-        .logo-wrapper {
-
-            .setting {
-                display: unset;
-            }
-        }
-
-        &.preferred {
-            & ~ li.voucher-wrapper {
-                display: none;
-            }
-        }
-    }
-
-    &:first-child {
-        margin-top: 0;
-    }
-
-    &:last-child {
-        margin-bottom: 3px;
     }
 }
 

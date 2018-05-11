@@ -1,12 +1,12 @@
-/* eslint func-names: 'off' */
-
 /*
  * This module implements the fetching of suggestions from the default search engine of the user
  * It returns the suggestions formated as Cliqz results so that they can be display on the dropdown
  * with no code changes
  */
-import utils from '../core/utils';
-import CLIQZEnvironment from '../platform/environment';
+import { utils } from "core/cliqz";
+import CLIQZEnvironment from "platform/environment";
+
+'use strict';
 
 class ExpansionsProviderReranker {
   constructor() {
@@ -14,34 +14,31 @@ class ExpansionsProviderReranker {
   }
 
   formatResults(text, q) {
-    const results = JSON.parse(text);
-    return results[1].map(expansion =>
-      ({
-        snippet: { title: expansion, desc: '' },
-        url: CLIQZEnvironment.getDefaultSearchEngine().getSubmissionForQuery(expansion),
-        source: 'expansions',
-        q
-      })
-    );
+    var results = JSON.parse(text);
+    return results[1].map(function(expansion) {
+            return {'snippet': {'title': expansion, 'desc': ''},
+                    'url': CLIQZEnvironment.getDefaultSearchEngine().getSubmissionForQuery(expansion),
+                    'source': 'expansions',
+                    'q': q
+                    };
+          });
   }
 
   duringResults(res) {
     // TODO: propably there are more parameters we need to provide here,
     //     i.e. google opensearch search Url description
-    return new Promise((resolve) => {
-      const fullUrl = CLIQZEnvironment.getDefaultSearchEngine().getSuggestionUrlForQuery(res.query);
-      utils.httpGet(fullUrl, function (_res) {
-        const suggestionResults = this.formatResults(_res.response);
+    return new Promise((resolve, reject) => {
+      var fullUrl = CLIQZEnvironment.getDefaultSearchEngine().getSuggestionUrlForQuery(res.query);
+      var req = utils.httpGet(fullUrl, function (res) {
+        var suggestionResults = this.formatResults(res.response, q);
         // The first arg is faking a request response from Cliqz so that
         // we can re-use the same function in autocomplete to display the results
-        if (resolve) {
-          resolve({ query: _res.query, response: { results: suggestionResults } });
-        }
+        resolve && resolve({query: res.query, response: {results: suggestionResults}});
       });
     });
   }
 
-  afterResults(myResults) {
+  afterResults(myResults, backendResults) {
     return Promise.resolve(myResults);
   }
 }
@@ -61,6 +58,7 @@ export default class ExpansionsProvider {
       utils.setPref('expansion_fallback', true);
       utils.RERANKERS.push(this.reranker);
     }
+
   }
 
   disable() {
@@ -69,4 +67,5 @@ export default class ExpansionsProvider {
       utils.RERANKERS.splice(utils.RERANKERS.indexOf(this.reranker), 1);
     }
   }
-}
+
+};

@@ -1,52 +1,21 @@
-/* eslint-disable func-names */
+import utils from "../core/utils";
+import Search from "../autocomplete/search";
 import { Components, XPCOMUtils } from './globals';
 
-class ProviderAutoCompleteResultCliqz {
-  constructor(searchString, searchResult, defaultIndex) {
-    this._searchString = searchString;
-    this._searchResult = searchResult;
-    this._defaultIndex = defaultIndex;
-    this._errorDescription = '';
-    this._results = [];
-  }
-
-  get searchString() { return this._searchString; }
-  get searchResult() { return this._searchResult; }
-  get defaultIndex() { return this._defaultIndex; }
-  get errorDescription() { return this._errorDescription; }
-  get matchCount() { return this._results.length; }
-  getValueAt(index) { return (this._results[index] || {}).val; }
-  getFinalCompleteValueAt(index) { return this.getValueAt(index); }
-  getCommentAt(index) { return (this._results[index] || {}).comment; }
-  getStyleAt(index) { return (this._results[index] || {}).style; }
-  getImageAt(index) { return (this._results[index] || {}).image || ''; }
-  getLabelAt(index) { return (this._results[index] || {}).label; }
-  getDataAt(index) { return (this._results[index] || {}).data; }
-
-  setResults(results) {
-    this._results = results;
-  }
-}
-
 class ProviderAutoCompleteSearch {
-  startSearch(searchString, searchParam, previousResult, listener) {
-    if (!searchString.trim()) {
-      return;
-    }
+  constructor() {
+    this.search = new Search({
+      successCode: Components.interfaces.nsIAutoCompleteResult.RESULT_SUCCESS,
+    });
+  }
 
-    const result = new ProviderAutoCompleteResultCliqz(
-      searchString,
-      Components.interfaces.nsIAutoCompleteResult.RESULT_SUCCESS,
-      -2, // blocks autocomplete
-      ''
-    );
-
-    result.setResults([{}]);
-
-    listener.onSearchResult(this, result);
+  startSearch(searchString, searchParam, previousResult, listener){
+    this.search.search(searchString, listener.onSearchResult.bind(listener, this));
   }
 
   stopSearch() {
+    utils.clearTimeout(this.search.resultsTimer);
+    utils.clearTimeout(this.search.historyTimer);
   }
 }
 
@@ -55,9 +24,9 @@ class AutocompleteComponent {
     this.reg = Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
     this.FFcontract = {
       classID: Components.ID('{59a99d57-b4ad-fa7e-aead-da9d4f4e77c8}'),
-      classDescription: 'Cliqz',
+      classDescription : 'Cliqz',
       contractID: '@mozilla.org/autocomplete/search;1?name=cliqz-results',
-      QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIAutoCompleteSearch])
+      QueryInterface: XPCOMUtils.generateQI([ Components.interfaces.nsIAutoCompleteSearch ])
     };
   }
 
@@ -70,8 +39,8 @@ class AutocompleteComponent {
           Components.interfaces.nsISupports
         )
       );
-    } catch (e) {
-      // empty
+    } catch(e) {
+
     }
   }
 
@@ -83,14 +52,19 @@ class AutocompleteComponent {
   }
 }
 
-export default {
+export let background = {
   init() {
     this.autocomplete = new AutocompleteComponent();
     this.autocomplete.unregister();
-    this.autocomplete.register();
+    this.autocomplete.register()
   },
 
   unload() {
     this.autocomplete.unregister();
   }
 };
+
+export let Window = {
+  init() {},
+  unload() {}
+}

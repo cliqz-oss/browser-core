@@ -5,48 +5,29 @@
 
     $button-color,
     $button-color-hover
-){    
-    @mixin transitionNotifications() {
-      transition: transform 0.35s ease-out;
-    }
-
+){
     .undo-notification-box {
-      @include transitionNotifications();
-
-      position: absolute;
-      right: -370px;
-      padding: 17px;
-      padding-right: 12px;
+      position: fixed;
+      right: 18px;
+      padding: 20px;
       margin-top: 20px;
-      color: rgba(0,0,0,0.7);
+      color: #666;
       background: #fff;
       border-radius: 2px;
-      box-shadow: 0px 6px 25px 0px rgba(0,0,0,0.24);
-      min-width: 370px;
-      font-size: 13.5px;
-      font-weight: 300;
-      height:60px;
+      box-shadow: 0px 1px 2px 0px rgba(0,0,0,0.24);
+      min-width: 380px;
       z-index: 1000;
+      font-size: 12px;
+      transition: all;
 
       .removed-dial {
         white-space: nowrap;
         overflow: hidden;
         max-width: 150px;
         text-overflow: ellipsis;
-        font-size: 13.5px;
-        font-weight: 500;
-        color: rgba(0,0,0,0.85);
         display: inline-block;
-        top:3px;
+        top: 3px;
         position: relative;
-      }
-
-      &.visible {
-        transform: translate3d(-437px, 0, 0);
-      }
-
-      &.padded.visible {
-        transform: translate3d(-650px, 0, 0);
       }
 
       button {
@@ -55,19 +36,13 @@
         background: transparent;
 
         &.undo {
-          color:  #0078CA;
+          color: $button-color;
           margin-left: 10px;
           text-transform: uppercase;
-          font-size: 10.5px;
           font-weight: 500;
-          
 
           &:hover {
-            letter-spacing: 1px;
-            -webkit-transition: letter-spacing .1s ease;
-            -moz-transition: letter-spacing .1s ease;
-            -ms-transition: letter-spacing .1s ease;
-            -o-transition: letter-spacing .1s ease;
+            color: $button-color-hover;
           }
         }
 
@@ -86,5 +61,4 @@
         }
       }
     }
-
 }

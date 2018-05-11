@@ -19,18 +19,18 @@ body {
         }
     }
 
-    [data-visible-on-state] {
+    [visible-on-state] {
         display: none !important;
     }
 
-    &[data-state="unpaired"] {
-        [data-visible-on-state="unpaired"] {
+    &[state="unpaired"] {
+        [visible-on-state="unpaired"] {
             display: inline-block !important;
         }
     }
 
-    &[data-state="paired"] {
-        [data-visible-on-state="paired"] {
+    &[state="paired"] {
+        [visible-on-state="paired"] {
             display: inline-block !important;
         }
     }

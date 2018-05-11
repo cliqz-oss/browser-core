@@ -8,8 +8,7 @@ import MainImage from './partials/MainImage';
 import HistoryUrls from './partials/HistoryUrls';
 import deepResultsList, { headersMap, footersMap, extrasMap } from '../helpers/templates-map';
 import { agoLine } from '../helpers/logic';
-import { elementSidePaddings, cardBorderTopRadius } from '../styles/CardStyle';
-import utils from '../../core/utils';
+import { elementSideMargins } from '../styles/CardStyle';
 
 class Generic extends React.Component {
 
@@ -18,7 +17,7 @@ class Generic extends React.Component {
       .sort((res1, res2) => deepResultsList.indexOf(res1.type) > deepResultsList.indexOf(res2.type))
       .map(res => {
         const Component = map[res.type];
-        return <Component url={this.props.result.url} key={res.type} data={res.links} />;
+        return <Component url={this.props.result.val} key={res.type} data={res.links} />;
       });
   }
 
@@ -30,37 +29,33 @@ class Generic extends React.Component {
     if (!Component) {
       return null;
     }
-    return <Component key='extra' data={data.extra} result={this.props.result} />;
+    return <Component key='extra' data={data.extra} />;
   }
 
   render() {
     const result = this.props.result;
-    const url = result.url || null;
-    const title = result.title || null;
+    const url = result.val || null;
+    const title = result.data.title || null;
     const timestamp = result.data.extra && result.data.extra.rich_data
                 && result.data.extra.rich_data.discovery_timestamp;
-    const description = result.description || null;
+    const description = result.data.description || null;
     const headerDeepResults = this.getDeepResultsList(headersMap, result.data.deepResults);
     const footerDeepResults = this.getDeepResultsList(footersMap, result.data.deepResults);
     const extraComponent = this.getExtraComponent(result.data);
-    const urlDetails = utils.getDetailsFromUrl(url || '');
-    const logoDetails = utils.getLogoDetails(urlDetails);
-    const headerBackround = logoDetails.backgroundColor || '000';
-    const isHistory = result.data.kind[0] === 'H';
 
     return (
-      <View style={{ backgroundColor: 'white', ...cardBorderTopRadius }}>
+      <View>
         { url &&
-          <View style={styles(`#${headerBackround}`).header}>
-            <Icon width={40} height={40} logoDetails={logoDetails} />
-            <Url url={url} color="white" isHistory={isHistory} />
+          <View style={styles.header}>
+            <Icon width={40} height={40} url={url} />
+            <Url url={url} isHistory={result.data.kind[0] === 'H'} />
           </View>
         }
-        { url && title && <Title title={title} isHistory={isHistory} meta={agoLine(timestamp)} /> }
+        { url && title && <Title title={title} meta={agoLine(timestamp)} /> }
         { result.data.extra && <MainImage extra={result.data.extra} /> }
         { headerDeepResults }
         { extraComponent }
-        { description && <Description isHistory={isHistory} description={description} /> }
+        { description && <Description description={description} /> }
         { result.data.urls && <HistoryUrls urls={result.data.urls} /> }
         { footerDeepResults }
       </View>
@@ -68,16 +63,11 @@ class Generic extends React.Component {
   }
 }
 
-const styles = backgroundColor => StyleSheet.create({
+const styles = StyleSheet.create({
   header: {
-    backgroundColor,
-    borderTopLeftRadius: 5,
-    borderTopRightRadius: 5,
+    ...elementSideMargins,
     flexDirection: 'row',
     alignItems: 'center',
-    ...elementSidePaddings,
-    paddingTop: 5,
-    paddingBottom: 5,
   },
 });
 

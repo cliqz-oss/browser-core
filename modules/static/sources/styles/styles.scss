@@ -1,4 +1,36 @@
+@import '__vars';
 @import '__reset';
+@import '__grid';
 @import '__general';
+
+.cqz-popup {
+    @import '_result-logos';
+
+    // Entity Zones eg: Weather, Movies etc...
+    @import 'ezones/_generic';
+    @import 'ezones/_calc';
+    @import 'ezones/_cinema';
+    @import 'ezones/_cliqz';
+    @import 'ezones/_currency';
+    @import 'ezones/_flight-status';
+    @import 'ezones/_news';
+    @import 'ezones/_delivery-tracking';
+    @import 'ezones/_bundes-liga';
+    @import 'ezones/_stocks';
+    @import 'ezones/_weather';
+    @import 'ezones/_local';
+    @import 'ezones/_vod';
+    @import 'ezones/_live-ticker';
+
+    @import 'parts/_footer-msg';
+}
+
+.cqz-popup-simple {
+  min-width: 0px;
+}
+
 @import '_ab-tests';
+
+
 @import 'parts/_context-menu';
+@import 'ezones/_history';

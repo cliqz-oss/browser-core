@@ -1,5 +1,5 @@
 // import md5 from 'core/helpers/md5';
-import utils from '../core/utils';
+import { utils } from '../core/cliqz';
 import logger from './logger';
 import { ERROR_CODE } from './rtc-onion';
 
@@ -21,7 +21,7 @@ export default class RtcRelay {
     this.droppedMessages = 0;
 
     // Stats about data received
-    this.dataIn = 0; // Updated in proxy-peer.es
+    this.dataIn = 0;  // Updated in proxy-peer.es
     this.dataOut = 0;
 
     // Display health check

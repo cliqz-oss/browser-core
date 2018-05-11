@@ -1,0 +1,12 @@
+<script>
+setTimeout(function () {
+    window.postMessage(JSON.stringify({
+        target: 'cliqz',
+        module: 'core',
+        action: 'openLink',
+        args: [
+            'chrome://cliqz/content/firefox-tests/index.html?closeOnFinish=1&forceExtensionReload=0'
+        ]
+    }), "*");
+}, 10000);
+</script>

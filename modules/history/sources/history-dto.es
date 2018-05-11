@@ -1,6 +1,22 @@
 import utils from '../core/utils';
-import config from '../core/config';
-import deepFreeze from '../core/helpers/deep-freeze';
+
+// https://github.com/substack/deep-freeze
+/* eslint-disable */
+function deepFreeze(o) {
+  Object.freeze(o);
+
+  Object.getOwnPropertyNames(o).forEach(function (prop) {
+    if (o.hasOwnProperty(prop)
+    && o[prop] !== null
+    && (typeof o[prop] === "object" || typeof o[prop] === "function")
+    && !Object.isFrozen(o[prop])) {
+      deepFreeze(o[prop]);
+    }
+  });
+
+  return o;
+}
+/* eslint-enable */
 
 function createBaseStructure() {
   return {};
@@ -14,13 +30,17 @@ function mergePlaces(history, places) {
   const domainList = places.reduce((d, entry) => {
     const domains = d;
 
+    if (!entry.title) {
+      return domains;
+    }
+
     urlCount += 1;
 
     const isCliqz = entry.url.indexOf('cliqz://') === 0;
     let host;
 
     if (isCliqz) {
-      const details = utils.getDetailsFromUrl(config.settings.HOMPAGE_URL);
+      const details = utils.getDetailsFromUrl('https://cliqz.com');
       host = 'CLIQZ';
 
       domains[host] = domains[host] || {
@@ -47,7 +67,7 @@ function mergePlaces(history, places) {
 
     domains[host].visits.push({
       url: entry.url,
-      title: entry.title || '',
+      title: entry.title,
       lastVisitedAt: entry.visit_date,
       sessionId: entry.session_id,
       visitId: entry.id,

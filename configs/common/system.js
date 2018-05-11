@@ -11,21 +11,21 @@ const systemConfig = {
     path.join('node_modules', '*', 'package.json'),
   ],
   map: {
-    'handlebars': 'node_modules/handlebars/dist/handlebars.min.js',
-    'jquery': 'node_modules/jquery/dist/jquery.min.js',
-    'mathjs': 'node_modules/mathjs/dist/math.min.js',
-    'BigInt': 'node_modules/BigInt/src/BigInt.js',
+    'handlebars': 'bower_components/handlebars/handlebars.js',
+    'jquery': 'bower_components/jquery/dist/jquery.js',
+    'mathjs': 'bower_components/mathjs/dist/math.min.js',
+    'bigint': 'bower_components/bigint/index.js',
+    'md5': 'bower_components/md5/index.js',
     'react': 'node_modules/react/cjs/react.production.min.js',
     'chai': 'node_modules/chai/chai.js',
     'chai-dom': 'node_modules/chai-dom/chai-dom.js',
     'react-dom': 'node_modules/react-dom/cjs/react-dom.production.min.js',
-    'qrcodejs': 'node_modules/qrcodejs/qrcode.min.js',
+    'qrcode': 'node_modules/qrcodejs/qrcode.min.js',
     'plugin-json': 'node_modules/systemjs-plugin-json/json.js',
-    'pako': 'node_modules/pako/dist/pako.js',
-    'fast-url-parser': 'modules/platform/lib/fast-url-parser',
   },
   paths: {
     'specific/*': './specific/firefox/*',
+    'bower_components/*': './bower_components/*',
     'modules/*': 'modules/*',
     'modules': 'modules',
     'node_modules/*': './node_modules/*',
@@ -35,7 +35,9 @@ const systemConfig = {
     'specific/*': {
       format: 'global',
     },
-    'BigInt': { format: 'cjs' },
+    'bower_components/*': {
+      format: 'global',
+    },
     '*.json': {
       loader: 'plugin-json',
     },
@@ -51,25 +53,22 @@ const systemConfig = {
         './platform/tldjs': 'node_modules/tldjs/index.js'
       },
       meta: {
-        './platform/lib/zlib.lib.js': {
-          'format': 'cjs'
+        './platform/lib/zlib.js': {
+          'format': 'system'
         },
         './platform/lib/sanitize-filename.js': {
           'format': 'system'
         },
-        './platform/lib/cron-parser.js': {
+        './core/lib/cron-parser.js': {
           'format': 'system'
         },
         './platform/video-downloader/lib/ytdl-core.js': {
           'format': 'system'
         },
-        './platform/lib/fast-url-parser.js': {
+        './platform/fast-url-parser.js': {
           'format': 'system'
         },
         './platform/lib/deep-equal.js': {
-          'format': 'system'
-        },
-        './platform/lib/ajv.js': {
           'format': 'system'
         },
         './platform/lib/jsep.js': {
@@ -116,6 +115,11 @@ const appBundleConfig = {
       globalDeps: {
         'mathjs': 'mathLib'
       },
+    }),
+  },
+  'modules/hpn/worker.bundle.js': {
+    builderConfig: Object.assign({}, builderConfig, {
+      rollup: true,
     }),
   },
 };

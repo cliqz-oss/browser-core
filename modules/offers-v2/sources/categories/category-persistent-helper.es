@@ -1,40 +1,12 @@
+import { utils } from '../../core/cliqz';
 import Category from './category';
 import SimpleDB from '../../core/persistence/simple-db';
-import logger from '../common/offers_v2_logger';
-import { buildCachedMap } from '../common/cached-map-ext';
-import prefs from '../../core/prefs';
 
+const PATTERN_DOC_ID = 'cliqz-cat-patterns';
+const CATEGORIES_DOC_ID = 'cliqz-cat-categories';
 const METADATA_DOC_ID = 'cliqz-cat-metadata';
 const DAY_COUNTER_DOC_ID = 'cliqz-cat-day-counter';
-
-
-/**
- * will return the intersection of 2 lists
- */
-const intersection = (l1, l2) => {
-  const s1 = new Set(l1);
-  const s2 = new Set(l2);
-  const result = [];
-  s1.forEach((k1) => {
-    if (s2.has(k1)) {
-      result.push(k1);
-    }
-  });
-  return result;
-};
-
-const extractCategoryData = (category) => {
-  const catData = category.serialize();
-  catData.patterns = undefined;
-  return catData;
-};
-
-const buildCategoryFromDataAndPatterns = (catData, catPatterns) => {
-  const category = new Category();
-  category.deserialize(catData);
-  category.patterns = catPatterns;
-  return category;
-};
+const AUTO_SAVE_TIME_FREQ_SECS = 60;
 
 /**
  * we will isolate the way we load the data in this helper. we will save the
@@ -42,24 +14,20 @@ const buildCategoryFromDataAndPatterns = (catData, catPatterns) => {
  * do not change.
  */
 export default class CategoryPersistentDataHelper {
-  constructor(db) {
+  constructor(catTree, db) {
     this.db = (db) ? new SimpleDB(db) : null;
-    // we will store the data in 2 maps, one will contain the patterns and the
-    // other will contain the category data itself
-    const loadPersistentData = !prefs.get('offersDevFlag', false);
-    this.categoriesDataMap = buildCachedMap('cliqz-categories-data', loadPersistentData);
-    this.categoriesPatternsMap = buildCachedMap('cliqz-categories-patterns', loadPersistentData);
+    this.catTree = catTree;
+    this.needsToUpdatePatterns = false;
+    this.needsToUpdateCategories = false;
+
+    // we will save frequently if we detect changes on the categories / patterns
+    this.autosaveTimer = utils.setInterval(() => {
+      this.save();
+    }, AUTO_SAVE_TIME_FREQ_SECS * 1000);
   }
 
-  unloadDB() {
-    return Promise.all([this.categoriesDataMap.unload(), this.categoriesPatternsMap.unload()]);
-  }
-
-  /**
-   * Will remove all the data from DB
-   */
-  destroyDB() {
-    return Promise.all([this.categoriesDataMap.destroy(), this.categoriesPatternsMap.destroy()]);
+  destroy() {
+    utils.clearInterval(this.autosaveTimer);
   }
 
   loadMetadata() {
@@ -82,58 +50,69 @@ export default class CategoryPersistentDataHelper {
    * will return a promise with a list of all the categories already built
    */
   loadCategories() {
-    return Promise.all([
-      this.categoriesDataMap.init(),
-      this.categoriesPatternsMap.init()]).then(() => {
-      // we will do a sync here
-      const catDataIDs = [...this.categoriesDataMap.keys()];
-      const catPatternsIDs = [...this.categoriesPatternsMap.keys()];
-      const validIDs = new Set(intersection(catDataIDs, catPatternsIDs));
-
-      const removeInvalidSignals = (currentIDs, map) => {
-        currentIDs.forEach((catID) => {
-          if (!validIDs.has(catID)) {
-            map.delete(catID);
-          }
-        });
-      };
-
-      // remove all entries that are not valid anymore
-      removeInvalidSignals(catDataIDs, this.categoriesDataMap);
-      removeInvalidSignals(catPatternsIDs, this.categoriesPatternsMap);
-
+    this._clear();
+    const patternsProm = this.db.get(PATTERN_DOC_ID);
+    const categoriesProm = this.db.get(CATEGORIES_DOC_ID);
+    return Promise.all([patternsProm, categoriesProm]).then((data) => {
+      const patternsData = data[0] && data[0].patternsMap ? data[0].patternsMap : {};
+      const catData = data[1] && data[1].catList ? data[1].catList : [];
       const result = [];
-      validIDs.forEach((catID) => {
-        const catObject = this.categoriesDataMap.get(catID);
-        const catPatterns = this.categoriesPatternsMap.get(catID);
-        result.push(buildCategoryFromDataAndPatterns(catObject, catPatterns));
-      });
+      for (let i = 0; i < catData.length; i += 1) {
+        const category = new Category();
+        const catDataObj = catData[i];
+        catDataObj.patterns = patternsData[catDataObj.name];
+        category.deserialize(catDataObj);
+
+        // do not load anything on debug
+        if (!utils.getPref('offersDevFlag', false)) {
+          result.push(category);
+        }
+      }
+
       return Promise.resolve(result);
     });
   }
 
-  // only the data is modified
-  categoryModified(category) {
-    if (!category || !this.categoriesDataMap.has(category.getName())) {
-      logger.error('Invalid category modified', category);
-      return;
+  save() {
+    let patternsProm = true;
+    if (this.needsToUpdatePatterns) {
+      patternsProm = this.db.upsert(PATTERN_DOC_ID, { patternsMap: this._getPatternsFromTree() });
+      this.needsToUpdatePatterns = false;
     }
-    // store only the data
-    this.categoriesDataMap.set(category.getName(), extractCategoryData(category));
+    let catProm = true;
+    if (this.needsToUpdateCategories) {
+      catProm = this.db.upsert(CATEGORIES_DOC_ID, { catList: this._categories() });
+      this.needsToUpdateCategories = false;
+    }
+    return Promise.all([patternsProm, catProm]);
   }
 
-  categoryRemoved(category) {
-    if (category) {
-      this.categoriesPatternsMap.delete(category.getName());
-      this.categoriesDataMap.delete(category.getName());
-    }
+  categoryModified(/* category */) {
+    this.needsToUpdateCategories = true;
   }
 
-  categoryAdded(category) {
-    if (category) {
-      // here we will split the patterns and the data
-      this.categoriesPatternsMap.set(category.getName(), category.getPatterns());
-      this.categoriesDataMap.set(category.getName(), extractCategoryData(category));
-    }
+  categoryRemoved(/* category */) {
+    this.needsToUpdateCategories = true;
+    this.needsToUpdatePatterns = true;
+  }
+
+  categoryAdded(/* category */) {
+    this.needsToUpdateCategories = true;
+    this.needsToUpdatePatterns = true;
+  }
+
+  _getPatternsFromTree() {
+    return this._categories().filter(cat => cat.hasPatterns()).map(cat => cat.getPatterns());
+  }
+
+  _categories() {
+    return this.catTree.getAllSubCategories('')
+      .filter(node => node.hasCategory())
+      .map(catNode => catNode.getCategory());
+  }
+
+  _clear() {
+    this.needsToUpdatePatterns = false;
+    this.needsToUpdateCategories = false;
   }
 }

@@ -2,13 +2,13 @@
 import config from '../core/config';
 // Load content scripts from modules
 import '../module-content-script';
-import {
-  runContentScripts,
-  CHROME_MSG_SOURCE,
-  isCliqzContentScriptMsg,
-  getDocumentUrl
-} from '../core/content/helpers';
+import { getWindowId, getWindowTreeInformation, runContentScripts,
+  CHROME_MSG_SOURCE, isCliqzContentScriptMsg, getDocumentUrl } from '../core/content/helpers';
 import { throttle } from '../core/decorators';
+
+if (typeof windowId === 'undefined') {
+  window.windowId = getWindowId();
+}
 
 function getContextHTML(ev) {
   var target = ev.target,
@@ -47,8 +47,7 @@ try {
     return;
   }
 
-  runContentScripts(window, chrome);
-
+  const windowTreeInformation = getWindowTreeInformation(window);
   const currentURL = () => window.location.href;
   const url = currentURL();
 
@@ -78,6 +77,7 @@ try {
     chrome.runtime.sendMessage({
       source: CHROME_MSG_SOURCE,
       origin: 'content',
+      windowId: windowId,
       payload: message
     });
   };
@@ -106,7 +106,6 @@ try {
   let fns = {
     postMessage: function (message) {
       window.postMessage(message, '*');
-      return null;
     },
     getHTML: function () {
       return window.document.documentElement.outerHTML;
@@ -153,14 +152,16 @@ try {
       return;
     }
 
-    const url = currentURL();
+    if (msg.action === 'getHTML') {
+      msg.url = decodeURIComponent(msg.url);
+    }
 
-    let matchesCurrentUrl = msg.url === url;
+    let matchesCurrentUrl = msg.url === currentURL();
     // wild card for cliqz URLS
     if(msg.url &&
         (msg.url.indexOf('resource://cliqz') === 0 ||
          msg.url.indexOf('chrome://cliqz') === 0)) {
-      if(url.indexOf(msg.url) === 0) {
+      if(currentURL().indexOf(msg.url) === 0){
         matchesCurrentUrl = true;
       }
     }
@@ -194,6 +195,7 @@ try {
     return function (ev) {
       chrome.runtime.sendMessage({
         source: CHROME_MSG_SOURCE,
+        windowId: windowId,
         payload: {
           module: 'core',
           action: action,
@@ -201,6 +203,7 @@ try {
             {
               target: {
                 baseURI: ev.target.baseURI,
+                windowTreeInformation: windowTreeInformation,
               }
             }
           ]
@@ -236,12 +239,14 @@ try {
 
     chrome.runtime.sendMessage({
       source: CHROME_MSG_SOURCE,
+      windowId: windowId,
       payload: {
         module: 'core',
         action: 'recordMouseDown',
         args: [
           {
             target: {
+              windowTreeInformation: windowTreeInformation,
               baseURI: ev.target.baseURI,
               value: ev.target.value,
               href: ev.target.href,
@@ -268,6 +273,7 @@ try {
     if (isTopWindow && lang) {
       chrome.runtime.sendMessage({
         source: CHROME_MSG_SOURCE,
+        windowId: windowId,
         payload: {
           module: 'core',
           action: 'recordLang',
@@ -289,6 +295,7 @@ try {
     if (isTopWindow) {
       chrome.runtime.sendMessage({
         source: CHROME_MSG_SOURCE,
+        windowId: windowId,
         payload: {
           module: 'core',
           action: 'recordMeta',
@@ -311,10 +318,7 @@ try {
     if (!isCliqzContentScriptMsg(message)) {
       return;
     }
-
-    // messages with windowId are responses to actions being called by content scripts
-    // TODO: use chrome.runtime.sendMessage callbacks instead
-    if (message.windowId) {
+    if (message.windowId === windowId) {
       onCallback(message);
     } else {
       onCore(message);
@@ -336,6 +340,8 @@ try {
   window.addEventListener('copy', onCopy);
   window.addEventListener('DOMContentLoaded', onReady);
   chrome.runtime.onMessage.addListener(onBackgroundMessage);
+
+  runContentScripts(window, chrome, windowId);
 
   function stop(ev) {
     if (ev && (ev.target !== window.document)) {

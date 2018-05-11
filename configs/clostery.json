@@ -1,0 +1,42 @@
+{
+  "platform": "react-native",
+  "format": "common",
+  "baseURL": "chrome://cliqz/content/",
+  "settings": {
+    "antitrackingButton": false,
+    "ATTRACK_TELEMETRY_PROVIDER": "platform",
+    "channel": "clostery",
+    "HPN_CHANNEL": "ghostery"
+  },
+  "default_prefs" : {
+    "attrackBloomFilter": true,
+    "attrackForceBlock": true,
+    "cliqz-adb-disk-cache": false,
+    "cliqz-adb-abtest": true,
+    "antitrackingBlocklist": "ghostery",
+    "clostery.categoryPolicies": "{\"essential\": \"ALLOW_SAFE\"}",
+    "CDN_BASEURL": "https://cdn2.ghostery.com",
+    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"]
+  },
+  "modules": [
+    "core",
+    "core-cliqz",
+    "static",
+    "webrequest-pipeline",
+    "antitracking",
+    "antitracking-blocker",
+    "adblocker"
+  ],
+  "react_components": {
+    "ExtensionApp": "./ExtensionApp"
+  },
+  "resources": {
+    "bundling": "assets",
+    "include": [
+      "core/logo-database.json",
+      "antitracking/prob.json",
+      "antitracking/config.json",
+      "antitracking/tracker_db_v2.json"
+    ]
+  }
+}

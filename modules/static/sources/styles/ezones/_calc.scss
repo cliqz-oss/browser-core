@@ -1,0 +1,78 @@
+/* ez calculator (time etc) */
+.ez-calculator .answer {
+    @extend .cqz-ellipsis;
+
+    margin-top: -9px;
+    font-size: 48px;
+    line-height: 1.3em;
+}
+
+.ez-calculator .expression {
+    @extend .cqz-ellipsis;
+
+    margin: 14px 0 2px;
+    color: #999999
+}
+
+.ez-calculator .message {
+    color: #cccccc;
+    font-size: 14px;
+    margin-left: 17px;
+}
+
+/*======= Time Clock =======*/
+.ez-type-time > .cqz-result-holder .answer {
+    padding-left: 50px;
+}
+
+.cqz-analog-clock {
+    float: left;
+    margin: 9px 0 0 -50px;
+}
+
+.cqz-analog-clock .clock {
+    height: 40px;
+    width: 40px;
+    background: #fafafa;
+    border: 1px solid #333333;
+    position: relative;
+    border-radius: 50% 50%;
+    box-sizing: border-box;
+}
+
+.cqz-analog-clock .clock .hand-hour,
+.cqz-analog-clock .clock .hand-minute,
+.cqz-analog-clock .clock .hand-second,
+.cqz-analog-clock .notch {
+    width: 12px;
+    height: 2px;
+    background: #333333;
+    position: absolute;
+    top: 18px;
+    left: 19px;
+    transform-origin: left;
+}
+
+.cqz-analog-clock .clock .hand-minute {
+    width: 17px;
+}
+
+.cqz-analog-clock .clock .hand-second {
+    display: none;
+    width: 17px;
+    height: 1px;
+    background: #d7011d;
+}
+
+.cqz-analog-clock .notch {
+    width: 19px;
+    height: 1px;
+    background: none
+}
+
+.cqz-analog-clock .notch div {
+    width: 2px;
+    height: 100%;
+    float: right;
+    background: #333333;
+}

@@ -1,8 +1,8 @@
-import { Subresult } from './base';
-import i18n from '../../core/content/i18n';
+import BaseResult from './base';
+import utils from '../../core/utils';
 import GenericResult from './generic';
 
-class LottoButton extends Subresult {
+class LottoButton extends BaseResult {
   get displayUrl() {
     return this.rawResult.text;
   }
@@ -76,7 +76,7 @@ export default class LottoResult extends GenericResult {
       {
         result: lotto.gewinnzahlen.concat(lotto.superzahl),
         classNames: 'circle highlight-last',
-        description: 'lotto_superzahl',
+        description: 'lotto-superzahl',
       },
       {
         result: ['Spiel77'].concat(spiel77.gewinnzahlen.split('')),
@@ -96,12 +96,12 @@ export default class LottoResult extends GenericResult {
       {
         result: ej.gewinnzahlen,
         classNames: 'circle',
-        description: 'lotto_5aus50',
+        description: 'lotto-5aus50',
       },
       {
         result: ej.zwei_aus_acht,
         classNames: 'circle',
-        description: 'lotto_2aus8',
+        description: 'lotto-2aus8',
       },
     ];
   }
@@ -136,8 +136,8 @@ export default class LottoResult extends GenericResult {
       const gewinnzahlen = typeof currenRow === 'string' ? [currenRow] : currenRow;
       let monatlich = '';
 
-      const currency = gs.waehrung === 'EUR' ? i18n.getMessage('lotto_euro') : '';
-      const rente = i18n.getMessage('lotto_rente');
+      const currency = gs.waehrung === 'EUR' ? utils.getLocalizedString('lotto-euro') : '';
+      const rente = utils.getLocalizedString('lotto-rente');
 
       const anzahl = parseFloat(gs.quoten[i].anzahl)
         .toLocaleString(this.locale, { minimumFractionDigits: 1 })
@@ -163,11 +163,11 @@ export default class LottoResult extends GenericResult {
     const lottoResults = [
       {
         result: gs.gewinnzahlen[6][0].split(''),
-        description: 'lotto_gewinnklasse7',
+        description: 'lotto-gewinnklasse7',
       },
       {
         result: gs.gewinnzahlen[6][1].split(''),
-        description: 'lotto_gewinnklasse7',
+        description: 'lotto-gewinnklasse7',
       },
     ];
 
@@ -176,10 +176,10 @@ export default class LottoResult extends GenericResult {
         table: {
           data: this.getTableData(gs),
           columns: [
-            'lotto_klasse',
-            'lotto_gewinnzahlen',
-            'lotto_gewinne',
-            'lotto_quoten',
+            'lotto-klasse',
+            'lotto-gewinnzahlen',
+            'lotto-gewinne',
+            'lotto-quoten',
           ],
         }
       });
@@ -194,15 +194,15 @@ export default class LottoResult extends GenericResult {
   get internalResults() {
     const buttons = [];
     if (this.showExpandButton && !this.showTable) {
-      buttons.push(new LottoButton(this, {
-        title: 'lotto_expand',
+      buttons.push(new LottoButton({
+        title: 'lotto-expand',
         url: `cliqz-actions,${JSON.stringify({ type: 'lotto', actionName: 'expand' })}`,
         text: this.rawResult.text,
         elementId: 'lotto-expand-button',
         onClick: () => {
           this.showTable = true;
-          this.resultTools.actions.replaceResult(this, this);
-        },
+          this.actions.replaceResult(this, this);
+        }
       }));
     }
     return [
@@ -210,4 +210,5 @@ export default class LottoResult extends GenericResult {
       ...super.internalResults,
     ];
   }
+
 }

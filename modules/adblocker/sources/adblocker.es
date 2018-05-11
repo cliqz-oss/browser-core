@@ -1,6 +1,6 @@
 import LRUCache from '../core/helpers/fixed-size-cache';
 import events from '../core/events';
-import inject, { ifModuleEnabled } from '../core/kord/inject';
+import inject from '../core/kord/inject';
 import prefs from '../core/prefs';
 import { getGeneralDomain } from '../core/tlds';
 import UrlWhitelist from '../core/url-whitelist';
@@ -12,16 +12,17 @@ import { deflate, inflate } from '../core/zlib';
 import PersistentMap from '../core/persistence/map';
 import { platformName } from '../core/platform';
 
-import Adblocker from '../platform/lib/adblocker';
+import FilterEngine from '../core/adblocker-base/filters-engine';
+import { fastStartsWith } from '../core/adblocker-base/utils';
+import { deserializeEngine } from '../core/adblocker-base/serialization';
 
 import AdbStats from './adb-stats';
-import FiltersLoader, { FiltersList } from './filters-loader';
+import FiltersLoader from './filters-loader';
 import logger from './logger';
 
-import Pipeline from '../webrequest-pipeline/pipeline';
 
 // adb version
-export const ADB_VERSION = 12;
+export const ADB_VERSION = 11;
 
 // Preferences
 export const ADB_DISK_CACHE = 'cliqz-adb-disk-cache';
@@ -41,13 +42,14 @@ export function adbABTestEnabled() {
 }
 
 
-export function isSupportedProtocol(url) {
+function isSupportedProtocol(url) {
   return (
-    url.startsWith('http://') ||
-    url.startsWith('https://') ||
-    url.startsWith('ws://') ||
-    url.startsWith('wss://'));
+    fastStartsWith(url, 'http://') ||
+    fastStartsWith(url, 'https://') ||
+    fastStartsWith(url, 'ws://') ||
+    fastStartsWith(url, 'wss://'));
 }
+
 
 const CPT_TO_NAME = {
   1: 'other',
@@ -90,7 +92,7 @@ const DEFAULT_OPTIONS = {
 
 /* Wraps filter-based adblocking in a class. It has to handle both
  * the management of lists (fetching, updating) using a FiltersLoader
- * and the matching using a FiltersEngine.
+ * and the matching using a FilterEngine.
  */
 export class AdBlocker {
   constructor(options) {
@@ -261,7 +263,7 @@ export class AdBlocker {
 
   resetEngine() {
     this.log('Reset engine');
-    this.engine = new Adblocker.FiltersEngine({
+    this.engine = new FilterEngine({
       version: ADB_VERSION,
       loadNetworkFilters: this.loadNetworkFilters,
       loadCosmeticFilters: this.loadCosmeticFilters,
@@ -275,7 +277,7 @@ export class AdBlocker {
     // This is because some filters will behave differently based on the
     // domain of the source.
 
-    // Cache queries to FiltersEngine
+    // Cache queries to FilterEngine
     this.cache = new LRUCache(
       this.engine.match.bind(this.engine), // Compute result
       1000, // Maximum number of entries
@@ -290,19 +292,10 @@ export class AdBlocker {
         .then(() => db.get('engine'))
         .then((serializedEngine) => {
           const t0 = Date.now();
-          this.engine = Adblocker.deserializeEngine(
+          this.engine = deserializeEngine(
             this.compressDiskCache ? inflate(serializedEngine) : serializedEngine,
             ADB_VERSION,
           );
-          this.listsManager.lists = new Map();
-          this.engine.lists.forEach((list, asset) => {
-            const filterslist = new FiltersList(
-              list.checksum,
-              asset,
-              '' // If checksum does not match, the list will be update with a proper url
-            );
-            this.listsManager.lists.set(asset, filterslist);
-          });
           const totalTime = Date.now() - t0;
           this.log(`Loaded filters engine (${totalTime} ms)`);
         })
@@ -370,7 +363,6 @@ const CliqzADB = {
   urlWhitelist: new UrlWhitelist('adb-blacklist'),
   humanWeb: null,
   paused: false,
-  pipeline: null,
 
   adbEnabled() {
     // 0 = Disabled
@@ -380,12 +372,6 @@ const CliqzADB = {
       adbABTestEnabled() &&
       prefs.get(ADB_PREF, ADB_PREF_VALUES.Disabled) !== ADB_PREF_VALUES.Disabled
     );
-  },
-
-  isAdbActive(url) {
-    return CliqzADB.adbEnabled() &&
-      CliqzADB.adblockInitialized &&
-      !CliqzADB.urlWhitelist.isWhitelisted(url);
   },
 
   logActionHW(url, action, type) {
@@ -420,24 +406,6 @@ const CliqzADB = {
         useCountryList: prefs.get(ADB_USER_LANG, DEFAULT_OPTIONS.useCountryList),
       });
 
-      CliqzADB.pipeline = new Pipeline('adblocker', [
-        {
-          name: 'checkContext',
-          spec: 'blocking',
-          fn: CliqzADB.stepCheckContext,
-        },
-        {
-          name: 'checkWhitelist',
-          spec: 'break',
-          fn: CliqzADB.stepCheckWhitelist,
-        },
-        {
-          name: 'checkBlocklist',
-          spec: 'blocking',
-          fn: CliqzADB.stepCheckBlockList,
-        },
-      ]);
-
       return CliqzADB.adBlocker.init().then(() => {
         CliqzADB.initPacemaker();
         return CliqzADB.webRequestPipeline.action('addPipelineStep',
@@ -445,7 +413,7 @@ const CliqzADB = {
           {
             name: 'adblocker',
             spec: 'blocking',
-            fn: (...args) => CliqzADB.pipeline.execute(...args),
+            fn: CliqzADB.adblockerPipelineStep,
             before: ['antitracking.onBeforeRequest'],
           },
         );
@@ -479,7 +447,7 @@ const CliqzADB = {
 
       CliqzADB.unloadPacemaker();
 
-      ifModuleEnabled(CliqzADB.webRequestPipeline.action('removePipelineStep', 'onBeforeRequest', 'adblocker'));
+      CliqzADB.webRequestPipeline.action('removePipelineStep', 'onBeforeRequest', 'adblocker');
     }
 
     // If this is full unload, we also remove the pref listener
@@ -501,51 +469,36 @@ const CliqzADB = {
     CliqzADB.timers.forEach(utils.clearTimeout);
   },
 
-  stepCheckContext(state, response) {
+  adblockerPipelineStep(state, response) {
     if (!(CliqzADB.adbEnabled() && CliqzADB.adblockInitialized)) {
-      return false;
-    }
-
-    // Due to unbreakable pipelines, blocked requests might still come to
-    // adblocker, we can simply ignore them
-    if (response.cancel === true || response.redirectUrl) {
-      return false;
+      return true;
     }
 
     const url = state.url;
 
 
     if (!url || !isSupportedProtocol(url)) {
-      return false;
+      return true;
     }
 
     // This is the Url
     const sourceUrl = state.sourceUrl || '';
     if (!isSupportedProtocol(sourceUrl)) {
-      return false;
+      return true;
     }
 
     if (state.cpt === 6) {
       // Loading document
       CliqzADB.adbStats.addNewPage(sourceUrl, state.tabId);
-      return false;
+      return true;
     }
 
-    return true;
-  },
-
-  stepCheckWhitelist(state) {
-    const sourceUrl = state.sourceUrl || '';
     // We do it here because the Adblocker might be used by other modules
     // (like green-ads), and they should not be subjected to whitelists.
     if (CliqzADB.urlWhitelist.isWhitelisted(sourceUrl)) {
-      return false;
+      return true;
     }
-    return true;
-  },
 
-  stepCheckBlockList(state, response) {
-    const { sourceUrl, url } = state;
     const result = CliqzADB.adBlocker.match({
       sourceUrl,
       url,

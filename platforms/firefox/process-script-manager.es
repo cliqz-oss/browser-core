@@ -7,37 +7,6 @@ const PROCESS_SCRIPT_URL = `${config.baseURL}platform/process-script.bundle.js`;
 const FRAME_SCRIPT_URL = `${config.baseURL}core/frameScript.js`;
 
 export default class ProcessScriptManager {
-  dispatcher = (msg) => {
-    const { origin, payload, windowId } = msg.data;
-    const { action, module, requestId } = payload;
-
-    let sent = false;
-
-    this.dispatchMessage({
-      ...msg,
-      data: {
-        ...msg.data,
-        sendResponse: (response) => {
-          // To implement chrome.runtime.sendMesssage specification
-          // we make sure that `sendResponse` is called at most once
-          if (sent) {
-            return;
-          }
-
-          sent = true;
-          this.broadcast(`window-${msg.data.windowId}`, {
-            origin,
-            response,
-            action,
-            module,
-            requestId,
-            windowId,
-          });
-        },
-      }
-    });
-  }
-
   constructor(dispatcher) {
     this.dispatchMessage = dispatcher;
     this.timestamp = Date.now();
@@ -65,11 +34,11 @@ export default class ProcessScriptManager {
     utils.setTimeout(this.ppmm.loadProcessScript.bind(this.ppmm, this.processScriptUrl, true), 0);
     utils.setTimeout(this.gmm.loadFrameScript.bind(this.gmm, this.frameScriptUrl, true), 0);
 
-    this.addMessageListener('cliqz', this.dispatcher);
+    this.addMessageListener('cliqz', this.dispatchMessage);
   }
 
   unload() {
-    this.removeMessageListener('cliqz', this.dispatcher);
+    this.removeMessageListener('cliqz', this.dispatchMessage);
     this.broadcast('cliqz:core', {
       action: 'unload'
     });

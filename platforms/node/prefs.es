@@ -1,41 +1,46 @@
-import storage from 'node-persist';
+import AsyncStorage from 'node-persist';
 import events from '../core/events';
 import config from '../core/config';
 
-const prefs = config.default_prefs || {};
-let started = false;
+const PREFIX = "@cliqzprefs:"
 
-const prefsStorage = storage.create({
-  dir: 'tmp/prefs',
-});
+const prefs = config.default_prefs || {};
 
 // load prefs from storage
-export function init() {
-  if (!started) {
-    prefsStorage.initSync();
-    prefsStorage.forEach((key, value) => {
-      prefs[key] = value;
+export function loadPrefs() {
+  return AsyncStorage.init();
+
+  console.log("load prefs from storage");
+  return AsyncStorage.getAllKeys().then(keys => {
+    const prefKeys = keys.filter((k) => k.startsWith(PREFIX));
+    return AsyncStorage.multiGet(prefKeys).then(result => {
+      if (!result) {
+        return;
+      }
+      result.forEach((prefPair) => {
+        prefs[prefPair[0].substring(PREFIX.length)] = JSON.parse(prefPair[1]);
+      });
+      console.log(prefs);
     });
-    started = true;
-  }
-  return Promise.resolve();
+  });
 }
 
+loadPrefs();
+
 export function getPref(prefKey, defaultValue) {
-  init();
   if (prefs && prefs[prefKey] !== undefined) {
     return prefs[prefKey];
+  } else {
+    return defaultValue
   }
-  return defaultValue;
 }
 
 export function setPref(prefKey, value) {
-  init();
   const changed = prefs[prefKey] !== value;
 
   if (changed) {
     prefs[prefKey] = value;
-    prefsStorage.setItemSync(prefKey, value);
+    AsyncStorage.setItem(PREFIX + prefKey, JSON.stringify(value));
 
     // trigger prefchange event
     events.pub('prefchange', prefKey);
@@ -48,5 +53,5 @@ export function hasPref(prefKey) {
 
 export function clearPref(prefKey) {
   delete prefs[prefKey];
-  prefsStorage.removeItemSync(prefKey);
+  AsyncStorage.removeItem(PREFIX + prefKey);
 }

@@ -1,4 +1,4 @@
-import utils from '../core/utils';
+import { utils } from '../core/cliqz';
 import MessageQueue from '../core/message-queue';
 
 import CliqzPeer from '../p2p/cliqz-peer';
@@ -129,9 +129,9 @@ export default class ProxyPeer {
           'relay',
           ({ msg, message, peer }) =>
             this.rtcRelay.handleRelayMessage(
-              message, /* Original message */
-              msg, /* Decrypted message */
-              peer), /* Sender */
+              message,     /* Original message */
+              msg,         /* Decrypted message */
+              peer),       /* Sender */
         );
 
         // Exit
@@ -140,8 +140,8 @@ export default class ProxyPeer {
           'exit',
           ({ msg, peer }) =>
             this.rtcToNet.handleExitMessage(
-              msg, /* Decrypted message */
-              peer, /* Sender */
+              msg,          /* Decrypted message */
+              peer,         /* Sender */
               this.ppk[1]), /* Private key of current peer */
         );
 

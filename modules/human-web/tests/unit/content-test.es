@@ -41,6 +41,8 @@ export default describeModule('human-web/content',
       const checkDetectedAds = function checkDetectedAds({ html, expectedAds }) {
         // Given
         const someUrl = 'http://example.com';
+        const someWindowId = 1;
+
         const document = mockWindow.document;
         document.open();
         document.write(html);
@@ -61,7 +63,7 @@ export default describeModule('human-web/content',
         };
 
         // When
-        parseDom(someUrl, mockWindow);
+        parseDom(someUrl, mockWindow, someWindowId);
 
         // Then
         expect(unexpectedMessages).to.be.empty;
@@ -76,6 +78,7 @@ export default describeModule('human-web/content',
           const msg = adClickMessages[0];
 
           expect(msg.source).to.be.a('string');
+          expect(msg.windowId).to.equal(someWindowId);
           expect(msg.payload).to.include({
             module: 'human-web',
             action: 'adClick'

@@ -4,18 +4,19 @@ var path = require('path');
 var Funnel = require('broccoli-funnel');
 var MergeTrees = require('broccoli-merge-trees');
 var Babel = require('broccoli-babel-transpiler');
-var ESLint = require('broccoli-lint-eslint');
+var eslint = require('broccoli-lint-eslint');
 var broccoliSource = require('broccoli-source');
 var watchify = require('broccoli-watchify');
 var WatchedDir = broccoliSource.WatchedDir;
+var UnwatchedDir = broccoliSource.UnwatchedDir;
 const writeFile = require('broccoli-file-creator');
+const concat = require('broccoli-concat');
 var env = require('./cliqz-env');
 
 var cliqzConfig = require('./config');
 const modulesList = require('./modules/modules-list');
 const contentScriptsImport = require('./modules/content-script-imports');
 const contentTestsImport = require('./modules/content-tests-imports');
-const integrationTestsImport = require('./modules/integration-tests-imports');
 
 var Instrument = require('./instrument');
 var helpers = require('./modules/helpers');
@@ -26,6 +27,7 @@ var getDistTree = require('./modules/dist-tree');
 
 var walk = helpers.walk;
 
+const bowerComponents = new UnwatchedDir('bower_components');
 const modulesTree = new WatchedDir('modules');
 
 let babelModulePlugin;
@@ -57,11 +59,9 @@ const babelOptions = {
   sourceMaps: false,
   filterExtensions: ['es', 'jsx'],
   plugins: [
-    'transform-class-properties',
     'transform-exponentiation-operator',
     'transform-object-rest-spread',
     'transform-react-jsx',
-    'transform-async-to-generator',
   ].concat(cliqzConfig.babelPlugins || []).concat(babelModulePlugin || []),
 };
 
@@ -72,7 +72,6 @@ if (cliqzConfig.instrumentFunctions) {
 
 const eslintOptions = {
   configFile: process.cwd() + '/.eslintrc',
-  persist: true,
 };
 
 
@@ -93,6 +92,30 @@ function getPlatformTree() {
     destDir: 'platform',
   });
 }
+
+var requiredBowerComponents = new Set();
+
+const moduleConfigs = cliqzConfig.modules.map(name => {
+  let configJson;
+
+  try {
+    configJson = fs.readFileSync('modules/'+name+'/config.json');
+  } catch(e) {
+    // Existance of config.json is not required
+    configJson = "{}";
+  }
+
+  let config = JSON.parse(configJson);
+  config.name = name;
+  config.transpile = typeof config.transpile === "boolean" ? config.transpile : true;
+
+  return config;
+});
+
+moduleConfigs.forEach( config => {
+  (config.bower_components || []).forEach(Set.prototype.add.bind(requiredBowerComponents));
+});
+
 
 function getSourceFunnel() {
   return new Funnel(modulesTree, {
@@ -136,7 +159,7 @@ function getLintTestsTree() {
   let eslintIgnore;
   try {
     const lines = fs.readFileSync(process.cwd() + '/.eslintignore', 'utf8').split('\n');
-    eslintIgnore = new Set(lines.map(l => l.replace('sources/', '')));
+    eslintIgnore = new Set(lines);
   } catch (e) {
     eslintIgnore = new Set();
   }
@@ -160,7 +183,7 @@ function getLintTestsTree() {
       srcDir,
       exclude: [filePath => shouldNotLint(filePath, srcDir)],
     });
-    const esLinterTree = ESLint.create(treeToLint, {
+    const esLinterTree = eslint(treeToLint, {
       options: eslintOptions,
       testGenerator,
     });
@@ -238,14 +261,11 @@ function getSourceTree() {
   let sources = getSourceFunnel();
   const config = writeFile('core/config.es', 'export default '+JSON.stringify(cliqzConfig, null, 2));
 
-  const generateBundledTests = process.env.CLIQZ_INCLUDE_TESTS || env.TESTING;
-
   sources = new MergeTrees([
     sources,
     config,
     contentScriptsImport,
-    generateBundledTests ? contentTestsImport : new MergeTrees([]),
-    generateBundledTests ? integrationTestsImport : new MergeTrees([]),
+    contentTestsImport,
     new Funnel(modulesList, { destDir: 'core/app' }),
   ]);
 
@@ -269,19 +289,15 @@ function getSourceTree() {
     getBrowserifyTree(),
     transpiledSources,
   ];
-
-  const includeTests = process.env.CLIQZ_INCLUDE_TESTS;
-
-  if (includeTests || ((env.TESTING) &&
-      (cliqzConfig.testem_launchers || []).length)) {
+  if ((env.TESTING) &&
+      (cliqzConfig.testem_launchers || []).length) {
     sourceTrees.push(transpiledModuleTestsTree);
   }
 
   const exclude = ["**/*.jshint.js"];
 
-  if (!env.TESTING && !includeTests) {
+  if (!env.TESTING) {
     exclude.push("**/content-tests.bundle*");
-    exclude.push("**/integration-tests.bundle*");
   }
 
   return new Funnel(
@@ -303,7 +319,11 @@ const staticTree = new MergeTrees([
   getSassTree(),
 ]);
 
-const styleCheckTestsTree = process.env.CLIQZ_ENVIRONMENT === 'production' ?
+const bowerTree = new MergeTrees([
+  new Funnel(bowerComponents, { include: Array.from(requiredBowerComponents) }),
+]);
+
+const styleCheckTestsTree = cliqzConfig.PRODUCTION ?
   new MergeTrees([]) : getLintTestsTree();
 
 const bundlesTree = getBundlesTree(
@@ -316,6 +336,7 @@ const bundlesTree = getBundlesTree(
 module.exports = {
   static: staticTree,
   modules: sourceTree,
+  bower: bowerTree,
   bundles: bundlesTree,
   styleTests: styleCheckTestsTree,
 };

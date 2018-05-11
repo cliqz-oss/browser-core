@@ -1,18 +1,28 @@
 import {
-  clearIntervals,
   clone,
-  expect,
-  waitFor
-} from '../../core/test-helpers';
-import {
+  clearIntervals,
+  waitFor,
+  Subject,
   defaultConfig,
-  mockMessage,
-  Subject
-} from '../../core/test-helpers-freshtab';
+} from './helpers';
 
 describe('Fresh tab interactions with notifications', function () {
-  const notificationAreaSelector = '.notification';
+  const notificationAreaSelector = 'div.notification';
   const settingsPanelSelector = '#settings-panel';
+  const someMessage = {
+    singleNotification: {
+      id: 'singleNotification',
+      active: true,
+      type: 'notification',
+      title: 'Title 1',
+      description: 'Description 1',
+      icon: 'settings-icon_blue.svg',
+      cta_text: 'TRY IT NOW 1',
+      cta_url: 'home-action:settings',
+      handler: 'MESSAGE_HANDLER_FRESHTAB_MIDDLE',
+      position: 'middle'
+    },
+  };
   const otherMessage = {
     id: 'doubleNotification',
     active: true,
@@ -32,15 +42,40 @@ describe('Fresh tab interactions with notifications', function () {
 
   beforeEach(function () {
     subject = new Subject();
-    subject.respondsWithEmptyTelemetry();
+    subject.respondsWith({
+      module: 'core',
+      action: 'sendTelemetry',
+      response: ''
+    });
 
     newsConfig = clone(defaultConfig);
     newsConfig.response.componentsState.news.visible = true;
-    newsConfig.response.messages = mockMessage;
+    newsConfig.response.messages = someMessage;
     subject.respondsWith(newsConfig);
-    subject.respondsWithEmptySpeedDials();
-    subject.respondsWithEmptyNews();
-    subject.respondsWithEmptyOffers();
+
+    subject.respondsWith({
+      module: 'freshtab',
+      action: 'getSpeedDials',
+      response: {
+        history: [],
+        custom: []
+      },
+    });
+
+    subject.respondsWith({
+      module: 'freshtab',
+      action: 'getNews',
+      response: {
+        version: 0,
+        news: []
+      }
+    });
+
+    subject.respondsWith({
+      module: 'freshtab',
+      action: 'getOffers',
+      response: []
+    });
   });
 
   afterEach(function () {
@@ -48,19 +83,19 @@ describe('Fresh tab interactions with notifications', function () {
   });
 
   context('when one notification message is available', function () {
-    beforeEach(async function () {
-      await subject.load();
+    beforeEach(function () {
+      return subject.load().then(() => {
+        // Keep track of received messages
+        messages = new Map();
+        listener = function (msg) {
+          if (!messages.has(msg.action)) {
+            messages.set(msg.action, []);
+          }
 
-      // Keep track of received messages
-      messages = new Map();
-      listener = function (msg) {
-        if (!messages.has(msg.action)) {
-          messages.set(msg.action, []);
-        }
-
-        messages.get(msg.action).push(msg);
-      };
-      subject.chrome.runtime.onMessage.addListener(listener);
+          messages.get(msg.action).push(msg);
+        };
+        subject.chrome.runtime.onMessage.addListener(listener);
+      });
     });
 
     afterEach(function () {
@@ -69,7 +104,7 @@ describe('Fresh tab interactions with notifications', function () {
     });
 
     describe('clicking on a notification icon', function () {
-      const notificationIconSelector = '.notification .icon';
+      const notificationIconSelector = 'div.notification div.icon';
 
       beforeEach(function () {
         subject.query(notificationIconSelector).click();
@@ -77,217 +112,223 @@ describe('Fresh tab interactions with notifications', function () {
       });
 
       it('keeps settings panel closed', function () {
-        expect(subject.query(settingsPanelSelector)).to.exist;
-        expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
+        chai.expect(subject.query(settingsPanelSelector)).to.exist;
+        chai.expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
       });
 
       it('keeps notification area open', function () {
-        expect(subject.query(notificationAreaSelector)).to.exist;
+        chai.expect(subject.query(notificationAreaSelector)).to.exist;
       });
     });
 
     describe('clicking on a notification title', function () {
-      const titleSelector = '.notification .content h1';
+      const notificationTitleSelector = 'div.notification div.content h1';
 
       beforeEach(function () {
-        subject.query(titleSelector).click();
+        subject.query(notificationTitleSelector).click();
         return waitFor(() => subject.query(notificationAreaSelector));
       });
 
       it('keeps settings panel closed', function () {
-        expect(subject.query(settingsPanelSelector)).to.exist;
-        expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
+        chai.expect(subject.query(settingsPanelSelector)).to.exist;
+        chai.expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
       });
 
       it('keeps notification area open', function () {
-        expect(subject.query(notificationAreaSelector)).to.exist;
+        chai.expect(subject.query(notificationAreaSelector)).to.exist;
       });
     });
 
     describe('clicking on a notification decription', function () {
-      const descriptionSelector = '.notification .content p';
+      const notificationDescriptionSelector = 'div.notification div.content p';
 
       beforeEach(function () {
-        subject.query(descriptionSelector).click();
+        subject.query(notificationDescriptionSelector).click();
         return waitFor(() => subject.query(notificationAreaSelector));
       });
 
       it('keeps settings panel closed', function () {
-        expect(subject.query(settingsPanelSelector)).to.exist;
-        expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
+        chai.expect(subject.query(settingsPanelSelector)).to.exist;
+        chai.expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
       });
 
       it('keeps notification area open', function () {
-        expect(subject.query(notificationAreaSelector)).to.exist;
+        chai.expect(subject.query(notificationAreaSelector)).to.exist;
       });
     });
 
     describe('clicking on a close button', function () {
-      const closeBtnSelector = '.notification .close';
+      const notificationCloseSelector = 'div.notification div.close';
 
       beforeEach(function () {
-        subject.query(closeBtnSelector).click();
+        subject.query(notificationCloseSelector).click();
         return waitFor(() => !subject.query(notificationAreaSelector));
       });
 
       it('keeps settings panel closed', function () {
-        expect(subject.query(settingsPanelSelector)).to.exist;
-        expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
+        chai.expect(subject.query(settingsPanelSelector)).to.exist;
+        chai.expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
       });
 
       it('closes notification area', function () {
-        expect(subject.query(notificationAreaSelector)).to.not.exist;
+        chai.expect(subject.query(notificationAreaSelector)).to.not.exist;
       });
 
       it('sends a "dismissMessage" message', function () {
-        expect(messages.has('dismissMessage')).to.equal(true);
-        expect(messages.get('dismissMessage').length).to.equal(1);
+        chai.expect(messages.has('dismissMessage')).to.equal(true);
+        chai.expect(messages.get('dismissMessage').length).to.equal(1);
       });
 
       it('sends a "message > close > click" telemetry signal', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
         const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
         let count = 0;
 
-        expect(telemetrySignals.length).to.be.above(0);
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'message') &&
+              (item.args[0].target === 'close') &&
+              (item.args[0].action === 'click')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
 
-        count = telemetrySignals.filter(function (s) {
-          return (
-            s.args[0].type === 'home' &&
-            s.args[0].view === 'message' &&
-            s.args[0].target === 'close' &&
-            s.args[0].action === 'click'
-          );
-        }).length;
-
-        expect(count).to.equal(1);
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
       });
     });
 
     describe('clicking on a notification call to action button once', function () {
-      const ctaBtnSelector = '.notification .content button.cta-btn';
+      const notificationCtaSelector = 'div.notification div.content button.cta-btn';
 
       beforeEach(function () {
-        subject.query(ctaBtnSelector).click();
+        subject.query(notificationCtaSelector).click();
         return waitFor(() => subject.query(notificationAreaSelector));
       });
 
       it('opens settings panel', function () {
-        expect(subject.query(settingsPanelSelector)).to.exist;
-        expect(subject.query(settingsPanelSelector).className).to.contain('visible');
+        chai.expect(subject.query(settingsPanelSelector)).to.exist;
+        chai.expect(subject.query(settingsPanelSelector).className).to.contain('visible');
       });
 
       it('keeps notification area open', function () {
-        expect(subject.query(notificationAreaSelector)).to.exist;
+        chai.expect(subject.query(notificationAreaSelector)).to.exist;
       });
 
       it('sends a "countMessageClick" message', function () {
-        expect(messages.has('countMessageClick')).to.equal(true);
-        expect(messages.get('countMessageClick').length).to.equal(1);
+        chai.expect(messages.has('countMessageClick')).to.equal(true);
+        chai.expect(messages.get('countMessageClick').length).to.equal(1);
       });
 
-      it('sends a "message > ok > click" telemetry signal', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
+      it('sends a "message > try > click" telemetry signal', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
         const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
         let count = 0;
 
-        expect(telemetrySignals.length).to.be.above(0);
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'message') &&
+              (item.args[0].target === 'try') &&
+              (item.args[0].action === 'click')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
 
-        count = telemetrySignals.filter(function (s) {
-          return (
-            s.args[0].type === 'home' &&
-            s.args[0].view === 'message' &&
-            s.args[0].target === 'ok' &&
-            s.args[0].action === 'click'
-          );
-        }).length;
-
-        expect(count).to.equal(1);
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
       });
 
       it('sends a "settings > click" telemetry signal', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
         const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
         let count = 0;
 
-        expect(telemetrySignals.length).to.be.above(0);
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].target === 'settings') &&
+              (item.args[0].action === 'click')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
 
-        count = telemetrySignals.filter(function (s) {
-          return (
-            s.args[0].type === 'home' &&
-            s.args[0].target === 'settings' &&
-            s.args[0].action === 'click'
-          );
-        }).length;
-
-        expect(count).to.equal(1);
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
       });
     });
 
     describe('clicking on a notification call to action button twice', function () {
-      const ctaBtnSelector = '.notification .content button.cta-btn';
+      const notificationCtaSelector = 'div.notification div.content button.cta-btn';
 
-      beforeEach(async function () {
-        subject.query(ctaBtnSelector).click();
-        await waitFor(() => subject.query(notificationAreaSelector));
-        subject.query(ctaBtnSelector).click();
-        return waitFor(() => subject.query(notificationAreaSelector));
+      beforeEach(function () {
+        subject.query(notificationCtaSelector).click();
+        return waitFor(() => subject.query(notificationAreaSelector)).then(() => {
+          subject.query(notificationCtaSelector).click();
+          return waitFor(() => subject.query(notificationAreaSelector));
+        });
       });
 
       it('results in settings panel being closed', function () {
-        expect(subject.query(settingsPanelSelector)).to.exist;
-        expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
+        chai.expect(subject.query(settingsPanelSelector)).to.exist;
+        chai.expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
       });
 
       it('keeps notification area open', function () {
-        expect(subject.query(notificationAreaSelector)).to.exist;
+        chai.expect(subject.query(notificationAreaSelector)).to.exist;
       });
 
       it('sends two "countMessageClick" messages', function () {
-        expect(messages.has('countMessageClick')).to.equal(true);
-        expect(messages.get('countMessageClick').length).to.equal(2);
+        chai.expect(messages.has('countMessageClick')).to.equal(true);
+        chai.expect(messages.get('countMessageClick').length).to.equal(2);
       });
 
-      it('sends two "message > ok > click" telemetry signals', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
+      it('sends two "message > try > click" telemetry signals', function () {
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
         const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
         let count = 0;
 
-        expect(telemetrySignals.length).to.be.above(0);
+        telemetrySignals.forEach(function (item, i) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].view === 'message') &&
+              (item.args[0].target === 'try') &&
+              (item.args[0].action === 'click')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
 
-        count = telemetrySignals.filter(function (s) {
-          return (
-            s.args[0].type === 'home' &&
-            s.args[0].view === 'message' &&
-            s.args[0].target === 'ok' &&
-            s.args[0].action === 'click'
-          );
-        }).length;
-
-        expect(count).to.equal(2);
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(2);
       });
 
       it('sends a "settings > click" telemetry signal', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
+        chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
         const telemetrySignals = messages.get('sendTelemetry');
+        let signalExist = false;
         let count = 0;
 
-        expect(telemetrySignals.length).to.be.above(0);
+        telemetrySignals.forEach(function (item) {
+          if ((item.args[0].type === 'home') &&
+              (item.args[0].target === 'settings') &&
+              (item.args[0].action === 'click')) {
+                signalExist = true;
+                count += 1;
+          }
+        });
 
-        count = telemetrySignals.filter(function (s) {
-          return (
-            s.args[0].type === 'home' &&
-            s.args[0].target === 'settings' &&
-            s.args[0].action === 'click'
-          );
-        }).length;
-
-        expect(count).to.equal(1);
+        chai.expect(signalExist).to.be.true;
+        chai.expect(count).to.equal(1);
       });
     });
 
@@ -297,13 +338,13 @@ describe('Fresh tab interactions with notifications', function () {
         const thisWindow = iframes[iframes.length - 1].contentWindow;
         thisWindow.postMessage(JSON.stringify({
           action: 'closeNotification',
-          messageId: 'new-cliqz-tab',
+          messageId: 'singleNotification',
         }), '*');
         return waitFor(() => !subject.query(notificationAreaSelector));
       });
 
       it('hides the notification area', function () {
-        expect(subject.query(notificationAreaSelector)).to.not.exist;
+        chai.expect(subject.query(notificationAreaSelector)).to.not.exist;
       });
     });
   });
@@ -333,11 +374,11 @@ describe('Fresh tab interactions with notifications', function () {
       });
 
       it('shows the notification area', function () {
-        expect(subject.query(notificationAreaSelector)).to.exist;
+        chai.expect(subject.query(notificationAreaSelector)).to.exist;
       });
 
       it('shows only one notification', function () {
-        expect(subject.queryAll(notificationAreaSelector).length).to.equal(1);
+        chai.expect(subject.queryAll(notificationAreaSelector).length).to.equal(1);
       });
     });
   });

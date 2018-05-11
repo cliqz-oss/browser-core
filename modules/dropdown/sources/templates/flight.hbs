@@ -1,14 +1,14 @@
-<div class='result instant flight'>
+<div class='result instant'>
   <div class="padded">
     <div class="header">
       <span class="title">{{name}}</span>
     </div>
-    <div class="flight-details white-background" data-status="{{flightStatus}}">
+    <div class="flight-details" data-status="{{flightStatus}}">
 
       <div class="flight-status">
-        <span class="flight-status-text">{{status}}</span>
+        <span>{{status}}</span>
         {{#if statusDetail}}
-          <span class="flight-status-detail"> &#183; {{statusDetail}}</span>
+          <span> &#183; {{statusDetail}}</span>
         {{/if}}
       </div>
 
@@ -33,7 +33,7 @@
 
       <div class="depart-arrival">
         <div class="depart">
-          <div class="depart-location">
+          <div>
              {{departure.locationName}}
              {{#if showDepartureScheduledTime}}
               <span
@@ -59,7 +59,7 @@
         </div>
 
         <div class="arrival">
-          <div class="arrival-location">
+          <div>
             {{arrival.locationName}}
               {{#if showArrivalScheduledTime}}
                 <span
@@ -83,7 +83,7 @@
         </div>
       </div>
       <p class="subtitle flight-timestamp">
-          <span class="flight-timestamp-label">
+          <span>
               {{> partials/source}}
               {{#if updated}}
                   &#183; {{> partials/timestamp}}

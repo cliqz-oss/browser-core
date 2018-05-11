@@ -2,13 +2,9 @@
 const nonNumeric = ['', 'ithinkthereis1numberhere', '1240abcd'];
 const mostlyNumeric = ['4902', '1024x768'];
 
-const probData = require('../../../antitracking/prob.json');
-
-export default describeModule('antitracking/hash', function () {
+export default describeModule("antitracking/hash", function () {
     return {
-      'core/resource-loader': {
-        default: class MockResourceLoader {},
-      },
+      'core/resource-loader': {},
     };
   },
   function () {
@@ -31,47 +27,6 @@ export default describeModule('antitracking/hash', function () {
         });
       });
 
-    });
-
-    describe('HashProb', function() {
-      let hashProb;
-
-      beforeEach(function() {
-        const HashProb = this.module().HashProb;
-        hashProb = new HashProb();
-        hashProb._update(probData);
-      });
-
-      const notHash = [
-        '', 'Firefox', 'cliqz.com', // a url
-        'anti-tracking',
-        'front/ng',
-        'javascript',
-        'callback'
-      ];
-
-      const hashes = [
-        '04C2EAD03B',
-        '54f5095c96e',
-        'B62a15974a93',
-        '22163a4ff903',
-        '468x742',
-        '1021x952',
-        '1024x768',
-        '1440x900'
-      ];
-
-      notHash.forEach(function (str) {
-        it(`'${str}' is not a hash`, function () {
-          chai.expect(hashProb.isHash(str)).to.be.false;
-        });
-      });
-
-      hashes.forEach(function (str) {
-        it(`'${str}' is a hash`, function () {
-          chai.expect(hashProb.isHash(str)).to.be.true;
-        });
-      });
     });
   }
 );

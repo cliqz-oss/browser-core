@@ -12,11 +12,11 @@
  *    module_name describes recipient (this is more like a RPC)
  */
 
-import console from './console';
+import console from "./console";
 import { nextTick } from './decorators';
 
-const CliqzEvents = {
-  // use a javascript object to push the message ids and the callbacks
+var CliqzEvents = CliqzEvents || {
+  //use a javascript object to push the message ids and the callbacks
   cache: {},
   tickCallbacks: [],
   /*
@@ -24,14 +24,16 @@ const CliqzEvents = {
    */
   queue: [],
 
-  pub(id, ...args) {
-    const callbacks = (CliqzEvents.cache[id] || []).map(ev =>
-      nextTick(() => {
-        ev.call(null, ...args);
-      }).catch((e) => {
+  pub: function (id) {
+    const args = Array.prototype.slice.call(arguments, 1);
+
+    const callbacks = (CliqzEvents.cache[id] || []).map(ev => {
+      return nextTick(() => {
+        ev.apply(null, args);
+      }).catch(e => {
         console.error(`CliqzEvents error: ${id}`, e);
-      })
-    );
+      });
+    });
 
     const finishedPromise = Promise.all(callbacks).then(() => {
       const index = this.queue.indexOf(finishedPromise);
@@ -44,11 +46,10 @@ const CliqzEvents = {
   },
 
   triggerNextTick() {
-    this.tickCallbacks.forEach((cb) => {
+    this.tickCallbacks.forEach(cb => {
       try {
         cb();
       } catch (e) {
-        // empty
       }
     });
     this.tickCallbacks = [];
@@ -63,7 +64,7 @@ const CliqzEvents = {
    * with a specific id and a callback
    * to be executed when the event is observed
    */
-  sub(id, fn) {
+  sub: function (id, fn) {
     CliqzEvents.cache[id] = CliqzEvents.cache[id] || [];
     CliqzEvents.cache[id].push(fn);
   },
@@ -71,7 +72,7 @@ const CliqzEvents = {
   subscribe(eventName, callback, that) {
     let cb;
     if (that) {
-      cb = callback.bind(that);
+      cb = callback.bind(that)
     } else {
       cb = callback;
     }
@@ -82,26 +83,26 @@ const CliqzEvents = {
       unsubscribe() {
         CliqzEvents.un_sub(eventName, cb);
       }
-    };
+    }
   },
 
-  un_sub(id, fn) {
+  un_sub: function (id, fn) {
     if (!CliqzEvents.cache[id] || CliqzEvents.cache[id].length === 0) {
-      console.error(id, 'Trying to unsubscribe event that had no subscribers');
+      console.error(id, "Trying to unsubscribe event that had no subscribers")
       return;
     }
 
-    const index = CliqzEvents.cache[id].indexOf(fn);
+    let index = CliqzEvents.cache[id].indexOf(fn);
     if (index > -1) {
       CliqzEvents.cache[id].splice(index, 1);
     } else {
-      console.error(id, 'Trying to unsubscribe an unknown listener');
+      console.error(id, "Trying to unsubscribe an unknown listener");
     }
   },
 
-  clean_channel(id) {
+  clean_channel: function(id) {
     if (!CliqzEvents.cache[id]) {
-      throw new Error('Trying to unsubscribe an unknown channel');
+      throw "Trying to unsubscribe an unknown channel";
     }
     CliqzEvents.cache[id] = [];
   },
@@ -110,12 +111,12 @@ const CliqzEvents = {
    * Adds a listener to eventTarget for events of type eventType, and republishes them
    *  through CliqzEvents with id cliqzEventName.
    */
-  proxyEvent(cliqzEventName, eventTarget, eventType, propagate = false, transform) {
+  proxyEvent(cliqzEventName, eventTarget, eventType, propagate = false, transform)  {
     const publisher = CliqzEvents.pub.bind(CliqzEvents, cliqzEventName);
 
-    function handler(...args) {
-      const _args = transform ? transform.call(null, ...args) : args;
-      publisher.call(null, ..._args);
+    function handler() {
+      const args = transform ? transform.apply(null, arguments) : arguments;
+      publisher.apply(null, args);
     }
 
     eventTarget.addEventListener(eventType, handler, propagate);
@@ -130,14 +131,8 @@ const CliqzEvents = {
     nextId.id = nextId.id || 0;
     nextId.id += 1;
     return nextId.id;
-  },
-
-  purge() {
-    this.cache = {};
-    this.tickCallbacks = [];
-    this.queue = [];
-  },
+  }
 };
 
 export default CliqzEvents;
-export const subscribe = CliqzEvents.subscribe;
+export let subscribe = CliqzEvents.subscribe;

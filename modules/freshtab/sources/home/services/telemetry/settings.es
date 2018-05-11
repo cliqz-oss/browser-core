@@ -26,8 +26,7 @@ export function settingsBackgroundSelectSignal(bg) {
     'bg-light': 'light',
     'bg-dark': 'dark',
     'bg-blue': 'alps',
-    'bg-winter': 'winter',
-    'bg-spring': 'spring'
+    'bg-winter': 'winter'
   };
 
   const state = BACKGROUNDS[bg];

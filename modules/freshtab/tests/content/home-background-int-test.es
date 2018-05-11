@@ -1,48 +1,55 @@
 import {
   clearIntervals,
-  expect,
-  waitFor
-} from '../../core/test-helpers';
-import {
+  waitFor,
+  Subject,
   defaultConfig,
-  Subject
-} from '../../core/test-helpers-freshtab';
+} from './helpers';
 
 describe('Fresh tab interactions with background', function () {
   const blueBgSelector = 'img[data-bg="bg-blue"]';
   const darkBgSelector = 'img[data-bg="bg-dark"]';
   const lightBgSelector = 'img[data-bg="bg-light"]';
-  const alpsBgSelector = 'img[data-bg="bg-matterhorn"]';
-  const winterBgSelector = 'img[data-bg="bg-winter"]';
-  const springBgSelector = 'img[data-bg="bg-spring"]';
-
   let subject;
   let messages;
   let listener;
-  let $backgroundSwitch;
 
-  beforeEach(async function () {
+  beforeEach(function () {
     subject = new Subject();
-    subject.respondsWithEmptyTelemetry();
-    subject.respondsWithEmptySpeedDials();
-    subject.respondsWithEmptyNews();
+    subject.respondsWith({
+      module: 'core',
+      action: 'sendTelemetry',
+      response: ''
+    });
     subject.respondsWith(defaultConfig);
-
-    await subject.load();
-    $backgroundSwitch = subject.getBackgroundSwitch();
-    $backgroundSwitch.click();
-    await waitFor(() => subject.query('ul.background-selection-list'));
-
-    // Keep track of received messages
-    messages = new Map();
-    listener = function (msg) {
-      if (!messages.has(msg.action)) {
-        messages.set(msg.action, []);
+    subject.respondsWith({
+      module: 'freshtab',
+      action: 'getSpeedDials',
+      response: {
+        history: [],
+        custom: []
+      },
+    });
+    subject.respondsWith({
+      module: 'freshtab',
+      action: 'getNews',
+      response: {
+        version: 0,
+        news: []
       }
+    });
 
-      messages.get(msg.action).push(msg);
-    };
-    subject.chrome.runtime.onMessage.addListener(listener);
+    return subject.load().then(() => {
+      // Keep track of received messages
+      messages = new Map();
+      listener = function (msg) {
+        if (!messages.has(msg.action)) {
+          messages.set(msg.action, []);
+        }
+
+        messages.get(msg.action).push(msg);
+      };
+      subject.chrome.runtime.onMessage.addListener(listener);
+    });
   });
 
   afterEach(function () {
@@ -58,41 +65,39 @@ describe('Fresh tab interactions with background', function () {
     });
 
     it('changes bg to dark', function () {
-      expect(subject.query('body').className).to.contain('theme-bg-dark');
+      chai.expect(subject.query('body').className).to.contain('theme-bg-dark');
     });
 
     it('changes settings selection to dark bg', function () {
-      expect(subject.query(darkBgSelector).className).to.contain('active');
-      expect(subject.query(lightBgSelector).className).to.not.contain('active');
-      expect(subject.query(blueBgSelector).className).to.not.contain('active');
-      expect(subject.query(alpsBgSelector).className).to.not.contain('active');
-      expect(subject.query(winterBgSelector).className).to.not.contain('active');
-      expect(subject.query(springBgSelector).className).to.not.contain('active');
+      chai.expect(subject.query(darkBgSelector).className).to.contain('active');
+      chai.expect(subject.query(lightBgSelector).className).to.not.contain('active');
+      chai.expect(subject.query(blueBgSelector).className).to.not.contain('active');
     });
 
     it('sends a "saveBackgroundImage" message once', function () {
-      expect(messages.has('saveBackgroundImage')).to.equal(true);
-      expect(messages.get('saveBackgroundImage').length).to.equal(1);
+      chai.expect(messages.has('saveBackgroundImage')).to.equal(true);
+      chai.expect(messages.get('saveBackgroundImage').length).to.equal(1);
     });
 
     it('sends a "home > settings > background_image > click" telemetry signal', function () {
-      expect(messages.has('sendTelemetry')).to.equal(true);
+      chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
       const telemetrySignals = messages.get('sendTelemetry');
+      let signalExist = false;
       let count = 0;
 
-      expect(telemetrySignals.length).to.be.above(0);
+      telemetrySignals.forEach(function (item) {
+        if ((item.args[0].type === 'home') &&
+            (item.args[0].view === 'settings') &&
+            (item.args[0].target === 'background_image') &&
+            (item.args[0].action === 'click')) {
+              signalExist = true;
+              count += 1;
+        }
+      });
 
-      count = telemetrySignals.filter(function (s) {
-        return (
-          s.args[0].type === 'home' &&
-          s.args[0].view === 'settings' &&
-          s.args[0].target === 'background_image' &&
-          s.args[0].action === 'click'
-        );
-      }).length;
-
-      expect(count).to.equal(1);
+      chai.expect(signalExist).to.be.true;
+      chai.expect(count).to.equal(1);
     });
   });
 
@@ -107,43 +112,42 @@ describe('Fresh tab interactions with background', function () {
     });
 
     it('changes bg to light', function () {
-      expect(subject.query('body').className).to.contain('theme-bg-light');
+      chai.expect(subject.query('body').className).to.contain('theme-bg-light');
     });
 
     it('changes settings selection to light bg', function () {
-      expect(subject.query(darkBgSelector).className).to.not.contain('active');
-      expect(subject.query(lightBgSelector).className).to.contain('active');
-      expect(subject.query(blueBgSelector).className).to.not.contain('active');
-      expect(subject.query(alpsBgSelector).className).to.not.contain('active');
-      expect(subject.query(winterBgSelector).className).to.not.contain('active');
-      expect(subject.query(springBgSelector).className).to.not.contain('active');
+      chai.expect(subject.query(darkBgSelector).className).to.not.contain('active');
+      chai.expect(subject.query(lightBgSelector).className).to.contain('active');
+      chai.expect(subject.query(blueBgSelector).className).to.not.contain('active');
     });
 
     it('sends a "saveBackgroundImage" message once', function () {
-      expect(messages.has('saveBackgroundImage')).to.equal(true);
-      expect(messages.get('saveBackgroundImage').length).to.equal(1);
+      chai.expect(messages.has('saveBackgroundImage')).to.equal(true);
+      chai.expect(messages.get('saveBackgroundImage').length).to.equal(1);
     });
 
     it('sends a "home > settings > background_image > click" telemetry signal', function () {
-      expect(messages.has('sendTelemetry')).to.equal(true);
+      chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
       const telemetrySignals = messages.get('sendTelemetry');
+      let signalExist = false;
       let count = 0;
 
-      expect(telemetrySignals.length).to.be.above(0);
+      telemetrySignals.forEach(function (item) {
+        if ((item.args[0].type === 'home') &&
+            (item.args[0].view === 'settings') &&
+            (item.args[0].target === 'background_image') &&
+            (item.args[0].action === 'click')) {
+              signalExist = true;
+              count += 1;
+        }
+      });
 
-      count = telemetrySignals.filter(function (s) {
-        return (
-          s.args[0].type === 'home' &&
-          s.args[0].view === 'settings' &&
-          s.args[0].target === 'background_image' &&
-          s.args[0].action === 'click'
-        );
-      }).length;
-
-      expect(count).to.equal(1);
+      chai.expect(signalExist).to.be.true;
+      chai.expect(count).to.equal(1);
     });
   });
+
 
   describe('clicking on a blue icon', function () {
     beforeEach(function () {
@@ -156,188 +160,39 @@ describe('Fresh tab interactions with background', function () {
     });
 
     it('changes bg to blue', function () {
-      expect(subject.query('body').className).to.contain('theme-bg-blue');
+      chai.expect(subject.query('body').className).to.contain('theme-bg-blue');
     });
 
     it('changes settings selection to blue bg', function () {
-      expect(subject.query(darkBgSelector).className).to.not.contain('active');
-      expect(subject.query(lightBgSelector).className).to.not.contain('active');
-      expect(subject.query(blueBgSelector).className).to.contain('active');
-      expect(subject.query(alpsBgSelector).className).to.not.contain('active');
-      expect(subject.query(winterBgSelector).className).to.not.contain('active');
-      expect(subject.query(springBgSelector).className).to.not.contain('active');
+      chai.expect(subject.query(darkBgSelector).className).to.not.contain('active');
+      chai.expect(subject.query(lightBgSelector).className).to.not.contain('active');
+      chai.expect(subject.query(blueBgSelector).className).to.contain('active');
     });
 
     it('sends a "saveBackgroundImage" message once', function () {
-      expect(messages.has('saveBackgroundImage')).to.equal(true);
-      expect(messages.get('saveBackgroundImage').length).to.equal(1);
+      chai.expect(messages.has('saveBackgroundImage')).to.equal(true);
+      chai.expect(messages.get('saveBackgroundImage').length).to.equal(1);
     });
 
     it('sends a "home > settings > background_image > click" telemetry signal', function () {
-      expect(messages.has('sendTelemetry')).to.equal(true);
+      chai.expect(messages.has('sendTelemetry')).to.equal(true);
 
       const telemetrySignals = messages.get('sendTelemetry');
+      let signalExist = false;
       let count = 0;
 
-      expect(telemetrySignals.length).to.be.above(0);
+      telemetrySignals.forEach(function (item) {
+        if ((item.args[0].type === 'home') &&
+            (item.args[0].view === 'settings') &&
+            (item.args[0].target === 'background_image') &&
+            (item.args[0].action === 'click')) {
+              signalExist = true;
+              count += 1;
+        }
+      });
 
-      count = telemetrySignals.filter(function (s) {
-        return (
-          s.args[0].type === 'home' &&
-          s.args[0].view === 'settings' &&
-          s.args[0].target === 'background_image' &&
-          s.args[0].action === 'click'
-        );
-      }).length;
-
-      expect(count).to.equal(1);
-    });
-  });
-
-  describe('clicking on a matterhorn icon', function () {
-    beforeEach(function () {
-      subject.query(alpsBgSelector).click();
-      return waitFor(() => subject.query('body.theme-bg-matterhorn'));
-    });
-
-    afterEach(function () {
-      subject.chrome.runtime.onMessage.removeListener(listener);
-    });
-
-    it('changes bg to matterhorn', function () {
-      expect(subject.query('body').className).to.contain('theme-bg-matterhorn');
-    });
-
-    it('changes settings selection to matterhorn bg', function () {
-      expect(subject.query(darkBgSelector).className).to.not.contain('active');
-      expect(subject.query(lightBgSelector).className).to.not.contain('active');
-      expect(subject.query(blueBgSelector).className).to.not.contain('active');
-      expect(subject.query(alpsBgSelector).className).to.contain('active');
-      expect(subject.query(winterBgSelector).className).to.not.contain('active');
-      expect(subject.query(springBgSelector).className).to.not.contain('active');
-    });
-
-    it('sends a "saveBackgroundImage" message once', function () {
-      expect(messages.has('saveBackgroundImage')).to.equal(true);
-      expect(messages.get('saveBackgroundImage').length).to.equal(1);
-    });
-
-    it('sends a "home > settings > background_image > click" telemetry signal', function () {
-      expect(messages.has('sendTelemetry')).to.equal(true);
-
-      const telemetrySignals = messages.get('sendTelemetry');
-      let count = 0;
-
-      expect(telemetrySignals.length).to.be.above(0);
-
-      count = telemetrySignals.filter(function (s) {
-        return (
-          s.args[0].type === 'home' &&
-          s.args[0].view === 'settings' &&
-          s.args[0].target === 'background_image' &&
-          s.args[0].action === 'click'
-        );
-      }).length;
-
-      expect(count).to.equal(1);
-    });
-  });
-
-  describe('clicking on a winter icon', function () {
-    beforeEach(function () {
-      subject.query(winterBgSelector).click();
-      return waitFor(() => subject.query('body.theme-bg-winter'));
-    });
-
-    afterEach(function () {
-      subject.chrome.runtime.onMessage.removeListener(listener);
-    });
-
-    it('changes bg to winter', function () {
-      expect(subject.query('body').className).to.contain('theme-bg-winter');
-    });
-
-    it('changes settings selection to winter bg', function () {
-      expect(subject.query(darkBgSelector).className).to.not.contain('active');
-      expect(subject.query(lightBgSelector).className).to.not.contain('active');
-      expect(subject.query(blueBgSelector).className).to.not.contain('active');
-      expect(subject.query(alpsBgSelector).className).to.not.contain('active');
-      expect(subject.query(winterBgSelector).className).to.contain('active');
-      expect(subject.query(springBgSelector).className).to.not.contain('active');
-    });
-
-    it('sends a "saveBackgroundImage" message once', function () {
-      expect(messages.has('saveBackgroundImage')).to.equal(true);
-      expect(messages.get('saveBackgroundImage').length).to.equal(1);
-    });
-
-    it('sends a "home > settings > background_image > click" telemetry signal', function () {
-      expect(messages.has('sendTelemetry')).to.equal(true);
-
-      const telemetrySignals = messages.get('sendTelemetry');
-      let count = 0;
-
-      expect(telemetrySignals.length).to.be.above(0);
-
-      count = telemetrySignals.filter(function (s) {
-        return (
-          s.args[0].type === 'home' &&
-          s.args[0].view === 'settings' &&
-          s.args[0].target === 'background_image' &&
-          s.args[0].action === 'click'
-        );
-      }).length;
-
-      expect(count).to.equal(1);
-    });
-  });
-
-  describe('clicking on a spring icon', function () {
-    beforeEach(function () {
-      subject.query(springBgSelector).click();
-      return waitFor(() => subject.query('body.theme-bg-spring'));
-    });
-
-    afterEach(function () {
-      subject.chrome.runtime.onMessage.removeListener(listener);
-    });
-
-    it('changes bg to spring', function () {
-      expect(subject.query('body').className).to.contain('theme-bg-spring');
-    });
-
-    it('changes settings selection to spring bg', function () {
-      expect(subject.query(darkBgSelector).className).to.not.contain('active');
-      expect(subject.query(lightBgSelector).className).to.not.contain('active');
-      expect(subject.query(blueBgSelector).className).to.not.contain('active');
-      expect(subject.query(alpsBgSelector).className).to.not.contain('active');
-      expect(subject.query(winterBgSelector).className).to.not.contain('active');
-      expect(subject.query(springBgSelector).className).to.contain('active');
-    });
-
-    it('sends a "saveBackgroundImage" message once', function () {
-      expect(messages.has('saveBackgroundImage')).to.equal(true);
-      expect(messages.get('saveBackgroundImage').length).to.equal(1);
-    });
-
-    it('sends a "home > settings > background_image > click" telemetry signal', function () {
-      expect(messages.has('sendTelemetry')).to.equal(true);
-
-      const telemetrySignals = messages.get('sendTelemetry');
-      let count = 0;
-
-      expect(telemetrySignals.length).to.be.above(0);
-
-      count = telemetrySignals.filter(function (s) {
-        return (
-          s.args[0].type === 'home' &&
-          s.args[0].view === 'settings' &&
-          s.args[0].target === 'background_image' &&
-          s.args[0].action === 'click'
-        );
-      }).length;
-
-      expect(count).to.equal(1);
+      chai.expect(signalExist).to.be.true;
+      chai.expect(count).to.equal(1);
     });
   });
 });

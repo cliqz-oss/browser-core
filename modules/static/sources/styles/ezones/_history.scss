@@ -1,0 +1,58 @@
+.cqz-results .cqz-result-h3 .cliqz-history-logo {
+	top: 50%;
+	margin-top: -10px;
+}
+
+.cqz-results .cqz-history-result-item {
+	cursor: pointer;
+	position: relative;
+	margin: -2px 0 17px;
+	padding: 0 40px 0 0;
+
+}
+
+
+.cqz-results .cqz-history-with-cluster .cqz-history-result-item  {
+	margin: -2px 0 9px;
+}
+
+.cqz-history-cluster {
+	margin: 0 !important;
+	list-style: none;
+	max-height: 18px;
+	overflow: hidden;
+}
+
+.cqz-history-cluster li {
+	display: inline-block;
+	margin-right: 5px;
+}
+
+.cqz-history-cluster li a {
+	text-decoration: none;
+	font-size: 12px;
+	color: #9594cc;
+	white-space: nowrap;
+}
+
+.cqz-history-cluster li a:hover  {
+	text-decoration: none;
+}
+
+.cqz-history-cluster li a span {
+	overflow: hidden;
+	display: inline-block;
+	max-width: 120px;
+	text-overflow: ellipsis;
+	vertical-align: middle;
+}
+
+.cqz-history-cluster li a:hover span {
+	text-decoration: underline;
+}
+
+.cqz-history-cluster li.cqz-history-query,
+.cqz-history-cluster li.cqz-history-query a {
+	color: #999;
+}
+.cqz-history-cluster li.cqz-history-query a span { max-width: 200px; }

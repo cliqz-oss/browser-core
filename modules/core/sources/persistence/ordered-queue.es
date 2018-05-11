@@ -16,6 +16,7 @@ import DocumentBatch from './document-batch';
  * @class OrderedQueue
  */
 export default class OrderedQueue {
+
   constructor(name) {
     this.db = new Database(name, { auto_compaction: true });
     // create index on sort field
@@ -48,12 +49,12 @@ export default class OrderedQueue {
       }
       throw err;
     })
-      .then((doc) => {
-        if (overwrite || !doc._rev) {
-          return this.db.put(Object.assign(doc, { sort: sortValue }));
-        }
-        return Promise.resolve(doc);
-      });
+    .then((doc) => {
+      if (overwrite || !doc._rev) {
+        return this.db.put(Object.assign(doc, { sort: sortValue }));
+      }
+      return Promise.resolve(doc);
+    });
   }
 
   /**
@@ -90,4 +91,5 @@ export default class OrderedQueue {
       batch.delete().then(() => Promise.resolve(batch))
     ));
   }
+
 }

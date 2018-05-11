@@ -1,86 +1,59 @@
-<div class="padded">
-    <div class="movie white-background">
-        {{#if imageUrl}}
-            <div class="image" style="background-image: url({{imageUrl}})"></div>
-        {{/if}}
-        <div class="info">
-            <p>
-                {{#if ratingInfo}}
-                    <span class="rating-img" style="background-image: url({{ratingInfo.img}})"></span>
-                    <span class="score">
-                        <span class="movie-rating-score">{{ratingInfo.score}}</span>
-                        <span class="movie-rating-scale">/ {{ratingInfo.scale}}</span>
-                    </span>
-                {{/if}}
-                {{#if reviewsInfo}}
-                    <a
-                        class="result reviews"
-                        data-url="{{reviewsInfo.url}}"
-                        href="{{reviewsInfo.url}}"
-                    >
-                        {{reviewsInfo.nVote}} {{local reviewsInfo.title}}
-                    </a>
-                {{/if}}
-            </p>
-            <p class="director">
-                {{#if directorInfo}}
-                    <span class="movie-director-label">{{directorInfo.title}}:</span>
-                    <a
-                        class="result"
-                        data-url="{{directorInfo.url}}"
-                        href="{{directorInfo.url}}"
-                    >
-                        {{directorInfo.name}}
-                    </a>
-                {{/if}}
-            </p>
-            <p class="stars">
-                {{#if starsInfo}}
-                    <span class="movie-stars-label">{{local 'cinema_movie_cast'}}:</span>
-                    <span class="stars-list">
-                    {{#each starsInfo}}
-                        <span>
-                            <a
-                                class="result"
-                                data-url="{{this.url}}"
-                                href="{{this.url}}"
-                            >
-                                {{this.title}}
-                            </a>
-                            {{#unless @last}},{{else}} &#183;{{/unless}}
-                        </span>
-                    {{/each}}
-                    </span>
-                {{/if}}
-                <span class="movie-full-cast">
-                    <a
-                        class="result"
-                        data-url="{{fullCastInfo.url}}"
-                        href="{{fullCastInfo.url}}"
-                    >
-                        {{local fullCastInfo.title}}
-                    </a>
-                </span>
-            </p>
-            {{#if trailerInfo}}
-                <div class="trailer">
-                    <a
-                        class="result"
-                        data-url="{{trailerInfo.url}}"
-                        href="{{trailerInfo.url}}"
-                    >
-                        <div class="trailer-icon"></div>
-                        <span class="movie-trailer-label">{{local trailerInfo.title}}</span>
-                    </a>
-                </div>
-            {{else}}
-                <div class="trailer disabled">
-                    <span>
-                        <div class="trailer-icon"></div>
-                        <span>{{local 'cinema_movie_trailer'}}</span>
-                    </span>
-                </div>
+{{#if isMovieEZ}}
+    <div class="padded">
+        <div class="movie">
+            {{#if imageUrl}}
+                <div class="image" style="background-image: url({{imageUrl}})"></div>
             {{/if}}
+            <div class="info">
+                <p>
+                    {{#if ratingInfo}}
+                        <span class="rating-img" style="background-image: url({{ratingInfo.img}})"></span>
+                        <span class="score">
+                            <span>{{ratingInfo.score}}</span>
+                            <span>/ {{ratingInfo.scale}}</span>
+                        </span>
+                    {{/if}}
+                    {{#if reviewsInfo}}
+                        <a class="result reviews" data-url="{{reviewsInfo.url}}" href="#">{{reviewsInfo.nVote}} {{local reviewsInfo.title}}</a>
+                    {{/if}}
+                </p>
+                <p class="director">
+                    {{#if directorInfo}}
+                        <span>{{directorInfo.title}}:</span>
+                        <a class="result" data-url="{{directorInfo.url}}" href="#">{{directorInfo.name}}</a>
+                    {{/if}}
+                </p>
+                <p class="stars">
+                    {{#if starsInfo}}
+                        <span>{{local 'cinema-movie-cast'}}:</span>
+                        <span class="stars-list">
+                        {{#each starsInfo}}
+                            <span>
+                                {{this}}{{#unless @last}},{{else}} &#183;{{/unless}}
+                            </span>
+                        {{/each}}
+                        </span>
+                    {{/if}}
+                    <span>
+                        <a class="result" data-url="{{fullCastInfo.url}}" href="#">{{local fullCastInfo.title}}</a>
+                    </span>
+                </p>
+                {{#if trailerInfo}}
+                    <div class="trailer">
+                        <a class="result" data-url="{{trailerInfo.url}}" href="#">
+                            <div class="trailer-icon"></div>
+                            <span>{{local trailerInfo.title}}</span>
+                        </a>
+                    </div>
+                {{else}}
+                    <div class="trailer disabled">
+                        <span>
+                            <div class="trailer-icon"></div>
+                            <span>{{local 'cinema-movie-trailer'}}</span>
+                        </span>
+                    </div>
+                {{/if}}
+            </div>
         </div>
     </div>
-</div>
+{{/if}}

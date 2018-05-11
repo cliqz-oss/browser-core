@@ -149,24 +149,24 @@ export default class Module extends EventEmitter {
       }),
       this.isReady()
     ])
-      .then(([windowModule]) => {
-        initStartedAt = Date.now();
-        windowModuleState.windowModule = windowModule;
-        return windowModule.init();
-      })
-      .then(() => {
-        windowModuleState.initTime = Date.now() - initStartedAt;
-        windowModuleState.loadingTime = Date.now() - loadingStartedAt;
-        this._stat.init += windowModuleState.initTime;
-        this._stat.load += windowModuleState.loadingTime;
-        console.log('Module window:', `"${this.name}"`, 'loading finished');
-        loadingDefer.resolve();
-        return loadingDefer.promise;
-      })
-      .catch((e) => {
-        loadingDefer.reject(e);
-        throw e;
-      });
+    .then(([windowModule]) => {
+      initStartedAt = Date.now();
+      windowModuleState.windowModule = windowModule;
+      return windowModule.init();
+    })
+    .then(() => {
+      windowModuleState.initTime = Date.now() - initStartedAt;
+      windowModuleState.loadingTime = Date.now() - loadingStartedAt;
+      this._stat.init += windowModuleState.initTime;
+      this._stat.load += windowModuleState.loadingTime;
+      console.log('Module window:', `"${this.name}"`, 'loading finished');
+      loadingDefer.resolve();
+      return loadingDefer.promise;
+    })
+    .catch((e) => {
+      loadingDefer.reject(e);
+      throw e;
+    });
   }
 
   getWindowModule(window) {
@@ -185,7 +185,7 @@ export default class Module extends EventEmitter {
     return this._windows.get(window).initTime;
   }
 
-  unloadWindow = (window, { disable } = {}) => {
+  unloadWindow(window, { disable } = {}) {
     const windowModule = this.getWindowModule(window);
     if (!windowModule) {
       return;
@@ -200,7 +200,7 @@ export default class Module extends EventEmitter {
     windowModule.unload();
     this._windows.delete(window);
     console.log('Module window', `"${this.name}"`, 'unloading finished');
-  };
+  }
 
   status() {
     return {

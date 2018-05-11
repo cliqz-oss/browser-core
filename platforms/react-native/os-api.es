@@ -14,7 +14,8 @@ const osAPI = {
     events.pub('mobile-pairing:pushPairingData', x);
   },
   openTab(x) {
-    events.pub('mobile-pairing:openTab', x);
+    // What happens if this is not the right format, does the app crash?
+    events.pub('mobile-pairing:openTab', { url: x });
   },
   downloadVideo(x) {
     events.pub('mobile-pairing:downloadVideo', x);

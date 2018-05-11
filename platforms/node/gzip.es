@@ -1,3 +1,3 @@
 
-export const compress = false;
-export const uncompress = false;
+export let compress = false;
+export let uncompress = false;

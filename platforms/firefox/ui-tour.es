@@ -1,6 +1,4 @@
-/* global UITour */
-
-const { utils: Cu } = Components;
+const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
 Cu.import('resource:///modules/UITour.jsm');
 

@@ -3,26 +3,12 @@
 /* global require */
 /* eslint-disable func-names,prefer-arrow-callback,arrow-body-style */
 
-const tldjs = require('tldjs');
 
 var prefRetVal = {};
 var currentTS = Date.now();
 var currentDayHour = 0;
 var currentWeekDay = 0;
 let hookedResultOfLoggerInfo;
-
-let mockedTS = Date.now();
-const DAY_MS = 1000 * 60 * 60 * 24;
-const getTodayDayKey = timeMs => `${Math.floor((timeMs / DAY_MS))}`;
-
-const getDaysFromTimeRange = (start, end) => {
-  const result = [];
-  while (start <= end) {
-    result.push(`${Math.floor(start/DAY_MS)}`);
-    start += DAY_MS;
-  }
-  return result;
-};
 
 export default describeModule('offers-v2/trigger_machine/ops/category_expr',
   () => ({
@@ -44,9 +30,6 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
     'platform/environment': {
       default: {}
     },
-    'platform/lib/tldjs': {
-      default: tldjs,
-    },
     'core/crypto/random': {
       random: function () {
         return Math.random();
@@ -65,8 +48,8 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
         logObject: () => {},
       }
     },
-    'core/utils': {
-      default: {
+    'core/cliqz': {
+      utils: {
         setInterval: function() {},
         clearInterval: function() {},
       },
@@ -77,9 +60,6 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
           return y;
         }
       }
-    },
-    'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
     },
     'core/time': {
       getDaysFromTimeRange: function(startTS, endTS) {

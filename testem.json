@@ -24,11 +24,6 @@
         "exe": "node",
         "args": ["tests/runners/chromium-selenium.js"],
         "protocol": "tap"
-      },
-      "react-native":{
-        "exe":"bash",
-        "args": ["tests/runners/react-native.sh"],
-        "protocol": "tap"
       }
     },
     "browser_args": {

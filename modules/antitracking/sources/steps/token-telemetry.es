@@ -1,32 +1,32 @@
-/* eslint no-restricted-syntax: 'off' */
-
 import md5 from '../../core/helpers/md5';
 import * as datetime from '../time';
 import * as persist from '../../core/persistent-state';
-import { splitTelemetryData, truncateDomain } from '../utils';
+import { splitTelemetryData } from '../utils';
 import pacemaker from '../../core/pacemaker';
 import { TELEMETRY } from '../config';
 
-/*
+/**
  * Add padding characters to the left of the given string.
  *
  * @param {string} str  - original string.
  * @param {string} char - char used for padding the string.
  * @param {number} size - desired size of the resulting string (after padding)
-*/
+**/
 function leftpad(str, char, size) {
   // This function only makes sens if `char` is a character.
-  if (char.length !== 1) {
-    throw new Error('"char" argument must only contain one character');
+  if (char.length != 1) {
+    throw new Error("`char` argument must only contain one character");
   }
 
   if (str.length >= size) {
     return str;
   }
-  return (char.repeat(size - str.length) + str);
+  else {
+    return (char.repeat(size - str.length) + str);
+  }
 }
 
-/*
+/**
  * Remove any trace of source domains, or hashes of source domains
  * from the data to be sent to the backend. This is made to ensure
  * there is no way to backtrack to user's history using data sent to
@@ -38,18 +38,16 @@ function leftpad(str, char, size) {
  * it is enough to ensure unicity on a per-tracker basis.
  *
  * @param {Object} trackerData - associate source domains to key/value pairs.
-*/
+**/
 function anonymizeTrackerTokens(trackerData) {
-  let index = 1;
+  let index = 1
   // Anonymize the given tracker data
   const anonymizedTrackerData = {};
 
-  for (const originalKey in trackerData) {
-    if (Object.prototype.hasOwnProperty.call(trackerData, originalKey)) {
-      const newRandomKey = leftpad(index.toString().substr(0, 16), '0', 16);
-      index += 1;
-      anonymizedTrackerData[newRandomKey] = trackerData[originalKey];
-    }
+  for (let originalKey in trackerData) {
+    const newRandomKey = leftpad(index.toString().substr(0, 16), '0', 16);
+    index += 1;
+    anonymizedTrackerData[newRandomKey] = trackerData[originalKey];
   }
 
   return anonymizedTrackerData;
@@ -57,15 +55,13 @@ function anonymizeTrackerTokens(trackerData) {
 
 
 export default class TokenTelemetry {
+
   constructor(telemetry, qsWhitelist, config) {
     this.telemetry = telemetry;
     this.qsWhitelist = qsWhitelist;
     this.config = config;
     this.tokens = {};
-    this._tokens = new persist.AutoPersistentObject(
-      'tokens',
-      (v) => { this.tokens = v; },
-      60000);
+    this._tokens = new persist.AutoPersistentObject("tokens", (v) => this.tokens = v, 60000);
   }
 
   init() {
@@ -79,12 +75,11 @@ export default class TokenTelemetry {
 
   extractKeyTokens(state) {
     // ignore private requests
-    if (state.isPrivate) return true;
+    if(state.isPrivate) return true;
 
     const keyTokens = state.urlParts.getKeyValuesMD5();
     if (keyTokens.length > 0) {
-      const truncatedDomain = truncateDomain(state.urlParts.host, this.config.tpDomainDepth);
-      const domain = md5(truncatedDomain).substr(0, 16);
+      const domain = md5(state.urlParts.hostname).substr(0, 16);
       const firstParty = md5(state.sourceUrlParts.hostname).substr(0, 16);
       const generalDomain = md5(state.urlParts.generalDomain).substr(0, 16);
       this._saveKeyTokens(domain, keyTokens, firstParty, generalDomain);
@@ -162,24 +157,22 @@ export default class TokenTelemetry {
       parseInt(this.tokens[a].lastSent || 0, 10) - parseInt(this.tokens[b].lastSent || 0, 10)
     );
 
-    for (const i in sortedTrackers) {
-      if (Object.prototype.hasOwnProperty.call(sortedTrackers, i)) {
-        const dk = sortedTrackers[i];
-        const tokenData = this.tokens[dk];
-        // remove the suffix (i.e. '_unsafe')
-        const domain = dk.substring(0, 16);
+    for (let i in sortedTrackers) {
+      const dk = sortedTrackers[i];
+      const tokenData = this.tokens[dk];
+      // remove the suffix (i.e. '_unsafe')
+      const domain = dk.substring(0, 16);
 
-        if (limit > 0 && Object.keys(data).length > limit) {
-          break;
-        }
+      if (limit > 0 && Object.keys(data).length > limit) {
+        break;
+      }
 
-        if (!(domain in data) && (!(tokenData.lastSent) || tokenData.lastSent < hour)) {
-          delete tokenData.lastSent;
-          const dataPayload = anonymizeTrackerTokens(tokenData);
-          delete this.tokens[dk];
-          if (Object.keys(dataPayload).length > 0) {
-            data[domain] = dataPayload;
-          }
+      if (!(domain in data) && (!(tokenData.lastSent) || tokenData.lastSent < hour)) {
+        delete tokenData.lastSent;
+        const dataPayload = anonymizeTrackerTokens(tokenData);
+        delete this.tokens[dk];
+        if (Object.keys(dataPayload).length > 0) {
+          data[domain] = dataPayload;
         }
       }
     }

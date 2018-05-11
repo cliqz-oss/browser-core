@@ -1,10 +1,6 @@
-import { Subresult } from './base';
+import BaseResult from './base';
 
-export default class VideoResult extends Subresult {
-  get friendlyUrl() {
-    return this.rawResult.friendlyUrl;
-  }
-
+export default class VideoResult extends BaseResult {
   get videoViews() {
     return this.rawResult.views;
   }
@@ -28,19 +24,11 @@ export default class VideoResult extends Subresult {
     return this.secondsToDuration(this.rawResult.duration);
   }
 
-  get isVideo() {
-    return true;
-  }
-
   get thumbnail() {
     return this.rawResult.thumbnail;
   }
 
   get logo() {
-    if (this.rawResult.isSingleVideo) {
-      return super.logo;
-    }
-
     return null;
   }
 }

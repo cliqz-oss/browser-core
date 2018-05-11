@@ -5,7 +5,7 @@
   data-inactiveState="inactive"
   data-url="{{ activeURL }}">
   <div class="title">
-    <svg class="infobutton" data-tooltip-content="#anti-phising-tooltip" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg class="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
       <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
         <ellipse id="Oval-2" fill="#999" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
         <text id="i-copy" font-family="AmericanTypewriter-Bold, American Typewriter" font-size="11.2" font-weight="bold" fill="#FFFFFF">
@@ -13,9 +13,9 @@
         </text>
       </g>
     </svg>
-    <div id="anti-phising-tooltip" class="tooltip-content">
-      <span class="title" data-i18n="control_center_info_phishing_title"></span>
-      <span data-i18n="control_center_info_phishing"></span>
+    <div class="tooltip right top-right">
+      <span class="title" data-i18n="control-center-info-phishing-title"></span>
+      <span data-i18n="control-center-info-phishing"></span>
     </div>
     <span>Anti-Phishing</span>
     <svg id="smallarrow" width="10px" height="15px" viewBox="1131 409 10 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -27,11 +27,11 @@
         <button class="dropdown-btn">
            <span class="dropdown-content-option-text"
                  data-visible-on-state="inactive"
-                 data-i18n="control_center_this_domain"></span>
+                 data-i18n="control-center-this-domain"></span>
 
            <span class="dropdown-content-option-text"
                  data-visible-on-state="critical"
-                 data-i18n="control_center_all_sites"></span>
+                 data-i18n="control-center-all-sites"></span>
 
           <svg class="arr" width="12px" height="7px" viewBox="96 10 12 7" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
               <defs></defs>
@@ -41,7 +41,7 @@
 
         <div class="new-dropdown-content" {{#if funnelCake}}style="top: -56px;"{{/if}}>
           <a class="dropdown-content-option {{#if module.anti-phishing.isWhitelisted }}selected{{/if}}"
-             data-i18n="control_center_this_domain"
+             data-i18n="control-center-this-domain"
              value="this"
              data-type="off_select"
              data-state="off_website"
@@ -49,7 +49,7 @@
           </a>
 
           <a class="dropdown-content-option  {{#unless module.anti-phishing.isWhitelisted }} selected {{/unless}}"
-             data-i18n="control_center_all_sites"
+             data-i18n="control-center-all-sites"
              value="all"
              data-type="off_select"
              data-state="off_all"
@@ -58,8 +58,8 @@
         </div>
       </span>
       <span>
-        <span data-visible-on-state="active" data-i18n="control_center_switch_on"></span>
-        <span data-invisible-on-state="active" data-i18n="control_center_switch_off"></span>
+        <span data-visible-on-state="active" data-i18n="control-center-switch-on"></span>
+        <span data-invisible-on-state="active" data-i18n="control-center-switch-off"></span>
         <span
           class="cqz-switch"
           data-type="switch"
@@ -72,7 +72,7 @@
 </div>
 <div class="active-window-phishing">
   <div id="report">
-    <span id="status" data-i18n="control_center_phishing_deceptive_not"></span>
+    <span id="status" data-i18n="control-center-phishing-deceptive-not"></span>
     <svg data-target="antiphish_details_close" class="cross" width="10px" height="16px" viewBox="0 0 10 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <defs></defs>
         <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round">
@@ -83,7 +83,7 @@
     </svg>
     <span id="line">
       <span id="report-button">
-      <span id="report-button-text" data-i18n="control_center_phishing_report"></span>
+      <span id="report-button-text" data-i18n="control-center-phishing-report"></span>
       </span>
     </span>
     <svg id="infobutton" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -99,7 +99,7 @@
   <div id="full-url"></div>
   <div id="switch">
     <span class="switches" style="display: none">
-      <span><span class="active cqz-switch"><span class="cqz-switch-box"></span></span> <span class="active" data-i18n="control_center_switch_on"></span></span>
+      <span><span class="active cqz-switch"><span class="cqz-switch-box"></span></span> <span class="active" data-i18n="control-center-switch-on"></span></span>
     </span>
   </div>
 </div>

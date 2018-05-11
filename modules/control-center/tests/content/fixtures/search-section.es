@@ -9,7 +9,7 @@ export const data = {
     antitracking: {
       visible: false,
     },
-    search: {
+    autocomplete: {
       visible: true,
       state: [
         {
@@ -163,7 +163,7 @@ export const dataAmo = {
     antitracking: {
       visible: false,
     },
-    search: {
+    autocomplete: {
       visible: true,
       state: [
         {
@@ -314,7 +314,7 @@ export const dataFunnelCake = {
     antitracking: {
       visible: false,
     },
-    search: {
+    autocomplete: {
       visible: true,
       state: [
         {

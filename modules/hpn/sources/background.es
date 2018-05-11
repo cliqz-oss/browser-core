@@ -1,3 +1,4 @@
+import CliqzUtils from '../core/utils';
 import background from '../core/base/background';
 import { isPlatformAtLeastInVersion } from '../core/platform';
 import CliqzSecureMessage from './main';
@@ -20,13 +21,11 @@ export default background({
       this.CliqzSecureMessage = CliqzSecureMessage;
       CliqzSecureMessage.init();
       CliqzSecureMessage.wCrypto = new CryptoWorker('httpHandler');
-      CliqzSecureMessage.wCrypto.onmessage = (e) => {
+      CliqzSecureMessage.wCrypto.onmessage = function (e) {
         if (e.data.type === 'instant') {
           const callback = CliqzSecureMessage.queriesID[e.data.uid];
           delete CliqzSecureMessage.queriesID[e.data.uid];
-          if (callback) {
-            callback({ response: e.data.res });
-          }
+          callback && callback({ response: e.data.res });
         }
       };
     }
@@ -43,18 +42,51 @@ export default background({
 
   actions: {
     sha1(s) {
-      const promise = new Promise((resolve) => {
-        const wCrypto = new CryptoWorker();
+      let promise = new Promise( (resolve, reject) => {
+        let wCrypto = new CryptoWorker();
 
-        wCrypto.onmessage = (e) => {
-          const result = e.data.result;
+        wCrypto.onmessage = function(e){
+          let result = e.data.result;
           wCrypto.terminate();
           resolve(result);
         };
 
         wCrypto.postMessage({
-          msg: s,
-          type: 'hw-sha1'
+          "msg": s,
+          "type":"hw-sha1"
+        });
+      });
+      return promise;
+    },
+    md5(s) {
+      let promise = new Promise( (resolve, reject) => {
+        let wCrypto = new CryptoWorker();
+
+        wCrypto.onmessage = function(e){
+          let result = e.data.result;
+          wCrypto.terminate();
+          resolve(result);
+        };
+
+        wCrypto.postMessage({
+          "msg": s,
+          "type":"hw-md5"
+        });
+      });
+      return promise;
+    },
+    randBigInt() {
+      let promise = new Promise( (resolve, reject) => {
+        let wCrypto = new CryptoWorker();
+
+        wCrypto.onmessage = function(e){
+          let result = e.data.result;
+          wCrypto.terminate();
+          resolve(result);
+        };
+
+        wCrypto.postMessage({
+          "type":"hw-bigint"
         });
       });
       return promise;
@@ -64,23 +96,14 @@ export default background({
     },
 
     sendInstantMessage(rp, payload) {
-      const queryProxyUrl = CliqzSecureMessage.proxyIP();
-      if (!queryProxyUrl) {
-        throw new Error('Cannot send message (list of proxies is empty)');
-      }
-
+      CliqzSecureMessage.proxyIP();
       return new Promise((resolve, reject) => {
         const wCrypto = new CryptoWorker();
 
-        wCrypto.onmessage = (e) => {
-          try {
-            const result = JSON.parse(e.data.res).result;
-            wCrypto.terminate();
-            resolve(result);
-          } catch (ee) {
-            wCrypto.terminate();
-            reject();
-          }
+        wCrypto.onmessage = function(e){
+          const result = JSON.parse(e.data.res).result;
+          wCrypto.terminate();
+          resolve(result);
         };
         wCrypto.postMessage({
           msg: {
@@ -88,8 +111,8 @@ export default background({
             type: 'cliqz',
             ts: '',
             ver: '1.5',
-            payload,
-            rp,
+            payload: payload,
+            rp: rp,
           },
           uid: '',
           type: 'instant',
@@ -97,36 +120,8 @@ export default background({
           upk: CliqzSecureMessage.uPK,
           dspk: CliqzSecureMessage.dsPK,
           sspk: CliqzSecureMessage.secureLogger,
-          queryProxyUrl,
+          queryProxyUrl: CliqzSecureMessage.queryProxyIP,
         });
-      });
-    },
-
-    sendPostMessage(rp, payload, action, data, callback) {
-      const queryProxyUrl = CliqzSecureMessage.proxyIP();
-      if (!queryProxyUrl) {
-        throw new Error('Cannot send message (list of proxies is empty)');
-      }
-
-      const uid = Math.floor(Math.random() * 10000000);
-      CliqzSecureMessage.queriesID[uid] = callback;
-      CliqzSecureMessage.wCrypto.postMessage({
-        msg: {
-          action,
-          type: 'cliqz',
-          ts: '',
-          ver: '1.5',
-          payload,
-          rp,
-          body: data,
-        },
-        uid: '',
-        type: 'instant',
-        sourcemap: CliqzSecureMessage.sourceMap,
-        upk: CliqzSecureMessage.uPK,
-        dspk: CliqzSecureMessage.dsPK,
-        sspk: CliqzSecureMessage.secureLogger,
-        queryProxyUrl,
       });
     }
   },

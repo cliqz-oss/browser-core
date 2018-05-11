@@ -1,11 +1,9 @@
-/* global ProfileAge */
-
 try {
   Components.utils.import('resource://gre/modules/ProfileAge.jsm', this);
-} catch (e) {
+} catch(e){
   // polyfill for older FF versions
-  const ProfileAge = () => {};
-  ProfileAge.prototype.reset = new Promise(resolve => resolve());
+  var ProfileAge = function () {};
+  ProfileAge.prototype.reset = new Promise((resolve)=>resolve());
 }
 
 export default ProfileAge;

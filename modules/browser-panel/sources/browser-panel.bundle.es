@@ -1,23 +1,11 @@
-/* global document, window, $, Handlebars */
-
+/* global document, window */
+import $ from 'jquery';
+import Handlebars from 'handlebars';
 import { sendMessageToWindow } from './content/data';
 import templates from './templates';
-import helpers from './helpers';
 
 Handlebars.partials = templates;
-Object.keys(helpers).forEach((helperName) => {
-  Handlebars.registerHelper(helperName, helpers[helperName]);
-});
 
-function localizeDocument() {
-  Array.prototype.forEach.call(document.querySelectorAll('[data-i18n]'), (el) => {
-    const elArgs = el.dataset.i18n.split(',');
-    const key = elArgs.shift();
-    /* eslint-disable */
-    el.innerHTML = chrome.i18n.getMessage(key, elArgs);
-    /* eslint-enable */
-  });
-}
 
 function copySelectionText() {
   let copysuccess; // var to check whether execCommand successfully executed
@@ -38,9 +26,8 @@ function selectElementText(e) {
 }
 
 
-function copy() {
-  const codeElem = $('.code')[0];
-  selectElementText(codeElem);
+function copy(e) {
+  selectElementText(e);
   const copysuccess = copySelectionText();
   return copysuccess;
 }
@@ -59,6 +46,7 @@ function cqzOfferGetCurrentOfferID() {
 // receive buttons callback
 function cqzOfferBtnClicked(ev) {
   // filter if it is button or not
+
   if (!ev.target || !ev.target.hasAttribute('data-cqz-of-btn-id')) {
     // skip this
     return;
@@ -68,7 +56,7 @@ function cqzOfferBtnClicked(ev) {
     const success = copy(ev.target);
 
     if (success) {
-      document.querySelector('.code-box').className += ' copied';
+      document.querySelector('.cqz-offer-code-info').className += ' copied';
     }
   }
 
@@ -98,13 +86,13 @@ $(document).ready(() => {
   // link the click function here to the buttons
   document.getElementById('cqz-browser-panel-re').addEventListener('click', cqzOfferBtnClicked);
 
-  // open URL
-  $('#cqz-browser-panel-re').on('click', '[data-openUrl]', (ev) => {
+   // open URL
+  $('#cqz-browser-panel-re').on('click', '[data-open-url]', (ev) => {
     sendMessageToWindow({
       handler: 'openUrlHandler',
       data: {
         el_id: ev.target.getAttribute('data-cqz-of-btn-id'),
-        url: ev.currentTarget.getAttribute('data-openUrl'),
+        url: ev.currentTarget.getAttribute('data-open-url'),
       }
     });
   });
@@ -119,37 +107,15 @@ $(document).ready(() => {
 
 function draw(data) {
   // get the template name to be used and the data of them
-  let templateName = data.template_name;
+  const templateName = data.template_name;
   const templateData = data.template_data;
   if (!templateName || !templateData) {
     return;
   }
-  if (Object.keys(templates).indexOf(templateName) === -1) {
-    templateName = 'default_template';
-  }
-
-  // EX-6655: Specify lang for sake of hyphenation - only German offers for now
-  // TODO: Get offer language from portal once they start supporting languages
-  // const docElem = document.documentElement;
-  // docElem.setAttribute('lang', data.lang);
-
   const panel = document.getElementById('cqz-browser-panel-re');
   const html = templates[templateName](templateData);
   panel.innerHTML = html;
-
-  $('img').on('error', function onError() {
-    $(this).hide();
-  });
-
-  $('.tooltip').tooltipster({
-    theme: ['tooltipster-shadow', 'tooltipster-shadow-customized'],
-    interactive: true,
-    delay: 400,
-    animationDuration: 150,
-    position: ['left']
-  });
-
-  localizeDocument();
 }
 
 window.draw = draw;
+

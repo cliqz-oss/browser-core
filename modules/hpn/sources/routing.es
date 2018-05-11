@@ -18,8 +18,5 @@ export function createProxyList(routeTable) {
 export function getProxyVerifyUrl(args) {
   const schema = args.supportsHttps ? 'https' : 'http';
   const host = args.host || args.ip;
-  if (!host) {
-    throw new Error('Missing host');
-  }
   return `${schema}://${host}/v2/verify`;
 }

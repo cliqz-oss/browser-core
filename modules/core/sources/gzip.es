@@ -1,4 +1,4 @@
-import * as gzip from '../platform/gzip';
+import * as gzip from "../platform/gzip";
 
 /**
  *  Compress a string
@@ -6,7 +6,7 @@ import * as gzip from '../platform/gzip';
  *  @param {string} string to compress
  *  @returns {UInt8Array} compressed data
  */
-export const compress = gzip.compress || false;
+export let compress = gzip.compress || false;
 
 /**
  *  Decompress a Gzip compressed string
@@ -14,4 +14,4 @@ export const compress = gzip.compress || false;
  *  @param {UInt8Array} gzipped data
  *  @returns {string} decompressed string
  */
-export const decompress = gzip.decompress || false;
+export let decompress = gzip.decompress || false;

@@ -1,6 +1,7 @@
 import BaseResult from './base';
 
 export default class FlightResult extends BaseResult {
+
   get _extra() {
     return this.rawResult.data.extra || {};
   }

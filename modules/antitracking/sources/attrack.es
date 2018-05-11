@@ -7,11 +7,10 @@ import * as persist from '../core/persistent-state';
 import UrlWhitelist from '../core/url-whitelist';
 import console from '../core/console';
 import domainInfo, { getDomainOwner, getBugOwner } from '../core/domain-info';
-import inject, { ifModuleEnabled } from '../core/kord/inject';
+import inject, { ModuleDisabledError } from '../core/kord/inject';
 import pacemaker from '../core/pacemaker';
 import { getGeneralDomain } from '../core/tlds';
-import utils from '../core/utils';
-import events from '../core/events';
+import { utils, events } from '../core/cliqz';
 
 import * as browser from '../platform/browser';
 import * as datetime from './time';
@@ -29,7 +28,6 @@ import { URLInfo, shuffle } from '../core/url-info';
 import { VERSION, MIN_BROWSER_VERSION } from './config';
 import { checkInstalledPrivacyAddons } from '../platform/addon-check';
 import { compressionAvailable, compressJSONToBase64, generateAttrackPayload } from './utils';
-import AttrackDatabase from './database';
 
 import BlockRules from './steps/block-rules';
 import CookieContext from './steps/cookie-context';
@@ -40,10 +38,8 @@ import SubdomainChecker from './steps/subdomain-check';
 import TokenChecker from './steps/token-checker';
 import TokenExaminer from './steps/token-examiner';
 import TokenTelemetry from './steps/token-telemetry';
-import OAuthDetector from './steps/oauth-detector';
 import { skipInternalProtocols, skipInvalidSource, checkSameGeneralDomain } from './steps/check-context';
 
-import GeoIp from './geoip';
 
 export default class CliqzAttrack {
   constructor() {
@@ -62,9 +58,6 @@ export default class CliqzAttrack {
     this.webRequestPipeline = inject.module('webrequest-pipeline');
     this.pipelineSteps = {};
     this.pipelines = {};
-
-    this.geoip = new GeoIp();
-    this.db = new AttrackDatabase();
   }
 
   obfuscate(s, method) {
@@ -189,7 +182,6 @@ export default class CliqzAttrack {
   /** Global module initialisation.
   */
   init(config) {
-    const initPromises = [];
     this.config = config;
     // disable for older browsers
     if (browser.getBrowserMajorVersion() < this.MIN_BROWSER_VERSION) {
@@ -201,7 +193,6 @@ export default class CliqzAttrack {
 
     if (!this.hashProb) {
       this.hashProb = new HashProb();
-      initPromises.push(this.hashProb.init());
     }
 
     // load all caches:
@@ -213,12 +204,12 @@ export default class CliqzAttrack {
     this.qs_whitelist = this.isBloomFilterEnabled() ? new AttrackBloomFilter(this.config) :
       new QSWhitelist(this.config);
 
+    const initPromises = [];
     initPromises.push(this.qs_whitelist.init());
     initPromises.push(this.urlWhitelist.init());
-    initPromises.push(this.db.init());
 
     // force clean requestKeyValue
-    this.onSafekeysUpdated = events.subscribe('attrack:safekeys_updated', (version, forceClean) => {
+    events.sub('attrack:safekeys_updated', (version, forceClean) => {
       if (forceClean && this.pipelineSteps.tokenExaminer) {
         this.pipelineSteps.tokenExaminer.clearCache();
       }
@@ -253,7 +244,6 @@ export default class CliqzAttrack {
     }, this.config);
 
     initPromises.push(this.initPipeline());
-    initPromises.push(this.geoip.load());
 
     // cleanup legacy database
     cleanLegacyDb();
@@ -266,7 +256,7 @@ export default class CliqzAttrack {
       // Initialise classes which are used as steps in listeners
       const steps = {
         pageLogger: new PageLogger(this.tp_events),
-        tokenExaminer: new TokenExaminer(this.qs_whitelist, this.config, this.db),
+        tokenExaminer: new TokenExaminer(this.qs_whitelist, this.config),
         tokenTelemetry: new TokenTelemetry(
           this.telemetry.bind(this),
           this.qs_whitelist,
@@ -277,13 +267,11 @@ export default class CliqzAttrack {
           {},
           this.hashProb,
           this.config,
-          this.telemetry,
-          this.db),
+          this.telemetry),
         blockRules: new BlockRules(this.config),
         cookieContext: new CookieContext(this.config, this.tp_events, this.qs_whitelist),
         redirectTagger: new RedirectTagger(),
         subdomainChecker: new SubdomainChecker(this.config),
-        oauthDetector: new OAuthDetector(),
       };
 
       this.pipelineSteps = steps;
@@ -304,11 +292,6 @@ export default class CliqzAttrack {
           name: 'redirectTagger.checkRedirect',
           spec: 'break',
           fn: state => steps.redirectTagger.checkRedirect(state),
-        },
-        {
-          name: 'oauthDetector.checkMainFrames',
-          spec: 'break',
-          fn: state => steps.oauthDetector.checkMainFrames(state),
         },
         {
           name: 'pageLogger.logMainDocument',
@@ -495,11 +478,11 @@ export default class CliqzAttrack {
           spec: 'break',
           fn: (state) => {
             state.cookieData = state.getCookieData();
-            const hasCookie = state.cookieData && state.cookieData.length > 5;
-            if (hasCookie) {
+            if (state.cookieData && state.cookieData.length > 5) {
               state.incrementStat('cookie_set');
+              return true;
             }
-            return hasCookie === true;
+            return false;
           },
         },
         {
@@ -521,11 +504,6 @@ export default class CliqzAttrack {
           name: 'cookieContext.checkContextFromEvent',
           spec: 'break',
           fn: state => steps.cookieContext.checkContextFromEvent(state),
-        },
-        {
-          name: 'oauthDetector.checkIsOAuth',
-          spec: 'break',
-          fn: state => steps.oauthDetector.checkIsOAuth(state),
         },
         {
           name: 'shouldBlockCookie',
@@ -621,16 +599,7 @@ export default class CliqzAttrack {
               state.incrementStat('resp_ob');
               state.incrementStat('content_length', parseInt(state.getResponseHeader('Content-Length'), 10) || 0);
               state.incrementStat(`status_${state.responseStatus}`);
-            }
-            if (this.qs_whitelist.isTrackerDomain(state.urlParts.generalDomainHash) && state.ip) {
-              try {
-                const ipLoc = this.geoip.lookup(state.ip);
-                if (ipLoc) {
-                  state.incrementStat(`iploc_${ipLoc}`);
-                }
-              } catch (e) {
-                // invalid or IPv6 IP address, skip
-              }
+              state.incrementStat(state.isCached ? 'cached' : 'not_cached');
             }
           },
         },
@@ -682,36 +651,6 @@ export default class CliqzAttrack {
         },
       ]);
 
-      this.pipelines.onCompleted = new Pipeline('antitracking.onCompleted', [
-        {
-          name: 'pageLogger.reattachStatCounter',
-          spec: 'annotate',
-          fn: state => steps.pageLogger.reattachStatCounter(state),
-        },
-        {
-          name: 'logIsCached',
-          spec: 'collect',
-          fn: (state) => {
-            state.incrementStat(state.fromCache ? 'cached' : 'not_cached');
-          }
-        }
-      ]);
-
-      this.pipelines.onErrorOccurred = new Pipeline('antitracking.onError', [
-        {
-          name: 'pageLogger.reattachStatCounter',
-          spec: 'annotate',
-          fn: state => steps.pageLogger.reattachStatCounter(state),
-        }, {
-          name: 'logError',
-          spec: 'collect',
-          fn: (state) => {
-            if (state.error && state.error.indexOf('ABORT')) {
-              state.incrementStat('error_abort');
-            }
-          }
-        }
-      ]);
 
       // Add steps to the global web request pipeline
       return Promise.all(Object.keys(this.pipelines).map(stage =>
@@ -746,9 +685,16 @@ export default class CliqzAttrack {
     // But if we reload only the antitracking module, we need to be sure we
     // removed the steps before we try to add them again.
     return Promise.all(Object.keys(this.pipelines).map(stage =>
-      ifModuleEnabled(this.webRequestPipeline.action('removePipelineStep',
+      this.webRequestPipeline.action('removePipelineStep',
         stage,
-        `antitracking.${stage}`))
+        `antitracking.${stage}`)
+        .catch((err) => {
+          if (err.name === ModuleDisabledError.name) {
+            console.log('antitracking', 'cannot unload: webrequest-pipeline was already unloaded');
+            return Promise.resolve();
+          }
+          return err;
+        })
     )).then(() => {
       this.pipelines = {};
     });
@@ -767,24 +713,19 @@ export default class CliqzAttrack {
     // don't need to unload if disabled
     if (browser.getBrowserMajorVersion() >= this.MIN_BROWSER_VERSION) {
       // Check is active usage, was sent
-      this.hashProb.unload();
-      this.qs_whitelist.destroy();
 
       // force send tab telemetry data
       // NOTE - this is an async operation
       this.tp_events.commit(true, true);
       this.tp_events.push(true);
 
+      this.qs_whitelist.destroy();
 
       pacemaker.stop();
 
       this.unloadPipeline();
 
       events.clean_channel('attrack:safekeys_updated');
-
-      this.db.unload();
-
-      this.onSafekeysUpdated.unsubscribe();
     }
   }
 
@@ -872,6 +813,7 @@ export default class CliqzAttrack {
     //     state.incrementStat('proxy');
     // }
     this.recentlyModified.add(state.tabId + state.url, 30000);
+    this.recentlyModified.add(state.tabId + tmpUrl, 30000);
 
     response.redirectTo(tmpUrl);
     response.modifyHeader(this.config.cliqzHeader, ' ');
@@ -934,7 +876,7 @@ export default class CliqzAttrack {
 
     const tabData = this.tp_events._active[tabId];
     const plainData = tabData.asPlainObject();
-    const trackers = Object.keys(plainData.tps).filter(domain => Promise.resolve(
+    const trackers = Object.keys(tabData.tps).filter(domain => Promise.resolve(
       this.qs_whitelist.isTrackerDomain(md5(getGeneralDomain(domain)).substring(0, 16)) ||
       plainData.tps[domain].blocked_blocklist > 0
     ));

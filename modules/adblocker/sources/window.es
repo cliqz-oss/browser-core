@@ -1,6 +1,6 @@
 import { getActiveTab } from '../platform/browser';
 
-import utils from '../core/utils';
+import { utils } from '../core/cliqz';
 
 import CliqzADB, {
   adbABTestEnabled,
@@ -74,7 +74,6 @@ export default class Win {
         disabledEverywhere,
         totalCount: report.totalCount,
         advertisersList: report.advertisersList,
-        advertisersInfo: report.advertisersInfo,
         state,
         off_state: offState,
       };

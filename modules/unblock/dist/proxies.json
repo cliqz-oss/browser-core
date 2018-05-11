@@ -1,0 +1,8 @@
+{
+  "regions": ["US"],
+  "proxies": {
+    "US": [
+      {"type": "http", "host": "cliqz-unblock-1768720863.us-east-1.elb.amazonaws.com", "port": 31280}
+    ]
+  }
+}

@@ -133,9 +133,9 @@ export default class CategoryTree {
       if (childName === currentParent.getName()) {
         return currentParent;
       }
-      currentParent = currentParent.hasChildName(childName)
-        ? currentParent.getChild(childName)
-        : null;
+      currentParent = currentParent.hasChildName(childName) ?
+                      currentParent.getChild(childName) :
+                      null;
     }
     return currentParent;
   }

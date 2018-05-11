@@ -3,34 +3,21 @@ import getDexie from './lib/dexie';
 export default class PersistentMap {
   constructor(dbName) {
     this.dbName = dbName;
-    this.db = null;
   }
 
   init() {
     return getDexie().then((Dexie) => {
       this.db = new Dexie(this.dbName);
       this.db.version(1).stores({ kv: 'key' });
-      return this.db.open();
     });
   }
 
   unload() {
-    if (this.db !== null) {
-      return this.db.close();
-    }
     return Promise.resolve();
   }
 
-  destroy() {
-    if (this.db !== null) {
-      return this.db.delete();
-    }
-
-    return getDexie().then(Dexie => Dexie.delete(this.dbName));
-  }
-
   get(key) {
-    return this.db.kv.get(key).then(v => v && v.value);
+    return this.db.kv.get(key);
   }
 
   set(key, value) {

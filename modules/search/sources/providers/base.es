@@ -1,6 +1,6 @@
 import Rx from '../../platform/lib/rxjs';
 
-import { getEmptyResponse } from '../responses';
+import { getEmptyResponse, getPendingResponse } from '../responses';
 
 import apply from '../operators/apply';
 import collect from '../operators/collect';
@@ -11,14 +11,15 @@ export default class BaseProvider {
     this.id = id;
   }
 
-  getEmptySearch(config, query) {
-    return Rx.Observable.from([getEmptyResponse(this.id, config, query)]);
+  getEmptySearch(config) {
+    return Rx.Observable.from([getEmptyResponse(this.id, config)]);
   }
 
   // default operators used for most providers
-  getOperators() {
+  getOperators(config, query) {
     return observable => observable
       .scan(collect)
+      .startWith(getPendingResponse(this.id, config, query))
       .delay(1)
       .map(response => apply(response, normalize))
       .share();

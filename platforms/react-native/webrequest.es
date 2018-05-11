@@ -1,4 +1,5 @@
-// import utils from "../core/utils";
+// import { utils } from "../core/cliqz";
+import bridge from './native-bridge';
 
 const webRequest = {
   onBeforeRequest: {
@@ -57,18 +58,10 @@ const webRequest = {
   onHeadersReceived: {
     addListener(listener, filter, extraInfo) {},
     removeListener(listener) {}
-  },
-
-  onCompleted: {
-    addListener(listener, filter, extraInfo) {},
-    removeListener(listener) {}
-  },
-
-  onErrorOccurred: {
-    addListener(listener, filter, extraInfo) {},
-    removeListener(listener) {}
   }
 }
+
+bridge.registerAction('webRequest', webRequest.onBeforeRequest._trigger.bind(webRequest.onBeforeRequest));
 
 
 // extra response property to indicate that the ghostery counter should be increase

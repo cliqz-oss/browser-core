@@ -1,8 +1,6 @@
 import { Components } from '../globals';
 import utils from '../../core/utils';
 import getContainer from './helpers';
-import DefaultWeakMap from '../../core/app/default-weak-map';
-import Defer from '../../core/app/defer';
 
 const { CustomizableUI } = Components.utils.import('resource:///modules/CustomizableUI.jsm', null);
 
@@ -10,6 +8,7 @@ const XUL_NS = 'http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul';
 
 
 export default class BrowserAction {
+
   constructor(options = {}, isPageAction = false) {
     this.id = `${options.widgetId}-browser-action`;
     this.viewId = `PanelUI-webext-${options.widgetId}-browser-action-view`;
@@ -28,11 +27,7 @@ export default class BrowserAction {
       height: options.defaultHeight || (() => 250),
     };
 
-    this.windows = new DefaultWeakMap(() => ({
-      ready: new Defer(),
-      actions: {},
-      hooks: {}
-    }));
+    this.windows = new WeakMap();
 
     this.telemetryType = options.widgetId;
     this.telemetryVersion = 1;
@@ -89,9 +84,42 @@ export default class BrowserAction {
 
         const doc = event.target.ownerDocument;
         const win = doc.defaultView;
+        const windowProxy = this.getWindowProxy(win);
 
-        this.runHook(win, 'onViewShowing', event)
-          .then(() => this.createIframe(doc));
+        if (windowProxy.hooks.onViewShowing) {
+          windowProxy.hooks.onViewShowing(event);
+        }
+
+        const view = doc.getElementById(this.viewId);
+        const iframe = win.document.createElement('iframe');
+        iframe.setAttribute('id', `${this.id}-iframe`);
+        iframe.setAttribute('type', 'content');
+        iframe.setAttribute('src', `${this.defaults.popup}?pageAction=${this.isPageAction}`);
+
+        const onMessage = (ev) => {
+          const data = JSON.parse(ev.data);
+
+          if (data.origin !== 'iframe') {
+            return;
+          }
+
+          this.dispatchAction(win, data);
+        };
+
+        windowProxy.onMessage = onMessage;
+
+        iframe.addEventListener('DOMContentLoaded', function onReady() {
+          iframe.removeEventListener('DOMContentLoaded', onReady, true);
+          iframe.contentWindow.addEventListener('message', onMessage);
+        }, true);
+
+        view.appendChild(iframe);
+
+        // start with a decent size which should be close to the final one
+        this.resizePopup(win, {
+          width: this.defaults.width(),
+          height: this.defaults.height()
+        });
       },
 
       onViewHiding: (event) => {
@@ -107,17 +135,17 @@ export default class BrowserAction {
         const win = doc.defaultView;
         const windowProxy = this.getWindowProxy(win);
 
-        this.runHook(win, 'onViewHiding', event);
+        if (windowProxy.hooks.onViewHiding) {
+          windowProxy.hooks.onViewHiding(event);
+        }
 
         const view = doc.getElementById(this.viewId);
         const iframe = view.querySelector('iframe');
 
-        if (iframe) {
-          const onMessage = windowProxy.onMessage;
+        const onMessage = windowProxy.onMessage;
 
-          iframe.contentWindow.removeEventListener('message', onMessage);
-          view.removeChild(iframe);
-        }
+        iframe.contentWindow.removeEventListener('message', onMessage);
+        view.removeChild(iframe);
       },
 
       onClick: (event) => {
@@ -139,42 +167,6 @@ export default class BrowserAction {
     });
 
     this.widget = widget;
-  }
-
-  createIframe(doc) {
-    const win = doc.defaultView;
-    const windowProxy = this.getWindowProxy(win);
-    const view = doc.getElementById(this.viewId);
-    const iframe = win.document.createElement('iframe');
-    iframe.setAttribute('id', `${this.id}-iframe`);
-    iframe.setAttribute('type', 'content');
-    iframe.setAttribute('src', `${this.defaults.popup}?pageAction=${this.isPageAction}`);
-
-    const onMessage = (ev) => {
-      const data = JSON.parse(ev.data);
-      data.isPrivate = utils.isPrivateMode(win);
-
-      if (data.origin !== 'iframe') {
-        return;
-      }
-
-      this.dispatchAction(win, data);
-    };
-
-    windowProxy.onMessage = onMessage;
-
-    iframe.addEventListener('DOMContentLoaded', function onReady() {
-      iframe.removeEventListener('DOMContentLoaded', onReady, true);
-      iframe.contentWindow.addEventListener('message', onMessage);
-    }, true);
-
-    view.appendChild(iframe);
-
-    // start with a decent size which should be close to the final one
-    this.resizePopup(win, {
-      width: this.defaults.width(),
-      height: this.defaults.height()
-    });
   }
 
   setPositionBeforeElement(nextElementId) {
@@ -211,10 +203,10 @@ export default class BrowserAction {
   }
 
   addWindow(window, actions, hooks = {}) {
-    const windowProxy = this.getWindowProxy(window);
-    windowProxy.ready.resolve();
-    windowProxy.actions = actions;
-    windowProxy.hooks = hooks;
+    this.windows.set(window, {
+      actions,
+      hooks,
+    });
   }
 
   removeWindow(window) {
@@ -224,23 +216,7 @@ export default class BrowserAction {
   dispatchAction(window, data) {
     const windowProxy = this.getWindowProxy(window);
     const message = data.message;
-    return windowProxy.ready.promise.then(() => {
-      const action = windowProxy.actions[message.action];
-      if (typeof action === 'function') {
-        action(message.data);
-      }
-    });
-  }
-
-  runHook(window, name, ...args) {
-    const windowProxy = this.getWindowProxy(window);
-
-    return windowProxy.ready.promise.then(() => {
-      const hook = windowProxy.hooks[name];
-      if (typeof hook === 'function') {
-        hook(...args);
-      }
-    });
+    windowProxy.actions[message.action](message.data);
   }
 
   sendMessage(window, message) {
@@ -322,11 +298,8 @@ export default class BrowserAction {
       node.setAttribute('disabled', 'true');
     }
 
-    const badgeNode = node.ownerDocument.getAnonymousElementByAttribute(
-      node,
-      'class',
-      'toolbarbutton-badge'
-    );
+    const badgeNode = node.ownerDocument.getAnonymousElementByAttribute(node,
+                                        'class', 'toolbarbutton-badge');
     if (badgeNode) {
       const color = tabData.badgeBackgroundColor ||
                     badgeNode.style.backgroundColor ||

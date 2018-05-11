@@ -3,7 +3,6 @@
 /* global require */
 /* eslint-disable func-names,prefer-arrow-callback,arrow-body-style */
 
-const tldjs = require('tldjs');
 
 var prefRetVal = {};
 var currentTS = Date.now();
@@ -17,9 +16,6 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
   () => ({
     'core/platform': {
       isChromium: false
-    },
-    'platform/lib/tldjs': {
-      default: tldjs,
     },
     'platform/xmlhttprequest': {
       default: {}
@@ -61,6 +57,13 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
         return Math.random();
       }
     },
+    'offers-v2/regexp_cache': {
+      default: class {
+        getRegexp(p) {
+          return new RegExp(p);
+        }
+      }
+    },
     'core/prefs': {
       default: {
         get: function(v, d) {
@@ -74,13 +77,11 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
         }
       }
     },
-    'core/utils': {
-      default: {
+    'core/cliqz': {
+      default: {},
+      utils: {
         setInterval: function() {},
       }
-    },
-    'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
     },
     'platform/console': {
       default: {},
@@ -95,7 +96,7 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
         logObject: () => {},
       }
     },
-    'offers-v2/offers-status': {
+    'offers-v2/offers-status-handler': {
       default: class {
         constructor() {
           this.lastData = null;
@@ -140,7 +141,7 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
 
       beforeEach(function () {
         ops = this.module().default;
-        OfferStatusHandler = this.deps('offers-v2/offers-status').default;
+        OfferStatusHandler = this.deps('offers-v2/offers-status-handler').default;
         oshInstance = new OfferStatusHandler();
         buildDataGen = {
           offers_status_handler: oshInstance,
@@ -162,6 +163,12 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
         //   regex_cache: this.globObjs.regex_cache,
         //   trigger_cache: this.globObjs.trigger_cache,
         //   trigger_machine: this.globObjs.trigger_machine,
+        //   offer_processor: this.globObjs.offer_processor,
+        //   signals_handler: this.globObjs.signals_handler,
+        //   offers_db: this.globObjs.offers_db,
+        //   history_index: this.globObjs.history_index,
+        //   last_campaign_signal_db: this.globObjs.last_campaign_signal_db,
+        //   url_signal_db: this.globObjs.url_signal_db
         // };
 
       /**

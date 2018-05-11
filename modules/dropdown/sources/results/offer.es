@@ -1,8 +1,10 @@
-import BaseResult, { Subresult } from './base';
+import BaseResult from './base';
+import utils from '../../core/utils';
 
-class TextResult extends Subresult {
-  click(href, ev) {
-    this.resultTools.actions.copyToClipboard(this.rawResult.title);
+class TextResult extends BaseResult {
+
+  click(window, href, ev) {
+    this.actions.copyToClipboard(this.rawResult.title);
     const el = ev.target;
     el.classList.add('copied');
 
@@ -13,11 +15,11 @@ class TextResult extends Subresult {
       target: 'copy',
     };
 
-    this.resultTools.actions.telemetry(signal);
+    utils.telemetry(signal);
   }
 }
 
-export class OfferResult extends Subresult {
+export class OfferResult extends BaseResult {
   get _offerData() {
     return this.rawResult.offerData;
   }
@@ -27,17 +29,10 @@ export class OfferResult extends Subresult {
       return null;
     }
 
-    return new Subresult(this, {
+    return new BaseResult({
       url: this._offerData.url_ad,
       title: this._offerData.title,
-      description: this._offerData.description,
       text: this.rawResult.text,
-      data: {
-        extra: {
-          offers_data: this._offerData,
-          is_injected_ad: true,
-        },
-      },
     });
   }
 
@@ -50,11 +45,12 @@ export class OfferResult extends Subresult {
   }
 
   get promoCode() {
-    const result = new TextResult(this, {
+    const result = new TextResult({
       url: `cliqz-actions,${JSON.stringify({ type: 'offer', actionName: 'copy' })}`,
       text: this.rawResult.text,
       title: this._offerData.promo_code,
     });
+    result.actions = this.actions;
 
     return result;
   }
@@ -68,17 +64,15 @@ export class OfferResult extends Subresult {
 }
 
 export default class OffersResult extends BaseResult {
-  constructor(rawResult, resultTools) {
-    const offers = resultTools.assistants.offers;
 
+  constructor(rawResult, allResultsFlat, { offers } = {}) {
     if (!offers.isEnabled) {
       throw new Error('ignore');
     }
 
-    super(rawResult, resultTools);
+    super(rawResult, allResultsFlat);
 
     this.style = offers.nonOrganicStyle;
-    this.locationEnabled = offers.locationEnabled;
   }
 
   get template() {
@@ -94,7 +88,8 @@ export default class OffersResult extends BaseResult {
   }
 
   get friendlyUrl() {
-    return this.rawResult.friendlyUrl || this.url;
+    const urlDetails = utils.getDetailsFromUrl(this.url);
+    return urlDetails.friendly_url;
   }
 
   get _offerData() {
@@ -106,10 +101,12 @@ export default class OffersResult extends BaseResult {
       return null;
     }
 
-    const result = new OfferResult(this, {
+    const result = new OfferResult({
       offerData: this._offerData,
       text: this.query,
     });
+
+    result.actions = this.actions;
 
     return result;
   }

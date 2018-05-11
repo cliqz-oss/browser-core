@@ -8,21 +8,12 @@ const cliqzConfig = require('./config');
 
 const specificTree = new Source.WatchedDir('specific/webextension');
 
-const localesTree = new Funnel(modules.static, {
-  srcDir: 'static/locale',
-  include: [
-    '**/*',
-  ],
-  exclude: [
-    '__*/**/*',
-  ],
-  destDir: '_locales',
-});
-
-const sourceTree = new MergeTrees([
+const sourceTrees = [
   modules.modules,
   modules.bundles,
-], {
+];
+
+const sourceTree = new MergeTrees(sourceTrees, {
   overwrite: true
 });
 
@@ -30,6 +21,7 @@ const modulesTree = new Funnel(
   new MergeTrees([
     modules.static,
     sourceTree,
+    new Funnel(modules.bower, { destDir: 'bower_components' }),
     modules.styleTests,
   ]), {
     destDir: 'modules'
@@ -39,5 +31,4 @@ const modulesTree = new Funnel(
 module.exports = new MergeTrees([
   modulesTree,
   specificTree,
-  localesTree,
 ]);

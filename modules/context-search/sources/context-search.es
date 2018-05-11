@@ -1,7 +1,4 @@
-/* eslint func-names: 'off' */
-/* eslint no-param-reassign: 'off' */
-
-import utils from '../core/utils';
+import { utils } from '../core/cliqz';
 import { queryActiveTabs } from '../core/tabs';
 import * as urlHelpers from '../core/url';
 import { forEachWindow } from '../platform/browser';
@@ -145,9 +142,9 @@ class ContextSearch {
   getAllOpenUrls() {
     const urls = [];
     try {
-      forEachWindow((win) => {
+      forEachWindow(win => {
         const openTabs = queryActiveTabs(win);
-        openTabs.forEach((data) => {
+        openTabs.forEach(data => {
           const url = ContextSearch.cleanCurrentUrl(data.url);
           if (url && urls.indexOf(url) === -1) {
             urls.push(url);
@@ -167,7 +164,7 @@ class ContextSearch {
   }
 
   addWordsToCache(cacheId, words, type) {
-    for (let i = 0; i < words.length; i += 1) {
+    for (let i = 0; i < words.length; i++) {
       const word = words[i];
       if (word.length > 3 &&
           word.length < 30 &&
@@ -219,11 +216,11 @@ class ContextSearch {
     let words = [];
     if (inputString) {
       if (type === 'u') {
-        words = urlHelpers.urlStripProtocol(inputString).toLowerCase().split(/[/.\-_]+/);
+        words = urlHelpers.urlStripProtocol(inputString).toLowerCase().split(/[/\.\-_]+/);
       }
       if (type === 't' || type === 'b') {
         words = inputString.trim().toLowerCase().split(/[^\w\u00C0-\u024f]+/)
-          .filter(word => word.length > 0);
+        .filter(word => word.length > 0);
       }
     }
     return words;
@@ -232,7 +229,7 @@ class ContextSearch {
   removeClosedTabs() {
     // update tab value from tabs
     const openUrls = this.getAllOpenUrls();
-    Object.keys(this.docCache).forEach((urlId) => {
+    Object.keys(this.docCache).forEach(urlId => {
       if (openUrls.indexOf(urlId) === -1 && this.docCache[urlId].tab) {
         this.docCache[urlId].tab = false;
       }
@@ -242,14 +239,14 @@ class ContextSearch {
   removeOldEntries() {
     // delete old entries from document cache
     const currentTime = Date.now();
-    Object.keys(this.docCache).forEach((urlId) => {
+    Object.keys(this.docCache).forEach(urlId => {
       const elem = this.docCache[urlId];
       if (elem.tab === false && currentTime > (elem.timestamp + this.oldEntriesTTL)) {
         delete this.docCache[urlId];
       }
     });
     // delete old cached queries from search cache
-    Object.keys(this.searchCache).forEach((query) => {
+    Object.keys(this.searchCache).forEach(query => {
       if (currentTime > (this.searchCache[query].timestamp + this.oldEntriesTTL)) {
         delete this.searchCache[query];
       }
@@ -258,9 +255,9 @@ class ContextSearch {
 
   dropDeletedHashes() {
     // do this rarely
-    Object.keys(this.wordMap).forEach((word) => {
+    Object.keys(this.wordMap).forEach(word => {
       const elem = this.wordMap[word];
-      Object.keys(elem).forEach((urlId) => {
+      Object.keys(elem).forEach(urlId => {
         if (!this.docCache[urlId]) {
           // delete url
           delete this.wordMap[word][urlId];
@@ -276,7 +273,7 @@ class ContextSearch {
   sendMessage() {
     // create total numbers message
     let s = 0;
-    Object.keys(this.totalCounters).forEach((ch) => {
+    Object.keys(this.totalCounters).forEach(ch => {
       s += this.totalCounters[ch];
     });
     if (s > 0) {
@@ -292,7 +289,7 @@ class ContextSearch {
       this.messages.push(message);
     }
     s = 0;
-    Object.keys(this.totalCountersFirst).forEach((ch) => {
+    Object.keys(this.totalCountersFirst).forEach(ch => {
       s += this.totalCountersFirst[ch];
     });
     if (s > 0) {
@@ -375,7 +372,7 @@ class ContextSearch {
       trimmed.startsWith('about:') ||
       trimmed.startsWith('view-source:') ||
       trimmed.startsWith('file:') ||
-      trimmed.startsWith('chrome:') ||
+      trimmed.startsWith('chrome:')||
       trimmed.startsWith('resource:')
     );
   }
@@ -400,7 +397,7 @@ class ContextSearch {
     } else {
       const urls = Object.create(null);
       const mainWord = words[0];
-      Object.keys(this.wordMap[mainWord] || {}).forEach((urlId) => {
+      Object.keys(this.wordMap[mainWord] || {}).forEach(urlId => {
         if (urlId in this.docCache) {
           const now = Date.now();
           const wordInfo = this.wordMap[mainWord][urlId];
@@ -427,7 +424,7 @@ class ContextSearch {
       });
 
       if (Object.keys(urls).length > 0) {
-        Object.keys(urls).forEach((urlId) => {
+        Object.keys(urls).forEach(urlId => {
           const message = {
             type: 'humanweb',
             action: 'usercontext',
@@ -436,7 +433,7 @@ class ContextSearch {
               query,
             },
           };
-          Object.keys(urls[urlId]).forEach((k) => {
+          Object.keys(urls[urlId]).forEach(k => {
             message.payload[k] = urls[urlId][k];
           });
 
@@ -509,8 +506,8 @@ class ContextSearch {
         // if yes - found out on which position it has appears
         // saved first unique position and total found count
         let first = true;
-        Object.keys(this.distribution[strippedUrl]).sort().forEach((charNum) => {
-          this.distribution[strippedUrl][charNum].forEach((val) => {
+        Object.keys(this.distribution[strippedUrl]).sort().forEach(charNum => {
+          this.distribution[strippedUrl][charNum].forEach(val => {
             if (!(val in result)) {
               result[val] = charNum;
             }
@@ -534,7 +531,7 @@ class ContextSearch {
 
   calculateBOWLength(response) {
     const bowResponse = response;
-    bowResponse.forEach((r) => {
+    bowResponse.forEach(r => {
       let words = ContextSearch.getBOW(r.url, 'u');
       if (r.snippet) {
         words = words.concat(
@@ -558,7 +555,7 @@ class ContextSearch {
     const threshold = 2.00;
     const newResponse = [];
     let count = 0;
-    for (let i = 0; i < bufResponse.length - 1; i += 1) {
+    for (let i = 0; i < bufResponse.length - 1; i++) {
       if (bufResponse[i].rerank_length < bufResponse[i + 1].rerank_length &&
         bufResponse[i].score < bufResponse[i + 1].score * threshold) {
         newResponse.push(bufResponse[i + 1]);
@@ -589,19 +586,18 @@ class ContextSearch {
     let p2 = 0;
     const urls = new Set();
     if (res1.length && res1[0].score && res2.length && res2[0].score) {
-      // we do traverse of arrays only if they both have score field,
-      // otherwise we would just take first result
+      // we do traverse of arrays only if they both have score field, otherwise we would just take first result
       while (p1 < res1.length || p2 < res2.length) {
         if (p1 === res1.length) {
-          result = result.concat(res2.slice(p2).filter(function (element) {
-            return !this.has(element.url);
+          result = result.concat(res2.slice(p2).filter( function (element) {
+            return !this.has(element.url)
           }, urls));
           p2 = res2.length;
           break;
         }
         if (p2 === res2.length) {
-          result = result.concat(res1.slice(p1).filter(function (element) {
-            return !this.has(element.url);
+          result = result.concat(res1.slice(p1).filter( function (element) {
+            return !this.has(element.url)
           }, urls));
           p1 = res1.length;
           break;
@@ -637,11 +633,11 @@ class ContextSearch {
     const words = ContextSearch.getBOW(q, 't');
     const mapping = [];
     const urlMapping = {};
-    words.forEach((word) => {
-      Object.keys(this.wordMap).forEach((key) => {
+    words.forEach(word => {
+      Object.keys(this.wordMap).forEach(key => {
         if (key.startsWith(word)) {
           let s = 0;
-          Object.keys(this.wordMap[key]).forEach((url) => {
+          Object.keys(this.wordMap[key]).forEach(url => {
             s += this.wordMap[key][url].length;
             if (!(url in urlMapping)) {
               urlMapping[url] = [];
@@ -801,7 +797,7 @@ class ContextSearch {
    * @param len - query length
    */
   updateDistribution(results, type, len) {
-    results.forEach((res) => {
+    results.forEach(res => {
       const strippedUrl = urlHelpers.urlStripProtocol(res.url);
       if (!(strippedUrl in this.distribution)) {
         this.distribution[strippedUrl] = {};
@@ -820,7 +816,7 @@ class ContextSearch {
    * @param query
    */
   doRerank(response, query) {
-    // utils.log(this.savedQuery + ' ' + query, "context search expansion");
+    utils.log(this.savedQuery, query);
     if (query === this.savedQuery) {
       // continue to search
       this.invalidCache = false;
@@ -836,7 +832,7 @@ class ContextSearch {
     // don't do expansion if query is less than 2 letter - too general
     if (query.length > 2) {
       const possibleQExt = this.getQExt(query, true);
-      // utils.log(possibleQExt, 'Context search expansion');
+      utils.log(possibleQExt, "Context search expansion");
 
       if (response.length === 2) {
         doubledResponse = true;
@@ -847,7 +843,8 @@ class ContextSearch {
           this.searchCache[possibleQExt] = doc;
         }
         contextResults.push(response[1].response.results);
-      } else if (possibleQExt) {
+      }
+      else if (possibleQExt) {
         doubledResponse = true;
         contextResults.push(this.searchCache[possibleQExt].results);
       }
@@ -855,7 +852,7 @@ class ContextSearch {
     let resC = null;
     if (doubledResponse) {
       // update second array with type
-      contextResults[1].forEach((arr) => {
+      contextResults[1].forEach(arr => {
         arr.cs = true;
       });
       // type 3 and 4
@@ -873,6 +870,7 @@ class ContextSearch {
     }
     return resA;
   }
+
 }
 
 export default ContextSearch;

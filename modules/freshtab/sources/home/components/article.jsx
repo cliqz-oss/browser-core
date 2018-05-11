@@ -7,6 +7,7 @@ import { newsClickSignal, newsHoverSignal } from '../services/telemetry/news';
 let startEnter = 0;
 
 class Article extends React.Component {
+
   constructor(props) {
     super(props);
     this.state = {
@@ -25,28 +26,19 @@ class Article extends React.Component {
     const elapsed = Date.now() - startEnter;
     const type = this.props.article.type;
     const index = this.props.index;
-    const edition = this.props.article.edition;
     startEnter = 0;
     if (elapsed > 2000) {
-      newsHoverSignal(ev, type, index, elapsed, edition);
+      newsHoverSignal(ev, type, index, elapsed);
     }
   }
 
   truncate(text, maxChars) {
-    let requiresSpace = true;
-    if (this.props.newsLanguage === 'fr') {
-      requiresSpace = false;
-    }
     const dots = '...';
-    const truncation = requiresSpace ? ` ${dots}` : dots;
     let str = text.trim();
     const limit = maxChars;
     if (str.length > limit) {
       str = str.substring(0, limit);
-      str = str.substr(0, Math.min(str.length, str.lastIndexOf(' ')));
-      if (str[str.length - 1] !== '.') {
-        str += truncation;
-      }
+      str = str.substr(0, Math.min(str.length, str.lastIndexOf(' '))) + dots;
     }
 
     return str;
@@ -56,15 +48,18 @@ class Article extends React.Component {
     return this.props.article.type === 'breaking-news';
   }
 
+  get absoluteIndex() {
+    const index = this.props.index;
+    const currentPage = this.props.currentPage;
+    const pageSize = this.props.pageSize;
+    return (pageSize * (currentPage - 1)) + index;
+  }
+
   render() {
     return (
       <a
         href={this.props.article.url}
-        onClick={ev => newsClickSignal(
-          ev,
-          this.props.article.type,
-          this.props.index,
-          this.props.article.edition)}
+        onClick={ev => newsClickSignal(ev, this.props.article.type, this.absoluteIndex)}
         onMouseEnter={this.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
         data-index={this.props.index}
@@ -79,7 +74,7 @@ class Article extends React.Component {
             <span className="breaking-news">
               { this.props.article.breaking_label
                 ? this.props.article.breaking_label
-                : t('app_news_breaking_news')
+                : t('app.news.breaking-news')
               }&nbsp;
             </span>
           }
@@ -93,10 +88,10 @@ class Article extends React.Component {
         <div className="news-description">
           {
             this.truncate(this.props.article.description,
-              this.props.maxChars + 15)
+            this.props.maxChars)
           }
         </div>
-        <div className="read-more-button">{ t('app_news_read_more') }</div>
+        <div className="read-more-button">{ t('app.news.read-more') }</div>
       </a>
     );
   }
@@ -111,10 +106,11 @@ Article.propTypes = {
     description: PropTypes.string,
     breaking_label: PropTypes.bool,
     logo: PropTypes.shape({}),
-    edition: PropTypes.string,
   }),
   index: PropTypes.number,
-  maxChars: PropTypes.number
+  maxChars: PropTypes.number,
+  currentPage: PropTypes.number,
+  pageSize: PropTypes.number
 };
 
 export default Article;

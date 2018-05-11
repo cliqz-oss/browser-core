@@ -1,52 +1,44 @@
-import {
-  blurUrlBar,
-  $cliqzResults,
-  expect,
-  fillIn,
-  respondWith,
-  waitForPopup,
-  withHistory } from './helpers';
+/* global it, expect, respondWith, fillIn, waitForPopup, $cliqzResults */
+/* eslint func-names: ["error", "never"] */
+/* eslint prefer-arrow-callback: "off" */
+/* eslint no-unused-expressions: "off" */
+
 import { results, friendlyUrl } from './fixtures/resultsSimple';
 
 export default function () {
-  const mainResultSelector = '.cliqz-result:not(.history)';
-
   context('for single generic result', function () {
-    before(function () {
-      window.preventRestarts = true;
-      blurUrlBar();
-      respondWith({ results });
-      withHistory([]);
-      fillIn('test');
-      return waitForPopup(2);
-    });
+    let resultElement;
 
-    after(function () {
-      window.preventRestarts = false;
+    before(function () {
+      respondWith({ results });
+      fillIn('test');
+      return waitForPopup().then(function () {
+        resultElement = $cliqzResults().find(`a.result[href='${results[0].url}']`)[0];
+      });
     });
 
     it('renders title', function () {
-      const titleSelector = '.abstract .title';
-      expect($cliqzResults.querySelector(`${mainResultSelector} ${titleSelector}`)).to.exist;
-      expect($cliqzResults.querySelector(`${mainResultSelector} ${titleSelector}`)).to.have.text(results[0].snippet.title);
+      const titleSelector = ".abstract span[data-extra='title']";
+      expect(resultElement).to.contain(titleSelector);
+      expect(resultElement.querySelector(titleSelector)).to.have.text(results[0].snippet.title);
     });
 
     it('renders description', function () {
-      const descriptionSelector = '.abstract .description';
-      expect($cliqzResults.querySelector(`${mainResultSelector} ${descriptionSelector}`)).to.exist;
-      expect($cliqzResults.querySelector(`${mainResultSelector} ${descriptionSelector}`))
+      const descriptionSelector = ".abstract span[class='description']";
+      expect(resultElement).to.contain(descriptionSelector);
+      expect(resultElement.querySelector(descriptionSelector))
         .to.have.text(results[0].snippet.description);
     });
 
     it('renders url', function () {
-      const urlSelector = '.abstract .url';
-      expect($cliqzResults.querySelector(`${mainResultSelector} ${urlSelector}`)).to.exist;
-      expect($cliqzResults.querySelector(`${mainResultSelector} ${urlSelector}`)).to.have.text(friendlyUrl[results[0].url]);
+      const urlSelector = ".abstract span[class='url']";
+      expect(resultElement).to.contain(urlSelector);
+      expect(resultElement.querySelector(urlSelector)).to.have.text(friendlyUrl[results[0].url]);
     });
 
     it('renders logo', function () {
-      const logoSelector = '.icons .logo';
-      expect($cliqzResults.querySelector(`${mainResultSelector} ${logoSelector}`)).to.exist;
+      const logoSelector = ".icons span[class='logo']";
+      expect(resultElement).to.contain(logoSelector);
     });
   });
 }

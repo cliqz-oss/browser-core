@@ -1,8 +1,7 @@
 {
     "extends": "airbnb",
-    "parser": "babel-eslint",
     "env": {
-        "browser": true,
+        "browser": false,
         "commonjs": false,
         "es6": true,
         "mocha": true,
@@ -23,13 +22,12 @@
         "setInterval": {},
         "clearTimeout": {}
     },
-    "plugins": [
-        "compat",
-        "class-property"
-    ],
     "rules": {
-        "compat/compat": "error",
+        "import/no-unresolved": "off",
+        "import/no-extraneous-dependencies": 0,
         "import/extensions": "off",
+        "no-multi-assign": "off",
+        "spaced-comment": "off",
         "class-methods-use-this": "off",
         "no-restricted-syntax": [
             'error',
@@ -37,6 +35,7 @@
             'LabeledStatement',
             'WithStatement',
         ],
+        "no-underscore-dangle": "off",
         "comma-dangle": ["error", {
             "arrays": "only-multiline",
             "objects": "only-multiline",
@@ -44,25 +43,8 @@
         }],
         "react/require-default-props": "off",
         "react/prop-types": "off",
-
-        // Rules to keep
-        "no-underscore-dangle": "off",
-        "import/no-unresolved": "off",
-    },
-    "overrides": [
-    {
-        "files": [
-            "modules/**/tests/**/*.*",
-            "modules/**/*tests.bundle.*",
-            "modules/**/*helpers.*"
-        ],
-        "rules": {
-          "import/no-extraneous-dependencies": "off",
-          "func-names": ["error", "never"],
-          "prefer-arrow-callback": "off",
-          "no-unused-expressions": "off",
-          "object-shorthand": "off",
-          }
+        "jsx-a11y/alt-text": "off",
+        "react/no-array-index-key": "off",
+        "react/jsx-wrap-multilines": "off"
     }
-    ]
 }

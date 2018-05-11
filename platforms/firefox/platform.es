@@ -1,21 +1,16 @@
 import { Components, Services } from './globals';
 import prefs from '../core/prefs';
 
-// Directly exporting this was breaking process-script bundle.
-const def = {
+export default {
   isMobile: false,
   isFirefox: true,
   isChromium: false,
-  isEdge: false,
   platformName: 'firefox',
-  isOnionMode: prefs.get('onion-mode'),
 };
-
-export default def;
 
 const appInfo = Components.classes['@mozilla.org/xre/app-info;1'];
 const versionChecker = Components.classes['@mozilla.org/xpcom/version-comparator;1']
-  .getService(Components.interfaces.nsIVersionComparator);
+    .getService(Components.interfaces.nsIVersionComparator);
 
 export function isPlatformAtLeastInVersion(minVersion) {
   const hostVersion = appInfo.getService(Components.interfaces.nsIXULAppInfo).version;

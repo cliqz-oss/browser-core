@@ -1,12 +1,7 @@
 {{#if imageResults}}
     <div class='images padded'>
         {{#each (take imageResults 4)}}
-            <a
-                class="result"
-                data-url="{{url}}"
-                href="{{displayUrl}}"
-                data-extra="image"
-            >
+            <a class="result" data-url="{{url}}" href="#" data-extra="image">
                 <img src="{{thumbnail}}" />
             </a>
         {{/each}}

@@ -1,13 +1,9 @@
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint func-names: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
 /* global testServer */
 /* global chai */
 /* global waitFor */
 
 import WebRequest from '../platform/webrequest';
-import utils from '../core/utils';
+import { utils } from '../core/cliqz';
 import { newTab, closeTab } from '../platform/browser';
 
 
@@ -76,7 +72,7 @@ describe('WebRequest', function () {
       }
     });
 
-    it('gives the response code only on headers received', function () {
+    it('gives the response code only on headers received', function() {
       for (const topic of [onBeforeRequest, onBeforeSendHeaders]) {
         const reqs = topic.filter(req => req.url === url);
         const req = reqs[0];
@@ -85,6 +81,7 @@ describe('WebRequest', function () {
       const req = onHeadersReceived.filter(r => r.url === url)[0];
       chai.expect(req.statusCode).to.equal(200);
     });
+
   });
 
   context('page loaded in tab', function () {
@@ -105,63 +102,64 @@ describe('WebRequest', function () {
         });
     });
 
-    afterEach(function () {
+    afterEach(function() {
       return closeTab(tabId);
     });
 
-    it('calls each topic once', function () {
-      for (const topic of [onBeforeRequest, onBeforeSendHeaders, onHeadersReceived]) {
-        const reqs = topic.filter(function (req) { return req.url === url; });
+    it('calls each topic once', function() {
+      for (var topic of [onBeforeRequest, onBeforeSendHeaders, onHeadersReceived]) {
+        var reqs = topic.filter( function(req) { return req.url === url });
         chai.expect(reqs.length).to.eql(1);
 
-        const req = reqs[0];
+        var req = reqs[0];
         chai.expect(req.method).to.equal('GET');
         chai.expect(req.type).to.equal('main_frame');
       }
     });
 
-    it('gives the response code only on headers received', function () {
-      for (const topic of [onBeforeRequest, onBeforeSendHeaders]) {
-        const reqs = topic.filter(function (req) { return req.url === url; });
-        const req = reqs[0];
+    it('gives the response code only on headers received', function() {
+      for (var topic of [onBeforeRequest, onBeforeSendHeaders]) {
+        var reqs = topic.filter( function(req) { return req.url === url });
+        var req = reqs[0];
         chai.expect(req.statusCode).to.be.undefined;
       }
-      const req = onHeadersReceived.filter(function (_req) { return _req.url === url; })[0];
+      var req = onHeadersReceived.filter( function(req) { return req.url === url })[0];
       chai.expect(req.statusCode).to.equal(200);
     });
 
-    it('all listeners get same tabId', function () {
-      let req = onBeforeRequest.filter(function (_req) { return _req.url === url; })[0];
-      tabId = req.tabId;
+    it('all listeners get same tabId', function() {
+      var req = onBeforeRequest.filter( function(req) { return req.url === url })[0];
+      var tabId = req.tabId;
 
-      for (const topic of [onBeforeSendHeaders, onHeadersReceived]) {
-        const reqs = topic.filter(function (_req) { return _req.url === url; });
-        req = reqs[0];
+      for (var topic of [onBeforeSendHeaders, onHeadersReceived]) {
+        var reqs = topic.filter( function(req) { return req.url === url });
+        var req = reqs[0];
         chai.expect(req.tabId).to.equal(tabId);
       }
     });
+
   });
 
-  context('listener returns cancel', function () {
-    let requestSeen = false;
+  context('listener returns cancel', function() {
+
+    var requestSeen = false;
     const url = testServer.getBaseUrl('block');
-    const block = function (req) {
+    var block = function(req) {
       if (req.url === url) {
         requestSeen = true;
-        return { cancel: true };
+        return {cancel: true};
       }
-      return undefined;
     };
 
-    beforeEach(function () {
+    beforeEach( function() {
       WebRequest.onBeforeRequest.addListener(block, { urls: ['*://*/*'] }, ['blocking']);
     });
 
-    afterEach(function () {
+    afterEach( function() {
       WebRequest.onBeforeRequest.removeListener(block);
     });
 
-    it('blocks the http request', function () {
+    it('blocks the http request', function() {
       requestSeen = false;
       return testServer.registerPathHandler('/block', helloWorld)
         .then(() => newTab(url))
@@ -172,8 +170,8 @@ describe('WebRequest', function () {
           chai.expect(hits).to.be.empty;
 
           // subsequent topics do not see request
-          for (const topic of [onBeforeSendHeaders, onHeadersReceived]) {
-            const reqs = topic.filter(function (req) { return req.url === url; });
+          for (var topic of [onBeforeSendHeaders, onHeadersReceived]) {
+            var reqs = topic.filter( function(req) { return req.url === url });
             chai.expect(reqs.length).to.eql(0);
           }
         });
@@ -212,12 +210,12 @@ describe('WebRequest', function () {
         testServer.registerPathHandler('/', helloWorld),
         testServer.registerPathHandler('/redirect', helloWorld),
       ])
-        .then(() => newTab(testServer.getBaseUrl()))
-        .then(() => waitFor(() => requestSeen && redirectSeen))
-        .then(() => testServer.getHits())
-        .then(function (hits) {
-          chai.expect(Object.keys(hits)).to.be.eql(['/redirect']);
-        });
+      .then(() => newTab(testServer.getBaseUrl()))
+      .then(() => waitFor(() => requestSeen && redirectSeen))
+      .then(() => testServer.getHits())
+      .then(function (hits) {
+        chai.expect(Object.keys(hits)).to.be.eql(['/redirect']);
+      });
     });
   });
 
@@ -230,8 +228,8 @@ describe('WebRequest', function () {
         requestSeen = true;
         return {
           requestHeaders: [
-            { name: 'accept-encoding', value: 'gzip' },
-            { name: 'newheader', value: 'test' },
+            { name: 'accept-encoding', value: 'gzip'},
+            { name: 'newheader', value: 'test'},
           ]
         };
       }
@@ -266,7 +264,7 @@ describe('WebRequest', function () {
 
           // newly added header
           chai.expect(headers).to.have.property('newheader');
-          chai.expect(headers.newheader).to.equal('test');
+          chai.expect(headers['newheader']).to.equal('test');
           // modified header
           chai.expect(headers).to.have.property('accept-encoding');
           chai.expect(headers['accept-encoding']).to.equal('gzip');

@@ -16,7 +16,7 @@ window.CliqzSecureMessage = {
   },
   sha1(msg) {
     return this.loadingPromise.then(
-      () => this.background.actions.sha1(msg)
+    () => this.background.actions.sha1(msg)
     );
   },
 

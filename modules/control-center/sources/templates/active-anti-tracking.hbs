@@ -1,5 +1,5 @@
 <div id="companies-title">
-  <p class="cross hover-highlighted" data-i18n="control_center_trackers">Tracking Firmen auf dieser Seite</p>
+  <p class="cross hover-highlighted" data-i18n="control-center-trackers">Tracking Firmen auf dieser Seite</p>
   <span>
     <svg data-target="attrack_details_close" class="cross" width="10px" height="16px" viewBox="0 0 10 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <defs></defs>
@@ -17,9 +17,9 @@
 
 <div id="bottom-part">
   <div class="clearfix">
-    <div class="description" data-i18n="control_center_datapoints" data-visible-on-state="active"></div>
-    <div class="description" data-i18n="control_center_datapoints_inactive" data-visible-on-state="inactive"></div>
-    <div class="description" data-i18n="control_center_datapoints_off" data-visible-on-state="critical"></div>
+    <div class="description" data-i18n="control-center-datapoints" data-visible-on-state="active"></div>
+    <div class="description" data-i18n="control-center-datapoints-inactive" data-visible-on-state="inactive"></div>
+    <div class="description" data-i18n="control-center-datapoints-off" data-visible-on-state="critical"></div>
     <div class="counter">
       <!--======= Shield =======-->
       <svg id="shield" height="45px" viewBox="0 0 32 39" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -51,7 +51,7 @@
         <span class="cqz-switch-box"></span>
       </span>
     </span>
-    <span id="onlabel" data-i18n="control_center_switch_on"></span>
+    <span id="onlabel" data-i18n="control-center-switch-on"></span>
   </div>
 
   <!--======= Strict checkbox  =====-->
@@ -64,7 +64,7 @@
            data-function="antitracking-strict"
            {{#if module.antitracking.strict }}checked{{/if}} />
     <label for="squaredFour"></label>
-    <span id="strict" class="clickableLabel" data-i18n="control_center_check_strict"></span>
+    <span id="strict" class="clickableLabel" data-i18n="control-center-check-strict"></span>
     </span>
     <!-- end .squaredFour -->
   </span>
@@ -79,10 +79,10 @@
            data-function="antitracking-hideMyIP"
            {{#if module.antitracking.hideMyIP }}checked{{/if}} />
     <label for="hideMyIP"></label>
-    <span id="hideMyIP" data-i18n="control_center_check_hideMyIP"></span>
+    <span id="hideMyIP" data-i18n="control-center-check-hideMyIP"></span>
     </span>
     <!-- end .squaredFour -->
   </span>
 
-  <button class="clear-Tracking-Cache-Button" style="vertical-align:middle;" data-function="antitracking-clearcache"><span data-i18n="control_center_clear_trCache">Clear Tracking Cache</span></button>
+  <button class="clear-Tracking-Cache-Button" style="vertical-align:middle;" data-function="antitracking-clearcache"><span data-i18n="control-center-clear-trCache">Clear Tracking Cache</span></button>
 </div>

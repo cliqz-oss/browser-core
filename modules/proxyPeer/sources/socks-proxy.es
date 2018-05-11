@@ -1,9 +1,6 @@
 import logger from './logger';
 import { TcpConnection } from './tcp-socket';
 
-import { Components } from '../platform/globals';
-
-const { classes: Cc, interfaces: Ci } = Components;
 
 export default class SocksProxy {
   constructor() {

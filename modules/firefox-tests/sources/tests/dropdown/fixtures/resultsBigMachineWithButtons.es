@@ -1,97 +1,45 @@
 export default [
   {
-    url: 'https://www.bing.com/',
-    score: 299533,
+    url: 'https://google.de/',
     snippet: {
       deepResults: [
         {
           links: [
             {
-              title: 'Prämien',
-              url: 'https://www.bing.com/rewards/dashboard'
-            },
-            {
-              title: 'Karten',
-              url: 'https://www.bing.com/maps?FORM=Z9LH3'
-            },
-            {
-              title: 'News',
-              url: 'https://www.bing.com/news?FORM=Z9LH4'
-            }
-          ],
-          type: 'buttons'
-        }
-      ],
-      description: 'Bing unterstützt Sie dabei, Informationen in Aktionen umzusetzen, sodass der Übergang vom Suchen zum Handeln schneller und einfacher erfolgen kann.',
-      extra: {
-        alternatives: [],
-        language: {
-          de: 0.9900000095367432
-        }
-      },
-      friendlyUrl: 'bing.com',
-      title: 'Bing'
-    },
-    c_url: 'https://www.bing.com/',
-    type: 'rh',
-    subType: {
-      class: 'EntityGeneric',
-      id: '-6091247217066629038',
-      name: 'bing.com'
-    },
-    template: 'generic',
-    trigger: [
-      'bing.com'
-    ],
-    trigger_method: 'url'
-  },
-];
-
-export const bmWithButtons = [
-  {
-    url: 'https://www.google.de/',
-    snippet: {
-      deepResults: [
-        {
-          links: [
-            {
-              title: 'Einstellungen',
-              url: 'https://www.google.de/preferences?hl=de'
+              title: 'Übersetzer',
+              url: 'https://translate.google.de/?hl=de\u0026tab=wT'
             },
             {
               title: 'Datenschutzerklärung',
-              url: 'https://www.google.de/intl/de/policies/privacy/?fg=1'
+              url: 'https://www.google.de/intl/de/policies/privacy/'
             },
             {
-              title: 'Erweiterte Suche',
-              url: 'https://www.google.de/advanced_search?hl=de\u0026fg=1'
+              title: 'Bilder',
+              url: 'https://www.google.de/imghp?hl=de\u0026tab=wi'
             },
             {
-              title: 'Unternehmen',
-              url: 'https://www.google.de/services/?fg=1'
+              title: 'Suche',
+              url: 'https://www.google.de/webhp?tab=ww'
             },
             {
-              title: 'Nutzungsbedingungen',
-              url: 'https://www.google.de/intl/de/policies/terms/?fg=1'
+              title: 'Maps',
+              url: 'https://maps.google.de/maps?hl=de\u0026tab=wl'
             },
             {
-              title: 'Werbeprogramme',
-              url: 'https://www.google.de/intl/de/ads/?fg=1'
+              title: 'Sucheinstellungen',
+              url: 'https://www.google.de/preferences?hl=de\u0026fg=1'
+            },
+            {
+              title: 'News',
+              url: 'https://news.google.de/nwshp?hl=de\u0026tab=wn'
             }
           ],
           type: 'buttons'
         }
       ],
-      description: 'Das Ziel von Google ist es, die Informationen der Welt zu organisieren und für alle zu jeder Zeit zugänglich und nutzbar zu machen.',
       extra: {
         alternatives: [],
-        language: {
-          de: 1
-        },
-        og: {
-          description: 'Das Ziel von Google ist es, die Informationen der Welt zu organisieren und für alle zu jeder Zeit zugänglich und nutzbar zu machen.',
-          type: ''
-        }
+        language: {}
       },
       friendlyUrl: 'google.de',
       title: 'Google'
@@ -110,16 +58,50 @@ export const bmWithButtons = [
     trigger_method: 'url'
   },
   {
-    url: 'https://www.google.com/intl/de/gmail/about/',
+    url: 'google.de/maps',
     snippet: {
+      description: 'Zoombare Straßen-, Land- und Satellitenkarten der ganzen Welt. Es ist eine Suchmöglichkeit nach Orten und Gewerben sowie ein Routenplaner vorhanden.',
       extra: {
+        alternatives: [],
         language: {
           de: 1
+        },
+        og: {}
+      },
+      title: 'Google Maps'
+    },
+    c_url: 'https://www.google.de/maps',
+    type: 'bm'
+  },
+  {
+    url: 'mail.google.com',
+    snippet: {
+      description: 'Gmail ist ein intuitiver, effizienter und nützlicher E-Mail-Dienst mit 15 GB Speicherplatz, weniger Spam und mobilem Zugriff',
+      extra: {
+        alternatives: [
+          'https://accounts.google.com/ServiceLogin?service=mail\u0026passive=true\u0026rm=false\u0026continue=https%3A%2F%2Fmail.google.com%2Fmail%2F\u0026ss=1\u0026scc=1\u0026ltmpl=googlemail\u0026emr=1\u0026osid=1'
+        ],
+        language: {
+          qu: 1
         }
       },
-      title: 'Gmail – kostenloser ...'
+      title: 'Gmail'
     },
-    c_url: 'https://www.google.com/intl/de/gmail/about/',
+    c_url: 'https://mail.google.com/',
+    type: 'bm'
+  },
+  {
+    url: 'translate.google.de',
+    snippet: {
+      description: 'Der kostenlose Online-Übersetzungsservice von Google übersetzt in Sekundenschnelle Text und Webseiten.',
+      extra: {
+        alternatives: [],
+        language: {},
+        og: {}
+      },
+      title: 'Google Übersetzter'
+    },
+    c_url: 'https://translate.google.de/',
     type: 'bm'
   }
 ];

@@ -1,123 +1,100 @@
 /* global window */
+/* eslint func-names: ['error', 'never'] */
+/* eslint prefer-arrow-callback: 'off' */
+/* eslint no-unused-expressions: 'off' */
 
-import {
-  blurUrlBar,
-  checkMainResult,
-  $cliqzResults,
-  expect,
-  fillIn,
-  getComputedStyle,
-  getLocalisedString,
-  respondWith,
-  waitForPopup,
-  withHistory } from './helpers';
+import { expect, withHistory, respondWith, getComputedStyle,
+  fillIn, waitForPopup, $cliqzResults, CliqzUtils } from './helpers';
 import { colors, flightMatrix } from './flight-helpers';
 import resultsFlights from './fixtures/resultsFlights';
 
 export default function () {
   Object.keys(flightMatrix).forEach(function (flightType) {
     context(`for flight results when plane ${flightMatrix[flightType].name}`, function () {
-      const flightAreaSelector = '.flight-details';
-      const flightHeaderSelector = '.header';
-      const flightStatusTextSelector = '.flight-status .flight-status-text';
-      const flightStatusDetailSelector = '.flight-status .flight-status-detail';
-      const planeIconSelector = '.flight-progress-bar';
-      const sourceAreaSelector = '.flight-timestamp';
-      const sourceLabelSelector = '.flight-timestamp-label';
-      const sourceLinkSelector = '.source-link';
+      const locale = CliqzUtils.locale.default || CliqzUtils.locale[window.navigator.language];
+      const flightDetailsAreaSelector = 'div.flight-details';
       let results;
+      let resultElement;
+      let $flightResult;
 
-      before(async function () {
-        blurUrlBar();
+      beforeEach(function () {
         withHistory([]);
         results = resultsFlights[flightType];
         respondWith({ results });
         fillIn('flug lx3029');
         window.preventRestarts = true;
-        await waitForPopup(2);
+        return waitForPopup().then(function () {
+          resultElement = $cliqzResults()[0];
+          $flightResult = resultElement.querySelector(flightDetailsAreaSelector)
+            .closest('div.result');
+        });
       });
 
-      after(function () {
+      afterEach(function () {
         window.preventRestarts = false;
       });
 
-      checkMainResult({ $result: $cliqzResults });
-
-      it('renders correct flight header element', function () {
-        const $flightHeader = $cliqzResults.querySelector(flightHeaderSelector);
-
+      it('renders existing and correct flight header element', function () {
+        const $flightHeader = $flightResult.querySelector('div.header');
         expect($flightHeader).to.exist;
         expect($flightHeader).to.contain.text(results[0].snippet.extra.flight_name);
       });
 
       it('renders flight info area', function () {
-        const $flightArea = $cliqzResults.querySelector(flightAreaSelector);
-        expect($flightArea).to.exist;
+        const $flightDetailsArea = $flightResult.querySelector(flightDetailsAreaSelector);
+        expect($flightDetailsArea).to.exist;
       });
 
-      it('renders correct flight status', function () {
-        const $flightStatusText = $cliqzResults
-          .querySelector(`${flightAreaSelector} ${flightStatusTextSelector}`);
-        const $flightStatusDetail = $cliqzResults
-          .querySelector(`${flightAreaSelector} ${flightStatusDetailSelector}`);
-
-        expect($flightStatusText).to.exist;
-        expect($flightStatusText).to.have.text(results[0].snippet.extra.status);
-        expect(getComputedStyle($flightStatusText).color)
+      it('renders existing and correct flight status', function () {
+        const flightStatusSelector = 'div.flight-status span';
+        const $flightStatuses = $flightResult.querySelectorAll(flightStatusSelector);
+        expect($flightStatuses[0]).to.have.text(results[0].snippet.extra.status);
+        expect(getComputedStyle($flightStatuses[0]).color)
           .to.contain(flightMatrix[flightType].statusColor);
-
-        if ($flightStatusDetail) {
-          expect($flightStatusDetail).to.contain.text(results[0].snippet.extra.status_detail);
+        if ($flightStatuses.length === 2) {
+          expect($flightStatuses[1]).to.contain.text(results[0].snippet.extra.status_detail);
         }
       });
 
-      it('renders correct airplane icon', function () {
-        const $planeIcon = $cliqzResults.querySelector(planeIconSelector);
+      it('renders existing and correct airplane icon', function () {
+        const flightPlaneIconSelector = 'div.flight-progress-bar';
+        const $flightPlaneIcon = $flightResult.querySelector(flightPlaneIconSelector);
 
-        expect($planeIcon).to.exist;
+        expect($flightPlaneIcon).to.exist;
 
         if (flightMatrix[flightType].icon === false) {
-          expect(getComputedStyle($planeIcon).backgroundImage).to.contain('none');
+          expect(getComputedStyle($flightPlaneIcon).backgroundImage).to.contain('none');
         } else {
-          expect(getComputedStyle($planeIcon).backgroundImage)
+          expect(getComputedStyle($flightPlaneIcon).backgroundImage)
             .to.contain(`${flightMatrix[flightType].icon}.svg`);
         }
       });
 
-      it('renders correct source label with correct URL', function () {
-        const $sourceArea = $cliqzResults.querySelector(sourceAreaSelector);
-        const $sourceLabel = $cliqzResults
-          .querySelector(`${sourceAreaSelector} ${sourceLabelSelector}`);
-        const $sourceLink = $cliqzResults
-          .querySelector(`${sourceAreaSelector} ${sourceLinkSelector}`);
-
-        expect($sourceArea).to.exist;
-
-        expect($sourceLabel).to.exist;
-        expect($sourceLabel).to.contain.text(getLocalisedString().source.message);
-        expect($sourceLabel).to.contain.text(getLocalisedString().updated.message);
-
-        expect($sourceLink).to.exist;
-        expect($sourceLink).to.contain.text('flightstats.com');
-        expect($sourceLink.href).to.exist;
-        expect($sourceLink.href).to.contain(results[0].url);
+      it('renders existing and correct source label with correct URL', function () {
+        const flightSourceSelector = 'p.flight-timestamp span';
+        const $flightSource = $flightResult.querySelector(flightSourceSelector);
+        const $flightSourceUrl = $flightSource.querySelector('a');
+        expect($flightSource).to.exist;
+        expect($flightSource).to.contain.text(locale.source.message);
+        expect($flightSourceUrl).to.contain.text('flightstats.com');
+        expect($flightSourceUrl.href).to.contain(results[0].url);
+        expect($flightSource).to.contain.text(locale.updated.message);
       });
 
       ['depart', 'arrival'].forEach(function (direction, i) {
-        context(`${direction} info`, function () {
-          const departAndArrivalInfoAreaSelector = '.depart-arrival';
-          const terminalAndGateLabelSelector = `.${direction} > .bold`;
-          const airportNameSelector = `.${direction} .${direction}-location`;
-          const estimateTimeSelector = `.${direction} .estimate-${direction}-time`;
-          const actualTimeSelector = `.${direction} .${direction}-time`;
+        context(`for ${direction} info`, function () {
+          const terminalAndGateLabelSelector = `div.depart-arrival div.${direction} div.bold`;
+          let $terminalAndGateLabel;
+
+          beforeEach(function () {
+            $terminalAndGateLabel = $flightResult.querySelector(terminalAndGateLabelSelector);
+          });
 
           it('renders correct airport codes', function () {
-            const airportCodeSelector = `.${direction}-city`;
-            const actualAirportCodeSelector = `.actual-${direction}-city`;
-            const $airportCode = $cliqzResults
-              .querySelector(`${flightAreaSelector} ${airportCodeSelector}`);
-            const $actualAirportCode = $cliqzResults
-              .querySelector(`${flightAreaSelector} ${actualAirportCodeSelector}`);
+            const airportCodeSelector = `span.${direction}-city`;
+            const actualAirportCodeSelector = `span.actual-${direction}-city`;
+            const $airportCode = $flightResult.querySelector(airportCodeSelector);
+            const $actualAirportCode = $flightResult.querySelector(actualAirportCodeSelector);
 
             expect($airportCode).to.exist;
             expect($airportCode)
@@ -144,9 +121,8 @@ export default function () {
           });
 
           it('renders existing and correct full airport name', function () {
-            const $airportName = $cliqzResults
-              .querySelector(`${flightAreaSelector} ${departAndArrivalInfoAreaSelector} ${airportNameSelector}`);
-
+            const airportNameSelector = `div.depart-arrival div.${direction} div`;
+            const $airportName = $flightResult.querySelector(airportNameSelector);
             expect($airportName).to.exist;
             expect($airportName)
               .to.contain.text(results[0].snippet.extra.depart_arrive[i].location_name);
@@ -154,8 +130,6 @@ export default function () {
           });
 
           it('renders existing and correct "terminal" / "gate" info', function () {
-            const $terminalAndGateLabel = $cliqzResults.querySelector(`${flightAreaSelector} ${terminalAndGateLabelSelector}`);
-
             expect($terminalAndGateLabel)
               .to.contain.text(results[0].snippet.extra.depart_arrive[i].terminal_full);
             expect($terminalAndGateLabel)
@@ -163,10 +137,10 @@ export default function () {
           });
 
           it(`renders existing and correct ${direction} times`, function () {
-            const $estimateTime = $cliqzResults
-              .querySelector(`${departAndArrivalInfoAreaSelector} ${estimateTimeSelector}`);
-            const $actualTime = $cliqzResults
-              .querySelector(`${departAndArrivalInfoAreaSelector} ${actualTimeSelector}`);
+            const estimateTimeSelector = `div.depart-arrival div.${direction} span.estimate-${direction}-time`;
+            const actualTimeSelector = `div.depart-arrival div.${direction} span.${direction}-time`;
+            const $estimateTime = $flightResult.querySelector(estimateTimeSelector);
+            const $actualTime = $flightResult.querySelector(actualTimeSelector);
 
             if (flightMatrix[flightType][direction].estimate.isShown === true) {
               expect($estimateTime).to.exist;
@@ -176,6 +150,7 @@ export default function () {
               expect($estimateTime.className).to.contain('strike-through');
             } else {
               expect($estimateTime).to.not.exist;
+              // expect($estimateTime.textContent.trim().length).to.equal(0);
             }
 
             expect($actualTime).to.exist;

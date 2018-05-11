@@ -1,5 +1,3 @@
-/* eslint no-bitwise: 'off' */
-
 import { equals as urlEquals } from '../../core/url';
 
 export function getRequest(url) {
@@ -25,7 +23,7 @@ export function getRequest(url) {
     //  req.withCredentials = false;
     //  req.setRequestHeader("Authorization", "true");
 
-    req.onload = () => {
+    req.onload = function () {
       if (req.status !== 200 && req.status !== 0 /* local files */) {
         errorMessage = `status not valid: ${req.status}`;
         req.onerror();
@@ -42,10 +40,10 @@ export function getRequest(url) {
       }
     };
 
-    req.onerror = () => {
+    req.onerror = function () {
       reject(errorMessage);
     };
-    req.ontimeout = () => {
+    req.ontimeout = function () {
       errorMessage = 'timeout';
       req.onerror();
       reject(errorMessage);

@@ -4,7 +4,6 @@
 'use strict';
 
 const glob = require('glob');
-const path = require('path');
 const systemjs = require('systemjs');
 const Mocha = require('mocha');
 const fs = require('fs');
@@ -26,7 +25,7 @@ function log(msg) {
 
 
 const configFilePath = process.env.CLIQZ_CONFIG_PATH;
-const cliqzConfig = require(path.resolve(configFilePath));
+const cliqzConfig = JSON.parse(fs.readFileSync(configFilePath));
 
 log(JSON.stringify(cliqzConfig));
 

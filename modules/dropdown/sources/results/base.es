@@ -1,17 +1,63 @@
 /* eslint no-use-before-define: ["error", { "classes": false }] */
-import {
-  equals,
-  urlStripProtocol,
-  cleanMozillaActions
-} from '../../core/content/url';
+import events from '../../core/events';
+import utils from '../../core/utils';
+import { equals } from '../../core/url';
+
+export function getDeepResults(rawResult, type) {
+  const deepResults = (rawResult.data && rawResult.data.deepResults) || [];
+  const deepResultsOfType = deepResults.find(dr => dr.type === type) || {
+    links: [],
+  };
+  return deepResultsOfType.links || [];
+}
 
 export default class BaseResult {
-  constructor(rawResult, resultTools) {
+
+  constructor(rawResult, allResultsFlat = []) {
     this.rawResult = {
-      data: {},
+      ...{ data: {} },
       ...rawResult,
     };
-    this.resultTools = resultTools;
+    this.actions = {};
+
+    // throw if main result is duplicate
+    // TODO: move deduplication to autocomplete module
+    if (this.rawResult.url) {
+      if (allResultsFlat.some(url => equals(url, this.url))) {
+        throw new Error('duplicate');
+      } else {
+        allResultsFlat.push(this.url);
+      }
+    }
+
+    // TODO: move deduplication to autocomplete module
+    this.rawResult.data.deepResults = (this.rawResult.data.deepResults || [])
+      .map((deepResult) => {
+        const type = deepResult.type;
+        const links = getDeepResults(this.rawResult, type).reduce((filtered, result) => {
+          let resultUrl;
+          // TODO: fix the data!!!
+          if (type === 'images') {
+            resultUrl = (result.extra && result.extra.original_image) || result.image;
+          } else {
+            resultUrl = result.url;
+          }
+
+          const isDuplicate = allResultsFlat.some(url => equals(url, resultUrl));
+          if (isDuplicate) {
+            return filtered;
+          }
+          allResultsFlat.push(resultUrl);
+          return [
+            ...filtered,
+            result,
+          ];
+        }, []);
+        return {
+          type,
+          links,
+        };
+      });
   }
 
   get template() {
@@ -20,10 +66,6 @@ export default class BaseResult {
 
   get query() {
     return this.rawResult.text;
-  }
-
-  get urlbarValue() {
-    return this.displayUrl || this.url;
   }
 
   get cssClasses() {
@@ -39,15 +81,12 @@ export default class BaseResult {
   }
 
   get title() {
-    return this.rawResult.title || urlStripProtocol(this.rawResult.url || '');
-  }
-
-  get meta() {
-    return this.rawResult.meta || {};
+    return this.rawResult.title;
   }
 
   get logo() {
-    return this.meta.logo;
+    const urlDetails = utils.getDetailsFromUrl(this.rawResult.url);
+    return utils.getLogoDetails(urlDetails);
   }
 
   get localSource() {
@@ -56,12 +95,8 @@ export default class BaseResult {
   }
 
   get friendlyUrl() {
-    return this.rawResult.friendlyUrl;
-  }
-
-  get historyUrl() {
-    const [, url] = cleanMozillaActions(this.meta.originalUrl || this.url);
-    return url;
+    const urlDetails = utils.getDetailsFromUrl(this.rawResult.url);
+    return urlDetails.friendly_url;
   }
 
   get isActionSwitchTab() {
@@ -123,6 +158,10 @@ export default class BaseResult {
     return url;
   }
 
+  get rawUrl() {
+    return this.rawResult.url;
+  }
+
   get displayUrl() {
     return this.rawResult.url;
   }
@@ -136,7 +175,8 @@ export default class BaseResult {
   }
 
   get source() {
-    return this.meta.domain;
+    const urlDetails = utils.getDetailsFromUrl(this.rawUrl);
+    return urlDetails.domain;
   }
 
   get updated() {
@@ -148,7 +188,7 @@ export default class BaseResult {
   get isAd() {
     const data = this.rawResult.data || {};
     const extra = data.extra || {};
-    return extra.is_ad && this.resultTools.assistants.offers.isEnabled;
+    return extra.is_ad && utils.getPref('offersDropdownSwitch', false);
   }
 
   get urlAd() {
@@ -170,7 +210,7 @@ export default class BaseResult {
   }
 
   isUrlMatch(href) {
-    return equals(this.url, href);
+    return equals(this.rawUrl, href) || equals(this.url, href);
   }
 
   findResultByUrl(href) {
@@ -189,36 +229,28 @@ export default class BaseResult {
     return this.isHistory;
   }
 
-  serialize() {
-    const topResult = this.resultTools.results.find(this.url);
-    const safeResult = JSON.parse(JSON.stringify(this.rawResult));
-    return {
-      ...safeResult,
-      kind: this.kind,
-      query: this.query,
-      index: this.resultTools.results.indexOf(topResult),
-      isBookmark: this.isBookmark,
-      isDeletable: this.isDeletable,
-      historyUrl: this.historyUrl,
-    };
-  }
-
-  click(href, ev) {
+  click(window, href, ev) {
     if (this.isUrlMatch(href)) {
       const newTab = ev.altKey || ev.metaKey || ev.ctrlKey || ev.button === 1;
+      // TODO: do not use global
+      /* eslint-disable */
+      window.CLIQZ.Core.urlbar.value = href;
+      /* eslint-enable */
+      // delegate to Firefox for full set of features like switch-to-tab
+      // and all related telemetry probes
+      window.CLIQZ.Core.urlbar.handleCommand(ev, newTab ? 'tab' : 'current');
 
-      this.resultTools.actions.openLink(this.url, {
-        result: this.serialize(),
-        resultOrder: this.resultTools.results.kinds,
-        newTab,
-        eventType: ev instanceof MouseEvent ? 'mouse' : 'keyboard',
-        eventOptions: {
-          type: ev.type,
-          button: ev.button,
-        },
+      events.pub('ui:click-on-url', {
+        url: this.url,
+        query: this.query,
+        rawResult: this.rawResult,
+        isPrivateWindow: utils.isPrivateMode(window),
+        isPrivateResult: utils.isPrivateResultType(this.kind),
+        isFromAutocompletedURL: this.isAutocompleted && ev.constructor.name === 'KeyboardEvent',
+        windowId: utils.getWindowID(window)
       });
     } else {
-      this.findResultByUrl(href).click(href, ev);
+      this.findResultByUrl(href).click(window, href, ev);
     }
   }
 
@@ -228,22 +260,5 @@ export default class BaseResult {
   didRender(...args) {
     const allButThisResult = this.allResults.slice(1);
     allButThisResult.forEach(result => result.didRender(...args));
-  }
-}
-
-export class Subresult extends BaseResult {
-  constructor(parent, rawResult) {
-    super(rawResult, parent.resultTools);
-    const parentRawResult = parent.rawResult || {};
-    const meta = this.rawResult.meta;
-    Object.assign(this.rawResult, {
-      kind: parentRawResult.kind,
-      type: parentRawResult.type,
-      provider: parentRawResult.provider,
-      meta: {
-        ...meta,
-        logo: (meta && meta.logo) || (parentRawResult.meta && parentRawResult.meta.logo),
-      },
-    }, rawResult);
   }
 }

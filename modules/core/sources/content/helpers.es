@@ -1,4 +1,7 @@
 import globToRegexp from './glob';
+import { getWindowId } from '../../platform/content/helpers';
+
+export { getWindowId } from '../../platform/content/helpers';
 
 const CONTENT_SCRIPTS = {};
 
@@ -23,6 +26,32 @@ export function runContentScripts(window, chrome, windowId) {
       }
     });
   });
+}
+
+export function getWindowTreeInformation(window) {
+  let currentWindow = window;
+
+  // Keep track of window IDs
+  let currentId = getWindowId(window);
+  const windowId = currentId;
+  let parentFrameId;
+
+  while (currentId !== getWindowId(currentWindow.parent)) {
+    // Go up one level
+    parentFrameId = currentId;
+    currentWindow = currentWindow.parent;
+    currentId = getWindowId(currentWindow);
+  }
+
+  return {
+    tabId: currentId,
+    parentFrameId,
+    frameId: windowId,
+  };
+}
+
+export function throttle() {
+  // TODO: @remusao - green ads content script rely on this but it is missing
 }
 
 export const CHROME_MSG_SOURCE = 'cliqz-content-script';

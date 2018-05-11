@@ -19,14 +19,13 @@ program.command('test [file]')
   .option('--fgrep [pattern]', 'only run tests with file names matching <pattern>')
   .option('--environment <environment>')
   .option('--firefox [firefox]', 'firefox path', 'nightly')
-  .option('--no-build', 'skip the build, run tests only')
   .option('-l --launchers [launchers]', 'comma separted list of launchers')
   .action( (configPath, options) => {
     process.env['CLIQZ_ENVIRONMENT'] = options.environment || 'testing';
     const cfg = setConfigPath(configPath);
     const CONFIG = cfg.CONFIG;
     const OUTPUT_PATH = cfg.OUTPUT_PATH;
-    let watcher;
+    const watcher = createBuildWatcher();
 
     if (options.grep) {
       process.env["MOCHA_GREP"] = options.grep;
@@ -55,35 +54,22 @@ program.command('test [file]')
     let isRunning = false;
 
     if (options.ci) {
-      const run = () => {
-        const ciOptions =  {
+      watcher.on('buildSuccess', function() {
+        rimraf.sync(OUTPUT_PATH);
+        copyDereferenceSync(watcher.builder.outputPath, OUTPUT_PATH);
+
+        testem.startCI({
           debug: true,
           host: 'localhost',
           port: '4200',
           launch: launchers || (CONFIG['testem_launchers_ci'] || []).join(','),
           reporter: Reporter,
+          report_file: options.ci,
           serve_files: serveFiles,
-        };
-
-        if (typeof options.ci === 'string') {
-          ciOptions.report_file = options.ci;
-        }
-        testem.startCI(ciOptions);
-      };
-
-      if (options.build) {
-        watcher = createBuildWatcher();
-        watcher.on('buildSuccess', function() {
-          rimraf.sync(OUTPUT_PATH);
-          copyDereferenceSync(watcher.builder.outputPath, OUTPUT_PATH);
-          run();
         });
-      } else {
-        run();
-      }
+      });
     } else {
       let server;
-      watcher = createBuildWatcher();
       watcher.on('buildSuccess', function() {
         try {
           rimraf.sync(OUTPUT_PATH);
@@ -114,10 +100,6 @@ program.command('test [file]')
         }
       });
 
-    }
-
-    if (!watcher) {
-      return;
     }
 
     watcher.on('buildFailure', function (err) {

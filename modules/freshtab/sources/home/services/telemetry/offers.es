@@ -20,17 +20,3 @@ export function offerClickSignal(target) {
     target,
   });
 }
-
-export function offerHoverSignal(target) {
-  if (!target) {
-    return;
-  }
-
-  telemetry({
-    type: 'offrz',
-    view: 'tab',
-    action: 'hover',
-    target,
-  });
-}
-

@@ -1,18 +1,18 @@
-export function currentURI() {}
+export function currentURI() {};
 
 export function contextFromEvent() {
-  return null;
+  return null
 }
 
-export function isWindowActive() {
+export function isWindowActive(windowID) {
   return true;
 }
 
-export function checkIsWindowActive() {
-  return Promise.resolve(true);
+export function checkIsWindowActive(windowID) {
+  return nativeWebRequest.isWindowActive(parseInt(windowID));
 }
 
-export function forEachWindow() {
+export function forEachWindow(fn) {
 }
 
 export function setInstallDatePref() {
@@ -48,11 +48,11 @@ export function addMigrationObserver() {
 export function removeMigrationObserver() {
 }
 
-export function mapWindows() {
+export function mapWindows(fn) {
   return [];
 }
 
-export function getLocale() {
+export function getLang() {
   return 'en';
 }
 
@@ -62,8 +62,4 @@ export function isTabURL() {
 
 export function getBrowserMajorVersion() {
   return 100;
-}
-
-export function getCookies() {
-  return Promise.reject();
 }

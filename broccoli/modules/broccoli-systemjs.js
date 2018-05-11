@@ -1,7 +1,7 @@
 'use strict';
 
 const Plugin = require('broccoli-plugin');
-const Builder = require('@cliqz-oss/systemjs-builder');
+const Builder = require('systemjs-builder');
 const deepFreeze = require('deep-freeze');
 const path = require('path');
 const glob = require('glob');

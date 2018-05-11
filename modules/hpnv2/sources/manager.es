@@ -12,7 +12,7 @@ import md5 from '../core/helpers/md5';
 import { deflate } from '../core/zlib'; // TODO: check how fast this is, use WebAssembly instead?
 import { digest } from './digest';
 import { MsgQuotaError, NotReadyError, InvalidMsgError, NoCredentialsError, BadCredentialsError,
-  SignMsgError, TooBigMsgError, MsgTimeoutError, InitUserPKError, FetchConfigError,
+  SignMsgError, TooBigMsgError, TransportError, MsgTimeoutError, InitUserPKError, FetchConfigError,
   JoinGroupsError, LoadCredentialsError, InitSignerError } from './errors';
 import { formatDate, formatError } from './utils';
 import logger from './logger';
@@ -146,94 +146,24 @@ export default class Manager {
     return nextTick(() => {});
   }
 
-  static isValidDate(dateStr) {
-    const match = dateStr.match(/([0-9]{4})([0-9]{2})([0-9]{2})/);
-    if (!match) {
-      return false;
-    }
-    const year = parseInt(match[1], 10);
-    const month = parseInt(match[2], 10) - 1;
-    const day = parseInt(match[3], 10);
-    const date = new Date(year, month, day);
-    return date && date.getMonth() === month;
-  }
-
-  static isValidBase64(str) {
-    try {
-      return typeof str === 'string' && str === toBase64(fromBase64(str));
-    } catch (e) {
-      // pass
-    }
-    return false;
-  }
-
-  // This aims to protect against a server trying to target users by returning different
-  // group public keys. It assumes oldKeys are already checked or undefined, for the first time.
-  // If it returns false for some keys returned by server, feel free to punish!
-  static checkGroupPublicKeys(newKeys, oldKeys) {
-    if (!newKeys || typeof newKeys !== 'object') {
-      return false;
-    }
-    const dates = Object.keys(newKeys);
-    if (dates.length > 4 || !dates.every(Manager.isValidDate)) {
-      return false;
-    }
-    const values = dates.map(x => newKeys[x]);
-    // Just testing if the group public keys are valid base64. If some is invalid (e.g. garbage)
-    // the user will not be able to start joining the group, so server does not gain anything with
-    // that.
-    if (!values.every(Manager.isValidBase64)) {
-      return false;
-    }
-
-    if (oldKeys) {
-      const oldDates = Object.keys(oldKeys);
-      if (oldDates.length === 0) {
-        return true;
-      }
-      oldDates.sort();
-      const largestOldDate = oldDates[oldDates.length - 1];
-      // Check that all new dates are either greater than our largest old date or
-      // equal to some old date and the key has not changed.
-      const check = x => x > largestOldDate ||
-        (oldKeys[x] && toBase64(oldKeys[x].groupPubKey) === newKeys[x]);
-      if (!dates.every(check)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  punish() {
-    // This bans all stored credentials, temporarily stopping data collection.
-    Object.keys(this.groupPubKeys).forEach((shortDate) => {
-      this.groupPubKeys[shortDate].banned = true;
-      this.db.setGroupPubKey(shortDate, this.groupPubKeys[shortDate]);
-    });
-  }
-
   fetchConfig() {
+    // TODO: check correctness of config, dates, actions...
+    // also check that actions or group public keys do not change...
     return nextTick(() => this.endpoints.getConfig())
       .then(({ groupPubKeys, sourceMap }) => {
         this.db.setLastConfigTime(this.hours());
-        const ok = Manager.checkGroupPublicKeys(groupPubKeys, this.groupPubKeys);
-        if (!ok) {
-          this.punish();
-        } else {
-          Object.keys(groupPubKeys).forEach((shortDate) => {
-            if (!this.groupPubKeys[shortDate]) {
-              const groupPubKey = fromBase64(groupPubKeys[shortDate]);
-              this.db.setGroupPubKey(shortDate, { groupPubKey });
-            }
-          });
-        }
+        Object.keys(groupPubKeys).forEach((date) => {
+          const shortDate = date.slice(0, 8);
+          if (!this.groupPubKeys[shortDate]) {
+            const groupPubKey = fromBase64(groupPubKeys[shortDate]);
+            this.db.setGroupPubKey(shortDate, { groupPubKey });
+          }
+        });
 
-        // TODO: add some protection for malicious server trying to target by
-        // using this. For example, we could limit the maximum allowed daily
-        // changes.
         Object.keys(sourceMap.actions).forEach((action) => {
-          this.db.setSourceMapAction(action, sourceMap.actions[action]);
+          if (this.debug || !this.sourceMap[action]) {
+            this.db.setSourceMapAction(action, sourceMap.actions[action]);
+          }
         });
       })
       .then(() => this.db.purgeTags(this.hours()));
@@ -242,8 +172,7 @@ export default class Manager {
   getPublicKey(date) {
     const smaller = Object.keys(this.groupPubKeys).sort().filter(x => x <= date);
     if (this.getNextPublicKeys(date).length > 0 && smaller.length > 0) {
-      const key = this.groupPubKeys[smaller[smaller.length - 1]];
-      return key.banned ? null : key;
+      return this.groupPubKeys[smaller[smaller.length - 1]];
     }
     return null;
   }
@@ -295,36 +224,36 @@ export default class Manager {
     // TODO: protect against attacks like different sourceMaps, different publicKeys
     // attempting to distinguish users.
     return nextTick(() => this.sendStats())
-      .then(() => this.initUserPK().catch(e => wrapFailure(e, InitUserPKError)))
-      .then(() => {
-        const today = this.today();
-        const diffHours = this.hours() - this.db.getLastConfigTime();
-        const skipFetch = !this.debug && diffHours < 24 && this.getPublicKey(today) &&
-          this.getNextPublicKeys(today).length > 1;
-        if (skipFetch) {
-          this.logDebug('No need to fetch config');
-          return null;
+    .then(() => this.initUserPK().catch(e => wrapFailure(e, InitUserPKError)))
+    .then(() => {
+      const today = this.today();
+      const diffHours = this.hours() - this.db.getLastConfigTime();
+      const skipFetch = !this.debug && diffHours < 24 && this.getPublicKey(today) &&
+        this.getNextPublicKeys(today).length > 1;
+      if (skipFetch) {
+        this.logDebug('No need to fetch config');
+        return null;
+      }
+      return this.fetchConfig().catch(e => wrapFailure(e, FetchConfigError));
+    })
+    .then(() => this.joinGroups().catch(e => wrapFailure(e, JoinGroupsError)))
+    .then(() => this.loadCredentials().catch(e => wrapFailure(e, LoadCredentialsError)))
+    .then(() => {
+      if (!this.unloaded) {
+        this.logDebug('Config (re)loaded successfully!');
+        this.configLoader = setTimeout(this.loadConfig.bind(this, false), LOAD_CONFIG_INTERVAL);
+      }
+    })
+    .catch((e) => {
+      if (!this.unloaded) {
+        if (firstTime) {
+          throw e;
         }
-        return this.fetchConfig().catch(e => wrapFailure(e, FetchConfigError));
-      })
-      .then(() => this.joinGroups().catch(e => wrapFailure(e, JoinGroupsError)))
-      .then(() => this.loadCredentials().catch(e => wrapFailure(e, LoadCredentialsError)))
-      .then(() => {
-        if (!this.unloaded) {
-          this.logDebug('Config (re)loaded successfully!');
-          this.configLoader = setTimeout(this.loadConfig.bind(this, false), LOAD_CONFIG_INTERVAL);
-        }
-      })
-      .catch((e) => {
-        if (!this.unloaded) {
-          if (firstTime) {
-            throw e;
-          }
-          this.logError('Error loading config', e);
-          this.configError(e);
-          this.configLoader = setTimeout(this.loadConfig.bind(this, false), 60 * 1000);
-        }
-      });
+        this.logError('Error loading config', e);
+        this.configError(e);
+        this.configLoader = setTimeout(this.loadConfig.bind(this, false), 60 * 1000);
+      }
+    });
   }
 
   loadCredentials() {
@@ -395,7 +324,6 @@ export default class Manager {
 
     this.unloaded = true;
     this.db = null;
-    this.endpoints.unload();
     this.endpoints = null;
   }
 
@@ -426,16 +354,16 @@ export default class Manager {
 
   initUserPK() {
     return nextTick(() => {
-      if (this.publicKeyB64) {
+      if (this.userPK) {
         return nextTick(() => {});
       }
       const keyPromise = (this.userPK64 ? nextTick(() => this.userPK64) :
         generateRSAKeypair().then(([pub, priv]) =>
           this.registerKey(pub, priv)
-            .then(() => {
-              this.userPK64 = priv;
-              return priv;
-            })
+          .then(() => {
+            this.userPK64 = priv;
+            return priv;
+          })
         ));
 
       return keyPromise
@@ -461,9 +389,6 @@ export default class Manager {
       const data = this.groupPubKeys[date];
       if (!data) {
         throw new Error(`No key found for date ${date}`);
-      }
-      if (data.banned) {
-        throw new Error(`Group is banned ${date}`);
       }
       if (data.credentials) {
         this.logDebug('Found credentials for', date);
@@ -503,13 +428,13 @@ export default class Manager {
   }
 
   send(_msg) {
-    if (!_msg) {
-      return Promise.reject('cannot send empty message');
+    if (_msg) {
+      const msg = JSON.parse(JSON.stringify(_msg));
+      this.actionIncrement(msg.action, 'tried');
+      this.msgQueue.push(msg);
     }
 
-    const msg = JSON.parse(JSON.stringify(_msg));
-    this.actionIncrement(msg.action, 'tried');
-    return this.msgQueue.push(msg);
+    return nextTick(() => {});
   }
 
   // We will not modify the msg, but will check it's a valid one.
@@ -603,24 +528,24 @@ export default class Manager {
             hours + period,
             limit
           )
+          .catch((e) => {
+            if (skipQuotaCheck) {
+              return 0;
+            }
+            throw (new MsgQuotaError(e));
+          })
+          .then(cnt =>
+            Promise.all([
+              sha256(mb, 'b64'),
+              sha256(JSON.stringify([...pretag, cnt]), 'b64'),
+            ])
+            .then(([hashm, bsn]) => this.signer.sign(fromBase64(hashm), fromBase64(bsn)))
             .catch((e) => {
-              if (skipQuotaCheck) {
-                return 0;
-              }
-              throw (new MsgQuotaError(e));
+              this.logError('Error signing msg', e);
+              throw (new SignMsgError());
             })
-            .then(cnt =>
-              Promise.all([
-                sha256(mb, 'b64'),
-                sha256(JSON.stringify([...pretag, cnt]), 'b64'),
-              ])
-                .then(([hashm, bsn]) => this.signer.sign(fromBase64(hashm), fromBase64(bsn)))
-                .catch((e) => {
-                  this.logError('Error signing msg', e);
-                  throw (new SignMsgError());
-                })
-                .then(sig => ({ sig, cnt }))
-            )
+            .then(sig => ({ sig, cnt }))
+          )
         );
       }
 
@@ -644,34 +569,29 @@ export default class Manager {
           data.set(sig, 1 + 2 + mb.length + 8);
           return data;
         })
-          .then((encoded) => {
-            // Don't wait for this, just assume it's 'delivered' from our side.
-            this.endpoints.send(encoded);
-          })
-          .then(() => {
-            this.actionIncrement(action, 'ok');
-          })
-          .then(resolve)
-          .catch(reject);
+        .then(encoded =>
+          this.endpoints.send(encoded)
+            .catch(() => {
+              throw (new TransportError());
+            })
+        )
+        .then(() => {
+          this.actionIncrement(action, 'ok');
+        })
+        .then(resolve)
+        .catch(reject);
       }))
-        .catch((e) => {
-          // TODO: maybe would be easier to whitelist the errors instead, basically we should only
-          // retry on init or loadCredentials errors.
-          const nonRetriableErrors = [MsgQuotaError, TooBigMsgError];
-          if (this.unloaded) {
-            // once unloaded, ignore all errors
-            return Promise.resolve();
-          }
-
+      .catch((e) => {
+        const nonRetriableErrors = [MsgQuotaError, TooBigMsgError];
+        if (!this.unloaded) {
           if (nonRetriableErrors.every(x => !(e instanceof x)) && retries < MAX_RETRIES) {
             msg.__retries = retries + 1;
-            return this._send(msg, skipQuotaCheck);
+            this.msgQueue.push(msg);
+          } else {
+            this.actionError(msg && msg.action, e);
           }
-
-          // all retries failed: give up
-          this.actionError(msg && msg.action, e);
-          throw e;
-        });
+        }
+      });
     });
   }
 }

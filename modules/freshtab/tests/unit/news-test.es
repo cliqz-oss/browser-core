@@ -5,6 +5,8 @@ export default describeModule("freshtab/news",
     return {
       "core/config": { default: { } },
       "core/url": { extractSimpleURI: '[dynamic]' },
+      "core/language": { default: { } },
+      "platform/places-utils": { default: { } },
       "freshtab/news-cache": { default: function () { } },
       "core/utils": {
         default: {
@@ -13,11 +15,37 @@ export default describeModule("freshtab/news",
           clearTimeout,
         },
       },
-      "platform/freshtab/history": {
-        getDomains: '[dynamic]',
-        isURLVisited: '[dynamic]',
-      },
-    };
+      "core/cliqz": {
+        historyManager: {
+          PlacesInterestsStorage : {},
+          makeURI() {return '';},
+          getHistoryService() {
+              return {
+                executeQuery() {
+                  return {
+                    root: {
+                      containerOpen: false,
+                      childCount: 0
+                    }
+                  };
+                },
+                getNewQueryOptions() {
+                  return '';
+                },
+                getNewQuery() {
+                  return {beginTimeReference: 0,
+                          beginTime: 0,
+                          endTimeReference: 0,
+                          TIME_RELATIVE_NOW: 0,
+                          endTime: 0,
+                          uri: ''
+                        }
+                  }
+              }
+          }
+        }
+      }
+    }
   },
   function() {
     describe("history based news tests", function () {
@@ -81,6 +109,8 @@ export default describeModule("freshtab/news",
 
         this.deps("core/utils").default.log = function(mes){ console.log(mes); };
 
+        this.deps("core/language").default.stateToQueryString = function() {return '&lang=en';};
+
         this.deps("core/utils").default.getLocalStorage = function (locale_storage) {
           return {
             getItem() { return true },
@@ -92,20 +122,19 @@ export default describeModule("freshtab/news",
 
       it("one history domain", function () {
 
-        this.deps("platform/freshtab/history").getDomains = () => {
-          const results = [];
+        this.deps("core/cliqz").historyManager.PlacesInterestsStorage._execute =
+          function (SQL_statment, sql_input, iterative_function, SQL_parameters) {
 
-          var not_news_record = { url: "http://www.test.com/", visit_count: 1};
-          for (var i = 0; i < 21; i++) results.push(not_news_record);
+            var not_news_record = { url: "http://www.test.com/", visit_count: 1};
+            for (var i = 0; i < 21; i++) iterative_function(not_news_record);
 
-          var record = { url: "http://www.focus.de/politik/", visit_count: 1};
-          for (var i = 0; i < 21; i++) results.push(record);
+            var record = { url: "http://www.focus.de/politik/", visit_count: 1};
+            for (var i = 0; i < 21; i++) iterative_function(record);
 
-          return Promise.resolve(results);
-        };
+            return Promise.resolve();
+          };
 
         return this.module().getHistoryBasedRecommendations({}).then(function(results){
-
 
           // check the domains results
           const expectedResult = [{"type":"topnews","domain":"topnews","number":3},
@@ -121,20 +150,21 @@ export default describeModule("freshtab/news",
       });
 
       it("two history domains", function () {
-        this.deps("platform/freshtab/history").getDomains = () => {
-          const results = []
 
-          var not_news_record = { url: "http://www.test.com/", visit_count: 1};
-          for (var i = 0; i < 21; i++) results.push(not_news_record);
+        this.deps("core/cliqz").historyManager.PlacesInterestsStorage._execute =
+          function (SQL_statment, sql_input, iterative_function, SQL_parameters) {
 
-          var record1 = { url: "http://www.focus.de/politik/", visit_count: 1};
-          for (var i = 0; i < 25; i++) results.push(record1);
+            var not_news_record = { url: "http://www.test.com/", visit_count: 1};
+            for (var i = 0; i < 21; i++) iterative_function(not_news_record);
 
-          var record2 = { url: "http://bbc.com", visit_count: 1};
-          for (var i = 0; i < 21; i++) results.push(record2);
+            var record1 = { url: "http://www.focus.de/politik/", visit_count: 1};
+            for (var i = 0; i < 25; i++) iterative_function(record1);
 
-          return Promise.resolve(results);
-        };
+            var record2 = { url: "http://bbc.com", visit_count: 1};
+            for (var i = 0; i < 21; i++) iterative_function(record2);
+
+            return Promise.resolve();
+          };
 
         return this.module().getHistoryBasedRecommendations({}).then(function(results){
 
@@ -156,23 +186,24 @@ export default describeModule("freshtab/news",
       });
 
       it("three history domains", function () {
-        this.deps("platform/freshtab/history").getDomains = () => {
-          const results = [];
 
-          var not_news_record = { url: "http://www.test.com/", visit_count: 1};
-          for (var i = 0; i < 21; i++) results.push(not_news_record);
+        this.deps("core/cliqz").historyManager.PlacesInterestsStorage._execute =
+          function (SQL_statment, sql_input, iterative_function, SQL_parameters) {
 
-          var record1 = { url: "http://www.focus.de/politik/", visit_count: 1};
-          for (var i = 0; i < 25; i++) results.push(record1);
+            var not_news_record = { url: "http://www.test.com/", visit_count: 1};
+            for (var i = 0; i < 21; i++) iterative_function(not_news_record);
 
-          var record2 = { url: "http://bbc.com", visit_count: 1};
-          for (var i = 0; i < 23; i++) results.push(record2);
+            var record1 = { url: "http://www.focus.de/politik/", visit_count: 1};
+            for (var i = 0; i < 25; i++) iterative_function(record1);
 
-          var record3 = { url: "http://meduza.io", visit_count: 1};
-          for (var i = 0; i < 21; i++) results.push(record3);
+            var record2 = { url: "http://bbc.com", visit_count: 1};
+            for (var i = 0; i < 23; i++) iterative_function(record2);
 
-          return Promise.resolve(results);
-        };
+            var record3 = { url: "http://meduza.io", visit_count: 1};
+            for (var i = 0; i < 21; i++) iterative_function(record3);
+
+            return Promise.resolve();
+          };
 
         return this.module().getHistoryBasedRecommendations({}).then(function(results){
 
@@ -199,8 +230,11 @@ export default describeModule("freshtab/news",
       });
 
       it("no history domains", function () {
-        this.deps("platform/freshtab/history").getDomains = () => {
-          return Promise.resolve([]);
+
+        this.deps("core/cliqz").historyManager.PlacesInterestsStorage._execute =
+        function (SQL_statment, sql_input, iterative_function, SQL_parameters) {
+
+          return Promise.resolve();
         }
 
         return this.module().getHistoryBasedRecommendations().then(

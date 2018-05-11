@@ -1,50 +1,78 @@
-// Import metrics
-import dropdownSignalDefinitions from './metrics/dropdown';
-import freshtabSignalDefinitions from './metrics/freshtab';
-import mobileSignalDefinitions from './metrics/mobile';
+const SCHEMAS = {
+  new_install: {
+    needs_gid: true,
+    instantPush: true,
+    schema: {},
+  },
 
-// Analyses
-import freshtabSettings from './analyses/freshtab-settings';
-import freshtabState from './analyses/freshtab-state';
-import newsPagination from './analyses/news-pagination';
-import newsSnippets from './analyses/news-snippets';
-import retentionSchemas from './analyses/retention';
+  // TODO: This message might not have enough time to be sent on uninstall.
+  // instantPush will still be queued in the SignalQueue. Maybe we need to
+  // differentiate? Or maybe the queue needs to send messages more aggressively.
+  activity_stop: {
+    needs_gid: true,
+    instantPush: true,
+    schema: {
+      action: 'string',
+    },
+  },
 
-/**
- * This file is used to list all available metrics and analyses in use by
- * Anolysis. If you create new metrics or analyses, you should add them here as
- * well.
- */
+  // This telemetry signal is created by the abtests analysis.
+  // It sends each AB test of the user atomically in a signal.
+  abtests: {
+    needs_gid: true,
+    instantPush: true,
+    schema: {
+      abtest: 'string',
+    },
+  },
 
-// By default, metrics are not sent straight away to the backend (what we call
-// "sendToBackend" signals), instead, they are stored by Anolysis for a day, then
-// used by analyses to generate aggregated signals.
-//
-// This behavior can be overriden in each signal, by setting "sendToBackend" to true.
-const metrics = [
-  ...dropdownSignalDefinitions,
-  ...freshtabSignalDefinitions,
-  ...mobileSignalDefinitions,
-].map(schema => ({
-  ...schema,
-  sendToBackend: schema.sendToBackend || false,
-}));
+  // Sends no data, but pings once a day the backend along with the GID.
+  ping: {
+    needs_gid: true,
+    instantPush: true,
+    schema: {},
+  },
 
-// Analyses are only generated once a day, and make use of metrics to generate
-// aggregations. They are always "sendToBackend", which means that once generated
-// they are sent to Cliqz' backend.
-const analyses = [
-  freshtabSettings,
-  freshtabState,
-  newsPagination,
-  newsSnippets,
-  ...retentionSchemas,
-].map(schema => ({
-  ...schema,
-  sendToBackend: true,
-}));
+  // Retention signals: daily, weekly and monthly
+  retention_daily: {
+    needs_gid: true,
+    instantPush: true,
+    schema: {
+      units_active: 'number', // 0 for inactive, 1 for active
+      offset: 'number',
+    },
+  },
+  retention_weekly: {
+    needs_gid: true,
+    instantPush: true,
+    schema: {
+      units_active: 'number',
+      offset: 'number',
+    },
+  },
+  retention_monthly: {
+    needs_gid: true,
+    instantPush: true,
+    schema: {
+      units_active: 'number',
+      offset: 'number',
+    },
+  },
 
-export default [
-  ...metrics,
-  ...analyses,
-];
+  // abstraction of result_enter and result_click signals
+  result_selection: {
+    needs_gid: true,
+    instantPush: true,
+    schema: {
+      selection_type: 'string',
+      current_position: 'number',
+      query_length: 'number',
+      reaction_time: 'number',
+      display_time: 'number',
+      urlbar_time: 'number',
+    },
+  }
+};
+
+
+export default SCHEMAS;

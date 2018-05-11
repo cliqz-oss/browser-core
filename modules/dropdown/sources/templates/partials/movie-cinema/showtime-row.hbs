@@ -1,12 +1,12 @@
 <div class="show-time-row">
     <div class="cinema-info table-cell">
         {{#if cinemaInfo}}
-        <span class="showtime-cinema-name" title="{{cinemaInfo.name}}">{{cinemaInfo.name}}</span>
+        <span title="{{cinemaInfo.name}}">{{cinemaInfo.name}}</span>
         <span>
             {{#if cinemaInfo.distance}}
             <span class="distance">{{distance cinemaInfo.distance}}</span> &#183;
             {{/if}}
-            <span class="showtime-cinema-address" title="{{cinemaInfo.address}}">{{cinemaInfo.address}}</span>
+            <span title="{{cinemaInfo.address}}">{{cinemaInfo.address}}</span>
         </span>
         {{/if}}
         {{#if movieInfo}}
@@ -16,23 +16,13 @@
     <div class="show-time-info table-cell">
     {{#each showTimes}}
         <span class="show-time-span">
-            <a
-                class="result"
-                data-extra="showtime_row_{{@../index}}"
-                {{#if url}}
-                    data-url="{{url}}"
-                    href="{{url}}"
-                {{else}}
-                    data-url="#"
-                    disabled="true"
-                {{/if}}
-            >
+            <a class="result" data-extra="showtime_row_{{@../index}}" {{#if url}} data-url="{{url}}" href="#" {{else}} data-url="#" href="#" disabled="true" {{/if}}>
                 {{displayTime}}
                 {{#if movieLanguage}}
-                    <span class="movie-language">{{movieLanguage}}</span>
+                    <span>{{movieLanguage}}</span>
                 {{/if}}
                 {{#if is3D}}
-                    <span class="movie-3d">&#183; 3D</span>
+                    <span>&#183; 3D</span>
                 {{/if}}
             </a>
         </span>

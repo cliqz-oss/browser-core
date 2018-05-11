@@ -34,7 +34,7 @@ export default describeModule('static/main',
 
       beforeEach(function () {
         locales = langs.map(lang =>
-          readLocaleFile(`${localesPath}/${lang}/messages.json`)
+          readLocaleFile(`${localesPath}/${lang}/cliqz.json`)
             .split('\n')
             .slice(1, -2)
         );
@@ -43,7 +43,7 @@ export default describeModule('static/main',
 
       it('All locales keys have the mandatory "message" key', () => {
         langs.map(lang => {
-          var locale = JSON.parse(readLocaleFile(`${localesPath}/${lang}/messages.json`));
+          var locale = JSON.parse(readLocaleFile(`${localesPath}/${lang}/cliqz.json`));
           Object.keys(locale).forEach(key => {
             chai.expect(locale[key].message,
               "message does not exist for key <"+ key + "> in the locale file for " + lang).to.exist;
@@ -53,7 +53,7 @@ export default describeModule('static/main',
 
       it('All locales are valid JSON', () => {
         langs.map(lang => {
-          JSON.parse(readLocaleFile(`${localesPath}/${lang}/messages.json`))
+          JSON.parse(readLocaleFile(`${localesPath}/${lang}/cliqz.json`))
         });
       });
 

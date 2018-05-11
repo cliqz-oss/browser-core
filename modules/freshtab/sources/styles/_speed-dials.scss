@@ -81,8 +81,7 @@
             &:hover {
                 .delete {
                     visibility: visible;
-                    opacity: 1;
-                    transition: visibility 0s linear 0s, opacity 300ms;
+                    transition: visibility 0.1s ease-out 0.9s;
                 }
                 .logo {
                     box-shadow: $dial-logo-box-shadow-hover;
@@ -147,7 +146,6 @@
                 top: 0;
                 right: $delete-button-position-right;
                 visibility: hidden;
-                opacity: 0;
                 width: 25px;
                 height: 25px;
                 background: $dial-delete-background;
@@ -156,7 +154,7 @@
                 overflow: hidden;
                 text-indent: 100%;
                 white-space: nowrap;
-                transition: visibility 0s linear 300ms, opacity 300ms;
+                transition: opacity 0.1s ease-out 0.2s;
             }
 
 
@@ -236,20 +234,13 @@
                 }
             }
 
-            .flex-container {
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-            }
-
             .error {
+                width: 100%;
                 text-align: center;
-                color: #fff;
-                background:#ef3f31;
-                border-radius: 3px;
-                margin-top: 5px;
-                padding: 2px 4px;
+                color: #e92207;
+                position: absolute;
+                bottom: $add-dial-form-error-position;
+                padding: 0 10px;
                 font-size: 11px;
                 line-height: 12px;
             }

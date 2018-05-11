@@ -1,11 +1,15 @@
 import inject from '../core/kord/inject';
-import events from '../core/events';
-import utils from '../core/utils';
+import { utils, events } from '../core/cliqz';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import background from './background';
+import UITour from '../platform/ui-tour';
 import config from '../core/config';
+import { isPlatformAtLeastInVersion } from '../core/platform';
 
 const ORIGIN_NAME = 'offers-cc';
+const UI_TOUR_ID = 'cliqz-offers';
+
+let seenOffersObj = {};
 let autoTrigger = false;
 
 export default class Win {
@@ -24,16 +28,15 @@ export default class Win {
       getEmptyFrameAndData: this.getEmptyFrameAndData.bind(this),
       resize: this.resizePopup.bind(this),
       sendTelemetry: this.sendTelemetry.bind(this),
-      sendOfferActionSignal: this.sendOfferActionSignal.bind(this),
-      sendActionSignal: this.sendActionSignal.bind(this),
       closePanel: this.closePanel.bind(this),
+      removeOffer: this.removeOffer.bind(this),
       openURL: this.openURL.bind(this),
-      seenOffer: this.seenOffer.bind(this), // TODO still need this ?
-      sendUserFeedback: this.sendUserFeedback.bind(this),
+      seenOffers: this.seenOffers.bind(this),
     };
 
     this.onOffersCoreEvent = this.onOffersCoreEvent.bind(this);
-    this.onOffersCoreRegistrationEvent = this.onOffersCoreRegistrationEvent.bind(this);
+    this.onTooltipClicked = this.onTooltipClicked.bind(this);
+    this.onEvent = this.onEvent.bind(this);
 
     this.toolbarButton = background.toolbarButton;
     this.toolbarButton.addWindow(this.window, this.actions, {
@@ -43,7 +46,6 @@ export default class Win {
     });
 
     this.toolbarButtonElement = this.window.document.getElementById(this.toolbarButton.id);
-    this.handleMouseEvent = this.handleMouseEvent.bind(this);
   }
 
   init() {
@@ -54,10 +56,7 @@ export default class Win {
     // stylesheet for offers-cc button
     addStylesheet(this.window.document, this.cssUrl);
     events.sub('offers-send-ch', this.onOffersCoreEvent);
-    events.sub('offers-re-registration', this.onOffersCoreRegistrationEvent);
-    this._registerToOffersCore();
-    this.toolbarButtonElement.addEventListener('mouseenter', this.handleMouseEvent);
-    this.toolbarButtonElement.addEventListener('mouseleave', this.handleMouseEvent);
+    UITour.targets.set(UI_TOUR_ID, { query: `#${this.toolbarButton.id}`, widgetName: this.toolbarButton.id, allowAdd: true });
   }
 
   unload() {
@@ -65,20 +64,79 @@ export default class Win {
       return;
     }
     events.un_sub('offers-send-ch', this.onOffersCoreEvent);
-    events.un_sub('offers-re-registration', this.onOffersCoreRegistrationEvent);
-    this._unregisterFromOffersCore();
+    UITour.targets.delete(UI_TOUR_ID);
     removeStylesheet(this.window.document, this.cssUrl);
-    this.toolbarButtonElement.removeEventListener('mouseenter', this.handleMouseEvent);
-    this.toolbarButtonElement.removeEventListener('mouseleave', this.handleMouseEvent);
+    // Remove the tooltip listener if the tooltip has been closed unexpectedly
+    // (when another tooltip shows)
+    if (this.tooltipEventListenerAdded) {
+      this.removeTooltipEventListener();
+    }
   }
 
-  handleMouseEvent(event) {
-    this.reshowPopup = event.type === 'mouseenter' && this.showTooltip;
+  addTooltipEventListener() {
+    this.window.document.querySelector('#UITourTooltip')
+      .addEventListener('click', this.onTooltipClicked);
+    this.window.addEventListener('blur', this.onEvent);
+    this.window.addEventListener('click', this.onEvent);
+  }
+
+  removeTooltipEventListener() {
+    this.window.document.querySelector('#UITourTooltip')
+      .removeEventListener('click', this.onTooltipClicked);
+    this.window.removeEventListener('blur', this.onEvent);
+    this.window.removeEventListener('click', this.onEvent);
+  }
+
+  onEvent() {
+    if (!background.hasUITourClicked) {
+      return;
+    }
+
+    this.hideUITour();
+  }
+
+  onTooltipClicked(e) {
+    // Check if user click on this offer tooltip or not
+    const tooltipSelector = '#UITourTooltip[targetName=cliqz-offers]';
+    const offerTooltip = this.window.document.querySelector(tooltipSelector);
+    if (!offerTooltip || (offerTooltip && !offerTooltip.contains(e.target))) {
+      return;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const signal = {
+      type: 'offrz',
+      view: 'box_tooltip',
+      action: 'click',
+    };
+    utils.telemetry(signal);
+
+    if (e.target.matches('#UITourTooltipClose')) {
+      return;
+    }
+
+    background.actions.closeUITour();
+    this.hideUITour();
+
+    const msg = {
+      type: 'action-signal',
+      data: {
+        action_id: 'tooltip_clicked',
+      },
+    };
+    this.sendMessageToOffersCore(msg);
+
+    this.toolbarButtonElement.setAttribute('state', '');
+    this.openPanel();
   }
 
   onButtonClicked() {
-    this.showTooltip = false;
-
+    if (this.isUITourOpening) {
+      background.actions.closeUITour();
+    }
+    this.hideUITour();
     const signal = {
       type: 'offrz',
       view: 'box',
@@ -89,11 +147,6 @@ export default class Win {
   }
 
   onPopupShowing() {
-    // Now we use this pop-up to show the tooltip, but we don't want them to behave the same
-    if (this.showTooltip) {
-      return;
-    }
-
     if (autoTrigger) {
       const msg = {
         type: 'action-signal',
@@ -124,28 +177,55 @@ export default class Win {
   }
 
   onPopupHiding() {
-    // Don't clear the red dot when the tooltip has shown
-    if (this.showTooltip || this.toolbarButton.shownDurationTime <= 1000) {
-      if (this.reshowPopup) {
-        this.reshowPopup = false;
-        utils.setTimeout(() => {
-          this.toolbarButtonElement.click();
-        }, 0);
-      }
-
-      return;
+    if (this.toolbarButton.shownDurationTime <= 1000) {
+      // nothing to do
+      return null;
     }
 
     this.toolbarButtonElement.setAttribute('state', '');
     // else we will change the state of all offers
 
-    const signal = {
-      type: 'offrz',
-      view: 'box',
-      action: 'hide',
-      show_duration: this.toolbarButton.shownDurationTime,
+    Object.keys(seenOffersObj).forEach((offer) => {
+      const msgSession = {
+        type: 'offer-action-signal',
+        data: {
+          action_id: 'offer_dsp_session',
+          offer_id: offer,
+        },
+      };
+      this.sendMessageToOffersCore(msgSession);
+
+      if (!autoTrigger) {
+        const msgPulled = {
+          type: 'offer-action-signal',
+          data: {
+            action_id: 'offer_pulled',
+            offer_id: offer,
+          },
+        };
+        this.sendMessageToOffersCore(msgPulled);
+      }
+
+      const msgShown = {
+        type: 'offer-action-signal',
+        data: {
+          action_id: 'offer_shown',
+          offer_id: offer,
+          counter: seenOffersObj[offer]
+        },
+      };
+      this.sendMessageToOffersCore(msgShown);
+    });
+
+    const msgState = {
+      type: 'change-offer-state',
+      // no data for now
+      data: {
+        offers_ids: Object.keys(seenOffersObj),
+        new_state: 'old'
+      }
     };
-    utils.telemetry(signal);
+    this.sendMessageToOffersCore(msgState);
 
     const msg = {
       type: 'action-signal',
@@ -155,182 +235,22 @@ export default class Win {
     };
     this.sendMessageToOffersCore(msg);
 
+    seenOffersObj = {};
     autoTrigger = false;
-  }
+    // ORIGIN_NAME = 'offers-cc';
 
-  getTooltipData(uiInfo) {
-    // TODO: @mai make sure that all the fields in this uiInfo are existed
-    if (uiInfo.notif_type === 'tooltip_extra') {
-      let backgroundColor;
-      if (uiInfo.template_data.styles && uiInfo.template_data.styles.headline_color) {
-        backgroundColor = uiInfo.template_data.styles.headline_color;
-      } else {
-        const CTAUrl = uiInfo.template_data.call_to_action.url;
-        const urlDetails = utils.getDetailsFromUrl(CTAUrl);
-        const logoDetails = utils.getLogoDetails(urlDetails);
-        backgroundColor = `#${logoDetails.backgroundColor}`;
-      }
-
-      const logoClass = uiInfo.template_data.logo_class || 'normal';
-      const backgroundImage = uiInfo.template_data.logo_url;
-
-      return {
-        showTooltip: true,
-        logo: uiInfo.template_data.logo_url,
-        headline: uiInfo.template_data.headline || uiInfo.template_data.title,
-        benefit: uiInfo.template_data.benefit,
-        labels: uiInfo.template_data.labels,
-        backgroundColor,
-        logoClass,
-        backgroundImage,
-      };
-    }
-
-    // Default generic tooltip
-    return {
-      showTooltip: true,
-      isGeneric: true,
-      headline: utils.getLocalizedString('offers_hub_tooltip_new_offer'),
-      icon: `${config.baseURL}offers-cc/images/offers-cc-icon-white.svg`,
-    };
-  }
-
-  _mapTelemetryStyle(notifType) {
-    let style = 'generic';
-    if (notifType === 'tooltip_extra') {
-      style = 'on_site';
-    }
-
-    return style;
-  }
-
-  _mapTelemetryLocation(buttonArea) {
-    let location;
-
-    switch (buttonArea) {
-      case 'toolbar':
-        location = 'toolbar';
-        break;
-      case 'menu-panel':
-        location = 'burger_menu';
-        break;
-      default:
-        location = 'hidden';
-        break;
-    }
-
-    return location;
-  }
-
-  debugging() {
-    const maxOffersNum = 200;
-    const fetch = utils.fetchFactory();
-    fetch('http://offers-api-stage.clyqz.com:81/portal/api/v1/debug/offers',
-      { credentials: 'include', cache: 'no-store' }
-    ).then(res => res.json())
-      .then((allOffers) => {
-        const desiredOffers = allOffers
-          .filter(offer => offer.rs_dest.includes('offers-cc'))
-          .slice(0, maxOffersNum)
-          .map(offer => ({
-            offer_id: offer.offer_id,
-            offer_info: {
-              ui_info: offer.ui_info,
-            },
-          }));
-
-        this.sanitizeData(desiredOffers).then((offersData) => {
-          this.sendMessageToPopup({
-            action: 'pushData',
-            data: {
-              vouchers: offersData,
-            }
-          });
-        });
-      });
+    return null;
   }
 
   // used for a first faster rendering
-  getEmptyFrameAndData(data = {}) {
-    if (data.hideTooltip) {
-      this.showTooltip = false;
-
-      const msg = {
-        type: 'action-signal',
-        data: {
-          action_id: 'tooltip_clicked',
-        },
-      };
-      this.sendMessageToOffersCore(msg);
-
-      const msg2 = {
-        type: 'action-signal',
-        // no data for now
-        data: {
-          action_id: 'tooltip_closed'
-        },
-      };
-      this.sendMessageToOffersCore(msg2);
-
-      this.toolbarButtonElement.setAttribute('state', '');
-    }
-
-    /*
-      Turn on/off debugging mode.
-      To turn it on:
-      - eu-central vpn is required.
-      - Visit http://offers-api-stage.clyqz.com:81/portal/api/v1/debug/offers
-      and save the credential
-      - Set the pref.
-    */
-    if (utils.getPref('offersCCDebuggingMode', false)) {
-      this.debugging();
-      return;
-    }
-
-    if (this.showTooltip) {
-      this.preferredOfferId = null;
-      this.sendMessageToPopup({
+  getEmptyFrameAndData() {
+    const self = this;
+    this._getAllOffers().then((aData) => {
+      self.sendMessageToPopup({
         action: 'pushData',
-        data: this.getTooltipData(this.uiInfo),
+        data: aData
       });
-    } else {
-      if (!autoTrigger) {
-        this.preferredOfferId = null;
-      }
-
-      this._getAllOffers(this.preferredOfferId).then((aData) => {
-        if (aData.length === 0) {
-          this.sendMessageToPopup({
-            action: 'pushData',
-            data: {
-              noVoucher: true,
-            }
-          });
-
-          return;
-        }
-
-        if (data.hideTooltip) {
-          const signal = {
-            type: 'offrz',
-            view: 'box_tooltip',
-            action: 'click',
-            style: this._mapTelemetryStyle(aData[0].notif_type),
-          };
-
-          utils.telemetry(signal);
-        }
-
-        this.sendMessageToPopup({
-          action: 'pushData',
-          data: {
-            vouchers: aData,
-            showExpandButton: aData.some(result => result.preferred) && aData.length > 1,
-          }
-        });
-      });
-    }
+    });
   }
 
 
@@ -348,148 +268,46 @@ export default class Win {
     this.toolbarButton.resizePopup(this.window, { width, height });
   }
 
-  seenOffer(data) {
-    const offerId = data.offer_id;
-
-    const msgSession = {
-      type: 'offer-action-signal',
-      data: {
-        action_id: 'offer_dsp_session',
-        offer_id: offerId,
-      },
-    };
-    this.sendMessageToOffersCore(msgSession);
-
-    if (!autoTrigger) {
-      const msgPulled = {
-        type: 'offer-action-signal',
-        data: {
-          action_id: 'offer_pulled',
-          offer_id: offerId,
-        },
-      };
-      this.sendMessageToOffersCore(msgPulled);
-    }
-
-    const msgShown = {
-      type: 'offer-action-signal',
-      data: {
-        action_id: 'offer_shown',
-        offer_id: offerId,
-      },
-    };
-    this.sendMessageToOffersCore(msgShown);
-
-    const msgState = {
-      type: 'change-offer-state',
-      // no data for now
-      data: {
-        offers_ids: [offerId],
-        new_state: 'old'
-      }
-    };
-    this.sendMessageToOffersCore(msgState);
-  }
-
-  sanitizeData(recentData, preferredOfferId = null) {
-    const parsedResult = [];
-    let desiredOffer;
-
-    recentData.forEach((elem) => {
-      if (elem &&
-          elem.offer_id &&
-          elem.offer_info &&
-          elem.offer_info.ui_info) {
-        // we need to send the template name and template data here from the
-        // ui info
-        const uiInfo = elem.offer_info.ui_info;
-
-        let offerState = 'new';
-        if (elem.attrs && elem.attrs.state) {
-          offerState = elem.attrs.state;
-        }
-
-        // Default values for new data fields (for backward compability)
-        let backgroundColor;
-        let validity = {};
-        const logoClass = uiInfo.template_data.logo_class || 'normal';
-
-        if (uiInfo.template_data.styles && uiInfo.template_data.styles.headline_color) {
-          backgroundColor = uiInfo.template_data.styles.headline_color;
-        } else {
-          const CTAUrl = uiInfo.template_data.call_to_action.url;
-          const urlDetails = utils.getDetailsFromUrl(CTAUrl);
-          const logoDetails = utils.getLogoDetails(urlDetails);
-          backgroundColor = `#${logoDetails.brandTxtColor}`;
-        }
-
-        // Expect this to be always greater than Date.now();
-        const expirationTime = elem.offer_info.expirationMs ?
-          (elem.created_ts + elem.offer_info.expirationMs) / 1000 :
-          uiInfo.template_data.validity;
-        if (expirationTime) {
-          // Expect the expirationTime from backend to be always greater than Date.now()
-          const timeDiff = Math.abs((expirationTime * 1000) - Date.now());
-
-          let difference = Math.floor(timeDiff / 86400000);
-          const isExpiredSoon = difference <= 2;
-          let diffUnit = difference === 1 ? 'offers_expires_day' : 'offers_expires_days';
-
-          if (difference < 1) {
-            difference = Math.floor((timeDiff % 86400000) / 3600000);
-            diffUnit = difference === 1 ? 'offers_expires_hour' : 'offers_expires_hours';
-
-            if (difference < 1) {
-              difference = Math.floor(((timeDiff % 86400000) % 3600000) / 60000);
-              diffUnit = difference === 1 ? 'offers_expires_minute' : 'offers_expires_minutes';
-            }
-          }
-          validity = {
-            text: `${utils.getLocalizedString('offers_expires_in')} ${difference} ${utils.getLocalizedString(diffUnit)}`,
-            isExpiredSoon,
-          };
-        }
-
-        const data = {
-          created: elem.created_ts,
-          state: offerState,
-          template_name: uiInfo.template_name,
-          template_data: uiInfo.template_data,
-          offer_id: elem.offer_id,
-          backgroundColor,
-          logoClass,
-          validity,
-          notif_type: uiInfo.notif_type || 'tooltip'
-        };
-
-        if (data.offer_id !== preferredOfferId) {
-          parsedResult.push(data);
-        } else {
-          data.preferred = true;
-          desiredOffer = data;
-        }
-      }
-    });
-
-    // Sort the results by the most recent one
-    parsedResult.sort((a, b) => (b.created - a.created));
-
-    if (desiredOffer) {
-      parsedResult.unshift(desiredOffer);
-    }
-
-    return Promise.resolve(parsedResult);
-  }
-
-  _getAllOffers(preferredOfferId = null) {
+  _getAllOffers() {
+    const self = this;
     const args = {
       filters: {
         by_rs_dest: ORIGIN_NAME
       }
     };
+    return this.offersV2.action('getStoredOffers', args).then((recentData) => {
+      const parsedResult = [];
+      recentData.forEach((elem) => {
+        if (elem &&
+            elem.offer_id &&
+            elem.offer_info &&
+            elem.offer_info.ui_info) {
+          // we need to send the template name and template data here from the
+          // ui info
+          const uiInfo = elem.offer_info.ui_info;
 
-    return this.offersV2.action('getStoredOffers', args)
-      .then(recentData => this.sanitizeData(recentData, preferredOfferId));
+          let offerState = 'new';
+          if (elem.attrs && elem.attrs.state) {
+            offerState = elem.attrs.state;
+          }
+          const data = {
+            created: elem.created_ts,
+            state: offerState,
+            template_name: uiInfo.template_name,
+            template_data: uiInfo.template_data,
+            offer_id: elem.offer_id,
+          };
+          parsedResult.push(data);
+        }
+      });
+
+      // Sort the results by the most recent one
+      parsedResult.sort((a, b) => (b.created - a.created));
+
+      self.allOffers = parsedResult;
+
+      return Promise.resolve(parsedResult);
+    });
   }
 
   /**
@@ -515,39 +333,6 @@ export default class Win {
   }
 
   sendTelemetry(data) {
-    const vote = data.vote;
-    const comments = data.comments;
-    const action = data.action || 'click';
-
-    const signal = {
-      type: 'offrz',
-      view: 'box',
-      action,
-      target: data.target,
-    };
-
-    if (vote) {
-      signal.vote = vote;
-    }
-    if (comments) {
-      signal.comments = comments;
-    }
-
-    utils.telemetry(signal);
-  }
-
-  sendActionSignal(data) {
-    const msg = {
-      type: 'action-signal',
-      data: {
-        action_id: data.actionId,
-      },
-    };
-
-    this.sendMessageToOffersCore(msg);
-  }
-
-  sendOfferActionSignal(data) {
     // utils.telemetry(data);
     // check the data
     if (!data.signal_type) {
@@ -559,7 +344,19 @@ export default class Win {
     // format.
     let msg = null;
 
-    if (data.signal_type === 'offer-action-signal') {
+    if (data.signal_type === 'action-signal') {
+      // This type of signals are just for tracking and information purposes,
+      // will not change any logic on the offers module
+      // This signals are not related to any offer, just "telemetry"
+      msg = {
+        type: 'action-signal',
+        // no data for now
+        data: {
+          // this is the signal we want to send
+          action_id: data.element_id
+        },
+      };
+    } else if (data.signal_type === 'offer-action-signal') {
       // this signals will be associated to offers but will not affect the behavior
       // or anything on the offer module, just for information purposes.
       msg = {
@@ -584,13 +381,7 @@ export default class Win {
     if (msg) {
       this.sendMessageToOffersCore(msg);
     } else {
-      utils.log(`sendOfferActionSignal: error: the message is null? invalid signal type? ${data.signal_type}`);
-    }
-  }
-
-  onOffersCoreRegistrationEvent(event) {
-    if (event && event.type === 'broadcast') {
-      this._registerToOffersCore();
+      utils.log(`sendTelemetry: error: the message is null? invalid signal type? ${data.signal_type}`);
     }
   }
 
@@ -612,7 +403,6 @@ export default class Win {
     const eventID = event.type;
 
     this._getAllOffers().then((results) => {
-      // TODO: Do we need this check anymore ? Yes
       if (results.length <= 0 || !results.some(result => result.state === 'new')) {
         return;
       }
@@ -621,6 +411,8 @@ export default class Win {
         case 'push-offer': {
           const offersHubTrigger = event.data.offer_data.ui_info.notif_type || 'tooltip';
           const offerID = event.data.offer_data.offer_id;
+          // Auto open the panel
+          autoTrigger = true;
           this.toolbarButtonElement.setAttribute('state', 'new-offers');
 
           const notifMsg = {
@@ -632,57 +424,73 @@ export default class Win {
               action_id: 'offer_notif_popup',
               offer_id: offerID
             };
-
             this.sendMessageToOffersCore(notifMsg);
-            this.showTooltip = false;
-            this.preferredOfferId = offerID;
-
-            // Auto open the panel
-            autoTrigger = true;
             this.openPanel();
-          } else if (offersHubTrigger === 'dot') {
-            notifMsg.data = {
-              action_id: 'offer_notif_dot',
-              offer_id: offerID
-            };
-
-            this.sendMessageToOffersCore(notifMsg);
-            this.showTooltip = false;
           } else { // Open tooltip by default
-            // TODO: change this when there is a new notif_type
             notifMsg.data = {
-              action_id: `offer_notif_${offersHubTrigger}`,
+              action_id: 'offer_notif_tooltip',
               offer_id: offerID
             };
 
-            const buttonArea = this.window.CustomizableUI.getWidget(this.toolbarButton.id).areaType;
             const signal = {
               type: 'offrz',
               view: 'box_tooltip',
               action: 'show',
-              style: this._mapTelemetryStyle(offersHubTrigger),
-              location: this._mapTelemetryLocation(buttonArea),
             };
 
+            this.sendMessageToOffersCore(notifMsg);
+
+            const buttonArea = this.window.CustomizableUI.getWidget(this.toolbarButton.id).areaType;
+
+            if (buttonArea === 'toolbar') {
+              signal.location = 'toolbar';
+            } else if (buttonArea === 'menu-panel') {
+              signal.location = 'burger_menu';
+            } else {
+              signal.location = 'hidden';
+            }
             utils.telemetry(signal);
 
             if (signal.location === 'hidden') {
               return; // Don't show the tooltip if the button is on the palette
             }
 
-            this.sendMessageToOffersCore(notifMsg);
-
-            this.showTooltip = true;
-            this.uiInfo = event.data.offer_data.ui_info;
-            const msg = {
-              type: 'action-signal',
-              data: {
-                action_id: 'tooltip_shown',
-              },
+            const promise = UITour.getTarget(this.window, UI_TOUR_ID);
+            const win = this.window;
+            const myOptions = {
+              closeButtonCallback: () => {
+                const data = {
+                  signal_type: 'action-signal',
+                  element_id: 'tooltip_closed',
+                };
+                this.sendTelemetry(data);
+              }
             };
-            this.sendMessageToOffersCore(msg);
 
-            this.openPanel();
+            promise.then((target) => {
+              const title = utils.getLocalizedString('offers_hub_tooltip_new_offer');
+              const icon = `${config.baseURL}offers-cc/images/offers-cc-icon-white.svg`;
+
+              if (buttonArea === 'menu-panel' && !isPlatformAtLeastInVersion('57.0')) {
+                this.window.PanelUI.show();
+              }
+
+              UITour.hideHighlight(win); // Hide any visible highlight
+              UITour.showInfo(win, target, title, '', icon, '', myOptions);
+              this.isUITourOpening = true;
+              if (!this.tooltipEventListenerAdded) {
+                this.addTooltipEventListener();
+                this.tooltipEventListenerAdded = true;
+              }
+
+              const msg = {
+                type: 'action-signal',
+                data: {
+                  action_id: 'tooltip_shown',
+                },
+              };
+              this.sendMessageToOffersCore(msg);
+            }).catch(() => {});
           }
           break;
         }
@@ -696,19 +504,20 @@ export default class Win {
     });
   }
 
+  seenOffers(data) {
+    seenOffersObj = data;
+  }
+
   openPanel() {
-    const containerId = this.toolbarButtonElement.parentElement.id;
-    // No need to show pop-up when Offrz hub icon is in Overflow list
-    if (utils.getWindow() !== this.window || containerId.indexOf('widget-overflow') !== -1) {
+    if (utils.getWindow() !== this.window) {
       return;
     }
 
-    // TODO: check if we still need it, this is for the burger menu
     this.window.PanelUI.panel.setAttribute('noautohide', 'false');
     this.toolbarButton.showPopup(this.window);
   }
 
-  closePanel() { // TODO: not using anymore?
+  closePanel() {
     const signal = {
       type: 'offrz',
       view: 'box',
@@ -718,23 +527,34 @@ export default class Win {
 
     utils.telemetry(signal);
 
+    this.hideUITour();
     this.toolbarButton.hidePopup(this.window);
     if (this.window.PanelUI.panel.state === 'open') {
       this.window.PanelUI.showMainView();
-      // TODO: we need to find smth similar to open overflow menu
     }
+  }
+
+  removeOffer() {
+    const signal = {
+      type: 'offrz',
+      view: 'box',
+      action: 'click',
+      target: 'remove',
+    };
+
+    utils.telemetry(signal);
   }
 
   openURL(data) {
     if (data.isCallToAction) {
-      const msg = {
-        type: 'offer-action-signal',
-        data: {
-          offer_id: data.offerId,
-          action_id: 'offer_ca_action',
-        },
+      const signal = {
+        type: 'offrz',
+        view: 'box',
+        action: 'click',
+        target: 'use',
       };
-      this.sendMessageToOffersCore(msg);
+
+      utils.telemetry(signal);
     }
     const tab = utils.openLink(this.window, data.url, true);
     if (data.closePopup === true) {
@@ -743,20 +563,21 @@ export default class Win {
     this.window.gBrowser.selectedTab = tab;
   }
 
-  sendUserFeedback(data) {
-    const feedback = {
-      view: 'box',
-      ...data,
-    };
+  hideUITour() {
+    if (!this.isUITourOpening) {
+      return;
+    }
 
-    utils.sendUserFeedback(feedback);
-  }
+    try {
+      if (this.window.PanelUI.panel.state !== 'open') {
+        UITour.hideInfo(this.window);
+      }
 
-  _unregisterFromOffersCore() {
-    this.offersV2.action('unregisterRealEstate', { realEstateID: ORIGIN_NAME }).catch(() => {});
-  }
-
-  _registerToOffersCore() {
-    this.offersV2.action('registerRealEstate', { realEstateID: ORIGIN_NAME }).catch(() => {});
+      this.isUITourOpening = false;
+      this.removeTooltipEventListener();
+      this.tooltipEventListenerAdded = false;
+    } catch (e) {
+      // Expected exception when the UITour is not showing
+    }
   }
 }

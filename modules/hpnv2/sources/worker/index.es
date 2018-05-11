@@ -3,30 +3,35 @@ const console = {
   error: (...args) => self.postMessage({ logMessage: { type: 'error', args } })
 };
 
-function wrapError(e) {
-  return `Worker error: '${e && e.message}', stack: <<< ${e && e.stack} >>>`;
+let manager;
+try {
+  if (typeof WebAssembly !== 'undefined') {
+    importScripts('group-signer-bundle-wasm.js');
+    manager = new self.GroupSignManager();
+  }
+} catch (e) {
+  console.error('[hpnv2-worker] Error loading wasm bundle', e);
 }
 
-const buildType = typeof WebAssembly !== 'undefined' ? 'wasm' : 'asmjs';
-let loadPromise = Promise.reject(new Error('hpnv2-worker not initialized'));
-try {
-  importScripts(`group-signer-bundle-${buildType}.js`);
-  loadPromise = self.Module.getGroupSigner().then(GroupSigner => new GroupSigner());
-} catch (e) {
-  console.error('[hpnv2-worker]', 'importScripts error', wrapError(e));
+if (!manager) {
+  try {
+    importScripts('group-signer-bundle-asmjs.js');
+    manager = new self.GroupSignManager();
+  } catch (e) {
+    console.error('[hpnv2-worker] Error loading asmjs bundle', e);
+  }
 }
 
 self.onmessage = ({ data: { id, fn, args } }) => {
   const now = performance.now();
-  loadPromise
-    .then(manager => (fn === 'init' ? {} : manager[fn](...args)))
+  Promise.resolve()
+    .then(() => manager[fn](...args))
     .then((data) => {
       console.log('[hpnv2-worker]', fn, performance.now() - now, 'ms');
       self.postMessage({ id, data });
     })
-    .catch((e) => {
-      const error = wrapError(e);
+    .catch((error) => {
       console.error('[hpnv2-worker]', error);
-      self.postMessage({ id, error });
+      self.postMessage({ id, error: `Worker error: '${error}', stack: <<< ${error && error.stack} >>>` });
     });
 };

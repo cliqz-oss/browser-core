@@ -1,0 +1,37 @@
+{
+  "platform": "mobile",
+  "testsBasePath": "./build",
+  "testem_launchers": ["unit-node", "Chrome"],
+  "baseURL": "./",
+  "settings": {
+    "CONFIG_PROVIDER": "https://api.cliqz.com/api/v1/config",
+    "CDN_BASEURL": "https://cdn.cliqz.com",
+    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"]
+  },
+  "modules": [
+    "core",
+    "core-cliqz",
+    "autocomplete",
+    "mobile-ui",
+    "mobile-dev",
+    "mobile-history",
+    "yt-downloader",
+    "p2p",
+    "pairing",
+    "mobile-pairing",
+    "static"
+  ],
+  "bundles": [
+    "core/content-tests.bundle.js",
+    "mobile-ui/app.bundle.js",
+    "mobile-history/app.bundle.js"
+  ],
+  "system": {
+    "map": {
+      "mathjs": "bower_components/mathjs/dist/math.min.js",
+      "hammer": "bower_components/hammerjs/hammer.js",
+      "jquery": "bower_components/jquery/dist/jquery.min.js",
+      "handlebars": "bower_components/handlebars/handlebars.js"
+    }
+  }
+}

@@ -1,41 +1,12 @@
-/* globals ChromeUtils, sendAsyncMessage, removeMessageListener, addMessageListener */
+/* globals sendAsyncMessage, removeMessageListener, addMessageListener */
 
-import { Components, Services } from '../platform/globals';
+import { Services } from '../platform/globals';
 import store from '../core/content/store';
 import config from '../core/config';
-import { CHROME_MSG_SOURCE } from '../core/content/helpers';
+import { getWindowId, CHROME_MSG_SOURCE } from '../core/content/helpers';
 import { getMessage } from '../core/i18n';
 
 const send = sendAsyncMessage.bind(null, 'cliqz');
-const CONTENT_SCRIPT_URL = 'chrome://cliqz/content/core/content-script.bundle.js';
-const whitelistedPages = [
-  'resource://cliqz',
-  'chrome://cliqz',
-  config.settings.NEW_TAB_URL
-].concat(config.settings.frameScriptWhitelist || []);
-
-const getContentScript = () => {
-  try {
-    Components.utils.importGlobalProperties(['ChromeUtils']);
-  } catch (e) {
-    // ChromeUtils are available only in Firefox 60 +
-    return Promise.resolve({ hasReturnValue: false });
-  }
-
-  if (getContentScript.compiledContentScript) {
-    return Promise.resolve(getContentScript.compiledContentScript);
-  }
-
-  return ChromeUtils.compileScript(CONTENT_SCRIPT_URL).then((script) => {
-    getContentScript.compiledContentScript = script;
-    return script;
-  });
-};
-
-const getWindowId = window => window
-  .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-  .getInterface(Components.interfaces.nsIDOMWindowUtils)
-  .outerWindowID;
 
 /**
  * Run function for all existing documents.
@@ -60,7 +31,7 @@ function forEachTab(fn) {
       try {
         fn(window.document);
       } catch (e) {
-        // failed to load into existing window
+          // failed to load into existing window
       }
     }
   }
@@ -97,46 +68,25 @@ const DocumentManager = {
     info.onUnload();
   },
 
-  async observe(document) {
+  observe(document) {
     const window = document && document.defaultView;
     if (!document || !document.location || !window) {
       return;
     }
-
-    const isChromePage = whitelistedPages.some(url => window.location.href.indexOf(url) === 0);
-
-    const contentScript = await getContentScript();
 
     const windowId = getWindowId(window);
     const listeners = new Set();
     let unsafeWindow = null;
 
     const onMessage = (incomingMessage) => {
-      if (incomingMessage.windowId && (incomingMessage.windowId !== windowId)) {
-        return;
-      }
-
-      let message = incomingMessage.data;
-
-      if (isChromePage) {
-        // TODO: we should have uniform message shape
-        const payload = incomingMessage.data.payload;
-        if (payload && payload.response) {
-          message = payload.response;
-        } else if (payload) {
-          message = payload;
-        } else {
-          message = incomingMessage.data;
-        }
-      } else {
-        message.type = 'response';
-      }
-
-      message = Components.utils.cloneInto(message, window);
-
       listeners.forEach((l) => {
         try {
-          l(message);
+          const unsafeMessage = Components.utils.cloneInto({
+            ...incomingMessage.data,
+            type: 'response',
+          }, window);
+
+          l(unsafeMessage);
         } catch (e) {
           // don't throw if any of the listeners thrown
         }
@@ -162,7 +112,13 @@ const DocumentManager = {
       },
     };
 
-    if (isChromePage) {
+    const whitelistedPages = [
+      'resource://cliqz',
+      'chrome://cliqz',
+      config.settings.NEW_TAB_URL
+    ].concat(config.settings.frameScriptWhitelist || []);
+
+    if (whitelistedPages.some(url => window.location.href.indexOf(url) === 0)) {
       const safeChrome = {
         runtime: {
           sendMessage(message) {
@@ -199,7 +155,6 @@ const DocumentManager = {
         sendMessage(message) {
           send({
             ...message,
-            windowId,
             sender,
             source: CHROME_MSG_SOURCE
           });
@@ -214,48 +169,11 @@ const DocumentManager = {
         },
       },
     };
-
-    if (isChromePage || !contentScript.hasReturnValue) {
-      Services.scriptloader.loadSubScript('chrome://cliqz/content/core/content-script.bundle.js', {
-        window,
-        chrome,
-        windowId,
-      });
-    } else {
-      // For Firefox 60+ we precompile content scripts in same way Firefox
-      // webextensions does
-      const contentPrincipal = window.document.nodePrincipal;
-      const attrs = contentPrincipal.originAttributes;
-      const ssm = Services.scriptSecurityManager;
-      const uri = Services.io.newURI(CONTENT_SCRIPT_URL);
-      const extensionPrincipal = ssm.createCodebasePrincipal(uri, attrs);
-      // source: https://github.com/mozilla/gecko-dev/blob/4d5798c0a5103636aef38f3b668b5463797b4dfc/toolkit/components/extensions/ExtensionContent.jsm#L529
-      let principal;
-      if (ssm.isSystemPrincipal(contentPrincipal)) {
-        // Make sure we don't hand out the system principal by accident.
-        // also make sure that the null principal has the right origin attributes
-        principal = ssm.createNullPrincipal(attrs);
-      } else {
-        principal = [contentPrincipal, extensionPrincipal];
-      }
-
-      const sandbox = Components.utils.Sandbox(principal, {
-        sandboxName: 'Content Script Cliqz',
-        sandboxPrototype: window,
-        sameZoneAs: window,
-        wantXrays: true,
-        isWebExtensionContentScript: true,
-        wantExportHelpers: true,
-        wantGlobalProperties: [],
-        originAttributes: attrs,
-      });
-
-      sandbox.chrome = Components.utils.cloneInto(chrome, sandbox, {
-        cloneFunctions: true
-      });
-
-      contentScript.executeInGlobal(sandbox);
-    }
+    Services.scriptloader.loadSubScript('chrome://cliqz/content/core/content-script.bundle.js', {
+      window,
+      chrome,
+      windowId,
+    });
 
     this._windowsInfo.set(window, {
       windowId,

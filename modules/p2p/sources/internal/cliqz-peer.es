@@ -258,7 +258,7 @@ export default class CliqzPeer {
       _peers: {}, // Needed to keep a count of distinct peers connected to
       distinctpeers: 0, // Number of distinct peers we have connected to
       relayedconn: 0, // Number of connections that were relayed
-      // (remote or local candidate were relay)
+                      // (remote or local candidate were relay)
       signalingtime: 0, // Time connected to signaling server
       signalingfailedconn: 0, // Number of failed connections to signaling server
       signalingconn: 0, // Number of good connections to signaling server
@@ -336,7 +336,7 @@ export default class CliqzPeer {
         this.log(message, 'Unknown message');
       }
     })
-      .catch(e => this.logError('Error decrypting signaling', e));
+    .catch(e => this.logError('Error decrypting signaling', e));
   }
 
   enableSignaling() {
@@ -344,19 +344,19 @@ export default class CliqzPeer {
       this.signalingEnabled = true;
       const tryCreateSocket = () => {
         this.isNetworkUp()
-          .then((up) => {
-            this.signalingConnectorTicks = (this.signalingConnectorTicks || 0) + 1;
-            // TODO: Set limit higher when isNetworkUp works properly
-            const retrials = Math.min(5, this.socketRetrials);
-            if (up && !this.socket && this.signalingConnectorTicks > retrials) {
-              this.signalingConnectorTicks = 0;
-              try {
-                this._createSocket();
-              } catch (e) {
-                this.logError('Error creating socket', e);
-              }
+        .then((up) => {
+          this.signalingConnectorTicks = (this.signalingConnectorTicks || 0) + 1;
+          // TODO: Set limit higher when isNetworkUp works properly
+          const retrials = Math.min(5, this.socketRetrials);
+          if (up && !this.socket && this.signalingConnectorTicks > retrials) {
+            this.signalingConnectorTicks = 0;
+            try {
+              this._createSocket();
+            } catch (e) {
+              this.logError('Error creating socket', e);
             }
-          });
+          }
+        });
       };
       tryCreateSocket();
       this.signalingConnector = setInterval(tryCreateSocket, 1000);
@@ -430,23 +430,23 @@ export default class CliqzPeer {
      * @type {module:global#CliqzPeer~onMessageCallback}
      */
     this.onmessage = null; // Function to be called when a message is received
-    /**
-      @callback module:global#CliqzPeer~onConnectCallback
-      @param {string} peerID - The other peerID.
-     */
-    /**
-     * Function which will be called whenever a new connection with a peer is created.
-     * @type {module:global#CliqzPeer~onConnectCallback}
-     */
+      /**
+        @callback module:global#CliqzPeer~onConnectCallback
+        @param {string} peerID - The other peerID.
+       */
+      /**
+       * Function which will be called whenever a new connection with a peer is created.
+       * @type {module:global#CliqzPeer~onConnectCallback}
+       */
     this.onconnect = null; // Function to be called when a new connection with a peer is created
-    /**
-      @callback module:global#CliqzPeer~onDisconnectCallback
-      @param {string} peerID - The other peerID.
-     */
-    /**
-     * Function which will be called whenever a new connection with a peer is closed.
-     * @type {module:global#CliqzPeer~onDisconnectCallback}
-     */
+      /**
+        @callback module:global#CliqzPeer~onDisconnectCallback
+        @param {string} peerID - The other peerID.
+       */
+      /**
+       * Function which will be called whenever a new connection with a peer is closed.
+       * @type {module:global#CliqzPeer~onDisconnectCallback}
+       */
     this.ondisconnect = null; // Function to be called when a connection with a peer is closed
     this.socketRetrials = 0; // Number of unsuccessful consecutive reconnections to signaling server
     // Used for storing the chunks of the partially received messages (indexed by message id)
@@ -636,23 +636,23 @@ export default class CliqzPeer {
       return Promise.resolve();
     }
     return nextTick(() => (this.signalingEnabled ? this.createConnection() : null))
-      .then(() => {
-        if (!has(this.connections, requestedPeer)) {
-          this.logDebug('Trying to connect to peer', requestedPeer);
-          if (!has(this.connectionPromises, requestedPeer)) {
-            this.connectionPromises[requestedPeer] = {};
-            this.connectionPromises[requestedPeer].promise = new Promise((resolve, reject) => {
-              this.connectionPromises[requestedPeer].resolve = resolve;
-              this.connectionPromises[requestedPeer].reject = reject;
-            });
-          }
-          if (!has(this.pendingConnections, requestedPeer)) {
-            this._createConnection(requestedPeer, true);
-          }
-          return this.connectionPromises[requestedPeer].promise;
+    .then(() => {
+      if (!has(this.connections, requestedPeer)) {
+        this.logDebug('Trying to connect to peer', requestedPeer);
+        if (!has(this.connectionPromises, requestedPeer)) {
+          this.connectionPromises[requestedPeer] = {};
+          this.connectionPromises[requestedPeer].promise = new Promise((resolve, reject) => {
+            this.connectionPromises[requestedPeer].resolve = resolve;
+            this.connectionPromises[requestedPeer].reject = reject;
+          });
         }
-        return null;
-      });
+        if (!has(this.pendingConnections, requestedPeer)) {
+          this._createConnection(requestedPeer, true);
+        }
+        return this.connectionPromises[requestedPeer].promise;
+      }
+      return null;
+    });
   }
 
   /**
@@ -739,8 +739,8 @@ export default class CliqzPeer {
   _createConnection(peer, isLocal) {
     if (!has(this.pendingConnections, peer)) {
       this.logDebug('creating connection', peer);
-      const connection = new CliqzPeerConnection(this, this.peerOptions, peer, isLocal);
-      this.pendingConnections[peer] = connection;
+      const connection = this.pendingConnections[peer] =
+        new CliqzPeerConnection(this, this.peerOptions, peer, isLocal);
       if (isLocal) {
         connection.createOffer();
       }
@@ -771,24 +771,24 @@ export default class CliqzPeer {
         }
         try {
           connection.getCandidatesInfo()
-            .then((x) => {
-              this.stats.localcandidatedist[x.localCandidateType] =
-                (this.stats.localcandidatedist[x.localCandidateType] || 0) + 1;
+          .then((x) => {
+            this.stats.localcandidatedist[x.localCandidateType] =
+              (this.stats.localcandidatedist[x.localCandidateType] || 0) + 1;
 
-              this.stats.remotecandidatedist[x.remoteCandidateType] =
-                (this.stats.remotecandidatedist[x.remoteCandidateType] || 0) + 1;
-            })
-            .catch(() => {
-              this.log('Could not retrieve candidates info');
-            });
+            this.stats.remotecandidatedist[x.remoteCandidateType] =
+              (this.stats.remotecandidatedist[x.remoteCandidateType] || 0) + 1;
+          })
+          .catch(() => {
+            this.log('Could not retrieve candidates info');
+          });
           connection.isRelayed().then((isRelayed) => {
             if (isRelayed) {
               this.stats.relayedconn += 1;
             }
           })
-            .catch((e) => {
-              this.log('Could not retrieve candidates info', e);
-            });
+          .catch((e) => {
+            this.log('Could not retrieve candidates info', e);
+          });
         } catch (e) {
           this.logError('Stats: error trying to get candidates', e);
         }
@@ -916,9 +916,9 @@ export default class CliqzPeer {
     if (data.type === 'challenge') {
       if (this.privateKey) {
         importRSAKey(this.privateKey, false, 'SHA-256', 'RSASSA-PKCS1-v1_5')
-          .then(privateKey => signRSA(privateKey, data.data))
-          .then(signature => this._sendSocket('connect', { authLogin: true, publicKey: this.publicKey, signature }))
-          .catch(e => this.logError(e));
+        .then(privateKey => signRSA(privateKey, data.data))
+        .then(signature => this._sendSocket('connect', { authLogin: true, publicKey: this.publicKey, signature }))
+        .catch(e => this.logError(e));
       } else {
         this.stats.signalingfailedconn += 1;
         this.closeSocket(); // Should destroy?
@@ -982,8 +982,7 @@ export default class CliqzPeer {
   _onSocketClose() {
     if (this.socket) {
       this.logDebug('socket.onclose');
-      this.socket = null;
-      this.connectionStatus = null;
+      this.socket = this.connectionStatus = null;
       if (this.stats._lastsignalingtime) {
         this.stats.signalingtime += Math.floor((Date.now() - this.stats._lastsignalingtime) / 1000);
         this.stats._lastsignalingtime = null;
@@ -1068,6 +1067,6 @@ export default class CliqzPeer {
         });
       }
     })
-      .catch(e => this.logError('Error encrypting signaling', e));
+    .catch(e => this.logError('Error encrypting signaling', e));
   }
 }

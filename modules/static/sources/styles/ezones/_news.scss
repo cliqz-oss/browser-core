@@ -1,0 +1,118 @@
+/* ez news, video, portal */
+.entity-stories {
+    margin-left: -22px;
+    padding-right: 75px;
+    height: 200px;
+    margin-bottom: 25px;
+}
+
+.entity-story {
+    position: relative;
+    overflow: hidden;
+    padding-left: 22px;
+    margin-bottom: 10px;
+}
+
+.entity-story * {
+    cursor: pointer;
+}
+
+.entity-story-image,
+.cqz-video-image {
+    position: relative;
+    float: left;
+    width: 100px;
+    height: 60px;
+    border-radius: $general-border-radius;
+    background: #ddd url("https://cdn.cliqz.com/extension/EZ/news/no-image.svg") no-repeat 50% 50%;
+    background-size: 80% 80%;
+
+    .cqz-img-holder {
+        content: '';
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: $general-border-radius;
+        background-position: center center;
+        background-size: cover;
+    }
+
+    .cqz-video-duration {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        padding: 2px 3px 2px 15px;
+        color: #fff;
+        background-color: rgba(0, 0, 0, 0.7);
+
+        &:before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 4px;
+            width: 0;
+            height: 0;
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+            border-left: 6px solid #fff;
+        }
+    }
+}
+.cqz-video-image { width: 114px; height: 74px; margin-right: 20px;}
+
+.entity-story-image + .entity-story-description {
+    overflow: hidden;
+    padding-left: 20px;
+    max-width: 540px;
+}
+
+.entity-story-description {
+    max-width: 600px;
+
+    a {
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+    .entity-story-title {
+        @extend .cqz-ellipsis;
+
+        padding-top: 4px;
+        max-width: 550px;
+    }
+}
+
+
+.entity-story-title a {
+    font-size: 18px;
+}
+
+.entity-story-comment {
+    color: #c3043e;
+    padding-top: 9px;
+}
+
+.entity-stories .cqz-twitter-count {
+    display: inline-block;
+    margin-left: 16px;
+    padding-left: 19px;
+    color: #49c0f4;
+    vertical-align: top;
+    background: url("https://cdn.cliqz.com/extension/EZ/news/twitter-bird.svg") no-repeat 0 3px;
+}
+
+/* ez video specials */
+.ez-video .entity-story-comment {
+    color: #333333;
+    padding-top: 4px;
+}
+
+/* ez portal specials */
+.ez-portal .entity-story-image {
+    border-radius: 3px 3px;
+}
