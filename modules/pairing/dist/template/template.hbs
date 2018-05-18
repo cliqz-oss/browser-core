@@ -1,10 +1,10 @@
 <div id="page-container">
     <div class="header-wrapper">
-        <span class="header-name" visible-on-state="unpaired">{{i18n.title}}</span>
-        <span class="header-name" visible-on-state="paired">{{i18n.connectedTitle}}</span>
+        <span class="header-name" data-visible-on-state="unpaired">{{i18n.title}}</span>
+        <span class="header-name" data-visible-on-state="paired">{{i18n.connectedTitle}}</span>
     </div>
     <div class="content-wrapper">
-        <div id="instructions" class="row" visible-on-state="unpaired">
+        <div id="instructions" class="row" data-visible-on-state="unpaired">
             <div class="column width-50-percent">
                 <p class="sub-header">{{i18n.instructionsTitle}}</p>
                 <p class="tip android-tip">{{i18n.instructionsAndroid}}</p>
@@ -19,7 +19,7 @@
             <div class="clear-row">&nbsp;</div>
         </div>
 
-        <div id="status" class="row" visible-on-state="paired">
+        <div id="status" class="row" data-visible-on-state="paired">
             <img id="connection-status-img" />
             <div id="devices-info">
                 <p id="device-name" class="sub-header"></p>
@@ -31,7 +31,7 @@
         </div>
 
         <div id="features" class="row">
-            <div class="all-features" visible-on-state="unpaired">
+            <div class="all-features" data-visible-on-state="unpaired">
                 <p class="header-name">{{i18n.pairingAllFeatures}}</p>
                 <ul>
                     <li>
@@ -48,7 +48,7 @@
                     </li>
                 </ul>
             </div>
-            <div class="enabled-features" visible-on-state="paired">
+            <div class="enabled-features" data-visible-on-state="paired">
                 <p class="header-name">{{i18n.pairingEnabledFeatures}}</p>
                 <ul>
                     <li>

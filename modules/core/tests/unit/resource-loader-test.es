@@ -4,9 +4,17 @@
 /* global describe */
 
 
-let httpGet = () => {};
+let fetch = () => Promise.reject();
 let load = () => {};
 let save = () => {};
+
+function fetchResponseWrapper(response) {
+  return {
+    text() {
+      return Promise.resolve(response);
+    }
+  }
+}
 
 const MOCK = {
   'core/console': {
@@ -22,9 +30,6 @@ const MOCK = {
         return defaultValue;
       },
       setPref() {},
-      httpGet(url, resolve, reject) {
-        return httpGet(url, resolve, reject);
-      },
     },
   },
   'platform/resource-loader-storage': {
@@ -40,11 +45,14 @@ const MOCK = {
   'core/platform': {
     isChromium: false,
   },
-  'platform/text-decoder': {
-    default: class {
-      decode(d) { return d }
-    }
+  'core/encoding': {
+    fromUTF8: function(d) {
+      return d;
+    },
   },
+  'core/http': {
+    fetch: (url) => fetch(url),
+  }
 };
 
 
@@ -105,25 +113,27 @@ function getMockData(testCase) {
 
 
 function mockModule(testCase) {
-  httpGet = (url, resolve, reject) => {
-    const response = { response: getMockData(testCase) };
+  fetch = (url) => {
+    return new Promise((resolve, reject) => {
+      const response = getMockData(testCase);
 
-    if (url.startsWith('chrome://')) {
-      // Handle chrome loading
-      if (testCase.inChrome) {
-        resolve(response);
+      if (url.startsWith('chrome://')) {
+        // Handle chrome loading
+        if (testCase.inChrome) {
+          resolve(fetchResponseWrapper(response));
+        } else {
+          reject('Error while fetching from chrome://');
+        }
       } else {
-        reject('Error while fetching from chrome://');
+        // Handle remote loading
+        if (testCase.inRemote) {
+          resolve(fetchResponseWrapper(response));
+        } else {
+          reject('Error while fetching from remote');
+        }
       }
-    } else {
-      // Handle remote loading
-      if (testCase.inRemote) {
-        resolve(response);
-      } else {
-        reject('Error while fetching from remote');
-      }
-    }
-  };
+    });
+  }
 
   load = () => {
     if (testCase.inProfile) {

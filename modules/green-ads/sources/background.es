@@ -3,22 +3,22 @@ import events from '../core/events';
 import inject from '../core/kord/inject';
 import { extractHostname } from '../core/tlds';
 import { promiseHttpHandler } from '../core/http';
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 
 import GreenAds from './green-ads';
 import logger from './logger';
 import Inventory from './inventory';
-
+import config from '../core/config';
 
 // The green ad module can be in different states:
 export const GREENADS_PREF = 'greenads';
 export const GREENADS_STATE = {
   DISABLED: 'disabled', // We don't record anything
-  COLLECT: 'collect',   // We record normal page behavior (no blocking or ad injection)
-  GREEN: 'green',       // We record green mode (blocking of ads + injection of cached)
+  COLLECT: 'collect', // We record normal page behavior (no blocking or ad injection)
+  GREEN: 'green', // We record green mode (blocking of ads + injection of cached)
 };
 
-const TELEMETRY_ENDPOINT = 'https://safebrowsing-experiment.cliqz.com';
+const TELEMETRY_ENDPOINT = config.settings.TELEMETRY_ENDPOINT;
 
 
 export function getGreenadsState() {
@@ -80,8 +80,8 @@ export default background({
 
       // Init greenads both in `green` and `collect` mode.
       this.greenAds = new GreenAds(
-        getGreenadsState() === GREENADS_STATE.GREEN,  /* is in green mode? */
-        this.antitracking,                            /* give proxy to antitracking */
+        getGreenadsState() === GREENADS_STATE.GREEN, /* is in green mode? */
+        this.antitracking, /* give proxy to antitracking */
         this.webRequestPipeline,
         this.sendTelemetry.bind(this),
       );

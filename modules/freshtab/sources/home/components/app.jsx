@@ -5,6 +5,7 @@ import CONFIG from '../../../core/config';
 import cliqz from '../cliqz';
 import SpeedDialsRow from './speed-dials-row';
 import Urlbar from './urlbar';
+import UrlbarWithResults from './urlbar-with-results';
 import News from './news';
 import Settings from './settings';
 import MessageCenter from './message-center';
@@ -46,6 +47,7 @@ class App extends React.Component {
         version: '',
         data: [],
       },
+      results: [],
       removedDials: [],
       messages: {},
       isSettingsOpen: false,
@@ -64,6 +66,7 @@ class App extends React.Component {
     this.toggleComponent = this.toggleComponent.bind(this);
     this.toggleBlueTheme = this.toggleBlueTheme.bind(this);
     this.toggleBackground = this.toggleBackground.bind(this);
+    this.submitFeedbackForm = this.submitFeedbackForm.bind(this);
   }
 
   componentDidMount() {
@@ -108,6 +111,11 @@ class App extends React.Component {
         this.toggleSettings();
         this.focusNews();
       }
+      if (action === 'openImportDialog') {
+        this.freshtab.openImportDialog();
+      }
+    } else {
+      window.location = url;
     }
   }
 
@@ -218,8 +226,12 @@ class App extends React.Component {
       }));
   }
 
-  get recentryRemovedDial() {
-    return this.state.removedDials[this.state.removedDials.length - 1];
+  get recentlyRemovedDial() {
+    const len = this.state.removedDials.length;
+    if (len === 0) {
+      return {};
+    }
+    return this.state.removedDials[len - 1];
   }
 
   toggleSettings() {
@@ -253,6 +265,9 @@ class App extends React.Component {
     if (!settingsPanel.contains(el.target) &&
       el.target.id !== 'settings-btn' &&
       el.target.className !== 'cta-btn' &&
+      el.target.className !== 'close' &&
+      el.target.id !== 'undo-notification-close' &&
+      el.target.id !== 'undo-close' &&
       this.state.isSettingsOpen) {
       this.setState({ isSettingsOpen: false });
     }
@@ -388,18 +403,44 @@ class App extends React.Component {
     this.onBackgroundImageChanged(newBg);
   }
 
+  submitFeedbackForm(vote, comments) {
+    cliqz.freshtab.sendUserFeedback({
+      data: {
+        target: 'myoffrz',
+        vote,
+        comments
+      }
+    });
+  }
+
+  get shouldShowMiddleUrlBar() {
+    const searchConfig = this.state.config.componentsState.search;
+    return searchConfig.visible && (!searchConfig.mode || searchConfig.mode === 'urlbar');
+  }
+
+  get shouldShowTopUrlBar() {
+    const searchConfig = this.state.config.componentsState.search;
+    return searchConfig.visible && searchConfig.mode === 'search';
+  }
+
   render() {
     return (
       <div
         id="app"
       >
-        {this.state.removedDials.length > 0 &&
-          <UndoDialRemoval
-            dial={this.recentryRemovedDial}
-            undoRemoval={this.undoRemoval}
-            closeUndo={this.closeUndo}
-          />
-        }
+        <UndoDialRemoval
+          dial={this.recentlyRemovedDial}
+          undoRemoval={this.undoRemoval}
+          closeUndo={this.closeUndo}
+          isSettingsOpen={this.state.isSettingsOpen}
+          visible={this.state.removedDials.length > 0}
+        />
+        <MessageCenter
+          position="top"
+          locale={this.state.config.locale}
+          messages={this.state.messages}
+          handleLinkClick={msg => this.onMessageClicked(msg)}
+        />
         <aside className="aside">
           {this.state.config.isHistoryEnabled &&
             <a href={CONFIG.settings.NEW_TAB_URL} id="cliqz-home">
@@ -418,11 +459,20 @@ class App extends React.Component {
         </aside>
         <section id="main-content">
           <div className="fixed-container">
+            {this.shouldShowTopUrlBar &&
+              <section id="section-url-bar">
+                <UrlbarWithResults
+                  ref={(c) => { this.urlbarElem = c; }}
+                  visible={this.state.config.componentsState.search.visible}
+                  results={this.state.results}
+                />
+              </section>
+            }
             <section id="section-top" />
             { this.state.config.componentsState.historyDials.visible &&
               <section id="section-most-visited">
                 <div className="dial-header">
-                  {this.state.dials.history.length > 0 && t('app.speed-dials-row.history')}
+                  {this.state.dials.history.length > 0 && t('app_speed_dials_row_history')}
                 </div>
                 <SpeedDialsRow
                   dials={this.state.dials.history}
@@ -436,7 +486,7 @@ class App extends React.Component {
             { this.state.config.componentsState.customDials.visible &&
               <section id="section-favorites">
                 <div className="dial-header with-line">
-                  {t('app.speed-dials-row.custom')}
+                  {t('app_speed_dials_row_custom')}
                 </div>
 
                 <SpeedDialsRow
@@ -449,14 +499,14 @@ class App extends React.Component {
             }
 
             <section id="section-middle">
-              <div id="section-url-bar">
-                { this.state.config.componentsState.search.visible &&
+              {this.shouldShowMiddleUrlBar &&
+                <div id="section-url-bar">
                   <Urlbar
                     ref={(c) => { this.urlbarElem = c; }}
                     visible={this.state.config.componentsState.search.visible}
                   />
-                }
-              </div>
+                </div>
+              }
 
               {(this.state.offers.length === 0) &&
                 <MessageCenter
@@ -468,14 +518,20 @@ class App extends React.Component {
               }
 
               {(this.state.offers.length > 0) &&
-                <OfferMiddleMessages offers={this.state.offers} />
+                <OfferMiddleMessages
+                  offers={this.state.offers}
+                  submitFeedbackForm={this.submitFeedbackForm}
+                />
               }
 
             </section>
 
             { this.state.config.componentsState.news.visible &&
               <section id="section-news">
-                <News news={this.state.news} />
+                <News
+                  news={this.state.news}
+                  newsLanguage={this.state.config.componentsState.news.preferedCountry}
+                />
               </section>
             }
             <section id="section-bottom" />

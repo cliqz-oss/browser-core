@@ -3,8 +3,8 @@
 
 export default describeModule('antitracking/steps/check-context',
   () => ({
-    'core/cliqz': {
-      utils: {
+    'core/utils': {
+      default: {
         setTimeout(fn) { fn(); },
       },
     },

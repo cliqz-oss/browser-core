@@ -5,6 +5,7 @@
 
 let mockedTS = Date.now();
 let todayDayKeyMock = 20161101;
+let CATEGORY_LIFE_TIME_SECS;
 
 export default describeModule('offers-v2/categories/category',
   () => ({
@@ -21,8 +22,8 @@ export default describeModule('offers-v2/categories/category',
     'core/platform': {
       isChromium: false
     },
-    'core/cliqz': {
-      utils: {
+    'core/utils': {
+      default: {
       },
     },
     'platform/globals': {
@@ -69,6 +70,7 @@ export default describeModule('offers-v2/categories/category',
 
       beforeEach(function () {
         Category = this.module().default;
+        CATEGORY_LIFE_TIME_SECS = this.module().CATEGORY_LIFE_TIME_SECS;
       });
 
       function cmpCats(c1, c2) {
@@ -148,12 +150,12 @@ export default describeModule('offers-v2/categories/category',
           chai.expect(c1.isObsolete()).eql(false);
           mockedTS += 9 * 1000;
           chai.expect(c1.isObsolete()).eql(false);
-          mockedTS += 2 * 1000;
+          mockedTS += 2 * 1000 + CATEGORY_LIFE_TIME_SECS * 1000;
           chai.expect(c1.isObsolete()).eql(true);
           c1.hit();
           chai.expect(c1.isObsolete()).eql(false);
-          mockedTS += 11 * 1000;
-          chai.expect(c1.isObsolete()).eql(true);
+          mockedTS += 11 * 1000 + CATEGORY_LIFE_TIME_SECS * 1000;
+          chai.expect(c1.isObsolete(), 'should be obsolete').eql(true);
         });
 
 

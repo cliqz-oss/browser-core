@@ -2,6 +2,7 @@
 /* global describeModule */
 /* global require */
 
+const tldjs = require('tldjs');
 
 var prefRetVal = {};
 var currentTS = Date.now();
@@ -25,6 +26,9 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
     },
     'core/platform': {
       isChromium: false
+    },
+    'platform/lib/tldjs': {
+      default: tldjs,
     },
     'platform/xmlhttprequest': {
       default: {}
@@ -67,73 +71,9 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
         return (hash >>> 0) % 2147483648;
       }
     },
-    'offers-v2/offers_db': {
-      default: class {
-        constructor() {
-          this.offerMetaMap = {};
-        }
-        getOfferMeta(oid) {
-          return this.offerMetaMap[oid];
-        }
-        clear() {
-          this.offerMetaMap = {};
-        }
-      }
-    },
-    'offers-v2/offer_processor': {
-      default: class {
-        constructor() {
-          this.lastSelOffer = null;
-          this.lastRInfo = null;
-        }
-        pushOffer(selOffer, rinfo) {
-          this.lastSelOffer = selOffer;
-          this.lastRInfo = rinfo;
-          return true;
-        }
-        clear() {
-          this.lastSelOffer = null;
-          this.lastRInfo = null;
-        }
-      }
-    },
-    'offers-v2/history_index': {
-      default: class {
-        constructor() {
-          this.start = null;
-          this.end = null;
-          this.lastUrl = null;
-          this.context = null;
-          this.ret = [];
-        }
-        queryHistory(s, e) {
-          this.start = s;
-          this.end = e;
-          return this.ret;
-        }
-        addUrl(url, context) {
-          this.lastUrl = url;
-          this.context = context;
-        }
-        clear() {
-          this.start = null;
-          this.end = null;
-          this.lastUrl = null;
-          this.context = null;
-          this.ret = [];
-        }
-      }
-    },
     'core/crypto/random': {
       random: function () {
         return Math.random();
-      }
-    },
-    'offers-v2/regexp_cache': {
-      default: class {
-        getRegexp(p) {
-          return new RegExp(p);
-        }
       }
     },
     'core/prefs': {
@@ -149,14 +89,16 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
         }
       }
     },
-    'core/cliqz': {
-      default: {},
-      utils: {
+    'core/utils': {
+      default: {
         setInterval: function() {},
         getPref: function(p, v) {
           return v;
         }
       }
+    },
+    'core/helpers/timeout': {
+      default: function() { const stop = () => {}; return { stop }; }
     },
     'core/time': {
       getDaysFromTimeRange: function(startTS, endTS) { },
@@ -167,49 +109,6 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
     'platform/console': {
       default: {},
     },
-    // mocks
-    'offers-v2/history_index': {
-      default: class {
-        constructor(el) {
-          // TODO
-        }
-        queryHistory() {
-          // TODO
-        }
-        addUrl() {
-          // TODO
-        }
-        save() {
-          // TODO
-        }
-        load() {
-          // TODO
-        }
-        timestamp() {
-          return Math.round(Date.now() / 1000);
-        }
-      }
-    },
-    // 'offers-v2/trigger_machine/expression_cache': {
-    //   default: class {
-    //     constructor() {
-    //       this.cache = {};
-    //     }
-    //     destroy() {
-    //     }
-    //     addEntry(expID, ttlSecs, val) {
-    //       console.log('xxxxxx', `cache addEntry: ${expID} -> ${val}`);
-    //       this.cache[expID] = val;
-    //     }
-    //     getEntry(expID) {
-    //       console.log('xxxxxx', `cache getEntry: ${expID} -> ${JSON.stringify(this.cache)} - ${expID in this.cache}`);
-    //       if (!expID || !(expID in this.cache)) {
-    //         return null;
-    //       }
-    //       return this.cache[expID];
-    //     }
-    //   }
-    // },
   }),
   () => {
     describe('trigger_machine', function() {
@@ -217,9 +116,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
       // construction of the event loop and different objects,
       // we may need to refactor the code to make this clear later
       // some of the modules will be mocked some others not
-      let HistoryIndex;
       let TriggerMachine;
-      let RegexpCache;
       let TriggerCache;
       let ExpressionBuilder;
       let exprBuilder;
@@ -262,18 +159,15 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
         exprMockCallbacks = null;
         globObjs = {};
         buildDataGen = { };
-        HistoryIndex = this.deps('offers-v2/history_index').default;
         TriggerMachine = this.module().default;
-        const pRegexpCache = this.system.import('offers-v2/regexp_cache');
         const pTriggerCache = this.system.import('offers-v2/trigger_machine/trigger_cache');
         const promExpBuilder = this.system.import('offers-v2/trigger_machine/exp_builder');
         const promExpression = this.system.import('offers-v2/trigger_machine/expression');
-        const pList = [pRegexpCache, pTriggerCache, promExpBuilder, promExpression];
+        const pList = [pTriggerCache, promExpBuilder, promExpression];
         return Promise.all(pList).then((mods) => {
-          RegexpCache = mods[0].default;
-          TriggerCache = mods[1].default;
-          ExpressionBuilder = mods[2].default;
-          Expression = mods[3].default;
+          TriggerCache = mods[0].default;
+          ExpressionBuilder = mods[1].default;
+          Expression = mods[2].default;
           class mockClass extends Expression {
             constructor(data) {
               super(data);

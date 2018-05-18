@@ -3,25 +3,8 @@
 'use strict';
 
 const childProcess = require('child_process');
-const os = require('os');
 
-if (process.argv[2] === "install") {
-  let command = "npm";
-  if (os.platform().indexOf('win') == 0) {
-    command += ".cmd"
-  }
-
-  // Install npm packages
-  const npmInstall = childProcess.spawn(command, ['install'], { stdio: [0,1,2] });
-  npmInstall.on('exit', function () {
-    const publicSuffixListUpdate = childProcess.spawn(command, ['run', 'tldjs-update-rules'], { stdio: [0,1,2] });
-    publicSuffixListUpdate.on('exit', function () {
-      fern();
-    });
-  });
-} else {
-  fern();
-}
+fern();
 
 function fern() {
 const program = require('commander');
@@ -41,6 +24,7 @@ require('./fern/commands/serve');
 require('./fern/commands/test');
 require('./fern/commands/pack');
 require('./fern/commands/version');
+require('./fern/commands/lint');
 
 const setConfigPath = common.setConfigPath;
 const getExtensionVersion = common.getExtensionVersion;
@@ -67,16 +51,6 @@ function isPackageInstalled(pkg, options, msg) {
     process.exit(1);
   }
 }
-
-program.command('install')
-       .action(() => {
-          isPackageInstalled('bower', '--silent', 'npm bower package missing, to install it run `npm install bower -g`');
-
-          console.log(chalk.green('Installing project dependencies'));
-          spaws.sync('bower', ['install'], { stdio: 'inherit', stderr: 'inherit'});
-
-          console.log(chalk.green('DONE!'))
-       });
 
 program.command('addon-id [file]')
        .action((configPath) => {

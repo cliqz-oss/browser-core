@@ -24,8 +24,8 @@ export default background({
     'content:location-change': function onTabLocationChange({ url }) {
       // create a telemetry signal for each location change
       utils.telemetry({
-        'type': 'navigation',
-        'action': 'location_change',
+        type: 'navigation',
+        action: 'location_change',
       });
 
       if (url === this.currentUrl || !this.lastResult) {
@@ -48,7 +48,7 @@ export default background({
 
       const isGoogleAd = regexGoogleAdRef.test(url);
       const googleUrlMatch = !isGoogleAd && url.match(regexGoogleRefUrl);
-      const cliqzResults = this.lastResult && this.lastResult._results;
+      const cliqzResults = this.lastResult;
 
       let cliqzResultType = null;
       let cliqzResultIndex = null;
@@ -59,7 +59,7 @@ export default background({
           utils.generalizeUrl(decodeURIComponent(googleUrlMatch[1]));
 
         isSameResult = cliqzResults && cliqzResults.some((r, i) => {
-          const cliqzUrl = utils.generalizeUrl(r.val);
+          const cliqzUrl = utils.generalizeUrl(r.url);
 
           if (cliqzUrl === googleUrl) {
             cliqzResultType = utils.encodeResultType(r.style || r.type);
@@ -79,9 +79,11 @@ export default background({
       });
     },
 
-    'autocomplete.new_result': function onNewResult({ result, isPopupOpen }) {
+    // 'autocomplete.new_result': function onNewResult({ result, isPopupOpen }) {
+    //
+    'ui:results': function onNewResult({ results, isPopupOpen }) {
       this.afterQueryCount = 0;
-      this.lastResult = result;
+      this.lastResult = results;
       this.isLastPopupOpen = isPopupOpen;
     },
   },

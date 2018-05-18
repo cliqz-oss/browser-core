@@ -1,31 +1,11 @@
 import Rx from '../../platform/lib/rxjs';
 import { fetch as f } from '../../core/http';
 import utils from '../../core/utils';
-import BaseProvider from './base';
+import BackendProvider from './backend';
 import { getResponse } from '../responses';
 
 
-// TODO: make DRY (this is the same as in `cliqz`)
-const mapResults = (query, results) =>
-  results.map((result) => {
-    const snippet = result.snippet || {};
-    return {
-      ...result,
-      url: result.url,
-      originalUrl: result.url,
-      title: snippet.title,
-      type: result.type,
-      text: query,
-      description: snippet.description,
-      provider: 'rich-header',
-      data: {
-        ...snippet,
-        template: result.template,
-      },
-    };
-  });
-
-export default class RichHeader extends BaseProvider {
+export default class RichHeader extends BackendProvider {
   constructor() {
     super('rich-header');
   }
@@ -46,7 +26,7 @@ export default class RichHeader extends BaseProvider {
     const url = utils.RICH_HEADER + utils.getRichHeaderQueryString(query);
     const body = this.createMessageBody(query, links);
 
-    return f(url, { method: 'PUT', body })
+    return f(url, { method: 'PUT', body, credentials: 'omit', cache: 'no-store' })
       .then(response => response.json())
       .then(({ results }) => {
         const isIncomplete = results.some(result => result._incomplete);
@@ -71,14 +51,14 @@ export default class RichHeader extends BaseProvider {
         .delay(retry.delay)
         .take(retry.count)
       )
-      .map(rs => getResponse(
+      .map(results => getResponse(
         this.id,
         config,
         query,
-        mapResults(query, rs),
+        this.mapResults(results, query),
         'done',
       ))
       // TODO: do not emit empty result
-      .let(this.getOperators(config, query));
+      .let(this.getOperators());
   }
 }

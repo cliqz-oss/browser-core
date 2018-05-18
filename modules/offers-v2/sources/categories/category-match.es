@@ -1,11 +1,11 @@
+import { buildMultiPatternIndex } from '../common/pattern-utils';
+
 /**
  * This class will be used to simplify the handling and matching logic for
  * categories
  */
 export default class CategoryMatch {
-  constructor(patternMatchingHandler) {
-    this.patternMatchingHandler = patternMatchingHandler;
-    this.patternIndex = null;
+  constructor() {
     this.multiPatternObj = null;
     // cat id -> patterns data
     this.patterns = new Map();
@@ -23,23 +23,20 @@ export default class CategoryMatch {
   }
 
   clear() {
-    this.patternIndex = null;
     this.patterns = new Map();
   }
 
   build() {
     const patternsList = [];
     this.patterns.forEach((patterns, catID) =>
-      patternsList.push({ pid: catID, p_list: patterns }));
-    this.multiPatternObj = this.patternMatchingHandler.buildMultiPatternObject(patternsList);
+      patternsList.push({ groupID: catID, patterns }));
+    this.multiPatternObj = buildMultiPatternIndex(patternsList);
   }
 
   /**
    * will return a set of categories ids that match the current tokenized url
    */
   checkMatches(tokenizedURL) {
-    return this.multiPatternObj ?
-           this.patternMatchingHandler.getMatchIDs(tokenizedURL, this.multiPatternObj) :
-           new Set();
+    return this.multiPatternObj ? this.multiPatternObj.match(tokenizedURL) : new Set();
   }
 }

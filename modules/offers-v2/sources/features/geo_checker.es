@@ -1,4 +1,4 @@
-import { events } from '../../core/cliqz';
+import events from '../../core/events';
 import prefs from '../../core/prefs';
 import Feature from './feature';
 
@@ -99,6 +99,36 @@ export default class GeoChecker extends Feature {
     return true;
   }
 
+  /**
+   * will check if the geoCountryCityMap matches
+   * @param  {Map} geoCountryCityMap country -> city -> postal
+   * @return {boolean} Returns true if matches or false otherwise.
+   * It will match if:
+   * - Is location available.
+   * - The current location we have is at least one of the data provided (i.e. if
+   *   we have country => geoCountryCityMap should contain country. If we have country +
+   *   city => geoCountryCityMap should contain country + city, etc).
+   */
+  matches(geoCountryCityMap) {
+    if (!this.isLocAvailable() || !geoCountryCityMap.has(this.loc.country)) {
+      return false;
+    }
+    const countryToCityMap = geoCountryCityMap.get(this.loc.country);
+    if (countryToCityMap.size === 0) {
+      // nothing else to check
+      return true;
+    }
+    if (!countryToCityMap.has(this.loc.city)) {
+      return false;
+    }
+    const postals = countryToCityMap.get(this.loc.city);
+    if (postals.size === 0) {
+      // nothing else to check
+      return true;
+    }
+    return postals.has(this.loc.zip);
+  }
+
   _checkLoc(c) {
     return !!(c && c.country);
   }
@@ -112,5 +142,4 @@ export default class GeoChecker extends Feature {
     };
     this.updateLocation(locData);
   }
-
 }

@@ -1,6 +1,8 @@
-import { utils } from '../core/cliqz';
+/* eslint no-param-reassign: 'off' */
+
+import utils from '../core/utils';
 import platformTelemetry from '../platform/telemetry';
-import inject from '../core/kord/inject';
+import inject, { ifModuleEnabled } from '../core/kord/inject';
 import random from '../core/crypto/random';
 import { getConfigTs } from './time';
 
@@ -12,12 +14,12 @@ function msgSanitize(msg, channel) {
   }
   try {
     msg.ts = getConfigTs();
-  } catch(ee) {
-    return;
+  } catch (ee) {
+    return undefined;
   }
 
   if (!msg.ts) {
-    return;
+    return undefined;
   }
 
   msg['anti-duplicates'] = Math.floor(random() * 10000000);
@@ -26,9 +28,9 @@ function msgSanitize(msg, channel) {
 
 
 export default {
-  telemetry: function(payl) {
+  telemetry(payl) {
     if (!this.provider) {
-      utils.log("No telemetry provider loaded", "attrack");
+      utils.log('No telemetry provider loaded', 'attrack');
       return;
     }
 
@@ -38,10 +40,10 @@ export default {
       // and we need to do add meta data that humanweb added
       payl = msgSanitize(payl, this.channel);
       if (payl) {
-        return this.provider.action('sendTelemetry', payl);
+        ifModuleEnabled(this.provider.action('sendTelemetry', payl));
       }
     } else {
-      return this.provider.action('telemetry', payl);
+      ifModuleEnabled(this.provider.action('telemetry', payl));
     }
   },
 
@@ -50,16 +52,16 @@ export default {
   msgType: 'humanweb',
   channel: null,
 
-  loadFromProvider: function(provider, channel) {
-    utils.log("Load telemetry provider: "+ provider, "attrack");
+  loadFromProvider(provider, channel) {
+    utils.log(`Load telemetry provider: ${provider}`, 'attrack');
     this.providerName = provider;
     this.channel = channel;
     if (provider === 'platform') {
       this.telemetry = platformTelemetry.telemetry.bind(platformTelemetry);
       this.msgType = platformTelemetry.msgType;
       return Promise.resolve(this);
-    } else {
-      this.provider = inject.module(provider);
     }
+    this.provider = inject.module(provider);
+    return undefined;
   }
 };

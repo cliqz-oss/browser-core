@@ -1,13 +1,12 @@
 import utils from '../core/utils';
 import prefs from '../core/prefs';
-import console from '../core/console';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import inject from '../core/kord/inject';
 import { isPlatformAtLeastInVersion } from '../core/platform';
 import config from '../core/config';
 
 const DEVELOPER_FLAG_PREF = 'developer';
-const BLUE_THEME_PREF  = 'freshtab.blueTheme.enabled';
+const BLUE_THEME_PREF = 'freshtab.blueTheme.enabled';
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 
 /**
@@ -38,9 +37,9 @@ export default class Win {
   }
 
   toggleBlueThemeForFFTesting() {
-    const config = prefs.getObject(FRESHTAB_CONFIG_PREF);
-    const background = config.background || {};
-    
+    const freshTabConfig = prefs.getObject(FRESHTAB_CONFIG_PREF);
+    const background = freshTabConfig.background || {};
+
     if (prefs.get(BLUE_THEME_PREF, false) || !Object.keys(background).length) {
       this.theme.action('addBlueClass');
       prefs.set(BLUE_THEME_PREF, true);

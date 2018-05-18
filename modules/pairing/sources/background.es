@@ -2,6 +2,7 @@ import CliqzUtils from '../core/utils';
 import PeerSlave from './peer-slave';
 import YoutubeApp from './apps/youtube';
 import TabsharingApp from './apps/tabsharing';
+import BookmarksImportApp from './apps/bookmarks-import';
 import SimpleStorage from '../core/simple-storage';
 import PairingObserver from './apps/pairing-observer';
 import background from '../core/base/background';
@@ -16,7 +17,8 @@ export default background({
   init() {
     this.CustomizableUI = Components.utils.import('resource:///modules/CustomizableUI.jsm', null).CustomizableUI;
 
-    const PeerComm = this.peerSlave = new PeerSlave();
+    const PeerComm = new PeerSlave();
+    this.peerSlave = PeerComm;
 
     const youtube = new YoutubeApp(() => {});
     PeerComm.addObserver('YTDOWNLOADER', youtube);
@@ -72,6 +74,8 @@ export default background({
     uiObs.onmasterconnected = sendUI.bind(this, 'onPairingMasterConnected');
     uiObs.onmasterdisconnected = sendUI.bind(this, 'onPairingMasterDisconnected');
     PeerComm.addObserver('__UI__', uiObs);
+
+    PeerComm.addObserver('BOOKMARKS', new BookmarksImportApp(() => {}));
 
     this.storage = new CachedMap('pairing');
     return this.storage.init()
@@ -131,7 +135,7 @@ export default background({
 
     this.pageAction = new UrlbarButton({
       id: 'connect-sendtab',
-      title: getMessage('pairing-send-tab-to-mobile'),
+      title: getMessage('pairing_send_tab_to_mobile'),
       iconURL: 'chrome://cliqz/content/pairing/images/tab-icon.svg',
       _insertBeforeActionID: 'screenshots',
 
@@ -183,31 +187,29 @@ export default background({
     const selectedBrowser = window.gBrowser.getBrowserAtIndex(tabPos);
     const url = selectedBrowser.currentURI.spec;
     const title = window.gBrowser.tabs[tabPos].label;
-    const isPrivateWindow = CliqzUtils.isPrivate(window);
-    const isPrivateTab = selectedBrowser.loadContext.usePrivateBrowsing;
-    const isPrivate = isPrivateWindow || isPrivateTab;
+    const isPrivate = CliqzUtils.isPrivateMode(window);
 
     return { url, title, isPrivate };
   },
 
   sendTab(data) {
     this.peerSlave.getObserver('TABSHARING').sendTab([data], this.peerSlave.masterID)
-    .then(() => {
-      CliqzUtils.telemetry({
-        type: 'connect',
-        version: 1,
-        action: 'send_tab',
-        is_success: true,
+      .then(() => {
+        CliqzUtils.telemetry({
+          type: 'connect',
+          version: 1,
+          action: 'send_tab',
+          is_success: true,
+        });
+      })
+      .catch(() => {
+        CliqzUtils.telemetry({
+          type: 'connect',
+          version: 1,
+          action: 'send_tab',
+          is_success: false,
+        });
       });
-    })
-    .catch(() => {
-      CliqzUtils.telemetry({
-        type: 'connect',
-        version: 1,
-        action: 'send_tab',
-        is_success: false,
-      });
-    });
   },
 
   actions: {

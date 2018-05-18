@@ -6,23 +6,23 @@
 import console from '../console';
 
 export default class SimpleDB {
-
   //
   // @brief constructor
   // @param db  the database instance to use (pouchdb)
   //
-  constructor(db, logger = console) {
+  constructor(db, logger = console, contID = 'docData') {
     this.db = db;
+    this.contID = contID;
     this.logger = logger;
   }
 
   upsert(docID, docData) {
     return this.db.get(docID)
-      .catch(() => ({ _id: docID, docData: {} }))
+      .catch(() => ({ _id: docID, [this.contID]: {} }))
       .then(
         data => this.db.put({
           ...data,
-          docData: {
+          [this.contID]: {
             ...data.docData,
             ...docData,
           },
@@ -32,7 +32,7 @@ export default class SimpleDB {
 
   get(docID) {
     return this.db.get(docID)
-      .then(doc => doc.docData)
+      .then(doc => doc[this.contID])
       .catch((err) => {
         if (err && err.status && err.status !== 404) {
           this.logger.error(`getDocData: error getting doc ${docID} with err: `, err);

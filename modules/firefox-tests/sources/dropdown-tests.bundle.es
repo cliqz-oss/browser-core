@@ -1,37 +1,59 @@
-/* global describe, TESTS, DEPS, getModule */
-/* eslint func-names: ["error", "never"] */
-/* eslint prefer-arrow-callback: "off" */
-
-import chai from 'chai';
-import chaiDom from 'chai-dom';
+/* global TESTS */
 
 import adultQuestionTests from './tests/dropdown/adult-question';
-import adultQuestionIntegrationTests from './tests/dropdown/adult-question-integration';
+import autocompletionAfterBackspaceTests from './tests/dropdown/autocompletion/after-backspace';
+import autocompletionBackendTests from './tests/dropdown/autocompletion/backend';
+import autocompletionBackendAndHistoryTests from './tests/dropdown/autocompletion/backend-and-history';
+import autocompletionHappensOnceTests from './tests/dropdown/autocompletion/happens-once';
+import autocompletionHistoryTests from './tests/dropdown/autocompletion/history';
+import backspaceTests from './tests/dropdown/keyboard-navigation/backspace';
 import bigMachineWithButtonsTests from './tests/dropdown/big-machine-with-buttons';
 import bigMachineWithRichDataTests from './tests/dropdown/big-machine-rich-data';
 import calculatorTests from './tests/dropdown/calculator';
+import cinemaTests from './tests/dropdown/cinema';
+import cleanUrlBarValueTests from './tests/dropdown/clean-url-bar-value';
 import currencyConverterTests from './tests/dropdown/currency_converter';
 import defaultSearchEngineTests from './tests/dropdown/default-search-engine';
+import dialNumberTests from './tests/dropdown/dial-number';
 import flightsTests from './tests/dropdown/flights-template';
-import geoWithLocalTests from './tests/dropdown/geo_yes';
-import geoWithoutLocalTests from './tests/dropdown/geo_without_consent';
-import historyAndNewsTests from './tests/dropdown/history_and_news';
+import handlingUrlTests from './tests/dropdown/handling-url';
+import historyAndNewsTests from './tests/dropdown/history-and-news';
 import historyClusterTests from './tests/dropdown/history-cluster';
-import keyboardNavigationCalculatorTests from './tests/dropdown/keyboard-navigation-calculator';
-import keyboardNavigationCurrencyConverterTests from './tests/dropdown/keyboard-navigation-currency-converter';
-import keyboardNavigationTwoSimpleTests from './tests/dropdown/keyboard-navigation-two-simple';
-import keyboardNavigationTwoSimpleWithoutAutocompleteTests from './tests/dropdown/keyboard-navigation-two-simple-without-autocomplete';
-import keyboardNavigationUnitConverterTests from './tests/dropdown/keyboard-navigation-unit-converter';
+import historyDeletionTests from './tests/dropdown/keyboard-navigation/history-deletion';
+import historyEnrichmentButtonsTests from './tests/dropdown/history-enrichment/buttons';
+import historyEnrichmentCinemaTests from './tests/dropdown/history-enrichment/cinema';
+import historyEnrichmentNewsStoryTests from './tests/dropdown/history-enrichment/news-story';
+import historyEnrichmentNewsTests from './tests/dropdown/history-enrichment/news';
+import historyEnrichmentLottoTests from './tests/dropdown/history-enrichment/lotto';
+import historyEnrichmentRichDataTests from './tests/dropdown/history-enrichment/rich-data';
+import historyEnrichmentVideosTests from './tests/dropdown/history-enrichment/videos';
+import historyEnrichmentSoccerTests from './tests/dropdown/history-enrichment/soccer';
+import keyboardNavigationAdultTests from './tests/dropdown/keyboard-navigation/adult-question';
+import keyboardNavigationBmRichDataTests from './tests/dropdown/keyboard-navigation/bm-rich-data';
+import keyboardNavigationBmWithButtonsTests from './tests/dropdown/keyboard-navigation/bm-with-buttons';
+import keyboardNavigationCalculatorTypeTests from './tests/dropdown/keyboard-navigation/calculator-type';
+import keyboardNavigationCurrencyConverterTests from './tests/dropdown/keyboard-navigation/currency-converter';
+import keyboardNavigationFlightTypeTests from './tests/dropdown/keyboard-navigation/flight-type';
+import keyboardNavigationLottoTypeTests from './tests/dropdown/keyboard-navigation/lotto-type';
+import keyboardNavigationNewsTests from './tests/dropdown/keyboard-navigation/news';
+import keyboardNavigationNewsStoryTests from './tests/dropdown/keyboard-navigation/news-story';
+import keyboardNavigationSoccerGameTests from './tests/dropdown/keyboard-navigation/soccer-game';
+import keyboardNavigationSoccerGroupTests from './tests/dropdown/keyboard-navigation/soccer-group';
+import keyboardNavigationSimpleWithAutocompleteTests from './tests/dropdown/keyboard-navigation/simple-with-autocomplete';
+import keyboardNavigationSimpleWithoutAutocompleteTests from './tests/dropdown/keyboard-navigation/simple-without-autocomplete';
+import keyboardNavigationWeatherTests from './tests/dropdown/keyboard-navigation/weather';
+import keyboardNavigationVideosTests from './tests/dropdown/keyboard-navigation/videos';
+import localTests from './tests/dropdown/local';
 import lotto6Aus49Tests from './tests/dropdown/lotto_6aus49';
 import lottoEurojackpotTests from './tests/dropdown/lotto_eurojackpot';
 import lottoGluecksspiraleTests from './tests/dropdown/lottogluecksspirale';
 import lottoKenoTests from './tests/dropdown/lotto_keno';
-import movieCinema1Tests from './tests/dropdown/movie-cinema1';
-import movieCinema2Tests from './tests/dropdown/movie-cinema2';
+import movieTests from './tests/dropdown/movie';
+import movieShowtimesTests from './tests/dropdown/movie-showtimes';
 import newsTests from './tests/dropdown/news';
 import newsStoryTests from './tests/dropdown/news-story-of-the-day';
-import offersTests from './tests/dropdown/offers';
-import unitConverterTests from './tests/dropdown/unit-converter';
+import offersNonOrganicV2Tests from './tests/dropdown/offers/non-organic-v2';
+import offersNonOrganicStylesTests from './tests/dropdown/offers/non-organic-styles';
 import simpleTests from './tests/dropdown/simple';
 import soccerLigaGameTests from './tests/dropdown/soccer-liga-game';
 import soccerLigaGroupTests from './tests/dropdown/soccer-liga-group';
@@ -39,81 +61,96 @@ import soccerLigaGroup2Tests from './tests/dropdown/soccer-liga-group2';
 import soccerLigaTableTests from './tests/dropdown/soccer-liga-table';
 import soccerLiveTickerTests from './tests/dropdown/soccer-live-ticker';
 import suggestionsIntegrationTests from './tests/dropdown/suggestions-integration';
+import telemetryEmptyQueryTests from './tests/dropdown/telemetry/empty-query';
+import telemetryFullUrlTests from './tests/dropdown/telemetry/full-url';
+import telemetryNoDropdownTests from './tests/dropdown/telemetry/no-dropdown';
+import telemetrySearchEngineTests from './tests/dropdown/telemetry/search-engine';
+import telemetrySearchWithTests from './tests/dropdown/telemetry/search-with';
+import telemetryTwoSimpleWithAutocompleteTests from './tests/dropdown/telemetry/two-simple-with-autocomplete';
+import telemetryTwoSimpleWithoutAutocompleteTests from './tests/dropdown/telemetry/two-simple-without-autocomplete';
+import telemetryUrlbarTests from './tests/dropdown/telemetry/urlbar';
 import timeTests from './tests/dropdown/time';
-import twoSimpleTests from './tests/dropdown/two_simple';
+import unitConverterTests from './tests/dropdown/unit-converter';
 import weatherTests from './tests/dropdown/weather';
 import youtubeTests from './tests/dropdown/youtube';
 
-import newMixerNewsTests from './tests/dropdown/new-mixer/news';
-import newMixerHistoryAndNewsTests from './tests/dropdown/new-mixer/history_and_news';
-import newMixerHistoryClusterTests from './tests/dropdown/new-mixer/history-cluster';
-import newMixerLotto6Aus49Tests from './tests/dropdown/new-mixer/lotto_6aus49';
-import newMixerBigMachineWithButtonsTests from './tests/dropdown/new-mixer/big-machine-with-buttons';
-import newMixerLottoEurojackpotTests from './tests/dropdown/new-mixer/lotto_eurojackpot';
-import newMixerLottoKenoTests from './tests/dropdown/new-mixer/lotto_keno';
-import newMixerBigMachineWithRichDataTests from './tests/dropdown/new-mixer/big-machine-rich-data';
-
-chai.use(chaiDom);
-
-const oldMixerTests = [
-  historyAndNewsTests,
-  historyClusterTests,
-  newsTests,
-  lotto6Aus49Tests,
-  bigMachineWithButtonsTests,
-  lottoEurojackpotTests,
-  lottoKenoTests,
-  bigMachineWithRichDataTests,
-  adultQuestionIntegrationTests,
-  suggestionsIntegrationTests,
-  unitConverterTests,
-];
-const newMixerTests = [
-  newMixerNewsTests,
-  newMixerHistoryAndNewsTests,
-  newMixerHistoryClusterTests,
-  newMixerLotto6Aus49Tests,
-  newMixerBigMachineWithButtonsTests,
-  newMixerLottoEurojackpotTests,
-  newMixerLottoKenoTests,
-  newMixerBigMachineWithRichDataTests,
-];
-
-DEPS.DropdownTests = ['core/utils'];
-TESTS.DropdownTests = function (utils) {
-  const config = getModule('core/config').default;
-  const isOldMixer = utils.getPref('searchMode', 'autocomplete') === 'autocomplete';
-  const hasHistoryUrl = Boolean(config.settings.HISTORY_URL);
-  const isAskingForGeoConsent = config.settings.geolocation !== 'yes';
-  const sectionName = `dropdown (${isOldMixer ? 'old' : 'new'} mixer)`;
-  const mixerDependentTests = isOldMixer ? oldMixerTests : newMixerTests;
-  describe(sectionName, function () {
-    mixerDependentTests.forEach(test => test({ hasHistoryUrl }));
+TESTS.DropdownTests = function () {
+  describe('dropdown', function () {
+    describe('history enrichment', function () {
+      historyEnrichmentButtonsTests();
+      historyEnrichmentCinemaTests();
+      historyEnrichmentNewsStoryTests();
+      historyEnrichmentNewsTests();
+      historyEnrichmentLottoTests();
+      historyEnrichmentRichDataTests();
+      historyEnrichmentVideosTests();
+      historyEnrichmentSoccerTests();
+    });
+    describe('keyboard navigation', function () {
+      keyboardNavigationAdultTests();
+      keyboardNavigationBmRichDataTests();
+      keyboardNavigationBmWithButtonsTests();
+      keyboardNavigationCalculatorTypeTests();
+      keyboardNavigationCurrencyConverterTests();
+      keyboardNavigationFlightTypeTests();
+      keyboardNavigationLottoTypeTests();
+      keyboardNavigationNewsTests();
+      keyboardNavigationNewsStoryTests();
+      keyboardNavigationSoccerGameTests();
+      keyboardNavigationSoccerGroupTests();
+      keyboardNavigationSimpleWithAutocompleteTests();
+      keyboardNavigationSimpleWithoutAutocompleteTests();
+      keyboardNavigationVideosTests();
+      keyboardNavigationWeatherTests();
+    });
     adultQuestionTests();
+    autocompletionAfterBackspaceTests();
+    autocompletionBackendTests();
+    autocompletionBackendAndHistoryTests();
+    autocompletionHistoryTests();
+    autocompletionHappensOnceTests();
+    backspaceTests();
+    bigMachineWithButtonsTests();
+    bigMachineWithRichDataTests();
     calculatorTests();
+    cinemaTests();
+    cleanUrlBarValueTests();
     currencyConverterTests();
     defaultSearchEngineTests();
+    dialNumberTests();
     flightsTests();
-    geoWithLocalTests();
-    geoWithoutLocalTests({ isAskingForGeoConsent });
-    keyboardNavigationCalculatorTests();
-    keyboardNavigationCurrencyConverterTests();
-    keyboardNavigationTwoSimpleTests();
-    keyboardNavigationTwoSimpleWithoutAutocompleteTests();
-    keyboardNavigationUnitConverterTests();
+    handlingUrlTests();
+    historyAndNewsTests();
+    historyClusterTests();
+    historyDeletionTests();
+    localTests();
+    lotto6Aus49Tests();
+    lottoEurojackpotTests();
     lottoGluecksspiraleTests();
-    movieCinema1Tests({ isAskingForGeoConsent });
-    movieCinema2Tests();
+    lottoKenoTests();
+    movieTests();
+    movieShowtimesTests();
+    newsTests();
     newsStoryTests();
-    offersTests();
+    offersNonOrganicStylesTests();
+    offersNonOrganicV2Tests();
     simpleTests();
     soccerLigaGameTests();
     soccerLigaGroupTests();
     soccerLigaGroup2Tests();
     soccerLigaTableTests();
     soccerLiveTickerTests();
+    suggestionsIntegrationTests();
+    telemetryEmptyQueryTests();
+    telemetryFullUrlTests();
+    telemetryNoDropdownTests();
+    telemetrySearchEngineTests();
+    telemetrySearchWithTests();
+    telemetryTwoSimpleWithAutocompleteTests();
+    telemetryTwoSimpleWithoutAutocompleteTests();
+    telemetryUrlbarTests();
     timeTests();
-    twoSimpleTests();
+    unitConverterTests();
     weatherTests();
     youtubeTests();
   });

@@ -1,15 +1,12 @@
-import BaseResult from './base';
-import console from '../../core/console';
-import utils from '../../core/utils';
+import { Subresult } from './base';
 
-class LocalInfoResult extends BaseResult {
+class LocalInfoResult extends Subresult {
   get mapImg() {
     return this.rawResult.mapImg;
   }
 }
 
-class TextResult extends BaseResult {
-
+class TextResult extends Subresult {
   get textType() {
     return this.rawResult.textType;
   }
@@ -18,8 +15,8 @@ class TextResult extends BaseResult {
     return this.rawResult.text;
   }
 
-  click(window, href, ev) {
-    this.actions.copyToClipboard(this.rawResult.text);
+  click(href, ev) {
+    this.resultTools.actions.copyToClipboard(this.rawResult.text);
     const el = ev.target;
     el.classList.add('copied');
     setTimeout(() => {
@@ -28,8 +25,7 @@ class TextResult extends BaseResult {
   }
 }
 
-export class ShareLocationButton extends BaseResult {
-
+export class ShareLocationButton extends Subresult {
   get elementId() {
     if (!this._elementId) {
       const id = Math.floor(Math.random() * 1000);
@@ -58,15 +54,11 @@ export class ShareLocationButton extends BaseResult {
     this.spinner.className = 'spinner';
   }
 
-  click(window, href) {
+  click(href) {
     this.element.appendChild(this.spinner);
 
     const action = JSON.parse(href.split('cliqz-actions,')[1]);
-    const locationAssistant = this.actions.locationAssistant;
     const actionName = action.actionName;
-    if (!locationAssistant.hasAction(actionName)) {
-      return;
-    }
 
     const signal = {
       type: 'results',
@@ -75,20 +67,18 @@ export class ShareLocationButton extends BaseResult {
     };
     if (actionName === 'allowOnce') {
       signal.target = 'share_location_once';
-      utils.telemetry(signal);
+      this.resultTools.actions.telemetry(signal);
     } else if (actionName === 'allow') {
       signal.target = 'share_location_always';
-      utils.telemetry(signal);
+      this.resultTools.actions.telemetry(signal);
     }
 
-    locationAssistant[actionName]().then(() => {
-      this.rawResult.onButtonClick();
-    }).catch(console.error);
+    this.rawResult.onButtonClick(actionName);
   }
 }
 
 
-export default class LocalResult extends BaseResult {
+export default class LocalResult extends Subresult {
   get extra() {
     return this.rawResult.extra || {};
   }
@@ -100,14 +90,11 @@ export default class LocalResult extends BaseResult {
       return null;
     }
 
-    const addressResult = new TextResult({
+    return new TextResult(this, {
       url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: 'copyAddress' })}`,
       text: address,
       textType: 'local-address',
     });
-    addressResult.actions = this.actions;
-
-    return addressResult;
   }
 
   get phoneNumber() {
@@ -117,14 +104,11 @@ export default class LocalResult extends BaseResult {
       return null;
     }
 
-    const phoneResult = new TextResult({
+    return new TextResult(this, {
       url: `cliqz-actions,${JSON.stringify({ type: 'location', actionName: 'copyPhoneNumber' })}`,
       text: phone,
       textType: 'local-phone',
     });
-    phoneResult.actions = this.actions;
-
-    return phoneResult;
   }
 
   get mapImg() {
@@ -143,7 +127,7 @@ export default class LocalResult extends BaseResult {
   }
 
   get mapResult() {
-    return new LocalInfoResult({
+    return new LocalInfoResult(this, {
       url: this.mapUrl,
       title: 'show-map',
       text: this.rawResult.text,
@@ -167,18 +151,7 @@ export default class LocalResult extends BaseResult {
   }
 
   get distance() {
-    if (this.extra.lat && this.extra.lon) {
-      const distance = utils.distance(this.extra.lon, this.extra.lat) * 1000;
-      if (distance > -1) {
-        return distance;
-      }
-    }
-
-    if (this.extra.distance) {
-      return this.extra.distance;
-    }
-
-    return null;
+    return this.extra.distance;
   }
 
   get ratingImg() {
@@ -188,10 +161,10 @@ export default class LocalResult extends BaseResult {
     }
 
     const ratingStars = Math.max(0, Math.min(Math.round(rating), 5));
-    return `https://cdn.cliqz.com/extension/EZ/richresult/stars${ratingStars}.svg`;
+    return `${this.resultTools.assistants.settings.CDN_BASEURL}/extension/EZ/richresult/stars${ratingStars}.svg`;
   }
 
-  parseTime(timeStr) {  // e.g. timeStr: 10.30
+  parseTime(timeStr) { // e.g. timeStr: 10.30
     const time = timeStr.split('.');
     return {
       hours: parseInt(time[0], 10) || 0,

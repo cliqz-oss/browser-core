@@ -1,0 +1,126 @@
+@mixin top-notifications (
+    $box-size,
+    $box-height,
+    $content-max-width,
+
+    $close-bg
+){
+    #topNotificationBox {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        background-color: #F2F2F2;
+        box-shadow: rgba(0, 0, 0, 0.19) 0 1px 1px 0;
+
+        .top-notification-box {
+            margin: 0 auto;
+            width: $box-size;
+            font-size: 13.5px;
+            padding: 10px 0;
+            text-align: left;
+
+            &.notification {
+
+                &:after {
+                    clear: both;
+                    content: " ";
+                    display: block;
+                    font-size: 0;
+                    height: 0;
+                    visibility: hidden;
+                }
+            }
+
+            .close {
+                width: 29px;
+                height: 29px;
+                position: absolute;
+                right: 4px;
+                top: 9px;
+                cursor: pointer;
+                background: $close-bg;
+                opacity: 0.7;
+
+                &:hover {
+                    opacity: 1;
+                }
+            }
+
+            .content {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                float: left;
+                width: calc(100% - 90px);
+                color: #333;
+                background-size: contain;
+                background-repeat: no-repeat;
+                background-position: left top;
+                height: 60px;
+                width: 100%;
+
+                div:first-child {
+                    max-width: $content-max-width;
+
+                    h1, p {
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
+
+                    h1 {
+                        font-size: 16px;
+                        font-weight: 500;
+                        margin-bottom: 5px;
+                    }
+
+                    p {
+                        color: #767676;
+                    }
+                }
+
+                div:last-child {
+                    white-space: nowrap;
+
+                    button {
+                        font-size: 13px;
+                        padding: 10px 20px;
+                        cursor: pointer;
+                        border: 0;
+                        border: 1px solid #0078CA;
+                        border-radius: 3px;
+
+                        &:hover {
+                            border-color: #2B5993;
+                        }
+
+                        &.cta-btn {
+                            color: #fff;
+                            background-color: #0078CA;
+
+                            &:hover {
+                                background-color: #2B5993;
+                            }
+                        }
+
+                        &.later-btn {
+                            color: #0078CA;
+                            margin-left: 5px;
+                            background-color: transparent;
+                            font-weight: 500;
+
+                            &:hover {
+                                color: #2B5993;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        & ~ * {
+            margin-top: $box-height;
+        }
+    }
+}

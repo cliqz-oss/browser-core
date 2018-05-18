@@ -1,0 +1,21 @@
+.dialing-code {
+
+    .country-flag {
+        margin-left: 10px;
+        width: auto;
+        height: 13.5px;
+    }
+
+    p:first-child {
+        span {
+            font-size: 24px;
+            line-height: 32px;
+        }
+    }
+
+    p:last-child {
+        font-size: 11px;
+        line-height: 16px;
+        color: #999;
+    }
+}

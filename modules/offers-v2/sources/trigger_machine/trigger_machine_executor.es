@@ -4,11 +4,8 @@
 import MessageQueue from '../../core/message-queue';
 import logger from '../common/offers_v2_logger';
 import TriggerMachine from './trigger_machine';
-import OffersConfigs from '../offers_configs';
-import PersistentCacheDB from '../persistent_cache_db';
 
 export default class TriggerMachineExecutor {
-
   constructor(globObjs) {
     this.globObjs = globObjs;
     this.globObjs.trigger_machine_executor = this;
@@ -16,56 +13,18 @@ export default class TriggerMachineExecutor {
     this._processEvent = this._processEvent.bind(this);
     this.evtQueue = new MessageQueue('trigger-machine-queue', this._processEvent);
 
-    // here we need to create 2 new databases for the send_signal operation,
-    // this is very nasty and we should move it away after the refactorization
-    // for performance (put them on the send_signal operation object itself)
-    const urlDBconfigs = {
-      should_persist: OffersConfigs.SEND_SIG_OP_SHOULD_LOAD,
-      autosave_freq_secs: OffersConfigs.SEND_SIG_OP_AUTOSAVE_FREQ_SECS,
-      old_entries_dt_secs: OffersConfigs.SEND_SIG_OP_EXPIRATION_SECS
-    };
-    // we will store here:
-    // {
-    //  url: {
-    //    counter: N
-    //  }
-    // }
-    // since we can get the last_update value from the container
-    const urlSignalsDB = new PersistentCacheDB(this.globObjs.db, 'offers-signals-url', urlDBconfigs);
-    urlSignalsDB.loadEntries();
-    this.globObjs.url_signal_db = urlSignalsDB;
-
-    // we will store here the latest conversion that happened for a campaign id:
-    // {
-    //  cid: {
-    //    sig_name: {
-    //      counter: N,
-    //      l_u_ts: last timestamp happened.
-    //    }
-    //  }
-    // }
-    const lastCampaignSignalDB = new PersistentCacheDB(this.globObjs.db, 'offers-last-cmp-signals', urlDBconfigs);
-    lastCampaignSignalDB.loadEntries();
-    this.globObjs.last_campaign_signal_db = lastCampaignSignalDB;
-
     // the trigger machine
     this.triggerMachine = new TriggerMachine(this.globObjs);
 
     // callback
     this.processWatchReqCallback = this.processWatchReqCallback.bind(this);
+
+    // this run ID will be used to know if any of the triggers was already
+    // executed on a given pass or not
+    this.runCount = 0;
   }
 
   destroy() {
-    if (this.globObjs.url_signal_db) {
-      this.globObjs.url_signal_db.saveEntries();
-      this.globObjs.url_signal_db.destroy();
-      this.globObjs.url_signal_db = null;
-    }
-    if (this.globObjs.last_campaign_signal_db) {
-      this.globObjs.last_campaign_signal_db.saveEntries();
-      this.globObjs.last_campaign_signal_db.destroy();
-      this.globObjs.last_campaign_signal_db = null;
-    }
   }
 
   /**
@@ -74,7 +33,7 @@ export default class TriggerMachineExecutor {
    * @return {[type]}      [description]
    */
   processUrlChange(data, evtType = 'url') {
-    this.evtQueue.push({ evt_type: evtType, evt_data: data });
+    return this.evtQueue.push({ evt_type: evtType, evt_data: data });
   }
 
   /**
@@ -113,6 +72,8 @@ export default class TriggerMachineExecutor {
       return Promise.resolve(false);
     }
     const data = evtData.evt_data;
+    // increment the current running pass
+    this.runCount += 1;
     try {
       // we process the event now
       const ctx = {
@@ -121,11 +82,9 @@ export default class TriggerMachineExecutor {
         '#domain': data.url_data.getDomain(),
         '#url_data': data.url_data,
         // adding the referrer as context information
-        '#referrer': data.url_data.getReferrer()
+        '#referrer': data.url_data.getReferrerName(),
+        '#currentPass': this.runCount,
       };
-
-      // add the query handler info
-      ctx['#query_info'] = data.queryInfo;
 
       let trigger = null;
       if (data.trigger_id) {
@@ -141,6 +100,4 @@ export default class TriggerMachineExecutor {
     }
     return Promise.resolve(false);
   }
-
-
 }

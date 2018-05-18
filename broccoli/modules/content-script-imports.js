@@ -6,6 +6,7 @@ const config = require('../config');
 let fileContents = '';
 if (config.modules) {
   config.modules.forEach((moduleName) => {
+    if (moduleName === 'core') return;
     if (fs.existsSync(`modules/${moduleName}/sources/content.es`)) {
       fileContents += `import './${moduleName}/content';\n`;
     }

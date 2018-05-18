@@ -23,7 +23,6 @@ build/
 
 # external components
 node_modules
-bower_components
 firefox-autoconfigs
 
 *.scssc
@@ -46,3 +45,4 @@ jsengine.bundle.js
 jsengine.bundle.js.meta
 .node-persist
 yarn.lock
+configs/private

@@ -4,7 +4,14 @@
             <span class="dot" style="background-color: #{{logo.backgroundColor}}"></span>
         {{/if}}
         {{#each (take internalResults internalResultsLimit)}}
-            <a id="{{elementId}}" class="result btn {{className}}" data-url="{{ url }}" href="#">
+            <a
+                id="{{elementId}}"
+                class="result btn {{className}}"
+                data-url="{{ url }}"
+                {{#if displayUrl}}
+                    href="{{displayUrl}}"
+                {{/if}}
+            >
                 {{local (concatLocale ../localePrefix title)}}
             </a>
         {{/each}}

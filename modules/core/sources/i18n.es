@@ -1,4 +1,4 @@
-import { getLang } from '../platform/browser';
+import { getLocale } from '../platform/browser';
 import config from './config';
 import getLocaleObject from '../platform/locale-strings';
 import getSupportedLanguage from '../platform/language/supported-langs';
@@ -8,26 +8,25 @@ export const getLanguageFromLocale = locale => locale.match(/([a-z]+)(?:[-_]([A-
 const i18n = {
   locale: {},
   currLocale: '',
+  get PLATFORM_LOCALE() {
+    return getLocale();
+  },
+  get PLATFORM_LANGUAGE() {
+    return getLanguageFromLocale(this.PLATFORM_LOCALE);
+  },
   LOCALE_PATH: `${config.baseURL}static/locale`,
 };
 
 const getLocaleFile = (locale) => {
-  const url = `${i18n.LOCALE_PATH}/${locale}/cliqz.json`;
+  const url = `${i18n.LOCALE_PATH}/${locale}/messages.json`;
   // Warning - sync request
   const localeObject = getLocaleObject(url, locale);
   i18n.currLocale = locale;
-  i18n.locale.default = i18n.locale[locale] = localeObject;
+  i18n.locale.default = localeObject;
+  i18n.locale[locale] = localeObject;
 };
 
-const setLang = (locale) => {
-  const lang = getLanguageFromLocale(locale);
-  const supportedLang = getSupportedLanguage(lang);
-
-  i18n.PREFERRED_LANGUAGE = locale;
-  getLocaleFile(supportedLang);
-};
-
-const loadTranslation = () => setLang(getLang());
+const loadTranslation = () => getLocaleFile(getSupportedLanguage(i18n.PLATFORM_LANGUAGE));
 
 export function getMessage(key, substitutions = []) {
   if (!key) {

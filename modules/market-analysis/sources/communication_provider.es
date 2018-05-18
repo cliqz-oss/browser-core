@@ -1,4 +1,4 @@
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import config from '../core/config';
 import MAConfigs from './conf/ma_configs';
 import { getHpnTimeStamp } from './common/utils';
@@ -33,10 +33,12 @@ class CommunicationProvider {
     };
 
     const hpnStrSignal = JSON.stringify(hpnSignal);
-    utils.httpPost(this.endPointAddress,
-                  (succ) => { successCallback(signalObject, succ); },
-                   hpnStrSignal,
-                   (err) => { errCallback(signalObject, err); });
+    utils.httpPost(
+      this.endPointAddress,
+      (succ) => { successCallback(signalObject, succ); },
+      hpnStrSignal,
+      (err) => { errCallback(signalObject, err); }
+    );
     logger.log(`Sending signal to BE: ${hpnStrSignal}`);
   }
 }

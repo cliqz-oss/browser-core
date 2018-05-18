@@ -35,7 +35,7 @@ function getDaysFromTimeRange(startTS, endTS) {
 }
 
 function getTodayDayKey() {
-  return Number(moment().format('YYYYMMDD'));
+  return moment().format('YYYYMMDD');
 }
 
 function getDateFromDateKey(dateKey, hours = 0, min = 0, seconds = 0) {
@@ -51,8 +51,8 @@ function timestamp() {
 }
 
 export {
+  getDateFromDateKey,
   getDaysFromTimeRange,
   getTodayDayKey,
-  timestamp,
-  getDateFromDateKey
+  timestamp
 };

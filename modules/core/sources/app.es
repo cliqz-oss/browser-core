@@ -2,7 +2,7 @@ import config from './config';
 import events, { subscribe } from './events';
 import prefs from './prefs';
 import Module from './app/module';
-import { setGlobal } from './kord';
+import { setApp } from './kord';
 import console from './console';
 import utils from './utils';
 import { Window, mapWindows, forEachWindow, addWindowObserver,
@@ -10,6 +10,7 @@ import { Window, mapWindows, forEachWindow, addWindowObserver,
   setOurOwnPrefs, resetOriginalPrefs, enableChangeEvents,
   disableChangeEvents, waitWindowReady, addMigrationObserver, removeMigrationObserver,
   addSessionRestoreObserver, removeSessionRestoreObserver } from '../platform/browser';
+import Defer from './app/defer';
 
 function shouldEnableModule(name) {
   const pref = `modules.${name}.enabled`;
@@ -25,7 +26,6 @@ function shouldEnableModule(name) {
  * @class App
  */
 export default class App {
-
   /**
    * @constructor
    * @param {object} config
@@ -36,6 +36,10 @@ export default class App {
      */
     this.version = version;
     utils.VERSION = this.version;
+    /**
+     * @property {object} config
+     */
+    this.config = config;
     /**
      * @property {object} modules
      */
@@ -51,6 +55,8 @@ export default class App {
      */
     this.loadedWindows = new WeakSet();
 
+    this._startedDefer = new Defer();
+
     config.modules.forEach((moduleName) => {
       const module = new Module(
         moduleName,
@@ -63,10 +69,8 @@ export default class App {
       Object.assign(this.services, module.providedServices);
     });
 
-    this.debugModules = App.debugModules;
-
     utils.extensionVersion = version;
-    setGlobal(this);
+    setApp(this);
     this.isRunning = false;
     this.onMigrationEnded = (_, topic) => {
       if (topic === 'Migration:Ended') {
@@ -162,7 +166,7 @@ export default class App {
         return null;
       })
       .catch((e) => {
-        console.error(e, 'Extension filed loaded window modules');
+        console.error(e, 'Extension failed loaded window modules');
       });
   }
 
@@ -285,8 +289,8 @@ export default class App {
 
   enabledModules() {
     return config.modules
-    .map(name => this.modules[name])
-    .filter(module => module.isEnabled);
+      .map(name => this.modules[name])
+      .filter(module => module.isEnabled);
   }
 
   setupPrefs() {
@@ -300,7 +304,7 @@ export default class App {
 
       // Ensure prefs are set to our custom values
       /** Change some prefs for a better cliqzperience -- always do a backup! */
-      setOurOwnPrefs();
+      setOurOwnPrefs(this.version);
 
       if ('default_prefs' in config) {
         Object.keys(config.default_prefs).forEach((pref) => {
@@ -322,7 +326,14 @@ export default class App {
     return Promise.all(
       serviceNames.map(
         // service is initialized only once, so calling init multiple times is fine
-        serviceName => this.services[serviceName].init()
+        serviceName => this.services[serviceName].init().catch((e) => {
+          const error = new Error(`Service "${serviceName}" error`);
+          if (e) {
+            error.stack = e.stack;
+            error.message = e.message;
+          }
+          throw error;
+        })
       )
     );
   }
@@ -357,18 +368,9 @@ export default class App {
     const allModules = this.moduleList;
     const core = allModules.find(x => x.name === 'core');
     const modules = allModules.filter(x => x.name !== 'core' && shouldEnableModule(x.name));
-    const requiredServices = [...new Set(
-      modules
-        .map(m => m.requiredServices)
-        .reduce((all, s) => [...all, ...s], [])
-    )];
 
-    return this.prepareServices(requiredServices)
-      // do not break App startup on failing services, modules will have to
-      // deal with the problem as they like
-      .catch(e => console.log('App', 'error on loading services', e))
-      // we load core first before any other module
-      .then(() => this.loadModule(core))
+    // we load core first before any other module
+    return this.loadModule(core)
       // loading of modules should be paralellized as much as possible
       .then(() => {
         // do not return - we trigger module loading and let window loading to
@@ -376,9 +378,11 @@ export default class App {
         Promise.all(modules.map(x => this.loadModule(x)))
           .then(() => {
             console.log('App', 'Loading modules -- all loaded');
+            this._startedDefer.resolve();
           })
           .catch((e) => {
             console.error('App', 'Loading modules failed', e);
+            this._startedDefer.reject(e);
           });
       });
   }
@@ -404,6 +408,7 @@ export default class App {
     // TODO: remove Cliqz from window
     if (!window.CLIQZ) {
       const CLIQZ = {
+        config,
         startedAt: Date.now(),
         app: this,
         Core: { }, // TODO: remove and all clients
@@ -515,7 +520,8 @@ export default class App {
    * It sets the `modules.<moduleName>.enabled` pref to false. So if called
    * before startup, it will prevent module start.
    *
-   * @todo check this is working fine with new module loading
+   * It ruturns a Promsie but sideeffects synchronously.
+   * If module did not finish initilizaton it waits and then disable it.
    *
    * @method disableModule
    * @param {string} moduleName - name of a module
@@ -526,12 +532,24 @@ export default class App {
     prefs.set(`modules.${moduleName}.enabled`, false);
 
     if (module.isDisabled || !this.isRunning) {
-      return;
+      return Promise.resolve();
     }
 
-    // TODO: what if it was loading? Can we stop it?
+    const disable = () => {
+      forEachWindow(module.unloadWindow);
+      module.disable();
+    };
 
-    forEachWindow(module.unloadWindow.bind(module));
-    module.disable();
+    if (module.isEnabling) {
+      return module.isReady().then(disable);
+    }
+
+    disable();
+
+    return Promise.resolve();
+  }
+
+  ready() {
+    return this._startedDefer.promise;
   }
 }

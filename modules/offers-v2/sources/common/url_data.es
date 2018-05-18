@@ -1,30 +1,35 @@
-import { utils } from '../../core/cliqz';
-import tokenizeUrl from '../pattern-matching/pattern-utils';
+import utils from '../../core/utils';
+import tokenizeUrl from './pattern-utils';
+import { getGeneralDomain } from '../../core/tlds';
+
 /**
  * This class will be a wrapper containing the url information that will calculate
  * the data needed on demand. This way we can use one unique object containing
  * all the url information we need and share it between different operations
  */
 export default class UrlData {
-  constructor(rawUrl, referrer = null) {
+  constructor(rawUrl, referrerName = null) {
     if ((typeof rawUrl) !== 'string') {
       throw new Error('invalid raw url type');
     }
     this.rawUrl = rawUrl;
-    this.referrer = referrer;
+    this.referrerName = referrerName;
 
     // all the fields we will handle and share
     this.lowercaseUrl = null;
     this.urlDetails = null;
+    this.domain = null;
     this.patternsRequest = null;
+    // active categories to be shared on this url data
+    this.activatedCategoriesIDs = new Set();
   }
 
-  hasReferrer() {
-    return this.referrer !== null;
+  hasReferrerName() {
+    return this.referrerName !== null;
   }
 
-  getReferrer() {
-    return this.referrer;
+  getReferrerName() {
+    return this.referrerName;
   }
 
   getRawUrl() {
@@ -46,17 +51,24 @@ export default class UrlData {
   }
 
   getDomain() {
-    if (this.urlDetails === null) {
-      this.urlDetails = utils.getDetailsFromUrl(this.rawUrl);
+    if (this.domain === null) {
+      this.domain = getGeneralDomain(this.rawUrl);
     }
-    return this.urlDetails.domain;
+    return this.domain;
   }
 
   getPatternRequest() {
     if (this.patternsRequest === null) {
-      this.patternsRequest = tokenizeUrl(this.rawUrl);
+      this.patternsRequest = tokenizeUrl(this.getLowercaseUrl());
     }
     return this.patternsRequest;
   }
 
+  setActivatedCategoriesIDs(catIDsSet) {
+    this.activatedCategoriesIDs = catIDsSet;
+  }
+
+  getActivatedCategoriesIDs() {
+    return this.activatedCategoriesIDs;
+  }
 }

@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import CliqzUtils from '../core/utils';
 import { fromByteArray, sha256, encryptStringAES, decryptStringAES, toByteArray, deriveAESKey, randomBytes, generateRSAKeypair } from '../core/crypto/utils';
 import console from '../core/console';
@@ -86,6 +85,9 @@ export default class CliqzPairing {
 
   startPairing(slaveName = getDeviceName()) {
     if (this.status !== CliqzPairing.STATUS_UNPAIRED) {
+      if (this.status === CliqzPairing.STATUS_PAIRING) {
+        this.pairingRemaining = this.pairingTimeout;
+      }
       return;
     }
     this.setPairing(slaveName);
@@ -217,8 +219,8 @@ export default class CliqzPairing {
     const devices = this.devices.filter(x => t.indexOf(x.id) !== -1);
     const onlyCompress = devices.every(x => x.version >= 2);
     return this.checkMasterConnection() // TODO: we shouldn't do this for all messages, traffic!
-    .then(() => encryptPairedMessage(message, devices, onlyCompress))
-    .then(encrypted => this.peer.send(this.masterID, encrypted));
+      .then(() => encryptPairedMessage(message, devices, onlyCompress))
+      .then(encrypted => this.peer.send(this.masterID, encrypted));
   }
 
   static receiveEncrypted(data, aesKey) {
@@ -233,10 +235,10 @@ export default class CliqzPairing {
     if (this.randomToken) {
       const token = toByteArray(this.randomToken, 'b64');
       return deriveAESKey(token)
-      .then((key) => {
-        this.pairingAESKey = key;
-        return key;
-      });
+        .then((key) => {
+          this.pairingAESKey = key;
+          return key;
+        });
     }
     return Promise.reject(new Error('randomToken is null'));
   }
@@ -244,23 +246,23 @@ export default class CliqzPairing {
   onPairingMessage(data, label, peerID) {
     if (CliqzPeer.isPeerAuthenticated(peerID)) {
       this.loadPairingAESKey()
-      .then(pairingAESKey => CliqzPairing.receiveEncrypted(data, pairingAESKey))
-      .then((decrypted) => {
-        try {
-          if (decrypted.type === 'error') {
-            this.onerror(decrypted.code);
-            this.pairingMaster = peerID;
-          } else {
-            const { devices } = decrypted;
-            this.setPaired(peerID, devices);
+        .then(pairingAESKey => CliqzPairing.receiveEncrypted(data, pairingAESKey))
+        .then((decrypted) => {
+          try {
+            if (decrypted.type === 'error') {
+              this.onerror(decrypted.code);
+              this.pairingMaster = peerID;
+            } else {
+              const { devices } = decrypted;
+              this.setPaired(peerID, devices);
+            }
+          } catch (e) {
+            this.log('Error in pairing 1 ', e);
           }
-        } catch (e) {
-          this.log('Error in pairing 1 ', e);
-        }
-      })
-      .catch((e) => {
-        this.log('Error in pairing 2 ', e);
-      });
+        })
+        .catch((e) => {
+          this.log('Error in pairing 2 ', e);
+        });
     } else {
       this.log('ERROR: Peer is not authenticated');
     }
@@ -284,18 +286,18 @@ export default class CliqzPairing {
       if (Array.isArray(data)) {
         // This might cause out of order msgs (single msgs that are faster to decrypt)
         Promise.all(data.map(fromBase64).map(decMsg))
-        .catch((e) => {
-          errorDecrypting(e);
-          throw e;
-        })
-        .then(msgs => msgs.forEach(receiveMessage));
+          .catch((e) => {
+            errorDecrypting(e);
+            throw e;
+          })
+          .then(msgs => msgs.forEach(receiveMessage));
       } else {
         decMsg(data)
-        .catch((e) => {
-          errorDecrypting(e);
-          throw e;
-        })
-        .then(receiveMessage);
+          .catch((e) => {
+            errorDecrypting(e);
+            throw e;
+          })
+          .then(receiveMessage);
       }
     }
   }
@@ -426,13 +428,13 @@ export default class CliqzPairing {
 
   sendPairingMessage(masterID) {
     return this.loadPairingAESKey()
-    .then(pairingAESKey =>
-      CliqzPairing.sendEncrypted(
-        [this.publicKey, this.pairingName, this.version],
-        pairingAESKey,
-      ),
-    )
-    .then(encrypted => this.peer.send(masterID, encrypted));
+      .then(pairingAESKey =>
+        CliqzPairing.sendEncrypted(
+          [this.publicKey, this.pairingName, this.version],
+          pairingAESKey,
+        ),
+      )
+      .then(encrypted => this.peer.send(masterID, encrypted));
   }
 
   retryPairingName(deviceName) {
@@ -501,13 +503,13 @@ export default class CliqzPairing {
       this.peer.setMessageSizeLimit(this.maxMsgSize);
       this.peer.encryptSignaling = data =>
         this.loadPairingAESKey()
-        .then(aesKey => CliqzPairing.sendEncrypted(data, aesKey))
-        .catch(() => data);
+          .then(aesKey => CliqzPairing.sendEncrypted(data, aesKey))
+          .catch(() => data);
 
       this.peer.decryptSignaling = data =>
         this.loadPairingAESKey()
-        .then(aesKey => CliqzPairing.receiveEncrypted(data, aesKey))
-        .catch(() => data);
+          .then(aesKey => CliqzPairing.receiveEncrypted(data, aesKey))
+          .catch(() => data);
     });
   }
 

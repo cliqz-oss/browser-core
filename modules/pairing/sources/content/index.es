@@ -7,12 +7,12 @@ import checkIfChromeReady from './ready-promise';
 import PairingUI from './ui';
 
 function createSpananForModule(moduleName) {
-  return new Spanan(({ uuid, functionName, args }) => {
+  return new Spanan(({ uuid, action, args }) => {
     const message = {
       source: CHROME_MSG_SOURCE,
       target: 'cliqz',
       module: moduleName,
-      action: functionName,
+      action,
       requestId: uuid,
       args
     };
@@ -22,12 +22,15 @@ function createSpananForModule(moduleName) {
 
 class Cliqz {
   constructor() {
-    this.pairing = createSpananForModule('pairing').createProxy();
-    this.core = createSpananForModule('core').createProxy();
+    const pairingBridge = createSpananForModule('pairing');
+    const coreBridge = createSpananForModule('core');
+    const api = new Spanan();
+    this.pairing = pairingBridge.createProxy();
+    this.core = coreBridge.createProxy();
 
     const UI = new PairingUI(window, this.pairing, this.core.sendTelemetry.bind(this.core));
 
-    Spanan.export({
+    api.export({
       onPairingInit(message) {
         UI.oninit(message);
       },
@@ -53,12 +56,10 @@ class Cliqz {
       filter(message) {
         return Object.keys(this.actions).indexOf(message.action) >= 0;
       },
-      transform: message =>
-        ({
-          action: message.action,
-          args: [message.message],
-        })
-      ,
+      transform: message => ({
+        action: message.action,
+        args: [message.message],
+      }),
     });
 
     const onPostMessage = (event) => {
@@ -69,17 +70,22 @@ class Cliqz {
         return;
       }
 
-      Spanan.dispatch(message);
+      api.handleMessage(message);
+      coreBridge.handleMessage(message);
+      pairingBridge.handleMessage(message);
     };
 
     const onMessage = (message) => {
       if (!isCliqzContentScriptMsg(message)) {
         return;
       }
-      Spanan.dispatch({
+      const msg = {
         uuid: message.requestId,
-        returnedValue: message.response
-      });
+        response: message.response
+      };
+      api.handleMessage(msg);
+      coreBridge.handleMessage(msg);
+      pairingBridge.handleMessage(msg);
     };
 
     window.addEventListener('unload', () => {

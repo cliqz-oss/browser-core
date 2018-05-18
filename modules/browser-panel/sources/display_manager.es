@@ -2,12 +2,13 @@ import { forEachWindow } from '../platform/browser';
 import { queryActiveTabs } from '../core/tabs';
 import inject from '../core/kord/inject';
 import logger from './logger';
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 
 // /////////////////////////////////////////////////////////////////////////////
 // consts
 
 const MODULE_NAME = 'bp-display-mngr';
+const REAL_ESTATE_ID = 'browser-panel';
 
 
 function lwarn(msg) {
@@ -65,7 +66,7 @@ export default class DisplayManager {
         this.uiConnectorCb({
           handler: 'offers',
           data: {
-            origin: 'browser-panel',
+            origin: REAL_ESTATE_ID,
             type: 'offer-action-signal',
             data: {
               action_id: 'offer_dsp_session',
@@ -124,7 +125,7 @@ export default class DisplayManager {
       this.uiConnectorCb({
         handler: 'offers',
         data: {
-          origin: 'browser-panel',
+          origin: REAL_ESTATE_ID,
           type: 'offer-action-signal',
           data: {
             action_id: 'offer_timeout',
@@ -269,6 +270,4 @@ export default class DisplayManager {
       self._showElement(tabInfo.win, 'offerElement', elemData.data);
     });
   }
-
-
 }

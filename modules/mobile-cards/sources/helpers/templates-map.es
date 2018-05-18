@@ -14,21 +14,25 @@ import Lotto from '../components/extras/Lotto';
 import Weather from '../components/extras/Weather';
 import Currency from '../components/extras/Currency';
 import Local from '../components/extras/Local';
+import MovieData from '../components/extras/MovieData';
+import Cinema from '../components/extras/Cinema';
 import Movie from '../components/extras/Movie';
+import Flight from '../components/extras/Flight';
 
 
 export const headersMap = {
   images: Images,
   news: News,
   videos: Videos,
-}
+};
+
 export const footersMap = {
   social: Social,
   simple_links: SimpleLinks,
   buttons: SimpleLinks,
   download: Download,
   streaming: Streaming,
-}
+};
 
 export const extrasMap = {
   ligaEZ1Game: SoccerTeam,
@@ -41,8 +45,11 @@ export const extrasMap = {
   weatherEZ: Weather,
   currency: Currency,
   'local-data-sc': Local,
-  movie: Movie,
-}
+  movie: MovieData,
+  cinemaEZ: Cinema,
+  movieEZ: Movie,
+  flight: Flight,
+};
 
 
 // order

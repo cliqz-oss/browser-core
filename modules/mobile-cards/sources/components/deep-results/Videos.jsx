@@ -1,46 +1,8 @@
 import React from 'react';
-import { StyleSheet, Image, View, Text } from 'react-native';
-import Icon from '../partials/Icon';
+import { StyleSheet, View, Text } from 'react-native';
 import Link from '../Link';
-import { elementSideMargins, elementTopMargin, cardBorderRadius } from '../../styles/CardStyle';
-
-
-export default class extends React.Component {
-
-  constructor(props) {
-    super(props);
-  }
-
-  render() {
-    if (!this.props.data || !this.props.data.length) {
-      return null;
-    }
-    return <View style={styles.social} >
-      {this.props.data.slice(0, 3).map(this.displayLink)}
-    </View>
-  }
-
-  displayLink(link) {
-    const thumbnail = (link.extra && link.extra.thumbnail)
-          || 'https://cdn.cliqz.com/extension/EZ/news/no-image-mobile.png';
-    const nLines = 3;
-    return (
-      <Link to={link.url} key={link.url}>
-        <View style={styles.item}>
-          <Image
-            source={{uri: thumbnail}}
-            style={styles.image}
-            resizeMode={'cover'}
-          />
-          <View style={{ flexDirection: 'column', justifyContent: 'flex-start', marginLeft: 6 }}>
-            <Text style={styles.text} numberOfLines={nLines} adjustsFontSizeToFit minimumFontScale={0.2}>{link.title}</Text>
-          </View>
-        </View>
-      </Link>
-    );
-  }
-}
-
+import ExternalImage from '../custom/ExternalImage';
+import { elementSideMargins, elementTopMargin } from '../../styles/CardStyle';
 
 const styles = StyleSheet.create({
   social: {
@@ -58,12 +20,12 @@ const styles = StyleSheet.create({
   },
   image: {
     height: 60,
-    width: 65, //remember to change the right margin of text
-    ...cardBorderRadius,
+    width: 65,
+    borderRadius: 5,
   },
   text: {
     color: 'black',
-    marginRight: 65, //the width of the image
+    marginRight: 65, // the width of the image
     fontSize: 13,
     lineHeight: 20,
   },
@@ -72,3 +34,36 @@ const styles = StyleSheet.create({
     height: 20,
   }
 });
+
+export default class extends React.Component {
+  displayLink(link) {
+    const thumbnail = (link.extra && link.extra.thumbnail)
+          || 'https://cdn.cliqz.com/extension/EZ/news/no-image-mobile.png';
+    const nLines = 3;
+    return (
+      <Link to={link.url} key={link.url}>
+        <View style={styles.item}>
+          <ExternalImage
+            source={{ uri: thumbnail }}
+            style={styles.image}
+            resizeMode={'cover'}
+          />
+          <View style={{ flexDirection: 'column', justifyContent: 'flex-start', marginLeft: 6 }}>
+            <Text style={styles.text} numberOfLines={nLines}>{link.title}</Text>
+          </View>
+        </View>
+      </Link>
+    );
+  }
+
+  render() {
+    if (!this.props.data || !this.props.data.length) {
+      return null;
+    }
+    return (
+      <View style={styles.social} >
+        {this.props.data.slice(0, 3).map(this.displayLink)}
+      </View>
+    );
+  }
+}

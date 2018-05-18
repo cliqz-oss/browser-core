@@ -1,19 +1,20 @@
+/* eslint func-names: 'off' */
+/* eslint prefer-arrow-callback: 'off' */
+
 import AttrackBG from './background';
-import { utils, events } from '../core/cliqz';
+import utils from '../core/utils';
+import events from '../core/events';
 import { URLInfo } from '../core/url-info';
 import inject from '../core/kord/inject';
-
-const CliqzUtils = utils;
-const CliqzEvents = events;
 
 function onLocationChange({ url, windowId, tabId }) {
   if (this.windowId !== windowId) {
     return;
   }
 
-  if(this.interval) { utils.clearInterval(this.interval); }
+  if (this.interval) { utils.clearInterval(this.interval); }
 
-  var counter = 8;
+  let counter = 8;
 
   this.updateBadge({ tabId, url });
 
@@ -28,7 +29,6 @@ function onLocationChange({ url, windowId, tabId }) {
 }
 
 export default class Win {
-
   constructor({ window, windowId }) {
     this.window = window;
     this.windowId = windowId;
@@ -40,8 +40,9 @@ export default class Win {
 
   init() {
     if (this.controlCenter.isEnabled()) {
-      this.onLocationChangeSubscription = events.subscribe("content:location-change",
-        ({ windowId, url, windowTreeInformation: { tabId }}) => this.onLocationChange({ windowId, url, tabId }));
+      this.onLocationChangeSubscription = events.subscribe('content:location-change',
+        ({ windowId, url, windowTreeInformation: { tabId } }) =>
+          this.onLocationChange({ windowId, url, tabId }));
       this.onTabSelect = events.subscribe('core:tab_select', this.onLocationChange);
     }
   }
@@ -60,20 +61,20 @@ export default class Win {
     if (AttrackBG.attrack.urlWhitelist.isWhitelisted(info.hostname)) {
       // do not display number if site is whitelisted
       return 0;
-    } else {
-      return info.cookies.blocked + info.requests.unsafe;
     }
+    return info.cookies.blocked + info.requests.unsafe;
   }
 
   updateBadge({ tabId, url }) {
-    AttrackBG.attrack.getTabBlockingInfo(tabId, url)
-      .then((info) => {
+    if (AttrackBG.attrack) {
+      AttrackBG.attrack.getTabBlockingInfo(tabId, url).then((info) => {
         this.controlCenter.windowAction(
           this.window,
           'setBadge',
           this.getBadgeData(info)
         );
       });
+    }
   }
 
   status() {
@@ -84,6 +85,15 @@ export default class Win {
         const hostname = url ? url.hostname : '';
         const isWhitelisted = AttrackBG.attrack.urlWhitelist.isWhitelisted(hostname);
         const enabled = utils.getPref('modules.antitracking.enabled', true) && !isWhitelisted;
+        let s;
+
+        if (enabled) {
+          s = 'active';
+        } else if (isWhitelisted) {
+          s = 'inactive';
+        } else {
+          s = 'critical';
+        }
 
         return {
           visible: true,
@@ -98,7 +108,7 @@ export default class Win {
           reload: info.reload || false,
           trackersList: info,
           ps,
-          state: enabled ? 'active' : (isWhitelisted ? 'inactive' : 'critical')
+          state: s
         };
       });
   }

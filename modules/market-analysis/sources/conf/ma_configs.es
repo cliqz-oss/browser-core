@@ -1,4 +1,4 @@
-import { utils } from '../../core/cliqz';
+import utils from '../../core/utils';
 
 const MAConfigs = {
 
@@ -6,7 +6,7 @@ const MAConfigs = {
   //  GLOBAL
   //------------------------------------------------------------
   // module version
-  CURRENT_VERSION: 0.6,
+  CURRENT_VERSION: 0.7,
 
   // cut-off value for url length
   // any url has length more than MAX_URL_LENGTH will be ignored
@@ -33,7 +33,7 @@ const MAConfigs = {
   SIGNALS_MA_TYPE: 'ma',
 
   // the version number of the market analysis signal structure that we are using
-  SIGNALS_VERSION: 0.6,
+  SIGNALS_VERSION: 0.7,
 
   // how often we want to check & send (if has) the signals to the backend
   // eg: 10 minutes: 10 * 60

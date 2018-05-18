@@ -1,7 +1,6 @@
 import config from '../core/config';
 
 class CryptoWorker {
-
   // the name is optional (it is only relevant for debugging)
   constructor(name) {
     this.worker = new Worker(`${config.baseURL}hpn/worker.bundle.js?name=${name || ''}`, { name });

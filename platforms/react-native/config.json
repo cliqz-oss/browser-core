@@ -1,6 +1,0 @@
-{
-  "bower_components": [
-    "es6-promise/es6-promise.js",
-    "core.js/client/core.js"
-  ]
-}

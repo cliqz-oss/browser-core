@@ -11,20 +11,23 @@ function reportClick(window, result) {
   events.pub('ui:click-on-url', {
     url: result.url,
     query: result.query,
-    rawResult: result.rawResult,
-    isPrivateWindow: utils.isPrivate(window),
+    rawResult: result,
+    isPrivateMode: utils.isPrivateMode(window),
     isPrivateResult: utils.isPrivateResultType(result.kind),
     isFromAutocompletedURL: false,
-    windowId: utils.getWindowID(window)
+    windowId: utils.getWindowID(window),
+    action: 'click',
+    target: 'context-menu',
   });
 }
 
 export default class ContextMenu {
   constructor(window, rootElement) {
     this.core = inject.module('core');
+    this.ui = inject.module('ui');
     this.window = window;
     this.rootElement = rootElement;
-    this.inPrivateWindow = utils.isPrivate(window);
+    this.inPrivateMode = utils.isPrivateMode(window);
     this.labels = this.getLocalizedStrings();
   }
 
@@ -33,13 +36,9 @@ export default class ContextMenu {
    * @public
    */
   show(result, { x, y }) {
-    const url = utils.cleanMozillaActions(result.url)[1];
-
-    HistoryManager.isBookmarked(url).then((isBookmarked) => {
-      const contextMenu = this.createMenu(result, url, isBookmarked);
-      utils.openPopup(contextMenu, {}, x, y);
-      dropdownContextMenuSignal({ action: 'open' });
-    });
+    const contextMenu = this.createMenu(result);
+    utils.openPopup(contextMenu, {}, x, y);
+    dropdownContextMenuSignal({ action: 'open' });
   }
 
   getLocalizedStrings() {
@@ -59,7 +58,9 @@ export default class ContextMenu {
     };
   }
 
-  createMenuItems(result, url, isBookmarked) {
+  createMenuItems(result) {
+    const url = result.historyUrl;
+    const isBookmarked = result.isBookmark;
     const labels = this.labels;
     const openedTabs = getTabsWithUrl(this.window, url);
     const isOpened = !!openedTabs.length;
@@ -77,16 +78,28 @@ export default class ContextMenu {
 
     const menuItems = [
       {
-        label: this.inPrivateWindow ? labels[`NEW_${PRIVATE_NAME}_TAB`] : labels.NEW_TAB,
-        command: this.openNewTab.bind(this, url, result),
+        label: this.inPrivateMode ? labels[`NEW_${PRIVATE_NAME}_TAB`] : labels.NEW_TAB,
+        command: this._open.bind(this, url, result, 'open_new_tab', {
+          isNewTab: true,
+          isNewWindow: false,
+          isPrivateWindow: false,
+        }),
       },
-      ...(this.inPrivateWindow ? [] : [{
+      ...(this.inPrivateMode ? [] : [{
         label: labels.NEW_WINDOW,
-        command: this.openNewWindow.bind(this, url, result),
+        command: this._open.bind(this, url, result, 'open_new_window', {
+          isNewTab: false,
+          isNewWindow: true,
+          isPrivateWindow: false,
+        }),
       }]),
       {
         label: labels[`NEW_${PRIVATE_NAME}_WINDOW`],
-        command: this.openInPrivateWindow.bind(this, url, result),
+        command: this._open.bind(this, url, result, 'open_private_window', {
+          isNewTab: false,
+          isNewWindow: false,
+          isPrivateWindow: true,
+        }),
       },
       {
         label: labels.COPY_URL,
@@ -104,14 +117,14 @@ export default class ContextMenu {
     return menuItems;
   }
 
-  createMenu(result, url, isBookmarked) {
+  createMenu(result) {
     const doc = this.window.document;
     const contextMenu = doc.createElement('menupopup');
 
     this.rootElement.appendChild(contextMenu);
     contextMenu.setAttribute('id', 'dropdownContextMenu');
 
-    this.createMenuItems(result, url, isBookmarked).forEach((item) => {
+    this.createMenuItems(result).forEach((item) => {
       const menuItem = doc.createElement('menuitem');
       menuItem.setAttribute('label', item.label);
       menuItem.addEventListener('command', item.command, false);
@@ -122,21 +135,10 @@ export default class ContextMenu {
     return contextMenu;
   }
 
-  openNewWindow(url, result) {
-    utils.openLink(this.window, url, false, true);
-    this.telemetry('open_new_window');
-    reportClick(this.window, result);
-  }
-
-  openNewTab(url, result) {
-    utils.openLink(this.window, url, true);
-    this.telemetry('open_new_tab');
-    reportClick(this.window, result);
-  }
-
-  openInPrivateWindow(url, result) {
-    utils.openLink(this.window, url, false, false, true);
-    this.telemetry('open_private_window');
+  _open(url, result, signalName, { isNewTab, isNewWindow, isPrivateWindow }) {
+    utils.openLink(this.window, url, isNewTab, isNewWindow, isPrivateWindow);
+    this.ui.windowAction(this.window, 'setUrlbarValue', url);
+    this.telemetry(signalName);
     reportClick(this.window, result);
   }
 
@@ -144,18 +146,22 @@ export default class ContextMenu {
     copyToClipboard(url);
   }
 
-  removeEntry(url, { query }, openedTabs = []) {
-    HistoryManager.removeFromHistory(url);
-    if (HistoryManager.isBookmarked(url)) {
-      HistoryManager.removeFromBookmarks(url);
-      this.telemetry('remove_from_history_and_bookmarks');
-    } else {
-      this.telemetry('remove_from_history');
-    }
-    if (openedTabs.length) {
-      openedTabs.forEach(tab => closeTab(this.window, tab));
-    }
-    this.core.action('refreshPopup', query);
+  removeEntry(url, { query, isBookmark }, openedTabs = []) {
+    HistoryManager.removeFromHistory(url, { strict: false })
+      .then(() => {
+        const telemetrySignal = isBookmark ? 'remove_from_history_and_bookmarks' : 'remove_from_history';
+        this.telemetry(telemetrySignal);
+        if (isBookmark) {
+          return HistoryManager.removeFromBookmarks(url);
+        }
+        return Promise.resolve();
+      })
+      .then(() => {
+        if (openedTabs.length) {
+          openedTabs.forEach(tab => closeTab(this.window, tab));
+        }
+        this.core.action('refreshPopup', query);
+      });
   }
 
   openFeedback(kind) {

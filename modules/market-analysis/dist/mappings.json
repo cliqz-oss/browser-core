@@ -314,17 +314,20 @@
     }
   },
   "aboutyou.de": {
-    "cat": "Clothing.Woman",
+    "cat": "Clothing",
     "regexes": {
-      "chk": [
-        "aboutyou\\.de.*checkout/success\\?cbd"
-      ],
-      "sho": [
-        "aboutyou\\.de.*warenkorb",
-        "co\\.aboutyou\\.de.*basket"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "aboutyou.de/warenkorb",
+        "co.aboutyou.de/basket/step",
+        "aboutyou.de/warenkorb/hinzugefuegt",
+        "aboutyou.de/warenkorb\\?quick"
+      ],
+      "tra": [
+        "aboutyou.de/checkout/success",
+        "co.aboutyou.de/basket/step2/success"
       ]
     }
   },
@@ -923,15 +926,22 @@
     }
   },
   "aliexpress.com": {
-    "cat": "eCommerce",
+    "cat": "Generalist",
     "regexes": {
-      "sho": [
-        "ru\\.aliexpress\\.com.*basket",
-        "coupon\\.aliexpress\\.com.*buyer/giftcard/buyergainedgiftcardlist\\.htm",
-        "coupon\\.aliexpress\\.com.*buyer/shoppingcoupon/listview\\.htm"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "shoppingcart.aliexpress.com/shopcart/shopcartdetail"
+      ],
+      "chk": [
+        "shoppingcart.aliexpress.com/order/confirm_order",
+        "shoppingcart.aliexpress.com/order/payonlineloading",
+        "shoppingcart.aliexpress.com/buynow/payonlineloading"
+      ],
+      "tra": [
+        "shoppingcart.aliexpress.com/order/payonlinesuccess",
+        "shoppingcart.aliexpress.com/buynow/payonlinesuccess"
       ]
     }
   },
@@ -1194,16 +1204,20 @@
     }
   },
   "alternate.de": {
-    "cat": "Electronics",
+    "cat": "Consumer Electronics",
     "regexes": {
-      "chk": [
-        "alternate\\.de.*html/checkout/paymentgateway/thx/thx\\.html"
-      ],
-      "sho": [
-        "alternate\\.de.*html/checkout/order\\.html"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "alternate.de/html/cart/",
+        "alternate.de/html/checkout/order.html"
+      ],
+      "chk": [
+        "alternate.de/html/checkout/paymentgateway/pay"
+      ],
+      "tra": [
+        "alternate.de/html/checkout/paymentgateway/thx/thx"
       ]
     }
   },
@@ -1245,30 +1259,36 @@
     }
   },
   "amazon.com": {
-    "cat": "eCommerce",
+    "cat": "Generalist",
     "regexes": {
-      "chk": [
-        "amazon\\.com.*gp/buy/thankyou/handlers/display\\.html\\?ie=utf8"
-      ],
-      "sho": [
-        "amazon\\.com.*checkout"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "amazon.com/gp/cart/view"
+      ],
+      "chk": [
+        "amazon.com/gp/buy/spc/handlers"
+      ],
+      "tra": [
+        "amazon.com/gp/buy/thankyou/handlers/display"
       ]
     }
   },
   "amazon.de": {
-    "cat": "eCommerce",
+    "cat": "Generalist",
     "regexes": {
-      "chk": [
-        "amazon\\.de.*thankyou/handlers/display\\.html\\?ie=utf8&asins=.*asins=.*asins=.*asins"
-      ],
-      "sho": [
-        "amazon\\.de.*checkout\\.html"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "amazon.de/gp/cart/view"
+      ],
+      "chk": [
+        "amazon.de/gp/buy/spc/handlers"
+      ],
+      "tra": [
+        "amazon.de/gp/buy/thankyou/handlers/display"
       ]
     }
   },
@@ -1386,16 +1406,22 @@
     }
   },
   "ao.de": {
-    "cat": "Electronics.Kitchen",
+    "cat": "Electronic Household Goods",
     "regexes": {
-      "chk": [
-        "ao\\.de.*c/kasse/bestellungdrucken"
-      ],
-      "sho": [
-        "ao\\.de.*c/warenkorb\\.aspx"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "ao.de/c/warenkorb"
+      ],
+      "chk": [
+        "ao.de/c/warenkorb.aspx#bezahlung",
+        "ao.de/c/checkout/paypalsubmission",
+        "ao.de/c/checkout"
+      ],
+      "tra": [
+        "ao.de/c/bestellungabgeschlossen",
+        "ao.de/c/kasse/bestellungdrucken"
       ]
     }
   },
@@ -1471,10 +1497,20 @@
     }
   },
   "apo-rot.de": {
-    "cat": "Pharmacy",
+    "cat": "Drugstores & Health",
     "regexes": {
       "v": [
         "."
+      ],
+      "sho": [
+        "apo-rot.de/index_cart"
+      ],
+      "chk": [
+        "apo-rot.de/index_schritt"
+      ],
+      "tra": [
+        "apo-rot.de/index_schritt6",
+        "apo-rot.de/index_schritt6_print"
       ]
     }
   },
@@ -1522,13 +1558,23 @@
     }
   },
   "apotal.de": {
-    "cat": "Pharmacy",
+    "cat": "Drugstores & Health",
     "regexes": {
-      "chk": [
-        "shop\\.apotal\\.de.*orderid=.*token=ec-.*payerid"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "shop.apotal.de/view/showcart"
+      ],
+      "chk": [
+        "shop.apotal.de/checkoutoptions",
+        "shop.apotal.de/quickanoncheckoutpayment"
+      ],
+      "tra": [
+        "shop.apotal.de/checksubmitordertype",
+        "shop.apotal.de/showorderpaypal",
+        "shop.apotal.de/sofortpayment",
+        "shop.apotal.de/quickanoncheckoutsubmit"
       ]
     }
   },
@@ -1615,16 +1661,19 @@
     }
   },
   "apple.com": {
-    "cat": "Telecommunication",
+    "cat": "Consumer Electronics",
     "regexes": {
-      "chk": [
-        "appleid\\.apple\\.com.*account/manage.*payment-method"
-      ],
-      "sho": [
-        "secure2\\.store\\.apple\\.com.*de/shop/checkout"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "apple.com/.*/shop/bag"
+      ],
+      "chk": [
+        "store.apple.com/.*/shop/checkout"
+      ],
+      "tra": [
+        "store.apple.com/.*/shop/checkout/thankyou"
       ]
     }
   },
@@ -1849,10 +1898,19 @@
     }
   },
   "asos.de": {
-    "cat": "Clothing.Woman",
+    "cat": "Clothing",
     "regexes": {
       "v": [
         "."
+      ],
+      "sho": [
+        "asos.de/basket/pgebasket"
+      ],
+      "chk": [
+        "asos.de/pgecheckout"
+      ],
+      "tra": [
+        "asos.de/pgeorderresult"
       ]
     }
   },
@@ -1903,16 +1961,21 @@
     }
   },
   "atp-autoteile.de": {
-    "cat": "Car.Spareparts",
+    "cat": "Cars & Motorcycles",
     "regexes": {
-      "chk": [
-        "atp-autoteile\\.de.*de/payment/thank-you"
-      ],
-      "sho": [
-        "atp-autoteile\\.de.*checkout"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "atp-autoteile.de/cart"
+      ],
+      "chk": [
+        "atp-autoteile.de/checkout/payment",
+        "atp-autoteile.de/checkout/summary",
+        "atp-autoteile.de/checkout/confirm"
+      ],
+      "tra": [
+        "atp-autoteile.de/order/finished/"
       ]
     }
   },
@@ -2521,18 +2584,19 @@
     }
   },
   "baby-walz.de": {
-    "cat": "Clothing.Kid",
+    "cat": "Toys & Baby",
     "regexes": {
-      "chk": [
-        "baby-walz\\.de.*payment:.*merchantsig",
-        "baby-walz\\.de.*de_de&merchantreference=paypal-payment:.*langid=-.*merchantsig=.*&skincode=.*catalogid=.*storeid",
-        "baby-walz\\.de.*de&merchantreference=paypal-payment:.*langid=-.*merchantsig=.*&skincode=.*catalogid=.*storeid=.*krypto"
-      ],
-      "sho": [
-        "baby-walz\\.de.*checkoutstepone\\?catalogid=.*urllangid=-.*orderid=.*langid=-.*step=.*storeid=.*"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "baby-walz.de/.*/warenkorb"
+      ],
+      "chk": [
+        "baby-walz.de/dmc_mb3_shoppingbasket_.*step/"
+      ],
+      "tra": [
+        "baby-walz.de/dmc_mb3_shoppingbasket_.*step/.*/warenkorb-bestellbestaetigung"
       ]
     }
   },
@@ -2634,20 +2698,20 @@
     }
   },
   "bader.de": {
-    "cat": "eCommerce",
+    "cat": "Generalist",
     "regexes": {
-      "chk": [
-        "bader\\.de.*profile_payment",
-        "bader\\.de.*meinbader/kontoverwaltung.*profile_payment_edit",
-        "bader\\.de.*payment"
-      ],
-      "sho": [
-        "bader\\.de.*warenkorb",
-        "bader\\.de.*meinbader/authentifizierung\\?token=.*checkout=true",
-        "bader\\.de.*warenkorb;jsessionid=.*apcpbdrhyb02"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "bader.de/warenkorb"
+      ],
+      "chk": [
+        "bader.de/bestellung/zahlung-und-lieferung",
+        "bader.de/bestellung/zusammenfassung"
+      ],
+      "tra": [
+        "bader.de/bestellung/bestaetigung"
       ]
     }
   },
@@ -3046,18 +3110,21 @@
     }
   },
   "baur.de": {
-    "cat": "Home.Furniture",
+    "cat": "Clothing",
     "regexes": {
-      "chk": [
-        "baur\\.de.*wfs/empiriecom-baurde-site/de_de/web/eur/orderprocess-payment"
-      ],
-      "sho": [
-        "baur\\.de.*basket",
-        "baur\\.de.*displaybasketmode=basket",
-        "baur\\.de.*auftrag\\?orderid=.*.*"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "baur.de/warenkorb"
+      ],
+      "chk": [
+        "baur.de/kasse/adresse",
+        "baur.de/kasse/lieferung",
+        "baur.de/kasse/zahlung"
+      ],
+      "tra": [
+        "baur.de/auftrag\\?orderid="
       ]
     }
   },
@@ -4285,19 +4352,21 @@
     }
   },
   "bonprix.de": {
-    "cat": "Clothing.Woman",
+    "cat": "Clothing",
     "regexes": {
-      "chk": [
-        "bonprix\\.de.*payment",
-        "bonprix\\.de.*lastcheck\\.htm\\?isapp=false&trackchatavailability=true&talkeventpage=zahlung&talkeventpagesource=payment"
-      ],
-      "sho": [
-        "bonprix\\.de.*completebackendlogin\\.htm\\?sourcepageclick=basket_zurkasse",
-        "bonprix\\.de.*delivery\\.htm\\?sourcepageclick=basket_zurkasse",
-        "bonprix\\.de.*delivery\\.htm\\?change=.*shipping-address"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "bonprix.de/cart"
+      ],
+      "chk": [
+        "bonprix.de/payment",
+        "bonprix.de/lastcheck"
+      ],
+      "tra": [
+        "bonprix.de/confirmation",
+        "bonprix.de/confirmationprint"
       ]
     }
   },
@@ -4414,14 +4483,14 @@
     }
   },
   "brands4friends.de": {
+    "cat": "Clothing",
     "regexes": {
-      "sho": [
-        "brands4friends\\.de.*checkout/products\\?execution=.*",
-        "brands4friends\\.de.*webshop/account/order",
-        "brands4friends\\.de.*webshop/login/secure"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "brands4friends.de/checkout/products\\?execution=",
+        "brands4friends.de/webshop/start"
       ]
     }
   },
@@ -4478,14 +4547,20 @@
     }
   },
   "breuninger.com": {
-    "cat": "Clothing.Woman",
+    "cat": "Clothing",
     "regexes": {
-      "sho": [
-        "breuninger\\.com.*puma-sneaker-basket",
-        "breuninger\\.com.*sneaker-basket"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "breuninger.com/cartpage"
+      ],
+      "chk": [
+        "breuninger.com/cartpaymentpage",
+        "breuninger.com/cartoverviewpage"
+      ],
+      "tra": [
+        "breuninger.com/thankyou"
       ]
     }
   },
@@ -4659,19 +4734,21 @@
     }
   },
   "buecher.de": {
-    "cat": "Book",
+    "cat": "Books, Movies, Music & Games",
     "regexes": {
-      "chk": [
-        "buecher\\.de.*go/order_order/shop_order_payment",
-        "buecher\\.de.*payment"
-      ],
-      "sho": [
-        "buecher\\.de.*cart_cart/cart_add_item/prod_id/.*ref=.*affmt=.*affmn",
-        "buecher\\.de.*change_address/.*receiver_object/shop_order_address",
-        "buecher\\.de.*shop_order"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "buecher.de/go/cart_cart/cart_show/",
+        "buecher.de/show/start/warenkorb/"
+      ],
+      "chk": [
+        "buecher.de/go/order_order/shop_order_payment/",
+        "buecher.de/go/order_order/shop_order_show/"
+      ],
+      "tra": [
+        "buecher.de/go/order_order/shop_order_finish/"
       ]
     }
   },
@@ -4873,15 +4950,21 @@
     }
   },
   "c-and-a.com": {
-    "cat": "Clothing.Woman",
+    "cat": "Clothing",
     "regexes": {
-      "sho": [
-        "c-and-a\\.com.*personaldataview\\?langid=-.*orderid=.*storeid=.*registeruser=true&iscartview=true&checkout-signup",
-        "c-and-a\\.com.*orderid=.*storeid=.*registeruser=true&iscartview=true&checkout-signup.*submit.*=registrieren",
-        "c-and-a\\.com.*langid=-.*orderid=.*storeid=.*registeruser=true&iscartview=true&checkout-signup.*submit"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "c-and-a.com/webapp/wcs/stores/servlet/shoppingcartdisplayview"
+      ],
+      "chk": [
+        "c-and-a.com/webapp/wcs/stores/servlet/paymentview",
+        "c-and-a.com/webapp/wcs/stores/servlet/summaryview"
+      ],
+      "tra": [
+        "c-and-a.com/webapp/wcs/stores/servlet/computoppaymentsuccess",
+        "c-and-a.com/webapp/wcs/stores/servlet/orderconfirmationview"
       ]
     }
   },
@@ -5055,10 +5138,19 @@
     }
   },
   "casando.de": {
-    "cat": "Construction.Furniture",
+    "cat": "DIY & Garden",
     "regexes": {
       "v": [
         "."
+      ],
+      "sho": [
+        "casando.de/cart/"
+      ],
+      "chk": [
+        "casando.de/bestellung/zahlung/"
+      ],
+      "tra": [
+        "casando.de/bestellung/vielendank/"
       ]
     }
   },
@@ -5658,31 +5750,38 @@
     }
   },
   "computeruniverse.net": {
+    "cat": "Consumer Electronics",
     "regexes": {
-      "sho": [
-        "computeruniverse\\.net.*secure/cart_steps\\.asp",
-        "computeruniverse\\.net.*community/login\\.asp\\?returl=/cart\\.asp"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "computeruniverse.net/cart.asp"
+      ],
+      "chk": [
+        "computeruniverse.net/secure/cart_steps.asp"
+      ],
+      "tra": [
+        "computeruniverse.net/secure/cart_steps.asp?action=saveorder"
       ]
     }
   },
   "comtech.de": {
-    "cat": "Electronics",
+    "cat": "Consumer Electronics",
     "regexes": {
-      "chk": [
-        "comtech\\.de.*checkout/index/success/payment",
-        "comtech\\.de.*index/success/payment",
-        "comtech\\.de.*payment_paypal/express"
-      ],
-      "sho": [
-        "comtech\\.de.*register/index/starget/checkout",
-        "comtech\\.de.*checkout/cart",
-        "comtech\\.de.*starget/checkout"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "comtech.de/checkout/cart"
+      ],
+      "chk": [
+        "comtech.de/checkout/confirm",
+        "comtech.de/account/payment/starget/checkout",
+        "comtech.de/amazonpaymentsadvanced"
+      ],
+      "tra": [
+        "comtech.de/checkout/index/success/payment"
       ]
     }
   },
@@ -5754,19 +5853,21 @@
     }
   },
   "conrad.de": {
-    "cat": "Electronics",
+    "cat": "Consumer Electronics",
     "regexes": {
-      "chk": [
-        "conrad\\.de.*de/checkout/confirmation\\.html",
-        "conrad\\.de.*de/checkout/confirmation"
-      ],
-      "sho": [
-        "conrad\\.de.*de/checkout/address\\.html",
-        "conrad\\.de.*de/checkout/login\\.html",
-        "conrad\\.de.*checkout/login\\.html\\?resource=/de/checkout/login\\.checkoutinit\\.html&.*login"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "conrad.de/de/cart"
+      ],
+      "chk": [
+        "conrad.de/de/checkout/paymentmethod",
+        "conrad.de/de/checkout/checkorder",
+        "conrad.de/de/checkout/checkorder/remit"
+      ],
+      "tra": [
+        "conrad.de/de/checkout/confirmation"
       ]
     }
   },
@@ -6103,18 +6204,20 @@
     }
   },
   "cyberport.de": {
-    "cat": "Electronics",
+    "cat": "Consumer Electronics",
     "regexes": {
-      "chk": [
-        "cyberport\\.de.*paymentmethod=.*orderid"
-      ],
-      "sho": [
-        "cyberport\\.de.*orderid",
-        "cyberport\\.de.*bestellung_pruefen\\.html",
-        "cyberport\\.de.*bestellungsdetails\\.html\\?orderid"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "cyberport.de/einkaufswagen"
+      ],
+      "chk": [
+        "cyberport.de/bestellung_pruefen",
+        "cyberport.de/zahlungsart"
+      ],
+      "tra": [
+        "cyberport.de/bestellbestaetigung"
       ]
     }
   },
@@ -6617,19 +6720,25 @@
     }
   },
   "dell.com": {
+    "cat": "Consumer Electronics",
     "regexes": {
-      "chk": [
-        "dell\\.com.*payment",
-        "dell\\.com.*thankyou",
-        "ecomm\\.euro\\.dell\\.com.*chkout5_thankyou\\.aspx\\?c=de&cs=dedhs1&itemtype=cfg&l"
-      ],
-      "sho": [
-        "dell\\.com.*de/dedhs1/article/esupport-order-support/shipping-and-delivery\\?.*ck",
-        "dell\\.com.*dedhs1/article/esupport-order-support/shipping-and-delivery\\?.*ck=mn",
-        "dell\\.com.*de/de/dedhs1/article/esupport-order-support/shipping-and-delivery"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "ecomm.euro.dell.com/dellstore/basket",
+        "dell.com/cart/"
+      ],
+      "chk": [
+        "financing.dell.com/payments/financing",
+        "dell.com/cart/de/de/rc1358131/payment/selectcategory/purchaseorder",
+        "dell.com/cart/de/de/rc1358131/review",
+        "ecomm.euro.dell.com/dellstore/chkout4_confirm"
+      ],
+      "tra": [
+        "ecomm.euro.dell.com/dellstore/chkout5_thankyou",
+        "dell.com/cart/de/de/rc1358131/thankyou",
+        "dell.com/cart/de/de/rc1072815/cart/printskuforthankyou"
       ]
     }
   },
@@ -7349,10 +7458,16 @@
     }
   },
   "docmorris.de": {
-    "cat": "Pharmacy",
+    "cat": "Drugstores & Health",
     "regexes": {
       "v": [
         "."
+      ],
+      "sho": [
+        "docmorris.de/cart"
+      ],
+      "chk": [
+        "docmorris.de/bestellen\\?execution="
       ]
     }
   },
@@ -7404,18 +7519,19 @@
     }
   },
   "douglas.de": {
-    "cat": "Cosmetics",
+    "cat": "Beauty",
     "regexes": {
-      "chk": [
-        "douglas\\.de.*douglas/checkout/orderconfirm\\.html\\?code=.*isalreadyregistered"
-      ],
-      "sho": [
-        "douglas\\.de.*request_serverport=.*flowexecutionurl=/douglas/checkout/checkout\\.html\\?execution",
-        "douglas\\.de.*douglas/checkout/checkout\\.html\\?execution=.*tel",
-        "douglas\\.de.*douglas/checkout/checkout\\.html\\?execution=.*deliveryaddress"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "douglas.de/douglas/viewbasket"
+      ],
+      "chk": [
+        "douglas.de/douglas/checkout/checkout"
+      ],
+      "tra": [
+        "douglas.de/douglas/checkout/orderconfirm"
       ]
     }
   },
@@ -7641,20 +7757,19 @@
     }
   },
   "druckerzubehoer.de": {
-    "cat": "Electronics.Printer.Ink",
+    "cat": "Consumer Electronics",
     "regexes": {
-      "chk": [
-        "druckerzubehoer\\.de.*retrieve&payment=paypal&utm_nooverride=.*step=.*token=ec-.*payerid=.*",
-        "druckerzubehoer\\.de.*action=retrieve&payment=paypal&utm_nooverride=.*step=.*token=ec-.*payerid",
-        "druckerzubehoer\\.de.*shop/order_process\\.php\\?step=.*payment=paypal"
-      ],
-      "sho": [
-        "druckerzubehoer\\.de.*action=order_details&orderid",
-        "druckerzubehoer\\.de.*shop/klarna_checkout\\.php",
-        "druckerzubehoer\\.de.*shop/klarna_checkout\\.php\\?login=error"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "druckerzubehoer.de/shop/cart_process"
+      ],
+      "chk": [
+        "druckerzubehoer.de/shop/order_process"
+      ],
+      "tra": [
+        "druckerzubehoer.de/shop/order_process.*payerid"
       ]
     }
   },
@@ -8281,20 +8396,21 @@
     }
   },
   "eis.de": {
-    "cat": "Sex.ToysAndClothing",
+    "cat": "Adult",
     "regexes": {
-      "chk": [
-        "eis\\.de.*retrieve&payment=paypal&utm_nooverride=.*step=.*token=ec-.*payerid=.*",
-        "eis\\.de.*action=retrieve&payment=paypal&utm_nooverride=.*step=.*token=ec-.*payerid",
-        "eis\\.de.*kasse\\?step=.*payment"
-      ],
-      "sho": [
-        "eis\\.de.*warenkorb",
-        "eis\\.de.*warenkorb/\\?api-url",
-        "eis\\.de.*kundenkonto/bestellstatus\\?order_token=.*"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "eis.de/warenkorb"
+      ],
+      "chk": [
+        "eis.de/kasse/klarna",
+        "eis.de/kasse.*payment"
+      ],
+      "tra": [
+        "eis.de/kasse/klarna?confirm=",
+        "eis.de/kasse.*token=.*payerid="
       ]
     }
   },
@@ -8499,19 +8615,20 @@
     }
   },
   "emp.de": {
-    "cat": "eCommerce",
+    "cat": "Clothing",
     "regexes": {
-      "chk": [
-        "secure\\.emp\\.de.*che_payment",
-        "secure\\.emp\\.de.*por_payment"
-      ],
-      "sho": [
-        "emp\\.de.*car_/.*checkout_wrapper",
-        "secure\\.emp\\.de.*che_finalize/.*checkout_wrapper",
-        "emp\\.de.*bestellungen/ord"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "emp.de/warenkorb/"
+      ],
+      "chk": [
+        "secure.emp.de/che_finalize/.*checkout_wrapper",
+        "secure.emp.de/che_payment/"
+      ],
+      "tra": [
+        "secure.emp.de/che_done/"
       ]
     }
   },
@@ -8831,18 +8948,20 @@
     }
   },
   "esprit.de": {
-    "cat": "Clothing.Woman",
+    "cat": "Clothing",
     "regexes": {
-      "chk": [
-        "esprit\\.de.*order/de/checkout/payment"
-      ],
-      "sho": [
-        "esprit\\.de.*warenkorb\\?camp=de_wt_aa_nl_60",
-        "esprit\\.de.*order/de/checkout/login",
-        "esprit\\.de.*order/de/checkout"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "esprit.de/warenkorb"
+      ],
+      "chk": [
+        "esprit.de/order/de/checkout/confirmation",
+        "esprit.de/order/de/checkout/checkoutpostprocess"
+      ],
+      "tra": [
+        "esprit.de/order/de/checkout/thanks"
       ]
     }
   },
@@ -8985,19 +9104,19 @@
     }
   },
   "europa-apotheek.com": {
-    "cat": "Pharmacy",
+    "cat": "Drugstores & Health",
     "regexes": {
-      "chk": [
-        "europa-apotheek\\.com.*checkout/complete\\.htm\\?.*order",
-        "europa-apotheek\\.com.*checkout/complete-print\\.htm\\?.*order=.*"
-      ],
-      "sho": [
-        "europa-apotheek\\.com.*checkout/cart\\.htm",
-        "europa-apotheek\\.com.*cart\\.htm\\?.*product=.*prescriptiontype=f&.*category=.*econdaadd=.*c_add.*ibu",
-        "europa-apotheek\\.com.*checkout/address\\.htm"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "europa-apotheek.com/checkout/cart"
+      ],
+      "chk": [
+        "europa-apotheek.com/checkout/confirm"
+      ],
+      "tra": [
+        "europa-apotheek.com/checkout/complete"
       ]
     }
   },
@@ -9909,18 +10028,21 @@
     }
   },
   "flaconi.de": {
-    "cat": "Cosmetics",
+    "cat": "Beauty",
     "regexes": {
-      "chk": [
-        "flaconi\\.de.*kasse/paypal"
-      ],
-      "sho": [
-        "flaconi\\.de.*warenkorb",
-        "flaconi\\.de.*benutzerkonto/bestellung-detail",
-        "flaconi\\.de.*crm=newsletter\\.bestaetigung\\.doi_1"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "flaconi.de/warenkorb/"
+      ],
+      "chk": [
+        "flaconi.de/kasse/",
+        "flaconi.de/kasse/paypal/",
+        "flaconi.de/kasse/bestellt/"
+      ],
+      "tra": [
+        "flaconi.de/kasse/paypal/bestellt/\\?paymentid"
       ]
     }
   },
@@ -10849,19 +10971,20 @@
     }
   },
   "galeria-kaufhof.de": {
-    "cat": "Clothing.Woman",
+    "cat": "Generalist",
     "regexes": {
-      "chk": [
-        "galeria-kaufhof\\.de.*checkout/payment",
-        "galeria-kaufhof\\.de.*checkout/confirmation"
-      ],
-      "sho": [
-        "galeria-kaufhof\\.de.*checkout/order",
-        "galeria-kaufhof\\.de.*checkout/cart",
-        "galeria-kaufhof\\.de.*checkout/shippingaddress"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "galeria-kaufhof.de/checkout/cart"
+      ],
+      "chk": [
+        "galeria-kaufhof.de/checkout/payment",
+        "galeria-kaufhof.de/checkout/lastcheck"
+      ],
+      "tra": [
+        "galeria-kaufhof.de/checkout/confirmation/"
       ]
     }
   },
@@ -11129,15 +11252,21 @@
     }
   },
   "gearbest.com": {
-    "cat": "Electronics",
+    "cat": "Generalist",
     "regexes": {
-      "sho": [
-        "cart\\.gearbest\\.com.*m-flow-a-cart\\.htm\\?token=ec-.*",
-        "order\\.gearbest\\.com.*checkout\\.htm",
-        "user\\.gearbest\\.com.*ru/my-orders\\.html"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "cart.gearbest.com/m-flow-a-cart"
+      ],
+      "chk": [
+        "order.gearbest.com/de/m-flow-a-checkout"
+      ],
+      "tra": [
+        "order.gearbest.com/de/m-flow-a-doexpresscheckoutpayment",
+        "cart.gearbest.com/de/m-flow-a-payok5",
+        "cart.gearbest.com/de/m-flow-a-cart.htm\\?token="
       ]
     }
   },
@@ -12136,18 +12265,21 @@
     }
   },
   "hagebau.de": {
-    "cat": "Hardware",
+    "cat": "DIY & Garden",
     "regexes": {
-      "chk": [
-        "hagebau\\.de.*checkout/confirmation"
-      ],
-      "sho": [
-        "hagebau\\.de.*checkout/login",
-        "hagebau\\.de.*basket",
-        "hagebau\\.de.*checkout/overview"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "hagebau.de/basket/"
+      ],
+      "chk": [
+        "hagebau.de/checkout/overview/",
+        "hagebau.de/checkout/payment/"
+      ],
+      "tra": [
+        "hagebau.de/checkout/confirmation/",
+        "hagebau.de/checkout/confirmation/print/"
       ]
     }
   },
@@ -12290,15 +12422,21 @@
     }
   },
   "happy-size.de": {
-    "cat": "Clothing.Shoes",
+    "cat": "Clothing",
     "regexes": {
-      "sho": [
-        "happy-size\\.de.*de/service/order-confirm/bestellbestaetigung_shop/segment/mein_konto&utm",
-        "happy-size\\.de.*happysize_de/service/order-confirm/bestellbestaetigung_shop/segment/mein_konto",
-        "happy-size\\.de.*service/order-confirm/bestellbestaetigung_shop/segment/mein_konto&utm_source"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "happy-size.de/webapp/wcs/stores/servlet/ajaxorderitemdisplayview"
+      ],
+      "chk": [
+        "happy-size.de/webapp/wcs/stores/servlet/ordershippingbillingview",
+        "happy-size.de/webapp/wcs/stores/servlet/paymentmethodsview",
+        "happy-size.de/webapp/wcs/stores/servlet/ordersummaryview"
+      ],
+      "tra": [
+        "happy-size.de/webapp/wcs/stores/servlet/orderokview"
       ]
     }
   },
@@ -12545,14 +12683,21 @@
     }
   },
   "heine.de": {
-    "cat": "Clothing.Woman",
+    "cat": "Clothing",
     "regexes": {
-      "sho": [
-        "heine\\.de.*ajaxorderitemdisplayview\\?catalogid=.*orderid=\\.&langid=-.*storeid=.*",
-        "heine\\.de.*vip-shopping\\?storeid=.*krypto"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "heine.de/einkaufstasche"
+      ],
+      "chk": [
+        "heine.de/webapp/wcs/stores/servlet/ordershippingbilling"
+      ],
+      "tra": [
+        "heine.de/webapp/wcs/stores/servlet/checkoutplacedorderview",
+        "heine.de/orderprocessserviceordersubmit",
+        "heine.de/checkoutprint\\?orderid"
       ]
     }
   },
@@ -12856,18 +13001,22 @@
     }
   },
   "hm.com": {
-    "cat": "Clothing.Woman",
+    "cat": "Clothing",
     "regexes": {
-      "chk": [
-        "pp\\.hm\\.com.*payment"
-      ],
-      "sho": [
-        "hm\\.com.*de/checkout/customerinfo/login",
-        "hm\\.com.*de/checkout/customerinfo/register",
-        "hm\\.com.*de/customer-service/shipping-and-delivery"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "hm.com/de/bag"
+      ],
+      "chk": [
+        "hm.com/de/checkout/ccpayment",
+        "pp.hm.com/paymentproxy/creditcardpayment"
+      ],
+      "tra": [
+        "pp.hm.com/paymentproxy/creditcardcnphmdesktopwebdone",
+        "hm.com/de/purchase",
+        "hm.com/de/orderconfirmation"
       ]
     }
   },
@@ -13012,20 +13161,19 @@
     }
   },
   "home24.de": {
-    "cat": "Construction.Store.Light",
+    "cat": "Furniture & Living",
     "regexes": {
-      "chk": [
-        "home24\\.de.*checkout/success\\?token=ec-.*payerid=.*",
-        "home24\\.de.*checkout/success",
-        "home24\\.de.*checkout/payment"
-      ],
-      "sho": [
-        "home24\\.de.*checkout/address",
-        "home24\\.de.*checkout/cart",
-        "home24\\.de.*checkout"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "home24.de/checkout/cart"
+      ],
+      "chk": [
+        "home24.de/checkout/payment"
+      ],
+      "tra": [
+        "home24.de/checkout/success"
       ]
     }
   },
@@ -13120,15 +13268,19 @@
     }
   },
   "hornbach.de": {
-    "cat": "Hardware",
+    "cat": "DIY & Garden",
     "regexes": {
-      "sho": [
-        "hornbach\\.de.*mvc/checkout\\?execution=.*",
-        "hornbach\\.de.*shop/mein-kundenkonto/meine-bestellungen\\.html\\?filterordertypera=true&filterordertypedv=true",
-        "hornbach\\.de.*mein-kundenkonto/meine-bestellungen\\.html\\?filterordertypera=true&filterordertypedv=true&filterorderstatusinprogress"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "hornbach.de/mvc/cart/cart"
+      ],
+      "chk": [
+        "hornbach.de/mvc/checkout\\?execution"
+      ],
+      "tra": [
+        "hornbach.de/mvc/checkout/confirmation\\?ordercode="
       ]
     }
   },
@@ -13329,19 +13481,16 @@
     }
   },
   "hp.com": {
-    "cat": "Electronics",
+    "cat": "Consumer Electronics",
     "regexes": {
-      "chk": [
-        "phc\\.hp\\.com.*hostpaymentiscs/card-payment\\.aspx",
-        "store\\.hp\\.com.*germanystore/merch/cart\\.aspx\\?paypal=confirm&token=ec-.*payerid=.*"
-      ],
-      "sho": [
-        "h22203\\.www2\\.hp\\.com.*suresupply/shoppingcart",
-        "store\\.hp\\.com.*germanystore/merch/cart\\.aspx\\?urlaction=cconfirm",
-        "store\\.hp\\.com.*cart"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "store.hp.com/germanystore/merch/cart"
+      ],
+      "tra": [
+        "store.hp.com/germanystore/merch/cart.*payerid="
       ]
     }
   },
@@ -13386,15 +13535,19 @@
     }
   },
   "hse24.de": {
-    "cat": "TVshop",
+    "cat": "Generalist",
     "regexes": {
-      "sho": [
-        "hse24\\.de.*de-site/de_de/-/eur/hse24_viewcheckout2-shippingaddress\\?currentprocess=checkout",
-        "hse24\\.de.*showbasketadd=basket_add&productrefid=.*hse24-masterrepository&typ=&trackingcode=&shopkurzname",
-        "hse24\\.de.*de-site/de_de/-/eur/hse24_viewcheckout2-login\\?currentprocess=checkout"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "hse24.de/.*/hse24_viewbasket-show"
+      ],
+      "chk": [
+        "hse24.de/.*/hse24_viewcheckout2-start"
+      ],
+      "tra": [
+        "hse24.de/.*/hse24_vieworder2-confirmation\\?orderid="
       ]
     }
   },
@@ -13778,15 +13931,20 @@
     }
   },
   "ikea.com": {
-    "cat": "Home.Furniture",
+    "cat": "Furniture & Living",
     "regexes": {
-      "sho": [
-        "ikea\\.com.*warenkorb&perfprelcalc=true&backurl=/de/de/catalog/products/.*&orderid=.*langid",
-        "ikea\\.com.*irworderitemdisplay\\?add=in.*den.*warenkorb&perfprelcalc=true&backurl=/de/de",
-        "ikea\\.com.*den.*warenkorb&perfprelcalc=true&backurl=/de/de/catalog/products/.*&orderid"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "ikea.com/webapp/wcs/stores/servlet/orderitemdisplay"
+      ],
+      "chk": [
+        "secure.ikea.com/webapp/wcs/stores/servlet/irworderreviewandpaymentview"
+      ],
+      "tra": [
+        "secure.ikea.com/webapp/wcs/stores/servlet/orderokview",
+        "secure.ikea.com/webapp/wcs/stores/servlet/irworderreceipt"
       ]
     }
   },
@@ -14629,12 +14787,19 @@
     }
   },
   "jacob.de": {
+    "cat": "Consumer Electronics",
     "regexes": {
-      "sho": [
-        "direkt\\.jacob\\.de.*checkout/data\\.html"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "jacob.de/checkout/warenkorb"
+      ],
+      "chk": [
+        "jacob.de/checkout/kasse"
+      ],
+      "tra": [
+        "jacob.de/checkout/fertig"
       ]
     }
   },
@@ -14647,10 +14812,20 @@
     }
   },
   "jago24.de": {
-    "cat": "Garden",
+    "cat": "Generalist",
     "regexes": {
       "v": [
         "."
+      ],
+      "sho": [
+        "jago24.de/warenkorb/"
+      ],
+      "chk": [
+        "jago24.de/index.php\\?cl=payment",
+        "jago24.de/index.php\\?cl=order"
+      ],
+      "tra": [
+        "jago24.de/index.php\\?cl=thankyou"
       ]
     }
   },
@@ -14671,15 +14846,22 @@
     }
   },
   "jako-o.de": {
-    "cat": "Clothing.Kid",
+    "cat": "Toys & Baby",
     "regexes": {
-      "sho": [
-        "jako-o\\.de.*warenkorb",
-        "jako-o\\.de.*warenkorb/delete/.*",
-        "jako-o\\.de.*warenkorb/paygatezahlunggueltig\\?len=.*data=.*"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "jako-o.de/warenkorb/anzeige"
+      ],
+      "chk": [
+        "jako-o.de/warenkorb/zahlungsartauswahl",
+        "jako-o.de/warenkorb/bestellbestaetigung",
+        "jako-o.de/warenkorb/paygatezahlunggueltig",
+        "jako-o.de/warenkorb/paygatezahlung/cc"
+      ],
+      "tra": [
+        "jako-o.de/warenkorb/thankyoupage"
       ]
     }
   },
@@ -15220,14 +15402,19 @@
     }
   },
   "karstadt.de": {
-    "cat": "Clothing.Fashion",
+    "cat": "Generalist",
     "regexes": {
-      "sho": [
-        "karstadt\\.de.*warenkorb\\?dwcont",
-        "karstadt\\.de.*on/demandware\\.store/sites-karstadt-site/de/order-show"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "karstadt.de/warenkorb"
+      ],
+      "chk": [
+        "karstadt.de/warenkorb\\?dwcont="
+      ],
+      "tra": [
+        "karstadt.de/warenkorb\\?dwcont=.*&payerid=.*"
       ]
     }
   },
@@ -15477,20 +15664,19 @@
     }
   },
   "kfzteile24.de": {
-    "cat": "Car.Spareparts",
+    "cat": "Cars & Motorcycles",
     "regexes": {
-      "chk": [
-        "kfzteile24\\.de.*index\\.cgi\\?rm=payment3&pm=pp&token=ec-.*payerid",
-        "kfzteile24\\.de.*cgi\\?rm=payment3&ktypnr=.*pm=pp&token=ec-.*payerid=.*",
-        "kfzteile24\\.de.*index\\.cgi\\?rm=payment3&ktypnr=.*pm=pp&token=ec-.*payerid"
-      ],
-      "sho": [
-        "kfzteile24\\.de.*warenkorb",
-        "kfzteile24\\.de.*login\\?comingfrom=shoppingcart",
-        "kfzteile24\\.de.*lastaction=d&section=shoppingcart"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "kfzteile24.de/warenkorb"
+      ],
+      "chk": [
+        "kfzteile24.de/index.cgi.*rm=payment"
+      ],
+      "tra": [
+        "kfzteile24.de/index.cgi.*rm=orderconfirmation.*orderid="
       ]
     }
   },
@@ -15802,15 +15988,23 @@
     }
   },
   "klingel.de": {
-    "cat": "Clothing.Shoes",
+    "cat": "Generalist",
     "regexes": {
-      "sho": [
-        "klingel\\.de.*orderid=.*storeid=.*orderitemid=.*url=https://www\\.klingel\\.de/ordercalculate\\?updateprices",
-        "klingel\\.de.*catalogid=.*errorviewname=ajaxorderitemdisplayview&orderid=\\.&langid=-.*storeid=.*url=ajaxorderitemdisplayview",
-        "klingel\\.de.*orderid"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "klingel.de/step/10/warenkorb-step1",
+        "klingel.de/webapp/wcs/stores/servlet/ajaxorderitemdisplayview",
+        "klingel.de/checkoutlogonview"
+      ],
+      "chk": [
+        "klingel.de/webapp/wcs/stores/servlet/ordershippingbillingview",
+        "klingel.de/webapp/wcs/stores/servlet/paymentmethodsview"
+      ],
+      "tra": [
+        "klingel.de/webapp/wcs/stores/servlet/ordersummaryview",
+        "klingel.de/webapp/wcs/stores/servlet/orderokview"
       ]
     }
   },
@@ -16938,20 +17132,22 @@
     }
   },
   "lidl.de": {
-    "cat": "Food.Supermarket",
+    "cat": "Groceries & Beverages",
     "regexes": {
-      "chk": [
-        "lidl\\.de.*de/checkout-payment/credit-card",
-        "lidl\\.de.*de/checkout-payment",
-        "lidl\\.de.*de/checkout/payment"
-      ],
-      "sho": [
-        "lidl\\.de.*de/checkout/address",
-        "lidl\\.de.*basket",
-        "lidl\\.de.*de/checkout"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "lidl.de/de/basket/contents",
+        "lidl.de/de/checkout/basket/contents"
+      ],
+      "chk": [
+        "lidl.de/de/checkout/payment",
+        "lidl.de/de/checkout/summary",
+        "lidl.de/de/checkout/summary-post"
+      ],
+      "tra": [
+        "lidl.de/de/checkoutconfirmed"
       ]
     }
   },
@@ -17045,15 +17241,20 @@
     }
   },
   "limango.de": {
-    "cat": "Clothing.Kid",
+    "cat": "Generalist",
     "regexes": {
-      "sho": [
-        "limango\\.de.*kontakt/center\\?orderid=.*",
-        "limango\\.de.*php\\?orderid=.*",
-        "limango\\.de.*login/\\?returnurl=https://checkout\\.limango\\.de"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "checkout.limango.de/"
+      ],
+      "chk": [
+        "checkout.limango.de/payment",
+        "checkout.limango.de/summary"
+      ],
+      "tra": [
+        "checkout.limango.de/success"
       ]
     }
   },
@@ -18223,15 +18424,19 @@
     }
   },
   "mediamarkt.de": {
-    "cat": "Electronics",
+    "cat": "Consumer Electronics",
     "regexes": {
-      "sho": [
-        "mediamarkt\\.de.*de/shop/umfrage-checkout\\.html",
-        "mediamarkt\\.de.*checkout",
-        "mediamarkt\\.de.*orderid=.*langid"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "mediamarkt.de/webapp/wcs/stores/servlet/multichanneldisplaybasket"
+      ],
+      "chk": [
+        "mediamarkt.de/webapp/wcs/stores/servlet/multichannelordersummary"
+      ],
+      "tra": [
+        "mediamarkt.de/webapp/wcs/stores/servlet/multichannelordersent"
       ]
     }
   },
@@ -18252,44 +18457,55 @@
     }
   },
   "medikamente-per-klick.de": {
+    "cat": "Drugstores & Health",
     "regexes": {
-      "chk": [
-        "medikamente-per-klick\\.de.*payment"
-      ],
-      "sho": [
-        "medikamente-per-klick\\.de.*orderid",
-        "medikamente-per-klick\\.de.*addordertocart/orderstatus\\?add_all"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "medikamente-per-klick.de/view/showcart"
+      ],
+      "chk": [
+        "medikamente-per-klick.de/checkoutoptions"
+      ],
+      "tra": [
+        "medikamente-per-klick.de/checksubmitordertype"
       ]
     }
   },
   "medimops.de": {
-    "cat": "Book.Used",
+    "cat": "Books, Movies, Music & Games",
     "regexes": {
-      "chk": [
-        "medimops\\.de.*index\\.php\\?cl=payment"
-      ],
-      "sho": [
-        "medimops\\.de.*mein-konto/\\?mxsourceurl=https://www\\.medimops\\.de/warenkorb",
-        "medimops\\.de.*warenkorb",
-        "medimops\\.de.*basket"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "medimops.de/warenkorb/"
+      ],
+      "chk": [
+        "medimops.de/bezahlung/",
+        "medimops.de/bestellzusammenfassung/"
+      ],
+      "tra": [
+        "medimops.de/vielendank/"
       ]
     }
   },
   "medion.com": {
-    "cat": "Electronics",
+    "cat": "Consumer Electronics",
     "regexes": {
-      "sho": [
-        "medion\\.com.*orderhistorydetail\\?orderid=.*",
-        "medion\\.com.*de/shop/orderhistorydetail\\?orderid=.*"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "medion.com/de/shop/showcart"
+      ],
+      "chk": [
+        "medion.com/de/shop/deliveryandpayment",
+        "medion.com/de/shop/summary"
+      ],
+      "tra": [
+        "medion.com/de/shop/confirmation"
       ]
     }
   },
@@ -18320,19 +18536,20 @@
     }
   },
   "medpex.de": {
-    "cat": "Pharmacy",
+    "cat": "Drugstores & Health",
     "regexes": {
-      "chk": [
-        "medpex\\.de.*order\\.do\\?method=setaddress&pk=.*type=payment&guided=false",
-        "medpex\\.de.*payment&guided=false"
-      ],
-      "sho": [
-        "medpex\\.de.*order\\.do\\?method=checkout&guided=true",
-        "medpex\\.de.*next=https://www\\.medpex\\.de/order\\.do\\?method=checkout&guided",
-        "medpex\\.de.*https://www\\.medpex\\.de/order\\.do\\?method=checkout&guided=true"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "medpex.de/cart.do"
+      ],
+      "chk": [
+        "medpex.de/paymentmode.do"
+      ],
+      "tra": [
+        "medpex.de/order.do",
+        "medpex.de/printorder"
       ]
     }
   },
@@ -18818,18 +19035,20 @@
     }
   },
   "mindfactory.de": {
+    "cat": "Consumer Electronics",
     "regexes": {
-      "chk": [
-        "mindfactory\\.de.*order_payment_method\\.php",
-        "mindfactory\\.de.*order_success\\.php"
-      ],
-      "sho": [
-        "mindfactory\\.de.*basket",
-        "mindfactory\\.de.*shopping_cart_print\\.php",
-        "mindfactory\\.de.*account_orders\\.php"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "mindfactory.de/shopping_cart"
+      ],
+      "chk": [
+        "mindfactory.de/order_payment_method",
+        "mindfactory.de/order_overview"
+      ],
+      "tra": [
+        "mindfactory.de/order_success"
       ]
     }
   },
@@ -18938,15 +19157,20 @@
     }
   },
   "misterspex.de": {
-    "cat": "OpticsAndGlasses",
+    "cat": "Glasses",
     "regexes": {
-      "sho": [
-        "misterspex\\.de.*de_de/-/eur/viewdata-start/.*jumptarget=vieworders-detail&orderid=.*",
-        "misterspex\\.de.*site/de_de/-/eur/viewdata-start/.*jumptarget=vieworders-detail&orderid",
-        "misterspex\\.de.*orderid=.*"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "misterspex.de/.*/viewdata-start/.*jumptarget=viewcart-view"
+      ],
+      "chk": [
+        "misterspex.de/.*/viewdata-start/.*jumptarget=viewcheckoutpayment-review"
+      ],
+      "tra": [
+        "misterspex.de/.*/viewdata-start/.*jumptarget=viewcheckoutreview-start",
+        "misterspex.de/.*/viewdata-start/.*jumptarget=viewcheckoutconfirmation-start&orderid="
       ]
     }
   },
@@ -20159,19 +20383,20 @@
     }
   },
   "mytheresa.com": {
-    "cat": "Clothing.Woman",
+    "cat": "Clothing",
     "regexes": {
-      "chk": [
-        "mytheresa\\.com.*payment",
-        "mytheresa\\.com.*de-de/checkout/onepage/success"
-      ],
-      "sho": [
-        "mytheresa\\.com.*de-de/checkout/cart",
-        "mytheresa\\.com.*de/checkout/cart",
-        "mytheresa\\.com.*en-de/checkout/cart"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "mytheresa.com/de-de/checkout/cart/"
+      ],
+      "chk": [
+        "mytheresa.com/de-de/checkout/onepage/index/.*payment",
+        "mytheresa.com/de-de/checkout/onepage/index/.*review"
+      ],
+      "tra": [
+        "mytheresa.com/de-de/checkout/onepage/success/"
       ]
     }
   },
@@ -20184,15 +20409,22 @@
     }
   },
   "mytoys.de": {
-    "cat": "Kids.Toys",
+    "cat": "Toys & Baby",
     "regexes": {
-      "sho": [
-        "checkout\\.mytoys\\.de.*checkout",
-        "checkout\\.mytoys\\.de.*checkout/orderhistory/filterby/6months/page/.*",
-        "checkout\\.mytoys\\.de.*checkout/editcontact"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "checkout.mytoys.de/checkout/basketoverview"
+      ],
+      "chk": [
+        "checkout.mytoys.de/checkout/orderoverview",
+        "checkout.mytoys.de/checkout/selectpayment",
+        "checkout.mytoys.de/checkout/payorder"
+      ],
+      "tra": [
+        "checkout.mytoys.de/jsp/ecash_frame",
+        "checkout.mytoys.de/checkout/lastplacedorder"
       ]
     }
   },
@@ -20941,19 +21173,20 @@
     }
   },
   "notebooksbilliger.de": {
-    "cat": "Electronics",
+    "cat": "Consumer Electronics",
     "regexes": {
-      "chk": [
-        "notebooksbilliger\\.de.*kasse\\?token=ec-.*",
-        "notebooksbilliger\\.de.*kasse/erfolgreich"
-      ],
-      "sho": [
-        "notebooksbilliger\\.de.*warenkorb",
-        "notebooksbilliger\\.de.*checkout",
-        "notebooksbilliger\\.de.*warenkorb/delete/.*"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "notebooksbilliger.de/warenkorb"
+      ],
+      "chk": [
+        "notebooksbilliger.de/kasse/zusammenfassung",
+        "notebooksbilliger.de/checkout_creditcard_3dsecure"
+      ],
+      "tra": [
+        "notebooksbilliger.de/kasse/erfolgreich"
       ]
     }
   },
@@ -21074,20 +21307,19 @@
     }
   },
   "obi.de": {
-    "cat": "Hardware",
+    "cat": "DIY & Garden",
     "regexes": {
-      "chk": [
-        "obi\\.de.*order-confirmation/;jsessionid=.*apcphybows2\\?ecm=.*",
-        "obi\\.de.*order-confirmation/;jsessionid=.*apcphybows1",
-        "obi\\.de.*order-confirmation/;jsessionid=.*apcphybows4"
-      ],
-      "sho": [
-        "obi\\.de.*customer-account/order-details/.*",
-        "obi\\.de.*customer-account/orders",
-        "obi\\.de.*checkout\\.html\\?execution=.*"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "bi.de/decom/cart"
+      ],
+      "chk": [
+        "obi.de/decom/checkout"
+      ],
+      "tra": [
+        "obi.de/decom/order-confirmation"
       ]
     }
   },
@@ -21660,15 +21892,19 @@
     }
   },
   "otto.de": {
-    "cat": "eCommerce",
+    "cat": "Generalist",
     "regexes": {
-      "sho": [
-        "otto\\.de.*checkout/order",
-        "otto\\.de.*order/checkout/order",
-        "otto\\.de.*basket"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "otto.de/order/basket"
+      ],
+      "chk": [
+        "otto.de/order/checkout"
+      ],
+      "tra": [
+        "otto.de/order/checkout/order/success/"
       ]
     }
   },
@@ -22204,15 +22440,20 @@
     }
   },
   "pearl.de": {
-    "cat": "ReviewComparison",
+    "cat": "Consumer Electronics",
     "regexes": {
-      "sho": [
-        "pearl\\.de.*cart_order_final\\.jsp\\?pdid1=nc1108&paogroup1=.*",
-        "pearl\\.de.*cart_order_final\\.jsp\\?pdid1",
-        "pearl\\.de.*cart_order_final\\.jsp"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "pearl.de/buy"
+      ],
+      "chk": [
+        "pearl.de/booking"
+      ],
+      "tra": [
+        "pearl.de/cart_order_final",
+        "pearl.de/afterbuy"
       ]
     }
   },
@@ -22313,19 +22554,19 @@
     }
   },
   "peterhahn.de": {
-    "cat": "Clothing.Woman",
+    "cat": "Clothing",
     "regexes": {
-      "chk": [
-        "peterhahn\\.de.*payment\\.php\\?cartid",
-        "peterhahn\\.de.*payment\\.php\\?cartid=.*error"
-      ],
-      "sho": [
-        "peterhahn\\.de.*checkout_address10",
-        "peterhahn\\.de.*recorealm=8_cartlayer&emcs0=.*emcs1=layer.*in.*den.*warenkorb.*gelegt",
-        "peterhahn\\.de.*html\\?recorealm=8_cartlayer&emcs0=.*emcs1=layer.*in.*den.*warenkorb"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "peterhahn.de/cart"
+      ],
+      "chk": [
+        "peterhahn.de/payment"
+      ],
+      "tra": [
+        "peterhahn.de/confirm"
       ]
     }
   },
@@ -22859,15 +23100,20 @@
     }
   },
   "pollin.de": {
-    "cat": "Electronics",
+    "cat": "Generalist",
     "regexes": {
-      "sho": [
-        "pollin\\.de.*shop/warenkorb\\.html",
-        "pollin\\.de.*shop/bestellung/adresse\\.html",
-        "pollin\\.de.*shop/bestellung/anmelden\\.html"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "pollin.de/shop/warenkorb"
+      ],
+      "chk": [
+        "pollin.de/shop/bestellung/bezahlen"
+      ],
+      "tra": [
+        "pollin.de/shop/bestellung/uebersicht",
+        "pollin.de/shop/bestellung/bestellvorgangabgeschlossen"
       ]
     }
   },
@@ -22969,18 +23215,19 @@
     }
   },
   "posterxxl.de": {
-    "cat": "Printing.Photo",
+    "cat": "Presents",
     "regexes": {
-      "chk": [
-        "payment\\.posterxxl\\.de.*paymentid=pay-.*payerid",
-        "payment\\.posterxxl\\.de.*api/public/payments\\.html\\?_sec",
-        "payment\\.posterxxl\\.de.*api/public/thankyou"
-      ],
-      "sho": [
-        "posterxxl\\.de.*warenkorb"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "posterxxl.de/warenkorb"
+      ],
+      "chk": [
+        "payment.posterxxl.de/api/public/payments"
+      ],
+      "tra": [
+        "payment.posterxxl.de/api/public/thankyou/paypal/"
       ]
     }
   },
@@ -23495,15 +23742,19 @@
     }
   },
   "quelle.de": {
-    "cat": "Electronics.Kitchen",
+    "cat": "Generalist",
     "regexes": {
-      "sho": [
-        "quelle\\.de.*warenkorb/\\?affiliateid=veinteractive&actionid=private&wkz=.*iwl=.*numsart=.*numsartpc=.*name",
-        "quelle\\.de.*orderid=.*",
-        "quelle\\.de.*mein-konto/meine-buchungen"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "quelle.de/.*/bv_viewbasket-view"
+      ],
+      "chk": [
+        "quelle.de/.*/bv_viewbasketsettings-view"
+      ],
+      "tra": [
+        "quelle.de/.*/bv_viewbasketcheckout-viewthk?orderid="
       ]
     }
   },
@@ -23534,15 +23785,21 @@
     }
   },
   "qvc.de": {
-    "cat": "TVshop",
+    "cat": "Generalist",
     "regexes": {
-      "sho": [
-        "qvc\\.de.*75_8-_-warenkorb&cm_sp=75_cs-_-75_8-_-warenkorb",
-        "qvc\\.de.*cm_sp=checkout-_-checkout-schnellkauf",
-        "qvc\\.de.*8-_-warenkorb&cm_sp=75_cs-_-75_8-_-warenkorb&keyword"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "qvc.de/webapp/wcs/stores/servlet/orderitemdisplay"
+      ],
+      "chk": [
+        "qvc.de/webapp/wcs/stores/servlet/singleshippingaddressview",
+        "qvc.de/webapp/wcs/stores/servlet/billingdetailsview",
+        "qvc.de/webapp/wcs/stores/servlet/orderdetailsview"
+      ],
+      "tra": [
+        "qvc.de/webapp/wcs/stores/servlet/orderokreceiptview"
       ]
     }
   },
@@ -23759,15 +24016,20 @@
     }
   },
   "real.de": {
-    "cat": "eCommerce",
+    "cat": "Groceries & Beverages",
     "regexes": {
-      "sho": [
-        "onlineshop\\.real\\.de.*emcs0=warenkorb.*popup&emcs1=warenkorb.*popup&emcs2=.*emcs3=.*",
-        "onlineshop\\.real\\.de.*warenkorb",
-        "onlineshop\\.real\\.de.*warenkorb\\?event=payback&form=paybackos&st=.*ispayback=true"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "onlineshop.real.de/warenkorb"
+      ],
+      "chk": [
+        "onlineshop.real.de/bestellung/zahlart",
+        "onlineshop.real.de/bestellung/zusammenfassung"
+      ],
+      "tra": [
+        "onlineshop.real.de/bestellung/bestaetigung"
       ]
     }
   },
@@ -23788,20 +24050,20 @@
     }
   },
   "rebuy.de": {
-    "cat": "Book",
+    "cat": "Consumer Electronics",
     "regexes": {
-      "chk": [
-        "rebuy\\.de.*checkout/payment",
-        "rebuy\\.de.*checkout/order/init-payment/id/.*",
-        "rebuy\\.de.*payment"
-      ],
-      "sho": [
-        "rebuy\\.de.*checkout/address",
-        "rebuy\\.de.*checkout/cart",
-        "rebuy\\.de.*checkout/order"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "rebuy.de/checkout/cart"
+      ],
+      "chk": [
+        "rebuy.de/checkout/payment",
+        "rebuy.de/checkout/overview"
+      ],
+      "tra": [
+        "rebuy.de/checkout/order/index/id/"
       ]
     }
   },
@@ -23852,19 +24114,21 @@
     }
   },
   "redcoon.de": {
-    "cat": "Electronics",
+    "cat": "Consumer Electronics",
     "regexes": {
-      "chk": [
-        "redcoon\\.de.*order-payment\\?token=ec-.*",
-        "redcoon\\.de.*order-payment"
-      ],
-      "sho": [
-        "redcoon\\.de.*basket/basket",
-        "redcoon\\.de.*order-summary",
-        "redcoon\\.de.*medium=where-to-buy&utm_campaign=cpc&xtor=cs3-.*"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "redcoon.de/basket"
+      ],
+      "chk": [
+        "redcoon.de/order-payment",
+        "redcoon.de/order-summary"
+      ],
+      "tra": [
+        "redcoon.de/order-confirm",
+        "redcoon.de/order-confirm\\?print=1"
       ]
     }
   },
@@ -23925,15 +24189,19 @@
     }
   },
   "reichelt.de": {
-    "cat": "Electronics",
+    "cat": "DIY & Garden",
     "regexes": {
-      "sho": [
-        "secure\\.reichelt\\.de.*action=.*paymenterror=ihr.*warenkorb.*ist.*leer",
-        "reichelt\\.de.*warenkorb/.*index\\.html\\?action",
-        "reichelt\\.de.*basket"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "reichelt.de/warenkorb/"
+      ],
+      "chk": [
+        "secure.reichelt.de/.*/index.html\\?action=.*"
+      ],
+      "tra": [
+        ""
       ]
     }
   },
@@ -24023,15 +24291,20 @@
     }
   },
   "reifendirekt.de": {
-    "cat": "Car.Tire",
+    "cat": "Cars & Motorcycles",
     "regexes": {
-      "sho": [
-        "reifendirekt\\.de.*cgi-bin/rshop\\.pl\\?cart_id=.*ranzahl=&dsco=.*cookie",
-        "reifendirekt\\.de.*rshop\\.pl\\?dsco=.*cart_id=.*cookie=psm_rd_de_shopzilla",
-        "reifendirekt\\.de.*cgi-bin/stationssuche\\.pl\\?dsco=.*cart_id=.*cookie=&s_p"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "reifendirekt.de/cgi-bin/rshop.pl"
+      ],
+      "chk": [
+        "reifendirekt.de/cgi-bin/rshop.pl\\?s=3",
+        "reifendirekt.de/cgi-bin/rshop.pl\\?s=4"
+      ],
+      "tra": [
+        "reifendirekt.de/cgi-bin//bestellbest"
       ]
     }
   },
@@ -24284,20 +24557,21 @@
     }
   },
   "reuter.de": {
-    "cat": "Construction.Furniture",
+    "cat": "Furniture & Living",
     "regexes": {
-      "chk": [
-        "reuter\\.de.*checkout/success",
-        "reuter\\.de.*checkout/payment",
-        "reuter\\.de.*checkout/confirmation"
-      ],
-      "sho": [
-        "reuter\\.de.*shopping/cart",
-        "reuter\\.de.*account/orders",
-        "reuter\\.de.*checkout/shipping"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "reuter.de/shopping/cart/"
+      ],
+      "chk": [
+        "reuter.de/checkout/payment/",
+        "reuter.de/checkout/confirmation/"
+      ],
+      "tra": [
+        "reuter.de/checkout/success/",
+        "reuter.de/print/order/"
       ]
     }
   },
@@ -24313,18 +24587,21 @@
     }
   },
   "rewe.de": {
-    "cat": "Food",
+    "cat": "Groceries & Beverages",
     "regexes": {
-      "chk": [
-        "shop\\.rewe\\.de.*checkout/confirmation"
-      ],
-      "sho": [
-        "shop\\.rewe\\.de.*checkout/basket",
-        "shop\\.rewe\\.de.*checkout/deliveryaddress",
-        "shop\\.rewe\\.de.*checkout/deliveryaddress/address/edit\\?selectedaddressid=.*"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "shop.rewe.de/checkout/basket"
+      ],
+      "chk": [
+        "shop.rewe.de/checkout/paymentoption",
+        "shop.rewe.de/checkout/confirmation"
+      ],
+      "tra": [
+        "shop.rewe.de/checkout/paymentcompletion/",
+        "shop.rewe.de/checkout/aftersale"
       ]
     }
   },
@@ -24882,13 +25159,21 @@
     }
   },
   "sanicare.de": {
-    "cat": "Pharmacy",
+    "cat": "Drugstores & Health",
     "regexes": {
-      "chk": [
-        "sanicare\\.de.*partyidaccess=.*username=&password=&orderid=.*token=ec-.*payerid=.*"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "sanicare.de/view/showcart"
+      ],
+      "chk": [
+        "sanicare.de/checkoutoptions",
+        "sanicare.de/checksubmitordertype",
+        "sanicare.de/quickanoncheckoutpayment"
+      ],
+      "tra": [
+        "sanicare.de/ordercomplete"
       ]
     }
   },
@@ -24958,15 +25243,20 @@
     }
   },
   "saturn.de": {
-    "cat": "Electronics",
+    "cat": "Consumer Electronics",
     "regexes": {
-      "sho": [
-        "saturn\\.de.*orderid=.*langid",
-        "saturn\\.de.*webapp/wcs/stores/servlet/multichannelmamyorderretoure\\?storeid=.*orderid=.*period",
-        "saturn\\.de.*webapp/wcs/stores/servlet/multichannelorderauthentication\\?storeid=.*orderid=.*langid=-.*"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "saturn.de/webapp/wcs/stores/servlet/multichanneldisplaybasket"
+      ],
+      "chk": [
+        "saturn.de/webapp/wcs/stores/servlet/multichannelpay",
+        "saturn.de/webapp/wcs/stores/servlet/multichannelordersummary"
+      ],
+      "tra": [
+        "saturn.de/webapp/wcs/stores/servlet/multichannelordersent"
       ]
     }
   },
@@ -25225,18 +25515,19 @@
     }
   },
   "schwab.de": {
-    "cat": "Clothing.Dirndl",
+    "cat": "Generalist",
     "regexes": {
-      "chk": [
-        "schwab\\.de.*payment"
-      ],
-      "sho": [
-        "schwab\\.de.*warenkorb",
-        "schwab\\.de.*schwabde-site/de_de/-/eur/displayproductinformation-cmsshopid\\?articleno=.*recommendation=basket1",
-        "schwab\\.de.*schwabde-site/de_de/-/eur/displayproductinformation-cmsshopid\\?articleno=.*recommendation=basket0"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "schwab.de/warenkorb/"
+      ],
+      "chk": [
+        "schwab.de/is-bin/intershop.enfinity/.*/viewbasketorder-confirm"
+      ],
+      "tra": [
+        "https://www.schwab.de/is-bin/intershop.enfinity/.*/viewbasketorder-print\\?orderid="
       ]
     }
   },
@@ -25515,17 +25806,18 @@
   "sheego.de": {
     "cat": "Clothing",
     "regexes": {
-      "chk": [
-        "sheego\\.de.*index\\.php\\?cl=payment",
-        "sheego\\.de.*index\\.php\\?cl=thankyou&sid=.*"
-      ],
-      "sho": [
-        "sheego\\.de.*basket",
-        "sheego\\.de.*warenkorb",
-        "sheego\\.de.*sourcecl=details&actcontrol=sh_details_delivery_basket_wishlist_buttons"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "sheego.de/warenkorb/"
+      ],
+      "chk": [
+        "sheego.de/index.php\\?cl=payment",
+        "sheego.de/index.php\\?cl=order"
+      ],
+      "tra": [
+        "sheego.de/index.php\\?cl=thankyou"
       ]
     }
   },
@@ -25595,18 +25887,21 @@
     }
   },
   "shop-apotheke.com": {
-    "cat": "Pharmacy",
+    "cat": "Drugstores & Health",
     "regexes": {
-      "chk": [
-        "shop-apotheke\\.com.*checkout/payment\\.htm"
-      ],
-      "sho": [
-        "shop-apotheke\\.com.*htm\\?checkout",
-        "shop-apotheke\\.com.*checkout/address\\.htm",
-        "shop-apotheke\\.com.*checkout/billing-address\\.htm"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "shop-apotheke.com/add-to-cart",
+        "shop-apotheke.com/cart"
+      ],
+      "chk": [
+        "shop-apotheke.com/checkout/payment",
+        "shop-apotheke.com/checkout/verification"
+      ],
+      "tra": [
+        "shop-apotheke.com/checkout/confirmation"
       ]
     }
   },
@@ -26149,16 +26444,19 @@
     }
   },
   "soliver.de": {
-    "cat": "Clothing.Woman",
+    "cat": "Clothing",
     "regexes": {
-      "chk": [
-        "soliver\\.de.*on/demandware\\.store/sites-soliverde-site/default/.*thankyou"
-      ],
-      "sho": [
-        "soliver\\.de.*on/demandware\\.store/sites-soliverde-site/default/cart-show"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "soliver.de/.*/cart-show"
+      ],
+      "chk": [
+        "soliver.de/.*/cart-show/"
+      ],
+      "tra": [
+        "soliver.de/.*/cov1submit-thankyou"
       ]
     }
   },
@@ -26570,16 +26868,20 @@
     }
   },
   "sportscheck.com": {
-    "cat": "Sport.Clothing",
+    "cat": "Sports & Outdoors",
     "regexes": {
-      "chk": [
-        "sportscheck\\.com.*jumptarget=viewrequisitioncheckoutfinish-orderconfirmation"
-      ],
-      "sho": [
-        "sportscheck\\.com.*enfinity/wfs/sportscheck-sportscheckde-site/de_de/-/eur/viewclubaccount-bookings"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "sportscheck.com/.*/viewdata-start"
+      ],
+      "chk": [
+        "sportscheck.com/.*/viewdata-start/.*viewrequisitioncheckoutpayment",
+        "sportscheck.com/.*/viewdata-start/.*viewrequisitioncheckoutfinish"
+      ],
+      "tra": [
+        "sportscheck.com/.*/viewdata-start/.*orderid=.*viewrequisitioncheckoutfinish-orderconfirmation"
       ]
     }
   },
@@ -27593,14 +27895,19 @@
     }
   },
   "tchibo.de": {
-    "cat": "eCommerce",
+    "cat": "Generalist",
     "regexes": {
-      "sho": [
-        "tchibo\\.de.*checkout\\?x",
-        "tchibo\\.de.*orderdetail\\?forcep=webshop&x"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "tchibo.de/cart"
+      ],
+      "chk": [
+        "tchibo.de/checkout"
+      ],
+      "tra": [
+        "tchibo.de/orderconfirm"
       ]
     }
   },
@@ -27984,20 +28291,13 @@
     }
   },
   "thalia.de": {
-    "cat": "Book.Audiobook",
+    "cat": "Books, Movies, Music & Games",
     "regexes": {
-      "chk": [
-        "ssl\\.thalia\\.de.*monitor=.*jumpid=.*orderid=.*currency=eur&amount=.*pm=paypal&acceptance=.*status",
-        "ssl\\.thalia\\.de.*jumpid=.*orderid=.*currency=eur&amount=.*pm=paypal&acceptance=.*status=.*cardno",
-        "ssl\\.thalia\\.de.*true&monitor=.*jumpid=.*orderid=.*currency=eur&amount=.*pm=paypal&acceptance"
-      ],
-      "sho": [
-        "thalia\\.de.*shop/hoerbuecher/warenkorb/add/\\?artikelid=.*hkft",
-        "thalia\\.de.*shop/filme/warenkorb",
-        "thalia\\.de.*shop/ebooks/warenkorb/add/\\?artikelid=.*hkft"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "thalia.de/shop/home/warenkorb/"
       ]
     }
   },
@@ -28112,20 +28412,19 @@
     }
   },
   "thomann.de": {
-    "cat": "Audio.InstrumentsAndEquipment",
+    "cat": "Hobbies & Leisure",
     "regexes": {
-      "chk": [
-        "thomann\\.de.*thankyou",
-        "thomann\\.de.*checkout_thankyou___thomann_loves_you_very_much\\.html",
-        "thomann\\.de.*de/checkout_thankyou___thomann_loves_you_very_much\\.html"
-      ],
-      "sho": [
-        "thomann\\.de.*de/basket",
-        "thomann\\.de.*ref=basket",
-        "thomann\\.de.*htm\\?ref=basket"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "thomann.de/de/basket"
+      ],
+      "chk": [
+        "thomann.de/de/checkout"
+      ],
+      "tra": [
+        "thomann.de/de/checkout_thankyou"
       ]
     }
   },
@@ -29656,14 +29955,19 @@
     }
   },
   "vente-privee.com": {
+    "cat": "Clothing",
     "regexes": {
-      "sho": [
-        "secure\\.de\\.vente-privee\\.com.*cart/summary",
-        "secure\\.de\\.vente-privee\\.com.*memberaccount/order/detail\\?operationcategoryid=.*orderid=.*",
-        "secure\\.de\\.vente-privee\\.com.*ns/de-de/cart/reopening-cart"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "secure.de.vente-privee.com/cart/"
+      ],
+      "chk": [
+        "secure.de.vente-privee.com/cart/summary"
+      ],
+      "tra": [
+        "secure.de.vente-privee.com/cart/confirmation/orders/"
       ]
     }
   },
@@ -30168,20 +30472,21 @@
     }
   },
   "voelkner.de": {
-    "cat": "Electronics",
+    "cat": "Generalist",
     "regexes": {
-      "chk": [
-        "voelkner\\.de.*checkout/success\\.html\\?orders_id=.*customers_id=.*sid=.*token=.*",
-        "voelkner\\.de.*html\\?orderid=.*currency=eur&amount=.*pm=paypal&acceptance=&status=.*cardno",
-        "voelkner\\.de.*.*&payid=.*ncerror=.*brand=paypal&ipcty=de&cccty=.*eci=.*cvccheck"
-      ],
-      "sho": [
-        "voelkner\\.de.*checkout/step3\\.html\\?token=.*",
-        "voelkner\\.de.*index\\.php\\?mp=checkout&file=login&action=process",
-        "voelkner\\.de.*checkout/step2\\.html"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "voelkner.de/main/shopping_cart"
+      ],
+      "chk": [
+        "voelkner.de/checkout/step1",
+        "voelkner.de/checkout/step2"
+      ],
+      "tra": [
+        "voelkner.de/checkout/success",
+        "voelkner.de/checkout/step3.html\\?orderid="
       ]
     }
   },
@@ -30686,15 +30991,20 @@
     }
   },
   "weltbild.de": {
-    "cat": "Book",
+    "cat": "Books, Movies, Music & Games",
     "regexes": {
-      "sho": [
-        "weltbild\\.de.*warenkorb",
-        "weltbild\\.de.*konto/login\\?target=/konto/bestellungen",
-        "weltbild\\.de.*konto/bestellungen"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "weltbild.de/warenkorb"
+      ],
+      "chk": [
+        "weltbild.de/bestellung/zahlen",
+        "weltbild.de/bestellung/uebersicht"
+      ],
+      "tra": [
+        "weltbild.de/bestellung/erfolgreich"
       ]
     }
   },
@@ -30770,15 +31080,20 @@
     }
   },
   "westfalia.de": {
-    "cat": "Hardware",
+    "cat": "Generalist",
     "regexes": {
-      "sho": [
-        "westfalia\\.de.*warenkorb",
-        "westfalia\\.de.*warenkorb/zahlung\\.php",
-        "westfalia\\.de.*warenkorb/danke\\.php\\?cmd=logout"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "westfalia.de/warenkorb/index.php"
+      ],
+      "chk": [
+        "westfalia.de/warenkorb/zahlung.php",
+        "westfalia.de/warenkorb/uebersicht.php"
+      ],
+      "tra": [
+        "westfalia.de/warenkorb/danke.php"
       ]
     }
   },
@@ -31110,15 +31425,20 @@
     }
   },
   "witt-weiden.de": {
-    "cat": "Clothing.Woman",
+    "cat": "Clothing",
     "regexes": {
-      "sho": [
-        "witt-weiden\\.de.*customerarea/customermyorders/orders\\.html",
-        "witt-weiden\\.de.*osecom-modal=checkout",
-        "witt-weiden\\.de.*viewname/service__service_bestellung/showstatic\\.html"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "witt-weiden.de/viewbasket"
+      ],
+      "chk": [
+        "witt-weiden.de/checkout/payment_shipping",
+        "witt-weiden.de/checkout/checkorder"
+      ],
+      "tra": [
+        "witt-weiden.de/thanks"
       ]
     }
   },
@@ -31706,18 +32026,19 @@
     }
   },
   "zalando-lounge.de": {
-    "cat": "Clothing.Fashion",
+    "cat": "Clothing",
     "regexes": {
-      "chk": [
-        "zalando-lounge\\.de.*checkout/success/index/ordernumber/.*",
-        "zalando-lounge\\.de.*checkout/payment"
-      ],
-      "sho": [
-        "zalando-lounge\\.de.*checkout/address",
-        "zalando-lounge\\.de.*checkout"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "zalando-lounge.de/checkout/"
+      ],
+      "chk": [
+        "zalando-lounge.de/checkout/payment"
+      ],
+      "tra": [
+        "zalando-lounge.de/checkout/success/index/ordernumber/"
       ]
     }
   },
@@ -31748,18 +32069,21 @@
     }
   },
   "zalando.de": {
-    "cat": "Clothing.Woman",
+    "cat": "Clothing",
     "regexes": {
-      "chk": [
-        "zalando\\.de.*checkout/success"
-      ],
-      "sho": [
-        "zalando\\.de.*basket",
-        "zalando\\.de.*checkout/address",
-        "zalando\\.de.*checkout"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "zalando.de/warenkorb/"
+      ],
+      "chk": [
+        "zalando.de/kasse/uebersicht/",
+        "zalando.de/kasse/zahlungsart/",
+        "zalando.de/kasse/adressen/"
+      ],
+      "tra": [
+        "zalando.de/kasse/bezahlt/"
       ]
     }
   },
@@ -31870,19 +32194,20 @@
     }
   },
   "zooplus.de": {
-    "cat": "Pet.Food",
+    "cat": "Pet Supply",
     "regexes": {
-      "chk": [
-        "zooplus\\.de.*checkout/payment\\.htm",
-        "zooplus\\.de.*checkout/finish\\.htm\\?paypal=success"
-      ],
-      "sho": [
-        "zooplus\\.de.*checkout",
-        "zooplus\\.de.*checkout/paymentrouter\\.htm",
-        "zooplus\\.de.*passwordreminder\\?target=checkout&type=rw"
-      ],
       "v": [
         "."
+      ],
+      "sho": [
+        "zooplus.de/checkout/overview"
+      ],
+      "chk": [
+        "zooplus.de/checkout/payment",
+        "zooplus.de/checkout/paymentrouter"
+      ],
+      "tra": [
+        "zooplus.de/checkout/finish"
       ]
     }
   },
@@ -32030,6 +32355,95 @@
       ],
       "v": [
         "."
+      ]
+    }
+  },
+  "elektroshopwagner.de": {
+    "cat": "Electronics",
+    "regexes": {
+      "v": [
+        "."
+      ],
+      "sho": [
+        "elektroshopwagner.de/shopping_cart"
+      ],
+      "chk": [
+        "elektroshopwagner.de/checkout_payment",
+        "elektroshopwagner.de/checkout_confirmation"
+      ],
+      "tra": [
+        "elektroshopwagner.de/checkout_success"
+      ]
+    }
+  },
+  "hellofresh.de": {
+    "cat": "Groceries & Beverages",
+    "regexes": {
+      "v": [
+        "."
+      ],
+      "sho": [
+        "hellofresh.de/tasty/basket"
+      ],
+      "chk": [
+        "hellofresh.de/checkout/finish/payments/sepa/",
+        "hellofresh.de/checkout/finish/payments/paypal/"
+      ],
+      "tra": [
+        "hellofresh.de/checkout/success"
+      ]
+    }
+  },
+  "auragentum.de": {
+    "cat": "Finance",
+    "regexes": {
+      "v": [
+        "."
+      ],
+      "sho": [
+        "auragentum.de/checkout/cart"
+      ],
+      "chk": [
+        "auragentum.de/checkout/shippingpayment/step/payment",
+        "auragentum.de/checkout/shippingpayment/step/versand"
+      ],
+      "tra": [
+        "auragentum.de/checkout/finish"
+      ]
+    }
+  },
+  "edelmetall-handel.de": {
+    "cat": "Finance",
+    "regexes": {
+      "v": [
+        "."
+      ],
+      "sho": [
+        "edelmetall-handel.de/checkout/cart/"
+      ],
+      "chk": [
+        "edelmetall-handel.de/onestepcheckout/"
+      ],
+      "tra": [
+        "edelmetall-handel.de/checkout/onepage/success/"
+      ]
+    }
+  },
+  "degussa-goldhandel.de": {
+    "cat": "Finance",
+    "regexes": {
+      "v": [
+        "."
+      ],
+      "sho": [
+        "shop.degussa-goldhandel.de/checkout/cart/"
+      ],
+      "chk": [
+        "goldgeschenke.degussa-goldhandel.de/checkout/onepage/"
+      ],
+      "tra": [
+        "goldgeschenke.degussa-goldhandel.de/paypal/standard/redirect/",
+        "goldgeschenke.degussa-goldhandel.de/checkout/onepage/success/"
       ]
     }
   }

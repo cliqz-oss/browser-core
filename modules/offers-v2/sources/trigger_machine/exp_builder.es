@@ -2,9 +2,7 @@ import logger from '../common/offers_v2_logger';
 import ContextExpression from './context_expr';
 import ValueExpression from './value_expr';
 import controlExpr from './ops/control_expr';
-import displayExpr from './ops/display_expr';
-import historyExpr from './ops/history_expr';
-import signalExpr from './ops/signal_expr';
+import intentExpr from './ops/intent_expr';
 import triggerExpr from './ops/trigger_expr';
 import categoryExpr from './ops/category_expr';
 import offerExpr from './ops/offer_expr';
@@ -15,16 +13,8 @@ export default class ExpressionBuilder {
    * constructor
    * @param  {[type]} globalObjs [description]
    * {
-   *   regex_cache: regexpCache,
    *   trigger_cache: triggerCache,
    *   trigger_machine: triggerMachine,
-   *   offer_processor: offerProcessor,
-   *   signals_handler: sigHandler,
-   *   event_handler: evtHandlerMock,
-   *   offers_db: offersDB,
-   *   history_index: historyIndex,
-   *   url_signal_db: urlSignalsDB,
-   *   last_campaign_signal_db: lastCampaignSignalDB
    * }
    * @return {[type]}            [description]
    */
@@ -41,9 +31,7 @@ export default class ExpressionBuilder {
 
     // we will register here the basic ops
     [controlExpr,
-      displayExpr,
-      historyExpr,
-      signalExpr,
+      intentExpr,
       triggerExpr,
       categoryExpr,
       offerExpr,
@@ -114,7 +102,7 @@ export default class ExpressionBuilder {
   }
 
   _buildOpExpr(e, parentTrigger) {
-       // check if e is valid (format)
+    // check if e is valid (format)
     if (!e || e.length === 0) {
       return null;
     }
@@ -148,21 +136,16 @@ export default class ExpressionBuilder {
       regex_cache: this.globObjs.regex_cache,
       trigger_cache: this.globObjs.trigger_cache,
       trigger_machine: this.globObjs.trigger_machine,
-      offer_processor: this.globObjs.offer_processor,
-      signals_handler: this.globObjs.signals_handler,
       event_handler: this.globObjs.event_handler,
-      offers_db: this.globObjs.offers_db,
-      history_index: this.globObjs.history_index,
-      last_campaign_signal_db: this.globObjs.last_campaign_signal_db,
-      url_signal_db: this.globObjs.url_signal_db,
       trigger_machine_executor: this.globObjs.trigger_machine_executor,
-      query_handler: this.globObjs.query_handler,
       expression_cache: this.globObjs.expression_cache,
       feature_handler: this.globObjs.feature_handler,
+      intent_handler: this.globObjs.intent_handler,
       be_connector: this.globObjs.be_connector,
-      pattern_matching_handler: this.globObjs.pattern_matching_handler,
+      history_matcher: this.globObjs.history_matcher,
       category_handler: this.globObjs.category_handler,
       offers_status_handler: this.globObjs.offers_status_handler,
+      ga_handler: this.globObjs.ga_handler,
     };
     const Builder = this.buildMap.ops[opName];
     return new Builder(buildData);

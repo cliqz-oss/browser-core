@@ -5,7 +5,6 @@ import utils from '../core/utils';
 
 
 export default class Win {
-
   constructor(settings) {
     this.window = settings.window;
     this.channel = settings.settings.channel;
@@ -22,19 +21,19 @@ export default class Win {
     this.actions = {
 
       lightUp: () => {
-        maybe(this, 'buttonA').then(button => {
+        maybe(this, 'buttonA').then((button) => {
           button.classList.add('has-notification');
         });
-        maybe(this, 'buttonB').then(button => {
+        maybe(this, 'buttonB').then((button) => {
           button.classList.add('has-notification');
         });
       },
 
       lightDown: () => {
-        maybe(this, 'buttonA').then(button => {
+        maybe(this, 'buttonA').then((button) => {
           button.classList.remove('has-notification');
         });
-        maybe(this, 'buttonB').then(button => {
+        maybe(this, 'buttonB').then((button) => {
           button.classList.remove('has-notification');
         });
       },
@@ -47,11 +46,11 @@ export default class Win {
     addStylesheet(this.window.document, this.cssUrl);
     this.panel.attach();
 
-    maybe(this, 'buttonA').then(button => {
+    maybe(this, 'buttonA').then((button) => {
       this.addButtonListeners(button);
     });
 
-    maybe(this, 'buttonB').then(button => {
+    maybe(this, 'buttonB').then((button) => {
       this.addButtonListeners(button);
     });
   }
@@ -81,17 +80,17 @@ export default class Win {
     if (this.panel) {
       this.panel.detach();
       delete this.panel;
-    };
+    }
   }
 
   onMouseOver() {
-    maybe(this, 'buttonA').then(button => {
-      //this.panel.open(button);
+    maybe(this, 'buttonA').then(() => {
+      // this.panel.open(button);
     });
   }
 
   onMouseOut() {
-    //this.panel.hide();
+    // this.panel.hide();
   }
 
   onClick(e) {
@@ -107,7 +106,7 @@ export default class Win {
   buttonA() {
     const btn = this.window.document.getAnonymousElementByAttribute(
       this.window.gBrowser.tabContainer, 'anonid', 'tabs-newtab-button');
-    if(this.channel !== '40') {
+    if (this.channel !== '40') {
       btn.classList.add('amo');
     }
     return btn;
@@ -115,7 +114,7 @@ export default class Win {
 
   buttonB() {
     const btn = this.window.document.getElementById('new-tab-button');
-    if(this.channel !== '40') {
+    if (this.channel !== '40') {
       btn.classList.add('amo');
     }
     return btn;

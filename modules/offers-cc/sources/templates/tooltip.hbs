@@ -1,0 +1,16 @@
+{{#if isGeneric}}
+<div>
+    <img src="{{icon}}" alt="" />
+    <span>{{headline}}</span>
+</div>
+{{else}}
+<div class="light" style="border-left-color: {{backgroundColor}}">
+    <div class="logo {{logoClass}}" style="background-image: url({{backgroundImage}})"></div>
+    <p>{{benefit}} {{headline}}</p>
+    <div class="labels">
+        {{#each (limit labels 2)}}
+            <p class={{this}} data-i18n="offers_{{this}}"></p>
+        {{/each}}
+    </div>
+</div>
+{{/if}}

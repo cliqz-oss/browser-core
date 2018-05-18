@@ -1,5 +1,8 @@
-import { isTabURL } from '../../platform/browser';
+/* eslint no-param-reassign: 'off' */
+/* eslint no-restricted-syntax: 'off' */
+/* eslint prefer-arrow-callback: 'off' */
 
+import { isTabURL } from '../../platform/browser';
 import pacemaker from '../../core/pacemaker';
 import core from '../../core/background';
 import { dURIC } from '../../core/url-info';
@@ -10,42 +13,45 @@ const DOM_CHECK_PERIOD = 1000;
 // from CliqzAttrack.getCookieValues
 function getCookieValues(c, url) {
   if (c === null) {
-      return {};
+    return {};
   }
-  var v = 0, cookies = {};
+  let v = 0;
+  const cookies = {};
   if (c.match(/^\s*\$Version=(?:"1"|1);\s*(.*)/)) {
-      c = RegExp.$1;
-      v = 1;
+    c = RegExp.$1;
+    v = 1;
   }
   if (v === 0) {
-      c.split(/[,;]/).map(function(cookie) {
-          var parts = cookie.split(/=/);
-          if (parts.length > 1) parts[1] = parts.slice(1).join('=');
-          var name = dURIC(parts[0].trimLeft()),
-              value = parts.length > 1 ? dURIC(parts[1].trimRight()) : null;
-          cookies[name] = value;
-      });
+    c.split(/[,;]/).forEach((cookie) => {
+      const parts = cookie.split(/=/);
+      if (parts.length > 1) parts[1] = parts.slice(1).join('=');
+      const name = dURIC(parts[0].trimLeft());
+      const value = parts.length > 1 ? dURIC(parts[1].trimRight()) : null;
+      cookies[name] = value;
+    });
   } else {
-      c.match(/(?:^|\s+)([!#$%&'*+\-.0-9A-Z^`a-z|~]+)=([!#$%&'*+\-.0-9A-Z^`a-z|~]*|"(?:[\x20-\x7E\x80\xFF]|\\[\x00-\x7F])*")(?=\s*[,;]|$)/g).map(function($0, $1) {
-      var name = $0,
-          value = $1.charAt(0) === '"'
-                    ? $1.substr(1, -1).replace(/\\(.)/g, "$1")
-                    : $1;
-          cookies[name] = value;
+    c
+      .match(/(?:^|\s+)([!#$%&'*+\-.0-9A-Z^`a-z|~]+)=([!#$%&'*+\-.0-9A-Z^`a-z|~]*|"(?:[\x20-\x7E\x80\xFF]|\\[\x00-\x7F])*")(?=\s*[,;]|$)/g)
+      .forEach(($0, $1) => {
+        const name = $0;
+        const value =
+          $1.charAt(0) === '"'
+            ? $1.substr(1, -1).replace(/\\(.)/g, '$1')
+            : $1;
+        cookies[name] = value;
       });
   }
   // return cookies;
-  var cookieVal = {};
-  for (var key in cookies) {
-      if (url.indexOf(cookies[key]) == -1) { // cookies save as part of the url is allowed
-          cookieVal[cookies[key]] = true;
-      }
+  const cookieVal = {};
+  for (const key in cookies) {
+    if (url.indexOf(cookies[key]) === -1) { // cookies save as part of the url is allowed
+      cookieVal[cookies[key]] = true;
+    }
   }
   return cookieVal;
 }
 
 export default class DomChecker {
-
   constructor() {
     this.loadedTabs = {};
     this.linksRecorded = {};// cache when we recorded links for each url
@@ -57,9 +63,9 @@ export default class DomChecker {
     this._pmTask = pacemaker.register(function cleanCaches(currTime) {
       const cacheObj = this.linksRecorded;
       const timeout = 1000;
-      const keys = Object.keys(cacheObj)
-      keys.forEach(function(k) {
-        if (currTime - cacheObj[k] || 0 > timeout) {
+      const keys = Object.keys(cacheObj);
+      keys.forEach((k) => {
+        if (currTime - cacheObj[k] || timeout < 0) {
           delete cacheObj[k];
         }
       });
@@ -90,10 +96,15 @@ export default class DomChecker {
     }
     // merge with cookies in the header of this request
     try {
-      for(var c in getCookieValues(state.getRequestHeader('Cookie'), state.url)) {
-        cookievalue[c] = true;
+      const cVal = getCookieValues(state.getRequestHeader('Cookie'), state.url);
+      for (const c in cVal) {
+        if (Object.prototype.hasOwnPrototype.call(cVal, c)) {
+          cookievalue[c] = true;
+        }
       }
-    } catch(e) {}
+    } catch (e) {
+      // empty
+    }
     state.cookieValues = cookievalue;
 
     return true;
@@ -110,8 +121,7 @@ export default class DomChecker {
       return;
     }
     this.linksRecorded[url] = now;
-    return Promise.all([
-
+    Promise.all([
       core.actions.getCookie(url).then(
         (cookie) => { self.cookiesFromDom[url] = cookie; }
       ),
@@ -119,13 +129,12 @@ export default class DomChecker {
       Promise.all([
         core.actions.queryHTML(url, 'a[href]', 'href'),
         core.actions.queryHTML(url, 'link[href]', 'href'),
-        core.actions.queryHTML(url, 'script[src]', 'src').then(function (hrefs) {
-          return hrefs.filter( href => href.indexOf('http') === 0 );
-        }),
-      ]).then(function (reflinks) {
-        var hrefSet = reflinks.reduce((hrefSet, hrefs) => {
-          hrefs.forEach( href => hrefSet[href] = true );
-          return hrefSet;
+        core.actions.queryHTML(url, 'script[src]', 'src').then(hrefs =>
+          hrefs.filter(href => href.indexOf('http') === 0)),
+      ]).then((reflinks) => {
+        const hrefSet = reflinks.reduce((_hrefSet, hrefs) => {
+          hrefs.forEach((href) => { _hrefSet[href] = true; });
+          return _hrefSet;
         }, {});
 
         self.linksFromDom[url] = hrefSet;
@@ -134,7 +143,7 @@ export default class DomChecker {
   }
 
   clearDomLinks() {
-    for (var url in this.linksFromDom) {
+    for (const url in this.linksFromDom) {
       if (!isTabURL(url)) {
         delete this.linksFromDom[url];
         delete this.cookiesFromDom[url];

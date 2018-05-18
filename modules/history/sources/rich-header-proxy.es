@@ -1,5 +1,6 @@
 import utils from '../core/utils';
 import NEWS_DOMAINS from '../freshtab/news-domains';
+import config from '../core/config';
 
 export default class RichHeaderProxy {
   constructor() {
@@ -28,7 +29,7 @@ export default class RichHeaderProxy {
       q: `[${hash}]`,
       results: [
         {
-          url: 'hb-news.cliqz.com',
+          url: config.settings.HB_NEWS,
           snippet: {},
         },
       ],

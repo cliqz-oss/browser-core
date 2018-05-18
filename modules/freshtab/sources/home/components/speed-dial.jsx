@@ -19,7 +19,7 @@ function SpeedDial(props) {
             e.stopPropagation();
             props.removeSpeedDial(props.dial);
           }
-        }
+          }
         >
           X
         </button>

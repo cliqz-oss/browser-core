@@ -9,7 +9,7 @@ function isVideoURL(url) {
   return EXTRACTORS.some(x => x.isVideoURL(url));
 }
 
-function getVideoInfo(url) {
+function getRawVideoInfo(url) {
   const extractor = EXTRACTORS.find(x => x.isVideoURL(url));
   if (extractor) {
     return extractor.getVideoInfo(url);
@@ -39,7 +39,6 @@ function getFormats(info) {
       }
       if (item.container === 'm4a' || item.container === 'mp4') {
         const media = {
-          size: getSize(item.size),
           url: item.url,
           title: sanitizeFilename(info.title, { replacement: ' ' }).slice(0, 250),
           format: item.container,
@@ -65,4 +64,22 @@ function getFormats(info) {
   return [];
 }
 
-export { isVideoURL, getVideoInfo, getFormats };
+function getSizes(formats) {
+  return Promise.all(formats.map((x) => {
+    const request = new Request(x.url, { method: 'HEAD' });
+    return fetch(request).then(response => response.headers.get('content-length'))
+      .then((size) => {
+        const _x = x;
+        _x.size = getSize(parseInt(size, 10));
+        return x;
+      });
+  }));
+}
+
+function getVideoInfo(url) {
+  return getRawVideoInfo(url)
+    .then(getFormats)
+    .then(getSizes);
+}
+
+export { isVideoURL, getVideoInfo, getRawVideoInfo };

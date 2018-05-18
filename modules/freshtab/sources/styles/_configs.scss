@@ -34,6 +34,7 @@ $configs: (
             news-box-height: 118px,
             news-box-max-width: 375px,
             news-font-size: 16px,
+            news-box-flex-grow: 1,
         ),
         middle-notifications: (
             box-size: 375px,
@@ -42,11 +43,31 @@ $configs: (
             middle-content-padding-left: 20px,
             middle-icon-margin-top: -3px,
         ),
+        top-notifications: (
+            box-size: 375px,
+            box-height: 80px,
+            content-max-width: 36%,
+        ),
         offer-middle-notifications: (
             offer-mn-code-font-size: 10px,
             offer-mn-code-wrapper-size: 120px,
             offer-mn-action-section-padding-left: 15px,
+            offer-mn-benefit-font-size: 33px,
+            offer-mn-headline-font-size: 13px,
+            offer-mn-desc-font-size: 10px,
+            offer-mn-desc-max-height: 49px,
+            offer-mn-left-container: 43%,
+            offer-mn-expires-display: none,
+            offer-mn-desc-line-height: 15.5px,
+            offer-mn-headline-margin-top: 12px,
         ),
+        offer-middle-feedback: (
+            offer-mn-feedback-textarea-width: 50%,
+            offer-mn-feedback-textarea-display: none,
+            offer-mn-feedback-font-size: 11px,
+            offer-mn-feedback-height: 123px,
+            offer-mn-feedback-cta-margin-right: 10px,
+        )
     ),
 
     small: (
@@ -84,6 +105,7 @@ $configs: (
             news-box-height: 118px,
             news-box-max-width: 446px,
             news-font-size: 16px,
+            news-box-flex-grow: 1,
         ),
         middle-notifications: (
             box-size: 436px,
@@ -92,11 +114,31 @@ $configs: (
             middle-content-padding-left: 20px,
             middle-icon-margin-top: -3px,
         ),
+        top-notifications: (
+            box-size: 85%,
+            box-height: 80px,
+            content-max-width: 60%,
+        ),
         offer-middle-notifications: (
             offer-mn-code-font-size: 14px,
             offer-mn-code-wrapper-size: 140px,
             offer-mn-action-section-padding-left: 15px,
+            offer-mn-benefit-font-size: 33px,
+            offer-mn-headline-font-size: 13px,
+            offer-mn-desc-font-size: 12px,
+            offer-mn-desc-max-height: 49px,
+            offer-mn-left-container: 33%,
+            offer-mn-expires-display: none,
+            offer-mn-desc-line-height: 15.5px,
+            offer-mn-headline-margin-top: 12px,
         ),
+        offer-middle-feedback: (
+            offer-mn-feedback-textarea-width: 75%,
+            offer-mn-feedback-textarea-display: block,
+            offer-mn-feedback-font-size: 11px,
+            offer-mn-feedback-height: 123px,
+            offer-mn-feedback-cta-margin-right: 10px,
+        )
     ),
 
     xmedium: (
@@ -134,6 +176,7 @@ $configs: (
             news-box-height: 116px,
             news-box-max-width: 333px,
             news-font-size: 16px,
+            news-box-flex-grow: 1,
         ),
         middle-notifications: (
             box-size: 677px,
@@ -142,11 +185,31 @@ $configs: (
             middle-content-padding-left: 12px,
             middle-icon-margin-top: -3px,
         ),
+        top-notifications: (
+            box-size: 679px,
+            box-height: 80px,
+            content-max-width: 60%,
+        ),
         offer-middle-notifications: (
             offer-mn-code-font-size: 16px,
             offer-mn-code-wrapper-size: 155px,
             offer-mn-action-section-padding-left: 25px,
+            offer-mn-benefit-font-size: 33px,
+            offer-mn-headline-font-size: 13px,
+            offer-mn-desc-font-size: 12px,
+            offer-mn-desc-max-height: 33px,
+            offer-mn-left-container: 33%,
+            offer-mn-expires-display: inline-block,
+            offer-mn-desc-line-height: 15.5px,
+            offer-mn-headline-margin-top: 9px,
         ),
+        offer-middle-feedback: (
+            offer-mn-feedback-textarea-width: 70%,
+            offer-mn-feedback-textarea-display: block,
+            offer-mn-feedback-font-size: 12.5px,
+            offer-mn-feedback-height: 123px,
+            offer-mn-feedback-cta-margin-right: 20px,
+        )
     ),
 
     medium: (
@@ -184,6 +247,7 @@ $configs: (
             news-box-height: 134px,
             news-box-max-width: 477px,
             news-font-size: 16px,
+            news-box-flex-grow: 0,
         ),
         middle-notifications: (
             box-size: 477px,
@@ -192,11 +256,31 @@ $configs: (
             middle-content-padding-left: 12px,
             middle-icon-margin-top: -3px,
         ),
+        top-notifications: (
+            box-size: 764px,
+            box-height: 80px,
+            content-max-width: 70%,
+        ),
         offer-middle-notifications: (
             offer-mn-code-font-size: 14px,
             offer-mn-code-wrapper-size: 140px,
             offer-mn-action-section-padding-left: 15px,
+            offer-mn-benefit-font-size: 34px,
+            offer-mn-headline-font-size: 13px,
+            offer-mn-desc-font-size: 12px,
+            offer-mn-desc-max-height: 49px,
+            offer-mn-left-container: 33%,
+            offer-mn-expires-display: none,
+            offer-mn-desc-line-height: 15.5px,
+            offer-mn-headline-margin-top: 7.5px,
         ),
+        offer-middle-feedback: (
+            offer-mn-feedback-textarea-width: 80%,
+            offer-mn-feedback-textarea-display: block,
+            offer-mn-feedback-font-size: 12.5px,
+            offer-mn-feedback-height: 123px,
+            offer-mn-feedback-cta-margin-right: 10px,
+        )
     ),
 
     large: (
@@ -234,6 +318,7 @@ $configs: (
             news-box-height: 115px,
             news-box-max-width: 764px,
             news-font-size: 17px,
+            news-box-flex-grow: 0,
         ),
         middle-notifications: (
             box-size: 764px,
@@ -242,10 +327,30 @@ $configs: (
             middle-content-padding-left: 12px,
             middle-icon-margin-top: -3px,
         ),
+        top-notifications: (
+            box-size: 1232px,
+            box-height: 80px,
+            content-max-width: 70%,
+        ),
         offer-middle-notifications: (
             offer-mn-code-font-size: 14px,
             offer-mn-code-wrapper-size: 140px,
             offer-mn-action-section-padding-left: 15px,
+            offer-mn-benefit-font-size: 41px,
+            offer-mn-headline-font-size: 16.5px,
+            offer-mn-desc-font-size: 14.5px,
+            offer-mn-desc-max-height: 60px,
+            offer-mn-left-container: 33%,
+            offer-mn-expires-display: inline-block,
+            offer-mn-desc-line-height: 20px,
+            offer-mn-headline-margin-top: 9px,
         ),
+        offer-middle-feedback: (
+            offer-mn-feedback-textarea-width: 70%,
+            offer-mn-feedback-textarea-display: block,
+            offer-mn-feedback-font-size: 12.5px,
+            offer-mn-feedback-height: 131px,
+            offer-mn-feedback-cta-margin-right: 20px,
+        )
     ),
 );

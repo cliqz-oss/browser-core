@@ -7,15 +7,15 @@ export default describeModule("core/anacron",
       'platform/lib/moment': {
         default: moment,
       },
-      'core/cliqz': { utils: { } },
+      'core/utils': { default: { } },
     }
   },
   function () {
 //    var anacron;
 //    var Task;
 //    beforeEach(function() {
-//      this.deps('core/cliqz').utils.setPref = () => null;
-//      this.deps('core/cliqz').utils.getPref = (_, _default) => _default;
+//      this.deps('core/utils').default.setPref = () => null;
+//      this.deps('core/utils').default.getPref = (_, _default) => _default;
 //
 //      const Anacron = this.module().default;
 //      anacron = new Anacron({ get: () => {} , set: () => {} });
@@ -41,7 +41,7 @@ export default describeModule("core/anacron",
 //      });
 //      describe("#start", function () {
 //        it("should set isRunning to true", function () {
-//          this.deps('core/cliqz').utils.setInterval = () => null;
+//          this.deps('core/utils').default.setInterval = () => null;
 //          chai.expect(cron.isRunning).to.be.false;
 //          cron.start();
 //          chai.expect(cron.isRunning).to.be.true;
@@ -50,11 +50,11 @@ export default describeModule("core/anacron",
 //          var intervalDelay;
 //          var timeoutDelay;
 //          var wasRun = false;
-//          this.deps('core/cliqz').utils.setInterval = (_callback, _delay) =>  {
+//          this.deps('core/utils').default.setInterval = (_callback, _delay) =>  {
 //            intervalDelay = _delay;
 //            _callback();
 //          };
-//          this.deps('core/cliqz').utils.setTimeout = (_callback, _delay, _date) => {
+//          this.deps('core/utils').default.setTimeout = (_callback, _delay, _date) => {
 //            timeoutDelay = _delay;
 //            _callback(_date);
 //          };
@@ -67,16 +67,16 @@ export default describeModule("core/anacron",
 //      });
 //      describe("#stop", function () {
 //        it("should set isRunning to false", function () {
-//          this.deps('core/cliqz').utils.setInterval = () => null;
-//          this.deps('core/cliqz').utils.clearInterval = () => null;
+//          this.deps('core/utils').default.setInterval = () => null;
+//          this.deps('core/utils').default.clearInterval = () => null;
 //          cron.start();
 //          cron.stop();
 //          chai.expect(cron.isRunning).to.be.false;
 //        });
 //        it("should call clearInterval", function () {
 //          var wasCalled;
-//          this.deps('core/cliqz').utils.setInterval = () => null;
-//          this.deps('core/cliqz').utils.clearInterval = () => wasCalled = true;
+//          this.deps('core/utils').default.setInterval = () => null;
+//          this.deps('core/utils').default.clearInterval = () => wasCalled = true;
 //          cron.start();
 //          cron.stop();
 //          chai.expect(wasCalled).to.be.true;
@@ -84,14 +84,14 @@ export default describeModule("core/anacron",
 //      });
 //      describe("#run", function () {
 //        it("should run tasks with date as parameter", function () {
-//          this.deps('core/cliqz').utils.setTimeout = (_callback, _delay, _date) => _callback(_date);
+//          this.deps('core/utils').default.setTimeout = (_callback, _delay, _date) => _callback(_date);
 //          var date;
 //          cron.schedule((_date) => date = _date, '* *');
 //          cron.run(new Date('01.01.2016 00:01'));
 //          chai.expect(date).to.eql(new Date('01.01.2016 00:01'));
 //        });
 //        it("should run tasks if they are scheduled", function () {
-//          this.deps('core/cliqz').utils.setTimeout = (func) => func();
+//          this.deps('core/utils').default.setTimeout = (func) => func();
 //          let wasRunA = false;
 //          let wasRunB = false;
 //          cron.schedule(() => wasRunA = true, '* *');

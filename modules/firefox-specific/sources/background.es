@@ -1,9 +1,11 @@
+import Rx from '../platform/lib/rxjs';
 import background from '../core/base/background';
 import { Window } from '../core/browser';
 import prefs from '../core/prefs';
 import utils from '../core/utils';
 import { Services } from '../platform/globals';
 import HistoryManager from '../core/history-manager';
+import ObservableProxy from '../core/helpers/observable-proxy';
 
 /**
   @namespace firefox-specific
@@ -18,7 +20,32 @@ export default background({
     @method init
     @param settings
   */
-  init(settings) {
+  init() {
+    this.clicksEventProxy = new ObservableProxy();
+    this.locationChangeEventProxy = new ObservableProxy();
+    const clicks$ = this.clicksEventProxy.observable;
+    const locationChanges$ = this.locationChangeEventProxy.observable;
+
+    // For every click (or enter) on a cliqz result, start a new stream that
+    // will wait for upcoming page load
+    clicks$.mergeMap(({ url, resultType }) =>
+      Rx.Observable
+        // open a time window to capture location change
+        .interval(5000)
+        // wait only once
+        .take(1)
+        // merge with location-change that matches the url
+        .withLatestFrom(locationChanges$.filter(({ url: u }) => u === url))
+        .map(([, { status }]) => ({ resultType, status }))
+    ).subscribe(({ status, resultType }) => {
+      utils.telemetry({
+        type: 'performance',
+        action: 'response',
+        response_code: status / 100,
+        result_type: resultType,
+        v: 1,
+      });
+    });
   },
 
   unload() {
@@ -29,7 +56,19 @@ export default background({
   },
 
   events: {
+    'content:location-change': function onLocationChange({ url, status }) {
+      this.locationChangeEventProxy.next({
+        url,
+        status,
+      });
+    },
 
+    'ui:click-on-url': function onClick({ url, rawResult: { style, type } }) {
+      this.clicksEventProxy.next({
+        url,
+        resultType: style || type,
+      });
+    },
   },
 
   actions: {
@@ -64,7 +103,7 @@ export default background({
     }
     /* eslint-enable */
 
-    HistoryManager.getStats(history => {
+    HistoryManager.getStats((history) => {
       const document = window.document;
       const navigator = window.navigator;
       const browserContainer = document.getElementById('browser');
@@ -85,11 +124,12 @@ export default background({
         prefs: utils.getCliqzPrefs(),
         defaultSearchEngine,
         isDefaultBrowser: utils.isDefaultBrowser(),
-        private_window: utils.isPrivate(window),
+        private_window: utils.isPrivateMode(window),
         distribution: prefs.get('distribution', ''),
         version_host: prefs.get('gecko.mstone', '', ''),
         version_dist: prefs.get('distribution.version', '', ''),
         install_date: prefs.get('install_date'),
+        health_report_enabled: prefs.get('uploadEnabled', true, 'datareporting.healthreport.')
       };
 
       utils.telemetry(info);

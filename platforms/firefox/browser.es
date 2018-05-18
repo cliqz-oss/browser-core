@@ -1,7 +1,7 @@
 import prefs from '../core/prefs';
 import events from '../core/events';
+import { removeFile } from '../core/fs';
 import { Services, Components } from './globals';
-
 
 export function mapWindows(callback) {
   const enumerator = Services.wm.getEnumerator('navigator:browser');
@@ -22,6 +22,15 @@ export class Window {
     this.window = window;
   }
 
+
+  get zoomLevel() {
+    const nav = this.window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+      .getInterface(Components.interfaces.nsIWebNavigation);
+    const docShell = nav.QueryInterface(Components.interfaces.nsIDocShell);
+    const docViewer = docShell.contentViewer;
+    return docViewer.fullZoom;
+  }
+
   get id() {
     const util = this.window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
       .getInterface(Components.interfaces.nsIDOMWindowUtils);
@@ -35,7 +44,11 @@ export class Window {
 
   static findByTabId(tabId) {
     const windows = mapWindows(w => new Window(w));
-    return windows.find(w => w.window.gBrowser.selectedBrowser.outerWindowID === tabId);
+    return windows.find(w =>
+      [...w.window.gBrowser.tabs]
+        .filter(tab => tab.linkedBrowser) // TODO: check if that happens
+        .find(tab => tab.linkedBrowser.outerWindowID === tabId)
+    );
   }
 }
 
@@ -70,7 +83,7 @@ export function isTabURL(url) {
 
 export function getBrowserMajorVersion() {
   const appInfo = Components.classes['@mozilla.org/xre/app-info;1']
-                  .getService(Components.interfaces.nsIXULAppInfo);
+    .getService(Components.interfaces.nsIXULAppInfo);
   return parseInt(appInfo.version.split('.')[0], 10);
 }
 
@@ -79,7 +92,7 @@ export function getBrowserMajorVersion() {
  */
 export function isWindowActive(windowID) {
   const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
-      .getService(Components.interfaces.nsIWindowMediator);
+    .getService(Components.interfaces.nsIWindowMediator);
   const browserEnumerator = wm.getEnumerator('navigator:browser');
 
   // the windowID should be an integer
@@ -152,9 +165,30 @@ export function setInstallDatePref(date) {
   }
 }
 
+const OBSOLETE_FILES = [
+  // SmartCliqz Cache was removed in X.25.X
+  'cliqz/smartcliqz-trigger-urls-cache.json',
+  'cliqz/smartcliqz-custom-data-cache.json'
+];
+
+const OBSOLETE_PREFS = [
+  // browser detection happens every extension start from X.25.X
+  'detection',
+  // SmartCliqz Cache was removed in X.25.X
+  'smart-cliqz-last-clean-ts',
+  // startupcache-invalidate was temporary used in 2.24.7 and 1.25.1
+  'startupcache-invalidate'
+];
+
+// do various cleanups from retired features or modules
+function cleanup() {
+  OBSOLETE_FILES.forEach(fn => removeFile(fn));
+  OBSOLETE_PREFS.forEach(pref => prefs.clear(pref));
+}
+
 export function setOurOwnPrefs() {
   if (prefs.has('unifiedcomplete', 'browser.urlbar.') && prefs.get('unifiedcomplete', false)) {
-    prefs.set('unifiedcomplete', true); //backup
+    prefs.set('unifiedcomplete', true); // backup
     prefs.set('unifiedcomplete', false, 'browser.urlbar.');
   }
 
@@ -165,11 +199,6 @@ export function setOurOwnPrefs() {
   if (prefs.get('suggest.searches', false, 'browser.urlbar.')) {
     prefs.set('backup.browser.urlbar.suggest.searches', true);
     prefs.set('suggest.searches', false, 'browser.urlbar.');
-  }
-
-  if (prefs.get('suggest.enabled', false, 'browser.urlbar.')) {
-    prefs.set('backup.browser.urlbar.suggest.enabled', true);
-    prefs.set('suggest.enabled', false, 'browser.urlbar.');
   }
 
   // freshtab is optOut since 2.20.3 for new users
@@ -184,6 +213,19 @@ export function setOurOwnPrefs() {
     prefs.set('humanWebOptOut', prefs.get('dnt'));
     prefs.clear('dnt');
   }
+
+  // Firefox merges search resuls with results from previous search by default
+  // (INSERTMETHOD.MERGE_RELATED at UnifiedComplete.js).
+  // It break Cliq's search in different ways, so we change it to INSERTMETHOD.APPEND
+  const insertMethod = prefs.get('insertMethod', -1, 'browser.urlbar.');
+  if (insertMethod === -1 || insertMethod > 0) {
+    // change it to INSERTMETHOD.APPEND
+    prefs.set('insertMethod', 0, 'browser.urlbar.');
+    prefs.set('backup.browser.urlbar.insertMethod', insertMethod);
+  }
+
+  // schedule a cleanup 1 minute after the browser start
+  setTimeout(cleanup, 60000);
 }
 
 /** Reset changed prefs on uninstall */
@@ -198,9 +240,14 @@ export function resetOriginalPrefs() {
     prefs.clear('suggest.searches', 'browser.urlbar.');
   }
 
-  if (prefs.has('backup.browser.urlbar.suggest.searches')) {
-    prefs.clear('backup.browser.urlbar.suggest.searches');
-    prefs.clear('suggest.searches', 'browser.urlbar.');
+  if (prefs.has('backup.browser.urlbar.insertMethod')) {
+    const insertMethod = prefs.get('backup.browser.urlbar.insertMethod', -1);
+    if (insertMethod === -1) {
+      prefs.clear('insertMethod', 'browser.urlbar.');
+    } else {
+      prefs.set('insertMethod', insertMethod, 'browser.urlbar.');
+    }
+    prefs.clear('backup.browser.urlbar.insertMethod');
   }
 }
 
@@ -261,14 +308,14 @@ export function disableChangeEvents() {
   }
 }
 
-export function getLang() {
+export function getLocale() {
   try {
     // we need to use Services.locale.defaultLocale starting with
-    // Firefox 60 as the other pref was removed
+    // Firefox 59 as the other pref was removed
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1414390
     return prefs.get('general.useragent.locale', Services.locale.defaultLocale, '');
   } catch (e) {
-    return 'en';
+    return 'en-US';
   }
 }
 
@@ -301,7 +348,7 @@ export function getActiveTab(w) {
   let window = w;
   if (!w) {
     const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
-        .getService(Components.interfaces.nsIWindowMediator);
+      .getService(Components.interfaces.nsIWindowMediator);
     window = wm.getMostRecentWindow('navigator:browser');
     if (!window) {
       return Promise.reject('No open window available');
@@ -353,6 +400,11 @@ function waitForAsync(fn, depth = 200) {
     }));
 }
 
+export function getCurrentWindow() {
+  return Components.classes['@mozilla.org/appshell/window-mediator;1']
+    .getService(Components.interfaces.nsIWindowMediator)
+    .getMostRecentWindow('navigator:browser');
+}
 
 function getCurrentgBrowser() {
   return Components.classes['@mozilla.org/appshell/window-mediator;1']

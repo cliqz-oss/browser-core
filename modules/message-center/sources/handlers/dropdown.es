@@ -1,6 +1,5 @@
-import utils from "../../core/utils";
-import events from "../../core/events";
-import CliqzMsgHandler from "./base";
+import events from '../../core/events';
+import CliqzMsgHandler from './base';
 
 export default class CliqzMsgHandlerDropdown extends CliqzMsgHandler {
   constructor() {
@@ -22,19 +21,19 @@ export default class CliqzMsgHandlerDropdown extends CliqzMsgHandler {
         simple_message: message.text,
         type: 'cqz-message-survey',
         location: message.location,
-        options: (message.options || []).map(function (el) {
-          return {
+        options: (message.options || []).map(el =>
+          ({
             text: el.label,
             state: el.style,
             action: el.action
-          };
-        })
+          })
+        )
       }
     };
   }
 
   _onClick(action) {
-    var message = this._messageQueue[0];
+    const message = this._messageQueue[0];
     // not thread-safe: if current message is removed while it is showing,
     // the next message is used when invoking the callback
     if (message && this._callbacks[message.id]) {

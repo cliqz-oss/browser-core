@@ -1,15 +1,15 @@
-FROM node:7.10.1-stretch
+FROM node:9.8.0-stretch
 
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN npm install -g \
-  bower \
   yuidocjs \
   selleck
 
 RUN apt-get update && \
   apt-get install -y \
     build-essential \
+    jq \
     python-dev \
     python-pip \
     zip
@@ -43,9 +43,7 @@ RUN chown jenkins:jenkins -R /app
 USER jenkins
 
 COPY package.json /app/
-COPY bower.json /app/
 
 WORKDIR /app/
 
 RUN npm install
-RUN bower install

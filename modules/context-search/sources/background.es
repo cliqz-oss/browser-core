@@ -1,4 +1,6 @@
-import { utils } from '../core/cliqz';
+/* eslint func-names: 'off' */
+
+import utils from '../core/utils';
 import background from '../core/base/background';
 import ContextSearch from './context-search';
 

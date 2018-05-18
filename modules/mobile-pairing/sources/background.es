@@ -2,11 +2,12 @@ import PeerMaster from '../pairing/peer-master';
 import YoutubeApp from '../pairing/apps/youtube';
 import TabsharingApp from '../pairing/apps/tabsharing';
 import PairingObserver from '../pairing/apps/pairing-observer';
-import CliqzUtils from '../core/utils';
+import BookmarksImport from '../pairing/apps/bookmarks-import';
 import LocalStorage from '../platform/storage';
 import osAPI from '../platform/os-api';
 import background from '../core/base/background';
 import { getDeviceName } from '../platform/device-info';
+import { openTab, importBookmarks } from '../platform/browser-actions';
 
 export default background({
   init() {
@@ -24,9 +25,8 @@ export default background({
 
     const tabsharing = new TabsharingApp(
       () => {},
-      (tabs, source) => {
-        CliqzUtils.log(`Received tabs ${tabs} from ${source}`);
-        osAPI.openTab(tabs);
+      (tabs) => {
+        tabs.forEach(x => openTab(x));
       }
     );
     CliqzMasterComm.addObserver('TABSHARING', tabsharing);
@@ -43,12 +43,13 @@ export default background({
       osAPI.pushPairingData(CliqzMasterComm.pairingData);
     };
     CliqzMasterComm.addObserver('__MOBILEUI', observer);
+    CliqzMasterComm.addObserver('BOOKMARKS', new BookmarksImport(() => {}));
 
     const storage = new LocalStorage('__MOBILE_PAIRING');
     const storagePromise = typeof storage.load === 'function' ? storage.load() : Promise.resolve();
 
     return storagePromise
-    .then(() => CliqzMasterComm.init(storage));
+      .then(() => CliqzMasterComm.init(storage));
   },
   unload() {
     this.peerMaster.unload();
@@ -80,6 +81,11 @@ export default background({
         .catch(() => {
           osAPI.notifyTabError({ peerID, name, msg: tabs });
         });
+    },
+    importBookmarks(peerID, maxBookmarks = 999) {
+      return this.peerMaster.getObserver('BOOKMARKS')
+        .pull(peerID, data => importBookmarks(data, peerID), maxBookmarks)
+        .catch(e => ({ error: true, errorMsg: e.message }));
     },
   }
 });

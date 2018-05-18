@@ -6,7 +6,6 @@ import AddSpeedDial from './add-speed-dial';
 import { speedDialClickSignal, speedDialDeleteSignal } from '../services/telemetry/speed-dial';
 
 export default class SpeedDialsRow extends React.Component {
-
   static get propTypes() {
     return {
       type: PropTypes.string,
@@ -64,11 +63,11 @@ export default class SpeedDialsRow extends React.Component {
         <div className="dials-row">
           {
             this.props.dials.slice(0, 6).map((dial, i) =>
-              <SpeedDial
+              (<SpeedDial
                 dial={dial}
                 removeSpeedDial={() => this.removeSpeedDial(dial, i)}
                 visitSpeedDial={() => this.visitSpeedDial(i)}
-              />
+              />)
             )
           }
 
@@ -79,6 +78,4 @@ export default class SpeedDialsRow extends React.Component {
       </div>
     );
   }
-
 }
-

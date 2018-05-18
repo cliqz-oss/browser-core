@@ -1,4 +1,4 @@
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 
 
 const CORRECT_VERSION_PART = /^\d+$/;

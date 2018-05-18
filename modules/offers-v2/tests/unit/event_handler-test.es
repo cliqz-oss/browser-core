@@ -3,6 +3,7 @@
 /* global require */
 
 const encoding = require('text-encoding');
+const tldjs = require('tldjs');
 
 const TextDecoder = encoding.TextDecoder;
 const TextEncoder = encoding.TextEncoder;
@@ -30,8 +31,11 @@ export default describeModule('offers-v2/event_handler',
     'core/platform': {
       isChromium: false
     },
-    'core/cliqz': {
-      utils: {
+    'core/helpers/timeout': {
+      default: function() { const stop = () => {}; return { stop }; }
+    },
+    'core/utils': {
+      default: {
         setTimeout: function(f, t) {
           f();
         },
@@ -41,7 +45,9 @@ export default describeModule('offers-v2/event_handler',
           return getDetailsFromUrlReal(url);
         }
       },
-      events: {
+    },
+    'core/events': {
+      default: {
         d: {
           id_map: {}
         },
@@ -56,31 +62,6 @@ export default describeModule('offers-v2/event_handler',
           if (cb) {
             cb(...args);
           }
-        },
-        clear: function() {
-          this.d.id_map = {};
-        }
-      }
-    },
-    'core/webrequest': {
-      default: {
-        onBeforeRequest: {
-          d: [],
-          removeListener: function(cb) {
-            const idx = this.d.indexOf(cb);
-            if (idx >= 0) {
-              this.d.splice(idx,1);
-            }
-          },
-          addListener: function(cb, args) {
-            this.d.push(cb);
-          },
-          mock_pub: function(requestObj) {
-            this.d.forEach(cb => cb(requestObj));
-          },
-          clear: function () {
-            this.d = [];
-          }
         }
       }
     },
@@ -90,6 +71,9 @@ export default describeModule('offers-v2/event_handler',
     // },
     'platform/console': {
       default: {}
+    },
+    'platform/lib/tldjs': {
+      default: tldjs,
     },
     'core/prefs': {
       default: {
@@ -101,11 +85,9 @@ export default describeModule('offers-v2/event_handler',
     describe('#event_handler', function() {
       let EventHandler;
       let events;
-      let WebRequest;
       beforeEach(function () {
         EventHandler = this.module().default;
-        events = this.deps('core/cliqz').events;
-        WebRequest = this.deps('core/webrequest').default;
+        events = this.deps('core/events').default;
         return this.system.import('core/url').then((mod) => {
           getDetailsFromUrlReal = mod.getDetailsFromUrl;
         })
@@ -115,8 +97,6 @@ export default describeModule('offers-v2/event_handler',
         let eh;
 
         beforeEach(function () {
-          events.clear();
-          WebRequest.onBeforeRequest.clear();
           eh = new EventHandler();
         });
 
@@ -130,11 +110,14 @@ export default describeModule('offers-v2/event_handler',
         }
 
         function simReq(url) {
-          const evt = {
+          const webRequestContext = {
             rul: url,
             url,
+            isPrivate: false,
           }
-          WebRequest.onBeforeRequest.mock_pub(evt);
+          // we will here simulate the callback of the webrequest directly,
+          // still the logic will be the same
+          eh.webrequestPipelineCallback(webRequestContext);
         }
 
         // /////////////////////////////////////////////////////////////////////

@@ -44,10 +44,10 @@ export default class Win {
           utils.openLink(
             window,
             utils.UNINSTALL,
-            true,  // newTab
+            true, // newTab
             false, // newWindow
             false, // newPrivateWindow
-            true);   // focus
+            true); // focus
         }
       } catch (e) {
         // Nothing

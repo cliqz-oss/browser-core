@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="60px" height="60px" viewBox="0 0 60 60" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 49.1 (51147) - http://www.bohemiancoding.com/sketch -->
+    <title>Artboard</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Artboard" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group-6-Copy-2" transform="translate(3.544922, 2.000000)">
+            <polygon id="Star-Copy" stroke="#C2C2C2" stroke-width="3.42" stroke-linecap="round" stroke-linejoin="round" points="25.7207974 39.4455466 10.1182307 48.752461 14.1481741 31.0375435 0.47531415 19.0746155 18.5685229 17.4331089 25.7207974 0.732698262 32.873072 17.4331089 50.9662807 19.0746155 37.2934208 31.0375435 41.3233642 48.752461"></polygon>
+            <circle id="Oval" stroke="#00ACF2" stroke-width="3.42" fill="#00ACF2" cx="41.9470294" cy="45.200526" r="9.89037148"></circle>
+            <path d="M45.1372322,46.8060781 L41.9470294,49.9962809" id="Line-2-Copy" stroke="#FFFFFF" stroke-width="2.240784" stroke-linecap="round"></path>
+            <path d="M38.7575084,46.8166635 L41.9477112,50.0068662" id="Line-2-Copy-2" stroke="#FFFFFF" stroke-width="2.240784" stroke-linecap="round"></path>
+            <path d="M41.8916098,48.849 L41.8916098,41.667" id="Line-3" stroke="#FFFFFF" stroke-width="2.240784" stroke-linecap="round"></path>
+        </g>
+        <rect id="Rectangle-9" fill="#F2F2F2" opacity="0" x="-3.09863281" y="-3.09863281" width="65.8261719" height="65.8261719"></rect>
+    </g>
+</svg>

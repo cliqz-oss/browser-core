@@ -1,6 +1,5 @@
 import { checkIsWindowActive } from '../platform/browser';
-
-import domainInfo from '../core/domain-info';
+import domainInfo, { getDomainOwner } from '../core/domain-info';
 import { URLInfo } from '../core/url-info';
 import { getGeneralDomain } from '../core/tlds';
 
@@ -12,6 +11,7 @@ class PageStats {
     this.count = 0;
     this.blocked = new Map();
     this.blockedDomains = new Set();
+    this.blockedInfo = {};
   }
 
   addBlockedUrl(url) {
@@ -22,6 +22,7 @@ class PageStats {
     let company;
     if (domain in domainInfo.domainOwners) {
       company = domainInfo.domainOwners[domain];
+      this.blockedInfo[company] = getDomainOwner(domain);
     } else if (domain === this.hostGD) {
       company = 'First party';
     } else {
@@ -47,6 +48,7 @@ class PageStats {
     return {
       totalCount: this.count,
       advertisersList,
+      advertisersInfo: this.blockedInfo
     };
   }
 }
@@ -87,6 +89,7 @@ class AdbStats {
     return {
       totalCount: 0,
       advertisersList: {},
+      advertisersInfo: {},
     };
   }
 

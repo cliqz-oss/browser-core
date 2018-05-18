@@ -1,6 +1,5 @@
 import prefs from '../core/prefs';
-import inject, { ModuleDisabledError } from '../core/kord/inject';
-import console from '../core/console';
+import inject, { ifModuleEnabled } from '../core/kord/inject';
 import background from '../core/base/background';
 import Blocker, { BLOCK_MODE } from './blocker';
 
@@ -49,15 +48,9 @@ export default background({
 
   unload() {
     Promise.all([
-      this.antitracking.action('removePipelineStep', 'onBeforeRequest', STEP_NAME),
-      this.antitracking.action('removePipelineStep', 'onBeforeRequest', `${STEP_NAME}Apply`),
-    ]).catch((err) => {
-      if (err.name === ModuleDisabledError.name) {
-        console.log('antitracking-blocker', 'cannot unload: antitracking was already unloaded');
-        return Promise.resolve();
-      }
-      return Promise.reject(err);
-    });
+      ifModuleEnabled(this.antitracking.action('removePipelineStep', 'onBeforeRequest', STEP_NAME)),
+      ifModuleEnabled(this.antitracking.action('removePipelineStep', 'onBeforeRequest', `${STEP_NAME}Apply`)),
+    ]);
 
     this.blockEngine.unload();
   },

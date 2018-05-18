@@ -1,18 +1,30 @@
-import messageContext from './message-context';
+// FIXME: remove this
+/* eslint-disable no-console */
+
+import MessageContext from './message-context';
 import { sha1 } from '../../core/crypto/utils';
-import md5 from 'md5';
-import randBigInt from 'bigint';
-import userPK from './user-pk';
+import UserPK from './user-pk';
 import { parseDSKey } from './blind-signature';
 import config from '../../core/config';
 
+if (typeof crypto === 'undefined') {
+  throw new Error('hpn-worker: crypto not present in this platform');
+}
+
 // Global variables
-const CliqzSecureMessage = {};
-export let localTemporalUniq = {};
+const CliqzSecureMessage = {
+  localTemporalUniq: {},
+};
+
 CliqzSecureMessage.BLIND_SIGNER = config.settings.ENDPOINT_BLIND_SIGNER;
 CliqzSecureMessage.USER_REG = config.settings.ENDPOINT_USER_REG;
 
-self.onmessage = function(e) {
+const logger = {
+  log: console.log.bind(console),
+  error: console.error.bind(console),
+};
+
+self.onmessage = (e) => {
   try {
     const msgType = e.data.type;
 
@@ -23,11 +35,15 @@ self.onmessage = function(e) {
       CliqzSecureMessage.sourceMap = e.data.sourcemap;
       CliqzSecureMessage.uPK = e.data.upk;
       const queryProxyUrl = e.data.queryProxyUrl;
+      if (!queryProxyUrl) {
+        throw new Error(`Could not send instant message (action=${msg.action}), as the queryProxyUrl is missing`);
+      }
+
       CliqzSecureMessage.dsPK = e.data.dspk;
       CliqzSecureMessage.secureLogger = e.data.sspk;
 
-      const mc = new messageContext(msg);
-      mc.query(queryProxyUrl).then( result => {
+      const mc = new MessageContext(msg, CliqzSecureMessage, logger);
+      mc.query(queryProxyUrl).then((result) => {
         response.res = result;
         response.uid = uid;
         response.type = 'instant';
@@ -45,33 +61,38 @@ self.onmessage = function(e) {
       CliqzSecureMessage.dsPK = e.data.dspk;
       CliqzSecureMessage.secureLogger = e.data.sspk;
       CliqzSecureMessage.routeTable = e.data.routetable;
-      localTemporalUniq = e.data.localTemporalUniq;
+      CliqzSecureMessage.localTemporalUniq = e.data.localTemporalUniq;
 
       let mc;
       try {
-        mc = new messageContext(msg);
+        mc = new MessageContext(msg, CliqzSecureMessage, logger);
       } catch (err) {
-        response.localTemporalUniq = localTemporalUniq;
+        response.localTemporalUniq = CliqzSecureMessage.localTemporalUniq;
         postMessage(response);
         return;
       }
 
-      parseDSKey()
+      parseDSKey(CliqzSecureMessage.dsPK.pubKeyB64)
+        .then((keys) => {
+          CliqzSecureMessage.dsPK.e = keys.e;
+          CliqzSecureMessage.dsPK.n = keys.n;
+        })
         .then(() => mc.encryptedTelemetry())
-        .then(result => {
-          response.localTemporalUniq = localTemporalUniq;
+        .then((/* result */) => {
+          response.localTemporalUniq = CliqzSecureMessage.localTemporalUniq;
           postMessage(response);
-        }).catch(err => {
-          response.localTemporalUniq = localTemporalUniq;
+        })
+        .catch((/* err */) => {
+          response.localTemporalUniq = CliqzSecureMessage.localTemporalUniq;
           postMessage(response);
         });
       return;
     }
 
     if (msgType === 'user-key') {
-      const upk = new userPK();
-      upk.generateKey().then( e => {
-        postMessage(e);
+      const upk = new UserPK(CliqzSecureMessage, logger);
+      upk.generateKey().then((_e) => {
+        postMessage(_e);
       }).catch(postMessage);
       return;
     }
@@ -84,20 +105,26 @@ self.onmessage = function(e) {
       CliqzSecureMessage.uPK = e.data.upk;
       CliqzSecureMessage.dsPK = e.data.dspk;
       CliqzSecureMessage.routeTable = e.data.routetable;
-      localTemporalUniq = e.data.localTemporalUniq;
+      CliqzSecureMessage.localTemporalUniq = e.data.localTemporalUniq;
 
-      const mc = new messageContext(msg);
+      const mc = new MessageContext(msg, CliqzSecureMessage, logger);
       mc.getproxyCoordinator()
-        .then( e => {
-          response.mc = mc;
+        .then((/* e */) => {
+          response.mc = mc.toJSON();
           postMessage(response);
-        }).catch(postMessage);
+        }).catch((_e) => {
+          console.error('hpn-worker test', _e);
+          postMessage({
+            type: 'test',
+            error: true,
+          });
+        });
       return;
     }
 
     if (msgType === 'test-sha1' || msgType === 'hw-sha1') {
       sha1(e.data.msg)
-        .then( result => {
+        .then((result) => {
           const response = {};
           response.result = result;
           postMessage(response);
@@ -105,32 +132,18 @@ self.onmessage = function(e) {
       return;
     }
 
-    if (msgType === 'test-md5' || msgType === 'hw-md5') {
-      let _hash = md5.md5(e.data.msg);
-      const response = {};
-      response.result = _hash;
-      postMessage(response);
-    }
-
-    if (msgType === 'test-bigint' || msgType === 'hw-bigint') {
-      let rnd = randBigInt.randBigInt(1024, 1);
-      const response = {};
-      response.result = rnd;
-      postMessage(response);
-    }
-
     if (msgType === 'test-rsa-sign') {
       const msg = e.data.msg;
       const response = {};
-      CliqzSecureMessage.uPK = {'privateKey' : e.data.upk};
-      const uPK = new userPK(msg);
+      CliqzSecureMessage.uPK = { privateKey: e.data.upk };
+      const uPK = new UserPK(CliqzSecureMessage, logger);
 
       uPK.sign(msg)
-        .then( result => {
+        .then((result) => {
           response.result = result;
           postMessage(response);
         })
-        .catch( err => {
+        .catch((/* err */) => {
           response.result = false;
           postMessage(response);
         });
@@ -142,15 +155,15 @@ self.onmessage = function(e) {
       const msg = e.data.msg;
       const response = {};
 
-      CliqzSecureMessage.uPK = {'privateKey' : e.data.upk};
-      const uPK = new userPK(msg);
+      CliqzSecureMessage.uPK = { privateKey: e.data.upk };
+      const uPK = new UserPK(CliqzSecureMessage, logger);
 
       uPK.verify(signature, msg)
-        .then( result => {
+        .then((result) => {
           response.result = result;
           postMessage(response);
         })
-        .catch( err => {
+        .catch((/* err */) => {
           response.result = false;
           postMessage(response);
         });
@@ -158,7 +171,6 @@ self.onmessage = function(e) {
     }
 
     throw new Error(`Unknown message type ${msgType}`);
-
   } catch (err) {
     console.log(err);
     try {

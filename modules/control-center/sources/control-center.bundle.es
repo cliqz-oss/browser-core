@@ -1,6 +1,7 @@
 /* global window, document, $, Handlebars */
 /* eslint-disable func-names, no-param-reassign */
 /* eslint import/no-extraneous-dependencies: 'off' */
+
 import { sendMessageToWindow } from './content/data';
 import helpers from './content/helpers';
 import templates from './templates';
@@ -254,14 +255,19 @@ function updateGeneralState() {
   });
 }
 
+
+function _getWatchDogUrl(company = {}) {
+  const slug = company.wtm || '../tracker-not-found';
+  return `https://whotracks.me/trackers/${slug}.html`;
+}
+
 function compile(obj) {
   return Object.keys(obj.companies)
     .map((companyName) => {
       const domains = obj.companies[companyName];
-      const trackerSlug = obj.companyInfo[companyName].wtm || '../tracker-not-found';
       const company = {
         name: companyName,
-        watchDogUrl: `https://whotracks.me/trackers/${trackerSlug}.html`,
+        watchDogUrl: _getWatchDogUrl(obj.companyInfo[companyName]),
         domains: domains.map((domain) => {
           const domainData = obj.trackers[domain];
           return {
@@ -280,6 +286,7 @@ function compile(obj) {
 
 function compileAdblockInfo(data) {
   const advertisersList = data.module.adblocker.advertisersList;
+  const advertisersInfo = data.module.adblocker.advertisersInfo;
   const advertisers = data.module.adblocker.advertisersList;
   const firstParty = advertisers['First party'];
   const unknown = advertisers._Unknown;
@@ -294,10 +301,11 @@ function compileAdblockInfo(data) {
       return {
         count,
         name: advertiser,
-        isInactive: count === 0
+        isInactive: count === 0,
+        watchDogUrl: _getWatchDogUrl(advertisersInfo[advertiser]),
+
       };
     }).sort((a, b) => a.count < b.count);
-
   if (firstParty) {
     advertisersList.companiesArray.unshift({
       name: 'First Party', // i18n
@@ -577,6 +585,14 @@ function draw(data) {
   if (!emptyFrame) {
     resize();
   }
+
+  $('.infobutton').tooltipster({
+    theme: ['tooltipster-shadow', 'tooltipster-shadow-customized'],
+    interactive: true,
+    delay: 150,
+    animationDuration: 150,
+    side: 'right',
+  });
 }
 
 window.draw = draw;

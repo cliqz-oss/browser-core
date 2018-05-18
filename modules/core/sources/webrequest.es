@@ -32,5 +32,5 @@ export const EXTRA_INFO_SPEC = {
   onCompleted: [
     'responseHeaders', // Chrome only?
   ],
-  onErrorOccurred: [],
+  onErrorOccurred: undefined,
 };

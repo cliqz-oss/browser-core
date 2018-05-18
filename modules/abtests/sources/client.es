@@ -9,7 +9,10 @@ export default class Client {
     const request = new Request(url, {
       headers,
       method,
-      body: JSON.stringify(payload) });
+      credentials: 'omit',
+      cache: 'no-store',
+      body: JSON.stringify(payload)
+    });
     return fetch(request)
       .then((response) => {
         if (!response.ok) {

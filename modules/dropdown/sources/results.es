@@ -3,50 +3,47 @@ import CalculatorResult from './results/calculator';
 import TimeResult from './results/time';
 import CurrencyResult from './results/currency';
 import WeatherResult from './results/weather';
+import DialingCodeResult from './results/dialing-code';
 import HistoryCluster from './results/history';
 import SessionsResult from './results/sessions';
 import AdultQuestionResult from './results/adult-question';
 import OffersResult from './results/offer';
 import SupplementarySearchResult from './results/supplementary-search';
-import Suggestions from './results/suggestions';
 import LottoResult from './results/lotto';
 import SoccerResult from './results/soccer';
 import FlightResult from './results/flight';
-import MovieCinemaResult from './results/movie-cinema';
-import { equals } from '../core/url';
-import console from '../core/console';
+import SingleVideoResult from './results/single-video';
+import MovieResult from './results/movie';
+import CinemaResult from './results/cinema';
 import NavigateToResult from './results/navigate-to';
 import NewsStory from './results/news-story';
-import RetirementResult from './results/retirement';
-import config from '../core/config';
-import * as offersConfig from './offer-assistant';
-import prefs from '../core/prefs';
+import { equals } from '../core/content/url';
 
 class ResultFactory {
-  static create(rawResult, allResultsFlat, configs) {
+  static create(rawResult, resultTools) {
     let Constructor = GenericResult;
     if (['custom', 'noResult'].indexOf(rawResult.data.template) >= 0) {
       throw new Error('ignore');
     }
 
     if (rawResult.data.template === 'calculator') {
-      if (rawResult.data.extra.ez_type) {
-        if (rawResult.data.extra.ez_type === 'time') {
-          Constructor = TimeResult;
-        } else {
-          throw new Error('ignore');
-        }
-      } else {
-        Constructor = CalculatorResult;
-      }
+      Constructor = CalculatorResult;
     }
 
     if (rawResult.data.template === 'currency') {
       Constructor = CurrencyResult;
     }
 
+    if (rawResult.data.template === 'time') {
+      Constructor = TimeResult;
+    }
+
     if (rawResult.data.template === 'weatherEZ' || rawResult.data.template === 'weatherAlert') {
       Constructor = WeatherResult;
+    }
+
+    if (rawResult.data.template === 'dialing-code') {
+      Constructor = DialingCodeResult;
     }
 
     if (rawResult.data.template === 'lotto') {
@@ -57,18 +54,13 @@ class ResultFactory {
       Constructor = OffersResult;
     }
 
-    if (rawResult.data.template === 'movieEZ' ||
-        rawResult.data.template === 'cinemaEZ' ||
-        rawResult.data.template === 'movie') {
-      Constructor = MovieCinemaResult;
+    if (rawResult.data.template === 'movie') {
+      Constructor = MovieResult;
     }
 
-    if (rawResult.data.template === 'suggestion') {
-      Constructor = SupplementarySearchResult;
-    }
-
-    if (rawResult.data.template === 'inline-suggestion') {
-      Constructor = Suggestions;
+    if (rawResult.data.template === 'movie-showtimes' ||
+        rawResult.data.template === 'cinemaEZ') {
+      Constructor = CinemaResult;
     }
 
     if (rawResult.data.template === 'sessions') {
@@ -84,6 +76,10 @@ class ResultFactory {
 
     if (rawResult.data.template === 'news') {
       Constructor = NewsStory;
+    }
+
+    if (rawResult.data.template === 'single-video') {
+      Constructor = SingleVideoResult;
     }
 
     if (rawResult.data.template === 'flight') {
@@ -106,20 +102,17 @@ class ResultFactory {
       Constructor = SupplementarySearchResult;
     }
 
-    return new Constructor(rawResult, allResultsFlat, configs);
+    return new Constructor(rawResult, resultTools);
   }
 
-  static createAll(rawResults, actions = {}) {
-    const all = rawResults.reduce(({ resultList, allResultsFlat }, rawResult) => {
+  static createAll(rawResults, resultTools) {
+    return rawResults.reduce((resultList, rawResult) => {
       try {
-        const result = ResultFactory.create(rawResult, allResultsFlat, {
-          offers: {
-            isEnabled: offersConfig.isUserEnabled(),
-            nonOrganicStyle: offersConfig.getNonOrganicOfferStyle(),
-            organicStyle: offersConfig.getOrganicOfferStyle(),
-          }
-        });
-        result.actions = actions;
+        const result = ResultFactory.create(
+          rawResult,
+          resultTools,
+        );
+
         resultList.push(result);
       } catch (e) {
         if (['duplicate', 'ignore'].indexOf(e.message) >= 0) {
@@ -129,72 +122,47 @@ class ResultFactory {
         }
       }
 
-      return {
-        resultList,
-        allResultsFlat,
-      };
-    }, { resultList: [], allResultsFlat: [] });
-
-
-    if (prefs.get('retirementIgnoredOn', '') !== prefs.get('config_ts', '-')) {
-      const retirement = new RetirementResult({}, all.allResultsFlat, {});
-      retirement.actions = actions;
-      all.resultList.unshift(retirement);
-    }
-
-    return all.resultList;
+      return resultList;
+    }, []);
   }
 }
 
 export default class Results {
-  constructor({
-    query,
-    rawResults,
-    queriedAt,
-    queryCliqz,
-    adultAssistant,
-    locationAssistant,
-    rerender,
-    getSnippet,
-    copyToClipboard,
-    isNewSearchMode
-  } = {}) {
-    this.rerender = rerender;
+  constructor(
+    {
+      query,
+      rawResults,
+      queriedAt,
+    },
+    resultTools,
+  ) {
+    this.resultTools = {
+      ...resultTools,
+      actions: {
+        ...resultTools.actions,
+        replaceResult: this.replaceResult,
+      },
+      results: this,
+    };
+
     this.query = query;
     this.queriedAt = queriedAt;
-    this.isNewSearchMode = isNewSearchMode;
 
-    const actions = {
-      locationAssistant,
-      adultAssistant,
-      replaceResult: this.replaceResult.bind(this),
-      removeResult: this.removeResult.bind(this),
-      getSnippet,
-      copyToClipboard,
-      query: queryCliqz,
-    };
-    this.results = ResultFactory.createAll(rawResults, actions);
+    this.results = ResultFactory.createAll(rawResults, this.resultTools);
 
     if (this.hasAdultResults) {
-      if (adultAssistant.isBlockingAdult) {
+      if (this.resultTools.assistants.adult.isBlockingAdult) {
         this.results = this.results.filter(result => !result.isAdult);
       }
 
-      if (adultAssistant.isAskingForAdult) {
-        this.addAdultQuestionResult({
-          onButtonClick: queryCliqz.bind(null, this.query),
-          adultAssistant,
-        }, actions);
+      if (this.resultTools.assistants.adult.isAskingForAdult) {
+        this.addAdultQuestionResult(resultTools);
       }
     }
 
     if (this.hasCalculatorResults || this.hasCurrencyResults) {
       // we should filter out suggestions if we have calculatpr or currency results
       this.results = this.results.filter(result => !result.isSuggestion);
-    }
-
-    if (config.settings.HISTORY_URL && !this.isNewSearchMode && this.hasHistory && (this.query !== '')) {
-      this.addSessionsResult();
     }
 
     this.displayedAt = Date.now();
@@ -226,7 +194,6 @@ export default class Results {
   find(href) {
     return this.results.find((result) => {
       if (!result.hasUrl) {
-        console.error('Result does not implement #hasUrl', result);
         return false;
       }
       return result.hasUrl(href);
@@ -234,7 +201,7 @@ export default class Results {
   }
 
   findSelectable(href) {
-    return this.selectableResults.find(r => equals(r.rawUrl, href) || equals(r.url, href));
+    return this.selectableResults.find(r => equals(r.url, href));
   }
 
   indexOf(result) {
@@ -249,17 +216,11 @@ export default class Results {
     this.results.unshift(result);
   }
 
-  replaceResult(oldResult, newResult) {
+  replaceResult = (oldResult, newResult) => {
     const index = this.indexOf(oldResult);
     this.results.splice(index, 1, newResult);
-    this.rerender();
-  }
-
-  removeResult(result) {
-    const index = this.indexOf(result);
-    this.results.splice(index, 1);
-    this.rerender();
-  }
+    this.resultTools.actions.rerender();
+  };
 
   insertAt(result, index) {
     this.results = [
@@ -269,27 +230,12 @@ export default class Results {
     ];
   }
 
-  addSessionsResult() {
-    const firstHistoryIndex = this.results.findIndex(r => r.isHistory);
-    const firstNonHistoryIndex = firstHistoryIndex +
-      this.results.slice(firstHistoryIndex).findIndex(r => !r.isHistory);
-    const sessionResult = new SessionsResult({
-      text: this.query
-    });
-
-    this.insertAt(
-      sessionResult,
-      firstNonHistoryIndex >= 0 ? firstNonHistoryIndex : this.results.length,
-    );
-  }
-
-  addAdultQuestionResult({ onButtonClick, adultAssistant }, actions = {}) {
+  addAdultQuestionResult() {
     const result = new AdultQuestionResult({
       text: this.query,
-      onButtonClick,
-    });
-    result.actions = actions;
-    this.prepend(result);
+    }, this.resultTools);
+    const insertAtIndex = this.firstResult && this.firstResult.defaultSearchResult ? 1 : 0;
+    this.insertAt(result, insertAtIndex);
   }
 
   get hasHistory() {
@@ -306,5 +252,30 @@ export default class Results {
 
   get hasCurrencyResults() {
     return this.results.some(r => r.isCurrency);
+  }
+
+  get isAutocompleteable() {
+    // isNotAutocompleteable is a little awkward name, but it is
+    // set like that so we have not regression for results that lack
+    // that property - thus instead of checking is results isAutocompleteable
+    // we check if it is not isNotAutocompleteable
+    return this.firstResult && !this.firstResult.isNotAutocompleteable;
+  }
+
+  get lastHistoryIndex() {
+    for (let i = this.results.length - 1; i >= 0; i -= 1) {
+      if (this.results[i].isHistory) {
+        return i + 1;
+      }
+    }
+    return 0;
+  }
+
+  get historyResults() {
+    return this.results.slice(0, this.lastHistoryIndex);
+  }
+
+  get genericResults() {
+    return this.results.slice(this.lastHistoryIndex);
   }
 }

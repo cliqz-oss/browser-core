@@ -1,9 +1,7 @@
 import BaseResult from './base';
-import utils from '../../core/utils';
-import { copyToClipboard } from '../../core/clipboard';
+import i18n from '../../core/content/i18n';
 
 export default class CalculatorResult extends BaseResult {
-
   get template() {
     return 'calculator';
   }
@@ -18,10 +16,6 @@ export default class CalculatorResult extends BaseResult {
 
   get result() {
     return this.rawResult.title || (this.rawResult.data.extra || {}).answer;
-  }
-
-  get title() {
-    return this.rawResult.title;
   }
 
   get url() {
@@ -42,8 +36,8 @@ export default class CalculatorResult extends BaseResult {
   }
 
   click() {
-    copyToClipboard(this.rawResult.title);
-    this.$tooltip.innerText = utils.getLocalizedString('Copied');
+    this.resultTools.actions.copyToClipboard(this.result);
+    this.$tooltip.innerText = i18n.getMessage('Copied');
     setTimeout(() => {
       this.$tooltip.style.display = 'none';
     }, 1000);

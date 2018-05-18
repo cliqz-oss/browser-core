@@ -1,0 +1,1 @@
+import '../module-integration-tests';

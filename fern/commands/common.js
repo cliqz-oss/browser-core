@@ -5,7 +5,6 @@ const path = require('path');
 const broccoli = require('broccoli');
 const assert = require('assert');
 const rimraf = require('rimraf');
-const execa = require('execa');
 const chalk = require('chalk');
 
 let CONFIG;
@@ -31,14 +30,16 @@ function cleanupDefaultBuild() {
   assert(OUTPUT_PATH);
   const outDirInsideRepo = OUTPUT_PATH.indexOf(process.cwd()) === 0;
   console.log(OUTPUT_PATH, process.cwd(), outDirInsideRepo);
-  if (outDirInsideRepo)
+
+  if (outDirInsideRepo) {
     rimraf.sync(OUTPUT_PATH);
-  else
-    console.log("Won't remove output directory because it's outside of the repo.");
+  } else if(fs.existsSync(OUTPUT_PATH)) {
+    throw new Error("Won't remove output directory because it's outside of the repo.");
+  }
 }
 
 function setConfigPath(configPath, buildIntoSubdir) {
-  configPath = configPath || process.env['CLIQZ_CONFIG_PATH'] || './configs/jenkins.js'
+  configPath = configPath || process.env['CLIQZ_CONFIG_PATH'] || './configs/ci/browser.js'
   process.env['CLIQZ_CONFIG_PATH'] = configPath;
   CONFIG = require(path.resolve(configPath));
   CONFIG.subprojects = CONFIG.subprojects || [];

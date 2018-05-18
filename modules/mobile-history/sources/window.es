@@ -1,5 +1,5 @@
 import Handlebars from 'handlebars';
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import History from './history';
 import templates from './templates';
 import helpers from './content/helpers';

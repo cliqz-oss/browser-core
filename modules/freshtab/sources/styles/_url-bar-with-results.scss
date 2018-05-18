@@ -1,0 +1,38 @@
+@mixin url-bar-with-results (
+    $aside-width,
+    $container-width,
+    $section-padding,
+
+    $search-size,
+    $search-input-height,
+    $search-font-size,
+    $search-text-indent,
+
+    $search-input-box-shadow,
+    $search-input-border,
+    $search-input-box-shadow-focus,
+    $search-input-color,
+    $search-input-bg-image
+) {
+    $width: $container-width;
+    .with-results {
+        input {
+            width: calc(#{$width} - 4px);
+        }
+    }
+   .results {
+       position: relative;
+
+       iframe {
+           left: 0;
+           height: 0;
+           z-index: 100;
+           width: $width;
+           border: 0;
+           height: 0;
+           position: absolute;
+           box-shadow: $search-input-box-shadow-focus;
+           transition: height 200ms cubic-bezier(0.55, 0.055, 0.675, 0.19);
+       }
+   }
+}

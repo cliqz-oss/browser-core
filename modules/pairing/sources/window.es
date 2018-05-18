@@ -1,4 +1,4 @@
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import inject from '../core/kord/inject';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import background from './background';
@@ -65,7 +65,7 @@ export default class Win {
           let url = ''; // Display "Send to mobile" option based on this url
           if (isLink) {
             delete tabData.title;
-            url = this.window.gContextMenu.getLinkURL();
+            url = this.window.gContextMenu.linkURL;
             tabData.url = url;
           } else { // No text selected
             url = this.window.gBrowser.currentURI.spec;
@@ -87,7 +87,7 @@ export default class Win {
             });
           } : undefined;
           this.pageMenu.addMenuItem({
-            label: utils.getLocalizedString('pairing-send-tab-to-mobile'),
+            label: utils.getLocalizedString('pairing_send_tab_to_mobile'),
             onclick,
             beforeElem,
             disabled: !isEnabled,
@@ -125,7 +125,7 @@ export default class Win {
             });
           } : undefined;
           this.tabMenu.addMenuItem({
-            label: utils.getLocalizedString('pairing-send-tab-to-mobile'),
+            label: utils.getLocalizedString('pairing_send_tab_to_mobile'),
             onclick,
             beforeElem,
             disabled: !isEnabled,
@@ -154,7 +154,7 @@ export default class Win {
   }
 
   showOnboarding() {
-    const locale = utils.getPref('general.useragent.locale', 'en', '');
+    const locale = utils.PLATFORM_LANGUAGE;
     const isInABTest = utils.getPref('extOnboardCliqzConnect', false);
     const dismissed = JSON.parse(utils.getPref(DISMISSED_ALERTS, '{}'));
     const messageType = 'cliqz-connect';

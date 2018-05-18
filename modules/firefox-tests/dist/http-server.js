@@ -1,17 +1,18 @@
-"use strict";
+/* global FileUtils, HttpServer, getWindow */
+/* eslint-disable*/
 
 Components.utils.import('chrome://cliqz/content/firefox-tests/content/extern/httpd.js');
 Components.utils.import('resource://gre/modules/FileUtils.jsm');
 Components.utils.import('resource://gre/modules/osfile.jsm');
-var AddonManager = Components.utils.import('resource://gre/modules/AddonManager.jsm');
+const AddonManager = Components.utils.import('resource://gre/modules/AddonManager.jsm');
 
-var prefs = Components.classes['@mozilla.org/preferences-service;1']
-        .getService(Components.interfaces.nsIPrefBranch);
+const prefs = Components.classes['@mozilla.org/preferences-service;1']
+  .getService(Components.interfaces.nsIPrefBranch);
 /** Gets the absolute path to the Cliqz extension's root directory */
 function getExtensionDirectory() {
-  const config = getModule('core/config').default;
+  const config = getWindow().CLIQZ.app.config;
   const extensionId = config.settings.id;
-  return new Promise(function (resolve) {
+  return new Promise((resolve) => {
     try {
       resolve(JSON.parse(prefs.getCharPref('extensions.xpiState'))['app-profile'][extensionId].d);
     } catch (e1) {
@@ -20,8 +21,11 @@ function getExtensionDirectory() {
       } catch (e2) {
         AddonManager.AddonManager.getAddonByID(
           extensionId,
-          function (addon) {
-            resolve(addon.getResourceURI('').path);
+          (addon) => {
+            resolve(
+              addon.getResourceURI('').path ||
+              addon.getResourceURI('').filePath
+            );
           }
         );
       }
@@ -37,51 +41,51 @@ function WrappedHttpServer() {
 }
 
 WrappedHttpServer.prototype = {
-  _start: function() {
+  _start() {
     console.log('start http server');
     this._s = new HttpServer();
     // add test domains to server identity
-    this.domains.forEach(function(d) {
+    this.domains.forEach(function (d) {
       this._s.identity.add('http', d, this.port);
     }.bind(this));
 
     this._s.start(this.port);
   },
-  _stop: function(cb) {
+  _stop(cb) {
     console.log('stop http server');
     this._s.stop(cb);
     this._s = null;
   },
 
-  _getChromeDirFile: function(relative_path) {
-    var abs_path = OS.Path.join.apply(OS.Path, this._testDirPrefix.concat(relative_path));
-    return new FileUtils.File(abs_path);
+  _getChromeDirFile(relativePath) {
+    const absPath = OS.Path.join.apply(OS.Path, this._testDirPrefix.concat(relativePath));
+    return new FileUtils.File(absPath);
   },
 
-  _pathToArray: function(path) {
+  _pathToArray(path) {
     if (typeof path === 'string') {
       return path.split('/');
     }
     return path;
   },
 
-  /** Register that requests to server_path should be served from local_path
+  /** Register that requests to serverPath should be served from localPath
    */
-  registerDirectory: function(server_path, local_path) {
-    local_path = this._pathToArray(local_path);
-    this._s.registerDirectory(server_path, this._getChromeDirFile(local_path));
+  registerDirectory(serverPath, localPath) {
+    localPath = this._pathToArray(localPath);
+    this._s.registerDirectory(serverPath, this._getChromeDirFile(localPath));
   },
 
   /** Register that requests to path should be handled by handler
     */
-  registerPathHandler: function(path, handler) {
+  registerPathHandler(path, handler) {
     this._s.registerPathHandler(path, handler);
   },
 
   /** Clear this http server's handlers
    */
-  clearHandlers: function() {
-    var handler = this._s._handler;
+  clearHandlers() {
+    const handler = this._s._handler;
     handler._overridePaths = {};
     handler._overridePrefixes = {};
     handler._pathDirectoryMap._map = {};
@@ -89,31 +93,20 @@ WrappedHttpServer.prototype = {
 
   /** Helper method for manually writing file contents to a response in a handler.
     */
-  writeFileResponse: function(request, file_path, response) {
-    var file = this._getChromeDirFile(this._pathToArray(file_path));
+  writeFileResponse(request, filePath, response) {
+    const file = this._getChromeDirFile(this._pathToArray(filePath));
     this._s._handler._writeFileResponse(request, file, response, 0, file.fileSize);
   }
 };
 
-var testServer = null;
+let testServer = null;
 
 function initHttpServer() {
-
   // set up proxy config via PAC file. Restore previous settings on test exit
-  var proxyAutoconfigUrl = null,
-      proxyType = null;
+  let proxyAutoconfigUrl = null;
+  let proxyType = null;
 
-  before(function() {
-    // install PAC file (to proxy fake domains back to localhost)
-    if(prefs.prefHasUserValue('network.proxy.autoconfig_url')) {
-      proxyAutoconfigUrl = prefs.getCharPref('network.proxy.autoconfig_url');
-    }
-    prefs.setCharPref('network.proxy.autoconfig_url', 'chrome://cliqz/content/firefox-tests/proxy.pac');
-    if(prefs.prefHasUserValue('network.proxy.type')) {
-      proxyType = prefs.getIntPref('network.proxy.type');
-    }
-    prefs.setIntPref('network.proxy.type', 2);
-
+  before(function () {
     // create and start http server, and register shutdown on window unload.
     return getExtensionDirectory()
       .then(function (extensionDirectory) {
@@ -121,29 +114,15 @@ function initHttpServer() {
         testServer._start();
         window.onunload = testServer._stop.bind(testServer);
       })
-      .catch(function (ex) {
+      .catch((ex) => {
         console.error('ERROR', ex);
-      })
-  });
-
-  after(function() {
-    // reset proxy settings
-    if(proxyAutoconfigUrl === null) {
-      prefs.clearUserPref('network.proxy.autoconfig_url');
-    } else {
-      prefs.setCharPref('network.proxy.autoconfig_url', proxyAutoconfigUrl);
-    }
-    if(proxyType === null) {
-      prefs.clearUserPref('network.proxy.type');
-    } else {
-      prefs.setIntPref('network.proxy.type', proxyType);
-    }
+      });
   });
 
   testServer = new WrappedHttpServer();
 
   // clear server handlers automatically after each test.
-  afterEach(function() {
+  afterEach(function () {
     testServer.clearHandlers();
   });
 }

@@ -3,8 +3,8 @@
 
 export default describeModule('webrequest-pipeline/pipeline',
   () => ({
-    'core/cliqz': {
-      utils: {
+    'core/utils': {
+      default: {
         setTimeout(fn) { fn(); },
       },
     },

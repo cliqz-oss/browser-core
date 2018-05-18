@@ -1,9 +1,11 @@
+/* eslint no-restricted-syntax: 'off' */
+
 import * as persist from '../core/persistent-state';
 import * as datetime from './time';
 import { generateAttrackPayload } from './utils';
 import pacemaker from '../core/pacemaker';
 import telemetry from './telemetry';
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 import { TELEMETRY } from './config';
 
 const safeKeyExpire = 7;
@@ -12,7 +14,6 @@ const safeKeyExpire = 7;
  *  Contains only local safekeys, extra safekeys and safe tokens are left to sub-class.
  */
 export default class QsWhitelistBase {
-
   constructor(config) {
     this.config = config;
     this.safeKeys = new persist.LazyPersistentObject('safeKey');
@@ -22,7 +23,7 @@ export default class QsWhitelistBase {
     // local safekeys are optional, don't block loading remote lists
     const win = utils.getWindow();
     if (win && win.requestIdleCallback) {
-      win.requestIdleCallback(() => this.safeKeys.load(), {timeout: 2000});
+      win.requestIdleCallback(() => this.safeKeys.load(), { timeout: 2000 });
     } else {
       utils.setTimeout(this.safeKeys.load.bind(this.safeKeys), 2000);
     }
@@ -48,7 +49,7 @@ export default class QsWhitelistBase {
 
   _hourlyPruneAndSend() {
     // every hour, prune and send safekeys
-    var now = datetime.getTime();
+    const now = datetime.getTime();
     this._pruneSafeKeys();
 
     if (this._safeKeysLastSent < now) {
@@ -61,7 +62,7 @@ export default class QsWhitelistBase {
     return domain in this.safeKeys.value && key in this.safeKeys.value[domain];
   }
   addSafeKey(domain, key, valueCount) {
-    let today = datetime.dateString(datetime.newUTCDate());
+    const today = datetime.dateString(datetime.newUTCDate());
     if (!(domain in this.safeKeys.value)) {
       this.safeKeys.value[domain] = {};
     }
@@ -73,18 +74,22 @@ export default class QsWhitelistBase {
    *  This will add data on how many values were seen for each key by individual users.
    */
   annotateSafeKeys(requestKeyValue) {
-    for ( let domain in this.safeKeys.value ) {
-      for ( let key in this.safeKeys.value[domain] ) {
-        let tuple = this.safeKeys.value[domain][key];
-        // check if we have key-value data for this domain, key pair
-        if ( requestKeyValue[domain] && requestKeyValue[domain][key]) {
-          // remote and old safekeys may be in old pair format
-          if ( tuple.length === 2 ) {
-            tuple.push(0);
-          }
+    for (const domain in this.safeKeys.value) {
+      if (Object.prototype.hasOwnProperty.call(this.safeKeys.value, domain)) {
+        for (const key in this.safeKeys.value[domain]) {
+          if (Object.prototype.hasOwnProperty.call(this.safeKeys.value[domain], key)) {
+            const tuple = this.safeKeys.value[domain][key];
+            // check if we have key-value data for this domain, key pair
+            if (requestKeyValue[domain] && requestKeyValue[domain][key]) {
+              // remote and old safekeys may be in old pair format
+              if (tuple.length === 2) {
+                tuple.push(0);
+              }
 
-          let valueCount = Object.keys(requestKeyValue[domain][key]).length;
-          tuple[2] = Math.max(tuple[2], valueCount);
+              const valueCount = Object.keys(requestKeyValue[domain][key]).length;
+              tuple[2] = Math.max(tuple[2], valueCount);
+            }
+          }
         }
       }
     }
@@ -93,18 +98,20 @@ export default class QsWhitelistBase {
   }
 
   _pruneSafeKeys() {
-    var day = datetime.newUTCDate();
+    const day = datetime.newUTCDate();
     day.setDate(day.getDate() - safeKeyExpire);
-    var dayCutoff = datetime.dateString(day);
-    for (var s in this.safeKeys.value) {
-        for (var key in this.safeKeys.value[s]) {
-            if (this.safeKeys.value[s][key][0] < dayCutoff) {
-                delete this.safeKeys.value[s][key];
-            }
+    const dayCutoff = datetime.dateString(day);
+    for (const s in this.safeKeys.value) {
+      if (Object.prototype.hasOwnProperty.call(this.safeKeys.value, s)) {
+        for (const key in this.safeKeys.value[s]) {
+          if (this.safeKeys.value[s][key][0] < dayCutoff) {
+            delete this.safeKeys.value[s][key];
+          }
         }
         if (Object.keys(this.safeKeys.value[s]).length === 0) {
-            delete this.safeKeys.value[s];
+          delete this.safeKeys.value[s];
         }
+      }
     }
     this.safeKeys.setDirty();
     this.safeKeys.save();
@@ -116,30 +123,36 @@ export default class QsWhitelistBase {
       return;
     }
     // get only keys from local key
-    var hour = datetime.getTime(),
-      day = hour.substring(0, 8);
-    var dts = {}, local = {}, localE = 0, s, k;
-    var safeKey = this.safeKeys.value;
+    const hour = datetime.getTime();
+    const day = hour.substring(0, 8);
+    const dts = {};
+    const local = {};
+    let s;
+    let k;
+    const safeKey = this.safeKeys.value;
     for (s in safeKey) {
-      for (k in safeKey[s]) {
-        if (safeKey[s][k][1] === 'l') {
-          if (!local[s]) {
-            local[s] = {};
-            localE ++;
-          }
-          local[s] = safeKey[s][k];
-          if (safeKey[s][k][0] === day) {
-            if (!dts[s]) {
-              dts[s] = {};
+      if (Object.prototype.hasOwnProperty.call(safeKey, s)) {
+        for (k in safeKey[s]) {
+          if (Object.prototype.hasOwnProperty.call(safeKey[s], k)) {
+            if (safeKey[s][k][1] === 'l') {
+              if (!local[s]) {
+                local[s] = {};
+              }
+              local[s] = safeKey[s][k];
+              if (safeKey[s][k][0] === day) {
+                if (!dts[s]) {
+                  dts[s] = {};
+                }
+                dts[s][k] = safeKey[s][k][0];
+              }
             }
-            dts[s][k] = safeKey[s][k][0];
           }
         }
       }
     }
-    if(Object.keys(dts).length > 0) {
-      var payl = generateAttrackPayload(dts, hour, this.getVersion());
-      telemetry.telemetry({'type': telemetry.msgType, 'action': 'attrack.safekey', 'payload': payl});
+    if (Object.keys(dts).length > 0) {
+      const payl = generateAttrackPayload(dts, hour, this.getVersion());
+      telemetry.telemetry({ type: telemetry.msgType, action: 'attrack.safekey', payload: payl });
     }
   }
 }

@@ -1,12 +1,14 @@
-Components.utils.import("resource://gre/modules/Services.jsm");
-Components.utils.import("resource://gre/modules/FileUtils.jsm");
+/* global FileUtils */
+
+Components.utils.import('resource://gre/modules/Services.jsm');
+Components.utils.import('resource://gre/modules/FileUtils.jsm');
 
 const connections = new Map();
 
 export function open(databaseName) {
   let connection;
   if (!connections.has(databaseName)) {
-    const filePath = FileUtils.getFile("ProfD", [databaseName]);
+    const filePath = FileUtils.getFile('ProfD', [databaseName]);
     connection = Services.storage.openDatabase(filePath);
     connections.set(databaseName, connection);
   } else {
@@ -26,5 +28,10 @@ export function close(databaseName) {
   connection.asyncClose();
 }
 
+export function remove(databaseName) {
+  if (FileUtils.getFile('ProfD', [databaseName]).exists()) {
+    FileUtils.getFile('ProfD', [databaseName]).remove(false);
+  }
+}
 // TODO: remove default export
 export default open;

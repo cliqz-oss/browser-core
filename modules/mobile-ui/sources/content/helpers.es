@@ -1,4 +1,4 @@
-/* global Handlebars */
+import Handlebars from 'handlebars';
 import utils from '../../core/utils';
 import { mobilePlatformName } from '../../platform/platform';
 
@@ -106,7 +106,7 @@ export default {
     if(!text || !q || q.length < (minQueryLength || 2)) return text;
 
     var map = Array(text.length),
-        tokens = 
+        tokens =
           singleWord ?
             [q.toLowerCase()] :
             q.toLowerCase().split(/\s+|\.+/).filter(t => t && t.length > 1),
@@ -201,7 +201,7 @@ export default {
     // just in case this helper is used on unsanitezed data from backend
     try {
       const num = parseFloat(number).toFixed(2);
-      return parseFloat(num).toLocaleString(utils.PREFERRED_LANGUAGE);
+      return parseFloat(num).toLocaleString(utils.PLATFORM_LOCALE);
     } catch (e) {
       return '';
     }

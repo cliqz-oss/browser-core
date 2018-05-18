@@ -17,7 +17,7 @@ export default class BackgroundImage extends React.Component {
     return (
       <div onClick={this.selectBackground}>
         <img
-          role="presentation"
+          alt=""
           data-bg={this.props.bg}
           width="71"
           src={this.props.src}
@@ -25,7 +25,7 @@ export default class BackgroundImage extends React.Component {
         />
         <span className="selected-img">
           <img
-            role="presentation"
+            alt=""
             src="./images/bg-check.svg"
           />
         </span>

@@ -1,111 +1,117 @@
-/* global it, expect, respondWith, fillIn, waitForPopup, $cliqzResults */
-/* eslint func-names: ["error", "never"] */
-/* eslint prefer-arrow-callback: "off" */
-/* eslint no-unused-expressions: "off" */
-
+import {
+  blurUrlBar,
+  checkMainResult,
+  checkParent,
+  $cliqzResults,
+  expect,
+  fillIn,
+  respondWith,
+  waitForPopup,
+  withHistory } from './helpers';
 import results from './fixtures/resultsBigMachineRichData';
 
 export default function () {
+  const mainResultSelector = '.cliqz-result:not(.history)';
+  const imagesAreaSelector = '.images.padded';
+  const resultSelector = 'a.result';
+  const simpleLinksAreaSelector = '.anchors.padded';
+
   context('big machine result with rich data', function () {
-    let resultElement;
-
-    before(function () {
+    before(async function () {
+      window.preventRestarts = true;
+      blurUrlBar();
       respondWith({ results });
+      withHistory([]);
       fillIn('github');
-      return waitForPopup().then(function () {
-        resultElement = $cliqzResults()[0];
-      });
+      await waitForPopup(2);
     });
 
-    describe('renders result', function () {
-      it('with correct title', function () {
-        const titleSelector = ".abstract span[data-extra='title']";
-        expect(resultElement).to.contain(titleSelector);
-        expect(resultElement.querySelector(titleSelector)).to.have.text(results[0].snippet.title);
-      });
-
-      it('with correct description', function () {
-        const descriptionSelector = ".abstract span[class='description']";
-        expect(resultElement).to.contain(descriptionSelector);
-        expect(resultElement.querySelector(descriptionSelector))
-          .to.have.text(results[0].snippet.description);
-      });
-
-      it('with correct url', function () {
-        const urlSelector = ".abstract span[class='url']";
-        expect(resultElement).to.contain(urlSelector);
-        expect(resultElement.querySelectorAll(urlSelector)[1]).to.have.text(results[0].url);
-      });
-
-      it('with logo', function () {
-        const logoSelector = ".icons span[class='logo']";
-        expect(resultElement).to.contain(logoSelector);
-      });
+    after(function () {
+      blurUrlBar();
+      window.preventRestarts = false;
     });
 
-    describe('renders images', function () {
+    checkMainResult({ $result: $cliqzResults });
+    checkParent({ $result: $cliqzResults, results });
+
+    context('renders image area', function () {
       it('successfully', function () {
-        const imagesAreaSelector = '.images.padded';
-        expect(resultElement.querySelector(imagesAreaSelector)).to.exist;
+        const $imagesArea = $cliqzResults.querySelector(`${mainResultSelector} ${imagesAreaSelector}`);
+        expect($imagesArea).to.exist;
       });
 
-      it('correct amount of images', function () {
-        const imagesSelector = '.images.padded a.result';
+      it('with correct amount of images', function () {
+        const $allImages = $cliqzResults
+          .querySelectorAll(`${mainResultSelector} ${imagesAreaSelector} ${resultSelector}`);
         const amountOfImages = (results[0].snippet.deepResults[0].links).length;
+
         if (amountOfImages <= 4) {
-          expect(resultElement.querySelectorAll(imagesSelector).length).to.equal(amountOfImages);
+          expect($allImages.length).to.equal(amountOfImages);
         } else {
-          expect(resultElement.querySelectorAll(imagesSelector).length).to.equal(4);
+          expect($allImages.length).to.equal(4);
         }
       });
 
-      it('correct images', function () {
-        const imagesSelector = '.images.padded a.result img';
-        const imagesItems = resultElement.querySelectorAll(imagesSelector);
-        [].forEach.call(imagesItems, function (image, i) {
-          expect(image.src).to.be.equal(results[0].snippet.deepResults[0].links[i].image);
-        });
-      });
+      context('each image', function () {
+        it('renders from correct source', function () {
+          const $allImages = $cliqzResults
+            .querySelectorAll(`${mainResultSelector} ${imagesAreaSelector} ${resultSelector}`);
 
-      it('correct links', function () {
-        const imagesSelector = '.images.padded a.result';
-        const imagesItems = resultElement.querySelectorAll(imagesSelector);
-        [].forEach.call(imagesItems, function (image, i) {
-          expect(image.href).to.be.equal(results[0].snippet.deepResults[0].links[i].url);
+          expect($allImages.length).to.be.above(0);
+          [...$allImages].forEach(function ($image, i) {
+            expect($image.querySelector('img').src)
+              .to.be.equal(results[0].snippet.deepResults[0].links[i].image);
+          });
+        });
+
+        it('renders with correct URL', function () {
+          const $allImages = $cliqzResults
+            .querySelectorAll(`${mainResultSelector} ${imagesAreaSelector} ${resultSelector}`);
+
+          expect($allImages.length).to.be.above(0);
+          [...$allImages].forEach(function ($image, i) {
+            expect($image.href).to.exist;
+            expect($image.href).to.be.equal(results[0].snippet.deepResults[0].links[i].url);
+          });
         });
       });
     });
 
-    describe('renders simple links', function () {
+    context('renders simple links area', function () {
       it('successfully', function () {
-        const linksAreaSelector = '.anchors.padded';
-        expect(resultElement.querySelector(linksAreaSelector)).to.exist;
+        const $imagesArea = $cliqzResults.querySelector(`${mainResultSelector} ${simpleLinksAreaSelector}`);
+        expect($imagesArea).to.exist;
       });
 
-      it('correct amount of links', function () {
-        const simpleLinksSelector = '.anchors.padded a.result';
+      it('with correct amount of elements', function () {
+        const $allLinks = $cliqzResults.querySelectorAll(`${mainResultSelector} ${simpleLinksAreaSelector} ${resultSelector}`);
         const amountOfSimpleLinks = (results[0].snippet.deepResults[1].links).length;
+
         if (amountOfSimpleLinks <= 4) {
-          expect(resultElement.querySelectorAll(simpleLinksSelector).length)
-            .to.equal(amountOfSimpleLinks);
+          expect($allLinks.length).to.equal(amountOfSimpleLinks);
         } else {
-          expect(resultElement.querySelectorAll(simpleLinksSelector).length).to.equal(4);
+          expect($allLinks.length).to.equal(4);
         }
       });
 
-      it('with correct titles', function () {
-        const simpleLinksSelector = '.anchors.padded a.result';
-        const simpleLinksItems = resultElement.querySelectorAll(simpleLinksSelector);
-        [].forEach.call(simpleLinksItems, function (link, i) {
-          expect(link.title).to.be.equal(results[0].snippet.deepResults[1].links[i].title);
-        });
-      });
+      describe('each simple link', function () {
+        it('renders with correct title', function () {
+          const $allLinks = $cliqzResults.querySelectorAll(`${mainResultSelector} ${simpleLinksAreaSelector} ${resultSelector}`);
 
-      it('with correct urls', function () {
-        const simpleLinksSelector = '.anchors.padded a.result';
-        const simpleLinksItems = resultElement.querySelectorAll(simpleLinksSelector);
-        [].forEach.call(simpleLinksItems, function (link, i) {
-          expect(link.href).to.be.equal(results[0].snippet.deepResults[1].links[i].url);
+          expect($allLinks.length).to.be.above(0);
+          [...$allLinks].forEach(function ($link, i) {
+            expect($link.title).to.be.equal(results[0].snippet.deepResults[1].links[i].title);
+          });
+        });
+
+        it('renders with correct URL', function () {
+          const $allLinks = $cliqzResults.querySelectorAll(`${mainResultSelector} ${simpleLinksAreaSelector} ${resultSelector}`);
+
+          expect($allLinks.length).to.be.above(0);
+          [...$allLinks].forEach(function ($link, i) {
+            expect($link.href).to.exist;
+            expect($link.href).to.be.equal(results[0].snippet.deepResults[1].links[i].url);
+          });
         });
       });
     });

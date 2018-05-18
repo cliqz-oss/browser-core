@@ -1,6 +1,7 @@
 import Expression from '../expression';
 import utils from '../../../core/utils';
 import logger from '../../common/offers_v2_logger';
+import { buildSimplePatternIndex } from '../../common/pattern-utils';
 import { timestampMS, weekDay, dayHour } from '../../utils';
 import OffersConfigs from '../../offers_configs';
 
@@ -79,7 +80,7 @@ class IfPrefExpr extends Expression {
 
   getExprValue(/* ctx */) {
     const prefVal = utils.getPref(this.prefName, undefined);
-    return Promise.resolve(prefVal === this.expectedVal);
+    return Promise.resolve(String(prefVal) === this.expectedVal);
   }
 }
 
@@ -89,7 +90,6 @@ class IfPrefExpr extends Expression {
  * @version 1.0
  */
 class LogExpr extends Expression {
-
   isBuilt() {
     return true;
   }
@@ -214,8 +214,10 @@ class NotExpr extends Expression {
     if (!this.data.raw_op.args || this.data.raw_op.args.length === 0) {
       throw new Error('NotExpr invalid args');
     }
-    this.exprToNegate = this.data.exp_builder.createExp(this.data.raw_op.args[0],
-                                                        this.data.parent_trigger);
+    this.exprToNegate = this.data.exp_builder.createExp(
+      this.data.raw_op.args[0],
+      this.data.parent_trigger
+    );
   }
 
   destroy() {
@@ -249,10 +251,14 @@ class EqExpr extends Expression {
     if (!this.data.raw_op.args || this.data.raw_op.args.length < 2) {
       throw new Error('EqExpr invalid args');
     }
-    this.lExpr = this.data.exp_builder.createExp(this.data.raw_op.args[0],
-                                                 this.data.parent_trigger);
-    this.rExpr = this.data.exp_builder.createExp(this.data.raw_op.args[1],
-                                                 this.data.parent_trigger);
+    this.lExpr = this.data.exp_builder.createExp(
+      this.data.raw_op.args[0],
+      this.data.parent_trigger
+    );
+    this.rExpr = this.data.exp_builder.createExp(
+      this.data.raw_op.args[1],
+      this.data.parent_trigger
+    );
   }
 
   destroy() {
@@ -287,10 +293,14 @@ class GtExpr extends Expression {
     if (!this.data.raw_op.args || this.data.raw_op.args.length < 2) {
       throw new Error('GtExpr invalid args');
     }
-    this.lExpr = this.data.exp_builder.createExp(this.data.raw_op.args[0],
-                                                 this.data.parent_trigger);
-    this.rExpr = this.data.exp_builder.createExp(this.data.raw_op.args[1],
-                                                 this.data.parent_trigger);
+    this.lExpr = this.data.exp_builder.createExp(
+      this.data.raw_op.args[0],
+      this.data.parent_trigger
+    );
+    this.rExpr = this.data.exp_builder.createExp(
+      this.data.raw_op.args[1],
+      this.data.parent_trigger
+    );
   }
 
   destroy() {
@@ -325,10 +335,14 @@ class LtExpr extends Expression {
     if (!this.data.raw_op.args || this.data.raw_op.args.length < 2) {
       throw new Error('LtExpr invalid args');
     }
-    this.lExpr = this.data.exp_builder.createExp(this.data.raw_op.args[0],
-                                                 this.data.parent_trigger);
-    this.rExpr = this.data.exp_builder.createExp(this.data.raw_op.args[1],
-                                                 this.data.parent_trigger);
+    this.lExpr = this.data.exp_builder.createExp(
+      this.data.raw_op.args[0],
+      this.data.parent_trigger
+    );
+    this.rExpr = this.data.exp_builder.createExp(
+      this.data.raw_op.args[1],
+      this.data.parent_trigger
+    );
   }
 
   destroy() {
@@ -341,61 +355,11 @@ class LtExpr extends Expression {
 }
 
 /**
- * check for text matching using normal regular expressions
- * @param  {String} text  The text we want to check against the regular expressions.
- *                        This can be the url for example.
- * @param  {String(s)} regexes The list of strings (regexes) we will use to check the
- *                        text.
- * @return {Promise(Boolean)} true if any of the regexes matches the text, false otherwise
- * @version 1.0
- */
-class MatchExpr extends Expression {
-  constructor(data) {
-    super(data);
-    this.patterns = null;
-  }
-
-  isBuilt() {
-    return !!this.patterns;
-  }
-
-  build() {
-    if (!this.data.raw_op.args || this.data.raw_op.args.length < 2) {
-      throw new Error('MatchExpr invalid args');
-    }
-    // we must ensure that is a list here, if not will fail
-    this.patterns = [];
-    // 04.10.2017 This loop starts from 1 to be compatible with the current trigger version,
-    // we have to coordinate with new trigger version and change this.
-    for (let i = 1; i < this.data.raw_op.args.length; i += 1) {
-      this.patterns.push(this.data.raw_op.args[i]);
-    }
-  }
-
-  destroy() {
-  }
-
-  getExprValue(ctx) {
-    const currUlr = ctx['#lc_url'];
-    let matched = false;
-    for (let i = 0; i < this.patterns.length; i += 1) {
-      const regex = this.data.regex_cache.getRegexp(this.patterns[i]);
-      if (regex !== null && regex.test(currUlr)) {
-        matched = true;
-        break;
-      }
-    }
-    return Promise.resolve(matched);
-  }
-}
-
-/**
  * return the current timestamo
  * @return {Number} current time (Date.now())
  * @version 1.0
  */
 class TimestampExpr extends Expression {
-
   isBuilt() {
     return true;
   }
@@ -417,7 +381,6 @@ class TimestampExpr extends Expression {
  * @version 1.0
  */
 class DayHourExpr extends Expression {
-
   isBuilt() {
     return true;
   }
@@ -440,7 +403,6 @@ class DayHourExpr extends Expression {
  * @version 1.0
  */
 class WeekDayExpr extends Expression {
-
   isBuilt() {
     return true;
   }
@@ -457,77 +419,39 @@ class WeekDayExpr extends Expression {
 }
 
 /**
- * this method is will check if queried keywords matche a given condition
- * @param  {Array} args is an array of objects
- * <pre>
- * [
- *   {
- *     keywords_list: [],
- *     time_range: N,
- *   }
- * ]
- * </pre>
- * @param {Object} context contains query related information
- * <pre>
- *  {
- *   #domain: "google.de",
- *   #query_info: "",
- *   #referrer: "",
- *   #url: "url_string",
- *   #url_data: Object
- * }
- * </pre>
- * @return {[Promise[boolean]]} async return whether there is a match or not
- * @version 1.0
+ * Handle matching of green-ads conditions.
+ * @version 6.0
  */
-class MatchQueryExpr extends Expression {
+class MatchGAExpr extends Expression {
   constructor(data) {
     super(data);
-    this.normalizedArgs = null;
-    this.timeRange = null;
+    this.raw = null;
+    this.ga_handler = null;
   }
 
   isBuilt() {
-    return this.normalizedArgs;
+    return this.raw !== null;
   }
 
   build() {
-    if (!this.data.raw_op.args || this.data.raw_op.args.length < 1) {
-      throw new Error('MatchQueryExpr invalid args');
-    }
-    const args = this.data.raw_op.args[0];
-    if (!args.keywords_list) {
-      throw new Error('MatchQueryExpr invalid args');
-    }
-    this.timeRange = Number(args.time_range);
-    const normalizedKeywordData = [];
-    args.keywords_list.forEach((rawTokenData) => {
-      normalizedKeywordData.push(
-        {
-          contained: this.data.query_handler.normalizeTokenList(rawTokenData.keywords),
-          filtered: this.data.query_handler.normalizeTokenList(rawTokenData.filter),
-        }
-      );
-    });
-    this.normalizedArgs = normalizedKeywordData;
+    this.raw = this.data.raw_op.args[0];
+    this.ga_handler = this.data.ga_handler;
   }
 
   destroy() {
   }
 
-  getExprValue(ctx) {
-    const queryInfo = ctx['#query_info'];
-    if (!queryInfo) {
-      return Promise.resolve(false);
-    }
-
-    const thereIsAMatch = this.normalizedArgs.some(
-      tokenData => this.data.query_handler.matchTokens(tokenData, this.timeRange)
-    );
-
-    return Promise.resolve(thereIsAMatch);
+  getExprValue() {
+    // TODO - pre-hash `this.raw` to not have to do it every time we eval
+    return this.ga_handler.getCondition(this.raw)
+      .then(condition =>
+        this.ga_handler.getNewMatches(condition.lastEventTs || 0)
+          .then(events => condition.match(events))
+          .catch(ex => logger.error('exception in MatchGAExpr', ex))
+      );
   }
 }
+
 
 /**
  * this method will check if the user is in a particular area / place
@@ -744,6 +668,7 @@ class PatternMatchExpr extends Expression {
     this.args = null;
     this.isHistory = null;
     this.expireCache = null;
+    this.patternIndex = null;
   }
 
   isBuilt() {
@@ -774,6 +699,9 @@ class PatternMatchExpr extends Expression {
         throw new Error('PatternMatchExpr invalid args, since_secs or till_secs are wrong?');
       }
     }
+
+    // build the pattern matching index here
+    this.patternIndex = buildSimplePatternIndex(args.patterns.p_list);
     this.args = args;
   }
 
@@ -807,8 +735,7 @@ class PatternMatchExpr extends Expression {
       logger.error('We do not have the #url_data object?');
       return false;
     }
-    const mhandler = this.data.pattern_matching_handler;
-    return mhandler.itMatches(urlData.getPatternRequest(), this.args.patterns);
+    return this.patternIndex.match(urlData.getPatternRequest());
   }
 
   _matchHistory(/* ctx */) {
@@ -827,18 +754,61 @@ class PatternMatchExpr extends Expression {
       }
     }
     // it is not cached check
-    const handler = this.data.pattern_matching_handler;
-    const historyMatchesCount = handler.countHistoryMatches(query, this.args.patterns);
+    const handler = this.data.history_matcher;
+    const historyMatchesCount = handler.countMatchesWithPartialCheck(
+      query,
+      this.args.patterns,
+      this.patternIndex
+    );
 
     // check if it is partial
-    const result = historyMatchesCount >= this.args.min_matches_expected;
+    const result = historyMatchesCount.count >= this.args.min_matches_expected;
     if (result && this.args.cache_if_match_value_secs > 0) {
       // cache the result
       this.expireCache = timestampMS();
     }
     return result;
   }
+}
 
+/**
+ * This operation checks local language settings.
+ * @param {object} eventLoop
+ * @param {list} args is a list of strings containing allowed languages.
+ * @return {Promise(Boolean)} local language is in the list.
+ * @version 21.0
+ */
+class LangIsExpr extends Expression {
+  constructor(data) {
+    super(data);
+    this.allowedLangs = null;
+  }
+
+  isBuilt() {
+    return !!this.allowedLangs;
+  }
+
+  build() {
+    if (!this.data || !this.data.raw_op.args) {
+      // nothing to do
+      return;
+    }
+    if (this.data.raw_op.args.length < 1) {
+      throw new Error('LangExpr invalid args');
+    }
+    this.allowedLangs = this.data.raw_op.args.map(String);
+  }
+
+  destroy() {
+  }
+
+  getExprValue(/* ctx */) {
+    const preferredLanguage = utils.PLATFORM_LANGUAGE;
+    if (this.allowedLangs.indexOf(preferredLanguage) < 0) {
+      return Promise.resolve(false);
+    }
+    return Promise.resolve(true);
+  }
 }
 
 const ops = {
@@ -850,14 +820,14 @@ const ops = {
   $eq: EqExpr,
   $gt: GtExpr,
   $lt: LtExpr,
-  $match: MatchExpr,
   $timestamp: TimestampExpr,
   $day_hour: DayHourExpr,
   $week_day: WeekDayExpr,
-  $match_query: MatchQueryExpr,
+  $match_ga: MatchGAExpr,
   $geo_check: GeoCheckExpr,
   $is_feature_enabled: IsFeatureEnabledExpr,
   $pattern_match: PatternMatchExpr,
+  $lang_is: LangIsExpr,
 };
 
 export default ops;

@@ -2,29 +2,58 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import t from '../i18n';
 
-function UndoDialRemoval(props) {
-  return (
-    <div className="undo-notification-box">
-      <span
-        className="removed-dial"
-      >
-        {props.dial.displayTitle}
-      </span>&nbsp;
-      {t('app.speed-dial.removed')}
-      <button
-        className="undo"
-        onClick={props.undoRemoval}
-      >
-        {t('app.speed-dial.undo')}
-      </button>
-      <button
-        className="close"
-        onClick={props.closeUndo}
-      >
-        X
-      </button>
-    </div>
-  );
+class UndoDialRemoval extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      visible: false,
+    };
+  }
+
+  handleUndoRemoval() {
+    this.setState({ visible: false });
+    this.props.undoRemoval();
+  }
+
+  handleUndoClose() {
+    this.setState({ visible: false });
+    this.props.closeUndo();
+  }
+
+  render() {
+    const classes = ['undo-notification-box'];
+    if (this.props.isSettingsOpen) {
+      classes.push('padded');
+    }
+    if (this.props.visible) {
+      classes.push('visible');
+    }
+
+    return (
+      <div className={classes.join(' ')} >
+        <span
+          className="removed-dial"
+        >
+          {this.props.dial.displayTitle}
+        </span>&nbsp;
+        {t('app_speed_dial_removed')}
+        <button
+          id="undo-close"
+          className="undo"
+          onClick={() => this.handleUndoRemoval()}
+        >
+          {t('app_speed_dial_undo')}
+        </button>
+        <button
+          id="undo-notification-close"
+          className="close"
+          onClick={() => this.handleUndoClose()}
+        >
+          X
+        </button>
+      </div>
+    );
+  }
 }
 
 UndoDialRemoval.propTypes = {
@@ -33,6 +62,7 @@ UndoDialRemoval.propTypes = {
   }),
   undoRemoval: PropTypes.func,
   closeUndo: PropTypes.func,
+  isSettingsOpen: PropTypes.func,
 };
 
 export default UndoDialRemoval;

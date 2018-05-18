@@ -1,14 +1,17 @@
 import background from '../core/base/background';
 import utils from '../core/utils';
 import { isFirefox, isMobile } from '../core/platform';
-import language from "../core/language";
+import language from '../core/language';
 import prefs from '../core/prefs';
 import HistoryManager from '../core/history-manager';
 import inject from '../core/kord/inject';
-import config from "../core/config";
+import config from '../core/config';
 import Storage from '../core/storage';
+import console from '../core/console';
 
 export default background({
+  requiresServices: ['utils', 'session'],
+
   init(settings = {}) {
     this.settings = settings;
     utils.bindObjectFunctions(this.actions, this);
@@ -16,10 +19,7 @@ export default background({
     // load translations
     utils.getLocalizedString('test');
 
-    utils.init();
-
-    this.checkSession();
-    if(isFirefox){
+    if (isFirefox) {
       language.init();
       HistoryManager.init();
     }
@@ -29,11 +29,11 @@ export default background({
     }
 
     this.supportInfo = utils.setTimeout(() => {
-        this.actions.setSupportInfo();
-        if(config.settings.channel == 40){
-          this.browserDetection();
-        }
-      }, 30 * 1000);
+      this.actions.setSupportInfo();
+      if (config.settings.channel === 40) {
+        this.browserDetection();
+      }
+    }, 30 * 1000);
   },
 
   unload() {
@@ -56,48 +56,16 @@ export default background({
     });
   },
 
-  checkSession() {
-    if (!prefs.has('session')) {
-      const session = [
-        utils.rand(18),
-        utils.rand(6, '0123456789'),
-        '|',
-        utils.getServerDay(),
-        '|',
-        config.settings.channel || 'NONE',
-      ].join('');
-
-      prefs.set('session', session);
-      prefs.set('install_date', session.split('|')[1]);
-      prefs.set('new_session', true);
-
-      if (!prefs.has('freshtab.state')) {
-        // freshtab is opt-out since 2.20.3
-        prefs.set('freshtab.state', true);
-      }
-    } else {
-      prefs.set('new_session', false);
-    }
-  },
-
   browserDetection() {
-    var pref = 'detection',
-        sites = ["https://www.ghostery.com", "https://ghostery.com"];
-
-    // make sure we only do it once
-    if(utils.getPref(pref, false) !== true){
-      utils.setPref(pref, true);
-
-      sites.forEach(function(url){
-          var ls = new Storage(url)
-          if (ls) ls.setItem("cliqz", true)
-      });
-    }
+    const sites = ['https://www.ghostery.com', 'https://ghostery.com'];
+    sites.forEach((url) => {
+      const ls = new Storage(url);
+      if (ls) ls.setItem('cliqz', true);
+    });
   },
 
   actions: {
     setSupportInfo(status) {
-
       const version = this.settings.version;
       const host = prefs.get('distribution.id', '', '');
       const hostVersion = prefs.get('distribution.version', '', '');
@@ -111,11 +79,11 @@ export default background({
 
 
       try {
-        ['http://cliqz.com', 'https://cliqz.com'].forEach(url => {
+        ['http://cliqz.com', 'https://cliqz.com'].forEach((url) => {
           const ls = new Storage(url);
           ls.setItem('extension-info', info);
         });
-      } catch(e) {
+      } catch (e) {
         console.log('Error setting localstorage', e);
       }
     }

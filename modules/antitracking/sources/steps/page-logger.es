@@ -1,9 +1,9 @@
-
+/* eslint no-param-reassign: 'off' */
 
 export default class PageLogger {
-
   constructor(tpEvents) {
     this.tpEvents = tpEvents;
+    this._requestCounters = new Map();
   }
 
   logMainDocument(state) {
@@ -19,11 +19,17 @@ export default class PageLogger {
 
   attachStatCounter(state) {
     const urlParts = state.urlParts;
-    const request = this.tpEvents.get(state.url, urlParts, state.sourceUrl, state.sourceUrlParts, state.tabId);
+    const request = this.tpEvents.get(
+      state.url,
+      urlParts,
+      state.sourceUrl,
+      state.sourceUrlParts,
+      state.tabId
+    );
     state.reqLog = request;
     const incrementStat = (statName, c) => {
       this.tpEvents.incrementStat(request, statName, c || 1);
-    }
+    };
     state.incrementStat = incrementStat;
     state.getPageAnnotations = this.tpEvents.getAnnotations.bind(this.tpEvents, state.tabId);
 
@@ -33,12 +39,30 @@ export default class PageLogger {
       pageLoad.addTrigger(urlParts.hostname, state.trigger);
     }
 
+    if (state.requestId) {
+      this._requestCounters.set(state.requestId, incrementStat);
+    }
+
     return true;
+  }
+
+  reattachStatCounter(state) {
+    const { requestId } = state;
+    if (requestId && this._requestCounters.has(requestId)) {
+      state.incrementStat = this._requestCounters.get(requestId);
+      this._requestCounters.delete(requestId);
+      return true;
+    }
+    return false;
   }
 
   logRequestMetadata(state) {
     const urlParts = state.urlParts;
     const incrementStat = state.incrementStat;
+
+    if (state.url.indexOf(this.tpEvents.config.placeHolder) > -1) {
+      incrementStat('hasPlaceHolder');
+    }
 
     // add metadata for this request
     incrementStat('c');
@@ -54,18 +78,19 @@ export default class PageLogger {
     if (state.method === 'POST') {
       incrementStat('has_post');
     }
-    const displayContentType = (contentType) => (!contentType ? 'unknown': '' + contentType);
-    incrementStat('type_' + displayContentType(state.cpt));
+
+    // eslint-disable-next-line prefer-template
+    const displayContentType = contentType => (!contentType ? 'unknown' : '' + contentType);
+    incrementStat(`type_${displayContentType(state.cpt)}`);
 
     // log protocol (secure or not)
-    const isHTTP = protocol => protocol === "http" || protocol === "https"
-    const scheme = isHTTP(urlParts.protocol) ? urlParts.protocol : "other";
-    incrementStat('scheme_' + scheme);
+    const isHTTP = protocol => protocol === 'http' || protocol === 'https';
+    const scheme = isHTTP(urlParts.protocol) ? urlParts.protocol : 'other';
+    incrementStat(`scheme_${scheme}`);
 
     // find frame depth
-    incrementStat('window_depth_' + state.getWindowDepth());
+    incrementStat(`window_depth_${state.getWindowDepth()}`);
 
     return true;
   }
-
 }

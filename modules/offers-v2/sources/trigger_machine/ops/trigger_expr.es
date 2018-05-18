@@ -2,65 +2,8 @@
 
 import Expression from '../expression';
 import logger from '../../common/offers_v2_logger';
+import { shouldKeepResource } from '../../utils';
 
-/**
- * will start checking for requests in a domain. This is will start the mechanisms
- * to catch all requests that are performed on that domain so we can check for
- * conversions and more
- * @param  {string} domain the domain we want to start watching
- * @version 1.0
- */
-class WatchRequestsExpr extends Expression {
-  constructor(data) {
-    super(data);
-    this.domain = null;
-  }
-
-  isBuilt() {
-    return this.domain;
-  }
-
-  build() {
-    if (!this.data || !this.data.raw_op.args) {
-      // nothing to do
-      return;
-    }
-    if (this.data.raw_op.args.length < 1) {
-      throw new Error('WatchRequestsExpr invalid args');
-    }
-    this.domain = this.data.raw_op.args[0];
-  }
-
-  destroy() {
-    if (!this.domain) {
-      return;
-    }
-    const cb = this.data.trigger_machine_executor.processWatchReqCallback;
-    if (!this.data.event_handler.isHttpReqDomainSubscribed(cb, this.domain)) {
-      return;
-    }
-    this.data.event_handler.unsubscribeHttpReq(cb, this.domain);
-  }
-
-  getExprValue(/* ctx */) {
-    try {
-      const cb = this.data.trigger_machine_executor.processWatchReqCallback;
-      if (this.data.event_handler.isHttpReqDomainSubscribed(cb, this.domain)) {
-        // finish here
-        return Promise.resolve(true);
-      }
-
-      // we add it and set the CB info
-      const cbArgs = {
-        trigger_id: this.data.parent_trigger.trigger_id
-      };
-      this.data.event_handler.subscribeHttpReq(cb, this.domain, cbArgs);
-    } catch (e) {
-      logger.error('Something happened when trying to subscribe the watch request', e);
-    }
-    return Promise.resolve(true);
-  }
-}
 
 /**
  * this method will fetch from the BE the new subtriggers given the parent trigger ID
@@ -109,32 +52,39 @@ class ActivateSubtriggersExpr extends Expression {
         // load from server
 
         this.data.be_connector.sendApiRequest(
-            'loadsubtriggers',
-            { parent_id: this.parentTriggerId }).then((payload) => {
-              subtriggers = payload;
+          'loadsubtriggers',
+          { parent_id: this.parentTriggerId }).then((payload) => {
+          subtriggers = payload;
 
-              logger.info('ActivateSubtriggersExpr', `Loaded ${subtriggers.length} subtriggers`);
-              if (logger.LOG_LEVEL === 'debug') {
-                logger.logObject(subtriggers.map(trigger => trigger.trigger_id));
-              }
+          // we filter here the triggers that are not associated to the user group
+          // #EX-7061
+          const keepTrigger = t =>
+            t && ((t.user_group === undefined) || shouldKeepResource(t.user_group));
 
-              // first cache
-              this.data.trigger_cache.setSubtriggers(this.parentTriggerId, subtriggers);
+          subtriggers = subtriggers.filter(keepTrigger);
 
-              const p = [];
-              subtriggers.forEach((trigger) => {
-                this.data.trigger_cache.addTrigger(trigger);
-                p.push(this.data.trigger_machine.run(trigger, ctx));
-              });
+          logger.info('ActivateSubtriggersExpr', `Loaded ${subtriggers.length} subtriggers`);
+          if (logger.LOG_LEVEL === 'debug') {
+            logger.logObject(subtriggers.map(trigger => trigger.trigger_id));
+          }
 
-              Promise.all(p).then(() => {
-                resolve();
-              }).catch((err) => {
-                reject(err);
-              });
-            }).catch((err) => {
-              reject(err);
-            });
+          // first cache
+          this.data.trigger_cache.setSubtriggers(this.parentTriggerId, subtriggers);
+
+          const p = [];
+          subtriggers.forEach((trigger) => {
+            this.data.trigger_cache.addTrigger(trigger);
+            p.push(this.data.trigger_machine.run(trigger, ctx));
+          });
+
+          Promise.all(p).then(() => {
+            resolve();
+          }).catch((err) => {
+            reject(err);
+          });
+        }).catch((err) => {
+          reject(err);
+        });
       } else {
         const p = [];
 
@@ -152,7 +102,6 @@ class ActivateSubtriggersExpr extends Expression {
 }
 
 const ops = {
-  $watch_requests: WatchRequestsExpr,
   $activate_subtriggers: ActivateSubtriggersExpr
 };
 

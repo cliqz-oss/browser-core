@@ -20,9 +20,16 @@ function makePromise(fn) {
   }
 }
 
-class Bridge {
+export default class Bridge {
 
   constructor() {
+    (nativeBridge.events || []).forEach((event) => {
+      events.subscribe(event, (...args) => {
+        nativeBridge.pushEvent(event, args);
+      });
+    });
+    this.isActive = false;
+    this.eventQueue = [];
     this.registeredActions = {};
     this.eventEmitter = new NativeEventEmitter(nativeBridge);
     this.eventEmitter.addListener('callAction', this.onAction.bind(this));
@@ -46,8 +53,18 @@ class Bridge {
   }
 
   onEvent({event, args}) {
-    console.log('broadcast native event', event, args);
-    events.pub(event, ...(args || []));
+    if (!this.isActive) {
+      this.eventQueue.push(arguments);
+    } else {
+      console.log('broadcast native event', event, args);
+      events.pub(event, ...(args || []));
+    }
+  }
+
+  activate() {
+    this.isActive = true;
+    this.eventQueue.forEach(eventArgs => this.onEvent(...eventArgs));
+    this.eventQueue = [];
   }
 
   registerAction(name, fn, isPromise) {
@@ -58,18 +75,3 @@ class Bridge {
     nativeBridge.registerAction(name);
   }
 }
-
-let bridge = {
-  registerAction() {}
-};
-if (nativeBridge) {
-  bridge = new Bridge();
-
-  (nativeBridge.events || []).forEach((event) => {
-    events.subscribe(event, (...args) => {
-      nativeBridge.pushEvent(event, args);
-    });
-  });
-}
-
-export default bridge;

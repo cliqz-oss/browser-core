@@ -1,199 +1,182 @@
-import { HttpRequestContext } from './antitracking/http-request-context';
-import { ChannelListener } from './antitracking/channel-listener';
-import utils from '../core/utils';
-import * as tabListener from './antitracking/tab-listener';
-import { Components, Services } from '../platform/globals';
+/* global Components WebRequest PrivateBrowsingUtils MatchPattern */
+import { isCliqzBrowser } from '../core/platform';
 
-var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService),
-    nsIHttpChannel = Components.interfaces.nsIHttpChannel;
+Components.utils.import('resource://gre/modules/XPCOMUtils.jsm');
+Components.utils.import('resource://gre/modules/WebRequest.jsm');
+Components.utils.import('resource://gre/modules/Services.jsm');
+Components.utils.import('resource://gre/modules/PrivateBrowsingUtils.jsm');
 
-var observer = {
-  observe(subject, topic, data) {
-    const aChannel = subject.QueryInterface(nsIHttpChannel),
-        requestContext = new HttpRequestContext(aChannel),
-        event = topicsToEvents[topic];
-
-    // unknown observer topic
-    if (!event) {
-      return;
-    }
-    if(aChannel.status === Components.results.NS_BINDING_ABORTED) {
-      // request already cancelled
-      return;
-    }
-
-    const requestInfo = {
-      url: requestContext.url,
-      method: requestContext.method,
-      frameId: requestContext.getOuterWindowID(),
-      parentFrameId: requestContext.getParentWindowID() || -1,
-      tabId: requestContext.getOriginWindowID() || -1,
-      type: requestContext.getContentPolicyType(),
-      originUrl: requestContext.getLoadingDocument(),
-      sourceUrl: requestContext.getSourceURL(),
-      statusCode: topic.startsWith('http-on-examine-') ? requestContext.channel.responseStatus : undefined,
-      // the following are not in the standard WebRequest API
-      isPrivate: requestContext.isChannelPrivate(),
-      fromCache: topic === 'http-on-examine-cached-response',
-      trigger: requestContext.getTriggeringPrincipal(),
-      isRedirect: requestContext.hasRedirected,
-    };
-
-    // use getters for headers
-    requestInfo.getRequestHeader = requestContext.getRequestHeader.bind(requestContext);
-    requestInfo.getResponseHeader = requestContext.getResponseHeader.bind(requestContext);
-    requestInfo.getPostData = requestContext.getPostData.bind(requestContext);
-
-    // TODO: Only add to the web request is it's present in extraInfo for the listener
-    if (topic === 'http-on-modify-request') {
-      const requestHeaders = [];
-      subject.visitRequestHeaders({
-        visitHeader: function(aHeader, aValue) {
-          requestHeaders.push({
-            name: aHeader,
-            value: aValue
-          });
-        }
-      });
-      requestInfo.requestHeaders = requestHeaders;
-    }
-
-    if (topic === 'http-on-examine-response' || topic === 'http-on-examine-cached-response') {
-      const responseHeaders = [];
-      subject.visitResponseHeaders({
-        visitHeader: function(aHeader, aValue) {
-          responseHeaders.push({
-            name: aHeader,
-            value: aValue
-          });
-        }
-      });
-      requestInfo.responseHeaders = responseHeaders;
-    }
-
-    for (let listener of webRequest[event].listeners) {
-      // ignore filter for the moment
-      const {fn, filter, extraInfo} = listener;
-      const blockingResponse = fn(requestInfo);
-
-      if (extraInfo && extraInfo.indexOf('requestHeaders') > -1 && blockingResponse) {
-
-        if ( blockingResponse.requestHeaders ) {
-          // channel listener for post redirect?
-          blockingResponse.requestHeaders.forEach((h) => {
-            aChannel.setRequestHeader(h.name, h.value, false);
-          });
-        }
-      }
-
-      if (extraInfo && extraInfo.indexOf('blocking') > -1 && blockingResponse) {
-
-        if ( blockingResponse.cancel === true ) {
-          subject.cancel(Components.results.NS_BINDING_ABORTED);
-          return;
-        }
-
-        if ( blockingResponse.redirectUrl ) {
-          if (blockingResponse.redirectUrl.indexOf('data') === 0) {
-            // if it's data url, always use aChannel.redirectTo
-            aChannel.redirectTo(Services.io.newURI(blockingResponse.redirectUrl, null, null));
-          } else {
-            try {
-              aChannel.URI.spec = blockingResponse.redirectUrl;
-            } catch(error) {
-              aChannel.redirectTo(Services.io.newURI(blockingResponse.redirectUrl, null, null));
-            }
-          }
-          // ensure header changes follow redirected url
-          if ( blockingResponse.requestHeaders ) {
-            aChannel.notificationCallbacks = new ChannelListener(blockingResponse.requestHeaders);
-          }
-        }
-      }
-
-      if (extraInfo && extraInfo.indexOf('responseHeaders') > -1 && blockingResponse) {
-
-        if (blockingResponse.responseHeaders) {
-          blockingResponse.responseHeaders.forEach((h) => {
-            aChannel.setResponseHeader(h.name, h.value, false);
-          });
-        }
-      }
-    }
+/**
+ * Gets the tabId and windowId for a given browser instance
+ * Partly based on tabTracker API implementation:
+ * https://github.com/mozilla/gecko-dev/blob/473a1509eae87a911b339d20bbd396ef84ae2cbb/browser/components/extensions/ext-utils.js
+ * @param  {Browser} browser
+ * @return {Object}  with attributes tabId and windowId
+ */
+function getBrowserData(_browser) {
+  let browser = _browser;
+  // When we're loaded into a <browser> inside about:addons, we need to go up
+  // one more level.
+  if (browser.ownerGlobal && browser.ownerGlobal.location.href === 'about:addons') {
+    // legacy impl
+    browser = browser.ownerGlobal.QueryInterface(Ci.nsIInterfaceRequestor)
+      .getInterface(Ci.nsIDocShell)
+      .chromeEventHandler;
+  } else if (browser.ownerDocument && browser.ownerDocument.documentURI === 'about:addons') {
+    // new impl as of sept 2017
+    browser = browser.ownerDocument.docShell.chromeEventHandler;
   }
+
+  const result = {
+    tabId: -1,
+    windowId: -1,
+  };
+
+  if (browser && browser.outerWindowID) {
+    result.tabId = browser.outerWindowID;
+  }
+
+  return result;
 }
 
-class TopicListener {
-  constructor(topics) {
-    this.topics = topics;
-    this.listeners = [];
-  }
+/**
+ * Generates a listener for data from WebRequest.jsm, which translates these calls
+ * for the expected WebRequest API.
+ * Based on ext-webRequest.js (https://github.com/mozilla/gecko-dev/blob/master/toolkit/components/extensions/ext-webRequest.js)
+ * @param  {Function} listener which this function wrapes
+ * @return {Function}          Function to be registered with WebRequest.jsm
+ */
+function webRequestListenerWrapper(listener, topic) {
+  const maybeCached = ['onResponseStarted', 'onBeforeRedirect', 'onCompleted', 'onErrorOccurred'].includes(topic);
+  const optional = ['requestHeaders', 'responseHeaders', 'statusCode', 'statusLine', 'error', 'redirectUrl',
+    'requestBody', 'scheme', 'realm', 'isProxy', 'challenger', 'ip', 'frameAncestors'];
+  return (data) => {
+    let isPrivate = true;
+    // ignore system principal: OCSP, addon and other background requests
+    if (data.isSystemPrincipal) {
+      return {};
+    }
 
-  _addObservers() {
-    this.topics.forEach( (topic) => {
-      observerService.addObserver(observer, topic, false);
-    });
-    httpContextManager.notifyAdd();
-  }
+    // ignore chrome urls
+    if (['chrome://', 'resource://', 'data:', 'blob', 'about:'].some(proto => data.url.startsWith(proto))) {
+      return {};
+    }
 
-  _removeObservers() {
-    this.topics.forEach( (topic) => {
-      observerService.removeObserver(observer, topic);
-    });
-    httpContextManager.notifyRemove();
+    let browserData = { tabId: -1, windowId: -1 };
+    if (data.browser) {
+      browserData = getBrowserData(data.browser);
+      if (data.browser.currentURI) {
+        browserData.source = data.browser.currentURI.spec;
+      }
+      // Because of Forget Tab feature in Cliqz we need access to
+      // browser's `loadContext` in order to determine its privacy status.
+      // But when tabs gets closed and current requests dropped
+      // we may not have `browser.loadContext` anymore.
+      if (!isCliqzBrowser || data.browser.loadContext) {
+        isPrivate = PrivateBrowsingUtils.isBrowserPrivate(data.browser);
+      }
+    }
+    let parentFrame = data.parentWindowId;
+    if (data.type === 'main_frame' || data.windowId === data.parentWindowId) {
+      parentFrame = -1;
+    } else if (parentFrame === browserData.tabId) {
+      parentFrame = 0;
+    }
+
+    const data2 = {
+      requestId: data.requestId,
+      url: data.url,
+      originUrl: data.type === 'main_frame' ? undefined : data.originUrl || browserData.source,
+      documentUrl: data.documentUrl,
+      method: data.method,
+      tabId: browserData.tabId || -1,
+      type: data.type,
+      timeStamp: Date.now(),
+      frameId: data.type === 'main_frame' ? 0 : data.windowId,
+      parentFrameId: parentFrame,
+      // API additions
+      isPrivate,
+    };
+    // For Firefox 58+ we can use frameAncestors to find the source
+    if (data.frameAncestors && data.frameAncestors.length > 0) {
+      data2.sourceUrl = data.frameAncestors[data.frameAncestors.length - 1].url;
+    } else if (!data.frameAncestors && data2.frameId !== data2.parentFrameId && data2.type === 'beacon') {
+      // guess when not to use the tab source as sourceUrl
+      data2.sourceUrl = data.originUrl;
+    } else if (!data.frameAncestors &&
+        (data.windowId === data.parentWindowId || data.parentWindowId === -1) &&
+        data.originUrl !== browserData.source) {
+      data2.sourceUrl = data.originUrl;
+    } else {
+      data2.sourceUrl = browserData.source;
+    }
+
+    if (maybeCached) {
+      data2.fromCache = !!data.fromCache;
+    }
+
+    for (const opt of optional) {
+      if (opt in data) {
+        data2[opt] = data[opt];
+      }
+    }
+
+    return listener(data2);
+  };
+}
+
+function webRequestLegacyWrapper(listener) {
+  return (prevData) => {
+    const data = prevData;
+    // originUrl === triggeringPrincipal
+    // https://github.com/mozilla/gecko-dev/blob/master/toolkit/modules/addons/WebRequest.jsm#L748
+    data.trigger = data.originUrl;
+
+    // TODO: This comes on a later topic than we listen at the moment
+    data.isCached = data.fromCache;
+
+    data.responseStatus = data.statusCode;
+
+    return listener(data);
+  };
+}
+
+class WebRequestWrapper {
+  constructor(topic) {
+    this.topic = topic;
+    this.listeners = {};
   }
 
   addListener(listener, filter, extraInfo) {
-    if ( this.listeners.length === 0 ) {
-      this._addObservers();
+    const wrFilter = filter ? {
+      types: filter.types,
+    } : undefined;
+    if (filter && filter.urls && filter.urls.length > 0 && !filter.urls[0] === '<all_urls>') {
+      wrFilter.urls = new MatchPattern(filter.urls);
     }
-    this.listeners.push({ fn: listener, filter, extraInfo});
+    this.listeners[listener] = webRequestListenerWrapper(
+      webRequestLegacyWrapper(listener),
+      this.topic
+    );
+    WebRequest[this.topic].addListener(this.listeners[listener], wrFilter, extraInfo);
   }
 
   removeListener(listener) {
-    const ind = this.listeners.findIndex((l) => {
-      return l.fn === listener;
-    });
-    if (ind > -1) {
-      this.listeners.splice(ind, 1);
-    }
-    if ( this.listeners.length === 0 ) {
-      this._removeObservers();
-    }
-  }
-};
-
-// Manage the initialisation and cleanup of the http-request-context cleaner.
-var httpContextManager = {
-  initialised: false,
-  listenerCtr: 0,
-  notifyAdd: function() {
-    if ( this.listenerCtr === 0 ) {
-      HttpRequestContext.initCleaner();
-      tabListener.init();
-    }
-    this.listenerCtr++;
-  },
-  notifyRemove: function() {
-    this.listenerCtr--;
-    if ( this.listenerCtr === 0 ) {
-      HttpRequestContext.unloadCleaner();
-      tabListener.unload();
-    }
+    WebRequest[this.topic].removeListener(this.listeners[listener]);
+    delete this.listeners[listener];
   }
 }
 
-var topicsToEvents = {
-  'http-on-opening-request': 'onBeforeRequest',
-  'http-on-examine-response': 'onHeadersReceived',
-  'http-on-examine-cached-response': 'onHeadersReceived',
-  'http-on-modify-request': 'onBeforeSendHeaders'
-};
-
-var webRequest = {
-  onBeforeRequest: new TopicListener(['http-on-opening-request']),
-  onBeforeSendHeaders: new TopicListener(['http-on-modify-request']),
-  onHeadersReceived: new TopicListener(['http-on-examine-response', 'http-on-examine-cached-response'])
+export default {
+  onBeforeRequest: new WebRequestWrapper('onBeforeRequest'),
+  onBeforeSendHeaders: new WebRequestWrapper('onBeforeSendHeaders'),
+  onSendHeaders: new WebRequestWrapper('onSendHeaders'),
+  onHeadersReceived: new WebRequestWrapper('onHeadersReceived'),
+  onAuthRequired: new WebRequestWrapper('onAuthRequired'),
+  onBeforeRedirect: new WebRequestWrapper('onBeforeRedirect'),
+  onResponseStarted: new WebRequestWrapper('onResponseStarted'),
+  onErrorOccurred: new WebRequestWrapper('onErrorOccurred'),
+  onCompleted: new WebRequestWrapper('onCompleted'),
 };
 
 export const VALID_RESPONSE_PROPERTIES = {
@@ -223,5 +206,3 @@ export const VALID_RESPONSE_PROPERTIES = {
   onErrorOccurred: [
   ],
 };
-
-export default webRequest;

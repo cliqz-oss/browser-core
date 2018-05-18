@@ -1,5 +1,5 @@
-import { utils } from "../core/cliqz";
-import HumanWeb from "./human-web";
+import utils from '../core/utils';
+import HumanWeb from './human-web';
 import background from './background';
 
 export default class Win {
@@ -10,9 +10,9 @@ export default class Win {
   }
 
   enabled() {
-    return utils.getPref("humanWeb", false)
-           && !utils.getPref("humanWebOptOut", false)
-           && !utils.isPrivate(this.window);
+    return utils.getPref('humanWeb', false)
+           && !utils.getPref('humanWebOptOut', false)
+           && !utils.isPrivateMode(this.window);
   }
 
   init() {
@@ -29,18 +29,25 @@ export default class Win {
       this._dataCollectionTimer = undefined;
     }
 
-    if(this.notification){
-      this.notification.close();
-      this.notification = undefined;
-    }
+    this.removeNotification();
+    delete this.window.CliqzHumanWeb;
   }
 
   status() {
-    if(background.active) {
+    if (background.active) {
       return {
         visible: true,
         state: !utils.getPref('humanWebOptOut', false)
-      }
+      };
+    }
+    return undefined;
+  }
+
+  removeNotification() {
+    if (this.notification) {
+      this.notification.close();
+      this.window.document.getElementById('global-notificationbox').removeNotification(this.notification);
+      this.notification = null;
     }
   }
 
@@ -61,34 +68,36 @@ export default class Win {
     function updateDataCollectionState(state) {
       utils.telemetry({
         type: 'dataCollectionMessage',
-        state: state
+        state
       });
 
       utils.setPref('dataCollectionMessageState', state);
     }
 
-    let box = this.window.document.getElementById("global-notificationbox"),
-        buttons = [];
+    const box = this.window.document.getElementById('global-notificationbox');
+    const buttons = [];
 
     buttons.push({
-      label: utils.getLocalizedString("learnMore"),
+      label: utils.getLocalizedString('learnMore'),
       callback: () => {
-        let learnMoreUrl = 'chrome://cliqz/content/human-web/humanweb.html';
+        const learnMoreUrl = 'chrome://cliqz/content/human-web/humanweb.html';
         this.window.gBrowser.selectedTab = this.window.gBrowser.addTab(learnMoreUrl);
         updateDataCollectionState(3);
+        this.removeNotification();
       }
     });
 
     this.notification = box.appendNotification(
-      utils.getLocalizedString("dataCollection"),
+      utils.getLocalizedString('dataCollection'),
       null,
       null,
       box.PRIORITY_INFO_HIGH,
       buttons,
-      function () {
+      () => {
         // notification hides if the user closes it or presses learn more
-        if(utils.getPref('dataCollectionMessageState', 0) < 2){
+        if (utils.getPref('dataCollectionMessageState', 0) < 2) {
           updateDataCollectionState(2);
+          this.removeNotification();
         }
       }
     );

@@ -1,10 +1,7 @@
 import Logger from '../core/logger';
 
-const logger = new Logger({
-  useDump: false,
+
+export default Logger({
   level: 'log',
-  prefix: '[history-analysis]'
+  prefix: '[history-analyzer]',
 });
-
-
-export default logger;

@@ -1,9 +1,12 @@
+/* eslint func-names: 'off' */
+
 import utils from '../core/utils';
 import background from '../core/base/background';
 import HumanWeb from './human-web';
 import history from '../core/history-service';
 import inject from '../core/kord/inject';
 import WebRequest from '../core/webrequest';
+import logger from './logger';
 import { isFirefox, isPlatformAtLeastInVersion } from '../core/platform';
 
 /**
@@ -19,15 +22,15 @@ export default background({
   * @return pref
   */
   enabled() {
-    return utils.getPref("humanWeb", true)
-           && !utils.getPref("humanWebOptOut", false)
+    return utils.getPref('humanWeb', true)
+      && !utils.getPref('humanWebOptOut', false);
   },
 
 
   /**
   * @method init
   */
-  init(settings) {
+  init() {
     // Protection: By default, skip all human web listeners.
     // Only allow it if the user has not opted out
     // and if human web is fully initialized.
@@ -48,27 +51,19 @@ export default background({
     }
 
     return Promise.resolve().then(() => {
-
       if (!this.enabled()) {
         // The module is technically loaded, but human web will not collect any data.
         this.active = true;
         this.collecting = false;
-        return;
+        return undefined;
       }
 
       return HumanWeb.init().then(() => {
-
-        this.onHeadersReceivedListener = (...args) => HumanWeb.httpObserver.observeActivity(...args);
+        this.onHeadersReceivedListener = (...args) =>
+          HumanWeb.httpObserver.observeActivity(...args);
         WebRequest.onHeadersReceived.addListener(this.onHeadersReceivedListener, {
           urls: ['*://*/*'],
         }, ['responseHeaders']);
-
-        // If it's chrome, we need to add a domain2IP dict.
-        // Need to move it to a more platform friendly place.
-        if (WebRequest.onCompleted) {
-          this.domain2IPListener = (...args) => this.domain2IP(...args);
-          WebRequest.onCompleted.addListener(this.domain2IPListener, { urls: ['http://*/*', 'https://*/*'], tabId: -1 });
-        }
 
         utils.bindObjectFunctions(this.actions, this);
 
@@ -99,11 +94,6 @@ export default background({
         this.onHeadersReceivedListener = undefined;
       }
 
-      if (this.domain2IPListener) {
-        WebRequest.onCompleted.removeListener(this.domain2IPListener);
-        this.domain2IPListener = undefined;
-      }
-
       HumanWeb.unload();
     }
   },
@@ -112,21 +102,15 @@ export default background({
     HumanWeb.unload();
   },
 
-  domain2IP(requestDetails) {
-    if (requestDetails && requestDetails.ip) {
-      const domain = HumanWeb.parseURL(requestDetails.url).hostname;
-      HumanWeb.domain2IP[domain] = { ip: requestDetails.ip, ts: Date.now() };
-    }
-  },
-
   events: {
-    'human-web:sanitize-result-telemetry': function () {
-      return HumanWeb.sanitizeResultTelemetry.apply(HumanWeb, arguments);
-    },
     /**
     * @event ui:click-on-url
     */
     'ui:click-on-url': function (data) {
+      if (data.isPrivateMode) {
+        return;
+      }
+
       if (this.collecting) {
         HumanWeb.queryCache[data.url] = {
           d: 1,
@@ -135,11 +119,29 @@ export default background({
           pt: data.positionType || '',
         };
       }
+
+      const signal = {
+        type: 'extension-result-telemetry',
+        q: data.query,
+        s: utils.encodeSessionParams(),
+        msg: {
+          i: data.rawResult.index,
+          o: utils.encodeResultOrder(data.resultOrder),
+          u: data.url,
+          a: data.isFromAutocompletedURL,
+        },
+        endpoint: utils.RESULTS_PROVIDER_LOG,
+        method: 'GET',
+      };
+
+      HumanWeb.sanitizeResultTelemetry(signal)
+        .then(({ query, url, data: _data }) => HumanWeb.sendResultTelemetry(query, url, _data))
+        .catch(logger.error);
     },
-     /**
+    /**
     * @event control-center:toggleHumanWeb
     */
-    'control-center:toggleHumanWeb': function() {
+    'control-center:toggleHumanWeb': () => {
       // 1. we turn off HumanWeb module
       utils.setPref('modules.human-web.enabled', false);
 
@@ -147,42 +149,43 @@ export default background({
       utils.setPref('humanWebOptOut', !utils.getPref('humanWebOptOut', false));
 
       // we need to avoid the throttle on prefs
-      utils.setTimeout(function() {
-        //3. start again the module
+      utils.setTimeout(() => {
+        // 3. start again the module
         utils.setPref('modules.human-web.enabled', true);
       }, 0);
     },
-    'core:mouse-down': function onMouseDown() {
+    'core:mouse-down': function onMouseDown(...args) {
       if (this.collecting) {
-        HumanWeb.captureMouseClickPage.apply(HumanWeb, arguments);
+        HumanWeb.captureMouseClickPage(...args);
       }
     },
-    'core:key-press': function onKeyPress() {
+    'core:key-press': function onKeyPress(...args) {
       if (this.collecting) {
-        HumanWeb.captureKeyPressPage.apply(HumanWeb, arguments);
+        HumanWeb.captureKeyPressPage(...args);
       }
     },
-    'core:mouse-move': function onMouseMove() {
+    'core:mouse-move': function onMouseMove(...args) {
       if (this.collecting) {
-        HumanWeb.captureMouseMovePage.apply(HumanWeb, arguments);
+        HumanWeb.captureMouseMovePage(...args);
       }
     },
-    'core:scroll': function onScroll() {
+    'core:scroll': function onScroll(...args) {
       if (this.collecting) {
-        HumanWeb.captureScrollPage.apply(HumanWeb, arguments);
+        HumanWeb.captureScrollPage(...args);
       }
     },
-    'core:copy': function onCopy() {
+    'core:copy': function onCopy(...args) {
       if (this.collecting) {
-        HumanWeb.captureCopyPage.apply(HumanWeb, arguments);
+        HumanWeb.captureCopyPage(...args);
       }
     },
-    'content:location-change': function onLocationChange({ isPrivate, isLoadingDocument, url, referrer, frameId }) {
+    'content:location-change': function onLocationChange(...args) {
       if (this.collecting) {
         // Only forward it to the onLocation change if the frameID is type 0.
 
-        // We need to find a better way, to not trigger on-location change for requests which are not main_document.
-        HumanWeb.listener.onLocationChange.apply(HumanWeb.listener, arguments);
+        // We need to find a better way,
+        // to not trigger on-location change for requests which are not main_document.
+        HumanWeb.listener.onLocationChange(...args);
       }
     }
   },
@@ -223,12 +226,10 @@ export default background({
       HumanWeb.telemetry(payload, instantPush);
     },
 
-    contentScriptTopAds(message) {
-      // console.log('>>>>> HELLO 2 >>>> ');
+    contentScriptTopAds() {
     },
 
-    contentScriptHTML(message) {
-      // console.log('>>>>> HELLO HTML >>>> ');
+    contentScriptHTML() {
     },
 
     jsRedirect(message) {

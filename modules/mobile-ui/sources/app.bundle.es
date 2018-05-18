@@ -1,7 +1,6 @@
 /* global window */
 
-import "bower_components/core.js/client/core.min.js"
-import "bower_components/whatwg-fetch/fetch.js"
+import "node_modules/core-js/client/core.min.js"
 import "specific/js/libs/ios-orientationchange-fix.js"
 import "specific/js/jsAPI.js"
 import osAPI from "specific/js/osAPI.js"
@@ -15,7 +14,6 @@ import cliqz from '../core-cliqz/index';
 import dev from '../mobile-dev/index';
 import autocomplete from '../autocomplete/index';
 import ui from '../mobile-ui/index';
-import downloader from '../yt-downloader/index';
 import window from '../platform/window';
 
 window.CLIQZ = {};
@@ -44,7 +42,5 @@ window.document.addEventListener('DOMContentLoaded', function () {
     () => osAPI.init()
   ).then(
     () => utils.fetchAndStoreConfig()
-  ).then(
-    () => loadModule(downloader)
   ).catch(e => console.error(e));
 });

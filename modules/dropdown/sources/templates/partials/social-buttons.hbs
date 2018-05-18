@@ -1,7 +1,11 @@
 {{#if socialResults}}
     <div class='social-buttons {{#unless internalResults}}padded{{/unless}}'>
         {{#each socialResults}}
-            <a class="result social-icon" data-url="{{ url }}" href="#">
+            <a
+                class="result social-icon"
+                data-url="{{url}}"
+                href="{{url}}"
+            >
                 <div style="background-image:url({{ image }})"></div>
             </a>
         {{/each}}

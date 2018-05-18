@@ -1,18 +1,13 @@
-import { equals } from '../../core/url';
-import prefs from '../../core/prefs';
-import BaseResult from './base';
+import { equals } from '../../core/content/url';
+import { Subresult } from './base';
 import GenericResult from './generic';
 import LottoResult from './lotto';
 
-class HistoryResult extends BaseResult {
+class HistoryResult extends Subresult {
   get isHistory() { return true; }
 }
 
 export default class HistoryCluster extends GenericResult {
-  constructor(rawResult, allResultsFlat = []) {
-    super(rawResult, allResultsFlat);
-  }
-
   get isHistory() {
     return true;
   }
@@ -27,13 +22,15 @@ export default class HistoryCluster extends GenericResult {
 
   get results() {
     if (!this.historyResults) {
-      this.historyResults = this.rawResult.data.urls.map(rawResult => new HistoryResult({
-        ...rawResult,
-        url: rawResult.href,
-        bulletLogo: true,
-        isCluster: true,
-        text: this.rawResult.text,
-      }));
+      this.historyResults = this.rawResult.data.urls.map(
+        rawResult => new HistoryResult(this, {
+          ...rawResult,
+          url: rawResult.href,
+          bulletLogo: true,
+          isCluster: true,
+          text: this.rawResult.text,
+        })
+      );
     }
     return this.historyResults;
   }
@@ -60,19 +57,12 @@ export default class HistoryCluster extends GenericResult {
 
   // only include news in history cluster for new mixer
   get newsResults() {
-    if (prefs.get('searchMode', 'autocomplete') !== 'search') {
-      return [];
-    }
     return super.newsResults;
   }
 
   // only include lotto in history cluster for new mixer
   get lottoResults() {
-    if (prefs.get('searchMode', 'autocomplete') !== 'search') {
-      return [];
-    }
-
-    const lottoResult = new LottoResult(this.rawResult);
+    const lottoResult = new LottoResult(this.rawResult, this.resultTools);
     return lottoResult.lottoResults;
   }
 }

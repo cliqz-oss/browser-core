@@ -1,4 +1,4 @@
-<a class="result" data-url="{{ url }}" href="#">
+<a class="result" data-url="{{ url }}" href="{{displayUrl}}">
     {{> partials/logo}}
     {{> partials/abstract}}
 </a>
@@ -6,10 +6,10 @@
 {{> partials/buttons}}
 
 {{#if subResult}}
-    <a class="result soccer-title" data-url="{{subResult.url}}" href="#">
+<a class="result soccer-title" data-url="{{subResult.url}}" href="{{subResult.url}}">
         <span class="padded">{{subResult.title}}</span>
         <span class="soccer-domain divider">&#8212;</span>
-        <span class="soccer-domain">{{ local 'soccer-api-provider' }}</span>
+        <span class="soccer-domain">{{ local 'soccer_api_provider' }}</span>
     </a>
 {{/if}}
 
@@ -20,12 +20,12 @@
 
         <div>
             {{#if expandButton.show}}
-                <a class="result expand-btn" data-url="{{expandButton.url}}" href="#">
+                <a class="result expand-btn" data-url="{{expandButton.url}}">
                     {{local expandButton.title}}
                 </a>
             {{/if}}
 
-            <a class="result powered-by" data-url="{{poweredByResult.url}}" href="#">
+            <a class="result powered-by" data-url="{{poweredByResult.url}}" href="{{poweredByResult.url}}">
                 {{local poweredByResult.title}}
             </a>
         </div>

@@ -39,6 +39,8 @@ $cliqz-dark-blue: #0078CA;
         box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.17);
         margin-bottom: 3px;
         margin-top: 4px;
+        background-color: rgba(255, 255, 255, 0.55);
+        // Use this instead of adding class "white-background" to all .wrapper
 
         .table {
             display:table;
@@ -152,23 +154,6 @@ $cliqz-dark-blue: #0078CA;
                     }
                 }
             }
-        }
-    }
-
-    .expand-btn {
-        display: inline-block;
-        color: #545454;
-        font-size: 0.833em;
-        line-height: 1.28051em;
-        text-decoration: none;
-        background-image: url-prefix("dropdown/images/expand.svg");
-        background-repeat: no-repeat;
-        background-size: 6px 10px;
-        background-position: 0 center;
-        padding: 2px 10px 2px 12px;
-
-        &:hover {
-            color: #0078CA;
         }
     }
 

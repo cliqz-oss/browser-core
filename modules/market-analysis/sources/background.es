@@ -1,9 +1,10 @@
 import background from '../core/base/background';
-import { utils } from '../core/cliqz';
+import utils from '../core/utils';
 
 import MAConfigs from './conf/ma_configs';
 import logger from './common/logger';
 import CliqzMarketAnalyzer from './market_analyzer_main';
+import { isTelemetryEnabled } from './util';
 
 /**
   @namespace marker-analysis
@@ -16,7 +17,7 @@ export default background({
     @param settings
   */
   init() {
-    if (MAConfigs.IS_ENABLED) {
+    if (MAConfigs.IS_ENABLED && isTelemetryEnabled()) {
       CliqzMarketAnalyzer.init();
       // The content of this file is subject to change
       // The file is shipped together with the releases
@@ -51,7 +52,7 @@ export default background({
 
   events: {
     'content:location-change': function onLocationChange({ url, isPrivate }) {
-      if (this.initialized && !isPrivate) {
+      if (this.initialized && isTelemetryEnabled() && !isPrivate) {
         CliqzMarketAnalyzer.matchURL(url);
       }
     }

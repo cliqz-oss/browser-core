@@ -1,5 +1,21 @@
 import config from '../core/config';
 import { fetch, Headers } from '../platform/fetch';
+import random from '../core/crypto/random';
+import { TransportError } from './errors';
+
+function myfetch(request, options) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new TransportError()), 5000);
+    fetch(request, options)
+      .then((x) => {
+        clearTimeout(timer);
+        resolve(x);
+      }).catch((e) => {
+        clearTimeout(timer);
+        reject(e);
+      });
+  });
+}
 
 // Just to have all the endpoints in the same place.
 // Also handles possible clock drift of the user, syncing with time returned
@@ -19,7 +35,7 @@ export default class Endpoints {
       headers.append('Content-Type', 'application/json');
     }
 
-    return fetch(url, {
+    return myfetch(url, {
       method: 'POST',
       body,
       headers
@@ -27,11 +43,11 @@ export default class Endpoints {
   }
 
   static get(url) {
-    return fetch(url);
+    return myfetch(url);
   }
 
   static head(url) {
-    return fetch(url, { method: 'HEAD' });
+    return myfetch(url, { method: 'HEAD' });
   }
 
   static getServerTime(url) {
@@ -63,8 +79,17 @@ export default class Endpoints {
     return 1000 * 60 * 3; // TODO: 3 minutes is ok?
   }
 
-  constructor() {
+  constructor({ maxRetries = 3, urls = config.settings } = {}) {
+    this._reset();
+    this.maxRetries = maxRetries;
+    this.urls = urls;
+  }
+
+  _reset() {
     this.timeOffset = 0;
+    this.messages = [];
+    this.sendTimer = null;
+    this.unloaded = false;
   }
 
   getTime() {
@@ -92,21 +117,46 @@ export default class Endpoints {
     });
   }
 
+  _scheduleSend() {
+    if (this.unloaded || this.sendTimer !== null) {
+      return;
+    }
+    this.sendTimer = setTimeout(() => {
+      const n = Math.floor(random() * this.messages.length);
+      const [msg, cnt] = this.messages.splice(n, 1)[0];
+      this._fetch(Endpoints.post(this.urls.ENDPOINT_HPNV2_COLLECTOR, msg))
+        .catch(() => {
+          if (cnt < this.maxRetries) {
+            this.messages.push([msg, cnt + 1]);
+          }
+        })
+        .then(() => {
+          this.sendTimer = null;
+          if (this.messages.length > 0) {
+            this._scheduleSend();
+          }
+        });
+    }, 500 + Math.floor(random() * 1500)); // TODO: improve?
+  }
+
   send(msg) {
-    return this._fetch(Endpoints.post(config.settings.ENDPOINT_HPNV2_COLLECTOR, msg));
+    this.messages.push([msg, 0]);
+    this._scheduleSend();
   }
 
   join({ ts, joinMsg, pk, sig }) {
     return this._fetch(
-      Endpoints.post(config.settings.ENDPOINT_HPNV2_JOIN, { ts, joinMsg, pk, sig })
+      Endpoints.post(this.urls.ENDPOINT_HPNV2_JOIN, { ts, joinMsg, pk, sig })
     );
   }
 
   getConfig() {
-    return this._fetch(Endpoints.get(config.settings.ENDPOINT_HPNV2_CONFIG));
+    return this._fetch(Endpoints.get(this.urls.ENDPOINT_HPNV2_CONFIG));
   }
 
-  sendLog(data) {
-    return this._fetch(Endpoints.post(config.settings.ENDPOINT_HPNV2_LOG, data));
+  unload() {
+    clearTimeout(this.sendTimer);
+    this._reset();
+    this.unloaded = true;
   }
 }

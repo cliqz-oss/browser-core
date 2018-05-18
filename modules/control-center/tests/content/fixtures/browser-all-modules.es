@@ -11,7 +11,7 @@ export default {
       "dropdown": null,
       "firefox-specific": null,
       "static": null,
-      "autocomplete": {
+      "search": {
         "visible": true,
         "state": [
           {
@@ -1047,7 +1047,7 @@ export default {
       },
       "control-center": null,
       "offers-v2": {
-        showSettings: true,
+        visible: true,
         userEnabled: true,
         locationEnabled: true,
       },
@@ -1056,7 +1056,6 @@ export default {
       "offboarding": null,
       "anolysis": null,
       "abtests": null,
-      "unblock": null,
       "theme": null,
       "context-search": null,
       "hm": null,
@@ -1072,8 +1071,8 @@ export default {
         "disabledEverywhere": false,
         "totalCount": 0,
         "advertisersList": {
-          "companiesArray": []
         },
+
         "state": "active",
         "off_state": "off_website"
       },
@@ -1082,10 +1081,6 @@ export default {
         "active": true
       },
       "onboarding-v3": null,
-      "moncomp": {
-        "visible": false,
-        "state": false
-      },
       "type-filter": {
         "visible": true,
         "type1": true,

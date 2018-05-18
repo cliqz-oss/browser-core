@@ -1,1 +1,1 @@
-export * from "../platform/dom-parser";
+export * from '../platform/dom-parser';

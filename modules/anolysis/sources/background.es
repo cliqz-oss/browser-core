@@ -1,24 +1,23 @@
 /* eslint { "object-shorthand": "off" } */
 
 import background from '../core/base/background';
-import { utils } from '../core/cliqz';
 import events from '../core/events';
+import getDemographics from '../core/demographics';
+import getSynchronizedDate from '../core/synchronized-time';
+import prefs from '../core/prefs';
+import utils from '../core/utils';
+
+import Anolysis from './internals/anolysis';
+import Config from './internals/config';
+import Storage from './internals/storage/dexie';
+import logger from './internals/logger';
+import { isTelemetryEnabled } from './internals/enabling';
+
+import signalDefinitions from './telemetry-schemas';
+
+export { ENABLE_PREF } from './internals/enabling';
 
 
-import telemetrySchemas from './telemetry-schemas';
-import Anolysis from './anolysis';
-import getSynchronizedDate from './synchronized-date';
-import logger from './logger';
-
-
-/* TODO - use the new kord module
- * import inject from '../core/kord/inject';
- * const controlCenter = inject.module('control-center');
- * controlCenter.windowAction(window, 'setBadge', 17);
- */
-
-
-export const ENABLE_PREF = 'telemetryNoSession';
 const LATEST_VERSION_USED_PREF = 'anolysisVersion';
 
 /**
@@ -26,21 +25,16 @@ const LATEST_VERSION_USED_PREF = 'anolysisVersion';
  * only signal when the state of the client should be reset, which is a
  * temporary thing.
  */
-const VERSION = 2;
+const VERSION = 6;
 
 
 function versionWasUpdated() {
-  return utils.getPref(LATEST_VERSION_USED_PREF, null) !== VERSION;
+  return prefs.get(LATEST_VERSION_USED_PREF, null) !== VERSION;
 }
 
 
 function storeNewVersionInPrefs() {
-  utils.setPref(LATEST_VERSION_USED_PREF, VERSION);
-}
-
-
-function isTelemetryEnabled() {
-  return utils.getPref(ENABLE_PREF, false);
+  prefs.set(LATEST_VERSION_USED_PREF, VERSION);
 }
 
 
@@ -48,19 +42,19 @@ function isTelemetryEnabled() {
  * This function will instantiate an Anolysis class. It will also check if the
  * internal states need to be reset (on version bump).
  */
-function instantiateAnolysis(settings) {
-  const anolysis = new Anolysis(settings);
+async function instantiateAnolysis(demographics) {
+  const config = new Config({ demographics, Storage });
+  const anolysis = new Anolysis(config);
 
   // Check if we should reset
   if (versionWasUpdated()) {
     logger.log('reset anolysis state because of update');
-    return anolysis.reset()
-      .then(() => anolysis.unload())
-      .then(() => storeNewVersionInPrefs())
-      .then(() => new Anolysis(settings));
+    await anolysis.reset();
+    storeNewVersionInPrefs();
+    return new Anolysis(config);
   }
 
-  return Promise.resolve(anolysis);
+  return anolysis;
 }
 
 
@@ -68,18 +62,16 @@ function instantiateAnolysis(settings) {
  * Manages new telemetry.
  */
 export default background({
+  // to be able to read the config prefs
+  requiresServices: ['cliqz-config'],
+
   isRunning: false,
-  settings: {},
 
   enabled() { return true; },
 
-  init(settings) {
-    if (settings !== undefined) {
-      this.settings = settings;
-    }
-
+  async init() {
     if (!isTelemetryEnabled()) {
-      return Promise.resolve();
+      return;
     }
 
     if (getSynchronizedDate() === null) {
@@ -96,7 +88,7 @@ export default background({
           this.onPrefChange = undefined;
 
           // Init anolysis
-          this.init(this.settings);
+          this.init();
         }
       });
     } else {
@@ -109,54 +101,47 @@ export default background({
         type: 'anolysis.start_init',
       });
 
-      return this.start()
-        .then(() => {
-          // TODO - send ping_anolysis signal with legacy telemetry system
-          // This is only meant for testing purposes and will be remove in
-          // the future.
-          utils.telemetry({
-            type: 'anolysis.start_end',
-          });
-        })
-        .catch((ex) => {
-          // TODO - send ping_anolysis signal with legacy telemetry system
-          // This is only meant for testing purposes and will be remove in
-          // the future.
-          utils.telemetry({
-            type: 'anolysis.start_exception',
-            exception: `${ex}`,
-          });
+      try {
+        await this.start();
+        // TODO - send ping_anolysis signal with legacy telemetry system
+        // This is only meant for testing purposes and will be remove in
+        // the future.
+        utils.telemetry({
+          type: 'anolysis.start_end',
         });
+      } catch (ex) {
+        // TODO - send ping_anolysis signal with legacy telemetry system
+        // This is only meant for testing purposes and will be remove in
+        // the future.
+        logger.error('Exception while init anolysis', ex);
+        utils.telemetry({
+          type: 'anolysis.start_exception',
+          exception: `${ex}`,
+        });
+      }
     }
-
-    return Promise.resolve();
   },
 
-  start() {
-    if (this.isRunning) return Promise.resolve();
+  async start() {
+    if (this.isRunning) return;
+    this.isRunning = true;
 
-    // Used for testing
-    // this.intervalTimer = utils.setInterval(
-    //   () => this.actions.generateSignals(Date.now()),
-    //   ONE_MINUTE);
-
-    return instantiateAnolysis(this.settings).then((anolysis) => {
-      this.anolysis = anolysis;
+    try {
+      this.anolysis = await instantiateAnolysis(await getDemographics());
 
       // TODO
       // Register legacy telemetry signals listener. In the future this should
       // not be needed as the `utils.telemetry` function should directly call
       // the action `log` of this background (using the kord mechanism).
-      this.telemetryHandler = this.events['telemetry:handleTelemetrySignal'].bind(this);
-      utils.telemetryHandlers.push(this.telemetryHandler);
+      utils.telemetryHandlers.push(this.actions.handleTelemetrySignal);
 
-      return this.actions.registerSchemas(telemetrySchemas)
-        .then(() => this.anolysis.init())
-        .then(() => {
-          this.isRunning = true;
-          events.pub('anolysis:initialized');
-        });
-    });
+      await this.anolysis.registerSignalDefinitions(signalDefinitions);
+      await this.anolysis.init();
+      this.anolysis.onNewDay(prefs.get('config_ts'));
+    } catch (ex) {
+      this.isRunning = false;
+      throw ex;
+    }
   },
 
   stop() {
@@ -172,26 +157,16 @@ export default background({
     // TODO - this will be removed when the telemetry function makes use of this
     // module exclusively.
     // Unsubscribe telemetry listener
-    const index = utils.telemetryHandlers.indexOf(this.telemetryHandler);
+    const index = utils.telemetryHandlers.indexOf(this.actions.handleTelemetrySignal);
     if (index !== -1) {
       utils.telemetryHandlers.splice(index, 1);
-      delete this.telemetryHandler;
     }
 
     this.anolysis.unload();
+    this.anolysis = null;
   },
 
-  unload(quick) {
-    if (quick === undefined) {
-      // Generate uninstall signal
-      // TODO: Find a way to do this, as it's hard to do it fast.
-      // We need to get the GID or demographics to send with the
-      // new signal + by-pass the message queue/preprocessing.
-      //
-      // Also, how to make sure that the message is actually sent
-      // to the backend, as this is done in an async way.
-    }
-
+  unload() {
     this.stop();
   },
 
@@ -200,27 +175,19 @@ export default background({
 
   events: {
     /**
-     * @event telemetry:handleTelemetrySignal
-     * @param data
-     */
-    'telemetry:handleTelemetrySignal'(data) {
-      if (!this.isRunning) return;
-
-      // No telemetry in private windows
-      if (data.type !== 'environment' && utils.isPrivate()) return;
-
-      this.actions.handleTelemetrySignal(data);
-    },
-
-    /**
      * Monitor preference changes in about:config and check if we should
      * enable or disable the telemetry module.
      */
     'prefchange'(pref) {
-      if (pref !== ENABLE_PREF) return;
-
-      if (isTelemetryEnabled()) {
-        this.init(this.settings);
+      if (pref === 'config_ts') {
+        if (this.anolysis && this.isRunning) {
+          // Notify anolysis that the date just changed.
+          this.anolysis.onNewDay(prefs.get('config_ts'));
+        }
+      } else if (isTelemetryEnabled()) {
+        if (!this.isRunning) {
+          this.init();
+        }
       } else {
         this.stop();
       }
@@ -228,23 +195,61 @@ export default background({
   },
 
   actions: {
-    registerSchemas(schemas) {
-      return Promise.resolve()
-        .then(() => this.anolysis.registerSchemas(schemas));
+    getSignalDefinitions() {
+      return [...this.anolysis.availableDefinitions.values()];
     },
 
-    handleTelemetrySignal(signal, schemaName) {
+    registerSignalDefinitions(schemas) {
       if (!this.anolysis) {
         return Promise.resolve();
       }
-      return this.anolysis.handleTelemetrySignal(signal, schemaName);
+
+      return this.anolysis.registerSignalDefinitions(schemas);
     },
 
-    getCurrentDemographics() {
-      if (!this.anolysis) {
-        return null;
+    handleTelemetrySignal(msg, instantPush, schemaName) {
+      // TODO - this could be an issue if signals are sent before Anolysis is
+      // fully initialized. Maybe we could have an in-memory buffer to keep
+      // early signal safe, then push them to anolysis when module is enabled.
+      if (!this.isRunning || !this.anolysis) {
+        return Promise.resolve();
       }
-      return this.anolysis.gidManager.getCurrentDemographics();
+
+      // No telemetry in private windows
+      if (utils.isPrivateMode()) {
+        return Promise.resolve();
+      }
+
+      if (instantPush && schemaName) {
+        logger.error('instantPush argument is ignored by anolysis, please specify "sendToBackend" this in signals\' schema');
+      }
+
+      return this.anolysis.handleTelemetrySignal(msg, schemaName).catch((ex) => {
+        // We only count it as exception if Anolysis is running. It can happen
+        // that signals are sent slightly before Anolysis is stopped, but they
+        // are processed async and they are persisted just after Storage is
+        // unloaded. So we ignore exception happening when Anolysis is not
+        // running.
+        if (this.anolysis && this.isRunning) {
+          logger.error('handleTelemetrySignal', ex, msg, schemaName);
+        }
+      });
+    },
+
+    getGID() {
+      if (!this.isRunning || !this.anolysis) {
+        return Promise.resolve();
+      }
+      return Promise.resolve()
+        .then(() => this.anolysis.gidManager.getGID());
+    },
+
+    getLastGIDUpdateDate() {
+      return this.anolysis.gidManager.getLastGIDUpdateDate();
+    },
+
+    getDemographics() {
+      return getDemographics();
     },
   },
 });

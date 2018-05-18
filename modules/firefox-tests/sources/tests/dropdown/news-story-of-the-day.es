@@ -1,93 +1,106 @@
-/* global it, chai, respondWith, fillIn,
-    waitForPopup, $cliqzResults, getComputedStyle */
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
+import {
+  blurUrlBar,
+  $cliqzResults,
+  expect,
+  fillIn,
+  getComputedStyle,
+  respondWith,
+  waitForPopup,
+  withHistory } from './helpers';
 
 import results from './fixtures/resultsNewsStoryOfTheDay';
 
 export default function () {
-  context('for a news stories of the day rich header', function () {
-    const resultSelector = 'div.news-story a.result';
-    const newsSelector = 'div.abstract';
-    const newsAreaSelector = 'div.content';
-    let resultElement;
-    let resultItem;
-    let newsItem;
-    let newsAreaItem;
+  context('for news stories of the day', function () {
+    const mainResultSelector = '.cliqz-result:not(.history)';
+    const resultSelector = '.news-story a.result';
+    const newsSelector = '.abstract';
+    const logoSelector = '.icons .logo';
+    const thumbnailSelector = '.thumbnail img';
+    const headlineSelector = '.title';
+    const descriptionSelector = '.description';
+    const timestampSelector = '.published-at';
+    const domainSelector = '.url';
 
     before(function () {
+      window.preventRestarts = true;
+      blurUrlBar();
       respondWith({ results });
+      withHistory([]);
       fillIn('donald trump');
-      return waitForPopup().then(function () {
-        resultElement = $cliqzResults()[0];
-
-        resultItem = resultElement.querySelector(resultSelector);
-        newsItem = resultItem.querySelector(newsSelector);
-        newsAreaItem = newsItem.querySelector(newsAreaSelector);
-      });
+      return waitForPopup(2);
     });
 
-    describe('renders the news result', function () {
+    after(function () {
+      window.preventRestarts = false;
+    });
+
+    describe('renders news result', function () {
       it('successfully', function () {
-        chai.expect(resultItem).to.exist;
+        const $newsResult = $cliqzResults.querySelector(`${mainResultSelector} ${resultSelector}`);
+        expect($newsResult).to.exist;
       });
 
-      it('with existing and correct URL', function () {
-        chai.expect(resultItem.href).to.equal(results[0].url);
+      it('with a correct URL', function () {
+        const $newsResult = $cliqzResults.querySelector(`${mainResultSelector} ${resultSelector}`);
+
+        expect($newsResult.href).to.exist;
+        expect($newsResult.href).to.equal(results[0].url);
       });
 
-      it('with existing and correct logo', function () {
-        const logoSelector = 'div.icons span.logo';
-        const logoItem = resultItem.querySelector(logoSelector);
-        chai.expect(logoItem).to.exist;
-        chai.expect(getComputedStyle(logoItem).backgroundImage).to.contain('n-tv');
+      it('with a logo', function () {
+        const $logo = $cliqzResults
+          .querySelector(`${mainResultSelector} ${resultSelector} ${logoSelector}`);
+
+        expect($logo).to.exist;
+        expect(getComputedStyle($logo).backgroundImage).to.contain('n-tv');
       });
 
-      it('with existing news element', function () {
-        chai.expect(newsItem).to.exist;
+      it('with an existing news element', function () {
+        const $newsElement = $cliqzResults
+          .querySelector(`${mainResultSelector} ${resultSelector} ${newsSelector}`);
+        expect($newsElement).to.exist;
       });
     });
 
     context('the news element', function () {
-      it('renders with existing and correct thumbnail', function () {
-        const newsThumbnailSelector = 'div.thumbnail img';
-        const newsThumbnailItem = newsItem.querySelector(newsThumbnailSelector);
-        chai.expect(newsThumbnailItem).to.exist;
-        chai.expect(newsThumbnailItem.src).to.equal(results[0].snippet.extra.image.src);
+      it('renders a correct thumbnail', function () {
+        const $thumbnail = $cliqzResults
+          .querySelector(`${mainResultSelector} ${resultSelector} ${newsSelector} ${thumbnailSelector}`);
+
+        expect($thumbnail).to.exist;
+        expect($thumbnail.src).to.equal(results[0].snippet.extra.image.src);
       });
 
-      it('renders with existing news area', function () {
-        chai.expect(newsAreaItem).to.exist;
-      });
-    });
+      it('renders a correct headline', function () {
+        const $thumbnail = $cliqzResults
+          .querySelector(`${mainResultSelector} ${resultSelector} ${newsSelector} ${headlineSelector}`);
 
-    context('the news area', function () {
-      it('renders with existing and correct headline', function () {
-        const newsHeadlineSelector = 'p span.title';
-        const newsHeadlineItem = newsItem.querySelector(newsHeadlineSelector);
-        chai.expect(newsHeadlineItem).to.exist;
-        chai.expect(newsHeadlineItem).to.contain.text(results[0].snippet.title);
+        expect($thumbnail).to.exist;
+        expect($thumbnail).to.contain.text(results[0].snippet.title);
       });
 
-      it('renders with existing and correct description', function () {
-        const newsDescriptionSelector = 'p span.description';
-        const newsDescriptionItem = newsItem.querySelector(newsDescriptionSelector);
-        chai.expect(newsDescriptionItem).to.exist;
-        chai.expect(newsDescriptionItem).to.contain.text(results[0].snippet.description);
+      it('renders a correct description', function () {
+        const $description = $cliqzResults
+          .querySelector(`${mainResultSelector} ${resultSelector} ${newsSelector} ${descriptionSelector}`);
+
+        expect($description).to.exist;
+        expect($description).to.contain.text(results[0].snippet.description);
       });
 
-      it('renders with existing timestamp', function () {
-        const newsTimestampSelector = 'p span.published-at';
-        const newsTimestampItem = newsItem.querySelector(newsTimestampSelector);
-        chai.expect(newsTimestampItem).to.exist;
+      it('renders with an existing timestamp', function () {
+        const $timestamp = $cliqzResults
+          .querySelector(`${mainResultSelector} ${resultSelector} ${newsSelector} ${timestampSelector}`);
+
+        expect($timestamp).to.exist;
       });
 
-      it('renders with existing and correct domain', function () {
-        const newsDomainSelector = 'p span.url';
-        const newsDomainItem = newsItem.querySelector(newsDomainSelector);
-        chai.expect(newsDomainItem).to.exist;
-        chai.expect(newsDomainItem)
+      it('renders acorrect domain', function () {
+        const $domain = $cliqzResults
+          .querySelector(`${mainResultSelector} ${resultSelector} ${newsSelector} ${domainSelector}`);
+
+        expect($domain).to.exist;
+        expect($domain)
           .to.contain.text(results[0].snippet.extra.rich_data.source_name);
       });
     });

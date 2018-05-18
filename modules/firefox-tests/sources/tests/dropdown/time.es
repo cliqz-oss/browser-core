@@ -1,61 +1,207 @@
-/* global it, chai, respondWith, fillIn, waitForPopup,
-$cliqzResults */
-/* eslint func-names: ['error', 'never'] */
-/* eslint prefer-arrow-callback: 'off' */
-/* eslint no-unused-expressions: 'off' */
-
+import {
+  blurUrlBar,
+  $cliqzResults,
+  expect,
+  fillIn,
+  getLocalisedString,
+  respondWith,
+  waitForPopup,
+  waitFor,
+  withHistory } from './helpers';
 import results from './fixtures/resultsTime';
 
 export default function () {
-  context('for a time result', function () {
-    const timeSelector = 'div.time p';
-    let timeItems;
-    let resultElement;
+  context('for time result', function () {
+    const timeAreaSelector = '.time';
+    const mainCitySelector = '.main-result .main';
+    const mainTimeZoneSelector = '.main-result .timezone';
+    const timezonesSelector = '.timezone-results';
+    const timezoneRowSelector = '.timezone-results-row';
+    const showMoreSelector = '.expand-btn';
 
-    before(function () {
-      respondWith({ results });
-      fillIn('time berlin');
-      return waitForPopup().then(function () {
-        resultElement = $cliqzResults()[0];
-        timeItems = resultElement.querySelectorAll(timeSelector);
+    context('(interactions) clicking on "Show more" button', function () {
+      before(async function () {
+        window.preventRestarts = true;
+        blurUrlBar();
+        withHistory([]);
+        respondWith({ results });
+        fillIn('sdkjfhsdkjf');
+        await waitForPopup(2);
+        await waitFor(() => $cliqzResults.querySelectorAll('.timezone-results-row').length === 3);
+        $cliqzResults.querySelector('.result.expand-btn').click();
+        await waitFor(() => $cliqzResults.querySelectorAll('.timezone-results-row').length > 3);
+      });
+
+      after(function () {
+        window.preventRestarts = false;
+      });
+
+      context('renders main result', function () {
+        it('successfully', function () {
+          const $timeArea = $cliqzResults.querySelector(timeAreaSelector);
+          expect($timeArea).to.exist;
+        });
+
+        it('with a correct number of expanded table rows', function () {
+          const $allTimezoneRows = $cliqzResults
+            .querySelectorAll(`${timeAreaSelector} ${timezonesSelector} ${timezoneRowSelector}`);
+          expect($allTimezoneRows.length)
+            .to.equal(results[0].snippet.extra.time_data.cities_by_tz.length);
+        });
+
+        it('without a "Show more" item', function () {
+          const $showMore = $cliqzResults
+            .querySelector(`${timeAreaSelector} ${timezonesSelector} ${showMoreSelector}`);
+
+          expect($showMore).to.not.exist;
+        });
+      });
+
+      context('each expanded table row', function () {
+        it('renders with correct time ', function () {
+          const $allTimezoneRows = $cliqzResults
+            .querySelectorAll(`${timeAreaSelector} ${timezonesSelector} ${timezoneRowSelector}`);
+
+          expect($allTimezoneRows.length).to.be.above(0);
+          [...$allTimezoneRows].forEach(function ($timezoneRow, i) {
+            const timeSelector = '.main.space';
+            const $time = $timezoneRow.querySelector(timeSelector);
+            expect($time)
+              .to.have.text(results[0].snippet.extra.time_data.cities_by_tz[i].time_info.time);
+          });
+        });
+
+        it('renders with correct city ', function () {
+          const $allTimezoneRows = $cliqzResults
+            .querySelectorAll(`${timeAreaSelector} ${timezonesSelector} ${timezoneRowSelector}`);
+
+          expect($allTimezoneRows.length).to.be.above(0);
+          [...$allTimezoneRows].forEach(function ($timezoneRow, i) {
+            const citySelector = '.main.city';
+            const $city = $timezoneRow.querySelector(citySelector);
+            expect($city)
+              .to.have.text(results[0].snippet.extra.time_data.cities_by_tz[i].cities.join(', '));
+          });
+        });
+
+        it('renders with correct timezone ', function () {
+          const $allTimezoneRows = $cliqzResults
+            .querySelectorAll(`${timeAreaSelector} ${timezonesSelector} ${timezoneRowSelector}`);
+
+          expect($allTimezoneRows.length).to.be.above(0);
+          [...$allTimezoneRows].forEach(function ($timezoneRow, i) {
+            const timezoneSelector = '.timezone';
+            const $timeZone = $timezoneRow.querySelector(timezoneSelector);
+            expect($timeZone)
+              .to.contain.text(`${results[0].snippet.extra.time_data.cities_by_tz[i].time_info.expression} (${results[0].snippet.extra.time_data.cities_by_tz[i].time_info.tz_info})`);
+          });
+        });
       });
     });
 
-    it('renders the main result', function () {
-      chai.expect(timeItems[0]).to.exist;
-    });
+    context('(UI)', function () {
+      before(async function () {
+        window.preventRestarts = true;
+        blurUrlBar();
+        respondWith({ results });
+        withHistory([]);
+        fillIn('time berlin');
+        await waitForPopup(2);
+        await waitFor(() => $cliqzResults.querySelectorAll('.timezone-results-row').length === 3);
+      });
 
-    it('renders the main result with correct time', function () {
-      chai.expect(timeItems[0]).to.contain.text(results[0].snippet.extra.answer);
-    });
+      after(function () {
+        window.preventRestarts = false;
+      });
 
-    it('renders the main result with correct location', function () {
-      chai.expect(timeItems[0]).to.contain.text(results[0].snippet.extra.mapped_location);
-    });
+      context('renders main result', function () {
+        it('successfully', function () {
+          const $timeArea = $cliqzResults.querySelector(timeAreaSelector);
+          expect($timeArea).to.exist;
+        });
 
-    it('renders the caption line', function () {
-      chai.expect(timeItems[1]).to.exist;
-    });
+        it('with correct time and city info', function () {
+          const $mainCity = $cliqzResults.querySelector(`${timeAreaSelector} ${mainCitySelector}`);
 
-    it('renders the caption line with correct date', function () {
-      chai.expect(timeItems[1]).to.contain.text(results[0].snippet.extra.expression);
-    });
+          expect($mainCity).to.exist;
+          expect($mainCity)
+            .to.have.text(`${results[0].snippet.extra.time_data.main.time} ${results[0].snippet.extra.time_data.main.mapped_location}`);
+        });
 
-    it('renders the caption line with correct time zone', function () {
-      chai.expect(timeItems[1]).to.contain.text(results[0].snippet.extra.line3);
-    });
+        it('with correct timezone info', function () {
+          const $mainTimeZone = $cliqzResults
+            .querySelector(`${timeAreaSelector} ${mainTimeZoneSelector}`);
 
-    it('renders the caption line with "Source" label', function () {
-      chai.expect(timeItems[1]).to.contain.text('Source:');
-    });
+          expect($mainTimeZone).to.exist;
+          expect($mainTimeZone)
+            .to.have.text(`${results[0].snippet.extra.time_data.main.expression}, ${results[0].snippet.extra.time_data.main.tz_info}`);
+        });
+      });
 
-    it('renders the caption line with correct "Source" link', function () {
-      chai.expect(timeItems[1]).to.contain.text('worldtime.io');
-    });
+      context('renders timezone table', function () {
+        it('successfully', function () {
+          const $timezones = $cliqzResults
+            .querySelector(`${timeAreaSelector} ${timezonesSelector}`);
+          expect($timezones).to.exist;
+        });
 
-    it('renders the caption line with correct URL', function () {
-      chai.expect(timeItems[1].querySelector('a.source-link').href.toLowerCase())
-        .to.contain(results[0].snippet.friendlyUrl);
+        it('with a correct number of table rows', function () {
+          const $allTimezoneRows = $cliqzResults
+            .querySelectorAll(`${timeAreaSelector} ${timezonesSelector} ${timezoneRowSelector}`);
+          expect($allTimezoneRows.length).to.equal(3);
+        });
+
+        it('with a correct "Show more" item', function () {
+          const $showMore = $cliqzResults
+            .querySelector(`${timeAreaSelector} ${timezonesSelector} ${showMoreSelector}`);
+
+          expect($showMore).to.exist;
+          expect($showMore)
+            .to.have.trimmed.text(getLocalisedString().general_expand_button.message);
+          expect($showMore.dataset.url).to.exist;
+        });
+
+        context('each table row', function () {
+          it('renders with correct time ', function () {
+            const $allTimezoneRows = $cliqzResults
+              .querySelectorAll(`${timeAreaSelector} ${timezonesSelector} ${timezoneRowSelector}`);
+
+            expect($allTimezoneRows.length).to.be.above(0);
+            [...$allTimezoneRows].forEach(function ($timezoneRow, i) {
+              const timeSelector = '.main.space';
+              const $time = $timezoneRow.querySelector(timeSelector);
+              expect($time)
+                .to.have.text(results[0].snippet.extra.time_data.cities_by_tz[i].time_info.time);
+            });
+          });
+
+          it('renders with correct city ', function () {
+            const $allTimezoneRows = $cliqzResults
+              .querySelectorAll(`${timeAreaSelector} ${timezonesSelector} ${timezoneRowSelector}`);
+
+            expect($allTimezoneRows.length).to.be.above(0);
+            [...$allTimezoneRows].forEach(function ($timezoneRow, i) {
+              const citySelector = '.main.city';
+              const $city = $timezoneRow.querySelector(citySelector);
+              expect($city)
+                .to.have.text(results[0].snippet.extra.time_data.cities_by_tz[i].cities.join(', '));
+            });
+          });
+
+          it('renders with correct timezone ', function () {
+            const $allTimezoneRows = $cliqzResults
+              .querySelectorAll(`${timeAreaSelector} ${timezonesSelector} ${timezoneRowSelector}`);
+
+            expect($allTimezoneRows.length).to.be.above(0);
+            [...$allTimezoneRows].forEach(function ($timezoneRow, i) {
+              const timezoneSelector = '.timezone';
+              const $timeZone = $timezoneRow.querySelector(timezoneSelector);
+              expect($timeZone)
+                .to.contain.text(`${results[0].snippet.extra.time_data.cities_by_tz[i].time_info.expression} (${results[0].snippet.extra.time_data.cities_by_tz[i].time_info.tz_info})`);
+            });
+          });
+        });
+      });
     });
   });
 }

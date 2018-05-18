@@ -1,4 +1,4 @@
-import CliqzUtils from "../../core/utils";
+/* eslint no-param-reassign: 'off' */
 
 export default class CliqzMsgHandler {
   constructor() {
@@ -8,10 +8,8 @@ export default class CliqzMsgHandler {
   }
 
   enqueueMessage(message, callback) {
-    const messageAlready = this._messageQueue.some(msg => {
-      return msg.id === message.id;
-    });
-    if(!messageAlready) {
+    const messageAlready = this._messageQueue.some(msg => msg.id === message.id);
+    if (!messageAlready) {
       this._messageQueue.push(message);
       this._callbacks[message.id] = callback;
       if (this._messageQueue.length === 1) {
@@ -21,7 +19,7 @@ export default class CliqzMsgHandler {
   }
 
   dequeueMessage(message) {
-    var i = this._messageQueue.indexOf(message);
+    let i = this._messageQueue.indexOf(message);
 
     // same message, different object reference
     if (i === -1) {
@@ -41,7 +39,7 @@ export default class CliqzMsgHandler {
   }
 
   showNextMessage() {
-    var message = this._messageQueue.shift();
+    const message = this._messageQueue.shift();
     if (message) {
       delete this._callbacks[message.id];
       this._hideMessage(message);
@@ -52,10 +50,10 @@ export default class CliqzMsgHandler {
   }
 
   _renderMessage() {
-    throw '_renderMessage not implemented';
+    throw new Error('_renderMessage not implemented');
   }
 
   _hideMessage() {
-    throw '_hideMessage not implemented';
+    throw new Error('_hideMessage not implemented');
   }
 }

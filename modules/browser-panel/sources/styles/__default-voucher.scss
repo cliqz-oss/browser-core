@@ -1,185 +1,530 @@
-html {
-    display: table;
-    width: 100%;
-    height: 100%;
-}
-
 body {
-    display: table-cell;
-    margin: 0;
-    padding: 0;
-    color: #333;
-    vertical-align: middle;
-    font-family: Helvetica, Arial, sans-serif;
-    border-top: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
+  width: 100%;
+  overflow: hidden;
+  padding: 0 10px;
+  margin: 0;
 }
+#cqz-browser-panel-re {
+  position: relative;
+  margin-top: 6px;
 
-.cqz-offers-wrapper {
-    position: relative;
-    overflow: auto;
-    min-width: 500px;
-    max-height: 200px;
-    padding: 0 15px 0 20px;
-    border-bottom: none;
-}
-
-.cqz-offer {
-    position: relative;
-    max-width: 1000px;
-    margin: 0 auto;
-    max-height: 180px;
-    padding: 10px 20px 10px 220px;
-
-    .cqz-logo-holder {
-        overflow: hidden;
-        float: left;
-        width: 160px;
-        padding-right: 20px;
-        margin-left: -210px;
-        height: 100%;
-        max-height: 100%;
-
-        &:before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 185px;
-            width: 1px;
-            height: 100%;
-            background: #ccc;
-        }
-
-    }
-
-    & > .cqz-buttons {
-        float: right;
-        padding-top: 49px;
-        max-width: 170px;
-        margin-right: -190px;
-    }
-
-    .cqz-buttons {
-        .cqz-btn {
-            display: inline-block;
-            padding: 12px 20px 9px;
-            color: #fff;
-            font-size: 14px;
-            line-height: 1em;
-            text-decoration: none;
-            border-radius: 4px;
-            background: $call-to-action;
-
-            &:hover {
-                background: $call-to-action-hover;
-            }
-        }
-    }
-
-    .cqz-content-holder {
-        .cqz-title {
-            font-size: 21px;
-            font-weight: bold;
-            line-height: 1.3em;
-            margin-bottom: 10px;
-        }
-
-        .cqz-descr {
-            font-size: 12px;
-            line-height: 1.4em;
-            margin-bottom: 15px;
-        }
-
-    }
-
-    .cqz-offer-code-holder {
-        text-align: center;
-
-        .cqz-offer-code-info {
-            display: block;
-            font-size: 10px;
-        }
-
-        .cqz-offer-code {
-            display: inline-block;
-            padding: 8px 20px 6px;
-            margin: 5px 0;
-            font-size: 21px;
-            line-height: 1em;
-            background: #eee;
-        }
-    }
-    .cqz-default-links {
-        .cliqz-link {
-            float: right;
-            font-size: 12px;
-            color: #ccc;
-            text-decoration: none;
-
-            &[href]:hover {
-                text-decoration: underline;
-            }
-
-            &:first-child {
-                float: left;
-            }
-
-            i {
-                display: inline-block;
-                width: 19px;
-                height: 19px;
-                margin-top: -2px;
-                vertical-align: middle;
-
-                svg {
-                    fill: #ccc;
-                    max-width: 100%;
-                    max-height: 100%;
-                    margin-right: 8px;
-                }
-            }
-        }
-    }
-}
-
-.cqz-offer.cqz-offer-logo-landscape {
-    padding-left: 400px;
-
-    .cqz-logo-holder {
-        width: 390px;
-        margin-left: -390px;
-
-        &:before {
-            left: 390px;
-        }
-
-    }
-}
-
-.cqz-offer.cqz-offer-no-call-to-action {
-    padding-right: 0;
-
-    .cqz-buttons {
-        display: none;
-    }
-
-    .cqz-offer-code-holder {
-        text-align: left;
-    }
-}
-
-.cqz-close {
-    cursor: pointer;
+  &:before {
+    content: " ";
+    display: none;
+    width: 20px;
+    height: 19px;
+    background: url("../images/ticket-tmpl/cliqz-logo-offrz.svg");
     position: absolute;
-    top: 5px;
-    right: 5px;
+    bottom: 10px;
+    left: -30px;
+  }
+
+  /****** EX-6415: Temporarily disable *****/
+  /*&:after {
+    content: " ";
+    display: block;
+    position: absolute;
+    bottom: 5px;
+    right: -41px;
     width: 20px;
     height: 20px;
-    line-height: 20px;
-    text-align: center;
-    font-size: 16px;
+    background: url("../images/ticket-tmpl/3-dots-ver.svg") no-repeat;
+    cursor: pointer;
+  }*/
 
-    &:after {
-        content: "×";
+  .close {
+    position: absolute;
+    top: -4px;
+    right: 0px;
+    cursor: pointer;
+
+    img {
+      opacity: 0.7;
+
+      &:hover {
+        opacity: 1;
+      }
     }
+  }
+
+  .code-container {
+    font-family: "-mac-system", "-apple-system", "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    display: flex;
+    justify-content: center;
+
+    .code-box {
+      position: relative;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 1px;
+
+      .bevel {
+        border-color: #fff;
+        border-style: solid;
+        border-width: 17px;
+
+        &.tr, &.tl {
+          border-top: 0px;
+          height: 0px;
+          width: 100%;
+        }
+
+        &.tl {
+          border-left-color: transparent;
+        }
+
+        &.tr {
+          border-right-color: transparent;
+          border-top:0;
+        }
+
+        .content {
+          padding: 0 5px;
+        }
+      }
+
+      .divider {
+        padding: 0 4px;
+        color: #ccc;
+        position: relative;
+        top: 2px;
+      }
+
+      .code {
+        position: relative;
+        top: 2px;
+      }
+
+      .code-copy {
+        font-size: 11px;
+        color: #00AEF0;
+        position: relative;
+        top: 2px;
+        display: inline-block;
+        max-width: 50px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+        position: relative;
+        top: 5px;
+        text-transform: uppercase;
+
+        &:hover {
+          color: #0078CA;
+        }
+      }
+
+      .code-copied {
+        display: none;
+        position: relative;
+        top: 2px;
+        text-transform: uppercase;
+      }
+
+      &.copied {
+        .code-copied {
+          display: inline-block;
+        }
+
+        .code-copy {
+          display: none;
+        }
+      }
+    }
+  }
+
+  .promo-container {
+
+    display: flex;
+    box-shadow: inset 0px -9px 8px -10px #CCC, 0px 8px 31px 0px rgba(0, 0, 0, 0.2);
+    height: 78px;
+    align-items: center;
+    font-family: "-mac-system", "-apple-system", "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    background: #fff;
+    min-width: 275px;
+
+    .flex-item {
+      flex: 1;
+    }
+
+    .vertical-txt {
+      writing-mode: vertical-lr;
+      transform: rotate(-180deg);
+    }
+
+    .special-flags {
+      display: none;
+      margin-left: 10px;
+
+      span {
+        text-transform: uppercase;
+        color: #2d2d2d;
+        font-size: 8px;
+        font-weight: 500;
+        min-height: 63px;
+        width: 12px;
+      }
+
+      .exclusive,
+      .best_offer {
+        background: none !important;
+        letter-spacing: 0.3px;
+      }
+
+      .exclusive {
+        position: relative;
+        left: -5px;
+        top: -2px;
+      }
+
+      .exclusive::before,
+      .best_offer::before {
+        content: ' ';
+        width: 12px;
+        height: 12px;
+        display: inline-block;
+        position: relative;
+        top: -3px;
+
+      }
+
+      .exclusive::before {
+        background: url("../images/ticket-tmpl/exclusive.svg") no-repeat;
+        transform: rotate(-270deg);
+      }
+
+      .best_offer::before {
+        background: url("../images/ticket-tmpl/bestoffer.svg") no-repeat;
+      }
+    }
+
+    .logo {
+      flex: 0;
+      flex-basis: 70px;
+      flex-shrink: 0;
+      margin-right: 10px;
+      margin-left: 10px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    &.long {
+      .logo {
+        flex-basis: 105px;
+      }
+    }
+
+    &.short {
+      .logo {
+        flex-basis: 55px;
+      }
+    }
+
+    &.square {
+      .logo {
+        flex-basis: 30px;
+      }
+    }
+
+    .picture {
+      display:none;
+      flex: 0;
+      flex-shrink: 0;
+      flex-basis: 137px;
+      margin-right: 20px;
+      cursor: pointer;
+
+      img {
+        height: 76px;
+        position: relative;
+        top: -1px;
+        max-width: none;
+      }
+    }
+
+    .benefit {
+      flex: 0;
+      font-size: 25px;
+      margin-right: 5px;
+      color: #2d2d2d;
+      cursor: pointer;
+
+      &.only-benefit {
+        flex: 1;
+        font-size: 24px;
+      }
+    }
+
+    .headline-container {
+      display: flex;
+      align-items: center;
+      flex-basis: 70px;
+      overflow: hidden;
+      min-height: 50px;
+      max-width: 220px;
+    }
+
+    .headline {
+      @include hyphenate;
+      display: none;
+      cursor: pointer;
+    }
+
+    .title {
+      @include hyphenate;
+      display: block;
+      flex: 3;
+      font-size: 13.5px;
+      cursor: pointer;
+    }
+
+    .common {
+      color: #2d2d2d;
+      font-weight: 500;
+      line-height: 16px;
+      padding-right: 20px;
+      max-height: 50px;
+    }
+
+    .description {
+      @include hyphenate;
+      flex: 3;
+      font-size: 11.5px;
+      display: none;
+      padding-right: 20px;
+      cursor: pointer;
+
+      .desc-content {
+        max-width: 355px;
+        color: #2d2d2d;
+        border-left: 2px solid #ccc;
+        padding-left: 10px;
+        overflow: hidden;
+        max-height: 51px;
+        min-height: 33px;
+        line-height: 16px;
+      }
+    }
+
+    .call-to-action {
+      text-align: right;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+
+      .conditions {
+        display: none;
+        text-transform: uppercase;
+        font-size: 11px;
+        color: #ccc;
+      }
+
+      .info-icon {
+        cursor: pointer;
+        margin-right: 7px;
+        margin-left: 7px;
+        width: 14px;
+        height: 14px;
+        background: url('../images/ticket-tmpl/info-icon.svg') no-repeat center;
+        vertical-align: 4px;
+        cursor: default;
+        background-size: 14px;
+
+        &:hover {
+          background-image: url('../images/ticket-tmpl/info-icon-hover.svg')
+        }
+      }
+
+      .btn {
+        min-width: 60px;
+        max-width: 60px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 11px;
+        background-color: #00AEF0;
+        color: #fff;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        padding: 7px 10px;
+        border-radius: 5px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+
+        &:hover {
+          background-color: #0078CA;
+        }
+      }
+    }
+
+    .anzeige {
+      margin: 0 10px;
+      flex-shrink: 0;
+      width: 7px;
+      font-size: 9px;
+      text-transform: uppercase;
+      color: #ccc;
+      letter-spacing: 1px;
+    }
+
+  }
+}
+
+.tooltipster-sidetip.tooltipster-shadow.tooltipster-shadow-customized {
+  pointer-events: auto;
+}
+
+.tooltipster-sidetip.tooltipster-shadow.tooltipster-shadow-customized .tooltipster-box {
+  font-family: "-mac-system", "-apple-system", "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  max-width: 400px;
+  height: 62px;
+  font-size: 11.5px;
+}
+
+@media only screen and (min-width: 475px) {
+
+  body {
+    padding-left: 37px;
+    padding-right: 37px;
+  }
+  #cqz-browser-panel-re {
+    &:before {
+      display: block;
+    }
+
+    .close {
+      top: -2px;
+      right: -30px;
+    }
+
+    .promo-container {
+      min-width: 300px;
+    }
+
+    .code-container {
+      .code-box {
+        .code-copy {
+          max-width: 100%;
+        }
+      }
+    }
+  }
+}
+
+@media only screen and (min-width: 550px) {
+
+  #cqz-browser-panel-re {
+    .promo-container {
+
+      .headline {
+        display: block;
+        font-size: 13.5px;
+
+      }
+
+      .benefit {
+        font-size: 36px;
+      }
+
+      .call-to-action {
+        .btn {
+
+          max-width: 191px;
+        }
+      }
+    }
+  }
+}
+
+@media only screen and (min-width: 650px) {
+
+  #cqz-browser-panel-re {
+    .promo-container {
+      .special-flags {
+        display: block;
+      }
+
+
+      .call-to-action {
+        .btn {
+          font-size: 11.5px;
+          max-width: 130px;
+          min-width: 170px;
+        }
+      }
+    }
+  }
+}
+
+
+@media only screen and (min-width: 768px) {
+  #cqz-browser-panel-re {
+    .promo-container {
+      .description {
+        display: block;
+      }
+
+      .title {
+        flex: 1;
+      }
+    }
+  }
+}
+
+@media only screen and (min-width: 992px) {
+  #cqz-browser-panel-re {
+    .promo-container {
+      .picture {
+        display: block;
+      }
+
+      .headline,
+      .title {
+        font-size: 16px;
+      }
+
+       .logo {
+        margin-left: 20px;
+        margin-right: 20px;
+      }
+
+      .anzeige {
+        margin-left: 20px;
+      }
+    }
+  }
+}
+
+
+@media only screen and (min-width: 1200px) {
+
+   #cqz-browser-panel-re  {
+    .promo-container {
+
+
+
+      .description {
+        font-size: 13.5px;
+      }
+    }
+   }
+}
+
+
+@media only screen and (min-width: 1600px) {
+
+  #cqz-browser-panel-re  {
+    .promo-container {
+      margin: 0 auto;
+      max-width: 1400px;
+
+      .call-to-action {
+        .conditions {
+          display: block;
+        }
+      }
+    }
+  }
 }

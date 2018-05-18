@@ -1,6 +1,6 @@
 {{#with newsStoryResult}}
 <div class="news-story thumbnail-blocks">
-    <a class="result {{cssClasses}}" data-url="{{url}}" href="#">
+    <a class="result {{cssClasses}}" data-url="{{url}}" href="{{displayUrl}}">
         {{> partials/logo}}
         <div class="abstract">
             {{#exists thumbnail}}
@@ -21,7 +21,7 @@
                 {{/if}}
             {{/exists}}
 
-            <div class="content">
+            <div class="content white-background">
                 <p>
                     <span data-extra="title" class="title">
                         {{emphasis title query 2 true}}

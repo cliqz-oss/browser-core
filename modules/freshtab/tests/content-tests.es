@@ -11,7 +11,7 @@ import './content/home-news-int-test';
 import './content/home-news-ui-test';
 import './content/home-notification-int-test';
 import './content/home-notification-ui-test';
-import './content/home-search-int-test';
 import './content/home-search-ui-test';
 import './content/home-settings-int-test';
 import './content/home-settings-ui-test';
+import './content/home-offer-ui-test';

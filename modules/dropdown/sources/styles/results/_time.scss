@@ -1,27 +1,34 @@
 .time {
-    padding-top: 0.6em;
+    font-size: 11px;
+    padding-top: 3px;
 
-    p {
-        &:first-child {
-            font-size: 1.6em;
-            line-height: 1.33em;
+    .main {
+        padding: 0;
+        line-height: 16px;
+    }
+
+    .timezone {
+        color: #999999;
+        padding-bottom: 7px;
+    }
+
+    .main-result {
+        .main {
+            font-size: 24px;
+            line-height: 32px;
         }
+    }
 
-        &:last-child {
-            color: #999999;
-            font-size: 0.733em;
-            padding-bottom: 7px;
+    .timezone-results {
+        padding-bottom: 10px;
 
-            .result {
-                color: #999999;
+        .main {
+            font-size: 12.5px;
+            font-weight: 600;
+
+            &.space {
                 display: inline-block;
-                text-decoration: none;
-                padding: 0;
-                text-transform: lowercase;
-
-                &:hover {
-                    color: #2385e7;
-                }
+                width: 40px;
             }
         }
     }

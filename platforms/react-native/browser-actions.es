@@ -1,5 +1,6 @@
 import { NativeModules } from 'react-native';
 import { History } from './history/history';
+import osAPI from './os-api';
 
 const unsupportedError = () => {
   throw new Error('BrowserActions not supported by native');
@@ -17,15 +18,15 @@ const BrowserActions = NativeModules.BrowserActions || {
     }
   },
   queryCliqz: unsupportedError,
-  openTab: unsupportedError,
   getReminders: unsupportedError,
   getOpenTabs: () => [],
+  importBookmarks: unsupportedError,
 };
 
 export const openLink = BrowserActions.openLink;
 
 export function historySearch(q, callback) {
-  BrowserActions.searchHistory(q, (data) => {
+  BrowserActions.searchHistory(q, (data = []) => {
     const results = data.map(item => ({
       style: 'favicon',
       value: item.url,
@@ -37,7 +38,8 @@ export function historySearch(q, callback) {
   });
 }
 
-export let queryCliqz = BrowserActions.queryCliqz;
-export let openTab = BrowserActions.openTab;
-export let getOpenTabs = BrowserActions.getOpenTabs;
-export let getReminders = BrowserActions.getReminders;
+export const queryCliqz = BrowserActions.queryCliqz;
+export const openTab = BrowserActions.openTab || osAPI.openTab;
+export const getOpenTabs = BrowserActions.getOpenTabs;
+export const getReminders = BrowserActions.getReminders;
+export const importBookmarks = BrowserActions.importBookmarks;

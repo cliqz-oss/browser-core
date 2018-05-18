@@ -1,59 +1,73 @@
-/* global it, expect, respondWith, fillIn, waitForPopup, $cliqzResults, app */
-/* eslint func-names: ["error", "never"] */
-/* eslint prefer-arrow-callback: "off" */
-/* eslint no-unused-expressions: "off" */
+import {
+  app,
+  blurUrlBar,
+  $cliqzResults,
+  expect,
+  fillIn,
+  respondWith,
+  waitForPopup,
+  withHistory } from './helpers';
 
 export default function () {
   const results = [];
 
   describe('default search engine tests', function () {
-    const searchEnginesEn = ['Google', 'Yahoo', 'Bing', 'Wikipedia (en)',
-      'Amazon.com', 'DuckDuckGo', 'Twitter', 'Google Maps', 'Google Images', 'YouTube', 'Start Page', 'Ecosia'];
+    const searchEnginesEn = [
+      'Google',
+      'Bing',
+      'Wikipedia (en)',
+      'Amazon.com',
+      'DuckDuckGo',
+      'Twitter',
+      'Google Maps',
+      'Google Images',
+      'YouTube',
+      'Start Page',
+      'Ecosia'
+    ];
     searchEnginesEn.forEach(function (engine) {
       context(`Search with ${engine}`, function () {
-        let resultElement;
-
-        before(function () {
-          app.modules.autocomplete.background
-           .autocomplete.CliqzResultProviders.setCurrentSearchEngine(engine);
+        before(async function () {
+          window.preventRestarts = true;
+          blurUrlBar();
+          app.modules.search.action('setDefaultSearchEngine', engine);
           respondWith({ results });
+          withHistory([]);
           fillIn('test');
-          return waitForPopup().then(function () {
-            resultElement = $cliqzResults()[0];
-          });
+          await waitForPopup(1);
         });
 
         after(function () {
-          app.modules.autocomplete.background
-           .autocomplete.CliqzResultProviders.setCurrentSearchEngine('Google');
+          app.modules.search.action('setDefaultSearchEngine', 'Google');
+          window.preventRestarts = false;
         });
 
         it('renders result', function () {
           const resultSelector = '.result.search';
-          expect(resultElement).to.contain(resultSelector);
+          expect($cliqzResults.querySelector(resultSelector)).to.exist;
         });
 
         it('renders search icon', function () {
           const iconSelector = '.result .icon.search';
-          expect(resultElement).to.contain(iconSelector);
+          expect($cliqzResults.querySelector(iconSelector)).to.exist;
         });
 
         it('renders query', function () {
           const querySelector = '.result .abstract .strong';
-          expect(resultElement).to.contain(querySelector);
-          expect(resultElement.querySelector(querySelector).textContent.trim()).to.equal('test');
+          expect($cliqzResults.querySelector(querySelector)).to.exist;
+          expect($cliqzResults.querySelector(querySelector).textContent.trim()).to.equal('test');
         });
 
         it('renders divider', function () {
           const dividerSelector = '.result .abstract .divider';
-          expect(resultElement).to.contain(dividerSelector);
-          expect(resultElement.querySelector(dividerSelector).textContent.trim()).to.equal('—');
+          expect($cliqzResults.querySelector(dividerSelector)).to.exist;
+          expect($cliqzResults.querySelector(dividerSelector).textContent.trim()).to.equal('—');
         });
 
         it(`renders "Search with ${engine}"`, function () {
-          const googleSelector = '.result.search .abstract .url';
-          expect(resultElement).to.contain(googleSelector);
-          expect(resultElement.querySelector(googleSelector).textContent.trim())
+          const engineSelector = '.result.search .abstract .url';
+          expect($cliqzResults.querySelector(engineSelector)).to.exist;
+          expect($cliqzResults.querySelector(engineSelector).textContent.trim())
             .to.equal(`Search with ${engine}`);
         });
       });

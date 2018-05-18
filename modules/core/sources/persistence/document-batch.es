@@ -10,7 +10,6 @@
  * @class DocumentBatch
  */
 export default class DocumentBatch {
-
   /**
    * @constructor
    * @param {object} db

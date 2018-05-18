@@ -1,4 +1,4 @@
-const webExt = require('web-ext');
+const webExt = require('@cliqz-oss/web-ext');
 const path = require('path');
 const fs = require('fs');
 
@@ -8,15 +8,23 @@ const cliqzConfig = require(path.resolve(configFilePath));
 
 const OUTPUT_PATH = process.env.OUTPUT_PATH || './build';
 const FIREFOX_PATH = process.env.FIREFOX_PATH;
+const GREP = process.env.MOCHA_GREP || '';
 
 
-function run(entrypoint = 'resource://cliqz/firefox-tests/run-testem.html') {
+function run(prefs) {
+  if (!prefs) {
+    prefs = {};
+  }
+
   const options = {
     noReload: true,
     sourceDir: path.resolve(OUTPUT_PATH, cliqzConfig.settings.id),
     artifactsDir: path.resolve(OUTPUT_PATH, cliqzConfig.settings.id),
-    startUrl: entrypoint,
-    customPrefs: autoConfig,
+    customPrefs: Object.assign({
+      'lightweightThemes.selectedThemeID': 'firefox-compact-light@mozilla.org',
+      'extensions.cliqz.firefox-tests.closeOnFinish': 1,
+      'extensions.cliqz.firefox-tests.grep': GREP,
+    }, autoConfig, prefs),
   };
 
   if (FIREFOX_PATH) {

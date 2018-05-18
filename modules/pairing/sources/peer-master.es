@@ -1,5 +1,3 @@
-/* eslint-disable camelcase */
-
 import MessageStorage from './message-storage';
 import { sha256, toByteArray, deriveAESKey, fromByteArray, encryptStringAES, decryptStringAES } from '../core/crypto/utils';
 import console from '../core/console';
@@ -95,9 +93,9 @@ export default class PeerMaster {
   }
 
   get pairingData() {
-    const slaves = (this.slaves || []).map(({ name, peerID }) => {
+    const slaves = (this.slaves || []).map(({ name, peerID, version }) => {
       const isConnected = this.masterPeer && this.masterPeer.isPeerConnected(peerID);
-      return { name, id: peerID, status: isConnected ? 'connected' : 'disconnected' };
+      return { name, id: peerID, status: isConnected ? 'connected' : 'disconnected', version };
     });
     const pairing = Object.keys(this.pairingDevices).map(peerID => ({ id: peerID, status: 'pairing' }));
     return {
@@ -106,18 +104,19 @@ export default class PeerMaster {
   }
 
   __unloadSlaves() {
-    this.slavesByName = this.slavesById = {};
+    this.slavesByName = {};
+    this.slavesById = this.slavesByName;
     this.slaves = [];
   }
 
   __loadSlaves() {
     this.slaves = (this.getStorage('__slaves') || [])
-    .filter(x => // Just in case: ignore slaves with wrong format
-      x.name &&
-      x.peerID &&
-      x.publicKey &&
-      x.randomToken
-    );
+      .filter(x => // Just in case: ignore slaves with wrong format
+        x.name &&
+        x.peerID &&
+        x.publicKey &&
+        x.randomToken
+      );
 
     this.slaves.forEach((slave) => {
       this.slavesById[slave.peerID] = slave;
@@ -184,28 +183,28 @@ export default class PeerMaster {
       this.__loadSlaves(),
       this.generateKeypair(),
     ])
-    .then(() => sha256(this.secret))
-    .then(h => this.setStorage('peerID', h))
-    .then(() => this.initPeer())
-    .then(() => {
-      if (this.msgStorage) {
-        this.msgStorage.cleanMessages(this.getTrustedDevices());
-      }
-      this.enableMasterPeerIfNeeded();
-      this.isInit = true;
-      this.apps.forEach((app, channel) => {
-        if (app.oninit) {
-          app.oninit(...this.getOnInitArgs(channel));
+      .then(() => sha256(this.secret))
+      .then(h => this.setStorage('peerID', h))
+      .then(() => this.initPeer())
+      .then(() => {
+        if (this.msgStorage) {
+          this.msgStorage.cleanMessages(this.getTrustedDevices());
         }
+        this.enableMasterPeerIfNeeded();
+        this.isInit = true;
+        this.apps.forEach((app, channel) => {
+          if (app.oninit) {
+            app.oninit(...this.getOnInitArgs(channel));
+          }
+        });
+
+        if (this.version !== this.lastVersion) {
+          this.lastVersion = this.version;
+          this.notifyNewPeer(this.peerID);
+        }
+
+        this.checkMessagePusher();
       });
-
-      if (this.version !== this.lastVersion) {
-        this.lastVersion = this.version;
-        this.notifyNewPeer(this.peerID);
-      }
-
-      this.checkMessagePusher();
-    });
   }
 
   checkMessagePusher() {
@@ -279,18 +278,18 @@ export default class PeerMaster {
           peerID,
           this.privateKey,
         )
-        .then(({ type, msg, source }) => this.processMessageForMe(type, msg, source));
+          .then(({ type, msg, source }) => this.processMessageForMe(type, msg, source));
       } else {
         this.sendMessage(peerID, data)
-        .catch(() => {
-          // If we fail sending the message, then store it.
-          try {
-            this.msgStorage.pushPeerMessage(toBase64(data), peerID);
-            this.checkMessagePusher();
-          } catch (e) {
-            this.log(e, 'Failed storing message');
-          }
-        });
+          .catch(() => {
+            // If we fail sending the message, then store it.
+            try {
+              this.msgStorage.pushPeerMessage(toBase64(data), peerID);
+              this.checkMessagePusher();
+            } catch (e) {
+              this.log(e, 'Failed storing message');
+            }
+          });
       }
     });
   }
@@ -310,8 +309,8 @@ export default class PeerMaster {
           const messages = this.msgStorage.getMessages(peer);
           if (messages && messages.length) {
             return this.sendMessage(peer, messages)
-            .then(() => this.msgStorage.clearMessages(peer))
-            .catch(e => this.logError('Error pushing messages to peer', peer, e));
+              .then(() => this.msgStorage.clearMessages(peer))
+              .catch(e => this.logError('Error pushing messages to peer', peer, e));
           }
           return Promise.resolve();
         }));
@@ -334,10 +333,10 @@ export default class PeerMaster {
     const devices = this.devices.filter(x => t.indexOf(x.id) !== -1);
     const onlyCompress = devices.every(x => x.version >= 2);
     return encryptPairedMessage({ msg, source, type }, devices, onlyCompress)
-    .then(encrypted => this.pushEncryptedMessage(encrypted))
-    .catch((e) => {
-      this.log('Error pushing message', e);
-    });
+      .then(encrypted => this.pushEncryptedMessage(encrypted))
+      .catch((e) => {
+        this.log('Error pushing message', e);
+      });
   }
 
   get devices() {
@@ -384,35 +383,35 @@ export default class PeerMaster {
   processPairingMessage(peerID, publicKey, deviceName, { randomToken }, version) {
     this.log(`Registering Slave: ${deviceName} ${peerID} version ${version}`);
     return Promise.resolve()
-    .then(() => {
-      PeerMaster.checkDeviceName(deviceName);
-      const uniqueDeviceName = this.getUniqueDeviceName(deviceName);
+      .then(() => {
+        PeerMaster.checkDeviceName(deviceName);
+        const uniqueDeviceName = this.getUniqueDeviceName(deviceName);
 
-      if (has(this.slavesById, peerID)) {
+        if (has(this.slavesById, peerID)) {
+          this.__removeSlaveById(peerID);
+          this.msgStorage.removePeer(peerID);
+        }
+        this.__addSlave(uniqueDeviceName, peerID, publicKey, randomToken, version);
+        this.msgStorage.addPeer(peerID);
+        this.removePairingDevice(peerID);
+        const devices = this.devices;
+
+        return this.loadPairingAESKey(peerID)
+          .then(aesKey => PeerMaster.sendEncrypted({ devices }, aesKey))
+          .then(encrypted => this.masterPeer.send(peerID, encrypted))
+          .then(() => {
+            this.propagateEvent('ondeviceadded', { id: peerID, name: uniqueDeviceName });
+            this.notifyNewPeer(peerID);
+          });
+      })
+      .catch((e) => {
+        this.logError(e, 'Error pairing');
         this.__removeSlaveById(peerID);
         this.msgStorage.removePeer(peerID);
-      }
-      this.__addSlave(uniqueDeviceName, peerID, publicKey, randomToken, version);
-      this.msgStorage.addPeer(peerID);
-      this.removePairingDevice(peerID);
-      const devices = this.devices;
-
-      return this.loadPairingAESKey(peerID)
-      .then(aesKey => PeerMaster.sendEncrypted({ devices }, aesKey))
-      .then(encrypted => this.masterPeer.send(peerID, encrypted))
-      .then(() => {
-        this.propagateEvent('ondeviceadded', { id: peerID, name: uniqueDeviceName });
-        this.notifyNewPeer(peerID);
+        this.checkMessagePusher();
+        this.removePairingDevice(peerID);
+        this.notifyPairingError();
       });
-    })
-    .catch((e) => {
-      this.logError(e, 'Error pairing');
-      this.__removeSlaveById(peerID);
-      this.msgStorage.removePeer(peerID);
-      this.checkMessagePusher();
-      this.removePairingDevice(peerID);
-      this.notifyPairingError();
-    });
   }
 
   processMessageForMe(type, msg, source) {
@@ -437,19 +436,19 @@ export default class PeerMaster {
     } else if (has(this.pairingDevices, peerID)) {
       const device = this.pairingDevices[peerID];
       this.loadPairingAESKey(peerID)
-      .then(aesKey => PeerMaster.receiveEncrypted(data, aesKey))
-      .then((decrypted) => {
-        const [publicKey, deviceName, version] = decrypted;
-        return this.processPairingMessage(peerID, publicKey, deviceName, device, version);
-      })
-      .catch((e) => {
-        this.log('Error receiving pairing message', e);
-        this.removePairingDevice(peerID);
-        this.notifyPairingError();
-      })
-      .then(() => {
-        this.checkMessagePusher();
-      });
+        .then(aesKey => PeerMaster.receiveEncrypted(data, aesKey))
+        .then((decrypted) => {
+          const [publicKey, deviceName, version] = decrypted;
+          return this.processPairingMessage(peerID, publicKey, deviceName, device, version);
+        })
+        .catch((e) => {
+          this.log('Error receiving pairing message', e);
+          this.removePairingDevice(peerID);
+          this.notifyPairingError();
+        })
+        .then(() => {
+          this.checkMessagePusher();
+        });
     } else {
       this.log('ERROR: unknown peerID', peerID);
     }
@@ -507,12 +506,12 @@ export default class PeerMaster {
       this.masterPeer = peer;
       this.masterPeer.encryptSignaling = (data, peerID) =>
         this.loadPairingAESKey(peerID)
-        .then(aesKey => PeerMaster.sendEncrypted(data, aesKey))
-        .catch(() => data);
+          .then(aesKey => PeerMaster.sendEncrypted(data, aesKey))
+          .catch(() => data);
       this.masterPeer.decryptSignaling = (data, peerID) =>
         this.loadPairingAESKey(peerID)
-        .then(aesKey => PeerMaster.receiveEncrypted(data, aesKey))
-        .catch(() => data);
+          .then(aesKey => PeerMaster.receiveEncrypted(data, aesKey))
+          .catch(() => data);
       this.masterPeer.setMessageSizeLimit(maxSize);
     });
   }
@@ -522,7 +521,7 @@ export default class PeerMaster {
       this.getTrustedDevices().forEach((slaveID) => {
         if (slaveID !== this.peerID) {
           this.masterPeer.checkPeerConnection(slaveID)
-          .catch(() => {});
+            .catch(() => {});
         }
       });
     }
@@ -546,10 +545,10 @@ export default class PeerMaster {
       this.masterPeer.addTrustedPeer(deviceID);
       this.propagateEvent('statusChanged');
       this.masterPeer.connectPeer(deviceID)
-      .then(() => {
-        utils.setTimeout(() => this.removePairingDevice(deviceID, true), this.pairingTimeout);
-      })
-      .catch(() => this.removePairingDevice(deviceID, true));
+        .then(() => {
+          utils.setTimeout(() => this.removePairingDevice(deviceID, true), this.pairingTimeout);
+        })
+        .catch(() => this.removePairingDevice(deviceID, true));
     }
   }
 
@@ -628,7 +627,7 @@ export default class PeerMaster {
 
   static receiveEncrypted(data, aesKey) {
     return decryptStringAES(data, aesKey)
-    .then(message => JSON.parse(message));
+      .then(message => JSON.parse(message));
   }
 
   unregisterSlave(deviceID) {
@@ -700,6 +699,9 @@ export default class PeerMaster {
       get masterName() {
         return self.masterName;
       },
+      get deviceID() {
+        return self.peerID;
+      }
     };
     return [comm];
   }

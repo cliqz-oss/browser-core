@@ -1,13 +1,29 @@
-import background from "../core/base/background";
-import { isFirefox } from "../core/platform";
+/* eslint func-names: 'off' */
+
+import background from '../core/base/background';
+import { isFirefox } from '../core/platform';
 import utils from '../core/utils';
 import events from '../core/events';
-import getGeo from "../core/geolocation";
-import inject from "../core/kord/inject";
+import getGeo from '../core/geolocation';
+import inject from '../core/kord/inject';
 import config from '../core/config';
+import Defer from '../core/app/defer';
 
-// If the computer wakes up from a sleep that was longer than this many milliseconds, we update geolocation.
+// If the computer wakes up from a sleep that was longer than this many milliseconds,
+// we update geolocation.
 const GEOLOCATION_UPDATE_MIN_WAIT = 3600 * 1000;
+
+class TopicForwarder {
+  constructor(_events, eventName, fn) {
+    this.events = _events;
+    this.eventName = eventName;
+    this.fn = fn;
+  }
+
+  observe(...args) {
+    this.events.pub(this.eventName, this.fn.call(this, ...args));
+  }
+}
 
 /**
   @namespace geolocation
@@ -27,34 +43,38 @@ export default background({
     @method init
     @param settings
   */
-  init(settings) {
+  init() {
     utils.updateGeoLocation = this.actions.updateGeoLocation;
+
+    this.cancelUpdate = new Defer();
 
     this.sleepObserver = new TopicForwarder(
       events,
-      "geolocation:sleep-notification",
+      'geolocation:sleep-notification',
       Date.now
     );
 
     this.wakeObserver = new TopicForwarder(
       events,
-      "geolocation:wake-notification",
+      'geolocation:wake-notification',
       Date.now
     );
 
+    this.getRawGeolocationData = getGeo;
+
     if (isFirefox) {
-      this.observerService = Components.classes["@mozilla.org/observer-service;1"]
+      this.observerService = Components.classes['@mozilla.org/observer-service;1']
         .getService(Components.interfaces.nsIObserverService);
 
       this.observerService.addObserver(
         this.sleepObserver,
-        "sleep_notification",
+        'sleep_notification',
         false
       );
 
       this.observerService.addObserver(
         this.wakeObserver,
-        "wake_notification",
+        'wake_notification',
         false
       );
     }
@@ -64,11 +84,11 @@ export default background({
     if (isFirefox) {
       this.observerService.removeObserver(
         this.sleepObserver,
-        "sleep_notification"
+        'sleep_notification'
       );
       this.observerService.removeObserver(
         this.wakeObserver,
-        "wake_notification"
+        'wake_notification'
       );
     }
   },
@@ -78,11 +98,11 @@ export default background({
   },
 
   events: {
-    "geolocation:update": function ({ timestamp }) {
+    'geolocation:update': function ({ timestamp }) {
       this.LAST_GEOLOCATION_UPDATE = timestamp;
     },
 
-    "geolocation:wake-notification": function (timestamp) {
+    'geolocation:wake-notification': function (timestamp) {
       const lastTimestamp = Math.max(
         this.LAST_SLEEP || 0,
         this.LAST_GEOLOCATION_UPDATE || 0
@@ -92,22 +112,22 @@ export default background({
       }
     },
 
-    "geolocation:sleep-notification": function (timestamp) {
+    'geolocation:sleep-notification': function (timestamp) {
       this.LAST_SLEEP = timestamp;
     },
 
-    "ui:missing_location_shown": function() {
-      if(!utils.getPref('share_location')) {
-        this.GEOLOCATION_MESSAGE_NUM_SHOWN++;
+    'ui:missing_location_shown': function () {
+      if (!utils.getPref('share_location')) {
+        this.GEOLOCATION_MESSAGE_NUM_SHOWN += 1;
       }
 
-      if( this.GEOLOCATION_MESSAGE_NUM_SHOWN > 0) {
+      if (this.GEOLOCATION_MESSAGE_NUM_SHOWN > 0) {
         this.messageCenter.action(
           'showMessage',
           'MESSAGE_HANDLER_FRESHTAB',
           {
-            "id": "share-location",
-            "template": "share-location",
+            id: 'share-location',
+            template: 'share-location',
           }
         ).then(() => {
           this.GEOLOCATION_MESSAGE_NUM_SHOWN = 0;
@@ -122,8 +142,8 @@ export default background({
 
   actions: {
     getGeo() {
-      if (utils.getPref('share_location', config.settings.geolocation || 'ask') !== 'yes'
-        && utils.getPref('share_location', config.settings.geolocation || 'ask') !== 'showOnce') {
+      const locationPref = utils.getPref('share_location', config.settings.geolocation || 'ask');
+      if (!['yes', 'showOnce'].includes(locationPref)) {
         return Promise.reject("No permission to get user's location");
       }
       const telemetryEvent = {
@@ -132,7 +152,10 @@ export default background({
         target: 'geolocation',
         is_success: undefined,
       };
-      return getGeo()
+      return Promise.race([
+        this.getRawGeolocationData(),
+        this.cancelUpdate.promise
+      ])
         .then((position) => {
           telemetryEvent.is_success = true;
           utils.telemetry(telemetryEvent);
@@ -142,6 +165,9 @@ export default background({
           };
         })
         .catch((error) => {
+          if (error.canceled) {
+            telemetryEvent.is_canceled = true;
+          }
           telemetryEvent.is_success = false;
           utils.telemetry(telemetryEvent);
           return Promise.reject(error);
@@ -156,12 +182,12 @@ export default background({
       }).catch(() => {
         utils.USER_LAT = null;
         utils.USER_LNG = null;
-      }).then(() => {
-        return {
+      }).then(() =>
+        ({
           latitude: utils.USER_LAT,
           longitude: utils.USER_LNG,
-        };
-      });
+        })
+      );
     },
 
     setLocationPermission(newPerm) {
@@ -172,23 +198,12 @@ export default background({
     },
 
     resetGeoLocation() {
+      this.cancelUpdate.reject({
+        canceled: true,
+      });
+      this.cancelUpdate = new Defer();
       utils.USER_LAT = null;
       utils.USER_LNG = null;
     },
   },
-
 });
-
-class TopicForwarder {
-
-  constructor(events, eventName, fn) {
-    this.events = events;
-    this.eventName = eventName;
-    this.fn = fn;
-  }
-
-  observe(subject, topic, data) {
-    this.events.pub(this.eventName, this.fn.apply(this, arguments));
-  }
-
-}
