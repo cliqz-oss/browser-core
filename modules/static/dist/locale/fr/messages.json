@@ -1923,10 +1923,10 @@
         "message": "Les nouveaux onglets ont été relookés ! Personnalisez-les à volonté."
     },
     "freshtab_app_middle_box_ft_amo_desc": {
-        "message": "Allez dans les paramètre Cliqz Tab pour plus d'options ou dans le centre de contrôle pour désactiver la fonctionnalité."
+        "message": "Allez dans les paramètres Cliqz Tab pour personnaliser ou le centre de contrôle pour désactiver."
     },
     "freshtab_app_middle_box_ft_amo_cta": {
-        "message": "Personnaliser maintenant"
+        "message": "Personnaliser"
     },
     "freshtab_app_top_box_import_bookmarks_hdr": {
         "message": "Importez rapidement vos favoris, mots de passe et votre historique depuis d’autres navigateurs."

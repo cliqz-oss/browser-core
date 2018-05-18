@@ -1,4 +1,5 @@
 import TLDs from '../core/tlds-legacy';
+import { tryDecodeURI } from '../core/url';
 import { tokenize } from '../core/pattern-matching';
 
 // Create blacklist
@@ -20,7 +21,7 @@ Object.keys(TLDs).forEach((tld) => {
 });
 
 function normalize(str) {
-  return decodeURI(str).toLowerCase();
+  return tryDecodeURI(str).toLowerCase();
 }
 
 export default function (str) {

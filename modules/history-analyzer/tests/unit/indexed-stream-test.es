@@ -1,6 +1,7 @@
 /* global chai */
 /* global describeModule */
 
+const tldjs = require('tldjs');
 const mockDexie = require('../../core/unit/utils/dexie');
 
 const HOUR = 1000 * 60 * 60;
@@ -18,6 +19,11 @@ export default describeModule('history-analyzer/indexed-stream',
         error() {},
       },
     },
+    'platform/lib/tldjs': {
+      default: tldjs
+    },
+    'core/platform': {},
+    'platform/url': {},
   }),
   () => {
     let stream;
