@@ -6,6 +6,7 @@ import console from './console';
 import utils from './utils';
 import events from './events';
 import { isOnionMode } from './platform';
+import { addCustomSearchEngine } from './search-engines';
 
 export default {
   utils: () => utils.init(),
@@ -55,6 +56,17 @@ export default {
       if (!prefs.has('freshtab.state')) {
         // freshtab is opt-out since 2.20.3
         prefs.set('freshtab.state', true);
+      }
+
+      const r = Math.random();
+      if (r < 0.33) {
+        prefs.set('serp_test', 'A');
+      } else if (r < 0.66) {
+        prefs.set('serp_test', 'B');
+        addCustomSearchEngine('https://suche.cliqz.com/opensearch.xml', true);
+      } else {
+        prefs.set('serp_test', 'C');
+        addCustomSearchEngine('https://search.cliqz.com/opensearch.xml', true);
       }
     } else {
       prefs.set('new_session', false);

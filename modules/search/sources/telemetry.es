@@ -1,3 +1,5 @@
+import { getDetailsFromUrl } from '../core/url';
+
 const getOrigin = ({ provider, type }) => {
   if (provider === 'cliqz' || provider === 'history' || provider === 'calculator') {
     return 'cliqz';
@@ -13,6 +15,34 @@ const getOrigin = ({ provider, type }) => {
   }
 
   return null;
+};
+
+const isSearchEngine = (url) => {
+  try {
+    const { name, subdomains, path } = getDetailsFromUrl(url);
+    // allow only 'www' and 'de' (for Yahoo) subdomains to exclude
+    // 'maps.google.com' etc. and empty path only to exclude
+    // 'www.google.com/maps' etc.
+    const [firstSubdomain] = subdomains;
+    const hasNoPath = !path || (path.length === 1 && path[0] === '/');
+
+    return hasNoPath && (
+      (
+        (
+          name === 'google' ||
+          name === 'bing' ||
+          name === 'duckduckgo' ||
+          name === 'startpage'
+        ) && (!firstSubdomain || firstSubdomain === 'www')
+      ) ||
+      (
+        name === 'yahoo' &&
+        (!firstSubdomain || firstSubdomain === 'de')
+      )
+    );
+  } catch (e) {
+    return false;
+  }
 };
 
 const telemetry = (focus$, results$, selection$) => {
@@ -48,6 +78,9 @@ const telemetry = (focus$, results$, selection$) => {
           // TODO: add 'isSearchEngine'
           // TODO: add 'element' (aka 'extra')
           // TODO: add 'index'
+          // note: is false for origin 'other', only applies to 'cliqz' and
+          //       'direct' selections
+          isSearchEngine: isSearchEngine(selectedResult.url),
         },
       };
       return {

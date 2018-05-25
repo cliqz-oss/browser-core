@@ -22,7 +22,7 @@ import { queryActiveTabs } from '../core/tabs';
 import config from '../core/config';
 import { isCliqzBrowser, isCliqzAtLeastInVersion, isWebExtension } from '../core/platform';
 import prefs from '../core/prefs';
-import { dismissMessage, countMessageClick, setMessageShownTime } from './actions/message';
+import { dismissMessage, countMessageClick } from './actions/message';
 import { getLanguageFromLocale } from '../core/i18n';
 import HistoryService from '../platform/history-service';
 
@@ -256,7 +256,6 @@ export default background({
 
     dismissMessage,
     countMessageClick,
-    setMessageShownTime,
 
     checkForHistorySpeedDialsToRestore() {
       const history = JSON.parse(prefs.get(DIALUPS, '{}', '')).history

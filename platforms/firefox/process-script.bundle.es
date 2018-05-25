@@ -215,7 +215,7 @@ const DocumentManager = {
       },
     };
 
-    if (isChromePage || !contentScript.hasReturnValue) {
+    if (isChromePage || !contentScript || !contentScript.hasReturnValue) {
       Services.scriptloader.loadSubScript('chrome://cliqz/content/core/content-script.bundle.js', {
         window,
         chrome,

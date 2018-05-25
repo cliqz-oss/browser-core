@@ -6,6 +6,7 @@ import utils from '../core/utils';
 import { Services } from '../platform/globals';
 import HistoryManager from '../core/history-manager';
 import ObservableProxy from '../core/helpers/observable-proxy';
+import { getDefaultEngine } from '../core/search-engines';
 
 /**
   @namespace firefox-specific
@@ -133,6 +134,12 @@ export default background({
       };
 
       utils.telemetry(info);
+
+      // for SERP ABC test, to be removed after the test has finished
+      const group = prefs.get('serp_test', null);
+      const isCliqzDefaultEngine = getDefaultEngine().name === 'Cliqz';
+      utils.telemetry({ group, isCliqzDefaultEngine },
+        false, 'metrics.experiments.serp.state');
     });
   },
 });

@@ -37,6 +37,10 @@ const messageFunctions = {
   isCurrentDate(aDate) {
     const today = utils.getPref('config_ts', null);
     return aDate.indexOf(today) !== -1;
+  },
+  daysSinceInstallCheck(numDays) {
+    const installDate = parseInt(prefs.get('install_date', '0'), 10);
+    return utils.getDay() - installDate <= numDays;
   }
 };
 

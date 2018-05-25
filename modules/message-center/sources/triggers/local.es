@@ -3,7 +3,7 @@ import utils from '../../core/utils';
 const LOCAL_DATA = [
   {
     id: 'import',
-    active: false,
+    active: true,
     version: 1,
     type: 'notification',
     title: utils.getLocalizedString('freshtab_app_top_box_import_bookmarks_hdr'),
@@ -18,6 +18,10 @@ const LOCAL_DATA = [
       {
         fn: 'cliqzVersionCheck',
         value: '1.20.0',
+      },
+      {
+        fn: 'daysSinceInstallCheck',
+        value: 14,
       }
     ]
   },

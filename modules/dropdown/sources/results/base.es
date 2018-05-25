@@ -118,7 +118,7 @@ export default class BaseResult {
     }
 
     if (this.isActionSwitchTab) {
-      return `moz-action:switchtab,${JSON.stringify({ url: encodeURI(url) })}`;
+      return `moz-action:switchtab,${JSON.stringify({ url: encodeURIComponent(url) })}`;
     }
     return url;
   }

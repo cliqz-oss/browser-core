@@ -6,10 +6,9 @@ import { messageShowSignal, messageClickSignal, messageCloseSignal, messageSkipS
 export default class TopMessages extends React.Component {
   componentDidMount() {
     if (this.props.messages.length > 0) {
-      // Set shown time for the visible message (i.e the first one)
+      // Send show signal for the visible message (i.e the first one)
       const message = this.props.messages[0];
       messageShowSignal(message.id);
-      cliqz.freshtab.setMessageShownTime(message);
     }
   }
 

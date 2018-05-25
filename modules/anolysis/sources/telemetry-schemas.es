@@ -1,7 +1,7 @@
 // Import metrics
-import dropdownSignalDefinitions from './metrics/dropdown';
 import freshtabSignalDefinitions from './metrics/freshtab';
 import mobileSignalDefinitions from './metrics/mobile';
+import experimentsSignalDefinitions from './metrics/experiments';
 
 // Analyses
 import freshtabSettings from './analyses/freshtab-settings';
@@ -9,6 +9,7 @@ import freshtabState from './analyses/freshtab-state';
 import newsPagination from './analyses/news-pagination';
 import newsSnippets from './analyses/news-snippets';
 import retentionSchemas from './analyses/retention';
+import experimentsSchemas from './analyses/experiments';
 
 /**
  * This file is used to list all available metrics and analyses in use by
@@ -22,9 +23,9 @@ import retentionSchemas from './analyses/retention';
 //
 // This behavior can be overriden in each signal, by setting "sendToBackend" to true.
 const metrics = [
-  ...dropdownSignalDefinitions,
   ...freshtabSignalDefinitions,
   ...mobileSignalDefinitions,
+  ...experimentsSignalDefinitions,
 ].map(schema => ({
   ...schema,
   sendToBackend: schema.sendToBackend || false,
@@ -39,6 +40,7 @@ const analyses = [
   newsPagination,
   newsSnippets,
   ...retentionSchemas,
+  ...experimentsSchemas,
 ].map(schema => ({
   ...schema,
   sendToBackend: true,

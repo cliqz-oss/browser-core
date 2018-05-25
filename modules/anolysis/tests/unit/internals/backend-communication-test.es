@@ -40,6 +40,9 @@ const MOCK = {
       },
     },
   },
+  'anolysis/internals/enabling': {
+    isTelemetryEnabled() { return true; },
+  },
   'anolysis/internals/logger': {
     default: {
       debug() {},

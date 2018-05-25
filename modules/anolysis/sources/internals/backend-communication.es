@@ -4,6 +4,7 @@ import md5 from '../../core/helpers/md5';
 import utils from '../../core/utils';
 
 import logger from './logger';
+import { isTelemetryEnabled } from './enabling';
 
 
 function post(url, payload) {
@@ -194,9 +195,15 @@ export default class Backend {
   */
   sendSignal(signal) {
     logger.debug('sendSignal', signal);
-    if (network.type === 'wifi') {
-      return post(`${this.backendUrl}/collect`, signal);
+
+    if (network.type !== 'wifi') {
+      return Promise.reject('Device is not connected to WiFi');
     }
-    return Promise.reject('Device is not connected to WiFi');
+
+    if (!isTelemetryEnabled()) {
+      return Promise.reject('Telemetry is disabled');
+    }
+
+    return post(`${this.backendUrl}/collect`, signal);
   }
 }
