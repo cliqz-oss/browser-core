@@ -14,8 +14,8 @@ const getSearchEngineQuery = (engine, query) => {
 
 export const getSearchEngineUrl = (engine, query, rawQuery) => `moz-action:searchengine,${JSON.stringify({
   engineName: engine.name,
-  input: encodeURIComponent(query),
-  searchQuery: encodeURIComponent(rawQuery),
+  input: query,
+  searchQuery: rawQuery,
   alias: engine.alias,
 })}`;
 
@@ -49,7 +49,7 @@ export default class InstantProvider extends BaseProvider {
     };
 
     if (isQueryUrl) {
-      const mozActionUrl = `moz-action:visiturl,${JSON.stringify({ url: encodeURIComponent(fixURL(query)) })}`;
+      const mozActionUrl = `moz-action:visiturl,${JSON.stringify({ url: fixURL(query) })}`;
       result = {
         ...result,
         type: 'navigate-to',

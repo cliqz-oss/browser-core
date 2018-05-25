@@ -5,7 +5,7 @@ import {
 import Subject from './local-helpers';
 import generateData from './fixtures/other-settings-section';
 
-function otherSettingsTests(amo, privacyUrl) {
+function otherSettingsTests(amo, tipsUrl) {
   const data = generateData(amo);
   const target = 'cliqz-control-center';
   let subject;
@@ -55,16 +55,16 @@ function otherSettingsTests(amo, privacyUrl) {
       expect(subject.query(supportSelector).getAttribute('data-open-url')).to.equal('https://cliqz.com/feedback/1.19.0.dev-40');
     });
 
-    it('renders "privacy"', function () {
-      const privacySelector = '#othersettings .title #support [data-i18n="control_center_privacy_policy"]';
-      expect(subject.query(privacySelector)).to.exist;
-      expect(subject.query(privacySelector).textContent.trim()).to.equal('control_center_privacy_policy');
+    it('renders "Tips"', function () {
+      const tipsSelector = '#othersettings .title #support [data-i18n="control_center_tips"]';
+      expect(subject.query(tipsSelector)).to.exist;
+      expect(subject.query(tipsSelector).textContent.trim()).to.equal('control_center_tips');
     });
 
-    it('url for privacy is correct', function () {
-      const privacySelector = '#othersettings .title #support [data-i18n="control_center_privacy_policy"]';
-      expect(subject.query(privacySelector).hasAttribute('data-open-url')).to.be.true;
-      expect(subject.query(privacySelector).getAttribute('data-open-url')).to.equal(privacyUrl);
+    it('url for Tips is correct', function () {
+      const tipsSelector = '#othersettings .title #support [data-i18n="control_center_tips"]';
+      expect(subject.query(tipsSelector).hasAttribute('data-open-url')).to.be.true;
+      expect(subject.query(tipsSelector).getAttribute('data-open-url')).to.equal(tipsUrl);
     });
 
     it('renders "Search options"', function () {
@@ -103,9 +103,9 @@ function otherSettingsTests(amo, privacyUrl) {
 }
 
 describe('Control Center: Other Settings section UI browser', function () {
-  otherSettingsTests(false, 'http://cliqz.com/privacy-browser');
+  otherSettingsTests(false, 'https://cliqz.com/tips');
 });
 
 describe('Control Center: AMO, Other Settings section tests', function () {
-  otherSettingsTests(true, 'http://cliqz.com/privacy-browser');
+  otherSettingsTests(true, 'https://cliqz.com/tips-firefox');
 });

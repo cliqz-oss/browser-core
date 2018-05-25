@@ -1,4 +1,5 @@
 // Import metrics
+import dropdownSignalDefinitions from './metrics/dropdown';
 import freshtabSignalDefinitions from './metrics/freshtab';
 import mobileSignalDefinitions from './metrics/mobile';
 
@@ -21,6 +22,7 @@ import retentionSchemas from './analyses/retention';
 //
 // This behavior can be overriden in each signal, by setting "sendToBackend" to true.
 const metrics = [
+  ...dropdownSignalDefinitions,
   ...freshtabSignalDefinitions,
   ...mobileSignalDefinitions,
 ].map(schema => ({

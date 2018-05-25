@@ -28,26 +28,22 @@ export default class Footer extends React.Component {
           offer={this.props.offer}
         />
         <div className="right-container">
-          {this.props.data.conditions &&
-            <span>
-              <span
-                className="tooltip"
-                ref={(el) => { this.tooltip = el; }}
-                data-tip={this.props.data.conditions}
-                onMouseOver={this.handleHover}
-              >
-                {t('app_conditions')}
-              </span>
-              <img
-                className="info-icon tooltip tooltipstered"
-                ref={(el) => { this.tooltip = el; }}
-                data-tip={this.props.data.conditions}
-                src="./images/info-icon-hover.svg"
-                alt={t('app_conditions')}
-                onMouseOver={this.handleHover}
-              />
-            </span>
-          }
+          <span
+            className="tooltip"
+            ref={(el) => { this.tooltip = el; }}
+            data-tip={this.props.data.conditions}
+            onMouseOver={this.handleHover}
+          >
+            {t('app_conditions')}
+          </span>
+          <img
+            className="info-icon tooltip tooltipstered"
+            ref={(el) => { this.tooltip = el; }}
+            data-tip={this.props.data.conditions}
+            src="./images/info-icon-hover.svg"
+            alt={t('app_conditions')}
+            onMouseOver={this.handleHover}
+          />
           <a
             href={this.props.data.call_to_action.url}
             className={this.anchorClasses}

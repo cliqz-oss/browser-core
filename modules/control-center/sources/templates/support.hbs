@@ -18,10 +18,15 @@
           data-open-url="{{ feedbackURL }}"
           data-target="info_help">
     </span>
+    {{#if showTipps}}
     &#8226;
-    <span
-      data-i18n="control_center_privacy_policy"
-      data-open-url="http://cliqz.com/privacy-browser"
-    >
-    </span>
+      <span id="tips"
+        data-i18n="control_center_tips"
+        {{#if amo}}
+          data-open-url="https://cliqz.com/tips-firefox"
+        {{else}}
+          data-open-url="https://cliqz.com/tips"
+        {{/if}}>
+      </span>
+    {{/if}}
 </span>

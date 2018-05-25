@@ -75,6 +75,7 @@ module.exports = {
     'hpn',
     'control-center',
     'offers-v2',
+    'history-analyzer',
     'offers-cc',
     'browser-panel',
     'message-center',

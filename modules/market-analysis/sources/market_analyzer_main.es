@@ -17,7 +17,6 @@ import TimeFrames from './model/time_frames';
 // import services
 import DataAccessProvider from './data_access_provider';
 import CommunicationProvider from './communication_provider';
-import { isTelemetryEnabled } from './util';
 
 /**
  * Entry point of the module
@@ -144,9 +143,6 @@ const CliqzMarketAnalyzer = {
    * If any, send them to the backend and then remove them from local database
    */
   _sendOldStats() {
-    if (!isTelemetryEnabled()) {
-      return;
-    }
     logger.debug('>>> Finding stats to send..');
     if (!this.maTable) return;
 

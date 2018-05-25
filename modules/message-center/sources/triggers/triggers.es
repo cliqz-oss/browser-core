@@ -1,7 +1,7 @@
 import utils from '../../core/utils';
 import inject from '../../core/kord/inject';
 import prefs from '../../core/prefs';
-import { isCliqzBrowser, isCliqzAtLeastInVersion, isAMO } from '../../core/platform';
+import { isCliqzBrowser, isCliqzAtLeastInVersion } from '../../core/platform';
 import getLocalMessages from './local';
 import getRemoteMessages from './remote';
 
@@ -37,9 +37,6 @@ const messageFunctions = {
   isCurrentDate(aDate) {
     const today = utils.getPref('config_ts', null);
     return aDate.indexOf(today) !== -1;
-  },
-  isAMO() {
-    return isAMO;
   }
 };
 

@@ -11,13 +11,11 @@ import Anolysis from './internals/anolysis';
 import Config from './internals/config';
 import Storage from './internals/storage/dexie';
 import logger from './internals/logger';
-import { isTelemetryEnabled } from './internals/enabling';
 
 import signalDefinitions from './telemetry-schemas';
 
-export { ENABLE_PREF } from './internals/enabling';
 
-
+export const ENABLE_PREF = 'telemetryNoSession';
 const LATEST_VERSION_USED_PREF = 'anolysisVersion';
 
 /**
@@ -38,23 +36,28 @@ function storeNewVersionInPrefs() {
 }
 
 
+function isTelemetryEnabled() {
+  return prefs.get(ENABLE_PREF, false);
+}
+
+
 /**
  * This function will instantiate an Anolysis class. It will also check if the
  * internal states need to be reset (on version bump).
  */
-async function instantiateAnolysis(demographics) {
+function instantiateAnolysis(demographics) {
   const config = new Config({ demographics, Storage });
   const anolysis = new Anolysis(config);
 
   // Check if we should reset
   if (versionWasUpdated()) {
     logger.log('reset anolysis state because of update');
-    await anolysis.reset();
-    storeNewVersionInPrefs();
-    return new Anolysis(config);
+    return anolysis.reset()
+      .then(() => storeNewVersionInPrefs())
+      .then(() => new Anolysis(config));
   }
 
-  return anolysis;
+  return Promise.resolve(anolysis);
 }
 
 
@@ -69,9 +72,9 @@ export default background({
 
   enabled() { return true; },
 
-  async init() {
+  init() {
     if (!isTelemetryEnabled()) {
-      return;
+      return Promise.resolve();
     }
 
     if (getSynchronizedDate() === null) {
@@ -101,33 +104,35 @@ export default background({
         type: 'anolysis.start_init',
       });
 
-      try {
-        await this.start();
-        // TODO - send ping_anolysis signal with legacy telemetry system
-        // This is only meant for testing purposes and will be remove in
-        // the future.
-        utils.telemetry({
-          type: 'anolysis.start_end',
+      return this.start()
+        .then(() => {
+          // TODO - send ping_anolysis signal with legacy telemetry system
+          // This is only meant for testing purposes and will be remove in
+          // the future.
+          utils.telemetry({
+            type: 'anolysis.start_end',
+          });
+        })
+        .catch((ex) => {
+          // TODO - send ping_anolysis signal with legacy telemetry system
+          // This is only meant for testing purposes and will be remove in
+          // the future.
+          logger.error('Exception while init anolysis', ex);
+          utils.telemetry({
+            type: 'anolysis.start_exception',
+            exception: `${ex}`,
+          });
         });
-      } catch (ex) {
-        // TODO - send ping_anolysis signal with legacy telemetry system
-        // This is only meant for testing purposes and will be remove in
-        // the future.
-        logger.error('Exception while init anolysis', ex);
-        utils.telemetry({
-          type: 'anolysis.start_exception',
-          exception: `${ex}`,
-        });
-      }
     }
+
+    return Promise.resolve();
   },
 
-  async start() {
-    if (this.isRunning) return;
-    this.isRunning = true;
+  start() {
+    if (this.isRunning) return Promise.resolve();
 
-    try {
-      this.anolysis = await instantiateAnolysis(await getDemographics());
+    return getDemographics().then(instantiateAnolysis).then((anolysis) => {
+      this.anolysis = anolysis;
 
       // TODO
       // Register legacy telemetry signals listener. In the future this should
@@ -135,13 +140,13 @@ export default background({
       // the action `log` of this background (using the kord mechanism).
       utils.telemetryHandlers.push(this.actions.handleTelemetrySignal);
 
-      await this.anolysis.registerSignalDefinitions(signalDefinitions);
-      await this.anolysis.init();
-      this.anolysis.onNewDay(prefs.get('config_ts'));
-    } catch (ex) {
-      this.isRunning = false;
-      throw ex;
-    }
+      return this.actions.registerSignalDefinitions(signalDefinitions)
+        .then(() => this.anolysis.init())
+        .then(() => { this.isRunning = true; })
+        .then(() => {
+          this.anolysis.onNewDay(prefs.get('config_ts'));
+        });
+    });
   },
 
   stop() {
@@ -163,7 +168,6 @@ export default background({
     }
 
     this.anolysis.unload();
-    this.anolysis = null;
   },
 
   unload() {
@@ -184,12 +188,12 @@ export default background({
           // Notify anolysis that the date just changed.
           this.anolysis.onNewDay(prefs.get('config_ts'));
         }
-      } else if (isTelemetryEnabled()) {
-        if (!this.isRunning) {
+      } else if (pref === ENABLE_PREF) {
+        if (isTelemetryEnabled()) {
           this.init();
+        } else {
+          this.stop();
         }
-      } else {
-        this.stop();
       }
     },
   },
@@ -204,7 +208,8 @@ export default background({
         return Promise.resolve();
       }
 
-      return this.anolysis.registerSignalDefinitions(schemas);
+      return Promise.resolve()
+        .then(() => this.anolysis.registerSignalDefinitions(schemas));
     },
 
     handleTelemetrySignal(msg, instantPush, schemaName) {

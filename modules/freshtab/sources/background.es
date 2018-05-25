@@ -72,21 +72,6 @@ export default background({
   * @method init
   */
   init(settings) {
-    if (prefs.get('freshtab.amo.rollout', false) === false) {
-      // no rollout done so we:
-      //  1. turn it on for everybody who has it off
-      //  2. reset their background to spring (all users)
-
-      // we only do it once
-      prefs.set('freshtab.amo.rollout', true);
-
-      if (prefs.get('freshtab.state', false) === false) {
-        prefs.set('freshtab.state', true);
-      }
-
-      this.actions.saveBackgroundImage('bg-spring');
-    }
-
     this.newTabPage = NewTabPage;
 
     this.newTabPage.startup();
@@ -211,6 +196,13 @@ export default background({
   getComponentsState() {
     const freshtabConfig = prefs.getObject(FRESHTAB_CONFIG_PREF);
 
+    let defaultBg = 'bg-winter';
+
+    if (prefs.get('new_session', true)) {
+      defaultBg = 'bg-matterhorn';
+      this.actions.saveBackgroundImage(defaultBg);
+    }
+
     return {
       historyDials: Object.assign({}, DEFAULT_COMPONENT_STATE, freshtabConfig.historyDials),
       customDials: Object.assign({}, DEFAULT_COMPONENT_STATE, freshtabConfig.customDials),
@@ -220,7 +212,7 @@ export default background({
         mode: prefs.get('freshtab.search.mode', 'urlbar'),
       },
       news: Object.assign({}, DEFAULT_COMPONENT_STATE, freshtabConfig.news),
-      background: Object.assign({}, { image: 'bg-spring' }, freshtabConfig.background),
+      background: Object.assign({}, { image: defaultBg }, freshtabConfig.background),
     };
   },
 

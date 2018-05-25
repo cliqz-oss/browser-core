@@ -111,24 +111,7 @@ const LOCAL_DATA = [
         value: '1.16.0',
       }
     ]
-  },
-  {
-    id: 'ft-amo',
-    active: true,
-    version: 1,
-    type: 'notification',
-    title: utils.getLocalizedString('freshtab_app_middle_box_ft_amo_hdr'),
-    description: utils.getLocalizedString('freshtab_app_middle_box_ft_amo_desc'),
-    cta_text: utils.getLocalizedString('freshtab_app_middle_box_ft_amo_cta'),
-    cta_url: 'home-action:settings',
-    handler: 'MESSAGE_HANDLER_FRESHTAB_TOP',
-    position: 'top',
-    rules: [
-      {
-        fn: 'isAMO'
-      }
-    ]
-  },
+  }
 ];
 
 export default function getLocalMessages() {

@@ -59,7 +59,6 @@ export default class TopMessages extends React.Component {
                 className="content"
                 style={{
                   backgroundImage: `url(${message.icon})`,
-                  paddingLeft: message.icon ? '70px' : '0px'
                 }}
               >
                 <div>
@@ -75,14 +74,12 @@ export default class TopMessages extends React.Component {
                   >
                     {message.cta_text}
                   </button>
-                  {message.later_text &&
                   <button
                     className="later-btn"
                     onClick={() => this.handleLaterClick(message)}
                   >
                     {message.later_text}
                   </button>
-                  }
                 </div>
               </div>
             </div>)
