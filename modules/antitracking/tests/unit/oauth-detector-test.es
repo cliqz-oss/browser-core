@@ -178,8 +178,13 @@ export default describeModule('antitracking/steps/oauth-detector',
           detectorInstance.unload();
         });
 
-        it('returns true when there has been no activity', () => {
+        it('returns true when there has been no activity and the URL contains "/oauth"', () => {
           const state = mockState(5, 'https://auth.ghostery.com/oauth', 'https://cliqz.com/');
+          chai.expect(detectorInstance.checkIsOAuth(state)).to.be.true;
+        });
+
+        it('returns true when there has been no activity and the URL contains "/authorize"', () => {
+          const state = mockState(5, 'https://auth.ghostery.com/authorize', 'https://cliqz.com/');
           chai.expect(detectorInstance.checkIsOAuth(state)).to.be.true;
         });
 
