@@ -136,7 +136,7 @@ export default class OAuthDetector {
    */
   checkIsOAuth(state) {
     const oAuthUrls = ['/oauth', '/authorize'];
-    const mapper = (oAuthUrl) => state.urlParts.path.indexOf(oAuthUrl) > -1;
+    const mapper = oAuthUrl => state.urlParts.path.indexOf(oAuthUrl) > -1;
     const reducer = (accumulator, currentValue) => accumulator || currentValue;
     const isOAuthFlow = oAuthUrls.map(mapper).reduce(reducer);
 
