@@ -55,7 +55,6 @@ export default class CliqzAttrack {
     this.similarAddon = false;
     this.tp_events = null;
     this.recentlyModified = new TempSet();
-    this.DISABLED_SITES_PREF = 'attrackSourceDomainWhitelist';
     this.urlWhitelist = new UrlWhitelist('attrack-url-whitelist');
 
     // Web request pipelines

@@ -799,17 +799,35 @@ const CliqzUtils = {
   updateAlias: CLIQZEnvironment.updateAlias,
   openLink: CLIQZEnvironment.openLink,
   getCliqzPrefs() {
+    const TELEMETRY_WHITELIST = new Set([
+      'ABTests', // state of running AB tests
+      'abtests_running', // list of AB tests in new AB testing framework
+      'adultContentFilter', // adult filter state for search
+      'antitracking.enabled', // anti tracking module state
+      'backend_country', // search backend selection
+      'cliqz-adb', // ad blocking module state
+      'cliqz-anti-phishing-enabled', // anti phishing module state
+      'config_location', // current contry (only a limited set is allowed from the backend)
+      'config_ts', // current day YYYYMMDD format
+      'developer', // extension developer
+      'distribution', // distribution source
+      'full_distribution', // distribution source
+      'freshtab.state', // freshtab state
+      'freshtabConfig', // configuration for freshtab elements
+      'hpn-query', // query (search) though HPN
+      'humanWebOptOut', // human web state
+      'install_date', // self explanatory :)
+      'offers_location', // local offers
+      'offers2UserEnabled', // offers state
+      'offersDevFlag', // offers dev flag
+      'serp_test', // AB Test running from 1.27.2, possible values A/B/C
+      'session', // user session
+      'share_location', // use location for enhanced local results
+      'telemetry', // telemetry state
+    ]);
+
     function filterer(entry) {
-      // avoid privay leaking prefs ('backup').
-      // avoid irrelevant deep prefs (something.otherthing.x.y)
-      // avoid prefs sending domains.
-      // allow 'enabled' prefs
-      return ((
-        entry.indexOf('.') === -1 &&
-        entry.indexOf('backup') === -1 &&
-        entry.indexOf('attrackSourceDomainWhitelist') === -1
-      )
-        || entry.indexOf('.enabled') !== -1);
+      return TELEMETRY_WHITELIST.has(entry);
     }
 
     const cliqzPrefs = {};

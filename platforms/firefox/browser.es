@@ -177,7 +177,11 @@ const OBSOLETE_PREFS = [
   // SmartCliqz Cache was removed in X.25.X
   'smart-cliqz-last-clean-ts',
   // startupcache-invalidate was temporary used in 2.24.7 and 1.25.1
-  'startupcache-invalidate'
+  'startupcache-invalidate',
+  // removed before X.28.1
+  'attrackSourceDomainWhitelist',
+  // temporary config
+  'config_country_granular'
 ];
 
 // do various cleanups from retired features or modules

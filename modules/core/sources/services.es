@@ -14,6 +14,16 @@ export default {
 
   // IP driven configuration
   'cliqz-config': () => {
+    const EXPECTED_CONFIGS = new Set([
+      'backends',
+      'location',
+      'location.city',
+      'location.granular',
+      'logoVersion',
+      'png_logoVersion',
+      'ts',
+    ]);
+
     if (isOnionMode) {
       return Promise.resolve();
     }
@@ -21,6 +31,10 @@ export default {
       .then(r => r.json())
       .then((config) => {
         Object.keys(config).forEach((k) => {
+          if (!EXPECTED_CONFIGS.has(k)) {
+            return;
+          }
+
           let val = config[k];
 
           if (typeof val === 'object') {

@@ -223,12 +223,6 @@ const CliqzABTests = {
       case '1066_B':
         CliqzUtils.setPref('proxyNetwork', true);
         break;
-      case '1069_A':
-        CliqzUtils.setPref('grOfferSwitchFlag', false);
-        break;
-      case '1069_B':
-        CliqzUtils.setPref('grOfferSwitchFlag', true);
-        break;
       case '1070_A':
         CliqzUtils.setPref('cliqz-anti-phishing', false);
         CliqzUtils.setPref('cliqz-anti-phishing-enabled', false);

@@ -105,19 +105,11 @@ export default background({
     /* eslint-enable */
 
     HistoryManager.getStats((history) => {
-      const document = window.document;
       const navigator = window.navigator;
-      const browserContainer = document.getElementById('browser');
       const info = {
         type: 'environment',
         agent: navigator.userAgent,
         language: navigator.language,
-        width: document.width,
-        height: document.height,
-        inner_height: browserContainer.clientHeight,
-        inner_width: browserContainer.clientWidth,
-        screen_width: screenWidth.value,
-        screen_height: screenHeight.value,
         version: utils.extensionVersion,
         history_days: history.days,
         history_urls: history.size,
