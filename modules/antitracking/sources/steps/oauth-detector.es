@@ -127,7 +127,7 @@ export default class OAuthDetector {
   /**
    * Pipeline step to check if this request is part of a OAuth flow. This is done by
    * checking that the following three conditions are met:
-   *  - The third-party url path contains '/oauth' or '/authorize'
+   *  - The third-party url path contains '/oauth'
    *  - The user has recently clicked in the source tab (i.e. the site wanting to authenticate the
    * user)
    *  - The user has recently visited the oauth domain (the authentication provider)
@@ -135,12 +135,7 @@ export default class OAuthDetector {
    * @returns false if the request is an oauth request, true otherwise
    */
   checkIsOAuth(state) {
-    const oAuthUrls = ['/oauth', '/authorize'];
-    const mapper = oAuthUrl => state.urlParts.path.indexOf(oAuthUrl) > -1;
-    const reducer = (accumulator, currentValue) => accumulator || currentValue;
-    const isOAuthFlow = oAuthUrls.map(mapper).reduce(reducer);
-
-    if (isOAuthFlow &&
+    if (state.urlParts.path.indexOf('/oauth') > -1 &&
       this.clickActivity[state.tabId] && this.siteActivitiy[state.urlParts.hostname]) {
       const clickedPage = URLInfo.get(this.clickActivity[state.tabId]);
       if (clickedPage !== null && clickedPage.hostname === state.sourceUrlParts.hostname) {

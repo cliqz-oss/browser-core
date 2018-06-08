@@ -7,7 +7,6 @@
 
 
 import CliqzUtils from './utils';
-import { getDefaultEngine, revertToOriginalEngine } from './search-engines';
 
 let timer = null;
 const ONE_HOUR = 60 * 60 * 1000;
@@ -432,16 +431,6 @@ const CliqzABTests = {
       case '1112_B':
         CliqzUtils.setPref('experiment_svm', true);
         break;
-      case '1114_A':
-      case '1114_B':
-      case '1114_C':
-        // we activate this test locally in services.es/session()
-        // so we only need to disable it with the AB test
-        if (getDefaultEngine().name === 'Cliqz') {
-          revertToOriginalEngine();
-        }
-        CliqzUtils.clearPref('serp_test');
-        break;
       default:
         ruleExecuted = false;
     }
@@ -733,14 +722,6 @@ const CliqzABTests = {
       case '1112_A':
       case '1112_B':
         CliqzUtils.clearPref('experiment_svm');
-        break;
-      case '1114_A':
-      case '1114_B':
-      case '1114_C':
-        if (getDefaultEngine().name === 'Cliqz') {
-          revertToOriginalEngine();
-        }
-        CliqzUtils.clearPref('serp_test');
         break;
       default:
         ruleExecuted = false;

@@ -1346,11 +1346,14 @@
     "control_center_phishing_report": {
         "message": "Reporter un site de hameçonnage"
     },
+    "control_center_privacy_policy": {
+        "message": "Politique de confidentialité"
+    },
     "control_center_support": {
         "message": "Support"
     },
     "control_center_othersettings": {
-        "message": "Autres options"
+        "message": "Options"
     },
     "control_center_footer": {
         "message": "FOURNI PAR CLIQZ"
@@ -1372,6 +1375,12 @@
     },
     "control_center_search_engine": {
         "message": "Recherche complémentaire"
+    },
+    "control_center_telemetry": {
+        "message": "Envoyer données d'utilisation"
+    },
+    "control_center_telemetry_info": {
+        "message": "Cliqz collecte des données d'utilisation de façon entièrement anonyme. Aucune donnée à caractère personnel sera collectée."
     },
     "control_center_backend_country": {
         "message": "Résultats de recherche pour"
@@ -1850,6 +1859,24 @@
     "no_guarantee": {
         "message": "Alle Angaben ohne Gewähr"
     },
+    "freshtab_app_group_tooltip_hdr": {
+      "message": "Buuuut!!"
+    },
+    "freshtab_app_group_tooltip_txt": {
+      "message": "Accédez à toute l'info sur la Coupe du Monde ici."
+    },
+    "freshtab_app_worldcup_tooltip_btn1": {
+      "message": "Ouvrir"
+    },
+    "freshtab_app_worldcup_tooltip_btn2": {
+      "message": "Plus tard"
+    },
+    "freshtab_app_knockout_tooltip_hdr": {
+      "message": "La phase éliminatoires a commencé !"
+    },
+    "freshtab_app_knockout_tooltip_txt": {
+      "message": "Ne ratez rien !"
+    },
     "freshtab_app_speed_dials_row_history": {
         "message": "Les plus visités"
     },
@@ -1909,6 +1936,15 @@
     },
     "freshtab_app_middle_box_promote_mobile_desc": {
         "message": "Benefit from quick search, privacy protection and ad blocking on the go. Download Cliqz as a free mobile app!"
+    },
+    "freshtab_app_middle_box_ft_amo_hdr": {
+        "message": "Les nouveaux onglets ont été relookés ! Personnalisez-les à volonté."
+    },
+    "freshtab_app_middle_box_ft_amo_desc": {
+        "message": "Allez dans les paramètres Cliqz Tab pour personnaliser ou le centre de contrôle pour désactiver."
+    },
+    "freshtab_app_middle_box_ft_amo_cta": {
+        "message": "Personnaliser"
     },
     "freshtab_app_top_box_import_bookmarks_hdr": {
         "message": "Importez rapidement vos favoris, mots de passe et votre historique depuis d’autres navigateurs."

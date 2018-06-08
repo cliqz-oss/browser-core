@@ -1,3 +1,5 @@
+import { mapWindows } from './browser';
+
 export function pinTab(window, tab) {
   let t;
   if (typeof tab.index === 'number') {
@@ -29,10 +31,29 @@ export function getTabsWithUrl(window, url) {
     (tab => tab.linkedBrowser.currentURI.spec === url && tab));
 }
 
+function getTabById(window, tabId) {
+  const tab = [...window.gBrowser.tabs].find(t => t.linkedBrowser.outerWindowID === tabId);
+  if (!tab) {
+    return null;
+  }
+  return tab.linkedBrowser;
+}
+
 export function closeTab(window, tab) {
   window.gBrowser.removeTab(tab);
 }
 
 export function getCurrentTabId(window) {
   return window.gBrowser.selectedBrowser && window.gBrowser.selectedBrowser.outerWindowID;
+}
+
+export function updateTabById(tabId, { url }) {
+  mapWindows(w => w).some((window) => {
+    const tab = getTabById(window, tabId);
+    if (!tab) {
+      return false;
+    }
+    tab.loadURI(url);
+    return true;
+  });
 }

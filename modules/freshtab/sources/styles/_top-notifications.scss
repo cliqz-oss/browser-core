@@ -57,12 +57,10 @@
                 background-size: contain;
                 background-repeat: no-repeat;
                 background-position: left top;
-                padding-left: 70px;
                 height: 60px;
                 width: 100%;
 
                 div:first-child {
-                    padding-right: 5px;
                     max-width: $content-max-width;
 
                     h1, p {
@@ -74,10 +72,10 @@
                     h1 {
                         font-size: 16px;
                         font-weight: 500;
+                        margin-bottom: 5px;
                     }
 
                     p {
-                        margin-top: 5px;
                         color: #767676;
                     }
                 }

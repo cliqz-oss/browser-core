@@ -6,9 +6,10 @@ import { messageShowSignal, messageClickSignal, messageCloseSignal, messageSkipS
 export default class TopMessages extends React.Component {
   componentDidMount() {
     if (this.props.messages.length > 0) {
-      // Send show signal for the visible message (i.e the first one)
+      // Set shown time for the visible message (i.e the first one)
       const message = this.props.messages[0];
       messageShowSignal(message.id);
+      cliqz.freshtab.setMessageShownTime(message);
     }
   }
 
@@ -58,6 +59,7 @@ export default class TopMessages extends React.Component {
                 className="content"
                 style={{
                   backgroundImage: `url(${message.icon})`,
+                  paddingLeft: message.icon ? '70px' : '0px'
                 }}
               >
                 <div>
@@ -73,12 +75,14 @@ export default class TopMessages extends React.Component {
                   >
                     {message.cta_text}
                   </button>
+                  {message.later_text &&
                   <button
                     className="later-btn"
                     onClick={() => this.handleLaterClick(message)}
                   >
                     {message.later_text}
                   </button>
+                  }
                 </div>
               </div>
             </div>)

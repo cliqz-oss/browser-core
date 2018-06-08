@@ -3,7 +3,7 @@ import utils from '../../core/utils';
 const LOCAL_DATA = [
   {
     id: 'import',
-    active: true,
+    active: false,
     version: 1,
     type: 'notification',
     title: utils.getLocalizedString('freshtab_app_top_box_import_bookmarks_hdr'),
@@ -18,10 +18,6 @@ const LOCAL_DATA = [
       {
         fn: 'cliqzVersionCheck',
         value: '1.20.0',
-      },
-      {
-        fn: 'daysSinceInstallCheck',
-        value: 14,
       }
     ]
   },
@@ -115,7 +111,24 @@ const LOCAL_DATA = [
         value: '1.16.0',
       }
     ]
-  }
+  },
+  {
+    id: 'ft-amo',
+    active: true,
+    version: 1,
+    type: 'notification',
+    title: utils.getLocalizedString('freshtab_app_middle_box_ft_amo_hdr'),
+    description: utils.getLocalizedString('freshtab_app_middle_box_ft_amo_desc'),
+    cta_text: utils.getLocalizedString('freshtab_app_middle_box_ft_amo_cta'),
+    cta_url: 'home-action:settings',
+    handler: 'MESSAGE_HANDLER_FRESHTAB_TOP',
+    position: 'top',
+    rules: [
+      {
+        fn: 'isAMO'
+      }
+    ]
+  },
 ];
 
 export default function getLocalMessages() {

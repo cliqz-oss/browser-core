@@ -20,6 +20,7 @@ package-lock.json
 # build folders
 build/
 .idea/
+.vscode/
 
 # external components
 node_modules

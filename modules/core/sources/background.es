@@ -12,6 +12,7 @@ import resourceManager from './resource-manager';
 import inject from './kord/inject';
 import { queryCliqz, openLink, openTab, getOpenTabs, getReminders } from '../platform/browser-actions';
 import providesServices from './services';
+import { updateTabById } from './tabs';
 
 let lastRequestId = 0;
 const callbacks = {};
@@ -251,8 +252,12 @@ export default background({
       queryCliqz(query);
     },
 
-    openLink(url) {
-      openLink(url);
+    openLink(url, { newTab = true } = {}, { tab: { id: tabId } } = { tab: {} }) {
+      if (newTab) {
+        openLink(url);
+      } else if (tabId) {
+        updateTabById(tabId, { url });
+      }
     },
 
     openTab(tabId) {

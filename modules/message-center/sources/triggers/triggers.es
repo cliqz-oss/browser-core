@@ -1,7 +1,7 @@
 import utils from '../../core/utils';
 import inject from '../../core/kord/inject';
 import prefs from '../../core/prefs';
-import { isCliqzBrowser, isCliqzAtLeastInVersion } from '../../core/platform';
+import { isCliqzBrowser, isCliqzAtLeastInVersion, isAMO } from '../../core/platform';
 import getLocalMessages from './local';
 import getRemoteMessages from './remote';
 
@@ -38,9 +38,8 @@ const messageFunctions = {
     const today = utils.getPref('config_ts', null);
     return aDate.indexOf(today) !== -1;
   },
-  daysSinceInstallCheck(numDays) {
-    const installDate = parseInt(prefs.get('install_date', '0'), 10);
-    return utils.getDay() - installDate <= numDays;
+  isAMO() {
+    return isAMO;
   }
 };
 

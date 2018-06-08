@@ -1346,11 +1346,14 @@
     "control_center_phishing_report": {
         "message": "Phishing Seite melden"
     },
+    "control_center_privacy_policy": {
+        "message": "Datenschutz"
+    },
     "control_center_support": {
         "message": "Support"
     },
     "control_center_othersettings": {
-        "message": "Andere Einstellungen"
+        "message": "Einstellungen"
     },
     "control_center_footer": {
         "message": "BEREITGESTELLT VON CLIQZ"
@@ -1372,6 +1375,12 @@
     },
     "control_center_search_engine": {
         "message": "Ergänzende Suchmaschine"
+    },
+    "control_center_telemetry": {
+        "message": "Anonyme Datenübermittlung"
+    },
+    "control_center_telemetry_info": {
+        "message": "Cliqz sammelt streng anonyme Daten zu technischen Details und Interaktionen. Zu keinem Zeitpunkt wird eine personenbezogene Information erfasst."
     },
     "control_center_backend_country": {
         "message": "Suchergebnisse für"
@@ -1850,6 +1859,24 @@
     "no_guarantee": {
         "message": "Alle Angaben ohne Gewähr"
     },
+    "freshtab_app_group_tooltip_hdr": {
+      "message": "Tooooor!!"
+    },
+    "freshtab_app_group_tooltip_txt": {
+      "message": "Den schnellen, aktuellen WM-Überblick findest du hier."
+    },
+    "freshtab_app_worldcup_tooltip_btn1": {
+      "message": "Zum Überblick"
+    },
+    "freshtab_app_worldcup_tooltip_btn2": {
+      "message": "Jetzt nicht"
+    },
+    "freshtab_app_knockout_tooltip_hdr": {
+      "message": "Die K.o.-Phase beginnt!"
+    },
+    "freshtab_app_knockout_tooltip_txt": {
+      "message": "Alle Ergebnisse und Spielstände hier auf einen Blick."
+    },
     "freshtab_app_speed_dials_row_history": {
         "message": "Meistbesucht"
     },
@@ -1910,8 +1937,17 @@
     "freshtab_app_middle_box_promote_mobile_desc": {
         "message": "Profitiere auch unterwegs von Schnellsuche, Datenschutz und Werbeblocker. Lade jetzt die kostenlose Cliqz-App herunter!"
     },
+    "freshtab_app_middle_box_ft_amo_hdr": {
+        "message": "Frisches Aussehen für neue Tabs! Und so leicht anpassbar."
+    },
+    "freshtab_app_middle_box_ft_amo_desc": {
+        "message": "Passe Cliqz Tab über das Zahnradsymbol an oder schalte ihn im Cliqz Control Center ein/aus."
+    },
+    "freshtab_app_middle_box_ft_amo_cta": {
+        "message": "Jetzt anpassen"
+    },
     "freshtab_app_top_box_import_bookmarks_hdr": {
-        "message": "Importiere jetzt Lesezeichen, Passwörter und Chronik."
+        "message": "Importiere Lesezeichen, Passwörter und Chronik ganz einfach aus anderen Browsern."
     },
     "freshtab_app_top_box_import_bookmarks_cta": {
         "message": "Jetzt Importieren"

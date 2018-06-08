@@ -38,26 +38,46 @@
 
     .aside {
         flex: 0 0 map-get($base-configs, aside-width);
-
         & > a, & > button {
             display: block;
             margin: 20px auto;
             width: 24px;
             height: 24px;
-            opacity: 0.4;
             color: transparent;
             font-size: 0;
             text-decoration: none;
             border: 0;
             cursor: pointer;
-
+            position: relative;
+            opacity: 1;
+            &:after {
+                content:"";
+                position: absolute;
+                width: 100%;
+                height:100%;
+                opacity: 0.75;
+                &:hover {
+                    opacity:1
+                }
+            }
             &#cliqz-home {
-                opacity: 0.8;
-                background: map-get($base-theme, cliqz-home-bg);
+                // opacity: 0.8;
+                // background: map-get($base-theme, cliqz-home-bg);
+                &:after {
+                    background: map-get($base-theme, cliqz-home-bg);
+                }
             }
 
             &#cliqz-history {
-                background: map-get($base-theme, cliqz-history-bg);
+                &:after {
+                    background: map-get($base-theme, cliqz-history-bg);
+                }
+            }
+
+            &#cliqz-worldcup {
+                &:after {
+                    background: map-get($base-theme, cliqz-worldcup-bg);
+                }
             }
 
             &#settings-btn {
@@ -66,6 +86,107 @@
 
             &:hover {
                 opacity: 1;
+            }
+            /* tooltip style */
+            .tooltip {
+                position: absolute;
+                padding:10px 20px;
+                left: 50px;
+                top: -20px;
+                background: #fff;
+                opacity: 1;
+                pointer-events: none;
+                color:#000;
+                font-size: 14px;
+                min-width: 330px;
+                box-shadow: 0 0 25px rgba(0,0,0,0.3);
+                z-index: 300;
+                transition: all linear .3s;
+                &.close {
+                    left: 15px;
+                    opacity: 0
+                }
+                h1 {
+                    padding-bottom: 10px;
+                    font-weight: 400;
+                }
+                p {
+                    padding-bottom: 10px;
+                }
+                button {
+                    border: none;
+                    cursor: pointer;
+                    background: none;
+                    pointer-events: initial;
+                    font-size: 14px;
+                    &.explore {
+                        color:#fff;
+                        background: #00AFF0;
+                        padding: 5px 10px;
+                        border-radius: 3px;
+                        margin-right: 10px;
+                    }
+                }
+
+                a {
+                    pointer-events: initial
+                }
+                &:hover {
+                    animation: none;
+                }
+                &-content {
+                    display: inline-block;
+                    width: calc(100% - 50px)
+                }
+                &-icon {
+                    vertical-align: top;
+                    display: inline-block;
+                    margin-right: 15px;
+                    padding-top: 10px;
+                    position: relative;
+                    width:32px;
+                    color: transparent;
+                    &:after {
+                        content: "";
+                        top:10px;
+                        position: absolute;
+                        left:-34px;
+                        width: 0;
+                        height: 0;
+                        border-top: 15px solid transparent;
+                        border-right: 20px solid rgba(255,255,255,01);
+                        border-bottom: 15px solid transparent;
+                    }
+                }
+                &-close {
+                    position: absolute;
+                    width: 25px;
+                    height: 25px;
+                    top: 8px;
+                    right: 8px;
+                    button {
+                        position: relative;
+                        display: block;
+                        text-indent: -9999px;
+                        cursor: pointer;
+                        width: 30px;
+                        height: 22px;
+                        margin: 0px;
+                        &:after, &:before {
+                            content:"";
+                            background: rgba(0,0,0,1);
+                            position: absolute;
+                            top: 0;
+                            right: 10px;
+                            height: 15px;
+                            width: 1px;
+                            transform: rotate(-45deg);
+                        }
+                        &:before {
+                            transform: rotate(45deg);
+                        }
+                    }
+                }
             }
         }
 
@@ -214,9 +335,20 @@ body {
         background-image: url(https://cdn.cliqz.com/extension/newtab/background/spring.png);
     }
 
+    &.theme-bg-worldcup {
+        background-color: #00adf3;
+        background-image: url(https://cdn.cliqz.com/extension/newtab/background/worldcup.jpg);
+    }
+
+    &.theme-bg-summer {
+        background-color: #00adf3;
+        background-image: url(https://cdn.cliqz.com/extension/newtab/background/summer.jpg);
+    }
+
     &.theme-bg-dark,
     &.theme-bg-blue,
-    &.theme-bg-matterhorn {
+    &.theme-bg-matterhorn,
+    &.theme-bg-worldcup {
         #app {
             $dark-theme: map-get($themes, dark);
 
@@ -257,21 +389,28 @@ body {
     }
 
     &.theme-bg-blue,
-    &.theme-bg-matterhorn {
+    &.theme-bg-matterhorn,
+    &.theme-bg-worldcup {
         #app {
 
             .aside {
                 & > a, & > button {
                     &#settings-btn,
                     &#cliqz-home,
-                    &#cliqz-history {
-                        opacity: 0.75;
+                    &#cliqz-history,
+                    &#cliqz-worldcup {
+                        opacity: 1;
+                        &:after {
+                            opacity:0.75;
+                        }
                     }
-
                     &#settings-btn:hover,
                     &#cliqz-home:hover,
-                    &#cliqz-history:hover {
-                        opacity: 1;
+                    &#cliqz-history:hover,
+                    &#cliqz-worldcup:hover {
+                        &:after {
+                            opacity:1
+                        }
                     }
                 }
             }
@@ -354,5 +493,75 @@ body {
             }
         }
     }
+
+    &.theme-bg-summer {
+        #app {
+
+            .aside {
+                & > a, & > button {
+                    &#settings-btn,
+                    &#cliqz-home,
+                    &#cliqz-worldcup:after,
+                    &#cliqz-history {
+                        opacity: 0.4;
+                    }
+
+                    &#settings-btn:hover,
+                    &#cliqz-home:hover,
+                    &#cliqz-worldcup:hover:after,
+                    &#cliqz-history:hover {
+                        opacity: 1;
+                    }
+                }
+            }
+
+            #main-content {
+                .fixed-container {
+                    .dial-header {
+                        color: rgba(0, 0, 0, 0.6);
+                    }
+
+                    .dials-row {
+                        .dial {
+                            button.plus-dial-icon {
+                                opacity: 0.5;
+
+                                &:hover {
+                                    opacity: 0.7;
+                                }
+                            }
+
+                            .logo {
+                                box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.25);
+                            }
+
+                            &:hover {
+                                .logo {
+                                    box-shadow: 0px 3px 8px 0px rgba(0, 0, 0, 0.25);
+                                }
+                            }
+                        }
+                    }
+
+                    #section-news {
+                        .news-pagination {
+                            .dash span {
+                                background-color: rgba(255, 255, 255, 0.4);
+                            }
+
+                            .dash.active span {
+                                background-color: rgba(255, 255, 255, 0.8);
+                            }
+
+                            .dash.active:hover span {
+                                background-color: rgba(255, 255, 255, 1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
+
 

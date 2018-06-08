@@ -12,11 +12,16 @@ import MessageCenter from './message-center';
 import OfferMiddleMessages from './middle-messages-offers';
 import t from '../i18n';
 import UndoDialRemoval from './undo-dial-removal';
-import { historyClickSignal, settingsClickSignal, homeConfigsStatusSignal, sendHomeUnloadSignal, sendHomeBlurSignal, sendHomeFocusSignal } from '../services/telemetry/home';
+import Tooltip from './tooltip';
+import { historyClickSignal, settingsClickSignal, homeConfigsStatusSignal, worldcupClickSignal,
+  sendHomeUnloadSignal, sendHomeBlurSignal, sendHomeFocusSignal } from '../services/telemetry/home';
 import localStorage from '../services/storage';
 import { deleteUndoSignal, undoCloseSignal } from '../services/telemetry/speed-dial';
 import { settingsRestoreTopSitesSignal, settingsComponentsToggleSignal, newsSelectionChangeSignal } from '../services/telemetry/settings';
 import { DEFAULT_BG, FALLBACK_BG, NO_BG } from '../services/background-image';
+import { TOOLTIP_WORLDCUP_GROUP, TOOLTIP_WORLDCUP_KNOCKOUT } from '../../constants';
+import { messageSkipSignal } from '../services/telemetry/worldcup';
+
 
 class App extends React.Component {
   constructor(props) {
@@ -97,6 +102,10 @@ class App extends React.Component {
 
   onHistoryClick() {
     historyClickSignal();
+  }
+
+  onWorldcupClick() {
+    worldcupClickSignal();
   }
 
   onMessageClicked(message) {
@@ -386,6 +395,12 @@ class App extends React.Component {
     });
   }
 
+  hideTooltip = (id) => {
+    this.setState({ config: { ...this.state.config, tooltip: '' } });
+    messageSkipSignal(id);
+    cliqz.freshtab.markTooltipAsSkipped();
+  }
+
   _hasNoBg() {
     return this.state.config.componentsState.background.image === NO_BG;
   }
@@ -423,6 +438,17 @@ class App extends React.Component {
     return searchConfig.visible && searchConfig.mode === 'search';
   }
 
+  get shouldShowWorldCupIcon() {
+    const currentDate = this.state.config.currentDate;
+    const minDate = '20180610';
+    const maxDate = '20180717';
+
+    if (currentDate >= minDate && currentDate < maxDate) {
+      return true;
+    }
+    return false;
+  }
+
   render() {
     return (
       <div
@@ -442,7 +468,7 @@ class App extends React.Component {
           handleLinkClick={msg => this.onMessageClicked(msg)}
         />
         <aside className="aside">
-          {this.state.config.isHistoryEnabled &&
+          {(this.state.config.isHistoryEnabled || this.shouldShowWorldCupIcon) &&
             <a href={CONFIG.settings.NEW_TAB_URL} id="cliqz-home">
               Home
             </a>
@@ -454,6 +480,52 @@ class App extends React.Component {
               onClick={() => this.onHistoryClick()}
             >
                 History
+            </a>
+          }
+          {this.shouldShowWorldCupIcon &&
+            <a
+              href={`${CONFIG.settings.WORLDCUP_URL}?lang=${this.state.config.locale}`}
+              id="cliqz-worldcup"
+              tabIndex="-1"
+              onClick={() => this.onWorldcupClick()}
+            >
+              World Cup
+              { this.state.config.tooltip === TOOLTIP_WORLDCUP_GROUP &&
+
+              <Tooltip
+                id="group"
+                title={t('app_group_tooltip_hdr')}
+                description={t('app_group_tooltip_txt')}
+                mainBtn={{
+                  id: 'explore',
+                  text: t('app_worldcup_tooltip_btn1'),
+                  url: `${CONFIG.settings.WORLDCUP_URL}?lang=${this.state.config.locale}`,
+                }}
+                secondaryBtn={{
+                  id: 'later',
+                  text: t('app_worldcup_tooltip_btn2'),
+                  onClick: () => this.hideTooltip('group.later'),
+                }}
+              />
+              }
+              { this.state.config.tooltip === TOOLTIP_WORLDCUP_KNOCKOUT &&
+
+              <Tooltip
+                id="knockout"
+                title={t('app_knockout_tooltip_hdr')}
+                description={t('app_knockout_tooltip_txt')}
+                mainBtn={{
+                  id: 'explore',
+                  text: t('app_worldcup_tooltip_btn1'),
+                  url: `${CONFIG.settings.WORLDCUP_URL}?lang=${this.state.config.locale}`,
+                }}
+                secondaryBtn={{
+                  id: 'later',
+                  text: t('app_worldcup_tooltip_btn2'),
+                  onClick: () => this.hideTooltip('knockout.later'),
+                }}
+              />
+              }
             </a>
           }
         </aside>
@@ -497,7 +569,6 @@ class App extends React.Component {
                 />
               </section>
             }
-
             <section id="section-middle">
               {this.shouldShowMiddleUrlBar &&
                 <div id="section-url-bar">

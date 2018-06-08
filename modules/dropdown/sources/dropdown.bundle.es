@@ -10,6 +10,10 @@ stylesheet.setAttribute('rel', 'stylesheet');
 stylesheet.setAttribute('href', `./styles/styles.css?r=${Date.now()}`);
 document.head.appendChild(stylesheet);
 
+const styleElement = document.createElement('style');
+let lastNavbarColor = null;
+document.head.appendChild(styleElement);
+
 Handlebars.partials = templates;
 Object.keys(helpers).forEach((helperName) => {
   Handlebars.registerHelper(helperName, helpers[helperName]);
@@ -30,6 +34,18 @@ dropdown.init();
 
 let previousResults;
 let maximumHeight;
+
+const updateNavbarColor = (color) => {
+  if (!color) {
+    styleElement.textContent = '';
+    return;
+  }
+  if (color === lastNavbarColor) {
+    return;
+  }
+  styleElement.textContent = `.history { background-color: ${color}!important }`;
+  lastNavbarColor = color;
+};
 
 const adjustScroll = (height) => {
   if (height > maximumHeight) {
@@ -84,6 +100,7 @@ const exportedActions = {
     query,
     queriedAt,
     sessionId,
+    navbarColor,
   }, {
     assistantStates,
     urlbarAttributes,
@@ -128,9 +145,11 @@ const exportedActions = {
 
     previousResults = results;
 
+    updateNavbarColor(navbarColor);
     dropdown.renderResults(results, {
       urlbarAttributes,
       extensionId: assistantStates.settings.id,
+      channelId: assistantStates.settings.channel,
     });
 
     const height = container$.scrollHeight;

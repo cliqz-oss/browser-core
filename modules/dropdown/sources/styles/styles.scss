@@ -24,13 +24,6 @@ $light-gray: #f2f2f2;
 $basic-font-size: 15px;
 $basic-line-height: (16 / 15) + 0em;
 
-#cliqz-dropdown[data-extension-id='funnelcake@cliqz.com'],
-#cliqz-dropdown[data-extension-id='description_test@cliqz.com'] {
-    .logo {
-        /* Rounded logos for funnelcake */
-        border-radius: 50%;
-    }
-}
 
 #cliqz-dropdown {
     font-family: "-mac-system", "-apple-system", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
@@ -154,6 +147,10 @@ $basic-line-height: (16 / 15) + 0em;
         height: 1px;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         z-index: 1;
+
+        @at-root #cliqz-dropdown[data-channel-id='04'] div.urlbar-bottom-line {
+            display: none!important;
+        }
     }
 
     .suggestions {
@@ -480,7 +477,7 @@ $basic-line-height: (16 / 15) + 0em;
 
     .history {
         background-color: $light-gray;
-
+        
         .description[data-extra='full-url'] {
             display: none;
         }

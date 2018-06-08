@@ -52,6 +52,7 @@ module.exports = {
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
     "antitrackingPlaceholder": "cliqz.com/tracking",
     "antitrackingHeader": "CLIQZ-AntiTracking",
+    "WORLDCUP_URL": "https://sport.cliqz.com/",
   }),
   'default_prefs' : {
     'modules.history-analyzer.enabled': false
@@ -75,7 +76,6 @@ module.exports = {
     'hpn',
     'control-center',
     'offers-v2',
-    'history-analyzer',
     'offers-cc',
     'browser-panel',
     'message-center',

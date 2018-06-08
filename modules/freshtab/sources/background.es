@@ -5,6 +5,7 @@
 import inject from '../core/kord/inject';
 import NewTabPage from './main';
 import News from './news';
+import { TOOLTIP_WORLDCUP_GROUP, TOOLTIP_WORLDCUP_KNOCKOUT } from './constants';
 import History from '../platform/freshtab/history';
 import openImportDialog from '../platform/freshtab/browser-import-dialog';
 import utils from '../core/utils';
@@ -12,6 +13,7 @@ import events from '../core/events';
 import SpeedDial from './speed-dial';
 import AdultDomain from './adult-domain';
 import background from '../core/base/background';
+import moment from '../platform/lib/moment';
 import {
   forEachWindow,
   mapWindows,
@@ -20,9 +22,9 @@ import {
 } from '../core/browser';
 import { queryActiveTabs } from '../core/tabs';
 import config from '../core/config';
-import { isCliqzBrowser, isCliqzAtLeastInVersion, isWebExtension } from '../core/platform';
+import { isCliqzBrowser, isCliqzAtLeastInVersion, isWebExtension, isAMO } from '../core/platform';
 import prefs from '../core/prefs';
-import { dismissMessage, countMessageClick } from './actions/message';
+import { dismissMessage, countMessageClick, setMessageShownTime, saveMessageDismission } from './actions/message';
 import { getLanguageFromLocale } from '../core/i18n';
 import HistoryService from '../platform/history-service';
 
@@ -31,6 +33,7 @@ const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 const BLUE_THEME_PREF = 'freshtab.blueTheme.enabled';
 const DEVELOPER_FLAG_PREF = 'developer';
 const REAL_ESTATE_ID = 'cliqz-tab';
+const DISMISSED_ALERTS = 'dismissedAlerts';
 
 const blackListedEngines = [
   'Google Images',
@@ -72,6 +75,21 @@ export default background({
   * @method init
   */
   init(settings) {
+    if (isAMO && (prefs.get('freshtab.amo.rollout', false) === false)) {
+      // no rollout done so we:
+      //  1. turn it on for everybody who has it off
+      //  2. reset their background to spring (all users)
+
+      // we only do it once
+      prefs.set('freshtab.amo.rollout', true);
+
+      if (prefs.get('freshtab.state', false) === false) {
+        prefs.set('freshtab.state', true);
+      }
+
+      this.actions.saveBackgroundImage('bg-spring');
+    }
+
     this.newTabPage = NewTabPage;
 
     this.newTabPage.startup();
@@ -177,6 +195,41 @@ export default background({
     return (isCliqzBrowser && CLIQZ_1_16_OR_ABOVE) || prefs.get(DEVELOPER_FLAG_PREF, false);
   },
 
+  get tooltip() {
+    let activeTooltip = '';
+    const currentDate = prefs.get('config_ts');
+    const dismissedMessages = prefs.getObject(DISMISSED_ALERTS);
+    const isActive = (id, startDate, endDate) => {
+      const meta = dismissedMessages[id] || {};
+      if (meta.isDismissed) {
+        return false;
+      }
+
+      if (id === TOOLTIP_WORLDCUP_GROUP && currentDate >= endDate) {
+        return false;
+      }
+
+      if (meta.skippedAt) {
+        return moment().diff(meta.skippedAt, 'hours') >= 24;
+      }
+
+      if (currentDate >= startDate && currentDate <= endDate) {
+        return true;
+      }
+
+      return false;
+    };
+
+    if (isActive(TOOLTIP_WORLDCUP_GROUP, '20180614', '20180629')) {
+      activeTooltip = TOOLTIP_WORLDCUP_GROUP;
+    }
+    if (isActive(TOOLTIP_WORLDCUP_KNOCKOUT, '20180630', '20180715')) {
+      activeTooltip = TOOLTIP_WORLDCUP_KNOCKOUT;
+    }
+
+    return activeTooltip;
+  },
+
   /*
   * Blue background is supported for all AMO users
   * and CLIQZ users above 1.16.0
@@ -196,13 +249,6 @@ export default background({
   getComponentsState() {
     const freshtabConfig = prefs.getObject(FRESHTAB_CONFIG_PREF);
 
-    let defaultBg = 'bg-winter';
-
-    if (prefs.get('new_session', true)) {
-      defaultBg = 'bg-matterhorn';
-      this.actions.saveBackgroundImage(defaultBg);
-    }
-
     return {
       historyDials: Object.assign({}, DEFAULT_COMPONENT_STATE, freshtabConfig.historyDials),
       customDials: Object.assign({}, DEFAULT_COMPONENT_STATE, freshtabConfig.customDials),
@@ -212,11 +258,42 @@ export default background({
         mode: prefs.get('freshtab.search.mode', 'urlbar'),
       },
       news: Object.assign({}, DEFAULT_COMPONENT_STATE, freshtabConfig.news),
-      background: Object.assign({}, { image: defaultBg }, freshtabConfig.background),
+      background: Object.assign({}, { image: 'bg-matterhorn' }, freshtabConfig.background),
     };
   },
 
   actions: {
+    markTooltipAsSkipped() {
+      const tooltip = this.tooltip;
+      if (!tooltip) {
+        return;
+      }
+      const dismissedMessages = prefs.getObject(DISMISSED_ALERTS);
+      prefs.setObject(DISMISSED_ALERTS, {
+        ...dismissedMessages,
+        [tooltip]: {
+          ...dismissedMessages[tooltip],
+          skippedAt: Date.now(),
+        },
+      });
+    },
+
+    selectResult(
+      selection,
+      { tab: { id: tabId } = {} } = {},
+    ) {
+      const report = {
+        ...selection,
+        isPrivateResult: utils.isPrivateResultType(selection.kind),
+        tabId,
+      };
+
+      delete report.kind;
+
+      events.pub('ui:click-on-url', report);
+
+      this.search.action('reportSelection', report, { tab: { id: tabId } });
+    },
 
     sendUserFeedback(data) {
       const feedback = {
@@ -256,6 +333,8 @@ export default background({
 
     dismissMessage,
     countMessageClick,
+    setMessageShownTime,
+    saveMessageDismission,
 
     checkForHistorySpeedDialsToRestore() {
       const history = JSON.parse(prefs.get(DIALUPS, '{}', '')).history
@@ -612,6 +691,8 @@ export default background({
         messages: this.messages,
         isHistoryEnabled: prefs.get('modules.history.enabled', false) && config.settings.HISTORY_URL,
         componentsState: this.getComponentsState(),
+        currentDate: prefs.get('config_ts', null),
+        tooltip: this.tooltip,
       };
     },
 

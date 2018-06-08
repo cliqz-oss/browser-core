@@ -139,6 +139,23 @@ export default class {
     return this.parentElement.ownerDocument;
   }
 
+  get navbarColor() {
+    const CHANNEL_TRESHOLD = 220;
+    const toolbar = this.window.document.getElementById('nav-bar');
+    const bgColor = this.window.getComputedStyle(toolbar)['background-color'];
+
+    // Check if toolbar background color is light-grey-ish and non-transparent
+    const [, r, g, b, a] = bgColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+))?/) || ['', '0', '0', '0', '0'];
+    if (r > CHANNEL_TRESHOLD &&
+        g > CHANNEL_TRESHOLD &&
+        b > CHANNEL_TRESHOLD &&
+       (a === undefined || a >= 1)
+    ) {
+      return bgColor;
+    }
+    return null;
+  }
+
   init() {
     const cliqzToolbar = this.document.createElement('toolbar');
     cliqzToolbar.id = 'cliqz-toolbar';
@@ -290,6 +307,7 @@ export default class {
       query,
       queriedAt,
       sessionId: getSessionId(),
+      navbarColor: this.navbarColor,
     }, {
       assistantStates: {
         adult: this.adultAssistant.getState(),

@@ -57,6 +57,7 @@ module.exports = {
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
     "antitrackingPlaceholder": "cliqz.com/tracking",
     "antitrackingHeader": "CLIQZ-AntiTracking",
+    "WORLDCUP_URL": "https://sport.cliqz.com/",
   }),
   "default_prefs" : {
     "modules.context-search.enabled": false,

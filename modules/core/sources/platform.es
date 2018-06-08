@@ -17,6 +17,7 @@ export const isChromium = platform.isChromium;
 export const isEdge = platform.isEdge;
 export const platformName = platform.platformName;
 export const isCliqzBrowser = config.settings.channel === '40';
+export const isAMO = config.settings.channel === '04';
 export const isOnionMode = !!platform.isOnionMode;
 export const isWebExtension = platformName === 'webextension';
 

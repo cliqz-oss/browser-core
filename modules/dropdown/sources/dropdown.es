@@ -81,12 +81,16 @@ export default class Dropdown {
     this.dropdownElement.innerHTML = '';
   }
 
-  renderResults(results, { urlbarAttributes, extensionId } = {}) {
+  renderResults(results, { urlbarAttributes, extensionId, channelId } = {}) {
     this.selectedIndex = 0;
     this.results = results;
 
     if (extensionId) {
       this.dropdownElement.dataset.extensionId = extensionId;
+    }
+
+    if (channelId) {
+      this.dropdownElement.dataset.channelId = channelId;
     }
 
     // Render and insert templates

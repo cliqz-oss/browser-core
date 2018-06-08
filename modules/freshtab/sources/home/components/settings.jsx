@@ -136,6 +136,22 @@ export default class Settings extends React.Component {
                     isActive={this.state.componentsState.background.image === 'bg-spring'}
                   />
                 </li>
+                <li>
+                  <BackgroundImage
+                    onBackgroundImageChanged={this.onBackgroundImageChanged}
+                    bg="bg-worldcup"
+                    src="./images/bg-worldcup-thumbnail.png"
+                    isActive={this.state.componentsState.background.image === 'bg-worldcup'}
+                  />
+                </li>
+                <li>
+                  <BackgroundImage
+                    onBackgroundImageChanged={this.onBackgroundImageChanged}
+                    bg="bg-summer"
+                    src="./images/bg-summer-thumbnail.png"
+                    isActive={this.state.componentsState.background.image === 'bg-summer'}
+                  />
+                </li>
               </ul>
             </div>
           )

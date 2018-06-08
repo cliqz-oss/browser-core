@@ -1,15 +1,15 @@
-@mixin transitionNotifications() {
-    transition: transform 0.35s ease-out;
-}
-
 @mixin undo-notifications (
     $cliqz-home-bg,
     $cliqz-history-bg,
+    $cliqz-worldcup-bg,
     $cliqz-settings-bg,
 
     $button-color,
     $button-color-hover
 ){
+    @mixin transitionNotifications() {
+      transition: transform 0.35s ease-out;
+    }
     .undo-notification-box {
       @include transitionNotifications();
 

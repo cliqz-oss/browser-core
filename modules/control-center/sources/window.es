@@ -2,6 +2,7 @@ import config from '../core/config';
 import inject from '../core/kord/inject';
 import utils from '../core/utils';
 import events from '../core/events';
+import prefs from '../core/prefs';
 import console from '../core/console';
 import { getMessage } from '../core/i18n';
 import { getThemeStyle } from '../platform/browser';
@@ -492,6 +493,8 @@ export default class Win {
       moduleData.searchProxy = { enabled: utils.getPref('hpn-query', false) };
 
       ccData.module = moduleData;
+
+      ccData.telemetry = prefs.get('telemetry', true);
 
       return ccData;
     });

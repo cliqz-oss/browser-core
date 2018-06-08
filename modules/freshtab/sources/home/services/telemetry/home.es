@@ -18,6 +18,14 @@ export function historyClickSignal() {
   });
 }
 
+export function worldcupClickSignal() {
+  telemetry({
+    type: 'home',
+    action: 'click',
+    target: 'worldcup',
+  });
+}
+
 export function settingsClickSignal() {
   telemetry({
     type: 'home',

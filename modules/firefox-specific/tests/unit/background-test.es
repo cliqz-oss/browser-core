@@ -31,9 +31,6 @@ export default describeModule('firefox-specific/background',
       '../core/history-manager': {
         default: {},
       },
-      '../core/search-engines': {
-        getDefaultEngine: () => '',
-      },
     };
   },
   function () {
@@ -86,16 +83,14 @@ export default describeModule('firefox-specific/background',
           config_location: '111'
         });
         this.deps('../core/utils').default.extensionVersion = '1';
-        this.deps('../core/utils').default.telemetry = (signal, flag, schema) => {
-          if (schema !== 'metrics.experiments.serp.state') {
-            const prefs = signal.prefs;
-            chai.expect(signal).to.have.property('type').that.equal('environment');
-            chai.expect(signal).to.have.property('agent').that.contain('Mozilla');
-            chai.expect(signal).to.have.property('version').that.exist;
-            chai.expect(prefs).to.exist;
-            chai.expect(prefs).to.have.property('session').that.exist;
-            chai.expect(prefs).to.have.property('config_location').that.exist;
-          }
+        this.deps('../core/utils').default.telemetry = (signal) => {
+          const prefs = signal.prefs;
+          chai.expect(signal).to.have.property('type').that.equal('environment');
+          chai.expect(signal).to.have.property('agent').that.contain('Mozilla');
+          chai.expect(signal).to.have.property('version').that.exist;
+          chai.expect(prefs).to.exist;
+          chai.expect(prefs).to.have.property('session').that.exist;
+          chai.expect(prefs).to.have.property('config_location').that.exist;
         };
         this.deps('../core/history-manager').default.getStats = cb => cb({
 
