@@ -129,4 +129,3 @@ You can manually connect to docker with any VNC client on `localhost`, port `159
 ## Contributions
 
 Please use the configuration from [editorconfig](/.editorconfig).
-Make sure to check out the [**JavaScript Style Guide**](https://github.com/cliqz/js-style-guide) and ensure that your code complies with the rules.
