@@ -42,7 +42,7 @@ To start build system:
 
 `./fern.js serve`
 
-Release channel configuration file can be specified via optional argument (default is ./config/jenkins.json`):
+Release channel configuration file can be specified via optional argument (default is `./config/jenkins.json`):
 
 `./fern.js serve ./configs/amo.js`
 
@@ -51,7 +51,7 @@ To run ember freshtab:
 `cd modules/fresh-tab-frontend`
 `ember serve -p 3000`
 
-You can then access freshtab under http://localhost:3000. Every change you make in fresh-tab-frontend folder will be live reloaded. However if you change anything in freshtab folder (backend), restart browser to see your changes.
+You can then access freshtab under `http://localhost:3000`. Every change you make in fresh-tab-frontend folder will be live reloaded. However if you change anything in freshtab folder (backend), restart browser to see your changes.
 
 To build ember freshtab:
 `./fern.js serve --freshtab ./configs/browser.js`
@@ -65,18 +65,20 @@ All release channels configurations files are stored in `./configs` folder. Choo
 `./fern.js build ./configs/<CHANNEL_NAME>.json`
 
 Examples:
+
 * `./fern.js build ./configs/amo.js`
 * `./fern.js build ./configs/browser.js`
 * `./fern.js build ./configs/mobile.json`
 
-##Custom prefs
+## Custom prefs
 
 If you want to load your browser with predefined prefs all you have to do is create a .custom-prefs.json file in the root folder and add your custom prefs there.
 
 Example:
-```
+
+```json
 {
-  "extensions.cliqz.triggersBE": " http://10.1.21.104",
+  "extensions.cliqz.triggersBE": "http://10.1.21.104",
   "extensions.cliqz.offers2FeatureEnabled": true,
   "extensions.cliqz.offersDevFlag": true,
   "extensions.cliqz.offersHubTrigger": "auto"
@@ -112,11 +114,12 @@ environment is setup correctly; that is, you can run `./fern.js build` and it
 should build the extension successfuly (which will be attempted by the script
 if no `build` folder is present):
 
-```sh
+```
 ./run_tests_docker.sh <FIREFOX_VERSION>
 ```
 
 You need `bash4` on MacOS, you can do
+
 ```
 brew install bash
 /usr/local/bin/bash run_tests_docker.sh <FIREFOX_VERSION>
