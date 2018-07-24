@@ -58,36 +58,51 @@ export default [
       }];
     },
     schema: {
-      // AB test group this user is in
-      group: { enum: ['A', 'B', 'C', null] },
-      // true, if Cliqz is (still) the default search engine (users can change)
-      isCliqzDefaultEngine: { type: 'boolean' },
-      // 'dropdown' is a reduced version of the 'search.sessions' analysis
-      dropdownSelections: {
-        cliqz: {
-          total: { type: 'integer', minimum: 0 },
-          // number of times the user selected a Cliqz result leading to a
-          // search engine (like Google)
-          isSearchEngine: { type: 'integer', minimum: 0 },
+      required: [],
+      properties: {
+        // AB test group this user is in
+        group: { enum: ['A', 'B', 'C', null] },
+        // true, if Cliqz is (still) the default search engine (users can change)
+        isCliqzDefaultEngine: { type: 'boolean' },
+        // 'dropdown' is a reduced version of the 'search.sessions' analysis
+        dropdownSelections: {
+          required: [],
+          properties: {
+            cliqz: {
+              required: [],
+              properties: {
+                total: { type: 'integer', minimum: 0 },
+                // number of times the user selected a Cliqz result leading to a
+                // search engine (like Google)
+                isSearchEngine: { type: 'integer', minimum: 0 },
+              },
+            },
+            direct: {
+              required: [],
+              properties: {
+                total: { type: 'integer', minimum: 0 },
+                // number of times the user typed a search engine URL (like Google)
+                isSearchEngine: { type: 'integer', minimum: 0 },
+              },
+            },
+            other: { type: 'integer', minimum: 0 },
+            abandoned: { type: 'integer', minimum: 0 },
+          },
         },
-        direct: {
-          total: { type: 'integer', minimum: 0 },
-          // number of times the user typed a search engine URL (like Google)
-          isSearchEngine: { type: 'integer', minimum: 0 },
+        serpSelections: {
+          required: [],
+          properties: {
+            // number of times a user selected a SERP result
+            result: { type: 'integer', minimum: 0 },
+            // number of times a user selected a SERP query suggestion
+            suggestion: { type: 'integer', minimum: 0 },
+            // number of times a user selected the "Google" option at the bottom
+            other: { type: 'integer', minimum: 0 },
+            // number of times the SERP was shown but the user didn't select anything
+            abandoned: { type: 'integer' },
+          },
         },
-        other: { type: 'integer', minimum: 0 },
-        abandoned: { type: 'integer', minimum: 0 },
-      },
-      serpSelections: {
-        // number of times a user selected a SERP result
-        result: { type: 'integer', minimum: 0 },
-        // number of times a user selected a SERP query suggestion
-        suggestion: { type: 'integer', minimum: 0 },
-        // number of times a user selected the "Google" option at the bottom
-        other: { type: 'integer', minimum: 0 },
-        // number of times the SERP was shown but the user didn't select anything
-        abandoned: { type: 'integer', minimum: 0 },
-      },
-    }
+      }
+    },
   },
 ];

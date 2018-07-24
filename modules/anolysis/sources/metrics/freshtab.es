@@ -21,8 +21,11 @@ function mkFreshtabSchema(members, hasIndex, extra = {}) {
 
   return {
     name: `freshtab.${members.map(({ value }) => value).filter(v => v).join('.')}`,
-    sendToBackend: false,
     schema: {
+      required: [
+        ...Object.keys(properties),
+        ...Object.keys(extra),
+      ],
       properties: {
         ...properties,
         ...extra,
@@ -49,6 +52,7 @@ export default [
     offsets: [0],
     generate: async () => [await inject.module('freshtab').action('getState')],
     schema: {
+      required: ['active'],
       properties: {
         active: { type: 'boolean' },
       },
@@ -61,6 +65,7 @@ export default [
       enabled: await inject.module('freshtab').action('isBlueThemeEnabled'),
     }],
     schema: {
+      required: ['enabled'],
       properties: {
         enabled: { type: 'boolean' },
       },
@@ -71,6 +76,14 @@ export default [
     offsets: [0],
     generate: async () => [await inject.module('freshtab').action('getComponentsState')],
     schema: {
+      required: [
+        'components',
+        'historyDials',
+        'customDials',
+        'search',
+        'news',
+        'background',
+      ],
       properties: {
         components: { type: 'object' },
         historyDials: {

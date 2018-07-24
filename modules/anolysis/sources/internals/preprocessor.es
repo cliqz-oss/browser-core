@@ -47,17 +47,18 @@ export default class Preprocessor {
     // Check JSON schema using Ajv library if it is `sendToBackend`.
     // We currently perform the schema validation only in developper mode.
     if (this.isDev && schema.sendToBackend) {
-      const valid = schema.validate(signal);
+      const { valid, errors } = schema.validate(signal);
       if (!valid) {
-        const prettySignal = JSON.stringify(signal, undefined, 2);
-        const errors = JSON.stringify(schema.validate.errors, undefined, 2);
         logger.error('Signal does not respect schema',
           schemaName,
-          prettySignal,
+          signal,
           errors,
         );
 
-        return Promise.reject(`Signal could not be validated: got ${prettySignal} with errors: ${errors}`);
+        const prettySignal = JSON.stringify(signal, undefined, 2);
+        const prettyErrors = JSON.stringify(errors, undefined, 2);
+        const prettySchema = JSON.stringify(schema.schema, undefined, 2);
+        return Promise.reject(`Signal could not be validated: got ${prettySignal} with errors: ${prettyErrors} for schema: ${prettySchema}`);
       }
     }
 

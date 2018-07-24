@@ -121,6 +121,7 @@ export default class GenericResult extends BaseResult {
       tweet_count: extra.tweet_count,
       showLogo: hostname && hostname !== urlStripProtocol(fastUrlParser.parse(url).hostname),
       text: this.query,
+      isBreakingNews: extra.breaking,
     }));
   }
 

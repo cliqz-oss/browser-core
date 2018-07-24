@@ -1,42 +1,16 @@
-<?xml version="1.0" encoding="utf-8"?>
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-     width="60px" height="60px" viewBox="0 0 60 60" style="enable-background:new 0 0 60 60;" xml:space="preserve">
-<style type="text/css">
-    .st0{clip-path:url(#SVGID_2_);}
-    .st1{clip-path:url(#SVGID_4_);fill:#B1B1B2;}
-    .st2{clip-path:url(#SVGID_6_);fill:none;stroke:#FFFFFF;stroke-width:3;stroke-linecap:round;stroke-miterlimit:10;}
-</style>
-<g>
-    <defs>
-        <path id="SVGID_1_" d="M54.036,24.615c-0.381-1.14-1.353-1.982-2.535-2.199l-12.267-2.193L33.456,8.628
-            C32.898,7.508,31.754,6.8,30.503,6.8c-1.251,0-2.395,0.708-2.953,1.828l-5.781,11.595L9.525,22.41
-            c-1.193,0.208-2.176,1.053-2.561,2.202c-0.385,1.148-0.11,2.415,0.716,3.3l8.781,9.441l-1.827,13.08
-            c-0.172,1.225,0.356,2.444,1.368,3.156c1.011,0.712,2.336,0.799,3.432,0.225l11.067-5.772l11.07,5.781
-            c1.096,0.574,2.421,0.488,3.432-0.225s1.539-1.931,1.368-3.156l-1.83-13.089l8.778-9.438
-            C54.146,27.03,54.421,25.763,54.036,24.615z"/>
-    </defs>
-    <clipPath id="SVGID_2_">
-        <use xlink:href="#SVGID_1_"  style="overflow:visible;"/>
-    </clipPath>
-    <g class="st0">
-        <defs>
-            <rect id="SVGID_3_" width="60" height="60"/>
-        </defs>
-        <clipPath id="SVGID_4_">
-            <use xlink:href="#SVGID_3_"  style="overflow:visible;"/>
-        </clipPath>
-        <rect x="1.793" y="1.8" class="st1" width="57.414" height="57.4"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="30px" height="29px" viewBox="0 0 30 29" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+    <title>bookmark-16-filled</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="import-bookmark-flat-arrow" transform="translate(-5.000000, -5.000000)" fill="#00AEF0" fill-rule="nonzero">
+            <g id="import-arrow-flat" transform="translate(4.000000, 4.000000)">
+                <g id="bookmark-16-filled" transform="translate(0.536626, 0.302589)">
+                    <path d="M30.3052884,11.3909186 C30.0651663,10.7112976 29.4537553,10.2090816 28.7093122,10.0799763 L20.9862985,8.77261095 L17.348606,1.8602071 C16.9971516,1.19247432 16.2770497,0.770448757 15.4891521,0.770448757 C14.7012546,0.770448757 13.9811527,1.19247432 13.6296982,1.8602071 L9.99011707,8.77261095 L2.2822132,10.0763994 C1.53117477,10.200633 0.912328869,10.7044087 0.669932808,11.388887 C0.427536747,12.0733653 0.600534715,12.8285756 1.12064474,13.3564379 L6.64895511,18.9847263 L5.49871903,26.7824186 C5.39058203,27.5128401 5.72299325,28.2391754 6.35979322,28.6639093 C6.99659318,29.0886431 7.8307895,29.1404136 8.52068575,28.7980148 L15.4882078,25.3570148 L22.4576185,28.8033802 C23.1475148,29.1457789 23.9817111,29.0940085 24.6185111,28.6692747 C25.255311,28.2445408 25.5877222,27.5182055 25.4795852,26.787784 L24.3274604,18.9847263 L29.8538821,13.3582263 C30.3741385,12.8305495 30.5474004,12.0754438 30.3052884,11.3909186 Z" id="Shape"></path>
+                </g>
+            </g>
+        </g>
     </g>
-</g>
-<g>
-    <defs>
-        <rect id="SVGID_5_" width="60" height="60"/>
-    </defs>
-    <clipPath id="SVGID_6_">
-        <use xlink:href="#SVGID_5_"  style="overflow:visible;"/>
-    </clipPath>
-    <line class="st2" x1="31.29" y1="27.649" x2="36.075" y2="32.434"/>
-    <line class="st2" x1="31.306" y1="37.219" x2="36.091" y2="32.435"/>
-    <line class="st2" x1="34.355" y1="32.518" x2="23.582" y2="32.518"/>
-</g>
 </svg>

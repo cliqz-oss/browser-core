@@ -6,8 +6,6 @@ import NewTabPage from './main';
 import News from './news';
 import {
   PREF_SEARCH_MODE,
-  TOOLTIP_WORLDCUP_GROUP,
-  TOOLTIP_WORLDCUP_KNOCKOUT,
   DEFAULT_BG } from './constants';
 import getWallpapers from './wallpapers';
 import History from '../platform/freshtab/history';
@@ -18,7 +16,6 @@ import SpeedDial from './speed-dial';
 import AdultDomain from './adult-domain';
 import OffersUpdateService from './services/offers-update';
 import background from '../core/base/background';
-import moment from '../platform/lib/moment';
 import {
   forEachWindow,
   mapWindows,
@@ -48,7 +45,6 @@ const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 const BLUE_THEME_PREF = 'freshtab.blueTheme.enabled';
 const DEVELOPER_FLAG_PREF = 'developer';
 const REAL_ESTATE_ID = 'cliqz-tab';
-const DISMISSED_ALERTS = 'dismissedAlerts';
 
 const blackListedEngines = [
   'Google Images',
@@ -214,47 +210,14 @@ export default background({
   * Blue theme is supported only for CLIQZ users above 1.16.0
   */
   get isBlueThemeSupported() {
-    if (isWebExtension) {
+    const CLIQZ_1_21_OR_ABOVE = isCliqzAtLeastInVersion('1.21.0');
+
+    if (isWebExtension || (isCliqzBrowser && CLIQZ_1_21_OR_ABOVE)) {
       return false;
     }
 
     const CLIQZ_1_16_OR_ABOVE = isCliqzAtLeastInVersion('1.16.0');
     return (isCliqzBrowser && CLIQZ_1_16_OR_ABOVE) || prefs.get(DEVELOPER_FLAG_PREF, false);
-  },
-
-  get tooltip() {
-    let activeTooltip = '';
-    const currentDate = prefs.get('config_ts');
-    const dismissedMessages = prefs.getObject(DISMISSED_ALERTS);
-    const isActive = (id, startDate, endDate) => {
-      const meta = dismissedMessages[id] || {};
-      if (meta.isDismissed) {
-        return false;
-      }
-
-      if (id === TOOLTIP_WORLDCUP_GROUP && currentDate >= endDate) {
-        return false;
-      }
-
-      if (meta.skippedAt) {
-        return moment().diff(meta.skippedAt, 'hours') >= 24;
-      }
-
-      if (currentDate >= startDate && currentDate <= endDate) {
-        return true;
-      }
-
-      return false;
-    };
-
-    if (isActive(TOOLTIP_WORLDCUP_GROUP, '20180614', '20180629')) {
-      activeTooltip = TOOLTIP_WORLDCUP_GROUP;
-    }
-    if (isActive(TOOLTIP_WORLDCUP_KNOCKOUT, '20180630', '20180715')) {
-      activeTooltip = TOOLTIP_WORLDCUP_KNOCKOUT;
-    }
-
-    return activeTooltip;
   },
 
   /*
@@ -305,21 +268,6 @@ export default background({
   },
 
   actions: {
-    markTooltipAsSkipped() {
-      const tooltip = this.tooltip;
-      if (!tooltip) {
-        return;
-      }
-      const dismissedMessages = prefs.getObject(DISMISSED_ALERTS);
-      prefs.setObject(DISMISSED_ALERTS, {
-        ...dismissedMessages,
-        [tooltip]: {
-          ...dismissedMessages[tooltip],
-          skippedAt: Date.now(),
-        },
-      });
-    },
-
     selectResult(
       selection,
       { tab: { id: tabId } = {} } = {},
@@ -786,7 +734,6 @@ export default background({
         isHistoryEnabled: prefs.get('modules.history.enabled', false) && config.settings.HISTORY_URL,
         componentsState: this.getComponentsState(),
         currentDate: prefs.get('config_ts', null),
-        tooltip: this.tooltip,
       };
     },
 

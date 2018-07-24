@@ -27,6 +27,11 @@
         </p>
 
         <p>
+          {{#if isBreakingNews}}
+              <span class="breaking-news">
+                  {{local 'breaking_news_label'}}
+              </span>
+          {{/if}}
           {{#if publishedAt}}
               <span class="published-at subtitle attention">
                   {{agoline publishedAt}}

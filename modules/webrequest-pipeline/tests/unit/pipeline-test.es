@@ -23,6 +23,16 @@ export default describeModule('webrequest-pipeline/pipeline',
         warning() {},
       },
     },
+    'core/services/telemetry': {
+      default: {
+        push: () => {},
+      },
+    },
+    'core/helpers/timeout': {
+      default: () => ({
+        stop() {},
+      }),
+    },
   }),
   function () {
     let Pipeline;
@@ -33,7 +43,7 @@ export default describeModule('webrequest-pipeline/pipeline',
 
     describe('constructor', () => {
       it('creates an empty pipeline', () => {
-        const p = new Pipeline();
+        const p = new Pipeline('name');
         chai.expect(p.pipeline).to.have.length(0);
       });
     });
@@ -42,7 +52,7 @@ export default describeModule('webrequest-pipeline/pipeline',
       let p;
 
       beforeEach(function () {
-        p = new Pipeline();
+        p = new Pipeline('name');
       });
 
       it('adds a step to the pipeline', () => {
@@ -116,7 +126,7 @@ export default describeModule('webrequest-pipeline/pipeline',
       }
 
       beforeEach(function () {
-        p = new Pipeline();
+        p = new Pipeline('name');
       });
 
       it('returns object for empty pipeline', () => {

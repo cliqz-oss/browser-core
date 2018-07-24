@@ -12,16 +12,12 @@ import MessageCenter from './message-center';
 import t from '../i18n';
 import UndoDialRemoval from './undo-dial-removal';
 import Overlay from './overlay';
-import Tooltip from './tooltip';
 import { historyClickSignal, settingsClickSignal, homeConfigsStatusSignal, worldcupClickSignal,
   sendHomeUnloadSignal, sendHomeBlurSignal, sendHomeFocusSignal } from '../services/telemetry/home';
 import localStorage from '../services/storage';
 import { deleteUndoSignal, undoCloseSignal } from '../services/telemetry/speed-dial';
 import { settingsRestoreTopSitesSignal, settingsComponentsToggleSignal, newsSelectionChangeSignal } from '../services/telemetry/settings';
 import { DEFAULT_BG, FALLBACK_BG, NO_BG } from '../services/background-image';
-import { TOOLTIP_WORLDCUP_GROUP, TOOLTIP_WORLDCUP_KNOCKOUT } from '../../constants';
-import { messageSkipSignal } from '../services/telemetry/worldcup';
-
 
 class App extends React.Component {
   constructor(props) {
@@ -413,12 +409,6 @@ class App extends React.Component {
     });
   }
 
-  hideTooltip = (id) => {
-    this.setState({ config: { ...this.state.config, tooltip: '' } });
-    messageSkipSignal(id);
-    cliqz.freshtab.markTooltipAsSkipped();
-  }
-
   _hasNoBg() {
     return this.state.config.componentsState.background.image === NO_BG;
   }
@@ -520,42 +510,6 @@ class App extends React.Component {
                 onClick={() => this.onWorldcupClick()}
               >
                 World Cup
-                { this.state.config.tooltip === TOOLTIP_WORLDCUP_GROUP &&
-
-                <Tooltip
-                  id="group"
-                  title={t('app_group_tooltip_hdr')}
-                  description={t('app_group_tooltip_txt')}
-                  mainBtn={{
-                    id: 'explore',
-                    text: t('app_worldcup_tooltip_btn1'),
-                    url: `${CONFIG.settings.WORLDCUP_URL}?lang=${this.state.config.locale}`,
-                  }}
-                  secondaryBtn={{
-                    id: 'later',
-                    text: t('app_worldcup_tooltip_btn2'),
-                    onClick: () => this.hideTooltip('group.later'),
-                  }}
-                />
-                }
-                { this.state.config.tooltip === TOOLTIP_WORLDCUP_KNOCKOUT &&
-
-                <Tooltip
-                  id="knockout"
-                  title={t('app_knockout_tooltip_hdr')}
-                  description={t('app_knockout_tooltip_txt')}
-                  mainBtn={{
-                    id: 'explore',
-                    text: t('app_worldcup_tooltip_btn1'),
-                    url: `${CONFIG.settings.WORLDCUP_URL}?lang=${this.state.config.locale}`,
-                  }}
-                  secondaryBtn={{
-                    id: 'later',
-                    text: t('app_worldcup_tooltip_btn2'),
-                    onClick: () => this.hideTooltip('knockout.later'),
-                  }}
-                />
-                }
               </a>
             }
           </aside>

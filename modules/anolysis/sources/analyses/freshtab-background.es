@@ -22,6 +22,7 @@ export default {
     }];
   },
   schema: {
+    required: ['index'],
     properties: {
       // index of selected background image
       index: { anyOf: [

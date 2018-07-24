@@ -27,8 +27,7 @@ const telemetryLatency = (focus$, query$, results$) => {
     // get latest list of results
     .withLatestFrom(allResults$)
     // only care about results, not the blur event
-    /* eslint no-unused-vars: 'off' */
-    .map(([blur, allResults]) => allResults)
+    .map(([, allResults]) => allResults)
     .map(allResults => allResults.map(
       results => results
         // only cliqz results contain latency information

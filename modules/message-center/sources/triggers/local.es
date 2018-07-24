@@ -7,7 +7,6 @@ const LOCAL_DATA = [
     version: 1,
     type: 'notification',
     title: getMessage('freshtab_app_top_box_import_bookmarks_hdr'),
-    description: '',
     icon: './images/import-bookmarks.svg',
     cta_text: getMessage('freshtab_app_top_box_import_bookmarks_cta'),
     cta_url: 'home-action:openImportDialog',
@@ -118,7 +117,7 @@ const LOCAL_DATA = [
   },
   {
     id: 'ft-amo',
-    active: true,
+    active: false,
     version: 1,
     type: 'notification',
     title: getMessage('freshtab_app_middle_box_ft_amo_hdr'),

@@ -9,6 +9,9 @@ function shouldUseStaging() {
 }
 
 const DEFAULT_CONFIG = {
+  // TODO - temporary, send session with signals
+  session: prefs.get('session'),
+
   // Backend communication
   'backend.url': (shouldUseStaging()
     ? config.settings.ANOLYSIS_STAGING_BACKEND_URL
@@ -29,17 +32,23 @@ const DEFAULT_CONFIG = {
 
 export default class Config {
   constructor(options = {}) {
-    this.options = {
-      ...DEFAULT_CONFIG,
-      ...options,
-    };
+    // Create default config
+    this.options = new Map();
+    Object.keys(DEFAULT_CONFIG).forEach((name) => {
+      this.options.set(name, DEFAULT_CONFIG[name]);
+    });
+
+    // Optionally override with `options`
+    Object.keys(options).forEach((name) => {
+      this.options.set(name, options[name]);
+    });
   }
 
   get(pref) {
-    if (this.options[pref] === undefined) {
+    if (!this.options.has(pref)) {
       throw new Error(`Anolysis config has no such entry: ${pref}`);
     }
 
-    return this.options[pref];
+    return this.options.get(pref);
   }
 }

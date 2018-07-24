@@ -103,7 +103,7 @@ async function generateAnalysisResults({
   // argument (function `generate` has length > 0), then we generate fake
   // random signals from the schema, which specifies the shape of signals to
   // be aggregated for this analysis.
-  const numberOfSignals = 1;
+  const numberOfSignals = 10;
   if (schema.generate !== undefined &&
     schema.generate.length > 0
   ) {

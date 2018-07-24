@@ -16,9 +16,11 @@ export default {
     }];
   },
   schema: {
+    required: ['shows', 'clicks'],
     properties: {
       shows: { type: 'integer', minimum: 0 },
       clicks: {
+        required: ['topSites', 'customSites'],
         properties: {
           topSites: { type: 'integer', minimum: 0 },
           // always 0 for mobile

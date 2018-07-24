@@ -15,9 +15,11 @@ export default {
     }
   ],
   schema: {
+    required: ['shows', 'clicks'],
     properties: {
       shows: { type: 'integer', minimum: 0 },
       clicks: {
+        required: ['pause', 'resume', 'trustSite', 'restrictSite'],
         properties: {
           pause: { type: 'integer', minimum: 0 },
           resume: { type: 'integer', minimum: 0 },

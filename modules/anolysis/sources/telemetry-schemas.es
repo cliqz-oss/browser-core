@@ -7,6 +7,7 @@ import experimentsSignalDefinitions from './metrics/experiments';
 import controlCenterSignalDefinitions from './metrics/control-center-interactions';
 import abtestsSignalDefinition from './metrics/abtests';
 import historyVisitsSignalDefinitions from './metrics/history-visits';
+import webrequestPipelinePerformancesMetrics from './metrics/performance/webrequest-pipeline';
 
 // Analyses
 import retention from './analyses/retention';
@@ -27,6 +28,7 @@ import controlCenter from './analyses/control-center-interactions';
 import mobile from './analyses/mobile/favorites-migration-folders';
 import newsSearchSchemas from './analyses/news-search';
 import historyVisitsSchemas from './analyses/history-visits';
+import webrequestPipelinePerformances from './analyses/performance/webrequest-pipeline';
 
 /**
  * This file is used to list all available metrics and analyses in use by
@@ -48,6 +50,7 @@ const metrics = [
   ...searchSignalDefinitions,
   ...experimentsSignalDefinitions,
   ...historyVisitsSignalDefinitions,
+  webrequestPipelinePerformancesMetrics,
 ].map(schema => ({
   ...schema,
   sendToBackend: schema.sendToBackend || false,
@@ -72,6 +75,7 @@ const analyses = [
   ...experimentsSchemas,
   ...newsSearchSchemas,
   ...historyVisitsSchemas,
+  webrequestPipelinePerformances,
 ].map(schema => ({
   ...schema,
   sendToBackend: true,

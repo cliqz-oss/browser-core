@@ -6,12 +6,15 @@ import {
 
 
 const retentionSchema = {
+  required: ['units_active', 'offset'],
   properties: {
     units_active: {
-      type: 'number', // 0 for inactive, 1 for active
+      type: 'integer', // 0 for inactive, 1 for active
+      minimum: 0,
     },
     offset: {
-      type: 'number',
+      type: 'integer',
+      minimum: 0,
     },
   },
 };

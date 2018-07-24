@@ -1,4 +1,5 @@
 import logger from './logger';
+import LatencyMetrics from './latency-metrics';
 
 
 /**
@@ -18,13 +19,12 @@ export default class Pipeline {
     this.name = name;
     this.isBreakable = isBreakable;
 
-    // Optional timing collection
-    this.collectTimings = false;
-    this.timings = Object.create(null);
-    logger.debug('timings', this.name, this.timings);
+    // Collect timings for steps of the pipeline
+    this.latencyMetrics = new LatencyMetrics(name);
+    this.latencyMetrics.init();
 
     // Init empty pipeline
-    this.unload();
+    this.unload({ shallow: true });
 
     this.addAll(steps);
   }
@@ -33,9 +33,13 @@ export default class Pipeline {
     return this.pipeline.length;
   }
 
-  unload() {
+  unload({ shallow = false } = {}) {
     this.pipeline = [];
     this.stepFns = new Map();
+
+    if (!shallow) {
+      this.latencyMetrics.unload();
+    }
   }
 
   /**
@@ -144,57 +148,82 @@ export default class Pipeline {
    */
   execute(webRequestContext, response, canAlterRequest = true) {
     for (let i = 0; i < this.pipeline.length; i += 1) {
+      // Measure time elapsed while running this step
+      const t0 = Date.now();
+
       const name = this.pipeline[i];
       const { fn, spec } = this.stepFns.get(name);
-      const t0 = Date.now();
       let cont;
 
       // Execute step
       try {
         switch (spec) {
           case 'break':
+            // A `break` step is usually used to disrupt the pipeline
+            // life-cycle. It does not have access to the response (cannot
+            // block/redirect/change headers) and shall not mutate the
+            // webRequestContext.
             cont = fn(webRequestContext);
             break;
           case 'annotate':
+            // An `annotate` step is used to mutate/annotate the
+            // webRequestContext. For example it might be used to keep track of
+            // some information on the page-load (statistics about number of
+            // cookies blocked, etc.). It does not have access to the response
+            // (cannot block/redirect/change headers).
             cont = fn(webRequestContext);
             break;
           case 'collect':
+            // A `collect` step is used to only observe the http life-cycle and
+            // is never used to alter it in any way. It does not have access to
+            // the response either. Because of these constraints, we can safely
+            // run these steps asynchronously to not block the processing of
+            // requests.
             setTimeout(
               () => fn(webRequestContext),
               0,
             );
             break;
           case 'blocking':
+            // A `blocking` step is used to alter the life-cycle of a request:
+            // blocking, redirecting, modifying headers. It can also mutate the
+            // webRequestContext, although it would be better to use an
+            // `annotate` step for this purpose.
+            //
+            // When `canAlterRequest` is `false`, blocking steps are ignored.
+            // This can be the case if a domain has been white-listed at the
+            // webrequest-pipeline level.
             if (canAlterRequest) {
               cont = fn(webRequestContext, response);
             }
             break;
           default:
-            throw new Error(`Invalid spec for step ${name} in pipeline ${this.name}`);
+            logger.error('Invalid spec for step', { spec, name, pipeline: this.name });
+            break;
         }
       } catch (e) {
-        logger.error(this.name, webRequestContext.url, 'Step exception', e, e.stack);
+        logger.error('Exception in pipeline', {
+          pipeline: this.name,
+          url: webRequestContext.url,
+          step: name,
+          spec,
+        }, e);
         break;
       }
 
-      // [Optional] Keep track of timings for pipeline steps
-      if (this.collectTimings) {
-        const total = Date.now() - t0;
-        if (this.timings[name] === undefined) {
-          this.timings[name] = Object.create(null);
-        }
+      // Register this step's execution time
+      this.latencyMetrics.addTiming(name, Date.now() - t0);
 
-        this.timings[name][total] = (this.timings[name][total] || 0) + 1;
-      }
-
-      // Handle early termination of the pipeline
+      // Handle early termination of the pipeline. If a step returns `false` and
+      // this pipeline is allowed to be 'broken', then we ignore the remaining
+      // steps.
       if (cont === false) {
         if (this.isBreakable) {
           logger.debug(this.name, webRequestContext.url, 'Break at', name);
           break;
         }
-        // we only reach here if the pipeline is not breakable:
-        // show a warning that we ignored the break
+        // we only reach here if the pipeline is not breakable: show a warning
+        // that we ignored the break
         logger.debug(this.name, webRequestContext.url, 'ignoring attempted break of unbreakable pipeline at', name);
       }
     }

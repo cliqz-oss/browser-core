@@ -37,6 +37,14 @@ export default {
     }];
   },
   schema: {
+    required: [
+      'is_theme_on',
+      'is_background_on',
+      'is_most_visited_on',
+      'is_favorites_on',
+      'is_search_on',
+      'is_news_on',
+    ],
     properties: {
       is_theme_on: { type: 'boolean' },
       is_background_on: { type: 'boolean' },

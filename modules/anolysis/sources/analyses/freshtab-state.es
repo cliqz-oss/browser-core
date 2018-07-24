@@ -17,6 +17,7 @@ export default {
     }];
   },
   schema: {
+    required: ['is_freshtab_on'],
     properties: {
       is_freshtab_on: { type: 'boolean' },
     },

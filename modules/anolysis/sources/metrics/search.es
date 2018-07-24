@@ -124,6 +124,7 @@ export default [
   {
     name: 'search.session',
     schema: {
+      required: ['version', 'hasUserInput', 'results'],
       properties: {
         version: { type: 'integer', value: 2 },
         hasUserInput: { type: 'boolean' },
@@ -132,6 +133,7 @@ export default [
           type: 'array',
           items: {
             type: 'object',
+            required: [],
             properties: {
               ...mkResultSchema(),
             },
@@ -139,6 +141,7 @@ export default [
         },
         // selected result
         selection: {
+          required: [],
           properties: {
             action: { type: 'string', enum: SELECTION_ACTIONS },
             element: { type: 'string', enum: SELECTION_ELEMENTS },
@@ -150,6 +153,7 @@ export default [
             // TODO: could be moved to `results`
             showTime: { type: 'integer', minimum: 0 },
             subResult: {
+              required: [],
               properties: {
                 type: { type: 'string', enum: SELECTION_SUB_RESULT_TYPES },
                 index: { type: 'integer', minimum: 0 },
@@ -166,10 +170,12 @@ export default [
     sendToBackend: true,
     version: 1,
     schema: {
+      required: ['backend', 'latency'],
       properties: {
         // add all available backends to enum
         backend: { type: 'string', enum: ['de', 'us', 'fr', 'uk', 'es', 'it'] },
         latency: {
+          required: [],
           properties: {
             // in 20ms steps until 199ms
             // < 20ms

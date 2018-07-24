@@ -32,6 +32,12 @@ export default class TopNewsResult extends GenericResult {
     }));
   }
 
+  get allResults() {
+    return [
+      ...this.selectableResults,
+    ];
+  }
+
   get selectableResults() {
     return [
       ...this.topNewsResults,

@@ -151,6 +151,7 @@ export default background({
       const pipeline = this.pipelines.get(event);
       this[event] = undefined;
       WebRequest[event].removeListener(pipeline.listener);
+      pipeline.pipeline.unload();
       this.pipelines.delete(event);
     }
   },

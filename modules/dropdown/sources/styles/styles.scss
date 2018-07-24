@@ -322,7 +322,7 @@ $basic-line-height: (16 / 15) + 0em;
 
                     margin-right: 5px;
                     max-width: 500px;
-                    padding-right: 2px;
+                    padding-right: 6px;
                 }
 
                 .title {
@@ -782,24 +782,6 @@ $basic-line-height: (16 / 15) + 0em;
                 box-shadow: none;
             }
 
-            &.selected, &.selected:visited {
-                .abstract {
-                    .description,
-                    .title {
-                        max-width: 100%;
-                    }
-                    .subtitle {
-                        &.attention, &.normal {
-                            color: white;
-                        }
-
-                        &.video-views {
-                            color: rgba(255, 255, 255, 0.8);
-                        }
-                    }
-                }
-            }
-
             .abstract {
                 span {
                     line-height: 1.533em;
@@ -822,6 +804,21 @@ $basic-line-height: (16 / 15) + 0em;
                   line-height: (1.133 / 0.97) + 0em;
                 }
 
+                span.breaking-news {
+                    margin-top: -1px;
+                    font-size: 0.67em;
+                    padding: 7px 5px;
+                    background-color: #E4E4E4;
+                    border: 0.5px solid #ccc;
+                    border-radius: 2px;
+                    text-transform: uppercase;
+                    line-height: 0;
+
+                    & ~ .description {
+                        max-width: 400px;
+                    }
+                }
+
                 span.published-at {
                   text-transform: uppercase;
                 }
@@ -841,6 +838,30 @@ $basic-line-height: (16 / 15) + 0em;
 
                     &.video-views {
                         color: #969696;
+                    }
+                }
+            }
+
+            &.selected, &.selected:visited {
+                .abstract {
+                    .description,
+                    .title {
+                        max-width: 100%;
+                    }
+                    .subtitle {
+                        &.attention, &.normal {
+                            color: white;
+                        }
+
+                        &.video-views {
+                            color: rgba(255, 255, 255, 0.8);
+                        }
+                    }
+
+                    .content p span.breaking-news {
+                        background-color: rgba(255, 255, 255, 0.8);
+                        color: #2385E7;
+                        border-color: rgba(255, 255, 255, 0.8);
                     }
                 }
             }

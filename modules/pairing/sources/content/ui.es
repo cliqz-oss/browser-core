@@ -83,11 +83,15 @@ export default class PairingUI {
     const url = `./template/${name}.hbs`;
     return new Promise((resolve, reject) => {
       try {
-        const xmlHttp = new XMLHttpRequest();
-        xmlHttp.open('GET', url, false);
-        xmlHttp.overrideMimeType('text/plain');
-        xmlHttp.send(null);
-        resolve({ name, html: xmlHttp.responseText });
+        fetch(url).then((res) => {
+          if (res.status === 200) {
+            res.text().then((text) => {
+              resolve({ name, html: text });
+            });
+          } else {
+            reject();
+          }
+        });
       } catch (err) {
         reject(err);
       }

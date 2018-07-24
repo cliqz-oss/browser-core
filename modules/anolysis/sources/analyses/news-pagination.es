@@ -25,6 +25,7 @@ export default {
     }];
   },
   schema: {
+    required: ['clicks'],
     properties: {
       clicks: {
         type: 'array',

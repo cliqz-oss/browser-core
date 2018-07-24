@@ -46,9 +46,10 @@ $configs: (
             middle-icon-margin-top: -3px,
         ),
         top-notifications: (
+            buttons-wrapper-width: 100%,
             box-size: 375px,
             box-height: 80px,
-            content-max-width: 36%,
+            content-max-width: 100%,
         ),
         offer-middle-notifications: (
             offer-mn-code-font-size: 10px,
@@ -120,9 +121,10 @@ $configs: (
             middle-icon-margin-top: -3px,
         ),
         top-notifications: (
+            buttons-wrapper-width: 100%,
             box-size: 85%,
             box-height: 80px,
-            content-max-width: 60%,
+            content-max-width: 100%,
         ),
         offer-middle-notifications: (
             offer-mn-code-font-size: 14px,
@@ -194,8 +196,9 @@ $configs: (
             middle-icon-margin-top: -3px,
         ),
         top-notifications: (
+            buttons-wrapper-width: auto,
             box-size: 679px,
-            box-height: 80px,
+            box-height: 48px,
             content-max-width: 60%,
         ),
         offer-middle-notifications: (
@@ -268,8 +271,9 @@ $configs: (
             middle-icon-margin-top: -3px,
         ),
         top-notifications: (
+            buttons-wrapper-width: auto,
             box-size: 764px,
-            box-height: 80px,
+            box-height: 48px,
             content-max-width: 70%,
         ),
         offer-middle-notifications: (
@@ -342,8 +346,9 @@ $configs: (
             middle-icon-margin-top: -3px,
         ),
         top-notifications: (
+            buttons-wrapper-width: auto,
             box-size: 1232px,
-            box-height: 80px,
+            box-height: 48px,
             content-max-width: 70%,
         ),
         offer-middle-notifications: (

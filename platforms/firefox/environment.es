@@ -209,11 +209,12 @@ const CLIQZEnvironment = {
       }
 
       // datareporting.healthreport.uploadEnabled
-      msg.session = prefs.get('session');
-      msg.ts = Date.now();
-      msg.seq = getNextSeq();
-
-      CLIQZEnvironment._trk.push(msg);
+      CLIQZEnvironment._trk.push({
+        session: prefs.get('session'),
+        ts: Date.now(),
+        seq: getNextSeq(),
+        ...msg,
+      });
       clearTimeout(trkTimer);
       if (instantPush || CLIQZEnvironment._trk.length % 100 === 0) {
         pushTelemetry();

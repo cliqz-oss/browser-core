@@ -54,18 +54,17 @@ export default class TopMessages extends React.Component {
                 className="close"
                 onClick={() => this.handleCloseClick(message)}
               />
-              <div
-                className="content"
-                style={{
-                  backgroundImage: `url(${message.icon})`,
-                  paddingLeft: message.icon ? '70px' : '0px'
-                }}
-              >
+              <div className="content">
                 <div>
-                  <h1 title={message.title}>{message.title}</h1>
-                  { message.description &&
-                    <p>{message.description}</p>
-                  }
+                  <h1
+                    title={message.title}
+                    style={{
+                      backgroundImage: `url(${message.icon})`,
+                      paddingLeft: message.icon ? '40px' : '0px'
+                    }}
+                  >
+                    {message.title}
+                  </h1>
                 </div>
                 <div>
                   <button
@@ -98,7 +97,6 @@ export default class TopMessages extends React.Component {
 TopMessages.propTypes = {
   messages: PropTypes.shape({
     title: PropTypes.string,
-    description: PropTypes.string,
     map: PropTypes.func
   }),
   handleLinkClick: PropTypes.func

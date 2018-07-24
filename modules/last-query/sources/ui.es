@@ -42,6 +42,11 @@ export default class SearchHistoryUI {
     if (!query) {
       return;
     }
+
+    if (!this.window.gURLBar.mInputField.parentElement.querySelector('hbox.cliqz-urlbar-Last-search-container')) {
+      this.attach();
+    }
+
     this.currentQuery = query;
 
     this.container.className = 'cliqz-urlbar-Last-search-container';

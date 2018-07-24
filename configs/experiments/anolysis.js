@@ -16,7 +16,7 @@ module.exports = {
   },
   default_prefs: {
     showConsoleLogs: true,
-    developer: false,
+    developer: true,
   },
   bundles: [],
   modules: [

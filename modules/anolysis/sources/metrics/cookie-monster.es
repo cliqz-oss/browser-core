@@ -3,6 +3,7 @@ export default [
   {
     name: 'cookie-monster.cookieBatch',
     schema: {
+      required: ['count', 'existing', 'visited', 'deleted', 'modified'],
       properties: {
         count: { type: 'number', minimum: 0 },
         existing: { type: 'number', minimum: 0 },
@@ -14,6 +15,7 @@ export default [
   }, {
     name: 'cookie-monster.prune',
     schema: {
+      required: ['visitsPruned', 'cookiesPruned', 'visitsCount', 'cookiesCount'],
       properties: {
         visitsPruned: { type: 'number', minimum: 0 },
         cookiesPruned: { type: 'number', minimum: 0 },

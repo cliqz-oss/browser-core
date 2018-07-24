@@ -15,8 +15,6 @@ import events from '../core/events';
 export default background({
   core: inject.module('core'),
   init() {
-    this.CustomizableUI = Components.utils.import('resource:///modules/CustomizableUI.jsm', null).CustomizableUI;
-
     const PeerComm = new PeerSlave();
     this.peerSlave = PeerComm;
 
@@ -116,23 +114,6 @@ export default background({
   },
 
   initUI() {
-    this.BTN_ID = 'mobilepairing_btn';
-    this.CustomizableUI.createWidget({
-      id: this.BTN_ID,
-      defaultArea: this.CustomizableUI.AREA_PANEL,
-      label: 'Connect',
-      tooltiptext: 'Connect',
-      onCommand: () => {
-        CliqzUtils.openLink(CliqzUtils.getWindow(), 'about:preferences#connect', true, false, false, true);
-        CliqzUtils.telemetry({
-          type: 'burger_menu',
-          version: 1,
-          action: 'click',
-          target: 'connect',
-        });
-      },
-    });
-
     this.pageAction = new UrlbarButton({
       id: 'connect-sendtab',
       title: getMessage('pairing_send_tab_to_mobile'),
@@ -169,10 +150,6 @@ export default background({
   },
 
   unloadUI() {
-    if (this.CustomizableUI) {
-      this.CustomizableUI.destroyWidget(this.BTN_ID);
-      delete this.CustomizableUI;
-    }
     if (this.pageAction) {
       this.pageAction.shutdown();
       delete this.pageAction;

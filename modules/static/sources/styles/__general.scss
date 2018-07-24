@@ -90,6 +90,16 @@
         left: 7px;
     }
 
+    &:-moz-lwtheme {
+      color: #DEEDFB;
+      background: rgba(242, 246, 247, 0.3);
+    }
+
+    &:-moz-lwtheme-darktext {
+      color: #5F7C86;
+      background: #F2F6F7;
+    }
+
     &:hover {
         background: #2385E7;
         color: #fff;

@@ -195,10 +195,13 @@ export default [
       }];
     },
     schema: {
+      required: [],
       properties: {
         nsd: {
+          required: [],
           properties: {
             results: {
+              required: [],
               properties: {
                 ...mkCountSchema('total'),
                 index: { ...mkHistogramSchema(16) },
@@ -206,10 +209,12 @@ export default [
               }
             },
             selections: {
+              required: [],
               properties: {
                 ...mkCountSchema('total'),
                 index: { ...mkHistogramSchema(16) },
                 action: {
+                  required: [],
                   properties: {
                     ...mkCountSchema('autocomplete'),
                     ...mkCountSchema('click'),
@@ -221,8 +226,10 @@ export default [
           },
         },
         scNews: {
+          required: [],
           properties: {
             results: {
+              required: [],
               properties: {
                 ...mkCountSchema('total'),
                 index: { ...mkHistogramSchema(16) },
@@ -230,19 +237,23 @@ export default [
               }
             },
             selections: {
+              required: [],
               properties: {
                 ...mkCountSchema('total'),
                 ...mkCountSchema('history'),
                 index: { ...mkHistogramSchema(16) },
                 subResult: {
+                  required: [],
                   properties: {
                     news: {
+                      required: [],
                       properties: {
                         ...mkCountSchema('total'),
                         index: { ...mkHistogramSchema(16) },
                       }
                     },
                     category: {
+                      required: [],
                       properties: {
                         ...mkCountSchema('total'),
                         index: { ...mkHistogramSchema(16) },
@@ -251,6 +262,7 @@ export default [
                   }
                 },
                 action: {
+                  required: [],
                   properties: {
                     ...mkCountSchema('autocomplete'),
                     ...mkCountSchema('click'),

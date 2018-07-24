@@ -143,9 +143,6 @@ export default class LastQueryWindow extends AppWindow {
 
   init() {
     super.init();
-    return this.deps.ui.isWindowReady(this.window).then(() => {
-      this.searchHistoryUI.attach();
-    });
   }
 
   unload() {

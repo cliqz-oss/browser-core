@@ -896,6 +896,7 @@ export default {
                       'sources': [],
                       'thumbnail': '',
                       'time': 'vor 33 Minuten',
+                      'breaking': true,
                       'tweet_count': 20
                     },
                     'title': 'Bürger sollen Polizei bei Fahndung unterstützen: Das sind die 45 gefährlichsten Verbrecher Europas',

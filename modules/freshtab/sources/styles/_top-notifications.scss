@@ -1,4 +1,5 @@
 @mixin top-notifications (
+    $buttons-wrapper-width,
     $box-size,
     $box-height,
     $content-max-width,
@@ -10,12 +11,13 @@
         top: 0;
         left: 0;
         right: 0;
-        background-color: #F2F2F2;
+        background-color: #FBFBFB;
         box-shadow: rgba(0, 0, 0, 0.19) 0 1px 1px 0;
 
         .top-notification-box {
             margin: 0 auto;
-            width: $box-size;
+            width: 100%;
+            height: $box-height;
             font-size: 13.5px;
             padding: 10px 0;
             text-align: left;
@@ -48,71 +50,64 @@
             }
 
             .content {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                float: left;
-                width: calc(100% - 90px);
                 color: #333;
-                background-size: contain;
-                background-repeat: no-repeat;
-                background-position: left top;
-                height: 60px;
-                width: 100%;
+                height: 26px;
+                text-align: center;
 
                 div:first-child {
-                    padding-right: 5px;
+                    margin-bottom: 6px;
+                    display: inline-block;
+                    padding-right: 24px;
                     max-width: $content-max-width;
-
-                    h1, p {
-                        white-space: nowrap;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                    }
 
                     h1 {
                         font-size: 16px;
                         font-weight: 500;
-                    }
-
-                    p {
-                        margin-top: 5px;
-                        color: #767676;
+                        line-height: 26px;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        background-size: 26px 25px;
+                        background-repeat: no-repeat;
+                        background-position: left top;
                     }
                 }
 
                 div:last-child {
                     white-space: nowrap;
+                    display: inline-block;
+                    vertical-align: top;
+                    width: $buttons-wrapper-width;
 
                     button {
-                        font-size: 13px;
-                        padding: 10px 20px;
+                        font-size: 14px;
+                        padding: 4px 20px;
                         cursor: pointer;
                         border: 0;
-                        border: 1px solid #0078CA;
+                        border: 1px solid #00AEF0;
                         border-radius: 3px;
 
                         &:hover {
-                            border-color: #2B5993;
+                            border-color: #0078CA;
                         }
 
                         &.cta-btn {
                             color: #fff;
-                            background-color: #0078CA;
+                            background-color: #00AEF0;
 
                             &:hover {
-                                background-color: #2B5993;
+                                background-color: #0078CA;
                             }
                         }
 
                         &.later-btn {
-                            color: #0078CA;
-                            margin-left: 5px;
-                            background-color: transparent;
+                            color: #00AEF0;
+                            margin-left: 7px;
+                            background-color: #fff;
                             font-weight: 500;
 
                             &:hover {
-                                color: #2B5993;
+                                color: #0078CA;
                             }
                         }
                     }

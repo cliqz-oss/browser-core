@@ -44,6 +44,7 @@ export default {
     return signals;
   },
   schema: {
+    required: ['edition', 'target', 'action', 'histogram'],
     properties: {
       edition: { type: 'string', enum: NEWS_EDITIONS },
       target: { type: 'string', enum: ['topnews', 'yournews', 'breakingnews'] },

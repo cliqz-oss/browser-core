@@ -35,6 +35,7 @@ export default class Anolysis {
     // Storage manages databases for all Anolysis storage.
     const Storage = config.get('Storage');
     this.storage = new Storage();
+    this.session = config.get('session');
 
     // Async message queue used to send telemetry signals to the backend
     // (telemetry server). It is persisted on disk, and will make sure that
@@ -295,7 +296,7 @@ export default class Anolysis {
               // putting in production. This will be there as long
               // as we test both telemetry systems side by side, to
               // be able to compare results meaningfully.
-              processedSignal.meta.session = prefs.get('session');
+              processedSignal.meta.session = this.session;
 
               // This allows us to filter out signals coming from developers
               // in the backend. This is not privacy breaching because all

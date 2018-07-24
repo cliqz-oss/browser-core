@@ -12,6 +12,7 @@ const mkCountsSchema = keys => keys.map(mkCountSchema);
 
 const mkSourceSchema = () => ({
   source: {
+    required: [],
     properties: {
       ...merge(
         mkCountsSchema(['history', 'backend', 'mixed'])
@@ -21,7 +22,8 @@ const mkSourceSchema = () => ({
 });
 
 const mkActionSchema = (additional = []) => ({
-  source: {
+  action: {
+    required: [],
     properties: {
       ...merge(
         mkCountsSchema(['click', 'enter', ...additional])
@@ -31,6 +33,7 @@ const mkActionSchema = (additional = []) => ({
 });
 
 const mkHistogramSchema = n => ({
+  required: [],
   properties: {
     ...merge(
       Array.from(Array(n).keys())
@@ -263,14 +266,19 @@ export default [
       }];
     },
     schema: {
+      required: [],
       properties: {
         results: {
+          required: [],
           properties: {
             ...mkCountSchema('total'),
             origin: {
+              required: [],
               properties: {
                 cliqz: {
+                  required: [],
                   properties: {
+                    ...mkCountSchema('total'),
                     ...mkSourceSchema(),
                   },
                 },
@@ -279,13 +287,17 @@ export default [
           },
         },
         selections: {
+          required: [],
           properties: {
             ...mkCountSchema('total'),
             index: { ...mkHistogramSchema(16) },
             queryLength: { ...mkHistogramSchema(32) },
             origin: {
+              required: [],
               properties: {
+                ...mkCountSchema('total'),
                 cliqz: {
+                  required: [],
                   properties: {
                     ...mkCountSchema('total'),
                     ...mkActionSchema(['autocomplete']),
@@ -293,16 +305,25 @@ export default [
                   },
                 },
                 direct: {
-                  ...mkCountSchema('total'),
-                  ...mkActionSchema(),
+                  required: [],
+                  properties: {
+                    ...mkCountSchema('total'),
+                    ...mkActionSchema(),
+                  },
                 },
                 other: {
-                  ...mkCountSchema('total'),
-                  ...mkActionSchema(),
+                  required: [],
+                  properties: {
+                    ...mkCountSchema('total'),
+                    ...mkActionSchema(),
+                  },
                 },
                 abandoned: {
-                  ...mkCountSchema('total'),
-                  showTime: { ...mkHistogramSchema(10) },
+                  required: [],
+                  properties: {
+                    ...mkCountSchema('total'),
+                    showTime: { ...mkHistogramSchema(10) },
+                  },
                 },
               },
             },

@@ -21,6 +21,7 @@ export default [{
     }];
   },
   schema: {
+    required: ['count'],
     properties: {
       // capped at 300
       count: {
