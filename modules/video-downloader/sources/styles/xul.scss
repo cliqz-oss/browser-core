@@ -25,6 +25,14 @@
         animation:         cliqz_animation 1s 1; /* IE 10+, Fx 29+ */
         animation-timing-function: ease-out;
 
+        &:-moz-lwtheme {
+            background-image: url-prefix('video-downloader/images/video-downloader-dark-theme.svg');
+        }
+
+        &:-moz-lwtheme-darktext {
+            background-image: url-prefix('video-downloader/images/video-downloader.svg');
+        }
+
         &:hover, &[open="true"] {
             background-color: hsla(0, 0%, 80%, 0.6);
         }

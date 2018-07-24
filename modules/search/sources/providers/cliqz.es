@@ -116,8 +116,8 @@ export default class Cliqz extends BackendProvider {
     this.cache = new Map();
   }
 
-  fetch(q, { resultOrder }) {
-    return getBackendResults(q, { resultOrder })
+  fetch(q, params) {
+    return getBackendResults(q, params)
       .then(e => e.response)
       .catch(error => ({ q, results: [], error }));
   }
