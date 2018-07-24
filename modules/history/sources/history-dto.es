@@ -1,6 +1,7 @@
 import utils from '../core/utils';
 import config from '../core/config';
 import deepFreeze from '../core/helpers/deep-freeze';
+import { getDetailsFromUrl } from '../core/url';
 
 function createBaseStructure() {
   return {};
@@ -20,7 +21,7 @@ function mergePlaces(history, places) {
     let host;
 
     if (isCliqz) {
-      const details = utils.getDetailsFromUrl(config.settings.HOMPAGE_URL);
+      const details = getDetailsFromUrl(config.settings.HOMPAGE_URL);
       host = 'CLIQZ';
 
       domains[host] = domains[host] || {
@@ -30,7 +31,7 @@ function mergePlaces(history, places) {
         visits: [],
       };
     } else {
-      const details = utils.getDetailsFromUrl(entry.url);
+      const details = getDetailsFromUrl(entry.url);
       host = details.host;
 
       domains[host] = domains[host] || {
@@ -139,7 +140,7 @@ function mergeActiveTabs(history, activeTabs) {
 
   newHistory.tabs = activeTabs.reduce((t, tab) => {
     const tabs = t;
-    const host = utils.getDetailsFromUrl(tab.url).host;
+    const host = getDetailsFromUrl(tab.url).host;
     tabs[host] = tabs[host] || {};
     tabs[host][tab.url] = tabs[host][tab.url] || {
       isCurrent: tab.isCurrent,

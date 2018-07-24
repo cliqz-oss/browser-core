@@ -1,27 +1,9 @@
 import getDexie from '../../../platform/lib/dexie';
 
-import PouchDB from '../../../core/database';
 import DefaultMap from '../../../core/helpers/default-map';
 
 import logger from '../logger';
 import getSynchronizedDate, { DATE_FORMAT } from '../synchronized-date';
-
-
-/**
- * Clean-up all past storage of anolysis.
- */
-function migrate() {
-  return Promise.all([
-    'cliqz-anolysis-aggregated-behavior',
-    'cliqz-anolysis-aggregation-log',
-    'cliqz-anolysis-behavior',
-    'cliqz-anolysis-demographics',
-    'cliqz-anolysis-retention-log',
-    'cliqz-anolysis-signals',
-    'cliqz-telemetry-behavior',
-    'cliqz-telemetry-demographics',
-  ].map(name => new PouchDB(name).destroy().catch(() => {})));
-}
 
 
 class AggregatedView {
@@ -32,22 +14,23 @@ class AggregatedView {
   init() {
   }
 
-  ifNotAlreadyAggregated(date, fn) {
-    return this.db.get({ date }).then((aggregation) => {
-      if (aggregation === undefined) {
-        return fn();
-      }
+  async runTaskAtMostOnce(date, name, fn) {
+    const value = await this.db.where('[date+name]').equals([date, name]).toArray();
 
-      return Promise.resolve();
-    });
+    // We found an entry for `[date, name]`, so we do not call `fn` again.
+    if (value.length !== 0) {
+      return;
+    }
+
+    // Call aggregation
+    await fn();
+
+    // Remember that aggregation was performed
+    await this.db.add({ date, name });
   }
 
   getAggregatedDates() {
-    return this.db.toCollection().primaryKeys();
-  }
-
-  storeAggregation(date) {
-    return this.db.add({ date });
+    return this.db.orderBy('date').uniqueKeys();
   }
 
   deleteOlderThan(date) {
@@ -216,25 +199,11 @@ export default class AnolysisStorage {
     return getDexie().then((Dexie) => {
       this.db = new Dexie('anolysis');
       this.db.version(1).stores({
-        aggregated: 'date',
+        aggregated: '[date+name],date',
         behavior: '++id,date',
+        gid: 'key',
         retention: 'key',
         signals: '++id,date',
-      });
-
-      // Gid information are now stored in Dexie as well instead of preferences.
-      // This allows to uniformize storage in the codebase as well as test
-      // anolysis better. Moreover, preferences do not seem like a good way
-      // to store data.
-      this.db.version(2).stores({
-        gid: 'key'
-      });
-
-      this.db.on('populate', () => {
-        // populate is only called the first time the database is created, which
-        // is the only time we would want to call `migrate()` to delete previous
-        // storage.
-        migrate();
       });
 
       return this.db.open();
@@ -263,10 +232,14 @@ export default class AnolysisStorage {
 
   destroy() {
     if (this.db !== null) {
-      return this.db.delete();
+      logger.debug('destroy initialized Dexie DB');
+      const db = this.db;
+      this.db = null;
+      return db.delete();
     }
 
     // Destroy database even when Storage is not initialized
+    logger.debug('destroy un-initialized Dexie DB');
     return getDexie().then(Dexie => Dexie.delete('anolysis'));
   }
 

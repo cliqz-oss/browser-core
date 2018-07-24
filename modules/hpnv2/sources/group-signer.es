@@ -1,35 +1,49 @@
 import config from '../core/config';
 import console from '../core/console';
+import Worker from '../platform/worker';
 
-// TODO: check spanan https://github.com/chrmod/spanan/
 export default class GroupSigner {
+  async _sendWorker(fn, ...args) {
+    const id = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+    return new Promise((resolve, reject) => {
+      this.promises[id] = { resolve, reject };
+      this.worker.postMessage({
+        id,
+        fn,
+        args
+      });
+    });
+  }
+
+  async seed(...args) {
+    return this._sendWorker('seed', ...args);
+  }
+
+  async setGroupPubKey(...args) {
+    return this._sendWorker('setGroupPubKey', ...args);
+  }
+
+  async setUserCredentials(...args) {
+    return this._sendWorker('setUserCredentials', ...args);
+  }
+
+  async getUserCredentials(...args) {
+    return this._sendWorker('getUserCredentials', ...args);
+  }
+
+  async startJoin(...args) {
+    return this._sendWorker('startJoin', ...args);
+  }
+
+  async finishJoin(...args) {
+    return this._sendWorker('finishJoin', ...args);
+  }
+
+  async sign(...args) {
+    return this._sendWorker('sign', ...args);
+  }
+
   constructor() {
-    const _ = (fn) => {
-      this[fn] = (...args) => {
-        const id = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
-        return new Promise((resolve, reject) => {
-          // TODO: transfer ownership of arraybuffers
-          this.promises[id] = { resolve, reject };
-          this.worker.postMessage({
-            id,
-            fn,
-            args
-          });
-        });
-      };
-    };
-
-    _('init');
-    _('seed');
-    _('setGroupPubKey');
-    _('setUserPrivKey');
-    _('getUserPrivKey');
-    _('startJoin');
-    _('finishJoin');
-    _('sign');
-    _('startJoinStatic');
-    _('finishJoinStatic');
-
     this.worker = new Worker(`${config.baseURL}hpnv2/worker.bundle.js`);
     this.promises = {};
     this.worker.onmessage = (args) => {
@@ -53,7 +67,8 @@ export default class GroupSigner {
   unload() {
     if (this.worker) {
       this.worker.terminate();
-      this.worker = null;
+      delete this.worker;
+      this.promises = {};
     }
   }
 }

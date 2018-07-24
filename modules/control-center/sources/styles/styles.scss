@@ -709,7 +709,7 @@ html {
         }
     }
 
-    .funnel-cake {
+    .compact-view {
         #header {
             background-color: #F9F9F9;
             color: $firefox-dark-green;
@@ -794,6 +794,15 @@ html {
 
                 .accordion-section-title {
                     display: none;
+                }
+
+                .accordion-section-content {
+                    background-color: transparent;
+                    .bullet {
+                        float: none;
+                        display: block;
+                        position: relative;
+                    }
                 }
             }
 

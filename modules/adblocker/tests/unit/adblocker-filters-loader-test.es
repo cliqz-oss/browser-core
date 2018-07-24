@@ -13,33 +13,6 @@ function readFile(path) {
 let isMobile;
 let platformName;
 
-
-/* Checks that the two sets are equal. This is used to make sure
- * the filter loader loads exactly the right lists, not more, no
- * less.
- */
-function allListsLoaded(listsToLoad, loadedLists) {
-  try {
-    chai.expect(listsToLoad).to.be.equal(loadedLists);
-    return true;
-  } catch (e) {
-    return false;
-  }
-  /*
-  if (listsToLoad.length !== loadedLists.length) {
-    return false;
-  }
-
-  for (const elt of listsToLoad) {
-    if (!loadedLists.has(elt)) {
-      return false;
-    }
-  }
-  return true;
-  */
-}
-
-
 function platformSpecificLoadingTest(listsToLoad, FilterLoader) {
   const filtersLoader = new FilterLoader();
   const loadedLists = new Set();
@@ -63,10 +36,14 @@ function platformSpecificLoadingTest(listsToLoad, FilterLoader) {
 
 export default describeModule('adblocker/filters-loader',
   () => ({
-    'core/console': {
-      default: {
-
-      },
+    'core/logger': {
+      default: { get() {
+        return {
+          debug() {},
+          log() {},
+          error() {},
+        };
+      } },
     },
     'core/language': {
       default: {
@@ -110,11 +87,15 @@ export default describeModule('adblocker/filters-loader',
     'core/utils': {
       default: {
         setInterval() {},
-        getPref(pref, defaultValue) {
+      },
+    },
+    'core/prefs': {
+      default: {
+        get(pref, defaultValue) {
           return defaultValue;
         },
-        setPref() {},
-      },
+        set() {},
+      }
     },
     'core/http': {
       fetch(url) {
@@ -136,7 +117,7 @@ export default describeModule('adblocker/filters-loader',
       },
     },
     'core/encoding': {
-      fromUTF8: function(d) {
+      fromUTF8: function (d) {
         return d;
       },
     },
@@ -144,10 +125,21 @@ export default describeModule('adblocker/filters-loader',
   () => {
     describe('Test loading filters', () => {
       let FilterLoader;
+      let oldTimeout;
+      let oldInterval;
 
-      beforeEach(function importFiltersLoader() {
+      beforeEach(function () {
+        oldTimeout = global.setTimeout;
+        oldInterval = global.setInterval;
+        global.setTimeout = function (cb) { cb(); };
+        global.setInterval = function () {};
         this.timeout(10000);
         FilterLoader = this.module().default;
+      });
+
+      afterEach(function () {
+        global.setTimeout = oldTimeout;
+        global.setInterval = oldInterval;
       });
 
       it('loads mobile customized filters', () => {

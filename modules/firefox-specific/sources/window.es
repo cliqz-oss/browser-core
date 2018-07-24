@@ -1,4 +1,3 @@
-import utils from '../core/utils';
 import events from '../core/events';
 import { Window } from '../core/browser';
 
@@ -66,7 +65,7 @@ export default class Win {
       }
     );
 
-    this.whoAmItimer = utils.setInterval(
+    this.whoAmItimer = setInterval(
       this.whoAmI.bind(this, { startup: false }),
       INFO_INTERVAL
     );
@@ -88,6 +87,6 @@ export default class Win {
     this.tabCloseEventProxy.unsubscribe();
     this.tabOpenEventProxy.unsubscribe();
 
-    utils.clearInterval(this.whoAmItimer);
+    clearInterval(this.whoAmItimer);
   }
 }

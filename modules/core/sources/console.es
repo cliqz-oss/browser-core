@@ -1,14 +1,14 @@
 import console from '../platform/console';
 import prefs from './prefs';
 
-// detect dev flag on react-native
-const devMode = typeof global !== 'undefined' && global.__DEV__ === true;
-// either take flag from prefs, or global dev mode flag
-// We need to put a try, catch, to avoid content-scripts throwing error,
-// while trying to get the prefs.
-// Should look for a cleaner solutions at some point. for isLoggingEnabled, isDeveloper.
+function noop() {}
 
 function isLoggingEnabled() {
+  // detect dev flag on react-native
+  const devMode = typeof global !== 'undefined' && global.__DEV__ === true;
+  // either take flag from prefs, or global dev mode flag We need to put a try,
+  // catch, to avoid content-scripts throwing error, while trying to get the
+  // prefs. Should look for a cleaner solutions at some point.
   try {
     return prefs.get('showConsoleLogs', devMode || false);
   } catch (ee) {
@@ -16,38 +16,28 @@ function isLoggingEnabled() {
   }
 }
 
-function isDeveloper() {
-  try {
-    return prefs.get('developer', devMode || false);
-  } catch (ee) {
-    return false;
-  }
+const _console = {};
+
+export function enable() {
+  _console.debug = console.log.bind(console, 'Cliqz [debug]');
+  _console.log = console.log.bind(console, 'Cliqz');
+  _console.error = console.error.bind(console, 'Cliqz [error]');
+  _console.warn = console.warn.bind(console, 'Cliqz [warning]');
+  _console.warning = _console.warn;
 }
 
-let log;
-let error;
-let debug;
-let warn;
+export function disable() {
+  _console.debug = noop;
+  _console.log = noop;
+  _console.warn = noop;
+  _console.warning = noop;
+  _console.error = noop;
+}
 
 if (isLoggingEnabled()) {
-  log = console.log.bind(console, 'Cliqz');
-  error = console.error.bind(console, 'Cliqz error');
-  warn = console.warn.bind(console, 'Cliqz warning');
-  if (isDeveloper()) {
-    debug = log;
-  } else {
-    debug = () => {};
-  }
+  enable();
 } else {
-  log = () => {};
-  error = () => {};
-  debug = () => {};
-  warn = () => {};
+  disable();
 }
 
-export default {
-  log,
-  error,
-  debug,
-  warn,
-};
+export default _console;

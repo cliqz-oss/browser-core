@@ -1,47 +1,20 @@
-import utils from './utils';
-import { setSearchEngine } from '../platform/search-engines';
+import * as searchUtils from '../platform/search-engines';
+import { cleanMozillaActions, getDetailsFromUrl } from './url';
 
 export * from '../platform/search-engines';
 
 function log() {
-  // utils.log('search-engines', msg);
+  // console.log('search-engines', msg);
 }
+
 
 // Filters out results with value:
 // 'moz-action:searchengine,{'engineName':'Google','input':'awz','searchQuery':'awz'}'
 // that are returned from the unifiedcomplete history provider
 // that is the only provider from Firefox 49.0 on
 export function isSearchEngineResult(resultValue) {
-  const [action] = utils.cleanMozillaActions(resultValue);
+  const [action] = cleanMozillaActions(resultValue);
   return action === 'searchengine';
-}
-
-export function setDefaultSearchEngine(name) {
-  const engine = utils.getEngineByName(name);
-  setSearchEngine(engine);
-}
-
-const ENGINE_CODES = [
-  'google images',
-  'google maps',
-  'google',
-  'yahoo',
-  'bing',
-  'wikipedia',
-  'amazon',
-  'ebay',
-  'leo',
-  'youtube',
-  'ecosia'
-];
-
-const getEngineCode = name => ENGINE_CODES.indexOf(name.toLowerCase()) + 1;
-
-export function getSearchEngines() {
-  return utils.getSearchEngines().map(e => ({
-    ...e,
-    code: getEngineCode(e.name),
-  }));
 }
 
 function getParamValue(params, query) {
@@ -58,7 +31,7 @@ function getParamValue(params, query) {
 
 // check if a result should be kept in final result list
 export function isValidUrl(url) {
-  const urlparts = utils.getDetailsFromUrl(url);
+  const urlparts = getDetailsFromUrl(url);
   // Google Filters
   if (urlparts.name.toLowerCase() === 'google' &&
     urlparts.subdomains.length > 0 && urlparts.subdomains[0].toLowerCase() === 'www' &&
@@ -88,6 +61,12 @@ export function isValidUrl(url) {
     return false;
   }
 
+  // Ignore Cliqz SERP links
+  if (['suche.cliqz.com', 'search.cliqz.com'].indexOf(urlparts.cleanHost) > -1) {
+    log(`Discarding result page from Cliqz SERP: ${url}`);
+    return false;
+  }
+
   // Ignore bitly redirections
   if (url.search(/http(s?):\/\/bit\.ly\/.*/i) === 0) {
     log(`Discarding result page from history: ${url}`);
@@ -109,7 +88,7 @@ export function isValidUrl(url) {
   const searchQuery = getParamValue(['q', 'query', 'search_query', 'field-keywords', 'search'], urlparts.query);
 
   if (searchQuery) {
-    const searchResultUrls = utils.getSearchEngines()
+    const searchResultUrls = searchUtils.getSearchEngines()
       .filter(e => e.urlDetails.host === urlparts.host)
       .map(engine => decodeURIComponent(engine.getSubmissionForQuery(searchQuery)));
     if (searchResultUrls.some(u => url.indexOf(u) !== -1)) {

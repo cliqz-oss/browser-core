@@ -1,4 +1,5 @@
 import utils from '../../../core/utils';
+import { getDetailsFromUrl } from '../../../core/url';
 
 export default results => results.map(result => ({
   ...result,
@@ -6,7 +7,7 @@ export default results => results.map(result => ({
     ...link,
     meta: {
       ...link.meta,
-      logo: utils.getLogoDetails(utils.getDetailsFromUrl(link.url)),
+      logo: utils.getLogoDetails(getDetailsFromUrl(link.url)),
     },
   }))
 }));

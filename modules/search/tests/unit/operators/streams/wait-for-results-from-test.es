@@ -1,3 +1,5 @@
+/* global chai, describeModule */
+
 const Rx = require('rxjs');
 const rxSandbox = require('rx-sandbox').rxSandbox;
 
@@ -18,7 +20,7 @@ const mock = {
 export default describeModule('search/operators/streams/wait-for-results-from',
   () => mock,
   () => {
-    describe('#waitForResultsFrom', function() {
+    describe('#waitForResultsFrom', function () {
       let waitForResultsFrom;
       let sandbox;
 
@@ -27,7 +29,7 @@ export default describeModule('search/operators/streams/wait-for-results-from',
         waitForResultsFrom = this.module().default;
       });
 
-      it('does not emit if other providers do not emit', function() {
+      it('does not emit if other providers do not emit', function () {
         const source$ = sandbox.hot('--');
         const other1$ = sandbox.hot('--');
         const other2$ = sandbox.hot('--');
@@ -40,7 +42,7 @@ export default describeModule('search/operators/streams/wait-for-results-from',
         return chai.expect(messages).to.deep.equal(expected);
       });
 
-      it('emits once all providers are done', function() {
+      it('emits once all providers are done', function () {
         const source$ = sandbox.hot('-1---');
         const other1$ = sandbox.hot('--d--');
         const other2$ = sandbox.hot('---d-');
@@ -53,7 +55,7 @@ export default describeModule('search/operators/streams/wait-for-results-from',
         return chai.expect(messages).to.deep.equal(expected);
       });
 
-      it('does not emit if there were no results and not all providers are done', function() {
+      it('does not emit if there were no results and not all providers are done', function () {
         const source$ = sandbox.hot('-1---');
         const other1$ = sandbox.hot('-----');
         const other2$ = sandbox.hot('---d-');
@@ -66,7 +68,7 @@ export default describeModule('search/operators/streams/wait-for-results-from',
         return chai.expect(messages).to.deep.equal(expected);
       });
 
-      it('emits starting from first response with results', function() {
+      it('emits starting from first response with results', function () {
         const source$ = sandbox.hot('-1--2');
         const other1$ = sandbox.hot('--r--');
         const other2$ = sandbox.hot('-----');

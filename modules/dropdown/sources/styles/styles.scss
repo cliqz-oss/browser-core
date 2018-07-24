@@ -278,7 +278,7 @@ $basic-line-height: (16 / 15) + 0em;
                 }
 
                 &.search {
-                    background-image: url("../images/search-loupe-black.svg");
+                    background-image: url-prefix("dropdown/images/search-loupe-black.svg");
                 }
 
                 &.history-tool {
@@ -477,7 +477,7 @@ $basic-line-height: (16 / 15) + 0em;
 
     .history {
         background-color: $light-gray;
-        
+
         .description[data-extra='full-url'] {
             display: none;
         }
@@ -752,6 +752,10 @@ $basic-line-height: (16 / 15) + 0em;
         //   display: none;
         // }
         .result {
+            .logo-blank {
+                background-color: transparent;
+                background: none;
+            }
             .abstract {
                 .content {
                     .divider, .url[data-extra="url"] {

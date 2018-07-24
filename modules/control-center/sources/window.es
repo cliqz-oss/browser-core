@@ -1,18 +1,44 @@
 import config from '../core/config';
 import inject from '../core/kord/inject';
 import utils from '../core/utils';
-import events from '../core/events';
 import prefs from '../core/prefs';
+import events from '../core/events';
 import console from '../core/console';
 import { getMessage } from '../core/i18n';
 import { getThemeStyle } from '../platform/browser';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
+import { getDetailsFromUrl } from '../core/url';
+import { isWebExtension, isFirefox } from '../core/platform';
 
 const STYLESHEET_URL = `chrome://cliqz/content/control-center/styles/xul.css`;
 
 const BTN_ID = 'cliqz-cc-btn';
 const TELEMETRY_TYPE = 'control_center';
 const TRIQZ_URL = config.settings.TRIQZ_URL;
+
+function getAdultFilterState() {
+    const data = {
+      conservative: {
+        name: getMessage('always'),
+        selected: false
+      },
+      moderate: {
+        name: getMessage('always_ask'),
+        selected: false
+      },
+      liberal: {
+        name: getMessage('never'),
+        selected: false
+      }
+    };
+    let state = prefs.get('adultContentFilter', 'moderate');
+    if (state === 'showOnce') {
+      state = 'moderate';
+    }
+    data[state].selected = true;
+
+    return data;
+  }
 
 export default class Win {
   constructor({ window, background, settings }) {
@@ -24,8 +50,10 @@ export default class Win {
     this.channel = settings.channel;
     this.ICONS = settings.ICONS;
     this.BACKGROUNDS = settings.BACKGROUNDS;
-    this.createFFhelpMenu = this.createFFhelpMenu.bind(this);
-    this.helpMenu = window.document.getElementById('menu_HelpPopup');
+    if (isFirefox) {
+      this.createFFhelpMenu = this.createFFhelpMenu.bind(this);
+      this.helpMenu = window.document.getElementById('menu_HelpPopup');
+    }
     this.geolocation = inject.module('geolocation');
     this.core = inject.module('core');
     this.actions = {
@@ -52,6 +80,7 @@ export default class Win {
       'complementary-search': this.complementarySearch.bind(this),
       'search-index-country': this.searchIndexCountry.bind(this),
       'type-filter': this.typeFilter.bind(this),
+      status: this.prepareData.bind(this),
     };
 
     this.hasAntitracking = (new Set(config.modules)).has('antitracking');
@@ -65,9 +94,9 @@ export default class Win {
     this.locChangeEvent = events.subscribe('core.location_change', this.actions.locationChange);
     this.themeChangeEvent = events.subscribe('hostthemechange', this.actions.refreshState);
 
-    if (utils.getPref('toolbarButtonPositionSet', false) === false && this.toolbarButton) {
+    if (prefs.get('toolbarButtonPositionSet', false) === false && this.toolbarButton) {
       this.toolbarButton.setPositionBeforeElement('bookmarks-menu-button');
-      utils.setPref('toolbarButtonPositionSet', true);
+      prefs.set('toolbarButtonPositionSet', true);
     }
 
     this.updateFFHelpMenu();
@@ -138,7 +167,7 @@ export default class Win {
 
   tipsAndTricks(win) {
     return this.simpleBtn(win.document,
-      utils.getLocalizedString('btnTipsTricks'),
+      getMessage('btnTipsTricks'),
       () => utils.openTabInWindow(win, TRIQZ_URL),
       'triqz'
     );
@@ -146,7 +175,7 @@ export default class Win {
 
   feedback(win) {
     return this.simpleBtn(win.document,
-      utils.getLocalizedString('btnFeedbackFaq'),
+      getMessage('btnFeedbackFaq'),
       () => {
         // TODO - use the original channel instead of the current one (it will be changed at update)
         utils.openTabInWindow(win, utils.FEEDBACK_URL);
@@ -163,13 +192,15 @@ export default class Win {
     this.locChangeEvent.unsubscribe();
     this.themeChangeEvent.unsubscribe();
 
-    // remove custom items from the Help Menu
-    const nodes = this.helpMenu.querySelectorAll('.cliqz-item');
+    if (this.helpMenu) {
+      // remove custom items from the Help Menu
+      const nodes = this.helpMenu.querySelectorAll('.cliqz-item');
 
-    Array.prototype.slice.call(nodes, 0)
-      .forEach(node => this.helpMenu.removeChild(node));
+      Array.prototype.slice.call(nodes, 0)
+        .forEach(node => this.helpMenu.removeChild(node));
 
-    this.helpMenu.removeEventListener('popupshowing', this.createFFhelpMenu);
+      this.helpMenu.removeEventListener('popupshowing', this.createFFhelpMenu);
+    }
   }
 
   locationChange(url) {
@@ -224,7 +255,7 @@ export default class Win {
   }
 
   typeFilter(data) {
-    utils.setPref(`type_filter_${data.target}`, data.status);
+    prefs.set(`type_filter_${data.target}`, data.status);
     events.pub('type_filter:change', { target: data.target, status: data.status});
   }
 
@@ -392,7 +423,7 @@ export default class Win {
         if (data.prefType === 'integer') {
           prefValue = parseInt(prefValue);
         }
-        utils.setPref(data.pref, prefValue, '' /* full pref name required! */);
+        prefs.set(data.pref, prefValue, '' /* full pref name required! */);
       }
     }
 
@@ -432,10 +463,10 @@ export default class Win {
   // creates the static frame data without any module details
   // re-used for fast first render and onboarding
   getFrameData() {
-    let url = this.window.gBrowser.currentURI.spec;
+    let url = this.window.gBrowser ? this.window.gBrowser.currentURI.spec : '';
     let friendlyURL = url;
     let isSpecialUrl = false;
-    let urlDetails = utils.getDetailsFromUrl(url);
+    let urlDetails = getDetailsFromUrl(url);
 
     if (url.indexOf('about:') === 0) {
       friendlyURL = url;
@@ -443,7 +474,7 @@ export default class Win {
     } else if (url.indexOf(config.settings.NEW_TAB_URL) === 0) {
       friendlyURL = 'Cliqz Tab';
       isSpecialUrl = true;
-    } else if (url.indexOf(utils.CLIQZ_ONBOARDING_URL) === 0) {
+    } else if (url.indexOf(config.settings.ONBOARDING_URL) === 0) {
       friendlyURL = 'Cliqz';
       isSpecialUrl = true;
     } else if (url.startsWith('chrome://cliqz/content/anti-phishing/phishing-warning.html')) {
@@ -451,7 +482,7 @@ export default class Win {
       // we need to get the actual url instead of the warning page
       url = url.split('chrome://cliqz/content/anti-phishing/phishing-warning.html?u=')[1];
       url = decodeURIComponent(url);
-      urlDetails = utils.getDetailsFromUrl(url);
+      urlDetails = getDetailsFromUrl(url);
       isSpecialUrl = true;
       friendlyURL = getMessage('anti-phishing-txt0');
     }
@@ -466,9 +497,9 @@ export default class Win {
       module: {}, // will be filled later
       generalState: 'active',
       feedbackURL: utils.FEEDBACK_URL,
-      debug: utils.getPref('showConsoleLogs', false),
+      debug: prefs.get('showConsoleLogs', false),
       amo: this.settings.channel === '04',
-      funnelCake: this.settings.id === 'funnelcake@cliqz.com' || this.settings.id === 'description_test@cliqz.com'
+      compactView: this.settings.id === 'description_test@cliqz.com',
     };
   }
 
@@ -484,13 +515,13 @@ export default class Win {
       ccData.generalState = this.hasAntitracking ?
         (moduleData.antitracking && moduleData.antitracking.state) || 'critical' : 'active';
 
-      moduleData.adult = { visible: true, state: utils.getAdultFilterState() };
-      if (utils.hasPref('browser.privatebrowsing.apt', '') && this.settings.channel === '40') {
-        moduleData.apt = { visible: true, state: utils.getPref('browser.privatebrowsing.apt', false, '') };
+      moduleData.adult = { visible: true, state: getAdultFilterState() };
+      if (prefs.has('browser.privatebrowsing.apt', '') && this.settings.channel === '40') {
+        moduleData.apt = { visible: true, state: prefs.get('browser.privatebrowsing.apt', false, '') };
       }
 
-      moduleData.humanWebOptOut = utils.getPref('humanWebOptOut', false);
-      moduleData.searchProxy = { enabled: utils.getPref('hpn-query', false) };
+      moduleData.humanWebOptOut = prefs.get('humanWebOptOut', false);
+      moduleData.searchProxy = { enabled: prefs.get('hpn-query', false) };
 
       ccData.module = moduleData;
 
@@ -551,7 +582,7 @@ export default class Win {
         data,
       });
       this.updateBadge(data.module.antitracking ? data.module.antitracking.badgeData : 0);
-    }).catch(e => utils.log(e.toString(), 'getData error'));
+    }).catch(e => console.log(e.toString(), 'getData error'));
   }
 
   // used for a first faster rendering

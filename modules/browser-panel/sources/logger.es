@@ -1,8 +1,3 @@
 import Logger from '../core/logger';
 
-
-export default Logger({
-  useDump: false,
-  level: 'log',
-  prefix: '[browser-panel]',
-});
+export default Logger.get('browser-panel', { level: 'log' });

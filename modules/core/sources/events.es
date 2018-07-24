@@ -95,13 +95,13 @@ const CliqzEvents = {
     if (index > -1) {
       CliqzEvents.cache[id].splice(index, 1);
     } else {
-      console.error(id, 'Trying to unsubscribe an unknown listener');
+      console.error(id, 'Trying to unsubscribe an unknown listener', id, fn);
     }
   },
 
   clean_channel(id) {
     if (!CliqzEvents.cache[id]) {
-      throw new Error('Trying to unsubscribe an unknown channel');
+      throw new Error(`Trying to unsubscribe an unknown channel: ${id}`);
     }
     CliqzEvents.cache[id] = [];
   },

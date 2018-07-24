@@ -3,7 +3,6 @@ import getCoreVersion from './demographics';
 import Client from './client';
 import Manager from './manager';
 import { ModuleStorage, SharedStorage } from './storage';
-import utils from '../core/utils';
 import getDemographics from '../core/demographics';
 
 // half an hour
@@ -36,14 +35,14 @@ export default background({
   stop() {
     if (this.isRunning) {
       this.isRunning = false;
-      utils.clearTimeout(this.runTimer);
+      clearTimeout(this.runTimer);
     }
   },
 
   updateTests() {
     this.manager.updateTests();
     if (this.isRunning) {
-      this.runTimer = utils.setTimeout(
+      this.runTimer = setTimeout(
         this.updateTests.bind(this), UPDATE_INTERVAL);
     }
   },

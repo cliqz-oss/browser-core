@@ -30,6 +30,7 @@ export default class {
           transitionType,
           isPrivate,
           windowId: tabId,
+          windowTreeInformation: {},
         });
       });
     });
@@ -47,12 +48,13 @@ export default class {
         respond(r);
       };
 
-      const windowId = sender.tab.id;
       let data = {
         sender,
-        windowId,
         sendResponse,
       };
+      if (sender.tab) {
+        data.windowId = sender.tab.id;
+      }
 
       if (message.payload) {
         data = {
@@ -82,11 +84,11 @@ export default class {
 
     // TODO: cleanup with process-script.bundle
     let message;
-    const payload = msg.payload;
+    const { payload, module } = msg;
     if (payload && payload.response) {
-      message = payload.response;
+      message = { response: payload.response, module };
     } else if (payload) {
-      message = payload;
+      message = { payload, module };
     } else {
       message = msg;
     }
@@ -100,8 +102,14 @@ export default class {
       chrome.tabs.query(tabQuery, (tabs) => {
         tabs.forEach(tab => chrome.tabs.sendMessage(tab.id, msg));
       });
+    } else if (!channel) {
+      chrome.runtime.sendMessage(msg);
     } else {
       const windowId = msg.windowId || channel.split('-')[1];
+      // Dirty hack, until we clean up all message passing
+      if (message.payload && !module) {
+        message = message.payload;
+      }
       chrome.tabs.sendMessage(Number(windowId), {
         ...message,
         type: Object.prototype.hasOwnProperty.call(message, 'response') ? 'response' : 'request',

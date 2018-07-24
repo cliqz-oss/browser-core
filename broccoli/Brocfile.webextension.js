@@ -2,11 +2,13 @@
 const Source = require('broccoli-source');
 const Funnel = require('broccoli-funnel');
 const MergeTrees = require('broccoli-merge-trees');
+const writeFile = require('broccoli-file-creator');
 
+const util = require('./util');
 const modules = require('./modules-tree');
 const cliqzConfig = require('./config');
 
-const specificTree = new Source.WatchedDir('specific/webextension');
+let specificTree = new Source.WatchedDir('specific/webextension');
 
 const localesTree = new Funnel(modules.static, {
   srcDir: 'static/locale',
@@ -35,6 +37,16 @@ const modulesTree = new Funnel(
     destDir: 'modules'
   }
 );
+
+const config = writeFile('cliqz.json', JSON.stringify(cliqzConfig));
+const configTree = util.injectConfig(specificTree, config, 'cliqz.json', [
+  'manifest.json'
+]);
+
+specificTree = new MergeTrees([
+  specificTree,
+  configTree,
+], { overwrite: true });
 
 module.exports = new MergeTrees([
   modulesTree,

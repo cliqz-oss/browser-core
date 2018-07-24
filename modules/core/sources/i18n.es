@@ -1,43 +1,55 @@
 import { getLocale } from '../platform/browser';
-import config from './config';
-import getLocaleObject from '../platform/locale-strings';
-import getSupportedLanguage from '../platform/language/supported-langs';
+import {
+  SUPPORTED_LANGS,
+  getMessage as _getMessage,
+  locale as _locale,
+  loadTranslation,
+  IMPLEMENTS_GET_MESSAGE
+} from '../platform/i18n';
+
+export {
+  LOCALE_PATH
+} from '../platform/i18n';
 
 export const getLanguageFromLocale = locale => locale.match(/([a-z]+)(?:[-_]([A-Z]+))?/)[1];
 
+function getSupportedLanguage(lang) {
+  if (SUPPORTED_LANGS.indexOf(lang) !== -1) {
+    return lang;
+  }
+
+  return 'en';
+}
+
 const i18n = {
-  locale: {},
-  currLocale: '',
+  locale: _locale,
+  get currLocale() {
+    return getSupportedLanguage(this.PLATFORM_LANGUAGE);
+  },
   get PLATFORM_LOCALE() {
     return getLocale();
   },
   get PLATFORM_LANGUAGE() {
     return getLanguageFromLocale(this.PLATFORM_LOCALE);
   },
-  LOCALE_PATH: `${config.baseURL}static/locale`,
 };
 
-const getLocaleFile = (locale) => {
-  const url = `${i18n.LOCALE_PATH}/${locale}/messages.json`;
-  // Warning - sync request
-  const localeObject = getLocaleObject(url, locale);
-  i18n.currLocale = locale;
-  i18n.locale.default = localeObject;
-  i18n.locale[locale] = localeObject;
-};
-
-const loadTranslation = () => getLocaleFile(getSupportedLanguage(i18n.PLATFORM_LANGUAGE));
+export default i18n;
 
 export function getMessage(key, substitutions = []) {
+  if (IMPLEMENTS_GET_MESSAGE) {
+    return _getMessage(key, substitutions);
+  }
+
   if (!key) {
     return '';
   }
 
-  if (Object.keys(i18n.locale).length === 0) {
-    loadTranslation();
+  if (Object.keys(_locale).length === 0) {
+    loadTranslation(i18n.currLocale);
   }
 
-  const str = (i18n.locale[i18n.currLocale][key] || { message: key }).message || key;
+  const str = (_locale[i18n.currLocale][key] || { message: key }).message || key;
 
   let subs = substitutions;
 
@@ -58,5 +70,3 @@ export function getMessage(key, substitutions = []) {
 
   return str.replace(/\$(?:([1-9]\d*)|(\$+))/g, replacer);
 }
-
-export default i18n;

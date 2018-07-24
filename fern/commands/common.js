@@ -69,7 +69,7 @@ function createBuildWatcher(port) {
 
   // maybe we can run watcher without server
   // but then we will have to copy build artifacts to 'output' folder
-  const server = broccoli.server.serve(watcher, 'localhost', port || 4300);
+  const server = broccoli.server.serve(watcher, '0.0.0.0', port || 4300);
 
   return server.watcher;
 }

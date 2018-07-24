@@ -27,15 +27,10 @@ def matrix = [
         'config': 'configs/ci/browser.js',
         'testParams': '-l firefox-web-ext --firefox ~/firefox52/firefox/firefox',
     ],
-    'firefox 58': [
+    'firefox 60': [
         'gpu': true,
         'config': 'configs/ci/browser.js',
-        'testParams': '-l firefox-web-ext --firefox ~/firefox58/firefox/firefox',
-    ],
-    'firefox 59': [
-        'gpu': true,
-        'config': 'configs/ci/browser.js',
-        'testParams': '-l firefox-web-ext --firefox ~/firefox59/firefox/firefox',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox60/firefox/firefox',
     ],
     'firefox beta': [
         'gpu': true,
@@ -47,20 +42,22 @@ def matrix = [
         'config': 'configs/ci/browser.js',
         'testParams': '-l firefox-web-ext --firefox ~/firefoxNightly/firefox/firefox',
     ],
-    'funnelcake 58': [
-        'gpu': true,
-        'config': 'configs/ci/funnelcake.js',
-        'testParams': '-l firefox-web-ext --firefox ~/firefox58/firefox/firefox',
-    ],
+    /*
     'firefox stresstest (52)': [
         'gpu': true,
         'config': 'configs/ci/browser.js',
         'testParams': '-l firefox-web-ext-stresstest --firefox ~/firefox52/firefox/firefox',
     ],
+    */
     'webextension': [
         'gpu': true,
         'config': 'configs/ci/webextension.js',
         'testParams': '-l chromium-selenium',
+    ],
+    'ghostery': [
+        'gpu': false,
+        'config': 'configs/ci/ghostery.js',
+        'testParams': '-l ghostery-selenium',
     ],
     'react-native': [
         'gpu': false,

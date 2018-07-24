@@ -1,3 +1,5 @@
+/* global chai, describeModule */
+
 const expect = chai.expect;
 
 export default describeModule('human-web/bloom-filter',
@@ -20,7 +22,7 @@ export default describeModule('human-web/bloom-filter',
         BloomFilter = CliqzBloomFilter.BloomFilter;
       });
 
-      it('should pass simple testSingle tests', function() {
+      it('should pass simple testSingle tests', function () {
         const uut = new BloomFilter(new Array(101), 7);
 
         expect(uut.testSingle('x')).to.be.false;

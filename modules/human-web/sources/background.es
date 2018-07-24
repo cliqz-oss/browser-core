@@ -1,6 +1,8 @@
 /* eslint func-names: 'off' */
 
 import utils from '../core/utils';
+import config from '../core/config';
+import prefs from '../core/prefs';
 import background from '../core/base/background';
 import HumanWeb from './human-web';
 import history from '../core/history-service';
@@ -8,6 +10,7 @@ import inject from '../core/kord/inject';
 import WebRequest from '../core/webrequest';
 import logger from './logger';
 import { isFirefox, isPlatformAtLeastInVersion } from '../core/platform';
+import bindObjectFunctions from '../core/helpers/bind-functions';
 
 /**
 * @namespace human-web
@@ -22,8 +25,8 @@ export default background({
   * @return pref
   */
   enabled() {
-    return utils.getPref('humanWeb', true)
-      && !utils.getPref('humanWebOptOut', false);
+    return prefs.get('humanWeb', true)
+      && !prefs.get('humanWebOptOut', false);
   },
 
 
@@ -65,7 +68,7 @@ export default background({
           urls: ['*://*/*'],
         }, ['responseHeaders']);
 
-        utils.bindObjectFunctions(this.actions, this);
+        bindObjectFunctions(this.actions, this);
 
         if (history && history.onVisitRemoved) {
           this.onVisitRemovedListener = (...args) => HumanWeb.onVisitRemoved(...args);
@@ -126,11 +129,11 @@ export default background({
         s: utils.encodeSessionParams(),
         msg: {
           i: data.rawResult.index,
-          o: utils.encodeResultOrder(data.resultOrder),
+          o: `&o=${encodeURIComponent(JSON.stringify(data.resultOrder))}`,
           u: data.url,
           a: data.isFromAutocompletedURL,
         },
-        endpoint: utils.RESULTS_PROVIDER_LOG,
+        endpoint: config.settings.RESULTS_PROVIDER_LOG,
         method: 'GET',
       };
 
@@ -143,15 +146,15 @@ export default background({
     */
     'control-center:toggleHumanWeb': () => {
       // 1. we turn off HumanWeb module
-      utils.setPref('modules.human-web.enabled', false);
+      prefs.set('modules.human-web.enabled', false);
 
       // 2. change the pref
-      utils.setPref('humanWebOptOut', !utils.getPref('humanWebOptOut', false));
+      prefs.set('humanWebOptOut', !prefs.get('humanWebOptOut', false));
 
       // we need to avoid the throttle on prefs
-      utils.setTimeout(() => {
+      setTimeout(() => {
         // 3. start again the module
-        utils.setPref('modules.human-web.enabled', true);
+        prefs.set('modules.human-web.enabled', true);
       }, 0);
     },
     'core:mouse-down': function onMouseDown(...args) {
@@ -191,7 +194,18 @@ export default background({
   },
 
   actions: {
+    getStatus() {
+      return prefs.get('humanWebOptOut', false);
+    },
 
+    setStatus(status) {
+      prefs.set('humanWebOptOut', status);
+
+      utils.telemetry({
+        type: 'humanWebStatus',
+        state: status,
+      });
+    },
     /**
      * Check whether there is some state for this url.
      * @param  {String}  url

@@ -57,6 +57,11 @@ export default class PersistentMap {
     return this.db.kv.toCollection().primaryKeys();
   }
 
+  values() {
+    return this.db.kv.toArray()
+      .then(x => x.map(({ value }) => value));
+  }
+
   entries() {
     return this.db.kv.toArray()
       .then(x => x.map(({ key, value }) => [key, value]));

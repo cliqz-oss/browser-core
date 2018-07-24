@@ -2,8 +2,9 @@ import inject from '../../core/kord/inject';
 import utils from '../../core/utils';
 import { mapWindows } from '../../core/browser';
 import { queryActiveTabs as getTabs, pinTab } from '../../core/tabs';
+import { getDetailsFromUrl } from '../../core/url';
 
-const domainForUrl = url => utils.getDetailsFromUrl(url).host;
+const domainForUrl = url => getDetailsFromUrl(url).host;
 const isUrlBelongToDomain = (domain, url) => domainForUrl(url) === domain;
 const getWindows = mapWindows.bind(null, w => w);
 

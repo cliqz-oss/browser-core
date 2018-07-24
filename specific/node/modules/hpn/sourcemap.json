@@ -19,6 +19,10 @@
 		"keys": ["payload.q", "ts"],
 		"endpoint": "safe-browsing"
 	},
+	"query-am": {
+		"keys": ["payload.q", "ts"],
+		"endpoint": "safe-browsing"
+	},
 	"anon-query": {
 		"keys": ["action", "payload.q", "ts"],
 		"endpoint": "safe-browsing"
@@ -92,8 +96,8 @@
 		"endpoint": "safe-browsing"
 	},
 	"attrack.tp_events": {
-		"keys": ["action", "ts", "payload.data[0].hostname", "payload.data[0].path"],
-		"bkeys": ["action", "ts", "payload.data.1.hostname", "payload.data.1.path"],
+		"keys": ["action", "anti-duplicates", "payload.data[0].hostname", "payload.data[0].path"],
+		"bkeys": ["action", "anti-duplicates", "payload.data.1.hostname", "payload.data.1.path"],
 		"endpoint": "safe-browsing"
 	},
 	"attrack.safekey": {
@@ -106,6 +110,10 @@
 	},
 	"attrack.whitelistDomain": {
 		"keys": ["action", "payload", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"attrack.cookiesPruned": {
+		"keys": ["action", "ts"],
 		"endpoint": "safe-browsing"
 	},
 	"proxy-health": {
@@ -169,6 +177,14 @@
             "endpoint": "safe-browsing"
     },
     "top-stories": {
+            "keys": ["action","payload.q", "ts"],
+            "endpoint": "safe-browsing"
+    },
+    "greenads-inventory": {
+            "keys": ["action","anti-duplicates"],
+            "endpoint": "safe-browsing"
+    },
+    "query-news": {
             "keys": ["action","payload.q", "ts"],
             "endpoint": "safe-browsing"
     }

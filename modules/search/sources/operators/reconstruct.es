@@ -7,6 +7,11 @@ const groupAsArray = array => [
     .entries()
 ];
 
+const reconstructLink = (link, kind) => ({
+  ...link,
+  kind,
+});
+
 /*
  * Reconstruct a normalized result into its legacy format for rendering.
  * Opposite of `oeprators/normalize`.
@@ -18,11 +23,15 @@ const reconstruct = ({ links }) => {
   const history = links.filter(({ meta: { type } }) => type === 'history');
   const rest = links.filter(({ meta: { type } }) => type !== 'main' && type !== 'history');
 
+  // TODO: fix data format: why is some information under data?
   const result = {
     ...main,
     data: {
       deepResults: groupAsArray(rest)
-        .map(([type, sublinks]) => ({ type, links: sublinks })),
+        .map(([type, sublinks]) => ({
+          type,
+          links: sublinks.map(link => reconstructLink(link, main.kind)),
+        })),
       extra: main.extra,
       kind: main.kind || [],
       template: main.template,
@@ -32,7 +41,7 @@ const reconstruct = ({ links }) => {
 
   // if empty `urls` is added results render as history
   if (history.length > 0) {
-    result.data.urls = history;
+    result.data.urls = history.map(link => reconstructLink(link, main.kind));
   }
 
   // Remove extra from result since we have it already in result.data.

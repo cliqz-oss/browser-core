@@ -5,6 +5,7 @@
 const mockDexie = require('../../../core/unit/utils/dexie');
 const ajv = require('ajv');
 const moment = require('moment');
+const stats = require('simple-statistics');
 
 const CURRENT_DATE = '2017-01-01';
 const DATE_FORMAT = 'YYYY-MM-DD';
@@ -17,13 +18,12 @@ function getCurrentDate() {
   return moment(CURRENT_DATE, DATE_FORMAT);
 }
 
-function handleTelemetrySignalMock() {
-  return Promise.resolve();
-}
-
 export default describeModule('anolysis/internals/anolysis',
   () => ({
     ...mockDexie,
+    'platform/lib/simple-statistics': {
+      default: stats,
+    },
     'platform/lib/moment': {
       default: moment,
     },
@@ -46,17 +46,12 @@ export default describeModule('anolysis/internals/anolysis',
       },
     },
     'core/utils': {
-      default: {
-        getPref() {},
-        setPref() {},
-        setTimeout(cb) { cb(); },
-        setInterval() { },
-        clearTimeout() { },
-      },
+      default: {},
     },
     'core/prefs': {
       default: {
         get(k, d) { return d; },
+        set() {},
       }
     },
     'anolysis/internals/synchronized-date': {
@@ -71,7 +66,6 @@ export default describeModule('anolysis/internals/anolysis',
     'anolysis/internals/gid-manager': {
       default: class GIDManager {
         init() { return Promise.resolve(); }
-        updateState() { return Promise.resolve(); }
         getNewInstallDate() { return '2000-01-01'; }
         getGID() { return Promise.resolve(''); }
       },
@@ -92,24 +86,25 @@ export default describeModule('anolysis/internals/anolysis',
     },
     'anolysis/internals/logger': {
       default: {
-        debug() {},
-        log() {},
-        error(...args) { console.log('ERROR', ...args); },
+        // debug(...args) { console.log('DEBUG', ...args); },
+        // log(...args) { console.log('LOG', ...args); },
+        // error(...args) { console.log('ERROR', ...args); },
+        debug() { },
+        log() { },
+        error() { },
       },
     },
   }),
   () => {
     let anolysis;
 
-    beforeEach(function () {
-      return this.system.import('anolysis/internals/storage/dexie')
-        .then((storage) => {
-          const Anolysis = this.module().default;
-          const config = new Map();
-          config.set('Storage', storage.default);
-          anolysis = new Anolysis(config);
-          return anolysis.init();
-        });
+    beforeEach(async function () {
+      const Storage = (await this.system.import('anolysis/internals/storage/dexie')).default;
+      const Anolysis = this.module().default;
+      const config = new Map();
+      config.set('Storage', Storage);
+      anolysis = new Anolysis(config);
+      await anolysis.init();
     });
 
     afterEach(() => anolysis.storage.destroy());
@@ -141,84 +136,80 @@ export default describeModule('anolysis/internals/anolysis',
       );
     });
 
-    describe('#sendRetentionSignals', () => {
-      it('generates retention from empty state', () => {
-        anolysis.handleTelemetrySignal = sinon.spy(handleTelemetrySignalMock);
-        return anolysis.sendRetentionSignals()
-          .then(() => chai.expect(anolysis.handleTelemetrySignal.callCount).to.equal(32))
-          .then(() => anolysis.storage.retention.getState())
-          .then(state => chai.expect(state).to.be.eql({
-            daily: { '2017-1': [CURRENT_DATE] },
-            weekly: { '2017-52': [CURRENT_DATE] },
-            monthly: { '2017-1': ['2017-52'] }
-          }));
+    describe('#runDailyTasks', () => {
+      let oldTimeout;
+      let DefaultMap;
+
+      beforeEach(async function () {
+        oldTimeout = global.setTimeout;
+        global.setTimeout = (cb) => { cb(); };
+
+        DefaultMap = (await this.system.import('core/helpers/default-map')).default;
+
+        // Register tasks
+        anolysis.registerSignalDefinitions((await this.system.import('anolysis/telemetry-schemas')).default);
+        await anolysis.updateRetentionState();
       });
 
-      it('does not generate retention signals two times', () => {
-        const initialState = {
-          daily: { '2017-1': [CURRENT_DATE] },
-          weekly: { '2017-52': [CURRENT_DATE] },
-          monthly: { '2017-1': ['2017-52'] }
-        };
-        anolysis.handleTelemetrySignal = sinon.spy(handleTelemetrySignalMock);
-        return anolysis.storage.retention.setState(initialState)
-          .then(() => anolysis.sendRetentionSignals())
-          .then(() => chai.expect(anolysis.handleTelemetrySignal).to.not.have.been.called)
-          .then(() => anolysis.storage.retention.getState())
-          .then(state => chai.expect(state).to.be.eql(initialState));
-      });
-    });
-
-    describe('#generateAnalysesSignalsFromAggregation', () => {
-      it('generates signals from empty state', () => {
-        anolysis.handleTelemetrySignal = sinon.spy(handleTelemetrySignalMock);
-
-        return anolysis.generateAnalysesSignalsFromAggregation()
-          .then(() => chai.expect(anolysis.handleTelemetrySignal).to.not.have.been.called)
-          .then(() => anolysis.storage.aggregated.getAggregatedDates())
-          .then(dates => chai.expect(dates.sort()).to.be.eql([
-            '2016-12-02',
-            '2016-12-03',
-            '2016-12-04',
-            '2016-12-05',
-            '2016-12-06',
-            '2016-12-07',
-            '2016-12-08',
-            '2016-12-09',
-            '2016-12-10',
-            '2016-12-11',
-            '2016-12-12',
-            '2016-12-13',
-            '2016-12-14',
-            '2016-12-15',
-            '2016-12-16',
-            '2016-12-17',
-            '2016-12-18',
-            '2016-12-19',
-            '2016-12-20',
-            '2016-12-21',
-            '2016-12-22',
-            '2016-12-23',
-            '2016-12-24',
-            '2016-12-25',
-            '2016-12-26',
-            '2016-12-27',
-            '2016-12-28',
-            '2016-12-29',
-            '2016-12-30',
-            '2016-12-31',
-          ]));
+      afterEach(() => {
+        global.setTimeout = oldTimeout;
       });
 
-      it('does not generate signals when day is already present', () => {
-        anolysis.handleTelemetrySignal = sinon.spy(handleTelemetrySignalMock);
-        return anolysis.storage.aggregated.storeAggregation(CURRENT_DATE)
-          .then(() => anolysis.generateAnalysesSignalsFromAggregation())
-          .then(() => chai.expect(anolysis.handleTelemetrySignal).to.not.have.been.called);
+      it('generates no signals if no metrics', async () => {
+        anolysis.handleTelemetrySignal = sinon.spy(() => Promise.resolve());
+        await anolysis.runDailyTasks();
+        const dates = await anolysis.storage.aggregated.getAggregatedDates();
+        chai.expect(dates.sort()).to.be.eql([CURRENT_DATE]);
+      });
+
+      it('generates signals from empty state', async () => {
+        anolysis.handleTelemetrySignal = sinon.spy(() => Promise.resolve());
+
+        const typesForDate = new DefaultMap(() => []);
+        typesForDate.update('freshtab.home.click.news_pagination', (v) => { v.push({ index: 0 }); });
+        anolysis.storage.behavior.getTypesForDate = sinon.spy(
+          () => Promise.resolve(typesForDate)
+        );
+
+        await anolysis.runDailyTasks();
+        const dates = await anolysis.storage.aggregated.getAggregatedDates();
+        chai.expect(dates.sort()).to.be.eql([
+          '2016-12-02',
+          '2016-12-03',
+          '2016-12-04',
+          '2016-12-05',
+          '2016-12-06',
+          '2016-12-07',
+          '2016-12-08',
+          '2016-12-09',
+          '2016-12-10',
+          '2016-12-11',
+          '2016-12-12',
+          '2016-12-13',
+          '2016-12-14',
+          '2016-12-15',
+          '2016-12-16',
+          '2016-12-17',
+          '2016-12-18',
+          '2016-12-19',
+          '2016-12-20',
+          '2016-12-21',
+          '2016-12-22',
+          '2016-12-23',
+          '2016-12-24',
+          '2016-12-25',
+          '2016-12-26',
+          '2016-12-27',
+          '2016-12-28',
+          '2016-12-29',
+          '2016-12-30',
+          '2016-12-31',
+          '2017-01-01',
+        ]);
       });
     });
 
-    describe('#generateAndSendAnalysesSignalsForDay', () => {
+    describe('#runTasksForDay', () => {
       let schemas;
       let DefaultMap;
       beforeEach(function () {
@@ -232,11 +223,15 @@ export default describeModule('anolysis/internals/anolysis',
       });
 
       it('generates no signals if there is nothing to aggregate', () => {
-        anolysis.storage.behavior.getTypesForDate = sinon.spy(() => Promise.resolve({}));
-        anolysis.handleTelemetrySignal = sinon.spy(handleTelemetrySignalMock);
+        anolysis.storage.behavior.getTypesForDate = sinon.spy(() => Promise.resolve({
+          get() { return []; },
+          size: 0,
+        }));
+        anolysis.handleTelemetrySignal = sinon.spy(() => Promise.resolve());
 
-        return anolysis.generateAndSendAnalysesSignalsForDay(CURRENT_DATE)
-          .then(() => chai.expect(anolysis.storage.behavior.getTypesForDate).to.have.been.calledOnce)
+        return anolysis.runTasksForDay(CURRENT_DATE, 1 /* offset */)
+          .then(() => chai.expect(anolysis.storage.behavior.getTypesForDate)
+            .to.have.been.calledOnce)
           .then(() => chai.expect(anolysis.handleTelemetrySignal).to.not.have.been.called);
       });
 
@@ -248,8 +243,9 @@ export default describeModule('anolysis/internals/anolysis',
         );
         anolysis.handleTelemetrySignal = sinon.spy(() => Promise.resolve());
 
-        return anolysis.generateAndSendAnalysesSignalsForDay(CURRENT_DATE)
-          .then(() => chai.expect(anolysis.storage.behavior.getTypesForDate).to.have.been.calledOnce)
+        return anolysis.runTasksForDay(CURRENT_DATE, 1 /* offset */)
+          .then(() => chai.expect(anolysis.storage.behavior.getTypesForDate)
+            .to.have.been.calledOnce)
           .then(() => chai.expect(anolysis.handleTelemetrySignal).to.have.been.called);
       });
     });

@@ -1,18 +1,23 @@
-/* eslint no-param-reassign: 'off' */
+import { chrome } from '../globals';
 
-export default function historySearch(q, callback) {
-  chrome.history.search({ text: q }, (matches) => {
-    const res = matches.map(match => ({
-      value: match.url,
-      comment: match.title,
-      style: 'favicon',
-      image: '',
-      label: ''
+export default function getHistory(text, callback) {
+  const cb = (_results) => {
+    const results = _results.map(r => ({
+      comment: r.title,
+      value: r.url,
+      query: text,
     }));
     callback({
-      query: q,
-      results: res,
+      query: text,
+      results,
       ready: true
     });
-  });
+  };
+
+  // Support both callback and promise APIs styles
+  const promise = chrome.history.search({ text }, cb);
+
+  if (promise && promise.then) {
+    promise.then(cb);
+  }
 }

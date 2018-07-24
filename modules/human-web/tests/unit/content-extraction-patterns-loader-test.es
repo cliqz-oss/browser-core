@@ -1,7 +1,6 @@
 /* global chai */
 /* global describeModule */
 
-const mocks = {};
 const expect = chai.expect;
 
 class FakeResourceLoader {
@@ -40,7 +39,6 @@ export default describeModule('human-web/content-extraction-patterns-loader',
     }
   }),
   () => {
-
     describe('ContentExtractionPatternsLoader', function () {
       let ContentExtractionPatternsLoader;
       let uut;
@@ -61,11 +59,11 @@ export default describeModule('human-web/content-extraction-patterns-loader',
       });
 
       afterEach(function () {
-        return uut.unload().
-          then(() => { expectUnloaded(); });
+        return uut.unload()
+          .then(() => { expectUnloaded(); });
       });
 
-      it('should init and unload successfully', function() {
+      it('should init and unload successfully', function () {
         return Promise.resolve()
           .then(() => { expectUnloaded(); })
           .then(() => uut.init())
@@ -76,7 +74,7 @@ export default describeModule('human-web/content-extraction-patterns-loader',
           .then(() => { expectLoaded(); });
       });
 
-      it('init/unload should be safe to call multiple times in a row', function() {
+      it('init/unload should be safe to call multiple times in a row', function () {
         return Promise.resolve()
           .then(() => uut.unload())
           .then(() => uut.unload())
@@ -90,7 +88,7 @@ export default describeModule('human-web/content-extraction-patterns-loader',
           .then(() => { expectUnloaded(); });
       });
 
-      it('should never end up in an inconsistent state', function() {
+      it('should never end up in an inconsistent state', function () {
         const uncoordinatedStartStopAttempts = [
           uut.init(),
           uut.init(),

@@ -2,7 +2,8 @@
 /* eslint func-names: 'off' */
 /* eslint prefer-arrow-callback: 'off' */
 
-import utils from '../core/utils';
+import { httpGet } from '../core/http';
+import console from '../core/console';
 import MapCache from '../core/helpers/fixed-size-cache';
 import * as datetime from './time';
 import config from '../core/config';
@@ -30,12 +31,12 @@ PrivacyScore.prototype.getPrivacyScore = function () {
   const reqURL = `${privacyScoreURL}prefix=${prefix}&role=${this.role}`;
   this.score = -1;
   this.datetime = datetime.getTime();
-  utils.httpGet(reqURL, function (req) {
+  httpGet(reqURL, function (req) {
     const res = JSON.parse(req.response);
     if (suffix in res) {
       this.score = res[suffix];
     }
-  }.bind(this), utils.log, 10000);
+  }.bind(this), console.log, 10000);
 };
 
 export {

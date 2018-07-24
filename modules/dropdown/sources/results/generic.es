@@ -1,9 +1,16 @@
 import fastUrlParser from '../../core/fast-url-parser';
+import { cleanMozillaActions, urlStripProtocol } from '../../core/content/url';
 import BaseResult, { Subresult } from './base';
 import LocalResult, { ShareLocationButton } from './local';
 import { OfferResult } from './offer';
 import NewsResult from './news';
 import VideoResult from './video';
+import {
+  ANCHOR_RESULT,
+  IMAGE_RESULT,
+  INTERNAL_RESULT,
+  SOCIAL_RESULT
+} from '../result-types';
 
 function getDeepResults(rawResult, type) {
   const deepResults = (rawResult.data && rawResult.data.deepResults) || [];
@@ -14,18 +21,23 @@ function getDeepResults(rawResult, type) {
 }
 
 class ImageResult extends Subresult {
+  type = IMAGE_RESULT;
+
   get thumbnail() {
     return this.rawResult.thumbnail;
   }
 }
 
 class InternalResult extends Subresult {
+  type = INTERNAL_RESULT;
 }
 
 class SocialResult extends Subresult {
+  type = SOCIAL_RESULT;
 }
 
 class AnchorResult extends Subresult {
+  type = ANCHOR_RESULT;
 }
 
 export default class GenericResult extends BaseResult {
@@ -54,11 +66,12 @@ export default class GenericResult extends BaseResult {
     }
     const deepLinks = getDeepResults(this.rawResult, 'buttons');
 
-    return deepLinks.map(({ url, title }) => new InternalResult(this, {
+    return deepLinks.map(({ url, title, meta }) => new InternalResult(this, {
       ...this.topResultProps,
       url,
       title,
       text: this.query,
+      meta,
     }));
   }
 
@@ -95,6 +108,8 @@ export default class GenericResult extends BaseResult {
 
   get newsResults() {
     const deepLinks = getDeepResults(this.rawResult, 'news');
+    const hostname = this.url &&
+      urlStripProtocol(fastUrlParser.parse(cleanMozillaActions(this.url)[1]).hostname);
     return deepLinks.map(({ url, title, extra = {} } = {}) => new NewsResult(this, {
       ...this.topResultProps,
       url,
@@ -104,10 +119,7 @@ export default class GenericResult extends BaseResult {
       description: extra.description,
       creation_time: extra.creation_timestamp,
       tweet_count: extra.tweet_count,
-      showLogo: this.url && (
-        fastUrlParser.parse(this.url).hostname.replace(/^(www\.)/, '') !==
-        fastUrlParser.parse(url).hostname.replace(/^(www\.)/, '')
-      ),
+      showLogo: hostname && hostname !== urlStripProtocol(fastUrlParser.parse(url).hostname),
       text: this.query,
     }));
   }

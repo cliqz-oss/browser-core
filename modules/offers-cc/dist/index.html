@@ -2,27 +2,14 @@
 <html lang="de">
 <head>
     <meta charset="utf-8">
-    <title>Offers Control Center</title>
-    <script>
-        var node = document.createElement("link");
-        node.rel = "stylesheet";
-        node.href = 'styles/styles.css?' + Math.floor(Math.random() * 999999999);
-        document.getElementsByTagName("head")[0].appendChild(node);
-    </script>
+    <title>Reward Box</title>
+    <link rel="stylesheet" href="styles/styles.css">
     <link rel="stylesheet" type="text/css" href="../vendor/tooltipster.bundle.min.css" />
     <link rel="stylesheet" type="text/css" href="../vendor/tooltipster-sideTip-shadow.min.css" />
     <script type="text/javascript" src="../vendor/jquery.min.js"></script>
     <script type="text/javascript" src="../vendor/handlebars.min.js"></script>
     <script type="text/javascript" src="../vendor/tooltipster.bundle.min.js"></script>
-    <script>
-      if (typeof Components === "undefined") {
-        window.chrome = {
-            i18n: {
-                getMessage(k) { return k; }
-            }
-        };
-      }
-    </script>
+    <script type="text/javascript" src="../core/setup-content.js"></script>
 </head>
 <body>
 <div id="cliqz-offers-cc"></div>

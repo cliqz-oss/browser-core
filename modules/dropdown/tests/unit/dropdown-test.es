@@ -1,4 +1,5 @@
-/* global chai, sinon */
+/* global chai, describeModule, sinon */
+/* eslint new-cap: off */
 
 export default describeModule('dropdown/dropdown',
   function () {

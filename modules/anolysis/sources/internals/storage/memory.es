@@ -5,32 +5,28 @@ import getSynchronizedDate, { DATE_FORMAT } from '../synchronized-date';
 
 class AggregatedView {
   constructor() {
-    this.db = new Set();
+    this.db = new DefaultMap(() => new Set());
   }
 
-  ifNotAlreadyAggregated(date, fn) {
-    if (this.db.has(date)) {
-      return Promise.resolve();
+  async runTaskAtMostOnce(date, name, fn) {
+    const tasks = this.db.get(date);
+    if (!tasks.has(name)) {
+      await fn();
+      tasks.add(name);
     }
-    return Promise.resolve().then(fn);
   }
 
-  getAggregatedDates() {
-    return Promise.resolve([...this.db]);
+  async getAggregatedDates() {
+    return [...this.db.keys()];
   }
 
-  storeAggregation(date) {
-    if (this.db.has(date)) {
-      return Promise.reject();
+  async deleteOlderThan(date) {
+    const dates = [...this.db.keys()];
+    for (let i = 0; i < dates.length; i += 1) {
+      if (dates[i] < date) {
+        this.db.delete(dates[i]);
+      }
     }
-
-    this.db.add(date);
-    return Promise.resolve();
-  }
-
-  deleteOlderThan(date) {
-    this.db = new Set([...this.db].filter(d => d >= date));
-    return Promise.resolve();
   }
 }
 

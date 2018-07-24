@@ -4,14 +4,14 @@ import React from 'react';
 import CONFIG from '../../../core/config';
 import cliqz from '../cliqz';
 import SpeedDialsRow from './speed-dials-row';
-import Urlbar from './urlbar';
-import UrlbarWithResults from './urlbar-with-results';
+import Urlbar from './urlbar/index';
+import UrlbarWithResults from './urlbar/urlbar-with-results';
 import News from './news';
 import Settings from './settings';
 import MessageCenter from './message-center';
-import OfferMiddleMessages from './middle-messages-offers';
 import t from '../i18n';
 import UndoDialRemoval from './undo-dial-removal';
+import Overlay from './overlay';
 import Tooltip from './tooltip';
 import { historyClickSignal, settingsClickSignal, homeConfigsStatusSignal, worldcupClickSignal,
   sendHomeUnloadSignal, sendHomeBlurSignal, sendHomeFocusSignal } from '../services/telemetry/home';
@@ -56,6 +56,7 @@ class App extends React.Component {
       removedDials: [],
       messages: {},
       isSettingsOpen: false,
+      isOverlayOpen: false,
       focusNews: false,
       hasHistorySpeedDialsToRestore: false,
     };
@@ -87,7 +88,6 @@ class App extends React.Component {
       this.getNews(),
       this.getConfig(),
       this.getSpeedDials(),
-      this.getOffers()
     ]).then(() => {
       this.onFinishedLoading();
     });
@@ -128,8 +128,8 @@ class App extends React.Component {
     }
   }
 
-  onBackgroundImageChanged(bg) {
-    cliqz.freshtab.saveBackgroundImage(bg);
+  onBackgroundImageChanged(bg, index) {
+    cliqz.freshtab.saveBackgroundImage(bg, index);
     this.updateTheme(bg);
 
     // TODO: state object is too deep - we should squash it
@@ -198,12 +198,6 @@ class App extends React.Component {
     });
   }
 
-  getOffers() {
-    return this.freshtab.getOffers().then((offers = []) => {
-      this.setState({ offers });
-    });
-  }
-
   /*
    * theme is also set inside of home.html
    */
@@ -241,6 +235,28 @@ class App extends React.Component {
       return {};
     }
     return this.state.removedDials[len - 1];
+  }
+
+  toggleOverlay = () => {
+    this.setState({
+      isOverlayOpen: !this.state.isOverlayOpen
+    });
+  }
+
+  showOverlay = () => {
+    if (!this.state.isOverlayOpen) {
+      this.setState({
+        isOverlayOpen: true
+      });
+    }
+  }
+
+  hideOverlay = () => {
+    if (this.state.isOverlayOpen) {
+      this.setState({
+        isOverlayOpen: false
+      });
+    }
   }
 
   toggleSettings() {
@@ -349,7 +365,9 @@ class App extends React.Component {
   _reAddSpeedDial(dial) {
     const index = dial.removedAt;
     this.addSpeedDial(dial, index);
-    cliqz.freshtab.addSpeedDial(dial.url, index).then(() => {
+    const url = dial.url;
+    const title = dial.title;
+    cliqz.freshtab.addSpeedDial({ url, title }, index).then(() => {
       const newItems = this.state.removedDials.filter(item => item !== dial);
       this.setState({
         removedDials: newItems,
@@ -451,190 +469,203 @@ class App extends React.Component {
 
   render() {
     return (
-      <div
-        id="app"
-      >
-        <UndoDialRemoval
-          dial={this.recentlyRemovedDial}
-          undoRemoval={this.undoRemoval}
-          closeUndo={this.closeUndo}
-          isSettingsOpen={this.state.isSettingsOpen}
-          visible={this.state.removedDials.length > 0}
+      <div className={this.state.isOverlayOpen ? 'openOverlay' : ''}>
+        <Overlay
+          isOpen={this.state.isOverlayOpen}
         />
-        <MessageCenter
-          position="top"
-          locale={this.state.config.locale}
-          messages={this.state.messages}
-          handleLinkClick={msg => this.onMessageClicked(msg)}
-        />
-        <aside className="aside">
-          {(this.state.config.isHistoryEnabled || this.shouldShowWorldCupIcon) &&
-            <a href={CONFIG.settings.NEW_TAB_URL} id="cliqz-home">
-              Home
-            </a>
-          }
-          {this.state.config.isHistoryEnabled &&
-            <a
-              href={CONFIG.settings.HISTORY_URL}
-              id="cliqz-history"
-              onClick={() => this.onHistoryClick()}
-            >
+        <div
+          id="app"
+        >
+          <UndoDialRemoval
+            dial={this.recentlyRemovedDial}
+            undoRemoval={this.undoRemoval}
+            closeUndo={this.closeUndo}
+            isSettingsOpen={this.state.isSettingsOpen}
+            visible={this.state.removedDials.length > 0}
+          />
+          <MessageCenter
+            position="top"
+            locale={this.state.config.locale}
+            messages={this.state.messages}
+            handleLinkClick={msg => this.onMessageClicked(msg)}
+          />
+          <aside className="aside">
+            {(this.state.config.isHistoryEnabled || this.shouldShowWorldCupIcon) &&
+              <a
+                href={CONFIG.settings.NEW_TAB_URL}
+                id="cliqz-home"
+                title={t('cliqz_tab_button')}
+                tabIndex="-1"
+              >
+                Home
+              </a>
+            }
+            {this.state.config.isHistoryEnabled &&
+              <a
+                href={CONFIG.settings.HISTORY_URL}
+                id="cliqz-history"
+                title={t('history_button')}
+                tabIndex="-1"
+                onClick={() => this.onHistoryClick()}
+              >
                 History
-            </a>
-          }
-          {this.shouldShowWorldCupIcon &&
-            <a
-              href={`${CONFIG.settings.WORLDCUP_URL}?lang=${this.state.config.locale}`}
-              id="cliqz-worldcup"
-              tabIndex="-1"
-              onClick={() => this.onWorldcupClick()}
-            >
-              World Cup
-              { this.state.config.tooltip === TOOLTIP_WORLDCUP_GROUP &&
-
-              <Tooltip
-                id="group"
-                title={t('app_group_tooltip_hdr')}
-                description={t('app_group_tooltip_txt')}
-                mainBtn={{
-                  id: 'explore',
-                  text: t('app_worldcup_tooltip_btn1'),
-                  url: `${CONFIG.settings.WORLDCUP_URL}?lang=${this.state.config.locale}`,
-                }}
-                secondaryBtn={{
-                  id: 'later',
-                  text: t('app_worldcup_tooltip_btn2'),
-                  onClick: () => this.hideTooltip('group.later'),
-                }}
-              />
-              }
-              { this.state.config.tooltip === TOOLTIP_WORLDCUP_KNOCKOUT &&
-
-              <Tooltip
-                id="knockout"
-                title={t('app_knockout_tooltip_hdr')}
-                description={t('app_knockout_tooltip_txt')}
-                mainBtn={{
-                  id: 'explore',
-                  text: t('app_worldcup_tooltip_btn1'),
-                  url: `${CONFIG.settings.WORLDCUP_URL}?lang=${this.state.config.locale}`,
-                }}
-                secondaryBtn={{
-                  id: 'later',
-                  text: t('app_worldcup_tooltip_btn2'),
-                  onClick: () => this.hideTooltip('knockout.later'),
-                }}
-              />
-              }
-            </a>
-          }
-        </aside>
-        <section id="main-content">
-          <div className="fixed-container">
-            {this.shouldShowTopUrlBar &&
-              <section id="section-url-bar">
-                <UrlbarWithResults
-                  ref={(c) => { this.urlbarElem = c; }}
-                  visible={this.state.config.componentsState.search.visible}
-                  results={this.state.results}
-                />
-              </section>
+              </a>
             }
-            <section id="section-top" />
-            { this.state.config.componentsState.historyDials.visible &&
-              <section id="section-most-visited">
-                <div className="dial-header">
-                  {this.state.dials.history.length > 0 && t('app_speed_dials_row_history')}
-                </div>
-                <SpeedDialsRow
-                  dials={this.state.dials.history}
-                  type="history"
-                  removeSpeedDial={this.removeSpeedDial}
-                  addSpeedDial={this.addSpeedDial}
-                  getSpeedDials={this.getSpeedDials}
-                />
-              </section>
-            }
-            { this.state.config.componentsState.customDials.visible &&
-              <section id="section-favorites">
-                <div className="dial-header with-line">
-                  {t('app_speed_dials_row_custom')}
-                </div>
+            {this.shouldShowWorldCupIcon &&
+              <a
+                href={`${CONFIG.settings.WORLDCUP_URL}?lang=${this.state.config.locale}`}
+                id="cliqz-worldcup"
+                title={t('sport_button')}
+                tabIndex="-1"
+                onClick={() => this.onWorldcupClick()}
+              >
+                World Cup
+                { this.state.config.tooltip === TOOLTIP_WORLDCUP_GROUP &&
 
-                <SpeedDialsRow
-                  dials={this.state.dials.custom}
-                  type="custom"
-                  addSpeedDial={this.addSpeedDial}
-                  removeSpeedDial={this.removeSpeedDial}
+                <Tooltip
+                  id="group"
+                  title={t('app_group_tooltip_hdr')}
+                  description={t('app_group_tooltip_txt')}
+                  mainBtn={{
+                    id: 'explore',
+                    text: t('app_worldcup_tooltip_btn1'),
+                    url: `${CONFIG.settings.WORLDCUP_URL}?lang=${this.state.config.locale}`,
+                  }}
+                  secondaryBtn={{
+                    id: 'later',
+                    text: t('app_worldcup_tooltip_btn2'),
+                    onClick: () => this.hideTooltip('group.later'),
+                  }}
                 />
-              </section>
+                }
+                { this.state.config.tooltip === TOOLTIP_WORLDCUP_KNOCKOUT &&
+
+                <Tooltip
+                  id="knockout"
+                  title={t('app_knockout_tooltip_hdr')}
+                  description={t('app_knockout_tooltip_txt')}
+                  mainBtn={{
+                    id: 'explore',
+                    text: t('app_worldcup_tooltip_btn1'),
+                    url: `${CONFIG.settings.WORLDCUP_URL}?lang=${this.state.config.locale}`,
+                  }}
+                  secondaryBtn={{
+                    id: 'later',
+                    text: t('app_worldcup_tooltip_btn2'),
+                    onClick: () => this.hideTooltip('knockout.later'),
+                  }}
+                />
+                }
+              </a>
             }
-            <section id="section-middle">
-              {this.shouldShowMiddleUrlBar &&
-                <div id="section-url-bar">
-                  <Urlbar
+          </aside>
+          <section id="main-content">
+            <div className="fixed-container" tabIndex="-1">
+              {this.shouldShowTopUrlBar &&
+                <section id="section-url-bar">
+                  <UrlbarWithResults
                     ref={(c) => { this.urlbarElem = c; }}
                     visible={this.state.config.componentsState.search.visible}
+                    results={this.state.results}
+                    toggleOverlay={this.toggleOverlay}
+                    showOverlay={this.showOverlay}
+                    hideOverlay={this.hideOverlay}
                   />
-                </div>
+                </section>
+              }
+              <section id="section-top" />
+              { this.state.config.componentsState.historyDials.visible &&
+                <section id="section-most-visited">
+                  <div className="dial-header">
+                    {this.state.dials.history.length > 0 && t('app_speed_dials_row_history')}
+                  </div>
+                  <SpeedDialsRow
+                    dials={this.state.dials.history}
+                    type="history"
+                    removeSpeedDial={this.removeSpeedDial}
+                    addSpeedDial={this.addSpeedDial}
+                    getSpeedDials={this.getSpeedDials}
+                  />
+                </section>
+              }
+              { this.state.config.componentsState.customDials.visible &&
+                <section id="section-favorites">
+                  <div className="dial-header with-line">
+                    {t('app_speed_dials_row_custom')}
+                  </div>
+
+                  <SpeedDialsRow
+                    dials={this.state.dials.custom}
+                    type="custom"
+                    addSpeedDial={this.addSpeedDial}
+                    removeSpeedDial={this.removeSpeedDial}
+                  />
+                </section>
               }
 
-              {(this.state.offers.length === 0) &&
+              <section id="section-middle">
+                {this.shouldShowMiddleUrlBar &&
+                  <div id="section-url-bar">
+                    <Urlbar
+                      ref={(c) => { this.urlbarElem = c; }}
+                      visible={this.state.config.componentsState.search.visible}
+                    />
+                  </div>
+                }
+
                 <MessageCenter
                   position="middle"
                   locale={this.state.config.locale}
                   messages={this.state.messages}
                   handleLinkClick={msg => this.onMessageClicked(msg)}
-                />
-              }
-
-              {(this.state.offers.length > 0) &&
-                <OfferMiddleMessages
-                  offers={this.state.offers}
                   submitFeedbackForm={this.submitFeedbackForm}
                 />
-              }
 
-            </section>
-
-            { this.state.config.componentsState.news.visible &&
-              <section id="section-news">
-                <News
-                  news={this.state.news}
-                  newsLanguage={this.state.config.componentsState.news.preferedCountry}
-                />
               </section>
+
+              { this.state.config.componentsState.news.visible &&
+                <section id="section-news">
+                  <News
+                    news={this.state.news}
+                    newsLanguage={this.state.config.componentsState.news.preferedCountry}
+                  />
+                </section>
+              }
+              <section id="section-bottom" />
+            </div>
+          </section>
+
+          <aside className="aside">
+            <Settings
+              wallpapers={this.state.config.wallpapers}
+              onBackgroundImageChanged={(bg, index) => this.onBackgroundImageChanged(bg, index)}
+              onNewsSelectionChanged={country => this.onNewsSelectionChanged(country)}
+              toggleComponent={this.toggleComponent}
+              toggleBlueTheme={this.toggleBlueTheme}
+              blueTheme={this.state.config.blueTheme}
+              isBlueThemeSupported={this.state.config.isBlueThemeSupported}
+              toggleBackground={this.toggleBackground}
+              isBlueBackgroundSupported={this.state.config.isBlueBackgroundSupported}
+              isBrowser={this.state.config.isBrowser}
+              isOpen={this.state.isSettingsOpen}
+              focusNews={this.state.focusNews}
+              componentsState={this.state.config.componentsState}
+              hasHistorySpeedDialsToRestore={this.state.hasHistorySpeedDialsToRestore}
+              toggle={() => this.toggleSettings()}
+              restoreHistorySpeedDials={() => this.restoreHistorySpeedDials()}
+            />
+            {this.state.isSettingsOpen ||
+              <button
+                id="settings-btn"
+                title={t('cliqz_tab_settings_button')}
+                tabIndex="-1"
+                onClick={() => this.toggleSettings()}
+              >
+                Settings
+              </button>
             }
-            <section id="section-bottom" />
-          </div>
-        </section>
-        <aside className="aside">
-          <Settings
-            onBackgroundImageChanged={bg => this.onBackgroundImageChanged(bg)}
-            onNewsSelectionChanged={country => this.onNewsSelectionChanged(country)}
-            toggleComponent={this.toggleComponent}
-            toggleBlueTheme={this.toggleBlueTheme}
-            blueTheme={this.state.config.blueTheme}
-            isBlueThemeSupported={this.state.config.isBlueThemeSupported}
-            toggleBackground={this.toggleBackground}
-            isBlueBackgroundSupported={this.state.config.isBlueBackgroundSupported}
-            isBrowser={this.state.config.isBrowser}
-            isOpen={this.state.isSettingsOpen}
-            focusNews={this.state.focusNews}
-            componentsState={this.state.config.componentsState}
-            hasHistorySpeedDialsToRestore={this.state.hasHistorySpeedDialsToRestore}
-            toggle={() => this.toggleSettings()}
-            restoreHistorySpeedDials={() => this.restoreHistorySpeedDials()}
-          />
-          {this.state.isSettingsOpen ||
-            <button
-              id="settings-btn"
-              onClick={() => this.toggleSettings()}
-            >
-              Settings
-            </button>
-          }
-        </aside>
+          </aside>
+        </div>
       </div>
     );
   }

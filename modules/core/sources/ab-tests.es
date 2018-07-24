@@ -7,12 +7,17 @@
 
 
 import CliqzUtils from './utils';
+import prefs from './prefs';
+import console from './console';
+import { getDefaultEngine, revertToOriginalEngine } from './search-engines';
+import { httpGet } from './http';
+import { isCliqzBrowser } from './platform';
 
 let timer = null;
 const ONE_HOUR = 60 * 60 * 1000;
 
 function log(msg) {
-  CliqzUtils.log(msg, 'CliqzABTests.jsm');
+  console.log(msg, 'CliqzABTests.jsm');
 }
 
 const CliqzABTests = {
@@ -21,28 +26,28 @@ const CliqzABTests = {
   URL: 'https://stats.cliqz.com/abtests/check?session=',
   // Accessors to list of tests this user is current in
   getCurrent() {
-    if (CliqzUtils.hasPref(CliqzABTests.PREF)) {
-      return JSON.parse(CliqzUtils.getPref(CliqzABTests.PREF));
+    if (prefs.has(CliqzABTests.PREF)) {
+      return JSON.parse(prefs.get(CliqzABTests.PREF));
     }
     return undefined;
   },
   setCurrent(tests) {
-    CliqzUtils.setPref(CliqzABTests.PREF, JSON.stringify(tests));
+    prefs.set(CliqzABTests.PREF, JSON.stringify(tests));
   },
 
   // Accessors to list of tests in override list
   getOverride() {
-    if (CliqzUtils.hasPref(CliqzABTests.PREF_OVERRIDE)) {
-      const ABtests = JSON.parse(CliqzUtils.getPref(CliqzABTests.PREF_OVERRIDE));
+    if (prefs.has(CliqzABTests.PREF_OVERRIDE)) {
+      const ABtests = JSON.parse(prefs.get(CliqzABTests.PREF_OVERRIDE));
       return ABtests;
     }
     return undefined;
   },
   setOverride(tests) {
     if (tests) {
-      CliqzUtils.setPref(CliqzABTests.PREF_OVERRIDE, JSON.stringify(tests));
+      prefs.set(CliqzABTests.PREF_OVERRIDE, JSON.stringify(tests));
     } else {
-      CliqzUtils.clearPref(CliqzABTests.PREF_OVERRIDE);
+      prefs.clear(CliqzABTests.PREF_OVERRIDE);
     }
   },
 
@@ -50,16 +55,16 @@ const CliqzABTests = {
   check() {
     log('AB checking');
     // clear the last timer
-    CliqzUtils.clearTimeout(timer);
+    clearTimeout(timer);
     // set a new timer to be triggered after 1 hour
-    timer = CliqzUtils.setTimeout(CliqzABTests.check, ONE_HOUR);
+    timer = setTimeout(CliqzABTests.check, ONE_HOUR);
 
     CliqzABTests.retrieve(
       (response) => {
         try {
           let prevABtests = {};
-          if (CliqzUtils.hasPref(CliqzABTests.PREF)) {
-            prevABtests = JSON.parse(CliqzUtils.getPref(CliqzABTests.PREF));
+          if (prefs.has(CliqzABTests.PREF)) {
+            prevABtests = JSON.parse(prefs.get(CliqzABTests.PREF));
           }
           let respABtests = JSON.parse(response.responseText);
 
@@ -96,7 +101,7 @@ const CliqzABTests = {
           }
 
           if (changes) {
-            CliqzUtils.setPref(CliqzABTests.PREF, JSON.stringify(newABtests));
+            prefs.set(CliqzABTests.PREF, JSON.stringify(newABtests));
           }
         } catch (e) {
           log(`retrieve error: ${e.message}`);
@@ -104,11 +109,11 @@ const CliqzABTests = {
       });
   },
   retrieve(callback) {
-    const url = CliqzABTests.URL + encodeURIComponent(CliqzUtils.getPref('session', ''));
+    const url = CliqzABTests.URL + encodeURIComponent(prefs.get('session', ''));
 
     const onerror = () => { log('failed to retrieve AB test data'); };
 
-    CliqzUtils.httpGet(url, callback, onerror, 15000);
+    httpGet(url, callback, onerror, 15000);
   },
   enter(abtest) {
     // Add new AB tests here.
@@ -116,320 +121,340 @@ const CliqzABTests = {
     let ruleExecuted = true;
     switch (abtest) {
       case '1028_A':
-        CliqzUtils.setPref('humanWeb', false);
+        prefs.set('humanWeb', false);
         break;
       case '1028_B':
-        CliqzUtils.setPref('humanWeb', true);
+        prefs.set('humanWeb', true);
         break;
       case '1032_A':
-        CliqzUtils.setPref('spellCorrMessage', false);
+        prefs.set('spellCorrMessage', false);
         break;
       case '1032_B':
-        CliqzUtils.setPref('spellCorrMessage', true);
+        prefs.set('spellCorrMessage', true);
         break;
       case '1036_B':
-        CliqzUtils.setPref('extended_onboarding_same_result', true);
+        prefs.set('extended_onboarding_same_result', true);
         break;
       case '1045_A':
         break;
       case '1045_B':
-        CliqzUtils.setPref('antiTrackTest', true);
+        prefs.set('antiTrackTest', true);
         break;
       case '1046_B':
-        CliqzUtils.setPref('attrackBlockCookieTracking', true);
+        prefs.set('attrackBlockCookieTracking', true);
         break;
       case '1047_B':
-        CliqzUtils.setPref('attrackRemoveQueryStringTracking', true);
+        prefs.set('attrackRemoveQueryStringTracking', true);
         break;
       case '1048_B':
-        CliqzUtils.setPref('attrackAlterPostdataTracking', true);
+        prefs.set('attrackAlterPostdataTracking', true);
         break;
       case '1049_B':
-        CliqzUtils.setPref('attrackCanvasFingerprintTracking', true);
+        prefs.set('attrackCanvasFingerprintTracking', true);
         break;
       case '1050_B':
-        CliqzUtils.setPref('attrackRefererTracking', true);
+        prefs.set('attrackRefererTracking', true);
         break;
       case '1051_B':
-        CliqzUtils.setPref('antiTrackTest', true);
+        prefs.set('antiTrackTest', true);
         break;
       case '1052_A':
-        CliqzUtils.setPref('attrackBlockCookieTracking', false);
+        prefs.set('attrackBlockCookieTracking', false);
         break;
       case '1052_B':
-        CliqzUtils.setPref('attrackBlockCookieTracking', true);
+        prefs.set('attrackBlockCookieTracking', true);
         break;
       case '1053_A':
-        CliqzUtils.setPref('attrackRemoveQueryStringTracking', false);
+        prefs.set('attrackRemoveQueryStringTracking', false);
         break;
       case '1053_B':
-        CliqzUtils.setPref('attrackRemoveQueryStringTracking', true);
+        prefs.set('attrackRemoveQueryStringTracking', true);
         break;
       case '1057_A':
-        CliqzUtils.setPref('trackerTxt', false);
+        prefs.set('trackerTxt', false);
         break;
       case '1057_B':
-        CliqzUtils.setPref('trackerTxt', true);
+        prefs.set('trackerTxt', true);
         break;
       case '1059_A':
-        CliqzUtils.setPref('attrack.local_tracking', false);
+        prefs.set('attrack.local_tracking', false);
         break;
       case '1059_B':
-        CliqzUtils.setPref('attrack.local_tracking', true);
+        prefs.set('attrack.local_tracking', true);
         break;
       case '1060_A':
-        CliqzUtils.setPref('attrackBloomFilter', false);
+        prefs.set('attrackBloomFilter', false);
         break;
       case '1060_B':
-        CliqzUtils.setPref('attrackBloomFilter', true);
+        prefs.set('attrackBloomFilter', true);
         break;
       case '1061_A':
-        CliqzUtils.setPref('attrackUI', false);
+        prefs.set('attrackUI', false);
         break;
       case '1061_B':
-        CliqzUtils.setPref('attrackUI', true);
+        prefs.set('attrackUI', true);
         break;
       case '1063_A':
-        CliqzUtils.setPref('double-enter2', false);
+        prefs.set('double-enter2', false);
         break;
       case '1063_B':
-        CliqzUtils.setPref('double-enter2', true);
+        prefs.set('double-enter2', true);
         break;
       case '1064_A':
-        CliqzUtils.setPref('attrackDefaultAction', 'same');
+        prefs.set('attrackDefaultAction', 'same');
         break;
       case '1064_B':
-        CliqzUtils.setPref('attrackDefaultAction', 'placeholder');
+        prefs.set('attrackDefaultAction', 'placeholder');
         break;
       case '1064_C':
-        CliqzUtils.setPref('attrackDefaultAction', 'block');
+        prefs.set('attrackDefaultAction', 'block');
         break;
       case '1064_D':
-        CliqzUtils.setPref('attrackDefaultAction', 'empty');
+        prefs.set('attrackDefaultAction', 'empty');
         break;
       case '1064_E':
-        CliqzUtils.setPref('attrackDefaultAction', 'replace');
+        prefs.set('attrackDefaultAction', 'replace');
         break;
       case '1065_A':
-        CliqzUtils.setPref('freshTabNewsEmail', false);
+        prefs.set('freshTabNewsEmail', false);
         break;
       case '1065_B':
-        CliqzUtils.setPref('freshTabNewsEmail', true);
+        prefs.set('freshTabNewsEmail', true);
         break;
       case '1066_A':
-        CliqzUtils.setPref('proxyNetwork', false);
+        prefs.set('proxyNetwork', false);
         break;
       case '1066_B':
-        CliqzUtils.setPref('proxyNetwork', true);
+        prefs.set('proxyNetwork', true);
         break;
       case '1070_A':
-        CliqzUtils.setPref('cliqz-anti-phishing', false);
-        CliqzUtils.setPref('cliqz-anti-phishing-enabled', false);
+        prefs.set('cliqz-anti-phishing', false);
+        prefs.set('cliqz-anti-phishing-enabled', false);
         break;
       case '1070_B':
-        CliqzUtils.setPref('cliqz-anti-phishing', true);
-        CliqzUtils.setPref('cliqz-anti-phishing-enabled', true);
+        prefs.set('cliqz-anti-phishing', true);
+        prefs.set('cliqz-anti-phishing-enabled', true);
         break;
       case '1071_A':
-        CliqzUtils.setPref('browser.privatebrowsing.apt', false, '');
+        prefs.set('browser.privatebrowsing.apt', false, '');
         break;
       case '1071_B':
-        CliqzUtils.setPref('browser.privatebrowsing.apt', true, '');
+        prefs.set('browser.privatebrowsing.apt', true, '');
         break;
       case '1074_A':
-        CliqzUtils.setPref('cliqz-adb-abtest', false);
+        prefs.set('cliqz-adb-abtest', false);
         break;
       case '1074_B':
-        CliqzUtils.setPref('cliqz-adb-abtest', true);
+        prefs.set('cliqz-adb-abtest', true);
         break;
       case '1077_A':
-        CliqzUtils.setPref('languageDedup', false);
+        prefs.set('languageDedup', false);
         break;
       case '1077_B':
-        CliqzUtils.setPref('languageDedup', true);
+        prefs.set('languageDedup', true);
         break;
       case '1078_A':
-        CliqzUtils.setPref('telemetryNoSession', false);
+        prefs.set('modules.anolysis.enabled', false);
         break;
       case '1078_B':
-        CliqzUtils.setPref('telemetryNoSession', true);
+        prefs.set('modules.anolysis.enabled', true);
         break;
       case '1080_A':
-        CliqzUtils.setPref('freshtabNewBrand', false);
+        prefs.set('freshtabNewBrand', false);
         break;
       case '1080_B':
-        CliqzUtils.setPref('freshtabNewBrand', true);
+        prefs.set('freshtabNewBrand', true);
         break;
       case '1081_A':
-        CliqzUtils.setPref('attrackLogBreakage', false);
+        prefs.set('attrackLogBreakage', false);
         break;
       case '1081_B':
-        CliqzUtils.setPref('attrackLogBreakage', true);
+        prefs.set('attrackLogBreakage', true);
         break;
       case '1084_B':
-        CliqzUtils.setPref('attrackOverrideUserAgent', true);
+        prefs.set('attrackOverrideUserAgent', true);
         break;
       case '1085_A':
-        CliqzUtils.setPref('extOnboardShareLocation', false);
+        prefs.set('extOnboardShareLocation', false);
         break;
       case '1085_B':
-        CliqzUtils.setPref('extOnboardShareLocation', true);
+        prefs.set('extOnboardShareLocation', true);
         break;
       case '1086_A':
-        CliqzUtils.setPref('checkLogos', '1');
+        prefs.set('checkLogos', '1');
         break;
       case '1086_B':
-        CliqzUtils.setPref('checkLogos', '0');
+        prefs.set('checkLogos', '0');
         break;
       case '1087_A':
-        CliqzUtils.setPref('modules.context-search.enabled', false);
+        prefs.set('modules.context-search.enabled', false);
         break;
       case '1087_B':
-        CliqzUtils.setPref('modules.context-search.enabled', true);
+        prefs.set('modules.context-search.enabled', true);
         break;
       case '1088_A':
-        CliqzUtils.setPref('offers2FeatureEnabled', false);
+        prefs.set('offers2FeatureEnabled', false);
         break;
       case '1088_B':
-        CliqzUtils.setPref('offers2FeatureEnabled', true);
+        prefs.set('offers2FeatureEnabled', true);
         break;
       case '1092_A':
-        CliqzUtils.setPref('extOnboardVideoDownloader', false);
+        prefs.set('extOnboardVideoDownloader', false);
         break;
       case '1092_B':
-        CliqzUtils.setPref('extOnboardVideoDownloader', true);
+        prefs.set('extOnboardVideoDownloader', true);
         break;
       case '1094_A':
-        CliqzUtils.setPref('ff-experiment', false);
+        prefs.set('ff-experiment', false);
         break;
       case '1094_B':
-        CliqzUtils.setPref('ff-experiment', true);
+        prefs.set('ff-experiment', true);
         break;
       case '1096_A':
-        CliqzUtils.setPref('extOnboardCliqzConnect', false);
+        prefs.set('extOnboardCliqzConnect', false);
         break;
       case '1096_B':
-        CliqzUtils.setPref('extOnboardCliqzConnect', true);
+        prefs.set('extOnboardCliqzConnect', true);
         break;
       case '1097_A':
-        CliqzUtils.setPref('dropdownAdCampaignPosition', 'top');
+        prefs.set('dropdownAdCampaignPosition', 'top');
         break;
       case '1097_B':
-        CliqzUtils.setPref('dropdownAdCampaignPosition', 'bottom');
+        prefs.set('dropdownAdCampaignPosition', 'bottom');
         break;
       case '1098_A': // ADB turned OFF
-        if (CliqzUtils.getPref('cliqz-adb-onboarding-ab', false) === true) {
+        if (prefs.get('cliqz-adb-onboarding-ab', false) === true) {
           // turn ADB back OFF only if it was set ON by this test
-          CliqzUtils.clearPref('cliqz-adb-onboarding-ab');
-          CliqzUtils.clearPref('cliqz-adb-onboarding-message');
-          CliqzUtils.setPref('cliqz-adb', 0);
+          prefs.clear('cliqz-adb-onboarding-ab');
+          prefs.clear('cliqz-adb-onboarding-message');
+          prefs.set('cliqz-adb', 0);
         }
         break;
       case '1098_B': // ADB turned ON
-        if (CliqzUtils.getPref('cliqz-adb', 0) === 1) {
+        if (prefs.get('cliqz-adb', 0) === 1) {
           // ADB already turned ON by the user so leave this test
           CliqzABTests.disable('1098_B');
         } else {
-          CliqzUtils.setPref('cliqz-adb-onboarding-ab', true);
-          CliqzUtils.setPref('cliqz-adb', 1);
+          prefs.set('cliqz-adb-onboarding-ab', true);
+          prefs.set('cliqz-adb', 1);
         }
         break;
       case '1098_C': // ADB turned ON + message
-        if (CliqzUtils.getPref('cliqz-adb', 0) === 1) {
+        if (prefs.get('cliqz-adb', 0) === 1) {
           // ADB already turned ON by the user so leave this test
           CliqzABTests.disable('1098_C');
         } else {
-          CliqzUtils.setPref('cliqz-adb-onboarding-ab', true);
-          CliqzUtils.setPref('cliqz-adb', 1);
-          CliqzUtils.setPref('cliqz-adb-onboarding-message', true);
+          prefs.set('cliqz-adb-onboarding-ab', true);
+          prefs.set('cliqz-adb', 1);
+          prefs.set('cliqz-adb-onboarding-message', true);
         }
         break;
       case '1099_A':
-        CliqzUtils.setPref('attrackCookieTrustReferers', false);
+        prefs.set('attrackCookieTrustReferers', false);
         break;
       case '1099_B':
-        CliqzUtils.setPref('attrackCookieTrustReferers', true);
+        prefs.set('attrackCookieTrustReferers', true);
         break;
       case '1101_A':
-        CliqzUtils.setPref('modules.history.enabled', false);
+        prefs.set('modules.history.enabled', false);
         break;
       case '1101_B':
-        CliqzUtils.setPref('modules.history.enabled', true);
+        prefs.set('modules.history.enabled', true);
         break;
       case '1102_A':
-        CliqzUtils.setPref('modules.antitracking-blocker.enabled', false);
+        prefs.set('modules.antitracking-blocker.enabled', false);
         break;
       case '1102_B':
-        CliqzUtils.setPref('antitrackingBlocklist', 'default');
-        CliqzUtils.setPref('modules.antitracking-blocker.enabled', true);
+        prefs.set('antitrackingBlocklist', 'default');
+        prefs.set('modules.antitracking-blocker.enabled', true);
         break;
       case '1102_C':
-        CliqzUtils.setPref('antitrackingBlocklist', 'cliqz');
-        CliqzUtils.setPref('modules.antitracking-blocker.enabled', true);
+        prefs.set('antitrackingBlocklist', 'cliqz');
+        prefs.set('modules.antitracking-blocker.enabled', true);
         break;
       case '1102_D':
-        CliqzUtils.setPref('antitrackingBlocklist', 'ghostery');
-        CliqzUtils.setPref('modules.antitracking-blocker.enabled', true);
+        prefs.set('antitrackingBlocklist', 'ghostery');
+        prefs.set('modules.antitracking-blocker.enabled', true);
         break;
       case '1103_A':
-        CliqzUtils.setPref('offersDropdownAdPosition', 'top');
+        prefs.set('offersDropdownAdPosition', 'top');
         break;
       case '1103_B':
-        CliqzUtils.setPref('offersDropdownAdPosition', 'bottom');
+        prefs.set('offersDropdownAdPosition', 'bottom');
         break;
       case '1103_C':
-        CliqzUtils.setPref('offersDropdownAdPosition', 'right');
+        prefs.set('offersDropdownAdPosition', 'right');
         break;
       case '1105_A':
-        CliqzUtils.setPref('offersBrowserPanelEnableSwitch', false);
+        prefs.set('offersBrowserPanelEnableSwitch', false);
         break;
       case '1105_B':
-        CliqzUtils.setPref('offersBrowserPanelEnableSwitch', true);
+        prefs.set('offersBrowserPanelEnableSwitch', true);
         break;
       case '1106_A':
-        CliqzUtils.setPref('greenads', 'green');
+        prefs.set('greenads', 'green');
         break;
       case '1106_B':
-        CliqzUtils.setPref('greenads', 'collect');
+        prefs.set('greenads', 'collect');
         break;
       case '1106_C':
-        CliqzUtils.setPref('greenads', 'disabled');
+        prefs.set('greenads', 'disabled');
         break;
       case '1107_A':
-        CliqzUtils.setPref('MarketAnalysisEnabled', false);
+        prefs.set('MarketAnalysisEnabled', false);
         break;
       case '1107_B':
-        CliqzUtils.setPref('MarketAnalysisEnabled', true);
+        prefs.set('MarketAnalysisEnabled', true);
         break;
       case '1108_A':
-        CliqzUtils.setPref('extOnboardNewSearchUI', false);
+        prefs.set('extOnboardNewSearchUI', false);
         break;
       case '1108_B':
-        CliqzUtils.setPref('extOnboardNewSearchUI', true);
+        prefs.set('extOnboardNewSearchUI', true);
         break;
       case '1109_A':
-        CliqzUtils.setPref('offersDropdownSwitch', false);
+        prefs.set('offersDropdownSwitch', false);
         break;
       case '1109_B':
-        CliqzUtils.setPref('offersDropdownSwitch', true);
+        prefs.set('offersDropdownSwitch', true);
         break;
       case '1110_A':
-        CliqzUtils.setPref('cliqzTabOffersNotification', false);
+        prefs.set('cliqzTabOffersNotification', false);
         break;
       case '1110_B':
-        CliqzUtils.setPref('cliqzTabOffersNotification', true);
+        prefs.set('cliqzTabOffersNotification', true);
         break;
       case '1111_A':
-        CliqzUtils.setPref('modules.history-analyzer.enabled', false);
+        prefs.set('modules.history-analyzer.enabled', false);
         break;
       case '1111_B':
-        CliqzUtils.setPref('modules.history-analyzer.enabled', true);
+        prefs.set('modules.history-analyzer.enabled', true);
         break;
       case '1112_A':
-        CliqzUtils.setPref('experiment_svm', false);
+        prefs.set('experiment_svm', false);
         break;
       case '1112_B':
-        CliqzUtils.setPref('experiment_svm', true);
+        prefs.set('experiment_svm', true);
+        break;
+      case '1114_A':
+      case '1114_B':
+      case '1114_C':
+        // we activate this test locally in services.es/session()
+        // so we only need to disable it with the AB test
+        if (getDefaultEngine().name === 'Cliqz') {
+          revertToOriginalEngine();
+        }
+        prefs.clear('serp_test');
+        break;
+      case '1115_A':
+        if (isCliqzBrowser) {
+          prefs.set('network.http.referer.XOriginTrimmingPolicy', 0);
+        }
+        break;
+      case '1115_B':
+        if (isCliqzBrowser) {
+          prefs.set('network.http.referer.XOriginTrimmingPolicy', 1);
+        }
         break;
       default:
         ruleExecuted = false;
@@ -454,24 +479,24 @@ const CliqzABTests = {
     let ruleExecuted = true;
     switch (abtest) {
       case '1024_B':
-        CliqzUtils.clearPref('categoryAssessment');
+        prefs.clear('categoryAssessment');
         break;
       case '1028_A':
       case '1028_B':
-        CliqzUtils.clearPref('humanWeb');
+        prefs.clear('humanWeb');
         break;
       case '1032_A':
       case '1032_B':
-        CliqzUtils.clearPref('spellCorrMessage');
+        prefs.clear('spellCorrMessage');
         break;
       case '1036_A':
       case '1036_B':
-        CliqzUtils.clearPref('extended_onboarding_same_result');
-        CliqzUtils.clearPref('extended_onboarding');
+        prefs.clear('extended_onboarding_same_result');
+        prefs.clear('extended_onboarding');
         break;
       case '1045_A':
       case '1045_B':
-        CliqzUtils.clearPref('antiTrackTest');
+        prefs.clear('antiTrackTest');
         break;
       case '1046_A':
       case '1047_A':
@@ -480,248 +505,263 @@ const CliqzABTests = {
       case '1050_A':
         break;
       case '1046_B':
-        CliqzUtils.clearPref('attrackBlockCookieTracking');
+        prefs.clear('attrackBlockCookieTracking');
         break;
       case '1047_B':
-        CliqzUtils.clearPref('attrackRemoveQueryStringTracking');
+        prefs.clear('attrackRemoveQueryStringTracking');
         break;
       case '1048_B':
-        CliqzUtils.clearPref('attrackAlterPostdataTracking');
+        prefs.clear('attrackAlterPostdataTracking');
         break;
       case '1049_B':
-        CliqzUtils.clearPref('attrackCanvasFingerprintTracking');
+        prefs.clear('attrackCanvasFingerprintTracking');
         break;
       case '1050_B':
-        CliqzUtils.clearPref('attrackRefererTracking');
+        prefs.clear('attrackRefererTracking');
         break;
       case '1051_B':
-        CliqzUtils.clearPref('antiTrackTest');
+        prefs.clear('antiTrackTest');
         break;
       case '1052_B':
-        CliqzUtils.clearPref('attrackBlockCookieTracking');
+        prefs.clear('attrackBlockCookieTracking');
         break;
       case '1053_B':
-        CliqzUtils.clearPref('attrackRemoveQueryStringTracking');
+        prefs.clear('attrackRemoveQueryStringTracking');
         break;
       case '1055_A':
       case '1055_B':
-        CliqzUtils.clearPref('unblockEnabled');
+        prefs.clear('unblockEnabled');
         break;
       case '1056_A':
       case '1056_B':
-        CliqzUtils.clearPref('freshTabAB');
+        prefs.clear('freshTabAB');
         break;
       case '1057_B':
-        CliqzUtils.clearPref('trackerTxt');
+        prefs.clear('trackerTxt');
         break;
       case '1058_A':
       case '1058_B':
-        CliqzUtils.clearPref('unblockMode');
+        prefs.clear('unblockMode');
         break;
       case '1059_A':
       case '1059_B':
-        CliqzUtils.clearPref('attrack.local_tracking');
+        prefs.clear('attrack.local_tracking');
         break;
       case '1060_A':
       case '1060_B':
-        CliqzUtils.clearPref('attrackBloomFilter');
+        prefs.clear('attrackBloomFilter');
         break;
       case '1061_A':
       case '1061_B':
-        CliqzUtils.clearPref('attrackUI');
+        prefs.clear('attrackUI');
         break;
       case '1063_A':
       case '1063_B':
-        CliqzUtils.clearPref('double-enter2');
+        prefs.clear('double-enter2');
         break;
       case '1064_A':
       case '1064_B':
       case '1064_C':
       case '1064_D':
       case '1064_E':
-        CliqzUtils.clearPref('attrackDefaultAction');
+        prefs.clear('attrackDefaultAction');
         break;
       case '1066_A':
       case '1066_B':
-        CliqzUtils.clearPref('proxyNetwork');
+        prefs.clear('proxyNetwork');
         break;
       case '1065_A':
       case '1065_B':
-        CliqzUtils.clearPref('freshTabNewsEmail');
+        prefs.clear('freshTabNewsEmail');
         break;
       case '1068_A':
       case '1068_B':
-        CliqzUtils.clearPref('languageDedup');
+        prefs.clear('languageDedup');
         break;
       case '1069_A':
       case '1069_B':
-        CliqzUtils.clearPref('grOfferSwitchFlag');
+        prefs.clear('grOfferSwitchFlag');
         break;
       case '1070_A':
       case '1070_B':
-        CliqzUtils.clearPref('cliqz-anti-phishing');
-        CliqzUtils.clearPref('cliqz-anti-phishing-enabled');
+        prefs.clear('cliqz-anti-phishing');
+        prefs.clear('cliqz-anti-phishing-enabled');
         break;
       case '1071_A':
       case '1071_B':
-        CliqzUtils.clearPref('browser.privatebrowsing.apt', '');
+        prefs.clear('browser.privatebrowsing.apt', '');
         break;
       case '1072_A':
       case '1072_B':
-        CliqzUtils.clearPref('grFeatureEnabled');
+        prefs.clear('grFeatureEnabled');
         break;
       case '1074_A':
       case '1074_B':
-        CliqzUtils.clearPref('cliqz-adb-abtest');
+        prefs.clear('cliqz-adb-abtest');
         break;
       case '1075_A':
       case '1075_B':
-        CliqzUtils.clearPref('freshtabFeedback');
+        prefs.clear('freshtabFeedback');
         break;
       case '1076_A':
       case '1076_B':
-        CliqzUtils.clearPref('history.timeouts');
+        prefs.clear('history.timeouts');
         break;
       case '1077_A':
       case '1077_B':
-        CliqzUtils.clearPref('languageDedup');
+        prefs.clear('languageDedup');
         break;
       case '1078_A':
       case '1078_B':
-        CliqzUtils.clearPref('telemetryNoSession');
+        // Anolysis is disabled by default.
+        prefs.set('modules.anolysis.enabled', false);
         break;
       case '1079_A':
       case '1079_B':
-        CliqzUtils.clearPref('controlCenter');
+        prefs.clear('controlCenter');
         break;
       case '1080_A':
       case '1080_B':
-        CliqzUtils.clearPref('freshtabNewBrand');
+        prefs.clear('freshtabNewBrand');
         break;
       case '1081_A':
       case '1081_B':
-        CliqzUtils.clearPref('attrackLogBreakage');
+        prefs.clear('attrackLogBreakage');
         break;
       case '1082_A':
       case '1082_B':
-        CliqzUtils.clearPref('experimentalCookieDroppingDetection');
+        prefs.clear('experimentalCookieDroppingDetection');
         break;
       case '1084_B':
-        CliqzUtils.clearPref('attrackOverrideUserAgent');
+        prefs.clear('attrackOverrideUserAgent');
         break;
       case '1085_A':
       case '1085_B':
-        CliqzUtils.clearPref('extOnboardShareLocation');
+        prefs.clear('extOnboardShareLocation');
         break;
       case '1086_A':
       case '1086_B':
-        CliqzUtils.clearPref('checkLogos');
+        prefs.clear('checkLogos');
         break;
       case '1087_B':
-        CliqzUtils.setPref('modules.context-search.enabled', false);
+        prefs.set('modules.context-search.enabled', false);
         break;
       case '1088_A':
       case '1088_B':
-        CliqzUtils.clearPref('offers2FeatureEnabled');
+        prefs.clear('offers2FeatureEnabled');
         break;
       case '1091_A':
-        CliqzUtils.clearPref('dropDownStyle');
+        prefs.clear('dropDownStyle');
         break;
       case '1092_A':
       case '1092_B':
-        CliqzUtils.clearPref('extOnboardVideoDownloader');
+        prefs.clear('extOnboardVideoDownloader');
         break;
       case '1093_A':
       case '1093_B':
-        CliqzUtils.clearPref('extOnboardCliqzGhostery');
+        prefs.clear('extOnboardCliqzGhostery');
         break;
       case '1094_A':
       case '1094_B':
-        CliqzUtils.clearPref('ff-experiment');
+        prefs.clear('ff-experiment');
         break;
       case '1095_A':
       case '1095_B':
-        CliqzUtils.clearPref('connect');
+        prefs.clear('connect');
         break;
       case '1096_A':
       case '1096_B':
-        CliqzUtils.clearPref('extOnboardCliqzConnect');
+        prefs.clear('extOnboardCliqzConnect');
         break;
       case '1097_A':
       case '1097_B':
-        CliqzUtils.clearPref('dropdownAdCampaignPosition');
+        prefs.clear('dropdownAdCampaignPosition');
         break;
       case '1098_A':
       case '1098_B':
       case '1098_C':
-        if (CliqzUtils.getPref('cliqz-adb-onboarding-ab', false) === true) {
+        if (prefs.get('cliqz-adb-onboarding-ab', false) === true) {
           // turn ADB back OFF only if it was set ON by this test
-          CliqzUtils.setPref('cliqz-adb', 0);
+          prefs.set('cliqz-adb', 0);
         }
-        CliqzUtils.clearPref('cliqz-adb-onboarding-ab');
-        CliqzUtils.clearPref('cliqz-adb-onboarding-message');
+        prefs.clear('cliqz-adb-onboarding-ab');
+        prefs.clear('cliqz-adb-onboarding-message');
         break;
       case '1099_A':
       case '1099_B':
-        CliqzUtils.clearPref('attrackCookieTrustReferers');
+        prefs.clear('attrackCookieTrustReferers');
         break;
       case '1100_A':
       case '1100_B':
-        CliqzUtils.clearPref('offersHubEnableSwitch');
+        prefs.clear('offersHubEnableSwitch');
         break;
       case '1101_A':
       case '1101_B':
-        CliqzUtils.clearPref('modules.history.enabled');
+        prefs.clear('modules.history.enabled');
         break;
       case '1102_A':
       case '1102_B':
       case '1102_C':
       case '1102_D':
-        CliqzUtils.setPref('modules.antitracking-blocker.enabled', false);
-        CliqzUtils.clearPref('antitrackingBlocklist');
+        prefs.set('modules.antitracking-blocker.enabled', false);
+        prefs.clear('antitrackingBlocklist');
         break;
       case '1103_A':
       case '1103_B':
       case '1103_C':
-        CliqzUtils.clearPref('offersDropdownAdPosition');
+        prefs.clear('offersDropdownAdPosition');
         break;
       case '1104_A':
       case '1104_B':
       case '1104_C':
-        CliqzUtils.clearPref('offersHubTrigger');
+        prefs.clear('offersHubTrigger');
         break;
       case '1105_A':
       case '1105_B':
-        CliqzUtils.clearPref('offersBrowserPanelEnableSwitch');
+        prefs.clear('offersBrowserPanelEnableSwitch');
         break;
       case '1106_A':
       case '1106_B':
       case '1106_C':
-        CliqzUtils.clearPref('greenads');
+        prefs.clear('greenads');
         break;
       case '1107_A':
       case '1107_B':
-        CliqzUtils.clearPref('MarketAnalysisEnabled');
+        prefs.clear('MarketAnalysisEnabled');
         break;
       case '1108_A':
       case '1108_B':
-        CliqzUtils.clearPref('extOnboardNewSearchUI');
+        prefs.clear('extOnboardNewSearchUI');
         break;
       case '1109_A':
       case '1109_B':
-        CliqzUtils.clearPref('offersDropdownSwitch');
+        prefs.clear('offersDropdownSwitch');
         break;
       case '1110_A':
       case '1110_B':
-        CliqzUtils.clearPref('cliqzTabOffersNotification');
+        prefs.clear('cliqzTabOffersNotification');
         break;
       case '1111_A':
       case '1111_B':
-        CliqzUtils.setPref('modules.history-analyzer.enabled', false);
+        prefs.set('modules.history-analyzer.enabled', false);
         break;
       case '1112_A':
       case '1112_B':
-        CliqzUtils.clearPref('experiment_svm');
+        prefs.clear('experiment_svm');
+        break;
+      case '1114_A':
+      case '1114_B':
+      case '1114_C':
+        if (getDefaultEngine().name === 'Cliqz') {
+          revertToOriginalEngine();
+        }
+        prefs.clear('serp_test');
+        break;
+      case '1115_A':
+      case '1115_B':
+        if (isCliqzBrowser) {
+          prefs.clear('network.http.referer.XOriginTrimmingPolicy');
+        }
         break;
       default:
         ruleExecuted = false;
@@ -742,13 +782,13 @@ const CliqzABTests = {
     // Disable an AB test but do not remove it from list of active AB tests,
     // this is intended to be used by the extension itself when it experiences
     // an error associated with this AB test.
-    if (CliqzUtils.hasPref(CliqzABTests.PREF)) {
-      const curABtests = JSON.parse(CliqzUtils.getPref(CliqzABTests.PREF));
+    if (prefs.has(CliqzABTests.PREF)) {
+      const curABtests = JSON.parse(prefs.get(CliqzABTests.PREF));
 
       if (curABtests[abtest] && CliqzABTests.leave(abtest, true)) {
         // mark as disabled and save back to preferences
         curABtests[abtest].disabled = true;
-        CliqzUtils.setPref(CliqzABTests.PREF, JSON.stringify(curABtests));
+        prefs.set(CliqzABTests.PREF, JSON.stringify(curABtests));
       }
     }
   },

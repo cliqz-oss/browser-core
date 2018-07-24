@@ -71,7 +71,13 @@ node('docker') {
           withEnv(["CLIQZ_CONFIG_PATH=./configs/${CLIQZ_CHANNEL}.js"]) {
             helpers.withCache {
               sh './fern.js pack'
-              sh './fern.js publish'
+
+              def output = sh(
+                  returnStdout: true,
+                  script: './fern.js publish',
+              ).trim()
+
+              echo output
             }
           }
         }

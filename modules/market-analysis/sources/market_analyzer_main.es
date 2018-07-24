@@ -1,4 +1,4 @@
-import utils from '../core/utils';
+import { getDetailsFromUrl } from '../core/url';
 
 // import utilities
 import { getTopLevelCategory, joinKeyVal, splitKeyVal, generateItems } from './common/utils';
@@ -17,7 +17,6 @@ import TimeFrames from './model/time_frames';
 // import services
 import DataAccessProvider from './data_access_provider';
 import CommunicationProvider from './communication_provider';
-import { isTelemetryEnabled } from './util';
 
 /**
  * Entry point of the module
@@ -144,9 +143,6 @@ const CliqzMarketAnalyzer = {
    * If any, send them to the backend and then remove them from local database
    */
   _sendOldStats() {
-    if (!isTelemetryEnabled()) {
-      return;
-    }
     logger.debug('>>> Finding stats to send..');
     if (!this.maTable) return;
 
@@ -275,11 +271,11 @@ const CliqzMarketAnalyzer = {
             }
             self.dbModified = true;
             self._persistCurrentMATable();
-            self.sendSignalTO = utils.setTimeout(sendNextSignal, 1000);
+            self.sendSignalTO = setTimeout(sendNextSignal, 1000);
           },
           (sentSig, err) => {
             logger.log(`Failed to send signal. Error: ${err}`);
-            self.sendSignalTO = utils.setTimeout(sendNextSignal, 1000);
+            self.sendSignalTO = setTimeout(sendNextSignal, 1000);
           }
         );
       }
@@ -296,10 +292,10 @@ const CliqzMarketAnalyzer = {
     function startNextSignalLoop() {
       self._addTelemetryStats();
       self._sendOldStats();
-      self.sendSignalLoopTO = utils.setTimeout(startNextSignalLoop, timeToSendSecs * 1000);
+      self.sendSignalLoopTO = setTimeout(startNextSignalLoop, timeToSendSecs * 1000);
     }
     // start sending the first signals after 1 minute, just in case HPN hasn't been loaded yet
-    self.sendSignalLoopTO = utils.setTimeout(startNextSignalLoop, 60 * 1000);
+    self.sendSignalLoopTO = setTimeout(startNextSignalLoop, 60 * 1000);
   },
 
   /**
@@ -313,7 +309,7 @@ const CliqzMarketAnalyzer = {
     // cut-off on url's length
     if (url.length <= MAConfigs.MAX_URL_LENGTH) {
       // domain here is a top-level domain (registered domain)
-      const domain = utils.getDetailsFromUrl(url).domain;
+      const domain = getDetailsFromUrl(url).domain;
       if (domain && this.regexMappings && this.regexMappings[domain]) {
         const domainMappings = this.regexMappings[domain];
         let category = '';

@@ -9,9 +9,12 @@ import ProcessScriptManager from '../platform/process-script-manager';
 import background from './base/background';
 import { getCookies, Window, mapWindows } from '../platform/browser';
 import resourceManager from './resource-manager';
+import logger from './logger';
 import inject from './kord/inject';
 import { queryCliqz, openLink, openTab, getOpenTabs, getReminders } from '../platform/browser-actions';
 import providesServices from './services';
+import bindObjectFunctions from './helpers/bind-functions';
+import { httpHandler } from './http';
 import { updateTabById } from './tabs';
 
 let lastRequestId = 0;
@@ -34,17 +37,19 @@ export default background({
     utils.CliqzLanguage = language;
     this.dispatchMessage = this.dispatchMessage.bind(this);
 
-    utils.bindObjectFunctions(this.actions, this);
+    bindObjectFunctions(this.actions, this);
 
     this.mm = new ProcessScriptManager(this.dispatchMessage);
     this.mm.init();
 
     resourceManager.init();
+    logger.init();
   },
 
   unload() {
     this.mm.unload();
     resourceManager.unload();
+    logger.unload();
   },
 
   dispatchMessage(msg) {
@@ -112,6 +117,11 @@ export default background({
     },
     notifyLocationChange(msg) {
       const windowWrapper = Window.findByTabId(msg.domWindowId);
+
+      if (!windowWrapper) {
+        return;
+      }
+
       const locationChangeMesssage = {
         ...msg,
         windowId: windowWrapper ? windowWrapper.id : null,
@@ -198,6 +208,10 @@ export default background({
       };
     },
     broadcast(target, payload) {
+      if (!payload && typeof target === 'object') {
+        payload = target;
+        target = null;
+      }
       this.mm.broadcast(target, payload);
     },
     broadcastMessageToWindow(payload, windowId, module) {
@@ -275,15 +289,13 @@ export default background({
       const urlBar = utils.getWindow().document.getElementById('urlbar');
       urlBar.mInputField.value = value;
     },
-    recordLang(url, lang) {
-      events.pub('content:dom-ready', url);
-      if (lang) {
-        language.addLocale(url, lang);
-      }
-      return Promise.resolve();
-    },
     recordMeta(url, meta) {
       events.pub('core:url-meta', url, meta);
+      events.pub('content:dom-ready', url);
+      if (meta.lang) {
+        language.addLocale(url, meta.lang);
+      }
+      return Promise.resolve();
     },
     openFeedbackPage() {
       const window = utils.getWindow();
@@ -303,6 +315,29 @@ export default background({
     resizeWindow(width, height) {
       utils.getWindow().resizeTo(width, height);
     },
+    click(url, selector) {
+      const requestId = lastRequestId;
+      lastRequestId += 1;
+
+      this.mm.broadcast('cliqz:core', {
+        action: 'click',
+        url,
+        args: [selector],
+        requestId
+      });
+
+      return new Promise((resolve, reject) => {
+        callbacks[requestId] = (attributeValues) => {
+          delete callbacks[requestId];
+          resolve(attributeValues);
+        };
+
+        setTimeout(() => {
+          delete callbacks[requestId];
+          reject(new Error('click timeout'));
+        }, 1000);
+      });
+    },
     queryHTML(url, selector, attribute) {
       const requestId = lastRequestId;
       lastRequestId += 1;
@@ -320,7 +355,7 @@ export default background({
           resolve(attributeValues);
         };
 
-        utils.setTimeout(() => {
+        setTimeout(() => {
           delete callbacks[requestId];
           reject(new Error('queryHTML timeout'));
         }, 1000);
@@ -344,7 +379,7 @@ export default background({
       };
 
       return new Promise((resolve) => {
-        utils.setTimeout(() => {
+        setTimeout(() => {
           delete callbacks[requestId];
           resolve(documents);
         }, timeout);
@@ -370,12 +405,17 @@ export default background({
               resolve(attributeValues);
             };
 
-            utils.setTimeout(() => {
+            setTimeout(() => {
               delete callbacks[requestId];
               reject(new Error('getCookie timeout'));
             }, 1000);
           });
         });
+    },
+    sendUserFeedback(data) {
+      data._type = 'user_feedback';
+      // Params: method, url, resolve, reject, timeout, data
+      httpHandler('POST', config.settings.STATISTICS, null, null, 10000, JSON.stringify(data));
     },
   },
 });

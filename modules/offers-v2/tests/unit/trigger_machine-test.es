@@ -4,24 +4,24 @@
 
 const tldjs = require('tldjs');
 
-var prefRetVal = {};
-var currentTS = Date.now();
-var mockedTimestamp = Date.now() / 1000;
-var currentDayHour = 0;
-var currentWeekDay = 0;
-var abNumber = 0;
+const prefRetVal = {};
+let currentTS = Date.now();
+let mockedTimestamp = Date.now() / 1000;
+const currentDayHour = 0;
+const currentWeekDay = 0;
+const abNumber = 0;
 
 
 export default describeModule('offers-v2/trigger_machine/trigger_machine',
   () => ({
     'offers-v2/common/offers_v2_logger': {
       default: {
-        debug: (x) => {console.log(x);},
-        error: (x) => {console.log(x);},
-        info: (x) => {console.log(x);},
-        log: (x) => {console.log(x);},
-        warn: (x) => {console.log(x);},
-        logObject: () => {console.log(x);},
+        debug: (x) => { console.log(x); },
+        error: (x) => { console.log(x); },
+        info: (x) => { console.log(x); },
+        log: (x) => { console.log(x); },
+        warn: (x) => { console.log(x); },
+        logObject: (x) => { console.log(x); },
       }
     },
     'core/platform': {
@@ -46,22 +46,22 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
       default: {}
     },
     'offers-v2/utils': {
-      timestamp: function() {
+      timestamp: function () {
         return mockedTimestamp;
       },
-      timestampMS: function() {
+      timestampMS: function () {
         return currentTS;
       },
-      dayHour: function() {
+      dayHour: function () {
         return currentDayHour;
       },
-      weekDay: function() {
+      weekDay: function () {
         return currentWeekDay;
       },
-      getABNumber: function() {
+      getABNumber: function () {
         return abNumber;
       },
-      hashString: function(str) {
+      hashString: function (str) {
         /* eslint-disable no-bitwise */
         let hash = 5381;
         for (let i = 0, len = str.length; i < len; i += 1) {
@@ -78,49 +78,38 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
     },
     'core/prefs': {
       default: {
-        get: function(v, d) {
-          if (prefRetVal[v]) {
-            return prefRetVal[v];
-          }
-          return d;
+        get: function (p, v) {
+          return v;
         },
-        setMockVal: function(varName, val) {
+        setMockVal: function (varName, val) {
           prefRetVal[varName] = val;
-        }
+        },
       }
     },
     'core/utils': {
-      default: {
-        setInterval: function() {},
-        getPref: function(p, v) {
-          return v;
-        }
-      }
+      default: {}
     },
     'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
+      default: function () { const stop = () => {}; return { stop }; }
     },
     'core/time': {
-      getDaysFromTimeRange: function(startTS, endTS) { },
-      getDateFromDateKey: function(dateKey, hours = 0, min = 0, seconds = 0) { },
-      timestamp: function() { },
-      getTodayDayKey: function() { }
+      getDaysFromTimeRange: function () { },
+      getDateFromDateKey: function () { },
+      timestamp: function () { },
+      getTodayDayKey: function () { }
     },
     'platform/console': {
       default: {},
     },
   }),
   () => {
-    describe('trigger_machine', function() {
+    describe('trigger_machine', function () {
       // here we will define all the modules we need / depend on for the
       // construction of the event loop and different objects,
       // we may need to refactor the code to make this clear later
       // some of the modules will be mocked some others not
       let TriggerMachine;
-      let TriggerCache;
-      let ExpressionBuilder;
       let exprBuilder;
-      let buildDataGen;
       let Expression;
       let exprMockCallbacks;
       let MockExpression;
@@ -133,22 +122,6 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
         exprMockCallbacks[id] = cb;
       }
 
-      function buildOp(obj) {
-        return exprBuilder.createExp(obj);
-      }
-
-      function testCase(op, expectedVal, ctx) {
-        const e = buildOp(op);
-        return e.evalExpr(ctx).then((result) => {
-          chai.expect(result).to.eq(expectedVal);
-        });
-      }
-
-      function buildAndExec(op, ctx, t) {
-        const e = buildOp(op, t);
-        return e.evalExpr(ctx);
-      }
-
       // hook an operation callback
       function hookExpr(opName, callbacks) {
         exprBuilder.registerOpsBuilder(opName, MockExpression);
@@ -158,15 +131,12 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
       beforeEach(function () {
         exprMockCallbacks = null;
         globObjs = {};
-        buildDataGen = { };
         TriggerMachine = this.module().default;
         const pTriggerCache = this.system.import('offers-v2/trigger_machine/trigger_cache');
         const promExpBuilder = this.system.import('offers-v2/trigger_machine/exp_builder');
         const promExpression = this.system.import('offers-v2/trigger_machine/expression');
         const pList = [pTriggerCache, promExpBuilder, promExpression];
         return Promise.all(pList).then((mods) => {
-          TriggerCache = mods[0].default;
-          ExpressionBuilder = mods[1].default;
           Expression = mods[2].default;
           class mockClass extends Expression {
             constructor(data) {
@@ -184,11 +154,13 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
               if (this.hasMockCallbacks && exprMockCallbacks[this.opName].build) {
                 return exprMockCallbacks[this.opName].build();
               }
+              return undefined;
             }
             destroy() {
               if (this.hasMockCallbacks && exprMockCallbacks[this.opName].destroy) {
                 return exprMockCallbacks[this.opName].destroy();
               }
+              return undefined;
             }
             getExprValue(ctx) {
               if (this.hasMockCallbacks && exprMockCallbacks[this.opName].getExprValue) {
@@ -203,8 +175,6 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
 
       describe('#correctness_tests', function () {
         context('/basic simple tests', function () {
-          let env;
-          let evLoop;
           let tm;
           beforeEach(function () {
             exprMockCallbacks = null;
@@ -216,7 +186,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
           });
 
           it('/trigger machine can evaluate simple trigger', () => {
-            const context =  {};
+            const context = {};
             const t = {
               parent_trigger_ids: [],
               trigger_id: 'trigger-test',
@@ -227,7 +197,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
               ]
             };
             let counter = 0;
-            let callbacks = {
+            const callbacks = {
               getExprValue: () => {
                 counter += 1;
                 return Promise.resolve(true);
@@ -239,8 +209,8 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             });
           });
 
-           it('/invalid trigger doesnt run', () => {
-            const context =  {};
+          it('/invalid trigger doesnt run', () => {
+            const context = {};
             const t = {
               parent_trigger_ids: [],
               trigger_id: 'trigger-test',
@@ -251,14 +221,14 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
               ]
             };
             let counter = 0;
-            let callbacks = {
+            const callbacks = {
               getExprValue: () => {
                 counter += 1;
                 return Promise.resolve(true);
               }
             };
             hookExpr('$test_method', callbacks);
-            return tm.run(t, context).then((result) => {
+            return tm.run(t, context).then(() => {
               chai.expect(counter).eql(0);
             }).catch((err) => {
               chai.expect(err).eql(false);
@@ -266,8 +236,8 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
           });
 
 
-           it('/invalid operation cannot run', () => {
-            const context =  {};
+          it('/invalid operation cannot run', () => {
+            const context = {};
             const t = {
               parent_trigger_ids: [],
               trigger_id: 'trigger-test',
@@ -285,7 +255,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
           });
 
           it('/invalid operation syntax cannot run', () => {
-            const context =  {};
+            const context = {};
             const t = {
               parent_trigger_ids: [],
               trigger_id: 'trigger-test',
@@ -295,12 +265,8 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
                 ['test_method', []]
               ]
             };
-            let counter = 0;
-            let callbacks = {
-              getExprValue: () => {
-                counter += 1;
-                return Promise.resolve(true);
-              }
+            const callbacks = {
+              getExprValue: () => Promise.resolve(true)
             };
             hookExpr('$test_method', callbacks);
             return tm.run(t, context).then((result) => {
@@ -311,7 +277,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
           });
 
           it('/invalid operation syntax cannot run 2', () => {
-            const context =  {};
+            const context = {};
             const t = {
               parent_trigger_ids: [],
               trigger_id: 'trigger-test',
@@ -321,12 +287,8 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
                 '$test_method', []
               ]
             };
-            let counter = 0;
-            let callbacks = {
-              getExprValue: () => {
-                counter += 1;
-                return Promise.resolve(true);
-              }
+            const callbacks = {
+              getExprValue: () => Promise.resolve(true)
             };
             hookExpr('$test_method', callbacks);
             return tm.run(t, context).then((result) => {
@@ -337,7 +299,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
           });
 
           it('/multiple actions can run', () => {
-            const context =  {};
+            const context = {};
             const t = {
               parent_trigger_ids: [],
               trigger_id: 'trigger-test',
@@ -348,20 +310,20 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
               ]
             };
             let counter = 0;
-            let callbacks = {
+            const callbacks = {
               getExprValue: () => {
                 counter += 1;
                 return Promise.resolve(true);
               }
             };
             hookExpr('$test_method', callbacks);
-            return tm.run(t, context).then((result) => {
+            return tm.run(t, context).then(() => {
               chai.expect(counter).eql(1);
             });
           });
 
           it('/multiple actions can run 2', () => {
-            const context =  {};
+            const context = {};
             const t = {
               parent_trigger_ids: [],
               trigger_id: 'trigger-test',
@@ -372,7 +334,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
               ]
             };
             let counter = 0;
-            let callbacks = {
+            const callbacks = {
               getExprValue: () => {
                 counter += 1;
                 return Promise.resolve(true);
@@ -380,13 +342,13 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             };
             hookExpr('$test_method', callbacks);
             hookExpr('$test_method_num_2', callbacks);
-            return tm.run(t, context).then((result) => {
+            return tm.run(t, context).then(() => {
               chai.expect(counter).eql(2);
             });
           });
 
           it('/if first operation fails cannot run any', () => {
-            const context =  {};
+            const context = {};
             const t = {
               parent_trigger_ids: [],
               trigger_id: 'trigger-test',
@@ -397,14 +359,14 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
               ]
             };
             let counter = 0;
-            let callbacks = {
+            const callbacks = {
               getExprValue: () => {
                 counter += 1;
                 return Promise.resolve(true);
               }
             };
             hookExpr('$test_method', callbacks);
-            return tm.run(t, context).then((result) => {
+            return tm.run(t, context).then(() => {
               chai.expect(counter).eql(0);
             }).catch((err) => {
               chai.expect(err).eql(false);
@@ -413,7 +375,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
 
 
           it('/if first operation fails cannot run any 2', () => {
-            const context =  {};
+            const context = {};
             const t = {
               parent_trigger_ids: [],
               trigger_id: 'trigger-test',
@@ -424,14 +386,14 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
               ]
             };
             let counter = 0;
-            let callbacks = {
+            const callbacks = {
               getExprValue: () => {
                 counter += 1;
                 return Promise.resolve(true);
               }
             };
             hookExpr('$test_method', callbacks);
-            return tm.run(t, context).then((result) => {
+            return tm.run(t, context).then(() => {
               chai.expect(counter).eql(0);
             }).catch((err) => {
               chai.expect(err).eql(false);
@@ -439,7 +401,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
           });
 
           it('/check lazy evaluation is working fine for and 1', () => {
-            const context =  {};
+            const context = {};
             const cond = [
               '$and', [
                 ['$ret_true', []],
@@ -455,14 +417,14 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
               actions: []
             };
             let trueCounter = 0;
-            let retTrueCallbacks = {
+            const retTrueCallbacks = {
               getExprValue: () => {
                 trueCounter += 1;
                 return Promise.resolve(true);
               }
             };
             let falseCounter = 0;
-            let retFalseCallbacks = {
+            const retFalseCallbacks = {
               getExprValue: () => {
                 falseCounter += 1;
                 return Promise.resolve(false);
@@ -470,14 +432,14 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             };
             hookExpr('$ret_true', retTrueCallbacks);
             hookExpr('$ret_false', retFalseCallbacks);
-            return tm.run(t, context).then((result) => {
+            return tm.run(t, context).then(() => {
               chai.expect(trueCounter, 'true counter').eql(1);
               chai.expect(falseCounter, 'false counter').eql(1);
             });
           });
 
           it('/check lazy evaluation is working fine for and 2', () => {
-            const context =  {};
+            const context = {};
             const cond = [
               '$and', [
                 ['$ret_true', []],
@@ -495,14 +457,14 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
               actions: []
             };
             let trueCounter = 0;
-            let retTrueCallbacks = {
+            const retTrueCallbacks = {
               getExprValue: () => {
                 trueCounter += 1;
                 return Promise.resolve(true);
               }
             };
             let falseCounter = 0;
-            let retFalseCallbacks = {
+            const retFalseCallbacks = {
               getExprValue: () => {
                 falseCounter += 1;
                 return Promise.resolve(false);
@@ -510,14 +472,14 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             };
             hookExpr('$ret_true', retTrueCallbacks);
             hookExpr('$ret_false', retFalseCallbacks);
-            return tm.run(t, context).then((result) => {
+            return tm.run(t, context).then(() => {
               chai.expect(trueCounter, 'true counter').eql(3);
               chai.expect(falseCounter, 'false counter').eql(1);
             });
           });
 
           it('/check lazy evaluation is working fine for or 1', () => {
-            const context =  {};
+            const context = {};
             const cond = [
               '$or', [
                 ['$ret_true', []],
@@ -535,14 +497,14 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
               actions: []
             };
             let trueCounter = 0;
-            let retTrueCallbacks = {
+            const retTrueCallbacks = {
               getExprValue: () => {
                 trueCounter += 1;
                 return Promise.resolve(true);
               }
             };
             let falseCounter = 0;
-            let retFalseCallbacks = {
+            const retFalseCallbacks = {
               getExprValue: () => {
                 falseCounter += 1;
                 return Promise.resolve(false);
@@ -550,14 +512,14 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             };
             hookExpr('$ret_true', retTrueCallbacks);
             hookExpr('$ret_false', retFalseCallbacks);
-            return tm.run(t, context).then((result) => {
+            return tm.run(t, context).then(() => {
               chai.expect(trueCounter, 'true counter').eql(1);
               chai.expect(falseCounter, 'false counter').eql(0);
             });
           });
 
           it('/check lazy evaluation is working fine for or 2', () => {
-            const context =  {};
+            const context = {};
             const cond = [
               '$or', [
                 ['$ret_false', []],
@@ -575,14 +537,14 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
               actions: []
             };
             let trueCounter = 0;
-            let retTrueCallbacks = {
+            const retTrueCallbacks = {
               getExprValue: () => {
                 trueCounter += 1;
                 return Promise.resolve(true);
               }
             };
             let falseCounter = 0;
-            let retFalseCallbacks = {
+            const retFalseCallbacks = {
               getExprValue: () => {
                 falseCounter += 1;
                 return Promise.resolve(false);
@@ -590,14 +552,14 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             };
             hookExpr('$ret_true', retTrueCallbacks);
             hookExpr('$ret_false', retFalseCallbacks);
-            return tm.run(t, context).then((result) => {
+            return tm.run(t, context).then(() => {
               chai.expect(trueCounter, 'true counter').eql(1);
               chai.expect(falseCounter, 'false counter').eql(2);
             });
           });
 
           it('/check the operation cache is working properly', () => {
-            const context =  {};
+            const context = {};
             const cond = [
               '$or', [
                 ['$ret_false', [], 100],
@@ -612,14 +574,14 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
               actions: []
             };
             let trueCounter = 0;
-            let retTrueCallbacks = {
+            const retTrueCallbacks = {
               getExprValue: () => {
                 trueCounter += 1;
                 return Promise.resolve(true);
               }
             };
             let falseCounter = 0;
-            let retFalseCallbacks = {
+            const retFalseCallbacks = {
               getExprValue: () => {
                 falseCounter += 1;
                 return Promise.resolve(false);
@@ -627,12 +589,12 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             };
             hookExpr('$ret_true', retTrueCallbacks);
             hookExpr('$ret_false', retFalseCallbacks);
-            return tm.run(t, context).then((result) => {
+            return tm.run(t, context).then(() => {
               chai.expect(trueCounter, 'true counter').eql(1);
               chai.expect(falseCounter, 'false counter').eql(1);
               trueCounter = 0;
               falseCounter = 0;
-              return tm.run(t, context).then((result) => {
+              return tm.run(t, context).then(() => {
                 chai.expect(trueCounter, 'true counter').eql(1);
                 chai.expect(falseCounter, 'false counter').eql(0);
               });
@@ -640,7 +602,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
           });
 
           it('/check the operation cache is working properly 2', () => {
-            const context =  {};
+            const context = {};
             const cond = [
               '$or', [
                 ['$ret_false', [], 100],
@@ -655,14 +617,14 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
               actions: []
             };
             let trueCounter = 0;
-            let retTrueCallbacks = {
+            const retTrueCallbacks = {
               getExprValue: () => {
                 trueCounter += 1;
                 return Promise.resolve(true);
               }
             };
             let falseCounter = 0;
-            let retFalseCallbacks = {
+            const retFalseCallbacks = {
               getExprValue: () => {
                 falseCounter += 1;
                 return Promise.resolve(false);
@@ -670,12 +632,12 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             };
             hookExpr('$ret_true', retTrueCallbacks);
             hookExpr('$ret_false', retFalseCallbacks);
-            return tm.run(t, context).then((result) => {
+            return tm.run(t, context).then(() => {
               chai.expect(trueCounter, 'true counter').eql(1);
               chai.expect(falseCounter, 'false counter').eql(1);
               trueCounter = 0;
               falseCounter = 0;
-              return tm.run(t, context).then((result) => {
+              return tm.run(t, context).then(() => {
                 chai.expect(trueCounter, 'true counter').eql(0);
                 chai.expect(falseCounter, 'false counter').eql(0);
               });
@@ -683,7 +645,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
           });
 
           it('/check the operation cache is working properly 3', () => {
-            const context =  {};
+            const context = {};
             const cond = [
               '$or', [
                 ['$ret_false', []],
@@ -698,14 +660,14 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
               actions: []
             };
             let trueCounter = 0;
-            let retTrueCallbacks = {
+            const retTrueCallbacks = {
               getExprValue: () => {
                 trueCounter += 1;
                 return Promise.resolve(true);
               }
             };
             let falseCounter = 0;
-            let retFalseCallbacks = {
+            const retFalseCallbacks = {
               getExprValue: () => {
                 falseCounter += 1;
                 return Promise.resolve(false);
@@ -713,12 +675,12 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             };
             hookExpr('$ret_true', retTrueCallbacks);
             hookExpr('$ret_false', retFalseCallbacks);
-            return tm.run(t, context).then((result) => {
+            return tm.run(t, context).then(() => {
               chai.expect(trueCounter, 'true counter').eql(1);
               chai.expect(falseCounter, 'false counter').eql(1);
               trueCounter = 0;
               falseCounter = 0;
-              return tm.run(t, context).then((result) => {
+              return tm.run(t, context).then(() => {
                 chai.expect(trueCounter, 'true counter').eql(0);
                 chai.expect(falseCounter, 'false counter').eql(0);
               });
@@ -726,7 +688,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
           });
 
           it('/check the operation cache ttl is working properly', () => {
-            const context =  {};
+            const context = {};
             const cond = [
               '$or', [
                 ['$ret_false', [], 100],
@@ -741,14 +703,14 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
               actions: []
             };
             let trueCounter = 0;
-            let retTrueCallbacks = {
+            const retTrueCallbacks = {
               getExprValue: () => {
                 trueCounter += 1;
                 return Promise.resolve(true);
               }
             };
             let falseCounter = 0;
-            let retFalseCallbacks = {
+            const retFalseCallbacks = {
               getExprValue: () => {
                 falseCounter += 1;
                 return Promise.resolve(false);
@@ -758,20 +720,20 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             hookExpr('$ret_false', retFalseCallbacks);
             currentTS = 1000;
             mockedTimestamp = currentTS / 1000;
-            return tm.run(t, context).then((result) => {
+            return tm.run(t, context).then(() => {
               chai.expect(trueCounter, 'true counter').eql(1);
               chai.expect(falseCounter, 'false counter').eql(1);
               trueCounter = 0;
               falseCounter = 0;
               currentTS += 99 * 1000;
               mockedTimestamp = currentTS / 1000;
-              return tm.run(t, context).then((result) => {
+              return tm.run(t, context).then(() => {
                 chai.expect(trueCounter, 'true counter').eql(1);
                 chai.expect(falseCounter, 'false counter').eql(0);
                 trueCounter = 0;
                 falseCounter = 0;
                 currentTS += 99 * 1000;
-                return tm.run(t, context).then((result) => {
+                return tm.run(t, context).then(() => {
                   chai.expect(trueCounter, 'true counter').eql(1);
                   chai.expect(falseCounter, 'false counter').eql(1);
                 });
@@ -793,7 +755,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
         });
       });
 
-       // - operations are properly executed (each one context)
+      // - operations are properly executed (each one context)
       // describe('#operations tests', function () {
       //   context('if_pref operation', function () {
       //     let op;
@@ -808,7 +770,6 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
 
       //   });
       // });
-
     });
   }
 );

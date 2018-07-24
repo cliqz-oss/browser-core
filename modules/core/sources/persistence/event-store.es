@@ -20,15 +20,13 @@ export default class EventStream {
     this.store = null;
   }
 
-  init() {
-    return getDexie()
-      .then((Dexie) => {
-        this.store = new Dexie(this.name);
-        this.store.version(1).stores({
-          events: '++id,ts'
-        });
-      })
-      .then(() => this.store.open());
+  async init() {
+    const Dexie = await getDexie();
+    this.store = new Dexie(this.name);
+    this.store.version(1).stores({
+      events: '++id,ts'
+    });
+    return this.store.open();
   }
 
   unload() {
@@ -87,16 +85,6 @@ export default class EventStream {
       .orderBy('ts')
       .last()
       .then(event => event && event.ts);
-  }
-
-  queryMany(ranges) {
-    const options = {
-      includeLowers: false,
-      includeUppers: false,
-    };
-    return this.store.events.where('ts').inAnyRange(ranges, options)
-      .toArray()
-      .then(sortEventsByTs);
   }
 
   query({ before, after } = {}) {

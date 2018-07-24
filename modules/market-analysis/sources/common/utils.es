@@ -1,14 +1,8 @@
 /* eslint-disable */
+import prefs from '../../core/prefs';
 
-/**
- * Get timestamp required by HPN
- * @return {String} date in string
- */
 function getHpnTimeStamp() {
-  // TODO: this is the copy function from `modules/offers-v2/signals_handler`
-  // Since the method is not public for external modules, at the moment, we just copy the implementation
-  // Be aware that there might be problem with HPN
-  return new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  return prefs.get('config_ts', '19700101');
 }
 
 function getTopLevelCategory(category) {

@@ -1,5 +1,5 @@
 import console from '../core/console';
-import utils from '../core/utils';
+import config from '../core/config';
 import { fetch, Request } from './fetch';
 import Database from '../core/database';
 import { NetInfo } from 'react-native';
@@ -29,7 +29,7 @@ class PushScheduler {
       return;
     }
     if (!this.timer && this.pushAllowed) {
-      this.timer = utils.setTimeout(this.instantPush.bind(this), 30000);
+      this.timer = setTimeout(this.instantPush.bind(this), 30000);
     }
     this.pushRequested = true;
   }
@@ -39,7 +39,7 @@ class PushScheduler {
       return;
     }
     if (this.timer) {
-      utils.clearTimeout(this.timer);
+      clearTimeout(this.timer);
       this.timer = null;
     }
     this.pushInProcess = true;
@@ -215,7 +215,7 @@ function hwTelemetry(msg, instantPush) {
 }
 
 function makeTelemetryRequest(data) {
-  const req = new Request(utils.SAFE_BROWSING, {method: 'POST', body: data});
+  const req = new Request(config.settings.SAFE_BROWSING, {method: 'POST', body: data});
   return fetch(req).then(response => {
     if(response.status === 200) {
       return Promise.resolve();

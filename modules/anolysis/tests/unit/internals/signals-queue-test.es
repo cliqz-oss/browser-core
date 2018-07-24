@@ -17,10 +17,7 @@ export default describeModule('anolysis/internals/signals-queue',
   () => ({
     ...mockDexie,
     'core/utils': {
-      default: {
-        setInterval() {},
-        setTimeout(cb) { cb(); },
-      },
+      default: {},
     },
     'core/console': { default: {} },
     'core/database': {
@@ -50,8 +47,15 @@ export default describeModule('anolysis/internals/signals-queue',
     describe('#SignalQueue', () => {
       let queue;
       let storage;
+      let oldTimeout;
+      let oldInterval;
 
       beforeEach(function () {
+        oldTimeout = global.setTimeout;
+        oldInterval = global.setInterval;
+        global.setTimeout = function (cb) { cb(); };
+        global.setInterval = function () {};
+
         return this.system.import('anolysis/internals/storage/dexie')
           .then((module) => {
             const Storage = module.default;
@@ -70,7 +74,11 @@ export default describeModule('anolysis/internals/signals-queue',
           });
       });
 
-      afterEach(() => storage.destroy());
+      afterEach(() => {
+        global.setTimeout = oldTimeout;
+        global.setInterval = oldInterval;
+        return storage.destroy();
+      });
 
       it('pushes new messages in the queue', () =>
         queue.push({ signal: 1 })

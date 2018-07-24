@@ -4,7 +4,7 @@ import { StyleSheet, View, Text } from 'react-native';
 import { getMessage } from '../../../core/i18n';
 import { elementTopMargin, elementSideMargins } from '../../styles/CardStyle';
 
-export default class extends React.Component {
+export default class Lotto extends React.Component {
 
   constructor(props) {
     super(props);

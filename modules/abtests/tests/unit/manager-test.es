@@ -1,5 +1,14 @@
+/* global chai, describeModule, sinon */
+/* eslint no-return-assign: off */
+/* eslint new-cap: off */
+
 const Moment = require('moment');
 const MomentRange = require('moment-range');
+
+let mockCoreVersion = null;
+let mockUserDemographics = { };
+let mockSynchronizedDate = Moment(new Date(2017, 5, 1));
+let mockRandom = 0;
 
 const MOCK = {
   'abtests/logger': {
@@ -41,7 +50,7 @@ class MockStorage {
 
   get(k, d) {
     return Promise.resolve(
-      Object.prototype.hasOwnProperty.call(this.database, k) ? this.database[k]  : d);
+      Object.prototype.hasOwnProperty.call(this.database, k) ? this.database[k] : d);
   }
 
   set(k, v) {
@@ -54,30 +63,23 @@ class MockStorage {
 }
 
 
-const MODULE_STORAGE_RUNNING_KEY = 'abtests.running';
-const MODULE_STORAGE_COMPLETED_KEY = 'abtests.completed';
 const SHARED_STORAGE_KEY = 'abtests_running';
 
 const mockTest1 = {
   id: '1',
-  probability: .5,
+  probability: 0.5,
   demographic: '{}',
   groups: {
-    'A': {
-      'pref_1a1': true,
-      'pref_1a2': 5,
+    A: {
+      pref_1a1: true,
+      pref_1a2: 5,
     },
-    'B': {
-      'pref_1b1': 'bla',
+    B: {
+      pref_1b1: 'bla',
     },
   },
   status: 'Active',
 };
-
-let mockUserDemographics = { };
-let mockSynchronizedDate = Moment(new Date(2017, 5, 1));
-let mockRandom = 0;
-let mockCoreVersion = null;
 
 export default describeModule('abtests/manager',
   () => MOCK,
@@ -95,26 +97,28 @@ export default describeModule('abtests/manager',
         manager = new Manager({ }, mockModuleStorage, mockSharedStorage);
         availableTests = [
           { id: '1', groups: {} },
-          { id: '2', groups: {
-            'A': {
-              a_pref: 10,
-            },
-          } }
+          {
+            id: '2',
+            groups: {
+              A: {
+                a_pref: 10,
+              },
+            } }
         ];
         manager.chooseTestGroup = () => 'A';
         manager.client.getAvailableTests = () => Promise.resolve(availableTests);
         manager.client.leaveTest = () => Promise.resolve();
         manager.updateRunningTests = sinon.spy(() => []);
       });
-      it('calls `updateRunningTests` with available tests', () => {
-        return manager.updateTests().then(() => {
+      it('calls `updateRunningTests` with available tests', () =>
+        manager.updateTests().then(() => {
           chai.expect(manager.updateRunningTests).to.have.been.calledWith(availableTests);
-        });
-      });
+        })
+      );
       it('starts upcoming tests and stops expired tests', () => {
         const startedTests = [];
         const stoppedTests = [];
-        manager.runningTests = { '3': { id: '3' }, '4': { id: '4 '} };
+        manager.runningTests = { 3: { id: '3' }, 4: { id: '4' } };
         manager.shouldStartTest = ({ id }) => Promise.resolve(id === '2');
         manager.shouldStopTest = ({ id }) => id === '3';
         manager.client.enterTest = () => Promise.resolve(true);
@@ -129,17 +133,17 @@ export default describeModule('abtests/manager',
         });
       });
       it('takes prefs of upcoming tests if expired and upcoming tests modify the same prefs', () => {
-        manager.runningTests = { '3': {
+        manager.runningTests = { 3: {
           id: '3',
-          groups: { 'A': { a_pref: 5 } },
+          groups: { A: { a_pref: 5 } },
           group: 'A',
-        }};
+        } };
         manager.shouldStartTest = ({ id }) => Promise.resolve(id === '2');
         manager.shouldStopTest = ({ id }) => id === '3';
         manager.client.enterTest = () => Promise.resolve(true);
         return manager.updateTests().then(() => {
           chai.expect(mockSharedStorage.database[SHARED_STORAGE_KEY]).to.equal('["2_A"]');
-          chai.expect(mockSharedStorage.database['a_pref']).to.equal(10);
+          chai.expect(mockSharedStorage.database.a_pref).to.equal(10);
         });
       });
     });
@@ -154,23 +158,23 @@ export default describeModule('abtests/manager',
         mockSharedStorage = new MockStorage();
         manager = new Manager(null, mockModuleStorage, mockSharedStorage);
       });
-      it('sets test-specific prefs for selected group', () => {
-        return manager.startTest({ ...mockTest1, group: 'A' }).then(() => {
-          chai.expect(mockSharedStorage.database['pref_1a1']).to.be.true;
-          chai.expect(mockSharedStorage.database['pref_1a2']).to.equal(5);
-        });
-      });
-      it('add test to running tests', () => {
-        return manager.startTest({ ...mockTest1, group: 'A' }).then(() => {
+      it('sets test-specific prefs for selected group', () =>
+        manager.startTest({ ...mockTest1, group: 'A' }).then(() => {
+          chai.expect(mockSharedStorage.database.pref_1a1).to.be.true;
+          chai.expect(mockSharedStorage.database.pref_1a2).to.equal(5);
+        })
+      );
+      it('add test to running tests', () =>
+        manager.startTest({ ...mockTest1, group: 'A' }).then(() => {
           chai.expect(manager.runningTests).to.have.key(mockTest1.id);
           chai.expect(manager.runningTests[mockTest1.id].started).to.equal('2017/06/01');
-        });
-      });
-      it('accepts empty test group prefs', () => {
-        return manager.startTest({ ...mockTest1, groups: { 'A': { } }, group: 'A' }).then(() => {
+        })
+      );
+      it('accepts empty test group prefs', () =>
+        manager.startTest({ ...mockTest1, groups: { A: { } }, group: 'A' }).then(() => {
           chai.expect(mockSharedStorage.database).to.be.empty;
-        });
-      });
+        })
+      );
     });
     describe('#stopTest', () => {
       let manager;
@@ -184,7 +188,7 @@ export default describeModule('abtests/manager',
         manager = new Manager(null, mockModuleStorage, mockSharedStorage);
       });
       it('sets test-specific prefs for selected group', () => {
-        mockSharedStorage.database = { 'pref_1a1': true, 'pref_1a2': 5, 'other': 'foo' }
+        mockSharedStorage.database = { pref_1a1: true, pref_1a2: 5, other: 'foo' };
         return manager.stopTest({ ...mockTest1, group: 'A' }).then(() => {
           chai.expect(mockSharedStorage.database).to.have.key('other');
         });
@@ -210,10 +214,10 @@ export default describeModule('abtests/manager',
         manager = new Manager(null, mockModuleStorage, mockSharedStorage);
       });
       it('updates status and end date', () => {
-        manager.runningTests = { '1': { status: 'a', end_date: 'b' } };
+        manager.runningTests = { 1: { status: 'a', end_date: 'b' } };
         manager.updateRunningTests([{ id: '1', status: 'x', end_date: 'y' }]);
         chai.expect(manager.runningTests['1'].status).to.equal('x');
-        chai.expect(manager.runningTests['1'].end_date).to.equal('y')
+        chai.expect(manager.runningTests['1'].end_date).to.equal('y');
       });
     });
     describe('#getNewTests', () => {
@@ -228,13 +232,13 @@ export default describeModule('abtests/manager',
         manager = new Manager(null, mockModuleStorage, mockSharedStorage);
       });
       it('removes tests that are running', () => {
-        manager.runningTests = { '1': { } };
+        manager.runningTests = { 1: { } };
         const newTests = manager.getNewTests([{ id: '1' }, { id: '2' }]);
         chai.expect(newTests.length).to.equal(1);
         chai.expect(newTests[0]).to.deep.equal({ id: '2' });
       });
       it('filters tests that have been completed', () => {
-        manager.completedTests = { '1': { } };
+        manager.completedTests = { 1: { } };
         const newTests = manager.getNewTests([{ id: '1' }, { id: '2' }]);
         chai.expect(newTests.length).to.equal(1);
         chai.expect(newTests[0]).to.deep.equal({ id: '2' });
@@ -253,7 +257,7 @@ export default describeModule('abtests/manager',
       });
       it('finds tests (from running tests) that should be stopped', () => {
         manager.shouldStopTest = ({ id }) => id === '2';
-        manager.runningTests = { '1': { id: '1' }, '2': { id: '2' }, '3': { id: '3' } };
+        manager.runningTests = { 1: { id: '1' }, 2: { id: '2' }, 3: { id: '3' } };
         const expiredTests = manager.getExpiredTests();
         chai.expect(expiredTests.length).to.equal(1);
         chai.expect(expiredTests[0]).to.deep.equal({ id: '2' });
@@ -272,7 +276,7 @@ export default describeModule('abtests/manager',
       });
       it('finds tests that pass local enter tests and calls `chooseTestGroup`', () => {
         manager.chooseTestGroup = () => 'A';
-        manager.shouldStartTest =  ({ id }) => Promise.resolve(id === '2');
+        manager.shouldStartTest = ({ id }) => Promise.resolve(id === '2');
         manager.client.enterTest = () => Promise.resolve(true);
         return manager.getUpcomingTests([{ id: '1' }, { id: '2' }, { id: '3' }]).then((upcomingTests) => {
           chai.expect(upcomingTests.length).to.equal(1);
@@ -282,7 +286,7 @@ export default describeModule('abtests/manager',
       it('finds tests that pass remote enter tests and calls `chooseTestGroup`', () => {
         manager.chooseTestGroup = () => '';
         manager.shouldStartTest = () => Promise.resolve(true);
-        manager.client.enterTest = (id) => id === '3' ? Promise.resolve(false) : Promise.resolve(true);
+        manager.client.enterTest = id => (id === '3' ? Promise.resolve(false) : Promise.resolve(true));
         return manager.getUpcomingTests([{ id: '1' }, { id: '2' }, { id: '3' }]).then((upcomingTests) => {
           chai.expect(upcomingTests.length).to.equal(2);
           chai.expect(upcomingTests[0].id).to.equal('1');
@@ -291,8 +295,8 @@ export default describeModule('abtests/manager',
       });
       it('finds tests that pass both local and remote enter tests and calls `chooseTestGroup`', () => {
         manager.chooseTestGroup = () => 'A';
-        manager.shouldStartTest =  ({ id }) => Promise.resolve(id === '2');
-        manager.client.enterTest = (id) => id === '3' ? Promise.reject() : Promise.resolve(true);
+        manager.shouldStartTest = ({ id }) => Promise.resolve(id === '2');
+        manager.client.enterTest = id => (id === '3' ? Promise.reject() : Promise.resolve(true));
         return manager.getUpcomingTests([{ id: '1' }, { id: '2' }, { id: '3' }]).then((upcomingTests) => {
           chai.expect(upcomingTests.length).to.equal(1);
           chai.expect(upcomingTests[0]).to.deep.equal({ id: '2', group: 'A' });
@@ -301,7 +305,7 @@ export default describeModule('abtests/manager',
       it('excludes tests for which remote call fails', () => {
         manager.chooseTestGroup = () => '';
         manager.shouldStartTest = () => Promise.resolve(true);
-        manager.client.enterTest = (id) => id === '3' ? Promise.reject() : Promise.resolve(true);
+        manager.client.enterTest = id => (id === '3' ? Promise.reject() : Promise.resolve(true));
         return manager.getUpcomingTests([{ id: '1' }, { id: '2' }, { id: '3' }]).then((upcomingTests) => {
           chai.expect(upcomingTests.length).to.equal(2);
           chai.expect(upcomingTests[0].id).to.equal('1');
@@ -312,7 +316,7 @@ export default describeModule('abtests/manager',
         manager.chooseTestGroup = () => '';
         manager.shouldStartTest = () => Promise.resolve(true);
         manager.client.enterTest = () => Promise.resolve(true);
-        manager.runningTests = { '2': { id: '2', competitors: ['1'] } };
+        manager.runningTests = { 2: { id: '2', competitors: ['1'] } };
         return manager.getUpcomingTests([{ id: '1' }, { id: '3' }]).then((upcomingTests) => {
           chai.expect(upcomingTests.length).to.equal(1);
           chai.expect(upcomingTests[0].id).to.equal('3');
@@ -322,7 +326,7 @@ export default describeModule('abtests/manager',
         manager.chooseTestGroup = () => '';
         manager.shouldStartTest = () => Promise.resolve(true);
         manager.client.enterTest = () => Promise.resolve(true);
-        manager.runningTests = { '2': { id: '2' } };
+        manager.runningTests = { 2: { id: '2' } };
         return manager.getUpcomingTests([{ id: '1', competitors: ['2'] }, { id: '3' }]).then((upcomingTests) => {
           chai.expect(upcomingTests.length).to.equal(1);
           chai.expect(upcomingTests[0].id).to.equal('3');
@@ -332,7 +336,7 @@ export default describeModule('abtests/manager',
         manager.chooseTestGroup = () => '';
         manager.shouldStartTest = () => Promise.resolve(true);
         manager.client.enterTest = () => Promise.resolve(true);
-        manager.completedTests = { '2': { id: '2', competitors: ['1'] } };
+        manager.completedTests = { 2: { id: '2', competitors: ['1'] } };
         return manager.getUpcomingTests([{ id: '1' }, { id: '3' }]).then((upcomingTests) => {
           chai.expect(upcomingTests.length).to.equal(1);
           chai.expect(upcomingTests[0].id).to.equal('3');
@@ -342,7 +346,7 @@ export default describeModule('abtests/manager',
         manager.chooseTestGroup = () => '';
         manager.shouldStartTest = () => Promise.resolve(true);
         manager.client.enterTest = () => Promise.resolve(true);
-        manager.completedTests = { '2': { id: '2' } };
+        manager.completedTests = { 2: { id: '2' } };
         return manager.getUpcomingTests([{ id: '1', competitors: ['2'] }, { id: '3' }]).then((upcomingTests) => {
           chai.expect(upcomingTests.length).to.equal(1);
           chai.expect(upcomingTests[0].id).to.equal('3');
@@ -371,8 +375,8 @@ export default describeModule('abtests/manager',
         manager.chooseTestGroup = () => '';
         manager.shouldStartTest = () => Promise.resolve(true);
         manager.client.enterTest = () => Promise.resolve(true);
-        manager.runningTests = { '1': { id: '1', competitors: ['11'] } };
-        manager.completedTests = { '2': { id: '2', competitors: ['12']  } };
+        manager.runningTests = { 1: { id: '1', competitors: ['11'] } };
+        manager.completedTests = { 2: { id: '2', competitors: ['12'] } };
         return manager.getUpcomingTests([{ id: '3', competitors: ['13'] }, { id: '4' }]).then((upcomingTests) => {
           chai.expect(upcomingTests.length).to.equal(2);
           chai.expect(upcomingTests[0].id).to.equal('3');
@@ -389,30 +393,30 @@ export default describeModule('abtests/manager',
       });
 
       it('chooses only available group', () => {
-        const test = { groups: { 'A': { } } };
+        const test = { groups: { A: { } } };
         mockRandom = 0;
         chai.expect(manager.chooseTestGroup(test)).to.equal('A');
-        mockRandom = .99999999;
+        mockRandom = 0.99999999;
         chai.expect(manager.chooseTestGroup(test)).to.equal('A');
       });
       it('chooses one group out of two', () => {
-        const test = { groups: { 'A': { }, 'B': { } } };
+        const test = { groups: { A: { }, B: { } } };
         mockRandom = 0;
         chai.expect(manager.chooseTestGroup(test)).to.equal('A');
-        mockRandom = .49;
+        mockRandom = 0.49;
         chai.expect(manager.chooseTestGroup(test)).to.equal('A');
-        mockRandom = .5;
+        mockRandom = 0.5;
         chai.expect(manager.chooseTestGroup(test)).to.equal('B');
       });
       it('chooses one group out of three', () => {
-        const test = { groups: { 'A': { }, 'B': { }, 'C': { } } };
+        const test = { groups: { A: { }, B: { }, C: { } } };
         mockRandom = 0;
         chai.expect(manager.chooseTestGroup(test)).to.equal('A');
-        mockRandom = .33;
+        mockRandom = 0.33;
         chai.expect(manager.chooseTestGroup(test)).to.equal('A');
-        mockRandom = .34;
+        mockRandom = 0.34;
         chai.expect(manager.chooseTestGroup(test)).to.equal('B');
-        mockRandom = .67;
+        mockRandom = 0.67;
         chai.expect(manager.chooseTestGroup(test)).to.equal('C');
       });
     });
@@ -439,24 +443,24 @@ export default describeModule('abtests/manager',
       });
 
       it('returns true if probability threshold is higher than random draw', () => {
-        mockRandom = .4;
-        mockTest2.probability = .5;
+        mockRandom = 0.4;
+        mockTest2.probability = 0.5;
         return chai.expect(manager.shouldStartTest(mockTest2)).to.eventually.be.true;
       });
       it('returns false if probability threshold is lower than random draw', () => {
-        mockRandom = .4;
-        mockTest2.probability = .3;
+        mockRandom = 0.4;
+        mockTest2.probability = 0.3;
         return chai.expect(manager.shouldStartTest(mockTest2)).to.eventually.be.false;
       });
       it('returns false if demographics do not match', () => {
-        mockRandom = .4;
-        mockTest2.probability = .5;
+        mockRandom = 0.4;
+        mockTest2.probability = 0.5;
         manager.isDemographicsMatch = () => Promise.resolve(false);
         return chai.expect(manager.shouldStartTest(mockTest2)).to.eventually.be.false;
       });
       it('returns false if version does not match', () => {
-        mockRandom = .4;
-        mockTest2.probability = .5;
+        mockRandom = 0.4;
+        mockTest2.probability = 0.5;
         manager.isVersionMatch = () => false;
         return chai.expect(manager.shouldStartTest(mockTest2)).to.eventually.be.false;
       });
@@ -546,40 +550,40 @@ export default describeModule('abtests/manager',
         chai.expect(manager.isTestCompeting(mockTest2, {})).to.be.false;
       });
       it('returns false if all others tests have no competitor fields', () => {
-        const tests = { '1': { id: '1' }, '2': { id: '2' }}
+        const tests = { 1: { id: '1' }, 2: { id: '2' } };
         mockTest2.competitors = [];
         chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.false;
       });
       it('returns false if some others tests have no competitor fields', () => {
-        const tests = { '1': { id: '1', competitors: [] }, '2': { id: '2' }};
+        const tests = { 1: { id: '1', competitors: [] }, 2: { id: '2' } };
         mockTest2.competitors = [];
         chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.false;
       });
       it('returns false if current test does not list competing tests', () => {
         mockTest2.competitors = ['0'];
-        const tests = { '1': { id: '1', competitors: [] }, '2': { id: '2', competitors: [] }};
+        const tests = { 1: { id: '1', competitors: [] }, 2: { id: '2', competitors: [] } };
         chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.false;
       });
       it('returns false if current test is not listed by others tests as competing', () => {
         mockTest2.competitors = ['0'];
-        const tests = { '1': { id: '1', competitors: ['10'] }, '2': { id: '2', competitors: ['11'] }};
+        const tests = { 1: { id: '1', competitors: ['10'] }, 2: { id: '2', competitors: ['11'] } };
         chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.false;
       });
       it('returns true if current test lists another test as competing', () => {
         mockTest2.competitors = ['1'];
-        const tests = { '1': { id: '1', competitors: [] }, '2': { id: '2', competitors: [] }};
+        const tests = { 1: { id: '1', competitors: [] }, 2: { id: '2', competitors: [] } };
         chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.true;
       });
       it('returns true if current test is listed as competing by another test', () => {
-        mockTest2.id = '0'
+        mockTest2.id = '0';
         mockTest2.competitors = [];
-        const tests = { '1': { id: '1', competitors: ['0'] }, '2': { id: '2', competitors: [] }};
+        const tests = { 1: { id: '1', competitors: ['0'] }, 2: { id: '2', competitors: [] } };
         chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.true;
       });
       it('returns true if current lists and is listed as competing', () => {
-        mockTest2.id = '0'
+        mockTest2.id = '0';
         mockTest2.competitors = ['1'];
-        const tests = { '1': { id: '1', competitors: [] }, '2': { id: '2', competitors: ['0'] }};
+        const tests = { 1: { id: '1', competitors: [] }, 2: { id: '2', competitors: ['0'] } };
         chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.true;
       });
     });
@@ -626,7 +630,7 @@ export default describeModule('abtests/manager',
         chai.expect(manager.isVersionMatch(mockTest2)).to.be.true;
         mockTest2.core_version = null;
         chai.expect(manager.isVersionMatch(mockTest2)).to.be.true;
-        delete mockTest2.core_version
+        delete mockTest2.core_version;
         chai.expect(manager.isVersionMatch(mockTest2)).to.be.true;
       });
     });

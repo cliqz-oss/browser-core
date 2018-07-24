@@ -5,23 +5,34 @@
  */
 
 import utils from '../core/utils';
-import Defer from '../core/app/defer';
+import Defer from '../core/helpers/defer';
 import { Components } from './globals';
 import PlacesUtils from './places-utils';
+import console from '../core/console';
 
 const { classes: Cc, interfaces: Ci } = Components;
 
 const bookmarkService = Cc['@mozilla.org/browser/nav-bookmarks-service;1'].getService(Ci.nsINavBookmarksService);
 
 function getUrlVariations(url) {
-  const match = url.match(/^((?:http)|(?:https))(:\/\/.*)$/i);
-  if (!match || match.length <= 2) {
-    return [url];
+  let protocols = ['http:', 'https:'];
+  const u = new URL(url);
+
+  if (!protocols.includes(u.protocol)) {
+    protocols = [u.protocol];
   }
-  return [
-    `http${match[2]}`,
-    `https${match[2]}`,
-  ];
+
+  return Array.from(
+    protocols.reduce((urls, protocol) => {
+      const path = u.pathname.replace(/\/+$/, '');
+      u.protocol = protocol;
+      u.pathname = path;
+      urls.add(u.toString());
+      u.pathname = `${path}/`;
+      urls.add(u.toString());
+      return urls;
+    }, new Set())
+  );
 }
 
 const CliqzHistoryManager = {
@@ -97,7 +108,7 @@ const CliqzHistoryManager = {
         'FROM moz_places h ' +
         'LEFT JOIN moz_inputhistory i ON i.place_id = h.id AND i.input = :input_text ' +
         'WHERE url = :page_url ';
-    utils.setTimeout(() => {
+    setTimeout(() => {
       CliqzHistoryManager.PlacesInterestsStorage
         ._execute(
           sql,
@@ -110,7 +121,7 @@ const CliqzHistoryManager = {
           }
         )
         .then(() => {
-          // utils.log('updated moz_inputhistory', 'CLIQZ.HISTORY_MANAGER');
+          // console.log('updated moz_inputhistory', 'CLIQZ.HISTORY_MANAGER');
         });
     },
     // wait a bit before updating moz_inputhistory; otherwise, the URL might
@@ -159,7 +170,7 @@ const CliqzHistoryManager = {
           .classes['@mozilla.org/browser/nav-history-service;1']
           .getService(Ci.nsINavHistoryService);
       } catch (e) {
-        utils.log(`unable to get history service: ${e}`);
+        console.log(`unable to get history service: ${e}`);
       }
     }
     return CliqzHistoryManager.historyService;
@@ -171,7 +182,7 @@ const CliqzHistoryManager = {
           Components.classes['@mozilla.org/network/io-service;1']
             .getService(Ci.nsIIOService);
       } catch (e) {
-        utils.log(`unable to get IO service: ${e}`);
+        console.log(`unable to get IO service: ${e}`);
       }
     }
     return CliqzHistoryManager.ioService;
@@ -230,11 +241,11 @@ const CliqzHistoryManager = {
     }
   },
   removeFromHistory(url, { strict } = { strict: true }) {
-    const urls = strict ? [url] : getUrlVariations(url);
     try {
-      return Promise.all(urls.map(u => PlacesUtils.history.remove(u)));
+      const urls = strict ? [url] : getUrlVariations(url);
+      return PlacesUtils.history.remove(urls);
     } catch (e) {
-      utils.log(e.message, 'Error removing entry from history');
+      console.log(e.message, 'Error removing entry from history');
     }
     return Promise.resolve();
   },
@@ -255,7 +266,7 @@ const CliqzHistoryManager = {
         bookmarkService.removeItem(itemId);
       }
     } catch (e) {
-      utils.log(e.message, 'Error removing entry from bookmarks');
+      console.log(e.message, 'Error removing entry from bookmarks');
     }
     return Promise.resolve();
   },

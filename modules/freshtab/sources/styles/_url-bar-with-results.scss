@@ -2,11 +2,13 @@
     $aside-width,
     $container-width,
     $section-padding,
+    $inner-content-width,
 
     $search-size,
     $search-input-height,
     $search-font-size,
     $search-text-indent,
+    $search-settings-btn-top,
 
     $search-input-box-shadow,
     $search-input-border,
@@ -14,12 +16,69 @@
     $search-input-color,
     $search-input-bg-image
 ) {
-    $width: $container-width;
+    $width: $inner-content-width;
+    #section-url-bar {
+        position: relative;
+    }
     .with-results {
+        position: relative;
         input {
-            width: calc(#{$width} - 4px);
+            width: $width;
+            font-size: 21px;
+            color: #000;
+
+            &::selection {
+                // color: #ccc;
+            }
         }
     }
+    .inner-container {
+        width: $inner-content-width;
+        margin: 0 auto;
+        position: relative;
+    }
+    .search-settings-btn {
+        position: absolute;
+        right: 10px;
+        top: $search-settings-btn-top;
+        background: url("../images/search-setting-icon.svg") no-repeat;
+        width: 21px;
+        height: 17px;
+        border: 0;
+        cursor: pointer;
+
+        &:active, &:hover {
+            background: url("../images/search-setting-click.svg") no-repeat;
+        }
+    }
+
+    .settings-panel {
+        position: absolute;
+        z-index: 100;
+        width: $inner-content-width;
+        background: #fff;
+        overflow: hidden;
+        height: 0;
+        transition: max-height 200ms cubic-bezier(0.55, 0.055, 0.675, 0.19);
+
+        iframe {
+            width: 100%;
+            border: 0
+        }
+
+        &.open {
+            height: auto;
+            border: 1px solid #ccc;
+
+            & + .search-settings-btn {
+                background: url("../images/search-setting-click.svg") no-repeat;
+            }
+        };
+        &.closed {
+            height: 0
+        }
+    }
+
    .results {
        position: relative;
 
@@ -27,7 +86,7 @@
            left: 0;
            height: 0;
            z-index: 100;
-           width: $width;
+           width: $inner-content-width;
            border: 0;
            height: 0;
            position: absolute;

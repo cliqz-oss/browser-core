@@ -1,4 +1,4 @@
-import utils from '../../core/utils';
+import { cleanMozillaActions } from '../../core/url';
 import console from '../../core/console';
 import { Components } from '../globals';
 
@@ -45,7 +45,7 @@ export default function getHistory(q, callback, isPrivate = false) {
 
         if(style.indexOf('switchtab') !== -1) {
           try {
-            let [mozAction, cleanURL] = utils.cleanMozillaActions(result.getValueAt(i));
+            let [mozAction, cleanURL] = cleanMozillaActions(result.getValueAt(i));
             let label;
 
             // ignore freshtab, history and cliqz search

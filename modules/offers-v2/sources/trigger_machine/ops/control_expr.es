@@ -1,9 +1,9 @@
 import Expression from '../expression';
-import utils from '../../../core/utils';
+import i18n from '../../../core/i18n';
+import prefs from '../../../core/prefs';
 import logger from '../../common/offers_v2_logger';
 import { buildSimplePatternIndex } from '../../common/pattern-utils';
 import { timestampMS, weekDay, dayHour } from '../../utils';
-import OffersConfigs from '../../offers_configs';
 
 
 // Helper modules
@@ -79,7 +79,7 @@ class IfPrefExpr extends Expression {
   }
 
   getExprValue(/* ctx */) {
-    const prefVal = utils.getPref(this.prefName, undefined);
+    const prefVal = prefs.get(this.prefName, undefined);
     return Promise.resolve(String(prefVal) === this.expectedVal);
   }
 }
@@ -102,10 +102,8 @@ class LogExpr extends Expression {
 
   getExprValue(/* ctx */) {
     return new Promise((resolve) => {
-      if (OffersConfigs.LOG_ENABLED &&
-          this.data.raw_op.args &&
+      if (this.data.raw_op.args &&
           this.data.raw_op.args.length > 0) {
-        // TODO: replace with the new logger?
         logger.info('log_expr', `[trigger_id: ${this.data.parent_trigger.trigger_id}]: ${this.data.raw_op.args[0]}`);
       }
       return resolve(true);
@@ -803,7 +801,7 @@ class LangIsExpr extends Expression {
   }
 
   getExprValue(/* ctx */) {
-    const preferredLanguage = utils.PLATFORM_LANGUAGE;
+    const preferredLanguage = i18n.PLATFORM_LANGUAGE;
     if (this.allowedLangs.indexOf(preferredLanguage) < 0) {
       return Promise.resolve(false);
     }

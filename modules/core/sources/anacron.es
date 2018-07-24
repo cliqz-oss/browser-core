@@ -1,9 +1,6 @@
-/* eslint no-console: 'off' */
-
-import utils from './utils';
 import moment from '../platform/lib/moment';
 import cronParser from '../platform/lib/cron-parser';
-
+import console from '../core/console';
 
 export class Task {
   constructor(run, pattern) {
@@ -82,7 +79,7 @@ export class Cron {
       return;
     }
 
-    utils.clearInterval(this.clock);
+    clearInterval(this.clock);
     this.isRunning = false;
   }
 
@@ -108,12 +105,12 @@ export class Cron {
   }
 
   _scheduleNext() {
-    utils.clearTimeout(this.clock);
+    clearTimeout(this.clock);
     const nextTask = this.taskQueue.peek();
     if (nextTask) {
       const inMillis = nextTask.value.getTime() - Date.now();
       console.log('cron', `schedule task in ${moment.duration(inMillis, 'ms').toString()}, ${nextTask.value.toString()}`);
-      this.clock = utils.setTimeout(this._runNext.bind(this),
+      this.clock = setTimeout(this._runNext.bind(this),
         Math.max(this.RATE_LIMIT, inMillis));
     }
   }
@@ -129,7 +126,7 @@ export class Cron {
   run(date, { force } = { force: false }) {
     if (force) {
       Object.keys(this.tasks)
-        .forEach(id => utils.setTimeout(this.runTask.bind(this, id, date)));
+        .forEach(id => setTimeout(this.runTask.bind(this, id, date)));
     } else {
       this._scheduleNext();
     }

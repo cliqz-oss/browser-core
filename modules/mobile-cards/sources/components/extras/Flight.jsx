@@ -97,7 +97,7 @@ const timeStyle = (color, textDecorationLine) => StyleSheet.create({
   },
 });
 
-export default class extends React.Component {
+export default class Flight extends React.Component {
   get onSchedule() {
     return (
       this.departure.actualTime === this.departure.scheduledTime
@@ -332,8 +332,8 @@ export default class extends React.Component {
     const callIcon = normalizeUrl('call-icon.svg');
     return (
       <Link
-        actionName="mobile-search:call"
-        actionParams={['+496986799799']}
+        action="callNumber"
+        param="+496986799799"
       >
         <View style={styles.hotlineWrapper}>
           <View style={styles.hotlineView}>

@@ -1,5 +1,5 @@
 import { deletePersistantObject } from '../../core/persistent-state';
-import utils from '../../core/utils';
+import prefs from '../../core/prefs';
 import Database from '../../core/database';
 
 /**
@@ -10,10 +10,10 @@ export default function () {
   deletePersistantObject('checkedToken');
   deletePersistantObject('blockedToken');
   deletePersistantObject('loadedPage');
-  if (utils.getPref('attrack.tokenDbState', 0) === 0) {
+  if (prefs.get('attrack.tokenDbState', 0) === 0) {
     const db = new Database('cliqz-attrack-tokens', { auto_compaction: true });
     db.destroy();
-    utils.setPref('attrack.tokenDbState', 1);
+    prefs.set('attrack.tokenDbState', 1);
   }
 }
 

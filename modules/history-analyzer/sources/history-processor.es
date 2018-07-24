@@ -6,7 +6,7 @@ import PersistentMap from '../core/persistence/map';
 import setTimeoutInterval from '../core/helpers/timeout';
 import { compactTokens } from '../core/pattern-matching';
 
-import tokenize, { SECOND, HOUR } from './utils';
+import tokenize, { HOUR, SECOND } from './utils';
 import logger from './logger';
 
 // 90 days of 24 hours
@@ -22,6 +22,15 @@ function fetchHistoryForDate(timestamp) {
 }
 
 
+function isValidTimestamp(timestamp) {
+  return (
+    typeof timestamp === 'number' &&
+    !isNaN(timestamp) &&
+    timestamp > 0 &&
+    timestamp < Date.now()
+  );
+}
+
 /**
  * Async processing of the existing history, day by day.
  * This simulates the API of a worker, so it would be easy to migrate if needed.
@@ -34,70 +43,67 @@ export default class HistoryProcessor extends EventEmitter {
     this.processInterval = null;
   }
 
-  init() {
-    return this.processedHours.init()
-      .then(() => this.processedHours.keys())
-      .then((timestamps) => {
-        // If we already processed the maximum number of hours we do nothing.
-        if (timestamps.length >= MAX_HOUR_BUCKETS) {
-          return;
+  async init() {
+    await this.processedHours.init();
+
+    // Make sure we only keep keys which are valid timestamps
+    const timestamps = (await this.processedHours.values()).filter(isValidTimestamp);
+
+    // If we already processed the maximum number of hours we do nothing.
+    if (timestamps.length >= MAX_HOUR_BUCKETS) {
+      return;
+    }
+
+    // Sort timestamps (oldest timestamp should be in first position)
+    timestamps.sort();
+
+    // Get oldest timestamp, or `now` if we did not process anything before.
+    const oldestTs = timestamps.length === 0 ? Date.now() : timestamps[0];
+    const numberOfBucketsToProcess = MAX_HOUR_BUCKETS - timestamps.length;
+
+    // List hours to process (each timestamp is the end of a hourly bucket)
+    const hoursToProcess = [];
+    for (let i = 0; i < numberOfBucketsToProcess; i += 1) {
+      hoursToProcess.push(oldestTs - (i * HOUR));
+    }
+    // Result should be of the form.
+    // [ t0, t1, t2, ..., tN]
+    //   ^   ^   ^
+    //   |   |   | two hours before t0
+    //   |   | one hour before t0
+    //   | oldest date processed so far (or Date.now())
+    //
+    // Which means that history will be processed in the following way:
+    // 1. hour [t0 - 1h, t0]
+    // 2. hour [t1 - 1h, t1]
+    // 3. etc.
+    // From most recent to oldest.
+
+    logger.log(
+      'History processor start. Following hours will be processed',
+      hoursToProcess.map(ts => moment(ts).format('YYYY-MM-DD h:mm:ss a')),
+    );
+
+    // Start processing one bucket at a time.
+    this.processInterval = setTimeoutInterval(
+      async () => {
+        if (hoursToProcess.length <= 0) {
+          // Stop history-analyzer if there is nothing more to process
+          this.unload();
+        } else {
+          try {
+            await this.processDate(hoursToProcess.shift());
+          } catch (ex) {
+            logger.error('while processing date', ex);
+          }
         }
-
-        // Sort timestamps (oldest timestamp should be in first position)
-        timestamps.sort();
-
-        // Get oldest timestamp, or `now` if we did not process anything before.
-        const oldestTs = timestamps.length === 0 ? Date.now() : timestamps[0];
-        const numberOfBucketsToProcess = MAX_HOUR_BUCKETS - timestamps.length;
-
-        // List hours to process (each timestamp is the end of a hourly bucket)
-        const hoursToProcess = [];
-        for (let i = 0; i < numberOfBucketsToProcess; i += 1) {
-          hoursToProcess.push(oldestTs - (i * HOUR));
-        }
-        // Result should be of the form.
-        // [ t0, t1, t2, ..., tN]
-        //   ^   ^   ^
-        //   |   |   | two hours before t0
-        //   |   | one hour before t0
-        //   | oldest date processed so far (or Date.now())
-        //
-        // Which means that history will be processed in the following way:
-        // 1. hour [t0 - 1h, t0]
-        // 2. hour [t1 - 1h, t1]
-        // 3. etc.
-        // From most recent to oldest.
-
-        logger.log(
-          'History processor start. Following hours will be processed',
-          hoursToProcess.map(ts => moment(ts).format('YYYY-MM-DD h:mm:ss a')),
-        );
-
-        // Start processing one bucket at a time.
-        let processing = false;
-        this.processInterval = setTimeoutInterval(
-          () => {
-            if (hoursToProcess.length <= 0) {
-              // Stop interval if there is nothing more to process
-              this.processInterval.stop();
-              this.processInterval = null;
-            } else if (!processing) {
-              processing = true;
-
-              try {
-                this.processDate(hoursToProcess.shift())
-                  .then(() => { processing = false; })
-                  .catch(() => { processing = false; });
-              } catch (ex) { processing = false; }
-            }
-          },
-          3 * SECOND, // Process one hour of history every 2 second
-        );
-      });
+      },
+      3 * SECOND, // Process one hour of history every 3 second
+    );
   }
 
   unload() {
-    if (this.processInterval) {
+    if (this.processInterval !== null) {
       this.processInterval.stop();
       this.processInterval = null;
     }
@@ -108,24 +114,39 @@ export default class HistoryProcessor extends EventEmitter {
     return this.processedHours.destroy();
   }
 
-  processDate(timestamp) {
-    return fetchHistoryForDate(timestamp).then((places) => {
-      const t0 = Date.now();
-      const processedUrls = places.map(({ ts, url }) => ({
-        ts,
-        url,
-        tokens: compactTokens(tokenize(url)),
-      }));
-      const total = Date.now() - t0;
+  async processDate(timestamp) {
+    // Fetch URLs from history using Firefox' API.
+    let t0 = Date.now();
+    const places = await fetchHistoryForDate(timestamp);
+    const fetchingTime = Date.now() - t0;
 
-      logger.debug('Processing time', {
-        ts: timestamp,
-        urls: places.length,
-        time: total,
-      });
+    // Tokenize each URL.
+    t0 = Date.now();
+    const processedUrls = places.map(({ ts, url }) => ({
+      ts,
+      url,
+      tokens: compactTokens(tokenize(url)),
+    }));
+    const processingTime = Date.now() - t0;
 
-      this.emit('processedVisits', processedUrls);
-      return this.processedHours.set(timestamp, {});
+    // Emit processed URLs, which will cause them to be persisted by Dexie.
+    t0 = Date.now();
+    await this.emit('processedVisits', processedUrls);
+    const persistingTime = Date.now() - t0;
+
+    logger.debug('Processing time', {
+      ts: timestamp,
+      urls: places.length,
+      fetchingTime,
+      processingTime,
+      persistingTime,
+      time: (
+        fetchingTime +
+        processingTime +
+        persistingTime
+      ),
     });
+
+    await this.processedHours.set(timestamp, timestamp);
   }
 }

@@ -8,16 +8,18 @@ import inject from '../core/kord/inject';
 import config from '../core/config';
 import Storage from '../core/storage';
 import console from '../core/console';
+import { getMessage } from '../core/i18n';
+import bindObjectFunctions from '../core/helpers/bind-functions';
 
 export default background({
   requiresServices: ['utils', 'session'],
 
   init(settings = {}) {
     this.settings = settings;
-    utils.bindObjectFunctions(this.actions, this);
+    bindObjectFunctions(this.actions, this);
 
     // load translations
-    utils.getLocalizedString('test');
+    getMessage('test');
 
     if (isFirefox) {
       language.init();
@@ -25,10 +27,10 @@ export default background({
     }
 
     if (!isMobile) {
-      this.report = utils.setTimeout(this.reportStartupTime.bind(this), 1000 * 60);
+      this.report = setTimeout(this.reportStartupTime.bind(this), 1000 * 60);
     }
 
-    this.supportInfo = utils.setTimeout(() => {
+    this.supportInfo = setTimeout(() => {
       this.actions.setSupportInfo();
       if (config.settings.channel === 40) {
         this.browserDetection();
@@ -37,8 +39,8 @@ export default background({
   },
 
   unload() {
-    utils.clearTimeout(this.report);
-    utils.clearTimeout(this.supportInfo);
+    clearTimeout(this.report);
+    clearTimeout(this.supportInfo);
     if (isFirefox) {
       language.unload();
       HistoryManager.unload();
@@ -73,7 +75,7 @@ export default background({
         version,
         host,
         hostVersion,
-        country: utils.getPref('config_location', ''),
+        country: prefs.get('config_location', ''),
         status: status || 'active',
       });
 

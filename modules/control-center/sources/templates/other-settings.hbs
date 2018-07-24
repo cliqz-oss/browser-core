@@ -1,5 +1,5 @@
 <div class="lock"></div>
-{{#unless funnelCake }}
+{{#unless compactView }}
     <header class="header">
       <div class="title">
         <span data-i18n="control_center_othersettings"></span>
@@ -9,7 +9,7 @@
 {{/unless}}
 <div class="accordion">
   <div class="accordion-section">
-    <a class="accordion-section-title {{#if funnelCake}}active{{/if}}"
+    <a class="accordion-section-title {{#if compactView}}active{{/if}}"
        href="#accordion-2"
        data-target="moresearch">
       <svg id="arrow" width="13px" height="13px" viewBox="1017 657 13 13" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -18,14 +18,14 @@
       </svg>
       <span data-i18n="control_center_searchoptions"></span>
     </a>
-    {{#if funnelCake }}
+    {{#if compactView }}
         <header class="header no-border">
           <div class="search-settings-title">
             <span data-i18n="control_center_searchoptions"></span>
           </div>
         </header>
     {{/if}}
-    <div id="accordion-2" class="accordion-section-content {{#if funnelCake}}open{{/if}}">
+    <div id="accordion-2" class="accordion-section-content {{#if compactView}}open{{/if}}">
       {{#if module.search.visible}}
       <span class="bullet">
         <span data-i18n="control_center_search_engine" class="no-tooltip-label"></span>
@@ -93,7 +93,7 @@
           {{/each}}
         </select>
 
-        {{#unless funnelCake}}
+        {{#unless compactView}}
           <span class="location-more" data-open-url="https://cliqz.com/support/local-results" data-i18n="control_center_info_share_location_link"></span>
         {{/unless}}
       </span>

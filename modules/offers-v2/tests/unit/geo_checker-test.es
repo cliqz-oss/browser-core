@@ -15,16 +15,14 @@ export default describeModule('offers-v2/features/geo_checker',
       default: {}
     },
     'core/utils': {
-      default: {
-        setInterval: function() {},
-      }
+      default: {}
     },
     'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
+      default: function () { const stop = () => {}; return { stop }; }
     },
     'core/prefs': {
       default: {
-        get(x,y) { return y; }
+        get(x, y) { return y; }
       }
     },
     'platform/xmlhttprequest': {
@@ -35,7 +33,7 @@ export default describeModule('offers-v2/features/geo_checker',
     },
   }),
   () => {
-    describe('general tests', function() {
+    describe('general tests', function () {
       let GeoChecker;
       beforeEach(function () {
         GeoChecker = this.module().default;
@@ -49,7 +47,7 @@ export default describeModule('offers-v2/features/geo_checker',
           Object.keys(obj[k1]).forEach((k2) => {
             const topObj = obj[k1];
             m.get(k1).set(k2, new Set(topObj[k2]));
-          })
+          });
         });
 
         return m;
@@ -79,24 +77,24 @@ export default describeModule('offers-v2/features/geo_checker',
             // chai.expect(gc.isCoordsAvailable()).eql(false);
             chai.expect(gc.isLocAvailable()).eql(false);
 
-            gc.updateLocation({coordss: {}, locss: {}});
+            gc.updateLocation({ coordss: {}, locss: {} });
             chai.expect(gc.isAvailable()).eql(false);
             // chai.expect(gc.isCoordsAvailable()).eql(false);
             chai.expect(gc.isLocAvailable()).eql(false);
 
-            gc.updateLocation({ coords: {long: 1, lat: 2} });
+            gc.updateLocation({ coords: { long: 1, lat: 2 } });
             chai.expect(gc.isAvailable()).eql(false);
             // chai.expect(gc.isCoordsAvailable()).eql(true);
             chai.expect(gc.isLocAvailable()).eql(false);
 
-            gc.updateLocation({ loc: {country: 'de', city: 'munich'} });
+            gc.updateLocation({ loc: { country: 'de', city: 'munich' } });
             chai.expect(gc.isAvailable()).eql(true);
             // chai.expect(gc.isCoordsAvailable()).eql(false);
             chai.expect(gc.isLocAvailable()).eql(true);
           });
         });
 
-        context('/isSameLocation workds', function () {
+        context('/isSameLocation works', function () {
           let gc;
           beforeEach(function () {
             gc = new GeoChecker();
@@ -115,14 +113,14 @@ export default describeModule('offers-v2/features/geo_checker',
             chai.expect(gc.isLocAvailable()).eql(true);
             const toCheck = [
               {},
-              {countr: 'de', city: 'whatever'},
-              {country: 'de', city: 'whatever2'},
-              {country: 'de', city: 'munich', zip: '3333'},
-              {country: 'fr', city: 'munich', zip: '1234'},
-              {country: 'de', city: 'munichh', zip: '1234'},
+              { countr: 'de', city: 'whatever' },
+              { country: 'de', city: 'whatever2' },
+              { country: 'de', city: 'munich', zip: '3333' },
+              { country: 'fr', city: 'munich', zip: '1234' },
+              { country: 'de', city: 'munichh', zip: '1234' },
             ];
-            toCheck.forEach((d) => {
-              chai.expect(gc.isSameLocation(d)).eql(false);
+            toCheck.forEach((_d) => {
+              chai.expect(gc.isSameLocation(_d)).eql(false);
             });
           });
 
@@ -138,12 +136,12 @@ export default describeModule('offers-v2/features/geo_checker',
             chai.expect(gc.isAvailable()).eql(true);
             chai.expect(gc.isLocAvailable()).eql(true);
             const toCheck = [
-              {country: 'de'},
-              {country: 'de', city: 'munich'},
-              {country: 'de', city: 'munich', zip: '1234'},
+              { country: 'de' },
+              { country: 'de', city: 'munich' },
+              { country: 'de', city: 'munich', zip: '1234' },
             ];
-            toCheck.forEach((d) => {
-              chai.expect(gc.isSameLocation(d)).eql(true);
+            toCheck.forEach((_d) => {
+              chai.expect(gc.isSameLocation(_d)).eql(true);
             });
           });
 
@@ -159,12 +157,12 @@ export default describeModule('offers-v2/features/geo_checker',
             chai.expect(gc.isAvailable()).eql(true);
             chai.expect(gc.isLocAvailable()).eql(true);
             const toCheck = [
-              {country: 'de'},
-              {country: 'de', city: 'munich'},
-              {country: 'de', city: 'munich', zip: '1234'},
+              { country: 'de' },
+              { country: 'de', city: 'munich' },
+              { country: 'de', city: 'munich', zip: '1234' },
             ];
-            toCheck.forEach((d) => {
-              chai.expect(gc.isSameLocation(d)).eql(false);
+            toCheck.forEach((_d) => {
+              chai.expect(gc.isSameLocation(_d)).eql(false);
             });
 
             // update loc
@@ -173,8 +171,8 @@ export default describeModule('offers-v2/features/geo_checker',
             gc.updateLocation(d);
             chai.expect(gc.isAvailable()).eql(true);
             chai.expect(gc.isLocAvailable()).eql(true);
-            toCheck.forEach((d) => {
-              chai.expect(gc.isSameLocation(d)).eql(true);
+            toCheck.forEach((_d) => {
+              chai.expect(gc.isSameLocation(_d)).eql(true);
             });
           });
 
@@ -192,9 +190,9 @@ export default describeModule('offers-v2/features/geo_checker',
 
             // we want to check:
             const toCheck = [
-              {de: {} },
-              {de: { munich: [] } },
-              {de: { munich: ['1234'] } },
+              { de: {} },
+              { de: { munich: [] } },
+              { de: { munich: ['1234'] } },
             ];
             toCheck.forEach((obj) => {
               chai.expect(gc.matches(buildMapFormObj(obj))).eql(false);
@@ -209,7 +207,6 @@ export default describeModule('offers-v2/features/geo_checker',
             toCheck.forEach((obj) => {
               chai.expect(gc.matches(buildMapFormObj(obj)), `failed: ${JSON.stringify(obj)}`).eql(true);
             });
-
           });
 
           it('checks matches doesnt match if missing data', function () {
@@ -220,24 +217,19 @@ export default describeModule('offers-v2/features/geo_checker',
               }
             };
             gc.updateLocation(d);
-            chai.expect(gc.matches(buildMapFormObj({de: {} }))).eql(true);
-            chai.expect(gc.matches(buildMapFormObj({de: { munich: [] } }))).eql(true);
-            chai.expect(gc.matches(buildMapFormObj({de: { munich: ['1234'] } }))).eql(false);
+            chai.expect(gc.matches(buildMapFormObj({ de: {} }))).eql(true);
+            chai.expect(gc.matches(buildMapFormObj({ de: { munich: [] } }))).eql(true);
+            chai.expect(gc.matches(buildMapFormObj({ de: { munich: ['1234'] } }))).eql(false);
 
             // remove city and check
             delete d.loc.city;
             gc.updateLocation(d);
-            chai.expect(gc.matches(buildMapFormObj({de: {} }))).eql(true);
-            chai.expect(gc.matches(buildMapFormObj({de: { munich: [] } }))).eql(false);
-            chai.expect(gc.matches(buildMapFormObj({de: { munich: ['1234'] } }))).eql(false);
+            chai.expect(gc.matches(buildMapFormObj({ de: {} }))).eql(true);
+            chai.expect(gc.matches(buildMapFormObj({ de: { munich: [] } }))).eql(false);
+            chai.expect(gc.matches(buildMapFormObj({ de: { munich: ['1234'] } }))).eql(false);
           });
-
-
-
-
         });
-
       });
-    })
+    });
   }
 );

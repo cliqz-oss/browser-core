@@ -1,3 +1,5 @@
+/* global chai, describeModule */
+
 const urlParser = require('fast-url-parser');
 
 export default describeModule('dropdown/results/generic',
@@ -6,7 +8,7 @@ export default describeModule('dropdown/results/generic',
       '../../core/events': {},
       '../../core/utils': {},
       '../../core/url': {
-        urlStripProtocol() { return 'STRIPPED_URL' }
+        urlStripProtocol() { return 'STRIPPED_URL'; }
       },
       '../../core/console': {},
       'fast-url-parser': {
@@ -58,8 +60,8 @@ export default describeModule('dropdown/results/generic',
           methodName: 'newsResults',
           deepResultsType: 'news',
         },
-      ].forEach(testCase => {
-        context('#'+testCase.methodName, function () {
+      ].forEach((testCase) => {
+        context(`#${testCase.methodName}`, function () {
           let result;
           let subResults;
 

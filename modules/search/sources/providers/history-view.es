@@ -18,7 +18,7 @@ export default class HistoryView extends BaseProvider {
 
   search(query, config) {
     if (!query.trim() || !config.providers[this.id].isEnabled) {
-      return this.getEmptySearch(config);
+      return this.getEmptySearch(config, query);
     }
 
     return Rx.Observable.from([getResponse(

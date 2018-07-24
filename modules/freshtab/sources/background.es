@@ -1,17 +1,22 @@
 /* eslint no-param-reassign: 'off' */
-/* eslint no-console: 'off' */
 /* eslint func-names: 'off' */
 
 import inject from '../core/kord/inject';
 import NewTabPage from './main';
 import News from './news';
-import { TOOLTIP_WORLDCUP_GROUP, TOOLTIP_WORLDCUP_KNOCKOUT } from './constants';
+import {
+  PREF_SEARCH_MODE,
+  TOOLTIP_WORLDCUP_GROUP,
+  TOOLTIP_WORLDCUP_KNOCKOUT,
+  DEFAULT_BG } from './constants';
+import getWallpapers from './wallpapers';
 import History from '../platform/freshtab/history';
 import openImportDialog from '../platform/freshtab/browser-import-dialog';
 import utils from '../core/utils';
 import events from '../core/events';
 import SpeedDial from './speed-dial';
 import AdultDomain from './adult-domain';
+import OffersUpdateService from './services/offers-update';
 import background from '../core/base/background';
 import moment from '../platform/lib/moment';
 import {
@@ -22,11 +27,21 @@ import {
 } from '../core/browser';
 import { queryActiveTabs } from '../core/tabs';
 import config from '../core/config';
+import console from '../core/console';
 import { isCliqzBrowser, isCliqzAtLeastInVersion, isWebExtension, isAMO } from '../core/platform';
 import prefs from '../core/prefs';
-import { dismissMessage, countMessageClick, setMessageShownTime, saveMessageDismission } from './actions/message';
-import { getLanguageFromLocale } from '../core/i18n';
+import { dismissMessage, countMessageClick, dismissOffer, saveMessageDismission } from './actions/message';
+import i18n, { getLanguageFromLocale, getMessage } from '../core/i18n';
+import hash from '../core/helpers/hash';
 import HistoryService from '../platform/history-service';
+import * as searchUtils from '../core/search-engines';
+import {
+  equals as areUrlsEqual,
+  getDetailsFromUrl,
+  stripTrailingSlash,
+  tryEncodeURIComponent,
+  tryDecodeURIComponent
+} from '../core/url';
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
@@ -57,6 +72,13 @@ function isHistoryDependentPage(url) {
   return historyWhitelist.some(u => url.indexOf(u) === 0);
 }
 
+function makeErrorObject(reason) {
+  return {
+    error: true,
+    reason: typeof reason === 'object' ? reason.toString() : reason
+  };
+}
+
 /**
  * @module freshtab
  * @namespace freshtab
@@ -66,6 +88,7 @@ export default background({
   core: inject.module('core'),
   geolocation: inject.module('geolocation'),
   messageCenter: inject.module('message-center'),
+  search: inject.module('search'),
   theme: inject.module('theme'),
   ui: inject.module('ui'),
   offersV2: inject.module('offers-v2'),
@@ -101,13 +124,16 @@ export default background({
 
     HistoryService.onVisitRemoved.addListener(this.onVisitRemoved);
 
-    // Emit anolysis metrics about freshtab state
-    utils.telemetry({ active: this.newTabPage.isActive }, false, 'freshtab.prefs.state');
-    utils.telemetry(this.getComponentsState(), false, 'freshtab.prefs.config');
-    utils.telemetry({ enabled: this.blueTheme }, false, 'freshtab.prefs.blueTheme');
-
     // register real estate
     this._registerToOffersCore();
+
+    // offers-update-service
+    this.offersUpdateService = new OffersUpdateService({
+      messageCenter: this.messageCenter,
+      offers: this.offersV2
+    });
+
+    this.offersUpdateService.init();
   },
   /**
   * @method unload
@@ -123,6 +149,7 @@ export default background({
 
     HistoryService.onVisitRemoved.removeListener(this.onVisitRemoved);
     this._unregisterFromOffersCore();
+    this.offersUpdateService.unload();
   },
 
   _onVisitRemoved(removed) {
@@ -164,7 +191,7 @@ export default background({
   },
 
   isAdult(url) {
-    return this.adultDomainChecker.isAdult(utils.getDetailsFromUrl(url).domain);
+    return this.adultDomainChecker.isAdult(getDetailsFromUrl(url).domain);
   },
 
   get shouldShowNewBrandAlert() {
@@ -248,17 +275,32 @@ export default background({
 
   getComponentsState() {
     const freshtabConfig = prefs.getObject(FRESHTAB_CONFIG_PREF);
-
+    const backgroundName = (freshtabConfig.background && freshtabConfig.background.image)
+      || DEFAULT_BG;
     return {
       historyDials: Object.assign({}, DEFAULT_COMPONENT_STATE, freshtabConfig.historyDials),
       customDials: Object.assign({}, DEFAULT_COMPONENT_STATE, freshtabConfig.customDials),
       search: {
         ...DEFAULT_COMPONENT_STATE,
         ...freshtabConfig.search,
-        mode: prefs.get('freshtab.search.mode', 'urlbar'),
+        mode: prefs.get(PREF_SEARCH_MODE, 'urlbar'),
       },
       news: Object.assign({}, DEFAULT_COMPONENT_STATE, freshtabConfig.news),
-      background: Object.assign({}, { image: 'bg-matterhorn' }, freshtabConfig.background),
+      background: {
+        image: backgroundName,
+        index: getWallpapers().findIndex(bg => bg.name === backgroundName),
+      },
+    };
+  },
+
+  /**
+    * @return all visible speedDials
+    */
+  async getVisibleDials(historyLimit) {
+    const dials = await this.actions.getSpeedDials();
+    return {
+      ...dials,
+      history: dials.history.slice(0, historyLimit)
     };
   },
 
@@ -300,7 +342,7 @@ export default background({
         view: 'tab',
         ...data,
       };
-      utils.sendUserFeedback(feedback);
+      this.core.action('sendUserFeedback', feedback);
     },
 
     toggleComponent(component) {
@@ -311,11 +353,12 @@ export default background({
       prefs.set(FRESHTAB_CONFIG_PREF, JSON.stringify(_config));
     },
 
-    saveBackgroundImage(name) {
+    saveBackgroundImage(name, index) {
       prefs.set(FRESHTAB_CONFIG_PREF, JSON.stringify({
         ...JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}')),
         background: {
           image: name,
+          index
         }
       }));
     },
@@ -332,8 +375,8 @@ export default background({
     },
 
     dismissMessage,
+    dismissOffer,
     countMessageClick,
-    setMessageShownTime,
     saveMessageDismission,
 
     checkForHistorySpeedDialsToRestore() {
@@ -350,17 +393,16 @@ export default background({
       const dialUps = prefs.has(DIALUPS, '') ? JSON.parse(prefs.get(DIALUPS, '', '')) : [];
       let historyDialups = [];
       let customDialups = dialUps.custom ? dialUps.custom : [];
-      const searchEngines = utils.getSearchEngines(blackListedEngines);
-
+      const searchEngines = searchUtils.getSearchEngines(blackListedEngines);
 
       historyDialups = History.getTopUrls().then((results) => {
-        utils.log('History', JSON.stringify(results));
+        console.log('History', JSON.stringify(results));
         // hash history urls
         results = results.map(r =>
           ({
             title: r.title,
             url: r.url,
-            hashedUrl: utils.hash(r.url),
+            hashedUrl: hash(r.url),
             total_count: r.total_count,
             custom: false
           })
@@ -373,13 +415,13 @@ export default background({
         }
 
         function isCustom(url) {
-          url = utils.stripTrailingSlash(url);
+          url = stripTrailingSlash(url);
 
           let _isCustom = false;
 
           if (dialUps && dialUps.custom) {
             dialUps.custom.some((dialup) => {
-              if (utils.stripTrailingSlash(utils.tryDecodeURIComponent(dialup.url)) === url) {
+              if (stripTrailingSlash(tryDecodeURIComponent(dialup.url)) === url) {
                 _isCustom = true;
                 return true;
               }
@@ -402,15 +444,26 @@ export default background({
                   && !this.isAdult(history.url) && !isCliqz(history.url)
                   && !isMozUrl(history.url));
 
-        return results.map(r => new SpeedDial(r.url, searchEngines, false));
+        return results.map((r) => {
+          const dialSpecs = {
+            url: r.url,
+            title: r.title,
+            isCustom: false
+          };
+          return new SpeedDial(dialSpecs, searchEngines);
+        });
       });
 
       if (customDialups.length > 0) {
-        utils.log(customDialups, 'custom dialups');
-        customDialups = customDialups.map(dialup =>
-          new SpeedDial(utils.tryDecodeURIComponent(dialup.url), searchEngines, true));
+        customDialups = customDialups.map((dialup) => {
+          const dialSpecs = {
+            url: tryDecodeURIComponent(dialup.url),
+            title: dialup.title,
+            isCustom: true,
+          };
+          return new SpeedDial(dialSpecs, searchEngines);
+        });
       }
-
 
       // Promise all concatenate results and return
       return Promise.all([historyDialups, customDialups]).then(results =>
@@ -440,12 +493,12 @@ export default background({
      */
     removeSpeedDial(item) {
       const isCustom = item.custom;
-      const url = isCustom ? item.url : utils.hash(item.url);
+      const url = isCustom ? item.url : hash(item.url);
       const dialUps = JSON.parse(prefs.get(DIALUPS, '{}', ''));
 
       if (isCustom) {
         dialUps.custom = dialUps.custom.filter(dialup =>
-          utils.tryDecodeURIComponent(dialup.url) !== url
+          tryDecodeURIComponent(dialup.url) !== url
         );
       } else {
         if (!dialUps.history) {
@@ -458,76 +511,107 @@ export default background({
     },
 
     /**
-    * @return all visible speedDials
+    * Edit an existing speedDial
+    * @method editSpeedDial
+    * @params dial_to_edit, {url, title}
     */
-    getVisibleDials(historyLimit) {
-      return this.actions.getSpeedDials().then(results =>
-        results.history.slice(0, historyLimit)
-      );
+
+    async editSpeedDial(item, { url, title = '' }) {
+      const urlToAdd = stripTrailingSlash(url);
+      const validUrl = SpeedDial.getValidUrl(urlToAdd);
+      const searchEngines = searchUtils.getSearchEngines(blackListedEngines);
+
+      if (!validUrl) {
+        return makeErrorObject('invalid');
+      }
+
+
+      const dials = await this.getVisibleDials(6);
+      const allDials = [...dials.history, ...dials.custom];
+      const isDuplicate = allDials
+        .map(dial => ({ ...dial, url: tryDecodeURIComponent(dial.url) }))
+        .filter(dial => !areUrlsEqual(dial.url, item.url))
+        .some(dial => areUrlsEqual(validUrl, dial.url));
+
+      if (isDuplicate) {
+        return makeErrorObject('duplicate');
+      }
+
+      const savedDials = prefs.getObject(DIALUPS, '');
+      if (!savedDials.custom) {
+        savedDials.custom = [];
+      }
+      const index = savedDials.custom.findIndex(
+        dial => areUrlsEqual(tryDecodeURIComponent(dial.url), item.url));
+
+      prefs.setObject(DIALUPS, {
+        ...savedDials,
+        custom: [
+          ...savedDials.custom.slice(0, index),
+          { url: validUrl,
+            title,
+          },
+          ...savedDials.custom.slice(index + 1),
+        ],
+      }, '');
+
+      return new SpeedDial({ url: validUrl, title }, searchEngines);
     },
+
     /**
     * Add a new speedDial to be appeared in the 2nd row
     * @method addSpeedDial
     * @param url {string}
     */
-    addSpeedDial(url, index) {
-      const urlToAdd = utils.stripTrailingSlash(url);
-      const validUrl = SpeedDial.getValidUrl(urlToAdd);
-      const searchEngines = utils.getSearchEngines(blackListedEngines);
 
-      function makeErrorObject(reason) {
-        return {
-          error: true,
-          reason: typeof reason === 'object' ? reason.toString() : reason
-        };
-      }
+    async addSpeedDial({ url, title = '' }, index) {
+      const urlToAdd = stripTrailingSlash(url);
+      const validUrl = SpeedDial.getValidUrl(urlToAdd);
+      const searchEngines = searchUtils.getSearchEngines(blackListedEngines);
 
       if (!validUrl) {
-        return Promise.resolve(makeErrorObject('invalid'));
+        return makeErrorObject('invalid');
       }
 
-      // history returns most frequest 15 results, but we display up to 5
+      // history returns most frequest 15 results, but we display up to 6
       // so we need to validate only against visible results
-      return this.actions.getVisibleDials(5).then((result) => {
-        const isDuplicate = result.some(dialup =>
-          validUrl === utils.stripTrailingSlash(dialup.url)
-        );
+      const dials = await this.getVisibleDials(6);
+      const allDials = [...dials.history, ...dials.custom];
 
-        if (isDuplicate) {
-          throw new Error('duplicate');
-        }
-      }).then(() => {
-        const dialUps = JSON.parse(prefs.get(DIALUPS, '{}', ''));
+      const isDuplicate = allDials
+        .map(dial => ({ ...dial, url: tryDecodeURIComponent(dial.url) }))
+        .some(dial => areUrlsEqual(validUrl, dial.url));
 
-        if (!dialUps.custom) {
-          dialUps.custom = [];
-        }
+      if (isDuplicate) {
+        return makeErrorObject('duplicate');
+      }
 
-        /* before adding new dialup make sure it is not there already
-        ** looks like concurrency issues of messaging framework could lead to race conditions
-        */
+      const savedDials = prefs.getObject(DIALUPS, '');
+      if (!savedDials.custom) {
+        savedDials.custom = [];
+      }
 
+      const dialup = {
+        url: tryEncodeURIComponent(validUrl),
+        title
+      };
+      const dialSpecs = {
+        url: validUrl,
+        title,
+        isCustom: true,
+      };
 
-        const isPresent = dialUps.custom.some(dialup =>
-          utils.tryEncodeURIComponent(validUrl) === utils.stripTrailingSlash(dialup.url)
-        );
+      if (index !== null) {
+        savedDials.custom.splice(index, 0, dialup);
+      } else {
+        savedDials.custom.push(dialup);
+      }
 
-        if (isPresent) {
-          throw new Error('duplicate');
-        } else {
-          console.log(`valid url: ${validUrl}, original url: ${urlToAdd}`);
-          const dialup = {
-            url: utils.tryEncodeURIComponent(validUrl)
-          };
-          if (index !== null) {
-            dialUps.custom.splice(index, 0, dialup);
-          } else {
-            dialUps.custom.push(dialup);
-          }
-          prefs.set(DIALUPS, JSON.stringify(dialUps), '');
-          return new SpeedDial(validUrl, searchEngines, true);
-        }
-      }).catch(reason => ({ error: true, reason: typeof reason === 'object' ? reason.toString() : reason }));
+      prefs.setObject(DIALUPS, {
+        ...savedDials
+      }, '');
+      // prefs.set(DIALUPS, JSON.stringify(dialUps), '');
+      return new SpeedDial(dialSpecs, searchEngines);
     },
 
     /**
@@ -554,7 +638,7 @@ export default background({
     */
     revertHistorySpeedDial(url) {
       const dialUps = this.actions.parseSpeedDials();
-      delete dialUps.history[utils.hash(url)];
+      delete dialUps.history[hash(url)];
       this.actions.saveSpeedDials(dialUps);
     },
 
@@ -592,8 +676,8 @@ export default background({
           news: newsList.map(r => ({
             title: r.title_hyphenated || r.title,
             description: r.description,
-            displayUrl: utils.getDetailsFromUrl(r.url).cleanHost || r.title,
-            logo: utils.getLogoDetails(utils.getDetailsFromUrl(r.url)),
+            displayUrl: getDetailsFromUrl(r.url).cleanHost || r.title,
+            logo: utils.getLogoDetails(getDetailsFromUrl(r.url)),
             url: r.url,
             type: r.type,
             breaking_label: r.breaking_label,
@@ -620,6 +704,9 @@ export default background({
       const offers = this.offersV2.action('getStoredOffers', args);
       return offers.then((results) => {
         results.forEach((offer) => {
+          offer.id = offer.offer_id;
+          offer.position = 'middle';
+          offer.type = 'offer';
           let validity = {};
           const templateData = offer.offer_info.ui_info.template_data;
           // calculate the expiration time if we have the new field #EX-7028
@@ -643,7 +730,7 @@ export default background({
             }
 
             validity = {
-              text: `${utils.getLocalizedString('offers_expires_in')} ${difference} ${utils.getLocalizedString(diffUnit)}`,
+              text: `${getMessage('offers_expires_in')} ${difference} ${getMessage(diffUnit)}`,
               isExpiredSoon,
             };
 
@@ -654,11 +741,17 @@ export default background({
             titleColor = templateData.styles.headline_color;
           } else {
             const url = templateData.call_to_action.url;
-            const urlDetails = utils.getDetailsFromUrl(url);
+            const urlDetails = getDetailsFromUrl(url);
             const logoDetails = utils.getLogoDetails(urlDetails);
             titleColor = `#${logoDetails.brandTxtColor}`;
           }
           templateData.titleColor = titleColor;
+
+          this.messageCenter.action(
+            'showMessage',
+            'MESSAGE_HANDLER_FRESHTAB_OFFERS',
+            offer
+          );
         });
         return results;
       });
@@ -681,12 +774,13 @@ export default background({
       }
 
       return {
-        locale: getLanguageFromLocale(utils.PLATFORM_LOCALE),
+        locale: getLanguageFromLocale(i18n.PLATFORM_LOCALE),
         newTabUrl: config.settings.NEW_TAB_URL,
         isBrowser: isCliqzBrowser,
         blueTheme: this.blueTheme,
         isBlueThemeSupported: this.isBlueThemeSupported,
         isBlueBackgroundSupported: this.isBlueBackgroundSupported,
+        wallpapers: getWallpapers(),
         showNewBrandAlert: this.shouldShowNewBrandAlert,
         messages: this.messages,
         isHistoryEnabled: prefs.get('modules.history.enabled', false) && config.settings.HISTORY_URL,
@@ -778,9 +872,27 @@ export default background({
     },
 
     openImportDialog,
+
+    // The following three actions are used to emit Anolysis metrics about
+    // freshtab's state.
+
+    getState() {
+      return { active: this.newTabPage.isActive };
+    },
+
+    isBlueThemeEnabled() {
+      return this.blueTheme;
+    },
+
+    getComponentsState() {
+      return this.getComponentsState();
+    },
   },
 
   events: {
+    'offers-send-ch': function () {
+      this.offersUpdateService.refresh();
+    },
     'control-center:cliqz-tab': function () {
       if (this.newTabPage.isActive) {
         this.newTabPage.rollback();
@@ -792,8 +904,9 @@ export default background({
       this.newTabPage.setPersistentState(!this.newTabPage.isActive);
     },
     'message-center:handlers-freshtab:new-message': function onNewMessage(message) {
-      if (!(message.id in this.messages)) {
-        this.messages[message.id] = message;
+      const id = message.id;
+      if (!(id in this.messages)) {
+        this.messages[id] = message;
         this.core.action(
           'broadcastMessage',
           config.settings.NEW_TAB_URL,
@@ -805,13 +918,14 @@ export default background({
       }
     },
     'message-center:handlers-freshtab:clear-message': function onMessageClear(message) {
-      delete this.messages[message.id];
+      const id = message.id;
+      delete this.messages[id];
       this.core.action(
         'broadcastMessage',
         config.settings.NEW_TAB_URL,
         {
           action: 'closeNotification',
-          messageId: message.id,
+          messageId: id,
         }
       );
     },

@@ -1,6 +1,7 @@
-import utils from '../../core/utils';
+import i18n from '../../core/i18n';
 import inject from '../../core/kord/inject';
 import prefs from '../../core/prefs';
+import utils from '../../core/utils';
 import { isCliqzBrowser, isCliqzAtLeastInVersion, isAMO } from '../../core/platform';
 import getLocalMessages from './local';
 import getRemoteMessages from './remote';
@@ -15,7 +16,7 @@ const messageFunctions = {
     return (isCliqzBrowser && isCliqzAtLeastInVersion(value)) || prefs.get('developer', false);
   },
   locale(value) {
-    return value === utils.PLATFORM_LOCALE || value === utils.PLATFORM_LANGUAGE;
+    return value === i18n.PLATFORM_LOCALE || value === i18n.PLATFORM_LANGUAGE;
   },
   currentNewsLanguageIsNot(value, message) {
     const ftConfig = JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}'));
@@ -35,8 +36,12 @@ const messageFunctions = {
     return true;
   },
   isCurrentDate(aDate) {
-    const today = utils.getPref('config_ts', null);
+    const today = prefs.get('config_ts', null);
     return aDate.indexOf(today) !== -1;
+  },
+  daysSinceInstallCheck(numDays) {
+    const installDate = parseInt(prefs.get('install_date', '0'), 10);
+    return utils.getDay() - installDate <= numDays;
   },
   isAMO() {
     return isAMO;

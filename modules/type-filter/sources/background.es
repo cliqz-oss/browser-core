@@ -1,14 +1,15 @@
 /* eslint func-names: 'off' */
 
-import utils from '../core/utils';
+import prefs from '../core/prefs';
 import background from '../core/base/background';
+import bindObjectFunctions from '../core/helpers/bind-functions';
 
 class TypeRemover {
   constructor() {
     this.name = 'type_filter';
     this.availableTypes = [];
     ['type1', 'type2', 'type3'].forEach((t) => {
-      if (utils.getPref(`type_filter_${t}`, true)) {
+      if (prefs.get(`type_filter_${t}`, true)) {
         this.availableTypes.push(t);
       }
     });
@@ -46,17 +47,10 @@ class TypeRemover {
 export default background({
   init() {
     this.remover = new TypeRemover();
-    utils.RERANKERS.push(this.remover);
-    utils.bindObjectFunctions(this.actions, this);
+    bindObjectFunctions(this.actions, this);
   },
 
-  unload() {
-    const index = utils.RERANKERS.indexOf(this.remover);
-    if (index !== -1) {
-      utils.RERANKERS.splice(index, 1);
-    }
-  },
-
+  unload() {},
   beforeBrowserShutdown() {
 
   },

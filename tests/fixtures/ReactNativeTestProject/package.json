@@ -3,13 +3,12 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "bundle": "react-native bundle --entry-file index.js  --bundle-output bundle.jsbundle",
+    "bundle": "node node_modules/react-native/local-cli/cli.js bundle --entry-file index.js  --bundle-output bundle.jsbundle",
     "start": "node node_modules/react-native/local-cli/cli.js start",
     "test": "jest"
   },
   "dependencies": {
     "@cliqz/indexeddbshim": "3.4.1",
-    "browser-core": "../../../browser-core-1.27.0.tgz",
     "buffer": "5.1.0",
     "dexie": "2.0.2",
     "https-browserify": "1.0.0",

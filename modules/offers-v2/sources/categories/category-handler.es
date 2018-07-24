@@ -6,7 +6,7 @@
  * is a category which the root (parent / first level category name) is `Electronics`,
  * later `Computer` and at the end (leaf) is `Mouses`.
  * A category can be considered as a (high level) tuple: (activation function,
- * list of patterns, name, hits per day, days to check) (for more info check [1].
+ * list of patterns, name, hits per day, days to check).
  *
  * The basic data a category will use to evaluate (the activation function) is as follow:
  * `[(totalHits, totalMatches), ...]`
@@ -88,12 +88,7 @@
  *   offers, which currently  are alltogeather in the triggers and is giving us
  *   some problems (complexity).
  *
- * Once this split is made, lot of code can be removed from triggers operations
- * and offers in general.
  *
- *
- * ----
- * [1] - https://cliqztix.atlassian.net/wiki/spaces/SBI/pages/144310279/Categories
  */
 
 import { timestampMS } from '../utils';

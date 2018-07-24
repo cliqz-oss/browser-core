@@ -13,7 +13,6 @@ const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
 const chaiAsPromised = require('chai-as-promised');
 
-require('sinon-as-promised');
 
 chai.config.truncateThreshold = 0;
 chai.use(chaiAsPromised);

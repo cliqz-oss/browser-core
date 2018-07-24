@@ -1,3 +1,5 @@
+/* global chai, describeModule */
+
 const Rx = require('rxjs');
 const rxSandbox = require('rx-sandbox').rxSandbox;
 
@@ -11,7 +13,7 @@ const mock = {
 export default describeModule('search/operators/streams/wait-for',
   () => mock,
   () => {
-    describe('#waitFor', function() {
+    describe('#waitFor', function () {
       let waitFor;
       let sandbox;
 
@@ -20,7 +22,7 @@ export default describeModule('search/operators/streams/wait-for',
         waitFor = this.module().default;
       });
 
-      it('does not emit without signal', function() {
+      it('does not emit without signal', function () {
         const source$ = sandbox.hot('-1-2-');
         const signal$ = sandbox.hot('-----');
         const expected = sandbox.e(' -----');
@@ -31,7 +33,7 @@ export default describeModule('search/operators/streams/wait-for',
         return chai.expect(messages).to.deep.equal(expected);
       });
 
-      it('does not emit signals', function() {
+      it('does not emit signals', function () {
         const source$ = sandbox.hot('--');
         const signal$ = sandbox.hot('-x');
         const expected = sandbox.e(' --');
@@ -42,7 +44,7 @@ export default describeModule('search/operators/streams/wait-for',
         return chai.expect(messages).to.deep.equal(expected);
       });
 
-      it('waits for signal and emits latest source value', function() {
+      it('waits for signal and emits latest source value', function () {
         const source$ = sandbox.hot('-12-3-');
         const signal$ = sandbox.hot('---x--');
         const expected = sandbox.e(' ---23');
@@ -53,7 +55,7 @@ export default describeModule('search/operators/streams/wait-for',
         return chai.expect(messages).to.deep.equal(expected);
       });
 
-      it('emits all source values after first signal', function() {
+      it('emits all source values after first signal', function () {
         const source$ = sandbox.hot('--1-2');
         const signal$ = sandbox.hot('-x---');
         const expected = sandbox.e(' --1-2');
@@ -64,7 +66,7 @@ export default describeModule('search/operators/streams/wait-for',
         return chai.expect(messages).to.deep.equal(expected);
       });
 
-      it('does not re-emit on subsequent signals', function() {
+      it('does not re-emit on subsequent signals', function () {
         const source$ = sandbox.hot('--1--');
         const signal$ = sandbox.hot('-x--x');
         const expected = sandbox.e(' --1--');

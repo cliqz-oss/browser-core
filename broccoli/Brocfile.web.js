@@ -39,6 +39,7 @@ if (process.env['CLIQZ_ENVIRONMENT'] !== 'production') {
   const mobileDev = new MergeTrees([
     mobileSpecific,
     modules.modules,
+    modules.styleTests,
   ]);
   const outputTreeDev = new MergeTrees([
     mobileDev,

@@ -1,16 +1,9 @@
-FROM node:7.10.1-stretch
+FROM node:9.11.1-stretch
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN npm install -g \
-  broccoli-cli \
-  phantomjs-prebuilt \
-  yuidocjs \
-  selleck
-
-RUN apt-get update && \
-  apt-get install -y \
-    awscli \
+RUN apt-get update --no-install-recommends  \
+ && apt-get install -y \
     build-essential \
     bzip2 \
     ca-certificates \
@@ -57,17 +50,18 @@ RUN apt-get update && \
     x11vnc \
     xauth \
     xvfb \
-    zip
+    zip \
+ && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --upgrade setuptools
+RUN pip install setuptools==39.2.0
 RUN pip install cffi==1.10.0
 RUN pip install     \
   Fabric==1.13.2    \
   Jinja2==2.9.6     \
-  awscli==1.11.135  \
+  argparse==1.4.0   \
+  awscli==1.15.32   \
   pycrypto==2.6.1   \
-  requests==2.18.4  \
-  argparse
+  requests==2.18.4
 
 RUN cd /tmp && \
   wget https://www.openssl.org/source/old/0.9.x/openssl-0.9.8zg.tar.gz && \
@@ -77,7 +71,6 @@ RUN cd /tmp && \
   make && \
   make install
 ENV PATH "/usr/local/ssl/bin:$PATH"
-
 
 RUN mkdir /app
 RUN chown node:node -R /app
@@ -97,14 +90,9 @@ RUN wget https://ftp.mozilla.org/pub/firefox/releases/52.0.2/linux-x86_64/en-US/
  && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox52 \
  && rm -f /home/node/firefox.tar.bz2
 
-RUN wget https://ftp.mozilla.org/pub/devedition/releases/58.0b16/linux-x86_64/en-US/firefox-58.0b16.tar.bz2 -O /home/node/firefox.tar.bz2 \
-  && mkdir /home/node/firefox58 \
-  && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox58 \
-  && rm -f /home/node/firefox.tar.bz2
-
-RUN wget https://ftp.mozilla.org/pub/devedition/releases/59.0b14/linux-x86_64/en-US/firefox-59.0b14.tar.bz2 -O /home/node/firefox.tar.bz2 \
-  && mkdir /home/node/firefox59 \
-  && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox59 \
+RUN wget https://ftp.mozilla.org/pub/devedition/releases/60.0b16/linux-x86_64/en-US/firefox-60.0b16.tar.bz2 -O /home/node/firefox.tar.bz2 \
+  && mkdir /home/node/firefox60 \
+  && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox60 \
   && rm -f /home/node/firefox.tar.bz2
 
 RUN wget 'https://download.mozilla.org/?product=firefox-devedition-latest&os=linux64&lang=en-US' -O /home/node/firefox.tar.bz2 \
@@ -118,7 +106,7 @@ RUN wget 'https://download.mozilla.org/?product=firefox-nightly-latest&os=linux6
   && rm -f /home/node/firefox.tar.bz2
 
 # Get chrome driver
-RUN wget --no-verbose -O /tmp/chromedriver_linux64.zip https://chromedriver.storage.googleapis.com/2.31/chromedriver_linux64.zip \
+RUN wget --no-verbose -O /tmp/chromedriver_linux64.zip https://chromedriver.storage.googleapis.com/2.40/chromedriver_linux64.zip \
   && rm -rf /app/chromedriver \
   && unzip /tmp/chromedriver_linux64.zip -d /app \
   && rm /tmp/chromedriver_linux64.zip \

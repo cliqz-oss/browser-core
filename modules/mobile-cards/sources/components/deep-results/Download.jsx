@@ -18,10 +18,10 @@ const styles = StyleSheet.create({
   }
 });
 
-export default class extends React.Component {
+export default class Download extends React.Component {
   displayLink(link) {
     return (
-      <Link to={link.url} style={styles.row} key={link.url}>
+      <Link url={link.url} style={styles.row} key={link.url}>
         <Text style={styles.text}>{ getMessage(link.extra.domain) }</Text>
       </Link>
     );

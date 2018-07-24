@@ -1,10 +1,57 @@
 import utils from '../core/utils';
+import { generalizeUrl } from '../core/url';
 import background from '../core/base/background';
 
 const regexGoogleRef = /\.google\..*?\/(?:url|aclk)\?/;
 const regexGoogleQuery = /\.google\..*?[#?&;]q=[^$&]+/;
 const regexGoogleAdRef = /\.google\..*?\/aclk\?/;
 const regexGoogleRefUrl = /url=(.+?)&/;
+
+const _VERTICAL_ENCODINGS = {
+  people: 'p',
+  news: 'n',
+  video: 'v',
+  hq: 'h',
+  bm: 'm',
+  reciperd: 'r',
+  game: 'g',
+  movie: 'o'
+};
+
+const _encodeSources = sources => sources.toLowerCase().split(', ').map((s) => {
+  if (s.indexOf('cache') === 0) { // to catch 'cache-*' for specific countries
+    return 'd';
+  }
+  return _VERTICAL_ENCODINGS[s] || s;
+});
+
+const _encodeCliqzResultType = (type) => {
+  const pos = type.indexOf('sources-');
+  if (pos !== -1) {
+    return _encodeSources(type.substr(pos + 8));
+  }
+  return [];
+};
+
+const encodeResultType = (type) => {
+  if (type.indexOf('action') !== -1) return ['T'];
+  else if (type.indexOf('cliqz-results') === 0) return _encodeCliqzResultType(type);
+  else if (type.indexOf('cliqz-pattern') === 0) return ['C'];
+  else if (type === 'cliqz-extra') return ['X'];
+  else if (type === 'cliqz-series') return ['S'];
+  else if (type === 'cliqz-suggestion') return ['Z'];
+
+  else if (type.indexOf('bookmark') === 0 ||
+    type.indexOf('tag') === 0) return ['B'].concat(_encodeCliqzResultType(type));
+
+  else if (type.indexOf('favicon') === 0 ||
+    type.indexOf('history') === 0) return ['H'].concat(_encodeCliqzResultType(type));
+
+  // cliqz type = "cliqz-custom sources-X"
+  else if (type.indexOf('cliqz-custom') === 0) return type.substr(21);
+
+  return type; // should never happen
+};
 
 export default background({
   enabled() {
@@ -56,13 +103,13 @@ export default background({
 
       if (!isGoogleAd && this.isLastPopupOpen && googleUrlMatch) {
         const googleUrl =
-          utils.generalizeUrl(decodeURIComponent(googleUrlMatch[1]));
+          generalizeUrl(decodeURIComponent(googleUrlMatch[1]));
 
         isSameResult = cliqzResults && cliqzResults.some((r, i) => {
-          const cliqzUrl = utils.generalizeUrl(r.url);
+          const cliqzUrl = generalizeUrl(r.url);
 
           if (cliqzUrl === googleUrl) {
-            cliqzResultType = utils.encodeResultType(r.style || r.type);
+            cliqzResultType = encodeResultType(r.style || r.type);
             cliqzResultIndex = i;
             return true;
           }

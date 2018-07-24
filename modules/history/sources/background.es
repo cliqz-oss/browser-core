@@ -1,3 +1,4 @@
+import inject from '../core/kord/inject';
 import config from '../core/config';
 import History from '../platform/history/history';
 import background from '../core/base/background';
@@ -17,6 +18,7 @@ import migrate from './history-migration';
 * @class Background
 */
 export default background({
+  core: inject.module('core'),
   /**
   * @method init
   */
@@ -135,7 +137,7 @@ export default background({
         handleError: () => {},
         handleResult: () => {},
         handleCompletion: () => {
-          utils.setTimeout(() => {
+          setTimeout(() => {
             History.fillFromVisit(url, queryUrl);
           }, 2000);
 
@@ -241,7 +243,7 @@ export default background({
     },
 
     sendUserFeedback(data) {
-      return utils.sendUserFeedback(data);
+      this.core.action('sendUserFeedback', data);
     },
     /*
      * returns undefined if value not is cache

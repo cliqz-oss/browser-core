@@ -1,8 +1,6 @@
 import BaseResult from './base';
 
 export default class SupplementarySearchResult extends BaseResult {
-  isNotAutocompleteable = true;
-
   isUrlMatch(href) {
     // we need to override isUrlMatch as in some cases the value of
     // 'href' is the bare query and not a full url. Please see the comment
@@ -51,6 +49,10 @@ export default class SupplementarySearchResult extends BaseResult {
 
   get defaultSearchResult() {
     return this.rawResult.provider === 'instant';
+  }
+
+  get historyUrl() {
+    return this.rawResult.url;
   }
 
   get displayUrl() {

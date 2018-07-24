@@ -20,6 +20,7 @@ describe('Fresh tab interactions with most visited', function () {
 
   let $initialDials;
   let $dialToDelete;
+  let $2ndDialToDelete;
   let deletedTitle;
   let $deletedBtn;
   let $afterClickDials;
@@ -77,11 +78,12 @@ describe('Fresh tab interactions with most visited', function () {
 
       $initialDials = subject.queryAll(dialSelector);
       $dialToDelete = $initialDials[0];
+      $2ndDialToDelete = $initialDials[1];
       $deletedBtn = $dialToDelete.querySelector(deleteBtnSelector);
       $deletedBtn.click();
       await waitFor(() => (subject.query(undoBoxSelector)));
 
-      $2ndDeletedBtn = $dialToDelete
+      $2ndDeletedBtn = $2ndDialToDelete
         .querySelector(deleteBtnSelector);
       $2ndDeletedBtn.click();
       return waitFor(() => (subject.query(undoBoxSelector)));

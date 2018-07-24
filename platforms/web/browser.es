@@ -62,3 +62,9 @@ export function getBrowserMajorVersion() {
 export function getCookies() {
 
 }
+
+export function reportError() {}
+
+export function disableChangeEvents() {}
+
+export function resetOriginalPrefs() {}

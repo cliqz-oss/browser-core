@@ -1,9 +1,12 @@
 const writeFile = require('broccoli-file-creator');
 const config = require('../config');
 const glob = require('glob');
+const camelCase = require('camelcase');
 
 function createDefaultExportName(parts) {
-  return parts.map(part => part[0].toUpperCase() + part.substr(1).toLowerCase()).join('');
+  return camelCase(
+    parts.map(part => part[0].toUpperCase() + part.substr(1).toLowerCase()).join('')
+  );
 }
 
 const imports = [];
@@ -27,7 +30,12 @@ if (config.modules) {
 module.exports = writeFile('module-integration-tests.es', `
 ${imports.join('\n')}
 
+import { testServer } from './tests/core/test-helpers';
+
 TESTS.IntegrationTests = function () {
+
+  afterEach(() => testServer.reset());
+
   describe('integration', function () {
     ${defaults.join('\n    ')}
   });

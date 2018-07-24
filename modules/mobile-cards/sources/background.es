@@ -1,4 +1,11 @@
 import background from '../core/base/background';
+import {
+  openLink,
+  callNumber,
+  openMap,
+  hideKeyboard
+} from '../platform/browser-actions';
+
 
 /**
   @namespace <namespace>
@@ -6,7 +13,7 @@ import background from '../core/base/background';
  */
 export default background({
 
-  requiresServices: ['logos', 'cliqz-config'],
+  requiresServices: ['logos', 'cliqz-config', 'utils', 'telemetry'],
 
   /**
     @method init
@@ -29,6 +36,14 @@ export default background({
   },
 
   actions: {
-
+    getConfig(sender) {
+      return {
+        tabId: sender.tab.id,
+      };
+    },
+    openLink,
+    callNumber,
+    openMap,
+    hideKeyboard,
   },
 });

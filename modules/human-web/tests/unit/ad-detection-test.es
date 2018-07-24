@@ -22,11 +22,11 @@ export default describeModule('human-web/ad-detection',
       });
 
       it('should consider ads to be identical if only their "ved" code differs', function () {
-        const sharedPrefix = 'https://www.googleadservices.com/pagead/aclk?sa=L&ai=DChcSEwjyu42VwLPWAhUQnhsKHYgzAZcYABAJGgJ3bA&ohost=www.google.de&cid=CAASEuRopco2XerPuHClGWTnWaddQg&sig=AOD64_36ojDsT8n10T9Xg6jpqqFpeAlvWQ&ctype=5&q='
+        const sharedPrefix = 'https://www.googleadservices.com/pagead/aclk?sa=L&ai=DChcSEwjyu42VwLPWAhUQnhsKHYgzAZcYABAJGgJ3bA&ohost=www.google.de&cid=CAASEuRopco2XerPuHClGWTnWaddQg&sig=AOD64_36ojDsT8n10T9Xg6jpqqFpeAlvWQ&ctype=5&q=';
         const sharedSuffix = '&adurl=';
 
-        const url1 = sharedPrefix + '&ved=0ahUKEwirx4qVwLPWAhXHXBQKHXDqCTEQ8w4IpAE' + sharedSuffix;
-        const url2 = sharedPrefix + '&ved=0ahUKEwirx4qVwLPWAhXHXBQKHXDqCTEQ9aACCKcB' + sharedSuffix;
+        const url1 = `${sharedPrefix}&ved=0ahUKEwirx4qVwLPWAhXHXBQKHXDqCTEQ8w4IpAE${sharedSuffix}`;
+        const url2 = `${sharedPrefix}&ved=0ahUKEwirx4qVwLPWAhXHXBQKHXDqCTEQ9aACCKcB${sharedSuffix}`;
 
         const key1 = normalizeAclkUrl(url1);
         const key2 = normalizeAclkUrl(url2);
@@ -76,23 +76,21 @@ export default describeModule('human-web/ad-detection',
       });
 
       it('should consider ads to be identical if only the first part of the URL (before "aclk") differs', () => {
-
         const prefixes = [
-          "https://www.googleadservices.com/pagead",
-          "http://www.googleadservices.com/pagead",
-          "",
-          "https://www.google.com",
-          "https://www.google.de",
+          'https://www.googleadservices.com/pagead',
+          'http://www.googleadservices.com/pagead',
+          '',
+          'https://www.google.com',
+          'https://www.google.de',
         ];
 
         const sharedSuffix = '/aclk?sa=L&ai=DChcSEwjyu42VwLPWAhUQnhsKHYgzAZcYABAJGgJ3bA&ohost=www.google.de&cid=CAASEuRopco2XerPuHClGWTnWaddQg&sig=AOD64_36ojDsT8n10T9Xg6jpqqFpeAlvWQ&ctype=5&q=';
-        const urls = prefixes.map((prefix) => prefix + sharedSuffix);
+        const urls = prefixes.map(prefix => prefix + sharedSuffix);
 
         // all urls should be mapped to the same key
         const keys = R.uniq(urls.map(normalizeAclkUrl));
         expect(keys).to.have.lengthOf(1);
       });
-
     });
   }
 );

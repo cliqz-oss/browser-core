@@ -1,8 +1,3 @@
 import Logger from '../core/logger';
 
-
-export default Logger({
-  useDump: false,
-  level: 'log',
-  prefix: '[search]',
-});
+export default Logger.get('search', { level: 'log' });

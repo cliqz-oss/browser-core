@@ -1,3 +1,5 @@
+/* global chai, describeModule */
+
 const expect = chai.expect;
 const MockDate = require('mockdate');
 
@@ -16,7 +18,7 @@ export default describeModule('human-web/fallback-dns',
       const someIp = '127.0.0.1';
 
       beforeEach(function () {
-        let FallbackDns = this.module().default;
+        const FallbackDns = this.module().default;
         uut = new FallbackDns();
 
         MockDate.set(new Date('2000-01-01'));
@@ -26,19 +28,19 @@ export default describeModule('human-web/fallback-dns',
         MockDate.reset();
       });
 
-      it('should initially be empty', function() {
+      it('should initially be empty', function () {
         return expect(uut.resolveHost(someHost)).to.be.rejected;
       });
 
-      it('should find cached value', function() {
+      it('should find cached value', function () {
         uut.cacheDnsResolution('example1.test', '127.0.0.1');
         uut.cacheDnsResolution('example2.test', '127.0.0.2');
         return Promise.all([
           expect(uut.resolveHost('example1.test')).to.eventually.equal('127.0.0.1'),
-          expect(uut.resolveHost('example2.test')).to.eventually.equal('127.0.0.2')])
+          expect(uut.resolveHost('example2.test')).to.eventually.equal('127.0.0.2')]);
       });
 
-      it('should evict old entries', function() {
+      it('should evict old entries', function () {
         uut.cacheDnsResolution(someHost, someIp);
         return expect(uut.resolveHost(someHost)).to.be.fulfilled.then(() => {
           // TTL is still not exceeded

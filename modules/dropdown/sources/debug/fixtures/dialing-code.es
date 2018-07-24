@@ -30,7 +30,7 @@ export default {
                "name":"countrycode",
                "class":"EntityDialingCode"
             },
-            "isAutocompletable":false
+            "completion": ""
          },
          "data":{
             "deepResults":[

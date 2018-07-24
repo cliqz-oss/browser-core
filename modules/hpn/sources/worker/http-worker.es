@@ -10,7 +10,7 @@ export default function (url) {
           'x-type': type,
           'Content-Type': 'application/json;charset=utf-8',
         },
-        referrer: 'no-referrer',
+        referrerPolicy: 'no-referrer',
       }).then(response => response.text());
     }
   };

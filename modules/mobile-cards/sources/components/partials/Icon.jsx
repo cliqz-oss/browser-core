@@ -1,6 +1,5 @@
 import React from 'react';
 import { StyleSheet, View, Text, Image } from 'react-native';
-import utils from '../../../core/utils';
 
 const defaultIconStyle =
   (width, height, backgroundHex = '000') =>
@@ -18,7 +17,7 @@ const defaultIconStyle =
     });
 
 
-export default class extends React.Component {
+export default class Icon extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -73,28 +72,21 @@ export default class extends React.Component {
     const url = props.url;
     const width = props.width || 50;
     const height = props.height || 50;
-    let logoDetails = null;
-    if (props.logoDetails) {
-      logoDetails = props.logoDetails;
-    } else {
-      const urlDetails = utils.getDetailsFromUrl(url);
-      logoDetails = utils.getLogoDetails(urlDetails);
-    }
-    if (!logoDetails) {
+    if (!props.logoDetails) {
       return;
     }
-    const backgroundColor = logoDetails.backgroundColor;
+    const backgroundColor = props.logoDetails.backgroundColor;
 
-    if (logoDetails.backgroundImage) {
-      const iconUrl = this.normalizeUrl(logoDetails.backgroundImage);
+    if (props.logoDetails.backgroundImage) {
+      const iconUrl = this.normalizeUrl(props.logoDetails.backgroundImage);
 
       this.getPlaceHolder(width, height, backgroundColor)
         .then(icon => this.setState({ icon }));
 
       this.getLogo(width, height, iconUrl)
-        .then(icon => this.isLatestIcon(url, logoDetails) && this.setState({ icon }));
-    } else if (logoDetails.backgroundColor) {
-      const text = logoDetails.text;
+        .then(icon => this.isLatestIcon(url, props.logoDetails) && this.setState({ icon }));
+    } else if (props.logoDetails.backgroundColor) {
+      const text = props.logoDetails.text;
       this.getDefaultIcon(width, height, backgroundColor, text)
         .then(icon => this.setState({ icon }));
     }

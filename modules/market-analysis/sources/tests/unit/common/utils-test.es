@@ -3,8 +3,18 @@
 /* global require */
 /* eslint-disable func-names */
 
+const prefs = {};
+
 export default describeModule('market-analysis/common/utils',
-  () => ({}),
+  () => ({
+    'core/prefs': {
+      default: {
+        get: function (k, v) {
+          return prefs[k] || v;
+        },
+      }
+    },
+  }),
   () => {
     describe('getHpnTimeStamp function', () => {
       let getHpnTimeStamp;
@@ -13,13 +23,22 @@ export default describeModule('market-analysis/common/utils',
         getHpnTimeStamp = this.module().getHpnTimeStamp;
       });
 
-      it('check against today', () => {
-        const today = new Date().toISOString();
-        const isoYear = today.substring(0, 4);
-        const isoMonth = today.substring(5, 7);
-        const isoDay = today.substring(8, 10);
-        const expected = `${isoYear}${isoMonth}${isoDay}`;
-        chai.expect(getHpnTimeStamp()).eql(expected);
+      it('check against default', () => {
+        chai.expect(getHpnTimeStamp()).eql('19700101');
+      });
+
+      describe('getHpnTimeStamp with prefs', () => {
+        beforeEach(function () {
+          prefs.config_ts = '20180404';
+        });
+
+        afterEach(function () {
+          prefs.config_ts = undefined;
+        });
+
+        it('check against april 4', () => {
+          chai.expect(getHpnTimeStamp()).eql('20180404');
+        });
       });
     });
 

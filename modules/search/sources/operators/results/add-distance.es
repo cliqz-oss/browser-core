@@ -15,13 +15,17 @@ export default results => results.map(result => ({
       return link;
     }
 
-    const distance = utils.distance(link.extra.lon, link.extra.lat) * 1000;
-    return {
-      ...link,
-      extra: {
-        ...link.extra,
-        distance,
-      },
-    };
+    const distance = utils.distance(link.extra.lon, link.extra.lat);
+    if (distance !== -1) {
+      return {
+        ...link,
+        extra: {
+          ...link.extra,
+          distance: distance * 1000,
+        },
+      };
+    }
+
+    return link;
   }),
 }));

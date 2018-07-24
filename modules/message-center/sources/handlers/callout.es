@@ -7,7 +7,7 @@ export default class CliqzMsgHandlerCallout extends CliqzMsgHandler {
     UITour.targets.set(message.target, { query: `#${message.target}`, widgetName: message.target, allowAdd: true });
     const targetPromise = UITour.getTarget(utils.getWindow(), message.target);
     targetPromise.then((target) => {
-      utils.setTimeout(() => {
+      setTimeout(() => {
         UITour.showInfo(utils.getWindow(), target,
           message.title,
           message.text,

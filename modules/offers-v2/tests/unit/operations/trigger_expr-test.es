@@ -5,13 +5,13 @@
 
 const tldjs = require('tldjs');
 
-var prefRetVal = {};
-var currentTS = Date.now();
-var mockedTimestamp = Date.now() / 1000;
-var currentDayHour = 0;
-var currentWeekDay = 0;
-var abNumber = 0;
-var shouldKeepResourceRet = false;
+let prefRetVal = {};
+const currentTS = Date.now();
+const mockedTimestamp = Date.now() / 1000;
+const currentDayHour = 0;
+const currentWeekDay = 0;
+const abNumber = 0;
+let shouldKeepResourceRet = false;
 
 const copy = e => JSON.parse(JSON.stringify(e));
 
@@ -56,22 +56,22 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
       default: {}
     },
     'offers-v2/utils': {
-      timestamp: function() {
+      timestamp: function () {
         return mockedTimestamp;
       },
-      timestampMS: function() {
+      timestampMS: function () {
         return currentTS;
       },
-      dayHour: function() {
+      dayHour: function () {
         return currentDayHour;
       },
-      weekDay: function() {
+      weekDay: function () {
         return currentWeekDay;
       },
-      getABNumber: function() {
+      getABNumber: function () {
         return abNumber;
       },
-      shouldKeepResource: function(userGroup) {
+      shouldKeepResource: function () {
         return shouldKeepResourceRet;
       },
     },
@@ -79,10 +79,10 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
       default: BackendConnectorMock,
     },
     'core/time': {
-      getDaysFromTimeRange: function(startTS, endTS) { },
-      getDateFromDateKey: function(dateKey, hours = 0, min = 0, seconds = 0) { },
-      timestamp: function() { },
-      getTodayDayKey: function() { }
+      getDaysFromTimeRange: function () { },
+      getDateFromDateKey: function () { },
+      timestamp: function () { },
+      getTodayDayKey: function () { }
     },
     'offers-v2/trigger_machine/trigger_machine': {
       default: class {
@@ -133,13 +133,13 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
     },
     'core/prefs': {
       default: {
-        get: function(v, d) {
+        get: function (v, d) {
           if (prefRetVal[v]) {
             return prefRetVal[v];
           }
           return d;
         },
-        setMockVal: function(varName, val) {
+        setMockVal: function (varName, val) {
           prefRetVal[varName] = val;
         }
       }
@@ -147,11 +147,11 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
     'core/cliqz': {
       default: {},
       utils: {
-        setInterval: function() {},
+        setInterval: function () {},
       }
     },
     'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
+      default: function () { const stop = () => {}; return { stop }; }
     },
     'platform/console': {
       default: {},
@@ -169,9 +169,7 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
   }),
   () => {
     describe('/trigger operations', () => {
-      let ops;
       let buildDataGen;
-      let prefMock;
       let exprBuilder;
       let ExpressionBuilder;
       let TriggerMachine;
@@ -191,13 +189,6 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
         return exprBuilder.createExp(obj, t);
       }
 
-      function testCase(op, expectedVal, ctx) {
-        const e = buildOp(op);
-        return e.evalExpr(ctx).then((result) => {
-          chai.expect(result).to.eq(expectedVal);
-        });
-      }
-
       function buildAndExec(op, ctx) {
         const e = buildOp(op);
         return e.evalExpr(ctx);
@@ -213,8 +204,6 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
       }
 
       beforeEach(function () {
-        ops = this.module().default;
-        prefMock = this.deps('core/prefs').default;
         prefRetVal = {};
         TriggerMachine = this.deps('offers-v2/trigger_machine/trigger_machine').default;
         const TriggerCache = this.deps('offers-v2/trigger_machine/trigger_cache').default;
@@ -249,8 +238,8 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
           triggerCacheMock.clear();
         });
 
-         it('/invalid args', () => {
-          let o = ['$activate_subtriggers', []];
+        it('/invalid args', () => {
+          const o = ['$activate_subtriggers', []];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
             chai.assert.fail(result, 'error');
@@ -282,8 +271,8 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
 
           beConnMock.ret = retTriggers;
 
-          let o = ['$activate_subtriggers', ['root']];
-          return buildAndExec(o, ctx).then((result) => {
+          const o = ['$activate_subtriggers', ['root']];
+          return buildAndExec(o, ctx).then(() => {
             checkTriggersCalled(['t1', 't2', 't3']);
           }).catch((err) => {
             chai.expect(false, `unexpected error: ${err}`).eql(true);
@@ -314,10 +303,10 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
 
           beConnMock.ret = retTriggers;
 
-          let o = ['$activate_subtriggers', ['root']];
+          const o = ['$activate_subtriggers', ['root']];
           // filter all except the ones that doesnt have
           shouldKeepResourceRet = false;
-          return buildAndExec(o, ctx).then((result) => {
+          return buildAndExec(o, ctx).then(() => {
             checkTriggersCalled(['t1']);
           }).catch((err) => {
             chai.expect(false, `unexpected error: ${err}`).eql(true);
@@ -348,17 +337,15 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
 
           beConnMock.ret = retTriggers;
 
-          let o = ['$activate_subtriggers', ['root']];
+          const o = ['$activate_subtriggers', ['root']];
           // filter all except the ones that doesnt have
           shouldKeepResourceRet = true;
-          return buildAndExec(o, ctx).then((result) => {
+          return buildAndExec(o, ctx).then(() => {
             checkTriggersCalled(['t1', 't2', 't3']);
           }).catch((err) => {
             chai.expect(false, `unexpected error: ${err}`).eql(true);
           });
         });
-
-
       });
     });
   },

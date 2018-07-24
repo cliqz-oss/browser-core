@@ -1,7 +1,6 @@
 import prefs from '../core/prefs';
 import config from '../core/config';
 import background from '../core/base/background';
-import utils from '../core/utils';
 import ToolbarButton from '../core/ui/toolbar-button';
 import { getMessage } from '../core/i18n';
 
@@ -22,7 +21,7 @@ export default background({
       prefs.clear(UI_TOUR_PREF);
     }
 
-    this.is_enabled = utils.getPref('modules.offers-cc.enabled', true);
+    this.is_enabled = prefs.get('modules.offers-cc.enabled', true);
 
     if (!this.is_enabled) {
       return;

@@ -1,4 +1,6 @@
 import utils from '../core/utils';
+import prefs from '../core/prefs';
+import { cleanUrlProtocol, stripTrailingSlash } from '../core/url';
 import { isVideoURL, getVideoInfo } from './video-downloader';
 import Panel from '../core/ui/panel';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
@@ -9,6 +11,7 @@ import UITour from '../platform/ui-tour';
 import History from '../platform/history/history';
 import history from '../platform/history-service';
 import { Components } from '../platform/globals';
+import { getMessage } from '../core/i18n';
 
 const events = CliqzEvents;
 const DISMISSED_ALERTS = 'dismissedAlerts';
@@ -23,9 +26,9 @@ const DONWLOADS_BTN_ID = 'downloads-button';
 
 export default class UI {
   showOnboarding() {
-    const isInABTest = utils.getPref('extOnboardVideoDownloader', false);
+    const isInABTest = prefs.get('extOnboardVideoDownloader', false);
     const isBrowser = this.settings.channel === '40';
-    const dismissedAlerts = JSON.parse(utils.getPref(DISMISSED_ALERTS, '{}'));
+    const dismissedAlerts = JSON.parse(prefs.get(DISMISSED_ALERTS, '{}'));
     const messageType = 'video-downloader';
     const isDismissed = dismissedAlerts[messageType] && dismissedAlerts[messageType].count >= 1;
     if (isBrowser && isInABTest && !isDismissed) {
@@ -181,10 +184,10 @@ export default class UI {
 
     const promise = UITour.getTarget(this.window, UI_TOUR_ID);
     const icon = `${config.baseURL}video-downloader/images/video-downloader-uitour.svg`;
-    const title = utils.getLocalizedString('video_downloader_uitour_title');
-    const text = utils.getLocalizedString('video_downloader_uitour_description');
-    const btnTryLabel = utils.getLocalizedString('video_downloader_uitour_btn_try');
-    const btnSkipLabel = utils.getLocalizedString('video_downloader_uitour_btn_skip');
+    const title = getMessage('video_downloader_uitour_title');
+    const text = getMessage('video_downloader_uitour_description');
+    const btnTryLabel = getMessage('video_downloader_uitour_btn_try');
+    const btnSkipLabel = getMessage('video_downloader_uitour_btn_skip');
     const buttons = [
       {
         label: btnTryLabel,
@@ -199,7 +202,7 @@ export default class UI {
             target: 'try_now',
           });
 
-          utils.setTimeout(() => {
+          setTimeout(() => {
             this.showPopup();
           }, 1000);
 
@@ -264,8 +267,8 @@ export default class UI {
 
     const promise = UITour.getTarget(this.window, DONWLOADS_UITOUR_ID);
     const icon = null;
-    const title = utils.getLocalizedString('downloads_uitour_title');
-    const text = utils.getLocalizedString('downloads_uitour_description');
+    const title = getMessage('downloads_uitour_title');
+    const text = getMessage('downloads_uitour_description');
 
     const buttons = [
       {
@@ -280,7 +283,7 @@ export default class UI {
             target: 'apple',
           });
           this.background.actions.closeDownloadsUITour(false);
-          utils.openLink(this.window, utils.getLocalizedString('pairing_ios_app'), true, false, false, true);
+          utils.openLink(this.window, getMessage('pairing_ios_app'), true, false, false, true);
         }
       },
       {
@@ -295,7 +298,7 @@ export default class UI {
             target: 'google',
           });
           this.background.actions.closeDownloadsUITour(false);
-          utils.openLink(this.window, utils.getLocalizedString('pairing_android_app'), true, false, false, true);
+          utils.openLink(this.window, getMessage('pairing_android_app'), true, false, false, true);
         }
       }
     ];
@@ -380,7 +383,7 @@ export default class UI {
   sendToMobile({ url, format, title, type }) {
     this.background.actions.closeUITour(false);
 
-    utils.setPref('videoDownloaderOptions', JSON.stringify({
+    prefs.set('videoDownloaderOptions', JSON.stringify({
       platform: 'mobile',
       quality: format
     }));
@@ -421,9 +424,9 @@ export default class UI {
     let friendlyURL = this.getCurrentUrl();
     try {
       // try to clean the url
-      friendlyURL = utils.stripTrailingSlash(utils.cleanUrlProtocol(friendlyURL, true));
+      friendlyURL = stripTrailingSlash(cleanUrlProtocol(friendlyURL, true));
     } catch (e) {
-      utils.log(friendlyURL, e);
+      console.log(friendlyURL, e);
     }
 
     return friendlyURL;
@@ -462,10 +465,10 @@ export default class UI {
       .then(() => getVideoInfo(url))
       .then((formats) => {
         if (formats.length > 0) {
-          const options = JSON.parse(utils.getPref('videoDownloaderOptions', '{}'));
+          const options = JSON.parse(prefs.get('videoDownloaderOptions', '{}'));
           const audioFile = formats.find(format => format.class === 'audio');
           if (audioFile) {
-            audioFile.name = utils.getLocalizedString('video_downloader_audio_label');
+            audioFile.name = getMessage('video_downloader_audio_label');
           }
           const desiredFormat = formats.find(format =>
             format.name.toLowerCase().replace(' ', '_') === options.quality) || formats[0];
@@ -554,7 +557,7 @@ export default class UI {
       format: format.includes('audio') ? 'audio' : format,
     });
 
-    utils.setPref('videoDownloaderOptions', JSON.stringify({
+    prefs.set('videoDownloaderOptions', JSON.stringify({
       platform: 'desktop',
       quality: format
     }));
@@ -588,8 +591,8 @@ export default class UI {
           download = d;
           download.start();
           list.add(download);
-          const hasDownloadsPanelShown = utils.getPref('download.panel.shown', false, 'browser.');
-          utils.setTimeout(() => {
+          const hasDownloadsPanelShown = prefs.get('download.panel.shown', false, 'browser.');
+          setTimeout(() => {
             // instead of detecting opening downloadsPanel, check the pref
             if (!hasDownloadsPanelShown) {
               return;
@@ -597,10 +600,12 @@ export default class UI {
             this.maybeShowingDownloadsUITour();
           }, 1000);
           if (origin) {
-            onVisited = (visit) => {
-              if (visit.url === url) {
-                History.fillFromVisit(url, origin);
-              }
+            onVisited = (visits) => {
+              visits.forEach((visit) => {
+                if (visit.url === url) {
+                  History.fillFromVisit(url, origin);
+                }
+              });
             };
             history.onVisited.addListener(onVisited);
           }

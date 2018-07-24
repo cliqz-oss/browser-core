@@ -1,47 +1,48 @@
 /* global chai */
 /* global describeModule */
 /* global require */
+/* eslint no-param-reassign: off */
 
 const tldjs = require('tldjs');
 
 const VALID_OFFER_OBJ = {
-  "action_info": {
-      "on_click": "https://www.cliqz.com"
+  action_info: {
+    on_click: 'https://www.cliqz.com'
   },
-  "campaign_id": "cid_1",
-  "client_id": "client-1",
-  "display_id": "x-d",
-  "filterRules": "generic_comparator('offer_closed','l_u_ts','>=',30) && " +
+  campaign_id: 'cid_1',
+  client_id: 'client-1',
+  display_id: 'x-d',
+  filterRules: "generic_comparator('offer_closed','l_u_ts','>=',30) && " +
                  "generic_comparator('offer_shown','counter','<=',5)",
-  "offer_id": "x",
-  "rule_info": {
-      "display_time_secs": 999999,
-      "type": "exact_match",
-      "url": []
+  offer_id: 'x',
+  rule_info: {
+    display_time_secs: 999999,
+    type: 'exact_match',
+    url: []
   },
-  "ui_info": {
-      "template_data": {
-          "call_to_action": {
-              "target": "",
-              "text": "Jetzt Anfordern",
-              "url": "http://newurl"
-          },
-          "conditions": "Some conditions",
-          "desc": "Some description",
-          "logo_url": "somelogourl",
-          "title": "This is the title",
-          "voucher_classes": ""
+  ui_info: {
+    template_data: {
+      call_to_action: {
+        target: '',
+        text: 'Jetzt Anfordern',
+        url: 'http://newurl'
       },
-      "template_name": "ticket_template"
+      conditions: 'Some conditions',
+      desc: 'Some description',
+      logo_url: 'somelogourl',
+      title: 'This is the title',
+      voucher_classes: ''
+    },
+    template_name: 'ticket_template'
   },
-  "rs_dest": ["offers-cc"],
-  "types": ["type1", "type2"],
-  "monitorData": [],
+  rs_dest: ['offers-cc'],
+  types: ['type1', 'type2'],
+  monitorData: [],
 };
 const CH = 'offers-send-ch';
 
 // needed for the map
-let persistence = {};
+const persistence = {};
 function delay(fn) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -80,12 +81,10 @@ export default describeModule('offers-v2/offers/offers-api',
       default: tldjs,
     },
     'core/utils': {
-      default: {
-        setInterval: function() {},
-      }
+      default: {}
     },
     'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
+      default: function () { const stop = () => {}; return { stop }; }
     },
     'platform/console': {
       default: {},
@@ -98,7 +97,7 @@ export default describeModule('offers-v2/offers/offers-api',
     'core/events': {
       default: {
         msgs: {},
-        sub(channel, fun) {
+        sub(channel) {
           // we dont care about functions subscriber or anything just get the
           // messages and store them to process them later
           if (!this.msgs[channel]) {
@@ -126,7 +125,7 @@ export default describeModule('offers-v2/offers/offers-api',
     },
     'offers-v2/signals/signals_handler': {
       default: class {
-        constructor(db) {
+        constructor() {
           this.db = {
             campaign: {},
             action: {}
@@ -136,17 +135,20 @@ export default describeModule('offers-v2/offers/offers-api',
         savePersistenceData() {}
 
         setCampaignSignal(cid, oid, origID, sid) {
-          let cidm = this.db['campaign'][cid];
+          let cidm = this.db.campaign[cid];
           if (!cidm) {
-            cidm = this.db['campaign'][cid] = {};
+            cidm = {};
+            this.db.campaign[cid] = cidm;
           }
           let oidm = cidm[oid];
           if (!oidm) {
-            oidm = cidm[oid] = {};
+            oidm = {};
+            cidm[oid] = oidm;
           }
           let origm = oidm[origID];
           if (!origm) {
-            origm = oidm[origID] = {};
+            origm = {};
+            oidm[origID] = origm;
           }
           if (!origm[sid]) {
             origm[sid] = 1;
@@ -156,9 +158,10 @@ export default describeModule('offers-v2/offers/offers-api',
         }
 
         setActionSignal(actionID, origID) {
-          let origm = this.db['action'][origID];
+          let origm = this.db.action[origID];
           if (!origm) {
-            origm = this.db['action'][origID] = {};
+            origm = {};
+            this.db.action[origID] = origm;
           }
           if (!origID[actionID]) {
             origID[actionID] = 1;
@@ -169,25 +172,25 @@ export default describeModule('offers-v2/offers/offers-api',
 
         // helper methods to get some values
         getCampaignSignal(cid, oid, origID, sid) {
-          let m = this.db['campaign'][cid];
-          if (!m) {return null;}
+          let m = this.db.campaign[cid];
+          if (!m) { return null; }
           m = m[oid];
-          if (!m) {return null;}
+          if (!m) { return null; }
           m = m[origID];
-          if (!m) {return null;}
+          if (!m) { return null; }
           return m[sid];
         }
         getCampaignSignalsCount() {
-          return Object.keys(this.db['campaign']).length;
+          return Object.keys(this.db.campaign).length;
         }
 
         getActionSignal(actionID, origID) {
-          let m = this.db['action'][origID];
-          if (!m) {return null;}
+          const m = this.db.action[origID];
+          if (!m) { return null; }
           return m[actionID];
         }
         getActionSignalCount() {
-          return Object.keys(this.db['action']).length;
+          return Object.keys(this.db.action).length;
         }
       }
     },
@@ -241,7 +244,7 @@ export default describeModule('offers-v2/offers/offers-api',
     }
   }),
   () => {
-    describe('OffersAPI', function() {
+    describe('OffersAPI', function () {
       let OfferProcessor;
       let OfferDB;
       let events;
@@ -320,7 +323,7 @@ export default describeModule('offers-v2/offers/offers-api',
           // check adding invalid offer doesnt emit any event nor signal?
           it('invalid offer doesnt emit any event', function () {
             // no offer id
-            let offer = cloneValidOffer();
+            const offer = cloneValidOffer();
             delete offer.offer_id;
             chai.expect(op.pushOffer(bo(offer))).to.be.equal(false);
             chai.expect(events.countMsgs(CH)).to.be.equal(0);
@@ -330,13 +333,13 @@ export default describeModule('offers-v2/offers/offers-api',
 
           // check can add offer
           it('valid offer can be added', function () {
-            let offer = cloneValidOffer();
+            const offer = cloneValidOffer();
             chai.expect(op.pushOffer(bo(offer))).to.be.equal(true);
           });
 
           // check adding offer got proper event
           it('valid offer added emit proper events', function () {
-            let offer = cloneValidOffer();
+            const offer = cloneValidOffer();
             chai.expect(op.pushOffer(bo(offer))).to.be.equal(true);
             chai.expect(events.countMsgs(CH)).to.be.equal(1);
             const msg = events.msgs[CH][0];
@@ -354,7 +357,7 @@ export default describeModule('offers-v2/offers/offers-api',
           // check signals
           // check offer triggered signal is properly sent
           it('signal offer triggered is not emitted on invalid offer', function () {
-            let offer = cloneValidOffer();
+            const offer = cloneValidOffer();
             delete offer.offer_id;
             chai.expect(sigh.getCampaignSignalsCount()).to.be.equal(0);
             chai.expect(sigh.getActionSignalCount()).to.be.equal(0);
@@ -364,16 +367,16 @@ export default describeModule('offers-v2/offers/offers-api',
           });
 
           it('signal offer triggered is emitted on proper offer', function () {
-            let offer = cloneValidOffer();
+            const offer = cloneValidOffer();
             chai.expect(sigh.getCampaignSignalsCount()).to.be.equal(0);
             chai.expect(sigh.getActionSignalCount()).to.be.equal(0);
             chai.expect(op.pushOffer(bo(offer))).to.be.equal(true);
             chai.expect(sigh.getCampaignSignalsCount()).to.be.equal(1);
             chai.expect(sigh.getActionSignalCount()).to.be.equal(0);
             const sigVal = sigh.getCampaignSignal(offer.campaign_id,
-                                                  offer.offer_id,
-                                                  'processor',
-                                                  ActionID.AID_OFFER_TRIGGERED);
+              offer.offer_id,
+              'processor',
+              ActionID.AID_OFFER_TRIGGERED);
             chai.expect(sigVal).to.be.equal(1);
           });
 
@@ -386,10 +389,8 @@ export default describeModule('offers-v2/offers/offers-api',
 
           // do more complex tests sending signals from outside sending messages
           // and getting the responses
-
         });
-
       });
-    })
+    });
   }
 );

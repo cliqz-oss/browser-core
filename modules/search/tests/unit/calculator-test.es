@@ -1,6 +1,8 @@
 /* global chai */
 /* global describeModule */
-/* global getLocaliseString */
+
+const mathJs = require('mathjs');
+
 const LANG_OPTIONS = {
   'de-DE': {
     thousandsSeparator: '.',
@@ -145,10 +147,13 @@ export default describeModule('search/providers/calculator/internal',
   function () {
     return {
       mathjs: {
-        default: require('mathjs'),
+        default: mathJs,
       },
       'core/utils': {
         default: {}
+      },
+      'core/i18n': {
+        getMessage: '[dynamic]'
       },
       'core/console': {
         default: {
@@ -156,7 +161,7 @@ export default describeModule('search/providers/calculator/internal',
         }
       },
       'platform/lib/mathjs': {
-        default: require('mathjs'),
+        default: mathJs,
       },
     };
   },
@@ -169,7 +174,7 @@ export default describeModule('search/providers/calculator/internal',
           beforeEach(function () {
             calculator = this.module().default;
 
-            this.deps('core/utils').default.getLocalizedString = (key) => {
+            this.deps('core/i18n').getMessage = (key) => {
               if (key === 'locale_lang_code') {
                 return lang;
               }

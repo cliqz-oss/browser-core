@@ -12,6 +12,7 @@ const componentInterface = {
 
 export default requireNativeComponent('NativeDrawable', componentInterface);
 
-export function normalizeUrl(url = '') {
-  return 'ic_ez_' + url.slice(url.lastIndexOf('/') + 1, -4).replace(/-/g, '_').toLowerCase();
+export function normalizeUrl(url = '', options = {}) {
+  const prefix = options.isNative ? 'ic_' : 'ic_ez_';
+  return prefix + url.slice(url.lastIndexOf('/') + 1, -4).replace(/-/g, '_').toLowerCase();
 };

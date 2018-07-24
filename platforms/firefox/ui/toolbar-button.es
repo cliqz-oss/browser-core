@@ -1,8 +1,8 @@
 import { Components } from '../globals';
 import utils from '../../core/utils';
 import getContainer from './helpers';
-import DefaultWeakMap from '../../core/app/default-weak-map';
-import Defer from '../../core/app/defer';
+import DefaultWeakMap from '../../core/helpers/default-weak-map';
+import Defer from '../../core/helpers/defer';
 
 const { CustomizableUI } = Components.utils.import('resource:///modules/CustomizableUI.jsm', null);
 
@@ -148,6 +148,7 @@ export default class BrowserAction {
     const iframe = win.document.createElement('iframe');
     iframe.setAttribute('id', `${this.id}-iframe`);
     iframe.setAttribute('type', 'content');
+    iframe.tabIndex = -1;
     iframe.setAttribute('src', `${this.defaults.popup}?pageAction=${this.isPageAction}`);
 
     const onMessage = (ev) => {

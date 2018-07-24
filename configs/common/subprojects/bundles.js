@@ -5,8 +5,14 @@ const subprojects = {
   // Re-export react libs
   react: reactLibs.react,
   reactDom: reactLibs.reactDom,
+  reactTestUtils: reactLibs.reactTestUtils,
 
   // Define bundles
+  ajv: {
+    src: 'node_modules/ajv/dist',
+    include: ['ajv.min.js'],
+    dest: 'vendor',
+  },
   qrcodejs: {
     src: 'node_modules/qrcodejs',
     include: ['qrcode.min.js'],

@@ -1,11 +1,8 @@
-export default {
-  "_searchString": "amazon",
-  "_defaultIndex": -2,
-  "_errorDescription": "",
-  "_results": [
+export default
+  [
     {
       "style": "cliqz-extra",
-      "val": "https://www.amazon.de/",
+      "url": "https://www.amazon.de/",
       "comment": "Amazon.de: Günstige Preise für Elektronik & Foto, Filme, Musik, Bücher, Games, Spielzeug & mehr",
       "label": "https://www.amazon.de/",
       "query": "amazon",
@@ -314,7 +311,4 @@ export default {
         ]
       }
     }
-  ],
-  "suggestionsRecieved": false,
-  "isMixed": true
-};
+  ];

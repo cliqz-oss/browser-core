@@ -1,3 +1,3 @@
-import osAPI from "specific/js/osAPI.js"
+import osAPI from "specific/mobile/js/osAPI.js"
 
 export default osAPI;

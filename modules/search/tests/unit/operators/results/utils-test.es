@@ -1,3 +1,4 @@
+/* global chai, describeModule */
 
 const mock = {
   'core/url': {},

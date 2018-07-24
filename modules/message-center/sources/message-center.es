@@ -1,12 +1,13 @@
-import CliqzUtils from '../core/utils';
+import console from '../core/console';
 import CliqzMsgHandlerAlert from './handlers/alert';
 import CliqzMsgHandlerDropdown from './handlers/dropdown';
 import CliqzMsgHandlerFreshtabTop from './handlers/freshtab-top';
 import CliqzMsgHandlerFreshtabMiddle from './handlers/freshtab-middle';
+import CliqzMsgHandlerFreshtabOffers from './handlers/freshtab-offers';
 
 /* ************************************************************************* */
 function _log(msg) {
-  CliqzUtils.log(msg, 'CliqzMsgCenter');
+  console.log(msg, 'CliqzMsgCenter');
 }
 /* ************************************************************************* */
 
@@ -26,6 +27,8 @@ export default class CliqzMsgCenter {
       new CliqzMsgHandlerFreshtabTop());
     this.registerMessageHandler('MESSAGE_HANDLER_FRESHTAB_MIDDLE',
       new CliqzMsgHandlerFreshtabMiddle());
+    this.registerMessageHandler('MESSAGE_HANDLER_FRESHTAB_OFFERS',
+      new CliqzMsgHandlerFreshtabOffers());
   }
 
   registerMessageHandler(id, handler) {

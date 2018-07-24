@@ -1,4 +1,16 @@
 import { isChromium } from '../core/platform';
+import prefs from '../core/prefs';
+import config from '../core/config';
+
+const prefPrefix = 'offers-v2.';
+
+const constToPrefName = constName => `${prefPrefix}${constName.toLowerCase()}`;
+const prefToConstName = prefName =>
+  (prefName.startsWith(prefPrefix) ? prefName.slice(prefPrefix.length).toUpperCase() : null);
+
+const constNames = new Set([
+  'MAX_NUM_OFFERS_PER_DAY'
+]);
 
 const OffersConfigs = {
 
@@ -10,14 +22,14 @@ const OffersConfigs = {
 
   CURRENT_VERSION: 2.0,
 
-  LOG_LEVEL: 'off',
-  LOG_ENABLED: false,
+  LOG_LEVEL: 'debug',
+
   // by default is not dev mode
   IS_DEV_MODE: false,
 
   // ///////////////////////////////////////////////////////////////////////////
   // trigger backend endpoint
-  BACKEND_URL: 'https://offers-api.cliqz.com',
+  BACKEND_URL: prefs.get('triggersBE', config.settings.OFFERS_BE_BASE_URL),
 
   // the redirect url to where we should point to when the user sees the offer
   // and click on "more info"
@@ -41,7 +53,7 @@ const OffersConfigs = {
   // how often we want to send the signals related with the offers to the BE
   // ten minutes
   SIGNALS_OFFERS_FREQ_SECS: 30,
-  SIGNALS_HPN_BE_ADDR: 'https://offers-api.cliqz.com/api/v1/savesignal',
+  SIGNALS_HPN_BE_ADDR: `${prefs.get('triggersBE', config.settings.OFFERS_BE_BASE_URL)}/api/v1/savesignal`,
   SIGNALS_HPN_BE_ACTION: 'offers-signal',
   // the time we want to keep the signals (accumulating) from the last time
   // the signal was modified (#GR-298)
@@ -64,9 +76,27 @@ const OffersConfigs = {
   //
 
   // override the timeout time of the offers only if this is > 0
-  OFFERS_OVERRIDE_TIMEOUT: -1
+  OFFERS_OVERRIDE_TIMEOUT: -1,
 
+  MAX_NUM_OFFERS_PER_DAY: prefs.get(constToPrefName('MAX_NUM_OFFERS_PER_DAY'), 5),
 };
 
+
+export function confOnPrefChange(pref) {
+  // Handle old prefs (without `offers-v2.` prefix)
+  switch (pref) {
+    case 'triggersBE':
+      OffersConfigs.BACKEND_URL = prefs.get(pref, config.settings.OFFERS_BE_BASE_URL);
+      OffersConfigs.SIGNALS_HPN_BE_ADDR = `${OffersConfigs.BACKEND_URL}/api/v1/savesignal`;
+      return;
+    default:
+      break;
+  }
+
+  const constName = prefToConstName(pref);
+  if (constName && constNames.has(constName)) {
+    OffersConfigs[constName] = prefs.get(pref);
+  }
+}
 
 export default OffersConfigs;

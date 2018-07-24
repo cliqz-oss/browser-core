@@ -10,6 +10,7 @@ import deepResultsList, { headersMap, footersMap, extrasMap } from '../helpers/t
 import { agoLine } from '../helpers/logic';
 import { elementSidePaddings, cardBorderTopRadius } from '../styles/CardStyle';
 import utils from '../../core/utils';
+import { getDetailsFromUrl } from '../../core/url';
 
 class Generic extends React.Component {
 
@@ -43,8 +44,7 @@ class Generic extends React.Component {
     const headerDeepResults = this.getDeepResultsList(headersMap, result.data.deepResults);
     const footerDeepResults = this.getDeepResultsList(footersMap, result.data.deepResults);
     const extraComponent = this.getExtraComponent(result.data);
-    const urlDetails = utils.getDetailsFromUrl(url || '');
-    const logoDetails = utils.getLogoDetails(urlDetails);
+    const logoDetails = result.meta.logo || {};
     const headerBackround = logoDetails.backgroundColor || '000';
     const isHistory = result.data.kind[0] === 'H';
 

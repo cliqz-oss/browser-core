@@ -5,7 +5,7 @@ import NativeDrawable, { normalizeUrl } from './custom/NativeDrawable';
 import Link from './Link';
 import { elementSideMargins } from '../styles/CardStyle';
 
-export default class extends React.Component {
+export default class ExpandView extends React.Component {
 
   constructor(props) {
     super(props);

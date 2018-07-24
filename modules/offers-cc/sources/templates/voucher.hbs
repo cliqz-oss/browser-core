@@ -1,8 +1,6 @@
 <div class="overview">
     {{#if template_data.benefit}}
-    <p  class="benefit cta-element {{#if template_data.benefit_new}}updated{{/if}}"
-        data-id="{{offer_id}}"
-        data-url="{{template_data.call_to_action.url}}">
+    <p  class="benefit {{#if template_data.benefit_new}}updated{{/if}}">
         <span>{{template_data.benefit}}</span>
         <span>{{template_data.benefit_new}}</span>
     </p>
@@ -20,22 +18,27 @@
     {{#if template_data.picture_url}}
     <p class="picture cta-element" style="background-image: url({{template_data.picture_url}})"
         data-id="{{offer_id}}"
+        data-elem="picture"
         data-url="{{template_data.call_to_action.url}}"></p>
     {{/if}}
     {{#if template_data.benefit}}
     <p class="benefit cta-element {{#if template_data.benefit_new}}updated{{/if}}"
         data-id="{{offer_id}}"
+        data-elem="benefit"
         data-url="{{template_data.call_to_action.url}}">
-        <span>{{template_data.benefit}}</span>
+        <span class="benefit-txt">{{template_data.benefit}}</span>
         <span>{{template_data.benefit_new}}</span>
     </p>
     {{/if}}
     <p class="headline cta-element" style="color: {{backgroundColor}}"
         data-id="{{offer_id}}"
+        data-elem="headline"
         data-url="{{template_data.call_to_action.url}}">
         {{either_or template_data.headline template_data.title}}
     </p>
-    <p class="description cta-element" data-id="{{offer_id}}"
+    <p class="description cta-element"
+        data-id="{{offer_id}}"
+        data-elem="description"
         data-url="{{template_data.call_to_action.url}}" >{{template_data.desc}}</p>
     {{#if template_data.code}}
     <div class="promocode-wrapper">
@@ -73,7 +76,12 @@
     </button>
 </div>
 <div class="logo-wrapper">
-    <div class="logo {{logoClass}}" style="background-image: url({{template_data.logo_url}})"></div>
+    <div class="logo {{logoClass}} cta-element"
+        data-id="{{offer_id}}"
+        data-elem="logo"
+        data-url="{{template_data.call_to_action.url}}"
+        style="background-image: url({{template_data.logo_url}})"
+    ></div>
     <button class="setting"
             data-telemetry-id="menu">
     </button>

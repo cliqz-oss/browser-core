@@ -103,7 +103,7 @@ export default function sendMonitorSignal(monitor, handlers, urlData) {
   let shouldFilterSignal = false;
   let referrerCat = null;
   if (monitor.params) {
-    const currUrl = urlData.getLowercaseUrl();
+    const currUrl = urlData.getNormalizedUrl();
     if (monitor.params.store && currUrl) {
       // we need to check on the DB the current url
       const sendSignalDb = handlers.urlSignalDB;

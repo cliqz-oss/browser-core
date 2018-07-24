@@ -1,5 +1,4 @@
 .git/*
-bower_components/*
 chromedriver
 chromedriver_linux64.zip
 ext.zip
@@ -14,3 +13,5 @@ misc
 mocha.log
 node_modules
 **/node_modules
+ghostery-extension
+ghostery.zip

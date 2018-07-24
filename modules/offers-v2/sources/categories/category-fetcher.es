@@ -9,9 +9,8 @@ import Category from './category';
 import logger from '../common/offers_v2_logger';
 import SimpleDB from '../../core/persistence/simple-db';
 import setTimeoutInterval from '../../core/helpers/timeout';
-import utils from '../../core/utils';
 import { shouldKeepResource } from '../utils';
-
+import prefs from '../../core/prefs';
 
 // Constant defining how frequently we want to fetch categories from BE
 const FETCH_FREQ_MS = 1000 * 60 * 60 * 1;
@@ -47,7 +46,7 @@ export default class CategoryFetcher {
   constructor(backendConnector, categoryHandler, db) {
     this.beConnector = backendConnector;
     this.categoryHandler = categoryHandler;
-    this.db = (db && !utils.getPref('offersDevFlag', false)) ? new SimpleDB(db) : null;
+    this.db = (db && !prefs.get('offersDevFlag', false)) ? new SimpleDB(db) : null;
     // this revision will be used as id to be sent to the BE to check if
     // there is a new version or not of the categories list to be fetched
     this.lastRevision = null;
@@ -60,7 +59,7 @@ export default class CategoryFetcher {
       if (this.intervalTimer === null) {
         this.intervalTimer = setTimeoutInterval(this._performFetch.bind(this), FETCH_FREQ_MS);
         // we want to perform the fetch in a while not right now
-        this.startTimer = utils.setTimeout(this._performFetch.bind(this), 1000 * 5);
+        this.startTimer = setTimeout(this._performFetch.bind(this), 1000 * 5);
       }
     };
 
@@ -82,7 +81,7 @@ export default class CategoryFetcher {
     if (this.intervalTimer) {
       this.intervalTimer.stop();
       this.intervalTimer = null;
-      utils.clearTimeout(this.startTimer);
+      clearTimeout(this.startTimer);
     }
   }
 
@@ -107,7 +106,6 @@ export default class CategoryFetcher {
         c && ((c.user_group === undefined) || shouldKeepResource(c.user_group));
 
       categories = categories.filter(keepCategory);
-
       // store the last revision for future usage
       this._setLatestRevision(revision);
 
@@ -152,4 +150,3 @@ export default class CategoryFetcher {
     }
   }
 }
-

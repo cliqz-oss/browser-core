@@ -19,15 +19,18 @@ function getExtensionDirectory() {
       try {
         resolve(JSON.parse(prefs.getCharPref('extensions.xpiState'))['app-temporary'][extensionId].d);
       } catch (e2) {
-        AddonManager.AddonManager.getAddonByID(
-          extensionId,
-          (addon) => {
-            resolve(
-              addon.getResourceURI('').path ||
-              addon.getResourceURI('').filePath
-            );
-          }
-        );
+        const cb = (addon) => {
+          resolve(
+            addon.getResourceURI('').path ||
+            addon.getResourceURI('').filePath
+          );
+        };
+
+        const promise = AddonManager.AddonManager.getAddonByID(extensionId, cb);
+
+        if (promise && promise.then) {
+          promise.then(cb);
+        }
       }
     }
   });

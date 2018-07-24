@@ -24,7 +24,7 @@ const LANG_FACTOR = 20;
 // - firefox is currently used for any browser (including chromium), it should
 //   be renamed to 'browser' in the future, or 'firefox', 'chromium', etc.
 //   should simply be aliases for 'browser'.
-const PLATFORM = platformName === 'mobile' ? 'mobile-new' : (platformName || 'firefox');
+const PLATFORM = platformName === 'mobile' ? 'mobile-new' : 'firefox';
 const CDN_URL = `${config.settings.CDN_BASEURL}/adblocking`;
 const BASE_URL = `${CDN_URL}/latest-filters/`;
 

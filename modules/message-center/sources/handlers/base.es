@@ -20,7 +20,6 @@ export default class CliqzMsgHandler {
 
   dequeueMessage(message) {
     let i = this._messageQueue.indexOf(message);
-
     // same message, different object reference
     if (i === -1) {
       const msg = this._messageQueue.find(item => item.id === message.id);

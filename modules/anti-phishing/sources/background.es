@@ -1,10 +1,10 @@
-/* eslint no-console: 'off' */
-
-import utils from '../core/utils';
+import { httpGet } from '../core/http';
+import prefs from '../core/prefs';
 import CliqzAntiPhishing from './anti-phishing';
 import background from '../core/base/background';
 import inject from '../core/kord/inject';
 import * as datetime from '../antitracking/time';
+import console from '../core/console';
 
 function addDataToUrl(...args) {
   const hw = inject.module('human-web');
@@ -71,7 +71,7 @@ export default background({
       const forceWhiteList = CliqzAntiPhishing.forceWhiteList.value;
       if (md5Prefix in forceWhiteList) {
         if (forceWhiteList[md5Prefix] === CliqzAntiPhishing.WHITELISTED_TEMPORARY) {
-          utils.setTimeout(() => {
+          setTimeout(() => {
             delete forceWhiteList[md5Prefix];
           }, 1000);
         }
@@ -92,7 +92,7 @@ export default background({
         };
       }
       return new Promise((resolve, reject) => {
-        utils.httpGet(
+        httpGet(
           CliqzAntiPhishing.BW_URL + md5Prefix,
           (req) => {
             updateBlackWhiteStatus(req, md5Prefix);
@@ -113,17 +113,17 @@ export default background({
       switch (state) {
         case 'active':
           CliqzAntiPhishing.removeForceWhitelist(url);
-          utils.setPref('cliqz-anti-phishing-enabled', true);
+          prefs.set('cliqz-anti-phishing-enabled', true);
           break;
         case 'off_website':
         case 'inactive':
-          utils.setPref('cliqz-anti-phishing-enabled', true);
+          prefs.set('cliqz-anti-phishing-enabled', true);
           CliqzAntiPhishing.whitelist(url);
           break;
         case 'critical':
         case 'off_all':
           CliqzAntiPhishing.removeForceWhitelist(url);
-          utils.setPref('cliqz-anti-phishing-enabled', false);
+          prefs.set('cliqz-anti-phishing-enabled', false);
           break;
         default:
           break;

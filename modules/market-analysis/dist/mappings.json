@@ -12712,12 +12712,6 @@
   "heise.de": {
     "cat": "News",
     "regexes": {
-      "chk": [
-        "heise\\.de.*payment"
-      ],
-      "sho": [
-        "shop\\.heise\\.de.*checkout"
-      ],
       "v": [
         "."
       ]
@@ -32444,6 +32438,190 @@
       "tra": [
         "goldgeschenke.degussa-goldhandel.de/paypal/standard/redirect/",
         "goldgeschenke.degussa-goldhandel.de/checkout/onepage/success/"
+      ]
+    }
+  },
+  "spiegel.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "bild.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "zeit.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "zdf.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "welt.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "focus.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "sueddeutsche.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "n-tv.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "faz.net": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "stern.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "tagesspiegel.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "express.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "mopo.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "rp-online.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "taz.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "tz.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "huffingtonpost.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "bz-berlin.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "nytimes.com": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "haz.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "lvz.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "dw.com": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
+      ]
+    }
+  },
+  "maz-online.de": {
+    "cat": "News",
+    "regexes": {
+      "v": [
+        "."
       ]
     }
   }

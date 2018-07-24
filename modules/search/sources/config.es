@@ -123,6 +123,12 @@ export default function ({ isPrivateMode }) {
     },
     operators: {
       ...DEFAULT_CONFIG.operators,
+      addCompletion: {
+        get isEnabled() {
+          return prefs.get('browser.urlbar.autoFill', true, '');
+        },
+        providerBlacklist: ['instant', 'query-suggestions'],
+      },
       offers: {
         position: DEFAULT_CONFIG.operators.offers.position,
         get isEnabled() {

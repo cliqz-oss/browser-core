@@ -1,4 +1,5 @@
 import utils from '../core/utils';
+import { isUrl } from '../core/url';
 
 export default function (window) {
   const $button = window.document.getElementById('urlbar-go-button') ||
@@ -18,7 +19,7 @@ export default function (window) {
 
     utils.telemetry({
       type: 'activity',
-      position_type: [utils.isUrl(mInputFieldValue) ? 'inbar_url' : 'inbar_query'],
+      position_type: [isUrl(mInputFieldValue) ? 'inbar_url' : 'inbar_query'],
       autocompleted: isAutocompleted,
       action: 'urlbar_go_click'
     });

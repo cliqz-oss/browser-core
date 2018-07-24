@@ -9,7 +9,7 @@ import PoweredByKicker from '../partials/PoweredByKicker';
 import { elementTopMargin, elementSideMargins, cardWidth } from '../../styles/CardStyle';
 
 
-export default class extends React.Component {
+export default class LiveTicker extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -100,7 +100,7 @@ export default class extends React.Component {
           } else if (match.subscribedToHost || match.subscribedToGuest) {
             actionMessage = getMessage('mobile_soccer_subscribed_to_one');
           }
-          return <Link to={match.live_url} key={index}>
+          return <Link url={match.live_url} key={index}>
             <View style={styles(index, gameContainerWidth, gameContainerHeight).gameContainer}>
               <Text
                 style={styles(index, gameContainerWidth, gameContainerHeight).gameText}

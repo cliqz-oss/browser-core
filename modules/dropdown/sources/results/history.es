@@ -2,8 +2,11 @@ import { equals } from '../../core/content/url';
 import { Subresult } from './base';
 import GenericResult from './generic';
 import LottoResult from './lotto';
+import { HISTORY_RESULT } from '../result-types';
 
 class HistoryResult extends Subresult {
+  type = HISTORY_RESULT;
+
   get isHistory() { return true; }
 }
 

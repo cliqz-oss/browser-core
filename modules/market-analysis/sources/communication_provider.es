@@ -1,4 +1,4 @@
-import utils from '../core/utils';
+import { httpPost } from '../core/http';
 import config from '../core/config';
 import MAConfigs from './conf/ma_configs';
 import { getHpnTimeStamp } from './common/utils';
@@ -33,7 +33,7 @@ class CommunicationProvider {
     };
 
     const hpnStrSignal = JSON.stringify(hpnSignal);
-    utils.httpPost(
+    httpPost(
       this.endPointAddress,
       (succ) => { successCallback(signalObject, succ); },
       hpnStrSignal,

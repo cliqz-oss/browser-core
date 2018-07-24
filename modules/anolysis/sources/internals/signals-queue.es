@@ -1,5 +1,3 @@
-import utils from '../../core/utils';
-
 import Backend from './backend-communication';
 import logger from './logger';
 
@@ -22,10 +20,9 @@ export default class SignalsQueue {
     this.db = null;
     this.backend = new Backend(config);
 
-    // Send signals by chunks, at regular intervals
-    // Make throughput customizable
     this.initialized = false;
 
+    // Send signals by chunks, at regular intervals
     this.batchSize = config.get('signalQueue.batchSize'); // 5
     this.sendInterval = config.get('signalQueue.sendInterval'); // 15 * 1000;
     this.maxAttempts = config.get('signalQueue.maxAttempts'); // 5;
@@ -40,9 +37,10 @@ export default class SignalsQueue {
   }
 
   unload() {
+    logger.debug('unload signal queue');
+    clearInterval(this.interval);
+    clearTimeout(this.sleepTimeout);
     this.initialized = false;
-    utils.clearInterval(this.interval);
-    utils.clearTimeout(this.sleepTimeout);
   }
 
   getSize() {
@@ -52,7 +50,7 @@ export default class SignalsQueue {
   sleep(time) {
     return new Promise((resolve) => {
       logger.debug('signal queue sleeps for', time, 'ms');
-      this.sleepTimeout = utils.setTimeout(
+      this.sleepTimeout = setTimeout(
         resolve,
         time,
       );
@@ -63,9 +61,10 @@ export default class SignalsQueue {
    * Send signals by batch.
    */
   startListening() {
+    logger.debug('signal queue start listening');
     let ongoingBatch = false;
     this.initialized = true;
-    this.interval = utils.setInterval(
+    this.interval = setInterval(
       () => {
         // Only try to send a new batch if the signal queue is initialized and
         // we are not already sending a batch
@@ -80,7 +79,7 @@ export default class SignalsQueue {
             })
             .catch((err) => {
               if (this.initialized) {
-                logger.error('error while sending batch', err);
+                logger.debug('error while sending batch', err);
                 // In case of error, sleep for longer and increase the timeout
                 const timeout = this.failureTimeout;
                 this.failureTimeout *= 5;
@@ -123,11 +122,11 @@ export default class SignalsQueue {
         if (attempts < this.maxAttempts) {
           resultPromise = this.db.remove(id)
             .then(() => this.db.push(signal, attempts + 1))
-            .then(() => logger.error('update number of attemps of signal', signal));
+            .then(() => logger.debug('update number of attemps of signal', signal));
         } else {
           // Otherwise, remove the document from the queue
           resultPromise = this.db.remove(id)
-            .then(() => logger.error('removed failed signal', signal));
+            .then(() => logger.debug('removed failed signal', signal));
         }
 
         // Returns a failed promise to notify a failure

@@ -11,6 +11,7 @@
 @import 'top-notifications.scss';
 @import 'offers-middle-notifications.scss';
 @import 'offer-middle-feedback.scss';
+@import 'speed-dial-modal.scss';
 @import "mixins";
 
 @mixin container($config, $theme)
@@ -32,6 +33,7 @@
     $top-notifications-theme: map-get($theme, top-notifications);
     $offer-middle-notifications-theme: map-get($theme, offer-middle-notifications);
     $offer-middle-feedback-theme: map-get($theme, offer-middle-feedback);
+
 
     display: flex;
     min-height: 100vh;
@@ -237,7 +239,6 @@
             @include url-bar-with-results(map-merge($url-bar-configs, $url-bar-theme)...);
             @include news(map-merge($news-configs, $news-theme)...);
             @include middle-notifications(map-merge($middle-notifications-configs, $middle-notifications-theme)...);
-
             @include offer-middle-notifications(map-merge($offer-middle-notifications-configs, $offer-middle-notifications-theme)...);
             @include offer-middle-feedback(map-merge($offer-middle-feedback-configs, $offer-middle-feedback-theme)...);
         }
@@ -299,6 +300,29 @@ button::-moz-focus-inner {
 body {
     background: #f7f7f7 no-repeat center center fixed;
     background-size: cover;
+
+    .openOverlay {
+        #section-top,
+        #section-most-visited,
+        #section-favorites,
+        #section-news {
+            visibility: hidden;
+        }
+    }
+
+    #overlay {
+        background: #ccc;
+        width: 100%;
+        min-height: 100vh;
+        position: absolute;
+        opacity: 0;
+        transition: opacity 1s;
+        pointer-events: none;
+
+        &.open {
+            opacity: 1;
+        }
+    }
 
     #app {
         $light-theme: map-get($themes, light);
@@ -517,6 +541,9 @@ body {
 
             #main-content {
                 .fixed-container {
+                    .middle-notification-box {
+                        background-color: rgba(255, 255, 255, 0.7);
+                    }
                     .dial-header {
                         color: rgba(0, 0, 0, 0.6);
                     }
@@ -562,6 +589,24 @@ body {
             }
         }
     }
+
+    &.theme-bg-worldcup {
+        #app {
+            #main-content {
+                .fixed-container {
+                    #section-news {
+                        .news-container {
+                            .news-content {
+                                .box {
+                                    .read-more-button {
+                                        color: #00AEF0;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
-
-

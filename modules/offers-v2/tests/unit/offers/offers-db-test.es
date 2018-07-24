@@ -3,37 +3,37 @@
 /* global require */
 
 const VALID_OFFER_OBJ = {
-  "action_info": {
-      "on_click": "https://www.cliqz.com"
+  action_info: {
+    on_click: 'https://www.cliqz.com'
   },
-  "campaign_id": "cid_1",
-  "display_id": "x-d",
-  "filter_info": {
-      "not_closed_mt": 3
+  campaign_id: 'cid_1',
+  display_id: 'x-d',
+  filter_info: {
+    not_closed_mt: 3
   },
-  "offer_id": "x",
-  "rule_info": {
-      "display_time_secs": 999999,
-      "type": "exact_match",
-      "url": []
+  offer_id: 'x',
+  rule_info: {
+    display_time_secs: 999999,
+    type: 'exact_match',
+    url: []
   },
-  "ui_info": {
-      "template_data": {
-          "call_to_action": {
-              "target": "",
-              "text": "Jetzt Anfordern",
-              "url": "http://newurl"
-          },
-          "conditions": "Some conditions",
-          "desc": "Some description",
-          "logo_url": "somelogourl",
-          "title": "This is the title",
-          "voucher_classes": ""
+  ui_info: {
+    template_data: {
+      call_to_action: {
+        target: '',
+        text: 'Jetzt Anfordern',
+        url: 'http://newurl'
       },
-      "template_name": "ticket_template"
+      conditions: 'Some conditions',
+      desc: 'Some description',
+      logo_url: 'somelogourl',
+      title: 'This is the title',
+      voucher_classes: ''
+    },
+    template_name: 'ticket_template'
   },
-  "client_id": "client1",
-  "types": ["type1", "type2"],
+  client_id: 'client1',
+  types: ['type1', 'type2'],
 };
 
 let mockedTS = Date.now();
@@ -73,19 +73,16 @@ export default describeModule('offers-v2/offers/offers-db',
     'core/platform': {
       isChromium: false,
     },
-    // 'core/console': {
-    //   default: {}
-    // },
     'core/prefs': {
-      default: {}
-    },
-    'core/utils': {
       default: {
-        setInterval: function() {},
+        get: () => {},
       }
     },
+    'core/utils': {
+      default: {}
+    },
     'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
+      default: function () { const stop = () => {}; return { stop }; }
     },
     'core/persistence/simple-db': {
       default: class {
@@ -94,18 +91,18 @@ export default describeModule('offers-v2/offers/offers-db',
         }
         upsert(docID, docData) {
           const self = this;
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             self.db[docID] = JSON.parse(JSON.stringify(docData));
             resolve();
           });
         }
         get(docID) {
           const self = this;
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             resolve(JSON.parse(JSON.stringify(self.db[docID])));
           });
         }
-        remove(docID) {}
+        remove() {}
       }
     },
     'core/persistence/map': {
@@ -158,7 +155,7 @@ export default describeModule('offers-v2/offers/offers-db',
     }
   }),
   () => {
-    describe('OffersDB', function() {
+    describe('OffersDB', function () {
       let OffersDB;
       let OffersConfigs;
 
@@ -172,7 +169,6 @@ export default describeModule('offers-v2/offers/offers-db',
             setTimeout(() => {
               if (db.dbLoaded) {
                 resolve(true);
-                return;
               } else {
                 wait();
               }
@@ -185,7 +181,7 @@ export default describeModule('offers-v2/offers/offers-db',
       beforeEach(function () {
         OffersDB = this.module().default;
         return Promise.all([
-          this.system.import('offers-v2/offers_configs').then(result => {
+          this.system.import('offers-v2/offers_configs').then((result) => {
             OffersConfigs = result.default;
           })
         ]);
@@ -262,7 +258,6 @@ export default describeModule('offers-v2/offers/offers-db',
             chai.expect(db.addOfferObject('x', offerObj)).to.equal(true);
             chai.expect(db.addOfferObject('x', offerObj)).to.equal(false);
           });
-
         });
 
         context('action', function () {
@@ -421,12 +416,11 @@ export default describeModule('offers-v2/offers/offers-db',
             chai.expect(db.addOfferObject('x', offerObj)).to.equal(true);
             chai.expect(db.incOfferAction('x', 'h1')).to.equal(true);
             chai.expect(db.getOfferAttribute('x', 'h1')).to.not.exist;
-            const data = {something: 1};
+            const data = { something: 1 };
             mockCurrentTS(attTS);
             chai.expect(db.addOfferAttribute('x', 'h1', data)).to.equal(true);
             chai.expect(db.getOfferAttribute('x', 'h1').something).to.equal(data.something);
           });
-
         });
 
         context('getOffers', function () {
@@ -438,7 +432,7 @@ export default describeModule('offers-v2/offers/offers-db',
 
           it('adding multiple offers', function () {
             const offers = [];
-            for (let i = 0; i < 10; ++i) {
+            for (let i = 0; i < 10; i += 1) {
               const o = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
               o.offer_id = `offer-${i}`;
               offers.push(o);
@@ -447,12 +441,11 @@ export default describeModule('offers-v2/offers/offers-db',
             const roffers = db.getOffers();
             chai.expect(roffers).to.exist;
             chai.expect(roffers.length).to.equal(offers.length);
-            //chai.expect(roffers).to.eql(offers);
+            // chai.expect(roffers).to.eql(offers);
             // TODO: we should check here if we can find all the offers, they
             // may not be sorted as we add them so we need to do a better check here
             //
           });
-
         });
 
         context('persistence', function () {
@@ -463,7 +456,7 @@ export default describeModule('offers-v2/offers/offers-db',
           });
 
           it('stored offers remains', function () {
-            let odb = new OffersDB();
+            const odb = new OffersDB();
             chai.expect(odb.addOfferObject(o.offer_id, o)).to.equal(true);
 
             // check exists
@@ -473,7 +466,7 @@ export default describeModule('offers-v2/offers/offers-db',
 
             // remove old
             // delete odb;
-            let odb2 = new OffersDB();
+            const odb2 = new OffersDB();
             const p1 = waitForDBLoaded(odb2).then(() => {
               chai.expect(odb2.hasOfferData(o.offer_id)).to.equal(true);
               chai.expect(odb2.hasOfferObject(o.offer_id)).to.equal(true);
@@ -481,7 +474,7 @@ export default describeModule('offers-v2/offers/offers-db',
               return Promise.resolve(true);
             });
 
-            let odb3 = new OffersDB();
+            const odb3 = new OffersDB();
             const p2 = waitForDBLoaded(odb3).then(() => {
               chai.expect(odb3.hasOfferData(o.offer_id)).to.equal(true);
               chai.expect(odb3.hasOfferObject(o.offer_id)).to.equal(true);
@@ -496,19 +489,19 @@ export default describeModule('offers-v2/offers/offers-db',
 
           it('stored offers and attributes remains', function () {
             // const database = new Database('offers-test');
-            let odb = new OffersDB();
+            const odb = new OffersDB();
             chai.expect(odb.addOfferObject(o.offer_id, o)).to.equal(true);
             chai.expect(odb.incOfferAction(o.offer_id, 'h1')).to.equal(true);
             chai.expect(odb.incOfferAction(o.offer_id, 'h2')).to.equal(true);
             chai.expect(odb.incOfferAction(o.offer_id, 'h3')).to.equal(true);
 
-            let odb2 = new OffersDB();
+            const odb2 = new OffersDB();
             const p1 = waitForDBLoaded(odb2).then(() => {
               chai.expect(odb2.hasOfferData(o.offer_id)).to.equal(true);
               return Promise.resolve(true);
             });
 
-            let odb3 = new OffersDB();
+            const odb3 = new OffersDB();
             const p2 = waitForDBLoaded(odb3).then(() => {
               chai.expect(odb3.hasOfferData(o.offer_id)).to.equal(true);
               chai.expect(odb3.getOfferActionMeta(o.offer_id, 'h1').count).to.equal(1);
@@ -525,14 +518,14 @@ export default describeModule('offers-v2/offers/offers-db',
           it('old offers removed', function () {
             const addedTS = Date.now();
             const laterTS = addedTS + (OffersConfigs.OFFERS_STORAGE_DEFAULT_TTS_SECS * 1000);
-            let odb = new OffersDB();
+            const odb = new OffersDB();
             mockCurrentTS(addedTS);
             chai.expect(odb.addOfferObject(o.offer_id, o)).to.equal(true);
             chai.expect(odb.hasOfferObject(o.offer_id)).to.equal(true);
 
             mockCurrentTS(laterTS);
 
-            let odb3 = new OffersDB();
+            const odb3 = new OffersDB();
             return waitForDBLoaded(odb3).then(() => {
               chai.expect(odb.hasOfferObject(o.offer_id)).to.equal(false);
               return Promise.resolve(true);
@@ -542,7 +535,7 @@ export default describeModule('offers-v2/offers/offers-db',
           it('erased offers are removed completely', function () {
             const addedTS = Date.now();
             const laterTS = addedTS + (OffersConfigs.OFFERS_STORAGE_DEFAULT_TTS_SECS * 1000);
-            let odb = new OffersDB();
+            const odb = new OffersDB();
             mockCurrentTS(addedTS);
             chai.expect(odb.addOfferObject(o.offer_id, o)).to.equal(true);
             chai.expect(odb.hasOfferObject(o.offer_id)).to.equal(true);
@@ -551,7 +544,7 @@ export default describeModule('offers-v2/offers/offers-db',
 
             mockCurrentTS(laterTS);
 
-            let odb3 = new OffersDB();
+            const odb3 = new OffersDB();
             return waitForDBLoaded(odb3).then(() => {
               chai.expect(odb.hasOfferObject(o.offer_id)).to.equal(false);
               chai.expect(odb.isOfferPresent(o.offer_id)).to.equal(false);
@@ -570,9 +563,8 @@ export default describeModule('offers-v2/offers/offers-db',
             //
             // first we will add all the offers and actions and check that everything
             // is working
-            let db1 = new OffersDB();
+            const db1 = new OffersDB();
             const offersIdsToGen = ['o1', 'o2', 'o3', 'o4', 'o5', 'o6'];
-            const offersObjs = [];
             offersIdsToGen.forEach((oid) => {
               const offerObj = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
               offerObj.offer_id = oid;
@@ -597,10 +589,12 @@ export default describeModule('offers-v2/offers/offers-db',
             checkDB(db1);
 
             // we now need to rewrite the data, this is nasty but is temporary
-            let offersIndex = {};
-            db1.offersIndexMap.keys().forEach(k => offersIndex[k] = db1.offersIndexMap.get(k));
-            let displayIDIndex = {};
-            db1.displayIdIndexMap.keys().forEach(k => displayIDIndex[k] = db1.displayIdIndexMap.get(k));
+            const offersIndex = {};
+            db1.offersIndexMap.keys()
+              .forEach((k) => { offersIndex[k] = db1.offersIndexMap.get(k); });
+            const displayIDIndex = {};
+            db1.displayIdIndexMap.keys()
+              .forEach((k) => { displayIDIndex[k] = db1.displayIdIndexMap.get(k); });
             const simpleDB = {
               'offers-db': {
                 data_index: {
@@ -612,18 +606,18 @@ export default describeModule('offers-v2/offers/offers-db',
             // clear current persistence
             persistence = {};
             // load new db without old nor new and should be empty:
-            let odb2 = new OffersDB();
+            const odb2 = new OffersDB();
             return waitForDBLoaded(odb2).then(() => {
               offersIdsToGen.forEach(oid => chai.expect(odb2.hasOfferObject(oid)).eql(false));
 
               // now load from old (sim)
               persistence = {};
               const simpleDBWrapper = () => {
-                const get = (docID) => Promise.resolve({ doc_data: simpleDB[docID] });
+                const get = docID => Promise.resolve({ doc_data: simpleDB[docID] });
                 const remove = () => Promise.resolve(true);
                 return { get, remove };
               };
-              let odb3 = new OffersDB(simpleDBWrapper());
+              const odb3 = new OffersDB(simpleDBWrapper());
               return waitForDBLoaded(odb3).then(() => {
                 checkDB(odb3, 'odb3');
               });
@@ -632,15 +626,16 @@ export default describeModule('offers-v2/offers/offers-db',
 
           it('not old enough offers should remain', function () {
             const addedTS = Date.now();
-            const laterTS = addedTS + (OffersConfigs.OFFERS_STORAGE_DEFAULT_TTS_SECS * 1000) - 1000;
-            let odb = new OffersDB();
+            const laterTS = (addedTS + (OffersConfigs.OFFERS_STORAGE_DEFAULT_TTS_SECS * 1000))
+              - 1000;
+            const odb = new OffersDB();
             mockCurrentTS(addedTS);
             chai.expect(odb.addOfferObject(o.offer_id, o)).to.equal(true);
             chai.expect(odb.hasOfferObject(o.offer_id)).to.equal(true);
 
             mockCurrentTS(laterTS);
 
-            let odb3 = new OffersDB();
+            const odb3 = new OffersDB();
             return waitForDBLoaded(odb3).then(() => {
               chai.expect(odb.hasOfferObject(o.offer_id)).to.equal(true);
               return Promise.resolve(true);
@@ -671,7 +666,7 @@ export default describeModule('offers-v2/offers/offers-db',
 
           it('multiple offer single campaign', function () {
             const cid = 'offer-cid-1';
-            for (let i = 0; i < 10; ++i) {
+            for (let i = 0; i < 10; i += 1) {
               const o = getCopyValidOffer();
               o.offer_id = `offer-id-${i}`;
               o.campaign_id = cid;
@@ -679,19 +674,18 @@ export default describeModule('offers-v2/offers/offers-db',
               chai.expect(db.getCampaignOffers(o.campaign_id)).to.exist;
             }
             const offerSet = db.getCampaignOffers(cid);
-            for (let i = 0; i < 10; ++i) {
+            for (let i = 0; i < 10; i += 1) {
               const oid = `offer-id-${i}`;
               chai.expect(db.getCampaignOffers(cid).has(oid)).to.equal(true);
               chai.expect(offerSet.size).to.equal(10);
               chai.expect(db.getCampaignOffers(cid)).eql(offerSet);
             }
-
           });
 
           it('multiple offers multiple campaign', function () {
-            for (let i = 0; i < 10; ++i) {
+            for (let i = 0; i < 10; i += 1) {
               const cid = `cid-${i}`;
-              for (let j = 0; j < 10; ++j) {
+              for (let j = 0; j < 10; j += 1) {
                 const o = getCopyValidOffer();
                 o.offer_id = `offer-id-${i}-${j}`;
                 o.campaign_id = cid;
@@ -700,9 +694,9 @@ export default describeModule('offers-v2/offers/offers-db',
             }
 
             const expectedOffersSet = {};
-            for (let i = 0; i < 10; ++i) {
+            for (let i = 0; i < 10; i += 1) {
               const cid = `cid-${i}`;
-              for (let j = 0; j < 10; ++j) {
+              for (let j = 0; j < 10; j += 1) {
                 const oid = `offer-id-${i}-${j}`;
                 if (!expectedOffersSet[cid]) {
                   expectedOffersSet[cid] = new Set();
@@ -711,23 +705,21 @@ export default describeModule('offers-v2/offers/offers-db',
               }
             }
 
-            for (let i = 0; i < 10; ++i) {
+            for (let i = 0; i < 10; i += 1) {
               const cid = `cid-${i}`;
-              for (let j = 0; j < 10; ++j) {
-                const oid = `offer-id-${i}-${j}`;
+              for (let j = 0; j < 10; j += 1) {
                 chai.expect(db.getCampaignOffers(cid)).to.exist;
                 const offersSet = db.getCampaignOffers(cid);
                 chai.expect(offersSet).to.exist;
                 chai.expect(offersSet).eql(expectedOffersSet[cid]);
               }
             }
-
           });
 
           it('persistent keeps campaigns', function () {
-            for (let i = 0; i < 10; ++i) {
+            for (let i = 0; i < 10; i += 1) {
               const cid = `cid-${i}`;
-              for (let j = 0; j < 10; ++j) {
+              for (let j = 0; j < 10; j += 1) {
                 const o = getCopyValidOffer();
                 o.offer_id = `offer-id-${i}-${j}`;
                 o.campaign_id = cid;
@@ -735,9 +727,9 @@ export default describeModule('offers-v2/offers/offers-db',
               }
             }
             const expectedOffersSet = {};
-            for (let i = 0; i < 10; ++i) {
+            for (let i = 0; i < 10; i += 1) {
               const cid = `cid-${i}`;
-              for (let j = 0; j < 10; ++j) {
+              for (let j = 0; j < 10; j += 1) {
                 const oid = `offer-id-${i}-${j}`;
                 if (!expectedOffersSet[cid]) {
                   expectedOffersSet[cid] = new Set();
@@ -747,10 +739,9 @@ export default describeModule('offers-v2/offers/offers-db',
             }
             const db2 = new OffersDB();
             return waitForDBLoaded(db2).then(() => {
-              for (let i = 0; i < 10; ++i) {
+              for (let i = 0; i < 10; i += 1) {
                 const cid = `cid-${i}`;
-                for (let j = 0; j < 10; ++j) {
-                  const oid = `offer-id-${i}-${j}`;
+                for (let j = 0; j < 10; j += 1) {
                   chai.expect(db2.getCampaignOffers(cid)).to.exist;
                   const offersSet = db2.getCampaignOffers(cid);
                   chai.expect(offersSet).to.exist;
@@ -759,7 +750,6 @@ export default describeModule('offers-v2/offers/offers-db',
               }
             });
           });
-
         });
 
         context('getLatestUpdatedOffer', function () {
@@ -783,16 +773,16 @@ export default describeModule('offers-v2/offers/offers-db',
           });
 
           it('multiple offers are returned', function () {
-            const cid = `cid-1`;
+            const cid = 'cid-1';
             const offersSet = new Set();
             const expRes = [];
-            for (let i = 0; i < 10; ++i) {
+            for (let i = 0; i < 10; i += 1) {
               const o = getCopyValidOffer();
               o.offer_id = `offer-id-${i}`;
               o.campaign_id = cid;
               mockCurrentTS(i);
               chai.expect(db.addOfferObject(o.offer_id, o)).to.equal(true);
-              offersSet.add(o.offer_id)
+              offersSet.add(o.offer_id);
               expRes.push({
                 last_update: i,
                 campaign_id: cid,
@@ -809,16 +799,16 @@ export default describeModule('offers-v2/offers/offers-db',
           });
 
           it('updated offers action updates order', function () {
-            const cid = `cid-1`;
+            const cid = 'cid-1';
             const offersSet = new Set();
             const expRes = [];
-            for (let i = 0; i < 10; ++i) {
+            for (let i = 0; i < 10; i += 1) {
               const o = getCopyValidOffer();
               o.offer_id = `offer-id-${i}`;
               o.campaign_id = cid;
               mockCurrentTS(i);
               chai.expect(db.addOfferObject(o.offer_id, o)).to.equal(true);
-              offersSet.add(o.offer_id)
+              offersSet.add(o.offer_id);
               expRes.push({
                 last_update: i,
                 campaign_id: cid,
@@ -841,7 +831,7 @@ export default describeModule('offers-v2/offers/offers-db',
             chai.expect(sorted).to.exist;
             chai.expect(sorted.length).to.eq(10);
             // check the order now
-            expRes.sort((a,b) => b.last_update - a.last_update);
+            expRes.sort((a, b) => b.last_update - a.last_update);
             chai.expect(expRes[0].offer_id).eql('offer-id-8');
             chai.expect(expRes[1].offer_id).eql('offer-id-5');
             chai.expect(expRes[2].offer_id).eql('offer-id-0');
@@ -849,18 +839,18 @@ export default describeModule('offers-v2/offers/offers-db',
           });
 
           it('removed offers not returned', function () {
-            const cid = `cid-1`;
+            const cid = 'cid-1';
             const offersSet = new Set();
             const expRes = [];
-            for (let i = 0; i < 10; ++i) {
+            for (let i = 0; i < 10; i += 1) {
               const o = getCopyValidOffer();
               o.offer_id = `offer-id-${i}`;
               o.campaign_id = cid;
-              mockCurrentTS(100-i);
+              mockCurrentTS(100 - i);
               chai.expect(db.addOfferObject(o.offer_id, o)).to.equal(true);
-              offersSet.add(o.offer_id)
+              offersSet.add(o.offer_id);
               expRes.push({
-                last_update: 100-i,
+                last_update: 100 - i,
                 campaign_id: cid,
                 offer_id: o.offer_id
               });
@@ -881,7 +871,7 @@ export default describeModule('offers-v2/offers/offers-db',
             chai.expect(sorted).to.exist;
             chai.expect(sorted.length).to.eq(7);
             // check the order now
-            expRes.sort((a,b) => b.last_update - a.last_update);
+            expRes.sort((a, b) => b.last_update - a.last_update);
             // remove 3 elements
             expRes.shift();
             expRes.shift();
@@ -892,7 +882,7 @@ export default describeModule('offers-v2/offers/offers-db',
           it('registered callbacks works for offer added', function () {
             const o = getCopyValidOffer();
             let resultEvent = {};
-            const cb = evt => resultEvent = evt;
+            const cb = (evt) => { resultEvent = evt; };
             db.registerCallback(cb);
             chai.expect(db.addOfferObject(o.offer_id, o)).to.equal(true);
             chai.expect(resultEvent).to.eql({ evt: 'offer-added', offer: o, lastUpdateTS: mockedTS });
@@ -901,7 +891,7 @@ export default describeModule('offers-v2/offers/offers-db',
           it('registered callbacks works for offer updated', function () {
             const o = getCopyValidOffer();
             let resultEvent = {};
-            const cb = evt => resultEvent = evt;
+            const cb = (evt) => { resultEvent = evt; };
             db.registerCallback(cb);
             chai.expect(db.addOfferObject(o.offer_id, o)).to.equal(true);
             chai.expect(resultEvent).to.eql({ evt: 'offer-added', offer: o, lastUpdateTS: mockedTS });
@@ -913,7 +903,7 @@ export default describeModule('offers-v2/offers/offers-db',
           it('registered callbacks works for offer removed', function () {
             const o = getCopyValidOffer();
             let resultEvent = {};
-            const cb = evt => resultEvent = evt;
+            const cb = (evt) => { resultEvent = evt; };
             db.registerCallback(cb);
             chai.expect(db.addOfferObject(o.offer_id, o)).to.equal(true);
             chai.expect(resultEvent).to.eql({ evt: 'offer-added', offer: o, lastUpdateTS: mockedTS });
@@ -924,7 +914,7 @@ export default describeModule('offers-v2/offers/offers-db',
           it('registered callbacks works for offer erased (which is offer-removed)', function () {
             const o = getCopyValidOffer();
             let resultEvent = {};
-            const cb = evt => resultEvent = evt;
+            const cb = (evt) => { resultEvent = evt; };
             db.registerCallback(cb);
             chai.expect(db.addOfferObject(o.offer_id, o)).to.equal(true);
             chai.expect(resultEvent).to.eql({ evt: 'offer-added', offer: o, lastUpdateTS: mockedTS });
@@ -935,7 +925,7 @@ export default describeModule('offers-v2/offers/offers-db',
           it('unregistered callbacks works', function () {
             const o = getCopyValidOffer();
             let resultEvent = {};
-            const cb = evt => resultEvent = evt;
+            const cb = (evt) => { resultEvent = evt; };
             db.registerCallback(cb);
             chai.expect(db.addOfferObject(o.offer_id, o)).to.equal(true);
             chai.expect(resultEvent).eql({ evt: 'offer-added', offer: o, lastUpdateTS: mockedTS });
@@ -944,7 +934,6 @@ export default describeModule('offers-v2/offers/offers-db',
             chai.expect(db.removeOfferObject(o.offer_id)).to.equal(true);
             chai.expect(resultEvent).to.equal(null);
           });
-
         });
 
         context('check new mappings', function () {
@@ -1067,9 +1056,6 @@ export default describeModule('offers-v2/offers/offers-db',
               c.not.forEach(oid => chai.expect(oids.has(oid)).eql(false));
             });
           });
-
-
-
         });
 
         context('/offer erase', function () {

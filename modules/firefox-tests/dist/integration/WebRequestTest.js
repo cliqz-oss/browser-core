@@ -37,40 +37,6 @@ TESTS.WebRequestTest = function(CliqzUtils) {
       webrequest.onHeadersReceived.removeListener( onHeadersReceiveCtr );
     });
 
-    context.skip('http GET request (Not visible from WebExtension)', function() {
-
-      var url = 'http://localhost:' + testServer.port + '/';
-
-      beforeEach( function(done) {
-        testServer.registerPathHandler('/', helloWorld);
-        CliqzUtils.httpGet(url, () => { done(); }, done, 30 * 1000);
-      });
-
-      it('calls each topic once', function() {
-        for (var topic of [onBeforeRequest, onBeforeSendHeaders, onHeadersReceived]) {
-          var reqs = topic.filter( function(req) { return req.url === url });
-          chai.expect(reqs.length).to.eql(1);
-
-          var req = reqs[0];
-          console.log(req);
-          chai.expect(req.method).to.equal('GET');
-          chai.expect(req.tabId).to.equal(-1);
-          chai.expect(req.type).to.equal(11);
-        }
-      });
-
-      it('gives the response code only on headers received', function() {
-        for (var topic of [onBeforeRequest, onBeforeSendHeaders]) {
-          var reqs = topic.filter( function(req) { return req.url === url });
-          var req = reqs[0];
-          chai.expect(req.statusCode).to.be.undefined;
-        }
-        var req = onHeadersReceived.filter( function(req) { return req.url === url })[0];
-        chai.expect(req.statusCode).to.equal(200);
-      });
-
-    });
-
     context('page loaded in tab', function() {
 
       var url = 'http://cliqztest.com:' + testServer.port + '/';

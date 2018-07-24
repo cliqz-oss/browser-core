@@ -2,7 +2,8 @@ import Rx from '../../platform/lib/rxjs';
 import BaseProvider from './base';
 import { getResponse } from '../responses';
 import utils from '../../core/utils';
-import { getSearchEngineUrl } from './instant';
+import { getSearchEngineUrl } from '../../core/url';
+import * as searchUtils from '../../core/search-engines';
 
 export default class QuerySuggestionProvider extends BaseProvider {
   constructor() {
@@ -22,10 +23,10 @@ export default class QuerySuggestionProvider extends BaseProvider {
   search(query, config, params) {
     if (!config.providers[this.id].isEnabled ||
         this.suggestionsNotAllowed(query, params)) {
-      return this.getEmptySearch(config);
+      return this.getEmptySearch(config, query);
     }
 
-    const engine = utils.getDefaultSearchEngine();
+    const engine = searchUtils.getDefaultSearchEngine();
 
     return Rx.Observable
       .fromPromise(utils.getSuggestions(query))

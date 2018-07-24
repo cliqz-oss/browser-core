@@ -1,8 +1,8 @@
-/* eslint no-console: 'off'  */
 /* eslint import/no-mutable-exports: 'off' */
 
 import Dexie from '@cliqz-oss/dexie';
 import { chrome } from './globals';
+import console from '../core/console';
 
 let storage = {};
 

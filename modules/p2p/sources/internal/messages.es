@@ -6,9 +6,6 @@ import random from '../../core/crypto/random';
 import { toUTF8, fromUTF8 } from '../../core/encoding';
 import constants from './constants';
 import { isArrayBuffer } from './utils';
-import utils from '../../core/utils';
-
-const { setTimeout, clearTimeout } = utils;
 
 function putInt(data, offset, num) {
   data[offset] = num >> 24;

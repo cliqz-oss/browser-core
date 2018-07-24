@@ -31,17 +31,6 @@ var ENGINES = [
 
 CLIQZEnvironment = {
     log: function(msg, key){ console.log(key, msg) },
-    getSearchEngines: function() {
-        CLIQZEnvironment.log("test", "test")
-        return ENGINES.map(function(e){
-            e.getSubmissionForQuery = function(q){
-                //TODO: create the correct search URL
-                return e.searchForm;
-            }
-
-            return e
-        });
-    },
     updateAlias: function(name, newAlias) {
       for(var engine in ENGINES) {
         console.log(engine)

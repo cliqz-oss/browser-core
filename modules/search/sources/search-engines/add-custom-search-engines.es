@@ -1,8 +1,8 @@
-import utils from '../../core/utils';
 import prefs from '../../core/prefs';
+import i18n from '../../core/i18n';
 import console from '../../core/console';
 import NonDefaultProviders from './custom-engines-list';
-import { getSearchEngines } from '../../core/search-engines';
+import * as searchUtils from '../../core/search-engines';
 
 const INIT_KEY = 'newProvidersAdded';
 const LOG_KEY = 'NonDefaultProviders.jsm';
@@ -30,14 +30,14 @@ const addCustomProviders = () => {
   }
 
   // we only add non default search providers for the languages we support
-  (NonDefaultProviders[utils.PLATFORM_LANGUAGE] || []).forEach((extern) => {
+  (NonDefaultProviders[i18n.PLATFORM_LANGUAGE] || []).forEach((extern) => {
     try {
       if (providersAddedState < extern.state) {
         maxState = extern.state > maxState ? extern.state : maxState;
-        const existedEngine = utils.getEngineByName(extern.name);
+        const existedEngine = searchUtils.getEngineByName(extern.name);
         if (!existedEngine) {
           console.log(LOG_KEY, `Added ${extern.name}`, LOG_KEY);
-          utils.addEngineWithDetails(extern);
+          searchUtils.addEngineWithDetails(extern);
         } else {
           // Keep the current alias just in case user has changed it
           if (!extern.overrideAlias && existedEngine.alias) {
@@ -45,9 +45,9 @@ const addCustomProviders = () => {
             extern.key = existedEngine.alias;
             /* eslint-enable no-param-reassign */
           }
-          utils.removeEngine(extern.name);
+          searchUtils.removeEngine(extern.name);
           console.log(LOG_KEY, `Updated ${extern.name}`);
-          utils.addEngineWithDetails(extern);
+          searchUtils.addEngineWithDetails(extern);
         }
       }
     } catch (e) {
@@ -56,7 +56,7 @@ const addCustomProviders = () => {
   });
 
   if (maxState > 0) {
-    utils.setPref(INIT_KEY, maxState);
+    prefs.set(INIT_KEY, maxState);
     newProviderIsAdded = true;
   }
 
@@ -72,13 +72,13 @@ const createShortcut = (name) => {
 };
 
 const updateAlias = (name, newAlias) => {
-  utils.updateAlias(name, newAlias);
+  searchUtils.updateAlias(name, newAlias);
   console.log(LOG_KEY, `Alias of engine "${name}" was updated to "${newAlias}`);
 };
 
 
 const updateEngineAliases = () => {
-  getSearchEngines().forEach((engine) => {
+  searchUtils.getSearchEngines().forEach((engine) => {
     let alias = engine.alias;
     if (!alias) {
       alias = createShortcut(engine.name);
@@ -91,7 +91,7 @@ export default function () {
   if (prefs.get('restoredDefaultSearchEnginesOnce', false) === false) {
     // the actual changes might happen later if the search system needs time
     // to initialize
-    utils.restoreHiddenSearchEngines();
+    searchUtils.restoreHiddenSearchEngines();
     prefs.set('restoredDefaultSearchEnginesOnce', true);
   }
 

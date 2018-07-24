@@ -1,27 +1,8 @@
 /* global window */
 import Spanan from 'spanan';
-import { CHROME_MSG_SOURCE, isCliqzContentScriptMsg } from '../../core/content/helpers';
+import { isCliqzContentScriptMsg } from '../../core/content/helpers';
 import checkIfChromeReady from './ready-promise';
-
-function createSpananForModule(moduleName) {
-  const spanan = new Spanan(({ uuid, action, args }) => {
-    const message = {
-      source: CHROME_MSG_SOURCE,
-      target: 'cliqz',
-      module: moduleName,
-      action,
-      requestId: uuid,
-      args
-    };
-    chrome.runtime.sendMessage(message,
-      response => spanan.handleMessage({
-        uuid,
-        response: response.response
-      })
-    );
-  });
-  return spanan;
-}
+import createSpananForModule from '../../core/helpers/spanan-module-wrapper';
 
 let INSTANCE = null;
 
@@ -31,6 +12,7 @@ class Cliqz {
     const core = createSpananForModule('core');
     const search = createSpananForModule('search');
     const offersV2 = createSpananForModule('offers-v2');
+    const controlCenter = createSpananForModule('control-center');
     const api = new Spanan();
     const cliqz = this;
 
@@ -91,6 +73,7 @@ class Cliqz {
       core.handleMessage(message);
       freshtab.handleMessage(message);
       offersV2.handleMessage(message);
+      controlCenter.handleMessage(message);
     };
 
     const onMessage = (message) => {
@@ -105,6 +88,8 @@ class Cliqz {
         core.handleMessage(msg);
         freshtab.handleMessage(msg);
         offersV2.handleMessage(msg);
+        controlCenter.handleMessage(msg);
+        search.handleMessage(msg);
         return;
       }
 
@@ -125,6 +110,7 @@ class Cliqz {
     this.core = core.createProxy();
     this.offersV2 = offersV2.createProxy();
     this.search = search.createProxy();
+    this.controlCenter = controlCenter.createProxy();
   }
 
   static getInstance() {

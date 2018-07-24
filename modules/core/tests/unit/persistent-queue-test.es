@@ -1,6 +1,7 @@
 /* global chai */
 /* global describeModule */
 
+const memdown = require('memdown');
 const PouchDB = require('@cliqz-oss/pouchdb');
 
 export default describeModule('core/persistence/ordered-queue',
@@ -8,8 +9,8 @@ export default describeModule('core/persistence/ordered-queue',
     'platform/database': {
       default: (dbName, options) => {
         const globalOpts = {
-          db: require('memdown'),
-        }
+          db: memdown,
+        };
         return new PouchDB(dbName, Object.assign(globalOpts, options));
       },
     },
@@ -51,57 +52,54 @@ export default describeModule('core/persistence/ordered-queue',
     });
 
     context('interface', () => {
-
       let queue;
 
       beforeEach(() => {
         queue = new OrderedQueue('queueTest');
       });
 
-      afterEach(() => {
-        return queue.db.destroy();
-      });
+      afterEach(() => queue.db.destroy());
 
       describe('#offer', () => {
-        it('adds an element to the queue', () => {
-          return queue.offer('a', 0).then(() => queue.length()).then((len) => {
-            chai.expect(len).to.equal(1);
-          });
-        });
-
-        it('does not add duplicate elements', () => {
-          return queue.offer('a', 0)
-          .then(() => queue.offer('a', 1))
-          .then(() => queue.length())
-          .then((len) => {
+        it('adds an element to the queue', () =>
+          queue.offer('a', 0).then(() => queue.length()).then((len) => {
             chai.expect(len).to.equal(1);
           })
-        });
+        );
 
-        it('does not update sort value if element already exists', () => {
-          return queue.offer('a', 'z')
-          .then(() => queue.offer('a', 'y'))
-          .then(() => queue.peek({}))
-          .then((docs) => {
-            chai.expect(docs.getDocs()[0].sort).to.equal('z');
-          });
-        });
+        it('does not add duplicate elements', () =>
+          queue.offer('a', 0)
+            .then(() => queue.offer('a', 1))
+            .then(() => queue.length())
+            .then((len) => {
+              chai.expect(len).to.equal(1);
+            })
+        );
 
-        it('updates sort value if overwrite is true', () => {
-          return queue.offer('a', 'z')
-          .then(() => queue.offer('a', 'y', true))
-          .then(() => queue.peek({}))
-          .then((docs) => {
-            chai.expect(docs.getDocs()[0].sort).to.equal('y');
-          });
-        });
+        it('does not update sort value if element already exists', () =>
+          queue.offer('a', 'z')
+            .then(() => queue.offer('a', 'y'))
+            .then(() => queue.peek({}))
+            .then((docs) => {
+              chai.expect(docs.getDocs()[0].sort).to.equal('z');
+            })
+        );
+
+        it('updates sort value if overwrite is true', () =>
+          queue.offer('a', 'z')
+            .then(() => queue.offer('a', 'y', true))
+            .then(() => queue.peek({}))
+            .then((docs) => {
+              chai.expect(docs.getDocs()[0].sort).to.equal('y');
+            })
+        );
       });
 
       const insertTestElements = () => {
         // insert some test data
         const toInsert = [['a', 'x'], ['b', 'z'], ['c', 'y']];
-        return Promise.all(toInsert.map((args) => queue.offer(...args)))
-      }
+        return Promise.all(toInsert.map(args => queue.offer(...args)));
+      };
 
       const peekAndDrainTests = [
         {
@@ -143,39 +141,37 @@ export default describeModule('core/persistence/ordered-queue',
           },
           returnedCount: 2,
         }
-      ]
+      ];
 
       describe('#peek', () => {
-
         beforeEach(insertTestElements);
 
         peekAndDrainTests.forEach((spec) => {
-          it(spec.desc, () => {
-            return queue.peek(spec.args)
-            .then(spec.test)
-            .then(() => queue.length())
-            .then((len) => {
-              // check elements are not deleted
-              chai.expect(len).to.eql(3);
-            })
-          });
+          it(spec.desc, () =>
+            queue.peek(spec.args)
+              .then(spec.test)
+              .then(() => queue.length())
+              .then((len) => {
+                // check elements are not deleted
+                chai.expect(len).to.eql(3);
+              })
+          );
         });
       });
 
       describe('drain', () => {
-
         beforeEach(insertTestElements);
 
         peekAndDrainTests.forEach((spec) => {
-          it(spec.desc, () => {
-            return queue.drain(spec.args)
-            .then(spec.test)
-            .then(() => queue.length())
-            .then((len) => {
-              // check elements are deleted
-              chai.expect(len).to.equal(3 - (spec.returnedCount || 3));
-            })
-          });
+          it(spec.desc, () =>
+            queue.drain(spec.args)
+              .then(spec.test)
+              .then(() => queue.length())
+              .then((len) => {
+                // check elements are deleted
+                chai.expect(len).to.equal(3 - (spec.returnedCount || 3));
+              })
+          );
         });
       });
     });

@@ -2,13 +2,6 @@
  *
  * The intent of this file is provide an interface to store the offers persistently
  * and also an API to perform different queries.
- * In [1] you can find more information for future changes regarding:
- *  - splitting the storing logic and query interface to simplify
- *  - decouple probably offer actions from offers itself into different DB (to be
- *  checked if this makes really sense)
- *
- * ----
- * [1] - https://cliqztix.atlassian.net/browse/EX-6142
  *
  */
 import logger from '../common/offers_v2_logger';
@@ -18,6 +11,15 @@ import { buildCachedMap } from '../common/cached-map-ext';
 
 const STORAGE_DB_DOC_ID = 'offers-db';
 
+function isOfferExpired(offerData) {
+  // Only return true when `validity` is provided
+  try {
+    return offerData.ui_info.template_data.validity < Date.now() / 1000;
+  } catch (e) {
+    logger.debug('Missing validity', offerData);
+    return false;
+  }
+}
 
 /**
  * This class will be used to hold all the information related to offers locally.
@@ -546,6 +548,16 @@ class OfferDB {
           created: cont.c_ts,
           removed: cont.removed,
         };
+        if (cont.offer_actions && cont.offer_actions.offer_ca_action) {
+          offerInfo.click = cont.offer_actions.offer_ca_action.l_u_ts || 0;
+        } else {
+          offerInfo.click = 0;
+        }
+        if (cont.offer_actions && cont.offer_actions.offer_shown) {
+          offerInfo.view = cont.offer_actions.offer_shown.l_u_ts || 0;
+        } else {
+          offerInfo.view = 0;
+        }
         offers.push(offerInfo);
       }
     });
@@ -636,6 +648,9 @@ class OfferDB {
         offerData.offer_id !== offerID ||
         !offerData.display_id ||
         !offerData.campaign_id) {
+      return false;
+    }
+    if (isOfferExpired(offerData)) {
       return false;
     }
     return true;

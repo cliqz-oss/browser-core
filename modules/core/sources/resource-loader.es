@@ -1,12 +1,16 @@
 import config from './config';
-import console from './console';
-import utils from './utils';
+import Logger from './logger';
+import prefs from './prefs';
 import { fetch } from './http';
 import Storage from '../platform/resource-loader-storage';
 import { fromUTF8 } from '../core/encoding';
 import { inflate, deflate } from './zlib';
 import { isChromium, platformName } from '../core/platform';
 
+const logger = Logger.get('core', {
+  level: 'log',
+  prefix: '[resource-loader]',
+});
 
 // Common durations
 const ONE_SECOND = 1000;
@@ -132,7 +136,7 @@ export class Resource {
     return this.parseData(data).then((parsed) => {
       const saveData = this.compressData(data);
       return this.storage.save(saveData)
-        .catch(e => console.error('resource-loader error on persist: ', e))
+        .catch(e => logger.error('Failed to persist:', e))
         .then(() => parsed);
     });
   }
@@ -159,11 +163,16 @@ export default class ResourceLoader extends UpdateCallbackHandler {
     this.resource = new Resource(resourceName, options);
     this.cron = options.cron || ONE_HOUR;
     this.updateInterval = options.updateInterval || 10 * ONE_MINUTE;
-    this.intervalTimer = utils.setInterval(
-      this.updateFromRemote.bind(this),
-      this.updateInterval);
+    this.intervalTimer = null;
   }
 
+  init() {
+    if (!this.intervalTimer) {
+      this.intervalTimer = setInterval(
+        this.updateFromRemote.bind(this),
+        this.updateInterval);
+    }
+  }
 
   /**
    * Loads the resource hold by `this.resource`. This can return
@@ -171,6 +180,7 @@ export default class ResourceLoader extends UpdateCallbackHandler {
    * further information.
    */
   load() {
+    this.init();
     return this.resource.load();
   }
 
@@ -182,27 +192,40 @@ export default class ResourceLoader extends UpdateCallbackHandler {
    * triggered by `setInterval` and thus you cannot catch. If the update
    * fails, then the callback won't be called.
    */
-  updateFromRemote({ force = false } = {}) {
-    const pref = `resource-loader.lastUpdates.${this.resource.name.join('/')}`;
-    const lastUpdate = Number(utils.getPref(pref, 0));
+  /* eslint-disable consistent-return */
+  async updateFromRemote({ force = false } = {}) {
+    const path = this.resource.name.join('/');
+    const pref = `resource-loader.lastUpdates.${path}`;
+    const lastUpdate = Number(prefs.get(pref, 0));
     const currentTime = Date.now();
 
     if (force || currentTime > this.cron + lastUpdate) {
-      return this.resource.updateFromRemote()
-        .then((data) => {
-          utils.setPref(pref, String(Date.now()));
-          return data;
-        })
-        .then((data) => {
-          this.triggerCallbacks(data);
-          return data;
-        })
-        .catch(() => undefined);
+      let data;
+      try {
+        data = await this.resource.updateFromRemote();
+        prefs.set(pref, String(Date.now()));
+      } catch (e) {
+        logger.warn(`Failed to fetch resources for ${path} from remoteUrl: ${this.resource.remoteURL}`, e);
+        return;
+      }
+      try {
+        await this.triggerCallbacks(data);
+
+        // For now, leave the old semantic unchanged, and
+        // return a value to avoid breakage with existing code.
+        //
+        // Better: The caller should only use the value
+        // from the callback, as relying on the return value
+        // is dangerous. The caller cannot reliably know whether
+        // it will receive the value or undefined.
+        return data;
+      } catch (e) {
+        logger.error(`Failed to execute callbacks for ${path}`, e);
+      }
     }
-    return Promise.resolve();
   }
 
   stop() {
-    utils.clearInterval(this.intervalTimer);
+    clearInterval(this.intervalTimer);
   }
 }

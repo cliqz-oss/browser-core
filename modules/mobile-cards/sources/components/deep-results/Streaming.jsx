@@ -4,7 +4,7 @@ import NativeDrawable, { normalizeUrl } from '../custom/NativeDrawable';
 import Link from '../Link';
 
 
-export default class extends React.Component {
+export default class Streaming extends React.Component {
 
   constructor(props) {
     super(props);
@@ -22,7 +22,7 @@ export default class extends React.Component {
   displayLink(link) {
     const imageName = normalizeUrl(link.image);
     return (
-      <Link to={link.url} key={link.url}>
+      <Link url={link.url} key={link.url}>
         <NativeDrawable
           source={imageName}
           style={styles.image} />

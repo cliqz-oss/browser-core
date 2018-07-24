@@ -13,7 +13,7 @@ export function pinTab(window, tab) {
 }
 
 export function queryActiveTabs(window) {
-  if (window.gBrowser === null) {
+  if (!window.gBrowser) {
     return [];
   }
 

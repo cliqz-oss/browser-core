@@ -1,4 +1,4 @@
-import utils from '../core/utils';
+import prefs from '../core/prefs';
 
 export default class {
   constructor({ window, background }) {
@@ -22,7 +22,7 @@ export default class {
     if (this.background.CliqzSecureMessage) {
       return {
         visible: true,
-        state: utils.getPref('hpn-query'),
+        state: prefs.get('hpn-query'),
       };
     }
     return undefined;

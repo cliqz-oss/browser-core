@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
-import utils from '../../../core/utils';
+import { getDetailsFromUrl } from '../../../core/url';
 
 
 class Url extends React.Component {
@@ -13,7 +13,7 @@ class Url extends React.Component {
     if (!url || url === 'n/a') {
       return null;
     }
-    const urlDetails = utils.getDetailsFromUrl(url);
+    const urlDetails = getDetailsFromUrl(url);
     return (
       <Text
         numberOfLines={oneLine ? 1 : 3}

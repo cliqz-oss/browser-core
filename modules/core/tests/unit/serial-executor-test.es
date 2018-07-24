@@ -11,9 +11,7 @@ export default describeModule('core/helpers/serial-executor',
       },
     },
     'core/utils': {
-      default: {
-        setTimeout,
-      }
+      default: {}
     },
   }),
   () => {

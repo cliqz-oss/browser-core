@@ -11,6 +11,9 @@ export default class ObservableProxy {
     if (!this._next) {
       return;
     }
-    this._next(ev);
+    this._next({
+      ...ev,
+      ts: Date.now(),
+    });
   }
 }

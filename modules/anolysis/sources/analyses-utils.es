@@ -1,4 +1,4 @@
-import Ajv from '../platform/lib/ajv';
+/* eslint-disable import/prefer-default-export */
 
 /**
  * This file is meant to contain re-usable code related analyses. You can think
@@ -22,35 +22,4 @@ export function indicesHistogramToArray(counter) {
     array.push(counter.get(i));
   }
   return array;
-}
-
-function hardenSchema(schema) {
-  return {
-    // NOTE: it's probably too strict to disallow extra properties. It's useful
-    // to group several signals under the same schema, if they share the same
-    // core properties. For example, freshtab news signals can have some
-    // optional properties.
-    // additionalProperties: false,
-    required: Object.keys(schema.properties || {}),
-    ...schema,
-  };
-}
-
-export function loadSignalDefinition(definition) {
-  // Compile schema validator
-  // TODO: Could be done lazily
-  const ajv = new Ajv();
-  const hardenedSchema = hardenSchema(definition.schema);
-  const validate = ajv.compile(hardenedSchema);
-
-  return Object.freeze({
-    sendToBackend: false, // Defaults to aggregating signals.
-    needsGid: false, // Defaults to not sending a GID with signals.
-    version: null, // Defaults to having `null` as a version.
-    ...definition,
-
-    // Additional properties
-    validate,
-    schema: hardenedSchema,
-  });
 }

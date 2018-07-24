@@ -3,7 +3,7 @@ import { StyleSheet, View, Text } from 'react-native';
 import Link from '../Link';
 import ExternalImage from '../custom/ExternalImage';
 import { elementSideMargins, elementTopMargin } from '../../styles/CardStyle';
-import utils from '../../../core/utils';
+import { getDetailsFromUrl } from '../../../core/url';
 import { agoLine } from '../../helpers/logic';
 
 
@@ -40,14 +40,14 @@ const styles = isInjected => StyleSheet.create({
   }
 });
 
-export default class extends React.Component {
+export default class News extends React.Component {
   displayLink(link, isInjected) {
     const thumbnail = (link.extra && link.extra.thumbnail)
           || 'https://cdn.cliqz.com/extension/EZ/news/no-image-mobile.png';
     const nLines = 2;
     const creationTime = agoLine(link.extra.creation_timestamp);
     return (
-      <Link to={link.url} key={link.url}>
+      <Link url={link.url} key={link.url}>
         <View style={styles().item}>
           <ExternalImage
             source={{ uri: thumbnail }}
@@ -72,8 +72,8 @@ export default class extends React.Component {
     let firstNewsDomain = '';
 
     if (this.props.data[0] !== undefined) {
-      const cardDomain = utils.getDetailsFromUrl(this.props.url).domain;
-      firstNewsDomain = utils.getDetailsFromUrl(this.props.data[0].url).domain;
+      const cardDomain = getDetailsFromUrl(this.props.url).domain;
+      firstNewsDomain = getDetailsFromUrl(this.props.data[0].url).domain;
       if (cardDomain !== firstNewsDomain) {
         isInjected = true;
       }

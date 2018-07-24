@@ -1,26 +1,29 @@
 /* global chai */
 /* global describeModule */
 /* global require */
-/* eslint-disable func-names,prefer-arrow-callback,arrow-body-style */
+/* eslint-disable func-names,prefer-arrow-callback,arrow-body-style, no-param-reassign */
 
 const adblocker = require('@cliqz/adblocker');
-const encoding = require('text-encoding');
 const tldjs = require('tldjs');
 
 
-var prefRetVal = {};
-var currentTS = Date.now();
-var currentDayHour = 0;
-var currentWeekDay = 0;
+const prefRetVal = {};
+let currentTS = Date.now();
+const currentDayHour = 0;
+const currentWeekDay = 0;
 let getDetailsFromUrlReal;
 let UrlData;
+
+const mockOffer = { offer_id: 'HC1', cid: 'cid', click: 0, last_update: 20000, view: 2003};
+const mockOfferEarlierUpdate = { offer_id: 'HC2', cid: 'cid2', click: 0, last_update: mockOffer.last_update - 100, view: 0};
+
 
 const buildUrlData = (url, referrer) => {
   return new UrlData(url, referrer);
 };
 
 // needed for the map
-let persistence = {};
+const persistence = {};
 function delay(fn) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -36,9 +39,6 @@ let buildMultiPatternIndex;
 let buildSimplePatternIndex;
 let tokenizeUrl;
 
-
-
-
 export default describeModule('offers-v2/offers/offers-monitoring',
   () => ({
     'platform/lib/adblocker': {
@@ -52,15 +52,18 @@ export default describeModule('offers-v2/offers/offers-monitoring',
         setCampaignSignal(campaignId, offerId, originID, key) {
           let cm = this.signals[campaignId];
           if (cm === undefined) {
-            cm = (this.signals[campaignId] = {});
+            cm = {};
+            this.signals[campaignId] = cm;
           }
           cm = cm[offerId];
           if (cm === undefined) {
-            cm = (this.signals[campaignId][offerId] = {});
+            cm = {};
+            this.signals[campaignId][offerId] = cm;
           }
           cm = cm[originID];
           if (cm === undefined) {
-            cm = (this.signals[campaignId][offerId][originID] = {});
+            cm = {};
+            this.signals[campaignId][offerId][originID] = cm;
           }
           cm = cm[key];
           if (cm === undefined) {
@@ -96,21 +99,17 @@ export default describeModule('offers-v2/offers/offers-monitoring',
       default: tldjs,
     },
     'offers-v2/utils': {
-      timestamp: function() {
-        return mockedTimestamp;
-      },
-      timestampMS: function() {
+      timestamp: function () {},
+      timestampMS: function () {
         return currentTS;
       },
-      dayHour: function() {
+      dayHour: function () {
         return currentDayHour;
       },
-      weekDay: function() {
+      weekDay: function () {
         return currentWeekDay;
       },
-      getABNumber: function() {
-        return abNumber;
-      }
+      getABNumber: function () {}
     },
     'offers-v2/offers/offers-db': {
       default: class {
@@ -139,7 +138,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           this.cids[obj.cid].add(obj.offer_id);
         }
         isOfferPresent(oid) {
-          return this.offers[oid] ? true : false;
+          return this.offers[oid];
         }
         getCampaignID(oid) {
           if (!this.offers[oid]) {
@@ -175,7 +174,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
         isHttpReqDomainSubscribed(cb, dom) {
           return this.httpMap.has(dom) && this.httpMap.get(dom).has(cb);
         }
-        subscribeHttpReq(cb, domainName, cargs = null) {
+        subscribeHttpReq(cb, domainName) {
           if (!this.httpMap.has(domainName)) {
             this.httpMap.set(domainName, new Set());
           }
@@ -214,25 +213,25 @@ export default describeModule('offers-v2/offers/offers-monitoring',
     },
     'core/prefs': {
       default: {
-        get: function(v, d) {
+        get: function (v, d) {
           if (prefRetVal[v]) {
             return prefRetVal[v];
           }
           return d;
         },
-        setMockVal: function(varName, val) {
+        setMockVal: function (varName, val) {
           prefRetVal[varName] = val;
         }
       }
     },
     'core/utils': {
-      default: {
-        setInterval: function() {},
-        getDetailsFromUrl: function(url) {
-          // we should extract the name here
-          return getDetailsFromUrlReal(url);
-        },
-      }
+      default: {}
+    },
+    'core/url': {
+      getDetailsFromUrl: function (url) {
+        // we should extract the name here
+        return getDetailsFromUrlReal(url);
+      },
     },
     'platform/console': {
       default: {},
@@ -240,10 +239,10 @@ export default describeModule('offers-v2/offers/offers-monitoring',
     'offers-v2/common/offers_v2_logger': {
       default: {
         debug: () => {},
-        error: (...x) => {console.error(...x);},
+        error: (...x) => { console.error(...x); },
         info: () => {},
-        log: (...x) => {console.log(...x);},
-        warn: (...x) => {console.error(...x);},
+        log: (...x) => { console.log(...x); },
+        warn: (...x) => { console.error(...x); },
         logObject: () => {},
       }
     },
@@ -306,10 +305,6 @@ export default describeModule('offers-v2/offers/offers-monitoring',
       let sigHandlerMock;
       let OffersMonitorHandler;
       let omh;
-      let db;
-      let PersistentCacheDB;
-
-
 
       function checkCampaignSignal(cid, oid, origID, key, expectedVal, msg = '') {
         function pmock() {
@@ -336,16 +331,21 @@ export default describeModule('offers-v2/offers/offers-monitoring',
         chai.expect(cm, `the signal exists: - ${pmock()}`).eql(undefined);
       }
 
-      function buildMonitorOffer(od, mdList) {
+      function buildMockOffer(od, mdList) {
         const monitorData = [];
         mdList.forEach((md) => {
           md.type = md.type || 'urlchange';
           monitorData.push(md);
         });
         return {
-          offer_id: od.offer_id,
-          cid: od.cid,
-          monitorData,
+          offer: {
+            offer_id: od.offer_id,
+            monitorData,
+            ui_info: od.ui_info
+          },
+          click: od.click,
+          last_update: od.last_update,
+          view: od.view
         };
       }
 
@@ -367,7 +367,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
 
       function buildAndAddOffer(offer, monitorData) {
         odb.addOffer(offer);
-        const mo = buildMonitorOffer(offer, monitorData);
+        const mo = buildMockOffer(offer, monitorData);
         mo.ui_info = offer.ui_info;
         omh.addOfferMonitors(mo);
         omh.build();
@@ -385,7 +385,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
         chai.expect(r.activate).eql(expected.activate);
         if (expected.activate) {
           chai.expect(r.offerInfo.code).eql(expected.code);
-          if (expected.autoFillField){
+          if (expected.autoFillField) {
             chai.expect(r.offerInfo.autoFillField).eql(expected.autoFillField);
           } else {
             chai.expect(r.offerInfo.autoFillField).eql(false);
@@ -414,7 +414,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           this.system.import('offers-v2/common/url_data'),
           this.system.import('core/url'),
           this.system.import('offers-v2/common/pattern-utils'),
-          ]).then((mods) => {
+        ]).then((mods) => {
           UrlData = mods[0].default;
           getDetailsFromUrlReal = mods[1].getDetailsFromUrl;
           buildMultiPatternIndex = mods[2].buildMultiPatternIndex;
@@ -436,24 +436,25 @@ export default describeModule('offers-v2/offers/offers-monitoring',
        */
       describe('/offers-monitoring tests', function () {
         context('/all tests', function () {
-
           beforeEach(function () {
-            db = {};
             odb = new OfferDB();
             evtHandlerMock = new EventHandler();
             sigHandlerMock = new SignalHandler();
-            omh = new OffersMonitorHandler(sigHandlerMock,
-                                           odb,
-                                           evtHandlerMock);
+            omh = new OffersMonitorHandler(
+              sigHandlerMock,
+              odb,
+              evtHandlerMock
+            );
           });
 
           it('/one offer 1 simple url monitor not trigger for wrong urls', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer = mockOffer;
             const monitors = [{
               signalID: 's1',
               type: 'urlchange',
               params: null,
-              patterns: ['||google.com']
+              patterns: ['||google.com'],
+
             }];
             const evts = [
               { u: 'http://www.gooogle.com' },
@@ -463,13 +464,13 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               { u: 'http://www.gooogle.com/google.com' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
             simulateEvents(evts);
             checkNoSignals();
           });
 
           it('/one offer 1 with multiple signals monitors will be triggered properly', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer = mockOffer;
             const monitors = [{
               signalID: 's1',
               type: 'urlchange',
@@ -500,13 +501,13 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               { u: 'http://www.google.com' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
             simulateEvents(evts);
-            monitors.forEach((m) => checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', m.signalID, 1));
+            monitors.forEach(m => checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', m.signalID, 1));
           });
 
           it('/one offer 1 simple url monitor trigger proper urls', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer = mockOffer;
             const monitors = [{
               signalID: 's1',
               type: 'urlchange',
@@ -521,13 +522,13 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               { u: 'http://www.gooogle.com/google.com' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
             simulateEvents(evts);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
           });
 
           it('/ensure special characters with upper and lower case are matched always', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer = mockOffer;
             const monitors = [{
               signalID: 's1',
               type: 'urlchange',
@@ -535,28 +536,64 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               patterns: [
                 'hällö$fuzzy,domain=google.de',
                 'àgüstï3n përęz$fuzzy,domain=google.de',
-                '||google.de/search?*ägustín*',
+                '||google.de/search?*ällín*',
               ]
             }];
             const evts = [
-              { u: "https://google.de/H%C3%84ll%C3%B6" },
-              { u: "https://google.de/H%C3%84ll%C3%96" },
-              { u: "https://google.de/H%C3%A4ll%C3%B6" },
-              { u: 'https://www.google.de/search?source=hp&ei=Vy-pWu_jL8LQkwWQyZDwBg&q=%C3%80g%C3%BCst%C3%AFn+p%C3%8Br%C4%99z&oq=%C3%80g%C3%BCst%C3%AFn+p%C3%8Br%C4%99z&gs_l=psy-ab.3...2196.40574.0.48408.41.31.10.0.0.0.242.4666.1j25j4.30.0....0...1c.1.64.psy-ab..1.27.3440...0j38j0i131k1j0i19k1j0i30i19k1j0i5i30i19k1j0i10i30i19k1j33i160k1.0.m0crLgRYbRA'},
-              { u: 'https://www.google.de/search?client=firefox-b-ab&dcr=0&ei=jDaqWvqEB4PsUsLgvcgH&q=%C3%A4gust%C3%ADn&oq=%C3%A4gust%C3%ADn&gs_l=psy-ab.3..38l4.1020.1784.0.2102.3.3.0.0.0.0.144.418.0j3.3.0....0...1c.1.64.psy-ab..0.2.272....0.8wNlF5OJ1n4'},
-              // { u: 'https://google.de/HÄllö' },
-              // { u: 'https://google.de/HÄllÖ' },
-              // { u: 'https://google.de/Hällö' },
+              { u: 'https://google.de/H%C3%84ll%C3%B6' },
+              { u: 'https://google.de/H%C3%84ll%C3%96' },
+              { u: 'https://google.de/H%C3%A4ll%C3%B6' },
+              { u: 'https://google.de/Häll' }, // this should not match the patterns
+              { u: 'https://google.de/H%C3%A4ll' }, // this should not match the patterns
+              { u: 'https://www.google.de/search?source=hp&ei=Vy-pWu_jL8LQkwWQyZDwBg&q=%C3%80g%C3%BCst%C3%AF3n+p%C3%8Br%C4%99z&oq=%C3%80g%C3%BCst%C3%AF3n+p%C3%8Br%C4%99z&gs_l=psy-ab.3...2196.40574.0.48408.41.31.10.0.0.0.242.4666.1j25j4.30.0....0...1c.1.64.psy-ab..1.27.3440...0j38j0i131k1j0i19k1j0i30i19k1j0i5i30i19k1j0i10i30i19k1j33i160k1.0.m0crLgRYbRA' },
+              { u: 'https://www.google.de/search?client=firefox-b-ab&dcr=0&ei=jDaqWvqEB4PsUsLgvcgH&q=%C3%A4ll%C3%ADn&oq=%C3%A4ll%C3%ADn&gs_l=psy-ab.3..38l4.1020.1784.0.2102.3.3.0.0.0.0.144.418.0j3.3.0....0...1c.1.64.psy-ab..0.2.272....0.8wNlF5OJ1n4' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
             simulateEvents(evts);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 5);
           });
+          it('/ensure + matching to space', function () {
+            const offer = mockOffer;
+            const monitors = [{
+              signalID: 's1',
+              type: 'urlchange',
+              params: null,
+              patterns: [
+                // 'hello world$fuzzy,domain=google.de',
+                'hello world$domain=google.de'
+              ]
+            }];
+            const evts = [
+              { u: 'https://google.de/?q=hello+world' },
+              { u: 'https://google.de/?q=hello%20world' },
+            ];
 
+            buildAndAddOffer(offer, monitors);
+            simulateEvents(evts);
+            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 2);
+          });
+          it('/ensure %2B not matching to space', function () {
+            const offer = mockOffer;
+            const monitors = [{
+              signalID: 's1',
+              type: 'urlchange',
+              params: null,
+              patterns: [
+                'c++ test$domain=google.com',
+              ]
+            }];
+            const evts = [
+              { u: 'https://www.google.com/search?q=c%2B%2B+test' }
+            ];
+
+            buildAndAddOffer(offer, monitors);
+            simulateEvents(evts);
+            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
+          });
           // /one offer N simple monitors works
           it('/one offer N simple monitors works', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer = mockOffer;
             const monitors = [{
               signalID: 's1',
               type: 'urlchange',
@@ -577,7 +614,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               { u: 'http://www.gooogle.com/google.com' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
             simulateEvents(evts);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[1].signalID, 1);
@@ -585,10 +622,10 @@ export default describeModule('offers-v2/offers/offers-monitoring',
 
           it('/SIMPLE buildMultiPatternIndex test', function () {
             const offers = [
-              { offer_id: 'hc1', cid: 'cid' },
-              { offer_id: 'hc2', cid: 'cid2' },
-              { offer_id: 'hc3', cid: 'cid3' },
-              { offer_id: 'hc4', cid: 'cid4' },
+              { offer_id: 'hc1', cid: 'cid', click: null, last_update: 20001, view: 20001},
+              { offer_id: 'hc2', cid: 'cid2', click: null, last_update: 20002, view: 20002},
+              { offer_id: 'hc3', cid: 'cid3', click: null, last_update: 20003, view: 20003},
+              { offer_id: 'hc4', cid: 'cid4', click: null, last_update: 20004, view: 20004},
             ];
             const patternsTuples = [];
             offers.forEach((o) => {
@@ -615,7 +652,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
             // });
 
             // now only first 2 offers are triggered
-            let evts = [
+            const evts = [
               { u: `http://www.google.de/${offers[0].offer_id}` },
               { u: `http://www.google.de/${offers[1].offer_id}` },
             ];
@@ -628,10 +665,10 @@ export default describeModule('offers-v2/offers/offers-monitoring',
 
           it('/M non related offers N simple monitors works', function () {
             const offers = [
-              { offer_id: 'hc1', cid: 'cid' },
-              { offer_id: 'hc2', cid: 'cid2' },
-              { offer_id: 'hc3', cid: 'cid3' },
-              { offer_id: 'hc4', cid: 'cid4' },
+              { offer_id: 'hc1', cid: 'cid', click: null, last_update: 20000, view: 2003},
+              { offer_id: 'hc2', cid: 'cid2', click: null, last_update: 20000, view: 2003},
+              { offer_id: 'hc3', cid: 'cid3', click: null, last_update: 20000, view: 2003},
+              { offer_id: 'hc4', cid: 'cid4', click: null, last_update: 20000, view: 2003},
             ];
             const monitors = [];
             offers.forEach((o) => {
@@ -687,203 +724,16 @@ export default describeModule('offers-v2/offers/offers-monitoring',
             checkSignalsForOffersRange(0, 3, 'other 2 offers are triggered');
           });
 
-          it('/if store present then we get proper signal', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
-            const monitors = [{
-              signalID: 's1',
-              type: 'urlchange',
-              params: { store: true },
-              patterns: ['||google.de']
-            }];
-            const evts = [
-              { u: 'http://www.google.de' },
-              { u: 'http://www.yahoo.com' },
-              { u: 'http://www.google2.de' },
-              { u: 'http://www.google2.com' },
-              { u: 'http://www.gooogle.com/google.com' },
-            ];
-
-            const mo = buildAndAddOffer(offer, monitors);
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
-
-            // simulate again and we should get the signal with the repeated_ prefix
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', `repeated_${monitors[0].signalID}`, 1);
-          });
-
-
-          it('/no store present -> send signal correct multiple times (no repeated_ is present)', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
-            const monitors = [{
-              signalID: 's1',
-              type: 'urlchange',
-              params: {},
-              patterns: ['||google.de']
-            }];
-            const evts = [
-              { u: 'http://www.google.de' },
-              { u: 'http://www.yahoo.com' },
-              { u: 'http://www.google2.de' },
-              { u: 'http://www.google2.com' },
-              { u: 'http://www.gooogle.com/google.com' },
-            ];
-
-            const mo = buildAndAddOffer(offer, monitors);
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
-
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 2);
-
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 3);
-          });
-
-
-          it('/store present but false -> send signal correct multiple times (no repeated_ is present)', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
-            const monitors = [{
-              signalID: 's1',
-              type: 'urlchange',
-              params: { store: false },
-              patterns: ['||google.de']
-            }];
-            const evts = [
-              { u: 'http://www.google.de' },
-              { u: 'http://www.yahoo.com' },
-              { u: 'http://www.google2.de' },
-              { u: 'http://www.google2.com' },
-              { u: 'http://www.gooogle.com/google.com' },
-            ];
-
-            const mo = buildAndAddOffer(offer, monitors);
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
-
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 2);
-
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 3);
-          });
-
-
-          it('/store present -> works for 2 monitors ', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
-            const monitors = [{
-              signalID: 's1',
-              type: 'urlchange',
-              params: { store: true },
-              patterns: ['||google.de']
-            }, {
-              signalID: 's2',
-              type: 'urlchange',
-              params: { store: true },
-              patterns: ['||facebook.com']
-            }];
-            let evts = [
-              { u: 'http://www.google.de' },
-              { u: 'http://www.google2.de' },
-            ];
-
-            const mo = buildAndAddOffer(offer, monitors);
-            // match only s1 normal
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
-
-            // match s2 normal and only
-            evts = [
-              { u: 'http://www.google2.de' },
-              { u: 'http://www.facebook.com' },
-            ];
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[1].signalID, 1);
-
-            // match s1 and s2 => repeated_
-            evts = [
-              { u: 'http://www.yahoo.com' },
-              { u: 'http://www.google.de' },
-              { u: 'http://www.facebook.com' },
-            ];
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[1].signalID, 1);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', `repeated_${monitors[0].signalID}`, 1);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', `repeated_${monitors[1].signalID}`, 1);
-          });
-
-
-          it('/1 url, different campaigns, store works', function () {
-            const offers = [
-              { offer_id: 'HC1', cid: 'cid' },
-              { offer_id: 'HC2', cid: 'cid2' },
-              { offer_id: 'HC3', cid: 'cid3' },
-              { offer_id: 'HC4', cid: 'cid4' },
-            ];
-            const monitors = [];
-            offers.forEach((o) => {
-              monitors.push([{
-                signalID: `sig`,
-                type: 'urlchange',
-                params: {store: true},
-                patterns: [`||google.de`],
-              }]);
-            });
-
-            for (let i = 0; i < offers.length; i += 1) {
-              const offer = offers[i];
-              const monitorsData = monitors[i];
-              buildAndAddOffer(offer, monitorsData);
-            }
-
-            let evts = [
-              { u: 'http://www.google.de' },
-            ];
-
-            // now we should see for the first offer the real signal and for the other
-            // 3 repeated since is the same url
-            simulateEvents(evts);
-            checkCampaignSignal(offers[0].cid, offers[0].offer_id, 'trigger', 'sig', 1);
-            checkCampaignSignal(offers[1].cid, offers[1].offer_id, 'trigger', 'repeated_sig', 1);
-            checkCampaignSignal(offers[2].cid, offers[2].offer_id, 'trigger', 'repeated_sig', 1);
-            checkCampaignSignal(offers[3].cid, offers[3].offer_id, 'trigger', 'repeated_sig', 1);
-          });
-
-          it('/1 url, different signals names, store works', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
-            const monitors = [{
-              signalID: 's1',
-              type: 'urlchange',
-              params: { store: true },
-              patterns: ['||google.de']
-            }, {
-              signalID: 's2',
-              type: 'urlchange',
-              params: { store: true },
-              patterns: ['||google.de']
-            }];
-            let evts = [
-              { u: 'http://www.google.de' },
-            ];
-
-            const mo = buildAndAddOffer(offer, monitors);
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 's1', 1);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'repeated_s2', 1);
-          });
-
           // // ////////////////////////////////////////////////////////////////////
           // // filtered_last_secs tests:
           // // ////////////////////////////////////////////////////////////////////
 
           it('/present but value == 0 -> 3 consecutives times the same signal can be sent (same offer / campaign / signal)', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer = mockOffer;
             const monitors = [{
               signalID: 's1',
               type: 'urlchange',
-              params: {filter_last_secs: 0},
+              params: { filter_last_secs: 0 },
               patterns: ['||google.de']
             }];
             const evts = [
@@ -892,17 +742,17 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               { u: 'http://www.google.de' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
             simulateEvents(evts);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 3);
           });
 
           it('/present-> 3 consecutive signals are not sent (same signal, cid)', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer = mockOffer;
             const monitors = [{
               signalID: 's1',
               type: 'urlchange',
-              params: {filter_last_secs: 10},
+              params: { filter_last_secs: 10 },
               patterns: ['||google.de']
             }];
             const evts = [
@@ -911,32 +761,32 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               { u: 'http://www.google.de' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
             simulateEvents(evts);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
           });
 
           it('/present-> 2 consecutive signals are not sent (same signal, cid, different offers)', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer = mockOffer;
             const offer2 = { offer_id: 'HC2', cid: 'cid' };
             const monitors = [{
               signalID: 's1',
               type: 'urlchange',
-              params: {filter_last_secs: 10},
+              params: { filter_last_secs: 10 },
               patterns: ['||google.de']
             }];
             const monitors2 = [{
               signalID: 's1',
               type: 'urlchange',
-              params: {filter_last_secs: 10},
+              params: { filter_last_secs: 10 },
               patterns: ['||google.de']
             }];
             const evts = [
               { u: 'http://www.google.de' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
-            const mo2 = buildAndAddOffer(offer2, monitors2);
+            buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer2, monitors2);
             simulateEvents(evts);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
 
@@ -947,60 +797,34 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           });
 
           it('/present-> 2 consecutive signals properly sent (different signal, same cid)', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer = mockOffer;
             const monitors = [{
               signalID: 's1',
               type: 'urlchange',
-              params: {filter_last_secs: 10},
+              params: { filter_last_secs: 10 },
               patterns: ['||google.de']
-            },{
+            }, {
               signalID: 's2',
               type: 'urlchange',
-              params: {filter_last_secs: 10},
+              params: { filter_last_secs: 10 },
               patterns: ['||google.de']
             }];
             const evts = [
               { u: 'http://www.google.de' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
             simulateEvents(evts);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[1].signalID, 1);
           });
 
-          it('/present-> 2 consecutive signals properly sent (same signal, different cid)', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
-            const offer2 = { offer_id: 'HC2', cid: 'cid2' };
-            const monitors = [{
-              signalID: 's1',
-              type: 'urlchange',
-              params: {filter_last_secs: 10},
-              patterns: ['||google.de']
-            }];
-            const monitors2 = [{
-              signalID: 's1',
-              type: 'urlchange',
-              params: {filter_last_secs: 10},
-              patterns: ['||google.de']
-            }];
-            const evts = [
-              { u: 'http://www.google.de' },
-            ];
-
-            const mo = buildAndAddOffer(offer, monitors);
-            const mo2 = buildAndAddOffer(offer2, monitors2);
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
-            checkCampaignSignal(offer2.cid, offer2.offer_id, 'trigger', monitors2[0].signalID, 1);
-          });
-
           it('/present-> 2 signals are sent if time threshold is bigger than argument', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer = mockOffer;
             const monitors = [{
               signalID: 's1',
               type: 'urlchange',
-              params: {filter_last_secs: 10},
+              params: { filter_last_secs: 10 },
               patterns: ['||google.de']
             }];
             const evts = [
@@ -1009,7 +833,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               { u: 'http://www.google.de' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
             simulateEvents(evts);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
 
@@ -1032,19 +856,19 @@ export default describeModule('offers-v2/offers/offers-monitoring',
 
           it('/getting last active offer works', function () {
             const offers = [
-              { offer_id: 'HC1', cid: 'cid' },
-              { offer_id: 'HC2', cid: 'cid' },
-              { offer_id: 'HC3', cid: 'cid' },
-              { offer_id: 'HC4', cid: 'cid' },
+              mockOffer,
+              { offer_id: 'HC2', cid: 'cid2', last_update: mockOffer.last_update, click: mockOffer.click, view: mockOffer.view },
+              { offer_id: 'HC3', cid: 'cid3', last_update: mockOffer.last_update, click: mockOffer.click, view: mockOffer.view },
+              { offer_id: 'HC4', cid: 'cid4', last_update: mockOffer.last_update + 100, click: mockOffer.click, view: mockOffer.view },
               // { offer_id: 'HC5', cid: 'cid-2' },
             ];
             const monitors = [];
-            offers.forEach((o) => {
+            offers.forEach(() => {
               monitors.push([{
-                signalID: `sig`,
+                signalID: 'sig',
                 type: 'urlchange',
-                params: {filter_last_secs: 10},
-                patterns: [`||google.de`],
+                params: { filter_last_secs: 10 },
+                patterns: ['||google.de'],
               }]);
             });
 
@@ -1054,18 +878,20 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               buildAndAddOffer(offer, monitorsData);
             }
 
-            odb.forceLatestUpdated([offers[3]]);
-            let evts = [
+            const evts = [
               { u: 'http://www.google.de' },
             ];
 
             // only for HC4 from cid and HC5 from cid2 we get a signal
             simulateEvents(evts);
             checkNotExistCampaignSignal(offers[0].cid, offers[0].offer_id, 'trigger', 'sig');
+            checkCampaignSignal(offers[0].cid, offers[0].offer_id, 'trigger', 'repeated_sig', 1);
             checkNotExistCampaignSignal(offers[1].cid, offers[1].offer_id, 'trigger', 'sig');
+            checkCampaignSignal(offers[1].cid, offers[1].offer_id, 'trigger', 'repeated_sig', 1);
             checkNotExistCampaignSignal(offers[2].cid, offers[2].offer_id, 'trigger', 'sig');
+            checkCampaignSignal(offers[2].cid, offers[2].offer_id, 'trigger', 'repeated_sig', 1);
             checkCampaignSignal(offers[3].cid, offers[3].offer_id, 'trigger', 'sig', 1);
-            // checkCampaignSignal(offers[4].cid, offers[4].offer_id, 'trigger', 'sig', 1);
+            checkNotExistCampaignSignal(offers[3].cid, offers[3].offer_id, 'trigger', 'repeated_sig');
           });
 
 
@@ -1075,7 +901,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           // //
 
           it('/referrer_cat true -> no referrer = none cat', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer = mockOffer;
             const monitors = [{
               signalID: 's1',
               type: 'urlchange',
@@ -1083,16 +909,16 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               patterns: ['||google.de']
             }];
             let evts = [
-              { u: 'http://www.google.de'},
+              { u: 'http://www.google.de' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
             simulateEvents(evts);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'ref_none', 1);
             sigHandlerMock.clear();
             checkNoSignals();
 
-             evts = [
+            evts = [
               { u: 'http://www.google.de', r: '' },
             ];
             simulateEvents(evts);
@@ -1100,7 +926,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           });
 
           it('/referrer_cat true -> referrer = search cat', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer = mockOffer;
             const monitors = [{
               signalID: 's1',
               type: 'urlchange',
@@ -1108,10 +934,10 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               patterns: ['||google.de']
             }];
             let evts = [
-              { u: 'http://www.google.de', r: 'google'},
+              { u: 'http://www.google.de', r: 'google' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
             simulateEvents(evts);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'ref_search', 1);
             sigHandlerMock.clear();
@@ -1141,7 +967,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           });
 
           it('/referrer_cat true -> referrer = other cat', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer = mockOffer;
             const monitors = [{
               signalID: 's1',
               type: 'urlchange',
@@ -1149,10 +975,10 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               patterns: ['||google.de']
             }];
             let evts = [
-              { u: 'http://www.google.de', r: 'something'},
+              { u: 'http://www.google.de', r: 'something ' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
             simulateEvents(evts);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'ref_other', 1);
             sigHandlerMock.clear();
@@ -1173,14 +999,13 @@ export default describeModule('offers-v2/offers/offers-monitoring',
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'ref_other', 1);
             sigHandlerMock.clear();
             checkNoSignals();
-
           });
 
           // TODO add watch requests tests
 
 
           it('/remove an offer works', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer = mockOffer;
             const monitors = [{
               signalID: 's1',
               type: 'urlchange',
@@ -1191,21 +1016,21 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               { u: 'http://www.google.com' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
             simulateEvents(evts);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 's1', 1);
 
             // remove the offer and check we do not get anymore events
             sigHandlerMock.clear();
-            omh.removeOfferMonitors(offer.offer_id);
+            omh.removeOfferMonitors(buildMockOffer(offer, monitors));
+            omh.build();
             simulateEvents(evts);
             checkNoSignals();
           });
 
           it('/remove an offer doesnt affect others', function () {
-
-            const offer = { offer_id: 'HC1', cid: 'cid' };
-            const offer2 = { offer_id: 'HC2', cid: 'cid2' };
+            const offer = mockOffer
+            const offer2 = mockOfferEarlierUpdate;
             const monitors = [{
               signalID: 's1',
               type: 'urlchange',
@@ -1222,23 +1047,25 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               { u: 'http://www.google.de' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
-            const mo2 = buildAndAddOffer(offer2, monitors2);
+            buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer2, monitors2);
             simulateEvents(evts);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
-            checkCampaignSignal(offer2.cid, offer2.offer_id, 'trigger', monitors2[0].signalID, 1);
+            checkNotExistCampaignSignal(offer2.cid, offer2.offer_id, 'trigger', monitors2[0].signalID, 1);
             // remove the offer and check we do not get anymore events
             sigHandlerMock.clear();
-            omh.removeOfferMonitors(offer.offer_id);
+            omh.removeOfferMonitors(buildMockOffer(offer, monitors));
+            omh.build();
+            console.log('Before', sigHandlerMock, JSON.stringify(omh.monitors));
             simulateEvents(evts);
-
+            console.log('After', sigHandlerMock);
             checkCampaignSignal(offer2.cid, offer2.offer_id, 'trigger', monitors2[0].signalID, 1);
             checkNotExistCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID);
           });
 
-          it('/adding a new offer doesnt break old ones', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
-            const offer2 = { offer_id: 'HC2', cid: 'cid2' };
+          it('/add signals only for the last clicked campaign', function () {
+            const offer = mockOffer;
+            const offer2 = { offer_id: 'HC2', cid: 'cid2', last_update: mockOffer.last_update-100, click: mockOffer.last_update, view: mockOffer.view-100 };
             const monitors = [{
               signalID: 's1',
               type: 'urlchange',
@@ -1246,7 +1073,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               patterns: ['||google.de']
             }];
             const monitors2 = [{
-              signalID: 's1',
+              signalID: 's2',
               type: 'urlchange',
               params: {},
               patterns: ['||google.de']
@@ -1254,20 +1081,22 @@ export default describeModule('offers-v2/offers/offers-monitoring',
             const evts = [
               { u: 'http://www.google.de' },
             ];
-
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
 
             simulateEvents(evts);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
-            checkNotExistCampaignSignal(offer2.cid, offer2.offer_id, 'trigger', monitors2[0].signalID);
+            checkNotExistCampaignSignal(offer2.cid, offer.offer_id, 'trigger', monitors2[0].signalID);
+            checkNotExistCampaignSignal(offer2.cid, offer.offer_id, 'trigger', `repeated_${monitors2[0].signalID}`);
 
 
             // remove the offer and check we do not get anymore events
             sigHandlerMock.clear();
-            const mo2 = buildAndAddOffer(offer2, monitors2);
+            buildAndAddOffer(offer2, monitors2);
             simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
+            checkNotExistCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
+            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', `repeated_${monitors[0].signalID}`, 1);
             checkCampaignSignal(offer2.cid, offer2.offer_id, 'trigger', monitors2[0].signalID, 1);
+            checkNotExistCampaignSignal(offer2.cid, offer2.offer_id, 'trigger', `repeated_${monitors2[0].signalID}`);
           });
 
           // ///////////////////////////////////////////////////////////////////
@@ -1278,7 +1107,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           // - if domain activation is hit still webrequest will be triggered when match
 
           it('/webrequest: if no domain activation is hit no web request is measured', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer = mockOffer;
             const monitors = [{
               signalID: 's1',
               type: 'webrequest',
@@ -1291,15 +1120,14 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               { u: 'http://www.google.de/conversion', t: 'webrequest' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
 
             simulateEvents(evts);
-            checkNoSignals();
+            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
           });
 
-
           it('/webrequest: if activation domain is hit web request is measured', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer = mockOffer;
             const monitors = [{
               signalID: 's1',
               type: 'webrequest',
@@ -1312,14 +1140,14 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               { u: 'http://www.google.de/conversion', t: 'webrequest' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
 
             simulateEvents(evts);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
           });
 
           it('/webrequest: if domain activation is hit still webrequest will be triggered when match', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer = mockOffer;
             const monitors = [{
               signalID: 's1',
               type: 'webrequest',
@@ -1332,21 +1160,21 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               { u: 'http://www.google.de/noconversion', t: 'webrequest' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
 
             simulateEvents(evts);
             checkNoSignals();
           });
 
           it('/webrequest: if activation domain is hit web request is measured for multiple monitors', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
+            const offer = mockOffer;
             const monitors = [{
               signalID: 's1',
               type: 'webrequest',
               domain: 'google.de',
               params: {},
               patterns: ['||google.de/conversion']
-            },{
+            }, {
               signalID: 's2',
               type: 'webrequest',
               domain: 'google.de',
@@ -1360,23 +1188,23 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               { u: 'http://www.google.de/secondconversion', t: 'webrequest' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
 
             simulateEvents(evts);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[1].signalID, 1);
           });
 
-          it('/webrequest: multiple offers with multiple monitors works', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
-            const offer2 = { offer_id: 'HC2', cid: 'cid2' };
+          it('/webrequest: multiple offers with multiple monitors only sends signals for the last one', function () {
+            const offer = mockOffer;
+            const offer2 = mockOfferEarlierUpdate;
             const monitors = [{
               signalID: 's1',
               type: 'webrequest',
               domain: 'google.de',
               params: {},
               patterns: ['||google.de/conversion']
-            },{
+            }, {
               signalID: 's2',
               type: 'webrequest',
               domain: 'google.de',
@@ -1390,7 +1218,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               domain: 'amazon.de',
               params: {},
               patterns: ['||amazon.de/conversion']
-            },{
+            }, {
               signalID: 'amazons2',
               type: 'webrequest',
               domain: 'amazon.de',
@@ -1404,8 +1232,8 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               { u: 'http://www.google.de/secondconversion', t: 'webrequest' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
-            const mo2 = buildAndAddOffer(offer2, monitors2);
+            buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer2, monitors2);
 
             simulateEvents(evts);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID, 1);
@@ -1429,15 +1257,15 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           });
 
           it('/webrequest: adding monitors once after other works', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid' };
-            const offer2 = { offer_id: 'HC2', cid: 'cid2' };
+            const offer = mockOffer;
+            const offer2 = { offer_id: 'HC2', cid: 'cid2', last_update: mockOffer.last_update + 100, click: 0, view: 0 };
             const monitors = [{
               signalID: 's1',
               type: 'webrequest',
               domain: 'google.de',
               params: {},
               patterns: ['||google.de/conversion']
-            },{
+            }, {
               signalID: 's2',
               type: 'webrequest',
               domain: 'google.de',
@@ -1451,7 +1279,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               domain: 'amazon.de',
               params: {},
               patterns: ['||amazon.de/conversion']
-            },{
+            }, {
               signalID: 's2',
               type: 'webrequest',
               domain: 'amazon.de',
@@ -1459,7 +1287,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               patterns: ['||amazon.de/secondconversion']
             }
             ];
-            let evts = [
+            const evts = [
               { u: 'http://www.google.de' },
               { u: 'http://www.google.de/conversion', t: 'webrequest' },
               { u: 'http://www.google.de/secondconversion', t: 'webrequest' },
@@ -1468,7 +1296,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               { u: 'http://www.amazon.de/secondconversion', t: 'webrequest' },
             ];
 
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
 
 
             simulateEvents(evts);
@@ -1478,7 +1306,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
             checkNotExistCampaignSignal(offer2.cid, offer2.offer_id, 'trigger', monitors2[1].signalID, 1);
 
             // now trigger second offer
-            const mo2 = buildAndAddOffer(offer2, monitors2);
+            buildAndAddOffer(offer2, monitors2);
 
             sigHandlerMock.clear();
             simulateEvents(evts);
@@ -1501,7 +1329,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           //
 
           it('/coupon: shouldActivateOfferForUrl on invalid urls works', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } } };
+            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } }, click: null, last_update: 20000, view: 2003};
             const monitors = [{
               signalID: 's1',
               type: 'coupon',
@@ -1514,13 +1342,13 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               couponInfo: {},
             }
             ];
-            let evts = [
+            const evts = [
               { u: 'http://www.google.de' },
               { u: 'http://www.amazon.de' },
             ];
 
             // for all urls we expect to not match
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
             evts.forEach((e) => {
               const url = e.u;
               testShouldActivateOfferForUrl(url, { activate: false });
@@ -1528,7 +1356,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           });
 
           it('/coupon: shouldActivateOfferForUrl on valid urls works', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } } };
+            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } }, click: null, last_update: 20000, view: 2003};
             const monitors = [{
               signalID: 's1',
               type: 'coupon',
@@ -1541,14 +1369,14 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               couponInfo: {},
             }
             ];
-            let evts = [
+            const evts = [
               { u: 'http://www.google.de/activate1' },
               { u: 'http://www.google.de/activate_second' },
               { u: 'http://www.google.de/activate_third' },
             ];
 
             // for all urls we expect to not match
-            const mo = buildAndAddOffer(offer, monitors);
+            buildAndAddOffer(offer, monitors);
             evts.forEach((e) => {
               const url = e.u;
               testShouldActivateOfferForUrl(url, { activate: true, code: 'TEST_CODE' });
@@ -1613,7 +1441,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           it('/coupon: couponFormUsed works for different coupon code', function () {
             const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } } };
             const monitors = [{
-              signalID: '-',
+              signalID: '_coupon_',
               type: 'coupon',
               params: {},
               patterns: [
@@ -1651,8 +1479,6 @@ export default describeModule('offers-v2/offers/offers-monitoring',
             callCouponFormUsed(r1.offerInfo, '', url);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'coupon_empty', 1);
           });
-
-
         });
       });
     });

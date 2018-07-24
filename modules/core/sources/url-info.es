@@ -24,8 +24,11 @@ import { parse as parseHost } from './tlds';
  */
 function parseURL(url) {
   const urlobj = fastUrl.parse(url, false, false, true);
-  if (!urlobj._protocol || !urlobj.slashes ||
-    (!urlobj.host && urlobj._port < 0 && !urlobj.auth)) {
+  if (
+    !urlobj._protocol ||
+    !urlobj.slashes ||
+    (!urlobj.host && urlobj._port < 0 && !urlobj.auth)
+  ) {
     return null;
   }
   const port = urlobj._port < 0 ? 80 : urlobj._port;

@@ -32,7 +32,10 @@ export default class BackendProvider extends BaseProvider {
     return '';
   }
 
-  mapResults(results, query) {
+  // TODO: Clean this up by putting params into an object
+  mapResults(results, query, _provider, latency, backendCountry) {
+    const provider = _provider || this.id;
+
     return results.map((result) => {
       const snippet = result.snippet || {};
       return {
@@ -43,7 +46,11 @@ export default class BackendProvider extends BaseProvider {
         type: result.type,
         text: query,
         description: snippet.description,
-        provider: this.id,
+        provider,
+        // TODO: should 'latency' really be on the result itself, not the response?
+        //       requirement: 'latency' needs to be present in the end for telemetry
+        latency,
+        backendCountry,
         data: {
           ...snippet,
           kind: [this.getKind(result)],

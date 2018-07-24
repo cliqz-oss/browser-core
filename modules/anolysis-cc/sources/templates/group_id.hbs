@@ -1,0 +1,32 @@
+<div class="card">
+  <div class="card-header">
+    <div class="card-title h5">Group Identity (GID)</div>
+    <div class="card-subtitle text-gray">
+      This is what the browser sends to accompany usage statistics. We make sure
+    the GID is shared with many other users.
+    </div>
+  </div>
+  <div class="card-body">
+      <div class="columns">
+          <div class="column col-7">
+            {{#each demographics}}
+                <li class="dem-factor-item">
+                    <span class="dem-factor-name">{{@key}}</span>
+                    <code>{{this}}</code>
+                </li>
+            {{/each}}
+          </div>
+        <div class="divider-vert" data-content="TO"></div>
+        <div class="column col-4">
+            {{#each parsedGID}}
+                <li class="dem-factor-item">
+                    <code class="safe">{{this}}</code>
+                </li>
+            {{/each}}
+        </div>
+      </div>
+  </div>
+  <div class="card-footer">
+      {{gidUpdate.message}}
+  </div>
+</div>

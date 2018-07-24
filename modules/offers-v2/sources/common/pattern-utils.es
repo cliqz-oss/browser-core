@@ -4,9 +4,6 @@ import { MultiPatternIndex, SimplePatternIndex } from './pattern-utils-imp';
 import { parse } from '../../core/tlds';
 
 
-const normalize = str => decodeURI(str).toLowerCase();
-
-
 /**
  * this method will generate the proper structure we need to use when matching
  * later against the patterns. This will build the "tokenizedURL object"
@@ -15,10 +12,9 @@ const normalize = str => decodeURI(str).toLowerCase();
  */
 export default function tokenizeUrl(theUrl) {
   if (theUrl) {
-    const url = normalize(theUrl);
-    const { hostname, domain } = parse(url);
+    const { hostname, domain } = parse(theUrl);
     return mkRequest({
-      url,
+      url: theUrl,
       domain,
       hostname,
       cpt: 2,
@@ -52,6 +48,21 @@ function buildMultiPatternIndex(multiPatternsList) {
   return new MultiPatternIndex(parsedFilters);
 }
 
+
+function buildMultiPatternIndexPatternAsID(multiPatternsList) {
+  const parsedFilters = [];
+  multiPatternsList.forEach((pattern) => {
+    const filter = parseNetworkFilter(pattern);
+    if (filter) {
+      filter.groupID = pattern;
+      parsedFilters.push(filter);
+    } else {
+      logger.error('Error parsing the filter / pattern ', pattern);
+    }
+  });
+  return new MultiPatternIndex(parsedFilters);
+}
+
 /**
  * Will construct a simple PatternIndex given a list of patterns (patternList)
  */
@@ -64,5 +75,6 @@ function buildSimplePatternIndex(patternList) {
 
 export {
   buildMultiPatternIndex,
-  buildSimplePatternIndex
+  buildSimplePatternIndex,
+  buildMultiPatternIndexPatternAsID
 };

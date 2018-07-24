@@ -4,6 +4,7 @@ import inject from '../core/kord/inject';
 import { extractHostname } from '../core/tlds';
 import { promiseHttpHandler } from '../core/http';
 import utils from '../core/utils';
+import prefs from '../core/prefs';
 
 import GreenAds from './green-ads';
 import logger from './logger';
@@ -23,11 +24,11 @@ const TELEMETRY_ENDPOINT = config.settings.TELEMETRY_ENDPOINT;
 
 export function getGreenadsState() {
   // Only enable when adblocker is disabled
-  const adbEnabled = utils.getPref('cliqz-adb', false);
+  const adbEnabled = prefs.get('cliqz-adb', false);
   if (adbEnabled) return GREENADS_STATE.DISABLED;
 
   // Otherwise, check green-ads pref
-  const value = utils.getPref(GREENADS_PREF, null);
+  const value = prefs.get(GREENADS_PREF, null);
 
   if (value === GREENADS_STATE.GREEN) {
     return GREENADS_STATE.GREEN;
@@ -37,7 +38,7 @@ export function getGreenadsState() {
     return GREENADS_STATE.DISABLED;
   }
 
-  utils.setPref(GREENADS_PREF, GREENADS_STATE.DISABLED);
+  prefs.set(GREENADS_PREF, GREENADS_STATE.DISABLED);
   return GREENADS_STATE.DISABLED;
 }
 
@@ -46,9 +47,9 @@ export function toggleGreenAdsPref() {
   const value = getGreenadsState();
 
   if (value === GREENADS_STATE.COLLECT) {
-    utils.setPref(GREENADS_PREF, GREENADS_STATE.GREEN);
+    prefs.set(GREENADS_PREF, GREENADS_STATE.GREEN);
   } else if (value === GREENADS_STATE.GREEN) {
-    utils.setPref(GREENADS_PREF, GREENADS_STATE.COLLECT);
+    prefs.set(GREENADS_PREF, GREENADS_STATE.COLLECT);
   }
 }
 
@@ -128,7 +129,7 @@ export default background({
       this.inventory = null;
     }
 
-    utils.clearTimeout(this.sendTimeout);
+    clearTimeout(this.sendTimeout);
 
     return Promise.all(promises);
   },
@@ -147,7 +148,7 @@ export default background({
 
   sendTelemetry(message) {
     // delay push by 20s to not interfer with current activity
-    this.sendTimeout = utils.setTimeout(() => {
+    this.sendTimeout = setTimeout(() => {
       promiseHttpHandler('POST', TELEMETRY_ENDPOINT,
         JSON.stringify(message), 10000, true);
     }, 20000);

@@ -11,7 +11,7 @@
         width: 100%;
         height: 0px;
         position: absolute;
-        z-index: 10000;
+        z-index: 100000;
 
         iframe, browser {
             -moz-user-focus: ignore;
@@ -19,7 +19,7 @@
             margin: 0 auto;
             width: 100%;
             box-shadow: 0 4px 4px -2px #999;
-            z-index: 10000;
+            z-index: 100000;
 
             .dropdown-hidden {
                 box-shadow: none;

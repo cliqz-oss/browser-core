@@ -6,7 +6,6 @@ import { sendMessageToWindow } from './content/data';
 import helpers from './content/helpers';
 import templates from './templates';
 
-const isAction = location.search.replace('?pageAction=', '') === 'true';
 const slideUp = $.fn.slideUp;
 const slideDown = $.fn.slideDown;
 
@@ -58,7 +57,6 @@ $(document).ready(() => {
   Object.keys(helpers).forEach((helperName) => {
     Handlebars.registerHelper(helperName, helpers[helperName]);
   });
-
   sendMessageToWindow({
     action: 'getEmptyFrameAndData',
     data: {}
@@ -367,14 +365,11 @@ function draw(data) {
     /* eslint-enable no-console */
   }
 
-  // in the funnelCake build other settings are only visible in the browser-action popup
-  data.showOtherSettings = data.funnelCake ? isAction : true;
-  // in the funnelCake build security settings are only visible in the normal popup
-  data.showSecuritySettings = data.funnelCake ? !isAction : true;
-  // history settings are hidden in teh funnelCake build
-  data.showHistorySettings = !data.funnelCake;
-  // tipps button is hidden for funnelcake page-action popup
-  data.showTipps = data.funnelCake ? isAction : true;
+  data.showSecuritySettings = !data.compactView;
+  // history settings are hidden in the compactView
+  data.showHistorySettings = !data.compactView;
+  // tipps button is hidden for compactView
+  data.showTipps = !data.compactView;
 
   const cc = document.getElementById('control-center');
   cc.innerHTML = templates.template(data);
@@ -581,7 +576,6 @@ function draw(data) {
   });
 
   localizeDocument();
-
   if (!emptyFrame) {
     resize();
   }

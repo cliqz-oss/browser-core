@@ -15,19 +15,20 @@ function mockNow() {
 export default describeModule('market-analysis/market_analyzer_main',
   () => ({
     'core/utils': {
-      default: {
-        getDetailsFromUrl: (url) => {
-          if (url.indexOf('amazon.de') !== -1) {
-            return { domain: 'amazon.de' };
-          }
-          if (url.indexOf('saturn.de') !== -1) {
-            return { domain: 'saturn.de' };
-          }
-          if (url.indexOf('booking.com') !== -1) {
-            return { domain: 'booking.com' };
-          }
-          return { domain: '' };
+      default: {}
+    },
+    'core/url': {
+      getDetailsFromUrl: (url) => {
+        if (url.indexOf('amazon.de') !== -1) {
+          return { domain: 'amazon.de' };
         }
+        if (url.indexOf('saturn.de') !== -1) {
+          return { domain: 'saturn.de' };
+        }
+        if (url.indexOf('booking.com') !== -1) {
+          return { domain: 'booking.com' };
+        }
+        return { domain: '' };
       }
     },
     'core/prefs': {

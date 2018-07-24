@@ -23,10 +23,12 @@ export default describeModule('browser-panel/window',
       default: {
         isPrivateMode() {},
         telemetry() {},
-        getDetailsFromUrl() {},
         getLogoDetails() {},
         openLink() {}
       }
+    },
+    'core/url': {
+      getDetailsFromUrl() {}
     },
     'browser-panel/background': {
       default: {}
@@ -49,11 +51,6 @@ export default describeModule('browser-panel/window',
     });
 
     describe('init()', function () {
-      it('without background', function () {
-        bg.is_enabled = false;
-        return chai.expect(subject.init()).to.eventually.equal('Module disabled');
-      });
-
       it('in private mode', function () {
         const privateMode = this.deps('core/utils').default;
         privateMode.isPrivateMode = function () { return true; };

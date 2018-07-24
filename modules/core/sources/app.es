@@ -3,18 +3,26 @@ import events, { subscribe } from './events';
 import prefs from './prefs';
 import Module from './app/module';
 import { setApp } from './kord';
-import console from './console';
+import console, { enable as enableConsole, disable as disableConsole } from './console';
 import utils from './utils';
 import { Window, mapWindows, forEachWindow, addWindowObserver,
   removeWindowObserver, reportError, mustLoadWindow, setInstallDatePref,
   setOurOwnPrefs, resetOriginalPrefs, enableChangeEvents,
   disableChangeEvents, waitWindowReady, addMigrationObserver, removeMigrationObserver,
   addSessionRestoreObserver, removeSessionRestoreObserver } from '../platform/browser';
-import Defer from './app/defer';
+import Defer from './helpers/defer';
 
-function shouldEnableModule(name) {
+export function shouldEnableModule(name) {
   const pref = `modules.${name}.enabled`;
   return !prefs.has(pref) || prefs.get(pref) === true;
+}
+
+function setupConsole() {
+  if (prefs.get('showConsoleLogs')) {
+    enableConsole();
+  } else {
+    disableConsole();
+  }
 }
 
 /**
@@ -30,12 +38,12 @@ export default class App {
    * @constructor
    * @param {object} config
    */
-  constructor({ version } = {}) {
+  constructor({ version, debug } = {}) {
     /**
      * @property {string} version
      */
     this.version = version;
-    utils.VERSION = this.version;
+    this.debug = debug;
     /**
      * @property {object} config
      */
@@ -153,15 +161,6 @@ export default class App {
       .then(() => {
         if (mustLoadWindow(win)) {
           return this.loadWindow(win);
-        } else if (config.settings.id === 'funnelcake@cliqz.com' &&
-          win.location.href === 'chrome://browser/content/aboutDialog.xul') {
-          // should be removed after the funnelcake experiment
-          win.setTimeout((doc) => {
-            const privacyLink = doc.querySelectorAll('.bottom-link')[2];
-            if (privacyLink) {
-              privacyLink.setAttribute('href', 'https://www.mozilla.org/de/privacy/firefox-cliqz/');
-            }
-          }, 100, win.document);
         }
         return null;
       })
@@ -298,7 +297,7 @@ export default class App {
     return initPrefs().then(() => {
       setInstallDatePref(utils.getServerDay());
 
-      if (config.environment === 'development') {
+      if (config.environment === 'development' || this.debug) {
         prefs.set('developer', true);
       }
 
@@ -314,6 +313,9 @@ export default class App {
           }
         });
       }
+
+      setupConsole();
+
       this.prefchangeEventListener = subscribe('prefchange', this.onPrefChange, this);
     });
   }
@@ -326,16 +328,19 @@ export default class App {
     return Promise.all(
       serviceNames.map(
         // service is initialized only once, so calling init multiple times is fine
-        serviceName => this.services[serviceName].init().catch((e) => {
-          const error = new Error(`Service "${serviceName}" error`);
-          if (e) {
-            error.stack = e.stack;
-            error.message = e.message;
-          }
-          throw error;
-        })
+        serviceName => this.services[serviceName].init()
       )
     );
+  }
+
+  unloadServices() {
+    Object.keys(this.services).forEach((serviceName) => {
+      try {
+        this.services[serviceName].unload();
+      } catch (e) {
+        console.log('App', 'error unloading service', e);
+      }
+    });
   }
 
   /**
@@ -402,6 +407,9 @@ export default class App {
       }
     });
     console.log('App', 'unload background modules finished');
+    console.log('App', 'unload services');
+    this.unloadServices();
+    console.log('App', 'unload services finished');
   }
 
   loadWindow(window) {
@@ -458,6 +466,10 @@ export default class App {
   }
 
   onPrefChange(pref) {
+    if (pref === 'showConsoleLogs') {
+      setupConsole();
+    }
+
     if (!pref.startsWith('modules.')) {
       return;
     }
@@ -520,7 +532,7 @@ export default class App {
    * It sets the `modules.<moduleName>.enabled` pref to false. So if called
    * before startup, it will prevent module start.
    *
-   * It ruturns a Promsie but sideeffects synchronously.
+   * It returns a Promsie but side effects synchronously.
    * If module did not finish initilizaton it waits and then disable it.
    *
    * @method disableModule

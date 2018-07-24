@@ -1,3 +1,4 @@
+/* global chai, describeModule */
 
 export default describeModule('antitracking/utils',
   () => ({
@@ -8,10 +9,13 @@ export default describeModule('antitracking/utils',
     },
     'core/encoding': {},
     'core/gzip': {},
-  }), function() {
+    'core/prefs': {
+      default: {}
+    }
+  }), function () {
     describe('truncateDomain', function () {
       let truncateDomain;
-      beforeEach(function() {
+      beforeEach(function () {
         truncateDomain = this.module().truncateDomain;
       });
 

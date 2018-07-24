@@ -1,5 +1,6 @@
 import events from '../core/events';
-import utils from '../core/utils';
+import { getDetailsFromUrl } from '../core/url';
+import prefs from '../core/prefs';
 import logger from './logger';
 import ProxyPeer from './proxy-peer';
 import { CompositePolicy, TrackerWhitelistPolicy,
@@ -29,12 +30,12 @@ const PROXY_PEERS_EXIT_DEFAULT = config.settings.TRACKER_PROXY_PROXY_PEERS_EXIT_
 
 
 function shouldProxyTrackers() {
-  return utils.getPref(PROXY_TRACKERS_PREF, false);
+  return prefs.get(PROXY_TRACKERS_PREF, false);
 }
 
 
 function shouldProxyAll() {
-  return utils.getPref(PROXY_ALL_PREF, false);
+  return prefs.get(PROXY_ALL_PREF, false);
 }
 
 
@@ -44,20 +45,20 @@ function shouldRunProxy() {
 
 
 function shouldRunPeer() {
-  return utils.getPref(PROXY_PEER_PREF, false) || shouldRunProxy();
+  return prefs.get(PROXY_PEER_PREF, false) || shouldRunProxy();
 }
 
 
 function shouldProxyInsecureConnections() {
-  return utils.getPref(PROXY_INSECURE_CONNECTIONS_PREF, false);
+  return prefs.get(PROXY_INSECURE_CONNECTIONS_PREF, false);
 }
 
 
 function getPrefOrDefault(pref, defaultValue) {
-  let value = utils.getPref(pref);
+  let value = prefs.get(pref);
   if (!value) {
     value = defaultValue;
-    utils.setPref(pref, value);
+    prefs.set(pref, value);
   }
 
   return value;
@@ -131,11 +132,11 @@ export default class TrackerProxy {
   initPeer() {
     if (this.isPeerEnabled() && this.proxyPeer === null) {
       const signalingUrl = getSignalingUrl();
-      this.signalingUrlHostname = utils.getDetailsFromUrl(signalingUrl).host;
+      this.signalingUrlHostname = getDetailsFromUrl(signalingUrl).host;
       const peersUrl = getPeersUrl();
-      this.peersUrlHostname = utils.getDetailsFromUrl(peersUrl).host;
+      this.peersUrlHostname = getDetailsFromUrl(peersUrl).host;
       const exitsUrl = getExitsUrl();
-      this.exitsUrlHostname = utils.getDetailsFromUrl(exitsUrl).host;
+      this.exitsUrlHostname = getDetailsFromUrl(exitsUrl).host;
 
       this.proxyPeer = new ProxyPeer(
         signalingUrl,

@@ -2,13 +2,16 @@
 const urls = require('./common/urls');
 const base = require('./common/system');
 const subprojects = require('./common/subprojects/bundles');
+const publish = require('./common/publish');
 
 module.exports = {
   "platform": "webextension",
   "baseURL": "/modules/",
-  "pack": "cat build/manifest.json | jq '.version = \\\"$PACKAGE_VERSION\\\"' > manifest.json && mv manifest.json build/ && web-ext build -s build -a .",
-  "publish": "aws s3 cp cliqz_search-$PACKAGE_VERSION.zip s3://cdncliqz/update/edge/webextension/$BRANCH_NAME/$VERSION.zip --acl public-read && aws s3 cp s3://cdncliqz/update/edge/webextension/$BRANCH_NAME/$VERSION.zip s3://cdncliqz/update/edge/webextension/$BRANCH_NAME/latest.zip --acl public-read",
+  "pack": "web-ext build -s build -a .",
+  "publish": publish.toEdge('cliqz', 'webextension', 'zip'),
   "settings": Object.assign({}, urls, {
+    "id": "cliqz@cliqz.com",
+    "name": "Cliqz",
     "channel": "CH50",
     "MSGCHANNEL": "web-extension",
     "freshTabNews": true,
@@ -18,9 +21,31 @@ module.exports = {
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
     "antitrackingPlaceholder": "cliqz.com/tracking",
     "antitrackingHeader": "CLIQZ-AntiTracking",
+    'ICONS': {
+      'active': {
+        'default': 'control-center/images/cc-active.svg',
+        'dark': 'control-center/images/cc-active-dark.svg'
+      },
+      'inactive': {
+        'default': 'control-center/images/cc-critical.svg',
+        'dark': 'control-center/images/cc-critical-dark.svg'
+      },
+      'critical': {
+        'default': 'control-center/images/cc-critical.svg',
+        'dark': 'control-center/images/cc-critical-dark.svg'
+      }
+    },
+    'BACKGROUNDS': {
+      'active': '#471647',
+      'inactive': '#471647',
+      'critical': '#471647',
+      'off': '#471647'
+    },
   }),
   "default_prefs" : {
+    "modules.anolysis.enabled": false,
     "freshtab.search.mode": "search",
+    "telemetryNoSession": true,
   },
   "modules": [
     "core",
@@ -29,23 +54,29 @@ module.exports = {
     "search",
     "dropdown",
     "freshtab",
+    "human-web",
     "hpn",
-    "expansions-provider",
     "antitracking",
     "webrequest-pipeline",
     "webextension-specific",
+    "anolysis",
+    "anolysis-cc",
+    "control-center",
   ],
   "subprojects": subprojects([
     '@cliqz-oss/pouchdb',
-    'jquery',
-    'rxjs',
-    'mocha',
     'chai',
     'core-js',
+    'handlebars',
+    'jquery',
+    'mathjs',
+    'mocha',
     'react',
     'reactDom',
-    'mathjs',
-    'handlebars',
+    'rxjs',
+    'tooltipster-css',
+    'tooltipster-js',
+    'tooltipster-sideTip-theme',
   ]),
   "bundles": [
     "hpn/worker.bundle.js",
@@ -53,11 +84,13 @@ module.exports = {
     "webextension-specific/app.bundle.js",
     "freshtab/home.bundle.js",
     "dropdown/dropdown.bundle.js",
+    "control-center/control-center.bundle.js",
   ],
   system: Object.assign({}, base.systemConfig, {
     map: Object.assign({}, base.systemConfig.map, {
       "@cliqz-oss/pouchdb": "node_modules/@cliqz-oss/pouchdb/dist/pouchdb.js",
-      "@cliqz-oss/dexie": "node_modules/@cliqz-oss/dexie/dist/dexie.js"
+      "@cliqz-oss/dexie": "node_modules/@cliqz-oss/dexie/dist/dexie.js",
+      "ajv": "node_modules/ajv/dist/ajv.min.js",
     })
   }),
   /*

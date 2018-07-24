@@ -95,3 +95,7 @@ export function getFileSize(path) {
 export function pathJoin(...args) {
   return OS.Path.join(...args);
 }
+
+export function removeDir(path) {
+  return OS.File.removeDir(getFullPath(path));
+}

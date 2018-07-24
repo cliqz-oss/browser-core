@@ -25,18 +25,18 @@ function fromArrayBuffer(data, format) {
 function toArrayBuffer(data, format) {
   return toByteArray(data, format).buffer;
 }
-function hash(algo, str, format = 'hex') {
+async function hash(algo, str, format = 'hex') {
   return crypto.subtle.digest(algo, typeof str === 'string' ? toUTF8(str) : str)
     .then(h => fromArrayBuffer(h, format));
 }
-function sha256(str, format = 'hex') {
+async function sha256(str, format = 'hex') {
   return hash('SHA-256', str, format);
 }
-function importAESKey(key) {
+async function importAESKey(key) {
   return crypto.subtle.importKey('raw', toArrayBuffer(key, 'hex'),
     { name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
 }
-function encryptAES(data, key, iv) {
+async function encryptAES(data, key, iv) {
   return Promise.all([
     iv || crypto.getRandomValues(new Uint8Array(12)),
     typeof key === 'string' ? importAESKey(key) : key,
@@ -49,10 +49,10 @@ function encryptAES(data, key, iv) {
     );
 }
 // Returns [IV, encryptedData]
-function encryptStringAES(txt, key, iv) {
+async function encryptStringAES(txt, key, iv) {
   return encryptAES(toUTF8(txt).buffer, key, iv);
 }
-function decryptAES(encrypted, key) {
+async function decryptAES(encrypted, key) {
   let iv = encrypted[0];
   let encryptedMsg = encrypted[1];
   iv = new Uint8Array(toArrayBuffer(iv, 'b64'));
@@ -61,20 +61,20 @@ function decryptAES(encrypted, key) {
     .then(() => (typeof key === 'string' ? importAESKey(key) : key))
     .then(importedKey => crypto.subtle.decrypt({ name: 'AES-GCM', iv }, importedKey, encryptedMsg));
 }
-function decryptStringAES(encrypted, key) {
+async function decryptStringAES(encrypted, key) {
   return decryptAES(encrypted, key)
     .then(decrypted => fromUTF8(new Uint8Array(decrypted)));
 }
-function generateAESKey() {
+async function generateAESKey() {
   return crypto.subtle.generateKey(
     { name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt'],
   );
 }
-function exportAESKey(key) {
+async function exportAESKey(key) {
   return crypto.subtle.exportKey('raw', key)
     .then(_key => fromArrayBuffer(_key, 'hex'));
 }
-function importRSAKey(pk, pub = true, h = 'SHA-256', algorithm = 'RSA-OAEP') {
+async function importRSAKey(pk, pub = true, h = 'SHA-256', algorithm = 'RSA-OAEP') {
   let uses;
   if (pub) {
     if (algorithm === 'RSA-OAEP') {
@@ -98,7 +98,7 @@ function importRSAKey(pk, pub = true, h = 'SHA-256', algorithm = 'RSA-OAEP') {
     uses,
   );
 }
-function wrapAESKey(aesKey, publicKey) {
+async function wrapAESKey(aesKey, publicKey) {
   return Promise.resolve(
     typeof publicKey === 'string' ? importRSAKey(publicKey, true) : publicKey,
   )
@@ -107,7 +107,7 @@ function wrapAESKey(aesKey, publicKey) {
     )
     .then(wrapped => toBase64(wrapped));
 }
-function unwrapAESKey(aesKey, privateKey) {
+async function unwrapAESKey(aesKey, privateKey) {
   return Promise.resolve(
     typeof privateKey === 'string' ? importRSAKey(privateKey, false) : privateKey,
   )
@@ -131,7 +131,7 @@ function unwrapAESKey(aesKey, privateKey) {
       ),
     );
 }
-function encryptStringRSA(txt, publicKey) {
+async function encryptStringRSA(txt, publicKey) {
   return generateAESKey()
     .then((aesKey) => {
       let promise;
@@ -146,12 +146,12 @@ function encryptStringRSA(txt, publicKey) {
       ]);
     });
 }
-function rawEncryptRSA(data, publicKey) {
+async function rawEncryptRSA(data, publicKey) {
   return importRSAKey(publicKey, true, 'SHA-1')
     .then(key => crypto.subtle.encrypt({ name: 'RSA-OAEP' }, key, data))
     .then(d => new Uint8Array(d));
 }
-function _encryptRSA(data, pubKey, aesKey) {
+async function _encryptRSA(data, pubKey, aesKey) {
   const wrapPromise = Array.isArray(pubKey) ?
     Promise.all(pubKey.map(x => wrapAESKey(aesKey, x))) :
     wrapAESKey(aesKey, pubKey);
@@ -160,19 +160,19 @@ function _encryptRSA(data, pubKey, aesKey) {
     wrapPromise
   ]);
 }
-function encryptRSA(data, publicKey, aesKey) {
+async function encryptRSA(data, publicKey, aesKey) {
   if (aesKey) {
     return _encryptRSA(data, publicKey, aesKey);
   }
   return generateAESKey()
     .then(k => _encryptRSA(data, publicKey, k));
 }
-function decryptRSA(data, privateKey) {
+async function decryptRSA(data, privateKey) {
   const [encrypted, wrappedKey] = data;
   return unwrapAESKey(wrappedKey, privateKey)
     .then(aesKey => decryptAES(encrypted, aesKey));
 }
-function decryptStringRSA(data, privateKey) {
+async function decryptStringRSA(data, privateKey) {
   const [encrypted, wrappedKey] = data;
   return unwrapAESKey(wrappedKey, privateKey)
     .then(aesKey => decryptStringAES(encrypted, aesKey));
@@ -182,18 +182,18 @@ function randomBytes(numBytes) {
   return crypto.getRandomValues(new Uint8Array(numBytes));
 }
 
-function deriveAESKey(bytes) {
+async function deriveAESKey(bytes) {
   return sha256(bytes, 'raw')
     .then(h =>
       crypto.subtle.importKey('raw', h, { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']),
     );
 }
 
-function sha1(s) {
+async function sha1(s) {
   return hash('SHA-1', s);
 }
 
-function generateRSAKeypair(bits = 2048) {
+async function generateRSAKeypair(bits = 2048) {
   return crypto.subtle.generateKey(
     {
       name: 'RSASSA-PKCS1-v1_5',
@@ -218,7 +218,7 @@ function generateRSAKeypair(bits = 2048) {
     ]));
 }
 
-function signRSA(privateKey, data) {
+async function signRSA(privateKey, data) {
   const _data = typeof data === 'string' ? toUTF8(data) : data;
   return crypto.subtle.sign({ name: 'RSASSA-PKCS1-v1_5' }, privateKey, _data).then(toHex);
 }

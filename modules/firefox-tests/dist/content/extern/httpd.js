@@ -10,6 +10,15 @@
  * httpd.js.
  */
 
+ if (typeof Components !== 'undefined') {
+   try {
+     Components.utils.import('resource://gre/modules/Console.jsm');
+   } catch (e) {
+     // Older version of Firefox
+     Components.utils.import('resource://gre/modules/devtools/Console.jsm');
+   }
+ }
+
 this.EXPORTED_SYMBOLS = [
   "HTTP_400",
   "HTTP_401",

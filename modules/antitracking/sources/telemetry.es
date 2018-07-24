@@ -1,13 +1,14 @@
 /* eslint no-param-reassign: 'off' */
 
-import utils from '../core/utils';
+import console from '../core/console';
+import prefs from '../core/prefs';
 import platformTelemetry from '../platform/telemetry';
 import inject, { ifModuleEnabled } from '../core/kord/inject';
 import random from '../core/crypto/random';
 import { getConfigTs } from './time';
 
 function msgSanitize(msg, channel) {
-  if (utils.getPref('ff-experiment', null)) {
+  if (prefs.get('ff-experiment', null)) {
     msg.channel = 'ff-experiment';
   } else {
     msg.channel = channel;
@@ -30,7 +31,7 @@ function msgSanitize(msg, channel) {
 export default {
   telemetry(payl) {
     if (!this.provider) {
-      utils.log('No telemetry provider loaded', 'attrack');
+      console.log('No telemetry provider loaded', 'attrack');
       return;
     }
 
@@ -53,7 +54,7 @@ export default {
   channel: null,
 
   loadFromProvider(provider, channel) {
-    utils.log(`Load telemetry provider: ${provider}`, 'attrack');
+    console.log(`Load telemetry provider: ${provider}`, 'attrack');
     this.providerName = provider;
     this.channel = channel;
     if (provider === 'platform') {

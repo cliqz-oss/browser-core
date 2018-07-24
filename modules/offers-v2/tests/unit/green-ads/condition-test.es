@@ -20,7 +20,7 @@ export default describeModule('offers-v2/green-ads/condition',
     describe('Condition evaluation', () => {
       let Condition;
 
-      beforeEach(function importDefault() {
+      beforeEach(function () {
         Condition = this.module().default;
       });
 

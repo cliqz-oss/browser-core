@@ -54,6 +54,8 @@ export default class QueryStream {
         this.handleNewVisit(visits[i]);
       }
     });
+
+    this.query = this.stream.query.bind(this.stream);
   }
 
   init() {
@@ -112,9 +114,5 @@ export default class QueryStream {
 
   all() {
     return this.stream.all();
-  }
-
-  query(...args) {
-    return this.stream.query(...args);
   }
 }

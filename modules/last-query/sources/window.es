@@ -2,7 +2,7 @@ import AppWindow from '../core/base/window';
 import SearchHistoryUI from './ui';
 import inject from '../core/kord/inject';
 import { getCurrentTabId } from '../core/tabs';
-import { isUrl, getDetailsFromUrl } from '../core/url';
+import { isUrl, getDetailsFromUrl, cleanMozillaActions } from '../core/url';
 
 export default class LastQueryWindow extends AppWindow {
   deps = {
@@ -46,7 +46,11 @@ export default class LastQueryWindow extends AppWindow {
     /*
      * Hide last query when new navigation has started
      */
-    'content:location-change': ({ url, originalUrl, referrer, triggeringUrl, tabId }) => {
+    'content:location-change': ({ url, originalUrl, referrer, triggeringUrl, tabId, isPrivate }) => {
+      if (isPrivate) {
+        this.searchHistoryUI.hide();
+      }
+
       const potentialQuery = getDetailsFromUrl(url).host;
 
       if (getCurrentTabId(this.window) !== tabId) {
@@ -67,6 +71,11 @@ export default class LastQueryWindow extends AppWindow {
       // Clear the last query if visit was triggered not by navigation, eg.
       // bookmarks, history, speed dials
       if (referrer || triggeringUrl) {
+        return;
+      }
+
+      if (this.searchTabs.has(tabId)) {
+        this.searchTabs.delete(tabId);
         return;
       }
 
@@ -108,7 +117,13 @@ export default class LastQueryWindow extends AppWindow {
         return;
       }
 
-      this.searchedUrls.add(url);
+      const [action] = cleanMozillaActions(url);
+      if (action === 'searchengine') {
+        this.searchTabs.add(tabId);
+      } else {
+        this.searchedUrls.add(url);
+      }
+
       this.searchHistoryUI.updateTabQuery(tabId, query);
       this.searchHistoryUI.show(query);
     },
@@ -118,6 +133,7 @@ export default class LastQueryWindow extends AppWindow {
     super(settings);
     this.searchedUrls = new Set();
     this.queriesNotHandledByCliqz = new Set();
+    this.searchTabs = new Set();
     this.ignoreNextLoad = false;
     this.searchHistoryUI = new SearchHistoryUI(
       this.window,

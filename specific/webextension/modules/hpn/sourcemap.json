@@ -3,6 +3,14 @@
 		"keys": ["action", "payload.t"],
 		"endpoint": "safe-browsing"
 	},
+        "cookie-dropping-watcher": {
+                "keys": ["action", "anti-duplicates"],
+                "endpoint": "safe-browsing"
+        },
+        "speedial.missinglogos": {
+                "keys": ["action", "payload.d"],
+                "endpoint": "safe-browsing"
+        },
 	"page": {
 		"keys": ["payload.url", "ts"],
 		"endpoint": "safe-browsing"
@@ -11,7 +19,7 @@
 		"keys": ["payload.q", "ts"],
 		"endpoint": "safe-browsing"
 	},
-	"query-test": {
+	"query-am": {
 		"keys": ["payload.q", "ts"],
 		"endpoint": "safe-browsing"
 	},
@@ -44,6 +52,10 @@
 		"endpoint": "safe-browsing"
 	},
 	"snippet": {
+		"keys": ["action", "payload.q", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"anon-snippet": {
 		"keys": ["action", "payload.q", "ts"],
 		"endpoint": "safe-browsing"
 	},
@@ -84,20 +96,24 @@
 		"endpoint": "safe-browsing"
 	},
 	"attrack.tp_events": {
-		"keys": ["action", "ts", "payload.data[0].hostname", "payload.data[0].path"],
-		"bkeys": ["action", "ts", "payload.data.1.hostname", "payload.data.1.path"],
+		"keys": ["action", "anti-duplicates", "payload.data[0].hostname", "payload.data[0].path"],
+		"bkeys": ["action", "anti-duplicates", "payload.data.1.hostname", "payload.data.1.path"],
 		"endpoint": "safe-browsing"
 	},
 	"attrack.safekey": {
 		"keys": ["action", "payload.ts"],
 		"endpoint": "safe-browsing"
 	},
-	"attrack.fp": {
+	"attrack.FP": {
 		"keys": ["action", "payload.ts"],
 		"endpoint": "safe-browsing"
 	},
 	"attrack.whitelistDomain": {
 		"keys": ["action", "payload", "ts"],
+		"endpoint": "safe-browsing"
+	},
+	"attrack.cookiesPruned": {
+		"keys": ["action", "ts"],
 		"endpoint": "safe-browsing"
 	},
 	"proxy-health": {
@@ -144,10 +160,32 @@
 		"keys": ["action", "payload.q", "ts"],
 		"endpoint": "safe-browsing"
 	},
-	"instant": {
-		"keys": ["ts"],
-		"endpoint": "scout-stats"
-	}
-
+	"offers-signal": {
+		"keys": ["signal_id", "payload","timestamp"],
+		"endpoint": "offers"
+	},
+    "attrack.suspicious": {
+            "keys": ["action"],
+            "endpoint": "safe-browsing"
+    },
+    "experiment-sem-own-keyword": {
+            "keys": ["action","anti-duplicates"],
+            "endpoint": "safe-browsing"
+    },
+    "ad-ctr": {
+            "keys": ["action","anti-duplicates"],
+            "endpoint": "safe-browsing"
+    },
+    "top-stories": {
+            "keys": ["action","payload.q", "ts"],
+            "endpoint": "safe-browsing"
+    },
+    "greenads-inventory": {
+            "keys": ["action","anti-duplicates"],
+            "endpoint": "safe-browsing"
+    },
+    "query-news": {
+            "keys": ["action","payload.q", "ts"],
+            "endpoint": "safe-browsing"
+    }
 }
-

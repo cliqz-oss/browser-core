@@ -1,4 +1,4 @@
-import utils from '../core/utils';
+import prefs from '../core/prefs';
 
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -11,8 +11,8 @@ export default class Win {
   status() {
     return {
       visible: true,
-      userEnabled: utils.getPref('offers2UserEnabled', true) === true,
-      locationEnabled: utils.getPref('offers_location', 1) === 1, // 0 = off, 1 = IP based
+      userEnabled: prefs.get('offers2UserEnabled', true) === true,
+      locationEnabled: prefs.get('offers_location', 1) === 1, // 0 = off, 1 = IP based
     };
   }
 }

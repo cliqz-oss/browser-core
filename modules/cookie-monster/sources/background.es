@@ -4,16 +4,16 @@ import cookies from '../platform/cookies';
 import { getGeneralDomain } from '../core/tlds';
 import md5 from '../core/helpers/md5';
 import console from '../core/console';
-import utils from '../core/utils';
 import getDexie from '../platform/lib/dexie';
 import Rx from '../platform/lib/rxjs';
 import WebRequest from '../core/webrequest';
 import { URLInfo } from '../core/url-info';
-import { Cron } from '../core/anacron';
 import tabs from '../platform/tabs';
 import moment from '../platform/lib/moment';
+import telemetry from '../core/services/telemetry';
 
 const LOGKEY = 'CookieMonster';
+const TELEMETRY_PREFIX = 'cookie-monster';
 
 const BATCH_UPDATE_FREQUENCY = 180000;
 const BASE_EXPIRY = 1000 * 60 * 60; // one hour
@@ -40,8 +40,8 @@ function isPrivateTab(tabId) {
 
 export default background({
 
+  requiresServices: ['telemetry'],
   antitracking: inject.module('antitracking'),
-  hpn: inject.module('hpn'),
   DEBUG: false,
 
   init() {
@@ -49,6 +49,7 @@ export default background({
     this.onCookieChanged = (changeInfo) => {
       this.subjectCookies.next(changeInfo);
     };
+    this.subjectPages = new Rx.Subject();
     this.onPage = this.onPage.bind(this);
     cookies.onChanged.addListener(this.onCookieChanged);
 
@@ -58,9 +59,25 @@ export default background({
       types: ['main_frame'],
     });
 
+    // filter page loads: must stay on site for 10s before it is logged
+    this.pageStream = this.subjectPages.observeOn(Rx.Scheduler.async)
+      .groupBy(({ tabId }) => tabId)
+      .flatMap(group => group
+        .distinctUntilChanged((a, b) => a.domain === b.domain)
+        .debounceTime(10000))
+      .subscribe((visit) => {
+        if (this.DEBUG) {
+          console.log(LOGKEY, 'visit to tracker domain', visit);
+        }
+        this.db.visits.put({
+          domain: visit.domain,
+          day: moment().format('YYYY-DD-MM'),
+        });
+      });
+
     // filter modified cookies for ones from trackers
     // batches and groups them to remove duplicates
-    this.trackerCookiesStream = this.subjectCookies.observeOn(Rx.Scheduler.async)
+    const batchObservable = this.subjectCookies.observeOn(Rx.Scheduler.async)
       .filter(({ cookie }) =>
         !cookie.session &&
           ['firefox-private', '1'].indexOf(cookie.storeId) === -1 && // skip private tab cookies
@@ -71,7 +88,9 @@ export default background({
       .groupBy(({ cookie }) => cookieId(cookie))
       .flatMap(group => group.auditTime(10000))
       .bufferTime(BATCH_UPDATE_FREQUENCY)
-      .filter(group => group.length > 0)
+      .filter(group => group.length > 0);
+
+    this.trackerCookiesStream = batchObservable
       .subscribe((ckis) => {
         this.onCookieBatch(ckis);
       });
@@ -87,31 +106,32 @@ export default background({
       this.trackers = qsWhitelist;
     });
 
-    this.cron = new Cron();
-    this.cron.schedule(this.actions.pruneDb, '0 0 * * *');
-    this.cron.start();
+    // trigger pruning after first batch on startup, or when the date changes
+    this.pruneStream = batchObservable
+      .map(() => (new Date()).toISOString().substring(0, 10))
+      .distinctUntilChanged()
+      .subscribe(() => {
+        this.pruneDb();
+      });
 
     return Promise.all([initDb, initTrackerList]);
   },
 
   unload() {
     cookies.onChanged.removeListener(this.onCookieChanged);
-    this.cron.stop();
-    utils.clearTimeout(this.initialRun);
+    clearTimeout(this.initialRun);
     this.trackerCookiesStream.unsubscribe();
+    this.pruneStream.unsubscribe();
+    this.pageStream.unsubscribe();
     WebRequest.onHeadersReceived.removeListener(this.onPage);
   },
 
-  sendTelemetry(signals) {
+  telemetry(signal, value) {
     if (this.DEBUG) {
-      console.log(LOGKEY, 'telemetry signals', signals);
+      console.log(LOGKEY, 'telemetry', signal, value);
     }
-    return this.hpn.action('sendTelemetry', {
-      action: 'attrack.cookiesPruned',
-      payload: signals,
-      ts: utils.getPref('config_ts'),
-    }).catch((e) => {
-      console.log('telemetry not available', e);
+    return telemetry.push(value, `${TELEMETRY_PREFIX}.${signal}`).catch((e) => {
+      console.error('anolysis error', e);
     });
   },
 
@@ -133,12 +153,10 @@ export default background({
       if (await checkIsPrivate) {
         return;
       }
-      if (this.DEBUG) {
-        console.log(LOGKEY, 'visit to tracker domain', url.host.hostname);
-      }
-      this.db.visits.put({
+      this.subjectPages.next({
+        tabId: details.tabId,
         domain: url.host.domain,
-        day: moment().format('YYYY-DD-MM'),
+        statusCode: details.statusCode,
       });
     }
   },
@@ -162,9 +180,10 @@ export default background({
         if (this.DEBUG) {
           console.log(LOGKEY, 'cookies', results, visited);
         }
+
         // timestamps are in seconds for compatibility with cookie expirations
         const nows = Date.now() / 1000;
-        results.filter(cookie => !cookie.removed).map((cookie) => {
+        const actions = results.filter(cookie => !cookie.removed).map((cookie) => {
           let duration = BASE_EXPIRY;
           if (visited[cookieGeneralDomain(cookie.domain)]) {
             const visits = visited[cookieGeneralDomain(cookie.domain)].visits;
@@ -186,11 +205,12 @@ export default background({
               cookieDesc.firstPartyDomain = cookie.firstPartyDomain;
             }
             cookies.remove(cookieDesc);
-            return this.db.trackerCookies.where(cookieKeyCols.reduce((hash, col) =>
+            this.db.trackerCookies.where(cookieKeyCols.reduce((hash, col) =>
               Object.assign(hash, {
                 [col]: cookie[col]
               }), Object.create(null))
             ).delete();
+            return 'delete';
           } else if (modExpiry < cookie.expirationDate) {
             const cookieUpdate = {
               url: `https://${cookie.domain}${cookie.path}`,
@@ -214,8 +234,16 @@ export default background({
               console.log(LOGKEY, 'update cookie expiry', cookieId(cookie), new Date(modExpiry * 1000));
             }
             cookies.set(cookieUpdate);
+            return 'update';
           }
-          return Promise.resolve();
+          return '';
+        });
+        this.telemetry('cookieBatch', {
+          count: ckis.length,
+          existing: results.length,
+          visited: Object.keys(visited).length,
+          deleted: actions.filter(a => a === 'delete').length,
+          modified: actions.filter(a => a === 'update').length,
         });
       });
   },
@@ -257,6 +285,9 @@ export default background({
   },
 
   async pruneDb() {
+    if (this.DEBUG) {
+      console.log(LOGKEY, 'prunedb');
+    }
     const dayCutoff = new Date();
     dayCutoff.setDate(dayCutoff.getDate() - 30);
     const pruneVisits = this.db.visits.where('day')
@@ -265,7 +296,7 @@ export default background({
     const pruneCookies = this.db.trackerCookies.where('created')
       .below(dayCutoff.getTime())
       .delete();
-    return this.sendTelemetry({
+    return this.telemetry('prune', {
       visitsPruned: await pruneVisits,
       cookiesPruned: await pruneCookies,
       visitsCount: await this.db.visits.count(),

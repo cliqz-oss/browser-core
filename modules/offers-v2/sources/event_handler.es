@@ -6,7 +6,7 @@ way for the offers module.
 */
 import logger from './common/offers_v2_logger';
 import events from '../core/events';
-import utils from '../core/utils';
+import { getDetailsFromUrl } from '../core/url';
 import UrlData from './common/url_data';
 import inject from '../core/kord/inject';
 
@@ -19,6 +19,10 @@ export default class EventHandler {
 
     this.onTabLocChanged = this.onTabLocChanged.bind(this);
 
+    // We need to subscribe here to get events everytime the location is
+    // changing and is the a new url. We had issues since everytime we switch
+    // the tabs we got the event from core.locaiton_change and this is not correct
+    // for our project.
     events.sub('content:location-change', this.onTabLocChanged);
 
     this.webRequestPipeline = inject.module('webrequest-pipeline');
@@ -46,7 +50,7 @@ export default class EventHandler {
   // @brief subscribe to get events whenever a new url is performed
   // @note
   //  The event emitted is a url details structure + referrer field (check
-  //  utils.getDetailsFromUrl(url); for more info)
+  //  getDetailsFromUrl(url); for more info)
   //
   subscribeUrlChange(cb, cargs = null) {
     this.urlChangeCbs.set(cb, cargs);
@@ -89,6 +93,10 @@ export default class EventHandler {
     }
     this.httpReqCbs.get(domainName).delete(cb);
 
+    if (this.httpReqCbs.get(domainName).size === 0) {
+      this.httpReqCbs.delete(domainName);
+    }
+
     // count if there is any callback here, otherwise we unsubscribe from pipeline
     if (this._countWebrequestSubscribers() === 0) {
       this._unsubscribeFromWebrequestPipeline();
@@ -107,22 +115,11 @@ export default class EventHandler {
   onTabLocChanged(data) {
     logger.info('onTabLocChanged:', data.url);
 
-    // EX-2561: private mode then we don't do anything here
+    // private mode then we don't do anything here
     if (data.isPrivate) {
       logger.info('window is private skipping: onTabLocChanged');
       return;
     }
-
-    // We need to subscribe here to get events everytime the location is
-    // changing and is the a new url. We had issues since everytime we switch
-    // the tabs we got the event from core.locaiton_change and this is not correct
-    // for our project.
-    // Check issue https://cliqztix.atlassian.net/projects/GR/issues/GR-117
-    //
-
-    // skip the event if is the same document here
-    // https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIWebProgressListener
-    //
 
     if (data.isSameDocument && data.url === data.triggeringUrl) {
       logger.info('document reload skipping: onTabLocChanged', data.url);
@@ -142,12 +139,6 @@ export default class EventHandler {
 
   // ///////////////////////////////////////////////////////////////////////////
   onLocationChangeHandler(url, referrer) {
-    // we will filter some urls here, we need to add them in the future we will
-    // https://cliqztix.atlassian.net/browse/EX-4570
-    // resource://
-    // about:
-    // file://
-
     if (!url ||
         !(url.startsWith('http://') || url.startsWith('https://')) ||
         this.notAllowedUrls.test(url)) {
@@ -157,7 +148,7 @@ export default class EventHandler {
     // now we add the referrer to the url
     let referrerName = null;
     if (referrer) {
-      const referrerUrlDetails = utils.getDetailsFromUrl(referrer);
+      const referrerUrlDetails = getDetailsFromUrl(referrer);
       referrerName = referrerUrlDetails.name;
     }
 
@@ -177,8 +168,8 @@ export default class EventHandler {
 
     // do first filtering
     if (!url ||
-        ctx.isPrivate ||
-        !(url.startsWith('http://') || url.startsWith('https://'))) {
+        !(url.startsWith('http://') || url.startsWith('https://')) ||
+        ctx.isPrivate || ctx.statusCode !== 200) {
       return;
     }
 
@@ -199,7 +190,7 @@ export default class EventHandler {
   //
   _publish(callbacksMap, args) {
     callbacksMap.forEach((cargs, cb) => {
-      utils.setTimeout(() => {
+      setTimeout(() => {
         try {
           cb(args, cargs);
         } catch (e) {

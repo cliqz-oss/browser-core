@@ -24,24 +24,24 @@ export default describeModule('human-web/network',
         isIPInternal = this.module().isIPInternal;
       });
 
-      it('should detect private ipv4 subnets', function() {
+      it('should detect private ipv4 subnets', function () {
         expect(isIPInternal('127.0.0.1')).to.be.true;
         expect(isIPInternal('192.168.2.107')).to.be.true;
         expect(isIPInternal('192.168.1.41')).to.be.true;
         expect(isIPInternal('10.0.5.250')).to.be.true;
       });
 
-      it('should detect public ipv4 subnets', function() {
+      it('should detect public ipv4 subnets', function () {
         expect(isIPInternal('93.184.216.34')).to.be.false;
       });
 
       // once we add support for ipv6, this test is expected to pass
-      it.skip('should detect private ipv6 subnets', function() {
+      it.skip('should detect private ipv6 subnets', function () {
         expect(isIPInternal('::1')).to.be.true;
         expect(isIPInternal('0:0:0:0:0:0:0:1')).to.be.true;
       });
 
-      it('should detect public ipv6 address', function() {
+      it('should detect public ipv6 address', function () {
         expect(isIPInternal('2001:0db8:85a3:0000:0000:8a2e:0370:7334')).to.be.false;
       });
     });
@@ -53,7 +53,7 @@ export default describeModule('human-web/network',
         parseHostname = this.module().parseHostname;
       });
 
-      it('should parse a simple domain', function() {
+      it('should parse a simple domain', function () {
         expect(parseHostname('www.example.test')).to.eql({
           hostname: 'www.example.test',
           username: '',
@@ -62,7 +62,7 @@ export default describeModule('human-web/network',
         });
       });
 
-      it('should parse a complex domain', function() {
+      it('should parse a complex domain', function () {
         expect(parseHostname('myuser:mypassword@example.test:1000')).to.eql({
           hostname: 'example.test',
           username: 'myuser',
@@ -79,7 +79,7 @@ export default describeModule('human-web/network',
         parseURL = this.module().parseURL;
       });
 
-      it('should parse a simple URL', function() {
+      it('should parse a simple URL', function () {
         expect(parseURL('http://www.example.test/')).to.eql({
           protocol: 'http',
           hostname: 'www.example.test',
@@ -91,7 +91,7 @@ export default describeModule('human-web/network',
         });
       });
 
-      it('should parse an URL with params', function() {
+      it('should parse an URL with params', function () {
         expect(parseURL('http://www.example.test/abc/def?param1=1&param2=2')).to.eql({
           protocol: 'http',
           hostname: 'www.example.test',
@@ -104,7 +104,7 @@ export default describeModule('human-web/network',
       });
 
       // TODO: currently defaults to port 80 for https, which is unexpected
-      it.skip('should parse a https URL', function() {
+      it.skip('should parse a https URL', function () {
         expect(parseURL('https://www.example.test/')).to.eql({
           protocol: 'https',
           hostname: 'www.example.test',
@@ -116,7 +116,7 @@ export default describeModule('human-web/network',
         });
       });
 
-      it('should parse a https URL (explicit port)', function() {
+      it('should parse a https URL (explicit port)', function () {
         expect(parseURL('https://www.example.test:443/')).to.eql({
           protocol: 'https',
           hostname: 'www.example.test',
@@ -128,7 +128,7 @@ export default describeModule('human-web/network',
         });
       });
 
-      it('should parse IPv4 addresses', function() {
+      it('should parse IPv4 addresses', function () {
         expect(parseURL('http://127.0.0.1/')).to.include({
           hostname: '127.0.0.1'
         });
@@ -138,7 +138,7 @@ export default describeModule('human-web/network',
         });
       });
 
-      it('should reject invalid URLs', function() {
+      it('should reject invalid URLs', function () {
         expect(parseURL('')).to.be.null;
         expect(parseURL('corrupted with space')).to.be.null;
 
@@ -149,18 +149,9 @@ export default describeModule('human-web/network',
 
       // Technically, this is not a legal URL, but
       // human-web relies on this assumption:
-      it('should allow unquoted characters in URLs', function() {
+      it('should allow unquoted characters in URLs', function () {
         const url = 'https://www.example.test/ (PROTECTED)';
         expect(parseURL(url).hostname).to.equal('www.example.test');
-      });
-
-    });
-
-    describe('Network', function () {
-      let uut;
-
-      beforeEach(function () {
-        uut = new Network();
       });
     });
   }

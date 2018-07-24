@@ -20,5 +20,10 @@ module.exports = {
     "src": "node_modules/react-dom/umd",
     "include": ["react-dom."+ env + suffix + ".js"],
     "dest": "vendor"
+  },
+  reactTestUtils: {
+    "src": "node_modules/react-dom/umd",
+    "include": ["react-dom-test-utils.development.js"],
+    "dest": "vendor"
   }
 };

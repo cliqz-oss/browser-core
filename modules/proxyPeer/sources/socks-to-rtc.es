@@ -1,4 +1,4 @@
-import utils from '../core/utils';
+import { httpGet } from '../core/http';
 import { fromUTF8 } from '../core/encoding';
 import MessageQueue from '../core/message-queue';
 
@@ -34,7 +34,7 @@ function shuffle(array) {
 
 function fetchRemotePeers(peerID, peersUrl) {
   return new Promise((resolve, reject) => {
-    utils.httpGet(
+    httpGet(
       peersUrl,
       (res) => {
         // Extract remote peer ids
@@ -326,7 +326,7 @@ export default class SocksToRtc {
 
     this.peers = new AvailablePeers(peersUrl, exitsUrl, peer);
 
-    this.actionInterval = utils.setInterval(
+    this.actionInterval = setInterval(
       () => {
         // Update peers:
         // 1. Clean-up blacklist.
@@ -402,7 +402,7 @@ export default class SocksToRtc {
   }
 
   stop() {
-    utils.clearInterval(this.actionInterval);
+    clearInterval(this.actionInterval);
   }
 
   unload() {

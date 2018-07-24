@@ -16,6 +16,8 @@ registerContentScript('http*', (window, chrome) => {
    * @param {string} action - name of the action found in the background.
    * @param {array} args - arguments to forward to the action.
    */
+
+  /* eslint no-use-before-define: 'off' */
   const backgroundAction = (action, ...args) => {
     // if module is diabled, don't call background further
     if (!active) {
@@ -28,7 +30,7 @@ registerContentScript('http*', (window, chrome) => {
         action,
         args,
       }
-    });
+    }, msg => cosmeticsInjection.handleResponseFromBackground(msg.response));
   };
 
   /**

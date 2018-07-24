@@ -1,5 +1,6 @@
 import utils from '../core/utils';
 import ContextMenu from './context-menu';
+import { getMessage } from '../core/i18n';
 
 function trim(text) {
   const _text = text.trim();
@@ -87,7 +88,7 @@ export default class Win {
       if (selection) {
         const isFreshtab = this.window.gBrowser.currentURI.spec === config.settings.NEW_TAB_URL;
         this.pageMenu.addMenuItem({
-          label: utils.getLocalizedString('context_menu_search_item', trim(selection)),
+          label: getMessage('context_menu_search_item', trim(selection)),
           onclick: () => {
             const query = selection;
             const options = { openInNewTab: !isFreshtab };

@@ -1,17 +1,14 @@
-const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
-Cu.import('resource://gre/modules/XPCOMUtils.jsm');
-Cu.import('resource://gre/modules/FileUtils.jsm');
-Cu.import('resource://gre/modules/NetUtil.jsm');
-Cu.import('resource://gre/modules/FileUtils.jsm');
-Cu.import('resource://gre/modules/Services.jsm');
-Cu.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+/* global browserMajorVersion, clearIntervals, CliqzABTests, CliqzHumanWeb, CliqzUtils,
+ injectTestHelpers, initHttpServer, TAP */
+/* eslint no-param-reassign: off */
+/* eslint func-names: off */
+/* eslint prefer-arrow-callback: off */
 
-const EventUtils = {};
-Services.scriptloader.loadSubScriptWithOptions('chrome://cliqz/content/firefox-tests/EventUtils.js', { target: EventUtils, ignoreCache: true });
+Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
 
 function getWindow() {
-  const wm = Cc['@mozilla.org/appshell/window-mediator;1']
-    .getService(Ci.nsIWindowMediator);
+  const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
+    .getService(Components.interfaces.nsIWindowMediator);
   return wm.getMostRecentWindow('navigator:browser');
 }
 
@@ -24,39 +21,17 @@ function getBrowserVersion() {
 }
 
 function getParameterByName(name) {
-  name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+  name = name.replace(/[[]/, '\\[').replace(/[\]]/, '\\]');
   const regex = new RegExp(`[\\?&]${name}=([^&#]*)`);
   const results = regex.exec(location.search);
   return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
 }
 
 function closeBrowser() {
-  Cc['@mozilla.org/toolkit/app-startup;1']
-    .getService(Ci.nsIAppStartup)
-    .quit(Ci.nsIAppStartup.eForceQuit);
+  Components.classes['@mozilla.org/toolkit/app-startup;1']
+    .getService(Components.interfaces.nsIAppStartup)
+    .quit(Components.interfaces.nsIAppStartup.eForceQuit);
 }
-
-function writeToFile(content, filename) {
-  const file = FileUtils.getFile('ProfD', [filename]);
-  const ostream = FileUtils.openSafeFileOutputStream(file);
-  const converter = Cc['@mozilla.org/intl/scriptableunicodeconverter']
-    .createInstance(Ci.nsIScriptableUnicodeConverter);
-  // var istream;
-
-  converter.charset = 'UTF-8';
-  const istream = converter.convertToInputStream(content);
-
-  NetUtil.asyncCopy(istream, ostream);
-}
-
-
-function writeTestResultsToFile(testData) {
-  var version = getBrowserVersion();
-  var filename = 'mocha-report-' + version + '.xml';
-  writeToFile(testData, filename);
-}
-
-var runner;
 
 mocha.setup({
   ui: 'bdd',
@@ -73,7 +48,6 @@ let telemetry;
 let fetchFactory;
 let getSuggestions;
 let historySearch;
-let fetchAndStoreConfig;
 let fetchAndStoreHM;
 let abCheck;
 let app = null;
@@ -84,6 +58,7 @@ function start() {
 // Try to get app
   app = win.CLIQZ ? win.CLIQZ.app : null;
   window.app = app;
+  const prefs = app.services['test-helpers']._initializer.prefs;
 
   if (app === null || !app.isFullyLoaded) {
     setTimeout(start, 1000);
@@ -96,14 +71,6 @@ function start() {
 
   function changes() {
     CliqzHumanWeb.fetchAndStoreConfig = function () {};
-    CliqzUtils.fetchAndStoreConfig = function () {
-      CliqzUtils.setPref('config_location', 'de');
-      CliqzUtils.setPref('backend_country', 'de');
-      CliqzUtils.setPref('config_logoVersion', '1473867650984');
-      CliqzUtils.setPref('config_backends', ['de']);
-      return CliqzUtils.Promise.resolve();
-    };
-
     CliqzABTests.check = function () {};
 
     /* Turn off telemetry during tests */
@@ -112,14 +79,15 @@ function start() {
       win.allTelemetry.push(signal);
     };
     // we only need the tests for the regular cliqz dropdown
-    CliqzUtils.setPref('dropDownABCGroup', 'cliqz');
-    CliqzUtils.clearPref('dropDownStyle');
+    prefs.set('dropDownABCGroup', 'cliqz');
+    prefs.clear('dropDownStyle');
+    app.services.pingCliqzResults = function () {};
   }
 
 
   // Load Tests and inject their dependencies
   Object.keys(window.TESTS).forEach(function (testName) {
-    var testFunction = window.TESTS[testName];
+    const testFunction = window.TESTS[testName];
 
     if ('MIN_BROWSER_VERSION' in testFunction && browserMajorVersion < testFunction.MIN_BROWSER_VERSION) {
       return; // skip tests
@@ -129,22 +97,22 @@ function start() {
   });
 
 
-  var reloadExtensionCounterInc = Number(getParameterByName('forceExtensionReload'));
-  var reloadExtensionCounter = 0;
-  var beforeEachAction = function (changes) { changes(); return Promise.resolve(); };
+  const reloadExtensionCounterInc = Number(getParameterByName('forceExtensionReload'));
+  let reloadExtensionCounter = 0;
+  let beforeEachAction = function (_changes) { _changes(); return Promise.resolve(); };
 
   if (reloadExtensionCounterInc) {
-    beforeEachAction = function (changes) {
+    beforeEachAction = function (_changes) {
       if (window.preventRestarts) {
-        return Promise.resolve().then(() => changes());
-      } else if (reloadExtensionCounter >= 1) {
-        reloadExtensionCounter = 0;
-        return app.extensionRestart(changes);
-      } else {
-        reloadExtensionCounter += reloadExtensionCounterInc;
-        return Promise.resolve().then(() => changes());
+        return Promise.resolve().then(() => _changes());
       }
-    }
+      reloadExtensionCounter += reloadExtensionCounterInc;
+      if (reloadExtensionCounter >= 1) {
+        reloadExtensionCounter = 0;
+        return app.extensionRestart(_changes);
+      }
+      return Promise.resolve().then(() => _changes());
+    };
   }
 
   before(function () {
@@ -152,56 +120,37 @@ function start() {
     getSuggestions = CliqzUtils.getSuggestions;
     historySearch = CliqzUtils.historySearch;
     fetchAndStoreHM = CliqzHumanWeb.fetchAndStoreConfig;
-    fetchAndStoreConfig = CliqzUtils.fetchAndStoreConfig;
     abCheck = CliqzABTests.check;
     telemetry = CliqzUtils.telemetry;
   });
 
+  beforeEach(function () {
+    window.closeAllTabs(win.gBrowser);
+    clearIntervals();
+    return beforeEachAction(changes);
+  });
 
-beforeEach(function () {
-  window.closeAllTabs(win.gBrowser);
-  return beforeEachAction(changes);
-});
+  afterEach(function () {
+    CliqzUtils.telemetry = telemetry;
+    CliqzUtils.fetchFactory = fetchFactory;
+    CliqzUtils.getSuggestions = getSuggestions;
+    CliqzUtils.historySearch = historySearch;
+    CliqzHumanWeb.fetchAndStoreConfig = fetchAndStoreHM;
+    CliqzABTests.check = abCheck;
 
-afterEach(function () {
-  CliqzUtils.telemetry = telemetry;
-  CliqzUtils.fetchFactory = fetchFactory;
-  CliqzUtils.getSuggestions = getSuggestions;
-  CliqzUtils.historySearch = historySearch;
-  CliqzUtils.fetchAndStoreConfig = fetchAndStoreConfig;
-  CliqzHumanWeb.fetchAndStoreConfig = fetchAndStoreHM;
-  CliqzABTests.check = abCheck;
+    // clean waitFor side effects
+    clearIntervals();
+  });
 
-  // clean waitFor side effects
-  clearIntervals();
-});
-
-window.focus();
+  window.focus();
 
 
-// Init Mocha runner
-var runner =  mocha.run();
+  // Init Mocha runner
+  const runner = mocha.run();
 
-// var XMLReport = '<?xml version="1.0" encoding="UTF-8"?>';
-
-// Mocha.reporters.XUnit.prototype.write = function (line) {
-//   var version = getBrowserVersion();
-//
-//   //append project="ff-version" in the test report for jenkins purposes
-//   if(line.indexOf('<testsuite') !== -1) {
-//     var line_parts = line.split(" ");
-//     line_parts.splice(1, 0, 'package="' + 'ff-' + version + '"');
-//     line = line_parts.join(" ");
-//   }
-//
-//   XMLReport += line;
-// };
-//
-//
-
-runner.on('end', function () {
-  if (getParameterByName('closeOnFinish') === "1") { closeBrowser(); }
-});
+  runner.on('end', function () {
+    if (getParameterByName('closeOnFinish') === '1') { closeBrowser(); }
+  });
 }
 
 start();

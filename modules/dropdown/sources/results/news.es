@@ -1,6 +1,9 @@
 import { Subresult } from './base';
+import { NEWS_RESULT } from '../result-types';
 
 export default class NewsResult extends Subresult {
+  type = NEWS_RESULT;
+
   get logo() {
     if (this.rawResult.showLogo) {
       return super.logo;
@@ -18,7 +21,7 @@ export default class NewsResult extends Subresult {
   }
 
   get thumbnail() {
-    return this.rawResult.thumbnail;
+    return this.rawResult.thumbnail || ''; // Always show thumbnail
   }
 
   get tweetCount() {
@@ -31,5 +34,9 @@ export default class NewsResult extends Subresult {
 
   get friendlyUrl() {
     return this.rawResult.domain;
+  }
+
+  get isBreakingNews() {
+    return this.rawResult.isBreakingNews;
   }
 }

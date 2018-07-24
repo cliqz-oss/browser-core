@@ -6,18 +6,4 @@ import MAConfigs from '../conf/ma_configs';
  * Methods: logger.debug, logger.log, logger.err, logger.logObject
  * @type {Logger}
  */
-const logger = new Logger({
-  useDump: false,
-  level: MAConfigs.LOG_LEVEL,
-  prefix: '[market-analysis]'
-});
-
-logger.logObject = (obj) => {
-  if (MAConfigs.IS_LOGGING_ENABLED) {
-    // log object while keeping its state
-    // since this is an expensive operation, we do it only if logging is enabled
-    logger.debug(JSON.parse(JSON.stringify(obj)));
-  }
-};
-
-export default logger;
+export default Logger.get('market-analysis', { level: MAConfigs.LOG_LEVEL });

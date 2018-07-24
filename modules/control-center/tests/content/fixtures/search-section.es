@@ -13,90 +13,90 @@ export const data = {
       visible: true,
       state: [
         {
-          name: "Google",
-          "alias": "#go",
-          "default": true,
-          "code": 3
+          name: 'Google',
+          alias: '#go',
+          default: true,
+          code: 3
         },
         {
-          "name": "Yahoo",
-          "alias": "#ya",
-          "default": false,
-          "code": 4
+          name: 'Yahoo',
+          alias: '#ya',
+          default: false,
+          code: 4
         },
         {
-          "name": "Bing",
-          "alias": "#bi",
-          "default": false,
-          "code": 5
+          name: 'Bing',
+          alias: '#bi',
+          default: false,
+          code: 5
         },
         {
-          "name": "Amazon.com",
-          "alias": "#am",
-          "default": false,
-          "code": 7
+          name: 'Amazon.com',
+          alias: '#am',
+          default: false,
+          code: 7
         },
         {
-          "name": "DuckDuckGo",
-          "alias": "#du",
-          "default": false,
-          "code": 0
+          name: 'DuckDuckGo',
+          alias: '#du',
+          default: false,
+          code: 0
         },
         {
-          "name": "Twitter",
-          "alias": "#tw",
-          "default": false,
-          "code": 0
+          name: 'Twitter',
+          alias: '#tw',
+          default: false,
+          code: 0
         },
         {
-          "name": "Wikipedia (en)",
-          "alias": "#wi",
-          "default": false,
-          "code": 6
+          name: 'Wikipedia (en)',
+          alias: '#wi',
+          default: false,
+          code: 6
         },
         {
-          "name": "Google Images",
-          "alias": "#gi",
-          "default": false,
-          "code": 1
+          name: 'Google Images',
+          alias: '#gi',
+          default: false,
+          code: 1
         },
         {
-          "name": "Google Maps",
-          "alias": "#gm",
-          "default": false,
-          "code": 2
+          name: 'Google Maps',
+          alias: '#gm',
+          default: false,
+          code: 2
         },
         {
-          "name": "YouTube",
-          "alias": "#yt",
-          "default": false,
-          "code": 10
+          name: 'YouTube',
+          alias: '#yt',
+          default: false,
+          code: 10
         },
         {
-          "name": "Ecosia",
-          "alias": "#ec",
-          "default": false,
-          "code": 11
+          name: 'Ecosia',
+          alias: '#ec',
+          default: false,
+          code: 11
         },
         {
-          "name": "Start Page",
-          "alias": "#st",
-          "default": false,
-          "code": 0
+          name: 'Start Page',
+          alias: '#st',
+          default: false,
+          code: 0
         }
       ],
-      "supportedIndexCountries": {
-        "de": {
-          "selected": true,
-          "name": "Germany"
+      supportedIndexCountries: {
+        de: {
+          selected: true,
+          name: 'Germany'
         },
-        "fr": {
-          "selected": false,
-          "name": "France"
+        fr: {
+          selected: false,
+          name: 'France'
         },
-        "us": {
-          "selected": false,
-          "name": "United States"
+        us: {
+          selected: false,
+          name: 'United States'
         }
       }
     },
@@ -104,15 +104,15 @@ export const data = {
       visible: true,
       state: {
         yes: {
-          name: "Always",
+          name: 'Always',
           selected: true
         },
         ask: {
-          name: "Always ask",
+          name: 'Always ask',
           selected: false
         },
         no: {
-          name: "Never",
+          name: 'Never',
           selected: false
         }
       }
@@ -149,7 +149,7 @@ export const data = {
   generalState: 'active',
   feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
   amo: false,
-  funnelCake: false
+  compactView: false
 };
 
 export const dataAmo = {
@@ -167,90 +167,90 @@ export const dataAmo = {
       visible: true,
       state: [
         {
-          name: "Google",
-          "alias": "#go",
-          "default": true,
-          "code": 3
+          name: 'Google',
+          alias: '#go',
+          default: true,
+          code: 3
         },
         {
-          "name": "Yahoo",
-          "alias": "#ya",
-          "default": false,
-          "code": 4
+          name: 'Yahoo',
+          alias: '#ya',
+          default: false,
+          code: 4
         },
         {
-          "name": "Bing",
-          "alias": "#bi",
-          "default": false,
-          "code": 5
+          name: 'Bing',
+          alias: '#bi',
+          default: false,
+          code: 5
         },
         {
-          "name": "Amazon.com",
-          "alias": "#am",
-          "default": false,
-          "code": 7
+          name: 'Amazon.com',
+          alias: '#am',
+          default: false,
+          code: 7
         },
         {
-          "name": "DuckDuckGo",
-          "alias": "#du",
-          "default": false,
-          "code": 0
+          name: 'DuckDuckGo',
+          alias: '#du',
+          default: false,
+          code: 0
         },
         {
-          "name": "Twitter",
-          "alias": "#tw",
-          "default": false,
-          "code": 0
+          name: 'Twitter',
+          alias: '#tw',
+          default: false,
+          code: 0
         },
         {
-          "name": "Wikipedia (en)",
-          "alias": "#wi",
-          "default": false,
-          "code": 6
+          name: 'Wikipedia (en)',
+          alias: '#wi',
+          default: false,
+          code: 6
         },
         {
-          "name": "Google Images",
-          "alias": "#gi",
-          "default": false,
-          "code": 1
+          name: 'Google Images',
+          alias: '#gi',
+          default: false,
+          code: 1
         },
         {
-          "name": "Google Maps",
-          "alias": "#gm",
-          "default": false,
-          "code": 2
+          name: 'Google Maps',
+          alias: '#gm',
+          default: false,
+          code: 2
         },
         {
-          "name": "YouTube",
-          "alias": "#yt",
-          "default": false,
-          "code": 10
+          name: 'YouTube',
+          alias: '#yt',
+          default: false,
+          code: 10
         },
         {
-          "name": "Ecosia",
-          "alias": "#ec",
-          "default": false,
-          "code": 11
+          name: 'Ecosia',
+          alias: '#ec',
+          default: false,
+          code: 11
         },
         {
-          "name": "Start Page",
-          "alias": "#st",
-          "default": false,
-          "code": 0
+          name: 'Start Page',
+          alias: '#st',
+          default: false,
+          code: 0
         }
       ],
-      "supportedIndexCountries": {
-        "de": {
-          "selected": true,
-          "name": "Germany"
+      supportedIndexCountries: {
+        de: {
+          selected: true,
+          name: 'Germany'
         },
-        "fr": {
-          "selected": false,
-          "name": "France"
+        fr: {
+          selected: false,
+          name: 'France'
         },
-        "us": {
-          "selected": false,
-          "name": "United States"
+        us: {
+          selected: false,
+          name: 'United States'
         }
       }
     },
@@ -258,15 +258,15 @@ export const dataAmo = {
       visible: true,
       state: {
         yes: {
-          name: "Always",
+          name: 'Always',
           selected: true
         },
         ask: {
-          name: "Always ask",
+          name: 'Always ask',
           selected: false
         },
         no: {
-          name: "Never",
+          name: 'Never',
           selected: false
         }
       }
@@ -300,7 +300,7 @@ export const dataAmo = {
   generalState: 'active',
   feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
   amo: true,
-  funnelCake: false
+  compactView: false
 };
 
 export const dataFunnelCake = {
@@ -318,90 +318,90 @@ export const dataFunnelCake = {
       visible: true,
       state: [
         {
-          name: "Google",
-          "alias": "#go",
-          "default": true,
-          "code": 3
+          name: 'Google',
+          alias: '#go',
+          default: true,
+          code: 3
         },
         {
-          "name": "Yahoo",
-          "alias": "#ya",
-          "default": false,
-          "code": 4
+          name: 'Yahoo',
+          alias: '#ya',
+          default: false,
+          code: 4
         },
         {
-          "name": "Bing",
-          "alias": "#bi",
-          "default": false,
-          "code": 5
+          name: 'Bing',
+          alias: '#bi',
+          default: false,
+          code: 5
         },
         {
-          "name": "Amazon.com",
-          "alias": "#am",
-          "default": false,
-          "code": 7
+          name: 'Amazon.com',
+          alias: '#am',
+          default: false,
+          code: 7
         },
         {
-          "name": "DuckDuckGo",
-          "alias": "#du",
-          "default": false,
-          "code": 0
+          name: 'DuckDuckGo',
+          alias: '#du',
+          default: false,
+          code: 0
         },
         {
-          "name": "Twitter",
-          "alias": "#tw",
-          "default": false,
-          "code": 0
+          name: 'Twitter',
+          alias: '#tw',
+          default: false,
+          code: 0
         },
         {
-          "name": "Wikipedia (en)",
-          "alias": "#wi",
-          "default": false,
-          "code": 6
+          name: 'Wikipedia (en)',
+          alias: '#wi',
+          default: false,
+          code: 6
         },
         {
-          "name": "Google Images",
-          "alias": "#gi",
-          "default": false,
-          "code": 1
+          name: 'Google Images',
+          alias: '#gi',
+          default: false,
+          code: 1
         },
         {
-          "name": "Google Maps",
-          "alias": "#gm",
-          "default": false,
-          "code": 2
+          name: 'Google Maps',
+          alias: '#gm',
+          default: false,
+          code: 2
         },
         {
-          "name": "YouTube",
-          "alias": "#yt",
-          "default": false,
-          "code": 10
+          name: 'YouTube',
+          alias: '#yt',
+          default: false,
+          code: 10
         },
         {
-          "name": "Ecosia",
-          "alias": "#ec",
-          "default": false,
-          "code": 11
+          name: 'Ecosia',
+          alias: '#ec',
+          default: false,
+          code: 11
         },
         {
-          "name": "Start Page",
-          "alias": "#st",
-          "default": false,
-          "code": 0
+          name: 'Start Page',
+          alias: '#st',
+          default: false,
+          code: 0
         }
       ],
-      "supportedIndexCountries": {
-        "de": {
-          "selected": true,
-          "name": "Germany"
+      supportedIndexCountries: {
+        de: {
+          selected: true,
+          name: 'Germany'
         },
-        "fr": {
-          "selected": false,
-          "name": "France"
+        fr: {
+          selected: false,
+          name: 'France'
         },
-        "us": {
-          "selected": false,
-          "name": "United States"
+        us: {
+          selected: false,
+          name: 'United States'
         }
       }
     },
@@ -409,15 +409,15 @@ export const dataFunnelCake = {
       visible: true,
       state: {
         yes: {
-          name: "Always",
+          name: 'Always',
           selected: true
         },
         ask: {
-          name: "Always ask",
+          name: 'Always ask',
           selected: false
         },
         no: {
-          name: "Never",
+          name: 'Never',
           selected: false
         }
       }
@@ -451,5 +451,5 @@ export const dataFunnelCake = {
   generalState: 'active',
   feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
   amo: false,
-  funnelCake: true
-}
+  compactView: true
+};

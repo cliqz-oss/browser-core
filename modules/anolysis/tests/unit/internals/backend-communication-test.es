@@ -25,23 +25,19 @@ function mockFetchFail() {
 
 
 const MOCK = {
-  'core/utils': {
-    default: {
-      setInterval() {},
-      setTimeout(cb) { cb(); },
-      httpPost(url, callback, data, onerror, timeout) {
-        return httpPost(
-          url,
-          callback,
-          data,
-          onerror,
-          timeout,
-        );
-      },
+  'core/http': {
+    httpPost(url, callback, data, onerror, timeout) {
+      return httpPost(
+        url,
+        callback,
+        data,
+        onerror,
+        timeout,
+      );
     },
   },
-  'anolysis/internals/enabling': {
-    isTelemetryEnabled() { return true; },
+  'core/utils': {
+    default: {},
   },
   'anolysis/internals/logger': {
     default: {
@@ -82,20 +78,19 @@ export default describeModule('anolysis/internals/backend-communication',
         return chai.expect(newInstall('{ "a": 42, "b": 1 }')).to.eventually.equal(result);
       });
 
-      it('rejects the id with missing field', () => {
-        mockFetch({ id: '{ "b": 1 }' });
-        return chai.expect(newInstall('{ "a": 42, "b": 1 }')).to.be.rejected;
-      });
-
-      it('rejects the id with different value', () => {
-        mockFetch({ id: '{ "b": 1, "a": 2 }' });
-        return chai.expect(newInstall('{ "a": 42, "b": 1 }')).to.be.rejected;
-      });
-
-      it('rejects the id with extra fields', () => {
-        mockFetch({ id: '{ "b": 1, "a": 2, "c": 3 }' });
-        return chai.expect(newInstall('{ "a": 42, "b": 1 }')).to.be.rejected;
-      });
+      // see comment in backend-communication.es
+      // it('rejects the id with missing field', () => {
+      //   mockFetch({ id: '{ "b": 1 }' });
+      //   return chai.expect(newInstall('{ "a": 42, "b": 1 }')).to.be.rejected;
+      // });
+      // it('rejects the id with different value', () => {
+      //   mockFetch({ id: '{ "b": 1, "a": 2 }' });
+      //   return chai.expect(newInstall('{ "a": 42, "b": 1 }')).to.be.rejected;
+      // });
+      // it('rejects the id with extra fields', () => {
+      //   mockFetch({ id: '{ "b": 1, "a": 2, "c": 3 }' });
+      //   return chai.expect(newInstall('{ "a": 42, "b": 1 }')).to.be.rejected;
+      // });
     });
 
     describe('Update GID', () => {

@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default class extends React.Component {
+export default class MobieData extends React.Component {
   displayRating(rating) {
     if (!rating) {
       return null;
@@ -25,7 +25,7 @@ export default class extends React.Component {
       return null;
     }
     return (
-      <Link to={director.info.url}>
+      <Link url={director.info.url}>
         <View>
           <Text style={{ color: descriptionTextColor }}>
             {director.title}: {director.info.name}

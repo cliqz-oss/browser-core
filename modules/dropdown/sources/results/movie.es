@@ -1,7 +1,10 @@
 import { Subresult } from './base';
 import GenericResult from './generic';
+import { MOVIE_INFO_RESULT } from '../result-types';
 
 class MovieInfo extends Subresult {
+  type = MOVIE_INFO_RESULT;
+
   get name() {
     return this.rawResult.name;
   }
@@ -124,6 +127,7 @@ export default class MovieResult extends GenericResult {
       ...(this.directorInfo ? [this.directorInfo] : []),
       ...(this.trailerInfo ? [this.trailerInfo] : []),
       ...(this.reviewsInfo ? [this.reviewsInfo] : []),
+      ...(this.starsInfo ? this.starsInfo : []),
       this.fullCastInfo,
     ];
   }

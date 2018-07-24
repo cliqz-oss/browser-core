@@ -1,15 +1,14 @@
 import network from '../../platform/network';
 
 import md5 from '../../core/helpers/md5';
-import utils from '../../core/utils';
+import { httpPost } from '../../core/http';
 
 import logger from './logger';
-import { isTelemetryEnabled } from './enabling';
 
 
 function post(url, payload) {
   return new Promise((resolve, reject) => {
-    utils.httpPost(
+    httpPost(
       url,
       (req) => {
         try {
@@ -47,23 +46,26 @@ export default class Backend {
           // Check that id contains the same values than the `demographics`
           // we sent, to prevent the backend from changing this. Which could
           // allow tracking.
-          const id = JSON.parse(result.id);
-          const original = JSON.parse(demographics);
+          // const id = JSON.parse(result.id);
+          // const original = JSON.parse(demographics);
 
-          const idKeys = Object.keys(id);
-          const originalKeys = Object.keys(original);
+          // const originalKeys = Object.keys(original);
+          // const idKeys = Object.keys(id);
 
-          if (idKeys.length !== originalKeys.length) {
-            return Promise.reject('Returned id contains different keys:'
-              + ` sent ${demographics}, received ${result.id}`);
-          }
+          // NOTE: we currently rely on the fact that extra argument can be
+          // ignored by the GID Server, so this check is too aggressive. In the
+          // future we might enable it again.
+          // if (idKeys.length !== originalKeys.length) {
+          //   return Promise.reject('Returned id contains different keys:'
+          //     + ` sent ${demographics}, received ${result.id}`);
+          // }
 
-          for (const key of originalKeys) {
-            if (original[key] !== id[key]) {
-              return Promise.reject(`The value for key ${key} differs:`
-                + `sent ${original[key]}, received ${id[key]}`);
-            }
-          }
+          // for (const key of idKeys) {
+          //   if (original[key] !== id[key]) {
+          //     return Promise.reject(`The value for key ${key} differs:`
+          //       + `sent ${original[key]}, received ${id[key]}`);
+          //   }
+          // }
 
           return result.id;
         }
@@ -198,10 +200,6 @@ export default class Backend {
 
     if (network.type !== 'wifi') {
       return Promise.reject('Device is not connected to WiFi');
-    }
-
-    if (!isTelemetryEnabled()) {
-      return Promise.reject('Telemetry is disabled');
     }
 
     return post(`${this.backendUrl}/collect`, signal);

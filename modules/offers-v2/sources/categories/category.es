@@ -33,9 +33,6 @@ const getValidDaysFromHistory = (timeRangeSecs, historyData) => {
 };
 
 /**
- * definition of a category.
- * check https://cliqztix.atlassian.net/wiki/spaces/SBI/pages/144310279/Categories
- *
  * A category will be basically:
  * - name identifying the category (or id)
  * - list of patterns that identify the category

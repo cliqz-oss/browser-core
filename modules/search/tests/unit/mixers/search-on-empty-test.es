@@ -1,7 +1,7 @@
+/* global chai, describeModule */
+
 const Rx = require('rxjs');
 const rxSandbox = require('rx-sandbox').rxSandbox;
-
-let fetch = () => {};
 
 const mock = {
   'platform/lib/rxjs': {
@@ -15,21 +15,21 @@ const mock = {
 export default describeModule('search/mixers/search-on-empty',
   () => mock,
   () => {
-    describe('#searchOnEmpty', function() {
+    describe('#searchOnEmpty', function () {
       let searchOnEmpty;
 
       beforeEach(function () {
         searchOnEmpty = this.module().searchOnEmpty;
       });
 
-      it('searches using provider if base stream concludes without results', function() {
-        const { hot, cold, flush, getMessages, e, s } = rxSandbox.create();
+      it('searches using provider if base stream concludes without results', function () {
+        const { hot, flush, getMessages, e } = rxSandbox.create();
 
         const query = '';
         const provider = {
           search: () => hot('s-ss|'),
         };
-        const base$ =    hot('----n|', {
+        const base$ = hot('----n|', {
           n: {
             results: [],
             state: 'done'
@@ -43,14 +43,14 @@ export default describeModule('search/mixers/search-on-empty',
         return chai.expect(messages).to.deep.equal(expected);
       });
 
-      it('emits empty response if base stream concludes with results ', function() {
-        const { hot, cold, flush, getMessages, e, s } = rxSandbox.create();
+      it('emits empty response if base stream concludes with results ', function () {
+        const { hot, flush, getMessages, e } = rxSandbox.create();
 
         const query = '';
         const provider = {
           search: () => hot('s|'),
         };
-        const base$ =    hot('----n|', {
+        const base$ = hot('----n|', {
           n: {
             results: ['r1'],
             state: 'done'

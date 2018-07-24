@@ -12,14 +12,15 @@ const filterOfferByCategory = (offer, activeCategories) => {
     return true;
   }
   const offerCatList = offer.categories;
-  for (let i = 0; i < offerCatList.length; i += 1) {
-    if (activeCategories.has(offerCatList[i])) {
-      // there is at least one category active for the current context and
-      // the given offer
-      return true;
+  for (const catID of activeCategories) {
+    for (let i = 0; i < offerCatList.length; i += 1) {
+      if (catID.indexOf(offerCatList[i]) === 0) {
+        // there is at least one category active for the current context and
+        // the given offer
+        return true;
+      }
     }
   }
-
   // TODO: remove this debug log
   logger.debug(`Offer ${offer.uniqueID} context filtered (categories)`);
   return false;

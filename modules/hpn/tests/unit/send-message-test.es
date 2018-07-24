@@ -26,7 +26,6 @@ export default describeModule('hpn/send-message',
   },
 
   () => {
-
     const expect = chai.expect;
 
     // creates a well-formed test messages
@@ -44,7 +43,7 @@ export default describeModule('hpn/send-message',
       }
       mkUniqueMessage._counter += 1;
       return mkMessage(`test-message-${mkUniqueMessage._counter}`);
-    };
+    }
 
     // returns an array with the given number of unique messages
     function mkBatchOfMessage(numMessages) {
@@ -52,7 +51,6 @@ export default describeModule('hpn/send-message',
     }
 
     describe('Message Sender', () => {
-
       let uut;
 
       let MessageSender;
@@ -83,7 +81,7 @@ export default describeModule('hpn/send-message',
           fakeWorker.terminate = true;
         }
       }
-      const expectMessageWasSent = function expectMessageWasSent(message) {
+      const expectMessageWasSent = function (message) {
         const messageFound = fakeWorker.receivedMessages.some(
           sentMsg => sentMsg.msg && sentMsg.msg._debugId === message._debugId);
 
@@ -104,7 +102,7 @@ export default describeModule('hpn/send-message',
         _CliqzSecureMessage = {
           debug: false,
           storage: {
-            saveLocalCheckTable: function saveLocalCheckTable() {
+            saveLocalCheckTable: function () {
               _CliqzSecureMessage.storage.saveLocalCheckTable._wasCalled = true;
             }
           },
@@ -121,11 +119,11 @@ export default describeModule('hpn/send-message',
         return uut.stop({ quick: true });
       });
 
-      it('should handle an empty list of messages', () => {
-        return uut.send([]).then(() => {
+      it('should handle an empty list of messages', () =>
+        uut.send([]).then(() => {
           expect(fakeWorker.receivedMessages).to.be.empty;
-        });
-      });
+        })
+      );
 
       it('should successfully send one message', () => {
         const msg = mkMessage();
@@ -192,9 +190,7 @@ export default describeModule('hpn/send-message',
       });
 
       it('should handle many messages (with delay)', () => {
-        fakeWorker.messageDelayInMs = () => {
-          return Math.floor(Math.random() * 10);
-        };
+        fakeWorker.messageDelayInMs = () => Math.floor(Math.random() * 10);
 
         const batch1 = mkBatchOfMessage(3);
         const batch2 = mkBatchOfMessage(2);
@@ -213,19 +209,19 @@ export default describeModule('hpn/send-message',
           promise4.then(() => expect(fakeWorker.receivedMessages).to.have.lengthOf(10))]);
       });
 
-      it('should support to call stop multiple times', () => {
-        return uut.stop()
+      it('should support to call stop multiple times', () =>
+        uut.stop()
           .then(() => uut.stop())
           .then(() => uut.stop({ quick: true }))
           .then(() => uut.stop())
-          .then(() => uut.stop({ quick: true }));
-      });
+          .then(() => uut.stop({ quick: true }))
+      );
 
-      it('should support immediate shutdown', () => {
-        return uut.stop({ quick: true }).then(() => {
+      it('should support immediate shutdown', () =>
+        uut.stop({ quick: true }).then(() => {
           expect(fakeWorker.terminate).to.be.true;
-        });
-      });
+        })
+      );
     });
   }
 );

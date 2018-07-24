@@ -25,6 +25,7 @@ function Headline(props) {
         style={{ color: props.color }}
       >
         <a
+          className="headline-url"
           href={props.url}
           onClick={() => {
             sendOffersMessage(props.offer_id, 'offer_ca_action');

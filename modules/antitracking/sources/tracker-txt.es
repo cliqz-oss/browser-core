@@ -7,7 +7,8 @@ TrackerTXT: caching rules for tracker.txt
 
 import MapCache from '../core/helpers/fixed-size-cache';
 import { getTime } from './time';
-import utils from '../core/utils';
+import { httpGet } from '../core/http';
+import prefs from '../core/prefs';
 
 const trackerTxtActions = new Set(['placeholder', 'block', 'empty', 'replace']);
 
@@ -17,7 +18,7 @@ let defaultTrackerTxtRule = null;
 
 export function getDefaultTrackerTxtRule() {
   if (defaultTrackerTxtRule === null) {
-    defaultTrackerTxtRule = utils.getPref(DEFAULT_ACTION_PREF, 'same');
+    defaultTrackerTxtRule = prefs.get(DEFAULT_ACTION_PREF, 'same');
   }
   return defaultTrackerTxtRule;
 }
@@ -27,13 +28,13 @@ export function setDefaultTrackerTxtRule(rule) {
 }
 
 export function updateDefaultTrackerTxtRule() {
-  const ruleFromPref = utils.getPref('attrackDefaultAction', 'same');
+  const ruleFromPref = prefs.get('attrackDefaultAction', 'same');
   // default rule may be either a tracking.txt action, or 'same'
   if (trackerTxtActions.has(ruleFromPref) || ruleFromPref === 'same') {
     defaultTrackerTxtRule = ruleFromPref;
   } else {
     // bad pref value, reset it
-    utils.clearPref('attrackDefaultAction');
+    prefs.clear('attrackDefaultAction');
   }
 }
 
@@ -77,7 +78,7 @@ TrackerTXT.prototype = {
       this.last_update === getTime()) return; // try max once per hour
     this.status = 'updating';
     const self = this;
-    utils.httpGet(
+    httpGet(
       `${self.baseurl}/tracking.txt`,
       function success(req) {
         if (req.responseText.length < 4 * 1024) {

@@ -1,29 +1,31 @@
-import Rx from '../platform/lib/rxjs';
-
 import AppWindow from '../core/base/window';
 import utils from '../core/utils';
+import { getMessage } from '../core/i18n';
+import prefs from '../core/prefs';
 import events from '../core/events';
 import createUrlbarObservable from './observables/urlbar';
 import logger from './logger';
 import search from './search';
 import telemetry from './telemetry';
+import telemetryLatency from './telemetry-latency';
 import getConfig from './config';
 import ObservableProxy from '../core/helpers/observable-proxy';
 import { getSearchEngines } from '../core/search-engines';
+import { integersToHistogram } from '../anolysis/analyses/search';
 
 function getProviders() {
-  const all = JSON.parse(utils.getPref('config_backends', '["de"]'))
+  const all = JSON.parse(prefs.get('config_backends', '["de"]'))
     .reduce((acc, cur) => {
       acc[cur] = {
-        selected: cur === utils.getPref('backend_country', 'de'),
-        name: utils.getLocalizedString(`country_code_${cur.toUpperCase()}`),
+        selected: cur === prefs.get('backend_country', 'de'),
+        name: getMessage(`country_code_${cur.toUpperCase()}`),
       };
 
       return acc;
     }, {});
 
-  if (utils.hasPref('backend_country.override')) {
-    const customCountry = utils.getPref('backend_country.override');
+  if (prefs.has('backend_country.override')) {
+    const customCountry = prefs.get('backend_country.override');
     all[customCountry] = {
       selected: true,
       name: `Custom - [${customCountry}]`
@@ -36,11 +38,11 @@ function getProviders() {
 export default class SearchWindow extends AppWindow {
   events = {
     'urlbar:focus': () => {
-      this.focusEventProxy.next();
+      this.focusEventProxy.next({ event: 'focus' });
     },
 
     'urlbar:blur': () => {
-      this.blurEventProxy.next();
+      this.focusEventProxy.next({ event: 'blur' });
     },
 
     'urlbar:input': (ev) => {
@@ -54,12 +56,12 @@ export default class SearchWindow extends AppWindow {
       this.selectionEventProxy.next(ev);
     },
 
-    'dropdown:result-selected': () => {
+    'dropdown:result-highlight': () => {
       this.resultHighlightEventProxy.next();
     },
 
     'urlbar:dropmarker-click': () => {
-      this.focusEventProxy.next();
+      this.focusEventProxy.next({ event: 'focus' });
       this.inputEventProxy.next({ query: '', allowEmptyQuery: true });
     },
   };
@@ -77,14 +79,10 @@ export default class SearchWindow extends AppWindow {
     // the parent of urlbar as urlbar gets replaced during `ui/window#init`
     this.inputEventProxy = new ObservableProxy();
     this.focusEventProxy = new ObservableProxy();
-    this.blurEventProxy = new ObservableProxy();
     this.selectionEventProxy = new ObservableProxy();
     this.resultHighlightEventProxy = new ObservableProxy();
 
-    const focus$ = Rx.Observable.merge(
-      this.focusEventProxy.observable.mapTo('focus'),
-      this.blurEventProxy.observable.mapTo('blur'),
-    ).share();
+    const focus$ = this.focusEventProxy.observable.share();
 
     const query$ = createUrlbarObservable(this.inputEventProxy.observable);
 
@@ -97,9 +95,32 @@ export default class SearchWindow extends AppWindow {
       this.background.providers, config).share();
     const selection$ = this.selectionEventProxy.observable;
 
-    const telemetry$ = telemetry(focus$, results$, selection$);
-    telemetry$.subscribe(data => utils.telemetry(data),
+    const telemetry$ = telemetry(focus$, query$, results$, selection$);
+    this.telemetrySubscription = telemetry$.subscribe(
+      data => utils.telemetry(data, false, 'search.session'),
       error => logger.error('Failed preparing telemetry', error));
+
+    const telemetryLatency$ = telemetryLatency(focus$, query$, results$);
+    const sendLatencyTelemery = (data) => {
+      if (data.length) {
+        // All data elements have the same backendCountry
+        const backend = data[0].backendCountry;
+
+        const smallLatencies = data.reduce((acc, { latency }) =>
+          [...acc, ...latency < 200 ? [latency] : []], []);
+        const bigLatencies = data.reduce((acc, { latency }) =>
+          [...acc, ...latency >= 200 ? [latency] : []], []);
+        const smallLatenciesHistogram = integersToHistogram(smallLatencies, { binSize: 20 });
+        const bigLatenciesHistogram = integersToHistogram(bigLatencies, { binSize: 100 });
+
+        const latency = Object.assign({}, smallLatenciesHistogram, bigLatenciesHistogram);
+        utils.telemetry({ backend, latency }, false, 'metrics.search.latency');
+      }
+    };
+    this.telemetryLatencySubscription = telemetryLatency$.subscribe(
+      data => sendLatencyTelemery(data),
+      error => logger.error('Failed preparing latency telemetry', error)
+    );
 
     this.resultsSubscription = results$.subscribe((r) => {
       events.pub('search:results', {
@@ -113,6 +134,12 @@ export default class SearchWindow extends AppWindow {
     super.unload();
     if (this.resultsSubscription) {
       this.resultsSubscription.unsubscribe();
+    }
+    if (this.telemetrySubscription) {
+      this.telemetrySubscription.unsubscribe();
+    }
+    if (this.telemetryLatencySubscription) {
+      this.telemetryLatencySubscription.unsubscribe();
     }
   }
 

@@ -7,7 +7,10 @@
  *
  */
 
-import utils from '../../core/utils';
+import { cleanUrlProtocol } from '../../core/url';
+import i18n from '../../core/i18n';
+import prefs from '../../core/prefs';
+import console from '../../core/console';
 
 // we keep a different preferences namespace than cliqz so that it does not get
 // removed after a re-install or sent during a logging signal
@@ -22,21 +25,21 @@ const CliqzLanguage = {
   removeHashId: null,
 
   getLocale() {
-    return utils.PLATFORM_LANGUAGE;
+    return i18n.PLATFORM_LANGUAGE;
   },
 
   // load from the about:config settings
   init(window) {
     CliqzLanguage.window = window;
     if (this.removeHashId === null) {
-      this.removeHashId = utils.setInterval(this.updateTicker.bind(this), this.checkInterval);
+      this.removeHashId = setInterval(this.updateTicker.bind(this), this.checkInterval);
     }
 
-    if (utils.hasPref('data', 'extensions.cliqz-lang.')) {
+    if (prefs.has('data', 'extensions.cliqz-lang.')) {
       try {
         // catch empty value or malformed json
         CliqzLanguage.currentState = JSON.parse(
-          utils.getPref('data', {}, 'extensions.cliqz-lang.'));
+          prefs.get('data', {}, 'extensions.cliqz-lang.'));
       } catch (e) {
         // empty
       }
@@ -83,19 +86,19 @@ const CliqzLanguage = {
     CliqzLanguage.cleanCurrentState();
     CliqzLanguage.saveCurrentState();
 
-    utils.log(CliqzLanguage.stateToQueryString(), CliqzLanguage.LOG_KEY);
+    console.log(CliqzLanguage.stateToQueryString(), CliqzLanguage.LOG_KEY);
   },
   unload() {
     if (this.removeHashId !== null) {
-      utils.clearInterval(this.removeHashId);
+      clearInterval(this.removeHashId);
       this.removeHashId = null;
     }
   },
   updateTicker() {
     let lastUpdate = 0;
-    if (utils.hasPref('lastUpdate', 'extensions.cliqz-lang.')) {
+    if (prefs.has('lastUpdate', 'extensions.cliqz-lang.')) {
       try {
-        lastUpdate = parseInt(utils.getPref('lastUpdate', 0, 'extensions.cliqz-lang.'), 10);
+        lastUpdate = parseInt(prefs.get('lastUpdate', 0, 'extensions.cliqz-lang.'), 10);
       } catch (e) {
         lastUpdate = 0;
       }
@@ -103,7 +106,7 @@ const CliqzLanguage = {
     const currentTime = Date.now();
     if (currentTime > this.cron + lastUpdate) {
       this.removeHash();
-      utils.setPref('lastUpdate', String(currentTime), 'extensions.cliqz-lang.');
+      prefs.set('lastUpdate', String(currentTime), 'extensions.cliqz-lang.');
     }
   },
   // create array of unique hashes
@@ -129,7 +132,7 @@ const CliqzLanguage = {
     if (url === '' || url === undefined || url === null) return;
 
     // extract domain from url, hash it and update the value
-    const urlHash = CliqzLanguage.hashCode(utils.cleanUrlProtocol(url, true).split('/')[0]) % 256;
+    const urlHash = CliqzLanguage.hashCode(cleanUrlProtocol(url, true).split('/')[0]) % 256;
 
     if (!CliqzLanguage.currentState[locale]) {
       CliqzLanguage.currentState[locale] = [];
@@ -137,7 +140,7 @@ const CliqzLanguage = {
 
     if (CliqzLanguage.currentState[locale].indexOf(urlHash) === -1) {
       CliqzLanguage.currentState[locale].push(urlHash);
-      utils.log(`Saving: ${locale} {$urlHash}`, `${CliqzLanguage.LOG_KEY} for url ${url}`);
+      console.log(`Saving: ${locale} ${urlHash}`, `${CliqzLanguage.LOG_KEY} for url ${url}`);
       CliqzLanguage.saveCurrentState();
     }
   },
@@ -151,7 +154,7 @@ const CliqzLanguage = {
           const ind = Math.floor(Math.random() * CliqzLanguage.currentState[lang].length);
           if (CliqzLanguage.currentState[lang][ind] !== CliqzLanguage.LOCALE_HASH) {
             if (!changed) changed = !changed;
-            utils.log(`Removing hash ${CliqzLanguage.currentState[lang][ind]} for the language ${lang}`);
+            console.log(`Removing hash ${CliqzLanguage.currentState[lang][ind]} for the language ${lang}`);
             CliqzLanguage.currentState[lang].splice(ind, 1);
           }
         }
@@ -225,8 +228,8 @@ const CliqzLanguage = {
   },
   // Save the current state to preferences,
   saveCurrentState() {
-    utils.log(`Going to save languages: ${JSON.stringify(CliqzLanguage.currentState)}`, CliqzLanguage.LOG_KEY);
-    utils.setPref('data',
+    console.log(`Going to save languages: ${JSON.stringify(CliqzLanguage.currentState)}`, CliqzLanguage.LOG_KEY);
+    prefs.set('data',
       JSON.stringify(CliqzLanguage.currentState || {}),
       'extensions.cliqz-lang.');
   }

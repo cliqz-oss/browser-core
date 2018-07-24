@@ -18,7 +18,7 @@ const trim = (response) => {
     return trimmed;
   }
 
-  if (getMainLink(second).meta.isAutocompletable) {
+  if (getMainLink(second).meta.completion) {
     trimmed.splice(0, 1);
   }
 

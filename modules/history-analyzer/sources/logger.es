@@ -1,7 +1,3 @@
 import Logger from '../core/logger';
 
-
-export default Logger({
-  level: 'log',
-  prefix: '[history-analyzer]',
-});
+export default Logger.get('history-analyzer', { level: 'log' });

@@ -67,8 +67,8 @@ describe('Fresh tab interactions with search', function () {
           if ((item.args[0].type === 'home') &&
               (item.args[0].target === 'search_bar') &&
               (item.args[0].action === 'focus')) {
-                signalExist = true;
-                count += 1;
+            signalExist = true;
+            count += 1;
           }
         });
 
@@ -95,8 +95,8 @@ describe('Fresh tab interactions with search', function () {
             if ((item.args[0].type === 'home') &&
                 (item.args[0].target === 'search_bar') &&
                 (item.args[0].action === 'blur')) {
-                  signalExist = true;
-                  count += 1;
+              signalExist = true;
+              count += 1;
             }
           });
 

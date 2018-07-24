@@ -67,11 +67,12 @@ function forEachTab(fn) {
 }
 
 const DocumentManager = {
-
   init() {
     this._windowsInfo = new WeakMap();
     Services.obs.addObserver(this, 'document-element-inserted', false);
-    forEachTab(this.observe.bind(this));
+    getContentScript().then(() => {
+      forEachTab(this.observe.bind(this));
+    });
   },
 
   uninit() {
@@ -103,9 +104,16 @@ const DocumentManager = {
       return;
     }
 
-    const isChromePage = whitelistedPages.some(url => window.location.href.indexOf(url) === 0);
+    const currentUrl = window.location.href;
 
-    const contentScript = await getContentScript();
+    const isChromePage = whitelistedPages.some(url => currentUrl.indexOf(url) === 0);
+
+    // avoid internal pages like about:black about:newtab and non cliqz chrome:// or resource://
+    if (!isChromePage && !['http://', 'https://'].some(prefix => currentUrl.indexOf(prefix) === 0)) {
+      return;
+    }
+
+    const contentScript = getContentScript.compiledContentScript;
 
     const windowId = getWindowId(window);
     const listeners = new Set();
@@ -215,7 +223,7 @@ const DocumentManager = {
       },
     };
 
-    if (isChromePage || !contentScript.hasReturnValue) {
+    if (isChromePage || !contentScript || !contentScript.hasReturnValue) {
       Services.scriptloader.loadSubScript('chrome://cliqz/content/core/content-script.bundle.js', {
         window,
         chrome,

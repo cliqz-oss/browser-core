@@ -70,5 +70,3 @@ export default describeModule('core/tlds',
     });
   },
 );
-
-

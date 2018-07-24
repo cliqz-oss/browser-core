@@ -3,7 +3,7 @@
   "format": "common",
   "baseURL": "/",
   "pack": "npm pack",
-  "publish": "aws s3 cp browser-core-$PACKAGE_VERSION.tgz s3://cdncliqz/update/edge/cliqzs/$BRANCH_NAME/$VERSION.tgz --acl public-read && aws s3 cp s3://cdncliqz/update/edge/cliqzs/$BRANCH_NAME/$VERSION.tgz s3://cdncliqz/update/edge/cliqzs/$BRANCH_NAME/latest.tgz --acl public-read",
+  "publish": "aws s3 cp browser-core-$PACKAGE_VERSION.tgz s3://cdncliqz/update/edge/cliqzs/$BRANCH_NAME/$VERSION.${GIT_COMMIT:0:7}.tgz --acl public-read && aws s3 cp s3://cdncliqz/update/edge/cliqzs/$BRANCH_NAME/$VERSION.${GIT_COMMIT:0:7}.tgz s3://cdncliqz/update/edge/cliqzs/$BRANCH_NAME/latest.tgz --acl public-read",
   "settings": {
     "antitrackingButton": false,
     "ATTRACK_TELEMETRY_PROVIDER": "platform",
@@ -31,7 +31,6 @@
     "RESULTS_PROVIDER_LOG" : "https://api.cliqz.com/api/v1/logging?q=",
     "RESULTS_PROVIDER_PING": "https://api.cliqz.com/ping",
     "SAFE_BROWSING": "https://safe-browsing.cliqz.com",
-    "TUTORIAL_URL": "https://cliqz.com/home/onboarding",
     "UNINSTALL": "https://cliqz.com/home/offboarding",
     "FEEDBACK": "https://cliqz.com/feedback/",
     "BACKGROUND_IMAGE_URL": "https://cdn.cliqz.com/brands-database/database/",
@@ -40,9 +39,7 @@
     "ROTATED_TOP_NEWS": "rotated-top-news.cliqz.com",
     "HB_NEWS": "hb-news.cliqz.com",
     "TELEMETRY_ENDPOINT": "https://safebrowsing-experiment.cliqz.com",
-    "INVENTORY_URL": "https://cdn.cliqz.com/browser-f/fun-demo/inventoryv2.txt.gz",
-    "OFFER_TELEMETRY": "https://offers-api.cliqz.com/api/v1/savesignal",
-    "OFFER_TELEMETRY_PREFIX": "https://offers-api.cliqz.com"
+    "INVENTORY_URL": "https://cdn.cliqz.com/browser-f/fun-demo/inventoryv2.txt.gz"
   },
   "default_prefs" : {
     "modules.antitracking.enabled": false

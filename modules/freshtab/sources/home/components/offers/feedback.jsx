@@ -1,5 +1,6 @@
+/* eslint-disable indent */
+
 import React from 'react';
-import ToggleDisplay from 'react-toggle-display';
 
 export default class Feedback extends React.Component {
   constructor(props) {
@@ -50,57 +51,53 @@ export default class Feedback extends React.Component {
         >
             Feedback
         </button>
-        <div
-          id="feedback-content"
-          style={{ display: this.state.showFeedbackContent ? 'block' : 'none' }}
-        >
-          <ToggleDisplay show={this.state.showFeedbackVote}>
-            <div
-              id="feedback-vote-wrapper"
-            >
-              <span className="feedback-text">
-                How do you like MyOffrz feature?
-              </span>
-              <p>
-                <button
-                  className="feedback-button"
-                  data-vote="up"
-                  onClick={() => this.handleVote('up')}
-                />
-                <button
-                  className="feedback-button"
-                  data-vote="down"
-                  onClick={() => this.handleVote('down')}
-                />
-              </p>
+        { this.state.showFeedbackContent ?
+          <div id="feedback-content">
+            this.state.showFeedbackVote ?
+              <div id="feedback-vote-wrapper">
+                <span className="feedback-text">
+                  How do you like MyOffrz feature?
+                </span>
+                <p>
+                  <button
+                    className="feedback-button"
+                    data-vote="up"
+                    onClick={() => this.handleVote('up')}
+                  />
+                  <button
+                    className="feedback-button"
+                    data-vote="down"
+                    onClick={() => this.handleVote('down')}
+                  />
+                </p>
+              </div>
+              :
+              [ this.state.showFeedbackComment ?
+                <div id="feedback-comment-wrapper">
+                  <span className="feedback-text">
+                    Do you have any comments
+                  </span>
+                  <textarea
+                    id="feedback-textarea"
+                    rows="3"
+                    cols="8"
+                    ref={(comment) => { this._comment = comment; }}
+                  />
+                  <button
+                    id="submit-feedback"
+                    onClick={this.submitFeedback}
+                  >
+                    Send
+                  </button>
+                </div>
+                :
+                null
+              ]
             </div>
-          </ToggleDisplay>
-
-          <ToggleDisplay hide={this.state.showFeedbackVote}>
-            <div
-              id="feedback-comment-wrapper"
-              style={{ display: this.state.showFeedbackComment ? 'block' : 'none' }}
-            >
-              <span className="feedback-text">
-                Do you have any comments
-              </span>
-              <textarea
-                id="feedback-textarea"
-                rows="3"
-                cols="8"
-                ref={(comment) => { this._comment = comment; }}
-              />
-              <button
-                id="submit-feedback"
-                onClick={this.submitFeedback}
-              >
-                Send
-              </button>
-            </div>
-          </ToggleDisplay>
-        </div>
+          :
+          null
+        }
       </div>
     );
   }
 }
-

@@ -1,10 +1,13 @@
+import chai from 'chai';
+import chaiDom from 'chai-dom';
+
 import config from '../../core/config';
+import { wait } from './test-helpers';
+
+
+chai.use(chaiDom);
 
 export const CONFIG = config;
-
-function wait(time) {
-  return new Promise(resolve => setTimeout(resolve, time));
-}
 
 function range(i) {
   return i > 0 ? range(i - 1).concat(i - 1) : [];
@@ -120,11 +123,39 @@ export const mockMessage = {
   }
 };
 
+export const mockOfferMessage = {
+  123: {
+    offer_id: '123',
+    id: '123',
+    offer_info: {
+      ui_info: {
+        template_data: {
+          call_to_action: {
+            target: '',
+            text: 'Teilnehmen',
+            url: 'https://umfrage.cliqz.com/index.php/545662?lang=de"='
+          },
+          conditions: 'Diese Umfrage dauert ca. 5 Minuten und ist anonym.',
+          desc: 'Hallo! Wir möchten sehr gerne etwas über Ihre Meinung zum Cliqz-Browser erfahren.',
+          logo_url: 'https://cdn.cliqz.com/extension/offers/survey-icon.svg',
+          title: 'Cliqz-Umfrage',
+          validity: 1519967709,
+          voucher_classes: ''
+        }
+      }
+    },
+    validity: 1519967709,
+    position: 'middle',
+    type: 'offer',
+  }
+};
+
 export class Subject {
-  constructor({ waitForFirstMessage = false } = {}) {
+  constructor({ waitForFirstMessage = false, injectTestUtils = false } = {}) {
     this.waitForFirstMessage = waitForFirstMessage;
     this.modules = {};
     this.messages = [];
+    this.injectTestUtils = injectTestUtils;
     const listeners = new Set();
     this.chrome = {
       runtime: {
@@ -157,6 +188,24 @@ export class Subject {
     };
   }
 
+  _injectTestUtils() {
+    let testUtilsPromise = Promise.resolve();
+
+    if (this.injectTestUtils) {
+      let resolver;
+      testUtilsPromise = new Promise((r) => { resolver = r; });
+      const testUtils = document.createElement('script');
+      this.iframe.contentWindow.document.body.appendChild(testUtils);
+
+      testUtils.onload = () => {
+        resolver();
+      };
+      testUtils.src = '../vendor/react-dom-test-utils.js';
+    }
+
+    return testUtilsPromise;
+  }
+
   load({
     buildUrl = `/build/${config.settings.id}/chrome/content/freshtab/home.html`,
     iframeWidth = 900 } = {}) {
@@ -165,19 +214,19 @@ export class Subject {
     this.iframe.width = iframeWidth;
     this.iframe.height = 700;
     document.body.appendChild(this.iframe);
-
     return new Promise((resolve) => {
       this.iframe.contentWindow.chrome = this.chrome;
       this.iframe.contentWindow.addEventListener('message', (ev) => {
         const data = JSON.parse(ev.data);
         this.messages.push(data);
         if (this.waitForFirstMessage) {
-          resolve();
+          this._injectTestUtils().then(() => resolve());
         }
       });
+
       this.iframe.contentWindow.addEventListener('load', () => {
         if (!this.waitForFirstMessage) {
-          resolve();
+          this._injectTestUtils().then(() => resolve());
         }
       });
     });
@@ -185,6 +234,10 @@ export class Subject {
 
   unload() {
     document.body.removeChild(this.iframe);
+  }
+
+  get testUtils() {
+    return this.iframe.contentWindow.ReactTestUtils;
   }
 
   queryByI18n(switchLabel) {
@@ -374,6 +427,48 @@ export const defaultConfig = {
       background: {
         image: 'bg-default'
       }
-    }
+    },
+    wallpapers: [
+      {
+        name: 'bg-blue',
+        alias: 'alps',
+        isDefault: false,
+      },
+      {
+        name: 'bg-light',
+        alias: 'light',
+        isDefault: false,
+      },
+      {
+        name: 'bg-dark',
+        alias: 'dark',
+        isDefault: false,
+      },
+      {
+        name: 'bg-winter',
+        alias: 'winter',
+        isDefault: false,
+      },
+      {
+        name: 'bg-matterhorn',
+        alias: 'matterhorn',
+        isDefault: true,
+      },
+      {
+        name: 'bg-spring',
+        alias: 'spring',
+        isDefault: false,
+      },
+      {
+        name: 'bg-worldcup',
+        alias: 'worldcup',
+        isDefault: false,
+      },
+      {
+        name: 'bg-summer',
+        alias: 'summer',
+        isDefault: false,
+      }
+    ]
   },
 };

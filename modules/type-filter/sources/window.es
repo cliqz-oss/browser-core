@@ -1,4 +1,4 @@
-import utils from '../core/utils';
+import prefs from '../core/prefs';
 
 export default class Win {
   init() {
@@ -8,12 +8,12 @@ export default class Win {
   }
 
   status() {
-    if (utils.getPref('modules.type-filter.enabled', false)) {
+    if (prefs.get('modules.type-filter.enabled', false)) {
       return {
         visible: true,
-        type1: utils.getPref('type_filter_type1', true),
-        type2: utils.getPref('type_filter_type2', true),
-        type3: utils.getPref('type_filter_type3', true)
+        type1: prefs.get('type_filter_type1', true),
+        type2: prefs.get('type_filter_type2', true),
+        type3: prefs.get('type_filter_type3', true)
       };
     }
 

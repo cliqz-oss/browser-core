@@ -29,7 +29,8 @@ export function settingsBackgroundSelectSignal(bg) {
     'bg-winter': 'winter',
     'bg-spring': 'spring',
     'bg-worldcup': 'worldcup',
-    'bg-summer': 'summer'
+    'bg-summer': 'summer',
+    'bg-matterhorn': 'matterhorn'
   };
 
   const state = BACKGROUNDS[bg];

@@ -1,5 +1,3 @@
-// import md5 from 'core/helpers/md5';
-import utils from '../core/utils';
 import logger from './logger';
 import { ERROR_CODE } from './rtc-onion';
 
@@ -25,14 +23,14 @@ export default class RtcRelay {
     this.dataOut = 0;
 
     // Display health check
-    this.healthCheck = utils.setInterval(
+    this.healthCheck = setInterval(
       () => {
         logger.log(`RTCRelay healthcheck ${JSON.stringify(this.healthcheck())}`);
       },
       60 * 1000);
 
     // Clean-up dead connections (no activity for one minute)
-    this.closeDeadConnections = utils.setInterval(
+    this.closeDeadConnections = setInterval(
       () => {
         const timestamp = Date.now();
         [...this.previousPeer.keys()].forEach((connectionID) => {
@@ -65,8 +63,8 @@ export default class RtcRelay {
   }
 
   stop() {
-    utils.clearInterval(this.closeDeadConnections);
-    utils.clearInterval(this.healthCheck);
+    clearInterval(this.closeDeadConnections);
+    clearInterval(this.healthCheck);
   }
 
   unload() {

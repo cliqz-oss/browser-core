@@ -1,7 +1,6 @@
 import MessageStorage from './message-storage';
 import { sha256, toByteArray, deriveAESKey, fromByteArray, encryptStringAES, decryptStringAES } from '../core/crypto/utils';
 import console from '../core/console';
-import utils from '../core/utils';
 import { encryptPairedMessage, decryptPairedMessage, ERRORS, getMessageTargets, dummyKeypair, VERSION } from './shared';
 import { toBase64 } from '../core/encoding';
 import CliqzPeer from '../p2p/cliqz-peer';
@@ -220,14 +219,14 @@ export default class PeerMaster {
       return;
     }
     if (!this.pusher) {
-      this.pusher = utils.setTimeout(this.messagePusher.bind(this), 0);
+      this.pusher = setTimeout(this.messagePusher.bind(this), 0);
     }
   }
 
   unload(destroy = false) {
     if (this.isInit) {
       this.isInit = false;
-      utils.clearTimeout(this.pusher);
+      clearTimeout(this.pusher);
       this.pusher = null;
       if (this.masterPeer) {
         try {
@@ -546,7 +545,7 @@ export default class PeerMaster {
       this.propagateEvent('statusChanged');
       this.masterPeer.connectPeer(deviceID)
         .then(() => {
-          utils.setTimeout(() => this.removePairingDevice(deviceID, true), this.pairingTimeout);
+          setTimeout(() => this.removePairingDevice(deviceID, true), this.pairingTimeout);
         })
         .catch(() => this.removePairingDevice(deviceID, true));
     }
@@ -582,7 +581,7 @@ export default class PeerMaster {
   // Use this to unpair device from mobile
   unpair(deviceID) {
     const promise = new Promise((resolve, reject) => {
-      utils.setTimeout(reject, 1000);
+      setTimeout(reject, 1000);
       this.pushMessage({}, deviceID, '__REMOVEDPEER', [deviceID])
         .then(resolve)
         .catch(reject);

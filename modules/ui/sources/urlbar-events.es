@@ -4,11 +4,54 @@ import { nextTick } from '../core/decorators';
 import console from '../core/console';
 import { getCurrentTabId } from '../core/tabs';
 import { isOnionMode } from '../core/platform';
+import { _httpHandler } from '../core/http';
+import config from '../core/config';
 
 const ACproviderName = 'cliqz-results';
 const lastEvent = new WeakMap();
 
+// establishes the connection
+export function pingCliqzResults() {
+  _httpHandler('HEAD', config.settings.RESULTS_PROVIDER_PING);
+}
+
 export default {
+  /**
+   * In order to prevent autocompletion blinking we shift selection range
+   * if the subsequent query matches the previous completion
+   */
+  keypress(ev) {
+    if (ev.ctrlKey || ev.altKey || ev.metaKey) {
+      return;
+    }
+
+    const urlbar = this.urlbar;
+    const mInputField = urlbar.mInputField;
+    const hasCompletion = mInputField.selectionEnd !== mInputField.selectionStart;
+
+    if (
+      hasCompletion &&
+      mInputField.value[mInputField.selectionStart] === String.fromCharCode(ev.charCode)
+    ) {
+      let query = urlbar.value;
+      const queryWithCompletion = mInputField.value;
+      const start = mInputField.selectionStart;
+      query = query.slice(0, urlbar.selectionStart) + String.fromCharCode(ev.charCode);
+
+      // Prevent sending the new query
+      ev.preventDefault();
+
+      // This reset mInput.value
+      mInputField.setUserInput(query);
+
+      // So it has to be restored to include completion
+      mInputField.value = queryWithCompletion;
+
+      // Update completion
+      mInputField.setSelectionRange(start + 1, mInputField.value.length);
+    }
+  },
+
   mouseup(event) {
     if (event.originalTarget.getAttribute('anonid') === 'historydropmarker') {
       events.pub('urlbar:dropmarker-click', {
@@ -42,10 +85,10 @@ export default {
 
     // try to 'heat up' the connection
     if (!isOnionMode) {
-      utils.pingCliqzResults();
+      pingCliqzResults();
     }
 
-    utils.setSearchSession(utils.rand(32));
+    utils.setSearchSession();
     this.urlbarEvent('focus');
     events.pub('urlbar:focus', {
       windowId: this.windowId,
@@ -75,29 +118,6 @@ export default {
     });
   },
   /**
-  * Urlbar keypress event
-  * @event keypress
-  * @param ev
-  */
-  keypress(ev) {
-    if (!ev.ctrlKey && !ev.altKey && !ev.metaKey) {
-      const urlbar = this.urlbar;
-      const mInputField = urlbar.mInputField;
-      if (mInputField.selectionEnd !== mInputField.selectionStart &&
-        mInputField.value[mInputField.selectionStart] === String.fromCharCode(ev.charCode)) {
-        // prevent the redraw in urlbar but send the search signal
-        let query = urlbar.value;
-        const old = mInputField.value;
-        const start = mInputField.selectionStart;
-        query = query.slice(0, urlbar.selectionStart) + String.fromCharCode(ev.charCode);
-        mInputField.setUserInput(query);
-        mInputField.value = old;
-        mInputField.setSelectionRange(start + 1, mInputField.value.length);
-        ev.preventDefault();
-      }
-    }
-  },
-  /**
   * Urlbar drop event
   * @event drop
   * @param ev
@@ -106,12 +126,6 @@ export default {
     const dTypes = ev.dataTransfer.types;
     if ((dTypes.indexOf && dTypes.indexOf('text/plain') !== -1) ||
       (dTypes.contains && dTypes.contains('text/plain') !== -1)) {
-      // open dropdown on text drop
-      const inputField = this.urlbar.mInputField;
-      const val = inputField.value;
-      inputField.setUserInput('');
-      inputField.setUserInput(val);
-
       utils.telemetry({
         type: 'activity',
         action: 'textdrop'

@@ -1,8 +1,6 @@
 /* eslint func-names: 'off' */
 /* eslint prefer-arrow-callback: 'off' */
 
-import utils from '../core/utils';
-
 /** Set like class whose members are removed after a specific amount of time
 */
 export default class TempSet {
@@ -21,7 +19,7 @@ export default class TempSet {
 
   add(item, ttl) {
     this._items.add(item);
-    const timeout = utils.setTimeout(function () {
+    const timeout = setTimeout(function () {
       this.delete(item);
       this._timeouts.delete(timeout);
     }.bind(this), ttl || 0);
@@ -34,7 +32,7 @@ export default class TempSet {
 
   clear() {
     for (const t of this._timeouts) {
-      utils.clearTimeout(t);
+      clearTimeout(t);
     }
     this._timeouts.clear();
     this._items.clear();

@@ -4,7 +4,8 @@ import Switch from './switch';
 import BackgroundImage from './background-image';
 import t from '../i18n';
 import { settingsCloseSignal, settingsBackgroundSelectSignal } from '../services/telemetry/settings';
-import { NO_BG } from '../services/background-image';
+// import { NO_BG } from '../services/background-image';
+import { NO_BG } from '../../constants';
 
 export default class Settings extends React.Component {
   constructor(props) {
@@ -26,9 +27,9 @@ export default class Settings extends React.Component {
     this.setState({ componentsState: nextProps.componentsState });
   }
 
-  onBackgroundImageChanged(bg) {
+  onBackgroundImageChanged(bg, index) {
     settingsBackgroundSelectSignal(bg);
-    this.props.onBackgroundImageChanged(bg);
+    this.props.onBackgroundImageChanged(bg, index);
   }
 
   onNewsSelectionChanged(changeEvent) {
@@ -48,6 +49,7 @@ export default class Settings extends React.Component {
         <div
           id="settings-panel"
           className={(this.props.isOpen ? 'visible ' : '')}
+          tabIndex="-1"
         >
           <button
             onClick={() => this.onCloseButtonClick()}
@@ -84,74 +86,21 @@ export default class Settings extends React.Component {
           ) : (
             <div className="settings-row">
               <ul className="background-selection-list">
-                {this.props.isBlueBackgroundSupported &&
-                <li>
-                  <BackgroundImage
-                    onBackgroundImageChanged={this.onBackgroundImageChanged}
-                    bg="bg-blue"
-                    src="./images/bg-alps-thumbnail.png"
-                    isActive={this.state.componentsState.background.image === 'bg-blue' ||
-                      !this.state.componentsState.background.image
-                    }
-                  />
-                </li>
+                { this.props.wallpapers && this.props.wallpapers.map((background, index) =>
+                  (
+                    <li>
+                      <BackgroundImage
+                        onBackgroundImageChanged={this.onBackgroundImageChanged}
+                        index={index}
+                        bg={background.name}
+                        src={`./images/bg-${background.alias}-thumbnail.png`}
+                        isActive={this.state.componentsState.background.image === background.name ||
+                              !this.state.componentsState.background.image
+                        }
+                      />
+                    </li>
+                  ))
                 }
-                <li>
-                  <BackgroundImage
-                    onBackgroundImageChanged={this.onBackgroundImageChanged}
-                    bg="bg-light"
-                    src="./images/bg-light-thumbnail.png"
-                    isActive={this.state.componentsState.background.image === 'bg-light'}
-                  />
-                </li>
-                <li>
-                  <BackgroundImage
-                    onBackgroundImageChanged={this.onBackgroundImageChanged}
-                    bg="bg-dark"
-                    src="./images/bg-dark-thumbnail.png"
-                    isActive={this.state.componentsState.background.image === 'bg-dark'}
-                  />
-                </li>
-                <li>
-                  <BackgroundImage
-                    onBackgroundImageChanged={this.onBackgroundImageChanged}
-                    bg="bg-winter"
-                    src="./images/bg-winter-thumbnail.png"
-                    isActive={this.state.componentsState.background.image === 'bg-winter'}
-                  />
-                </li>
-                <li>
-                  <BackgroundImage
-                    onBackgroundImageChanged={this.onBackgroundImageChanged}
-                    bg="bg-matterhorn"
-                    src="./images/bg-matterhorn-thumbnail.png"
-                    isActive={this.state.componentsState.background.image === 'bg-matterhorn'}
-                  />
-                </li>
-                <li>
-                  <BackgroundImage
-                    onBackgroundImageChanged={this.onBackgroundImageChanged}
-                    bg="bg-spring"
-                    src="./images/bg-spring-thumbnail.png"
-                    isActive={this.state.componentsState.background.image === 'bg-spring'}
-                  />
-                </li>
-                <li>
-                  <BackgroundImage
-                    onBackgroundImageChanged={this.onBackgroundImageChanged}
-                    bg="bg-worldcup"
-                    src="./images/bg-worldcup-thumbnail.png"
-                    isActive={this.state.componentsState.background.image === 'bg-worldcup'}
-                  />
-                </li>
-                <li>
-                  <BackgroundImage
-                    onBackgroundImageChanged={this.onBackgroundImageChanged}
-                    bg="bg-summer"
-                    src="./images/bg-summer-thumbnail.png"
-                    isActive={this.state.componentsState.background.image === 'bg-summer'}
-                  />
-                </li>
               </ul>
             </div>
           )
@@ -306,7 +255,6 @@ Settings.propTypes = {
   focusNews: PropTypes.bool,
   blueTheme: PropTypes.bool,
   isBlueThemeSupported: PropTypes.func,
-  isBlueBackgroundSupported: PropTypes.func,
   toggleComponent: PropTypes.func,
   toggleBlueTheme: PropTypes.func,
   toggleBackground: PropTypes.func,

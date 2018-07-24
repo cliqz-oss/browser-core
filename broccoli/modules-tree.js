@@ -47,7 +47,6 @@ const babelOptions = {
       },
       modules: false,
       exclude: [
-        'transform-async-to-generator',
         'transform-es2015-template-literals',
         'transform-regenerator'
       ]
@@ -62,6 +61,7 @@ const babelOptions = {
     'transform-object-rest-spread',
     'transform-react-jsx',
     'transform-async-to-generator',
+    'transform-async-generator-functions',
   ].concat(cliqzConfig.babelPlugins || []).concat(babelModulePlugin || []),
 };
 
@@ -238,14 +238,14 @@ function getSourceTree() {
   let sources = getSourceFunnel();
   const config = writeFile('core/config.es', 'export default '+JSON.stringify(cliqzConfig, null, 2));
 
-  const generateBundledTests = process.env.CLIQZ_INCLUDE_TESTS || env.TESTING;
+  const includeTests = process.env.CLIQZ_INCLUDE_TESTS || env.TESTING;
 
   sources = new MergeTrees([
     sources,
     config,
     contentScriptsImport,
-    generateBundledTests ? contentTestsImport : new MergeTrees([]),
-    generateBundledTests ? integrationTestsImport : new MergeTrees([]),
+    includeTests ? contentTestsImport : new MergeTrees([]),
+    includeTests ? integrationTestsImport : new MergeTrees([]),
     new Funnel(modulesList, { destDir: 'core/app' }),
   ]);
 
@@ -270,16 +270,11 @@ function getSourceTree() {
     transpiledSources,
   ];
 
-  const includeTests = process.env.CLIQZ_INCLUDE_TESTS;
-
-  if (includeTests || ((env.TESTING) &&
-      (cliqzConfig.testem_launchers || []).length)) {
-    sourceTrees.push(transpiledModuleTestsTree);
-  }
-
   const exclude = ["**/*.jshint.js"];
 
-  if (!env.TESTING && !includeTests) {
+  if (includeTests) {
+    sourceTrees.push(transpiledModuleTestsTree);
+  } else {
     exclude.push("**/content-tests.bundle*");
     exclude.push("**/integration-tests.bundle*");
   }

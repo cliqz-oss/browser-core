@@ -11,6 +11,7 @@ import inject from '../core/kord/inject';
 import modules from '../core/app/modules';
 import window from './window';
 import webRequest from './webrequest';
+import { getDetailsFromUrl } from '../core/url';
 
 const Crypto = NativeModules.Crypto;
 
@@ -58,11 +59,9 @@ const startup = Promise.all([seedPromise]).then(() => {
     getPref(prefname, defaultValue));
   bridge.registerAction('core:setPref', setPref);
   bridge.registerAction('getLogoDetails',
-    url => utils.getLogoDetails(utils.getDetailsFromUrl(url))
+    url => utils.getLogoDetails(getDetailsFromUrl(url))
   );
   bridge.registerAction('webRequest', webRequest.onBeforeRequest._trigger.bind(webRequest.onBeforeRequest));
-
-  InteractionManager.runAfterInteractions(utils.fetchAndStoreConfig);
   return app.modules.search.getWindowLoadingPromise(window);
 }).then(() => {
   bridge.activate();

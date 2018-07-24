@@ -1,54 +1,54 @@
 /* global chai */
 /* global describeModule */
 /* global require */
+/* eslint no-param-reassign: off */
 
 const adblocker = require('@cliqz/adblocker');
-const encoding = require('text-encoding');
 const tldjs = require('tldjs');
 
 
 const VALID_OFFER_OBJ = {
-  "action_info": {
-      "on_click": "https://www.cliqz.com"
+  action_info: {
+    on_click: 'https://www.cliqz.com'
   },
-  "campaign_id": "cid_1",
-  "client_id": "client-1",
-  "display_id": "x-d",
-  "filterRules": {
-    "eval_expression": "generic_comparator('offer_closed','l_u_ts','>=',30) && " +
+  campaign_id: 'cid_1',
+  client_id: 'client-1',
+  display_id: 'x-d',
+  filterRules: {
+    eval_expression: "generic_comparator('offer_closed','l_u_ts','>=',30) && " +
                  "generic_comparator('offer_shown','counter','<=',5)",
   },
-  "offer_id": "x",
-  "rule_info": {
-      "display_time_secs": 999999,
-      "type": "exact_match",
-      "url": []
+  offer_id: 'x',
+  rule_info: {
+    display_time_secs: 999999,
+    type: 'exact_match',
+    url: []
   },
-  "ui_info": {
-      "template_data": {
-          "call_to_action": {
-              "target": "",
-              "text": "Jetzt Anfordern",
-              "url": "http://newurl"
-          },
-          "conditions": "Some conditions",
-          "desc": "Some description",
-          "logo_url": "somelogourl",
-          "title": "This is the title",
-          "voucher_classes": ""
+  ui_info: {
+    template_data: {
+      call_to_action: {
+        target: '',
+        text: 'Jetzt Anfordern',
+        url: 'http://newurl'
       },
-      "template_name": "ticket_template"
+      conditions: 'Some conditions',
+      desc: 'Some description',
+      logo_url: 'somelogourl',
+      title: 'This is the title',
+      voucher_classes: ''
+    },
+    template_name: 'ticket_template'
   },
-  "rs_dest": ["offers-cc"],
-  "types": ["type1", "type2"],
-  "monitorData": [],
-  "categories": ["cat1"],
+  rs_dest: ['offers-cc'],
+  types: ['type1', 'type2'],
+  monitorData: [],
+  categories: ['cat1'],
 };
 
-let ABTestNumber = 0;
+const ABTestNumber = 0;
 
 // needed for the map
-let persistence = {};
+const persistence = {};
 function delay(fn) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -60,8 +60,6 @@ function delay(fn) {
   });
 }
 
-
-
 export default describeModule('offers-v2/offers/soft-filter',
   () => ({
     'platform/lib/adblocker': {
@@ -70,10 +68,10 @@ export default describeModule('offers-v2/offers/soft-filter',
     'offers-v2/common/offers_v2_logger': {
       default: {
         debug: () => {},
-        error: (...x) => {console.error(...x);},
-        info: (...x) => {console.log(...x);},
-        log: (...x) => {console.log(...x);},
-        warn: (...x) => {console.warn(...x);},
+        error: (...x) => { console.error(...x); },
+        info: (...x) => { console.log(...x); },
+        log: (...x) => { console.log(...x); },
+        warn: (...x) => { console.warn(...x); },
         logObject: () => {},
       }
     },
@@ -84,9 +82,7 @@ export default describeModule('offers-v2/offers/soft-filter',
       default: tldjs,
     },
     'core/utils': {
-      default: {
-        setInterval: function () {}
-      }
+      default: {}
     },
     'platform/globals': {
       default: {}
@@ -102,10 +98,10 @@ export default describeModule('offers-v2/offers/soft-filter',
       },
     },
     'offers-v2/utils': {
-      getABNumber: function() {
+      getABNumber: function () {
         return ABTestNumber;
       },
-      timestampMS: function() {
+      timestampMS: function () {
         return Date.now();
       }
     },
@@ -159,7 +155,7 @@ export default describeModule('offers-v2/offers/soft-filter',
     }
   }),
   () => {
-    describe('#soft-filter', function() {
+    describe('#soft-filter', function () {
       let OfferDB;
       let ActionID;
       let Offer;
@@ -192,17 +188,12 @@ export default describeModule('offers-v2/offers/soft-filter',
 
       context('basic tests', function () {
         let db;
-        let fer;
         let offerObj;
         let offer;
-        let ctx;
 
         beforeEach(function () {
           db = new OfferDB({});
           offerObj = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
-          ctx = {
-            offersDB: db,
-          };
         });
 
         function updateOfferOnDB(ob, rules) {
@@ -259,7 +250,6 @@ export default describeModule('offers-v2/offers/soft-filter',
 
           // if the offer doesn't exist on the DB then we should show it
           chai.expect(shouldFilterOffer(offer, db), 'empty check').to.be.equal(false);
-
         });
 
         //
@@ -277,8 +267,10 @@ export default describeModule('offers-v2/offers/soft-filter',
           offer = updateOfferOnDB(offer.offerObj, rules);
           chai.expect(shouldFilterOffer(offer, db), 'e2').to.be.equal(false);
           // add the actions on the DB
-          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_CLOSED)).to.be.equal(true);
-          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_CLOSED).count, 'e3').to.be.equal(1);
+          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_CLOSED))
+            .to.be.equal(true);
+          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_CLOSED).count, 'e3')
+            .to.be.equal(1);
           // now should fail since we expect to not be closed more than 0 times
           rules = "generic_comparator('offer_closed','counter','<=',0)";
           offer = updateOfferOnDB(offer.offerObj, rules);
@@ -291,11 +283,15 @@ export default describeModule('offers-v2/offers/soft-filter',
           offer = updateOfferOnDB(offer.offerObj, rules);
           chai.expect(shouldFilterOffer(offer, db), 'e5').to.be.equal(false);
           // increase 2 more times
-          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_CLOSED)).to.be.equal(true);
-          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_CLOSED).count).to.be.equal(2);
+          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_CLOSED))
+            .to.be.equal(true);
+          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_CLOSED).count)
+            .to.be.equal(2);
           chai.expect(shouldFilterOffer(offer, db), 'e6').to.be.equal(false);
-          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_CLOSED)).to.be.equal(true);
-          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_CLOSED).count).to.be.equal(3);
+          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_CLOSED))
+            .to.be.equal(true);
+          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_CLOSED).count)
+            .to.be.equal(3);
           // it should fail again
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(true);
         });
@@ -305,8 +301,10 @@ export default describeModule('offers-v2/offers/soft-filter',
           offer = buildOffer(rules);
           chai.expect(db.addOfferObject(offer.uniqueID, offerObj)).to.be.equal(true);
           chai.expect(db.hasOfferData(offer.uniqueID)).to.be.equal(true);
-          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_SHOWN)).to.be.equal(true);
-          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_SHOWN).count).to.be.equal(1);
+          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_SHOWN))
+            .to.be.equal(true);
+          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_SHOWN).count)
+            .to.be.equal(1);
 
           // updated more than 0 seconds ago: pass
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(false);
@@ -327,16 +325,22 @@ export default describeModule('offers-v2/offers/soft-filter',
 
           chai.expect(db.addOfferObject(offer.uniqueID, offerObj)).to.be.equal(true);
           chai.expect(db.hasOfferData(offer.uniqueID)).to.be.equal(true);
-          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_SHOWN)).to.be.equal(true);
-          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_SHOWN).count).to.be.equal(1);
-          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_CLOSED)).to.be.equal(true);
-          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_CLOSED).count).to.be.equal(1);
+          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_SHOWN))
+            .to.be.equal(true);
+          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_SHOWN).count)
+            .to.be.equal(1);
+          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_CLOSED))
+            .to.be.equal(true);
+          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_CLOSED).count)
+            .to.be.equal(1);
 
           // updated more than 0 sec ago and not shown yet, should pass
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(false);
           // adding offer_shown and trying again, shouldn't pass
-          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_SHOWN)).to.be.equal(true);
-          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_SHOWN).count).to.be.equal(2);
+          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_SHOWN))
+            .to.be.equal(true);
+          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_SHOWN).count)
+            .to.be.equal(2);
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(true);
           // not shown more than 2, should pass again
           rules = "generic_comparator('offer_closed','l_u_ts','>=',0) && " +
@@ -355,8 +359,10 @@ export default describeModule('offers-v2/offers/soft-filter',
           offer = buildOffer(rules);
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(false);
           // adding offer_closed, should not pass
-          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_CLOSED)).to.be.equal(true);
-          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_CLOSED).count).to.be.equal(2);
+          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_CLOSED))
+            .to.be.equal(true);
+          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_CLOSED).count)
+            .to.be.equal(2);
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(true);
         });
 
@@ -367,16 +373,22 @@ export default describeModule('offers-v2/offers/soft-filter',
 
           chai.expect(db.addOfferObject(offer.uniqueID, offerObj)).to.be.equal(true);
           chai.expect(db.hasOfferData(offer.uniqueID)).to.be.equal(true);
-          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_SHOWN)).to.be.equal(true);
-          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_SHOWN).count).to.be.equal(1);
-          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_CLOSED)).to.be.equal(true);
-          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_CLOSED).count).to.be.equal(1);
+          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_SHOWN))
+            .to.be.equal(true);
+          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_SHOWN).count)
+            .to.be.equal(1);
+          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_CLOSED))
+            .to.be.equal(true);
+          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_CLOSED).count)
+            .to.be.equal(1);
 
           // updated more than 0 sec ago and not shown yet, should pass
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(false);
           // adding offer_shown and trying again, should still pass
-          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_SHOWN)).to.be.equal(true);
-          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_SHOWN).count).to.be.equal(2);
+          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_SHOWN))
+            .to.be.equal(true);
+          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_SHOWN).count)
+            .to.be.equal(2);
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(false);
           // updated more than 99999 sec ago, shouldn't pass now
           rules = "generic_comparator('offer_closed','l_u_ts','>=',99999) || " +
@@ -395,8 +407,10 @@ export default describeModule('offers-v2/offers/soft-filter',
           offer = buildOffer(rules);
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(false);
           // adding offer_closed, shouldn't pass
-          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_CLOSED)).to.be.equal(true);
-          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_CLOSED).count).to.be.equal(2);
+          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_CLOSED))
+            .to.be.equal(true);
+          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_CLOSED).count)
+            .to.be.equal(2);
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(true);
         });
 
@@ -412,12 +426,16 @@ export default describeModule('offers-v2/offers/soft-filter',
           // updated more than 0 sec ago and not shown yet, should pass
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(false);
           // adding offer_closed, should still pass
-          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_CLOSED)).to.be.equal(true);
-          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_CLOSED).count).to.be.equal(1);
+          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_CLOSED))
+            .to.be.equal(true);
+          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_CLOSED).count)
+            .to.be.equal(1);
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(false);
           // adding offer_shown and trying again, shouldn't pass this time
-          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_SHOWN)).to.be.equal(true);
-          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_SHOWN).count).to.be.equal(1);
+          chai.expect(db.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_SHOWN))
+            .to.be.equal(true);
+          chai.expect(db.getOfferActionMeta(offer.uniqueID, ActionID.AID_OFFER_SHOWN).count)
+            .to.be.equal(1);
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(true);
           // setting offer_shown < 2, should pass again
           rules = "generic_comparator('offer_closed','l_u_ts','>=',0) && " +
@@ -508,7 +526,6 @@ export default describeModule('offers-v2/offers/soft-filter',
           chai.expect(db.hasOfferData(offer3.uniqueID), 'e8').to.be.equal(true);
           chai.expect(shouldFilterOffer(offer, db), 'e8').to.be.equal(true);
         });
-
       });
     });
   }

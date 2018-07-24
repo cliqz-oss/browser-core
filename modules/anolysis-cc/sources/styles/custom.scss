@@ -1,0 +1,92 @@
+// Defining Color Palette
+$neutral: #f7f7ff;
+$safe: #e7ffe7;
+$unsafe: #fce8f0;
+$black: #1a1a25;
+$light-background: #fcfcfc;
+
+.container {
+    color: $black;
+    padding-top: 5%;
+    width: 75%;
+    .no-background{ background: none;}
+    .unsafe {
+        background: $unsafe;
+    }
+    .safe {
+        background: $safe;
+    }
+    .card {
+        margin-bottom: 40px;
+        .card-subtitle {
+            color: $black;
+        }
+        .card-footer {
+            background: $light-background;
+            font-size: 0.7rem;
+            margin-top: 25px;
+        }
+    }
+    pre {
+        font-size: 80%;
+        background: $neutral;
+        padding: 20px;
+        border-radius: 3px;
+    }
+    code {
+        background: $neutral;
+        border-radius: 0.14rem;
+        color: $black;
+        font-size: 80%;
+        line-height: 1.2;
+        padding: 0.1rem 0.3rem;
+        white-space: nowrap;
+    }
+    .nav {
+        position: fixed;
+        margin-right: 2%;
+        a {
+            display: block;
+            color: $black;
+        }
+        li {
+            padding: 5px;
+            border-radius: 3px;
+        }
+        li:hover {
+            background: $neutral;
+        }
+    }
+    .accordion {
+        cursor: pointer;
+        .label{
+          margin-left: 10px;
+          font-size: 0.8em;
+          min-width: 30px;
+          text-align: center;
+          border-radius: 15px;
+          background: $safe;
+          border: solid 1px #e7e7ff;
+          padding-left: 5px;
+          padding-right: 5px;
+        }
+        .accordion-body {
+            width: 90%;
+            max-height: 100%;
+            margin: auto;
+            .btn {
+                float: right;
+            }
+        }
+    }
+    .highlight {
+        background: $safe;
+    }
+    .dem-factor-item {
+        list-style: none;
+    }
+    .dem-factor-name {
+        float: left;
+        width: 100px;
+    }
+}

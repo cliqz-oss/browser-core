@@ -78,7 +78,6 @@ export default class TriggerMachineExecutor {
       // we process the event now
       const ctx = {
         '#url': data.url_data.getRawUrl(),
-        '#lc_url': data.url_data.getLowercaseUrl(),
         '#domain': data.url_data.getDomain(),
         '#url_data': data.url_data,
         // adding the referrer as context information
@@ -90,7 +89,7 @@ export default class TriggerMachineExecutor {
       if (data.trigger_id) {
         trigger = this.triggerMachine.getTriggerByID(data.trigger_id);
       }
-      logger.info(`processing new event for url: ${data.url_data.getRawUrl()}`);
+      logger.info(`processing new event for url: ${data.url_data.getNormalizedUrl()}`);
       if (trigger) {
         return this.triggerMachine.run(trigger, ctx);
       }

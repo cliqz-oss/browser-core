@@ -128,7 +128,6 @@ launchers are supposed to be running. You can choose from the following:
 <ul>
   <li>pre-defined Test'em browser launchers like Chrome,</li>
   <li>unit-node,</li>
-  <li>firefox-selenium,</li>
   <li>firefox-web-ext,</li>
   <li>firefox-web-ext-stresstest,</li>
   <li>chromium-selenium.</li>
@@ -149,20 +148,6 @@ them, you can execute the `./fern.js test` command with a `-l` option, e.g.:
 
 <p>
   Runs all <a href="./test-guidelines.html#unit-tests2">unit tests</a> and shows the result in the console output.
-</p>
-
-<h4>
-  firefox-selenium
-</h4>
-
-<p>
-  Opens `resource://cliqz/firefox-tests/run-testem.html`. This file is located in folder
-  `./modules/firefox-tests/dist/`. Used for Firefox 48 and lower.
-</p>
-
-<p>`run-testem.html` opens the test page with parameters `closeOnFinish=1` and
-  `forceExtensionReload=0`, which means the browser will close after tests are finished and
-  extension will be loaded only once (see [[#-url-options-|URL options]] for more details).
 </p>
 
 <h4>
@@ -189,7 +174,7 @@ them, you can execute the `./fern.js test` command with a `-l` option, e.g.:
 </p>
 
 <p>`run-testem.html` opens the test page with parameters `closeOnFinish=1` and
-  `forceExtensionReload=0.5`, which means the browser will close after tests are finished and
+  `forceExtensionReload=1`, which means the browser will close after tests are finished and
   extension will be reloaded every second test (see [[#-url-options-|URL options]] for more details).
 </p>
 

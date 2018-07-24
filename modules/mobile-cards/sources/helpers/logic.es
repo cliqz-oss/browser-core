@@ -8,7 +8,7 @@ const AGO_CEILINGS =
   [7200, 'ago1Hour', 1],
   [86400, 'agoXHours', 3600],
   [172800, 'agoYesterday', 1],
-  [604800, 'agoXDays', 86400],
+  [2419200, 'agoXDays', 86400],
   [4838400, 'ago1Month', 1],
   [29030400, 'agoXMonths', 2419200],
   [58060800, 'ago1year', 1],

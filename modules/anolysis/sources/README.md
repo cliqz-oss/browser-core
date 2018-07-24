@@ -227,19 +227,68 @@ export default {
 };
 ```
 
+A note about arguments given to the `generate` function. There are multiple
+information you get out of the box:
+
+1. `records`: This is a `DefaultMap` (see: `core/helpers/default-map`) where
+   keys are names of metrics and values are arrays of all signals received for
+   one day. This is the standard way of getting metrics for a day to aggregate
+   them.
+2. `retention`: This object contains information about the current retention of
+   the user. Which days was the user active in the path. It also has information
+   about weekly/monthly retention; how many days each user was active during
+   weeks in the past as well as how many weeks the user was active during months
+   in the past. This is used both to generate retention signals and to analyze
+   how some features might impact user retention (with an ABTest for example).
+3. `date`: This is the day we are currently aggregating. For example, if today
+   is `2018-01-02` and Anolysis triggers the aggregation of signals for the
+   previous day (`2018-01-01`), then date will have value: `2018-01-01`.
+4. `dateMoment`: This is the same as `date` but as a `moment` object, for easier
+   manipulation of date.
+
 ## Testing a New Analysis
 
-All tests related to analyses should be defined in `telemetry-schemas-test.es`.
-At the moment, everything is in a single file for convenience, but it could
-easily be split into several ones. There are two kinds of tests performed:
+All tests related to analyses should be defined in `anolysis/tests/unit/analyses`.
+Each Analysis will be tested in its own file. For example, analysis `my-analysis`
+should be tested in the file: `anolysis/tests/unit/analyses/my-analysis-test.es`.
+
+There are two kinds of tests which can be defined:
 
 1. Automatic (*mandatory*), where random instances of metrics are generated from
    JSON schemas and we simply test that analyses do not raise exceptions,
    generate at least one signal, and generated signals are conform to JSON
-   schemas. Further explanations are available at the top of the file.
+   schemas.
 2. Specific tests can also be defined for your analysis, where you can provide
    a list of metrics, and expect some signals to be generated. This is
    recommended, but not mandatory.
+
+Here is how a simple test would look like (file:
+`anolysis/tests/unit/analyses/my-analysis-test.es`):
+
+```js
+require('../telemetry-schemas-test-helpers')({
+  name: 'my-analysis',
+  metrics: ['metric1', 'metric2'],
+  tests: (generateAnalysisResults) => {
+    it('generates one signal', async function () {
+      chai.expect(await generateAnalysisResults({
+        metric1: [{}, {}],
+        metric2: [{}],
+      })).to.have.length(1);
+    });
+  },
+});
+```
+
+Here is a quick glimpse of what happens in the `generateAnalysisResults`. This
+function allows you to simulate real conditions of metrics aggregations:
+
+* Register metrics in Anolysis.
+* Trigger aggregation with your analysis.
+* Intercept all signals which would be sent to backend.
+
+So these tests can be seen as integration tests.
+
 
 # Frequently Asked Questions
 

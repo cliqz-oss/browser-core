@@ -17,10 +17,7 @@ export default describeModule('anolysis/internals/storage/dexie',
       default: class Database { destroy() { return Promise.resolve(); } },
     },
     'core/utils': {
-      default: {
-        setTimeout(cb) { cb(); },
-        setInterval() {},
-      },
+      default: {},
     },
     'anolysis/internals/synchronized-date': {
       DATE_FORMAT,
@@ -32,7 +29,7 @@ export default describeModule('anolysis/internals/storage/dexie',
       default: {
         debug() {},
         log() {},
-        error(...args) { console.log('ERROR', ...args); },
+        error() {},
       },
     },
   }),

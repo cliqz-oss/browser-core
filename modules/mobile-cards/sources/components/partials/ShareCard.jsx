@@ -1,10 +1,11 @@
 import React from 'react';
 import { StyleSheet, View, Text, Image, TouchableWithoutFeedback, Platform, NativeModules } from 'react-native';
+
 import ViewShot from 'react-native-view-shot';
 
 import { elementTopMargin, cardBorderBottomRadius, cardMargins, getCardWidth, elementSidePaddings } from '../../styles/CardStyle';
 import { getMessage } from '../../../core/i18n';
-import NativeDrawabale from '../custom/NativeDrawable';
+import NativeDrawabale, { normalizeUrl } from '../custom/NativeDrawable';
 
 const PermissionManager = NativeModules.PermissionManagerModule;
 const ShareCardModule = NativeModules.RNShare || NativeModules.ShareCardModule;
@@ -49,7 +50,7 @@ const styles = width => StyleSheet.create({
   }
 });
 
-export default class extends React.Component {
+export default class ShareCard extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -125,12 +126,13 @@ export default class extends React.Component {
   }
 
   displayShareLink() {
+    const src = normalizeUrl('share.png', { isNative: true });
     return (
       <TouchableWithoutFeedback onPress={() => this.shareCard()}>
         <View style={styles(getCardWidth()).shareSection}>
           <NativeDrawabale
             style={styles().shareImage}
-            source={'ic_share'}
+            source={src}
             color={'black'}
           />
           <Text style={styles().shareText}>{getMessage('mobile_share_card')}</Text>

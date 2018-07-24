@@ -1,7 +1,5 @@
-import {
-  clearIntervals,
-  expect
-} from '../../core/test-helpers';
+import { clearIntervals, expect } from '../../core/test-helpers';
+
 import Subject from './local-helpers';
 import {
   dataGenericTooltip,

@@ -147,23 +147,20 @@
         <br><br>
     </div>
     <script type="text/javascript">
-        Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
-        var CliqzUtils = CLIQZ.CliqzUtils;
-        CliqzUtils.localizeDoc(document);
-
-        function clickHW(cb){
-            CliqzUtils.setPref('humanWebOptOut', !cb.checked);
-
-            CliqzUtils.telemetry({
-              type: 'humanWebStatus',
-              state: !cb.checked
-            });
+        const cb = document.getElementById('enableHumanWeb');
+        const locale = document.getElementsByClassName('cliqz-locale');
+        for (let i = 0; i < locale.length; i += 1) {
+          const el = locale[i];
+          el.textContent = chrome.i18n.getMessage(el.getAttribute('key'));
         }
 
-        var cb = document.getElementById('enableHumanWeb');
+        function clickHW(cb) {
+          chrome.runtime.sendMessage({ module: 'human-web', action: 'setStatus', args: [!cb.checked], target: 'cliqz' });
+        }
 
-        cb.checked = !CliqzUtils.getPref('humanWebOptOut');
+        chrome.runtime.sendMessage({ module: 'human-web', action: 'getStatus', args: [], target: 'cliqz' }, function (status) {
+          cb.checked = !status;
+        });
     </script>
   </body>
 </html>
-

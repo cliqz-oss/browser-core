@@ -161,7 +161,7 @@ describe('Fresh tab interactions with settings switches', function () {
       });
 
       it('changes background to blue', function () {
-        expect(subject.query('body').className).to.contain('theme-bg-blue');
+        expect(subject.query('body').className).to.contain('theme-bg-matterhorn');
       });
 
       it('leaves all FT areas hidden', function () {
@@ -470,7 +470,7 @@ describe('Fresh tab interactions with settings switches', function () {
       });
 
       it('changes background to blue', function () {
-        expect(subject.query('body').className).to.contain('theme-bg-blue');
+        expect(subject.query('body').className).to.contain('theme-bg-matterhorn');
       });
 
       it('changes state of all switches', function () {
@@ -553,7 +553,7 @@ describe('Fresh tab interactions with settings switches', function () {
         });
 
         it('keeps background as blue', function () {
-          expect(subject.query('body').className).to.contain('theme-bg-blue');
+          expect(subject.query('body').className).to.contain('theme-bg-matterhorn');
         });
       });
     });

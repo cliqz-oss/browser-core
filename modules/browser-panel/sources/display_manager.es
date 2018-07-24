@@ -2,7 +2,6 @@ import { forEachWindow } from '../platform/browser';
 import { queryActiveTabs } from '../core/tabs';
 import inject from '../core/kord/inject';
 import logger from './logger';
-import utils from '../core/utils';
 
 // /////////////////////////////////////////////////////////////////////////////
 // consts
@@ -144,15 +143,6 @@ export default class DisplayManager {
     // requires a change in the current tabs, for simplicity we will check
     // always if the current active tabs should or should not show something
     try {
-      // we will do a small filtering here to avoid showing pages we don't want
-      // resource://
-      // about:
-      // file://
-      // if (url.startsWith('resource://') ||
-      //     url.startsWith('about:') ||
-      //     url.startsWith('resource://')) {
-      //   // we should hide any offer on those places...
-      // }
       this._showOrHideElementOnActiveTabs();
     } catch (e) {
       lerr(`onTabOrUrlChange: something bad happened here... ${e}`);
@@ -208,7 +198,7 @@ export default class DisplayManager {
     if (currentTimer) {
       this._removeTimer(elemID);
     }
-    this.timersMap[elemID] = utils.setTimeout(() => {
+    this.timersMap[elemID] = setTimeout(() => {
       this.removeElement(elemID, true); // this will remove the timer
     }, secs * 1000);
   }
@@ -219,7 +209,7 @@ export default class DisplayManager {
     }
     const currentTimer = this.timersMap[elemID];
     if (currentTimer) {
-      utils.clearInterval(currentTimer);
+      clearInterval(currentTimer);
       delete this.timersMap[elemID];
     }
   }

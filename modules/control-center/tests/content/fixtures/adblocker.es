@@ -18,14 +18,14 @@ export const dataOn = {
       disabledEverywhere: false,
       totalCount: 12,
       advertisersList: {},
-      state: "active",
-      off_state: "off_website"
+      state: 'active',
+      off_state: 'off_website'
     },
   },
   generalState: 'active',
   feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
   amo: false,
-  funnelCake: false
+  compactView: false
 };
 
 export const dataOffPage = {
@@ -48,14 +48,14 @@ export const dataOffPage = {
       disabledEverywhere: false,
       totalCount: 12,
       advertisersList: {},
-      state: "off",
-      off_state: "off_website"
+      state: 'off',
+      off_state: 'off_website'
     },
   },
   generalState: 'active',
   feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
   amo: false,
-  funnelCake: false
+  compactView: false
 };
 
 export const dataOffSite = {
@@ -78,14 +78,14 @@ export const dataOffSite = {
       disabledEverywhere: false,
       totalCount: 12,
       advertisersList: {},
-      state: "off",
-      off_state: "off_domain"
+      state: 'off',
+      off_state: 'off_domain'
     },
   },
   generalState: 'active',
   feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
   amo: false,
-  funnelCake: false
+  compactView: false
 };
 
 export const dataOffAll = {
@@ -108,12 +108,12 @@ export const dataOffAll = {
       disabledEverywhere: true,
       totalCount: 12,
       advertisersList: {},
-      state: "off",
-      off_state: "off_all"
+      state: 'off',
+      off_state: 'off_all'
     },
   },
   generalState: 'active',
   feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
   amo: false,
-  funnelCake: false
+  compactView: false
 };

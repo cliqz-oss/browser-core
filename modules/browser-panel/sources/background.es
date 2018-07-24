@@ -1,22 +1,21 @@
 import background from '../core/base/background';
 import events from '../core/events';
-import utils from '../core/utils';
+import console from '../core/console';
+import prefs from '../core/prefs';
 import DisplayManager from './display_manager';
-import REAL_ESTATE_ID from './consts';
+import { REAL_ESTATE_ID, PANEL_STATE_PREF_NAME } from './consts';
 import inject from '../core/kord/inject';
 
 const MODULE_NAME = 'browser-panel-bg';
 
 
 function linfo(msg) {
-  utils.log(`[info] ${msg}`, MODULE_NAME);
+  console.log(`[info] ${msg}`, MODULE_NAME);
 }
 function lwarn(msg) {
-  utils.log(`[warning] ${msg}`, MODULE_NAME);
+  console.log(`[warning] ${msg}`, MODULE_NAME);
 }
-// function lerr(msg) {
-//   utils.log(MODULE_NAME, `[error] ${msg}`);
-// }
+
 
 /**
   @namespace browser-panel
@@ -31,7 +30,7 @@ export default background({
     @param settings
   */
   init() {
-    this.is_enabled = utils.getPref('offersBrowserPanelEnableSwitch', false);
+    this.is_enabled = prefs.get(PANEL_STATE_PREF_NAME, false);
 
     if (!this.is_enabled) {
       return;
@@ -44,7 +43,7 @@ export default background({
       this.displayMngr = new DisplayManager(this.actions.windowUIConnector);
     }
     // register real estate
-    this._registerToOffersCore();
+    this.registerState();
   },
 
   unload() {
@@ -54,7 +53,8 @@ export default background({
     if (this.displayMngr) {
       delete this.displayMngr;
     }
-    this._unregisterFromOffersCore();
+    this.is_enabled = false;
+    this.registerState();
   },
 
   beforeBrowserShutdown() {
@@ -166,13 +166,15 @@ export default background({
 
   events: {
     'content:location-change': function onLocationChange({ url }) {
-      // linfo(`content:location-change: ${JSON.stringify(url)}`);
+      const blackList = ['resource://', 'about:', 'chrome://', 'file://'];
+      if (blackList.some(e => url.startsWith(e))) {
+        return;
+      }
       if (this.displayMngr) {
         this.displayMngr.onTabOrUrlChange({ url });
       }
     },
     'core:tab_select': function onTabSelected({ url }) {
-      // linfo(`core:tab_select: ${JSON.stringify(url)}`);
       if (this.displayMngr) {
         this.displayMngr.onTabOrUrlChange({ url });
       }
@@ -195,30 +197,30 @@ export default background({
 
     'offers-re-registration': function onOffersRegMessage(event) {
       if (event && event.type === 'broadcast') {
-        this._registerToOffersCore();
+        this.registerState();
       }
     },
+    prefchange: function onPrefChange(pref) {
+      if (pref === PANEL_STATE_PREF_NAME) {
+        this.is_enabled = prefs.get(PANEL_STATE_PREF_NAME, false);
+        if (this.is_enabled && !this.displayMngr) {
+          this.displayMngr = new DisplayManager(this.actions.windowUIConnector);
+        }
+        this.registerState();
+      }
+    }
   },
 
   actions: {
   },
 
-  // ///////////////////////////////////////////////////////////////////////////
-  // Private
-  //
-
-  _unregisterFromOffersCore() {
-    if (!this.is_enabled) {
-      return;
+  registerState() {
+    const msg = { realEstateID: REAL_ESTATE_ID };
+    if (this.is_enabled) {
+      this.offersV2.action('registerRealEstate', msg).catch(() => {});
+    } else {
+      this.offersV2.action('unregisterRealEstate', msg).catch(() => {});
     }
-    this.offersV2.action('unregisterRealEstate', { realEstateID: REAL_ESTATE_ID }).catch(() => {});
-  },
-
-  _registerToOffersCore() {
-    if (!this.is_enabled) {
-      return;
-    }
-    this.offersV2.action('registerRealEstate', { realEstateID: REAL_ESTATE_ID }).catch(() => {});
   },
 
 });

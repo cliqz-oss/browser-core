@@ -9,10 +9,7 @@ const getGID = () => prefs.getObject('anolysisGID');
 
 
 // (EX-4191) Fix hpn-ts format to "yyyyMMdd"
-const getHpnTimeStamp = () => {
-  const now = new Date();
-  return now.toISOString().slice(0, 10).replace(/-/g, '');
-};
+const getHpnTimeStamp = () => prefs.get('config_ts', '19700101');
 
 const getMinuteTimestamp = () => Math.floor((Date.now() / 1000) / 60);
 

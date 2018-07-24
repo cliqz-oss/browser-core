@@ -1,4 +1,4 @@
-import utils from './utils';
+import { cleanUrlProtocol } from './url';
 import prefs from './prefs';
 import { getGeneralDomain, extractHostname } from './tlds';
 import { LazyPersistentObject } from '../core/persistent-state';
@@ -9,7 +9,7 @@ export default class UrlWhitelist {
   constructor(whitelistName, legacyPref) {
     this.whitelist = new Set();
     this.whitelistPersist = new LazyPersistentObject(whitelistName);
-    this.logger = Logger({
+    this.logger = Logger.get('core', {
       prefix: `url-whitelist:${whitelistName}`,
     });
     if (legacyPref) {
@@ -61,19 +61,19 @@ export default class UrlWhitelist {
     if (existingList) {
       this.whitelist = new Set(existingList);
     }
-    prefs.clearPref(prefName);
+    prefs.clear(prefName);
     this.persistWhitelist();
   }
 
   isWhitelisted(url) {
-    return this.whitelist.has(`u:${utils.cleanUrlProtocol(url, true)}`) ||
+    return this.whitelist.has(`u:${cleanUrlProtocol(url, true)}`) ||
       this.whitelist.has(`h:${extractHostname(url)}`) ||
       this.whitelist.has(`g:${getGeneralDomain(url)}`);
   }
 
   getState(url) {
     return {
-      url: this.whitelist.has(`u:${utils.cleanUrlProtocol(url, true)}`),
+      url: this.whitelist.has(`u:${cleanUrlProtocol(url, true)}`),
       hostname: this.whitelist.has(`h:${extractHostname(url)}`),
       generalDomain: this.whitelist.has(`g:${getGeneralDomain(url)}`)
     };
@@ -91,7 +91,7 @@ export default class UrlWhitelist {
     let processed;
     switch (type) {
       case 'url':
-        processed = `u:${utils.cleanUrlProtocol(url, true)}`;
+        processed = `u:${cleanUrlProtocol(url, true)}`;
         break;
       case 'hostname':
         processed = `h:${extractHostname(url)}`;

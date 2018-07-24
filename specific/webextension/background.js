@@ -1,2 +1,3 @@
-app = new App({});
+/* global App */
+const app = new App({});
 app.start();

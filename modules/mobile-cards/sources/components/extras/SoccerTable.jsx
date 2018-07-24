@@ -8,7 +8,7 @@ import SubscribeButton from '../SubscribeButton';
 import PoweredByKicker from '../partials/PoweredByKicker';
 import { elementTopMargin, elementSideMargins } from '../../styles/CardStyle';
 
-export default class extends React.Component {
+export default class SoccerTable extends React.Component {
 
   constructor(props) {
     super(props);
@@ -97,7 +97,7 @@ export default class extends React.Component {
   get content() {
     const data = this.state.data;
 
-    return data && <Link to={data.url}>
+    return data && <Link url={data.url}>
         <View style={[styles.outerContainer]}>
           { this.displayGroups(data) }
         </View>

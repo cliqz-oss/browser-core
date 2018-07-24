@@ -5,12 +5,6 @@ export const addOffer = (results, offer, config) => {
   const { position } = config.operators.offers;
 
   if (position === 'first') {
-    const [first, ...rest] = results;
-
-    if (first && getMainLink(first).meta.isAutocompletable) {
-      return [first, offer, ...rest];
-    }
-
     return [offer, ...results];
   }
 

@@ -1,5 +1,5 @@
 import math from '../../../platform/lib/mathjs';
-import utils from '../../../core/utils';
+import { getMessage } from '../../../core/i18n';
 import console from '../../../core/console';
 
 // REF:
@@ -27,6 +27,7 @@ function replaceAll(string, search, replacement) {
 
 const CliqzCalculator = {
   CALCULATOR_RES: 0,
+  MULTIPLIER: 1,
   UNIT_RES: '',
   IS_UNIT_CONVERTER: false,
   BASE_UNIT_CONVERTER: '',
@@ -95,20 +96,28 @@ const CliqzCalculator = {
     }
   },
   init() {
-    this.thousandsSeparator = utils.getLocalizedString('calculator_thousands_separator');
-    this.decimalSeparator = utils.getLocalizedString('calculator_decimal_separator');
+    this.thousandsSeparator = getMessage('calculator_thousands_separator');
+    this.decimalSeparator = getMessage('calculator_decimal_separator');
   },
+  // shorten numbers when needed
   shortenNumber() {
-    // shorten numbers when needed
+    const fractionLimit = 6;
+    const THRESHOLD = 1e-7; // 0.0000001
+    const calculatorResult = math.number(math.format(this.CALCULATOR_RES, { notation: 'fixed', precision: 6 }));
+
+    const difference = this.CALCULATOR_RES - calculatorResult;
+    const isRounded = math.abs(difference) > THRESHOLD * this.MULTIPLIER;
+
     try {
       let num;
-
-      num = this.CALCULATOR_RES.toLocaleString(utils.getLocalizedString('locale_lang_code'), { maximumFractionDigits: 6 });
+      num = this.CALCULATOR_RES.toLocaleString(getMessage('locale_lang_code'), { maximumFractionDigits: fractionLimit });
       num = replaceAll(num, this.thousandsSeparator, ' '); // Use spaces as thousands separators
 
-      return this.IS_UNIT_CONVERTER ? [num, this.UNIT_RES].join(' ') : num.toString();
+      const res = this.IS_UNIT_CONVERTER ? [num, this.UNIT_RES].join(' ') : num.toString();
+      return [res, isRounded];
     } catch (err) { console.error(err); }
-    return this.CALCULATOR_RES;
+
+    return [this.CALCULATOR_RES, isRounded];
   },
   isValidThousandsSeparator(number, separator) {
     // More than one thousands separator, it should be thousands separator
@@ -236,7 +245,9 @@ const CliqzCalculator = {
     const expandedExpression = this.IS_UNIT_CONVERTER ? this.CLEANED_QUERY
       : replaceAll(math.parse(this.clean(q)).toString(), '.', this.decimalSeparator);
 
-    this.CALCULATOR_RES = this.shortenNumber();
+    const results = this.shortenNumber();
+    this.CALCULATOR_RES = results[0];
+    const isRounded = results[1];
 
     return {
       data: {
@@ -250,6 +261,7 @@ const CliqzCalculator = {
         },
         extra: {
           expression: expandedExpression,
+          isRounded,
           answer: this.CALCULATOR_RES,
           is_calculus: true,
           // TODO: support_copy_ans should be platform specific
@@ -281,7 +293,7 @@ const CliqzCalculator = {
      *   + based on the value and the language preference,
      *     select unit name in suitable language and form (singular/plural)
      */
-    const BROWSER_LANG = utils.getLocalizedString('locale_lang_code');
+    const BROWSER_LANG = getMessage('locale_lang_code');
     const nounType = val === 1 ? 's' : 'p';
     const nameInfo = unitData[CliqzCalculator.UNIT_CONVERSION_DATA.LOCALIZE_KEYS[BROWSER_LANG]]
                   || unitData[CliqzCalculator.UNIT_CONVERSION_DATA.LOCALIZE_KEYS.default]
@@ -340,7 +352,7 @@ const CliqzCalculator = {
 
       this.IS_UNIT_CONVERTER = true;
       const cvRaw = unit1Info[2].val / unit2[2].val;
-      const cv = cvRaw.toLocaleString(utils.getLocalizedString('locale_lang_code'));
+      const cv = cvRaw.toLocaleString(getMessage('locale_lang_code'));
       this.CALCULATOR_RES = num * cvRaw;
       this.UNIT_RES = CliqzCalculator.selectUnitTerms(unit2[2], this.CALCULATOR_RES);
       this.BASE_UNIT_CONVERTER = [
@@ -350,7 +362,9 @@ const CliqzCalculator = {
         cv,
         CliqzCalculator.selectUnitTerms(unit2[2], this.CALCULATOR_RES, cvRaw)
       ].join(' ');
-      num = num.toLocaleString(utils.getLocalizedString('locale_lang_code'));
+
+      this.MULTIPLIER = num;
+      num = num.toLocaleString(getMessage('locale_lang_code'));
       num = replaceAll(num, this.thousandsSeparator, ' '); // Use spaces as thousands separators
       this.CLEANED_QUERY = [
         num,
@@ -380,6 +394,7 @@ const CliqzCalculator = {
 
       if (typeof (this.CALCULATOR_RES) === 'number') {
         this.IS_UNIT_CONVERTER = false;
+        this.MULTIPLIER = 1;
         return true;
       }
     } catch (err) {

@@ -4,14 +4,8 @@ import events from '../core/events';
 import utils from '../core/utils';
 import { cleanMozillaActions } from '../core/url';
 import { copyToClipboard } from '../core/clipboard';
-import * as offersAssistant from './assistants/offers';
-import settingsAssistant from './assistants/settings';
 import { getCurrentTabId } from '../core/tabs';
 import ContextMenu from './context-menu';
-
-const NO_AUTOCOMPLETE = {
-  autocompletion: null,
-};
 
 export default class {
   actions = {
@@ -27,6 +21,7 @@ export default class {
         },
         result,
         resultOrder,
+        meta = {},
       },
     ) => {
       const Event = eventType === 'mouse' ? this.window.MouseEvent : this.window.KeyboardEvent;
@@ -52,6 +47,7 @@ export default class {
         windowId: utils.getWindowID(this.window),
         tabId: getCurrentTabId(this.window),
         action: eventType === 'keyboard' ? 'enter' : 'click',
+        elementName: meta.elementName,
       });
 
       let value;
@@ -59,29 +55,30 @@ export default class {
       let selectionEnd;
 
       if (newTab) {
-        value = this.popup.urlbar.mInputField.value;
-        selectionStart = this.popup.urlbar.mInputField.selectionStart;
-        selectionEnd = this.popup.urlbar.mInputField.selectionEnd;
+        value = this.urlbar.mInputField.value;
+        selectionStart = this.urlbar.mInputField.selectionStart;
+        selectionEnd = this.urlbar.mInputField.selectionEnd;
 
         // setting the flag to ignore the next blur event
-        this.popup.urlbar.cliqzFocused = true;
+        this.urlbar.cliqzFocused = true;
       }
 
-      this.popup.execBrowserCommandHandler(href, event, newTab ? 'tabshifted' : 'current');
+      this.urlbar.value = href;
+      this.urlbar.handleCommand(event, newTab ? 'tabshifted' : 'current');
 
       if (newTab) {
-        this.popup.urlbar.mInputField.value = value;
-        this.popup.urlbar.mInputField.selectionStart = selectionStart;
-        this.popup.urlbar.mInputField.selectionEnd = selectionEnd;
+        this.urlbar.mInputField.value = value;
+        this.urlbar.mInputField.selectionStart = selectionStart;
+        this.urlbar.mInputField.selectionEnd = selectionEnd;
 
-        this.popup.urlbar.focus();
-        this.popup.urlbar.cliqzFocused = false;
+        this.urlbar.focus();
+        this.urlbar.cliqzFocused = false;
       } else {
         this.close();
       }
     },
-    reportSelection: (result) => {
-      events.pub('dropdown:result-selected', {
+    reportHighlight: (result) => {
+      events.pub('dropdown:result-highlight', {
         windowId: utils.getWindowID(this.window),
         tabId: getCurrentTabId(this.window),
         selectedIndex: result.index,
@@ -93,46 +90,40 @@ export default class {
       this.setHeight(height);
     },
     adultAction: (actionName) => {
-      if (this.adultAssistant.hasAction(actionName)) {
-        this.adultAssistant[actionName]();
-        this.render({
-          query: this.previousQuery,
-          rawResults: this.previousRawResults,
-          queriedAt: Date.now(),
-          getSessionId: this.getSessionId,
+      this.search.action('adultAction', actionName)
+        .then(() => {
+          this.render({
+            query: this.previousQuery,
+            rawResults: this.previousRawResults,
+            queriedAt: Date.now(),
+            getSessionId: this.getSessionId,
+          });
         });
-      }
     },
-    locationAction: async (actionName, query, rawResult) => {
-      if (this.locationAssistant.hasAction(actionName)) {
-        await this.locationAssistant[actionName]();
-        const snippet = await this.search.action('getSnippet', query, rawResult);
-        return {
-          snippet,
-          locationState: this.locationAssistant.getState(),
-        };
-      }
-      return null;
-    },
+    locationAction: (actionName, query, rawResult) =>
+      this.search.action('locationAction', actionName, query, rawResult),
     openContextMenu: (subresult, { x, y }) => {
       this.contextMenu.show(subresult, { x, y });
     },
   };
 
-  constructor(parentElement, {
-    popup,
+  constructor({
     window,
-    adultAssistant,
-    locationAssistant,
     search,
   }) {
     this.hasAutocompleted = false;
     this.parentElement = window.document.getElementById('navigator-toolbox');
     this.window = window;
-    this.popup = popup;
-    this.adultAssistant = adultAssistant;
-    this.locationAssistant = locationAssistant;
     this.search = search;
+  }
+
+  get urlbar() {
+    return this.window.gURLBar;
+  }
+
+  get query() {
+    const ctrl = this.urlbar.controller;
+    return ctrl.searchString.trim();
   }
 
   get document() {
@@ -168,6 +159,7 @@ export default class {
     iframe.setAttribute('id', 'cliqz-popup');
     iframe.setAttribute('type', 'content');
     iframe.setAttribute('flex', '1');
+    iframe.tabIndex = -1;
     iframe.setAttribute('ignorekeys', 'false');
     iframe.setAttribute('src', `${config.baseURL}dropdown/dropdown.html`);
     iframe.style.MozUserFocus = 'ignore';
@@ -248,26 +240,31 @@ export default class {
     const heightInPx = `${newHeight}px`;
 
     this.iframe.style.height = heightInPx;
-
-    // Request popup's dimensions in order to force its repaint.
-    // Fixes weird rendering issues on retina in FF 60. Return value is not used.
-
-    // TODO: @chrmod
-    return this.popup.element.scrollHeight;
+    return height;
   }
 
   handleEnter({ newTab }) {
-    return this.dropdownAction.handleEnter({ newTab });
+    if (
+      this.isOpen &&
+      this.hasRelevantResults(this.query, this.selectedResult ? [this.selectedResult] : [])
+    ) {
+      return this.dropdownAction.handleEnter({ newTab });
+    }
+    return this.urlbar.handleCommand();
   }
 
   hasRelevantResults(query, rawResults) {
-    return rawResults.length && rawResults.some(result =>
-      (result.text && (result.text.trim() === query.trim())) ||
-      (result.suggestion && (result.suggestion.trim() === query.trim())));
+    return (
+      rawResults.length &&
+      rawResults.some(
+        result =>
+          (result.text.trim() === query.trim()) ||
+          (result.suggestion && (result.suggestion.trim() === query.trim()))
+      )
+    );
   }
 
   close() {
-    this.popup.close();
     this.iframe.classList.add('dropdown-hidden');
     this.setHeight(0);
     this.dropdownAction.clear();
@@ -275,7 +272,39 @@ export default class {
 
   open() {
     this.iframe.classList.remove('dropdown-hidden');
-    this.popup.open();
+  }
+
+  autocompleteQuery(query, completion) {
+    if (!completion) {
+      return;
+    }
+    const value = `${query}${completion}`;
+
+    this.urlbar.mInputField.value = value;
+
+    this.urlbar.setSelectionRange(query.length, value.length);
+
+    this.hasAutocompleted = true;
+  }
+
+  getUrlbarAttributes() {
+    const urlbarRect = this.urlbar.getBoundingClientRect();
+    const urlbarLeftPos = Math.round(urlbarRect.left || urlbarRect.x || 0);
+    const urlbarWidth = urlbarRect.width;
+    const extraPadding = 10;
+    let contentPadding = extraPadding + urlbarLeftPos;
+
+    // Reset padding when there is a big space on the left of the urlbar
+    // or when the browser's window is too narrow
+    if (contentPadding > 500 || this.window.innerWidth < 650) {
+      contentPadding = 50;
+    }
+
+    return {
+      padding: contentPadding,
+      left: urlbarLeftPos,
+      width: urlbarWidth,
+    };
   }
 
   async render({
@@ -294,12 +323,12 @@ export default class {
       if (query === '') {
         this.close();
       }
-      return NO_AUTOCOMPLETE;
     }
+
+    const assistantStates = await this.search.action('getAssistantStates');
 
     const {
       height,
-      autocompletion,
       result,
       renderedSessionId,
     } = await this.dropdownAction.render({
@@ -309,13 +338,8 @@ export default class {
       sessionId: getSessionId(),
       navbarColor: this.navbarColor,
     }, {
-      assistantStates: {
-        adult: this.adultAssistant.getState(),
-        location: this.locationAssistant.getState(),
-        offers: offersAssistant.getState(),
-        settings: settingsAssistant.getState(),
-      },
-      urlbarAttributes: this.popup.getUrlbarAttributes(),
+      assistantStates,
+      urlbarAttributes: this.getUrlbarAttributes(),
       maxHeight: this.maxHeight,
     });
     this.selectedResult = result;
@@ -325,17 +349,18 @@ export default class {
     // So we have to check if rendered results are still relevant to the current query
     // and that we are still in the same session.
     if (renderedSessionId === getSessionId() &&
-        this.hasRelevantResults(this.popup.query, rawResults)) {
+        this.hasRelevantResults(this.query, rawResults)) {
       this.open();
-      return {
-        autocompletion,
-      };
+      this.autocompleteQuery(
+        query,
+        result.meta.completion,
+      );
+      return;
     }
 
-    if (renderedSessionId !== getSessionId() || this.popup.query === '') {
+    if (renderedSessionId !== getSessionId() || this.query === '') {
       this.close();
     }
     this.selectedResult = null;
-    return NO_AUTOCOMPLETE;
   }
 }

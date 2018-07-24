@@ -5,7 +5,6 @@ export default describeModule('antitracking/steps/check-context',
   () => ({
     'core/utils': {
       default: {
-        setTimeout(fn) { fn(); },
       },
     },
     'core/console': {
@@ -22,7 +21,7 @@ export default describeModule('antitracking/steps/check-context',
     describe('checkSameGeneralDomain', () => {
       let checkSameGeneralDomain;
 
-      beforeEach(function initModule() {
+      beforeEach(function () {
         checkSameGeneralDomain = this.module().checkSameGeneralDomain;
       });
 

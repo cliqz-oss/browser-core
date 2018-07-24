@@ -17,6 +17,7 @@ import MovieResult from './results/movie';
 import CinemaResult from './results/cinema';
 import NavigateToResult from './results/navigate-to';
 import NewsStory from './results/news-story';
+import TopNews from './results/top-news';
 import { equals } from '../core/content/url';
 
 class ResultFactory {
@@ -76,6 +77,10 @@ class ResultFactory {
 
     if (rawResult.data.template === 'news') {
       Constructor = NewsStory;
+    }
+
+    if (rawResult.data.template === 'top-news-sc') {
+      Constructor = TopNews;
     }
 
     if (rawResult.data.template === 'single-video') {
@@ -252,14 +257,6 @@ export default class Results {
 
   get hasCurrencyResults() {
     return this.results.some(r => r.isCurrency);
-  }
-
-  get isAutocompleteable() {
-    // isNotAutocompleteable is a little awkward name, but it is
-    // set like that so we have not regression for results that lack
-    // that property - thus instead of checking is results isAutocompleteable
-    // we check if it is not isNotAutocompleteable
-    return this.firstResult && !this.firstResult.isNotAutocompleteable;
   }
 
   get lastHistoryIndex() {

@@ -1,16 +1,21 @@
-import loadLogoDb from '../platform/load-logo-db';
 import { fetch } from './http';
 import CONFIG from './config';
 import prefs from './prefs';
 import console from './console';
 import utils from './utils';
+import random from './helpers/random';
 import events from './events';
-import { isOnionMode } from './platform';
+import { isOnionMode, isCliqzBrowser } from './platform';
+import { isSearchServiceReady, addCustomSearchEngine } from './search-engines';
+import { service as logos } from './services/logos';
+import { service as telemetry } from './services/telemetry';
+import { service as domainInfo } from './services/domain-info';
+import i18n from './i18n';
 
-export default {
+const services = {
   utils: () => utils.init(),
-  logos: () => loadLogoDb(),
-
+  telemetry,
+  logos,
   // IP driven configuration
   'cliqz-config': () => {
     const EXPECTED_CONFIGS = new Set([
@@ -49,13 +54,13 @@ export default {
       }).catch(e => console.log('cliqz-config update failed', e));
 
     return update()
-      .then(() => utils.setInterval(update, 1000 * 60 * 60));
+      .then(() => setInterval(update, 1000 * 60 * 60));
   },
   session: () => {
     if (!prefs.has('session')) {
       const session = [
-        utils.rand(18),
-        utils.rand(6, '0123456789'),
+        random(18),
+        random(6, '0123456789'),
         '|',
         utils.getServerDay(),
         '|',
@@ -64,14 +69,47 @@ export default {
 
       prefs.set('session', session);
       prefs.set('install_date', session.split('|')[1]);
-      prefs.set('new_session', true);
 
       if (!prefs.has('freshtab.state')) {
         // freshtab is opt-out since 2.20.3
         prefs.set('freshtab.state', true);
       }
-    } else {
-      prefs.set('new_session', false);
+
+      if (isCliqzBrowser) {
+        const configUpdate = events.subscribe('cliqz-config:update', () => {
+          configUpdate.unsubscribe(); // we only need the first update
+
+          // this should never happen but just to be double sure
+          if (prefs.has('serp_test')) return;
+
+          // we only activate the test for german users inside germany
+          if (prefs.get('config_location') !== 'de' ||
+              i18n.PLATFORM_LANGUAGE !== 'de') return;
+
+          const r = Math.random();
+          if (r < 0.33) {
+            prefs.set('serp_test', 'A');
+          } else if (r < 0.66) {
+            prefs.set('serp_test', 'B');
+            isSearchServiceReady().then(() =>
+              addCustomSearchEngine('https://suche.cliqz.com/opensearch.xml', true));
+          } else {
+            prefs.set('serp_test', 'C');
+            isSearchServiceReady().then(() =>
+              addCustomSearchEngine('https://search.cliqz.com/opensearch.xml', true));
+          }
+        });
+      }
     }
   },
+  'search-services': () => isSearchServiceReady(),
+  domainInfo,
 };
+
+if (CONFIG.environment !== 'production') {
+  services['test-helpers'] = function testHelpers() {
+    testHelpers.prefs = prefs;
+  };
+}
+
+export default services;

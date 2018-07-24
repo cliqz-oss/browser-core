@@ -4,10 +4,13 @@
 const fs = require('fs');
 const zlib = require('zlib');
 const R = require('ramda');
+const mockBrowser = require('mock-browser');
+
+const FIXTURES_BASE_PATH = 'modules/human-web/tests/unit/fixtures/content-test';
 
 function loadFixture(name) {
-  const html = zlib.gunzipSync(fs.readFileSync(`modules/human-web/tests/unit/fixtures/${name}/page.html.gz`)).toString();
-  const expectedAds = JSON.parse(fs.readFileSync(`modules/human-web/tests/unit/fixtures/${name}/expected-ads.json`, 'utf8'));
+  const html = zlib.gunzipSync(fs.readFileSync(`${FIXTURES_BASE_PATH}/${name}/page.html.gz`)).toString();
+  const expectedAds = JSON.parse(fs.readFileSync(`${FIXTURES_BASE_PATH}/${name}/expected-ads.json`, 'utf8'));
   return { html, expectedAds };
 }
 
@@ -31,14 +34,18 @@ export default describeModule('human-web/content',
       beforeEach(function () {
         this.timeout(10000);
         parseDom = this.module().parseDom;
-        mockWindow = require('mock-browser').mocks.MockBrowser.createWindow();
+        mockWindow = mockBrowser.mocks.MockBrowser.createWindow();
       });
 
       afterEach(function () {
         delete global.chrome;
+        if (mockWindow) {
+          mockWindow.close();
+          mockWindow = null;
+        }
       });
 
-      const checkDetectedAds = function checkDetectedAds({ html, expectedAds }) {
+      const checkDetectedAds = function ({ html, expectedAds }) {
         // Given
         const someUrl = 'http://example.com';
         const document = mockWindow.document;
@@ -46,8 +53,8 @@ export default describeModule('human-web/content',
         document.write(html);
         document.close();
 
-        let messagesReceived = [];
-        let unexpectedMessages = [];
+        const messagesReceived = [];
+        const unexpectedMessages = [];
         global.chrome = {
           runtime: {
             sendMessage: (...args) => {
@@ -68,7 +75,7 @@ export default describeModule('human-web/content',
 
         let foundAds;
 
-        const adClickMessages = messagesReceived.filter((msg) => msg.payload && msg.payload.action === 'adClick');
+        const adClickMessages = messagesReceived.filter(msg => msg.payload && msg.payload.action === 'adClick');
         if (adClickMessages.length === 0) {
           foundAds = [];
         } else {
@@ -85,16 +92,15 @@ export default describeModule('human-web/content',
           const adDetails = msg.payload.args[0].ads;
 
           foundAds = Object.keys(adDetails)
-            .map((key) => ({ key, url: adDetails[key].furl[1] }));
+            .map(key => ({ key, url: adDetails[key].furl[1] }));
         }
 
         // To get a sane error message, only show a few examples.
         // Otherwise, it difficult to interpret the error messages.
         const numExamples = 4;
         const unexpectedAds = R.differenceWith(R.equals, foundAds, expectedAds);
-        const missingAds    = R.differenceWith(R.equals, expectedAds, foundAds);
+        const missingAds = R.differenceWith(R.equals, expectedAds, foundAds);
         if (unexpectedAds.length > 0 || missingAds.length > 0) {
-
           // uncomment to export expectations:
           // fs.writeFileSync('/tmp/failing-test-expected-ads.json', JSON.stringify(foundAds));
 
@@ -112,13 +118,13 @@ export default describeModule('human-web/content',
             });
           }
           const stats = {
-            "found": {
-              "#total": foundAds.length,
-              "#urls": R.uniq(foundAds.map((x) => x.url)).length
+            found: {
+              '#total': foundAds.length,
+              '#urls': R.uniq(foundAds.map(x => x.url)).length
             },
-            "expected": {
-              "#total": expectedAds.length,
-              "#urls": R.uniq(expectedAds.map((x) => x.url)).length
+            expected: {
+              '#total': expectedAds.length,
+              '#urls': R.uniq(expectedAds.map(x => x.url)).length
             }
           };
           errorMsg += `\nSummary: ${JSON.stringify(stats)}`;

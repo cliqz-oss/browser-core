@@ -1,5 +1,5 @@
 /* eslint-disable no-shadow, no-param-reassign */
-import utils from '../core/utils';
+import prefs from '../core/prefs';
 import pacemaker from '../core/pacemaker';
 import sto from '../platform/antitracking/storage';
 
@@ -90,11 +90,11 @@ export function clearPersistent(value) {
 }
 
 export function getValue(key, defaultValue) {
-  return utils.getPref(`attrack.${key}`, defaultValue);
+  return prefs.get(`attrack.${key}`, defaultValue);
 }
 
 export function setValue(key, value) {
-  utils.setPref(`attrack.${key}`, value);
+  prefs.set(`attrack.${key}`, value);
 }
 
 export { loadRecord, saveRecord };

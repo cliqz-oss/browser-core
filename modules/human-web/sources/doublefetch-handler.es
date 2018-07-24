@@ -199,6 +199,26 @@ export default class DoublefetchHandler {
     // (Fetch requests in Firefox web-extension have a flaw. They attach
     //  origin: moz-extension//ID , which is specific to a user.*)
     const sensitiveHeaders = ['cookie', 'origin'];
+    function isSensitiveHeader(header) {
+      const name = header.name.toLowerCase();
+      if (sensitiveHeaders.includes(name.toLowerCase())) {
+        return true;
+      }
+      if (name.startsWith('x-')) {
+        // Catches undesired headers added by the browser.
+        //
+        // Examples:
+        // - "x-client-data: <id>"
+        //   (added by Chrome when making request to Google domains,
+        //    formerly 'X-Chrome-Variations')
+        // - "x-devtools-emulate-network-conditions-client-id"
+        //   (when dev-tools are open)
+        //
+        return true;
+      }
+
+      return false;
+    }
 
     return {
       name: 'human-web.stripSensitiveHeadersInDoublefetch',
@@ -208,7 +228,7 @@ export default class DoublefetchHandler {
         if (matchingPendingEvent) {
           /* eslint-disable no-param-reassign */
           response.requestHeaders = request.requestHeaders.filter(
-            header => !sensitiveHeaders.includes(header.name.toLowerCase()));
+            header => !isSensitiveHeader(header));
           if (response.requestHeaders.length !== request.requestHeaders.length) {
             this._stats.strippedHeaders += 1;
           }

@@ -1,6 +1,7 @@
 /* please keep keys in this object sorted */
 module.exports = {
   ANOLYSIS_BACKEND_URL: 'https://anolysis.privacy.cliqz.com', // anolysis/sources/backend-communication.es
+  ANOLYSIS_STAGING_BACKEND_URL: 'https://anolysis.privacy.clyqz.com', // anolysis/sources/backend-communication.es
   BACKGROUND_IMAGE_URL: 'https://cdn.cliqz.com/brands-database/database/', // core/sources/utils.es
   BW_URL: 'https://antiphishing.cliqz.com/api/bwlist?md5=', // anti-phishing/sources/anti-phishing.es
   CAMPAIGN_SERVER: 'https://fec.cliqz.com/message/', // campaign-manager/sources/campaign-manager.es
@@ -16,7 +17,6 @@ module.exports = {
   ENDPOINT_KEYS_PROVIDER: 'https://hpn-collector.cliqz.com/signerKey?q=1',
   ENDPOINT_LOOKUP_TABLE_PROVIDER: 'https://hpn-collector.cliqz.com/v2/lookuptable?q=1',
   ENDPOINT_PATTERNSURL: 'https://cdn.cliqz.com/human-web/patterns',
-  ENDPOINT_PROXY_LIST_PROVIDER: 'https://hpn-collector.cliqz.com/v2/proxyList?q=1',
   ENDPOINT_SAFE_QUORUM_ENDPOINT: 'https://safe-browsing-quorum.cliqz.com/',
   ENDPOINT_SAFE_QUORUM_PROVIDER: 'https://safe-browsing-quorum.cliqz.com/config',
   ENDPOINT_SOURCE_MAP_PROVIDER: 'https://hpn-collector.cliqz.com/sourcemapjson?q=1',
@@ -28,12 +28,10 @@ module.exports = {
   INVENTORY_URL: 'https://cdn.cliqz.com/browser-f/fun-demo/inventoryv2.txt.gz', // green-ads/sources/inventory.es
   JOBS_URL: 'https://cliqz.com/jobs/', // autocomplete/sources/result-providers.es
   OFFERS_BE_BASE_URL: 'https://offers-api.cliqz.com',
-  OFFER_TELEMETRY: 'https://offers-api.cliqz.com/api/v1/savesignal', // hpn/sources/http-handler-patch.es
-  OFFER_TELEMETRY_PREFIX: 'https://offers-api.cliqz.com', // hpn/sources/http-handler-patch.es
   PRIVACY_SCORE_URL: 'https://anti-tracking.cliqz.com/api/v1/score?', // antitracking/sources/privacy-score.es
-  RESULTS_PROVIDER: 'https://api.cliqz.com/api/v2/results?nrh=1&q=', // core/sources/utils.es
-  RESULTS_PROVIDER_LOG: 'https://api.cliqz.com/api/v1/logging?q=', // core/sources/utils.es
-  RESULTS_PROVIDER_PING: 'https://api.cliqz.com/ping', // core/sources/utils.es
+  RESULTS_PROVIDER: 'https://api.cliqz.com/api/v2/results?nrh=1&q=', // core/config.es
+  RESULTS_PROVIDER_LOG: 'https://api.cliqz.com/api/v1/logging?q=', // core/config.es
+  RESULTS_PROVIDER_PING: 'https://api.cliqz.com/ping', // core/config.es
   RICH_HEADER: 'https://api.cliqz.com/api/v2/rich-header?path=/v2/map',
   RICH_HEADER_PROXY_URL: 'hb-news.cliqz.com',
   ROTATED_TOP_NEWS: 'rotated-top-news.cliqz.com', // freshtab/sources/news.es
@@ -47,6 +45,5 @@ module.exports = {
   TRACKER_PROXY_PROXY_PEERS_EXIT_DEFAULT: 'https://p2p-signaling-proxypeer.cliqz.com/exitNodes', // tracker-proxy.es
   TRACKER_PROXY_PROXY_SIGNALING_DEFAULT: 'wss://p2p-signaling-proxypeer.cliqz.com', // tracker-proxy.es
   TRIQZ_URL: 'https://cliqz.com/tips', // control-center/sources/window.es
-  TUTORIAL_URL: 'https://cliqz.com/home/onboarding', // core/sources/utils.es
   UNINSTALL: 'https://cliqz.com/home/offboarding', // core/sources/utils.es
 };

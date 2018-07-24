@@ -49,7 +49,7 @@ export default describeModule('history-analyzer/history-stream',
       }
     });
 
-    beforeEach(function initHistoryStream() {
+    beforeEach(function () {
       const HistoryStream = this.module().default;
       history = new HistoryStream(mkHistoryProcessorMock());
       return history.init();

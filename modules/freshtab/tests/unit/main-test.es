@@ -1,3 +1,5 @@
+/* global chai, describeModule */
+
 export default describeModule('freshtab/main',
   function () {
     return {
@@ -22,7 +24,7 @@ export default describeModule('freshtab/main',
         getHomePage: '[dynamic]',
         migrate: '[dynamic]',
       },
-    }
+    };
   },
   function () {
     let newTab;

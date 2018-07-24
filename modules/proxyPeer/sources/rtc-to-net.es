@@ -1,4 +1,3 @@
-import utils from '../core/utils';
 import { toUTF8, fromBase64 } from '../core/encoding';
 import MessageQueue from '../core/message-queue';
 
@@ -36,14 +35,14 @@ export default class RtcToNet {
     this.dataOut = 0;
 
     // Display health check
-    this.healthCheck = utils.setInterval(
+    this.healthCheck = setInterval(
       () => {
         logger.log(`RTCToNet healthcheck ${JSON.stringify(this.healthcheck())}`);
       },
       60 * 1000);
 
     // Clean-up dead connections
-    this.closeDeadConnections = utils.setInterval(
+    this.closeDeadConnections = setInterval(
       () => {
         const timestamp = Date.now();
         [...this.outgoingTcpConnections.keys()].forEach((connectionID) => {
@@ -87,8 +86,8 @@ export default class RtcToNet {
   }
 
   stop() {
-    utils.clearInterval(this.closeDeadConnections);
-    utils.clearInterval(this.healthCheck);
+    clearInterval(this.closeDeadConnections);
+    clearInterval(this.healthCheck);
   }
 
   unload() {

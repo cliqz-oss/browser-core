@@ -1,8 +1,12 @@
 /* eslint no-param-reassign: 'off' */
 
 import config from '../core/config';
+import hash from '../core/helpers/hash';
 import NEWS_DOMAINS_LIST from './news-domains';
-import coreUtils from '../core/utils';
+import console from '../core/console';
+import prefs from '../core/prefs';
+import i18n from '../core/i18n';
+import inject from '../core/kord/inject';
 import { extractSimpleURI } from '../core/url';
 import { getDomains, isURLVisited } from '../platform/freshtab/history';
 
@@ -24,25 +28,9 @@ const breakingNewsTypeKey = 'breaking-news';
 const NEWS_BACKENDS = ['de', 'fr', 'us', 'gb'];
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 
-function log(s) {
-  coreUtils.log(s, 'CliqzFreshTabNews');
-}
+const log = console.log.bind(console, 'freshtab.news');
 
 let hbasedRecommendCacheObject;
-
-function requestBackend(url, data) {
-  log(`Request url: ${url}`);
-  return coreUtils.promiseHttpHandler('PUT', url, data)
-    .then((response) => {
-      const resData = JSON.parse(response.response);
-      if (!resData.results || resData.results.length === 0) {
-        throw new Error(`Backend response from ${url} is not valid "${JSON.stringify(resData)}."`);
-      }
-      return {
-        results: [resData.results[0].snippet.extra]
-      };
-    });
-}
 
 function checkNewsTypeForHbasedRequest(newsPlacingRecord) {
   return (newsPlacingRecord.type === hbasedNewsTypeKey)
@@ -50,7 +38,7 @@ function checkNewsTypeForHbasedRequest(newsPlacingRecord) {
 }
 
 function getNewsLanguage() {
-  const locale = coreUtils.PLATFORM_LOCALE;
+  const locale = i18n.PLATFORM_LOCALE;
 
   for (let i = 0; i < NEWS_BACKENDS.length; i += 1) {
     if (locale.indexOf(NEWS_BACKENDS[i]) !== -1) {
@@ -63,30 +51,22 @@ function getNewsLanguage() {
 }
 
 function getNewsPreferedCountryParam() {
-  const ftConfig = JSON.parse(coreUtils.getPref(FRESHTAB_CONFIG_PREF, '{}'));
+  const ftConfig = JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}'));
   if (!ftConfig.news || !ftConfig.news.preferedCountry) {
     ftConfig.news = Object.assign({}, ftConfig.news, {
       preferedCountry: getNewsLanguage()
     });
 
-    coreUtils.setPref(FRESHTAB_CONFIG_PREF, JSON.stringify(ftConfig));
+    prefs.set(FRESHTAB_CONFIG_PREF, JSON.stringify(ftConfig));
   }
 
   return `&news_edition=${ftConfig.news.preferedCountry}`;
 }
 
 function getTopNewsList() {
-  const url = coreUtils.RICH_HEADER + coreUtils.getRichHeaderQueryString('') + getNewsPreferedCountryParam();
-  const data = {
-    q: '',
-    results: [
-      {
-        url: config.settings.ROTATED_TOP_NEWS,
-        snippet: {}
-      }
-    ]
-  };
-  return requestBackend(url, JSON.stringify(data));
+  return inject.module('search').action('getNews', config.settings.ROTATED_TOP_NEWS, {
+    params: getNewsPreferedCountryParam(),
+  });
 }
 
 const topNewsCacheObject = new NewsCache(
@@ -131,18 +111,7 @@ function getHbasedNewsObject() {
       requestPromise = Promise.resolve({});
     } else {
       const query = JSON.stringify(hbasedRecom.hashList);
-      const url = coreUtils.RICH_HEADER + coreUtils.getRichHeaderQueryString(query);
-      const data = {
-        q: query,
-        results: [
-          {
-            url: config.settings.HB_NEWS,
-            snippet: {}
-          }
-        ]
-      };
-
-      requestPromise = requestBackend(url, JSON.stringify(data))
+      requestPromise = inject.module('search').action('getNews', config.settings.HB_NEWS, { query })
         .then(reqData => filterNotRequiredDomains(reqData, hbasedRecom));
     }
 
@@ -228,7 +197,7 @@ function composeDomainHasheList(newsPlacing, historyBasedRecommendationsCache) {
   }
 
   function getDomainHash(record) {
-    return parseInt(coreUtils.hash(record.domain.split('/')[0]), 10);
+    return parseInt(hash(record.domain.split('/')[0]), 10);
   }
 
   function subsRandomElement(cachedHashList, domainHashList, elementToAdd) {
@@ -306,7 +275,7 @@ function composeHistoryBasedRecommendations(globalVisitCount) {
 
   function getPressClipping(glVisitCount) {
     function getPressClipMapping(domain) {
-      return PRESS_CLIPPING_MAPPING[parseInt(coreUtils.hash(domain), 10)] || false;
+      return PRESS_CLIPPING_MAPPING[parseInt(hash(domain), 10)] || false;
     }
     const glVisit = glVisitCount;
     const pressClipList = [];
@@ -325,7 +294,7 @@ function composeHistoryBasedRecommendations(globalVisitCount) {
 
   function getThreeTopNewsDomains(glVisitCount) {
     function checkIfNewsDomain(domain) {
-      return NEWS_DOMAINS_LIST[parseInt(coreUtils.hash(domain), 10)] || false;
+      return NEWS_DOMAINS_LIST[parseInt(hash(domain), 10)] || false;
     }
 
     const domainCountThreshold = 20;
@@ -434,7 +403,7 @@ function composeHistoryBasedRecommendations(globalVisitCount) {
 export function getHistoryBasedRecommendations(oldCacheData) {
   function getGlobalVisitCountFromPref() {
     try {
-      const globalVisitCount = coreUtils.getPref('globalVisitCount', false);
+      const globalVisitCount = prefs.get('globalVisitCount', false);
       if (globalVisitCount) {
         log('Global visit count is taken from the preference.');
       }
@@ -446,8 +415,8 @@ export function getHistoryBasedRecommendations(oldCacheData) {
   }
 
   function checkIfDomainForCounting(domain) {
-    const hash = parseInt(coreUtils.hash(domain), 10);
-    return NEWS_DOMAINS_LIST[hash] || PRESS_CLIPPING_MAPPING[hash];
+    const _hash = parseInt(hash(domain), 10);
+    return NEWS_DOMAINS_LIST[_hash] || PRESS_CLIPPING_MAPPING[_hash];
   }
 
   // take history visit count only for the exact domain and sub domains, not for articles' url

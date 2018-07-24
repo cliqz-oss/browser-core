@@ -1,6 +1,7 @@
 /* global chai */
 /* global describeModule */
 /* global require */
+/* eslint no-param-reassign: off */
 
 let buildSimplePatternIndex;
 const encoding = require('text-encoding');
@@ -12,7 +13,6 @@ const TextDecoder = encoding.TextDecoder;
 const TextEncoder = encoding.TextEncoder;
 
 let mockedTS = Date.now();
-let todayDayKeyMock = 20161101;
 const GENERIC_CAT_DATA = {
   name: 'test-cat',
   patterns: [
@@ -42,7 +42,7 @@ let tokenizeUrl;
 const getDaysFromTimeRange = (start, end) => {
   const result = [];
   while (start <= end) {
-    result.push(`${Math.floor(start/DAY_MS)}`);
+    result.push(`${Math.floor(start / DAY_MS)}`);
     start += DAY_MS;
   }
   return result;
@@ -55,7 +55,7 @@ function wait(time) {
 
 export default describeModule('offers-v2/categories/category-handler',
   () => ({
-     ...mockDexie,
+    ...mockDexie,
     'platform/text-decoder': {
       default: TextDecoder,
     },
@@ -67,12 +67,12 @@ export default describeModule('offers-v2/categories/category-handler',
     },
     'offers-v2/common/offers_v2_logger': {
       default: {
-        debug: (x) => {console.log(x);},
-        error: (x) => {console.log(x);},
-        info: (x) => {console.log(x);},
-        log: (x) => {console.log(x);},
-        warn: (x) => {console.log(x);},
-        logObject: () => {console.log(x);},
+        debug: (x) => { console.log(x); },
+        error: (x) => { console.log(x); },
+        info: (x) => { console.log(x); },
+        log: (x) => { console.log(x); },
+        warn: (x) => { console.log(x); },
+        logObject: (x) => { console.log(x); },
       }
     },
     'core/persistence/simple-db': {
@@ -82,14 +82,14 @@ export default describeModule('offers-v2/categories/category-handler',
         }
         upsert(docID, docData) {
           const self = this;
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             self.db[docID] = JSON.parse(JSON.stringify(docData));
             resolve();
           });
         }
         get(docID) {
           const self = this;
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             if (self.db[docID]) {
               resolve(JSON.parse(JSON.stringify(self.db[docID])));
             } else {
@@ -97,20 +97,21 @@ export default describeModule('offers-v2/categories/category-handler',
             }
           });
         }
-        remove(docID) {}
+        remove() {}
       }
     },
     'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
+      default: function () { const stop = () => {}; return { stop }; }
     },
     'core/utils': {
+      default: {},
+    },
+    'core/prefs': {
       default: {
-        setInterval: function() {},
-        clearInterval: function() {},
-        getPref: function(k, v) {
+        get: function (k, v) {
           return v;
         }
-      },
+      }
     },
     'platform/globals': {
     },
@@ -128,29 +129,22 @@ export default describeModule('offers-v2/categories/category-handler',
     'platform/console': {
       default: {}
     },
-    'core/prefs': {
-      default: {
-        get: function(x,y) {
-          return y;
-        }
-      }
-    },
     'core/time': {
-      getDaysFromTimeRange: function(startTS, endTS) {
+      getDaysFromTimeRange: function (startTS, endTS) {
         return getDaysFromTimeRange(startTS, endTS);
       },
-      getDateFromDateKey: function(dateKey, hours = 0, min = 0, seconds = 0) {
-        return `${Number(dateKey) * DAY_MS + hours * 60 * 60 * 1000 + min * 60 * 1000}`;
+      getDateFromDateKey: function (dateKey, hours = 0, min = 0) {
+        return `${(Number(dateKey) * DAY_MS) + (hours * 60 * 60 * 1000) + (min * 60 * 1000)}`;
       },
-      timestamp: function() {
+      timestamp: function () {
         return mockedTS;
       },
-      getTodayDayKey: function() {
+      getTodayDayKey: function () {
         return getTodayDayKey(mockedTS);
       }
     },
     'offers-v2/utils': {
-      timestampMS: function() {
+      timestampMS: function () {
         return mockedTS;
       },
     },
@@ -163,7 +157,7 @@ export default describeModule('offers-v2/categories/category-handler',
         init() { return true; }
         unload() { return true; }
         isAvailable() { return true; }
-        hasCachedData(pid) { return Promsise.resolve({}); }
+        hasCachedData() { return Promise.resolve({}); }
         performQuery(q) {
           // q = {
           //   patterns: category.getPatterns(),
@@ -172,33 +166,33 @@ export default describeModule('offers-v2/categories/category-handler',
           //   end_ms: now
           // };
           const dayList = getDaysFromTimeRange(q.start_ms, q.end_ms);
-           // * {
-           // *   match_data: {
-           // *     total: {
-           // *       // total of number of days we have info regarding this entry
-           // *       num_days: N,
-           // *       // the total number of matches on those days
-           // *       m: M,
-           // *       // the total number of urls we checked on history on those days for this
-           // *       // particular pattern.
-           // *       c: X,
-           // *       // the last timestamp of the last url we have checked (it can be that
-           // *       // is not in the query of those days).
-           // *       last_checked_url_ts: T,
-           // *     },
-           // *     per_day: {
-           // *       // we will store the data in the following format: YYYYMMDD
-           // *       day_key_1: {
-           // *         // the number of matches for this particular day
-           // *         m: N,
-           // *         // the number of urls checked on this day
-           // *         c: M,
-           // *         // the last time we accessed / used this day data
-           // *         last_accessed_ts: X,
-           // *       },
-           // *       ...
-           // *     }
-           // *   }
+          // * {
+          // *   match_data: {
+          // *     total: {
+          // *       // total of number of days we have info regarding this entry
+          // *       num_days: N,
+          // *       // the total number of matches on those days
+          // *       m: M,
+          // *       // the total number of urls we checked on history on those days for this
+          // *       // particular pattern.
+          // *       c: X,
+          // *       // the last timestamp of the last url we have checked (it can be that
+          // *       // is not in the query of those days).
+          // *       last_checked_url_ts: T,
+          // *     },
+          // *     per_day: {
+          // *       // we will store the data in the following format: YYYYMMDD
+          // *       day_key_1: {
+          // *         // the number of matches for this particular day
+          // *         m: N,
+          // *         // the number of urls checked on this day
+          // *         c: M,
+          // *         // the last time we accessed / used this day data
+          // *         last_accessed_ts: X,
+          // *       },
+          // *       ...
+          // *     }
+          // *   }
           const result = {
             match_data: {
               total: {
@@ -228,7 +222,7 @@ export default describeModule('offers-v2/categories/category-handler',
           return Promise.resolve({ d: result, pid: q.pid });
         }
 
-        removeEntry(pid) {}
+        removeEntry() {}
       }
     },
     'offers-v2/features/geo_checker': {
@@ -241,28 +235,26 @@ export default describeModule('offers-v2/categories/category-handler',
     }
   }),
   () => {
-    describe('#category-handler-test', function() {
+    describe('#category-handler-test', function () {
       let CategoryHandler;
       let sharedDB;
       let FeatureHandler;
-      let HistoryFeatureMock;
       let Category;
 
 
       beforeEach(function () {
         CategoryHandler = this.module().default;
-        HistoryFeatureMock = this.deps('offers-v2/features/history-feature').default;
         return Promise.all([
-            this.system.import('offers-v2/features/feature-handler'),
-            this.system.import('offers-v2/categories/category'),
-            this.system.import('offers-v2/common/pattern-utils'),
-          ]).then((mods) => {
-            FeatureHandler = mods[0].default;
-            Category = mods[1].default;
-            CATEGORY_LIFE_TIME_SECS = mods[1].CATEGORY_LIFE_TIME_SECS;
-            buildSimplePatternIndex = mods[2].buildSimplePatternIndex;
-            tokenizeUrl = mods[2].default;
-          });
+          this.system.import('offers-v2/features/feature-handler'),
+          this.system.import('offers-v2/categories/category'),
+          this.system.import('offers-v2/common/pattern-utils'),
+        ]).then((mods) => {
+          FeatureHandler = mods[0].default;
+          Category = mods[1].default;
+          CATEGORY_LIFE_TIME_SECS = mods[1].CATEGORY_LIFE_TIME_SECS;
+          buildSimplePatternIndex = mods[2].buildSimplePatternIndex;
+          tokenizeUrl = mods[2].default;
+        });
       });
 
 
@@ -291,24 +283,24 @@ export default describeModule('offers-v2/categories/category-handler',
           if (cd.version) {
             d.version = cd.version;
           }
-          result.push(new Category(d.name, d.patterns, d.version, d.timeRangeSecs, d.activationData));
+          result
+            .push(new Category(d.name, d.patterns, d.version, d.timeRangeSecs, d.activationData));
         });
         return result;
       }
 
       function waitForHistoryReady(cat) {
         return new Promise((resolve) => {
-          const wait = () => {
+          const _wait = () => {
             setTimeout(() => {
               if (cat.isHistoryDataSettedUp()) {
                 resolve(true);
-                return;
               } else {
                 wait();
               }
             }, 10);
           };
-          wait();
+          _wait();
         });
       }
 
@@ -384,12 +376,12 @@ export default describeModule('offers-v2/categories/category-handler',
           ];
           const cats = [];
           catNames.forEach(cname => cats.push(createCategory(GENERIC_CAT_DATA, cname)));
-          cats.forEach((c) => {
-            chai.expect(catHandler.hasCategory(c.getName())).eql(false);
-            catHandler.addCategory(c);
+          cats.forEach((_c) => {
+            chai.expect(catHandler.hasCategory(_c.getName())).eql(false);
+            catHandler.addCategory(_c);
           });
           catHandler.build();
-          cats.forEach(c => catHandler.removeCategory(c));
+          cats.forEach(_c => catHandler.removeCategory(_c));
           catNames.forEach(cname => chai.expect(catHandler.hasCategory(cname)).eql(false));
         });
 
@@ -440,7 +432,7 @@ export default describeModule('offers-v2/categories/category-handler',
 
           catHandler.newUrlEvent(tokenizeUrl('http://www.google.com'));
 
-          chai.expect(cats[0].getTotalMatches(),'here!!!').eql(1);
+          chai.expect(cats[0].getTotalMatches(), 'here!!!').eql(1);
           chai.expect(cats[1].getTotalMatches(), 'here 2').eql(0);
 
           catHandler.newUrlEvent(tokenizeUrl('http://www.yahoo.com'));
@@ -471,7 +463,7 @@ export default describeModule('offers-v2/categories/category-handler',
 
           catHandler.newUrlEvent(tokenizeUrl('http://www.google.com'));
 
-          chai.expect(cats[0].getTotalMatches(),'here!!!').eql(1);
+          chai.expect(cats[0].getTotalMatches(), 'here!!!').eql(1);
           chai.expect(cats[1].getTotalMatches(), 'here 2').eql(0);
           chai.expect(cats[2].getTotalMatches()).eql(1);
 
@@ -579,7 +571,7 @@ export default describeModule('offers-v2/categories/category-handler',
           const catData = [
             { name: 'c1',
               patterns: ['||google.com'],
-              timeRangeSecs: 4 * DAY_MS / 1000
+              timeRangeSecs: (4 * DAY_MS) / 1000
             },
           ];
           historyFeatureMock.dayData = GENERIC_HISTORY_DAY;
@@ -599,7 +591,7 @@ export default describeModule('offers-v2/categories/category-handler',
             args: {
               startDayIdx: 0,
               endDayIdx: 0,
-              threshold: 3/7,
+              threshold: 3 / 7,
             },
           };
           const activationData2 = {
@@ -608,18 +600,18 @@ export default describeModule('offers-v2/categories/category-handler',
             args: {
               startDayIdx: 0,
               endDayIdx: 0,
-              threshold: 4/7,
+              threshold: 4 / 7,
             },
           };
           const catData = [
             { name: 'c1',
               patterns: ['||google.com'],
-              timeRangeSecs: 4 * DAY_MS / 1000,
+              timeRangeSecs: (4 * DAY_MS) / 1000,
               activationData,
             },
             { name: 'c2',
               patterns: ['||google.com'],
-              timeRangeSecs: 4 * DAY_MS / 1000,
+              timeRangeSecs: (4 * DAY_MS) / 1000,
               activationData: activationData2,
             },
           ];
@@ -644,7 +636,7 @@ export default describeModule('offers-v2/categories/category-handler',
             args: {
               startDayIdx: 1,
               endDayIdx: 1,
-              threshold: 2/7,
+              threshold: 2 / 7,
             },
           };
           const activationData2 = {
@@ -653,18 +645,18 @@ export default describeModule('offers-v2/categories/category-handler',
             args: {
               startDayIdx: 1,
               endDayIdx: 1,
-              threshold: 3/7,
+              threshold: 3 / 7,
             },
           };
           const catData = [
             { name: 'c1',
               patterns: ['||google.com'],
-              timeRangeSecs: 4 * DAY_MS / 1000,
+              timeRangeSecs: (4 * DAY_MS) / 1000,
               activationData,
             },
             { name: 'c2',
               patterns: ['||google.com'],
-              timeRangeSecs: 4 * DAY_MS / 1000,
+              timeRangeSecs: (4 * DAY_MS) / 1000,
               activationData: activationData2,
             },
           ];
@@ -688,7 +680,7 @@ export default describeModule('offers-v2/categories/category-handler',
             args: {
               startDayIdx: 0,
               endDayIdx: 3,
-              threshold: 2/7,
+              threshold: 2 / 7,
             },
           };
           const activationData2 = {
@@ -697,18 +689,18 @@ export default describeModule('offers-v2/categories/category-handler',
             args: {
               startDayIdx: 0,
               endDayIdx: 3,
-              threshold: 3/7,
+              threshold: 3 / 7,
             },
           };
           const catData = [
             { name: 'c1',
               patterns: ['||google.com'],
-              timeRangeSecs: 4 * DAY_MS / 1000,
+              timeRangeSecs: (4 * DAY_MS) / 1000,
               activationData,
             },
             { name: 'c2',
               patterns: ['||google.com'],
-              timeRangeSecs: 4 * DAY_MS / 1000,
+              timeRangeSecs: (4 * DAY_MS) / 1000,
               activationData: activationData2,
             },
           ];
@@ -732,13 +724,13 @@ export default describeModule('offers-v2/categories/category-handler',
             args: {
               startDayIdx: 0,
               endDayIdx: 0,
-              threshold: 4/8,
+              threshold: 4 / 8,
             },
           };
           const catData = [
             { name: 'c1',
               patterns: ['||google.com'],
-              timeRangeSecs: 4 * DAY_MS / 1000,
+              timeRangeSecs: (4 * DAY_MS) / 1000,
               activationData,
             },
           ];
@@ -763,13 +755,13 @@ export default describeModule('offers-v2/categories/category-handler',
             args: {
               startDayIdx: 0,
               endDayIdx: 3,
-              threshold: 2/7,
+              threshold: 2 / 7,
             },
           };
           const catData = [
             { name: 'c1',
               patterns: ['||google.com'],
-              timeRangeSecs: 4 * DAY_MS / 1000,
+              timeRangeSecs: (4 * DAY_MS) / 1000,
               activationData,
             },
           ];
@@ -809,12 +801,12 @@ export default describeModule('offers-v2/categories/category-handler',
           const catData = [
             { name: 'c1',
               patterns: ['||google.com'],
-              timeRangeSecs: 4 * DAY_MS / 1000,
+              timeRangeSecs: (4 * DAY_MS) / 1000,
               activationData,
             },
             { name: 'c2',
               patterns: ['||google.com'],
-              timeRangeSecs: 4 * DAY_MS / 1000,
+              timeRangeSecs: (4 * DAY_MS) / 1000,
               activationData: activationData2,
             },
           ];
@@ -836,83 +828,83 @@ export default describeModule('offers-v2/categories/category-handler',
         });
 
         it('/check activation works for simpleCount func for totNumHits', function () {
-              var activationData = {
-                activationTimeSecs: 10,
-                func: 'simpleCount',
-                args: {
-                  totNumHits: 7
-                }
-              };
-              var activationData2 = {
-                activationTimeSecs: 10,
-                func: 'simpleCount',
-                args: {
-                  totNumHits: 5
-                }
-              };
-              var catData = [{ name: 'c1',
-                patterns: ['||google.com'],
-                timeRangeSecs: 1 * DAY_MS / 1000,
-                activationData: activationData
-              }, { name: 'c2',
-                patterns: ['||google.com'],
-                timeRangeSecs: 0.7 * DAY_MS / 1000,
-                activationData: activationData2
-              }];
-              historyFeatureMock.dayData = GENERIC_HISTORY_DAY;
-              var cats = createCategories(catData);
-              cats.forEach(function (c) {
-                return catHandler.addCategory(c);
-              });
-              catHandler.build();
-              chai.expect(catHandler.isCategoryActive('c1'), 'c1 first check').eql(false);
-              chai.expect(catHandler.isCategoryActive('c2'), 'c2 first check').eql(false);
-              return waitForMultipleCatHistory(cats).then(function () {
-                chai.expect(catHandler.isCategoryActive('c1'), 'c1 snd check').eql(false);
-                chai.expect(catHandler.isCategoryActive('c2'), 'c2 snd check').eql(false);
-                // 1 hit for c1 2 for c2
-                catHandler.newUrlEvent(tokenizeUrl('http://www.google.com'));
-                chai.expect(catHandler.isCategoryActive('c1'), 'v1').eql(true);
-                chai.expect(catHandler.isCategoryActive('c2'), 'v1.2').eql(false);
-                catHandler.newUrlEvent(tokenizeUrl('http://www.google.com'));
-                chai.expect(catHandler.isCategoryActive('c1'), '2.v1').eql(true);
-                chai.expect(catHandler.isCategoryActive('c2'), '2.v1.2').eql(true);
-                return Promise.resolve();
-              });
-            });
+          const activationData = {
+            activationTimeSecs: 10,
+            func: 'simpleCount',
+            args: {
+              totNumHits: 7
+            }
+          };
+          const activationData2 = {
+            activationTimeSecs: 10,
+            func: 'simpleCount',
+            args: {
+              totNumHits: 5
+            }
+          };
+          const catData = [{ name: 'c1',
+            patterns: ['||google.com'],
+            timeRangeSecs: (1 * DAY_MS) / 1000,
+            activationData: activationData
+          }, { name: 'c2',
+            patterns: ['||google.com'],
+            timeRangeSecs: (0.7 * DAY_MS) / 1000,
+            activationData: activationData2
+          }];
+          historyFeatureMock.dayData = GENERIC_HISTORY_DAY;
+          const cats = createCategories(catData);
+          cats.forEach(function (c) {
+            return catHandler.addCategory(c);
+          });
+          catHandler.build();
+          chai.expect(catHandler.isCategoryActive('c1'), 'c1 first check').eql(false);
+          chai.expect(catHandler.isCategoryActive('c2'), 'c2 first check').eql(false);
+          return waitForMultipleCatHistory(cats).then(function () {
+            chai.expect(catHandler.isCategoryActive('c1'), 'c1 snd check').eql(false);
+            chai.expect(catHandler.isCategoryActive('c2'), 'c2 snd check').eql(false);
+            // 1 hit for c1 2 for c2
+            catHandler.newUrlEvent(tokenizeUrl('http://www.google.com'));
+            chai.expect(catHandler.isCategoryActive('c1'), 'v1').eql(true);
+            chai.expect(catHandler.isCategoryActive('c2'), 'v1.2').eql(false);
+            catHandler.newUrlEvent(tokenizeUrl('http://www.google.com'));
+            chai.expect(catHandler.isCategoryActive('c1'), '2.v1').eql(true);
+            chai.expect(catHandler.isCategoryActive('c2'), '2.v1.2').eql(true);
+            return Promise.resolve();
+          });
+        });
 
         it('/check activation works for simpleCount func for totNumHits & numDays', function () {
-              var activationData = {
-                activationTimeSecs: 10,
-                func: 'simpleCount',
-                args: {
-                  totNumHits: 8,
-                  numDays: 2,
-                }
-              };
-              var catData = [{ name: 'c1',
-                patterns: ['||google.com'],
-                timeRangeSecs: 1 * DAY_MS / 1000,
-                activationData: activationData
-              }];
-              historyFeatureMock.dayData = GENERIC_HISTORY_DAY;
-              var cats = createCategories(catData);
-              cats.forEach(function (c) {
-                return catHandler.addCategory(c);
-              });
-              catHandler.build();
-              chai.expect(catHandler.isCategoryActive('c1'), 'c1 first check').eql(false);
-              return waitForMultipleCatHistory(cats).then(function () {
-                chai.expect(catHandler.isCategoryActive('c1'), 'c1 snd check').eql(false);
-                // increment one day
-                // mockedTS += DAY_MS;
-                catHandler.newUrlEvent(tokenizeUrl('http://www.google.com'));
-                chai.expect(catHandler.isCategoryActive('c1'), 'v1').eql(false);
-                catHandler.newUrlEvent(tokenizeUrl('http://www.google.com'));
-                chai.expect(catHandler.isCategoryActive('c1'), 'v1.2').eql(true);
-                return Promise.resolve();
-              });
-            });
+          const activationData = {
+            activationTimeSecs: 10,
+            func: 'simpleCount',
+            args: {
+              totNumHits: 8,
+              numDays: 2,
+            }
+          };
+          const catData = [{ name: 'c1',
+            patterns: ['||google.com'],
+            timeRangeSecs: (1 * DAY_MS) / 1000,
+            activationData: activationData
+          }];
+          historyFeatureMock.dayData = GENERIC_HISTORY_DAY;
+          const cats = createCategories(catData);
+          cats.forEach(function (c) {
+            return catHandler.addCategory(c);
+          });
+          catHandler.build();
+          chai.expect(catHandler.isCategoryActive('c1'), 'c1 first check').eql(false);
+          return waitForMultipleCatHistory(cats).then(function () {
+            chai.expect(catHandler.isCategoryActive('c1'), 'c1 snd check').eql(false);
+            // increment one day
+            // mockedTS += DAY_MS;
+            catHandler.newUrlEvent(tokenizeUrl('http://www.google.com'));
+            chai.expect(catHandler.isCategoryActive('c1'), 'v1').eql(false);
+            catHandler.newUrlEvent(tokenizeUrl('http://www.google.com'));
+            chai.expect(catHandler.isCategoryActive('c1'), 'v1.2').eql(true);
+            return Promise.resolve();
+          });
+        });
 
         it('/check activation works for categories tree', function () {
           const activationData = {
@@ -921,13 +913,13 @@ export default describeModule('offers-v2/categories/category-handler',
             args: {
               startDayIdx: 0,
               endDayIdx: 3,
-              threshold: 2/7,
+              threshold: 2 / 7,
             },
           };
           const catData = [
             { name: 'c1.c11.c111',
               patterns: ['||google.com'],
-              timeRangeSecs: 4 * DAY_MS / 1000,
+              timeRangeSecs: (4 * DAY_MS) / 1000,
               activationData,
             },
           ];
@@ -954,19 +946,19 @@ export default describeModule('offers-v2/categories/category-handler',
             args: {
               startDayIdx: 0,
               endDayIdx: 0,
-              threshold: 1/7,
+              threshold: 1 / 7,
             },
           };
           let catData = [
             { name: 'c1',
               patterns: ['||xyz.com'],
-              timeRangeSecs: 4 * DAY_MS / 1000,
+              timeRangeSecs: (4 * DAY_MS) / 1000,
               activationData,
               version: 1,
             },
           ];
           historyFeatureMock.dayData = GENERIC_HISTORY_DAY;
-          const cats = createCategories(catData);
+          let cats = createCategories(catData);
           cats.forEach(c => catHandler.addCategory(c));
           catHandler.build();
           return waitForMultipleCatHistory(cats).then(() => {
@@ -976,12 +968,12 @@ export default describeModule('offers-v2/categories/category-handler',
             catData = [
               { name: 'c1',
                 patterns: ['||google.com'],
-                timeRangeSecs: 4 * DAY_MS / 1000,
+                timeRangeSecs: (4 * DAY_MS) / 1000,
                 activationData,
                 version: 2
               },
             ];
-            const cats = createCategories(catData);
+            cats = createCategories(catData);
             cats.forEach(c => catHandler.addCategory(c));
             catHandler.build();
             return waitForMultipleCatHistory(cats).then(() => {
@@ -998,19 +990,19 @@ export default describeModule('offers-v2/categories/category-handler',
             args: {
               startDayIdx: 0,
               endDayIdx: 0,
-              threshold: 1/7,
+              threshold: 1 / 7,
             },
           };
           let catData = [
             { name: 'c1',
               patterns: ['||xyz.com'],
-              timeRangeSecs: 4 * DAY_MS / 1000,
+              timeRangeSecs: (4 * DAY_MS) / 1000,
               activationData,
               version: 1,
             },
           ];
           historyFeatureMock.dayData = GENERIC_HISTORY_DAY;
-          const cats = createCategories(catData);
+          let cats = createCategories(catData);
           cats.forEach(c => catHandler.addCategory(c));
           catHandler.build();
           return waitForMultipleCatHistory(cats).then(() => {
@@ -1020,12 +1012,12 @@ export default describeModule('offers-v2/categories/category-handler',
             catData = [
               { name: 'c1',
                 patterns: ['||google.com'],
-                timeRangeSecs: 4 * DAY_MS / 1000,
+                timeRangeSecs: (4 * DAY_MS) / 1000,
                 activationData,
                 version: 1
               },
             ];
-            const cats = createCategories(catData);
+            cats = createCategories(catData);
             cats.forEach(c => catHandler.addCategory(c));
             catHandler.build();
             // check the category is the old one

@@ -2,12 +2,14 @@
     $aside-width,
     $container-width,
     $section-padding,
+    $inner-content-width,
 
     $dial-height,
     $dial-padding,
     $dial-header-height,
     $dial-header-title,
     $dial-title-font-size,
+    $dial-delete-background,
     $logo-size,
     $logo-font-size,
     $logo-line-height,
@@ -18,25 +20,26 @@
 
     $dial-header-color,
     $dial-header-bg-color,
-    $dial-delete-background,
-    $dial-button-plus-background,
     $dial-button-plus-opacity,
     $dial-button-plus-opacity-hover,
     $dial-logo-border,
     $dial-logo-box-shadow,
     $dial-logo-box-shadow-hover,
     $dial-logo-after-box-shadow,
-    $dial-logo-color,
     $dial-title-color,
     $dial-title-color-hover,
-    $hide-add-form-color,
-    $add-dial-form-color,
-    $add-dial-form-bg-color,
-    $add-dial-form-box-shadow,
-    $add-dial-form-input-color,
-    $add-dial-form-submit-color,
-    $add-dial-form-submit-color-hover
+    $add-dial-form-box-shadow
 ){
+    $dial-edit-background: url(../images/pencil.svg) no-repeat;
+    $dial-button-plus-background: url(../images/plus_black.svg) no-repeat center center;
+    $hide-add-form-color: #ccc;
+    $add-dial-form-color: #333;
+    $add-dial-form-bg-color: #fff;
+    $dial-logo-color: #fff;
+    $add-dial-form-input-color: #666666;
+    $add-dial-form-submit-color: #00aef0;
+    $add-dial-form-submit-color-hover: #0078CA;
+
     .dial-header {
         font-size: 14px;
         color: $dial-header-color;
@@ -77,24 +80,39 @@
             width: calc(#{$container-width} / 6);
             padding: $dial-padding;
             position: relative;
+            text-decoration: none;
 
             &:hover {
+                .edit{
+                    visibility: visible;
+                    opacity: 1;
+                    transition: visibility 0s linear 0s, opacity 300ms;
+                }
+
                 .delete {
                     visibility: visible;
                     opacity: 1;
                     transition: visibility 0s linear 0s, opacity 300ms;
                 }
-                .logo {
+
+               .logo {
                     box-shadow: $dial-logo-box-shadow-hover;
                 }
 
                 .title {
                     color: $dial-title-color-hover;
+                    text-decoration: none;
                 }
             }
 
-            a {
-                text-decoration: none;
+            &:focus {
+                .logo {
+                    border: 3px solid white;
+
+                    &::after {
+                        opacity: 0;
+                    }
+                }
             }
 
             .logo {
@@ -140,6 +158,24 @@
                 text-overflow: ellipsis;
                 color: $dial-title-color;
                 cursor: pointer;
+                text-decoration: none;
+            }
+
+            .edit {
+                position: absolute;
+                top: 0;
+                right: $delete-button-position-right;
+                visibility: hidden;
+                opacity: 0;
+                width: 25px;
+                height: 25px;
+                background: $dial-edit-background;
+                border: 0px;
+                cursor: pointer;
+                overflow: hidden;
+                text-indent: 100%;
+                white-space: nowrap;
+                transition: visibility 0s linear 300ms, opacity 300ms;
             }
 
             .delete {
@@ -159,6 +195,12 @@
                 transition: visibility 0s linear 300ms, opacity 300ms;
             }
 
+            .flex-container {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
 
             button {
                 border: 0;
@@ -183,65 +225,6 @@
         .dial-plus {
             padding: 0;
             height: calc(#{$dial-height} + 8px);
-
-            .hideAddForm {
-                background: url(../images/delete-icon.svg) no-repeat center center;
-                background-size: cover;
-                margin-left: auto;
-                width: 25px;
-                height: 25px;
-                display: block;
-                cursor: pointer;
-                padding: 0px;
-                text-align: right;
-                color: $hide-add-form-color;
-                font-size: 16px;
-                line-height: 12px;
-            }
-
-            .addDialForm {
-                padding: 2px 0;
-                height: 100%;
-                position: relative;
-                background-color: $add-dial-form-bg-color;
-                color: $add-dial-form-color;
-                box-shadow: $add-dial-form-box-shadow;
-                border-radius: 2px;
-
-                input {
-                    border-top: 0px;
-                    border-left: 0px;
-                    border-right: 0px;
-                    border-bottom: 2px solid #F3F3F3;
-                    color: $add-dial-form-input-color;
-                    width: calc(100% - 20px);
-                    padding: 0 0 1px;
-                    font-size: 12px;
-                    height: auto;
-                    line-height: 1.2em;
-                }
-
-                .submit {
-                    border: 0;
-                    background: transparent;
-                    font-size: 14px;
-                    font-weight: 500;
-                    color: $add-dial-form-submit-color;
-                    margin-top: $add-dial-form-submit-margin;
-                    cursor: pointer;
-
-                    &:hover {
-                        color: $add-dial-form-submit-color-hover;
-                    }
-                }
-            }
-
-            .flex-container {
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-            }
 
             .error {
                 text-align: center;

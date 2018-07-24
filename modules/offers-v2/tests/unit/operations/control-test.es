@@ -1,15 +1,14 @@
 /* global chai */
 /* global describeModule */
 /* global require */
-/* eslint-disable func-names,prefer-arrow-callback,arrow-body-style */
+/* eslint-disable func-names,prefer-arrow-callback,arrow-body-style, no-param-reassign */
 
 const tldjs = require('tldjs');
 
-var prefRetVal = {};
-var currentTS = Date.now();
-var currentDayHour = 0;
-var currentWeekDay = 0;
-let hookedResultOfLoggerInfo;
+let prefRetVal = {};
+let currentTS = Date.now();
+let currentDayHour = 0;
+let currentWeekDay = 0;
 let platformLaguage;
 
 const DAY_MS = 1000 * 60 * 60 * 24;
@@ -17,7 +16,7 @@ const DAY_MS = 1000 * 60 * 60 * 24;
 const getDaysFromTimeRange = (start, end) => {
   const result = [];
   while (start <= end) {
-    result.push(`${Math.floor(start/DAY_MS)}`);
+    result.push(`${Math.floor(start / DAY_MS)}`);
     start += DAY_MS;
   }
   return result;
@@ -48,13 +47,13 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
       default: {}
     },
     'offers-v2/utils': {
-      timestampMS: function() {
+      timestampMS: function () {
         return currentTS;
       },
-      dayHour: function() {
+      dayHour: function () {
         return currentDayHour;
       },
-      weekDay: function() {
+      weekDay: function () {
         return currentWeekDay;
       }
     },
@@ -72,34 +71,26 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
     },
     'core/prefs': {
       default: {
-        get: function(v, d) {
-          if (prefRetVal[v]) {
-            return prefRetVal[v];
-          }
-          return d;
-        },
-        setMockVal: function(varName, val) {
-          prefRetVal[varName] = val;
-        }
-      }
-    },
-    'core/utils': {
-      default: {
-        setInterval: function() {},
-      }
-    },
-    'core/utils': {
-      default: {
-        get PLATFORM_LANGUAGE() {
-          return platformLaguage;
-        },
-        getPref: function(prefName, defaultVal) {
+        get: function (prefName, defaultVal) {
           if (prefRetVal) {
             return prefRetVal;
           }
           return defaultVal;
+        },
+        setMockVal: function (varName, val) {
+          prefRetVal[varName] = val;
         }
+      }
+    },
+    'core/i18n': {
+      default: {
+        get PLATFORM_LANGUAGE() {
+          return platformLaguage;
+        },
       },
+    },
+    'core/utils': {
+      default: {},
     },
     'platform/console': {
       default: {},
@@ -107,15 +98,15 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
     'offers-v2/common/offers_v2_logger': {
       default: {
         debug: () => {},
-        error: (...args) => {console.error(...args)},
-        info: (...args) => { console.log(args); hookedResultOfLoggerInfo = args; },
+        error: (...args) => { console.error(...args); },
+        info: (...args) => { console.log(args); },
         log: () => {},
-        warn: () => { console.error(...args); },
+        warn: (...args) => { console.error(...args); },
         logObject: () => {},
       }
     },
     'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
+      default: function () { const stop = () => {}; return { stop }; }
     },
     'offers-v2/query_handler': {
       default: class {
@@ -131,7 +122,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         matchTokens() {
           return true;
         }
-     }
+      }
     },
     'offers-v2/features/feature-handler': {
       default: class {
@@ -141,7 +132,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         clear() {
           this.features = {};
         }
-        addFeaturesToCheck(featureList) {}
+        addFeaturesToCheck() {}
 
         isFeatureAvailable(featureName) {
           return !!this.features[featureName];
@@ -153,17 +144,15 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
       }
     },
     'core/time': {
-      getDaysFromTimeRange: function(startTS, endTS) {
+      getDaysFromTimeRange: function (startTS, endTS) {
         return getDaysFromTimeRange(startTS, endTS);
       },
-      getDateFromDateKey: function(dateKey, hours = 0, min = 0, seconds = 0) {
+      getDateFromDateKey: function (dateKey) {
         return `${Number(dateKey) * DAY_MS}`;
       },
-      timestamp: function() {
-        return mockedTS;
-      },
-      getTodayDayKey: function() {
-        return getTodayDayKey(mockedTS);
+      timestamp: function () {},
+      getTodayDayKey: function () {
+        return getTodayDayKey();
       }
     },
     'offers-v2/pattern-matching/pattern-matching-handler': {
@@ -200,7 +189,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         hasReferrer() { return false; }
         getReferrer() { return ''; }
         getRawUrl() { return this.rawUrl; }
-        getLowercaseUrl() { return this.rawUrl.toLowerCase() ;}
+        getNormalizedUrl() { return decodeURIComponent(this.rawUrl.replace(/\+/g, '%20')).toLowerCase(); }
         getUrlDetails() { return {}; }
         getDomain() { return ''; }
         getPatternRequest() { return this.rawUrl; }
@@ -222,10 +211,10 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         isAvailable() {
           return this.isLocAvailable();
         }
-        updateLocation(data) { }
-        updateCity(city) { }
-        updateCountry(country) { }
-        checkLocByCoords(coords, dKm) {
+        updateLocation() { }
+        updateCity() { }
+        updateCountry() { }
+        checkLocByCoords() {
           // TODO: implement this when required
           return false;
         }
@@ -235,16 +224,10 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         }
       }
     }
-
-
-
   }),
   () => {
     describe('/control operations', () => {
-      let ops;
-      let eventLoop;
       let buildDataGen;
-      let prefMock;
       let ExpressionBuilder;
       let exprBuilder;
       let RegexpCache;
@@ -254,7 +237,6 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
       let geoMock;
       let featureHandlerMock;
       let patternMatchMock;
-      let UrlData;
 
       function buildOp(obj) {
         return exprBuilder.createExp(obj);
@@ -268,14 +250,11 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
       }
 
       beforeEach(function () {
-        ops = this.module().default;
-        prefMock = this.deps('core/prefs').default;
         RegexpCache = this.deps('offers-v2/regexp_cache').default;
         QHandlerMock = this.deps('offers-v2/query_handler').default;
         FeatureHandler = this.deps('offers-v2/features/feature-handler').default;
         GeoCheckerMock = this.deps('offers-v2/features/geo_checker').default;
         const PatternMatchingHandlerMock = this.deps('offers-v2/pattern-matching/pattern-matching-handler').default;
-        UrlData = this.deps('offers-v2/common/url_data').default;
         patternMatchMock = new PatternMatchingHandlerMock();
         featureHandlerMock = new FeatureHandler();
         geoMock = new GeoCheckerMock();
@@ -353,31 +332,31 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/simple checks exists but different value', () => {
-          let o = ['$if_pref', ['test_pref', false]];
+          const o = ['$if_pref', ['test_pref', false]];
           prefRetVal = true;
           return testCase(o, false, ctx);
         });
 
         it('/simple checks exists and same value', () => {
-          let o = ['$if_pref', ['test_pref', false]];
+          const o = ['$if_pref', ['test_pref', false]];
           prefRetVal = false;
           return testCase(o, false, ctx);
         });
 
         it('/simple checks not exists string', () => {
-          let o = ['$if_pref', ['test_pref_str', 'value1']];
+          const o = ['$if_pref', ['test_pref_str', 'value1']];
           prefRetVal = true;
           return testCase(o, false, ctx);
         });
 
         it('/simple checks exists string different value', () => {
-          let o = ['$if_pref', ['test_pref_str', 'value1']];
+          const o = ['$if_pref', ['test_pref_str', 'value1']];
           prefRetVal = 'value2';
           return testCase(o, false, ctx);
         });
 
         it('/simple checks exists string same value', () => {
-          let o = ['$if_pref', ['test_pref_str', 'value1']];
+          const o = ['$if_pref', ['test_pref_str', 'value1']];
           prefRetVal = 'value1';
           return testCase(o, true, ctx);
         });
@@ -397,7 +376,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/invalid args call', () => {
-          let o = ['$log', []];
+          const o = ['$log', []];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
             chai.assert.fail(result, 'error');
@@ -454,7 +433,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/invalid args call', () => {
-          let o = ['$and', []];
+          const o = ['$and', []];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
             chai.assert.fail(result, 'error');
@@ -464,7 +443,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/invalid args call 2', () => {
-          let o = ['$and', [true]];
+          const o = ['$and', [true]];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
             chai.assert.fail(result, 'error');
@@ -474,27 +453,27 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/simple check true', () => {
-          let o = ['$and', [true]];
+          const o = ['$and', [true]];
           return testCase(o, true, ctx);
         });
 
         it('/simple check true true = true', () => {
-          let o = ['$and', [true, true]];
+          const o = ['$and', [true, true]];
           return testCase(o, true, ctx);
         });
 
         it('/simple check true false = false', () => {
-          let o = ['$and', [true, false]];
+          const o = ['$and', [true, false]];
           return testCase(o, false, ctx);
         });
 
         it('/simple check false true true = false', () => {
-          let o = ['$and', [false, true, true]];
+          const o = ['$and', [false, true, true]];
           return testCase(o, false, ctx);
         });
 
         it('/simple check true true true false = false', () => {
-          let o = ['$and', [true, true, true, false]];
+          const o = ['$and', [true, true, true, false]];
           return testCase(o, false, ctx);
         });
 
@@ -516,7 +495,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/invalid args call', () => {
-          let o = ['$or', []];
+          const o = ['$or', []];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
             chai.assert.fail(result, 'error');
@@ -526,7 +505,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/invalid args call 2', () => {
-          let o = ['$or', [1]];
+          const o = ['$or', [1]];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
             chai.assert.fail(result, 'error');
@@ -536,7 +515,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/invalid args call 3', () => {
-          let o = ['$or', [true]];
+          const o = ['$or', [true]];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
             chai.assert.fail(result, 'error');
@@ -546,27 +525,27 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/simple check true true = true', () => {
-          let o = ['$or', [true, true]];
+          const o = ['$or', [true, true]];
           return testCase(o, true, ctx);
         });
 
         it('/simple check true false = true', () => {
-          let o = ['$or', [true, false]];
+          const o = ['$or', [true, false]];
           return testCase(o, true, ctx);
         });
 
         it('/simple check false true = true', () => {
-          let o = ['$or', [false, true]];
+          const o = ['$or', [false, true]];
           return testCase(o, true, ctx);
         });
 
         it('/simple check false false false true = true', () => {
-          let o = ['$or', [false, false, false, true]];
+          const o = ['$or', [false, false, false, true]];
           return testCase(o, true, ctx);
         });
 
         it('/simple check false false false false = false', () => {
-          let o = ['$or', [false, false, false, false]];
+          const o = ['$or', [false, false, false, false]];
           return testCase(o, false, ctx);
         });
       });
@@ -585,7 +564,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/invalid args call', () => {
-          let o = ['$not', []];
+          const o = ['$not', []];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
             chai.assert.fail(result, 'error');
@@ -595,7 +574,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/invalid args call', () => {
-          let o = ['$not', [true, false]];
+          const o = ['$not', [true, false]];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
             chai.assert.fail(result, 'error');
@@ -605,20 +584,19 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/simple check false = true', () => {
-          let o = ['$not', [false]];
+          const o = ['$not', [false]];
           return testCase(o, true, ctx);
         });
 
         it('/simple check true = false', () => {
-          let o = ['$not', [true]];
+          const o = ['$not', [true]];
           return testCase(o, false, ctx);
         });
 
         it('/simple check false = true', () => {
-          let o = ['$not', [false]];
+          const o = ['$not', [false]];
           return testCase(o, true, ctx);
         });
-
       });
 
       /**
@@ -635,7 +613,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/invalid args call', () => {
-          let o = ['$eq', []];
+          const o = ['$eq', []];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
             chai.assert.fail(result, 'error');
@@ -645,7 +623,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/invalid args call 2', () => {
-          let o = ['$eq', [1]];
+          const o = ['$eq', [1]];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
             chai.assert.fail(result, 'error');
@@ -655,27 +633,27 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/simple check true true = true', () => {
-          let o = ['$eq', [true, true]];
+          const o = ['$eq', [true, true]];
           return testCase(o, true, ctx);
         });
 
         it('/simple check true false = false', () => {
-          let o = ['$eq', [true, false]];
+          const o = ['$eq', [true, false]];
           return testCase(o, false, ctx);
         });
 
         it('/simple check 1 1 = true', () => {
-          let o = ['$eq', [1, 1]];
+          const o = ['$eq', [1, 1]];
           return testCase(o, true, ctx);
         });
 
         it('/simple check asd asd = true', () => {
-          let o = ['$eq', ['asd', 'asd']];
+          const o = ['$eq', ['asd', 'asd']];
           return testCase(o, true, ctx);
         });
 
         it('/simple check asd true = false', () => {
-          let o = ['$eq', ['asd', true]];
+          const o = ['$eq', ['asd', true]];
           return testCase(o, false, ctx);
         });
       });
@@ -694,7 +672,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/invalid args call', () => {
-          let o = ['$gt', []];
+          const o = ['$gt', []];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
             chai.assert.fail(result, 'error');
@@ -704,7 +682,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/invalid args call 2', () => {
-          let o = ['$gt', [1]];
+          const o = ['$gt', [1]];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
             chai.assert.fail(result, 'error');
@@ -714,20 +692,19 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/simple check 1 > 1 = false', () => {
-          let o = ['$gt', [1, 1]];
+          const o = ['$gt', [1, 1]];
           return testCase(o, false, ctx);
         });
 
         it('/simple check 1 > 2 = false', () => {
-          let o = ['$gt', [1, 2]];
+          const o = ['$gt', [1, 2]];
           return testCase(o, false, ctx);
         });
 
         it('/simple check 2 > 1 = true', () => {
-          let o = ['$gt', [2, 1]];
+          const o = ['$gt', [2, 1]];
           return testCase(o, true, ctx);
         });
-
       });
 
       /**
@@ -744,7 +721,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/invalid args call', () => {
-          let o = ['$lt', []];
+          const o = ['$lt', []];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
             chai.assert.fail(result, 'error');
@@ -754,7 +731,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/invalid args call 2', () => {
-          let o = ['$lt', [1]];
+          const o = ['$lt', [1]];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
             chai.assert.fail(result, 'error');
@@ -764,17 +741,17 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/simple check 1 < 1 = false', () => {
-          let o = ['$gt', [1, 1]];
+          const o = ['$gt', [1, 1]];
           return testCase(o, false, ctx);
         });
 
         it('/simple check 1 < 2 = true', () => {
-          let o = ['$lt', [1, 2]];
+          const o = ['$lt', [1, 2]];
           return testCase(o, true, ctx);
         });
 
         it('/simple check 2 < 1 = false', () => {
-          let o = ['$lt', [2, 1]];
+          const o = ['$lt', [2, 1]];
           return testCase(o, false, ctx);
         });
       });
@@ -785,7 +762,6 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
        * ==================================================
        */
       describe('/timestamp', () => {
-        let op;
         let ctx;
         beforeEach(function () {
           ctx = {};
@@ -793,7 +769,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/simple check', () => {
-          let o = ['$timestamp'];
+          const o = ['$timestamp'];
           currentTS = 123;
           return testCase(o, 123, ctx);
         });
@@ -805,7 +781,6 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
        * ==================================================
        */
       describe('/day_hour', () => {
-        let op;
         let ctx;
         beforeEach(function () {
           ctx = {};
@@ -813,7 +788,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/simple check', () => {
-          let o = ['$day_hour'];
+          const o = ['$day_hour'];
           currentDayHour = 3;
           return testCase(o, 3, ctx);
         });
@@ -825,7 +800,6 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
        * ==================================================
        */
       describe('/week_day', () => {
-        let op;
         let ctx;
         beforeEach(function () {
           ctx = {};
@@ -833,7 +807,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/simple check', () => {
-          let o = ['$week_day'];
+          const o = ['$week_day'];
           currentWeekDay = 1;
           return testCase(o, 1, ctx);
         });
@@ -854,7 +828,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/invalid args call', () => {
-          let o = ['$is_feature_enabled', []];
+          const o = ['$is_feature_enabled', []];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
             chai.assert.fail(result, 'error');
@@ -864,7 +838,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/invalid args call 2', () => {
-          let o = ['$is_feature_enabled', [{}]];
+          const o = ['$is_feature_enabled', [{}]];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
             chai.assert.fail(result, 'error');
@@ -874,23 +848,22 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/simple check feature doesnt exists', () => {
-          let o = ['$is_feature_enabled', [{name: 'feature_test_not_exists'}]];
-          featureHandlerMock.features = {feature_test: false};
+          const o = ['$is_feature_enabled', [{ name: 'feature_test_not_exists' }]];
+          featureHandlerMock.features = { feature_test: false };
           return testCase(o, false, ctx);
         });
 
         it('/simple check feature exists but dissabled', () => {
-          let o = ['$is_feature_enabled', [{name: 'feature_test'}]];
-          featureHandlerMock.features = {feature_test: false};
+          const o = ['$is_feature_enabled', [{ name: 'feature_test' }]];
+          featureHandlerMock.features = { feature_test: false };
           return testCase(o, false, ctx);
         });
 
         it('/simple check feature exists and enabled', () => {
-          let o = ['$is_feature_enabled', [{name: 'feature_test'}]];
-          featureHandlerMock.features = {feature_test: true, feature_test_2: false};
+          const o = ['$is_feature_enabled', [{ name: 'feature_test' }]];
+          featureHandlerMock.features = { feature_test: true, feature_test_2: false };
           return testCase(o, true, ctx);
         });
-
       });
 
       /**
@@ -899,7 +872,6 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
        * ==================================================
        */
       describe('/geo_check', () => {
-        let op;
         let ctx;
         beforeEach(function () {
           ctx = {};
@@ -909,72 +881,72 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
 
         it('/missing arguments 1', () => {
-          let o = ['$geo_check'];
-          featureHandlerMock.features = {geo: geoMock};
-          return testCase(o, false, ctx).catch(err => {
+          const o = ['$geo_check'];
+          featureHandlerMock.features = { geo: geoMock };
+          return testCase(o, false, ctx).catch((err) => {
             chai.expect(err).to.exist;
           });
         });
 
         it('/missing arguments 2', () => {
           const args = [];
-          let o = ['$geo_check', args];
-          featureHandlerMock.features = {geo: geoMock};
-          return testCase(o, false, ctx).catch(err => {
+          const o = ['$geo_check', args];
+          featureHandlerMock.features = { geo: geoMock };
+          return testCase(o, false, ctx).catch((err) => {
             chai.expect(err).to.exist;
           });
         });
 
         it('/missing arguments 3', () => {
           const args = [{}];
-          let o = ['$geo_check', args];
-          featureHandlerMock.features = {geo: geoMock};
-          return testCase(o, false, ctx).catch(err => {
+          const o = ['$geo_check', args];
+          featureHandlerMock.features = { geo: geoMock };
+          return testCase(o, false, ctx).catch((err) => {
             chai.expect(err).to.exist;
           });
         });
 
         it('/missing arguments 4', () => {
-          const args = [{coords: {}}];
-          let o = ['$geo_check', args];
-          featureHandlerMock.features = {geo: geoMock};
-          return testCase(o, false, ctx).catch(err => {
+          const args = [{ coords: {} }];
+          const o = ['$geo_check', args];
+          featureHandlerMock.features = { geo: geoMock };
+          return testCase(o, false, ctx).catch((err) => {
             chai.expect(err).to.exist;
           });
         });
 
         it('/missing arguments 5', () => {
-          const args = [{locs: {}}];
-          let o = ['$geo_check', args];
-          featureHandlerMock.features = {geo: geoMock};
-          return testCase(o, false, ctx).catch(err => {
+          const args = [{ locs: {} }];
+          const o = ['$geo_check', args];
+          featureHandlerMock.features = { geo: geoMock };
+          return testCase(o, false, ctx).catch((err) => {
             chai.expect(err).to.exist;
           });
         });
 
         it('/missing arguments 6', () => {
-          const args = [{coords: {}, main_check: 'locs'}];
-          let o = ['$geo_check', args];
-          featureHandlerMock.features = {geo: geoMock};
-          return testCase(o, false, ctx).catch(err => {
+          const args = [{ coords: {}, main_check: 'locs' }];
+          const o = ['$geo_check', args];
+          featureHandlerMock.features = { geo: geoMock };
+          return testCase(o, false, ctx).catch((err) => {
             chai.expect(err).to.exist;
           });
         });
 
         it('/missing arguments 7', () => {
-          const args = [{locs: {}, main_check: 'coords'}];
-          let o = ['$geo_check', args];
-          featureHandlerMock.features = {geo: geoMock};
-          return testCase(o, false, ctx).catch(err => {
+          const args = [{ locs: {}, main_check: 'coords' }];
+          const o = ['$geo_check', args];
+          featureHandlerMock.features = { geo: geoMock };
+          return testCase(o, false, ctx).catch((err) => {
             chai.expect(err).to.exist;
           });
         });
 
         it('/missing arguments 8', () => {
-          const args = [{coords: {}, locs: {}, main_check: 'whatever'}];
-          let o = ['$geo_check', args];
-          featureHandlerMock.features = {geo: geoMock};
-          return testCase(o, false, ctx).catch(err => {
+          const args = [{ coords: {}, locs: {}, main_check: 'whatever' }];
+          const o = ['$geo_check', args];
+          featureHandlerMock.features = { geo: geoMock };
+          return testCase(o, false, ctx).catch((err) => {
             chai.expect(err).to.exist;
           });
         });
@@ -990,10 +962,10 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           }];
 
           geoMock.isSameLocationRet = true;
-          let o = ['$geo_check', args];
-          featureHandlerMock.features = {geo: geoMock};
+          const o = ['$geo_check', args];
+          featureHandlerMock.features = { geo: geoMock };
           return testCase(o, true, ctx).then(() => {
-            const expected = {country: 'de', city: 'munich', zip: '123'};
+            const expected = { country: 'de', city: 'munich', zip: '123' };
             chai.expect(geoMock.lastLocCheck).eql([expected]);
           });
         });
@@ -1009,11 +981,11 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           }];
 
           geoMock.isSameLocationRet = true;
-          let o = ['$geo_check', args];
-          featureHandlerMock.features = {geo: geoMock};
+          const o = ['$geo_check', args];
+          featureHandlerMock.features = { geo: geoMock };
           return testCase(o, true, ctx).then(() => {
             const expected = [
-              {country: 'de', city: 'munich', zip: '123'}
+              { country: 'de', city: 'munich', zip: '123' }
             ];
             chai.expect(geoMock.lastLocCheck).eql(expected);
           });
@@ -1031,15 +1003,15 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           }];
 
           geoMock.isSameLocationRet = false;
-          let o = ['$geo_check', args];
-          featureHandlerMock.features = {geo: geoMock};
+          const o = ['$geo_check', args];
+          featureHandlerMock.features = { geo: geoMock };
           return testCase(o, false, ctx).then(() => {
             const expected = [
-              {country: 'de', city: 'berlin', zip: '456'},
-              {country: 'de', city: 'berlin', zip: '8989'},
-              {country: 'de', city: 'munich', zip: '123'},
-              {country: 'de', city: 'munich', zip: '234'},
-              {country: 'de', city: 'munich', zip: '456'}
+              { country: 'de', city: 'berlin', zip: '456' },
+              { country: 'de', city: 'berlin', zip: '8989' },
+              { country: 'de', city: 'munich', zip: '123' },
+              { country: 'de', city: 'munich', zip: '234' },
+              { country: 'de', city: 'munich', zip: '456' }
             ];
             chai.expect(geoMock.lastLocCheck).eql(expected);
           });
@@ -1057,12 +1029,12 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           }];
 
           geoMock.isSameLocationRet = false;
-          let o = ['$geo_check', args];
-          featureHandlerMock.features = {geo: geoMock};
+          const o = ['$geo_check', args];
+          featureHandlerMock.features = { geo: geoMock };
           return testCase(o, false, ctx).then(() => {
             const expected = [
-              {country: 'de', city: 'berlin'},
-              {country: 'de', city: 'munich'},
+              { country: 'de', city: 'berlin' },
+              { country: 'de', city: 'munich' },
             ];
             chai.expect(geoMock.lastLocCheck).eql(expected);
           });
@@ -1078,11 +1050,10 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
             main_check: 'locs'
           }];
 
-          let o = ['$geo_check', args];
+          const o = ['$geo_check', args];
           featureHandlerMock.features = {};
           return testCase(o, false, ctx);
         });
-
       });
 
       /**
@@ -1154,7 +1125,6 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           return testCase(o, false, ctx);
         });
       });
-
     });
   },
 );

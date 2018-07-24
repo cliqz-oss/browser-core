@@ -18,7 +18,7 @@ export default describeModule('core/persistence/event-store',
     let sortEventsByTs;
     let store;
 
-    beforeEach(function initEventStore() {
+    beforeEach(function () {
       sortEventsByTs = this.module().sortEventsByTs;
       const EventStore = this.module().default;
       store = new EventStore('test');
@@ -96,23 +96,6 @@ export default describeModule('core/persistence/event-store',
         { ts: 5 },
       ]).then(() => store.latestTs())
         .then(ts => chai.expect(ts).to.be.eql(42))
-    );
-
-    it('#queryMany', () =>
-      store.pushMany([
-        { ts: 1 },
-        { ts: 4 },
-        { ts: 3 },
-        { ts: 2 },
-        { ts: 42 },
-        { ts: 5 },
-      ]).then(() => store.queryMany([
-        [0, 2],
-        [5, 100],
-      ])).then(events => chai.expect(events).to.be.eql([
-        { ts: 1, id: 1 },
-        { ts: 42, id: 5 },
-      ]))
     );
 
     it('#query', () =>

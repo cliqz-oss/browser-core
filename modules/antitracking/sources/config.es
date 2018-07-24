@@ -2,7 +2,7 @@ import * as persist from '../core/persistent-state';
 import events from '../core/events';
 import ResourceLoader from '../core/resource-loader';
 import resourceManager from '../core/resource-manager';
-import utils from '../core/utils';
+import prefs from '../core/prefs';
 import config from '../core/config';
 
 const VERSIONCHECK_URL = `${config.settings.CDN_BASEURL}/anti-tracking/whitelist/versioncheck.json`;
@@ -79,7 +79,7 @@ export default class Config {
 
   loadPrefs() {
     Object.keys(PREFS).forEach((conf) => {
-      this[conf] = utils.getPref(PREFS[conf], this[conf] || false);
+      this[conf] = prefs.get(PREFS[conf], this[conf] || false);
     });
   }
 
@@ -87,7 +87,7 @@ export default class Config {
     if (!PREFS[name]) {
       throw new Error(`pref ${name} not known`);
     }
-    utils.setPref(PREFS[name], value);
+    prefs.set(PREFS[name], value);
   }
 
   onPrefChange(pref) {

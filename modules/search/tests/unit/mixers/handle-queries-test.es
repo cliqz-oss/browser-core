@@ -1,3 +1,5 @@
+/* global chai, describeModule */
+
 const Rx = require('rxjs');
 const rxSandbox = require('rx-sandbox').rxSandbox;
 
@@ -22,18 +24,10 @@ const mock = {
   },
 };
 
-import apply from '../operators/apply';
-import decrease from '../operators/decrease';
-import limit from '../operators/limit';
-import merge from '../operators/merge';
-import reconstruct from '../operators/reconstruct';
-import smooth from '../operators/smooth';
-import trim from '../operators/trim';
-
 export default describeModule('search/mixers/handle-queries',
   () => mock,
   () => {
-    describe('#handleQueries', function() {
+    describe('#handleQueries', function () {
       let handleQueries;
       let sandbox;
 
@@ -44,8 +38,8 @@ export default describeModule('search/mixers/handle-queries',
       });
 
 
-      it('start search for each query', function() {
-        const query$ =    sandbox.hot('-q--q--|');
+      it('start search for each query', function () {
+        const query$ = sandbox.hot('-q--q--|');
         const expected = sandbox.e('   -rr-rr-|');
 
         const messages = sandbox.getMessages(handleQueries(query$, Rx.Observable.empty()));
@@ -54,8 +48,8 @@ export default describeModule('search/mixers/handle-queries',
         return chai.expect(messages).to.deep.equal(expected);
       });
 
-      it('stop updating results on highlight', function() {
-        const query$ =     sandbox.hot('-q--q--|');
+      it('stop updating results on highlight', function () {
+        const query$ = sandbox.hot('-q--q--|');
         const highlight$ = sandbox.hot('-----h-|');
         const expected = sandbox.e('    -rr-r--|');
 

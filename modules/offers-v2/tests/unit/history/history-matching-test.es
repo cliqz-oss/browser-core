@@ -8,26 +8,15 @@ const tldjs = require('tldjs');
 const TextDecoder = encoding.TextDecoder;
 const TextEncoder = encoding.TextEncoder;
 
-const SAMPLE_URLS = [
-  'http://www.google.com',
-  'http://www.yahoo.com',
-  'http://www.google2.com',
-  'http://www.amazon.com',
-  'http://www.chip.com',
-  'http://www.facebook.com',
-  'http://www.google.de',
-  'http://www.test.com',
-];
 let buildSimplePatternIndex;
 
-
-const randRange = (a,b) => Math.floor(Math.random() * (b-a)) + a;
+const randRange = (a, b) => Math.floor(Math.random() * (b - a)) + a;
 
 
 function generateDomains(N = 20) {
   const ret = [];
   for (let i = 0; i < N; i += 1) {
-    ret.push(`domain${String.fromCharCode(97+i)}.de`);
+    ret.push(`domain${String.fromCharCode(97 + i)}.de`);
   }
   return ret;
 }
@@ -37,7 +26,7 @@ function getWorldList(N = 10) {
   for (let i = 0; i < N; i += 1) {
     let word = '';
     for (let j = 0; j < 7; j += 1) {
-      word += String.fromCharCode(randRange(97, 97+20))
+      word += String.fromCharCode(randRange(97, 97 + 20));
     }
     ret.push(word);
   }
@@ -55,7 +44,7 @@ function generateQueriesFromKeywords(wordList, maxTotalWordsPerQuery = 7, N = 40
         already.add(w);
         result.push(w);
       }
-    })
+    });
     return result;
   };
   const ret = [];
@@ -63,7 +52,7 @@ function generateQueriesFromKeywords(wordList, maxTotalWordsPerQuery = 7, N = 40
     const wordsToUse = Math.min(getRandom() + 1, maxTotalWordsPerQuery);
     const currentQuery = [];
     for (let j = 0; j < wordsToUse; j += 1) {
-      currentQuery.push(wordList[getRandom()])
+      currentQuery.push(wordList[getRandom()]);
     }
     ret.push(unique(currentQuery).join(' '));
   }
@@ -76,7 +65,7 @@ function buildOldFilters(domains, queries) {
     queries.forEach((q) => {
       const sq = q.split(' ');
       let wp = '';
-      sq.forEach(w => (wp += w + '^'));
+      sq.forEach((w) => { wp += `${w}^`; });
       wp.slice(0, wp.length - 1);
       const pattern = `||${dom}^*${wp}`;
       result.push(pattern);
@@ -124,8 +113,8 @@ export default describeModule('offers-v2/history/history-matching',
     'offers-v2/common/offers_v2_logger': {
       default: {
         debug: () => {},
-        error: (...args) => {console.error(...args)},
-        info: (...args) => {/* console.log(...args) */},
+        error: (...args) => { console.error(...args); },
+        info: () => {},
         log: () => {},
         warn: () => {},
         logObject: () => {},
@@ -135,12 +124,10 @@ export default describeModule('offers-v2/history/history-matching',
       isChromium: false
     },
     'core/utils': {
-      default: {
-        setInterval: function () {}
-      },
+      default: {},
     },
     'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
+      default: function () { const stop = () => {}; return { stop }; }
     },
     'core/crypto/random': {
     },
@@ -150,15 +137,21 @@ export default describeModule('offers-v2/history/history-matching',
     'platform/globals': {
       default: {}
     },
+    'core/prefs': {
+      default: {
+        get: function () {},
+        set() {}
+      }
+    },
     'core/persistence/simple-db': {
       default: class {
-        constructor(db) {
+        constructor() {
           this.db = {};
         }
 
         upsert(docID, docData) {
           const self = this;
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             self.db[docID] = JSON.parse(JSON.stringify(docData));
             resolve();
           });
@@ -166,14 +159,14 @@ export default describeModule('offers-v2/history/history-matching',
 
         get(docID) {
           const self = this;
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             resolve(JSON.parse(JSON.stringify(self.db[docID])));
           });
         }
 
         remove(docID) {
           const self = this;
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             if (self.db[docID]) {
               delete self.db[docID];
             }
@@ -189,11 +182,11 @@ export default describeModule('offers-v2/history/history-matching',
           this.promises = [];
           this.callCount = 0;
         }
-         // to be implemented by the inherited classes
+        // to be implemented by the inherited classes
         init() { return true; }
         unload() { return true; }
         isAvailable() { return true; }
-        performQuery(q) {
+        performQuery() {
           this.callCount += 1;
           const p = Promise.resolve(this.data);
           this.promises.push(p);
@@ -208,7 +201,7 @@ export default describeModule('offers-v2/history/history-matching',
     },
   }),
   () => {
-    describe('#history-matcher', function() {
+    describe('#history-matcher', function () {
       let HistoryMatcher;
       let tokenizeUrl;
       let HistoryFeatureMock;
@@ -218,7 +211,7 @@ export default describeModule('offers-v2/history/history-matching',
         HistoryFeatureMock = this.deps('offers-v2/features/history-feature').default;
         return Promise.all([
           this.system.import('offers-v2/common/pattern-utils'),
-          ]).then((mod) => {
+        ]).then((mod) => {
           tokenizeUrl = mod[0].default;
           buildSimplePatternIndex = mod[0].buildSimplePatternIndex;
         });
@@ -279,7 +272,12 @@ export default describeModule('offers-v2/history/history-matching',
           const EXPECTED_MATCHES = 100;
           const EXPECTED_NOT_MATCHES = 100;
 
-          const { toMatchUrls, toNotMatchUrls } = buildUrlToTest(domains, queries, EXPECTED_MATCHES, EXPECTED_NOT_MATCHES);
+          const { toMatchUrls, toNotMatchUrls } = buildUrlToTest(
+            domains,
+            queries,
+            EXPECTED_MATCHES,
+            EXPECTED_NOT_MATCHES
+          );
 
           toMatchUrls.forEach((u) => {
             const turl = tokenizeUrl(u);
@@ -307,7 +305,12 @@ export default describeModule('offers-v2/history/history-matching',
           const EXPECTED_MATCHES = 100;
           const EXPECTED_NOT_MATCHES = 100;
 
-          const { toMatchUrls, toNotMatchUrls } = buildUrlToTest(domains, queries, EXPECTED_MATCHES, EXPECTED_NOT_MATCHES);
+          const { toMatchUrls, toNotMatchUrls } = buildUrlToTest(
+            domains,
+            queries,
+            EXPECTED_MATCHES,
+            EXPECTED_NOT_MATCHES
+          );
 
           toMatchUrls.forEach((u) => {
             const turl = tokenizeUrl(u);
@@ -330,27 +333,27 @@ export default describeModule('offers-v2/history/history-matching',
           chai.expect(hfMock.callCount, '1 -').eql(0);
           chai.expect(pmh.countMatchesWithPartialCheck({}, {}).count, 'second').eql(-1);
           chai.expect(hfMock.callCount).eql(0);
-          chai.expect(pmh.countMatchesWithPartialCheck({since_secs: 1}, {}).count, 'third').eql(-1);
+          chai.expect(pmh.countMatchesWithPartialCheck({ since_secs: 1 }, {}).count, 'third').eql(-1);
           chai.expect(hfMock.callCount).eql(0);
-          chai.expect(pmh.countMatchesWithPartialCheck({since_secs: 1, till_secs: 2}, {}).count, 'fifth').eql(-1);
+          chai.expect(pmh.countMatchesWithPartialCheck({ since_secs: 1, till_secs: 2 }, {}).count, 'fifth').eql(-1);
           chai.expect(hfMock.callCount).eql(0);
-          chai.expect(pmh.countMatchesWithPartialCheck({since_secs: 1, till_secs: 0}, {}).count, 'sixth').eql(-1);
+          chai.expect(pmh.countMatchesWithPartialCheck({ since_secs: 1, till_secs: 0 }, {}).count, 'sixth').eql(-1);
           chai.expect(hfMock.callCount).eql(0);
-          chai.expect(pmh.countMatchesWithPartialCheck({since_secs: 1, till_secs: 0}, {pid: 'x'}).count, '8th').eql(-1);
+          chai.expect(pmh.countMatchesWithPartialCheck({ since_secs: 1, till_secs: 0 }, { pid: 'x' }).count, '8th').eql(-1);
           chai.expect(hfMock.callCount).eql(0);
-          chai.expect(pmh.countMatchesWithPartialCheck({since_secs: 1, till_secs: 0}, {pid: 'x', p_list: []}).count, '9th').eql(-1);
+          chai.expect(pmh.countMatchesWithPartialCheck({ since_secs: 1, till_secs: 0 }, { pid: 'x', p_list: [] }).count, '9th').eql(-1);
           chai.expect(hfMock.callCount).eql(0);
-          chai.expect(pmh.countMatchesWithPartialCheck({since_secs: 1, till_secs: 0}, {pid: 'x', p_list: ['||google.de']}).count, '10th').eql(-1);
+          chai.expect(pmh.countMatchesWithPartialCheck({ since_secs: 1, till_secs: 0 }, { pid: 'x', p_list: ['||google.de'] }).count, '10th').eql(-1);
           chai.expect(hfMock.callCount).eql(0);
-          chai.expect(pmh.countMatchesWithPartialCheck({since_secs: 1, till_secs: 0}, {pid: 'x', p_list: ['||google.de']}, bpt([])).count, '11th').eql(0);
+          chai.expect(pmh.countMatchesWithPartialCheck({ since_secs: 1, till_secs: 0 }, { pid: 'x', p_list: ['||google.de'] }, bpt([])).count, '11th').eql(0);
           chai.expect(hfMock.callCount).eql(1);
         });
 
         it('/test matches works', function () {
           const hamockData = buildHistoryAnalyzerData({ m: 1 });
           hfMock.data = hamockData;
-          const q = {since_secs: 1, till_secs: 0};
-          const pob = {pid: 'x', p_list: ['||google.de']};
+          const q = { since_secs: 1, till_secs: 0 };
+          const pob = { pid: 'x', p_list: ['||google.de'] };
           chai.expect(pmh.countMatchesWithPartialCheck(q, pob, bpt(pob.p_list)).count).eql(0);
           chai.expect(hfMock.callCount).eql(1);
           return waitTillForMock(hfMock).then((r) => {
@@ -362,10 +365,10 @@ export default describeModule('offers-v2/history/history-matching',
         });
 
         it('/test matches works when updating the query', function () {
-          const hamockData = buildHistoryAnalyzerData({ m: 1 });
+          let hamockData = buildHistoryAnalyzerData({ m: 1 });
           hfMock.data = hamockData;
-          const q = {since_secs: 1, till_secs: 0};
-          const pob = {pid: 'x', p_list: ['||google.de']};
+          const q = { since_secs: 1, till_secs: 0 };
+          const pob = { pid: 'x', p_list: ['||google.de'] };
           chai.expect(pmh.countMatchesWithPartialCheck(q, pob, bpt(pob.p_list)).count, 'first round').eql(0);
           chai.expect(hfMock.callCount).eql(1);
           return waitTillForMock(hfMock).then((r) => {
@@ -375,11 +378,11 @@ export default describeModule('offers-v2/history/history-matching',
             chai.expect(hfMock.callCount).eql(1);
             // changing the query should remove the cache
             q.since_secs = 10;
-            const hamockData = buildHistoryAnalyzerData({ m: 6 });
+            hamockData = buildHistoryAnalyzerData({ m: 6 });
             hfMock.data = hamockData;
             chai.expect(pmh.countMatchesWithPartialCheck(q, pob, bpt(pob.p_list)).count, 'second round').eql(0);
             chai.expect(hfMock.callCount).eql(2);
-            return waitTillForMock(hfMock).then((r) => {
+            return waitTillForMock(hfMock).then(() => {
               chai.expect(pmh.countMatchesWithPartialCheck(q, pob, bpt(pob.p_list)).count).eql(6);
               chai.expect(hfMock.callCount).eql(2);
             });
@@ -391,8 +394,8 @@ export default describeModule('offers-v2/history/history-matching',
           for (let i = 0; i < 100; i += 1) {
             const hamockData = buildHistoryAnalyzerData({ m: i });
             hfMock.data = hamockData;
-            const q = {since_secs: i + 100, till_secs: 0};
-            const pob = {pid: `x-${i}`, p_list: ['||google.de']};
+            const q = { since_secs: i + 100, till_secs: 0 };
+            const pob = { pid: `x-${i}`, p_list: ['||google.de'] };
             chai.expect(pmh.countMatchesWithPartialCheck(q, pob, bpt(pob.p_list)).count, 'first round').eql(0);
             chai.expect(hfMock.callCount, 'first callcount').eql(i + 1);
           }
@@ -401,8 +404,8 @@ export default describeModule('offers-v2/history/history-matching',
             chai.expect(r).eql(true);
             for (let i = 0; i < 100; i += 1) {
               // check old
-              const q = {since_secs: i + 100, till_secs: 0};
-              const pob = {pid: `x-${i}`, p_list: ['||google.de']};
+              const q = { since_secs: i + 100, till_secs: 0 };
+              const pob = { pid: `x-${i}`, p_list: ['||google.de'] };
               chai.expect(pmh.countMatchesWithPartialCheck(q, pob, bpt(pob.p_list)).count, 'second').eql(i);
 
               // call refresh the history return data
@@ -412,19 +415,18 @@ export default describeModule('offers-v2/history/history-matching',
               chai.expect(pmh.countMatchesWithPartialCheck(q, pob, bpt(pob.p_list)).count, 'snd round').eql(0);
               chai.expect(hfMock.callCount, 'snd callcount').eql(i + 1);
             }
-            return waitTillForMock(hfMock).then((r) => {
-              chai.expect(r).eql(true);
+            return waitTillForMock(hfMock).then((_r) => {
+              chai.expect(_r).eql(true);
               hfMock.callCount = 0;
               for (let i = 0; i < 100; i += 1) {
-                const q = {since_secs: i + 100 + 10, till_secs: 0};
-                const pob = {pid: `x-${i}`, p_list: ['||google.de']};
+                const q = { since_secs: i + 100 + 10, till_secs: 0 };
+                const pob = { pid: `x-${i}`, p_list: ['||google.de'] };
                 chai.expect(pmh.countMatchesWithPartialCheck(q, pob, bpt(pob.p_list)).count, 'third round').eq(i + 1);
                 chai.expect(hfMock.callCount, 'third callcount').eql(0);
               }
             });
           });
         });
-
       });
     });
   }

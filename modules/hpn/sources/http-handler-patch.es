@@ -1,11 +1,13 @@
 /* eslint import/prefer-default-export: 'off' */
 
-import utils from '../core/utils';
+import prefs from '../core/prefs';
 import * as http from '../core/http';
 import CliqzSecureMessage from './main';
 import config from '../core/config';
 
-const OFFER_TELEMETRY_PREFIX = config.settings.OFFER_TELEMETRY_PREFIX;
+// HPN will only route based on the build config,
+// changes in prefs (`triggersBE`) will make the singals escape hpn
+const OFFER_TELEMETRY_PREFIX = config.settings.OFFERS_BE_BASE_URL;
 
 function getNextProxyAndRotate() {
   // Make sure that that CliqzSecureMessage.queryProxyIP exists,
@@ -23,16 +25,16 @@ function getNextProxyAndRotate() {
 
 let proxyHttpHandler = null;
 export function overRideCliqzResults() {
-  if (utils.getPref('proxyNetwork', true) === false) return;
+  if (prefs.get('proxyNetwork', true) === false) return;
 
   if (!proxyHttpHandler) proxyHttpHandler = http.defaultHttpHandler;
 
   function httpHandler(method, url, callback, onerror, timeout, data, ...rest) {
-    if (url.startsWith(utils.RESULTS_PROVIDER) &&
-        utils.getPref('hpn-queryv2', false)) {
+    if (url.startsWith(config.settings.RESULTS_PROVIDER) &&
+        prefs.get('hpn-queryv2', false)) {
       const queryProxyUrl = getNextProxyAndRotate();
 
-      const query = url.replace((utils.RESULTS_PROVIDER), '');
+      const query = url.replace((config.settings.RESULTS_PROVIDER), '');
       const uid = Math.floor(Math.random() * 10000000);
       CliqzSecureMessage.queriesID[uid] = callback;
       CliqzSecureMessage.wCrypto.postMessage({
@@ -41,7 +43,7 @@ export function overRideCliqzResults() {
           ts: '',
           ver: '1.5',
           payload: query,
-          rp: utils.RESULTS_PROVIDER,
+          rp: config.settings.RESULTS_PROVIDER,
         },
         uid,
         type: 'instant',
@@ -52,10 +54,10 @@ export function overRideCliqzResults() {
         queryProxyUrl,
       });
       return null;
-    } else if (url.startsWith(utils.RESULTS_PROVIDER_LOG)) {
+    } else if (url.startsWith(config.settings.RESULTS_PROVIDER_LOG)) {
       const queryProxyUrl = getNextProxyAndRotate();
 
-      const query = url.replace((utils.RESULTS_PROVIDER_LOG), '');
+      const query = url.replace((config.settings.RESULTS_PROVIDER_LOG), '');
       const uid = Math.floor(Math.random() * 10000000);
       CliqzSecureMessage.queriesID[uid] = callback;
       CliqzSecureMessage.wCrypto.postMessage({
@@ -74,7 +76,7 @@ export function overRideCliqzResults() {
         queryProxyUrl,
       });
       return null;
-    } else if (url === utils.SAFE_BROWSING) {
+    } else if (url === config.settings.SAFE_BROWSING) {
       const batch = JSON.parse(data);
       if (batch.length > 0) {
         batch.forEach(eachMsg => CliqzSecureMessage.telemetry(eachMsg));
@@ -115,5 +117,5 @@ export function overRideCliqzResults() {
   }
 
   http.overrideHttpHandler(httpHandler);
-  http.addCompressionExclusion(utils.SAFE_BROWSING);
+  http.addCompressionExclusion(config.settings.SAFE_BROWSING);
 }

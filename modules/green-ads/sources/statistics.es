@@ -351,8 +351,10 @@ export default class PageLoad {
     );
 
     // Check if the current frame is probably an ad
-    if ((isAdvertiser || frameContext.isAdvertiser) &&
-        frameContext.getNumberOfRequests() > 1 && (
+    if (
+      (isAdvertiser || frameContext.isAdvertiser) &&
+      frameContext.getNumberOfRequests() > 1 &&
+      (
         cpt !== 1 && // == OTHER
         cpt !== 3 && // == IMAGE (dealt with in response Observer)
         cpt !== 4 && // == STYLESHEET
@@ -360,7 +362,8 @@ export default class PageLoad {
         cpt !== 2 && // == SCRIPT
         cpt !== 11 && // == XMLHTTPREQUEST
         cpt !== 19 && // == BEACON
-        cpt !== 7)) { // == SUBDOCUMENT
+        cpt !== 7)
+    ) { // == SUBDOCUMENT
       requestContext.isAd = true;
 
       // Register a adShown event

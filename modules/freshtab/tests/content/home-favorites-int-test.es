@@ -26,12 +26,28 @@ const amazonDial = {
   }
 };
 
+const editedDial = {
+  title: 'https://2.test.title/',
+  id: '2.test.id/',
+  url: 'https://2.test.domain/',
+  displayTitle: 't02',
+  custom: true,
+  logo: {
+    text: '02',
+    backgroundColor: 'c3043e',
+    buttonsClass: 'cliqz-brands-button-1',
+    style: 'background-color: #ccc;color:#fff;'
+  }
+};
+
 describe('Fresh tab interactions with favorites', function () {
   const dialSelector = '#section-favorites .dial:not(.dial-plus)';
   const plusSelector = '#section-favorites .dial-plus';
   const plusBtnSelector = 'button.plus-dial-icon';
   const dialTitleSelector = '.title';
-  const deleteBtnSelector = 'button.delete';
+  const editBtnSelector = 'button.edit';
+  const closeFormSelector = 'button.closeForm';
+  const deleteBtnSelector = '.deleteBox';
   const undoBoxSelector = '.undo-notification-box';
   const favoritesAreaSelector = '#section-favorites';
   const favoritesResponse = generateFavResponse();
@@ -46,7 +62,9 @@ describe('Fresh tab interactions with favorites', function () {
   let listener;
 
   beforeEach(function () {
-    subject = new Subject();
+    subject = new Subject({
+      injectTestUtils: true,
+    });
     subject.respondsWithEmptyTelemetry();
 
     subject.respondsWithEmptyNews();
@@ -62,6 +80,11 @@ describe('Fresh tab interactions with favorites', function () {
 
   context('when favorites have just one element', function () {
     const addFormSelector = 'form.addDialForm';
+    const editBtnSelector = '#section-favorites button.edit';
+    const editFormSelector = 'form.editForm';
+    const urlSelector ='form.editForm input.url';
+    const titleSelector = 'form.editForm input.title';
+    const placeholderSelector = 'form.editForm label';
 
     beforeEach(async function () {
       subject.respondsWith({
@@ -128,39 +151,19 @@ describe('Fresh tab interactions with favorites', function () {
           .to.not.contain('none');
       });
 
-      it('renders an "Add a favorite" form in a correct position', function () {
-        expect(subject.queryAll('#section-favorites .dial')[1]
-          .contains(subject.query(addFormSelector))).to.be.true;
-      });
-
-      it('does not render the "+" button anymore', function () {
+      it('still renders the "+" button', function () {
         expect(subject.getComputedStyle(subject.query(plusBtnSelector).parentNode).display)
-          .to.contain('none');
+          .to.not.contain('none');
       });
 
-      it('sends a "add_favorite > click" telemetry signal', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
-
-        const telemetrySignals = messages.get('sendTelemetry');
-        let count = 0;
-
-        expect(telemetrySignals.length).to.be.above(0);
-
-        count = telemetrySignals.filter(function (s) {
-          return (
-            s.args[0].type === 'home' &&
-            s.args[0].target === 'add_favorite' &&
-            s.args[0].action === 'click'
-          );
-        }).length;
-
-        expect(count).to.equal(1);
+      it('does not send telemetry', function () {
+        expect(messages.has('sendTelemetry')).to.equal(false);
       });
 
       describe("then clicking on the form's close button", function () {
         beforeEach(function () {
-          subject.query('button.hideAddForm').click();
-          return waitFor(() => subject.query(addFormSelector).parentNode.style.display === 'none');
+          subject.query('button.closeForm').click();
+          return waitFor(() => expect(subject.query('.modal')).to.be.null);
         });
 
         it('renders a "+" button', function () {
@@ -170,8 +173,7 @@ describe('Fresh tab interactions with favorites', function () {
         });
 
         it('does not render the "Add a favorite" form anymore', function () {
-          expect(subject.getComputedStyle(subject.query(addFormSelector).parentNode).display)
-            .to.contain('none');
+          expect(subject.query(addFormSelector)).to.be.null;
         });
 
         it('sends a "add_favorite > close > click" telemetry signal', function () {
@@ -211,15 +213,19 @@ describe('Fresh tab interactions with favorites', function () {
         });
 
         const addButton = subject.query(plusBtnSelector);
-        addButton.click();
-        await waitFor(() => subject.query(addFormSelector).parentElement.style.display !== 'none');
-        subject.query('form.addDialForm input.addUrl').value = 'aaaa';
+        subject.testUtils.Simulate.click(addButton);
+        await waitFor(() => expect(subject.query(addFormSelector)).to.exist);
+        const input = subject.query('form.addDialForm input.addUrl');
+        input.value = 'aaaa';
+        subject.testUtils.Simulate.change(input);
         subject.query('form.addDialForm button.submit').click();
       });
 
       it('renders a new favorite in the list', function () {
         expect(subject.queryAll('#section-favorites .dial:not(.dial-plus)').length)
           .to.equal(2);
+        expect(subject.queryAll('#section-favorites .dial')[1].href)
+          .to.equal(amazonDial.url);
         expect(subject.queryAll('#section-favorites .dial')[1]
           .querySelector('.title')).to.contain.text(amazonDial.displayTitle);
       });
@@ -271,168 +277,41 @@ describe('Fresh tab interactions with favorites', function () {
       });
     });
 
-    describe('clicking on a delete button of the element', function () {
-      beforeEach(function () {
-        deletedTitle = $dialToDelete
-          .querySelector(dialTitleSelector).textContent;
-        $deletedBtn = $dialToDelete.querySelector(deleteBtnSelector);
-        $deletedBtn.click();
-        return waitFor(() => (subject.query(undoBoxSelector)));
+    describe('simulating editing the favorite', function () {
+      beforeEach(async function () {
+        subject.respondsWith({
+          module: 'freshtab',
+          action: 'getSpeedDials',
+          response: favoritesResponse[0],
+        });
+
+        subject.respondsWith({
+          module: 'freshtab',
+          action: 'editSpeedDial',
+          response: editedDial,
+        });
+
+        const editButton = subject.query(editBtnSelector);
+        subject.testUtils.Simulate.click(editButton);
+        await waitFor(() => expect(subject.query(editFormSelector)).to.exist);
+        const urlInput = subject.query(urlSelector);
+        const titleInput = subject.query(titleSelector);
+
+        urlInput.value = editedDial.url;
+        titleInput.value = editedDial.displayTitle;
+
+        subject.testUtils.Simulate.change(editedDial.url);
+        subject.testUtils.Simulate.change(editedDial.displayTitle);
+        subject.query('form.editForm button.submit').click();
       });
 
-      afterEach(function () {
-        subject.chrome.runtime.onMessage.removeListener(listener);
-      });
-
-      describe('of the first element', function () {
-        it('removes the element', function () {
-          expect(deletedTitle).to.equal(favoritesResponse[0].custom[0].displayTitle);
-        });
-
-        it('does not render any favorites elements', function () {
-          expect(subject.queryAll(dialSelector).length).to.equal(0);
-        });
-
-        it('renders only the "+" element', function () {
-          expect(subject.queryAll(plusSelector).length).to.equal(1);
-        });
-
-        it('renders a popup with undo message', function () {
-          expect(subject.query(undoBoxSelector)).to.exist;
-        });
-
-        it('still renders the most visited area', function () {
-          expect(subject.query(favoritesAreaSelector)).to.exist;
-        });
-
-        it('sends a "removeSpeedDial" message', function () {
-          expect(messages.has('removeSpeedDial')).to.equal(true);
-          expect(messages.get('removeSpeedDial').length).to.equal(1);
-        });
-
-        it('sends a "delete_favorite > click" telemetry signal', function () {
-          expect(messages.has('sendTelemetry')).to.equal(true);
-
-          const telemetrySignals = messages.get('sendTelemetry');
-          let count = 0;
-
-          expect(telemetrySignals.length).to.be.above(0);
-
-          count = telemetrySignals.filter(function (s) {
-            return (
-              s.args[0].type === 'home' &&
-              s.args[0].target === 'delete_favorite' &&
-              s.args[0].action === 'click'
-            );
-          }).length;
-
-          expect(count).to.equal(1);
-        });
-
-        describe('then clicking on a close button of the undo popup', function () {
-          const undoPopupCloseBtnSelector = '.undo-notification-box button.close';
-
-          beforeEach(async function () {
-            await waitFor(() => subject.query(undoPopupCloseBtnSelector));
-            subject.query(undoPopupCloseBtnSelector).click();
-            await waitFor(() => expect(subject.query(undoBoxSelector)).to.not.have.class('visible'), 500);
-            $afterClickDials = subject.queryAll(dialSelector);
-          });
-
-          it('removes the popup', function () {
-            expect(subject.query(undoBoxSelector)).to.not.have.class('visible');
-          });
-
-          it('still does not render any favorites elements', function () {
-            expect($afterClickDials.length).to.equal(0);
-          });
-
-          it('still renders the "+" element', function () {
-            expect(subject.queryAll(plusSelector).length).to.equal(1);
-          });
-
-          it('sends a "notification > close > click" telemetry signal', function () {
-            expect(messages.has('sendTelemetry')).to.equal(true);
-
-            const telemetrySignals = messages.get('sendTelemetry');
-            let count = 0;
-
-            expect(telemetrySignals.length).to.be.above(0);
-
-            count = telemetrySignals.filter(function (s) {
-              return (
-                s.args[0].type === 'home' &&
-                s.args[0].view === 'notification' &&
-                s.args[0].target === 'close' &&
-                s.args[0].action === 'click'
-              );
-            }).length;
-
-            expect(count).to.equal(1);
-          });
-        });
-
-        describe('then clicking on an undo button of the undo popup', function () {
-          const undoPopupUndoBtnSelector = '.undo-notification-box button.undo';
-
-          beforeEach(async function () {
-            subject.query(undoPopupUndoBtnSelector).click();
-            await waitFor(() => expect(subject.query(undoBoxSelector)).to.not.have.class('visible'), 500);
-            $afterClickDials = subject.queryAll(dialSelector);
-          });
-
-          it('removes the popup', function () {
-            expect(subject.query(undoBoxSelector)).to.not.have.class('visible');
-          });
-
-          it('renders the previously deleted element', function () {
-            let deletedDialExists = false;
-
-            expect($afterClickDials.length).to.be.above(0);
-            [...$afterClickDials].forEach(function (dial) {
-              if (dial.querySelector(dialTitleSelector).textContent
-                      === deletedTitle) {
-                deletedDialExists = true;
-              }
-            });
-            expect(deletedDialExists).to.equal(true);
-          });
-
-          it('still renders the "+" element', function () {
-            expect(subject.queryAll(plusSelector).length).to.equal(1);
-          });
-
-          it('renders the previously deleted element on correct position', function () {
-            expect([...$afterClickDials][0]
-              .querySelector(dialTitleSelector).textContent)
-              .to.equal(deletedTitle);
-          });
-
-          it('sends a "addSpeedDial" message', function () {
-            expect(messages.has('addSpeedDial')).to.equal(true);
-            expect(messages.get('addSpeedDial').length).to.equal(1);
-          });
-
-          it('sends a "notification > undo_delete_favorite > click" telemetry signal', function () {
-            expect(messages.has('sendTelemetry')).to.equal(true);
-
-            const telemetrySignals = messages.get('sendTelemetry');
-            let count = 0;
-
-            expect(telemetrySignals.length).to.be.above(0);
-
-            count = telemetrySignals.filter(function (s) {
-              return (
-                s.args[0].type === 'home' &&
-                s.args[0].view === 'notification' &&
-                s.args[0].target === 'undo_delete_favorite' &&
-                s.args[0].action === 'click'
-              );
-            }).length;
-
-            expect(count).to.equal(1);
-          });
-        });
+      it('renders the edited favorite in the list', function () {
+        expect(subject.queryAll('#section-favorites .dial:not(.dial-plus)').length)
+          .to.equal(1);
+        console.log(subject.queryAll('#section-favorites .dial')[0]);
+        expect(subject.queryAll('#section-favorites .dial')[0].href).to.equal(editedDial.url);
+        expect(subject.queryAll('#section-favorites .dial')[0].querySelector('.title'))
+          .to.contain.text(editedDial.displayTitle);
       });
     });
   });

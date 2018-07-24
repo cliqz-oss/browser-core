@@ -4,13 +4,13 @@ import Link from './Link';
 import Icon from './partials/Icon';
 import { elementSideMargins, cardMargins, getVPHeight, cardBorderTopRadius, cardBorderBottomRadius } from '../styles/CardStyle';
 import utils from '../../core/utils';
-import events from '../../core/events';
 import { getMessage } from '../../core/i18n';
-import inject from '../../core/kord/inject';
+import { getDetailsFromUrl } from '../../core/url';
+import * as searchUtils from '../../core/search-engines';
+import telemetry from '../../core/services/telemetry';
 
-const anolysis = inject.module('anolysis');
 
-export default class extends React.Component {
+export default class SearchEngineCard extends React.Component {
 
   sendResultClickTelemetry(event) {
     const result = this.props.result;
@@ -24,15 +24,14 @@ export default class extends React.Component {
       current_position: this.props.index,
       tap_position: tap_position,
     };
-    anolysis.action('handleTelemetrySignal', signal, 'mobile_result_selection');
+    telemetry.push(signal, 'mobile_result_selection');
   }
 
   render() {
     const result = this.props.result;
-    const engine = utils.getDefaultSearchEngine();
+    const engine = searchUtils.getDefaultSearchEngine();
     const url = engine.getSubmissionForQuery(result.text);
-    const urlDetails = utils.getDetailsFromUrl(url);
-    const logoDetails = utils.getLogoDetails(urlDetails);
+    const logoDetails = result.meta.logo || {};
     const width = this.props.width;
     const noResults = this.props.noResults;
     const title = noResults ? getMessage('mobile_no_result_title') : getMessage('mobile_more_results_title');
@@ -41,10 +40,9 @@ export default class extends React.Component {
         accessible={false}
         accessibilityLabel="complementary-search-card"
         style={styles(width).container}
-        onTouchStart={() => events.pub('mobile-search:hideKeyboard')}
       >
         <Link
-          to={url}
+          url={url}
           onPress={e => this.sendResultClickTelemetry(e)}
         >
           <View style={styles(logoDetails.backgroundColor, width).card}>

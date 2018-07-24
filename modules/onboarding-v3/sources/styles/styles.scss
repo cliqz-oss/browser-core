@@ -1,13 +1,13 @@
 @font-face {
     font-family: "Montserrat";
-    src: url(chrome://cliqz/content/onboarding-v3/fonts/Montserrat-Medium.ttf);
+    src: url(../fonts/Montserrat-Medium.ttf);
     font-weight: 500;
     font-style: normal;
 }
 
 @font-face {
     font-family: "Montserrat";
-    src: url(chrome://cliqz/content/onboarding-v3/fonts/Montserrat-Light.ttf);
+    src: url(../fonts/Montserrat-Light.ttf);
     font-weight: 200;
     font-style: normal;
 }
@@ -46,7 +46,7 @@ body {
     display: flex;
 
     .cqb-website {
-        background-image: url(chrome://cliqz/content/onboarding-v3/images/cliqz.svg);
+        background-image: url(../images/cliqz.svg);
         background-repeat: no-repeat;
         background-size: cover;
         width: 81px;

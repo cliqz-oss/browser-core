@@ -6,8 +6,10 @@
  * Each signal (id) will be kept on the DB till OffersConfigs.SIGNALS_OFFERS_EXPIRATION_SECS
  * is reached from the last modification time.
  */
+
 import logger from '../common/offers_v2_logger';
 import utils from '../../core/utils';
+import { httpPost } from '../../core/http';
 import OffersConfigs from '../offers_configs';
 import config from '../../core/config';
 import SimpleDB from '../../core/persistence/simple-db';
@@ -77,7 +79,7 @@ export default class SignalHandler {
   constructor(offersDB, sender) {
     this.db = new SimpleDB(offersDB, logger, 'doc_data');
     if (!sender) {
-      sender = utils;
+      sender = { httpPost };
     }
     this.sender = sender;
     // map from sig_type -> (sig_id -> sig_data)
@@ -748,8 +750,6 @@ export default class SignalHandler {
 
   _sigBuilderCampaign(sigKey, sigData) {
     // we are storing the information as explained on setCampaignSignal
-    // and we have to build it as explained on
-    // https://cliqztix.atlassian.net/wiki/spaces/SBI/pages/87966116/Real+Time+Analytics
     if (!sigKey || !sigData || !sigData.data) {
       logger.warn('_sigBuilderCampaign: invalid args');
       return null;
@@ -795,8 +795,6 @@ export default class SignalHandler {
 
   _sigBuilderAction(sigKey, sigData) {
     // we are storing the information as explained on setActionSignal
-    // and we have to build it as explained on
-    // https://cliqztix.atlassian.net/wiki/spaces/SBI/pages/87966116/Real+Time+Analytics
     if (!sigKey || !sigData || !sigData.data) {
       logger.warn('_sigBuilderAction: invalid args');
       return null;

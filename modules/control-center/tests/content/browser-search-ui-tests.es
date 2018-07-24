@@ -1,4 +1,5 @@
 import { expect } from '../../core/test-helpers';
+import console from '../../../core/console';
 import config from '../../../core/config';
 import { data, dataAmo } from './fixtures/search-section';
 
@@ -53,8 +54,8 @@ class Subject {
 
     return new Promise((resolve) => {
       this.iframe.contentWindow.addEventListener('message', (ev) => {
-        const data = JSON.parse(ev.data);
-        this.messages.push(data);
+        const _data = JSON.parse(ev.data);
+        this.messages.push(_data);
       });
 
       return waitFor(() => this.messages.length === 1).then(resolve);
@@ -73,13 +74,13 @@ class Subject {
     return this.iframe.contentWindow.document.querySelectorAll(selector);
   }
 
-  pushData(data = {}) {
+  pushData(_data = {}) {
     this.iframe.contentWindow.postMessage(JSON.stringify({
       target: 'cliqz-control-center',
       origin: 'window',
       message: {
         action: 'pushData',
-        data,
+        data: _data,
       }
     }), '*');
     return wait(500);
@@ -108,7 +109,7 @@ describe('Search options UI browser', function () {
       return subject.pushData(data);
     });
 
-    it('search options section exists', function () {
+    it('exists', function () {
       const sectionSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-2"]';
       expect(subject.query(sectionSelector)).to.exist;
     });
@@ -476,7 +477,7 @@ describe('AMO Search options tests', function () {
       return subject.pushData(dataAmo);
     });
 
-    it('search options section exists', function () {
+    it('exists', function () {
       const sectionSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-2"]';
       expect(subject.query(sectionSelector)).to.exist;
     });

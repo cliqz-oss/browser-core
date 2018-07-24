@@ -6,15 +6,32 @@
 const mockDexie = require('../../../core/unit/utils/dexie');
 const moment = require('moment');
 
-const CURRENT_DATE = '2017-01-02';
+const DEFAULT_DATE = '2017-01-02';
+
+let sixMonthsAgo = null;
+let yesterday = null;
+let today = null;
+
 const DATE_FORMAT = 'YYYY-MM-DD';
-const getCurrentMoment = () => moment(CURRENT_DATE, DATE_FORMAT);
+const getCurrentMoment = () => moment(today, DATE_FORMAT);
+
+function setCurrentDate(date) {
+  today = date;
+  yesterday = getCurrentMoment().subtract(1, 'days').format(DATE_FORMAT);
+  sixMonthsAgo = getCurrentMoment().subtract(6, 'months').format(DATE_FORMAT);
+}
+
+function resetCurrentDate() {
+  setCurrentDate(DEFAULT_DATE);
+}
+
+resetCurrentDate();
 
 
-let reappearingUser = () => {};
-let newInstall = () => {};
-let activeUserSignal = () => {};
-let updateGID = () => {};
+let reappearingUser;
+let newInstall;
+let activeUserSignal;
+let updateGID;
 
 
 const BACKEND_MOCK = class Backend {
@@ -47,17 +64,14 @@ export default describeModule('anolysis/internals/gid-manager',
       },
     },
     'core/utils': {
-      default: {
-        setInterval() {},
-        setTimeout(cb) { cb(); },
-      },
+      default: {},
     },
     'core/console': { default: {} },
     'anolysis/internals/logger': {
       default: {
-        debug() {},
-        log() {},
-        error() {},
+        debug() { },
+        log() { },
+        error() { },
       },
     },
     'anolysis/internals/backend-communication': {
@@ -65,6 +79,9 @@ export default describeModule('anolysis/internals/gid-manager',
     },
     'anolysis/internals/synchronized-date': {
       DATE_FORMAT,
+      getSynchronizedDateFormatted() {
+        return today;
+      },
       default() {
         return getCurrentMoment();
       },
@@ -74,13 +91,7 @@ export default describeModule('anolysis/internals/gid-manager',
     let storage;
     let gidManager;
 
-    function setStorage(state) {
-      return Promise.all(
-        Object.keys(state).map(key => storage.gid.set(key, state[key]))
-      );
-    }
-
-    function getStorage() {
+    function getState() {
       const state = {};
       storage.gid.entries().forEach(({ key, value }) => {
         state[key] = value;
@@ -88,7 +99,14 @@ export default describeModule('anolysis/internals/gid-manager',
       return state;
     }
 
-    beforeEach(function () {
+    beforeEach(async function () {
+      reappearingUser = () => Promise.reject();
+      newInstall = () => Promise.reject();
+      activeUserSignal = () => Promise.reject();
+      updateGID = () => Promise.reject();
+
+      resetCurrentDate();
+
       const GIDManager = this.module().default;
       mockDemographics = () => ({});
 
@@ -96,400 +114,365 @@ export default describeModule('anolysis/internals/gid-manager',
       config.set('demographics', mockDemographics());
       gidManager = new GIDManager(config);
 
-      return this.system.import('anolysis/internals/storage/dexie')
-        .then((module) => {
-          const Storage = module.default;
-          storage = new Storage();
-          return storage.init();
-        })
-        .then(() => gidManager.init(storage.gid));
+      const Storage = (await this.system.import('anolysis/internals/storage/dexie')).default;
+      storage = new Storage();
+      await storage.init();
+      await gidManager.init(storage.gid);
     });
 
     afterEach(() => storage.destroy());
 
-    describe('#handleNewInstall', () => {
-      it('succeeds if server returns answer', () => {
-        newInstall = () => Promise.resolve('demographics');
+    // Some helpers
+    const performNewInstall = async (date = today) => {
+      // Pretend today is `date`.
+      setCurrentDate(date);
 
-        return gidManager.handleNewInstall('test')
-          .then(formatted => chai.expect(formatted).to.be.equal('demographics'))
-          .then(() => getStorage())
-          .then(state => chai.expect(state).to.be.eql({
-            anolysisLastAliveSignal: CURRENT_DATE,
-            anolysisDemographics: 'demographics',
-            anolysisSentNewInstall: CURRENT_DATE,
-          }));
+      const demographics = 'demographics';
+      newInstall = () => Promise.resolve(demographics);
+      await gidManager.handleNewInstall();
+
+      // Reset default value of current date.
+      resetCurrentDate();
+
+      return demographics;
+    };
+
+    describe('#handleNewInstall', () => {
+      it('succeeds if server returns answer', async () => {
+        const demographics = await performNewInstall();
+
+        chai.expect(await gidManager.getGID()).to.be.eql(demographics);
+        chai.expect(getState()).to.be.eql({
+          anolysisDemographics: demographics,
+          anolysisInstalled: today,
+          anolysisLastAliveSignal: today,
+          anolysisSentNewInstall: today,
+        });
       });
 
-      it('fails if server query fails', () => {
+      it('fails if server query fails', async () => {
         newInstall = () => Promise.reject();
 
-        return gidManager.handleNewInstall('test')
-          .then(gid => chai.expect(gid).to.be.equal(''))
-          .then(() => getStorage())
-          .then(state => chai.expect(state).to.be.eql({}));
+        await gidManager.handleNewInstall();
+        chai.expect(await gidManager.getGID()).to.be.eql('');
+        chai.expect(getState()).to.be.eql({
+          anolysisInstalled: today,
+        });
       });
     });
 
     describe('#handleReappearingUser', () => {
-      it('succeeds if server returns answer', () => {
-        reappearingUser = () => Promise.resolve('demographics');
+      it('succeeds if server returns answer', async () => {
+        const demographics = 'demographics';
+        reappearingUser = () => Promise.resolve(demographics);
 
-        return gidManager.handleReappearingUser('test')
-          .then(formatted => chai.expect(formatted).to.be.equal('demographics'))
-          .then(() => getStorage())
-          .then(state => chai.expect(state).to.be.eql({
-            anolysisLastAliveSignal: CURRENT_DATE,
-            anolysisDemographics: 'demographics',
-            anolysisSentNewInstall: CURRENT_DATE,
-          }));
+        await gidManager.handleReappearingUser();
+        chai.expect(getState()).to.be.eql({
+          anolysisDemographics: demographics,
+          anolysisLastAliveSignal: today,
+          anolysisSentNewInstall: today,
+        });
       });
 
-      it('fails if server query fails', () => {
+      it('fails if server query fails', async () => {
         reappearingUser = () => Promise.reject();
 
-        return gidManager.handleReappearingUser('test')
-          .then(gid => chai.expect(gid).to.be.equal(''))
-          .then(() => getStorage())
-          .then(state => chai.expect(state).to.be.eql({}));
+        await gidManager.handleReappearingUser();
+        chai.expect(getState()).to.be.eql({});
       });
     });
 
-
     describe('#handleUpdate', () => {
-      it('succeeds if backend returns a result', () => {
-        updateGID = () => Promise.resolve('gid');
+      it('succeeds if server returns answer', async () => {
+        const gid = 'gid';
+        updateGID = () => Promise.resolve(gid);
 
-        return gidManager.handleUpdate('test')
-          .then(gid => chai.expect(gid).to.be.equal('gid'))
-          .then(() => getStorage())
-          .then(state => chai.expect(state).to.be.eql({
-            anolysisLastGIDUpdate: CURRENT_DATE,
-            anolysisGID: 'gid',
-          }));
+        const demographics = await performNewInstall(yesterday);
+
+        await gidManager.handleUpdate();
+        chai.expect(await gidManager.getGID()).to.be.eql(gid);
+        chai.expect(getState()).to.be.eql({
+          // From getGID
+          anolysisInstalled: today,
+
+          // From handleUpdate
+          anolysisGID: gid,
+          anolysisLastGIDUpdate: today,
+
+          // From handleNewInstall
+          anolysisDemographics: demographics,
+          anolysisLastAliveSignal: yesterday,
+          anolysisSentNewInstall: yesterday,
+        });
       });
 
-      it('succeeds even if backend fails', () => {
+      it('succeeds even if server query fails', async () => {
         // The rational being that the user will then just be marked unsafe and
         // will use '' as a GID (empty GID). This update can be tried again
         // later.
         updateGID = () => Promise.reject();
 
-        return gidManager.handleUpdate('test')
-          .then(gid => chai.expect(gid).to.be.equal(undefined))
-          .then(() => getStorage())
-          .then(state => chai.expect(state).to.be.eql({}));
+        const demographics = await performNewInstall(yesterday);
+
+        await gidManager.handleUpdate();
+        chai.expect(await gidManager.getGID()).to.be.eql('');
+        chai.expect(getState()).to.be.eql({
+          // From getGID
+          anolysisInstalled: today,
+
+          // From handleNewInstall
+          anolysisDemographics: demographics,
+          anolysisLastAliveSignal: yesterday,
+          anolysisSentNewInstall: yesterday,
+        });
       });
     });
 
     describe('#handleActiveUserSignal', () => {
-      it('update granular demographics after 6 months', () => {
-        // Simulate a new available demographics
-        const newDemographics = JSON.stringify({ new: 42 });
+      // Simulate a new available demographics
+      const newDemographics = { new: 42 };
+      const newDemographicsSerialized = JSON.stringify(newDemographics);
+
+      const updateDemographics = () => {
+        gidManager.demographics = newDemographics;
+        gidManager.serializedDemographics = newDemographicsSerialized;
+      };
+
+      it('does not update granular demographics if < 6 months', async () => {
+        await performNewInstall(yesterday);
         activeUserSignal = sinon.spy(() => Promise.resolve(newDemographics));
+        updateDemographics();
 
-        // Simulate install for 6 months before
-        const installDate = moment(CURRENT_DATE, DATE_FORMAT).subtract(6, 'month').format(DATE_FORMAT);
-        const state = {
-          anolysisInstalled: installDate,
-          anolysisLastAliveSignal: installDate,
-          anolysisDemographics: 'demographics',
-          anolysisLastGIDUpdate: installDate,
-          anolysisGID: 'gid',
-          anolysisLatestDemographics: newDemographics,
-        };
+        // Call handleActiveUserSignal (nothing should happen)
+        const stateBefore = getState();
+        await gidManager.handleActiveUserSignal('demographics');
+        const stateAfter = getState();
 
-        return setStorage(state)
-          .then(() => gidManager.handleActiveUserSignal('demographics'))
-          .then(gid => chai.expect(gid).to.be.equal(newDemographics))
-          .then(() => chai.expect(activeUserSignal).to.have.been.calledOnce)
-          .then(() => getStorage())
-          .then(state2 => chai.expect(state2).to.be.eql({
-            anolysisInstalled: installDate,
-            anolysisLastAliveSignal: CURRENT_DATE,
-            anolysisDemographics: newDemographics,
-            anolysisLastGIDUpdate: installDate,
-            anolysisGID: 'gid',
-            anolysisLatestDemographics: newDemographics,
-          }));
+        chai.expect(stateBefore).to.be.eql(stateAfter);
+        chai.expect(activeUserSignal).to.not.have.been.called;
+      });
+
+      it('update granular demographics if >= 6 months', async () => {
+        await performNewInstall(sixMonthsAgo);
+        activeUserSignal = sinon.spy(() => Promise.resolve(newDemographicsSerialized));
+        updateDemographics();
+
+        // Call handleActiveUserSignal
+        await gidManager.handleActiveUserSignal();
+        chai.expect(activeUserSignal).to.have.been.calledOnce;
+        chai.expect(getState()).to.be.eql({
+          anolysisLastAliveSignal: today,
+          anolysisDemographics: newDemographicsSerialized,
+          anolysisSentNewInstall: sixMonthsAgo,
+        });
       });
     });
 
     describe('#getGID', () => {
-      it('resolves to the same promise if called several times', () => {
-        // Mock `registerDemographicsFirstTime` to make sure
-        // it's called only once.
-        const registerDemographicsFirstTime = sinon.spy(
-          gidManager.registerDemographicsFirstTime.bind(gidManager),
-        );
-        gidManager.registerDemographicsFirstTime = registerDemographicsFirstTime;
+      it('resolves to the same promise if called several times', async () => {
+        // Mock `_getGID` to make sure it's called only once.
+        const _getGID = sinon.spy(gidManager._getGID.bind(gidManager));
+        gidManager._getGID = _getGID;
 
-        // Several calls to `init` or `getGID` actually resolve to the same
-        // promise. So that we cannot have several concurrent calls to this
-        // same function.
-        gidManager.updateState();
-        gidManager.updateState();
-        gidManager.updateState();
-        gidManager.getGID();
-        gidManager.getGID();
-        gidManager.getGID();
-        return gidManager.getGID()
-          .then(() => chai.expect(registerDemographicsFirstTime).to.have.been.calledOnce);
+        // Several calls to `getGID` actually resolve to the same promise. So
+        // that we cannot have several concurrent calls to this same function.
+        for (let i = 0; i <= 100; i += 1) {
+          gidManager.getGID();
+        }
+
+        await gidManager.getGID();
+        chai.expect(_getGID).to.have.been.calledOnce;
       });
 
-      it('returns granular demographics on new install', () => {
-        reappearingUser = sinon.spy(() => Promise.resolve('demographics0'));
-        newInstall = sinon.spy(() => Promise.resolve('demographics1'));
-        activeUserSignal = sinon.spy(() => Promise.resolve('demographics2'));
-        updateGID = sinon.spy(() => Promise.resolve('gid'));
+      const fromNewInstall = 'demographicsNewInstall';
+      const fromReappearingUser = 'demographicsReappearingUser';
+      const fromActiveUser = 'demographicsActiveUser';
+      const fromUpdateGID = 'gid';
 
-        storage.anolysisDemographics = JSON.stringify({
-          install_date: CURRENT_DATE,
-        });
+      it('updates GID if needed', async () => {
+        newInstall = sinon.spy(() => Promise.resolve(fromNewInstall));
+        reappearingUser = sinon.spy(() => Promise.resolve(fromReappearingUser));
+        activeUserSignal = sinon.spy(() => Promise.resolve(fromActiveUser));
+        updateGID = sinon.spy(() => Promise.resolve(fromUpdateGID));
 
-        // Simulate install for the current day
-        return gidManager.getGID()
-          .then(gid => chai.expect(gid).to.be.equal('demographics1'))
-          .then(() => chai.expect(reappearingUser).to.not.have.been.called)
-          .then(() => chai.expect(newInstall).to.have.been.calledOnce)
-          .then(() => chai.expect(activeUserSignal).to.not.have.been.called)
-          .then(() => chai.expect(updateGID).to.not.have.been.called)
-          .then(() => getStorage())
-          .then(state => chai.expect(state).to.be.eql({
-            anolysisSentNewInstall: CURRENT_DATE,
-            anolysisInstalled: CURRENT_DATE,
-            anolysisLastAliveSignal: CURRENT_DATE,
-            anolysisDemographics: 'demographics1',
-            anolysisLatestDemographics: '{}',
-          }));
-      });
+        // Mock install date of the browser/extension using: demographics.install_date
+        gidManager.demographics = { install_date: '2016-01-01' };
+        gidManager.serializedDemographics = JSON.stringify(gidManager.demographics);
 
-      it('returns granular demographics on reappearing user', () => {
-        reappearingUser = sinon.spy(() => Promise.resolve('demographics0'));
-        newInstall = sinon.spy(() => Promise.resolve('demographics1'));
-        activeUserSignal = sinon.spy(() => Promise.resolve('demographics2'));
-        updateGID = sinon.spy(() => Promise.resolve('gid'));
+        // New install
+        setCurrentDate('2016-01-01');
+        await gidManager.getGID();
+        chai.expect(newInstall).to.have.been.calledOnce;
+        chai.expect(updateGID).to.not.have.been.called;
 
-        gidManager.setCurrentDemographics(JSON.stringify({
-          install_date: getCurrentMoment().subtract(1, 'days').format(DATE_FORMAT),
-        }));
+        // Get GID
+        setCurrentDate('2016-01-02');
+        chai.expect(await gidManager.getGID()).to.be.eql(fromUpdateGID);
+        chai.expect(newInstall).to.have.been.calledOnce;
+        chai.expect(updateGID).to.have.been.calledOnce;
 
-        // Simulate install for the current day
-        return gidManager.getGID()
-          .then(gid => chai.expect(gid).to.be.equal('demographics0'))
-          .then(() => chai.expect(reappearingUser).to.have.been.calledOnce)
-          .then(() => chai.expect(newInstall).to.not.have.been.called)
-          .then(() => chai.expect(activeUserSignal).to.not.have.been.called)
-          .then(() => chai.expect(updateGID).to.not.have.been.called)
-          .then(() => getStorage())
-          .then(state => chai.expect(state).to.be.eql({
-            anolysisInstalled: CURRENT_DATE,
-            anolysisLastAliveSignal: CURRENT_DATE,
-            anolysisDemographics: 'demographics0',
-            anolysisSentNewInstall: CURRENT_DATE,
-            anolysisLatestDemographics: '{}',
-          }));
-      });
+        // Get GID should trigger update
+        setCurrentDate('2016-01-03');
+        updateGID = sinon.spy(() => Promise.resolve('gid2'));
+        chai.expect(await gidManager.getGID()).to.be.eql('gid2');
+        chai.expect(newInstall).to.have.been.calledOnce;
+        chai.expect(updateGID).to.have.been.calledOnce;
 
-      it('returns granular demographics on first day', () => {
-        reappearingUser = sinon.spy(() => Promise.resolve('demographics0'));
-        newInstall = sinon.spy(() => Promise.resolve('demographics'));
-        activeUserSignal = sinon.spy(() => Promise.resolve('demographics'));
-        updateGID = sinon.spy(() => Promise.resolve('gid'));
+        // Calling again on same day should not change anything
+        const state = getState();
+        chai.expect(await gidManager.getGID()).to.be.eql('gid2');
+        chai.expect(newInstall).to.have.been.calledOnce;
+        chai.expect(updateGID).to.have.been.calledOnce;
+        chai.expect(getState()).to.be.eql(state);
 
-        // Simulate install for the current day
-        const demographics = JSON.stringify({
-          install_date: getCurrentMoment().subtract(1, 'days').format(DATE_FORMAT),
-        });
-
-        const state = {
-          anolysisInstalled: CURRENT_DATE,
-          anolysisLastAliveSignal: CURRENT_DATE,
-          anolysisSentNewInstall: CURRENT_DATE,
-          anolysisDemographics: demographics,
-          anolysisLatestDemographics: '{}',
-        };
-
-        return setStorage(state)
-          .then(() => gidManager.getGID())
-          .then(gid => chai.expect(gid).to.be.equal(demographics))
-          .then(() => chai.expect(reappearingUser).to.not.have.been.called)
-          .then(() => chai.expect(newInstall).to.not.have.been.called)
-          .then(() => chai.expect(activeUserSignal).to.not.have.been.called)
-          .then(() => chai.expect(updateGID).to.not.have.been.called)
-          .then(() => getStorage())
-          .then(state2 => chai.expect(state2).to.be.eql({
-            anolysisInstalled: CURRENT_DATE,
-            anolysisLastAliveSignal: CURRENT_DATE,
-            anolysisDemographics: demographics,
-            anolysisSentNewInstall: CURRENT_DATE,
-            anolysisLatestDemographics: '{}',
-          }));
-      });
-
-      it('returns gid on second day', () => {
-        reappearingUser = sinon.spy(() => Promise.resolve('demographics0'));
-        newInstall = sinon.spy(() => Promise.resolve('demographics'));
-        activeUserSignal = sinon.spy(() => Promise.resolve('demographics'));
-        updateGID = sinon.spy(() => Promise.resolve('gid'));
-
-        // Simulate install for the day before
-        const installDate = moment(CURRENT_DATE, DATE_FORMAT).subtract(1, 'days').format(DATE_FORMAT);
-        const state = {
-          anolysisInstalled: installDate,
-          anolysisLastAliveSignal: installDate,
-          anolysisDemographics: 'demographics',
-          anolysisSentNewInstall: installDate,
-          anolysisLatestDemographics: '{}',
-        };
-
-        return setStorage(state)
-          .then(() => gidManager.getGID())
-          .then(gid => chai.expect(gid).to.be.equal('gid'))
-          .then(() => chai.expect(reappearingUser).to.not.have.been.called)
-          .then(() => chai.expect(newInstall).to.not.have.been.called)
-          .then(() => chai.expect(activeUserSignal).to.not.have.been.called)
-          .then(() => chai.expect(updateGID).to.have.been.calledOnce)
-          .then(() => getStorage())
-          .then(state2 => chai.expect(state2).to.be.eql({
-            anolysisInstalled: installDate,
-            anolysisLastAliveSignal: installDate,
-            anolysisDemographics: 'demographics',
-            anolysisLastGIDUpdate: CURRENT_DATE,
-            anolysisGID: 'gid',
-            anolysisSentNewInstall: installDate,
-            anolysisLatestDemographics: '{}',
-          }));
-      });
-
-      it('returns empty GID if we could not update', () => {
-        reappearingUser = sinon.spy(() => Promise.resolve('demographics0'));
-        newInstall = sinon.spy(() => Promise.resolve('demographics'));
-        activeUserSignal = sinon.spy(() => Promise.resolve('demographics'));
+        // Next day, GID server fails to answer, we expect GID to stay the same.
+        // It will be retried later. In the meanwhile, the user keeps reporting
+        // with its current group.
+        setCurrentDate('2016-01-04');
         updateGID = sinon.spy(() => Promise.reject());
-
-        // Simulate install for the day before
-        const installDate = moment(CURRENT_DATE, DATE_FORMAT).subtract(1, 'days').format(DATE_FORMAT);
-        const state = {
-          anolysisInstalled: installDate,
-          anolysisLastAliveSignal: installDate,
-          anolysisDemographics: 'demographics',
-          anolysisSentNewInstall: installDate,
-          anolysisLatestDemographics: '{}',
-        };
-
-        return setStorage(state)
-          .then(() => gidManager.getGID())
-          .then(gid => chai.expect(gid).to.be.equal(''))
-          .then(() => chai.expect(reappearingUser).to.not.have.been.called)
-          .then(() => chai.expect(newInstall).to.not.have.been.called)
-          .then(() => chai.expect(activeUserSignal).to.not.have.been.called)
-          .then(() => chai.expect(updateGID).to.have.been.calledOnce)
-          .then(() => getStorage())
-          .then(state2 => chai.expect(state2).to.be.eql(state));
+        chai.expect(await gidManager.getGID()).to.be.eql('gid2');
       });
 
-      it('returns gid if already available in storage', () => {
-        reappearingUser = sinon.spy(() => Promise.resolve('demographics0'));
-        newInstall = sinon.spy(() => Promise.resolve('demographics'));
-        activeUserSignal = sinon.spy(() => Promise.resolve('demographics'));
-        updateGID = sinon.spy(() => Promise.resolve('gid'));
+      // Define test-cases declaratively:
+      [
+        {
+          browserInstallDate: today,
+          anolysisInstallDate: today,
+          gidResult: fromNewInstall,
+          calls: {
+            newInstall: 1,
+          },
+        },
+        {
+          browserInstallDate: yesterday,
+          anolysisInstallDate: yesterday,
+          gidResult: fromNewInstall,
+          calls: {
+            newInstall: 1,
+          },
+        },
+        {
+          browserInstallDate: yesterday,
+          anolysisInstallDate: today,
+          gidResult: fromReappearingUser,
+          calls: {
+            reappearingUser: 1,
+          },
+        },
+        {
+          browserInstallDate: sixMonthsAgo,
+          anolysisInstallDate: yesterday,
+          gidResult: fromReappearingUser,
+          calls: {
+            reappearingUser: 1,
+          },
+        },
+        {
+          browserInstallDate: sixMonthsAgo,
+          anolysisInstallDate: sixMonthsAgo,
+          currentDate: today,
+          gidResult: fromUpdateGID,
+          calls: {
+            newInstall: 1,
+            updateGID: 1,
+            activeUserSignal: 1,
+          },
+        },
+        {
+          browserInstallDate: yesterday,
+          anolysisInstallDate: yesterday,
+          currentDate: today,
+          gidResult: fromUpdateGID,
+          calls: {
+            newInstall: 1,
+            updateGID: 1,
+          },
+        },
+        {
+          browserInstallDate: yesterday,
+          anolysisInstallDate: yesterday,
+          currentDate: today,
+          gidResult: '',
+          apis: {
+            updateGID: false,
+          },
+          calls: {
+            newInstall: 1,
+            updateGID: 2,
+          },
+        },
+      ].forEach((testCase) => {
+        const { browserInstallDate, anolysisInstallDate, currentDate, gidResult, calls, apis } = {
+          // Defaults
+          apis: {},
+          calls: {},
 
-        // Simulate install for the day before
-        const installDate = moment(CURRENT_DATE, DATE_FORMAT).subtract(1, 'days').format(DATE_FORMAT);
-        const state = {
-          anolysisInstalled: installDate,
-          anolysisLastAliveSignal: installDate,
-          anolysisDemographics: 'demographics',
-          anolysisLastGIDUpdate: installDate,
-          anolysisGID: 'gid',
-          anolysisSentNewInstall: installDate,
-          anolysisLatestDemographics: '{}',
+          ...testCase,
         };
+        it(`succeeds for: ${JSON.stringify(testCase)}`, async () => {
+          newInstall = sinon.spy(() => (
+            apis.newInstall !== false
+              ? Promise.resolve(fromNewInstall)
+              : Promise.reject()
+          ));
+          reappearingUser = sinon.spy(() => (
+            apis.reappearingUser !== false
+              ? Promise.resolve(fromReappearingUser)
+              : Promise.reject()
+          ));
+          activeUserSignal = sinon.spy(() => (
+            apis.activeUserSignal !== false
+              ? Promise.resolve(fromActiveUser)
+              : Promise.reject()
+          ));
+          updateGID = sinon.spy(() => (
+            apis.updateGID !== false
+              ? Promise.resolve(fromUpdateGID)
+              : Promise.reject()
+          ));
 
-        return setStorage(state)
-          .then(() => gidManager.getGID())
-          .then(gid => chai.expect(gid).to.be.equal('gid'))
-          .then(() => chai.expect(reappearingUser).to.not.have.been.called)
-          .then(() => chai.expect(newInstall).to.not.have.been.called)
-          .then(() => chai.expect(activeUserSignal).to.not.have.been.called)
-          .then(() => chai.expect(updateGID).to.not.have.been.called)
-          .then(() => getStorage())
-          .then(state2 => chai.expect(state2).to.be.eql(state));
-      });
+          // Mock install date of the browser/extension using: demographics.install_date
+          gidManager.demographics = { install_date: browserInstallDate };
+          gidManager.serializedDemographics = JSON.stringify(gidManager.demographics);
 
-      it('returns empty GID if out-dated GID is in pref (> 1 month old)', () => {
-        reappearingUser = sinon.spy(() => Promise.resolve('demographics0'));
-        newInstall = sinon.spy(() => Promise.resolve('demographics'));
-        activeUserSignal = sinon.spy(() => Promise.resolve('demographics'));
-        updateGID = sinon.spy(() => Promise.reject());
+          setCurrentDate(anolysisInstallDate);
+          let gid = await gidManager.getGID();
 
-        // Simulate install for 6 months before before
-        const installDate = moment(CURRENT_DATE, DATE_FORMAT).subtract(6, 'month').format(DATE_FORMAT);
-        const state = {
-          anolysisInstalled: installDate,
-          anolysisLastAliveSignal: installDate,
-          anolysisDemographics: 'demographics',
-          anolysisLastGIDUpdate: installDate,
-          anolysisGID: 'gid',
-          anolysisSentNewInstall: installDate,
-          anolysisLatestDemographics: '{}',
-        };
+          if (currentDate && currentDate !== anolysisInstallDate) {
+            setCurrentDate(currentDate);
+            gid = await gidManager.getGID();
+          }
 
-        return setStorage(state)
-          .then(() => gidManager.getGID())
-          .then(gid => chai.expect(gid).to.be.equal(''))
-          .then(() => chai.expect(reappearingUser).to.not.have.been.called)
-          .then(() => chai.expect(newInstall).to.not.have.been.called)
-          .then(() => chai.expect(activeUserSignal).to.have.been.calledOnce)
-          .then(() => chai.expect(updateGID).to.have.been.calledOnce)
-          .then(() => getStorage())
-          .then(state2 => chai.expect(state2).to.be.eql({
-            anolysisInstalled: installDate,
-            anolysisLastAliveSignal: CURRENT_DATE,
-            anolysisDemographics: 'demographics',
-            anolysisLastGIDUpdate: installDate,
-            anolysisGID: 'gid',
-            anolysisSentNewInstall: installDate,
-            anolysisLatestDemographics: '{}',
-          }));
-      });
+          // calling `getGID` two times in a raw should return the same result
+          // if we are still on the same day.
+          chai.expect(await gidManager.getGID()).to.be.eql(gid);
 
-      it('returns updated GID if out-dated GID is in pref (> 1 month old)', () => {
-        reappearingUser = sinon.spy(() => Promise.resolve('demographics0'));
-        newInstall = sinon.spy(() => Promise.resolve('demographics'));
-        activeUserSignal = sinon.spy(() => Promise.resolve('demographics'));
-        updateGID = sinon.spy(() => Promise.resolve('updatedGID'));
+          chai.expect(gid).to.be.eql(gidResult);
 
-        // Simulate install for 6 months before
-        const installDate = moment(CURRENT_DATE, DATE_FORMAT).subtract(6, 'month').format(DATE_FORMAT);
-        const state = {
-          anolysisInstalled: installDate,
-          anolysisLastAliveSignal: installDate,
-          anolysisDemographics: 'demographics',
-          anolysisLastGIDUpdate: installDate,
-          anolysisSentNewInstall: installDate,
-          anolysisGID: 'gid',
-          anolysisLatestDemographics: '{}',
-        };
+          if (calls.newInstall !== undefined) {
+            chai.expect(newInstall).to.have.been.callCount(calls.newInstall);
+          } else {
+            chai.expect(newInstall).to.not.have.been.called;
+          }
 
-        return setStorage(state)
-          .then(() => gidManager.getGID())
-          .then(gid => chai.expect(gid).to.be.equal('updatedGID'))
-          .then(() => chai.expect(reappearingUser).to.not.have.been.called)
-          .then(() => chai.expect(newInstall).to.not.have.been.called)
-          .then(() => chai.expect(activeUserSignal).to.have.been.calledOnce)
-          .then(() => chai.expect(updateGID).to.have.been.calledOnce)
-          .then(() => getStorage())
-          .then(state2 => chai.expect(state2).to.be.eql({
-            anolysisInstalled: installDate,
-            anolysisLastAliveSignal: CURRENT_DATE,
-            anolysisDemographics: 'demographics',
-            anolysisLastGIDUpdate: CURRENT_DATE,
-            anolysisGID: 'updatedGID',
-            anolysisSentNewInstall: installDate,
-            anolysisLatestDemographics: '{}',
-          }));
+          if (calls.reappearingUser !== undefined) {
+            chai.expect(reappearingUser).to.have.been.callCount(calls.reappearingUser);
+          } else {
+            chai.expect(reappearingUser).to.not.have.been.called;
+          }
+
+          if (calls.updateGID !== undefined) {
+            chai.expect(updateGID).to.have.been.callCount(calls.updateGID);
+          } else {
+            chai.expect(updateGID).to.not.have.been.called;
+          }
+
+          if (calls.activeUserSignal !== undefined) {
+            chai.expect(activeUserSignal).to.have.been.callCount(calls.activeUserSignal);
+          } else {
+            chai.expect(activeUserSignal).to.not.have.been.called;
+          }
+        });
       });
     });
   },

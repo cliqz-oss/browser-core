@@ -1,7 +1,7 @@
 /* eslint no-param-reassign: 'off' */
 
 import getDbConn from '../sqlite';
-import CliqzUtils from '../../core/utils';
+import console from '../../core/console';
 
 const LOG_KEY = 'storage-sqlite';
 let dbConn;
@@ -30,19 +30,19 @@ function loadRecord(id, callback) {
         if (row.getResultByName('id') === id) {
           res.push(row.getResultByName('data'));
         } else {
-          CliqzUtils.log('There are more than one record', LOG_KEY);
+          console.log('There are more than one record', LOG_KEY);
           callback(null);
         }
         break;
       }
     },
     handleError(aError) {
-      CliqzUtils.log(`SQL error: ${aError.message}`, LOG_KEY);
+      console.log(`SQL error: ${aError.message}`, LOG_KEY);
       callback(null);
     },
     handleCompletion() {
       if (res.length === 1) {
-        CliqzUtils.log(`Load ${id}, data length = ${res[0].length}`, LOG_KEY);
+        console.log(`Load ${id}, data length = ${res[0].length}`, LOG_KEY);
         callback(res[0]);
       } else callback(null);
     }

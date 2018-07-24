@@ -1,4 +1,4 @@
-import utils from '../core/utils';
+import console from '../core/console';
 import setTimeoutInterval from '../core/helpers/timeout';
 
 
@@ -31,26 +31,26 @@ class Pacemaker {
     const now = (new Date()).getTime();
     // initial waiting period
     if (this.twait > now) {
-      utils.log('tick wait', 'pacemaker');
+      console.log('tick wait', 'pacemaker');
       return;
     }
 
     // run registered tasks
     this._tasks.forEach((task) => {
       if (now > task.last + task.freq) {
-        utils.setTimeout(() => {
+        setTimeout(() => {
           const taskName = task.fn.name || '<anon>';
           try {
             // if task constraint is set, test it before running
             if (!task.when || task.when(task)) {
-              utils.log(`run task: ${taskName}`, 'pacemaker');
+              console.log(`run task: ${taskName}`, 'pacemaker');
               task.fn(now);
             }
             /* eslint-disable no-param-reassign */
             task.last = now;
             /* eslint-enable no-param-reassign */
           } catch (e) {
-            utils.log(`Error executing task ${taskName}: ${e}`, 'pacemaker');
+            console.log(`Error executing task ${taskName}: ${e}`, 'pacemaker');
           }
         }, 0);
       }

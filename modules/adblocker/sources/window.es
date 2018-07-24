@@ -1,6 +1,7 @@
 import { getActiveTab } from '../platform/browser';
 
-import utils from '../core/utils';
+import { isUrl } from '../core/url';
+import prefs from '../core/prefs';
 
 import CliqzADB, {
   adbABTestEnabled,
@@ -27,7 +28,7 @@ export default class Win {
     }
 
     return getActiveTab().then(({ id, url }) => {
-      const isCorrectUrl = utils.isUrl(url);
+      const isCorrectUrl = isUrl(url);
       let disabledForUrl = false;
       let disabledForDomain = false;
       let disabledEverywhere = false;
@@ -40,7 +41,7 @@ export default class Win {
       }
 
       const report = CliqzADB.adbStats.report(id);
-      const enabled = utils.getPref(ADB_PREF, false) !== ADB_PREF_VALUES.Disabled;
+      const enabled = prefs.get(ADB_PREF, false) !== ADB_PREF_VALUES.Disabled;
       disabledEverywhere = !enabled && !disabledForUrl && !disabledForDomain;
 
       // Check stat of the adblocker
@@ -68,7 +69,7 @@ export default class Win {
       return {
         visible: true,
         enabled: enabled && !disabledForDomain && !disabledForUrl,
-        optimized: utils.getPref(ADB_PREF_OPTIMIZED, false) === true,
+        optimized: prefs.get(ADB_PREF_OPTIMIZED, false) === true,
         disabledForUrl,
         disabledForDomain,
         disabledEverywhere,

@@ -71,6 +71,35 @@ program.command('pack [file]')
       });
   });
 
+program.command('sign [file]')
+  .action((configPath) => {
+    const cfg = setConfigPath(configPath);
+    const CONFIG = cfg.CONFIG;
+
+    getCommit()
+      .then((id) => { process.env.GIT_COMMIT = id; }, () => {})
+      .then(() => getExtensionVersion('package'))
+      .then((version) => {
+        process.env.PACKAGE_VERSION = version;
+
+        if (!process.env.VERSION) {
+          process.env.VERSION = version;
+        }
+
+        if (!CONFIG.sign) {
+          console.log('Sign not defined if config file - doing nothing');
+          return;
+        }
+
+        const output = execa.shellSync(`bash -c "${CONFIG.sign}"`).output[1] || '';
+        console.log(output);
+      })
+      .catch((e) => {
+        console.error('Something went wrong', e);
+        process.exit(1);
+      });
+  });
+
 program.command('publish [file]')
   .action((configPath) => {
     const cfg = setConfigPath(configPath);
@@ -89,8 +118,7 @@ program.command('publish [file]')
         if (!CONFIG.publish) {
           throw new Error('Publish not defined in config file');
         }
-
-        const output = execa.shellSync(`bash -c "${CONFIG.publish}"`).output;
+        const output = execa.shellSync(CONFIG.publish, { shell: '/bin/bash' }).output;
 
         const urls = Array.from(new Set((output[1] || '').match(urlRegex)));
         urls.map(url => url.trim()).filter(noFileUrls).forEach(url => console.log(rewrite(url)));

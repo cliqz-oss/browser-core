@@ -22,7 +22,7 @@ export default class SpeedDialsRow extends React.Component {
   }
 
   componentWillMount() {
-    this.state = {
+    this.setState({
       isCustom: this.props.type === 'custom',
       showAddButton: () => {
         if (!this.state.isCustom) {
@@ -31,14 +31,14 @@ export default class SpeedDialsRow extends React.Component {
         return this.state.displayAddBtn();
       },
       displayAddBtn: () => this.props.dials.length < 6,
-    };
+    });
   }
 
   removeSpeedDial(dial, index) {
     speedDialDeleteSignal(this.state.isCustom, index);
-
     this.props.removeSpeedDial(dial, index);
   }
+
 
   visitSpeedDial(index) {
     speedDialClickSignal(this.state.isCustom, index);
@@ -64,6 +64,7 @@ export default class SpeedDialsRow extends React.Component {
           {
             this.props.dials.slice(0, 6).map((dial, i) =>
               (<SpeedDial
+                key={dial.url}
                 dial={dial}
                 removeSpeedDial={() => this.removeSpeedDial(dial, i)}
                 visitSpeedDial={() => this.visitSpeedDial(i)}

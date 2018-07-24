@@ -1,9 +1,10 @@
-/* global global, Services, Components, XPCOMUtils, window */
+/* global global */
 
 import win from './globals-window';
+import Components from './globals-components';
+import XPCOMUtils from './globals-xpcomutils';
+import Services from './globals-services';
 
-Components.utils.import('resource://gre/modules/XPCOMUtils.jsm');
-Components.utils.import('resource://gre/modules/Services.jsm');
 
 export {
   Services,
@@ -28,8 +29,8 @@ export const safeGlobal = new Proxy(fakeGlobal, {
       return fakeGlobal[key];
     }
 
-    if (typeof window !== 'undefined') {
-      return window[key];
+    if (typeof win !== 'undefined') {
+      return win[key];
     }
 
     if (typeof global !== 'undefined') {

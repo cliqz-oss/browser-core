@@ -1,0 +1,50 @@
+<div class="card">
+  <div class="card-header">
+    <div class="card-title h5">What is Anolysis</div>
+    <div class="card-subtitle text-gray">
+      A brief introduction into our privacy-preserving collection framework
+      for usage data.
+    </div>
+  </div>
+  <div class="card-body">
+      Anolysis is a new approach for collecting usage data
+      without relying on user profiles. The approach is inspired
+      by the principle of group anonymity; making sure that <code>K</code> users
+      are indistinguishable from each other. Users send sanitized browser
+      attributes in the form of a group identity, and usage data through
+      multiple messages, in a way that this data cannot be pieced together and
+      used as an identifier.
+
+      <br /><br />
+
+      We are able to achieve privacy by design, by representing browser
+      attributes hierarchically in a tree structure and algorithmically creating
+      anonymous groups, hence moving away from the concept of a user identity,
+      and embrace a group identity instead.
+
+      <br /><br />
+
+      So here's what you can take away from this:
+      <ul>
+        <li>
+          You get a group ID, shared with users having similar
+          browser attributes. From that moment on, only groups exist.
+        </li>
+        <li>
+          We guarantee a certain minimum size of a group.
+        </li>
+        <li>
+          Cliqz is never able to link back to you the messages sent from your
+          browser (explicitly or implicitly).
+        </li>
+        <li>
+          Most messages do not even send your group ID.
+        </li>
+      </ul>
+
+  </div>
+  <div class="card-footer">
+    Drop us a line if you have any questions:
+    <a href="mailto:privacy@cliqz.com" target="_top">privacy@cliqz.com</a>
+  </div>
+</div>

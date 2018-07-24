@@ -58,7 +58,6 @@ export default class BEConnector {
 
     // check if we have cache here
     const cacheEntry = this._cache.has(url) ? this._cache.get(url) : null;
-
     if (cacheEntry && !cacheEntry.expired()) {
       logger.debug('we have data cached for ', url);
       // check if was a failed call or not to reject the promise or not and keep

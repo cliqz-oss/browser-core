@@ -1,5 +1,4 @@
 import { equals as urlEquals } from '../../core/url';
-import utils from '../../core/utils';
 
 // There needs to proper implementation, to avoid cases like:
 // 1. Downloading streams.
@@ -11,7 +10,7 @@ export function getRequest(url) {
       cache: 'no-cache',
     });
     const timeout = new Promise((_resolve, _reject) =>
-      utils.setTimeout(_reject, 10000, 'timeout'));
+      setTimeout(_reject, 10000, 'timeout'));
 
     return Promise.race([timeout, request]).then((response) => {
       if (response.status !== 200 && response.status !== 0 /* local files */) {

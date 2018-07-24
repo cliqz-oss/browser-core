@@ -9,7 +9,7 @@ export default class BackgroundImage extends React.Component {
   }
 
   selectBackground() {
-    this.props.onBackgroundImageChanged(this.props.bg);
+    this.props.onBackgroundImageChanged(this.props.bg, this.props.index);
   }
 
   render() {
@@ -36,7 +36,7 @@ export default class BackgroundImage extends React.Component {
 }
 
 BackgroundImage.propTypes = {
-  isActive: PropTypes.boolean,
+  isActive: PropTypes.bool,
   bg: PropTypes.string,
   src: PropTypes.string,
   onBackgroundImageChanged: PropTypes.func,

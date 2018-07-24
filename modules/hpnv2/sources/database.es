@@ -4,7 +4,6 @@ import md5 from '../core/helpers/md5';
 import { fromHex, toHex } from '../core/encoding';
 import { randomInt } from '../core/crypto/random';
 import getDefaultSourcemap from './default-sourcemap';
-import { nextTick } from '../core/decorators';
 
 // TODO: should make this more generic (just key-value), and separate custom logic
 // (consumeFreshCounter...)
@@ -15,7 +14,6 @@ export default class Database {
     this.userPK = null;
     this.sourceMap = getDefaultSourcemap().actions;
     this.lastConfigTime = 0;
-    this.stats = {};
     this.tags = new Map();
   }
 
@@ -23,7 +21,7 @@ export default class Database {
     return this.userPK;
   }
 
-  setUserPK(value) {
+  async setUserPK(value) {
     this.userPK = value;
     return this.db ? this.db.meta.put({ key: 'userPK', value }) : Promise.resolve();
   }
@@ -32,7 +30,7 @@ export default class Database {
     return this.groupPubKeys[date];
   }
 
-  setGroupPubKey(date, { groupPubKey, credentials, gsk, joinmsg }) {
+  async setGroupPubKey(date, { groupPubKey, credentials, gsk, joinmsg }) {
     this.groupPubKeys[date] = {
       groupPubKey,
       credentials,
@@ -43,12 +41,12 @@ export default class Database {
     return this.db ? this.db.meta.put({ key: 'groupPubKeys', value: this.groupPubKeys }) : Promise.resolve();
   }
 
-  setSourceMapAction(action, value) {
+  async setSourceMapAction(action, value) {
     this.sourceMap[action] = value;
     return this.db ? this.db.meta.put({ key: 'sourceMap', value: this.sourceMap }) : Promise.resolve();
   }
 
-  setLastConfigTime(value) {
+  async setLastConfigTime(value) {
     this.lastConfigTime = value;
     return this.db ? this.db.meta.put({ key: 'lastConfigTime', value }) : Promise.resolve();
   }
@@ -57,53 +55,36 @@ export default class Database {
     return this.lastConfigTime;
   }
 
-  getStats() {
-    return this.stats;
-  }
-
-  setStats(value) {
-    this.stats = value;
-    if (!this.isInit) {
-      return Promise.resolve();
-    }
-    return this.db ? this.db.meta.put({ key: 'stats', value }) : Promise.resolve();
-  }
-
-  init() {
+  async init() {
     if (this.isInit) {
-      return Promise.resolve();
+      return;
     }
 
-    return nextTick(() => getDexie())
-      .then((Dexie) => {
-        this.db = new Dexie('hpnv2');
-        this.db.version(1).stores({
-          meta: 'key',
-          tags: 'tag,expireat',
-        });
-        return Promise.all([
-          this.db.meta.get('groupPubKeys'),
-          this.db.meta.get('userPK'),
-          this.db.meta.get('sourceMap'),
-          this.db.meta.get('lastConfigTime'),
-          this.db.meta.get('stats'),
-        ]);
-      })
-      .then(([groupPubKeys, userPK, sourceMap, lastConfigTime, stats]) => {
-        this.groupPubKeys = (groupPubKeys && groupPubKeys.value) || this.groupPubKeys;
-        this.userPK = (userPK && userPK.value) || this.userPK;
-        this.sourceMap = (sourceMap && sourceMap.value) || this.sourceMap;
-        this.lastConfigTime = (lastConfigTime && lastConfigTime.value) || this.lastConfigTime;
-        this.stats = (stats && stats.value) || this.stats;
-        this.isInit = true;
-      })
-      .catch((e) => {
-        // Assuming if there is an error here it's because indexedDB corruption
-        // In that case, fall back to memory only database
-        this.db = null;
-        this.isInit = true;
-        throw e;
+    try {
+      const Dexie = await getDexie();
+      this.db = new Dexie('hpnv2');
+      this.db.version(1).stores({
+        meta: 'key',
+        tags: 'tag,expireat',
       });
+      const [groupPubKeys, userPK, sourceMap, lastConfigTime] = await Promise.all([
+        this.db.meta.get('groupPubKeys'),
+        this.db.meta.get('userPK'),
+        this.db.meta.get('sourceMap'),
+        this.db.meta.get('lastConfigTime'),
+      ]);
+      this.groupPubKeys = (groupPubKeys && groupPubKeys.value) || this.groupPubKeys;
+      this.userPK = (userPK && userPK.value) || this.userPK;
+      this.sourceMap = (sourceMap && sourceMap.value) || this.sourceMap;
+      this.lastConfigTime = (lastConfigTime && lastConfigTime.value) || this.lastConfigTime;
+      this.isInit = true;
+    } catch (e) {
+      // Assuming if there is an error here it's because indexedDB corruption
+      // In that case, fall back to memory only database
+      this.db = null;
+      this.isInit = true;
+      throw e;
+    }
   }
 
   /**
@@ -131,7 +112,7 @@ export default class Database {
    * @param {Number} expireat - timestamp in hours at which the tag can be forgotten
    * @param {Number} limit - How many counters we can return for this tag
    */
-  consumeFreshCounter(tag, expireat, limit) {
+  async consumeFreshCounter(tag, expireat, limit) {
     if (limit <= 0) {
       return Promise.resolve(randomInt());
     }
@@ -156,14 +137,14 @@ export default class Database {
     return this.db.transaction('rw', this.db.tags, doTransaction);
   }
 
-  getTag(tag) {
+  async getTag(tag) {
     if (!this.db) {
       return Promise.resolve(this.tags.get(tag));
     }
     return this.db.tags.get(tag);
   }
 
-  putTag(obj) {
+  async putTag(obj) {
     if (!this.db) {
       this.tags.set(obj.tag, obj);
       return Promise.resolve();
@@ -193,7 +174,7 @@ export default class Database {
     return map[maximum - 1 - n] || 0;
   }
 
-  clearTags() {
+  async clearTags() {
     if (!this.db) {
       this.tags.clear();
       return Promise.resolve();
@@ -205,7 +186,7 @@ export default class Database {
    * Removes public keys older than the specified date
    * @param {String} date - "YYYYMMDD" format
    */
-  purgeOldPubKeys(date) {
+  async purgeOldPubKeys(date) {
     // Lexicographical order preserves time order.
     Object.keys(this.groupPubKeys).forEach((x) => {
       if (x < date) {
@@ -215,7 +196,7 @@ export default class Database {
     return this.db ? this.db.meta.put({ key: 'groupPubKeys', value: this.groupPubKeys }) : Promise.resolve();
   }
 
-  purgeTags(currentHours) {
+  async purgeTags(currentHours) {
     this.tags.forEach((value, key) => {
       if (value.expireat < currentHours) {
         this.tags.delete(key);

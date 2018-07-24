@@ -6,14 +6,14 @@ import HistoryProcessor from './history-processor';
 import HistoryStream from './history-stream';
 import QueryStream from './query-stream';
 import logger from './logger';
-import Defer from '../core/app/defer';
+import Defer from '../core/helpers/defer';
 
 const VERSION_PREF = 'history-analyzer-version';
-const VERSION = 2;
+const VERSION = 3;
 
 
 /**
-  @namespace <namespace>
+  @namespace history-analyzer
   @class Background
  */
 export default background({
@@ -21,7 +21,7 @@ export default background({
   historyStream: null,
   queryStream: null,
 
-  init() {
+  async init() {
     logger.debug('Init history-analyzer');
     this.historyProcessor = new HistoryProcessor();
     this.historyStream = new HistoryStream(this.historyProcessor);
@@ -46,12 +46,23 @@ export default background({
       this.queryStream.init().then(this.queryStreamReady.resolve),
     ]).then(() => this.historyProcessor.init());
 
-    // subscribe to the history listener module if have one
-    this.removePersistedData = () => Promise.resolve()
-      .then(() => logger.log('remove persisted data'))
-      .then(() => this.unloadAll())
-      .then(() => this.destroyAll())
-      .then(() => this.initAll());
+    let ongoingReset = false;
+    this.removePersistedData = async () => {
+      if (ongoingReset) {
+        logger.log('requested reset while resetting, ignoring...');
+        return;
+      }
+      ongoingReset = true;
+      logger.log('remove persisted data');
+      try {
+        await this.unloadAll();
+        await this.destroyAll();
+        await this.initAll();
+      } catch (ex) {
+        logger.error('while resetting history-analyzer', ex);
+      }
+      ongoingReset = false;
+    };
 
     // Check if version of the analyzer changed, and reset storage if needed
     let initPromise = Promise.resolve();
@@ -64,9 +75,13 @@ export default background({
 
     return initPromise.then(() => this.initAll()).then(() => {
       try {
+        // This event is triggered for full history reset, or if individual
+        // entries are removed. We currently reset the history-analyzer for
+        // both, which is sub-optimal (but safe privacy-wise). It would be nice
+        // to find a more efficient way to do this.
         history.onVisitRemoved.addListener(this.removePersistedData);
       } catch (e) {
-        logger.error('Error setting the history remove listener: ', e);
+        logger.error('Error setting the history onVisitRemoved listener: ', e);
       }
     });
   },
@@ -75,10 +90,13 @@ export default background({
     try {
       history.onVisitRemoved.removeListener(this.removePersistedData);
     } catch (e) {
-      logger.error('Error removing the history remove listener', e);
+      logger.error('Error removing the history onVisitRemoved listener', e);
     }
 
     this.unloadAll();
+    this.historyProcessor = null;
+    this.historyStream = null;
+    this.queryStream = null;
   },
 
   beforeBrowserShutdown() {
@@ -102,29 +120,28 @@ export default background({
   },
 
   actions: {
-    query({ after, before, queries, urls }) {
-      let qPromise = Promise.resolve([]);
+    async* query({ after, before, queries, urls }) {
       if (queries !== undefined) {
-        qPromise = this.queryStream.query({
+        // eslint-disable-next-line semi
+        for await (const query of this.queryStream.query({
           after,
           before,
           tokens: queries,
-        });
+        })) {
+          yield query;
+        }
       }
 
-      let hPromise = Promise.resolve([]);
       if (urls !== undefined) {
-        hPromise = this.historyStream.query({
+        // eslint-disable-next-line semi
+        for await (const url of this.historyStream.query({
           after,
           before,
           tokens: urls,
-        });
+        })) {
+          yield url;
+        }
       }
-
-      return Promise.hash({
-        queries: qPromise,
-        urls: hPromise,
-      });
     },
 
     info() {

@@ -1,6 +1,3 @@
 import Logger from '../../core/logger';
 
-export default Logger({
-  level: 'log',
-  prefix: '[GreenAds]',
-});
+export default Logger.get('green-ads', { level: 'log' });

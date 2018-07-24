@@ -1,4 +1,5 @@
 import utils from '../core/utils';
+import config from '../core/config';
 import { shouldShowOnboarding } from '../core/onboarding';
 
 export default class Win {
@@ -6,8 +7,8 @@ export default class Win {
     this.window = settings.window;
 
     if (this.window.gInitialPages
-      && this.window.gInitialPages.indexOf(utils.CLIQZ_ONBOARDING_URL) === -1) {
-      this.window.gInitialPages.push(utils.CLIQZ_ONBOARDING_URL);
+      && this.window.gInitialPages.indexOf(config.settings.ONBOARDING_URL) === -1) {
+      this.window.gInitialPages.push(config.settings.ONBOARDING_URL);
     }
   }
 
@@ -20,7 +21,11 @@ export default class Win {
     // close to browser window initialization
     setTimeout((win) => {
       const oldTab = win.gBrowser.selectedTab;
-      utils.openLink(win, utils.CLIQZ_ONBOARDING_URL, true);
+      if (oldTab.linkedBrowser.currentURI.spec === 'about:welcomeback') {
+        return;
+      }
+
+      utils.openLink(win, config.settings.ONBOARDING_URL, true);
       win.gBrowser.removeTab(oldTab);
 
       // stop button remains active in Firefox 56

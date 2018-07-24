@@ -1,20 +1,18 @@
 /* global chai */
 /* global describeModule */
 
+/* eslint no-param-reassign: off */
+
 const expect = chai.expect;
 const crypto = require('crypto');
 const FSBuilder = require('./utils/fs');
 const _fs = FSBuilder(require('path'));
-
-
 
 export default describeModule('core/incremental-storage',
   () => ({
     'core/utils': {
       default: {
         log: () => {},
-        setTimeout,
-        clearTimeout,
       },
     },
     'core/helpers/md5': {
@@ -47,21 +45,21 @@ export default describeModule('core/incremental-storage',
         }
       }
 
-      var seed = 7;
+      let seed = 7;
       function random(max, min) {
         max = max || 1;
         min = min || 0;
         seed = ((seed * 9301) + 49297) % 233280;
-        var rnd = seed / 233280;
+        const rnd = seed / 233280;
         return min + (rnd * (max - min));
       }
 
       it('IncrementalStorage - simple', function () {
-        var dbname = 'test' + Math.round(Math.random() * 1000000000);
-        var dirName = 'StorageTests';
-        var exactName = false;
-        var immediateSnap = false;
-        var storage = new IncrementalStorage();
+        const dbname = `test${Math.round(Math.random() * 1000000000)}`;
+        const dirName = 'StorageTests';
+        const exactName = false;
+        const immediateSnap = false;
+        let storage = new IncrementalStorage();
 
         return storage.open(dbname, processFunction, dirName, exactName, immediateSnap)
           .then(() => {
@@ -96,11 +94,11 @@ export default describeModule('core/incremental-storage',
       });
 
       it('IncrementalStorage - snapshot', function () {
-        var dbname = 'test' + Math.round(Math.random() * 1000000000);
-        var dirName = 'StorageTests';
-        var exactName = true;
-        var immediateSnap = false;
-        var storage = new IncrementalStorage();
+        const dbname = `test${Math.round(Math.random() * 1000000000)}`;
+        const dirName = 'StorageTests';
+        const exactName = true;
+        const immediateSnap = false;
+        let storage = new IncrementalStorage();
 
         return storage.open(dbname, processFunction, dirName, exactName, immediateSnap)
           .then(() => {
@@ -116,7 +114,7 @@ export default describeModule('core/incremental-storage',
             return new Promise((resolve, reject) => {
               setTimeout(() => {
                 _fs.readFile(storage.getJournalFile(), { isText: true })
-                  .then(s => {
+                  .then((s) => {
                     if (s === '') {
                       resolve();
                     } else {
@@ -139,11 +137,11 @@ export default describeModule('core/incremental-storage',
       });
 
       it('IncrementalStorage - auto snapshot', function () {
-        var dbname = 'test' + Math.round(Math.random() * 1000000000);
-        var dirName = 'StorageTests';
-        var exactName = true;
-        var immediateSnap = true;
-        var storage = new IncrementalStorage();
+        const dbname = `test${Math.round(Math.random() * 1000000000)}`;
+        const dirName = 'StorageTests';
+        const exactName = true;
+        const immediateSnap = true;
+        let storage = new IncrementalStorage();
 
         return storage.open(dbname, processFunction, dirName, exactName, immediateSnap)
           .then(() => {
@@ -158,7 +156,7 @@ export default describeModule('core/incremental-storage',
             return new Promise((resolve, reject) => {
               setTimeout(() => {
                 _fs.readFile(storage.getJournalFile(), { isText: true })
-                  .then(s => {
+                  .then((s) => {
                     if (s === '') {
                       resolve();
                     } else {
@@ -181,20 +179,21 @@ export default describeModule('core/incremental-storage',
       });
 
       it('IncrementalStorage - big test', function () {
-        var dbname = 'test' + Math.round(Math.random() * 1000000000);
-        var dirName = 'StorageTests';
-        var exactName = true;
-        var immediateSnap = false;
-        var storage = new IncrementalStorage();
-        var N = 5000;
-        var operations = ['add', 'subtract', 'multiply', 'divide'];
-        var obj = {};
+        const dbname = `test${Math.round(Math.random() * 1000000000)}`;
+        const dirName = 'StorageTests';
+        const exactName = true;
+        const immediateSnap = false;
+        let storage = new IncrementalStorage();
+        let N = 5000;
+        const operations = ['add', 'subtract', 'multiply', 'divide'];
+        const obj = {};
 
         return storage.open(dbname, processFunction, dirName, exactName, immediateSnap)
           .then(() => {
-            while (N--) {
-              var op = operations[Math.floor(random() * 4)];
-              var event = { type: op, value: Math.floor(1 + (random() * 10)) };
+            while (N !== 1) {
+              N -= 1;
+              const op = operations[Math.floor(random() * 4)];
+              const event = { type: op, value: Math.floor(1 + (random() * 10)) };
               processFunction(event, obj);
               storage.processEvent(event);
               expect(storage.obj.value).to.equal(obj.value);
@@ -216,25 +215,27 @@ export default describeModule('core/incremental-storage',
           })
           .then(() => {
             storage.snapshot();
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
               setTimeout(() => {
                 resolve();
               }, 2000);
             });
           })
-          .then(() => {
-            return _fs.readFile(storage.getJournalFile(), { isText: true })
-              .then(s => {
+          .then(() =>
+            _fs.readFile(storage.getJournalFile(), { isText: true })
+              .then((s) => {
                 if (s !== '') {
                   return Promise.reject('Snapshot not correct: journal not empty');
                 }
-              });
-          })
+                return undefined;
+              })
+          )
           .then(() => {
             N = 5000;
-            while (N--) {
-              var op = operations[Math.floor(random() * 4)];
-              var event = { type: op, value: Math.floor(1 + (random() * 10)) };
+            while (N !== 1) {
+              N -= 1;
+              const op = operations[Math.floor(random() * 4)];
+              const event = { type: op, value: Math.floor(1 + (random() * 10)) };
               processFunction(event, obj);
               storage.processEvent(event);
               expect(storage.obj.value).to.equal(obj.value);

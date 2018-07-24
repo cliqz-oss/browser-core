@@ -241,7 +241,7 @@ describe('Fresh tab most visited UI', function () {
           });
 
           it('with existing and correct links', function () {
-            const linkSelector = '#section-most-visited .dial a';
+            const linkSelector = '#section-most-visited a.dial';
             const $links = subject.queryAll(linkSelector);
 
             expect($links.length).to.be.above(0);

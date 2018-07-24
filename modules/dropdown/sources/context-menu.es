@@ -6,6 +6,7 @@ import { getTabsWithUrl, closeTab } from '../core/tabs';
 import { dropdownContextMenuSignal } from './telemetry';
 import config from '../core/config';
 import { copyToClipboard } from '../core/clipboard';
+import { getMessage } from '../core/i18n';
 
 function reportClick(window, result) {
   events.pub('ui:click-on-url', {
@@ -24,11 +25,14 @@ function reportClick(window, result) {
 export default class ContextMenu {
   constructor(window, rootElement) {
     this.core = inject.module('core');
-    this.ui = inject.module('ui');
     this.window = window;
     this.rootElement = rootElement;
     this.inPrivateMode = utils.isPrivateMode(window);
-    this.labels = this.getLocalizedStrings();
+    this.labels = this.getLabels();
+  }
+
+  openPopup(contextMenu, ev, x, y) {
+    contextMenu.openPopupAtScreen(x, y, false);
   }
 
   /**
@@ -37,24 +41,24 @@ export default class ContextMenu {
    */
   show(result, { x, y }) {
     const contextMenu = this.createMenu(result);
-    utils.openPopup(contextMenu, {}, x, y);
+    this.openPopup(contextMenu, {}, x, y);
     dropdownContextMenuSignal({ action: 'open' });
   }
 
-  getLocalizedStrings() {
+  getLabels() {
     return {
-      NEW_TAB: utils.getLocalizedString('cMenuOpenInNewTab'),
-      NEW_PRIVATE_TAB: utils.getLocalizedString('cMenuOpenInNewPrivateTab', utils.getLocalizedString('private')),
-      NEW_FORGET_TAB: utils.getLocalizedString('cMenuOpenInNewPrivateTab', utils.getLocalizedString('forget')),
-      NEW_WINDOW: utils.getLocalizedString('cMenuOpenInNewWindow'),
-      NEW_PRIVATE_WINDOW: utils.getLocalizedString('cMenuOpenInPrivateWindow', utils.getLocalizedString('private')),
-      NEW_FORGET_WINDOW: utils.getLocalizedString('cMenuOpenInPrivateWindow', utils.getLocalizedString('forget')),
-      COPY_URL: utils.getLocalizedString('cMenuCopyLinkLocation'),
-      REMOVE_FROM_HISTORY: utils.getLocalizedString('cMenuRemoveFromHistory'),
-      REMOVE_FROM_HISTORY_BOOKMARKS_AND_CLOSE: utils.getLocalizedString('cMenuRemoveFromHistoryAndBookmarksAndCloseTab'),
-      REMOVE_FROM_HISTORY_AND_BOOKMARKS: utils.getLocalizedString('cMenuRemoveFromBookmarksAndHistory'),
-      REMOVE_FROM_HISTORY_AND_CLOSE: utils.getLocalizedString('cMenuRemoveFromHistoryAndCloseTab'),
-      FEEDBACK: utils.getLocalizedString('cMenuFeedback'),
+      NEW_TAB: getMessage('cMenuOpenInNewTab'),
+      NEW_PRIVATE_TAB: getMessage('cMenuOpenInNewPrivateTab', getMessage('private')),
+      NEW_FORGET_TAB: getMessage('cMenuOpenInNewPrivateTab', getMessage('forget')),
+      NEW_WINDOW: getMessage('cMenuOpenInNewWindow'),
+      NEW_PRIVATE_WINDOW: getMessage('cMenuOpenInPrivateWindow', getMessage('private')),
+      NEW_FORGET_WINDOW: getMessage('cMenuOpenInPrivateWindow', getMessage('forget')),
+      COPY_URL: getMessage('cMenuCopyLinkLocation'),
+      REMOVE_FROM_HISTORY: getMessage('cMenuRemoveFromHistory'),
+      REMOVE_FROM_HISTORY_BOOKMARKS_AND_CLOSE: getMessage('cMenuRemoveFromHistoryAndBookmarksAndCloseTab'),
+      REMOVE_FROM_HISTORY_AND_BOOKMARKS: getMessage('cMenuRemoveFromBookmarksAndHistory'),
+      REMOVE_FROM_HISTORY_AND_CLOSE: getMessage('cMenuRemoveFromHistoryAndCloseTab'),
+      FEEDBACK: getMessage('cMenuFeedback'),
     };
   }
 
@@ -124,6 +128,8 @@ export default class ContextMenu {
     this.rootElement.appendChild(contextMenu);
     contextMenu.setAttribute('id', 'dropdownContextMenu');
 
+    contextMenu.addEventListener('popuphiding', this.onPopupHiding, false);
+
     this.createMenuItems(result).forEach((item) => {
       const menuItem = doc.createElement('menuitem');
       menuItem.setAttribute('label', item.label);
@@ -131,13 +137,18 @@ export default class ContextMenu {
       menuItem.addEventListener('mouseup', e => e.stopPropagation(), false);
       contextMenu.appendChild(menuItem);
     });
+    this.contextMenu = contextMenu;
 
     return contextMenu;
   }
 
+  onPopupHiding = () => {
+    this.contextMenu.removeEventListener('popuphiding', this.onPopupHiding);
+    this.rootElement.removeChild(this.contextMenu);
+  }
+
   _open(url, result, signalName, { isNewTab, isNewWindow, isPrivateWindow }) {
     utils.openLink(this.window, url, isNewTab, isNewWindow, isPrivateWindow);
-    this.ui.windowAction(this.window, 'setUrlbarValue', url);
     this.telemetry(signalName);
     reportClick(this.window, result);
   }
@@ -165,7 +176,7 @@ export default class ContextMenu {
   }
 
   openFeedback(kind) {
-    utils.openLink(this.window, `${utils.FEEDBACK}?kind=${kind}`, true);
+    utils.openLink(this.window, `${config.settings.FEEDBACK}?kind=${kind}`, true);
     this.telemetry('open_feedback');
   }
 

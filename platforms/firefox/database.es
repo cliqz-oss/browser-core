@@ -1,4 +1,3 @@
-import environment from './environment';
 import console from './console';
 import getWindowAPIAsync from './window-api';
 import { Services } from '../platform/globals';
@@ -23,8 +22,8 @@ const global = {
   atob, // global anyway, exporting to be sure
   escape, // global anyway, exporting to be sure
   XMLHttpRequest,
-  clearTimeout: environment.clearTimeout,
-  setTimeout: environment.setTimeout,
+  clearTimeout,
+  setTimeout,
   console: {
     log: console.log.bind(console),
     error: console.error.bind(console),

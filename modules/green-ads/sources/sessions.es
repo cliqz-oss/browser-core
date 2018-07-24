@@ -1,4 +1,4 @@
-import utils from '../core/utils';
+import prefs from '../core/prefs';
 import History from '../platform/history/history';
 import Anacron from '../core/anacron';
 import moment from '../platform/lib/moment';
@@ -71,7 +71,7 @@ export default class SiteRetention {
   constructor(domainList, greenMode, sendTelemetry) {
     this.domains = new Set(domainList);
     this.anacron = new Anacron(
-      { get: utils.getPref, set: utils.setPref }, // storage
+      { get: prefs.get, set: prefs.set }, // storage
       { name: 'greenads.anacron' }, // options
     );
     this.greenMode = greenMode;
@@ -81,7 +81,7 @@ export default class SiteRetention {
   init() {
     this.anacron.schedule(this.measureRetention.bind(this), '1 0 * * *'); // everyday at midnight
     this.anacron.start();
-    if (!utils.hasPref(MODE_SINCE_PREF)) {
+    if (!prefs.has(MODE_SINCE_PREF)) {
       this.toggleState();
     }
   }
@@ -91,13 +91,13 @@ export default class SiteRetention {
   }
 
   toggleState(greenMode) {
-    utils.setPref(MODE_SINCE_PREF, Date.now().toString());
+    prefs.set(MODE_SINCE_PREF, Date.now().toString());
     this.greenMode = greenMode;
   }
 
   measureRetention(date) {
     // timestamps in millis
-    const greenSince = parseInt(utils.getPref(MODE_SINCE_PREF, 0), 10) * 1000;
+    const greenSince = parseInt(prefs.get(MODE_SINCE_PREF, 0), 10) * 1000;
 
     const dayToMeasure = moment(date).subtract(1, 'day').startOf('day').valueOf();
     const from = Math.max(dayToMeasure * 1000, greenSince);

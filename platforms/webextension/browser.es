@@ -1,5 +1,8 @@
 import { window, chrome } from './globals';
 
+export * from './tabs';
+export * from './windows';
+
 export class Window {
   constructor(win) {
     this.window = win;
@@ -10,8 +13,16 @@ export class Window {
   }
 }
 
-export function mapWindows() {
-  return [window];
+export function mapWindows(fn) {
+  return [window].map((win) => {
+    let ret;
+    try {
+      ret = fn(win);
+    } catch (e) {
+      //
+    }
+    return ret;
+  });
 }
 
 
@@ -49,7 +60,7 @@ export function removeSessionRestoreObserver() {}
 export function addMigrationObserver() {}
 export function removeMigrationObserver() {}
 export function forEachWindow(cb) {
-  mapWindows().forEach(cb);
+  mapWindows(w => w).forEach(cb);
 }
 export function mustLoadWindow() {
   return true;
@@ -58,37 +69,6 @@ export function mustLoadWindow() {
 export function waitWindowReady() {
   return Promise.resolve();
 }
-
-export function newTab(url, active = false) {
-  return new Promise((resolve) => {
-    chrome.tabs.create(
-      { url, active },
-      (tab) => { resolve(tab.id); },
-    );
-  });
-}
-
-
-export function closeTab(tabId) {
-  return new Promise((resolve) => {
-    chrome.tabs.onRemoved.addListener(function onTabRemoved(id) {
-      if (id === tabId) {
-        resolve();
-        chrome.tabs.onRemoved.removeListener(onTabRemoved);
-      }
-    });
-    // QUESTION: somehow callback to tabs.remove fire too fast so we use onRemove listener
-    chrome.tabs.remove(Number(tabId));
-  });
-}
-
-
-export function updateTab(tabId, url) {
-  return new Promise((resolve) => {
-    chrome.tabs.update(Number(tabId), { url }, resolve);
-  });
-}
-
 
 export function getUrlForTab(tabId) {
   return new Promise((resolve) => {
@@ -120,21 +100,6 @@ export function getActiveTab() {
 }
 
 
-export function checkIsWindowActive(tabId) {
-  if (Number(tabId) < 0) return Promise.resolve(false);
-
-  return new Promise((resolve) => {
-    chrome.tabs.get(Number(tabId), () => {
-      if (chrome.runtime.lastError) {
-        resolve(false);
-      } else {
-        resolve(true);
-      }
-    });
-  });
-}
-
-
 export function getCookies(url) {
   return new Promise((resolve) => {
     chrome.cookies.getAll(
@@ -149,3 +114,5 @@ export function reportError() {}
 export function disableChangeEvents() {}
 
 export function resetOriginalPrefs() {}
+
+export function getThemeStyle() {}

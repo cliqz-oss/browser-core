@@ -4,98 +4,15 @@
 
 import AppWindow from '../core/base/window';
 import utils from '../core/utils';
+import prefs from '../core/prefs';
 import CliqzEvents from '../core/events';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
-import console from '../core/console';
 import inject from '../core/kord/inject';
 import urlbarEventHandlers from './urlbar-events';
 import attachGoButton from './go-button';
+import { getMessage } from '../core/i18n';
 
 const ACproviderName = 'cliqz-results';
-
-/* eslint-disable */
-function autocompleteTerm(urlbar, pattern, loose) {
-  var MAX_AUTOCOMPLETE_LENGTH = 80; // max length of autocomplete portion
-
-  function matchQuery(queries) {
-    var query = '';
-    for (var key in queries) {
-      var q = queries[key].toLowerCase();
-      if (q.indexOf(input) === 0 && q.length > query.length) {
-        query = q;
-      }
-    }
-    return query;
-  }
-  if (urlbar == 'www.' || urlbar == 'http://' || urlbar.substr(urlbar.indexOf('://') + 3) == 'www.' || urlbar === '')
-    return {};
-
-  var url = utils.simplifyUrl(pattern.url);
-  url = utils.generalizeUrl(url, true);
-  var input = utils.generalizeUrl(urlbar);
-  if (urlbar[urlbar.length - 1] == '/') input += '/';
-
-  var autocomplete = false,
-    highlight = false,
-    selectionStart = 0,
-    urlbarCompleted = '';
-  var queryMatch = matchQuery(pattern.query);
-
-  // Url
-  if (url.indexOf(input) === 0 && url != input &&
-    (url.length - input.length) <= MAX_AUTOCOMPLETE_LENGTH) {
-    autocomplete = true;
-    highlight = true;
-    urlbarCompleted = urlbar + url.substring(url.indexOf(input) + input.length);
-  }
-
-  if (autocomplete) {
-    selectionStart = urlbar.toLowerCase().lastIndexOf(input) + input.length;
-  }
-
-  // Adjust url to user protocol
-  if (urlbar.indexOf('://') != -1) {
-    var prot_user = urlbar.substr(0, urlbar.indexOf('://') + 3);
-    var prot_auto = pattern.url.substr(0, pattern.url.indexOf('://') + 3);
-    pattern.url = pattern.url.replace(prot_auto, prot_user);
-  }
-
-  return {
-    url: url,
-    full_url: pattern.url,
-    autocomplete: autocomplete,
-    urlbar: urlbarCompleted,
-    selectionStart: selectionStart,
-    highlight: highlight
-  };
-};
-/* eslint-enable */
-
-function setPopupWidth(popup, urlBar) {
-  const width = urlBar.getBoundingClientRect().width;
-  popup.setAttribute('width', width > 500 ? width : 500);
-}
-
-function initPopup(popup, urlbar, win) {
-  // patch this method to avoid any caching FF might do for components.xml
-  popup._appendCurrentResult = () => { };
-
-  popup._openAutocompletePopup = function (aInput) {
-    this.mInput = aInput;
-    this._invalidate();
-
-    const attachToElement = win.document.querySelector('#nav-bar');
-
-    popup.setAttribute('height', 0);
-    popup.setAttribute('width', 0);
-
-    this.openPopup(attachToElement, 'after_start', 0, 0, false, true);
-  }.bind(popup);
-
-  // set initial width of the popup equal with the width of the urlbar
-  setPopupWidth(popup, urlbar);
-}
-
 const STYLESHEET_URL = 'chrome://cliqz/content/static/styles/styles.css';
 
 /**
@@ -142,10 +59,6 @@ export default class UIWindow extends AppWindow {
         this.urlbar.mInputField.focus();
       }
     },
-
-    syncUrlbarValue: () => {
-      this.urlbar.value = this.urlbar.mInputField.value;
-    },
   };
 
   /**
@@ -154,8 +67,6 @@ export default class UIWindow extends AppWindow {
   */
   constructor(settings) {
     super(settings);
-
-    this.dropdown = inject.module('dropdown');
     this.elems = [];
     this.settings = settings.settings;
     this.urlbar = this.window.gURLBar;
@@ -174,9 +85,7 @@ export default class UIWindow extends AppWindow {
     super.init();
 
     // do not initialize the UI if locationbar is invisible in this window
-    if (!this.window.locationbar.visible) return Promise.resolve();
-
-    console.log('UI window init');
+    if (!this.window.locationbar.visible) return;
 
     // create a new panel for cliqz to avoid inconsistencies at FF startup
     const document = this.window.document;
@@ -186,132 +95,45 @@ export default class UIWindow extends AppWindow {
     this._autocompletesearch = this.urlbar.getAttribute('autocompletesearch');
     this.urlbar.setAttribute('autocompletesearch', ACproviderName);
 
-    return this.dropdown.windowAction(this.window, 'init')
-      .then(() => {
-        this.window.CLIQZ.Core.urlbar = this.urlbar;
-        this.window.CLIQZ.settings = this.settings;
+    this.window.CLIQZ.Core.urlbar = this.urlbar;
 
-        this.window.CLIQZ.UI.autocompleteQuery = this.autocompleteQuery.bind(this);
+    this.urlbar.setAttribute('pastetimeout', 0);
 
-        this.urlbar.setAttribute('pastetimeout', 0);
+    const popup = document.createElementNS('http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul', 'panel');
+    this.popup = popup;
+    // mock default FF function
+    this.popup.enableOneOffSearches = function () {};
+    this.popup.closePopup = function () {};
+    this.popup.oneOffSearchButtons = {
+      maybeRecordTelemetry() { return false; }
+    };
+    this.popup.openAutocompletePopup = function () {};
+    this.window.CLIQZ.Core.popup = this.popup;
+    popup.setAttribute('id', 'PopupAutoCompleteRichResultCliqz');
+    this.elems.push(popup);
+    document.getElementById('PopupAutoCompleteRichResult').parentElement.appendChild(popup);
 
-        const popup = document.createElementNS('http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul', 'panel');
-        this.popup = popup;
-        this.popup.oneOffSearchButtons = {
-          maybeRecordTelemetry() { return false; }
-        };
-        this.window.CLIQZ.Core.popup = this.popup;
-        popup.setAttribute('type', 'autocomplete-richlistbox');
-        popup.setAttribute('noautofocus', 'true');
-        popup.setAttribute('id', 'PopupAutoCompleteRichResultCliqz');
-        this.elems.push(popup);
-        document.getElementById('PopupAutoCompleteRichResult').parentElement.appendChild(popup);
-        initPopup(this.popup, this.urlbar, this.window);
+    this._autocompletepopup = this.urlbar.getAttribute('autocompletepopup');
+    this.urlbar.setAttribute('autocompletepopup', 'PopupAutoCompleteRichResultCliqz');
 
-        this.window.CLIQZ.UI.showDebug = utils.getPref('showQueryDebug', false);
+    Object.keys(this.urlbarEventHandlers).forEach((ev) => {
+      this.urlbar.addEventListener(ev, this.urlbarEventHandlers[ev]);
+    });
 
-        this._autocompletepopup = this.urlbar.getAttribute('autocompletepopup');
-        this.urlbar.setAttribute('autocompletepopup', 'PopupAutoCompleteRichResultCliqz');
+    // make CMD/CTRL + K equal with CMD/CTRL + L
+    this.searchShortcutElements = this.window.document.getElementById('mainKeyset').querySelectorAll('#key_search, #key_search2');
+    [].forEach.call(this.searchShortcutElements, (item) => {
+      item.setAttribute('original_command', item.getAttribute('command'));
+      item.setAttribute('command', 'Browser:OpenLocation');
+    });
 
-        Object.keys(this.urlbarEventHandlers).forEach(function (ev) {
-          this.urlbar.addEventListener(ev, this.urlbarEventHandlers[ev]);
-        }.bind(this));
+    // Add search history dropdown
+    this.reloadUrlbar();
+    this.initialized = true;
 
-        // mock default FF function
-        this.popup.enableOneOffSearches = function () {};
+    this.goButton = attachGoButton(this.window);
 
-        // make CMD/CTRL + K equal with CMD/CTRL + L
-        this.searchShortcutElements = this.window.document.getElementById('mainKeyset').querySelectorAll('#key_search, #key_search2');
-        [].forEach.call(this.searchShortcutElements, (item) => {
-          item.setAttribute('original_command', item.getAttribute('command'));
-          item.setAttribute('command', 'Browser:OpenLocation');
-        });
-
-      // Add search history dropdown
-      }).then(() => {
-        this.reloadUrlbar();
-        this.initialized = true;
-
-        this.goButton = attachGoButton(this.window);
-
-        this.applyAdditionalThemeStyles();
-      });
-  }
-
-  autocompleteQuery(firstResult, firstTitle) {
-    const results = [];
-    const urlBar = this.window.gURLBar;
-    firstResult = utils.cleanMozillaActions(firstResult)[1];
-
-    if (urlBar.selectionStart !== urlBar.selectionEnd) {
-      // TODO: temp fix for flickering,
-      // need to make it compatible with auto suggestion
-      urlBar.mInputField.value =
-        urlBar.mInputField.value.slice(0, urlBar.selectionStart) +
-        urlBar.mInputField.value.slice(urlBar.selectionEnd);
-    }
-
-    // try to update misspelings like ',' or '-'
-    if (urlBar.selectionStart === urlBar.value.length) {
-      if (this.cleanUrlBarValue(urlBar.value).toLowerCase() !== urlBar.value.toLowerCase()) {
-        urlBar.mInputField.value = this.cleanUrlBarValue(urlBar.value).toLowerCase();
-      }
-    }
-
-    // Use first entry if there are no patterns
-    if (
-      results.length === 0 ||
-      utils.generalizeUrl(firstResult) !== utils.generalizeUrl(results[0].url)
-    ) {
-      const newResult = {};
-      newResult.url = firstResult;
-      newResult.title = firstTitle;
-      newResult.query = [];
-      results.unshift(newResult);
-    }
-    // FIXME: we get [[]] here for dropdown module
-    if (!utils.isUrl(results[0].url)) return false;
-
-    const historyClusterAutocomplete = autocompleteTerm(urlBar.mInputField.value, results[0], true);
-
-    // No autocomplete
-    if (
-      !historyClusterAutocomplete.autocomplete ||
-      !utils.getPref('browser.urlbar.autoFill', false, '') // user has disabled autocomplete
-    ) {
-      return false;
-    }
-
-    urlBar.mInputField.value = historyClusterAutocomplete.urlbar;
-
-    urlBar.setSelectionRange(
-      historyClusterAutocomplete.selectionStart,
-      urlBar.mInputField.value.length
-    );
-
-    return true;
-  }
-
-  cleanUrlBarValue(value = '') {
-    const val = value || '';
-    const cleanParts = utils.cleanUrlProtocol(val, false).split('/');
-    const host = cleanParts[0];
-    let pathLength = 0;
-    const SYMBOLS = /,|\./g;
-    // any string, which starts with 'www' and then has any number of group:
-    // '.' or ',' and at least one symbol [a-zA-Z0-9_]
-    const hostTemplate = /^www((\.|,)\w[\w-]*)+$/;
-
-    if (cleanParts.length > 1) {
-      pathLength = (`/${cleanParts.slice(1).join('/')}`).length;
-    }
-
-    if (hostTemplate.test(host)) {
-      // replace only issues in the host name, not ever in the path
-      return val.substr(0, val.length - pathLength).replace(SYMBOLS, '.') +
-        (pathLength ? val.substr(-pathLength) : '');
-    }
-    return val;
+    this.applyAdditionalThemeStyles();
   }
 
   /**
@@ -322,7 +144,6 @@ export default class UIWindow extends AppWindow {
     const el = this.urlbar;
     const oldVal = el.value;
     const hadFocus = el.focused;
-    const popup = this.window.gURLBar.popup;
 
     const onFocus = () => {
       el.removeEventListener('focus', onFocus);
@@ -331,13 +152,8 @@ export default class UIWindow extends AppWindow {
         return;
       }
 
-      // close the old popup if it is open
-      popup.closePopup();
-
-      this.window.CLIQZ.Core.popup = this.popup;
-
       // redo search query
-      if (oldVal) {
+      if (oldVal && !prefs.get('firefox-tests.started', false)) {
         inject.module('core').action('queryCliqz', oldVal);
       }
     };
@@ -349,7 +165,7 @@ export default class UIWindow extends AppWindow {
 
       if (hadFocus) {
         el.addEventListener('focus', onFocus);
-        el.focus();
+        inject.module('search').isWindowReady(this.window).then(() => el.focus());
       }
     }
   }
@@ -363,7 +179,7 @@ export default class UIWindow extends AppWindow {
     urlbar.style.margin = '0px 0px';
 
     if (this.settings.id !== 'funnelcake@cliqz.com' && this.settings.id !== 'description_test@cliqz.com') {
-      urlbar.mInputField.placeholder = utils.getLocalizedString('freshtab_urlbar_placeholder');
+      urlbar.mInputField.placeholder = getMessage('freshtab_urlbar_placeholder');
     }
   }
 
@@ -393,17 +209,6 @@ export default class UIWindow extends AppWindow {
     removeStylesheet(this.window.document, STYLESHEET_URL);
 
     this.urlbar.setAttribute('autocompletesearch', this._autocompletesearch);
-
-    if (this.popupHideEvent) {
-      this.popupHideEvent.unsubscribe();
-      this.popupHideEvent = undefined;
-    }
-
-    if (this.clickOnUrlEvent) {
-      this.clickOnUrlEvent.unsubscribe();
-      this.clickOnUrlEvent = undefined;
-    }
-
     this.urlbar.setAttribute('autocompletepopup', this._autocompletepopup);
 
     Object.keys(this.urlbarEventHandlers).forEach(function (ev) {

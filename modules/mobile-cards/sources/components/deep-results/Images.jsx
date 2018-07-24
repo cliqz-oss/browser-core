@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default class extends React.Component {
+export default class Images extends React.Component {
   displayImage(data, index, { length }) {
     const width = getCardWidth() / MAX_IMAGE_COUNT;
     const resizeMode = length > 1 ? 'cover' : 'contain';

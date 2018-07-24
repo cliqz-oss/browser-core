@@ -1,0 +1,25 @@
+<div class="card">
+  <div class="card-header">
+    <div class="card-title h5">Browser Attributes</div>
+    <div class="card-subtitle text-gray">
+      We care about usage data exclusively to improve the product, and as
+      such, only browser attributes that indicate the product, cohort, platform
+      and distribution are important. Personal data is none of our business.
+    </div>
+  </div>
+  <div class="card-body">
+    {{#each this}}
+        <li class="dem-factor-item">
+            <span class="dem-factor-name">{{@key}}</span>
+            <code>{{this}}</code>
+        </li>
+    {{/each}}
+  </div>
+  <div class="card-footer">
+      Sometimes it happens that the combination of the browser attributes,
+      is not shared by many users, which is why <code>Anolysis</code>
+      will safely generalize these attributes until they
+      are shared by a critical number of users. More on this in <a href="#group-id">
+      Group Identity.</a>
+  </div>
+</div>

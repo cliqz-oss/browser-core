@@ -9,7 +9,7 @@ import { elementTopMargin, elementSideMargins } from '../../styles/CardStyle';
 // trigger with query: beef jerky chefkoch
 // make sure results are set to germany
 
-export default class extends React.Component {
+export default class Recipe extends React.Component {
 
   displayInstruction(text, index) {
     return (

@@ -35,7 +35,7 @@ export default class BaseResult {
   }
 
   get kind() {
-    return this.rawResult.data.kind || [''];
+    return this.rawResult.data.kind || this.rawResult.kind || [''];
   }
 
   get title() {
@@ -192,6 +192,17 @@ export default class BaseResult {
   serialize() {
     const topResult = this.resultTools.results.find(this.url);
     const safeResult = JSON.parse(JSON.stringify(this.rawResult));
+
+    // only consider sub results that are whitelisted by having a `type`
+    const isSubResult = this !== topResult && this.type;
+    const subResult = isSubResult ? {
+      type: this.type,
+      // relative index: index amongst other sub results of same type
+      index: topResult.selectableResults
+        .filter(({ type }) => type === this.type)
+        .findIndex(({ url }) => equals(url, this.url)),
+    } : {};
+
     return {
       ...safeResult,
       kind: this.kind,
@@ -200,10 +211,11 @@ export default class BaseResult {
       isBookmark: this.isBookmark,
       isDeletable: this.isDeletable,
       historyUrl: this.historyUrl,
+      subResult,
     };
   }
 
-  click(href, ev) {
+  click(href, ev, meta = {}) {
     if (this.isUrlMatch(href)) {
       const newTab = ev.altKey || ev.metaKey || ev.ctrlKey || ev.button === 1;
 
@@ -216,6 +228,7 @@ export default class BaseResult {
           type: ev.type,
           button: ev.button,
         },
+        meta,
       });
     } else {
       this.findResultByUrl(href).click(href, ev);

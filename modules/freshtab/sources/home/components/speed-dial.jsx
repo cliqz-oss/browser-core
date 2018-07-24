@@ -1,32 +1,51 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Logo from './logo';
+import EditSpeedDial from './edit-speed-dial';
 
-function SpeedDial(props) {
-  return (
-    <div className="dial" title={props.dial.url}>
+class SpeedDial extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      dial: this.props.dial,
+    };
+  }
+  updateDial = (dial) => {
+    this.setState({ dial });
+  }
+
+  render() {
+    return (
       <a
-        href={props.dial.url}
+        className="dial"
+        title={this.state.dial.url}
+        href={this.state.dial.url}
         onClick={() => {
-          props.visitSpeedDial();
+          this.props.visitSpeedDial();
         }}
       >
-        <Logo logo={props.dial.logo} />
-        <button
-          className="delete"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            props.removeSpeedDial(props.dial);
-          }
-          }
-        >
-          X
-        </button>
-        <div className="title">{props.dial.displayTitle}</div>
+        <Logo logo={this.state.dial.logo} />
+        {this.state.dial.custom ?
+          <EditSpeedDial
+            dial={this.state.dial}
+            isCustom={this.state.dial.isCustom}
+            removeDial={this.props.removeSpeedDial}
+            updateDial={this.updateDial}
+          /> :
+          <button
+            className="delete"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              this.props.removeSpeedDial();
+            }
+            }
+          >X</button>
+        }
+        <div className="title">{ this.state.dial.displayTitle}</div>
       </a>
-    </div>
-  );
+    );
+  }
 }
 
 SpeedDial.propTypes = {
@@ -34,8 +53,9 @@ SpeedDial.propTypes = {
     logo: {},
     url: PropTypes.string,
     displayTitle: PropTypes.string,
+    isCustom: PropTypes.bool,
+    updateMethod: PropTypes.func,
   }),
-  removeSpeedDial: PropTypes.func,
 };
 
 export default SpeedDial;

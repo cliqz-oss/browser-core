@@ -34,8 +34,8 @@ export default class Switch extends React.Component {
             tabIndex="-1"
           />
           <div>
-            <span><g className="icon icon-toolbar grid-view" /></span>
-            <span><g className="icon icon-toolbar ticket-view" /></span>
+            <span><span className="icon icon-toolbar grid-view" /></span>
+            <span><span className="icon icon-toolbar ticket-view" /></span>
             <div />
           </div>
         </label>

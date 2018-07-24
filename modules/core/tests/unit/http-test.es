@@ -1,4 +1,4 @@
-/* global chai, describeModule, testServer */
+/* global describeModule */
 
 // TODO
 

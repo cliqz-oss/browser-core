@@ -1,0 +1,25 @@
+<div class="card">
+  <div class="card-header">
+    <div class="card-title h5">{{metric}}</div>
+    <div class="card-subtitle text-gray">These signals have been generated today</div>
+  </div>
+  <div class="card-body">
+    {{#each signals}}
+    <li class="dem-factor-item">
+      <details class="accordion">
+        <summary class="accordion-header">
+          <div class="text-ellipsis">
+            <i class="icon icon-arrow-right mr-1 text-gray"></i>
+            <code>[{{this.count}}]:</code>
+            <code class="no-background">{{this.prefix}}</code>
+        </div>
+        </summary>
+        <div class="accordion-body">
+          <!-- Accordions content -->
+          <pre class="code" data-lang="metric data">{{this.signal}}</pre>
+        </div>
+      </details>
+    </li>
+    {{/each}}
+  </div>
+</div>

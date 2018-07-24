@@ -52,36 +52,6 @@ try {
   const currentURL = () => window.location.href;
   const url = currentURL();
 
-  let onMessage = function (ev) {
-    let href = ev.target.location.href;
-
-    let message = {};
-
-    try {
-      message = JSON.parse(ev.data);
-    } catch (e) {
-      // non Cliqz or invalid message should be ignored
-    }
-
-    if (!whitelist.some(function (url) { return href.indexOf(url) === 0; }) ) {
-      return;
-    }
-
-    if (message.target !== 'cliqz') {
-      return;
-    }
-
-    if (message.type === 'response') {
-      return;
-    }
-
-    chrome.runtime.sendMessage({
-      source: CHROME_MSG_SOURCE,
-      origin: 'content',
-      payload: message
-    });
-  };
-
   function onCallback(msg) {
     if (isDead()) {
       return;
@@ -110,6 +80,15 @@ try {
     },
     getHTML: function () {
       return window.document.documentElement.outerHTML;
+    },
+    click: function (selector) {
+      const el = window.document.querySelector(selector);
+      try {
+        el.click();
+        return true;
+      } catch (e) {
+        return false;
+      }
     },
     queryHTML: function (selector, attribute) {
       let attributes = attribute.split(',');
@@ -265,46 +244,34 @@ try {
     // don't analyse language for (i)frames
     let isTopWindow = !event.target.defaultView.frameElement;
 
-    if (isTopWindow && lang) {
-      chrome.runtime.sendMessage({
-        source: CHROME_MSG_SOURCE,
-        payload: {
-          module: 'core',
-          action: 'recordLang',
-          args: [
-            currentURL(),
-            lang
-          ]
-        }
-      });
+    if (!isTopWindow) {
+      return;
     }
 
-    // ReportMeta
-    let title = window.document.querySelector('title'),
-        description = window.document.querySelector('meta[name=description]'),
-        ogTitle = window.document.querySelector('meta[property="og:title"]'),
-        ogDescription = window.document.querySelector('meta[property="og:description"]'),
-        ogImage = window.document.querySelector('meta[property="og:image"]');
+    const title = window.document.querySelector('title');
+    const description = window.document.querySelector('meta[name=description]');
+    const ogTitle = window.document.querySelector('meta[property="og:title"]');
+    const ogDescription = window.document.querySelector('meta[property="og:description"]');
+    const ogImage = window.document.querySelector('meta[property="og:image"]');
 
-    if (isTopWindow) {
-      chrome.runtime.sendMessage({
-        source: CHROME_MSG_SOURCE,
-        payload: {
-          module: 'core',
-          action: 'recordMeta',
-          args: [
-            currentURL(),
-            {
-              title: title && title.innerHTML,
-              description: description && description.content,
-              ogTitle: ogTitle && ogTitle.content,
-              ogDescription: ogDescription && ogDescription.content,
-              ogImage: ogImage && ogImage.content
-            }
-          ]
-        }
-      });
-    }
+    chrome.runtime.sendMessage({
+      source: CHROME_MSG_SOURCE,
+      payload: {
+        module: 'core',
+        action: 'recordMeta',
+        args: [
+          currentURL(),
+          {
+            title: title && title.innerHTML,
+            description: description && description.content,
+            ogTitle: ogTitle && ogTitle.content,
+            ogDescription: ogDescription && ogDescription.content,
+            ogImage: ogImage && ogImage.content,
+            lang,
+          },
+        ]
+      }
+    });
   };
 
   function onBackgroundMessage(message) {
@@ -320,8 +287,6 @@ try {
       onCore(message);
     }
   }
-
-  window.addEventListener('message', onMessage);
 
   const onKeyPress = throttle(window, proxyWindowEvent('recordKeyPress'), 250);
   const onMouseMove = throttle(window, proxyWindowEvent('recordMouseMove'), 250);
@@ -351,7 +316,6 @@ try {
     }
 
     chrome.runtime.onMessage.removeListener(onBackgroundMessage);
-    window.removeEventListener('message', onMessage);
     window.removeEventListener('keypress', onKeyPress);
     window.removeEventListener('mousemove', onMouseMove);
     window.removeEventListener('mousedown', onMouseDown);

@@ -5,10 +5,6 @@ if (typeof fetch === 'undefined') {
   Components.utils.importGlobalProperties(['fetch']);
 }
 
-export function fetchFactory() {
-  return fetch;
-}
-
 export default fetch;
 
 export {

@@ -5,8 +5,24 @@ const archiver = require('archiver');
 const chrome = require('selenium-webdriver/chrome');
 const logging = require('selenium-webdriver/lib/logging');
 
+async function switchToTestPage(driver) {
+  let index = 0;
+  let handles = [];
+  while (!(await driver.getCurrentUrl()).startsWith('chrome-extension')) {
+    // Refresh list of windows/tabs
+    if (index >= handles.length) {
+      index = 0;
+      handles = await driver.getAllWindowHandles();
+    }
 
-function runSeleniumTests() {
+    const handle = handles[index];
+    await driver.switchTo().window(handle);
+
+    index += 1;
+  }
+}
+
+async function runSeleniumTests() {
   // console.log('Running selenium tests...');
 
   // Prepare chromium webdriver
@@ -15,7 +31,7 @@ function runSeleniumTests() {
     .addExtensions('./ext.zip');
 
   const service = new chrome.ServiceBuilder('./chromedriver').build();
-  const driver = new chrome.Driver(chromeOptions, service);
+  const driver = chrome.Driver.createSession(chromeOptions, service);
 
   // Run mock http server needed for tests
   const server = spawn('node', ['./tests/test-server.js']);
@@ -35,9 +51,9 @@ function runSeleniumTests() {
   // Graceful shutdown
   process.on('SIGTERM', tearDown);
 
-  driver.get('chrome-extension://ekfhhggnbajmjdmgihoageagkeklhema/modules/chromium-tests/test.html');
+  await switchToTestPage(driver);
 
-  // Get logs from firefox
+  // Get logs from Chromium
   logInterval = setInterval(
     () => {
       // Check if the browser is closed

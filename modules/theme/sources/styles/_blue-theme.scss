@@ -1,6 +1,11 @@
 #main-window.cliqz-blue {
 
-    #navigator-toolbox #TabsToolbar:-moz-lwtheme-darktext,
+    /* Override light theme variables */
+    &:-moz-lwtheme-darktext {
+        --chrome-background-color: $cliqz-blue-color; // Background for menu toolbar (Windows only)
+    }
+
+    #navigator-toolbox, #navigator-toolbox #TabsToolbar:-moz-lwtheme-darktext,
     .tabbrowser-tab .tab-content {
        background-color: $cliqz-blue-color;
     }
@@ -51,7 +56,7 @@
     #new-tab-button {
       --toolbarbutton-icon-fill-opacity: 0.75;
       fill: #fff;
-      
+
       &:hover {
         --toolbarbutton-icon-fill-opacity: 1;
       }

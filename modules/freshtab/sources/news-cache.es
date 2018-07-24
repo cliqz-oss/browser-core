@@ -1,11 +1,11 @@
 import config from '../core/config';
 import utils from '../core/utils';
+import prefs from '../core/prefs';
+import console from '../core/console';
 
 const ONE_MINUTE = 60 * 1000;
 
-function log(s) {
-  utils.log(s, 'CliqzFreshTabNews - cache');
-}
+const log = console.log.bind(console, 'freshtab.news-cache');
 
 export default class NewsCache {
   constructor(cacheName, updateInterval, updateFunction, updateAsynchronously) {
@@ -25,7 +25,7 @@ export default class NewsCache {
 
     this.cacheWasRetrieved = false;
     if (updateAsynchronously) {
-      this.updateTimer = utils.setTimeout(this.asynchronousUpdate.bind(this), 5 * 1000);
+      this.updateTimer = setTimeout(this.asynchronousUpdate.bind(this), 5 * 1000);
     }
   }
 
@@ -36,14 +36,14 @@ export default class NewsCache {
 
   asynchronousUpdate() {
     if (!this.cacheWasRetrieved) {
-      this.updateTimer = utils.setTimeout(this.asynchronousUpdate.bind(this), 5 * ONE_MINUTE);
+      this.updateTimer = setTimeout(this.asynchronousUpdate.bind(this), 5 * ONE_MINUTE);
     } else {
       this.cacheWasRetrieved = false;
       Promise.resolve(this.isStale())
         .then(isStale => (isStale ? this.updateCache() : Promise.resolve()))
         .then(() => {
           this.updateTimer =
-          utils.setTimeout(
+          setTimeout(
             this.asynchronousUpdate.bind(this),
             Math.max(this.getTimeToNextUpdate(), 1000)
           );
@@ -70,7 +70,7 @@ export default class NewsCache {
   }
 
   isStale() {
-    if (utils.getPref('freshTabByPassCache', false)) {
+    if (prefs.get('freshTabByPassCache', false)) {
       log(`Bypass cache: ${this.cacheName}`);
       return true;
     }
@@ -81,15 +81,16 @@ export default class NewsCache {
     try {
       return JSON.parse(this.localStore.getItem(this.cacheName) || '{}');
     } catch (err) {
-      log(`Error parsing cache ${this.cacheName} ${err}.`);
+      log(`Error parsing cache ${this.cacheName}`, err);
       return {};
     }
   }
 
   updateCache() {
+    // only required for hbasedRecommendCacheObject
     return this.updateFunction(this.parseDataFromCache())
       .then(this.putDataToCache.bind(this))
-      .catch(e => log(`Error "${e}", cache ${this.cacheName} is not updated.`));
+      .catch(e => log('Error', e, `cache ${this.cacheName} is not updated.`));
   }
 
   getData() {

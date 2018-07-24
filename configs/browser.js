@@ -33,6 +33,7 @@ module.exports = {
     "HW_CHANNEL": "cliqz",
     "HPN_CHANNEL": "cliqz",
     "NEW_TAB_URL": "resource://cliqz/freshtab/home.html",
+    "ONBOARDING_URL": "resource://cliqz/onboarding-v3/index.html",
     "HISTORY_URL": "resource://cliqz/cliqz-history/index.html#/",
     "modules.history.search-path": "?query=",
     "ICONS": {
@@ -67,7 +68,8 @@ module.exports = {
     "modules.history-analyzer.enabled": false,
     "proxyPeer": false,
     "proxyTrackers": false,
-    "modules.cookie-monster.enabled": false
+    "modules.cookie-monster.enabled": false,
+    "modules.hpnv2.enabled": false
   },
   "modules": [
     "core",
@@ -93,6 +95,7 @@ module.exports = {
     "message-center",
     "offboarding",
     "anolysis",
+    "anolysis-cc",
     "abtests",
     "theme",
     "context-search",
@@ -109,12 +112,14 @@ module.exports = {
     "pairing",
     "antitracking-blocker",
     "search",
-    "cookie-monster"
+    "cookie-monster",
+    "hpnv2",
   ],
   "subprojects": subprojects([
     '@cliqz-oss/dexie',
     '@cliqz-oss/pouchdb',
     '@cliqz/adblocker',
+    'ajv',
     'cliqz-history',
     'handlebars',
     'jquery',

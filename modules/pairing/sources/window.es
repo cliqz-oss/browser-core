@@ -1,4 +1,6 @@
 import utils from '../core/utils';
+import prefs from '../core/prefs';
+import i18n, { getMessage } from '../core/i18n';
 import inject from '../core/kord/inject';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import background from './background';
@@ -87,7 +89,7 @@ export default class Win {
             });
           } : undefined;
           this.pageMenu.addMenuItem({
-            label: utils.getLocalizedString('pairing_send_tab_to_mobile'),
+            label: getMessage('pairing_send_tab_to_mobile'),
             onclick,
             beforeElem,
             disabled: !isEnabled,
@@ -125,7 +127,7 @@ export default class Win {
             });
           } : undefined;
           this.tabMenu.addMenuItem({
-            label: utils.getLocalizedString('pairing_send_tab_to_mobile'),
+            label: getMessage('pairing_send_tab_to_mobile'),
             onclick,
             beforeElem,
             disabled: !isEnabled,
@@ -154,9 +156,9 @@ export default class Win {
   }
 
   showOnboarding() {
-    const locale = utils.PLATFORM_LANGUAGE;
-    const isInABTest = utils.getPref('extOnboardCliqzConnect', false);
-    const dismissed = JSON.parse(utils.getPref(DISMISSED_ALERTS, '{}'));
+    const locale = i18n.PLATFORM_LANGUAGE;
+    const isInABTest = prefs.get('extOnboardCliqzConnect', false);
+    const dismissed = JSON.parse(prefs.get(DISMISSED_ALERTS, '{}'));
     const messageType = 'cliqz-connect';
     const isDismissed = (dismissed[messageType] && dismissed[messageType].count >= 1) || false;
     const messageCenter = inject.module('message-center');

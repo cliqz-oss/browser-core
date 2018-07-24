@@ -9,7 +9,6 @@ import collect from '../operators/collect';
 import clean from '../operators/clean';
 import deduplicate from '../operators/results/deduplicate';
 import normalize from '../operators/normalize';
-import { addCompletion } from '../operators/results/utils';
 import { hasMainLink } from '../operators/links/utils';
 
 // responses
@@ -53,15 +52,13 @@ export default class History extends BaseProvider {
       .map(response => apply(response, clean))
       .map(({ results, ...response }) => ({
         ...response,
-        results: addCompletion(
+        results:
           // TODO: deduplicate is again called in enriched, try to simplify;
           //       at the moment, both is needed: here because history returns
           //       duplicates (like http://cliqz.com and https://cliqz.com) and
           //       in enrich to remove rich data/history duplicates
           // filter out results without main link (clean above removes links)
           deduplicate(results.filter(hasMainLink)),
-          query,
-        ),
       }))
       .share();
 

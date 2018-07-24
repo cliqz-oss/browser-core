@@ -1,5 +1,5 @@
 /**
- * This file contains the implementation of the OffersAPI [1] which basically
+ * This file contains the implementation of the OffersAPI which basically
  * provides the following functionality:
  *
  * - Given an offer -> broadcast it to the proper real estates.
@@ -8,9 +8,6 @@
  *
  * In this module we also store the offer on the DB if is not already.
  *
- *
- * ---
- * [1] - https://cliqztix.atlassian.net/wiki/spaces/SBI/pages/88618158/Offers-core+API+real+states
  *
  */
 import logger from '../common/offers_v2_logger';
@@ -150,10 +147,8 @@ export default class OffersAPI {
 
   /* ***************************************************************************
    *                            EXPOSED API
-   *
-   * check https://cliqztix.atlassian.net/wiki/pages/viewpage.action?pageId=88618158
-   * for more information which are the functions and description
    ***************************************************************************** */
+
 
   /**
    * will return a list of offers filtered and sorted as specified in args
@@ -224,10 +219,6 @@ export default class OffersAPI {
    * {
    *   // the one who is performing the call
    *   origin: 'dropdown',
-   *
-   *   // for more information about what is the required offer data needed
-   *   // check:
-   *   // https://cliqztix.atlassian.net/wiki/pages/viewpage.action?pageId=89041894
    *   {
    *     data: {
    *       offer_id: 'xyz',

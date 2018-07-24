@@ -1,5 +1,5 @@
-/* global chai */
-/* global describeModule */
+/* global chai, describeModule, sinon */
+/* eslint no-param-reassign: off */
 
 const R = require('ramda');
 
@@ -16,7 +16,6 @@ const expect = chai.expect;
 // sure it never gets resolved by accident
 // (https://stackoverflow.com/a/10456065/783510)
 const SAFE_TEST_IP1 = '198.51.100.1';
-const SAFE_TEST_IP2 = '198.51.100.2';
 const SAFE_FALLBACK_TEST_IP = '198.51.100.255';
 
 function resetMocks() {
@@ -28,13 +27,11 @@ function resetMocks() {
     onBeforeSendHeaders: [],
     onHeadersReceived: [],
     onCompleted: [],
-  }
+  };
   mocks.WebrequestPipelineStub = {
-    isReady: () => {
-      return Promise.resolve();
-    },
-    action: (method, event, arg) => {
-      return Promise.resolve().then(() => {
+    isReady: () => Promise.resolve(),
+    action: (method, event, arg) =>
+      Promise.resolve().then(() => {
         if (method === 'addPipelineStep') {
           expect(arg).to.have.all.keys('name', 'spec', 'fn');
           mocks._handlers[event].push(arg);
@@ -44,10 +41,9 @@ function resetMocks() {
         } else {
           throw new Error(`Unexpected communication with request-pipeline: ${method}, ${event}, ${arg}`);
         }
-      });
-    }
+      })
   };
-};
+}
 
 // Mocks the "getRequest" function and simulates calls
 // to the registered "onHeadersReceived" handler.
@@ -60,9 +56,8 @@ function resetMocks() {
 // The code under test is expected to ignore these unrelated
 // requests.
 //
-function scriptedRequests(scriptRequests, opts={}) {
-
-  const lookupHeader = function(allHeaders, name) {
+function scriptedRequests(scriptRequests, opts = {}) {
+  const lookupHeader = function (allHeaders, name) {
     return allHeaders
       .filter(x => x.name.toLowerCase() === name.toLowerCase())
       .map(x => x.value)[0];
@@ -71,7 +66,8 @@ function scriptedRequests(scriptRequests, opts={}) {
   let uniqueId = 1;
   const mkFakeRequestContext = (url, requestInfo, { includeResponse, requestCompleted }) => {
     if (!requestInfo.requestId) {
-      requestInfo.requestId = uniqueId++;
+      uniqueId += 1;
+      requestInfo.requestId = uniqueId;
     }
     let context = {
       tabId: requestInfo.tabId || -1,
@@ -79,7 +75,7 @@ function scriptedRequests(scriptRequests, opts={}) {
       requestId: requestInfo.requestId,
 
       requestHeaders: requestInfo.requestHeaders || [],
-      getRequestHeader: function(name) {
+      getRequestHeader: function (name) {
         return lookupHeader(this.requestHeaders, name);
       }
     };
@@ -91,7 +87,7 @@ function scriptedRequests(scriptRequests, opts={}) {
         statusCode: requestInfo.statusCode || 200,
 
         responseHeaders: requestInfo.responseHeaders || [],
-        getResponseHeader: function(name) {
+        getResponseHeader: function (name) {
           return lookupHeader(this.responseHeaders, name);
         }
       });
@@ -103,7 +99,7 @@ function scriptedRequests(scriptRequests, opts={}) {
 
     return context;
   };
-  const mkFakeResponse = function() {
+  const mkFakeResponse = function () {
     return {
       block() {
         this.cancel = true;
@@ -128,17 +124,23 @@ function scriptedRequests(scriptRequests, opts={}) {
       const handler = mocks._handlers.onBeforeSendHeaders[0].fn;
 
       const response = mkFakeResponse();
-      const fakeRequestContext = mkFakeRequestContext(url, requestInfo,
-                                                     { includeResponse: false });
+      const fakeRequestContext = mkFakeRequestContext(
+        url,
+        requestInfo,
+        { includeResponse: false }
+      );
 
       // Simulate some other requests that have nothing to do with the current
       // doublefetch request. This requests should not be cancelled.
       const otherRequests = opts.simulateNonDoublefetchRequests || [];
       for (const otherUrl of otherRequests) {
         const otherResponse = mkFakeResponse();
-        const proceed = handler(mkFakeRequestContext(otherUrl, scriptRequests[otherUrl],
-                                                     { includeResponse: false }),
-                                otherResponse);
+        const proceed = handler(mkFakeRequestContext(
+          otherUrl,
+          scriptRequests[otherUrl],
+          { includeResponse: false }
+        ),
+        otherResponse);
 
         const wasCancelled = proceed === false || !!otherResponse.cancel;
         if (wasCancelled && scriptRequests[otherUrl].onCancel) {
@@ -171,21 +173,27 @@ function scriptedRequests(scriptRequests, opts={}) {
       const handler = mocks._handlers.onHeadersReceived[0].fn;
 
       const response = mkFakeResponse();
-      const fakeRequestContext = mkFakeRequestContext(url, requestInfo,
-                                                     { includeResponse: true,
-                                                       requestCompleted: false,
-                                                     });
+      const fakeRequestContext = mkFakeRequestContext(
+        url,
+        requestInfo,
+        {
+          includeResponse: true,
+          requestCompleted: false,
+        });
 
       // Simulate some other requests that have nothing to do with the current
       // doublefetch request. These requests should not be cancelled.
       const otherRequests = opts.simulateNonDoublefetchRequests || [];
       for (const otherUrl of otherRequests) {
         const otherResponse = mkFakeResponse();
-        const proceed = handler(mkFakeRequestContext(otherUrl, scriptRequests[otherUrl],
-                                                    { includeResponse: true,
-                                                      requestCompleted: false,
-                                                    }),
-                               otherResponse);
+        const proceed = handler(mkFakeRequestContext(
+          otherUrl,
+          scriptRequests[otherUrl],
+          {
+            includeResponse: true,
+            requestCompleted: false,
+          }),
+        otherResponse);
 
         const wasAborted = proceed === false || !!otherResponse.cancel;
         if (wasAborted && scriptRequests[otherUrl].onCancel) {
@@ -207,10 +215,9 @@ function scriptedRequests(scriptRequests, opts={}) {
       if (requestInfo.statusCode &&
           requestInfo.statusCode >= 300 && requestInfo.statusCode < 400 &&
           requestInfo.responseHeaders) {
-
         for (const redirectTo of requestInfo.responseHeaders
-                   .filter(x => x.name.toLowerCase() === 'location')
-                   .map(x => x.value)) {
+          .filter(x => x.name.toLowerCase() === 'location')
+          .map(x => x.value)) {
           scriptRequests[redirectTo].requestId = requestInfo.requestId;
           return mocks.getRequest(redirectTo);
         }
@@ -257,14 +264,14 @@ export default describeModule('human-web/doublefetch-handler',
       getRequest: (...args) => mocks.getRequest(...args)
     },
     'core/url': {
-      // TODO: we could nice to use the real implementation, but that
+      // TODO: would be nice to use the real implementation, but that
       // is not so easy. This is an oversimplified implementation, but
       // for testing purposes, it should be sufficient.
       equals: (url1, url__) => url1 === url__
     },
     'core/kord/inject': {
       ifModuleEnabled(promise) {
-        return promise.catch((ex) => {
+        return promise.catch(() => {
           // Ignore
         });
       },
@@ -289,7 +296,6 @@ export default describeModule('human-web/doublefetch-handler',
     },
   }),
   () => {
-
     describe('DoublefetchHandler', function () {
       let DoublefetchHandler;
       let onHostnameResolvedHook;
@@ -308,7 +314,7 @@ export default describeModule('human-web/doublefetch-handler',
 
         uut = new DoublefetchHandler({
           onHostnameResolved: (...args) => {
-            onHostnameResolvedHook(...args)
+            onHostnameResolvedHook(...args);
           }
         });
       });
@@ -325,11 +331,11 @@ export default describeModule('human-web/doublefetch-handler',
           });
       });
 
-      it('should initially be disabled', function() {
+      it('should initially be disabled', function () {
         expect(uut._state).to.equal(State.DISABLED);
       });
 
-      it('should init and unload successfully', function() {
+      it('should init and unload successfully', function () {
         return Promise.resolve()
           .then(() => { expect(uut._state).to.equal(State.DISABLED); })
           .then(() => uut.init())
@@ -340,7 +346,7 @@ export default describeModule('human-web/doublefetch-handler',
           .then(() => { expect(uut._state).to.equal(State.READY); });
       });
 
-      it('init/unload should be safe to call multiple times in a row', function() {
+      it('init/unload should be safe to call multiple times in a row', function () {
         return Promise.resolve()
           .then(() => uut.unload())
           .then(() => uut.unload())
@@ -354,7 +360,7 @@ export default describeModule('human-web/doublefetch-handler',
           .then(() => { expect(uut._state).to.equal(State.DISABLED); });
       });
 
-      it('should never end up in an inconsistent state', function() {
+      it('should never end up in an inconsistent state', function () {
         const uncoordinatedStartStopAttempts = [
           uut.init(),
           uut.init(),
@@ -370,7 +376,7 @@ export default describeModule('human-web/doublefetch-handler',
           .then(() => { expect(uut._state).to.equal(State.DISABLED); });
       });
 
-      it('should reject requests when state is DISABLED', function() {
+      it('should reject requests when state is DISABLED', function () {
         expect(uut._state).to.equal(State.DISABLED);
 
         let wasRejected = false;
@@ -383,7 +389,7 @@ export default describeModule('human-web/doublefetch-handler',
           });
       });
 
-      it('should send requests when state is INITIALIZED', function() {
+      it('should send requests when state is INITIALIZED', function () {
         return uut.init()
           .then(() => uut.anonymousHttpGet('http://dummy.test'))
           .then(() => {
@@ -391,7 +397,7 @@ export default describeModule('human-web/doublefetch-handler',
           });
       });
 
-      it('should send requests when state is INITIALIZED', function() {
+      it('should send requests when state is INITIALIZED', function () {
         return uut.init()
           .then(() => uut.anonymousHttpGet('http://dummy.test'))
           .then(() => {
@@ -399,11 +405,11 @@ export default describeModule('human-web/doublefetch-handler',
           });
       });
 
-      it('should set "maxDoubleFetchSize"', function() {
+      it('should set "maxDoubleFetchSize"', function () {
         expect(uut.maxDoubleFetchSize).to.be.at.least(0);
       });
 
-      it('should abort huge requests', function() {
+      it('should abort huge requests', function () {
         // scenario: 300MB request should be cancelled assuming our limit is 2MB
         let wasCancelled = false;
         scriptedRequests({
@@ -424,8 +430,7 @@ export default describeModule('human-web/doublefetch-handler',
           });
       });
 
-      it('should allow small double fetch requests', function() {
-
+      it('should allow small double fetch requests', function () {
         // scenario: 100K request should be allowed to complete assuming our limit is 2MB
         let wasCancelled = false;
         scriptedRequests({
@@ -446,8 +451,7 @@ export default describeModule('human-web/doublefetch-handler',
           });
       });
 
-      it('should should follow redirects, but block following request if it is too big', function() {
-
+      it('should should follow redirects, but block following request if it is too big', function () {
         let cancelledBeforeRedirect = false;
         let cancelledAfterRedirect = false;
         scriptedRequests(
@@ -475,8 +479,7 @@ export default describeModule('human-web/doublefetch-handler',
           });
       });
 
-      it('should should follow redirects and allow following request if it is small', function() {
-
+      it('should should follow redirects and allow following request if it is small', function () {
         let cancelledBeforeRedirect = false;
         let cancelledAfterRedirect = false;
         scriptedRequests(
@@ -504,7 +507,7 @@ export default describeModule('human-web/doublefetch-handler',
           });
       });
 
-      it('should never block non-doublefetch requests (scenario: doublefetch cancelled)', function() {
+      it('should never block non-doublefetch requests (scenario: doublefetch cancelled)', function () {
         let cancelledDoublefetchRequest = false;
         let cancelledWrongRequests = false;
         scriptedRequests(
@@ -538,8 +541,7 @@ export default describeModule('human-web/doublefetch-handler',
           });
       });
 
-      it('should never block non-doublefetch requests (scenario: doublefetch passed)', function() {
-
+      it('should never block non-doublefetch requests (scenario: doublefetch passed)', function () {
         let cancelledDoublefetchRequest = false;
         let cancelledWrongRequests = false;
         scriptedRequests(
@@ -573,18 +575,22 @@ export default describeModule('human-web/doublefetch-handler',
           });
       });
 
-      it('should remove "origin" and "cookie" headers in doublefetch requests', function() {
-
+      it('should remove sensitive headers (e.g., "origin", "cookie", "X-*) in doublefetch requests', function () {
         let cancelledDoublefetchRequest = false;
+        let cancelledWrongRequests = false;
         let sent1 = false;
         let sent2 = false;
         let sent3 = false;
         scriptedRequests(
           {
             'http://doublefetch.test/1': {
-              requestHeaders: [{ name: 'Content-Type', value: 'text/html' },
-                               { name: 'Cookie', value: 'Secret' },
-                               { name: 'Origin', value: 'moz-extension://123' }],
+              requestHeaders: [
+                { name: 'Content-Type', value: 'text/html' },
+                { name: 'Cookie', value: 'Secret' },
+                { name: 'Origin', value: 'moz-extension://123' },
+                { name: 'X-DevTools-Emulate-Network-Conditions-Client-Id', value: '123' },
+                { name: 'X-Client-Data', value: '123' },
+              ],
               responseHeaders: [{ name: 'Location', value: 'http://doublefetch.test/2' }],
               statusCode: 301,
 
@@ -594,14 +600,18 @@ export default describeModule('human-web/doublefetch-handler',
                 sent1 = true;
 
                 // Only the 'Content-Type' header should remain, while
-                // the 'Cookie' and 'Origin' headers have been removed
+                // the other headers should have been removed
                 expect(headers).to.deep.equal([{ name: 'Content-Type', value: 'text/html' }]);
               }
             },
             'http://doublefetch.test/2': {
-              requestHeaders: [{ name: 'content-type', value: 'text/html' },
-                               { name: 'cookie', value: 'Secret' },
-                               { name: 'origin', value: 'moz-extension://123' }],
+              requestHeaders: [
+                { name: 'content-type', value: 'text/html' },
+                { name: 'cookie', value: 'Secret' },
+                { name: 'origin', value: 'moz-extension://123' },
+                { name: 'x-devtools-emulate-network-conditions-client-id', value: '123' },
+                { name: 'x-client-data', value: '123' },
+              ],
               responseHeaders: [{ name: 'Location', value: 'http://doublefetch.test/3' }],
               statusCode: 301,
 
@@ -611,20 +621,24 @@ export default describeModule('human-web/doublefetch-handler',
                 sent2 = true;
 
                 // Same as above, only this time everything is in lower case.
-                expect(headers).to.deep.equal([{ name: 'content-type', value: 'text/html' }])
+                expect(headers).to.deep.equal([{ name: 'content-type', value: 'text/html' }]);
               }
             },
             'http://doublefetch.test/3': {
-              requestHeaders: [{ name: 'CONTENT-TYPE', value: 'text/html' },
-                               { name: 'COOKIE', value: 'Secret' },
-                               { name: 'ORIGIN', value: 'moz-extension://123' }],
+              requestHeaders: [
+                { name: 'CONTENT-TYPE', value: 'text/html' },
+                { name: 'COOKIE', value: 'Secret' },
+                { name: 'ORIGIN', value: 'moz-extension://123' },
+                { name: 'X-DEVTOOLS-EMULATE-NETWORK-CONDITIONS-CLIENT-ID', value: '123' },
+                { name: 'X-CLIENT-DATA', value: '123' },
+              ],
               onCancel: () => { cancelledWrongRequests = true; },
               onHeadersSent: (headers) => {
                 expect(sent3).to.be.false;
                 sent3 = true;
 
                 // Same as above, only this time everything is in upper case.
-                expect(headers).to.deep.equal([{ name: 'CONTENT-TYPE', value: 'text/html' }])
+                expect(headers).to.deep.equal([{ name: 'CONTENT-TYPE', value: 'text/html' }]);
               }
             }
           });
@@ -636,7 +650,7 @@ export default describeModule('human-web/doublefetch-handler',
           .then(() => {
             expect(doublefetchFailed).to.be.false;
             expect(cancelledDoublefetchRequest).to.be.false;
-
+            expect(cancelledWrongRequests).to.be.false;
             // all three requests should have been sent
             expect(sent1).to.be.true;
             expect(sent2).to.be.true;
@@ -644,9 +658,7 @@ export default describeModule('human-web/doublefetch-handler',
           });
       });
 
-      it('should not modify non-sensitive headers', function() {
-
-        let cancelledDoublefetchRequest = false;
+      const shouldNotModifyNonSensitiveHeaders = (headers) => {
         let sent = false;
 
         // Dump of an example request. All these headers should not be touched.
@@ -661,22 +673,22 @@ export default describeModule('human-web/doublefetch-handler',
           ['If-Modified-Since', 'Fri, 09 Aug 2013 23:54:35 GMT'],
           ['If-None-Match', '359670651+gzip'],
           ['Cache-Control', 'max-age=0'],
-        ].map(x => ({name: x[0], value: x[1] }));
+        ].map(x => ({ name: x[0], value: x[1] }));
 
         scriptedRequests({
-            'http://doublefetch.test/': {
-              requestHeaders: R.clone(originalHeaders),
+          'http://doublefetch.test/': {
+            requestHeaders: R.clone(originalHeaders),
 
-              onHeadersSent: (headers) => {
-                sent = true;
+            onHeadersSent: (headers) => {
+              sent = true;
 
-                // Verify that the headers have not been changed.
-                // (We make no assumptions about the order, although
-                // practically, there is little reason to make changes.)
-                expect(headers).to.have.deep.members(originalHeaders);
-              }
+              // Verify that the headers have not been changed.
+              // (We make no assumptions about the order, although
+              // practically, there is little reason to make changes.)
+              expect(headers).to.have.deep.members(originalHeaders);
             }
-          });
+          }
+        });
 
         let doublefetchFailed = false;
         return uut.init()
@@ -686,10 +698,38 @@ export default describeModule('human-web/doublefetch-handler',
             expect(doublefetchFailed).to.be.false;
             expect(sent).to.be.true;
           });
+      };
+
+      it('should not modify non-sensitive headers (real request)', function () {
+        const originalHeaders = [
+          ['Host', 'example.com'],
+          ['User-Agent', 'Mozilla/5.0 (X11; Linux x86_64; rv:57.0) Gecko/20100101 Firefox/57.0'],
+          ['Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'],
+          ['Accept-Language', 'en-US,en;q=0.5'],
+          ['Accept-Encoding', 'gzip, deflate'],
+          ['Connection', 'keep-alive'],
+          ['Upgrade-Insecure-Requests', '1'],
+          ['If-Modified-Since', 'Fri, 09 Aug 2013 23:54:35 GMT'],
+          ['If-None-Match', '359670651+gzip'],
+          ['Cache-Control', 'max-age=0'],
+        ];
+        return shouldNotModifyNonSensitiveHeaders(originalHeaders);
       });
 
-      it('should call "onHostnameResolved" after successful doublefetch requests', function() {
-        let onHostnameResolvedCalls = [];
+      it('should only strip X-* headers', function () {
+        const originalHeaders = [
+          ['x', '1'],
+          ['xyz', '1'],
+          ['xyz-', '1'],
+          ['xyz-not-application-protocol', '1'],
+          ['XYZ', '1'],
+          ['xx-x-x', '1'],
+        ];
+        return shouldNotModifyNonSensitiveHeaders(originalHeaders);
+      });
+
+      it('should call "onHostnameResolved" after successful doublefetch requests', function () {
+        const onHostnameResolvedCalls = [];
         onHostnameResolvedHook = (hostname, ip) => {
           onHostnameResolvedCalls.push([hostname, ip]);
         };

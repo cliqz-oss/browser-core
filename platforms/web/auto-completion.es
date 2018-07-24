@@ -1,3 +1,3 @@
-export function handleAutoCompletion(url = '', query = '') {
+export default function handleAutoCompletion(url = '', query = '') {
   console.log('autocompletion', url, query)
 }

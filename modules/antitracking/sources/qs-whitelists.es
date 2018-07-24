@@ -4,11 +4,12 @@
 
 import * as persist from '../core/persistent-state';
 import * as datetime from './time';
-import utils from '../core/utils';
+import { httpGet } from '../core/http';
 import events from '../core/events';
 import md5 from '../core/helpers/md5';
 import QSWhitelistBase from './qs-whitelist-base';
 import extConfig from '../core/config';
+import console from '../core/console';
 
 const updateExpire = 48;
 
@@ -43,19 +44,19 @@ export default class QSWhitelist extends QSWhitelistBase {
       const currentUnsafeKey = persist.getValue('unsafeKeyExtVersion', '');
       const currentTracker = persist.getValue('trackerDomainsversion', '');
       // check safekey
-      utils.log(`Safe keys: ${config.safekey_version} vs ${currentSafeKey}`, 'attrack');
+      console.log(`Safe keys: ${config.safekey_version} vs ${currentSafeKey}`, 'attrack');
       if (config.safekey_version && currentSafeKey !== config.safekey_version) {
         this._loadRemoteSafeKey(config.force_clean === true);
       }
-      utils.log(`Token whitelist: ${config.whitelist_token_version} vs ${currentToken}`, 'attrack');
+      console.log(`Token whitelist: ${config.whitelist_token_version} vs ${currentToken}`, 'attrack');
       if (config.token_whitelist_version && currentToken !== config.whitelist_token_version) {
         this._loadRemoteTokenWhitelist();
       }
-      utils.log(`Tracker Domain: ${config.tracker_domain_version} vs ${currentTracker}`, 'attrack');
+      console.log(`Tracker Domain: ${config.tracker_domain_version} vs ${currentTracker}`, 'attrack');
       if (config.tracker_domain_version && currentTracker !== config.tracker_domain_version) {
         this._loadRemoteTrackerDomainList();
       }
-      utils.log(`Unsafe keys: ${config.unsafekey_version} vs ${currentUnsafeKey}`, 'attrack');
+      console.log(`Unsafe keys: ${config.unsafekey_version} vs ${currentUnsafeKey}`, 'attrack');
       if (config.token_whitelist_version && currentToken !== config.token_whitelist_version) {
         this._loadRemoteUnsafeKey();
       }
@@ -169,7 +170,7 @@ export default class QSWhitelist extends QSWhitelistBase {
 
   _loadRemoteTokenWhitelist() {
     const today = datetime.getTime().substring(0, 10);
-    utils.httpGet(`${this.TOKEN_WHITELIST_URL}?${today}`, function (req) {
+    httpGet(`${this.TOKEN_WHITELIST_URL}?${today}`, function (req) {
       const rList = JSON.parse(req.response);
       const rListMd5 = md5(req.response);
       this.safeTokens.setValue(rList);
@@ -184,7 +185,7 @@ export default class QSWhitelist extends QSWhitelistBase {
 
   _loadRemoteTrackerDomainList() {
     const today = datetime.getTime().substring(0, 10);
-    utils.httpGet(`${this.TRACKER_DM_URL}?${today}`, function (req) {
+    httpGet(`${this.TRACKER_DM_URL}?${today}`, function (req) {
       const rList = JSON.parse(req.response);
       const rListMd5 = md5(req.response);
       this.trackerDomains.setValue(rList);
@@ -201,7 +202,7 @@ export default class QSWhitelist extends QSWhitelistBase {
     if (forceClean) {
       this.safeKeys.clear();
     }
-    utils.httpGet(`${this.SAFE_KEY_URL}?${today}`, function (req) {
+    httpGet(`${this.SAFE_KEY_URL}?${today}`, function (req) {
       const safeKey = JSON.parse(req.response);
       let s;
       let k;
@@ -244,8 +245,8 @@ export default class QSWhitelist extends QSWhitelistBase {
 
   _loadRemoteUnsafeKey() {
     const today = datetime.getTime().substring(0, 10);
-    utils.log(this.UNSAFE_KEY_URL);
-    utils.httpGet(`${this.UNSAFE_KEY_URL}?${today}`, function (req) {
+    console.log(this.UNSAFE_KEY_URL);
+    httpGet(`${this.UNSAFE_KEY_URL}?${today}`, function (req) {
       const unsafeKeys = JSON.parse(req.response);
       const unsafeKeyExtVersion = md5(req.response);
       this.unsafeKeys.setValue(unsafeKeys);

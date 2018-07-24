@@ -1,7 +1,7 @@
 import console from '../core/console';
 import md5 from '../core/helpers/md5';
 import ResourceLoader from '../core/resource-loader';
-import { getBugOwner } from '../core/domain-info';
+import domainInfo from '../core/services/domain-info';
 import config from '../core/config';
 
 export const BLOCK_MODE = ['BLOCK', 'ALLOW_SAFE', 'ALLOW_UNSAFE'].reduce(
@@ -132,7 +132,7 @@ export default class Blocker {
     if (state.blocklistMatch) {
       let action = this.defaultAction;
       if (state.app) {
-        const company = getBugOwner(state.app);
+        const company = domainInfo.getBugOwner(state.app);
         // rule precedence: company > category > default
         action = this._getOverrideAction(state.sourceUrlParts.hostname, company.name, company.cat)
          || action;

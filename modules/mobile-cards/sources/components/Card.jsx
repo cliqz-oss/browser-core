@@ -1,14 +1,11 @@
 import React from 'react';
-import { StyleSheet, ScrollView, View } from 'react-native';
-import events from '../../core/events';
+import { StyleSheet, ScrollView, View, Platform } from 'react-native';
 import { getMessage } from '../../core/i18n';
 import { cardMargins, cardBorderTopRadius, cardBorderBottomRadius } from '../styles/CardStyle';
 import Generic from './Generic';
 import Link from './Link';
 import ShareCard from './partials/ShareCard';
-import inject from '../../core/kord/inject';
-
-const anolysis = inject.module('anolysis');
+import { withCliqz } from '../cliqz';
 
 const styles = width => StyleSheet.create({
   container: {
@@ -25,33 +22,15 @@ const styles = width => StyleSheet.create({
   },
 });
 
-export default class extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      scrollOffset: 0,
-    };
-  }
-
+class Card extends React.Component {
   shouldComponentUpdate(nextProps) {
     const resultChanged = nextProps.result !== this.props.result;
     const layoutChanged = nextProps.width !== this.props.width;
     return resultChanged || layoutChanged;
   }
 
-  sendResultClickTelemetry(event) {
-    const result = this.props.result;
-    const resultKind = result.data.kind || [];
-    const tapPosition = [
-      event.nativeEvent.pageX,
-      event.nativeEvent.pageY + this.state.scrollOffset
-    ];
-    const signal = {
-      position_type: resultKind,
-      current_position: this.props.index,
-      tap_position: tapPosition,
-    };
-    anolysis.action('handleTelemetrySignal', signal, 'mobile_result_selection');
+  sendResultClickTelemetry() {
+    // TODO: call reportSelection search background action
   }
 
   render() {
@@ -63,26 +42,28 @@ export default class extends React.Component {
     const cardTitle = result.data.title || '';
     const titleExtra = getMessage('mobile_card_look_shared_via');
     const shareTitle = cardTitle ? `${titleExtra}:\n\n${cardTitle}` : `${titleExtra}.`;
+    const shadowProps = {};
+    if (Platform.OS === 'ios') {
+      shadowProps.shadowColor = 'black';
+      shadowProps.shadowOpacity = 0.12;
+      shadowProps.shadowRadius = 4;
+      shadowProps.shadowOffset = { width: 2, height: 2 };
+    }
     return (
       <View
-        shadowColor="black"
-        shadowOpacity={0.12}
-        shadowRadius={4}
-        shadowOffset={{ width: 2, height: 2 }}
+        {...shadowProps}
         accessible={false}
         accessibilityLabel={`result-card-${this.props.index}`}
         style={styles(width).container}
-        onTouchStart={() => events.pub('mobile-search:hideKeyboard')}
+        onTouchStart={() => this.props.cliqz.mobileCards.hideKeyboard()}
       >
         <ScrollView
-          onScroll={e => this.setState({ scrollOffset: e.nativeEvent.contentOffset.y })}
           showsVerticalScrollIndicator={false}
         >
           <ShareCard style={styles(width).card} title={shareTitle}>
             <Link
-              to={result.url}
+              url={result.url}
               onPress={(...args) => this.sendResultClickTelemetry(...args)}
-              openLink={this.props.openLink}
             >
               <Generic result={result} />
             </Link>
@@ -92,3 +73,5 @@ export default class extends React.Component {
     );
   }
 }
+
+export default withCliqz(Card);

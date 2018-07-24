@@ -77,23 +77,24 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
     ...searchParams
   ).share();
 
-  const deduplicated = deduplicate(
-    results.cliqz.expanded$,
-    results.history.resultsWithOffers$
-  );
-  results.cliqz.deduplicated$ = deduplicated.target$;
-  results.history.annotated$ = deduplicated.reference$;
 
   // TODO: how to update 'kind' for enriched history results?
   results.history.enriched$ = enrich(
     enricher,
-    results.history.annotated$,
+    results.history.resultsWithOffers$,
     results.cliqz.expanded$
   );
 
+  const deduplicated = deduplicate(
+    results.cliqz.expanded$,
+    results.history.enriched$,
+  );
+  results.cliqz.deduplicated$ = deduplicated.target$;
+  results.history.annotated$ = deduplicated.reference$;
+
   results.instant.latest$ = results.instant.source$;
   results.calculator.latest$ = results.calculator.source$;
-  results.history.latest$ = results.history.enriched$;
+  results.history.latest$ = results.history.annotated$;
   results.historyView.latest$ = results.historyView.source$;
   results.cliqz.latest$ = results.cliqz.deduplicated$;
   results.suggestions.latest$ = results.suggestions.source$;

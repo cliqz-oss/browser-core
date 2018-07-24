@@ -5,12 +5,12 @@
 
 const tldjs = require('tldjs');
 
-var prefRetVal = {};
-var currentTS = Date.now();
-var mockedTimestamp = Date.now() / 1000;
-var currentDayHour = 0;
-var currentWeekDay = 0;
-var abNumber = 0;
+const prefRetVal = {};
+const currentTS = Date.now();
+const mockedTimestamp = Date.now() / 1000;
+const currentDayHour = 0;
+const currentWeekDay = 0;
+const abNumber = 0;
 
 
 export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
@@ -40,19 +40,19 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
       default: {}
     },
     'offers-v2/utils': {
-      timestamp: function() {
+      timestamp: function () {
         return mockedTimestamp;
       },
-      timestampMS: function() {
+      timestampMS: function () {
         return currentTS;
       },
-      dayHour: function() {
+      dayHour: function () {
         return currentDayHour;
       },
-      weekDay: function() {
+      weekDay: function () {
         return currentWeekDay;
       },
-      getABNumber: function() {
+      getABNumber: function () {
         return abNumber;
       }
     },
@@ -63,24 +63,22 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
     },
     'core/prefs': {
       default: {
-        get: function(v, d) {
+        get: function (v, d) {
           if (prefRetVal[v]) {
             return prefRetVal[v];
           }
           return d;
         },
-        setMockVal: function(varName, val) {
+        setMockVal: function (varName, val) {
           prefRetVal[varName] = val;
         }
       }
     },
     'core/utils': {
-      default: {
-        setInterval: function() {},
-      }
+      default: {}
     },
     'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
+      default: function () { const stop = () => {}; return { stop }; }
     },
     'platform/console': {
       default: {},
@@ -107,7 +105,6 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
   }),
   () => {
     describe('/offers operations', () => {
-      let ops;
       let buildDataGen;
       let ExpressionBuilder;
       let exprBuilder;
@@ -133,13 +130,7 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
         });
       }
 
-      function buildAndExec(op, ctx) {
-        const e = buildOp(op);
-        return e.evalExpr(ctx);
-      }
-
       beforeEach(function () {
-        ops = this.module().default;
         OfferStatusHandler = this.deps('offers-v2/offers-status').default;
         oshInstance = new OfferStatusHandler();
         buildDataGen = {
@@ -152,17 +143,17 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
         });
       });
 
-        // const buildData = {
-        //   raw_op: {
-        //     op_name: opName,
-        //     args,
-        //     ttl
-        //   },
-        //   exp_builder: this,
-        //   regex_cache: this.globObjs.regex_cache,
-        //   trigger_cache: this.globObjs.trigger_cache,
-        //   trigger_machine: this.globObjs.trigger_machine,
-        // };
+      // const buildData = {
+      //   raw_op: {
+      //     op_name: opName,
+      //     args,
+      //     ttl
+      //   },
+      //   exp_builder: this,
+      //   regex_cache: this.globObjs.regex_cache,
+      //   trigger_cache: this.globObjs.trigger_cache,
+      //   trigger_machine: this.globObjs.trigger_machine,
+      // };
 
       /**
        * ==================================================
@@ -178,7 +169,7 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
         });
 
         it('/invalid args', () => {
-          let o = ['$set_offers_status', []];
+          const o = ['$set_offers_status', []];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
             chai.assert.fail(result, 'error');
@@ -188,7 +179,6 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
         });
 
         it('/invalid args 2', () => {
-          let o = ['$set_offers_status', ['amazon.com']];
           return op.evalExpr(ctx).then((result) => {
             chai.assert.fail(result, 'error');
           }).catch((err) => {
@@ -198,15 +188,13 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
 
         it('/set properly', () => {
           const arg = { offer_1: 'inactive', offer_2: 'active' };
-          let o = ['$set_offers_status', [arg]];
+          const o = ['$set_offers_status', [arg]];
           return testCase(o, true, ctx).then(() => {
             // check that the request was called
             chai.expect(oshInstance.lastData).eql(arg);
           });
         });
-
       });
-
     });
   },
 );

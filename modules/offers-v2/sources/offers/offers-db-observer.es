@@ -102,7 +102,7 @@ export default class OfferDBObserver {
     }
 
     // set the timer to be executed in that time
-    this.saveInterval = utils.setTimeout(() => {
+    this.saveInterval = setTimeout(() => {
       removeExpiredOffers(this.offersDB);
       this.observeExpirations();
     }, nextExpirationTimeMs + 10);
@@ -116,4 +116,3 @@ export default class OfferDBObserver {
     }
   }
 }
-

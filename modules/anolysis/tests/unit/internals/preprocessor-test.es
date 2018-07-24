@@ -2,18 +2,6 @@
 /* global chai */
 /* global describeModule */
 
-const ABTESTS_TESTS = [
-  { signal: JSON.stringify({}), result: [] },
-  { signal: JSON.stringify(undefined), result: [] },
-  { signal: JSON.stringify(null), result: [] },
-  { signal: JSON.stringify(42), result: [] },
-  { signal: JSON.stringify({ AB1: {} }), result: ['AB1'] },
-  { signal: JSON.stringify({ AB1: [] }), result: ['AB1'] },
-  { signal: JSON.stringify({ AB1: 42 }), result: ['AB1'] },
-  { signal: JSON.stringify({ AB1: {}, AB2: {}, AB3: {} }), result: ['AB1', 'AB2', 'AB3'] },
-];
-
-
 export default describeModule('anolysis/internals/preprocessor',
   () => ({
     'core/prefs': {
@@ -33,13 +21,11 @@ export default describeModule('anolysis/internals/preprocessor',
     },
   }),
   () => {
-    let parseABTests;
     let preprocessor;
 
-    beforeEach(function importFromModule() {
+    beforeEach(function () {
       const Preprocessor = this.module().default;
       preprocessor = new Preprocessor();
-      parseABTests = this.module().parseABTests;
     });
 
     describe('#process', () => {
@@ -78,14 +64,6 @@ export default describeModule('anolysis/internals/preprocessor',
           },
         }))
       );
-    });
-
-    describe('#parseABTests', () => {
-      ABTESTS_TESTS.forEach((testCase) => {
-        it(`Should parse ABTests ${testCase}`, () => {
-          chai.expect(parseABTests(testCase.signal)).to.be.eql(testCase.result);
-        });
-      });
     });
 
     describe('#getId', () => {

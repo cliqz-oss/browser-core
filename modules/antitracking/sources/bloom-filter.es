@@ -6,7 +6,7 @@ import md5 from '../core/helpers/md5';
 import * as datetime from './time';
 import pacemaker from '../core/pacemaker';
 import QSWhitelistBase from './qs-whitelist-base';
-import utils from '../core/utils';
+import prefs from '../core/prefs';
 import { Resource } from '../core/resource-loader';
 import console from '../core/console';
 import extConfig from '../core/config';
@@ -171,7 +171,7 @@ export class AttrackBloomFilter extends QSWhitelistBase {
     });
     return bloomFile.load().then(bf => ({
       bf,
-      major: utils.getPref(BLOOMFILTER_VERSION_PREF, '0000-00-00'),
+      major: prefs.get(BLOOMFILTER_VERSION_PREF, '0000-00-00'),
       minor: 0,
     }))
       .then(({ bf, major, minor }) => this.updateFilter(bf, major, minor))
@@ -217,7 +217,7 @@ export class AttrackBloomFilter extends QSWhitelistBase {
       major,
       minor
     };
-    utils.setPref(BLOOMFILTER_VERSION_PREF, this.version.major);
+    prefs.set(BLOOMFILTER_VERSION_PREF, this.version.major);
     return Promise.resolve();
   }
 

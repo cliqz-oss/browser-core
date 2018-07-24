@@ -36,7 +36,7 @@ const searchIf = (provider, base$, query, config, params, condition = _alwaysTru
       .filter(condition)
       .isEmpty()
       .filter(Boolean)
-      .mapTo(getEmptyResponse(provider.id, config))
+      .mapTo(getEmptyResponse(provider.id, config, query))
   );
 
 export const searchOnEmpty = (provider, base$, query, config, params) =>

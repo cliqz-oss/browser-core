@@ -1,51 +1,51 @@
 /* global chai */
 /* global describeModule */
 /* global require */
+/* eslint camelcase: off */
 
 const adblocker = require('@cliqz/adblocker');
-const encoding = require('text-encoding');
 const tldjs = require('tldjs');
 
 const VALID_OFFER_OBJ = {
-  "action_info": {
-      "on_click": "https://www.cliqz.com"
+  action_info: {
+    on_click: 'https://www.cliqz.com'
   },
-  "campaign_id": "cid_1",
-  "client_id": "client-1",
-  "display_id": "x-d",
-  "filterRules": "generic_comparator('offer_closed','l_u_ts','>=',30) && " +
+  campaign_id: 'cid_1',
+  client_id: 'client-1',
+  display_id: 'x-d',
+  filterRules: "generic_comparator('offer_closed','l_u_ts','>=',30) && " +
                  "generic_comparator('offer_shown','counter','<=',5)",
-  "offer_id": "x",
-  "rule_info": {
-      "display_time_secs": 999999,
-      "type": "exact_match",
-      "url": []
+  offer_id: 'x',
+  rule_info: {
+    display_time_secs: 999999,
+    type: 'exact_match',
+    url: []
   },
-  "ui_info": {
-      "template_data": {
-          "call_to_action": {
-              "target": "",
-              "text": "Jetzt Anfordern",
-              "url": "http://newurl"
-          },
-          "conditions": "Some conditions",
-          "desc": "Some description",
-          "logo_url": "somelogourl",
-          "title": "This is the title",
-          "voucher_classes": ""
+  ui_info: {
+    template_data: {
+      call_to_action: {
+        target: '',
+        text: 'Jetzt Anfordern',
+        url: 'http://newurl'
       },
-      "template_name": "ticket_template"
+      conditions: 'Some conditions',
+      desc: 'Some description',
+      logo_url: 'somelogourl',
+      title: 'This is the title',
+      voucher_classes: ''
+    },
+    template_name: 'ticket_template'
   },
-  "rs_dest": ["offers-cc"],
-  "types": ["type1", "type2"],
-  "monitorData": [],
-  "categories": ["cat1"],
+  rs_dest: ['offers-cc'],
+  types: ['type1', 'type2'],
+  monitorData: [],
+  categories: ['cat1'],
 };
 
 let ABTestNumber = 0;
 
 // needed for the map
-let persistence = {};
+const persistence = {};
 function delay(fn) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -62,7 +62,7 @@ class CategoryHandlerMock {
     this.result = true;
   }
 
-  isCategoryActive(catName) {
+  isCategoryActive() {
     return this.result;
   }
 }
@@ -92,10 +92,10 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
     'offers-v2/common/offers_v2_logger': {
       default: {
         debug: () => {},
-        error: (...x) => {console.error(...x);},
-        info: (...x) => {console.log(...x);},
-        log: (...x) => {console.log(...x);},
-        warn: (...x) => {console.warn(...x);},
+        error: (...x) => { console.error(...x); },
+        info: (...x) => { console.log(...x); },
+        log: (...x) => { console.log(...x); },
+        warn: (...x) => { console.warn(...x); },
         logObject: () => {},
       }
     },
@@ -103,9 +103,7 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
       isChromium: false
     },
     'core/utils': {
-      default: {
-        setInterval: function () {}
-      },
+      default: {},
     },
     'platform/globals': {
       default: {}
@@ -124,10 +122,10 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
       default: tldjs,
     },
     'offers-v2/utils': {
-      getABNumber: function() {
+      getABNumber: function () {
         return ABTestNumber;
       },
-      timestampMS: function() {
+      timestampMS: function () {
         return Date.now();
       },
       orPromises: orPromises,
@@ -182,19 +180,16 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
     }
   }),
   () => {
-    describe('#hard-filters', function() {
+    describe('#hard-filters', function () {
       let OfferDB;
-      let OfferFilter;
-      let ActionID;
       let Offer;
       let HardFilters;
-      let OFFER_FILTER_STATE;
 
       class GeoCheckerMock {
         setRet(v) {
           this.retVal = v;
         }
-        matches(data) {
+        matches() {
           return this.retVal;
         }
       }
@@ -204,23 +199,21 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
           this.retVal = v;
         }
         hasHistoryEnabled() { return true; }
-        countMatchesWithPartialCheck(q, p, pi) {
+        countMatchesWithPartialCheck() {
           return this.retVal;
         }
-        countMatches(query, patternObj, patternIndex) {
+        countMatches() {
           return Promise.resolve(this.retVal);
         }
       }
 
       beforeEach(function () {
         HardFilters = this.module().default;
-        OFFER_FILTER_STATE = this.module().OFFER_FILTER_STATE;
         const p1 = this.system.import('offers-v2/offers/offers-db');
         const p2 = this.system.import('offers-v2/offers/actions-defs');
         const p3 = this.system.import('offers-v2/offers/offer');
         return Promise.all([p1, p2, p3]).then((mods) => {
           OfferDB = mods[0].default;
-          ActionID = mods[1].default;
           Offer = mods[2].default;
         });
       });
@@ -251,8 +244,6 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
 
       context('basic tests', function () {
         let db;
-        let fer;
-        let offerObj;
         let offer;
         let ctx;
         let catHandlerMock;
@@ -261,7 +252,6 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
         beforeEach(function () {
           hardFilter = new HardFilters();
           db = new OfferDB({});
-          offerObj = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
           catHandlerMock = new CategoryHandlerMock();
           ctx = {
             presentRealEstates: new Map(),
@@ -290,22 +280,22 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
         // /////////////////////////////////////////////////////////////////////
 
         it('/ensure building offer is a valid offer', function () {
-          const offer = buildOffer({});
-          chai.expect(offer.isValid()).eql(true);
+          const _offer = buildOffer({});
+          chai.expect(_offer.isValid()).eql(true);
 
           // check it pass the hard filters by default
-          return hardFilter.process([offer], ctx).then((r) => {
-            chai.expect(r).eql([offer]);
+          return hardFilter.process([_offer], ctx).then((r) => {
+            chai.expect(r).eql([_offer]);
           });
         });
 
         it('/filter by real estates works', function () {
           const offers = [
-            buildOffer({ offer_id: 'o1', rs_dest: ["offers-cc"] }),
-            buildOffer({ offer_id: 'o2', rs_dest: ["browser-panel"] }),
-            buildOffer({ offer_id: 'o3', rs_dest: ["cliqz-tab"] }),
-            buildOffer({ offer_id: 'o4', rs_dest: ["dropdown", "offers-cc", "cliqz-tab"] }),
-            buildOffer({ offer_id: 'o5', rs_dest: ["dropdown"] }),
+            buildOffer({ offer_id: 'o1', rs_dest: ['offers-cc'] }),
+            buildOffer({ offer_id: 'o2', rs_dest: ['browser-panel'] }),
+            buildOffer({ offer_id: 'o3', rs_dest: ['cliqz-tab'] }),
+            buildOffer({ offer_id: 'o4', rs_dest: ['dropdown', 'offers-cc', 'cliqz-tab'] }),
+            buildOffer({ offer_id: 'o5', rs_dest: ['dropdown'] }),
           ];
 
           // we will let pass o2 and o3 and o4
@@ -319,11 +309,11 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
         });
 
         it('/filter offer validity works', function () {
-          const offer = buildOffer({});
-          offer.offerObj.offer_id = null;
+          const _offer = buildOffer({});
+          _offer.offerObj.offer_id = null;
 
           // check it pass the hard filters by default
-          return hardFilter.process([offer], ctx).then((r) => {
+          return hardFilter.process([_offer], ctx).then((r) => {
             chai.expect(r).eql([]);
           });
         });
@@ -341,7 +331,7 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
           const expected = ['yes1', 'yes2'];
           const offers = [];
           testSet.forEach((tc) => {
-            const o = buildOffer({ offer_id: tc.id })
+            const o = buildOffer({ offer_id: tc.id });
             o.offerObj.abTestInfo = { start: tc.s, end: tc.e };
             offers.push(o);
           });
@@ -402,60 +392,104 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
 
         it('/history checks works as expected if returns proper values', function () {
           const offers = [
-            buildOffer({ offer_id: 'no1', historyChecks : [{
-              patterns: { pid: '123', p_list: ['||google.com'] },
-              min_matches_expected: 4,
-              since_secs: 10,
-              till_secs: 0,
-              remove_if_matches: false }]}),
-            buildOffer({ offer_id: 'no2', historyChecks : [{
-              patterns: { pid: '123', p_list: ['||google.com'] },
-              min_matches_expected: 5,
-              since_secs: 10,
-              till_secs: 0,
-              remove_if_matches: false }]}),
-            buildOffer({ offer_id: 'yes1', historyChecks : [{
-              patterns: { pid: '123', p_list: ['||google.com'] },
-              min_matches_expected: 1,
-              since_secs: 10,
-              till_secs: 0,
-              remove_if_matches: false }]}),
-            buildOffer({ offer_id: 'yes2', historyChecks : [{
-              patterns: { pid: '123', p_list: ['||google.com'] },
-              min_matches_expected: 2,
-              since_secs: 10,
-              till_secs: 0,
-              remove_if_matches: false }]}),
-            buildOffer({ offer_id: 'no3', historyChecks : [{
-              patterns: { pid: '123', p_list: ['||google.com'] },
-              min_matches_expected: 2,
-              since_secs: 10,
-              till_secs: 0,
-              remove_if_matches: true }]}),
-            buildOffer({ offer_id: 'no4', historyChecks : [{
-              patterns: { pid: '123', p_list: ['||google.com'] },
-              min_matches_expected: 1,
-              since_secs: 10,
-              till_secs: 0,
-              remove_if_matches: false },
-              {
-              patterns: { pid: '123', p_list: ['||google.com'] },
-              min_matches_expected: 5,
-              since_secs: 10,
-              till_secs: 0,
-              remove_if_matches: false }]}),
-            buildOffer({ offer_id: 'yes3', historyChecks : [{
-              patterns: { pid: '123', p_list: ['||google.com'] },
-              min_matches_expected: 1,
-              since_secs: 10,
-              till_secs: 0,
-              remove_if_matches: false },
-              {
-              patterns: { pid: '123', p_list: ['||google.com'] },
-              min_matches_expected: 2,
-              since_secs: 10,
-              till_secs: 0,
-              remove_if_matches: false }]}),
+            buildOffer({
+              offer_id: 'no1',
+              historyChecks: [
+                {
+                  patterns: { pid: '123', p_list: ['||google.com'] },
+                  min_matches_expected: 4,
+                  since_secs: 10,
+                  till_secs: 0,
+                  remove_if_matches: false
+                }
+              ]
+            }),
+            buildOffer({
+              offer_id: 'no2',
+              historyChecks: [
+                {
+                  patterns: { pid: '123', p_list: ['||google.com'] },
+                  min_matches_expected: 5,
+                  since_secs: 10,
+                  till_secs: 0,
+                  remove_if_matches: false
+                }
+              ]
+            }),
+            buildOffer({
+              offer_id: 'yes1',
+              historyChecks: [
+                {
+                  patterns: { pid: '123', p_list: ['||google.com'] },
+                  min_matches_expected: 1,
+                  since_secs: 10,
+                  till_secs: 0,
+                  remove_if_matches: false
+                }
+              ]
+            }),
+            buildOffer({
+              offer_id: 'yes2',
+              historyChecks: [
+                {
+                  patterns: { pid: '123', p_list: ['||google.com'] },
+                  min_matches_expected: 2,
+                  since_secs: 10,
+                  till_secs: 0,
+                  remove_if_matches: false
+                }
+              ]
+            }),
+            buildOffer({
+              offer_id: 'no3',
+              historyChecks: [
+                {
+                  patterns: { pid: '123', p_list: ['||google.com'] },
+                  min_matches_expected: 2,
+                  since_secs: 10,
+                  till_secs: 0,
+                  remove_if_matches: true
+                }
+              ]
+            }),
+            buildOffer({
+              offer_id: 'no4',
+              historyChecks: [
+                {
+                  patterns: { pid: '123', p_list: ['||google.com'] },
+                  min_matches_expected: 1,
+                  since_secs: 10,
+                  till_secs: 0,
+                  remove_if_matches: false
+                },
+                {
+                  patterns: { pid: '123', p_list: ['||google.com'] },
+                  min_matches_expected: 5,
+                  since_secs: 10,
+                  till_secs: 0,
+                  remove_if_matches: false
+                }
+              ]
+            }),
+            buildOffer({
+              offer_id: 'yes3',
+              historyChecks: [
+                {
+                  patterns: { pid: '123', p_list: ['||google.com'] },
+                  min_matches_expected: 1,
+                  since_secs: 10,
+                  till_secs: 0,
+                  remove_if_matches: false
+                },
+                {
+                  patterns: { pid: '123', p_list: ['||google.com'] },
+                  min_matches_expected: 2,
+                  since_secs: 10,
+                  till_secs: 0,
+                  remove_if_matches: false
+                }
+              ]
+            })
           ];
           // we will set history hceck but dissable feature
           ctx.historyMatcher.setRet(2);
@@ -472,7 +506,6 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
             chai.expect(r).eql([]);
           });
         });
-
       });
     });
   }

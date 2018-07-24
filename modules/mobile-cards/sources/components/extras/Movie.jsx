@@ -12,11 +12,11 @@ import MovieData from './MovieData';
 // trigger with query: cadillac kino
 // make sure results are set to germany
 
-export default class extends React.Component {
+export default class Mobie extends React.Component {
 
   displayShow(show, index) {
     return (
-      <Link key={index} to={show.booking_link}>
+      <Link url={show.booking_link} key={index}>
         <View style={styles.show}>
           <Text style={styles.text}>{ show.start_at.substr(11, 5) }</Text>
         </View>

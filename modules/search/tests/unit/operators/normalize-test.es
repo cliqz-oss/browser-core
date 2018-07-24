@@ -1,9 +1,9 @@
-let fetch = () => {};
+/* global chai, describeModule */
 
 const mock = {
   'core/url': {
-    getDetailsFromUrl: url => ({ domain: 'domain' }),
-    urlStripProtocol: url => 'STRIPPED_URL',
+    getDetailsFromUrl: () => ({ domain: 'domain' }),
+    urlStripProtocol: () => 'STRIPPED_URL',
   }
 };
 
@@ -29,20 +29,22 @@ const prototype = {
     score: undefined,
     url: undefined,
     subType: {},
+    latency: undefined,
+    backendCountry: undefined,
   },
 };
 
 export default describeModule('search/operators/normalize',
   () => mock,
   () => {
-    describe('#normalize', function() {
+    describe('#normalize', function () {
       let normalize;
 
       beforeEach(function () {
         normalize = this.module().default;
       });
 
-      it('normalizes instant results', function() {
+      it('normalizes instant results', function () {
         const legacy = {
           data: {},
           provider: 'instant',

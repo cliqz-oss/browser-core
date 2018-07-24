@@ -2,7 +2,7 @@
  This module is used for sending the events for purpose of
  human-web, anti-tracking via a secure channel.
 */
-
+import prefs from '../core/prefs';
 import Storage from '../platform/hpn/storage';
 import CliqzUtils from '../core/utils';
 import config from '../core/config';
@@ -41,7 +41,6 @@ const CliqzSecureMessage = {
   KEYS_PROVIDER: config.settings.ENDPOINT_KEYS_PROVIDER,
   proxyList: null,
   proxyStats: {},
-  PROXY_LIST_PROVIDER: config.settings.ENDPOINT_PROXY_LIST_PROVIDER,
   BLIND_SIGNER: config.settings.ENDPOINT_BLIND_SIGNER,
   USER_REG: config.settings.ENDPOINT_USER_REG,
   localTemporalUniq: null,
@@ -60,7 +59,7 @@ const CliqzSecureMessage = {
 
     if ((CliqzSecureMessage.counter / CliqzSecureMessage.tmult) % 10 === 0) {
       if (CliqzSecureMessage.debug) {
-        CliqzUtils.log(`Pacemaker: ${CliqzSecureMessage.counter / CliqzSecureMessage.tmult}`, CliqzSecureMessage.LOG_KEY);
+        console.log(`Pacemaker: ${CliqzSecureMessage.counter / CliqzSecureMessage.tmult}`, CliqzSecureMessage.LOG_KEY);
       }
     }
 
@@ -86,7 +85,7 @@ const CliqzSecureMessage = {
 
     if ((CliqzSecureMessage.counter / CliqzSecureMessage.tmult) % (60 * 15 * 1) === 0) {
       if (CliqzSecureMessage.debug) {
-        CliqzUtils.log('Clean local temp queue', CliqzSecureMessage.LOG_KEY);
+        console.log('Clean local temp queue', CliqzSecureMessage.LOG_KEY);
       }
       hpnUtils.prunelocalTemporalUniq();
     }
@@ -98,14 +97,14 @@ const CliqzSecureMessage = {
   trkTimer: null,
   telemetry(msg, instantPush) {
     if (!CliqzSecureMessage || // might be called after the module gets unloaded
-        CliqzUtils.getPref('humanWebOptOut', false)) return;
+        prefs.get('humanWebOptOut', false)) return;
 
     if (msg) CliqzSecureMessage.trk.push(msg);
-    CliqzUtils.clearTimeout(CliqzSecureMessage.trkTimer);
+    clearTimeout(CliqzSecureMessage.trkTimer);
     if (instantPush || CliqzSecureMessage.trk.length % 20 === 0) {
       CliqzSecureMessage.pushTelemetry();
     } else {
-      CliqzSecureMessage.trkTimer = CliqzUtils.setTimeout(CliqzSecureMessage.pushTelemetry, 10000);
+      CliqzSecureMessage.trkTimer = setTimeout(CliqzSecureMessage.pushTelemetry, 10000);
     }
   },
   _telemetry_req: null,
@@ -133,7 +132,7 @@ const CliqzSecureMessage = {
     // Better method appriciated.
 
     if (CliqzSecureMessage.pacemakerId == null) {
-      CliqzSecureMessage.pacemakerId = CliqzUtils.setInterval(
+      CliqzSecureMessage.pacemakerId = setInterval(
         CliqzSecureMessage.pacemaker.bind(this),
         CliqzSecureMessage.tpace,
         null
@@ -187,7 +186,7 @@ const CliqzSecureMessage = {
     CliqzSecureMessage.dsPK.pubKeyB64 = config.settings.KEY_DS_PUBKEY;
     CliqzSecureMessage.secureLogger.publicKeyB64 = config.settings.KEY_SECURE_LOGGER_PUBKEY;
 
-    if (CliqzUtils.getPref('proxyNetwork', true)) {
+    if (prefs.get('proxyNetwork', true)) {
       overRideCliqzResults();
     }
     // Check user-key present or not.
@@ -223,7 +222,7 @@ const CliqzSecureMessage = {
 
     this.sourceMapLoader.stop();
     this.routeTableLoader.stop();
-    CliqzUtils.clearTimeout(CliqzSecureMessage.pacemakerId);
+    clearTimeout(CliqzSecureMessage.pacemakerId);
     this.storage.close();
   },
   proxyIP() {
@@ -276,7 +275,7 @@ const CliqzSecureMessage = {
   _updateRoutingInfo(fullRouteTable) {
     CliqzSecureMessage.routeTable = fullRouteTable[CliqzSecureMessage.CHANNEL];
     CliqzSecureMessage.proxyList = createProxyList(CliqzSecureMessage.routeTable);
-    CliqzUtils.log('Updated proxy list and routing table', CliqzSecureMessage.LOG_KEY);
+    console.log('Updated proxy list and routing table', CliqzSecureMessage.LOG_KEY);
 
     // make sure "CliqzSecureMessage.queryProxyIP" is initialized
     CliqzSecureMessage.proxyIP();

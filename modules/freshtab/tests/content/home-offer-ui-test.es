@@ -2,49 +2,23 @@ import {
   clearIntervals,
   clone,
   defaultConfig,
-  expect,
-  Subject
+  expect
 } from './helpers';
+import {
+  mockOfferMessage,
+  Subject
+} from '../../core/test-helpers-freshtab';
 
 describe('Fresh tab offer notification UI', function () {
-  const mockedOffers = [
-    {
-      offer_id: '123',
-      offer_info: {
-        ui_info: {
-          template_data: {
-            call_to_action: {
-              target: '',
-              text: 'Teilnehmen',
-              url: 'https://umfrage.cliqz.com/index.php/545662?lang=de"='
-            },
-            conditions: 'Diese Umfrage dauert ca. 5 Minuten und ist anonym.',
-            desc: 'Hallo! Wir möchten sehr gerne etwas über Ihre Meinung zum Cliqz-Browser erfahren.',
-            logo_url: 'https://cdn.cliqz.com/extension/offers/survey-icon.svg',
-            title: 'Cliqz-Umfrage',
-            validity: 1519967709,
-            voucher_classes: ''
-          }
-        }
-      },
-      validity: 1519967709
-    }
-  ];
-
   let subject;
-  let newsConfig;
+  let config;
 
   before(function () {
     subject = new Subject();
-    newsConfig = clone(defaultConfig);
-    newsConfig.response.componentsState.news.visible = true;
-    subject.respondsWith(newsConfig);
-
-    subject.respondsWith({
-      module: 'freshtab',
-      action: 'getOffers',
-      response: mockedOffers
-    });
+    config = clone(defaultConfig);
+    config.response.componentsState.news.visible = true;
+    config.response.messages = mockOfferMessage;
+    subject.respondsWith(config);
 
     subject.respondsWith({
       module: 'offers-v2',
@@ -78,7 +52,6 @@ describe('Fresh tab offer notification UI', function () {
   });
 
   after(function () {
-    subject.shouldHaveNoErrors();
     clearIntervals();
   });
 

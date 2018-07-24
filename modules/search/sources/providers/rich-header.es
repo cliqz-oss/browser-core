@@ -1,9 +1,32 @@
 import Rx from '../../platform/lib/rxjs';
 import { fetch as f } from '../../core/http';
-import utils from '../../core/utils';
+import config from '../../core/config';
 import BackendProvider from './backend';
 import { getResponse } from '../responses';
+import CliqzLanguage from '../../core/language';
+import {
+  encodeLocale,
+  encodePlatform,
+  encodeResultOrder,
+  encodeCountry,
+  encodeFilter,
+  encodeLocation,
+  encodeWikiDedup,
+  encodeSessionParams
+} from './cliqz-helpers';
 
+export const getRichHeaderQueryString = (q, loc) => [
+  `&q=${encodeURIComponent(q)}`,
+  encodeSessionParams(),
+  CliqzLanguage.stateToQueryString(),
+  encodeLocale(),
+  encodePlatform(),
+  encodeResultOrder(),
+  encodeCountry(),
+  encodeFilter(),
+  encodeLocation(true, loc && loc.latitude, loc && loc.longitude),
+  encodeWikiDedup(),
+].join('');
 
 export default class RichHeader extends BackendProvider {
   constructor() {
@@ -23,7 +46,7 @@ export default class RichHeader extends BackendProvider {
   }
 
   fetch(query, links) {
-    const url = utils.RICH_HEADER + utils.getRichHeaderQueryString(query);
+    const url = config.settings.RICH_HEADER + getRichHeaderQueryString(query);
     const body = this.createMessageBody(query, links);
 
     return f(url, { method: 'PUT', body, credentials: 'omit', cache: 'no-store' })
@@ -38,12 +61,12 @@ export default class RichHeader extends BackendProvider {
   }
 
   // links is an array of main links from normalized results
-  search(query, links, config) {
+  search(query, links, _config) {
     if (!query) {
-      return this.getEmptySearch(config);
+      return this.getEmptySearch(_config);
     }
 
-    const { retry } = config.providers[this.id];
+    const { retry } = _config.providers[this.id];
 
     return Rx.Observable
       .defer(() => this.fetch(query, links))
@@ -53,7 +76,7 @@ export default class RichHeader extends BackendProvider {
       )
       .map(results => getResponse(
         this.id,
-        config,
+        _config,
         query,
         this.mapResults(results, query),
         'done',

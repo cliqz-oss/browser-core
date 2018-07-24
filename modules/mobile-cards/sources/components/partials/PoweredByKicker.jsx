@@ -6,13 +6,13 @@ import Link from '../Link';
 import Icon from './Icon';
 import { elementTopMargin } from '../../styles/CardStyle';
 
-export default class extends React.Component {
+export default class PoweredByKicker extends React.Component {
 
 
   render() {
     const data = this.props.data;
     // powered by
-    return <Link to='http://www.kicker.de/?gomobile=1'>
+    return <Link url="http://www.kicker.de/?gomobile=1">
       <View style={styles.container}>
         <Icon url='kicker.de' width={20} height={20} />
         <Text style={styles.text}>{getMessage('KickerSponsor')}</Text>

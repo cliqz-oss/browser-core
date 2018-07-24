@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdir } from './fs';
+import { readFile, writeFile, mkdir, removeFile } from './fs';
 
 function makeDirRecursive(path, from = []) {
   const [first, ...rest] = path;
@@ -31,5 +31,9 @@ export default class Storage {
         return data;
       }
     }).then(encoded => writeFile(this.filePath, encoded));
+  }
+
+  delete() {
+    return removeFile(this.filePath);
   }
 }

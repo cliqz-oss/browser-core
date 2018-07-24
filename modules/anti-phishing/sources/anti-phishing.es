@@ -1,14 +1,14 @@
 /* eslint no-restricted-syntax: 'off' */
 /* eslint no-param-reassign: 'off' */
-/* eslint no-console: 'off' */
 
-import utils from '../core/utils';
+import prefs from '../core/prefs';
 import md5 from '../core/helpers/md5';
 import inject from '../core/kord/inject';
 import fetch from '../platform/fetch';
 import { LazyPersistentObject } from '../core/persistent-state';
 import * as datetime from '../antitracking/time';
 import config from '../core/config';
+import console from '../core/console';
 
 function queryHTML(...args) {
   const core = inject.module('core');
@@ -249,11 +249,11 @@ const CliqzAntiPhishing = {
   },
 
   isInABTest() {
-    return utils.getPref('cliqz-anti-phishing', false);
+    return prefs.get('cliqz-anti-phishing', false);
   },
 
   isAntiPhishingActive() {
-    return utils.getPref('cliqz-anti-phishing-enabled', true);
+    return prefs.get('cliqz-anti-phishing-enabled', true);
   },
 
   updateSuspiciousStatus(url, status) {

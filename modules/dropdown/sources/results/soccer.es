@@ -1,6 +1,7 @@
 import BaseResult, { Subresult } from './base';
 import GenericResult from './generic';
 import i18n from '../../core/content/i18n';
+import { LIVE_TICKER_RESULT } from '../result-types';
 
 const LIMIT = {
   ligaEZ1Game: {
@@ -36,6 +37,8 @@ class ExpandButton extends BaseResult {
 }
 
 class LiveTickerResult extends Subresult {
+  type = LIVE_TICKER_RESULT;
+
   get locale() {
     return i18n.getMessage('locale_lang_code');
   }
@@ -202,6 +205,10 @@ class TableGroup extends BaseResult {
     return this.rawResult.groupName;
   }
 
+  get isCurrent() {
+    return this.rawResult.isCurrent;
+  }
+
   get ligaEZTable() {
     return this.rawResult.ligaEZTable;
   }
@@ -296,9 +303,9 @@ export default class SoccerResult extends GenericResult {
 
   get liveTicker() {
     const results = this.extra.weeks.map(
-      week => new LiveTickerRound({
+      (week, index) => new LiveTickerRound({
         round: week.round,
-        isCurrent: week.isCurrent,
+        isCurrent: this.currentTab !== undefined ? this.currentTab === index : week.isCurrent,
         week,
         text: this.query,
       }, this.resultTools)
@@ -319,9 +326,10 @@ export default class SoccerResult extends GenericResult {
 
   get ligaEZGroup() {
     const results = this.extra.groups.map(
-      item => new TableGroup({
+      (item, index) => new TableGroup({
         groupName: item.group,
         group: item,
+        isCurrent: this.currentTab !== undefined ? this.currentTab === index : index === 0,
         ligaEZTable: new TableResult(
           {
             ranking: item.ranking,
@@ -403,13 +411,16 @@ export default class SoccerResult extends GenericResult {
 
         [...$allLabels].forEach(l => l.classList.remove('checked'));
         e.target.classList.add('checked');
+        const tabIndex = [...$allLabels].indexOf(e.target);
+
+        this.currentTab = tabIndex;
 
         const signal = {
           type: 'results',
           action: 'click',
           view: 'SoccerEZ',
           target: 'tab',
-          index: [...$allLabels].indexOf(e.target),
+          index: tabIndex,
         };
         this.resultTools.actions.updateHeight();
         this.resultTools.actions.telemetry(signal);

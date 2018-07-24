@@ -3,6 +3,7 @@
 import utils from '../core/utils';
 import background from '../core/base/background';
 import ContextSearch from './context-search';
+import bindObjectFunctions from '../core/helpers/bind-functions';
 
 /**
  * @namespace context-search
@@ -55,9 +56,7 @@ export default background({
     this.contextSearch.init();
 
     this.reranker = new ContextSearchReranker(this.contextSearch);
-    utils.bindObjectFunctions(this.actions, this);
-
-    utils.RERANKERS.push(this.reranker);
+    bindObjectFunctions(this.actions, this);
   },
 
   /**
@@ -65,10 +64,6 @@ export default background({
    */
   unload() {
     this.contextSearch.unload();
-    const index = utils.RERANKERS.indexOf(this.reranker);
-    if (index !== -1) {
-      utils.RERANKERS.splice(index, 1);
-    }
   },
 
   actions: {

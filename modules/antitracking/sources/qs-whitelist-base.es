@@ -25,7 +25,7 @@ export default class QsWhitelistBase {
     if (win && win.requestIdleCallback) {
       win.requestIdleCallback(() => this.safeKeys.load(), { timeout: 2000 });
     } else {
-      utils.setTimeout(this.safeKeys.load.bind(this.safeKeys), 2000);
+      setTimeout(this.safeKeys.load.bind(this.safeKeys), 2000);
     }
     pacemaker.register(this._hourlyPruneAndSend.bind(this), 60 * 60 * 1000);
     return Promise.resolve();

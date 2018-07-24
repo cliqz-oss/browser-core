@@ -1,8 +1,8 @@
 /* eslint no-param-reassign: 'off' */
-/* eslint no-console: 'off' */
 
 import md5 from '../../core/helpers/md5';
 import { dURIC } from '../../core/url-info';
+import console from '../../core/console';
 
 import { isMostlyNumeric } from '../hash';
 import TokenDomain from '../token-domain';

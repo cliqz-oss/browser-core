@@ -2,7 +2,7 @@
 
 import config from '../core/config';
 import inject from '../core/kord/inject';
-import utils from '../core/utils';
+import { getDetailsFromUrl } from '../core/url';
 import events from '../core/events';
 import background from '../core/base/background';
 import NotificationCenter from './notification-center';
@@ -93,7 +93,7 @@ export default background({
     */
     getNotifications(urls = []) {
       const domainsForUrls = urls.reduce((hash, url) => {
-        const domainDetails = utils.getDetailsFromUrl(url);
+        const domainDetails = getDetailsFromUrl(url);
         hash[url] = domainDetails.host;
         return hash;
       }, Object.create(null));
@@ -112,7 +112,7 @@ export default background({
     * Add a new source to configuration
     */
     watch(url) {
-      const domainDetails = utils.getDetailsFromUrl(url);
+      const domainDetails = getDetailsFromUrl(url);
       return this.notificationCenter.addDomain(domainDetails.host);
     },
 
@@ -120,22 +120,22 @@ export default background({
     * Remove a url from notification sources
     */
     unwatch(url) {
-      const domainDetails = utils.getDetailsFromUrl(url);
+      const domainDetails = getDetailsFromUrl(url);
       return this.notificationCenter.removeDomain(domainDetails.host);
     },
 
     activate(url) {
-      const domainDetails = utils.getDetailsFromUrl(url);
+      const domainDetails = getDetailsFromUrl(url);
       return this.notificationCenter.activateDomain(domainDetails.host);
     },
 
     clearUnread(url) {
-      const domainDetails = utils.getDetailsFromUrl(url);
+      const domainDetails = getDetailsFromUrl(url);
       this.notificationCenter.clearDomainUnread(domainDetails.host);
     },
 
     refresh(url) {
-      const domainDetails = utils.getDetailsFromUrl(url);
+      const domainDetails = getDetailsFromUrl(url);
       this.notificationCenter.refresh(domainDetails.host);
     }
   },

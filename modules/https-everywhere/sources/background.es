@@ -13,7 +13,11 @@ const STATE_PREF = 'extensions.https_everywhere.globalEnabled';
 const FIRST_WEB_EXTENSION_VERSION = '2017.10.30';
 
 const getAddon = () => new Promise((resolve) => {
-  AddonManager.getAddonByID(ADDON_ID, addon => resolve(addon));
+  const promise = AddonManager.getAddonByID(ADDON_ID, resolve);
+
+  if (promise && promise.then) {
+    promise.then(resolve);
+  }
 });
 
 export default background({

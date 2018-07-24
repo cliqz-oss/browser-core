@@ -87,6 +87,10 @@ describe('Fresh tab favorites UI', function () {
   context('when a "+" button has been clicked', function () {
     const favoritesPlusBtnSelector = 'button.plus-dial-icon';
     const addFormSelector = 'form.addDialForm';
+    const formClose = 'form.addDialForm button.closeForm';
+    const urlSelector ='form.addDialForm input.addUrl';
+    const titleSelector = 'form.addDialForm input.title';
+    const placeholderSelector = 'form.addDialForm label';
 
     before(async function () {
       subject.respondsWith({
@@ -94,6 +98,7 @@ describe('Fresh tab favorites UI', function () {
         action: 'getSpeedDials',
         response: favoritesResponse[0],
       });
+
       subject.respondsWith(favConfig);
       await subject.load();
       subject.query(favoritesPlusBtnSelector).click();
@@ -106,35 +111,115 @@ describe('Fresh tab favorites UI', function () {
 
     describe('renders add form', function () {
       it('successfully', function () {
-        expect(subject.query('#section-favorites form.addDialForm')).to.exist;
+        expect(subject.getComputedStyle(subject.query(addFormSelector).parentNode).display)
+          .to.not.contain('none');
       });
 
       it('with an existing close button', function () {
-        expect(subject.query('#section-favorites button.hideAddForm')).to.exist;
+        expect(subject.getComputedStyle(subject.query(formClose)).display)
+          .to.not.contain('none');
       });
 
       it('with an existing URL field', function () {
-        expect(subject.query('#section-favorites input.addUrl')).to.exist;
+        expect(subject.query(urlSelector)).to.exist;
       });
 
-      it('with an URL field with correct placeholder', function () {
-        expect(subject.query('#section-favorites input.addUrl').placeholder)
-          .to.equal('freshtab_app_speed_dial_input_placeholder');
+      it('with an existing title field', function () {
+        expect(subject.query(titleSelector)).to.exist;
+      });
+
+      it('with URL and title fields with correct placeholder', function () {
+        const placeholderList = subject.queryAll(placeholderSelector);
+        expect(placeholderList[0].htmlFor).to.equal('url');
+        expect(placeholderList[0]).to.have.text('freshtab_app_speed_dial_input_address_placeholder');
+        expect(placeholderList[1].htmlFor).to.equal('title');
+        expect(placeholderList[1]).to.have.text('freshtab_app_speed_dial_input_title_placeholder');
       });
 
       it('with an existing CTA button', function () {
-        expect(subject.query('#section-favorites button.submit')).to.exist;
+        expect(subject.query('form.addDialForm button.submit')).to.exist;
       });
 
       it('with a CTA button with correct label', function () {
-        expect(subject.query('#section-favorites button.submit'))
-          .to.have.text('freshtab_app_speed_dial_add');
+        expect(subject.query('form.addDialForm button.submit'))
+          .to.have.text('freshtab_app_speed_dial_add'.toUpperCase());
       });
     });
   });
 
-  context('when a tile has been deleted', function () {
-    const favoritesDeleteSelector = '#section-favorites .dial button.delete';
+  context('when the edit button is clicked', function () {
+    const editFormSelector = 'form.editForm';
+    const editBtnSelector = '#section-favorites button.edit';
+    const editFormSubmitBtn = 'form.editForm button.submit';
+    const urlSelector = 'form.editForm input.url';
+    const titleSelector = 'form.editForm input.title';
+    const placeholderSelector = 'form.editForm label';
+    const formClose = 'form.editForm button.closeForm';
+
+    before(async function () {
+      subject.respondsWith({
+        module: 'freshtab',
+        action: 'getSpeedDials',
+        response: favoritesResponse[0],
+      });
+      subject.respondsWith(favConfig);
+      await subject.load();
+      subject.query(editBtnSelector).click();
+      return waitFor(() => subject.query(editFormSelector));
+    });
+
+    after(function () {
+      subject.unload();
+    });
+
+    describe('renders edit form', function () {
+      it('successfully', function () {
+        expect(subject.query(editFormSelector)).to.exist;
+      });
+
+      it('with an existing close button', function () {
+        expect(subject.getComputedStyle(subject.query(formClose)).display)
+          .to.not.contain('none');
+      });
+
+      it('with an existing URL field', function () {
+        expect(subject.query(urlSelector)).to.exist;
+      });
+
+      it('with an existing title field', function () {
+        expect(subject.query(titleSelector)).to.exist;
+      });
+
+      it('with URL and title fields with correct placeholder', function () {
+        const placeholderList = subject.queryAll(placeholderSelector);
+        expect(placeholderList[0].htmlFor).to.equal('url');
+        expect(placeholderList[0]).to.have.text('freshtab_app_speed_dial_edit_address_header');
+        expect(placeholderList[1].htmlFor).to.equal('title');
+        expect(placeholderList[1]).to.have.text('freshtab_app_speed_dial_edit_title_header');
+      });
+
+      it('with an existing CTA button', function () {
+        expect(subject.query(editFormSubmitBtn)).to.exist;
+      });
+
+      it('with a CTA button with correct label', function () {
+        expect(subject.query(editFormSubmitBtn))
+          .to.have.text('freshtab_app_speed_dial_save'.toUpperCase());
+      });
+
+      it('with existing and correct url and title field values', function () {
+        expect(subject.query(urlSelector).value)
+          .to.equal(favoritesResponse[0].custom[0].url);
+        expect(subject.query(titleSelector).value)
+          .to.equal(favoritesResponse[0].custom[0].displayTitle);
+      });
+    });
+  });
+
+  context('when the edit button is clicked to delete dial', function () {
+    const editFormSelector = 'form.editForm';
+    const editBtnSelector = '#section-favorites button.edit';
+    const favoritesDeleteSelector = 'form.editForm .deleteBox';
     const undoBoxSelector = '.undo-notification-box';
 
     before(async function () {
@@ -145,6 +230,8 @@ describe('Fresh tab favorites UI', function () {
       });
       subject.respondsWith(favConfig);
       await subject.load();
+      subject.query(editBtnSelector).click();
+      await waitFor(() => subject.query(editFormSelector));
       subject.query(favoritesDeleteSelector).click();
       return waitFor(() => subject.query(undoBoxSelector));
     });
@@ -154,16 +241,17 @@ describe('Fresh tab favorites UI', function () {
     });
 
     describe('renders undo popup message', function () {
-      it('successfully', function () {
+      // following tests does not make sense as undo box is always in the DOM
+      it.skip('successfully', function () {
         expect(subject.query(undoBoxSelector)).to.exist;
       });
 
-      it('with a delete button', function () {
+      it.skip('with a delete button', function () {
         const undoBoxDeleteBtnSelector = '.undo-notification-box button.close';
         expect(subject.query(undoBoxDeleteBtnSelector)).to.exist;
       });
 
-      it('with an undo button', function () {
+      it.skip('with an undo button', function () {
         const undoBoxUndoBtnSelector = '.undo-notification-box button.undo';
         expect(subject.query(undoBoxUndoBtnSelector)).to.exist;
       });
@@ -191,6 +279,7 @@ describe('Fresh tab favorites UI', function () {
           });
           subject.respondsWith(favConfig);
           await subject.load();
+          console.log('sss', favoritesResponse[i])
           amountFavoritesFromData = favoritesResponse[i].custom.length;
           favoritesTiles = subject.queryAll(dialSelector);
         });
@@ -267,7 +356,7 @@ describe('Fresh tab favorites UI', function () {
           });
 
           it('with existing and correct links', function () {
-            const favoritesLinkSelector = '#section-favorites .dial a';
+            const favoritesLinkSelector = '#section-favorites a.dial';
             const favoritesItemsLinks = subject.queryAll(favoritesLinkSelector);
 
             expect(favoritesItemsLinks.length).to.be.above(0);
@@ -287,8 +376,8 @@ describe('Fresh tab favorites UI', function () {
             });
           });
 
-          it('with existing delete buttons', function () {
-            const favoritesDeleteSeletor = '#section-favorites .dial button.delete';
+          it('with existing edit buttons', function () {
+            const favoritesDeleteSeletor = '#section-favorites .dial button.edit';
             const favoritesItemsButton = subject.queryAll(favoritesDeleteSeletor);
             expect(favoritesItemsButton.length).to.be.above(0);
           });

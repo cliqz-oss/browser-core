@@ -54,7 +54,7 @@ export default class Footer extends React.Component {
             target="_blank"
             onClick={this.props.handleVoucherClick}
           >
-            <span>
+            <span className="cta-txt">
               {this.props.data.call_to_action.text}
             </span>
           </a>
@@ -63,4 +63,3 @@ export default class Footer extends React.Component {
     );
   }
 }
-

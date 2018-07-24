@@ -56,35 +56,42 @@ export default class Offer extends React.Component {
     return (
       /* eslint-disable jsx-a11y/no-static-element-interactions */
       <div className="middle-notification-box offer">
-        <div
-          className="offer-middle-notification notification offer-container"
-          role="button"
-          data-id={offer.offer_id}
-          style={{ display: this.state.showOffer ? 'block' : 'none' }}
-        >
-          <button
-            className="close"
-            onClick={this.handleCloseClick}
-          />
-          <OfferContent
-            data={offerTpl}
-            offer_id={offerId}
-            validity={validity}
-          />
-          <OfferFooter
-            data={offerTpl}
-            offer={this.props.offer}
-            handleVoucherClick={this.handleVoucherClick}
-          />
-          <ReactTooltip afterShow={() => { sendOffersMessage(offer.offer_id, 'offer_more_info'); }} />
-        </div>
+        { this.state.showOffer ?
+          <div
+            className="offer-middle-notification notification offer-container"
+            role="button"
+            data-id={offer.offer_id}
+          >
+            <button
+              className="close"
+              onClick={this.handleCloseClick}
+            />
+            <OfferContent
+              data={offerTpl}
+              offer_id={offerId}
+              validity={validity}
+            />
+            <OfferFooter
+              data={offerTpl}
+              offer={this.props.offer}
+              handleVoucherClick={this.handleVoucherClick}
+            />
+            <ReactTooltip afterShow={() => { sendOffersMessage(offer.offer_id, 'offer_more_info'); }} />
+          </div>
+          :
+          null
+        }
 
-        <div style={{ display: this.state.showFeedback ? 'block' : 'none' }}>
-          <OfferFeedback
-            submitFeedbackForm={this.props.submitFeedbackForm}
-            offer_id={offer.offer_id}
-          />
-        </div>
+        { this.state.showFeedback ?
+          <div>
+            <OfferFeedback
+              submitFeedbackForm={this.props.submitFeedbackForm}
+              offer_id={offer.offer_id}
+            />
+          </div>
+          :
+          null
+        }
 
         <div className="anzeige">
           {tt('ad_label')}

@@ -46,11 +46,11 @@ export default describeModule('video-downloader/utils/get-youtube-id',
   () => {
     let getYoutubeID;
 
-    beforeEach(function() {
+    beforeEach(function () {
       getYoutubeID = this.module().default;
     });
 
-    describe('getYoutubeID', function() {
+    describe('getYoutubeID', function () {
       it('Check urls for Youtube IDs', () => {
         yt.forEach(([url, id]) => {
           chai.expect(getYoutubeID(url)).to.equal(id);

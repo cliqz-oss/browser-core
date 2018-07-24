@@ -7,12 +7,12 @@ export default describeModule('offers-v2/categories/category-tree',
   () => ({
     'offers-v2/common/offers_v2_logger': {
       default: {
-        debug: (x) => {console.log(x);},
-        error: (x) => {console.log(x);},
-        info: (x) => {console.log(x);},
-        log: (x) => {console.log(x);},
-        warn: (x) => {console.log(x);},
-        logObject: () => {console.log(x);},
+        debug: (x) => { console.log(x); },
+        error: (x) => { console.log(x); },
+        info: (x) => { console.log(x); },
+        log: (x) => { console.log(x); },
+        warn: (x) => { console.log(x); },
+        logObject: (x) => { console.log(x); },
       }
     },
     'core/platform': {
@@ -31,7 +31,7 @@ export default describeModule('offers-v2/categories/category-tree',
     // },
   }),
   () => {
-    describe('#category-tree', function() {
+    describe('#category-tree', function () {
       let CategoryTree;
 
       beforeEach(function () {
@@ -100,7 +100,7 @@ export default describeModule('offers-v2/categories/category-tree',
             'C3',
             'C4',
           ];
-          const cats = buildTreeFromCatNameList(ct, catSample);
+          buildTreeFromCatNameList(ct, catSample);
           checkCatNameExistence(ct, catSample);
         });
 
@@ -111,14 +111,14 @@ export default describeModule('offers-v2/categories/category-tree',
             'C3',
             'C4',
           ];
-          const cats = buildTreeFromCatNameList(ct, catSample);
+          buildTreeFromCatNameList(ct, catSample);
           const check = [
-            { n: 'C1', r: true},
-            { n: 'C2', r: true},
-            { n: 'C5', r: false},
-            { n: 'C3', r: true},
-            { n: 'C4', r: true},
-            { n: 'C', r: false},
+            { n: 'C1', r: true },
+            { n: 'C2', r: true },
+            { n: 'C5', r: false },
+            { n: 'C3', r: true },
+            { n: 'C4', r: true },
+            { n: 'C', r: false },
           ];
           checkCatNameExistence(ct, check);
         });
@@ -130,27 +130,27 @@ export default describeModule('offers-v2/categories/category-tree',
             'C3.c33.c333',
             'C4.c44.c444',
           ];
-          const cats = buildTreeFromCatNameList(ct, catSample);
+          buildTreeFromCatNameList(ct, catSample);
           const check = [
-            { n: 'C1', r: true},
-            { n: 'C1.c11', r: true},
-            { n: 'C1.c11.c111', r: true},
-            { n: 'C2', r: true},
-            { n: 'C2.c22', r: true},
-            { n: 'C2.c22.c222', r: true},
-            { n: 'C3', r: true},
-            { n: 'C3.c33', r: true},
-            { n: 'C3.c33.c333', r: true},
-            { n: 'C4', r: true},
-            { n: 'C4.c44', r: true},
-            { n: 'C4.c44.c444', r: true},
-            { n: 'C44', r: false},
-            { n: 'C44.c4444', r: false},
-            { n: 'C44.c4444.c444444', r: false},
-            { n: 'C1.c22', r: false},
-            { n: 'C1.C2', r: false},
-            { n: 'C1.c333', r: false},
-            { n: 'C1.c111', r: false},
+            { n: 'C1', r: true },
+            { n: 'C1.c11', r: true },
+            { n: 'C1.c11.c111', r: true },
+            { n: 'C2', r: true },
+            { n: 'C2.c22', r: true },
+            { n: 'C2.c22.c222', r: true },
+            { n: 'C3', r: true },
+            { n: 'C3.c33', r: true },
+            { n: 'C3.c33.c333', r: true },
+            { n: 'C4', r: true },
+            { n: 'C4.c44', r: true },
+            { n: 'C4.c44.c444', r: true },
+            { n: 'C44', r: false },
+            { n: 'C44.c4444', r: false },
+            { n: 'C44.c4444.c444444', r: false },
+            { n: 'C1.c22', r: false },
+            { n: 'C1.C2', r: false },
+            { n: 'C1.c333', r: false },
+            { n: 'C1.c111', r: false },
           ];
           checkCatNameExistence(ct, check);
         });
@@ -176,7 +176,7 @@ export default describeModule('offers-v2/categories/category-tree',
             'C4.c44.c444.c4445',
             'C4.c44.c444.c4446',
           ];
-          const cats = buildTreeFromCatNameList(ct, catSample);
+          buildTreeFromCatNameList(ct, catSample);
 
           let result = ct.someSubCategory('C1', c => c.getName() === 'C1.1');
           chai.expect(result).eql(false);

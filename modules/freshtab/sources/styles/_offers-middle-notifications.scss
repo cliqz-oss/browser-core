@@ -51,6 +51,7 @@
           letter-spacing: 1px;
         }
         .offer-middle-notification {
+            width: 100%;
             border-radius: 2px;
             background-color: #fff;
             box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.24);
@@ -453,7 +454,9 @@
           display: block;
           overflow: hidden;
           white-space: nowrap;
-          width: 120px;
+          max-width: 250px;
+          min-width: 80px;
+          padding: 0px 10px;
           height: 34px;
           line-height: 34px;
           color: #fff !important;
@@ -462,6 +465,8 @@
           border-radius: 0 0 2px 0;
           background: #00AEF0;
           text-transform: uppercase;
+          text-overflow: ellipsis;
+          font-size: 12px;
         }
     }
 

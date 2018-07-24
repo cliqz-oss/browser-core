@@ -491,6 +491,9 @@
     "country_code_AT": {
         "message": "Austria"
     },
+    "country_code_AU": {
+        "message": "Australia"
+    },
     "country_code_BR": {
         "message": "Brasil"
     },
@@ -1901,8 +1904,29 @@
     "freshtab_app_speed_dial_add": {
         "message": "Add"
     },
-    "freshtab_app_speed_dial_input_placeholder": {
-        "message": "Enter address"
+    "freshtab_app_speed_dial_save": {
+        "message": "Save"
+    },
+    "freshtab_app_speed_dial_delete": {
+        "message": "Delete"
+    },
+    "freshtab_app_speed_dial_add_header": {
+        "message": "Add to Cliqz Tab"
+    },
+    "freshtab_app_speed_dial_edit_header": {
+        "message": "Edit Title or Address"
+    },
+    "freshtab_app_speed_dial_edit_address_header": {
+        "message": "Edit Address"
+    },
+    "freshtab_app_speed_dial_edit_title_header": {
+        "message": "Edit Title"
+    },
+    "freshtab_app_speed_dial_input_address_placeholder": {
+        "message": "Enter Address"
+    },
+    "freshtab_app_speed_dial_input_title_placeholder": {
+        "message": "Enter Title (optional)"
     },
     "freshtab_app_middle_box_new_cliqz_tab_hdr": {
         "message": "It’s not only the inner values that count!"
@@ -2060,7 +2084,25 @@
     "dialing_code_label": {
         "message": "Dialing code"
     },
+    "breaking_news_label": {
+        "message": "Breaking News"
+    },
+    "top_news_label": {
+        "message": "Top News"
+    },
     "TEST": {
         "message": "OK"
+    },
+    "freshtab_cliqz_tab_settings_button": {
+        "message": "Cliqz Tab Settings"
+    },
+    "freshtab_history_button": {
+        "message": "History"
+    },
+    "freshtab_cliqz_tab_button": {
+        "message": "Cliqz Tab"
+    },
+    "freshtab_sport_button": {
+        "message": "Sport"
     }
 }

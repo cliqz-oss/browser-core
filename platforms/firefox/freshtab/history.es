@@ -1,5 +1,5 @@
 import HistoryManager from '../../core/history-manager';
-import CliqzUtils from '../../core/utils';
+import { getDetailsFromUrl } from '../../core/url';
 import PlacesUtils from '../places-utils';
 
 const CliqzFreshTabHistory = {
@@ -33,7 +33,7 @@ const CliqzFreshTabHistory = {
         ].join(' '),
         ['rev_host', 'url', 'title', 'total_count'],
         (row) => {
-          const key = CliqzUtils.getDetailsFromUrl(row.url).cleanHost;
+          const key = getDetailsFromUrl(row.url).cleanHost;
           if (!(key in domains)) {
             result.push(row);
             domains[key] = row;

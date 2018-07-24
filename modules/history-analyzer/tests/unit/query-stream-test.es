@@ -25,6 +25,8 @@ export default describeModule('history-analyzer/query-stream',
         set() {}
       },
     },
+    'core/platform': {
+    },
     'core/assert': {
       default() {},
     },
@@ -56,7 +58,7 @@ export default describeModule('history-analyzer/query-stream',
     let extractQueryFromUrl;
     let queries;
 
-    beforeEach(function initQueryStream() {
+    beforeEach(function () {
       extractQueryFromUrl = this.module().extractQueryFromUrl;
       const QueryStream = this.module().default;
       queries = new QueryStream(

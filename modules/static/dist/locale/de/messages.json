@@ -491,6 +491,9 @@
     "country_code_AT": {
         "message": "Österreich"
     },
+    "country_code_AU": {
+        "message": "Australien"
+    },
     "country_code_BR": {
         "message": "Brasilien"
     },
@@ -1901,8 +1904,29 @@
     "freshtab_app_speed_dial_add": {
         "message": "Hinzufügen"
     },
-    "freshtab_app_speed_dial_input_placeholder": {
+    "freshtab_app_speed_dial_save": {
+        "message": "Speichern"
+    },
+    "freshtab_app_speed_dial_delete": {
+        "message": "Entfernen"
+    },
+    "freshtab_app_speed_dial_add_header": {
+        "message": "Zum Cliqz Tab hinzufügen"
+    },
+    "freshtab_app_speed_dial_edit_header": {
+        "message": "Name oder Adresse ändern"
+    },
+    "freshtab_app_speed_dial_edit_address_header": {
+        "message": "Adresse ändern"
+    },
+    "freshtab_app_speed_dial_edit_title_header": {
+        "message": "Name ändern"
+    },
+    "freshtab_app_speed_dial_input_address_placeholder": {
         "message": "Adresse eingeben"
+    },
+    "freshtab_app_speed_dial_input_title_placeholder": {
+        "message": "Name eingeben (optional)"
     },
     "freshtab_app_middle_box_new_cliqz_tab_hdr": {
         "message": "Nicht nur die inneren Werte zählen!"
@@ -1941,13 +1965,13 @@
         "message": "Frisches Aussehen für neue Tabs! Und so leicht anpassbar."
     },
     "freshtab_app_middle_box_ft_amo_desc": {
-        "message": "Passe Cliqz Tab über das Zahnradsymbol an oder schalte ihn im Cliqz Control Center ein/aus."
+        "message": "Klicken Sie auf das Einstellungen-Zahnrad um Cliqz Tab anzupassen. Ein- und Ausschalten können Sie es im Cliqz Control Center."
     },
     "freshtab_app_middle_box_ft_amo_cta": {
         "message": "Jetzt anpassen"
     },
     "freshtab_app_top_box_import_bookmarks_hdr": {
-        "message": "Importiere Lesezeichen, Passwörter und Chronik ganz einfach aus anderen Browsern."
+        "message": "Importiere jetzt Lesezeichen, Passwörter und Chronik."
     },
     "freshtab_app_top_box_import_bookmarks_cta": {
         "message": "Jetzt Importieren"
@@ -2060,7 +2084,25 @@
     "dialing_code_label": {
         "message": "Landesvorwahl"
     },
+    "breaking_news_label": {
+        "message": "Eilmeldung"
+    },
+    "top_news_label": {
+        "message": "Top-Nachrichten"
+    },
     "TEST": {
         "message": "OK"
+    },
+    "freshtab_cliqz_tab_settings_button": {
+        "message": "Cliqz Tab Einstellungen"
+    },
+    "freshtab_history_button": {
+        "message": "Chronik"
+    },
+    "freshtab_cliqz_tab_button": {
+        "message": "Cliqz Tab"
+    },
+    "freshtab_sport_button": {
+        "message": "Fußball / Sport"
     }
 }

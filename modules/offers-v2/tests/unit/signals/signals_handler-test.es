@@ -9,7 +9,7 @@ class SenderMock {
     this.sendError = false;
   }
 
-  httpPost(url, successCb, signal, errCb, to) {
+  httpPost(url, successCb, signal, errCb) {
     if (this.isAsync) {
       setTimeout(() => {
         if (this.sendError) {
@@ -24,17 +24,15 @@ class SenderMock {
           }
         }
       }, 10);
+    } else if (this.sendError) {
+      this.errSignals.push(JSON.parse(signal));
+      if (errCb) {
+        errCb({ error: 'failed' });
+      }
     } else {
-      if (this.sendError) {
-        this.errSignals.push(JSON.parse(signal));
-        if (errCb) {
-          errCb({ error: 'failed' });
-        }
-      } else {
-        this.signals.push(JSON.parse(signal));
-        if (successCb) {
-          successCb({});
-        }
+      this.signals.push(JSON.parse(signal));
+      if (successCb) {
+        successCb({});
       }
     }
   }
@@ -55,7 +53,7 @@ class SenderMock {
 
 
 function asyncInvoke(f, timeoutMS) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     setTimeout(() => {
       f();
       resolve();
@@ -79,14 +77,22 @@ export default describeModule('offers-v2/signals/signals_handler',
       isChromium: false
     },
     'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
+      default: function () { const stop = () => {}; return { stop }; }
     },
     'core/utils': {
       default: {
         setInterval: function () {},
-        getLocalStorage: function() { return null; },
-        getPref(n,v) { return v; },
+        getLocalStorage: function () {},
         telemetry() {}
+      }
+    },
+    'core/http': {
+      httpPost: () => {},
+    },
+    'core/prefs': {
+      default: {
+        get(n, v) { return v; },
+        getObject() { return {}; },
       }
     },
     'platform/console': {
@@ -101,14 +107,8 @@ export default describeModule('offers-v2/signals/signals_handler',
       }
     },
     'offers-v2/utils': {
-      generateUUID: function() {
+      generateUUID: function () {
         return Math.random();
-      }
-    },
-    'core/prefs': {
-      default: {
-        get(a, b) { return b; },
-        getObject() { return {}; },
       }
     },
     'core/persistence/simple-db': {
@@ -119,7 +119,7 @@ export default describeModule('offers-v2/signals/signals_handler',
 
         upsert(docID, docData) {
           const self = this;
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             self.db[docID] = JSON.parse(JSON.stringify(docData));
             resolve();
           });
@@ -127,14 +127,14 @@ export default describeModule('offers-v2/signals/signals_handler',
 
         get(docID) {
           const self = this;
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             resolve(JSON.parse(JSON.stringify(self.db[docID])));
           });
         }
 
         remove(docID) {
           const self = this;
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             if (self.db[docID]) {
               delete self.db[docID];
             }
@@ -145,9 +145,8 @@ export default describeModule('offers-v2/signals/signals_handler',
     }
   }),
   () => {
-    describe('#signal_handler', function() {
+    describe('#signal_handler', function () {
       let SignalHandler;
-      let ActionID;
       let OffersConfigs;
       beforeEach(function () {
         SignalHandler = this.module().default;
@@ -156,7 +155,6 @@ export default describeModule('offers-v2/signals/signals_handler',
         return Promise.all([p1, p2]).then((mods) => {
           OffersConfigs = mods[0].default;
           OffersConfigs.MAX_RETRIES = 3;
-          ActionID = mods[1].default;
         });
       });
 
@@ -245,11 +243,6 @@ export default describeModule('offers-v2/signals/signals_handler',
         return cdata.ucid;
       }
 
-      function checkCampaignUCID(sig, expectedVal, cid) {
-        const ucid = getCampaignUCID(sig, cid);
-        chai.expect(ucid).to.be.equal(expectedVal);
-      }
-
       function getGenElement(d, exp) {
         let expList = exp.split('/');
         if (expList.length === 0) {
@@ -279,21 +272,21 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('test missing arguments doesnt add campaign signals', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           chai.expect(sh.setCampaignSignal()).to.be.equal(false);
           chai.expect(sh.setCampaignSignal('x')).to.be.equal(false);
-          chai.expect(sh.setCampaignSignal('x','y')).to.be.equal(false);
-          chai.expect(sh.setCampaignSignal('x','y','z')).to.be.equal(false);
+          chai.expect(sh.setCampaignSignal('x', 'y')).to.be.equal(false);
+          chai.expect(sh.setCampaignSignal('x', 'y', 'z')).to.be.equal(false);
         });
 
         it('test missing arguments doesnt add action signals', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           chai.expect(sh.setActionSignal()).to.be.equal(false);
           chai.expect(sh.setActionSignal('x')).to.be.equal(false);
         });
 
         it('test missing arguments doesnt add action signals', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           chai.expect(sh.setActionSignal()).to.be.equal(false);
           chai.expect(sh.setActionSignal('x')).to.be.equal(false);
         });
@@ -301,7 +294,7 @@ export default describeModule('offers-v2/signals/signals_handler',
         // to test that signals are being properly added we will check when sending
         // to the backend that we get on the mock the proper signal
         it('add campaign signal works', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
           sh._sendSignalsToBE();
@@ -309,7 +302,7 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('add campaign signal with different counters works', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w0')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
           sh._sendSignalsToBE();
@@ -332,7 +325,7 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('add action signal works', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           chai.expect(sh.setActionSignal('x', 'y')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
           sh._sendSignalsToBE();
@@ -340,7 +333,7 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('add action signal with different counters works', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           chai.expect(sh.setActionSignal('x', 'y')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
           sh._sendSignalsToBE();
@@ -353,11 +346,10 @@ export default describeModule('offers-v2/signals/signals_handler',
           sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
           checkActionVal(sm.signals[0], 100, 'x', 'y2');
-
         });
 
         it('signal are properly sent when modified', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
           sh._sendSignalsToBE();
@@ -377,11 +369,10 @@ export default describeModule('offers-v2/signals/signals_handler',
           chai.expect(sh.setActionSignal('x', 'y')).to.be.equal(true);
           sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(2);
-
         });
 
         it('signal are not sent if not modified', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
           sh._sendSignalsToBE();
@@ -403,7 +394,7 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('proper format is sent for simple campaign signal', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
@@ -459,7 +450,7 @@ export default describeModule('offers-v2/signals/signals_handler',
 
         it('signals are not sent twice after loading', function () {
           const db = {};
-          let sh = new SignalHandler(db, sm);
+          const sh = new SignalHandler(db, sm);
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           return sh.savePersistenceData().then(() => {
             sh._sendSignalsToBE();
@@ -467,7 +458,7 @@ export default describeModule('offers-v2/signals/signals_handler',
             sm.clear();
             return sh.savePersistenceData().then(() => {
               // create it again and wait for the load
-              let sh2 = new SignalHandler(db, sm);
+              const sh2 = new SignalHandler(db, sm);
               return sh2._loadPersistenceData().then(() => {
                 chai.expect(sm.signals.length).to.be.equal(0);
                 sh2._sendSignalsToBE();
@@ -484,7 +475,7 @@ export default describeModule('offers-v2/signals/signals_handler',
 
         it('seq number is properly sent', function () {
           const db = {};
-          let sh = new SignalHandler(db, sm);
+          const sh = new SignalHandler(db, sm);
           let expectedSeq = 0;
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           sh._sendSignalsToBE();
@@ -492,7 +483,7 @@ export default describeModule('offers-v2/signals/signals_handler',
           checkCampaignSeq(sm.signals[0], expectedSeq, 'x');
           sm.clear();
 
-          const counter=  10;
+          const counter = 10;
           for (let i = 0; i < counter; i += 1) {
             chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           }
@@ -508,7 +499,7 @@ export default describeModule('offers-v2/signals/signals_handler',
             expectedSeq += 1;
             sh._sendSignalsToBE();
           }
-          checkCampaignSeq(sm.signals[sm.signals.length-1], expectedSeq, 'x');
+          checkCampaignSeq(sm.signals[sm.signals.length - 1], expectedSeq, 'x');
         });
 
         it('seq number is properly stored (persistence)', function () {
@@ -530,14 +521,13 @@ export default describeModule('offers-v2/signals/signals_handler',
               chai.expect(sm.signals.length).to.be.equal(1);
               expectedSeq += 1;
               checkCampaignSeq(sm.signals[0], expectedSeq, 'x');
-
             });
           });
         });
 
         it('seq number is properly stored (after sent and save)', function () {
           const db = {};
-          let sh = new SignalHandler(db, sm);
+          const sh = new SignalHandler(db, sm);
           let expectedSeq = 0;
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           return sh.savePersistenceData().then(() => {
@@ -547,7 +537,7 @@ export default describeModule('offers-v2/signals/signals_handler',
             sm.clear();
             return sh.savePersistenceData().then(() => {
               // create it again and wait for the load
-              let sh2 = new SignalHandler(db, sm);
+              const sh2 = new SignalHandler(db, sm);
               return sh2._loadPersistenceData().then(() => {
                 chai.expect(sm.signals.length).to.be.equal(0);
                 sh2._sendSignalsToBE();
@@ -564,7 +554,7 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('multiple campaigns signals are sent separately', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sh.setCampaignSignal('x2', 'y2', 'z2', 'w2')).to.be.equal(true);
           chai.expect(sh.setCampaignSignal('x3', 'y3', 'z3', 'w3')).to.be.equal(true);
@@ -581,7 +571,7 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('multiple campaigns signals have unique ucid', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           const totSigs = 100;
           for (let i = 0; i < totSigs; i += 1) {
             const cid = `cid_${i}`;
@@ -619,7 +609,7 @@ export default describeModule('offers-v2/signals/signals_handler',
 
 
         it('removeCampaignSignals: generates a new ucid after erasing', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           sh._sendSignalsToBE();
           const ucid1 = getCampaignUCID(sm.signals[0], 'x');
@@ -633,7 +623,7 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('removeCampaignSignals: force send signal works', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           sh.sendCampaignSignalNow('x');
           sh.removeCampaignSignals('x');
@@ -645,7 +635,7 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('removeCampaignSignals: same signal after removal starts again', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
           sh._sendSignalsToBE();
@@ -660,7 +650,7 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('removeCampaignSignals: removing a campaign doesnt affects others', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sh.setCampaignSignal('x2', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
@@ -677,8 +667,6 @@ export default describeModule('offers-v2/signals/signals_handler',
           checkCampaignVal(sm.signals[0], 1, 'x', 'y', 'z', 'w');
           checkCampaignVal(sm.signals[1], 2, 'x2', 'y', 'z', 'w');
         });
-
-
       });
 
       context('retry sending signals', function () {
@@ -690,7 +678,7 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('retry sending a signal no more than 3 times', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           sh.setCampaignSignal('x', 'y', 'z', 'w');
           sh._sendSignalsToBE();
           return asyncInvoke(() => {
@@ -698,31 +686,28 @@ export default describeModule('offers-v2/signals/signals_handler',
             checkCampaignVal(sm.errSignals[0], 1, 'x', 'y', 'z', 'w');
 
             sh._sendSignalsToBE();
-          }, 20).then(() => {
-            return asyncInvoke(() => {
+          }, 20)
+            .then(() => asyncInvoke(() => {
               chai.expect(sm.errSignals.length).eql(2);
               checkCampaignVal(sm.errSignals[1], 1, 'x', 'y', 'z', 'w');
 
               sh._sendSignalsToBE();
-            }, 20).then(() => {
-              return asyncInvoke(() => {
+            }, 20)
+              .then(() => asyncInvoke(() => {
                 chai.expect(sm.errSignals.length).eql(3);
                 checkCampaignVal(sm.errSignals[2], 1, 'x', 'y', 'z', 'w');
 
                 sh._sendSignalsToBE();
-              }, 20).then(() => {
-                return asyncInvoke(() => {
+              }, 20)
+                .then(() => asyncInvoke(() => {
                   chai.expect(sm.errSignals.length).eql(3);
                   chai.expect(sm.signals.length).eql(0);
-                }, 20);
-              });
-            });
-          });
+                }, 20))));
         });
 
 
         it('2 failed attempts followed by 1 success attempt. Then nothing will be sent', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           sh.setCampaignSignal('x', 'y', 'z', 'w');
           sh._sendSignalsToBE();
 
@@ -731,30 +716,27 @@ export default describeModule('offers-v2/signals/signals_handler',
             checkCampaignVal(sm.errSignals[0], 1, 'x', 'y', 'z', 'w');
 
             sh._sendSignalsToBE();
-          }, 20).then(() => {
-            return asyncInvoke(() => {
+          }, 20)
+            .then(() => asyncInvoke(() => {
               chai.expect(sm.errSignals.length).eql(2);
               checkCampaignVal(sm.errSignals[1], 1, 'x', 'y', 'z', 'w');
 
               sm.makeSentFail(false);
               sh._sendSignalsToBE();
-            }, 20).then(() => {
-              return asyncInvoke(() => {
+            }, 20)
+              .then(() => asyncInvoke(() => {
                 chai.expect(sm.errSignals.length).eql(2);
                 chai.expect(sm.signals.length).eql(1);
                 checkCampaignVal(sm.signals[0], 1, 'x', 'y', 'z', 'w');
-              }, 20).then(() => {
-                return asyncInvoke(() => {
+              }, 20)
+                .then(() => asyncInvoke(() => {
                   chai.expect(sm.errSignals.length).eql(2);
                   chai.expect(sm.signals.length).eql(1);
-                }, 20);
-              });
-            });
-          });
+                }, 20))));
         });
 
         it('2 signals - retry sending each signal no more than 3 times', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           sh.setCampaignSignal('x', 'y', 'z', 'w');
           sh.setCampaignSignal('x2', 'y2', 'z2', 'w2');
           sh._sendSignalsToBE();
@@ -764,28 +746,25 @@ export default describeModule('offers-v2/signals/signals_handler',
             checkCampaignVal(sm.errSignals[1], 1, 'x2', 'y2', 'z2', 'w2');
 
             sh._sendSignalsToBE();
-          }, 20).then(() => {
-            return asyncInvoke(() => {
+          }, 20)
+            .then(() => asyncInvoke(() => {
               chai.expect(sm.errSignals.length).eql(4);
               checkCampaignVal(sm.errSignals[2], 1, 'x', 'y', 'z', 'w');
               checkCampaignVal(sm.errSignals[3], 1, 'x2', 'y2', 'z2', 'w2');
 
               sh._sendSignalsToBE();
-            }, 20).then(() => {
-              return asyncInvoke(() => {
+            }, 20)
+              .then(() => asyncInvoke(() => {
                 chai.expect(sm.errSignals.length).eql(6);
                 checkCampaignVal(sm.errSignals[4], 1, 'x', 'y', 'z', 'w');
                 checkCampaignVal(sm.errSignals[5], 1, 'x2', 'y2', 'z2', 'w2');
 
                 sh._sendSignalsToBE();
-              }, 20).then(() => {
-                return asyncInvoke(() => {
+              }, 20)
+                .then(() => asyncInvoke(() => {
                   chai.expect(sm.errSignals.length).eql(6);
                   chai.expect(sm.signals.length).eql(0);
-                }, 20);
-              });
-            });
-          });
+                }, 20))));
         });
 
 
@@ -799,29 +778,26 @@ export default describeModule('offers-v2/signals/signals_handler',
             chai.expect(sm.errSignals.length).eql(1);
             checkCampaignVal(sm.errSignals[0], 1, 'x', 'y', 'z', 'w');
             // sm.clear();
-          }, 20).then(() => {
-            return sh.savePersistenceData().then(() => {
+          }, 20)
+            .then(() => sh.savePersistenceData().then(() => {
               sh = new SignalHandler(db, sm);
               return sh._loadPersistenceData().then(() => {
                 sm.makeSentFail(false);
                 sh._sendSignalsToBE();
-              }).then(() => {
-                return asyncInvoke(() => {
+              })
+                .then(() => asyncInvoke(() => {
                   chai.expect(sm.errSignals.length).eql(1);
                   chai.expect(sm.signals.length).eql(1);
-                }, 20);
-              }).then(() => {
-                return asyncInvoke(() => {
+                }, 20))
+                .then(() => asyncInvoke(() => {
                   chai.expect(sm.errSignals.length).eql(1);
                   chai.expect(sm.signals.length).eql(1);
-                }, 20);
-              });
-            });
-          });
+                }, 20));
+            }));
         });
 
         it('3 failed attempts, modify, failed attempts, send success', function () {
-          let sh = new SignalHandler({}, sm);
+          const sh = new SignalHandler({}, sm);
           sh.setCampaignSignal('x', 'y', 'z', 'w');
           sh._sendSignalsToBE();
           return asyncInvoke(() => {
@@ -829,31 +805,29 @@ export default describeModule('offers-v2/signals/signals_handler',
             checkCampaignVal(sm.errSignals[0], 1, 'x', 'y', 'z', 'w');
 
             sh._sendSignalsToBE();
-          }, 20).then(() => {
-            return asyncInvoke(() => {
+          }, 20)
+            .then(() => asyncInvoke(() => {
               chai.expect(sm.errSignals.length).eql(2);
               checkCampaignVal(sm.errSignals[1], 1, 'x', 'y', 'z', 'w');
 
               sh._sendSignalsToBE();
-            }, 20).then(() => {
-              return asyncInvoke(() => {
+            }, 20)
+              .then(() => asyncInvoke(() => {
                 chai.expect(sm.errSignals.length).eql(3);
                 checkCampaignVal(sm.errSignals[2], 1, 'x', 'y', 'z', 'w');
                 sh.setActionSignal('click', 'yy');
                 sm.makeSentFail(false);
 
                 sh._sendSignalsToBE();
-              }, 20).then(() => {
-                return asyncInvoke(() => {
+              }, 20)
+                .then(() => asyncInvoke(() => {
                   chai.expect(sm.errSignals.length).eql(3);
                   chai.expect(sm.signals.length).eql(1);
                   checkActionVal(sm.signals[0], 1, 'click', 'yy');
-                }, 20);
-              });
-            });
-          });
+                }, 20))
+              )
+            );
         });
-
       });
     });
   }

@@ -13,3 +13,7 @@ export function getInstallDate() {
 export function getChannel() {
   throw new Error('getChannel is not implemented');
 }
+
+export function getCountry() {
+  throw new Error('getCountry is not implemented');
+}

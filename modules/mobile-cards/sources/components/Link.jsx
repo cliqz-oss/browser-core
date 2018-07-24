@@ -1,26 +1,39 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableWithoutFeedback, View, Platform } from 'react-native';
 import events from '../../core/events';
+import console from '../../core/console';
+import { withCliqz } from '../cliqz';
 
-export default class extends React.Component {
+class Link extends React.Component {
 
-  _onPress(e) {
-    const url = this.props.to;
-    const action = this.props.actionName;
-    const params = this.props.actionParams || [];
-    if (url) {
-      const extra = this.props.extra || 'other';
-      // TODO: telemetry
-      console.log('open link', url, extra);
-      // openLink(url);
-      events.pub('mobile-search:openUrl', url);
-    } else if (action) {
-      events.pub(action, ...params);
+  _onPress = (e) => {
+    e.stopPropagation();
+    const mobileCards = this.props.cliqz.mobileCards;
+    const url = this.props.url;
+    const action = url ? 'openLink' : this.props.action;
+    const param = url ? url : this.props.param;
+    if (action) {
+      console.debug(`Browser action ${action} is called`);
+      mobileCards[action](param);
     }
     // callback onPress
     this.props.onPress && this.props.onPress(e);
   }
+
   render() {
-    return <TouchableOpacity activeOpacity={1} {...this.props} onPress={this._onPress.bind(this)} />
+    return Platform.select({
+      ios: (
+        <TouchableWithoutFeedback onPress={this._onPress}>
+          <View {...this.props} />
+        </TouchableWithoutFeedback>
+      ),
+      web: (
+        <div onClick={this._onPress}>
+          { this.props.children }
+        </div>
+      )
+    });
   }
 }
+
+export default withCliqz(Link);

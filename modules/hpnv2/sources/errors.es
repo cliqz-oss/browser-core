@@ -16,6 +16,8 @@ export class SignMsgError extends HpnV2Error {}
 export class TooBigMsgError extends HpnV2Error {}
 export class TransportError extends HpnV2Error {}
 export class MsgTimeoutError extends HpnV2Error {}
+export class OldVersionError extends HpnV2Error {}
+export class WrongClockError extends HpnV2Error {}
 
 class WrapError extends HpnV2Error {
   constructor(e) {

@@ -118,7 +118,7 @@ export default class Panel {
     this.startShowingAt = Date.now();
 
     // TODO: need a better way to attach those events
-    utils.setTimeout(() => {
+    setTimeout(() => {
       maybe(this, 'wrapperPanel').then((panel) => {
         panel.addEventListener('mouseover', this.onMouseOver);
       });
@@ -169,7 +169,7 @@ export default class Panel {
 
   hide({ force = false } = {}) {
     this.shouldBeOpen = false;
-    utils.setTimeout(() => {
+    setTimeout(() => {
       if (force || !this.shouldBeOpen) {
         maybe(this, 'wrapperPanel').then(panel => panel.hidePopup());
       }

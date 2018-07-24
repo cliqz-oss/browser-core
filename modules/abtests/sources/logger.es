@@ -1,8 +1,3 @@
 import Logger from '../core/logger';
 
-
-export default Logger({
-  useDump: false,
-  level: 'log',
-  prefix: '[abtests]',
-});
+export default Logger.get('abtests', { level: 'log' });

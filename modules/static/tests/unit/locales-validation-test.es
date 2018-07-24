@@ -38,22 +38,21 @@ export default describeModule('static/main',
             .split('\n')
             .slice(1, -2)
         );
-
       });
 
       it('All locales keys have the mandatory "message" key', () => {
-        langs.map(lang => {
-          var locale = JSON.parse(readLocaleFile(`${localesPath}/${lang}/messages.json`));
-          Object.keys(locale).forEach(key => {
-            chai.expect(locale[key].message,
-              "message does not exist for key <"+ key + "> in the locale file for " + lang).to.exist;
-          })
+        langs.forEach((lang) => {
+          const locale = JSON.parse(readLocaleFile(`${localesPath}/${lang}/messages.json`));
+          Object.keys(locale).forEach((_key) => {
+            chai.expect(locale[_key].message,
+              `message does not exist for key <"+ key + "> in the locale file for ${lang}`).to.exist;
+          });
         });
       });
 
       it('All locales are valid JSON', () => {
-        langs.map(lang => {
-          JSON.parse(readLocaleFile(`${localesPath}/${lang}/messages.json`))
+        langs.forEach((lang) => {
+          JSON.parse(readLocaleFile(`${localesPath}/${lang}/messages.json`));
         });
       });
 

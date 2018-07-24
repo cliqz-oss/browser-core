@@ -6,7 +6,7 @@
           class="result"
           data-url="{{url}}"
         >
-          = {{result}}
+          {{#if isRounded}}≈{{else}}={{/if}} {{result}}
           <span class="tooltip">
             {{local 'Click_anywhere_to_copy'}}
           </span>

@@ -2,8 +2,7 @@
 /* global describeModule */
 /* global require */
 
-var shouldKeepResourceRet = false;
-
+let shouldKeepResourceRet = false;
 
 class BEConnectorMock {
   constructor() {
@@ -31,104 +30,106 @@ class CategoryHandlerMock {
 }
 
 const DEFAULT_CAT_RESP = {
-    "categories": [{
-        "user_group": 100,
-        "name": "tempcat_Flaconi12_TG1",
-        "timeRangeSecs": 900,
-        "patterns": ["||google.de^*abdeckstift^", "||google.de^*abschminktuecher^"],
-        "revHash": "d819e9016e",
-        "activationData": {
-            "activationTimeSecs": 1800,
-            "args": {
-                "totNumHits": 1
-            },
-            "func": "simpleCount"
-        }
-    }, {
-        "user_group": 50,
-        "name": "tempcat_Flaconi18_TG1",
-        "timeRangeSecs": 900,
-        "patterns": ["||douglas.de", "||parfumdreams.de"],
-        "revHash": "e3f609fecb",
-        "activationData": {
-            "activationTimeSecs": 1800,
-            "args": {
-                "totNumHits": 1
-            },
-            "func": "simpleCount"
-        }
-    }, {
-        "user_group": 30,
-        "name": "tempcat_NissanQQSustain_TG1",
-        "timeRangeSecs": 900,
-        "patterns": ["||google.de^*nissan^", "||google.de^*nissan^neu^"],
-        "revHash": "61b85c246b",
-        "activationData": {
-            "activationTimeSecs": 1800,
-            "args": {
-                "totNumHits": 1
-            },
-            "func": "simpleCount"
-        }
-    }, {
-        "name": "tempcat_Rossmann_TG1",
-        "timeRangeSecs": 900,
-        "patterns": ["||google.de^*argireline^günstig^rossmann^"],
-        "revHash": "1f014ba9eb",
-        "activationData": {
-            "activationTimeSecs": 1800,
-            "args": {
-                "totNumHits": 1
-            },
-            "func": "simpleCount"
-        }
-    }, {
-        "name": "tempcat_MacTrade_TG1",
-        "timeRangeSecs": 900,
-        "patterns": ["||google.de^*argireline^günstig^rossmann^"],
-        "revHash": "cff0c4ef2d",
-        "activationData": {
-            "activationTimeSecs": 1800,
-            "args": {
-                "totNumHits": 1
-            },
-            "func": "simpleCount"
-        }
-    }],
-    "revision": "79e5e5877928cc1681c6a06b392047dad0f57c8642c93a39affed60335f6863a"
+  categories: [{
+    user_group: 100,
+    name: 'tempcat_Flaconi12_TG1',
+    timeRangeSecs: 900,
+    patterns: ['||google.de^*abdeckstift^', '||google.de^*abschminktuecher^'],
+    revHash: 'd819e9016e',
+    activationData: {
+      activationTimeSecs: 1800,
+      args: {
+        totNumHits: 1
+      },
+      func: 'simpleCount'
+    }
+  }, {
+    user_group: 50,
+    name: 'tempcat_Flaconi18_TG1',
+    timeRangeSecs: 900,
+    patterns: ['||douglas.de', '||parfumdreams.de'],
+    revHash: 'e3f609fecb',
+    activationData: {
+      activationTimeSecs: 1800,
+      args: {
+        totNumHits: 1
+      },
+      func: 'simpleCount'
+    }
+  }, {
+    user_group: 30,
+    name: 'tempcat_NissanQQSustain_TG1',
+    timeRangeSecs: 900,
+    patterns: ['||google.de^*nissan^', '||google.de^*nissan^neu^'],
+    revHash: '61b85c246b',
+    activationData: {
+      activationTimeSecs: 1800,
+      args: {
+        totNumHits: 1
+      },
+      func: 'simpleCount'
+    }
+  }, {
+    name: 'tempcat_Rossmann_TG1',
+    timeRangeSecs: 900,
+    patterns: ['||google.de^*argireline^günstig^rossmann^'],
+    revHash: '1f014ba9eb',
+    activationData: {
+      activationTimeSecs: 1800,
+      args: {
+        totNumHits: 1
+      },
+      func: 'simpleCount'
+    }
+  }, {
+    name: 'tempcat_MacTrade_TG1',
+    timeRangeSecs: 900,
+    patterns: ['||google.de^*argireline^günstig^rossmann^'],
+    revHash: 'cff0c4ef2d',
+    activationData: {
+      activationTimeSecs: 1800,
+      args: {
+        totNumHits: 1
+      },
+      func: 'simpleCount'
+    }
+  }],
+  revision: '79e5e5877928cc1681c6a06b392047dad0f57c8642c93a39affed60335f6863a'
 };
 
 export default describeModule('offers-v2/categories/category-fetcher',
   () => ({
     'offers-v2/common/offers_v2_logger': {
       default: {
-        debug: (x) => {console.log(x);},
-        error: (x) => {console.log(x);},
-        info: (x) => {console.log(x);},
-        log: (x) => {console.log(x);},
-        warn: (x) => {console.log(x);},
-        logObject: () => {console.log(x);},
+        debug: (x) => { console.log(x); },
+        error: (x) => { console.log(x); },
+        info: (x) => { console.log(x); },
+        log: (x) => { console.log(x); },
+        warn: (x) => { console.log(x); },
+        logObject: (x) => { console.log(x); },
       }
     },
     'core/platform': {
       isChromium: false
     },
     'offers-v2/utils': {
-      shouldKeepResource: function(userGroup) {
+      shouldKeepResource: function () {
         return shouldKeepResourceRet;
       },
-      timestampMS: function() {
+      timestampMS: function () {
         return Date.now();
       },
     },
     'core/utils': {
+      default: {},
+    },
+    'core/prefs': {
       default: {
-        setTimeout: function(f, t) { f(); },
-        getPref: function(v,d) { return d; },
-      },
+        get: function (v, d) { return d; },
+      }
     },
     'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
+      default: function () { const stop = () => {}; return { stop }; }
     },
     'core/persistence/simple-db': {
       default: class {
@@ -137,14 +138,14 @@ export default describeModule('offers-v2/categories/category-fetcher',
         }
         upsert(docID, docData) {
           const self = this;
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             self.db[docID] = JSON.parse(JSON.stringify(docData));
             resolve();
           });
         }
         get(docID) {
           const self = this;
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             if (self.db[docID]) {
               resolve(JSON.parse(JSON.stringify(self.db[docID])));
             } else {
@@ -152,7 +153,7 @@ export default describeModule('offers-v2/categories/category-fetcher',
             }
           });
         }
-        remove(docID) {}
+        remove() {}
       }
     },
     'platform/globals': {
@@ -180,21 +181,14 @@ export default describeModule('offers-v2/categories/category-fetcher',
     'platform/console': {
       default: {}
     },
-    'core/prefs': {
-      default: {
-        get: function(x,y) {
-          return y;
-        }
-      }
-    },
     'core/time': {
-      getTodayDayKey: function() {
+      getTodayDayKey: function () {
         return 1;
       }
     }
   }),
   () => {
-    describe('#category-fetcher', function() {
+    describe('#category-fetcher', function () {
       let CategoryFetcher;
 
       beforeEach(function () {
@@ -206,8 +200,11 @@ export default describeModule('offers-v2/categories/category-fetcher',
         let handlerMock;
         let db;
         let fetcher;
+        let oldTimeout;
 
         beforeEach(function () {
+          oldTimeout = global.setTimeout;
+          global.setTimeout = (cb) => { cb(); };
           shouldKeepResourceRet = true;
           db = {};
           beMock = new BEConnectorMock();
@@ -215,16 +212,19 @@ export default describeModule('offers-v2/categories/category-fetcher',
           fetcher = new CategoryFetcher(beMock, handlerMock, db);
         });
 
+        afterEach(function () {
+          global.setTimeout = oldTimeout;
+        });
+
         function waitForCondition(f) {
           return new Promise((resolve) => {
             const wait = () => {
-              setTimeout(() => {
+              oldTimeout(() => {
                 if (f()) {
                   resolve(true);
                   return;
-                } else {
-                  wait();
                 }
+                wait();
               }, 10);
             };
             wait();
@@ -250,7 +250,7 @@ export default describeModule('offers-v2/categories/category-fetcher',
 
         function getCatNamesWithUndefinedUserGroup(catList) {
           const r = [];
-          catList.forEach(c => {
+          catList.forEach((c) => {
             if (c.user_group === undefined) {
               r.push(c.name);
             }
@@ -259,7 +259,7 @@ export default describeModule('offers-v2/categories/category-fetcher',
         }
         function getCatNamesWithDefinedUserGroup(catList) {
           const r = [];
-          catList.forEach(c => {
+          catList.forEach((c) => {
             if (c.user_group !== undefined) {
               r.push(c.name);
             }
@@ -322,7 +322,9 @@ export default describeModule('offers-v2/categories/category-fetcher',
         it('/check user_group filtering works for undefined', function () {
           beMock.result = DEFAULT_CAT_RESP;
           fetcher.init();
-          const catWithUndefinedUserGroup = getCatNamesWithUndefinedUserGroup(DEFAULT_CAT_RESP.categories);
+          const catWithUndefinedUserGroup = getCatNamesWithUndefinedUserGroup(
+            DEFAULT_CAT_RESP.categories
+          );
           chai.expect(catWithUndefinedUserGroup.length).not.eql(0);
           shouldKeepResourceRet = false;
           return waitForBECalled().then(() => {
@@ -337,8 +339,12 @@ export default describeModule('offers-v2/categories/category-fetcher',
         it('/check user_group filtering works for not undefined', function () {
           beMock.result = DEFAULT_CAT_RESP;
           fetcher.init();
-          const catWithUndefinedUserGroup = getCatNamesWithUndefinedUserGroup(DEFAULT_CAT_RESP.categories);
-          const catWithDefinedUserGroup = getCatNamesWithDefinedUserGroup(DEFAULT_CAT_RESP.categories);
+          const catWithUndefinedUserGroup = getCatNamesWithUndefinedUserGroup(
+            DEFAULT_CAT_RESP.categories
+          );
+          const catWithDefinedUserGroup = getCatNamesWithDefinedUserGroup(
+            DEFAULT_CAT_RESP.categories
+          );
           chai.expect(catWithUndefinedUserGroup.length).not.eql(0);
           chai.expect(catWithDefinedUserGroup.length).not.eql(0);
           const all = catWithUndefinedUserGroup.concat(catWithDefinedUserGroup);
@@ -354,7 +360,6 @@ export default describeModule('offers-v2/categories/category-fetcher',
         // TODOs: Extra tests
         // - check the categories are properly built when fetched
         // - check invalid categories are not being added to the category handler
-
       });
     });
   }

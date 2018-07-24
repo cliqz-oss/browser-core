@@ -62,9 +62,6 @@ class IsCategoryActiveExpr extends Expression {
  *   ]
  * }
  * </pre>
- * where the category object is as described on the confluence:
- * https://cliqztix.atlassian.net/wiki/spaces/SBI/pages/144310279/Categories
- * @version 5.0
  */
 class AddCategoriesExpr extends Expression {
   constructor(data) {
@@ -122,7 +119,7 @@ class AddCategoriesExpr extends Expression {
         !catObj.version ||
         !catObj.timeRangeSecs ||
         !catObj.activationData) {
-      logger.warning('invalid category object: ', catObj);
+      logger.warn('invalid category object: ', catObj);
       return null;
     }
     return new Category(

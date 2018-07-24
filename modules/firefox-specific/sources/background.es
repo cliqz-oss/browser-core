@@ -1,11 +1,14 @@
 import Rx from '../platform/lib/rxjs';
 import background from '../core/base/background';
 import { Window } from '../core/browser';
-import prefs from '../core/prefs';
+import prefs, { getCliqzPrefs } from '../core/prefs';
 import utils from '../core/utils';
 import { Services } from '../platform/globals';
 import HistoryManager from '../core/history-manager';
 import ObservableProxy from '../core/helpers/observable-proxy';
+import { getDefaultEngine } from '../core/search-engines';
+import HistoryService from '../core/history-service';
+import telemetry from '../core/services/telemetry';
 
 /**
   @namespace firefox-specific
@@ -46,9 +49,13 @@ export default background({
         v: 1,
       });
     });
+
+    this.onVisited = this.onVisited.bind(this);
+    HistoryService.onVisited.addListener(this.onVisited);
   },
 
   unload() {
+    HistoryService.onVisited.removeListener(this.onVisited);
   },
 
   beforeBrowserShutdown() {
@@ -73,6 +80,10 @@ export default background({
 
   actions: {
 
+  },
+
+  onVisited(visits) {
+    telemetry.push({ visitsCount: visits.length }, 'metrics.history.visits.count');
   },
 
   whoAmI({ startup, windowId }) {
@@ -113,7 +124,7 @@ export default background({
         history_days: history.days,
         history_urls: history.size,
         startup: Boolean(startup),
-        prefs: utils.getCliqzPrefs(),
+        prefs: getCliqzPrefs(),
         defaultSearchEngine,
         isDefaultBrowser: utils.isDefaultBrowser(),
         private_window: utils.isPrivateMode(window),
@@ -125,6 +136,12 @@ export default background({
       };
 
       utils.telemetry(info);
+
+      // for SERP ABC test, to be removed after the test has finished
+      const group = prefs.get('serp_test', null);
+      const isCliqzDefaultEngine = getDefaultEngine().name === 'Cliqz';
+      utils.telemetry({ group, isCliqzDefaultEngine },
+        false, 'metrics.experiments.serp.state');
     });
   },
 });

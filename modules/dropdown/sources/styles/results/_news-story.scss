@@ -24,6 +24,17 @@
                 img {
                     width: auto;
                 }
+
+                .mask {
+                    right: 0;
+                }
+
+                .no-thumbnail {
+                    display: inline-block;
+                    width: 74px;
+                    height: 74px;
+                    background-size: 50%;
+                }
             }
 
             .content {
@@ -34,6 +45,7 @@
 
                 p span {
                     line-height: 1.28051em;
+                    padding-right: 6px;
 
                     &.description[data-extra="description"] {
                         line-height: 1.28051em;
@@ -46,6 +58,16 @@
                     &.url {
                         margin-top: 6px;
                     }
+
+                    &.breaking-news {
+                        margin-top: 6px;
+                        font-size: 0.67em;
+                        padding: 2px 4px;
+                        background-color: #E4E4E4;
+                        border: 0.5px solid #ccc;
+                        border-radius: 2px;
+                        text-transform: uppercase;
+                    }
                 }
             }
         }
@@ -55,7 +77,31 @@
 
             .abstract .content {
                 background-color: #2385E7;
+
+                p span.breaking-news {
+                    background-color: rgba(255, 255, 255, 0.8);
+                    color: #2385E7;
+                    border-color: rgba(255, 255, 255, 0.8);
+                }
             }
+        }
+    }
+
+    &.top-news {
+        padding-top: 0;
+
+        .result {
+            .icons {
+                margin-top: 22px;
+            }
+
+            .abstract {
+                padding: 2px 0 2px 5px;
+            }
+        }
+
+        &:last-child {
+            margin-bottom: 10px;
         }
     }
 }
@@ -64,4 +110,11 @@
     &.selected, &.selected:visited {
         background-color: unset;
     }
+}
+
+.top-news-header {
+    font-size: 1.6em;
+    line-height: 1.33em;
+    padding-bottom: 7px;
+    padding-top: 0.6em;
 }

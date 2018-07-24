@@ -7,7 +7,7 @@ import TapToCopy from '../partials/TapToCopy';
 import Link from '../Link';
 import { elementSideMargins } from '../../styles/CardStyle';
 
-export default class extends React.Component {
+export default class Calculator extends React.Component {
 
   render() {
     const data = this.props.data;
@@ -16,10 +16,11 @@ export default class extends React.Component {
     if (data.ez_type === 'time') {
       title = `${getMessage(data.ez_type)} ${data.location}`;
     }
+    const answerToDisplay = data.isRounded ? `≈ ${data.answer}` : `= ${data.answer}`;
     return <Container val={data.answer}>
       { title && <Title title={title} /> }
       <View style={styles.content}>
-        <Text style={{ fontSize: 18, color: 'black' }}>{`= ${data.answer}`}</Text>
+        <Text style={{ fontSize: 18, color: 'black' }}>{answerToDisplay}</Text>
         <Text style={{ fontSize: 14, color: 'black' }}>{data.expression}</Text>
       </View>
     </Container>

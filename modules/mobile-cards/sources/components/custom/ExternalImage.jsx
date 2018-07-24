@@ -2,7 +2,7 @@ import React from 'react';
 import { Image } from 'react-native';
 
 
-export default class extends React.Component {
+export default class ExternalImage extends React.Component {
   constructor(props) {
     super(props);
     this.state = { Image: null };

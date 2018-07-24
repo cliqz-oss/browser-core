@@ -5,7 +5,7 @@
         {{#each showTimesInfo}}
             <label
                 id="tab-{{@index}}"
-                class="dropdown-tab {{#if @first}}checked{{/if}}"
+                class="dropdown-tab {{#if isCurrent}}checked{{/if}}"
             >{{showDate}}</label>
         {{/each}}
         {{#each showTimesInfo}}

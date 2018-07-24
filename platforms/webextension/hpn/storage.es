@@ -1,4 +1,4 @@
-/* eslint no-console: 'off' */
+import console from '../../core/console';
 
 // TODO: this entire file requires a rewrite from ground up
 const CliqzChromeDB = {

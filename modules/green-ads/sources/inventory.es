@@ -1,4 +1,3 @@
-import utils from '../core/utils';
 import logger from './logger';
 import ResourceLoader from '../core/resource-loader';
 import config from '../core/config';
@@ -136,7 +135,7 @@ export default class Inventory {
     });
 
     // Delay the loading of inventory
-    this.fetchTimeout = utils.setTimeout(
+    this.fetchTimeout = setTimeout(
       () => {
         logger.log('Fetch Inventory');
         this.resource.load()
@@ -158,7 +157,7 @@ export default class Inventory {
   }
 
   unload() {
-    utils.clearTimeout(this.fetchTimeout);
+    clearTimeout(this.fetchTimeout);
   }
 
   adClicked(adId) {

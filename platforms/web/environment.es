@@ -11,63 +11,14 @@ import osAPI from './os-api';
 // TODO: get rid of me!
 const storage = new Storage();
 
-// END TEMP
-const TEMPLATES = Object.freeze(Object.assign(Object.create(null), {
-  Cliqz: true,
-  'EZ-history': true,
-  calculator: true,
-  currency: true,
-  emphasis: true,
-  empty: true,
-  flight: true,
-  generic: true,
-  history: true,
-  main: true,
-  noResult: true,
-  'rd-h3-w-rating': true,
-  results: true,
-  topnews: true,
-  topsites: true,
-  weatherAlert: true,
-  weatherEZ: true,
-}));
-
 const CLIQZEnvironment = {
-  TEMPLATES_PATH: 'mobile-ui/templates/',
-  RERANKERS: [],
   RESULTS_TIMEOUT: 60000, // 1 minute
-  TEMPLATES,
-  KNOWN_TEMPLATES: {
-    'entity-generic': true,
-    'entity-video-1': true,
-    vod: true,
-    'movie-vod': true,
-    lotto: true,
-  },
-  PARTIALS: [
-    'url',
-    'logo',
-    'EZ-category',
-    'rd-h3-w-rating',
-  ],
-  defaultSearchEngine: {
-    name: 'Google',
-    url: 'https://www.google.com/search?q=',
-    default: true,
-    getSubmissionForQuery: query => CLIQZEnvironment.defaultSearchEngine.url + query,
-  },
   // TODO: check if calling the bridge for each telemetry point is expensive or not
   telemetry(msg) {
     msg.ts = Date.now();
     osAPI.pushTelemetry(msg);
   },
-  isUnknownTemplate(template) {
-    // in case an unknown template is required
-    return template &&
-      !CLIQZEnvironment.TEMPLATES[template] &&
-      !Object.prototype.hasOwnProperty.call(CLIQZEnvironment.KNOWN_TEMPLATES, template);
-  },
-  resultsHandler(r) {
+  _resultsHandler(r) {
     if (CLIQZEnvironment.lastSearch !== r._searchString) {
       console.log(`u='${CLIQZEnvironment.lastSearch}' s='${r._searchString}', returning`, 'urlbar!=search');
       return;
@@ -95,16 +46,12 @@ const CLIQZEnvironment = {
 
 
     // start XHR call ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // CliqzUtils.log(e,'XHR');
+    // console.log(e,'XHR');
     if (!CLIQZEnvironment.SEARCH) { CLIQZEnvironment.SEARCH = new Search(); }
 
-    CLIQZEnvironment.SEARCH.search(e, CLIQZEnvironment.resultsHandler);
+    CLIQZEnvironment.SEARCH.search(e, CLIQZEnvironment._resultsHandler);
   },
-  setInterval(...args) { return setInterval(...args); },
-  setTimeout(...args) { return setTimeout(...args); },
-  clearTimeout(...args) { clearTimeout(...args); },
   Promise,
-  OS: 'mobile',
   isPrivate() { return false; },
   isOnPrivateTab() { return false; },
   getWindow() { return window; },
@@ -118,33 +65,6 @@ const CLIQZEnvironment = {
     }
 
     return false;
-  },
-  // TODO: remove this dependency
-  getSearchEngines() {
-    return [CLIQZEnvironment.defaultSearchEngine];
-  },
-  // mocked functions
-  getEngineByName() {
-    return '';
-  },
-  getEngineByAlias() {
-    return '';
-  },
-  copyResult(val) {
-    osAPI.copyResult(val);
-  },
-  setDefaultSearchEngine({ name, url }) {
-    CLIQZEnvironment.defaultSearchEngine.name = name;
-    CLIQZEnvironment.defaultSearchEngine.url = url;
-  },
-  getDefaultSearchEngine() {
-    return CLIQZEnvironment.defaultSearchEngine;
-  },
-  addEngineWithDetails() {
-  },
-  restoreHiddenSearchEngines() {
-  },
-  removeEngine() {
   },
 };
 

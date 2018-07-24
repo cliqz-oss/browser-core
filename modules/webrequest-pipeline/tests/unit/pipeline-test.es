@@ -1,8 +1,15 @@
 /* globals describeModule, chai */
-
+/* eslint no-param-reassign: off */
 
 export default describeModule('webrequest-pipeline/pipeline',
   () => ({
+    'core/prefs': {
+      default: {
+        get(p, def) { return def; },
+        set() {},
+        has() { return true; },
+      },
+    },
     'core/utils': {
       default: {
         setTimeout(fn) { fn(); },
@@ -13,6 +20,7 @@ export default describeModule('webrequest-pipeline/pipeline',
         debug() {},
         log() {},
         error() {},
+        warning() {},
       },
     },
   }),
@@ -193,10 +201,10 @@ export default describeModule('webrequest-pipeline/pipeline',
           fn1Called += 1;
           res.beforeError = 1;
           throw new Error();
-          res.afterError = 2;
+          // res.afterError = 2;
         }
 
-        function fn2(state) {
+        function fn2() {
           fn2Called += 1;
           return true;
         }

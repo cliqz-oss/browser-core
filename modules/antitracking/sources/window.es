@@ -2,7 +2,7 @@
 /* eslint prefer-arrow-callback: 'off' */
 
 import AttrackBG from './background';
-import utils from '../core/utils';
+import prefs from '../core/prefs';
 import events from '../core/events';
 import { URLInfo } from '../core/url-info';
 import inject from '../core/kord/inject';
@@ -12,18 +12,18 @@ function onLocationChange({ url, windowId, tabId }) {
     return;
   }
 
-  if (this.interval) { utils.clearInterval(this.interval); }
+  if (this.interval) { clearInterval(this.interval); }
 
   let counter = 8;
 
   this.updateBadge({ tabId, url });
 
-  this.interval = utils.setInterval(function () {
+  this.interval = setInterval(function () {
     this.updateBadge({ tabId, url });
 
     counter -= 1;
     if (counter <= 0) {
-      utils.clearInterval(this.interval);
+      clearInterval(this.interval);
     }
   }.bind(this), 2000);
 }
@@ -54,7 +54,7 @@ export default class Win {
     if (this.onTabSelect) {
       this.onTabSelect.unsubscribe();
     }
-    utils.clearInterval(this.interval);
+    clearInterval(this.interval);
   }
 
   getBadgeData(info) {
@@ -84,7 +84,7 @@ export default class Win {
         const ps = info.ps;
         const hostname = url ? url.hostname : '';
         const isWhitelisted = AttrackBG.attrack.urlWhitelist.isWhitelisted(hostname);
-        const enabled = utils.getPref('modules.antitracking.enabled', true) && !isWhitelisted;
+        const enabled = prefs.get('modules.antitracking.enabled', true) && !isWhitelisted;
         let s;
 
         if (enabled) {
@@ -97,7 +97,7 @@ export default class Win {
 
         return {
           visible: true,
-          strict: utils.getPref('attrackForceBlock', false),
+          strict: prefs.get('attrackForceBlock', false),
           hostname,
           cookiesCount: info.cookies.blocked,
           requestsCount: info.requests.unsafe,

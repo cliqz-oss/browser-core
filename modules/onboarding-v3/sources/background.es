@@ -1,6 +1,7 @@
 import config from '../core/config';
 import background from '../core/base/background';
 import utils from '../core/utils';
+import prefs from '../core/prefs';
 
 /**
   @namespace onboarding-v3
@@ -30,7 +31,7 @@ export default background({
 
   actions: {
     show() {
-      utils.setPref(utils.BROWSER_ONBOARDING_PREF, true);
+      prefs.set(utils.BROWSER_ONBOARDING_PREF, true);
     },
 
     finishOnboarding() {

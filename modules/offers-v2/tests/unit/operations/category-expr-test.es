@@ -1,24 +1,18 @@
 /* global chai */
 /* global describeModule */
 /* global require */
-/* eslint-disable func-names,prefer-arrow-callback,arrow-body-style */
+/* eslint-disable func-names,prefer-arrow-callback,arrow-body-style, no-param-reassign */
 
 const tldjs = require('tldjs');
 
-var prefRetVal = {};
-var currentTS = Date.now();
-var currentDayHour = 0;
-var currentWeekDay = 0;
-let hookedResultOfLoggerInfo;
-
-let mockedTS = Date.now();
+const mockedTS = Date.now();
 const DAY_MS = 1000 * 60 * 60 * 24;
 const getTodayDayKey = timeMs => `${Math.floor((timeMs / DAY_MS))}`;
 
 const getDaysFromTimeRange = (start, end) => {
   const result = [];
   while (start <= end) {
-    result.push(`${Math.floor(start/DAY_MS)}`);
+    result.push(`${Math.floor(start / DAY_MS)}`);
     start += DAY_MS;
   }
   return result;
@@ -58,40 +52,37 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
     'offers-v2/common/offers_v2_logger': {
       default: {
         debug: () => {},
-        error: (...args) => {console.error(...args)},
-        info: (...args) => { console.log(args); hookedResultOfLoggerInfo = args; },
+        error: (...args) => { console.error(...args); },
+        info: (...args) => { console.log(args); },
         log: () => {},
-        warn: () => { console.error(...args); },
+        warn: (...args) => { console.error(...args); },
         logObject: () => {},
       }
     },
     'core/utils': {
-      default: {
-        setInterval: function() {},
-        clearInterval: function() {},
-      },
+      default: {},
     },
     'core/prefs': {
       default: {
-        get: function(x,y) {
+        get: function (x, y) {
           return y;
         }
       }
     },
     'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
+      default: function () { const stop = () => {}; return { stop }; }
     },
     'core/time': {
-      getDaysFromTimeRange: function(startTS, endTS) {
+      getDaysFromTimeRange: function (startTS, endTS) {
         return getDaysFromTimeRange(startTS, endTS);
       },
-      getDateFromDateKey: function(dateKey, hours = 0, min = 0, seconds = 0) {
+      getDateFromDateKey: function (dateKey) {
         return `${Number(dateKey) * DAY_MS}`;
       },
-      timestamp: function() {
+      timestamp: function () {
         return mockedTS;
       },
-      getTodayDayKey: function() {
+      getTodayDayKey: function () {
         return getTodayDayKey(mockedTS);
       }
     },
@@ -108,22 +99,22 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
 
         hasCategory(catName) { return !!(this.categories[catName]); }
         addCategory(category) { this.categoriesAdded.push(category); }
-        removeCategory(category) { }
+        removeCategory() { }
         build() { this.buildCalled = true; }
         cleanUp() { }
-        newUrlEvent(tokenizedUrl) {}
+        newUrlEvent() {}
         loadPersistentData() {}
         savePersistentData() { }
 
-        getMatchesForCategory(catName) {
+        getMatchesForCategory() {
           // TODO
         }
 
-        getMaxCountDaysForCategory(catName) {
+        getMaxCountDaysForCategory() {
           // TODO
         }
 
-        getLastMatchTsForCategory(catName) {
+        getLastMatchTsForCategory() {
           // TODO
         }
         isCategoryActive(catName) { return !!this.categories[catName]; }
@@ -133,10 +124,7 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
   }),
   () => {
     describe('/category-expr operations', () => {
-      let ops;
-      let eventLoop;
       let buildDataGen;
-      let prefMock;
       let ExpressionBuilder;
       let exprBuilder;
       let CategoryHandler;
@@ -144,13 +132,6 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
 
       function buildOp(obj) {
         return exprBuilder.createExp(obj);
-      }
-
-      function testCase(op, expectedVal, ctx) {
-        const e = buildOp(op);
-        return e.evalExpr(ctx).then((result) => {
-          chai.expect(result).eql(expectedVal);
-        });
       }
 
       function checkCategories(toUpdate, toCheck) {
@@ -162,7 +143,6 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
       }
 
       beforeEach(function () {
-        ops = this.module().default;
         CategoryHandler = this.deps('offers-v2/categories/category-handler').default;
         catHandlerMock = new CategoryHandler();
         buildDataGen = {
@@ -184,7 +164,6 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
         let ctx;
         beforeEach(function () {
           ctx = {};
-          prefRetVal = {};
           catHandlerMock.clear();
         });
 
@@ -221,10 +200,9 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
             chai.expect(result).eql(true);
           });
         });
-
       });
 
-       /**
+      /**
        * ==================================================
        * $if_pref add_categories tests
        * ==================================================
@@ -234,7 +212,6 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
         let ctx;
         beforeEach(function () {
           ctx = {};
-          prefRetVal = {};
           catHandlerMock.clear();
         });
 
@@ -264,7 +241,7 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
 
         it('/invalid args call 3', () => {
           const o = [
-            '$add_categories', [{ xyz:{} }]
+            '$add_categories', [{ xyz: {} }]
           ];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
@@ -281,7 +258,7 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
             { name: 'c3', patterns: [], version: 1, timeRangeSecs: 1, activationData: {} },
           ];
           const o = [
-            '$add_categories', [{ toUpdate, }]
+            '$add_categories', [{ toUpdate }]
           ];
           op = buildOp(o);
           return op.evalExpr(ctx).then((result) => {
@@ -290,9 +267,7 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
             checkCategories(toUpdate, catHandlerMock.categoriesAdded);
           });
         });
-
       });
-
     });
   },
 );

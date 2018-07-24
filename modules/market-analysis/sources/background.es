@@ -1,10 +1,11 @@
 import background from '../core/base/background';
-import utils from '../core/utils';
+import telemetry from '../core/services/telemetry';
+import { httpGet } from '../core/http';
+import { shouldEnableModule } from '../core/app';
 
 import MAConfigs from './conf/ma_configs';
 import logger from './common/logger';
 import CliqzMarketAnalyzer from './market_analyzer_main';
-import { isTelemetryEnabled } from './util';
 
 /**
   @namespace marker-analysis
@@ -12,17 +13,33 @@ import { isTelemetryEnabled } from './util';
   @class Background
  */
 export default background({
+  requiresServices: ['telemetry'],
+  isRunning: false,
+
   /**
     @method init
     @param settings
   */
   init() {
-    if (MAConfigs.IS_ENABLED && isTelemetryEnabled()) {
+    // If module is already running, skip.
+    if (this.isRunning) { return; }
+
+    // Register listeners for telemetry state change.
+    telemetry.onTelemetryEnabled(this.actions.onTelemetryEnabled);
+    telemetry.onTelemetryDisabled(this.actions.onTelemetryDisabled);
+
+    // If telemetry is currently disabled, do not init.
+    if (!telemetry.isEnabled()) { return; }
+
+    logger.debug('init');
+    this.isRunning = true;
+
+    if (MAConfigs.IS_ENABLED) {
       CliqzMarketAnalyzer.init();
       // The content of this file is subject to change
       // The file is shipped together with the releases
       const url = 'chrome://cliqz/content/market-analysis/mappings.json';
-      utils.httpGet(url, (res) => {
+      httpGet(url, (res) => {
         CliqzMarketAnalyzer.regexMappings = JSON.parse(res.response);
         this.initialized = true;
         logger.log('>>> Loaded mappings.json <<<');
@@ -38,26 +55,39 @@ export default background({
   },
 
   unload() {
+    if (!this.isRunning) { return; }
+    this.isRunning = false;
+
+    logger.debug('unloading');
+
     if (CliqzMarketAnalyzer.sendSignalTO) {
-      utils.clearTimeout(CliqzMarketAnalyzer.sendSignalTO);
+      clearTimeout(CliqzMarketAnalyzer.sendSignalTO);
     }
     if (CliqzMarketAnalyzer.sendSignalLoopTO) {
-      utils.clearTimeout(CliqzMarketAnalyzer.sendSignalLoopTO);
+      clearTimeout(CliqzMarketAnalyzer.sendSignalLoopTO);
     }
   },
 
   beforeBrowserShutdown() {
-
   },
 
   events: {
     'content:location-change': function onLocationChange({ url, isPrivate }) {
-      if (this.initialized && isTelemetryEnabled() && !isPrivate) {
+      if (this.initialized && !isPrivate) {
         CliqzMarketAnalyzer.matchURL(url);
       }
     }
   },
 
   actions: {
+    // Life-cycle handlers
+    onTelemetryEnabled() {
+      if (shouldEnableModule('market-analysis')) {
+        this.init();
+      }
+    },
+    onTelemetryDisabled() {
+      this.unload();
+    },
   },
 });

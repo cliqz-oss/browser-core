@@ -1,6 +1,6 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
 
-import utils from '../../core/utils';
+import prefs from '../../core/prefs';
 import config from '../../core/config';
 import ExpressionBuilder from './exp_builder';
 import logger from '../common/offers_v2_logger';
@@ -26,8 +26,8 @@ export default class TriggerMachine {
     this.triggersRoot = config.settings['triggers-root'] || 'root';
 
     // override if exists this flag
-    if (utils.getPref('offersTriggerRootOverride')) {
-      this.triggersRoot = utils.getPref('offersTriggerRootOverride');
+    if (prefs.get('offersTriggerRootOverride')) {
+      this.triggersRoot = prefs.get('offersTriggerRootOverride');
     }
 
     this.rootTrigger = {

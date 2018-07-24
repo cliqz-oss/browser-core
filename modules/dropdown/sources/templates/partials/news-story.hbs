@@ -1,0 +1,55 @@
+<a class="result {{cssClasses}}" data-url="{{url}}" href="{{displayUrl}}">
+    {{> partials/logo}}
+    <div class="abstract">
+        {{#exists thumbnail}}
+            {{#if thumbnail}}
+                <div class="thumbnail">
+                    <img src="{{thumbnail}}" data-extra="image" />
+                    {{#if duration}}
+                        <span class="duration">&#9658; {{duration}}</span>
+                    {{/if}}
+                </div>
+            {{else}}
+                <div class="thumbnail">
+                    <span class="mask"></span>
+                    <span class="no-thumbnail" {{#if logoDetails.style}}style="{{logoDetails.style}}"{{/if}}>
+                        {{logoDetails.text}}
+                    </span>
+                </div>
+            {{/if}}
+        {{/exists}}
+
+        <div class="content white-background">
+            <p>
+                <span data-extra="title" class="title">
+                    {{emphasis title query 2 true}}
+                </span>
+            </p>
+
+            <p>
+                {{#if description}}
+                    <span class="description" data-extra="description">
+                        {{emphasis description query 2 true}}
+                    </span>
+                {{/if}}
+            </p>
+            <p>
+                {{#if isBreakingNews}}
+                    <span class="breaking-news">
+                        {{local 'breaking_news_label'}}
+                    </span>
+                {{/if}}
+                {{#if publishedAt}}
+                    <span class="published-at subtitle attention">
+                        {{agoline publishedAt}}
+                    </span>
+                {{/if}}
+                {{#if friendlyUrl}}
+                    <span class="url">
+                        {{friendlyUrl}}
+                    </span>
+                {{/if}}
+            </p>
+        </div>
+    </div>
+</a>

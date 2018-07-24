@@ -156,6 +156,7 @@ class Pagination extends React.Component {
       (<button
         href="#"
         key={page}
+        tabIndex="-1"
         className={`dash ${((page === pager.currentPage) ? 'active' : '')}`}
         onClick={() => this.onPageSelected(page)}
       >

@@ -18,8 +18,8 @@ function delayedTest(test, done, delay) {
   setTimeout(() => {
     try {
       test();
-      done()
-    } catch(e) {
+      done();
+    } catch (e) {
       done(e);
     }
   }, delay);
@@ -45,7 +45,7 @@ export default describeModule('antitracking/steps/oauth-detector',
     describe('OAuthDetector', () => {
       let OAuthDetector;
 
-      beforeEach(function initModule() {
+      beforeEach(function () {
         OAuthDetector = this.module().default;
       });
 
@@ -53,7 +53,7 @@ export default describeModule('antitracking/steps/oauth-detector',
         let events;
         let detectorInstance;
 
-        beforeEach(function() {
+        beforeEach(function () {
           return this.system.import('core/events').then((mod) => {
             events = mod.default;
             detectorInstance = new OAuthDetector({ CLICK_TIMEOUT: 10 });
@@ -61,7 +61,7 @@ export default describeModule('antitracking/steps/oauth-detector',
           });
         });
 
-        afterEach(function() {
+        afterEach(function () {
           detectorInstance.unload();
         });
 
@@ -111,7 +111,7 @@ export default describeModule('antitracking/steps/oauth-detector',
           const sender = mockSender(tab, url);
           events.pub('core:mouse-down', null, '', '', sender);
           delayedTest(() => {
-            chai.expect(detectorInstance.clickActivity).to.eql({})
+            chai.expect(detectorInstance.clickActivity).to.eql({});
           }, done, 15);
         });
 
@@ -135,7 +135,7 @@ export default describeModule('antitracking/steps/oauth-detector',
           const url1 = 'https://cliqz.com';
           const url2 = 'https://ghostery.com';
           events.pub('core:mouse-down', null, '', '', mockSender(tab1, url1));
-          events.pub('core:mouse-down', null, '', '', mockSender(tab2, url2))
+          events.pub('core:mouse-down', null, '', '', mockSender(tab2, url2));
           setTimeout(() => events.pub('core:mouse-down', null, '', '', mockSender(tab1, url1)), 10);
           delayedTest(() => {
             chai.expect(detectorInstance.clickActivity).to.eql({
@@ -146,7 +146,6 @@ export default describeModule('antitracking/steps/oauth-detector',
       });
 
       describe('checkIsOAuth', () => {
-
         let URLInfo;
         let events;
         let detectorInstance;
@@ -159,10 +158,10 @@ export default describeModule('antitracking/steps/oauth-detector',
             sourceUrlParts: URLInfo.get(sourceUrl),
             isFullPage: () => fullPage,
             incrementStat: () => null,
-          }
+          };
         }
 
-        beforeEach(function() {
+        beforeEach(function () {
           return Promise.all([
             this.system.import('core/events'),
             this.system.import('core/url-info')]
@@ -174,7 +173,7 @@ export default describeModule('antitracking/steps/oauth-detector',
           });
         });
 
-        afterEach(function() {
+        afterEach(function () {
           detectorInstance.unload();
         });
 
@@ -229,9 +228,7 @@ export default describeModule('antitracking/steps/oauth-detector',
             chai.expect(detectorInstance.checkIsOAuth(state)).to.be.true;
           }, done, 5);
         });
-
       });
-
     });
   }
-)
+);

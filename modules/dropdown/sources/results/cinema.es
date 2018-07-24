@@ -71,6 +71,10 @@ class ShowTimeDate extends GenericResult {
     return this.rawResult.date;
   }
 
+  get isCurrent() {
+    return this.rawResult.isCurrent;
+  }
+
   get rows() {
     return this.rawResult.rows.map(
       row => new ShowTimeRow({
@@ -113,11 +117,12 @@ export default class CinemaResult extends GenericResult {
       return [];
     }
     const results = showDates.map(
-      date => new ShowTimeDate({
+      (date, index) => new ShowTimeDate({
         date: date.date,
         rows: this.isMovieEZ ? date.cinema_list : date.movie_list,
         type: this.isMovieEZ ? 'movie' : 'cinema',
         text: this.query,
+        isCurrent: this.currentTab !== undefined ? this.currentTab === index : index === 0,
       }, this.resultTools)
     );
 
@@ -221,13 +226,16 @@ export default class CinemaResult extends GenericResult {
 
         [...$allLabels].forEach(l => l.classList.remove('checked'));
         e.target.classList.add('checked');
+        const tabIndex = [...$allLabels].indexOf(e.target);
+
+        this.currentTab = tabIndex;
 
         const signal = {
           type: 'results',
           action: 'click',
           view: 'EntityMovie',
           target: 'tab',
-          index: [...$allLabels].indexOf(e.target),
+          index: tabIndex,
         };
         this.resultTools.actions.updateHeight();
         this.resultTools.actions.telemetry(signal);

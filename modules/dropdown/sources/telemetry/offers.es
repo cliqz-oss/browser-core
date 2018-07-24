@@ -9,7 +9,7 @@ class OfferResult {
   // Index is only important to report standalone offers
   get index() {
     return this.allResults
-      .filter(r => r.provider === 'cliqz')
+      .filter(r => r.provider === 'cliqz' || r.provider === 'cliqz::offers')
       .findIndex(r => r.url === this.rawResult.url);
   }
 
@@ -135,7 +135,7 @@ export default class OffersReporter {
     }
 
     let position = results
-      .filter(r => r.provider === 'cliqz')
+      .filter(r => r.provider === 'cliqz' || r.provider === 'cliqz::offers')
       .findIndex(r => r.url === clickedResult.url);
     position += 1;
 

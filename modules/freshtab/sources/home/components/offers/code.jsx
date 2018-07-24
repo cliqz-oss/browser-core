@@ -1,5 +1,4 @@
 import React from 'react';
-import ToggleDisplay from 'react-toggle-display';
 import { sendOffersMessage } from '../../services/offers';
 import { offerClickSignal } from '../../services/telemetry/offers';
 import { tt } from '../../i18n';
@@ -46,7 +45,7 @@ export default class Code extends React.Component {
           {this.props.data.code}
         </span>
         <span className="divider">&middot;</span>
-        <ToggleDisplay show={this.state.show}>
+        {this.state.show ?
           <span
             role="presentation"
             className="copy-code"
@@ -54,12 +53,11 @@ export default class Code extends React.Component {
           >
             {tt('offers_copy_code')}
           </span>
-        </ToggleDisplay>
-        <ToggleDisplay hide={this.state.show}>
+          :
           <span className="code-copied">
             {tt('offers_code_copied')}
           </span>
-        </ToggleDisplay>
+        }
       </div>
     );
   }

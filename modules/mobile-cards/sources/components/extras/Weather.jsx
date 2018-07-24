@@ -4,7 +4,7 @@ import { getCardWidth, elementTopMargin } from '../../styles/CardStyle';
 import NativeDrawable, { normalizeUrl } from '../custom/NativeDrawable';
 import MoreOn from '../partials/MoreOn';
 
-export default class extends React.Component {
+export default class Weather extends React.Component {
 
   displayToday(day) {
     const cardWidth = getCardWidth();

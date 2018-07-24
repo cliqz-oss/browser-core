@@ -25,6 +25,14 @@ def matrix = [
     'webextension': [
         'config': 'webextension.js',
     ],
+    'cliqz-android': [
+        'config': 'cliqz-android.js',
+        'cert_credentials_id': '86407680-3a2a-42ea-9bd8-d42c0c75ed96',
+        'cert_pass_credentials_id': 'cae4ee4b-bb2c-4aec-99b0-040919318d87',
+    ],
+    'worldcup': [
+        'config': 'worldcup.js',
+    ],
     /*
     'anolysis': [
         'config': 'experiments/anolysis.js',
@@ -35,9 +43,13 @@ def matrix = [
 if (isIntegrationBranch) {
     matrix['browser'] = [
       'config': 'browser.js',
+      'cert_credentials_id': '766bbf53-83c2-4917-a837-ee612afcbb87',
+      'cert_pass_credentials_id': '9983e1f3-9c73-42e7-8036-3b34a592dd52',
     ]
     matrix['amo'] = [
       'config': 'amo.js',
+      'cert_credentials_id': '766bbf53-83c2-4917-a837-ee612afcbb87',
+      'cert_pass_credentials_id': '9983e1f3-9c73-42e7-8036-3b34a592dd52',
     ]
 }
 
@@ -110,6 +122,8 @@ node('master') {
 def build(Map m) {
     def channel = m.channel
     def config = m.config
+    def certCredentialsId = m.certCredentialsId  ? m.certCredentialsId : '766bbf53-83c2-4917-a837-ee612afcbb87'
+    def certPassCredentialsId = m.certPassCredentialsId ? m.certPassCredentialsId : '9983e1f3-9c73-42e7-8036-3b34a592dd52'
     def getImage = m.getImage
     def getCommitId = m.getCommitId
     def getVersion = m.getVersion
@@ -144,14 +158,21 @@ def build(Map m) {
                             usernameVariable: 'BALROG_ADMIN',
                         ),
                         file(
-                            credentialsId: '766bbf53-83c2-4917-a837-ee612afcbb87',
+                            credentialsId: certCredentialsId,
                             variable: 'CLIQZ_CERT_PATH',
                         ),
                         file(
-                            credentialsId: '9983e1f3-9c73-42e7-8036-3b34a592dd52',
+                            credentialsId: certPassCredentialsId,
                             variable: 'CLIQZ_CERT_PASS_PATH',
                         ),
                     ]) {
+                        def signOutput = sh(
+                            returnStdout: true,
+                            script: 'cd /app && ./fern.js sign',
+                        ).trim()
+
+                        echo signOutput
+
                         def output = sh(
                             returnStdout: true,
                             script: 'cd /app && ./fern.js publish',
@@ -175,6 +196,8 @@ def stepsForParallel = helpers.entries(matrix).collectEntries {
     [(it[0]): build(
         channel: it[0],
         config: it[1]['config'],
+        certCredentialsId: it[1]['cert_credentials_id'],
+        certPassCredentialsId: it[1]['cert_pass_credentials_id'],
         getImage: { codeImage },
         getCommitId: { triggeringCommitHash },
         getVersion: { version },

@@ -1,4 +1,13 @@
-import { getPref, setPref, hasPref, clearPref, enableChangeEvents, disableChangeEvents, init } from '../platform/prefs';
+import {
+  getPref,
+  setPref,
+  hasPref,
+  clearPref,
+  enableChangeEvents,
+  disableChangeEvents,
+  init,
+  getAllCliqzPrefs
+} from '../platform/prefs';
 
 export default {
   /**
@@ -35,8 +44,8 @@ export default {
    * Set a value of type object in preferences db
    * @param {string}  pref - preference identifier
    */
-  getObject(key) {
-    return JSON.parse(this.get(key, '{}'));
+  getObject(key, ...rest) {
+    return JSON.parse(this.get(key, '{}', ...rest));
   },
 
   /**
@@ -44,18 +53,56 @@ export default {
    * @param {string}  pref - preference identifier
    * @param {object|function}
    */
-  setObject(key, value) {
+  setObject(key, value, ...rest) {
     if (value instanceof Function) {
       const prevValue = this.getObject(key);
       const newValue = value(prevValue);
-      this.setObject(key, newValue);
+      this.setObject(key, newValue, ...rest);
     } else if (typeof value === 'object') {
-      this.set(key, JSON.stringify(value));
+      this.set(key, JSON.stringify(value), ...rest);
     } else {
       throw new TypeError();
     }
   },
 
   init,
-
 };
+
+const TELEMETRY_WHITELIST = new Set([
+  'ABTests', // state of running AB tests
+  'abtests_running', // list of AB tests in new AB testing framework
+  'adultContentFilter', // adult filter state for search
+  'antitracking.enabled', // anti tracking module state
+  'backend_country', // search backend selection
+  'cliqz-adb', // ad blocking module state
+  'cliqz-anti-phishing-enabled', // anti phishing module state
+  'config_location', // current contry (only a limited set is allowed from the backend)
+  'config_ts', // current day YYYYMMDD format
+  'developer', // extension developer
+  'distribution', // distribution source
+  'full_distribution', // distribution source
+  'freshtab.state', // freshtab state
+  'freshtabConfig', // configuration for freshtab elements
+  'hpn-query', // query (search) though HPN
+  'humanWebOptOut', // human web state
+  'install_date', // self explanatory :)
+  'offers_location', // local offers
+  'offers2UserEnabled', // offers state
+  'offersDevFlag', // offers dev flag
+  'serp_test', // AB Test running from 1.27.2, possible values A/B/C
+  'session', // user session
+  'share_location', // use location for enhanced local results
+  'telemetry', // telemetry state
+]);
+
+export function getCliqzPrefs() {
+  const cliqzPrefs = {};
+  const cliqzPrefsKeys = getAllCliqzPrefs()
+    .filter(entry => TELEMETRY_WHITELIST.has(entry));
+
+  for (let i = 0; i < cliqzPrefsKeys.length; i += 1) {
+    cliqzPrefs[cliqzPrefsKeys[i]] = getPref(cliqzPrefsKeys[i]);
+  }
+
+  return cliqzPrefs;
+}

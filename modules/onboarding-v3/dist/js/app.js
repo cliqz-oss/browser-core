@@ -16,7 +16,7 @@ function localizeDocument() {
 }
 
 function telemetrySig(msg) {
-  window.postMessage(JSON.stringify({
+  chrome.runtime.sendMessage({
     target: 'cliqz',
     module: 'core',
     action: 'sendTelemetry',
@@ -28,7 +28,7 @@ function telemetrySig(msg) {
       target: msg.target,
       show_duration: tlmTimer
     }]
-  }), '*');
+  });
 }
 
 
@@ -60,19 +60,19 @@ function show() {
     resumed: 'false'
   });
 
-  window.postMessage(JSON.stringify({
+  chrome.runtime.sendMessage({
     target: 'cliqz',
     module: 'onboarding-v3',
     action: 'show'
-  }), '*');
+  });
 }
 
 function finishOnboarding() {
-  window.postMessage(JSON.stringify({
+  chrome.runtime.sendMessage({
     target: 'cliqz',
     module: 'onboarding-v3',
     action: 'finishOnboarding'
-  }), "*");
+  });
 }
 
 // =================

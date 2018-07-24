@@ -1,3 +1,5 @@
+/* global chai, describeModule */
+
 const MOCK = {
   'core/utils': {
     default: {

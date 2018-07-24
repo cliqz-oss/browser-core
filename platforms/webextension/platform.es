@@ -1,7 +1,9 @@
 /* global navigator */
 
+const isMobile = navigator.userAgent.includes('Mobile');
+
 export default {
-  isMobile: false,
+  isMobile,
   isFirefox: false,
   isChromium: true,
   platformName: 'webextension',

@@ -8,11 +8,9 @@ export default describeModule('hpn/routing',
   },
 
   () => {
-
     const expect = chai.expect;
 
     describe('createProxyList', () => {
-
       let createProxyList;
 
       beforeEach(function () {
@@ -34,11 +32,9 @@ export default describeModule('hpn/routing',
 
         expect(createProxyList(routingTable)).to.deep.equal([proxy1, proxy2]);
       });
-
     });
 
     describe('getProxyVerifyUrl', () => {
-
       let getProxyVerifyUrl;
 
       beforeEach(function () {
@@ -71,8 +67,6 @@ export default describeModule('hpn/routing',
         });
         expect(url).to.equal('http://1.2.3.4/v2/verify');
       });
-
     });
-
   }
 );

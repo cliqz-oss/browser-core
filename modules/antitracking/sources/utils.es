@@ -5,11 +5,11 @@ import { toBase64 } from '../core/encoding';
 import { compress } from '../core/gzip';
 import { VERSION } from './config';
 import { getHourTimestamp } from './time';
-import utils from '../core/utils';
+import prefs from '../core/prefs';
 
 
 function getCountryCode() {
-  return utils.getPref('config_location', '--');
+  return prefs.get('config_location', '--');
 }
 
 export function compressionAvailable() {

@@ -22,7 +22,7 @@ export default describeModule('anolysis/internals/storage/memory',
       default: {
         debug() {},
         log() {},
-        error(...args) { console.log('ERROR', ...args); },
+        error() {},
       },
     },
   }),

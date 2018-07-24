@@ -17,7 +17,7 @@ export const dataOn = {
   generalState: 'active',
   feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
   amo: false,
-  funnelCake: false
+  compactView: false
 };
 
 export const dataOff = {
@@ -39,7 +39,7 @@ export const dataOff = {
   generalState: 'active',
   feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
   amo: false,
-  funnelCake: false
+  compactView: false
 };
 
 export const dataAmo = {
@@ -57,5 +57,5 @@ export const dataAmo = {
   generalState: 'active',
   feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
   amo: true,
-  funnelCake: false
+  compactView: false
 };

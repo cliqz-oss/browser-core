@@ -6,10 +6,12 @@ import * as browser from '../platform/browser';
 import Attrack from './attrack';
 import { DEFAULT_ACTION_PREF, updateDefaultTrackerTxtRule } from './tracker-txt';
 import utils from '../core/utils';
+import prefs from '../core/prefs';
 import telemetry from './telemetry';
 import Config, { MIN_BROWSER_VERSION } from './config';
 import { updateTimestamp } from './time';
-import { getAppOwner } from '../core/domain-info';
+import domainInfo from '../core/services/domain-info';
+import bindObjectFunctions from '../core/helpers/bind-functions';
 
 /**
 * @namespace antitracking
@@ -19,7 +21,7 @@ export default background({
   // Injected in window.es
   // controlCenter: inject.module('control-center'),
 
-  requiresServices: ['cliqz-config'],
+  requiresServices: ['cliqz-config', 'domainInfo'],
 
   /**
   * @method init
@@ -35,15 +37,15 @@ export default background({
     }
 
     // fix for users without pref properly set: set to value from build config
-    if (!utils.hasPref('attrackRemoveQueryStringTracking')) {
-      utils.setPref('attrackRemoveQueryStringTracking', true);
+    if (!prefs.has('attrackRemoveQueryStringTracking')) {
+      prefs.set('attrackRemoveQueryStringTracking', true);
     }
 
     // indicates if the antitracking background is initiated
     this.enabled = true;
     this.clickCache = {};
 
-    utils.bindObjectFunctions(this.popupActions, this);
+    bindObjectFunctions(this.popupActions, this);
 
     // inject configured telemetry module
     // do not initiate if disabled from config
@@ -107,7 +109,7 @@ export default background({
         const stats = {};
 
         Object.keys(info.known || {}).forEach((appId) => {
-          const company = getAppOwner(appId);
+          const company = domainInfo.getAppOwner(appId);
           if (!company) {
             return;
           }
@@ -182,7 +184,7 @@ export default background({
     * @param cb Callback
     */
     toggleAttrack(args, cb) {
-      const currentState = utils.getPref('modules.antitracking.enabled', true);
+      const currentState = prefs.get('modules.antitracking.enabled', true);
 
       if (currentState) {
         this.attrack.disableModule();
@@ -251,10 +253,10 @@ export default background({
   },
 
   status() {
-    const enabled = utils.getPref('modules.antitracking.enabled', true);
+    const enabled = prefs.get('modules.antitracking.enabled', true);
     return {
       visible: true,
-      strict: utils.getPref('attrackForceBlock', false),
+      strict: prefs.get('attrackForceBlock', false),
       state: enabled ? 'active' : 'critical',
       totalCount: 0,
     };
@@ -266,7 +268,7 @@ export default background({
         updateDefaultTrackerTxtRule();
       } else if (pref === 'config_ts') {
         // update date timestamp set in humanweb
-        updateTimestamp(utils.getPref('config_ts', null));
+        updateTimestamp(prefs.get('config_ts', null));
       }
       this.config.onPrefChange(pref);
     },
@@ -299,7 +301,7 @@ export default background({
       });
     },
     'control-center:antitracking-strict': () => {
-      utils.setPref('attrackForceBlock', !utils.getPref('attrackForceBlock', false));
+      prefs.set('attrackForceBlock', !prefs.get('attrackForceBlock', false));
     },
     'core:mouse-down': function (...args) {
       if (this.attrack.pipelineSteps.cookieContext) {

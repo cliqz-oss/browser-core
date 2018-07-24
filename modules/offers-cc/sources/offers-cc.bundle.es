@@ -297,10 +297,16 @@ $(document).on('click', '.cta-btn', function itemClick() {
 
 // When use clicks on "Call to action" elements
 $(document).on('click', '.cta-element', function itemClick() {
+  const currentVoucher = $(this).closest('.voucher-wrapper');
+  if (currentVoucher && !currentVoucher.hasClass('active')) {
+    return; // Don't open url if this offer is collapsed
+  }
+
   sendMessageToWindow({
     action: 'openURL',
     data: {
       url: $(this).data('url'),
+      elemId: $(this).data('elem'),
       closePopup: true,
       isCallToAction: true,
       offerId: getOfferId($(this))

@@ -53,7 +53,7 @@ function testFiltersEngine(optimizeAOT) {
     const cosmeticMatches = 'modules/adblocker/tests/unit/data/cosmetics_matching.txt';
     const domainMatches = 'modules/adblocker/tests/unit/data/domain_matching.txt';
 
-    beforeEach(function initializeCosmeticEngine() {
+    beforeEach(function () {
       this.timeout(30000);
       FiltersEngine = adblocker.FiltersEngine;
 
@@ -127,7 +127,7 @@ function testFiltersEngine(optimizeAOT) {
     let engine = null;
     const matchingPath = 'modules/adblocker/tests/unit/data/filters_matching.txt';
 
-    beforeEach(function importFiltersEngine() {
+    beforeEach(function () {
       FiltersEngine = adblocker.FiltersEngine;
     });
 
@@ -172,7 +172,7 @@ function testFiltersEngine(optimizeAOT) {
     });
     filters = filters.join('\n');
 
-    beforeEach(function initializeFiltersEngine() {
+    beforeEach(function () {
       if (engine === null) {
         this.timeout(20000);
         FiltersEngine = adblocker.FiltersEngine;
@@ -212,7 +212,7 @@ function testFiltersEngine(optimizeAOT) {
     const filterListPath = 'modules/adblocker/tests/unit/data/filters_list.txt';
     const notMatchingPath = 'modules/adblocker/tests/unit/data/filters_not_matching.txt';
 
-    beforeEach(function initializeFiltersEngine() {
+    beforeEach(function () {
       if (engine === null) {
         this.timeout(20000);
         FiltersEngine = adblocker.FiltersEngine;
@@ -253,7 +253,7 @@ function testFiltersEngine(optimizeAOT) {
     const notMatchingPath = 'modules/adblocker/tests/unit/data/filters_redirect.txt';
     const resourcesPath = 'modules/adblocker/tests/unit/data/resources.txt';
 
-    beforeEach(function initializeFiltersEngine() {
+    beforeEach(function () {
       if (engine === null) {
         this.timeout(20000);
 

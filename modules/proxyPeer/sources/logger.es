@@ -1,8 +1,3 @@
 import Logger from '../core/logger';
 
-
-export default Logger({
-  useDump: false,
-  level: 'log',
-  prefix: '[proxyPeer]',
-});
+export default Logger.get('proxyPeer', { level: 'log' });

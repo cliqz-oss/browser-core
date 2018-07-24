@@ -1,0 +1,7 @@
+{
+  "url": "https://some.empty.page.test",
+
+  // Given a page without content, it should be safe to assume
+  // that we want to send any messages for it.
+  "mustNotContain": [{ "action": "*" }]
+}

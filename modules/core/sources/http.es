@@ -1,11 +1,37 @@
 /* eslint no-param-reassign: 'off' */
+/* eslint no-restricted-syntax: off */
 
 import console from './console';
 import { compress } from './gzip';
 import { XMLHttpRequestFactory, setPrivateFlags, setBackgroundRequest } from '../platform/xmlhttprequest';
+import { fetch as _fetch } from '../platform/fetch';
 import { chromeUrlHandler } from '../platform/chrome-url-handler';
 
-export { fetch, Headers, Request, Response } from '../platform/fetch';
+const listeners = new Set();
+
+const notifyListeners = (params) => {
+  [...listeners].forEach((listener) => {
+    try {
+      listener(params);
+    } catch (e) {
+      // carry on
+    }
+  });
+};
+
+export function fetch(...args) {
+  notifyListeners({
+    url: args[0],
+  });
+  return _fetch(...args);
+}
+
+export function fetchFactory() {
+  return fetch;
+}
+
+export { Headers, Request, Response } from '../platform/fetch';
+
 
 /** Legacy httpHandler implementation, based on XMLHttpRequest.
  *
@@ -93,6 +119,32 @@ export function httpHandler(...args) {
   return activeHandler(...args);
 }
 
+export function _httpHandler(...args) {
+  notifyListeners({
+    url: args[1],
+  });
+
+  const errorHandler = args[3]; // see httpGet or httpPost arguments
+  try {
+    return httpHandler.call(undefined, ...args);
+  } catch (e) {
+    if (errorHandler) {
+      errorHandler(e);
+    } else {
+      console.log(e, 'httpHandler failed');
+    }
+  }
+  return undefined;
+}
+
+export function httpGet(url, callback, onerror, timeout, _, sync) {
+  return _httpHandler('GET', url, callback, onerror, timeout, _, sync);
+}
+
+export function httpPost(url, callback, data, onerror, timeout) {
+  return _httpHandler('POST', url, callback, onerror, timeout, data);
+}
+
 /**
  *  Replace default http handler with fn
  */
@@ -127,4 +179,12 @@ export function promiseHttpHandler(method, url, data, timeout, compressedPost) {
       httpHandler(method, url, resolve, reject, timeout, data);
     }
   });
+}
+
+export function addListener(listener) {
+  listeners.add(listener);
+}
+
+export function removeListener(listener) {
+  listeners.remove(listener);
 }

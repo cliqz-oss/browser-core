@@ -46,7 +46,7 @@ const handleQueriesWrapper = (query$, highlight$, providers, config) => {
 
 const search = ({ query$, focus$, highlight$ = Rx.Observable.empty() }, providers, config) => {
   const results$ = focus$
-    .switchMap((event) => {
+    .switchMap(({ event }) => {
       if (event === 'focus') {
         logger.log('Search start (focus)');
         if (config.clearResultsOnSessionStart) {

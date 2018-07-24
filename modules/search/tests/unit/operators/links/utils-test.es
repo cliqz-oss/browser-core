@@ -1,3 +1,5 @@
+/* global chai, describeModule */
+
 const mock = {
 };
 

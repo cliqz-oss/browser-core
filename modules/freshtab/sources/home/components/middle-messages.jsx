@@ -5,7 +5,7 @@ import { messageShowSignal, messageClickSignal, messageCloseSignal } from '../se
 
 export default class MiddleMessages extends React.Component {
   componentDidMount() {
-    messageShowSignal();
+    messageShowSignal(this.props.messages[0].id);
   }
 
   handleCTAClick(message) {
@@ -15,9 +15,9 @@ export default class MiddleMessages extends React.Component {
   }
 
   handleCloseClick(message) {
-    messageCloseSignal();
     const messageId = message.id;
     const handler = message.handler;
+    messageCloseSignal(messageId);
     cliqz.freshtab.dismissMessage(messageId, handler);
     cliqz.storage.setState((prevState) => {
       const prev = prevState;

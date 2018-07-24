@@ -1,27 +1,26 @@
-FROM node:7.10.1-stretch
+FROM node:9.11.1-stretch
 
-RUN npm install -g \
-  broccoli-cli \
-  ember-cli \
-  phantomjs-prebuilt \
-  yuidocjs \
-  selleck
+ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && \
-  apt-get install -y \
-    build-essential \
-    python-dev \
-    python-pip \
-    zip
+RUN apt-get update --no-install-recommends  \
+ && apt-get install -y                      \
+    build-essential                         \
+    python-dev                              \
+    python-pip                              \
+    zip                                     \
+ && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --upgrade cffi
-RUN pip install \
-  fabric \
-  jinja2 \
-  awscli \
-  requests \
-  pycrypto \
-  argparse
+RUN pip install setuptools==39.2.0
+RUN pip install cffi==1.10.0
+RUN pip install     \
+  Fabric==1.13.2    \
+  Jinja2==2.9.6     \
+  argparse==1.4.0   \
+  awscli==1.15.32  \
+  pycrypto==2.6.1   \
+  requests==2.18.4
+
+RUN npm install -g yarn
 
 RUN cd /tmp && \
   wget https://www.openssl.org/source/old/0.9.x/openssl-0.9.8zg.tar.gz && \

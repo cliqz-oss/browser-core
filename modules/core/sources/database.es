@@ -1,6 +1,5 @@
 import Database from '../platform/database';
 import console from './console';
-import utils from './utils';
 
 export const dbs = new Map();
 
@@ -98,10 +97,10 @@ export function reportPeriodically(ms) {
     }).catch(console.error.bind(console, 'DB report error'));
   }
   makeReport();
-  const interval = utils.setInterval(makeReport, ms);
+  const interval = setInterval(makeReport, ms);
   return {
     stop() {
-      utils.clearInterval(interval);
+      clearInterval(interval);
     }
   };
 }

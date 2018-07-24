@@ -1,15 +1,15 @@
 class EnvConfigHandler {
-  constructor(elemName, configs, utils) {
+  constructor(elemName, configs, prefs) {
     this.elemName = elemName;
     this.configs = configs;
-    this.utils = utils;
+    this.prefs = prefs;
   }
 
-  performRequiredChecks(checks) {
+  performRequiredChecks() {
     // check is developer
     let errMsg = '';
-    const isDeveloper = this.utils.getPref('developer', false) ||
-                        this.utils.getPref('offersDevFlag', false);
+    const isDeveloper = this.prefs.get('developer', false) ||
+                        this.prefs.get('offersDevFlag', false);
     if (!isDeveloper) {
       errMsg += 'You didnt set the preference developer or offersDevFlag, this should be set before testing!';
     }

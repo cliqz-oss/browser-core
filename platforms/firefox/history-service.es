@@ -11,6 +11,7 @@ class FirefoxLegacyHistory {
       'onBeginUpdateBatch',
       'onEndUpdateBatch',
       'onVisit',
+      'onVisits',
       'onTitleChanged',
       'onBeforeDeleteURI',
       'onDeleteURI',
@@ -118,24 +119,39 @@ function eventWrapper({ add, remove }) {
 export default {
   onVisited: eventWrapper({
     add(callback) {
-      function c(aURI, id, aTime) {
-        return callback({
-          id,
-          url: aURI.spec,
-          lastVisitTime: aTime / 1000,
-          // Avoid using next fields as they are
-          // not supported in nsINavHistoryService:
-          title: aURI.spec,
-          visitCount: 1,
-          typedCount: 0
-        });
-      }
-      legacyHistory.addListener('onVisit', c);
-      return c;
+      const evts = {
+        onVisit(aURI, id, aTime) {
+          return callback([{
+            id,
+            url: aURI.spec,
+            lastVisitTime: aTime / 1000,
+            // Avoid using next fields as they are
+            // not supported in nsINavHistoryService:
+            title: aURI.spec,
+            visitCount: 1,
+            typedCount: 0,
+          }]);
+        },
+
+        onVisits(visits) {
+          return callback(visits.map(visit => ({
+            id: visit.guid,
+            url: visit.uri.spec,
+            lastVisitTime: visit.time / 1000, // time from Places is microseconds,
+            title: visit.lastKnownTitle || '',
+            visitCount: visit.visitCount,
+            typedCount: visit.typed,
+          })));
+        },
+      };
+      legacyHistory.addListener('onVisit', evts.onVisit);
+      legacyHistory.addListener('onVisits', evts.onVisits);
+      return evts;
     },
 
-    remove(c) {
-      legacyHistory.removeListener('onVisit', c);
+    remove(evts) {
+      legacyHistory.removeListener('onVisit', evts.onVisit);
+      legacyHistory.removeListener('onVisits', evts.onVisits);
     }
   }),
 

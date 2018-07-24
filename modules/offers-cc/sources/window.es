@@ -1,14 +1,21 @@
 import inject from '../core/kord/inject';
 import events from '../core/events';
 import utils from '../core/utils';
+import prefs from '../core/prefs';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import background from './background';
 import config from '../core/config';
+import console from '../core/console';
+import { getMessage } from '../core/i18n';
+import { getDetailsFromUrl } from '../core/url';
 
 const ORIGIN_NAME = 'offers-cc';
 let autoTrigger = false;
 
 export default class Win {
+  core = inject.module('core');
+  offersV2 = inject.module('offers-v2');
+
   constructor(settings) {
     if (!background.is_enabled) {
       return;
@@ -18,7 +25,6 @@ export default class Win {
     this.settings = settings.settings;
     this.channel = settings.settings.channel;
     this.cssUrl = `${config.baseURL}offers-cc/styles/xul.css`;
-    this.offersV2 = inject.module('offers-v2');
 
     this.actions = {
       getEmptyFrameAndData: this.getEmptyFrameAndData.bind(this),
@@ -128,7 +134,7 @@ export default class Win {
     if (this.showTooltip || this.toolbarButton.shownDurationTime <= 1000) {
       if (this.reshowPopup) {
         this.reshowPopup = false;
-        utils.setTimeout(() => {
+        setTimeout(() => {
           this.toolbarButtonElement.click();
         }, 0);
       }
@@ -166,7 +172,7 @@ export default class Win {
         backgroundColor = uiInfo.template_data.styles.headline_color;
       } else {
         const CTAUrl = uiInfo.template_data.call_to_action.url;
-        const urlDetails = utils.getDetailsFromUrl(CTAUrl);
+        const urlDetails = getDetailsFromUrl(CTAUrl);
         const logoDetails = utils.getLogoDetails(urlDetails);
         backgroundColor = `#${logoDetails.backgroundColor}`;
       }
@@ -190,7 +196,7 @@ export default class Win {
     return {
       showTooltip: true,
       isGeneric: true,
-      headline: utils.getLocalizedString('offers_hub_tooltip_new_offer'),
+      headline: getMessage('offers_hub_tooltip_new_offer'),
       icon: `${config.baseURL}offers-cc/images/offers-cc-icon-white.svg`,
     };
   }
@@ -283,7 +289,7 @@ export default class Win {
       and save the credential
       - Set the pref.
     */
-    if (utils.getPref('offersCCDebuggingMode', false)) {
+    if (prefs.get('offersCCDebuggingMode', false)) {
       this.debugging();
       return;
     }
@@ -312,6 +318,7 @@ export default class Win {
         }
 
         if (data.hideTooltip) {
+          autoTrigger = true;
           const signal = {
             type: 'offrz',
             view: 'box_tooltip',
@@ -418,7 +425,7 @@ export default class Win {
           backgroundColor = uiInfo.template_data.styles.headline_color;
         } else {
           const CTAUrl = uiInfo.template_data.call_to_action.url;
-          const urlDetails = utils.getDetailsFromUrl(CTAUrl);
+          const urlDetails = getDetailsFromUrl(CTAUrl);
           const logoDetails = utils.getLogoDetails(urlDetails);
           backgroundColor = `#${logoDetails.brandTxtColor}`;
         }
@@ -445,7 +452,7 @@ export default class Win {
             }
           }
           validity = {
-            text: `${utils.getLocalizedString('offers_expires_in')} ${difference} ${utils.getLocalizedString(diffUnit)}`,
+            text: `${getMessage('offers_expires_in')} ${difference} ${getMessage(diffUnit)}`,
             isExpiredSoon,
           };
         }
@@ -493,16 +500,16 @@ export default class Win {
   }
 
   /**
-   * will send a message to the offers-core following the new API:
-   * https://cliqztix.atlassian.net/wiki/pages/viewpage.action?pageId=88618158
+   * will send a message to the offers-core
    * @param  {[type]} msg  object containing the following parameters:
-   *                       - type (signal type)
+   *                       - type (signal type): remove-offer, change-offer-state,
+                                                 offer-action-signal, action-signal
    *                       - data (depending on the type)
    * @return {[type]}      [description]
    */
   sendMessageToOffersCore(msg) {
     if (!msg || !msg.type) {
-      utils.log('Error: invalid message');
+      console.log('Error: invalid message');
       return;
     }
     // create the message to be sent
@@ -584,7 +591,7 @@ export default class Win {
     if (msg) {
       this.sendMessageToOffersCore(msg);
     } else {
-      utils.log(`sendOfferActionSignal: error: the message is null? invalid signal type? ${data.signal_type}`);
+      console.log(`sendOfferActionSignal: error: the message is null? invalid signal type? ${data.signal_type}`);
     }
   }
 
@@ -687,12 +694,12 @@ export default class Win {
           break;
         }
         default: {
-          utils.log('invalid event from core type', eventID);
+          console.log('invalid event from core type', eventID);
           break;
         }
       }
     }).catch((err) => {
-      utils.log('======= event: error: ', err);
+      console.log('======= event: error: ', err);
     });
   }
 
@@ -735,6 +742,17 @@ export default class Win {
         },
       };
       this.sendMessageToOffersCore(msg);
+
+      if (data.elemId) {
+        const extraMsg = {
+          type: 'offer-action-signal',
+          data: {
+            offer_id: data.offerId,
+            action_id: `offer_${data.elemId}`
+          },
+        };
+        this.sendMessageToOffersCore(extraMsg);
+      }
     }
     const tab = utils.openLink(this.window, data.url, true);
     if (data.closePopup === true) {
@@ -749,7 +767,7 @@ export default class Win {
       ...data,
     };
 
-    utils.sendUserFeedback(feedback);
+    this.core.action('sendUserFeedback', feedback);
   }
 
   _unregisterFromOffersCore() {

@@ -46,6 +46,7 @@ function TAP (runner, opts) {
     log('# tests ' + (passes + failures));
     log('# pass ' + passes);
     log('# fail ' + failures);
+    log('END');
   });
 }
 

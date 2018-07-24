@@ -9,7 +9,7 @@ import SubscribeButton from '../SubscribeButton';
 import PoweredByKicker from '../partials/PoweredByKicker';
 import { elementTopMargin, elementSideMargins } from '../../styles/CardStyle';
 
-export default class extends React.Component {
+export default class SoccerTeam extends React.Component {
 
   constructor(props) {
     super(props);
@@ -73,7 +73,7 @@ export default class extends React.Component {
   }
 
   displayGame(data, index) {
-    return <Link to={data.live_url} key={index}>
+    return <Link url={data.live_url} key={index}>
         <View style={styles.gameContainer}>
           <View style={{ flex: 1, flexDirection: 'row' }}>
             <Text style={[styles.header, { flex: 3 }]}>{data.spielTag}</Text>

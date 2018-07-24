@@ -6,11 +6,11 @@
 import * as persist from '../core/persistent-state';
 import UrlWhitelist from '../core/url-whitelist';
 import console from '../core/console';
-import domainInfo, { getDomainOwner, getBugOwner } from '../core/domain-info';
+import domainInfo from '../core/services/domain-info';
 import inject, { ifModuleEnabled } from '../core/kord/inject';
 import pacemaker from '../core/pacemaker';
 import { getGeneralDomain } from '../core/tlds';
-import utils from '../core/utils';
+import prefs from '../core/prefs';
 import events from '../core/events';
 
 import * as browser from '../platform/browser';
@@ -30,6 +30,7 @@ import { VERSION, MIN_BROWSER_VERSION } from './config';
 import { checkInstalledPrivacyAddons } from '../platform/addon-check';
 import { compressionAvailable, compressJSONToBase64, generateAttrackPayload } from './utils';
 import AttrackDatabase from './database';
+import getTrackingStatus from './dnt';
 
 import BlockRules from './steps/block-rules';
 import CookieContext from './steps/cookie-context';
@@ -490,6 +491,24 @@ export default class CliqzAttrack {
           },
         },
         {
+          name: 'checkLeakedReferrer',
+          spec: 'collect',
+          fn: (state) => {
+            const referrer = state.getRequestHeader('Referer');
+            if (referrer && referrer.indexOf(state.sourceUrl) > -1) {
+              state.incrementStat('referer_leak_header');
+            }
+            if (state.url.indexOf(state.sourceUrlParts.hostname) > -1 ||
+                state.url.indexOf(encodeURIComponent(state.sourceUrlParts.hostname)) > -1) {
+              state.incrementStat('referer_leak_site');
+              if (state.url.indexOf(state.sourceUrlParts.path) > -1 ||
+                  state.url.indexOf(encodeURIComponent(state.sourceUrlParts.path)) > -1) {
+                state.incrementStat('referer_leak_path');
+              }
+            }
+          }
+        },
+        {
           name: 'checkHasCookie',
           spec: 'break',
           fn: (state) => {
@@ -577,6 +596,14 @@ export default class CliqzAttrack {
                   state.isPrivate,
                 );
               }
+              // check for tracking status headers for first party
+              const trackingStatus = getTrackingStatus(state);
+              if (trackingStatus) {
+                const pageInfo = this.tp_events.getPageForTab(state.tabId);
+                if (pageInfo) {
+                  pageInfo.setTrackingStatus(trackingStatus);
+                }
+              }
               return false;
             }
             return true;
@@ -629,6 +656,13 @@ export default class CliqzAttrack {
                 }
               } catch (e) {
                 // invalid or IPv6 IP address, skip
+              }
+              const trackingStatus = getTrackingStatus(state);
+              if (trackingStatus) {
+                state.incrementStat(`tsv_${trackingStatus.value}`);
+                if (trackingStatus.statusId) {
+                  state.incrementStat('tsv_status');
+                }
               }
             }
           },
@@ -778,8 +812,6 @@ export default class CliqzAttrack {
       pacemaker.stop();
 
       this.unloadPipeline();
-
-      events.clean_channel('attrack:safekeys_updated');
 
       this.db.unload();
 
@@ -968,7 +1000,7 @@ export default class CliqzAttrack {
       // add set cookie blocks to cookie blocked count
       result.trackers[dom].cookie_blocked += result.trackers[dom].set_cookie_blocked;
 
-      const company = getDomainOwner(dom);
+      const company = domainInfo.getDomainOwner(dom);
       result.companyInfo[company.name] = company;
 
       if (!(company.name in result.companies)) {
@@ -1030,7 +1062,7 @@ export default class CliqzAttrack {
     // blocked by antitracking blocker
     if (tabData.annotations.apps) {
       tabData.annotations.apps.forEach((action, app) => {
-        apps.known[getBugOwner(app)] = actionName(action === 'BLOCK', action === 'ALLOW_UNSAFE');
+        apps.known[domainInfo.getBugOwner(app)] = actionName(action === 'BLOCK', action === 'ALLOW_UNSAFE');
       });
     }
     // blocked/seen by antitracking
@@ -1073,7 +1105,7 @@ export default class CliqzAttrack {
   /** Disables anti-tracking immediately.
   */
   disableModule() {
-    utils.setPref(this.config.PREFS.enabled, false);
+    prefs.set(this.config.PREFS.enabled, false);
   }
 
   logWhitelist(payload) {

@@ -2,8 +2,9 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import Link from '../Link';
 import { getMessage } from '../../../core/i18n';
+import { copyToClipboard } from '../../../core/clipboard';
 
-export default class extends React.Component {
+export default class TapToCopy extends React.Component {
 
   constructor(props) {
     super(props);
@@ -17,9 +18,10 @@ export default class extends React.Component {
   render() {
     return (
       <Link
-        onPress={() => this.setState({copied: true})}
-        actionName='mobile-search:copyValue'
-        actionParams={[ String(this.props.val) ]}
+        onPress={() => {
+          copyToClipboard(String(this.props.val));
+          this.setState({copied: true})
+        }}
       >
         <View>
           { this.props.children }

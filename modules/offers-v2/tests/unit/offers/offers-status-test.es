@@ -7,7 +7,7 @@ export default describeModule('offers-v2/offers/offers-status',
   () => ({
   }),
   () => {
-    describe('general tests', function() {
+    describe('general tests', function () {
       let OfferStatus;
       beforeEach(function () {
         OfferStatus = this.module().default;
@@ -37,9 +37,8 @@ export default describeModule('offers-v2/offers/offers-status',
             chai.expect(osh.getOfferStatus('x3')).eql('obsolete');
             chai.expect(osh.getOfferStatus('x4')).eql('unknown');
           });
-
         });
       });
-    })
+    });
   }
 );

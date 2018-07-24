@@ -1,6 +1,8 @@
 import utils from '../core/utils';
+import _hash from '../core/helpers/hash';
 import NEWS_DOMAINS from '../freshtab/news-domains';
 import config from '../core/config';
+import { promiseHttpHandler } from '../core/http';
 
 export default class RichHeaderProxy {
   constructor() {
@@ -13,9 +15,9 @@ export default class RichHeaderProxy {
       domain = domain.substring(4, domain.length);
     }
 
-    const hash = utils.hash(domain);
+    const hash = _hash(domain);
 
-    const richHeaderUrl = utils.RICH_HEADER + utils.getRichHeaderQueryString(`[${hash}]`);
+    const richHeaderUrl = config.settings.RICH_HEADER + utils.getRichHeaderQueryString(`[${hash}]`);
 
     if (!(hash in NEWS_DOMAINS)) {
       return Promise.resolve(null);
@@ -25,7 +27,7 @@ export default class RichHeaderProxy {
       return Promise.resolve(this.newsCache[domain]);
     }
 
-    return utils.promiseHttpHandler('PUT', richHeaderUrl, JSON.stringify({
+    return promiseHttpHandler('PUT', richHeaderUrl, JSON.stringify({
       q: `[${hash}]`,
       results: [
         {

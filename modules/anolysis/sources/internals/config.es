@@ -1,8 +1,19 @@
 import config from '../../core/config';
+import prefs from '../../core/prefs';
+
+function shouldUseStaging() {
+  return (
+    prefs.get('developer', false) === true ||
+    config.settings.channel === '99'
+  );
+}
 
 const DEFAULT_CONFIG = {
   // Backend communication
-  'backend.url': config.settings.ANOLYSIS_BACKEND_URL,
+  'backend.url': (shouldUseStaging()
+    ? config.settings.ANOLYSIS_STAGING_BACKEND_URL
+    : config.settings.ANOLYSIS_BACKEND_URL
+  ),
 
   // Signal queue
   'signalQueue.batchSize': 5,

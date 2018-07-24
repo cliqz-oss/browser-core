@@ -4,6 +4,7 @@ import { sendOffersMessage } from '../../services/offers';
 function Logo(props) {
   return (
     <a
+      className="logo-url"
       href={props.url}
       onClick={() => {
         sendOffersMessage(props.offer_id, 'offer_ca_action');

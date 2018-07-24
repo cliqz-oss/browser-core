@@ -37,6 +37,8 @@ const clean = (result) => {
       url: urlStripProtocol(result.url || ''),
       score: result.score,
       subType: result.subType || {},
+      latency: result.latency,
+      backendCountry: result.backendCountry,
     }
   };
 };

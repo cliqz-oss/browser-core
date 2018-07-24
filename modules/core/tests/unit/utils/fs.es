@@ -5,7 +5,7 @@ const FS = {
 };
 
 // Cannot call require here, so caller must inject 'path' nodejs module
-module.exports = function FSBuilder(NodeJSPathModule) {
+module.exports = function (NodeJSPathModule) {
   const Path = NodeJSPathModule;
 
   function getFullPath(filePath) {
@@ -18,8 +18,8 @@ module.exports = function FSBuilder(NodeJSPathModule) {
       const dir = Path.dirname(path);
       return FS.dirs.has(dir);
     },
-    renameFile: (oldPath, newPath) => {
-      return new Promise((resolve, reject) => {
+    renameFile: (oldPath, newPath) =>
+      new Promise((resolve, reject) => {
         const f = FS.files.get(getFullPath(oldPath));
         if (f && fs._checkDirFile(getFullPath(newPath))) {
           FS.files.delete(getFullPath(oldPath));
@@ -28,31 +28,24 @@ module.exports = function FSBuilder(NodeJSPathModule) {
         } else {
           reject(new Error('file not found'));
         }
-      });
-    },
-    fileExists: (path) => {
-      return Promise.resolve(FS.files.has(getFullPath(path)));
-    },
-    readFile: (path) => {
-      return new Promise((resolve, reject) => {
-        const f = FS.files.get(getFullPath(path));
-        if (f) {
-          resolve(f.join(''));
-        } else {
-          reject(new Error('file not found'));
-        }
-      });
-    },
-    write: (path, data) => {
-      return new Promise((resolve, reject) => {
-        if (fs._checkDirFile(getFullPath(path))) {
-          FS.files.set(getFullPath(path), [data]);
-          resolve();
-        } else {
-          reject('file dir does not exist');
-        }
-      });
-    },
+      }),
+    fileExists: path => Promise.resolve(FS.files.has(getFullPath(path))),
+    readFile: path => new Promise((resolve, reject) => {
+      const f = FS.files.get(getFullPath(path));
+      if (f) {
+        resolve(f.join(''));
+      } else {
+        reject(new Error('file not found'));
+      }
+    }),
+    write: (path, data) => new Promise((resolve, reject) => {
+      if (fs._checkDirFile(getFullPath(path))) {
+        FS.files.set(getFullPath(path), [data]);
+        resolve();
+      } else {
+        reject('file dir does not exist');
+      }
+    }),
     removeFile: (path) => {
       FS.files.delete(getFullPath(path));
     },

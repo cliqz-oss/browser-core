@@ -1,3 +1,10 @@
+// TODO: get connection type
 export default {
-  type: 'wifi'
+  type: 'wifi',
 };
+
+export function addConnectionChangeListener() {
+}
+
+export function removeConnectionChangeListener() {
+}

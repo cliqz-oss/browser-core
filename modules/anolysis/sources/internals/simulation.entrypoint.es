@@ -4,6 +4,7 @@ import bodyParser from '../../platform/lib/body-parser';
 import compression from '../../platform/lib/compression';
 
 import prefs from '../../core/prefs';
+import console from '../../core/console';
 
 import Anolysis from './anolysis';
 import Config from './config';
@@ -11,7 +12,6 @@ import Storage from './storage/memory';
 import telemetrySchemas from '../telemetry-schemas';
 
 function log(...args) {
-  // eslint-disable-next-line no-console
   console.log('[nodejs]', ...args);
 }
 

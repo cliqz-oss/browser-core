@@ -1,17 +1,7 @@
 /*
  * This module will contain all the methods and logic we need to filter out
- * offers for the soft filters.
- * This filter will check for conditions that are more probably
- * to change on the near future, like, if the offer was recently shown or closed
- * or any offer of the same type was shown, etc.
- * In this category we use what was previously used, using jsep as language
- * for building rules.
- *
- *
- * Please read before the following documentation to have an idea of what this
- * module is intended for
- *
- * https://cliqztix.atlassian.net/wiki/spaces/SBI/pages/90153442/Filtering+Rules
+ * offers for the soft filters, meaning checks based on signals already collected
+ * and a set of conditions that can dynamically change from the backend.
  *
  */
 
@@ -128,11 +118,10 @@ const FILTER_EVAL_FUN_MAP = {
 };
 
 /**
- * This method will evaluate a jsep expression as described on the documentation [1]
+ * This method will evaluate a jsep expression
  * and will return true if the expression was evaluated and all the rules apply,
  * or false if fail or any of the rules (expressions) returns false
  *
- * [1] - https://cliqztix.atlassian.net/wiki/spaces/SBI/pages/90153442/Filtering+Rules
  */
 const evalExpression = (offer, expr, offersDB) => {
   if (expr.type === 'CallExpression') {

@@ -1,9 +1,9 @@
 import utils from '../core/utils';
 import console from '../core/console';
 import inject from '../core/kord/inject';
-import background from './background';
 import config from '../core/config';
-import REAL_ESTATE_ID from './consts';
+import { REAL_ESTATE_ID } from './consts';
+import { getDetailsFromUrl } from '../core/url';
 
 const MODULE_NAME = 'browser-panel-window';
 const UI_IFRAME_WIDTH_DEF = '100%';
@@ -29,17 +29,10 @@ function linfo(msg) {
 function lwarn(msg) {
   console.log(`[warning] ${msg}`, MODULE_NAME);
 }
-// function lerr(msg) {
-//   console.log(MODULE_NAME, `[error] ${msg}`);
-// }
+
 
 export default class Win {
   constructor(settings) {
-    // check if we have the feature  enabled
-    if (!background.is_enabled) {
-      return;
-    }
-
     this.window = settings.window;
     this.settings = settings.settings;
     this.coreModule = inject.module('browser-panel');
@@ -73,10 +66,6 @@ export default class Win {
   }
 
   init() {
-    if (!background.is_enabled) {
-      return Promise.resolve('Module disabled');
-    }
-
     this.isPrivateMode = utils.isPrivateMode(this.window);
     if (this.isPrivateMode) {
       linfo('we are in private mode, avoid any logic here');
@@ -141,6 +130,7 @@ export default class Win {
     const panel = doc.getElementById('browser-panel') || doc.getElementById('main-window');
     const contentDeck = doc.getElementById('content-deck');
     const iframe = doc.createElementNS('http://www.w3.org/1999/xhtml', 'iframe');
+    iframe.tabIndex = -1;
 
     // remove iframe from previous version
     try {
@@ -297,7 +287,7 @@ export default class Win {
       titleColor = templateData.styles.headline_color;
     } else {
       const url = templateData.call_to_action.url;
-      const urlDetails = utils.getDetailsFromUrl(url);
+      const urlDetails = getDetailsFromUrl(url);
       const logoDetails = utils.getLogoDetails(urlDetails);
       titleColor = `#${logoDetails.brandTxtColor}`;
     }

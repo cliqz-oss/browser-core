@@ -49,6 +49,20 @@ program.command('serve [file]')
             addonID = CONFIG.settings.id || 'cliqz@cliqz.com';
           }
 
+          const prefs = Object.assign({
+            'browser.link.open_newwindow': 3,
+            'javascript.options.strict': false,
+            'extensions.cliqz.showConsoleLogs': true,
+            'extensions.cliqz.developer': true,
+            'security.sandbox.content.level': 2,
+            'extensions.legacy.enabled': true,
+            'lightweightThemes.selectedThemeID': 'firefox-compact-light@mozilla.org',
+          }, customPrefs);
+
+          if (options.includeTests) {
+            prefs['extensions.cliqz.browserOnboarding'] = '3.0';
+          }
+
           const webExtOptions = {
             noReload: true,
             sourceDir: path.join(OUTPUT_PATH, addonID ),
@@ -56,14 +70,7 @@ program.command('serve [file]')
             firefoxProfile: options.firefoxProfile,
             firefox: options.firefox,
             keepProfileChanges: options.firefoxKeepChanges || false,
-            customPrefs: Object.assign({
-              'javascript.options.strict': false,
-              'extensions.cliqz.showConsoleLogs': true,
-              'extensions.cliqz.developer': true,
-              'security.sandbox.content.level': 2,
-              'extensions.legacy.enabled': true,
-              'lightweightThemes.selectedThemeID': 'firefox-compact-light@mozilla.org',
-            }, customPrefs),
+            customPrefs: prefs,
           };
           const start = Date.now()
           const date = new Date(start)

@@ -1,11 +1,13 @@
 /* eslint func-names: 'off' */
 /* eslint prefer-arrow-callback: 'off' */
 
-/* global testServer */
-/* global waitFor */
-/* global chai */
-
-import { newTab, updateTab } from '../platform/browser';
+import {
+  expect,
+  newTab,
+  testServer,
+  updateTab,
+  waitFor
+} from '../tests/core/test-helpers';
 import WebRequest from '../platform/webrequest';
 
 
@@ -66,11 +68,11 @@ describe('WebRequest Leak Test', function () {
     return setupTabs(page1, page2).then(() => {
       onBeforeRequest.forEach((req) => {
         if (req.url.endsWith('test')) { // this is the onunload request in page1
-          chai.expect(req.originUrl).to.equal(page1);
-          chai.expect(req.source).to.equal(page1);
+          expect(req.originUrl).to.equal(page1);
+          expect(req.source).to.equal(page1);
         } else if (req.url.endsWith('2E85855CF4C75134')) { // this is a request from page2
-          chai.expect(req.originUrl).to.equal(page2);
-          chai.expect(req.source).to.equal(page2);
+          expect(req.originUrl).to.equal(page2);
+          expect(req.source).to.equal(page2);
         }
       });
     });
@@ -85,12 +87,12 @@ describe('WebRequest Leak Test', function () {
     return setupTabs(page1, page2).then(() => {
       onBeforeRequest.forEach((req) => {
         if (req.url.endsWith('test')) { // this is the onunload request in page1
-          chai.expect(req.originUrl).to.equal(iframe);
+          expect(req.originUrl).to.equal(iframe);
           // TODO: get this to properly resolve previous page
-          chai.expect(req.source).to.equal(iframe);
+          expect(req.source).to.equal(iframe);
         } else if (req.url.endsWith('2E85855CF4C75134')) { // this is a request from page2
-          chai.expect(req.originUrl).to.equal(page2);
-          chai.expect(req.source).to.equal(page2);
+          expect(req.originUrl).to.equal(page2);
+          expect(req.source).to.equal(page2);
         }
       });
     });

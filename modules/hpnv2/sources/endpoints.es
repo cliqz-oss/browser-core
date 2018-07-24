@@ -1,9 +1,10 @@
 import config from '../core/config';
 import { fetch, Headers } from '../platform/fetch';
 import random from '../core/crypto/random';
-import { TransportError } from './errors';
+import logger from './logger';
+import { TransportError, WrongClockError } from './errors';
 
-function myfetch(request, options) {
+async function myfetch(request, options) {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new TransportError()), 5000);
     fetch(request, options)
@@ -24,7 +25,7 @@ function myfetch(request, options) {
 // At some point, we should do the transport in the most private way available
 // for the platform, but for now just doing direct requests.
 export default class Endpoints {
-  static post(url, _body) {
+  static async post(url, _body) {
     let body = _body;
     const headers = new Headers();
 
@@ -42,41 +43,12 @@ export default class Endpoints {
     });
   }
 
-  static get(url) {
+  static async get(url) {
     return myfetch(url);
   }
 
-  static head(url) {
-    return myfetch(url, { method: 'HEAD' });
-  }
-
-  static getServerTime(url) {
-    return Endpoints.head(url)
-      .then((r) => {
-        const date = r.headers.get('Date');
-        const time = (new Date(date)).getTime();
-        if (!time) {
-          throw new Error('Server returned bad date');
-        }
-        return time;
-      });
-  }
-  // If time returned by CLIQZ is different than local time, we rely on time by 3rd parties.
-  // TODO: Is this ok to use these urls? Should we try several ones just in case?
-  static get3rdPartyTime() {
-    const urls = [
-      'https://www.google.com',
-      'https://www.youtube.com',
-      'https://www.baidu.com',
-      'https://www.wikipedia.org',
-      'https://www.yahoo.com',
-      'https://www.reddit.com'
-    ];
-    const url = urls[Math.floor(urls.length * Math.random())];
-    return Endpoints.getServerTime(url);
-  }
-  static get MAX_TIME_DRIFT() {
-    return 1000 * 60 * 3; // TODO: 3 minutes is ok?
+  static get MAX_MINUTES_DRIFT() {
+    return 3;
   }
 
   constructor({ maxRetries = 3, urls = config.settings } = {}) {
@@ -86,34 +58,24 @@ export default class Endpoints {
   }
 
   _reset() {
-    this.timeOffset = 0;
     this.messages = [];
     this.sendTimer = null;
     this.unloaded = false;
   }
 
-  getTime() {
-    return Date.now() + this.timeOffset;
-  }
-
   // Fetch and sync time
-  _fetch(p) {
+  async _fetch(p) {
     return p.then((r) => {
       const date = r.headers.get('Date');
       const responseTime = (new Date(date)).getTime() || 0;
 
-      let pr = Promise.resolve();
-      if (Math.abs(this.getTime() - responseTime) > Endpoints.MAX_TIME_DRIFT) {
-        pr = Endpoints.get3rdPartyTime().then((serverTime) => {
-          this.timeOffset = serverTime - Date.now();
-        }).catch(() => {});
+      if (Math.abs(Date.now() - responseTime) > Endpoints.MAX_MINUTES_DRIFT * 60 * 1000) {
+        throw new WrongClockError();
       }
-      return pr.then(() => {
-        if (!r.ok) {
-          throw new Error(r.statusText);
-        }
-        return r.json();
-      });
+      if (!r.ok) {
+        throw new Error(r.statusText);
+      }
+      return r;
     });
   }
 
@@ -125,9 +87,12 @@ export default class Endpoints {
       const n = Math.floor(random() * this.messages.length);
       const [msg, cnt] = this.messages.splice(n, 1)[0];
       this._fetch(Endpoints.post(this.urls.ENDPOINT_HPNV2_COLLECTOR, msg))
-        .catch(() => {
+        .catch((e) => {
           if (cnt < this.maxRetries) {
             this.messages.push([msg, cnt + 1]);
+          } else {
+            logger.error('_scheduleSend failed (gave up after', this.maxRetries,
+              'retry attempts)', e);
           }
         })
         .then(() => {
@@ -144,14 +109,15 @@ export default class Endpoints {
     this._scheduleSend();
   }
 
-  join({ ts, joinMsg, pk, sig }) {
-    return this._fetch(
-      Endpoints.post(this.urls.ENDPOINT_HPNV2_JOIN, { ts, joinMsg, pk, sig })
-    );
+  async join({ ts, joinMsg, pk, sig, hpnv2 }) {
+    const response = await this._fetch(
+      Endpoints.post(this.urls.ENDPOINT_HPNV2_JOIN, { ts, joinMsg, pk, sig, hpnv2 }));
+    return response.json();
   }
 
-  getConfig() {
-    return this._fetch(Endpoints.get(this.urls.ENDPOINT_HPNV2_CONFIG));
+  async getConfig() {
+    const response = await this._fetch(Endpoints.get(this.urls.ENDPOINT_HPNV2_CONFIG));
+    return response.json();
   }
 
   unload() {

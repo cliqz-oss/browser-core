@@ -1,6 +1,6 @@
 /* eslint prefer-template: 'off' */
 
-import utils from '../core/utils';
+import prefs from '../core/prefs';
 
 // this is the sanitised timestamp retrieved from humanweb.
 let hwTs = null;
@@ -8,7 +8,7 @@ let hwTs = null;
 export function getConfigTs() {
   // lazy loading of pref
   if (hwTs === null) {
-    hwTs = utils.getPref('config_ts', null);
+    hwTs = prefs.get('config_ts', null);
   }
   return hwTs;
 }

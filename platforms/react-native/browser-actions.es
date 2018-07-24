@@ -7,7 +7,6 @@ const unsupportedError = () => {
 };
 
 const BrowserActions = NativeModules.BrowserActions || {
-  openLink: unsupportedError,
   searchHistory: (query, callback) => {
     if (query.length > 2) {
       History.query(5, 0, 0, undefined, query).then((results) => {
@@ -17,13 +16,15 @@ const BrowserActions = NativeModules.BrowserActions || {
       callback([]);
     }
   },
+  openLink: unsupportedError,
+  openMap: unsupportedError,
+  callNumber: unsupportedError,
+  hideKeyboard: unsupportedError,
   queryCliqz: unsupportedError,
   getReminders: unsupportedError,
   getOpenTabs: () => [],
   importBookmarks: unsupportedError,
 };
-
-export const openLink = BrowserActions.openLink;
 
 export function historySearch(q, callback) {
   BrowserActions.searchHistory(q, (data = []) => {
@@ -38,6 +39,10 @@ export function historySearch(q, callback) {
   });
 }
 
+export const openLink = BrowserActions.openLink;
+export const openMap = BrowserActions.openMap;
+export const callNumber = BrowserActions.callNumber;
+export const hideKeyboard = BrowserActions.hideKeyboard;
 export const queryCliqz = BrowserActions.queryCliqz;
 export const openTab = BrowserActions.openTab || osAPI.openTab;
 export const getOpenTabs = BrowserActions.getOpenTabs;

@@ -1,7 +1,7 @@
 /* eslint no-param-reassign: 'off' */
 /* eslint no-restricted-syntax: 'off' */
 
-import utils from '../core/utils';
+import console from '../core/console';
 import txtToDom from '../../core/dom-parser';
 
 function get(url, headers, data, timeout) {
@@ -66,7 +66,7 @@ export default class Gmail {
         fullCount = parseInt(text, 10);
       }
     }
-    utils.log(fullCount, 'getNotificationCount');
+    console.log(fullCount, 'getNotificationCount');
     if (fullCount >= 0) {
       return fullCount;
     }

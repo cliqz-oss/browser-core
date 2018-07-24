@@ -1,21 +1,8 @@
 /* global window */
 import Spanan from 'spanan';
-import { CHROME_MSG_SOURCE, isCliqzContentScriptMsg } from '../../core/content/helpers';
+import { isCliqzContentScriptMsg } from '../../core/content/helpers';
 import checkIfChromeReady from './ready-promise';
-
-function createSpananForModule(moduleName) {
-  return new Spanan(({ uuid, action, args }) => {
-    const message = {
-      source: CHROME_MSG_SOURCE,
-      target: 'cliqz',
-      module: moduleName,
-      action,
-      requestId: uuid,
-      args
-    };
-    chrome.runtime.sendMessage(message);
-  });
-}
+import createSpananForModule from '../../core/helpers/spanan-module-wrapper';
 
 let INSTANCE = null;
 

@@ -13,7 +13,6 @@ TESTS.HPNSecureMessageTest = function (CliqzUtils) {
   const CliqzSecureMessage = CliqzUtils.getWindow().CliqzSecureMessage;
   describe('HPN tests', function () {
     let mc = null;
-    // CliqzUtils.setPref('userPKTest', pk);
     CliqzSecureMessage.routeTable = null;
     CliqzSecureMessage.sourceMap = null;
 

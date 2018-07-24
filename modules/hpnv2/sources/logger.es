@@ -1,7 +1,3 @@
 import Logger from '../core/logger';
 
-export default Logger({
-  useDump: false,
-  level: 'debug',
-  prefix: '[hpnv2]',
-});
+export default Logger.get('hpnv2', { level: 'debug' });

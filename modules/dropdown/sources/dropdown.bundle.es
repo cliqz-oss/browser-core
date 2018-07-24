@@ -76,6 +76,8 @@ const exportedActions = {
     return {
       url: result.url,
       urlbarValue: result.urlbarValue,
+      completion: result.meta.completion,
+      query: result.query,
     };
   },
 
@@ -84,6 +86,8 @@ const exportedActions = {
     return {
       url: result.url,
       urlbarValue: result.urlbarValue,
+      completion: result.meta.completion,
+      query: result.query,
     };
   },
 
@@ -156,14 +160,9 @@ const exportedActions = {
 
     adjustScroll(height);
 
-    const firstResult = results.firstResult;
     return {
       result: dropdown.selectedResult && dropdown.selectedResult.serialize(),
       height,
-      autocompletion: {
-        url: results.isAutocompleteable ? firstResult.url : '',
-        title: results.isAutocompleteable ? firstResult.title : '',
-      },
       renderedSessionId: sessionId,
     };
   }
@@ -177,6 +176,10 @@ spanan.export(exportedActions, {
       response,
     }, '*');
   },
+});
+
+window.addEventListener('focus', () => {
+  importedActions.focus();
 });
 
 window.addEventListener('message', (ev) => {

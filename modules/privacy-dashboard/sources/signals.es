@@ -1,4 +1,5 @@
 /* eslint no-param-reassign: 'off' */
+/* eslint no-restricted-syntax: 'off' */
 
 /*
  * Functions to handle collecting to selecting / preparing signals for the dashboard
@@ -6,13 +7,31 @@
 
 import events from '../core/events';
 import utils from '../core/utils';
+import config from '../core/config';
+import prefs from '../core/prefs';
+import { addListener, removeListener } from '../core/http';
+import { getMessage } from '../core/i18n';
 import environment from '../platform/environment';
 import CliqzHumanWeb from '../human-web/human-web';
+import { getDetailsFromUrl, tryDecodeURIComponent } from '../core/url';
 
 let streamMode = false;
 
 function local(key) {
-  return utils.getLocalizedString(key);
+  return getMessage(key);
+}
+
+function parseQueryString(qstr) {
+  const query = {};
+  const a = (qstr || '').split('&');
+  for (const i in a) {
+    if (Object.prototype.hasOwnProperty.call(a, i)) {
+      const b = a[i].split('=');
+      query[tryDecodeURIComponent(b[0])] = tryDecodeURIComponent(b[1]);
+    }
+  }
+
+  return query;
 }
 
 function lastElementArray(arr) {
@@ -49,7 +68,6 @@ const QUERY_LOG_PARAM = {
 
 const SignalListener = {
   telemetryOrigin: utils.telemetry,
-  httpGetOrigin: utils.httpGet, // used for fetching result and query log telemetry
   hwOrigin: CliqzHumanWeb.telemetry, // todo: handle the case hw is inited AFTER this module
 
   SigCache: {
@@ -102,37 +120,35 @@ const SignalListener = {
     SignalListener.fireNewDataEvent('tel');
   },
 
-  monkeyPatchHttpGet(...args) {
-    setTimeout((url) => {
-      const queryLog = {};
-      if (url.startsWith(utils.RESULTS_PROVIDER) || url.startsWith(utils.RESULTS_PROVIDER_LOG)) {
-        const qs = utils.getDetailsFromUrl(url).query;
-        const qsParams = utils.parseQueryString(qs);
-        Object.keys(qsParams).forEach((key) => {
-          if (qsParams[key]) {
-            queryLog[QUERY_LOG_PARAM[key] || key] = qsParams[key];
-          }
-        });
+  onCliqzBackendRequest: ({ url }) => {
+    if (!url.startsWith(config.settings.RESULTS_PROVIDER) &&
+        !url.startsWith(config.settings.RESULTS_PROVIDER_LOG)) {
+      return;
+    }
 
-        SignalListener.SigCache.ql = { sig: queryLog, timestamp: Date.now() };
-        SignalListener.fireNewDataEvent('ql');
+    const queryLog = {};
+    const qs = getDetailsFromUrl(url).query;
+    const qsParams = parseQueryString(qs);
+    Object.keys(qsParams).forEach((key) => {
+      if (qsParams[key]) {
+        queryLog[QUERY_LOG_PARAM[key] || key] = qsParams[key];
       }
-    }, 0, args[0]);
+    });
 
-    return SignalListener.httpGetOrigin.apply(this, args);
+    SignalListener.SigCache.ql = { sig: queryLog, timestamp: Date.now() };
+    SignalListener.fireNewDataEvent('ql');
   },
 
   init() {
-    if (!(SignalListener.monkeyPatchTelemetry
-          && SignalListener.monkeyPatchHttpGet && SignalListener.monkeyPatchHmw)) {
+    if (!(SignalListener.monkeyPatchTelemetry && SignalListener.monkeyPatchHmw)) {
       SignalListener.telemetryOrigin = utils.telemetry;
-      SignalListener.httpGetOrigin = utils.httpGet;
       SignalListener.hwOrigin = CliqzHumanWeb.telemetry;
     }
-    if (SignalListener.monkeyPatchTelemetry
-          && SignalListener.monkeyPatchHttpGet && SignalListener.monkeyPatchHmw) {
+
+    addListener(this.onCliqzBackendRequest);
+
+    if (SignalListener.monkeyPatchTelemetry && SignalListener.monkeyPatchHmw) {
       utils.telemetry = SignalListener.monkeyPatchTelemetry;
-      utils.httpGet = SignalListener.monkeyPatchHttpGet;
       CliqzHumanWeb.telemetry = SignalListener.monkeyPatchHmw;
 
       // if Signals only start listens only when someone open the dashboard
@@ -160,9 +176,8 @@ const SignalListener = {
     if (SignalListener.telemetryOrigin) {
       utils.telemetry = SignalListener.telemetryOrigin;
     }
-    if (SignalListener.httpGetOrigin) {
-      utils.httpGet = SignalListener.httpGetOrigin;
-    }
+    removeListener(this.onCliqzBackendRequest);
+
     if (SignalListener.hwOrigin) {
       CliqzHumanWeb.telemetry = SignalListener.hwOrigin;
     }
@@ -268,7 +283,7 @@ const Signals = {
             GPS: local('signals-your-location')
           }, [], 'blocked'));
         }
-        if (utils.getPref('hpn-query') === true) {
+        if (prefs.get('hpn-query') === true) {
           info = info.concat(reformatSignalsFlat({
             'your identity': local('signals-your-ip-id') + Signals.IPs
           }, [], 'blocked'));
@@ -291,7 +306,7 @@ const Signals = {
   getSignalsToDashboard() {
     const info = {};
     Object.keys(SignalListener.SigCache).forEach((sigType) => {
-      if (sigType === 'hw' && utils.getPref('humanWebOptOut') === true) {
+      if (sigType === 'hw' && prefs.get('humanWebOptOut') === true) {
         info[sigType] = [{
           name: '',
           val: local('signals-humanweb-inactive-message'),

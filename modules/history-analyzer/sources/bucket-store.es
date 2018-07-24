@@ -17,21 +17,16 @@ export default class BucketStore {
     return this.cache.size;
   }
 
-  initMemoryCache() {
-    this.cache = new Map();
-    return this.db.kv.each(({ ts, value }) => {
-      this.cache.set(ts, value);
-    });
+  async initMemoryCache() {
+    this.cache = new Map((await this.db.kv.toArray()).map(({ ts, value }) => [ts, value]));
   }
 
-  init() {
-    return getDexie()
-      .then((Dexie) => {
-        this.db = new Dexie(this.name);
-        this.db.version(1).stores({ kv: 'ts' });
-      })
-      .then(() => this.db.open())
-      .then(() => this.initMemoryCache());
+  async init() {
+    const Dexie = await getDexie();
+    this.db = new Dexie(this.name);
+    this.db.version(1).stores({ kv: 'ts' });
+    await this.db.open();
+    await this.initMemoryCache();
   }
 
   unload() {
@@ -49,9 +44,9 @@ export default class BucketStore {
     return this.db.delete();
   }
 
-  deleteDataOlderThan(ts) {
-    return this.db.kv.where('ts').below(ts).delete()
-      .then(() => this.initMemoryCache());
+  async deleteDataOlderThan(ts) {
+    await this.db.kv.where('ts').below(ts).delete();
+    await this.initMemoryCache();
   }
 
   has(ts) {

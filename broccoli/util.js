@@ -6,6 +6,8 @@ function injectVars(str, config) {
   });
 }
 
+const now = Date.now();
+
 module.exports = {
   injectConfig(tree, config, configPath, files) {
     // TODO: metaprogram all settings
@@ -26,8 +28,16 @@ module.exports = {
           replacement: config => config.settings.id
         },
         {
+          match: /\{\{description\}\}/g,
+          replacement: config => config.settings.description
+        },
+        {
           match: /\{\{name\}\}/g,
           replacement: config => config.settings.name
+        },
+        {
+          match: /\{\{timestamp\}\}/g,
+          replacement: config => now,
         },
         {
           match: /\{\{codeVersion\}\}/g,

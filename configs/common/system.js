@@ -69,9 +69,6 @@ const systemConfig = {
         './platform/lib/deep-equal.js': {
           'format': 'system'
         },
-        './platform/lib/ajv.js': {
-          'format': 'system'
-        },
         './platform/lib/jsep.js': {
           'format': 'system'
         },

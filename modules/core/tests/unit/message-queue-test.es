@@ -22,16 +22,16 @@ export default describeModule('core/message-queue',
     },
   }),
   () => {
-    describe('MessageQueue', function messageQueueTests() {
+    describe('MessageQueue', function () {
       this.timeout(10000);
 
       let MessageQueue;
 
-      beforeEach(function importMessageQueue() {
+      beforeEach(function () {
         MessageQueue = this.module().default;
       });
 
-      it('should initially have size 0', function() {
+      it('should initially have size 0', function () {
         const queue = MessageQueue('test', () => Promise.resolve());
         expect(queue.getSize()).to.equal(0);
       });
@@ -41,7 +41,7 @@ export default describeModule('core/message-queue',
         return queue.push(42);
       }));
 
-      it('Adding messages should increase the queue size', function() {
+      it('Adding messages should increase the queue size', function () {
         const queue = MessageQueue('test', () => Promise.resolve());
 
         queue.push(() => {});
@@ -97,89 +97,95 @@ export default describeModule('core/message-queue',
         });
       }));
 
-      it('should process all messages in the queue', function() {
+      it('should process all messages in the queue', function () {
         let processedMessages = 0;
-        const queue = MessageQueue('test', () => { processedMessages++; });
+        const queue = MessageQueue('test', () => { processedMessages += 1; });
 
-        return Promise.all([queue.push(() => {}),
-                            queue.push(() => {})]).
-          then(() => {
+        return Promise.all([
+          queue.push(() => {}),
+          queue.push(() => {})
+        ])
+          .then(() => {
             expect(queue.getSize()).to.equal(0);
             expect(processedMessages).to.equal(2);
           });
       });
 
-      it('should sequentialize the execution of messages', function() {
-        let events = [];
+      it('should sequentialize the execution of messages', function () {
+        const events = [];
         const queue = MessageQueue('test', x => x());
 
         const p1 = () => Promise.resolve()
-              .then(() => { events.push(1); })
-              .then(() => { events.push(2); })
-              .then(() => { events.push(3); })
-              .then(() => { events.push(4); });
+          .then(() => { events.push(1); })
+          .then(() => { events.push(2); })
+          .then(() => { events.push(3); })
+          .then(() => { events.push(4); });
         const p2 = () => Promise.resolve()
-              .then(() => { events.push(5); })
-              .then(() => { events.push(6); })
-              .then(() => { events.push(7); })
-              .then(() => { events.push(8); });
+          .then(() => { events.push(5); })
+          .then(() => { events.push(6); })
+          .then(() => { events.push(7); })
+          .then(() => { events.push(8); });
 
-        return Promise.all([queue.push(p1),
-                            queue.push(p2)]).
-          then(() => {
-            expect(events).to.deep.equal([1,2,3,4,5,6,7,8]);
+        return Promise.all([
+          queue.push(p1),
+          queue.push(p2)
+        ])
+          .then(() => {
+            expect(events).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8]);
           });
       });
 
-      it('should keep processing messages even if one failed', function() {
-        let events = [];
+      it('should keep processing messages even if one failed', function () {
+        const events = [];
         const queue = MessageQueue('test', x => x());
 
         const p1 = () => Promise.resolve()
-              .then(() => { events.push(1); })
-              .then(() => { events.push(2); })
-              .then(() => { events.push(3); })
-              .then(() => { events.push(4); });
+          .then(() => { events.push(1); })
+          .then(() => { events.push(2); })
+          .then(() => { events.push(3); })
+          .then(() => { events.push(4); });
         const p2 = () => Promise.resolve()
-              .then(() => { events.push(5); })
-              .then(() => { events.push(6); })
-              .then(() => { events.push(7); })
-              .then(() => { events.push(8); })
-              .then(() => { throw new Error('intentionally thrown'); });
+          .then(() => { events.push(5); })
+          .then(() => { events.push(6); })
+          .then(() => { events.push(7); })
+          .then(() => { events.push(8); })
+          .then(() => { throw new Error('intentionally thrown'); });
         const p3 = () => Promise.resolve()
-              .then(() => { events.push(9); })
-              .then(() => { events.push(10); })
-              .then(() => { events.push(11); })
-              .then(() => { events.push(12); });
+          .then(() => { events.push(9); })
+          .then(() => { events.push(10); })
+          .then(() => { events.push(11); })
+          .then(() => { events.push(12); });
 
-        return Promise.all([queue.push(p1),
-                            queue.push(p2).catch(() => {}),
-                            queue.push(p3)])
+        return Promise.all([
+          queue.push(p1),
+          queue.push(p2).catch(() => {}),
+          queue.push(p3)
+        ])
           .then(() => {
-            expect(events).to.deep.equal([1,2,3,4,5,6,7,8,9,10,11,12]);
+            expect(events).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
             expect(queue.getSize()).to.equal(0);
           });
       });
 
-      it('Waiting for the last message should sequentialize everything', function() {
-        let events = [];
+      it('Waiting for the last message should sequentialize everything', function () {
+        const events = [];
         const queue = MessageQueue('test', x => x());
 
         queue.push(() => Promise.resolve()
-              .then(() => {})
-              .then(() => {})
-              .then(() => {})
-              .then(() => { events.push(1); })
-              .then(() => { events.push(2); })
-              .then(() => { events.push(3); })
-              .then(() => { events.push(4); }));
+          .then(() => {})
+          .then(() => {})
+          .then(() => {})
+          .then(() => { events.push(1); })
+          .then(() => { events.push(2); })
+          .then(() => { events.push(3); })
+          .then(() => { events.push(4); }));
         queue.push(() => { events.push(5); });
         queue.push(() => Promise.resolve().then(() => { events.push(6); }));
         queue.push(() => { events.push(7); });
         const finalPromise = queue.push(() => { events.push(8); });
 
         return finalPromise.then(() => {
-          expect(events).to.deep.equal([1,2,3,4,5,6,7,8]);
+          expect(events).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8]);
           expect(queue.getSize()).to.equal(0);
         });
       });

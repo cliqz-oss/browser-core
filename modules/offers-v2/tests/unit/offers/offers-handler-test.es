@@ -1,19 +1,18 @@
 /* global chai */
 /* global describeModule */
 /* global require */
-/* eslint-disable func-names,prefer-arrow-callback,arrow-body-style */
+/* eslint-disable func-names,prefer-arrow-callback,arrow-body-style, no-param-reassign */
 
 
 const adblocker = require('@cliqz/adblocker');
-const encoding = require('text-encoding');
 const tldjs = require('tldjs');
 
 
-var prefRetVal = {};
-var currentTS = Date.now();
-var latestOffersInstalledTs = 0;
-var currentDayHour = 0;
-var currentWeekDay = 0;
+const prefRetVal = {};
+const currentTS = Date.now();
+let latestOffersInstalledTs = 0;
+const currentDayHour = 0;
+const currentWeekDay = 0;
 let getDetailsFromUrlReal;
 let UrlData;
 let eventMessages = [];
@@ -57,44 +56,44 @@ const buildUrlData = (url, referrer, activeCats = globalActiveCats) => {
 };
 
 const VALID_OFFER_OBJ = {
-  "action_info": {
-      "on_click": "https://www.cliqz.com"
+  action_info: {
+    on_click: 'https://www.cliqz.com'
   },
-  "campaign_id": "cid_1",
-  "client_id": "client-1",
-  "display_id": "x-d",
-  "filterRules": "generic_comparator('offer_closed','l_u_ts','>=',30) && " +
+  campaign_id: 'cid_1',
+  client_id: 'client-1',
+  display_id: 'x-d',
+  filterRules: "generic_comparator('offer_closed','l_u_ts','>=',30) && " +
                  "generic_comparator('offer_shown','counter','<=',5)",
-  "offer_id": "x",
-  "rule_info": {
-      "display_time_secs": 999999,
-      "type": "exact_match",
-      "url": []
+  offer_id: 'x',
+  rule_info: {
+    display_time_secs: 999999,
+    type: 'exact_match',
+    url: []
   },
-  "ui_info": {
-      "template_data": {
-          "call_to_action": {
-              "target": "",
-              "text": "Jetzt Anfordern",
-              "url": "http://newurl"
-          },
-          "conditions": "Some conditions",
-          "desc": "Some description",
-          "logo_url": "somelogourl",
-          "title": "This is the title",
-          "voucher_classes": ""
+  ui_info: {
+    template_data: {
+      call_to_action: {
+        target: '',
+        text: 'Jetzt Anfordern',
+        url: 'http://newurl'
       },
-      "template_name": "ticket_template"
+      conditions: 'Some conditions',
+      desc: 'Some description',
+      logo_url: 'somelogourl',
+      title: 'This is the title',
+      voucher_classes: ''
+    },
+    template_name: 'ticket_template'
   },
-  "rs_dest": ["offers-cc"],
-  "types": ["type1", "type2"],
-  "monitorData": [],
-  "displayPriority": 0.0,
-  "version": '',
-  "categories": ["cat1"],
+  rs_dest: ['offers-cc'],
+  types: ['type1', 'type2'],
+  monitorData: [],
+  displayPriority: 0.0,
+  version: '',
+  categories: ['cat1'],
 };
 
-const cloneObject = (obj) => JSON.parse(JSON.stringify(obj));
+const cloneObject = obj => JSON.parse(JSON.stringify(obj));
 const cloneOffer = () => cloneObject(VALID_OFFER_OBJ);
 
 const buildOffer = (offerID, campaignID, clientID, displayPriority, filterRules) => {
@@ -140,8 +139,8 @@ class IntentHandlerMock {
     this.cb = [];
     this.activeIntents = [];
   }
-  registerCallback(cb) {this.cb.push(cb);}
-  unregisterCallback(cb) {}
+  registerCallback(cb) { this.cb.push(cb); }
+  unregisterCallback() {}
   activateIntentMock(intentData) {
     const intent = new IntentMock(intentData);
     this.activeIntents.push(intent);
@@ -177,10 +176,10 @@ class BackendConnectorMock {
 }
 
 class FeatureHandlerMock {
-  isFeatureAvailable(featureName) {
+  isFeatureAvailable() {
     return false;
   }
-  getFeature(featureName) {
+  getFeature() {
     return null;
   }
 }
@@ -193,10 +192,10 @@ class HistoryMatcherMock {
   hasHistoryEnabled() {
     return this.isHistoryEnabled;
   }
-  countMatchesWithPartialCheck(query, patternObj, patternIndex) {
+  countMatchesWithPartialCheck() {
     return this.countMatchesResult;
   }
-  countMatches(query, patternObj, patternIndex) {
+  countMatches() {
     return this.countMatchesResult.count;
   }
 }
@@ -206,13 +205,13 @@ class CategoryHandlerMock {
     this.result = true;
   }
 
-  isCategoryActive(catName) {
+  isCategoryActive() {
     return this.result;
   }
 }
 
 class SignalHandlerMock {
-  constructor(db) {
+  constructor() {
     this.db = {
       campaign: {},
       action: {}
@@ -222,17 +221,20 @@ class SignalHandlerMock {
   savePersistenceData() {}
 
   setCampaignSignal(cid, oid, origID, sid) {
-    let cidm = this.db['campaign'][cid];
+    let cidm = this.db.campaign[cid];
     if (!cidm) {
-      cidm = this.db['campaign'][cid] = {};
+      cidm = {};
+      this.db.campaign[cid] = cidm;
     }
     let oidm = cidm[oid];
     if (!oidm) {
-      oidm = cidm[oid] = {};
+      oidm = {};
+      cidm[oid] = oidm;
     }
     let origm = oidm[origID];
     if (!origm) {
-      origm = oidm[origID] = {};
+      origm = {};
+      oidm[origID] = origm;
     }
     if (!origm[sid]) {
       origm[sid] = 1;
@@ -242,9 +244,10 @@ class SignalHandlerMock {
   }
 
   setActionSignal(actionID, origID) {
-    let origm = this.db['action'][origID];
+    let origm = this.db.action[origID];
     if (!origm) {
-      origm = this.db['action'][origID] = {};
+      origm = {};
+      this.db.action[origID] = origm;
     }
     if (!origID[actionID]) {
       origID[actionID] = 1;
@@ -255,25 +258,25 @@ class SignalHandlerMock {
 
   // helper methods to get some values
   getCampaignSignal(cid, oid, origID, sid) {
-    let m = this.db['campaign'][cid];
-    if (!m) {return null;}
+    let m = this.db.campaign[cid];
+    if (!m) { return null; }
     m = m[oid];
-    if (!m) {return null;}
+    if (!m) { return null; }
     m = m[origID];
-    if (!m) {return null;}
+    if (!m) { return null; }
     return m[sid];
   }
   getCampaignSignalsCount() {
-    return Object.keys(this.db['campaign']).length;
+    return Object.keys(this.db.campaign).length;
   }
 
   getActionSignal(actionID, origID) {
-    let m = this.db['action'][origID];
-    if (!m) {return null;}
+    const m = this.db.action[origID];
+    if (!m) { return null; }
     return m[actionID];
   }
   getActionSignalCount() {
-    return Object.keys(this.db['action']).length;
+    return Object.keys(this.db.action).length;
   }
 }
 
@@ -285,7 +288,7 @@ class EventHandlerMock {
   isHttpReqDomainSubscribed(cb, dom) {
     return this.httpMap.has(dom) && this.httpMap.get(dom).has(cb);
   }
-  subscribeHttpReq(cb, domainName, cargs = null) {
+  subscribeHttpReq(cb, domainName) {
     if (!this.httpMap.has(domainName)) {
       this.httpMap.set(domainName, new Set());
     }
@@ -324,6 +327,15 @@ export default describeModule('offers-v2/offers/offers-handler',
     'core/platform': {
       isChromium: false
     },
+    'core/config': {
+      default: {
+        settings: {
+          get channel() {
+            return '40'; // chanel defines logic when to show an offer
+          },
+        },
+      },
+    },
     'platform/xmlhttprequest': {
       default: {}
     },
@@ -343,22 +355,18 @@ export default describeModule('offers-v2/offers/offers-handler',
       default: tldjs,
     },
     'offers-v2/utils': {
-      timestamp: function() {
-        return mockedTimestamp;
-      },
-      timestampMS: function() {
+      timestamp: function () {},
+      timestampMS: function () {
         return currentTS;
       },
-      dayHour: function() {
+      dayHour: function () {
         return currentDayHour;
       },
-      weekDay: function() {
+      weekDay: function () {
         return currentWeekDay;
       },
-      getABNumber: function() {
-        return abNumber;
-      },
-      getLatestOfferInstallTs: function() {
+      getABNumber: function () {},
+      getLatestOfferInstallTs: function () {
         return latestOffersInstalledTs;
       },
       orPromises: orPromisesReal
@@ -370,48 +378,48 @@ export default describeModule('offers-v2/offers/offers-handler',
     },
     'core/prefs': {
       default: {
-        get: function(v, d) {
+        get: function (v, d) {
           if (prefRetVal[v]) {
             return prefRetVal[v];
           }
           return d;
         },
-        setMockVal: function(varName, val) {
+        setMockVal: function (varName, val) {
           prefRetVal[varName] = val;
         }
       }
     },
     'core/utils': {
-      default: {
-        setInterval: function() {},
-        getDetailsFromUrl: function(url) {
-          // we should extract the name here
-          return getDetailsFromUrlReal(url);
-        },
-      }
+      default: {}
+    },
+    'core/url': {
+      getDetailsFromUrl: function (url) {
+        // we should extract the name here
+        return getDetailsFromUrlReal(url);
+      },
     },
     'platform/console': {
       default: {},
     },
     'offers-v2/common/offers_v2_logger': {
       default: {
-        debug: (...x) => {console.error(...x);},
-        error: (...x) => {console.error(...x);},
-        info: (...x) => {console.log(...x);},
-        log: (...x) => {console.log(...x);},
-        warn: (...x) => {console.error(...x);},
+        debug: (...x) => { console.error(...x); },
+        error: (...x) => { console.error(...x); },
+        info: (...x) => { console.log(...x); },
+        log: (...x) => { console.log(...x); },
+        warn: (...x) => { console.error(...x); },
         logObject: () => {},
       }
     },
     'offers-v2/offers/soft-filter': {
-      default: (offer, offersDB) => {
+      default: (offer) => {
         return !offer || offer.uniqueID === shouldFilterOfferID;
       }
     },
     'core/events': {
       default: {
         msgs: {},
-        sub(channel, fun) {
+        sub(channel) {
           // we dont care about functions subscriber or anything just get the
           // messages and store them to process them later
           if (!eventMessages[channel]) {
@@ -497,7 +505,7 @@ export default describeModule('offers-v2/offers/offers-handler',
         return Promise.all([
           this.system.import('offers-v2/common/url_data'),
           this.system.import('core/url'),
-          ]).then((mods) => {
+        ]).then((mods) => {
           UrlData = mods[0].default;
           getDetailsFromUrlReal = mods[1].getDetailsFromUrl;
         });
@@ -514,7 +522,6 @@ export default describeModule('offers-v2/offers/offers-handler',
           let sigHandlerMock;
           let eventHadlerMock;
           let ohandler;
-          let offersFiltersMock;
           let catHandlerMock;
           let offersDB;
 
@@ -559,10 +566,6 @@ export default describeModule('offers-v2/offers/offers-handler',
             }
           }
 
-          function simUrlChange(url) {
-            ohandler.urlChangedEvent(buildUrlData(url, ''));
-          }
-
           function checkEventPushedForOffer(offerID) {
             const msg = eventMessages['offers-send-ch'][0];
             chai.expect(msg.type).eql('push-offer');
@@ -585,7 +588,6 @@ export default describeModule('offers-v2/offers/offers-handler',
               const wait = () => {
                 setTimeout(() => {
                   resolve(true);
-                  return;
                 }, 10);
               };
               wait();
@@ -904,7 +906,6 @@ export default describeModule('offers-v2/offers/offers-handler',
               ];
               setActiveCategoriesFromOffers(offersList);
               return simulateUrlEventsAndWait(urls).then(() => {
-
                 // check that we could push the
                 checkOfferPushed('o2');
                 // sim again and we should show now the o1 offer
@@ -912,7 +913,6 @@ export default describeModule('offers-v2/offers/offers-handler',
                 shouldFilterOfferID = 'o2';
                 setActiveCategoriesFromOffers(offersList);
                 return simulateUrlEventsAndWait(urls).then(() => {
-
                   // check that we could push the
                   checkOfferPushed('o1');
                 });
@@ -943,7 +943,6 @@ export default describeModule('offers-v2/offers/offers-handler',
               ];
               setActiveCategoriesFromOffers(offersList);
               return simulateUrlEventsAndWait(urls).then(() => {
-
                 // check that we could push the
                 checkOfferPushed('o2');
                 // we now should get again the same offer since it is stored
@@ -951,7 +950,6 @@ export default describeModule('offers-v2/offers/offers-handler',
                 eventMessages = [];
                 setActiveCategoriesFromOffers(offersList);
                 return simulateUrlEventsAndWait(urls).then(() => {
-
                   // check that we could push the
                   checkOfferPushed('o2');
                 });
@@ -1017,7 +1015,6 @@ export default describeModule('offers-v2/offers/offers-handler',
               ];
               setActiveCategoriesFromOffers(offersList);
               return simulateUrlEventsAndWait(urls).then(() => {
-
                 // none of the offers should be pushed
                 checkZeroOfferPushed();
 
@@ -1027,7 +1024,6 @@ export default describeModule('offers-v2/offers/offers-handler',
                 eventMessages = [];
                 setActiveCategoriesFromOffers(offersList);
                 return simulateUrlEventsAndWait(urls).then(() => {
-
                   // check that we could push the
                   checkOfferPushed('o1');
                 });
@@ -1060,16 +1056,13 @@ export default describeModule('offers-v2/offers/offers-handler',
               ];
               setActiveCategoriesFromOffers(offersList);
               return simulateUrlEventsAndWait(urls).then(() => {
-
-                // none of the offers should be pushed
-                checkZeroOfferPushed();
+                checkOfferPushed('o1');
 
                 // now we should push again and with google.de and should work
                 urls[0] = 'http://www.amazon.de';
                 eventMessages = [];
                 setActiveCategoriesFromOffers(offersList);
                 return simulateUrlEventsAndWait(urls).then(() => {
-
                   // check that we could push the
                   checkOfferPushed('o2');
 
@@ -1078,7 +1071,6 @@ export default describeModule('offers-v2/offers/offers-handler',
                   eventMessages = [];
                   setActiveCategoriesFromOffers(offersList);
                   return simulateUrlEventsAndWait(urls).then(() => {
-
                     // check that we could push the
                     checkOfferPushed('o2');
                   });
@@ -1110,7 +1102,6 @@ export default describeModule('offers-v2/offers/offers-handler',
               ];
               setActiveCategoriesFromOffers(offersList);
               return simulateUrlEventsAndWait(urls).then(() => {
-
                 // check that we could push the
                 checkOfferPushed('o2');
                 // sim again and we should show now the o1 offer
@@ -1167,13 +1158,12 @@ export default describeModule('offers-v2/offers/offers-handler',
               setActiveCategoriesFromOffers(activeCatsOffers);
 
               return simulateUrlEventsAndWait(urls).then(() => {
-
                 // check that we could push the
                 checkOfferPushed('o2');
                 // sim again and we should show now the o1 offer
                 eventMessages = [];
                 // activate now 1 and 3
-                let activeCatsOffers = [
+                activeCatsOffers = [
                   offersList[0],
                   offersList[2],
                 ];
@@ -1183,7 +1173,7 @@ export default describeModule('offers-v2/offers/offers-handler',
                   eventMessages = [];
 
                   // activate now 1 only
-                  let activeCatsOffers = [
+                  activeCatsOffers = [
                     offersList[0],
                   ];
                   setActiveCategoriesFromOffers(activeCatsOffers);
@@ -1195,7 +1185,6 @@ export default describeModule('offers-v2/offers/offers-handler',
               });
             });
           });
-
         });
       });
     });

@@ -1,4 +1,4 @@
-import console from '../console';
+import Logger from '../logger';
 
 let app;
 
@@ -25,7 +25,7 @@ export class ModuleDisabledError extends Error {
 export function ifModuleEnabled(promise) {
   return promise.catch((err) => {
     if (err.name === ModuleDisabledError.name) {
-      console.debug(
+      Logger.get('core').debug(
         'Ignoring disabled module exception while calling action,' +
         ' the following exception can be safely ignored. This log' +
         ' is only printed in "debug" mode.', err);
@@ -76,6 +76,9 @@ class ModuleWrapper {
       const windowModule = this.module.getWindowModule(window);
       const action = windowModule.actions[actionName];
       return Promise.resolve(action(...args));
+    }).catch((e) => {
+      Logger.get('core').error(`window action "${actionName}" for module "${this.module.name}" failed`, e);
+      throw e;
     });
   }
 }
@@ -87,6 +90,25 @@ export default {
    */
   module(moduleName) {
     return new ModuleWrapper(moduleName);
+  },
+  service(serviceName) {
+    return new Proxy({}, {
+      get(target, prop) {
+        return new Proxy(() => {}, {
+          apply(_target, self, args) {
+            const api = (app && app.services[serviceName].api) || {};
+            try {
+              return api[prop](...args);
+            } catch (ex) {
+              throw new Error(
+                `Could not access '${prop}' from service: ${serviceName}. ` +
+                'Make sure it appears in the "requiresServices" property ' +
+                `of the module's background where is it used. Reason: ${ex}`);
+            }
+          },
+        });
+      },
+    });
   },
 };
 

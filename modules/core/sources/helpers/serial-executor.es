@@ -1,4 +1,3 @@
-import utils from '../utils';
 import console from '../console';
 
 /**
@@ -30,7 +29,7 @@ export default class SerialExecutor {
     this._tasks.push(task);
 
     if (!this._running && this._autostart) {
-      utils.setTimeout(this.start.bind(this), 0);
+      setTimeout(this.start.bind(this), 0);
     }
   }
 

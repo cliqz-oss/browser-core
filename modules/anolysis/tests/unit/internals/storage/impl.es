@@ -37,14 +37,14 @@ module.exports = function ({
   });
 
   describe('aggregated', () => {
-    describe('#ifNotAlreadyAggregated', () => {
+    describe('#runTaskAtMostOnce', () => {
       it('calls the function if the date is not already stored', () => {
         let called = false;
         const fn = () => {
           called = true;
         };
 
-        return storage.aggregated.ifNotAlreadyAggregated('2017-01-01', fn)
+        return storage.aggregated.runTaskAtMostOnce('2017-01-01', 'foo', fn)
           .then(() => chai.expect(called).to.be.true);
       });
 
@@ -54,23 +54,10 @@ module.exports = function ({
           called = true;
         };
 
-        return storage.aggregated.storeAggregation('2017-01-01', {})
-          .then(() => storage.aggregated.ifNotAlreadyAggregated('2017-01-01', fn))
+        return storage.aggregated.runTaskAtMostOnce('2017-01-01', 'foo', () => {})
+          .then(() => storage.aggregated.runTaskAtMostOnce('2017-01-01', 'foo', fn))
           .then(() => chai.expect(called).to.be.false);
       });
-    });
-
-    describe('#storeAggregation', () => {
-      it('stores aggregation', () =>
-        storage.aggregated.storeAggregation('2017-01-01', { d: 1 })
-      );
-
-      it('fails to store two times the same day', () =>
-        chai.expect(Promise.all([
-          storage.aggregated.storeAggregation('2017-01-01', { d: 1 }),
-          storage.aggregated.storeAggregation('2017-01-01', { d: 1 }),
-        ])).to.be.rejected
-      );
     });
 
     describe('#getAggregatedDates', () => {
@@ -81,9 +68,9 @@ module.exports = function ({
 
       it('return aggregated dates', () =>
         Promise.all([
-          storage.aggregated.storeAggregation('2017-01-01', { d: 1 }),
-          storage.aggregated.storeAggregation('2017-01-02', { d: 2 }),
-          storage.aggregated.storeAggregation('2017-01-03', { d: 3 }),
+          storage.aggregated.runTaskAtMostOnce('2017-01-01', 'foo', () => {}),
+          storage.aggregated.runTaskAtMostOnce('2017-01-02', 'foo', () => {}),
+          storage.aggregated.runTaskAtMostOnce('2017-01-03', 'foo', () => {}),
         ]).then(() => storage.aggregated.getAggregatedDates())
           .then(dates => chai.expect(dates).to.be.eql([
             '2017-01-01',
@@ -100,10 +87,9 @@ module.exports = function ({
 
       it('deletes entries older entries', () =>
         Promise.all([
-          storage.aggregated.storeAggregation('2016-01-01', { d: 1 }),
-          storage.aggregated.storeAggregation('2017-01-01', { d: 2 }),
-          storage.aggregated.storeAggregation('2017-01-02', { d: 3 }),
-          storage.aggregated.storeAggregation('2017-01-03', { d: 4 }),
+          storage.aggregated.runTaskAtMostOnce('2017-01-01', 'foo', () => {}),
+          storage.aggregated.runTaskAtMostOnce('2017-01-02', 'foo', () => {}),
+          storage.aggregated.runTaskAtMostOnce('2017-01-03', 'foo', () => {}),
         ]).then(() => storage.aggregated.deleteOlderThan('2017-01-02'))
           .then(() => storage.aggregated.getAggregatedDates())
           .then(dates => chai.expect(dates).to.be.eql([
@@ -185,6 +171,41 @@ module.exports = function ({
           .then(signals => chai.expect(signals).to.be.empty)
       );
     });
+
+    it('robust to batch operations', async () => {
+      await Promise.all([
+        storage.signals.push({}),
+        storage.signals.push({}),
+        storage.signals.push({}),
+        storage.signals.push({}),
+      ]);
+
+      chai.expect(await storage.signals.getAll()).to.eql([
+        { id: 1, signal: {}, attempts: 0, date: '2017-01-01' },
+        { id: 2, signal: {}, attempts: 0, date: '2017-01-01' },
+        { id: 3, signal: {}, attempts: 0, date: '2017-01-01' },
+        { id: 4, signal: {}, attempts: 0, date: '2017-01-01' },
+      ]);
+
+      await Promise.all([
+        storage.signals.push({}),
+        storage.signals.remove(1),
+        storage.signals.push({}),
+        storage.signals.remove(2),
+        storage.signals.remove(3),
+      ]);
+
+      chai.expect(await storage.signals.getAll()).to.eql([
+        { id: 4, signal: {}, attempts: 0, date: '2017-01-01' },
+        { id: 5, signal: {}, attempts: 0, date: '2017-01-01' },
+        { id: 6, signal: {}, attempts: 0, date: '2017-01-01' },
+      ]);
+      chai.expect(await storage.signals.getN(3)).to.eql([
+        { id: 4, signal: {}, attempts: 0, date: '2017-01-01' },
+        { id: 5, signal: {}, attempts: 0, date: '2017-01-01' },
+        { id: 6, signal: {}, attempts: 0, date: '2017-01-01' },
+      ]);
+    });
   });
 
   describe('gid', () => {
@@ -212,14 +233,14 @@ module.exports = function ({
     describe('#entries', () => {
       it('returns all entries', () =>
         Promise.all([
-          storage.gid.set('foo', { value: 1 }),
-          storage.gid.set('bar', { value: 2 }),
-          storage.gid.set('baz', { value: 3 }),
+          storage.gid.set('foo', JSON.stringify({ value: 1 })),
+          storage.gid.set('bar', JSON.stringify({ value: 2 })),
+          storage.gid.set('baz', JSON.stringify({ value: 3 })),
         ]).then(() => {
           chai.expect(storage.gid.entries()).to.be.eql([
-            { key: 'foo', value: { value: 1 } },
-            { key: 'bar', value: { value: 2 } },
-            { key: 'baz', value: { value: 3 } },
+            { key: 'foo', value: JSON.stringify({ value: 1 }) },
+            { key: 'bar', value: JSON.stringify({ value: 2 }) },
+            { key: 'baz', value: JSON.stringify({ value: 3 }) },
           ]);
         })
       );

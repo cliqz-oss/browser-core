@@ -1,5 +1,4 @@
 import { clean, getMainLink } from './normalize';
-import { isAutocompletable } from './results/utils';
 
 const group = (a, b) =>
   a.set(b.domain, [...(a.get(b.domain) || []), b]);
@@ -35,7 +34,6 @@ const makeHeader = (domain, query, scheme = 'http', provider) => {
     meta: {
       level: 0,
       type: 'main',
-      isAutocompletable: isAutocompletable(query, url),
     },
   });
 };

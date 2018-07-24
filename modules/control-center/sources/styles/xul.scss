@@ -60,14 +60,21 @@
         }
     }
 
-    /* dropdown width in FF42*/
-    #customizationui-widget-panel .panel-mainview {
-        max-width: 800px;
-    }
+    #customizationui-widget-panel {
+        /* Dropdown width in FF42*/
+        .panel-mainview {
+            max-width: 800px;
+        }
 
-    /* EX-6331: popup arrow was overlapping the gear icon in FF58 and above */
-    #customizationui-widget-panel[viewId='PanelUI-webext-page-action-browser-action-view'] {
-       margin-top: 0px;
+        /* EX-6331: popup arrow was overlapping the gear icon in FF58 and above */
+        &[viewId='PanelUI-webext-page-action-browser-action-view'] {
+           margin-top: 0px;
+        }
+
+        /* Make opening of control-center more fluid */
+        &[viewId='PanelUI-webext-control-center-browser-action-view'] {
+            transition-duration: 300ms;
+        }
     }
 }
 

@@ -1,7 +1,6 @@
 /* eslint no-restricted-syntax: 'off' */
 
 import md5 from '../../core/helpers/md5';
-import * as datetime from '../time';
 import * as persist from '../../core/persistent-state';
 import { splitTelemetryData, truncateDomain } from '../utils';
 import pacemaker from '../../core/pacemaker';
@@ -95,7 +94,7 @@ export default class TokenTelemetry {
   _touchToken(key, firstParty) {
     if (!(key in this.tokens)) {
       this.tokens[key] = {
-        lastSent: datetime.getTime()
+        lastSent: Date.now()
       };
     }
     if (!(firstParty in this.tokens[key])) {
@@ -153,9 +152,12 @@ export default class TokenTelemetry {
 
   _sendTokenBatch(keyFilter) {
     const data = {};
-    const hour = datetime.getTime();
     const domainKeys = Object.keys(this.tokens).filter(keyFilter);
     const limit = Math.floor(domainKeys.length / 12) || 1;
+
+    // minimum time between sending events for the same key
+    const cooldownInMs = 60 * 60 * 1000; // 1h
+    const now = Date.now();
 
     // sort tracker keys by lastSent, i.e. send oldest data first
     const sortedTrackers = domainKeys.sort((a, b) =>
@@ -173,7 +175,9 @@ export default class TokenTelemetry {
           break;
         }
 
-        if (!(domain in data) && (!(tokenData.lastSent) || tokenData.lastSent < hour)) {
+        if (!(domain in data) &&
+            (!(tokenData.lastSent) ||
+             parseInt(tokenData.lastSent, 10) + cooldownInMs <= now)) {
           delete tokenData.lastSent;
           const dataPayload = anonymizeTrackerTokens(tokenData);
           delete this.tokens[dk];

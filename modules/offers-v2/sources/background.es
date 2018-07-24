@@ -1,22 +1,15 @@
-/**
- * For better understanding of how this module work please refer to
- * https://cliqztix.atlassian.net/wiki/spaces/SBI/pages/66191480/General+Architecture+offers-v2.1
- */
 import logger from './common/offers_v2_logger';
 import prefs from '../core/prefs';
-import utils from '../core/utils';
-import moment from '../platform/lib/moment';
 import events from '../core/events';
 import config from '../core/config';
 import background from '../core/base/background';
-import OffersConfigs from './offers_configs';
+import OffersConfigs, { confOnPrefChange } from './offers_configs';
 import EventHandler from './event_handler';
 import SignalHandler from './signals/signals_handler';
 import Database from '../core/database';
 import TriggerMachineExecutor from './trigger_machine/trigger_machine_executor';
 import FeatureHandler from './features/feature-handler';
 import IntentHandler from './intent/intent-handler';
-import { updateBETime } from './utils';
 import OffersHandler from './offers/offers-handler';
 import BEConnector from './backend-connector';
 import HistoryMatcher from './history/history-matching';
@@ -24,10 +17,10 @@ import CategoryHandler from './categories/category-handler';
 import CategoryFetcher from './categories/category-fetcher';
 import GreenAdsHandler from './green-ads/manager';
 import UrlData from './common/url_data';
+import ActionID from './offers/actions-defs';
 
 // /////////////////////////////////////////////////////////////////////////////
 // consts
-const USER_ENABLED = 'offers2UserEnabled';
 const OFFERS_CC_ENABLED = 'modules.offers-cc.enabled';
 const PROMO_BAR_ENABLED = 'modules.browser-panel.enabled';
 
@@ -35,83 +28,42 @@ export default background({
   // to be able to read the config prefs
   requiresServices: ['cliqz-config'],
 
-  init() {
-    // we setup the endpoint coming from the config here
-    // BACKEND_URL: 'https://offers-api.cliqz.com',
-    if (config.settings.OFFERS_BE_BASE_URL) {
-      OffersConfigs.BACKEND_URL = config.settings.OFFERS_BE_BASE_URL;
-    }
-
-    return this.softInit();
-  },
-
-  softInit(/* settings */) {
+  init(/* settings */) {
     // check if we need to do something or not
-    if (!utils.getPref('offers2FeatureEnabled', false) || !utils.getPref(USER_ENABLED, true)) {
+    if (!prefs.get('offers2FeatureEnabled', true) || !prefs.get('offers2UserEnabled', true)) {
       this.initialized = false;
       return Promise.resolve();
     }
 
-    // setup the proper timestamp to be used if not set already
-    const beTS = utils.getPref('config_ts', null);
-    if (beTS) {
-      // we set this one
-      updateBETime(beTS);
-    } else {
-      // use local for now
-      updateBETime(moment().format('YYYYMMDD'));
-    }
-
-    // check for some other flags here:
-    //
-    // enable logging into the console
-    if (utils.getPref('offersLogsEnabled', false)) {
-      OffersConfigs.LOG_LEVEL = 'debug';
-      OffersConfigs.LOG_ENABLED = true;
-    }
-
     // check if we need to set dev flags or not
     // extensions.cliqz.offersDevFlag
-    OffersConfigs.IS_DEV_MODE = utils.getPref('offersDevFlag', false);
+    OffersConfigs.IS_DEV_MODE = prefs.get('offersDevFlag', false);
     if (OffersConfigs.IS_DEV_MODE) {
       // new ui system
       OffersConfigs.LOAD_OFFERS_STORAGE_DATA = false;
-      // enable logs?
-      OffersConfigs.LOG_LEVEL = 'debug';
-      OffersConfigs.LOG_ENABLED = true;
 
       // dont load signals from DB
-      OffersConfigs.SIGNALS_LOAD_FROM_DB = utils.getPref('offersLoadSignalsFromDB', false);
+      OffersConfigs.SIGNALS_LOAD_FROM_DB = prefs.get('offersLoadSignalsFromDB', false);
       // avoid loading storage data if needed
-      OffersConfigs.LOAD_OFFERS_STORAGE_DATA = utils.getPref('offersSaveStorage', false);
+      OffersConfigs.LOAD_OFFERS_STORAGE_DATA = prefs.get('offersSaveStorage', false);
       // avoid loading db for signals
       OffersConfigs.SEND_SIG_OP_SHOULD_LOAD = false;
     }
 
-    if (utils.getPref('triggersBE')) {
-      OffersConfigs.BACKEND_URL = utils.getPref('triggersBE');
-      // we will endpoint to triggersBE backend if this flag is set
-      OffersConfigs.SIGNALS_HPN_BE_ADDR =
-        OffersConfigs.BACKEND_URL.endsWith('/') ?
-          `${OffersConfigs.BACKEND_URL}api/v1/savesignal` :
-          `${OffersConfigs.BACKEND_URL}/api/v1/savesignal`;
-    }
-
     // set some extra variables
-    if (utils.getPref('offersTelemetryFreq')) {
-      OffersConfigs.SIGNALS_OFFERS_FREQ_SECS = utils.getPref('offersTelemetryFreq');
+    if (prefs.get('offersTelemetryFreq')) {
+      OffersConfigs.SIGNALS_OFFERS_FREQ_SECS = prefs.get('offersTelemetryFreq');
     }
-    if (utils.getPref('offersOverrideTimeout')) {
-      OffersConfigs.OFFERS_OVERRIDE_TIMEOUT = utils.getPref('offersOverrideTimeout');
+    if (prefs.get('offersOverrideTimeout')) {
+      OffersConfigs.OFFERS_OVERRIDE_TIMEOUT = prefs.get('offersOverrideTimeout');
     }
-    logger.init();
     logger.info(`\n\n
       ------------------------------------------------------------------------
                                   NEW SESSION STARTED
       Version: ${OffersConfigs.CURRENT_VERSION}
       timestamp: ${Date.now()}
       OffersConfigs.LOG_LEVEL: ${OffersConfigs.LOG_LEVEL}
-      dev_flag: ${utils.getPref('offersDevFlag', false)}
+      dev_flag: ${prefs.get('offersDevFlag', false)}
       triggersBE: ${OffersConfigs.BACKEND_URL}
       offersTelemetryFreq: ${OffersConfigs.SIGNALS_OFFERS_FREQ_SECS}
       '------------------------------------------------------------------------\n`
@@ -224,7 +176,7 @@ export default background({
       this.featureHandler = null;
     }
 
-    this.categoryHandler = null;
+    // this.categoryHandler = null;
     if (this.categoryFetcher) {
       this.categoryFetcher.unload();
       this.categoryFetcher = null;
@@ -296,7 +248,7 @@ export default background({
   configureFlags(flags) {
     // the list of acceptable normal preferences
     const validPrefNames = new Set([
-      USER_ENABLED,
+      'offers2UserEnabled',
       'offers2FeatureEnabled',
       'offersLogsEnabled',
       'offersDevFlag',
@@ -322,10 +274,6 @@ export default background({
           case 'offersInstallInfo':
             prefs.set(prefName, `${config.EXTENSION_VERSION}|${prefValue}`);
             break;
-          case 'triggersBE':
-            OffersConfigs.BACKEND_URL = prefValue;
-            prefs.set(prefName, prefValue);
-            break;
           default:
             prefs.set(prefName, prefValue);
         }
@@ -343,18 +291,15 @@ export default background({
       }
     },
     prefchange: function onPrefChange(pref) {
-      if (pref === USER_ENABLED) {
-        if (utils.getPref(USER_ENABLED, true) === true) {
-          utils.setPref(OFFERS_CC_ENABLED, true);
-          utils.setPref(PROMO_BAR_ENABLED, true);
-          this.softInit();
-        } else {
-          utils.setPref(OFFERS_CC_ENABLED, false);
-          utils.setPref(PROMO_BAR_ENABLED, false);
-          this.softUnload();
-        }
-      } else if (pref === 'config_ts') {
-        updateBETime(utils.getPref('config_ts'));
+      confOnPrefChange(pref);
+      if (pref !== 'offers2UserEnabled') { return; }
+      const offers2UserEnabled = prefs.get('offers2UserEnabled', true);
+      prefs.set(OFFERS_CC_ENABLED, offers2UserEnabled);
+      prefs.set(PROMO_BAR_ENABLED, offers2UserEnabled);
+      if (offers2UserEnabled) {
+        this.init();
+      } else {
+        this.softUnload();
       }
     },
   },
@@ -448,6 +393,10 @@ export default background({
      */
     setConfiguration(flags) {
       this.configureFlags(flags);
+    },
+
+    getActionID() {
+      return ActionID;
     },
   },
 

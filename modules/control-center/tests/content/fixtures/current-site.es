@@ -1,4 +1,4 @@
-export function generateDataFalse(amo) {
+export function generateDataFalse() {
   return {
     activeURL: 'http://www.spiegel.de/',
     friendlyURL: 'http://www.spiegel.de/',
@@ -25,11 +25,11 @@ export function generateDataFalse(amo) {
     generalState: 'active',
     feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
     amo: false,
-    funnelCake: false
-  }
-};
+    compactView: false
+  };
+}
 
-export function generateDataTrue(amo) {
+export function generateDataTrue() {
   return {
     activeURL: 'http://www.spiegel.de/',
     friendlyURL: 'http://www.spiegel.de/',
@@ -56,6 +56,6 @@ export function generateDataTrue(amo) {
     generalState: 'active',
     feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
     amo: false,
-    funnelCake: false
-  }
+    compactView: false
+  };
 }

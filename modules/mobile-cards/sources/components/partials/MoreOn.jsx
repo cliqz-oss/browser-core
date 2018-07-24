@@ -8,7 +8,7 @@ class Url extends React.Component {
 
   render() {
     return (
-      <Link to={this.props.url}>
+      <Link url={this.props.url}>
         <Text style={styles.text}>{getMessage('more_on')} {this.props.provider}</Text>
       </Link>
     );

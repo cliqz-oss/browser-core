@@ -45,12 +45,10 @@ export default class MessageSender {
     messages.forEach((_msg) => {
       const msg = _msg;
       if (this.hpnv2.isEnabled()) {
-        if (msg && typeof msg === 'object') {
-          msg.hpnv2 = true;
-        }
         this.hpnv2.action('send', msg).catch(() => {});
+      } else {
+        this._sendSingleMessage(msg);
       }
-      this._sendSingleMessage(msg);
     });
 
     // There is no real error handling, so we ignore rejected

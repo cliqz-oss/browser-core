@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="15px" height="14px" viewBox="0 0 15 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+    <title>error icon</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="ADD-TO-CLIQZ-TAB" transform="translate(-649.000000, -1166.000000)">
+            <g id="error-icon" transform="translate(649.300000, 1163.700000)">
+                <g transform="translate(0.790625, 0.579688)">
+                    <circle id="Oval-3" stroke="#D0021B" stroke-width="0.8" fill="#FFFFFF" cx="6.44581221" cy="8.58955078" r="6.4"></circle>
+                    <text id="!" font-family="SFUIText-Medium, SF UI Text" font-size="11.2" font-weight="400" line-spacing="16" letter-spacing="-0.160000002" fill="#D0021B">
+                        <tspan x="4.64410894" y="11.1254883">!</tspan>
+                    </text>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

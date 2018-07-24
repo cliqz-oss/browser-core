@@ -9,6 +9,8 @@ export default describeModule('core/url',
       'platform/lib/tldjs': {
         default: tldjs,
       },
+      'core/platform': {
+      },
       'platform/url': {
         default: '[dynamic]',
       },

@@ -15,11 +15,13 @@ export default class HistoryStream extends EventEmitter {
 
     // Process past history async and build the index
     historyProcessor.on('processedVisits', visits => this.stream.pushMany(visits));
+
+    this.query = this.stream.query.bind(this.stream);
   }
 
-  init() {
-    return this.stream.init()
-      .then(() => this.deleteDataOlderThan(Date.now() - TIME_LIMIT_MS));
+  async init() {
+    await this.stream.init();
+    await this.deleteDataOlderThan(Date.now() - TIME_LIMIT_MS);
   }
 
   unload() {
@@ -56,9 +58,5 @@ export default class HistoryStream extends EventEmitter {
 
   all() {
     return this.stream.all();
-  }
-
-  query(...args) {
-    return this.stream.query(...args);
   }
 }

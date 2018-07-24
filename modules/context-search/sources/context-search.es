@@ -1,7 +1,6 @@
 /* eslint func-names: 'off' */
 /* eslint no-param-reassign: 'off' */
 
-import utils from '../core/utils';
 import { queryActiveTabs } from '../core/tabs';
 import * as urlHelpers from '../core/url';
 import { forEachWindow } from '../platform/browser';
@@ -103,41 +102,41 @@ class ContextSearch {
 
   init() {
     if (this.checkClosedTabsId == null) {
-      this.checkClosedTabsId = utils.setInterval(this.removeClosedTabs.bind(this),
+      this.checkClosedTabsId = setInterval(this.removeClosedTabs.bind(this),
         this.checkClosedTabs);
     }
     if (this.checkOldEntriesId == null) {
-      this.checkOldEntriesId = utils.setInterval(this.removeOldEntries.bind(this),
+      this.checkOldEntriesId = setInterval(this.removeOldEntries.bind(this),
         this.checkOldEntries);
     }
     if (this.dropOldHashesId == null) {
-      this.dropOldHashesId = utils.setInterval(this.dropDeletedHashes.bind(this),
+      this.dropOldHashesId = setInterval(this.dropDeletedHashes.bind(this),
         this.dropOldHashes);
     }
     // if (this.sendMessageIntervalId == null) {
-    //   this.sendMessageIntervalId = utils.setInterval(this.sendMessage.bind(this),
+    //   this.sendMessageIntervalId = setInterval(this.sendMessage.bind(this),
     //     this.sendMessageInterval);
     // }
   }
 
   unload() {
     if (this.checkClosedTabsId !== null) {
-      utils.clearInterval(this.checkClosedTabsId);
+      clearInterval(this.checkClosedTabsId);
       this.checkClosedTabsId = null;
     }
     if (this.checkOldEntriesId !== null) {
-      utils.clearInterval(this.checkOldEntriesId);
+      clearInterval(this.checkOldEntriesId);
       this.checkOldEntriesId = null;
     }
     if (this.dropOldHashesId !== null) {
-      utils.clearInterval(this.dropOldHashesId);
+      clearInterval(this.dropOldHashesId);
       this.dropOldHashesId = null;
     }
     // if (this.sendMessageIntervalId !== null) {
     //   if (this.messages.length !== 0) {
     //     this.sendMessage();
     //   }
-    //   utils.clearInterval(this.sendMessageIntervalId);
+    //   clearInterval(this.sendMessageIntervalId);
     //   this.sendMessageIntervalId = null;
     // }
   }
@@ -320,7 +319,7 @@ class ContextSearch {
     let valid = true;
     if (!url) {
       valid = false;
-    } else if (CliqzHumanWeb.checkSearchURL(url) !== -1) {
+    } else if (CliqzHumanWeb.isSearchEngineUrl(url)) {
       valid = false;
     } else if (ContextSearch.isNotUrl(url)) {
       valid = false;
@@ -790,7 +789,7 @@ class ContextSearch {
 
   // printResult(response){
   //   response.forEach(r => {
-  //     utils.log(r.q, r.url);
+  //     console.log(r.q, r.url);
   //   });
   // }
 
@@ -820,7 +819,7 @@ class ContextSearch {
    * @param query
    */
   doRerank(response, query) {
-    // utils.log(this.savedQuery + ' ' + query, "context search expansion");
+    // console.log(this.savedQuery + ' ' + query, "context search expansion");
     if (query === this.savedQuery) {
       // continue to search
       this.invalidCache = false;
@@ -836,7 +835,7 @@ class ContextSearch {
     // don't do expansion if query is less than 2 letter - too general
     if (query.length > 2) {
       const possibleQExt = this.getQExt(query, true);
-      // utils.log(possibleQExt, 'Context search expansion');
+      // console.log(possibleQExt, 'Context search expansion');
 
       if (response.length === 2) {
         doubledResponse = true;

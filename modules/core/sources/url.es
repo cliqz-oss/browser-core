@@ -8,6 +8,7 @@ import {
   equals as urlEqual,
   cleanMozillaActions
 } from './content/url';
+import { isFirefox } from './platform';
 
 export {
   urlStripProtocol,
@@ -207,7 +208,6 @@ function _getDetailsFromUrl(_originalUrl) {
     } catch (e) {
       name = '';
       host = '';
-      // CliqzUtils.log('WARNING Failed for: ' + originalUrl, 'CliqzUtils.getDetailsFromUrl');
     }
   } else {
     name = localhost ? 'localhost' : 'IP';
@@ -257,4 +257,76 @@ const urlDetailsCache = new MapCache(_getDetailsFromUrl, 50);
 
 export function getDetailsFromUrl(url) {
   return urlDetailsCache.get(url);
+}
+
+export function getSearchEngineUrl(engine, query, rawQuery) {
+  if (!isFirefox) {
+    return engine.getSubmissionForQuery(query);
+  }
+
+  return `moz-action:searchengine,${JSON.stringify({
+    engineName: engine.name,
+    input: encodeURIComponent(query),
+    searchQuery: encodeURIComponent(rawQuery),
+    alias: engine.alias,
+  })}`;
+}
+
+export function getVisitUrl(url) {
+  if (!isFirefox) {
+    return url;
+  }
+
+  return `moz-action:visiturl,${JSON.stringify({
+    url: encodeURIComponent(url)
+  })}`;
+}
+
+export function cleanUrlProtocol(url, cleanWWW) {
+  if (!url) {
+    return '';
+  }
+
+  // removes protocol if it's http(s). See CLIQZIUM-218.
+  const urlLowered = url.toLowerCase();
+  if (urlLowered.startsWith('http://')) {
+    url = url.slice(7);
+  }
+  if (urlLowered.startsWith('https://')) {
+    url = url.slice(8);
+  }
+
+  // removes the www.
+  if (cleanWWW && url.toLowerCase().startsWith('www.')) {
+    url = url.slice(4);
+  }
+
+  return url;
+}
+
+// Remove clutter (http, www) from urls
+export function generalizeUrl(url, skipCorrection) {
+  if (!url) {
+    return '';
+  }
+  let val = url.toLowerCase();
+  const cleanParts = cleanUrlProtocol(val, false).split('/');
+  const host = cleanParts[0];
+  let pathLength = 0;
+  const SYMBOLS = /,|\./g;
+  if (!skipCorrection) {
+    if (cleanParts.length > 1) {
+      pathLength = (`/${cleanParts.slice(1).join('/')}`).length;
+    }
+    if (host.indexOf('www') === 0 && host.length > 4) {
+      // only fix symbols in host
+      if (SYMBOLS.test(host[3]) && host[4] !== ' ') {
+      // replace only issues in the host name, not ever in the path
+        val = val.substr(0, val.length - pathLength).replace(SYMBOLS, '.') +
+        (pathLength ? val.substr(-pathLength) : '');
+      }
+    }
+  }
+  url = cleanUrlProtocol(val, true);
+  return url[url.length - 1] === '/' ? url.slice(0, -1) : url;
 }

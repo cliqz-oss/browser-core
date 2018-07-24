@@ -1,5 +1,5 @@
 import { checkIsWindowActive } from '../platform/browser';
-import domainInfo, { getDomainOwner } from '../core/domain-info';
+import domainInfo from '../core/services/domain-info';
 import { URLInfo } from '../core/url-info';
 import { getGeneralDomain } from '../core/tlds';
 
@@ -20,13 +20,12 @@ class PageStats {
     this.blockedDomains.add(domain);
 
     let company;
-    if (domain in domainInfo.domainOwners) {
-      company = domainInfo.domainOwners[domain];
-      this.blockedInfo[company] = getDomainOwner(domain);
-    } else if (domain === this.hostGD) {
+    if (domain === this.hostGD) {
       company = 'First party';
     } else {
-      company = domain;
+      const owner = domainInfo.getDomainOwner(domain);
+      company = owner.name;
+      this.blockedInfo[company] = owner;
     }
 
     if (this.blocked.has(company)) {

@@ -1,20 +1,17 @@
 import React from 'react';
 import { StyleSheet, View, Text, TextInput, NativeModules } from 'react-native';
 
-import inject from '../../../core/kord/inject';
 import i18n, { getMessage } from '../../../core/i18n';
 import utils from '../../../core/utils';
 import prefs from '../../../core/prefs';
+import PermissionManager from '../../../platform/permission-manager';
 import Title from '../partials/Title';
 import Link from '../Link';
 import NativeDrawable, { normalizeUrl } from '../custom/NativeDrawable';
 import { elementTopMargin, elementSideMargins } from '../../styles/CardStyle';
+import { withCliqz } from '../../cliqz';
 
-const PermissionManager = NativeModules.PermissionManagerModule;
-const geoLocation = inject.module('geolocation');
-const search = inject.module('search');
-
-export default class extends React.Component {
+class Local extends React.Component {
 
   constructor(props) {
     super(props);
@@ -30,7 +27,7 @@ export default class extends React.Component {
     const callIcon = normalizeUrl('call-icon.svg');
     return <View style={styles.container}>
       <View style={[styles.row, styles.centerCenter, styles.size3]}>
-        <Link actionName='mobile-search:map' actionParams={[data.mu]} style={styles.size1}>
+        <Link action="openMap" param={data.mu} style={styles.size1}>
           <View style={[styles.column, styles.centerCenter]}>
             <NativeDrawable style={styles.map} source={mapIcon} />
             <Text style={{ color: '#00AEF0' }}>{distance}</Text>
@@ -51,9 +48,9 @@ export default class extends React.Component {
           {
             data.phonenumber &&
             <Link
+              action="callNumber"
+              param={data.phonenumber}
               style={styles.size1}
-              actionName='mobile-search:call'
-              actionParams={[data.phonenumber]}
             >
               <View style={[styles.column, styles.centerCenter]}>
                 <NativeDrawable style={styles.call} source={callIcon} />
@@ -68,7 +65,7 @@ export default class extends React.Component {
   async getLocationData() {
     const type = PermissionManager.PERMISSIONS.ACCESS_FINE_LOCATION;
     const granted = PermissionManager.RESULTS.GRANTED;
-    
+
     const isLocationAccessGranted = (
       await PermissionManager.check(type) === granted ||
       await PermissionManager.request(type) === granted
@@ -77,9 +74,11 @@ export default class extends React.Component {
       return;
     }
     prefs.set('share_location', 'yes');
-    await geoLocation.action('updateGeoLocation');
+
+    const { geolocation, search } = this.props.cliqz;
+    await geolocation.updateGeoLocation();
     // TODO: getSnippet action should receive location and get rid of utils.USER_LAT/USER_LNG
-    const snippet = await search.action('getSnippet', this.props.result.text, this.props.result);
+    const snippet = await search.getSnippet(this.props.result.text, this.props.result);
     if (snippet.extra) {
       this.setState({ data: snippet.extra });
     }
@@ -254,3 +253,5 @@ const Helpers = {
     return null;
   },
 }
+
+export default withCliqz(Local);

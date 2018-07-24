@@ -28,6 +28,7 @@
         "class-property"
     ],
     "rules": {
+        "no-control-regex": "off",
         "compat/compat": "error",
         "import/extensions": "off",
         "class-methods-use-this": "off",
@@ -48,6 +49,7 @@
         // Rules to keep
         "no-underscore-dangle": "off",
         "import/no-unresolved": "off",
+        "no-restricted-globals": ["error", "Worker"]
     },
     "overrides": [
     {

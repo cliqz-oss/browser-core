@@ -28,7 +28,7 @@ module.exports = {
     'KEY_SECURE_LOGGER_PUBKEY': 'MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAh5HhcRAn6+6woXQXl\/NtZ+fOooNglZct\/HSpYuqkcmrPauHW7EuOSq5bvpBZRTDROjR\/kUPomqVZIzqhdCFPA8BwXSCz7hAel2Q157vtBvh9sngMMLXb5Fgzef5N4EuKO8pL5KrS+I9tfZac41vFJSdpgAirZYhh+tdcQQ1z0Qv\/Rw0zOXjfvddCz3gEv2gB9KsLMVnTS1J4YOOgfza2adg9Ebz1z99DiF4vtCwn0IUwH\/3ToTBwJLbMnC3Ol43yBNk8rgK2mkgCi614vOSD3hnVmio+iW6+AUklM8VPl6l7hEK9cljJY+9UsMVmTrvaFbMPwS6AdZCXKTmNdaMJcy3zSOXu5zvzihoQLwAu9LM3l2eVk0Mw0K7JXOP20fc8BtzWCOLYVP32r4R0BNuhTtvGqjHNZHPJN5OwaxkLpn2dujL9uDWGjRiOItKMVq\/nOqmNGghrbf8IOaKT7VQhqOU4cXRkB\/uF1UjYETBavwUZAxx9Wd\/cMcAGmKiDxighxxQ29jDufl+2WG065tmJz+zCxmgrPh6Zb3KFUxPTe6yksAhWJhmGShA9v20t84M5c6NpZXoUsFcVja6XxzHeSB8dWq9Uu5QcZ83Gz\/ronwdEjT2OGTtBgOFeTDqLYUgphC1gcUEHOCnTNXRMQOXqGwBfZHp+Mq61QcMq2rNS7xECAwEAAQ==',
     'HW_CHANNEL': 'ff-amo',
     'HPN_CHANNEL': 'cliqz',
-    'NEW_TAB_URL': 'chrome://cliqz/content/freshtab/home.html',
+    'NEW_TAB_URL': 'resource://cliqz/freshtab/home.html',
     'ICONS': {
       'active': {
         'default': 'control-center/images/cc-active.svg',
@@ -55,7 +55,8 @@ module.exports = {
     "WORLDCUP_URL": "https://sport.cliqz.com/",
   }),
   'default_prefs' : {
-    'modules.history-analyzer.enabled': false
+    'modules.history-analyzer.enabled': false,
+    'modules.anolysis.enabled': false,
   },
   'modules': [
     'core',
@@ -76,11 +77,13 @@ module.exports = {
     'hpn',
     'control-center',
     'offers-v2',
+    'history-analyzer',
     'offers-cc',
     'browser-panel',
     'message-center',
     'offboarding',
     'anolysis',
+    'anolysis-cc',
     'market-analysis',
     'abtests',
     'search'
@@ -88,6 +91,7 @@ module.exports = {
   'subprojects': subprojects([
     '@cliqz-oss/dexie',
     '@cliqz-oss/pouchdb',
+    'ajv',
     'handlebars',
     'jquery',
     'mathjs',

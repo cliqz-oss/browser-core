@@ -1,29 +1,7 @@
-import SQLite from 'react-native-sqlite-2';
+// react native window should always be imported before
+// in order to set global variables e.g. indexedDB
 import Dexie from '@cliqz-oss/dexie';
-import setGlobalVars from '@cliqz/indexeddbshim/src/setGlobalVars';
 
-export default function () {
-  const w = {};
-
-  setGlobalVars(
-    w,
-    {
-      checkOrigin: false,
-      origin: 'react',
-      win: SQLite,
-      deleteDatabaseFiles: false,
-      useSQLiteIndexes: true,
-    }
-  );
-
-  class MyDexie extends Dexie {
-    constructor(name) {
-      super(name, {
-        indexedDB: w.indexedDB,
-        IDBKeyRange: w.IDBKeyRange,
-      });
-    }
-  }
-
-  return Promise.resolve(MyDexie);
+export default function getDexie() {
+  return Promise.resolve(Dexie);
 }

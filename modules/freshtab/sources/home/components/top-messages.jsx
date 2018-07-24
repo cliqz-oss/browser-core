@@ -6,10 +6,9 @@ import { messageShowSignal, messageClickSignal, messageCloseSignal, messageSkipS
 export default class TopMessages extends React.Component {
   componentDidMount() {
     if (this.props.messages.length > 0) {
-      // Set shown time for the visible message (i.e the first one)
+      // Send show signal for the visible message (i.e the first one)
       const message = this.props.messages[0];
       messageShowSignal(message.id);
-      cliqz.freshtab.setMessageShownTime(message);
     }
   }
 
@@ -25,9 +24,9 @@ export default class TopMessages extends React.Component {
   }
 
   handleCloseClick(message) {
-    messageCloseSignal(message.id);
     const messageId = message.id;
     const handler = message.handler;
+    messageCloseSignal(messageId);
     cliqz.freshtab.dismissMessage(messageId, handler);
     cliqz.storage.setState((prevState) => {
       const prev = prevState;
@@ -71,6 +70,7 @@ export default class TopMessages extends React.Component {
                 <div>
                   <button
                     className="cta-btn"
+                    tabIndex="-1"
                     onClick={() => this.handleCTAClick(message)}
                   >
                     {message.cta_text}
@@ -78,6 +78,7 @@ export default class TopMessages extends React.Component {
                   {message.later_text &&
                   <button
                     className="later-btn"
+                    tabIndex="-1"
                     onClick={() => this.handleLaterClick(message)}
                   >
                     {message.later_text}

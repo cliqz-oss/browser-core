@@ -20,8 +20,6 @@
  * - broadcast to all the real estates when needed
  * - receive signals from real estates and store the data
  *
- * Check https://cliqztix.atlassian.net/wiki/spaces/SBI/pages/66191480/General+Architecture+offers-v2.1
- * for more information
  */
 
 import MessageQueue from '../../core/message-queue';
@@ -40,16 +38,14 @@ import HardFilters from './jobs/hard-filters';
 import Prioritizer from './jobs/prioritizer';
 import ContextFilter from './jobs/context-filters';
 import prefs from '../../core/prefs';
+import config from '../../core/config';
 import { getLatestOfferInstallTs, timestampMS } from '../utils';
 import ActionID from './actions-defs';
+import OffersConfigs from '../offers_configs';
 
 
-// /////////////////////////////////////////////////////////////////////////////
-//                              Constants
-// /////////////////////////////////////////////////////////////////////////////
-const MAX_NUM_OFFERS_PER_DAY = 5;
 // time in secs that we will use to consider offers fresh install
-const FRESH_INSTALL_THRESHOLD_SECS = 45 * 60; // 45 mins?
+const FRESH_INSTALL_THRESHOLD_SECS = 45 * 60; // 45 mins
 
 // /////////////////////////////////////////////////////////////////////////////
 //                              Helper methods
@@ -67,8 +63,6 @@ const executeJobList = (jobList, offersList, ctx, idx = 0) => {
     return Promise.resolve(offersList);
   }
   const first = jobList[idx];
-  // TODO: remove this log
-  logger.debug(`Executing job ${first.name}`);
   return first.process(offersList, ctx).then(newResult =>
     executeJobList(jobList, newResult, ctx, idx + 1)
   );
@@ -83,7 +77,6 @@ const isFreshInstalled = () => {
     return false;
   }
 
-  // check the installed timestamp
   const timeSinceInstallSecs = (timestampMS() - getLatestOfferInstallTs()) / 1000;
   return timeSinceInstallSecs < FRESH_INSTALL_THRESHOLD_SECS;
 };
@@ -94,10 +87,10 @@ const isFreshInstalled = () => {
  * number of offers per hour, etc.
  */
 const shouldWeShowAnyOffer = offersGeneralStats =>
-  // is not just fresh installed
-  !isFreshInstalled() &&
-  // check that we didnt reached the max num of offers per day
-  offersGeneralStats.offersAddedToday() < MAX_NUM_OFFERS_PER_DAY;
+  config.settings.channel === '99' || (
+    !isFreshInstalled() &&
+    offersGeneralStats.offersAddedToday() < OffersConfigs.MAX_NUM_OFFERS_PER_DAY
+  );
 
 
 /**
@@ -153,9 +146,10 @@ export default class OffersHandler {
     this.offersDB.registerCallback(this._offersDBCallback);
 
     // set the context we will use for each call
-    const geoChecker = featuresHandler.isFeatureAvailable('geo') ?
-      featuresHandler.getFeature('geo') :
-      null;
+    const geoChecker = featuresHandler.isFeatureAvailable('geo')
+      ? featuresHandler.getFeature('geo')
+      : null;
+
     this.context = {
       presentRealEstates,
       geoChecker,
@@ -179,11 +173,6 @@ export default class OffersHandler {
       new Prioritizer(),
       new ContextFilter(),
     ];
-
-    this.lastTimeProcessedAllJobs = null;
-
-    // this will be latest prioritized offers list we have
-    this.prioritizedOffers = [];
   }
 
   destroy() {
@@ -193,7 +182,6 @@ export default class OffersHandler {
   }
 
   urlChangedEvent(urlData) {
-    // we add the event to be processed on the queue
     return this.evtQueue.push({ urlData });
   }
 
@@ -218,7 +206,6 @@ export default class OffersHandler {
    * real estate
    */
   _pushOffersToRealEstates(offer, urlData) {
-    // send the offer to the offers api
     const displayRuleInfo = {
       type: 'exact_match',
       url: [urlData.getRawUrl()],
@@ -228,82 +215,43 @@ export default class OffersHandler {
     return Promise.resolve(result);
   }
 
-  _updateOffersIfNeeded() {
-    const processJobs = () => executeJobList(this.jobsPipeline, [], this.context)
-      .then((pOffers) => {
-        this.prioritizedOffers = pOffers;
-        return Promise.resolve(true);
-      });
+  _updateOffers() {
+    const next = this.intentOffersHandler.thereIsNewData()
+      ? this.intentOffersHandler.updateIntentOffers()
+      : Promise.resolve();
 
-    if (this.intentOffersHandler.thereIsNewData()) {
-      logger.debug('We have new offers intent data that should be processed');
-      // fetch the offers and execute all the pipeline again
-      return this.intentOffersHandler.updateIntentOffers().then(() => processJobs());
-    }
-
-    // check if we just need to recalculate the list
-    if (this._shouldProcessAllJobs()) {
-      return processJobs();
-    }
-
-    return Promise.resolve(true);
+    return next.then(() => executeJobList(this.jobsPipeline, [], this.context));
   }
 
   _processEvent({ urlData }) {
     logger.debug('Offers handler processing a new event', urlData.getRawUrl());
-    // first of all we check the main global filters that are fixed and not
-    // associated to any offer itself
+
     if (!shouldWeShowAnyOffer(this.offersGeneralStats)) {
       logger.debug('we should not show any offer now');
-      // avoid showing offers for now
       return Promise.resolve(false);
     }
-
-    // set the current context data
     this.context.urlData = urlData;
 
-    // get the current prioritized offers
-    return this._updateOffersIfNeeded().then(() => {
-      logger.debug(`We have ${this.prioritizedOffers.length} on the queue`);
+    return this._updateOffers().then((prioritizedOffers) => {
+      logger.debug(`We have ${prioritizedOffers.length} on the queue`);
 
-      // we need to pick the best offer here, for that what we do is basically
-      // - get the top offer
-      // - check if we should filter
-      //   - if we should -> proceed to the next and repeat
-      //   - if we do not filter it out we just push it to offers-api and end
-      let topOffer = null;
-      while (topOffer === null && this.prioritizedOffers.length > 0) {
-        const highPriorityOffer = this.prioritizedOffers[this.prioritizedOffers.length - 1];
-        if (shouldFilterOffer(highPriorityOffer, this.offersDB)) {
-          logger.debug(`Offer ${highPriorityOffer.uniqueID} soft-filtered out!`, highPriorityOffer);
-          this.prioritizedOffers.pop();
-        } else {
-          topOffer = highPriorityOffer;
-        }
-      }
+      let tmpOffers = prioritizedOffers.slice();
+      tmpOffers.reverse(); // we need it, because of lack of findLast function
+      const pred = offer => shouldShowOfferOnContext(offer, { urlData });
 
-      logger.debug('Offers selected: ', topOffer);
+      tmpOffers // just for debug information
+        .filter(o => !pred(o))
+        .forEach(o => logger.debug(`Offer ${o.uniqueID} soft-filtered out!`, o));
 
-      if (!topOffer) {
-        // no offer to be shown
-        return Promise.resolve(true);
-      }
+      tmpOffers = tmpOffers.filter(pred);
+      if (tmpOffers.length === 0) { return Promise.resolve(true); }
 
-      // now the latest check is if we should show it in the current context
-      // or not
-      if (!shouldShowOfferOnContext(topOffer, { urlData })) {
-        return Promise.resolve(true);
-      }
+      const topOffer = tmpOffers.find(o => !shouldFilterOffer(o, this.offersDB));
+      if (!topOffer) { return Promise.resolve(true); }
 
-      // we should show it here
+      logger.debug('Offer selected: ', topOffer);
       return this._pushOffersToRealEstates(topOffer, urlData);
     });
-  }
-
-  _shouldProcessAllJobs() {
-    // for now we will process all jobs all the time on every url change
-    // We can change this later if required for better performance.
-    return true;
   }
 
   _offersDBCallback(message) {

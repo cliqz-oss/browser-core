@@ -14,8 +14,6 @@ const wrench = require('wrench');
 const glob = require('glob');
 const colors = require('colors');
 const path = require('path')
-const rimraf = require('rimraf');
-const chalk = require('chalk');
 const notifier = require('node-notifier');
 
 const common = require('./fern/commands/common');
@@ -43,14 +41,6 @@ colors.setTheme({
   debug: 'blue',
   error: 'red'
 });
-
-function isPackageInstalled(pkg, options, msg) {
-  var spawned = spaws.sync(pkg, [options], { stderr: 'inherit' });
-  if(spawned.error !== null) {
-    console.log(chalk.red(msg));
-    process.exit(1);
-  }
-}
 
 program.command('addon-id [file]')
        .action((configPath) => {

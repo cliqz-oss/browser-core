@@ -15,9 +15,9 @@
         "args": ["tests/runners/firefox-web-ext.js"],
         "protocol": "tap"
       },
-      "firefox-selenium": {
+      "ghostery-selenium": {
         "exe": "node",
-        "args": ["tests/runners/firefox-selenium.js"],
+        "args": ["tests/runners/ghostery-selenium.js"],
         "protocol": "tap"
       },
       "chromium-selenium": {

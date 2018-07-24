@@ -19,17 +19,19 @@
 
 import logger from '../common/offers_v2_logger';
 import MonitorDBHandler from './monitor/monitor-db';
-import {
-  UrlChangeMonitorHandler,
-  WebRequestMonitorHandler,
-  CouponMonitorHandler
-} from './monitor/handlers';
+import { buildMultiPatternIndexPatternAsID } from '.././common/pattern-utils';
+import sendMonitorSignal from './monitor/utils';
+
+const URLCHANGE_TYPE = 'urlchange';
+const WEBREQUEST_TYPE = 'webrequest';
+const COUPON_TYPE = 'coupon';
 
 /**
  * this will build the list of monitors data from a given offer. It will return
  * an empty list if cannot build any.
  */
-const buildMonitorsFromOffer = (offerData) => {
+const buildMonitorsFromOffer = (offer) => {
+  const offerData = offer.offer;
   if (!offerData || !offerData.monitorData || !offerData.offer_id) {
     return [];
   }
@@ -41,6 +43,9 @@ const buildMonitorsFromOffer = (offerData) => {
       type: md.type,
       params: md.params,
       patterns: md.patterns,
+      click: offer.click,
+      view: offer.view,
+      last_update: offer.last_update
     };
     if (md.type === 'webrequest') {
       monitorInfo.domain = md.domain;
@@ -53,6 +58,10 @@ const buildMonitorsFromOffer = (offerData) => {
         offerData.ui_info.template_data.code) ?
         offerData.ui_info.template_data.code : '';
       monitorInfo.couponInfo.code = code;
+
+      if (md.couponInfo.autoFillField === undefined) {
+        monitorInfo.couponInfo.autoFillField = false;
+      }
     }
 
     result.push(monitorInfo);
@@ -60,6 +69,43 @@ const buildMonitorsFromOffer = (offerData) => {
   return result;
 };
 
+/**
+ * This method will select all monitors for the last activated offer
+ * where last activated means last clicked, last seen, last updated
+ * If will return the list of all monitors for this offer
+ */
+const selectActiveMonitors = (activeMonitors) => {
+  if (activeMonitors.length === 0) {
+    return [];
+  }
+  activeMonitors.sort((a, b) =>
+    // find the first of these fields that is not empty for any of the values
+    ((b.click || 0) - (a.click || 0)) || ((b.view || 0) - (a.view || 0)) ||
+    ((b.last_update || 0) - (a.last_update || 0)) || 0
+  );
+  const offerID = activeMonitors[0].offerID;
+
+  return activeMonitors.map((mit) => {
+    if (mit.offerID === offerID) {
+      return mit;
+    }
+
+    const repMonitor = Object.assign({}, mit);
+    repMonitor.signalID = `repeated_${mit.signalID}`;
+    return repMonitor;
+  });
+};
+
+const getSignalNameForCoupon = (offerCouponCodes, couponUsed) => {
+  const lUsedCode = couponUsed.toLowerCase();
+  if (lUsedCode.length === 0) {
+    return 'coupon_empty';
+  }
+  if (offerCouponCodes.some(code => code.toLowerCase() === lUsedCode)) {
+    return 'coupon_own_used';
+  }
+  return 'coupon_other_used';
+};
 
 /**
  * Class to handle and activate monitors
@@ -69,72 +115,78 @@ export default class OffersMonitorHandler {
     this.offersDB = offersDB;
     this.sigHandler = sigHandler;
     this.monitorDBHandler = new MonitorDBHandler();
+    this.eventHandler = eventHandler;
+
+    this.monitors = {};
+    this.monitors[URLCHANGE_TYPE] = { patterns: {}, index: null };
+    this.monitors[WEBREQUEST_TYPE] = { patterns: {}, index: null };
+    this.monitors[COUPON_TYPE] = { patterns: {}, index: null };
 
     // check if the offers db is loaded
     if (offersDB.dbLoaded) {
-      const allOffersMeta = this.offersDB.getOffers({ includeRemoved: false });
-      allOffersMeta.forEach(om => this.addOfferMonitors(om.offer));
-      this.build();
+      this._loadAndRebuild();
     }
 
-    // since this will only stay in memory
-    this.monitorIDCount = 0;
-    this.monitorMap = new Map();
-    // offer_id -> Set{monitorID1, monitorID2, ...}
-    this.offerIDToMonitorIDsMap = new Map();
-    // we will have 2 types of patterns, one for web request and one for url
-    // change
-    const handlers = {
+    this.handlers = {
       sigHandler: this.sigHandler,
       offersDB: this.offersDB,
       lastCampaignSignalDB: this.monitorDBHandler.lastCampaignSignalDB,
       urlSignalDB: this.monitorDBHandler.urlSignalsDB,
     };
 
-    this.monitorHandlers = {
-      urlchange: new UrlChangeMonitorHandler(handlers, eventHandler),
-      webrequest: new WebRequestMonitorHandler(handlers, eventHandler),
-      coupon: new CouponMonitorHandler(handlers),
-    };
-
     this._offersDBCallback = this._offersDBCallback.bind(this);
     this.offersDB.registerCallback(this._offersDBCallback);
+
+
+    // Register for urlchanges
+    this.onUrlChange = this.onUrlChange.bind(this);
+    this.eventHandler.subscribeUrlChange(this.onUrlChange);
+
+
+    // Register for webrequests
+    this.webRequestCallback = this.webRequestCallback.bind(this);
   }
 
   destroy() {
     this.offersDB.unregisterCallback(this._offersDBCallback);
 
-    this.offerIDToMonitorIDsMap.forEach((monitorIDs, offerID) =>
-      this.removeOfferMonitors(offerID));
+    this.eventHandler.unsubscribeUrlChange(this.onUrlChange);
 
-    Object.keys(this.monitorHandlers).forEach(hn => this.monitorHandlers[hn].destroy());
+    Object.keys(this.monitors).forEach(type =>
+      this.removeOfferMonitors(type));
   }
 
   /**
    * Will generate all the monitors needed for this offer and track it here.
    * For more information check _addOfferMonitor()
    */
-  addOfferMonitors(offerData) {
-    buildMonitorsFromOffer(offerData).forEach(md => this._addOfferMonitor(md));
+  addOfferMonitors(offer) {
+    buildMonitorsFromOffer(offer).forEach(md => this._addOfferMonitor(md));
   }
 
   /**
    * will remove all the associated monitors for the given offerID
    */
-  removeOfferMonitors(offerID) {
-    if (!this.offerIDToMonitorIDsMap.has(offerID)) {
-      return;
-    }
-    // now we should each of them
-    this.offerIDToMonitorIDsMap.get(offerID).forEach((monitorID) => {
-      const monitor = this.monitorMap.get(monitorID);
-      if (monitor === undefined || !this.monitorHandlers[monitor.type]) {
-        logger.error('The monitor is invalid or unknown type? ', monitorID);
-        return;
+  removeOfferMonitors(offer) {
+    const domains = new Set();
+    buildMonitorsFromOffer(offer).forEach(md =>
+      this._removeOfferMonitor(md).forEach(domain => domains.add(domain))
+    );
+
+    // Before unsubscribing a domain from the eventhandler we need to
+    // verify it is not used by still active monitors
+    const allDomains = new Set();
+    Object.keys(this.monitors[WEBREQUEST_TYPE].patterns)
+      .map(pattern =>
+        this.monitors[WEBREQUEST_TYPE].patterns[pattern].map(mon =>
+          allDomains.add(mon.domain)
+        )
+      );
+    [...domains].forEach((domain) => {
+      if (!(allDomains.has(domain))) {
+        this.eventHandler.unsubscribeHttpReq(this.webRequestCallback, domain);
       }
-      this.monitorHandlers[monitor.type].removeMonitor(monitorID);
     });
-    this.offerIDToMonitorIDsMap.delete(offerID);
   }
 
   /**
@@ -143,7 +195,11 @@ export default class OffersMonitorHandler {
    * effect and the removal will still be processed.
    */
   build() {
-    Object.keys(this.monitorHandlers).forEach(hn => this.monitorHandlers[hn].build());
+    Object.keys(this.monitors).forEach((type) => {
+      this.monitors[type].index = buildMultiPatternIndexPatternAsID(
+        Object.keys(this.monitors[type].patterns)
+      );
+    });
   }
 
   // ///////////////////////////////////////////////////////////////////////////
@@ -162,14 +218,46 @@ export default class OffersMonitorHandler {
    * }
    */
   shouldActivateOfferForUrl(urlData) {
-    return this.monitorHandlers.coupon.shouldActivateOfferForUrl(urlData);
+    const patterns = this.monitors[COUPON_TYPE].index.match(urlData.getPatternRequest());
+
+    if (patterns.size === 0) {
+      // nothing to activate here
+      return { activate: false };
+    }
+
+    const allActiveMonitors = [...patterns].map(pattern =>
+      this.monitors[COUPON_TYPE].patterns[pattern]
+    ).reduce((activeMonitors, monitor) => activeMonitors.concat(monitor), []);
+
+    const activeOffer = selectActiveMonitors(allActiveMonitors)[0];
+    activeOffer.couponInfo.pattern = activeOffer.patterns[0];
+    return { offerInfo: activeOffer.couponInfo, activate: true };
   }
 
   /**
    * whenever we detect a coupon used, check handlers.es:couponFormUsed
    */
   couponFormUsed(args) {
-    this.monitorHandlers.coupon.couponFormUsed(args);
+    const couponInfo = args.offerInfo || {};
+    // by default we will not autofill the field
+    if (couponInfo.autoFillField === undefined) {
+      couponInfo.autoFillField = false;
+    }
+    // now we detect if the coupon has being used or not here and we send the
+    // the according data here
+    const activeMonitors = this.monitors[COUPON_TYPE].patterns[couponInfo.pattern];
+    const couponValues = activeMonitors.map((monitor) => {
+      if (monitor.couponInfo && monitor.couponInfo.code) {
+        return monitor.couponInfo.code;
+      }
+      return undefined;
+    }).filter(x => x !== undefined);
+
+    const signalName = getSignalNameForCoupon(couponValues, args.couponValue);
+    const monitor = selectActiveMonitors(activeMonitors)[0];
+
+    monitor.signalID = signalName;
+    sendMonitorSignal(monitor, this.handlers, args.urlData);
   }
 
 
@@ -238,37 +326,77 @@ export default class OffersMonitorHandler {
       logger.info('Invalid monitor data being set, discarding it: ', monitorData);
       return;
     }
-    // check if we already have the monitor
-    if (this._hasMonitor(monitorData)) {
-      return;
+
+    const monitorType = monitorData.type;
+    if (!(monitorType in this.monitors)) {
+      this.monitors[monitorType] = { patterns: {}, index: null };
     }
 
-    this.monitorIDCount += 1;
-    const monitorID = this.monitorIDCount;
-    const monitor = this.monitorHandlers[monitorData.type].addMonitor(monitorData, monitorID);
-    if (monitor === null) {
-      logger.error('Something went wrong creating a monitor', monitorData);
-      return;
-    }
+    monitorData.patterns.forEach((pattern) => {
+      if (!(pattern in this.monitors[monitorType].patterns)) {
+        this.monitors[monitorType].patterns[pattern] = [];
+      }
+      this.monitors[monitorType].patterns[pattern].push(monitorData);
+    });
 
-    // add the ids
-    this.monitorMap.set(monitorID, monitor);
-    if (this.offerIDToMonitorIDsMap.has(monitorData.offerID)) {
-      this.offerIDToMonitorIDsMap.get(monitorData.offerID).add(monitorID);
-    } else {
-      this.offerIDToMonitorIDsMap.set(monitorData.offerID, new Set([monitorID]));
+    if (monitorType === WEBREQUEST_TYPE) {
+      this.eventHandler.subscribeHttpReq(this.webRequestCallback, monitorData.domain);
     }
   }
 
-  _hasMonitor(md) {
-    if (!this.offerIDToMonitorIDsMap.has(md.offerID)) {
-      return false;
-    }
-    let hasMonitor = false;
-    this.offerIDToMonitorIDsMap.get(md.offerID).forEach((mid) => {
-      hasMonitor = hasMonitor || this.monitorMap.get(mid).signalID === md.signalID;
+  _removeOfferMonitor(monitorData) {
+    const monitorType = monitorData.type;
+    const domains = new Set();
+    monitorData.patterns.forEach((pattern) => {
+      const editedList = this.monitors[monitorType].patterns[pattern].filter((offer) => {
+        if (monitorData.offerID === offer.offerID && monitorData.signalID === offer.signalID) {
+          domains.add(offer.domain);
+          return false;
+        }
+        return true;
+      });
+      this.monitors[monitorType].patterns[pattern] = editedList;
+
+      if (this.monitors[monitorType].patterns[pattern].length === 0) {
+        delete this.monitors[monitorType].patterns[pattern];
+      }
     });
-    return hasMonitor;
+
+    return domains;
+  }
+
+  checkUrl(urlData, monitorType) {
+    const patterns = this.monitors[monitorType].index.match(urlData.getPatternRequest());
+
+    const allActiveMonitors = [...patterns].map(pattern =>
+      this.monitors[monitorType].patterns[pattern]
+    ).reduce((activeMonitors, monitor) => activeMonitors.concat(monitor), []);
+
+    // Only send signals for the last clicked or if none clicked the last pushed campaign
+    selectActiveMonitors(allActiveMonitors).forEach((mid) => {
+      sendMonitorSignal(mid, this.handlers, urlData);
+    });
+  }
+
+  onUrlChange(urlData) {
+    this.checkUrl(urlData, URLCHANGE_TYPE);
+  }
+
+  webRequestCallback(reqObj) {
+    // here we need to check if the requested url matches the current
+    // match and if it does we need to send a signal
+    const urlData = reqObj.url_data;
+    this.checkUrl(urlData, WEBREQUEST_TYPE);
+  }
+
+  _loadAndRebuild() {
+    this.monitors = {};
+    this.monitors[URLCHANGE_TYPE] = { patterns: {}, index: null };
+    this.monitors[WEBREQUEST_TYPE] = { patterns: {}, index: null };
+    this.monitors[COUPON_TYPE] = { patterns: {}, index: null };
+    const allOffersMeta = this.offersDB.getOffers({ includeRemoved: false });
+    allOffersMeta.forEach(om => this.addOfferMonitors(om));
+    this.build();
   }
 
   /**
@@ -276,28 +404,17 @@ export default class OffersMonitorHandler {
    * changes and more
    */
   _offersDBCallback(e) {
-    // check if the DB is loaded
-    if (e.evt === 'offers-db-loaded') {
-      // we need to build this
-      const allOffersMeta = this.offersDB.getOffers({ includeRemoved: false });
-      allOffersMeta.forEach(om => this.addOfferMonitors(om.offer));
-      this.build();
-      return;
-    }
-
-    // else is either removed or updated or added
+    // For removing we need to make sure to unsubscribe
+    // so loadAndRebuild wouldn't be enough
     const shouldRemove = e.evt === 'offer-removed' || e.evt === 'offer-updated';
-    const shouldAdd = e.evt === 'offer-added' || e.evt === 'offer-updated';
     if (shouldRemove) {
-      this.removeOfferMonitors(e.offer.offer_id);
+      logger.log('SHOULD REMOVE EVT:', e);
+      this.removeOfferMonitors(e);
     }
-    if (shouldAdd) {
-      this.addOfferMonitors(e.offer);
-    }
-
-    if (shouldAdd || shouldRemove) {
-      this.build();
-    }
+    // this is definetely excessive and probably expensive
+    // still we would need to change a lot of messages to update all of them
+    // with the missing information
+    this._loadAndRebuild();
   }
 }
 

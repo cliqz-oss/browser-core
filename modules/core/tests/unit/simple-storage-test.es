@@ -11,8 +11,6 @@ export default describeModule('core/simple-storage',
     'core/utils': {
       default: {
         log: () => {},
-        setTimeout,
-        clearTimeout,
       },
     },
     'core/helpers/md5': {
@@ -30,13 +28,11 @@ export default describeModule('core/simple-storage',
       });
 
       it('SimpleStorage - basic', function () {
-        var dbname = 'test' + Math.round(Math.random() * 1000000000);
-        var dirName = 'StorageTests';
-        var exactName = true;
-        var immediateSnap = false;
-        var ss = new SimpleStorage();
-        var N = 5000;
-        var obj = {};
+        const dbname = `test${Math.round(Math.random() * 1000000000)}`;
+        const dirName = 'StorageTests';
+        const exactName = true;
+        const immediateSnap = false;
+        let ss = new SimpleStorage();
 
         return ss.open(dbname, dirName, exactName, immediateSnap)
           .then(() => {

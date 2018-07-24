@@ -103,7 +103,7 @@ export default class IndexedStream {
     return this.eventStream.query();
   }
 
-  query({ after, before, tokens } = { tokens: new Uint32Array() }) {
+  async* query({ after, before, tokens } = { tokens: new Uint32Array() }) {
     assert(tokens.buffer !== undefined, 'query only accept compact tokens');
 
     const lowerTs = after || -1;
@@ -120,38 +120,36 @@ export default class IndexedStream {
         bucketTsEnd < upperTs &&
         !hasEmptyIntersection(bucketTokens, tokens)
       ) {
-        buckets.push([
-          bucketTs - 1,
-          bucketTsEnd + 1,
-        ]);
+        buckets.push({
+          after: bucketTs - 1,
+          before: bucketTsEnd + 1,
+        });
       }
     });
 
     logger.debug('IndexedStream find buckets', {
       time: Date.now() - t0,
-      buckets: buckets.length,
+      buckets,
     });
 
-    // Fetch values from `buckets`
-    return this.eventStream.queryMany(buckets).then((events) => {
+    for (let i = 0; i < buckets.length; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      const events = await this.eventStream.query(buckets[i]);
       logger.debug('Dexie query took', {
         time: Date.now() - t0,
-        buckets: buckets.length,
-        events: events.length,
+        events,
       });
 
-      const filtered = events.filter(event =>
-        event.ts > lowerTs &&
-        event.ts < upperTs &&
-        !hasEmptyIntersection(event.tokens, tokens)
-      );
-
-      logger.debug('Dexie query results', {
-        events: filtered.length,
-        tokens,
-      });
-
-      return filtered;
-    });
+      for (let j = 0; j < events.length; j += 1) {
+        const event = events[j];
+        if (
+          event.ts > lowerTs &&
+          event.ts < upperTs &&
+          !hasEmptyIntersection(event.tokens, tokens)
+        ) {
+          yield event;
+        }
+      }
+    }
   }
 }

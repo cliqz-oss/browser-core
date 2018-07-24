@@ -2,7 +2,7 @@ import templates from './templates';
 import { equals, isCliqzAction } from '../core/content/url';
 
 const getEventTarget = (ev) => {
-  let targetElement = ev.originalTarget;
+  let targetElement = ev.originalTarget || ev.target;
 
   if (targetElement.nodeType !== 1) {
     targetElement = targetElement.parentElement;
@@ -73,7 +73,7 @@ export default class Dropdown {
   updateSelection() {
     this.clearSelection();
     this.selectResult(this.selectedResult);
-    this.actions.reportSelection(this.selectedResult.serialize());
+    this.actions.reportHighlight(this.selectedResult.serialize());
     return this.selectedResult;
   }
 
@@ -119,10 +119,15 @@ export default class Dropdown {
       result.didRender(this.dropdownElement);
     });
 
-    // prevent default behavior of anchor tags
     [...this.rootElement.querySelectorAll('a')].forEach((anchor) => {
-      anchor.setAttribute('onclick', 'return false;');
-      anchor.setAttribute('onmousedown', 'return false;');
+      anchor.addEventListener('mousedown', (ev) => {
+        ev.preventDefault();
+        return false;
+      });
+      anchor.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        return false;
+      });
     });
 
     this.selectResult(this.results.firstResult);
@@ -153,7 +158,8 @@ export default class Dropdown {
 
       this.actions.openContextMenu(subresult.serialize(), { x: ev.screenX, y: ev.screenY });
     } else {
-      result.click(href, ev);
+      const elementName = targetElement.getAttribute('data-extra');
+      result.click(href, ev, { elementName });
     }
   };
 

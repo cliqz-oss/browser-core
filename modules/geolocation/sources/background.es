@@ -7,11 +7,17 @@ import events from '../core/events';
 import getGeo from '../core/geolocation';
 import inject from '../core/kord/inject';
 import config from '../core/config';
-import Defer from '../core/app/defer';
+import Defer from '../core/helpers/defer';
+import prefs from '../core/prefs';
 
 // If the computer wakes up from a sleep that was longer than this many milliseconds,
 // we update geolocation.
 const GEOLOCATION_UPDATE_MIN_WAIT = 3600 * 1000;
+
+function roundToDecimal(number, digits) {
+  const multiplier = 10 ** digits;
+  return Math.round(number * multiplier) / multiplier;
+}
 
 class TopicForwarder {
   constructor(_events, eventName, fn) {
@@ -117,7 +123,7 @@ export default background({
     },
 
     'ui:missing_location_shown': function () {
-      if (!utils.getPref('share_location')) {
+      if (!prefs.get('share_location')) {
         this.GEOLOCATION_MESSAGE_NUM_SHOWN += 1;
       }
 
@@ -137,12 +143,12 @@ export default background({
   },
 
   roundLocation(position) {
-    return utils.roundToDecimal(position, this.LOCATION_ACCURACY);
+    return roundToDecimal(position, this.LOCATION_ACCURACY);
   },
 
   actions: {
     getGeo() {
-      const locationPref = utils.getPref('share_location', config.settings.geolocation || 'ask');
+      const locationPref = prefs.get('share_location', config.settings.geolocation || 'ask');
       if (!['yes', 'showOnce'].includes(locationPref)) {
         return Promise.reject("No permission to get user's location");
       }
@@ -192,7 +198,7 @@ export default background({
 
     setLocationPermission(newPerm) {
       if (newPerm === 'yes' || newPerm === 'no' || newPerm === 'ask') {
-        utils.setPref('share_location', newPerm);
+        prefs.set('share_location', newPerm);
         this.actions.updateGeoLocation();
       }
     },

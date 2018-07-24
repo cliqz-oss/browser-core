@@ -1,4 +1,3 @@
-import utils from '../core/utils';
 import logger from './logger';
 
 
@@ -160,7 +159,7 @@ export default class Pipeline {
             cont = fn(webRequestContext);
             break;
           case 'collect':
-            utils.setTimeout(
+            setTimeout(
               () => fn(webRequestContext),
               0,
             );

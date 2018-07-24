@@ -2,10 +2,6 @@
 
 import random from '../../core/crypto/random';
 import constants from './constants';
-import utils from '../../core/utils';
-
-const { setTimeout } = utils;
-
 
 function fixBundle(desc) {
   const split = desc.sdp.split('\r\n');

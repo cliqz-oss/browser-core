@@ -1,4 +1,4 @@
-import utils from '../core/utils';
+import prefs from '../core/prefs';
 import CliqzAntiPhishing from './anti-phishing';
 
 export default class Win {
@@ -16,7 +16,7 @@ export default class Win {
     const currentURL = this.window.gBrowser.currentURI.spec;
     const isWhitelisted = CliqzAntiPhishing.isInWhitelist(currentURL);
     const whitelistStatus = CliqzAntiPhishing.getUrlWhitelistStatus(currentURL);
-    const active = utils.getPref('cliqz-anti-phishing-enabled', true);
+    const active = prefs.get('cliqz-anti-phishing-enabled', true);
     let state = 'active';
     if (isWhitelisted && whitelistStatus !== CliqzAntiPhishing.WHITELISTED_TEMPORARY) {
       state = 'inactive';

@@ -3,13 +3,14 @@
 'use strict';
 
 const urls = require('./common/urls');
+const publish = require('./common/publish');
 
 module.exports = {
   "platform": "webextension",
   "brocfile": "Brocfile.node.js",
   "baseURL": "/cliqz/",
   "pack": "npm pack",
-  "publish": "aws s3 cp browser-core-$PACKAGE_VERSION.tgz s3://cdncliqz/update/edge/ghostery/$BRANCH_NAME/$VERSION.tgz --acl public-read && aws s3 cp s3://cdncliqz/update/edge/ghostery/$BRANCH_NAME/$VERSION.tgz s3://cdncliqz/update/edge/ghostery/$BRANCH_NAME/latest.tgz --acl public-read",
+  "publish": publish.toEdge('browser-core', 'ghostery'),
   "sourceMaps": false,
   "format": "common",
   "settings": Object.assign({}, urls, {
@@ -21,7 +22,6 @@ module.exports = {
     "ENDPOINT_SOURCE_MAP_PROVIDER": "https://ghostery-collector.ghostery.com/sourcemapjson",
     "ENDPOINT_LOOKUP_TABLE_PROVIDER": "https://ghostery-collector.ghostery.com/v2/lookuptable",
     "ENDPOINT_KEYS_PROVIDER": "https://ghostery-collector.ghostery.com/signerKey",
-    "ENDPOINT_PROXY_LIST_PROVIDER": "https://ghostery-collector.ghostery.com/v2/proxyList",
     "ENDPOINT_PATTERNSURL": "https://cdn2.ghostery.com/human-web-chromium/patterns.gz",
     "ENDPOINT_ANONPATTERNSURL": "https://cdn2.ghostery.com/human-web-chromium/patterns-anon.gz",
     "ENDPOINT_CONFIGURL": "https://safe-browsing.ghostery.com/ts-config",
@@ -34,7 +34,7 @@ module.exports = {
     "ATTRACK_TELEMETRY_PROVIDER": "hpn",
     "HW_CHANNEL": "ghostery",
     "CDN_BASEURL": "https://cdn2.ghostery.com",
-    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se", "be", "se", "dk", "fi", "cz", "gr", "hu", "ro", "no", "ca", "au", "ru", "ua", "in"],
+    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "be", "se", "dk", "fi", "cz", "gr", "hu", "ro", "no", "ca", "au", "ru", "ua", "in", "pl", "jp", "br", "mx", "cn", "ar"],
     "OFFERS_BE_BASE_URL": "https://offers.ghostery.com",
     "RICH_HEADER_PROXY_URL" : "hb-news.cliqz.com",
     "TRACKER_PROXY_PROXY_SIGNALING_DEFAULT": "wss://p2p-signaling-proxypeer.cliqz.com",
@@ -50,7 +50,6 @@ module.exports = {
     "CAMPAIGN_SERVER": "https://fec.cliqz.com/message/",
     "TRIQZ_URL": "https://cliqz.com/tips",
     "SAFE_BROWSING": "https://safe-browsing.cliqz.com",
-    "TUTORIAL_URL": "https://cliqz.com/home/onboarding",
     "UNINSTALL": "https://cliqz.com/home/offboarding",
     "FEEDBACK": "https://cliqz.com/feedback/",
     "BACKGROUND_IMAGE_URL": "https://cdn.cliqz.com/brands-database/database/",
@@ -60,8 +59,6 @@ module.exports = {
     "HB_NEWS": "hb-news.cliqz.com",
     "TELEMETRY_ENDPOINT": "https://safebrowsing-experiment.cliqz.com",
     "INVENTORY_URL": "https://cdn.cliqz.com/browser-f/fun-demo/inventoryv2.txt.gz",
-    "OFFER_TELEMETRY": "https://offers-api.cliqz.com/api/v1/savesignal",
-    "OFFER_TELEMETRY_PREFIX": "https://offers-api.cliqz.com",
     "antitrackingPlaceholder": "ghostery",
     "antitrackingHeader": "Ghostery-AntiTracking",
   }),
@@ -100,6 +97,7 @@ module.exports = {
     "static",
     "offers-v2",
     "adblocker",
+    "anolysis",
     "anti-phishing"
   ],
   "system": {

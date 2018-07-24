@@ -4,19 +4,18 @@
 
 
 let mockedTS = Date.now();
-let todayDayKeyMock = 20161101;
 let CATEGORY_LIFE_TIME_SECS;
 
 export default describeModule('offers-v2/categories/category',
   () => ({
     'offers-v2/common/offers_v2_logger': {
       default: {
-        debug: (x) => {console.log(x);},
-        error: (x) => {console.log(x);},
-        info: (x) => {console.log(x);},
-        log: (x) => {console.log(x);},
-        warn: (x) => {console.log(x);},
-        logObject: () => {console.log(x);},
+        debug: (x) => { console.log(x); },
+        error: (x) => { console.log(x); },
+        info: (x) => { console.log(x); },
+        log: (x) => { console.log(x); },
+        warn: (x) => { console.log(x); },
+        logObject: (x) => { console.log(x); },
       }
     },
     'core/platform': {
@@ -38,34 +37,31 @@ export default describeModule('offers-v2/categories/category',
     },
     'core/prefs': {
       default: {
-        get: function(x,y) {
+        get: function (x, y) {
           return y;
         }
       }
     },
     'core/time': {
-      getDaysFromTimeRange: function(startTS, endTS) {
-        getDaysFromTimeRangeArg = [startTS, endTS];
-        return getDaysFromTimeRangeResult;
-      },
-      // getDateFromDateKey: function(dateKey, hours = 0, min = 0, seconds = 0) {
+      getDaysFromTimeRange: function () {},
+      // getDateFromDateKey: function (dateKey, hours = 0, min = 0, seconds = 0) {
       //   return getDateFromDateKeyResult;
       // },
-      timestamp: function() {
+      timestamp: function () {
         return mockedTS;
       },
-      getTodayDayKey: function() {
+      getTodayDayKey: function () {
         return mockedTS / (1000 * 60 * 60 * 24);
       }
     },
     'offers-v2/utils': {
-      timestampMS: function() {
+      timestampMS: function () {
         return mockedTS;
       },
     },
   }),
   () => {
-    describe('#category-test', function() {
+    describe('#category-test', function () {
       let Category;
 
       beforeEach(function () {
@@ -150,15 +146,13 @@ export default describeModule('offers-v2/categories/category',
           chai.expect(c1.isObsolete()).eql(false);
           mockedTS += 9 * 1000;
           chai.expect(c1.isObsolete()).eql(false);
-          mockedTS += 2 * 1000 + CATEGORY_LIFE_TIME_SECS * 1000;
+          mockedTS += (2 * 1000) + (CATEGORY_LIFE_TIME_SECS * 1000);
           chai.expect(c1.isObsolete()).eql(true);
           c1.hit();
           chai.expect(c1.isObsolete()).eql(false);
-          mockedTS += 11 * 1000 + CATEGORY_LIFE_TIME_SECS * 1000;
+          mockedTS += (11 * 1000) + (CATEGORY_LIFE_TIME_SECS * 1000);
           chai.expect(c1.isObsolete(), 'should be obsolete').eql(true);
         });
-
-
       });
     });
   }

@@ -1,5 +1,4 @@
 import md5 from './helpers/md5';
-import utils from './utils';
 import console from './console';
 import { renameFile, fileExists, readFile, write, removeFile, createFile,
   openForAppend, closeFD, mkdir, writeFD } from './fs';
@@ -47,7 +46,7 @@ export default class IncrementalStorage {
   close() {
     if (this.isOpen) {
       this.isOpen = false;
-      utils.clearTimeout(this.flushTimer);
+      clearTimeout(this.flushTimer);
       this.setInitialState();
     }
     return Promise.resolve();
@@ -159,7 +158,7 @@ export default class IncrementalStorage {
       .then(() => renameFile(sn, s))
       .catch((e) => {
         if (this.isOpen) {
-          utils.log(e, 'FATAL: Snapshot error');
+          console.log(e, 'FATAL: Snapshot error');
           return this.recoverBadState();
         }
         return null;
@@ -201,7 +200,7 @@ export default class IncrementalStorage {
             }
           });
       };
-      this.flushTimer = utils.setTimeout(flusher, 0);
+      this.flushTimer = setTimeout(flusher, 0);
       this.flushPromise = new Promise((resolve) => {
         this.flushResolver = resolve;
       });

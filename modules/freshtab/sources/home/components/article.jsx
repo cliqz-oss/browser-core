@@ -60,6 +60,7 @@ class Article extends React.Component {
     return (
       <a
         href={this.props.article.url}
+        tabIndex="-1"
         onClick={ev => newsClickSignal(
           ev,
           this.props.article.type,
@@ -67,7 +68,7 @@ class Article extends React.Component {
           this.props.article.edition)}
         onMouseEnter={this.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
-        data-index={this.props.index}
+        data-index={`${this.props.index}`}
       >
         <div className="header">
           <Logo logo={this.props.article.logo} />

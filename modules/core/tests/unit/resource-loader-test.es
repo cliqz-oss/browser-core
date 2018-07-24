@@ -1,7 +1,7 @@
-/* global chai */
 /* global describeModule */
 /* global require */
 /* global describe */
+/* eslint no-param-reassign: off */
 
 
 let fetch = () => Promise.reject();
@@ -13,24 +13,31 @@ function fetchResponseWrapper(response) {
     text() {
       return Promise.resolve(response);
     }
-  }
+  };
 }
 
 const MOCK = {
-  'core/console': {
-    default: {
-      error() {
-      }
-    },
+  'core/logger': {
+    default: { get() {
+      return {
+        debug() {},
+        log() {},
+        error() {},
+      };
+    } },
   },
   'core/utils': {
     default: {
       setInterval() {},
-      getPref(pref, defaultValue) {
+    },
+  },
+  'core/prefs': {
+    default: {
+      get(pref, defaultValue) {
         return defaultValue;
       },
-      setPref() {},
-    },
+      set() {}
+    }
   },
   'platform/resource-loader-storage': {
     default: class {
@@ -46,12 +53,12 @@ const MOCK = {
     isChromium: false,
   },
   'core/encoding': {
-    fromUTF8: function(d) {
+    fromUTF8: function (d) {
       return d;
     },
   },
   'core/http': {
-    fetch: (url) => fetch(url),
+    fetch: url => fetch(url),
   }
 };
 
@@ -113,8 +120,8 @@ function getMockData(testCase) {
 
 
 function mockModule(testCase) {
-  fetch = (url) => {
-    return new Promise((resolve, reject) => {
+  fetch = url =>
+    new Promise((resolve, reject) => {
       const response = getMockData(testCase);
 
       if (url.startsWith('chrome://')) {
@@ -124,16 +131,13 @@ function mockModule(testCase) {
         } else {
           reject('Error while fetching from chrome://');
         }
-      } else {
+      } else if (testCase.inRemote) {
         // Handle remote loading
-        if (testCase.inRemote) {
-          resolve(fetchResponseWrapper(response));
-        } else {
-          reject('Error while fetching from remote');
-        }
+        resolve(fetchResponseWrapper(response));
+      } else {
+        reject('Error while fetching from remote');
       }
     });
-  }
 
   load = () => {
     if (testCase.inProfile) {
@@ -157,7 +161,7 @@ export default describeModule('core/resource-loader',
     describe('#load', () => {
       let Resource;
 
-      beforeEach(function importResource() {
+      beforeEach(function () {
         Resource = this.module().Resource;
       });
 
@@ -208,7 +212,7 @@ export default describeModule('core/resource-loader',
     describe('#updateFromRemote', () => {
       let Resource;
 
-      beforeEach(function importResource() {
+      beforeEach(function () {
         Resource = this.module().Resource;
       });
 

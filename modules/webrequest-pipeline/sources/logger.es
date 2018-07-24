@@ -1,8 +1,3 @@
 import Logger from '../core/logger';
 
-
-export default Logger({
-  useDump: false,
-  level: 'log',
-  prefix: '[WebRequestPipeline]',
-});
+export default Logger.get('webrequest-pipeline', { level: 'log' });

@@ -1,5 +1,5 @@
 import config from '../../../core/config';
-import { Subject as GenericSubject } from '../../core/test-helpers';
+import { GenericSubject } from '../../core/test-helpers';
 
 export default class extends GenericSubject {
   load() {

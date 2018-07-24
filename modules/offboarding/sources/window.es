@@ -1,7 +1,8 @@
 import inject from '../core/kord/inject';
 import utils from '../core/utils';
+import prefs from '../core/prefs';
 import { forEachWindow } from '../platform/browser';
-
+import config from '../core/config';
 
 export default class Win {
   constructor({ window, settings }) {
@@ -14,7 +15,7 @@ export default class Win {
     // see https://bugzilla.mozilla.org/show_bug.cgi?id=1351617
     if (settings.channel === '40') {
       const offboardingURL = [
-        'https://cliqz.com/home/offboarding', // == utils.UNINSTALL
+        'https://cliqz.com/home/offboarding', // == config.settings.UNINSTALL
         'https://cliqz.com/offboarding',
         'https://cliqz.com/en/offboarding',
         'https://cliqz.com/fr/offboarding'
@@ -37,13 +38,13 @@ export default class Win {
       this.coreCliqz.action('setSupportInfo', 'disabled');
       try {
         const UNINSTALL_PREF = 'uninstallVersion';
-        const lastUninstallVersion = utils.getPref(UNINSTALL_PREF, '');
+        const lastUninstallVersion = prefs.get(UNINSTALL_PREF, '');
 
         if (version && (lastUninstallVersion !== version)) {
-          utils.setPref(UNINSTALL_PREF, version);
+          prefs.set(UNINSTALL_PREF, version);
           utils.openLink(
             window,
-            utils.UNINSTALL,
+            config.settings.UNINSTALL,
             true, // newTab
             false, // newWindow
             false, // newPrivateWindow

@@ -1,4 +1,4 @@
-import utils from '../../core/utils';
+import { getDetailsFromUrl } from '../../core/url';
 import tokenizeUrl from './pattern-utils';
 import { getGeneralDomain } from '../../core/tlds';
 
@@ -16,7 +16,7 @@ export default class UrlData {
     this.referrerName = referrerName;
 
     // all the fields we will handle and share
-    this.lowercaseUrl = null;
+    this.normalizedUrl = null;
     this.urlDetails = null;
     this.domain = null;
     this.patternsRequest = null;
@@ -36,16 +36,20 @@ export default class UrlData {
     return this.rawUrl;
   }
 
-  getLowercaseUrl() {
-    if (this.lowercaseUrl === null) {
-      this.lowercaseUrl = this.rawUrl.toLowerCase();
+  getNormalizedUrl() {
+    if (this.normalizedUrl === null) {
+      try {
+        this.normalizedUrl = decodeURIComponent(this.rawUrl.replace(/\+/g, '%20')).toLowerCase();
+      } catch (err) {
+        this.normalizedUrl = this.rawUrl.toLowerCase();
+      }
     }
-    return this.lowercaseUrl;
+    return this.normalizedUrl;
   }
 
   getUrlDetails() {
     if (this.urlDetails === null) {
-      this.urlDetails = utils.getDetailsFromUrl(this.rawUrl);
+      this.urlDetails = getDetailsFromUrl(this.rawUrl);
     }
     return this.urlDetails;
   }
@@ -59,7 +63,7 @@ export default class UrlData {
 
   getPatternRequest() {
     if (this.patternsRequest === null) {
-      this.patternsRequest = tokenizeUrl(this.getLowercaseUrl());
+      this.patternsRequest = tokenizeUrl(this.getNormalizedUrl());
     }
     return this.patternsRequest;
   }

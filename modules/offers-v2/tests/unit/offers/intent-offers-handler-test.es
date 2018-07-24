@@ -1,10 +1,11 @@
 /* global chai */
 /* global describeModule */
 /* global require */
+/* eslint camelcase: off */
 
 const tldjs = require('tldjs');
 
-let persistence = {};
+const persistence = {};
 function delay(fn) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -16,9 +17,7 @@ function delay(fn) {
   });
 }
 
-var shouldKeepResourceRet = false;
-
-const copy = e => JSON.parse(JSON.stringify(e));
+let shouldKeepResourceRet = false;
 
 class BackendConnectorMock {
   constructor() {
@@ -54,22 +53,21 @@ class IntentHandlerMock {
   constructor() {
     this.intents = new Map();
   }
-  mock_addIntent(n,d) {
-    this.intents.set(n, new IntentMock(n,d));
+  mock_addIntent(n, d) {
+    this.intents.set(n, new IntentMock(n, d));
   }
-  registerCallback(cb) {}
-  unregisterCallback(cb) {}
-  activateIntent(intent) {
-  }
+  registerCallback() {}
+  unregisterCallback() {}
+  activateIntent() {}
   getActiveIntents() {
     const r = [];
-    this.intents.forEach((v,k) => r.push(this.intents.get(k)));
+    this.intents.forEach((v, k) => r.push(this.intents.get(k)));
     return r;
   }
-  isIntentActiveByName(intentName) {
-    return falsel
+  isIntentActiveByName() {
+    return false;
   }
-  isIntentActive(intent) {
+  isIntentActive() {
     return false;
   }
   getActiveIntent(intentName) {
@@ -94,7 +92,7 @@ export default describeModule('offers-v2/offers/intent-offers-handler',
     },
     'core/prefs': {
       default: {
-        get: function(x, y) { return y; }
+        get: function (x, y) { return y; }
       }
     },
     'core/platform': {
@@ -119,10 +117,10 @@ export default describeModule('offers-v2/offers/intent-offers-handler',
       default: {}
     },
     'offers-v2/utils': {
-      timestampMS: function() {
+      timestampMS: function () {
         return Date.now();
       },
-      shouldKeepResource: function(userGroup) {
+      shouldKeepResource: function () {
         return shouldKeepResourceRet;
       },
     },
@@ -176,7 +174,7 @@ export default describeModule('offers-v2/offers/intent-offers-handler',
     }
   }),
   () => {
-    describe('general tests', function() {
+    describe('general tests', function () {
       let IntentOffersHandler;
       let beConnector;
       let ihandlerMock;
@@ -186,7 +184,6 @@ export default describeModule('offers-v2/offers/intent-offers-handler',
       });
 
       describe('#basics', function () {
-
         function checkResult(idList) {
           const resultOffers = ioh.getOffersForIntent('intent-name');
           const resultIDs = new Set();
@@ -278,10 +275,8 @@ export default describeModule('offers-v2/offers/intent-offers-handler',
               checkResult(['o1', 'o2', 'o3', 'o4']);
             });
           });
-
-
         });
       });
-    })
+    });
   }
 );

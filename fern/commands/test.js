@@ -10,6 +10,7 @@ const notifier = require('node-notifier');
 
 const Reporter = require('../reporter');
 const common = require('./common');
+const getExtensionVersion = common.getExtensionVersion;
 const setConfigPath = common.setConfigPath;
 const createBuildWatcher = common.createBuildWatcher;
 
@@ -54,80 +55,84 @@ program.command('test [file]')
 
     let isRunning = false;
 
-    if (options.ci) {
-      const run = () => {
-        const ciOptions =  {
-          debug: true,
-          host: 'localhost',
-          port: '4200',
-          launch: launchers || (CONFIG['testem_launchers_ci'] || []).join(','),
-          reporter: Reporter,
-          serve_files: serveFiles,
+    getExtensionVersion('package').then(tag => {
+      process.env.EXTENSION_VERSION = tag;
+
+      if (options.ci) {
+        const run = () => {
+          const ciOptions =  {
+            debug: true,
+            host: 'localhost',
+            port: '4200',
+            launch: launchers || (CONFIG['testem_launchers_ci'] || []).join(','),
+            reporter: Reporter,
+            serve_files: serveFiles,
+          };
+
+          if (typeof options.ci === 'string') {
+            ciOptions.report_file = options.ci;
+          }
+          testem.startCI(ciOptions);
         };
 
-        if (typeof options.ci === 'string') {
-          ciOptions.report_file = options.ci;
+        if (options.build) {
+          watcher = createBuildWatcher();
+          watcher.on('buildSuccess', function() {
+            rimraf.sync(OUTPUT_PATH);
+            copyDereferenceSync(watcher.builder.outputPath, OUTPUT_PATH);
+            run();
+          });
+        } else {
+          run();
         }
-        testem.startCI(ciOptions);
-      };
-
-      if (options.build) {
+      } else {
+        let server;
         watcher = createBuildWatcher();
         watcher.on('buildSuccess', function() {
-          rimraf.sync(OUTPUT_PATH);
-          copyDereferenceSync(watcher.builder.outputPath, OUTPUT_PATH);
-          run();
-        });
-      } else {
-        run();
-      }
-    } else {
-      let server;
-      watcher = createBuildWatcher();
-      watcher.on('buildSuccess', function() {
-        try {
-          rimraf.sync(OUTPUT_PATH);
-          copyDereferenceSync(watcher.builder.outputPath, OUTPUT_PATH);
-          notifier.notify({
-            title: "Fern",
-            message: "Build complete",
-            time: 1500
-          });
-
-          if (!isRunning) {
-            testem.startDev({
-              debug: true,
-              host: 'localhost',
-              port: '4200',
-              launch: launchers || (CONFIG['testem_launchers'] || []).join(','),
-              reporter: Reporter,
-              report_file: options.ci,
-              serve_files: serveFiles,
+          try {
+            rimraf.sync(OUTPUT_PATH);
+            copyDereferenceSync(watcher.builder.outputPath, OUTPUT_PATH);
+            notifier.notify({
+              title: "Fern",
+              message: "Build complete",
+              time: 1500
             });
 
-            isRunning = true;
-          } else {
-            testem.restart();
+            if (!isRunning) {
+              testem.startDev({
+                debug: true,
+                host: 'localhost',
+                port: '4200',
+                launch: launchers || (CONFIG['testem_launchers'] || []).join(','),
+                reporter: Reporter,
+                report_file: options.ci,
+                serve_files: serveFiles,
+              });
+
+              isRunning = true;
+            } else {
+              testem.restart();
+            }
+          } catch (e) {
+            console.error('Tests error:', e);
           }
-        } catch (e) {
-          console.error('Tests error:', e);
-        }
-      });
+        });
 
-    }
+      }
 
-    if (!watcher) {
-      return;
-    }
+      if (!watcher) {
+        return;
+      }
 
-    watcher.on('buildFailure', function (err) {
-      const msg = "Build error - "+err;
-      console.error(msg);
-      notifier.notify({
-        title: "Fern",
-        message: msg,
-        type: 'warn',
-        time: 3000
+      watcher.on('buildFailure', function (err) {
+        const msg = "Build error - "+err;
+        console.error(msg);
+        notifier.notify({
+          title: "Fern",
+          message: msg,
+          type: 'warn',
+          time: 3000
+        });
       });
     });
   });

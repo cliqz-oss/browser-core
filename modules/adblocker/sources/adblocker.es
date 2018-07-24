@@ -5,8 +5,6 @@ import prefs from '../core/prefs';
 import { getGeneralDomain } from '../core/tlds';
 import UrlWhitelist from '../core/url-whitelist';
 
-// TODO - remove: only need setTimeout, setInterval
-import utils from '../core/utils';
 import { deflate, inflate } from '../core/zlib';
 
 import PersistentMap from '../core/persistence/map';
@@ -334,14 +332,14 @@ export class AdBlocker {
       .then(() => {
         // Update check should be performed after a short while
         this.log('Check for updates');
-        this.loadingTimer = utils.setTimeout(
+        this.loadingTimer = setTimeout(
           () => this.listsManager.update(),
           30 * 1000);
       });
   }
 
   unload() {
-    utils.clearTimeout(this.loadingTimer);
+    clearTimeout(this.loadingTimer);
     this.listsManager.stop();
   }
 
@@ -371,6 +369,7 @@ const CliqzADB = {
   humanWeb: null,
   paused: false,
   pipeline: null,
+  whitelistChecks: [],
 
   adbEnabled() {
     // 0 = Disabled
@@ -382,10 +381,18 @@ const CliqzADB = {
     );
   },
 
+  addWhiteListCheck(fn) {
+    CliqzADB.whitelistChecks.push(fn);
+  },
+
+  cliqzWhitelisted(url) {
+    return CliqzADB.urlWhitelist.isWhitelisted(url);
+  },
+
   isAdbActive(url) {
     return CliqzADB.adbEnabled() &&
-      CliqzADB.adblockInitialized &&
-      !CliqzADB.urlWhitelist.isWhitelisted(url);
+    CliqzADB.adblockInitialized &&
+    !CliqzADB.whitelistChecks.some(fn => fn(url));
   },
 
   logActionHW(url, action, type) {
@@ -437,6 +444,8 @@ const CliqzADB = {
           fn: CliqzADB.stepCheckBlockList,
         },
       ]);
+
+      CliqzADB.whitelistChecks.push(CliqzADB.cliqzWhitelisted);
 
       return CliqzADB.adBlocker.init().then(() => {
         CliqzADB.initPacemaker();
@@ -491,14 +500,14 @@ const CliqzADB = {
   },
 
   initPacemaker() {
-    const t1 = utils.setInterval(() => {
+    const t1 = setInterval(() => {
       CliqzADB.adbStats.clearStats();
     }, 10 * 60 * 1000);
     CliqzADB.timers.push(t1);
   },
 
   unloadPacemaker() {
-    CliqzADB.timers.forEach(utils.clearTimeout);
+    CliqzADB.timers.forEach(clearTimeout);
   },
 
   stepCheckContext(state, response) {

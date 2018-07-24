@@ -2,13 +2,16 @@
 /* eslint func-names: 'off' */
 /* eslint no-unused-expressions: 'off' */
 
-/* global testServer */
-/* global chai */
-/* global waitFor */
 
 import WebRequest from '../platform/webrequest';
-import utils from '../core/utils';
-import { newTab, closeTab } from '../platform/browser';
+import { httpGet } from '../core/http';
+import {
+  closeTab,
+  expect,
+  newTab,
+  testServer,
+  waitFor
+} from '../tests/core/test-helpers';
 
 
 const helloWorld = '<html><body><p>Hello world</p></body></html';
@@ -50,29 +53,29 @@ describe('WebRequest', function () {
 
   describe('Import should succeed', function () {
     it('Webrequest should be imported from platform', () => {
-      chai.expect(WebRequest).to.not.be.undefined;
+      expect(WebRequest).to.not.be.undefined;
     });
   });
 
   context('http GET request', function () {
-    const url = testServer.getBaseUrl();
+    const url = `${testServer.getBaseUrl()}/`;
 
     beforeEach(function (done) {
       testServer.registerPathHandler('/', helloWorld)
-        .then(() => utils.httpGet(url, () => { done(); }, done, 30 * 1000));
+        .then(() => httpGet(url, () => { done(); }, done, 30 * 1000));
     });
 
     it('calls each topic once', () => {
       for (const topic of [onBeforeRequest, onBeforeSendHeaders, onHeadersReceived]) {
         const reqs = topic.filter(req => req.url === url);
-        chai.expect(reqs.length).to.eql(1);
+        expect(reqs.length).to.eql(1);
 
         const req = reqs[0];
-        chai.expect(req.method).to.equal('GET');
+        expect(req.method).to.equal('GET');
 
         // TODO - the tabId is not stable cross-platform
-        // chai.expect(req.tabId).to.equal(-1);
-        chai.expect(req.type).to.equal('xmlhttprequest');
+        // expect(req.tabId).to.equal(-1);
+        expect(req.type).to.equal('xmlhttprequest');
       }
     });
 
@@ -80,15 +83,15 @@ describe('WebRequest', function () {
       for (const topic of [onBeforeRequest, onBeforeSendHeaders]) {
         const reqs = topic.filter(req => req.url === url);
         const req = reqs[0];
-        chai.expect(req.statusCode).to.be.undefined;
+        expect(req.statusCode).to.be.undefined;
       }
       const req = onHeadersReceived.filter(r => r.url === url)[0];
-      chai.expect(req.statusCode).to.equal(200);
+      expect(req.statusCode).to.equal(200);
     });
   });
 
   context('page loaded in tab', function () {
-    const url = testServer.getBaseUrl();
+    const url = `${testServer.getBaseUrl()}/`;
     let tabId;
 
     beforeEach(function (done) {
@@ -112,11 +115,11 @@ describe('WebRequest', function () {
     it('calls each topic once', function () {
       for (const topic of [onBeforeRequest, onBeforeSendHeaders, onHeadersReceived]) {
         const reqs = topic.filter(function (req) { return req.url === url; });
-        chai.expect(reqs.length).to.eql(1);
+        expect(reqs.length).to.eql(1);
 
         const req = reqs[0];
-        chai.expect(req.method).to.equal('GET');
-        chai.expect(req.type).to.equal('main_frame');
+        expect(req.method).to.equal('GET');
+        expect(req.type).to.equal('main_frame');
       }
     });
 
@@ -124,10 +127,10 @@ describe('WebRequest', function () {
       for (const topic of [onBeforeRequest, onBeforeSendHeaders]) {
         const reqs = topic.filter(function (req) { return req.url === url; });
         const req = reqs[0];
-        chai.expect(req.statusCode).to.be.undefined;
+        expect(req.statusCode).to.be.undefined;
       }
       const req = onHeadersReceived.filter(function (_req) { return _req.url === url; })[0];
-      chai.expect(req.statusCode).to.equal(200);
+      expect(req.statusCode).to.equal(200);
     });
 
     it('all listeners get same tabId', function () {
@@ -137,7 +140,7 @@ describe('WebRequest', function () {
       for (const topic of [onBeforeSendHeaders, onHeadersReceived]) {
         const reqs = topic.filter(function (_req) { return _req.url === url; });
         req = reqs[0];
-        chai.expect(req.tabId).to.equal(tabId);
+        expect(req.tabId).to.equal(tabId);
       }
     });
   });
@@ -161,22 +164,20 @@ describe('WebRequest', function () {
       WebRequest.onBeforeRequest.removeListener(block);
     });
 
-    it('blocks the http request', function () {
+    it('blocks the http request', async () => {
       requestSeen = false;
-      return testServer.registerPathHandler('/block', helloWorld)
-        .then(() => newTab(url))
-        .then(() => waitFor(() => requestSeen))
-        .then(() => testServer.getHits())
-        .then(function (hits) {
-          // No hit on server
-          chai.expect(hits).to.be.empty;
+      await testServer.registerPathHandler('/block', helloWorld);
+      await newTab(url);
+      await waitFor(() => requestSeen);
+      const hits = await testServer.getHits();
+      // No hit on server
+      expect(hits).to.be.empty;
 
-          // subsequent topics do not see request
-          for (const topic of [onBeforeSendHeaders, onHeadersReceived]) {
-            const reqs = topic.filter(function (req) { return req.url === url; });
-            chai.expect(reqs.length).to.eql(0);
-          }
-        });
+      // subsequent topics do not see request
+      for (const topic of [onBeforeSendHeaders, onHeadersReceived]) {
+        const reqs = topic.filter(function (req) { return req.url === url; });
+        expect(reqs.length).to.eql(0);
+      }
     });
   });
 
@@ -204,26 +205,25 @@ describe('WebRequest', function () {
       WebRequest.onBeforeRequest.removeListener(redirect);
     });
 
-    it('redirects to specified url', () => {
+    it('redirects to specified url', async () => {
       requestSeen = false;
       redirectSeen = false;
 
-      return Promise.all([
+      await Promise.all([
         testServer.registerPathHandler('/', helloWorld),
         testServer.registerPathHandler('/redirect', helloWorld),
-      ])
-        .then(() => newTab(testServer.getBaseUrl()))
-        .then(() => waitFor(() => requestSeen && redirectSeen))
-        .then(() => testServer.getHits())
-        .then(function (hits) {
-          chai.expect(Object.keys(hits)).to.be.eql(['/redirect']);
-        });
+      ]);
+
+      await newTab(testServer.getBaseUrl());
+      await waitFor(() => requestSeen && redirectSeen);
+      const hits = await testServer.getHits();
+      expect([...hits.keys()]).to.be.eql(['/redirect']);
     });
   });
 
   context('listener returns requestHeaders', function () {
     let requestSeen = false;
-    const url = testServer.getBaseUrl();
+    const url = `${testServer.getBaseUrl()}/`;
 
     const changeHeaders = (request) => {
       if (request.url === url) {
@@ -243,34 +243,32 @@ describe('WebRequest', function () {
       requestSeen = false;
       WebRequest.onBeforeSendHeaders.addListener(changeHeaders, { urls: [url] }, ['blocking', 'requestHeaders']);
       testServer.registerPathHandler('/', helloWorld)
-        .then(() => utils.httpGet(url, () => { done(); }, done, 30 * 1000));
+        .then(() => httpGet(url, () => { done(); }, done, 30 * 1000));
     });
 
     afterEach(() => {
       WebRequest.onBeforeSendHeaders.removeListener(changeHeaders);
     });
 
-    it('modifies headers of the request', function () {
-      return waitFor(() => requestSeen)
-        .then(() => testServer.getHits())
-        .then((hits) => {
-          const reqs = onBeforeSendHeaders.filter(req => req.url === url);
-          const req = reqs[0];
-          chai.expect(req.method).to.equal('GET');
-          // Not
-          // chai.expect(req.tabId).to.equal(-1);
-          chai.expect(req.type).to.equal('xmlhttprequest');
+    it('modifies headers of the request', async () => {
+      await waitFor(() => requestSeen);
+      const hits = await testServer.getHits();
+      const reqs = onBeforeSendHeaders.filter(req => req.url === url);
+      const req = reqs[0];
+      expect(req.method).to.equal('GET');
+      // Not
+      // expect(req.tabId).to.equal(-1);
+      expect(req.type).to.equal('xmlhttprequest');
 
-          chai.expect(hits['/']).to.have.lengthOf(1);
-          const headers = hits['/'][0].headers;
+      expect(hits.get('/')).to.have.lengthOf(1);
+      const headers = hits.get('/')[0].headers;
 
-          // newly added header
-          chai.expect(headers).to.have.property('newheader');
-          chai.expect(headers.newheader).to.equal('test');
-          // modified header
-          chai.expect(headers).to.have.property('accept-encoding');
-          chai.expect(headers['accept-encoding']).to.equal('gzip');
-        });
+      // newly added header
+      expect(headers).to.have.property('newheader');
+      expect(headers.newheader).to.equal('test');
+      // modified header
+      expect(headers).to.have.property('accept-encoding');
+      expect(headers['accept-encoding']).to.equal('gzip');
     });
   });
 });

@@ -1,15 +1,22 @@
+import { getPref } from './prefs';
+import config from '../core/config';
+
 export function getUserAgent() {
-  throw new Error('getUserAgent is not implemented');
+  return navigator.userAgent;
 }
 
 export function getDistribution() {
-  throw new Error('getDistribution is not implemented');
+  return getPref('distribution', '');
 }
 
 export function getInstallDate() {
-  throw new Error('getInstallDate is not implemented');
+  return getPref('install_date', '');
 }
 
 export function getChannel() {
-  throw new Error('getChannel is not implemented');
+  return config.settings.channel || '';
+}
+
+export function getCountry() {
+  return getPref('config_location', '');
 }

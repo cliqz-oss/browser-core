@@ -1,5 +1,7 @@
 /* global chai, sinon */
 /* eslint no-undef: 'off' */
+/* eslint prefer-arrow-callback: off */
+/* eslint func-names: off */
 
 export default describeModule('notifications/window',
   function () {

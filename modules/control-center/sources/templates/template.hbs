@@ -1,5 +1,5 @@
 <div class="lock"></div>
-<div class="{{#if funnelCake}}funnel-cake{{/if}} {{#if amo}}amo{{/if}}">
+<div class="{{#if compactView}}compact-view{{/if}} {{#if amo}}amo{{/if}}">
 {{#if showSecuritySettings}}
   <header id="header" data-status="{{ generalState }}">
    {{> header }}
@@ -56,12 +56,12 @@
   </div>
 {{/if}}
 
-{{#if showOtherSettings}}
-  <section id="othersettings">
+
+<section id="othersettings">
     {{> other-settings }}
-  </section>
-{{/if}}
-{{#if funnelCake}}
+</section>
+
+{{#if compactView}}
 <header class="footer">
   <div class="title">
     <span data-i18n="control_center_footer"></span>

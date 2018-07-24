@@ -3,7 +3,7 @@
 # serves as local endpoint for the extension's tracking data:
 # listens to given port and writes incoming data as JSON file (one entry per line)
 #
-# in the extension: change CliqzUtils.LOG to 'http://localhost:PORT'
+# in the extension: change console.LOG to 'http://localhost:PORT'
 #
 
 PORT=3333
@@ -39,5 +39,3 @@ case "$1" in
 esac
 
 exit 0
-
-

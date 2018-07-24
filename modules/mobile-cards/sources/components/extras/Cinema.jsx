@@ -39,10 +39,10 @@ const styles = StyleSheet.create({
   },
 });
 
-export default class extends React.Component {
+export default class Cinema extends React.Component {
   displayShow(show, index) {
     return (
-      <Link key={index} to={show.booking_link}>
+      <Link url={show.booking_link} key={index}>
         <View style={styles.show}>
           <Text style={styles.text}>{ show.start_at.substr(11, 5) }</Text>
         </View>

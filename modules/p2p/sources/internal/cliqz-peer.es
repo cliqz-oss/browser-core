@@ -1,4 +1,3 @@
-import CliqzUtils from '../../core/utils';
 import { nextTick } from '../../core/decorators';
 import CliqzPeerConnection from './cliqz-peer-connection';
 import logger from './logger';
@@ -11,7 +10,6 @@ const InMessage = _messages.InMessage;
 const OutMessage = _messages.OutMessage;
 const decodeChunk = _messages.decodeChunk;
 const decodeAck = _messages.decodeAck;
-const { setTimeout, clearTimeout, setInterval, clearInterval } = CliqzUtils;
 
 function _closeSocket(socket) {
   const _socket = socket;

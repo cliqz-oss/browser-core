@@ -1,5 +1,6 @@
 /* global document, CLIQZ */
 import lang from '../core/language';
+import prefs from '../core/prefs';
 
 function generateDiagnosis() {
   Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
@@ -59,7 +60,7 @@ function generateDiagnosis() {
 
   // Updates
   const timestamp = Date.now();
-  const lastUpdate = utils.getPref('resource-loader.lastUpdates.adblocker/firefox/checksums');
+  const lastUpdate = prefs.get('resource-loader.lastUpdates.adblocker/firefox/checksums');
   const ago = timestamp - lastUpdate;
   const seconds = ago / 1000;
   const minutes = seconds / 60;
@@ -107,7 +108,7 @@ function generateDiagnosis() {
 
   // current loaded language
   content.push('<h2>ADB language prefs</h2>');
-  content.push(`<div>User-specified country filters (${adb.ADB_USER_LANG}): ${utils.getPref(adb.ADB_USER_LANG, '')}</div>`);
+  content.push(`<div>User-specified country filters (${adb.ADB_USER_LANG}): ${prefs.get(adb.ADB_USER_LANG, '')}</div>`);
   content.push('<h2>User languages</h2>');
   content.push(`<div>${lang.state().join(';')}</div>`);
   content.push('<h2>Loaded languages</h2>');

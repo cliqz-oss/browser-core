@@ -4,6 +4,7 @@ $configs: (
             aside-width: 0,
             container-width: 408px,
             section-padding: 0,
+            inner-content-width: 365px,
         ),
         speed-dials: (
             dial-height: 65px,
@@ -24,6 +25,7 @@ $configs: (
             search-input-height: 34px,
             search-font-size: 14px,
             search-text-indent: 40px,
+            search-settings-btn-top: -25px
         ),
         news: (
             news-container: 375px,
@@ -46,7 +48,7 @@ $configs: (
         top-notifications: (
             box-size: 375px,
             box-height: 80px,
-            content-max-width: 58%,
+            content-max-width: 36%,
         ),
         offer-middle-notifications: (
             offer-mn-code-font-size: 10px,
@@ -62,6 +64,7 @@ $configs: (
             offer-mn-headline-margin-top: 12px,
         ),
         offer-middle-feedback: (
+            box-size: 375px,
             offer-mn-feedback-textarea-width: 50%,
             offer-mn-feedback-textarea-display: none,
             offer-mn-feedback-font-size: 11px,
@@ -75,6 +78,7 @@ $configs: (
             aside-width: 74px,
             container-width: 483px,
             section-padding: 0,
+            inner-content-width: 436px,
         ),
         speed-dials: (
             dial-height: 65px,
@@ -95,6 +99,7 @@ $configs: (
             search-input-height: 34px,
             search-font-size: 14px,
             search-text-indent: 40px,
+            search-settings-btn-top: -25px
         ),
         news: (
             news-container: 446px,
@@ -117,7 +122,7 @@ $configs: (
         top-notifications: (
             box-size: 85%,
             box-height: 80px,
-            content-max-width: 65%,
+            content-max-width: 60%,
         ),
         offer-middle-notifications: (
             offer-mn-code-font-size: 14px,
@@ -133,6 +138,7 @@ $configs: (
             offer-mn-headline-margin-top: 12px,
         ),
         offer-middle-feedback: (
+            box-size: 436px,
             offer-mn-feedback-textarea-width: 75%,
             offer-mn-feedback-textarea-display: block,
             offer-mn-feedback-font-size: 11px,
@@ -146,6 +152,7 @@ $configs: (
             aside-width: 74px,
             container-width: 753px,
             section-padding: 0,
+            inner-content-width: 677px,
         ),
         speed-dials: (
             dial-height: 80px,
@@ -166,6 +173,7 @@ $configs: (
             search-input-height: 48px,
             search-font-size: 17px,
             search-text-indent: 47px,
+            search-settings-btn-top: -25px
         ),
         news: (
             news-container: 687px,
@@ -188,7 +196,7 @@ $configs: (
         top-notifications: (
             box-size: 679px,
             box-height: 80px,
-            content-max-width: 79%,
+            content-max-width: 60%,
         ),
         offer-middle-notifications: (
             offer-mn-code-font-size: 16px,
@@ -204,6 +212,7 @@ $configs: (
             offer-mn-headline-margin-top: 9px,
         ),
         offer-middle-feedback: (
+            box-size: 677px,
             offer-mn-feedback-textarea-width: 70%,
             offer-mn-feedback-textarea-display: block,
             offer-mn-feedback-font-size: 12.5px,
@@ -217,6 +226,7 @@ $configs: (
             aside-width: 74px,
             container-width: 857px,
             section-padding: 0,
+            inner-content-width: 762px,
         ),
         speed-dials: (
             dial-height: 80px,
@@ -237,9 +247,10 @@ $configs: (
             search-input-height: 48px,
             search-font-size: 17px,
             search-text-indent: 47px,
+            search-settings-btn-top: -32px
         ),
         news: (
-            news-container: 764px,
+            news-container: 772px,
             news-dash-width: 40px,
             news-dash-padding: 0,
             news-margin: 5px,
@@ -259,7 +270,7 @@ $configs: (
         top-notifications: (
             box-size: 764px,
             box-height: 80px,
-            content-max-width: 77%,
+            content-max-width: 70%,
         ),
         offer-middle-notifications: (
             offer-mn-code-font-size: 14px,
@@ -275,6 +286,7 @@ $configs: (
             offer-mn-headline-margin-top: 7.5px,
         ),
         offer-middle-feedback: (
+            box-size: 477px,
             offer-mn-feedback-textarea-width: 80%,
             offer-mn-feedback-textarea-display: block,
             offer-mn-feedback-font-size: 12.5px,
@@ -288,6 +300,7 @@ $configs: (
             aside-width: 74px,
             container-width: 1400px,
             section-padding: 0,
+            inner-content-width: 1230px,
         ),
         speed-dials: (
             dial-height: 95px,
@@ -308,6 +321,7 @@ $configs: (
             search-input-height: 63px,
             search-font-size: 20px,
             search-text-indent: 64px,
+            search-settings-btn-top: -39px
         ),
         news: (
             news-container: 1278px,
@@ -330,7 +344,7 @@ $configs: (
         top-notifications: (
             box-size: 1232px,
             box-height: 80px,
-            content-max-width: 77%,
+            content-max-width: 70%,
         ),
         offer-middle-notifications: (
             offer-mn-code-font-size: 14px,
@@ -346,6 +360,7 @@ $configs: (
             offer-mn-headline-margin-top: 9px,
         ),
         offer-middle-feedback: (
+            box-size: 764px,
             offer-mn-feedback-textarea-width: 70%,
             offer-mn-feedback-textarea-display: block,
             offer-mn-feedback-font-size: 12.5px,

@@ -4,18 +4,6 @@ import legacyPreprocessor from './preprocessors/legacy';
 import logger from './logger';
 
 
-export function parseABTests(abtests) {
-  try {
-    return Object.keys(JSON.parse(abtests));
-  } catch (ex) {
-    /* Ignore exception */
-    logger.error(`EXCEPTION ${ex} ${ex.stack}`);
-  }
-
-  return [];
-}
-
-
 export default class Preprocessor {
   constructor() {
     this.isDev = prefs.get('developer', false);
@@ -61,13 +49,15 @@ export default class Preprocessor {
     if (this.isDev && schema.sendToBackend) {
       const valid = schema.validate(signal);
       if (!valid) {
+        const prettySignal = JSON.stringify(signal, undefined, 2);
+        const errors = JSON.stringify(schema.validate.errors, undefined, 2);
         logger.error('Signal does not respect schema',
           schemaName,
-          JSON.stringify(signal, undefined, 2),
-          JSON.stringify(schema.validate.errors, undefined, 2),
+          prettySignal,
+          errors,
         );
 
-        return Promise.reject('Signal could not be validated');
+        return Promise.reject(`Signal could not be validated: got ${prettySignal} with errors: ${errors}`);
       }
     }
 

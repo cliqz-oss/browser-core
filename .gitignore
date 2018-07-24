@@ -47,3 +47,10 @@ jsengine.bundle.js.meta
 .node-persist
 yarn.lock
 configs/private
+
+# vim
+*.swp
+*.swo
+
+ghostery-extension
+ghostery.zip

@@ -1,4 +1,3 @@
-import CliqzUtils from '../core/utils';
 import { fromByteArray, sha256, encryptStringAES, decryptStringAES, toByteArray, deriveAESKey, randomBytes, generateRSAKeypair } from '../core/crypto/utils';
 import console from '../core/console';
 import { encryptPairedMessage, decryptPairedMessage, ERRORS, VERSION } from './shared';
@@ -73,7 +72,7 @@ export default class CliqzPairing {
       throw new Error('Cannot unpair if status is not paired');
     }
     const promise = new Promise((resolve, reject) => {
-      CliqzUtils.setTimeout(reject, 1000);
+      setTimeout(reject, 1000);
       this.sendMessage({}, 'remove_peer', [this.masterID])
         .then(resolve)
         .catch(reject);
@@ -358,7 +357,7 @@ export default class CliqzPairing {
     this.devices = devices;
     this.pairingMaster = null;
     this.pairingToken = null;
-    CliqzUtils.clearInterval(this.pairingTimer);
+    clearInterval(this.pairingTimer);
     this.pairingTimer = null;
     this.pairingName = null;
     this.cancelPairing = false;
@@ -398,7 +397,7 @@ export default class CliqzPairing {
     this.aesKey = null;
     this.masterID = null;
     this.devices = [];
-    CliqzUtils.clearInterval(this.pairingTimer);
+    clearInterval(this.pairingTimer);
     this.pairingTimer = null;
     this.pairingName = null;
     this.pairingMaster = null;
@@ -453,7 +452,7 @@ export default class CliqzPairing {
     this.status = CliqzPairing.STATUS_PAIRING;
     this.pairingRemaining = this.pairingTimeout;
     this.pairingName = slaveName;
-    this.pairingTimer = CliqzUtils.setInterval(() => {
+    this.pairingTimer = setInterval(() => {
       this.pairingRemaining -= 1;
       if (this.pairingRemaining <= 0) {
         if (this.isPairing) {
@@ -715,7 +714,7 @@ export default class CliqzPairing {
     this.ondeviceremoved = null;
     this.onmasterconnected = null;
     this.onmasterdisconnected = null;
-    CliqzUtils.clearInterval(this.connectionKeeper);
+    clearInterval(this.connectionKeeper);
     this.connectionKeeper = null;
     this.isInit = false;
     this.isUnloaded = true;

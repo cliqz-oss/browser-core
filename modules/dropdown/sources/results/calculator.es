@@ -18,6 +18,10 @@ export default class CalculatorResult extends BaseResult {
     return this.rawResult.title || (this.rawResult.data.extra || {}).answer;
   }
 
+  get isRounded() {
+    return (this.rawResult.data.extra || {}).isRounded;
+  }
+
   get url() {
     return `cliqz-actions,${JSON.stringify({ type: 'calculator', actionName: 'copy' })}`;
   }

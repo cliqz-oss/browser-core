@@ -83,67 +83,67 @@ export default describeModule('core/persistence/cached-map',
           expect(map1.size()).to.equal(0);
           return map1.set('what', 1714);
         })
-        .then(() => {
-          expect(map1.size()).to.equal(1);
-          expect(map1.get('what')).to.equal(1714);
-          return Promise.all([map1.set('how', 'lala'), map1.set('bla', 'ble')]);
-        })
-        .then(() => {
-          expect(map1.size()).to.equal(3);
-          const entries = map1.entries().sort((a, b) => (a[0] > b[0]) - (a[0] < b[0]));
-          expect(JSON.stringify(entries)).to.equal('[["bla","ble"],["how","lala"],["what",1714]]');
-          return map1.set('what', { is: 'different' });
-        })
-        .then(() => {
-          expect(map1.size()).to.equal(3);
-          expect(map1.get('what').is).to.equal('different');
-          return map1.unload();
-        })
-        .then(() => {
-          expect(map1.size()).to.equal(0);
-          map1 = new PersistentCachedMap('first');
-          expect(map1.size()).to.equal(0);
-          return map1.init();
-        })
-        .then(() => {
-          expect(map1.size()).to.equal(3);
-          const entries = map1.entries().sort((a, b) => (a[0] > b[0]) - (a[0] < b[0]));
-          const keys = map1.keys().sort();
-          expect(JSON.stringify(entries)).to.equal('[["bla","ble"],["how","lala"],["what",{"is":"different"}]]');
-          expect(JSON.stringify(keys)).to.equal('["bla","how","what"]');
-          expect(map1.has('bla')).to.equal(true);
-          expect(map1.has('ble')).to.equal(false);
-          return map1.delete('bla');
-        })
-        .then(() => {
-          expect(map1.has('bla')).to.equal(false);
-          expect(map1.has('how')).to.equal(true);
-          return map1.unload();
-        })
-        .then(() => {
-          map1 = new PersistentCachedMap('firstt');
-          return map1.init();
-        })
-        .then(() => {
-          expect(map1.size()).to.equal(0);
-          map1 = new PersistentCachedMap('first');
-          return map1.init();
-        })
-        .then(() => {
-          expect(map1.size()).to.equal(2);
-          return map1.clear();
-        })
-        .then(() => {
-          expect(map1.size()).to.equal(0);
-          return map1.unload();
-        })
-        .then(() => {
-          map1 = new PersistentCachedMap('first');
-          return map1.init();
-        })
-        .then(() => {
-          expect(map1.size()).to.equal(0);
-        });
+          .then(() => {
+            expect(map1.size()).to.equal(1);
+            expect(map1.get('what')).to.equal(1714);
+            return Promise.all([map1.set('how', 'lala'), map1.set('bla', 'ble')]);
+          })
+          .then(() => {
+            expect(map1.size()).to.equal(3);
+            const entries = map1.entries().sort((a, b) => (a[0] > b[0]) - (a[0] < b[0]));
+            expect(JSON.stringify(entries)).to.equal('[["bla","ble"],["how","lala"],["what",1714]]');
+            return map1.set('what', { is: 'different' });
+          })
+          .then(() => {
+            expect(map1.size()).to.equal(3);
+            expect(map1.get('what').is).to.equal('different');
+            return map1.unload();
+          })
+          .then(() => {
+            expect(map1.size()).to.equal(0);
+            map1 = new PersistentCachedMap('first');
+            expect(map1.size()).to.equal(0);
+            return map1.init();
+          })
+          .then(() => {
+            expect(map1.size()).to.equal(3);
+            const entries = map1.entries().sort((a, b) => (a[0] > b[0]) - (a[0] < b[0]));
+            const keys = map1.keys().sort();
+            expect(JSON.stringify(entries)).to.equal('[["bla","ble"],["how","lala"],["what",{"is":"different"}]]');
+            expect(JSON.stringify(keys)).to.equal('["bla","how","what"]');
+            expect(map1.has('bla')).to.equal(true);
+            expect(map1.has('ble')).to.equal(false);
+            return map1.delete('bla');
+          })
+          .then(() => {
+            expect(map1.has('bla')).to.equal(false);
+            expect(map1.has('how')).to.equal(true);
+            return map1.unload();
+          })
+          .then(() => {
+            map1 = new PersistentCachedMap('firstt');
+            return map1.init();
+          })
+          .then(() => {
+            expect(map1.size()).to.equal(0);
+            map1 = new PersistentCachedMap('first');
+            return map1.init();
+          })
+          .then(() => {
+            expect(map1.size()).to.equal(2);
+            return map1.clear();
+          })
+          .then(() => {
+            expect(map1.size()).to.equal(0);
+            return map1.unload();
+          })
+          .then(() => {
+            map1 = new PersistentCachedMap('first');
+            return map1.init();
+          })
+          .then(() => {
+            expect(map1.size()).to.equal(0);
+          });
       });
     });
   }

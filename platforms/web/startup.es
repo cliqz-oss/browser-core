@@ -1,14 +1,14 @@
 /* global System */
 /* global window */
 import config from '../core/config';
-import CliqzUtils from '../core/utils';
+import console from '../core/console';
 
 export function loadModule(moduleName) {
   return System.import(`${moduleName}/background`)
     .then(module => module.default.init(config))
     .then(() => System.import(`${moduleName}/window`))
     .then(module => (new module.Default({ window })).init())
-    .catch(e => CliqzUtils.log(`Error on loading module: ${moduleName} - ${e.toString()} -- ${e.stack}`, 'Extension'));
+    .catch(e => console.log(`Error on loading module: ${moduleName} - ${e.toString()} -- ${e.stack}`, 'Extension'));
 }
 
 export default function (window, modules = config.modules) {

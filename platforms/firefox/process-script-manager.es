@@ -1,5 +1,4 @@
 import config from '../core/config';
-import utils from '../core/utils';
 import { Services } from './globals';
 import { CHROME_MSG_SOURCE } from '../core/content/helpers';
 
@@ -62,8 +61,8 @@ export default class ProcessScriptManager {
   init() {
     // on extension update or downgrade there might be a race condition
     // and we might end up having no process script
-    utils.setTimeout(this.ppmm.loadProcessScript.bind(this.ppmm, this.processScriptUrl, true), 0);
-    utils.setTimeout(this.gmm.loadFrameScript.bind(this.gmm, this.frameScriptUrl, true), 0);
+    setTimeout(this.ppmm.loadProcessScript.bind(this.ppmm, this.processScriptUrl, true), 0);
+    setTimeout(this.gmm.loadFrameScript.bind(this.gmm, this.frameScriptUrl, true), 0);
 
     this.addMessageListener('cliqz', this.dispatcher);
   }
@@ -88,6 +87,11 @@ export default class ProcessScriptManager {
         source: CHROME_MSG_SOURCE
       };
     }
+
+    if (!channel) {
+      channel = 'cliqz:core';
+    }
+    /* eslint-enable no-param-reassign */
 
     this.ppmm.broadcastAsyncMessage(channel, msg);
     this.gmm.broadcastAsyncMessage(channel, msg);

@@ -1,5 +1,6 @@
 /* global chai */
 /* global describeModule */
+/* eslint no-param-reassign: off */
 
 const tldjs = require('tldjs');
 const urlParser = require('fast-url-parser');
@@ -9,14 +10,14 @@ const url = {
   hostname: 'test.com',
   protocol: 'https',
   path: 'path',
-}
+};
 
 const rediretUrl = {
   toString: () => 'https://test2.com/path?ref=cliqz.com/tracking',
   hostname: 'test2.com',
   protocol: 'https',
   path: 'path'
-}
+};
 
 const tabID = 1;
 
@@ -24,12 +25,17 @@ function mockMd5(s) {
   return `md5:${s}`;
 }
 
-export default describeModule("antitracking/tp_events",
+export default describeModule('antitracking/tp_events',
   () => ({
     'platform/browser': {},
-    'core/utils': { default: { log: console.log } },
+    'core/utils': { default: {} },
     'platform/lib/tldjs': {
       default: tldjs,
+    },
+    'core/console': {
+      default: {
+        log() {}
+      }
     },
     'core/config': {
       default: { settings: {} }
@@ -51,12 +57,18 @@ export default describeModule("antitracking/tp_events",
     'fast-url-parser': {
       default: urlParser
     },
+    'core/prefs': {
+      default: {
+        get() { return null; },
+        set() {}
+      }
+    },
   }),
   function () {
-    describe('tp events log placeHolder in url', function() {
+    describe('tp events log placeHolder in url', function () {
       let PageEventTracker;
 
-      beforeEach(function() {
+      beforeEach(function () {
         PageEventTracker = this.module().default;
       });
 
@@ -97,11 +109,11 @@ export default describeModule("antitracking/tp_events",
       });
     });
 
-    describe('PageEventTracker', function() {
+    describe('PageEventTracker', function () {
       let pageTracker;
       let URLInfo;
 
-      beforeEach(function() {
+      beforeEach(function () {
         const PageEventTracker = this.module().default;
         pageTracker = new PageEventTracker(
           null,
@@ -163,18 +175,17 @@ export default describeModule("antitracking/tp_events",
           });
         });
       });
-
     });
 
     // tests migrated from firefox/chromium tests
-    describe('tp_events', function() {
+    describe('tp_events', function () {
       let tp;
       let URLInfo;
       const config = {
         placeHolder: 'test',
-      }
+      };
 
-      beforeEach(async function() {
+      beforeEach(async function () {
         const PageEventTracker = this.module().default;
         tp = new PageEventTracker(() => null, config);
         URLInfo = (await this.system.import('core/url-info')).URLInfo;
@@ -194,8 +205,8 @@ export default describeModule("antitracking/tp_events",
         });
 
         it('does not add a tab to _active if the url is malformed', function () {
-          [null, undefined, 'http://cliqz.com', URLInfo.get('/home/cliqz'), URLInfo.get('about:config')].forEach(function (url) {
-            const pageLoad = tp.onFullPage(url, mockTabId);
+          [null, undefined, 'http://cliqz.com', URLInfo.get('/home/cliqz'), URLInfo.get('about:config')].forEach(function (_url) {
+            const pageLoad = tp.onFullPage(_url, mockTabId);
 
             chai.expect(pageLoad).is.null;
             chai.expect(Object.keys(tp._active)).to.have.length(0);
@@ -216,13 +227,13 @@ export default describeModule("antitracking/tp_events",
       describe('get', function () {
         const srcUrl = 'https://cliqz.com';
         let srcUrlParts;
-        const url = 'https://example.com/beacon';
+        const _url = 'https://example.com/beacon';
         let urlParts;
         const mockTabId = 34;
 
         const testInvalidTabIds = function () {
           [undefined, null, 0, -1, 552].forEach(function (tabId) {
-            const req = tp.get(url, urlParts, srcUrl, srcUrlParts, tabId);
+            const req = tp.get(_url, urlParts, srcUrl, srcUrlParts, tabId);
             chai.expect(req).to.be.null;
           });
         };
@@ -232,12 +243,12 @@ export default describeModule("antitracking/tp_events",
 
           beforeEach(function () {
             srcUrlParts = URLInfo.get(srcUrl);
-            urlParts = URLInfo.get(url);
+            urlParts = URLInfo.get(_url);
             pageLoad = tp.onFullPage(srcUrlParts, mockTabId);
           });
 
           it('returns a stats object for the specified page load and third party', function () {
-            const req = tp.get(url, urlParts, srcUrl, srcUrlParts, mockTabId);
+            const req = tp.get(_url, urlParts, srcUrl, srcUrlParts, mockTabId);
 
             chai.expect(req).to.not.be.null;
             chai.expect(req.c).to.equal(0);
@@ -251,7 +262,7 @@ export default describeModule("antitracking/tp_events",
             const altUrl = 'https://www.w3.org/';
             const altUrlParts = URLInfo.get(altUrl);
 
-            const req = tp.get(url, urlParts, altUrl, altUrlParts, mockTabId);
+            const req = tp.get(_url, urlParts, altUrl, altUrlParts, mockTabId);
 
             chai.expect(req).to.be.null;
           });
@@ -260,8 +271,8 @@ export default describeModule("antitracking/tp_events",
             const altUrl = 'https://www.w3.org/';
             const altUrlParts = URLInfo.get(altUrl);
 
-            tp.get(url, urlParts, srcUrl, srcUrlParts, mockTabId);
-            const req = tp.get(altUrl, altUrlParts, url, urlParts, mockTabId);
+            tp.get(_url, urlParts, srcUrl, srcUrlParts, mockTabId);
+            const req = tp.get(altUrl, altUrlParts, _url, urlParts, mockTabId);
 
             chai.expect(req).to.not.be.null;
             chai.expect(req.c).to.equal(0);
@@ -273,7 +284,7 @@ export default describeModule("antitracking/tp_events",
         });
 
         it('returns null if onFullPage has not been called for the referrer', function () {
-          const req = tp.get(url, urlParts, srcUrl, srcUrlParts, mockTabId);
+          const req = tp.get(_url, urlParts, srcUrl, srcUrlParts, mockTabId);
 
           chai.expect(req).to.be.null;
           chai.expect(tp._active).to.be.empty;
@@ -284,17 +295,16 @@ export default describeModule("antitracking/tp_events",
 
       describe('PageLoadData', function () {
         let pageLoad;
-        const url = 'https://cliqz.com/privacy#saferWeb';
+        const _url = 'https://cliqz.com/privacy#saferWeb';
         let urlParts;
 
         beforeEach(function () {
-          urlParts = URLInfo.get(url);
+          urlParts = URLInfo.get(_url);
           pageLoad = tp.onFullPage(urlParts, 1);
         });
 
         it('should have initial attributes from source url', function () {
-          console.log(pageLoad);
-          chai.expect(pageLoad.url).to.equal(url);
+          chai.expect(pageLoad.url).to.equal(_url);
           chai.expect(pageLoad.hostname).to.equal(urlParts.hostname);
           chai.expect(pageLoad.tps).to.be.empty;
           chai.expect(pageLoad.path).to.equal(pageLoad._shortHash(urlParts.path));
@@ -337,8 +347,8 @@ export default describeModule("antitracking/tp_events",
             const tps = paths.map(function (p) {
               return pageLoad.getTpUrl('example.com', p);
             });
-            tps.forEach(function (tp) {
-              tp.c += 1;
+            tps.forEach(function (_tp) {
+              _tp.c += 1;
             });
 
             const plain = pageLoad.asPlainObject();
@@ -352,8 +362,8 @@ export default describeModule("antitracking/tp_events",
             const tps = paths.map(function (p) {
               return pageLoad.getTpUrl('example.com', p);
             });
-            tps.forEach(function (tp) {
-              tp.c += 1;
+            tps.forEach(function (_tp) {
+              _tp.c += 1;
             });
             tps[1].has_qs = 1;
 
@@ -362,6 +372,6 @@ export default describeModule("antitracking/tp_events",
           });
         });
       });
-    })
+    });
   }
 );

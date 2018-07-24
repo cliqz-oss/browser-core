@@ -27,6 +27,7 @@ Components.utils.importGlobalProperties([
   'XMLHttpRequest',
   'indexedDB',
   'crypto',
+  'URL',
 ]);
 XPCOMUtils.defineLazyServiceGetter(
   this,

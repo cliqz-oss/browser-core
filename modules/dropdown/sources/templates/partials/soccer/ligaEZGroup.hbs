@@ -5,7 +5,10 @@
             <label class="dropdown-tab-header">{{groupTableHeader}}</label>
         {{/if}}
         {{#each ligaEZGroup}}
-            <label id="tab-{{@index}}" class="dropdown-tab {{#if @first}}checked{{/if}}">{{groupName}}</label>
+            <label
+                id="tab-{{@index}}"
+                class="dropdown-tab {{#if isCurrent}}checked{{/if}}"
+            >{{groupName}}</label>
         {{/each}}
         {{#each ligaEZGroup}}
             <div id="tab-block-{{@index}}"

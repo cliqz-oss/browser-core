@@ -66,7 +66,7 @@ class Submitter(object):
         return {
             "fileUrl": self.addon_url,
             "hashValue": hashValue,
-            "filesize": str(filesize)
+            "filesize": int(filesize)
         }
 
     def submit(self):
@@ -77,6 +77,7 @@ class Submitter(object):
         blob, version = self.__get_blob_and_version()
         token = self.__get_csrf_token()
         xpi_meta = self.__get_xpi_meta()
+
 
         blob["vendors"][self.addon_id] = {
             "platforms": {
@@ -90,33 +91,46 @@ class Submitter(object):
             'csrf_token': token,
             'name': self.release_name,
             'product': 'SystemAddons',
-            'version': '1' if not version else str(int(version) + 1)
+            'read_only': False,
+            'rule_ids': [],
+            'required_singoffs': {
+                'length': 0,
+                'roles': {},
+            },
+            'version': 1 if not version else int(version) + 1
         }
-
-        log.info("Request data: %s", data)
 
         try:
             if version:
                 method="PUT"
                 url=self.RELEASE_UPDATE_URL
-                data['data_version'] = version
+                data['data_version'] = int(version)
             else:
                 method="POST"
                 url=self.RELEASE_URL
+
+            log.info("Request url: %s", url)
+            log.info("Request type: %s", method)
+            log.info("Request data: %s", data)
 
             res = self.session.request(
                 method=method,
                 url=url,
                 headers=self.headers,
                 auth=self.auth,
-                data=data
+                json=data
             )
+
+            res.raise_for_status()
 
             log.info("SUCCESS: %s", res.content)
         except requests.exceptions.HTTPError, e:
             log.exception("ERROR HTTP: %s", e.response.content)
+            sys.exit(1)
         except requests.exceptions.ConnectionError:
             log.exception("ERROR CONNECTION")
+            sys.exit(1)
+
 
 if __name__ == '__main__':
     from optparse import OptionParser

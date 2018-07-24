@@ -1,16 +1,16 @@
 /* global CLIQZ, document, SigWrapper,
           DataStorageHandler, EnvConfigHandler, ErrorReporter, clearInnerElement,
           SignalsTestCase, TEST_DATA, $ */
-/* eslint-disable no-console */
 
 import OffersConfigs from '../offers-v2/offers_configs';
 import ActionID from '../offers-v2/offers/actions-defs';
+import prefs from '../core/prefs';
+import console from '../core/console';
 
 Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
 
-const CliqzUtils = CLIQZ.CliqzUtils;
 const Offers = CLIQZ.app.modules['offers-v2'].background;
-const localStorage = CliqzUtils.getLocalStorage('chrome://cliqz/content/offers-debug/offers-debug.json');
+const localStorage = CLIQZ.CliqzUtils.getLocalStorage('chrome://cliqz/content/offers-debug/offers-debug.json');
 
 // todo create a class for this where we will wrap some of the signals
 // and we can register to get signals in here
@@ -18,7 +18,7 @@ const localStorage = CliqzUtils.getLocalStorage('chrome://cliqz/content/offers-d
 const sigHandler = Offers.signalsHandler;
 const sigWrapper = new SigWrapper(sigHandler);
 const dsh = new DataStorageHandler(localStorage);
-const envConfig = new EnvConfigHandler('config_values', OffersConfigs, CliqzUtils);
+const envConfig = new EnvConfigHandler('config_values', OffersConfigs, prefs);
 const errReporter = new ErrorReporter({
   txt_name: 'error_report_txt',
   status_name: 'err_status'

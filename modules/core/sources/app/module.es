@@ -1,7 +1,7 @@
 import console from '../console';
 import modules from './modules';
-import DefaultWeakMap from './default-weak-map';
-import Defer from './defer';
+import DefaultMap from '../helpers/default-map';
+import Defer from '../helpers/defer';
 import Service from './service';
 import inject from '../kord/inject';
 import { Window } from '../../platform/browser';
@@ -12,6 +12,22 @@ export const lifecycleEvents = {
   disabled: 'disabled',
 };
 const eventNames = Object.keys(lifecycleEvents).map(k => lifecycleEvents[k]);
+
+class DefaultWindowMap extends DefaultMap {
+  get(_key) {
+    const key = this._getKey(_key);
+    return super.get(key);
+  }
+
+  delete(_key) {
+    const key = this._getKey(_key);
+    return super.delete(key);
+  }
+
+  _getKey(window) {
+    return new Window(window).id;
+  }
+}
 
 export default class Module extends EventEmitter {
   constructor(name, settings) {
@@ -25,7 +41,7 @@ export default class Module extends EventEmitter {
       init: 0,
       load: 0
     };
-    this._windows = new DefaultWeakMap(() => ({
+    this._windows = new DefaultWindowMap(() => ({
       windowModule: null,
       loadingDefer: new Defer(),
       loadingTime: null,
@@ -98,7 +114,7 @@ export default class Module extends EventEmitter {
       })
       .catch((e) => {
         this._state = 'disabled';
-        this._bgReadyDefer.reject();
+        this._bgReadyDefer.reject(e);
         throw e;
       });
   }

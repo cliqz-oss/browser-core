@@ -1,3 +1,4 @@
+/* global chai, describeModule */
 
 let mockPrefs = {};
 
@@ -17,18 +18,21 @@ export default describeModule('antitracking/config',
     },
     'core/console': console,
     'core/utils': {
-      default: {
-        getPref: (p, d) => (mockPrefs[p] || d),
-        setPref: (p, v) => mockPrefs[p] = v,
-      },
+      default: {},
     },
+    'core/prefs': {
+      default: {
+        get: (p, d) => (mockPrefs[p] || d),
+        set: (p, v) => { mockPrefs[p] = v; },
+      }
+    }
   }),
   () => {
     let Config;
     let DEFAULTS;
     let PREFS;
 
-    beforeEach(function() {
+    beforeEach(function () {
       mockPrefs = {};
       Config = this.module().default;
       DEFAULTS = this.module().DEFAULTS;
@@ -63,7 +67,6 @@ export default describeModule('antitracking/config',
     });
 
     describe('#setPref', () => {
-
       it('persists to prefs', () => {
         const config = new Config({});
         config.setPref('enabled', true);
@@ -74,7 +77,6 @@ export default describeModule('antitracking/config',
         const config = new Config({});
         chai.expect(() => config.setPref('unknown', true)).to.throw(Error);
       });
-    })
-
+    });
   }
 );

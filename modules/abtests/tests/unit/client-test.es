@@ -1,3 +1,5 @@
+/* global chai, describeModule */
+
 let fetch = () => {};
 
 const MOCK = {
@@ -43,7 +45,7 @@ export default describeModule('abtests/client',
       });
 
       it('returns tests', () => {
-        const result = [ { 'id': '1' }, { 'id': '2' } ];
+        const result = [{ id: '1' }, { id: '2' }];
         mockFetch(result);
         return chai.expect(client.getAvailableTests()).to.eventually.equal(result);
       });

@@ -35,13 +35,13 @@ const styles = StyleSheet.create({
   }
 });
 
-export default class extends React.Component {
+export default class Videos extends React.Component {
   displayLink(link) {
     const thumbnail = (link.extra && link.extra.thumbnail)
           || 'https://cdn.cliqz.com/extension/EZ/news/no-image-mobile.png';
     const nLines = 3;
     return (
-      <Link to={link.url} key={link.url}>
+      <Link url={link.url} key={link.url}>
         <View style={styles.item}>
           <ExternalImage
             source={{ uri: thumbnail }}

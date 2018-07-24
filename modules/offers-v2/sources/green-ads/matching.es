@@ -48,34 +48,32 @@ export default class MatchingEngine {
     return this.stream.deleteDataOlderThan(ts);
   }
 
-  populateMatches({ after, before }, index = null) {
+  async populateMatches({ after, before }, index = null) {
     if (!this.historyAnalyzer.isEnabled()) {
       return Promise.resolve();
     }
 
     const patternIndex = index || this.patternIndex;
-    return this.historyAnalyzer.action('query', {
+    const promises = [];
+    // eslint-disable-next-line semi
+    for await (const match of this.historyAnalyzer.action('query', {
       after,
       before,
       queries: patternIndex.tokens,
       urls: patternIndex.tokens,
-    }).then(({ queries, urls }) => {
-      const promises = [];
-
-      for (let i = 0; i < queries.length; i += 1) {
+    })) {
+      if (match.query) {
         promises.push(
-          this.handleMatch(this.matchQuery(queries[i], patternIndex))
+          this.handleMatch(this.matchQuery(match, patternIndex))
+        );
+      } else {
+        promises.push(
+          this.handleMatch(this.matchUrl(match, patternIndex))
         );
       }
+    }
 
-      for (let i = 0; i < urls.length; i += 1) {
-        promises.push(
-          this.handleMatch(this.matchUrl(urls[i], patternIndex))
-        );
-      }
-
-      return Promise.all(promises);
-    });
+    return Promise.all(promises);
   }
 
   getNewMatches(ts) {

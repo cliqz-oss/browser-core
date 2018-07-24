@@ -81,7 +81,7 @@
                     margin-right: 4px;
                     width: 27px;
                     height: 27px;
-                    background-image: url(chrome://cliqz/content/dropdown/images/play-icon-triangle.svg);
+                    background-image: url-prefix("dropdown/images/play-icon-triangle.svg");
                     background-repeat: no-repeat;
                     background-position: 9px center;
                     background-size: 40%;
@@ -99,7 +99,7 @@
 
                 &.disabled {
                     .trailer-icon {
-                        background-image: url(chrome://cliqz/content/dropdown/images/play-icon-triangle-grey.svg);
+                        background-image: url-prefix("dropdown/images/play-icon-triangle-grey.svg");
                         border-color: #ccc;
                      }
 

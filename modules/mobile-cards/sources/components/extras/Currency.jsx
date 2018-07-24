@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default class extends React.Component {
+export default class Currency extends React.Component {
   format(number, currency) {
     return Number(number).toLocaleString(i18n.currLocale, {
       style: 'currency',

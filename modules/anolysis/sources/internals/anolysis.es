@@ -1,23 +1,23 @@
 /* eslint-disable no-param-reassign */
+/* eslint-disable no-await-in-loop */
 
 import moment from '../../platform/lib/moment';
 
 import prefs from '../../core/prefs';
 import { randomInt } from '../../core/crypto/random';
-import utils from '../../core/utils';
 
 import GIDManager from './gid-manager';
-import Preprocessor /* , { parseABTests } */ from './preprocessor';
+import Preprocessor from './preprocessor';
 import SignalQueue from './signals-queue';
-import generateRetentionSignals from './retention';
+import Task from './task';
 import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
 import logger from './logger';
-
-import { loadSignalDefinition } from '../analyses-utils';
+import updateRetentionState from './retention';
 
 
 export default class Anolysis {
   constructor(config) {
+    this.running = false;
     this.currentDate = null;
 
     // Store available definitions for telemetry signals. New definitions can
@@ -47,22 +47,20 @@ export default class Anolysis {
     this.gidManager = new GIDManager(config);
   }
 
-  init() {
-    return this.storage.init()
-      .then(() => {
-        // This can be run async since calling two times the same method will
-        // resolve to the same Promise object. It's not returned here to not
-        // delay the loading of the module.
-        this.gidManager.init(this.storage.gid);
-        this.gidManager.updateState();
-      })
-      .then(() => this.signalQueue.init(this.storage.signals));
+  async init() {
+    await this.storage.init();
+    await Promise.all([
+      this.gidManager.init(this.storage.gid),
+      this.signalQueue.init(this.storage.signals),
+    ]);
+    this.running = true;
   }
 
   unload() {
-    utils.clearTimeout(this.generateAggregationSignalsTimeout);
+    clearTimeout(this.runTasksTimeout);
     this.signalQueue.unload();
     this.storage.unload();
+    this.running = false;
   }
 
   /**
@@ -82,15 +80,19 @@ export default class Anolysis {
       const name = definition.name;
       logger.debug('Register definition', name);
       if (!this.availableDefinitions.has(name)) {
-        this.availableDefinitions.set(name, loadSignalDefinition(definition));
+        this.availableDefinitions.set(name, new Task(definition));
       } else {
         throw new Error(`Signal ${name} already exists with value ${JSON.stringify(definition)}`);
       }
     });
   }
 
-  onNewDay(date) {
+  async onNewDay(date) {
     if (date !== this.currentDate) {
+      // This can be run async since calling two times the same method will
+      // resolve to the same Promise object.
+      this.gidManager.getGID();
+
       logger.log(
         'Generate aggregated signals (new day)',
         this.currentDate,
@@ -98,77 +100,50 @@ export default class Anolysis {
       );
       this.currentDate = date;
 
-      // 1. Trigger sending of retention signals if needed
-      // This can be done as soon as possible, the first time
-      // the user starts the browser, at most once a day.
-      //
-      // 2. Then we check previous days (30 days max) to aggregate and send
-      // telemetry if the user was not active. This task is async and will try to
-      // not overload the browser.
-      return this.sendRetentionSignals()
-        .then(() => {
-          logger.log('Generate aggregated signals');
-          return this.generateAnalysesSignalsFromAggregation();
-        });
+      await this.updateRetentionState();
+
+      logger.log('Run aggregation tasks');
+      await this.runDailyTasks();
     }
-
-    return Promise.resolve();
   }
 
-  sendRetentionSignals() {
-    return this.storage.retention.getState().then((state) => {
-      logger.log('generate retention signals', state);
+  async updateRetentionState() {
+    const state = await this.storage.retention.getState();
+    logger.debug('retention state', state);
 
-      const promise = Promise.all(generateRetentionSignals(state).map(([schema, signal]) =>
-        this.handleTelemetrySignal(signal, schema)
-      ));
-
-      // `state` is updated by the `generateRetentionSignals` function to keep
-      // track of the current activity, and avoid generating the signals
-      // several times.
-      return this.storage.retention.setState(state).then(() => promise);
-    });
+    // `state` is updated by the `updateRetentionState` function to keep
+    // track of the current activity. This state will be made available to
+    // aggregation tasks.
+    await this.storage.retention.setState(updateRetentionState(state));
   }
 
-  generateAnalysesSignalsFromAggregation() {
-    const startDay = getSynchronizedDate().subtract(1, 'days');
+  async runDailyTasks() {
+    let offset = 0; // offset 0 means 'today', offset 1 = 'yesterday', etc.
+    const startDay = getSynchronizedDate();
     const stopDay = moment.max(
       moment(this.gidManager.getNewInstallDate(), DATE_FORMAT),
       getSynchronizedDate().subtract(30, 'days'),
     );
 
-    // If we are on the day of install, we should not even try to aggregate the
-    // past. For subsequent days, the recursion of `checkPast` will stop either
-    // 30 days ago, or at the date of install.
-    if (startDay.isBefore(stopDay, 'days')) {
-      return Promise.resolve();
+    let date = startDay;
+    while (this.running && stopDay.isSameOrBefore(date, 'day')) {
+      const formattedDate = date.format(DATE_FORMAT);
+
+      try {
+        await this.runTasksForDay(formattedDate, offset);
+      } catch (ex) {
+        logger.error('Could not run tasks for day', formattedDate, ex);
+      }
+
+      // Wait a few seconds before aggregating the next day, to not overload the
+      // browser.
+      await new Promise((resolve) => {
+        this.runTasksTimeout = setTimeout(resolve, 5000);
+      });
+
+      date = date.subtract(1, 'days');
+      offset += 1;
     }
-
-    const checkPast = (formattedDate) => {
-      const date = moment(formattedDate, DATE_FORMAT);
-      return this.storage.aggregated.ifNotAlreadyAggregated(formattedDate, () =>
-        this.generateAndSendAnalysesSignalsForDay(formattedDate)
-          .catch(ex => logger.error('Could not generate aggregated signals for day', formattedDate, ex))
-          .then(() => {
-            // Recursively check previous day until we reach `stopDay`
-            if (stopDay.isBefore(date, 'day')) {
-              // Wait a few seconds between each aggregation, to not overload
-              // the browser.
-              // NOTE: This could be done in a worker, asynchronously.
-              return new Promise((resolve, reject) => {
-                this.generateAggregationSignalsTimeout = utils.setTimeout(
-                  () => checkPast(date.subtract(1, 'days').format(DATE_FORMAT))
-                    .catch(reject)
-                    .then(resolve),
-                  5000);
-              });
-            }
-
-            return Promise.resolve();
-          }));
-    };
-
-    return checkPast(startDay.format(DATE_FORMAT));
   }
 
   /**
@@ -178,40 +153,80 @@ export default class Anolysis {
    * messages to be sent to the backend. The messages will be stored temporarily
    * in a queue (persisted on disk), and then sent async.
    */
-  generateAndSendAnalysesSignalsForDay(date) {
-    // 1. Aggregate messages for one day
-    return this.storage.behavior.getTypesForDate(date)
-      .then((records) => {
-        const signals = [];
-        const numberOfSignals = records.size;
-        logger.log('generateSignals', date, numberOfSignals);
+  async runTasksForDay(date, offset) {
+    // Retrieve retention state to be used by analyses. Because the
+    // retention state is already updated with the activity of today, it means
+    // that aggregation for past days have access "to the future" of the user.
+    const retention = await this.storage.retention.getState();
 
-        // If there are signals available, generate analyses signals out of them.
-        if (numberOfSignals > 0) {
-          this.availableDefinitions.forEach((schema, name) => {
-            // Only consider schemas having a signal generator specified.
-            if (schema.generate !== undefined) {
-              logger.debug('generateSignals for', name);
-              schema.generate({ records /* , abtests */ }).forEach(signal =>
-                signals.push({
-                  name,
-                  signal,
-                  meta: {
-                    date,
-                  },
-                })
+    // Most of the time, aggregations will be performed using metrics from the
+    // past (usually from the previous day). An `offset` of value 0 means that
+    // we are running an aggregation task for the current day; consequently,
+    // metrics are not fully collected and it is not possible to get access to
+    // the metrics, as they would give a partial (and wrong) view of the user's
+    // activity. You can still access retention data though. This is useful for
+    // a few things:
+    //
+    // 1. generating retention signals, which needs to happen every day as soon
+    // as possible and we do not need to access metrics from the past.
+    // 2. sending activity signals (similar to retention)
+    // 3. emitting metrics from aggregation functions (e.g.: abtest metrics).
+    let records = null;
+    let numberOfSignals = 0;
+    if (offset !== 0) {
+      // Collect all behavioral signals for `date`, grouped by type.
+      records = await this.storage.behavior.getTypesForDate(date);
+      numberOfSignals = records.size;
+    }
+
+    logger.debug('generateSignals', {
+      date,
+      numberOfSignals,
+      offset,
+    });
+
+    // We only need to run aggregations function in two cases:
+    // 1. If `offset` is 0, which means we run tasks for the current day and do
+    // not need any behavior information (see comment above)
+    // 2. Or we are interested in behavior/metrics from the past (offset > 0).
+    if (offset === 0 || numberOfSignals !== 0) {
+      const definitions = [...this.availableDefinitions.entries()];
+      for (let i = 0; i < definitions.length; i += 1) {
+        const [name, task] = definitions[i];
+
+        // Check that `task` should run for the current day offset. For offset
+        // 0, we usually only run tasks which will emit metrics or "instant"
+        // signals (no need for aggregation), and for offset > 0 we will perform
+        // aggregations using behavioral data from a previous day (offset = 1 is
+        // yesterday, offset = 2 is the day before yesterday, etc.).
+        if (task.shouldGenerateForOffset(offset)) {
+          try {
+            await this.storage.aggregated.runTaskAtMostOnce(date, name, async () => {
+              logger.debug('run task', name, offset);
+              const signals = await task.generate({
+                date,
+                dateMoment: moment(date, DATE_FORMAT),
+                records,
+                retention,
+              });
+
+              await Promise.all(signals.map(
+                signal => this.handleTelemetrySignal(signal, name, { date }))
               );
-            }
-          });
+            });
+          } catch (ex) {
+            logger.log('Could not genereate signals for analysis:', name, ex);
+          }
         }
+      }
+    }
 
-        // TODO - this could be done in a Dexie transaction to avoid data-loss.
-        // Push all signals to telemetry queue
-        return Promise.all(signals.map(({ signal, name, meta }) =>
-          this.handleTelemetrySignal(signal, name, meta)
-        )).then(() => this.storage.aggregated.storeAggregation(date))
-          .then(() => this.storage.behavior.deleteByDate(date));
-      });
+    // We should not delete behavior metrics if the offset is `0`, because the
+    // day is not over, and they will be needed the next active day to generate
+    // aggregations.
+    if (offset !== 0) {
+      await this.storage.behavior.deleteByDate(date);
+    }
   }
 
   /**
@@ -228,21 +243,16 @@ export default class Anolysis {
     // Try to fetch the schema definition from the name.
     let schema;
     let name;
-    if (typeof signalName === 'string') {
+    if (signalName !== undefined) {
       schema = this.availableDefinitions.get(signalName);
       if (schema === undefined) {
-        logger.error(`Telemetry schema ${signalName} was not found`);
+        logger.debug(`Telemetry schema ${signalName} was not found`);
         // Calls to telemetry() are usually not catched or waited for, so we
         // log an error and ignore this signal if the schema name was not found.
         // This avoids having unhandled promise rejections.
         return Promise.resolve();
       }
       name = signalName;
-    } else if (signalName !== undefined) {
-      // A schema object can be given directly as argument
-      // TODO - this should probably be removed?
-      schema = signalName;
-      name = schema.name;
     } else {
       // Ignore signals without a schema
       logger.debug('Ignoring telemetry signal without schema', signal);

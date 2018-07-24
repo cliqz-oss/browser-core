@@ -1,5 +1,5 @@
 // FIXME: remove this
-/* eslint-disable no-console */
+/* eslint no-console: off */
 
 import MessageContext from './message-context';
 import { sha1 } from '../../core/crypto/utils';
@@ -23,6 +23,7 @@ const logger = {
   log: console.log.bind(console),
   error: console.error.bind(console),
 };
+
 
 self.onmessage = (e) => {
   try {

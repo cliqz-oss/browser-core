@@ -1,4 +1,3 @@
-import utils from '../core/utils';
 import MessageQueue from '../core/message-queue';
 
 import CliqzPeer from '../p2p/cliqz-peer';
@@ -40,7 +39,7 @@ function MultiplexedQueue(name, callback) {
   };
 
   // Clean-up unused queues
-  const closeDeadConnections = utils.setInterval(
+  const closeDeadConnections = setInterval(
     () => {
       const timestamp = Date.now();
       Object.keys(queues).forEach((key) => {
@@ -56,7 +55,7 @@ function MultiplexedQueue(name, callback) {
   return {
     push,
     unload() {
-      utils.clearInterval(closeDeadConnections);
+      clearInterval(closeDeadConnections);
     }
   };
 }

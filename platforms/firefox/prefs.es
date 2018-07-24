@@ -1,12 +1,17 @@
-/* eslint no-console: 'off' */
+import { Services, Components } from './globals';
+import console from '../core/console';
 
-import { Services } from './globals';
-
-const prefs = Services.prefs.getBranch('');
+const prefs = typeof Services !== 'undefined' ? Services.prefs.getBranch('') : undefined;
 const complexRegEx = /^chrome:\/\/.+\/locale\/.+\.properties/;
 
 function prefixPref(pref, prefix = 'extensions.cliqz.') {
   return `${prefix}${pref}`;
+}
+export function getAllCliqzPrefs() {
+  return Components.classes['@mozilla.org/preferences-service;1']
+    .getService(Components.interfaces.nsIPrefService)
+    .getBranch('extensions.cliqz.')
+    .getChildList('');
 }
 
 export function getPref(key, defaultValue, prefix) {

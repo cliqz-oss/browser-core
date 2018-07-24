@@ -1,8 +1,14 @@
 import Rx from '../../platform/lib/rxjs';
-import { isUrl, fixURL } from '../../core/url';
+import {
+  isUrl,
+  getSearchEngineUrl,
+  getVisitUrl,
+  fixURL
+} from '../../core/url';
 import BaseProvider from './base';
 import { getResponse } from '../responses';
-import utils from '../../core/utils';
+import * as searchUtils from '../../core/search-engines';
+import { PROVIDER_INSTANT } from '../consts';
 
 const getSearchEngineQuery = (engine, query) => {
   if (engine && engine.alias) {
@@ -12,23 +18,16 @@ const getSearchEngineQuery = (engine, query) => {
   return query;
 };
 
-export const getSearchEngineUrl = (engine, query, rawQuery) => `moz-action:searchengine,${JSON.stringify({
-  engineName: engine.name,
-  input: encodeURIComponent(query),
-  searchQuery: encodeURIComponent(rawQuery),
-  alias: engine.alias,
-})}`;
-
 export default class InstantProvider extends BaseProvider {
   constructor() {
-    super('instant');
+    super(PROVIDER_INSTANT);
   }
 
   getEngineByQuery(query) {
     const token = query.split(' ')[0];
-    const engines = utils.getSearchEngines();
+    const engines = searchUtils.getSearchEngines();
     return engines.find(e => e.alias === token) ||
-      utils.getDefaultSearchEngine();
+      searchUtils.getDefaultSearchEngine();
   }
 
   getKind(query) {
@@ -49,7 +48,7 @@ export default class InstantProvider extends BaseProvider {
     };
 
     if (isQueryUrl) {
-      const mozActionUrl = `moz-action:visiturl,${JSON.stringify({ url: encodeURIComponent(fixURL(query)) })}`;
+      const url = fixURL(query);
       result = {
         ...result,
         type: 'navigate-to',
@@ -57,7 +56,7 @@ export default class InstantProvider extends BaseProvider {
         text: query,
         data: {
           extra: {
-            mozActionUrl,
+            mozActionUrl: getVisitUrl(url),
           },
           kind: ['navigate-to'],
         }

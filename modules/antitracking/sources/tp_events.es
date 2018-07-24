@@ -1,7 +1,7 @@
 /* eslint no-restricted-syntax: 'off' */
 /* eslint no-param-reassign: 'off' */
 
-import utils from '../core/utils';
+import console from '../core/console';
 import { sameGeneralDomain } from '../core/tlds';
 import md5 from '../core/helpers/md5';
 import * as browser from '../platform/browser';
@@ -44,6 +44,8 @@ class PageLoadData {
     this.placeHolder = hasPlaceHolder || false;
     this.ra = reloaded;
     this.annotations = {};
+    this.tsv = '';
+    this.tsvId = undefined;
 
     this.triggeringTree = {};
     this._plainObject = null;
@@ -117,6 +119,11 @@ class PageLoadData {
     this._plainObject = null;
   }
 
+  setTrackingStatus(status) {
+    this.tsv = status.value;
+    this.tsvId = status.statusId;
+  }
+
   _buildPlainObject() {
     const self = this;
     const obj = {
@@ -133,6 +140,8 @@ class PageLoadData {
         (hasPlaceHolder, i) => !sameGeneralDomain(this.redirects[i], self.hostname)
       ),
       triggeringTree: {},
+      tsv: this.tsv,
+      tsv_id: this.tsvId !== undefined,
     };
     if (!obj.hostname) return obj;
 
@@ -240,7 +249,7 @@ class PageEventTracker {
   // Returns null if the referrer is not valid.
   get(url, urlParts, ref, refParts, source) {
     if (source <= 0 || source === null || source === undefined) {
-      if (this.debug) utils.log('No source for request, not logging!', 'tp_events');
+      if (this.debug) console.log('No source for request, not logging!', 'tp_events');
       return null;
     }
 
@@ -248,7 +257,7 @@ class PageEventTracker {
       if (!ref || !refParts || !refParts.hostname) {
         return null;
       }
-      if (this.debug) utils.log(`No fullpage request for referrer: ${ref} -> ${url}`, 'tp_events');
+      if (this.debug) console.log(`No fullpage request for referrer: ${ref} -> ${url}`, 'tp_events');
       return null;
     }
     // truncate the third-party domain before adding
@@ -260,11 +269,11 @@ class PageEventTracker {
       if (source in this._old_tab_idx) {
         const prevGraph = this._staged[this._old_tab_idx[source]];
         if (prevGraph && prevGraph.isReferredFrom(refParts)) {
-          if (this.debug) utils.log(`Request for expired tab ${refParts.hostname} -> ${truncDomain} (${prevGraph.hostname})`, 'tp_events');
+          if (this.debug) console.log(`Request for expired tab ${refParts.hostname} -> ${truncDomain} (${prevGraph.hostname})`, 'tp_events');
           return prevGraph.getTpUrl(truncDomain, urlParts.path);
         }
       }
-      if (this.debug) utils.log(`tab/referrer mismatch ${refParts.hostname} -> ${truncDomain} (${pageGraph.hostname})`, 'tp_events');
+      if (this.debug) console.log(`tab/referrer mismatch ${refParts.hostname} -> ${truncDomain} (${pageGraph.hostname})`, 'tp_events');
       return null;
     }
 
@@ -299,7 +308,7 @@ class PageEventTracker {
         Object.keys(this._active).map(tabId =>
           browser.checkIsWindowActive(tabId).then((active) => {
             if (!active || forceStage === true) {
-              if (this.debug) utils.log(`Stage tab ${tabId}`, 'tp_events');
+              if (this.debug) console.log(`Stage tab ${tabId}`, 'tp_events');
               this.stage(tabId);
             }
           })
@@ -327,7 +336,7 @@ class PageEventTracker {
       // if we still have some data, send the telemetry
       // if telemetryMode is 0, don't actually send it
       if (payloadData.length > 0 && this.config.telemetryMode !== TELEMETRY.DISABLED) {
-        if (this.debug) utils.log(`Pushing data for ${payloadData.length} requests`, 'tp_events');
+        if (this.debug) console.log(`Pushing data for ${payloadData.length} requests`, 'tp_events');
         this.pushTelemetry(payloadData);
       }
       this._staged = [];
@@ -358,6 +367,13 @@ class PageEventTracker {
     }
     const listeners = this.listeners.get(event);
     listeners.push(callback);
+  }
+
+  removeEventListener(event, callback) {
+    const index = this.listeners.get(event).indexOf(callback);
+    if (index !== -1) {
+      this.listeners.get(event).splice(index, 1);
+    }
   }
 
   getOpenPages() {

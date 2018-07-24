@@ -1,3 +1,4 @@
+/* global chai, describeModule */
 
 const mock = {
 };
@@ -5,14 +6,14 @@ const mock = {
 export default describeModule('search/operators/responses/deduplicate',
   () => mock,
   () => {
-    describe('#deduplicate', function() {
+    describe('#deduplicate', function () {
       let deduplicate;
 
       beforeEach(function () {
         deduplicate = this.module().deduplicate;
       });
 
-      it('removes duplicate link from result', function() {
+      it('removes duplicate link from result', function () {
         const response = {
           results: [
             {
@@ -49,7 +50,7 @@ export default describeModule('search/operators/responses/deduplicate',
         });
       });
 
-      it('removes result if main link is removed', function() {
+      it('removes result if main link is removed', function () {
         const response = {
           results: [
             {
@@ -82,14 +83,14 @@ export default describeModule('search/operators/responses/deduplicate',
       });
     });
 
-    describe('#annotate', function() {
+    describe('#annotate', function () {
       let annotate;
 
       beforeEach(function () {
         annotate = this.module().annotate;
       });
 
-      it('annotates link', function() {
+      it('annotates link', function () {
         const response = {
           results: [
             {

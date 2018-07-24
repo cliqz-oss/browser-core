@@ -1,5 +1,5 @@
-import utils from '../core/utils';
 import events from '../core/events';
+import prefs from '../core/prefs';
 
 import { getGreenadsState,
   toggleGreenAdsPref,
@@ -52,7 +52,7 @@ export default class GreenAds {
     this.label = null;
     this.timings = new Map();
 
-    this.showButton = utils.getPref('developer', false);
+    this.showButton = prefs.get('developer', false);
   }
 
   init() {
@@ -88,7 +88,7 @@ export default class GreenAds {
       const { tabId } = getTabInfo(this.window);
       if (this.timings.has(tabId)) {
         this.timings.delete(tabId);
-        utils.setTimeout(
+        setTimeout(
           () => {
             reloadCurrentTab(this.window);
           },
@@ -116,7 +116,7 @@ export default class GreenAds {
       };
 
       this.timings.set(tabId, state);
-      state.cb = utils.setInterval(
+      state.cb = setInterval(
         () => {
           state.current = Date.now() - state.start;
           this.updateLabel();
@@ -141,7 +141,7 @@ export default class GreenAds {
       }
 
       const { start, cb, mode } = this.timings.get(tabId);
-      utils.clearInterval(cb);
+      clearInterval(cb);
 
       this.timings.set(tabId, {
         start,

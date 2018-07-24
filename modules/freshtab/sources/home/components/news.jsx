@@ -123,6 +123,7 @@ export default class News extends React.Component {
             {
               this.state.pageOfItems.map((article, index) =>
                 (<div
+                  key={article.url}
                   className="box"
                   onMouseEnter={this.onMouseEnter}
                   onMouseLeave={this.onMouseLeave}

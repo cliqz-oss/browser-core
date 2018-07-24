@@ -1,15 +1,17 @@
 /* eslint prefer-arrow-callback: 'off' */
 /* eslint func-names: 'off' */
-/* eslint no-console: 'off' */
 /* eslint no-unused-expressions: 'off' */
 /* eslint no-param-reassign: 'off' */
 
-/* global testServer */
-/* global waitFor */
-/* global chai */
-
 import WebRequest from '../platform/webrequest';
-import { newTab } from '../platform/browser';
+import console from '../core/console';
+import {
+  chai,
+  expect,
+  newTab,
+  testServer,
+  waitFor
+} from '../tests/core/test-helpers';
 
 
 describe('WebRequest example pages', function () {
@@ -115,66 +117,66 @@ describe('WebRequest example pages', function () {
   });
 
   function testMainDocument(r, topic, md) {
-    chai.expect(r.tabId > 0);
+    expect(r.tabId > 0);
     if (topic === 'onBeforeRequest') {
       // expect this to be the first request
-      chai.expect(md.tabId).to.be.undefined;
+      expect(md.tabId).to.be.undefined;
       md.tabId = r.tabId;
     }
-    chai.expect(r.tabId).to.equal(md.tabId);
-    chai.expect(r.parentFrameId).to.equal(r.tabId);
-    chai.expect(r.frameId).to.equal(r.tabId);
-    chai.expect(r.type).to.equal(6);
-    chai.expect(r.method).to.equal('GET');
-    chai.expect(r.isPrivate).to.be.false;
-    chai.expect(r.originUrl).to.equal(md.url);
+    expect(r.tabId).to.equal(md.tabId);
+    expect(r.parentFrameId).to.equal(r.tabId);
+    expect(r.frameId).to.equal(r.tabId);
+    expect(r.type).to.equal(6);
+    expect(r.method).to.equal('GET');
+    expect(r.isPrivate).to.be.false;
+    expect(r.originUrl).to.equal(md.url);
   }
 
   function testInMainFrame(r, topic, md, type) {
-    chai.expect(r.tabId).to.equal(md.tabId);
-    chai.expect(r.parentFrameId).to.equal(r.tabId);
-    chai.expect(r.frameId).to.equal(r.tabId);
-    chai.expect(r.type).to.equal(type);
-    chai.expect(r.method).to.equal('GET');
-    chai.expect(r.isPrivate).to.be.false;
-    chai.expect(r.originUrl).to.equal(md.url);
+    expect(r.tabId).to.equal(md.tabId);
+    expect(r.parentFrameId).to.equal(r.tabId);
+    expect(r.frameId).to.equal(r.tabId);
+    expect(r.type).to.equal(type);
+    expect(r.method).to.equal('GET');
+    expect(r.isPrivate).to.be.false;
+    expect(r.originUrl).to.equal(md.url);
   }
 
   function testIFrameDocument(r, topic, md) {
-    chai.expect(r.tabId > 0);
+    expect(r.tabId > 0);
     if (topic === 'onBeforeRequest') {
       // expect this to be the first request
-      chai.expect(md.iframeid).to.be.undefined;
+      expect(md.iframeid).to.be.undefined;
       md.iframeid = r.frameId;
     }
-    chai.expect(r.tabId).to.equal(md.tabId);
-    chai.expect(r.parentFrameId).to.equal(r.tabId);
-    chai.expect(r.frameId).to.equal(md.iframeid);
-    chai.expect(r.type).to.equal(7);
-    chai.expect(r.method).to.equal('GET');
-    chai.expect(r.isPrivate).to.be.false;
-    chai.expect(r.originUrl).to.equal(md.url);
-    chai.expect(r.source).to.equal(md.url);
+    expect(r.tabId).to.equal(md.tabId);
+    expect(r.parentFrameId).to.equal(r.tabId);
+    expect(r.frameId).to.equal(md.iframeid);
+    expect(r.type).to.equal(7);
+    expect(r.method).to.equal('GET');
+    expect(r.isPrivate).to.be.false;
+    expect(r.originUrl).to.equal(md.url);
+    expect(r.source).to.equal(md.url);
   }
 
   function testInIFrame(r, topic, md, type) {
-    chai.expect(r.tabId).to.equal(md.tabId);
-    chai.expect(r.parentFrameId).to.equal(r.tabId);
-    chai.expect(r.frameId).to.equal(md.iframeid);
-    chai.expect(r.type).to.equal(type);
-    chai.expect(r.method).to.equal('GET');
-    chai.expect(r.isPrivate).to.be.false;
+    expect(r.tabId).to.equal(md.tabId);
+    expect(r.parentFrameId).to.equal(r.tabId);
+    expect(r.frameId).to.equal(md.iframeid);
+    expect(r.type).to.equal(type);
+    expect(r.method).to.equal('GET');
+    expect(r.isPrivate).to.be.false;
     // source refers to top level url, origin is the iframe url
-    chai.expect(r.originUrl).to.not.equal(md.url);
-    chai.expect(r.source).to.equal(md.url);
+    expect(r.originUrl).to.not.equal(md.url);
+    expect(r.source).to.equal(md.url);
   }
 
   function testResponseCode(r, topic, code) {
     code = code || 200;
     if (topic === 'onHeadersReceived') {
-      chai.expect(r.responseStatus).to.equal(code);
+      expect(r.responseStatus).to.equal(code);
     } else {
-      chai.expect(r.responseStatus).to.be.undefined;
+      expect(r.responseStatus).to.be.undefined;
     }
   }
 
@@ -311,43 +313,43 @@ describe('WebRequest example pages', function () {
         testResponseCode(r, topic);
       },
       'http://127.0.0.1:60508/iframe2.html': function (r, topic, md) {
-        chai.expect(r.tabId > 0);
+        expect(r.tabId > 0);
         if (topic === 'onBeforeRequest') {
           // expect this to be the first request
-          chai.expect(md.iframeid2).to.be.undefined;
+          expect(md.iframeid2).to.be.undefined;
           md.iframeid2 = r.frameId;
         }
-        chai.expect(r.tabId).to.equal(md.tabId);
-        chai.expect(r.parentFrameId).to.equal(md.iframeid);
-        chai.expect(r.frameId).to.equal(md.iframeid2);
-        chai.expect(r.type).to.equal(7);
-        chai.expect(r.method).to.equal('GET');
-        chai.expect(r.isPrivate).to.be.false;
-        chai.expect(r.originUrl).to.equal('http://cliqztest.de:60508/proxyiframe.html');
-        chai.expect(r.source).to.equal(md.url);
+        expect(r.tabId).to.equal(md.tabId);
+        expect(r.parentFrameId).to.equal(md.iframeid);
+        expect(r.frameId).to.equal(md.iframeid2);
+        expect(r.type).to.equal(7);
+        expect(r.method).to.equal('GET');
+        expect(r.isPrivate).to.be.false;
+        expect(r.originUrl).to.equal('http://cliqztest.de:60508/proxyiframe.html');
+        expect(r.source).to.equal(md.url);
         testResponseCode(r, topic);
       },
       'http://127.0.0.1:60508/node_modules/jquery/dist/jquery.js': function (r, topic, md) {
         // tabId == top level tab; parentFrameId == outer iframe; frameId == this iframe
-        chai.expect(r.tabId).to.equal(md.tabId);
-        chai.expect(r.parentFrameId).to.equal(md.iframeid);
-        chai.expect(r.frameId).to.equal(md.iframeid2);
-        chai.expect(r.type).to.equal(2);
-        chai.expect(r.method).to.equal('GET');
-        chai.expect(r.isPrivate).to.be.false;
-        chai.expect(r.originUrl).to.equal('http://127.0.0.1:60508/iframe2.html');
-        chai.expect(r.source).to.equal(md.url);
+        expect(r.tabId).to.equal(md.tabId);
+        expect(r.parentFrameId).to.equal(md.iframeid);
+        expect(r.frameId).to.equal(md.iframeid2);
+        expect(r.type).to.equal(2);
+        expect(r.method).to.equal('GET');
+        expect(r.isPrivate).to.be.false;
+        expect(r.originUrl).to.equal('http://127.0.0.1:60508/iframe2.html');
+        expect(r.source).to.equal(md.url);
         testResponseCode(r, topic);
       },
       'http://127.0.0.1:60508/test?callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
-        chai.expect(r.tabId).to.equal(md.tabId);
-        chai.expect(r.parentFrameId).to.equal(md.iframeid);
-        chai.expect(r.frameId).to.equal(md.iframeid2);
-        chai.expect(r.type).to.equal(11);
-        chai.expect(r.method).to.equal('GET');
-        chai.expect(r.isPrivate).to.be.false;
-        chai.expect(r.originUrl).to.equal('http://127.0.0.1:60508/iframe2.html');
-        chai.expect(r.source).to.equal(md.url);
+        expect(r.tabId).to.equal(md.tabId);
+        expect(r.parentFrameId).to.equal(md.iframeid);
+        expect(r.frameId).to.equal(md.iframeid2);
+        expect(r.type).to.equal(11);
+        expect(r.method).to.equal('GET');
+        expect(r.isPrivate).to.be.false;
+        expect(r.originUrl).to.equal('http://127.0.0.1:60508/iframe2.html');
+        expect(r.source).to.equal(md.url);
         testResponseCode(r, topic);
       }
     }
@@ -391,7 +393,7 @@ describe('WebRequest example pages', function () {
                   return hash;
                 }, Object.create(null));
               for (const seenUrl of Object.keys(expectedUrls)) {
-                chai.expect(reqs).to.have.property(seenUrl);
+                expect(reqs).to.have.property(seenUrl);
                 expectedUrls[seenUrl](reqs[seenUrl], topic, testState);
               }
             }
@@ -407,14 +409,14 @@ describe('WebRequest example pages', function () {
             return reqsReceived.length >= 2;
           }).then(function () {
             if (!skipLengthTest) {
-              chai.expect(reqsReceived).to.have.length(2);
+              expect(reqsReceived).to.have.length(2);
             }
             for (const req of reqsReceived) {
               // EXCEPTION: onBeforeRequest missed for image redirect
               if (req.host === 'localhost') {
-                chai.expect(req.qs).to.contain(uid);
+                expect(req.qs).to.contain(uid);
               } else {
-                chai.expect(req.qs).to.not.contain(uid);
+                expect(req.qs).to.not.contain(uid);
               }
             }
           })
@@ -428,11 +430,11 @@ describe('WebRequest example pages', function () {
           waitFor(function () {
             return reqsReceived.length >= 1;
           }).then(function () {
-            chai.expect(reqsReceived).to.have.length(1);
+            expect(reqsReceived).to.have.length(1);
             for (const req of reqsReceived) {
               // EXCEPTION: onBeforeRequest missed for image redirect
               if (req.host === 'localhost') {
-                chai.expect(req.qs).to.contain(uid);
+                expect(req.qs).to.contain(uid);
               } else {
                 chai.assert(false);
               }

@@ -1,4 +1,6 @@
 
+import inject from '../../core/kord/inject';
+
 // From: https://stackoverflow.com/a/43053803
 const f = (a, b) => [].concat(...a.map(d => b.map(e => [].concat(d, e))));
 const cartesian = (a, b, ...c) => (b ? cartesian(f(a, b), ...c) : a);
@@ -44,6 +46,8 @@ export const NEWS_EDITIONS = [
 export default [
   {
     name: 'freshtab.prefs.state',
+    offsets: [0],
+    generate: async () => [await inject.module('freshtab').action('getState')],
     schema: {
       properties: {
         active: { type: 'boolean' },
@@ -52,6 +56,10 @@ export default [
   },
   {
     name: 'freshtab.prefs.blueTheme',
+    offsets: [0],
+    generate: async () => [{
+      enabled: await inject.module('freshtab').action('isBlueThemeEnabled'),
+    }],
     schema: {
       properties: {
         enabled: { type: 'boolean' },
@@ -60,33 +68,41 @@ export default [
   },
   {
     name: 'freshtab.prefs.config',
+    offsets: [0],
+    generate: async () => [await inject.module('freshtab').action('getComponentsState')],
     schema: {
       properties: {
         components: { type: 'object' },
         historyDials: {
+          required: ['visible'],
           properties: {
             visible: { type: 'boolean' },
           },
         },
         customDials: {
+          required: ['visible'],
           properties: {
             visible: { type: 'boolean' },
           },
         },
         search: {
+          required: ['visible'],
           properties: {
             visible: { type: 'boolean' },
           },
         },
         news: {
+          required: ['visible', 'preferedCountry'],
           properties: {
             visible: { type: 'boolean' },
             preferedCountry: { type: 'string' },
           },
         },
         background: {
+          required: ['image', 'index'],
           properties: {
             image: { type: 'string' },
+            index: { type: 'number' }
           },
         },
       }
@@ -303,6 +319,11 @@ export default [
     { key: 'target', value: 'remove' }
   ], false),
 
+  mkFreshtabSchema([
+    { key: 'type', value: 'offrz' },
+    { key: 'action', value: 'hover' },
+    { key: 'target', value: 'conditions' }
+  ], false),
 
   // Generate all possible combinations of schemas for interactions with news:
   ...cartesian(

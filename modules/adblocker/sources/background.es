@@ -19,6 +19,8 @@ export default background({
   humanWeb: inject.module('human-web'),
   core: inject.module('core'),
 
+  requiresServices: ['domainInfo'],
+
   enabled() { return true; },
 
   init() {
@@ -167,5 +169,8 @@ export default background({
         this.adb.pipeline.removePipelineStep(name);
       }
     },
+    addWhiteListCheck(fn) {
+      CliqzADB.addWhiteListCheck(fn);
+    }
   },
 });

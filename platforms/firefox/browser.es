@@ -3,6 +3,10 @@ import events from '../core/events';
 import { removeFile } from '../core/fs';
 import { Services, Components } from './globals';
 
+export * from './tabs';
+export * from './windows';
+
+
 export function mapWindows(callback) {
   const enumerator = Services.wm.getEnumerator('navigator:browser');
   const results = [];
@@ -43,12 +47,11 @@ export class Window {
   }
 
   static findByTabId(tabId) {
-    const windows = mapWindows(w => new Window(w));
-    return windows.find(w =>
-      [...w.window.gBrowser.tabs]
-        .filter(tab => tab.linkedBrowser) // TODO: check if that happens
-        .find(tab => tab.linkedBrowser.outerWindowID === tabId)
-    );
+    const windows = mapWindows(w => new Window(w)).filter(w => w.window.gBrowser);
+    return windows.find((w) => {
+      const tabs = Array.from(w.window.gBrowser.tabs || []);
+      return tabs.find(tab => tab.linkedBrowser && tab.linkedBrowser.outerWindowID === tabId);
+    });
   }
 }
 
@@ -87,55 +90,6 @@ export function getBrowserMajorVersion() {
   return parseInt(appInfo.version.split('.')[0], 10);
 }
 
-
-/** Returns true if the give windowID represents an open browser tab's windowID.
- */
-export function isWindowActive(windowID) {
-  const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
-    .getService(Components.interfaces.nsIWindowMediator);
-  const browserEnumerator = wm.getEnumerator('navigator:browser');
-
-  // the windowID should be an integer
-  const numId = Number(windowID);
-  if (numId <= 0) {
-    return false;
-  }
-
-  while (browserEnumerator.hasMoreElements()) {
-    const browserWin = browserEnumerator.getNext();
-    const tabbrowser = browserWin.gBrowser;
-
-    // check if tab is open in this window
-    const win = tabbrowser.getBrowserForOuterWindowID(numId);
-
-    // check for http URI.
-    if (win !== undefined) {
-      return win.currentURI && (win.currentURI.schemeIs('http') || win.currentURI.schemeIs('https'));
-    }
-  }
-
-  return false;
-}
-
-export function checkIsWindowActive(windowID) {
-  return Promise.resolve(isWindowActive(windowID));
-}
-
-const windowObservers = new Map();
-export function addWindowObserver(callback) {
-  const cb = (win, topic) => {
-    callback(win, topic === 'domwindowopened' ? 'opened' : 'closed');
-  };
-  windowObservers.set(callback, cb);
-  Services.ww.registerNotification(cb);
-}
-
-export function removeWindowObserver(callback) {
-  const cb = windowObservers.get(callback);
-  if (cb) {
-    Services.ww.unregisterNotification(cb);
-  }
-}
 
 const sessionRestoreObservers = new Set();
 export function addSessionRestoreObserver(callback) {
@@ -181,7 +135,9 @@ const OBSOLETE_PREFS = [
   // removed before X.28.1
   'attrackSourceDomainWhitelist',
   // temporary config
-  'config_country_granular'
+  'config_country_granular',
+  // obsolete since X.27.4
+  'new_session',
 ];
 
 // do various cleanups from retired features or modules
@@ -260,10 +216,9 @@ export function getThemeStyle() {
   return selectedThemeID === 'firefox-compact-dark@mozilla.org' ? 'dark' : 'light';
 }
 
-let branch; // cliqz specific prefs
-let branchLightweightThemes; // theme specific prefs
+const branches = new Map();
 
-const observer = {
+const observerCliqz = {
   observe: (subject, topic, data) => {
     events.pub('prefchange', data);
   },
@@ -277,39 +232,44 @@ const observerLightweightThemes = {
   },
 };
 
-export function enableChangeEvents() {
-  if (!branch) {
-    const prefService = Components.classes['@mozilla.org/preferences-service;1']
-      .getService(Components.interfaces.nsIPrefService);
-    branch = prefService.getBranch('extensions.cliqz.');
-    if (!('addObserver' in branch)) {
-      branch.QueryInterface(Components.interfaces.nsIPrefBranch2);
+const observerHealthReport = {
+  observe: (subject, topic, data) => {
+    if (data === 'uploadEnabled') {
+      events.pub('healthReportChange');
     }
-    branch.addObserver('', observer, false);
-  }
+  },
+};
 
-  if (!branchLightweightThemes) {
-    const prefService = Components.classes['@mozilla.org/preferences-service;1']
-      .getService(Components.interfaces.nsIPrefService);
-    branchLightweightThemes = prefService.getBranch('lightweightThemes.');
-    if (!('addObserver' in branchLightweightThemes)) {
-      branchLightweightThemes.QueryInterface(Components.interfaces.nsIPrefBranch2);
+export function enableChangeEvents() {
+  const prefService = Components.classes['@mozilla.org/preferences-service;1']
+    .getService(Components.interfaces.nsIPrefService);
+
+  [
+    { prefix: 'extensions.cliqz.', observer: observerCliqz },
+    { prefix: 'lightweightThemes.', observer: observerLightweightThemes },
+    { prefix: 'datareporting.healthreport.', observer: observerHealthReport },
+  ].forEach(({ prefix, observer }) => {
+    if (!branches.has(prefix)) {
+      const branch = prefService.getBranch(prefix);
+      if (!('addObserver' in branch)) {
+        branch.QueryInterface(Components.interfaces.nsIPrefBranch2);
+      }
+      branch.addObserver('', observer, false);
+
+      // Keep track of this branch observer to allow unloading.
+      branches.set(prefix, {
+        observer,
+        branch,
+      });
     }
-    // using a very specific observer for performance reasons
-    branchLightweightThemes.addObserver('', observerLightweightThemes, false);
-  }
+  });
 }
 
 export function disableChangeEvents() {
-  if (branch) {
+  [...branches.entries()].forEach(([prefix, { observer, branch }]) => {
     branch.removeObserver('', observer);
-    branch = null;
-  }
-
-  if (branchLightweightThemes) {
-    branchLightweightThemes.removeObserver('', observerLightweightThemes);
-    branchLightweightThemes = null;
-  }
+    branches.delete(prefix);
+  });
 }
 
 export function getLocale() {
@@ -379,106 +339,6 @@ export function getActiveTab(w) {
 
 export function getCookies() {
   return Promise.reject('Not implemented');
-}
-
-
-function waitForAsync(fn, depth = 200) {
-  if (depth <= 0) {
-    return Promise.resolve('waitForAsync max depth');
-  }
-
-  return fn()
-    .then((value) => {
-      if (value) {
-        return Promise.resolve();
-      }
-      return Promise.reject();
-    })
-    .catch(() => new Promise((resolve) => {
-      setTimeout(
-        () => {
-          resolve(waitForAsync(fn, depth - 1));
-        },
-        100
-      );
-    }));
-}
-
-export function getCurrentWindow() {
-  return Components.classes['@mozilla.org/appshell/window-mediator;1']
-    .getService(Components.interfaces.nsIWindowMediator)
-    .getMostRecentWindow('navigator:browser');
-}
-
-function getCurrentgBrowser() {
-  return Components.classes['@mozilla.org/appshell/window-mediator;1']
-    .getService(Components.interfaces.nsIWindowMediator)
-    .getMostRecentWindow('navigator:browser')
-    .gBrowser;
-}
-
-
-export function newTab(url, check = true) {
-  const gBrowser = getCurrentgBrowser();
-  const tab = gBrowser.addTab(url);
-  let tabId = null;
-
-  if (!check) {
-    tabId = tab.linkedBrowser ? tab.linkedBrowser.outerWindowID : null;
-    return Promise.resolve(tabId);
-  }
-
-  return waitForAsync(() => {
-    // This might be caused by a blocked main document request
-    if (tab.linkedBrowser === null) {
-      return Promise.resolve(false);
-    }
-
-    tabId = tab.linkedBrowser.outerWindowID;
-
-    if (tabId === null) {
-      return Promise.resolve(false);
-    }
-
-    return checkIsWindowActive(tabId);
-  }).then(() => tabId);
-}
-
-
-export function closeTab(tabId) {
-  const numTabId = Number(tabId);
-  const gBrowser = getCurrentgBrowser();
-  const tabToRemove = [...gBrowser.tabs].find(tab =>
-    numTabId === tab.linkedBrowser.outerWindowID
-  );
-
-  if (tabToRemove === undefined) {
-    return Promise.reject(`Could not find tab ${tabId}`);
-  }
-
-  // Remove tab
-  gBrowser.removeTab(tabToRemove);
-
-  return waitForAsync(() => Promise.resolve(!isWindowActive(numTabId)));
-}
-
-
-export function updateTab(tabId, url) {
-  const numTabId = Number(tabId);
-  const gBrowser = getCurrentgBrowser();
-  const tabToUpdate = [...gBrowser.tabs].find(tab =>
-    numTabId === tab.linkedBrowser.outerWindowID
-  );
-
-  if (tabToUpdate === undefined) {
-    return Promise.reject(`Could not find tab ${tabId}`);
-  }
-
-  gBrowser.getBrowserForTab(tabToUpdate).loadURI(url);
-
-  return waitForAsync(() => Promise.resolve(
-    gBrowser.getBrowserForTab(tabToUpdate).currentURI.spec === url
-  ));
 }
 
 export function getStartupInfo() {

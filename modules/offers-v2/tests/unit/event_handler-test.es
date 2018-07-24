@@ -20,44 +20,41 @@ export default describeModule('offers-v2/event_handler',
     },
     'offers-v2/common/offers_v2_logger': {
       default: {
-        debug: (x) => {console.log(x);},
-        error: (x) => {console.log(x);},
-        info: (x) => {console.log(x);},
-        log: (x) => {console.log(x);},
-        warn: (x) => {console.log(x);},
-        logObject: () => {console.log(x);},
+        debug: (x) => { console.log(x); },
+        error: (x) => { console.log(x); },
+        info: (x) => { console.log(x); },
+        log: (x) => { console.log(x); },
+        warn: (x) => { console.log(x); },
+        logObject: (x) => { console.log(x); },
       }
     },
     'core/platform': {
       isChromium: false
     },
     'core/helpers/timeout': {
-      default: function() { const stop = () => {}; return { stop }; }
+      default: function () { const stop = () => {}; return { stop }; }
     },
     'core/utils': {
-      default: {
-        setTimeout: function(f, t) {
-          f();
-        },
-        setInterval: function () {},
-        getDetailsFromUrl: function(url) {
-          // we should extract the name here
-          return getDetailsFromUrlReal(url);
-        }
-      },
+      default: {},
+    },
+    'core/url': {
+      getDetailsFromUrl: function (url) {
+        // we should extract the name here
+        return getDetailsFromUrlReal(url);
+      }
     },
     'core/events': {
       default: {
         d: {
           id_map: {}
         },
-        sub: function(id, cb) {
+        sub: function (id, cb) {
           this.d.id_map[id] = cb;
         },
-        un_sub: function(id, cb) {
+        un_sub: function (id) {
           delete this.d.id_map[id];
         },
-        pub: function(id, ...args) {
+        pub: function (id, ...args) {
           const cb = this.d.id_map[id];
           if (cb) {
             cb(...args);
@@ -77,12 +74,12 @@ export default describeModule('offers-v2/event_handler',
     },
     'core/prefs': {
       default: {
-        get: function(x,y) { return y; }
+        get: function (x, y) { return y; }
       }
     }
   }),
   () => {
-    describe('#event_handler', function() {
+    describe('#event_handler', function () {
       let EventHandler;
       let events;
       beforeEach(function () {
@@ -90,14 +87,21 @@ export default describeModule('offers-v2/event_handler',
         events = this.deps('core/events').default;
         return this.system.import('core/url').then((mod) => {
           getDetailsFromUrlReal = mod.getDetailsFromUrl;
-        })
+        });
       });
 
       context('basic tests', function () {
+        let oldTimeout;
         let eh;
 
         beforeEach(function () {
           eh = new EventHandler();
+          oldTimeout = global.setTimeout;
+          global.setTimeout = (cb) => { cb(); };
+        });
+
+        afterEach(function () {
+          global.setTimeout = oldTimeout;
         });
 
         function simLocChange(url) {
@@ -114,7 +118,9 @@ export default describeModule('offers-v2/event_handler',
             rul: url,
             url,
             isPrivate: false,
-          }
+            statusCode: 200,
+            typeInt: 6
+          };
           // we will here simulate the callback of the webrequest directly,
           // still the logic will be the same
           eh.webrequestPipelineCallback(webRequestContext);
@@ -129,7 +135,7 @@ export default describeModule('offers-v2/event_handler',
 
         it('/url change event calls appropiate callback', function () {
           let counter = 0;
-          const cb = (urlData, args) => {
+          const cb = () => {
             counter += 1;
           };
           eh.subscribeUrlChange(cb, null);
@@ -146,24 +152,19 @@ export default describeModule('offers-v2/event_handler',
             lastUrlData = urlData;
             lastArgs = args;
           };
-          eh.subscribeUrlChange(cb, {x:1, y: 2, z: 3});
+          eh.subscribeUrlChange(cb, { x: 1, y: 2, z: 3 });
           simLocChange('http://www.amazon.com/');
           chai.expect(counter).eql(1);
           chai.expect(lastUrlData).to.exist;
           chai.expect(lastUrlData.getRawUrl()).eql('http://www.amazon.com/');
           chai.expect(lastUrlData.getDomain()).eql('amazon.com');
-          chai.expect(lastArgs).eql({x:1, y: 2, z: 3});
+          chai.expect(lastArgs).eql({ x: 1, y: 2, z: 3 });
         });
 
         it('/http request subscribe/unsubscribeHttpReq works', function () {
-          let counter = 0;
-          let lastArgs = null;
-          const cb = (args) => {
-            counter += 1;
-            lastArgs = args;
-          };
+          const cb = () => {};
           chai.expect(eh.isHttpReqDomainSubscribed(cb, 'amazon.com')).eql(false);
-          eh.subscribeHttpReq(cb, 'amazon.com', {x:1, y: 2, z: 3});
+          eh.subscribeHttpReq(cb, 'amazon.com', { x: 1, y: 2, z: 3 });
           chai.expect(eh.isHttpReqDomainSubscribed(cb, 'amazon.com')).eql(true);
           eh.unsubscribeHttpReq(cb, 'amazon.com');
           chai.expect(eh.isHttpReqDomainSubscribed(cb, 'amazon.com')).eql(false);
@@ -171,12 +172,10 @@ export default describeModule('offers-v2/event_handler',
 
         it('/http request is called properly', function () {
           let counter = 0;
-          let lastArgs = null;
-          const cb = (args) => {
+          const cb = () => {
             counter += 1;
-            lastArgs = args;
           };
-          eh.subscribeHttpReq(cb, 'amazon.com', {x:1, y: 2, z: 3});
+          eh.subscribeHttpReq(cb, 'amazon.com', { x: 1, y: 2, z: 3 });
           simReq('http://www.amazon.com');
           chai.expect(counter).eql(1);
           simReq('http://www.amazon.com');
@@ -185,12 +184,10 @@ export default describeModule('offers-v2/event_handler',
 
         it('/http request is not called if unsubcribed', function () {
           let counter = 0;
-          let lastArgs = null;
-          const cb = (args) => {
+          const cb = () => {
             counter += 1;
-            lastArgs = args;
           };
-          eh.subscribeHttpReq(cb, 'amazon.com', {x:1, y: 2, z: 3});
+          eh.subscribeHttpReq(cb, 'amazon.com', { x: 1, y: 2, z: 3 });
           simReq('http://www.amazon.com');
           chai.expect(counter).eql(1);
           eh.unsubscribeHttpReq(cb, 'amazon.com');
@@ -201,19 +198,15 @@ export default describeModule('offers-v2/event_handler',
 
         it('/http request is not called for different domain', function () {
           let counter = 0;
-          let lastArgs = null;
-          const cb = (args) => {
+          const cb = () => {
             counter += 1;
-            lastArgs = args;
           };
-          eh.subscribeHttpReq(cb, 'quasiamazon.com', {x:1, y: 2, z: 3});
+          eh.subscribeHttpReq(cb, 'quasiamazon.com', { x: 1, y: 2, z: 3 });
           simReq('http://www.amazon.com');
           simReq('http://www.come.quasiamazon2.com');
           simReq('http://www.come.amazon2quasi.com/pepe');
           chai.expect(counter).eql(0);
         });
-
-
       });
     });
   }

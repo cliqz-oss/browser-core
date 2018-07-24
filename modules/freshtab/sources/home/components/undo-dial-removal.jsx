@@ -40,6 +40,7 @@ class UndoDialRemoval extends React.Component {
         <button
           id="undo-close"
           className="undo"
+          tabIndex="-1"
           onClick={() => this.handleUndoRemoval()}
         >
           {t('app_speed_dial_undo')}
@@ -47,6 +48,7 @@ class UndoDialRemoval extends React.Component {
         <button
           id="undo-notification-close"
           className="close"
+          tabIndex="-1"
           onClick={() => this.handleUndoClose()}
         >
           X

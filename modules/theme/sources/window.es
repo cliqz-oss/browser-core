@@ -1,8 +1,7 @@
-import utils from '../core/utils';
 import prefs from '../core/prefs';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import inject from '../core/kord/inject';
-import { isPlatformAtLeastInVersion } from '../core/platform';
+import { isWindows, isLinux, isMac } from '../core/platform';
 import config from '../core/config';
 
 const DEVELOPER_FLAG_PREF = 'developer';
@@ -58,13 +57,13 @@ export default class Win {
 
   themeUrl() {
     let url;
-    const ff57 = isPlatformAtLeastInVersion('57.0') ? 'ff57-' : '';
-    if (utils.isWindows()) {
-      url = `${config.baseURL}theme/styles/${ff57}theme-win.css`;
-    } else if (utils.isMac()) {
-      url = `${config.baseURL}theme/styles/${ff57}theme-mac.css`;
-    } else if (utils.isLinux()) {
-      url = `${config.baseURL}theme/styles/${ff57}theme-linux.css`;
+
+    if (isWindows()) {
+      url = `${config.baseURL}theme/styles/theme-win.css`;
+    } else if (isMac()) {
+      url = `${config.baseURL}theme/styles/theme-mac.css`;
+    } else if (isLinux()) {
+      url = `${config.baseURL}theme/styles/theme-linux.css`;
     }
     return url;
   }

@@ -1,4 +1,5 @@
 import config from '../core/config';
+import Worker from '../platform/worker';
 
 class CryptoWorker {
   // the name is optional (it is only relevant for debugging)

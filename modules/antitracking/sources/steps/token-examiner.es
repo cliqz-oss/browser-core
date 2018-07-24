@@ -3,7 +3,6 @@
 import * as datetime from '../time';
 import md5 from '../../core/helpers/md5';
 import console from '../../core/console';
-import utils from '../../core/utils';
 import { migrateRequestKeyValue } from '../legacy/database';
 
 
@@ -60,7 +59,7 @@ export default class TokenExaminer {
 
   unload() {
     if (this._syncTimer) {
-      utils.clearTimeout(this._syncTimer);
+      clearTimeout(this._syncTimer);
     }
   }
 
@@ -170,7 +169,7 @@ export default class TokenExaminer {
     if (this._syncTimer) {
       return;
     }
-    this._syncTimer = utils.setTimeout(() => {
+    this._syncTimer = setTimeout(() => {
       const maybePrune = prune ? this.pruneDb() : Promise.resolve();
       maybePrune.then(() => this._syncDb());
       this._syncTimer = null;
