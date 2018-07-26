@@ -565,26 +565,41 @@ const CliqzHumanWeb = {
         }
       }
     },
-    getRedirects: function(url, _res) {
-        var res = _res || [];
-
-        // This needs simplification.
-        try{
-            for(var key in CliqzHumanWeb.httpCache) {
-                if(CliqzHumanWeb.httpCache[key]){
-                    if (CliqzHumanWeb.httpCache[key]['location']!=null && (CliqzHumanWeb.httpCache[key]['status'] === 301 || CliqzHumanWeb.httpCache[key]['status'] === 302)) {
-                        if (CliqzHumanWeb.httpCache[key]['location']==url || decodeURIComponent(CliqzHumanWeb.httpCache[key]['location']) == url || CliqzHumanWeb.httpCache[key]['location'] + '/' == url) {
-                            res.unshift(key);
-                            CliqzHumanWeb.getRedirects(key, res);
-                        }
-                    }
-                }
-            }
-        }
-        catch(ee){
-          _log(">>>> REDIRECT ERROR >>> " + ee);
-        };
+    // maxLength is the maximum length of the redirect chain
+    // (once a cycle is found, it will always stop, independent of maxLength)
+    getRedirects(url, _res, maxLength = 6) {
+      const res = _res || [];
+      if (maxLength <= 0) {
         return res;
+      }
+
+      const isRedirectToUrl = (status, location) => {
+        if (status !== 301 && status !== 302) {
+          return false;
+        }
+
+        return location === url || decodeURIComponent(location) === url || location + '/' === url;
+      };
+
+      // Note: O(n*c) complexity, where n is the size of CliqzHumanWeb.httpCache
+      // and c is the redirect chain length. In practice, it should not be an
+      // issue for two reasons:
+      // 1) "c" is limited by maxLength, which typically is a small constant
+      // 2) CliqzHumanWeb.httpCache is reguarly cleaned up, thus it should stay quite small
+      //
+      // (TODO: verify that the cleanup of CliqzHumanWeb.httpCache works)
+      //
+      try {
+        for (const [key, { status, location }] of Object.entries(CliqzHumanWeb.httpCache)) {
+          if (key !== url && isRedirectToUrl(status, location) && res.indexOf(key) < 0) {
+            res.unshift(key);
+            return CliqzHumanWeb.getRedirects(key, res, maxLength - 1);
+          }
+        }
+      } catch (ee) {
+        _log(">>>> REDIRECT ERROR >>> " + ee);
+      };
+      return res;
     },
     userSearchTransition: function(rq){
         // now let's manage the userTransitions.search

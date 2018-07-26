@@ -605,10 +605,12 @@ export default class Manager {
         return true;
       }
       oldDates.sort();
+      const smallestOldDate = oldDates[0];
       const largestOldDate = oldDates[oldDates.length - 1];
-      // Check that all new dates are either greater than our largest old date or
-      // equal to some old date and the key has not changed.
-      const check = x => x > largestOldDate ||
+      // Make sure the server cannot change keys that we saw before,
+      // or include additional keys in the interval defined by the keys
+      // that we already know.
+      const check = x => x < smallestOldDate || x > largestOldDate ||
         (oldKeys[x] && toBase64(oldKeys[x].groupPubKey) === newKeys[x]);
       if (!dates.every(check)) {
         return false;

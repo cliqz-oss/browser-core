@@ -108,6 +108,7 @@ export default describeModule('human-web/human-web',
       beforeEach(function () {
         HumanWeb = this.module().default;
 
+        HumanWeb.httpCache = {};
         HumanWeb.counter = 1;
         HumanWeb.bloomFilter = {
           testSingle: () => false,
@@ -135,6 +136,143 @@ export default describeModule('human-web/human-web',
             query: '0123456789',
           });
         });
+      });
+
+      it('should be able to resolve the redirect chain: A -> B -> C', function () {
+        HumanWeb.httpCache = {
+          'https://a.test/': {
+            status: 301,
+            location: 'https://b.test/',
+            time: 1,
+          },
+          'https://b.test/': {
+            status: 301,
+            location: 'https://c.test/',
+            time: 2,
+          },
+          'https://c.test/': {
+            status: 301,
+            location: 'https://d.test/',
+            time: 2,
+          },
+        };
+
+        let redirects = [];
+        const maxLength = 3;
+        redirects = HumanWeb.getRedirects('https://d.test/', redirects, maxLength);
+        expect(redirects).to.deep.equals(['https://a.test/', 'https://b.test/', 'https://c.test/']);
+      });
+
+      it('should stop when the desired number of redirects is exceeded', function () {
+        HumanWeb.httpCache = {
+          'https://a.test/': {
+            status: 301,
+            location: 'https://b.test/',
+            time: 1,
+          },
+          'https://b.test/': {
+            status: 301,
+            location: 'https://c.test/',
+            time: 2,
+          },
+          'https://c.test/': {
+            status: 301,
+            location: 'https://d.test/',
+            time: 2,
+          },
+        };
+
+        let redirects = [];
+        const maxLength = 1;
+        redirects = HumanWeb.getRedirects('https://d.test/', redirects, maxLength);
+        expect(redirects).to.deep.equals(['https://c.test/']);
+      });
+
+      it('should not enter an infinite loop when resolving redirects', function () {
+        HumanWeb.httpCache = {
+          'https://example.test/': {
+            status: 301,
+            location: 'https://example.test/redirected',
+            time: 1,
+          },
+          'https://example.test/redirected': {
+            status: 200,
+            time: 2
+          }
+        };
+
+        let redirects = [];
+        redirects = HumanWeb.getRedirects('https://example.test/redirected', redirects);
+        expect(redirects).to.deep.equals(['https://example.test/']);
+      });
+
+      it('should not find redirects to itself', function () {
+        HumanWeb.httpCache = {
+          'https://example.test/': {
+            status: 301,
+            location: 'https://example.test',
+            time: 1,
+          },
+          'https://example.test': {
+            status: 200,
+            time: 2
+          }
+        };
+
+        let redirects = [];
+        redirects = HumanWeb.getRedirects('https://example.test/', redirects);
+        expect(redirects).to.deep.equals([]);
+      });
+
+      it('should handle httpCache entries with many unrelated entries', function () {
+        HumanWeb.httpCache = {
+          'https://example.test/': {
+            status: 301,
+            location: 'https://example.test/redirected',
+            time: 1,
+          },
+          'https://example.test/redirected': {
+            status: 200,
+            time: 2
+          }
+        };
+        for (let i = 0; i < 10000; i++) {
+          HumanWeb.httpCache[`https://dummy-url${i}.test/`] = {
+            status: 301,
+            location: `https://other-dummy-url${i}.test/`,
+            time: i,
+          };
+        }
+
+        let redirects = [];
+        redirects = HumanWeb.getRedirects('https://example.test/redirected', redirects);
+        expect(redirects).to.deep.equals(['https://example.test/']);
+      });
+
+      it('should handle redirect cycles', function () {
+        HumanWeb.httpCache = {
+          'https://foo.test/': {
+            status: 301,
+            location: 'https://bar.test/',
+            time: 1,
+          },
+          'https://bar.test/': {
+            status: 301,
+            location: 'https://foo.test/',
+            time: 2,
+          }
+        };
+
+        // set it high enough that it would hang if it does not detect the cycle
+        const maxLength = 10000000;
+
+        let redirects1 = [];
+        redirects1 = HumanWeb.getRedirects('https://foo.test/', redirects1, maxLength);
+        expect(redirects1).to.deep.equals(['https://foo.test/', 'https://bar.test/']);
+
+        let redirects2 = [];
+        redirects2 = HumanWeb.getRedirects('https://bar.test/', redirects2, maxLength);
+        expect(redirects2).to.deep.equals(['https://bar.test/', 'https://foo.test/']);
       });
 
       it('rejects if HumanWeb is not initialized', function () {
