@@ -1,7 +1,4 @@
 /* global FileUtils */
-/* global Cu */
-/* global PlacesUtils */
-/* global _log */
 /* eslint no-restricted-syntax: 'off' */
 /* eslint func-names: 'off' */
 
@@ -214,59 +211,9 @@ export default class {
     statement.finalize();
   }
 
-  historyTimeFrame(callback) {
-    // TODO:
-    Cu.import('resource://gre/modules/PlacesUtils.jsm');
-    let min;
-    let max;
-    const res = [];
-    const st = PlacesUtils.history.QueryInterface(Ci.nsPIPlacesDatabase)
-      .DBConnection.createStatement('SELECT min(last_visit_date) as min_date, max(last_visit_date) as max_date FROM moz_places');
-
-    st.executeAsync({
-      handleResult(aResultSet) {
-        for (let row = aResultSet.getNextRow(); row; row = aResultSet.getNextRow()) {
-          res.push({
-            minDate: row.getResultByName('min_date'),
-            maxDate: row.getResultByName('max_date')
-          });
-        }
-      },
-      handleError(aError) {
-        _log(`SQL error: ${aError.message}`);
-        callback(true);
-      },
-      handleCompletion(aReason) {
-        if (aReason !== Components.interfaces.mozIStorageStatementCallback.REASON_FINISHED) {
-          _log('SQL canceled or aborted');
-          callback(null);
-        } else {
-          try {
-            min = parseInt(res[0].minDate / 1000, 10);
-            max = parseInt(res[0].maxDate / 1000, 10);
-          } catch (ex) {
-            // empty
-          }
-          callback(min, max);
-        }
-      }
-    });
-  }
-
   deleteVisit(url) {
     this.SQL('delete from usafe where url = :url', null, null, {
       url: this.escapeSQL(url)
-    });
-  }
-
-  deleteTimeFrame() {
-    this.humanWeb.historyTimeFrame(function (min, max) {
-      this.SQL('delete from usafe where last_visit < :min', null, null, {
-        min
-      });
-      this.SQL('delete from usafe where last_visit > :max', null, null, {
-        max
-      });
     });
   }
 

@@ -12,3 +12,11 @@ export function formatError(e, original = true) {
     (e && e.originalError && formatError(e.originalError, false)) : undefined;
   return { name, msg, stack, originalError };
 }
+
+export async function reflectPromise(promise) {
+  try {
+    return { value: await promise };
+  } catch (error) {
+    return { isError: true, error };
+  }
+}

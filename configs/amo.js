@@ -86,7 +86,8 @@ module.exports = {
     'anolysis-cc',
     'market-analysis',
     'abtests',
-    'search'
+    'search',
+    'hpnv2'
   ],
   'subprojects': subprojects([
     '@cliqz-oss/dexie',

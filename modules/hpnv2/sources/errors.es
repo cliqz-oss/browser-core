@@ -1,33 +1,29 @@
-// Extending native classes (Error) does not work well in Babel...
-class HpnV2Error {
+// https://stackoverflow.com/questions/31089801/extending-error-in-javascript-with-es6-syntax-babel
+
+class ExtendableError extends Error {
   constructor(message) {
-    this.name = 'HpnV2Error';
-    this.message = message;
-    this.stack = (new Error()).stack;
+    super(message);
+    this.name = this.constructor.name;
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, this.constructor);
+    } else {
+      this.stack = (new Error(message)).stack;
+    }
   }
 }
 
-export class MsgQuotaError extends HpnV2Error {}
-export class NotReadyError extends HpnV2Error {}
-export class InvalidMsgError extends HpnV2Error {}
-export class NoCredentialsError extends HpnV2Error {}
-export class BadCredentialsError extends HpnV2Error {}
-export class SignMsgError extends HpnV2Error {}
-export class TooBigMsgError extends HpnV2Error {}
-export class TransportError extends HpnV2Error {}
-export class MsgTimeoutError extends HpnV2Error {}
-export class OldVersionError extends HpnV2Error {}
-export class WrongClockError extends HpnV2Error {}
-
-class WrapError extends HpnV2Error {
-  constructor(e) {
-    super();
-    this.originalError = e;
-  }
-}
-
-export class InitUserPKError extends WrapError {}
-export class FetchConfigError extends WrapError {}
-export class JoinGroupsError extends WrapError {}
-export class LoadCredentialsError extends WrapError {}
-export class InitSignerError extends WrapError {}
+export class MsgQuotaError extends ExtendableError {}
+export class NotReadyError extends ExtendableError {}
+export class InvalidMsgError extends ExtendableError {}
+export class NoCredentialsError extends ExtendableError {}
+export class BadCredentialsError extends ExtendableError {}
+export class SignMsgError extends ExtendableError {}
+export class TooBigMsgError extends ExtendableError {}
+export class TransportError extends ExtendableError {}
+export class MsgTimeoutError extends ExtendableError {}
+export class OldVersionError extends ExtendableError {}
+export class WrongClockError extends ExtendableError {}
+export class FetchConfigError extends ExtendableError {}
+export class JoinGroupsError extends ExtendableError {}
+export class InitSignerError extends ExtendableError {}
+export class ServerError extends ExtendableError {}

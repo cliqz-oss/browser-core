@@ -1,12 +1,12 @@
 import config from '../core/config';
-import { fetch, Headers } from '../platform/fetch';
+import { fetch, Headers, Response } from '../platform/fetch';
 import random from '../core/crypto/random';
 import logger from './logger';
-import { TransportError, WrongClockError } from './errors';
+import { TransportError, WrongClockError, ServerError } from './errors';
 
 async function myfetch(request, options) {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new TransportError()), 5000);
+    const timer = setTimeout(() => reject(new TransportError('timeout')), 5000);
     fetch(request, options)
       .then((x) => {
         clearTimeout(timer);
@@ -73,7 +73,7 @@ export default class Endpoints {
         throw new WrongClockError();
       }
       if (!r.ok) {
-        throw new Error(r.statusText);
+        throw new ServerError(r.statusText);
       }
       return r;
     });
@@ -104,9 +104,22 @@ export default class Endpoints {
     }, 500 + Math.floor(random() * 1500)); // TODO: improve?
   }
 
-  send(msg) {
+  async send(msg, instant = false) {
+    if (instant) {
+      try {
+        const response = await this._fetch(Endpoints.post(this.urls.ENDPOINT_HPNV2_COLLECTOR, msg));
+        const { status, body } = await response.json();
+        return new Response(body, { status });
+      } catch (e) {
+        if ((e instanceof ServerError) || (e instanceof WrongClockError)) {
+          throw e;
+        }
+        throw new TransportError(e.message);
+      }
+    }
     this.messages.push([msg, 0]);
     this._scheduleSend();
+    return new Response();
   }
 
   async join({ ts, joinMsg, pk, sig, hpnv2 }) {

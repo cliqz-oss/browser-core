@@ -71,26 +71,6 @@ const CliqzHistoryManager = {
         }
       });
   },
-  // Extract earliest and latest entry of Firefox history
-  historyTimeFrame(callback) {
-    let min;
-    let max;
-    this.PlacesInterestsStorage._execute(
-      'SELECT min(last_visit_date) as min_date, max(last_visit_date) as max_date FROM moz_places',
-      ['min_date', 'max_date'],
-      (result) => {
-        try {
-          min = parseInt(result.min_date / 1000, 10);
-          max = parseInt(result.max_date / 1000, 10);
-        } catch (ex) {
-          // empty
-        }
-      }
-    )
-      .then(() => {
-        callback(min, max);
-      });
-  },
   // moz_inputhistory records queries-to-URL mappings to adapt history
   // results to a user's query behavior; moz_inputhistory would be automatically
   // updated by Firefox's Places system if the dropdown was not overidden--
@@ -195,9 +175,10 @@ const CliqzHistoryManager = {
     return false;
   },
   PlacesInterestsStorage: {
-    _execute: function pisExecute(sql, columns, onRow, parameters) {
-      const conn = PlacesUtils.history.QueryInterface(Ci.nsPIPlacesDatabase).DBConnection;
-      const statement = conn.createAsyncStatement(sql);
+    _execute: async function pisExecute(sql, columns, onRow, parameters) {
+      const conn = await new Promise(resolve => PlacesUtils.withConnectionWrapper('CLIQZ', resolve));
+      const connection = conn._connectionData._dbConn;
+      const statement = connection.createAsyncStatement(sql);
       const deferredResult = new Defer();
       if (parameters) {
         Object.keys(parameters).forEach((key) => {

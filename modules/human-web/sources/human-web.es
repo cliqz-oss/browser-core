@@ -551,10 +551,10 @@ const CliqzHumanWeb = {
     onVisitRemoved({ urls, allHistory }) {
       if (allHistory) {
         CliqzHumanWeb.db.clearHistory();
-      } else if (urls.length === 1) {
-        CliqzHumanWeb.db.deleteVisit(urls[0]);
-      } else if (urls.length > 1) {
-        CliqzHumanWeb.db.deleteTimeFrame();
+      } else {
+        for (const url of urls) {
+          CliqzHumanWeb.db.deleteVisit(urls);
+        }
       }
     },
     linkCache: {},

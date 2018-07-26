@@ -89,9 +89,7 @@ export default class {
     });
   }
 
-  historyTimeFrame() {}
   deleteVisit() {}
-  deleteTimeFrame() {}
   clearHistory() {}
 
   // Need to improve this.

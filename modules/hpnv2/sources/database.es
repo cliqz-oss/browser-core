@@ -3,7 +3,6 @@ import crypto from '../platform/crypto';
 import md5 from '../core/helpers/md5';
 import { fromHex, toHex } from '../core/encoding';
 import { randomInt } from '../core/crypto/random';
-import getDefaultSourcemap from './default-sourcemap';
 
 // TODO: should make this more generic (just key-value), and separate custom logic
 // (consumeFreshCounter...)
@@ -12,7 +11,7 @@ export default class Database {
     this.isInit = false;
     this.groupPubKeys = {};
     this.userPK = null;
-    this.sourceMap = getDefaultSourcemap().actions;
+    this.sourceMap = {};
     this.lastConfigTime = 0;
     this.tags = new Map();
   }
@@ -30,13 +29,14 @@ export default class Database {
     return this.groupPubKeys[date];
   }
 
-  async setGroupPubKey(date, { groupPubKey, credentials, gsk, joinmsg }) {
+  async setGroupPubKey(date, { groupPubKey, credentials, gsk, joinmsg, banned }) {
     this.groupPubKeys[date] = {
       groupPubKey,
       credentials,
       date,
       gsk,
       joinmsg,
+      banned,
     };
     return this.db ? this.db.meta.put({ key: 'groupPubKeys', value: this.groupPubKeys }) : Promise.resolve();
   }

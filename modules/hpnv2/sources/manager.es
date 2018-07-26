@@ -13,7 +13,7 @@ import { digest } from './digest';
 import { MsgQuotaError, NotReadyError, InvalidMsgError, NoCredentialsError, BadCredentialsError,
   SignMsgError, TooBigMsgError, FetchConfigError,
   JoinGroupsError, InitSignerError, OldVersionError, WrongClockError } from './errors';
-import { formatDate } from './utils';
+import { formatDate, reflectPromise } from './utils';
 import logger from './logger';
 import MessageQueue from '../core/message-queue';
 import { decompress } from '../core/gzip';
@@ -24,16 +24,6 @@ const LOAD_CONFIG_SUCCESS_INTERVAL = 60 * 60 * 1000; // 1 hour
 const LOAD_CONFIG_FAILURE_INTERVAL = 10 * 1000; // 10 seconds
 
 export default class Manager {
-  static formatError(e) {
-    const res = {};
-    if (e.originalError) {
-      res.originalError = e.originalError.constructor.name;
-    }
-    res.message = e.message;
-    res.error = e.constructor.name;
-    return res;
-  }
-
   static get VERSION() {
     return 1;
   }
@@ -72,7 +62,7 @@ export default class Manager {
       await this.initSigner();
     } catch (e) {
       // This should never happen
-      throw new InitSignerError(e);
+      throw new InitSignerError(e.message);
     }
     try {
       await this.db.init();
@@ -95,7 +85,7 @@ export default class Manager {
       })
       .catch((e) => {
         if (!this.unloaded) {
-          this.logDebug('Config could not be loaded successfully!', Manager.formatError(e));
+          this.logDebug('Config could not be loaded successfully!', e);
           this.configFailures += 1;
           return this.configFailures * LOAD_CONFIG_FAILURE_INTERVAL;
         }
@@ -220,13 +210,14 @@ export default class Manager {
     if (smaller.length <= 0) {
       throw new Error('No valid group public key is available');
     }
-    const validDate = smaller[smaller.length - 1];
-    // TODO: is joining all days too aggresive?
-    return Promise.all(
-      sortedDates.filter(x => x >= validDate).map(
-        x => this.joinGroup(x)
-      )
-    );
+
+    // Make sure join promises are resolved via reflectPromise
+    const joinDates = sortedDates.filter(x => x >= smaller[smaller.length - 1]);
+    const results = await Promise.all(joinDates.map(x => reflectPromise(this.joinGroup(x))));
+    const error = results.find(({ isError }) => isError);
+    if (error) {
+      throw error.error;
+    }
   }
 
   // This loads sourceMap and group public keys from the server, and joins groups if needed.
@@ -243,7 +234,7 @@ export default class Manager {
       try {
         await fn();
       } catch (e) {
-        throw new ErrorClass(e);
+        throw new ErrorClass(e.message);
       }
     }
 
@@ -371,19 +362,23 @@ export default class Manager {
     return this.groupPubKeys[date];
   }
 
-  async send(_msg) {
-    try {
-      if (!_msg) {
-        throw new Error('cannot send empty message');
-      }
-      const msg = JSON.parse(JSON.stringify(_msg));
-      return await this.msgQueue.push(msg);
-    } catch (e) {
-      if (!(e instanceof MsgQuotaError)) {
-        this.logDebug('Sending msg error:', e.constructor.name, _msg, e);
-      }
-      throw e;
-    }
+  // Possible Errors (all in hpnv2/errors)
+  //
+  //   MsgQuotaError: Sending this message would not respect rate-limiting rules
+  //   TooBigMsgError: Message (after compressing) is bigger than 16KB
+  //   InvalidMsgError: Message is not an object, does not have payload, or has invalid action
+  //   OldVersionError: Client version is not supported by the server anymore
+  //   NotReadyError: Module is not initialized. Can happen because of network problems or
+  //     persistent system clock drift.
+  //   NoCredentialsError: There are no available credentials for today. Should happen very rarely,
+  //     for example if a system wakes up from suspend mode.
+  //   WrongClockError: Either system clock changed or it differs from server time.
+  //   TransportError: A network error when sending the message.
+  //   ServerError: Unexpected server error.
+  //
+  //   (Should never happen, but theoretically possible): SignMsgError, BadCredentialsError
+  async send(msg) {
+    return this.msgQueue.push(msg);
   }
 
   // If noverify = true, just returns an empty signature
@@ -404,7 +399,7 @@ export default class Manager {
       if (skipQuotaCheck) {
         cnt = 0;
       } else {
-        throw new MsgQuotaError(e);
+        throw new MsgQuotaError(e.message);
       }
     }
 
@@ -419,7 +414,7 @@ export default class Manager {
     }
   }
 
-  _encodeMessage(message, sig, cnt, MSG_SIZE = 16384) {
+  _encodeMessage(message, sig, cnt, MSG_SIZE = 16 * 1024) {
     // Formats (all should have same size, 16KB, at least for now):
     //   UNCOMPRESSED:
     //     0x00|
@@ -502,7 +497,7 @@ export default class Manager {
       throw (new InvalidMsgError('msg must not be null or undefined'));
     }
 
-    const { limit = 1, period = 24, keys = [], noverify = false } = config;
+    const { limit = 1, period = 24, keys = [], noverify = false, instant = false } = config;
     const dig = digest(keys, payload);
     const hours = period * Math.floor(this.hours() / period);
 
@@ -523,14 +518,14 @@ export default class Manager {
       hours
     ];
 
-    const mb = toUTF8(JSON.stringify(msg));
+    const utf8Msg = toUTF8(JSON.stringify(msg));
 
     if (!noverify) {
       await this.loadCredentials();
     }
 
     const { sig, cnt } = await this._signMessage(
-      mb,
+      utf8Msg,
       pretag,
       hours,
       period,
@@ -539,8 +534,7 @@ export default class Manager {
       noverify,
     );
 
-    // For now, not returning response.
-    this.endpoints.send(this._encodeMessage(mb, sig, cnt));
+    return this.endpoints.send(this._encodeMessage(utf8Msg, sig, cnt), instant);
   }
 
   get groupPubKeys() {

@@ -69,7 +69,7 @@ module.exports = {
     "proxyPeer": false,
     "proxyTrackers": false,
     "modules.cookie-monster.enabled": false,
-    "modules.hpnv2.enabled": false
+    "modules.hpnv2.enabled": true
   },
   "modules": [
     "core",

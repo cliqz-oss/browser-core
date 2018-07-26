@@ -1,6 +1,6 @@
 {
   "name": "browser-core",
-  "version": "1.28.4",
+  "version": "2.28.4",
   "description": "",
   "main": "build/index.js",
   "scripts": {
@@ -27,7 +27,7 @@
     "@cliqz/adblocker": "0.1.11",
     "BigInt": "5.5.3",
     "ajv": "6.5.0",
-    "anonymous-credentials": "https://github.com/cliqz-oss/anonymous-credentials/releases/download/0.1.0/anonymous-credentials-0.1.0.tgz",
+    "anonymous-credentials": "https://github.com/cliqz-oss/anonymous-credentials/releases/download/0.1.1/anonymous-credentials-0.1.1.tgz",
     "babel-polyfill": "6.26.0",
     "classnames": "2.2.5",
     "cliqz-history": "https://github.com/cliqz-oss/cliqz-history/releases/download/1.0.7/cliqz-history-1.0.7.tgz",
