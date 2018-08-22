@@ -1,5 +1,6 @@
 import logger from './logger';
 import { parseURL } from './network';
+import config from '../core/config';
 
 export function parseQueryString(query) {
   if (query.length === 0) {
@@ -161,7 +162,7 @@ export class ContentExtractor {
       extractRules: patternConfig.scrape,
       payloads: patternConfig.payloads,
       idMappings: patternConfig.idMapping,
-      rArray: patternConfig.urlPatterns.map(x => new RegExp(x)),
+      rArray: config.settings.ALLOWED_SEARCH_DOMAINS[ruleset].map(x => new RegExp(x)),
       queryTemplate: patternConfig.queryTemplate || {},
     };
     this._patternsLastUpdated = new Date();

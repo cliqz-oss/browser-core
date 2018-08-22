@@ -30,6 +30,9 @@ function send(payload) {
 
 
 function getWindowId(window) {
+  if (window.windowUtils) {
+    return window.windowUtils.outerWindowID;
+  }
   return window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
     .getInterface(Components.interfaces.nsIDOMWindowUtils).outerWindowID;
 }

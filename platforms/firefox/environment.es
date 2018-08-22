@@ -8,6 +8,7 @@ import config from '../core/config';
 import { promiseHttpHandler } from '../core/http';
 import { Components } from '../platform/globals';
 import telemetry from '../core/services/telemetry';
+import { Window } from '../core/browser';
 
 try {
   Components.utils.import('resource://gre/modules/XPCOMUtils.jsm');
@@ -123,7 +124,6 @@ const CLIQZEnvironment = {
       win.gBrowser.selectedBrowser.loadContext.usePrivateBrowsing
     );
   },
-
   getWindow() {
     const wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
       .getService(Components.interfaces.nsIWindowMediator);
@@ -131,9 +131,7 @@ const CLIQZEnvironment = {
   },
   getWindowID(win) {
     win = win || CLIQZEnvironment.getWindow();
-    const util = win.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-      .getInterface(Components.interfaces.nsIDOMWindowUtils);
-    return util.outerWindowID;
+    return (new Window(win)).id;
   },
   openTabInWindow(win, url, relatedToCurrent = false) {
     win.gBrowser.selectedTab = win.gBrowser.addTab(url, { relatedToCurrent });

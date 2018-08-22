@@ -53,6 +53,10 @@ module.exports = {
     "antitrackingPlaceholder": "cliqz.com/tracking",
     "antitrackingHeader": "CLIQZ-AntiTracking",
     "WORLDCUP_URL": "https://sport.cliqz.com/",
+    "ALLOWED_SEARCH_DOMAINS": {
+      'normal': ["\\.google\\..*?[#?&;]q=[^$&]+",".search.yahoo\\..*?[#?&;]p=[^$&]+",".linkedin.*?\\/pub\\/dir+","\\.bing\\..*?[#?&;]q=[^$&]+","\\.amazon\\.[^/]+\\/s(?:/?[?]|/ref=).*[?&]field-keywords=[^$&]+"],
+      'strict': ["\\.google\\..*?[#?&;]q=[^$&]+",".search.yahoo\\..*?[#?&;][pq]=[^$&]+",".linkedin.*?\\/pub\\/dir+","\\.bing\\..*?[#?&;]q=[^$&]+","\\.amazon\\.[^/]+\\/s/[?]?(?:ref=.*[?&])?field-keywords=[^$&]+"]
+    }
   }),
   'default_prefs' : {
     'modules.history-analyzer.enabled': false,

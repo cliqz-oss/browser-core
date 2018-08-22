@@ -5,6 +5,7 @@ import store from '../core/content/store';
 import config from '../core/config';
 import { CHROME_MSG_SOURCE } from '../core/content/helpers';
 import { getMessage } from '../core/i18n';
+import console from '../platform/console';
 
 const send = sendAsyncMessage.bind(null, 'cliqz');
 const CONTENT_SCRIPT_URL = 'chrome://cliqz/content/core/content-script.bundle.js';
@@ -32,10 +33,16 @@ const getContentScript = () => {
   });
 };
 
-const getWindowId = window => window
-  .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-  .getInterface(Components.interfaces.nsIDOMWindowUtils)
-  .outerWindowID;
+const getWindowId = window => {
+  // Firefox >= 63
+  if (window.windowUtils) {
+    return window.windowUtils.outerWindowID;
+  }
+
+  const util = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+    .getInterface(Components.interfaces.nsIDOMWindowUtils);
+  return util.outerWindowID;
+}
 
 /**
  * Run function for all existing documents.

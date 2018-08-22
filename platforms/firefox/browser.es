@@ -36,6 +36,10 @@ export class Window {
   }
 
   get id() {
+    // Firefox >= 63
+    if (this.window.windowUtils) {
+      return this.window.windowUtils.outerWindowID;
+    }
     const util = this.window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
       .getInterface(Components.interfaces.nsIDOMWindowUtils);
     return util.outerWindowID;
