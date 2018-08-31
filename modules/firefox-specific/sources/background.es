@@ -6,9 +6,9 @@ import utils from '../core/utils';
 import { Services } from '../platform/globals';
 import HistoryManager from '../core/history-manager';
 import ObservableProxy from '../core/helpers/observable-proxy';
-import { getDefaultEngine } from '../core/search-engines';
 import HistoryService from '../core/history-service';
 import telemetry from '../core/services/telemetry';
+import { getDaysSinceInstall } from '../core/demographics';
 
 /**
   @namespace firefox-specific
@@ -114,7 +114,7 @@ export default background({
     }
     /* eslint-enable */
 
-    HistoryManager.getStats((history) => {
+    HistoryManager.getStats(async (history) => {
       const navigator = window.navigator;
       const info = {
         type: 'environment',
@@ -131,17 +131,11 @@ export default background({
         distribution: prefs.get('distribution', ''),
         version_host: prefs.get('gecko.mstone', '', ''),
         version_dist: prefs.get('distribution.version', '', ''),
-        install_date: prefs.get('install_date'),
+        install_date: await getDaysSinceInstall(),
         health_report_enabled: prefs.get('uploadEnabled', true, 'datareporting.healthreport.')
       };
 
       utils.telemetry(info);
-
-      // for SERP ABC test, to be removed after the test has finished
-      const group = prefs.get('serp_test', null);
-      const isCliqzDefaultEngine = getDefaultEngine().name === 'Cliqz';
-      utils.telemetry({ group, isCliqzDefaultEngine },
-        false, 'metrics.experiments.serp.state');
     });
   },
 });

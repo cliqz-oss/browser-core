@@ -19,5 +19,5 @@ export function getChannel() {
 }
 
 export function getCountry() {
-  return getPref('config_location', '');
+  return getPref('config_location.granular', '');
 }

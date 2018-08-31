@@ -6,7 +6,7 @@ import {
   enableChangeEvents,
   disableChangeEvents,
   init,
-  getAllCliqzPrefs
+  getAllCliqzPrefs,
 } from '../platform/prefs';
 
 export default {

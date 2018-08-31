@@ -23,7 +23,7 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
     history: Object.create(null),
     historyView: Object.create(null),
     cliqz: Object.create(null),
-    suggestions: Object.create(null),
+    querySuggestions: Object.create(null),
   };
 
   const searchParams = [query, config, params];
@@ -64,7 +64,7 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
   );
 
   // add search suggestions if no other results
-  results.suggestions.source$ = searchOnEmpty(
+  results.querySuggestions.source$ = searchOnEmpty(
     providers.querySuggestions,
     results.cliqz.updated$,
     ...searchParams
@@ -97,7 +97,7 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
   results.history.latest$ = results.history.annotated$;
   results.historyView.latest$ = results.historyView.source$;
   results.cliqz.latest$ = results.cliqz.deduplicated$;
-  results.suggestions.latest$ = results.suggestions.source$;
+  results.querySuggestions.latest$ = results.querySuggestions.source$;
 
   // sorting providers happens in `smooth` operator
   const latestResults = Object.keys(config.providers)
@@ -126,7 +126,13 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
     // even if 'instant' was waiting for 'history' (supposingly due to
     // internal wiring of RxJS)
     .debounceTime(1)
-    .map(responses => responses.map(response => ({ ...response, params })));
+    .map(responses => ({
+      query: {
+        query,
+        ...params,
+      },
+      responses: responses.map(response => ({ ...response, params })),
+    }));
   return mixed$;
 };
 

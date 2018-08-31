@@ -10,14 +10,14 @@ import { parse } from '../../core/tlds';
  * @param  {[type]} url [description]
  * @return {Object}     will be the object needed to parse later
  */
-export default function tokenizeUrl(theUrl) {
+export default function tokenizeUrl(theUrl, cpt = 2) {
   if (theUrl) {
     const { hostname, domain } = parse(theUrl);
     return mkRequest({
       url: theUrl,
       domain,
       hostname,
-      cpt: 2,
+      cpt,
       sourceHostname: hostname,
       sourceDomain: domain,
     });

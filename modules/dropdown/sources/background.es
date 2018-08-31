@@ -35,7 +35,7 @@ export default background({
   },
 
   get inOffersAB() {
-    return prefs.get('offers2UserEnabled', true) && prefs.get('offersDropdownSwitch', false);
+    return prefs.get('offers2UserEnabled', true);
   },
 
   events: {
@@ -54,7 +54,7 @@ export default background({
       this.offersReporter.reportClick(this.currentResults, rawResult);
     },
 
-    'core:urlbar_blur': function onBlur() {
+    'search:session-end': function onBlur() {
       if (
         !this.inOffersAB ||
         !this.currentResults
@@ -65,7 +65,7 @@ export default background({
       this.offersReporter.reportShows(this.currentResults);
     },
 
-    'ui:results': function onResults({ results }) {
+    'search:results': function onResults({ results }) {
       if (!this.inOffersAB) {
         return;
       }

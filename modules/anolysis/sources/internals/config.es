@@ -4,38 +4,53 @@ import prefs from '../../core/prefs';
 function shouldUseStaging() {
   return (
     prefs.get('developer', false) === true ||
-    config.settings.channel === '99'
+    config.settings.channel === '99' || // Jenkins
+    config.settings.channel === 'MR99' || // Jenkins
+    config.settings.channel === 'MR02' || // Debug
+    config.settings.channel === 'MA99' || // Jenkins
+    config.settings.channel === 'MA02' || // Debug
+    config.settings.channel === 'MI99' || // Jenkins
+    config.settings.channel === 'MI02' // Debug
   );
 }
 
-const DEFAULT_CONFIG = {
-  // TODO - temporary, send session with signals
-  session: prefs.get('session'),
+function getPrefWithDefault(pref, defaultValue) {
+  return {
+    [pref]: prefs.get(pref, defaultValue),
+  };
+}
 
-  // Backend communication
-  'backend.url': (shouldUseStaging()
-    ? config.settings.ANOLYSIS_STAGING_BACKEND_URL
-    : config.settings.ANOLYSIS_BACKEND_URL
-  ),
+function getDefaultConfig() {
+  return {
+    // TODO - temporary, send session with signals
+    ...getPrefWithDefault('session'),
 
-  // Signal queue
-  'signalQueue.batchSize': 5,
-  'signalQueue.sendInterval': 15 * 1000,
-  'signalQueue.maxAttempts': 5,
+    // Backend communication
+    'backend.url': (shouldUseStaging()
+      ? config.settings.ANOLYSIS_STAGING_BACKEND_URL
+      : config.settings.ANOLYSIS_BACKEND_URL
+    ),
 
-  // Demographics
-  demographics: null,
+    // Signal queue
+    ...getPrefWithDefault('signalQueue.batchSize', 5),
+    ...getPrefWithDefault('signalQueue.sendInterval', 15 * 1000),
+    ...getPrefWithDefault('signalQueue.maxAttempts', 5),
 
-  // Storage implementation
-  Storage: null,
-};
+    // Demographics
+    demographics: null,
+
+    // Storage implementation
+    Storage: null,
+  };
+}
 
 export default class Config {
   constructor(options = {}) {
+    const defaultConfig = getDefaultConfig();
     // Create default config
     this.options = new Map();
-    Object.keys(DEFAULT_CONFIG).forEach((name) => {
-      this.options.set(name, DEFAULT_CONFIG[name]);
+    Object.keys(defaultConfig).forEach((name) => {
+      this.options.set(name, defaultConfig[name]);
     });
 
     // Optionally override with `options`

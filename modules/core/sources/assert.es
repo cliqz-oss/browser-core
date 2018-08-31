@@ -1,11 +1,15 @@
 import prefs from './prefs';
 
-const assert = prefs.get('developer', false) ?
-  (bool, msg) => {
-    if (!bool) {
-      throw new Error(`ASSERT ${msg}`);
-    }
+// Get 'developer' pref as soon as possible and initially assume it's not set.
+let developer = false;
+prefs.init().then(() => {
+  developer = prefs.get('developer', false);
+});
+
+const assert = (bool, msg) => {
+  if (developer === true && !bool) {
+    throw new Error(`ASSERT ${msg}`);
   }
-  : () => {};
+};
 
 export default assert;

@@ -1,7 +1,7 @@
 import {
   DAY_FORMAT,
   WEEK_FORMAT,
-  MONTH_FORMAT
+  MONTH_FORMAT,
 } from '../internals/synchronized-date';
 
 
@@ -124,3 +124,5 @@ export default [
     schema: retentionSchema,
   },
 ];
+
+export { generateRetention };

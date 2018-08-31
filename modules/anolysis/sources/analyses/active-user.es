@@ -1,6 +1,6 @@
 import {
   WEEK_FORMAT,
-  MONTH_FORMAT
+  MONTH_FORMAT,
 } from '../internals/synchronized-date';
 
 

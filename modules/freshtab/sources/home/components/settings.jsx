@@ -88,7 +88,7 @@ export default class Settings extends React.Component {
               <ul className="background-selection-list">
                 { this.props.wallpapers && this.props.wallpapers.map((background, index) =>
                   (
-                    <li>
+                    <li key={`${background.alias}`}>
                       <BackgroundImage
                         onBackgroundImageChanged={this.onBackgroundImageChanged}
                         index={index}
@@ -233,6 +233,20 @@ export default class Settings extends React.Component {
                         onChange={this.onNewsSelectionChanged}
                       />
                       {t('app_settings_news_language_gb')}
+                    </label>
+                  </div>
+                  <div className="radio">
+                    <label htmlFor="news-radio-selector-8">
+                      <input
+                        type="radio"
+                        tabIndex="-1"
+                        name="news"
+                        id="news-radio-selector-8"
+                        value="es"
+                        checked={this.state.componentsState.news.preferedCountry === 'es'}
+                        onChange={this.onNewsSelectionChanged}
+                      />
+                      {t('app_settings_news_language_es')}
                     </label>
                   </div>
                 </form>

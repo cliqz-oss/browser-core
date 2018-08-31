@@ -1,12 +1,15 @@
+/* eslint no-param-reassign: 'off' */
+
 import config from './config';
 import events, { subscribe } from './events';
 import prefs from './prefs';
 import Module from './app/module';
 import { setApp } from './kord';
 import console, { enable as enableConsole, disable as disableConsole } from './console';
+import Logger from './logger';
 import utils from './utils';
 import { Window, mapWindows, forEachWindow, addWindowObserver,
-  removeWindowObserver, reportError, mustLoadWindow, setInstallDatePref,
+  removeWindowObserver, reportError, mustLoadWindow,
   setOurOwnPrefs, resetOriginalPrefs, enableChangeEvents,
   disableChangeEvents, waitWindowReady, addMigrationObserver, removeMigrationObserver,
   addSessionRestoreObserver, removeSessionRestoreObserver } from '../platform/browser';
@@ -20,8 +23,10 @@ export function shouldEnableModule(name) {
 function setupConsole() {
   if (prefs.get('showConsoleLogs')) {
     enableConsole();
+    Logger.enable();
   } else {
     disableConsole();
+    Logger.disable();
   }
 }
 
@@ -39,6 +44,8 @@ export default class App {
    * @param {object} config
    */
   constructor({ version, debug } = {}) {
+    this.isFullyLoaded = false;
+
     /**
      * @property {string} version
      */
@@ -183,7 +190,6 @@ export default class App {
   start() {
     this.isRunning = true;
     addMigrationObserver(this.onMigrationEnded);
-
     return this.setupPrefs().then(() =>
       this.load().then(() => {
         enableChangeEvents();
@@ -295,8 +301,6 @@ export default class App {
   setupPrefs() {
     const initPrefs = prefs.init || Promise.resolve.bind(Promise);
     return initPrefs().then(() => {
-      setInstallDatePref(utils.getServerDay());
-
       if (config.environment === 'development' || this.debug) {
         prefs.set('developer', true);
       }
@@ -563,5 +567,17 @@ export default class App {
 
   ready() {
     return this._startedDefer.promise;
+  }
+
+  status() {
+    const appModules = this.modules;
+    const modules = config.modules.reduce((hash, moduleName) => {
+      const module = appModules[moduleName];
+      hash[moduleName] = module.status();
+      return hash;
+    }, Object.create(null));
+    return {
+      modules,
+    };
   }
 }

@@ -66,9 +66,13 @@ export default class OfferFeedback extends React.Component {
     });
   }
 
+  undoDeleteOffer = () => {
+    this.props.toggleComponents();
+  }
+
   render() {
     return (
-      <div className="offer-middle-feedback offer-container">
+      <div className="offer-middle-feedback offer-container offer-unit">
         <button
           className="close"
           onClick={this.handleCloseClick}
@@ -125,6 +129,8 @@ export default class OfferFeedback extends React.Component {
               <div className="col3">
                 <div className="notification">
                   {tt('offers_offer_removed')}
+                  <br />
+                  <button onClick={this.undoDeleteOffer}>UNDO</button>
                 </div>
                 <button
                   className="cta-btn"

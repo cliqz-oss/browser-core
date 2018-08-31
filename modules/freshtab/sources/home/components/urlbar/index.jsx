@@ -51,7 +51,7 @@ class Urlbar extends React.Component {
   }
 
   handlePaste(ev) {
-    ev.clipboardData.items[0].getAsString(text => this._queryCliqz(text));
+    this._queryCliqz(ev.clipboardData.getData('text'));
   }
 
   handleKeyDown(ev) {
@@ -105,9 +105,11 @@ class Urlbar extends React.Component {
       >
         <input
           type="text"
+          spellCheck="false"
           ref={(input) => { this.textInput = input; }}
           placeholder={t('urlbar_placeholder')}
           onKeyDown={this.handleKeyDown}
+          onKeyPress={this.handleKeyPress}
           onInput={this.handleInput}
           onPaste={this.handlePaste}
           onBlur={this.handleBlur}

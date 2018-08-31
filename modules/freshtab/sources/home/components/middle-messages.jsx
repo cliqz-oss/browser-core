@@ -73,6 +73,7 @@ export default class MiddleMessages extends React.Component {
                       (<a
                         key={button.id}
                         href={button.link[this.props.locale]}
+                        rel="noreferrer noopener"
                         target="_blank"
                       >
                         <img

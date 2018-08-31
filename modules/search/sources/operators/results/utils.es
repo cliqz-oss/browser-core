@@ -9,8 +9,11 @@ export const getDuplicateLinksByUrl = (target, reference) => new Map(
   getDuplicateLinks(
     flattenLinks(target),
     flattenLinks(reference)
-  ).map(link => [link.meta.url, link])
+  ).filter(link => link.meta.url)
+    .map(link => [link.meta.url, link])
 );
 
-export const getResultOrder = results => results.map(result => result.kind);
+// TODO: verify that first response always exist (check `merge-results`)
+export const getResultOrder = ({ responses: [{ results = [] }] = [{}] } = {}) =>
+  results.map(result => result.kind);
 

@@ -3,6 +3,7 @@ import prefs from '../core/prefs';
 
 // Directly exporting this was breaking process-script bundle.
 const def = {
+  isBootstrap: true,
   isMobile: false,
   isFirefox: true,
   isChromium: false,
@@ -30,4 +31,8 @@ export const OS_VERSION = Services.sysinfo.getProperty('version');
 export function isCliqzAtLeastInVersion(minVersion) {
   const cliqzVersion = prefs.get('distribution.version', '', '');
   return versionChecker.compare(cliqzVersion, minVersion) >= 0;
+}
+
+export function getResourceUrl(path) {
+  return `resource://cliqz/${path}`;
 }

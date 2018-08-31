@@ -2,7 +2,7 @@ import {
   ReverseIndex,
   compactTokens,
   matchNetworkFilter,
-  tokenize
+  tokenize,
 } from '../../core/pattern-matching';
 
 

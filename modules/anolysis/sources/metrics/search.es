@@ -8,7 +8,7 @@ import {
   LIVE_TICKER_RESULT,
   MOVIE_INFO_RESULT,
   NEWS_RESULT,
-  SOCIAL_RESULT
+  SOCIAL_RESULT,
 } from './search/result-types';
 
 // adapted from https://github.com/dominiks-cliqz/event-log/blob/logutils/logutils/logutils/encode/result_sources.py

@@ -1,12 +1,12 @@
 import { Components, Services } from './globals';
 import { getDetailsFromUrl } from '../core/url';
+import Defer from '../core/helpers/defer';
 
 Components.utils.import('resource://gre/modules/Services.jsm');
 
-export function setSearchEngine(engine) {
-  Services.search.currentEngine = engine;
-}
-
+const SEARCH_ENGINE_TOPIC = 'browser-search-engine-modified';
+const readyDefer = new Defer();
+let initializing = false;
 const ENGINE_CODES = [
   'google images',
   'google maps',
@@ -20,41 +20,46 @@ const ENGINE_CODES = [
   'youtube',
   'ecosia'
 ];
-
 const getEngineCode = name => ENGINE_CODES.indexOf(name.toLowerCase()) + 1;
+let ENGINE_CACHE = null;
+
+export function setSearchEngine(engine) {
+  Services.search.currentEngine = engine;
+}
 
 export function getSearchEngines(blackListed = []) {
-  const SEARCH_ENGINES = {
-    defaultEngine: Services.search.defaultEngine,
-    engines: Services.search.getEngines(),
-  };
+  if (ENGINE_CACHE === null) {
+    const defaultEngine = Services.search.defaultEngine;
+    ENGINE_CACHE = Services.search.getEngines()
+      .filter(e => !e.hidden && e.iconURI != null)
+      .map(e => ({
+        name: e.name,
+        code: getEngineCode(e.name),
+        alias: e.alias,
+        default: e === defaultEngine,
+        icon: e.iconURI.spec,
+        base_url: e.searchForm,
+        urlDetails: getDetailsFromUrl(e.searchForm),
+        getSubmissionForQuery(q, type) {
+          // 'keyword' is used by one of the Mozilla probes
+          // to measure source for search actions
+          // https://dxr.mozilla.org/mozilla-central/rev/e4107773cffb1baefd5446666fce22c4d6eb0517/browser/locales/searchplugins/google.xml#15
+          const submission = e.getSubmission(q, type, 'keyword');
 
-  return SEARCH_ENGINES.engines
-    .filter(e => !e.hidden && e.iconURI != null && blackListed.indexOf(e.name) < 0)
-    .map(e => ({
-      name: e.name,
-      code: getEngineCode(e.name),
-      alias: e.alias,
-      default: e === SEARCH_ENGINES.defaultEngine,
-      icon: e.iconURI.spec,
-      base_url: e.searchForm,
-      urlDetails: getDetailsFromUrl(e.searchForm),
-      getSubmissionForQuery(q, type) {
-        // 'keyword' is used by one of the Mozilla probes
-        // to measure source for search actions
-        // https://dxr.mozilla.org/mozilla-central/rev/e4107773cffb1baefd5446666fce22c4d6eb0517/browser/locales/searchplugins/google.xml#15
-        const submission = e.getSubmission(q, type, 'keyword');
-
-        // some engines cannot create submissions for all types
-        // eg 'application/x-suggestions+json'
-        if (submission) {
-          return submission.uri.spec;
+          // some engines cannot create submissions for all types
+          // eg 'application/x-suggestions+json'
+          if (submission) {
+            return submission.uri.spec;
+          }
+          return null;
         }
-        return null;
-      }
-    })
-    );
+      }));
+  }
+
+  return ENGINE_CACHE.filter(e => !blackListed.includes(e.name));
 }
+
+export function loadSearchEngines() { return Promise.resolve(); }
 
 export function getDefaultSearchEngine() {
   const searchEngines = getSearchEngines();
@@ -92,13 +97,28 @@ export function revertToOriginalEngine() {
 }
 
 export function isSearchServiceReady() {
-  return Services.search.init ?
-    new Promise(resolve => Services.search.init(resolve)) :
-    Promise.resolve();
+  if (!initializing) {
+    initializing = true;
+    const observer = {
+      observe() {
+        ENGINE_CACHE = null;
+        getSearchEngines();
+      }
+    };
+
+    Services.obs.addObserver(observer, SEARCH_ENGINE_TOPIC, false);
+    isSearchServiceReady.unload = () => {
+      Services.obs.removeObserver(observer, SEARCH_ENGINE_TOPIC);
+    };
+
+    Services.search.init(readyDefer.resolve);
+  }
+
+  return readyDefer.promise;
 }
 
 export function addEngineWithDetails(engine) {
-  isSearchServiceReady().then(() => {
+  return isSearchServiceReady().then(() => {
     const existedEngine = Services.search.getEngineByName(engine.name);
     if (existedEngine) {
       // Update the engine alias in case it has been removed

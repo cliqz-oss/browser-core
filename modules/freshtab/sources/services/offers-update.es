@@ -18,9 +18,7 @@ export default class OffersUpdate {
   }
 
   get showOffers() {
-    const offersEnabled = (prefs.get('offers2FeatureEnabled', false) && prefs.get('offers2UserEnabled', true));
-    const cliqzTabOfferEnabled = prefs.get('cliqzTabOffersNotification', false);
-    return offersEnabled && cliqzTabOfferEnabled;
+    return prefs.get('offers2UserEnabled', true);
   }
 
   refresh() {
@@ -78,7 +76,6 @@ export default class OffersUpdate {
           titleColor = `#${logoDetails.brandTxtColor}`;
         }
         templateData.titleColor = titleColor;
-
         this.messageCenter.action(
           'showMessage',
           'MESSAGE_HANDLER_FRESHTAB_OFFERS',

@@ -3,17 +3,20 @@
 import { Components, Services } from '../platform/globals';
 import store from '../core/content/store';
 import config from '../core/config';
-import { CHROME_MSG_SOURCE } from '../core/content/helpers';
 import { getMessage } from '../core/i18n';
 import console from '../platform/console';
 
-const send = sendAsyncMessage.bind(null, 'cliqz');
+const CLIQZ = {};
+
+const send = sendAsyncMessage.bind(Services.cpmm, 'cliqz');
 const CONTENT_SCRIPT_URL = 'chrome://cliqz/content/core/content-script.bundle.js';
 const whitelistedPages = [
   'resource://cliqz',
   'chrome://cliqz',
   config.settings.NEW_TAB_URL
 ].concat(config.settings.frameScriptWhitelist || []);
+
+let pendingContentScripts = [];
 
 const getContentScript = () => {
   try {
@@ -33,7 +36,7 @@ const getContentScript = () => {
   });
 };
 
-const getWindowId = window => {
+const getWindowId = (window) => {
   // Firefox >= 63
   if (window.windowUtils) {
     return window.windowUtils.outerWindowID;
@@ -42,7 +45,7 @@ const getWindowId = window => {
   const util = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
     .getInterface(Components.interfaces.nsIDOMWindowUtils);
   return util.outerWindowID;
-}
+};
 
 /**
  * Run function for all existing documents.
@@ -114,6 +117,7 @@ const DocumentManager = {
     const currentUrl = window.location.href;
 
     const isChromePage = whitelistedPages.some(url => currentUrl.indexOf(url) === 0);
+    const isTestConfig = config.modules.indexOf('integration-tests') !== -1;
 
     // avoid internal pages like about:black about:newtab and non cliqz chrome:// or resource://
     if (!isChromePage && !['http://', 'https://'].some(prefix => currentUrl.indexOf(prefix) === 0)) {
@@ -126,28 +130,16 @@ const DocumentManager = {
     const listeners = new Set();
     let unsafeWindow = null;
 
-    const onMessage = (incomingMessage) => {
-      if (incomingMessage.windowId && (incomingMessage.windowId !== windowId)) {
+    const onMessage = ({ data: incomingMessage }) => {
+      const {
+        windowId: incomingMessageWindowId,
+      } = incomingMessage;
+
+      if (incomingMessageWindowId && (incomingMessageWindowId !== windowId)) {
         return;
       }
 
-      let message = incomingMessage.data;
-
-      if (isChromePage) {
-        // TODO: we should have uniform message shape
-        const payload = incomingMessage.data.payload;
-        if (payload && payload.response) {
-          message = payload.response;
-        } else if (payload) {
-          message = payload;
-        } else {
-          message = incomingMessage.data;
-        }
-      } else {
-        message.type = 'response';
-      }
-
-      message = Components.utils.cloneInto(message, window);
+      const message = Components.utils.cloneInto(incomingMessage, window);
 
       listeners.forEach((l) => {
         try {
@@ -170,6 +162,7 @@ const DocumentManager = {
     window.addEventListener('unload', onUnload);
 
     const sender = {
+      windowId,
       url: window.location.href,
       tab: {
         id: getWindowId(window.top),
@@ -182,10 +175,7 @@ const DocumentManager = {
         runtime: {
           sendMessage(message) {
             send({
-              source: CHROME_MSG_SOURCE,
-              origin: 'content',
-              windowId,
-              payload: message,
+              message,
               sender,
             });
           },
@@ -213,10 +203,8 @@ const DocumentManager = {
       runtime: {
         sendMessage(message) {
           send({
-            ...message,
-            windowId,
+            message,
             sender,
-            source: CHROME_MSG_SOURCE
           });
         },
         onMessage: {
@@ -228,15 +216,27 @@ const DocumentManager = {
           }
         },
       },
+      i18n: {
+        getMessage,
+      },
     };
 
-    if (isChromePage || !contentScript || !contentScript.hasReturnValue) {
+    if (!contentScript && !isChromePage) {
       Services.scriptloader.loadSubScript('chrome://cliqz/content/core/content-script.bundle.js', {
         window,
         chrome,
         windowId,
+        CLIQZ,
       });
-    } else {
+    } else if (isChromePage && isTestConfig) {
+      // TODO: config should be injected
+      Services.scriptloader.loadSubScript('chrome://cliqz/content/core/content-script.bundle.js', {
+        window,
+        chrome,
+        windowId,
+        CLIQZ,
+      });
+    } else if (!isChromePage) {
       // For Firefox 60+ we precompile content scripts in same way Firefox
       // webextensions does
       const contentPrincipal = window.document.nodePrincipal;
@@ -269,7 +269,18 @@ const DocumentManager = {
         cloneFunctions: true
       });
 
-      contentScript.executeInGlobal(sandbox);
+      const runContentScript = () => {
+        sandbox.CLIQZ = Components.utils.cloneInto(CLIQZ, sandbox, {
+          cloneFunctions: true,
+        });
+        contentScript.executeInGlobal(sandbox);
+      };
+
+      if (!CLIQZ.app) {
+        pendingContentScripts.push(runContentScript);
+      } else {
+        runContentScript();
+      }
     }
 
     this._windowsInfo.set(window, {
@@ -292,15 +303,15 @@ const processId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) =>
 });
 
 send({
-  payload: {
+  message: {
     module: 'core',
     action: 'notifyProcessInit',
     args: [
       processId
     ],
-    source: CHROME_MSG_SOURCE
   },
 });
+
 
 const dispatchMessage = (msg) => {
   if (msg.action === 'updateStore') {
@@ -308,6 +319,16 @@ const dispatchMessage = (msg) => {
       module: msg.args[0].module,
       data: msg.args[0].data,
     });
+  } else if (msg.action === 'updateGlobal') {
+    CLIQZ.app = msg.data.app;
+    pendingContentScripts.forEach((cb) => {
+      try {
+        cb();
+      } catch (e) {
+        console.error('failed running pending content script', e);
+      }
+    });
+    pendingContentScripts = [];
   }
 };
 

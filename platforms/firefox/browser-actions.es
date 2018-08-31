@@ -9,13 +9,20 @@ export function queryCliqz(query) {
   urlBar.mInputField.setUserInput(query);
 }
 
-export function openLink(url) {
+export function openLink(url, focused = false) {
   const window = utils.getWindow();
   utils.openLink(
     window,
     url,
-    true
+    true,
+    false,
+    false,
+    focused
   );
+}
+
+export function handleQuerySuggestions() {
+  // TBD
 }
 
 export function openTab() {}

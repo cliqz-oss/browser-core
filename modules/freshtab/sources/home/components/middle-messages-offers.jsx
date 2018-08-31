@@ -48,7 +48,7 @@ export default class MiddleMessagesOffer extends React.Component {
     const offset = 100;
     const currentSeenElements = [];
 
-    const allOffers = (this.offersWrapper && this.offersWrapper.querySelectorAll('.offer-middle-notification')) || [];
+    const allOffers = (this.offersWrapper && this.offersWrapper.querySelectorAll('.offer-unit')) || [];
 
     allOffers.forEach((el) => {
       const offerId = el.getAttribute('data-id');
@@ -92,6 +92,7 @@ export default class MiddleMessagesOffer extends React.Component {
           (<Offer
             offer={offer}
             key={offer.offer_id}
+            fullWidth={this.props.fullWidth}
             submitFeedbackForm={this.props.submitFeedbackForm}
           />)
         )}

@@ -40,26 +40,6 @@ const CliqzUtils = {
   getDay() {
     return Math.floor(new Date().getTime() / 86400000);
   },
-  getServerDay() {
-    const serverDateStr = prefs.get('config_ts', null);
-    if (serverDateStr) {
-      try {
-        const year = serverDateStr.substr(0, 4);
-        const month = serverDateStr.substr(4, 2);
-        const day = serverDateStr.substr(6, 2);
-        const realDate = new Date(`${year}/${month}/${day}`);
-
-        // we need to consider the timezone offset
-        return Math.floor(
-          (realDate.getTime() - (realDate.getTimezoneOffset() * 60 * 1000)) / 86400000
-        );
-      } catch (e) {
-        // fallback to getDay
-      }
-    }
-
-    return CliqzUtils.getDay();
-  },
   // used in testing only
   fetchFactory() {
     return fetchFactory();

@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="15px" height="14px" viewBox="0 0 15 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="21px" height="22px" viewBox="0 0 21 22" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
     <title>error icon</title>
     <desc>Created with Sketch.</desc>
     <defs></defs>
     <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="ADD-TO-CLIQZ-TAB" transform="translate(-649.000000, -1166.000000)">
-            <g id="error-icon" transform="translate(649.300000, 1163.700000)">
-                <g transform="translate(0.790625, 0.579688)">
-                    <circle id="Oval-3" stroke="#D0021B" stroke-width="0.8" fill="#FFFFFF" cx="6.44581221" cy="8.58955078" r="6.4"></circle>
-                    <text id="!" font-family="SFUIText-Medium, SF UI Text" font-size="11.2" font-weight="400" line-spacing="16" letter-spacing="-0.160000002" fill="#D0021B">
-                        <tspan x="4.64410894" y="11.1254883">!</tspan>
-                    </text>
+        <g id="ADD-TO-CLIQZ-TAB" transform="translate(-651.000000, -1157.000000)">
+            <g id="error-icon" transform="translate(649.040000, 1156.500000)">
+                <g transform="translate(3.090286, 1.940211)">
+                    <ellipse id="Oval-3" stroke="#D0021B" stroke-width="0.96" fill="#D0021B" cx="9.50857143" cy="9.70105263" rx="9.50857143" ry="9.70105263"></ellipse>
+                    <path d="M8.32,2.91031579 L10.6971429,2.91031579 L10.5014932,12.1263158 L8.5254321,12.1263158 L8.32,2.91031579 Z M9.51783302,16.461566 C8.65650464,16.461566 8.08228571,15.88743 8.08228571,15.0309319 C8.08228571,14.1556097 8.65650464,13.5814737 9.51783302,13.5814737 C10.3698998,13.5814737 10.9348571,14.1556097 10.9348571,15.0309319 C10.9348571,15.88743 10.3698998,16.461566 9.51783302,16.461566 Z" id="!" fill="#FFFFFF"></path>
                 </g>
             </g>
         </g>

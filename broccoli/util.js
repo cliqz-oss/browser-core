@@ -28,6 +28,10 @@ module.exports = {
           replacement: config => config.settings.id
         },
         {
+          match: /\{\{key\}\}/g,
+          replacement: config => config.key,
+        },
+        {
           match: /\{\{description\}\}/g,
           replacement: config => config.settings.description
         },
@@ -44,10 +48,18 @@ module.exports = {
           replacement: config => config.EXTENSION_VERSION
         },
         {
+          match: /\{\{version\}\}/g,
+          replacement: config => config.VERSION
+        },
+        {
+          match: /\{\{updateUrl\}\}/g,
+          replacement: config => process.env['CLIQZ_BETA'] === 'True' ? config.updateURLbeta : config.updateURL,
+        },
+        {
           match: /\{\{rdfUpdateURL\}\}/g,
           replacement: config => {
-            if (config.settings.updateURL) {
-              var url = config.settings.updateURL;
+            if (config.updateURL) {
+              var url = config.updateURL;
               url = injectVars(url, config);
               return [
                 "<em:updateURL>",
@@ -62,8 +74,8 @@ module.exports = {
         {
           match: /\{\{rdfUpdateURLbeta\}\}/g,
           replacement: config => {
-            if (config.settings.updateURLbeta) {
-              var url = config.settings.updateURLbeta;
+            if (config.updateURLbeta) {
+              var url = config.updateURLbeta;
               url = injectVars(url, config);
               return [
                 "<em:updateURL>",

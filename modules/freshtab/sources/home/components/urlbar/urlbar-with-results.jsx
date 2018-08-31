@@ -1,65 +1,51 @@
 import React from 'react';
-import Spanan from 'spanan';
-
+import Overlay from '../overlay';
 import Urlbar from './index';
 import SearchSettings from './search-settings';
 import cliqz from '../../cliqz';
+import Dropdown from '../../../../core/dropdown/content';
+
+class CliqzTabDropdown extends Dropdown {
+  _getUrlbarAttributes() {
+    const searchInputStyle = window.getComputedStyle(this.textInput);
+    const extraSpace = 22;
+    const defaultPadding = 35;
+
+    let padding = (searchInputStyle.paddingLeft && searchInputStyle.paddingLeft.replace('px', ''))
+                  || defaultPadding;
+
+    if (padding > 50) {
+      padding -= extraSpace;
+    }
+
+    return {
+      padding,
+    };
+  }
+}
 
 export default class UrlbarWithResults extends Urlbar {
-  actions = {
-    openLink: (
-      url,
-      {
-        newTab,
-        eventType,
-        result,
-        resultOrder,
-        meta = {},
-      },
-    ) => {
-      const selection = {
-        url,
-        query: result.query,
-        rawResult: result,
-        resultOrder,
-        isNewTab: Boolean(newTab),
-        isPrivateMode: false,
-        kind: result.kind,
-        isFromAutocompletedURL: this.hasAutocompleted && eventType === 'keyboard',
-        action: eventType === 'keyboard' ? 'enter' : 'click',
-        elementName: meta.elementName,
-      };
+  constructor(props) {
+    super(props);
+    this.dropdown = new CliqzTabDropdown({
+      view: this,
+      cliqz,
+    });
 
-      cliqz.freshtab.selectResult(selection);
-
-      window.location.href = url;
-    },
-    setHeight: (height) => {
-      this.setHeight(height);
-    },
-    focus: () => {
-      this.textInput.focus();
-      this.setState({
-        isBlurScheduled: false,
-      });
-    },
-    reportHighlight: () => {
-      cliqz.search.reportHighlight();
-    },
-    adultAction: (actionName) => {
-      cliqz.search.adultAction(actionName)
-        .then(() => {
-          this._render(this.previousResults);
-        });
-    },
-    locationAction: (actionName, query, rawResult) =>
-      cliqz.search.locationAction(actionName, query, rawResult),
+    this.actions = this.dropdown.actions;
+    this.state = {
+      ...this.state,
+      isSearchSettingsOpen: false,
+      iframeHeight: 0,
+      isOverlayOpen: false,
+    };
   }
 
   get classes() {
     return [
       super.classes,
       'with-results',
+      this.state.iframeHeight !== 0 || this.state.isSearchSettingsOpen ? 'with-dropdown' : '',
     ].join(' ');
   }
 
@@ -67,250 +53,147 @@ export default class UrlbarWithResults extends Urlbar {
     return window.innerHeight - 140;
   }
 
-  setHeight(height) {
-    if (!this.iframe) {
-      return;
-    }
-
-    const newHeight = Math.min(this.maxHeight, height);
-    const heightInPx = `${newHeight}px`;
-    this.iframe.style.height = heightInPx;
+  get isDropdownOpen() {
+    return this.state.iframeHeight !== 0;
   }
 
-  nextResult() {
-    return this.dropdownAction.nextResult();
+  get isSearchSettingsOpen() {
+    return this.state.isSearchSettingsOpen;
   }
 
-  previousResult() {
-    return this.dropdownAction.previousResult();
-  }
+  handlePaste = () => {}
 
-  setUrlbarValue = (result) => {
-    if (result.completion) {
-      this.autocompleteQuery(result.query, result.completion);
-    } else {
-      this.textInput.value = result.urlbarValue;
-    }
+  setHeight = (height) => {
+    this.setState({
+      iframeHeight: Math.min(this.maxHeight, height),
+    });
   }
-
 
   handleKeyDown = (ev) => {
-    this.lastEvent = {
-      code: ev.key,
-    };
-
-    switch (ev.key) {
-      case 'ArrowUp': {
-        this.previousResult().then(this.setUrlbarValue);
-        break;
-      }
-      case 'ArrowDown': {
-        this.nextResult().then(this.setUrlbarValue);
-        break;
-      }
-      case 'Tab': {
-        if (!this.textInput.value) {
-          break;
-        }
-
-        let resultPromise;
-        if (ev.shiftKey) {
-          resultPromise = this.previousResult();
-        } else {
-          resultPromise = this.nextResult();
-        }
-        ev.preventDefault();
-        resultPromise.then(this.setUrlbarValue);
-        break;
-      }
-      case 'Enter': {
-        this.dropdownAction.handleEnter({});
-        break;
-      }
-      case 'Escape': {
-        this.setHeight(0);
-        break;
-      }
-      default: break;
+    if (this.dropdown.onKeyDown(ev)) {
+      ev.preventDefault();
     }
   }
 
-  handleInput = () => {
-    const query = this.textInput.value;
-
-    if (query) {
-      cliqz.search.startSearch(query, { key: this.lastEvent.code });
+  handleKeyPress = (ev) => {
+    if (this.dropdown.onKeyPress(ev)) {
+      ev.preventDefault();
     }
   }
 
-  async _render(results) {
-    const firstResult = results && results[0];
-    if (!firstResult) {
-      if (this.textInput && !this.textInput.value) {
-        this.setHeight(0);
-      }
-      return;
-    }
-
-    const assistantStates = await cliqz.search.getAssistantStates();
-    const query = firstResult.text;
-    const queriedAt = Date.now();
-
-    this.previousQuery = query;
-    this.previousResults = results;
-
-    const {
-      height,
-      result,
-    } = await this.dropdownAction.render({
-      rawResults: results,
-      query,
-      queriedAt,
-    }, {
-      assistantStates,
-      urlbarAttributes: {
-        padding: 35
-      },
-      maxHeight: this.maxHeight,
-    });
-
-    this.autocompleteQuery(
-      query,
-      firstResult.meta.completion,
-    );
-
-    this.selectedResult = result;
-    this.setHeight(height);
-  }
-
-  async componentWillReceiveProps(props) {
-    if (!this.iframe) {
-      return;
-    }
-
-    this._render(props.results);
-  }
-
-  autocompleteQuery(query, completion) {
-    if (!completion) {
-      return;
-    }
-
-    const value = `${query}${completion}`;
-
-    this.textInput.value = value;
-
-    this.textInput.setSelectionRange(query.length, value.length);
-  }
-
-  onMessage = (event) => {
-    if (!this.iframeWrapper) {
-      return;
-    }
-
-    const message = event.data;
-
-    if (message.type === 'response') {
-      this.iframeWrapper.dispatch({
-        uuid: message.uuid,
-        response: message.response,
-      });
-      return;
-    }
-
-    if (message.target === 'cliqz-renderer') {
-      this.iframeWrapper.handleMessage(message);
+  handleInput = (ev) => {
+    if (this.dropdown.onInput(ev)) {
+      ev.preventDefault();
     }
   }
 
   createIframeWrapper = (iframe) => {
-    if (!iframe) {
+    this.dropdown.createIframeWrapper(iframe);
+  }
+
+  async componentWillReceiveProps(props) {
+    if (props.results === this.props.results ||
+      props.results.length === 0) {
       return;
     }
 
-    this.iframe = iframe;
-
-    const iframeWrapper = new Spanan(({ action, ...rest }) => {
-      iframe.contentWindow.postMessage({
-        target: 'cliqz-dropdown',
-        action,
-        ...rest,
-      }, '*');
+    this.dropdown.render({
+      rawResults: props.results
     });
+  }
 
-    this.iframeWrapper = iframeWrapper;
+  componentDidUpdate() {
+    const shouldShowOverlay = this.isSearchSettingsOpen ||
+      this.isDropdownOpen ||
+      (this.state.focused && this.textInput && this.textInput.value);
 
-    // Somehow the chrome.i18n object is missing on iframes in Chrome
-    try {
-      // eslint-disable-next-line
-      iframe.contentWindow.chrome.i18n = chrome.i18n;
-    } catch (e) {
-      // throws on platform firefox, but i18n is there already
+    if (shouldShowOverlay !== this.state.isOverlayOpen) {
+      // this setState will not trigger infinite loop because it of the check above
+      /* eslint-disable react/no-did-update-set-state */
+      this.setState({
+        isOverlayOpen: shouldShowOverlay
+      });
+      /* eslint-enable react/no-did-update-set-state */
     }
-
-    iframe.contentWindow.addEventListener('message', this.onMessage);
-
-    iframeWrapper.export(this.actions, {
-      respond(response, request) {
-        iframe.contentWindow.postMessage({
-          type: 'response',
-          uuid: request.uuid,
-          response,
-        }, '*');
-      },
-    });
-
-    this.dropdownAction = iframeWrapper.createProxy();
   }
 
   componentWillUnmount() {
-    this.iframe.contentWindow.removeEventListener('message', this.onMessage);
+    this.dropdown.unload();
   }
 
   handleFocus = () => {
-    this.props.toggleOverlay();
+    this.textInput.select();
+    this.setState({
+      focused: true,
+    });
   }
 
   handleBlur = () => {
-    cliqz.search.stopSearch();
-    this.setState({
-      isBlurScheduled: true,
-    });
-
-    cliqz.search.resetAssistantStates();
-    this.props.toggleOverlay();
-
     setTimeout(() => {
-      if (!this.state.isBlurScheduled) {
+      if (this.textInput === document.activeElement) {
         return;
       }
-      this.setHeight(0);
+      cliqz.search.stopSearch();
+      cliqz.search.resetAssistantStates();
+
       this.setState({
-        isBlurScheduled: false,
+        iframeHeight: 0,
+        focused: false,
       });
-    }, 200);
+    }, 400);
   }
 
-  _queryCliqz() {
+  toggleSettings = () => {
+    if (this.isSearchSettingsOpen) {
+      this.hideSettings();
+    } else {
+      this.showSettings();
+    }
+  }
 
+  closeAll = () => {
+    this.setHeight(0);
+    this.hideSettings();
+  }
+
+  hideSettings = () => {
+    this.setState({
+      isSearchSettingsOpen: false,
+    });
+  }
+
+  showSettings = () => {
+    this.setState({
+      isSearchSettingsOpen: true,
+    });
   }
 
   render() {
     return (
       <div>
+        <Overlay
+          isOpen={this.state.isOverlayOpen}
+          onClick={this.closeAll}
+        />
         {super.render()}
         <div className="inner-container">
-          <SearchSettings
-            showOverlay={this.props.showOverlay}
-            hideOverlay={this.props.hideOverlay}
+          <button
+            className={`search-settings-btn ${this.state.isSearchSettingsOpen ? 'active' : ''}`}
+            tabIndex="-1"
+            onClick={this.toggleSettings}
           />
           <div className="results">
+            <div id="search-settings" className={`settings-panel ${(this.state.isSearchSettingsOpen ? 'show' : 'hide')}`}>
+              <SearchSettings maxHeight={this.maxHeight} />
+            </div>
             <iframe
               id="cliqz-dropdown"
               tabIndex="-1"
               title="Results"
               ref={this.createIframeWrapper}
               src="../dropdown/dropdown.html"
+              className={`${(this.state.isSearchSettingsOpen ? 'hide' : 'show')}`}
+              style={{ height: `${this.state.iframeHeight}px` }}
             />
           </div>
         </div>

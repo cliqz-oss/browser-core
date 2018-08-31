@@ -1,0 +1,56 @@
+{
+  "/dp/$domain=amazon.de": {
+    "patterns": {
+      "title": ["#productTitle"],
+      "category": [
+        ".a-size-small.a-horizontal.a-unordered-list",
+        ".a-expander-extend-container.a-expander-container.a-row > li:nth-of-type(1) > .a-list-item > .s-ref-text-link.a-link-normal > .a-text-bold.a-color-base.a-spacing-top-mini.a-size-small",
+        ".zg_hrsr_ladder"
+      ],
+      "refetch": true,
+      "waitOnLoad": false
+    },
+    "productIdRegex": "/dp/(.*)/",
+    "prefix": "product"
+  },
+  "/gp/cart/$domain=amazon.de": {
+    "patterns": {
+      "link": [
+        ".a-span8.a-column > .a-fixed-left-grid > .a-fixed-left-grid-inner > .a-col-right.a-fixed-left-grid-col > .a-spacing-mini.a-vertical.a-nostyle.a-unordered-list > li:nth-of-type(1) > .a-list-item > .sc-product-link.a-link-normal"
+      ],
+      "linkIdRegex": "/gp/product/(.*)/",
+      "waitOnLoad": false
+    },
+    "prefix": "basket"
+  },
+  "/gp/buy/$domain=amazon.de": {
+    "patterns": {
+      "title": [".breakword.a-row > .a-text-bold"],
+      "waitOnLoad": false
+    },
+    "prefix": "checkout"
+  },
+  "/gp/product/$domain=amazon.de": {
+    "patterns": {
+      "title": ["#productTitle"],
+      "category": [
+        ".a-size-small.a-horizontal.a-unordered-list",
+        ".a-expander-extend-container.a-expander-container.a-row > li:nth-of-type(1) > .a-list-item > .s-ref-text-link.a-link-normal > .a-text-bold.a-color-base.a-spacing-top-mini.a-size-small",
+        ".zg_hrsr_ladder"
+      ],
+      "refetch": true,
+      "waitOnLoad": false
+    },
+    "productIdRegex": "/gp/product/(.*)/",
+    "prefix": "product"
+  },
+  "field-keywords=$domain=amazon.de": {
+    "patterns": {
+      "category": [
+        ".a-expander-extend-container.a-expander-container.a-row > li:nth-of-type(1) > .a-list-item > .s-ref-text-link.a-link-normal > .a-text-bold.a-color-base.a-spacing-top-mini.a-size-small",
+        ".a-list-item > .a-text-bold.a-color-base.a-size-small"
+      ]
+    },
+    "prefix": "search"
+  }
+}

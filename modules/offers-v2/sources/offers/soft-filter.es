@@ -124,6 +124,7 @@ const FILTER_EVAL_FUN_MAP = {
  *
  */
 const evalExpression = (offer, expr, offersDB) => {
+  let result = false;
   if (expr.type === 'CallExpression') {
     // check if we have the function name
     const callee = expr.callee.name;
@@ -131,15 +132,26 @@ const evalExpression = (offer, expr, offersDB) => {
       logger.warn(`_evalExpression: filter function ${callee} doesn't exist`);
       return false;
     }
-    return FILTER_EVAL_FUN_MAP[callee](offer, expr.arguments, offersDB);
-  } else if (expr.type === 'LogicalExpression' && expr.operator === '||') {
-    return (evalExpression(offer, expr.left, offersDB) ||
-            evalExpression(offer, expr.right, offersDB));
-  } else if (expr.type === 'LogicalExpression' && expr.operator === '&&') {
-    return (evalExpression(offer, expr.left, offersDB) &&
-            evalExpression(offer, expr.right, offersDB));
+    result = FILTER_EVAL_FUN_MAP[callee](offer, expr.arguments, offersDB);
+    if (!result) {
+      logger.debug('expression result is false', callee, expr.arguments.map(x => x.value).join(' '));
+    }
+
+    return result;
+  } else if (expr.type === 'LogicalExpression') {
+    const left = evalExpression(offer, expr.left, offersDB);
+    const right = evalExpression(offer, expr.right, offersDB);
+    switch (expr.operator) {
+      case '||':
+        result = left || right;
+        break;
+      case '&&':
+        result = left && right;
+        break;
+      default:
+    }
   }
-  return false;
+  return result;
 };
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -182,4 +194,3 @@ export default function shouldFilterOffer(offer, offersDB) {
 
   return !shouldWeShowOffer;
 }
-

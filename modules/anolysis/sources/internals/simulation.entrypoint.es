@@ -37,7 +37,7 @@ const clients = new Map();
 let availableDefinitions = null;
 
 // Create express app to communicate with Python process
-const port = 8242;
+const port = parseInt(process.argv[2], 10);
 const app = express();
 
 app.use(bodyParser.json({

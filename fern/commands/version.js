@@ -6,16 +6,30 @@ const program = require('commander');
 const gitDescribe = require('git-describe');
 const common = require('./common');
 
+const setConfigPath = common.setConfigPath;
 const getExtensionVersion = common.getExtensionVersion;
 const gitDescribeSync = gitDescribe.gitDescribeSync;
 
-program.command('version')
+program.command(`version ${common.configParameter}`)
   .option('--environment <environment>', 'development')
-  .action((options) => {
+  .option('--infix <infix>', '', '.1b')
+  .option('--prefix <prefix>', '')
+  .action((configPath, options) => {
     process.env.CLIQZ_ENVIRONMENT = options.environment;
 
+    const cfg = setConfigPath(configPath, options.toSubdir);
+    const config = cfg.CONFIG;
+    const infix = config.versionInfix || options.infix;
+    const prefix = config.versionPrefix || options.prefix;
+
     getExtensionVersion('package').then((version) => {
-      if (options.environment === 'production') {
+      if (prefix) {
+        const versionParts = version.split('.');
+        versionParts[0] = prefix;
+        version = versionParts.join('.');
+      }
+      // config infix implies we want to have long version number
+      if (!config.infix && options.environment === 'production') {
         console.log(version);
         return;
       }
@@ -23,7 +37,7 @@ program.command('version')
       const gitInfo = gitDescribeSync();
       const betaVersion = [
         version,
-        '.1b',
+        infix,
         gitInfo.distance || '0'
       ].join('');
 

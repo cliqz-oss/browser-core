@@ -1,40 +1,33 @@
 import config from '../core/config';
 import { Services } from './globals';
-import { CHROME_MSG_SOURCE } from '../core/content/helpers';
 
 const PROCESS_SCRIPT_URL = `${config.baseURL}platform/process-script.bundle.js`;
 const FRAME_SCRIPT_URL = `${config.baseURL}core/frameScript.js`;
 
 export default class ProcessScriptManager {
   dispatcher = (msg) => {
-    const { origin, payload, windowId } = msg.data;
-    const { action, module, requestId } = payload;
+    const { message, sender } = msg.data;
+    const { requestId } = message;
 
     let sent = false;
 
-    this.dispatchMessage({
-      ...msg,
-      data: {
-        ...msg.data,
-        sendResponse: (response) => {
-          // To implement chrome.runtime.sendMesssage specification
-          // we make sure that `sendResponse` is called at most once
-          if (sent) {
-            return;
-          }
+    this.dispatchMessage(
+      message,
+      sender,
+      (response) => {
+        // To implement chrome.runtime.sendMesssage specification
+        // we make sure that `sendResponse` is called at most once
+        if (sent || response === undefined || !requestId) {
+          return;
+        }
 
-          sent = true;
-          this.broadcast(`window-${msg.data.windowId}`, {
-            origin,
-            response,
-            action,
-            module,
-            requestId,
-            windowId,
-          });
-        },
-      }
-    });
+        sent = true;
+        this.broadcast(`window-${sender.windowId}`, {
+          response,
+          requestId,
+        });
+      },
+    );
   }
 
   constructor(dispatcher) {
@@ -58,13 +51,18 @@ export default class ProcessScriptManager {
     return `${FRAME_SCRIPT_URL}?t=${this.timestamp}`;
   }
 
-  init() {
+  init(app) {
     // on extension update or downgrade there might be a race condition
     // and we might end up having no process script
     setTimeout(this.ppmm.loadProcessScript.bind(this.ppmm, this.processScriptUrl, true), 0);
     setTimeout(this.gmm.loadFrameScript.bind(this.gmm, this.frameScriptUrl, true), 0);
 
     this.addMessageListener('cliqz', this.dispatcher);
+
+    app.ready().then(() => {
+      this.appReady = true;
+      this.shareAppState(app);
+    });
   }
 
   unload() {
@@ -81,20 +79,12 @@ export default class ProcessScriptManager {
 
   broadcast(channel, msg) {
     /* eslint-disable no-param-reassign */
-    if (typeof msg === 'object') {
-      msg = {
-        ...msg,
-        source: CHROME_MSG_SOURCE
-      };
-    }
-
     if (!channel) {
       channel = 'cliqz:core';
     }
     /* eslint-enable no-param-reassign */
 
     this.ppmm.broadcastAsyncMessage(channel, msg);
-    this.gmm.broadcastAsyncMessage(channel, msg);
   }
 
   addMessageListener(channel, cb) {
@@ -105,5 +95,26 @@ export default class ProcessScriptManager {
   removeMessageListener(channel, cb) {
     this.ppmm.removeMessageListener(channel, cb);
     this.gmm.removeMessageListener(channel, cb);
+  }
+
+  shareAppState(app) {
+    this.app = app;
+    this.broadcast('cliqz:process-script', {
+      action: 'updateGlobal',
+      data: {
+        app: this.app.status(),
+      },
+    });
+  }
+
+  onNewProcess(processId) {
+    if (this.app && this.appReady) {
+      this.broadcast(`cliqz:process-script-${processId}`, {
+        action: 'updateGlobal',
+        data: {
+          app: this.app.status(),
+        },
+      });
+    }
   }
 }

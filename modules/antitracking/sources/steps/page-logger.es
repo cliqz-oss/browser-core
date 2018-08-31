@@ -18,38 +18,52 @@ export default class PageLogger {
   }
 
   attachStatCounter(state) {
-    const urlParts = state.urlParts;
-    const request = this.tpEvents.get(
-      state.url,
-      urlParts,
-      state.sourceUrl,
-      state.sourceUrlParts,
-      state.tabId
-    );
-    state.reqLog = request;
-    const incrementStat = (statName, c) => {
-      this.tpEvents.incrementStat(request, statName, c || 1);
-    };
-    state.incrementStat = incrementStat;
-    state.getPageAnnotations = this.tpEvents.getAnnotations.bind(this.tpEvents, state.tabId);
+    if (state.requestId && this._requestCounters.has(state.requestId)) {
+      this.loadStatCounters(state);
+    } else {
+      const urlParts = state.urlParts;
+      const request = this.tpEvents.get(
+        state.url,
+        urlParts,
+        state.sourceUrl,
+        state.sourceUrlParts,
+        state.tabId
+      );
+      state.reqLog = request;
+      const incrementStat = (statName, c) => {
+        this.tpEvents.incrementStat(request, statName, c || 1);
+      };
+      state.incrementStat = incrementStat;
+      state.getPageAnnotations = this.tpEvents.getAnnotations.bind(this.tpEvents, state.tabId);
 
+      if (state.requestId) {
+        this._requestCounters.set(state.requestId, {
+          incrementStat,
+          ghosteryBug: state.ghosteryBug,
+          reqLog: request,
+          getPageAnnotations: state.getPageAnnotations,
+        });
+      }
+    }
     // add triggeringPrinciple info
     const pageLoad = this.tpEvents._active[state.tabId];
     if (pageLoad && state.trigger) {
-      pageLoad.addTrigger(urlParts.hostname, state.trigger);
+      pageLoad.addTrigger(state.urlParts.hostname, state.trigger);
     }
-
-    if (state.requestId) {
-      this._requestCounters.set(state.requestId, incrementStat);
-    }
-
     return true;
+  }
+
+  loadStatCounters(state) {
+    const meta = this._requestCounters.get(state.requestId);
+    Object.keys(meta).forEach((k) => {
+      state[k] = meta[k];
+    });
   }
 
   reattachStatCounter(state) {
     const { requestId } = state;
     if (requestId && this._requestCounters.has(requestId)) {
-      state.incrementStat = this._requestCounters.get(requestId);
+      this.loadStatCounters(state);
       this._requestCounters.delete(requestId);
       return true;
     }

@@ -7,7 +7,7 @@ import language from './language';
 import config from './config';
 import ProcessScriptManager from '../platform/process-script-manager';
 import background from './base/background';
-import { getCookies, Window, mapWindows } from '../platform/browser';
+import { getCookies, Window } from '../platform/browser';
 import resourceManager from './resource-manager';
 import logger from './logger';
 import inject from './kord/inject';
@@ -17,7 +17,7 @@ import bindObjectFunctions from './helpers/bind-functions';
 import { httpHandler } from './http';
 import { updateTabById } from './tabs';
 
-let lastRequestId = 0;
+let lastRequestId = 1;
 const callbacks = {};
 
 /**
@@ -40,7 +40,7 @@ export default background({
     bindObjectFunctions(this.actions, this);
 
     this.mm = new ProcessScriptManager(this.dispatchMessage);
-    this.mm.init();
+    this.mm.init(this.app);
 
     resourceManager.init();
     logger.init();
@@ -52,21 +52,24 @@ export default background({
     logger.unload();
   },
 
-  dispatchMessage(msg) {
-    if (typeof msg.data.requestId === 'number') {
-      if (msg.data.requestId in callbacks) {
-        this.handleResponse(msg);
+  dispatchMessage(message, sender, sendResponse) {
+    if (typeof message.requestId === 'number') {
+      if (message.requestId in callbacks) {
+        this.handleResponse(message);
       }
       return false;
     }
 
-    this.handleRequest(msg);
+    this.handleRequest(message, sender, sendResponse);
     return true;
   },
 
-  handleRequest(msg) {
-    const { payload, sender, sendResponse } = msg.data;
-    const { action, module, args } = payload;
+  handleRequest(message, sender, sendResponse) {
+    const { action, module, args } = message;
+    if (!module || !action) {
+      // no module or action provided, probably not from cliqz
+      return Promise.resolve();
+    }
 
     // inject the required module, then call the requested action
     return inject
@@ -85,7 +88,7 @@ export default background({
   },
 
   handleResponse(msg) {
-    callbacks[msg.data.requestId].apply(null, [msg.data.payload]);
+    callbacks[msg.requestId].apply(null, [msg.response]);
   },
 
   getWindowStatusFromModules(win) {
@@ -109,11 +112,17 @@ export default background({
     'content:location-change': function onLocationChange({ url, isPrivate }) {
       events.pub('core.location_change', url, isPrivate);
     },
+    prefchange: function onPrefChange(pref) {
+      if (pref.startsWith('modules.') && pref.endsWith('.enabled')) {
+        this.actions.refreshAppState(this.app);
+      }
+    },
   },
 
   actions: {
     notifyProcessInit(processId) {
       events.pub('process:init', processId);
+      this.mm.onNewProcess(processId);
     },
     notifyLocationChange(msg) {
       const windowWrapper = Window.findByTabId(msg.domWindowId);
@@ -183,29 +192,7 @@ export default background({
       return this.app.extensionRestart();
     },
     status() {
-      const appModules = this.app.modules;
-      const modules = config.modules.reduce((hash, moduleName) => {
-        const module = appModules[moduleName];
-        const windowWrappers = mapWindows(window => new Window(window));
-        const windows = windowWrappers.reduce((_hash, win) => {
-          _hash[win.id] = {
-            loadingTime: module.getLoadingTime(win.window),
-          };
-          return _hash;
-        }, Object.create(null));
-
-        hash[moduleName] = {
-          name: module.name,
-          isEnabled: module.isEnabled,
-          loadingTime: module.loadingTime,
-          windows,
-        };
-        return hash;
-      }, Object.create(null));
-
-      return {
-        modules,
-      };
+      return this.app.status();
     },
     broadcast(target, payload) {
       if (!payload && typeof target === 'object') {
@@ -214,18 +201,19 @@ export default background({
       }
       this.mm.broadcast(target, payload);
     },
-    broadcastMessageToWindow(payload, windowId, module) {
+    broadcastActionToWindow(windowId, module, action, ...args) {
       this.mm.broadcast(`window-${windowId}`, {
-        payload,
+        action,
+        args,
         module,
         windowId,
       });
     },
+    // TODO: should be replaced with a function that sends message to given tabId
     broadcastMessage(url, message) {
       this.mm.broadcast('cliqz:core', {
-        action: 'postMessage',
         url,
-        args: [JSON.stringify(message)],
+        ...message,
       });
     },
     getWindowStatus(win) {
@@ -289,13 +277,14 @@ export default background({
       const urlBar = utils.getWindow().document.getElementById('urlbar');
       urlBar.mInputField.value = value;
     },
-    recordMeta(url, meta) {
+    recordMeta(url, meta, sender) {
+      // TODO: there is not need for two events doing almost the same
+      // also the tabId, windowId, should be propagated with the event
       events.pub('core:url-meta', url, meta);
-      events.pub('content:dom-ready', url);
+      events.pub('content:dom-ready', url, sender);
       if (meta.lang) {
         language.addLocale(url, meta.lang);
       }
-      return Promise.resolve();
     },
     openFeedbackPage() {
       const window = utils.getWindow();
@@ -320,6 +309,7 @@ export default background({
       lastRequestId += 1;
 
       this.mm.broadcast('cliqz:core', {
+        module: 'core',
         action: 'click',
         url,
         args: [selector],
@@ -338,14 +328,15 @@ export default background({
         }, 1000);
       });
     },
-    queryHTML(url, selector, attribute) {
+    queryHTML(url, selector, attribute, options = {}) {
       const requestId = lastRequestId;
       lastRequestId += 1;
 
       this.mm.broadcast('cliqz:core', {
+        module: 'core',
         action: 'queryHTML',
         url,
-        args: [selector, attribute],
+        args: [selector, attribute, options],
         requestId
       });
 
@@ -368,6 +359,7 @@ export default background({
       const documents = [];
 
       this.mm.broadcast('cliqz:core', {
+        module: 'core',
         action: 'getHTML',
         url,
         args: [],
@@ -393,6 +385,7 @@ export default background({
           lastRequestId += 1;
 
           this.mm.broadcast('cliqz:core', {
+            module: 'core',
             action: 'getCookie',
             url,
             args: [],
@@ -416,6 +409,10 @@ export default background({
       data._type = 'user_feedback';
       // Params: method, url, resolve, reject, timeout, data
       httpHandler('POST', config.settings.STATISTICS, null, null, 10000, JSON.stringify(data));
+    },
+
+    refreshAppState() {
+      this.mm.shareAppState(this.app);
     },
   },
 });

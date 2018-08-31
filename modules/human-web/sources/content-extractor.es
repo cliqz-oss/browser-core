@@ -332,7 +332,7 @@ export class ContentExtractor {
     }
 
     for (const rule of Object.keys(payloadRules || {})) {
-      this._createPayload(scrapeResults, ind, rule, ruleset);
+      this._processExtractedData(scrapeResults, ind, rule, ruleset);
     }
   }
 
@@ -360,7 +360,35 @@ export class ContentExtractor {
     return arr;
   }
 
-  _createPayload(scrapeResults, idx, key, ruleset) {
+  /**
+   * The structure of the final messages is defined in the "payloads"
+   * section in "fields". Messages can have multiple fields.
+   * Each field consists of two or three entries:
+   *
+   * <selector> <key> [<join>]
+   *
+   * The first (<selector>) is the key to the data that we just extracted.
+   * The second (<key>) defines the name of the key in the final message
+   * (in other words, what the server expects).
+   *
+   * The third is optional and defines how data should be aggregated.
+   * Currently, the only aggregation rule is "join", which puts all
+   * matches in one list. For example, "query" messages use it to
+   * aggregate the list of results.
+   *
+   * When data for all keys is available, the message is ready to
+   * be sent.
+   *
+   * To preserve anonymity, there are two additional steps,
+   * which are out of scope of this function:
+   *
+   * - To prevent leaking sensitive information, the message
+   *   will have to pass the human web sanitizer heuristics
+   *   (i.e., parts of the message could be omitted or the
+   *    message could be dropped completely.)
+   * - For network anonymity, sending is done through HPN.
+   */
+  _processExtractedData(scrapeResults, idx, key, ruleset) {
     let payloadRules;
     try {
       const patterns = this.patterns[ruleset];
@@ -369,7 +397,7 @@ export class ContentExtractor {
       if (payloadRules.type === 'single' && payloadRules.results === 'single') {
         scrapeResults[key].forEach((e) => {
           e.ctry = this._CliqzHumanWeb.getCountryCode();
-          this._sendMessage(payloadRules, e);
+          this._sendMessageIfAllFieldsAreSet(payloadRules, e);
         });
       } else if (payloadRules.type === 'single' && payloadRules.results === 'custom') {
         const payload = {};
@@ -379,27 +407,25 @@ export class ContentExtractor {
           } catch (ee) {
             // TODO: When does this happen? Is it a problem?
           }
-          this._sendMessage(payloadRules, payload);
+          this._sendMessageIfAllFieldsAreSet(payloadRules, payload);
         });
       } else if (payloadRules.type === 'query' && payloadRules.results === 'clustered') {
         const payload = {};
         payloadRules.fields.forEach((e) => {
-          if (e.length > 2) {
-            // Note: will throw if scrapeResults[e[0]] is undefined.
-            // Happens in production, too. Not an actual bug, as exceptions
-            // are ignored.
-            // TODO: Avoid these type of exceptions by some if-guards,
-            // otherwise, the logged warning are misleading.
-            const joinArr = {};
-            for (let i = 0; i < scrapeResults[e[0]].length; i += 1) {
-              joinArr[String(i)] = scrapeResults[e[0]][i];
+          const extractedContent = scrapeResults[e[0]];
+          if (extractedContent !== undefined) {
+            if (e.length > 2) {
+              const joinArr = {};
+              for (let i = 0; i < extractedContent.length; i += 1) {
+                joinArr[String(i)] = extractedContent[i];
+              }
+              payload[e[1]] = joinArr;
+            } else {
+              payload[e[1]] = extractedContent[0][e[1]];
             }
-            payload[e[1]] = joinArr;
-          } else {
-            payload[e[1]] = scrapeResults[e[0]][0][e[1]];
           }
         });
-        this._sendMessage(payloadRules, payload);
+        this._sendMessageIfAllFieldsAreSet(payloadRules, payload);
       } else if (payloadRules.type === 'query' && payloadRules.results === 'scattered') {
         const payload = {};
         payloadRules.fields.forEach((e) => {
@@ -419,21 +445,21 @@ export class ContentExtractor {
             payload[e[1]] = scrapeResults[e[0]][0][e[1]];
           }
         });
-        this._sendMessage(payloadRules, payload);
+        this._sendMessageIfAllFieldsAreSet(payloadRules, payload);
       }
     } catch (ee) {
       if (this._CliqzHumanWeb.debug) {
         logger.warn(
-          '_createPayload failed (scrapeResults:', scrapeResults,
+          '_processExtractedData failed (scrapeResults:', scrapeResults,
           ', key:', key, ', ruleset:', ruleset, ', payloadRules:',
           payloadRules, ', error:', ee, ')');
       } else {
-        logger.warn(`_createPayload failed: ${ee}`);
+        logger.warn(`_processExtractedData failed: ${ee}`);
       }
     }
   }
 
-  _sendMessage(payloadRules, payload) {
+  _sendMessageIfAllFieldsAreSet(payloadRules, payload) {
     function allFieldsSet() {
       const allKeys = Object.keys(payload);
       for (const e of Object.keys(payloadRules.fields)) {

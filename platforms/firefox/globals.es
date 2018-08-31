@@ -25,7 +25,7 @@ const fakeGlobal = Object.create(null);
 /* eslint-disable func-names, prefer-arrow-callback, new-cap */
 export const safeGlobal = new Proxy(fakeGlobal, {
   get(target, key) {
-    if (fakeGlobal[key]) {
+    if (fakeGlobal[key] !== undefined) {
       return fakeGlobal[key];
     }
 

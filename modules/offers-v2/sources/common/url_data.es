@@ -61,9 +61,10 @@ export default class UrlData {
     return this.domain;
   }
 
-  getPatternRequest() {
+  // https://github.com/cliqz-oss/adblocker/blob/fa1d8304e98ecf43a99c0082338672417c14e61b/example/background.ts#L79
+  getPatternRequest(cpt = 2) {
     if (this.patternsRequest === null) {
-      this.patternsRequest = tokenizeUrl(this.getNormalizedUrl());
+      this.patternsRequest = tokenizeUrl(this.getNormalizedUrl(), cpt);
     }
     return this.patternsRequest;
   }

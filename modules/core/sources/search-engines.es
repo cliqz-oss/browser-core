@@ -62,7 +62,7 @@ export function isValidUrl(url) {
   }
 
   // Ignore Cliqz SERP links
-  if (['suche.cliqz.com', 'search.cliqz.com'].indexOf(urlparts.cleanHost) > -1) {
+  if (['suche.cliqz.com', 'search.cliqz.com', 'suchen.cliqz.com'].indexOf(urlparts.cleanHost) > -1) {
     log(`Discarding result page from Cliqz SERP: ${url}`);
     return false;
   }
@@ -99,3 +99,18 @@ export function isValidUrl(url) {
 
   return true;
 }
+
+export function getEngineByQuery(query) {
+  const token = query.split(' ')[0];
+  const engines = searchUtils.getSearchEngines();
+  return engines.find(e => e.alias === token) ||
+    searchUtils.getDefaultSearchEngine();
+}
+
+export function getSearchEngineQuery(engine, query) {
+  if (engine && engine.alias) {
+    return query.replace(engine.alias, '').trim();
+  }
+  return query;
+}
+

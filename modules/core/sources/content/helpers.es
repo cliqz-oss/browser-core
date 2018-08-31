@@ -2,12 +2,12 @@ import globToRegexp from './glob';
 
 const CONTENT_SCRIPTS = {};
 
-export function registerContentScript(urlPattern, script) {
+export function registerContentScript(moduleName, urlPattern, script) {
   CONTENT_SCRIPTS[urlPattern] = CONTENT_SCRIPTS[urlPattern] || [];
-  CONTENT_SCRIPTS[urlPattern].push(script);
+  CONTENT_SCRIPTS[urlPattern].push({ moduleName, contentScript: script });
 }
 
-export function runContentScripts(window, chrome, windowId) {
+export function runContentScripts(window, chrome, CLIQZ) {
   const currentUrl = window.location.href;
   const matchingPatterns = Object.keys(CONTENT_SCRIPTS)
     .filter((pattern) => {
@@ -15,18 +15,18 @@ export function runContentScripts(window, chrome, windowId) {
       return regexp.test(currentUrl);
     });
   matchingPatterns.forEach((pattern) => {
-    CONTENT_SCRIPTS[pattern].forEach((contentScript) => {
-      try {
-        contentScript(window, chrome, windowId);
-      } catch (e) {
-        window.console.error(`CLIQZ content-script failed: ${e} ${e.stack}`);
-      }
-    });
+    CONTENT_SCRIPTS[pattern]
+      .filter(({ moduleName }) => CLIQZ.app.modules[moduleName].isEnabled)
+      .forEach(({ contentScript }) => {
+        try {
+          contentScript(window, chrome, CLIQZ);
+        } catch (e) {
+          window.console.error(`CLIQZ content-script failed: ${e} ${e.stack}`);
+        }
+      });
   });
 }
 
-export const CHROME_MSG_SOURCE = 'cliqz-content-script';
-
-export function isCliqzContentScriptMsg(msg) {
-  return msg.source && msg.source === CHROME_MSG_SOURCE;
+export function isTopWindow(window) {
+  return window.self === window.top;
 }

@@ -1,4 +1,10 @@
 {
+    "appName": {
+        "message": "Cliqz Tab: private search engine (Beta)"
+    },
+    "appDesc": {
+        "message": "Cliqz Tab replaces Chrome's default new tab page and adds backgrounds, favorites, news and Cliqz's anonymous quick search."
+    },
     "more_on": {
         "message": "Más sobre"
     },
@@ -1572,19 +1578,19 @@
         "message": "Your search with Cliqz"
     },
     "transparency_search_content": {
-        "message": "The following are data signals concerning the Cliqz search function and display queries and URLs you enter or visit. They help us to optimize your search experience. As you can see, these data do not contain any personally identifiable information (“PII”). You are anonymous to Cliqz. You can route your searches through a network of proxy servers for an even stronger protection. Find more information <a target='_blank' href='https://cliqz.com/en/whycliqz/transparency#your-search'>here</a>."
+        "message": "The following are data signals concerning the Cliqz search function and display queries and URLs you enter or visit. They help us to optimize your search experience. As you can see, these data do not contain any personally identifiable information (“PII”). You are anonymous to Cliqz. You can route your searches through a network of proxy servers for an even stronger protection. Find more information <a target='_blank' rel='noopener noreferrer' href='https://cliqz.com/en/whycliqz/transparency#your-search'>here</a>."
     },
     "transparency_humanweb_title": {
         "message": "Human Web"
     },
     "transparency_humanweb_content": {
-        "message": "Our Human Web technology uses statistical methods and algorithms to continuously enhance the quality of our search results. The collected anonymous, statistical data are related to queries and shown results displayed by one of the complementary search engines. The chosen data architecture prevents any inference about a natural person. The transfer of Human Web data is encrypted and routed through a network of proxy servers. Find more information <a target='_blank' href='https://cliqz.com/en/whycliqz/transparency#human-web'>here</a>."
+        "message": "Our Human Web technology uses statistical methods and algorithms to continuously enhance the quality of our search results. The collected anonymous, statistical data are related to queries and shown results displayed by one of the complementary search engines. The chosen data architecture prevents any inference about a natural person. The transfer of Human Web data is encrypted and routed through a network of proxy servers. Find more information <a target='_blank' rel='noopener noreferrer' href='https://cliqz.com/en/whycliqz/transparency#human-web'>here</a>."
     },
     "transparency_telemetry_title": {
         "message": "Telemetry"
     },
     "transparency_telemetry_content": {
-        "message": "Telemetry includes all data concerning the usage and performance of the browser and its features. We use these data to continuously improve your Cliqz experience. These data include e.g. the version number of the browser, or the time it takes to display Cliqz search results. Telemetry data do not contain any information about queries, search results or visited URLs. Find more information <a target='_blank' href='https://cliqz.com/en/whycliqz/transparency#telemetry'>here</a>."
+        "message": "Telemetry includes all data concerning the usage and performance of the browser and its features. We use these data to continuously improve your Cliqz experience. These data include e.g. the version number of the browser, or the time it takes to display Cliqz search results. Telemetry data do not contain any information about queries, search results or visited URLs. Find more information <a target='_blank' rel='noopener noreferrer' href='https://cliqz.com/en/whycliqz/transparency#telemetry'>here</a>."
     },
     "transparency_activity_buttons": {
         "message": "No activity was captured"
@@ -1769,6 +1775,12 @@
     "offers_feedback_feature": {
         "message": "How do you like the MyOffrz feature?"
     },
+    "popup_cancel_button": {
+      "message": "Cancel"
+    },
+    "popup_apply_code_button": {
+      "message": "Apply code"
+    },
     "signals_humanweb_inactive_message": {
         "message": "Human Web is not activated"
     },
@@ -1881,13 +1893,16 @@
       "message": "See all results and what's happening."
     },
     "freshtab_app_speed_dials_row_history": {
-        "message": "Most visited"
+        "message": "Most visited sites"
+    },
+    "freshtab_app_speed_dials_row_history_onboarding": {
+        "message": "Your most visited pages will appear here"
     },
     "freshtab_app_speed_dials_row_custom": {
         "message": "Favorites"
     },
     "freshtab_urlbar_placeholder": {
-        "message": "Search Cliqz or enter URL"
+        "message": "Search privately with Cliqz"
     },
     "freshtab_app_speed_dial_removed": {
         "message": "removed"
@@ -2024,6 +2039,9 @@
     "freshtab_app_settings_news_language_us": {
         "message": "U.S. media"
     },
+    "freshtab_app_settings_news_language_es": {
+        "message": "Spanish media"
+    },
     "freshtab_app_offers_exclusive": {
         "message": "Exclusive"
     },
@@ -2087,9 +2105,6 @@
     "breaking_news_label": {
         "message": "Breaking News"
     },
-    "top_news_label": {
-        "message": "Top News"
-    },
     "TEST": {
         "message": "OK"
     },
@@ -2102,7 +2117,19 @@
     "freshtab_cliqz_tab_button": {
         "message": "Cliqz Tab"
     },
-    "freshtab_sport_button": {
-        "message": "Sport"
+    "freshtab_cliqz_modules_button": {
+        "message": "Cliqz Modules"
+    },
+    "freshtab_cliqz_modules_list": {
+        "message": "Cliqz modules list"
+    },
+    "delete": {
+      "message": "Delete"
+    },
+    "freshtab_why_offers": {
+      "message": "Why do I see this offer?"
+    },
+    "freshtab_why_offers_text": {
+      "message": "No personal data leaves your device. Your browser automatically identifies what you might be interested in based on your previous use. "
     }
 }

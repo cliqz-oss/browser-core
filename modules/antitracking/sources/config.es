@@ -30,6 +30,7 @@ export const DEFAULTS = {
   sendAntiTrackingHeader: true,
   blockCookieNewToken: false,
   tpDomainDepth: 2,
+  firstPartyIsolation: false,
 };
 
 export const PREFS = {
@@ -45,21 +46,23 @@ export const PREFS = {
   cookieTrustReferers: 'attrackCookieTrustReferers',
   telemetryMode: 'attrackTelemetryMode',
   sendAntiTrackingHeader: 'attrackSendHeader',
+  firstPartyIsolation: 'attrack.firstPartyIsolation',
 };
 
 /**
  * These are attributes which are loaded from the remote CONFIG_URL
  * @type {Array}
  */
-const REMOTELY_CONFIGURED = ['blockRules', 'reportList', 'cookieWhitelist', 'subdomainRewriteRules'];
+const REMOTELY_CONFIGURED = ['blockRules', 'reportList', 'cookieWhitelist', 'subdomainRewriteRules', 'compatibilityList'];
 
 export default class Config {
   constructor({
     defaults = DEFAULTS,
     versionUrl = VERSIONCHECK_URL
-  }) {
+  }, onUpdated) {
     this.debugMode = false;
     this.versionCheckUrl = versionUrl;
+    this.onUpdated = onUpdated;
 
     this.tokenDomainCountThreshold = 2;
     this.safeKeyExpire = 7;
@@ -137,5 +140,8 @@ export default class Config {
     REMOTELY_CONFIGURED.forEach((key) => {
       this[key] = conf[key];
     });
+    if (this.onUpdated) {
+      this.onUpdated();
+    }
   }
 }

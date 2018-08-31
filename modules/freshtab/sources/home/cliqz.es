@@ -1,7 +1,6 @@
 /* global window */
 import Spanan from 'spanan';
-import { isCliqzContentScriptMsg } from '../../core/content/helpers';
-import checkIfChromeReady from './ready-promise';
+import checkIfChromeReady from '../../core/content/ready-promise';
 import createSpananForModule from '../../core/helpers/spanan-module-wrapper';
 
 let INSTANCE = null;
@@ -61,49 +60,29 @@ class Cliqz {
       }
     });
 
-    const onPostMessage = (event) => {
-      let message;
-      try {
-        message = JSON.parse(event.data);
-      } catch (e) {
-        return;
-      }
-
-      api.handleMessage(message);
-      core.handleMessage(message);
-      freshtab.handleMessage(message);
-      offersV2.handleMessage(message);
-      controlCenter.handleMessage(message);
-    };
-
     const onMessage = (message) => {
       const msg = {
+        ...message,
         uuid: message.requestId,
-        response: message.response,
-        action: message.action,
-        args: message.args,
       };
 
-      if (isCliqzContentScriptMsg(message)) {
-        core.handleMessage(msg);
-        freshtab.handleMessage(msg);
-        offersV2.handleMessage(msg);
-        controlCenter.handleMessage(msg);
-        search.handleMessage(msg);
-        return;
-      }
-
+      core.handleMessage(msg);
+      freshtab.handleMessage(msg);
+      offersV2.handleMessage(msg);
+      controlCenter.handleMessage(msg);
+      search.handleMessage(msg);
       api.handleMessage(msg);
     };
 
     checkIfChromeReady().then(() => {
       chrome.runtime.onMessage.addListener(onMessage);
-      window.addEventListener('message', onPostMessage);
 
       window.addEventListener('unload', () => {
         chrome.runtime.onMessage.removeListener(onMessage);
-        window.removeEventListener('message', onPostMessage);
       });
+    }).catch((ex) => {
+      // eslint-disable-next-line no-console
+      console.error('Chrome was never ready', ex);
     });
 
     this.freshtab = freshtab.createProxy();

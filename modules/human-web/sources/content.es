@@ -2,7 +2,6 @@
 
 import {
   registerContentScript,
-  CHROME_MSG_SOURCE
 } from '../core/content/helpers';
 
 import { normalizeAclkUrl } from './ad-detection';
@@ -11,7 +10,7 @@ function logException(e) {
   window.console.error('[human-web] Exception caught:', e);
 }
 
-export function parseDom(url, window) {
+export function parseDom(url, window, hw) {
   const document = window.document;
 
   // Let's try and get META refresh to detect javascript redirects.
@@ -21,17 +20,14 @@ export function parseDom(url, window) {
     if (jsRef && jsRef.innerHTML.indexOf('location.replace') > -1) {
       const location = document.querySelector('title').textContent;
       chrome.runtime.sendMessage({
-        source: CHROME_MSG_SOURCE,
-        payload: {
-          module: 'human-web',
-          action: 'jsRedirect',
-          args: [{
-            message: {
-              location,
-              url: document.location.href
-            }
-          }]
-        }
+        module: 'human-web',
+        action: 'jsRedirect',
+        args: [{
+          message: {
+            location,
+            url: document.location.href
+          }
+        }]
       });
     }
   } catch (ee) {
@@ -56,15 +52,8 @@ export function parseDom(url, window) {
       hidden: _h
     };
 
-    chrome.runtime.sendMessage({
-      source: CHROME_MSG_SOURCE,
-      payload: {
-        module: 'human-web',
-        action: 'contentScriptTopAds',
-        args: [{
-          message: additionalInfo
-        }]
-      }
+    hw.action('contentScriptTopAds', {
+      message: additionalInfo
     });
   } catch (ee) {
     logException(ee);
@@ -140,15 +129,8 @@ export function parseDom(url, window) {
     });
 
     if (noAdsOnThisPage > 0) {
-      chrome.runtime.sendMessage({
-        source: CHROME_MSG_SOURCE,
-        payload: {
-          module: 'human-web',
-          action: 'adClick',
-          args: [{
-            ads: adDetails
-          }]
-        }
+      hw.action('adClick', {
+        ads: adDetails
       });
     }
   } catch (ee) {
@@ -156,13 +138,14 @@ export function parseDom(url, window) {
   }
 }
 
-registerContentScript('http*', (window) => {
+registerContentScript('human-web', 'http*', (window, chrome, CLIQZ) => {
   const url = window.location.href;
+  const hw = CLIQZ.app.modules['human-web'];
 
   // Only add for main pages.
   if (window.top === window) {
     window.addEventListener('DOMContentLoaded', () => {
-      parseDom(url, window);
+      parseDom(url, window, hw);
     });
   }
 });

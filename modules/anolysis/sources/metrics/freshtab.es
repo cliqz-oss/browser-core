@@ -1,5 +1,5 @@
-
 import inject from '../../core/kord/inject';
+import { actionFallback } from '../analyses-utils';
 
 // From: https://stackoverflow.com/a/43053803
 const f = (a, b) => [].concat(...a.map(d => b.map(e => [].concat(d, e))));
@@ -50,7 +50,10 @@ export default [
   {
     name: 'freshtab.prefs.state',
     offsets: [0],
-    generate: async () => [await inject.module('freshtab').action('getState')],
+    generate: () => inject.module('freshtab').action('getState').then(
+      state => [state],
+      actionFallback([]),
+    ),
     schema: {
       required: ['active'],
       properties: {
@@ -61,9 +64,10 @@ export default [
   {
     name: 'freshtab.prefs.blueTheme',
     offsets: [0],
-    generate: async () => [{
-      enabled: await inject.module('freshtab').action('isBlueThemeEnabled'),
-    }],
+    generate: () => inject.module('freshtab').action('isBlueThemeEnabled').then(
+      enabled => [{ enabled }],
+      actionFallback([]),
+    ),
     schema: {
       required: ['enabled'],
       properties: {
@@ -74,7 +78,10 @@ export default [
   {
     name: 'freshtab.prefs.config',
     offsets: [0],
-    generate: async () => [await inject.module('freshtab').action('getComponentsState')],
+    generate: () => inject.module('freshtab').action('getComponentsState').then(
+      state => [state],
+      actionFallback([]),
+    ),
     schema: {
       required: [
         'components',
@@ -276,8 +283,38 @@ export default [
   ], true),
   mkFreshtabSchema([
     { key: 'type', value: 'home' },
+    { key: 'view', value: 'add_favorite' },
     { key: 'action', value: 'click' },
-    { key: 'target', value: 'delete_favorite' },
+    { key: 'target', value: 'close' },
+  ], true),
+  mkFreshtabSchema([
+    { key: 'type', value: 'home' },
+    { key: 'view', value: 'add_favorite' },
+    { key: 'action', value: 'click' },
+    { key: 'target', value: 'add' },
+  ], true),
+  mkFreshtabSchema([
+    { key: 'type', value: 'home' },
+    { key: 'action', value: 'click' },
+    { key: 'target', value: 'edit_favorite' },
+  ], true),
+  mkFreshtabSchema([
+    { key: 'type', value: 'home' },
+    { key: 'view', value: 'edit_favorite' },
+    { key: 'action', value: 'click' },
+    { key: 'target', value: 'save' },
+  ], true),
+  mkFreshtabSchema([
+    { key: 'type', value: 'home' },
+    { key: 'view', value: 'edit_favorite' },
+    { key: 'action', value: 'click' },
+    { key: 'target', value: 'close' },
+  ], true),
+  mkFreshtabSchema([
+    { key: 'type', value: 'home' },
+    { key: 'view', value: 'edit_favorite' },
+    { key: 'action', value: 'click' },
+    { key: 'target', value: 'delete' },
   ], true),
 
   // Search bar

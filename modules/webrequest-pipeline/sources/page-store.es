@@ -54,7 +54,8 @@ export default class PageStore {
 
   isRedirect(details) {
     if (details.type === 'main_frame' && details.parentFrameId === -1) {
-      if (details.tabId && this.tabs[details.tabId] !== undefined) {
+      if (details.tabId !== undefined && details.tabId !== null
+        && this.tabs[details.tabId] !== undefined) {
         if (details.requestId === this.tabs[details.tabId].lastRequestId) {
           return true;
         }
@@ -81,8 +82,7 @@ export default class PageStore {
   }
 
   onTabCreated(tab) {
-    console.log('add new tab', tab.id);
-    if (tab.id) {
+    if (tab.id !== undefined && tab.id !== null) {
       this.tabs[tab.id] = {
         url: tab.url,
         isPrivate: tab.incognito,
@@ -91,8 +91,7 @@ export default class PageStore {
   }
 
   onTabUpdated(tabId, changeInfo, tab) {
-    console.log('update tab', tabId);
-    if (tabId && tab.url) {
+    if (tabId !== undefined && tabId !== null && tab.url) {
       if (this.tabs[tabId]) {
         this.tabs[tabId].url = tab.url;
         this.tabs[tabId].isPrivate = tab.incognito;
@@ -102,13 +101,11 @@ export default class PageStore {
           isPrivate: tab.incognito,
         };
       }
-      console.log('tab updated', tabId, tab.url);
     }
-    console.log(this.tabs);
   }
 
   onTabRemoved(tabId) {
-    if (tabId) {
+    if (tabId !== undefined && tabId !== null) {
       delete this.tabs[tabId];
     }
   }
@@ -128,11 +125,16 @@ export default class PageStore {
       return details.url;
     }
 
-    const tabId = details.tabId;
-    if (tabId && tabId in this.tabs) {
+    const { tabId, initiator } = details;
+    if (tabId !== undefined && tabId !== null && tabId in this.tabs) {
       return this.tabs[tabId].url;
     } else if (tabId !== -1) {
-      console.log(tabId, this.tabs, 'Cannot locate tabId');
+      if (initiator && initiator !== 'null') {
+        // Sometimes requests from iframes can have different tabid,
+        // try to use `initiator` as the source url
+        return initiator;
+      }
+      console.warn(tabId, this.tabs, 'Cannot locate tabId');
     }
 
     return null;

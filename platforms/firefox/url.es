@@ -1,30 +1,35 @@
-import { Services } from './globals';
+import { Services, Components } from './globals';
 
-export function isURI(text) {
-  try {
-    Services.io.newURI(text, 'UTF-8', null);
-    return true;
-  } catch (e) {
-    return false;
+const KNOWN_PROTOCOLS = ['http', 'https', 'ftp', 'file', 'about', 'mailto', 'chrome', 'moz-extension', 'resource'];
+
+function getExternalProtocolService() {
+  if (!getExternalProtocolService._instance) {
+    getExternalProtocolService._instance =
+      Components.classes['@mozilla.org/uriloader/external-protocol-service;1']
+        .getService(Ci.nsIExternalProtocolService);
   }
+  return getExternalProtocolService._instance;
 }
 
-export class URI {
-  constructor(url) {
-    this.uri = Services.io.newURI(url, 'UTF-8', null);
-  }
-
+export class URI extends URL {
   get cleanHost() {
-    let cleanHost = this.uri.host;
-    if (this.uri.host.toLowerCase().indexOf('www.') === 0) {
-      cleanHost = this.uri.host.slice(4);
+    let cleanHost = this.host;
+    if (this.host.toLowerCase().indexOf('www.') === 0) {
+      cleanHost = this.host.slice(4);
     }
     return cleanHost;
   }
   get path() {
     // Services.io.newURI().path changed in Fx 57 and returns undefined
     // in case there is no path. It was returning '/' in Fx56 and bellow
-    return this.uri.path || '/';
+    return this.pathname || '/';
+  }
+
+  get isKnownProtocol() {
+    const protocol = this.protocol.slice(0, -1).toLowerCase();
+    return KNOWN_PROTOCOLS.includes(protocol) ||
+      !!getExternalProtocolService().getProtocolHandlerInfo(protocol)
+        .possibleApplicationHandlers.length;
   }
 }
 
@@ -48,7 +53,11 @@ export function fixURL(url) {
   if (redirectedToSearch && url.indexOf('://') === -1) {
     // Platform fixup converted URL to search request and there was no protocol in initial URL.
     // Try to fix it again with protocol.
-    fixedURL = fixURL(`://${fixedURL}`);
+    const sndTryURL = `://${fixedURL}`;
+    const sndTryFixedURL = fixURL(sndTryURL);
+    if (sndTryURL !== sndTryFixedURL) {
+      fixedURL = sndTryFixedURL;
+    }
   }
 
   return fixedURL;

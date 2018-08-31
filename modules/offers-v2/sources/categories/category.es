@@ -3,7 +3,7 @@ import { timestampMS } from '../utils';
 import {
   getDaysFromTimeRange,
   getDateFromDateKey,
-  getTodayDayKey
+  getTodayDayKey,
 } from '../../core/time';
 
 

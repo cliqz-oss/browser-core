@@ -1,14 +1,15 @@
 /* eslint no-param-reassign: 'off' */
 /* eslint camelcase: 'off'  */
+/* eslint no-multi-spaces: 'off'  */
 
-import platformEquals, { isURI, URI } from '../platform/url';
+import platformEquals, { URI } from '../platform/url';
 import { getPublicSuffix } from './tlds';
 import MapCache from './helpers/fixed-size-cache';
 import {
   equals as urlEqual,
-  cleanMozillaActions
+  cleanMozillaActions,
 } from './content/url';
-import { isFirefox } from './platform';
+import { isBootstrap } from './platform';
 
 export {
   urlStripProtocol,
@@ -17,7 +18,22 @@ export {
 } from './content/url';
 export { fixURL } from '../platform/url';
 
-const UrlRegExp = /^(([a-z\d]([a-z\d-]*[a-z\d])?)\.)+[a-z]{2,}(:\d+)?$/i;
+const LD = 'a-z0-9';
+const ULD = `${LD}\\u{00c0}-\\u{ffff}`;
+const LDH = `${LD}-_`;    // technically underscore cannot be the part of hostname
+const ULDH = `${ULD}-_`;  // but it is being used too often to ignore it
+
+const UrlRegExp = new RegExp(
+  `^([${ULDH}]{2,63}\\.)*` +             // optional subdomains
+  `[${ULD}][${ULDH}]{0,61}[${ULD}]\\.` + // mandatory hostname
+  `[${ULD}]{2,63}` +                     // mandatory TLD
+  '(:\\d{2,5})?$',                       // optional port
+  'iu');
+
+const LocalUrlRegExp = new RegExp(
+  `^[${LD}][${LDH}]{0,61}[${LD}]` + // mandatory ascii hostname
+  ':\\d{2,5}$',                    // mandatory port
+  'i');
 
 function tryFn(fn) {
   return (...args) => {
@@ -50,19 +66,36 @@ export function isUrl(input) {
   if (!input) {
     return false;
   }
-  // TODO: handle ip addresses
-  if (isURI(input)) {
-    return true;
+
+  try {
+    const uri = new URI(input);
+    if ((uri.host || uri.path !== '/') && uri.isKnownProtocol) {
+      return true;
+    }
+  } catch (e) {
+    // Strict url parsing has failed (most likely due to lack of protocol).
+    // Falling back to a loose check to see if user input _looks_ like URL.
   }
-  // step 1 remove eventual protocol
+
+  // Remove protocol
+  input = input.trim();
   const protocolPos = input.indexOf('://');
-  if (protocolPos !== -1 && protocolPos <= 6) {
+  if (protocolPos >= 0) {
     input = input.slice(protocolPos + 3);
   }
-  // step2 remove path & everything after
-  input = input.split('/')[0];
-  // step3 run the regex
-  return UrlRegExp.test(input) || isIpAddress(input);
+  // Remove path, search or hash (what comes first)
+  input = input.split(/[/?#]/)[0];
+
+  // What is left should look like a domain name (potentially local). So we check:
+  // - if it matches minimal pattern "hostname.tld" (here hostname can be unicode),
+  //   i.e. "cliqz.com" or "www.nürnberg.de";
+  // - if it matches minimal pattern "hostname:port" (here hostname must be ASCII),
+  //   i.e. "localhost:3000", but not "उदाहरण:100";
+  // - if it is an IP address or "localhost".
+  return input === 'localhost' ||
+    UrlRegExp.test(input) ||
+    LocalUrlRegExp.test(input) ||
+    isIpAddress(input);
 }
 
 
@@ -75,7 +108,6 @@ export function isLocalhost(host, isIPv4, isIPv6) {
 }
 
 // IP Validation
-
 export function extractSimpleURI(url) {
   return new URI(url);
 }
@@ -260,7 +292,7 @@ export function getDetailsFromUrl(url) {
 }
 
 export function getSearchEngineUrl(engine, query, rawQuery) {
-  if (!isFirefox) {
+  if (!isBootstrap) {
     return engine.getSubmissionForQuery(query);
   }
 
@@ -273,7 +305,7 @@ export function getSearchEngineUrl(engine, query, rawQuery) {
 }
 
 export function getVisitUrl(url) {
-  if (!isFirefox) {
+  if (!isBootstrap) {
     return url;
   }
 
@@ -329,4 +361,25 @@ export function generalizeUrl(url, skipCorrection) {
   }
   url = cleanUrlProtocol(val, true);
   return url[url.length - 1] === '/' ? url.slice(0, -1) : url;
+}
+
+export function getUrlVariations(url) {
+  let protocols = ['http:', 'https:'];
+  const u = new URL(url);
+
+  if (!protocols.includes(u.protocol)) {
+    protocols = [u.protocol];
+  }
+
+  return Array.from(
+    protocols.reduce((urls, protocol) => {
+      const path = u.pathname.replace(/\/+$/, '');
+      u.protocol = protocol;
+      u.pathname = path;
+      urls.add(u.toString());
+      u.pathname = `${path}/`;
+      urls.add(u.toString());
+      return urls;
+    }, new Set())
+  );
 }

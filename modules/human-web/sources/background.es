@@ -9,7 +9,7 @@ import history from '../core/history-service';
 import inject from '../core/kord/inject';
 import WebRequest from '../core/webrequest';
 import logger from './logger';
-import { isFirefox, isPlatformAtLeastInVersion } from '../core/platform';
+import { isBootstrap, isPlatformAtLeastInVersion } from '../core/platform';
 import bindObjectFunctions from '../core/helpers/bind-functions';
 
 /**
@@ -48,7 +48,7 @@ export default background({
     HumanWeb.hpn = this.hpn;
 
     const FF48_OR_ABOVE = isPlatformAtLeastInVersion('48.0');
-    if (isFirefox && !FF48_OR_ABOVE) {
+    if (isBootstrap && !FF48_OR_ABOVE) {
       this.active = false;
       return Promise.resolve();
     }

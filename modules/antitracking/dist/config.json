@@ -4,5 +4,13 @@
   "cookieWhitelist": [],
   "subdomainRewriteRules": {
     ".users.storage.live.com": "cid-0.users.storage.live.com"
+  },
+  "compatibilityList": {
+    "microsoft.com": ["office.com", "live.com", "microsoftonline.com"],
+    "bing.com": ["office.com"],
+    "live.com": ["office.com", "microsoftonline.com"],
+    "microsoftonline.com": ["office.com", "live.com"],
+    "office.com": ["microsoftonline.com"],
+    "force.com": ["safesforce.com"]
   }
 }

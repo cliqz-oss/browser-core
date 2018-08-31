@@ -1,4 +1,9 @@
+import { isBootstrap } from '../platform';
+
 export function addStylesheet(document, url) {
+  if (!isBootstrap) {
+    return;
+  }
   const stylesheet = document.createElementNS('http://www.w3.org/1999/xhtml', 'h:link');
   stylesheet.rel = 'stylesheet';
   stylesheet.href = url;
@@ -10,6 +15,9 @@ export function addStylesheet(document, url) {
 }
 
 export function removeStylesheet(document, url) {
+  if (!isBootstrap) {
+    return;
+  }
   const styles = [].slice.call(document.getElementsByClassName('cliqz-theme'));
   styles.filter(style => style.href === url)
     .forEach((stylesheet) => {

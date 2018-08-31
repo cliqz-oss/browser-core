@@ -160,6 +160,14 @@ class LoggerManager {
     });
   }
 
+  enable() {
+    this.loggingEnabled = true;
+  }
+
+  disable() {
+    this.loggingEnabled = false;
+  }
+
   unload() {
     if (this.prefListener !== null) {
       this.prefListener.unsubscribe();

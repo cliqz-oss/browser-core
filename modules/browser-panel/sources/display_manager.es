@@ -30,6 +30,7 @@ export default class DisplayManager {
   }
 
   destroy() {
+    Object.keys(this.timersMap).forEach(this._removeTimer.bind(this));
   }
 
   // ///////////////////////////////////////////////////////////////////////////

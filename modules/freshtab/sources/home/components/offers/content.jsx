@@ -2,17 +2,13 @@ import React from 'react';
 import Title from './title';
 import Logo from './logo';
 import HeadlineBenefit from './headlineBenefit';
-import { tt } from '../../i18n';
+import { t, tt } from '../../i18n';
 import { sendOffersMessage } from '../../services/offers';
-
-const largeBreakpoint = 1600;
-const mediumBreakpoint = 1024;
-const xMediumBreakpoint = 920;
-const smallBreakpoint = 650;
+import { offerClickSignal } from '../../services/telemetry/offers';
 
 function Label(props) {
   return (
-    <span className={props.label}>{tt(`offers_${props.label}`)}</span>
+    <li className={props.label}>{tt(`offers_${props.label}`)}</li>
   );
 }
 
@@ -29,57 +25,24 @@ function SpecialFlags(props) {
   }
   return labels && labels.slice(0, 2).map(label =>
     (
-      <Label label={label} />
+      <Label label={label} key={label} />
     )
   );
 }
-
 
 export default class Content extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      multiplier: 1.15
+      showFeedback: false,
+      showMenu: false,
+      showInfo: false
     };
-
-    this.didResize = this.didResize.bind(this);
-    this.updateLeftContainerWidth = this.updateLeftContainerWidth.bind(this);
   }
 
-  componentDidMount() {
-    window.addEventListener('resize', this.didResize);
-    this.updateLeftContainerWidth(window.innerWidth);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', this.didResize);
-  }
-
-  updateLeftContainerWidth(width) {
-    if (width >= largeBreakpoint) {
-      this.setState({ multiplier: 0.9 });
-    } else if (width >= mediumBreakpoint) {
-      this.setState({ multiplier: 1.15 });
-    } else if (width >= xMediumBreakpoint) {
-      this.setState({ multiplier: 0.8 });
-    } else if (width >= smallBreakpoint) {
-      this.setState({ multiplier: 1.2 });
-    }
-  }
-
-  didResize(event) {
-    const width = event.target.innerWidth;
-    this.updateLeftContainerWidth(width);
-  }
-
-  calculateMaxWidth(characters, hasTitle) {
-    const multiplier = this.state.multiplier;
-    let width = characters * multiplier;
-    if (hasTitle) {
-      width = characters * 0.82;
-    }
-    return `${width}%`;
+  onLearnMoreClicked = () => {
+    offerClickSignal('learn_more');
   }
 
   changeFontSize(characters) {
@@ -90,11 +53,31 @@ export default class Content extends React.Component {
     return shouldChange;
   }
 
+  handletoggleMenu = () => {
+    offerClickSignal('menu');
+    this.setState({
+      showMenu: !this.state.showMenu,
+      showInfo: false
+    });
+  }
+
+  handleCloseClick = () => {
+    const offerId = this.props.offer_id;
+    this.props.toggleComponents();
+    sendOffersMessage(offerId, 'offer_removed', 'remove-offer');
+    offerClickSignal('remove');
+  }
+
+  showInfo = () => {
+    offerClickSignal('why_see');
+    this.setState({
+      showInfo: true
+    });
+  }
+
   render() {
     const benefitOrHeadline = (this.props.data.benefit && this.props.data.headline);
     let heading;
-    let numOfCharacters;
-    let hasTitle = false;
     if (benefitOrHeadline) {
       heading = (<HeadlineBenefit
         headline={this.props.data.headline}
@@ -103,7 +86,6 @@ export default class Content extends React.Component {
         url={this.props.data.call_to_action.url}
         offer_id={this.props.offer_id}
       />);
-      numOfCharacters = this.props.data.headline.length;
     } else {
       heading = (<Title
         title={this.props.data.title}
@@ -111,44 +93,73 @@ export default class Content extends React.Component {
         url={this.props.data.call_to_action.url}
         offer_id={this.props.offer_id}
       />);
-      numOfCharacters = this.props.data.title.length;
-      hasTitle = true;
     }
     return (
-      <div className="content clearfix">
-        <div
-          className="left-container"
-          style={{
-            width: this.calculateMaxWidth(numOfCharacters, hasTitle)
-          }}
-        >
-          <div className="special-flags">
-            <SpecialFlags labels={this.props.data.labels} />
+      <div className="row">
+        <div className="col first">
+          <div className="first-holder">
+            <div className="special-flags">
+              <header>
+                <ul>
+                  <SpecialFlags labels={this.props.data.labels} />
+                </ul>
+              </header>
+            </div>
+            {heading}
           </div>
-          {heading}
         </div>
-        <div className="right-container">
-          <div className="top-row">
-
-            <div className={`logo-container ${this.props.data.logo_class}`}>
+        <div className="col second">
+          <header>
+            <ul>
+              <li
+                className={`expires info-icon tooltip tooltipstered ${this.props.validity && this.props.validity.isExpiredSoon ? 'red' : ''}`}
+                ref={(el) => { this.tooltip = el; }}
+                data-tip={this.props.validity.text}
+              >
+                {this.props.validity.text}
+              </li>
+            </ul>
+            <span className={`logo ${this.props.data.logo_class}`}>
               <Logo
                 data={this.props.data}
                 offer_id={this.props.offer_id}
                 url={this.props.data.call_to_action.url}
               />
-            </div>
-            <span
-              className={`expires ${((this.props.validity && this.props.validity.isExpiredSoon) ? 'red' : '')}`}
-            >
-              {this.props.validity.text}
             </span>
-          </div>
+            <button
+              className="options"
+              onClick={this.handletoggleMenu}
+            />
+            <ul className={`offer-menu white-box ${this.state.showMenu ? 'show-it' : ''}`}>
+              <li>
+                <button
+                  onClick={this.handleCloseClick}
+                >
+                  {tt('delete')}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={this.showInfo}
+                >
+                  {t('why_offers')}
+                </button>
+              </li>
+            </ul>
+            <div className={`why-info white-box ${this.state.showInfo ? 'show-it' : ''}`}>
+              <button
+                className="close"
+                onClick={this.handletoggleMenu}
+              />
+              <p> {t('why_offers_text')} </p>
+              <a onClick={this.onLearnMoreClicked} href="https://cliqz.com/cliqz-angebote">{tt('learnMore')}</a>
+            </div>
+          </header>
           <p
             className={`offer-description ${((this.changeFontSize(this.props.data.desc.length)) ? 'small' : '')}`}
           >
             <a
               href={this.props.data.call_to_action.url}
-              // data-tip={props.data.desc}
               data-type="light"
               data-class="light-tooltip"
               onClick={() => {

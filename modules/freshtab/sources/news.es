@@ -9,7 +9,7 @@ import i18n from '../core/i18n';
 import inject from '../core/kord/inject';
 import { extractSimpleURI } from '../core/url';
 import { getDomains, isURLVisited } from '../platform/freshtab/history';
-
+import BloomFilter from '../core/bloom-filter';
 import NewsCache from './news-cache';
 
 const ONE_MINUTE = 60 * 1000;
@@ -25,7 +25,7 @@ const hbasedNewsTypeKey = 'yournews';
 const prClBurdaNewsTypeKey = 'pr-cl-burda-news';
 const breakingNewsTypeKey = 'breaking-news';
 
-const NEWS_BACKENDS = ['de', 'fr', 'us', 'gb'];
+const NEWS_BACKENDS = ['de', 'fr', 'us', 'gb', 'es'];
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 
 const log = console.log.bind(console, 'freshtab.news');
@@ -172,7 +172,6 @@ export function mergeToGlobalVisitCount(urlDesc, visitCount, globalVisitCount) {
   }
 
   globalVisitCount[domain].count += visitCount;
-
 
   // cut the first empty part
   if (!(urlPathList[0])) { urlPathList = urlPathList.slice(1); }
@@ -488,11 +487,39 @@ export function composeNewsList(historyObject, topNewsCache, hbasedResults) {
           || 0;
   }
 
-  function notAlreadyInList(url, freshtabArticlesList) {
+  function notAlreadyInList(articleTocheck, freshtabArticlesList) {
     function urlCheck(art) {
-      return (url !== art.url);
+      return (articleTocheck.url !== art.url);
     }
-    return freshtabArticlesList.every(urlCheck);
+    // check if articles not in ATN clusters using bloom filter
+    function bloomFilterCheck(art) {
+      if (!art.bloomFilterObj && !art.cluster_articles_bloomfilter) {
+        return true;
+      }
+      if (!art.bloomFilterObj) {
+        const clusterArticlesBloomfilter = JSON.parse(art.cluster_articles_bloomfilter);
+        const bloomFilterObj =
+          new BloomFilter(clusterArticlesBloomfilter.bkt, clusterArticlesBloomfilter.k);
+
+        art.bloomFilterObj = bloomFilterObj;
+      }
+      if (art.bloomFilterObj) {
+        const isInList = art.bloomFilterObj.testSingle(articleTocheck.url);
+        if (isInList) {
+          console.log('article found in Bloom Filter: ', articleTocheck.url);
+          return !isInList;
+        }
+      }
+      return true;
+    }
+
+    /**
+    * (articleTocheck) should not be already in the list and not duplicated in cluster bloomfilter
+    * NOTE: if articleTocheck already has a bloomfilter, then we skipp checking
+    * the duplication in previous clusters bloomfilter
+    */
+    return freshtabArticlesList.every(urlCheck) &&
+      (articleTocheck.cluster_articles_bloomfilter || freshtabArticlesList.every(bloomFilterCheck));
   }
 
   function mergeToList(
@@ -505,7 +532,7 @@ export function composeNewsList(historyObject, topNewsCache, hbasedResults) {
   ) {
     function mergeCheck(article, checkHist, urlDomainPatern) {
       return (!(!(article.breaking === true) && checkHist && article.isVisited) &&
-            (notAlreadyInList(article.url, freshtabArticlesList)) &&
+            (notAlreadyInList(article, freshtabArticlesList)) &&
             (article.url.indexOf(urlDomainPatern) !== -1));
     }
     function mergeArticle(article, returnList) {

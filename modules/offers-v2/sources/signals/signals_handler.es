@@ -11,51 +11,17 @@ import logger from '../common/offers_v2_logger';
 import utils from '../../core/utils';
 import { httpPost } from '../../core/http';
 import OffersConfigs from '../offers_configs';
-import config from '../../core/config';
 import SimpleDB from '../../core/persistence/simple-db';
 import setTimeoutInterval from '../../core/helpers/timeout';
 import { generateUUID } from '../utils';
 import {
   isDeveloper,
-  getGID,
-  getHpnTimeStamp,
-  getMinuteTimestamp
+  constructSignal,
+  addOrCreate,
 } from './utils';
 
-// /////////////////////////////////////////////////////////////////////////////
-// consts
 const STORAGE_DB_DOC_ID = 'offers-signals';
 
-// /////////////////////////////////////////////////////////////////////////////
-// Helper methods
-
-function addOrCreate(d, field, value = 1) {
-  const elem = d[field];
-  if (elem) {
-    d[field] = elem + value;
-  } else {
-    d[field] = value;
-  }
-}
-
-function constructSignal(signalID, signalType, signalData) {
-  return {
-    action: OffersConfigs.SIGNALS_HPN_BE_ACTION,
-    signal_id: signalID,
-    timestamp: getHpnTimeStamp(),
-    payload: {
-      v: OffersConfigs.SIGNALS_VERSION,
-      ex_v: config.EXTENSION_VERSION,
-      is_developer: isDeveloper(),
-      gid: getGID(),
-      type: signalType,
-      sent_ts: getMinuteTimestamp(),
-      data: signalData,
-    },
-  };
-}
-
-// /////////////////////////////////////////////////////////////////////////////
 export default class SignalHandler {
   //
   // @brief [v3.0] we will not use bucket anymore so now we will have the following
@@ -398,6 +364,10 @@ export default class SignalHandler {
     return true;
   }
 
+  flush() {
+    return this._sendSignalsToBE();
+  }
+
   // ///////////////////////////////////////////////////////////////////////////
   //                            PRIVATE METHODS
 
@@ -695,14 +665,14 @@ export default class SignalHandler {
   _loadPersistenceData() {
     // for testing comment the following check
     if (!OffersConfigs.SIGNALS_LOAD_FROM_DB) {
-      logger.info('skipping the loading');
+      logger.info('Skipping loading persisted data (reason: config)');
       return Promise.resolve(true);
     }
 
     const self = this;
     return self.db.get(STORAGE_DB_DOC_ID).then((docData) => {
       if (!docData || !docData.sig_map) {
-        logger.error('something went wrong loading the data?');
+        logger.log('No existing persisted data');
         return;
       }
       // set the data

@@ -5,7 +5,7 @@ export default class Switch extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isChecked: false
+      isChecked: props.isChecked
     };
     this._handleChange = this._handleChange.bind(this);
   }
@@ -47,4 +47,7 @@ export default class Switch extends React.Component {
 Switch.propTypes = {
   toggleComponent: PropTypes.func,
   name: PropTypes.string
+};
+Switch.defaultProps = {
+  isChecked: false,
 };

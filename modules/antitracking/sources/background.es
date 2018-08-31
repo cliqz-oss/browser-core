@@ -12,6 +12,8 @@ import Config, { MIN_BROWSER_VERSION } from './config';
 import { updateTimestamp } from './time';
 import domainInfo from '../core/services/domain-info';
 import bindObjectFunctions from '../core/helpers/bind-functions';
+import inject from '../core/kord/inject';
+
 
 /**
 * @namespace antitracking
@@ -30,6 +32,7 @@ export default background({
   init(settings) {
     // Create new attrack class
     this.settings = settings;
+    this.core = inject.module('core');
     this.attrack = new Attrack();
 
     if (browser.getBrowserMajorVersion() < MIN_BROWSER_VERSION) {
@@ -55,7 +58,7 @@ export default background({
 
 
     // load config
-    this.config = new Config({});
+    this.config = new Config({}, () => this.core.action('refreshAppState'));
     return this.config.init().then(() => this.attrack.init(this.config));
   },
 
@@ -74,6 +77,16 @@ export default background({
     }
 
     this.enabled = false;
+  },
+
+  /**
+   * State which will be passed to the content-script
+   */
+  getState() {
+    return {
+      cookieBlockingEnabled: this.config.cookieEnabled,
+      compatibilityList: this.config.compatibilityList,
+    };
   },
 
   actions: {
@@ -128,6 +141,17 @@ export default background({
 
         return stats;
       });
+    },
+    getGhosteryStats(tabId) {
+      if (!this.attrack.tp_events._active[tabId] ||
+          !this.attrack.tp_events._active[tabId].annotations ||
+          !this.attrack.tp_events._active[tabId].annotations.counter) {
+        return {
+          bugs: {},
+          others: {},
+        };
+      }
+      return this.attrack.tp_events._active[tabId].annotations.counter.getSummary();
     },
     isEnabled() {
       return this.enabled;

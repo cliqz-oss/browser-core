@@ -33,15 +33,16 @@
         "import/extensions": "off",
         "class-methods-use-this": "off",
         "no-restricted-syntax": [
-            'error',
-            'ForInStatement',
-            'LabeledStatement',
-            'WithStatement',
+            "error",
+            "ForInStatement",
+            "LabeledStatement",
+            "WithStatement"
         ],
         "comma-dangle": ["error", {
             "arrays": "only-multiline",
             "objects": "only-multiline",
-            "functions": "ignore",
+            "imports": "always-multiline",
+            "functions": "ignore"
         }],
         "react/require-default-props": "off",
         "react/prop-types": "off",
@@ -49,22 +50,37 @@
         // Rules to keep
         "no-underscore-dangle": "off",
         "import/no-unresolved": "off",
-        "no-restricted-globals": ["error", "Worker"]
+        "no-restricted-globals": ["error", "Worker"],
+        "react/sort-comp": "off",
+        "react/forbid-prop-types": "off",
     },
     "overrides": [
-    {
-        "files": [
-            "modules/**/tests/**/*.*",
-            "modules/**/*tests.bundle.*",
-            "modules/**/*helpers.*"
-        ],
-        "rules": {
-          "import/no-extraneous-dependencies": "off",
-          "func-names": ["error", "never"],
-          "prefer-arrow-callback": "off",
-          "no-unused-expressions": "off",
-          "object-shorthand": "off",
-          }
-    }
+        {
+            "files": [
+                "modules/**/tests/**/*.*",
+                "modules/**/*tests.bundle.*",
+                "modules/**/*helpers.*"
+            ],
+            "rules": {
+                "import/no-extraneous-dependencies": "off",
+                "func-names": ["error", "never"],
+                "prefer-arrow-callback": "off",
+                "no-unused-expressions": "off",
+                "object-shorthand": "off"
+            }
+        },
+        {
+            "files": [
+                "fern/commands/*.*"
+
+            ],
+            "rules": {
+                "import/no-extraneous-dependencies": "off",
+                "global-require": "off",
+                "import/no-dynamic-require": "off",
+                "strict": "off",
+                "no-console": "off"
+            }
+        }
     ]
 }

@@ -14,12 +14,11 @@ function getAlias(host, searchEngines) {
   return engine.alias;
 }
 
-const ALLOWED_SCHEMES = ['http', 'https', 'ftp'];
+const ALLOWED_SCHEMES = ['http', 'https', 'ftp', 'resource'];
 
 export default class SpeedDial {
   static getValidUrl(url) {
     let uri = parseURL(url);
-
     if (!uri || !uri.protocol) {
       url = url.replace(/^:?\/*/, '');
       url = `http://${url}`;
@@ -40,7 +39,6 @@ export default class SpeedDial {
     item.logo = logoDetails;
     return item;
   }
-  // dialSpecs = {url, title = '',isCustom = true}
 
   constructor({ url, title = '', isCustom = true }, searchEngines) {
     const details = getDetailsFromUrl(url);

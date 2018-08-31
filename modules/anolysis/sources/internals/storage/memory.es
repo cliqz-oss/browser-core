@@ -1,7 +1,7 @@
 import DefaultMap from '../../../core/helpers/default-map';
 import logger from '../logger';
 import getSynchronizedDate, { DATE_FORMAT } from '../synchronized-date';
-
+import sortByTs from './utils';
 
 class AggregatedView {
   constructor() {
@@ -36,7 +36,8 @@ class BehaviorView {
   }
 
   getTypesForDate(date) {
-    const signals = this.db.get(date);
+    // Makes sure that signals are ordered by timestamp
+    const signals = sortByTs(this.db.get(date));
     const types = new DefaultMap(() => []);
     for (let i = 0; i < signals.length; i += 1) {
       const { type, behavior } = signals[i];
@@ -52,6 +53,7 @@ class BehaviorView {
       behavior,
       date,
       type,
+      ts: Date.now(),
     };
 
     logger.debug('add', doc);
@@ -177,10 +179,13 @@ export default class AnolysisStorage {
     return Promise.resolve();
   }
 
+  healthCheck() {
+    return true;
+  }
+
   destroy() {
     return Promise.resolve();
   }
 
-  unload() {
-  }
+  unload() {}
 }

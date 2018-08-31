@@ -122,8 +122,9 @@ export default class {
   }
 
   get query() {
+    // TODO: should this rather return this.previousQuery ?
     const ctrl = this.urlbar.controller;
-    return ctrl.searchString.trim();
+    return ctrl.searchString;
   }
 
   get document() {
@@ -243,13 +244,50 @@ export default class {
     return height;
   }
 
-  handleEnter({ newTab }) {
+  handleEnter = async ({ newTab }) => {
     if (
-      this.isOpen &&
-      this.hasRelevantResults(this.query, this.selectedResult ? [this.selectedResult] : [])
+      this.isOpen && (
+        newTab ||
+        this.hasRelevantResults(this.query, this.selectedResult ? [this.selectedResult] : [])
+      )
     ) {
       return this.dropdownAction.handleEnter({ newTab });
     }
+
+    const handledQuery = await this.search.action('queryToUrl', this.query);
+
+    events.pub('ui:enter', {
+      isPrivateMode: utils.isPrivateMode(this.window),
+      windowId: utils.getWindowID(this.window),
+      tabId: getCurrentTabId(this.window),
+      query: this.query,
+    });
+
+    /* If a user did not type anything in
+    *  a searchbar then we should not allow
+    *  to handle enter command.
+    *  Otherwise a browser will try to delegate
+    *  it to its' default search engine.
+    */
+    if (!this.query) {
+      return false;
+    }
+
+    /* Here we need to set a value to urlbar.
+     * This value will be handled by handleCommand FF method.
+     * In our case handledQuery might be
+     * moz-action:searchengine... or
+     * moz-action:visiturl...
+     * Searchengine occurs if a user requests something
+     * other than a valid URL, 'best place in the world', for example.
+     * handleCommand then uses default search engine set
+     * in a browser to look for results.
+     * If a user types something that looks like a valid
+     * url then visiturl marker takes place and FF
+     * knows that it needs to load that page instead of
+     * using a default search engine.
+     * */
+    this.urlbar.value = handledQuery;
     return this.urlbar.handleCommand();
   }
 
@@ -258,8 +296,8 @@ export default class {
       rawResults.length &&
       rawResults.some(
         result =>
-          (result.text.trim() === query.trim()) ||
-          (result.suggestion && (result.suggestion.trim() === query.trim()))
+          (result.text === query) ||
+          (result.suggestion && (result.suggestion === query))
       )
     );
   }
@@ -276,6 +314,12 @@ export default class {
 
   autocompleteQuery(query, completion) {
     if (!completion) {
+      if ((this.previousQuery === query) && (this.urlbar.mInputField.value !== query)) {
+        // urlbar for some reason contains old query,
+        // that is probably due to race condition of user input and
+        // previous call to autocompleteQuery, we fix it to most resent value
+        this.urlbar.mInputField.value = query;
+      }
       return;
     }
     const value = `${query}${completion}`;
@@ -307,6 +351,7 @@ export default class {
     };
   }
 
+  // TODO: reuse core/dropdown/base
   async render({
     query,
     queriedAt,
@@ -348,9 +393,10 @@ export default class {
     // While we were rendering results the query or search session may have changed.
     // So we have to check if rendered results are still relevant to the current query
     // and that we are still in the same session.
-    if (renderedSessionId === getSessionId() &&
-        this.hasRelevantResults(this.query, rawResults)) {
+    if (result && renderedSessionId === getSessionId() &&
+        this.hasRelevantResults(this.query, [result])) {
       this.open();
+
       this.autocompleteQuery(
         query,
         result.meta.completion,

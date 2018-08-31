@@ -1,12 +1,18 @@
-import moment from '../platform/lib/moment';
 import UAParser from '../platform/lib/ua-parser';
 import {
   getChannel,
   getCountry,
   getDistribution,
-  getInstallDate, // nDays since Epoch
-  getUserAgent
+  getInstallDate,
+  getUserAgent,
 } from '../platform/demographics';
+import {
+  CONFIG_TS_FORMAT,
+  dateToDaysSinceEpoch,
+  daysSinceEpochToDate,
+  formattedToDate,
+  isConfigTsDate,
+} from './helpers/date';
 
 import Logger from './logger';
 import getSynchronizedDate from './synchronized-time';
@@ -47,37 +53,39 @@ const LINUX_OS = new Set([
   'VectorLinux',
 ]);
 
+const ANOLYSIS_BACKEND_DATE_FORMAT = 'YYYY/MM/DD';
+
 
 function normalizeString(value) {
   return value.trim().toLowerCase().replace(/\s+/g, '-');
 }
 
 function parseCountry(country) {
-  return country;
+  return country || '';
 }
 
 
 function parseInstallDate(rawInstallDate) {
-  let installDate = `Other/${rawInstallDate || ''}`;
+  if (isConfigTsDate(rawInstallDate)) {
+    // This install date has been initialized using `config_ts` from backend
+    return formattedToDate(rawInstallDate, CONFIG_TS_FORMAT).format(ANOLYSIS_BACKEND_DATE_FORMAT);
+  }
 
-  if (rawInstallDate) {
-    const installDateMs = rawInstallDate * 86400000;
-    const momentInstallDate = moment(installDateMs);
-    // This date format is expected by the gid backend. '/' is used as a
-    // separator to split demographics into sub-trees. Do not use another
-    // format there.
-    installDate = momentInstallDate.format('YYYY/MM/DD');
-    const currentDate = getSynchronizedDate();
-    if (rawInstallDate < 16129 || momentInstallDate.isAfter(currentDate, 'day')) {
-      // Some install date are not possible and should be considered as
-      // outlier:
-      // - In the past (before Cliqz existed)
-      // - In the future
-      installDate = `Other/${installDate}`;
+  // Else, this is the legacy format: number of days since epoch
+  const currentDaysSinceEpoch = dateToDaysSinceEpoch(getSynchronizedDate());
+  if (
+    Number.isInteger(rawInstallDate) &&
+    rawInstallDate >= 16129 &&
+    rawInstallDate <= currentDaysSinceEpoch
+  ) {
+    const installDate = daysSinceEpochToDate(rawInstallDate);
+    if (installDate.isValid()) {
+      return installDate.format(ANOLYSIS_BACKEND_DATE_FORMAT);
     }
   }
-  logger.debug('install_date', installDate);
-  return installDate;
+
+  // Fallback to 'Other' bucket to indicate an invalid install date
+  return `Other/${rawInstallDate}`;
 }
 
 
@@ -199,7 +207,6 @@ function parseCampaign(distribution) {
   return distribution;
 }
 
-
 export default async function getDemographics() {
   const platform = parsePlatform(await getUserAgent());
   return {
@@ -209,4 +216,18 @@ export default async function getDemographics() {
     platform: normalizeString(platform),
     product: normalizeString(parseProduct(await getChannel(), platform)),
   };
+}
+
+export async function getInstallDateAsDaysSinceEpoch() {
+  const installDate = await getInstallDate();
+  return (
+    isConfigTsDate(installDate)
+      ? dateToDaysSinceEpoch(formattedToDate(installDate, CONFIG_TS_FORMAT))
+      : installDate
+  );
+}
+
+export async function getDaysSinceInstall() {
+  const currentDaysSinceEpoch = dateToDaysSinceEpoch(getSynchronizedDate());
+  return currentDaysSinceEpoch - (await getInstallDateAsDaysSinceEpoch());
 }

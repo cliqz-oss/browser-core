@@ -1,7 +1,7 @@
 import UI from './ui';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import AppWindow from '../core/base/window';
-import { isFirefox } from '../core/platform';
+import { isBootstrap } from '../core/platform';
 
 const STYLESHEET_URL = 'chrome://cliqz/content/dropdown/styles/xul.css';
 
@@ -21,16 +21,14 @@ export default class DropdownWindow extends AppWindow {
       this.ui.sessionEnd();
       this.ui.renderer.close();
     },
-    'search:results': ({ windowId, results }) => {
+    'search:results': ({ windowId, results, query, queriedAt }) => {
       if (this.windowId !== windowId) {
         return;
       }
 
-      const query = this.window.gURLBar.mController.searchString;
-
       this.ui.render({
         rawResults: results,
-        queriedAt: Date.now(),
+        queriedAt,
         query,
       });
     },
@@ -44,7 +42,7 @@ export default class DropdownWindow extends AppWindow {
     this.background = config.background;
     this.settings = config.settings;
 
-    if (isFirefox) {
+    if (isBootstrap) {
       this.ui = new UI(this.window, this.settings.id, {
         window: this.window,
         windowId: this.windowId,

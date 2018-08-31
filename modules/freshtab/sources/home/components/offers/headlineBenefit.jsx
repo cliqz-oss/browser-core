@@ -3,7 +3,7 @@ import { sendOffersMessage } from '../../services/offers';
 
 function Benefit(props) {
   return (
-    <div className="benefit">
+    <span className="benefit">
       <a
         href={props.url}
         onClick={() => {
@@ -13,19 +13,20 @@ function Benefit(props) {
       >
         {props.benefit}
       </a>
-    </div>
+    </span>
   );
 }
 
 function Headline(props) {
   return (
-    <div className="headline-container">
+    <span className="headline-container">
       <div
         className="headline"
         style={{ color: props.color }}
       >
         <a
           className="headline-url"
+          style={{ color: props.color }}
           href={props.url}
           onClick={() => {
             sendOffersMessage(props.offer_id, 'offer_ca_action');
@@ -35,7 +36,7 @@ function Headline(props) {
           {props.headline}
         </a>
       </div>
-    </div>
+    </span>
   );
 }
 

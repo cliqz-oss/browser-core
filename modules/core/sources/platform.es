@@ -4,13 +4,15 @@ import platform, { OS } from '../platform/platform';
 
 export {
   isPlatformAtLeastInVersion,
-  isCliqzAtLeastInVersion
+  isCliqzAtLeastInVersion,
+  getResourceUrl
 } from '../platform/platform';
 
 export function notImplemented() {
   throw new Error('Not implemented');
 }
 
+export const isBootstrap = platform.isBootstrap;
 export const isFirefox = platform.isFirefox;
 export const isMobile = platform.isMobile;
 export const isChromium = platform.isChromium;

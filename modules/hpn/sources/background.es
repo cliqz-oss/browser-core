@@ -1,5 +1,4 @@
 import background from '../core/base/background';
-import { isPlatformAtLeastInVersion } from '../core/platform';
 import CliqzSecureMessage from './main';
 import CryptoWorker from './crypto-worker';
 
@@ -12,24 +11,20 @@ export default background({
   * @method init
   */
   init() {
-    const FF48_OR_ABOVE = isPlatformAtLeastInVersion('48.0');
-
-    if (FF48_OR_ABOVE) {
-      // We need to use this function, 'load' events do not seem to be firing...
-      this.enabled = true;
-      this.CliqzSecureMessage = CliqzSecureMessage;
-      CliqzSecureMessage.init();
-      CliqzSecureMessage.wCrypto = new CryptoWorker('httpHandler');
-      CliqzSecureMessage.wCrypto.onmessage = (e) => {
-        if (e.data.type === 'instant') {
-          const callback = CliqzSecureMessage.queriesID[e.data.uid];
-          delete CliqzSecureMessage.queriesID[e.data.uid];
-          if (callback) {
-            callback({ response: e.data.res });
-          }
+    // We need to use this function, 'load' events do not seem to be firing...
+    this.enabled = true;
+    this.CliqzSecureMessage = CliqzSecureMessage;
+    CliqzSecureMessage.init();
+    CliqzSecureMessage.wCrypto = new CryptoWorker('httpHandler');
+    CliqzSecureMessage.wCrypto.onmessage = (e) => {
+      if (e.data.type === 'instant') {
+        const callback = CliqzSecureMessage.queriesID[e.data.uid];
+        delete CliqzSecureMessage.queriesID[e.data.uid];
+        if (callback) {
+          callback({ response: e.data.res });
         }
-      };
-    }
+      }
+    };
   },
   /**
   * @method unload
@@ -82,7 +77,7 @@ export default background({
             reject();
           }
         };
-        wCrypto.postMessage({
+        const message = {
           msg: {
             action: 'instant',
             type: 'cliqz',
@@ -98,7 +93,10 @@ export default background({
           dspk: CliqzSecureMessage.dsPK,
           sspk: CliqzSecureMessage.secureLogger,
           queryProxyUrl,
-        });
+        };
+
+        wCrypto.postMessage(message);
+        CliqzSecureMessage.callListeners(message);
       });
     },
 
@@ -110,7 +108,8 @@ export default background({
 
       const uid = Math.floor(Math.random() * 10000000);
       CliqzSecureMessage.queriesID[uid] = callback;
-      CliqzSecureMessage.wCrypto.postMessage({
+
+      const message = {
         msg: {
           action,
           type: 'cliqz',
@@ -127,7 +126,10 @@ export default background({
         dspk: CliqzSecureMessage.dsPK,
         sspk: CliqzSecureMessage.secureLogger,
         queryProxyUrl,
-      });
+      };
+
+      CliqzSecureMessage.wCrypto.postMessage(message);
+      CliqzSecureMessage.callListeners(message);
     }
   },
 });

@@ -1,6 +1,10 @@
+import inject from '../../core/kord/inject';
 import logger from '../internals/logger';
 import prefs from '../../core/prefs';
+import { actionFallback } from '../analyses-utils';
 
+
+const getValues = o => Object.keys(o).map(k => o[k]);
 
 function parseABTests(abtests) {
   if (typeof abtests !== 'string') {
@@ -28,12 +32,12 @@ function parseABTests(abtests) {
 export default {
   name: 'metrics.core.abtests',
   offsets: [0],
-  generate: () => [
+  generate: async () => [
     [
       // Aristotle running tests
-      ...parseABTests(prefs.get('abtests_running')),
+      ...getValues(await inject.module('abtests').action('getRunningTests').catch(actionFallback({}))),
       // core/ab-tests running tests
-      ...parseABTests(prefs.get('ABTests')),
+      ...parseABTests(prefs.get('ABTests')).map(id => ({ id })),
     ],
   ],
   schema: {

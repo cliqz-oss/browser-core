@@ -1,5 +1,5 @@
-import { isWindowActive, checkIsWindowActive } from './windows';
-import waitForAsync from '../core/helpers/wait';
+import { isWindowActive } from './windows';
+import { waitForAsync } from '../core/helpers/wait';
 
 export function getCurrentgBrowser() {
   return Components.classes['@mozilla.org/appshell/window-mediator;1']
@@ -21,16 +21,16 @@ export function newTab(url, check = true) {
   return waitForAsync(() => {
     // This might be caused by a blocked main document request
     if (tab.linkedBrowser === null) {
-      return Promise.resolve(false);
+      return false;
     }
 
     tabId = tab.linkedBrowser.outerWindowID;
 
     if (tabId === null) {
-      return Promise.resolve(false);
+      return false;
     }
 
-    return checkIsWindowActive(tabId);
+    return isWindowActive(tabId);
   }).then(() => tabId);
 }
 
@@ -48,7 +48,7 @@ export function closeTab(tabId) {
   // Remove tab
   gBrowser.removeTab(tabToRemove);
 
-  return waitForAsync(() => Promise.resolve(!isWindowActive(numTabId)));
+  return waitForAsync(() => !isWindowActive(numTabId));
 }
 
 
@@ -82,6 +82,27 @@ export function getTab(tabId) {
   };
 }
 
+
+export function query(queryInfo) {
+  if (Object.keys(queryInfo).length !== 0) {
+    throw new Error('query currently only support getting all tabs');
+  }
+
+  const gBrowser = getCurrentgBrowser();
+  return Array.prototype.map.call(gBrowser.tabs,
+    (tab) => {
+      const currentBrowser = gBrowser.getBrowserForTab(tab);
+      let url;
+      if (currentBrowser && currentBrowser.currentURI) {
+        url = currentBrowser.currentURI.spec;
+      }
+
+      return {
+        id: tab.linkedBrowser.outerWindowID,
+        url,
+      };
+    });
+}
 
 export default {
   onCreated: {

@@ -17,6 +17,10 @@ export default class TopNewsResult extends GenericResult {
     return topNews.links || [];
   }
 
+  get topNewsTitle() {
+    return this.rawResult.data.extra && this.rawResult.data.extra.locale_title;
+  }
+
   get topNewsResults() {
     return this._topNewsLinks.map(article => new NewsResult(this, {
       url: article.url,

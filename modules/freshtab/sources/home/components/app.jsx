@@ -11,13 +11,14 @@ import Settings from './settings';
 import MessageCenter from './message-center';
 import t from '../i18n';
 import UndoDialRemoval from './undo-dial-removal';
-import Overlay from './overlay';
-import { historyClickSignal, settingsClickSignal, homeConfigsStatusSignal, worldcupClickSignal,
+import HistoryTitle from './history-title';
+import { historyClickSignal, settingsClickSignal, homeConfigsStatusSignal,
   sendHomeUnloadSignal, sendHomeBlurSignal, sendHomeFocusSignal } from '../services/telemetry/home';
 import localStorage from '../services/storage';
 import { deleteUndoSignal, undoCloseSignal } from '../services/telemetry/speed-dial';
 import { settingsRestoreTopSitesSignal, settingsComponentsToggleSignal, newsSelectionChangeSignal } from '../services/telemetry/settings';
 import { DEFAULT_BG, FALLBACK_BG, NO_BG } from '../services/background-image';
+import ModulesDeveloperModal from './modules-developer-modal';
 
 class App extends React.Component {
   constructor(props) {
@@ -41,7 +42,8 @@ class App extends React.Component {
       },
       dials: {
         history: [],
-        custom: []
+        custom: [],
+        isLoaded: false,
       },
       offers: [],
       news: {
@@ -53,6 +55,7 @@ class App extends React.Component {
       messages: {},
       isSettingsOpen: false,
       isOverlayOpen: false,
+      modules: {},
       focusNews: false,
       hasHistorySpeedDialsToRestore: false,
     };
@@ -62,6 +65,7 @@ class App extends React.Component {
     this.getSpeedDials = this.getSpeedDials.bind(this);
     this.addSpeedDial = this.addSpeedDial.bind(this);
     this.removeSpeedDial = this.removeSpeedDial.bind(this);
+    this.updateSpeedDial = this.updateSpeedDial.bind(this);
     this.handleClick = this.handleClick.bind(this);
     this.undoRemoval = this.undoRemoval.bind(this);
     this.closeUndo = this.closeUndo.bind(this);
@@ -100,8 +104,46 @@ class App extends React.Component {
     historyClickSignal();
   }
 
-  onWorldcupClick() {
-    worldcupClickSignal();
+  onDeveloperModulesOpen = async () => {
+    try {
+      const response = await this.getCliqzStatus();
+
+      this.setState({
+        modules: {
+          isOpen: true,
+          error: null,
+          items: response,
+        }
+      });
+    } catch (error) {
+      this.setState({
+        modules: {
+          isOpen: true,
+          error: error.message,
+          items: [],
+        }
+      });
+    }
+  }
+
+  onDeveloperModulesClose = () => {
+    this.setState({
+      modules: {
+        isOpen: false,
+        error: null,
+        items: [],
+      }
+    });
+  }
+
+  onDeveloperModuleStateChange = async (moduleId, { isEnabled }) => {
+    if (isEnabled) {
+      await cliqz.core.enableModule(moduleId);
+    } else {
+      await cliqz.core.disableModule(moduleId);
+    }
+
+    this.onDeveloperModulesOpen();
   }
 
   onMessageClicked(message) {
@@ -177,9 +219,15 @@ class App extends React.Component {
     });
   }
 
-  getSpeedDials() {
+  async getSpeedDials() {
     // TODO Backend should return only visible dials
-    return this.freshtab.getSpeedDials().then(dials => this.setState({ dials }));
+    const dials = await this.freshtab.getSpeedDials();
+    this.setState({
+      dials: {
+        ...dials,
+        isLoaded: true,
+      },
+    });
   }
 
   getNews() {
@@ -191,6 +239,22 @@ class App extends React.Component {
           data: data.news,
         }
       });
+    });
+  }
+
+  getCliqzStatus() {
+    return cliqz.core.status().then((res) => {
+      if (!res || !res.modules) {
+        throw new Error('Exception occured while getting Cliqz status', res);
+      }
+
+      return Object.keys(res.modules)
+        .filter(key => key !== 'core')
+        .sort()
+        .map(key => ({
+          name: res.modules[key].name,
+          isEnabled: res.modules[key].isEnabled,
+          loadingTime: res.modules[key].loadingTime || 0 }));
     });
   }
 
@@ -218,7 +282,7 @@ class App extends React.Component {
     settingsRestoreTopSitesSignal();
     return this.freshtab.resetAllHistory()
       .then(dials => this.setState({
-        dials,
+        dials: { ...dials, isLoaded: true },
         // keep only custom dials
         removedDials: this.state.removedDials.filter(d => d.custom),
         hasHistorySpeedDialsToRestore: false,
@@ -231,28 +295,6 @@ class App extends React.Component {
       return {};
     }
     return this.state.removedDials[len - 1];
-  }
-
-  toggleOverlay = () => {
-    this.setState({
-      isOverlayOpen: !this.state.isOverlayOpen
-    });
-  }
-
-  showOverlay = () => {
-    if (!this.state.isOverlayOpen) {
-      this.setState({
-        isOverlayOpen: true
-      });
-    }
-  }
-
-  hideOverlay = () => {
-    if (this.state.isOverlayOpen) {
-      this.setState({
-        isOverlayOpen: false
-      });
-    }
   }
 
   toggleSettings() {
@@ -319,7 +361,7 @@ class App extends React.Component {
     });
   }
 
-  addSpeedDial(dial, index) {
+  updateDials(dial, index, update = false) {
     const dialType = dial.custom ? 'custom' : 'history';
     const oldDials = this.state.dials[dialType];
     let dials;
@@ -333,7 +375,7 @@ class App extends React.Component {
       dials = [
         ...oldDials.slice(0, index),
         dial,
-        ...oldDials.slice(index),
+        ...oldDials.slice(update ? index + 1 : index),
       ];
     }
 
@@ -343,6 +385,14 @@ class App extends React.Component {
         [dialType]: dials,
       },
     });
+  }
+
+  addSpeedDial(dial, index) {
+    this.updateDials(dial, index, false);
+  }
+
+  updateSpeedDial(newDial, index) {
+    this.updateDials(newDial, index, true);
   }
 
   undoRemoval() {
@@ -362,7 +412,7 @@ class App extends React.Component {
     const index = dial.removedAt;
     this.addSpeedDial(dial, index);
     const url = dial.url;
-    const title = dial.title;
+    const title = dial.displayTitle;
     cliqz.freshtab.addSpeedDial({ url, title }, index).then(() => {
       const newItems = this.state.removedDials.filter(item => item !== dial);
       this.setState({
@@ -446,23 +496,13 @@ class App extends React.Component {
     return searchConfig.visible && searchConfig.mode === 'search';
   }
 
-  get shouldShowWorldCupIcon() {
-    const currentDate = this.state.config.currentDate;
-    const minDate = '20180610';
-    const maxDate = '20180717';
-
-    if (currentDate >= minDate && currentDate < maxDate) {
-      return true;
-    }
-    return false;
+  get shouldShowDeveloperModulesIcon() {
+    return this.state.config.developer === true;
   }
 
   render() {
     return (
-      <div className={this.state.isOverlayOpen ? 'openOverlay' : ''}>
-        <Overlay
-          isOpen={this.state.isOverlayOpen}
-        />
+      <div>
         <div
           id="app"
         >
@@ -480,7 +520,7 @@ class App extends React.Component {
             handleLinkClick={msg => this.onMessageClicked(msg)}
           />
           <aside className="aside">
-            {(this.state.config.isHistoryEnabled || this.shouldShowWorldCupIcon) &&
+            {this.state.config.isHistoryEnabled &&
               <a
                 href={CONFIG.settings.NEW_TAB_URL}
                 id="cliqz-home"
@@ -501,17 +541,6 @@ class App extends React.Component {
                 History
               </a>
             }
-            {this.shouldShowWorldCupIcon &&
-              <a
-                href={`${CONFIG.settings.WORLDCUP_URL}?lang=${this.state.config.locale}`}
-                id="cliqz-worldcup"
-                title={t('sport_button')}
-                tabIndex="-1"
-                onClick={() => this.onWorldcupClick()}
-              >
-                World Cup
-              </a>
-            }
           </aside>
           <section id="main-content">
             <div className="fixed-container" tabIndex="-1">
@@ -521,7 +550,6 @@ class App extends React.Component {
                     ref={(c) => { this.urlbarElem = c; }}
                     visible={this.state.config.componentsState.search.visible}
                     results={this.state.results}
-                    toggleOverlay={this.toggleOverlay}
                     showOverlay={this.showOverlay}
                     hideOverlay={this.hideOverlay}
                   />
@@ -530,15 +558,15 @@ class App extends React.Component {
               <section id="section-top" />
               { this.state.config.componentsState.historyDials.visible &&
                 <section id="section-most-visited">
-                  <div className="dial-header">
-                    {this.state.dials.history.length > 0 && t('app_speed_dials_row_history')}
-                  </div>
+                  <HistoryTitle dials={this.state.dials} />
+
                   <SpeedDialsRow
                     dials={this.state.dials.history}
                     type="history"
                     removeSpeedDial={this.removeSpeedDial}
                     addSpeedDial={this.addSpeedDial}
                     getSpeedDials={this.getSpeedDials}
+                    showPlaceholder
                   />
                 </section>
               }
@@ -553,6 +581,7 @@ class App extends React.Component {
                     type="custom"
                     addSpeedDial={this.addSpeedDial}
                     removeSpeedDial={this.removeSpeedDial}
+                    updateSpeedDial={this.updateSpeedDial}
                   />
                 </section>
               }
@@ -570,6 +599,7 @@ class App extends React.Component {
                 <MessageCenter
                   position="middle"
                   locale={this.state.config.locale}
+                  fullWidth={this.shouldShowTopUrlBar}
                   messages={this.state.messages}
                   handleLinkClick={msg => this.onMessageClicked(msg)}
                   submitFeedbackForm={this.submitFeedbackForm}
@@ -587,6 +617,15 @@ class App extends React.Component {
               }
               <section id="section-bottom" />
             </div>
+            {this.shouldShowDeveloperModulesIcon &&
+              <ModulesDeveloperModal
+                modules={this.state.modules.items}
+                isOpen={this.state.modules.isOpen}
+                error={this.state.modules.error}
+                closeAction={this.onDeveloperModulesClose}
+                moduleStateChangeAction={this.onDeveloperModuleStateChange}
+              />
+            }
           </section>
 
           <aside className="aside">
@@ -616,6 +655,16 @@ class App extends React.Component {
                 onClick={() => this.toggleSettings()}
               >
                 Settings
+              </button>
+            }
+            {this.shouldShowDeveloperModulesIcon &&
+              <button
+                id="cliqz-modules-btn"
+                title={t('cliqz_modules_button')}
+                tabIndex="-1"
+                onClick={this.onDeveloperModulesOpen}
+              >
+                {t('cliqz_modules_button')}
               </button>
             }
           </aside>

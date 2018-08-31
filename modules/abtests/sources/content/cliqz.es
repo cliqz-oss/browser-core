@@ -1,7 +1,6 @@
 /* global window */
 import Spanan from 'spanan';
-import { isCliqzContentScriptMsg } from '../../core/content/helpers';
-import checkIfChromeReady from './ready-promise';
+import checkIfChromeReady from '../../core/content/ready-promise';
 import createSpananForModule from '../../core/helpers/spanan-module-wrapper';
 
 let INSTANCE = null;
@@ -66,10 +65,6 @@ class Cliqz {
     };
 
     const onMessage = (message) => {
-      if (!isCliqzContentScriptMsg(message)) {
-        return;
-      }
-
       const msg = {
         uuid: message.requestId,
         response: message.response
@@ -87,6 +82,9 @@ class Cliqz {
         chrome.runtime.onMessage.removeListener(onMessage);
         window.removeEventListener('message', onPostMessage);
       });
+    }).catch((ex) => {
+      // eslint-disable-next-line no-console
+      console.error('Chrome was never ready', ex);
     });
 
     this.core = core.createProxy();

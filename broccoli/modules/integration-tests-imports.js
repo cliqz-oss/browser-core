@@ -30,12 +30,7 @@ if (config.modules) {
 module.exports = writeFile('module-integration-tests.es', `
 ${imports.join('\n')}
 
-import { testServer } from './tests/core/test-helpers';
-
 TESTS.IntegrationTests = function () {
-
-  afterEach(() => testServer.reset());
-
   describe('integration', function () {
     ${defaults.join('\n    ')}
   });

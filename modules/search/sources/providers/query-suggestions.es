@@ -7,7 +7,7 @@ import * as searchUtils from '../../core/search-engines';
 
 export default class QuerySuggestionProvider extends BaseProvider {
   constructor() {
-    super('query-suggestions');
+    super('querySuggestions');
   }
 
   suggestionsNotAllowed(query, params) {

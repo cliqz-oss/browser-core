@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 
-import Counter from '../../core/helpers/counter';
+import integersToHistogram from '../../core/helpers/histogram';
 import { RESULT_SOURCE_MAP } from '../metrics/search';
 
 // merges array of objects into a single object
@@ -60,21 +60,6 @@ const isClickAction = ({ action }) => action === 'click';
 
 const isEnterAction = ({ action, isAutocomplete }) =>
   action === 'enter' && !isAutocomplete;
-
-/**
- * Given an array of integers, creates an (object) histogram where integers are
- * the keys and values are the counts. Allows for specifying bin size and bin
- * count (with catch-all, overflow bin).
- *
- * e.g.:
- * >>> integersToHistogram([1, 1, 2, 2, 2, 3, 1, 20])
- * { '1': 3, '2': 3, '3': 1, 'rest': 1 }
- */
-const integersToHistogram = (values, { binSize = 1, binCount = 10, overflowBinName = 'rest' } = {}) =>
-  new Counter(values
-    .map(v => parseInt(v / binSize, 10))
-    .map(v => ((!binCount || v < binCount) ? v * binSize : overflowBinName)))
-    .toObj();
 
 const mapCliqzSources = (sources) => {
   const hasHistory = hasHistorySources(sources);

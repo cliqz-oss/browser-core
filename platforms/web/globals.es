@@ -1,4 +1,0 @@
-/* global window */
-export {
-  window
-}

@@ -43,6 +43,7 @@ function checkStatus(url, md5Prefix, md5Surfix) {
 }
 
 export default background({
+  core: inject.module('core'),
   init(/* settitng */) {
     CliqzAntiPhishing.init();
     this.CliqzAntiPhishing = CliqzAntiPhishing;
@@ -59,10 +60,10 @@ export default background({
   actions: {
     isPhishingURL(url) {
       if (!CliqzAntiPhishing.isAntiPhishingActive()) {
-        return {
+        return Promise.resolve({
           block: false,
           type: 'phishingURL',
-        };
+        });
       }
 
       const [md5Prefix, md5Surfix] = CliqzAntiPhishing.getSplitMd5(url);
@@ -75,10 +76,10 @@ export default background({
             delete forceWhiteList[md5Prefix];
           }, 1000);
         }
-        return {
+        return Promise.resolve({
           block: false,
           type: 'phishingURL',
-        };
+        });
       }
 
       // check cache
@@ -86,10 +87,10 @@ export default background({
       const blackWhiteList = CliqzAntiPhishing.blackWhiteList.value;
       if (blackWhiteList[md5Prefix] && blackWhiteList[md5Prefix][md5Surfix] &&
       !blackWhiteList[md5Prefix][md5Surfix].startsWith('suspicious')) {
-        return {
+        return Promise.resolve({
           block: checkStatus(url, md5Prefix, md5Surfix),
           type: 'phishingURL',
-        };
+        });
       }
       return new Promise((resolve, reject) => {
         httpGet(
@@ -132,6 +133,13 @@ export default background({
   },
 
   events: {
+    'content:dom-ready': function onPageLoad(url, sender) {
+      this.actions.isPhishingURL(url).then((response) => {
+        if (response.block) {
+          this.core.action('broadcastActionToWindow', sender.windowId, 'anti-phishing', 'block', response);
+        }
+      });
+    },
     'human-web:active-url': function onActiveUrl(...args) {
       return CliqzAntiPhishing.onHwActiveURL(...args);
     },

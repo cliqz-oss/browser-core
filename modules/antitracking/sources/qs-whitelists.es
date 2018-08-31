@@ -4,11 +4,12 @@
 
 import * as persist from '../core/persistent-state';
 import * as datetime from './time';
-import { httpGet } from '../core/http';
+import { fetch } from '../core/http';
 import events from '../core/events';
 import md5 from '../core/helpers/md5';
 import QSWhitelistBase from './qs-whitelist-base';
 import extConfig from '../core/config';
+import logger from './logger';
 import console from '../core/console';
 
 const updateExpire = 48;
@@ -168,45 +169,55 @@ export default class QSWhitelist extends QSWhitelistBase {
     };
   }
 
-  _loadRemoteTokenWhitelist() {
-    const today = datetime.getTime().substring(0, 10);
-    httpGet(`${this.TOKEN_WHITELIST_URL}?${today}`, function (req) {
-      const rList = JSON.parse(req.response);
-      const rListMd5 = md5(req.response);
+  async _loadRemoteTokenWhitelist() {
+    try {
+      const today = datetime.getTime().substring(0, 10);
+      const req = await fetch(`${this.TOKEN_WHITELIST_URL}?${today}`);
+      const body = await req.text();
+      const rList = JSON.parse(body);
+      const rListMd5 = md5(body);
+
       this.safeTokens.setValue(rList);
       persist.setValue('tokenWhitelistVersion', rListMd5);
       this.lastUpdate[1] = datetime.getTime();
       persist.setValue('lastUpdate', JSON.stringify(this.lastUpdate));
       events.pub('attrack:token_whitelist_updated', rListMd5);
-    }.bind(this),
-    () => {},
-    100000);
+    } catch (e) {
+      logger.warn('Failed to load token whitelist', e);
+    }
   }
 
-  _loadRemoteTrackerDomainList() {
-    const today = datetime.getTime().substring(0, 10);
-    httpGet(`${this.TRACKER_DM_URL}?${today}`, function (req) {
-      const rList = JSON.parse(req.response);
-      const rListMd5 = md5(req.response);
+  async _loadRemoteTrackerDomainList() {
+    try {
+      const today = datetime.getTime().substring(0, 10);
+      const req = await fetch(`${this.TRACKER_DM_URL}?${today}`);
+      const body = await req.text();
+      const rList = JSON.parse(body);
+      const rListMd5 = md5(body);
+
       this.trackerDomains.setValue(rList);
       persist.setValue('trackerDomainsversion', rListMd5);
       this.lastUpdate[3] = datetime.getTime();
       persist.setValue('lastUpdate', JSON.stringify(this.lastUpdate));
-    }.bind(this),
-    () => {},
-    100000);
+    } catch (e) {
+      logger.warn('Failed to load tracker domain list', e);
+    }
   }
 
-  _loadRemoteSafeKey(forceClean) {
-    const today = datetime.getTime().substring(0, 10);
-    if (forceClean) {
-      this.safeKeys.clear();
-    }
-    httpGet(`${this.SAFE_KEY_URL}?${today}`, function (req) {
-      const safeKey = JSON.parse(req.response);
+  async _loadRemoteSafeKey(forceClean) {
+    try {
+      const today = datetime.getTime().substring(0, 10);
+      if (forceClean) {
+        this.safeKeys.clear();
+      }
+
+      const req = await fetch(`${this.SAFE_KEY_URL}?${today}`);
+      const body = await req.text();
+
+      const safeKey = JSON.parse(body);
       let s;
       let k;
-      const safeKeyExtVersion = md5(req.response);
+      const safeKeyExtVersion = md5(body);
       for (s in safeKey) {
         if (Object.prototype.hasOwnProperty.call(safeKey, s)) {
           for (k in safeKey[s]) {
@@ -236,25 +247,27 @@ export default class QSWhitelist extends QSWhitelistBase {
       this.safeKeys.save();
       persist.setValue('safeKeyExtVersion', safeKeyExtVersion);
       events.pub('attrack:safekeys_updated', safeKeyExtVersion, forceClean);
-    }.bind(this),
-    () => {
-      // on error
-    }, 60000
-    );
+    } catch (e) {
+      logger.warn('Failed to load safe keys', e);
+    }
   }
 
-  _loadRemoteUnsafeKey() {
-    const today = datetime.getTime().substring(0, 10);
-    console.log(this.UNSAFE_KEY_URL);
-    httpGet(`${this.UNSAFE_KEY_URL}?${today}`, function (req) {
-      const unsafeKeys = JSON.parse(req.response);
-      const unsafeKeyExtVersion = md5(req.response);
+  async _loadRemoteUnsafeKey() {
+    try {
+      const today = datetime.getTime().substring(0, 10);
+      const req = await fetch(`${this.UNSAFE_KEY_URL}?${today}`);
+      const body = await req.text();
+      const unsafeKeys = JSON.parse(body);
+      const unsafeKeyExtVersion = md5(body);
+
       this.unsafeKeys.setValue(unsafeKeys);
       this.lastUpdate[2] = datetime.getTime();
       persist.setValue('lastUpdate', JSON.stringify(this.lastUpdate));
       persist.setValue('unsafeKeyExtVesion', unsafeKeyExtVersion);
       this.unsafeKeys.setDirty();
       this.unsafeKeys.save();
-    }.bind(this), () => {}, 100000);
+    } catch (e) {
+      logger.warn('Failed to load unsafe keys', e);
+    }
   }
 }

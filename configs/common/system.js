@@ -69,9 +69,6 @@ const systemConfig = {
         './platform/lib/deep-equal.js': {
           'format': 'system'
         },
-        './platform/lib/jsep.js': {
-          'format': 'system'
-        },
         '*/templates.js': {
           format: 'system',
         },
@@ -87,7 +84,7 @@ const builderConfig = {
     'react-dom': 'ReactDOM',
     'jquery': '$',
     'handlebars': 'Handlebars',
-    'mathjs': 'mathLib'
+    'mathjs': 'math'
   },
   sourceMaps: !cliqzEnv.PRODUCTION,
   lowResSourceMaps: true,
@@ -111,7 +108,7 @@ const appBundleConfig = {
     builderConfig: Object.assign({}, builderConfig, {
       externals: ['mathjs'],
       globalDeps: {
-        'mathjs': 'mathLib'
+        'mathjs': 'math'
       },
     }),
   },

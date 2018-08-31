@@ -5,7 +5,7 @@ import * as urlUtils from '../../core/url';
 
 Components.utils.import('resource://gre/modules/PlacesUtils.jsm');
 
-function observableFromSql(sql, columns) {
+function observableFromSql(sql, columns = [], params = {}) {
   // change row into object with columns as property names
   const rowToResults = row => columns.reduce((cols, column) => ({
     [column]: row.getResultByName(column),
@@ -30,6 +30,9 @@ function observableFromSql(sql, columns) {
         // access raw connection to create statements that can be canceled
         const connection = conn._connectionData._dbConn;
         const statement = connection.createAsyncStatement(sql);
+        Object.keys(params).forEach((key) => {
+          statement.params[key] = params[key];
+        });
 
         return new Promise((resolve) => {
           pendingStatement = statement.executeAsync({
@@ -65,7 +68,7 @@ function observableFromSql(sql, columns) {
 }
 
 const HistoryProvider = {
-  query: function query(sql, columns = []) {
+  query: function query(sql, columns, params) {
     const results = [];
     let resolver;
     let rejecter;
@@ -75,7 +78,7 @@ const HistoryProvider = {
       rejecter = reject;
     });
 
-    const observable = observableFromSql(sql, columns);
+    const observable = observableFromSql(sql, columns, params);
 
     observable.subscribe(
       row => results.push(row),
@@ -100,21 +103,25 @@ const visitSessionStatement = `
 const searchQuery = ({ limit, frameStartsAt, frameEndsAt, domain, query },
   { onlyCount } = { onlyCount: false }) => {
   const conditions = [];
+  const params = {};
 
   if (frameStartsAt) {
-    conditions.push(`visit_date >= ${frameStartsAt}`);
+    conditions.push('visit_date >= :frameStartsAt');
+    params.frameStartsAt = frameStartsAt;
   }
 
   if (frameEndsAt) {
-    conditions.push(`visit_date < ${frameEndsAt}`);
+    conditions.push('visit_date < :frameEndsAt');
+    params.frameEndsAt = frameEndsAt;
   }
 
   if (domain) {
-    conditions.push(`url GLOB '*://${domain}/*'`);
+    conditions.push('url GLOB (\'*://\' || :domain || \'/*\')');
+    params.domain = domain;
   }
 
   if (query) {
-    const aSearchString = query ? `'${query.replace(/'/g, "''")}'` : '';
+    params.aSearchString = query || '';
     const aURL = 'url';
     const aTitle = 'title';
     const aTags = 'NULL';
@@ -125,7 +132,7 @@ const searchQuery = ({ limit, frameStartsAt, frameEndsAt, domain, query },
     const aMatchBehavior = '0'; // MATCH_ANYWHERE
     const aSearchBehavior = '1'; // BEHAVIOR_HISTORY
 
-    conditions.push(`AUTOCOMPLETE_MATCH(${aSearchString}, ${aURL}, ${aTitle},
+    conditions.push(`AUTOCOMPLETE_MATCH(:aSearchString, ${aURL}, ${aTitle},
         ${aTags}, ${aVisitCount}, ${aTyped}, ${aBookmark}, ${aOpenPageCount},
         ${aMatchBehavior}, ${aSearchBehavior})`);
   }
@@ -133,7 +140,11 @@ const searchQuery = ({ limit, frameStartsAt, frameEndsAt, domain, query },
   const conditionsStatement = conditions.length > 0 ?
     `WHERE ${conditions.join(' AND ')}` : '';
 
-  const limitStatement = limit ? `LIMIT ${limit}` : '';
+  let limitStatement = '';
+  if (limit) {
+    limitStatement = 'LIMIT :limit';
+    params.limit = limit;
+  }
 
   const selectStatement = onlyCount ? 'COUNT(DISTINCT visit_sessions.session_id) as count' : `
       moz_historyvisits.id AS id,
@@ -141,7 +152,7 @@ const searchQuery = ({ limit, frameStartsAt, frameEndsAt, domain, query },
       moz_historyvisits.visit_date AS visit_date
   `;
 
-  return `
+  const sql = `
     ${visitSessionStatement}
 
     SELECT ${selectStatement}
@@ -152,20 +163,26 @@ const searchQuery = ({ limit, frameStartsAt, frameEndsAt, domain, query },
     ORDER BY visit_date DESC
     ${limitStatement}
   `;
+  return { sql, params };
 };
 
 function findLastVisitId(url, since = 0) {
+  const params = { url };
+  if (since) {
+    params.since = since;
+  }
   return HistoryProvider.query(
     `
       SELECT moz_historyvisits.id AS id
       FROM moz_historyvisits
       JOIN moz_places ON moz_places.id = moz_historyvisits.place_id
-      WHERE moz_places.url = '${url}'
-        ${since ? `AND moz_historyvisits.visit_date > ${since}` : ''}
+      WHERE moz_places.url = :url
+        ${since ? 'AND moz_historyvisits.visit_date > :since' : ''}
       ORDER BY moz_historyvisits.visit_date DESC
       LIMIT 1
     `,
     ['id'],
+    params,
   ).then(([{ id } = {}] = []) => id);
 }
 
@@ -174,13 +191,13 @@ const YEAR_IN_MS = 1000 * 60 * 60 * 24 * 365;
 
 export default class {
   static sessionCountObservable(query) {
-    const sql = searchQuery({
+    const { sql, params } = searchQuery({
       query,
       frameStartsAt: (Date.now() - (YEAR_IN_MS / 2)) * 1000,
       frameEndsAt: Date.now() * 1000,
     }, { onlyCount: true });
 
-    return observableFromSql(sql, ['count']);
+    return observableFromSql(sql, ['count'], params);
   }
 
   static deleteVisit(visitId) {
@@ -188,18 +205,24 @@ export default class {
       `
         SELECT id, from_visit AS fromVisit
         FROM moz_historyvisits
-        WHERE visit_date = '${visitId}'
+        WHERE visit_date = :visitId
         LIMIT 1
       `,
       ['id', 'fromVisit'],
+      { visitId }
     ).then(([{ id, fromVisit }]) =>
       HistoryProvider.query(
         `
           UPDATE moz_historyvisits
-          SET from_visit = '${fromVisit}'
-          WHERE from_visit = ${id}
-        `
-      ).then(() => PlacesUtils.history.removePagesByTimeframe(visitId, visitId))
+          SET from_visit = :fromVisit
+          WHERE from_visit = :id
+        `,
+        [],
+        { fromVisit, id }
+      ).then(() => PlacesUtils.history.removeVisitsByFilter({
+        beginDate: PlacesUtils.toDate(+visitId),
+        endDate: PlacesUtils.toDate(+visitId + 1000)
+      }))
     );
   }
 
@@ -211,8 +234,16 @@ export default class {
   }
 
   static showHistoryDeletionPopup(window) {
-    Components.classes['@mozilla.org/browser/browserglue;1']
-      .getService(Components.interfaces.nsIBrowserGlue).sanitize(window);
+    try {
+      // Firefox < 60
+      Components.classes['@mozilla.org/browser/browserglue;1']
+        .getService(Components.interfaces.nsIBrowserGlue).sanitize(window);
+    } catch (e) {
+      // Firefox > 60
+      const SanitizerWrapper = Components.utils.import('resource:///modules/Sanitizer.jsm');
+      const Sanitizer = SanitizerWrapper.Sanitizer;
+      Sanitizer.showUI();
+    }
   }
 
   // TODO: introduce command method to separate read from write
@@ -228,11 +259,12 @@ export default class {
     `;
 
 
-    const sql = searchQuery({ frameStartsAt, frameEndsAt, domain, query, limit });
+    const { sql, params } = searchQuery({ frameStartsAt, frameEndsAt, domain, query, limit });
 
     return HistoryProvider.query(
       sql,
       ['id', 'session_id', 'visit_date'],
+      params,
     ).then((places) => {
       if (places.length === 0) {
         return {
@@ -286,19 +318,26 @@ export default class {
     return Promise.all([
       findLastVisitId(cleanUrl, oneSecondAgo),
       findLastVisitId(triggeringUrl),
-    ]).then(([visitId, triggeringVisitId]) => {
+    ]).then(async ([visitId, triggeringVisitId]) => {
+      const meta = {
+        visitId,
+        triggeringVisitId,
+      };
+
       if (!visitId || !triggeringVisitId) {
-        return Promise.resolve();
+        return Promise.reject(meta);
       }
 
-      return HistoryProvider.query(
+      await HistoryProvider.query(
         `
           UPDATE moz_historyvisits
-          SET from_visit = ${triggeringVisitId}
-          WHERE id = ${visitId}
+          SET from_visit = :triggeringVisitId
+          WHERE id = :visitId
             AND from_visit = 0
-        `,
+        `, [], { triggeringVisitId, visitId },
       );
+
+      return meta;
     });
   }
 
@@ -306,8 +345,8 @@ export default class {
     return HistoryProvider.query(`
       UPDATE moz_places
       SET hidden = 1, visit_count = 0
-      WHERE url = '${url}'
-    `);
+      WHERE url = :url
+    `, [], { url });
   }
 
   static migrate(version) {
@@ -329,9 +368,9 @@ export default class {
       SELECT url, visit_date as ts
       FROM moz_historyvisits
       JOIN moz_places ON moz_historyvisits.place_id = moz_places.id
-      WHERE moz_historyvisits.visit_date BETWEEN ${frameStartsAt} AND ${frameEndsAt};
+      WHERE moz_historyvisits.visit_date BETWEEN :frameStartsAt AND :frameEndsAt;
     `;
-    const places = await HistoryProvider.query(sql, ['url', 'ts']);
+    const places = await HistoryProvider.query(sql, ['url', 'ts'], { frameStartsAt, frameEndsAt });
     for (let i = 0; i < places.length; i += 1) {
       places[i].ts = Math.floor(places[i].ts / 1000);
     }

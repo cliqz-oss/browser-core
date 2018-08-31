@@ -22,9 +22,10 @@
     }
     .with-results {
         position: relative;
+        z-index: 15;
+
         input {
             width: $width;
-            font-size: 21px;
             color: #000;
 
             &::selection {
@@ -35,7 +36,27 @@
     .inner-container {
         width: $inner-content-width;
         margin: 0 auto;
-        position: relative;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        box-shadow: $search-input-box-shadow-focus;
+        
+        iframe {
+            display: block;
+            width: 100%;
+            border: 0;
+            height: 0;
+            border-radius: 0 0 2px 2px;
+            box-shadow: 0 -1px rgb(225, 225, 225);
+        }
+        
+        .results {
+            iframe {
+                transition: height 40ms cubic-bezier(0.55, 0.055, 0.675, 0.19);
+            }
+        }
     }
     .search-settings-btn {
         position: absolute;
@@ -45,53 +66,12 @@
         width: 21px;
         height: 17px;
         border: 0;
+        z-index: 15;
         cursor: pointer;
 
-        &:active, &:hover {
+        &:active, &:hover, &.active {
             background: url("../images/search-setting-click.svg") no-repeat;
         }
     }
 
-    .settings-panel {
-        position: absolute;
-        z-index: 100;
-        width: $inner-content-width;
-        background: #fff;
-        overflow: hidden;
-        height: 0;
-        transition: max-height 200ms cubic-bezier(0.55, 0.055, 0.675, 0.19);
-
-        iframe {
-            width: 100%;
-            border: 0
-        }
-
-        &.open {
-            height: auto;
-            border: 1px solid #ccc;
-
-            & + .search-settings-btn {
-                background: url("../images/search-setting-click.svg") no-repeat;
-            }
-        };
-        &.closed {
-            height: 0
-        }
-    }
-
-   .results {
-       position: relative;
-
-       iframe {
-           left: 0;
-           height: 0;
-           z-index: 100;
-           width: $inner-content-width;
-           border: 0;
-           height: 0;
-           position: absolute;
-           box-shadow: $search-input-box-shadow-focus;
-           transition: height 200ms cubic-bezier(0.55, 0.055, 0.675, 0.19);
-       }
-   }
 }

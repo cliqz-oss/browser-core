@@ -18,13 +18,13 @@ import {
   toUTF8,
   fromUTF8,
   fromHex,
-  toHex
+  toHex,
 } from '../../core/encoding';
 
 import {
   createPayloadBlindSignature,
   createPayloadProxy,
-  getRouteHash
+  getRouteHash,
 } from './utils';
 import { unBlindMessage, blindSignContext } from './blind-signature';
 import _http from './http-worker';

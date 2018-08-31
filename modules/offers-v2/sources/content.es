@@ -9,13 +9,10 @@
  */
 import {
   registerContentScript,
-  isCliqzContentScriptMsg,
-  CHROME_MSG_SOURCE
 } from '../core/content/helpers';
-import CouponFormHandler from './offers/monitor/coupon-content';
+import CouponFormObserver from './content/coupon/observer';
 
-
-function couponsHandlingScript(window, chrome) {
+function couponsHandlingScript(window, chrome, CLIQZ) {
   // TODO: add general check here if offer is disabled or not enabled we do not
   // inject anything here
 
@@ -24,36 +21,39 @@ function couponsHandlingScript(window, chrome) {
    * Helper method to call offers-v2
    */
   const backgroundAction = (action, ...args) => {
-    chrome.runtime.sendMessage({
-      source: CHROME_MSG_SOURCE,
-      payload: {
-        module: 'offers-v2',
-        action,
-        args,
-      }
-    });
+    CLIQZ.app.modules['offers-v2'].action(action, ...args);
   };
 
   // the current url, check if we need to inject the script here or not based on this
   const url = window.location.href;
 
   // this class will be the one handling the voucher forms
-  let couponHandler = null;
+  let couponObserver = null;
 
   const isForThisScriptMessage = msg =>
-    msg && msg.module === 'offers-v2' && msg.response && msg.response.url === url;
+    msg && msg.response && msg.response.module === 'offers-v2' && msg.response.url === url;
 
-  const activateCouponHandler = (offersInfo) => {
-    if (!couponHandler || !offersInfo) {
-      couponHandler = new CouponFormHandler(window, chrome, backgroundAction);
-      couponHandler.activate(offersInfo);
+  const activateCouponObserver = (offerInfo) => {
+    if (!couponObserver) {
+      couponObserver = new CouponFormObserver({
+        offerInfo,
+        window,
+        onClick: (couponValue) => {
+          backgroundAction('couponFormUsed', {
+            offerInfo,
+            couponValue,
+            url: window.location.href,
+          });
+        }
+      });
     }
+    couponObserver.processForms([...window.document.querySelectorAll('form')]);
   };
 
-  const deactivateCouponHandler = () => {
-    if (couponHandler) {
-      couponHandler.deactivate();
-      couponHandler = null;
+  const deactivateCouponObserver = () => {
+    if (couponObserver) {
+      couponObserver.unload();
+      couponObserver = null;
     }
   };
 
@@ -62,17 +62,14 @@ function couponsHandlingScript(window, chrome) {
    */
   const onMessage = (msg) => {
     // check if if it is a message for us
-    if (!isCliqzContentScriptMsg(msg) || !isForThisScriptMessage(msg)) {
+    if (!isForThisScriptMessage(msg)) {
       return;
     }
 
-    // check if we are activating or disabling
     if (msg.response.activate) {
-      // we need to activate
-      activateCouponHandler(msg.response.offerInfo);
+      activateCouponObserver(msg.response.offerInfo);
     } else {
-      // we need to deactivate
-      deactivateCouponHandler();
+      deactivateCouponObserver();
     }
   };
 
@@ -82,8 +79,9 @@ function couponsHandlingScript(window, chrome) {
   };
 
   const onUnload = () => {
-    if (couponHandler) {
-      couponHandler.deactivate();
+    if (couponObserver) {
+      couponObserver.unload();
+      couponObserver = null;
     }
     chrome.runtime.onMessage.removeListener(onMessage);
     window.removeEventListener('unload', onUnload);
@@ -96,4 +94,4 @@ function couponsHandlingScript(window, chrome) {
 }
 
 
-registerContentScript('http*', couponsHandlingScript);
+registerContentScript('offers-v2', 'http*', couponsHandlingScript);

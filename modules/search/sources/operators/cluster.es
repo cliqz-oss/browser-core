@@ -1,4 +1,5 @@
 import { clean, getMainLink } from './normalize';
+import { convertMainLinkToHistorySubLink } from './links/utils';
 
 const group = (a, b) =>
   a.set(b.domain, [...(a.get(b.domain) || []), b]);
@@ -34,6 +35,7 @@ const makeHeader = (domain, query, scheme = 'http', provider) => {
     meta: {
       level: 0,
       type: 'main',
+      isConstructed: true,
     },
   });
 };
@@ -96,6 +98,7 @@ const cluster = (({ results, ...response }) => {
       }
 
       header.kind = ['C', ...header.kind];
+      header.meta = { ...header.meta, isCluster: true };
 
       const rest = grouped.filter(result => result !== main);
 
@@ -107,16 +110,10 @@ const cluster = (({ results, ...response }) => {
           ...(main && main.links.slice(1)) || [],
           // only main link from other results
           ...rest
-            .map(getMainLink)
-            .map(link => ({
-              ...link,
-              kind: ['C', ...link.kind],
-              meta: {
-                ...link.meta,
-                level: 1,
-                type: 'history',
-              }
-            })),
+            .map((result) => {
+              const link = getMainLink(result);
+              return convertMainLinkToHistorySubLink(link);
+            }),
         ],
       };
     });

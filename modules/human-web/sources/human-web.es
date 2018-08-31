@@ -1,5 +1,5 @@
 import CliqzEvents from '../core/events';
-import CliqzBloomFilter from './bloom-filter';
+import CliqzBloomFilter from './cliqz-bloom-filter';
 import utils from '../core/utils';
 import md5 from '../core/helpers/md5';
 import random from '../core/crypto/random';
@@ -553,7 +553,7 @@ const CliqzHumanWeb = {
         CliqzHumanWeb.db.clearHistory();
       } else {
         for (const url of urls) {
-          CliqzHumanWeb.db.deleteVisit(urls);
+          CliqzHumanWeb.db.deleteVisit(url);
         }
       }
     },
@@ -2344,61 +2344,86 @@ const CliqzHumanWeb = {
       if(payload && typeof(payload) === 'object'){
         payload['ctry'] = location;
         CliqzHumanWeb.telemetry({'type': CliqzHumanWeb.msgType, 'action': 'telemetry', 'payload': payload});
-      }
-      else{
+      } else {
         _log("Not a valid object, not sent to notification");
       }
     },
-    telemetry: function(msg, instantPush) {
-        if (!CliqzHumanWeb || //might be called after the module gets unloaded
-            prefs.get('humanWebOptOut', false) ||
-            utils.isPrivateMode()) {
-          return Promise.resolve();
-        }
 
-        // Sanitize message before doing the quorum check.
-        msg.ver = CliqzHumanWeb.VERSION;
-        msg = CliqzHumanWeb.msgSanitize(msg);
-        _log("Message sanitized");
-
-        if (msg) {
-            // Check if host is private or not.
-            return CliqzHumanWeb.network.isPublicDomain(msg)
-                .then( success => CliqzHumanWeb.safeQuorumCheck(msg), fail => Promise.reject("localcheck") )
-                .then( isSafe => {
-                    _log("Quorum consent ?" + isSafe);
-                    if (isSafe) {
-
-                        // Check and sanitize all other urls.
-                        return CliqzHumanWeb.quorumCheckOtherUrls(msg)
-                            .then( msg => {
-                                CliqzHumanWeb.incrActionStats(msg.action);
-                                CliqzHumanWeb.trk.push(msg);
-                                _log("Added to the queue");
-
-                                clearTimeout(CliqzHumanWeb.trkTimer);
-                                if(instantPush || CliqzHumanWeb.trk.length % 100 == 0){
-                                    CliqzHumanWeb.pushTelemetry();
-                                } else {
-                                    CliqzHumanWeb.trkTimer = setTimeout(CliqzHumanWeb.pushTelemetry, 60000);
-                                }
-                            })
-                            .catch( err => _log("Error while checking other urls for quorum.: " + err));
-                    } else {
-                        // Send telemetry.
-                        _log("Dropping data as quorum check failed");
-                        CliqzHumanWeb.incrActionStats("droppedQC");
-                    }
-                })
-                .catch( err => {
-                    _log("Error while safe quorum check: " + err);
-                    CliqzHumanWeb.incrActionStats("dropped-" + err);
-                });
-        } else {
-            _log("Message failed sanitization step");
-        }
-        return Promise.resolve();
+    async telemetry(msg, instantPush) {
+      const { accepted, rejectDetails } = await CliqzHumanWeb._telemetry(msg, instantPush);
+      if (accepted) {
+        _log('all checks passed: telemetry message added to the sent queue:', msg);
+      } else {
+        _log('telemetry message has been discarded:', rejectDetails, msg);
+      }
     },
+
+    // TODO: migrate actionsStats to Anolysis
+    async _telemetry(msg, instantPush) {
+      function discard(reason) {
+        return { accepted: false, rejectDetails: reason };
+      }
+      function accept() {
+        return { accepted: true };
+      }
+
+      if (!CliqzHumanWeb || //might be called after the module gets unloaded
+          prefs.get('humanWebOptOut', false)) {
+        return discard('human web disabled');
+      }
+      if (utils.isPrivateMode()) {
+        return discard('private mode');
+      }
+
+      // Sanitize message before doing the quorum check.
+      msg.ver = CliqzHumanWeb.VERSION;
+      msg = CliqzHumanWeb.msgSanitize(msg);
+      if (!msg) {
+        return discard('rejected by sanitize checks');
+      }
+
+      // Check if host is private or not.
+      msg = await CliqzHumanWeb.network.sanitizeUrlsWithPrivateDomains(msg);
+      if (!msg) {
+        return discard('failed local domain check');
+      }
+
+      let isSafe;
+      try {
+        isSafe = await CliqzHumanWeb.safeQuorumCheck(msg);
+      } catch (e) {
+        _log('Exception during safe quorum check', e);
+        CliqzHumanWeb.incrActionStats(`dropped-${e}`);
+        return discard('failed safe quorum check: ${e}');
+      }
+
+      _log('Quorum consent?', isSafe);
+      if (!isSafe) {
+        CliqzHumanWeb.incrActionStats('droppedQC');
+        return discard('failed safe quorum check');
+      }
+
+      // Check and sanitize all other urls.
+      try {
+        msg = await CliqzHumanWeb.quorumCheckOtherUrls(msg);
+      } catch (e) {
+        _log('Error while checking other urls for quorum', e);
+        return discard('failed safe quorum check for other urls');
+      }
+
+      // message passed all checks and is ready to be sent
+      CliqzHumanWeb.incrActionStats(msg.action);
+      CliqzHumanWeb.trk.push(msg);
+
+      clearTimeout(CliqzHumanWeb.trkTimer);
+      if (instantPush || CliqzHumanWeb.trk.length % 100 === 0) {
+        CliqzHumanWeb.pushTelemetry();
+      } else {
+        CliqzHumanWeb.trkTimer = setTimeout(CliqzHumanWeb.pushTelemetry, 60000);
+      }
+      return accept();
+    },
+
     _telemetry_req: null,
     _telemetry_sending: [],
     telemetry_MAX_SIZE: 500,
@@ -2464,10 +2489,15 @@ const CliqzHumanWeb = {
         CliqzHumanWeb.listOfUnchecked(1000000000000, 0, url, CliqzHumanWeb.processUnchecks);
     },
 
-    checkForEmail: function(str) {
-        if (str.match(/[a-z0-9\-_@]+(@|%40|%(25)+40)[a-z0-9\-_]+\.[a-z0-9\-_]/i) != null) return true;
-        else return false;
+    /**
+     * Returns true if the given string contains any text that looks
+     * like an email address. The check is conservative, that means
+     * false positives are expected, but false negatives are not.
+     */
+    checkForEmail(str) {
+      return /[a-z0-9\-_@]+(@|%40|%(25)+40)[a-z0-9\-_]+\.[a-z0-9\-_]/i.test(str);
     },
+
     checkForLongNumber: function(str, max_number_length) {
 
         var cstr = str.replace(/[^A-Za-z0-9]/g,'');
@@ -2907,17 +2937,16 @@ const CliqzHumanWeb = {
 
 
         //Remove if email (exact), even if not totally well formed
-        if (CliqzHumanWeb.checkForEmail(query)) return true;
+        if (CliqzHumanWeb.checkForEmail(query)) {
+          return true;
+        }
         //Remove if query looks like an http pass
         if (/[^:]+:[^@]+@/.test(query)) return true;
-        //Remove if email
-        if (/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(query)) return true;
 
         var v = query.split(' ');
         for(let i=0;i<v.length;i++) {
             if (v[i].length > 20) return true;
             if (/[^:]+:[^@]+@/.test(v[i])) return true;
-            if (/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(v[i])) return true;
         }
 
         if (query.length > 12) {
@@ -3261,26 +3290,22 @@ const CliqzHumanWeb = {
         });
         CliqzHumanWeb.dumpQuorumBloomFilter();
     },
-    fetchSafeQuorumConfig: function(){
-      return new Promise((resolve, reject) => {
-        //Load latest config.
-        httpGet(CliqzHumanWeb.SAFE_QUORUM_PROVIDER,
-          function success(req){
-            if(CliqzHumanWeb) {
-                try {
-                    let resp = JSON.parse(req.response);
-                    CliqzHumanWeb.keyExpire = resp.expiry * (24 * 60 * 60 * 1000); // Backend sends it in days;
-                    CliqzHumanWeb.oc = resp.oc;
-                    CliqzHumanWeb.quorumThreshold = resp.threshold;
-                } catch(e){};
-             }
-             resolve();
-          },
-          function error(res){
-            _log('Error loading config. ');
-            resolve();
-          }, 5000);
-      });
+    async fetchSafeQuorumConfig() {
+      try {
+        const req = await fetch(CliqzHumanWeb.SAFE_QUORUM_PROVIDER);
+        if (!req.ok) {
+          throw new Error(req.statusText);
+        }
+        const json = await req.json();
+
+        if (CliqzHumanWeb) {
+          CliqzHumanWeb.keyExpire = json.expiry * (24 * 60 * 60 * 1000); // Backend sends it in days;
+          CliqzHumanWeb.oc = json.oc;
+          CliqzHumanWeb.quorumThreshold = json.threshold;
+        }
+      } catch (e) {
+        _log('Error loading config.', e);
+      }
     },
     getCountryCode: function() {
         let ctryCode = prefs.get('config_location', null);
@@ -3336,6 +3361,7 @@ const CliqzHumanWeb = {
 
         if (msg.payload.red) {
             msg.payload.red.forEach( (_redURL, idx) => {
+              if (_redURL) {
                 let redURL = _redURL;
                 let parse_url = parseURL(redURL);
 
@@ -3346,7 +3372,8 @@ const CliqzHumanWeb = {
                     urlPos[urls.length] = {t : 'red:' + idx, url: redURL};
                     urls.push(redURL);
                 }
-            })
+              }
+            });
         }
 
         return {u: urls, up: urlPos};

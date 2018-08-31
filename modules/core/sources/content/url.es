@@ -43,7 +43,7 @@ export function cleanMozillaActions(url = '') {
   return [action, href];
 }
 
-export function urlStripProtocol(url) {
+export function urlStripProtocol(url, { stripTrailingSlash } = { stripTrailingSlash: true }) {
   let resultUrl = url.toLowerCase();
   const toRemove = [
     'https://', 'http://',
@@ -59,7 +59,7 @@ export function urlStripProtocol(url) {
   }
 
   // remove trailing slash as well to have all urls in the same format
-  if (resultUrl[resultUrl.length - 1] === '/') {
+  if (stripTrailingSlash && resultUrl.endsWith('/')) {
     resultUrl = resultUrl.substr(0, resultUrl.length - 1);
   }
 

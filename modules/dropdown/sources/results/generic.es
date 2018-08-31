@@ -9,7 +9,7 @@ import {
   ANCHOR_RESULT,
   IMAGE_RESULT,
   INTERNAL_RESULT,
-  SOCIAL_RESULT
+  SOCIAL_RESULT,
 } from '../result-types';
 
 function getDeepResults(rawResult, type) {

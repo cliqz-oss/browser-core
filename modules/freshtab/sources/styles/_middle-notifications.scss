@@ -9,6 +9,7 @@
     $cliqz-history-bg,
     $cliqz-worldcup-bg,
     $cliqz-settings-bg,
+    $cliqz-modules-bg,
     $button-color,
     $button-color-hover,
 
@@ -50,6 +51,16 @@
             top: 1px;
             cursor: pointer;
             background: $close-bg;
+        }
+
+        .options {
+            position: absolute;
+            right: 0px;
+            top: 7px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            z-index: 9999;
         }
 
         .icon {

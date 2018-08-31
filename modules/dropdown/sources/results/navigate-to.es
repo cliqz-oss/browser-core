@@ -26,6 +26,10 @@ export default class NavigateToResult extends BaseResult {
     return this.rawResult.data.extra.mozActionUrl;
   }
 
+  get urlbarValue() {
+    return this.url;
+  }
+
   get displayUrl() {
     return this.rawResult.text;
   }

@@ -160,6 +160,9 @@ export default class Dropdown {
     } else {
       const elementName = targetElement.getAttribute('data-extra');
       result.click(href, ev, { elementName });
+      // In web-ext clicking on result doesn't focus on iframe,
+      // hence we don't give focus back to urlbar
+      window.focus();
     }
   };
 
@@ -183,6 +186,7 @@ export default class Dropdown {
 
     if (!resultElement) {
       this.clearSelection();
+      this.selectedIndex = 0;
       return;
     }
 

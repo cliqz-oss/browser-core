@@ -62,6 +62,7 @@ export default class MessageCenter extends React.Component {
       return (
         <OfferMiddleMessages
           offers={this.state.offers}
+          fullWidth={this.props.fullWidth}
           submitFeedbackForm={this.props.submitFeedbackForm}
         />
       );

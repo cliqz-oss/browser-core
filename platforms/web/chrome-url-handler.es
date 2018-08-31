@@ -1,2 +1,0 @@
-
-export const chromeUrlHandler = false;

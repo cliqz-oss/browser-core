@@ -4,15 +4,14 @@ import DefaultMap from '../../../core/helpers/default-map';
 
 import logger from '../logger';
 import getSynchronizedDate, { DATE_FORMAT } from '../synchronized-date';
-
+import sortByTs from './utils';
 
 class AggregatedView {
   constructor(db) {
     this.db = db;
   }
 
-  init() {
-  }
+  init() {}
 
   async runTaskAtMostOnce(date, name, fn) {
     const value = await this.db.where('[date+name]').equals([date, name]).toArray();
@@ -43,11 +42,13 @@ class BehaviorView {
     this.db = db;
   }
 
-  init() {
-  }
+  init() {}
 
   getTypesForDate(date) {
     return this.db.where('date').equals(date).toArray().then((signals) => {
+      // Makes sure that signals are ordered by timestamp
+      sortByTs(signals);
+
       const types = new DefaultMap(() => []);
       for (let i = 0; i < signals.length; i += 1) {
         const { type, behavior } = signals[i];
@@ -64,6 +65,10 @@ class BehaviorView {
       behavior,
       date,
       type,
+
+      // Add timestamp only for metrics. This is safe as we only use this to
+      // order messages and this information is never sent to backend.
+      ts: Date.now(),
     };
 
     logger.debug('add', doc);
@@ -82,8 +87,7 @@ class RetentionView {
     this.key = 'state';
   }
 
-  init() {
-  }
+  init() {}
 
   getState() {
     return this.db.get(this.key)
@@ -113,8 +117,7 @@ class SignalQueueView {
     this.db = db;
   }
 
-  init() {
-  }
+  init() {}
 
   push(signal, attempts = 0) {
     return this.db.add({
@@ -193,54 +196,79 @@ export default class AnolysisStorage {
     this.gid = null;
   }
 
-  init() {
-    if (this.db !== null) return Promise.resolve();
+  async init() {
+    if (this.db !== null) return;
 
-    return getDexie().then((Dexie) => {
-      this.db = new Dexie('anolysis');
-      this.db.version(1).stores({
-        aggregated: '[date+name],date',
-        behavior: '++id,date',
-        gid: 'key',
-        retention: 'key',
-        signals: '++id,date',
-      });
-
-      return this.db.open();
-    }).then(() => {
-      this.aggregated = new AggregatedView(this.db.aggregated);
-      this.behavior = new BehaviorView(this.db.behavior);
-      this.gid = new GidManagerView(this.db.gid);
-      this.retention = new RetentionView(this.db.retention);
-      this.signals = new SignalQueueView(this.db.signals);
-
-      return Promise.all([
-        this.aggregated.init(),
-        this.behavior.init(),
-        this.gid.init(),
-        this.retention.init(),
-        this.signals.init(),
-      ]);
-    }).then(() => {
-      const oneMonthAgo = getSynchronizedDate().subtract(30, 'days').format(DATE_FORMAT);
-      return Promise.all([
-        this.aggregated.deleteOlderThan(oneMonthAgo),
-        this.signals.deleteOlderThan(oneMonthAgo),
-      ]);
+    const Dexie = await getDexie();
+    this.db = new Dexie('anolysis');
+    this.db.version(1).stores({
+      aggregated: '[date+name],date',
+      behavior: '++id,date',
+      gid: 'key',
+      retention: 'key',
+      signals: '++id,date',
     });
+    await this.db.open();
+
+    // Create views
+    this.aggregated = new AggregatedView(this.db.aggregated);
+    this.behavior = new BehaviorView(this.db.behavior);
+    this.gid = new GidManagerView(this.db.gid);
+    this.retention = new RetentionView(this.db.retention);
+    this.signals = new SignalQueueView(this.db.signals);
+
+    await Promise.all([
+      this.aggregated.init(),
+      this.behavior.init(),
+      this.gid.init(),
+      this.retention.init(),
+      this.signals.init(),
+    ]);
+
+    const oneMonthAgo = getSynchronizedDate()
+      .subtract(30, 'days')
+      .format(DATE_FORMAT);
+
+    await Promise.all([
+      this.aggregated.deleteOlderThan(oneMonthAgo),
+      this.signals.deleteOlderThan(oneMonthAgo),
+    ]);
   }
 
-  destroy() {
+  async healthCheck() {
+    // Try to open `db` if it's not already open
+    if (!(await this.db.isOpen())) {
+      // Check if database is opened
+      await this.db.open();
+    }
+
+    // Check for failure
+    if (await this.db.hasFailed()) {
+      throw new Error('Dexie DB has failed to open');
+    }
+
+    // Check if we can perform a basic operation on each table
+    await Promise.all([
+      this.db.aggregated.count(),
+      this.db.behavior.count(),
+      this.db.gid.count(),
+      this.db.retention.count(),
+      this.db.signals.count(),
+    ]);
+  }
+
+  async destroy() {
     if (this.db !== null) {
       logger.debug('destroy initialized Dexie DB');
       const db = this.db;
       this.db = null;
-      return db.delete();
+      await db.delete();
+    } else {
+      // Destroy database even when Storage is not initialized
+      logger.debug('destroy un-initialized Dexie DB');
+      const Dexie = await getDexie();
+      await Dexie.delete('anolysis');
     }
-
-    // Destroy database even when Storage is not initialized
-    logger.debug('destroy un-initialized Dexie DB');
-    return getDexie().then(Dexie => Dexie.delete('anolysis'));
   }
 
   unload() {

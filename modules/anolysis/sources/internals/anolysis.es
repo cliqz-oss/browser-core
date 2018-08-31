@@ -3,9 +3,6 @@
 
 import moment from '../../platform/lib/moment';
 
-import prefs from '../../core/prefs';
-import { randomInt } from '../../core/crypto/random';
-
 import GIDManager from './gid-manager';
 import Preprocessor from './preprocessor';
 import SignalQueue from './signals-queue';
@@ -13,7 +10,6 @@ import Task from './task';
 import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
 import logger from './logger';
 import updateRetentionState from './retention';
-
 
 export default class Anolysis {
   constructor(config) {
@@ -33,9 +29,9 @@ export default class Anolysis {
     this.preprocessor = new Preprocessor();
 
     // Storage manages databases for all Anolysis storage.
+    this.config = config;
     const Storage = config.get('Storage');
     this.storage = new Storage();
-    this.session = config.get('session');
 
     // Async message queue used to send telemetry signals to the backend
     // (telemetry server). It is persisted on disk, and will make sure that
@@ -46,15 +42,45 @@ export default class Anolysis {
     // reports safely at any point of time. The `getGID` method of this object
     // will be called before sending any telemetry to check for an existing GID.
     this.gidManager = new GIDManager(config);
+
+    // Healthy until proven otherwise!
+    this.isHealthy = true;
   }
 
   async init() {
-    await this.storage.init();
-    await Promise.all([
-      this.gidManager.init(this.storage.gid),
-      this.signalQueue.init(this.storage.signals),
-    ]);
-    this.running = true;
+    // Try to initialize storage and run health-check.
+    try {
+      await this.storage.init();
+      await this.storage.healthCheck();
+    } catch (ex) {
+      logger.error('While initializing Anolysis storage', ex);
+
+      // We try to send a healthcheck metric to backend about this event.
+      // This could fail in the unlikely situation where Network would be
+      // unavailable as well.
+      try {
+        await this.handleTelemetrySignal(
+          { context: 'storage', exception: `${ex}` },
+          'metrics.anolysis.health.exception',
+          { force: true },
+        );
+      } catch (e) {
+        logger.debug('While trying to send exception metric', e);
+      }
+      this.isHealthy = false;
+    }
+
+    if (this.isHealthy) {
+      await Promise.all([
+        this.gidManager.init(this.storage.gid),
+        this.signalQueue.init(this.storage.signals),
+      ]);
+      this.running = true;
+    } else {
+      this.unload();
+    }
+
+    return this.isHealthy;
   }
 
   unload() {
@@ -94,11 +120,7 @@ export default class Anolysis {
       // resolve to the same Promise object.
       this.gidManager.getGID();
 
-      logger.log(
-        'Generate aggregated signals (new day)',
-        this.currentDate,
-        date,
-      );
+      logger.log('Generate aggregated signals (new day)', this.currentDate, date);
       this.currentDate = date;
 
       await this.updateRetentionState();
@@ -212,8 +234,8 @@ export default class Anolysis {
               });
 
               await Promise.all(signals.map(
-                signal => this.handleTelemetrySignal(signal, name, { date }))
-              );
+                signal => this.handleTelemetrySignal(signal, name, { meta: { date } }),
+              ));
             });
           } catch (ex) {
             logger.log('Could not genereate signals for analysis:', name, ex);
@@ -231,15 +253,14 @@ export default class Anolysis {
   }
 
   /**
-   * Process a new incoming telemetry signal from `core`. It will be
-   * transformed to new telemetry (without ID) format and stored. The
-   * data will then be available for aggregation and sent as part of
-   * daily analyses.
+   * Process a new incoming telemetry signal. It will be transformed to new
+   * telemetry (without ID) format and stored. The data will then be available
+   * for aggregation and sent as part of daily analyses.
    *
    * @param {Object} signal - The telemetry signal.
    */
-  handleTelemetrySignal(signal, signalName, meta = {}) {
-    logger.debug('handleTelemetrySignal', signalName, signal);
+  handleTelemetrySignal(signal, signalName, { meta = {}, force = false } = {}) {
+    logger.debug('handleTelemetrySignal', signalName, signal, { force, meta });
 
     // Try to fetch the schema definition from the name.
     let schema;
@@ -282,40 +303,11 @@ export default class Anolysis {
               // this case, such users will form a group on their own.
               processedSignal.meta.gid = gid;
 
-              // TODO - it might be enough to hash the signal + date of
-              // generation to detect exact duplicates (could be done in the
-              // backend). But this seed can allow us to detect issues in
-              // the client.
-              //
-              // We add a random seed to each message to allow deduplication
-              // from the backend. This should not be a privacy concern, as each
-              // message will include a different number.
-              processedSignal.meta.seed = randomInt();
-
-              // TODO: This is temporary! Should be removed before
-              // putting in production. This will be there as long
-              // as we test both telemetry systems side by side, to
-              // be able to compare results meaningfully.
-              processedSignal.meta.session = this.session;
-
-              // This allows us to filter out signals coming from developers
-              // in the backend. This is not privacy breaching because all
-              // normal users will have `false` as value for this attribute.
-              processedSignal.meta.dev = prefs.get('developer', false);
-
               // Allow versioning of signals.
               processedSignal.meta.version = schema.version;
 
-              // The date for this signal is either the date of the data/metrics
-              // which were aggregated to create it via an analysis, or the date
-              // of today if it was not specified yet.
-              processedSignal.meta.date = (
-                processedSignal.meta.date ||
-                getSynchronizedDate().format(DATE_FORMAT)
-              );
-
               // Push signal to be sent as soon as possible.
-              return this.signalQueue.push(processedSignal);
+              return this.signalQueue.push(processedSignal, { force });
             });
         }
 

@@ -15,7 +15,11 @@ export default class TopMessages extends React.Component {
   handleCTAClick(message) {
     messageClickSignal(message.id);
     cliqz.freshtab.countMessageClick(message);
-    this.props.handleLinkClick(message);
+    this.container.classList.add('removing');
+    setTimeout(() => {
+      cliqz.freshtab.dismissMessage(message.id, message.handler);
+      this.props.handleLinkClick(message);
+    }, 500);
   }
 
   handleLaterClick(message) {
@@ -43,7 +47,7 @@ export default class TopMessages extends React.Component {
   render() {
     /* eslint-disable jsx-a11y/no-static-element-interactions */
     return (
-      <div id="topNotificationBox">
+      <div id="topNotificationBox" ref={(div) => { this.container = div; }}>
         {
           this.props.messages.map(message =>
             (<div

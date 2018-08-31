@@ -2,7 +2,7 @@
 import {
   equals,
   urlStripProtocol,
-  cleanMozillaActions
+  cleanMozillaActions,
 } from '../../core/content/url';
 
 export default class BaseResult {

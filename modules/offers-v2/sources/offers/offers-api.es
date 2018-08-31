@@ -13,17 +13,7 @@
 import logger from '../common/offers_v2_logger';
 import ActionID from './actions-defs';
 import events from '../../core/events';
-import { isChromium } from '../../core/platform';
-import { timestampMS } from '../utils';
 import Offer from './offer';
-
-
-// /////////////////////////////////////////////////////////////////////////////
-// consts
-// the time we want to avoid any update on the DB for a particular offer. This cache
-// is not persistence on disk, meaning will be just an optimization to avoid multiple
-// updates everytime a offer is pushed.
-const MAX_OFFER_CACHE_TIME_MS = 60 * 60 * 1000;
 
 const MessageType = {
   MT_PUSH_OFFER: 'push-offer',
@@ -39,9 +29,6 @@ export default class OffersAPI {
   //
   constructor(sigHandler, offersDB) {
     this.offersDB = offersDB;
-
-    // local offer-ids cached (offer_id -> cachedTime)
-    this.offerUpdateCache = new Map();
 
     // the action function map for signals coming from the UI (not tracking)
     // There will be 2 type of signals:
@@ -80,32 +67,15 @@ export default class OffersAPI {
   //                       currently has
   //
   pushOffer(offer, newDisplayRule = null, originID = ORIGIN_ID) {
-    // check offer validity
     if (!offer || !offer.isValid()) {
       logger.warn('pushOffer: invalid offer or missing fields');
       return false;
     }
 
-    // check if it is cached so we add it or update it
-    if (!this._isOfferCached(offer.uniqueID)) {
-      // we then need to add the offer to the DB and mark it as active
-      if (this.offersDB.hasOfferData(offer.uniqueID)) {
-        // try to update if the version is different, otherwise do nothing
-        const dbOffer = this.offersDB.getOfferObject(offer.uniqueID);
-        if ((offer.version !== dbOffer.version) &&
-            !this.offersDB.updateOfferObject(offer.uniqueID, offer.offerObj)) {
-          logger.error(`pushOffer: Error updating the offer to the DB: ${offer.uniqueID}`);
-          return false;
-        }
-      } else if (!this.offersDB.addOfferObject(offer.uniqueID, offer.offerObj)) {
-        // it is a new one
-        // we cannot continue here since we depend on having the offer in the DB
-        logger.error(`pushOffer: Error adding the offer to the DB: ${offer.uniqueID}`);
-        return false;
-      }
-
-      // cache the offer
-      this._cacheOffer(offer.uniqueID);
+    const ok = this._createOrUpdateDB(offer);
+    if (!ok) {
+      logger.warn('Failed to createOrUpdateDB');
+      return false;
     }
 
     // EX-7208: moving this offer_triggered signal here to ensure that
@@ -145,10 +115,25 @@ export default class OffersAPI {
     return true;
   }
 
+  _createOrUpdateDB(offer) {
+    if (!this.offersDB.hasOfferData(offer.uniqueID)) {
+      const ok = this.offersDB.addOfferObject(offer.uniqueID, offer.offerObj);
+      const msg = `pushOffer: Error adding the offer to the DB: ${offer.uniqueID}`;
+      if (!ok) { logger.error(msg); }
+      return ok;
+    }
+
+    const dbOffer = this.offersDB.getOfferObject(offer.uniqueID);
+    if (offer.version === dbOffer.version) { return true; }
+    const ok = this.offersDB.updateOfferObject(offer.uniqueID, offer.offerObj);
+    const msg = `pushOffer: Error updating the offer to the DB: ${offer.uniqueID}`;
+    if (!ok) { logger.error(msg); }
+    return ok;
+  }
+
   /* ***************************************************************************
    *                            EXPOSED API
    ***************************************************************************** */
-
 
   /**
    * will return a list of offers filtered and sorted as specified in args
@@ -168,42 +153,36 @@ export default class OffersAPI {
    * @return {[type]}      [description]
    */
   getStoredOffers(args) {
-    // for this first version we will just return all the offers directly
-    const self = this;
     const rawOffers = this.offersDB.getOffers();
-    const result = [];
     const filters = args ? args.filters : null;
-    rawOffers.forEach((offerElement) => {
-      if (filters) {
-        // we should filter
-        if (filters.ensure_has_dest &&
-            (!offerElement.offer.rs_dest || (offerElement.offer.rs_dest.length === 0))) {
-          // skip this one, since doesn't contain real estate destinations
-          return;
-        }
-        if (filters.by_rs_dest && offerElement.offer.rs_dest) {
-          const realEstatesSet =
-            typeof filters.by_rs_dest === 'string'
-              ? new Set([filters.by_rs_dest])
-              : new Set(filters.by_rs_dest);
+    if (!filters) { return rawOffers.map(o => this._transformRawOffer(o)); }
+    const result = rawOffers
+      .filter((offerElement) => {
+        const rsDest = (offerElement.offer && offerElement.offer.rs_dest) || [];
+        if (filters.ensure_has_dest && rsDest.length === 0) { return false; }
+        if (!filters.by_rs_dest || rsDest.length === 0) { return true; }
 
-          // check the real estate destination of the offer
-          if (!offerElement.offer.rs_dest.some(dre => realEstatesSet.has(dre))) {
-            // skip this one
-            return;
-          }
-        }
-      }
-      result.push({
-        offer_id: offerElement.offer_id,
-        offer_info: offerElement.offer,
-        created_ts: offerElement.created,
-        attrs: {
-          state: self.offersDB.getOfferAttribute(offerElement.offer_id, 'state')
-        }
-      });
-    });
+        const realEstatesSet = typeof filters.by_rs_dest === 'string'
+          ? new Set([filters.by_rs_dest])
+          : new Set(filters.by_rs_dest);
+        const hasDest = rsDest.some(dre => realEstatesSet.has(dre));
+        return hasDest;
+      })
+      .map(o => this._transformRawOffer(o));
     return result;
+  }
+
+  /* eslint-disable camelcase */
+  _transformRawOffer({ offer_id, offer, created }) {
+  /* eslint-enable camelcase */
+    return {
+      offer_info: offer,
+      created_ts: created,
+      attrs: {
+        state: this.offersDB.getOfferAttribute(offer_id, 'state')
+      },
+      offer_id
+    };
   }
 
   /**
@@ -284,75 +263,40 @@ export default class OffersAPI {
    * This method should be called whenever an offer is removed from the DB
    */
   offerRemoved(offerID, campaignID, erased) {
-    // we will only remove the cache if any
-    this.offerUpdateCache.delete(offerID);
+    if (!erased) { return; }
 
-    if (erased) {
-      // add the new signal to be sent and force to be sent right away
-      // we should remove the associated signals on the signal handler here
-      this.sigHandler.setCampaignSignal(
-        campaignID,
-        offerID,
-        ORIGIN_ID,
-        ActionID.AID_OFFER_EXPIRED
-      );
-      // we force the signal handler to send the signal now
-      this.sigHandler.sendCampaignSignalNow(campaignID);
-      this.sigHandler.removeCampaignSignals(campaignID);
-    }
+    // add the new signal to be sent and force to be sent right away
+    // we should remove the associated signals on the signal handler here
+    this.sigHandler.setCampaignSignal(
+      campaignID,
+      offerID,
+      ORIGIN_ID,
+      ActionID.AID_OFFER_EXPIRED
+    );
+    // we force the signal handler to send the signal now
+    this.sigHandler.sendCampaignSignalNow(campaignID);
+    this.sigHandler.removeCampaignSignals(campaignID);
   }
 
   // /////////////////////////////////////////////////////////////////////////////
   // internal methods
 
-
-  /**
-   * will check if we have an offer on memory recently added / updated on the DB.
-   * @param  {string}  offerID [description]
-   * @return {Boolean}         true if it is cached, false otherwise
-   */
-  _isOfferCached(offerID) {
-    if (!this.offerUpdateCache.has(offerID)) {
-      return false;
-    }
-    const diffTime = timestampMS() - this.offerUpdateCache.get(offerID);
-    if (diffTime > MAX_OFFER_CACHE_TIME_MS) {
-      this.offerUpdateCache.delete(offerID);
-      return false;
-    }
-    // still cached
-    return true;
-  }
-
-  /**
-   * will cache an offer id on memory with the current timestamp.
-   * @param  {[type]} offerID [description]
-   */
-  _cacheOffer(offerID) {
-    if (!offerID) {
-      return;
-    }
-    this.offerUpdateCache.set(offerID, timestampMS());
-  }
-
   //
   // @brief Remove a particular offer
   //
-  _removeOffer(offerID) {
-    const offerObj = this.offersDB.getOfferObject(offerID);
-    if (!offerObj) {
+  _removeOffer(campaignID, offerID) {
+    if (!this.offersDB.hasOfferData(offerID)) {
       logger.warn(`removeOffer: the offer ${offerID} is not on our DB`);
       return false;
     }
 
-    // remove the offer from the DB
-    if (!this.offersDB.removeOfferObject(offerID)) {
+    const ok = this.offersDB.removeOfferObject(offerID);
+    if (!ok) {
       logger.warn(`removeOffer: failed removing the offer object from the DB ${offerID}`);
       return false;
     }
 
     // track signal
-    const campaignID = this.offersDB.getCampaignID(offerID);
     this.sigHandler.setCampaignSignal(
       campaignID,
       offerID,
@@ -420,11 +364,6 @@ export default class OffersAPI {
         data,
       };
 
-      if (isChromium && type === MessageType.MT_PUSH_OFFER) {
-        events.pub('msg_center:show_message', message, 'ghostery');
-        return;
-      }
-
       events.pub('offers-send-ch', message);
     } catch (err) {
       logger.error(`_publishMessage: something failed publishing the message ${JSON.stringify(err)}`);
@@ -432,29 +371,25 @@ export default class OffersAPI {
   }
 
   _getDestRealStatesForOffer(offerID) {
-    const offerObj = this.offersDB.getOfferObject(offerID);
-    if (!offerObj || !offerObj.rs_dest) {
-      return [];
-    }
-    return offerObj.rs_dest;
+    const offerObject = this.offersDB.getOfferObject(offerID) || {};
+    return offerObject.rs_dest || [];
   }
-
 
   // ///////////////////////////////////////////////////////////////////////////
   // actions from ui
 
   _uiFunRemoveOffer(msg) {
-    if (!msg.data || !msg.data.offer_id) {
+    const offerID = msg.data && msg.data.offer_id;
+    if (!offerID) {
       logger.warn(`_uiFunRemoveOffer: invalid format of the message: ${JSON.stringify(msg)}`);
       return false;
     }
-    const offerID = msg.data.offer_id;
     const campaignID = this.offersDB.getCampaignID(offerID);
     logger.info(`_uiFunRemoveOffer: called for offer id: ${offerID}`);
     this.sigHandler.setCampaignSignal(campaignID, offerID, msg.origin, ActionID.AID_OFFER_REMOVED);
     this.offersDB.incOfferAction(offerID, ActionID.AID_OFFER_REMOVED);
 
-    return this._removeOffer(offerID);
+    return this._removeOffer(campaignID, offerID);
   }
 
   /**

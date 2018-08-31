@@ -11,8 +11,7 @@ import {
   encodeCountry,
   encodeFilter,
   encodeLocation,
-  encodeWikiDedup,
-  encodeSessionParams
+  encodeSessionParams,
 } from './cliqz-helpers';
 
 export const getRichHeaderQueryString = (q, loc) => [
@@ -24,8 +23,7 @@ export const getRichHeaderQueryString = (q, loc) => [
   encodeResultOrder(),
   encodeCountry(),
   encodeFilter(),
-  encodeLocation(true, loc && loc.latitude, loc && loc.longitude),
-  encodeWikiDedup(),
+  encodeLocation(true, loc && loc.latitude, loc && loc.longitude)
 ].join('');
 
 export default class RichHeader extends BackendProvider {

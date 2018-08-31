@@ -84,11 +84,22 @@ export default class Manager {
         ]);
       })
       // (5) start and stop selected tests; tell remote about stopped tests
-      .then(([expiredTests, upcomingTests]) => Promise.all([
-        ...expiredTests.map(test => this.stopTest(test)
-          .then(stoppedTest => this.client.leaveTest(stoppedTest))),
-        ...upcomingTests.map(test => this.startTest(test)),
-      ]))
+      .then(async ([expiredTests, upcomingTests]) => {
+        await Promise.all(expiredTests
+          .map(async (test) => {
+            const stoppedTest = await this.stopTest(test);
+            try {
+              await this.client.leaveTest(stoppedTest);
+            } catch (e) {
+              logger.error('Calling `leaveTest` on remote failed', test);
+            }
+          })
+        );
+
+        await Promise.all(upcomingTests
+          .map(test => this.startTest(test))
+        );
+      })
       // (6) persist state
       .then(() => {
         this.saveTests();
@@ -176,6 +187,30 @@ export default class Manager {
       .filter(test => this.shouldStopTest(test));
   }
 
+  /**
+   * Retrieves running legacy AB tests so that new AB tests can be excluded
+   * from starting if they competed with legacy tests. For now, only the
+   * SERP AB test 1114 is considered.
+   *
+   * @function getRunningLegacyTests
+   * @returns The object of running legacy AB tests with test IDs keys.
+   */
+  async getRunningLegacyTests() {
+    // The SERP AB test 1114 is a special test as only new users are assigned
+    // to it. They are assigned in code (right on first browser start) rather
+    // than through the AB testing backend. Also, this test is not listed with
+    // the other AB tests, but is only marked by setting the 'serp_test' pref.
+    const group = await this.sharedStorage.get('serp_test');
+
+    if (!group) {
+      return {};
+    }
+
+    return {
+      1114: {},
+    };
+  }
+
   /*
    * Gets tests to start from new tests. A test is to be started if (1) all
    * local test criteria are fulfilled (see `shouldStartTest`) and (2) the
@@ -193,8 +228,9 @@ export default class Manager {
         this.shouldStartTest(test)
           .then(shouldStart => ({ test, shouldStart })))
     )
-      .then((reports) => {
+      .then(async (reports) => {
         const pendingTests = {};
+        const runningLegacyTests = await this.getRunningLegacyTests();
         const upcomingTests =
           reports
             // (2) remove tests that should not start
@@ -206,6 +242,7 @@ export default class Manager {
                 ...pendingTests,
                 ...this.runningTests,
                 ...this.completedTests,
+                ...runningLegacyTests,
               });
               if (!isCompeting) {
                 pendingTests[test.id] = test;

@@ -6,11 +6,13 @@ import utils from './utils';
 import random from './helpers/random';
 import events from './events';
 import { isOnionMode, isCliqzBrowser } from './platform';
-import { isSearchServiceReady, addCustomSearchEngine } from './search-engines';
+import { isSearchServiceReady, addCustomSearchEngine, removeEngine } from './search-engines';
 import { service as logos } from './services/logos';
 import { service as telemetry } from './services/telemetry';
 import { service as domainInfo } from './services/domain-info';
 import i18n from './i18n';
+import getSynchronizedDate, { isSynchronizedDateAvailable } from './synchronized-time';
+import { dateToDaysSinceEpoch } from './helpers/date';
 
 const services = {
   utils: () => utils.init(),
@@ -48,6 +50,12 @@ const services = {
           prefs.set(`config_${k}`, val);
         });
 
+        // Set install date if not already set before. This is done as soon as
+        // we get a valid `config_ts` value from the config endpoint.
+        if (!prefs.has('install_date') && config.ts) {
+          prefs.set('install_date', config.ts);
+        }
+
         utils.setDefaultCountryIndex();
 
         events.pub('cliqz-config:update');
@@ -58,17 +66,24 @@ const services = {
   },
   session: () => {
     if (!prefs.has('session')) {
+      // Get number of days since epoch either from config_ts if available
+      // (through `getSynchronizedDate`) or fallback to the `Date` API (which
+      // is dependent on the timezone of the system).
+      const installDate = (isSynchronizedDateAvailable()
+        ? dateToDaysSinceEpoch(getSynchronizedDate())
+        : utils.getDay()
+      );
+
       const session = [
         random(18),
         random(6, '0123456789'),
         '|',
-        utils.getServerDay(),
+        installDate,
         '|',
         CONFIG.settings.channel || 'NONE',
       ].join('');
 
       prefs.set('session', session);
-      prefs.set('install_date', session.split('|')[1]);
 
       if (!prefs.has('freshtab.state')) {
         // freshtab is opt-out since 2.20.3
@@ -84,25 +99,34 @@ const services = {
 
           // we only activate the test for german users inside germany
           if (prefs.get('config_location') !== 'de' ||
-              i18n.PLATFORM_LANGUAGE !== 'de') return;
+            i18n.PLATFORM_LANGUAGE !== 'de') return;
 
           const r = Math.random();
           if (r < 0.33) {
-            prefs.set('serp_test', 'A');
+            prefs.set('serp_test', 'E');
           } else if (r < 0.66) {
-            prefs.set('serp_test', 'B');
+            prefs.set('serp_test', 'F');
             isSearchServiceReady().then(() =>
-              addCustomSearchEngine('https://suche.cliqz.com/opensearch.xml', true));
+              addCustomSearchEngine('https://suchen.cliqz.com/opensearch.xml', true));
           } else {
-            prefs.set('serp_test', 'C');
+            prefs.set('serp_test', 'G');
             isSearchServiceReady().then(() =>
-              addCustomSearchEngine('https://search.cliqz.com/opensearch.xml', true));
+              addCustomSearchEngine('https://suchen.cliqz.com/opensearch.xml', true));
           }
         });
       }
     }
+
+    // we migrate the SERP tests users from B to D
+    if (prefs.get('serp_test', '-') === 'B') {
+      isSearchServiceReady().then(() => {
+        removeEngine('Cliqz');
+        addCustomSearchEngine('https://search.cliqz.com/opensearch.xml', true);
+        prefs.set('serp_test', 'D');
+      });
+    }
   },
-  'search-services': () => isSearchServiceReady(),
+  'search-services': isSearchServiceReady,
   domainInfo,
 };
 

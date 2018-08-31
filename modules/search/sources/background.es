@@ -4,9 +4,19 @@ import prefs from '../core/prefs';
 import config from '../core/config';
 import inject from '../core/kord/inject';
 import { promiseHttpHandler } from '../core/http';
-import { setDefaultSearchEngine } from '../core/search-engines';
+import {
+  setDefaultSearchEngine,
+  getEngineByQuery,
+  getSearchEngineQuery,
+} from '../core/search-engines';
 import ObservableProxy from '../core/helpers/observable-proxy';
 import events from '../core/events';
+import {
+  isUrl,
+  getSearchEngineUrl,
+  getVisitUrl,
+  fixURL,
+} from '../core/url';
 
 // providers
 import Calculator from './providers/calculator';
@@ -17,8 +27,11 @@ import Instant from './providers/instant';
 import QuerySuggestions from './providers/query-suggestions';
 import RichHeader, { getRichHeaderQueryString } from './providers/rich-header';
 
+import getThrottleQueries from './operators/streams/throttle-queries';
+
 import logger from './logger';
 import telemetry from './telemetry';
+import telemetryLatency from './telemetry-latency';
 import getConfig from './config';
 import search from './search';
 import getSnippet from './rich-header-snippet';
@@ -29,13 +42,15 @@ import LocationAssistant from './assistants/location';
 import * as offersAssistant from './assistants/offers';
 import settingsAssistant from './assistants/settings';
 
+import pluckResults from './operators/streams/pluck-results';
+
 /**
   @namespace search
   @module search
   @class Background
  */
 export default background({
-  requiresServices: ['search-services'],
+  requiresServices: ['search-services', 'logos'],
 
   core: inject.module('core'),
 
@@ -115,6 +130,7 @@ export default background({
 
       const {
         telemetrySubscription,
+        telemetryLatencySubscription,
         resultsSubscription,
         focusEventProxy,
       } = this.searchSessions.get(sessionId);
@@ -123,32 +139,47 @@ export default background({
 
       resultsSubscription.unsubscribe();
       telemetrySubscription.unsubscribe();
+      telemetryLatencySubscription.unsubscribe();
 
       this.searchSessions.delete(sessionId);
+
+      events.pub('search:session-end', {
+        windowId: sessionId,
+      });
     },
 
+    // TODO: debounce (see observables/urlbar)
     startSearch(
       query,
-      { key: keyCode } = {}, { contextId, tab: { id: tabId } = {} } = { tab: {} }
+      {
+        allowEmptyQuery = false,
+        isPasted = false,
+        isPrivate = false,
+        isTyped = true,
+        keyCode,
+      } = {},
+      { contextId, tab: { id: tabId } = {} } = { tab: {} },
     ) {
       const sessionId = tabId || contextId;
+      const now = Date.now();
 
       if (this.searchSessions.has(sessionId)) {
         const queryEventProxy = this.searchSessions.get(sessionId).queryEventProxy;
         queryEventProxy.next({
-          isPrivate: false,
-          isTyped: true,
+          isPrivate,
+          isTyped,
           query,
           tabId: sessionId,
-          windowId: 1,
           keyCode,
-          isPasted: false,
+          isPasted,
+          allowEmptyQuery,
+          ts: now,
         });
         return;
       }
 
       const _config = getConfig({
-        isPrivateMode: false,
+        isPrivateMode: isPrivate,
       });
 
       const selectionEventProxy = new ObservableProxy();
@@ -156,16 +187,22 @@ export default background({
       const focusEventProxy = new ObservableProxy();
       const highlightEventProxy = new ObservableProxy();
 
-      const query$ = queryEventProxy.observable.share();
+      const query$ = queryEventProxy.observable
+        .let(getThrottleQueries(_config))
+        .share();
       const focus$ = focusEventProxy.observable.share();
       const selection$ = selectionEventProxy.observable.share();
       const highlight$ = highlightEventProxy.observable.share();
 
-      const results$ = search(
+      const responses$ = search(
         { query$, focus$, highlight$ },
         this.providers,
         _config,
       ).share();
+
+      const results$ = responses$
+        .let(pluckResults())
+        .share();
 
       const telemetry$ = telemetry(focus$, query$, results$, selection$);
       const telemetrySubscription = telemetry$.subscribe(
@@ -173,39 +210,61 @@ export default background({
         error => logger.error('Failed preparing telemetry', error)
       );
 
-      const resultsSubscription = results$.subscribe((results) => {
-        const payload = {
-          action: 'renderResults',
-          args: [results],
-        };
+      const telemetryLatency$ = telemetryLatency(focus$, query$, results$);
+      const telemetryLatencySubscription = telemetryLatency$.subscribe(
+        data => utils.telemetry(data, false, 'metrics.search.latency'),
+        error => logger.error('Failed preparing latency telemetry', error)
+      );
+
+      const resultsSubscription = responses$.subscribe((responses) => {
+        const results = (responses.responses[0] && responses.responses[0].results) || [];
+        const {
+          tabId: _tabId,
+          query: _query,
+          ts: queriedAt,
+          ...meta,
+        } = responses.query;
+
         if (tabId) {
           this.core.action(
-            'broadcastMessageToWindow',
-            payload,
+            'broadcastActionToWindow',
             tabId,
+            'overlay',
+            'renderResults',
+            results
           );
         } else {
           this.core.action(
             'broadcast',
             {
-              ...payload,
+              action: 'renderResults',
+              args: [results],
               contextId,
             },
           );
-          events.pub('search:results', { results });
         }
+
+        events.pub('search:results', {
+          tabId: _tabId,
+          query: _query,
+          queriedAt,
+          meta,
+          results,
+          windowId: sessionId,
+        });
       });
 
       focusEventProxy.next({ event: 'focus' });
 
       queryEventProxy.next({
-        isPrivate: false,
-        isTyped: true,
+        isPrivate,
+        isTyped,
         query,
         tabId: sessionId,
-        windowId: 1,
         keyCode,
-        isPasted: false,
+        isPasted,
+        allowEmptyQuery,
+        ts: now,
       });
 
       this.searchSessions.set(sessionId, {
@@ -215,6 +274,7 @@ export default background({
         selectionEventProxy,
         telemetrySubscription,
         resultsSubscription,
+        telemetryLatencySubscription,
       });
     },
     /**
@@ -278,6 +338,19 @@ export default background({
       return setDefaultSearchEngine(name);
     },
 
+    setBackendCountry(country) {
+      prefs.clear('backend_country.override');
+      prefs.set('backend_country', country);
+    },
+
+    setAdultFilter(filter) {
+      prefs.set('adultContentFilter', filter);
+    },
+
+    setQuerySuggestions(enabled) {
+      prefs.set('suggestionsEnabled', enabled);
+    },
+
     adultAction(actionName) {
       if (this.adultAssistant.hasAction(actionName)) {
         return this.adultAssistant[actionName]();
@@ -310,5 +383,20 @@ export default background({
       this.adultAssistant.resetAllowOnce();
       this.locationAssistant.resetAllowOnce();
     },
+
+    queryToUrl(query = '') {
+      let handledQuery = '';
+
+      if (isUrl(query)) {
+        handledQuery = getVisitUrl(fixURL(query));
+      } else {
+        const engine = getEngineByQuery(query);
+        const rawQuery = getSearchEngineQuery(engine, query);
+
+        handledQuery = getSearchEngineUrl(engine, query, rawQuery);
+      }
+
+      return handledQuery;
+    }
   },
 });

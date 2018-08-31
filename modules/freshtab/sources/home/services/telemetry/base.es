@@ -7,8 +7,9 @@ import cliqz from '../../cliqz';
  * The complete list of signals can be found in:
  * ./modules/anolysis/sources/metrics/
  */
-function mkAnolysisSchemaName({ type, action, target }) {
-  let schemaName = `freshtab.${type}.${action}`;
+function mkAnolysisSchemaName({ type, action, view = '', target }) {
+  let schemaName = view === '' ? `freshtab.${type}.${action}` : `freshtab.${type}.${view}.${action}`;
+
   if (target) {
     schemaName = `${schemaName}.${target}`;
   }

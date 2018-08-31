@@ -53,7 +53,8 @@ class ActivateSubtriggersExpr extends Expression {
 
         this.data.be_connector.sendApiRequest(
           'loadsubtriggers',
-          { parent_id: this.parentTriggerId }).then((payload) => {
+          { parent_id: this.parentTriggerId },
+          'GET').then((payload) => {
           subtriggers = payload;
 
           // we filter here the triggers that are not associated to the user group
