@@ -1,15 +1,17 @@
 import {
+  $cliqzResults,
   blurUrlBar,
   checkMainResult,
   checkParent,
-  $cliqzResults,
   expect,
   fillIn,
   mockSearch,
   testsEnabled,
   waitForPopup,
-  withHistory } from './helpers';
-import results from './fixtures/resultsBigMachineRichData';
+  win,
+  withHistory,
+} from './helpers';
+import results from '../../core/integration/fixtures/resultsBigMachineRichData';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -21,7 +23,7 @@ export default function () {
 
   context('big machine result with rich data', function () {
     before(async function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
       blurUrlBar();
       await mockSearch({ results });
       withHistory([]);
@@ -31,7 +33,7 @@ export default function () {
 
     after(function () {
       blurUrlBar();
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     checkMainResult({ $result: $cliqzResults });

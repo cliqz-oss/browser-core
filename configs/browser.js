@@ -14,13 +14,13 @@ module.exports = {
   "testem_launchers_ci": ["unit-node"],
   "pack": "cd build && fab package:version=$VERSION,cert_path=$CLIQZ_CERT_PATH,cert_pass_path=$CLIQZ_CERT_PASS_PATH",
   "publish": "cd build && fab publish:beta=$CLIQZ_BETA,channel=$CLIQZ_CHANNEL,pre=$CLIQZ_PRE_RELEASE,version=$VERSION,cert_path=$CLIQZ_CERT_PATH,cert_pass_path=$CLIQZ_CERT_PASS_PATH",
+  "updateURL": "https://s3.amazonaws.com/cdncliqz/update/browser/latest.rdf",
+  "updateURLbeta": "https://s3.amazonaws.com/cdncliqz/update/browser_beta/latest.rdf",
   "settings": Object.assign({}, urls, {
     "id": "cliqz@cliqz.com",
     "name": "Cliqz",
     "channel": "40",
     "homepageURL": "https://cliqz.com/",
-    "updateURL": "https://s3.amazonaws.com/cdncliqz/update/browser/latest.rdf",
-    "updateURLbeta": "https://s3.amazonaws.com/cdncliqz/update/browser_beta/latest.rdf",
     "freshTabNews": true,
     "showDataCollectionMessage": false,
     "antitrackingButton": true,
@@ -28,6 +28,8 @@ module.exports = {
     "showNewBrandAlert": true,
     "suggestions": false,
     "onBoardingVersion": "3.0",
+    "ENDPOINT_ANONPATTERNSURL": "https://cdn.cliqz.com/browser-f/patterns-anon",
+    "ENDPOINT_PATTERNSURL": "https://cdn.cliqz.com/browser-f/patterns",
     "KEY_DS_PUBKEY": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwXo4hXvboKHCggNJ0UNFvZQfDWi0jNcF1kBHthxilMu6LB\/hFrSMQ+\/FgTqVE36cCezWE0K1UcwmYGVsuqxcvql82RfCmYUVBroJ3UFG8qnetYfU5FOk43C555p5l5HzlF8QilcCUBCO4SCj9lEZ3\/8FJboCupTqxEUq7nwUgaNZOiGKMdDUBZJO1tW4LSH4lj9IAZccEJ5HKVmJKopQ3hmzWgDqowxni4NQz+0DnsSfCGAupKaJDxjfajJosX5i674rgdHbZGtgHB3M9jhc6HFNPcmtUgLwgtUtRwMhSnya6q\/O06euouNi1h0m5eRrWeMRlJSdUnelLSU8QNy7LQIDAQAB",
     "KEY_SECURE_LOGGER_PUBKEY": "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAh5HhcRAn6+6woXQXl\/NtZ+fOooNglZct\/HSpYuqkcmrPauHW7EuOSq5bvpBZRTDROjR\/kUPomqVZIzqhdCFPA8BwXSCz7hAel2Q157vtBvh9sngMMLXb5Fgzef5N4EuKO8pL5KrS+I9tfZac41vFJSdpgAirZYhh+tdcQQ1z0Qv\/Rw0zOXjfvddCz3gEv2gB9KsLMVnTS1J4YOOgfza2adg9Ebz1z99DiF4vtCwn0IUwH\/3ToTBwJLbMnC3Ol43yBNk8rgK2mkgCi614vOSD3hnVmio+iW6+AUklM8VPl6l7hEK9cljJY+9UsMVmTrvaFbMPwS6AdZCXKTmNdaMJcy3zSOXu5zvzihoQLwAu9LM3l2eVk0Mw0K7JXOP20fc8BtzWCOLYVP32r4R0BNuhTtvGqjHNZHPJN5OwaxkLpn2dujL9uDWGjRiOItKMVq\/nOqmNGghrbf8IOaKT7VQhqOU4cXRkB\/uF1UjYETBavwUZAxx9Wd\/cMcAGmKiDxighxxQ29jDufl+2WG065tmJz+zCxmgrPh6Zb3KFUxPTe6yksAhWJhmGShA9v20t84M5c6NpZXoUsFcVja6XxzHeSB8dWq9Uu5QcZ83Gz\/ronwdEjT2OGTtBgOFeTDqLYUgphC1gcUEHOCnTNXRMQOXqGwBfZHp+Mq61QcMq2rNS7xECAwEAAQ==",
     "HW_CHANNEL": "cliqz",
@@ -59,10 +61,6 @@ module.exports = {
     "antitrackingPlaceholder": "cliqz.com/tracking",
     "antitrackingHeader": "CLIQZ-AntiTracking",
     "WORLDCUP_URL": "https://sport.cliqz.com/",
-    "ALLOWED_SEARCH_DOMAINS": {
-      'normal': ["\\.google\\..*?[#?&;]q=[^$&]+",".search.yahoo\\..*?[#?&;]p=[^$&]+",".linkedin.*?\\/pub\\/dir+","\\.bing\\..*?[#?&;]q=[^$&]+","\\.amazon\\.[^/]+\\/s(?:/?[?]|/ref=).*[?&]field-keywords=[^$&]+"],
-      'strict': ["\\.google\\..*?[#?&;]q=[^$&]+",".search.yahoo\\..*?[#?&;][pq]=[^$&]+",".linkedin.*?\\/pub\\/dir+","\\.bing\\..*?[#?&;]q=[^$&]+","\\.amazon\\.[^/]+\\/s/[?]?(?:ref=.*[?&])?field-keywords=[^$&]+"]
-    }
   }),
   "default_prefs" : {
     "modules.context-search.enabled": false,
@@ -70,9 +68,8 @@ module.exports = {
     "modules.type-filter.enabled": false,
     "modules.antitracking-blocker.enabled": false,
     "modules.history-analyzer.enabled": false,
-    "proxyPeer": false,
     "proxyTrackers": false,
-    "modules.cookie-monster.enabled": false,
+    "modules.cookie-monster.enabled": true,
     "modules.hpnv2.enabled": true
   },
   "modules": [
@@ -94,6 +91,7 @@ module.exports = {
     "hpn",
     "control-center",
     "offers-v2",
+    "popup-notification",
     "offers-debug",
     "browser-panel",
     "message-center",
@@ -118,6 +116,8 @@ module.exports = {
     "search",
     "cookie-monster",
     "hpnv2",
+    "myoffrz-collector",
+    "serp"
   ],
   "subprojects": subprojects([
     '@cliqz-oss/dexie',
@@ -141,6 +141,7 @@ module.exports = {
     'tooltipster-js',
     'tooltipster-sideTip-theme',
     'ua-parser-js',
+    'jsep',
   ]),
   systemDefault: base.systemConfig,
   builderDefault: base.builderConfig,

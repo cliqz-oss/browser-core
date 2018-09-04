@@ -1,13 +1,12 @@
 import {
-  clearIntervals,
   clone,
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
 import {
   defaultConfig,
   generateNewsResponse,
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 
 describe('Fresh tab interactions with news', function () {
@@ -49,7 +48,6 @@ describe('Fresh tab interactions with news', function () {
 
   afterEach(function () {
     subject.unload();
-    clearIntervals();
   });
 
   context('with 7 news items', function () {

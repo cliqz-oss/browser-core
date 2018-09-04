@@ -12,7 +12,7 @@ import {
   waitForPopup,
   withHistory } from '../helpers';
 import expectSelection from './common';
-import { results } from '../fixtures/resultsTwoSimpleWithoutAutocomplete';
+import { results } from '../../../core/integration/fixtures/resultsTwoSimpleWithoutAutocomplete';
 
 export default function () {
   if (!testsEnabled()) { return; }

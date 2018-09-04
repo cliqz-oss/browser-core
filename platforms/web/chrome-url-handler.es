@@ -1,2 +1,1 @@
-
-export const chromeUrlHandler = false;
+export const chromeUrlHandler = false; // eslint-disable-line

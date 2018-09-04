@@ -12,7 +12,7 @@ import {
   waitForPopup,
   withHistory } from '../helpers';
 import expectSelection from './common';
-import { results, friendlyUrl } from '../fixtures/resultsTwoSimple';
+import { results, friendlyUrl } from '../../../core/integration/fixtures/resultsTwoSimple';
 
 export default function () {
   if (!testsEnabled()) { return; }

@@ -1,0 +1,100 @@
+{
+  "url": "https://www.amazon.de/s/ref=nb_sb_noss/261-9879674-9680331?__mk_de_DE=%C3%85M%C3%85%C5%BD%C3%95%C3%91&url=search-alias%3Daps&field-keywords=test",
+
+  "mustContain": [{
+    "type": "humanweb",
+    "action": "query-am",
+    "payload": {
+      "r": {
+        "0": {
+          "t": "Clearblue Schwangerschaftstest, mit Anzeige der Wochen, 1 digitaler Test, 1er Pack (1 x 1 Stück)",
+          "u": "https://www.amazon.de/Clearblue-Schwangerschaftstest-Anzeige-Wochen-digitaler/dp/B00D6B1900"
+        },
+        // The second result is a list of product categories.
+        // (TODO: Is there are a way to filter these out?)
+        "1": {
+          "t": null,
+          "u": null
+        },
+        "2": {
+          "t": "Trinkwasser Wassertest (10 versch. Tests in 1) mit deutsch/englisch bedienungsanleitung",
+          "u": "https://www.amazon.de/Trinkwasser-Wassertest-versch-englisch-bedienungsanleitung/dp/B00643U1BU"
+        },
+        "3": {
+          "t": "50 x David Ovulationstest Streifen 10 miu/ml LH ovulation test",
+          "u": "https://www.amazon.de/David-Ovulationstest-Streifen-ovulation-test/dp/B00AIWRXR8"
+        },
+        "4": {
+          "t": "CTEK MXS 5.0 Test And Charge, Intelligentes Multi-Funktions Ladegerät Und Tester In Einem",
+          "u": "https://www.amazon.de/CTEK-Charge-Intelligentes-Multi-Funktions-Ladegerät/dp/B00ARU3M5S"
+        },
+        "5": {
+          "t": "Helicobacter Pylori Test Heli-C-CHECK - Schnelltest zum Nachweis von Helicobacter pylori-Antikörpern im Blut",
+          "u": "https://www.amazon.de/Helicobacter-Pylori-Test-Heli-C-CHECK-pylori-Antikörpern/dp/B00DW884D2"
+        },
+        "6": {
+          "t": "Test Schilddruesen - TSH test",
+          "u": "https://www.amazon.de/PRIMA-Home-Test-21073R-Schilddruesen/dp/B005CTTV0Y"
+        },
+        "7": {
+          "t": "Testtrainer IQ-Tests: . Mit Spaß trainieren - . Erfolgreich testen",
+          "u": "https://www.amazon.de/Testtrainer-IQ-Tests-trainieren-Erfolgreich-testen/dp/3442175313"
+        },
+        "8": {
+          "t": "Gesundheitstest für 10 Indikatoren - 100 Urin Teststreifen mit Referenzfarbkarte",
+          "u": "https://www.amazon.de/Gesundheitstest-für-Indikatoren-Teststreifen-Referenzfarbkarte/dp/B01B0IV7AW"
+        },
+        "9": {
+          "t": "SimplexHealth pH-Indikator Lackmus-Test Papier-Streifen Roll, 0-14 Für Wasser Urin und Speichel - 5 Meter",
+          "u": "https://www.amazon.de/SimplexHealth-pH-Indikator-Lackmus-Test-Papier-Streifen-Speichel/dp/B01AISHU7E"
+        },
+        "10": {
+          "t": "test Jahrbuch 2018: Mehr als 110 Tests und Reports",
+          "u": "https://www.amazon.de/test-Jahrbuch-2018-Tests-Reports-ebook/dp/B0787LD45J"
+        },
+        "11": {
+          "t": "Swiss Labs für eine einfache und genaue Schweizer Labs 14 in 1 Wasser-Test-Kit, Streifen-Home",
+          "u": "https://www.amazon.de/Swiss-Labs-Schweizer-Wasser-Test-Kit-Streifen-Home/dp/B079WG5RWV"
+        },
+        "12": {
+          "t": "GlutenCHECK - Gluten Test um Gluten Intoleranz Zuhause nachzuweisen",
+          "u": "https://www.amazon.de/GlutenCHECK-Gluten-Intoleranz-Zuhause-nachzuweisen/dp/B005DJKE2C"
+        },
+        "13": {
+          "t": "Relags Careplus Zecken Lyme Borreliose Test Zeckentest, Mehrfarbig, One Size",
+          "u": "https://www.amazon.de/Relags-Careplus-Borreliose-Zeckentest-Mehrfarbig/dp/B01HJ67R2G"
+        },
+        "14": {
+          "t": "BAYROL Quick Test - 50 x Pool Teststreifen für pH Wert / Chlor / Alkalinität / Algizid",
+          "u": "https://www.amazon.de/BAYROL-Quick-Test-Teststreifen-Alkalinität/dp/B00C3YPSW6"
+        },
+        "15": {
+          "t": "Tetra Test 6in1 Wassertest, für das Aquarium, schnelle und einfache Überprüfung der Wasserqualität, 1 Dose (25 Stk.)",
+          "u": "https://www.amazon.de/Tetra-Wassertest-Aquarium-Überprüfung-Wasserqualität/dp/B001B65ZVQ"
+        },
+        "16": {
+          "t": "The Power of Positive Energy: Powerful Thinking, Powerful Life: 9 Powerful Ways for Self-Improvement,Increasing Self-Esteem,& Gaining Positive Energy,Motivation,Forgiveness,Happiness ... Change Your Life Book 1) (English Edition)",
+          "u": "https://www.amazon.de/Power-Positive-Energy-Self-Improvement-Self-Esteem-ebook/dp/B01APCOKEY"
+        },
+        "17": {
+          "t": "Magnetvase Kirsche Blumenvase Magnethalter Magnet *",
+          "u": "https://www.amazon.de/Magnetvase-Kirsche-Blumenvase-Magnethalter-Magnet/dp/B073V2CQLP"
+        },
+        "18": {
+          "t": "The Power of Positive Energy: Powerful Thinking,Powerful Life: 9 Powerful Ways for Self-Improvement,Increasing Self-Esteem,& Gaining Positive Energy,Motivation,Forgiveness,Happiness & Peace of Mind.",
+          "u": "https://www.amazon.de/Power-Positive-Energy-Self-Improvement-Self-Esteem/dp/1537222791"
+        },
+        "19": {
+          "t": "GrandBeing 4 in 1 Bodentester Boden test Bodenmessgerät Bodenfeuchtigkeitsmessgerät Boden PH-Wert Temperatur Luftfeuchtigkeit Sonnenlicht für innenbereich/Außenbereich Wasser Licht Test",
+          "u": "https://www.amazon.de/Bodenmessgerät-Bodenfeuchtigkeitsmessgerät-Luftfeuchtigkeit-innenbereich-Außenbereich/dp/B01M7S9YW9"
+        }
+      },
+      "q": "test",
+      "ctry": "de",
+
+      // this is a limitation of the current test setup:
+      // in production, it should be the doublefetch URL, which would be: "https://www.amazon.de/s/?field-keywords=test"
+      "qurl": "https://www.amazon.de/s/ref=nb_sb_noss/261-9879674-9680331?__mk_de_DE=%C3%85M%C3%85%C5%BD%C3%95%C3%91&url=search-alias%3Daps&field-keywords=test"
+    }
+  }]
+}

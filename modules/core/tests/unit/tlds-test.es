@@ -11,11 +11,6 @@ export default describeModule('core/tlds',
     'platform/lib/tldjs': {
       default: tldjs,
     },
-    'platform/url': {
-      isURI() { return false; },
-      default: {
-      },
-    },
   }),
   () => {
     let sameGeneralDomain;

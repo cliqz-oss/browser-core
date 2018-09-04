@@ -160,8 +160,6 @@ export default class {
     }
   }
 
-  escapeSQL() {}
-
   saveURL(url, newObj, callback) {
     const record = JSON.stringify(newObj);
     this.dbConn.set('usafe', url, record, () => {

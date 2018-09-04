@@ -2,11 +2,11 @@ import {
   app,
   expect,
   testServer,
-  waitForPrefChange
+  waitForPrefChange,
 } from '../test-helpers';
 
 import prefs from '../../../core/prefs';
-import { isFirefox } from '../../../core/platform';
+import { isBootstrap } from '../../../core/platform';
 
 const expectedConfigs = [
   'backends',
@@ -18,15 +18,15 @@ const expectedConfigs = [
 ];
 
 function mockConfigReponse(response) {
-  return testServer.registerPathHandler('/api/v1/config',
-    JSON.stringify(response),
-  ).then(function () {
+  return testServer.registerPathHandler('/api/v1/config', {
+    result: JSON.stringify(response),
+  }).then(function () {
     app.config.settings.CONFIG_PROVIDER = testServer.getBaseUrl('/api/v1/config');
   });
 }
 
 export default function () {
-  if (!isFirefox) {
+  if (!isBootstrap) {
     return;
   }
 

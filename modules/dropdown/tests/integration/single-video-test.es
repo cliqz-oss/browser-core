@@ -1,15 +1,17 @@
 import {
-  blurUrlBar,
   $cliqzResults,
+  blurUrlBar,
   expect,
   fillIn,
   getComputedStyle,
   mockSearch,
   testsEnabled,
   waitForPopup,
-  withHistory } from './helpers';
+  win,
+  withHistory,
+} from './helpers';
 
-import results from './fixtures/resultsSingleVideo';
+import results from '../../core/integration/fixtures/resultsSingleVideo';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -26,7 +28,7 @@ export default function () {
     const videoDurationSelector = '.duration';
 
     before(async function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
       blurUrlBar();
       await mockSearch({ results });
       withHistory([]);
@@ -35,7 +37,7 @@ export default function () {
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     describe('renders single video result', function () {

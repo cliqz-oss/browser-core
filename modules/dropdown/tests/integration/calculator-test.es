@@ -1,6 +1,6 @@
 import {
-  blurUrlBar,
   $cliqzResults,
+  blurUrlBar,
   expect,
   fastFillIn,
   fillIn,
@@ -9,7 +9,9 @@ import {
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from './helpers';
+  win,
+  withHistory,
+} from './helpers';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -56,12 +58,12 @@ export default function () {
     ];
 
     before(function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
       blurUrlBar();
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     testArray.forEach(function (testCase) {

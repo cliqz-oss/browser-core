@@ -4,56 +4,6 @@ import { getCardWidth, elementTopMargin } from '../../styles/CardStyle';
 import NativeDrawable, { normalizeUrl } from '../custom/NativeDrawable';
 import MoreOn from '../partials/MoreOn';
 
-export default class Weather extends React.Component {
-
-  displayToday(day) {
-    const cardWidth = getCardWidth();
-    const imageName = normalizeUrl(day.icon);
-    return <View key={day.weekday} style={stylesToday(cardWidth).dayWrapper}>
-        <Text style={stylesToday().dayText}>{day.weekday}</Text>
-        <Text style={stylesToday().temperatureText}><Text style={stylesToday().maxMinText}>max.</Text> {day.max} <Text style={stylesToday().maxMinText}>/ min.</Text> {day.min}</Text>
-        <NativeDrawable source={imageName} style={stylesToday(cardWidth).dayIcon} />
-      </View>
-  }
-
-  displayDay(day) {
-    const cardWidth = getCardWidth();
-    const imageName = normalizeUrl(day.icon);
-    return <View key={day.weekday} style={stylesDay(cardWidth).dayWrapper}>
-        <Text style={stylesDay().dayText}>{day.weekday}</Text>
-        <Text style={stylesDay().temperatureText}><Text style={stylesDay().maxMinText}>max.</Text> {day.max} <Text style={stylesDay().maxMinText}>/ min.</Text> {day.min}</Text>
-        <NativeDrawable source={imageName} style={stylesDay(cardWidth).dayIcon} />
-      </View>
-  }
-
-  render() {
-    const data = this.props.data;
-    const today = {
-      max: data.todayMax,
-      min: data.todayMin,
-      weekday: data.todayWeekday,
-      icon: data.todayIcon,
-    };
-
-    return (
-      <View>
-        <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', ...elementTopMargin }}>
-          <View style={styles.containerToday}>
-            { this.displayToday(today) }
-          </View>
-          <View style={styles.tableDays}>
-            { data.forecast.map(this.displayDay) }
-          </View>
-        </View>
-        <MoreOn
-          provider='weatherunderground.com'
-          url='http://www.weatherunderground.com'
-        />
-      </View>
-    );
-  }
-}
-
 const styles = StyleSheet.create({
   containerToday: {
     flex: 1,
@@ -141,3 +91,62 @@ const stylesDay = (cardWidth = 0) => StyleSheet.create({
     width: cardWidth / 4,
   }
 });
+
+export default class Weather extends React.Component {
+  displayToday(day) {
+    const cardWidth = getCardWidth();
+    const imageName = normalizeUrl(day.icon);
+    return (
+      <View key={day.weekday} style={stylesToday(cardWidth).dayWrapper}>
+        <Text style={stylesToday().dayText}>{day.weekday}</Text>
+        <Text style={stylesToday().temperatureText}>
+          <Text style={stylesToday().maxMinText}>max.</Text> {day.max}{' '}
+          <Text style={stylesToday().maxMinText}>/ min.</Text> {day.min}
+        </Text>
+        <NativeDrawable source={imageName} style={stylesToday(cardWidth).dayIcon} />
+      </View>
+    );
+  }
+
+  displayDay(day) {
+    const cardWidth = getCardWidth();
+    const imageName = normalizeUrl(day.icon);
+    return (
+      <View key={day.weekday} style={stylesDay(cardWidth).dayWrapper}>
+        <Text style={stylesDay().dayText}>{day.weekday}</Text>
+        <Text style={stylesDay().temperatureText}>
+          <Text style={stylesDay().maxMinText}>max.</Text> {day.max}{' '}
+          <Text style={stylesDay().maxMinText}>/ min.</Text> {day.min}
+        </Text>
+        <NativeDrawable source={imageName} style={stylesDay(cardWidth).dayIcon} />
+      </View>
+    );
+  }
+
+  render() {
+    const data = this.props.data;
+    const today = {
+      max: data.todayMax,
+      min: data.todayMin,
+      weekday: data.todayWeekday,
+      icon: data.todayIcon,
+    };
+
+    return (
+      <View>
+        <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', ...elementTopMargin }}>
+          <View style={styles.containerToday}>
+            { this.displayToday(today) }
+          </View>
+          <View style={styles.tableDays}>
+            { data.forecast.map(this.displayDay) }
+          </View>
+        </View>
+        <MoreOn
+          provider="weatherunderground.com"
+          url="http://www.weatherunderground.com"
+        />
+      </View>
+    );
+  }
+}

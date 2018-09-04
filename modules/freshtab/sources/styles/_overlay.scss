@@ -1,0 +1,27 @@
+@import 'variables';
+
+.overlay {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: $overlay-background-color;
+}
+
+body {
+  &.ReactModal__Body--open,
+  &.show-overlay {
+      &::before,
+      .aside, .undo-notification-box,
+      .fixed-container > section:not(#section-url-bar) {
+          filter: blur($overlay-blur-amount);
+      }
+  }
+
+  &.ReactModal__Body--open {
+    .fixed-container > section {
+      filter: blur($overlay-blur-amount);
+    }
+  }
+}

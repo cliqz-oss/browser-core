@@ -1,7 +1,7 @@
 /* eslint func-names: 'off' */
 
 import background from '../core/base/background';
-import { isFirefox } from '../core/platform';
+import { isBootstrap } from '../core/platform';
 import utils from '../core/utils';
 import events from '../core/events';
 import getGeo from '../core/geolocation';
@@ -68,7 +68,7 @@ export default background({
 
     this.getRawGeolocationData = getGeo;
 
-    if (isFirefox) {
+    if (isBootstrap) {
       this.observerService = Components.classes['@mozilla.org/observer-service;1']
         .getService(Components.interfaces.nsIObserverService);
 
@@ -87,7 +87,7 @@ export default background({
   },
 
   unload() {
-    if (isFirefox) {
+    if (isBootstrap) {
       this.observerService.removeObserver(
         this.sleepObserver,
         'sleep_notification'

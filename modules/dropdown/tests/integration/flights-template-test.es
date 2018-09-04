@@ -1,9 +1,7 @@
-/* global window */
-
 import {
+  $cliqzResults,
   blurUrlBar,
   checkMainResult,
-  $cliqzResults,
   expect,
   fillIn,
   getComputedStyle,
@@ -11,9 +9,11 @@ import {
   mockSearch,
   testsEnabled,
   waitForPopup,
-  withHistory } from './helpers';
+  win,
+  withHistory,
+} from './helpers';
 import { colors, flightMatrix } from './flight-helpers';
-import resultsFlights from './fixtures/resultsFlights';
+import resultsFlights from '../../core/integration/fixtures/resultsFlights';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -36,12 +36,12 @@ export default function () {
         results = resultsFlights[flightType];
         await mockSearch({ results });
         fillIn('flug lx3029');
-        window.preventRestarts = true;
+        win.preventRestarts = true;
         await waitForPopup(2);
       });
 
       after(function () {
-        window.preventRestarts = false;
+        win.preventRestarts = false;
       });
 
       checkMainResult({ $result: $cliqzResults });

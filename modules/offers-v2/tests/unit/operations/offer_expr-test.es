@@ -16,7 +16,7 @@ const abNumber = 0;
 export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
   () => ({
     'core/platform': {
-      isChromium: false
+      isWebExtension: false
     },
     'platform/lib/tldjs': {
       default: tldjs,

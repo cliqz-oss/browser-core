@@ -1,10 +1,9 @@
 import {
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 import {
-  clearIntervals,
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
 import data from './fixtures/full-long-logo';
 
@@ -35,7 +34,6 @@ describe('Promo bar interactions', function () {
 
   afterEach(function () {
     subject.unload();
-    clearIntervals();
   });
 
   const promoBodyElements = [
@@ -100,9 +98,7 @@ describe('Promo bar interactions', function () {
         $element = $promoCodeContainer.querySelector(elementSelector);
         $element.click();
 
-        return waitFor(function () {
-          return subject.messages.length === 3;
-        });
+        return waitFor(() => subject.messages.length > 2);
       });
 
       afterEach(function () {

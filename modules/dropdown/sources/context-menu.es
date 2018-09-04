@@ -8,7 +8,7 @@ import config from '../core/config';
 import { copyToClipboard } from '../core/clipboard';
 import { getMessage } from '../core/i18n';
 
-function reportClick(window, result) {
+function reportClick(window, result, { isNewTab, isNewWindow, isPrivateWindow }) {
   events.pub('ui:click-on-url', {
     url: result.url,
     query: result.query,
@@ -19,6 +19,9 @@ function reportClick(window, result) {
     windowId: utils.getWindowID(window),
     action: 'click',
     target: 'context-menu',
+    isNewTab,
+    isNewWindow,
+    isPrivateWindow,
   });
 }
 
@@ -150,7 +153,7 @@ export default class ContextMenu {
   _open(url, result, signalName, { isNewTab, isNewWindow, isPrivateWindow }) {
     utils.openLink(this.window, url, isNewTab, isNewWindow, isPrivateWindow);
     this.telemetry(signalName);
-    reportClick(this.window, result);
+    reportClick(this.window, result, { isNewTab, isNewWindow, isPrivateWindow });
   }
 
   copyURL(url) {

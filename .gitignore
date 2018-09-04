@@ -8,7 +8,6 @@ tests.tap
 tests.xml
 addon.env
 jsconfig.json
-package-lock.json
 
 # ignore invisible files
 .Trashes
@@ -54,3 +53,7 @@ configs/private
 
 ghostery-extension
 ghostery.zip
+
+# chrome packages and certs
+*.crx
+*.pem

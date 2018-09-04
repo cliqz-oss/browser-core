@@ -7,3 +7,7 @@ export {
   chrome,
   window
 };
+
+export function isContentScriptsSupported() {
+  return typeof window.browser !== 'undefined' && window.browser.contentScripts;
+}

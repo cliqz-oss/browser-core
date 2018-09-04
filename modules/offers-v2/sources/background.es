@@ -1,9 +1,13 @@
+/* eslint object-curly-spacing: off */
+
 import logger from './common/offers_v2_logger';
+import inject from '../core/kord/inject';
+import { getGeneralDomain, extractHostname } from '../core/tlds';
 import prefs from '../core/prefs';
 import events from '../core/events';
 import config from '../core/config';
 import background from '../core/base/background';
-import OffersConfigs, { confOnPrefChange } from './offers_configs';
+import OffersConfigs from './offers_configs';
 import EventHandler from './event_handler';
 import SignalHandler from './signals/signals_handler';
 import Database from '../core/database';
@@ -18,22 +22,28 @@ import CategoryFetcher from './categories/category-fetcher';
 import GreenAdsHandler from './green-ads/manager';
 import UrlData from './common/url_data';
 import ActionID from './offers/actions-defs';
+import {oncePerInterval} from './utils';
 
 // /////////////////////////////////////////////////////////////////////////////
 // consts
 const OFFERS_CC_ENABLED = 'modules.offers-cc.enabled';
 const PROMO_BAR_ENABLED = 'modules.browser-panel.enabled';
+const POPUPS_INTERVAL = 30 * 60 * 1000; // 30 minutes
 
 export default background({
   // to be able to read the config prefs
   requiresServices: ['cliqz-config'],
+  popupNotification: inject.module('popup-notification'),
 
   init(/* settings */) {
     // check if we need to do something or not
-    if (!prefs.get('offers2FeatureEnabled', true) || !prefs.get('offers2UserEnabled', true)) {
+    if (!prefs.get('offers2UserEnabled', true)) {
       this.initialized = false;
       return Promise.resolve();
     }
+
+    this._publishPopupPushEventCached =
+      oncePerInterval(this._publishPopupPushEvent, POPUPS_INTERVAL);
 
     // check if we need to set dev flags or not
     // extensions.cliqz.offersDevFlag
@@ -182,6 +192,7 @@ export default background({
       this.categoryFetcher = null;
     }
 
+    this._publishPopupPushEventCached = null;
     this.initialized = false;
   },
 
@@ -212,6 +223,20 @@ export default background({
     logger.info('background script unloaded');
   },
 
+  onCategoriesHit(categoriesIDsSet, urlData) {
+    urlData.setActivatedCategoriesIDs(categoriesIDsSet);
+    // process the trigger engine now
+    // We want to have the following behavior to be able to show offers on
+    // the same url change:
+    // - trigger machine
+    // - fetch intents
+    // - process offers (handler)
+    //
+    // Since fetch intents is now in offers handler this is enough
+    this.triggerMachineExecutor.processUrlChange({ url_data: urlData })
+      .then(() => this.offersHandler.urlChangedEvent(urlData));
+  },
+
   onUrlChange(urlData) {
     if (!urlData || !this.triggerMachineExecutor) {
       return;
@@ -220,22 +245,10 @@ export default background({
     // evaluate categories first and store in the urlData all the categories
     // activated for that given url
     const categoriesIDsSet = this.categoryHandler.newUrlEvent(urlData.getPatternRequest());
-    urlData.setActivatedCategoriesIDs(categoriesIDsSet);
-
-    // process the trigger engine now
-    const data = {
-      url_data: urlData,
-    };
-
-    // We want to have the following behavior to be able to show offers on
-    // the same url change:
-    // - trigger machine
-    // - fetch intents
-    // - process offers (handler)
-    //
-    // Since fetch intents is now in offers handler this is enough
-    this.triggerMachineExecutor.processUrlChange(data)
-      .then(() => this.offersHandler.urlChangedEvent(urlData));
+    if (categoriesIDsSet.size > 0) {
+      logger.debug('Categories hit', urlData, categoriesIDsSet);
+    }
+    this.onCategoriesHit(categoriesIDsSet, urlData);
   },
 
 
@@ -249,7 +262,6 @@ export default background({
     // the list of acceptable normal preferences
     const validPrefNames = new Set([
       'offers2UserEnabled',
-      'offers2FeatureEnabled',
       'offersLogsEnabled',
       'offersDevFlag',
       'offersLoadSignalsFromDB',
@@ -283,6 +295,66 @@ export default background({
     });
   },
 
+  /**
+   * Proxy method to know if we should inject the coupon detection script in
+   * this url or not.
+   * In case we should activate the script we will return an object as follow:
+   * {
+   *   // the url where should be activated, basically the same we passed as param
+   *   url,
+   *   // the offerInfo structure
+   *   offerInfo: {
+   *     monitorID: 'xyz', // the monitor ID
+   *     code: 'xyz', // the coupon code of the offer (to inject it)
+   *   },
+   *   // confirming we want to activate it
+   *   activate: true,
+   * }
+   */
+  _shouldActivateOfferForUrl(url) {
+    if (this.offersHandler) {
+      const urlData = new UrlData(url);
+      const result = this.offersHandler.shouldActivateOfferForUrl(urlData) ||
+        { activate: false };
+      return {...result, url, module: 'offers-v2' };
+    }
+    return { url, activate: false, module: 'offers-v2' };
+  },
+
+  /**
+   * This action will be called from the coupon-content script whenever we detect
+   * a coupon has being used on the frontend.
+   * @param offerInfo is the object containing the following information:
+   *   offerInfo: {
+   *     offerID: 'xyz', // the offer id
+   *     code: 'xyz', // the coupon code of the offer (to inject it)
+   *   },
+   * @param couponValue the value of the code used, or empty if none
+   * @param url where it was used
+   *
+   * format of args: { offerInfo, couponValue, url }
+   */
+  _couponFormUsed(args) {
+    if (this.offersHandler) {
+      // eslint-disable-next-line no-param-reassign
+      args.urlData = new UrlData(args.url);
+      this.offersHandler.couponFormUsed(args);
+    }
+  },
+
+  _publishPopupPushEvent({templateData = {}, offerInfo = {}, ghostery = false}) {
+    const msg = {
+      target: 'offers-v2',
+      data: {
+        back: offerInfo,
+        config: {...templateData, ghostery},
+        preShow: 'try-to-find-coupon',
+        onApply: 'insert-coupon-form'
+      }
+    };
+    this.popupNotification.action('push', msg);
+  },
+
   // ///////////////////////////////////////////////////////////////////////////
   events: {
     'offers-recv-ch': function onRealEstateMessage(message) {
@@ -291,7 +363,6 @@ export default background({
       }
     },
     prefchange: function onPrefChange(pref) {
-      confOnPrefChange(pref);
       if (pref !== 'offers2UserEnabled') { return; }
       const offers2UserEnabled = prefs.get('offers2UserEnabled', true);
       prefs.set(OFFERS_CC_ENABLED, offers2UserEnabled);
@@ -301,6 +372,55 @@ export default background({
       } else {
         this.softUnload();
       }
+    },
+    'content:dom-ready': function onDomReady(url) {
+      if (!this.offersHandler) { return; }
+      const result = this._shouldActivateOfferForUrl(url);
+      const {activate = false, offerID, offerInfo} = result;
+      if (!activate) { return; }
+      const offer = this.offersHandler.getOfferObject(offerID) || {};
+
+      const {ui_info: {template_data: templateData = {}} = {}} = offer;
+      const domain = getGeneralDomain(url);
+      this._publishPopupPushEventCached({
+        ghostery: config.settings.channel === 'CH80', // ghostery
+        key: domain,
+        templateData,
+        offerInfo,
+      });
+    },
+    'popup-notification:pop': function onPopupPop(msg) {
+      const {target, data: {ok, url, back, type} = {}} = msg;
+      if (target !== 'offers-v2') { return; }
+      const m = {
+        cancel: 'coupon_autofill_field_cancel_action',
+        x: 'coupon_autofill_field_x_action',
+        outside: 'coupon_autofill_field_outside_action',
+      };
+      const couponValue = ok
+        ? 'coupon_autofill_field_apply_action'
+        : m[type] || 'coupon_autofill_field_unknown';
+      this._couponFormUsed({
+        url,
+        offerInfo: back,
+        couponValue,
+      });
+    },
+    'popup-notification:log': function onPopupLog(msg) {
+      const {target, data: {url, back, type, ok} = {}} = msg;
+      if (target !== 'offers-v2') { return; }
+      const m = {
+        'pre-show': ['coupon_autofill_field_failed', false],
+        'copy-code': ['coupon_autofill_field_copy_code', true],
+        show: ['coupon_autofill_field_show', true],
+      };
+      const [couponValue, expectedResult] = m[type] || ['coupon_autofill_field_unknown', true];
+      if (expectedResult !== ok) { return; }
+      this._couponFormUsed({
+        url,
+        offerInfo: back,
+        couponValue,
+      });
     },
   },
 
@@ -339,52 +459,12 @@ export default background({
       }
     },
 
-    /**
-     * Proxy method to know if we should inject the coupon detection script in
-     * this url or not.
-     * In case we should activate the script we will return an object as follow:
-     * {
-     *   // the url where should be activated, basically the same we passed as param
-     *   url,
-     *   // the offerInfo structure
-     *   offerInfo: {
-     *     monitorID: 'xyz', // the monitor ID
-     *     code: 'xyz', // the coupon code of the offer (to inject it)
-     *   },
-     *   // confirming we want to activate it
-     *   activate: true,
-     * }
-     */
     activateCouponDetectionOnUrl(url) {
-      if (this.offersHandler) {
-        const urlData = new UrlData(url);
-        const result = this.offersHandler.shouldActivateOfferForUrl(urlData) ||
-          { activate: false };
-        result.url = url;
-        return result;
-      }
-      return { url, activate: false };
+      return this._shouldActivateOfferForUrl(url);
     },
 
-    /**
-     * This action will be called from the coupon-content script whenever we detect
-     * a coupon has being used on the frontend.
-     * @param offerInfo is the object containing the following information:
-     *   offerInfo: {
-     *     offerID: 'xyz', // the offer id
-     *     code: 'xyz', // the coupon code of the offer (to inject it)
-     *   },
-     * @param couponValue the value of the code used, or empty if none
-     * @param url where it was used
-     *
-     * format of args: { offerInfo, couponValue, url }
-     */
     couponFormUsed(args) {
-      /* eslint no-param-reassign: "off" */
-      if (this.offersHandler) {
-        args.urlData = new UrlData(args.url);
-        this.offersHandler.couponFormUsed(args);
-      }
+      this._couponFormUsed(args);
     },
 
     /**
@@ -397,6 +477,34 @@ export default background({
 
     getActionID() {
       return ActionID;
+    },
+
+    flushSignals() {
+      if (this.signalsHandler) {
+        this.signalsHandler.flush();
+      }
+    },
+
+    onContentCategories({ categories, url, prefix }) {
+      if (categories.length === 0) {
+        return;
+      }
+      // Fake a url with category extracted from the url
+      const hostname = extractHostname(url);
+      const categoriesString = categories.map(cateogry =>
+        `${prefix}/${encodeURIComponent(cateogry)}`).join('/');
+      // Put all the category in one url,
+      // prefix is used to separate stages (basket, checkout, etc...)
+      const fakeUrl = `https://${hostname}/content-category/${categoriesString}`;
+      const fakeUrlData = new UrlData(fakeUrl);
+      // Here we pass a cpt (11) to make request, so it will only match to
+      // the special pattern for the categories extracted from the page
+      const categoriesIDsSet = this.categoryHandler.newUrlEvent(fakeUrlData.getPatternRequest(11));
+      if (categoriesIDsSet.size > 0) {
+        logger.log('Matching categories from content category', categories, categoriesIDsSet, url);
+        // As if the category hit happens on the real page
+        this.onCategoriesHit(categoriesIDsSet, new UrlData(url));
+      }
     },
   },
 

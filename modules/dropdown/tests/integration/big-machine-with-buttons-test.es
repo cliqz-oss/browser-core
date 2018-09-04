@@ -1,23 +1,25 @@
 import {
+  $cliqzResults,
   blurUrlBar,
   checkButtons,
   checkMainResult,
   checkParent,
-  $cliqzResults,
   fillIn,
   mockSearch,
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from './helpers';
-import results from './fixtures/resultsBigMachineWithButtons';
+  win,
+  withHistory,
+} from './helpers';
+import results from '../../core/integration/fixtures/resultsBigMachineWithButtons';
 
 export default function () {
   if (!testsEnabled()) { return; }
 
   context('big machine with buttons', function () {
     before(async function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
       blurUrlBar();
       withHistory([]);
       await mockSearch({ results });
@@ -28,7 +30,7 @@ export default function () {
 
     after(function () {
       blurUrlBar();
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     checkMainResult({ $result: $cliqzResults });

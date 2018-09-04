@@ -10,7 +10,7 @@ import {
   waitForPopup,
   withHistory } from '../helpers';
 import expectSelection from './common';
-import { lottoResults } from '../fixtures/resultsLottoGluecksspirale';
+import { lottoResults } from '../../../core/integration/fixtures/resultsLottoGluecksspirale';
 
 export default function () {
   if (!testsEnabled()) { return; }

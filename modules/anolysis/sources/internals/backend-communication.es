@@ -1,11 +1,19 @@
 import network from '../../platform/network';
 
 import md5 from '../../core/helpers/md5';
+import prefs from '../../core/prefs';
 import { httpPost } from '../../core/http';
+import { randomInt } from '../../core/crypto/random';
 
 import logger from './logger';
+import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
 
 
+/**
+ * Helper function used to send a json `payload` to `url` using a POST request.
+ * This returns a promise resolving to the answer if any, or rejecting on any
+ * exception or wrong HTTP code.
+ */
 function post(url, payload) {
   return new Promise((resolve, reject) => {
     httpPost(
@@ -32,140 +40,130 @@ function post(url, payload) {
 
 export default class Backend {
   constructor(config) {
+    this.config = config;
     this.backendUrl = config.get('backend.url');
   }
 
-  sendDemographics(demographics, endpoint) {
-    logger.debug(endpoint, demographics);
-    return post(`${this.backendUrl}/${endpoint}`, { id: demographics })
-      .then((result) => {
-        // Extract id returned by the backend. This is important because both
-        // the backend and the client must agree on a common format. This will
-        // be used later to update the GID.
-        if (result.id) {
-          // Check that id contains the same values than the `demographics`
-          // we sent, to prevent the backend from changing this. Which could
-          // allow tracking.
-          // const id = JSON.parse(result.id);
-          // const original = JSON.parse(demographics);
+  /**
+   * Attach the `meta` attribute to each message sent to backend. This is common
+   * to all messages (both analyses/metrics and demographics sending), which is
+   * why we share the same logic and implement it in backend-communication. If a
+   * `meta` attribute is already specified in `payload`, then its keys will take
+   * precedence over default ones.
+   */
+  attachMetadata(payload) {
+    const defaultMeta = {
+      // We add a random seed to each message to allow deduplication from the
+      // backend. This should not be a privacy concern, as each message will
+      // include a different number.
+      seed: randomInt(),
 
-          // const originalKeys = Object.keys(original);
-          // const idKeys = Object.keys(id);
+      // TODO: This is temporary! Should be removed before putting in
+      // production. This will be there as long as we test both telemetry
+      // systems side by side, to be able to compare results meaningfully.
+      session: this.config.get('session'),
 
-          // NOTE: we currently rely on the fact that extra argument can be
-          // ignored by the GID Server, so this check is too aggressive. In the
-          // future we might enable it again.
-          // if (idKeys.length !== originalKeys.length) {
-          //   return Promise.reject('Returned id contains different keys:'
-          //     + ` sent ${demographics}, received ${result.id}`);
-          // }
+      // This allows us to filter out signals coming from developers in the
+      // backend. This is not privacy breaching because all normal users will
+      // have `false` as value for this attribute.
+      dev: prefs.get('developer', false) === true,
 
-          // for (const key of idKeys) {
-          //   if (original[key] !== id[key]) {
-          //     return Promise.reject(`The value for key ${key} differs:`
-          //       + `sent ${original[key]}, received ${id[key]}`);
-          //   }
-          // }
+      // The date for this signal is either the date of the data/metrics which
+      // were aggregated to create it via an analysis, or the date of today if
+      // it was not specified yet.
+      date: getSynchronizedDate().format(DATE_FORMAT),
+    };
 
-          return result.id;
-        }
-
-        return Promise.reject('No id returned by the backend.');
-      });
+    // We return a copy of the signal with updated meta-data
+    return {
+      ...payload,
+      meta: {
+        ...defaultMeta,
+        ...(payload.meta || {}),
+      },
+    };
   }
 
   /**
-  * Send a new_install signal to the backend, with granular demographics.
-  */
-  newInstall(demographics) {
-    return this.sendDemographics(demographics, 'new_install');
+   * This function is used whenever the granular demographics need to be
+   * communicated to the backend again. This can happen on multiple occasions:
+   * 1. On new install (the first time Anolysis is started)
+   * 2. Whenever the demographics of a user change
+   *
+   * To make sure that clients can negotiate their group in the future, the
+   * backend will always return a serialized version of the normalized
+   * demographics to the client whenever the `/send_demographics` endpoint is
+   * used.
+   */
+  async sendDemographics({
+    demographics,
+    previousDemographics,
+    previousDemographicsSentDate,
+  }) {
+    const payload = this.attachMetadata({
+      demographics,
+      previous_demographics: previousDemographics,
+      previous_demographics_sent_date: previousDemographicsSentDate,
+    });
+    logger.debug('sendDemographics', payload);
+
+    // Extract id returned by the backend. This is important because both
+    // the backend and the client must agree on a common format. This will
+    // be used later to update the GID.
+    const { id } = await post(`${this.backendUrl}/send_demographics`, payload);
+    if (id) {
+      // NOTE: this section is commented out because it was too strict. When we
+      // add a new demographics in the backend, it can happen that an extra
+      // field is returned as part of `id`. With the following verifications,
+      // this would be rejected and the client would be stuck in a loop of
+      // sending the demographics again in the future. To prevent that, and
+      // until a better solution is implemented, the checks are disabled.
+
+      // Check that id contains the same values than the `demographics`
+      // we sent, to prevent the backend from changing this. Which could
+      // allow tracking.
+      // const id = JSON.parse(result.id);
+      // const original = JSON.parse(demographics);
+
+      // const originalKeys = Object.keys(original);
+      // const idKeys = Object.keys(id);
+
+      // if (idKeys.length !== originalKeys.length) {
+      //   return Promise.reject('Returned id contains different keys:'
+      //     + ` sent ${demographics}, received ${result.id}`);
+      // }
+
+      // for (const key of idKeys) {
+      //   if (original[key] !== id[key]) {
+      //     return Promise.reject(`The value for key ${key} differs:`
+      //       + `sent ${original[key]}, received ${id[key]}`);
+      //   }
+      // }
+      return id;
+    }
+
+    return Promise.reject('No id returned by the backend.');
   }
 
   /**
-  * Send a reappearing_user signal to the backend, with granular demographics.
-  */
-  reappearingUser(demographics) {
-    return this.sendDemographics(demographics, 'reappearing_user');
-  }
-
-  /**
-  * Once during each month (except during the same month as the new_install),
-  * sends the granular demographic factors again to the backend.
-  */
-  activeUserSignal(demographics) {
-    return this.sendDemographics(demographics, 'active_user');
-  }
-
-  /**
-  * Signal a demographics update of the client to the backend.
-  *
-  * To avoid having to send the granular demographics to the backend
-  * every time we update our GID, we only send a prefix of the hash of
-  * the demographics instead. If the prefix is small enough (3 or 4
-  * characters), then a few users will share this prefix, and the
-  * backend won't know which was the real one.
-  *
-  * The backend will check what pairs { full_hash, GID } it has
-  * available, and will return a list of all the pairs for which
-  * the prefix sent by the client also matches the prefix of `full_prefix`.
-  *
-  * The client is then able to get its true GID by selecting the one
-  * attached to its original hash.
-  *
-  * Right now it should naver happen that a client does not find its
-  * GID using this method, because every month every clients will send
-  * again their granular combination. This is not satisfactory and
-  * another method, with better privacy preservation, will be implemented
-  * in the future.
-  */
-  updateGID(demographics) {
-    logger.log('updateDemographics', demographics);
-    const hash = md5(demographics);
-
-    // NOTE: prefix of size 4
-    // '1': 178182,
-    // '2': 210984,
-    // '3': 131292,
-    // '4': 56398,
-    // '5': 23377,
-    // '6': 3319,
-    // '7': 647,
-    // '8': 24})
-
-    // NOTE: prefix of size 3
-    // '4': 2,
-    // '5': 8,
-    // '6': 58,
-    // '7': 146,
-    // '8': 527,
-    // '9': 1200})
-    // '10': 2437,
-    // '11': 4562,
-    // '12': 7531,
-    // '13': 12556,
-    // '14': 17584,
-    // '15': 25351,
-    // '16': 36664,
-    // '17': 44523,
-    // '18': 54860,
-    // '19': 48917,
-    // '20': 47010,
-    // '21': 50756,
-    // '22': 52401,
-    // '23': 40243,
-    // '24': 40067,
-    // '25': 39202,
-    // '26': 22787,
-    // '27': 15901,
-    // '28': 13372,
-    // '29': 9243,
-    // '30': 6237,
-    // '31': 4483,
-    // '32': 2729,
-    // '33': 475,
-    // '34': 1664,
-    // '35': 251,
-    // '36': 476,
+   * Request current group to the backend.
+   *
+   * To avoid having to send the granular demographics to the backend every time
+   * we update our GID, we only send a prefix of the hash of the demographics
+   * instead. If the prefix is small enough (3 or 4 characters), then a few
+   * users will share this prefix, and the backend won't know which was the real
+   * one.
+   *
+   * The backend will check what pairs { full_hash, GID } it has available, and
+   * will return a list of all the pairs for which the prefix sent by the client
+   * also matches the prefix of `full_prefix`.
+   *
+   * The client is then able to get its true GID by selecting the one attached
+   * to its original hash.
+   */
+  updateGID(formattedNormalizedDemographics) {
+    logger.log('updateDemographics', formattedNormalizedDemographics);
+    const hash = md5(formattedNormalizedDemographics);
     const prefix = hash.slice(0, 3);
 
     // Send a prefix of the hash to the backend
@@ -196,12 +194,13 @@ export default class Backend {
   * Sends a behavioral signal to the backend
   */
   sendSignal(signal) {
-    logger.debug('sendSignal', signal);
-
     if (network.type !== 'wifi') {
       return Promise.reject('Device is not connected to WiFi');
     }
 
-    return post(`${this.backendUrl}/collect`, signal);
+    const payload = this.attachMetadata(signal);
+    logger.debug('sendSignal', payload);
+
+    return post(`${this.backendUrl}/collect`, payload);
   }
 }

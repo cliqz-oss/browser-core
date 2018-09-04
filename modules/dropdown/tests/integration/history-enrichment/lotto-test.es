@@ -7,10 +7,10 @@ import {
   mockSearch,
   waitFor,
   waitForPopup,
-  withHistory
+  withHistory,
 } from '../helpers';
 
-import results from '../fixtures/resultsLotto6Aus49';
+import results from '../../../core/integration/fixtures/resultsLotto6Aus49';
 
 export default function () {
   if (!testsEnabled()) { return; }

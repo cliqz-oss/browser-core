@@ -1,52 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import NativeDrawable, { normalizeUrl } from './custom/NativeDrawable';
 import Link from './Link';
 import { elementSideMargins } from '../styles/CardStyle';
-
-export default class ExpandView extends React.Component {
-
-  constructor(props) {
-    super(props);
-    this.state = {collapsed: true};
-  }
-
-  render() {
-    const isCollapsed = this.state.collapsed;
-    const index = this.props.index;
-    const arrowImage = normalizeUrl('arrow-down.svg');
-    const style = styles(isCollapsed, index);
-    return (
-      <View style={style.container}>
-        <Link
-          onPress={() => this.setState({collapsed: !isCollapsed})}
-        >
-          <View style={style.header}>
-            <View style={style.headerDetails}>
-              { this.props.header }
-            </View>
-            <View style={style.headerExpand}>
-              <NativeDrawable
-                source={arrowImage}
-                style={style.arrow}
-              />
-            </View>
-          </View>
-        </Link>
-        { isCollapsed ||
-          (
-            <Link>
-              <View style={style.content}>
-                { this.props.content }
-              </View>
-            </Link>
-          )
-        }
-      </View>
-    );
-  }
-}
 
 const styles = (collapsed = true, index) => StyleSheet.create({
   container: {
@@ -91,3 +48,45 @@ const styles = (collapsed = true, index) => StyleSheet.create({
     ...elementSideMargins,
   },
 });
+
+export default class ExpandView extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { collapsed: true };
+  }
+
+  render() {
+    const isCollapsed = this.state.collapsed;
+    const index = this.props.index;
+    const arrowImage = normalizeUrl('arrow-down.svg');
+    const style = styles(isCollapsed, index);
+    return (
+      <View style={style.container}>
+        <Link
+          onPress={() => this.setState({ collapsed: !isCollapsed })}
+        >
+          <View style={style.header}>
+            <View style={style.headerDetails}>
+              { this.props.header }
+            </View>
+            <View style={style.headerExpand}>
+              <NativeDrawable
+                source={arrowImage}
+                style={style.arrow}
+              />
+            </View>
+          </View>
+        </Link>
+        { isCollapsed ||
+          (
+            <Link>
+              <View style={style.content}>
+                { this.props.content }
+              </View>
+            </Link>
+          )
+        }
+      </View>
+    );
+  }
+}

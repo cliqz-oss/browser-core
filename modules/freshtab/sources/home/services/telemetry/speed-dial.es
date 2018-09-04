@@ -2,7 +2,6 @@ import telemetry from './base';
 
 export function speedDialClickSignal(isCustom, index) {
   const target = isCustom ? 'favorite' : 'topsite';
-
   telemetry({
     type: 'home',
     action: 'click',
@@ -12,14 +11,22 @@ export function speedDialClickSignal(isCustom, index) {
 }
 
 export function speedDialDeleteSignal(isCustom, index) {
-  const target = isCustom ? 'delete_favorite' : 'delete_topsite';
-
-  telemetry({
-    type: 'home',
-    action: 'click',
-    target,
-    index,
-  });
+  if (isCustom) {
+    telemetry({
+      type: 'home',
+      view: 'edit_favorite',
+      action: 'click',
+      target: 'delete',
+      index,
+    });
+  } else {
+    telemetry({
+      type: 'home',
+      action: 'click',
+      target: 'delete_topsite',
+      index,
+    });
+  }
 }
 
 export function favoriteAddSignal() {
@@ -33,8 +40,8 @@ export function favoriteAddSignal() {
 export function addFormCloseSignal() {
   telemetry({
     type: 'home',
-    action: 'click',
     view: 'add_favorite',
+    action: 'click',
     target: 'close',
   });
 }
@@ -42,9 +49,35 @@ export function addFormCloseSignal() {
 export function addFormSubmitSignal() {
   telemetry({
     type: 'home',
-    action: 'click',
     view: 'add_favorite',
+    action: 'click',
     target: 'add',
+  });
+}
+
+export function favoriteEditSignal() {
+  telemetry({
+    type: 'home',
+    action: 'click',
+    target: 'edit_favorite',
+  });
+}
+
+export function editFormCloseSignal() {
+  telemetry({
+    type: 'home',
+    view: 'edit_favorite',
+    action: 'click',
+    target: 'close',
+  });
+}
+
+export function editFormSubmitSignal() {
+  telemetry({
+    type: 'home',
+    view: 'edit_favorite',
+    action: 'click',
+    target: 'save',
   });
 }
 

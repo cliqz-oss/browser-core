@@ -5,9 +5,9 @@ import prefs from '../core/prefs';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import background from './background';
 import config from '../core/config';
-import console from '../core/console';
 import { getMessage } from '../core/i18n';
 import { getDetailsFromUrl } from '../core/url';
+import logger from './logger';
 
 const ORIGIN_NAME = 'offers-cc';
 let autoTrigger = false;
@@ -509,7 +509,7 @@ export default class Win {
    */
   sendMessageToOffersCore(msg) {
     if (!msg || !msg.type) {
-      console.log('Error: invalid message');
+      logger.log('Error: invalid message');
       return;
     }
     // create the message to be sent
@@ -591,7 +591,7 @@ export default class Win {
     if (msg) {
       this.sendMessageToOffersCore(msg);
     } else {
-      console.log(`sendOfferActionSignal: error: the message is null? invalid signal type? ${data.signal_type}`);
+      logger.log(`sendOfferActionSignal: error: the message is null? invalid signal type? ${data.signal_type}`);
     }
   }
 
@@ -605,6 +605,7 @@ export default class Win {
   // subscribe to the storage events
   //
   onOffersCoreEvent(event) {
+    logger.log(event, 'event');
     // Ignore the event if this is not the most recent active window
     if (this.window !== utils.getWindow()) {
       return;
@@ -613,94 +614,86 @@ export default class Win {
     // check if we need to discard the event or not
     if (event.dest && event.dest.length > 0 && (event.dest.indexOf(ORIGIN_NAME) < 0)) {
       // we should not process this message
+      logger.log('we should not process this message');
       return;
     }
     // we also have event data: event.data;
     const eventID = event.type;
 
-    this._getAllOffers().then((results) => {
-      // TODO: Do we need this check anymore ? Yes
-      if (results.length <= 0 || !results.some(result => result.state === 'new')) {
-        return;
-      }
+    switch (eventID) {
+      case 'push-offer': {
+        const offersHubTrigger = event.data.offer_data.ui_info.notif_type || 'tooltip';
+        const offerID = event.data.offer_data.offer_id;
+        this.toolbarButtonElement.setAttribute('state', 'new-offers');
 
-      switch (eventID) {
-        case 'push-offer': {
-          const offersHubTrigger = event.data.offer_data.ui_info.notif_type || 'tooltip';
-          const offerID = event.data.offer_data.offer_id;
-          this.toolbarButtonElement.setAttribute('state', 'new-offers');
+        const notifMsg = {
+          type: 'offer-action-signal'
+        };
 
-          const notifMsg = {
-            type: 'offer-action-signal'
+        if (offersHubTrigger === 'pop-up') {
+          notifMsg.data = {
+            action_id: 'offer_notif_popup',
+            offer_id: offerID
           };
 
-          if (offersHubTrigger === 'pop-up') {
-            notifMsg.data = {
-              action_id: 'offer_notif_popup',
-              offer_id: offerID
-            };
+          this.sendMessageToOffersCore(notifMsg);
+          this.showTooltip = false;
+          this.preferredOfferId = offerID;
 
-            this.sendMessageToOffersCore(notifMsg);
-            this.showTooltip = false;
-            this.preferredOfferId = offerID;
+          // Auto open the panel
+          autoTrigger = true;
+          this.openPanel();
+        } else if (offersHubTrigger === 'dot') {
+          notifMsg.data = {
+            action_id: 'offer_notif_dot',
+            offer_id: offerID
+          };
 
-            // Auto open the panel
-            autoTrigger = true;
-            this.openPanel();
-          } else if (offersHubTrigger === 'dot') {
-            notifMsg.data = {
-              action_id: 'offer_notif_dot',
-              offer_id: offerID
-            };
+          this.sendMessageToOffersCore(notifMsg);
+          this.showTooltip = false;
+        } else { // Open tooltip by default
+          // TODO: change this when there is a new notif_type
+          notifMsg.data = {
+            action_id: `offer_notif_${offersHubTrigger}`,
+            offer_id: offerID
+          };
 
-            this.sendMessageToOffersCore(notifMsg);
-            this.showTooltip = false;
-          } else { // Open tooltip by default
-            // TODO: change this when there is a new notif_type
-            notifMsg.data = {
-              action_id: `offer_notif_${offersHubTrigger}`,
-              offer_id: offerID
-            };
+          const buttonArea = this.window.CustomizableUI.getWidget(this.toolbarButton.id).areaType;
+          const signal = {
+            type: 'offrz',
+            view: 'box_tooltip',
+            action: 'show',
+            style: this._mapTelemetryStyle(offersHubTrigger),
+            location: this._mapTelemetryLocation(buttonArea),
+          };
 
-            const buttonArea = this.window.CustomizableUI.getWidget(this.toolbarButton.id).areaType;
-            const signal = {
-              type: 'offrz',
-              view: 'box_tooltip',
-              action: 'show',
-              style: this._mapTelemetryStyle(offersHubTrigger),
-              location: this._mapTelemetryLocation(buttonArea),
-            };
+          utils.telemetry(signal);
 
-            utils.telemetry(signal);
-
-            if (signal.location === 'hidden') {
-              return; // Don't show the tooltip if the button is on the palette
-            }
-
-            this.sendMessageToOffersCore(notifMsg);
-
-            this.showTooltip = true;
-            this.uiInfo = event.data.offer_data.ui_info;
-            const msg = {
-              type: 'action-signal',
-              data: {
-                action_id: 'tooltip_shown',
-              },
-            };
-            this.sendMessageToOffersCore(msg);
-
-            this.openPanel();
+          if (signal.location === 'hidden') {
+            return; // Don't show the tooltip if the button is on the palette
           }
-          break;
+
+          this.sendMessageToOffersCore(notifMsg);
+
+          this.showTooltip = true;
+          this.uiInfo = event.data.offer_data.ui_info;
+          const msg = {
+            type: 'action-signal',
+            data: {
+              action_id: 'tooltip_shown',
+            },
+          };
+          this.sendMessageToOffersCore(msg);
+
+          this.openPanel();
         }
-        default: {
-          console.log('invalid event from core type', eventID);
-          break;
-        }
+        break;
       }
-    }).catch((err) => {
-      console.log('======= event: error: ', err);
-    });
+      default: {
+        logger.log('invalid event from core type', eventID);
+        break;
+      }
+    }
   }
 
   openPanel() {

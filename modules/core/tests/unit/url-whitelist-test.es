@@ -49,6 +49,11 @@ export default describeModule('core/url-whitelist',
     'platform/lib/tldjs': {
       default: tldjs,
     },
+    'platform/platform': {
+      default: {
+       isOnionMode: false,
+      },
+    }
   }), function () {
     let urlWhitelist;
 

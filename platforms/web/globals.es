@@ -1,4 +1,4 @@
 /* global window */
 export {
-  window
-}
+  window // eslint-disable-line
+};

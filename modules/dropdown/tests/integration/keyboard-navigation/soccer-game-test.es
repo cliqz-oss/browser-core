@@ -11,7 +11,7 @@ import {
   waitForPopup,
   withHistory } from '../helpers';
 import expectSelection from './common';
-import { soccerResults } from '../fixtures/resultsSoccerLigaGame';
+import { soccerResults } from '../../../core/integration/fixtures/resultsSoccerLigaGame';
 
 export default function () {
   if (!testsEnabled()) { return; }

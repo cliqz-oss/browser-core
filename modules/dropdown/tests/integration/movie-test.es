@@ -1,10 +1,8 @@
-/* global window */
-
 import {
+  $cliqzResults,
   blurUrlBar,
   checkMainResult,
   checkParent,
-  $cliqzResults,
   expect,
   fillIn,
   getComputedStyle,
@@ -12,8 +10,10 @@ import {
   mockSearch,
   testsEnabled,
   waitForPopup,
-  withHistory } from './helpers';
-import results from './fixtures/resultsMovie';
+  win,
+  withHistory,
+} from './helpers';
+import results from '../../core/integration/fixtures/resultsMovie';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -38,7 +38,7 @@ export default function () {
     const query = 'imdb the circle';
 
     before(async function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
       blurUrlBar();
       await mockSearch({ results });
       withHistory([]);
@@ -47,7 +47,7 @@ export default function () {
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
       blurUrlBar();
     });
 

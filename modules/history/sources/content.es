@@ -1,22 +1,13 @@
-import { registerContentScript, CHROME_MSG_SOURCE } from '../core/content/helpers';
+import { registerContentScript } from '../core/content/helpers';
 
-registerContentScript('https://cliqz.com/search?q=*', (window, chrome) => {
+registerContentScript('history', 'https://cliqz.com/search?q=*', (window, chrome, CLIQZ) => {
   const URLSearchParams = window.URLSearchParams;
   const searchParams = new URLSearchParams(window.location.search);
   const queries = searchParams.getAll('q');
   const query = queries[queries.length - 1];
 
   function queryCliqz(q) {
-    chrome.runtime.sendMessage({
-      source: CHROME_MSG_SOURCE,
-      payload: {
-        module: 'core',
-        action: 'queryCliqz',
-        args: [
-          decodeURIComponent(q)
-        ],
-      },
-    });
+    CLIQZ.app.modules.core.action('queryCliqz', decodeURIComponent(q));
   }
 
   if (!query) {

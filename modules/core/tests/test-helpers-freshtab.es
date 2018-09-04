@@ -2,7 +2,7 @@ import chai from 'chai';
 import chaiDom from 'chai-dom';
 
 import config from '../../core/config';
-import { wait } from './test-helpers';
+import { wait, waitFor } from './test-helpers';
 
 
 chai.use(chaiDom);
@@ -156,21 +156,21 @@ export class Subject {
     this.modules = {};
     this.messages = [];
     this.injectTestUtils = injectTestUtils;
-    const listeners = new Set();
+    this.listeners = new Set();
     this.chrome = {
       runtime: {
         onMessage: {
-          addListener(listener) {
-            listeners.add(listener);
+          addListener: (listener) => {
+            this.listeners.add(listener);
           },
-          removeListener(listener) {
-            listeners.delete(listener);
+          removeListener: (listener) => {
+            this.listeners.delete(listener);
           }
         },
         sendMessage: ({ module, action, requestId, args }) => {
           const response = this.modules[module].actions[action];
 
-          listeners.forEach((l) => {
+          this.listeners.forEach((l) => {
             l({
               action,
               response,
@@ -188,25 +188,27 @@ export class Subject {
     };
   }
 
-  _injectTestUtils() {
-    let testUtilsPromise = Promise.resolve();
-
-    if (this.injectTestUtils) {
-      let resolver;
-      testUtilsPromise = new Promise((r) => { resolver = r; });
-      const testUtils = document.createElement('script');
-      this.iframe.contentWindow.document.body.appendChild(testUtils);
-
-      testUtils.onload = () => {
-        resolver();
-      };
-      testUtils.src = '../vendor/react-dom-test-utils.js';
-    }
-
-    return testUtilsPromise;
+  sendMessage(message) {
+    this.listeners.forEach((l) => {
+      l(message);
+    });
   }
 
-  load({
+  async _injectTestUtils() {
+    if (this.injectTestUtils) {
+      await new Promise((resolve) => {
+        const testUtils = document.createElement('script');
+        this.iframe.contentWindow.document.body.appendChild(testUtils);
+
+        testUtils.onload = () => {
+          resolve();
+        };
+        testUtils.src = '../vendor/react-dom-test-utils.js';
+      });
+    }
+  }
+
+  async load({
     buildUrl = `/build/${config.settings.id}/chrome/content/freshtab/home.html`,
     iframeWidth = 900 } = {}) {
     this.iframe = document.createElement('iframe');
@@ -214,22 +216,37 @@ export class Subject {
     this.iframe.width = iframeWidth;
     this.iframe.height = 700;
     document.body.appendChild(this.iframe);
-    return new Promise((resolve) => {
-      this.iframe.contentWindow.chrome = this.chrome;
-      this.iframe.contentWindow.addEventListener('message', (ev) => {
-        const data = JSON.parse(ev.data);
-        this.messages.push(data);
-        if (this.waitForFirstMessage) {
-          this._injectTestUtils().then(() => resolve());
-        }
-      });
 
-      this.iframe.contentWindow.addEventListener('load', () => {
-        if (!this.waitForFirstMessage) {
-          this._injectTestUtils().then(() => resolve());
-        }
-      });
+    this.iframe.contentWindow.chrome = this.chrome;
+
+    let testsUtilsInjected = false;
+    let iframeLoaded = false;
+
+    this.iframe.contentWindow.addEventListener('message', (ev) => {
+      const data = JSON.parse(ev.data);
+      this.messages.push(data);
+      if (this.waitForFirstMessage) {
+        this._injectTestUtils().then(() => { testsUtilsInjected = true; });
+      }
     });
+
+    this.iframe.contentWindow.addEventListener('load', () => {
+      if (!this.waitForFirstMessage) {
+        this._injectTestUtils().then(() => { testsUtilsInjected = true; });
+      }
+      iframeLoaded = true;
+    });
+
+    await waitFor(() => (
+      testsUtilsInjected &&
+      iframeLoaded &&
+      this.iframe.contentWindow.document
+    ));
+
+    // We need to wait a bit so that the iframe is fully operational. If we
+    // don't we get random errors like: 'querySelector(...) is null', etc. If a
+    // brave warrior in the future wants to fix this, please do.
+    return wait(400);
   }
 
   unload() {
@@ -356,7 +373,9 @@ export class Subject {
   getNewsGbLanguage() {
     return this.query('#news-radio-selector-7');
   }
-
+  getNewsEsLanguage() {
+    return this.query('#news-radio-selector-8');
+  }
   getCliqzThemeSettings() {
     return this.queryByI18n('Cliqz Theme');
   }
@@ -396,7 +415,7 @@ export class Subject {
   }
 }
 
-export const defaultConfig = {
+export const defaultConfig = Object.freeze({
   module: 'freshtab',
   action: 'getConfig',
   response: {
@@ -471,4 +490,4 @@ export const defaultConfig = {
       }
     ]
   },
-};
+});

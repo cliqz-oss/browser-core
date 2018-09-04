@@ -47,7 +47,7 @@ export const extrasMap = {
   'local-data-sc': Local,
   movie: MovieData,
   cinemaEZ: Cinema,
-  movieEZ: Movie,
+  'movie-showtimes': Movie,
   flight: Flight,
 };
 

@@ -1,3 +1,5 @@
+import telemetry from '../core/services/telemetry';
+
 import logger from './logger';
 import LatencyMetrics from './latency-metrics';
 
@@ -20,8 +22,11 @@ export default class Pipeline {
     this.isBreakable = isBreakable;
 
     // Collect timings for steps of the pipeline
-    this.latencyMetrics = new LatencyMetrics(name);
-    this.latencyMetrics.init();
+    this.measureLatency = telemetry.isEnabled();
+    if (this.measureLatency) {
+      this.latencyMetrics = new LatencyMetrics(name);
+      this.latencyMetrics.init();
+    }
 
     // Init empty pipeline
     this.unload({ shallow: true });
@@ -37,7 +42,7 @@ export default class Pipeline {
     this.pipeline = [];
     this.stepFns = new Map();
 
-    if (!shallow) {
+    if (this.measureLatency && !shallow) {
       this.latencyMetrics.unload();
     }
   }
@@ -212,7 +217,9 @@ export default class Pipeline {
       }
 
       // Register this step's execution time
-      this.latencyMetrics.addTiming(name, Date.now() - t0);
+      if (this.measureLatency) {
+        this.latencyMetrics.addTiming(name, Date.now() - t0);
+      }
 
       // Handle early termination of the pipeline. If a step returns `false` and
       // this pipeline is allowed to be 'broken', then we ignore the remaining

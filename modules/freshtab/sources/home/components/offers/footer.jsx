@@ -11,7 +11,7 @@ export default class Footer extends React.Component {
   get anchorClasses() {
     const offerTpl = this.props.data;
     return [
-      'cta-btn',
+      'footer-cta',
       offerTpl.call_to_action.text.length > 13 ? 'small-font' : '',
     ].join(' ');
   }
@@ -22,11 +22,13 @@ export default class Footer extends React.Component {
 
   render() {
     return (
-      <div className="footer flex-container">
-        <Code
-          data={this.props.data}
-          offer={this.props.offer}
-        />
+      <footer>
+        <div className="left-container">
+          <Code
+            data={this.props.data}
+            offer={this.props.offer}
+          />
+        </div>
         <div className="right-container">
           {this.props.data.conditions &&
             <span>
@@ -51,15 +53,14 @@ export default class Footer extends React.Component {
           <a
             href={this.props.data.call_to_action.url}
             className={this.anchorClasses}
+            rel="noreferrer noopener"
             target="_blank"
             onClick={this.props.handleVoucherClick}
           >
-            <span className="cta-txt">
-              {this.props.data.call_to_action.text}
-            </span>
+            {this.props.data.call_to_action.text}
           </a>
         </div>
-      </div>
+      </footer>
     );
   }
 }

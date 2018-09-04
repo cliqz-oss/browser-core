@@ -15,9 +15,6 @@ export function checkIsWindowActive() {
 export function forEachWindow() {
 }
 
-export function setInstallDatePref() {
-}
-
 export function enableChangeEvents() {
 }
 

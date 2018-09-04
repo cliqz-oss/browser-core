@@ -1,6 +1,5 @@
 import {
-  clearIntervals,
-  expect
+  expect,
 } from '../../core/test-helpers';
 import Subject from './local-helpers';
 import { dataOn, dataOff } from './fixtures/https-everywhere';
@@ -16,7 +15,6 @@ describe('Control Center: HTTPS Everywhere UI browser', function () {
 
   after(function () {
     subject.unload();
-    clearIntervals();
   });
 
   function headerProtected() {

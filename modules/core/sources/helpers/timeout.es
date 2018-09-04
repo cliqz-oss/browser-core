@@ -1,4 +1,4 @@
-import console from '../console';
+import * as timers from '../timers';
 
 /**
  * setInterval implementation using setTimeout as base method. This helper was
@@ -12,7 +12,7 @@ import console from '../console';
  * timer.stop();
  *
  */
-export default function setTimeoutInterval(f, timeoutMS) {
+function setTimeoutIntervalImpl(f, timeoutMS, args, instantStart) {
   let enabled = true;
   let timeout = null;
 
@@ -20,23 +20,32 @@ export default function setTimeoutInterval(f, timeoutMS) {
     if (enabled) {
       // Call `f` and make sure we wait for it to terminate before we trigger
       // the next timeout (even if the function is async).
-      try { await f(); } catch (ex) { console.error(ex); }
+      try { await f(...args); } catch (ex) { /* Ignore */ }
     }
 
     if (enabled) {
-      timeout = setTimeout(runTimeout, timeoutMS);
+      timeout = timers.setTimeout(runTimeout, timeoutMS);
     }
   };
 
   const stop = () => {
     enabled = false;
-    clearTimeout(timeout);
+    timers.clearTimeout(timeout);
   };
 
   // Start running
-  timeout = setTimeout(runTimeout, timeoutMS);
+  timeout = timers.setTimeout(runTimeout, instantStart ? 0 : timeoutMS);
 
   return {
     stop,
   };
+}
+
+
+export default function setTimeoutInterval(f, timeoutMS, ...args) {
+  return setTimeoutIntervalImpl(f, timeoutMS, args, false);
+}
+
+export function setTimeoutIntervalInstant(f, timeoutMS, ...args) {
+  return setTimeoutIntervalImpl(f, timeoutMS, args, true);
 }

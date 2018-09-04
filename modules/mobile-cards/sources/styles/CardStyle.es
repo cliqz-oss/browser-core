@@ -3,6 +3,13 @@ import { Dimensions } from 'react-native';
 
 export const { width: vpWidth, height: vpHeight } = Dimensions.get('window');
 
+export function getVPWidth() {
+  return Dimensions.get('window').width;
+}
+
+export function getVPHeight() {
+  return Dimensions.get('window').height;
+}
 
 export function widthPercentage(percentage) {
   const value = (percentage * getVPWidth()) / 100;
@@ -15,13 +22,6 @@ export function getCardWidth() {
 
 export const cardWidth = () => getCardWidth();
 export const cardsGap = widthPercentage(4);
-
-export function getVPWidth() {
-  return Dimensions.get('window').width;
-}
-export function getVPHeight() {
-  return Dimensions.get('window').height;
-}
 
 export const elementSideMargins = {
   marginLeft: 12,

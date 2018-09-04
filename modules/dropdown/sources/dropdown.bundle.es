@@ -19,12 +19,19 @@ Object.keys(helpers).forEach((helperName) => {
   Handlebars.registerHelper(helperName, helpers[helperName]);
 });
 
+const postMessage = (message) => {
+  const searchParams = new URLSearchParams(window.location.search);
+  const isCrossOrigin = searchParams.get('cross-origin') !== null;
+  const target = isCrossOrigin ? window.parent : window;
+  target.postMessage(message, '*');
+};
+
 const spanan = new Spanan(({ action, ...rest }) => {
-  window.postMessage({
+  postMessage({
     ...rest,
     target: 'cliqz-renderer',
     action,
-  }, '*');
+  });
 });
 const importedActions = spanan.createProxy();
 
@@ -78,6 +85,8 @@ const exportedActions = {
       urlbarValue: result.urlbarValue,
       completion: result.meta.completion,
       query: result.query,
+      isDeletable: result.isDeletable,
+      historyUrl: result.historyUrl,
     };
   },
 
@@ -88,6 +97,8 @@ const exportedActions = {
       urlbarValue: result.urlbarValue,
       completion: result.meta.completion,
       query: result.query,
+      isDeletable: result.isDeletable,
+      historyUrl: result.historyUrl,
     };
   },
 
@@ -170,11 +181,11 @@ const exportedActions = {
 
 spanan.export(exportedActions, {
   respond(response, request) {
-    window.postMessage({
+    postMessage({
       type: 'response',
       uuid: request.uuid,
       response,
-    }, '*');
+    });
   },
 });
 

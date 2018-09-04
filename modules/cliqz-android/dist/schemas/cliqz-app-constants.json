@@ -1,0 +1,20 @@
+[
+  {
+    "namespace": "cliqzAppConstants",
+    "functions": [
+      {
+        "name": "get",
+        "type": "function",
+        "description": "Retrieves an app constant",
+        "async": true,
+        "parameters": [
+          {
+            "type": "string",
+            "name": "key",
+            "description": "constant key"
+          }
+        ]
+      }
+    ]
+  }
+]

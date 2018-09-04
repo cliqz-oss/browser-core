@@ -1,8 +1,4 @@
 
-export function isURI(/* text */) {
-  return false;
-}
-
 export function fixURL(url) {
   return url;
 }

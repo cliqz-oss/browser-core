@@ -1,13 +1,14 @@
 import {
-  clearIntervals,
   clone,
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
+
+import { checkTelemetry } from './helpers';
 import {
   defaultConfig,
   generateFavResponse,
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 
 const amazonDial = {
@@ -42,21 +43,12 @@ const editedDial = {
 
 describe('Fresh tab interactions with favorites', function () {
   const dialSelector = '#section-favorites .dial:not(.dial-plus)';
-  const plusSelector = '#section-favorites .dial-plus';
   const plusBtnSelector = 'button.plus-dial-icon';
-  const dialTitleSelector = '.title';
   const editBtnSelector = 'button.edit';
-  const closeFormSelector = 'button.closeForm';
-  const deleteBtnSelector = '.deleteBox';
-  const undoBoxSelector = '.undo-notification-box';
-  const favoritesAreaSelector = '#section-favorites';
   const favoritesResponse = generateFavResponse();
 
   let $initialDials;
   let $dialToDelete;
-  let deletedTitle;
-  let $deletedBtn;
-  let $afterClickDials;
   let subject;
   let messages;
   let listener;
@@ -74,17 +66,11 @@ describe('Fresh tab interactions with favorites', function () {
     subject.respondsWith(favConfig);
   });
 
-  afterEach(function () {
-    clearIntervals();
-  });
-
   context('when favorites have just one element', function () {
     const addFormSelector = 'form.addDialForm';
-    const editBtnSelector = '#section-favorites button.edit';
     const editFormSelector = 'form.editForm';
-    const urlSelector ='form.editForm input.url';
+    const urlSelector = 'form.editForm input.url';
     const titleSelector = 'form.editForm input.title';
-    const placeholderSelector = 'form.editForm label';
 
     beforeEach(async function () {
       subject.respondsWith({
@@ -121,22 +107,7 @@ describe('Fresh tab interactions with favorites', function () {
       });
 
       it('sends a "favorite > click" telemetry signal', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
-
-        const telemetrySignals = messages.get('sendTelemetry');
-        let count = 0;
-
-        expect(telemetrySignals.length).to.be.above(0);
-
-        count = telemetrySignals.filter(function (s) {
-          return (
-            s.args[0].type === 'home' &&
-            s.args[0].target === 'favorite' &&
-            s.args[0].action === 'click'
-          );
-        }).length;
-
-        expect(count).to.equal(1);
+        checkTelemetry(messages, ['home', '', 'favorite', 'click']);
       });
     });
 
@@ -156,8 +127,8 @@ describe('Fresh tab interactions with favorites', function () {
           .to.not.contain('none');
       });
 
-      it('does not send telemetry', function () {
-        expect(messages.has('sendTelemetry')).to.equal(false);
+      it('sends "home > add_favorite > click" telemetry', function () {
+        checkTelemetry(messages, ['home', '', 'add_favorite', 'click']);
       });
 
       describe("then clicking on the form's close button", function () {
@@ -176,24 +147,8 @@ describe('Fresh tab interactions with favorites', function () {
           expect(subject.query(addFormSelector)).to.be.null;
         });
 
-        it('sends a "add_favorite > close > click" telemetry signal', function () {
-          expect(messages.has('sendTelemetry')).to.equal(true);
-
-          const telemetrySignals = messages.get('sendTelemetry');
-          let count = 0;
-
-          expect(telemetrySignals.length).to.be.above(0);
-
-          count = telemetrySignals.filter(function (s) {
-            return (
-              s.args[0].type === 'home' &&
-              s.args[0].view === 'add_favorite' &&
-              s.args[0].target === 'close' &&
-              s.args[0].action === 'click'
-            );
-          }).length;
-
-          expect(count).to.equal(1);
+        it('sends a "home > add_favorite > close > click" telemetry', function () {
+          checkTelemetry(messages, ['home', 'add_favorite', 'close', 'click']);
         });
       });
     });
@@ -237,43 +192,58 @@ describe('Fresh tab interactions with favorites', function () {
         expect(allDialsItems[2].className).to.contain('dial-plus');
       });
 
-      it('sends a "add_favorite > click" telemetry signal', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
-
-        const telemetrySignals = messages.get('sendTelemetry');
-        let count = 0;
-
-        expect(telemetrySignals.length).to.be.above(0);
-
-        count = telemetrySignals.filter(function (s) {
-          return (
-            s.args[0].type === 'home' &&
-            s.args[0].target === 'add_favorite' &&
-            s.args[0].action === 'click'
-          );
-        }).length;
-
-        expect(count).to.equal(1);
+      it('sends a "home > add_favorite > click" telemetry signal', function () {
+        checkTelemetry(messages, ['home', '', 'add_favorite', 'click']);
       });
 
-      it('sends a "add_favorite > add > click" telemetry signal', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
+      it('sends a "home > add_favorite > add > click" telemetry signal', function () {
+        checkTelemetry(messages, ['home', 'add_favorite', 'add', 'click']);
+      });
+    });
 
-        const telemetrySignals = messages.get('sendTelemetry');
-        let count = 0;
+    describe('clicking on the "pencil" edit icon', function () {
+      beforeEach(function () {
+        subject.query(editBtnSelector).click();
+        return waitFor(() => (subject.query(editFormSelector)));
+      });
 
-        expect(telemetrySignals.length).to.be.above(0);
+      it('renders an "Edit favorite" form', function () {
+        expect(subject.getComputedStyle(subject.query(editFormSelector).parentNode).display)
+          .to.not.contain('none');
+      });
 
-        count = telemetrySignals.filter(function (s) {
-          return (
-            s.args[0].type === 'home' &&
-            s.args[0].view === 'add_favorite' &&
-            s.args[0].target === 'add' &&
-            s.args[0].action === 'click'
-          );
-        }).length;
+      it('sends "home > edit_favorite > click" telemetry', function () {
+        checkTelemetry(messages, ['home', '', 'edit_favorite', 'click']);
+      });
 
-        expect(count).to.equal(1);
+      describe("then clicking on the edit form's delete button", function () {
+        beforeEach(function () {
+          subject.query('button.deleteDial').click();
+          return waitFor(() => expect(subject.query('.modal')).to.be.null);
+        });
+
+        it('does not render the "Edit a favorite" form anymore', function () {
+          expect(subject.query(editFormSelector)).to.be.null;
+        });
+
+        it('sends a "edit_favorite > delete > click" telemetry signal', function () {
+          checkTelemetry(messages, ['home', 'edit_favorite', 'delete', 'click']);
+        });
+      });
+
+      describe("then clicking on the edit form's close button", function () {
+        beforeEach(function () {
+          subject.query('button.closeForm').click();
+          return waitFor(() => expect(subject.query('.modal')).to.be.null);
+        });
+
+        it('does not render the "Edit a favorite" form anymore', function () {
+          expect(subject.query(editFormSelector)).to.be.null;
+        });
+
+        it('sends a "edit_favorite > close > click" telemetry signal', function () {
+          checkTelemetry(messages, ['home', 'edit_favorite', 'close', 'click']);
+        });
       });
     });
 
@@ -308,10 +278,17 @@ describe('Fresh tab interactions with favorites', function () {
       it('renders the edited favorite in the list', function () {
         expect(subject.queryAll('#section-favorites .dial:not(.dial-plus)').length)
           .to.equal(1);
-        console.log(subject.queryAll('#section-favorites .dial')[0]);
         expect(subject.queryAll('#section-favorites .dial')[0].href).to.equal(editedDial.url);
         expect(subject.queryAll('#section-favorites .dial')[0].querySelector('.title'))
           .to.contain.text(editedDial.displayTitle);
+      });
+
+      it('sends "home > edit_favorite > click" telemetry', function () {
+        checkTelemetry(messages, ['home', '', 'edit_favorite', 'click']);
+      });
+
+      it('sends a "edit_favorite > save > click" telemetry', function () {
+        checkTelemetry(messages, ['home', 'edit_favorite', 'save', 'click']);
       });
     });
   });

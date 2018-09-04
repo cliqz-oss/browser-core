@@ -11,7 +11,7 @@ import {
   waitForPopup,
   withHistory } from '../helpers';
 import expectSelection from './common';
-import movieResults from '../fixtures/resultsMovie';
+import movieResults from '../../../core/integration/fixtures/resultsMovie';
 
 export default function () {
   if (!testsEnabled()) { return; }

@@ -1,13 +1,19 @@
 /* global window, document */
 
 import background from '../background';
-import createUrlbarObservable from '../observables/urlbar';
-import DEFAULT_CONFIG from '../config';
+import getThrottleQueries from '../operators/streams/throttle-queries';
+import getConfig from '../config';
 import Rx from '../../platform/lib/rxjs';
 import templates from '../templates';
 
 
 const $ = window.document.querySelector.bind(window.document);
+
+const createProviderContainer = (provider) => {
+  const container = document.createElement('div');
+  container.setAttribute('id', provider);
+  return container;
+};
 
 window.addEventListener('load', () => {
   const $providers = $('#providers');
@@ -15,14 +21,16 @@ window.addEventListener('load', () => {
   $urlbar.value = '';
   setTimeout(() => $urlbar.focus(), 100);
 
-  // TODO: adaptive debounce (only when typing fast)
-  const query$ = createUrlbarObservable(
-    Rx.Observable
-      .fromEvent($urlbar, 'keyup')
-      .map(() => $urlbar.value)
-  );
+  const config = getConfig({ isPrivateMode: false });
+
+  const query$ = Rx.Observable
+    .fromEvent($urlbar, 'keyup')
+    .map(() => $urlbar.value)
+    .let(getThrottleQueries(config));
 
   background.init();
+
+  const containers = new Map();
 
   Object.keys(background.providers).forEach((name) => {
     // needs additional input for search: depends on previous results
@@ -30,15 +38,19 @@ window.addEventListener('load', () => {
       return;
     }
 
-    const container = document.createElement('div');
-    container.setAttribute('id', name);
-    container.innerHTML = templates.response({ provider: name });
-    $providers.appendChild(container);
-
     const provider = background.providers[name];
+
     query$
-      .switchMap(query => provider.search(query, DEFAULT_CONFIG))
-      // .do(response => console.log(response))
-      .subscribe((response) => { container.innerHTML = templates.response(response); });
+      .switchMap(query => provider.search(query, config, {}))
+      .subscribe((response) => {
+        if (!containers.has(response.provider)) {
+          const container = createProviderContainer(response.provider);
+          $providers.appendChild(container);
+          containers.set(response.provider, container);
+        }
+
+        const container = containers.get(response.provider);
+        container.innerHTML = templates.response(response);
+      });
   });
 });

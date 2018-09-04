@@ -1,7 +1,6 @@
 import {
-  clearIntervals,
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
 import Subject from './local-helpers';
 import { generateData } from './fixtures/antitracking-trackers';
@@ -20,7 +19,6 @@ function trackersTests(amo) {
 
   afterEach(function () {
     subject.unload();
-    clearIntervals();
   });
 
   it('anti-tracking section exists', function () {

@@ -1,0 +1,66 @@
+.searchbox {
+  &-field {
+    height: 45px;
+    width: 100%;
+    border: none;
+    border-radius: 3px;
+    font-size: 18px;
+    font-family: inherit;
+    outline: 0;
+    color: #595959;
+    background-color: transparent;
+    box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 160ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    &-results {
+      padding: 12px 45px 12px 63px;
+    }
+
+    &-main {
+      padding: 12px 45px 12px 12px;
+    }
+
+    &-icon {
+      height: 100%;
+      width: 45px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: url("../assets/cliqz.svg") 0 center no-repeat;
+      border-radius: 3px 0 0 3px;
+      cursor: pointer;
+      font-size: 0;
+    }
+
+    &-submit-icon {
+      height: 100%;
+      width: 45px;
+      position: absolute;
+      top: 0;
+      right: 0;
+      font-size: 0;
+    }
+
+    &:focus {
+      background: url('../assets/search-icon-blue.svg') 98% center no-repeat;
+      box-shadow: 0 2px 9px -3px rgba(0, 0, 0, 0.34);
+    }
+
+    &-layout {
+      max-width: 673px;
+      position: relative;
+
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.08);
+      border-radius: 3px;
+      background: url("../assets/search-icon-grey.svg") 98% center no-repeat;
+
+      &:hover {
+        background-image: url('../assets/search-icon-blue.svg');
+
+        .searchbox-field {
+          box-shadow: 0 2px 9px -3px rgba(0, 0, 0, 0.3);
+        }
+      }
+    }
+  }
+}

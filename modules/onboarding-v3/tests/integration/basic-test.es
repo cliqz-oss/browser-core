@@ -1,11 +1,11 @@
 import {
+  click,
   expect,
   focusOnTab,
-  waitForElement,
-  click,
-  waitFor,
   getTab,
-  newTab
+  newTab,
+  waitFor,
+  waitForElement,
 } from '../../../tests/core/test-helpers';
 import config from '../../../core/config';
 
@@ -16,12 +16,12 @@ export default function () {
 
   describe('onboarding-v3', function () {
     beforeEach(async function () {
-      tabId = await newTab(onboardingUrl, true);
+      tabId = await newTab(onboardingUrl);
+      await focusOnTab(tabId);
       await waitForElement({
         url: onboardingUrl,
         selector: '#cqb-start-btn',
       });
-      await focusOnTab(tabId);
     });
 
     context('on start button click', function () {
@@ -29,7 +29,6 @@ export default function () {
         await click(onboardingUrl, '#cqb-start-btn');
         return waitFor(
           () => expect(getTab(tabId)).to.have.property('url').that.equals(config.settings.NEW_TAB_URL),
-          500,
         );
       });
     });

@@ -1,6 +1,5 @@
 import {
-  clearIntervals,
-  expect
+  expect,
 } from '../../core/test-helpers';
 import Subject from './local-helpers';
 import data from './fixtures/browser-all-modules';
@@ -19,7 +18,6 @@ describe('Extension, all modules are present', function () {
 
   after(function () {
     subject.unload();
-    clearIntervals();
   });
 
   context('header part', function () {

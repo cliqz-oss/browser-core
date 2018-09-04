@@ -29,6 +29,11 @@ export function overRideCliqzResults() {
 
   if (!proxyHttpHandler) proxyHttpHandler = http.defaultHttpHandler;
 
+  function sendMessageOverHpn(message) {
+    CliqzSecureMessage.wCrypto.postMessage(message);
+    CliqzSecureMessage.callListeners(message);
+  }
+
   function httpHandler(method, url, callback, onerror, timeout, data, ...rest) {
     if (url.startsWith(config.settings.RESULTS_PROVIDER) &&
         prefs.get('hpn-queryv2', false)) {
@@ -37,7 +42,7 @@ export function overRideCliqzResults() {
       const query = url.replace((config.settings.RESULTS_PROVIDER), '');
       const uid = Math.floor(Math.random() * 10000000);
       CliqzSecureMessage.queriesID[uid] = callback;
-      CliqzSecureMessage.wCrypto.postMessage({
+      sendMessageOverHpn({
         msg: { action: 'instant',
           type: 'cliqz',
           ts: '',
@@ -60,7 +65,7 @@ export function overRideCliqzResults() {
       const query = url.replace((config.settings.RESULTS_PROVIDER_LOG), '');
       const uid = Math.floor(Math.random() * 10000000);
       CliqzSecureMessage.queriesID[uid] = callback;
-      CliqzSecureMessage.wCrypto.postMessage({
+      sendMessageOverHpn({
         msg: { action: 'extension-result-telemetry',
           type: 'cliqz',
           ts: '',
@@ -108,7 +113,7 @@ export function overRideCliqzResults() {
         sspk: CliqzSecureMessage.secureLogger,
         queryProxyUrl,
       };
-      CliqzSecureMessage.wCrypto.postMessage(message);
+      sendMessageOverHpn(message);
       return null;
     } else {
       return proxyHttpHandler(method, url, callback, onerror, timeout, data, ...rest);

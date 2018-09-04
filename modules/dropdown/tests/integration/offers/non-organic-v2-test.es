@@ -1,16 +1,18 @@
 import {
-  blurUrlBar,
   $cliqzResults,
+  blurUrlBar,
   expect,
   fillIn,
   mockSearch,
   testsEnabled,
   waitForPopup,
-  withHistory } from '../helpers';
-import offersInResultsExtraOffers from '../fixtures/offers/non-organic/offersInResultsExtraOffers';
-import noOffersInResultsExtraOffers from '../fixtures/offers/non-organic/noOffersInResultsExtraOffers';
-import noResultsExtraOffers from '../fixtures/offers/non-organic/noResultsExtraOffers';
-import noResultsNoOffers from '../fixtures/offers/non-organic/noResultsNoOffers';
+  win,
+  withHistory,
+} from '../helpers';
+import offersInResultsExtraOffers from '../../../core/integration/fixtures/offers/non-organic/offersInResultsExtraOffers';
+import noOffersInResultsExtraOffers from '../../../core/integration/fixtures/offers/non-organic/noOffersInResultsExtraOffers';
+import noResultsExtraOffers from '../../../core/integration/fixtures/offers/non-organic/noResultsExtraOffers';
+import noResultsNoOffers from '../../../core/integration/fixtures/offers/non-organic/noResultsNoOffers';
 import prefs from '../../../../core/prefs';
 
 export default function () {
@@ -19,20 +21,18 @@ export default function () {
   context('non organic offers for different backend data', function () {
     let $offerElement;
     before(function () {
-      prefs.set('offersDropdownSwitch', true);
       prefs.set('myoffrz.experiments.001.style', 'plain');
       prefs.set('myoffrz.experiments.001.position', 'first');
-      window.preventRestarts = true;
+      win.preventRestarts = true;
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     describe('when offers come from both: results and offers field', function () {
       before(async function () {
         blurUrlBar();
-        prefs.set('offersDropdownSwitch', true);
         await mockSearch(offersInResultsExtraOffers);
         withHistory([]);
         fillIn('mietwagen');
@@ -88,7 +88,7 @@ export default function () {
       });
 
       it('offer is shown only once', function () {
-        const offerSelector = $cliqzResults.querySelectorAll('.result[href="https://www.happycar.de/?utm_source=cliqz&utm_medium=referral&utm_campaign=Cliqz_Camp1&utm_content=drpdwn"');
+        const offerSelector = $cliqzResults.querySelectorAll('.result[href="https://www.happycar-test.de/?utm_source=cliqz&utm_medium=referral&utm_campaign=Cliqz_Camp1&utm_content=drpdwn"');
         expect(offerSelector.length).equal(1);
       });
     });
@@ -96,7 +96,6 @@ export default function () {
     describe('when offers come from only offers field', function () {
       before(async function () {
         blurUrlBar();
-        prefs.set('offersDropdownSwitch', true);
         await mockSearch(noOffersInResultsExtraOffers);
         withHistory([]);
         fillIn('mietwagen');
@@ -157,7 +156,7 @@ export default function () {
       });
 
       it('offer is shown only once', function () {
-        const offerSelector = $cliqzResults.querySelectorAll('.result[href="https://www.mietwagen-happycar.de/?utm_source=cliqz&utm_medium=referral&utm_campaign=Cliqz_Camp1&utm_content=drpdwn"');
+        const offerSelector = $cliqzResults.querySelectorAll('.result[href="https://www.mietwagen-happycar-test.de/?utm_source=cliqz&utm_medium=referral&utm_campaign=Cliqz_Camp1&utm_content=drpdwn"');
         expect(offerSelector.length).equal(1);
       });
     });
@@ -165,7 +164,6 @@ export default function () {
     describe('when offers come from only results', function () {
       before(async function () {
         blurUrlBar();
-        prefs.set('offersDropdownSwitch', true);
         await mockSearch(noResultsExtraOffers);
         withHistory([]);
         fillIn('mietwagen');
@@ -221,7 +219,7 @@ export default function () {
       });
 
       it('offer is shown only once', function () {
-        const offerSelector = $cliqzResults.querySelectorAll('.result[href="https://www.happycar.de/?utm_source=cliqz&utm_medium=referral&utm_campaign=Cliqz_Camp1&utm_content=drpdwn"');
+        const offerSelector = $cliqzResults.querySelectorAll('.result[href="https://www.happycar-test.de/?utm_source=cliqz&utm_medium=referral&utm_campaign=Cliqz_Camp1&utm_content=drpdwn"');
         expect(offerSelector.length).equal(1);
       });
     });
@@ -229,7 +227,6 @@ export default function () {
     describe('no results no offers', function () {
       before(async function () {
         blurUrlBar();
-        prefs.set('offersDropdownSwitch', true);
         await mockSearch(noResultsNoOffers);
         withHistory([]);
         fillIn('mietwagen');

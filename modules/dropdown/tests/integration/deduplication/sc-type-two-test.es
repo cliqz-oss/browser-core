@@ -1,27 +1,28 @@
 import {
-  blurUrlBar,
   $cliqzResults,
+  blurUrlBar,
   expect,
   fillIn,
   mockSearch,
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory
+  win,
+  withHistory,
 } from '../helpers';
 
-import soccerLigaGame from '../fixtures/resultsSoccerLigaGame';
-import soccerLigaGroup from '../fixtures/resultsSoccerLigaGroup';
+import soccerLigaGame from '../../../core/integration/fixtures/resultsSoccerLigaGame';
+import soccerLigaGroup from '../../../core/integration/fixtures/resultsSoccerLigaGroup';
 
 export default function () {
   if (!testsEnabled()) { return; }
   describe('deduplication for SC results of type 2', function () {
     before(function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     context('2 history results, both urls have rich data', function () {

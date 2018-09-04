@@ -154,6 +154,18 @@ function shouldKeepResource(userGroup) {
   return (userGroup > 0) && (localUserGroupNum >= userGroup);
 }
 
+function oncePerInterval(f, shift = 1000 * 60 * 5) {
+  const m = {};
+  return function wrapper(obj = {}) {
+    const { key = 'default-key' } = obj;
+    if (m[key] && (m[key] + shift > Date.now())) {
+      return { cached: true };
+    }
+    m[key] = Date.now();
+    f.apply(this, [obj]);
+    return { cached: false };
+  };
+}
 
 export {
   generateUUID,
@@ -164,6 +176,7 @@ export {
   getLatestOfferInstallTs,
   getABNumber,
   hashString,
+  oncePerInterval,
   orPromises,
   randRange,
   shouldKeepResource

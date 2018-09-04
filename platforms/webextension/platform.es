@@ -1,20 +1,23 @@
+import { chrome } from './globals';
+
 /* global navigator */
 
-const isMobile = navigator.userAgent.includes('Mobile');
+function checkUserAgent(pattern) {
+  try {
+    return navigator.userAgent.indexOf(pattern) !== -1;
+  } catch (e) {
+    return false;
+  }
+}
 
 export default {
-  isMobile,
-  isFirefox: false,
-  isChromium: true,
+  isBootstrap: false,
+  isMobile: checkUserAgent('Mobile'),
+  isFirefox: checkUserAgent('Firefox'),
+  isChromium: checkUserAgent('Chrome'),
+  isEdge: checkUserAgent('Edge'),
   platformName: 'webextension',
-  get isEdge() {
-    try {
-      // source: https://stackoverflow.com/a/33152824/783510
-      return /Edge/.test(navigator.userAgent);
-    } catch (e) {
-      return false;
-    }
-  },
+  isOnionMode: false,
 };
 
 export function isPlatformAtLeastInVersion() {
@@ -27,4 +30,8 @@ export const OS = '';
 export function isCliqzAtLeastInVersion() {
   // TODO
   return true;
+}
+
+export function getResourceUrl(path) {
+  return chrome.runtime.getURL(`modules/${path}`);
 }

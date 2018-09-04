@@ -2,7 +2,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import ToggleDisplay from 'react-toggle-display';
-import SpeedDialModal from './speed-dial-modal';
+import sanitizeUrl from '../services/url-check';
+import Modal from './modal';
 import cliqz from '../cliqz';
 import t from '../i18n';
 import { favoriteAddSignal, addFormCloseSignal, addFormSubmitSignal } from '../services/telemetry/speed-dial';
@@ -38,14 +39,17 @@ export default class AddSpeedDial extends React.Component {
     this.handleCloseModal = this.handleCloseModal.bind(this);
   }
 
-  handleCloseModal() {
+  handleCloseModal({ sendTelemetry = true } = {}) {
     this.setState({ showModal: false });
     this.setState(this.baseState);
-    addFormCloseSignal();
+    if (sendTelemetry) {
+      addFormCloseSignal();
+    }
   }
 
   handleClick(event) {
     event.preventDefault();
+    favoriteAddSignal();
     this.setState({ showModal: true });
   }
 
@@ -61,11 +65,15 @@ export default class AddSpeedDial extends React.Component {
 
   handleSubmit(event) {
     event.preventDefault();
-    const url = this.state.url;
+    const url = sanitizeUrl(this.state.url);
     const title = this.state.title;
-    addFormSubmitSignal();
 
     if (!url) {
+      this.setState({
+        errorInvalid: true,
+        showError: true,
+        showModal: true
+      });
       return false;
     }
 
@@ -88,9 +96,9 @@ export default class AddSpeedDial extends React.Component {
           showError: false,
         });
 
-        favoriteAddSignal();
+        addFormSubmitSignal();
         this.props.addSpeedDial(resp);
-        return this.handleCloseModal();
+        return this.handleCloseModal({ sendTelemetry: false });
       }
 
       return false;
@@ -122,7 +130,7 @@ export default class AddSpeedDial extends React.Component {
             tabIndex="-1"
           />
         </ToggleDisplay>
-        <SpeedDialModal
+        <Modal
           closeAction={this.handleCloseModal}
           showModal={this.state.showModal}
         >
@@ -178,7 +186,7 @@ export default class AddSpeedDial extends React.Component {
               {t('app_speed_dial_add').toUpperCase()}
             </button>
           </form>
-        </SpeedDialModal>
+        </Modal>
       </div>
     );
   }

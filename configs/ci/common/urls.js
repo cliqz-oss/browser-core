@@ -1,3 +1,4 @@
 module.exports = {
-  RESULTS_PROVIDER: 'https://localhost:60508', // core/config.es
+  OFFERS_BE_BASE_URL: 'https://localhost:3000',
+  RESULTS_PROVIDER: 'https://localhost:3000', // core/config.es
 };

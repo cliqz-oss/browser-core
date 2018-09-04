@@ -12,9 +12,6 @@ export function forEachWindow(cb) {
   cb(window);
 }
 
-export function setInstallDatePref() {
-}
-
 export function mustLoadWindow() {
   return true;
 }
@@ -68,3 +65,4 @@ export function reportError() {}
 export function disableChangeEvents() {}
 
 export function resetOriginalPrefs() {}
+

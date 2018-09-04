@@ -1,6 +1,7 @@
 import AsyncStorage from '../../../platform/async-storage';
 import DefaultMap from '../../../core/helpers/default-map';
 import getSynchronizedDate, { DATE_FORMAT } from '../synchronized-date';
+import sortByTs from './utils';
 
 function getAnolysisKey(key = '') {
   return `anolysis_storage_${key}`;
@@ -72,7 +73,8 @@ class BehaviorView {
   }
 
   async getTypesForDate(date) {
-    const signals = await this.getMetrics(date);
+    // Makes sure that signals are ordered by timestamp
+    const signals = sortByTs(await this.getMetrics(date));
     const types = new DefaultMap(() => []);
     for (let i = 0; i < signals.length; i += 1) {
       const { type, behavior } = signals[i];
@@ -267,11 +269,14 @@ export default class AnolysisStorage {
     await this.signals.init();
   }
 
+  healthCheck() {
+    return true;
+  }
+
   async destroy() {
     const keys = await getKeysWithPrefix(getAnolysisKey());
     await AsyncStorage.multiRemove(keys.map(k => getAnolysisKey(k)));
   }
 
-  unload() {
-  }
+  unload() {}
 }

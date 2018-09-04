@@ -53,10 +53,6 @@ module.exports = {
     "antitrackingPlaceholder": "cliqz.com/tracking",
     "antitrackingHeader": "CLIQZ-AntiTracking",
     "WORLDCUP_URL": "https://sport.cliqz.com/",
-    "ALLOWED_SEARCH_DOMAINS": {
-      'normal': ["\\.google\\..*?[#?&;]q=[^$&]+",".search.yahoo\\..*?[#?&;]p=[^$&]+",".linkedin.*?\\/pub\\/dir+","\\.bing\\..*?[#?&;]q=[^$&]+","\\.amazon\\.[^/]+\\/s(?:/?[?]|/ref=).*[?&]field-keywords=[^$&]+"],
-      'strict': ["\\.google\\..*?[#?&;]q=[^$&]+",".search.yahoo\\..*?[#?&;][pq]=[^$&]+",".linkedin.*?\\/pub\\/dir+","\\.bing\\..*?[#?&;]q=[^$&]+","\\.amazon\\.[^/]+\\/s/[?]?(?:ref=.*[?&])?field-keywords=[^$&]+"]
-    }
   }),
   'default_prefs' : {
     'modules.history-analyzer.enabled': false,
@@ -81,6 +77,7 @@ module.exports = {
     'hpn',
     'control-center',
     'offers-v2',
+    'popup-notification',
     'history-analyzer',
     'offers-cc',
     'browser-panel',
@@ -91,11 +88,13 @@ module.exports = {
     'market-analysis',
     'abtests',
     'search',
-    'hpnv2'
+    'myoffrz-collector',
+    'hpnv2',
   ],
   'subprojects': subprojects([
     '@cliqz-oss/dexie',
     '@cliqz-oss/pouchdb',
+    '@cliqz/adblocker',
     'ajv',
     'handlebars',
     'jquery',
@@ -112,6 +111,7 @@ module.exports = {
     'tooltipster-js',
     'tooltipster-sideTip-theme',
     'ua-parser-js',
+    'jsep',
   ]),
   systemDefault: base.systemConfig,
   builderDefault: base.builderConfig,

@@ -1,50 +1,29 @@
-/* global window, $ */
-
-import console from '../../../core/console';
+/* global $ */
 import { getMessage } from '../../../core/i18n';
 
 import {
-  app,
+  CLIQZ,
   CliqzUtils,
   EventUtils,
+  app,
   expect,
   lang,
-  popup,
-  testServer,
-  TIP,
   urlBar,
+  wait,
   waitFor,
-  win
+  win,
 } from '../../core/test-helpers';
-import { isWebExtension } from '../../../core/platform';
+
+import { $cliqzResults } from '../../core/integration/search-helpers';
 
 export * from '../../core/test-helpers';
+export * from '../../core/integration/search-helpers';
 
-export function testsEnabled() {
-  return !isWebExtension;
-}
 
 export function getWindowModule(/* name */) {
   return {
-    ui: win.CLIQZ.UI,
+    ui: CLIQZ.UI,
   };
-}
-
-export function mockSearch(response) {
-  return testServer.registerPathHandler('/api/v2/results',
-    JSON.stringify(response),
-  ).then(function () {
-    app.config.settings.RESULTS_PROVIDER = testServer.getBaseUrl('/api/v2/results?nrh=1&q=');
-  });
-}
-
-export function fillIn(text) {
-  urlBar.valueIsTyped = true;
-  popup.mPopupOpen = false;
-  urlBar.focus();
-  urlBar.mInputField.focus();
-  urlBar.mInputField.value = '';
-  EventUtils.sendString(text);
 }
 
 
@@ -65,74 +44,6 @@ export function click(el, opt) {
     metaKey: _opt.metaKey || true
   });
   el.dispatchEvent(ev);
-}
-
-
-export function press(opt) {
-  let modifierEvent;
-
-  const event = new KeyboardEvent('', {
-    key: opt.key,
-    code: opt.code || opt.key
-  });
-
-  TIP.beginInputTransaction(window, console.log);
-
-  if (opt.ctrlKey) {
-    modifierEvent = new KeyboardEvent('', {
-      key: 'Control',
-      code: 'ControlLeft'
-    });
-    TIP.keydown(modifierEvent);
-  }
-
-  if (opt.shiftKey) {
-    modifierEvent = new KeyboardEvent('', {
-      key: 'Shift',
-      code: 'ShiftLeft'
-    });
-    TIP.keydown(modifierEvent);
-  }
-
-  if (opt.altKey) {
-    modifierEvent = new KeyboardEvent('', {
-      key: 'Alt',
-      code: 'AltLeft'
-    });
-    TIP.keydown(modifierEvent);
-  }
-
-  if (opt.metaKey) {
-    modifierEvent = new KeyboardEvent('', {
-      key: 'Meta',
-      code: 'MetaLeft'
-    });
-    TIP.keydown(modifierEvent);
-  }
-
-  TIP.keydown(event);
-}
-
-
-export function pressAndWaitFor(opt, condition) {
-  press(opt);
-  return waitFor(function () {
-    return condition();
-  });
-}
-
-
-export function release(opt) {
-  const event = new KeyboardEvent('', {
-    key: opt.key,
-    code: opt.code || opt.key,
-    ctrlKey: opt.ctrlKey || false,
-    shiftKey: opt.shiftKey || false,
-    altKey: opt.altKey || false,
-    metaKey: opt.metaKey || false
-  });
-  TIP.beginInputTransaction(window, console.log);
-  TIP.keyup(event);
 }
 
 
@@ -190,16 +101,6 @@ export function respondWithSnippet(res) {
 }
 
 
-export function withHistory(res, ms = 0) {
-  CliqzUtils.historySearch = function (q, cb) {
-    setTimeout(cb, ms, {
-      query: q,
-      results: res,
-      ready: true,
-    });
-  };
-}
-
 export function withMultipleHistory(resultsArray) {
   CliqzUtils.historySearch = function (q, cb) {
     return resultsArray.reduce(
@@ -224,58 +125,25 @@ export function patchGeolocation(geo) {
 }
 
 
-export const $cliqzResults = {
-  _getEl() {
-    return $(win.document.getElementById('cliqz-popup').contentWindow.document.getElementById('cliqz-dropdown'));
-  },
-  querySelector(...args) {
-    return this._getEl()[0].querySelector(...args);
-  },
-  querySelectorAll(...args) {
-    return this._getEl()[0].querySelectorAll(...args);
-  }
-};
-
-
 export function $cliqzMessageContainer() {
   return $(win.document.getElementById('cliqz-message-container'));
 }
 
 
-export function waitForPopup(resultsCount, timeout = 700) {
-  return waitFor(function () {
-    const cliqzPopup = win.document.getElementById('cliqz-popup');
-    const dropdown = $cliqzResults;
-    return cliqzPopup && (cliqzPopup.style.height !== '0px') && dropdown;
-  }).then(function (dropdown) {
-    if (!resultsCount) {
-      return Promise.resolve(dropdown);
-    }
-    return waitFor(function () {
-      return expect($cliqzResults.querySelectorAll('.cliqz-result')).to.have.length(resultsCount);
-    }, timeout).then(() => dropdown);
-  });
-}
-
-
-export function waitForPopupClosed() {
-  return waitFor(function () {
+export async function waitForPopupClosed() {
+  await waitFor(() => {
     const cliqzPopup = win.document.querySelector('#cliqz-popup');
     return cliqzPopup && cliqzPopup.scrollHeight === 0;
-  }).then(function () {
-    return new Promise(function (resolve) {
-      setTimeout(resolve, 200);
-    });
   });
+
+  return wait(200);
 }
 
 
-export function waitForResult() {
-  return waitFor(function () {
-    return $cliqzResults().find('.cqz-result-box').length > 0;
-  }).then(() => new Promise((resolve) => {
-    setTimeout(resolve, 250);
-  }));
+export async function waitForResult() {
+  await waitFor(() => $cliqzResults().find('.cqz-result-box').length > 0);
+
+  return wait(250);
 }
 
 
@@ -283,9 +151,11 @@ export function getLocaliseString(targets) {
   return lang === 'de-DE' ? targets.de : targets.default;
 }
 
+
 export function getLocalisedString(key) {
   return getMessage(key);
 }
+
 
 const mainResultSelector = '.cliqz-result:not(.history)';
 

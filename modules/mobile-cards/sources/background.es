@@ -1,9 +1,10 @@
 import background from '../core/base/background';
+import domainInfo from '../core/services/domain-info';
 import {
   openLink,
   callNumber,
   openMap,
-  hideKeyboard
+  hideKeyboard,
 } from '../platform/browser-actions';
 
 
@@ -13,7 +14,7 @@ import {
  */
 export default background({
 
-  requiresServices: ['logos', 'cliqz-config', 'utils', 'telemetry'],
+  requiresServices: ['logos', 'cliqz-config', 'utils', 'telemetry', 'domainInfo'],
 
   /**
     @method init
@@ -41,6 +42,7 @@ export default background({
         tabId: sender.tab.id,
       };
     },
+    getTrackerDetails: domainInfo.getTrackerDetails,
     openLink,
     callNumber,
     openMap,

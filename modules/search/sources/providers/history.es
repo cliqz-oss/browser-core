@@ -44,9 +44,7 @@ export default class History extends BaseProvider {
       // do not emit empty, pending results to reduce flickering
       .filter(response =>
         !(response.state === 'pending' && response.results.length === 0))
-      // stabilize history clustering to reduce flickering
-      .bufferTime(5)
-      .filter(r => r.length > 0)
+      .map(r => [r])
       .scan(collect, getPendingResponse(this.id, config, query))
       .map(response => apply(response, normalize))
       .map(response => apply(response, clean))

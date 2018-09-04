@@ -9,6 +9,7 @@ import logger from '../common/offers_v2_logger';
 // ////////////////////////////////////////////////////////////////////////////
 
 const MAX_EXP_TIME = (1000 * 60 * 60 * 24 * 500);
+const MAX_TIMEOUT_DELAY = (2 ** 31) - 1;
 
 // ////////////////////////////////////////////////////////////////////////////
 //                        Helper methods
@@ -100,12 +101,11 @@ export default class OfferDBObserver {
     if (nextExpirationTimeMs === null || nextExpirationTimeMs < 0) {
       return;
     }
-
     // set the timer to be executed in that time
     this.saveInterval = setTimeout(() => {
       removeExpiredOffers(this.offersDB);
       this.observeExpirations();
-    }, nextExpirationTimeMs + 10);
+    }, Math.min(nextExpirationTimeMs + 10, MAX_TIMEOUT_DELAY));
   }
 
 

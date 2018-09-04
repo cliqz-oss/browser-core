@@ -13,6 +13,7 @@
         right: 0;
         background-color: #FBFBFB;
         box-shadow: rgba(0, 0, 0, 0.19) 0 1px 1px 0;
+        transition: opacity 600ms ease-out;
 
         .top-notification-box {
             margin: 0 auto;
@@ -117,6 +118,10 @@
 
         & ~ * {
             margin-top: $box-height;
+        }
+
+        &.removing {
+            opacity: 0;
         }
     }
 }

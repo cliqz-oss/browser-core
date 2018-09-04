@@ -10,7 +10,7 @@ import {
   waitFor,
   waitForPopup,
   withHistory } from './helpers';
-import testArray from './fixtures/unitConverter';
+import testArray from '../../core/integration/fixtures/unitConverter';
 
 export default function () {
   if (!testsEnabled()) { return; }

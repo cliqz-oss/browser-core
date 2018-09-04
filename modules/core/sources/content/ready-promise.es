@@ -1,19 +1,28 @@
-/* global window */
+/* global window chrome */
 
-const isChromeReady = () => typeof chrome === 'object';
+import { waitForAsync } from '../helpers/wait';
 
-export default function () {
-  let waitingInterval;
+const isChromeReady = async () => {
+  const isWebextension = chrome.extension;
 
-  return new Promise((resolve) => {
-    const check = () => isChromeReady() && resolve();
-
-    if (check()) {
-      return;
+  // on firefox platform, we wait for chrome object as cliqz is ready at that time
+  if (!isWebextension) {
+    if (typeof chrome !== 'object') {
+      throw new Error('chrome object not there yet');
     }
 
-    waitingInterval = window.setInterval(check, 100);
-  }).then(() => {
-    window.clearInterval(waitingInterval);
+    // if non extension chrome is there, we are most likely in content tests
+    return true;
+  }
+
+  // on webextensions, we wait for cliqz app to get ready
+  await chrome.extension.getBackgroundPage().CLIQZ.app.ready();
+  return true;
+};
+
+export default function checkIfChromeReady() {
+  return waitForAsync(isChromeReady).catch((e) => {
+    window.console.error('failed to access Cliqz background page', e);
+    throw e;
   });
 }

@@ -1,11 +1,10 @@
 import {
-  clearIntervals,
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
 import {
   defaultConfig,
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 
 describe('Fresh tab interactions with background', function () {
@@ -49,13 +48,12 @@ describe('Fresh tab interactions with background', function () {
   afterEach(function () {
     subject.chrome.runtime.onMessage.removeListener(listener);
     subject.unload();
-    clearIntervals();
   });
 
   describe('clicking on a dark icon', function () {
-    beforeEach(function () {
+    beforeEach(async function () {
       subject.query(darkBgSelector).click();
-      return waitFor(() => subject.query('body.theme-bg-dark'));
+      await waitFor(() => subject.query('body.theme-bg-dark'));
     });
 
     it('changes bg to dark', function () {
@@ -99,9 +97,9 @@ describe('Fresh tab interactions with background', function () {
   });
 
   describe('clicking on a light icon', function () {
-    beforeEach(function () {
+    beforeEach(async function () {
       subject.query(lightBgSelector).click();
-      return waitFor(() => subject.query('body.theme-bg-light'));
+      await waitFor(() => subject.query('body.theme-bg-light'));
     });
 
     afterEach(function () {
@@ -149,9 +147,9 @@ describe('Fresh tab interactions with background', function () {
   });
 
   describe('clicking on a blue icon', function () {
-    beforeEach(function () {
+    beforeEach(async function () {
       subject.query(blueBgSelector).click();
-      return waitFor(() => subject.query('body.theme-bg-blue'));
+      await waitFor(() => subject.query('body.theme-bg-blue'));
     });
 
     afterEach(function () {

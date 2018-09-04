@@ -10,46 +10,49 @@ export default class CurrencyResult extends BaseResult {
     return `cliqz-actions,${JSON.stringify({ type: 'currency', actionName: 'copy' })}`;
   }
 
+  get _extra() {
+    return this.rawResult.data.extra || {};
+  }
+
   get toAmount() {
-    return this.rawResult.data.extra.toAmount.main;
+    return (this._extra.toAmount || {}).main;
   }
 
   get fromAmount() {
-    return this.rawResult.data.extra.fromAmount;
+    return this._extra.fromAmount;
   }
 
   get toCurrency() {
-    return this.rawResult.data.extra.toCurrency;
+    return this._extra.toCurrency;
   }
 
   get toCurrencyName() {
-    const extra = this.rawResult.data.extra;
-    return extra.toCurrencyName || this.toCurrency;
+    return this._extra.toCurrencyName;
   }
 
   // FIXME: symbols not displayed (encoding issue?)
   get toSymbol() {
-    return this.rawResult.data.extra.toSymbol ||
-      this.rawResult.data.extra.toCurrency;
+    return this._extra.toSymbol ||
+      this._extra.toCurrency;
   }
 
   get fromCurrency() {
-    return this.rawResult.data.extra.fromCurrency;
+    return this._extra.fromCurrency;
   }
 
   // FIXME: symbols not displayed (encoding issue?)
   get fromSymbol() {
     // API v2 uses 'formCurrency' instead of 'fromCurrency'
-    return this.rawResult.data.extra.formCurrency ||
-      this.rawResult.data.extra.fromCurrency;
+    return this._extra.formCurrency ||
+      this._extra.fromCurrency;
   }
 
   get multiplyer() {
-    return this.rawResult.data.extra.multiplyer;
+    return this._extra.multiplyer;
   }
 
   get conversionRate() {
-    return this.rawResult.data.extra.mConversionRate;
+    return this._extra.mConversionRate;
   }
 
   get allResults() {

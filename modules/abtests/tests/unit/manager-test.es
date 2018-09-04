@@ -133,18 +133,51 @@ export default describeModule('abtests/manager',
         });
       });
       it('takes prefs of upcoming tests if expired and upcoming tests modify the same prefs', () => {
-        manager.runningTests = { 3: {
-          id: '3',
-          groups: { A: { a_pref: 5 } },
-          group: 'A',
-        } };
+        manager.runningTests = {
+          3: {
+            id: '3',
+            groups: { A: { a_pref: 5 } },
+            group: 'A',
+          }
+        };
         manager.shouldStartTest = ({ id }) => Promise.resolve(id === '2');
+        // manager.shouldStartTest = ({ id }) => Promise.resolve(false);
         manager.shouldStopTest = ({ id }) => id === '3';
         manager.client.enterTest = () => Promise.resolve(true);
+        const stopTest = manager.stopTest.bind(manager);
+        manager.stopTest = async (...args) => {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          const test = await stopTest(...args);
+          return test;
+        };
         return manager.updateTests().then(() => {
           chai.expect(mockSharedStorage.database[SHARED_STORAGE_KEY]).to.equal('["2_A"]');
           chai.expect(mockSharedStorage.database.a_pref).to.equal(10);
         });
+      });
+    });
+    describe('#getRunningLegacyTests', () => {
+      let manager;
+      let mockModuleStorage;
+      let mockSharedStorage;
+
+      beforeEach(function () {
+        const Manager = new this.module().default;
+        mockModuleStorage = new MockStorage();
+        mockSharedStorage = new MockStorage();
+        manager = new Manager(null, mockModuleStorage, mockSharedStorage);
+      });
+
+      it('gets running SERP test', async () => {
+        mockSharedStorage.database.serp_test = 'C';
+        const tests = await manager.getRunningLegacyTests();
+        chai.expect(tests).to.be.deep.equal({ 1114: {} });
+      });
+
+      it('returns empty object for no running SERP test', async () => {
+        mockSharedStorage.database.serp_test = undefined;
+        const tests = await manager.getRunningLegacyTests();
+        chai.expect(tests).to.be.deep.equal({});
       });
     });
     describe('#startTest', () => {
@@ -348,6 +381,16 @@ export default describeModule('abtests/manager',
         manager.client.enterTest = () => Promise.resolve(true);
         manager.completedTests = { 2: { id: '2' } };
         return manager.getUpcomingTests([{ id: '1', competitors: ['2'] }, { id: '3' }]).then((upcomingTests) => {
+          chai.expect(upcomingTests.length).to.equal(1);
+          chai.expect(upcomingTests[0].id).to.equal('3');
+        });
+      });
+      it('excludes test if it lists legacy test as competitor', () => {
+        manager.chooseTestGroup = () => '';
+        manager.shouldStartTest = () => Promise.resolve(true);
+        manager.getRunningLegacyTests = () => Promise.resolve({ 100: {} });
+        manager.client.enterTest = () => Promise.resolve(true);
+        return manager.getUpcomingTests([{ id: '1', competitors: ['100'] }, { id: '3' }]).then((upcomingTests) => {
           chai.expect(upcomingTests.length).to.equal(1);
           chai.expect(upcomingTests[0].id).to.equal('3');
         });

@@ -100,7 +100,7 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
       }
     },
     'core/platform': {
-      isChromium: false
+      isWebExtension: false
     },
     'core/utils': {
       default: {},

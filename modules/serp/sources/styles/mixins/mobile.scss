@@ -1,0 +1,16 @@
+@mixin mobile() {
+  
+
+  @media only screen
+    // From iphone 4/4s resolution to
+    // iphone X resolution.
+    // This range covers all popular
+    // cell phones.
+
+    and (max-device-width: 812px)
+    and (-webkit-max-device-pixel-ratio: 4)
+    {
+      @content;
+    }
+}
+

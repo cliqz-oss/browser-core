@@ -1,2 +1,2 @@
+/* eslint-disable import/prefer-default-export */
 export const REAL_ESTATE_ID = 'browser-panel';
-export const PANEL_STATE_PREF_NAME = 'offersBrowserPanelEnableSwitch';

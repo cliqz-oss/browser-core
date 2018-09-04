@@ -35,7 +35,7 @@ class BackendConnectorMock {
 export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
   () => ({
     'core/platform': {
-      isChromium: false
+      isWebExtension: false
     },
     'platform/lib/tldjs': {
       default: tldjs,

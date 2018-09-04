@@ -61,10 +61,6 @@ module.exports = {
     "INVENTORY_URL": "https://cdn.cliqz.com/browser-f/fun-demo/inventoryv2.txt.gz",
     "antitrackingPlaceholder": "ghostery",
     "antitrackingHeader": "Ghostery-AntiTracking",
-    "ALLOWED_SEARCH_DOMAINS": {
-      'normal': ["\\.google\\..*?[#?&;]q=[^$&]+",".search.yahoo\\..*?[#?&;]p=[^$&]+",".linkedin.*?\\/pub\\/dir+","\\.bing\\..*?[#?&;]q=[^$&]+","\\.amazon\\.[^/]+\\/s(?:/?[?]|/ref=).*[?&]field-keywords=[^$&]+"],
-      'strict': ["\\.google\\..*?[#?&;]q=[^$&]+",".search.yahoo\\..*?[#?&;][pq]=[^$&]+",".linkedin.*?\\/pub\\/dir+","\\.bing\\..*?[#?&;]q=[^$&]+","\\.amazon\\.[^/]+\\/s/[?]?(?:ref=.*[?&])?field-keywords=[^$&]+"]
-    }
   }),
   "default_prefs": {
     "modules.human-web.enabled": true,
@@ -73,7 +69,6 @@ module.exports = {
     "modules.antitracking.enabled": true,
     "modules.anti-phishing.enabled": false,
     "modules.adblocker.enabled": true,
-    "offers2FeatureEnabled": true,
     "offersLogsEnabled": true,
     "showConsoleLogs": false,
     "cliqz-adb": true,
@@ -83,9 +78,11 @@ module.exports = {
     "cliqz-anti-phishing": true,
     "cliqz-anti-phishing-enabled": true,
     "attrackRemoveQueryStringTracking": false,
-    "attrackTelemetryMode": 0,
+    "attrackTelemetryMode": 1,
     "attrackDefaultAction": "placeholder",
-    "sendAntiTrackingHeader": false
+    "sendAntiTrackingHeader": false,
+    "telemetry": false,
+    "attrackCookieTrustReferers": true,
   },
   "bundles": [
     "core/content-script.bundle.js",
@@ -102,7 +99,9 @@ module.exports = {
     "offers-v2",
     "adblocker",
     "anolysis",
-    "anti-phishing"
+    "anti-phishing",
+    "myoffrz-collector",
+    "popup-notification",
   ],
   "system": {
     "map": {

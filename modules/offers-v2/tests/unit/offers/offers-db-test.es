@@ -71,7 +71,7 @@ export default describeModule('offers-v2/offers/offers-db',
       }
     },
     'core/platform': {
-      isChromium: false,
+      isWebExtension: false,
     },
     'core/prefs': {
       default: {

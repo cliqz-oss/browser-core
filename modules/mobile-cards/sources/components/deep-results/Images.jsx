@@ -19,7 +19,7 @@ export default class Images extends React.Component {
     const resizeMode = length > 1 ? 'cover' : 'contain';
     return (
       <ExternalImage
-        key={index}
+        key={data.image}
         source={{ uri: data.image }}
         style={{ height: 100, width }}
         resizeMode={resizeMode}

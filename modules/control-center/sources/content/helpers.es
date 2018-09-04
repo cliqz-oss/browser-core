@@ -4,13 +4,13 @@ export default {
   },
 
   local(key) {
-    return chrome.i18n.getMessage(key)
+    return chrome.i18n.getMessage(key);
   },
 
   if_eq(a, b, opts) {
-    if(a === b)
+    if (a === b) {
       return opts.fn(this);
-    else
-      return opts.inverse(this);
+    }
+    return opts.inverse(this);
   }
-}
+};

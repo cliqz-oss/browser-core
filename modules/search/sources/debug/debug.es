@@ -3,14 +3,29 @@
 import Rx from '../../platform/lib/rxjs';
 import search from '../search';
 import background from '../background';
-import createUrlbarObservable from '../observables/urlbar';
-import DEFAULT_CONFIG from '../config';
+import getThrottleQueries from '../operators/streams/throttle-queries';
+import getConfig from '../config';
 import Results from '../../dropdown/results';
-import AdultAssistant from '../../search/assistants/adult';
-import LocationAssistant from '../../search/assistants/location';
 import Dropdown from '../../dropdown/dropdown';
 import templates from '../../dropdown/templates';
 import helpers from '../../dropdown/helpers';
+import { setGlobal } from '../../core/kord/inject';
+import pluckResults from '../operators/streams/pluck-results';
+
+const app = {
+  modules: {},
+  services: {
+    logos: {
+      api: {
+        getLogoDetails() {
+          return {};
+        },
+      },
+    },
+  },
+};
+
+setGlobal(app);
 
 Handlebars.partials = templates;
 
@@ -31,47 +46,36 @@ window.addEventListener('load', () => {
   $urlbar.value = '';
   setTimeout(() => $urlbar.focus(), 100);
 
-  // TODO: adaptive debounce (only when typing fast)
-  const query$ = createUrlbarObservable(
-    Rx.Observable
-      .fromEvent($urlbar, 'keyup')
-      .map(() => $urlbar.value)
-  );
+  const config = getConfig({ isPrivateMode: false });
+
+  const query$ = Rx.Observable
+    .fromEvent($urlbar, 'keyup')
+    .map(() => ({ query: $urlbar.value }))
+    .let(getThrottleQueries(config));
 
   const focus$ = Rx.Observable.merge(
     Rx.Observable
       .fromEvent($urlbar, 'focus')
-      .mapTo('focus'),
+      .mapTo({ event: 'focus' }),
     Rx.Observable
       .fromEvent($urlbar, 'blur')
-      .mapTo('blur'));
+      .mapTo({ event: 'blur' }));
 
   background.init();
+
   const results$ = search({ query$, focus$ },
-    background.providers, DEFAULT_CONFIG);
+    background.providers, config).let(pluckResults());
 
   const dropdown = new Dropdown($results, window);
 
-
-  // results$.subscribe(x => console.log('XXXX sub', x));
   results$.subscribe((r) => {
-    const queryCliqz = () => {};
-    const sessionCountPromise = new Promise((resolve) => {
-      setTimeout(() => {
-        const count = Math.floor(Math.random() * 10000) % 2000;
-        resolve(count);
-      }, 3000);
-    });
-    const adultAssistant = new AdultAssistant();
-    const locationAssistant = new LocationAssistant({});
-
     const rr = new Results({
       query: 'aa',
       rawResults: r,
-      sessionCountPromise,
-      queryCliqz,
-      adultAssistant,
-      locationAssistant,
+    }, {
+      assistants: {
+        settings: {},
+      },
     });
     dropdown.renderResults(rr);
   });

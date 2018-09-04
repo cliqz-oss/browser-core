@@ -266,6 +266,23 @@ module.exports = function ({
             chai.expect(records.type_B[0].value).to.equal(6);
           })
       );
+
+      it('should return records ordered by timestamp', async () => {
+        await storage.behavior.add({ type: 'type_A', behavior: { value: 1 } });
+        await storage.behavior.add({ type: 'type_A', behavior: { value: 2 } });
+        await storage.behavior.add({ type: 'type_A', behavior: { value: 3 } });
+        await storage.behavior.add({ type: 'type_A', behavior: { value: 4 } });
+        await storage.behavior.add({ type: 'type_A', behavior: { value: 5 } });
+        const records = await storage.behavior.getTypesForDate(getFormattedCurrentDate());
+        chai.expect(records.toObj().type_A).to.be.eql([
+          { value: 1 },
+          { value: 2 },
+          { value: 3 },
+          { value: 4 },
+          { value: 5 },
+        ]);
+      });
+
       it('should return records given from timestamp with records', () =>
         storage.behavior.add({ type: 'type_A', behavior: { value: 5 } })
           .then(() => storage.behavior.getTypesForDate(getFormattedCurrentDate()))
@@ -276,6 +293,7 @@ module.exports = function ({
             chai.expect(records.type_A[0].value).to.equal(5);
           })
       );
+
       it('should return records given from timestamp with records', () =>
         storage.behavior.add({ type: 'type_A', behavior: { value: 5 } })
           .then(() => storage.behavior.getTypesForDate(getFormattedCurrentDate()))
@@ -286,12 +304,14 @@ module.exports = function ({
             chai.expect(records.type_A[0].value).to.equal(5);
           })
       );
+
       it('should return empty object given complete timespan without records', () => {
         const previousDay = getCurrentMoment().subtract(1, 'days').format(DATE_FORMAT);
         return storage.behavior.add({ type: 'type_A', behavior: { value: 5 } })
           .then(() => storage.behavior.getTypesForDate(previousDay))
           .then(records => chai.expect(records.size).to.eql(0));
       });
+
       it('should return empty object given from timespan without records', () => {
         const nextDay = getCurrentMoment().add(1, 'days').format(DATE_FORMAT);
         return storage.behavior.add({ type: 'type_A', behavior: { value: 5 } })

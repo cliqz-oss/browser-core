@@ -1,6 +1,5 @@
 import {
-  clearIntervals,
-  expect
+  expect,
 } from '../../core/test-helpers';
 import Subject from './local-helpers';
 import generateData from './fixtures/other-settings-section';
@@ -17,7 +16,6 @@ function otherSettingsTests(amo, privacyUrl) {
 
   after(function () {
     subject.unload();
-    clearIntervals();
   });
 
   describe('Other Settings', function () {

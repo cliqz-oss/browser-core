@@ -1,43 +1,8 @@
-import { expect } from '../../core/test-helpers';
+import { expect, waitFor, wait } from '../../core/test-helpers';
 import console from '../../../core/console';
 import config from '../../../core/config';
 import { data, dataAmo } from './fixtures/search-section';
 
-function wait(time) {
-  return new Promise(resolve => setTimeout(resolve, time));
-}
-
-let intervals = [];
-function registerInterval(interval) {
-  intervals.push(interval);
-}
-
-function clearIntervals() {
-  intervals.forEach(interval => clearInterval(interval));
-  intervals = [];
-}
-
-function waitFor(fn) {
-  let resolver;
-  let interval;
-  const promise = new Promise(function (res) {
-    resolver = res;
-  });
-
-  function check() {
-    const result = fn();
-    if (result) {
-      clearInterval(interval);
-      resolver(result);
-    }
-  }
-
-  interval = setInterval(check, 50);
-  check();
-  registerInterval(interval);
-
-  return promise;
-}
 
 class Subject {
   constructor() {
@@ -101,7 +66,6 @@ describe('Search options UI browser', function () {
 
   afterEach(function () {
     subject.unload();
-    clearIntervals();
   });
 
   describe('Search options section', function () {
@@ -469,7 +433,6 @@ describe('AMO Search options tests', function () {
 
   afterEach(function () {
     subject.unload();
-    clearIntervals();
   });
 
   describe('Search options section', function () {

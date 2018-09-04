@@ -1,0 +1,25 @@
+[
+  {
+    "namespace": "cliqzNativeBridge",
+    "functions": [
+      {
+        "name": "callAction",
+        "type": "function",
+        "description": "Calls an action on native side and returns result",
+        "async": true,
+        "parameters": [
+          {
+            "type": "string",
+            "name": "action",
+            "description": "Action name"
+          },
+          {
+            "type": "any",
+            "name": "params",
+            "description": "Params"
+          }
+        ]
+      }
+    ]
+  }
+]

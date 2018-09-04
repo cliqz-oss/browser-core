@@ -1,6 +1,7 @@
 import loadLogoDb from '../../platform/services/logos';
 import config from '../config';
 import inject from '../kord/inject';
+import { isOnionMode } from '../platform';
 
 export async function service() {
   let BRANDS_DATABASE_VERSION = 1521469421408;
@@ -64,6 +65,10 @@ export async function service() {
       result.buttonsClass = `cliqz-brands-button-${buttonClass}`;
       result.style = `background-color: #${result.backgroundColor};color:${(result.color || '#fff')};`;
 
+      // We want to avoid sending calls to CDN in Tor mode even for logos.
+      if (isOnionMode) {
+        result.backgroundImage = '';
+      }
 
       if (result.backgroundImage) {
         result.style += `background-image:${result.backgroundImage}; text-indent: -10em;`;
@@ -74,6 +79,4 @@ export async function service() {
   };
 }
 
-export default function () {
-  return inject.service('logos');
-}
+export default inject.service('logos');

@@ -170,5 +170,46 @@ export default describeModule('search/operators/links/utils',
         ] })).to.be.false;
       });
     });
+    describe('#convertAndRevertHistoryLink', function () {
+      let convertMainLinkToHistorySubLink;
+      let revertHistorySubLinkToMainLink;
+
+      const mainLink = {
+        url: 'https://cliqz.com',
+        kind: ['A', 'B'],
+        provider: 'history',
+        text: 'cliqz',
+        meta: {
+          type: 'main',
+          level: 0,
+          subType: {},
+        }
+      };
+
+      const subLink = {
+        url: 'https://cliqz.com',
+        kind: ['C', 'A', 'B'],
+        provider: 'history',
+        text: 'cliqz',
+        meta: {
+          type: 'history',
+          level: 1,
+          subType: {},
+        }
+      };
+
+      beforeEach(function () {
+        convertMainLinkToHistorySubLink = this.module().convertMainLinkToHistorySubLink;
+        revertHistorySubLinkToMainLink = this.module().revertHistorySubLinkToMainLink;
+      });
+
+      it('convert main link to sub-link correctly', function () {
+        chai.expect(convertMainLinkToHistorySubLink(mainLink)).to.deep.equal(subLink);
+      });
+
+      it('revert sub-link to main link correctly', function () {
+        chai.expect(revertHistorySubLinkToMainLink(subLink)).to.deep.equal(mainLink);
+      });
+    });
   },
 );

@@ -5,6 +5,8 @@ import chai from 'chai';
 import chaiDom from 'chai-dom';
 import config from '../../../core/config';
 
+export { waitFor } from '../../../core/helpers/wait';
+
 chai.use(chaiDom);
 
 export const expect = chai.expect;
@@ -15,38 +17,6 @@ export const clone = o => JSON.parse(JSON.stringify(o));
 
 export function wait(time) {
   return new Promise(resolve => setTimeout(resolve, time));
-}
-
-let intervals = [];
-export function registerInterval(interval) {
-  intervals.push(interval);
-}
-
-export function clearIntervals() {
-  intervals.forEach(interval => clearInterval(interval));
-  intervals = [];
-}
-
-export function waitFor(fn) {
-  let interval;
-  let resolver;
-  const promise = new Promise(function (res) {
-    resolver = res;
-  });
-
-  function check() {
-    const result = fn();
-    if (result) {
-      clearInterval(interval);
-      resolver(result);
-    }
-  }
-
-  interval = setInterval(check, 50);
-  check();
-  registerInterval(interval);
-
-  return promise;
 }
 
 export class Subject {
@@ -199,3 +169,32 @@ export const defaultConfig = {
     }
   },
 };
+
+export function checkTelemetry(messages, [type, view = '', target, action]) {
+  expect(messages.has('sendTelemetry')).to.equal(true);
+  const telemetrySignals = messages.get('sendTelemetry');
+  let count = 0;
+
+  expect(telemetrySignals.length).to.be.above(0);
+  if (view) {
+    count = telemetrySignals.filter(function (s) {
+      return (
+        s.args[0].type === type &&
+        s.args[0].view === view &&
+        s.args[0].target === target &&
+        s.args[0].action === action
+      );
+    }).length;
+  } else {
+    count = telemetrySignals.filter(function (s) {
+      return (
+        s.args[0].type === type &&
+        s.args[0].target === target &&
+        s.args[0].action === action
+      );
+    }).length;
+  }
+
+  expect(count).to.equal(1);
+}
+

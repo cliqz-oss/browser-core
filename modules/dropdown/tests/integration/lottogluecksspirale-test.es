@@ -1,17 +1,19 @@
 import {
+  $cliqzResults,
   blurUrlBar,
   checkButtons,
   checkLotto,
   checkMainResult,
   checkParent,
-  $cliqzResults,
   expect,
   fillIn,
   mockSearch,
   testsEnabled,
   waitForPopup,
-  withHistory } from './helpers';
-import results from './fixtures/resultsLottoGluecksspirale';
+  win,
+  withHistory,
+} from './helpers';
+import results from '../../core/integration/fixtures/resultsLottoGluecksspirale';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -24,7 +26,7 @@ export default function () {
 
   context('for lotto Gluecksspirale rich header', function () {
     before(async function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
       blurUrlBar();
       await mockSearch({ results });
       withHistory([]);
@@ -33,7 +35,7 @@ export default function () {
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     checkMainResult({ $result: $cliqzResults, isPresent: true });

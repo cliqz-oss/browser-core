@@ -8,19 +8,26 @@ import templates from './templates';
 
 const slideUp = $.fn.slideUp;
 const slideDown = $.fn.slideDown;
+let resizeTimeout = null;
 
 Handlebars.partials = templates;
 function resize() {
   const $controlCenter = $('#control-center');
   const width = $controlCenter.width();
   const height = $controlCenter.height();
-  sendMessageToWindow({
-    action: 'resize',
-    data: {
-      width,
-      height
-    }
-  });
+
+  if (height) {
+    sendMessageToWindow({
+      action: 'resize',
+      data: {
+        width,
+        height
+      }
+    });
+    return;
+  }
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(resize, 50);
 }
 $.fn.slideUp = function newSlideUp() {
   const ret = slideUp.call(this, 0);

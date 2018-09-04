@@ -78,7 +78,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
       }
     },
     'core/platform': {
-      isChromium: false
+      isWebExtension: false
     },
     'platform/xmlhttprequest': {
       default: {}

@@ -23,8 +23,14 @@ export default describeModule('anolysis/internals/signals-queue',
     'core/database': {
       default: class Database { destroy() { return Promise.resolve(); } }
     },
+    'core/helpers/timeout': {
+      default: () => ({ stop: () => {} }),
+    },
     'anolysis/internals/logger': {
       default: {
+        // debug(...args) { console.log('DEBUG', ...args); },
+        // log(...args) { console.log('LOG', ...args); },
+        // error(...args) { console.log('ERROR', ...args); },
         debug() {},
         log() {},
         error() {},
@@ -47,15 +53,8 @@ export default describeModule('anolysis/internals/signals-queue',
     describe('#SignalQueue', () => {
       let queue;
       let storage;
-      let oldTimeout;
-      let oldInterval;
 
       beforeEach(function () {
-        oldTimeout = global.setTimeout;
-        oldInterval = global.setInterval;
-        global.setTimeout = function (cb) { cb(); };
-        global.setInterval = function () {};
-
         return this.system.import('anolysis/internals/storage/dexie')
           .then((module) => {
             const Storage = module.default;
@@ -74,11 +73,7 @@ export default describeModule('anolysis/internals/signals-queue',
           });
       });
 
-      afterEach(() => {
-        global.setTimeout = oldTimeout;
-        global.setInterval = oldInterval;
-        return storage.destroy();
-      });
+      afterEach(() => storage.destroy());
 
       it('pushes new messages in the queue', () =>
         queue.push({ signal: 1 })

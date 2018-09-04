@@ -1,6 +1,7 @@
 import { NativeModules } from 'react-native';
 import { History } from './history/history';
 import osAPI from './os-api';
+import { getPref } from './prefs';
 
 const unsupportedError = () => {
   throw new Error('BrowserActions not supported by native');
@@ -37,6 +38,28 @@ export function historySearch(q, callback) {
     }));
     callback({ results, query: q, ready: true });
   });
+}
+
+export function handleAutoCompletion(url = '', query = '') {
+  if (!NativeModules.AutoCompletion) {
+    return;
+  }
+  const trimmedUrl = url.replace(/http([s]?):\/\/(www.)?/, '').toLowerCase();
+  const searchLower = query.toLowerCase();
+  if (trimmedUrl.startsWith(searchLower)) {
+    NativeModules.AutoCompletion.autoComplete(trimmedUrl);
+  } else {
+    NativeModules.AutoCompletion.autoComplete(query);
+  }
+}
+
+export function handleQuerySuggestions(query = '', suggestions = []) {
+  if (!NativeModules.QuerySuggestion) {
+    return;
+  }
+  if (NativeModules.QuerySuggestion && getPref('suggestionsEnabled', false)) {
+    NativeModules.QuerySuggestion.showQuerySuggestions(query, suggestions);
+  }
 }
 
 export const openLink = BrowserActions.openLink;

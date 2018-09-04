@@ -1,29 +1,14 @@
 /* global window */
 
 import Spanan from 'spanan';
-
-import { CHROME_MSG_SOURCE, isCliqzContentScriptMsg } from '../../core/content/helpers';
-import checkIfChromeReady from './ready-promise';
+import checkIfChromeReady from '../../core/content/ready-promise';
+import createSpananWrapper from '../../core/helpers/spanan-module-wrapper';
 import PairingUI from './ui';
-
-function createSpananForModule(moduleName) {
-  return new Spanan(({ uuid, action, args }) => {
-    const message = {
-      source: CHROME_MSG_SOURCE,
-      target: 'cliqz',
-      module: moduleName,
-      action,
-      requestId: uuid,
-      args
-    };
-    chrome.runtime.sendMessage(message);
-  });
-}
 
 class Cliqz {
   constructor() {
-    const pairingBridge = createSpananForModule('pairing');
-    const coreBridge = createSpananForModule('core');
+    const pairingBridge = createSpananWrapper('pairing');
+    const coreBridge = createSpananWrapper('core');
     const api = new Spanan();
     this.pairing = pairingBridge.createProxy();
     this.core = coreBridge.createProxy();
@@ -76,9 +61,6 @@ class Cliqz {
     };
 
     const onMessage = (message) => {
-      if (!isCliqzContentScriptMsg(message)) {
-        return;
-      }
       const msg = {
         uuid: message.requestId,
         response: message.response
@@ -98,6 +80,9 @@ class Cliqz {
       chrome.runtime.onMessage.addListener(onMessage);
       window.addEventListener('message', onPostMessage);
       UI.init();
+    }).catch((ex) => {
+      // eslint-disable-next-line no-console
+      console.error('Chrome was never ready', ex);
     });
   }
 }

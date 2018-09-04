@@ -1,17 +1,16 @@
 import {
-  clearIntervals,
   clone,
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
 import {
   defaultConfig,
   generateHistoryResponse,
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 
 describe('Fresh tab interactions with most visited', function () {
-  const dialSelector = '#section-most-visited .dial';
+  const dialSelector = '#section-most-visited a.dial';
   const dialTitleSelector = '.title';
   const deleteBtnSelector = 'button.delete';
   const undoBoxSelector = '.undo-notification-box';
@@ -36,10 +35,6 @@ describe('Fresh tab interactions with most visited', function () {
     const mostVisitedConfig = clone(defaultConfig);
     mostVisitedConfig.response.componentsState.historyDials.visible = true;
     subject.respondsWith(mostVisitedConfig);
-  });
-
-  afterEach(function () {
-    clearIntervals();
   });
 
   context('when first two tiles have been deleted from a list of 3 elements', function () {

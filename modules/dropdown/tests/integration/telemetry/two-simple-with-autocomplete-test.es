@@ -9,7 +9,7 @@ import {
   release,
   waitFor,
   withHistory } from '../helpers';
-import { results } from '../fixtures/resultsTwoSimple';
+import { results } from '../../../core/integration/fixtures/resultsTwoSimple';
 
 export default function () {
   if (!testsEnabled()) { return; }

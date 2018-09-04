@@ -1,5 +1,3 @@
-/* eslint-disable strict, no-console */
-
 'use strict';
 
 const program = require('commander');
@@ -43,7 +41,7 @@ const rewrite = (url) => {
 
 const noFileUrls = url => url.indexOf('file:') !== 0;
 
-program.command('pack [file]')
+program.command(`pack ${common.configParameter}`)
   .action((configPath) => {
     const cfg = setConfigPath(configPath);
     const CONFIG = cfg.CONFIG;
@@ -53,6 +51,7 @@ program.command('pack [file]')
       .then(() => getExtensionVersion('package'))
       .then((version) => {
         process.env.PACKAGE_VERSION = version;
+        process.env.EXTENSION_VERSION = version;
 
         if (!process.env.VERSION) {
           process.env.VERSION = version;

@@ -1,9 +1,6 @@
 import logger from './logger';
 import { nextTick } from '../core/decorators';
-import { Dns as PlatformDns } from '../platform/human-web/dns';
-import FallbackDns from './fallback-dns';
-
-const Dns = PlatformDns || FallbackDns;
+import Dns from './fallback-dns';
 
 export function parseHostname(hostname) {
   const o = {
@@ -116,68 +113,66 @@ export class Network {
     this.dns = new Dns();
   }
 
-  isPublicDomain(msg) {
-    // We need to check for action page if the URLs in the message
-    // are not private because of local domains. like fritzbox or admin.example.com.
-    const promise = new Promise((resolve, reject) => {
-      if (msg.action === 'page') {
-        // Get all the urls in the payload.
-        const urls = [];
-        urls.push(msg.payload.url);
-        if (msg.payload.ref) {
-          urls.push(msg.payload.ref);
-        }
-        if (msg.payload.red) {
-          msg.payload.red.forEach((redURL) => {
-            urls.push(redURL);
-          });
-        }
-        logger.debug('isPublicDomain: All urls in the message:', urls);
-
-        // Check for each URL if the host is public or private,
-        // If any of the host is private then it should resolve as true and exit.
-        // Else should resolve as not private.
-
-        Promise.all(urls.map(url => this.isHostNamePrivate(url))).then((results) => {
-          // Now that we have checked all the URLS, if any of the URL resulted as private
-          // We drop the message.
-          if (results.indexOf(true) > -1) {
-            logger.debug('isPublicDomain: Contains private URL');
-            reject(false);
-          } else {
-            logger.debug('isPublicDomain: URLs are public');
-            resolve(true);
-          }
-        });
-      } else {
-        resolve(true);
+  /* eslint-disable no-param-reassign */
+  async sanitizeUrlsWithPrivateDomains(msg) {
+    if (msg.action === 'page') {
+      // We need to check if the URLs in the message are not private
+      // because of local domains (e.g., 'fritzbox' or 'admin.example.com').
+      //
+      // 1) check for fields sensitive enough to drop the complete message:
+      if (msg.payload.url && await this.isHostNamePrivate(msg.payload.url)) {
+        logger.debug('sanitizeUrlsWithPrivateDomains: dropped because of private URL:', msg.payload.url);
+        return null;
       }
-    });
-    return promise;
-  }
 
-  isHostNamePrivate(url) {
+      // 2) check for fields which can be nulled out without dropping the messages:
+      if (msg.payload.x && msg.payload.x.canonical_url &&
+          await this.isHostNamePrivate(msg.payload.x.canonical_url)) {
+        logger.debug('sanitizeUrlsWithPrivateDomains: private "canonical_url" URL nulled out:', msg.payload.url);
+        msg.payload.x.canonical_url = null;
+      }
+      if (msg.payload.ref && await this.isHostNamePrivate(msg.payload.ref)) {
+        logger.debug('sanitizeUrlsWithPrivateDomains: private "ref" URL nulled out:', msg.payload.ref);
+        msg.payload.ref = null;
+      }
+      if (msg.payload.red) {
+        for (let i = 0; i < msg.payload.red.length; i += 1) {
+          // eslint-disable-next-line no-await-in-loop
+          if (msg.payload.red[i] && await this.isHostNamePrivate(msg.payload.red[i])) {
+            logger.debug('sanitizeUrlsWithPrivateDomains: private "red" URL nulled out:', msg.payload.red[i]);
+            msg.payload.red[i] = null;
+          }
+        }
+      }
+    }
+
+    return msg;
+  }
+  /* eslint-enable no-param-reassign */
+
+  async isHostNamePrivate(url) {
     let host;
     try {
       host = parseURL(url).hostname;
     } catch (ee) {
       // If the parsing of the host fails for some reason,
       // we would mark it as private.
-      return Promise.resolve(true);
+      return true;
     }
 
     if (!host) {
-      return Promise.resolve(true);
+      return true;
     }
 
-    return this.dns.resolveHost(host)
-      .then(address => isIPInternal(address))
-      .catch((e) => {
-        logger.error(
-          'Could not resolve domain', host,
-          '. Be conservative and assume that the domain is private.', e);
-        return true;
-      });
+    try {
+      const address = await this.dns.resolveHost(host);
+      return isIPInternal(address);
+    } catch (e) {
+      logger.error(
+        'Could not resolve domain', host,
+        '. Be conservative and assume that the domain is private.', e);
+      return true;
+    }
   }
 
   cacheDnsResolution(domain, ip) {

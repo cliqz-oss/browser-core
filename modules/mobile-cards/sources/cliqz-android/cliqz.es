@@ -1,8 +1,5 @@
 /* global window */
 import Spanan from 'spanan';
-import {
-  isCliqzContentScriptMsg
-} from '../../core/content/helpers';
 import createSpananForModule from '../../core/helpers/spanan-module-wrapper';
 
 export default class Cliqz {
@@ -28,12 +25,8 @@ export default class Cliqz {
       action: message.action,
       args: message.args,
     };
-
-    if (isCliqzContentScriptMsg(message)) {
-      this.coreWrapper.handleMessage(msg);
-      this.mobileCardsWrapper.handleMessage(msg);
-    }
-
+    this.coreWrapper.handleMessage(msg);
+    this.mobileCardsWrapper.handleMessage(msg);
     this.api.handleMessage(msg);
   };
   init() {

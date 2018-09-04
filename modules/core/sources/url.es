@@ -1,14 +1,14 @@
 /* eslint no-param-reassign: 'off' */
 /* eslint camelcase: 'off'  */
 
-import platformEquals, { isURI, URI } from '../platform/url';
+import platformEquals, { URI } from '../platform/url';
 import { getPublicSuffix } from './tlds';
 import MapCache from './helpers/fixed-size-cache';
 import {
   equals as urlEqual,
-  cleanMozillaActions
+  cleanMozillaActions,
 } from './content/url';
-import { isFirefox } from './platform';
+import { isBootstrap } from './platform';
 
 export {
   urlStripProtocol,
@@ -50,17 +50,21 @@ export function isUrl(input) {
   if (!input) {
     return false;
   }
-  // TODO: handle ip addresses
-  if (isURI(input)) {
-    return true;
+
+  try {
+    const uri = new URI(input);
+    if ((uri.host || uri.path !== '/') && uri.isKnownProtocol) {
+      return true;
+    }
+  } catch (e) {
+    // step 1 remove eventual protocol
+    const protocolPos = input.indexOf('://');
+    if (protocolPos !== -1 && protocolPos <= 6) {
+      input = input.slice(protocolPos + 3);
+    }
+    // step2 remove path & everything after
+    input = input.split('/')[0];
   }
-  // step 1 remove eventual protocol
-  const protocolPos = input.indexOf('://');
-  if (protocolPos !== -1 && protocolPos <= 6) {
-    input = input.slice(protocolPos + 3);
-  }
-  // step2 remove path & everything after
-  input = input.split('/')[0];
   // step3 run the regex
   return UrlRegExp.test(input) || isIpAddress(input);
 }
@@ -75,7 +79,6 @@ export function isLocalhost(host, isIPv4, isIPv6) {
 }
 
 // IP Validation
-
 export function extractSimpleURI(url) {
   return new URI(url);
 }
@@ -260,7 +263,7 @@ export function getDetailsFromUrl(url) {
 }
 
 export function getSearchEngineUrl(engine, query, rawQuery) {
-  if (!isFirefox) {
+  if (!isBootstrap) {
     return engine.getSubmissionForQuery(query);
   }
 
@@ -273,7 +276,7 @@ export function getSearchEngineUrl(engine, query, rawQuery) {
 }
 
 export function getVisitUrl(url) {
-  if (!isFirefox) {
+  if (!isBootstrap) {
     return url;
   }
 
@@ -329,4 +332,25 @@ export function generalizeUrl(url, skipCorrection) {
   }
   url = cleanUrlProtocol(val, true);
   return url[url.length - 1] === '/' ? url.slice(0, -1) : url;
+}
+
+export function getUrlVariations(url) {
+  let protocols = ['http:', 'https:'];
+  const u = new URL(url);
+
+  if (!protocols.includes(u.protocol)) {
+    protocols = [u.protocol];
+  }
+
+  return Array.from(
+    protocols.reduce((urls, protocol) => {
+      const path = u.pathname.replace(/\/+$/, '');
+      u.protocol = protocol;
+      u.pathname = path;
+      urls.add(u.toString());
+      u.pathname = `${path}/`;
+      urls.add(u.toString());
+      return urls;
+    }, new Set())
+  );
 }

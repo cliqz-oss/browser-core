@@ -1,13 +1,12 @@
 import {
-  clearIntervals,
   clone,
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
 import {
   defaultConfig,
   generateHistoryResponse,
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 
 describe('Fresh tab most visited UI', function () {
@@ -16,7 +15,7 @@ describe('Fresh tab most visited UI', function () {
 
   const areaSelector = '#section-most-visited';
   const headerSelector = '#section-most-visited .dial-header';
-  const dialSelector = '#section-most-visited .dial';
+  const dialSelector = '#section-most-visited a.dial';
   const restoreOptionSelector = '#settings-panel button.link';
   const historyResponse = generateHistoryResponse();
   const respondWithOneElement = () => {
@@ -34,10 +33,6 @@ describe('Fresh tab most visited UI', function () {
     subject.respondsWithEmptyNews();
     mostVisitedConfig = clone(defaultConfig);
     mostVisitedConfig.response.componentsState.historyDials.visible = true;
-  });
-
-  afterEach(function () {
-    clearIntervals();
   });
 
   describe('renders area', function () {
@@ -137,7 +132,7 @@ describe('Fresh tab most visited UI', function () {
   });
 
   context('when a tile has been deleted', function () {
-    const deleteSelector = '#section-most-visited .dial button.delete';
+    const deleteSelector = '#section-most-visited a.dial button.delete';
     const undoBoxSelector = '.undo-notification-box';
 
     beforeEach(async function () {
@@ -208,7 +203,7 @@ describe('Fresh tab most visited UI', function () {
         });
 
         describe('renders each element', function () {
-          const logoSelector = '#section-most-visited .dial .logo';
+          const logoSelector = '#section-most-visited a.dial .logo';
           let $logos;
 
           beforeEach(function () {
@@ -251,7 +246,7 @@ describe('Fresh tab most visited UI', function () {
           });
 
           it('with existing and correct descriptions', function () {
-            const descriptionSelector = '#section-most-visited .dial .title';
+            const descriptionSelector = '#section-most-visited a.dial .title';
             const $descriptions = subject.queryAll(descriptionSelector);
 
             expect($descriptions.length).to.be.above(0);

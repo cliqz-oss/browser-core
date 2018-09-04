@@ -19,7 +19,7 @@ export default class SearchHistoryUI {
     // Add last search button to container
     this.queryBox = window.document.createElement('hbox');
     this.queryBox.className = 'cliqz-urlbar-Last-search';
-    this.queryBox.addEventListener('click', this.redoLastQuery);
+    this.container.addEventListener('click', this.redoLastQuery);
     this.container.appendChild(this.queryBox);
   }
 
@@ -30,7 +30,7 @@ export default class SearchHistoryUI {
 
   deattach() {
     this.tabQueries.clear();
-    this.queryBox.removeEventListener('click', this.redoLastQuery);
+    this.container.removeEventListener('click', this.redoLastQuery);
     try {
       this.container.parentNode.removeChild(this.container);
     } catch (e) {

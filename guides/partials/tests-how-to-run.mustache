@@ -1,83 +1,57 @@
-<h3>
-  How to run
-</h3>
+<h3>How to use fern</h3>
 
-<h4>
-  ./fern.js serve
-</h4>
+<h4>fern.js build</h4>
 
-<p>
-  You can build and install the extension (without running tests) by executing:
-</p>
+<p>Builds the extension once. Does not monitor changes in the project. Does not include tests.</p>
 
-```
-./fern.js serve
-```
+<h4>fern.js serve [optional flags] %lt;required config%gt;</h4>
 
-<p>
-  This will launch a default version of Firefox with the local custom-built extension.
-  Any change in the `navigation-extension` folder and its subdirectories will re-build
-  the extension automatically and re-install it in the same Firefox instance.
-</p>
+<p>Builds the extension, installs it in the default browser, launches it and monitors changes in the project (rebuilds after detecting changes). Does not include tests.</p>
 
-<p>
-  Test pages have to be visited manually (see the [[#-url-options-|URL options]] section). The `serve` option does not run tests automatically.
-</p>
-
-<h4>
-  .fern.js test
-</h4>
-
-<p>
-  Builds and installs an extension in the default runner(s), unless a config file with [[#-launchers-|custom runner]]
-  has been passed, and automatically starts running tests (from the page `http://localhost:4200/6206/tests/index.mustache`).
-</p>
-
-<p>
-  Available flags include:
-</p>
-
+<p>Most useful flags include:</p>
 <ul>
-  <li>`--ci [output]`: starts Testem in CI mode (runs in all available browsers one after another),</li>
-  <li>`--grep [pattern]`: only run tests matching [pattern],</li>
-  <li>`--fgrep [pattern]`: only run tests with file names matching [pattern],</li>
-  <li>`--firefox [firefox path]`: specify Firefox path, if Firefox launcher will be used</li>
-  <li>`-l --launchers [launchers]`: comma separted list of launchers.</li>
+  <li>`--firefox [firefox path]`: specify Firefox version used to launch</li>
+  <li>`--include-tests`: include test-related packages and modules to be able to launch tests</li>
 </ul>
 
+<p>Test pages have to be visited manually (see the [[#-url-options-|URL options]] section). The `serve` option does not run tests automatically.</p>
+
+<h4>fern.js test</h4>
+
+<p>Builds and installs an extension in [[#-launchers-|custom runner(s)]] from the provided config and automatically starts running tests (from the page `http://localhost:4200/6206/tests/index.mustache`).</p>
+
+<p>Most useful flags include:</p>
+
+<ul>
+  <li>`--grep [pattern]`: only run tests matching [pattern],</li>
+  <li>`--firefox [firefox path]`: specify Firefox path, if Firefox launcher will be used</li>
+  <li>`-l --launchers [launchers]`: comma separted list of launchers.</li>
+  <li>`--no-build`: skip the build and run tests only</li>
+</ul>
+
+<h4>fern.js lint</h4>
+
+<p>Don't build, just run Linter and check for code errors. Can be run with a `--fix` flag, which will try to fix the errors automatically.</p>
+
+<h4>Examples</h4>
+
+<p>Serve in Firefox 55 and be able to run tests:</p>
+```
+./fern.js serve --include-tests --firefox /Applications/Firefox55.app/
+```
+
+<p>Run content tests in Chrome:</p>
+```
+./fern.js test -l Chrome
+```
+
+<p>Run unit tests:</p>
+```
+./fern.js test -l unit-node configs/ci/unit-tests.js
+```
+
 <h4>
-  ./fern.js serve/test [config]
-</h4>
-
-<p>
-  Passing a path to a config `*.json` file will serve / run tests in custom-built extension using
-  the specific configuration. e.g.:
-</p>
-
-```
-./fern.js test configs/browser.js
-```
-
-<p>
-  This will run all the tests using the `configs/browser.js` configuration.
-  You can run tests without a config value, i.e. `./fern.js test`, which will launch tests with `configs/jenkins.json`.
-</p>
-
-<h4>
-  ./fern.js serve/test --firefox [exe]
-</h4>
-
-<p>
-  Passing a `--firefox` flag to the `./fern.js` with a path to a specific Firefox executable will
-  override the default executable and install the extension in the specific FF version,. e.g.:
-</p>
-
-```
-./fern.js serve --firefox /Applications/Firefox55.app/
-```
-
-<h4>
-  URL options
+  URL options for integration / content tests
 </h4>
 
 <p>
@@ -186,3 +160,51 @@ them, you can execute the `./fern.js test` command with a `-l` option, e.g.:
   Opens `chrome-extension://ekfhhggnbajmjdmgihoageagkeklhema/modules/chromium-tests/test.html`.
   This file is located in folder `./modules/chromium-tests/dist/`.
 </p>
+
+<h3>How to run tests in Docker</h3>
+
+<p>Sometimes you might want to emulate the CI/CD environment on your local machine (e.g. tests run locally are green while CI/CD keeps failing). It is possible to run a Docker container locally and check exactly what the test results are. Assuming you have already installed Docker and have it running, you can start a container with:</p>
+```
+./run_tests_in_docker.sh "[params for serve / test]"
+```
+
+<p>Parameters used for `fern` are equivalents of parameters you would be using when running `fern` locally, e.g. `-l [launcher]` if using `test`. For example:</p>
+```
+./run_tests_in_docker.sh "configs/ci/browser.js --firefox /home/node/firefoxNightly/firefox/firefox"
+```
+
+<p><strong>IMPORTANT:</strong></p>
+<ul>
+ <li>notice you have to pass the parameters using quotes,</li>
+ <li>notice the Firefox path is not the one you use locally, but path specified in CI (see `Jenkinsfile` for reference what Firefox versions are currently available).</li>
+</ul>
+
+<p>This might take some time for the first run (and every time the Docker image has to be rebuilt). Eventually you will be able to connect to the Docker container (using VNC Viewer or similar software) using the following parameters:</p>
+
+<ul>
+  <li>VNC server address: `localhost:15900`</li>
+  <li>password: `vnc`</li>
+</ul>
+
+<p>If upon connecting you see a black window the code is probably still being built. If you are using `fern.js test` and try to connect too late (when tests are finished), your connection will be refused.</p>
+
+<p>You cannot have two containers running at the same time. If for some reasons your tests didn't finish correctly and you still have an active container, you can list all containers and their IDs with:</p>
+```
+docker ps
+```
+<p>Then you can close the outdated container with:</p>
+```
+docker stop [container ID]
+```
+
+<p>Which version of `fern` is running in Docker (`test` vs `serve`) is specified in `tests/run_tests.sh`. By default, Docker tests are running with the `test` option (as it starts the tests and closes the browser afterwards automatically):</p>
+```
+./fern.js test "$@" --ci report.xml
+```
+
+<p>For development, you can replace it with `serve`:</p>
+```
+./fern.js serve "$@" --include-tests
+```
+
+<p>Please don't forget to change it back to `test` after you're done.</p>

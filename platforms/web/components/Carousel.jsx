@@ -18,7 +18,7 @@ export default class Carousel extends React.Component {
       current += data.length;
     }
     // Put current card at center
-    const translateX = cursor * cardSize + (carouselWidth - cardSize) / 2;
+    const translateX = (cursor * cardSize) + ((carouselWidth - cardSize) / 2);
 
     return (
       <div

@@ -1,11 +1,10 @@
 import {
-  clearIntervals,
   clone,
-  expect
+  expect,
 } from '../../core/test-helpers';
 import {
   defaultConfig,
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 
 describe('Fresh tab search UI', function () {
@@ -21,10 +20,6 @@ describe('Fresh tab search UI', function () {
 
     searchConfig = clone(defaultConfig);
     searchConfig.response.componentsState.search.visible = true;
-  });
-
-  after(function () {
-    clearIntervals();
   });
 
   context('renders search area', function () {

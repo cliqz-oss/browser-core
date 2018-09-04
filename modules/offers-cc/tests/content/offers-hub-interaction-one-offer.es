@@ -1,7 +1,6 @@
 import {
-  clearIntervals,
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
 import Subject from './local-helpers';
 import { dataNewOffer } from './fixtures/offers';
@@ -22,7 +21,6 @@ context('Offers Hub Interaction tests for one offer', function () {
 
   afterEach(function () {
     subject.unload();
-    clearIntervals();
   });
 
   it('is rendered', function () {

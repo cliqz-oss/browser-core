@@ -1,5 +1,4 @@
 import {
-  clearIntervals,
   expect,
   waitFor
 } from '../../core/test-helpers';
@@ -28,7 +27,6 @@ context('Offers Hub feedback form tests', function () {
 
     afterEach(function () {
       subject.unload();
-      clearIntervals();
     });
 
     it('renders feedback vote wrapper', function () {

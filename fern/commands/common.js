@@ -1,22 +1,22 @@
-"use strict";
+'use strict';
 
 const fs = require('fs');
 const path = require('path');
 const broccoli = require('broccoli');
 const assert = require('assert');
 const rimraf = require('rimraf');
-const chalk = require('chalk');
 
 let CONFIG;
 let OUTPUT_PATH;
 
 function getExtensionVersion(version) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     switch (version) {
-      case 'tag':
+      case 'tag': {
         const git = require('git-rev');
         git.tag(resolve);
         break;
+      }
       case 'package':
         fs.readFile('package.json', (err, data) => resolve(JSON.parse(data).version));
         break;
@@ -33,28 +33,28 @@ function cleanupDefaultBuild() {
 
   if (outDirInsideRepo) {
     rimraf.sync(OUTPUT_PATH);
-  } else if(fs.existsSync(OUTPUT_PATH)) {
+  } else if (fs.existsSync(OUTPUT_PATH)) {
     throw new Error("Won't remove output directory because it's outside of the repo.");
   }
 }
 
 function setConfigPath(configPath, buildIntoSubdir) {
-  configPath = configPath || process.env['CLIQZ_CONFIG_PATH'] || './configs/ci/browser.js'
-  process.env['CLIQZ_CONFIG_PATH'] = configPath;
-  CONFIG = require(path.resolve(configPath));
+  const _configPath = configPath || process.env.CLIQZ_CONFIG_PATH;
+  process.env.CLIQZ_CONFIG_PATH = _configPath;
+  CONFIG = require(path.resolve(_configPath));
   CONFIG.subprojects = CONFIG.subprojects || [];
 
-  const configName = path.basename(configPath);
   let defaultBuildDir = path.resolve(process.cwd(), 'build');
-  if (buildIntoSubdir)
-      defaultBuildDir = path.join(defaultBuildDir, path.parse(configPath).name);
+  if (buildIntoSubdir) {
+    defaultBuildDir = path.join(defaultBuildDir, path.parse(_configPath).name);
+  }
   OUTPUT_PATH = ('CLIQZ_OUTPUT_PATH' in process.env) ?
-      path.resolve(process.env.CLIQZ_OUTPUT_PATH) :
-      defaultBuildDir;
+    path.resolve(process.env.CLIQZ_OUTPUT_PATH) :
+    defaultBuildDir;
 
   return {
-    CONFIG: CONFIG,
-    OUTPUT_PATH: OUTPUT_PATH
+    CONFIG,
+    OUTPUT_PATH
   };
 }
 
@@ -74,9 +74,14 @@ function createBuildWatcher(port) {
   return server.watcher;
 }
 
+const configParameter = process.env.CLIQZ_CONFIG_PATH
+  ? '[configFile]'
+  : '<configFile>';
+
 module.exports = {
-  createBuildWatcher: createBuildWatcher,
-  getExtensionVersion: getExtensionVersion,
-  setConfigPath: setConfigPath,
-  cleanupDefaultBuild: cleanupDefaultBuild,
+  createBuildWatcher,
+  getExtensionVersion,
+  setConfigPath,
+  cleanupDefaultBuild,
+  configParameter,
 };

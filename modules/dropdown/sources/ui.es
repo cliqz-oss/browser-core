@@ -1,5 +1,4 @@
 import Renderer from './renderer';
-import events from '../core/events';
 import inject from '../core/kord/inject';
 import HistoryManager from '../core/history-manager';
 import { removeFromHistorySignal } from './telemetry';
@@ -160,12 +159,6 @@ export default class Ui {
     rawResults,
   }) {
     await this.loadingDefer.promise;
-
-    events.pub('ui:results', {
-      isPopupOpen: this.renderer.isOpen,
-      windowId: this.windowId,
-      results: rawResults,
-    });
 
     await this.renderer.render({
       query,

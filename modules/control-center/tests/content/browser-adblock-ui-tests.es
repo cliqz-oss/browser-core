@@ -1,6 +1,5 @@
 import {
-  clearIntervals,
-  expect
+  expect,
 } from '../../core/test-helpers';
 import Subject from './local-helpers';
 import { dataOn, dataOffPage, dataOffSite, dataOffAll } from './fixtures/adblocker';
@@ -16,7 +15,6 @@ describe('Control Center: Ad-Block UI browser', function () {
 
   after(function () {
     subject.unload();
-    clearIntervals();
   });
 
   function headerProtected() {

@@ -1,13 +1,15 @@
 import {
-  blurUrlBar,
   $cliqzResults,
+  blurUrlBar,
   expect,
   fillIn,
   mockSearch,
   testsEnabled,
   waitForPopup,
-  withHistory } from './helpers';
-import { results, friendlyUrl } from './fixtures/resultsSimple';
+  win,
+  withHistory,
+} from './helpers';
+import { results, friendlyUrl } from '../../core/integration/fixtures/resultsSimple';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -16,7 +18,7 @@ export default function () {
 
   context('for single generic result', function () {
     before(async function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
       blurUrlBar();
       await mockSearch({ results });
       withHistory([]);
@@ -25,7 +27,7 @@ export default function () {
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     it('renders title', function () {

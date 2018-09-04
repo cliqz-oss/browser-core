@@ -1,13 +1,12 @@
 import {
-  clearIntervals,
   clone,
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
 import {
   defaultConfig,
   generateNewsResponse,
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 
 describe('Fresh tab interactions with settings switches', function () {
@@ -37,10 +36,6 @@ describe('Fresh tab interactions with settings switches', function () {
       action: 'getNews',
       response: generateNewsResponse()[6]
     });
-  });
-
-  afterEach(function () {
-    clearIntervals();
   });
 
   describe('for all areas being hidden', function () {
@@ -935,6 +930,7 @@ describe('Fresh tab interactions with settings switches', function () {
         expect(subject.getNewsDeTrEnLanguage()).to.not.exist;
         expect(subject.getNewsUsLanguage()).to.not.exist;
         expect(subject.getNewsGbLanguage()).to.not.exist;
+        expect(subject.getNewsEsLanguage()).to.not.exist;
       });
 
       it('leaves other areas visible', function () {
@@ -1133,6 +1129,7 @@ describe('Fresh tab interactions with settings switches', function () {
           expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
           expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
           expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
         });
 
         it('leaves other panel switches unchanged', function () {
@@ -1201,6 +1198,7 @@ describe('Fresh tab interactions with settings switches', function () {
           expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
           expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
           expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
         });
 
         it('leaves other panel switches unchanged', function () {
@@ -1305,6 +1303,7 @@ describe('Fresh tab interactions with settings switches', function () {
           expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
           expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
           expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
         });
 
         it('leaves other panel switches unchanged', function () {
@@ -1373,6 +1372,7 @@ describe('Fresh tab interactions with settings switches', function () {
           expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
           expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
           expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
         });
 
         it('leaves other panel switches unchanged', function () {
@@ -1477,6 +1477,7 @@ describe('Fresh tab interactions with settings switches', function () {
           expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
           expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
           expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
         });
 
         it('leaves other panel switches unchanged', function () {
@@ -1545,6 +1546,7 @@ describe('Fresh tab interactions with settings switches', function () {
           expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
           expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
           expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
         });
 
         it('leaves other panel switches unchanged', function () {
@@ -1649,6 +1651,7 @@ describe('Fresh tab interactions with settings switches', function () {
           expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
           expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
           expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
         });
 
         it('leaves other panel switches unchanged', function () {
@@ -1717,6 +1720,7 @@ describe('Fresh tab interactions with settings switches', function () {
           expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
           expect(subject.getNewsUsLanguage()).to.have.property('checked', true);
           expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
         });
 
         it('leaves other panel switches unchanged', function () {
@@ -1821,6 +1825,7 @@ describe('Fresh tab interactions with settings switches', function () {
           expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
           expect(subject.getNewsUsLanguage()).to.have.property('checked', true);
           expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
         });
 
         it('leaves other panel switches unchanged', function () {
@@ -1889,6 +1894,181 @@ describe('Fresh tab interactions with settings switches', function () {
           expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
           expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
           expect(subject.getNewsGbLanguage()).to.have.property('checked', true);
+          expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
+        });
+
+        it('leaves other panel switches unchanged', function () {
+          expect($cliqzThemeSwitch).to.have.property('checked', false);
+          expect($backgroundSwitch).to.have.property('checked', false);
+          expect($mostVisitedSwitch).to.have.property('checked', false);
+          expect($favoritesSwitch).to.have.property('checked', false);
+          expect($searchSwitch).to.have.property('checked', false);
+          expect($newsSwitch).to.have.property('checked', true);
+        });
+
+        it('keeps the settings panel open', function () {
+          expect(subject.query(settingsPanelSelector)).to.exist;
+          expect(subject.query(settingsPanelSelector).className).to.contain('visible');
+        });
+
+        it('keeps the FT area with news visible', function () {
+          expect(subject.query(newsAreaSelector)).to.exist;
+        });
+
+        it('leaves other areas hidden', function () {
+          expect(subject.query(mostVisitedAreaSelector)).to.not.exist;
+          expect(subject.query(favoritesAreaSelector)).to.not.exist;
+          expect(subject.query(searchAreaSelector)).to.not.exist;
+        });
+
+        it('does not send any "updateTopNewsCountry" and "getNews" messages', function () {
+          expect(messages.has('updateTopNewsCountry')).to.equal(false);
+          expect(messages.has('getNews')).to.equal(false);
+        });
+
+        it('does not send a "settings > news_language > click" telemetry signal', function () {
+          expect(messages.has('sendTelemetry')).to.equal(true);
+
+          const telemetrySignals = messages.get('sendTelemetry');
+          let count = 0;
+
+          expect(telemetrySignals.length).to.be.above(0);
+
+          count = telemetrySignals.filter(function (s) {
+            return (
+              s.args[0].type === 'home' &&
+              s.args[0].view === 'settings' &&
+              s.args[0].target === 'news_language' &&
+              s.args[0].action === 'click' &&
+              s.args[0].state === 'us'
+            );
+          }).length;
+
+          expect(count).to.equal(0);
+        });
+      });
+    });
+
+    describe('and ES as default source', function () {
+      beforeEach(async function () {
+        const newsShownConfigGb = clone(defaultConfig);
+        newsShownConfigGb.response.isBlueBackgroundSupported = true;
+        newsShownConfigGb.response.isBlueThemeSupported = true;
+        newsShownConfigGb.response.componentsState.news.visible = true;
+        newsShownConfigGb.response.componentsState.news.preferedCountry = 'es';
+        subject.respondsWith(newsShownConfigGb);
+
+        await subject.load();
+        // Keep track of received messages
+        messages = new Map();
+        listener = function (msg) {
+          if (!messages.has(msg.action)) {
+            messages.set(msg.action, []);
+          }
+
+          messages.get(msg.action).push(msg);
+        };
+        subject.chrome.runtime.onMessage.addListener(listener);
+
+        $cliqzThemeSwitch = subject.getCliqzThemeSwitch();
+        $backgroundSwitch = subject.getBackgroundSwitch();
+        $mostVisitedSwitch = subject.getMostVisitedSwitch();
+        $favoritesSwitch = subject.getFavoritesSwitch();
+        $searchSwitch = subject.getSearchSwitch();
+        $newsSwitch = subject.getNewsSwitch();
+
+        subject.query(settingsButtonSelector).click();
+        return waitFor(() => subject.query(settingsPanelSelector).classList.contains('visible'));
+      });
+
+      afterEach(function () {
+        subject.chrome.runtime.onMessage.removeListener(listener);
+        subject.unload();
+      });
+
+      describe('clicking on the US news source', function () {
+        beforeEach(function () {
+          subject.getNewsUsLanguage().click();
+          return waitFor(() => subject.getNewsUsLanguage().checked);
+        });
+
+        it('changes news source selection to US', function () {
+          expect(subject.getNewsDeLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsFrLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsIntlLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsUsLanguage()).to.have.property('checked', true);
+          expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
+        });
+
+        it('leaves other panel switches unchanged', function () {
+          expect($cliqzThemeSwitch).to.have.property('checked', false);
+          expect($backgroundSwitch).to.have.property('checked', false);
+          expect($mostVisitedSwitch).to.have.property('checked', false);
+          expect($favoritesSwitch).to.have.property('checked', false);
+          expect($searchSwitch).to.have.property('checked', false);
+          expect($newsSwitch).to.have.property('checked', true);
+        });
+
+        it('keeps the settings panel open', function () {
+          expect(subject.query(settingsPanelSelector)).to.exist;
+          expect(subject.query(settingsPanelSelector).className).to.contain('visible');
+        });
+
+        it('keeps the FT area with news visible', function () {
+          expect(subject.query(newsAreaSelector)).to.exist;
+        });
+
+        it('leaves other areas hidden', function () {
+          expect(subject.query(mostVisitedAreaSelector)).to.not.exist;
+          expect(subject.query(favoritesAreaSelector)).to.not.exist;
+          expect(subject.query(searchAreaSelector)).to.not.exist;
+        });
+
+        it('sends a "updateTopNewsCountry" and a "getNews" messages', function () {
+          expect(messages.has('updateTopNewsCountry')).to.equal(true);
+          expect(messages.get('updateTopNewsCountry').length).to.equal(1);
+          expect(messages.has('getNews')).to.equal(true);
+          expect(messages.get('getNews').length).to.equal(1);
+        });
+
+        it('sends a "settings > news_language > click" telemetry signal', function () {
+          expect(messages.has('sendTelemetry')).to.equal(true);
+
+          const telemetrySignals = messages.get('sendTelemetry');
+          let count = 0;
+
+          expect(telemetrySignals.length).to.be.above(0);
+
+          count = telemetrySignals.filter(function (s) {
+            return (
+              s.args[0].type === 'home' &&
+              s.args[0].view === 'settings' &&
+              s.args[0].target === 'news_language' &&
+              s.args[0].action === 'click' &&
+              s.args[0].state === 'us'
+            );
+          }).length;
+
+          expect(count).to.equal(1);
+        });
+      });
+
+      describe('clicking on the already selected news source', function () {
+        beforeEach(function () {
+          subject.getNewsEsLanguage().click();
+          return waitFor(() => subject.getNewsEsLanguage().checked);
+        });
+
+        it('keeps news source selection to ES', function () {
+          expect(subject.getNewsDeLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsFrLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsIntlLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsEsLanguage()).to.have.property('checked', true);
         });
 
         it('leaves other panel switches unchanged', function () {
@@ -1993,6 +2173,7 @@ describe('Fresh tab interactions with settings switches', function () {
           expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
           expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
           expect(subject.getNewsGbLanguage()).to.have.property('checked', true);
+          expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
         });
 
         it('leaves other panel switches unchanged', function () {
@@ -2048,6 +2229,75 @@ describe('Fresh tab interactions with settings switches', function () {
         });
       });
 
+      describe('clicking on the ES news source', function () {
+        beforeEach(function () {
+          subject.getNewsEsLanguage().click();
+          return waitFor(() => subject.getNewsEsLanguage().checked);
+        });
+
+        it('changes news source selection to ES', function () {
+          expect(subject.getNewsDeLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsFrLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsIntlLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsEsLanguage()).to.have.property('checked', true);
+        });
+
+        it('leaves other panel switches unchanged', function () {
+          expect($cliqzThemeSwitch).to.have.property('checked', false);
+          expect($backgroundSwitch).to.have.property('checked', false);
+          expect($mostVisitedSwitch).to.have.property('checked', false);
+          expect($favoritesSwitch).to.have.property('checked', false);
+          expect($searchSwitch).to.have.property('checked', false);
+          expect($newsSwitch).to.have.property('checked', true);
+        });
+
+        it('keeps the settings panel open', function () {
+          expect(subject.query(settingsPanelSelector)).to.exist;
+          expect(subject.query(settingsPanelSelector).className).to.contain('visible');
+        });
+
+        it('keeps the FT area with news visible', function () {
+          expect(subject.query(newsAreaSelector)).to.exist;
+        });
+
+        it('leaves other areas hidden', function () {
+          expect(subject.query(mostVisitedAreaSelector)).to.not.exist;
+          expect(subject.query(favoritesAreaSelector)).to.not.exist;
+          expect(subject.query(searchAreaSelector)).to.not.exist;
+        });
+
+        it('sends a "updateTopNewsCountry" and a "getNews" messages', function () {
+          expect(messages.has('updateTopNewsCountry')).to.equal(true);
+          expect(messages.get('updateTopNewsCountry').length).to.equal(1);
+          expect(messages.has('getNews')).to.equal(true);
+          expect(messages.get('getNews').length).to.equal(1);
+        });
+
+        it('sends a "settings > news_language > click" telemetry signal', function () {
+          expect(messages.has('sendTelemetry')).to.equal(true);
+
+          const telemetrySignals = messages.get('sendTelemetry');
+          let count = 0;
+
+          expect(telemetrySignals.length).to.be.above(0);
+
+          count = telemetrySignals.filter(function (s) {
+            return (
+              s.args[0].type === 'home' &&
+              s.args[0].view === 'settings' &&
+              s.args[0].target === 'news_language' &&
+              s.args[0].action === 'click' &&
+              s.args[0].state === 'es'
+            );
+          }).length;
+
+          expect(count).to.equal(1);
+        });
+      });
+
       describe('clicking on the already selected news source', function () {
         beforeEach(function () {
           subject.getNewsDeTrEnLanguage().click();
@@ -2061,6 +2311,7 @@ describe('Fresh tab interactions with settings switches', function () {
           expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', true);
           expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
           expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
+          expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
         });
 
         it('leaves other panel switches unchanged', function () {

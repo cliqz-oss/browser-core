@@ -1,5 +1,6 @@
-import { Platform, NativeModules } from 'react-native';
+import { Platform } from 'react-native';
 import prefs from '../core/prefs';
+import ua from './user-agent';
 
 export function getUserAgent() {
   if (Platform.OS === 'ios') {
@@ -18,13 +19,13 @@ export function getDistribution() {
 }
 
 export function getInstallDate() {
-  return prefs.get('install_date', '');
+  return ua.installDate;
 }
 
 export function getChannel() {
-  return NativeModules.UserAgentConstants.channel;
+  return ua.channel || '';
 }
 
 export function getCountry() {
-  return prefs.get('config_location', '');
+  return prefs.get('config_location.granular', '');
 }

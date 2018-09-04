@@ -1,13 +1,15 @@
 /* eslint-disable camelcase */
+
+import integersToHistogram from '../../core/helpers/histogram';
 import { mkCountSchema, isClickAction, isEnterAction,
-  isAutocompleteAction, integersToHistogram, mkHistogramSchema, historySources } from './search';
+  isAutocompleteAction, mkHistogramSchema, historySources } from './search';
 
 // News SmartCliqz could contain diffrent types of elements (sub results)
 // NEWS_RESULT: 'news': news are shown in list
 // INTERNAL_RESULT: 'internal': category of news domain
 import {
   NEWS_RESULT,
-  INTERNAL_RESULT
+  INTERNAL_RESULT,
 } from '../metrics/search/result-types';
 
 // news stories of the day source key from "RESULT_SOURCE_MAP"

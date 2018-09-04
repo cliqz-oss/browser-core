@@ -1,9 +1,8 @@
 import background from '../core/base/background';
 import events from '../core/events';
 import console from '../core/console';
-import prefs from '../core/prefs';
 import DisplayManager from './display_manager';
-import { REAL_ESTATE_ID, PANEL_STATE_PREF_NAME } from './consts';
+import { REAL_ESTATE_ID } from './consts';
 import inject from '../core/kord/inject';
 
 const MODULE_NAME = 'browser-panel-bg';
@@ -30,18 +29,8 @@ export default background({
     @param settings
   */
   init() {
-    this.is_enabled = prefs.get(PANEL_STATE_PREF_NAME, false);
-
-    if (!this.is_enabled) {
-      return;
-    }
-
-    this.actions = {
-      windowUIConnector: this.windowUIConnector.bind(this)
-    };
-    if (this.is_enabled) {
-      this.displayMngr = new DisplayManager(this.actions.windowUIConnector);
-    }
+    this.is_enabled = true;
+    this.displayMngr = new DisplayManager(this.displayCbHandler.bind(this));
     // register real estate
     this.registerState();
   },
@@ -51,6 +40,7 @@ export default background({
       return;
     }
     if (this.displayMngr) {
+      this.displayMngr.destroy();
       delete this.displayMngr;
     }
     this.is_enabled = false;
@@ -160,10 +150,6 @@ export default background({
     events.pub('offers-recv-ch', msg);
   },
 
-  windowUIConnector(msg) {
-    this.displayCbHandler(msg);
-  },
-
   events: {
     'content:location-change': function onLocationChange({ url }) {
       const blackList = ['resource://', 'about:', 'chrome://', 'file://'];
@@ -199,19 +185,13 @@ export default background({
       if (event && event.type === 'broadcast') {
         this.registerState();
       }
-    },
-    prefchange: function onPrefChange(pref) {
-      if (pref === PANEL_STATE_PREF_NAME) {
-        this.is_enabled = prefs.get(PANEL_STATE_PREF_NAME, false);
-        if (this.is_enabled && !this.displayMngr) {
-          this.displayMngr = new DisplayManager(this.actions.windowUIConnector);
-        }
-        this.registerState();
-      }
     }
   },
 
   actions: {
+    windowUIConnector(msg) {
+      return this.displayCbHandler(msg);
+    },
   },
 
   registerState() {

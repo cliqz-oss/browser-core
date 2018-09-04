@@ -1,8 +1,5 @@
 export default {};
 
-export function setSearchEngine() {
-}
-
 export function isSearchServiceReady() {
   return Promise.resolve();
 }
@@ -28,8 +25,13 @@ export function getSearchEngines() {
   return [];
 }
 
+export function loadSearchEngines() { return Promise.resolve(); }
+
 export function getEngineByName() {
   return '';
 }
 
 export function updateAlias() {}
+
+export function removeEngine() {}
+

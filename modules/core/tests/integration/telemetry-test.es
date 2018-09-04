@@ -1,14 +1,14 @@
 import {
   CliqzUtils,
   expect,
-  waitForPrefChange
+  waitForPrefChange,
 } from '../test-helpers';
 
 import prefs from '../../../core/prefs';
-import { isFirefox } from '../../../core/platform';
+import { isBootstrap } from '../../../core/platform';
 
 export default function () {
-  if (!isFirefox) {
+  if (!isBootstrap) {
     return;
   }
 

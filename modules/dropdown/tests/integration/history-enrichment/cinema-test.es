@@ -7,10 +7,10 @@ import {
   mockSearch,
   waitFor,
   waitForPopup,
-  withHistory
+  withHistory,
 } from '../helpers';
 
-import { notLocalResults } from '../fixtures/resultsCinema';
+import { notLocalResults } from '../../../core/integration/fixtures/resultsCinema';
 
 export default function () {
   if (!testsEnabled()) { return; }

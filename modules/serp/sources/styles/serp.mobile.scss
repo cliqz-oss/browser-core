@@ -1,0 +1,11 @@
+@import './mixins/mobile';
+
+@include mobile() {
+  html, body {
+    min-width: 100%;
+  }
+}
+
+@import './footer.mobile';
+@import './searchbox-categories.mobile';
+@import './searchbox-results.mobile';

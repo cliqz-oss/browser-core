@@ -101,6 +101,7 @@ export default describeModule('antitracking/attrack',
         return 60;
       }
     },
+    'platform/url': {},
     'platform/crypto': {},
     'platform/database': {},
     'core/search-engines': {},
@@ -118,6 +119,12 @@ export default describeModule('antitracking/attrack',
         get() { return null; },
         set() {},
       }
+    },
+    'core/services/telemetry': {
+      default: {
+        isEnabled: () => true,
+        push: () => {},
+      },
     },
     'platform/fetch': {
     },

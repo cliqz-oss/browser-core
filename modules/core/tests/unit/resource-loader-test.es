@@ -50,7 +50,7 @@ const MOCK = {
     deflate: x => x,
   },
   'core/platform': {
-    isChromium: false,
+    isWebExtension: false,
   },
   'core/encoding': {
     fromUTF8: function (d) {

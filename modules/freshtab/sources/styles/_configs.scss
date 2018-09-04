@@ -23,7 +23,7 @@ $configs: (
         url-bar: (
             search-size: 375px,
             search-input-height: 34px,
-            search-font-size: 14px,
+            search-font-size: 17px,
             search-text-indent: 40px,
             search-settings-btn-top: -25px
         ),
@@ -71,7 +71,28 @@ $configs: (
             offer-mn-feedback-font-size: 11px,
             offer-mn-feedback-height: 123px,
             offer-mn-feedback-cta-margin-right: 10px,
-        )
+            offer-mn-benefit-container-display: block,
+            offer-mn-benefit-anchor: inline,
+            offer-mn-benefit-font-size: 16.5px,
+            offer-mn-benefit-headline-font-size: 16.5px,
+            offer-mn-benefit-font-weight: 700,
+            offer-mn-benefit-headline-font-weight: 400,
+            offer-mn-condition-display: none,
+            offer-mn-expire-text: -9999px,
+            offer-mn-cta-max-width: 155px,
+            offer-mn-header-font-size: 7px,
+            offer-mn-header-padding-left: 15px,
+            offer-mn-offer-description-padding-top: 0,
+            offer-mn-header-expire-display: block,
+        ),
+        modal: (
+            modal-form-width: 350px,
+            modal-form-padding: 35px,
+            modal-close-form-right: 34px,
+            modal-close-form-top: 30px,
+            modal-error-icon-top: 80px,
+            modal-error-icon-right: 34px,
+        ),
     ),
 
     small: (
@@ -98,7 +119,7 @@ $configs: (
         url-bar: (
             search-size: 436px,
             search-input-height: 34px,
-            search-font-size: 14px,
+            search-font-size: 17px,
             search-text-indent: 40px,
             search-settings-btn-top: -25px
         ),
@@ -146,7 +167,28 @@ $configs: (
             offer-mn-feedback-font-size: 11px,
             offer-mn-feedback-height: 123px,
             offer-mn-feedback-cta-margin-right: 10px,
-        )
+            offer-mn-benefit-container-display: block,
+            offer-mn-benefit-anchor: inline,
+            offer-mn-benefit-font-size: 16.5px,
+            offer-mn-benefit-headline-font-size: 16.5px,
+            offer-mn-benefit-font-weight: 700,
+            offer-mn-benefit-headline-font-weight: 400,
+            offer-mn-condition-display: none,
+            offer-mn-expire-text: -9999px,
+            offer-mn-cta-max-width: 190px,
+            offer-mn-header-font-size: 8px,
+            offer-mn-header-padding-left: 20px,
+            offer-mn-offer-description-padding-top: 0,
+            offer-mn-header-expire-display: block,
+        ),
+        modal: (
+            modal-form-width: 350px,
+            modal-form-padding: 35px,
+            modal-close-form-right: 34px,
+            modal-close-form-top: 30px,
+            modal-error-icon-top: 80px,
+            modal-error-icon-right: 34px,
+        ),
     ),
 
     xmedium: (
@@ -173,9 +215,9 @@ $configs: (
         url-bar: (
             search-size: 677px,
             search-input-height: 48px,
-            search-font-size: 17px,
-            search-text-indent: 47px,
-            search-settings-btn-top: -25px
+            search-font-size: 21px,
+            search-text-indent: 57px,
+            search-settings-btn-top: -32px
         ),
         news: (
             news-container: 687px,
@@ -221,7 +263,28 @@ $configs: (
             offer-mn-feedback-font-size: 12.5px,
             offer-mn-feedback-height: 123px,
             offer-mn-feedback-cta-margin-right: 20px,
-        )
+            offer-mn-benefit-container-display: flex,
+            offer-mn-benefit-anchor: block,
+            offer-mn-benefit-font-size: 41px,
+            offer-mn-benefit-headline-font-size: 16.5px,
+            offer-mn-benefit-font-weight: 500,
+            offer-mn-benefit-headline-font-weight: 600,
+            offer-mn-condition-display: inline-block,
+            offer-mn-expire-text: 0,
+            offer-mn-cta-max-width: 240px,
+            offer-mn-header-font-size: 8px,
+            offer-mn-header-padding-left: 20px,
+            offer-mn-offer-description-padding-top: 0,
+            offer-mn-header-expire-display: none,
+        ),
+        modal: (
+            modal-form-width: 440px,
+            modal-form-padding: 35px,
+            modal-close-form-right: 34px,
+            modal-close-form-top: 30px,
+            modal-error-icon-top: 80px,
+            modal-error-icon-right: 34px,
+        ),
     ),
 
     medium: (
@@ -248,8 +311,8 @@ $configs: (
         url-bar: (
             search-size: 477px,
             search-input-height: 48px,
-            search-font-size: 17px,
-            search-text-indent: 47px,
+            search-font-size: 21px,
+            search-text-indent: 57px,
             search-settings-btn-top: -32px
         ),
         news: (
@@ -296,7 +359,28 @@ $configs: (
             offer-mn-feedback-font-size: 12.5px,
             offer-mn-feedback-height: 123px,
             offer-mn-feedback-cta-margin-right: 10px,
-        )
+            offer-mn-benefit-container-display: block,
+            offer-mn-benefit-anchor: inline,
+            offer-mn-benefit-font-size: 28px,
+            offer-mn-benefit-headline-font-size: 16.5px,
+            offer-mn-benefit-font-weight: 700,
+            offer-mn-benefit-headline-font-weight: 400,
+            offer-mn-condition-display: none,
+            offer-mn-expire-text: -9999px,
+            offer-mn-cta-max-width: 210px,
+            offer-mn-header-font-size: 8px,
+            offer-mn-header-padding-left: 20px,
+            offer-mn-offer-description-padding-top: 10px,
+            offer-mn-header-expire-display: block,
+        ),
+        modal: (
+            modal-form-width: 440px,
+            modal-form-padding: 35px,
+            modal-close-form-right: 34px,
+            modal-close-form-top: 30px,
+            modal-error-icon-top: 80px,
+            modal-error-icon-right: 34px,
+        ),
     ),
 
     large: (
@@ -323,8 +407,8 @@ $configs: (
         url-bar: (
             search-size: 764px,
             search-input-height: 63px,
-            search-font-size: 20px,
-            search-text-indent: 64px,
+            search-font-size: 24px,
+            search-text-indent: 74px,
             search-settings-btn-top: -39px
         ),
         news: (
@@ -371,6 +455,27 @@ $configs: (
             offer-mn-feedback-font-size: 12.5px,
             offer-mn-feedback-height: 131px,
             offer-mn-feedback-cta-margin-right: 20px,
-        )
+            offer-mn-benefit-container-display: flex,
+            offer-mn-benefit-anchor: block,
+            offer-mn-benefit-font-size: 41px,
+            offer-mn-benefit-headline-font-size: 16.5px,
+            offer-mn-benefit-font-weight: 500,
+            offer-mn-benefit-headline-font-weight: 600,
+            offer-mn-condition-display: inline-block,
+            offer-mn-expire-text: 0,
+            offer-mn-cta-max-width: 240px,
+            offer-mn-header-font-size: 8px,
+            offer-mn-header-padding-left: 20px,
+            offer-mn-offer-description-padding-top: 0,
+            offer-mn-header-expire-display: none,
+        ),
+        modal: (
+            modal-form-width: 660px,
+            modal-form-padding: 60px,
+            modal-close-form-right: 30px,
+            modal-close-form-top: 25px,
+            modal-error-icon-top: 106px,
+            modal-error-icon-right: 60px,
+        ),
     ),
 );

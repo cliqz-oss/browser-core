@@ -1,8 +1,9 @@
-/* global getWindow, sinon */
+/* global sinon */
 
 import {
-  blurUrlBar,
   $cliqzResults,
+  CLIQZ,
+  blurUrlBar,
   expect,
   fillIn,
   mockSearch,
@@ -11,7 +12,8 @@ import {
   testsEnabled,
   urlbar,
   waitFor,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -26,7 +28,7 @@ export default function () {
     let history;
 
     beforeEach(async function () {
-      history = getWindow().CLIQZ.TestHelpers.history;
+      history = CLIQZ.TestHelpers.history;
       sandbox = sinon.sandbox.create();
       blurUrlBar();
       withHistory([{ value: url1 }, { value: url2 }]);

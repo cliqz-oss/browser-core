@@ -26,10 +26,6 @@ export default class Icon extends React.Component {
     this.updateState(props);
   }
 
-  componentWillReceiveProps(props) {
-    this.updateState(props);
-  }
-
   getPlaceHolder(width, height, backgroundColor) {
     const style = defaultIconStyle(width, height, backgroundColor);
     return Promise.resolve(<View style={style.containter} />);

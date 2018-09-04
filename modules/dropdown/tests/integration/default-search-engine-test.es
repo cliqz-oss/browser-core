@@ -1,13 +1,15 @@
 import {
+  $cliqzResults,
   app,
   blurUrlBar,
-  $cliqzResults,
   expect,
   fillIn,
   mockSearch,
   testsEnabled,
   waitForPopup,
-  withHistory } from './helpers';
+  win,
+  withHistory,
+} from './helpers';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -33,7 +35,7 @@ export default function () {
       searchEnginesEn.forEach(function (testCase) {
         context(`Search with ${testCase.engine}`, function () {
           before(async function () {
-            window.preventRestarts = true;
+            win.preventRestarts = true;
             blurUrlBar();
             app.modules.search.action('setDefaultSearchEngine', testCase.engine);
             await mockSearch({ results });
@@ -44,7 +46,7 @@ export default function () {
 
           after(function () {
             app.modules.search.action('setDefaultSearchEngine', 'Google');
-            window.preventRestarts = false;
+            win.preventRestarts = false;
           });
 
           it('renders result', function () {

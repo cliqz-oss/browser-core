@@ -7,7 +7,7 @@ import {
   setHomePage,
   getHomePage,
   migrate,
-  AboutCliqz
+  AboutCliqz,
 } from '../platform/freshtab/new-tab-setting';
 
 const NEW_TAB_URL = config.settings.NEW_TAB_URL;

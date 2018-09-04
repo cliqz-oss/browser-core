@@ -10,7 +10,7 @@ import {
   waitForPopup,
   withHistory } from '../helpers';
 import expectSelection from './common';
-import results from '../fixtures/resultsNewsStoryOfTheDay';
+import results from '../../../core/integration/fixtures/resultsNewsStoryOfTheDay';
 
 export default function () {
   if (!testsEnabled()) { return; }

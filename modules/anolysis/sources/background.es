@@ -5,7 +5,6 @@ import prefs from '../core/prefs';
 import telemetry from '../core/services/telemetry';
 import utils from '../core/utils';
 import { shouldEnableModule } from '../core/app';
-import { subscribe } from '../core/events';
 import { isMobile } from '../core/platform';
 
 import Anolysis from './internals/anolysis';
@@ -16,7 +15,6 @@ import logger from './internals/logger';
 
 import signalDefinitions from './telemetry-schemas';
 
-
 const LATEST_VERSION_USED_PREF = 'anolysisVersion';
 
 /**
@@ -26,11 +24,9 @@ const LATEST_VERSION_USED_PREF = 'anolysisVersion';
  */
 const VERSION = 7;
 
-
 function versionWasUpdated() {
   return prefs.get(LATEST_VERSION_USED_PREF, null) !== VERSION;
 }
-
 
 function storeNewVersionInPrefs() {
   prefs.set(LATEST_VERSION_USED_PREF, VERSION);
@@ -59,11 +55,24 @@ async function instantiateAnolysis() {
   }
 
   await anolysis.registerSignalDefinitions(signalDefinitions);
-  await anolysis.init();
+  const isHealthy = await anolysis.init();
+
+  if (!isHealthy) {
+    utils.telemetry({ type: 'anolysis.health_check' });
+
+    // Try to send a 'health check' metric to backend, which should be sent
+    // straight away since storage is not working properly.
+    await anolysis.handleTelemetrySignal(
+      { state: 'broken' },
+      'metrics.anolysis.health.storage',
+      { force: true },
+    );
+
+    throw new Error('Anolysis is not healthy');
+  }
 
   return anolysis;
 }
-
 
 /**
  * Manages new telemetry.
@@ -80,7 +89,18 @@ export default background({
     logger.debug('init');
 
     // Prevent calling `init` two times in a row
-    if (this.isBackgroundInitialized) { return; }
+    if (this.isBackgroundInitialized) {
+      return;
+    }
+
+    if (getSynchronizedDate() === null) {
+      // If synchronized time (from `config_ts` pref) is not available, then we
+      // do not start Anolysis. We used to wait for `config_ts` to be set in
+      // such case, but since it is now initialized in a Service, it should
+      // always be available when Anolysis is initialized.
+      logger.warn('config_ts is not available. Anolysis initialization canceled');
+      return;
+    }
 
     this.app = app;
     this.settings = settings;
@@ -94,110 +114,78 @@ export default background({
       this.isBackgroundInitialized = false;
       return;
     }
+
+    // Start initialization of Anolysis, since this is an async process, we set
+    // this flag so that we can tell of Anolysis is in the process of
+    // initialization.
     this.isBackgroundInitialized = true;
 
-    if (getSynchronizedDate() === null) {
-      // TODO - temporary signal for debugging purpose. This allows us to detect
-      // users not having anolysis enabled because `config_ts` is not available.
+    // TODO - send ping_anolysis signal with legacy telemetry system
+    // This is only meant for testing purposes and will be remove in
+    // the future.
+    utils.telemetry({
+      type: 'anolysis.start_init',
+    });
+
+    try {
+      // Create an instance of Anolysis and initialize it
+      logger.debug('instantiate Anolysis');
+
+      const anolysis = await instantiateAnolysis();
+
+      // Because Anolysis module can be initialized/unloaded on pref change
+      // (independently of the App's life-cycle), it can happen (rarely), that
+      // Anolysis is initialized two times concurrently (that can happen if
+      // `unload` is called while the background is being initialized). In
+      // such case, we abort initialization.
+      if (this.anolysis || !this.isBackgroundInitialized || !telemetry.isEnabled()) {
+        logger.log('concurrent Anolysis init, aborting');
+        anolysis.unload();
+        return;
+      }
+
+      this.anolysis = anolysis;
+
+      // TODO
+      // Register legacy telemetry signals listener. In the future this should
+      // not be needed as we are now using the `telemetry` service to send
+      // telemetry through Anolysis:
+      // ```js
+      // import telemetry from 'core/services/telemetry';
+      //
+      // telemetry.push({}, 'schema_name');
+      // ```
+      logger.debug('register Anolysis telemetryHandler');
+      const index = utils.telemetryHandlers.indexOf(sendTelemetry);
+      if (index === -1) {
+        utils.telemetryHandlers.push(sendTelemetry);
+      }
+
+      // Start aggregations as soon as the extension is loaded.
+      logger.debug('trigger aggregations');
+      this.anolysis.onNewDay(prefs.get('config_ts'));
+
+      // TODO - send ping_anolysis signal with legacy telemetry system This is
+      // only meant for testing purposes and will be remove in the future.
       utils.telemetry({
-        type: 'anolysis.no_sync_time_available',
+        type: 'anolysis.start_end',
       });
-
-      // If `config_ts` arrives later, we can delay the loading of anolysis. We
-      // make sure that the event listener cannot be registered two times.
-      if (!this.onPrefChange) {
-        this.onPrefChange = subscribe('prefchange', (pref) => {
-          if (pref === 'config_ts') {
-            this.onPrefChange.unsubscribe();
-            this.onPrefChange = undefined;
-
-            // Init anolysis module
-            logger.debug('init Anolysis after config_ts pref change');
-            this.init(this.settings, this.app);
-          }
-        });
-      }
-    } else {
-      // Initialize the module - we only do that if a sync date is available
-
-      // If `init` is called a second time after we init but config_ts was not
-      // available, remove it.
-      if (this.onPrefChange) {
-        logger.debug('remove config_ts pref listener');
-        this.onPrefChange.unsubscribe();
-        this.onPrefChange = undefined;
-      }
-
+    } catch (ex) {
       // TODO - send ping_anolysis signal with legacy telemetry system
       // This is only meant for testing purposes and will be remove in
       // the future.
+      logger.error('Exception while init anolysis', ex);
+      this.unload();
       utils.telemetry({
-        type: 'anolysis.start_init',
+        type: 'anolysis.start_exception',
+        exception: `${ex}`,
       });
-
-      try {
-        // Create an instance of Anolysis and initialize it
-        logger.debug('instantiate Anolysis');
-
-        const anolysis = await instantiateAnolysis();
-
-        // Because Anolysis module can be initialized/unloaded on pref change
-        // (independently of the App's life-cycle), it can happen (rarely), that
-        // Anolysis is initialized two times concurrently (that can happen if
-        // `unload` is called while the background is being initialized). In
-        // such case, we abort initialization.
-        if (this.anolysis || !this.isBackgroundInitialized || !telemetry.isEnabled()) {
-          logger.log('concurrent Anolysis init, aborting');
-          anolysis.unload();
-          return;
-        }
-
-        this.anolysis = anolysis;
-
-        // TODO
-        // Register legacy telemetry signals listener. In the future this should
-        // not be needed as the `utils.telemetry` function should directly call
-        // the action `log` of this background (using the kord mechanism).
-        logger.debug('register Anolysis telemetryHandler');
-        const index = utils.telemetryHandlers.indexOf(sendTelemetry);
-        if (index === -1) {
-          utils.telemetryHandlers.push(sendTelemetry);
-        }
-
-        // Start aggregations as soon as the extension is loaded. This ensures
-        // that metrics/aggregations can inject other modules safely.
-        logger.debug('trigger aggregations');
-        this.anolysis.onNewDay(prefs.get('config_ts'));
-
-        // TODO - send ping_anolysis signal with legacy telemetry system
-        // This is only meant for testing purposes and will be remove in
-        // the future.
-        utils.telemetry({
-          type: 'anolysis.start_end',
-        });
-      } catch (ex) {
-        // TODO - send ping_anolysis signal with legacy telemetry system
-        // This is only meant for testing purposes and will be remove in
-        // the future.
-        logger.error('Exception while init anolysis', ex);
-        this.unload();
-        utils.telemetry({
-          type: 'anolysis.start_exception',
-          exception: `${ex}`,
-        });
-      }
     }
   },
 
   unload() {
     logger.log('unloading');
     this.isBackgroundInitialized = false;
-
-    if (this.onPrefChange) {
-      logger.debug('remove config_ts pref listener');
-      this.onPrefChange.unsubscribe();
-      this.onPrefChange = undefined;
-    }
 
     // TODO - this will be removed when the telemetry function makes use of this
     // module exclusively.
@@ -215,8 +203,7 @@ export default background({
     }
   },
 
-  beforeBrowserShutdown() {
-  },
+  beforeBrowserShutdown() {},
 
   isAnolysisInitialized() {
     return this.isBackgroundInitialized && this.anolysis && this.anolysis.running;

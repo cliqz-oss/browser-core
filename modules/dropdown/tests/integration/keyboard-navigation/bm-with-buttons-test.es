@@ -8,10 +8,10 @@ import {
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory
+  withHistory,
 } from '../helpers';
 import expectSelection from './common';
-import { bmWithButtons } from '../fixtures/resultsBigMachineWithButtons';
+import { bmWithButtons } from '../../../core/integration/fixtures/resultsBigMachineWithButtons';
 import { urlStripProtocol } from '../../../../core/content/url';
 
 export default function () {

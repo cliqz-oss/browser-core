@@ -1,5 +1,3 @@
-/* eslint-disable import/prefer-default-export */
-
 /**
  * This file is meant to contain re-usable code related analyses. You can think
  * of it as a toolbox containing building blocks that can be used for aggregated
@@ -23,3 +21,28 @@ export function indicesHistogramToArray(counter) {
   }
   return array;
 }
+
+/**
+ * To be used together with core/kord/inject
+ * Calling an action of disabled or missing module
+ * results in promise rejects. This helper function
+ * generates a promise error callback that will
+ * resolve to fixed value in those cases.
+ *
+ * Example:
+ *
+ *   inject.module('freshtab').action('getConfig')
+ *     .catch(actionFallback({}));
+ */
+export const actionFallback = fallbackValue => (error) => {
+  if (
+    error &&
+    (
+      error.name === 'ModuleDisabledError' ||
+      error.name === 'ModuleMissingError'
+    )
+  ) {
+    return fallbackValue;
+  }
+  throw error;
+};

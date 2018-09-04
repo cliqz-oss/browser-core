@@ -1,17 +1,24 @@
 $inactive-tab-color: #D1D1D1;
 $tab-min-height: 30px;
 $chrome-light-color: #f2f2f2;
+$chrome-dark-color: #464646;
 $cliqz-blue-color: #00ADEF;
 
 :root {
     /* Override global variables */
     --tab-toolbar-navbar-overlap: 0; // Remove 1px margin bottom for new tab button
 
+    /* Override dark theme variables */
+    &:-moz-lwtheme {
+        --chrome-secondary-background-color: $chrome-dark-color; // Background for nav-bar
+        --lwt-toolbar-field-background-color: $chrome-dark-color; // Background for urlba
+    }
+
     /* Override light theme variables */
     &:-moz-lwtheme-darktext {
         --toolbox-border-bottom-color: $chrome-light-color;
         --chrome-secondary-background-color: $chrome-light-color; // Background for nav-bar
-        --url-and-searchbar-background-color: $chrome-light-color; // Background for urlbar
+        --lwt-toolbar-field-background-color: $chrome-light-color; // Background for urlbar
     }
 
     /* Style back button the same way as other toolbar buttons (remove border and border radius) */
@@ -67,7 +74,7 @@ $cliqz-blue-color: #00ADEF;
     &[uidensity="touch"] {
         #navigator-toolbox {
             /* TABS TOOLBAR */
-            #TabsToolbar:-moz-lwtheme-darktext {
+            #TabsToolbar {
                 #tabbrowser-tabs {
                     .tabbrowser-tab:not([pinned="true"]) {
                         /* Always show close tab button on touch density */
@@ -80,6 +87,14 @@ $cliqz-blue-color: #00ADEF;
                 }
             }
 
+            #back-button > .toolbarbutton-icon {
+                height: 34px;
+            }
+
+            #nav-bar #nav-bar-customization-target > *:first-child {
+                padding-inline-start: 5px !important;
+            }
+
             #urlbar, .searchbar-textbox {
                 min-height: 36px;
             }
@@ -89,10 +104,12 @@ $cliqz-blue-color: #00ADEF;
 
 #navigator-toolbox {
     /* TABS TOOLBAR */
-    #TabsToolbar:-moz-lwtheme-darktext {
+    #TabsToolbar {
         /* Customize tabs toolbar background color for light theme */
-        -moz-appearance: none;
-        background-color: $inactive-tab-color;
+        &:-moz-lwtheme-darktext {
+            -moz-appearance: none;
+            background-color: $inactive-tab-color;
+        }
 
 
         /* Remove the right border of the placehodler and replace by the first tab border(below) */
@@ -141,7 +158,14 @@ $cliqz-blue-color: #00ADEF;
 
                 /* Add left border for the first tab (normal/pinned) and make sure to hide it in full screen */
                 &:first-of-type { // [first-tab="true"], [first-visible-tab="true"]
-                    border-left: 0.5px solid rgba(0, 0, 0, 0.2);
+
+                    &:-moz-lwtheme {
+                        border-left: 0.5px solid rgba(255, 255, 255, 0.2);
+                    }
+
+                    &:-moz-lwtheme-darktext {
+                        border-left: 0.5px solid rgba(0, 0, 0, 0.2);
+                    }
 
                     &[visuallyselected="true"] {
                         border-left-color: rgba(0, 0, 0, 0.015);
@@ -161,6 +185,20 @@ $cliqz-blue-color: #00ADEF;
                             .tab-close-button {
                                 display: unset;
                             }
+                        }
+                    }
+                }
+
+                &[visuallyselected="true"] {
+                    &:-moz-lwtheme {
+                        .tab-content {
+                            background-color: $chrome-dark-color;
+                        }
+                    }
+
+                    &:-moz-lwtheme-darktext {
+                        .tab-content {
+                            background-color: unset;
                         }
                     }
                 }
@@ -212,14 +250,26 @@ $cliqz-blue-color: #00ADEF;
                     margin-right: 1px;
                 }
 
-                /* Change box-shadow and background color when focused and hovering */
-                &:hover, &[focused="true"] {
-                    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
-                    background-color: #fff;
+                &:-moz-lwtheme {
+                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+                    /* Change box-shadow and background color when focused and hovering */
+                    &:hover, &[focused="true"] {
+                        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
+                        background-color: #585858;
+                    }
                 }
 
-                &[pageproxystate="valid"] > #identity-box.chromeUI > #identity-icon-labels {
-                    color: #000;
+                &:-moz-lwtheme-darktext {
+                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+                    /* Change box-shadow and background color when focused and hovering */
+                    &:hover, &[focused="true"] {
+                        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
+                        background-color: #fff;
+                    }
+
+                    &[pageproxystate="valid"] > #identity-box.chromeUI > #identity-icon-labels {
+                        color: #000;
+                    }
                 }
             }
         }
@@ -231,6 +281,10 @@ $cliqz-blue-color: #00ADEF;
         box-shadow: rgba(0, 0, 0, 0.19) 0 1px 1px 0;
         border-bottom: unset;
         -moz-box-ordinal-group: 101;
+
+        &[brighttext="true"] {
+            border-top-color: #626262;
+        }
     }
 
     &:after {
@@ -247,6 +301,10 @@ $cliqz-blue-color: #00ADEF;
         /* Change box-shadow and background color when focused and hovering */
         &:hover, &[focused="true"] {
             background-color: lighten(#BBC6D4, 5%);
+        }
+
+        &:-moz-lwtheme {
+            color: #000;
         }
     }
 }

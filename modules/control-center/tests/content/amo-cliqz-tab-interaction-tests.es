@@ -1,7 +1,6 @@
 import {
-  clearIntervals,
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
 import Subject from './local-helpers';
 import { dataOn, dataOff } from './fixtures/amo-cliqz-tab';
@@ -17,7 +16,6 @@ describe('Control Center: AMO, Cliqz tab interaction tests', function () {
 
   afterEach(function () {
     subject.unload();
-    clearIntervals();
   });
 
   function updateGeneralStateTest(selector) {

@@ -7,13 +7,13 @@ import {
   mockSearch,
   waitFor,
   waitForPopup,
-  withHistory
+  withHistory,
 } from '../helpers';
 
-import resultsLigaGame from '../fixtures/resultsSoccerLigaGame';
-import resultsLigaGroup from '../fixtures/resultsSoccerLigaGroup';
-import resultsLigaTable from '../fixtures/resultsSoccerLigaTable';
-import resultsLiveTicker from '../fixtures/resultsSoccerLiveTicker';
+import resultsLigaGame from '../../../core/integration/fixtures/resultsSoccerLigaGame';
+import resultsLigaGroup from '../../../core/integration/fixtures/resultsSoccerLigaGroup';
+import resultsLigaTable from '../../../core/integration/fixtures/resultsSoccerLigaTable';
+import resultsLiveTicker from '../../../core/integration/fixtures/resultsSoccerLiveTicker';
 
 export default function () {
   if (!testsEnabled()) { return; }

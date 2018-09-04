@@ -8,7 +8,7 @@ import UrlWhitelist from '../core/url-whitelist';
 import { deflate, inflate } from '../core/zlib';
 
 import PersistentMap from '../core/persistence/map';
-import { platformName } from '../core/platform';
+import { platformName, isOnionMode } from '../core/platform';
 
 import Adblocker from '../platform/lib/adblocker';
 
@@ -229,7 +229,8 @@ export class AdBlocker {
       this.initCache();
 
       // Serialize new version of the engine on disk if needed
-      if (serializedEngine !== null) {
+      // We need to avoid dumping data on disk in Onion mode.
+      if (serializedEngine !== null && !isOnionMode) {
         const t0 = Date.now();
         const db = new PersistentMap('cliqz-adb');
         db.init()
@@ -564,7 +565,7 @@ const CliqzADB = {
       response.redirectTo(result.redirect);
       return false;
     } else if (result.match) {
-      CliqzADB.adbStats.addBlockedUrl(sourceUrl, url, state.tabId);
+      CliqzADB.adbStats.addBlockedUrl(sourceUrl, url, state.tabId, state.ghosteryBug);
       response.block();
       // TODO - should we stop the pipeline?
       return false;

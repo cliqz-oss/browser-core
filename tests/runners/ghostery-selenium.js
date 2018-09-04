@@ -1,8 +1,10 @@
 /* eslint-disable no-await-in-loop */
 const fs = require('fs');
+const path = require('path');
 
-const spawn = require('cross-spawn');
 const rimraf = require('rimraf');
+const spawn = require('cross-spawn');
+const tmp = require('tmp');
 
 const archiver = require('archiver');
 const webdriver = require('selenium-webdriver');
@@ -177,7 +179,12 @@ async function _withGhosteryDriver(ghosteryExtension, fn) {
     await ghosteryInitialized(driver);
 
     // Run test
-    await fn(driver);
+    await Promise.race([
+      fn(driver),
+      new Promise((resolve, reject) => setTimeout(
+        () => reject(new Error('Timeout')), 5000,
+      )),
+    ]);
 
     // Graceful shutdown
     process.on('SIGTERM', tearDown);
@@ -267,11 +274,11 @@ async function createGhosteryExtension(navigationExtension) {
   ]);
 
   // Build Ghostery
-  process.chdir(ghosteryExtensionSource);
+  process.chdir(`./${ghosteryExtensionSource}`);
   run('git', ['fetch', '--depth=1', 'origin', 'develop:develop']);
   run('git', ['checkout', 'develop']);
   run('yarn', ['install', '--frozen-lockfile']);
-  run('yarn', ['add', `../${navigationExtension}`]);
+  run('yarn', ['add', navigationExtension]);
   run('yarn', ['run', 'build.dev']);
 
   // Package Ghostery
@@ -321,16 +328,29 @@ async function createNavigationExtension() {
     'node',
     ['fern.js', 'pack', 'configs/ci/ghostery.js'],
     { returnStdout: true },
-  ).split('\n').splice(-1);
+  ).split('\n').splice(-1)[0];
 }
 
 
 async function main() {
   // Package navigation-extension
-  const navigationExtensionPath = await createNavigationExtension();
+  const browserCoreArtifact = await createNavigationExtension();
+  const baseDirectory = process.cwd();
+  const navigationExtensionPath = path.join(baseDirectory, browserCoreArtifact);
 
-  // Package Ghostery
-  const ghosteryExtensionPath = await createGhosteryExtension(navigationExtensionPath);
+  // Move to a temporary directory
+  tmp.setGracefulCleanup();
+  const tempDir = tmp.dirSync();
+  process.chdir(tempDir.name);
+
+  // Package ghostery-extension
+  const ghosteryExtensionPath = path.join(
+    tempDir.name,
+    await createGhosteryExtension(navigationExtensionPath),
+  );
+
+  // Move back to base directory
+  process.chdir(baseDirectory);
 
   // Start tests
   runSeleniumTests(ghosteryExtensionPath);

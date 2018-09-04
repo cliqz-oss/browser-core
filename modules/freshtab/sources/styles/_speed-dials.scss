@@ -20,6 +20,7 @@
 
     $dial-header-color,
     $dial-header-bg-color,
+    $dial-button-plus-background,
     $dial-button-plus-opacity,
     $dial-button-plus-opacity-hover,
     $dial-logo-border,
@@ -28,25 +29,26 @@
     $dial-logo-after-box-shadow,
     $dial-title-color,
     $dial-title-color-hover,
-    $add-dial-form-box-shadow
+    $add-dial-form-box-shadow,
+    $dial-empty-bg-color
 ){
-    $dial-edit-background: url(../images/pencil.svg) no-repeat;
-    $dial-button-plus-background: url(../images/plus_black.svg) no-repeat center center;
-    $hide-add-form-color: #ccc;
-    $add-dial-form-color: #333;
-    $add-dial-form-bg-color: #fff;
+    $dial-edit-background: url(../images/pencil.svg) no-repeat center;
     $dial-logo-color: #fff;
-    $add-dial-form-input-color: #666666;
-    $add-dial-form-submit-color: #00aef0;
-    $add-dial-form-submit-color-hover: #0078CA;
 
     .dial-header {
         font-size: 14px;
         color: $dial-header-color;
         height: $dial-header-height;
         padding-top: $dial-header-title;
+        animation: fadeIn 0.5s;
         overflow: hidden;
         position: relative;
+
+
+        @keyframes fadeIn {
+          from {opacity: 0;}
+          to {opacity: 1;}
+        }
 
         &.with-line:before, &.with-line:after {
             position: absolute;
@@ -167,9 +169,12 @@
                 right: $delete-button-position-right;
                 visibility: hidden;
                 opacity: 0;
-                width: 25px;
-                height: 25px;
+                width: 20px;
+                height: 20px;
                 background: $dial-edit-background;
+                background-color: white;
+                border-radius: 18px;
+                box-shadow: 0px 2px 3px -1px rgba(0,0,0,0.18);
                 border: 0px;
                 cursor: pointer;
                 overflow: hidden;
@@ -184,9 +189,12 @@
                 right: $delete-button-position-right;
                 visibility: hidden;
                 opacity: 0;
-                width: 25px;
-                height: 25px;
+                width: 20px;
+                height: 20px;
                 background: $dial-delete-background;
+                background-color: white;
+                border-radius: 18px;
+                box-shadow: 0px 2px 3px -1px rgba(0,0,0,0.18);
                 border: 0px;
                 cursor: pointer;
                 overflow: hidden;
@@ -219,6 +227,17 @@
                         opacity: $dial-button-plus-opacity-hover;
                     }
                 }
+            }
+
+            .placeholder {
+                background-color: $dial-empty-bg-color;
+                box-shadow: none;
+                height: $logo-size;
+                width: $logo-size;
+                padding: $logo-padding;
+                box-sizing: border-box;
+                margin: 0 auto;
+                border-radius: 2px;
             }
         }
 

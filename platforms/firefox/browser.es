@@ -116,13 +116,6 @@ export function mustLoadWindow(win) {
   return win.location.href === 'chrome://browser/content/browser.xul';
 }
 
-export function setInstallDatePref(date) {
-  // for legacy users who have not set install date on installation
-  if (!prefs.get('install_date')) {
-    prefs.set('install_date', date);
-  }
-}
-
 const OBSOLETE_FILES = [
   // SmartCliqz Cache was removed in X.25.X
   'cliqz/smartcliqz-trigger-urls-cache.json',

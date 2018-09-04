@@ -8,10 +8,10 @@ import {
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory
+  withHistory,
 } from '../helpers';
 import expectSelection from './common';
-import { bmWithRichData } from '../fixtures/resultsBigMachineRichData';
+import { bmWithRichData } from '../../../core/integration/fixtures/resultsBigMachineRichData';
 
 export default function () {
   if (!testsEnabled()) { return; }

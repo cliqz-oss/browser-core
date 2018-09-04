@@ -3,10 +3,24 @@ import { View } from 'react-native';
 import TouchCarousel from 'react-touch-carousel';
 import cx from 'classnames';
 import { getVPWidth } from '../../mobile-cards/styles/CardStyle';
+import { window } from '../globals';
 
 const CARD_MARGIN = 10;
 
 export default class Carousel extends React.Component {
+  constructor(props) {
+    super(props);
+    this.handleLayoutChange = () => window.setTimeout(this.props.onLayout, 100);
+  }
+
+  componentDidMount() {
+    window.addEventListener('resize', this.handleLayoutChange);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.handleLayoutChange);
+  }
+
   _CarouselContainer = (carouselProps) => {
     const { cursor, carouselState: { active, dragging }, ...rest } = carouselProps;
     const data = this.props.data || [];
@@ -54,8 +68,8 @@ export default class Carousel extends React.Component {
   renderCard(index, modIndex) {
     const data = this.props.data || [];
     return (
-      <View key={index} style={{ marginLeft: CARD_MARGIN, marginRight: CARD_MARGIN }}>
-        { this.props.renderItem({ item: data[modIndex] }) }
+      <View key={data[modIndex].url} style={{ marginLeft: CARD_MARGIN, marginRight: CARD_MARGIN }}>
+        { this.props.renderItem({ item: data[modIndex], index }) }
       </View>
     );
   }

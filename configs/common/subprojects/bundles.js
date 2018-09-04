@@ -140,6 +140,11 @@ const subprojects = {
     include: ['sinon-chai.js'],
     dest: 'vendor'
   },
+  'jsep': {
+    src: 'node_modules/jsep/build',
+    include: ['jsep.min.js'],
+    dest: 'vendor'
+  },
 };
 
 module.exports = (modules) => {

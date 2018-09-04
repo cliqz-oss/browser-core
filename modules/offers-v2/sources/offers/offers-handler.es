@@ -102,8 +102,12 @@ const shouldShowOfferOnContext = (offer, { urlData }) => {
   // at all, maybe will be a little complicated to do this)
   const isInBlacklist = () => offer.hasBlacklistPatterns() &&
                               offer.blackListPatterns.match(urlData.getPatternRequest());
+  const result = !isInBlacklist();
+  if (!result) {
+    logger.debug('Should not show offer on context', offer, urlData);
+  }
 
-  return !isInBlacklist();
+  return result;
 };
 
 
@@ -196,6 +200,9 @@ export default class OffersHandler {
     this.offersMonitorHandler.couponFormUsed(args);
   }
 
+  getOfferObject(offerId) {
+    return this.offersDB.getOfferObject(offerId);
+  }
 
   // ///////////////////////////////////////////////////////////////////////////
   // Private methods
@@ -239,15 +246,14 @@ export default class OffersHandler {
       tmpOffers.reverse(); // we need it, because of lack of findLast function
       const pred = offer => shouldShowOfferOnContext(offer, { urlData });
 
-      tmpOffers // just for debug information
-        .filter(o => !pred(o))
-        .forEach(o => logger.debug(`Offer ${o.uniqueID} soft-filtered out!`, o));
-
       tmpOffers = tmpOffers.filter(pred);
       if (tmpOffers.length === 0) { return Promise.resolve(true); }
 
       const topOffer = tmpOffers.find(o => !shouldFilterOffer(o, this.offersDB));
-      if (!topOffer) { return Promise.resolve(true); }
+      if (!topOffer) {
+        logger.debug('No offers left after filtering');
+        return Promise.resolve(true);
+      }
 
       logger.debug('Offer selected: ', topOffer);
       return this._pushOffersToRealEstates(topOffer, urlData);

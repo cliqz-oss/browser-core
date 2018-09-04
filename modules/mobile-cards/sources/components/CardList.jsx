@@ -3,7 +3,7 @@ import Carousel from '../../platform/components/Carousel';
 import Card from './Card';
 import SearchEngineCard from './SearchEngineCard';
 import { getVPWidth, getCardWidth } from '../styles/CardStyle';
-import handleAutoCompletion from '../../platform/auto-completion';
+import { handleAutoCompletion } from '../../platform/browser-actions';
 import { withCliqz } from '../cliqz';
 
 const INITIAL_PAGE_INDEX = 0;

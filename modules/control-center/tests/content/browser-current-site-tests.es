@@ -1,6 +1,5 @@
 import {
-  clearIntervals,
-  expect
+  expect,
 } from '../../core/test-helpers';
 import Subject from './local-helpers';
 import { generateDataFalse, generateDataTrue } from './fixtures/current-site';
@@ -18,7 +17,6 @@ function currentSiteTests(amo) {
 
   after(function () {
     subject.unload();
-    clearIntervals();
   });
 
   describe('pushing data, specialUrl = false', function () {

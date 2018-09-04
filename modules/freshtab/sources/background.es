@@ -6,7 +6,8 @@ import NewTabPage from './main';
 import News from './news';
 import {
   PREF_SEARCH_MODE,
-  DEFAULT_BG } from './constants';
+  DEFAULT_BG,
+  MAX_SPOTS } from './constants';
 import getWallpapers from './wallpapers';
 import History from '../platform/freshtab/history';
 import openImportDialog from '../platform/freshtab/browser-import-dialog';
@@ -20,24 +21,32 @@ import {
   forEachWindow,
   mapWindows,
   Window,
-  getActiveTab
+  getActiveTab,
 } from '../core/browser';
 import { queryActiveTabs } from '../core/tabs';
 import config from '../core/config';
 import console from '../core/console';
-import { isCliqzBrowser, isCliqzAtLeastInVersion, isWebExtension, isAMO } from '../core/platform';
+import {
+  isCliqzBrowser,
+  isCliqzAtLeastInVersion,
+  isChromium,
+  isWebExtension,
+  isAMO,
+  getResourceUrl,
+} from '../core/platform';
 import prefs from '../core/prefs';
 import { dismissMessage, countMessageClick, dismissOffer, saveMessageDismission } from './actions/message';
 import i18n, { getLanguageFromLocale, getMessage } from '../core/i18n';
 import hash from '../core/helpers/hash';
 import HistoryService from '../platform/history-service';
+import HistoryManager from '../core/history-manager';
 import * as searchUtils from '../core/search-engines';
 import {
   equals as areUrlsEqual,
   getDetailsFromUrl,
   stripTrailingSlash,
   tryEncodeURIComponent,
-  tryDecodeURIComponent
+  tryDecodeURIComponent,
 } from '../core/url';
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
@@ -74,6 +83,8 @@ function makeErrorObject(reason) {
     reason: typeof reason === 'object' ? reason.toString() : reason
   };
 }
+
+const NEW_TAB_URL = isChromium ? 'chrome://newtab/' : getResourceUrl('freshtab/home.html');
 
 /**
  * @module freshtab
@@ -183,7 +194,7 @@ export default background({
     if (!this.showOffers) {
       return;
     }
-    this.offersV2.action('registerRealEstate', { realEstateID: REAL_ESTATE_ID }).catch(() => {});
+    this.offersV2.action('registerRealEstate', { realEstateID: REAL_ESTATE_ID }).catch(error => console.log(error));
   },
 
   isAdult(url) {
@@ -197,9 +208,7 @@ export default background({
   },
 
   get showOffers() {
-    const offersEnabled = (prefs.get('offers2FeatureEnabled', false) && prefs.get('offers2UserEnabled', true));
-    const cliqzTabOfferEnabled = prefs.get('cliqzTabOffersNotification', false);
-    return offersEnabled && cliqzTabOfferEnabled;
+    return prefs.get('offers2UserEnabled', true);
   },
 
   get blueTheme() {
@@ -473,8 +482,7 @@ export default background({
         return makeErrorObject('invalid');
       }
 
-
-      const dials = await this.getVisibleDials(6);
+      const dials = await this.getVisibleDials(MAX_SPOTS);
       const allDials = [...dials.history, ...dials.custom];
       const isDuplicate = allDials
         .map(dial => ({ ...dial, url: tryDecodeURIComponent(dial.url) }))
@@ -523,7 +531,7 @@ export default background({
 
       // history returns most frequest 15 results, but we display up to 6
       // so we need to validate only against visible results
-      const dials = await this.getVisibleDials(6);
+      const dials = await this.getVisibleDials(MAX_SPOTS);
       const allDials = [...dials.history, ...dials.custom];
 
       const isDuplicate = allDials
@@ -600,6 +608,14 @@ export default background({
       this.actions.saveSpeedDials(dialUps);
       return this.actions.getSpeedDials();
     },
+
+    removeFromHistory(url, { strict }) {
+      return HistoryManager.removeFromHistory(url, { strict });
+    },
+
+    removeFromBookmarks(url) {
+      return HistoryManager.removeFromBookmarks(url);
+    },
     /**
     * Get list with top & personalized news
     * @method getNews
@@ -640,9 +656,9 @@ export default background({
     * @method getOffers
     */
     getOffers() {
-      if (!this.showOffers) {
-        return undefined;
-      }
+      // if (!this.showOffers) {
+      //   return undefined;
+      // }
       const args = {
         filters: {
           by_rs_dest: REAL_ESTATE_ID,
@@ -733,7 +749,7 @@ export default background({
         messages: this.messages,
         isHistoryEnabled: prefs.get('modules.history.enabled', false) && config.settings.HISTORY_URL,
         componentsState: this.getComponentsState(),
-        currentDate: prefs.get('config_ts', null),
+        developer: prefs.get('developer', false),
       };
     },
 
@@ -856,7 +872,7 @@ export default background({
         this.messages[id] = message;
         this.core.action(
           'broadcastMessage',
-          config.settings.NEW_TAB_URL,
+          NEW_TAB_URL,
           {
             action: 'addMessage',
             message,
@@ -869,7 +885,7 @@ export default background({
       delete this.messages[id];
       this.core.action(
         'broadcastMessage',
-        config.settings.NEW_TAB_URL,
+        NEW_TAB_URL,
         {
           action: 'closeNotification',
           messageId: id,

@@ -7,10 +7,10 @@ import {
   mockSearch,
   waitFor,
   waitForPopup,
-  withHistory
+  withHistory,
 } from '../helpers';
 
-import results from '../fixtures/resultsYoutube';
+import results from '../../../core/integration/fixtures/resultsYoutube';
 
 export default function () {
   if (!testsEnabled()) { return; }

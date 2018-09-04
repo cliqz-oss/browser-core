@@ -1,11 +1,10 @@
 import {
-  clearIntervals,
   clone,
-  expect
+  expect,
 } from '../../core/test-helpers';
 import {
   defaultConfig,
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 
 describe('Fresh tab background UI', function () {
@@ -42,10 +41,6 @@ describe('Fresh tab background UI', function () {
 
     subject.respondsWithEmptyNews();
     subject.respondsWith(defaultConfig);
-  });
-
-  after(function () {
-    clearIntervals();
   });
 
   context('rendered with background turned off', function () {

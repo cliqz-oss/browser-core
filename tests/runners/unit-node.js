@@ -98,7 +98,7 @@ function describeModule(moduleName, loadDeps, testFn) {
       Object.keys(deps[dep]).forEach(function (key) {
         if (deps[dep][key] === '[dynamic]') {
           depsRewrite[dep][key] = function () {
-            // TODO: add support for constuctor prototype
+            // TODO: add support for constructor prototype
             return deps[dep][key].apply(this, arguments);
           };
         }

@@ -54,14 +54,19 @@ def matrix = [
         'config': 'configs/ci/webextension.js',
         'testParams': '-l chromium-selenium',
     ],
+    'cliqz-android': [
+        'gpu': true,
+        'config': 'configs/ci/cliqz-android.js',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox60/firefox/firefox',
+    ],
     'ghostery': [
         'gpu': false,
         'config': 'configs/ci/ghostery.js',
         'testParams': '-l ghostery-selenium',
     ],
-    'react-native': [
+    'cliqz-ios': [
         'gpu': false,
-        'config':'configs/ci/react-native.js',
+        'config':'configs/ci/cliqz-ios.js',
         'testParams': '-l react-native',
     ],
 ]

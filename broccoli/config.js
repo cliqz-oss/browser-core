@@ -23,6 +23,7 @@ cliqzConfig.sourceMaps = !(process.env.CLIQZ_SOURCE_MAPS === 'false');
 cliqzConfig.debugPages = !(process.env.CLIQZ_SOURCE_DEBUG === 'false');
 
 cliqzConfig.EXTENSION_VERSION = process.env.EXTENSION_VERSION;
+cliqzConfig.VERSION = process.env.VERSION;
 
 cliqzConfig.instrumentFunctions = process.env.CLIQZ_INSTRUMENT_FUNCTIONS;
 

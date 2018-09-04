@@ -12,11 +12,23 @@ import {
   waitFor,
   waitForPopup,
   win,
-  withHistory } from './helpers';
+  withHistory,
+} from './helpers';
+
+function openContextMenu() {
+  getWindowModule().ui.renderer.contextMenu.show(
+    getWindowModule().ui.renderer.selectedResult,
+    0,
+    0
+  );
+}
 
 function clickOn(option) {
-  win.document
-    .querySelector(`#dropdownContextMenu [label="${option}"]`).click();
+  return waitFor(() => {
+    openContextMenu();
+    win.document.querySelector(`#dropdownContextMenu [label="${option}"]`).click();
+    return true;
+  });
 }
 
 export default function () {
@@ -27,9 +39,9 @@ export default function () {
     let spyCopyURL;
 
     beforeEach(function () {
-      sandbox = sinon.sandbox.create();
-      spy = sinon.spy();
-      spyCopyURL = sinon.spy();
+      sandbox = sinon.createSandbox();
+      spy = sandbox.spy();
+      spyCopyURL = sandbox.spy();
       sandbox.stub(win.CliqzUtils, 'openLink').value(spy);
       sandbox.stub(getWindowModule().ui.renderer.contextMenu, 'copyURL').value(spyCopyURL);
     });
@@ -53,85 +65,78 @@ export default function () {
         fillIn(query);
         await waitForPopup(1);
         await waitFor(() => $cliqzResults.querySelector('.result.search'));
-
-        // show context menu
-        getWindowModule().ui.renderer.contextMenu.show(
-          getWindowModule().ui.renderer.selectedResult,
-          0,
-          0
-        );
       });
 
       context('click on "Open in a New Tab"', function () {
-        beforeEach(async function () {
-          clickOn('Open Link in New Tab');
+        beforeEach(function () {
+          return clickOn('Open Link in New Tab');
         });
 
-        it('correct url was opened in a new tab', function () {
-          expect(spy).to.have.been.calledWith(
+        it('correct url was opened in a new tab', () =>
+          waitFor(() => expect(spy).to.have.been.calledWith(
             sinon.match.instanceOf(win.constructor),
             expectedUrl,
             true,
             false,
             false
-          );
-        });
+          ))
+        );
       });
 
       context('click on "Open in a New Window"', function () {
         beforeEach(function () {
-          clickOn('Open Link in New Window');
+          return clickOn('Open Link in New Window');
         });
 
-        it('correct url was opened in a new window', function () {
-          expect(spy).to.have.been.calledWith(
+        it('correct url was opened in a new window', () =>
+          waitFor(() => expect(spy).to.have.been.calledWith(
             sinon.match.instanceOf(win.constructor),
             expectedUrl,
             false,
             true,
             false
-          );
-        });
+          ))
+        );
       });
 
       context('click on "Open in a New Private Window"', function () {
-        beforeEach(async function () {
-          clickOn('Open Link in New Private Window');
+        beforeEach(function () {
+          return clickOn('Open Link in New Private Window');
         });
 
-        it('correct url was opened in a new private window', function () {
-          expect(spy).to.have.been.calledWith(
+        it('correct url was opened in a new private window', () =>
+          waitFor(() => expect(spy).to.have.been.calledWith(
             sinon.match.instanceOf(win.constructor),
             expectedUrl,
             false,
             false,
             true
-          );
-        });
+          ))
+        );
       });
 
       context('click on "Copy link location"', function () {
-        beforeEach(async function () {
-          clickOn('Copy link location');
+        beforeEach(function () {
+          return clickOn('Copy link location');
         });
 
-        it('url was copied', function () {
-          expect(spyCopyURL).to.have.been.calledWith(expectedUrl);
-        });
+        it('url was copied', () =>
+          waitFor(() => expect(spyCopyURL).to.have.been.calledWith(expectedUrl))
+        );
       });
 
       context('click on "Feedback for Cliqz"', function () {
-        beforeEach(async function () {
-          clickOn('Feedback for Cliqz');
+        beforeEach(function () {
+          return clickOn('Feedback for Cliqz');
         });
 
-        it('correct url was opened in a new tab', function () {
-          expect(spy).to.have.been.calledWith(
+        it('correct url was opened in a new tab', () =>
+          waitFor(() => expect(spy).to.have.been.calledWith(
             sinon.match.instanceOf(win.constructor),
             'https://cliqz.com/feedback/?kind=custom-search',
             true
-          );
-        });
+          ))
+        );
       });
     });
 
@@ -147,85 +152,78 @@ export default function () {
         press({ key: 'ArrowDown' });
         await waitFor(() => $cliqzResults.querySelector(`.history .result[data-url="${historyUrl}"]`)
           .classList.contains('selected'));
-
-        // show context menu
-        getWindowModule().ui.renderer.contextMenu.show(
-          getWindowModule().ui.renderer.selectedResult,
-          0,
-          0
-        );
       });
 
       context('click on "Open in a New Tab"', function () {
-        beforeEach(async function () {
-          clickOn('Open Link in New Tab');
+        beforeEach(function () {
+          return clickOn('Open Link in New Tab');
         });
 
-        it('correct url was opened in a new tab', function () {
-          expect(spy).to.have.been.calledWith(
+        it('correct url was opened in a new tab', () =>
+          waitFor(() => expect(spy).to.have.been.calledWith(
             sinon.match.instanceOf(win.constructor),
             historyUrl,
             true,
             false,
             false
-          );
-        });
+          ))
+        );
       });
 
       context('click on "Open in a New Window"', function () {
-        beforeEach(async function () {
-          clickOn('Open Link in New Window');
+        beforeEach(function () {
+          return clickOn('Open Link in New Window');
         });
 
-        it('correct url was opened in a new window', function () {
-          expect(spy).to.have.been.calledWith(
+        it('correct url was opened in a new window', () =>
+          waitFor(() => expect(spy).to.have.been.calledWith(
             sinon.match.instanceOf(win.constructor),
             historyUrl,
             false,
             true,
             false
-          );
-        });
+          ))
+        );
       });
 
       context('click on "Open in a New Private Window"', function () {
-        beforeEach(async function () {
-          clickOn('Open Link in New Private Window');
+        beforeEach(function () {
+          return clickOn('Open Link in New Private Window');
         });
 
-        it('correct url was opened in a new private window', function () {
-          expect(spy).to.have.been.calledWith(
+        it('correct url was opened in a new private window', () =>
+          waitFor(() => expect(spy).to.have.been.calledWith(
             sinon.match.instanceOf(win.constructor),
             historyUrl,
             false,
             false,
             true
-          );
-        });
+          ))
+        );
       });
 
       context('click on "Copy link location"', function () {
-        beforeEach(async function () {
-          clickOn('Copy link location');
+        beforeEach(function () {
+          return clickOn('Copy link location');
         });
 
-        it('url was copied', function () {
-          expect(spyCopyURL).to.have.been.calledWith(historyUrl);
-        });
+        it('url was copied', () =>
+          waitFor(() => expect(spyCopyURL).to.have.been.calledWith(historyUrl))
+        );
       });
 
       context('click on "Feedback for Cliqz"', function () {
-        beforeEach(async function () {
-          clickOn('Feedback for Cliqz');
+        beforeEach(function () {
+          return clickOn('Feedback for Cliqz');
         });
 
-        it('correct url was opened in a new tab', function () {
-          expect(spy).to.have.been.calledWith(
+        it('correct url was opened in a new tab', () =>
+          waitFor(() => expect(spy).to.have.been.calledWith(
             sinon.match.instanceOf(win.constructor),
             'https://cliqz.com/feedback/?kind=H',
             true
-          );
-        });
+          ))
+        );
       });
     });
 
@@ -246,85 +244,78 @@ export default function () {
         press({ key: 'ArrowDown' });
         await waitFor(() => $cliqzResults.querySelector(`.history .result[data-url="${mainClusterUrl}"]`)
           .classList.contains('selected'));
-
-        // show context menu
-        getWindowModule().ui.renderer.contextMenu.show(
-          getWindowModule().ui.renderer.selectedResult,
-          0,
-          0
-        );
       });
 
       context('click on "Open in a New Tab"', function () {
-        beforeEach(async function () {
-          clickOn('Open Link in New Tab');
+        beforeEach(function () {
+          return clickOn('Open Link in New Tab');
         });
 
-        it('correct url was opened in a new tab', function () {
-          expect(spy).to.have.been.calledWith(
+        it('correct url was opened in a new tab', () =>
+          waitFor(() => expect(spy).to.have.been.calledWith(
             sinon.match.instanceOf(win.constructor),
             mainClusterUrl,
             true,
             false,
             false
-          );
-        });
+          ))
+        );
       });
 
       context('click on "Open in a New Window"', function () {
-        beforeEach(async function () {
-          clickOn('Open Link in New Window');
+        beforeEach(function () {
+          return clickOn('Open Link in New Window');
         });
 
-        it('correct url was opened in a new window', function () {
-          expect(spy).to.have.been.calledWith(
+        it('correct url was opened in a new window', () =>
+          waitFor(() => expect(spy).to.have.been.calledWith(
             sinon.match.instanceOf(win.constructor),
             mainClusterUrl,
             false,
             true,
             false
-          );
-        });
+          ))
+        );
       });
 
       context('click on "Open in a New Private Window"', function () {
-        beforeEach(async function () {
-          clickOn('Open Link in New Private Window');
+        beforeEach(function () {
+          return clickOn('Open Link in New Private Window');
         });
 
-        it('correct url was opened in a new private window', function () {
-          expect(spy).to.have.been.calledWith(
+        it('correct url was opened in a new private window', () =>
+          waitFor(() => expect(spy).to.have.been.calledWith(
             sinon.match.instanceOf(win.constructor),
             mainClusterUrl,
             false,
             false,
             true
-          );
-        });
+          ))
+        );
       });
 
       context('click on "Copy link location"', function () {
-        beforeEach(async function () {
-          clickOn('Copy link location');
+        beforeEach(function () {
+          return clickOn('Copy link location');
         });
 
-        it('url was copied', function () {
-          expect(spyCopyURL).to.have.been.calledWith(mainClusterUrl);
-        });
+        it('url was copied', () =>
+          waitFor(() => expect(spyCopyURL).to.have.been.calledWith(mainClusterUrl))
+        );
       });
 
       context('click on "Feedback for Cliqz"', function () {
-        beforeEach(async function () {
-          clickOn('Feedback for Cliqz');
+        beforeEach(function () {
+          return clickOn('Feedback for Cliqz');
         });
 
-        it('correct url was opened in a new tab', function () {
-          expect(spy).to.have.been.calledWith(
+        it('correct url was opened in a new tab', () =>
+          waitFor(() => expect(spy).to.have.been.calledWith(
             sinon.match.instanceOf(win.constructor),
             'https://cliqz.com/feedback/?kind=C',
             true
-          );
-        });
+          ))
+        );
       });
     });
 
@@ -339,85 +330,78 @@ export default function () {
         press({ key: 'ArrowDown' });
         await waitFor(() => $cliqzResults.querySelector(`.result[data-url="${backendUrl}"]`)
           .classList.contains('selected'));
-
-        // show context menu
-        getWindowModule().ui.renderer.contextMenu.show(
-          getWindowModule().ui.renderer.selectedResult,
-          0,
-          0
-        );
       });
 
       context('click on "Open in a New Tab"', function () {
-        beforeEach(async function () {
-          clickOn('Open Link in New Tab');
+        beforeEach(function () {
+          return clickOn('Open Link in New Tab');
         });
 
-        it('correct url was opened in a new tab', function () {
-          expect(spy).to.have.been.calledWith(
+        it('correct url was opened in a new tab', () =>
+          waitFor(() => expect(spy).to.have.been.calledWith(
             sinon.match.instanceOf(win.constructor),
             backendUrl,
             true,
             false,
             false
-          );
-        });
+          ))
+        );
       });
 
       context('click on "Open in a New Window"', function () {
-        beforeEach(async function () {
-          clickOn('Open Link in New Window');
+        beforeEach(function () {
+          return clickOn('Open Link in New Window');
         });
 
-        it('correct url was opened in a new window', function () {
-          expect(spy).to.have.been.calledWith(
+        it('correct url was opened in a new window', () =>
+          waitFor(() => expect(spy).to.have.been.calledWith(
             sinon.match.instanceOf(win.constructor),
             backendUrl,
             false,
             true,
             false
-          );
-        });
+          ))
+        );
       });
 
       context('click on "Open in a New Private Window"', function () {
-        beforeEach(async function () {
-          clickOn('Open Link in New Private Window');
+        beforeEach(function () {
+          return clickOn('Open Link in New Private Window');
         });
 
-        it('correct url was opened in a new private window', function () {
-          expect(spy).to.have.been.calledWith(
+        it('correct url was opened in a new private window', () =>
+          waitFor(() => expect(spy).to.have.been.calledWith(
             sinon.match.instanceOf(win.constructor),
             backendUrl,
             false,
             false,
             true
-          );
-        });
+          ))
+        );
       });
 
       context('click on "Copy link location"', function () {
-        beforeEach(async function () {
-          clickOn('Copy link location');
+        beforeEach(function () {
+          return clickOn('Copy link location');
         });
 
-        it('url was copied', function () {
-          expect(spyCopyURL).to.have.been.calledWith(backendUrl);
-        });
+        it('url was copied', () =>
+          waitFor(() => expect(spyCopyURL).to.have.been.calledWith(backendUrl))
+        );
       });
 
       context('click on "Feedback for Cliqz"', function () {
-        beforeEach(async function () {
-          clickOn('Feedback for Cliqz');
+        beforeEach(function () {
+          return clickOn('Feedback for Cliqz');
         });
 
-        it('correct url was opened in a new tab', function () {
-          expect(spy).to.have.been.calledWith(
+        it('correct url was opened in a new tab', () =>
+          waitFor(() => expect(spy).to.have.been.calledWith(
             sinon.match.instanceOf(win.constructor),
             'https://cliqz.com/feedback/?kind=',
             true
-          );
-        });
+          ))
+        );
       });
     });
   });

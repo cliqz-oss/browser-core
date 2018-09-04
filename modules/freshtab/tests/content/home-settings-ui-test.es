@@ -1,11 +1,10 @@
 import {
-  clearIntervals,
   clone,
-  expect
+  expect,
 } from '../../core/test-helpers';
 import {
   defaultConfig,
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 
 describe('Fresh tab settings panel UI', function () {
@@ -40,10 +39,6 @@ describe('Fresh tab settings panel UI', function () {
     subject.respondsWithEmptyTelemetry();
     subject.respondsWithEmptySpeedDials();
     subject.respondsWithEmptyNews();
-  });
-
-  after(function () {
-    clearIntervals();
   });
 
   context('when blue theme is not enabled', function () {

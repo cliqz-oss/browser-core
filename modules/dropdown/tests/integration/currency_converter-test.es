@@ -1,15 +1,17 @@
 import {
+  $cliqzResults,
   blurUrlBar,
   checkMainResult,
-  $cliqzResults,
   expect,
   fillIn,
   getLocalisedString,
   mockSearch,
   testsEnabled,
   waitForPopup,
-  withHistory } from './helpers';
-import results from './fixtures/resultsCurrencyConverter';
+  win,
+  withHistory,
+} from './helpers';
+import results from '../../core/integration/fixtures/resultsCurrencyConverter';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -22,7 +24,7 @@ export default function () {
   describe('currency converter', function () {
     context('simple: 1 euro to usd', function () {
       before(async function () {
-        window.preventRestarts = true;
+        win.preventRestarts = true;
         blurUrlBar();
         await mockSearch({ results });
         withHistory([]);
@@ -31,7 +33,7 @@ export default function () {
       });
 
       after(function () {
-        window.preventRestarts = false;
+        win.preventRestarts = false;
       });
 
       checkMainResult({ $result: $cliqzResults });
@@ -39,14 +41,16 @@ export default function () {
       it('renders correct result', function () {
         const extra = results[0].snippet.extra;
         const answer = extra.toAmount.main;
-        const toCurrency = extra.toCurrencyName || extra.toCurrency;
+        const toCurrency = extra.toCurrency;
+        const toCurrencyName = extra.toCurrencyName ? ` (${extra.toCurrencyName})` : '';
 
         expect($cliqzResults
           .querySelector(`${resultsContainerSelector} ${titleSelector}`))
           .to.exist;
+
         expect($cliqzResults
           .querySelector(`${resultsContainerSelector} ${titleSelector}`))
-          .to.contain.text(`= ${answer} ${toCurrency}`);
+          .to.contain.text(`= ${answer} ${toCurrency}${toCurrencyName}`);
       });
 
       it('renders correct subtitle', function () {

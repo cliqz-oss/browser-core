@@ -1,9 +1,12 @@
 /* eslint-disable jsx-a11y/no-autofocus */
 import React from 'react';
-import SpeedDialModal from './speed-dial-modal';
+import ToggleDisplay from 'react-toggle-display';
+import sanitizeUrl from '../services/url-check';
+import Modal from './modal';
 import cliqz from '../cliqz';
 import t from '../i18n';
-import { favoriteAddSignal, addFormCloseSignal, addFormSubmitSignal } from '../services/telemetry/speed-dial';
+import { favoriteEditSignal, editFormCloseSignal, editFormSubmitSignal }
+  from '../services/telemetry/speed-dial';
 
 export default class EditSpeedDial extends React.Component {
   constructor(props) {
@@ -21,17 +24,15 @@ export default class EditSpeedDial extends React.Component {
     };
 
     this.baseState = this.state; // used later for resetting the form
-    this.handleEditChange = this.handleEditChange.bind(this);
-    this.handleEditSubmit = this.handleEditSubmit.bind(this);
   }
 
-  editSpeedDialModal(event) {
+  editSpeedDialModal = (event) => {
     event.preventDefault();
     event.stopPropagation();
     this.setState({ showModal: true });
   }
 
-  handleEditChange(event) {
+  handleEditChange = (event) => {
     const value = event.target.value;
     const name = event.target.name;
 
@@ -41,58 +42,69 @@ export default class EditSpeedDial extends React.Component {
     });
   }
 
-  handleEditSubmit() {
-    const url = this.state.url;
+  handleEditSubmit = (ev) => {
+    ev.preventDefault();
+    const url = sanitizeUrl(this.state.url);
     const title = this.state.title;
+
     if (!url) {
+      this.setState({
+        errorInvalid: true,
+        showError: true,
+        showModal: true
+      });
       return false;
     }
 
     this.freshtab.editSpeedDial(this.props.dial, { url, title }).then((resp) => {
       if (resp.error) {
+        this.setState({ showError: true, showModal: true });
         if (resp.reason.indexOf('duplicate') > -1) {
           this.setState({
             errorDuplicate: true,
-            showError: true,
           });
         } else {
           this.setState({
             errorInvalid: true,
-            showError: true,
           });
         }
       } else {
-        this.props.updateDial(resp);
         this.setState({
           showModal: false
         });
-        favoriteAddSignal();
-        addFormSubmitSignal();
+        editFormSubmitSignal();
+        this.props.updateDial(resp);
       }
     });
 
     return true;
   }
 
-  handleRemove(event) {
+  handleRemoveKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      this.handleRemove(e);
+    }
+  };
+
+  handleRemove = (event) => {
     event.preventDefault();
     event.stopPropagation();
     this.setState({ showModal: false });
     this.props.removeDial(this.props.dial);
   }
 
-  handleCloseEditModal(event) {
+  handleCloseEditModal = (event) => {
     event.preventDefault();
     event.stopPropagation();
+    editFormCloseSignal();
     this.setState(this.baseState);
-    addFormCloseSignal();
   }
 
   render() {
     const inputClasses = ['field'];
     let inputClass = '';
     const errorStr = this.state.errorDuplicate ? t('app_speed_dial_exists_already') :
-      t('app.speed_dial_not_valid');
+      t('app_speed_dial_not_valid');
 
     if (!this.props.dial.custom) {
       inputClasses.push('disabled');
@@ -101,22 +113,29 @@ export default class EditSpeedDial extends React.Component {
     inputClass = inputClasses.join(' ');
 
     return (
-      <button
-        className="edit"
-        title="Edit"
-        onClick={e => this.editSpeedDialModal(e)}
-      >
-        <SpeedDialModal
+      // adding stop event propagation here because edit-speed-dial is inside the speed dial <a> tag
+      // change structure of code for edit-speed-dial to be independent
+      /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
+      <div role="presentation" onClick={e => e.stopPropagation()}>
+        <ToggleDisplay show={this.state.show}>
+          <button
+            className="edit"
+            title="Edit"
+            onClick={(e) => { favoriteEditSignal(); this.editSpeedDialModal(e); }}
+          />
+        </ToggleDisplay>
+        <Modal
           closeAction={e => this.handleCloseEditModal(e)}
           showModal={this.state.showModal}
         >
           <form
             className="editForm"
-            onSubmit={(event) => { event.preventDefault(); this.handleEditSubmit(); }}
+            onSubmit={e => this.handleEditSubmit(e)}
           >
             <div className="modal-header">{t('app_speed_dial_edit_header')}
               <button
                 className="closeForm"
+                type="button"
                 onClick={e => this.handleCloseEditModal(e)}
               />
             </div>
@@ -152,25 +171,26 @@ export default class EditSpeedDial extends React.Component {
               />
               <label htmlFor="title">{t('app_speed_dial_edit_title_header')}</label>
             </div>
-            <button
-              className="submit"
-              type="submit"
-              onClick={this.handleEditSubmit}
-              disabled={!this.state.url ? 'disabled' : ''}
-            >
-              {t('app_speed_dial_save').toUpperCase()}
-            </button>
-            <div
-              role="presentation"
-              className="deleteBox"
-              onClick={e => this.handleRemove(e)}
-            >
-              <button className="deleteDial" />
-              <span>{t('app_speed_dial_delete')}</span>
+            <div className="aligner">
+              <button
+                className="submit"
+                type="submit"
+                disabled={!this.state.url ? 'disabled' : ''}
+              >
+                {t('app_speed_dial_save').toUpperCase()}
+              </button>
+              <button
+                className="deleteDial"
+                onKeyPress={e => this.handleRemoveKeyPress(e)}
+                onClick={e => this.handleRemove(e)}
+              >
+                {t('app_speed_dial_delete')}
+              </button>
             </div>
           </form>
-        </SpeedDialModal>
-      </button>
+        </Modal>
+      </div>
+      /* eslint-enable jsx-a11y/no-noninteractive-element-interactions */
     );
   }
 }

@@ -1,0 +1,21 @@
+[
+  {
+    "namespace": "cliqzSearchEngines",
+    "functions": [
+      {
+        "name": "getEngines",
+        "type": "function",
+        "description": "Gets search engine list",
+        "async": true,
+        "parameters": []
+      },
+      {
+        "name": "getDefaultEngine",
+        "type": "function",
+        "description": "Gets default search engine",
+        "async": true,
+        "parameters": []
+      }
+    ]
+  }
+]

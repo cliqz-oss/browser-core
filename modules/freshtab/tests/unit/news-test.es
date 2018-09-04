@@ -263,6 +263,56 @@ export default describeModule('freshtab/news',
           );
         });
 
+        it('Merge news lists bloom filter', function () {
+          const newsPlacing = [
+            { type: 'topnews', domain: 'topnews', number: 3 },
+            { type: 'topnews', domain: 'topnews', number: 3 },
+            { type: 'yournews', domain: 'zeit.de', number: 3 }
+          ];
+
+          const historyObject = { newsPlacing };
+          // limit number of top news -- (use the bloomfilter article)
+          topNewsCache = topNewsCache.slice(4, 10);
+          // limit number of history based news
+          hbasedResponse['zeit.de'] = hbasedResponse['zeit.de'].slice(0, 6);
+
+          return this.module().composeNewsList(historyObject, topNewsCache, hbasedResponse).then(
+            (freshtabNews) => {
+              chai.expect(freshtabNews.newsList.length, 'wrong number of news').to.deep.equal(9);
+              chai.expect(freshtabNews.newsList[0].type, 'top news not on first position').to.deep.equal('topnews');
+              chai.expect(freshtabNews.newsList[8].type, 'history based news are not presented').to.deep.equal('yournews');
+              chai.expect(freshtabNews.newsList[3].url,
+                'history based news are duplicated same tpoic with top news')
+                .to.not.equal('https://www.zeit.de/wirtschaft/2018-06/handelsstreit-usa-zoelle-china-vergeltung');
+            }
+          );
+        });
+
+        it('Merge news lists without bloom filter', function () {
+          const newsPlacing = [
+            { type: 'topnews', domain: 'topnews', number: 3 },
+            { type: 'topnews', domain: 'topnews', number: 3 },
+            { type: 'yournews', domain: 'zeit.de', number: 3 }
+          ];
+
+          const historyObject = { newsPlacing };
+          // limit number of top news -- ( don't use the bloomfilter article)
+          topNewsCache = topNewsCache.slice(0, 6);
+          // limit number of history based news
+          hbasedResponse['zeit.de'] = hbasedResponse['zeit.de'].slice(0, 6);
+
+          return this.module().composeNewsList(historyObject, topNewsCache, hbasedResponse).then(
+            (freshtabNews) => {
+              chai.expect(freshtabNews.newsList.length, 'wrong number of news').to.deep.equal(9);
+              chai.expect(freshtabNews.newsList[0].type, 'top news not on first position').to.deep.equal('topnews');
+              chai.expect(freshtabNews.newsList[8].type, 'history based news are not presented').to.deep.equal('yournews');
+              chai.expect(freshtabNews.newsList[3].url,
+                'history based news are duplicated same tpoic with top news')
+                .to.equal('https://www.zeit.de/wirtschaft/2018-06/handelsstreit-usa-zoelle-china-vergeltung');
+            }
+          );
+        });
+
         it('Merge news lists with not enough history based news', function () {
           const newsPlacing = [
             { type: 'topnews', domain: 'topnews', number: 3 },

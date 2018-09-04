@@ -21,7 +21,7 @@ const getDaysFromTimeRange = (start, end) => {
 export default describeModule('offers-v2/trigger_machine/ops/category_expr',
   () => ({
     'core/platform': {
-      isChromium: false
+      isWebExtension: false
     },
     'platform/xmlhttprequest': {
       default: {}

@@ -10,7 +10,7 @@ import {
   waitForPopup,
   withHistory } from '../helpers';
 import expectSelection from './common';
-import { currencyAndSimpleResults } from '../fixtures/resultsCurrencyConverter';
+import { currencyAndSimpleResults } from '../../../core/integration/fixtures/resultsCurrencyConverter';
 
 export default function () {
   if (!testsEnabled()) { return; }

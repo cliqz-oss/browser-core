@@ -74,6 +74,7 @@ export default describeModule('freshtab/background',
       },
       'core/platform': {
         isCliqzBrowser: true,
+        getResourceUrl: function () {}
       },
       'core/prefs': {
         default: {
@@ -95,6 +96,12 @@ export default describeModule('freshtab/background',
           },
         }
       },
+      'core/history-manager': {
+        HistoryManager: {
+          removeFromHistory() {},
+          removeFromBookmarks() {},
+        }
+      }
     };
   },
   function () {

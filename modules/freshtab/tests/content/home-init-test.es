@@ -1,12 +1,7 @@
-/* global document */
-
-import {
-  clearIntervals,
-  expect
-} from '../../core/test-helpers';
+import { expect } from '../../core/test-helpers';
 import {
   defaultConfig,
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 
 describe('Initializing Fresh tab', function () {
@@ -37,7 +32,6 @@ describe('Initializing Fresh tab', function () {
   after(function () {
     subject.chrome.runtime.onMessage.removeListener(listener);
     subject.unload();
-    clearIntervals();
   });
 
   it('loads Fresh tab', function () {

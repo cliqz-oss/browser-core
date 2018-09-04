@@ -1,34 +1,40 @@
 {
-  "name": "{{name}}",
-  "version": "{{codeVersion}}",
+  "name": "__MSG_appName__",
+  "description": "__MSG_appDesc__",
+  "version": "{{version}}",
   "manifest_version": 2,
-  "description": "{{description}}",
-  "default_locale": "en",
+  "default_locale": "de",
   "icons": {
-  },
-  "applications": {
-    "gecko": {
-      "id": "{{id}}"
-    }
+    "16": "assets/icon16.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
   },
   "permissions": [
+    "<all_urls>",
+    "bookmarks",
+    "clipboardWrite",
     "cookies",
     "geolocation",
     "history",
-    "<all_urls>",
+    "idle",
+    "management",
+    "notifications",
+    "privacy",
     "proxy",
     "storage",
     "tabs",
     "topSites",
+    "unlimitedStorage",
     "webNavigation",
     "webRequest",
-    "webRequestBlocking",
-    "clipboardWrite"
+    "webRequestBlocking"
   ],
   "background": {
     "scripts": [
       "modules/vendor/Rx.min.js",
       "modules/vendor/math.min.js",
+      "modules/vendor/dexie.min.js",
+      "modules/vendor/pouchdb.js",
       "modules/webextension-specific/app.bundle.js"
     ]
   },
@@ -39,9 +45,11 @@
     {
       "matches": ["*://*/*"],
       "run_at": "document_start",
+      "match_about_blank": true,
       "js": ["modules/core/content-script.bundle.js"]
     }
   ],
-  "content_security_policy":
-    "connect-src * http://*.google.com/*; object-src 'none'; script-src 'self' 'unsafe-eval'"
+  "web_accessible_resources": [
+    "modules/dropdown/dropdown.html"
+  ]
 }

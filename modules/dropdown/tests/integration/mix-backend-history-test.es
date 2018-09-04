@@ -1,16 +1,15 @@
-/* global window */
-
 import {
-  blurUrlBar,
   $cliqzResults,
+  blurUrlBar,
   expect,
-  testsEnabled,
   fillIn,
   respondWith,
+  testsEnabled,
+  waitFor,
+  waitForPopup,
+  win,
   withHistory,
   withMultipleHistory,
-  waitFor,
-  waitForPopup
 } from './helpers';
 
 export default function () {
@@ -27,11 +26,11 @@ export default function () {
     const backend1Selector = `.result[data-url="${backendUrl1}"`;
 
     before(function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     context('query length >= 4', function () {

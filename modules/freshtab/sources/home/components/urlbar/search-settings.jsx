@@ -6,7 +6,7 @@ export default class SearchSettings extends React.Component {
   constructor() {
     super();
     this.state = {
-      show: false
+      iframeHeight: 0,
     };
   }
 
@@ -46,20 +46,27 @@ export default class SearchSettings extends React.Component {
       });
     },
     resize: ({ height }) => {
-      this.iframe.style.height = `${height}px`;
+      // TODO moe this to control-center styles
       const controlCenter = this.iframe.contentWindow.document.getElementById('control-center');
       const footer = this.iframe.contentWindow.document.getElementsByClassName('footer')[0];
       controlCenter.style.width = 'auto';
       footer.style.width = 'auto';
+
+      const h = Math.min(height, this.props.maxHeight);
+      this.setState({ iframeHeight: h });
     },
     updatePref: (ev) => {
       cliqz.controlCenter.updatePref(ev);
     },
-    'complementary-search': () => {
+    'complementary-search': (data) => {
+      cliqz.controlCenter.complementarySearch(data);
     },
     'search-index-country': (ev) => {
       cliqz.controlCenter.searchIndexCountry(ev);
-    }
+    },
+    openURL: (ev) => {
+      cliqz.controlCenter.openURL(ev);
+    },
   }
 
   createIframeWrapper = (iframe) => {
@@ -105,37 +112,20 @@ export default class SearchSettings extends React.Component {
     this.action = iframeWrapper.createProxy();
   }
 
-  handleClick = () => {
-    this.setState({
-      show: !this.state.show
-    });
-
-    const isOpen = this.state.show;
-    if (isOpen) {
-      this.props.hideOverlay();
-    } else {
-      this.props.showOverlay();
-    }
-  }
-
   render() {
     return (
       <div>
         <div
-          className={`settings-panel ${(this.state.show ? 'open' : 'closed')}`}
+          className="settings-panel"
         >
           <iframe
             tabIndex="-1"
             src="../control-center/index.html?pageAction=true"
             title="Settings"
             ref={this.createIframeWrapper}
+            style={{ height: `${Math.min(this.state.iframeHeight, this.props.maxHeight)}px` }}
           />
         </div>
-        <button
-          className="search-settings-btn"
-          tabIndex="-1"
-          onClick={this.handleClick}
-        />
       </div>
     );
   }

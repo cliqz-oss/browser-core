@@ -1,9 +1,8 @@
 import {
+  $cliqzResults,
   app,
   blurUrlBar,
-  clearDB,
   clickWithMetaKey,
-  $cliqzResults,
   expect,
   fillIn,
   getAmountOfTabs,
@@ -12,11 +11,14 @@ import {
   waitFor,
   waitForPopup,
   waitForPopupClosed,
-  withHistory } from '../helpers';
+  win,
+  withHistory,
+} from '../helpers';
 
-import attachedOffers from '../fixtures/offers/attached/attachedOffers';
-import regularOffers from '../fixtures/offers/non-organic/noOffersInResultsExtraOffers';
-import prefs from '../../../../core/prefs';
+import attachedOffers from '../../../core/integration/fixtures/offers/attached/attachedOffers';
+import regularOffers from '../../../core/integration/fixtures/offers/non-organic/noOffersInResultsExtraOffers';
+import { mockOffersBackend } from '../../../core/integration/offers-helpers';
+
 
 function checkSignalsAfterBlur({ fixture, query = '', position, amountOfElements }) {
   describe('blurring the urlbar', function () {
@@ -24,7 +26,14 @@ function checkSignalsAfterBlur({ fixture, query = '', position, amountOfElements
       await mockSearch(fixture);
       withHistory([]);
       fillIn(query);
-      await waitForPopup(amountOfElements);
+      await waitForPopup(amountOfElements, 2000);
+
+      if (typeof position === 'number') {
+        await waitFor(() => $cliqzResults.querySelectorAll('a.result:not(.search)'));
+      } else if (typeof position === 'string') {
+        // wait for the attached offer
+        await waitFor(() => $cliqzResults.querySelectorAll('a.result:not(.search)').length > 1);
+      }
 
       blurUrlBar();
       await waitForPopupClosed();
@@ -33,9 +42,9 @@ function checkSignalsAfterBlur({ fixture, query = '', position, amountOfElements
         () =>
           expect(app.modules['offers-v2'].background)
             .to.have.nested.property(
-              'signalsHandler.sigMap.campaign.HCar.data.offers.HCar_TG9_O2_V1.origins.dropdown.offer_dsp_session'
+              'signalsHandler.sigMap.campaign.HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_dsp_session'
             ),
-        1000
+        2000
       );
     });
 
@@ -44,7 +53,7 @@ function checkSignalsAfterBlur({ fixture, query = '', position, amountOfElements
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, 'offer_shown')
             .to.have.nested.property(
-              'HCar.data.offers.HCar_TG9_O2_V1.origins.dropdown.offer_shown')
+              'HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_shown')
             .that.equals(1),
         1000
       );
@@ -52,7 +61,7 @@ function checkSignalsAfterBlur({ fixture, query = '', position, amountOfElements
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, `offer_shown_${position}`)
             .to.have.nested.property(
-              `HCar.data.offers.HCar_TG9_O2_V1.origins.dropdown.offer_shown_${position}`)
+              `HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_shown_${position}`)
             .that.equals(1),
         1000
       );
@@ -60,7 +69,7 @@ function checkSignalsAfterBlur({ fixture, query = '', position, amountOfElements
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, 'offer_dsp_session')
             .to.have.nested.property(
-              'HCar.data.offers.HCar_TG9_O2_V1.origins.dropdown.offer_dsp_session')
+              'HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_dsp_session')
             .that.equals(1),
         1000
       );
@@ -68,7 +77,7 @@ function checkSignalsAfterBlur({ fixture, query = '', position, amountOfElements
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, `offer_dsp_session_${position}`)
             .to.have.nested.property(
-              `HCar.data.offers.HCar_TG9_O2_V1.origins.dropdown.offer_dsp_session_${position}`)
+              `HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_dsp_session_${position}`)
             .that.equals(1),
         1000
       );
@@ -79,7 +88,7 @@ function checkSignalsAfterBlur({ fixture, query = '', position, amountOfElements
 function checkSignalsAfterClick({ fixture, query = '', position, amountOfElements }) {
   let $offerElement;
 
-  describe('clicking on the url', function () {
+  describe(`clicking on the url: ${query}`, function () {
     beforeEach(async function () {
       await mockSearch(fixture);
       withHistory([]);
@@ -105,9 +114,9 @@ function checkSignalsAfterClick({ fixture, query = '', position, amountOfElement
         () =>
           expect(app.modules['offers-v2'].background)
             .to.have.nested.property(
-              'signalsHandler.sigMap.campaign.HCar.data.offers.HCar_TG9_O2_V1.origins.dropdown.offer_shown'
+              'signalsHandler.sigMap.campaign.HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_shown'
             ),
-        1000
+        2000
       );
     });
 
@@ -120,7 +129,7 @@ function checkSignalsAfterClick({ fixture, query = '', position, amountOfElement
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, 'offer_shown')
             .to.have.nested.property(
-              'HCar.data.offers.HCar_TG9_O2_V1.origins.dropdown.offer_shown')
+              'HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_shown')
             .that.equals(1),
         1000
       );
@@ -128,7 +137,7 @@ function checkSignalsAfterClick({ fixture, query = '', position, amountOfElement
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, `offer_shown_${position}`)
             .to.have.nested.property(
-              `HCar.data.offers.HCar_TG9_O2_V1.origins.dropdown.offer_shown_${position}`)
+              `HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_shown_${position}`)
             .that.equals(1),
         1000
       );
@@ -136,7 +145,7 @@ function checkSignalsAfterClick({ fixture, query = '', position, amountOfElement
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, 'offer_dsp_session')
             .to.have.nested.property(
-              'HCar.data.offers.HCar_TG9_O2_V1.origins.dropdown.offer_dsp_session')
+              'HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_dsp_session')
             .that.equals(1),
         1000
       );
@@ -144,7 +153,7 @@ function checkSignalsAfterClick({ fixture, query = '', position, amountOfElement
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, `offer_dsp_session_${position}`)
             .to.have.nested.property(
-              `HCar.data.offers.HCar_TG9_O2_V1.origins.dropdown.offer_dsp_session_${position}`)
+              `HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_dsp_session_${position}`)
             .that.equals(1),
         1000
       );
@@ -152,7 +161,7 @@ function checkSignalsAfterClick({ fixture, query = '', position, amountOfElement
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, 'offer_ca_action')
             .to.have.nested.property(
-              'HCar.data.offers.HCar_TG9_O2_V1.origins.dropdown.offer_ca_action')
+              'HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_ca_action')
             .that.equals(1),
         1000
       );
@@ -160,7 +169,7 @@ function checkSignalsAfterClick({ fixture, query = '', position, amountOfElement
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, `offer_ca_action_${position}`)
             .to.have.nested.property(
-              `HCar.data.offers.HCar_TG9_O2_V1.origins.dropdown.offer_ca_action_${position}`)
+              `HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_ca_action_${position}`)
             .that.equals(1),
         1000
       );
@@ -171,33 +180,17 @@ function checkSignalsAfterClick({ fixture, query = '', position, amountOfElement
 export default function () {
   if (!testsEnabled()) { return; }
 
-  const offers = app.modules['offers-v2'].background;
-  const offersDB = [
-    'offers-signals-url',
-    'offers-last-cmp-signals',
-    'cliqz-categories-data',
-    'cliqz-categories-patterns',
-    'cliqz-offers-intent-db',
-    'cliqz-intent-offers-db',
-    'offers-db-index',
-    'offers-db-display-index',
-    '_pouch_cliqz-offers'
-  ];
-
   context('Dropdown offers signals', function () {
     before(function () {
-      window.preventRestarts = true;
-      prefs.set('offersDropdownSwitch', true);
+      win.preventRestarts = true;
     });
 
     beforeEach(async function () {
-      offers.unload();
-      await clearDB(offersDB);
-      await offers.init();
+      await mockOffersBackend();
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     context('for regular offers', function () {

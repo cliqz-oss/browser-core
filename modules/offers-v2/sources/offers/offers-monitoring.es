@@ -97,6 +97,19 @@ const selectActiveMonitors = (activeMonitors) => {
 };
 
 const getSignalNameForCoupon = (offerCouponCodes, couponUsed) => {
+  const autofillWhiteList = [
+    'coupon_autofill_field_apply_action',
+    'coupon_autofill_field_cancel_action',
+    'coupon_autofill_field_copy_code',
+    'coupon_autofill_field_failed',
+    'coupon_autofill_field_outside_action',
+    'coupon_autofill_field_show',
+    'coupon_autofill_field_unknown',
+    'coupon_autofill_field_x_action',
+  ];
+  if (autofillWhiteList.includes(couponUsed)) {
+    return couponUsed;
+  }
   const lUsedCode = couponUsed.toLowerCase();
   if (lUsedCode.length === 0) {
     return 'coupon_empty';
@@ -218,6 +231,9 @@ export default class OffersMonitorHandler {
    * }
    */
   shouldActivateOfferForUrl(urlData) {
+    if (!this.monitors[COUPON_TYPE].index) {
+      return { activate: false };
+    }
     const patterns = this.monitors[COUPON_TYPE].index.match(urlData.getPatternRequest());
 
     if (patterns.size === 0) {
@@ -231,7 +247,11 @@ export default class OffersMonitorHandler {
 
     const activeOffer = selectActiveMonitors(allActiveMonitors)[0];
     activeOffer.couponInfo.pattern = activeOffer.patterns[0];
-    return { offerInfo: activeOffer.couponInfo, activate: true };
+    return {
+      offerID: activeOffer.offerID,
+      offerInfo: activeOffer.couponInfo,
+      activate: true
+    };
   }
 
   /**
@@ -255,7 +275,6 @@ export default class OffersMonitorHandler {
 
     const signalName = getSignalNameForCoupon(couponValues, args.couponValue);
     const monitor = selectActiveMonitors(activeMonitors)[0];
-
     monitor.signalID = signalName;
     sendMonitorSignal(monitor, this.handlers, args.urlData);
   }
@@ -366,7 +385,12 @@ export default class OffersMonitorHandler {
   }
 
   checkUrl(urlData, monitorType) {
-    const patterns = this.monitors[monitorType].index.match(urlData.getPatternRequest());
+    const monitorIndex = this.monitors[monitorType].index;
+    if (monitorIndex === null) {
+      return;
+    }
+
+    const patterns = monitorIndex.match(urlData.getPatternRequest());
 
     const allActiveMonitors = [...patterns].map(pattern =>
       this.monitors[monitorType].patterns[pattern]
@@ -417,4 +441,3 @@ export default class OffersMonitorHandler {
     this._loadAndRebuild();
   }
 }
-

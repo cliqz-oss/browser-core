@@ -1,9 +1,8 @@
 import {
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 import {
-  clearIntervals,
-  expect
+  expect,
 } from '../../core/test-helpers';
 import data from './fixtures/full-long-logo';
 
@@ -78,7 +77,6 @@ describe('Promo bar', function () {
 
       after(function () {
         subject.unload();
-        clearIntervals();
       });
 
       describe('renders the main promo bar container', function () {

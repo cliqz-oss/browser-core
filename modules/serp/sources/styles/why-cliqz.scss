@@ -1,0 +1,30 @@
+.why-cliqz {
+  text-align: center;
+  background-image: url('../assets/no-tracking.gif');
+  background-position: center 100px;
+  background-repeat: no-repeat;
+  background-size: 46px 45px;
+  padding-top: 165px;
+
+  & p {
+    color: #a2a2a2;
+    font-size: 17.5px;
+    line-height: 1.6em;
+  }
+
+  & .small {
+    font-size: 13.5px;
+    text-decoration: none;
+  }
+
+  & a {
+    color: #00AEF0;
+
+    &:visited {
+      color: #00AEF0;
+    }
+    &:hover {
+      color: #0078CA;
+    }
+  }
+}

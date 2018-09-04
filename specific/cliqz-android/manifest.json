@@ -1,0 +1,57 @@
+{
+  "name": "{{name}}",
+  "version": "{{codeVersion}}",
+  "manifest_version": 2,
+  "description": "{{description}}",
+  "default_locale": "en",
+  "icons": {
+  },
+  "applications": {
+    "gecko": {
+      "id": "{{id}}"
+    }
+  },
+  "experiment_apis": {
+    "cliqzSearchEngines": {
+      "schema": "modules/cliqz-android/schemas/cliqz-search-engines.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "script": "modules/cliqz-android/cliqz-search-engines.bundle.js",
+        "paths": [["cliqzSearchEngines"]]
+      }
+    },
+    "cliqzNativeBridge": {
+      "schema": "modules/cliqz-android/schemas/cliqz-native-bridge.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "script": "modules/cliqz-android/cliqz-native-bridge.bundle.js",
+        "paths": [["cliqzNativeBridge"]]
+      }
+    },
+    "cliqzAppConstants": {
+      "schema": "modules/cliqz-android/schemas/cliqz-app-constants.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "script": "modules/cliqz-android/cliqz-app-constants.bundle.js",
+        "paths": [["cliqzAppConstants"]]
+      }
+    }
+  },
+  "permissions": [
+    "geolocation",
+    "history",
+    "<all_urls>",
+    "storage",
+    "tabs",
+    "topSites",
+    "webNavigation",
+    "clipboardWrite"
+  ],
+  "background": {
+    "scripts": [
+      "modules/vendor/Rx.min.js",
+      "modules/vendor/math.min.js",
+      "modules/cliqz-android/app.bundle.js"
+    ]
+  }
+}

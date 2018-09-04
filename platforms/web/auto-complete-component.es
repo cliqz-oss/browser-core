@@ -5,7 +5,7 @@ export const background = {
   unload() {}
 };
 export const Window = {
-  init(window) {
+  init() {
   },
   unload() {}
 };

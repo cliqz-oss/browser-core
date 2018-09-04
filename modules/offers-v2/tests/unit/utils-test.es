@@ -33,6 +33,50 @@ export default describeModule('offers-v2/utils',
     },
   }),
   () => {
+    describe('oncePerInterval function', () => {
+      let oncePerIntervalCached;
+
+      beforeEach(function () {
+        const oncePerInterval = this.module().oncePerInterval;
+        const f = () => 42;
+        oncePerIntervalCached = oncePerInterval(f, 200);
+      });
+
+      it('should cache on second invocation', () => {
+        const {cached} = oncePerIntervalCached({key: 'foo'})
+        chai.expect(cached).to.be.false;
+        const {cached: newCached} = oncePerIntervalCached({key: 'foo'})
+        chai.expect(newCached).to.be.true;
+      });
+
+      it('should cache before interval ends', () => {
+        const {cached} = oncePerIntervalCached({key: 'foo'})
+        chai.expect(cached).to.be.false;
+        new Promise(resolve => setTimeout(resolve, 100))
+          .then(() => {
+            const {cached: newCached} = oncePerIntervalCached({key: 'foo'})
+            chai.expect(newCached).to.be.true;
+          });
+      });
+
+      it('should not cache for new key', () => {
+        const {cached} = oncePerIntervalCached({key: 'foo'})
+        chai.expect(cached).to.be.false;
+        const {cached: newCached} = oncePerIntervalCached({key: 'bar'})
+        chai.expect(newCached).to.be.false;
+      });
+
+      it('should not cache after interval ends', () => {
+        const {cached} = oncePerIntervalCached({key: 'foo'})
+        chai.expect(cached).to.be.false;
+        new Promise(resolve => setTimeout(resolve, 300))
+          .then(() => {
+            const {cached: newCached} = oncePerIntervalCached({key: 'foo'})
+            chai.expect(newCached).to.be.false;
+          });
+      });
+    });
+
     describe('getLatestOfferInstallTs function', () => {
       let getLatestOfferInstallTs;
       const oneSecond = 1000;
@@ -43,7 +87,7 @@ export default describeModule('offers-v2/utils',
 
       it('check with empty prefs', () => {
         const diff = getLatestOfferInstallTs() - Number(Date.now());
-        chai.expect(diff < oneSecond).to.be.true;
+        chai.expect(Math.abs(diff) < oneSecond).to.be.true;
       });
 
       describe('with prefs and old version of ext', () => {
@@ -57,7 +101,7 @@ export default describeModule('offers-v2/utils',
 
         it('check with old version', () => {
           const diff = getLatestOfferInstallTs() - Number(Date.now());
-          chai.expect(diff < oneSecond).to.be.true;
+          chai.expect(Math.abs(diff) < oneSecond).to.be.true;
         });
       });
 
@@ -72,7 +116,7 @@ export default describeModule('offers-v2/utils',
 
         it('check with not valid prefs', () => {
           const diff = getLatestOfferInstallTs() - Number(Date.now());
-          chai.expect(diff < oneSecond).to.be.true;
+          chai.expect(Math.abs(diff) < oneSecond).to.be.true;
         });
       });
 

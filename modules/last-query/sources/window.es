@@ -23,16 +23,7 @@ export default class LastQueryWindow extends AppWindow {
       this.searchHistoryUI.showTabQuery(getCurrentTabId(this.window));
     },
 
-    'urlbar:keydown': ({ code, query, isHandledByCliqz, tabId }) => {
-      if ((code !== 'Enter') && (code !== 'NumpadEnter')) {
-        return;
-      }
-
-      // will be handled with ui:cliqz-on-url event
-      if (isHandledByCliqz) {
-        return;
-      }
-
+    'ui:enter': ({ query, tabId }) => {
       if (isUrl(query)) {
         return;
       }

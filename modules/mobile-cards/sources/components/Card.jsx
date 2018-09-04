@@ -56,6 +56,7 @@ class Card extends React.Component {
         accessibilityLabel={`result-card-${this.props.index}`}
         style={styles(width).container}
         onTouchStart={() => this.props.cliqz.mobileCards.hideKeyboard()}
+        key={result.url}
       >
         <ScrollView
           showsVerticalScrollIndicator={false}

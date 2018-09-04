@@ -1,20 +1,20 @@
-/* global window */
-
 import {
-  blurUrlBar,
-  checkMainResult,
-  testsEnabled,
-  checkLocationButtons,
-  checkTableOfCinemas,
   $cliqzResults,
+  blurUrlBar,
+  checkLocationButtons,
+  checkMainResult,
+  checkTableOfCinemas,
   fillIn,
   mockSearch,
   patchGeolocation,
   respondWithSnippet,
+  testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from './helpers';
-import { localResults, notLocalResults } from './fixtures/resultsMovieShowtimes';
+  win,
+  withHistory,
+} from './helpers';
+import { localResults, notLocalResults } from '../../core/integration/fixtures/resultsMovieShowtimes';
 import config from '../../../core/config';
 import prefs from '../../../core/prefs';
 
@@ -26,11 +26,11 @@ export default function () {
     patchGeolocation({ latitude: 48.15, longitude: 11.62 });
 
     before(function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     context('(UI)', function () {

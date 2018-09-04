@@ -47,7 +47,6 @@ export function getBrowserMajorVersion() {
   return majorVer;
 }
 
-export function setInstallDatePref() { }
 export function setOurOwnPrefs() { }
 export function enableChangeEvents() {}
 
@@ -99,13 +98,26 @@ export function getActiveTab() {
   });
 }
 
+let firstPartyIsolationEnabled = false;
 
 export function getCookies(url) {
   return new Promise((resolve) => {
-    chrome.cookies.getAll(
-      { url },
-      cookies => resolve(cookies.map(c => c.value).join(';'))
-    );
+    const query = { url };
+    if (firstPartyIsolationEnabled) {
+      query.firstPartyDomain = null;
+    }
+    chrome.cookies.getAll(query, (cookies) => {
+      // check for firstPartyDomain error. This indicates that first party isolation is enabled.
+      // we need to set a firstPartyDomain option on cookie api calls.
+      if (chrome.runtime.lastError &&
+          chrome.runtime.lastError.message &&
+          chrome.runtime.lastError.message.indexOf('firstPartyDomain') > -1) {
+        firstPartyIsolationEnabled = !firstPartyIsolationEnabled;
+        resolve(getCookies(url));
+      } else {
+        resolve(cookies.map(c => c.value).join(';'));
+      }
+    });
   });
 }
 

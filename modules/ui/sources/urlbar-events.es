@@ -93,6 +93,7 @@ export default {
     events.pub('urlbar:focus', {
       windowId: this.windowId,
       tabId: getCurrentTabId(this.window),
+      isPrivate: utils.isPrivateMode(this.window),
     });
   },
   /**

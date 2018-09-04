@@ -10,7 +10,7 @@ import {
   waitForPopup,
   withHistory } from '../helpers';
 import expectSelection from './common';
-import { weatherResults } from '../fixtures/resultsWeather';
+import { weatherResults } from '../../../core/integration/fixtures/resultsWeather';
 
 export default function () {
   if (!testsEnabled()) { return; }

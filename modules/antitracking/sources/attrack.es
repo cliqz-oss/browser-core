@@ -12,6 +12,7 @@ import pacemaker from '../core/pacemaker';
 import { getGeneralDomain } from '../core/tlds';
 import prefs from '../core/prefs';
 import events from '../core/events';
+import privacy from '../platform/privacy';
 
 import * as browser from '../platform/browser';
 import * as datetime from './time';
@@ -22,7 +23,7 @@ import TempSet from './temp-set';
 import cleanLegacyDb from './legacy/database';
 import md5 from '../core/helpers/md5';
 import telemetry from './telemetry';
-import { AttrackBloomFilter } from './bloom-filter';
+import AttrackBloomFilter from './attrack-bloom-filter';
 import { HashProb } from './hash';
 import { TrackerTXT, getDefaultTrackerTxtRule } from './tracker-txt';
 import { URLInfo, shuffle } from '../core/url-info';
@@ -31,6 +32,7 @@ import { checkInstalledPrivacyAddons } from '../platform/addon-check';
 import { compressionAvailable, compressJSONToBase64, generateAttrackPayload } from './utils';
 import AttrackDatabase from './database';
 import getTrackingStatus from './dnt';
+import TrackerCounter from '../core/helpers/tracker-counter';
 
 import BlockRules from './steps/block-rules';
 import CookieContext from './steps/cookie-context';
@@ -216,6 +218,7 @@ export default class CliqzAttrack {
     initPromises.push(this.qs_whitelist.init());
     initPromises.push(this.urlWhitelist.init());
     initPromises.push(this.db.init());
+    initPromises.push(this.initPrivacySettings());
 
     // force clean requestKeyValue
     this.onSafekeysUpdated = events.subscribe('attrack:safekeys_updated', (version, forceClean) => {
@@ -259,6 +262,31 @@ export default class CliqzAttrack {
     cleanLegacyDb();
 
     return Promise.all(initPromises);
+  }
+
+  async initPrivacySettings() {
+    // check if first party isolation is available
+    if (!privacy || !privacy.websites || !privacy.websites.firstPartyIsolate) {
+      return;
+    }
+
+    const firstPartyIsolateEnabled = (await privacy.websites.firstPartyIsolate.get({})).value;
+    if (firstPartyIsolateEnabled) {
+      this.config.setPref('cookieEnabled', false);
+    } else if (this.config.firstPartyIsolation) {
+      // turn on first party isolation, and set cookies to allowed from visited
+      await privacy.websites.cookieConfig.set({
+        value: {
+          behavior: 'allow_visited',
+          nonPersistentCookies: true,
+        }
+      });
+      await privacy.websites.firstPartyIsolate.set({ value: true });
+      // disable cookie blocking -> they're already isolated
+      this.config.setPref('cookieEnabled', false);
+    } else {
+      this.config.setPref('cookieEnabled', true);
+    }
   }
 
   initPipeline() {
@@ -405,6 +433,11 @@ export default class CliqzAttrack {
                        !this.config.paused,
         },
         {
+          name: 'oauthDetector.checkIsOAuth',
+          spec: 'break',
+          fn: state => steps.oauthDetector.checkIsOAuth(state, 'token'),
+        },
+        {
           name: 'isQSEnabled',
           spec: 'break',
           fn: () => this.isQSEnabled(),
@@ -413,6 +446,15 @@ export default class CliqzAttrack {
           name: 'blockRules.applyBlockRules',
           spec: 'blocking',
           fn: (state, response) => steps.blockRules.applyBlockRules(state, response),
+        },
+        {
+          name: 'logBlockedToken',
+          spec: 'collect',
+          fn: (state) => {
+            const annotations = state.getPageAnnotations();
+            annotations.counter = annotations.counter || new TrackerCounter();
+            annotations.counter.addTokenRemoved(state.ghosteryBug, state.urlParts.hostname);
+          },
         },
         {
           name: 'applyBlock',
@@ -526,6 +568,11 @@ export default class CliqzAttrack {
           fn: state => this.checkIsCookieWhitelisted(state),
         },
         {
+          name: 'checkCompatibilityList',
+          spec: 'break',
+          fn: state => this.checkCompatibilityList(state),
+        },
+        {
           name: 'cookieContext.checkCookieTrust',
           spec: 'break',
           fn: state => steps.cookieContext.checkCookieTrust(state),
@@ -543,7 +590,7 @@ export default class CliqzAttrack {
         {
           name: 'oauthDetector.checkIsOAuth',
           spec: 'break',
-          fn: state => steps.oauthDetector.checkIsOAuth(state),
+          fn: state => steps.oauthDetector.checkIsOAuth(state, 'cookie'),
         },
         {
           name: 'shouldBlockCookie',
@@ -556,6 +603,15 @@ export default class CliqzAttrack {
             }
             return shouldBlock;
           }
+        },
+        {
+          name: 'logBlockedCookie',
+          spec: 'collect',
+          fn: (state) => {
+            const annotations = state.getPageAnnotations();
+            annotations.counter = annotations.counter || new TrackerCounter();
+            annotations.counter.addCookieBlocked(state.ghosteryBug, state.urlParts.hostname);
+          },
         },
         {
           name: 'blockCookie',
@@ -689,6 +745,11 @@ export default class CliqzAttrack {
           name: 'checkIsCookieWhitelisted',
           spec: 'break',
           fn: state => this.checkIsCookieWhitelisted(state),
+        },
+        {
+          name: 'checkCompatibilityList',
+          spec: 'break',
+          fn: state => this.checkCompatibilityList(state),
         },
         {
           name: 'cookieContext.checkCookieTrust',
@@ -913,6 +974,17 @@ export default class CliqzAttrack {
     if (this.isInWhitelist(state.urlParts.hostname)) {
       const stage = state.responseStatus !== undefined ? 'set_cookie' : 'cookie';
       state.incrementStat(`${stage}_allow_whitelisted`);
+      return false;
+    }
+    return true;
+  }
+
+  checkCompatibilityList(state) {
+    const tpGd = state.urlParts.generalDomain;
+    const fpGd = state.sourceUrlParts.generalDomain;
+    if (this.config.compabilityList &&
+        this.config.compatibilityList[tpGd] &&
+        this.config.compatibilityList[tpGd].indexOf(fpGd) !== -1) {
       return false;
     }
     return true;

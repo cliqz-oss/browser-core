@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Offer Control Center Debug</title>
+  </head>
+  <body>
+    <iframe class="offer-control-center" src="./index.html"></iframe>
+    <iframe class="offer-control-center" src="./index.html"></iframe>
+    <iframe class="offer-control-center" src="./index.html"></iframe>
+    <iframe class="offer-control-center" src="./index.html"></iframe>
+
+    <script>
+        var DATA = [];
+    </script>
+    <script src="./debug/generic-tooltip.js"></script>
+    <script src="./debug/extra-tooltip.js"></script>
+    <script src="./debug/pop-up-empty.js"></script>
+    <script src="./debug/pop-up.js"></script>
+
+    <script>
+      var iframe = document.getElementById('offer-control-center');
+      function resize(iframe, obj) {
+        iframe.style.width = obj.width + "px";
+        iframe.style.height = obj.height + "px";
+      }
+
+      var all = document.getElementsByClassName('offer-control-center');
+
+      Array.prototype.forEach.call(all, function(iframe, idx) {
+          iframe.contentWindow.addEventListener('message', function (ev) {
+            var data = JSON.parse(ev.data);
+              console.log('===debug listener');
+            if(data.target === 'cliqz-offers-cc' &&
+               data.origin === 'iframe') {
+              if (data.message.action === 'resize') {
+                resize(iframe, data.message.data);
+              }
+              if (data.message.action === 'getEmptyFrameAndData') {
+                  setTimeout(function () {
+                      iframe.contentWindow.postMessage(JSON.stringify({
+                          target: 'cliqz-offers-cc',
+                          origin: 'window',
+                          message: {
+                              action: 'pushData',
+                              data: DATA[idx],
+                          },
+                      }), '*');
+                  }, 250);
+              }
+            }
+          });
+        });
+    </script>
+  </body>
+</html>

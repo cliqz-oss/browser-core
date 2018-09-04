@@ -11,7 +11,7 @@ import {
   waitForPopup,
   withHistory } from '../helpers';
 import expectSelection from './common';
-import { notLocalResults } from '../fixtures/resultsCinema';
+import { notLocalResults } from '../../../core/integration/fixtures/resultsCinema';
 import prefs from '../../../../core/prefs';
 
 export default function () {

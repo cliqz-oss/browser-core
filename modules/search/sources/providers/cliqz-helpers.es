@@ -46,10 +46,3 @@ export const encodeLocation = (specifySource, lat, lng) => {
 
   return qs;
 };
-
-export const encodeWikiDedup = () => {
-  // disable wikipedia deduplication on the backend side
-  const doDedup = prefs.get('languageDedup', false);
-  if (doDedup) return '&ddl=0';
-  return '';
-};

@@ -1,7 +1,4 @@
-import {
-  clearIntervals,
-  expect
-} from '../../core/test-helpers';
+import { expect } from '../../core/test-helpers';
 import {
   CONFIG,
   defaultConfig,
@@ -42,10 +39,6 @@ describe('Fresh tab buttons UI', function () {
         custom: []
       },
     });
-  });
-
-  after(function () {
-    clearIntervals();
   });
 
   context('rendered in wide window', function () {

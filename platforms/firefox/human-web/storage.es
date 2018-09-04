@@ -212,9 +212,7 @@ export default class {
   }
 
   deleteVisit(url) {
-    this.SQL('delete from usafe where url = :url', null, null, {
-      url: this.escapeSQL(url)
-    });
+    this.SQL('delete from usafe where url = :url', null, null, { url });
   }
 
   clearHistory() {
@@ -318,17 +316,6 @@ export default class {
     this.dbConn.executeSimpleSQL(hashUnsafe);
     this.dbConn.executeSimpleSQL(hashCans);
     this.dbConn.executeSimpleSQL(telemetry);
-  }
-
-  escapeSQL(str) {
-    return str.replace(/[\0\x08\x09\x1a\n\r''\\%]/g, (char) => {
-      switch (char) {
-        case "'":
-          return "''";
-        default:
-          return char;
-      }
-    });
   }
 
   saveURL(url, newObj, callback) {

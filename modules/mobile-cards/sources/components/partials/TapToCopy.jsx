@@ -4,11 +4,17 @@ import Link from '../Link';
 import { getMessage } from '../../../core/i18n';
 import { copyToClipboard } from '../../../core/clipboard';
 
-export default class TapToCopy extends React.Component {
+const styles = StyleSheet.create({
+  copy: {
+    color: '#CECECE',
+    alignSelf: 'center',
+  }
+});
 
+export default class TapToCopy extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { copied: false }
+    this.state = { copied: false };
   }
 
   componentWillReceiveProps() {
@@ -20,7 +26,7 @@ export default class TapToCopy extends React.Component {
       <Link
         onPress={() => {
           copyToClipboard(String(this.props.val));
-          this.setState({copied: true})
+          this.setState({ copied: true });
         }}
       >
         <View>
@@ -33,10 +39,3 @@ export default class TapToCopy extends React.Component {
     );
   }
 }
-
-const styles = StyleSheet.create({
-  copy: {
-    color: '#CECECE',
-    alignSelf: 'center',
-  }
-});

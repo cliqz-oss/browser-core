@@ -7,9 +7,17 @@ module.exports = Object.assign({}, browserBase, {
     channel: '99',
     'freshtab.search.mode': 'urlbar',
   }, ciUrl),
+  default_prefs: Object.assign({}, browserBase.default_prefs, {
+    freshtabConfig: JSON.stringify({
+      background: {
+        image: 'bg-default'
+      }
+    }),
+  }),
   modules: browserBase.modules
     .concat([
-      'firefox-tests',
+      'dropdown-tests',
+      'integration-tests',
     ]),
   subprojects: browserBase.subprojects.concat(subprojects([
     'chai',

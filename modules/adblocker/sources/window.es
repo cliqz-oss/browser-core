@@ -7,7 +7,7 @@ import CliqzADB, {
   adbABTestEnabled,
   ADB_PREF_VALUES,
   ADB_PREF_OPTIMIZED,
-  ADB_PREF
+  ADB_PREF,
 } from './adblocker';
 
 

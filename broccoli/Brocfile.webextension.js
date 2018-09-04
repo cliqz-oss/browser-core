@@ -8,7 +8,8 @@ const util = require('./util');
 const modules = require('./modules-tree');
 const cliqzConfig = require('./config');
 
-let specificTree = new Source.WatchedDir('specific/webextension');
+const specific = cliqzConfig.specific || 'webextension';
+let specificTree = new Source.WatchedDir('specific/'+specific);
 
 const localesTree = new Funnel(modules.static, {
   srcDir: 'static/locale',
@@ -22,7 +23,6 @@ const localesTree = new Funnel(modules.static, {
 });
 
 const sourceTree = new MergeTrees([
-  modules.modules,
   modules.bundles,
 ], {
   overwrite: true
@@ -40,7 +40,7 @@ const modulesTree = new Funnel(
 
 const config = writeFile('cliqz.json', JSON.stringify(cliqzConfig));
 const configTree = util.injectConfig(specificTree, config, 'cliqz.json', [
-  'manifest.json'
+  'manifest.json',
 ]);
 
 specificTree = new MergeTrees([

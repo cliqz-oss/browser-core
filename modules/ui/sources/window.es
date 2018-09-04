@@ -131,7 +131,7 @@ export default class UIWindow extends AppWindow {
     this.reloadUrlbar();
     this.initialized = true;
 
-    this.goButton = attachGoButton(this.window);
+    this.goButton = attachGoButton(this.window, inject.module('search'));
 
     this.applyAdditionalThemeStyles();
   }
@@ -153,7 +153,7 @@ export default class UIWindow extends AppWindow {
       }
 
       // redo search query
-      if (oldVal && !prefs.get('firefox-tests.started', false)) {
+      if (oldVal && !prefs.get('integration-tests.started', false)) {
         inject.module('core').action('queryCliqz', oldVal);
       }
     };

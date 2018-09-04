@@ -8,7 +8,7 @@ import {
   testServer,
   waitFor,
   waitForAsync,
-  win
+  win,
 } from '../../../tests/core/test-helpers';
 import { getLocalisedString } from '../../../tests/core/integration/helpers';
 
@@ -155,10 +155,10 @@ function getApiOffersMock() {
 const mockOffersBackend = async () => {
   // Register mocked paths for offers
   await Promise.all([
-    testServer.registerPathHandler('/api/v1/categories', apiCategoriesMock),
-    testServer.registerPathHandler('/api/v1/loadsubtriggers', apiLoadSubTriggersMock),
-    testServer.registerPathHandler('/api/v1/offers', getApiOffersMock()),
-    testServer.registerPathHandler('/integration_tests/landing', '<html><body><p>Hello world</p></body></html>'),
+    testServer.registerPathHandler('/api/v1/categories', { result: apiCategoriesMock }),
+    testServer.registerPathHandler('/api/v1/loadsubtriggers', { result: apiLoadSubTriggersMock }),
+    testServer.registerPathHandler('/api/v1/offers', { result: getApiOffersMock() }),
+    testServer.registerPathHandler('/integration_tests/landing', { result: '<html><body><p>Hello world</p></body></html>' }),
   ]);
 
   // Configure offers to use our local http server
@@ -200,14 +200,12 @@ export default function () {
       const tooltipSelector = '#cliqz-offers-cc #cqz-offer-cc-content';
 
       beforeEach(async function () {
-        await newTab(getPage(`landing?q=${triggerKeyword}`), true);
-        await waitForAsync(() => testServer.hasHit('/api/v1/offers'), 50);
+        await newTab(getPage(`landing?q=${triggerKeyword}`));
+        await waitForAsync(() => testServer.hasHit('/api/v1/offers'));
 
-        await waitFor(
-          () =>
-            expect(getBlueNotificationPopup().querySelector(tooltipSelector).classList.contains('tooltip'))
-              .to.be.true,
-          1000);
+        await waitFor(() =>
+          expect(getBlueNotificationPopup().querySelector(tooltipSelector).classList.contains('tooltip')).to.be.true
+        );
       });
 
       it('shows a blue notification popup with correct text', function () {
@@ -224,11 +222,9 @@ export default function () {
           press({
             key: 'Escape'
           });
-          await waitFor(
-            () =>
-              expect(win.document.querySelector('#offers-cc-browser-action-iframe'))
-                .to.not.exist,
-            1000);
+          await waitFor(() =>
+            expect(win.document.querySelector('#offers-cc-browser-action-iframe')).to.not.exist
+          );
         });
 
         it('closes the blue notification', async function () {
@@ -257,7 +253,7 @@ export default function () {
             .querySelector('#offers-cc-browser-action-iframe').contentWindow.document
             .querySelector('#cliqz-offers-cc');
 
-          await waitFor(() => expect($offer).to.exist, 1000);
+          await waitFor(() => expect($offer).to.exist);
           await waitFor(() => expect($offer.querySelector(`${labelSelector} ${exclusiveLabelSelector}`), 'Exclusive label', 1000).to.exist);
           expect($offer.querySelector(`${labelSelector} ${exclusiveLabelSelector}`))
             .to.have.text('Exclusive');

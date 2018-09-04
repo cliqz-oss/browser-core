@@ -1,12 +1,15 @@
 import {
   blurUrlBar,
   expect,
-  testsEnabled,
   fastFillIn,
   respondWith,
+  sleep,
+  testsEnabled,
   urlbar,
   waitFor,
-  withHistory } from '../helpers';
+  win,
+  withHistory,
+} from '../helpers';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -35,11 +38,11 @@ export default function () {
     }
 
     before(function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     context('for one history result', function () {
@@ -51,7 +54,7 @@ export default function () {
         fastFillIn(query);
         return Promise.all([
           waitFor(() => urlbar.mInputField.value === friendlyUrl),
-          window.sleep(1000),
+          sleep(1000),
         ]);
       });
 
@@ -74,7 +77,7 @@ export default function () {
         fastFillIn(query);
         return Promise.all([
           waitFor(() => urlbar.mInputField.value === friendlyUrl),
-          window.sleep(1000),
+          sleep(1000),
         ]);
       });
 
@@ -97,7 +100,7 @@ export default function () {
         fastFillIn(query);
         return Promise.all([
           waitFor(() => urlbar.mInputField.value === friendlyUrl),
-          window.sleep(1000),
+          sleep(1000),
         ]);
       });
 
@@ -120,7 +123,7 @@ export default function () {
         fastFillIn(query);
         return Promise.all([
           waitFor(() => urlbar.mInputField.value === friendlyUrl),
-          window.sleep(1000),
+          sleep(1000),
         ]);
       });
 

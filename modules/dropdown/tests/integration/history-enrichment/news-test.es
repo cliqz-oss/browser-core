@@ -7,10 +7,10 @@ import {
   mockSearch,
   waitFor,
   waitForPopup,
-  withHistory
+  withHistory,
 } from '../helpers';
 
-import results from '../fixtures/resultsNews';
+import results from '../../../core/integration/fixtures/resultsNews';
 
 export default function () {
   if (!testsEnabled()) { return; }

@@ -12,7 +12,7 @@ x11vnc -rfbport 5900 -rfbauth /tmp/vncpass -forever > /dev/null 2>&1 &
 
 # while running this script, you can add multiple paratemeters in quotes, e.g.:
 # './configs/ci/browser.js --firefox /home/node/firefox52/firefox/firefox'
-# ./fern.js serve "$@" --environment testing
+# ./fern.js serve "$@" --include-tests
 
 # to use test instead of serve comment previous line and uncomment the next one
 ./fern.js test "$@" --ci report.xml

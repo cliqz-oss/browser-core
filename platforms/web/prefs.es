@@ -43,3 +43,6 @@ export function disableChangeEvents() {
 export function init() {
   return Promise.resolve();
 }
+
+export function getAllCliqzPrefs() {
+}

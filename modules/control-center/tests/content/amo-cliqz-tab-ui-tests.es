@@ -1,6 +1,5 @@
 import {
-  clearIntervals,
-  expect
+  expect,
 } from '../../core/test-helpers';
 import Subject from './local-helpers';
 import { dataOn, dataOff } from './fixtures/amo-cliqz-tab';
@@ -16,7 +15,6 @@ describe('Control Center: AMO, Cliqz tab UI tests', function () {
 
   after(function () {
     subject.unload();
-    clearIntervals();
   });
 
   function cliqzTabUiTests() {

@@ -1,3 +1,4 @@
+// TODO: remove?
 /*
  * Merges multiple responses into one by concatening their results.
  *
@@ -5,7 +6,10 @@
  */
 const merge = (responses) => {
   if (responses.length === 0) {
-    return [];
+    // TODO: handle elswhere?
+    return {
+      results: [],
+    };
   }
 
   const latest = responses.reduce((min, cur) =>

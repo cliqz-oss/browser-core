@@ -3,7 +3,7 @@ import prefs from './prefs';
 import { getGeneralDomain, extractHostname } from './tlds';
 import { LazyPersistentObject } from '../core/persistent-state';
 import Logger from './logger';
-
+import { isOnionMode } from './platform';
 
 export default class UrlWhitelist {
   constructor(whitelistName, legacyPref) {
@@ -34,9 +34,12 @@ export default class UrlWhitelist {
   }
 
   persistWhitelist() {
-    this.whitelistPersist.setValue({
-      urls: [...this.whitelist.values()]
-    });
+    // We want to avoid persisting any data to disk in onion-mode.
+    if (!isOnionMode) {
+      this.whitelistPersist.setValue({
+        urls: [...this.whitelist.values()]
+      });
+    }
   }
 
   upgrade() {

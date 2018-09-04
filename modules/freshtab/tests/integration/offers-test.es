@@ -1,245 +1,40 @@
 import {
   app,
-  clearDB,
+  click,
   CliqzEvents,
   closeTab,
   expect,
   focusOnTab,
-  getAmountOfTabs,
-  getResourceUrl,
   newTab,
   queryHTML,
-  click,
   testServer,
   waitFor,
   waitForAsync,
-  waitForElement
+  waitForElement,
 } from '../../../tests/core/test-helpers';
-import { isFirefox } from '../../../core/platform';
-import prefs from '../../../core/prefs';
 
-function getMainPage() {
-  return `http://cliqztest.com:${testServer.port}`;
-}
+import {
+  getResourceUrl,
+} from '../../../tests/core/integration/helpers';
 
-function getPage(url) {
-  return `${getMainPage()}/integration_tests/${url}`;
-}
-
-const apiCategoriesMock = JSON.stringify({
-  categories: [
-    {
-      name: 'tempcat_Sparbonus.com_RewardBox_200€AmazonGiftCard_TG1',
-      timeRangeSecs: 900,
-      patterns: [
-        'strom vergleich$fuzzy,domain=bing.de|check24.de|google.com|google.de',
-        'strompreisvergleich$fuzzy,domain=bing.de|check24.de|google.com|google.de',
-      ],
-      revHash: 'a8dfffa81f',
-      activationData: {
-        activationTimeSecs: 86400,
-        args: {
-          totNumHits: 1
-        },
-        func: 'simpleCount'
-      }
-    }
-  ],
-  revision: 'abc',
-});
-
-const apiLoadSubTriggersMock = JSON.stringify([
-  {
-    trigger_uid: '1212121212121212121212',
-    campaign_id: 'test_campaign_v1',
-    parent_trigger_ids: [
-      'root'
-    ],
-    trigger_id: 'test_campaign_v1_triggering',
-    version: 20,
-    validity: [
-      1524528023,
-      Date.now() - 1
-    ],
-    paused: false,
-    ttl: 3600,
-    actions: [
-      [
-        '$activate_intent',
-        [
-          {
-            durationSecs: 86400,
-            name: 'test_campaign_v1_OOW'
-          }
-        ]
-      ]
-    ]
-  }
-]);
-
-function getApiOffersMock() {
-  return JSON.stringify([
-    {
-      offer_id: 'test_offer_v1',
-      campaign_id: 'test_campaign_v1',
-      display_id: 'test_campaign_v1-d',
-      types: [
-        'test_campaign_v1'
-      ],
-      rs_dest: [
-        'cliqz-tab'
-      ],
-      version: '123123123123123',
-      monitorData: [
-        {
-          params: {
-            filter_last_secs: 5,
-            referrer_cat: true,
-            store: false
-          },
-          patterns: [
-            '||cliqztest*/integration_tests/success'
-          ],
-          signalID: 'success',
-          type: 'urlchange'
-        },
-        {
-          params: {
-            filter_last_secs: 5,
-            referrer_cat: true,
-            store: false
-          },
-          patterns: [
-            '||cliqztest*/integration_tests/payment'
-          ],
-          signalID: 'payment',
-          type: 'urlchange'
-        },
-        {
-          params: {
-            filter_last_secs: 5,
-            referrer_cat: true,
-            store: false
-          },
-          patterns: [
-            '||cliqztest*/integration_tests/landing'
-          ],
-          signalID: 'page_imp',
-          type: 'urlchange'
-        },
-        {
-          params: {
-            filter_last_secs: 5,
-            referrer_cat: true,
-            store: false
-          },
-          patterns: [
-            '||cliqztest*/integration_tests/landing'
-          ],
-          signalID: 'landing',
-          type: 'urlchange'
-        },
-        {
-          params: {
-            filter_last_secs: 5,
-            referrer_cat: true,
-            store: false
-          },
-          patterns: [
-            '||cliqztest*/integration_tests/cart'
-          ],
-          signalID: 'cart',
-          type: 'urlchange'
-        }
-      ],
-      ui_info: {
-        styles: {
-          'call-to-action-bg-color': '#e741',
-          'call-to-action-color': '#fff'
-        },
-        template_data: {
-          benefit: '499€',
-          call_to_action: {
-            target: '',
-            text: '(Int-Test) Jetzt anmelden',
-            url: getPage('landing')
-          },
-          code: 'IT-ODI-MO4915',
-          desc: '(Int-Test) Jetzt registrieren und zusätzlich 15 Minuten geschenkt bekommen!',
-          headline: '(Int-Test) Anmeldegebuhr',
-          logo_class: 'normal',
-          logo_url: 'https://cdn.cliqz.com/extension/offers/test/resources/drivenow-week/drivenow-week-logo-normal-1524572543.png',
-          title: '(Int-Test) 499€ Anmeldegebühr (statt 29€) & 15 Freiminuten geschenkt! ',
-          validity: (Date.now() * 1000) + 1
-        },
-        template_name: 'ticket_template'
-      },
-      displayPriority: 1,
-      rule_info: {
-        display_time_secs: 120,
-        type: 'exact_match',
-        url: []
-      },
-      filterRules: {
-        eval_expression: "generic_comparator('offer_pushed','counter','<=',0)"
-      },
-      expirationMs: 624789
-    }
-  ]);
-}
+import {
+  getPage,
+  mockOffersBackend,
+  clearOffersDB,
+} from '../../../tests/core/integration/offers-helpers';
 
 export default function () {
-  // Currently queryHTML from core/background will only work in firefox.
-  if (!isFirefox) {
-    return;
-  }
-
+  const freshtabUrl = getResourceUrl('freshtab/home.html');
   let allCampaigns;
-  const freshtabUrl = getResourceUrl('freshtab', 'home.html');
-  const offers = app.modules['offers-v2'].background;
+  let offers;
 
-  const offersDB = [
-    'offers-signals-url',
-    'offers-last-cmp-signals',
-    'cliqz-categories-data',
-    'cliqz-categories-patterns',
-    'cliqz-offers-intent-db',
-    'cliqz-intent-offers-db',
-    'offers-db-index',
-    'offers-db-display-index',
-    '_pouch_cliqz-offers'
-  ];
-
-  const mockOffersBackend = async () => {
-    // Register mocked paths for offers
-    await Promise.all([
-      testServer.registerPathHandler('/api/v1/categories', apiCategoriesMock),
-      testServer.registerPathHandler('/api/v1/loadsubtriggers', apiLoadSubTriggersMock),
-      testServer.registerPathHandler('/api/v1/offers', getApiOffersMock()),
-      testServer.registerPathHandler('/integration_tests/landing', '<html><body><p>Hello world</p></body></html>'),
-      testServer.registerPathHandler('/integration_tests/cart', '<html><body><p>cart</p></body></html>'),
-      testServer.registerPathHandler('/integration_tests/payment', '<html><body><p>payment</p></body></html>'),
-      testServer.registerPathHandler('/integration_tests/success', '<html><body><p>success</p></body></html>'),
-    ]);
-
-    // Configure offers to use our local http server
-    prefs.set('triggersBE', testServer.getBaseUrl());
-
-    // Reload offer to take the new config into account
-    offers.unload();
-    await clearDB(offersDB);
-    await offers.init();
-
-    // Force call to /api/v1/categories
-    await offers.categoryFetcher._performFetch();
-  };
-
-  describe('Freshtab offers', function () {
+  describe('Freshtab offers tests', function () {
     let offerShown;
     let freshtabId;
 
     beforeEach(async function () {
-      await mockOffersBackend();
+      await mockOffersBackend({ dest: 'cliqz-tab' });
+      offers = app.modules['offers-v2'].background;
 
       // Simulate location change, to trigger offers' expression evaluation.
       CliqzEvents.pub('content:location-change', {
@@ -249,33 +44,26 @@ export default function () {
         },
       });
 
-      // Wait for Offers to hit the http server
-      await waitForAsync(async () =>
-        await testServer.hasHit('/api/v1/categories') &&
-        await testServer.hasHit('/api/v1/loadsubtriggers') &&
-        testServer.hasHit('/api/v1/offers')
-      );
+      await testServer.hasHit('/api/v1/categories');
+      await testServer.hasHit('/api/v1/loadsubtriggers');
+
       // Load freshtab in new tab
-      freshtabId = await newTab(freshtabUrl, true);
+      freshtabId = await newTab(freshtabUrl);
+      focusOnTab(freshtabId);
 
       // Expect offer to appear in notification box
-      // offerShown = await waitForAsync(async () =>
-      //   Boolean((await queryHTML(freshtabUrl, '.offer', 'innerText')).length) === true
-      // );
       offerShown = await waitForElement({
         url: freshtabUrl,
-        selector: '.offer',
+        selector: '.offer-unit',
         isPresent: true
       });
 
       allCampaigns = offers.signalsHandler.sigMap.campaign;
     });
 
-    afterEach(async () => {
-      // prefs.clear('triggersBE');
+    afterEach(() => {
       offers.unload();
-      await clearDB(offersDB);
-      await testServer.reset();
+      return clearOffersDB();
     });
 
     it('trigger correctly', function () {
@@ -305,8 +93,17 @@ export default function () {
         });
       });
 
-      it('increments counter for "code_copied"', function () {
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'code_copied')
+      it('increments counter for "code_copied"', async function () {
+        await waitFor(() =>
+          expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'code_copied, browser-side')
+            .to.have.property('code_copied').to.equal(1),
+        );
+
+        offers.signalsHandler._sendSignalsToBE();
+        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+        const hits = await testServer.getHits();
+        expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'code_copied, server-side')
           .to.have.property('code_copied').to.equal(1);
       });
     });
@@ -319,6 +116,7 @@ export default function () {
           isPresent: true
         });
         await click(freshtabUrl, '.offer-description a[data-class="light-tooltip"]');
+
         await waitForElement({
           url: getPage('landing'),
           selector: 'p',
@@ -331,20 +129,35 @@ export default function () {
         expect(landingPageContent[0]).to.equal('Hello world');
       });
 
-      it('increments counters for: "offer_ca_action", "landing", "page_imp", "ref_none" and "offer_description"', async function () {
+      it('increments counters for: "offer_ca_action", "landing", "page_imp" and "offer_description"', async function () {
         await waitFor(() =>
           expect(allCampaigns)
-            .to.have.nested.property('test_campaign_v1.data.offers.test_offer_v1.origins.trigger'), 1000);
+            .to.have.nested.property('test_campaign_v1.data.offers.test_offer_v1.origins.trigger'));
 
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_ca_action')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_ca_action, browser-side')
           .to.have.property('offer_ca_action').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'landing')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'landing, browser-side')
           .to.have.property('landing').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp, browser-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none')
-          .to.have.property('ref_none').to.equal(2);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_description')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none, browser-side')
+          .to.have.property('ref_none'); // actual value is not stable to test
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_description, browser-side')
+          .to.have.property('offer_description').to.equal(1);
+
+        offers.signalsHandler._sendSignalsToBE();
+        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+        const hits = await testServer.getHits();
+        expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
+          .to.have.property('offer_ca_action').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'landing, server-side')
+          .to.have.property('landing').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
+          .to.have.property('page_imp').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'ref_none, server-side')
+          .to.have.property('ref_none'); // actual value is not stable to test
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_description, server-side')
           .to.have.property('offer_description').to.equal(1);
       });
     });
@@ -353,10 +166,10 @@ export default function () {
       beforeEach(async function () {
         await waitForElement({
           url: freshtabUrl,
-          selector: 'a.cta-btn .cta-txt',
+          selector: 'a.footer-cta',
           isPresent: true
         });
-        await click(freshtabUrl, 'a.cta-btn .cta-txt');
+        await click(freshtabUrl, 'a.footer-cta');
         await waitForElement({
           url: getPage('landing'),
           selector: 'p',
@@ -369,19 +182,32 @@ export default function () {
         expect(landingPageContent[0]).to.equal('Hello world');
       });
 
-      it('increments counters for: "offer_ca_action", "landing", "page_imp" and "ref_none"', async function () {
+      it('increments counters for: "offer_ca_action", "landing" and "page_imp"', async function () {
         await waitFor(() =>
           expect(allCampaigns)
-            .to.have.nested.property('test_campaign_v1.data.offers.test_offer_v1.origins.trigger'), 1000);
+            .to.have.nested.property('test_campaign_v1.data.offers.test_offer_v1.origins.trigger'));
 
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_ca_action')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_ca_action, browser-side')
           .to.have.property('offer_ca_action').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'landing')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'landing, browser-side')
           .to.have.property('landing').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp, browser-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none')
-          .to.have.property('ref_none').to.equal(2);
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none, browser-side')
+          .to.have.property('ref_none'); // actual value is not stable to test
+
+        offers.signalsHandler._sendSignalsToBE();
+        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+        const hits = await testServer.getHits();
+        expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
+          .to.have.property('offer_ca_action').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'landing, server-side')
+          .to.have.property('landing').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
+          .to.have.property('page_imp').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'ref_none, server-side')
+          .to.have.property('ref_none'); // actual value is not stable to test
       });
     });
 
@@ -405,19 +231,36 @@ export default function () {
         expect(landingPageContent[0]).to.equal('Hello world');
       });
 
-      it('increments counters for: "offer_benefit", "landing", "page_imp" and "ref_none"', async function () {
+      it('increments counters for: "offer_benefit", "landing" and "page_imp"', async function () {
         await waitFor(() =>
           expect(allCampaigns)
-            .to.have.nested.property('test_campaign_v1.data.offers.test_offer_v1.origins.trigger'), 1000);
+            .to.have.nested.property('test_campaign_v1.data.offers.test_offer_v1.origins.trigger'));
 
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_benefit')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_benefit, browser-side')
           .to.have.property('offer_benefit').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'landing')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_ca_action, browser-side')
+          .to.have.property('offer_ca_action').to.equal(1);
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'landing, browser-side')
           .to.have.property('landing').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp, browser-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none')
-          .to.have.property('ref_none').to.equal(2);
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none, browser-side')
+          .to.have.property('ref_none'); // actual value is not stable to test
+
+        offers.signalsHandler._sendSignalsToBE();
+        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+        const hits = await testServer.getHits();
+        expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_benefit, server-side')
+          .to.have.property('offer_ca_action').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
+          .to.have.property('offer_ca_action').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'landing, server-side')
+          .to.have.property('landing').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
+          .to.have.property('page_imp').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'ref_none, server-side')
+          .to.have.property('ref_none'); // actual value is not stable to test
       });
     });
 
@@ -441,21 +284,36 @@ export default function () {
         expect(landingPageContent[0]).to.equal('Hello world');
       });
 
-      it('increments counters for: "offer_ca_action", "landing", "page_imp", "ref_none" and "offer_headline"', async function () {
+      it('increments counters for: "offer_ca_action", "landing", "page_imp" and "offer_headline"', async function () {
         await waitFor(() =>
           expect(allCampaigns)
-            .to.have.nested.property('test_campaign_v1.data.offers.test_offer_v1.origins.trigger'), 1000);
+            .to.have.nested.property('test_campaign_v1.data.offers.test_offer_v1.origins.trigger'));
 
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_ca_action')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_ca_action, browser-side')
           .to.have.property('offer_ca_action').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'landing')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'landing, browser-side')
           .to.have.property('landing').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp, browser-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none')
-          .to.have.property('ref_none').to.equal(2);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_headline')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none, browser-side')
+          .to.have.property('ref_none'); // actual value is not stable to test
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_headline, browser-side')
           .to.have.property('offer_headline').to.equal(1);
+
+        offers.signalsHandler._sendSignalsToBE();
+        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+        const hits = await testServer.getHits();
+        expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
+          .to.have.property('offer_ca_action').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'landing, server-side')
+          .to.have.property('landing').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
+          .to.have.property('page_imp').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'ref_none, server-side')
+          .to.have.property('ref_none'); // actual value is not stable to test
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_headline, server-side')
+          .to.have.property('offer_headline');
       });
     });
 
@@ -463,10 +321,10 @@ export default function () {
       beforeEach(async function () {
         await waitForElement({
           url: freshtabUrl,
-          selector: '.logo-container .logo-url',
+          selector: '.logo .logo-url',
           isPresent: true
         });
-        await click(freshtabUrl, '.logo-container .logo-url');
+        await click(freshtabUrl, '.logo .logo-url');
         await waitForElement({
           url: getPage('landing'),
           selector: 'p',
@@ -479,82 +337,116 @@ export default function () {
         expect(landingPageContent[0]).to.equal('Hello world');
       });
 
-      it('increments counters for: "offer_ca_action", "landing", "page_imp", "ref_none" and "offer_logo"', async function () {
+      it('increments counters for: "offer_ca_action", "landing", "page_imp" and "offer_logo"', async function () {
         await waitFor(() =>
           expect(allCampaigns)
-            .to.have.nested.property('test_campaign_v1.data.offers.test_offer_v1.origins.trigger'), 1000);
+            .to.have.nested.property('test_campaign_v1.data.offers.test_offer_v1.origins.trigger'));
 
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_ca_action')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_ca_action, browser-side')
           .to.have.property('offer_ca_action').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'landing')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'landing, browser-side')
           .to.have.property('landing').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp, browser-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none')
-          .to.have.property('ref_none').to.equal(2);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_logo')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none, browser-side')
+          .to.have.property('ref_none'); // actual value is not stable to test
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_logo, browser-side')
           .to.have.property('offer_logo').to.equal(1);
+
+        offers.signalsHandler._sendSignalsToBE();
+        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+        const hits = await testServer.getHits();
+        expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
+          .to.have.property('offer_ca_action').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'landing, server-side')
+          .to.have.property('landing').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
+          .to.have.property('page_imp').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'ref_none, server-side')
+          .to.have.property('ref_none'); // actual value is not stable to test
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_logo, server-side')
+          .to.have.property('offer_logo');
       });
     });
 
     // TODO: rewrite these tests without needing to close extra freshtab
     describe('opening second instance of Freshtab', function () {
       beforeEach(async function () {
-        await newTab(freshtabUrl, true);
-        await waitFor(() => getAmountOfTabs() === 3);
-      });
+        const newFreshTab = await newTab(freshtabUrl);
+        await focusOnTab(newFreshTab);
 
-      it('displays the same offer again', async function () {
         // close first instance of freshtab, so we can use queryHTML
-        closeTab(freshtabId);
-        await waitFor(() => getAmountOfTabs() === 2);
-        await waitForAsync(async () => (await queryHTML(freshtabUrl, '.headline .headline-url', 'innerText')).length === 1);
+        await closeTab(freshtabId);
+        freshtabId = newFreshTab;
 
-        const offerHeadlines = await queryHTML(freshtabUrl, '.headline .headline-url', 'innerText');
-        expect(offerHeadlines[0]).to.equal('(Int-Test) Anmeldegebuhr');
+        await waitForElement({ url: freshtabUrl, selector: '.headline .headline-url' });
       });
 
       it('sends a signal containing NOT incremented "offer_triggered" and "offer_pushed", and incremented values of "offer_dsp_session" and "offer_shown"', async function () {
-        // close first instance of freshtab, so we can use queryHTML
-        closeTab(freshtabId);
-        await waitFor(() => getAmountOfTabs() === 2);
-        await waitForAsync(async () => (await queryHTML(freshtabUrl, '.headline .headline-url', 'innerText')).length === 1);
+        await waitForAsync(() =>
+          allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'].offer_shown > 1
+        );
 
         expect(
-          allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.processor, 'offer_triggered')
+          allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.processor, 'offer_triggered, browser-side')
           .to.have.property('offer_triggered').to.equal(1);
         expect(
-          allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.processor, 'offer_pushed')
+          allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.processor, 'offer_pushed, browser-side')
           .to.have.property('offer_pushed').to.equal(1);
         expect(
-          allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_dsp_session')
+          allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_dsp_session, browser-side')
           .to.have.property('offer_dsp_session').to.equal(2);
         expect(
-          allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_shown')
+          allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_shown, browser-side')
           .to.have.property('offer_shown').to.equal(2);
+
+        offers.signalsHandler._sendSignalsToBE();
+        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+        const hits = await testServer.getHits();
+        expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[0].origin_data, 'offer_triggered, server-side')
+          .to.have.property('offer_triggered').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[0].origin_data, 'offer_pushed, server-side')
+          .to.have.property('offer_pushed').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_dsp_session, server-side')
+          .to.have.property('offer_dsp_session').to.equal(2);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_shown, .to.equal(2)server-side')
+          .to.have.property('offer_shown').to.equal(2);
+      });
+
+      it('displays the same offer again', async function () {
+        const offerHeadlines = await queryHTML(freshtabUrl, '.headline .headline-url', 'innerText');
+        expect(offerHeadlines[0]).to.equal('(Int-Test) Anmeldegebuhr');
       });
     });
 
     describe('opening another page and then moving focus back to the Freshtab instance', function () {
       beforeEach(async function () {
-        await focusOnTab(freshtabId);
-
-        const landingPageId = await newTab(getPage('landing'), true);
-        await waitForAsync(async () =>
-          Boolean((await queryHTML(getPage('landing'), 'p', 'innerText')).length) === true
-        );
+        const landingUrl = getPage('landing');
+        const landingPageId = await newTab(landingUrl);
         await focusOnTab(landingPageId);
-
-        await new Promise(r => setTimeout(r, 500));
-
+        await waitForElement({ url: landingUrl, selector: 'p' });
+        await closeTab(landingPageId);
         await focusOnTab(freshtabId);
       });
 
-      it('increments counters for: "offer_shown"', async function () {
+      it('increments the counter counter for "offer_shown" and does NOT increment the counter for "offer_dsp_session"', async function () {
         await waitFor(() =>
           allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'].offer_shown > 1);
 
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_shown')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_shown, browser-side')
+          .to.have.property('offer_shown').to.equal(2);
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_dsp_session. browser-side')
+          .to.have.property('offer_dsp_session').to.equal(1);
+
+        offers.signalsHandler._sendSignalsToBE();
+        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+        const hits = await testServer.getHits();
+        expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_dsp_session, server-side')
+          .to.have.property('offer_dsp_session').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_shown, server-side')
           .to.have.property('offer_shown').to.equal(2);
       });
     });
@@ -574,37 +466,47 @@ export default function () {
         });
       });
 
-      ['cart', 'payment', 'success']
-        .forEach((signal) => {
-          context(`${signal}`, function () {
-            beforeEach(async function () {
-              const page = getPage(`${signal}`);
-              focusOnTab(await newTab(page, true));
-              await waitForAsync(async () =>
-                await queryHTML(page, 'p', 'innerText')[0] !== `${signal}`);
-            });
+      ['cart', 'payment', 'success'].forEach((signal) => {
+        context(signal, function () {
+          beforeEach(async function () {
+            const page = getPage(signal);
+            await focusOnTab(await newTab(page));
+            await waitForAsync(async () => (await queryHTML(page, 'p', 'innerText'))[0] === signal);
+          });
 
-            it(`increments counter for "${signal}"`, async function () {
-              await waitForAsync(async () =>
-                expect(allCampaigns).to.have.nested.property(
-                  'test_campaign_v1.data.offers.test_offer_v1.origins.trigger'
-                )
-              );
-              expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, `${signal}`)
-                .to.have.property(`${signal}`).to.equal(1);
-            });
+          it(`increments counter for "${signal}"`, async function () {
+            await waitForAsync(() =>
+              expect(allCampaigns).to.have.nested.property(
+                'test_campaign_v1.data.offers.test_offer_v1.origins.trigger'
+              )
+            );
+            expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, `${signal}, browser-side`)
+              .to.have.property(`${signal}`).to.equal(1);
+
+            offers.signalsHandler._sendSignalsToBE();
+            await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+            const hits = await testServer.getHits();
+            expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, `${signal}, server-side`)
+              .to.have.property(signal).to.equal(1);
           });
         });
+      });
     });
 
     describe('clicking on the offer close button', function () {
       beforeEach(async function () {
         await waitForElement({
           url: freshtabUrl,
-          selector: '.notification .close',
+          selector: 'button.options',
           isPresent: true
         });
-        await click(freshtabUrl, '.notification .close');
+        await click(freshtabUrl, 'button.options');
+        await waitForElement({
+          url: freshtabUrl,
+          selector: '.offer-menu.white-box.show-it button',
+          isPresent: true
+        });
+        await click(freshtabUrl, '.offer-menu.white-box.show-it button');
         await waitForElement({
           url: freshtabUrl,
           selector: '.feedback-header',
@@ -616,14 +518,21 @@ export default function () {
         await waitFor(
           () =>
             expect(allCampaigns).to.have.nested.property(
-              'test_campaign_v1.data.offers.test_offer_v1.origins'
+              'test_campaign_v1.data.offers.test_offer_v1.origins.cliqz-tab.offer_removed'
             ),
-          1000
         );
 
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_removed')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_removed, browser-side')
           .to.have.property('offer_removed').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.processor, 'offer_db_removed')
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.processor, 'offer_db_removed, browser-side')
+          .to.have.property('offer_db_removed').to.equal(1);
+
+        offers.signalsHandler._sendSignalsToBE();
+        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+        const hits = await testServer.getHits();
+        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_removed, server-side')
+          .to.have.property('offer_removed').to.equal(1);
+        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[0].origin_data, 'offer_db_removed, server-side')
           .to.have.property('offer_db_removed').to.equal(1);
       });
     });

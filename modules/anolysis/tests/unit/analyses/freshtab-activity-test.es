@@ -5,7 +5,7 @@ require('../telemetry-schemas-test-helpers')({
   metrics: [
     'freshtab.home.show',
     'freshtab.home.click.topsite',
-    'freshtab.home.click.favorite',
+    'freshtab.home.click.favorite'
   ],
   tests: (generateAnalysisResults) => {
     const arrayof3 = [{}, {}, {}];

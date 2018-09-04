@@ -1,21 +1,32 @@
-import apply from '../apply';
-import rerank from '../rerank';
-import limit from '../limit';
-import merge from '../merge';
-import reconstruct from '../reconstruct';
-import smooth from '../smooth';
-import trim from '../trim';
-import enhance from '../enhance';
-import addCompletion from './add-completion';
+// TODO: move `finalize` to `streams`
 
-export default (observable$, config) => observable$
-  .let(obs => smooth(obs, config))
-  // TODO: combine the following maps into a single function
-  .map(responses => responses.map(limit))
-  .map(merge)
-  .map(response => addCompletion(response, config))
-  .map(rerank)
-  .map(trim)
-  .map(enhance)
-  .map(response => apply(response, reconstruct))
-  .pluck('results');
+import Rx from '../../../platform/lib/rxjs';
+
+import mapResponses from '../streams/map-responses';
+
+import rerank from '../responses/rerank';
+
+// TODO: move all these to 'operators/responses' and use mapResponses
+import addCompletionToResults from '../streams/add-completion-to-results';
+import enhanceResults from '../streams/enhance-results';
+import filterEmptyQueries from '../streams/filter-empty-queries';
+import limitResults from '../streams/limit-results';
+import mergeResults from '../streams/merge-results';
+import reconstructResults from '../streams/reconstruct-results';
+import smoothResults from '../streams/smooth-results';
+import trimResults from '../streams/trim-results';
+
+const { pipe } = Rx;
+
+export default config => pipe(
+  smoothResults(config),
+  filterEmptyQueries(config),
+  limitResults(config),
+  mergeResults(config),
+  // only one response is left after `merge`
+  addCompletionToResults(config),
+  mapResponses(rerank, config),
+  trimResults(config),
+  enhanceResults(config),
+  reconstructResults(config),
+);

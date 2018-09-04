@@ -7,7 +7,7 @@ const MOCK = {
   'core/events': {
     default: {},
   },
-  'human-web/bloom-filter': {
+  'human-web/cliqz-bloom-filter': {
     default: {},
   },
   'core/platform': {
@@ -80,8 +80,8 @@ const MOCK = {
   },
 
   // transitive dependencies: human-web/network
-  'platform/human-web/dns': {
-    Dns: class {
+  'human-web/fallback-dns': {
+    default: class {
       resolveHost() {
         // non-resolvable address, which will appear
         // as a public address to human-web
@@ -328,6 +328,18 @@ export default describeModule('human-web/human-web',
             query: 'cliqz',
             url: 'https://www.cliqz.com',
           }));
+      });
+
+      it('#checkForEmail should detect email addresses', function () {
+        // examples:
+        expect(HumanWeb.checkForEmail('some.email@domain.test')).to.be.true;
+        expect(HumanWeb.checkForEmail('text with email@dummy.test address')).to.be.true;
+        expect(HumanWeb.checkForEmail('AnotherEmail@domain123.test')).to.be.true;
+
+        // counter examples:
+        expect(HumanWeb.checkForEmail('')).to.be.false;
+        expect(HumanWeb.checkForEmail('123456')).to.be.false;
+        expect(HumanWeb.checkForEmail('some text without an email address')).to.be.false;
       });
 
       // TODO: test `checkSearchURL` and `maskURL` separately

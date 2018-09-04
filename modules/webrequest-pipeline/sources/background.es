@@ -5,9 +5,9 @@ import WebRequest, { VALID_RESPONSE_PROPERTIES, EXTRA_INFO_SPEC } from '../core/
 import Pipeline from './pipeline';
 import WebRequestContext from './webrequest-context';
 import PageStore from './page-store';
-import { installFetchSanitizer } from './fetch-sanitizer';
+import installFetchSanitizer from './fetch-sanitizer';
 import logger from './logger';
-import { isChromium, isEdge } from '../core/platform';
+import { isWebExtension, isEdge } from '../core/platform';
 
 
 /**
@@ -52,7 +52,7 @@ function createResponse(details) {
       }
       const name_ = name.toLowerCase();
       const headerIndex = this.requestHeaders.findIndex(h => h.name.toLowerCase() === name_);
-      if (isChromium && !value) {
+      if (isWebExtension && !value) {
         // empty value on chromium: remove header
         if (headerIndex > -1) {
           this.requestHeaders.splice(headerIndex, 1);
@@ -114,6 +114,7 @@ function createWebRequestContext(details, pageStore) {
 
 export default background({
   initialized: false,
+  requiresServices: ['telemetry'],
 
   enabled() { return true; },
 
@@ -190,7 +191,7 @@ export default background({
         response,
         !this.whitelist.isWhitelisted(webRequestContext.url),
       );
-      if (isChromium) {
+      if (isWebExtension) {
         return sanitizeResponse(response, event);
       }
       return response;

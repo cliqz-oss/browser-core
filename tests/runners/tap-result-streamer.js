@@ -1,0 +1,45 @@
+const WebSocket = require('ws');
+
+exports.TapStreamer = class TapStreamer {
+  constructor(port = 3001) {
+    // Listener to close event
+    this.onclose = () => {};
+
+    // Start listening for client
+    this.wss = new WebSocket.Server({ port });
+    this.sockets = new Set();
+
+    this.wss.on('error', (err) => {
+      // eslint-disable-next-line no-console
+      console.error('TAP result streamer error', err);
+    });
+
+    this.wss.on('connection', async (ws) => {
+      // Keep track of opened sockets so that they can be terminated properly on `unload`
+      this.sockets.add(ws);
+
+      ws.on('message', (message) => {
+        const parsed = JSON.parse(message);
+        if (parsed.tap) {
+          // Forward logs from browser to stdin
+          // eslint-disable-next-line no-console
+          console.log(parsed.tap);
+        } else if (parsed.action === 'END') {
+          this.onclose();
+        }
+      });
+
+      ws.on('close', () => {
+        this.onclose();
+        this.sockets.delete(ws);
+      });
+    });
+  }
+
+  unload() {
+    this.wss.close();
+    this.sockets.forEach((ws) => {
+      ws.close();
+    });
+  }
+};

@@ -1,14 +1,16 @@
 import {
-  blurUrlBar,
   $cliqzResults,
+  blurUrlBar,
   expect,
-  testsEnabled,
   fillIn,
   respondWith,
+  testsEnabled,
   urlbar,
   waitFor,
   waitForPopup,
-  withHistory } from '../helpers';
+  win,
+  withHistory,
+} from '../helpers';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -44,7 +46,7 @@ export default function () {
 
     context('backend comes first', function () {
       before(async function () {
-        window.preventRestarts = true;
+        win.preventRestarts = true;
         blurUrlBar();
         withHistory([{ value: historyUrl1 }], 600);
         respondWith({ results: [{ url: backendUrl1 }] });
@@ -57,7 +59,7 @@ export default function () {
       });
 
       after(function () {
-        window.preventRestarts = false;
+        win.preventRestarts = false;
       });
 
       // then check that both results were rendered at the same time

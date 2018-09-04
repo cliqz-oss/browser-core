@@ -1,7 +1,6 @@
 import {
-  clearIntervals,
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
 import Subject from './local-helpers';
 import { dataOn, dataOffPage, dataOffSite, dataOffAll } from './fixtures/adblocker';
@@ -17,7 +16,6 @@ describe('Control Center: Ad-Block interaction browser', function () {
 
   afterEach(function () {
     subject.unload();
-    clearIntervals();
   });
 
   function updateGeneralStateTest(selector) {

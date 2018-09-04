@@ -1,0 +1,11 @@
+@import './mixins/mobile';
+
+@include mobile {
+  .footer {
+    &-about {
+      padding-left: 0;
+      width: 100%;
+    }
+  }
+}
+

@@ -4,17 +4,6 @@ import { elementSideMargins } from '../../styles/CardStyle';
 import Link from '../Link';
 import { getMessage } from '../../../core/i18n';
 
-class Url extends React.Component {
-
-  render() {
-    return (
-      <Link url={this.props.url}>
-        <Text style={styles.text}>{getMessage('more_on')} {this.props.provider}</Text>
-      </Link>
-    );
-  }
-}
-
 const styles = StyleSheet.create({
   text: {
     color: '#999',
@@ -25,4 +14,10 @@ const styles = StyleSheet.create({
   }
 });
 
-export default Url;
+export default function (props) {
+  return (
+    <Link url={props.url}>
+      <Text style={styles.text}>{getMessage('more_on')} {props.provider}</Text>
+    </Link>
+  );
+}

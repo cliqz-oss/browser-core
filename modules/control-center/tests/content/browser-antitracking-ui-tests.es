@@ -1,6 +1,5 @@
 import {
-  clearIntervals,
-  expect
+  expect,
 } from '../../core/test-helpers';
 import Subject from './local-helpers';
 import { generateDataOn, generateDataOffSite, generateDataOffAll } from './fixtures/antitracking';
@@ -19,7 +18,6 @@ function antitrackingUiTests(amo) {
 
   after(function () {
     subject.unload();
-    clearIntervals();
   });
 
   function headerProtected() {

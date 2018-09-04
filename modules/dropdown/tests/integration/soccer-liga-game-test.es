@@ -1,30 +1,30 @@
-/* global window */
-
 import {
-  blurUrlBar,
   $cliqzResults,
-  testsEnabled,
+  blurUrlBar,
   checkButtons,
   checkMainResult,
   checkParent,
   checkSoccerLigaGame,
   fillIn,
   mockSearch,
+  testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from './helpers';
-import results from './fixtures/resultsSoccerLigaGame';
+  win,
+  withHistory,
+} from './helpers';
+import results from '../../core/integration/fixtures/resultsSoccerLigaGame';
 
 export default function () {
   if (!testsEnabled()) { return; }
 
   context('for soccer liga game results', function () {
     before(function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     context('(UI)', function () {

@@ -1,13 +1,14 @@
 /* globals chai */
-import { app, win, wrap, CliqzUtils, queryHTML } from '../../platform/test-helpers/helpers';
-import waitForAsync from '../../core/helpers/wait';
+import { win, wrap, CliqzUtils, queryHTML } from '../../platform/test-helpers/helpers';
+import { waitForAsync, waitFor, wait } from '../../core/helpers/wait';
 import { getCurrentgBrowser } from '../../platform/tabs';
 
 export * from '../../platform/test-helpers/helpers';
-
-// Fake http server
-export { default as testServer } from './http-server';
-export { default as waitForAsync } from '../../core/helpers/wait';
+export {
+  wait,
+  waitFor,
+  waitForAsync
+} from '../../core/helpers/wait';
 
 // Re-export some browser utils
 export {
@@ -28,68 +29,10 @@ export const lang = wrap(() => CliqzUtils.getWindow().CLIQZ.i18n.getMessage('loc
 
 export const prefs = wrap(() => CliqzUtils.getWindow().CLIQZ.prefs);
 
-export function wait(time) {
-  return new Promise(resolve => setTimeout(resolve, time));
-}
-
 export const sleep = wait;
 
 export function clone(obj) {
   return JSON.parse(JSON.stringify(obj));
-}
-
-let testIntervals = [];
-
-export function registerInterval(interval) {
-  testIntervals.push(interval);
-}
-
-export function clearIntervals() {
-  testIntervals.forEach((interval) => {
-    if (interval.stop) {
-      interval.stop();
-    } else {
-      clearInterval(interval);
-    }
-  });
-  testIntervals = [];
-}
-
-export function waitFor(fn, until) {
-  let resolver;
-  let rejecter;
-  let interval;
-  let error;
-
-  const promise = new Promise((res, rej) => {
-    resolver = res;
-    rejecter = rej;
-  });
-
-  function check() {
-    let result = false;
-
-    try {
-      result = fn();
-    } catch (e) {
-      error = e;
-    }
-
-    if (result) {
-      clearInterval(interval);
-      resolver(result);
-    }
-  }
-
-  interval = setInterval(check, 100);
-  check();
-  registerInterval(interval);
-
-  if (until) {
-    setTimeout(() => rejecter(error), until);
-  }
-
-  return promise;
 }
 
 export function waitForPrefChange(changedPref) {
@@ -102,8 +45,6 @@ export function waitForPrefChange(changedPref) {
     });
   });
 }
-export const click = (url, selector) =>
-  app.modules.core.action('click', url, selector);
 
 export function clickWithMetaKey(el, opt) {
   const _opt = opt || {};
@@ -119,7 +60,7 @@ export function clickWithMetaKey(el, opt) {
   el.dispatchEvent(ev);
 }
 
-export async function waitForElement({
+export function waitForElement({
   url,
   selector,
   isPresent = true
@@ -143,17 +84,6 @@ export function getAmountOfTabs() {
   return gBrowser.tabs.length;
 }
 
-export async function focusOnTab(tabId) {
-  const gBrowser = getCurrentgBrowser();
-  const index = [...gBrowser.tabs].findIndex(t => t.linkedBrowser.outerWindowID === tabId);
-
-  await waitFor(() => {
-    gBrowser.selectTabAtIndex(index);
-    return getCurrentgBrowser().tabs[index].selected;
-  });
-}
-
-
 export class GenericSubject {
   constructor() {
     this.messages = [];
@@ -166,13 +96,12 @@ export class GenericSubject {
     this.iframe.height = 700;
     document.body.appendChild(this.iframe);
 
-    return new Promise((resolve) => {
-      this.iframe.contentWindow.addEventListener('message', (ev) => {
-        const data = JSON.parse(ev.data);
-        this.messages.push(data);
-      });
-      return waitFor(() => this.messages.length === 1).then(resolve);
+    this.iframe.contentWindow.addEventListener('message', (ev) => {
+      const data = JSON.parse(ev.data);
+      this.messages.push(data);
     });
+
+    return waitFor(() => this.messages.length >= 1);
   }
 
   unload() {

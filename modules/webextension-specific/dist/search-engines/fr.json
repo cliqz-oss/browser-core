@@ -1,0 +1,276 @@
+[
+  {
+    "name": "Cliqz",
+    "description": "Cliqz Search",
+    "encoding": "UTF-8",
+    "urls": {
+      "text/html": {
+        "type": "text/html",
+        "method": "GET",
+        "template": "https://suchen.cliqz.com/#{searchTerms}"
+      }
+    },
+    "searchForm": "https://suchen.cliqz.com"
+  },
+  {
+    "name": "Google",
+    "description": "Google Search",
+    "encoding": "UTF-8",
+    "urls": {
+      "application/x-suggestions+json": {
+        "method": "GET",
+        "template": "https://www.google.com/complete/search?client=firefox&q={searchTerms}"
+      },
+      "text/html": {
+        "method": "GET",
+        "template": "https://www.google.com/search",
+        "params": [
+          {
+            "name": "q",
+            "value": "{searchTerms}"
+          },
+          {
+            "name": "ie",
+            "value": "utf-8"
+          },
+          {
+            "name": "oe",
+            "value": "utf-8"
+          }
+        ]
+      }
+    },
+    "searchForm": "https://www.google.com/search"
+  },
+  {
+    "name": "Bing",
+    "description": "Bing. Search by Microsoft.",
+    "encoding": "UTF-8",
+    "urls": {
+      "application/x-suggestions+json": {
+        "template": "https://www.bing.com/osjson.aspx",
+        "params": [
+          {
+            "name": "query",
+            "value": "{searchTerms}"
+          },
+          {
+            "name": "form",
+            "value": "OSDJAS"
+          },
+          {
+            "name": "language",
+            "value": "{moz:locale}"
+          }
+        ]
+      },
+      "text/html": {
+        "method": "GET",
+        "template": "https://www.bing.com/search",
+        "params": [
+          {
+            "name": "q",
+            "value": "{searchTerms}"
+          },
+          {
+            "name": "pc",
+            "value": "MOZI"
+          }
+        ]
+      }
+    },
+    "searchForm": "https://www.bing.com/search"
+  },
+  {
+    "name": "Amazon.fr",
+    "description": "Recherche Amazon.fr",
+    "encoding": "UTF-8",
+    "searchForm": "https://www.amazon.fr/",
+    "urls": {
+      "text/html": {
+        "method": "GET",
+        "template": "https://www.amazon.fr/exec/obidos/external-search/",
+        "params": [
+          {
+            "name": "field-keywords",
+            "value": "{searchTerms}"
+          },
+          {
+            "name": "ie",
+            "value": "{inputEncoding}"
+          },
+          {
+            "name": "mode",
+            "value": "blended"
+          },
+          {
+            "name": "tag",
+            "value": "firefox-fr-21"
+          },
+          {
+            "name": "sourceid",
+            "value": "Mozilla-search"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "DuckDuckGo",
+    "description": "Search DuckDuckGo",
+    "encoding": "UTF-8",
+    "urls": {
+      "text/html": {
+        "method": "get",
+        "template": "https://duckduckgo.com/",
+        "params": [
+          {
+            "name": "q",
+            "value": "{searchTerms}"
+          }
+        ]
+      },
+      "application/x-suggestions+json": {
+        "template": "https://ac.duckduckgo.com/ac/",
+        "params": [
+          {
+            "name": "q",
+            "value": "{searchTerms}"
+          },
+          {
+            "name": "type",
+            "value": "list"
+          }
+        ]
+      }
+    },
+    "searchForm": "https://duckduckgo.com/"
+  },
+  {
+    "name": "eBay",
+    "description": "eBay - Online auctions",
+    "searchForm": "https://www.ebay.fr/",
+    "urls": {
+      "text/html": {
+        "method": "GET",
+        "template": "https://rover.ebay.com/rover/1/709-53476-19255-0/1",
+        "params": [
+          {
+            "name": "ff3",
+            "value": "4"
+          },
+          {
+            "name": "toolid",
+            "value": "20004"
+          },
+          {
+            "name": "campid",
+            "value": "5338192028"
+          },
+          {
+            "name": "customid",
+            "value": ""
+          },
+          {
+            "name": "mpre",
+            "value": "https://www.ebay.fr/sch/{searchTerms}"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Portail Lexical - CNRTL",
+    "description": "Centre National de Ressources Textuelles et Lexicales",
+    "encoding": "UTF-8",
+    "searchForm": "http://www.cnrtl.fr/lexicographie/",
+    "urls": {
+      "text/html": {
+        "method": "GET",
+        "template": "http://www.cnrtl.fr/lexicographie/{searchTerms}"
+      },
+      "application/x-suggestions+json": {
+        "method": "GET",
+        "template": "http://www.cnrtl.fr/utilities/OPEN",
+        "params": [
+          {
+            "name": "query",
+            "value": "{searchTerms}"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Qwant",
+    "description": "Qwant is a search engine that respects your privacy and eases discovering and sharing via a social approach.",
+    "encoding": "UTF-8",
+    "urls": {
+      "application/x-suggestions+json": {
+        "method": "GET",
+        "template": "https://api.qwant.com/api/suggest/",
+        "params": [
+          {
+            "name": "client",
+            "value": "opensearch"
+          },
+          {
+            "name": "q",
+            "value": "{searchTerms}"
+          }
+        ]
+      },
+      "text/html": {
+        "method": "GET",
+        "template": "https://www.qwant.com/",
+        "params": [
+          {
+            "name": "client",
+            "value": "opensearch"
+          },
+          {
+            "name": "q",
+            "value": "{searchTerms}"
+          }
+        ]
+      }
+    },
+    "searchForm": "https://www.qwant.com/"
+  },
+  {
+    "name": "Wikipédia (fr)",
+    "description": "Wikipédia, l'encyclopédie libre",
+    "encoding": "UTF-8",
+    "urls": {
+      "application/x-suggestions+json": {
+        "method": "GET",
+        "template": "https://fr.wikipedia.org/w/api.php",
+        "params": [
+          {
+            "name": "action",
+            "value": "opensearch"
+          },
+          {
+            "name": "search",
+            "value": "{searchTerms}"
+          }
+        ]
+      },
+      "text/html": {
+        "method": "GET",
+        "template": "https://fr.wikipedia.org/wiki/Spécial:Recherche",
+        "params": [
+          {
+            "name": "search",
+            "value": "{searchTerms}"
+          },
+          {
+            "name": "sourceid",
+            "value": "Mozilla-search"
+          }
+        ]
+      }
+    },
+    "searchForm": "https://fr.wikipedia.org/wiki/Spécial:Recherche"
+  }
+]

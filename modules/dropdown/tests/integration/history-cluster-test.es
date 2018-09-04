@@ -1,13 +1,15 @@
 import {
-  blurUrlBar,
   $cliqzResults,
+  blurUrlBar,
   expect,
   fillIn,
   mockSearch,
   testsEnabled,
   waitForPopup,
-  withHistory } from './helpers';
-import historyResults from './fixtures/historyResultsHistoryCluster';
+  win,
+  withHistory,
+} from './helpers';
+import historyResults from '../../core/integration/fixtures/historyResultsHistoryCluster';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -24,7 +26,7 @@ export default function () {
 
   context('for history cluster', function () {
     before(async function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
       blurUrlBar();
       await mockSearch({});
       withHistory(historyResults);
@@ -33,7 +35,7 @@ export default function () {
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     describe('renders history cluster', function () {

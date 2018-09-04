@@ -1,9 +1,9 @@
 import utils from '../core/utils';
 import console from '../core/console';
-import inject from '../core/kord/inject';
 import config from '../core/config';
 import { REAL_ESTATE_ID } from './consts';
 import { getDetailsFromUrl } from '../core/url';
+import { copyToClipboard } from '../core/clipboard';
 
 const MODULE_NAME = 'browser-panel-window';
 const UI_IFRAME_WIDTH_DEF = '100%';
@@ -35,11 +35,12 @@ export default class Win {
   constructor(settings) {
     this.window = settings.window;
     this.settings = settings.settings;
-    this.coreModule = inject.module('browser-panel');
+    this.background = settings.background;
 
     this.iframeHandlers = {
       offersIFrameHandler: this.offersIFrameHandler.bind(this),
-      openUrlHandler: this.openURL.bind(this)
+      openUrlHandler: this.openURL.bind(this),
+      copyToClipboard: ({ data }) => copyToClipboard(data),
     };
 
     // integration of the new ui system here
@@ -223,7 +224,7 @@ export default class Win {
   // @brief method to send a message to the core ui manager
   //
   sendToCoreUIHandler(data) {
-    this.coreModule.action('windowUIConnector', data);
+    this.background.actions.windowUIConnector(data);
   }
 
   /**

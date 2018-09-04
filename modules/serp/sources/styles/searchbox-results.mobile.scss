@@ -1,0 +1,16 @@
+@import './mixins/mobile';
+
+@include mobile() {
+  .searchbox {
+    &-results {
+      &-layout, &-section {
+        padding-left: 0;
+      }
+
+      &-section {
+        padding-left: 5px;
+        padding-right: 5px;
+      }
+    }
+  }
+}

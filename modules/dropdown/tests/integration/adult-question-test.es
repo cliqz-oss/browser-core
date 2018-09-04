@@ -1,11 +1,11 @@
 import {
+  $cliqzResults,
   app,
   blurUrlBar,
-  checkMainResult,
   checkAdultButtons,
+  checkMainResult,
   checkParent,
   checkSearchResult,
-  $cliqzResults,
   expect,
   fillIn,
   getLocalisedString,
@@ -14,8 +14,10 @@ import {
   waitFor,
   waitForPopup,
   waitForPopupClosed,
-  withHistory } from './helpers';
-import results from './fixtures/resultsAdultQuestion';
+  win,
+  withHistory,
+} from './helpers';
+import results from '../../core/integration/fixtures/resultsAdultQuestion';
 import prefs from '../../../core/prefs';
 
 export default function () {
@@ -28,11 +30,11 @@ export default function () {
 
   describe('adult question', function () {
     before(function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     context('(UI)', function () {

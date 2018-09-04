@@ -40,10 +40,9 @@ const DEFAULT_CONFIG = {
         { provider: 'history', condition: prioritizeHistoryCondition },
       ],
       includeOffers: true,
+      count: config.settings['search.config.providers.cliqz.count'] || 5,
+      jsonpCallback: config.settings['search.config.providers.cliqz.jsonpCallback'] || '',
       order: 4,
-    },
-    suggestions: {
-      order: 5,
     },
     'rich-header': {
       retry: {
@@ -51,8 +50,9 @@ const DEFAULT_CONFIG = {
         delay: 100,
       },
     },
-    'query-suggestions': {
+    querySuggestions: {
       isEnabled: true,
+      order: 5,
     },
   },
   operators: {
@@ -61,13 +61,33 @@ const DEFAULT_CONFIG = {
       locationEnabled: true,
       position: 'first',
     },
-    limit: {
-      limits: {
-        cliqz: 3,
-        history: 3,
-        'query-suggestions': 5,
+    responses: {
+      smoothResponses: {
+        isEnabled: true,
+      },
+      smoothClusters: {
+        isEnabled: true,
       },
     },
+    streams: {
+      throttleQueries: {
+        interval: 10,
+      },
+      limitResults: {
+        limits: {
+          cliqz: config.settings['search.config.operators.limit.limits.cliqz'] || 3,
+          history: 3,
+          cluster: 5,
+          querySuggestions: 5,
+        },
+      },
+      waitForAllProviders: {
+        isEnabled: config.settings['search.config.operators.streams.waitForAllProviders'] || false,
+      },
+      smoothResults: {
+        isEnabled: true,
+      },
+    }
   },
 };
 
@@ -103,7 +123,7 @@ export default function ({ isPrivateMode }) {
     providers: {
       ...DEFAULT_CONFIG.providers,
       historyView: {
-        order: DEFAULT_CONFIG.providers.historyView.order,
+        ...DEFAULT_CONFIG.providers.historyView,
         get isEnabled() {
           return prefs.get(
             'modules.history.enabled',
@@ -111,14 +131,24 @@ export default function ({ isPrivateMode }) {
           );
         },
       },
-      'query-suggestions': {
+      querySuggestions: {
+        ...DEFAULT_CONFIG.providers.querySuggestions,
         get isEnabled() {
           return (
             !isPrivateMode &&
-            DEFAULT_CONFIG.providers['query-suggestions'].isEnabled &&
+            DEFAULT_CONFIG.providers.querySuggestions.isEnabled &&
             (prefs.get('suggestionChoice', 0) === 2)
           );
         },
+      },
+      instant: {
+        ...DEFAULT_CONFIG.providers.instant,
+        get isEnabled() {
+          const res = config.settings['search.config.providers.instant.isEnabled'];
+          return typeof res === 'boolean'
+            ? res
+            : true;
+        }
       },
     },
     operators: {
@@ -127,22 +157,61 @@ export default function ({ isPrivateMode }) {
         get isEnabled() {
           return prefs.get('browser.urlbar.autoFill', true, '');
         },
-        providerBlacklist: ['instant', 'query-suggestions'],
+        providerBlacklist: ['instant', 'querySuggestions'],
       },
       offers: {
         position: DEFAULT_CONFIG.operators.offers.position,
         get isEnabled() {
           return (
-            prefs.get('offers2FeatureEnabled', true) &&
-            prefs.get('offers2UserEnabled', true) &&
-            prefs.get('offersDropdownSwitch', false)
+            prefs.get('offers2UserEnabled', true)
           );
         },
 
         get locationEnabled() {
           return prefs.get('offers_location', 1) === 1;
         }
-      }
-    }
+      },
+      responses: {
+        ...DEFAULT_CONFIG.operators.responses,
+        smoothResponses: {
+          ...DEFAULT_CONFIG.operators.responses.smoothResponses,
+          get isEnabled() {
+            return prefs.get(
+              'modules.search.operators.responses.smoothResponses.isEnabled',
+              DEFAULT_CONFIG.operators.responses.smoothResponses.isEnabled
+            );
+          },
+        },
+        smoothClusters: {
+          ...DEFAULT_CONFIG.operators.responses.smoothClusters,
+          get isEnabled() {
+            return prefs.get(
+              'modules.search.operators.responses.smoothClusters.isEnabled',
+              DEFAULT_CONFIG.operators.responses.smoothClusters.isEnabled
+            );
+          },
+        },
+      },
+      streams: {
+        ...DEFAULT_CONFIG.operators.streams,
+        limitResults: {
+          ...DEFAULT_CONFIG.operators.streams.limitResults,
+          limits: {
+            ...DEFAULT_CONFIG.operators.streams.limitResults.limits,
+            ...prefs.get('experiments.dropdown.fullHeight') === true ?
+              { cliqz: undefined, history: undefined, cluster: undefined } : {},
+          },
+        },
+        smoothResults: {
+          ...DEFAULT_CONFIG.operators.streams.smoothResults,
+          get isEnabled() {
+            return prefs.get(
+              'modules.search.operators.streams.smoothResults.isEnabled',
+              DEFAULT_CONFIG.operators.streams.smoothResults.isEnabled
+            );
+          },
+        },
+      },
+    },
   };
 }

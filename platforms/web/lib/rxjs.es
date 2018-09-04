@@ -1,1 +1,1 @@
- export { default } from 'rxjs';
+export { default } from 'rxjs';

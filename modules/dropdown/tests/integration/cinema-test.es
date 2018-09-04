@@ -1,13 +1,11 @@
-/* global window */
-
 import {
+  $cliqzResults,
   blurUrlBar,
   checkLocationButtons,
   checkMainResult,
   checkMap,
   checkParent,
   checkTableOfShowings,
-  $cliqzResults,
   fillIn,
   mockSearch,
   patchGeolocation,
@@ -15,8 +13,10 @@ import {
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from './helpers';
-import { notLocalResults, localResults } from './fixtures/resultsCinema';
+  win,
+  withHistory,
+} from './helpers';
+import { notLocalResults, localResults } from '../../core/integration/fixtures/resultsCinema';
 import config from '../../../core/config';
 import prefs from '../../../core/prefs';
 
@@ -28,11 +28,11 @@ export default function () {
     patchGeolocation({ latitude: 48.15, longitude: 11.62 });
 
     before(function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     context('(UI)', function () {
@@ -186,7 +186,6 @@ export default function () {
         const allowOnceBtnSelector = '.location-allow-once';
 
         before(async function () {
-          this.timeout(10000);
           blurUrlBar();
           prefs.set('share_location', 'ask');
           await mockSearch({ results: notLocalResults });
@@ -220,7 +219,6 @@ export default function () {
         const alwaysShowBtnSelector = '.location-always-show';
 
         before(async function () {
-          this.timeout(10000);
           blurUrlBar();
           prefs.set('share_location', 'ask');
           await mockSearch({ results: notLocalResults });

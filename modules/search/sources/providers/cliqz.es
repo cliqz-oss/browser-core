@@ -6,7 +6,7 @@ import CliqzLanguage from '../../core/language';
 import { isOnionMode } from '../../core/platform';
 import BackendProvider from './backend';
 import { getResponse, getEmptyResponse } from '../responses';
-import { handleQuerySuggestions } from '../../platform/query-suggestions';
+import { handleQuerySuggestions } from '../../platform/browser-actions';
 import {
   encodeLocale,
   encodePlatform,
@@ -14,8 +14,7 @@ import {
   encodeCountry,
   encodeFilter,
   encodeLocation,
-  encodeWikiDedup,
-  encodeSessionParams
+  encodeSessionParams,
 } from './cliqz-helpers';
 import { PROVIDER_CLIQZ, PROVIDER_OFFERS } from '../consts';
 
@@ -27,8 +26,21 @@ const enncodeQuerySuggestionParam = () => {
   return `&suggest=${suggestionsEnabled ? 1 : 0}`;
 };
 
-const getResultsProviderQueryString = (q, { resultOrder, backendCountry }) => {
-  let numberResults = 5;
+const encodeJSONPCallback = (jsonpCallback) => {
+  const res = jsonpCallback
+    ? `&callback=${jsonpCallback}`
+    : '';
+
+  return res;
+};
+
+const getResultsProviderQueryString = (q, {
+  resultOrder,
+  backendCountry,
+  count,
+  jsonpCallback
+}) => {
+  let numberResults = count || 5;
   if (prefs.get('languageDedup', false)) {
     numberResults = 7;
   }
@@ -43,10 +55,10 @@ const getResultsProviderQueryString = (q, { resultOrder, backendCountry }) => {
     encodeResultOrder(resultOrder) +
     encodeCountry(backendCountry) +
     encodeFilter() +
+    encodeJSONPCallback(jsonpCallback) +
     encodeLocation(true) + // @TODO: remove true
     encodeResultCount(numberResults) +
-    enncodeQuerySuggestionParam() +
-    encodeWikiDedup();
+    enncodeQuerySuggestionParam();
 };
 
 const getBackendResults = (q, params = {}) => {
@@ -61,7 +73,37 @@ const getBackendResults = (q, params = {}) => {
   }
 
   const url = CONFIG.settings.RESULTS_PROVIDER + getResultsProviderQueryString(q, params);
-  const fetch = utils.fetchFactory();
+  const fetch = params.jsonpCallback
+    ? (apiUrl) => {
+      const promise = new Promise((fulfilled, rejected) => {
+        window[params.jsonpCallback] = (response) => {
+          const res = {
+            json: () => response
+          };
+
+          window[params.jsonpCallback] = null;
+          fulfilled(res);
+        };
+
+        const script = document.createElement('script');
+        script.src = apiUrl;
+        script.onload = () => {
+          document.body.removeChild(script);
+          script.onload = null;
+        };
+        script.onerror = (error) => {
+          document.body.removeChild(script);
+          script.onload = null;
+
+          rejected(error);
+        };
+
+        document.body.appendChild(script);
+      });
+
+      return promise;
+    }
+    : utils.fetchFactory();
 
   utils._sessionSeq += 1;
 
@@ -135,10 +177,14 @@ export default class Cliqz extends BackendProvider {
       return this.getEmptySearch(config);
     }
 
-    const { providers: { cliqz: { includeOffers } = {} } = {} } = config;
+    const { providers: { cliqz: { includeOffers, count, jsonpCallback } = {} } = {} } = config;
 
     // TODO: only get at beginning of search session
-    Object.assign(params, { backendCountry: prefs.get('backend_country', 'de') });
+    Object.assign(params, {
+      backendCountry: prefs.get('backend_country.override', prefs.get('backend_country', 'de')),
+      count,
+      jsonpCallback,
+    });
 
     const cliqz$ = Rx.Observable
       .fromPromise(this.fetch(query, params))

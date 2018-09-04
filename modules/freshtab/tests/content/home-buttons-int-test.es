@@ -1,11 +1,10 @@
 import {
-  clearIntervals,
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
 import {
   defaultConfig,
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 
 describe('Fresh tab interactions with buttons', function () {
@@ -38,7 +37,6 @@ describe('Fresh tab interactions with buttons', function () {
   afterEach(function () {
     subject.chrome.runtime.onMessage.removeListener(listener);
     subject.unload();
-    clearIntervals();
   });
 
   describe('clicking on a settings button', function () {

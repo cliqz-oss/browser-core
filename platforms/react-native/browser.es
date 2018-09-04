@@ -22,9 +22,6 @@ export function forEachWindow(cb) {
   cb(window);
 }
 
-export function setInstallDatePref() {
-}
-
 export function enableChangeEvents() {
 }
 

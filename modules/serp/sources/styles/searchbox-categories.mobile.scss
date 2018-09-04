@@ -1,0 +1,9 @@
+@import './mixins/mobile';
+
+@include mobile() {
+  .searchbox {
+    &-categories {
+      margin-left: 0;
+    }
+  }
+}

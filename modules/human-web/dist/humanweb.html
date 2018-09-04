@@ -22,10 +22,11 @@
           margin: 10px auto;
           padding: 0 1rem;
           box-sizing: border-box;
+          background-image: url(skin/cliqz.png);
           background-repeat: no-repeat;
           background-position: center top+20px;
           background-size: 150px 150px;
-          padding-top: 20px;
+          padding-top: 200px;
         }
 
         h1, h2 {
@@ -146,9 +147,6 @@
         <br><br>
     </div>
     <script type="text/javascript">
-        Components.utils.import('resource://gre/modules/Services.jsm')
-
-        const hwPref = 'extensions.cliqz.humanWebOptOut';
         const cb = document.getElementById('enableHumanWeb');
         const locale = document.getElementsByClassName('cliqz-locale');
         for (let i = 0; i < locale.length; i += 1) {
@@ -160,11 +158,9 @@
           chrome.runtime.sendMessage({ module: 'human-web', action: 'setStatus', args: [!cb.checked], target: 'cliqz' });
         }
 
-        if (Services.prefs.getPrefType(hwPref) !== 128 || Services.prefs.getBoolPref(hwPref) === false) {
-          // if the user has opted in or he has default value this checkbox should be checked (human web is opt-out)
-          cb.checked = true;
-        }
-
+        chrome.runtime.sendMessage({ module: 'human-web', action: 'getStatus', args: [], target: 'cliqz' }, function (status) {
+          cb.checked = !status;
+        });
     </script>
   </body>
 </html>

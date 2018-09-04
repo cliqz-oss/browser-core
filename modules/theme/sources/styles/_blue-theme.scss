@@ -1,22 +1,43 @@
 #main-window.cliqz-blue {
 
     /* Override light theme variables */
-    &:-moz-lwtheme-darktext {
+    &:-moz-lwtheme-darktext, &:-moz-lwtheme {
         --chrome-background-color: $cliqz-blue-color; // Background for menu toolbar (Windows only)
     }
 
-    #navigator-toolbox, #navigator-toolbox #TabsToolbar:-moz-lwtheme-darktext,
+    #navigator-toolbox, #navigator-toolbox #TabsToolbar,
     .tabbrowser-tab .tab-content {
        background-color: $cliqz-blue-color;
     }
 
-    .tabbrowser-tab {
+    #navigator-toolbox #TabsToolbar #tabbrowser-tabs .tabbrowser-tab {
+
+      &:first-of-type { // [first-tab="true"], [first-visible-tab="true"]
+        // Override the left line of the first tab to be black on dark & blue theme
+        &:-moz-lwtheme {
+          border-left: 0.5px solid rgba(0, 0, 0, 0.2);
+        }
+      }
+
+      // On blue theme force lines between tabs
+      &:after {
+        opacity: 1;
+        border-left-color: #008bbe;
+      }
 
       &[visuallyselected="true"] {
         border-top: 0;
 
-        & .tab-content {
-          background-color: $chrome-light-color;
+        &:-moz-lwtheme {
+          .tab-content {
+            background-color: unset;
+          }
+        }
+
+        &:-moz-lwtheme-darktext {
+          .tab-content {
+            background-color: $chrome-light-color;
+          }
         }
       }
 
@@ -38,9 +59,18 @@
 
         .tab-close-button:hover {
 
-
           .toolbarbutton-icon {
             background-color: #0074a2;
+          }
+
+          &:-moz-lwtheme {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 2px;
+          }
+
+          &:-moz-lwtheme-darktext {
+            background-color: unset;
+            border-radius: unset;
           }
         }
 

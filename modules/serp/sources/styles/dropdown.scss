@@ -1,0 +1,43 @@
+.dropdown {
+  position: absolute;
+  top: 25px;
+  min-width: 250px;
+  background-color: #fff;
+  border: 0.5px solid #ececec;
+  box-shadow: 0 16px 50px -24px rgba(0, 18, 39, 0.59);
+  border-radius: 3px;
+  letter-spacing: 0.75px;
+
+  &-header {
+    font-size: 11px;
+    color: #888;
+    padding: 20px 15px 5px 30px;
+  }
+
+  &-options {
+    margin-bottom: 15px;
+  }
+
+  &-option {
+    cursor: pointer;
+    padding: 10px 15px 10px 55px;
+    display: block;
+    font-size: 14px;
+    color: #272727;
+    position: relative;
+    text-decoration: none;
+
+    &:hover {
+      background-color: #e6e6e6;
+    }
+
+    &-checked:before {
+      content: '\2714';
+      position: absolute;
+      left: 12px;
+      top: 6px;
+      font-size: 20px;
+      color: #272727;
+    }
+  }
+}

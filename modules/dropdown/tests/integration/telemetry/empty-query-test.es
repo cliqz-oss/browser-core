@@ -8,7 +8,7 @@ import {
   respondWith,
   waitFor,
   withHistory } from '../helpers';
-import { results } from '../fixtures/resultsTwoSimpleWithoutAutocomplete';
+import { results } from '../../../core/integration/fixtures/resultsTwoSimpleWithoutAutocomplete';
 
 export default function () {
   if (!testsEnabled()) { return; }

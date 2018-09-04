@@ -247,12 +247,6 @@ const CliqzABTests = {
       case '1074_B':
         prefs.set('cliqz-adb-abtest', true);
         break;
-      case '1077_A':
-        prefs.set('languageDedup', false);
-        break;
-      case '1077_B':
-        prefs.set('languageDedup', true);
-        break;
       case '1078_A':
         prefs.set('modules.anolysis.enabled', false);
         break;
@@ -291,12 +285,6 @@ const CliqzABTests = {
         break;
       case '1087_B':
         prefs.set('modules.context-search.enabled', true);
-        break;
-      case '1088_A':
-        prefs.set('offers2FeatureEnabled', false);
-        break;
-      case '1088_B':
-        prefs.set('offers2FeatureEnabled', true);
         break;
       case '1092_A':
         prefs.set('extOnboardVideoDownloader', false);
@@ -385,12 +373,6 @@ const CliqzABTests = {
       case '1103_C':
         prefs.set('offersDropdownAdPosition', 'right');
         break;
-      case '1105_A':
-        prefs.set('offersBrowserPanelEnableSwitch', false);
-        break;
-      case '1105_B':
-        prefs.set('offersBrowserPanelEnableSwitch', true);
-        break;
       case '1106_A':
         prefs.set('greenads', 'green');
         break;
@@ -412,18 +394,6 @@ const CliqzABTests = {
       case '1108_B':
         prefs.set('extOnboardNewSearchUI', true);
         break;
-      case '1109_A':
-        prefs.set('offersDropdownSwitch', false);
-        break;
-      case '1109_B':
-        prefs.set('offersDropdownSwitch', true);
-        break;
-      case '1110_A':
-        prefs.set('cliqzTabOffersNotification', false);
-        break;
-      case '1110_B':
-        prefs.set('cliqzTabOffersNotification', true);
-        break;
       case '1111_A':
         prefs.set('modules.history-analyzer.enabled', false);
         break;
@@ -439,6 +409,10 @@ const CliqzABTests = {
       case '1114_A':
       case '1114_B':
       case '1114_C':
+      case '1114_D':
+      case '1114_E':
+      case '1114_F':
+      case '1114_G':
         // we activate this test locally in services.es/session()
         // so we only need to disable it with the AB test
         if (getDefaultEngine().name === 'Cliqz') {
@@ -752,6 +726,10 @@ const CliqzABTests = {
       case '1114_A':
       case '1114_B':
       case '1114_C':
+      case '1114_D':
+      case '1114_E':
+      case '1114_F':
+      case '1114_G':
         if (getDefaultEngine().name === 'Cliqz') {
           revertToOriginalEngine();
         }

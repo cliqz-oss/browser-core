@@ -4,11 +4,6 @@
 
 export default describeModule('browser-panel/window',
   () => ({
-    'core/kord/inject': {
-      default: {
-        module() { return { action() {} }; }
-      }
-    },
     'core/config': {
       default: {
         baseURL: 'chrome://cliqz/content/'
@@ -31,7 +26,11 @@ export default describeModule('browser-panel/window',
       getDetailsFromUrl() {}
     },
     'browser-panel/background': {
-      default: {}
+      default: {
+        actions: {
+          windowUIConnector() {}
+        }
+      }
     }
   }),
   () => {
@@ -43,7 +42,7 @@ export default describeModule('browser-panel/window',
       bg.is_enabled = true;
 
       const Subject = this.module().default;
-      subject = new Subject({});
+      subject = new Subject({ background: bg });
       subject.window = {
         document: {},
         gBrowser: {}

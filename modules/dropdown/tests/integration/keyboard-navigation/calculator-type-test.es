@@ -10,7 +10,7 @@ import {
   waitForPopup,
   withHistory } from '../helpers';
 import expectSelection from './common';
-import { calcAndSimpleResults } from '../fixtures/resultsSimple';
+import { calcAndSimpleResults } from '../../../core/integration/fixtures/resultsSimple';
 
 export default function () {
   if (!testsEnabled()) { return; }

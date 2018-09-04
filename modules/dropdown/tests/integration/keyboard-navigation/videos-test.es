@@ -10,7 +10,7 @@ import {
   waitForPopup,
   withHistory } from '../helpers';
 import expectSelection from './common';
-import { videosResults } from '../fixtures/resultsYoutube';
+import { videosResults } from '../../../core/integration/fixtures/resultsYoutube';
 
 export default function () {
   if (!testsEnabled()) { return; }

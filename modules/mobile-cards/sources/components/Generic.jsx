@@ -9,15 +9,25 @@ import HistoryUrls from './partials/HistoryUrls';
 import deepResultsList, { headersMap, footersMap, extrasMap } from '../helpers/templates-map';
 import { agoLine } from '../helpers/logic';
 import { elementSidePaddings, cardBorderTopRadius } from '../styles/CardStyle';
-import utils from '../../core/utils';
-import { getDetailsFromUrl } from '../../core/url';
+
+const styles = backgroundColor => StyleSheet.create({
+  header: {
+    backgroundColor,
+    borderTopLeftRadius: 5,
+    borderTopRightRadius: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    ...elementSidePaddings,
+    paddingTop: 5,
+    paddingBottom: 5,
+  },
+});
 
 class Generic extends React.Component {
-
   getDeepResultsList(map, list) {
     return (list || []).filter(res => map[res.type])
       .sort((res1, res2) => deepResultsList.indexOf(res1.type) > deepResultsList.indexOf(res2.type))
-      .map(res => {
+      .map((res) => {
         const Component = map[res.type];
         return <Component url={this.props.result.url} key={res.type} data={res.links} />;
       });
@@ -31,7 +41,7 @@ class Generic extends React.Component {
     if (!Component) {
       return null;
     }
-    return <Component key='extra' data={data.extra} result={this.props.result} />;
+    return <Component data={data.extra} result={this.props.result} />;
   }
 
   render() {
@@ -50,35 +60,22 @@ class Generic extends React.Component {
 
     return (
       <View style={{ backgroundColor: 'white', ...cardBorderTopRadius }}>
-        { url &&
+        {url &&
           <View style={styles(`#${headerBackround}`).header}>
             <Icon width={40} height={40} logoDetails={logoDetails} />
             <Url url={url} color="white" isHistory={isHistory} />
           </View>
         }
-        { url && title && <Title title={title} isHistory={isHistory} meta={agoLine(timestamp)} /> }
-        { result.data.extra && <MainImage extra={result.data.extra} /> }
-        { headerDeepResults }
-        { extraComponent }
-        { description && <Description isHistory={isHistory} description={description} /> }
-        { result.data.urls && <HistoryUrls urls={result.data.urls} /> }
-        { footerDeepResults }
+        {url && title && <Title title={title} isHistory={isHistory} meta={agoLine(timestamp)} />}
+        {result.data.extra && <MainImage extra={result.data.extra} />}
+        {headerDeepResults}
+        {extraComponent}
+        {description && <Description isHistory={isHistory} description={description} />}
+        {result.data.urls && <HistoryUrls urls={result.data.urls} />}
+        {footerDeepResults}
       </View>
-    )
+    );
   }
 }
-
-const styles = backgroundColor => StyleSheet.create({
-  header: {
-    backgroundColor,
-    borderTopLeftRadius: 5,
-    borderTopRightRadius: 5,
-    flexDirection: 'row',
-    alignItems: 'center',
-    ...elementSidePaddings,
-    paddingTop: 5,
-    paddingBottom: 5,
-  },
-});
 
 export default Generic;

@@ -1,13 +1,16 @@
 import moment from '../platform/lib/moment';
 import prefs from './prefs';
 
+/**
+ * Check if a `config_ts` value is available.
+ */
+export function isSynchronizedDateAvailable() {
+  return prefs.has('config_ts');
+}
+
 export default function getSynchronizedDate() {
-  const formatted = prefs.get('config_ts', null);
-  if (formatted !== null) {
-    const year = formatted.substr(0, 4);
-    const month = formatted.substr(4, 2);
-    const day = formatted.substr(6, 2);
-    return moment(`${year}-${month}-${day}`, 'YYYY-MM-DD');
+  if (isSynchronizedDateAvailable()) {
+    return moment(prefs.get('config_ts'), 'YYYYMMDD');
   }
 
   return null;

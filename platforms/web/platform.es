@@ -1,11 +1,17 @@
 import window from './window';
 
+function checkUserAgent(pattern = '') {
+  return window.navigator.userAgent.toLowerCase().indexOf(pattern.toLowerCase()) !== -1;
+}
+
 export default {
-  isMobile: true,
+  isBootstrap: false,
+  isMobile: checkUserAgent('Mobile'),
   isFirefox: false,
   isChromium: false,
   isEdge: false,
   platformName: 'mobile',
+  isOnionMode: false,
 };
 
 const userAgent = window.navigator.userAgent.toLowerCase();
@@ -23,3 +29,5 @@ export function isCliqzAtLeastInVersion() {
   // TODO
   return true;
 }
+
+export function getResourceUrl() {}

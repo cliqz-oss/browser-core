@@ -5,7 +5,7 @@ import { fetch } from './http';
 import Storage from '../platform/resource-loader-storage';
 import { fromUTF8 } from '../core/encoding';
 import { inflate, deflate } from './zlib';
-import { isChromium, platformName } from '../core/platform';
+import { isWebExtension, platformName } from '../core/platform';
 
 const logger = Logger.get('core', {
   level: 'log',
@@ -52,7 +52,7 @@ export class Resource {
     this.chromeURL = options.chromeURL || `${config.baseURL}${this.name.join('/')}`;
     this.storage = new Storage(this.filePath);
     this.remoteOnly = options.remoteOnly || platformName === 'mobile';
-    this.compress = options.compress || isChromium;
+    this.compress = options.compress || isWebExtension;
   }
 
   /**

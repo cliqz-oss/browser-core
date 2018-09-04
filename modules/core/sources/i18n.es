@@ -4,7 +4,7 @@ import {
   getMessage as _getMessage,
   locale as _locale,
   loadTranslation,
-  IMPLEMENTS_GET_MESSAGE
+  IMPLEMENTS_GET_MESSAGE,
 } from '../platform/i18n';
 
 export {
@@ -56,6 +56,8 @@ export function getMessage(key, substitutions = []) {
   if (!Array.isArray(substitutions)) {
     subs = [substitutions];
   }
+
+  subs = subs.map(String); // Firefox accepts number as substitutions but chrome does not
 
   function replacer(matched, index, dollarSigns) {
     if (index) {

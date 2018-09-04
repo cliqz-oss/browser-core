@@ -43,6 +43,7 @@ describeModule('webrequest-pipeline/latency-metrics',
         push: (signal) => {
           telemetrySignals.push(signal);
         },
+        isEnabled: () => true,
       },
     },
     'core/helpers/timeout': {

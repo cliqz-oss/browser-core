@@ -1,14 +1,16 @@
 import {
+  $cliqzResults,
   blurUrlBar,
   checkMainResult,
-  $cliqzResults,
   expect,
   fillIn,
   mockSearch,
   testsEnabled,
   waitForPopup,
-  withHistory } from './helpers';
-import results from './fixtures/resultsWeather';
+  win,
+  withHistory,
+} from './helpers';
+import results from '../../core/integration/fixtures/resultsWeather';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -23,7 +25,7 @@ export default function () {
 
   context('for a weather forecast', function () {
     before(async function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
       blurUrlBar();
       await mockSearch({ results });
       withHistory([]);
@@ -32,7 +34,7 @@ export default function () {
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     checkMainResult({ $result: $cliqzResults, results });

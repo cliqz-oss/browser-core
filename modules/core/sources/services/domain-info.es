@@ -36,6 +36,10 @@ class DomainInfo {
       cat: 'unknown',
     };
   }
+
+  getTrackerDetails(tracker) {
+    return this.apps[tracker];
+  }
 }
 
 export const service = async function service() {

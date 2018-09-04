@@ -1,12 +1,11 @@
 import {
-  clearIntervals,
   clone,
-  expect
+  expect,
 } from '../../core/test-helpers';
 import {
   defaultConfig,
   generateNewsResponse,
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 
 describe('Fresh tab news UI', function () {
@@ -22,10 +21,6 @@ describe('Fresh tab news UI', function () {
 
     configVisible = clone(defaultConfig);
     configVisible.response.componentsState.news.visible = true;
-  });
-
-  after(function () {
-    clearIntervals();
   });
 
   describe('area', function () {
@@ -64,10 +59,11 @@ describe('Fresh tab news UI', function () {
         expect(subject.getNewsIntlLanguage()).to.exist;
         expect(subject.getNewsUsLanguage()).to.exist;
         expect(subject.getNewsGbLanguage()).to.exist;
+        expect(subject.getNewsEsLanguage()).to.exist;
       });
 
       it('has no extra elements (selectors)', function () {
-        expect(subject.queryAll('.radio')).to.have.lengthOf(6);
+        expect(subject.queryAll('.radio')).to.have.lengthOf(7);
       });
     });
 
@@ -114,6 +110,7 @@ describe('Fresh tab news UI', function () {
         expect(subject.getNewsIntlLanguage()).to.have.property('checked', false);
         expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
         expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
+        expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
       });
     });
 
@@ -137,6 +134,7 @@ describe('Fresh tab news UI', function () {
         expect(subject.getNewsIntlLanguage()).to.have.property('checked', false);
         expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
         expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
+        expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
       });
     });
 
@@ -160,6 +158,7 @@ describe('Fresh tab news UI', function () {
         expect(subject.getNewsIntlLanguage()).to.have.property('checked', false);
         expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
         expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
+        expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
       });
     });
 
@@ -183,6 +182,7 @@ describe('Fresh tab news UI', function () {
         expect(subject.getNewsIntlLanguage()).to.have.property('checked', true);
         expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
         expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
+        expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
       });
     });
 
@@ -206,6 +206,7 @@ describe('Fresh tab news UI', function () {
         expect(subject.getNewsIntlLanguage()).to.have.property('checked', false);
         expect(subject.getNewsUsLanguage()).to.have.property('checked', true);
         expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
+        expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
       });
     });
 
@@ -229,6 +230,31 @@ describe('Fresh tab news UI', function () {
         expect(subject.getNewsIntlLanguage()).to.have.property('checked', false);
         expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
         expect(subject.getNewsGbLanguage()).to.have.property('checked', true);
+        expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
+      });
+    });
+
+    describe('when set to use ES sources', function () {
+      before(function () {
+        const configNewsGb = clone(defaultConfig);
+        configNewsGb.response.componentsState.news.visible = true;
+        configNewsGb.response.componentsState.news.preferedCountry = 'es';
+        subject.respondsWith(configNewsGb);
+        return subject.load({ iframeWidth: 1025 });
+      });
+
+      after(function () {
+        subject.unload();
+      });
+
+      it('has the ES option selected', function () {
+        expect(subject.getNewsDeLanguage()).to.have.property('checked', false);
+        expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
+        expect(subject.getNewsFrLanguage()).to.have.property('checked', false);
+        expect(subject.getNewsIntlLanguage()).to.have.property('checked', false);
+        expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
+        expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
+        expect(subject.getNewsEsLanguage()).to.have.property('checked', true);
       });
     });
   });

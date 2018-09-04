@@ -1,7 +1,7 @@
 import { chrome } from './globals';
 
 
-export function newTab(url, active = false) {
+export function newTab(url, active = true) {
   let resolver;
   const promise = new Promise((resolve) => {
     resolver = resolve;
@@ -18,7 +18,7 @@ export function getCurrentgBrowser() {
 }
 
 export function closeTab(tabId) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     chrome.tabs.onRemoved.addListener(function onTabRemoved(id) {
       if (id === tabId) {
         resolve();
@@ -26,7 +26,15 @@ export function closeTab(tabId) {
       }
     });
     // QUESTION: somehow callback to tabs.remove fire too fast so we use onRemove listener
-    chrome.tabs.remove(Number(tabId));
+    const removePromise = chrome.tabs.remove(Number(tabId), () => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(`tab with id '${tabId}' is missing, probably already closed.`));
+      }
+    });
+
+    if (removePromise && removePromise.catch) {
+      removePromise.catch(reject);
+    }
   });
 }
 
@@ -37,7 +45,22 @@ export function updateTab(tabId, url) {
   });
 }
 
-export function getTab() {
+export function getTab(tabId) {
+  return new Promise((resolve, reject) =>
+    chrome.tabs.get(tabId, (tab) => {
+      if (tab) {
+        resolve(tab);
+      } else {
+        reject('tab not found');
+      }
+    })
+  );
+}
+
+export function query(queryInfo) {
+  return new Promise((resolve) => {
+    chrome.tabs.query(queryInfo, resolve);
+  });
 }
 
 export default chrome.tabs;

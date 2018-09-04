@@ -1,13 +1,12 @@
 import {
-  clearIntervals,
   clone,
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
 import {
   defaultConfig,
   generateFavResponse,
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 
 describe('Fresh tab favorites UI', function () {
@@ -26,10 +25,6 @@ describe('Fresh tab favorites UI', function () {
 
     favConfig = clone(defaultConfig);
     favConfig.response.componentsState.customDials.visible = true;
-  });
-
-  after(function () {
-    clearIntervals();
   });
 
   describe('renders area', function () {
@@ -88,7 +83,7 @@ describe('Fresh tab favorites UI', function () {
     const favoritesPlusBtnSelector = 'button.plus-dial-icon';
     const addFormSelector = 'form.addDialForm';
     const formClose = 'form.addDialForm button.closeForm';
-    const urlSelector ='form.addDialForm input.addUrl';
+    const urlSelector = 'form.addDialForm input.addUrl';
     const titleSelector = 'form.addDialForm input.title';
     const placeholderSelector = 'form.addDialForm label';
 
@@ -219,7 +214,7 @@ describe('Fresh tab favorites UI', function () {
   context('when the edit button is clicked to delete dial', function () {
     const editFormSelector = 'form.editForm';
     const editBtnSelector = '#section-favorites button.edit';
-    const favoritesDeleteSelector = 'form.editForm .deleteBox';
+    const favoritesDeleteSelector = 'form.editForm .deleteDial';
     const undoBoxSelector = '.undo-notification-box';
 
     before(async function () {
@@ -279,7 +274,6 @@ describe('Fresh tab favorites UI', function () {
           });
           subject.respondsWith(favConfig);
           await subject.load();
-          console.log('sss', favoritesResponse[i])
           amountFavoritesFromData = favoritesResponse[i].custom.length;
           favoritesTiles = subject.queryAll(dialSelector);
         });

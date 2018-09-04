@@ -53,43 +53,34 @@ export default describeModule('human-web/content',
         document.write(html);
         document.close();
 
-        const messagesReceived = [];
+        const adClickMessages = [];
         const unexpectedMessages = [];
-        global.chrome = {
-          runtime: {
-            sendMessage: (...args) => {
-              if (args.length === 1 && typeof args[0] === 'object') {
-                messagesReceived.push(args[0]);
-              } else {
-                unexpectedMessages.push(args);
-              }
+        // mock of module action API in content script
+        const hw = {
+          action: (action, args) => {
+            if (action === 'adClick') {
+              adClickMessages.push(args);
+            } else if (action === 'contentScriptTopAds') {
+              // ignore
+            } else {
+              unexpectedMessages.push({ action, args });
             }
           }
         };
 
         // When
-        parseDom(someUrl, mockWindow);
+        parseDom(someUrl, mockWindow, hw);
 
         // Then
         expect(unexpectedMessages).to.be.empty;
 
         let foundAds;
 
-        const adClickMessages = messagesReceived.filter(msg => msg.payload && msg.payload.action === 'adClick');
         if (adClickMessages.length === 0) {
           foundAds = [];
         } else {
           expect(adClickMessages).to.have.lengthOf(1);
-          const msg = adClickMessages[0];
-
-          expect(msg.source).to.be.a('string');
-          expect(msg.payload).to.include({
-            module: 'human-web',
-            action: 'adClick'
-          });
-
-          expect(msg.payload.args).to.have.length(1);
-          const adDetails = msg.payload.args[0].ads;
+          const adDetails = adClickMessages[0].ads;
 
           foundAds = Object.keys(adDetails)
             .map(key => ({ key, url: adDetails[key].furl[1] }));

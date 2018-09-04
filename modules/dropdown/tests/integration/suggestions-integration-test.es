@@ -1,16 +1,18 @@
 import {
+  $cliqzResults,
   app,
   blurUrlBar,
-  $cliqzResults,
   expect,
-  testsEnabled,
   fillIn,
   mockSearch,
   respondWithSuggestions,
+  testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from './helpers';
-import response from './fixtures/resultsSuggestions';
+  win,
+  withHistory,
+} from './helpers';
+import response from '../../core/integration/fixtures/resultsSuggestions';
 import prefs from '../../../core/prefs';
 
 export default function () {
@@ -41,10 +43,10 @@ export default function () {
 
     context('data contain suggestions, suggestions turned on', function () {
       before(async function () {
-        window.preventRestarts = true;
+        win.preventRestarts = true;
         blurUrlBar();
         prefs.set('suggestionChoice', 2);
-        app.modules.search.action('setDefaultSearchEngine', 'Google');
+        await app.modules.search.action('setDefaultSearchEngine', 'Google');
         respondWithSuggestions(response);
         await mockSearch({ results: [] });
         withHistory([]);
@@ -54,7 +56,7 @@ export default function () {
       });
 
       after(function () {
-        window.preventRestarts = false;
+        win.preventRestarts = false;
         prefs.clear('suggestionChoice');
       });
 

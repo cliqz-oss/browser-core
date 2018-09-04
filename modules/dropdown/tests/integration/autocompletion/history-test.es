@@ -12,8 +12,8 @@ import {
 
 import {
   testAutocompleteArray,
-  testNoAutocompleteArray
-} from '../fixtures/autocompletion';
+  testNoAutocompleteArray,
+} from '../../../core/integration/fixtures/autocompletion';
 
 export default function () {
   if (!testsEnabled()) { return; }

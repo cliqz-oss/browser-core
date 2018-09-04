@@ -7,9 +7,6 @@ const defaultSearchEngine = {
 
 export default {};
 
-export function setSearchEngine() {
-}
-
 export function isSearchServiceReady() {
   return Promise.resolve();
 }
@@ -32,6 +29,8 @@ export function getDefaultSearchEngine() {
 export function getSearchEngines() {
   return [defaultSearchEngine];
 }
+
+export function loadSearchEngines() { return Promise.resolve(); }
 
 export function getEngineByName() {
   return '';

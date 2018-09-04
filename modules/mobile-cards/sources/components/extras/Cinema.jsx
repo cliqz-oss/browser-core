@@ -40,9 +40,9 @@ const styles = StyleSheet.create({
 });
 
 export default class Cinema extends React.Component {
-  displayShow(show, index) {
+  displayShow(show) {
     return (
-      <Link url={show.booking_link} key={index}>
+      <Link url={show.booking_link} key={show.booking_link}>
         <View style={styles.show}>
           <Text style={styles.text}>{ show.start_at.substr(11, 5) }</Text>
         </View>
@@ -51,6 +51,7 @@ export default class Cinema extends React.Component {
   }
 
   displayMovie(movie, index) {
+    const key = `${movie.title}${index}`;
     const content = (
       <View style={styles.showContainer}>
         { movie.showtimes.map(this.displayShow) }
@@ -58,7 +59,7 @@ export default class Cinema extends React.Component {
     );
     const header = <Text style={styles.title}>{ movie.title }</Text>;
     return (
-      <ExpandView key={index} index={index} header={header} content={content} />
+      <ExpandView key={key} index={index} header={header} content={content} />
     );
   }
 

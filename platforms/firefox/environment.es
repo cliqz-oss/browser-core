@@ -8,6 +8,7 @@ import config from '../core/config';
 import { promiseHttpHandler } from '../core/http';
 import { Components } from '../platform/globals';
 import telemetry from '../core/services/telemetry';
+import { isOnionMode } from '../core/platform';
 import { Window } from '../core/browser';
 
 try {
@@ -198,6 +199,10 @@ const CLIQZEnvironment = {
     return (msg, instantPush) => {
       // no telemetry in private windows & tabs
       if (msg.type !== 'environment' && utils.isPrivateMode()) {
+        return;
+      }
+
+      if (isOnionMode) {
         return;
       }
 

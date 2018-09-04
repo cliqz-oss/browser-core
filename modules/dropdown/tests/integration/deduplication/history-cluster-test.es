@@ -1,13 +1,14 @@
 import {
-  blurUrlBar,
   $cliqzResults,
+  blurUrlBar,
   expect,
-  testsEnabled,
   fillIn,
   mockSearch,
+  testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory
+  win,
+  withHistory,
 } from '../helpers';
 
 export default function () {
@@ -21,7 +22,7 @@ export default function () {
       const query = 'test ';
 
       before(async function () {
-        window.preventRestarts = true;
+        win.preventRestarts = true;
         blurUrlBar();
         withHistory([
           { value: historyUrl1 },
@@ -34,7 +35,7 @@ export default function () {
       });
 
       after(function () {
-        window.preventRestarts = false;
+        win.preventRestarts = false;
       });
 
       it('history was clustered', async function () {

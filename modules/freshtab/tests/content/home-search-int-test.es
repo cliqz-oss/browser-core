@@ -1,12 +1,11 @@
 import {
-  clearIntervals,
   clone,
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
 import {
   defaultConfig,
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 
 describe('Fresh tab interactions with search', function () {
@@ -42,7 +41,6 @@ describe('Fresh tab interactions with search', function () {
   afterEach(function () {
     subject.chrome.runtime.onMessage.removeListener(listener);
     subject.unload();
-    clearIntervals();
   });
 
   context('when search bar is not focused', function () {

@@ -28,6 +28,10 @@ $cliqz-blue: #0078CA;
             margin-bottom: -2px;
         }
     }
+
+    #nav-bar #urlbar .urlbar-textbox-container .textbox-input-box .urlbar-input::placeholder {
+        color: #929292;
+    }
 }
 
 /* Normal windows */
@@ -64,30 +68,34 @@ $cliqz-blue: #0078CA;
 /* Apply this hack for Windows 10 and later */
 @media not all and (-moz-os-version: windows-win7) {
     @media not all and (-moz-os-version: windows-win8) {
-        #titlebar, #tabbrowser-tabs {
-            #titlebar-buttonbox {
-                max-height: 30px;
-            }
-        }
 
-        #TabsToolbar {
-            margin-top: -1px;
-        }
-
-        #tabbrowser-tabs {
-            .tabbrowser-arrowscrollbox {
-                max-height: 30px;
+        :root:not([uidensity="touch"]) {
+            #titlebar, #tabbrowser-tabs {
+                #titlebar-buttonbox {
+                    max-height: 30px;
+                }
             }
 
-            .arrowscrollbox-scrollbox {
-                max-height: 30px;
-                margin-top: 3px;
+            #TabsToolbar {
+                margin-top: -1px;
+            }
+
+            #tabbrowser-tabs {
+                .tabbrowser-arrowscrollbox {
+                    max-height: 30px;
+                }
+
+                .arrowscrollbox-scrollbox {
+                    max-height: 30px;
+                    margin-top: 3px;
+                }
             }
         }
     }
 }
 
 @media (-moz-os-version: windows-win8) {
+
     :root:-moz-lwtheme-darktext {
         --chrome-background-color: transparent; // Background color for tab
     }

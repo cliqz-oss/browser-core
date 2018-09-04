@@ -1,6 +1,6 @@
 import {
-  blurUrlBar,
   $cliqzResults,
+  blurUrlBar,
   expect,
   fillIn,
   mockSearch,
@@ -8,7 +8,9 @@ import {
   testsEnabled,
   urlbar,
   waitFor,
-  withHistory } from '../helpers';
+  win,
+  withHistory,
+} from '../helpers';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -21,7 +23,7 @@ export default function () {
     const friendlyUrl = 'facebook.com';
     context('first type query', function () {
       before(async function () {
-        window.preventRestarts = true;
+        win.preventRestarts = true;
         blurUrlBar();
         withHistory([]);
         await mockSearch({ results: [{ url: url1 }] });
@@ -30,7 +32,7 @@ export default function () {
       });
 
       after(function () {
-        window.preventRestarts = false;
+        win.preventRestarts = false;
       });
 
       it('query was autocompleted to the friendly url', function () {

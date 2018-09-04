@@ -9,7 +9,7 @@ import {
   waitFor,
   waitForPopup,
   withHistory } from '../helpers';
-import { explicitAndSimpleResults } from '../fixtures/resultsAdultQuestion';
+import { explicitAndSimpleResults } from '../../../core/integration/fixtures/resultsAdultQuestion';
 import prefs from '../../../../core/prefs';
 
 export default function () {

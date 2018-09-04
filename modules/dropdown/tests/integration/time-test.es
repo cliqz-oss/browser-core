@@ -1,15 +1,17 @@
 import {
-  blurUrlBar,
   $cliqzResults,
+  blurUrlBar,
   expect,
   fillIn,
   getLocalisedString,
   mockSearch,
   testsEnabled,
-  waitForPopup,
   waitFor,
-  withHistory } from './helpers';
-import results from './fixtures/resultsTime';
+  waitForPopup,
+  win,
+  withHistory,
+} from './helpers';
+import results from '../../core/integration/fixtures/resultsTime';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -24,7 +26,7 @@ export default function () {
 
     context('(interactions) clicking on "Show more" button', function () {
       before(async function () {
-        window.preventRestarts = true;
+        win.preventRestarts = true;
         blurUrlBar();
         withHistory([]);
         await mockSearch({ results });
@@ -36,7 +38,7 @@ export default function () {
       });
 
       after(function () {
-        window.preventRestarts = false;
+        win.preventRestarts = false;
       });
 
       context('renders main result', function () {
@@ -104,7 +106,7 @@ export default function () {
 
     context('(UI)', function () {
       before(async function () {
-        window.preventRestarts = true;
+        win.preventRestarts = true;
         blurUrlBar();
         await mockSearch({ results });
         withHistory([]);
@@ -114,7 +116,7 @@ export default function () {
       });
 
       after(function () {
-        window.preventRestarts = false;
+        win.preventRestarts = false;
       });
 
       context('renders main result', function () {

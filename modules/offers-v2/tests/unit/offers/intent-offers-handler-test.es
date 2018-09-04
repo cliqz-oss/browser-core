@@ -96,7 +96,7 @@ export default describeModule('offers-v2/offers/intent-offers-handler',
       }
     },
     'core/platform': {
-      isChromium: false
+      isWebExtension: false
     },
     'platform/lib/tldjs': {
       default: tldjs,

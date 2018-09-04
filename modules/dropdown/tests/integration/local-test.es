@@ -1,19 +1,21 @@
 import {
+  $cliqzResults,
   blurUrlBar,
   checkButtons,
   checkLocationButtons,
   checkMainResult,
   checkMap,
   checkParent,
-  $cliqzResults,
   fillIn,
   mockSearch,
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from './helpers';
+  win,
+  withHistory,
+} from './helpers';
 import config from '../../../core/config';
-import { resultsWithLocal, resultsWithoutLocal } from './fixtures/resultsLocal';
+import { resultsWithLocal, resultsWithoutLocal } from '../../core/integration/fixtures/resultsLocal';
 import prefs from '../../../core/prefs';
 
 export default function () {
@@ -23,11 +25,11 @@ export default function () {
     const query = 'rewe';
 
     before(function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     context('with "Always ask" settings', function () {

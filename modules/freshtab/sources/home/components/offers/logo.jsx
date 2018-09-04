@@ -13,12 +13,9 @@ function Logo(props) {
     >
       <div
         className={`logo ${props.data.logo_class}`}
-        style={{
-          color: 'red',
-          textIndent: '-1000em',
-          backgroundImage: `url(${props.data.logo_url})`,
-        }}
-      />
+      >
+        <img src={props.data.logo_url} alt="logo" />
+      </div>
     </a>
   );
 }

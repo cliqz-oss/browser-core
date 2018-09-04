@@ -1,5 +1,3 @@
-/* global window */
-
 import {
   blurUrlBar,
   checkMainResult,
@@ -11,19 +9,21 @@ import {
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from './helpers';
-import results from './fixtures/resultsSoccerLigaTable';
+  win,
+  withHistory,
+} from './helpers';
+import results from '../../core/integration/fixtures/resultsSoccerLigaTable';
 
 export default function () {
   if (!testsEnabled()) { return; }
 
   context('for soccer liga table results', function () {
     before(function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     context('(UI)', function () {

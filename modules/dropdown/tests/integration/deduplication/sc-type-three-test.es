@@ -1,6 +1,6 @@
 import {
-  blurUrlBar,
   $cliqzResults,
+  blurUrlBar,
   expect,
   fillIn,
   mockSearch,
@@ -8,21 +8,22 @@ import {
   urlbar,
   waitFor,
   waitForPopup,
-  withHistory
+  win,
+  withHistory,
 } from '../helpers';
 
-import wikiResult from '../fixtures/resultsBigMachineRichData';
-import bingResult from '../fixtures/resultsBigMachineWithButtons';
+import wikiResult from '../../../core/integration/fixtures/resultsBigMachineRichData';
+import bingResult from '../../../core/integration/fixtures/resultsBigMachineWithButtons';
 
 export default function () {
   if (!testsEnabled()) { return; }
   describe('deduplication for SC results of type 3', function () {
     before(function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     context('2 backend results, both have rich data', function () {

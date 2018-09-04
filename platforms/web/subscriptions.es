@@ -1,15 +1,15 @@
-export function toggleSubscription(type, subtype, id, isSubscribed) {
+export function toggleSubscription(/* type, subtype, id, isSubscribed */) {
   return Promise.resolve(false);
 }
 
-export function checkSubscriptions(batch) {
+export function checkSubscriptions(/* batch */) {
   return Promise.resolve(false);
 }
 
-export function isSubscribedToLeague(id) {
+export function isSubscribedToLeague(/* id */) {
   return Promise.resolve(false);
 }
 
-export function isSubscribedToTeam(id) {
+export function isSubscribedToTeam(/* id */) {
   return Promise.resolve(false);
 }

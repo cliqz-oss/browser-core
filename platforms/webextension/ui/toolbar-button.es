@@ -6,4 +6,5 @@ export default class {
   setBadgeBackgroundColor() {}
   removeWindow() {}
   shutdown() {}
+  setBadgeText() {}
 }

@@ -25,7 +25,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
       }
     },
     'core/platform': {
-      isChromium: false
+      isWebExtension: false
     },
     'platform/lib/tldjs': {
       default: tldjs,

@@ -1,6 +1,7 @@
+import setTimeoutInterval from '../../core/helpers/timeout';
+
 import Backend from './backend-communication';
 import logger from './logger';
-
 
 /**
  * Messages to be sent are persisted in Dexie to make sure we don't lose
@@ -21,6 +22,7 @@ export default class SignalsQueue {
     this.backend = new Backend(config);
 
     this.initialized = false;
+    this.interval = null;
 
     // Send signals by chunks, at regular intervals
     this.batchSize = config.get('signalQueue.batchSize'); // 5
@@ -31,16 +33,20 @@ export default class SignalsQueue {
     this.failureTimeout = 1000 * 60;
   }
 
-  init(db) {
+  async init(db) {
     this.db = db;
-    return this.startListening();
+    this.initialized = true;
+    await this.startListening();
   }
 
   unload() {
     logger.debug('unload signal queue');
-    clearInterval(this.interval);
-    clearTimeout(this.sleepTimeout);
     this.initialized = false;
+    if (this.interval !== null) {
+      this.interval.stop();
+      this.interval = null;
+    }
+    clearTimeout(this.sleepTimeout);
   }
 
   getSize() {
@@ -62,34 +68,25 @@ export default class SignalsQueue {
    */
   startListening() {
     logger.debug('signal queue start listening');
-    let ongoingBatch = false;
-    this.initialized = true;
-    this.interval = setInterval(
-      () => {
-        // Only try to send a new batch if the signal queue is initialized and
-        // we are not already sending a batch
-        if (!ongoingBatch && this.initialized) {
-          ongoingBatch = true;
-          this.processNextBatch(this.batchSize)
-            .then(() => {
-              // Reset failure timeout after we could send a batch successfuly
-              this.failureTimeout = 1000 * 60;
-              // Wait a bit before next batch
-              return this.sleep(this.sendInterval);
-            })
-            .catch((err) => {
-              if (this.initialized) {
-                logger.debug('error while sending batch', err);
-                // In case of error, sleep for longer and increase the timeout
-                const timeout = this.failureTimeout;
-                this.failureTimeout *= 5;
-                return this.sleep(timeout);
-              }
-
-              return Promise.resolve();
-            })
-            .catch(() => {})
-            .then(() => { ongoingBatch = false; });
+    this.interval = setTimeoutInterval(
+      async () => {
+        // Only try to send a new batch if the signal queue is initialized
+        if (this.initialized) {
+          try {
+            await this.processNextBatch(this.batchSize);
+            // Reset failure timeout after we could send a batch successfuly
+            this.failureTimeout = 1000 * 60;
+            // Wait a bit before next batch
+            await this.sleep(this.sendInterval);
+          } catch (err) {
+            if (this.initialized) {
+              logger.debug('error while sending batch', err);
+              // In case of error, sleep for longer and increase the timeout
+              const timeout = this.failureTimeout;
+              this.failureTimeout *= 5;
+              await this.sleep(timeout);
+            }
+          }
         }
       },
       this.sendInterval,
@@ -102,36 +99,39 @@ export default class SignalsQueue {
    *  - If it *fails*, then increment the `attempts` counter. If the attempts is
    *  greater than the maximum allowed, we drop the message completely.
    */
-  sendSignal({ signal, attempts, id }) {
+  async sendSignal({ signal, attempts, id }, { force = false } = {}) {
     // Check if the message queue is currently initialized before sending anything
-    if (!this.initialized) {
-      return Promise.reject('signal-queue has been unloaded, cancel message sending');
+    // If `force` is specified, we by-pass this check and try to send anyway.
+    if (!this.initialized && !force) {
+      throw new Error('signal-queue has been unloaded, cancel message sending');
     }
 
-    logger.debug('send signal', signal);
-    return this.backend.sendSignal(signal)
-      .then(() => this.db.remove(id))
-      .catch((ex) => {
-        // We don't remove the document from the db since it will be retried
-        // later. This way we avoid loosing signals because of server's
-        // errors.
-        const reason = `failed to send signal with exception ${ex} [${attempts}]`;
-        let resultPromise;
+    logger.debug('send signal', signal, { force });
 
+    try {
+      await this.backend.sendSignal(signal);
+      if (this.db && id !== undefined && attempts !== undefined) {
+        await this.db.remove(id);
+      }
+    } catch (ex) {
+      const reason = `failed to send signal with exception ${ex} [${attempts}]`;
+
+      if (this.db && id !== undefined && attempts !== undefined) {
         // Check number of attempts and remove if > this.maxAttempts
         if (attempts < this.maxAttempts) {
-          resultPromise = this.db.remove(id)
-            .then(() => this.db.push(signal, attempts + 1))
-            .then(() => logger.debug('update number of attemps of signal', signal));
+          await this.db.remove(id);
+          await this.db.push(signal, attempts + 1);
+          logger.debug('update number of attemps of signal', signal);
         } else {
           // Otherwise, remove the document from the queue
-          resultPromise = this.db.remove(id)
-            .then(() => logger.debug('removed failed signal', signal));
+          await this.db.remove(id);
+          logger.debug('removed failed signal', signal);
         }
+      }
 
-        // Returns a failed promise to notify a failure
-        return resultPromise.then(() => Promise.reject(reason));
-      });
+      // Notify failure
+      throw new Error(reason);
+    }
   }
 
   /**
@@ -175,8 +175,10 @@ export default class SignalsQueue {
    * Push a new signal in the queue. It will be persisted and sent to the
    * backend as soon as possible.
    */
-  push(signal) {
-    return this.db.push(signal).catch((ex) => {
+  async push(signal, { force = false } = {}) {
+    try {
+      await this.db.push(signal);
+    } catch (ex) {
       logger.log('Could not persist signal in queue, sending directly', ex, signal);
       // Indicate that this signal was pushed directly, without going through
       // the persistent signal queue.
@@ -184,7 +186,7 @@ export default class SignalsQueue {
       /* eslint-disable no-param-reassign */
       signal.meta.forcePushed = true;
       /* eslint-enable no-param-reassign */
-      return this.sendSignal({ signal });
-    });
+      await this.sendSignal({ signal }, { force });
+    }
   }
 }

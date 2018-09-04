@@ -17,13 +17,11 @@ export default background({
     @param settings
   */
   init() {
-    this.messageCenter = MessageCenter.getInstance();
+    this.messageCenter = new MessageCenter();
     (new Triggers()).init();
   },
 
   unload() {
-
-
   },
 
   beforeBrowserShutdown() {
@@ -36,6 +34,16 @@ export default background({
     },
     'msg_center:hide_message': function (...args) {
       this.messageCenter.hideMessage.call(this.messageCenter, ...args);
+    },
+    'offers-send-ch': function onNewOffer(offer) {
+      const DEST_TO_HANDLERS = {
+        ghostery: 'ghostery',
+      };
+
+      offer.dest
+        .map(dest => DEST_TO_HANDLERS[dest])
+        .filter(handler => handler)
+        .forEach(handler => this.messageCenter.showMessage(offer, handler));
     },
   },
 

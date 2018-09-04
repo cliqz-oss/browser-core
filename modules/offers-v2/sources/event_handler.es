@@ -103,6 +103,7 @@ export default class EventHandler {
     }
   }
 
+
   isHttpReqDomainSubscribed(cb, domainName) {
     return this.httpReqCbs.has(domainName) && this.httpReqCbs.get(domainName).has(cb);
   }
@@ -153,7 +154,6 @@ export default class EventHandler {
     }
 
     const urlData = new UrlData(url, referrerName);
-
     try {
       this._publish(this.urlChangeCbs, urlData);
     } catch (e) {

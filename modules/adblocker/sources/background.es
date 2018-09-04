@@ -11,7 +11,7 @@ import CliqzADB, {
   ADB_PREF,
   ADB_PREF_OPTIMIZED,
   ADB_USER_LANG,
-  isSupportedProtocol
+  isSupportedProtocol,
 } from './adblocker';
 
 
@@ -48,7 +48,7 @@ export default background({
         const response = CliqzADB.adBlocker.engine.getDomainFilters(
           extractHostname(url),
         );
-        this.core.action('broadcastMessageToWindow', response, windowId, 'adblocker');
+        this.core.action('broadcastActionToWindow', windowId, 'adblocker', 'update', response);
       }
     },
 
@@ -122,6 +122,10 @@ export default background({
 
     getAdBlockInfoForTab(tabId) {
       return CliqzADB.adbStats.report(tabId);
+    },
+
+    getGhosteryStats(tabId) {
+      return CliqzADB.adbStats.reportTrackers(tabId);
     },
 
     isWhitelisted(url) {

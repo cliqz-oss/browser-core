@@ -1,39 +1,84 @@
+const DEBUG = false;
+
 const fs = require('fs');
 const resolve = require('path').resolve;
+const url = require('url');
+const createServer = require('http').createServer;
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const compression = require('compression');
+const cookieParser = require('cookie-parser');
 
-const port = 3000;
-const app = express();
+function log(...args) {
+  if (DEBUG) {
+    // eslint-disable-next-line no-console
+    console.log(...args);
+  }
+}
 
-app.use(bodyParser.json());
-app.use(express.static('public'));
-app.use(compression());
+function clone(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
 
-// Accept request to mock a particular endpoint dynamically
-let requests = {};
-let fileIndex = {};
-app.post('/mock', function mock(request, response) {
-  console.log('MOCK', JSON.stringify(request.body));
-  const { path, result, headers, directories, status } = request.body;
-  if (path) {
+function interpol(str, req) {
+  const interpolPrefix = '{req.';
+  const interpolStartIndex = str.indexOf(interpolPrefix);
+  if (interpolStartIndex !== -1) {
+    const interpolEndIndex = str.indexOf('}', interpolStartIndex + interpolPrefix.length);
+    if (interpolEndIndex === -1) {
+      return str;
+    }
+
+    const attribute = str.substring(interpolStartIndex + interpolPrefix.length, interpolEndIndex);
+    if (req[attribute] !== undefined) {
+      return str.replace(`${interpolPrefix}${attribute}}`, req[attribute]);
+    }
+
+    return str;
+  }
+
+  return str;
+}
+
+function normalizePath(path) {
+  return resolve(path).replace(/[/]{1,}/g, '/');
+}
+
+(function createApp(port = 3000) {
+  const app = express();
+
+  app.use(bodyParser.json());
+  app.use(express.static('public'));
+  app.use(compression());
+  app.use(cookieParser());
+
+  // Accept request to mock a particular endpoint dynamically
+  let requests = {};
+  let fileIndex = {};
+  let mocks = {};
+
+  app.post('/mock', (request, response) => {
+    log('MOCK', JSON.stringify(request.body));
+    const { path, result, headers, directories, status } = request.body;
     let endpoint = path;
     if (directories) {
-      fileIndex = {};
       directories.forEach((dir) => {
-        const fullDir = __dirname + '/../' + dir;
-        console.log('READ', fullDir, dir);
+        const fullDir = `${__dirname}/../${dir}`;
+        log('READ', fullDir, dir);
         fs.readdir(fullDir, (err, files) => {
-          console.log('ERR', err);
+          if (err) {
+            log('ERR', err);
+          }
           if (!files) {
-            console.log('EMPTY DIR', fullDir);
+            log('EMPTY DIR', fullDir);
             return;
           }
           files.forEach((file) => {
-            const fullPath = fullDir + '/' + file;
-            console.log('FILE', fullPath);
-            fileIndex[file] = fullPath;
+            const fullRequestPath = normalizePath(`${path}/${file}`);
+            const fullResourcePath = normalizePath(`${fullDir}/${file}`);
+            log('FILE', fullRequestPath, fullResourcePath);
+            fileIndex[fullRequestPath] = fullResourcePath;
           });
         });
       });
@@ -43,90 +88,96 @@ app.post('/mock', function mock(request, response) {
       }
 
       endpoint += '*';
+    } else {
+      mocks[path] = {
+        headers,
+        result,
+        status,
+      };
     }
 
-    console.log('REGISTER', endpoint);
-    app.all(endpoint, function dynamicRoute(req, res) {
-      console.log(`${path} request`, {
-        url: req.url,
-        headers: req.headers,
-        body: req.body
-      });
+    log('REGISTER', endpoint);
+    response.end(JSON.stringify({ status: 'OK' }));
+  });
 
-      if (!requests[path]) {
-        requests[path] = [];
-      }
+  app.all('/info', (request, response) => {
+    log('/info');
+    response.end(JSON.stringify(requests));
+  });
 
-      // Keep track of headers, body
-      requests[path].push({
-        headers: JSON.parse(JSON.stringify(req.headers)),
-        body: req.body,
-      });
+  app.all('/reset', async (request, response) => {
+    log('/reset');
+    requests = {};
+    fileIndex = {};
+    mocks = {};
+    response.end('{}');
+  });
 
+  // Listen to everything and dispatch to known mocks
+  app.all('/*', (req, res) => {
+    const path = req.path;
+    const requestObj = clone({
+      baseUrl: req.baseUrl,
+      body: req.body,
+      cookies: req.cookies,
+      headers: req.headers,
+      hostname: req.hostname,
+      method: req.method,
+      originalUrl: req.originalUrl,
+      params: req.params,
+      path: req.path,
+      protocol: req.protocol,
+      query: req.query,
+      queryString: url.parse(req.url).query,
+      url: req.url,
+      xhr: req.xhr,
+    });
+
+    if (!requests[path]) {
+      requests[path] = [];
+    }
+
+    log('New request', path, requestObj);
+    if (mocks[path] !== undefined) {
+      // Keep track of requests seen
+      requests[path].push(requestObj);
+
+      const { headers, result, status } = mocks[path];
+
+      // Set resulting headers
       (headers || []).forEach(({ name, value }) => {
-        console.log('HEADER', name, value);
-        res.header(name, value);
+        const finalValue = interpol(value, requestObj);
+        log('HEADER', name, finalValue);
+        res.header(name, finalValue);
       });
 
+      // Set resulting status
       if (status) {
         res.status(status);
       }
 
-      // Returns expected result
-      //
-      if (directories) {
-        let fileName = req.url.substring(path.length).split('?')[0];
-        if (fileName.startsWith('/')) {
-          fileName = fileName.substring(1);
-        }
-        const parts = fileName.split('/');
-
-        console.log(fileName);
-        const finalPath = resolve(fileIndex[parts[0]] + '/' + parts.slice(1).join('/'));
-        console.log('Serve', finalPath);
-        res.sendFile(finalPath);
+      if (result === '{Transparent.gif}') {
+        log('Serve transparent gif');
+        res.header('Content-Type', 'image/gif');
+        res.end(new Buffer([71, 73, 70, 56, 57, 97, 1, 0, 1, 0, 128, 0, 0,
+          0, 0, 0, 255, 255, 255, 33, 249, 4, 1, 0, 0, 0, 0, 44, 0, 0, 0, 0, 1,
+          0, 1, 0, 0, 2, 1, 68, 0, 59]), 'binary');
       } else {
-        console.log('Serve', result);
-        res.end(result);
+        log('Serve pre-registered response');
+        res.end(interpol(result, requestObj));
       }
-    });
-  }
+    } else if (fileIndex[path] !== undefined) {
+      // Keep track of requests seen
+      requests[path].push(requestObj);
 
-  response.end(JSON.stringify({ status: 'OK' }));
-});
-
-
-app.all('/info', function info(request, response) {
-  console.log('/info');
-  const result = JSON.stringify(requests);
-  console.log('Summary', result);
-  response.end(result);
-});
-
-
-app.all('/reset', function reset(request, response) {
-  console.log('/reset');
-  // Delete dynamic routes
-  const routes = app._router.stack;
-  const removeMiddlewares = function removeMiddlewares(route, i, routes) {
-    switch (route.handle.name) {
-      case 'dynamicRoute':
-        routes.splice(i, 1);
+      const finalPath = fileIndex[path];
+      log('Serve file from', finalPath);
+      res.sendFile(finalPath);
+    } else {
+      log('Not found', path);
+      res.status(404).send('Not found');
     }
-    if (route.route) {
-      route.route.stack.forEach(removeMiddlewares);
-    }
-  }
-  routes.forEach(removeMiddlewares);
+  });
 
-  // Return a summary of hits
-  const result = JSON.stringify(requests);
-  requests = {};
-  response.end(result);
-});
-
-
-const server = app.listen(port, () => {
-  const host = server.address().address;
-  console.log(`Example app listening at http://${host}:${port}`);
-});
+  createServer(app).listen(port);
+}());

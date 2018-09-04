@@ -9,11 +9,22 @@ import { elementTopMargin, elementSideMargins } from '../../styles/CardStyle';
 // trigger with query: beef jerky chefkoch
 // make sure results are set to germany
 
-export default class Recipe extends React.Component {
+const styles = StyleSheet.create({
+  item: {
+    color: 'black',
+    marginBottom: 12,
+  },
+  headerText: {
+    paddingTop: 3,
+    paddingBottom: 3,
+    color: 'black',
+  }
+});
 
-  displayInstruction(text, index) {
+export default class Recipe extends React.Component {
+  displayInstruction(text) {
     return (
-      <Text key={index} style={styles.item}>{ text }</Text>
+      <Text key={text} style={styles.item}>{ text }</Text>
     );
   }
 
@@ -31,30 +42,19 @@ export default class Recipe extends React.Component {
     const details = Object.keys(richData.mobi || {})
       .filter(key => richData.mobi[key] && richData.mobi[key].length)
       .map(key => this.displayItem(key, richData.mobi[key]))
-      .map((item, index) => <ExpandView key={index} index={index} header={item.header} content={item.content} />);
+      .map((item, index) =>
+        <ExpandView key={item.header} index={index} header={item.header} content={item.content} />);
 
     return (
       <View style={{ marginTop: 5 }}>
-        <View style={ elementSideMargins }>
-          <Rating image={richData.url_ratingimg}/>
-          <Text style={{color: 'black'}}>{getMessage('CookTime', richData.cook_time)}</Text>
+        <View style={elementSideMargins}>
+          <Rating image={richData.url_ratingimg} />
+          <Text style={{ color: 'black' }}>{getMessage('CookTime', richData.cook_time)}</Text>
         </View>
-        <View style={ elementTopMargin }>
+        <View style={elementTopMargin}>
           { details }
         </View>
       </View>
     );
   }
 }
-
-const styles = StyleSheet.create({
-  item: {
-    color: 'black',
-    marginBottom: 12,
-  },
-  headerText: {
-    paddingTop: 3,
-    paddingBottom: 3,
-    color: 'black',
-  }
-});

@@ -22,7 +22,7 @@
 #navigator-toolbox {
     --tabs-border-color: rgba(0, 0, 0, 0.08); // Active tab border color and line below
     /* TABS TOOLBAR */
-    #TabsToolbar:-moz-lwtheme-darktext {
+    #TabsToolbar {
         /* Add 2 more pxs to the top in order to compensate 2 pxs lost from 'margin' (1) */
         padding-top: 2px;
 
@@ -51,7 +51,7 @@
 [extradragspace][tabsintitlebar]:root:not([inFullscreen]) {
     #navigator-toolbox {
         /* TABS TOOLBAR */
-        #TabsToolbar:-moz-lwtheme-darktext {
+        #TabsToolbar {
             /* Add 10 more pxs to the drag space */
             padding-top: 10px;
 
@@ -73,7 +73,7 @@
 #main-window:not([tabsintitlebar]) {
     #navigator-toolbox {
         /* TABS TOOLBAR */
-        #TabsToolbar:-moz-lwtheme-darktext {
+        #TabsToolbar {
             /* Remove padding top */
             padding-top: 0;
 

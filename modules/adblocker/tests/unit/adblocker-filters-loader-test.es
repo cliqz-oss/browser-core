@@ -62,7 +62,7 @@ export default describeModule('adblocker/filters-loader',
       deflate: x => x,
     },
     'core/platform': {
-      isChromium: false,
+      isWebExtension: false,
       default: {
         platformName,
       },

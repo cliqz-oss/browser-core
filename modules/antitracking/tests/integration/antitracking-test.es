@@ -7,7 +7,7 @@ import {
   testServer,
   updateTab,
   waitFor,
-  waitForAsync
+  waitForAsync,
 } from '../../../tests/core/test-helpers';
 
 import Config from '../../../antitracking/config';
@@ -55,7 +55,7 @@ export default function () {
 
         beforeEach(async () => {
           attrack.tp_events._active = {};
-          await testServer.registerPathHandler('/', '<html><body><p>Hello world</p></body></html');
+          await testServer.registerPathHandler('/', { result: '<html><body><p>Hello world</p></body></html' });
           tabId = await newTab(testServer.getBaseUrl());
         });
 
@@ -86,7 +86,6 @@ export default function () {
       });
 
       afterEach(async () => {
-        await Promise.all(tabs.map(tabId => closeTab(tabId)));
         tabs = [];
       });
 
@@ -101,8 +100,8 @@ export default function () {
 
         beforeEach(async () => {
           await Promise.all([
-            testServer.registerPathHandler('/', '<html><body><p>Hello world</p></body></html'),
-            testServer.registerPathHandler('/privacy', '<html><body><p>Hello private world</p></body></html'),
+            testServer.registerPathHandler('/privacy', { result: '<html><body><p>Hello private world</p></body></html' }),
+            testServer.registerPathHandler('/', { result: '<html><body><p>Hello world</p></body></html' }),
           ]);
           tabs.push(await newTab(testServer.getBaseUrl()));
           tabs.push(await newTab(testServer.getBaseUrl('privacy#saferWeb')));
@@ -185,10 +184,18 @@ export default function () {
           const jsBody = `<html><body><script>window.location="http://cliqztest.com:${testServer.port}/target"</script></body></html>`;
           // 302 redirect case
           return Promise.all([
-            testServer.registerPathHandler('/302', body, [{ name: 'Location', value: `http://cliqztest.com:${testServer.port}/target` }], '302'),
-            testServer.registerPathHandler('/303', body, [{ name: 'Location', value: `http://cliqztest.com:${testServer.port}/target` }], '303'),
-            testServer.registerPathHandler('/js', jsBody),
-            testServer.registerPathHandler('/target', body),
+            testServer.registerPathHandler('/302', {
+              result: body,
+              headers: [{ name: 'Location', value: `http://cliqztest.com:${testServer.port}/target` }],
+              status: '302',
+            }),
+            testServer.registerPathHandler('/303', {
+              result: body,
+              headers: [{ name: 'Location', value: `http://cliqztest.com:${testServer.port}/target` }],
+              status: '303',
+            }),
+            testServer.registerPathHandler('/js', { result: jsBody }),
+            testServer.registerPathHandler('/target', { result: body }),
           ]);
         });
 
@@ -208,7 +215,6 @@ export default function () {
               await attrack.tp_events.commit(true);
 
               const hits = await testServer.getHits();
-              console.error('HITS', hits);
               expect(hits.get(`/${kind}`)).to.have.length(1);
               expect(Object.keys(attrack.tp_events._active)).to.have.length(1);
               const tabid = Object.keys(attrack.tp_events._active)[0];

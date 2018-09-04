@@ -142,6 +142,14 @@ export default class ShareCard extends React.Component {
   }
 
   render() {
+    if (Platform.OS === 'web') {
+      return (
+        <View style={[this.props.style || {}]}>
+          { this.props.children }
+          <View style={{ padding: 5 }} />
+        </View>
+      );
+    }
     return (
       <View>
         <ViewShot ref={(view) => { this._view = view; }} options={OPTIONS}>

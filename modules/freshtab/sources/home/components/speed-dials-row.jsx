@@ -2,8 +2,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import cliqz from '../cliqz';
 import SpeedDial from './speed-dial';
+import Placeholder from './placeholder';
 import AddSpeedDial from './add-speed-dial';
 import { speedDialClickSignal, speedDialDeleteSignal } from '../services/telemetry/speed-dial';
+import { MAX_SPOTS } from '../../constants';
 
 export default class SpeedDialsRow extends React.Component {
   static get propTypes() {
@@ -13,6 +15,7 @@ export default class SpeedDialsRow extends React.Component {
       removeSpeedDial: PropTypes.func,
       addSpeedDial: PropTypes.func,
       getSpeedDials: PropTypes.func,
+      showPlaceholder: PropTypes.bool,
     };
   }
 
@@ -30,15 +33,18 @@ export default class SpeedDialsRow extends React.Component {
         }
         return this.state.displayAddBtn();
       },
-      displayAddBtn: () => this.props.dials.length < 6,
+      displayAddBtn: () => this.props.dials.length < MAX_SPOTS,
     });
+  }
+
+  get getDials() {
+    return this.props.dials.slice(0, MAX_SPOTS);
   }
 
   removeSpeedDial(dial, index) {
     speedDialDeleteSignal(this.state.isCustom, index);
     this.props.removeSpeedDial(dial, index);
   }
-
 
   visitSpeedDial(index) {
     speedDialClickSignal(this.state.isCustom, index);
@@ -58,20 +64,31 @@ export default class SpeedDialsRow extends React.Component {
   }
 
   render() {
+    const placeholdersLength = MAX_SPOTS - this.getDials.length;
+    const placeholders = [...Array(placeholdersLength)];
+
     return (
       <div>
         <div className="dials-row">
           {
-            this.props.dials.slice(0, 6).map((dial, i) =>
+            this.getDials.map((dial, i) =>
               (<SpeedDial
                 key={dial.url}
                 dial={dial}
                 removeSpeedDial={() => this.removeSpeedDial(dial, i)}
                 visitSpeedDial={() => this.visitSpeedDial(i)}
+                updateSpeedDial={newDial => this.props.updateSpeedDial(newDial, i)}
               />)
             )
           }
-
+          {this.props.showPlaceholder &&
+            placeholders.map((el, ind) => {
+              const placeholderKey = `placeholder-${ind}`;
+              return (<Placeholder
+                key={placeholderKey}
+              />);
+            })
+          }
           {this.state.showAddButton() &&
             <AddSpeedDial addSpeedDial={this.props.addSpeedDial} />
           }

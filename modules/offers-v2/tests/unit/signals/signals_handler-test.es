@@ -74,7 +74,7 @@ export default describeModule('offers-v2/signals/signals_handler',
       }
     },
     'core/platform': {
-      isChromium: false
+      isWebExtension: false
     },
     'core/helpers/timeout': {
       default: function () { const stop = () => {}; return { stop }; }

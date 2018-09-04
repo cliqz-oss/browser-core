@@ -1,13 +1,12 @@
 import {
-  clearIntervals,
   clone,
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
 import {
   defaultConfig,
   mockMessage,
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 
 describe('Fresh tab interactions with notifications', function () {
@@ -41,10 +40,6 @@ describe('Fresh tab interactions with notifications', function () {
     subject.respondsWithEmptySpeedDials();
     subject.respondsWithEmptyNews();
     subject.respondsWithEmptyOffers();
-  });
-
-  afterEach(function () {
-    clearIntervals();
   });
 
   context('when one notification message is available', function () {
@@ -293,12 +288,10 @@ describe('Fresh tab interactions with notifications', function () {
 
     describe('simulating 3rd click on the call to action button', function () {
       beforeEach(function () {
-        const iframes = document.getElementsByTagName('iframe');
-        const thisWindow = iframes[iframes.length - 1].contentWindow;
-        thisWindow.postMessage(JSON.stringify({
+        subject.sendMessage({
           action: 'closeNotification',
           messageId: 'new-cliqz-tab',
-        }), '*');
+        });
         return waitFor(() => !subject.query(notificationAreaSelector));
       });
 
@@ -323,12 +316,10 @@ describe('Fresh tab interactions with notifications', function () {
 
     describe('simulating adding a new notification from message-center', function () {
       beforeEach(function () {
-        const iframes = document.getElementsByTagName('iframe');
-        const thisWindow = iframes[iframes.length - 1].contentWindow;
-        thisWindow.postMessage(JSON.stringify({
+        subject.sendMessage({
           action: 'addMessage',
           message: otherMessage,
-        }), '*');
+        });
         return waitFor(() => subject.query(notificationAreaSelector));
       });
 

@@ -1,12 +1,11 @@
 import {
-  clearIntervals,
   clone,
   defaultConfig,
-  expect
+  expect,
 } from './helpers';
 import {
   mockOfferMessage,
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 
 describe('Fresh tab offer notification UI', function () {
@@ -51,10 +50,6 @@ describe('Fresh tab offer notification UI', function () {
     });
   });
 
-  after(function () {
-    clearIntervals();
-  });
-
   context('when one offer message is available', function () {
     before(function () {
       return subject.load();
@@ -65,7 +60,7 @@ describe('Fresh tab offer notification UI', function () {
     });
 
     it('the offer is visible', function () {
-      const offerSelector = '.offer-middle-notification';
+      const offerSelector = '.offer-unit';
       expect(subject.query(offerSelector)).to.exist;
     });
   });

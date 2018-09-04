@@ -4,12 +4,14 @@
         ".search.yahoo\\..*?[#?&;][pq]=[^$&]+",
         ".linkedin.*?\\/pub\\/dir+",
         "\\.bing\\..*?[#?&;]q=[^$&]+",
+        "\\.amazon\\..*?\\/s/.*[?&]field-keywords=[^$&]+",
         ".*"
     ],
     "searchEngines": [
         "0",
         "1",
-        "3"
+        "3",
+        "4"
     ],
     "scrape": {
         "0": {
@@ -258,24 +260,24 @@
                 }
             },
             ".kp-blk.fm06If.Wnoohf.OJXvsb": {
-              "ent": {
-                "item": ".kno-fb-ctx.GzssTd span",
-                "type": "arr",
-                "etype": "textContent",
-                "keyName": "ent"
-              },
-              "pred": {
-                "item": ".kno-fb-ctx.qLLird span",
-                "type": "arr",
-                "etype": "textContent",
-                "keyName": "pred"
-              },
-              "ans": {
-                "item": ".Z0LcW",
-                "type": "arr",
-                "etype": "textContent",
-                "keyName": "ans"
-              }
+                "ent": {
+                    "item": ".kno-fb-ctx.GzssTd span",
+                    "type": "arr",
+                    "etype": "textContent",
+                    "keyName": "ent"
+                },
+                "pred": {
+                    "item": ".kno-fb-ctx.qLLird span",
+                    "type": "arr",
+                    "etype": "textContent",
+                    "keyName": "pred"
+                },
+                "ans": {
+                    "item": ".Z0LcW",
+                    "type": "arr",
+                    "etype": "textContent",
+                    "keyName": "ans"
+                }
             },
             "._OKe .g": {
                 "u": {
@@ -432,7 +434,69 @@
                 }
             }
         },
-        "4":{}
+        "4": {
+          "#nav-search": {
+            "q": {
+              "item": ".nav-search-field input",
+              "type": "searchQuery",
+              "etype": "value",
+              "keyName": "query"
+            }
+          },
+          "li[id^='result_']": {
+            "t": {
+              "item": "h2",
+              "type": "arr",
+              "etype": "data-attribute",
+              "keyName": "t"
+            },
+            "u": {
+              "item": "a.a-link-normal",
+              "type": "arr",
+              "etype": "href",
+              "keyName": "u",
+              "functionsApplied": [
+                [
+                  "splitF",
+                  "&url=",
+                  1
+                ],
+                [
+                  "splitF",
+                  "/ref=",
+                  0
+                ],
+                [
+                  "maskU",
+                  false,
+                  false
+                ]
+              ]
+            }
+          },
+          "ctry": {
+            "ctry": {
+              "type": "standard",
+              "etype": "ctry",
+              "keyName": "ctry"
+            }
+          },
+          "qurl": {
+            "qurl": {
+              "type": "standard",
+              "etype": "url",
+              "keyName": "qurl",
+              "functionsApplied": [
+                [
+                  "maskU",
+                  false,
+                  false
+                ]
+              ]
+            }
+          }
+        },
+        "5":{}
     },
     "payloads": {
         "0": {
@@ -601,6 +665,10 @@
                     [
                         "qurl",
                         "qurl"
+                    ],
+                    [
+                        "ctry",
+                        "ctry"
                     ]
                 ]
             },
@@ -741,12 +809,44 @@
                 ]
             }
         },
-        "4":{}
+        "4": {
+          "q": {
+            "type": "query",
+            "results": "clustered",
+            "action": "query-am",
+            "fields": [
+              [
+                "li[id^='result_']",
+                "r",
+                "join"
+              ],
+              [
+                "#nav-search",
+                "q"
+              ],
+              [
+                "qurl",
+                "qurl"
+              ],
+              [
+                "ctry",
+                "ctry"
+              ]
+            ]
+          }
+        },
+        "5":{}
+    },
+    "queryTemplate": {
+      "4": {
+        "prefix": "s/?field-keywords="
+      }
     },
     "idMapping": {
         "0": "go",
         "1": "ya",
         "2": "lnkd",
-        "3": "bing"
+        "3": "bing",
+        "4": "am"
     }
 }

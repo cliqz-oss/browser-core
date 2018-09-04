@@ -23,9 +23,7 @@ function log() {
 }
 
 function send(payload) {
-  sendAsyncMessage('cliqz', {
-    payload: payload,
-  });
+  sendAsyncMessage('cliqz', { message: payload });
 }
 
 

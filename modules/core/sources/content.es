@@ -4,33 +4,32 @@ import config from '../core/config';
 import '../module-content-script';
 import {
   runContentScripts,
-  CHROME_MSG_SOURCE,
-  isCliqzContentScriptMsg,
-  getDocumentUrl
+  registerContentScript,
+  isTopWindow,
 } from '../core/content/helpers';
 import { throttle } from '../core/decorators';
+import { waitForAsync } from '../core/helpers/wait';
+import createSpananWrapper from '../core/helpers/spanan-module-wrapper';
 
 function getContextHTML(ev) {
-  var target = ev.target,
-      count = 0,
-      html;
+  let target = ev.target,
+    count = 0,
+    html;
 
   try {
-    while(true) {
+    while (true) {
       html = target.innerHTML;
 
-      if (html.indexOf('http://') !==-1 || html.indexOf('https://') !==-1 ) {
-
+      if (html.indexOf('http://') !== -1 || html.indexOf('https://') !== -1) {
         return html;
-
       }
 
       target = target.parentNode;
 
-      count+=1;
+      count += 1;
       if (count > 4) break;
     }
-  } catch(ee) {
+  } catch (ee) {
   }
 }
 
@@ -39,25 +38,15 @@ const whitelist = [
   'resource://cliqz/'
 ].concat(config.settings.frameScriptWhitelist);
 
-(function onDOMWindowCreated() {
-try {
-
-  // we only handle HTML documents for now
-  if(window.document.documentElement.nodeName.toLowerCase() !== 'html'){
-    return;
-  }
-
-  runContentScripts(window, chrome);
-
+registerContentScript('core', '*', (window, chrome, CLIQZ) => {
   const currentURL = () => window.location.href;
-  const url = currentURL();
 
   function onCallback(msg) {
     if (isDead()) {
       return;
     }
 
-    if (!whitelist.some(function (url) { return currentURL().indexOf(url) === 0; }) ) {
+    if (!whitelist.some(url => currentURL().indexOf(url) === 0)) {
       return;
     }
 
@@ -73,15 +62,15 @@ try {
     }
   }
 
-  let fns = {
-    postMessage: function (message) {
+  const fns = {
+    postMessage(message) {
       window.postMessage(message, '*');
       return null;
     },
-    getHTML: function () {
+    getHTML() {
       return window.document.documentElement.outerHTML;
     },
-    click: function (selector) {
+    click(selector) {
       const el = window.document.querySelector(selector);
       try {
         el.click();
@@ -90,39 +79,52 @@ try {
         return false;
       }
     },
-    queryHTML: function (selector, attribute) {
-      let attributes = attribute.split(',');
+    queryHTML(selector, attribute, {
+      shadowRootSelector = null,
+      attributeType = 'property',
+    } = {}) {
+      const root = shadowRootSelector
+        ? window.document.querySelector(shadowRootSelector).shadowRoot
+        : window.document;
+      const attributes = attribute.split(',');
 
-      return Array.prototype.map.call(
-        window.document.querySelectorAll(selector),
-        function (el) {
+      const getAttr = (el, attr) => {
+        if (attributeType === 'property') {
+          return el[attr];
+        }
+
+        return el.getAttribute(attr);
+      };
+
+      const ret = Array.prototype.map.call(
+        root.querySelectorAll(selector),
+        (el) => {
           if (attributes.length > 1) {
-            return attributes.reduce( function (hash, attr) {
-              hash[attr] = el[attr];
-              return hash;
-            }, {});
-          } else {
-            return el[attribute];
+            return attributes.reduce((hash, attr) => ({
+              ...hash,
+              [attr]: getAttr(el, attr),
+            }), {});
           }
+          return getAttr(el, attribute);
         }
       );
+
+      return ret;
     },
-    getCookie: function () {
+    getCookie() {
       try {
         return window.document.cookie;
       } catch (e) {
         if (e instanceof DOMException && e.name == 'SecurityError') {
           return null;
-        } else {
-          throw e; // let others bubble up
         }
+        throw e; // let others bubble up
       }
     }
   };
 
   function onCore(msg) {
     let payload;
-
     if (isDead()) {
       return;
     }
@@ -136,10 +138,10 @@ try {
 
     let matchesCurrentUrl = msg.url === url;
     // wild card for cliqz URLS
-    if(msg.url &&
+    if (msg.url &&
         (msg.url.indexOf('resource://cliqz') === 0 ||
          msg.url.indexOf('chrome://cliqz') === 0)) {
-      if(url.indexOf(msg.url) === 0) {
+      if (url.indexOf(msg.url) === 0) {
         matchesCurrentUrl = true;
       }
     }
@@ -148,48 +150,36 @@ try {
       return;
     }
 
-    if ( !(msg.action in fns) ) {
+    if (!(msg.action in fns)) {
       return;
     }
 
     try {
       payload = fns[msg.action].apply(null, msg.args || []);
-      if (payload === null){
-        return
+      if (payload === null) {
+        return;
       }
     } catch (e) {
       window.console.error('cliqz framescript:', e);
     }
-
     chrome.runtime.sendMessage({
-      source: CHROME_MSG_SOURCE,
-      origin: 'content',
-      payload: payload,
-      requestId: msg.requestId
+      response: payload,
+      requestId: msg.requestId,
     });
   }
 
   function proxyWindowEvent(action) {
     return function (ev) {
-      chrome.runtime.sendMessage({
-        source: CHROME_MSG_SOURCE,
-        payload: {
-          module: 'core',
-          action: action,
-          args: [
-            {
-              target: {
-                baseURI: ev.target.baseURI,
-              }
-            }
-          ]
+      CLIQZ.app.modules.core.action(action, {
+        target: {
+          baseURI: ev.target.baseURI,
         }
       });
     };
   }
 
-  let onMouseDown = function (ev) {
-    const linksSrc = []
+  const onMouseDown = function (ev) {
+    const linksSrc = [];
     if (window.parent !== window) {
       // collect srcipt links only for frames
       if (window.document && window.document.scripts) {
@@ -213,38 +203,26 @@ try {
       href = node.closest('a[href]').getAttribute('href');
     }
 
-    chrome.runtime.sendMessage({
-      source: CHROME_MSG_SOURCE,
-      payload: {
-        module: 'core',
-        action: 'recordMouseDown',
-        args: [
-          {
-            target: {
-              baseURI: ev.target.baseURI,
-              value: ev.target.value,
-              href: ev.target.href,
-              parentNode: {
-                href: ev.target.parentNode.href
-              },
-              linksSrc,
-            }
-          },
-          getContextHTML(ev),
-          href
-        ]
+    const event = {
+      target: {
+        baseURI: ev.target.baseURI,
+        value: ev.target.value,
+        href: ev.target.href,
+        parentNode: {
+          href: ev.target.parentNode.href
+        },
+        linksSrc,
       }
-    });
+    };
+    CLIQZ.app.modules.core.action('recordMouseDown', event, getContextHTML(ev), href);
   };
 
-  let onReady = function (event) {
+  const onReady = function () {
     // ReportLang
-    let lang = window.document.getElementsByTagName('html')
+    const lang = window.document.getElementsByTagName('html')
       .item(0).getAttribute('lang');
     // don't analyse language for (i)frames
-    let isTopWindow = !event.target.defaultView.frameElement;
-
-    if (!isTopWindow) {
+    if (!isTopWindow(window)) {
       return;
     }
 
@@ -254,31 +232,17 @@ try {
     const ogDescription = window.document.querySelector('meta[property="og:description"]');
     const ogImage = window.document.querySelector('meta[property="og:image"]');
 
-    chrome.runtime.sendMessage({
-      source: CHROME_MSG_SOURCE,
-      payload: {
-        module: 'core',
-        action: 'recordMeta',
-        args: [
-          currentURL(),
-          {
-            title: title && title.innerHTML,
-            description: description && description.content,
-            ogTitle: ogTitle && ogTitle.content,
-            ogDescription: ogDescription && ogDescription.content,
-            ogImage: ogImage && ogImage.content,
-            lang,
-          },
-        ]
-      }
+    CLIQZ.app.modules.core.action('recordMeta', currentURL(), {
+      title: title && title.innerHTML,
+      description: description && description.content,
+      ogTitle: ogTitle && ogTitle.content,
+      ogDescription: ogDescription && ogDescription.content,
+      ogImage: ogImage && ogImage.content,
+      lang,
     });
   };
 
   function onBackgroundMessage(message) {
-    if (!isCliqzContentScriptMsg(message)) {
-      return;
-    }
-
     // messages with windowId are responses to actions being called by content scripts
     // TODO: use chrome.runtime.sendMessage callbacks instead
     if (message.windowId) {
@@ -328,14 +292,71 @@ try {
     try {
       currentURL();
       return false;
-    } catch(e) {
+    } catch (e) {
       stop();
       return true;
     }
   }
 
   window.addEventListener('unload', stop);
-} catch(e) {
-  window.console.error('Content Script error', e);
-}
-})(this);
+});
+
+(function () {
+  // we only handle HTML documents for now
+  if (window.document.documentElement.nodeName.toLowerCase() !== 'html') {
+    return;
+  }
+
+  let hasRun = false;
+  const actionWrappers = [];
+
+  function runOnce(cliqz) {
+    if (hasRun) {
+      return;
+    }
+
+    hasRun = true;
+    // augment CLIQZ global to add action support
+    Object.keys(cliqz.app.modules).forEach((moduleName) => {
+      const mod = cliqz.app.modules[moduleName];
+      const wrapper = createSpananWrapper(moduleName);
+      mod.action = wrapper.send.bind(wrapper);
+      actionWrappers.push(wrapper);
+    });
+    chrome.runtime.onMessage.addListener((message) => {
+      actionWrappers.forEach(wrapper => wrapper.handleMessage(message));
+    });
+    runContentScripts(window, chrome, cliqz);
+  }
+
+  if (typeof CLIQZ !== 'undefined' && CLIQZ.app) {
+    runOnce(CLIQZ);
+  } else {
+    window.runCliqz = runOnce;
+
+    const getApp = () => new Promise((resolve, reject) => {
+      if (hasRun) {
+        reject('hasRun');
+        return;
+      }
+
+      chrome.runtime.sendMessage({
+        module: 'core',
+        action: 'status',
+      }, ({ response }) => {
+        if (hasRun) {
+          reject('hasRun');
+          return;
+        }
+
+        resolve({ app: response });
+      });
+    });
+
+    waitForAsync(getApp)
+      .then(runOnce)
+      .catch((ex) => {
+        window.console.error('Could not run content script', ex, currentURL());
+      });
+  }
+}());

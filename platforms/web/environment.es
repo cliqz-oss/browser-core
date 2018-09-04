@@ -6,7 +6,6 @@
 import console from '../core/console';
 import prefs from '../core/prefs';
 import Storage from '../core/storage';
-import osAPI from './os-api';
 
 // TODO: get rid of me!
 const storage = new Storage();
@@ -16,7 +15,6 @@ const CLIQZEnvironment = {
   // TODO: check if calling the bridge for each telemetry point is expensive or not
   telemetry(msg) {
     msg.ts = Date.now();
-    osAPI.pushTelemetry(msg);
   },
   _resultsHandler(r) {
     if (CLIQZEnvironment.lastSearch !== r._searchString) {
@@ -61,7 +59,7 @@ const CLIQZEnvironment = {
       if (url.indexOf('http') === -1) {
         url = `http://${url}`;
       }
-      osAPI.openLink(url);
+      window.location.href = url;
     }
 
     return false;

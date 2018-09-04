@@ -1,4 +1,4 @@
-<h3>How to implement</h3>
+<h3>How to implement unit tests</h3>
 
 <p>
   The following code snipet shows the basic implementation and the comments on it
@@ -26,11 +26,11 @@ export default describeModule('offers-v2/offers_db',
     './logging_handler': {
       default: {}
     },
-    // in this case we are defining the variable isChromium from the core/platform
+    // in this case we are defining the variable isWebExtension from the core/platform
     // module as false, since in this particular case is the only one we are using
     // from one of the includes on our dependencies.
     'core/platform': {
-      isChromium: false
+      isWebExtension: false
     },
     // we are defining here the default class for the db_helper, note that here we
     // are not defining the name of the class but the interface exported.

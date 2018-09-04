@@ -1,3 +1,5 @@
+/* eslint-disable no-param-reassign */
+
 import config from '../core/config';
 import inject from '../core/kord/inject';
 import utils from '../core/utils';
@@ -6,39 +8,40 @@ import events from '../core/events';
 import console from '../core/console';
 import { getMessage } from '../core/i18n';
 import { getThemeStyle } from '../platform/browser';
+import { openLink } from '../platform/browser-actions';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import { getDetailsFromUrl } from '../core/url';
-import { isWebExtension, isFirefox } from '../core/platform';
+import { isBootstrap } from '../core/platform';
 
-const STYLESHEET_URL = `chrome://cliqz/content/control-center/styles/xul.css`;
+const STYLESHEET_URL = 'chrome://cliqz/content/control-center/styles/xul.css';
 
 const BTN_ID = 'cliqz-cc-btn';
 const TELEMETRY_TYPE = 'control_center';
 const TRIQZ_URL = config.settings.TRIQZ_URL;
 
 function getAdultFilterState() {
-    const data = {
-      conservative: {
-        name: getMessage('always'),
-        selected: false
-      },
-      moderate: {
-        name: getMessage('always_ask'),
-        selected: false
-      },
-      liberal: {
-        name: getMessage('never'),
-        selected: false
-      }
-    };
-    let state = prefs.get('adultContentFilter', 'moderate');
-    if (state === 'showOnce') {
-      state = 'moderate';
+  const data = {
+    conservative: {
+      name: getMessage('always'),
+      selected: false
+    },
+    moderate: {
+      name: getMessage('always_ask'),
+      selected: false
+    },
+    liberal: {
+      name: getMessage('never'),
+      selected: false
     }
-    data[state].selected = true;
-
-    return data;
+  };
+  let state = prefs.get('adultContentFilter', 'moderate');
+  if (state === 'showOnce') {
+    state = 'moderate';
   }
+  data[state].selected = true;
+
+  return data;
+}
 
 export default class Win {
   constructor({ window, background, settings }) {
@@ -50,7 +53,7 @@ export default class Win {
     this.channel = settings.channel;
     this.ICONS = settings.ICONS;
     this.BACKGROUNDS = settings.BACKGROUNDS;
-    if (isFirefox) {
+    if (isBootstrap) {
       this.createFFhelpMenu = this.createFFhelpMenu.bind(this);
       this.helpMenu = window.document.getElementById('menu_HelpPopup');
     }
@@ -130,11 +133,8 @@ export default class Win {
   }
 
   createFFhelpMenu() {
-    if (this
-        .window
-        .document
-        .querySelectorAll('#menu_HelpPopup>.cliqz-item')
-        .length > 0) return;
+    if (this.window.document
+      .querySelectorAll('#menu_HelpPopup>.cliqz-item').length > 0) return;
 
     this.helpMenu.insertBefore(this.tipsAndTricks(this.window), this.helpMenu.firstChild);
     this.helpMenu.insertBefore(this.feedback(this.window), this.helpMenu.firstChild);
@@ -148,16 +148,16 @@ export default class Win {
 
     if (func) {
       item.addEventListener(
-          'command',
-          () => {
-            utils.telemetry({
-              type: 'activity',
-              action: 'cliqz_menu_button',
-              button_name: action,
-            });
-            func();
-          },
-          false);
+        'command',
+        () => {
+          utils.telemetry({
+            type: 'activity',
+            action: 'cliqz_menu_button',
+            button_name: action,
+          });
+          func();
+        },
+        false);
     } else {
       item.setAttribute('disabled', 'true');
     }
@@ -186,8 +186,8 @@ export default class Win {
 
   unload() {
     removeStylesheet(this.window.document, STYLESHEET_URL);
-    this.toolbarButton && this.toolbarButton.removeWindow(this.window);
-    this.pageAction && this.pageAction.removeWindow(this.window);
+    if (this.toolbarButton) this.toolbarButton.removeWindow(this.window);
+    if (this.pageAction) this.pageAction.removeWindow(this.window);
 
     this.locChangeEvent.unsubscribe();
     this.themeChangeEvent.unsubscribe();
@@ -256,7 +256,7 @@ export default class Win {
 
   typeFilter(data) {
     prefs.set(`type_filter_${data.target}`, data.status);
-    events.pub('type_filter:change', { target: data.target, status: data.status});
+    events.pub('type_filter:change', { target: data.target, status: data.status });
   }
 
   antitrackingActivator(data) {
@@ -376,9 +376,9 @@ export default class Win {
     while (enumerator.hasMoreElements()) {
       const win = enumerator.getNext();
       if (win !== this.window) {
-        setTimeout((win) => {
+        setTimeout((_win) => {
           this.controlCenter.windowAction(
-            win,
+            _win,
             'refreshState'
           );
         }, 3000 /* some modules need time to start eg: antitracking */, win);
@@ -388,7 +388,8 @@ export default class Win {
 
   setState(state) {
     if (this.toolbarButton) {
-      const icon = config.baseURL + (this.ICONS[state][getThemeStyle()] || this.ICONS[state].default);
+      const icon = config.baseURL + (this.ICONS[state][getThemeStyle()] ||
+        this.ICONS[state].default);
       this.toolbarButton.setIcon(this.window, icon);
       this.toolbarButton.setBadgeBackgroundColor(this.window, this.BACKGROUNDS[state]);
     }
@@ -421,7 +422,7 @@ export default class Win {
           prefValue = (prefValue === 'true');
         }
         if (data.prefType === 'integer') {
-          prefValue = parseInt(prefValue);
+          prefValue = parseInt(prefValue, 10);
         }
         prefs.set(data.pref, prefValue, '' /* full pref name required! */);
       }
@@ -448,8 +449,7 @@ export default class Win {
         break;
       }
       default: {
-        const tab = utils.openLink(this.window, data.url, true);
-        this.window.gBrowser.selectedTab = tab;
+        openLink(data.url, true);
       }
     }
 
@@ -460,6 +460,7 @@ export default class Win {
       index: data.index
     });
   }
+
   // creates the static frame data without any module details
   // re-used for fast first render and onboarding
   getFrameData() {
@@ -548,7 +549,7 @@ export default class Win {
     ccDataMocked.extraUrl = '/webpage';
     ccDataMocked.onboarding = true;
 
-    const numberAnimation = function () {
+    const numberAnimation = () => {
       if (numberCounter === 27) {
         return;
       }
@@ -602,13 +603,13 @@ export default class Win {
       origin: 'window',
       message,
     };
-    this.toolbarButton && this.toolbarButton.sendMessage(this.window, msg);
-    this.pageAction && this.pageAction.sendMessage(this.window, msg);
+    if (this.toolbarButton) this.toolbarButton.sendMessage(this.window, msg);
+    if (this.pageAction) this.pageAction.sendMessage(this.window, msg);
   }
 
   resizePopup({ width, height }) {
-    this.toolbarButton && this.toolbarButton.resizePopup(this.window, { width, height });
-    this.pageAction && this.pageAction.resizePopup(this.window, { width, height });
+    if (this.toolbarButton) this.toolbarButton.resizePopup(this.window, { width, height });
+    if (this.pageAction) this.pageAction.resizePopup(this.window, { width, height });
   }
 
   sendTelemetry(data) {

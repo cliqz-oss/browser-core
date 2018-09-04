@@ -1,12 +1,14 @@
 const base = require('./common/system');
 const subprojects = require('./common/subprojects/bundles');
 const publish = require('./common/publish');
+const urls = require('./common/urls')
 
 const id = "android@cliqz.com";
 const packageName = "cliqz";
 
 module.exports = {
   "platform": "webextension",
+  "specific": "cliqz-android",
   "brocfile": "Brocfile.webextension.js",
   "testsBasePath": "./build",
   "testem_launchers": ["unit-node", "Chrome"],
@@ -14,64 +16,56 @@ module.exports = {
   "sign": "python ./xpi-sign/xpisign.py -k $CLIQZ_CERT_PATH --signer openssl --passin file:$CLIQZ_CERT_PASS_PATH "+packageName+"-$PACKAGE_VERSION.zip "+packageName+"-$PACKAGE_VERSION-signed.zip && cp "+packageName+"-$PACKAGE_VERSION-signed.zip "+packageName+"-$PACKAGE_VERSION.zip",
   "publish": publish.toEdge(packageName, 'cliqz-android', 'zip'),
   "baseURL": "/modules/",
-  "settings": {
+  "versionPrefix": "3",
+  "settings": Object.assign({}, urls, {
     "id": id,
     "description": "",
     "name": "Cliqz",
     "antitrackingButton": false,
     "ATTRACK_TELEMETRY_PROVIDER": "platform",
-    "channel": "MR00",
-    "RESULTS_PROVIDER": "https://api.cliqz.com/api/v2/results?q=",
-    "RICH_HEADER": "https://api.cliqz.com/api/v2/rich-header?path=/v2/map",
     "RESULTS_TIMEOUT": 3000,
-    "CONFIG_PROVIDER": "https://api.cliqz.com/api/v1/config",
-    "CDN_BASEURL": "https://cdn.cliqz.com",
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
-    "OFFERS_BE_BASE_URL": "https://offers-api.cliqz.com",
-    "RICH_HEADER_PROXY_URL" : "hb-news.cliqz.com",
-    "TRACKER_PROXY_PROXY_SIGNALING_DEFAULT": "wss://p2p-signaling-proxypeer.cliqz.com",
-    "TRACKER_PROXY_PROXY_PEERS_DEFAULT": "https://p2p-signaling-proxypeer.cliqz.com/peers",
-    "TRACKER_PROXY_PROXY_PEERS_EXIT_DEFAULT": "https://p2p-signaling-proxypeer.cliqz.com/exitNodes",
-    "BW_URL": "https://antiphishing.cliqz.com/api/bwlist?md5=",
-    "ANOLYSIS_BACKEND_URL": "https://anolysis.privacy.cliqz.com",
-    "PRIVACY_SCORE_URL": "https://anti-tracking.cliqz.com/api/v1/score?",
-    "SUPPORT_URL": "https://cliqz.com/support/",
-    "TEAM_URL": "https://cliqz.com/team/",
-    "HOMPAGE_URL": "https://cliqz.com/",
-    "JOBS_URL": "https://cliqz.com/jobs/",
-    "ENDPOINT_URL": "https://api.cliqz.com/api/v1/rich-header?path=/map&bmresult=",
-    "CAMPAIGN_SERVER": "https://fec.cliqz.com/message/",
-    "TRIQZ_URL": "https://cliqz.com/tips",
-    "RESULTS_PROVIDER_LOG" : "https://api.cliqz.com/api/v1/logging?q=",
-    "RESULTS_PROVIDER_PING": "https://api.cliqz.com/ping",
-    "RESULTS_PROVIDER_ORDER": ["calculator", "history", "cliqz", "suggestions", "instant"],
+    "RESULTS_PROVIDER_ORDER": ["calculator", "history", "cliqz", "querySuggestions", "instant"],
     "CLEAR_RESULTS_AT_SESSION_START": false,
-    "SAFE_BROWSING": "https://safe-browsing.cliqz.com",
-    "UNINSTALL": "https://cliqz.com/home/offboarding",
-    "FEEDBACK": "https://cliqz.com/feedback/",
-    "BACKGROUND_IMAGE_URL": "https://cdn.cliqz.com/brands-database/database/",
-    "CLIQZ_SAVE_URL": "https://cliqz.com/q=",
-    "SUGGESTIONS_URL": "https://cliqz.com/search?q=",
-    "ROTATED_TOP_NEWS": "rotated-top-news.cliqz.com",
-    "HB_NEWS": "hb-news.cliqz.com",
-    "TELEMETRY_ENDPOINT": "https://safebrowsing-experiment.cliqz.com",
-    "INVENTORY_URL": "https://cdn.cliqz.com/browser-f/fun-demo/inventoryv2.txt.gz",
-    "antitrackingPlaceholder": "cliqz.com/tracking",
-    "antitrackingHeader": "CLIQZ-AntiTracking"
-  },
+    'ICONS': {
+      'active': {
+        'default': 'control-center/images/cc-active.svg',
+        'dark': 'control-center/images/cc-active-dark.svg'
+      },
+      'inactive': {
+        'default': 'control-center/images/cc-critical.svg',
+        'dark': 'control-center/images/cc-critical-dark.svg'
+      },
+      'critical': {
+        'default': 'control-center/images/cc-critical.svg',
+        'dark': 'control-center/images/cc-critical-dark.svg'
+      }
+    },
+    'BACKGROUNDS': {
+      'active': '#471647',
+      'inactive': '#471647',
+      'critical': '#471647',
+      'off': '#471647'
+    },
+  }),
   "modules": [
     "core",
     "static",
     "mobile-cards",
-    "webextension-specific",
     "search",
     "anolysis",
-    "geolocation"
+    "geolocation",
+    "control-center",
+    "cliqz-android"
   ],
   "bundles": [
     "mobile-cards/debug.bundle.js",
     "mobile-cards/cliqz-android.bundle.js",
-    "webextension-specific/app.bundle.js",
+    "cliqz-android/app.bundle.js",
+    "cliqz-android/cliqz-search-engines.bundle.js",
+    "cliqz-android/cliqz-native-bridge.bundle.js",
+    "cliqz-android/cliqz-app-constants.bundle.js",
+    "core/content-script.bundle.js",
   ],
   system: Object.assign({}, base.systemConfig, {
     map: Object.assign({}, base.systemConfig.map, {

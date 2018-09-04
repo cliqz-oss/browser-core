@@ -1,12 +1,11 @@
 import {
-  clearIntervals,
   clone,
-  expect
+  expect,
 } from '../../core/test-helpers';
 import {
   defaultConfig,
   mockMessage,
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 
 describe('Fresh tab notification UI', function () {
@@ -24,10 +23,6 @@ describe('Fresh tab notification UI', function () {
     newsConfig.response.componentsState.news.visible = true;
     newsConfig.response.messages = mockMessage;
     subject.respondsWith(newsConfig);
-  });
-
-  after(function () {
-    clearIntervals();
   });
 
   context('when one notification message is available', function () {

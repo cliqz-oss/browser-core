@@ -68,7 +68,6 @@ export default describeModule('offers-v2/offers/offers-api',
       }
     },
     'core/platform': {
-      isChromium: false
     },
     'core/crypto/random': {
       random: function () {
@@ -276,7 +275,7 @@ export default describeModule('offers-v2/offers/offers-api',
           let sigh;
           // the filtering rule evaluator moc
           beforeEach(function () {
-            db = new OfferDB({});
+            db = new OfferDB({get: () => Promise.resolve({})});
             sigh = new SignalHandler(db);
             op = new OfferProcessor(sigh, db);
             // clear all
@@ -380,9 +379,86 @@ export default describeModule('offers-v2/offers/offers-api',
             chai.expect(sigVal).to.be.equal(1);
           });
 
+          context('offers are empty', function () {
+            it('getStoredOffers should return []', function () {
+              const r = op.getStoredOffers({})
+              chai.expect(r).to.be.eql([]);
+            });
+          });
+
+          context('offer exists', function () {
+            beforeEach(function () {
+              const offer = cloneValidOffer();
+              op.pushOffer(bo(offer));
+            });
+
+            it('getStoredOffers should return offers', function () {
+              const r = op.getStoredOffers({})
+              chai.expect(r.length).to.be.equal(1);
+            });
+
+            it('getStoredOffers should [] because of filters', function () {
+              const r = op.getStoredOffers({filters: {by_rs_dest: 'foo_bar filter'}})
+              chai.expect(r.length).to.be.equal(0);
+            });
+          });
+
+          context('push the same offer twice', function () {
+            let o1;
+            let o2;
+            beforeEach(function () {
+              const offer = cloneValidOffer();
+              o1 = bo(offer);
+              o2 = bo(offer);
+              op.pushOffer(o1);
+              op.pushOffer(o2);
+            });
+
+            it('offers should have the same version', function () {
+              chai.expect(o1.version).to.be.equal(o2.version);
+            });
+
+            it('getStoredOffers should return one offer', function () {
+              const r = op.getStoredOffers({});
+              chai.expect(r.length).to.be.equal(1);
+            });
+          });
+
+          context('push the same offer twice but different versions', function () {
+            let o1;
+            let o2;
+            beforeEach(function () {
+              const offer = cloneValidOffer();
+              o1 = bo(offer);
+              o2 = bo({...offer, version: `${+Date.now()}`});
+              op.pushOffer(o1);
+              op.pushOffer(o2);
+            });
+
+            it('offer\'s version should change', function () {
+              const r = op.getStoredOffers({});
+              chai.expect(o1.version).to.be.not.equal(o2.version);
+              chai.expect(r[0].offer_info.version).to.be.equal(o2.version);
+            });
+          });
+
+          context('offer exists and will be removed', function () {
+            let removed;
+            beforeEach(function () {
+              const offer = cloneValidOffer();
+              op.pushOffer(bo(offer));
+              removed = op._removeOffer(offer.campaign_id, offer.offer_id);
+            });
+
+            it('offer should be removed and offers now empty', function () {
+              const r = op.getStoredOffers({});
+              chai.expect(removed).to.be.equal(true);
+              chai.expect(r.length).to.be.equal(0);
+            });
+          });
+
           // TODO: check removed offer sent AID_OFFER_DB_REMOVED signal
 
-          // check can update offer?
           // check display offer
 
           // check the different APIs get methods

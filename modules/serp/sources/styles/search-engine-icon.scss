@@ -1,0 +1,36 @@
+.search-engine-icon {
+  &-google {
+    background: url('../assets/google_logo.svg') 28px center no-repeat;
+    background-size: 20px;
+  }
+
+  &-duckduckgo {
+    background: url('../assets/duckduck_logo.svg') 28px center no-repeat;
+    background-size: 20px;
+  }
+
+  &-bing {
+    background: url('../assets/bing_logo.svg') 28px center no-repeat;
+    background-size: 20px;
+  }
+
+  &-yahoo {
+    background: url('../assets/yahoo_logo.svg') 30px center no-repeat;
+    background-size: 20px;
+  }
+
+  &-startpage {
+    background: url('../assets/startpage_logo.svg') 29px center no-repeat;
+    background-size: 20px;
+  }
+
+  &-ecosia {
+    background: url('../assets/ecosia_logo.svg') 29px center no-repeat;
+    background-size: 20px;
+  }
+
+  &-qwant {
+    background: url('../assets/qwant_logo.svg') 29px center no-repeat;
+    background-size: 20px;
+  }
+}

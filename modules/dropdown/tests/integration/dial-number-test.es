@@ -1,14 +1,16 @@
 import {
-  blurUrlBar,
   $cliqzResults,
-  getLocalisedString,
+  blurUrlBar,
   expect,
   fillIn,
+  getLocalisedString,
   mockSearch,
   testsEnabled,
   waitForPopup,
-  withHistory } from './helpers';
-import results from './fixtures/resultsDialNumber';
+  win,
+  withHistory,
+} from './helpers';
+import results from '../../core/integration/fixtures/resultsDialNumber';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -22,7 +24,7 @@ export default function () {
     const labelSelector = '.dial-code-label';
 
     before(async function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
       blurUrlBar();
       await mockSearch({ results });
       withHistory([]);
@@ -31,7 +33,7 @@ export default function () {
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     describe('renders dial number result', function () {

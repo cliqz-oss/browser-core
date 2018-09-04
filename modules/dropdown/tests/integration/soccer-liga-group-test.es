@@ -1,29 +1,29 @@
-/* global window */
-
 import {
+  $cliqzResults,
   blurUrlBar,
   checkMainResult,
   checkParent,
   checkSoccerLeague,
-  $cliqzResults,
   fillIn,
   mockSearch,
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from './helpers';
-import results from './fixtures/resultsSoccerLigaGroup';
+  win,
+  withHistory,
+} from './helpers';
+import results from '../../core/integration/fixtures/resultsSoccerLigaGroup';
 
 export default function () {
   if (!testsEnabled()) { return; }
 
   context('for soccer Champions League group results', function () {
     before(function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     context('(UI)', function () {

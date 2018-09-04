@@ -1,5 +1,3 @@
-/* eslint-disable strict, no-console, import/no-extraneous-dependencies */
-
 'use strict';
 
 const program = require('commander');

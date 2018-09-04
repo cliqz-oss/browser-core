@@ -1,23 +1,25 @@
 import {
+  $cliqzResults,
   blurUrlBar,
   checkButtons,
   checkChildren,
   checkParent,
-  $cliqzResults,
   fillIn,
   mockSearch,
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from './helpers';
-import results from './fixtures/resultsNews';
+  win,
+  withHistory,
+} from './helpers';
+import results from '../../core/integration/fixtures/resultsNews';
 
 export default function () {
   if (!testsEnabled()) { return; }
 
   context('for news rich header', function () {
     before(async function () {
-      window.preventRestarts = true;
+      win.preventRestarts = true;
       blurUrlBar();
       await mockSearch({ results });
       withHistory([]);
@@ -27,7 +29,7 @@ export default function () {
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     checkParent({ $result: $cliqzResults, results });

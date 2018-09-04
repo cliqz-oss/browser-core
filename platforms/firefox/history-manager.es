@@ -9,31 +9,11 @@ import Defer from '../core/helpers/defer';
 import { Components } from './globals';
 import PlacesUtils from './places-utils';
 import console from '../core/console';
+import { getUrlVariations } from '../core/url';
 
 const { classes: Cc, interfaces: Ci } = Components;
 
 const bookmarkService = Cc['@mozilla.org/browser/nav-bookmarks-service;1'].getService(Ci.nsINavBookmarksService);
-
-function getUrlVariations(url) {
-  let protocols = ['http:', 'https:'];
-  const u = new URL(url);
-
-  if (!protocols.includes(u.protocol)) {
-    protocols = [u.protocol];
-  }
-
-  return Array.from(
-    protocols.reduce((urls, protocol) => {
-      const path = u.pathname.replace(/\/+$/, '');
-      u.protocol = protocol;
-      u.pathname = path;
-      urls.add(u.toString());
-      u.pathname = `${path}/`;
-      urls.add(u.toString());
-      return urls;
-    }, new Set())
-  );
-}
 
 const CliqzHistoryManager = {
   init() {
@@ -175,50 +155,51 @@ const CliqzHistoryManager = {
     return false;
   },
   PlacesInterestsStorage: {
-    _execute: async function pisExecute(sql, columns, onRow, parameters) {
-      const conn = await new Promise(resolve => PlacesUtils.withConnectionWrapper('CLIQZ', resolve));
-      const connection = conn._connectionData._dbConn;
-      const statement = connection.createAsyncStatement(sql);
-      const deferredResult = new Defer();
-      if (parameters) {
-        Object.keys(parameters).forEach((key) => {
-          statement.params[key] = parameters[key];
-        });
-      }
-      statement.executeAsync({
-        handleCompletion(...args) {
-          deferredResult.resolve(...args);
-        },
+    _execute: function pisExecute(sql, columns, onRow, parameters) {
+      return PlacesUtils.withConnectionWrapper('CLIQZ', (conn) => {
+        const connection = conn._connectionData._dbConn;
+        const statement = connection.createAsyncStatement(sql);
+        const deferredResult = new Defer();
+        if (parameters) {
+          Object.keys(parameters).forEach((key) => {
+            statement.params[key] = parameters[key];
+          });
+        }
+        statement.executeAsync({
+          handleCompletion(...args) {
+            deferredResult.resolve(...args);
+          },
 
-        handleError(...args) {
-          deferredResult.reject(...args);
-        },
+          handleError(...args) {
+            deferredResult.reject(...args);
+          },
 
-        handleResult(resultSet) {
-          let row = resultSet.getNextRow();
-          while (row) {
-            // Read out the desired columns from the row into an object
-            let result;
-            if (columns !== null) {
-              // For just a single column, make the result that column
-              if (columns.length === 1) {
-                result = row.getResultByName(columns[0]);
-              } else {
-                // For multiple columns, put as values on an object
-                result = {};
-                for (let i = 0; i < columns.length; i += 1) {
-                  const column = columns[i];
-                  result[column] = row.getResultByName(column);
+          handleResult(resultSet) {
+            let row = resultSet.getNextRow();
+            while (row) {
+              // Read out the desired columns from the row into an object
+              let result;
+              if (columns !== null) {
+                // For just a single column, make the result that column
+                if (columns.length === 1) {
+                  result = row.getResultByName(columns[0]);
+                } else {
+                  // For multiple columns, put as values on an object
+                  result = {};
+                  for (let i = 0; i < columns.length; i += 1) {
+                    const column = columns[i];
+                    result[column] = row.getResultByName(column);
+                  }
                 }
               }
+              // pass the result to the onRow handler
+              onRow(result);
+              row = resultSet.getNextRow();
             }
-            // pass the result to the onRow handler
-            onRow(result);
-            row = resultSet.getNextRow();
           }
-        }
+        });
+        return deferredResult.promise;
       });
-      return deferredResult.promise;
     }
   },
   removeFromHistory(url, { strict } = { strict: true }) {

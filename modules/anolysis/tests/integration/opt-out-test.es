@@ -2,16 +2,16 @@ import {
   app,
   expect,
   waitForAsync,
-  waitForPrefChange
+  waitForPrefChange,
 } from '../../core/test-helpers';
 
 import getSynchronizedDate from '../../../core/synchronized-time';
 import prefs from '../../../core/prefs';
-import { isFirefox } from '../../../core/platform';
+import { isBootstrap } from '../../../core/platform';
 
 
 export default function () {
-  if (!isFirefox) {
+  if (!isBootstrap) {
     return;
   }
 
@@ -24,7 +24,7 @@ export default function () {
     prefs.clear('uploadEnabled', 'datareporting.healthreport.');
   };
 
-  context('opt-out from telemetry tests', function () {
+  context('opt-out from anolysis tests', function () {
     afterEach(() => clearTelemetryPrefs());
 
     [

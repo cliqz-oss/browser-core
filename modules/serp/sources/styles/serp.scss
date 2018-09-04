@@ -1,0 +1,69 @@
+@import './searchbox';
+@import './searchbox-initial';
+@import './searchbox-results';
+@import './variations/v1/searchbox-results';
+@import './search-engine-icon';
+@import './searchbox-field-layout';
+@import './searchbox-categories';
+@import './variations/v1/searchbox-categories';
+@import './dropdown';
+@import './variations/v1/dropdown';
+@import './tooltip';
+@import './variations/v1/tooltip';
+@import './footer';
+@import './why-cliqz';
+@import './modal';
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  border-collapse: collapse;
+  min-width: 750px;
+  min-height: 600px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  min-height: 100%;
+  font-family: Arial,sans-serif;
+  text-rendering: optimizeLegibility;
+  background-color: #f2f2f2;
+  box-sizing: border-box;
+}
+
+em {
+  font-style: normal;
+  font-weight: 700;
+}
+
+.hidden {
+  visibility: hidden;
+}
+
+.removed {
+  display: none;
+}
+
+.page {
+  &-wrap {
+    background-color: #fff;
+    min-height: 100%;
+    position: relative;
+    box-sizing: border-box;
+    padding-bottom: 62px;
+  }
+}
+
+.cliqz-dropdown {
+  border: none;
+  box-shadow: 0px 0px 1px 0px rgba(0, 0, 0, 0.3);
+  width: 100%;
+}
+
+@import './serp.mobile';

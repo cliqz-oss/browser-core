@@ -884,6 +884,10 @@ $basic-line-height: (16 / 15) + 0em;
 
         &.videos {
             .result {
+                .logo-blank {
+                    background-color: transparent;
+                    background: none;
+                }
                 .abstract {
                     .divider, .url[data-extra="url"] {
                         visibility: hidden;

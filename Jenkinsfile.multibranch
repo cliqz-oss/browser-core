@@ -13,8 +13,14 @@ currentBuild.description = ''
 def isIntegrationBranch = env.BRANCH_NAME == 'master'
 
 def matrix = [
-    'react-native': [
-        'config': 'react-native.json',
+    'serp': [
+        'config': 'serp.js',
+    ],
+    'cliqz-ios': [
+        'config': 'cliqz-ios.js',
+    ],
+    'ghostery-ios': [
+        'config': 'ghostery-ios.js',
     ],
     'ghostery': [
         'config': 'ghostery.js',
@@ -22,16 +28,15 @@ def matrix = [
     'cliqzs': [
         'config': 'experiments/cliqzs.json',
     ],
-    'webextension': [
-        'config': 'webextension.js',
-    ],
     'cliqz-android': [
         'config': 'cliqz-android.js',
         'cert_credentials_id': '86407680-3a2a-42ea-9bd8-d42c0c75ed96',
         'cert_pass_credentials_id': 'cae4ee4b-bb2c-4aec-99b0-040919318d87',
     ],
-    'worldcup': [
-        'config': 'worldcup.js',
+    'ghostery-android': [
+        'config': 'ghostery-android.js',
+        'cert_credentials_id': '86407680-3a2a-42ea-9bd8-d42c0c75ed96',
+        'cert_pass_credentials_id': 'cae4ee4b-bb2c-4aec-99b0-040919318d87',
     ],
     /*
     'anolysis': [
@@ -39,6 +44,12 @@ def matrix = [
     ],
     */
 ]
+
+if (env.BRANCH_NAME.startsWith('v9.')) {
+    matrix['cliqz-tab'] = [
+        'config': 'releases/webextension.js',
+    ]
+}
 
 if (isIntegrationBranch) {
     matrix['browser'] = [
@@ -51,12 +62,13 @@ if (isIntegrationBranch) {
       'cert_credentials_id': '766bbf53-83c2-4917-a837-ee612afcbb87',
       'cert_pass_credentials_id': '9983e1f3-9c73-42e7-8036-3b34a592dd52',
     ]
+    matrix['cliqz-tab-beta'] = [
+        'config': 'webextension.js',
+    ]
 }
 
-def baseImage
-def codeImage
+def codeImageName
 def triggeringCommitHash
-def version
 
 node('master') {
 
@@ -84,12 +96,18 @@ node('master') {
         ])
     }
 
-    def baseImageName = 'navigation-extension/base'
-    def codeImageName = 'navigation-extension/code';
+    def dockerfileChecksum = sh(returnStdout: true, script: 'md5sum Dockerfile.publish | cut -d" " -f1').trim()
+    def packageJsonChecksum = sh(returnStdout: true, script: 'md5sum package.json | cut -d" " -f1').trim()
+    // add date to the tag in order to download FF beta and nightly at least once per day and stay up-to-date
+    def today = new Date().format('yyyyMMdd')
+    def dockerTag = "${dockerfileChecksum}-${packageJsonChecksum}-${today}"
+
+    def baseImageName = "navigation-extension/base:${dockerTag}"
+    codeImageName = "navigation-extension/code:${triggeringCommitHash}";
 
     stage('docker build base') {
         ansiColor('xterm') {
-            baseImage = docker.build(
+            docker.build(
                 baseImageName,
                 '--build-arg UID=`id -u` --build-arg GID=`id -g` -f Dockerfile.publish .',
             )
@@ -105,17 +123,10 @@ node('master') {
             USER jenkins
         """
 
-        codeImage = docker.build(
+        docker.build(
             codeImageName,
             '-f Dockerfile.code .',
         )
-    }
-
-    stage('get version') {
-        codeImage.inside() {
-            def environment = isIntegrationBranch ? 'development' : 'production'
-            version = sh(returnStdout: true, script: "/app/fern.js version --environment ${environment}").trim()
-        }
     }
 }
 
@@ -124,22 +135,25 @@ def build(Map m) {
     def config = m.config
     def certCredentialsId = m.certCredentialsId  ? m.certCredentialsId : '766bbf53-83c2-4917-a837-ee612afcbb87'
     def certPassCredentialsId = m.certPassCredentialsId ? m.certPassCredentialsId : '9983e1f3-9c73-42e7-8036-3b34a592dd52'
-    def getImage = m.getImage
+    def getImageName = m.getImageName
     def getCommitId = m.getCommitId
-    def getVersion = m.getVersion
     def getIsIntegrationBranch = m.getIsIntegrationBranch
 
     return {
         node('master') {
-            getImage().inside() {
+            docker.image(getImageName()).inside() {
                 def isIntegrationBranch = getIsIntegrationBranch();
+                def environment = isIntegrationBranch ? 'development' : 'production'
+                def version = sh(returnStdout: true, script: "cd /app && ./fern.js version ./configs/${config} --environment ${environment}").trim()
+                echo "version: $version"
+
                 withEnv([
                     "CLIQZ_BETA=${isIntegrationBranch ? 'True' : 'False'}",
                     "CLIQZ_PRE_RELEASE=${isIntegrationBranch ? 'False' : 'True'}",
                     "CLIQZ_CHANNEL=${channel}",
                     "CLIQZ_CONFIG_PATH=./configs/${config}",
                     "GIT_COMMIT=${getCommitId()}",
-                    "VERSION=${getVersion()}",
+                    "VERSION=${version}",
                 ]) {
                     sh "cd /app && ./fern.js build --environment=production ${isIntegrationBranch ? '' : '--no-debug'}"
 
@@ -157,6 +171,20 @@ def build(Map m) {
                             passwordVariable: 'BALROG_PASSWORD',
                             usernameVariable: 'BALROG_ADMIN',
                         ),
+                        /* credentials for webstore publish */
+                        string(
+                            credentialsId: 'aee682e7-3992-479f-b5a9-85c6ec105e5a',
+                            variable: 'CLIENT_ID',
+                        ),
+                        string(
+                            credentialsId: 'b35a2a5d-6b52-4e61-a7c5-dd8a78fd9108',
+                            variable: 'CLIENT_SECRET',
+                        ),
+                        string(
+                            credentialsId: '2ac4ba97-d033-46bb-9e78-d8ae9b069e1d',
+                            variable: 'REFRESH_TOKEN',
+                        ),
+                        /* end - credentials for webstore publish */
                         file(
                             credentialsId: certCredentialsId,
                             variable: 'CLIQZ_CERT_PATH',
@@ -198,9 +226,8 @@ def stepsForParallel = helpers.entries(matrix).collectEntries {
         config: it[1]['config'],
         certCredentialsId: it[1]['cert_credentials_id'],
         certPassCredentialsId: it[1]['cert_pass_credentials_id'],
-        getImage: { codeImage },
+        getImageName: { codeImageName },
         getCommitId: { triggeringCommitHash },
-        getVersion: { version },
         getIsIntegrationBranch: { isIntegrationBranch },
     )]
 }
@@ -259,7 +286,7 @@ stage('update jira') {
 stage('upload docs') {
     if (isIntegrationBranch) {
         node('master') {
-            codeImage.inside() {
+            docker.image(codeImageName).inside() {
                 sh 'cd /app && npm run doc'
 
                 withCredentials([[

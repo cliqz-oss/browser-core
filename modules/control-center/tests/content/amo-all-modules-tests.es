@@ -1,6 +1,5 @@
 import {
-  clearIntervals,
-  expect
+  expect,
 } from '../../core/test-helpers';
 import Subject from './local-helpers';
 import data from './fixtures/amo-all-modules';
@@ -20,7 +19,6 @@ describe('Control Center: AMO, all modules are present', function () {
 
   after(function () {
     subject.unload();
-    clearIntervals();
   });
 
   context('header part', function () {

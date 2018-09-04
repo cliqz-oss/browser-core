@@ -20,7 +20,7 @@ RUN pip install     \
   pycrypto==2.6.1   \
   requests==2.18.4
 
-RUN npm install -g yarn
+RUN npm install -g npm@latest yarn
 
 RUN cd /tmp && \
   wget https://www.openssl.org/source/old/0.9.x/openssl-0.9.8zg.tar.gz && \
@@ -40,4 +40,5 @@ RUN groupadd jenkins -g $GID \
 USER jenkins
 # Cache npm install in docker
 COPY package.json /home/jenkins/
-RUN cd /home/jenkins/ && npm install
+COPY package-lock.json /home/jenkins/
+RUN cd /home/jenkins/ && npm ci

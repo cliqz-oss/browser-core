@@ -73,16 +73,6 @@ export default describeModule('human-web/content-extractor',
         };
       } }
     },
-    'core/config': {
-      default: {
-        settings: {
-          "ALLOWED_SEARCH_DOMAINS": {
-            'normal': ["\\.google\\..*?[#?&;]q=[^$&]+",".search.yahoo\\..*?[#?&;]p=[^$&]+",".linkedin.*?\\/pub\\/dir+","\\.bing\\..*?[#?&;]q=[^$&]+","\\.amazon\\.[^/]+\\/s(?:/?[?]|/ref=).*[?&]field-keywords=[^$&]+"],
-            'strict': ["\\.google\\..*?[#?&;]q=[^$&]+",".search.yahoo\\..*?[#?&;][pq]=[^$&]+",".linkedin.*?\\/pub\\/dir+","\\.bing\\..*?[#?&;]q=[^$&]+","\\.amazon\\.[^/]+\\/s/[?]?(?:ref=.*[?&])?field-keywords=[^$&]+"]
-          },
-        },
-      },
-    },
   }),
   () => {
     describe('ContentExtractor', function () {

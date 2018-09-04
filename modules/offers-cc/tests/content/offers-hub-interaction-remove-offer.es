@@ -1,12 +1,11 @@
 import {
-  clearIntervals,
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
 import Subject from './local-helpers';
 import {
   dataNewOffer,
-  dataNewOffer1
+  dataNewOffer1,
 } from './fixtures/offers';
 
 context('Offers Hub Interaction tests for removing offer', function () {
@@ -43,7 +42,6 @@ context('Offers Hub Interaction tests for removing offer', function () {
 
     after(function () {
       subject.unload();
-      clearIntervals();
     });
 
     it('three offers are rendered', function () {
@@ -93,7 +91,6 @@ context('Offers Hub Interaction tests for removing offer', function () {
 
     after(function () {
       subject.unload();
-      clearIntervals();
     });
 
     it('sends message after deleting the offer', function () {

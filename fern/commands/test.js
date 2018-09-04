@@ -1,47 +1,52 @@
-"use strict";
+'use strict';
 
 const program = require('commander');
 const untildify = require('untildify');
 const rimraf = require('rimraf');
 const Testem = require('testem');
 const path = require('path');
-const copyDereferenceSync = require('copy-dereference').sync
+const copyDereferenceSync = require('copy-dereference').sync;
 const notifier = require('node-notifier');
-
 const Reporter = require('../reporter');
 const common = require('./common');
+
 const getExtensionVersion = common.getExtensionVersion;
 const setConfigPath = common.setConfigPath;
 const createBuildWatcher = common.createBuildWatcher;
 
-program.command('test [file]')
+program.command(`test ${common.configParameter}`)
   .option('--ci [output]', 'Starts Testem in CI mode')
+  .option('--keep-open', 'do not close the browser after tests')
   .option('--grep [pattern]', 'only run tests matching <pattern>')
   .option('--fgrep [pattern]', 'only run tests with file names matching <pattern>')
   .option('--environment <environment>')
   .option('--firefox [firefox]', 'firefox path', 'nightly')
   .option('--no-build', 'skip the build, run tests only')
   .option('-l --launchers [launchers]', 'comma separted list of launchers')
-  .action( (configPath, options) => {
-    process.env['CLIQZ_ENVIRONMENT'] = options.environment || 'testing';
+  .action((configPath, options) => {
+    process.env.CLIQZ_ENVIRONMENT = options.environment || 'testing';
     const cfg = setConfigPath(configPath);
     const CONFIG = cfg.CONFIG;
     const OUTPUT_PATH = cfg.OUTPUT_PATH;
     let watcher;
 
     if (options.grep) {
-      process.env["MOCHA_GREP"] = options.grep;
+      process.env.MOCHA_GREP = options.grep;
     }
 
     if (options.fgrep) {
-      process.env["MOCHA_FGREP"] = options.fgrep;
+      process.env.MOCHA_FGREP = options.fgrep;
     }
 
     if (options.firefox) {
-      process.env["FIREFOX_PATH"] = untildify(options.firefox);
+      process.env.FIREFOX_PATH = untildify(options.firefox);
     }
 
-    process.env["OUTPUT_PATH"] = untildify(OUTPUT_PATH);
+    if (options.keepOpen) {
+      process.env.KEEP_OPEN = 'true';
+    }
+
+    process.env.OUTPUT_PATH = untildify(OUTPUT_PATH);
 
     const testem = new Testem();
     const launchers = options.launchers;
@@ -55,16 +60,21 @@ program.command('test [file]')
 
     let isRunning = false;
 
-    getExtensionVersion('package').then(tag => {
-      process.env.EXTENSION_VERSION = tag;
+    getExtensionVersion('package').then((version) => {
+      process.env.PACKAGE_VERSION = version;
+      process.env.EXTENSION_VERSION = version;
+
+      if (!process.env.VERSION) {
+        process.env.VERSION = version;
+      }
 
       if (options.ci) {
         const run = () => {
-          const ciOptions =  {
+          const ciOptions = {
             debug: true,
             host: 'localhost',
             port: '4200',
-            launch: launchers || (CONFIG['testem_launchers_ci'] || []).join(','),
+            launch: launchers || (CONFIG.testem_launchers_ci || []).join(','),
             reporter: Reporter,
             serve_files: serveFiles,
           };
@@ -77,7 +87,7 @@ program.command('test [file]')
 
         if (options.build) {
           watcher = createBuildWatcher();
-          watcher.on('buildSuccess', function() {
+          watcher.on('buildSuccess', () => {
             rimraf.sync(OUTPUT_PATH);
             copyDereferenceSync(watcher.builder.outputPath, OUTPUT_PATH);
             run();
@@ -86,15 +96,14 @@ program.command('test [file]')
           run();
         }
       } else {
-        let server;
         watcher = createBuildWatcher();
-        watcher.on('buildSuccess', function() {
+        watcher.on('buildSuccess', () => {
           try {
             rimraf.sync(OUTPUT_PATH);
             copyDereferenceSync(watcher.builder.outputPath, OUTPUT_PATH);
             notifier.notify({
-              title: "Fern",
-              message: "Build complete",
+              title: 'Fern',
+              message: 'Build complete',
               time: 1500
             });
 
@@ -103,7 +112,7 @@ program.command('test [file]')
                 debug: true,
                 host: 'localhost',
                 port: '4200',
-                launch: launchers || (CONFIG['testem_launchers'] || []).join(','),
+                launch: launchers || (CONFIG.testem_launchers || []).join(','),
                 reporter: Reporter,
                 report_file: options.ci,
                 serve_files: serveFiles,
@@ -117,18 +126,17 @@ program.command('test [file]')
             console.error('Tests error:', e);
           }
         });
-
       }
 
       if (!watcher) {
         return;
       }
 
-      watcher.on('buildFailure', function (err) {
-        const msg = "Build error - "+err;
+      watcher.on('buildFailure', (err) => {
+        const msg = `Build error - ${err}`;
         console.error(msg);
         notifier.notify({
-          title: "Fern",
+          title: 'Fern',
           message: msg,
           type: 'warn',
           time: 3000

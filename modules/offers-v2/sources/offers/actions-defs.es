@@ -103,9 +103,27 @@ const ActionID = {
   // when the offer is attached:
   AID_OFFER_DD_OFFER_SHOWN_ATTACHED: 'offer_shown_attached',
   AID_OFFER_DD_OFFER_CA_ACTION_ATTACHED: 'offer_ca_action_attached',
-  AID_OFFER_DD_OFFER_DSP_SESSION_ATTACHED: 'offer_dsp_session_attached'
+  AID_OFFER_DD_OFFER_DSP_SESSION_ATTACHED: 'offer_dsp_session_attached',
 
+  AID_LANDING: 'landing',
+  AID_PAGE_IMP: 'page_imp',
+  AID_SUCCESS: 'success',
+  AID_PAYMENT: 'payment',
+  AID_CART: 'cart',
+  AID_REF_NONE: 'ref_none',
+  AID_REF_OTHER: 'ref_other',
+  AID_REF_SEARCH: 'ref_search',
+  AID_COUPON_EMPTY: 'coupon_empty',
+  AID_COUPON_OWN_USED: 'coupon_own_used',
+  AID_COUPON_OTHER_USED: 'coupon_other_used',
+  AID_COUPON_AUTOFILL_FIELD_APPLY_ACTION: 'coupon_autofill_field_apply_action',
+  AID_COUPON_AUTOFILL_FIELD_CANCEL_ACTION: 'coupon_autofill_field_cancel_action',
+  AID_COUPON_AUTOFILL_FIELD_FAILED: 'coupon_autofill_field_failed',
+  AID_COUPON_AUTOFILL_FIELD_COPY_CODE: 'coupon_autofill_field_copy_code',
+  AID_COUPON_AUTOFILL_FIELD_SHOW: 'coupon_autofill_field_show',
+  AID_COUPON_AUTOFILL_FIELD_OUTSIDE_ACTION: 'coupon_autofill_field_outside_action',
+  AID_COUPON_AUTOFILL_FIELD_X_ACTION: 'coupon_autofill_field_x_action',
+  AID_COUPON_AUTOFILL_FIELD_UNKNOWN: 'coupon_autofill_field_unknown',
 };
-
 
 export default ActionID;

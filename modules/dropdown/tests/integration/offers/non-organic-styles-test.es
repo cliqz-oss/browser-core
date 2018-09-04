@@ -1,15 +1,16 @@
 import {
-  blurUrlBar,
   $cliqzResults,
+  blurUrlBar,
   expect,
   fillIn,
   mockSearch,
   testsEnabled,
   waitForPopup,
-  withHistory } from '../helpers';
+  win,
+  withHistory,
+} from '../helpers';
 
-import noOffersInResultsExtraOffers from '../fixtures/offers/non-organic/noOffersInResultsExtraOffers';
-import prefs from '../../../../core/prefs';
+import noOffersInResultsExtraOffers from '../../../core/integration/fixtures/offers/non-organic/noOffersInResultsExtraOffers';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -17,12 +18,11 @@ export default function () {
   context('non organic offers with different position', function () {
     let $offerElement;
     before(function () {
-      window.preventRestarts = true;
-      prefs.set('offersDropdownSwitch', true);
+      win.preventRestarts = true;
     });
 
     after(function () {
-      window.preventRestarts = false;
+      win.preventRestarts = false;
     });
 
     describe('when offers have first position', function () {

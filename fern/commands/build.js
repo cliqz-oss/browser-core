@@ -1,5 +1,3 @@
-/* eslint-disable strict, no-console */
-
 'use strict';
 
 const assert = require('assert');
@@ -14,7 +12,7 @@ const setConfigPath = common.setConfigPath;
 const cleanupDefaultBuild = common.cleanupDefaultBuild;
 const getExtensionVersion = common.getExtensionVersion;
 
-program.command('build [file]')
+program.command(`build ${common.configParameter}`)
   .option('--no-maps', 'disables source maps')
   .option('--no-debug', 'disables debug pages')
   .option('--version [version]', 'sets extension version', 'package')
@@ -40,8 +38,13 @@ program.command('build [file]')
 
     cleanupDefaultBuild();
 
-    getExtensionVersion(options.version).then((tag) => {
-      process.env.EXTENSION_VERSION = tag;
+    getExtensionVersion(options.version).then((version) => {
+      process.env.PACKAGE_VERSION = version;
+      process.env.EXTENSION_VERSION = version;
+
+      if (!process.env.VERSION) {
+        process.env.VERSION = version;
+      }
 
       const node = broccoli.loadBrocfile();
       const builder = new broccoli.Builder(node, {
@@ -53,7 +56,7 @@ program.command('build [file]')
         .then(() => {
           copyDereferenceSync(builder.outputPath, OUTPUT_PATH);
           printSlowNodes(builder.outputNodeWrapper, 0);
-          //builder.cleanup();
+          // builder.cleanup();
           console.log('Build successful - took ', Date.now() - buildStartAt, 's');
           process.exit(0);
         })

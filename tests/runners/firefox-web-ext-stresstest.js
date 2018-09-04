@@ -1,5 +1,6 @@
-const runner = require('./firefox-web-ext-common.js');
+const runner = require('./test-runner-common');
+const FirefoxBrowser = require('./launchers/firefox-web-ext').Browser;
 
-runner.run({
-  'extensions.cliqz.firefox-tests.forceExtensionReload': 1,
-});
+runner.run(new FirefoxBrowser({
+  'extensions.cliqz.integration-tests.forceExtensionReload': 1,
+}));

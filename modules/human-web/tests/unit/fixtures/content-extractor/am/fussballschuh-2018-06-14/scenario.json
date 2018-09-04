@@ -1,0 +1,98 @@
+{
+  "url": "https://www.amazon.de/s/ref=nb_sb_noss_2?__mk_de_DE=%C3%85M%C3%85%C5%BD%C3%95%C3%91&url=search-alias%3Daps&field-keywords=fussballschuh&rh=i%3Aaps%2Ck%3Afussballschuh",
+
+  "mustContain": [{
+    "type": "humanweb",
+    "action": "query-am",
+    "payload": {
+      "r": {
+        "0": {
+          "t": "adidas Herren X 17.3 FG Fußballschuhe, Weiß, 16 EU",
+          "u": "https://www.amazon.de/adidas-Herren-Fußballschuhe-Mehrfarbig-Ftwwht/dp/B078MLT665"
+        },
+        "1": {
+          "t": "Puma Unisex-Kinder Future 18.4 TT Jr Fußballschuhe",
+          "u": "https://www.amazon.de/Puma-Unisex-Kinder-Future-Fußballschuhe-Yellow-Red/dp/B077PC7MG8"
+        },
+        "2": {
+          "t": "adidas Kaiser 5 Team, Herren Fußballschuhe",
+          "u": "https://www.amazon.de/adidas-Herren-Fußballschuhe-Schwarz-Running/dp/B000G4O6FU"
+        },
+        "3": {
+          "t": "adidas Herren X 17.3 Fg Fußballschuhe",
+          "u": "https://www.amazon.de/adidas-Fußballschuh-Erwachsener-Hartböden-männlich/dp/B078FV2CJF"
+        },
+        "4": {
+          "t": "adidas Kaiser 5 Liga Herren Fußballschuhe",
+          "u": "https://www.amazon.de/adidas-Kaiser-Fußballschuhe-Schwarz-Running/dp/B000G515HQ"
+        },
+        "5": {
+          "t": "adidas Herren Predator 18.4 Fxg Fußballschuhe",
+          "u": "https://www.amazon.de/adidas-Predator-Fußballschuhe-Schwarz-Utility/dp/B078FBC5CS"
+        },
+        "6": {
+          "t": "adidas Herren X 17.1 Fg Fußballschuhe, 44.5 EU",
+          "u": "https://www.amazon.de/adidas-Herren-Fußballschuhe-Schwarz-Utility/dp/B072KF2YG4"
+        },
+        "7": {
+          "t": "adidas Herren Copaletto Fxg Fußballschuhe",
+          "u": "https://www.amazon.de/adidas-Herren-Copaletto-Fußballschuhe-Schwarz/dp/B01GL3QM2O"
+        },
+        "8": {
+          "t": "Puma Liga Classico FG, Herren Fußballschuhe",
+          "u": "https://www.amazon.de/Puma-Classico-Fußballschuhe-Schwarz-black-white/dp/B00PAF5OXS"
+        },
+        "9": {
+          "t": "MAXTOP Herren Fußballschuhe AG Spike Microfaser Cleats Beruf Athletics High Top Trainingsschuhe Unisex Erwachsene Fußballschuhe(EU 39-45)",
+          "u": "https://www.amazon.de/MAXTOP-Fußballschuhe-Microfaser-Trainingsschuhe-Erwachsene/dp/B0794MTZZK"
+        },
+        "10": {
+          "t": "Nike Herren Mercurial Victory VI FG Fußballschuhe",
+          "u": "https://www.amazon.de/Nike-Mercurial-Victory-Fußballschuhe-Université/dp/B01MU3BXKS"
+        },
+        "11": {
+          "t": "adidas Herren Ace 16.1 FG Leather Fußballschuhe, Schwarz",
+          "u": "https://www.amazon.de/adidas-Herren-Leather-Fußballschuhe-SYELLO/dp/B01FWOV1WO"
+        },
+        "12": {
+          "t": "Puma Herren Classico C TT Fußballschuhe, Schwarz/Weiß/Rot",
+          "u": "https://www.amazon.de/Puma-Classico-Fußballschuhe-Schwarz-Black-White-High/dp/B0735BT2GS"
+        },
+        "13": {
+          "t": "Nike Herren Mercurial Victory VI DF SG Fußballschuhe, University/Red/Black, Eu",
+          "u": "https://www.amazon.de/Nike-Mercurial-Victory-Fußballschuhe-Schwarz/dp/B005JRBG02"
+        },
+        "14": {
+          "t": "Puma Herren Evospeed 1.5 Tricks FG Fußballschuhe",
+          "u": "https://www.amazon.de/Puma-Evospeed-Fußballschuhe-Schwarz-White-Red/dp/B01DKIV9FI"
+        },
+        "15": {
+          "t": "BIGU Kinder Jugendliche Fußballschuhe AG Spike Microfaser Cleats Beruf Athletics High Top Herren Fußballstiefel Fussballschuhe Kunstrasen",
+          "u": "https://www.amazon.de/BIGU-Jugendliche-Fußballschuhe-Fußballstiefel-Fussballschuhe/dp/B077WCD3MC"
+        },
+        "16": {
+          "t": "Fußballschuh Socken für Männer im Paar - Fußballschuhe Strumpf",
+          "u": "https://www.amazon.de/Fußballschuh-Socken-Männer-Paar-Fußballschuhe/dp/B06Y58T4ZJ"
+        },
+        "17": {
+          "t": "Puma Herren Future 18.4 FG/AG Fußballschuhe",
+          "u": "https://www.amazon.de/Puma-Herren-Future-Fußballschuhe-Yellow-Red/dp/B077P71LX7"
+        },
+        "18": {
+          "t": "Puma Herren Future 18.1 Netfit Fg/AG Fußballschuhe",
+          "u": "https://www.amazon.de/Puma-Herren-Future-Fußballschuhe-Yellow-Red/dp/B07846Z67D"
+        },
+        "19": {
+          "t": "Puma Herren Future 18.2 Netfit FG/AG Fußballschuhe",
+          "u": "https://www.amazon.de/Puma-Herren-Future-Fußballschuhe-Yellow-Red/dp/B078484W1S"
+        }
+      },
+      "q": "fussballschuh",
+
+      // this is a limitation of the current test setup:
+      // in production, it should be the doublefetch URL, which would be: "https://www.amazon.de/s/?field-keywords=fussballschuh"
+      "qurl": "https://www.amazon.de/s/ref=nb_sb_noss_2?__mk_de_DE=%C3%85M%C3%85%C5%BD%C3%95%C3%91&url=search-alias%3Daps&field-keywords=fussballschuh&rh=i%3Aaps%2Ck%3Afussballschuh",
+      "ctry": "de"
+    }
+  }]
+}

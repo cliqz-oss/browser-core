@@ -26,7 +26,7 @@ const getTodayDayKey = timeMs => `${Math.floor((timeMs / DAY_MS))}`;
 export default describeModule('offers-v2/trigger_machine/ops/control_expr',
   () => ({
     'core/platform': {
-      isChromium: false
+      isWebExtension: false
     },
     'platform/lib/tldjs': {
       default: tldjs,

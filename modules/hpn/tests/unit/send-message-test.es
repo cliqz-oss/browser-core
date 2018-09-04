@@ -106,7 +106,8 @@ export default describeModule('hpn/send-message',
               _CliqzSecureMessage.storage.saveLocalCheckTable._wasCalled = true;
             }
           },
-          localTemporalUniq: {}
+          localTemporalUniq: {},
+          callListeners() {},
         };
 
         uut = new MessageSender({
@@ -130,6 +131,19 @@ export default describeModule('hpn/send-message',
 
         return uut.send([msg]).then(() => {
           expect(fakeWorker.receivedMessages).to.have.lengthOf(1);
+        });
+      });
+
+      it('should call registered listeners', () => {
+        const msg = mkMessage();
+
+        let called = false;
+        _CliqzSecureMessage.callListeners = () => {
+          called = true;
+        };
+
+        return uut.send([msg]).then(() => {
+          expect(called).to.be.true;
         });
       });
 

@@ -19,6 +19,7 @@
     .search {
         margin: 0 auto;
         position: relative;
+        margin-top: 40px;
 
         input {
             height: $search-input-height;
@@ -26,18 +27,22 @@
             border: $search-input-border;
             box-shadow: $search-input-box-shadow;
             width: $search-size;
-            padding: 0 10px;
-            margin-top: 40px;
+            padding: 0 40px 0 $search-text-indent;
             background-image: $search-input-bg-image;
-            text-indent: $search-text-indent;
             background-repeat: no-repeat;
-            font-size: 16px;
+            font-size: $search-font-size;
             color: $search-input-color;
             transition: box-shadow 180ms cubic-bezier(0.4, 0.0, 0.2, 1);
+            overflow: hidden;
+            text-overflow: ellipsis;
 
             &:focus, &:hover {
                 box-shadow: $search-input-box-shadow-focus;
             }
+        }
+
+        &.with-dropdown input {
+            border-radius: 2px 2px 0 0;
         }
 
         ::-moz-placeholder {

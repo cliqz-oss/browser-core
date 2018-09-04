@@ -1,0 +1,31 @@
+.searchbox {
+  &-layout {
+    height: 100%;
+    text-align: center;
+    margin-top: -62px;
+
+    &:before {
+      content: '';
+      display: inline-block;
+      height: 100%;
+      vertical-align: middle;
+    }
+  }
+
+  &-logo {
+    display: block;
+    background-image: url(../assets/cliqz-logo.png);
+    background-repeat: no-repeat;
+    background-position: 50% 20px;
+    background-size: 257px;
+    height: 183px;
+  }
+
+  &-container {
+    width: 100%;
+    max-width: 673px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-top: 62px;
+  }
+}

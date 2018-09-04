@@ -1,7 +1,6 @@
 import {
-  clearIntervals,
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
 import Subject from './local-helpers';
 import { generateDataOn, generateDataOffSite, generateDataOffAll } from './fixtures/antitracking';
@@ -20,7 +19,6 @@ function antitrackingInteractionTests(amo) {
 
   afterEach(function () {
     subject.unload();
-    clearIntervals();
   });
 
   function updateGeneralStateTest(selector, state) {

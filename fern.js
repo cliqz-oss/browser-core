@@ -103,7 +103,7 @@ program.command('generate <type> <moduleName>')
 program.command('react-dev [config]')
       .description('run the react-native dev server')
       .action((config) => {
-        const cfg = setConfigPath(config || 'configs/react-native.json');
+        const cfg = setConfigPath(config || 'configs/react-native.js');
         const CONFIG = cfg.CONFIG;
         const OUTPUT_PATH = cfg.OUTPUT_PATH;
         const projectRoots = [OUTPUT_PATH, path.resolve(process.cwd(), 'node_modules')]

@@ -1,3 +1,4 @@
-const runner = require('./firefox-web-ext-common.js');
+const runner = require('./test-runner-common');
+const FirefoxBrowser = require('./launchers/firefox-web-ext').Browser;
 
-runner.run();
+runner.run(new FirefoxBrowser());

@@ -1,7 +1,6 @@
 import {
-  clearIntervals,
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
 import Subject from './local-helpers';
 import { generateDataStrictFalse, generateDataStrictTrue } from './fixtures/antitracking-trackers';
@@ -19,7 +18,6 @@ function trackersTests(amo) {
 
   afterEach(function () {
     subject.unload();
-    clearIntervals();
   });
 
   describe('pushing data with Strict == false', function () {

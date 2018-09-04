@@ -46,6 +46,9 @@ export default describeModule('firefox-specific/background',
       '../core/search-engines': {
         getDefaultEngine: () => '',
       },
+      '../core/demographics': {
+        getDaysSinceInstall: () => 42,
+      },
     };
   },
   function () {

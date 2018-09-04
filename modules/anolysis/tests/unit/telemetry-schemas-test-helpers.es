@@ -1,5 +1,4 @@
 /* global chai */
-/* global sinon */
 /* global describeModule */
 
 /**
@@ -8,8 +7,12 @@
  * `tests`, is optional).
  * - `name`: name of the analysis which is being tested.
  * - `metrics`: list of metrics which the analysis depends on.
- * - `tests`: is a function which takes one argument (generateAnalysisResults)
- *   and can define arbitrary tests.
+ * - `tests`: function which takes one argument (generateAnalysisResults) and
+ *   can define arbitrary tests.
+ * - `currentDate`: mock when a different config_ts date is desired for this
+ *   test.
+ * - `retentionState`: allows to inject a different retention state (only used
+ *   for retention analyses tests currently)
  *
  * Please read anolysis/README.md for more information. You can also have a look
  * into `anolysis/tests/unit/analyses` for examples.
@@ -29,7 +32,7 @@ const WEEK_FORMAT = 'YYYY-WW';
 const MONTH_FORMAT = 'YYYY-M';
 
 /**
- * Given a valid JSON schema, generat `n` random examples from it.
+ * Given a valid JSON schema, generate `n` random examples from it.
  */
 function generateSamples(schema, n) {
   const samples = [];
@@ -40,9 +43,9 @@ function generateSamples(schema, n) {
 }
 
 function onlyKeepAnalysisWithName(availableDefinitions, name, metrics = []) {
-  // Only keep analysis `name` (the one we want to tests) and metrics it
-  // depends upon in the `availableDefinitions` Map. This makes sure we only
-  // start generation of signal for the analysis we intend to test.
+  // Only keep analysis `name` (the one we want to tests) and metrics it depends
+  // upon in the `availableDefinitions` Map. This makes sure we only start
+  // generation of signal for the analysis we intend to test.
   [...availableDefinitions.entries()].forEach(([schemaName, schema]) => {
     if (
       schema.generate !== undefined &&
@@ -55,6 +58,10 @@ function onlyKeepAnalysisWithName(availableDefinitions, name, metrics = []) {
 }
 
 
+// Used to intercept all messages which would go to backend
+let httpPostMessages;
+
+
 async function generateAnalysisResults({
   name,
   availableDefinitions,
@@ -63,39 +70,34 @@ async function generateAnalysisResults({
   metrics,
 }) {
   const schema = availableDefinitions.get(name);
+  let numberOfSignals = 0;
 
-  // We expect the analysis to generate at least one signal. If valid (the
-  // schema has been successfully validated), the signal(s) should be pushed
-  // into the signal queue. We make sure that happens.
-  const telemetrySignals = [];
-
+  // Intercept metrics of type `name`. This is mainly used to tests metrics
+  // which are emitting signals using a `generate` function (e.g.: abtests).
+  // These are not sent to backend, but can still be unit-tested.
+  const metricsSignals = [];
   const addBehavior = anolysis.storage.behavior.add.bind(anolysis.storage.behavior);
   // eslint-disable-next-line no-param-reassign
   anolysis.storage.behavior.add = (metric) => {
     if (metric.type === name) {
-      telemetrySignals.push(metric.behavior);
+      numberOfSignals += 1;
+      metricsSignals.push(JSON.stringify(metric));
     }
     return addBehavior(metric);
   };
 
+  // We intercept messages going through `push` to know how many we expect to
+  // received from backend-communication and wait accordingly.
+  const signalQueuePush = anolysis.signalQueue.push.bind(anolysis.signalQueue);
+
   // eslint-disable-next-line no-param-reassign
-  anolysis.signalQueue.push = sinon.spy((s) => {
-    if (s.type === name) {
-      // Check metadata creation
-      chai.expect(s.meta.version).to.be.eql(schema.version);
-      chai.expect(s.meta.dev).to.be.true;
-      chai.expect(s.meta.date).to.be.eql(currentDate);
-
-      if (schema.needsGid) {
-        chai.expect(s.meta.gid).to.be.eql('gid');
-      } else {
-        chai.expect(s.meta.gid).to.be.eql('');
-      }
-
-      telemetrySignals.push(s.behavior);
+  anolysis.signalQueue.push = async (signal, ...args) => {
+    // Only push the signals we are interested in
+    if (signal.type === name) {
+      numberOfSignals += 1;
+      await signalQueuePush(signal, ...args);
     }
-    return Promise.resolve();
-  });
+  };
 
   const pushedSignalsPromises = [];
 
@@ -103,7 +105,6 @@ async function generateAnalysisResults({
   // argument (function `generate` has length > 0), then we generate fake
   // random signals from the schema, which specifies the shape of signals to
   // be aggregated for this analysis.
-  const numberOfSignals = 10;
   if (schema.generate !== undefined &&
     schema.generate.length > 0
   ) {
@@ -113,7 +114,7 @@ async function generateAnalysisResults({
       metrics.forEach((metricSchema) => {
         pushedSignalsPromises.push(...generateSamples(
           availableDefinitions.get(metricSchema).schema,
-          numberOfSignals,
+          10, // number of random metrics to generate
         ).map(s => anolysis.handleTelemetrySignal(s, metricSchema)));
       });
     } else {
@@ -138,13 +139,64 @@ async function generateAnalysisResults({
   await anolysis.runTasksForDay(currentDate, 0);
   await anolysis.runTasksForDay(currentDate, 1);
 
-  return telemetrySignals;
-}
+  if (numberOfSignals === 0) {
+    return [];
+  }
 
+  const collectUrl = `${anolysis.config.get('backend.url')}/collect`;
+  const getGeneratedSignals = () => [
+    ...metricsSignals,
+    ...(httpPostMessages.get(collectUrl) || []),
+  ];
+
+  // Wait for all messages to be received
+  while (getGeneratedSignals().length !== numberOfSignals) {
+    // eslint-disable-next-line no-await-in-loop
+    await new Promise((resolve) => {
+      setTimeout(resolve, 100);
+    });
+  }
+
+  const signals = getGeneratedSignals().map(JSON.parse);
+  signals.forEach((signal) => {
+    // Check metadata creation
+    if (schema.sendToBackend) {
+      chai.expect(signal.meta.version).to.be.eql(schema.version);
+
+      chai.expect(signal.meta.dev).to.be.true;
+      chai.expect(signal.meta.date).to.be.eql(currentDate);
+      chai.expect(signal.meta.session).to.be.eql('session');
+
+      if (schema.needsGid) {
+        chai.expect(signal.meta.gid).to.be.eql('gid');
+      } else {
+        chai.expect(signal.meta.gid).to.be.eql('');
+      }
+    }
+  });
+
+  return signals.map(({ behavior }) => behavior);
+}
 
 module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) => describeModule('anolysis/telemetry-schemas',
   () => ({
     ...mockDexie,
+    'core/http': {
+      httpPost: async (url, callback, payload) => {
+        // Keep track of `url`/`payload`
+        if (!httpPostMessages.has(url)) {
+          httpPostMessages.set(url, []);
+        }
+        httpPostMessages.get(url).push(payload);
+
+        callback({ response: '{}' });
+      },
+    },
+    'platform/network': {
+      default: {
+        type: 'wifi',
+      },
+    },
     'platform/lib/simple-statistics': {
       default: stats,
     },
@@ -169,6 +221,9 @@ module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) =
         },
       },
     },
+    'core/platform': {
+      isBootstrap: false,
+    },
     'core/utils': {
       default: {},
     },
@@ -179,6 +234,9 @@ module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) =
             return true;
           } else if (k === 'session') {
             return 'session';
+          } else if (k === 'signalQueue.sendInterval') {
+            // Speed-up signal queue by waiting only 5ms between each interval
+            return 5;
           }
           return d;
         },
@@ -210,11 +268,6 @@ module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) =
         }
       },
     },
-    'anolysis/internals/signals-queue': {
-      default: class SignalQueue {
-        init() { return Promise.resolve(); }
-      },
-    },
     'anolysis/internals/logger': {
       default: {
         // debug(...args) { console.log('DEBUG', ...args); },
@@ -232,9 +285,9 @@ module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) =
     let availableDefinitions;
 
     beforeEach(async function () {
-      const config = new Map();
+      const Config = (await this.system.import('anolysis/internals/config')).default;
+      const config = new Config({ demographics: {}, Storage: (await this.system.import('anolysis/internals/storage/dexie')).default });
       const Anolysis = (await this.system.import('anolysis/internals/anolysis')).default;
-      config.set('Storage', (await this.system.import('anolysis/internals/storage/dexie')).default);
       anolysis = new Anolysis(config);
 
       await anolysis.registerSignalDefinitions(this.module().default);
@@ -247,10 +300,16 @@ module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) =
       if (retentionState) {
         anolysis.storage.retention.getState = () => Promise.resolve(retentionState);
       }
+
+      // Reset list of signals received from httpPost
+      httpPostMessages = new Map();
     });
 
     // Make sure we destroy Dexie storage after each test
-    afterEach(() => anolysis.storage.destroy());
+    afterEach(async () => {
+      await anolysis.reset();
+      anolysis.unload();
+    });
 
     describe(name, () => {
       if (metrics) {
@@ -265,7 +324,7 @@ module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) =
             anolysis,
             metrics,
             currentDate: currentDate || '2018-10-01',
-          })).to.not.be.empty;
+          })).to.not.throw;
         });
       }
 

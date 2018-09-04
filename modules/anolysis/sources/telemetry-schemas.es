@@ -8,6 +8,7 @@ import controlCenterSignalDefinitions from './metrics/control-center-interaction
 import abtestsSignalDefinition from './metrics/abtests';
 import historyVisitsSignalDefinitions from './metrics/history-visits';
 import webrequestPipelinePerformancesMetrics from './metrics/performance/webrequest-pipeline';
+import internalAnolysisMetrics from './metrics/internals/anolysis';
 
 // Analyses
 import retention from './analyses/retention';
@@ -23,7 +24,10 @@ import newsSnippets from './analyses/news-snippets';
 
 import cookieMonsterPerf from './analyses/cookie-monster';
 import searchSchemas from './analyses/search';
-import experimentsSchemas from './analyses/experiments';
+import dropdownSchemas from './analyses/experiments/dropdown';
+import serpSchemas from './analyses/experiments/serp';
+import serpAlternativeSchemas from './analyses/experiments/serp-alternative';
+import serpRetentionWeeklySchemas from './analyses/experiments/serp-retention-weekly';
 import controlCenter from './analyses/control-center-interactions';
 import mobile from './analyses/mobile/favorites-migration-folders';
 import newsSearchSchemas from './analyses/news-search';
@@ -50,6 +54,7 @@ const metrics = [
   ...searchSignalDefinitions,
   ...experimentsSignalDefinitions,
   ...historyVisitsSignalDefinitions,
+  ...internalAnolysisMetrics,
   webrequestPipelinePerformancesMetrics,
 ].map(schema => ({
   ...schema,
@@ -72,7 +77,10 @@ const analyses = [
   ...activeUser,
   ...retention,
   ...searchSchemas,
-  ...experimentsSchemas,
+  ...dropdownSchemas,
+  ...serpSchemas,
+  ...serpAlternativeSchemas,
+  ...serpRetentionWeeklySchemas,
   ...newsSearchSchemas,
   ...historyVisitsSchemas,
   webrequestPipelinePerformances,

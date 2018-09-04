@@ -5,7 +5,7 @@ import BigInt from 'BigInt';
 import {
   fromBase64,
   toUTF8,
-  toHex
+  toHex,
 } from '../../core/encoding';
 
 import crypto from '../../platform/crypto';

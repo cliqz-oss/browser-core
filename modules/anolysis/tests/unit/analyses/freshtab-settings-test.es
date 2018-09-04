@@ -2,6 +2,12 @@
 
 let freshTabEnabled = true;
 
+class ModuleDisabledError {
+  constructor() {
+    this.name = 'ModuleDisabledError';
+  }
+}
+
 require('../telemetry-schemas-test-helpers')({
   name: 'freshtab.prefs.blueTheme',
   metrics: [],
@@ -12,7 +18,7 @@ require('../telemetry-schemas-test-helpers')({
           return {
             async action(action) {
               if (!freshTabEnabled) {
-                return Promise.reject('Freshtab is not enabled');
+                throw new ModuleDisabledError();
               }
 
               if (action === 'isBlueThemeEnabled') {
@@ -47,7 +53,7 @@ require('../telemetry-schemas-test-helpers')({
           return {
             async action(action) {
               if (!freshTabEnabled) {
-                return Promise.reject('Freshtab is not enabled');
+                throw new ModuleDisabledError();
               }
 
               if (action === 'getComponentsState') {

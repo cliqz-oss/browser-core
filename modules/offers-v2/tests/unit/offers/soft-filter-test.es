@@ -76,7 +76,10 @@ export default describeModule('offers-v2/offers/soft-filter',
       }
     },
     'core/platform': {
-      isChromium: false
+      isWebExtension: false
+    },
+    'platform/lib/jsep': {
+      default: require('jsep'),
     },
     'platform/lib/tldjs': {
       default: tldjs,

@@ -1,9 +1,6 @@
-/* global document */
-
 import {
-  clearIntervals,
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
 import Subject from './local-helpers';
 import { dataOn, dataOff, dataAmo } from './fixtures/history-section';
@@ -19,7 +16,6 @@ describe('Control Center: History options browser', function () {
 
   afterEach(function () {
     subject.unload();
-    clearIntervals();
   });
 
   function historySectionTests() {
@@ -178,7 +174,6 @@ describe('Control Center: AMO, History options tests', function () {
 
   afterEach(function () {
     subject.unload();
-    clearIntervals();
   });
 
   function historySectionTests() {

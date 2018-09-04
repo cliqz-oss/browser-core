@@ -1,14 +1,14 @@
 import {
   privateKeytoKeypair,
   exportPrivateKey,
-  exportPublicKey
+  exportPublicKey,
 } from '../../core/crypto/pkcs-conversion';
 
 import {
   toUTF8,
   toHex,
   fromHex,
-  fromBase64
+  fromBase64,
 } from '../../core/encoding';
 
 import _http from './http-worker';
@@ -109,13 +109,11 @@ export default class UserPk {
           this.publicKey = returnData.publicKeyB64;
           return returnData;
         })
-        .then(keys =>
-          _http(this.csm.USER_REG).post(JSON.stringify({ pk: keys.publicKeyB64 }))
-        )
+        .then(keys => _http(this.csm.USER_REG).post(JSON.stringify({ pk: keys.publicKeyB64 })))
         .then(() =>
-          resolve({ status: true, privateKey: this.privateKey, publicKey: this.publicKey })
+          resolve({ success: true, privateKey: this.privateKey, publicKey: this.publicKey })
         )
-        .catch(e => reject({ status: e.message }));
+        .catch(e => reject({ success: false, error: e.message }));
     });
     return promise;
   }

@@ -10,7 +10,7 @@ import {
   waitFor,
   withHistory } from '../helpers';
 import expectSelection from './common';
-import { flightAndNormalResult } from '../fixtures/resultsFlights';
+import { flightAndNormalResult } from '../../../core/integration/fixtures/resultsFlights';
 
 export default function () {
   if (!testsEnabled()) { return; }

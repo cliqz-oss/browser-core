@@ -1,4 +1,10 @@
 {
+    "appName": {
+        "message": "Cliqz Tab: Suche anonym! (Beta)"
+    },
+    "appDesc": {
+        "message": "Anonyme Suche, Favoriten, Nachrichten, und schöne Hintergrundbilder mit jedem neuen Tab"
+    },
     "more_on": {
         "message": "Mehr auf"
     },
@@ -1572,19 +1578,19 @@
         "message": "Deine Suche bei Cliqz"
     },
     "transparency_search_content": {
-        "message": "Hier siehst du Daten über die Suchanfragen und Adressen, die du über die Cliqz-Suche eingibst. Diese Informationen helfen uns, dein Sucherlebnis zu optimieren. Wie du sehen kannst, beinhalten diese Daten keinerlei persönliche Information. Für Cliqz bist du anonym. Du hast die Möglichkeit, Suchen über Cliqz über ein Proxy-Netzwerk laufen zu lassen um Deine Privatssphäre noch stärker zu schützen. Weitere Informationen findest du <a target='_blank' href='https://cliqz.com/whycliqz/transparency#your-search'>hier</a>."
+        "message": "Hier siehst du Daten über die Suchanfragen und Adressen, die du über die Cliqz-Suche eingibst. Diese Informationen helfen uns, dein Sucherlebnis zu optimieren. Wie du sehen kannst, beinhalten diese Daten keinerlei persönliche Information. Für Cliqz bist du anonym. Du hast die Möglichkeit, Suchen über Cliqz über ein Proxy-Netzwerk laufen zu lassen um Deine Privatssphäre noch stärker zu schützen. Weitere Informationen findest du <a target='_blank' rel='noopener noreferrer' href='https://cliqz.com/whycliqz/transparency#your-search'>hier</a>."
     },
     "transparency_humanweb_title": {
         "message": "Human Web"
     },
     "transparency_humanweb_content": {
-        "message": "Human Web ist unsere Technologie, mit der wir die Qualität unserer Suchergebnisse mittels statistischer Methoden ständig verbessern. Die anonymem statistischen Daten, die hier gesammelt werden, beziehen sich auch auf Suchanfragen und die jeweils erzielten Ergebnisse, unabhängig davon, welche Suchmaschine du nutzt. Die Datenarchitektur ist dabei so konzipiert, dass theoretisch mögliche Rückschlüsse auf Personen durch die Verknüpfung verschiedener Daten unmöglich sind. Die Übertragung der Human Web-Daten ist durch ein Proxy-Netzwerk und Verschlüsselung geschützt. Weitere Information findest du <a target='_blank' href='https://cliqz.com/whycliqz/transparency#human-web'>hier</a>."
+        "message": "Human Web ist unsere Technologie, mit der wir die Qualität unserer Suchergebnisse mittels statistischer Methoden ständig verbessern. Die anonymem statistischen Daten, die hier gesammelt werden, beziehen sich auch auf Suchanfragen und die jeweils erzielten Ergebnisse, unabhängig davon, welche Suchmaschine du nutzt. Die Datenarchitektur ist dabei so konzipiert, dass theoretisch mögliche Rückschlüsse auf Personen durch die Verknüpfung verschiedener Daten unmöglich sind. Die Übertragung der Human Web-Daten ist durch ein Proxy-Netzwerk und Verschlüsselung geschützt. Weitere Information findest du <a target='_blank' rel='noopener noreferrer' href='https://cliqz.com/whycliqz/transparency#human-web'>hier</a>."
     },
     "transparency_telemetry_title": {
         "message": "Telemetrie"
     },
     "transparency_telemetry_content": {
-        "message": "Telemetrie umfasst alle Daten, die die Verwendung und Leistung des Browsers und seiner Funktionen betreffen. Wir nutzen diese Daten, um Cliqz fortlaufend verbessern zu können. Daten die in diesen Bereich fallen, beinhalten z.B. die Browserversion oder die Zeit, bis die Ergebnisse angezeigt werden. Die Telemetriedaten  enthalten keinerlei Information über Suchanfragen, Suchergebnisse oder besuchte Webseiten. Weitere Information findest du <a target='_blank' href='https://cliqz.com/whycliqz/transparency#telemetry'>hier</a>."
+        "message": "Telemetrie umfasst alle Daten, die die Verwendung und Leistung des Browsers und seiner Funktionen betreffen. Wir nutzen diese Daten, um Cliqz fortlaufend verbessern zu können. Daten die in diesen Bereich fallen, beinhalten z.B. die Browserversion oder die Zeit, bis die Ergebnisse angezeigt werden. Die Telemetriedaten  enthalten keinerlei Information über Suchanfragen, Suchergebnisse oder besuchte Webseiten. Weitere Information findest du <a target='_blank' rel='noopener noreferrer' href='https://cliqz.com/whycliqz/transparency#telemetry'>hier</a>."
     },
     "transparency_activity_buttons": {
         "message": "Aktuell keine Aktivität"
@@ -1662,7 +1668,7 @@
         "message": "Hallo!"
     },
     "offers_hub_welcome_text": {
-        "message": "Wir stöbern für dich nach Angeboten. Sobald wir ein Passendes finden, zeigen wir es dir hier."
+        "message": "Wir stöbern für dich nach Angeboten. Sobald wir ein passendes finden, zeigen wir es dir hier."
     },
     "offers_hub_feedback_title": {
         "message": "Feedback"
@@ -1768,6 +1774,12 @@
     },
     "offers_feedback_feature": {
         "message": "Was hälst du von MyOffrz?"
+    },
+    "popup_cancel_button": {
+      "message": "Abbrechen"
+    },
+    "popup_apply_code_button": {
+      "message": "Code anwenden"
     },
     "signals_humanweb_inactive_message": {
         "message": "Human Web ist nicht aktiviert"
@@ -1881,13 +1893,16 @@
       "message": "Alle Ergebnisse und Spielstände hier auf einen Blick."
     },
     "freshtab_app_speed_dials_row_history": {
-        "message": "Meistbesucht"
+        "message": "Meistbesuchte Seiten"
+    },
+    "freshtab_app_speed_dials_row_history_onboarding": {
+        "message": "Deine meistbesuchten Seiten werden hier erscheinen"
     },
     "freshtab_app_speed_dials_row_custom": {
         "message": "Favoriten"
     },
     "freshtab_urlbar_placeholder": {
-        "message": "In Cliqz suchen oder Adresse eingeben"
+        "message": "Anonym suchen mit Cliqz"
     },
     "freshtab_app_speed_dial_removed": {
         "message": "wurde entfernt"
@@ -2024,6 +2039,9 @@
     "freshtab_app_settings_news_language_us": {
         "message": "U.S. Medien"
     },
+    "freshtab_app_settings_news_language_es": {
+        "message": "Spanische Medien"
+    },
     "freshtab_app_offers_exclusive": {
         "message": "Exklusiv"
     },
@@ -2087,9 +2105,6 @@
     "breaking_news_label": {
         "message": "Eilmeldung"
     },
-    "top_news_label": {
-        "message": "Top-Nachrichten"
-    },
     "TEST": {
         "message": "OK"
     },
@@ -2102,7 +2117,19 @@
     "freshtab_cliqz_tab_button": {
         "message": "Cliqz Tab"
     },
-    "freshtab_sport_button": {
-        "message": "Fußball / Sport"
+    "freshtab_cliqz_modules_button": {
+        "message": "Cliqz Modules"
+    },
+    "freshtab_cliqz_modules_list": {
+        "message": "Cliqz modules list"
+    },
+    "delete": {
+      "message": "Löschen"
+    },
+    "freshtab_why_offers": {
+      "message": "Warum wird das gezeigt?"
+    },
+    "freshtab_why_offers_text": {
+      "message": "Keinerlei persönliche Daten verlassen dein Gerät. Dein Browser erkennt selbständig anhand deiner bisherigen Nutzung, wofür du dich interessieren könntest."
     }
 }

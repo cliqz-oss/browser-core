@@ -1,3 +1,5 @@
+import integersToHistogram from '../core/helpers/histogram';
+
 const telemetryLatency = (focus$, query$, results$) => {
   // collect all results during one search session
   const allResults$ = focus$
@@ -37,8 +39,29 @@ const telemetryLatency = (focus$, query$, results$) => {
         // only take one latency value (they are the same for all cliqz
         // results of the same query since we only make one call to the
         // backend per query)
-        .reduce((acc, cur) => cur)));
-    // TODO: optimize this by returning only one backendCountry
+        .reduce((acc, cur) => cur)))
+    // no latencies => nothing to report
+    .filter(latencies => latencies.length > 0)
+    // build histograms
+    .map((latencies) => {
+      // all data elements have the same backend country
+      const backend = latencies[0].backendCountry;
+
+      const smallLatencies = latencies.reduce((acc, { latency }) =>
+        [...acc, ...latency < 200 ? [latency] : []], []);
+      const bigLatencies = latencies.reduce((acc, { latency }) =>
+        [...acc, ...latency >= 200 ? [latency] : []], []);
+      const smallLatenciesHistogram = integersToHistogram(smallLatencies, { binSize: 20 });
+      const bigLatenciesHistogram = integersToHistogram(bigLatencies, { binSize: 100 });
+
+      return {
+        backend,
+        latency: {
+          ...smallLatenciesHistogram,
+          ...bigLatenciesHistogram,
+        },
+      };
+    });
 
   return latency$;
 };

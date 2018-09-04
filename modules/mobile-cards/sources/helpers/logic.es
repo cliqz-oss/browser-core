@@ -34,13 +34,16 @@ export function agoLine(ts) {
   return '';
 }
 
-export function agoDuration(duration, options) {
-  if(!duration) return '';
-  var seconds = parseInt(duration),
-      i=0, slot;
+export function agoDuration(duration) {
+  if (!duration) return '';
+  const seconds = parseInt(duration, 10);
+  let i = 0;
 
-  while (slot = AGO_CEILINGS[i++])
-      if (seconds < slot[0])
-          return getMessage(slot[1], parseInt(seconds / slot[2]))
+  while (AGO_CEILINGS[i]) {
+    if (seconds < AGO_CEILINGS[i][0]) {
+      return getMessage(AGO_CEILINGS[i][1], parseInt(seconds / AGO_CEILINGS[i][2], 10));
+    }
+    i += 1;
+  }
   return '';
 }

@@ -7,10 +7,10 @@ import {
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory
+  withHistory,
 } from '../helpers';
 
-import results from '../fixtures/resultsBigMachineWithButtons';
+import results from '../../../core/integration/fixtures/resultsBigMachineWithButtons';
 
 export default function () {
   if (!testsEnabled()) { return; }

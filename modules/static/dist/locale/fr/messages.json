@@ -1,4 +1,10 @@
 {
+    "appName": {
+        "message": "Cliqz Tab: private search engine (Beta)"
+    },
+    "appDesc": {
+        "message": "Cliqz Tab replaces Chrome's default new tab page and adds backgrounds, favorites, news and Cliqz's anonymous quick search."
+    },
     "more_on": {
         "message": "Plus sur"
     },
@@ -1572,19 +1578,19 @@
         "message": "Votre recherche avec Cliqz"
     },
     "transparency_search_content": {
-        "message": "Ici, vous verrez des données sur vos recherches et sur les sites Web que vous visitez sur Cliqz. Ces données nous aident à optimiser votre experience de recherche. Comme vous pouvez le voir, elles ne contiennent aucune information personnelle. Pour Cliqz, vous êtes anonyme. Vous pourriez aussi surfer avec Cliqz en utilisant un réseau de serveurs proxy, si vous voulez une meilleure protection. Pour en savoir plus, cliquez <a target='_blank' href='https://cliqz.com/en/whycliqz/transparency#your-search'>ici</a>."
+        "message": "Ici, vous verrez des données sur vos recherches et sur les sites Web que vous visitez sur Cliqz. Ces données nous aident à optimiser votre experience de recherche. Comme vous pouvez le voir, elles ne contiennent aucune information personnelle. Pour Cliqz, vous êtes anonyme. Vous pourriez aussi surfer avec Cliqz en utilisant un réseau de serveurs proxy, si vous voulez une meilleure protection. Pour en savoir plus, cliquez <a target='_blank' rel='noopener noreferrer' href='https://cliqz.com/en/whycliqz/transparency#your-search'>ici</a>."
     },
     "transparency_humanweb_title": {
         "message": "Human Web"
     },
     "transparency_humanweb_content": {
-        "message": "Notre technologie, Human Web, utilise des méthodes statistiques et des algorithmes pour toujours améliorer la qualité de nos résultats de recherche. Les données statistiques, collectionnées de façon anonyme, sont combinées aux requêtes et aux résultats de recherche fournis par l'un des moteurs de recherche complémentaires. L'architecture des données que nous avons choisi empêche aucune toute déduction sur l'identité de la personne . La transmission des données de “Human Web” est réalisée au travers d' un réseau des serveurs proxy. Pour en savoir plus, cliquez <a target='_blank' href='https://cliqz.com/en/whycliqz/transparency#human-web'>ici</a>."
+        "message": "Notre technologie, Human Web, utilise des méthodes statistiques et des algorithmes pour toujours améliorer la qualité de nos résultats de recherche. Les données statistiques, collectionnées de façon anonyme, sont combinées aux requêtes et aux résultats de recherche fournis par l'un des moteurs de recherche complémentaires. L'architecture des données que nous avons choisi empêche aucune toute déduction sur l'identité de la personne . La transmission des données de “Human Web” est réalisée au travers d' un réseau des serveurs proxy. Pour en savoir plus, cliquez <a target='_blank' rel='noopener noreferrer' href='https://cliqz.com/en/whycliqz/transparency#human-web'>ici</a>."
     },
     "transparency_telemetry_title": {
         "message": "Télémétrie"
     },
     "transparency_telemetry_content": {
-        "message": "La télémétrie inclut toutes les données qui concernent l'utilisation et la performance du navigateur et ses fonctionnalités. Ces données comprennent par example le numéro de version du navigateur ou le temps nécéssaire pour afficher les resultats de recherche de Cliqz. Les données de la télémétrie ne contiennent aucune information sur les recherches, les résultats de recherche ou les URL visitées. Pour en savoir plus, cliquez <a target='_blank' href='https://cliqz.com/en/whycliqz/transparency#telemetry'>ici</a>."
+        "message": "La télémétrie inclut toutes les données qui concernent l'utilisation et la performance du navigateur et ses fonctionnalités. Ces données comprennent par example le numéro de version du navigateur ou le temps nécéssaire pour afficher les resultats de recherche de Cliqz. Les données de la télémétrie ne contiennent aucune information sur les recherches, les résultats de recherche ou les URL visitées. Pour en savoir plus, cliquez <a target='_blank' rel='noopener noreferrer' href='https://cliqz.com/en/whycliqz/transparency#telemetry'>ici</a>."
     },
     "transparency_activity_buttons": {
         "message": "Aucune activité n'a été saisie"
@@ -1769,6 +1775,12 @@
     "offers_feedback_feature": {
         "message": "Que pensez-vous de MyOffrz?"
     },
+    "popup_cancel_button": {
+      "message": "Annuler"
+    },
+    "popup_apply_code_button": {
+      "message": "Appliquer le code"
+    },
     "signals_humanweb_inactive_message": {
         "message": "Human Web n'est pas activé"
     },
@@ -1881,13 +1893,16 @@
       "message": "Ne ratez rien !"
     },
     "freshtab_app_speed_dials_row_history": {
-        "message": "Les plus visités"
+        "message": "Pages les plus visitées"
+    },
+    "freshtab_app_speed_dials_row_history_onboarding": {
+        "message": "Vos pages les plus visitées apparaîtront ici"
     },
     "freshtab_app_speed_dials_row_custom": {
         "message": "Favoris"
     },
     "freshtab_urlbar_placeholder": {
-        "message": "Rechercher avec Cliqz ou saisir une adresse"
+        "message": "Recherchez anonymement avec Cliqz"
     },
     "freshtab_app_speed_dial_removed": {
         "message": "A été retiré"
@@ -2024,6 +2039,9 @@
     "freshtab_app_settings_news_language_us": {
         "message": "Édition États-Unis"
     },
+    "freshtab_app_settings_news_language_es": {
+        "message": "Édition espagnole"
+    },
     "freshtab_app_offers_exclusive": {
         "message": "Exclusif"
     },
@@ -2087,9 +2105,6 @@
     "breaking_news_label": {
         "message": "Alerte Info"
     },
-    "top_news_label": {
-        "message": "Actualités"
-    },
     "TEST": {
         "message": "OK"
     },
@@ -2102,7 +2117,19 @@
     "freshtab_cliqz_tab_button": {
         "message": "Cliqz Tab"
     },
-    "freshtab_sport_button": {
-        "message": "Football / Sport"
+    "freshtab_cliqz_modules_button": {
+        "message": "Cliqz Modules"
+    },
+    "freshtab_cliqz_modules_list": {
+        "message": "Cliqz modules list"
+    },
+    "delete": {
+      "message": "Delete"
+    },
+    "freshtab_why_offers": {
+      "message": "Why do I see this offer?"
+    },
+    "freshtab_why_offers_text": {
+      "message": "No personal data leaves your device. Your browser automatically identifies what you might be interested in based on your previous use. "
     }
 }

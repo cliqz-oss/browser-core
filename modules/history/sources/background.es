@@ -1,6 +1,8 @@
 import inject from '../core/kord/inject';
 import config from '../core/config';
 import History from '../platform/history/history';
+import { getActiveTab } from '../platform/browser';
+import HistoryService from '../core/history-service';
 import background from '../core/base/background';
 import utils from '../core/utils';
 import { queryActiveTabs } from '../core/tabs';
@@ -30,6 +32,12 @@ export default background({
     this.redirectMap = new LRU(100);
     this.sessionCounts = new Map();
 
+    if (HistoryService && HistoryService.onVisitRemoved) {
+      this.onVisitRemovedListener = this.onVisitRemovedListener.bind(this);
+
+      HistoryService.onVisitRemoved.addListener(this.onVisitRemovedListener);
+    }
+
     this.dbMigration = migrate();
   },
 
@@ -38,7 +46,23 @@ export default background({
       this.sessionCountSubscribtion.dispose();
     }
 
+    if (this.onVisitRemovedListener) {
+      HistoryService.onVisitRemoved.removeListener(this.onVisitRemovedListener);
+      this.onVisitRemovedListener = null;
+    }
+
     this.dbMigration.dispose();
+  },
+
+  onVisitRemovedListener(...args) {
+    getActiveTab().then(({ id, url }) => {
+      if (config.settings.HISTORY_URL.indexOf(url) === -1) {
+        return;
+      }
+
+      this.core.action(
+        'broadcastActionToWindow', id, 'history', 'updateHistoryUrls', args);
+    });
   },
 
   beforeBrowserShutdown() {
@@ -138,7 +162,14 @@ export default background({
         handleResult: () => {},
         handleCompletion: () => {
           setTimeout(() => {
-            History.fillFromVisit(url, queryUrl);
+            History.fillFromVisit(url, queryUrl).catch(({ visitId, triggeringVisitId }) => {
+              if (!visitId) {
+                // If there is no visitId, it may be Automatic Forget Tab
+                // taking over this url load, in such case we remove 'Cliqz Search'
+                // visit from history
+                this.history.deleteVisit(triggeringVisitId);
+              }
+            });
           }, 2000);
 
           History.markAsHidden(queryUrl);

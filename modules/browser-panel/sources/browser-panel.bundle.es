@@ -19,32 +19,6 @@ function localizeDocument() {
   });
 }
 
-function copySelectionText() {
-  let copysuccess; // var to check whether execCommand successfully executed
-  try {
-    copysuccess = document.execCommand('copy'); // run command to copy selected text to clipboard
-  } catch (e) {
-    copysuccess = false;
-  }
-  return copysuccess;
-}
-
-function selectElementText(e) {
-  const range = document.createRange();
-  range.selectNodeContents(e);
-  const selection = window.getSelection();
-  selection.removeAllRanges();
-  selection.addRange(range);
-}
-
-
-function copy() {
-  const codeElem = $('.code')[0];
-  selectElementText(codeElem);
-  const copysuccess = copySelectionText();
-  return copysuccess;
-}
-
 // retrieves the current offer id from the document
 function cqzOfferGetCurrentOfferID() {
   const offerIDElem = document.getElementById('cqz-browser-panel-re');
@@ -65,11 +39,12 @@ function cqzOfferBtnClicked(ev) {
   }
 
   if (ev.target.getAttribute('data-cqz-of-btn-id') === 'code_copied') {
-    const success = copy(ev.target);
+    sendMessageToWindow({
+      handler: 'copyToClipboard',
+      data: document.querySelector('.code').innerText,
+    });
 
-    if (success) {
-      document.querySelector('.code-box').className += ' copied';
-    }
+    document.querySelector('.code-box').className += ' copied';
   }
 
   // we will get the data-action field here and will send this to the core

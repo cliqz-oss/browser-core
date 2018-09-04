@@ -52,4 +52,11 @@
     "description": "Spanish headhunter Ismael Pimentel just can’t find the candidates.",
     "short_title": "Spain Is Running Out of Workers With Almost 5 Million Unemployed",
     "title": "Spain Is Running Out of Workers With Almost 5 Million Unemployed"
+}, {
+    "url": "https://www.handelsblatt.com/politik/international/200-milliarden-dollar-eskalation-im-handelsstreit-trump-droht-china-mit-neuen-milliarden-zoellen/22706902.html",
+    "domain": "handelsblatt.com",
+    "description": "Der Handelskrieg zwischen den USA und China schaukelt sich weiter hoch. Nach Chinas Reaktion auf US-Zölle lässt Trump nun weitere Maßnahmen prüfen.",
+    "short_title": "200 Milliarden Dollar: Eskalation im Handelsstreit – Trump droht China mit neuen Milliarden-Zöllen",
+    "title": "200 Milliarden Dollar: Eskalation im Handelsstreit – Trump droht China mit neuen Milliarden-Zöllen",
+    "cluster_articles_bloomfilter": "{\"bkt\": [2417326474, 3001249095, 1978535457, 4117743358, 862329204, 1430048337], \"k\": 10}"
 }]

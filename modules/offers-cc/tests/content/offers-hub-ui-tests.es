@@ -1,4 +1,4 @@
-import { clearIntervals, expect } from '../../core/test-helpers';
+import { expect } from '../../core/test-helpers';
 
 import Subject from './local-helpers';
 import {
@@ -6,17 +6,13 @@ import {
   dataExtraTooltip,
   dataExtraTooltip1,
   dataNewOffer,
-  dataNewOffer1
+  dataNewOffer1,
 } from './fixtures/offers';
 
 describe('Offers Hub UI tests', function () {
   let data;
   let subject;
   const target = 'cliqz-offers-cc';
-
-  afterEach(function () {
-    clearIntervals();
-  });
 
   function hex(input) {
     const rgb = input.match(/\d+/g);

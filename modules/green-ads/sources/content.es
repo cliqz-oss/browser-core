@@ -1,18 +1,13 @@
 /* eslint no-param-reassign: 'off' */
 /* eslint no-restricted-syntax: 'off' */
-
 import { registerContentScript,
   throttle,
   getWindowTreeInformation,
   getWindowId,
-  CHROME_MSG_SOURCE,
-  isCliqzContentScriptMsg } from '../core/content/helpers';
+} from '../core/content/helpers';
 import store from '../core/content/store';
 import Adblocker from '../platform/lib/adblocker-cosmetics';
 import logger from './logger';
-
-// import { getGeneralDomain } from '../core/tlds';
-
 
 function isChipDomain(url, window) {
   const parser = window.document.createElement('a');
@@ -167,26 +162,21 @@ function greenAdsListenerOnAdDivs(args) {
     documentUrl,
     window,
     send,
-    windowId,
     windowTreeInformation } = args;
 
   // Attach listener to all native ads
   forEachAdPlacement(window, (element) => {
     const sendEvent = (action, extra) => {
       send({
-        source: CHROME_MSG_SOURCE,
-        windowId,
-        payload: {
-          module: 'green-ads',
-          action,
-          args: [
-            windowTreeInformation,
-            documentUrl, /* originUrl */
-            element.id,
-            Date.now(),
-            extra,
-          ],
-        },
+        module: 'green-ads',
+        action,
+        args: [
+          windowTreeInformation,
+          documentUrl, /* originUrl */
+          element.id,
+          Date.now(),
+          extra,
+        ],
       });
     };
 
@@ -207,7 +197,6 @@ function greenAdsCollectIframesRec(args) {
     url,
     window,
     send,
-    windowId,
     windowTreeInformation,
     documentUrl } = args;
 
@@ -247,22 +236,18 @@ function greenAdsCollectIframesRec(args) {
   }, true);
 
   send({
-    source: CHROME_MSG_SOURCE,
-    windowId,
-    payload: {
-      module: 'green-ads',
-      action: 'onNewFrame',
-      args: [
-        windowTreeInformation,
-        documentUrl, /* originUrl */
-        Date.now(),
-        {
-          url,
-          iframes,
-          parents,
-        },
-      ]
-    }
+    module: 'green-ads',
+    action: 'onNewFrame',
+    args: [
+      windowTreeInformation,
+      documentUrl, /* originUrl */
+      Date.now(),
+      {
+        url,
+        iframes,
+        parents,
+      },
+    ]
   });
 }
 
@@ -602,7 +587,6 @@ function greenAdsInsertChipAds({
   url,
   window,
   send,
-  windowId,
   windowTreeInformation,
   documentUrl,
   inventory
@@ -644,20 +628,16 @@ function greenAdsInsertChipAds({
 
       const sendEvent = (action, extra) => {
         send({
-          source: CHROME_MSG_SOURCE,
-          windowId,
-          payload: {
-            module: 'green-ads',
-            action,
-            args: [
-              windowTreeInformation,
-              documentUrl, /* originUrl */
-              adToDisplay.id,
-              Date.now(),
-              extra,
-              newAd.className,
-            ],
-          },
+          module: 'green-ads',
+          action,
+          args: [
+            windowTreeInformation,
+            documentUrl, /* originUrl */
+            adToDisplay.id,
+            Date.now(),
+            extra,
+            newAd.className,
+          ],
         });
       };
 
@@ -697,7 +677,6 @@ function greenAdsInsertChipAds({
 function greenAdsOnDOMCreated(args) {
   const { window,
     send,
-    windowId,
     windowTreeInformation,
     mode,
     documentUrl } = args;
@@ -708,17 +687,13 @@ function greenAdsOnDOMCreated(args) {
 
   if (tabId === frameId) {
     send({
-      source: CHROME_MSG_SOURCE,
-      windowId,
-      payload: {
-        module: 'green-ads',
-        action: 'onDOMCreated',
-        args: [
-          windowTreeInformation,
-          documentUrl, /* originUrl */
-          Date.now(),
-        ],
-      },
+      module: 'green-ads',
+      action: 'onDOMCreated',
+      args: [
+        windowTreeInformation,
+        documentUrl, /* originUrl */
+        Date.now(),
+      ],
     });
 
     if (mode === 'green') {
@@ -751,17 +726,13 @@ function greenAdsOnDOMLoaded(args) {
 
   if (tabId === frameId) {
     send({
-      source: CHROME_MSG_SOURCE,
-      windowId,
-      payload: {
-        module: 'green-ads',
-        action: 'onDOMLoaded',
-        args: [
-          windowTreeInformation,
-          documentUrl, /* originUrl */
-          Date.now(),
-        ],
-      },
+      module: 'green-ads',
+      action: 'onDOMLoaded',
+      args: [
+        windowTreeInformation,
+        documentUrl, /* originUrl */
+        Date.now(),
+      ],
     });
 
     // Only inject ads in 'green' mode
@@ -819,17 +790,13 @@ function greenAdsOnFullLoad(args) {
   } = windowTreeInformation;
 
   send({
-    source: CHROME_MSG_SOURCE,
-    windowId,
-    payload: {
-      module: 'green-ads',
-      action: 'onFullLoad',
-      args: [
-        windowTreeInformation,
-        documentUrl, /* originUrl */
-        Date.now(),
-      ],
-    },
+    module: 'green-ads',
+    action: 'onFullLoad',
+    args: [
+      windowTreeInformation,
+      documentUrl, /* originUrl */
+      Date.now(),
+    ],
   });
 
   // Nothing is done while in green mode
@@ -859,7 +826,7 @@ function greenAdsOnFullLoad(args) {
 }
 
 
-registerContentScript('http://*.chip.de/*', (window, chrome, windowId) => {
+registerContentScript('green-ads', 'http://*.chip.de/*', (window, chrome, windowId) => {
   const config = store.get('green-ads');
   if (!config || config.mode === 'disabled') {
     return;
@@ -923,10 +890,6 @@ registerContentScript('http://*.chip.de/*', (window, chrome, windowId) => {
   };
 
   const onMessage = (msg) => {
-    if (!isCliqzContentScriptMsg(msg)) {
-      return;
-    }
-
     if (msg && msg.module === 'green-ads' && msg.windowId === windowId) {
       if (msg.action === 'getCosmeticsForNodes' || msg.action === 'getCosmeticsForDomain') {
         cosmeticsInjection.handleResponseFromBackground(msg.response);

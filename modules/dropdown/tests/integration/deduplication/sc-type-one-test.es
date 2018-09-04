@@ -1,16 +1,17 @@
 import {
-  blurUrlBar,
   $cliqzResults,
+  blurUrlBar,
   expect,
-  testsEnabled,
   fillIn,
   mockSearch,
+  testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory
+  win,
+  withHistory,
 } from '../helpers';
 
-import flightResults from '../fixtures/resultsFlights';
+import flightResults from '../../../core/integration/fixtures/resultsFlights';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -48,7 +49,7 @@ export default function () {
       const url = 'https://flight-tests.com';
 
       before(async function () {
-        window.preventRestarts = true;
+        win.preventRestarts = true;
         blurUrlBar();
         withHistory([{ value: url }]);
         await mockSearch({ results });
@@ -59,7 +60,7 @@ export default function () {
       });
 
       after(function () {
-        window.preventRestarts = false;
+        win.preventRestarts = false;
       });
 
       it('renders flight result on top of history', function () {

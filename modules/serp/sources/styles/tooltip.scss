@@ -1,0 +1,26 @@
+.tooltip {
+  background-color: rgba(0,0,0,0.8);
+  color: #fff;
+  font-size: 11px;
+  border-radius: 1px;
+  padding: 5px 10px;
+
+  &-above {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    margin-top: -12px;
+    white-space: nowrap;
+
+    &:before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 100%;
+      margin-left: -6px;
+      border: 6px solid transparent;
+      border-top-color: rgba(0,0,0,0.8);
+    }
+  }
+}

@@ -1,0 +1,51 @@
+@keyframes searchbox-initial {
+  0% { background-color: rgba(243, 243, 243, 0.7); }
+  50% { background-color: rgba(243, 243, 243, 1); }
+  100% { background-color: rgba(243, 243, 243, 0.7); }
+}
+
+.searchbox-initial {
+  &-layout {
+    margin-bottom: 34px;
+  }
+
+  &-title {
+    height: 30px;
+    background-color: #f3f3f3;
+    margin-bottom: 3px;
+    width: 75%;
+    border-radius: 3px;
+
+    &.animation {
+      animation-name: searchbox-initial;
+      animation-duration: .7s;
+      animation-iteration-count: infinite;
+    }
+  }
+
+  &-url {
+    height: 15px;
+    background-color: #f3f3f3;
+    margin-bottom: 3px;
+    width: 70%;
+    border-radius: 3px;
+
+    &.animation {
+      animation-name: searchbox-initial;
+      animation-duration: .7s;
+      animation-iteration-count: infinite;
+    }
+  }
+
+  &-description {
+    height: 55px;
+    background-color: #f3f3f3;
+    border-radius: 3px;
+
+    &.animation {
+      animation-name: searchbox-initial;
+      animation-duration: .7s;
+      animation-iteration-count: infinite;
+    }
+  }
+}

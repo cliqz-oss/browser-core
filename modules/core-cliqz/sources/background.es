@@ -1,6 +1,6 @@
 import background from '../core/base/background';
 import utils from '../core/utils';
-import { isFirefox, isMobile } from '../core/platform';
+import { isBootstrap, isMobile } from '../core/platform';
 import language from '../core/language';
 import prefs from '../core/prefs';
 import HistoryManager from '../core/history-manager';
@@ -21,7 +21,7 @@ export default background({
     // load translations
     getMessage('test');
 
-    if (isFirefox) {
+    if (isBootstrap) {
       language.init();
       HistoryManager.init();
     }
@@ -41,7 +41,7 @@ export default background({
   unload() {
     clearTimeout(this.report);
     clearTimeout(this.supportInfo);
-    if (isFirefox) {
+    if (isBootstrap) {
       language.unload();
       HistoryManager.unload();
     }

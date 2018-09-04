@@ -6,6 +6,7 @@ const ua = {
   isTesting: Platform.isTesting,
   formFactor: Platform.isPad ? 'Tablet' : 'Phone',
   channel: undefined,
+  installDate: '',
 };
 
 if (NativeModules.UserAgentConstants) {
@@ -14,6 +15,7 @@ if (NativeModules.UserAgentConstants) {
   }
   ua.channel = NativeModules.UserAgentConstants.channel;
   ua.appVersion = NativeModules.UserAgentConstants.appVersion;
+  ua.installDate = NativeModules.UserAgentConstants.installDate;
 }
 
 export default ua;

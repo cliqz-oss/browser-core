@@ -11,7 +11,6 @@ const styles = StyleSheet.create({
 });
 
 export default class SearchUI extends React.Component {
-
   filterResults(results = []) {
     return (
       results

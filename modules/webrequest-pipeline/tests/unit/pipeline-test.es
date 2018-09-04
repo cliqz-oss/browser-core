@@ -26,6 +26,7 @@ export default describeModule('webrequest-pipeline/pipeline',
     'core/services/telemetry': {
       default: {
         push: () => {},
+        isEnabled: () => true,
       },
     },
     'core/helpers/timeout': {

@@ -1,6 +1,4 @@
-/* globals chai */
-
-import { testServer } from '../test-helpers';
+import { testServer, expect } from '../test-helpers';
 import { promiseHttpHandler } from '../../../core/http';
 
 
@@ -9,14 +7,14 @@ export default function () {
     const url = testServer.getBaseUrl();
     const responseTest = 'hello world';
 
-    beforeEach(() => testServer.registerPathHandler('/', responseTest));
+    beforeEach(() => testServer.registerPathHandler('/', { result: responseTest }));
 
     context('get request', () => {
       it('gets response of request', async () => {
         const resp = await promiseHttpHandler('GET', url);
-        chai.expect(resp.response).to.eql(responseTest);
-        const hitCtr = await testServer.getHitCtr();
-        chai.expect(hitCtr).to.equal(1);
+        expect(resp.response).to.eql(responseTest);
+        const hitCtr = await testServer.getHitCtr('/');
+        expect(hitCtr).to.equal(1);
       });
 
       it('does not fulfill for a 404', () =>
@@ -33,10 +31,10 @@ export default function () {
 
       it('posts provided data', async () => {
         const resp = await promiseHttpHandler('POST', url, postDataSent);
-        chai.expect(resp.response).to.eql(responseTest);
+        expect(resp.response).to.eql(responseTest);
         const hits = (await testServer.getHits()).get('/');
-        chai.expect(hits.length).to.equal(1);
-        chai.expect(hits[0].body).to.eql(JSON.parse(postDataSent));
+        expect(hits.length).to.equal(1);
+        expect(hits[0].body).to.eql(JSON.parse(postDataSent));
       });
 
       it.skip('can compress sent post data', function () {
@@ -44,11 +42,11 @@ export default function () {
         // have on chromium-tests. So it is currently disabled.
         // return promiseHttpHandler('POST', url, postDataSent, undefined, true)
         //   .then(function (resp) {
-        //     chai.expect(hitCtr).to.eql(1);
-        //     chai.expect(resp.response).to.eql(responseTest);
-        //     chai.expect(contentEncodingHeader).to.eql('gzip');
+        //     expect(hitCtr).to.eql(1);
+        //     expect(resp.response).to.eql(responseTest);
+        //     expect(contentEncodingHeader).to.eql('gzip');
         //     const postData = gzip.decompress(binaryStringToUint8Array(requestData));
-        //     chai.expect(postData).to.eql(postDataSent);
+        //     expect(postData).to.eql(postDataSent);
         //   });
       });
     });

@@ -4,6 +4,7 @@
 */
 import prefs from '../core/prefs';
 import Storage from '../platform/hpn/storage';
+import logger from './logger';
 import CliqzUtils from '../core/utils';
 import config from '../core/config';
 import ResourceLoader from '../core/resource-loader';
@@ -18,6 +19,10 @@ import { createProxyList, getProxyVerifyUrl } from './routing';
 /* Global variables
 */
 let proxyCounter = 0;
+
+function hpnMessageLogger({ msg, type }) {
+  logger.info('Sending', type, 'HPN message:', msg);
+}
 
 const CliqzSecureMessage = {
   CHANNEL: config.settings.HPN_CHANNEL,
@@ -46,6 +51,31 @@ const CliqzSecureMessage = {
   localTemporalUniq: null,
   wCrypto: null,
   queriesID: {},
+
+  /**
+   * Hook mechanism to listen for messages sent over HPN.
+   *
+   * You will get the raw message before it is passed to the Web Worker,
+   * which will performance the actual sending.
+   *
+   * All installed hooks will be removed on unload.
+   */
+  _listeners: new Set(),
+  addListener(callback) {
+    CliqzSecureMessage._listeners.add(callback);
+  },
+  removeListener(callback) {
+    CliqzSecureMessage._listeners.delete(callback);
+  },
+  callListeners(message) {
+    for (const callback of this._listeners) {
+      try {
+        callback(message);
+      } catch (e) {
+        logger.warn('Failed to run listener', e);
+      }
+    }
+  },
 
   // Note: 'collector-hpn.cliqz.com' is the hpnv2 endpoint.
   // For first experiments, build on the existing hpnv1 infrastructure,
@@ -128,6 +158,8 @@ const CliqzSecureMessage = {
   initAtWindow() {
   },
   init() {
+    this.addListener(hpnMessageLogger);
+
     // Doing it here, because this lib. uses navigator and window objects.
     // Better method appriciated.
 
@@ -224,6 +256,8 @@ const CliqzSecureMessage = {
     this.routeTableLoader.stop();
     clearTimeout(CliqzSecureMessage.pacemakerId);
     this.storage.close();
+
+    this._listeners.clear();
   },
   proxyIP() {
     if (!CliqzSecureMessage.proxyList) return undefined;
@@ -247,7 +281,7 @@ const CliqzSecureMessage = {
         const userCrypto = new CryptoWorker();
 
         userCrypto.onmessage = (e) => {
-          if (e.data.status) {
+          if (e.data.success) {
             const uK = {};
             uK.privateKey = e.data.privateKey;
             uK.publicKey = e.data.publicKey;
@@ -258,6 +292,8 @@ const CliqzSecureMessage = {
                 CliqzSecureMessage.uPK.privateKey = response.data.privateKey;
               }
             });
+          } else {
+            logger.error('Failed to register key: ', e.data.error || '<unknown error>');
           }
           userCrypto.terminate();
         };

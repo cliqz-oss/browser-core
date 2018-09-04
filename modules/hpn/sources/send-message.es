@@ -81,7 +81,7 @@ export default class MessageSender {
 
         // Passes one message to the web worker, which does the actual sending.
         try {
-          this.cryptoWorker.postMessage({
+          const hpnMsg = {
             msg: message,
             type: 'telemetry',
             sourcemap: _CliqzSecureMessage.sourceMap,
@@ -90,7 +90,9 @@ export default class MessageSender {
             sspk: _CliqzSecureMessage.secureLogger,
             routetable: _CliqzSecureMessage.routeTable,
             localTemporalUniq: _CliqzSecureMessage.localTemporalUniq,
-          });
+          };
+          this.cryptoWorker.postMessage(hpnMsg);
+          _CliqzSecureMessage.callListeners(hpnMsg);
         } catch (e) {
           this.log('Failed to send message', e);
           reject(e);

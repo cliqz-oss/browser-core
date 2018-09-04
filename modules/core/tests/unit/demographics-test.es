@@ -190,13 +190,20 @@ const PRODUCT_TESTS = [
 
 
 const INSTALL_DATE_TESTS = [
-  { signal: { install_date: 16128 }, result: 'other/2014/02/27' },
+  { signal: { install_date: 16128 }, result: 'other/16128' },
   { signal: { install_date: 16129 }, result: '2014/02/28' },
   { signal: { install_date: 17070 }, result: '2016/09/26' },
-  { signal: { install_date: 17170 }, result: 'other/2017/01/04' },
-  { signal: { install_date: 17175 }, result: 'other/2017/01/09' },
-  { signal: { install_date: 17180 }, result: 'other/2017/01/14' },
-  { signal: { install_date: 20000 }, result: 'other/2024/10/04' },
+  { signal: { install_date: 17170 }, result: 'other/17170' },
+  { signal: { install_date: 17175 }, result: 'other/17175' },
+  { signal: { install_date: 17180 }, result: 'other/17180' },
+  { signal: { install_date: 20000 }, result: 'other/20000' },
+  { signal: { install_date: '' }, result: 'other/' },
+  { signal: { install_date: 0 }, result: 'other/0' },
+  { signal: { install_date: '2018/' }, result: 'other/2018/' },
+  { signal: { install_date: '20180101' }, result: '2018/01/01' },
+  { signal: { install_date: '2018-01-01' }, result: 'other/2018-01-01' },
+  { signal: { install_date: '20181131' }, result: 'other/20181131' },
+  { signal: { install_date: '2018/01/01' }, result: 'other/2018/01/01' },
 ];
 
 
@@ -565,11 +572,12 @@ let userAgentMock;
 let countryMock;
 
 function mockDemographics(demographics) {
-  channelMock = demographics.channel || '';
-  distributionMock = demographics.distribution || '';
-  installDateMock = demographics.install_date || '';
-  userAgentMock = demographics.agent || '';
-  countryMock = demographics.country || '';
+  const defaultToEmptyString = value => (value === undefined ? '' : value);
+  channelMock = defaultToEmptyString(demographics.channel);
+  distributionMock = defaultToEmptyString(demographics.distribution);
+  installDateMock = defaultToEmptyString(demographics.install_date);
+  userAgentMock = defaultToEmptyString(demographics.agent);
+  countryMock = defaultToEmptyString(demographics.country);
 }
 
 export default describeModule('core/demographics',
@@ -602,10 +610,14 @@ export default describeModule('core/demographics',
   }),
   () => {
     let getDemographics;
+    let getInstallDateAsDaysSinceEpoch;
+
     beforeEach(function () {
       getDemographics = this.module().default;
+      getInstallDateAsDaysSinceEpoch = this.module().getInstallDateAsDaysSinceEpoch;
     });
-    describe('#parse', () => {
+
+    describe('#getDemographics', () => {
       [
         [COUNTRY_TESTS, 'country'],
         [INSTALL_DATE_TESTS, 'install_date'],
@@ -623,6 +635,24 @@ export default describeModule('core/demographics',
               chai.expect(demographics[factor]).to.be.eql(result);
             });
           });
+        });
+      });
+    });
+
+    describe('#getInstallDateAsDaysSinceEpoch', () => {
+      [
+        { installDate: 0, result: 0 },
+        { installDate: 1, result: 1 },
+        { installDate: 1642, result: 1642 },
+        { installDate: '19700101', result: 0 },
+        { installDate: '19700102', result: 1 },
+        { installDate: '20160101', result: 16801 },
+        { installDate: '20170505', result: 17291 },
+        { installDate: '20181130', result: 17865 },
+      ].forEach(({ installDate, result }) => {
+        it(`returns correct result for: ${installDate}`, async () => {
+          mockDemographics({ install_date: installDate });
+          chai.expect(await getInstallDateAsDaysSinceEpoch()).to.eql(result);
         });
       });
     });

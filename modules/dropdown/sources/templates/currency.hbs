@@ -5,7 +5,7 @@
                 class="result"
                 data-url="{{url}}"
             >
-                = {{toAmount}} {{toCurrencyName}}
+                = {{toAmount}} {{toCurrency}} {{#if toCurrencyName}}({{toCurrencyName}}){{/if}}
                 <span class="tooltip">
                     {{local 'Click_anywhere_to_copy'}}
                 </span>

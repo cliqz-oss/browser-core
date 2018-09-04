@@ -40,9 +40,9 @@ const styles = StyleSheet.create({
 });
 
 export default class HistoryUrls extends React.Component {
-  displayUrls(data, index) {
+  displayUrls(data) {
     return (
-      <Link url={data.url} key={index}>
+      <Link url={data.url} key={data.url}>
         <View style={styles.row}>
           <View style={styles.header}>
             <Icon width={34} height={34} url={data.url} />

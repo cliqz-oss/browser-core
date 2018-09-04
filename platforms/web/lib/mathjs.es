@@ -1,3 +1,4 @@
-import math from 'mathjs'
+import math from 'mathjs';
 
 export default math;
+

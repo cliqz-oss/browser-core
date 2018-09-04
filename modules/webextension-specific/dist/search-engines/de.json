@@ -1,0 +1,486 @@
+[
+  {
+    "name": "Cliqz",
+    "description": "Cliqz Search",
+    "encoding": "UTF-8",
+    "urls": {
+      "text/html": {
+        "type": "text/html",
+        "method": "GET",
+        "template": "https://suchen.cliqz.com/#{searchTerms}"
+      }
+    },
+    "searchForm": "https://suchen.cliqz.com"
+  },
+  {
+    "name": "Google",
+    "description": "Google Search",
+    "encoding": "UTF-8",
+    "urls": {
+      "application/x-suggestions+json": {
+        "method": "GET",
+        "template": "https://www.google.com/complete/search?client=firefox&q={searchTerms}"
+      },
+      "text/html": {
+        "method": "GET",
+        "template": "https://www.google.com/search",
+        "params": [
+          {
+            "name": "q",
+            "value": "{searchTerms}"
+          },
+          {
+            "name": "ie",
+            "value": "utf-8"
+          },
+          {
+            "name": "oe",
+            "value": "utf-8"
+          }
+        ]
+      }
+    },
+    "searchForm": "https://www.google.com/search"
+  },
+  {
+    "name": "Yahoo",
+    "description": "Yahoo Search",
+    "encoding": "UTF-8",
+    "searchForm": "https://de.search.yahoo.com/",
+    "urls": {
+      "application/x-suggestions+json": {
+        "method": "GET",
+        "template": "https://de.search.yahoo.com/sugg/ff",
+        "params": [
+          {
+            "name": "output",
+            "value": "fxjson"
+          },
+          {
+            "name": "appid",
+            "value": "ffd"
+          },
+          {
+            "name": "command",
+            "value": "{searchTerms}"
+          }
+        ]
+      },
+      "text/html": {
+        "method": "GET",
+        "template": "https://de.search.yahoo.com/search",
+        "params": [
+          {
+            "name": "p",
+            "value": "{searchTerms}"
+          },
+          {
+            "name": "ei",
+            "value": "UTF-8"
+          },
+          {
+            "name": "fr",
+            "value": "moz35"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Bing",
+    "description": "Bing. Search by Microsoft.",
+    "encoding": "UTF-8",
+    "urls": {
+      "application/x-suggestions+json": {
+        "template": "https://www.bing.com/osjson.aspx",
+        "params": [
+          {
+            "name": "query",
+            "value": "{searchTerms}"
+          },
+          {
+            "name": "form",
+            "value": "OSDJAS"
+          },
+          {
+            "name": "language",
+            "value": "{moz:locale}"
+          }
+        ]
+      },
+      "text/html": {
+        "method": "GET",
+        "template": "https://www.bing.com/search",
+        "params": [
+          {
+            "name": "q",
+            "value": "{searchTerms}"
+          },
+          {
+            "name": "pc",
+            "value": "MOZI"
+          }
+        ]
+      }
+    },
+    "searchForm": "https://www.bing.com/search"
+  },
+  {
+    "name": "DuckDuckGo",
+    "description": "Search DuckDuckGo",
+    "encoding": "UTF-8",
+    "urls": {
+      "text/html": {
+        "method": "get",
+        "template": "https://duckduckgo.com/",
+        "params": [
+          {
+            "name": "q",
+            "value": "{searchTerms}"
+          }
+        ]
+      },
+      "application/x-suggestions+json": {
+        "template": "https://ac.duckduckgo.com/ac/",
+        "params": [
+          {
+            "name": "q",
+            "value": "{searchTerms}"
+          },
+          {
+            "name": "type",
+            "value": "list"
+          }
+        ]
+      }
+    },
+    "searchForm": "https://duckduckgo.com/"
+  },
+  {
+    "name": "YouTube",
+    "description": "YouTube",
+    "encoding": "UTF-8",
+    "urls": {
+      "text/html": {
+        "method": "GET",
+        "template": "https://www.youtube.de/results",
+        "params": [
+          {
+            "name": "search_query",
+            "value": "{searchTerms}"
+          }
+        ]
+      }
+    },
+    "searchForm": "https://www.youtube.de/results"
+  },
+  {
+    "name": "Ecosia",
+    "description": "Search Ecosia",
+    "encoding": "UTF-8",
+    "searchForm": "https://www.ecosia.org/",
+    "urls": {
+      "application/x-suggestions+json": {
+        "method": "GET",
+        "template": "https://ac.ecosia.org/autocomplete",
+        "params": [
+          {
+            "name": "type",
+            "value": "list"
+          },
+          {
+            "name": "q",
+            "value": "{searchTerms}"
+          }
+        ]
+      },
+      "text/html": {
+        "method": "GET",
+        "template": "https://www.ecosia.org/search",
+        "params": [
+          {
+            "name": "tt",
+            "value": "cliqz"
+          },
+          {
+            "name": "q",
+            "value": "{searchTerms}"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Twitter",
+    "description": "Realtime Twitter Search",
+    "encoding": "UTF-8",
+    "urls": {
+      "text/html": {
+        "method": "GET",
+        "template": "https://twitter.com/search",
+        "params": [
+          {
+            "name": "q",
+            "value": "{searchTerms}"
+          },
+          {
+            "name": "partner",
+            "value": "Firefox"
+          },
+          {
+            "name": "source",
+            "value": "desktop-search"
+          }
+        ]
+      }
+    },
+    "searchForm": "https://twitter.com/search"
+  },
+  {
+    "name": "Amazon.de",
+    "description": "Amazon.de Suche",
+    "encoding": "UTF-8",
+    "searchForm": "https://www.amazon.de/",
+    "urls": {
+      "text/html": {
+        "method": "GET",
+        "template": "https://www.amazon.de/exec/obidos/external-search/",
+        "params": [
+          {
+            "name": "field-keywords",
+            "value": "{searchTerms}"
+          },
+          {
+            "name": "ie",
+            "value": "{inputEncoding}"
+          },
+          {
+            "name": "mode",
+            "value": "blended"
+          },
+          {
+            "name": "tag",
+            "value": "firefox-de-21"
+          },
+          {
+            "name": "sourceid",
+            "value": "Mozilla-search"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "eBay",
+    "description": "eBay - Online auctions",
+    "searchForm": "https://www.ebay.de/",
+    "urls": {
+      "text/html": {
+        "method": "GET",
+        "template": "https://rover.ebay.com/rover/1/707-53477-19255-0/1",
+        "params": [
+          {
+            "name": "ff3",
+            "value": "4"
+          },
+          {
+            "name": "toolid",
+            "value": "20004"
+          },
+          {
+            "name": "campid",
+            "value": "5338192028"
+          },
+          {
+            "name": "customid",
+            "value": ""
+          },
+          {
+            "name": "mpre",
+            "value": "https://www.ebay.de/sch/{searchTerms}"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Wikipedia (de)",
+    "description": "Wikipedia, die freie Enzyklopädie",
+    "encoding": "UTF-8",
+    "urls": {
+      "application/x-suggestions+json": {
+        "method": "GET",
+        "template": "https://de.wikipedia.org/w/api.php",
+        "params": [
+          {
+            "name": "action",
+            "value": "opensearch"
+          },
+          {
+            "name": "search",
+            "value": "{searchTerms}"
+          }
+        ]
+      },
+      "text/html": {
+        "method": "GET",
+        "template": "https://de.wikipedia.org/wiki/Spezial:Suche",
+        "params": [
+          {
+            "name": "search",
+            "value": "{searchTerms}"
+          },
+          {
+            "name": "sourceid",
+            "value": "Mozilla-search"
+          }
+        ]
+      }
+    },
+    "searchForm": "https://de.wikipedia.org/wiki/Spezial:Suche"
+  },
+  {
+    "name": "LEO Eng-Deu",
+    "description": "Deutsch-Englisch Wörterbuch von LEO",
+    "encoding": "UTF-8",
+    "searchForm": "http://dict.leo.org",
+    "urls": {
+      "application/x-suggestions+json": {
+        "method": "get",
+        "template": "http://dict.leo.org/dictQuery/m-query/conf/ende/query.conf/strlist.json?q={searchTerms}&sort=PLa&shortQuery&noDescription&noQueryURLs"
+      },
+      "text/html": {
+        "method": "GET",
+        "template": "http://dict.leo.org/ende",
+        "params": [
+          {
+            "name": "lang",
+            "value": "de"
+          },
+          {
+            "name": "from",
+            "value": "fxdesktop"
+          },
+          {
+            "name": "search",
+            "value": "{searchTerms}"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Google Maps",
+    "description": "Google Maps",
+    "encoding": "UTF-8",
+    "urls": {
+      "text/html": {
+        "method": "GET",
+        "template": "https://www.google.de/maps",
+        "params": [
+          {
+            "name": "q",
+            "value": "{searchTerms}"
+          }
+        ]
+      }
+    },
+    "searchForm": "https://www.google.de/maps"
+  },
+  {
+    "name": "Google Images",
+    "description": "Google Images",
+    "encoding": "UTF-8",
+    "urls": {
+      "application/x-suggestions+json": {
+        "method": "GET",
+        "template": "https://www.google.de/search"
+      },
+      "text/html": {
+        "method": "GET",
+        "template": "https://www.google.de/search",
+        "params": [
+          {
+            "name": "q",
+            "value": "{searchTerms}"
+          },
+          {
+            "name": "tbm",
+            "value": "isch"
+          },
+          {
+            "name": "hl",
+            "value": "de"
+          }
+        ]
+      }
+    },
+    "searchForm": "https://www.google.de/search"
+  },
+  {
+    "name": "Start Page",
+    "description": "Search StartPage",
+    "encoding": "UTF-8",
+    "urls": {
+      "text/html": {
+        "method": "GET",
+        "template": "https://www.startpage.com/do/dsearch",
+        "params": [
+          {
+            "name": "query",
+            "value": "{searchTerms}"
+          },
+          {
+            "name": "cat",
+            "value": "web"
+          },
+          {
+            "name": "pl",
+            "value": "opensearch"
+          },
+          {
+            "name": "language",
+            "value": "deutsch"
+          }
+        ]
+      }
+    },
+    "searchForm": "https://www.startpage.com/do/dsearch"
+  },
+  {
+    "name": "Qwant",
+    "description": "Qwant is a search engine that respects your privacy and eases discovering and sharing via a social approach.",
+    "encoding": "UTF-8",
+    "urls": {
+      "application/x-suggestions+json": {
+        "method": "GET",
+        "template": "https://api.qwant.com/api/suggest/",
+        "params": [
+          {
+            "name": "client",
+            "value": "opensearch"
+          },
+          {
+            "name": "q",
+            "value": "{searchTerms}"
+          }
+        ]
+      },
+      "text/html": {
+        "method": "GET",
+        "template": "https://www.qwant.com/",
+        "params": [
+          {
+            "name": "client",
+            "value": "opensearch"
+          },
+          {
+            "name": "q",
+            "value": "{searchTerms}"
+          }
+        ]
+      }
+    },
+    "searchForm": "https://www.qwant.com/"
+  }
+]

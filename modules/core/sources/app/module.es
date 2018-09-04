@@ -1,10 +1,12 @@
+/* eslint no-param-reassign: 'off' */
+
 import console from '../console';
 import modules from './modules';
 import DefaultMap from '../helpers/default-map';
 import Defer from '../helpers/defer';
 import Service from './service';
 import inject from '../kord/inject';
-import { Window } from '../../platform/browser';
+import { Window, mapWindows } from '../../platform/browser';
 import EventEmitter from '../event-emitter';
 
 export const lifecycleEvents = {
@@ -219,8 +221,19 @@ export default class Module extends EventEmitter {
   };
 
   status() {
+    const windowWrappers = mapWindows(window => new Window(window));
+    const windows = windowWrappers.reduce((_hash, win) => {
+      _hash[win.id] = {
+        loadingTime: this.getLoadingTime(win.window),
+      };
+      return _hash;
+    }, Object.create(null));
     return {
-      isEnabled: this.isEnabled,
+      name: this.name,
+      isEnabled: this.isEnabled || this.isEnabling,
+      loadingTime: this.loadingTime,
+      windows,
+      state: this.isEnabled && this.backgroundModule.getState && this.backgroundModule.getState(),
     };
   }
 

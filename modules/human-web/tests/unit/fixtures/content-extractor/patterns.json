@@ -4,23 +4,17 @@
         ".search.yahoo\\..*?[#?&;]p=[^$&]+",
         ".linkedin.*?\\/pub\\/dir+",
         "\\.bing\\..*?[#?&;]q=[^$&]+",
+        "\\.amazon\\..*?\\/s/ref=.*[?&]field-keywords=[^$&]+",
         ".*"
     ],
     "searchEngines": [
         "0",
         "1",
-        "3"
+        "3",
+        "4"
     ],
     "scrape": {
         "0": {
-            "#mobile-search #sfcnt": {
-                "q": {
-                    "item": "input",
-                    "type": "searchQuery",
-                    "etype": "value",
-                    "keyName": "q"
-                }
-            },
             ".med #search": {
                 "q": {
                     "item": "#ires",
@@ -93,6 +87,16 @@
             }
         },
         "4": {
+          "#nav-search": {
+            "q": {
+              "item": ".nav-search-field input",
+              "type": "searchQuery",
+              "etype": "value",
+              "keyName": "query"
+            }
+          }
+        },
+        "5": {
             "#errorPageContainer": {
                 "reason": {
                     "item": "h1[id^=errorTitleText_]",
@@ -126,7 +130,7 @@
                 "action": "linkedin"
             }
         },
-        "4": {
+        "5": {
             "#errorPageContainer": {
                 "type": "single",
                 "results": "custom",
@@ -152,6 +156,7 @@
         "0": "go",
         "1": "ya",
         "2": "lnkd",
-        "3": "bing"
+        "3": "bing",
+        "4": "am"
     }
 }
