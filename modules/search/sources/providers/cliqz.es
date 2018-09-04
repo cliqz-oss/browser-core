@@ -73,37 +73,7 @@ const getBackendResults = (q, params = {}) => {
   }
 
   const url = CONFIG.settings.RESULTS_PROVIDER + getResultsProviderQueryString(q, params);
-  const fetch = params.jsonpCallback
-    ? (apiUrl) => {
-      const promise = new Promise((fulfilled, rejected) => {
-        window[params.jsonpCallback] = (response) => {
-          const res = {
-            json: () => response
-          };
-
-          window[params.jsonpCallback] = null;
-          fulfilled(res);
-        };
-
-        const script = document.createElement('script');
-        script.src = apiUrl;
-        script.onload = () => {
-          document.body.removeChild(script);
-          script.onload = null;
-        };
-        script.onerror = (error) => {
-          document.body.removeChild(script);
-          script.onload = null;
-
-          rejected(error);
-        };
-
-        document.body.appendChild(script);
-      });
-
-      return promise;
-    }
-    : utils.fetchFactory();
+  const fetch = utils.fetchFactory();
 
   utils._sessionSeq += 1;
 
