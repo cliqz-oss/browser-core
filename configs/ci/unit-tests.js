@@ -2,7 +2,7 @@
 
 'use strict';
 
-const urls = require('../common/urls');
+const urls = require('../common/urls-cliqz');
 
 module.exports = {
   'platform': 'firefox',

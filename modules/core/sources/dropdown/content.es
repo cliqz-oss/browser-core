@@ -61,10 +61,7 @@ export default class ContentDropdownManager extends BaseDropdownManager {
     this.cliqz.search.reportHighlight();
   }
   _adultAction(actionName) {
-    return this.cliqz.search.adultAction(actionName)
-      .then(() => {
-        this.render({ rawResults: this.previousResults });
-      });
+    return this.cliqz.search.adultAction(actionName, this._getQuery());
   }
   _locationAction(actionName, query, rawResult) {
     return this.cliqz.search.locationAction(actionName, query, rawResult);
@@ -133,13 +130,13 @@ export default class ContentDropdownManager extends BaseDropdownManager {
   }
   // _createIframe() {}
 
-  onKeyDown(ev) {
+  onKeydown(ev) {
     ev.stopPropagation();
     this.view.hideSettings();
     this.lastEvent = {
       code: ev.key,
     };
 
-    return super.onKeyDown(ev);
+    return super.onKeydown(ev);
   }
 }

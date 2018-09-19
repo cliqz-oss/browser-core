@@ -104,7 +104,7 @@ function onLoad() {
   });
   dropdown.createIframeWrapper(overlay.iframe);
   overlay.input.addEventListener('keydown', (ev) => {
-    if (dropdown.onKeyDown(ev)) {
+    if (dropdown.onKeydown(ev)) {
       ev.preventDefault();
     }
   });
@@ -162,6 +162,10 @@ function onLoad() {
 registerContentScript('overlay', '*', () => {
   const isTopLevel = window.parent && window.parent === window;
   if (isTopLevel) {
-    window.addEventListener('DOMContentLoaded', onLoad);
+    if (window.document && window.document.readyState === 'complete') {
+      onLoad();
+    } else {
+      window.addEventListener('DOMContentLoaded', onLoad);
+    }
   }
 });

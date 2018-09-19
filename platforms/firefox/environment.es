@@ -6,7 +6,7 @@ import prefs from '../core/prefs';
 import utils from '../core/utils';
 import config from '../core/config';
 import { promiseHttpHandler } from '../core/http';
-import { Components } from '../platform/globals';
+import { Components, Services } from '../platform/globals';
 import telemetry from '../core/services/telemetry';
 import { isOnionMode } from '../core/platform';
 import { Window } from '../core/browser';
@@ -17,6 +17,16 @@ try {
 } catch (e) {
   // empty
 }
+
+const getPrincipalForUrl = (url) => {
+  if (url.startsWith('chrome:') || url.startsWith('resource:') || url.startsWith('about:')) {
+    // we return system principal only for chrome, resoure and about: pages
+    return Services.scriptSecurityManager.getSystemPrincipal();
+  }
+
+  // otherwise we simply return a newly created NullPrincipal
+  return Services.scriptSecurityManager.createNullPrincipal({});
+};
 
 const CLIQZEnvironment = {
   Promise,
@@ -64,7 +74,9 @@ const CLIQZEnvironment = {
     }
 
     if (newTab) {
-      const tab = win.gBrowser.addTab(url);
+      const tab = win.gBrowser.addTab(url, {
+        triggeringPrincipal: getPrincipalForUrl(url)
+      });
       if (focus) {
         win.gBrowser.selectedTab = tab;
       }
@@ -98,15 +110,8 @@ const CLIQZEnvironment = {
         Components.utils.import('resource://gre/modules/PrivateBrowsingUtils.jsm');
         win.cliqzIsPrivate = PrivateBrowsingUtils.isWindowPrivate(win);
       } catch (e) {
-        // pre Firefox 20
-        try {
-          win.cliqzIsPrivate = Components.classes['@mozilla.org/privatebrowsing;1']
-            .getService(Components.interfaces.nsIPrivateBrowsingService)
-            .privateBrowsingEnabled;
-        } catch (ex) {
-          Components.utils.reportError(ex);
-          win.cliqzIsPrivate = true;
-        }
+        Components.utils.reportError(e);
+        win.cliqzIsPrivate = true;
       }
     }
 
@@ -135,7 +140,10 @@ const CLIQZEnvironment = {
     return (new Window(win)).id;
   },
   openTabInWindow(win, url, relatedToCurrent = false) {
-    win.gBrowser.selectedTab = win.gBrowser.addTab(url, { relatedToCurrent });
+    win.gBrowser.selectedTab = win.gBrowser.addTab(url, {
+      relatedToCurrent,
+      triggeringPrincipal: getPrincipalForUrl(url)
+    });
   },
   // TODO: move this
   _trk: [],
@@ -226,6 +234,7 @@ const CLIQZEnvironment = {
       }
     };
   })(),
+
   // from ContextMenu
   openPopup(contextMenu, ev, x, y) {
     contextMenu.openPopupAtScreen(x, y, false);

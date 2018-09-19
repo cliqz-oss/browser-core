@@ -14,7 +14,7 @@ class Subject {
     this.iframe.src = `/build/${config.settings.id}/chrome/content/control-center/index.html${(isPageAction ? '?pageAction=true' : '')}`;
 
     this.iframe.width = 455;
-    this.iframe.height = 500;
+    this.iframe.height = 800;
     document.body.appendChild(this.iframe);
 
     return new Promise((resolve) => {
@@ -152,7 +152,7 @@ describe('Search options UI browser', function () {
 
         it('renders info button', function () {
           const explicitObject = subject.queryAll('#accordion-2 .bullet')[1];
-          expect(explicitObject.querySelector('.infobutton')).to.exist;
+          expect(explicitObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         function explicitContent(currentValue) {
@@ -201,17 +201,17 @@ describe('Search options UI browser', function () {
         });
 
         it('renders info button', function () {
-          const locationObject = subject.queryAll('#accordion-2 .bullet')[2];
-          expect(locationObject.querySelector('.infobutton')).to.exist;
+          const locationObject = subject.queryAll('#accordion-2 .bullet')[4];
+          expect(locationObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         it('renders "Learn more"', function () {
-          const locationObject = subject.queryAll('#accordion-2 .bullet')[2];
+          const locationObject = subject.queryAll('#accordion-2 .bullet')[4];
           expect(locationObject.querySelector('.location-more')).to.exist;
         });
 
         it('url is correct', function () {
-          const locationObject = subject.queryAll('#accordion-2 .bullet')[2];
+          const locationObject = subject.queryAll('#accordion-2 .bullet')[4];
           expect(locationObject.querySelector('.location-more').getAttribute('data-open-url')).to.equal('https://cliqz.com/support/local-results');
         });
 
@@ -261,8 +261,8 @@ describe('Search options UI browser', function () {
         });
 
         it('does not render info button', function () {
-          const explicitObject = subject.queryAll('#accordion-2 .bullet')[3];
-          expect(explicitObject.querySelector('.infobutton')).to.be.null;
+          const explicitObject = subject.queryAll('#accordion-2 .bullet')[2];
+          expect(explicitObject.querySelector('.cc-tooltip')).to.be.null;
         });
 
         function countryBackend(currentValue) {
@@ -309,7 +309,7 @@ describe('Search options UI browser', function () {
 
         it('renders info button', function () {
           const locationObject = subject.queryAll('#accordion-2 .bullet')[4];
-          expect(locationObject.querySelector('.infobutton')).to.exist;
+          expect(locationObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         function proxy(currentValue) {
@@ -360,7 +360,7 @@ describe('Search options UI browser', function () {
 
         it('renders info button', function () {
           const locationObject = subject.queryAll('#accordion-2 .bullet')[5];
-          expect(locationObject.querySelector('.infobutton')).to.exist;
+          expect(locationObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         function humanWeb(currentValue) {
@@ -416,7 +416,7 @@ describe('Search options UI browser', function () {
 
         it('does not render info button', function () {
           const monitorObject = subject.queryAll('#accordion-2 .bullet')[6];
-          expect(monitorObject.querySelector('.infobutton')).to.be.null;
+          expect(monitorObject.querySelector('.cc-tooltip')).to.be.null;
         });
       });
     });
@@ -519,7 +519,7 @@ describe('AMO Search options tests', function () {
 
         it('renders info button', function () {
           const explicitObject = subject.queryAll('#accordion-2 .bullet')[1];
-          expect(explicitObject.querySelector('.infobutton')).to.exist;
+          expect(explicitObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         function explicitContent(currentValue) {
@@ -568,17 +568,17 @@ describe('AMO Search options tests', function () {
         });
 
         it('renders info button', function () {
-          const locationObject = subject.queryAll('#accordion-2 .bullet')[2];
-          expect(locationObject.querySelector('.infobutton')).to.exist;
+          const locationObject = subject.queryAll('#accordion-2 .bullet')[4];
+          expect(locationObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         it('renders "Learn more"', function () {
-          const locationObject = subject.queryAll('#accordion-2 .bullet')[2];
+          const locationObject = subject.queryAll('#accordion-2 .bullet')[4];
           expect(locationObject.querySelector('.location-more')).to.exist;
         });
 
         it('url is correct', function () {
-          const locationObject = subject.queryAll('#accordion-2 .bullet')[2];
+          const locationObject = subject.queryAll('#accordion-2 .bullet')[4];
           expect(locationObject.querySelector('.location-more').getAttribute('data-open-url')).to.equal('https://cliqz.com/support/local-results');
         });
 
@@ -628,8 +628,8 @@ describe('AMO Search options tests', function () {
         });
 
         it('does not render info button', function () {
-          const explicitObject = subject.queryAll('#accordion-2 .bullet')[3];
-          expect(explicitObject.querySelector('.infobutton')).to.be.null;
+          const explicitObject = subject.queryAll('#accordion-2 .bullet')[2];
+          expect(explicitObject.querySelector('.cc-tooltip')).to.be.null;
         });
 
         function countryBackend(currentValue) {
@@ -676,7 +676,7 @@ describe('AMO Search options tests', function () {
 
         it('renders info button', function () {
           const locationObject = subject.queryAll('#accordion-2 .bullet')[4];
-          expect(locationObject.querySelector('.infobutton')).to.exist;
+          expect(locationObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         function proxy(currentValue) {
@@ -727,7 +727,7 @@ describe('AMO Search options tests', function () {
 
         it('renders info button', function () {
           const locationObject = subject.queryAll('#accordion-2 .bullet')[5];
-          expect(locationObject.querySelector('.infobutton')).to.exist;
+          expect(locationObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         function humanWeb(currentValue) {
@@ -757,6 +757,57 @@ describe('AMO Search options tests', function () {
         it('text for options is correct', function () {
           const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control_center_enabled"]';
           const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control_center_disabled"]';
+          expect(subject.query(enabledSelector)).to.exist;
+          expect(subject.query(enabledSelector).textContent.trim()).to.equal('control_center_enabled');
+          expect(subject.query(disabledSelector)).to.exist;
+          expect(subject.query(disabledSelector).textContent.trim()).to.equal('control_center_disabled');
+        });
+      });
+
+      context('"Send usage data" block', function () {
+        it('renders "Send usage data"', function () {
+          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_telemetry"]';
+          expect(subject.query(titleSelector)).to.exist;
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_telemetry');
+        });
+
+        it('renders dropdown', function () {
+          const dropdownSelector = '#accordion-2 .bullet .custom-dropdown[data-target="telemetry"]';
+          expect(subject.query(dropdownSelector)).to.exist;
+        });
+
+        it('renders info button', function () {
+          const locationObject = subject.queryAll('#accordion-2 .bullet')[6];
+          expect(locationObject.querySelector('.cc-tooltip')).to.exist;
+        });
+
+        function usageData(currentValue) {
+          it(`changed pref to ${currentValue}`, function () {
+            const dropdownSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="telemetry"]';
+            const select = subject.query(dropdownSelector);
+            select.querySelector('[value="true"]').removeAttribute('selected');
+            select.querySelector(`[value="${currentValue}"]`).setAttribute('selected', '');
+            const evt = document.createEvent('HTMLEvents');
+            select.addEventListener('change', console.log);
+            evt.initEvent('change', true, true);
+            select.dispatchEvent(evt);
+            return waitFor(
+              () => subject.messages.find(message => message.message.action === 'updatePref')
+            ).then(
+              (message) => {
+                expect(message).to.have.nested.property('message.data.pref', 'extensions.cliqz.telemetry');
+                expect(message).to.have.nested.property('message.data.value', `${currentValue}`);
+                expect(message).to.have.nested.property('message.data.target', 'telemetry');
+              }
+            );
+          });
+        }
+        usageData('true');
+        usageData('false');
+
+        it('text for options is correct', function () {
+          const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="telemetry"] [data-i18n="control_center_enabled"]';
+          const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="telemetry"] [data-i18n="control_center_disabled"]';
           expect(subject.query(enabledSelector)).to.exist;
           expect(subject.query(enabledSelector).textContent.trim()).to.equal('control_center_enabled');
           expect(subject.query(disabledSelector)).to.exist;

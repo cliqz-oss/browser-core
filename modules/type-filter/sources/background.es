@@ -2,7 +2,6 @@
 
 import prefs from '../core/prefs';
 import background from '../core/base/background';
-import bindObjectFunctions from '../core/helpers/bind-functions';
 
 class TypeRemover {
   constructor() {
@@ -47,7 +46,6 @@ class TypeRemover {
 export default background({
   init() {
     this.remover = new TypeRemover();
-    bindObjectFunctions(this.actions, this);
   },
 
   unload() {},

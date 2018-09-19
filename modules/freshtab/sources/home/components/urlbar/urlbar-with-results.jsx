@@ -70,7 +70,7 @@ export default class UrlbarWithResults extends Urlbar {
   }
 
   handleKeyDown = (ev) => {
-    if (this.dropdown.onKeyDown(ev)) {
+    if (this.dropdown.onKeydown(ev)) {
       ev.preventDefault();
     }
   }
@@ -184,7 +184,7 @@ export default class UrlbarWithResults extends Urlbar {
           />
           <div className="results">
             <div id="search-settings" className={`settings-panel ${(this.state.isSearchSettingsOpen ? 'show' : 'hide')}`}>
-              <SearchSettings maxHeight={this.maxHeight} />
+              <SearchSettings maxHeight={this.maxHeight} isOpen={this.state.isSearchSettingsOpen} />
             </div>
             <iframe
               id="cliqz-dropdown"

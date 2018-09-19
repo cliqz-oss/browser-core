@@ -60,6 +60,8 @@ function delay(fn) {
   });
 }
 
+const jspe = require('jsep');
+
 export default describeModule('offers-v2/offers/soft-filter',
   () => ({
     'platform/lib/adblocker': {
@@ -68,18 +70,17 @@ export default describeModule('offers-v2/offers/soft-filter',
     'offers-v2/common/offers_v2_logger': {
       default: {
         debug: () => {},
-        error: (...x) => { console.error(...x); },
-        info: (...x) => { console.log(...x); },
-        log: (...x) => { console.log(...x); },
-        warn: (...x) => { console.warn(...x); },
-        logObject: () => {},
+        error: () => {},
+        info: () => {},
+        log: () => {},
+        warn: () => {},
       }
     },
     'core/platform': {
       isWebExtension: false
     },
     'platform/lib/jsep': {
-      default: require('jsep'),
+      default: jspe,
     },
     'platform/lib/tldjs': {
       default: tldjs,
@@ -107,6 +108,13 @@ export default describeModule('offers-v2/offers/soft-filter',
       timestampMS: function () {
         return Date.now();
       }
+    },
+    'offers-v2/background': {
+      default: {
+        offersAPI: {
+          processRealEstateMessage: () => {}
+        }
+      },
     },
     'core/persistence/map': {
       default: class MockMap {
@@ -457,42 +465,6 @@ export default describeModule('offers-v2/offers/soft-filter',
         // /////////////////////////////////////////////////////////////////////
         //                    count_XYZ method tests
         // /////////////////////////////////////////////////////////////////////
-
-        it('/shouldFilterOffer checking count_client_offers', function () {
-          let rules = "count_client_offers('>=',0)";
-
-          offer = buildOffer(rules);
-          chai.expect(db.addOfferObject(offer.uniqueID, offer.offerObj), 'e1').to.be.equal(true);
-          chai.expect(db.hasOfferData(offer.uniqueID), 'e2').to.be.equal(true);
-
-          // should pass
-          chai.expect(shouldFilterOffer(offer, db), 'ee1').to.be.equal(false);
-
-          // should not pass
-          rules = "count_client_offers('>=',2)";
-          offer = updateOfferOnDB(offer.offerObj, rules);
-          chai.expect(shouldFilterOffer(offer, db), 'e3').to.be.equal(true);
-
-          // add another offer of the same client and should pass
-          const offer2 = buildOffer(rules);
-          offer2.offerObj.offer_id = 'offer2';
-          chai.expect(db.addOfferObject(offer2.uniqueID, offer2.offerObj), 'e4').to.be.equal(true);
-          chai.expect(db.hasOfferData(offer2.uniqueID), 'e5').to.be.equal(true);
-          chai.expect(shouldFilterOffer(offer, db), 'e6').to.be.equal(false);
-
-          // should not pass
-          rules = "count_client_offers('>=',3)";
-          offer = updateOfferOnDB(offer.offerObj, rules);
-          chai.expect(shouldFilterOffer(offer, db), 'e7').to.be.equal(true);
-
-          // should still not pass
-          const offer3 = buildOffer(rules);
-          offer3.offerObj.offer_id = 'offer3';
-          offer3.offerObj.client_id = 'client-2';
-          chai.expect(db.addOfferObject(offer3.uniqueID, offer3.offerObj), 'e7').to.be.equal(true);
-          chai.expect(db.hasOfferData(offer3.uniqueID), 'e8').to.be.equal(true);
-          chai.expect(shouldFilterOffer(offer, db), 'e8').to.be.equal(true);
-        });
 
         it('/shouldFilterOffer checking count_campaign_offers', function () {
           let rules = "count_campaign_offers('>=',0)";

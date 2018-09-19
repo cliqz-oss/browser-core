@@ -3,15 +3,14 @@ import {
   waitFor,
 } from '../../core/test-helpers';
 import {
+  checkTelemetry,
   defaultConfig,
   Subject,
 } from '../../core/test-helpers-freshtab';
 
-describe('Fresh tab interactions with buttons', function () {
+describe('Freshtab interactions with buttons', function () {
   const settingsPanelSelector = '#settings-panel';
   let subject;
-  let listener;
-  let messages;
 
   beforeEach(async function () {
     subject = new Subject();
@@ -21,26 +20,15 @@ describe('Fresh tab interactions with buttons', function () {
     subject.respondsWithEmptyNews();
 
     await subject.load();
-
-    // Keep track of received messages
-    messages = new Map();
-    listener = function (msg) {
-      if (!messages.has(msg.action)) {
-        messages.set(msg.action, []);
-      }
-
-      messages.get(msg.action).push(msg);
-    };
-    subject.chrome.runtime.onMessage.addListener(listener);
   });
 
   afterEach(function () {
-    subject.chrome.runtime.onMessage.removeListener(listener);
     subject.unload();
   });
 
   describe('clicking on a settings button', function () {
     beforeEach(function () {
+      subject.startListening();
       const settingsButtonSelector = '#settings-btn';
       subject.query(settingsButtonSelector).click();
       return waitFor(() => subject.query(settingsPanelSelector).classList.contains('visible'));
@@ -52,22 +40,12 @@ describe('Fresh tab interactions with buttons', function () {
     });
 
     it('sends a "settings > click" telemetry signal', function () {
-      expect(messages.has('sendTelemetry')).to.equal(true);
-
-      const telemetrySignals = messages.get('sendTelemetry');
-      let count = 0;
-
-      expect(telemetrySignals.length).to.be.above(0);
-
-      count = telemetrySignals.filter(function (s) {
-        return (
-          s.args[0].type === 'home' &&
-          s.args[0].target === 'settings' &&
-          s.args[0].action === 'click'
-        );
-      }).length;
-
-      expect(count).to.equal(1);
+      checkTelemetry({
+        action: 'click',
+        subject: () => subject,
+        target: 'settings',
+        type: 'home',
+      });
     });
 
     describe('and then clicking on a close button', function () {
@@ -83,50 +61,31 @@ describe('Fresh tab interactions with buttons', function () {
       });
 
       it('sends a "settings > close > click" telemetry signal', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
-
-        const telemetrySignals = messages.get('sendTelemetry');
-        let count = 0;
-
-        expect(telemetrySignals.length).to.be.above(0);
-
-        count = telemetrySignals.filter(function (s) {
-          return (
-            s.args[0].type === 'home' &&
-            s.args[0].view === 'settings' &&
-            s.args[0].target === 'close' &&
-            s.args[0].action === 'click'
-          );
-        }).length;
-
-        expect(count).to.equal(1);
+        checkTelemetry({
+          action: 'click',
+          subject: () => subject,
+          target: 'close',
+          type: 'home',
+          view: 'settings',
+        });
       });
     });
   });
 
   describe('clicking on a history button', function () {
     beforeEach(function () {
+      subject.startListening();
       const historyButtonSelector = '#cliqz-history';
       subject.query(historyButtonSelector).click();
     });
 
     it('sends a "home > history > click" telemetry signal', function () {
-      expect(messages.has('sendTelemetry')).to.equal(true);
-
-      const telemetrySignals = messages.get('sendTelemetry');
-      let count = 0;
-
-      expect(telemetrySignals.length).to.be.above(0);
-
-      count = telemetrySignals.filter(function (s) {
-        return (
-          s.args[0].type === 'home' &&
-          s.args[0].target === 'history' &&
-          s.args[0].action === 'click'
-        );
-      }).length;
-
-      expect(count).to.equal(1);
+      checkTelemetry({
+        action: 'click',
+        subject: () => subject,
+        target: 'history',
+        type: 'home',
+      });
     });
   });
 });

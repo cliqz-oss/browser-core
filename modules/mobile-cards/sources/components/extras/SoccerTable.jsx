@@ -163,7 +163,7 @@ export default class SoccerTable extends React.Component {
           />
         </View>
       }
-      <PoweredByKicker />
+      <PoweredByKicker logo={this.props.result.meta.externalProvidersLogos.kicker} />
     </View>);
   }
 }

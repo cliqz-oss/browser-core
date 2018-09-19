@@ -33,6 +33,112 @@ export default describeModule('offers-v2/utils',
     },
   }),
   () => {
+    describe('shouldKeepResource function', () => {
+      let shouldKeepResource;
+
+      describe('basic cases', () => {
+        beforeEach(function () {
+          shouldKeepResource = this.module().shouldKeepResource;
+          prefs.offersUserGroup = '35';
+        });
+
+        afterEach(function () {
+          prefs.offersUserGroup = undefined;
+        });
+
+        it('should return true for zero resource', () => {
+          const r = shouldKeepResource(0);
+          chai.expect(r).to.be.true;
+        });
+        it('should return true for resource with smaller weight', () => {
+          const r = shouldKeepResource(25);
+          chai.expect(r).to.be.true;
+        });
+        it('should return false for resource with bigger weight', () => {
+          const r = shouldKeepResource(45);
+          chai.expect(r).to.be.false;
+        });
+      });
+
+      describe('when offersUserGroup undefined', () => {
+        beforeEach(function () {
+          shouldKeepResource = this.module().shouldKeepResource;
+          prefs.offersUserGroup = undefined;
+        });
+
+        afterEach(function () {
+          prefs.offersUserGroup = undefined;
+        });
+
+        it('should return true for zero resource', () => {
+          const r = shouldKeepResource(0);
+          chai.expect(r).to.be.true;
+        });
+        it('should set offersUserGroup pref', () => {
+          const r = shouldKeepResource(0);
+          chai.expect(r).to.be.true;
+          chai.expect(Number(prefs.offersUserGroup) > 0).to.be.true;
+        });
+        it('should return false for weight 100', () => {
+          const r = shouldKeepResource(100);
+          chai.expect(r).to.be.false;
+        });
+      });
+
+      describe('when offersUserGroup smaller than zero', () => {
+        beforeEach(function () {
+          shouldKeepResource = this.module().shouldKeepResource;
+          prefs.offersUserGroup = '-1';
+        });
+
+        afterEach(function () {
+          prefs.offersUserGroup = undefined;
+        });
+
+        it('should return true for zero resource', () => {
+          const r = shouldKeepResource(0);
+          chai.expect(r).to.be.true;
+        });
+        it('should set offersUserGroup pref', () => {
+          const r = shouldKeepResource(0);
+          chai.expect(r).to.be.true;
+          chai.expect(Number(prefs.offersUserGroup) >= 0).to.be.true;
+        });
+      });
+
+      describe('when offersUserGroup in dev mode', () => {
+        beforeEach(function () {
+          shouldKeepResource = this.module().shouldKeepResource;
+          prefs.offersUserGroup = '100'
+        });
+
+        afterEach(function () {
+          prefs.offersUserGroup = undefined;
+        });
+
+        it('should return true for weight 100', () => {
+          const r = shouldKeepResource(100);
+          chai.expect(r).to.be.true;
+        });
+      });
+
+      describe('when offersUserGroup is equal zero', () => {
+        beforeEach(function () {
+          shouldKeepResource = this.module().shouldKeepResource;
+          prefs.offersUserGroup = '0'
+        });
+
+        afterEach(function () {
+          prefs.offersUserGroup = undefined;
+        });
+
+        it('should return true for zero resource', () => {
+          const r = shouldKeepResource(0);
+          chai.expect(r).to.be.true;
+        });
+      });
+    });
+
     describe('oncePerInterval function', () => {
       let oncePerIntervalCached;
 

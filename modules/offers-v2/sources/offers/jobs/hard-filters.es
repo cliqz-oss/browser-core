@@ -8,16 +8,14 @@
  * ...
  */
 import OfferJob from './job';
-import { getABNumber, orPromises } from '../../utils';
+import { getABNumber } from '../../utils';
 import logger from '../../common/offers_v2_logger';
+import OffersBG from '../../background';
 
 
 // /////////////////////////////////////////////////////////////////////////////
 //
 
-/**
- * check if a number is in a range [A, B]
- */
 const isInRange = (x, A, B) => (x >= A && x <= B);
 
 
@@ -61,92 +59,78 @@ const performHistoryCheck = (historyMatcher, historyCheck) => {
  * true or false if the offer should be removed or not (true == filtered out, false otherwise).
  * The promise will be evaluated once we get the final result on all the filters
  */
-const shouldFilterOffer =
-  (
-    offer,
-    { presentRealEstates, geoChecker, historyMatcher, categoryHandler }
-  ) => {
-    // check the offer is valid and contains all the data we need
-    const filterByValidity = () => Promise.resolve(!offer || !offer.isValid());
+const shouldFilterOffer = async (
+  offer,
+  { presentRealEstates, geoChecker, historyMatcher, categoryHandler }
+) => {
+  // check the offer is valid and contains all the data we need
+  const filterByValidity = () => !offer || !offer.isValid();
 
-    // if an AB test offer, we filter out the ones that cannot be shown for this
-    // user
-    const filterByABTest = () =>
-      Promise.resolve(
-        offer.ABTestInfo &&
-        !isInRange(getABNumber(), offer.ABTestInfo.start, offer.ABTestInfo.end)
-      );
+  // if an AB test offer, we filter out the ones that cannot be shown for this user
+  const filterByABTest = () => offer.ABTestInfo &&
+    !isInRange(getABNumber(), offer.ABTestInfo.start, offer.ABTestInfo.end);
 
-    // check if the targeted real estate is present on the client
-    const filterByRealEstates = () =>
-      Promise.resolve(
-        !offer.destinationRealEstates ||
-        !offer.destinationRealEstates.some(re => presentRealEstates.has(re))
-      );
+  // check if the targeted real estate is present on the client
+  const filterByRealEstates = () => !offer.destinationRealEstates ||
+    !offer.destinationRealEstates.some(re => presentRealEstates.has(re));
 
-    // check if they are geo targeted, we filter them by location
-    const filterByGeo = () =>
-      Promise.resolve(
-        offer.isGeoLocated() &&
-        (!geoChecker ||
-        !geoChecker.matches(offer.geoInfo))
-      );
+  // check if they are geo targeted, we filter them by location
+  const filterByGeo = () => offer.isGeoLocated() &&
+    (!geoChecker || !geoChecker.matches(offer.geoInfo));
 
-    // check at least one category is active, if not filter
-    const filterByCategories = () =>
-      Promise.resolve(
-        offer.hasCategories() &&
-        !offer.categories.some(cat => categoryHandler.isCategoryActive(cat))
-      );
+  // check at least one category is active, if not filter
+  const filterByCategories = () => offer.hasCategories() &&
+    !offer.categories.some(cat => categoryHandler.isCategoryActive(cat));
 
-    // we will check the history if needed
-    const filterByHistory = () => {
-      if (!offer.hasHistoryChecks()) {
-        return Promise.resolve(false);
-      }
-      // if offer has history checks and we do not have history feature => we
-      // automatically discard this offer since we cannot know about it
-      if (!historyMatcher || !historyMatcher.hasHistoryEnabled()) {
-        return Promise.resolve(true);
-      }
-
-      // we check history and see if we can return right now or we need to still
-      // wait for the results => PENDING
-      const historyCheckList = offer.historyChecks;
-      const historyResultsPromises = [];
-      for (let i = 0; i < historyCheckList.length; i += 1) {
-        historyResultsPromises.push(performHistoryCheck(historyMatcher, historyCheckList[i]));
-      }
-      return Promise.all(historyResultsPromises).then(results => results.some(x => x));
-    };
-
-    // all the filters here
-    const allFiltersFunctions = [
-      filterByValidity,
-      filterByABTest,
-      filterByRealEstates,
-      filterByGeo,
-      filterByCategories,
-      filterByHistory,
-    ];
-
-    if (logger.LOG_LEVEL === 'debug') {
-      const logFilterFunction = (fun, name) =>
-        () => fun().then((result) => {
-          if (result) {
-            logger.debug(`Offer ${offer.uniqueID} filtered with filter: ${name}`);
-          }
-          return Promise.resolve(result);
-        });
-
-      for (let i = 0; i < allFiltersFunctions.length; i += 1) {
-        allFiltersFunctions[i] = logFilterFunction(allFiltersFunctions[i],
-          allFiltersFunctions[i].name);
-      }
+  // we will check the history if needed
+  const filterByHistory = async () => {
+    if (!offer.hasHistoryChecks()) {
+      return false;
+    }
+    // if offer has history checks and we do not have history feature => we
+    // automatically discard this offer since we cannot know about it
+    if (!historyMatcher || !historyMatcher.hasHistoryEnabled()) {
+      return true;
     }
 
-    return orPromises(allFiltersFunctions);
+    // we check history and see if we can return right now or we need to still
+    // wait for the results => PENDING
+    const historyResultsPromises = [];
+    offer.historyChecks.forEach(check =>
+      historyResultsPromises.push(performHistoryCheck(historyMatcher, check)));
+    const results = await Promise.all(historyResultsPromises);
+    return results.some(Boolean);
   };
+
+  // all the filters here
+  const allFiltersFunctions = [
+    filterByValidity,
+    filterByABTest,
+    filterByRealEstates,
+    filterByGeo,
+    filterByCategories,
+    filterByHistory,
+  ];
+
+  for (let i = 0; i < allFiltersFunctions.length; i += 1) {
+    /* eslint-disable no-await-in-loop */
+    const fn = allFiltersFunctions[i];
+    const filtered = await fn();
+    if (filtered) {
+      OffersBG.offersAPI.processRealEstateMessage({
+        type: 'offer-action-signal',
+        origin: 'processor',
+        data: {
+          offer_id: offer.offerObj.offer_id,
+          action_id: `filtered_by_${fn.name}`,
+          campaign_id: offer.offerObj.campaign_id
+        }
+      });
+      return true;
+    }
+  }
+  return false;
+};
 
 
 /**
@@ -184,9 +168,6 @@ export default class HardFilters extends OfferJob {
       for (let i = 0; i < offerList.length; i += 1) {
         if (shouldFilterOfferResults[i] === false) {
           resultOffersList.push(offerList[i]);
-        } else {
-          // TODO: remove this debug once it is all stable
-          logger.debug(`Offer ${offerList[i].uniqueID} hard-filtered out!`);
         }
       }
       return Promise.resolve(resultOffersList);

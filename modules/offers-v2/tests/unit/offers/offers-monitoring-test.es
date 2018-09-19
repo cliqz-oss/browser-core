@@ -14,8 +14,8 @@ const currentWeekDay = 0;
 let getDetailsFromUrlReal;
 let UrlData;
 
-const mockOffer = { offer_id: 'HC1', cid: 'cid', click: 0, last_update: 20000, view: 2003};
-const mockOfferEarlierUpdate = { offer_id: 'HC2', cid: 'cid2', click: 0, last_update: mockOffer.last_update - 100, view: 0};
+const mockOffer = { offer_id: 'HC1', cid: 'cid', click: 0, last_update: 20000, view: 2003 };
+const mockOfferEarlierUpdate = { offer_id: 'HC2', cid: 'cid2', click: 0, last_update: mockOffer.last_update - 100, view: 0 };
 
 
 const buildUrlData = (url, referrer) => {
@@ -199,7 +199,6 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           // need to get domain here
           const urlData = buildUrlData(url, ref);
           const domain = urlData.getDomain();
-          console.log('################ simWebRequest', url);
           if (this.httpMap.has(domain)) {
             this.httpMap.get(domain).forEach(cb => cb({ url_data: urlData }));
           }
@@ -239,11 +238,10 @@ export default describeModule('offers-v2/offers/offers-monitoring',
     'offers-v2/common/offers_v2_logger': {
       default: {
         debug: () => {},
-        error: (...x) => { console.error(...x); },
+        error: () => {},
         info: () => {},
-        log: (...x) => { console.log(...x); },
-        warn: (...x) => { console.error(...x); },
-        logObject: () => {},
+        log: () => {},
+        warn: () => {},
       }
     },
     'core/persistence/map': {
@@ -622,10 +620,10 @@ export default describeModule('offers-v2/offers/offers-monitoring',
 
           it('/SIMPLE buildMultiPatternIndex test', function () {
             const offers = [
-              { offer_id: 'hc1', cid: 'cid', click: null, last_update: 20001, view: 20001},
-              { offer_id: 'hc2', cid: 'cid2', click: null, last_update: 20002, view: 20002},
-              { offer_id: 'hc3', cid: 'cid3', click: null, last_update: 20003, view: 20003},
-              { offer_id: 'hc4', cid: 'cid4', click: null, last_update: 20004, view: 20004},
+              { offer_id: 'hc1', cid: 'cid', click: null, last_update: 20001, view: 20001 },
+              { offer_id: 'hc2', cid: 'cid2', click: null, last_update: 20002, view: 20002 },
+              { offer_id: 'hc3', cid: 'cid3', click: null, last_update: 20003, view: 20003 },
+              { offer_id: 'hc4', cid: 'cid4', click: null, last_update: 20004, view: 20004 },
             ];
             const patternsTuples = [];
             offers.forEach((o) => {
@@ -665,10 +663,10 @@ export default describeModule('offers-v2/offers/offers-monitoring',
 
           it('/M non related offers N simple monitors works', function () {
             const offers = [
-              { offer_id: 'hc1', cid: 'cid', click: null, last_update: 20000, view: 2003},
-              { offer_id: 'hc2', cid: 'cid2', click: null, last_update: 20000, view: 2003},
-              { offer_id: 'hc3', cid: 'cid3', click: null, last_update: 20000, view: 2003},
-              { offer_id: 'hc4', cid: 'cid4', click: null, last_update: 20000, view: 2003},
+              { offer_id: 'hc1', cid: 'cid', click: null, last_update: 20000, view: 2003 },
+              { offer_id: 'hc2', cid: 'cid2', click: null, last_update: 20000, view: 2003 },
+              { offer_id: 'hc3', cid: 'cid3', click: null, last_update: 20000, view: 2003 },
+              { offer_id: 'hc4', cid: 'cid4', click: null, last_update: 20000, view: 2003 },
             ];
             const monitors = [];
             offers.forEach((o) => {
@@ -1029,7 +1027,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           });
 
           it('/remove an offer doesnt affect others', function () {
-            const offer = mockOffer
+            const offer = mockOffer;
             const offer2 = mockOfferEarlierUpdate;
             const monitors = [{
               signalID: 's1',

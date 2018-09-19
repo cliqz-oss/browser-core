@@ -21,6 +21,7 @@ export default class Dropdown {
   init() {
     this.rootElement.innerHTML = templates.main();
     this.dropdownElement.addEventListener('click', this.onMouseUp);
+    this.dropdownElement.addEventListener('mouseup', this.onMouseUp);
     this.dropdownElement.addEventListener('contextmenu', this.onMouseUp);
     this.dropdownElement.addEventListener('mousemove', this.onMouseMove);
   }
@@ -139,6 +140,13 @@ export default class Dropdown {
   }
 
   onMouseUp = (ev) => {
+    // In order to capture middle mouse event, we need 'mouseup'
+    // But we don't want to have 2 different events (mouseup & click)
+    // fired for leftClick or rightClick, we need to filter them out
+    if (ev.type === 'mouseup' && ev.button !== 1) {
+      return;
+    }
+
     const targetElement = getEventTarget(ev);
     const resultElement = targetElement.closest('.result');
 

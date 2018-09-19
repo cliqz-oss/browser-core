@@ -1,6 +1,5 @@
 /* eslint no-param-reassign: 'off' */
 
-import config from '../core/config';
 import hash from '../core/helpers/hash';
 import NEWS_DOMAINS_LIST from './news-domains';
 import console from '../core/console';
@@ -11,6 +10,7 @@ import { extractSimpleURI } from '../core/url';
 import { getDomains, isURLVisited } from '../platform/freshtab/history';
 import BloomFilter from '../core/bloom-filter';
 import NewsCache from './news-cache';
+import config from './config';
 
 const ONE_MINUTE = 60 * 1000;
 const ONE_DAY = 24 * 60 * ONE_MINUTE;
@@ -25,7 +25,7 @@ const hbasedNewsTypeKey = 'yournews';
 const prClBurdaNewsTypeKey = 'pr-cl-burda-news';
 const breakingNewsTypeKey = 'breaking-news';
 
-const NEWS_BACKENDS = ['de', 'fr', 'us', 'gb', 'es'];
+const NEWS_BACKENDS = ['de', 'fr', 'us', 'gb', 'es', 'pl'];
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 
 const log = console.log.bind(console, 'freshtab.news');

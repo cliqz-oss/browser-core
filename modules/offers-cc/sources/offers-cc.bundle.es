@@ -96,6 +96,16 @@ function draw(data) {
   resize();
 }
 
+// Check if feedback field's have value to enable send Btn
+function enableSendFeedbackBtn() {
+  if ($('#feedback_option1').is(':checked') ||
+      $('#feedback_option2').is(':checked') ||
+      $('#feedback_option3').is(':checked')
+  ) {
+    $('.send_feedback').addClass('active');
+    $('#feedback_option4_textarea').val('');
+  }
+}
 // ====== ON LOAD ======//
 $(() => {
   Object.keys(helpers).forEach((helperName) => {
@@ -106,6 +116,65 @@ $(() => {
     action: 'getEmptyFrameAndData',
     data: {}
   });
+});
+
+// Handle give feedback close btn
+$(document).on('click', '.feedback-box .close', () => {
+  $('.overlay').removeClass('show');
+  $('.setting').removeClass('opacity-up');
+  if ($('#cqz-vouchers-wrapper .cqz-no-vouchers-msg')) {
+    $('.cqz-no-vouchers-msg').height('inherit');
+    resize();
+  }
+});
+
+// Handle clicking on menu item - Feedback
+$(document).on('click', '.setting-menu .feedback', function itemClick() {
+  $('.overlay').addClass('show');
+  $('.setting-menu').removeClass('show');
+  const currentVoucher = $(this).closest('.page-container');
+  currentVoucher.children('.overlay').html(templates['give-feedback']({}));
+  localizeDocument();
+
+  if ($('#cqz-vouchers-wrapper .cqz-no-vouchers-msg')) {
+    $('.cqz-no-vouchers-msg').height('300px');
+    resize();
+  }
+});
+
+// Handle Reward box Menu Open
+$(document).on('click', '.setting', () => {
+  $('.setting-menu').toggleClass('show');
+  $('.setting').toggleClass('opacity-up');
+});
+
+// Close menu when menu items selected
+$(document).on('click', '.setting-menu li', () => {
+  $('.setting-menu').removeClass('show');
+  $('.setting').removeClass('opacity-up');
+});
+
+// Check when user blur out of textarea to enable or disable submit Btn
+$(document).on('blur', '#feedback_option4_textarea', function itemClick() {
+  if ($(this).val().trim() === '') {
+    $('.send_feedback').removeClass('active');
+  }
+});
+
+// Check if user enter spaces in the textarea to enable or disable submit Btn
+$(document).on('keyup', '#feedback_option4_textarea', function itemClick() {
+  if ($(this).val().trim() === '') {
+    $('.send_feedback').removeClass('active');
+  } else {
+    $('.send_feedback').addClass('active');
+  }
+});
+
+// Check textarea on focus if emtpy to disable submit Btn
+$(document).on('focus', '#feedback_option4_textarea', function itemClick() {
+  if ($(this).val().trim() === '') {
+    $('.send_feedback').removeClass('active');
+  }
 });
 
 // When user click on a collapsed offer to expand it
@@ -147,6 +216,11 @@ $(document).on('click', 'ul#cqz-vouchers-holder > li:not(.active)', function ite
 // When user clicks on any element which has data-telemetry-id
 $(document).on('click', '[data-telemetry-id]', function itemClick() {
   const target = $(this).data('telemetryId');
+  // don't send telemetry  if the menu is already
+  if (target === 'menu' && !$('.setting').hasClass('opacity-up')) {
+    return;
+  }
+
   sendMessageToWindow({
     action: 'sendTelemetry',
     data: {
@@ -193,6 +267,8 @@ let vote;
 // When user clicks on thumb up/down button
 $(document).on('click', '.feedback-button', function itemClick() {
   vote = $(this).data('vote');
+  $(this).addClass('selected').siblings('.feedback-button')
+    .removeClass('selected');
   sendMessageToWindow({
     action: 'sendUserFeedback',
     data: {
@@ -209,9 +285,6 @@ $(document).on('click', '.feedback-button', function itemClick() {
       comments: '',
     }
   });
-  $('#feedback-vote-wrapper').hide();
-  $('#feedback-comment-wrapper').show();
-  resize();
 });
 
 // When user sends a feedback for all offers
@@ -237,9 +310,8 @@ $(document).on('click', '#submit-feedback', () => {
     });
   }
 
-  $('#feedback-comment-wrapper').html(chrome.i18n.getMessage('offers_hub_feedback_thank_you'));
-
-  resize();
+  $('.overlay').html(templates['give-feedback-thankyou']({}));
+  localizeDocument();
 });
 
 // When user clicks on the expand button to see all offers
@@ -316,17 +388,26 @@ $(document).on('click', '.cta-element', function itemClick() {
 
 // Enable/disable text area if user select the 4th option
 $(document).on('click', '#voucher-feedback input:radio', function itemClick() {
-  if ($(this).attr('id') === 'feedback_option4') {
-    $('#feedback_option4_textarea').removeAttr('disabled');
-  } else {
+  if ($(this).attr('id') === 'feedback_option1' ||
+      $(this).attr('id') === 'feedback_option2' ||
+      $(this).attr('id') === 'feedback_option3'
+  ) {
     $('#feedback_option4_textarea').attr('disabled', 'disabled');
+    enableSendFeedbackBtn();
   }
+
   // Change the button text to be "Send and close" when any option is selected
   $('#close-feedback').text(chrome.i18n.getMessage('offers_hub_feedback_send_and_close'));
 });
 
-// When user send feedback for a specified offer
-$(document).on('click', '#close-feedback', function itemClick() {
+$(document).on('click', '.textarea-holder div', () => {
+  $('#feedback_option4_textarea').removeAttr('disabled');
+  $('#feedback_option4_textarea').focus();
+  $('#voucher-feedback input:radio').prop('checked', false);
+  enableSendFeedbackBtn();
+});
+
+function sendFeedback() {
   $('#expand-button').css('visibility', 'hidden');
   const feedbackValue = $('input[name="remove_feedback"]:checked').val() || 'none';
   const comments = feedbackValue === 'other' ? $('#feedback_option4_textarea').val() : '';
@@ -348,9 +429,10 @@ $(document).on('click', '#close-feedback', function itemClick() {
       comments,
     }
   });
+}
 
-  const currentVoucher = $(this).closest('.voucher-wrapper');
-  currentVoucher.remove();
+function closeFeedbackScreen(elem) {
+  elem.closest('.voucher-wrapper').remove();
   // Redraw the popup if there is no voucher left
   if (!$('ul#cqz-vouchers-holder > li').length) {
     sendMessageToWindow({
@@ -358,14 +440,94 @@ $(document).on('click', '#close-feedback', function itemClick() {
       data: {}
     });
   }
-
   setTimeout(() => {
     resize();
   }, 200); // TODO: fix this!.
+}
+
+/* eslint-disable */
+$(document).on('click', '.feedback-thankyou .close', function itemClick() {
+  closeFeedbackScreen($(this));
+});
+/* eslint-enable */
+
+// When user send feedback for a specified offer
+$(document).on('click', '.feedback-box .close-offer', function itemClick() {
+  sendFeedback();
+  sendMessageToWindow({
+    action: 'sendOfferActionSignal',
+    data: {
+      signal_type: 'remove-offer',
+      element_id: 'offer_removed',
+      offer_id: getOfferId($(this)),
+    }
+  });
+  closeFeedbackScreen($(this));
+});
+
+// Handle Send Feedback
+$(document).on('click', '.send_feedback', function itemClick() {
+  // Check one of the Feedback options is not empty
+
+  $('.feedback').removeClass('show');
+  const currentVoucher = $(this).closest('.voucher-wrapper');
+
+  sendFeedback();
+  sendMessageToWindow({
+    action: 'sendOfferActionSignal',
+    data: {
+      signal_type: 'remove-offer',
+      element_id: 'offer_removed',
+      offer_id: getOfferId($(this)),
+    }
+  });
+
+  currentVoucher.html(templates['feedback-voucher-thankyou']({}));
+  localizeDocument();
+  resize();
+});
+
+
+// When user click on why i see this
+$(document).on('click', '.why', () => {
+  const detailsClass = $('.details');
+  detailsClass.children('.why-offers').html(templates['why-offers']({}));
+  detailsClass.children('.why-offers').addClass('show');
+  detailsClass.children('.voucher-container').addClass('hide');
+
+  // No voucher handling
+  $('.cqz-no-vouchers-msg').addClass('hide');
+
+  // close feedback pop up if opened
+  $('.overlay').removeClass('show');
+  $('.setting').removeClass('opacity-up');
+
+  // close feedback for delete offer pop up
+  $('.feedback').removeClass('show');
+
+  resize();
+  localizeDocument();
+});
+
+// When user close why do i see this
+$(document).on('click', '.why-offers .close', () => {
+  const detailsClass = $('.details');
+  detailsClass.children('.why-offers').removeClass('show');
+  detailsClass.children('.voucher-container').removeClass('hide');
+  // No voucher handling
+  $('.cqz-no-vouchers-msg').removeClass('hide');
+  resize();
+});
+
+// Handle UNDO remove offer
+$(document).on('click', '.undo', () => {
+  $('.feedback').removeClass('show');
+  $('.voucher-container').removeClass('hide');
+  resize();
 });
 
 // Handle user clicks on offer menu
-$(document).on('click', 'ul.settings > li', function itemClick() {
+$(document).on('click', '.voucher-header .close', function itemClick() {
   if ($(this).data('menuType') === 'delete') {
     $(this).closest('.settings')
       .prev().children('.setting')
@@ -373,18 +535,11 @@ $(document).on('click', 'ul.settings > li', function itemClick() {
     const currentVoucher = $(this).closest('.voucher-wrapper');
 
     currentVoucher.addClass('deleted');
-    currentVoucher.children('.details').html(templates['feedback-voucher']({})); // empty data
+    currentVoucher.children('.details').children('.feedback').html(templates['feedback-voucher']({})); // empty data
     localizeDocument();
+    currentVoucher.children('.details').children('.feedback').addClass('show');
+    currentVoucher.children('.details').children('.voucher-container').addClass('hide');
     resize();
-
-    sendMessageToWindow({
-      action: 'sendOfferActionSignal',
-      data: {
-        signal_type: 'remove-offer',
-        element_id: 'offer_removed',
-        offer_id: getOfferId($(this)),
-      }
-    });
   }
 });
 
@@ -397,7 +552,6 @@ $(document).on('click', '.tooltip', () => {
     }
   });
 });
-
 // Close offer menu when user clicks anywhere outside
 $(document).on('click', '#cliqz-offers-cc', () => {
   $('.logo-wrapper.menu-opened').removeClass('menu-opened');

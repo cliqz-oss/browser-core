@@ -1,0 +1,380 @@
+[{
+  "namespace": "omnibox2",
+  "description": "The dropdown API allows you to register a keyword with Firefox's address bar.",
+  "types": [
+    {
+      "id": "UrlbarOverrideDetails",
+      "type": "object",
+      "description": "An object containing details of overriden omnibox.",
+      "properties": {
+        "windowId": {
+          "type": "number",
+          "minimum": -2,
+          "optional": true
+        },
+        "value": {
+          "type": "string",
+          "optional": true
+        },
+        "visibleValue": {
+          "type": "string",
+          "optional": true
+        },
+        "placeholder": {
+          "type": "string",
+          "optional": true
+        },
+        "selectionStart": {
+          "type": "integer",
+          "optional": true
+        },
+        "selectionEnd": {
+          "type": "integer",
+          "optional": true
+        }
+      }
+    },
+    {
+      "id": "KeyboardEventDetails",
+      "type": "object",
+      "description": "An object representing a urlbar event.",
+      "properties": {
+        "windowId": {
+          "type": "number",
+          "minimum": -2
+        },
+        "altKey": {
+          "type": "boolean"
+        },
+        "ctrlKey": {
+          "type": "boolean"
+        },
+        "metaKey": {
+          "type": "boolean"
+        },
+        "shiftKey": {
+          "type": "boolean"
+        },
+        "code": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        }
+      }
+    }
+  ],
+  "functions": [{
+      "name": "override",
+      "type": "function",
+      "description": "Overrides the dropdown",
+      "async": "callback",
+      "parameters": [{
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "function",
+          "name": "callback",
+          "optional": true,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "restore",
+      "type": "function",
+      "description": "Restores default dropdown",
+      "async": "callback",
+      "parameters": [{
+        "type": "function",
+        "name": "callback",
+        "optional": true,
+        "parameters": []
+      }]
+    },
+    {
+      "name": "close",
+      "type": "function",
+      "description": "Close dropdown for specified (or current) window",
+      "async": "callback",
+      "parameters": [{
+          "name": "windowId",
+          "type": "number",
+          "minimum": -2,
+          "optional": true
+        },
+        {
+          "type": "function",
+          "name": "callback",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "setHeight",
+      "type": "function",
+      "description": "Set dropdown height for specified (or current) window",
+      "async": "callback",
+      "parameters": [{
+          "name": "windowId",
+          "type": "number",
+          "minimum": -2,
+          "optional": true
+        },
+        {
+          "name": "height",
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "type": "function",
+          "name": "callback",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "sendMessage",
+      "type": "function",
+      "description": "Send message to dropdown document for specified (or current) window",
+      "async": "callback",
+      "parameters": [{
+          "name": "windowId",
+          "type": "number",
+          "minimum": -2,
+          "optional": true
+        },
+        {
+          "name": "data",
+          "type": "any"
+        },
+        {
+          "type": "function",
+          "name": "callback",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "focus",
+      "type": "function",
+      "description": "Focus an urlbar in given window.",
+      "async": "callback",
+      "parameters": [{
+          "name": "windowId",
+          "type": "number",
+          "minimum": -2,
+          "optional": true
+        },
+        {
+          "type": "function",
+          "name": "callback",
+          "parameters": [{
+            "type": "any"
+          }]
+        }
+      ]
+    },
+    {
+      "name": "blur",
+      "type": "function",
+      "description": "Remove focus from an urlbar in given window.",
+      "async": "callback",
+      "parameters": [{
+          "name": "windowId",
+          "type": "number",
+          "minimum": -2,
+          "optional": true
+        },
+        {
+          "type": "function",
+          "name": "callback",
+          "parameters": [{
+            "type": "any"
+          }]
+        }
+      ]
+    },
+    {
+      "name": "enter",
+      "type": "function",
+      "description": "Apply a default action to a current urlbar value in  given window.",
+      "async": "callback",
+      "parameters": [{
+          "name": "windowId",
+          "type": "number",
+          "minimum": -2,
+          "optional": true
+        },
+        {
+          "name": "newTab",
+          "type": "boolean",
+          "optional": true
+        },
+        {
+          "type": "function",
+          "name": "callback",
+          "parameters": [{
+            "type": "any"
+          }]
+        }
+      ]
+    },
+    {
+      "name": "get",
+      "type": "function",
+      "description": "Get dropdown params for given window",
+      "async": "callback",
+      "parameters": [{
+          "name": "windowId",
+          "type": "number",
+          "minimum": -2,
+          "optional": true
+        },
+        {
+          "type": "function",
+          "name": "callback",
+          "parameters": [{
+            "name": "status",
+            "type": "object"
+          }]
+        }
+      ]
+    },
+    {
+      "name": "update",
+      "type": "function",
+      "description": "Get omnibox API for current window",
+      "async": "callback",
+      "parameters": [{
+          "name": "windowId",
+          "type": "number",
+          "minimum": -2,
+          "optional": true
+        },
+        {
+          "name": "details",
+          "$ref": "UrlbarOverrideDetails"
+        },
+        {
+          "type": "function",
+          "name": "callback",
+          "parameters": [{
+            "name": "omnibox",
+            "type": "object"
+          }]
+        }
+      ]
+    }
+  ],
+  "events": [{
+      "name": "onMessage",
+      "type": "function",
+      "parameters": [{
+        "name": "details",
+        "type": "object",
+        "properties": {
+          "windowId": {
+            "type": "number",
+            "minimum": -2
+          },
+          "value": {
+            "name": "data",
+            "type": "object"
+          }
+        }
+      }]
+    },
+    {
+      "name": "onInput",
+      "type": "function",
+      "parameters": [{
+        "name": "details",
+        "type": "object",
+        "properties": {
+          "windowId": {
+            "type": "number",
+            "minimum": -2
+          },
+          "value": {
+            "type": "string"
+          },
+          "isTyped": {
+            "type": "boolean"
+          },
+          "keyCode": {
+            "type": "any"
+          },
+          "isPasted": {
+            "type": "boolean"
+          }
+        }
+      }]
+    },
+    {
+      "name": "onKeydown",
+      "type": "function",
+      "description": "User has pressed a key in urlbar.",
+      "parameters": [{
+        "$ref": "KeyboardEventDetails"
+      }]
+    },
+    {
+      "name": "onFocus",
+      "type": "function",
+      "parameters": [{
+        "name": "details",
+        "type": "object",
+        "properties": {
+          "windowId": {
+            "type": "number",
+            "minimum": -2
+          }
+        }
+      }]
+    },
+    {
+      "name": "onBlur",
+      "type": "function",
+      "parameters": [{
+        "name": "details",
+        "type": "object",
+        "properties": {
+          "windowId": {
+            "type": "number",
+            "minimum": -2
+          }
+        }
+      }]
+    },
+    {
+      "name": "onDrop",
+      "type": "function",
+      "parameters": [{
+        "name": "details",
+        "type": "object",
+        "properties": {
+          "windowId": {
+            "type": "number",
+            "minimum": -2
+          }
+        }
+      }]
+    },
+    {
+      "name": "onDropmarker",
+      "type": "function",
+      "parameters": [{
+        "name": "details",
+        "type": "object",
+        "properties": {
+          "windowId": {
+            "type": "number",
+            "minimum": -2
+          }
+        }
+      }]
+    }
+  ]
+}]

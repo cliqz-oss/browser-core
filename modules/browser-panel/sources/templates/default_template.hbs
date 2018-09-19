@@ -1,7 +1,6 @@
-<div class="close" data-cqz-of-btn-id="offer_closed">
-  <img data-cqz-of-btn-id="offer_closed" src="./images/ticket-tmpl/close-offer-hover.svg" />
+<div class="anzeige">
+    <span class="vertical-txt" data-i18n="offers_ad"></span>
 </div>
-
 {{#if code}}
   <div class="code-container">
     <div
@@ -21,6 +20,10 @@
 {{/if}}
 
 <div class="promo-container {{ logo_class }}">
+
+  <div class="why-offer" data-i18n="why_offers">
+    {{local why_offers}}
+  </div>
 
   {{#if labels}}
   <div class="special-flags">
@@ -112,8 +115,8 @@
       </a>
     {{/if}}
   </div>
-
-  <div class="anzeige">
-    <span class="vertical-txt" data-i18n="offers_ad"></span>
+  <div class="close" data-cqz-of-btn-id="offer_closed">
+    <img data-cqz-of-btn-id="offer_closed" src="./images/ticket-tmpl/close-offer-hover.svg" />
   </div>
+
 </div>

@@ -1,18 +1,23 @@
 import {
+  closeTab,
   expect,
   newTab,
-  queryHTML,
   waitForElement,
   win,
-} from '../../../tests/core/test-helpers';
+} from '../../../tests/core/integration/helpers';
 
 import {
+  cardsUrl,
+  checkComplementarySearchCard,
+  checkHeader,
+  getElements,
   mockSearch,
+  withHistory,
 } from './helpers';
 
 import {
-  getResourceUrl,
-} from '../../../tests/core/integration/helpers';
+  results,
+} from '../../../tests/core/integration/fixtures/resultsSimple';
 
 import { isWebExtension } from '../../../core/platform';
 
@@ -21,33 +26,51 @@ export default function () {
     return;
   }
 
-  describe.skip('mobile cards simple', function () {
-    let url;
+  describe('for a single mobile cards result', function () {
+    let id;
+
     before(async function () {
-      url = getResourceUrl('mobile-cards/cards.html');
-      const id = await newTab(url);
-      await mockSearch({ results:
-        [
-          {
-            url: 'http://www.royalgames.com/',
-            snippet: {
-              title: 'Spielen - Kostenlose Spiele Spielen',
-              description: 'Kostenlose Spiele spielen, Kartenspiele, Puzzlespiele, Wortspiele, Actionspiele, Brettspiele, Sportspiele, Denkspiele, Strategiespiele und Flashspiele bei Royalgames.com.',
-            },
-          }
-        ]
-      });
+      win.preventRestarts = true;
+
+      id = await newTab(cardsUrl);
+      withHistory([]);
+      await mockSearch({ results });
       win.CLIQZ.app.modules.search.action('startSearch', 'test', { tab: { id } });
       await waitForElement({
-        url,
-        selector: '[aria-label="generic-title"]',
+        url: cardsUrl,
+        selector: '[aria-label="mobile-result"]',
         isPresent: true
       });
     });
 
-    it('renders title', async function () {
-      const $titles = await queryHTML(url, '[aria-label="generic-title"]', 'innerText');
-      expect($titles[0]).to.equal('Spielen - Kostenlose Spiele Spielen');
+    after(function () {
+      closeTab(id);
+      win.preventRestarts = false;
+      win.CLIQZ.app.modules.search.action('stopSearch');
     });
+
+    checkHeader({ url: cardsUrl, results, isDefault: true, imageName: 'ro' });
+
+    it('renders title', async function () {
+      const $titles = await getElements({
+        elementSelector: '[aria-label="generic-title"]',
+        url: cardsUrl,
+      });
+
+      expect($titles).to.have.length(1);
+      expect($titles[0].textContent).to.equal(results[0].snippet.title);
+    });
+
+    it('renders description', async function () {
+      const $descriptions = await getElements({
+        elementSelector: '[aria-label="generic-desc"]',
+        url: cardsUrl,
+      });
+
+      expect($descriptions).to.have.length(1);
+      expect($descriptions[0].textContent).to.equal(results[0].snippet.description);
+    });
+
+    checkComplementarySearchCard({ url: cardsUrl });
   });
 }

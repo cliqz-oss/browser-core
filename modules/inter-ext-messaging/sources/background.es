@@ -2,7 +2,10 @@ import background from '../core/base/background';
 import inject from '../core/kord/inject';
 import extChannel from '../platform/ext-messaging';
 
-const allowedExtensions = ['firefox@ghostery.com'];
+const allowedExtensions = [
+  'firefox@ghostery.com',
+  'gdprtool@cliqz.com'
+];
 
 function onMessage({ message, sender }) {
   if (allowedExtensions.indexOf(sender) > -1) {

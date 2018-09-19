@@ -1,10 +1,10 @@
 import React from 'react';
-import { StyleSheet, View, Text, Image } from 'react-native';
+import { StyleSheet, View, Text, Image, Platform } from 'react-native';
 
-const defaultIconStyle =
+const iconStyle =
   (width, height, backgroundHex = '000') =>
     StyleSheet.create({
-      containter: {
+      container: {
         width,
         height,
         backgroundColor: `#${backgroundHex}`,
@@ -27,34 +27,60 @@ export default class Icon extends React.Component {
   }
 
   getPlaceHolder(width, height, backgroundColor) {
-    const style = defaultIconStyle(width, height, backgroundColor);
-    return Promise.resolve(<View style={style.containter} />);
+    const style = iconStyle(width, height, backgroundColor);
+    return Promise.resolve(
+      <View style={style.container} />);
   }
 
   getDefaultIcon(width, height, backgroundColor, text) {
-    const style = defaultIconStyle(width, height, backgroundColor);
+    const style = iconStyle(width, height, backgroundColor);
     return Promise.resolve(
-      <View style={style.containter} >
+      <View
+        style={style.container}
+        accessible={false}
+        accessibilityLabel={'default-icon'}
+      >
         <Text style={style.text}>{text}</Text>
       </View>
     );
   }
 
-  getLogo(width, height, url) {
+  getLogo(width, height, backgroundColor, url) {
+    // png images (ios and android) have padding by default
+    const { iconWidth, iconHeight } = Platform.select({
+      default: {
+        iconWidth: width,
+        iconHeight: height,
+      },
+      web: {
+        iconWidth: width * 0.85,
+        iconHeight: height * 0.85,
+      },
+    });
+    const style = iconStyle(iconWidth, iconHeight, backgroundColor);
     return Image.prefetch(url)
       .then(() => (
-        <Image
-          style={{ width, height, backgroundColor: 'transparent' }}
-          source={{ uri: url }}
-        />
+        <View
+          accessible={false}
+          accessibilityLabel={'generic-logo'}
+          style={style.container}
+        >
+          <Image
+            resizeMode="contain"
+            style={{
+              width: iconWidth,
+              height: iconHeight,
+            }}
+            source={{ uri: url }}
+          />
+        </View>
       ));
   }
 
-  normalizeUrl(url) {
+  getPngUrl(url) {
     return url
-      .replace('url(', '')
       .replace('logos', 'pngs')
-      .replace('.svg)', '_192.png');
+      .replace('.svg', '_192.png');
   }
 
   isLatestIcon(url, logoDetails) {
@@ -74,12 +100,17 @@ export default class Icon extends React.Component {
     const backgroundColor = props.logoDetails.backgroundColor;
 
     if (props.logoDetails.backgroundImage) {
-      const iconUrl = this.normalizeUrl(props.logoDetails.backgroundImage);
+      // slice url
+      // input: url(xxxx), output: xxxx
+      let iconUrl = props.logoDetails.backgroundImage.slice(4, -1);
+      if (Platform.OS !== 'web') {
+        iconUrl = this.getPngUrl(iconUrl);
+      }
 
       this.getPlaceHolder(width, height, backgroundColor)
         .then(icon => this.setState({ icon }));
 
-      this.getLogo(width, height, iconUrl)
+      this.getLogo(width, height, backgroundColor, iconUrl)
         .then(icon => this.isLatestIcon(url, props.logoDetails) && this.setState({ icon }));
     } else if (props.logoDetails.backgroundColor) {
       const text = props.logoDetails.text;

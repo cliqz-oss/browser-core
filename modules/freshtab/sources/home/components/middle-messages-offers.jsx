@@ -94,6 +94,10 @@ export default class MiddleMessagesOffer extends React.Component {
             key={offer.offer_id}
             fullWidth={this.props.fullWidth}
             submitFeedbackForm={this.props.submitFeedbackForm}
+            getOfferInfoOpen={this.props.getOfferInfoOpen}
+            setOfferInfoOpen={this.props.setOfferInfoOpen}
+            getOfferMenuOpen={this.props.getOfferMenuOpen}
+            setOfferMenuOpen={this.props.setOfferMenuOpen}
           />)
         )}
       </div>

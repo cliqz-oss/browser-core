@@ -3,12 +3,14 @@
 import moment from '../platform/lib/moment';
 import momentRange from '../platform/lib/moment-range';
 
-import getDemographics from '../core/demographics';
+import getDemographics, { normalizeString } from '../core/demographics';
 import getSynchronizedDate from '../core/synchronized-time';
 import random from '../core/crypto/random';
 
 import getCoreVersion from './demographics';
 import logger from './logger';
+
+import evalCondition from './conditions';
 
 momentRange.extendMoment(moment);
 
@@ -285,20 +287,22 @@ export default class Manager {
    * @param {Object} test - The test.
    * @returns {Boolean} - True, if the test should be started.
    */
-  shouldStartTest(test) {
+  async shouldStartTest(test) {
     if (!this.isTestActive(test) || !this.isVersionMatch(test)) {
-      return Promise.resolve(false);
+      return false;
     }
 
-    return this.isDemographicsMatch(test)
-      .then((isDemographicsMatch) => {
-        if (!isDemographicsMatch) {
-          return false;
-        }
+    const isDemographicsMatch = await this.isDemographicsMatch(test);
+    if (!isDemographicsMatch) {
+      return false;
+    }
 
-        const shouldStart = random() < test.probability;
-        return shouldStart;
-      });
+    if (test.conditions !== undefined && !evalCondition(test.conditions)) {
+      return false;
+    }
+
+    const shouldStart = random() < test.probability;
+    return shouldStart;
   }
 
   /*
@@ -361,8 +365,8 @@ export default class Manager {
       })
       .then(userDemographics =>
         Object.keys(test.demographic).every((factor) => {
-          const userValue = userDemographics[factor];
-          const testValue = test.demographic[factor];
+          const userValue = normalizeString(userDemographics[factor] || '');
+          const testValue = normalizeString(test.demographic[factor]);
 
           if (factor === 'install_date') {
             const userDate = moment(userValue, DATE_FORMAT);
@@ -373,7 +377,7 @@ export default class Manager {
             return testDateRange.contains(userDate);
           }
 
-          return (userValue || '').startsWith(testValue);
+          return userValue.startsWith(testValue);
         })
       );
   }

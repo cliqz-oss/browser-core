@@ -50,24 +50,22 @@ export class SimplePatternIndex extends PatternIndex {
   }
 }
 
-
 /**
  * Accelerating data structure for network filters matching for multiple patterns
  * match detection. Makes use of the reverse index structure defined above.
  */
 export class MultiPatternIndex extends PatternIndex {
-  /**
-   * we will check if the request matches the patterns associated.
-   * @param  {[type]} url         [description]
-   * @return {[type]}             the set of patterns id that matched this url
-   */
   match(request) {
-    const matchedIDsSet = new Set();
+    return new Set(this.matchWithPatterns(request).keys());
+  }
+
+  matchWithPatterns(request) {
+    const matchedIDs = new Map();
     const checkMatch = (pattern) => {
       const patternGroupID = pattern.groupID;
       // we will add the pattern id if it matches and is new
-      if (!matchedIDsSet.has(patternGroupID) && matchNetworkFilter(pattern, request)) {
-        matchedIDsSet.add(patternGroupID);
+      if (!matchedIDs.has(patternGroupID) && matchNetworkFilter(pattern, request)) {
+        matchedIDs.set(patternGroupID, pattern.toString());
       }
       // in any case we need to continue iterating
       return true;
@@ -75,7 +73,7 @@ export class MultiPatternIndex extends PatternIndex {
 
     this.index.iterMatchingFilters(request.tokens, checkMatch);
 
-    return matchedIDsSet;
+    return matchedIDs;
   }
 }
 

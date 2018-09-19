@@ -15,6 +15,11 @@ export default class Dropdown extends React.Component {
     this.cancelButtonText = props.cancelButtonText || 'No';
     this.submitButtonText = props.submitButtonText || 'Yes';
 
+    const cssClasses = props.cssClasses || {};
+
+    this.layoutCss = cssClasses.layout || [];
+    this.ctrlCss = cssClasses.ctrl || [];
+
     this.items = props.items || [];
 
     let selectedIndex = -1;
@@ -51,9 +56,12 @@ export default class Dropdown extends React.Component {
   }
 
   render() {
+    const layoutCss = ['dropdown-v1'].concat(this.layoutCss);
+    const ctrlCss = ['dropdown-v1-ctrl'].concat(this.ctrlCss);
+
     return (
       <div
-        className="dropdown-v1"
+        className={layoutCss.join(' ')}
       >
         <div
           className="dropdown-v1-header"
@@ -97,14 +105,14 @@ export default class Dropdown extends React.Component {
           className="dropdown-v1-ctrls"
         >
           <button
-            className="dropdown-v1-ctrl dropdown-v1-cancel"
+            className={ctrlCss.concat(['dropdown-v1-cancel']).join(' ')}
             type="button"
             onClick={this._handleCancelClick}
           >
             {this.cancelButtonText}
           </button>
           <button
-            className="dropdown-v1-ctrl dropdown-v1-submit"
+            className={ctrlCss.concat(['dropdown-v1-submit']).join(' ')}
             type="button"
             onClick={this._handleSubmitClick}
           >

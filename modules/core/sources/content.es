@@ -111,6 +111,18 @@ registerContentScript('core', '*', (window, chrome, CLIQZ) => {
 
       return ret;
     },
+    queryComputedStyle(selector) {
+      const root = shadowRootSelector
+        ? window.document.querySelector(shadowRootSelector).shadowRoot
+        : window.document;
+
+      const ret = Array.prototype.map.call(
+        root.querySelectorAll(selector),
+        (el) => {
+          return window.getComputedStyle(el);
+        });
+      return ret;
+    },
     getCookie() {
       try {
         return window.document.cookie;
@@ -343,13 +355,12 @@ registerContentScript('core', '*', (window, chrome, CLIQZ) => {
       chrome.runtime.sendMessage({
         module: 'core',
         action: 'status',
-      }, ({ response }) => {
-        if (hasRun) {
+      }, (reply) => {
+        if (hasRun || chrome.runtime.lastError || !reply) {
           reject('hasRun');
           return;
         }
-
-        resolve({ app: response });
+        resolve({ app: reply.response });
       });
     });
 

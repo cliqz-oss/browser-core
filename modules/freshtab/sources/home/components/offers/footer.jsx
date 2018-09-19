@@ -33,7 +33,7 @@ export default class Footer extends React.Component {
           {this.props.data.conditions &&
             <span>
               <span
-                className="tooltip"
+                className="tooltip condition-label"
                 ref={(el) => { this.tooltip = el; }}
                 data-tip={this.props.data.conditions}
                 onMouseOver={this.handleHover}

@@ -8,11 +8,12 @@ export default function () {
   const CliqzHumanWeb = app.modules['human-web'].background.humanWeb;
   const testPrivateUrl = 'https://somerandomprivatedomain.com';
 
-  beforeEach(function () {
-    CliqzHumanWeb.setAsPrivate(testPrivateUrl);
-  });
-
   describe('HumanWeb tests', function () {
+    beforeEach(async function () {
+      await app.modules['human-web'].isReady();
+      CliqzHumanWeb.setAsPrivate(testPrivateUrl);
+    });
+
     describe('human-web.isHash', function () {
       const hashes = [
         '04C2EAD03B',

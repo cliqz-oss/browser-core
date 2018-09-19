@@ -18,12 +18,22 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function () {
+export default function ({ logo }) {
   // powered by
-  return (<Link url="http://www.kicker.de/?gomobile=1">
+  return (<Link label={'powered-by'} url="http://www.kicker.de/?gomobile=1">
     <View style={styles.container}>
-      <Icon url="kicker.de" width={20} height={20} />
-      <Text style={styles.text}>{getMessage('KickerSponsor')}</Text>
+      <View
+        accessible={false}
+        accessibilityLabel={'powered-by-icon'}
+      >
+        <Icon logoDetails={logo} width={20} height={20} />
+      </View>
+      <View
+        accessible={false}
+        accessibilityLabel={'powered-by-text'}
+      >
+        <Text style={styles.text}>{getMessage('KickerSponsor')}</Text>
+      </View>
     </View>
   </Link>);
 }

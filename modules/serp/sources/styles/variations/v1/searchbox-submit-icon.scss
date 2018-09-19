@@ -1,0 +1,9 @@
+.searchbox-v1 {
+  &-submit-icon {
+    background: transparent;
+
+    &:hover {
+      background-image: none;
+    }
+  }
+}

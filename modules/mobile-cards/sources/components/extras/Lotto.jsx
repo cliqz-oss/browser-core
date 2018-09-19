@@ -79,7 +79,7 @@ export default class Lotto extends React.Component {
           text_style_last: [{ fontWeight: 'bold' }],
           text_style_all: [{ fontWeight: 'bold' }],
         },
-        description: 'lotto-superzahl',
+        description: 'lotto_superzahl',
       },
       {
         result: ['Spiel77'].concat(spiel77.gewinnzahlen.split('')),
@@ -118,7 +118,7 @@ export default class Lotto extends React.Component {
           style_last: [styles.circle],
           text_style_first: [],
         },
-        description: 'lotto-5aus50',
+        description: 'lotto_5aus50',
       },
       {
         result: ej.zwei_aus_acht,
@@ -128,7 +128,7 @@ export default class Lotto extends React.Component {
           style_last: [styles.circle],
           text_style_first: [],
         },
-        description: 'lotto-2aus8',
+        description: 'lotto_2aus8',
       },
     ];
   }
@@ -183,7 +183,7 @@ export default class Lotto extends React.Component {
           style_last: [styles.square],
           text_style_first: [],
         },
-        description: 'lotto-gewinnklasse7',
+        description: 'lotto_gewinnklasse7',
       },
       {
         result: gs.gewinnzahlen[6][1].split(''),
@@ -193,7 +193,7 @@ export default class Lotto extends React.Component {
           style_last: [styles.square],
           text_style_first: [],
         },
-        description: 'lotto-gewinnklasse7',
+        description: 'lotto_gewinnklasse7',
       },
     ];
   }
@@ -237,9 +237,12 @@ export default class Lotto extends React.Component {
 
   renderRow(numbers, description, rowStyles) {
     const size = numbers.length;
-
     return (<View style={styles.result_container}>
-      <View style={styles.number_container}>
+      <View
+        accessible={false}
+        accessibilityLabel={'lotto-row'}
+        style={styles.number_container}
+      >
         {
           numbers.map((number, index) => {
             const key = `${number}${index}`;
@@ -255,13 +258,23 @@ export default class Lotto extends React.Component {
               viewStyle = viewStyle.concat(rowStyles.style_all);
               textStyle = textStyle.concat(rowStyles.text_style_all);
             }
-            return (<View style={viewStyle} key={key}>
+            return (<View
+              accessible={false}
+              accessibilityLabel={'lotto-element'}
+              style={viewStyle}
+              key={key}
+            >
               <Text style={textStyle}>{number}</Text>
             </View>);
           })
         }
+        <View
+          accessible={false}
+          accessibilityLabel={'lotto-desc'}
+        >
+          <Text style={[styles.text, { marginTop: 5, color: '#565656', fontSize: 12 }]}>{getMessage(description)}</Text>
+        </View>
       </View>
-      <Text style={[styles.text, { marginTop: 5, color: '#565656', fontSize: 12 }]}>{getMessage(description)}</Text>
     </View>);
   }
 
@@ -278,8 +291,16 @@ export default class Lotto extends React.Component {
     }
     const results = lottoResults.map((...args) => this.renderResult(...args));
     return (<View style={styles.container}>
-      <Text style={{ color: '#565656', fontSize: 12 }}>{getMessage('lotto-gewinnzahlen')} &#8226; {this.localeDate}</Text>
-      <View>
+      <View
+        accessible={false}
+        accessibilityLabel={'lotto-header'}
+      >
+        <Text style={{ color: '#565656', fontSize: 12 }}>{getMessage('lotto_gewinnzahlen')} &#8226; {this.localeDate}</Text>
+      </View>
+      <View
+        accessible={false}
+        accessibilityLabel={'lotto-result'}
+      >
         {results}
       </View>
     </View>);

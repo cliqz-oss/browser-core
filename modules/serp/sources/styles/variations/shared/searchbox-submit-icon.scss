@@ -1,0 +1,15 @@
+.searchbox {
+  &-submit-icon {
+    height: 100%;
+    width: 45px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 0;
+    box-sizing: border-box;
+
+    &:focus {
+      border: 1px solid #00AEF0;
+    }
+  }
+}

@@ -1,5 +1,5 @@
 <div class="lock"></div>
-<div class="{{#if compactView}}compact-view{{/if}} {{#if amo}}amo{{/if}}">
+<div class="{{#if compactView}}compact-view{{/if}} {{#if amo}}amo{{/if}} {{#if ghostery}}ghostery{{/if}}">
 {{#if showSecuritySettings}}
   <header id="header" data-status="{{ generalState }}">
    {{> header }}
@@ -13,9 +13,9 @@
           {{/if}}
       </h3>
       <div class="reportsite"
-          data-open-url="https://cliqz.com/report-url"
-          data-target="report_url"
-          data-i18n="control_center_report_url">
+           data-open-url="{{ reportSiteURL }}"
+           data-target="report_url"
+           data-i18n="control_center_report_url">
       </div>
   </div>
 
@@ -64,7 +64,9 @@
 {{#if compactView}}
 <header class="footer">
   <div class="title">
+{{#if showPoweredBy}}
     <span data-i18n="control_center_footer"></span>
+{{/if}}
     {{> support }}
   </div>
 </header>

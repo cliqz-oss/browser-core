@@ -32,7 +32,7 @@ export default class TopNewsResult extends GenericResult {
       showLogo: true,
       isBreakingNews: article.extra.breaking,
       text: this.query,
-      meta: article.meta,
+      meta: article.meta, // We need this to get correct logo for deepResults
     }));
   }
 

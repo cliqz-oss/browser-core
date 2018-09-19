@@ -24,7 +24,15 @@ export default [
             icon_bck: 'http://icons.wxug.com/i/c/k/chancerain.gif',
             max: '22°',
             min: '12°',
-            weekday: 'Mittwoch'
+            weekday: 'Mittwoch',
+            minByUnit: {
+              celsius: '14°',
+              fahrenheit: '57°'
+            },
+            maxByUnit: {
+              celsius: '24°',
+              fahrenheit: '76°'
+            }
           },
           {
             desc: 'Partly Cloudy',
@@ -33,7 +41,15 @@ export default [
             icon_bck: 'http://icons.wxug.com/i/c/k/partlycloudy.gif',
             max: '24°',
             min: '13°',
-            weekday: 'Donnerstag'
+            weekday: 'Donnerstag',
+            minByUnit: {
+              celsius: '12°',
+              fahrenheit: '54°'
+            },
+            maxByUnit: {
+              celsius: '19°',
+              fahrenheit: '67°'
+            }
           },
           {
             desc: 'Thunderstorm',
@@ -42,7 +58,15 @@ export default [
             icon_bck: 'http://icons.wxug.com/i/c/k/tstorms.gif',
             max: '28°',
             min: '16°',
-            weekday: 'Freitag'
+            weekday: 'Freitag',
+            minByUnit: {
+              celsius: '11°',
+              fahrenheit: '52°'
+            },
+            maxByUnit: {
+              celsius: '21°',
+              fahrenheit: '70°'
+            }
           },
           {
             desc: 'Partly Cloudy',
@@ -51,7 +75,15 @@ export default [
             icon_bck: 'http://icons.wxug.com/i/c/k/partlycloudy.gif',
             max: '27°',
             min: '14°',
-            weekday: 'Samstag'
+            weekday: 'Samstag',
+            minByUnit: {
+              celsius: '13°',
+              fahrenheit: '55°'
+            },
+            maxByUnit: {
+              celsius: '23°',
+              fahrenheit: '74°'
+            }
           }
         ],
         meta: {
@@ -72,7 +104,16 @@ export default [
         todayMax: '22°',
         todayMin: '11°',
         todayTemp: '17°',
-        todayWeekday: 'Heute'
+        todayWeekday: 'Heute',
+        todayMinByUnit: {
+          celsius: '12°',
+          fahrenheit: '53°'
+        },
+        todayMaxByUnit: {
+          celsius: '22°',
+          fahrenheit: '73°'
+        },
+        units_label: 'Scale'
       },
       friendlyUrl: 'wunderground.com/cgi-bin/findweather/getforecast',
       title: 'München, Deutschland'

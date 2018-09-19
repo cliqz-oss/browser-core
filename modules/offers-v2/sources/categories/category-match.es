@@ -37,6 +37,8 @@ export default class CategoryMatch {
    * will return a set of categories ids that match the current tokenized url
    */
   checkMatches(tokenizedURL) {
-    return this.multiPatternObj ? this.multiPatternObj.match(tokenizedURL) : new Set();
+    return this.multiPatternObj
+      ? this.multiPatternObj.matchWithPatterns(tokenizedURL)
+      : new Set();
   }
 }

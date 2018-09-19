@@ -4,23 +4,20 @@ import {
   CliqzEvents,
   closeTab,
   expect,
-  focusOnTab,
+  getResourceUrl,
   newTab,
   queryHTML,
   testServer,
   waitFor,
   waitForAsync,
   waitForElement,
-} from '../../../tests/core/test-helpers';
-
-import {
-  getResourceUrl,
+  waitForPageLoad,
 } from '../../../tests/core/integration/helpers';
 
 import {
+  clearOffersDB,
   getPage,
   mockOffersBackend,
-  clearOffersDB,
 } from '../../../tests/core/integration/offers-helpers';
 
 export default function () {
@@ -48,8 +45,7 @@ export default function () {
       await testServer.hasHit('/api/v1/loadsubtriggers');
 
       // Load freshtab in new tab
-      freshtabId = await newTab(freshtabUrl);
-      focusOnTab(freshtabId);
+      freshtabId = await newTab(freshtabUrl, { focus: true });
 
       // Expect offer to appear in notification box
       offerShown = await waitForElement({
@@ -373,8 +369,7 @@ export default function () {
     // TODO: rewrite these tests without needing to close extra freshtab
     describe('opening second instance of Freshtab', function () {
       beforeEach(async function () {
-        const newFreshTab = await newTab(freshtabUrl);
-        await focusOnTab(newFreshTab);
+        const newFreshTab = await newTab(freshtabUrl, { focus: true });
 
         // close first instance of freshtab, so we can use queryHTML
         await closeTab(freshtabId);
@@ -424,11 +419,18 @@ export default function () {
     describe('opening another page and then moving focus back to the Freshtab instance', function () {
       beforeEach(async function () {
         const landingUrl = getPage('landing');
-        const landingPageId = await newTab(landingUrl);
-        await focusOnTab(landingPageId);
-        await waitForElement({ url: landingUrl, selector: 'p' });
+
+        const isPageLoaded = waitForPageLoad(landingUrl);
+        const landingPageId = await newTab(landingUrl, { focus: true });
+        await isPageLoaded;
+
+        // "offer_shown" is increased on "visibilitychange" event
+        // if we close the tab too fast, it won't get increased
+        await new Promise((resolve) => {
+          setTimeout(resolve, 1000);
+        });
+
         await closeTab(landingPageId);
-        await focusOnTab(freshtabId);
       });
 
       it('increments the counter counter for "offer_shown" and does NOT increment the counter for "offer_dsp_session"', async function () {
@@ -470,7 +472,8 @@ export default function () {
         context(signal, function () {
           beforeEach(async function () {
             const page = getPage(signal);
-            await focusOnTab(await newTab(page));
+            await newTab(page, { focus: true });
+
             await waitForAsync(async () => (await queryHTML(page, 'p', 'innerText'))[0] === signal);
           });
 

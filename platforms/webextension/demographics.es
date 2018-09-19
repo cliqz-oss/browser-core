@@ -10,7 +10,7 @@ export function getDistribution() {
   return getPref('distribution', '');
 }
 
-export async function getChannel() {
+export function getChannel() {
   if (chrome.cliqzAppConstants) { // Android
     return chrome.cliqzAppConstants.get('CLIQZ_CHANNEL') || '';
   }

@@ -3,6 +3,7 @@ import Spanan from 'spanan';
 export default class BaseDropdownManager {
   constructor() {
     this.selectedResult = null;
+    this.hasAutocompleted = false;
   }
 
   actions = {
@@ -40,6 +41,7 @@ export default class BaseDropdownManager {
   _getUrlbarAttributes() {}
   _getMaxHeight() {}
   _createIframe() {}
+  _getSessionId() {}
 
   get isOpen() {
     return this._getHeight() > 0;
@@ -148,14 +150,14 @@ export default class BaseDropdownManager {
     return true;
   }
 
-  onKeyDown(ev) {
+  onKeydown(ev) {
     let preventDefault = false;
     switch (ev.key) {
       case 'ArrowUp':
       case 'ArrowDown': {
         preventDefault = true;
         if (!this.isOpen) {
-          this._queryCliqz();
+          this._queryCliqz('', { allowEmptyQuery: true });
           break;
         }
         (ev.key === 'ArrowUp' ? this.previousResult() : this.nextResult())
@@ -180,8 +182,11 @@ export default class BaseDropdownManager {
         break;
       }
       case 'Escape': {
-        this._setUrlbarValue('');
-        this.setHeight(0);
+        if (this.isOpen) {
+          this.setHeight(0);
+        } else {
+          this._setUrlbarValue('');
+        }
         break;
       }
       case 'Delete':
@@ -235,6 +240,17 @@ export default class BaseDropdownManager {
     return preventDefault;
   }
 
+  onDrop(ev) {
+    const dTypes = ev.dataTransfer.types;
+    if ((dTypes.indexOf && dTypes.indexOf('text/plain') !== -1) ||
+      (dTypes.contains && dTypes.contains('text/plain') !== -1)) {
+      this._telemetry({
+        type: 'activity',
+        action: 'textdrop'
+      });
+    }
+  }
+
   autocompleteQuery(query, completion) {
     if (!completion) {
       this._setUrlbarValue(query);
@@ -245,6 +261,7 @@ export default class BaseDropdownManager {
       this._setUrlbarValue(value);
     }
     this._setSelectionRange(query.length, value.length);
+    this.hasAutocompleted = true;
   }
 
   hasRelevantResults(query, results) {
@@ -259,6 +276,7 @@ export default class BaseDropdownManager {
     rawResults,
     /* getSessionId, */
   }) {
+    this.hasAutocompleted = false;
     let urlbarQuery = this._getQuery();
     const firstResult = rawResults && rawResults[0];
     if (!firstResult || !this.hasRelevantResults(urlbarQuery, rawResults)) {
@@ -284,23 +302,29 @@ export default class BaseDropdownManager {
     const {
       height,
       result,
+      renderedSessionId,
     } = await this.dropdownAction.render({
       rawResults,
       query,
       queriedAt,
+      sessionId: this._getSessionId(),
     }, params);
 
     urlbarQuery = this._getQuery();
-    if (this.hasRelevantResults(urlbarQuery, [result])) {
+    if (renderedSessionId === this._getSessionId() &&
+        this.hasRelevantResults(urlbarQuery, [result])) {
       this.autocompleteQuery(
         urlbarQuery,
         result.meta.completion,
       );
 
-      if (this._getUrlbarValue()) {
-        this.selectedResult = result;
-        this.setHeight(height);
-      }
+      this.selectedResult = result;
+      this.setHeight(height);
+      return;
+    }
+
+    if (renderedSessionId !== this._getSessionId() || urlbarQuery === '') {
+      this.setHeight(0);
     }
   }
 }

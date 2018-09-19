@@ -50,8 +50,7 @@ export default function () {
       await waitForAsync(() => testServer.hasHit('/api/v1/loadsubtriggers'));
 
       const pageUrl = getPage(`landing?q=${triggerKeyword}`);
-      tabId = await newTab(pageUrl);
-      await focusOnTab(tabId);
+      tabId = await newTab(pageUrl, { focus: true });
       await waitForAsync(async () =>
         Boolean((await queryHTML(pageUrl, 'p', 'innerText')).length) === true
       );
@@ -106,9 +105,8 @@ export default function () {
 
       beforeEach(async function () {
         const cartUrl = getPage('cart');
-        const secondTabId = await newTab(getPage('cart'));
+        await newTab(getPage('cart'), { focus: true });
         await waitForElement({ url: cartUrl, selector: 'p' });
-        await focusOnTab(secondTabId);
         await wait(100);
         await focusOnTab(tabId);
         await wait(100);
@@ -535,7 +533,7 @@ export default function () {
           context(`${signal}`, function () {
             beforeEach(async function () {
               const page = getPage(`${signal}`);
-              focusOnTab(await newTab(page));
+              await newTab(page, { focus: true });
               await waitForAsync(async () =>
                 await queryHTML(page, 'p', 'innerText')[0] !== `${signal}`);
             });

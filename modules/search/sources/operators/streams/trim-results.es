@@ -21,15 +21,26 @@ export default () =>
   }) => {
     // TODO: verify logic (at the moment, `merge-results` makes sure that
     //       there is always one response)
-    const trimmedResults = firstResponse.results.concat();
+    let trimmedResults = firstResponse.results.concat();
     const shouldKeepInstantResult = PREVENT_AUTOCOMPLETE_KEYS.includes(query.keyCode);
 
-    // Remove instant result if the first result is autocompletable
-    const [firstResult, secondResult] = trimmedResults;
-    if (!firstResult || !secondResult || shouldKeepInstantResult || getMainLink(firstResult).provider !== 'instant') {
-      // just keep results
-    } else if (getMainLink(secondResult).meta.completion) {
-      trimmedResults.splice(0, 1);
+    // Remove instant result(s) if autocompletable result comes right after it
+    let lastIndexOfInstantResult = -1;
+    for (let i = 0; i < trimmedResults.length; i += 1) {
+      if (getMainLink(trimmedResults[i]).provider === 'instant') {
+        lastIndexOfInstantResult = i;
+      } else { // Do not continue if the first result(s) is not instant result
+        break;
+      }
+    }
+
+    if (lastIndexOfInstantResult > -1 && (trimmedResults.length > lastIndexOfInstantResult + 1)) {
+      const nextResultIsAutocompletable =
+        getMainLink(trimmedResults[lastIndexOfInstantResult + 1]).meta.completion;
+
+      if (nextResultIsAutocompletable && !shouldKeepInstantResult) {
+        trimmedResults = trimmedResults.filter(res => getMainLink(res).provider !== 'instant');
+      }
     }
 
     return {

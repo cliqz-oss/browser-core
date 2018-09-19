@@ -17,7 +17,6 @@ export default function () {
 
   const today = getSynchronizedDate().format('YYYY-MM-DD');
   const anolysis = app.modules.anolysis.background;
-  const pushTelemetry = (...args) => app.services.telemetry.api.push(...args);
 
   const clearTelemetryPrefs = () => {
     prefs.clear('telemetry');
@@ -25,6 +24,7 @@ export default function () {
   };
 
   context('opt-out from anolysis tests', function () {
+    let pushTelemetry;
     afterEach(() => clearTelemetryPrefs());
 
     [
@@ -43,12 +43,24 @@ export default function () {
           const anolysisVersionPrefChanged = waitForPrefChange('anolysisVersion');
           prefs.set('anolysisVersion', 0);
           await anolysisVersionPrefChanged;
+          await app.disableModule('freshtab');
           await app.disableModule('anolysis');
           await app.enableModule('anolysis');
+          await waitForAsync(() => anolysis.isAnolysisInitialized());
+
+          // Prevent interference from other modules' sendTelemetry calls
+          pushTelemetry = app.services.telemetry.api.push;
+          app.services.telemetry.api.push = () => {};
 
           // Set telemetry prefs
           prefs.set('telemetry', telemetryEnabled);
           prefs.set('uploadEnabled', uploadEnabled, 'datareporting.healthreport.');
+        });
+
+        afterEach(async () => {
+          // reset mock
+          app.services.telemetry.api.push = pushTelemetry;
+          await app.enableModule('freshtab');
         });
 
         if (telemetryExpected) {

@@ -7,7 +7,7 @@ import config from '../core/config';
 import utils from '../core/utils';
 import { promiseHttpHandler } from '../core/http';
 
-import { isCliqzBrowser } from '../core/platform';
+import { isDesktopBrowser } from '../core/platform';
 import { window } from './globals';
 
 const eventIDs = {};
@@ -91,9 +91,9 @@ const CLIQZEnvironment = {
       // telemetry in all products can be turned off using the 'telemetry' pref
       if (!prefs.get('telemetry', true)) return;
 
-      // for the Cliqz browser we also turn off the extension telemetry
+      // for desktop browsers we also turn off the extension telemetry
       // if the user opts-out from the browser health report
-      if (isCliqzBrowser &&
+      if (isDesktopBrowser &&
         msg.type !== 'environment' && // TEMP: we only let the environment signal go though
         (prefs.get('uploadEnabled', true, 'datareporting.healthreport.') !== true)) {
         return;
@@ -118,9 +118,12 @@ const CLIQZEnvironment = {
   isOnPrivateTab() { return chrome.extension.inIncognitoContext; },
   getWindow() { return window; },
   openLink(win, url/* , newTab */) {
-    chrome.tabs.getCurrent(tab => chrome.tabs.update(tab.id, {
-      url,
-    }));
+    chrome.windows.getCurrent({ populate: true }, ({ tabs }) => {
+      const activeTab = tabs.find(tab => tab.active);
+      chrome.tabs.update(activeTab.id, {
+        url,
+      });
+    });
   },
   setSupportInfo() {},
   restoreHiddenSearchEngines() {},

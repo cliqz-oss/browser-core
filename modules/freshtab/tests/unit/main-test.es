@@ -6,7 +6,8 @@ export default describeModule('freshtab/main',
       'core/config': {
         default: {
           settings: {
-            NEW_TAB_URL: ''
+            NEW_TAB_URL: '',
+            channel: '99',
           }
         },
       },
@@ -15,7 +16,7 @@ export default describeModule('freshtab/main',
         },
       },
       'core/platform': {
-        isCliqzBrowser: false,
+        isDesktopBrowser: false,
       },
       'platform/freshtab/new-tab-setting': {
         setNewTabPage: '[dynamic]',
@@ -35,7 +36,7 @@ export default describeModule('freshtab/main',
 
     context('inside CLIQZ browser', function () {
       beforeEach(function () {
-        this.deps('core/platform').isCliqzBrowser = true;
+        this.deps('core/platform').isDesktopBrowser = true;
       });
 
       it('#isActive is always true', function () {

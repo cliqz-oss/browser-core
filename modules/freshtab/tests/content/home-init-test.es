@@ -4,9 +4,8 @@ import {
   Subject,
 } from '../../core/test-helpers-freshtab';
 
-describe('Initializing Fresh tab', function () {
+describe('Initializing Freshtab', function () {
   let subject;
-  let listener;
   let messages;
 
   before(function () {
@@ -15,26 +14,17 @@ describe('Initializing Fresh tab', function () {
     subject.respondsWith(defaultConfig);
     subject.respondsWithEmptySpeedDials();
     subject.respondsWithEmptyNews();
+    subject.startListening();
 
-    // Keep track of received messages
-    messages = new Map();
-    listener = function (msg) {
-      if (!messages.has(msg.action)) {
-        messages.set(msg.action, []);
-      }
-      messages.get(msg.action).push(msg);
-    };
-    subject.chrome.runtime.onMessage.addListener(listener);
-
+    messages = subject.messagesByAction;
     return subject.load();
   });
 
   after(function () {
-    subject.chrome.runtime.onMessage.removeListener(listener);
     subject.unload();
   });
 
-  it('loads Fresh tab', function () {
+  it('loads Freshtab', function () {
     const iframes = document.getElementsByTagName('iframe');
     expect(iframes[iframes.length - 1].contentWindow.location.href)
       .to.contain('freshtab/home.html');

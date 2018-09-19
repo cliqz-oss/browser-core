@@ -285,14 +285,6 @@ export default class Offer {
     return this.offerObj.client_id;
   }
 
-  hasTypes() {
-    return !!this.offerObj.types;
-  }
-
-  get types() {
-    return this.offerObj.types ? this.offerObj.types : [];
-  }
-
   /**
    * For reference, in the past we have offer_id as unique offer id
    */
@@ -357,5 +349,9 @@ export default class Offer {
 
   get categories() {
     return this.offerObj.categories;
+  }
+
+  isTargeted() {
+    return Boolean(this.offerObj.targeted);
   }
 }

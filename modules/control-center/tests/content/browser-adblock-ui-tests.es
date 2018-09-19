@@ -50,7 +50,7 @@ describe('Control Center: Ad-Block UI browser', function () {
     });
 
     it('renders info button', function () {
-      expect(subject.query('#ad-blocking .title .infobutton')).to.exist;
+      expect(subject.query('#ad-blocking .title .cc-tooltip')).to.exist;
     });
 
     it('renders title', function () {

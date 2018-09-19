@@ -2,9 +2,9 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import Link from '../Link';
 import ExternalImage from '../custom/ExternalImage';
-import { elementSideMargins, elementTopMargin } from '../../styles/CardStyle';
+import { elementSideMargins, elementTopMargin, getCardWidth } from '../../styles/CardStyle';
 
-const styles = StyleSheet.create({
+const styles = nLines => StyleSheet.create({
   social: {
     marginLeft: elementSideMargins.marginLeft + 8,
     marginRight: elementSideMargins.marginRight + 8,
@@ -23,11 +23,19 @@ const styles = StyleSheet.create({
     width: 65,
     borderRadius: 5,
   },
+  textContainer: {
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    marginLeft: 6,
+    maxHeight: nLines * 20, // line hight
+    overflow: 'hidden',
+  },
   text: {
     color: 'black',
-    marginRight: 65, // the width of the image
+    width: getCardWidth() - 105, // image width + margins
     fontSize: 13,
     lineHeight: 20,
+    fontWeight: '400',
   },
   twitter: {
     width: 20,
@@ -42,14 +50,14 @@ export default class Videos extends React.Component {
     const nLines = 3;
     return (
       <Link url={link.url} key={link.url}>
-        <View style={styles.item}>
+        <View style={styles().item}>
           <ExternalImage
             source={{ uri: thumbnail }}
-            style={styles.image}
+            style={styles().image}
             resizeMode={'cover'}
           />
-          <View style={{ flexDirection: 'column', justifyContent: 'flex-start', marginLeft: 6 }}>
-            <Text style={styles.text} numberOfLines={nLines}>{link.title}</Text>
+          <View style={styles(nLines).textContainer}>
+            <Text style={styles().text} numberOfLines={nLines}>{link.title}</Text>
           </View>
         </View>
       </Link>
@@ -61,7 +69,7 @@ export default class Videos extends React.Component {
       return null;
     }
     return (
-      <View style={styles.social} >
+      <View style={styles().social} >
         {this.props.data.slice(0, 3).map(this.displayLink)}
       </View>
     );

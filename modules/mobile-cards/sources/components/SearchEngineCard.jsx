@@ -61,10 +61,15 @@ export default class SearchEngineCard extends React.Component {
         style={styles(width).container}
       >
         <Link
+          label="complementary-search-link"
           url={url}
           onPress={e => this.sendResultClickTelemetry(e)}
         >
-          <View style={styles(logoDetails.backgroundColor, width).card}>
+          <View
+            accessible={false}
+            accessibilityLabel="complementary-search-card-content"
+            style={styles(logoDetails.backgroundColor, width).card}
+          >
             <Text style={styles(logoDetails.backgroundColor, width).text}>{title}</Text>
             <Icon logoDetails={logoDetails} width={50} height={50} />
           </View>

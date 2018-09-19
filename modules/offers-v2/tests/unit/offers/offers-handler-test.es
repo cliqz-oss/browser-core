@@ -7,7 +7,6 @@
 const adblocker = require('@cliqz/adblocker');
 const tldjs = require('tldjs');
 
-
 const prefRetVal = {};
 const currentTS = Date.now();
 let latestOffersInstalledTs = 0;
@@ -27,23 +26,6 @@ function delay(fn) {
         .then(resolve)
         .catch(reject);
     }, 100);
-  });
-}
-
-function orPromisesReal(elemList, idx = 0) {
-  if (!elemList || idx >= elemList.length) {
-    return Promise.resolve(false);
-  }
-  const first = elemList[idx];
-  return first().then((r) => {
-    if (r) {
-      return Promise.resolve(true);
-    }
-    // if we are in the last case return
-    if (elemList.length === (idx + 1)) {
-      return Promise.resolve(false);
-    }
-    return orPromisesReal(elemList, idx + 1);
   });
 }
 
@@ -218,7 +200,6 @@ class SignalHandlerMock {
     };
   }
   destroy() {}
-  savePersistenceData() {}
 
   setCampaignSignal(cid, oid, origID, sid) {
     let cidm = this.db.campaign[cid];
@@ -354,6 +335,18 @@ export default describeModule('offers-v2/offers/offers-handler',
     'platform/lib/tldjs': {
       default: tldjs,
     },
+    './blacklist': {
+      default: class {
+        init() {}
+        has() { return false; }
+      }
+    },
+    './patterns_stat': {
+      default: class {
+        init() {}
+        add() {}
+      }
+    },
     'offers-v2/utils': {
       timestamp: function () {},
       timestampMS: function () {
@@ -369,7 +362,6 @@ export default describeModule('offers-v2/offers/offers-handler',
       getLatestOfferInstallTs: function () {
         return latestOffersInstalledTs;
       },
-      orPromises: orPromisesReal
     },
     'core/crypto/random': {
       random: function () {
@@ -403,12 +395,11 @@ export default describeModule('offers-v2/offers/offers-handler',
     },
     'offers-v2/common/offers_v2_logger': {
       default: {
-        debug: (...x) => { console.error(...x); },
-        error: (...x) => { console.error(...x); },
-        info: (...x) => { console.log(...x); },
-        log: (...x) => { console.log(...x); },
-        warn: (...x) => { console.error(...x); },
-        logObject: () => {},
+        debug: () => {},
+        error: () => {},
+        info: () => {},
+        log: () => {},
+        warn: () => {},
       }
     },
     'offers-v2/offers/soft-filter': {
@@ -492,7 +483,14 @@ export default describeModule('offers-v2/offers/offers-handler',
           return delay(() => [...this.db.entries()]);
         }
       }
-    }
+    },
+    'offers-v2/background': {
+      default: {
+        offersAPI: {
+          processRealEstateMessage: () => {}
+        }
+      },
+    },
   }),
   () => {
     describe('/offers-handler', function () {
@@ -721,7 +719,7 @@ export default describeModule('offers-v2/offers/offers-handler',
           it('/check showing 3 times 2 offer can still be shown', function () {
             const offersList = [
               buildOffer('o1', 'cid1', 'client1', 0.9),
-              buildOffer('o2', 'cid1', 'client1', 0.8),
+              buildOffer('o2', 'cid1b', 'client1', 0.8),
               buildOffer('o3', 'cid2', 'client2', 0.7),
               buildOffer('o4', 'cid3', 'client3', 0.6),
             ];
@@ -754,7 +752,7 @@ export default describeModule('offers-v2/offers/offers-handler',
           it('/check adding 4 offers will still show another offer', function () {
             const offersList = [
               buildOffer('o1', 'cid1', 'client1', 0.9),
-              buildOffer('o2', 'cid1', 'client1', 0.8),
+              buildOffer('o2', 'cid1b', 'client1', 0.8),
               buildOffer('o3', 'cid2', 'client2', 0.7),
               buildOffer('o4', 'cid3', 'client3', 0.6),
               buildOffer('o5', 'cid4', 'client', 0.6),
@@ -920,40 +918,90 @@ export default describeModule('offers-v2/offers/offers-handler',
             });
           });
 
+          function prepareTriggerOffers(offersList) {
+            const mockData = {
+              backendResult: { 'intent-1': offersList },
+            };
+            configureMockData(mockData);
+            const intents = [
+              { name: 'intent-1', active: true },
+            ];
+            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
+          }
+
+          function triggerOffers(offersList) {
+            const urls = [
+              'http://www.google.com',
+            ];
+            setActiveCategoriesFromOffers(offersList);
+            return simulateUrlEventsAndWait(urls);
+          }
+
+          // This test actually checks selection by display priority
           it('/if offer of same campaign exists we replace and show that one', function () {
             const offersList = [
               buildOffer('o1', 'cid1', 'client1', 0.1),
               buildOffer('o2', 'cid1', 'client1', 0.9),
             ];
-            const mockData = {
-              backendResult: { 'intent-1': offersList },
-            };
-            configureMockData(mockData);
-
-            // activate intents
-            const intents = [
-              { name: 'intent-1', active: true },
-            ];
-            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
-
+            prepareTriggerOffers(offersList);
             // wait for the fetch
-            return waitForBEPromise().then(() => {
-              const urls = [
-                'http://www.google.com',
-              ];
-              setActiveCategoriesFromOffers(offersList);
-              return simulateUrlEventsAndWait(urls).then(() => {
-                // check that we could push the
+            return waitForBEPromise()
+              .then(() => triggerOffers(offersList))
+              .then(() => {
+                // check that we could push
                 checkOfferPushed('o2');
-                // we now should get again the same offer since it is stored
-                // on the DB
                 eventMessages = [];
-                setActiveCategoriesFromOffers(offersList);
-                return simulateUrlEventsAndWait(urls).then(() => {
-                  // check that we could push the
+
+                // we now should get again the same offer since it is stored on the DB
+                return triggerOffers(offersList).then(() => {
+                  //
                   checkOfferPushed('o2');
                 });
               });
+          });
+
+          context('/some offer in DB is of the same campaign', () => {
+            const campaignId = 'cid';
+            const dboffer = buildOffer('oid', campaignId, 'client', 1);
+
+            it('/drop a new offer variant ', () => {
+              offersDB.addOfferObject(dboffer.offer_id, dboffer);
+              const newCampaignOffer = buildOffer('onew', campaignId, 'client', 1);
+              prepareTriggerOffers([newCampaignOffer]);
+              return waitForBEPromise()
+
+                .then(() => triggerOffers([newCampaignOffer]))
+
+                .then(() => {
+                  const newOfferInDb = offersDB.getOfferObject('onew');
+                  chai.expect(newOfferInDb, 'Offer should not be added').is.null;
+                });
+            });
+
+            it('/inherit ab-info', () => {
+              const setAbInfo = function (offer, start, end) {
+                offer.abTestInfo = { start, end };
+              };
+              setAbInfo(dboffer, 0, 10000);
+              const offerId = dboffer.offer_id;
+              offersDB.addOfferObject(offerId, dboffer);
+              const updatingOffer = buildOffer(offerId, campaignId, dboffer.client_id, 1);
+              setAbInfo(updatingOffer, -100, -50);
+              updatingOffer.ui_info.template_data.desc = 'Updated description';
+              updatingOffer.version = 'new-version';
+              prepareTriggerOffers([updatingOffer]);
+              return waitForBEPromise()
+
+                .then(() => triggerOffers([updatingOffer]))
+
+                .then(() => {
+                  const updatedOffer = offersDB.getOfferObject(offerId);
+                  chai.expect(updatedOffer.abTestInfo).to.eql({
+                    start: 0, end: 10000
+                  });
+                  chai.expect(updatedOffer.ui_info.template_data.desc)
+                    .to.be.equal('Updated description');
+                });
             });
           });
 

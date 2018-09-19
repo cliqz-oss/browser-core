@@ -9,6 +9,12 @@ import t from '../services/i18n';
 const storage = new Storage();
 
 export default class AlternativeSearchEngines extends React.Component {
+  constructor(props = {}) {
+    super(props);
+
+    this._session = props.session;
+  }
+
   state = {
     showEnginesDropdown: false,
     showEnginesTooltip: false,
@@ -25,6 +31,10 @@ export default class AlternativeSearchEngines extends React.Component {
       this.setState({
         query: nextProps.query || '',
       });
+    }
+
+    if (nextProps.session !== this._session) {
+      this._session = nextProps.session;
     }
   }
 
@@ -135,6 +145,7 @@ export default class AlternativeSearchEngines extends React.Component {
           data-engine={this._getSelectedEngine().title.toLowerCase()}
           data-view="results"
           data-category={category}
+          data-session={this._session}
         >
           {title}
         </a>

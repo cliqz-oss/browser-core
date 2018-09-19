@@ -17,33 +17,34 @@ import {
   encodeSessionParams,
 } from './cliqz-helpers';
 import { PROVIDER_CLIQZ, PROVIDER_OFFERS } from '../consts';
+import { QuerySanitizerWithHistory } from './cliqz/query-sanitizer';
+
+const querySanitizer = new QuerySanitizerWithHistory();
+
+function getEmptyBackendResponse(query) {
+  return {
+    response: {
+      results: [],
+      offers: [],
+    },
+    query,
+  };
+}
 
 const encodeResultCount = count => `&count=${count || 5}`;
-const enncodeQuerySuggestionParam = () => {
+const encodeQuerySuggestionParam = () => {
   const suggestionsEnabled = prefs.get('suggestionsEnabled', false) ||
     prefs.get('suggestionChoice', 0) === 1;
 
   return `&suggest=${suggestionsEnabled ? 1 : 0}`;
 };
 
-const encodeJSONPCallback = (jsonpCallback) => {
-  const res = jsonpCallback
-    ? `&callback=${jsonpCallback}`
-    : '';
-
-  return res;
-};
-
 const getResultsProviderQueryString = (q, {
   resultOrder,
   backendCountry,
   count,
-  jsonpCallback
 }) => {
   let numberResults = count || 5;
-  if (prefs.get('languageDedup', false)) {
-    numberResults = 7;
-  }
   if (prefs.get('modules.context-search.enabled', false)) {
     numberResults = 10;
   }
@@ -55,55 +56,34 @@ const getResultsProviderQueryString = (q, {
     encodeResultOrder(resultOrder) +
     encodeCountry(backendCountry) +
     encodeFilter() +
-    encodeJSONPCallback(jsonpCallback) +
     encodeLocation(true) + // @TODO: remove true
     encodeResultCount(numberResults) +
-    enncodeQuerySuggestionParam();
+    encodeQuerySuggestionParam();
 };
 
-const getBackendResults = (q, params = {}) => {
+const getBackendResults = (originalQuery, params = {}) => {
   if (isOnionMode) {
-    return Promise.resolve({
-      response: {
-        results: [],
-        offers: [],
-      },
-      query: q
-    });
+    return Promise.resolve(getEmptyBackendResponse(originalQuery));
+  }
+
+  // Run some heuristics to prevent certain patterns like pasted or
+  // edited URLs are unintentionally sent to the search. Either block
+  // these queries completely, or replace them by a safe subset of the
+  // query if possible.
+  //
+  // (The entries in the safe-query cache are in memory only and should
+  // quickly get evicted by new searches. But to be safe, never add
+  // entries in private mode.)
+  const rememberSafeQueries = !params.isPrivate;
+  const q = prefs.get('query-sanitizer', true) ?
+    querySanitizer.sanitize(originalQuery, { rememberSafeQueries }) : originalQuery;
+
+  if (!q) {
+    return Promise.resolve(getEmptyBackendResponse(originalQuery));
   }
 
   const url = CONFIG.settings.RESULTS_PROVIDER + getResultsProviderQueryString(q, params);
-  const fetch = params.jsonpCallback
-    ? (apiUrl) => {
-      const promise = new Promise((fulfilled, rejected) => {
-        window[params.jsonpCallback] = (response) => {
-          const res = {
-            json: () => response
-          };
-
-          window[params.jsonpCallback] = null;
-          fulfilled(res);
-        };
-
-        const script = document.createElement('script');
-        script.src = apiUrl;
-        script.onload = () => {
-          document.body.removeChild(script);
-          script.onload = null;
-        };
-        script.onerror = (error) => {
-          document.body.removeChild(script);
-          script.onload = null;
-
-          rejected(error);
-        };
-
-        document.body.appendChild(script);
-      });
-
-      return promise;
-    }
-    : utils.fetchFactory();
+  const fetch = utils.fetchFactory({ jsonp: params.jsonp });
 
   utils._sessionSeq += 1;
 
@@ -140,13 +120,7 @@ const getBackendResults = (q, params = {}) => {
         };
       }
 
-      return {
-        response: {
-          results: [],
-          offers: [],
-        },
-        query: q
-      };
+      return getEmptyResponse(q);
     });
 
 
@@ -173,17 +147,17 @@ export default class Cliqz extends BackendProvider {
   }
 
   search(query, config, params) {
-    if (!query) {
+    if (!query || !config.providers[this.id].isEnabled) {
       return this.getEmptySearch(config);
     }
 
-    const { providers: { cliqz: { includeOffers, count, jsonpCallback } = {} } = {} } = config;
+    const { providers: { cliqz: { includeOffers, count, jsonp } = {} } = {} } = config;
 
     // TODO: only get at beginning of search session
     Object.assign(params, {
       backendCountry: prefs.get('backend_country.override', prefs.get('backend_country', 'de')),
       count,
-      jsonpCallback,
+      jsonp,
     });
 
     const cliqz$ = Rx.Observable

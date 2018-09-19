@@ -2,6 +2,7 @@
 
 const mock = {
   'core/url': {
+    tryDecodeURI: u => u,
     getDetailsFromUrl: () => ({ domain: 'domain' }),
     urlStripProtocol: () => 'STRIPPED_URL',
   }

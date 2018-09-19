@@ -1,5 +1,5 @@
 import { chrome } from './globals';
-import config from '../core/config';
+import { OS } from './platform';
 
 const TARGET_ANDROID = 'ANDROID_BROWSER';
 
@@ -20,8 +20,7 @@ export function openLinkAndroid(url) {
 }
 
 export function openLink(url, focused = false) {
-  const channel = config.settings.channel || '';
-  if (channel.startsWith('MA')) { // android
+  if (OS === 'android') {
     sendMessageToAndroid('openUrl', url);
   } else {
     chrome.tabs.create({

@@ -8,7 +8,7 @@ import {
   Subject,
 } from '../../core/test-helpers-freshtab';
 
-describe('Fresh tab notification UI', function () {
+describe('Freshtab notification UI', function () {
   let subject;
   let newsConfig;
 

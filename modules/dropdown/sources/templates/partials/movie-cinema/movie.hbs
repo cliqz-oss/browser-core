@@ -13,6 +13,7 @@
                     </span>
                 {{/if}}
                 {{#if reviewsInfo}}
+                    {{#if reviewsInfo.url}}
                     <a
                         class="result reviews"
                         data-url="{{reviewsInfo.url}}"
@@ -20,6 +21,11 @@
                     >
                         {{reviewsInfo.nVote}} {{local reviewsInfo.title}}
                     </a>
+                    {{else}}
+                    <span>
+                        {{reviewsInfo.nVote}} {{local reviewsInfo.title}}
+                    </span>
+                    {{/if}}
                 {{/if}}
             </p>
             <p class="director">
@@ -52,6 +58,7 @@
                     {{/each}}
                     </span>
                 {{/if}}
+                {{#if fullCastInfo}}
                 <span class="movie-full-cast">
                     <a
                         class="result"
@@ -61,6 +68,7 @@
                         {{local fullCastInfo.title}}
                     </a>
                 </span>
+                {{/if}}
             </p>
             {{#if trailerInfo}}
                 <div class="trailer">

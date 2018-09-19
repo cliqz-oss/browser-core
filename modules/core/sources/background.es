@@ -13,7 +13,6 @@ import logger from './logger';
 import inject from './kord/inject';
 import { queryCliqz, openLink, openTab, getOpenTabs, getReminders } from '../platform/browser-actions';
 import providesServices from './services';
-import bindObjectFunctions from './helpers/bind-functions';
 import { httpHandler } from './http';
 import { updateTabById } from './tabs';
 
@@ -36,8 +35,6 @@ export default background({
 
     utils.CliqzLanguage = language;
     this.dispatchMessage = this.dispatchMessage.bind(this);
-
-    bindObjectFunctions(this.actions, this);
 
     this.mm = new ProcessScriptManager(this.dispatchMessage);
     this.mm.init(this.app);
@@ -101,7 +98,42 @@ export default background({
       } else if (backgroundModule && backgroundModule.status) {
         return backgroundModule.status();
       }
+      // const status =
+      //   (windowModule && windowModule.status && windowModule.status()) ||
+      //   (backgroundModule && backgroundModule.status && backgroundModule.status());
+
+      // if (status) {
+      //   if (status instanceof Promise) {
+      //     return status.then(data => Object.assign(this.app.modules[module].status(), data));
+      //   }
+      //   return Object.assign(this.app.modules[module].status(), status);
+      // }
       return null;
+    });
+  },
+
+  callContentAction(action, url, ...args) {
+    const requestId = lastRequestId;
+    lastRequestId += 1;
+
+    this.mm.broadcast('cliqz:core', {
+      module: 'core',
+      action,
+      url,
+      args,
+      requestId
+    });
+
+    return new Promise((resolve, reject) => {
+      callbacks[requestId] = (attributeValues) => {
+        delete callbacks[requestId];
+        resolve(attributeValues);
+      };
+
+      setTimeout(() => {
+        delete callbacks[requestId];
+        reject(new Error(`${action} timeout`));
+      }, 1000);
     });
   },
 
@@ -286,15 +318,6 @@ export default background({
         language.addLocale(url, meta.lang);
       }
     },
-    openFeedbackPage() {
-      const window = utils.getWindow();
-      const tab = utils.openLink(
-        window,
-        utils.FEEDBACK_URL,
-        true
-      );
-      window.gBrowser.selectedTab = tab;
-    },
     enableModule(moduleName) {
       return this.app.enableModule(moduleName);
     },
@@ -305,52 +328,10 @@ export default background({
       utils.getWindow().resizeTo(width, height);
     },
     click(url, selector) {
-      const requestId = lastRequestId;
-      lastRequestId += 1;
-
-      this.mm.broadcast('cliqz:core', {
-        module: 'core',
-        action: 'click',
-        url,
-        args: [selector],
-        requestId
-      });
-
-      return new Promise((resolve, reject) => {
-        callbacks[requestId] = (attributeValues) => {
-          delete callbacks[requestId];
-          resolve(attributeValues);
-        };
-
-        setTimeout(() => {
-          delete callbacks[requestId];
-          reject(new Error('click timeout'));
-        }, 1000);
-      });
+      return this.callContentAction('click', url, selector);
     },
     queryHTML(url, selector, attribute, options = {}) {
-      const requestId = lastRequestId;
-      lastRequestId += 1;
-
-      this.mm.broadcast('cliqz:core', {
-        module: 'core',
-        action: 'queryHTML',
-        url,
-        args: [selector, attribute, options],
-        requestId
-      });
-
-      return new Promise((resolve, reject) => {
-        callbacks[requestId] = (attributeValues) => {
-          delete callbacks[requestId];
-          resolve(attributeValues);
-        };
-
-        setTimeout(() => {
-          delete callbacks[requestId];
-          reject(new Error('queryHTML timeout'));
-        }, 1000);
-      });
+      return this.callContentAction('queryHTML', url, selector, attribute, options);
     },
 
     getHTML(url, timeout = 1000) {
@@ -380,30 +361,10 @@ export default background({
 
     getCookie(url) {
       return getCookies(url)
-        .catch(() => {
-          const requestId = lastRequestId;
-          lastRequestId += 1;
-
-          this.mm.broadcast('cliqz:core', {
-            module: 'core',
-            action: 'getCookie',
-            url,
-            args: [],
-            requestId
-          });
-
-          return new Promise((resolve, reject) => {
-            callbacks[requestId] = (attributeValues) => {
-              delete callbacks[requestId];
-              resolve(attributeValues);
-            };
-
-            setTimeout(() => {
-              delete callbacks[requestId];
-              reject(new Error('getCookie timeout'));
-            }, 1000);
-          });
-        });
+        .catch(() => this.callContentAction('getCookie', url));
+    },
+    queryComputedStyle(url, selector) {
+      return this.callContentAction('queryComputedStyle', url, selector);
     },
     sendUserFeedback(data) {
       data._type = 'user_feedback';

@@ -35,6 +35,7 @@ function replaceFileExtension(filename) {
 function getBundlesTree(modulesTree) {
   const prefix = 'modules';
   const bundleFiles = cliqzConfig.bundles;
+  const platformName = cliqzConfig.platform;
   let allBundleFiles = [].concat(
     // modules
     cliqzConfig.modules.map((moduleName) => {
@@ -51,16 +52,34 @@ function getBundlesTree(modulesTree) {
     }).reduce((all, curr) => all.concat(curr), []),
 
     // platform
-    walk(path.join('platforms', cliqzConfig.platform), fileName => fileName.endsWith('.bundle.es')).map((bundlePath) => {
+    walk(path.join('platforms', platformName), fileName => fileName.endsWith('.bundle.es'))
+    .map((bundlePath) => {
       const bundlePathParts = bundlePath.split(path.sep)
       let bundleName = bundlePathParts[bundlePathParts.length-1];
       bundleName = replaceFileExtension(bundleName);
       saveBundleSourceMapPath(bundleName, bundlePath, 'http://localhost:4300/cliqz@cliqz.com/chrome/content/platform/');
 
       return 'platform/'+bundleName;
+    }),
+    // other platforms
+    walk(path.join('platforms'), fileName => fileName.endsWith('.bundle.es'))
+    .filter(p => p.split(path.sep)[0] !== platformName)
+    .map((bundlePath) => {
+      const bundlePathParts = bundlePath.split(path.sep)
+      let bundleName = bundlePathParts[bundlePathParts.length-1];
+      const platformName = bundlePathParts[1];
+
+      // remove "platforms"
+      bundlePathParts.shift();
+      // remove platform name
+      bundlePathParts.shift();
+
+      bundleName = replaceFileExtension(bundlePathParts.join('/'));
+      saveBundleSourceMapPath(bundleName, bundlePath, 'http://localhost:4300/cliqz@cliqz.com/chrome/content/platform-'+platformName+'/');
+
+      return 'platform-'+platformName+'/'+bundleName;
     })
   );
-
 
   let excludedBundleFiles;
 
@@ -112,7 +131,7 @@ function getBundlesTree(modulesTree) {
           '*/templates.js': {
             format: 'system',
           },
-        }
+        },
       },
     }, cliqzConfigSystem.packages || {}),
   };
@@ -138,6 +157,7 @@ function getBundlesTree(modulesTree) {
     }),
     {
       srcDir: prefix,
+      allowEmpty: true,
     }
   );
 

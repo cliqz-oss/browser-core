@@ -1,16 +1,6 @@
-const webExt = require('@cliqz-oss/web-ext');
+const webExt = require('web-ext').default;
 const path = require('path');
-
-const configFilePath = process.env.CLIQZ_CONFIG_PATH;
-const cliqzConfig = require(path.resolve(configFilePath));
-
-const OUTPUT_PATH = process.env.OUTPUT_PATH || './build';
-const FIREFOX_PATH = process.env.FIREFOX_PATH;
-const GREP = process.env.MOCHA_GREP || '';
-const sourceDir = cliqzConfig.platform === 'firefox'
-  ? path.resolve(OUTPUT_PATH, cliqzConfig.settings.id)
-  : path.resolve(OUTPUT_PATH);
-
+const getOptionsUrl = require('./test-options');
 
 const prefsFromTalos = {
   // From Talos project
@@ -123,25 +113,51 @@ exports.Browser = class FirefoxBrowser {
     this.firefox = null;
   }
 
-  async run() {
+  async run({
+    configFilePath = process.env.CLIQZ_CONFIG_PATH,
+    config,
+    outputPath = process.env.OUTPUT_PATH || './build',
+    firefoxPath = process.env.FIREFOX_PATH,
+    sourceDir,
+    firefoxKeepChanges = false,
+  } = {}) {
+    if (config === undefined) {
+      config = require(path.resolve(configFilePath));
+    }
+
+    if (sourceDir === undefined) {
+      sourceDir = config.platform === 'firefox'
+        ? path.resolve(outputPath, config.settings.id)
+        : path.resolve(outputPath);
+    }
+
     const options = {
-      firefox: FIREFOX_PATH,
+      firefox: firefoxPath,
       noReload: true,
       sourceDir,
       artifactsDir: sourceDir,
-      customPrefs: {
+      startUrl: getOptionsUrl(),
+      firefoxKeepChanges,
+      pref: {
         ...prefsFromTalos,
         'lightweightThemes.selectedThemeID': 'firefox-compact-light@mozilla.org',
         'browser.link.open_newwindow': 3,
-        'extensions.cliqz.integration-tests.grep': GREP,
         'extensions.cliqz.browserOnboarding': '3.0',
         'freshtab.tooltip.enabled': true,
+        'dom.min_background_timeout_value': 50,
         ...this.prefs,
       },
     };
-
-    const { firefox } = await webExt.run(options);
-    this.firefox = firefox;
+    const runner = await webExt.cmd.run(options, {
+      getValidatedManifest() {
+        return {
+          name: '',
+          version: '',
+        };
+      },
+    });
+    this.firefox = runner.firefox;
+    this.reloadAllExtensions = runner.reloadAllExtensions.bind(runner);
   }
 
   unload() {

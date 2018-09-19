@@ -2,8 +2,6 @@ import { chrome } from './globals';
 import { getUrlVariations } from '../core/url';
 
 export default {
-  init() {},
-
   removeFromHistory(urlToRemove, { strict } = { strict: true }) {
     const urls = strict ? [urlToRemove] : getUrlVariations(urlToRemove);
     return Promise.all(urls.map(url =>

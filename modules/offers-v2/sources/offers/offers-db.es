@@ -9,26 +9,20 @@ import OffersConfigs from '../offers_configs';
 import { timestampMS } from '../utils';
 import { buildCachedMap } from '../common/cached-map-ext';
 
-const STORAGE_DB_DOC_ID = 'offers-db';
-
-function isOfferExpired(offerData) {
-  // Only return true when `validity` is provided
-  try {
-    return offerData.ui_info.template_data.validity < Date.now() / 1000;
-  } catch (e) {
-    logger.debug('Missing validity', offerData);
-    return false;
-  }
-}
-
 /**
- * This class will be used to hold all the information related to offers locally.
- * Will be the index for:
- * - offers object stored locally (storage).
- * - Signals we want to track per offer (history).
- * - index to retrieve offers from campaigns and campaigns from offers, etc.
+ * The class OfferDB wraps a persistent collections of
+ * - offers to display, and
+ * - statistics (signals) for these offers.
  *
- * We will add a new interface for events to be propagated to registered callbacks:
+ * "Persistent" means that the collection survives browser restart.
+ * We store the collection in "indexed DB" browser store under the keys
+ * "chrome/offers-db-index" and "chrome/offers-db-display-index".
+ * Use Browser Toolbox to review the collection.
+ *
+ * "Offers to display" means that an offer has passed the filters and
+ * one or another real estate should display it unconditionally.
+ *
+ * Changes in the collection propagate to registered callbacks:
  * {
  *   evt: 'event',
  *   offer: {}
@@ -40,19 +34,24 @@ function isOfferExpired(offerData) {
  * - 'offer-removed'
  * - 'offers-db-loaded'
  *
+ * Issues
+ *
+ * OfferDB must be a singleton object.
+ *
+ * OfferDB relies on external code to manage what should be in the
+ * collection. In particular, OfferDB doesn't care if an offer should
+ * disappear.
+ *
  */
 class OfferDB {
-  constructor(db) {
-    this.tmpdb = db;
+  /**
+   * Asynchronously load the persistent collection and index it.
+   */
+  constructor() {
+    this._dbLoaded = false;
+
     this.offersIndexMap = buildCachedMap('offers-db-index', OffersConfigs.LOAD_OFFERS_STORAGE_DATA);
     this.displayIdIndexMap = buildCachedMap('offers-db-display-index', OffersConfigs.LOAD_OFFERS_STORAGE_DATA);
-
-    // load and clean
-    this._dbLoaded = false;
-    this._loadPersistentData().then(() => {
-      this._dbLoaded = true;
-      this._pushCallbackEvent('offers-db-loaded', {});
-    });
 
     // temporary mapping counter to know when to remove a display or not
     this.displayIDCounter = {};
@@ -61,14 +60,14 @@ class OfferDB {
     // campaign id: campaign_id -> Set(offersIDs)
     this.campaignToOffersMap = {};
 
-    // map from client to offers
-    this.clientToOffersMap = new Map();
-
-    // map from offer type => set(offersIDs)
-    this.typesToOffersMap = new Map();
-
     // callbacks list
     this.callbacks = new Map();
+
+    // load
+    this._loadPersistentData().then(() => {
+      this._dbLoaded = true;
+      this._pushCallbackEvent('offers-db-loaded', {});
+    });
   }
 
   registerCallback(cb) {
@@ -239,9 +238,12 @@ class OfferDB {
    * will update an offer object.
    * @param  {[type]} offerID   [description]
    * @param  {[type]} offerData [description]
+   * @param {boolean} retainAbTestInfo  Used and explained in
+   *   offers/jobs/db-replacer.es, search by EX-7894
    * @return {boolean} true on success | false otherwise
+   * If the offer was removed before, it becomes present again.
    */
-  updateOfferObject(offerID, offerData) {
+  updateOfferObject(offerID, offerData, retainAbTestInfo = false) {
     const container = this.offersIndexMap.get(offerID);
     if (!container) {
       logger.warn(`updateOfferObject: the offer with ID: ${offerID} is not present`);
@@ -253,6 +255,7 @@ class OfferDB {
       return false;
     }
 
+    let origAbTestInfo;
     if (container.offer_obj) {
       // check if we have an old object here
       const localOffer = container.offer_obj;
@@ -262,7 +265,9 @@ class OfferDB {
         return false;
       }
 
-      // we need to check if it is nescesary to migrate the values of the
+      origAbTestInfo = localOffer.abTestInfo;
+
+      // we need to check if it is necessary to migrate the values of the
       // old display id to the new if they have different ones
       if (offerData.display_id !== localOffer.display_id) {
         // migrate old to new
@@ -271,6 +276,15 @@ class OfferDB {
     }
     // it is ok, we update the data
     container.offer_obj = JSON.parse(JSON.stringify(offerData));
+    if (retainAbTestInfo) {
+      const o1 = container.offer_obj.abTestInfo || {};
+      const o2 = origAbTestInfo || {};
+      if ((o1.start !== o2.start) || (o1.end !== o2.end)) {
+        logger.info(`updateOfferObject: retain abTestInfo for offer "${offerID}":`,
+          origAbTestInfo, ', reject:', o1);
+        container.offer_obj.abTestInfo = origAbTestInfo;
+      }
+    }
     container.removed = false;
 
     // update timestamp
@@ -479,6 +493,20 @@ class OfferDB {
   }
 
   /**
+   * @param {Offer} offer  An Offer object is used instead of offerID
+   *     because we need campaignID, which we don't have in the database
+   *     for yet unseen offers.
+   */
+  hasAnotherOfferOfSameCampaign(offer) {
+    const offerID = offer.uniqueID;
+    const campaignID = offer.campaignID;
+    const campaignOffers = this.getCampaignOffers(campaignID);
+    return campaignOffers
+      ? [...campaignOffers].some(id => offerID !== id)
+      : false;
+  }
+
+  /**
    * this method will check on the given set of offers ids which is the offer
    * that was latest updated and still on the DB (i/e not removed).
    * @param  {[type]} offersIDsSet [description]
@@ -593,25 +621,6 @@ class OfferDB {
     return result;
   }
 
-  /**
-   * will return all the list of offers for a given client we have
-   */
-  getClientOffers(clientID) {
-    return this.clientToOffersMap.has(clientID) ?
-      this.clientToOffersMap.get(clientID) :
-      null;
-  }
-
-  /**
-   * This method will return all the offers ids we have (set) for a given
-   * offer type. If none => null is returned
-   */
-  getOffersByType(type) {
-    return this.typesToOffersMap.has(type) ?
-      this.typesToOffersMap.get(type) :
-      null;
-  }
-
   // ---------------------------------------------------------------------------
   // The "private" methods will go here
   // ---------------------------------------------------------------------------
@@ -650,10 +659,17 @@ class OfferDB {
         !offerData.campaign_id) {
       return false;
     }
-    if (isOfferExpired(offerData)) {
+    return !this._isOfferExpired(offerData);
+  }
+
+  _isOfferExpired(offerData) {
+    // Only return true when `validity` is provided
+    try {
+      return offerData.ui_info.template_data.validity < Date.now() / 1000;
+    } catch (e) {
+      logger.debug('Missing validity', offerData);
       return false;
     }
-    return true;
   }
 
   /**
@@ -683,38 +699,6 @@ class OfferDB {
   }
 
   /**
-   * will remove old entries from the main index
-   * @return {[type]} [description]
-   */
-  _removeOldEntries() {
-    const now = timestampMS();
-    const expTimeMs = OffersConfigs.OFFERS_STORAGE_DEFAULT_TTS_SECS * 1000;
-    const validDisplayIds = new Set();
-    this.offersIndexMap.keys().forEach((offerID) => {
-      const cont = this.offersIndexMap.get(offerID);
-      // check delta
-      const delta = now - cont.l_u_ts;
-      if (delta >= expTimeMs) {
-        // we need to remove this.
-        logger.info(`_removeOldEntries: removing old offer ${offerID} with delta time: ${delta}`);
-        this._removeIndexTablesForOffer(offerID);
-        this.offersIndexMap.delete(offerID);
-      } else {
-        validDisplayIds.add(cont.offer_obj.display_id);
-      }
-    });
-
-    // EX-7208: check if there are displayID elements that should not be here
-    // which can happen if we port from old display-id to the new one
-    this.displayIdIndexMap.keys().forEach((displayID) => {
-      if (!validDisplayIds.has(displayID)) {
-        // we need to remove this one
-        this.displayIdIndexMap.delete(displayID);
-      }
-    });
-  }
-
-  /**
    * will add all the needed mappings on the tables for a particular offerID.
    * The offer should be added into the main index before calling this method.
    * @param  {[type]} offerID [description]
@@ -737,8 +721,6 @@ class OfferDB {
     }
 
     this._addOfferInCampaignMap(container.offer_obj);
-    this._addOfferInClientMap(container.offer_obj);
-    this._addOfferInTypeMap(container.offer_obj);
 
     return true;
   }
@@ -776,8 +758,6 @@ class OfferDB {
       this.displayIdIndexMap.delete(displayID);
     }
     this._removeOfferInCampaignMap(container.offer_obj);
-    this._removeOfferInClientMap(container.offer_obj);
-    this._removeOfferInTypeMap(container.offer_obj);
 
     return true;
   }
@@ -811,45 +791,6 @@ class OfferDB {
     cset.delete(offer.offer_id);
   }
 
-  _addOfferInClientMap(offer) {
-    if (!offer || !offer.client_id) {
-      return;
-    }
-    if (!this.clientToOffersMap.has(offer.client_id)) {
-      this.clientToOffersMap.set(offer.client_id, new Set());
-    }
-    this.clientToOffersMap.get(offer.client_id).add(offer.offer_id);
-  }
-
-  _removeOfferInClientMap(offer) {
-    if (this.clientToOffersMap.has(offer.client_id)) {
-      this.clientToOffersMap.get(offer.client_id).delete(offer.offer_id);
-    }
-  }
-
-  _addOfferInTypeMap(offer) {
-    if (!offer.types || offer.types.length === 0) {
-      return;
-    }
-    offer.types.forEach((ot) => {
-      if (!this.typesToOffersMap.has(ot)) {
-        this.typesToOffersMap.set(ot, new Set());
-      }
-      this.typesToOffersMap.get(ot).add(offer.offer_id);
-    });
-  }
-
-  _removeOfferInTypeMap(offer) {
-    if (!offer.types || offer.types.length === 0) {
-      return;
-    }
-    offer.types.forEach((ot) => {
-      if (this.typesToOffersMap.has(ot)) {
-        this.typesToOffersMap.get(ot).delete(offer.offer_id);
-      }
-    });
-  }
-
   _pushCallbackEvent(evt, offerContainer, extraData = undefined) {
     const msgToSend = {
       evt,
@@ -866,74 +807,14 @@ class OfferDB {
     if (!OffersConfigs.LOAD_OFFERS_STORAGE_DATA) {
       return Promise.resolve(true);
     }
-    return Promise.all([
-      this.offersIndexMap.init(),
-      this.displayIdIndexMap.init(),
-    ]).then(() =>
-      // load old data if any, we will remove this code in the future updates
-      this._portOldOffersIfAny().then(() => {
-        // remove old entries
-        this._removeOldEntries();
-
-        // build tables
+    return Promise
+      .all([
+        this.offersIndexMap.init(),
+        this.displayIdIndexMap.init(),
+      ])
+      .then(() => {
         this._buildIndexTables();
-
-        // emit the event
-        return Promise.resolve(true);
-      })
-    );
-  }
-
-  // ///////////////////////////////////////////////////////////////////////////
-  // THIS CODE SHOULD BE REMOVED LATER
-  // ///////////////////////////////////////////////////////////////////////////
-  //
-
-  /**
-   * this method will port all the old DB into the new one
-   * @return {[type]} [description]
-   */
-  _portOldOffersIfAny() {
-    if (!this.tmpdb) {
-      return Promise.resolve(true);
-    }
-
-    // we will define here the functions to perform on the DB that we used on the past
-    const get = (db, docID) => db.get(docID).then(doc => (doc.doc_data)).catch(() => null);
-
-    const remove = (db, docID) =>
-      // https://pouchdb.com/api.html#delete_document
-      db.get(docID)
-        .then(doc => db.remove(doc))
-        .catch((err) => {
-          // nothing to do there
-          if (err && err.status && err.status !== 404) {
-            logger.error(`removing old offers-db ${docID} - err:`, err);
-          } else {
-            logger.log(`missing DB entry for docID ${docID}`);
-          }
-        });
-    return get(this.tmpdb, STORAGE_DB_DOC_ID).then((docData) => {
-      if (!docData || !docData.data_index) {
-        return Promise.resolve(true);
-      }
-      // set the data
-      const dataIndex = docData.data_index;
-      Object.keys(dataIndex.offers_index).forEach((offerID) => {
-        if (!this.offersIndexMap.has(offerID)) {
-          this.offersIndexMap.set(offerID, dataIndex.offers_index[offerID]);
-        }
       });
-      Object.keys(dataIndex.display_id_index).forEach((displayID) => {
-        if (!this.displayIdIndexMap.has(displayID)) {
-          this.displayIdIndexMap.set(displayID, dataIndex.display_id_index[displayID]);
-        }
-      });
-
-
-      // remove this entry from the DB
-      return remove(this.tmpdb, STORAGE_DB_DOC_ID);
-    }).catch(() => Promise.resolve(true));
   }
 }
 

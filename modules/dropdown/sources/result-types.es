@@ -23,5 +23,8 @@ export const MOVIE_INFO_RESULT = 'movieInfo';
 /** @constant {string} News links */
 export const NEWS_RESULT = 'news';
 
+/** @constant {string} Breaking News links */
+export const BREAKING_NEWS_RESULT = 'breaking_news';
+
 /** @constant {string} Social media links */
 export const SOCIAL_RESULT = 'social';

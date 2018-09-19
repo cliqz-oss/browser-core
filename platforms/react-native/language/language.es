@@ -4,6 +4,8 @@ const LocaleConstants = NativeModules.LocaleConstants;
 const defaultLocale = 'en';
 
 export default {
+  init() {},
+  unload() {},
 
   lang: LocaleConstants ? LocaleConstants.lang : defaultLocale,
 

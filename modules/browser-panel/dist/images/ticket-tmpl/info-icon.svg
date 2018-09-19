@@ -1,9 +1,12 @@
-<svg class="infobutton" data-tooltip-content="#explicit-tooltip" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <defs></defs>
-  <g id="Group-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(1829.000000, 359.000000)">
-    <ellipse id="Oval-2" fill="#DADADA" cx="7.56817127" cy="7.39375789" rx="7" ry="7"></ellipse>
-    <text id="i-copy" font-family="AmericanTypewriter-Bold, American Typewriter" font-size="11.2" font-weight="bold" fill="#FFFFFF">
-      <tspan x="5.50934774" y="11.3937579">i</tspan>
-    </text>
-  </g>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="14px" height="14px" viewBox="0 0 14 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
+    <title>i-icon</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="i-icon" fill="#ADB8C2" fill-rule="nonzero">
+            <path d="M7.41159742,13.3 C3.82174655,13.3 0.91159742,10.3898508 0.91159742,6.79999995 C0.91159742,3.21014908 3.82174655,0.299999952 7.41159742,0.299999952 C11.0014483,0.299999952 13.9115974,3.21014908 13.9115974,6.79999995 C13.9115974,10.3898508 11.0014483,13.3 7.41159742,13.3 Z M7.4383121,6 C6.86486821,6 6.4000001,6.46486812 6.4000001,7.038312 L6.4000001,9.54064392 C6.4000001,10.1140878 6.86486821,10.5789559 7.4383121,10.5789559 C8.01175598,10.5789559 8.4766241,10.1140878 8.4766241,9.54064392 L8.4766241,7.038312 C8.4766241,6.46486812 8.01175598,6 7.4383121,6 Z M7.4383121,3 C6.86486821,3 6.4000001,3.46486812 6.4000001,4.038312 C6.4000001,4.61175588 6.86486821,5.076624 7.4383121,5.076624 C8.01175598,5.076624 8.4766241,4.61175588 8.4766241,4.038312 C8.4766241,3.46486812 8.01175598,3 7.4383121,3 Z" id="Combined-Shape"></path>
+        </g>
+    </g>
 </svg>

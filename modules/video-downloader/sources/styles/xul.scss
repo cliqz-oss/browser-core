@@ -12,6 +12,10 @@
   100% { opacity: 0.6; background-color: transparent; }
 }
 
+#navigator-toolbox[on_private_tab="true"] #nav-bar #urlbar #video-downloader-page-action:-moz-lwtheme {
+        background-image: url-prefix('video-downloader/images/video-downloader.svg');
+}
+
 #nav-bar #urlbar {
     #video-downloader-page-action {
         margin: 0;
@@ -37,6 +41,10 @@
             background-color: hsla(0, 0%, 80%, 0.6);
         }
     }
+}
+
+#video-downloader-panel .panel-subview-body {
+    padding: 0;
 }
 
 /*

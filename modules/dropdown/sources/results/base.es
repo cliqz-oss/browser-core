@@ -182,7 +182,7 @@ export default class BaseResult {
   }
 
   get isHistory() {
-    return this.kind[0] === 'H';
+    return this.kind.find(k => k === 'H');
   }
 
   get isDeletable() {
@@ -239,7 +239,7 @@ export default class BaseResult {
    * Lifecycle hook
    */
   didRender(...args) {
-    const allButThisResult = this.allResults.slice(1);
+    const allButThisResult = this.allResults.filter(r => !r.isUrlMatch(this.url));
     allButThisResult.forEach(result => result.didRender(...args));
   }
 }

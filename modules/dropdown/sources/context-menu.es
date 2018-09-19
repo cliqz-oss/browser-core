@@ -7,6 +7,7 @@ import { dropdownContextMenuSignal } from './telemetry';
 import config from '../core/config';
 import { copyToClipboard } from '../core/clipboard';
 import { getMessage } from '../core/i18n';
+import { isGhosteryBrowser, isCliqzBrowser } from '../core/platform';
 
 function reportClick(window, result, { isNewTab, isNewWindow, isPrivateWindow }) {
   events.pub('ui:click-on-url', {
@@ -53,9 +54,11 @@ export default class ContextMenu {
       NEW_TAB: getMessage('cMenuOpenInNewTab'),
       NEW_PRIVATE_TAB: getMessage('cMenuOpenInNewPrivateTab', getMessage('private')),
       NEW_FORGET_TAB: getMessage('cMenuOpenInNewPrivateTab', getMessage('forget')),
+      NEW_GHOST_TAB: getMessage('cMenuOpenInNewPrivateTab', getMessage('ghost')),
       NEW_WINDOW: getMessage('cMenuOpenInNewWindow'),
       NEW_PRIVATE_WINDOW: getMessage('cMenuOpenInPrivateWindow', getMessage('private')),
       NEW_FORGET_WINDOW: getMessage('cMenuOpenInPrivateWindow', getMessage('forget')),
+      NEW_GHOST_WINDOW: getMessage('cMenuOpenInPrivateWindow', getMessage('ghost')),
       COPY_URL: getMessage('cMenuCopyLinkLocation'),
       REMOVE_FROM_HISTORY: getMessage('cMenuRemoveFromHistory'),
       REMOVE_FROM_HISTORY_BOOKMARKS_AND_CLOSE: getMessage('cMenuRemoveFromHistoryAndBookmarksAndCloseTab'),
@@ -71,8 +74,13 @@ export default class ContextMenu {
     const labels = this.labels;
     const openedTabs = getTabsWithUrl(this.window, url);
     const isOpened = !!openedTabs.length;
-    const isCliqzBrowser = config.settings.channel === '40';
-    const PRIVATE_NAME = isCliqzBrowser ? 'FORGET' : 'PRIVATE';
+    let PRIVATE_NAME = 'PRIVATE';
+
+    if (isCliqzBrowser) {
+      PRIVATE_NAME = 'FORGET';
+    } else if (isGhosteryBrowser) {
+      PRIVATE_NAME = 'GHOST';
+    }
 
     let REMOVE_ENTRY_LABEL = labels.REMOVE_FROM_HISTORY;
     if (isBookmarked && isOpened) {

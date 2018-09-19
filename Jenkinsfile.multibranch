@@ -47,7 +47,13 @@ def matrix = [
 
 if (env.BRANCH_NAME.startsWith('v9.')) {
     matrix['cliqz-tab'] = [
-        'config': 'releases/webextension.js',
+        'config': 'releases/cliqz-tab-chrome.js',
+    ]
+}
+
+if (env.BRANCH_NAME.startsWith('v10.')) {
+    matrix['ghostery-tab'] = [
+        'config': 'releases/ghostery-tab-chrome.js',
     ]
 }
 
@@ -63,7 +69,10 @@ if (isIntegrationBranch) {
       'cert_pass_credentials_id': '9983e1f3-9c73-42e7-8036-3b34a592dd52',
     ]
     matrix['cliqz-tab-beta'] = [
-        'config': 'webextension.js',
+        'config': 'cliqz-tab.js',
+    ]
+    matrix['ghostery-tab-beta'] = [
+        'config': 'ghostery-tab.js',
     ]
 }
 
@@ -106,11 +115,13 @@ node('master') {
     codeImageName = "navigation-extension/code:${triggeringCommitHash}";
 
     stage('docker build base') {
-        ansiColor('xterm') {
-            docker.build(
-                baseImageName,
-                '--build-arg UID=`id -u` --build-arg GID=`id -g` -f Dockerfile.publish .',
-            )
+        timeout(30) {
+            ansiColor('xterm') {
+                docker.build(
+                    baseImageName,
+                    '--build-arg UID=`id -u` --build-arg GID=`id -g` -f Dockerfile.publish .',
+                )
+            }
         }
     }
 
@@ -277,27 +288,6 @@ stage('update jira') {
                     }
                 } catch (Error e) {
                     echo e
-                }
-            }
-        }
-    }
-}
-
-stage('upload docs') {
-    if (isIntegrationBranch) {
-        node('master') {
-            docker.image(codeImageName).inside() {
-                sh 'cd /app && npm run doc'
-
-                withCredentials([[
-                    $class: 'UsernamePasswordMultiBinding',
-                    credentialsId: '06ec4a34-9d01-46df-9ff8-64c79eda8b14',
-                    passwordVariable: 'AWS_SECRET_ACCESS_KEY',
-                    usernameVariable: 'AWS_ACCESS_KEY_ID',
-                ]]) {
-                    def s3DocPath = 's3://internal.clyqz.com/docs/browser-core'
-
-                    sh "cd /app/docs && aws s3 sync . $s3DocPath --delete"
                 }
             }
         }

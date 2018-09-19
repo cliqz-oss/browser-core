@@ -1,0 +1,116 @@
+.searchbox {
+  &-results {
+    &-layout {
+      padding: 20px 0 0 100px;
+    }
+
+    &-section {
+      white-space: normal;
+      max-width: 673px;
+      padding-left: 65px;
+      box-sizing: border-box;
+    }
+
+    &-from-cliqz {
+      margin-top: 14px;
+      margin-bottom: 26px;
+      color: #868686;
+      font-size: 13px;
+    }
+
+    &-empty {
+      line-height: 1.5em;
+      font-size: 16px;
+      color: #414141;
+      margin-top: 60px;
+
+      &-link {
+        outline: 0;
+        text-decoration: none;
+        line-height: 1.8em;
+        font-size: 13px;
+        font-weight: 500;
+        color: #1322ab;
+        padding: 0 5px;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      &-list {
+        margin-top: 40px;
+      }
+    }
+
+    &-item {
+      margin-bottom: 32px;
+      overflow: hidden;
+
+      &-title {
+        font-size: 18px;
+        color: #1a0ea9;
+        line-height: 1.1;
+        letter-spacing: -0.1px;
+        text-decoration: none;
+        outline: 0;
+
+        &:hover {
+          text-decoration: underline;
+        }
+
+        &:visited {
+          color: #59009c;
+        }
+      }
+
+      &-logo {
+        position: absolute;
+        width: 15px;
+        height: 14px;
+        color: #fff;
+        text-indent: -100em;
+        margin-left: -25px;
+        font-size: 10.5px;
+        font-family: Courier;
+        text-transform: capitalize;
+        padding: 4px 0px 0px 3px;
+        border-radius: 2px;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: 14px;
+      }
+
+      &-url {
+        font-size: 14px;
+        color: #007426;
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      &-description {
+        font-size: 13.2px;
+        color: #5a5a5a;
+        position: relative;
+        word-wrap: break-word;
+        font-weight: 400;
+        padding-top: 1px;
+        overflow: hidden;
+
+        // Here we need to limit
+        // a height of this block
+        // strictly to 3 line-height
+        // values, that is 3 lines.
+        max-height: 3.75em;
+        line-height: 1.25em;
+
+        &-invisible {
+          visibility: hidden;
+        }
+      }
+    }
+  }
+}

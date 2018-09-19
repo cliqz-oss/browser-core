@@ -6,14 +6,17 @@
         "name": "get",
         "type": "function",
         "description": "Retrieves an app constant",
-        "async": true,
         "parameters": [
           {
             "type": "string",
             "name": "key",
-            "description": "constant key"
+            "description": "Constant key"
           }
-        ]
+        ],
+        "returns": {
+          "type": "string",
+          "description": "Constant value"
+        }
       }
     ]
   }

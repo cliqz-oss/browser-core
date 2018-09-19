@@ -38,7 +38,6 @@ report.xml
 subprojects/**/dist
 /docs
 mocha.log
-/guides/build_docs
 chromedriver
 results.xml
 jsengine.bundle.js

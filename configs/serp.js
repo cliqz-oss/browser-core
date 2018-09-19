@@ -1,5 +1,5 @@
 
-const urls = require('./common/urls');
+const urls = require('./common/urls-cliqz');
 const base = require('./common/system');
 const subprojects = require('./common/subprojects/bundles');
 
@@ -13,7 +13,7 @@ module.exports = {
     RESULTS_PROVIDER: 'https://api.cliqz.com/api/v2/results?serp_search=1&q=',
     'search.config.operators.limit.limits.cliqz': 20,
     'search.config.providers.cliqz.count': 30,
-    'search.config.providers.cliqz.jsonpCallback': 'results',
+    'search.config.providers.cliqz.jsonp': true,
     'search.config.providers.instant.isEnabled': false,
     'search.config.operators.streams.waitForAllProviders': true,
   }),

@@ -27,10 +27,11 @@ export default {
 
     const urlbar = this.urlbar;
     const mInputField = urlbar.mInputField;
-    const hasCompletion = mInputField.selectionEnd !== mInputField.selectionStart;
+    const hasSelection = mInputField.selectionEnd !== mInputField.selectionStart;
 
     if (
-      hasCompletion &&
+      hasSelection &&
+      this.window.CLIQZ.UI.renderer.hasAutocompleted &&
       mInputField.value[mInputField.selectionStart] === String.fromCharCode(ev.charCode)
     ) {
       let query = urlbar.value;
@@ -157,14 +158,6 @@ export default {
     });
   },
 
-  keyup(ev) {
-    events.pub('urlbar:keyup', {
-      windowId: this.windowId,
-      tabId: getCurrentTabId(this.window),
-      code: ev.code,
-    });
-  },
-
   keydown(ev) {
     lastEvent.set(this.window, ev);
     let cancel;
@@ -194,7 +187,7 @@ export default {
   paste(ev) {
     lastEvent.set(this.window, ev);
     // wait for the value to change
-    this.window.setTimeout(() => {
+    nextTick(() => {
       // ensure the lastSearch value is always correct
       // although paste event has 1 second throttle time.
       utils.telemetry({

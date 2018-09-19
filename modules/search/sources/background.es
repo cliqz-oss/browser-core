@@ -41,7 +41,6 @@ import AdultAssistant from './assistants/adult';
 import LocationAssistant from './assistants/location';
 import * as offersAssistant from './assistants/offers';
 import settingsAssistant from './assistants/settings';
-
 import pluckResults from './operators/streams/pluck-results';
 
 /**
@@ -351,11 +350,16 @@ export default background({
       prefs.set('suggestionsEnabled', enabled);
     },
 
-    adultAction(actionName) {
+    async adultAction(actionName, query, sender) {
       if (this.adultAssistant.hasAction(actionName)) {
-        return this.adultAssistant[actionName]();
+        await this.adultAssistant[actionName]();
+        await this.actions.startSearch(query, {
+          allowEmptyQuery: false,
+          isPasted: false,
+          isPrivate: false,
+          isTyped: true,
+        }, sender);
       }
-      return Promise.resolve();
     },
 
     async locationAction(actionName, query, rawResult) {

@@ -1,14 +1,12 @@
 @import 'shared';
 
-$cliqz-blue: #0078CA;
-
 :root {
     /* Override global variables */
     --tabs-top-border-width: 0;
 
     /* Override light theme variables */
     &:-moz-lwtheme-darktext {
-        --chrome-background-color: $inactive-tab-color; // Background for menu toolbar (Windows only)
+        --chrome-background-color: #{$inactive-tab-color}; // Background for menu toolbar (Windows only)
     }
 }
 

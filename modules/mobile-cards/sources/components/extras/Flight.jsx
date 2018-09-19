@@ -185,7 +185,11 @@ export default class Flight extends React.Component {
 
   displayTitle() {
     return (
-      <View style={styles.container}>
+      <View
+        accessible={false}
+        accessibilityLabel={'flight-title'}
+        style={styles.container}
+      >
         <Text style={styles.title}>
           { this.props.data.flight_name }
         </Text>
@@ -196,7 +200,11 @@ export default class Flight extends React.Component {
   displayUpdatedSince() {
     if (this.cancelled) {
       return (
-        <View style={{ marginTop: 10, backgroundColor: this.statusColor }}>
+        <View
+          accessible={false}
+          accessibilityLabel={'flight-updated'}
+          style={{ marginTop: 10, backgroundColor: this.statusColor }}
+        >
           <Text style={styles.bannerText}>{ getMessage('mobile_flight_no_updates') }</Text>
         </View>
       );
@@ -206,7 +214,11 @@ export default class Flight extends React.Component {
       return null;
     }
     return (
-      <View style={styles.container}>
+      <View
+        accessible={false}
+        accessibilityLabel={'flight-updated'}
+        style={styles.container}
+      >
         <Text style={{ color: colors.lightGrey }}>
           { getMessage('updated') } { agoDuration(updatedSince)}
         </Text>
@@ -222,12 +234,20 @@ export default class Flight extends React.Component {
     const actualDecoration = this.cancelled ? 'line-through' : 'none';
     return (
       <View style={styles.statusContainer}>
-        <View style={[styles.status, { backgroundColor: statusColor }]}>
+        <View
+          accessible={false}
+          accessibilityLabel={'flight-status'}
+          style={[styles.status, { backgroundColor: statusColor }]}
+        >
           <Text style={{ color: 'white', fontSize: 12 }}>
             { status }
           </Text>
         </View>
-        <View style={styles.status}>
+        <View
+          accessible={false}
+          accessibilityLabel={'flight-actual-time-small'}
+          style={styles.status}
+        >
           <Text style={timeStyle(colors.grey, scheduledDecoration).status}>
             { this.departure.scheduledTime } &#8594; { this.arrival.scheduledTime }
           </Text>
@@ -235,7 +255,11 @@ export default class Flight extends React.Component {
         {
           !this.onSchedule
           &&
-          <View style={styles.status}>
+          <View
+            accessible={false}
+            accessibilityLabel={'flight-estimated-time-small'}
+            style={styles.status}
+          >
             <Text style={timeStyle(statusColor, actualDecoration).status}>
               { this.departure.actualTime } &#8594; { this.arrival.actualTime }
             </Text>
@@ -252,7 +276,11 @@ export default class Flight extends React.Component {
     const remaining = 100 - progress;
     return (
       <View style={styles.routeContainer}>
-        <View style={{ flex: 1 }}>
+        <View
+          accessible={false}
+          accessibilityLabel={'flight-depart-city'}
+          style={{ flex: 1 }}
+        >
           <Text style={styles.routeCity}>
             {this.departure.locationShortcut}
           </Text>
@@ -263,14 +291,23 @@ export default class Flight extends React.Component {
             &&
             <View style={{ backgroundColor: statusColor, height: 1, flex: progress }} />
           }
-          <NativeDrawable source={this.planeIcon} style={{ height: 20, width: 20 }} />
+          <View
+            accessible={false}
+            accessibilityLabel={'flight-plane-icon'}
+          >
+            <NativeDrawable source={this.planeIcon} style={{ height: 20, width: 20 }} />
+          </View>
           {
             Boolean(remaining)
             &&
             <View style={{ backgroundColor: colors.blackish, height: 1, flex: remaining }} />
           }
         </View>
-        <View style={{ flex: 1 }}>
+        <View
+          accessible={false}
+          accessibilityLabel={'flight-arrival-city'}
+          style={{ flex: 1 }}
+        >
           <Text style={[styles.routeCity, { textAlign: 'right' }]}>
             {this.arrival.locationShortcut}
           </Text>
@@ -287,17 +324,35 @@ export default class Flight extends React.Component {
     const actualDecoration = this.cancelled ? 'line-through' : 'none';
     return (
       <View style={styles.container}>
-        <Text style={{ color: colors.blackish }}>{ data.locationName } { data.scheduledDate }</Text>
+        <Text
+          accessible={false}
+          accessibilityLabel={'flight-city-and-date'}
+          style={{ color: colors.blackish }}
+        >
+          {data.locationName} {data.scheduledDate}
+        </Text>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <View style={{ flex: 5 }}>
+          <View
+            accessible={false}
+            accessibilityLabel={'flight-direction-time-label'}
+            style={{ flex: 5 }}
+          >
             <Text style={{ color: colors.lightGrey }}>
               { getMessage(data.scheduledMessage) }
             </Text>
           </View>
-          <View style={{ flex: 3 }}>
+          <View
+            accessible={false}
+            accessibilityLabel={'flight-terminal-label'}
+            style={{ flex: 3 }}
+          >
             <Text style={{ color: colors.lightGrey }}>Terminal</Text>
           </View>
-          <View style={{ flex: 2 }}>
+          <View
+            accessible={false}
+            accessibilityLabel={'flight-gate-label'}
+            style={{ flex: 2 }}
+          >
             <Text style={{ color: colors.lightGrey }}>
               { getMessage('mobile_flight_gate') }
             </Text>
@@ -305,19 +360,37 @@ export default class Flight extends React.Component {
         </View>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
           <View style={{ flex: 5, flexDirection: 'row' }}>
-            <Text style={timeStyle(colors.black, scheduledDecoration).time}>
-              { data.scheduledTime }
-            </Text>
+            <View
+              accessible={false}
+              accessibilityLabel={'flight-scheduled-time-big'}
+            >
+              <Text style={timeStyle(colors.black, scheduledDecoration).time}>
+                { data.scheduledTime }
+              </Text>
+            </View>
             {
               onSchedule
               ||
-              <Text style={timeStyle(actualColor, actualDecoration).time}>{ data.actualTime }</Text>
+              <View
+                accessible={false}
+                accessibilityLabel={'flight-actual-time-big'}
+              >
+                <Text style={timeStyle(actualColor, actualDecoration).time}>{data.actualTime}</Text>
+              </View>
             }
           </View>
-          <View style={{ flex: 3 }}>
+          <View
+            accessible={false}
+            accessibilityLabel={'flight-terminal'}
+            style={{ flex: 3 }}
+          >
             <Text style={{ color: colors.blackish, fontSize: 20 }}>{ data.terminal }</Text>
           </View>
-          <View style={{ flex: 2 }}>
+          <View
+            accessible={false}
+            accessibilityLabel={'flight-gate'}
+            style={{ flex: 2 }}
+          >
             <Text style={{ color: colors.blackish, fontSize: 20 }}>{ data.gate }</Text>
           </View>
         </View>

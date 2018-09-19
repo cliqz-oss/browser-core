@@ -3,12 +3,13 @@ import {
   expect,
 } from '../../core/test-helpers';
 import {
+  allNewsLanguages,
   defaultConfig,
   generateNewsResponse,
   Subject,
 } from '../../core/test-helpers-freshtab';
 
-describe('Fresh tab news UI', function () {
+describe('Freshtab news UI', function () {
   const newsResponse = generateNewsResponse();
   const newsAreaSelector = '#section-news';
   let subject;
@@ -53,17 +54,13 @@ describe('Fresh tab news UI', function () {
       });
 
       it('has all the expected selectors', function () {
-        expect(subject.getNewsDeLanguage()).to.exist;
-        expect(subject.getNewsDeTrEnLanguage()).to.exist;
-        expect(subject.getNewsFrLanguage()).to.exist;
-        expect(subject.getNewsIntlLanguage()).to.exist;
-        expect(subject.getNewsUsLanguage()).to.exist;
-        expect(subject.getNewsGbLanguage()).to.exist;
-        expect(subject.getNewsEsLanguage()).to.exist;
+        allNewsLanguages.forEach((lang) => {
+          expect(subject.getNews(lang)).to.exist;
+        });
       });
 
       it('has no extra elements (selectors)', function () {
-        expect(subject.queryAll('.radio')).to.have.lengthOf(7);
+        expect(subject.queryAll('.radio')).to.have.lengthOf(8);
       });
     });
 
@@ -90,171 +87,26 @@ describe('Fresh tab news UI', function () {
       });
     });
 
-    describe('when set to use German sources', function () {
-      before(function () {
-        const configNewsDe = clone(defaultConfig);
-        configNewsDe.response.componentsState.news.visible = true;
-        configNewsDe.response.componentsState.news.preferedCountry = 'de';
-        subject.respondsWith(configNewsDe);
-        return subject.load({ iframeWidth: 1025 });
-      });
+    allNewsLanguages.forEach((lang) => {
+      describe(`when set to use ${lang.toUpperCase()} sources`, function () {
+        before(function () {
+          const configNewsDe = clone(defaultConfig);
+          configNewsDe.response.componentsState.news.visible = true;
+          configNewsDe.response.componentsState.news.preferedCountry = lang;
+          subject.respondsWith(configNewsDe);
+          return subject.load({ iframeWidth: 1025 });
+        });
 
-      after(function () {
-        subject.unload();
-      });
+        after(function () {
+          subject.unload();
+        });
 
-      it('has the German option selected', function () {
-        expect(subject.getNewsDeLanguage()).to.have.property('checked', true);
-        expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsFrLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsIntlLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
-      });
-    });
-
-    describe('when set to use German sources translated into English', function () {
-      before(function () {
-        const configNewsDe = clone(defaultConfig);
-        configNewsDe.response.componentsState.news.visible = true;
-        configNewsDe.response.componentsState.news.preferedCountry = 'de-tr-en';
-        subject.respondsWith(configNewsDe);
-        return subject.load({ iframeWidth: 1025 });
-      });
-
-      after(function () {
-        subject.unload();
-      });
-
-      it('has the German translated option selected', function () {
-        expect(subject.getNewsDeLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', true);
-        expect(subject.getNewsFrLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsIntlLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
-      });
-    });
-
-    describe('when set to use French sources', function () {
-      before(function () {
-        const configNewsFr = clone(defaultConfig);
-        configNewsFr.response.componentsState.news.visible = true;
-        configNewsFr.response.componentsState.news.preferedCountry = 'fr';
-        subject.respondsWith(configNewsFr);
-        return subject.load({ iframeWidth: 1025 });
-      });
-
-      after(function () {
-        subject.unload();
-      });
-
-      it('has the French option selected', function () {
-        expect(subject.getNewsDeLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsFrLanguage()).to.have.property('checked', true);
-        expect(subject.getNewsIntlLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
-      });
-    });
-
-    describe('when set to use international sources', function () {
-      before(function () {
-        const configNewsIntl = clone(defaultConfig);
-        configNewsIntl.response.componentsState.news.visible = true;
-        configNewsIntl.response.componentsState.news.preferedCountry = 'intl';
-        subject.respondsWith(configNewsIntl);
-        return subject.load({ iframeWidth: 1025 });
-      });
-
-      after(function () {
-        subject.unload();
-      });
-
-      it('has the international option selected', function () {
-        expect(subject.getNewsDeLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsFrLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsIntlLanguage()).to.have.property('checked', true);
-        expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
-      });
-    });
-
-    describe('when set to use US sources', function () {
-      before(function () {
-        const configNewsUs = clone(defaultConfig);
-        configNewsUs.response.componentsState.news.visible = true;
-        configNewsUs.response.componentsState.news.preferedCountry = 'us';
-        subject.respondsWith(configNewsUs);
-        return subject.load({ iframeWidth: 1025 });
-      });
-
-      after(function () {
-        subject.unload();
-      });
-
-      it('has the US option selected', function () {
-        expect(subject.getNewsDeLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsFrLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsIntlLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsUsLanguage()).to.have.property('checked', true);
-        expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
-      });
-    });
-
-    describe('when set to use UK sources', function () {
-      before(function () {
-        const configNewsGb = clone(defaultConfig);
-        configNewsGb.response.componentsState.news.visible = true;
-        configNewsGb.response.componentsState.news.preferedCountry = 'gb';
-        subject.respondsWith(configNewsGb);
-        return subject.load({ iframeWidth: 1025 });
-      });
-
-      after(function () {
-        subject.unload();
-      });
-
-      it('has the UK option selected', function () {
-        expect(subject.getNewsDeLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsFrLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsIntlLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsGbLanguage()).to.have.property('checked', true);
-        expect(subject.getNewsEsLanguage()).to.have.property('checked', false);
-      });
-    });
-
-    describe('when set to use ES sources', function () {
-      before(function () {
-        const configNewsGb = clone(defaultConfig);
-        configNewsGb.response.componentsState.news.visible = true;
-        configNewsGb.response.componentsState.news.preferedCountry = 'es';
-        subject.respondsWith(configNewsGb);
-        return subject.load({ iframeWidth: 1025 });
-      });
-
-      after(function () {
-        subject.unload();
-      });
-
-      it('has the ES option selected', function () {
-        expect(subject.getNewsDeLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsDeTrEnLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsFrLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsIntlLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsUsLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsGbLanguage()).to.have.property('checked', false);
-        expect(subject.getNewsEsLanguage()).to.have.property('checked', true);
+        it(`has the ${lang.toUpperCase()} option selected`, function () {
+          allNewsLanguages.forEach((news) => {
+            const state = news === lang;
+            expect(subject.getNews(news)).to.have.property('checked', state);
+          });
+        });
       });
     });
   });

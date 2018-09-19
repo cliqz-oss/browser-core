@@ -1095,6 +1095,7 @@ export function generateData(amo) {
     feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
     amo: amo,
     compactView: false,
+    showPoweredBy: true,
   };
 }
 
@@ -2195,6 +2196,7 @@ export function generateDataStrictFalse(amo) {
     feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
     amo: amo,
     compactView: false,
+    showPoweredBy: true,
   };
 }
 
@@ -3295,5 +3297,6 @@ export function generateDataStrictTrue() {
     feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
     amo: false,
     compactView: false,
+    showPoweredBy: true,
   };
 }

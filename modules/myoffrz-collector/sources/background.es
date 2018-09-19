@@ -3,10 +3,12 @@ import ContentCategoryManager from './category-manager';
 import logger from './logger';
 import inject from '../core/kord/inject';
 import { getCurrentWindow } from '../platform/windows';
+import LRU from '../core/LRU';
 
 export default background({
   offersModule: inject.module('offers-v2'),
   core: inject.module('core'),
+  pageCache: new LRU(10),
 
   async init() {
     this.contentCategoryManager = new ContentCategoryManager();
@@ -38,7 +40,7 @@ export default background({
         logger.debug(`Send rules to page ${url}`, payload.rules);
         this.core.action(
           'broadcastActionToWindow',
-          sender.windowId,
+          sender.tab.id,
           'myoffrz-collector',
           'rulesFromBackground',
           payload,
@@ -80,13 +82,13 @@ export default background({
     },
 
     async handleCategories(
-      { categories, fromContent, titles, linkIds, productId, prefix, fetchUrl, rules },
-      { url }
+      { categories, fromContent, titles, linkIds, productId, prefix, fetchUrl, rules, price },
+      sender
     ) {
       /* eslint no-param-reassign: off */
-      logger.debug('handleCategories', categories, fromContent, titles, linkIds, productId, url);
+      logger.debug('handleCategories', categories, fromContent, titles, linkIds, productId, sender.url);
       if (fetchUrl && fromContent && (!categories || categories.length === 0) && rules) {
-        // No categories from the page and Content script message with a refetch url
+        // No categories from the page and Content script message provides a refetch url
         let fetchedDom;
         try {
           fetchedDom = (new Document()).implementation.createHTMLDocument('New Document').createElement('html');
@@ -94,7 +96,7 @@ export default background({
           // Fallback to getting the window and then document
           fetchedDom = getCurrentWindow().document.implementation.createHTMLDocument('New Document').createElement('html');
         }
-        logger.debug(fetchedDom, 'fetchedDom');
+
         const resp = await fetch(fetchUrl);
         fetchedDom.innerHTML = await resp.text();
         await Promise.all(rules.map(async (rule) => {
@@ -102,27 +104,35 @@ export default background({
           const newCategories = await this.extractCategroyFromElement(newEl);
           categories = categories.concat(newCategories);
         }));
-        // deduplication
+
         categories = [...new Set(categories)];
         logger.debug('Categoires after refetch', categories);
       }
       if (fromContent) {
-        logger.log(`Extracted from page ${url}`, categories, titles, linkIds);
+        logger.log(`Extracted from page ${sender.url}`, categories, titles, linkIds);
         if (categories.length === 0) {
           // Try to find categories from cache using title and id
           categories = this.contentCategoryManager.getCategory({ titles, linkIds });
           logger.debug('Getting categories from cache', categories);
         } else if (productId) {
           logger.debug('Caching result');
-          this.contentCategoryManager.cacheCategories({ categories, titles, productId, url });
+          this.contentCategoryManager.cacheCategories({
+            categories, titles, productId, url: sender.url });
         }
         // TODO: Send back the collected categories
+        if (sender.tab && sender.tab.id) {
+          this.pageCache.set(sender.tab.id, { categories, price });
+        }
       }
       if (categories.length > 0) {
         // Now that we have categories, we can try to trigger a match,
-        // `prefix` is used to distinguish different stage (basket, checkout, etc)
-        this.offersModule.action('onContentCategories', { categories, prefix, url });
+        // `prefix` is used to distinguish different stages (basket, checkout, etc)
+        this.offersModule.action('onContentCategories', { categories, prefix, url: sender.url });
       }
     },
+
+    getPageCache(sender) {
+      return this.pageCache.get(sender.tab.id) || {};
+    }
   }
 });

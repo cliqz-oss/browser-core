@@ -1,0 +1,37 @@
+.dropdown-v2 {
+  position: absolute;
+  top: 100%;
+  right: -1px;
+  left: 0;
+  background-color: #fff;
+  border: 0.5px solid #ececec;
+  box-shadow: 0 2px 9px -3px rgba(0, 0, 0, 0.34);
+  border-radius: 3px;
+  letter-spacing: 0.75px;
+  z-index: 1;
+
+  &-main {
+    left: -1px;
+  }
+
+  &-results {
+    left: 45px;
+  }
+
+  &-option {
+    cursor: pointer;
+    padding: 4px 18px;
+    display: block;
+    font-size: 16.5px;
+    line-height: 24px;
+    color: #353535;
+    position: relative;
+    text-decoration: none;
+    text-align: left;
+    letter-spacing: 0;
+
+    &-selected {
+      background-color: #f2f2f2;
+    }
+  }
+}

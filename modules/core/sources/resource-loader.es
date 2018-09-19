@@ -17,8 +17,12 @@ const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
 
-function get(url) {
-  return fetch(url).then(response => response.text());
+async function get(url) {
+  const res = await fetch(url, { cache: 'no-cache' });
+  if (!res.ok) {
+    throw new Error(res.statusText);
+  }
+  return res.text();
 }
 
 /* Abstract away the pattern `onUpdate` trigger list of

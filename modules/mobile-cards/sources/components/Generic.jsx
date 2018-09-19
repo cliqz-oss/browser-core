@@ -9,6 +9,7 @@ import HistoryUrls from './partials/HistoryUrls';
 import deepResultsList, { headersMap, footersMap, extrasMap } from '../helpers/templates-map';
 import { agoLine } from '../helpers/logic';
 import { elementSidePaddings, cardBorderTopRadius } from '../styles/CardStyle';
+import NativeDrawable, { normalizeUrl } from './custom/NativeDrawable';
 
 const styles = backgroundColor => StyleSheet.create({
   header: {
@@ -21,6 +22,11 @@ const styles = backgroundColor => StyleSheet.create({
     paddingTop: 5,
     paddingBottom: 5,
   },
+  lock: {
+    width: 15,
+    height: 15,
+    marginLeft: 10,
+  }
 });
 
 class Generic extends React.Component {
@@ -46,7 +52,8 @@ class Generic extends React.Component {
 
   render() {
     const result = this.props.result;
-    const url = result.url || null;
+    const isSecure = (result.url || '').startsWith('https');
+    const url = result.friendlyUrl || result.url || null;
     const title = result.title || null;
     const timestamp = result.data.extra && result.data.extra.rich_data
                 && result.data.extra.rich_data.discovery_timestamp;
@@ -59,10 +66,29 @@ class Generic extends React.Component {
     const isHistory = result.data.kind[0] === 'H';
 
     return (
-      <View style={{ backgroundColor: 'white', ...cardBorderTopRadius }}>
+      <View
+        accessible={false}
+        accessibilityLabel={'mobile-result'}
+        style={{ backgroundColor: 'white', ...cardBorderTopRadius }}
+      >
         {url &&
-          <View style={styles(`#${headerBackround}`).header}>
+          <View
+            accessible={false}
+            accessibilityLabel={'header-container'}
+            style={styles(`#${headerBackround}`).header}
+          >
             <Icon width={40} height={40} logoDetails={logoDetails} />
+            {isSecure &&
+              <View
+                accessibilityLabel="https-lock"
+                accessible={false}
+              >
+                <NativeDrawable
+                  style={styles().lock}
+                  source={normalizeUrl('https_lock.svg')}
+                />
+              </View>
+            }
             <Url url={url} color="white" isHistory={isHistory} />
           </View>
         }

@@ -22,15 +22,8 @@ context('Offers Hub Interaction tests for feedback for one offer', function () {
 
       it(`option ${index} is checked`, function () {
         expect(subject.query(`#feedback_option${index}`).checked).to.be.true;
-        expect(subject.query(`#feedback_option${((index) % 4) + 1}`).checked).to.be.false;
-        expect(subject.query(`#feedback_option${((index + 1) % 4) + 1}`).checked).to.be.false;
-        expect(subject.query(`#feedback_option${((index + 2) % 4) + 1}`).checked).to.be.false;
-      });
-
-      it('button changes text to "send and close"', function () {
-        const buttonSelector = '#close-feedback';
-        expect(subject.query(buttonSelector)).to.exist;
-        expect(subject.query(buttonSelector)).to.have.text('offers_hub_feedback_send_and_close');
+        expect(subject.query(`#feedback_option${((index) % 3) + 1}`).checked).to.be.false;
+        expect(subject.query(`#feedback_option${((index + 1) % 3) + 1}`).checked).to.be.false;
       });
     });
   }
@@ -42,16 +35,10 @@ context('Offers Hub Interaction tests for feedback for one offer', function () {
       return subject.pushData(target, data);
     })
       .then(function () {
-        subject.query('.logo-wrapper button.setting').click();
+        subject.query('.logo-wrapper .close').click();
         return waitFor(function () {
-          return subject.query('.logo-wrapper').classList.contains('menu-opened');
-        })
-          .then(function () {
-            subject.query('.settings [data-menu-type="delete"]').click();
-            return waitFor(function () {
-              return subject.query('.voucher-wrapper').classList.contains('deleted');
-            });
-          });
+          return subject.query('.feedback.show') && subject.query('.voucher-wrapper').classList.contains('deleted');
+        });
       });
   });
 
@@ -61,14 +48,16 @@ context('Offers Hub Interaction tests for feedback for one offer', function () {
 
   it('renders unchecked radio buttons', function () {
     const options = subject.queryAll('#voucher-feedback ul li');
-    options.forEach(function (option) {
-      expect(option.querySelector('[name="remove_feedback"]')).to.have.attribute('type');
-      expect(option.querySelector('[name="remove_feedback"]').type).to.equal('radio');
-      expect(option.querySelector('[name="remove_feedback"]').checked).to.be.false;
+    options.forEach(function (option, ind) {
+      if (ind < 3) {
+        expect(option.querySelector('[name="remove_feedback"]')).to.have.attribute('type');
+        expect(option.querySelector('[name="remove_feedback"]').type).to.equal('radio');
+        expect(option.querySelector('[name="remove_feedback"]').checked).to.be.false;
+      }
     });
   });
 
-  for (let i = 1; i < 5; i += 1) {
+  for (let i = 1; i < 4; i += 1) {
     checkRadioButtons(i);
   }
 });

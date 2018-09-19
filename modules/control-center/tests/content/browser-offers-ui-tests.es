@@ -66,7 +66,7 @@ function myOffrzTests(amo) {
 
         it('renders info button', function () {
           const offersObject = subject.queryAll('#accordion-4 .bullet')[0];
-          expect(offersObject.querySelector('.infobutton')).to.exist;
+          expect(offersObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         it('renders "Learn more"', function () {
@@ -132,7 +132,7 @@ function myOffrzTests(amo) {
 
         it('renders info button', function () {
           const offersObject = subject.queryAll('#accordion-4 .bullet')[1];
-          expect(offersObject.querySelector('.infobutton')).to.exist;
+          expect(offersObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         it('renders dropdown', function () {

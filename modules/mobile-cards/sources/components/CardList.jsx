@@ -1,5 +1,5 @@
 import React from 'react';
-import Carousel from '../../platform/components/Carousel';
+import Carousel from './custom/Carousel';
 import Card from './Card';
 import SearchEngineCard from './SearchEngineCard';
 import { getVPWidth, getCardWidth } from '../styles/CardStyle';
@@ -94,7 +94,7 @@ class CardList extends React.Component {
           if (width !== this.state.vp.width) {
             this.setState({
               vp: {
-                width: getVPWidth(),
+                width,
               }
             });
           }

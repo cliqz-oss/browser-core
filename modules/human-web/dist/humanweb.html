@@ -2,6 +2,7 @@
 <html>
   <head>
       <meta charset="UTF-8" />
+      <meta http-equiv="x-dns-prefetch-control" content="off">
       <meta http-equiv="x-ua-compatible" content="ie=edge">
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <title>Human Web Privacy Statement</title>
@@ -22,11 +23,10 @@
           margin: 10px auto;
           padding: 0 1rem;
           box-sizing: border-box;
-          background-image: url(skin/cliqz.png);
           background-repeat: no-repeat;
           background-position: center top+20px;
           background-size: 150px 150px;
-          padding-top: 200px;
+          padding-top: 20px;
         }
 
         h1, h2 {
@@ -49,6 +49,14 @@
 
         .enableHumanWebMessage {
             padding: 2px 0px 0px 40px;
+        }
+
+        .withRegularSpace {
+            margin-bottom: 1.5em;
+        }
+
+        .withWiderSpace {
+            margin-bottom: 3em;
         }
 
         .enableHumanWeb {
@@ -123,44 +131,28 @@
             <h2 class='cliqz-locale' key='humanWeb2'></h2>
         </div>
 
-        <div class="heading cliqz-locale" key='humanWeb3'></div>
-        <br><br>
-        <div class="heading cliqz-locale" key='humanWeb4'></div>
-        <br>
-        <p class='cliqz-locale' key='humanWeb5'></p>
-        <br>
-        <p class='cliqz-locale' key='humanWeb6'></p>
-        <p class='cliqz-locale' key='humanWeb7'></p>
+        <div class="heading cliqz-locale withWiderSpace" key='humanWeb3'></div>
 
-        <br><br>
-        <div class="heading cliqz-locale" key='humanWeb8'></div>
-        <br>
-        <p class='cliqz-locale' key='humanWeb9'></p>
-        <br>
-        <div>
+        <div class="heading cliqz-locale withRegularSpace" key='humanWeb4'></div>
+
+        <p class='cliqz-locale withRegularSpace' key='humanWeb5'></p>
+
+        <p class='cliqz-locale' key='humanWeb6'></p>
+        <p class='cliqz-locale withWiderSpace' key='humanWeb7'></p>
+
+
+        <div class="heading cliqz-locale withRegularSpace" key='humanWeb8'></div>
+
+        <p class='cliqz-locale withRegularSpace' key='humanWeb9'></p>
+
+        <div class="withWiderSpace">
             <div class="enableHumanWeb">
                 <input type="checkbox" id="enableHumanWeb" onclick="clickHW(this);" name="check" />
                 <label for="enableHumanWeb"></label>
             </div>
             <div class='enableHumanWebMessage cliqz-locale' key='humanWeb10'></div>
         </div>
-        <br><br>
     </div>
-    <script type="text/javascript">
-        const cb = document.getElementById('enableHumanWeb');
-        const locale = document.getElementsByClassName('cliqz-locale');
-        for (let i = 0; i < locale.length; i += 1) {
-          const el = locale[i];
-          el.textContent = chrome.i18n.getMessage(el.getAttribute('key'));
-        }
-
-        function clickHW(cb) {
-          chrome.runtime.sendMessage({ module: 'human-web', action: 'setStatus', args: [!cb.checked], target: 'cliqz' });
-        }
-
-        chrome.runtime.sendMessage({ module: 'human-web', action: 'getStatus', args: [], target: 'cliqz' }, function (status) {
-          cb.checked = !status;
-        });
-    </script>
+    <script type="text/javascript" src="./page.bundle.js"></script>
   </body>
 </html>

@@ -112,7 +112,7 @@ export default class ProcessScriptManager {
   }
 
   init(app) {
-    chrome.webNavigation.onCommitted.addListener(({ tabId, url, frameId, transitionType }) => {
+    function onLocationChangeHandler({ tabId, url, frameId, transitionType }) {
       // We should only forward main_document URLs for on-location change.
 
       if (frameId !== 0) {
@@ -135,7 +135,9 @@ export default class ProcessScriptManager {
           windowTreeInformation: {},
         });
       });
-    });
+    }
+    chrome.webNavigation.onCommitted.addListener(onLocationChangeHandler);
+    chrome.webNavigation.onHistoryStateUpdated.addListener(onLocationChangeHandler);
 
     chrome.runtime.onMessage.addListener((message, sender, respond) => {
       const sendResponse = (response) => {

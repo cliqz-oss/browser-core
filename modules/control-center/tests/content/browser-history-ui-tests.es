@@ -91,7 +91,7 @@ describe('Control Center: History options browser', function () {
       });
 
       it('renders info button', function () {
-        expect(subject.query('.accordion #accordion-3 .bullet .infobutton')).to.exist;
+        expect(subject.query('.accordion #accordion-3 .bullet .cc-tooltip')).to.exist;
       });
 
 
@@ -139,7 +139,7 @@ describe('Control Center: History options browser', function () {
       });
 
       it('renders info button', function () {
-        expect(subject.query('.accordion #accordion-3 .bullet .infobutton')).to.exist;
+        expect(subject.query('.accordion #accordion-3 .bullet .cc-tooltip')).to.exist;
       });
 
       it('Automatic forget mode is off', function () {

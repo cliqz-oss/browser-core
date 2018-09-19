@@ -53,7 +53,7 @@ function antitrackingUiTests(amo) {
     });
 
     it('renders info button', function () {
-      expect(subject.query('#anti-tracking .title .infobutton')).to.exist;
+      expect(subject.query('#anti-tracking .title .cc-tooltip')).to.exist;
     });
 
     it('renders title', function () {

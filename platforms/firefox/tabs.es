@@ -1,5 +1,11 @@
+/* globals PrivateBrowsingUtils */
 import { isWindowActive } from './windows';
 import { waitForAsync } from '../core/helpers/wait';
+import { Services, Components } from './globals';
+
+try {
+  Components.utils.import('resource://gre/modules/PrivateBrowsingUtils.jsm');
+} catch (e) { /* */ }
 
 export function getCurrentgBrowser() {
   return Components.classes['@mozilla.org/appshell/window-mediator;1']
@@ -8,10 +14,15 @@ export function getCurrentgBrowser() {
     .gBrowser;
 }
 
-export function newTab(url, check = true) {
+export function newTab(url, { check = true, focus = false } = {}) {
   const gBrowser = getCurrentgBrowser();
-  const tab = gBrowser.addTab(url);
+  const tab = gBrowser.addTab(url,
+    { triggeringPrincipal: Services.scriptSecurityManager.getSystemPrincipal() });
   let tabId = null;
+
+  if (focus) {
+    gBrowser.selectedTab = tab;
+  }
 
   if (!check) {
     tabId = tab.linkedBrowser ? tab.linkedBrowser.outerWindowID : null;
@@ -51,6 +62,15 @@ export function closeTab(tabId) {
   return waitForAsync(() => !isWindowActive(numTabId));
 }
 
+function getCurrentTab() {
+  const gBrowser = getCurrentgBrowser();
+  return [...gBrowser.tabs].find(tab => gBrowser.selectedBrowser === tab.linkedBrowser);
+}
+
+export async function getCurrentTabId() {
+  const tab = await getCurrentTab();
+  return tab.linkedBrowser.outerWindowID;
+}
 
 export function updateTab(tabId, url) {
   const numTabId = Number(tabId);
@@ -70,6 +90,11 @@ export function updateTab(tabId, url) {
   ));
 }
 
+export function updateCurrentTab(url) {
+  const tab = getCurrentTab();
+  return updateTab(tab.outerWindowID, url);
+}
+
 export function getTab(tabId) {
   const numTabId = Number(tabId);
   const gBrowser = getCurrentgBrowser();
@@ -79,6 +104,9 @@ export function getTab(tabId) {
   const tab = gBrowser.getBrowserForTab(tabToUpdate);
   return {
     url: tab.currentURI.spec,
+    id: tab.linkedBrowser.outerWindowID,
+    incognito: PrivateBrowsingUtils.isWindowPrivate(gBrowser.ownerGlobal),
+    active: tab.linkedBrowser === gBrowser.selectedBrowser,
   };
 }
 

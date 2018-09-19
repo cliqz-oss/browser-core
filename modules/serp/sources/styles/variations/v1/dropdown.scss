@@ -11,7 +11,6 @@
   border: 0.5px solid #ececec;
   box-shadow: 0 16px 50px -24px rgba(0, 18, 39, 0.59);
   border-radius: 3px;
-  letter-spacing: 0.75px;
   padding: 5px;
 
   &-header {
@@ -105,6 +104,7 @@
     margin: 0;
     border-radius: 3px;
     cursor: pointer;
+    letter-spacing: 0.75px;
 
     text-transform: uppercase;
     font-size: 15px;

@@ -1,14 +1,14 @@
 /* globals ChromeUtils, sendAsyncMessage, removeMessageListener, addMessageListener */
 
-import { Components, Services } from '../platform/globals';
+import { Components, Services } from './globals';
 import store from '../core/content/store';
 import config from '../core/config';
 import { getMessage } from '../core/i18n';
-import console from '../platform/console';
+import console from './console';
 
 const CLIQZ = {};
 
-const send = sendAsyncMessage.bind(null, 'cliqz');
+const send = sendAsyncMessage.bind(Services.cpmm, 'cliqz');
 const CONTENT_SCRIPT_URL = 'chrome://cliqz/content/core/content-script.bundle.js';
 const whitelistedPages = [
   'resource://cliqz',
@@ -58,7 +58,7 @@ function forEachTab(fn) {
     if (window.gBrowser && window.gBrowser.tabs) {
       // this is a browser (chrome) window so we need to inject the
       // content scripts in all openend tabs
-      window.gBrowser.tabs.forEach((tab) => {
+      Array.prototype.forEach.call(window.gBrowser.tabs, (tab) => {
         try {
           fn(tab.linkedBrowser.contentDocument);
         } catch (e) {

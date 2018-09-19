@@ -1,6 +1,6 @@
 import inject from '../kord/inject';
 import prefs from '../prefs';
-import { isCliqzBrowser, isOnionMode } from '../platform';
+import { isDesktopBrowser, isOnionMode } from '../platform';
 import { subscribe } from '../events';
 import EventEmitter from '../event-emitter';
 import Logger from '../logger';
@@ -11,8 +11,8 @@ const logger = Logger.get('core', {
 });
 
 function isTelemetryEnabled() {
-  // Anolysis is disabled if the healthreport is turned off in Cliqz Browser.
-  if (isCliqzBrowser && prefs.get('uploadEnabled', true, 'datareporting.healthreport.') !== true) {
+  // Anolysis is disabled if the healthreport is turned off in Cliqz or Ghostery Browser.
+  if (isDesktopBrowser && prefs.get('uploadEnabled', true, 'datareporting.healthreport.') !== true) {
     return false;
   }
 

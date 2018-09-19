@@ -23,7 +23,7 @@ describe('Control Center: AMO, Cliqz tab UI tests', function () {
     });
 
     it('renders info button', function () {
-      expect(subject.query('.amo #cliqz-tab .title .infobutton')).to.exist;
+      expect(subject.query('.amo #cliqz-tab .title .cc-tooltip')).to.exist;
     });
 
     it('renders title', function () {

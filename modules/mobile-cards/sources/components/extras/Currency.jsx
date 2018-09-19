@@ -58,11 +58,20 @@ export default class Currency extends React.Component {
           <TapToCopy val={data.toAmount.main}>
             <Title title={title} meta={getMessage('no_legal_disclaimer')} />
           </TapToCopy>
-          <View style={styles.table}>
+          <View
+            accessible={false}
+            accessibilityLabel={'currency-multi'}
+            style={styles.table}
+          >
             <View style={styles.leftColumn}>
               { array.map(coefficient =>
                 (
-                  <Text style={[styles.body, { textAlign: 'right' }]} key={coefficient}>
+                  <Text
+                    accessible={false}
+                    accessibilityLabel={'currency-multi-row-from'}
+                    style={[styles.body, { textAlign: 'right' }]}
+                    key={coefficient}
+                  >
                     {this.format(coefficient * data.multiplyer, data.fromCurrency)}
                   </Text>
                 ))
@@ -74,7 +83,12 @@ export default class Currency extends React.Component {
             <View style={styles.rightColumn}>
               { array.map(coefficient =>
                 (
-                  <Text style={styles.body} key={coefficient}>
+                  <Text
+                    accessible={false}
+                    accessibilityLabel={'currency-multi-row-to'}
+                    style={styles.body}
+                    key={coefficient}
+                  >
                     {this.format(coefficient * data.mConversionRate, data.toCurrency)}
                   </Text>
                 ))

@@ -33,13 +33,25 @@ function SubscribeButton(props) {
   const title = getMessage(props.isSubscribed ? 'mobile_soccer_unsubscribe' : 'mobile_soccer_subscribe');
   const button = props.noButton ||
     <Link onPress={props.onPress}>
-      <View style={styles(color).button}>
+      <View
+        accessible={false}
+        accessibilityLabel={'subscribe-button'}
+        style={styles(color).button}
+      >
         <Text style={styles().buttonText}>{title}</Text>
       </View>
     </Link>;
-  return (<View>
+  return (<View
+    accessible={false}
+    accessibilityLabel={'subscribe'}
+  >
     {button}
-    <Text style={styles().actionMessage}>{props.actionMessage}</Text>
+    <View
+      accessible={false}
+      accessibilityLabel={'subscribe-text'}
+    >
+      <Text style={styles().actionMessage}>{props.actionMessage}</Text>
+    </View>
   </View>);
 }
 

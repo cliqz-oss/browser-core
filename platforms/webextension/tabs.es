@@ -1,13 +1,13 @@
 import { chrome } from './globals';
 
 
-export function newTab(url, active = true) {
+export function newTab(url, { focus = true } = {}) {
   let resolver;
   const promise = new Promise((resolve) => {
     resolver = resolve;
   });
   chrome.tabs.create(
-    { url, active },
+    { url, active: focus },
     (tab) => { resolver(tab.id); },
   );
   return promise;
@@ -38,11 +38,30 @@ export function closeTab(tabId) {
   });
 }
 
+function getCurrentTab(id) {
+  const windowId = typeof id === 'number' ? id : chrome.windows.WINDOW_ID_CURRENT;
+  return chrome.tabs.query({ windowId, active: true });
+}
 
-export function updateTab(tabId, url) {
+export async function getCurrentTabId(windowId) {
+  const tab = await getCurrentTab(windowId);
+  return tab.id;
+}
+
+export async function updateTab(tabId, url) {
+  let id = tabId;
+  if (typeof id !== 'number') {
+    const tab = await getCurrentTab();
+    id = tab.id;
+  }
   return new Promise((resolve) => {
-    chrome.tabs.update(Number(tabId), { url }, resolve);
+    chrome.tabs.update(tabId, { url }, resolve);
   });
+}
+
+export async function updateCurrentTab(url) {
+  const tab = await getCurrentTab();
+  return updateTab(tab.id, url);
 }
 
 export function getTab(tabId) {

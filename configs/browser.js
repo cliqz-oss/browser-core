@@ -3,7 +3,7 @@
 'use strict';
 
 const base = require('./common/system');
-const urls = require('./common/urls');
+const urls = require('./common/urls-cliqz');
 const subprojects = require('./common/subprojects/bundles');
 
 module.exports = {
@@ -60,7 +60,7 @@ module.exports = {
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
     "antitrackingPlaceholder": "cliqz.com/tracking",
     "antitrackingHeader": "CLIQZ-AntiTracking",
-    "WORLDCUP_URL": "https://sport.cliqz.com/",
+    "FRESHTAB_TITLE": "Cliqz Tab",
   }),
   "default_prefs" : {
     "modules.context-search.enabled": false,
@@ -68,6 +68,7 @@ module.exports = {
     "modules.type-filter.enabled": false,
     "modules.antitracking-blocker.enabled": false,
     "modules.history-analyzer.enabled": false,
+    "proxyPeer": false,
     "proxyTrackers": false,
     "modules.cookie-monster.enabled": true,
     "modules.hpnv2.enabled": true
@@ -92,6 +93,7 @@ module.exports = {
     "control-center",
     "offers-v2",
     "popup-notification",
+    "history-analyzer",
     "offers-debug",
     "browser-panel",
     "message-center",
@@ -111,17 +113,21 @@ module.exports = {
     "video-downloader",
     "market-analysis",
     "p2p",
+    "proxyPeer",
     "pairing",
     "antitracking-blocker",
     "search",
     "cookie-monster",
     "hpnv2",
+    "privacy",
+    "inter-ext-messaging",
+    "privacy-migration",
     "myoffrz-collector",
     "serp"
   ],
   "subprojects": subprojects([
     '@cliqz-oss/dexie',
-    '@cliqz-oss/pouchdb',
+    'pouchdb',
     '@cliqz/adblocker',
     'ajv',
     'cliqz-history',

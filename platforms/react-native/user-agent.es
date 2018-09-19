@@ -7,6 +7,7 @@ const ua = {
   formFactor: Platform.isPad ? 'Tablet' : 'Phone',
   channel: undefined,
   installDate: '',
+  appName: '',
 };
 
 if (NativeModules.UserAgentConstants) {
@@ -16,6 +17,7 @@ if (NativeModules.UserAgentConstants) {
   ua.channel = NativeModules.UserAgentConstants.channel;
   ua.appVersion = NativeModules.UserAgentConstants.appVersion;
   ua.installDate = NativeModules.UserAgentConstants.installDate;
+  ua.appName = NativeModules.UserAgentConstants.appName;
 }
 
 export default ua;

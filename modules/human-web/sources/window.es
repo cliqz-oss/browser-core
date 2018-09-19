@@ -82,8 +82,8 @@ export default class Win {
     buttons.push({
       label: getMessage('learnMore'),
       callback: () => {
-        const learnMoreUrl = 'chrome://cliqz/content/human-web/humanweb.html';
-        this.window.gBrowser.selectedTab = this.window.gBrowser.addTab(learnMoreUrl);
+        const learnMoreUrl = 'resource://cliqz/human-web/humanweb.html';
+        utils.openLink(this.window, learnMoreUrl, true, false, false, true);
         updateDataCollectionState(3);
         this.removeNotification();
       }

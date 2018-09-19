@@ -82,7 +82,7 @@ export default class PageStore {
   }
 
   onTabCreated(tab) {
-    if (tab.id !== undefined && tab.id !== null) {
+    if (tab.id > -1) {
       this.tabs[tab.id] = {
         url: tab.url,
         isPrivate: tab.incognito,
@@ -91,7 +91,7 @@ export default class PageStore {
   }
 
   onTabUpdated(tabId, changeInfo, tab) {
-    if (tabId !== undefined && tabId !== null && tab.url) {
+    if (tabId > -1 && tab.url) {
       if (this.tabs[tabId]) {
         this.tabs[tabId].url = tab.url;
         this.tabs[tabId].isPrivate = tab.incognito;
@@ -105,7 +105,7 @@ export default class PageStore {
   }
 
   onTabRemoved(tabId) {
-    if (tabId !== undefined && tabId !== null) {
+    if (tabId > -1) {
       delete this.tabs[tabId];
     }
   }
@@ -126,7 +126,7 @@ export default class PageStore {
     }
 
     const { tabId, initiator } = details;
-    if (tabId !== undefined && tabId !== null && tabId in this.tabs) {
+    if (tabId > -1 && tabId in this.tabs) {
       return this.tabs[tabId].url;
     } else if (tabId !== -1) {
       if (initiator && initiator !== 'null') {

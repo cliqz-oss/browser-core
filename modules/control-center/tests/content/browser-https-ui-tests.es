@@ -50,7 +50,7 @@ describe('Control Center: HTTPS Everywhere UI browser', function () {
     });
 
     it('renders info button', function () {
-      expect(subject.query('#https .title .infobutton')).to.exist;
+      expect(subject.query('#https .title .cc-tooltip')).to.exist;
     });
 
     it('renders title', function () {

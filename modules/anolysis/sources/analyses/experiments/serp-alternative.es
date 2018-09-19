@@ -34,7 +34,7 @@ export default [
       required: ['group', 'serpAlternativeSearchEngine', 'category'],
       properties: {
         // AB test group this user is in
-        group: { enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G', null] },
+        group: { enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', null] },
         // selected alternative search engine (at the end of the day)
         serpAlternativeSearchEngine: { enum: ['google', 'duckduckgo', 'bing', 'yahoo', 'startpage', 'ecosia', 'qwant'] },
         // click count per result category (could come from a mix of engines)

@@ -1,23 +1,19 @@
 import {
   click,
-  expect,
-  focusOnTab,
-  getTab,
+  getResourceUrl,
   newTab,
-  waitFor,
   waitForElement,
-} from '../../../tests/core/test-helpers';
+  waitForPageLoad,
+} from '../../../tests/core/integration/helpers';
 import config from '../../../core/config';
 
 const onboardingUrl = config.settings.ONBOARDING_URL;
+const freshtabUrl = getResourceUrl('freshtab/home.html');
 
 export default function () {
-  let tabId;
-
   describe('onboarding-v3', function () {
     beforeEach(async function () {
-      tabId = await newTab(onboardingUrl);
-      await focusOnTab(tabId);
+      await newTab(onboardingUrl, { focus: true });
       await waitForElement({
         url: onboardingUrl,
         selector: '#cqb-start-btn',
@@ -26,10 +22,9 @@ export default function () {
 
     context('on start button click', function () {
       it('opens new tab page', async function () {
+        const isPageLoaded = waitForPageLoad(freshtabUrl);
         await click(onboardingUrl, '#cqb-start-btn');
-        return waitFor(
-          () => expect(getTab(tabId)).to.have.property('url').that.equals(config.settings.NEW_TAB_URL),
-        );
+        await isPageLoaded;
       });
     });
   });

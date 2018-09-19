@@ -7,7 +7,7 @@ import {
   Subject,
 } from '../../core/test-helpers-freshtab';
 
-describe('Fresh tab search UI', function () {
+describe('Freshtab search UI', function () {
   const searchAreaSelector = '#section-url-bar';
   let subject;
   let searchConfig;

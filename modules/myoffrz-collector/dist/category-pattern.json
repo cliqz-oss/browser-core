@@ -26,6 +26,7 @@
   "/gp/buy/$domain=amazon.de": {
     "patterns": {
       "title": [".breakword.a-row > .a-text-bold"],
+      "price": ["tr:nth-of-type(4) > .a-text-bold.grand-total-price.aok-nowrap.a-align-bottom.a-text-right.a-size-medium.a-color-price"],
       "waitOnLoad": false
     },
     "prefix": "checkout"

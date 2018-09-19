@@ -24,8 +24,18 @@ export default function ({ data }) {
     <Container val={data.answer}>
       {title && <Title title={title} />}
       <View style={styles.content}>
-        <Text style={{ fontSize: 18, color: 'black' }}>{answerToDisplay}</Text>
-        <Text style={{ fontSize: 14, color: 'black' }}>{data.expression}</Text>
+        <View
+          accessible={false}
+          accessibilityLabel={'calc-answer'}
+        >
+          <Text style={{ fontSize: 18, color: 'black' }}>{answerToDisplay}</Text>
+        </View>
+        <View
+          accessible={false}
+          accessibilityLabel={'calc-expression'}
+        >
+          <Text style={{ fontSize: 14, color: 'black' }}>{data.expression}</Text>
+        </View>
       </View>
     </Container>
   );

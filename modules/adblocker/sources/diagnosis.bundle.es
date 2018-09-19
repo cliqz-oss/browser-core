@@ -1,9 +1,9 @@
-/* global document, CLIQZ */
+/* global document, CLIQZ, ChromeUtils */
 import lang from '../core/language';
 import prefs from '../core/prefs';
 
 function generateDiagnosis() {
-  Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+  ChromeUtils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
 
   const utils = CLIQZ.CliqzUtils;
   const adb = CLIQZ.app.modules.adblocker.background.adb;

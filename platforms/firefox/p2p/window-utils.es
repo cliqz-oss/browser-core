@@ -1,6 +1,7 @@
 /* eslint-disable no-bitwise */
 
 import { isPlatformAtLeastInVersion } from '../platform';
+import { Components, Services, XPCOMUtils } from '../globals';
 
 const HIDDEN_URL = 'chrome://cliqz/content/empty.html';
 
@@ -49,7 +50,6 @@ function getBackgroundWindowLegacy() {
       windowlessBrowser = appShell.createWindowlessBrowser(true);
       windowlessBrowser.QueryInterface(Ci.nsIInterfaceRequestor);
       const webProgress = windowlessBrowser.getInterface(Ci.nsIWebProgress);
-      const XPCOMUtils = Components.utils.import('resource://gre/modules/XPCOMUtils.jsm', null).XPCOMUtils;
 
       try {
         listener = {

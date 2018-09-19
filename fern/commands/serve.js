@@ -4,11 +4,11 @@ const program = require('commander');
 const rimraf = require('rimraf');
 const copyDereferenceSync = require('copy-dereference').sync;
 const notifier = require('node-notifier');
-const webExt = require('@cliqz-oss/web-ext');
 const path = require('path');
 const moment = require('moment');
 const spawn = require('child_process').spawn;
 const common = require('./common');
+const FirefoxBrowser = require('../../tests/runners/launchers/firefox-web-ext').Browser;
 
 const setConfigPath = common.setConfigPath;
 const getExtensionVersion = common.getExtensionVersion;
@@ -61,6 +61,9 @@ program.command(`serve ${common.configParameter}`)
       'dom.webcomponents.enabled': true,
       'dom.webcomponents.shadowdom.enabled': true,
       'lightweightThemes.selectedThemeID': 'firefox-compact-light@mozilla.org',
+      'browser.tabs.warnonclose': true,
+      'dom.min_background_timeout_value': 50,
+      'browser.tabs.remote.autostart': true,
     }, customPrefs);
 
     if (options.includeTests) {
@@ -70,15 +73,6 @@ program.command(`serve ${common.configParameter}`)
       process.on('SIGTERM', () => server.kill());
     }
 
-    const webExtOptions = {
-      noReload: true,
-      sourceDir: path.join(OUTPUT_PATH, addonID),
-      artifactsDir: path.join(OUTPUT_PATH, addonID),
-      firefoxProfile: options.firefoxProfile,
-      firefox: options.firefox,
-      keepProfileChanges: options.firefoxKeepChanges || false,
-      customPrefs: prefs,
-    };
     const start = Date.now();
 
     getExtensionVersion(options.version).then((version) => {
@@ -96,16 +90,23 @@ program.command(`serve ${common.configParameter}`)
         let donePromise = Promise.resolve();
         rimraf.sync(OUTPUT_PATH);
         copyDereferenceSync(watcher.builder.outputPath, OUTPUT_PATH);
-
         if (['firefox', 'webextension'].indexOf(CONFIG.platform) >= 0 &&
           options.launch !== false &&
-          configPath.indexOf('ghostery') === -1
+          !configPath.includes('ghostery.js')
         ) {
           if (extensionRunner) {
             donePromise = extensionRunner.reloadAllExtensions();
           } else {
-            donePromise = webExt.run(webExtOptions).then((exRunner) => {
-              extensionRunner = exRunner;
+            const firefoxRunner = new FirefoxBrowser(prefs);
+            donePromise = firefoxRunner.run({
+              configFilePath: configPath,
+              config: cfg,
+              outputPath: OUTPUT_PATH,
+              firefoxPath: options.firefox,
+              sourceDir: path.join(OUTPUT_PATH, addonID),
+              firefoxKeepChanges: options.firefoxKeepChanges || false,
+            }).then(() => {
+              extensionRunner = firefoxRunner;
             });
           }
         }

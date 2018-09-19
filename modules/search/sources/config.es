@@ -36,12 +36,13 @@ const DEFAULT_CONFIG = {
       order: 3,
     },
     cliqz: {
+      isEnabled: true,
       dependencies: [
         { provider: 'history', condition: prioritizeHistoryCondition },
       ],
       includeOffers: true,
       count: config.settings['search.config.providers.cliqz.count'] || 5,
-      jsonpCallback: config.settings['search.config.providers.cliqz.jsonpCallback'] || '',
+      jsonp: config.settings['search.config.providers.cliqz.jsonp'] || false,
       order: 4,
     },
     'rich-header': {
@@ -149,6 +150,14 @@ export default function ({ isPrivateMode }) {
             ? res
             : true;
         }
+      },
+      cliqz: {
+        ...DEFAULT_CONFIG.providers.cliqz,
+        get isEnabled() {
+          return prefs.get('modules.search.providers.cliqz.enabled',
+            DEFAULT_CONFIG.providers.cliqz.isEnabled
+          );
+        },
       },
     },
     operators: {

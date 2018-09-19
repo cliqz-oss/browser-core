@@ -191,7 +191,7 @@ export default class {
         } else {
           record = obj;
         }
-        callback(record);
+        callback([record]);
       }
     });
   }

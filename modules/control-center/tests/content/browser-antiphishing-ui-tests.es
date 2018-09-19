@@ -53,7 +53,7 @@ function antiphishingUiTests(amo) {
     });
 
     it('renders info button', function () {
-      expect(subject.query('#anti-phising .title .infobutton')).to.exist;
+      expect(subject.query('#anti-phising .title .cc-tooltip')).to.exist;
     });
 
     it('renders title', function () {

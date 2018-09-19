@@ -56,7 +56,7 @@ const LINUX_OS = new Set([
 const ANOLYSIS_BACKEND_DATE_FORMAT = 'YYYY/MM/DD';
 
 
-function normalizeString(value) {
+export function normalizeString(value) {
   return value.trim().toLowerCase().replace(/\s+/g, '-');
 }
 
@@ -187,17 +187,30 @@ function parseProduct(channel, platform) {
     } else if (channel === 'MA10') {
       product = 'third-party/mobile/Telefonica';
     } else if (channel.startsWith('MA')) {
-      product = 'CLIQZ/mobile/Cliqz for Android';
+      if (channel.startsWith('MA5')) {
+        product = 'Ghostery/mobile/Ghostery for Android';
+      } else {
+        product = 'CLIQZ/mobile/Cliqz for Android';
+      }
     } else if (channel.startsWith('MI')) {
-      product = 'CLIQZ/mobile/Cliqz for iOS';
+      if (channel.startsWith('MI5')) {
+        product = 'Ghostery/mobile/Ghostery for iOS';
+      } else {
+        product = 'CLIQZ/mobile/Cliqz for iOS';
+      }
     } else if (channel === 'CH50') {
       product = 'third-party/desktop/Avira Scout';
+    } else if (channel === 'CT10') {
+      product = 'CLIQZ/desktop/CliqzTab for Chrome';
+    } else if (channel === 'GT00') {
+      product = 'Ghostery/desktop/GhosteryTab for Firefox';
+    } else if (channel === 'GT10') {
+      product = 'Ghostery/desktop/GhosteryTab for Chrome';
     }
     logger.debug('product', product);
     return product;
   } catch (ex) {
     /* Wrong data for product */
-    logger.error('exception', ex);
     return product;
   }
 }

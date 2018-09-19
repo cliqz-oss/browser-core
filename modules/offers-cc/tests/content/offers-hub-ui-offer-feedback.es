@@ -17,16 +17,17 @@ context('Offers Hub UI tests for feedback for one offer', function () {
       data = dataNewOffer;
       return subject.pushData(target, data);
     }).then(function () {
-      subject.query('.logo-wrapper button.setting').click();
+      subject.query('.logo-wrapper button.close').click();
 
       return waitFor(function () {
-        return subject.query('.logo-wrapper').classList.contains('menu-opened');
-      }).then(function () {
-        subject.query('.settings [data-menu-type="delete"]').click();
-        return waitFor(function () {
-          return subject.query('.voucher-wrapper').classList.contains('deleted');
-        });
+        return subject.query('.details div.feedback').classList.contains('show');
       });
+      // .then(function () {
+      //   subject.query('.settings [data-menu-type="delete"]').click();
+      //   return waitFor(function () {
+      //     return subject.query('.voucher-wrapper').classList.contains('deleted');
+      //   });
+      // });
     });
   });
 
@@ -53,7 +54,7 @@ context('Offers Hub UI tests for feedback for one offer', function () {
   it('renders four radio buttons', function () {
     const radioButtonSelector = `${feedbackSelector} input[name="remove_feedback"]`;
     expect(subject.query(radioButtonSelector)).to.exist;
-    expect(subject.queryAll(radioButtonSelector)).to.have.length(4);
+    expect(subject.queryAll(radioButtonSelector)).to.have.length(3);
   });
 
   it('first three options have correct text', function () {
@@ -64,16 +65,16 @@ context('Offers Hub UI tests for feedback for one offer', function () {
   });
 
   it('forth option is textArea and has correct text', function () {
-    const optionSelector = `${feedbackSelector} #feedback_option4 + textarea`;
+    const optionSelector = `${feedbackSelector} .textarea-holder textarea`;
     expect(subject.query(optionSelector)).to.exist;
     expect(subject.query(optionSelector).hasAttribute('placeholder')).to.be.true;
     expect(subject.query(optionSelector).getAttribute('placeholder')).to.equal('offers_hub_feedback_option4');
   });
 
   it('renders \'close\' button', function () {
-    const buttonSelector = `${feedbackSelector} #close-feedback`;
+    const buttonSelector = `${feedbackSelector} .logo-wrapper button.close`;
     expect(subject.query(buttonSelector)).to.exist;
     expect(subject.query(buttonSelector).textContent.trim())
-      .to.equal('offers_hub_feedback_close');
+      .to.equal('offers_hub_remove');
   });
 });

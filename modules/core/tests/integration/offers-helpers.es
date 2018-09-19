@@ -1,4 +1,5 @@
 import prefs from '../../../core/prefs';
+import config from '../../../core/config';
 
 import {
   app,
@@ -109,6 +110,7 @@ function getRawApiOffersMock({ timeout = 7 } = {}) {
     display_id: 'test_campaign_v1-d',
     types: ['test_campaign_v1'],
     version: '123123123123123',
+    targeted: true,
     monitorData: [
       {
         params: {
@@ -184,7 +186,7 @@ function getRawApiOffersMock({ timeout = 7 } = {}) {
   };
 }
 
-function getApiOffersMock({ dest, timeout }) {
+export function getApiOffersMock({ dest, timeout }) {
   const mock = getRawApiOffersMock({ timeout });
   mock.rs_dest = [dest];
 
@@ -213,7 +215,7 @@ function getApiOffersMock({ dest, timeout }) {
         },
         validity: (now * 1000) + 1
       },
-      template_name: 'ticket_template'
+      template_name: 'ticket_template',
     };
   } else if (dest === 'cliqz-tab') {
     mock.ui_info = {
@@ -243,7 +245,31 @@ function getApiOffersMock({ dest, timeout }) {
       template_name: 'ticket_template'
     };
   } else if (dest === 'offers-cc') {
-  // uiMock = uiMockForCC;
+    mock.ui_info = {
+      created: 1514984136299,
+      template_data: {
+        benefit: '2x',
+        call_to_action: {
+          target: '',
+          text: 'Zum Angebot',
+          url: getPage('landing'),
+        },
+        code: 'cLsWk17',
+        conditions: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Tenetur, architecto, explicabo perferendis nostrum, maxime impedit atque odit sunt pariatur illo obcaecati soluta molestias iure facere dolorum adipisci eum? Saepe, itaque.',
+        desc: 'Genießen Sie die besten Weine aus Spanien, Italien und aus aller Welt. Jetzt Angebot sichern!',
+        headline: 'Kostenlose Horbucher',
+        logo_url: '/build/cliqz@cliqz.com/chrome/content/offers-cc/debug/images/audible.png',
+        voucher_classes: '',
+        labels: [
+          'exclusive',
+          'best_offer',
+        ],
+      },
+      offer_id: 'SilkesWK_TG1_O1_V1',
+      logoClass: 'normal',
+      backgroundColor: '#d7011d',
+      validity: (now * 1000) + 1
+    };
   }
 
   return JSON.stringify([mock]);
@@ -265,6 +291,8 @@ export const mockOffersBackend = async ({ dest, timeout } = {}) => {
     triggersBE: testServer.getBaseUrl(),
   });
 
+  prefs.set('offersInstallInfo', `${config.EXTENSION_VERSION}|1`);
+
   // Clear state
   await app.disableModule('offers-v2');
 
@@ -275,6 +303,10 @@ export const mockOffersBackend = async ({ dest, timeout } = {}) => {
 
   if (dest === 'browser-panel') {
     await app.disableModule('browser-panel');
+  }
+
+  if (dest === 'offers-cc') {
+    await app.disableModule('offers-cc');
   }
 
   await clearOffersDB();
@@ -301,6 +333,10 @@ export const mockOffersBackend = async ({ dest, timeout } = {}) => {
 
   if (dest === 'browser-panel') {
     await app.enableModule('browser-panel');
+  }
+
+  if (dest === 'offers-cc') {
+    await app.enableModule('offers-cc');
   }
 
   // Force call to /api/v1/categories

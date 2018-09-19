@@ -99,8 +99,6 @@ async function generateAnalysisResults({
     }
   };
 
-  const pushedSignalsPromises = [];
-
   // If the given analysis expects to receive an aggregation of signal as
   // argument (function `generate` has length > 0), then we generate fake
   // random signals from the schema, which specifies the shape of signals to
@@ -108,23 +106,30 @@ async function generateAnalysisResults({
   if (schema.generate !== undefined &&
     schema.generate.length > 0
   ) {
+    const metricsToPush = [];
     if (metrics.forEach !== undefined) {
       // If this is an array, it means we got a list of metrics' names. Then
       // we randomly generate signals from their schemas.
       metrics.forEach((metricSchema) => {
-        pushedSignalsPromises.push(...generateSamples(
+        metricsToPush.push(...generateSamples(
           availableDefinitions.get(metricSchema).schema,
           10, // number of random metrics to generate
-        ).map(s => anolysis.handleTelemetrySignal(s, metricSchema)));
+        ).map(s => ({ s, metric: metricSchema })));
       });
     } else {
       // Otherwise we expect an object which keys are names of metrics, and
       // values are arrays of signals from these metrics. They are used as is.
       Object.keys(metrics).forEach((metric) => {
-        pushedSignalsPromises.push(...metrics[metric].map(
-          s => anolysis.handleTelemetrySignal(s, metric)
+        metricsToPush.push(...metrics[metric].map(
+          s => ({ s, metric })
         ));
       });
+    }
+
+    for (let i = 0; i < metricsToPush.length; i += 1) {
+      const { s, metric } = metricsToPush[i];
+      await anolysis.handleTelemetrySignal(s, metric);
+      await new Promise(resolve => setTimeout(resolve, 1));
     }
   }
 
@@ -134,7 +139,6 @@ async function generateAnalysisResults({
   //
   // We then force the aggregation of the daily signals, and expect the message
   // queue to receive at least one signal.
-  await Promise.all(pushedSignalsPromises);
   await anolysis.updateRetentionState();
   await anolysis.runTasksForDay(currentDate, 0);
   await anolysis.runTasksForDay(currentDate, 1);

@@ -1,0 +1,71 @@
+{
+  "name": "Cliqz",
+  "description": "Cliqz AMO",
+  "version": "{{version}}",
+  "manifest_version": 2,
+  "default_locale": "de",
+  "icons": {
+    "16": "assets/icon16.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  },
+  "applications": {
+    "gecko": {
+      "id": "cliqz@cliqz.com"
+    }
+  },
+  "experiment_apis": {
+    "omnibox2": {
+      "schema": "modules/webextension-specific/experimental-apis/omnibox/schema.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "paths": [["omnibox2"]],
+        "script": "modules/webextension-specific/experimental-apis/omnibox/api.bundle.js"
+      }
+    }
+  },
+  "permissions": [
+    "<all_urls>",
+    "bookmarks",
+    "clipboardWrite",
+    "cookies",
+    "geolocation",
+    "history",
+    "idle",
+    "management",
+    "notifications",
+    "privacy",
+    "proxy",
+    "storage",
+    "tabs",
+    "activeTab",
+    "topSites",
+    "unlimitedStorage",
+    "webNavigation",
+    "webRequest",
+    "webRequestBlocking"
+  ],
+  "background": {
+    "scripts": [
+      "modules/vendor/Rx.min.js",
+      "modules/vendor/math.min.js",
+      "modules/vendor/dexie.min.js",
+      "modules/vendor/pouchdb.js",
+      "modules/webextension-specific/app.bundle.js"
+    ]
+  },
+  "chrome_url_overrides": {
+    "newtab": "modules/freshtab/home.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "run_at": "document_start",
+      "match_about_blank": true,
+      "js": ["modules/core/content-script.bundle.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    "modules/dropdown/dropdown.html"
+  ]
+}

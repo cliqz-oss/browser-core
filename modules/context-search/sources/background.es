@@ -3,7 +3,6 @@
 import utils from '../core/utils';
 import background from '../core/base/background';
 import ContextSearch from './context-search';
-import bindObjectFunctions from '../core/helpers/bind-functions';
 
 /**
  * @namespace context-search
@@ -56,7 +55,6 @@ export default background({
     this.contextSearch.init();
 
     this.reranker = new ContextSearchReranker(this.contextSearch);
-    bindObjectFunctions(this.actions, this);
   },
 
   /**

@@ -1,7 +1,5 @@
-/* global XPCOMUtils */
-
 import Signals from './signals';
-import { Components } from '../platform/globals';
+import { Components, XPCOMUtils, Services } from '../platform/globals';
 
 function AboutURLPrivacy() {}
 let AboutURLFactoryPrivacy;
@@ -19,16 +17,27 @@ const PrivacyRep = {
       classID: Components.ID('{abab0a50-7988-11e5-a837-0800200c9a66}'),
       contractID: '@mozilla.org/network/protocol/about;1?what=transparency',
 
-      newChannel(uri) {
-        const ioService = Components.classes['@mozilla.org/network/io-service;1'].getService(Components.interfaces.nsIIOService);
-        const html = ['data:text/html,<!DOCTYPE html><html><head><meta charset=\'UTF-8\'>',
-          '<style>* {margin:0;padding:0;width:100%;height:100%;overflow:hidden;border: 0}</style>',
-          '</head><body><iframe src=\'chrome://cliqz/content/privacy-dashboard/index.html\'></iframe></body></html>'].join('');
+      newChannel(aURI, aLoadInfo) {
+        const html = `data:text/html,
+          <script>
+            var wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
+              .getService(Components.interfaces.nsIWindowMediator);
+            var securityManager = Components.classes['@mozilla.org/scriptsecuritymanager;1']
+              .getService(Components.interfaces.nsIScriptSecurityManager);
+            var w = wm.getMostRecentWindow('navigator:browser');
+            var url = 'chrome://cliqz/content/privacy-dashboard/index.html';
+            w.gBrowser.addTab(url, {
+              triggeringPrincipal: securityManager.getSystemPrincipal(),
+            });
+            window.close();
+          </script>
+        `;
 
-        const securityManager = Components.classes['@mozilla.org/scriptsecuritymanager;1'].getService(Components.interfaces.nsIScriptSecurityManager);
-        const channel = ioService.newChannel(html, null, null);
-        channel.originalURI = uri;
-        channel.owner = securityManager.getSystemPrincipal();
+        const uri = Services.io.newURI(html, null, null);
+        const channel = Services.io.newChannelFromURIWithLoadInfo(uri, aLoadInfo);
+
+        channel.originalURI = aURI;
+        channel.owner = Services.scriptSecurityManager.getSystemPrincipal();
 
         return channel;
       },

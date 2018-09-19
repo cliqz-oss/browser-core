@@ -1,4 +1,3 @@
-import config from '../core/config';
 import prefs from '../core/prefs';
 import * as platform from '../core/platform';
 import {
@@ -10,6 +9,8 @@ import {
   AboutCliqz,
 } from '../platform/freshtab/new-tab-setting';
 
+import config from './config';
+
 const NEW_TAB_URL = config.settings.NEW_TAB_URL;
 const PREF_NEW_TAB_BUTTON_STATE = 'freshtab.state';
 const PREF_HOME_PAGE_BACKUP = 'backup.homepage';
@@ -17,7 +18,7 @@ const PREF_HOME_PAGE_BACKUP = 'backup.homepage';
 export default {
 
   get isActive() {
-    if (platform.isCliqzBrowser) {
+    if (platform.isDesktopBrowser) {
       return true;
     }
 

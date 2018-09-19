@@ -2,7 +2,6 @@ import {
   expect,
   newTab,
   queryHTML,
-  focusOnTab,
   waitForAsync,
   waitForElement,
 } from '../../../tests/core/test-helpers';
@@ -23,7 +22,7 @@ export default function () {
     describe('opened in a new tab', function () {
       beforeEach(async function () {
         // Load freshtab in new tab
-        await focusOnTab(await newTab(url));
+        await newTab(url, { focus: true });
         await waitForElement({ url, selector: '#section-favorites .dial-header' });
       });
 

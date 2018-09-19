@@ -1,6 +1,7 @@
 /* global chai */
 /* global describeModule */
 /* global require */
+const tldjs = require('tldjs');
 
 const VALID_OFFER_OBJ = {
   action_info: {
@@ -42,7 +43,7 @@ function mockCurrentTS(ts) {
 }
 
 // needed for the map
-let persistence = {};
+const persistence = {};
 function delay(fn) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -72,6 +73,9 @@ export default describeModule('offers-v2/offers/offers-db',
     },
     'core/platform': {
       isWebExtension: false,
+    },
+    'platform/lib/tldjs': {
+      default: tldjs,
     },
     'core/prefs': {
       default: {
@@ -157,6 +161,7 @@ export default describeModule('offers-v2/offers/offers-db',
   () => {
     describe('OffersDB', function () {
       let OffersDB;
+      let Offer;
       let OffersConfigs;
 
       function getCopyValidOffer() {
@@ -180,12 +185,32 @@ export default describeModule('offers-v2/offers/offers-db',
 
       beforeEach(function () {
         OffersDB = this.module().default;
-        return Promise.all([
-          this.system.import('offers-v2/offers_configs').then((result) => {
-            OffersConfigs = result.default;
-          })
-        ]);
+        const p1 = this.system.import('offers-v2/offers_configs');
+        const p2 = this.system.import('offers-v2/offers/offer');
+        return Promise.all([p1, p2]).then((mods) => {
+          OffersConfigs = mods[0].default;
+          Offer = mods[1].default;
+        });
       });
+
+      function genOffers(data) {
+        const result = [];
+        data.forEach((o) => {
+          const offer = getCopyValidOffer();
+          offer.offer_id = o.id;
+          if (o.client_id) {
+            offer.client_id = o.client_id;
+          }
+          if (o.types) {
+            offer.types = o.types;
+          }
+          if (o.abTestInfo) {
+            offer.abTestInfo = o.abTestInfo;
+          }
+          result.push(offer);
+        });
+        return result;
+      }
 
       describe('#offerObject', function () {
         context('invalid offer object', function () {
@@ -515,23 +540,6 @@ export default describeModule('offers-v2/offers/offers-db',
             return Promise.all([p1, p2]);
           });
 
-          it('old offers removed', function () {
-            const addedTS = Date.now();
-            const laterTS = addedTS + (OffersConfigs.OFFERS_STORAGE_DEFAULT_TTS_SECS * 1000);
-            const odb = new OffersDB();
-            mockCurrentTS(addedTS);
-            chai.expect(odb.addOfferObject(o.offer_id, o)).to.equal(true);
-            chai.expect(odb.hasOfferObject(o.offer_id)).to.equal(true);
-
-            mockCurrentTS(laterTS);
-
-            const odb3 = new OffersDB();
-            return waitForDBLoaded(odb3).then(() => {
-              chai.expect(odb.hasOfferObject(o.offer_id)).to.equal(false);
-              return Promise.resolve(true);
-            });
-          });
-
           it('erased offers are removed completely', function () {
             const addedTS = Date.now();
             const laterTS = addedTS + (OffersConfigs.OFFERS_STORAGE_DEFAULT_TTS_SECS * 1000);
@@ -549,78 +557,6 @@ export default describeModule('offers-v2/offers/offers-db',
               chai.expect(odb.hasOfferObject(o.offer_id)).to.equal(false);
               chai.expect(odb.isOfferPresent(o.offer_id)).to.equal(false);
               return Promise.resolve(true);
-            });
-          });
-
-          // once the this test fails because the transition logic is removed on
-          // offers we should remove this tests
-          it('offers db transition works (this test will fail once we remove fully the transition)', function () {
-            // we need to build
-            //     this.dataIndex = {
-            //       offers_index: {},
-            //       display_id_index: {}
-            //    };
-            //
-            // first we will add all the offers and actions and check that everything
-            // is working
-            const db1 = new OffersDB();
-            const offersIdsToGen = ['o1', 'o2', 'o3', 'o4', 'o5', 'o6'];
-            offersIdsToGen.forEach((oid) => {
-              const offerObj = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
-              offerObj.offer_id = oid;
-              chai.expect(db1.addOfferObject(oid, offerObj)).to.equal(true);
-              chai.expect(db1.incOfferAction(oid, 'h1', true, 100)).to.equal(true);
-              chai.expect(db1.incOfferAction(oid, 'h2', true, 10)).to.equal(true);
-            });
-
-            const checkDB = (dbToCheck, n = 'db1') => {
-              offersIdsToGen.forEach((oid) => {
-                chai.expect(dbToCheck.hasOfferObject(oid), `${n} - for ${oid}`).eql(true);
-                let action = dbToCheck.getOfferActionMeta(oid, 'h1');
-                chai.expect(action).to.exist;
-                chai.expect(action.count).to.equal(100);
-                action = dbToCheck.getOfferActionMeta(oid, 'h2');
-                chai.expect(action).to.exist;
-                chai.expect(action.count).to.equal(10);
-              });
-            };
-
-            // check current db
-            checkDB(db1);
-
-            // we now need to rewrite the data, this is nasty but is temporary
-            const offersIndex = {};
-            db1.offersIndexMap.keys()
-              .forEach((k) => { offersIndex[k] = db1.offersIndexMap.get(k); });
-            const displayIDIndex = {};
-            db1.displayIdIndexMap.keys()
-              .forEach((k) => { displayIDIndex[k] = db1.displayIdIndexMap.get(k); });
-            const simpleDB = {
-              'offers-db': {
-                data_index: {
-                  offers_index: offersIndex,
-                  display_id_index: displayIDIndex,
-                }
-              }
-            };
-            // clear current persistence
-            persistence = {};
-            // load new db without old nor new and should be empty:
-            const odb2 = new OffersDB();
-            return waitForDBLoaded(odb2).then(() => {
-              offersIdsToGen.forEach(oid => chai.expect(odb2.hasOfferObject(oid)).eql(false));
-
-              // now load from old (sim)
-              persistence = {};
-              const simpleDBWrapper = () => {
-                const get = docID => Promise.resolve({ doc_data: simpleDB[docID] });
-                const remove = () => Promise.resolve(true);
-                return { get, remove };
-              };
-              const odb3 = new OffersDB(simpleDBWrapper());
-              return waitForDBLoaded(odb3).then(() => {
-                checkDB(odb3, 'odb3');
-              });
             });
           });
 
@@ -942,120 +878,6 @@ export default describeModule('offers-v2/offers/offers-db',
           beforeEach(function () {
             db = new OffersDB({});
           });
-
-          function genOffers(data) {
-            const result = [];
-            data.forEach((o) => {
-              const offer = getCopyValidOffer();
-              offer.offer_id = o.id;
-              if (o.client_id) {
-                offer.client_id = o.client_id;
-              }
-              if (o.types) {
-                offer.types = o.types;
-              }
-              result.push(offer);
-            });
-            return result;
-          }
-
-          it('check client mapping', function () {
-            const offersData = [
-              { client_id: 'client1', id: 'o1' },
-              { client_id: 'client1', id: 'o2' },
-              { client_id: 'client2', id: 'o3' },
-              { client_id: 'client2', id: 'o4' }
-            ];
-            const offers = genOffers(offersData);
-            offers.forEach(o => chai.expect(db.addOfferObject(o.offer_id, o)).to.equal(true));
-
-            // check we do not get anything for invalid offers
-            chai.expect(db.getClientOffers('c1')).eql(null);
-
-            // check we get the proper offers for client 1 and 2
-            const c1Offers = db.getClientOffers('client1');
-            chai.expect(c1Offers).not.eql(null);
-            chai.expect(c1Offers.has('o1')).eql(true);
-            chai.expect(c1Offers.has('o2')).eql(true);
-            chai.expect(c1Offers.has('o3')).eql(false);
-            chai.expect(c1Offers.has('o4')).eql(false);
-
-            const c2Offers = db.getClientOffers('client2');
-            chai.expect(c2Offers).not.eql(null);
-            chai.expect(c2Offers.has('o1')).eql(false);
-            chai.expect(c2Offers.has('o2')).eql(false);
-            chai.expect(c2Offers.has('o3')).eql(true);
-            chai.expect(c2Offers.has('o4')).eql(true);
-
-            // check removal works
-          });
-
-          it('check client mapping works after removal', function () {
-            const offersData = [
-              { client_id: 'client1', id: 'o1' },
-              { client_id: 'client1', id: 'o2' },
-              { client_id: 'client2', id: 'o3' },
-              { client_id: 'client2', id: 'o4' }
-            ];
-            const offers = genOffers(offersData);
-            offers.forEach(o => chai.expect(db.addOfferObject(o.offer_id, o)).to.equal(true));
-
-            // check we do not get anything for invalid offers
-            chai.expect(db.getClientOffers('c1')).eql(null);
-
-            // check we get the proper offers for client 1 and 2
-            const c1Offers = db.getClientOffers('client1');
-            chai.expect(c1Offers.has('o1')).eql(true);
-            chai.expect(c1Offers.has('o2')).eql(true);
-            chai.expect(c1Offers.has('o3'), 'v1').eql(false);
-            chai.expect(c1Offers.has('o4'), 'v2').eql(false);
-
-            const c2Offers = db.getClientOffers('client2');
-            chai.expect(c2Offers.has('o1'), 'v3').eql(false);
-            chai.expect(c2Offers.has('o2'), 'v4').eql(false);
-            chai.expect(c2Offers.has('o3')).eql(true);
-            chai.expect(c2Offers.has('o4')).eql(true);
-
-            chai.expect(db.removeOfferObject('o1')).eql(true);
-            // NOTE that we are not removing it here since we still want to
-            // get the data of the offer but should be marked as removed
-            // chai.expect(db.getClientOffers('client1').has('o1'), 'v5').eql(false);
-            chai.expect(db.getClientOffers('client1').has('o2')).eql(true);
-
-            chai.expect(db.removeOfferObject('o3')).eql(true);
-            // NOTE that we are not removing it here since we still want to
-            // get the data of the offer but should be marked as removed
-            // chai.expect(db.getClientOffers('client2').has('o3'), 'v6').eql(false);
-            chai.expect(db.getClientOffers('client2').has('o4')).eql(true);
-          });
-
-          it('check offers by type mapping', function () {
-            const offersData = [
-              { types: ['t1'], id: 'o1' },
-              { types: ['t1', 't2'], id: 'o2' },
-              { types: ['t2'], id: 'o3' },
-              { types: ['t3', 't4', 't1', 't2'], id: 'o4' },
-            ];
-            const offers = genOffers(offersData);
-            offers.forEach(o => chai.expect(db.addOfferObject(o.offer_id, o)).to.equal(true));
-
-            // check we do not get anything for invalid type
-            chai.expect(db.getOffersByType('x1')).eql(null);
-
-            // check we get the proper offers for t1 t2 t3 t4
-            const checks = [
-              { type: 't1', offers: ['o1', 'o2', 'o4'], not: ['o3'] },
-              { type: 't2', offers: ['o2', 'o3', 'o4'], not: ['o1'] },
-              { type: 't3', offers: ['o4'], not: ['o1', 'o2', 'o3'] },
-              { type: 't4', offers: ['o4'], not: ['o1', 'o2', 'o3'] },
-            ];
-            checks.forEach((c) => {
-              const oids = db.getOffersByType(c.type);
-              chai.expect(oids).to.exist;
-              c.offers.forEach(oid => chai.expect(oids.has(oid)).eql(true));
-              c.not.forEach(oid => chai.expect(oids.has(oid)).eql(false));
-            });
-          });
         });
 
         context('/offer erase', function () {
@@ -1064,22 +886,6 @@ export default describeModule('offers-v2/offers/offers-db',
           beforeEach(function () {
             db = new OffersDB({});
           });
-
-          function genOffers(data) {
-            const result = [];
-            data.forEach((o) => {
-              const offer = getCopyValidOffer();
-              offer.offer_id = o.id;
-              if (o.client_id) {
-                offer.client_id = o.client_id;
-              }
-              if (o.types) {
-                offer.types = o.types;
-              }
-              result.push(offer);
-            });
-            return result;
-          }
 
           it('erasing invalid offer doesnt blow works', function () {
             chai.expect(db.eraseOfferObject('xyz')).eql(false);
@@ -1102,43 +908,76 @@ export default describeModule('offers-v2/offers/offers-db',
             chai.expect(db.getOfferMeta(o.offer_id)).eql(null);
           });
 
-          it('check client mapping works after erase', function () {
-            const offersData = [
-              { client_id: 'client1', id: 'o1' },
-              { client_id: 'client1', id: 'o2' },
-              { client_id: 'client2', id: 'o3' },
-              { client_id: 'client2', id: 'o4' }
-            ];
-            const offers = genOffers(offersData);
-            offers.forEach(o => chai.expect(db.addOfferObject(o.offer_id, o)).to.equal(true));
+          context('/update db offer', () => {
+            const origBucket = { start: 0, end: 4999 };
+            const newBucket = { start: 5000, end: 9999 };
+            let origOffer;
+            let newOffer;
+            let offer1id;
 
-            // check we do not get anything for invalid offers
-            chai.expect(db.getClientOffers('c1')).eql(null);
+            beforeEach(() => {
+              [origOffer, newOffer] = genOffers([
+                { id: 'oid', abTestInfo: origBucket },
+                { id: 'oid', abTestInfo: newBucket },
+              ]);
+              offer1id = origOffer.offer_id;
+              db.addOfferObject(offer1id, origOffer);
+            });
 
-            // check we get the proper offers for client 1 and 2
-            const c1Offers = db.getClientOffers('client1');
-            chai.expect(c1Offers.has('o1')).eql(true);
-            chai.expect(c1Offers.has('o2')).eql(true);
-            chai.expect(c1Offers.has('o3'), 'v1').eql(false);
-            chai.expect(c1Offers.has('o4'), 'v2').eql(false);
+            it('Updates abTestInfo', () => {
+              db.updateOfferObject(offer1id, newOffer);
 
-            const c2Offers = db.getClientOffers('client2');
-            chai.expect(c2Offers.has('o1'), 'v3').eql(false);
-            chai.expect(c2Offers.has('o2'), 'v4').eql(false);
-            chai.expect(c2Offers.has('o3')).eql(true);
-            chai.expect(c2Offers.has('o4')).eql(true);
+              const updatedSpec = db.getOfferObject(offer1id).abTestInfo;
+              chai.expect(updatedSpec).eql(newBucket);
+            });
 
-            chai.expect(db.eraseOfferObject('o1')).eql(true);
-            // NOTE that we are completely removing the data here so should not appear anymore
-            chai.expect(db.getClientOffers('client1').has('o2')).eql(true);
-            chai.expect(db.getClientOffers('client1').has('o1')).eql(false);
+            it('Retain existing abTestInfo', () => {
+              db.updateOfferObject(offer1id, newOffer, /* retainAbTestInfo */ true);
 
-            chai.expect(db.eraseOfferObject('o3')).eql(true);
-            chai.expect(db.getClientOffers('client2').has('o4')).eql(true);
-            chai.expect(db.getClientOffers('client2').has('o3')).eql(false);
+              const updatedSpec = db.getOfferObject(offer1id).abTestInfo;
+              chai.expect(updatedSpec).eql(origBucket);
+            });
           });
         });
 
+        context('/has another offer of same campaign', () => {
+          let db;
+          let offer;
+          let anotherOffer;
+
+          beforeEach(() => {
+            db = new OffersDB({});
+            offer = new Offer(JSON.parse(JSON.stringify(VALID_OFFER_OBJ)));
+            const o = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
+            o.offer_id = 'another';
+            anotherOffer = new Offer(o);
+          });
+
+          it('/no offers at all', () => {
+            const unseenOffer = anotherOffer;
+
+            const hasAnother = db.hasAnotherOfferOfSameCampaign(unseenOffer);
+
+            chai.expect(hasAnother).to.be.false;
+          });
+
+          it('/only one offer and it is the same', () => {
+            db.addOfferObject(offer.uniqueID, offer.offerObj);
+
+            const hasAnother = db.hasAnotherOfferOfSameCampaign(offer);
+
+            chai.expect(hasAnother).to.be.false;
+          });
+
+          it('/several offers', () => {
+            db.addOfferObject(offer.uniqueID, offer.offerObj);
+            db.addOfferObject(anotherOffer.uniqueID, anotherOffer.offerObj);
+
+            const hasAnother = db.hasAnotherOfferOfSameCampaign(offer);
+
+            chai.expect(hasAnother).to.be.true;
+          });
+        });
 
         // TODO: we need to add more tests
         // - check persistence on hard disk, and if they are stored properly

@@ -25,7 +25,7 @@ export default class MobieData extends React.Component {
       return null;
     }
     return (
-      <Link url={director.info.url}>
+      <Link label="director-link" url={director.info.url}>
         <View>
           <Text style={{ color: descriptionTextColor }}>
             {director.title}: {director.info.name}
@@ -42,8 +42,18 @@ export default class MobieData extends React.Component {
     const director = richData.director;
     return (
       <View style={styles.container}>
-        { this.displayRating(rating) }
-        { this.displayDirector(director) }
+        <View
+          accessible={false}
+          accessibilityLabel={'movie-rating'}
+        >
+          {this.displayRating(rating)}
+        </View>
+        <View
+          accessible={false}
+          accessibilityLabel={'movie-director'}
+        >
+          { this.displayDirector(director) }
+        </View>
       </View>
     );
   }

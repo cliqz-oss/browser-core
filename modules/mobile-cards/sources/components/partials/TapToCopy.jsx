@@ -31,7 +31,11 @@ export default class TapToCopy extends React.Component {
       >
         <View>
           { this.props.children }
-          <Text style={styles.copy}>
+          <Text
+            accessible={false}
+            accessibilityLabel={'generic-copy-msg'}
+            style={styles.copy}
+          >
             {getMessage(this.state.copied ? 'Copied' : 'mobile_calc_copy_ans')}
           </Text>
         </View>

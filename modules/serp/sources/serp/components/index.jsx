@@ -1,13 +1,12 @@
 import Spanan from 'spanan';
 import React from 'react';
 import { getMessage } from '../../../core/i18n';
-import Storage from '../../../core/storage';
 import SerpPageVariation from './serp-page-variation';
-
-import t from '../services/i18n';
+import random from '../../../core/helpers/random';
 
 const ENTER_KEY = 'Enter';
-const storage = new Storage();
+const SEARCH_SUGGESTIONS = 'search:suggestions';
+const SEARCH_RESULTS = 'search:results';
 
 const cliqz = {
   search: {
@@ -21,33 +20,35 @@ const cliqz = {
 };
 
 export default class Serp extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this._ABTestValue = storage.getItem('serp_test');
-  }
+  _session = random(32)
 
   state = {
+    // Since query suggestions come from the same
+    // entry point which provide search results
+    // we need to distinguish between the two responses
+    // not to display suggestions when requested for
+    // search results explicitly.
+    searchRequestInitiator: SEARCH_RESULTS,
     items: [],
     isLoading: false,
-  };
+    searchBoxValue: '',
+  }
 
   componentDidMount() {
-    window.CliqzEvents.sub('search:results', ({ results }) => {
-      if (!results || !results.length) {
+    window.CliqzEvents.sub(SEARCH_RESULTS, ({ results }) => {
+      if (this.state.searchRequestInitiator !== SEARCH_RESULTS ||
+        !results ||
+        !results.length) {
         return;
       }
 
+      this._session = random(32);
       this._handleResults(results);
     });
+
     window.addEventListener('hashchange', this._handleHashChange);
 
     this._handleHashChange();
-  }
-
-  componentDidUpdate() {
-    this.textInput.value = this._getLocationHash();
-    this.textInput.focus();
   }
 
   _getLocationHash() {
@@ -56,21 +57,26 @@ export default class Serp extends React.Component {
     // we need to handle potential URIError
     // In case of a wrong high/low surrogate pair
     // URIError might occur during decoding/encoding;
-    const hashValue = window.location.hash.slice(1).replace(/\+/g, '%2B');
+    const hashValue = window.location.hash.slice(1);
 
     try {
-      return unescape(hashValue);
+      return decodeURIComponent(hashValue);
     } catch (e) {
       return hashValue;
     }
   }
 
-  _setLocationHash(hash) {
+  _setLocationHash = (hash) => {
     try {
-      window.location.hash = escape(hash);
+      window.location.hash = encodeURIComponent(hash);
     } catch (e) {
       window.location.hash = hash;
     }
+
+    // Here we need to force it triggered.
+    // Whatever a user looks for the same result.
+    // Because this tends to be more user-friendly.
+    this._handleHashChange();
   }
 
   _handleHashChange = () => {
@@ -79,7 +85,7 @@ export default class Serp extends React.Component {
     if (hashValue) {
       window.location.hash = hashValue.replace(/\+/g, ' ');
     }
-    //
+
     const query = this._getLocationHash();
 
     if (!query) {
@@ -88,7 +94,8 @@ export default class Serp extends React.Component {
     }
 
     this.setState({
-      isLoading: true
+      isLoading: true,
+      searchBoxValue: query,
     });
 
     cliqz.search.startSearch(
@@ -96,6 +103,15 @@ export default class Serp extends React.Component {
         keyCode: ENTER_KEY
       }
     );
+  }
+
+  updateRequestInitiator = (nextRequestInitiator) => {
+    if (nextRequestInitiator === SEARCH_RESULTS
+      || nextRequestInitiator === SEARCH_SUGGESTIONS) {
+      this.setState({
+        searchRequestInitiator: nextRequestInitiator,
+      });
+    }
   }
 
   _handleResults = (list) => {
@@ -111,12 +127,28 @@ export default class Serp extends React.Component {
       this.setState({
         isLoading: false,
         items: results.map((item) => {
+          const logo = (item.meta && item.meta.logo) || {};
+
+          const backgroundImage = logo.style.match(/background-image:\s*(.+?);/);
+          const backgroundColor = logo.style.match(/background-color:\s*(.+?);/);
+          const color = logo.style.match(/color:\s*(.+?);/);
+
+          const logoStyle = {
+            backgroundColor: backgroundColor === null ? '' : backgroundColor[1],
+            backgroundImage: backgroundImage === null ? '' : backgroundImage[1],
+            color: color === null ? '' : color[1],
+          };
+          const logoText = logo.text;
+
           const res = {
+            logoStyle,
+            logoText,
             description: item.description,
             type: item.type,
             title: item.title || item.text,
             href: item.href,
             hrefText: item.friendlyUrl,
+            isOffer: item.provider === 'cliqz::offers',
           };
           return res;
         })
@@ -132,7 +164,7 @@ export default class Serp extends React.Component {
   async _render(results) {
     const firstResult = results && results[0];
     if (!firstResult) {
-      if (this.textInput && !this.textInput.value) {
+      if (!this.getSearchBoxValue()) {
         this.setHeight(0);
       }
       return;
@@ -162,16 +194,26 @@ export default class Serp extends React.Component {
     return 500;
   }
 
-  handleKeyDown = (event) => {
-    const query = this._getQuery();
+  _handleKeyDown = (event) => {
+    const query = this.getSearchBoxValue();
 
     if (!query) {
       return;
     }
 
     if (ENTER_KEY === event.key) {
+      this.setState({
+        searchRequestInitiator: SEARCH_RESULTS,
+      });
+
       this._setLocationHash(query);
     }
+  }
+
+  updateSearchboxValue = (nextValue) => {
+    this.setState({
+      searchBoxValue: nextValue,
+    });
   }
 
   createIframeWrapper = (iframe) => {
@@ -230,56 +272,47 @@ export default class Serp extends React.Component {
     );
   }
 
-  _renderSearchField(...cssClasses) {
-    cssClasses.push('searchbox-field');
-
-    return (
-      <input
-        id="searchbox"
-        type="text"
-        className={cssClasses.join(' ')}
-        placeholder={t('search_with_cliqz')}
-        ref={(input) => { this.textInput = input; }}
-        onKeyDown={this.handleKeyDown}
-      />
-    );
-  }
-
   _onSearchIconClickHandler = (event) => {
-    const query = this._getQuery();
+    const query = this.getSearchBoxValue();
     if (!query) {
       event.preventDefault();
       return;
     }
+
+    this.setState({
+      searchRequestInitiator: SEARCH_RESULTS,
+    });
+
     try {
-      event.target.setAttribute('href', `#${escape(query)}`);
+      event.target.setAttribute('href', `#${encodeURIComponent(query)}`);
     } catch (e) {
       event.target.setAttribute('href', `#${query}`);
     }
   }
 
-  _getQuery() {
-    return this.textInput
-      ? this.textInput.value.trim()
-      : this._getLocationHash();
-  }
+  getSearchBoxValue = () =>
+    this.state.searchBoxValue;
 
-  _getLayoutConfig(renderStartSearchPage) {
-    const layoutConfig = {
-      searchField: this._renderSearchField('searchbox-field-main'),
-      query: this.textInput
-        ? this.textInput.value.trim()
-        : this._getLocationHash(),
-      submitIconClickHandler: this._onSearchIconClickHandler,
+  getNextProps(renderStartSearchPage) {
+    const props = {
+      handleKeyDown: this._handleKeyDown,
+      handleSubmitIconClick: this._onSearchIconClickHandler,
+      updateSearchboxValue: this.updateSearchboxValue,
+      updateRequestInitiator: this.updateRequestInitiator,
+      setLocationHash: this._setLocationHash,
+      query: this.getSearchBoxValue(),
+      renderStartSearchPage,
+      searchRequestInitiator: this.state.searchRequestInitiator,
+      isLoading: this.state.isLoading,
+      session: this._session,
     };
 
     if (renderStartSearchPage) {
-      return layoutConfig;
+      return props;
     }
 
-    return Object.assign(layoutConfig, {
+    return Object.assign(props, {
       results: this.state.items,
-      searchField: this._renderSearchField('searchbox-field-results'),
     });
   }
 
@@ -287,12 +320,7 @@ export default class Serp extends React.Component {
     const renderStartSearchPage = !this._getLocationHash();
 
     return (
-      <SerpPageVariation
-        ABTestValue={this._ABTestValue}
-        renderStartSearchPage={renderStartSearchPage}
-        layoutConfig={this._getLayoutConfig(renderStartSearchPage)}
-        isLoading={this.state.isLoading}
-      />
+      <SerpPageVariation {...this.getNextProps(renderStartSearchPage)} />
     );
   }
 }

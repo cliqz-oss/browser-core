@@ -4,12 +4,14 @@ import {
   waitFor,
 } from '../../core/test-helpers';
 import {
+  checkMessages,
+  checkTelemetry,
   defaultConfig,
   generateHistoryResponse,
   Subject,
 } from '../../core/test-helpers-freshtab';
 
-describe('Fresh tab interactions with most visited', function () {
+describe('Freshtab interactions with most visited', function () {
   const dialSelector = '#section-most-visited a.dial';
   const dialTitleSelector = '.title';
   const deleteBtnSelector = 'button.delete';
@@ -24,8 +26,6 @@ describe('Fresh tab interactions with most visited', function () {
   let $deletedBtn;
   let $afterClickDials;
   let subject;
-  let messages;
-  let listener;
 
   beforeEach(function () {
     subject = new Subject();
@@ -60,16 +60,6 @@ describe('Fresh tab interactions with most visited', function () {
       });
 
       await subject.load();
-      // Keep track of received messages
-      messages = new Map();
-      listener = function (msg) {
-        if (!messages.has(msg.action)) {
-          messages.set(msg.action, []);
-        }
-
-        messages.get(msg.action).push(msg);
-      };
-      subject.chrome.runtime.onMessage.addListener(listener);
 
       $initialDials = subject.queryAll(dialSelector);
       $dialToDelete = $initialDials[0];
@@ -85,7 +75,6 @@ describe('Fresh tab interactions with most visited', function () {
     });
 
     afterEach(function () {
-      subject.chrome.runtime.onMessage.removeListener(listener);
       subject.unload();
     });
 
@@ -97,6 +86,8 @@ describe('Fresh tab interactions with most visited', function () {
       beforeEach(async function () {
         subject.query(settingsButtonSelector).click();
         await waitFor(() => subject.query(settingsPanelSelector).classList.contains('visible'));
+
+        subject.startListening();
         subject.query(restoreBtnSelector).click();
         return waitFor(() => subject.queryAll(dialSelector).length === 3);
       });
@@ -109,29 +100,19 @@ describe('Fresh tab interactions with most visited', function () {
         expect(subject.query(restoreBtnSelector).disabled).to.be.true;
       });
 
-      it('sends a "resetAllHistory" message', function () {
-        expect(messages.has('resetAllHistory')).to.equal(true);
-        expect(messages.get('resetAllHistory').length).to.equal(1);
+      checkMessages({
+        messageName: 'resetAllHistory',
+        subject: () => subject,
       });
 
       it('sends a "settings > restore_topsites > click" telemetry signal', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
-
-        const telemetrySignals = messages.get('sendTelemetry');
-        let count = 0;
-
-        expect(telemetrySignals.length).to.be.above(0);
-
-        count = telemetrySignals.filter(function (s) {
-          return (
-            s.args[0].type === 'home' &&
-            s.args[0].view === 'settings' &&
-            s.args[0].target === 'restore_topsites' &&
-            s.args[0].action === 'click'
-          );
-        }).length;
-
-        expect(count).to.equal(1);
+        checkTelemetry({
+          action: 'click',
+          subject: () => subject,
+          target: 'restore_topsites',
+          type: 'home',
+          view: 'settings',
+        });
       });
     });
   });
@@ -145,50 +126,28 @@ describe('Fresh tab interactions with most visited', function () {
       });
 
       await subject.load();
-
-      // Keep track of received messages
-      messages = new Map();
-      listener = function (msg) {
-        if (!messages.has(msg.action)) {
-          messages.set(msg.action, []);
-        }
-
-        messages.get(msg.action).push(msg);
-      };
-      subject.chrome.runtime.onMessage.addListener(listener);
-
       $initialDials = subject.queryAll(dialSelector);
       $dialToDelete = $initialDials[0];
     });
 
     afterEach(function () {
-      subject.chrome.runtime.onMessage.removeListener(listener);
       subject.unload();
     });
 
     describe('clicking on the element', function () {
       beforeEach(function () {
+        subject.startListening();
         const logoSelector = '.logo';
         $dialToDelete.querySelector(logoSelector).click();
       });
 
       it('sends a "topsite > click" telemetry signal', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
-
-        const telemetrySignals = messages.get('sendTelemetry');
-        let count = 0;
-
-        expect(telemetrySignals.length).to.be.above(0);
-
-        count = telemetrySignals.filter(function (s) {
-          return (
-            s.args[0].type === 'home' &&
-            s.args[0].target === 'topsite' &&
-            s.args[0].action === 'click'
-          );
-        }).length;
-
-        expect(count).to.equal(1);
+        checkTelemetry({
+          action: 'click',
+          subject: () => subject,
+          target: 'topsite',
+          type: 'home',
+        });
       });
     });
 
@@ -197,12 +156,10 @@ describe('Fresh tab interactions with most visited', function () {
         deletedTitle = $dialToDelete
           .querySelector(dialTitleSelector).textContent;
         $deletedBtn = $dialToDelete.querySelector(deleteBtnSelector);
+
+        subject.startListening();
         $deletedBtn.click();
         return waitFor(() => (subject.query(undoBoxSelector)));
-      });
-
-      afterEach(function () {
-        subject.chrome.runtime.onMessage.removeListener(listener);
       });
 
       describe('of the first element', function () {
@@ -222,28 +179,18 @@ describe('Fresh tab interactions with most visited', function () {
           expect(subject.query(areaSelector)).to.exist;
         });
 
-        it('sends a "removeSpeedDial" message', function () {
-          expect(messages.has('removeSpeedDial')).to.equal(true);
-          expect(messages.get('removeSpeedDial').length).to.equal(1);
+        checkMessages({
+          messageName: 'removeSpeedDial',
+          subject: () => subject,
         });
 
         it('sends a "delete_topsite > click" telemetry signal', function () {
-          expect(messages.has('sendTelemetry')).to.equal(true);
-
-          const telemetrySignals = messages.get('sendTelemetry');
-          let count = 0;
-
-          expect(telemetrySignals.length).to.be.above(0);
-
-          count = telemetrySignals.filter(function (s) {
-            return (
-              s.args[0].type === 'home' &&
-              s.args[0].target === 'delete_topsite' &&
-              s.args[0].action === 'click'
-            );
-          }).length;
-
-          expect(count).to.equal(1);
+          checkTelemetry({
+            action: 'click',
+            subject: () => subject,
+            target: 'delete_topsite',
+            type: 'home',
+          });
         });
 
         describe('then clicking on a close button of the undo popup', function () {
@@ -264,23 +211,13 @@ describe('Fresh tab interactions with most visited', function () {
           });
 
           it('sends a "notification > close > click" telemetry signal', function () {
-            expect(messages.has('sendTelemetry')).to.equal(true);
-
-            const telemetrySignals = messages.get('sendTelemetry');
-            let count = 0;
-
-            expect(telemetrySignals.length).to.be.above(0);
-
-            count = telemetrySignals.filter(function (s) {
-              return (
-                s.args[0].type === 'home' &&
-                s.args[0].view === 'notification' &&
-                s.args[0].target === 'close' &&
-                s.args[0].action === 'click'
-              );
-            }).length;
-
-            expect(count).to.equal(1);
+            checkTelemetry({
+              action: 'click',
+              subject: () => subject,
+              target: 'close',
+              type: 'home',
+              view: 'notification',
+            });
           });
         });
 
@@ -320,29 +257,19 @@ describe('Fresh tab interactions with most visited', function () {
               .to.equal(deletedTitle);
           });
 
-          it('sends a "revertHistorySpeedDial" message', function () {
-            expect(messages.has('revertHistorySpeedDial')).to.equal(true);
-            expect(messages.get('revertHistorySpeedDial').length).to.equal(1);
+          checkMessages({
+            messageName: 'revertHistorySpeedDial',
+            subject: () => subject,
           });
 
           it('sends a "notification > undo_delete_topsite > click" telemetry signal', function () {
-            expect(messages.has('sendTelemetry')).to.equal(true);
-
-            const telemetrySignals = messages.get('sendTelemetry');
-            let count = 0;
-
-            expect(telemetrySignals.length).to.be.above(0);
-
-            count = telemetrySignals.filter(function (s) {
-              return (
-                s.args[0].type === 'home' &&
-                s.args[0].view === 'notification' &&
-                s.args[0].target === 'undo_delete_topsite' &&
-                s.args[0].action === 'click'
-              );
-            }).length;
-
-            expect(count).to.equal(1);
+            checkTelemetry({
+              action: 'click',
+              subject: () => subject,
+              target: 'undo_delete_topsite',
+              type: 'home',
+              view: 'notification',
+            });
           });
         });
       });
@@ -360,7 +287,6 @@ describe('Fresh tab interactions with most visited', function () {
     });
 
     afterEach(function () {
-      subject.chrome.runtime.onMessage.removeListener(listener);
       subject.unload();
     });
 

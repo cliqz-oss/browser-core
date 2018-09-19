@@ -51,6 +51,19 @@ const chromeQueryHtml = async (url, selector, attribute, {
   );
 };
 
+const chromeQueryComputedStyle = async (url, selector) => {
+  const window = chrome.extension.getViews().find(w => w.location.href === url);
+
+  if (!window) {
+    return [];
+  }
+
+  return Array.prototype.map.call(
+    window.document.querySelectorAll(selector),
+    el => window.getComputedStyle(el),
+  );
+};
+
 const chromeClick = async (url, selector) => {
   const window = chrome.extension.getViews().find(w => w.location.href === url);
 
@@ -70,11 +83,23 @@ const contentQueryHTML = async (...args) => {
   return response;
 };
 
+const contentQueryComputedStyle = async (...args) => {
+  const response = await app.modules.core.action('queryComputedStyle', ...args);
+  return response;
+};
+
 export function queryHTML(url, ...rest) {
   if (url.startsWith(chrome.runtime.getURL(''))) {
     return chromeQueryHtml(url, ...rest);
   }
   return contentQueryHTML(url, ...rest);
+}
+
+export function queryComputedStyle(url, ...rest) {
+  if (url.startsWith(chrome.runtime.getURL(''))) {
+    return chromeQueryComputedStyle(url, ...rest);
+  }
+  return contentQueryComputedStyle(url, ...rest);
 }
 
 const contentClick = (url, selector) => app.modules.core.action('click', url, selector);

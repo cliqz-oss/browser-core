@@ -60,7 +60,7 @@ export default class MovieResult extends GenericResult {
 
     if (nVote) {
       return new MovieInfo(this, {
-        url: `${this.rawResult.url}/ratings`,
+        url: rating.url,
         nVote,
         title: 'cinema_movie_reviews',
       });
@@ -113,12 +113,17 @@ export default class MovieResult extends GenericResult {
     return null;
   }
 
-  // TODO: remove this and replace by new data from big machine
   get fullCastInfo() {
-    return new MovieInfo(this, {
-      url: `${this.rawResult.url}/fullcredits`,
-      title: 'cinema_movie_full_cast',
-    });
+    const fullCastUrl = this._richData.full_cast;
+
+    if (fullCastUrl) {
+      return new MovieInfo(this, {
+        url: fullCastUrl,
+        title: 'cinema_movie_full_cast',
+      });
+    }
+
+    return null;
   }
 
   get allResults() {
@@ -128,7 +133,7 @@ export default class MovieResult extends GenericResult {
       ...(this.trailerInfo ? [this.trailerInfo] : []),
       ...(this.reviewsInfo ? [this.reviewsInfo] : []),
       ...(this.starsInfo ? this.starsInfo : []),
-      this.fullCastInfo,
+      ...(this.fullCastInfo ? [this.fullCastInfo] : []),
     ];
   }
 }

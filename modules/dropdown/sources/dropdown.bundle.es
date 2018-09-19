@@ -115,7 +115,6 @@ const exportedActions = {
     query,
     queriedAt,
     sessionId,
-    navbarColor,
   }, {
     assistantStates,
     urlbarAttributes,
@@ -146,7 +145,6 @@ const exportedActions = {
         copyToClipboard: importedActions.copyToClipboard,
       },
     };
-
     // on Firefox 60 there is some wierd optiomization that results in reversed
     // the order of the runloop when innerHTML is called. This happens only for
     // first batch of renders. having nextTick here, makes the problem go away
@@ -160,7 +158,7 @@ const exportedActions = {
 
     previousResults = results;
 
-    updateNavbarColor(navbarColor);
+    updateNavbarColor(urlbarAttributes.navbarColor);
     dropdown.renderResults(results, {
       urlbarAttributes,
       extensionId: assistantStates.settings.id,

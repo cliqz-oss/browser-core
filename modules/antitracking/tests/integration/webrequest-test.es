@@ -115,7 +115,7 @@ export default function () {
       beforeEach(async function () {
         WebRequest.onBeforeRequest.addListener(block, { urls: ['*://*/*'] }, ['blocking']);
         await testServer.registerPathHandler('/block', { result: helloWorld });
-        await newTab(url, false);
+        await newTab(url, { check: false });
       });
 
       afterEach(function () {

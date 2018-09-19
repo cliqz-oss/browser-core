@@ -9,7 +9,7 @@ import {
   Subject,
 } from '../../core/test-helpers-freshtab';
 
-describe('Fresh tab most visited UI', function () {
+describe('Freshtab most visited UI', function () {
   let subject;
   let mostVisitedConfig;
 

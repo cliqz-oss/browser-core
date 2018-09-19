@@ -1,0 +1,146 @@
+#!/bin/env groovy
+import groovy.time.*
+
+@Library('cliqz-shared-library@v1.2') _
+
+properties([
+    [$class: 'JobRestrictionProperty'],
+    parameters([
+        string(name: 'DOCKER_REGISTRY_URL', defaultValue: '141047255820.dkr.ecr.us-east-1.amazonaws.com'),
+    ]),
+])
+
+
+def CONFIG = 'configs/ci/offers-infrastructure-tests.js'
+def TEST_PARAMS = "-l firefox-web-ext --grep 'send fake signals to backend through hpn' --firefox ~/firefoxNightly/firefox/firefox"
+
+
+String currentCommitHash
+String codeDockerImage
+
+
+node('docker && !gpu && us-east-1') {
+    stage('checkout') {
+        def scmInfo = checkout scm
+        currentCommitHash = scmInfo.GIT_COMMIT
+        codeDockerImage = "navigation-extension/tests:${currentCommitHash}-offers-infra-test"
+    }
+
+    def dockerfileChecksum = sh(returnStdout: true, script: 'md5sum Dockerfile.ci | cut -d" " -f1').trim()
+    def packageJsonChecksum = sh(returnStdout: true, script: 'md5sum package.json | cut -d" " -f1').trim()
+    // add date to the tag in order to download FF beta and nightly at least once per day and stay up-to-date
+    def today = new Date().format('yyyyMMdd')
+    def dockerTag = "${dockerfileChecksum}-${packageJsonChecksum}-${today}-offers-infra-test"
+
+    docker.withRegistry("https://${params.DOCKER_REGISTRY_URL}") {
+
+        stage('prepare docker base image') {
+            ansiColor('xterm') {
+                def baseImageName = "navigation-extension/build:${dockerTag}"
+
+                try {
+                    def image = docker.image(baseImageName)
+                    image.pull()
+                } catch (e) {
+                    print e
+                    def baseImage = docker.build(
+                        baseImageName,
+                        '-f Dockerfile.ci .'
+                    )
+                    baseImage.push dockerTag
+                }
+            }
+        }
+
+        stage('prepare docker code image') {
+            writeFile file: 'Dockerfile.code', text: """
+                FROM ${params.DOCKER_REGISTRY_URL}/navigation-extension/build:${dockerTag}
+                COPY  --chown=node:node . /app/
+            """
+
+            def codeImage = docker.build(
+                codeDockerImage,
+                '-f Dockerfile.code .'
+            )
+
+            codeImage.push "${currentCommitHash}-offers-infra-test"
+        }
+    }
+}
+
+
+node('docker && gpu && us-east-1') {
+    def HOST = helpers.getIp()
+    def VNC_PORT = helpers.getFreePort(lower: 20000, upper: 20999)
+    def dockerParams = "-p ${VNC_PORT}:5900 --add-host cliqztest.com:127.0.0.1 --device /dev/nvidia0 --device /dev/nvidiactl --cpus=2"
+
+    docker.withRegistry("https://${params.DOCKER_REGISTRY_URL}") {
+        def image = docker.image(codeDockerImage)
+        
+        stage('tests: get image') {
+            image.pull()
+        }
+
+        withEnv(["CLIQZ_CONFIG_PATH=${CONFIG}"]) {
+            docker.image(image.imageName()).inside(dockerParams) {
+                timeout(25) {
+                    stage('tests: run') {
+                        def report
+                        def hasErrors
+
+                        try {
+                            def timeBefore = new Date()
+
+                            sh """#!/bin/bash
+                                set -x
+
+                                cd /app
+
+                                rm -f report.xml
+
+                                export DISPLAY=:0
+                                Xvfb \$DISPLAY -screen 0 1024x768x24 -ac &
+                                openbox&
+
+                                x11vnc -storepasswd vnc /tmp/vncpass
+                                x11vnc -rfbport 5900 -rfbauth /tmp/vncpass -forever > /dev/null 2>&1 &
+
+                                ./fern.js test ${TEST_PARAMS} --environment testing --ci report.xml > /dev/null; true
+
+                                cp report.xml ${env.WORKSPACE}
+                                cat report.xml
+                            """
+                            def timeAfter = new Date()
+                            def duration = "${TimeCategory.minus(timeAfter, timeBefore).getHours()}h, ${TimeCategory.minus(timeAfter, timeBefore).getMinutes()}m"
+
+                            Map r = xunit.parse('/app/report.xml')
+                            if (!r.containsKey('errors')) {
+                                r.errors = '0'
+                            }
+                            report = "tests: ${r.tests}, f/e: ${r.failures}/${r.errors}, time: ${duration}"
+                            print report
+                            hasErrors = (r.failures != '0') || (r.errors != '0')
+
+                            if (r.tests == '0') {
+                                throw new Exception('No tests have been run!')
+                            }
+
+                            junit(
+                                allowEmptyResults: true,
+                                healthScaleFactor: 0.0,
+                                testResults: 'report.xml'
+                            )
+                        } catch (e) {
+                            report = e
+                            hasErrors = true
+                        }
+
+                        if (hasErrors) {
+                            currentBuild.result = "FAILURE"
+                        }
+                    } // end stage
+                } // end timeout
+            } // end docker
+        }
+    }
+}

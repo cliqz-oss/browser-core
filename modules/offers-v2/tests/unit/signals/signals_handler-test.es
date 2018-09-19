@@ -2,6 +2,8 @@
 /* global describeModule */
 /* global require */
 
+const mockDexie = require('../../../core/unit/utils/dexie');
+
 class SenderMock {
   constructor() {
     this.signals = [];
@@ -51,18 +53,9 @@ class SenderMock {
   }
 }
 
-
-function asyncInvoke(f, timeoutMS) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      f();
-      resolve();
-    }, timeoutMS);
-  });
-}
-
 export default describeModule('offers-v2/signals/signals_handler',
   () => ({
+    ...mockDexie,
     'offers-v2/common/offers_v2_logger': {
       default: {
         debug: () => {},
@@ -93,10 +86,8 @@ export default describeModule('offers-v2/signals/signals_handler',
       default: {
         get(n, v) { return v; },
         getObject() { return {}; },
+        has() { return null; },
       }
-    },
-    'platform/console': {
-      default: {}
     },
     'platform/crypto': {
       default: {}
@@ -116,7 +107,6 @@ export default describeModule('offers-v2/signals/signals_handler',
         constructor(db) {
           this.db = db;
         }
-
         upsert(docID, docData) {
           const self = this;
           return new Promise((resolve) => {
@@ -271,214 +261,194 @@ export default describeModule('offers-v2/signals/signals_handler',
           sm = new SenderMock();
         });
 
-        it('test missing arguments doesnt add campaign signals', function () {
-          const sh = new SignalHandler({}, sm);
-          chai.expect(sh.setCampaignSignal()).to.be.equal(false);
-          chai.expect(sh.setCampaignSignal('x')).to.be.equal(false);
-          chai.expect(sh.setCampaignSignal('x', 'y')).to.be.equal(false);
-          chai.expect(sh.setCampaignSignal('x', 'y', 'z')).to.be.equal(false);
-        });
-
-        it('test missing arguments doesnt add action signals', function () {
-          const sh = new SignalHandler({}, sm);
-          chai.expect(sh.setActionSignal()).to.be.equal(false);
-          chai.expect(sh.setActionSignal('x')).to.be.equal(false);
-        });
-
-        it('test missing arguments doesnt add action signals', function () {
-          const sh = new SignalHandler({}, sm);
-          chai.expect(sh.setActionSignal()).to.be.equal(false);
-          chai.expect(sh.setActionSignal('x')).to.be.equal(false);
-        });
-
         // to test that signals are being properly added we will check when sending
         // to the backend that we get on the mock the proper signal
-        it('add campaign signal works', function () {
+        it('add campaign signal works', async function () {
           const sh = new SignalHandler({}, sm);
+          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
         });
 
-        it('add campaign signal with different counters works', function () {
+        it('add campaign signal with different counters works', async function () {
           const sh = new SignalHandler({}, sm);
+          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w0')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
           checkCampaignVal(sm.signals[0], 1, 'x', 'y', 'z', 'w0');
           sm.clear();
 
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w100', 100)).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
           checkCampaignVal(sm.signals[0], 100, 'x', 'y', 'z', 'w100');
           sm.clear();
 
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w500', 500)).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
           checkCampaignVal(sm.signals[0], 500, 'x', 'y', 'z', 'w500');
         });
 
-        it('add action signal works', function () {
+        it('add action signal works', async function () {
           const sh = new SignalHandler({}, sm);
+          await sh.init();
           chai.expect(sh.setActionSignal('x', 'y')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
         });
 
-        it('add action signal with different counters works', function () {
+        it('add action signal with different counters works', async function () {
           const sh = new SignalHandler({}, sm);
+          await sh.init();
           chai.expect(sh.setActionSignal('x', 'y')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
           checkActionVal(sm.signals[0], 1, 'x', 'y');
           sm.clear();
 
           chai.expect(sh.setActionSignal('x', 'y2', 100)).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
           checkActionVal(sm.signals[0], 100, 'x', 'y2');
         });
 
-        it('signal are properly sent when modified', function () {
+        it('signal are properly sent when modified', async function () {
           const sh = new SignalHandler({}, sm);
+          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
           // modify and check if we can sent it again
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(1);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(2);
           sm.clear();
 
           // test action
           chai.expect(sh.setActionSignal('x', 'y')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
           chai.expect(sh.setActionSignal('x', 'y')).to.be.equal(true);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(2);
         });
 
-        it('signal are not sent if not modified', function () {
+        it('signal are not sent if not modified', async function () {
           const sh = new SignalHandler({}, sm);
+          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
 
           // action signal
           sm.clear();
           chai.expect(sh.setActionSignal('x', 'y')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
           chai.expect(sh.setActionSignal('x', 'y')).to.be.equal(true);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(2);
         });
 
-        it('proper format is sent for simple campaign signal', function () {
+        it('proper format is sent for simple campaign signal', async function () {
           const sh = new SignalHandler({}, sm);
+          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
           checkCampaignVal(sm.signals[0], 1, 'x', 'y', 'z', 'w');
           sm.clear();
 
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
           checkCampaignVal(sm.signals[0], 2, 'x', 'y', 'z', 'w');
           sm.clear();
         });
 
-        it('signals are persistent', function () {
+        it('signals are persistent', async function () {
           const db = {};
           let sh = new SignalHandler(db, sm);
+          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
           checkCampaignVal(sm.signals[0], 1, 'x', 'y', 'z', 'w');
           sm.clear();
-          return sh.savePersistenceData().then(() => {
-            // create it again and wait for the load
-            sh = new SignalHandler(db, sm);
-            return sh._loadPersistenceData().then(() => {
-              sh._sendSignalsToBE();
-              chai.expect(sm.signals.length, 'signals length is 0?').to.be.equal(0);
-              // add it again
-              chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
-              sh._sendSignalsToBE();
-              chai.expect(sm.signals.length).to.be.equal(1);
-              checkCampaignVal(sm.signals[0], 2, 'x', 'y', 'z', 'w');
-            });
-          });
+          await sh.destroy();
+          sh = new SignalHandler(db, sm);
+          await sh.init();
+          await sh._sendSignalsToBE();
+          chai.expect(sm.signals.length, 'signals length is 0?').to.be.equal(0);
+          // add it again
+          chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
+          await sh._sendSignalsToBE();
+          chai.expect(sm.signals.length).to.be.equal(1);
+          checkCampaignVal(sm.signals[0], 2, 'x', 'y', 'z', 'w');
         });
 
-        it('signals are sent if werent after loading', function () {
+        it('signals are sent if werent after loading', async function () {
           const db = {};
           let sh = new SignalHandler(db, sm);
+          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
-          return sh.savePersistenceData().then(() => {
-            // create it again and wait for the load
-            sh = new SignalHandler(db, sm);
-            return sh._loadPersistenceData().then(() => {
-              chai.expect(sm.signals.length).to.be.equal(0);
-              sh._sendSignalsToBE();
-              chai.expect(sm.signals.length).to.be.equal(1);
-              checkCampaignVal(sm.signals[0], 1, 'x', 'y', 'z', 'w');
-            });
-          });
+          await sh.destroy();
+          sh = new SignalHandler(db, sm);
+          await sh.init();
+          chai.expect(sm.signals.length).to.be.equal(0);
+          await sh._sendSignalsToBE();
+          chai.expect(sm.signals.length).to.be.equal(1);
+          checkCampaignVal(sm.signals[0], 1, 'x', 'y', 'z', 'w');
         });
 
-        it('signals are not sent twice after loading', function () {
+        it('signals are not sent twice after loading', async function () {
           const db = {};
           const sh = new SignalHandler(db, sm);
+          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
-          return sh.savePersistenceData().then(() => {
-            sh._sendSignalsToBE();
-            chai.expect(sm.signals.length).to.be.equal(1);
-            sm.clear();
-            return sh.savePersistenceData().then(() => {
-              // create it again and wait for the load
-              const sh2 = new SignalHandler(db, sm);
-              return sh2._loadPersistenceData().then(() => {
-                chai.expect(sm.signals.length).to.be.equal(0);
-                sh2._sendSignalsToBE();
-                // should be 0 since we didn't modify the flag at all.
-                chai.expect(sm.signals.length).to.be.equal(0);
-                chai.expect(sh2.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
-                sh2._sendSignalsToBE();
-                chai.expect(sm.signals.length).to.be.equal(1);
-                checkCampaignVal(sm.signals[0], 2, 'x', 'y', 'z', 'w');
-              });
-            });
-          });
+          await sh.destroy();
+          await sh._sendSignalsToBE();
+          chai.expect(sm.signals.length).to.be.equal(1);
+          sm.clear();
+          await sh.destroy();
+          const sh2 = new SignalHandler(db, sm);
+          await sh2.init();
+          chai.expect(sm.signals.length).to.be.equal(0);
+          await sh2._sendSignalsToBE();
+          chai.expect(sm.signals.length).to.be.equal(0);
+          chai.expect(sh2.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
+          await sh2._sendSignalsToBE();
+          chai.expect(sm.signals.length).to.be.equal(1);
+          checkCampaignVal(sm.signals[0], 2, 'x', 'y', 'z', 'w');
         });
 
-        it('seq number is properly sent', function () {
+        it('seq number is properly sent', async function () {
           const db = {};
           const sh = new SignalHandler(db, sm);
+          await sh.init();
           let expectedSeq = 0;
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
           checkCampaignSeq(sm.signals[0], expectedSeq, 'x');
           sm.clear();
@@ -488,78 +458,74 @@ export default describeModule('offers-v2/signals/signals_handler',
             chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           }
           expectedSeq += 1;
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
 
           chai.expect(sm.signals.length).to.be.equal(1);
           checkCampaignSeq(sm.signals[0], expectedSeq, 'x');
           sm.clear();
 
+          /* eslint no-await-in-loop: off */
           for (let i = 0; i < counter; i += 1) {
             chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
             expectedSeq += 1;
-            sh._sendSignalsToBE();
+            await sh._sendSignalsToBE();
           }
           checkCampaignSeq(sm.signals[sm.signals.length - 1], expectedSeq, 'x');
         });
 
-        it('seq number is properly stored (persistence)', function () {
+        it('seq number is properly stored (persistence)', async function () {
           const db = {};
           let sh = new SignalHandler(db, sm);
+          await sh.init();
           let expectedSeq = 0;
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
           checkCampaignSeq(sm.signals[0], expectedSeq, 'x');
           sm.clear();
-
-          return sh.savePersistenceData().then(() => {
-            // create it again and wait for the load
-            sh = new SignalHandler(db, sm);
-            return sh._loadPersistenceData().then(() => {
-              chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
-              sh._sendSignalsToBE();
-              chai.expect(sm.signals.length).to.be.equal(1);
-              expectedSeq += 1;
-              checkCampaignSeq(sm.signals[0], expectedSeq, 'x');
-            });
-          });
+          await sh.destroy();
+          sh = new SignalHandler(db, sm);
+          await sh.init();
+          chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
+          await sh._sendSignalsToBE();
+          chai.expect(sm.signals.length).to.be.equal(1);
+          expectedSeq += 1;
+          checkCampaignSeq(sm.signals[0], expectedSeq, 'x');
         });
 
-        it('seq number is properly stored (after sent and save)', function () {
+        it('seq number is properly stored (after sent and save)', async function () {
           const db = {};
           const sh = new SignalHandler(db, sm);
+          await sh.init();
           let expectedSeq = 0;
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
-          return sh.savePersistenceData().then(() => {
-            sh._sendSignalsToBE();
-            chai.expect(sm.signals.length).to.be.equal(1);
-            checkCampaignSeq(sm.signals[0], expectedSeq, 'x');
-            sm.clear();
-            return sh.savePersistenceData().then(() => {
-              // create it again and wait for the load
-              const sh2 = new SignalHandler(db, sm);
-              return sh2._loadPersistenceData().then(() => {
-                chai.expect(sm.signals.length).to.be.equal(0);
-                sh2._sendSignalsToBE();
-                // should be 0 since we didn't modify the flag at all.
-                chai.expect(sm.signals.length).to.be.equal(0);
-                chai.expect(sh2.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
-                expectedSeq += 1;
-                sh2._sendSignalsToBE();
-                chai.expect(sm.signals.length).to.be.equal(1);
-                checkCampaignSeq(sm.signals[0], expectedSeq, 'x');
-              });
-            });
-          });
+          await sh.destroy();
+          await sh._sendSignalsToBE();
+          chai.expect(sm.signals.length).to.be.equal(1);
+          checkCampaignSeq(sm.signals[0], expectedSeq, 'x');
+          sm.clear();
+          await sh.destroy();
+          const sh2 = new SignalHandler(db, sm);
+          await sh2.init();
+          chai.expect(sm.signals.length).to.be.equal(0);
+          await sh2._sendSignalsToBE();
+          // should be 0 since we didn't modify the flag at all.
+          chai.expect(sm.signals.length).to.be.equal(0);
+          chai.expect(sh2.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
+          expectedSeq += 1;
+          await sh2._sendSignalsToBE();
+          chai.expect(sm.signals.length).to.be.equal(1);
+          checkCampaignSeq(sm.signals[0], expectedSeq, 'x');
         });
 
-        it('multiple campaigns signals are sent separately', function () {
+        it('multiple campaigns signals are sent separately', async function () {
           const sh = new SignalHandler({}, sm);
+          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sh.setCampaignSignal('x2', 'y2', 'z2', 'w2')).to.be.equal(true);
           chai.expect(sh.setCampaignSignal('x3', 'y3', 'z3', 'w3')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(3);
           const sigIds = new Set();
           sm.signals.forEach((s) => {
@@ -570,8 +536,9 @@ export default describeModule('offers-v2/signals/signals_handler',
           chai.expect(sigIds.has('x3')).to.be.equal(true);
         });
 
-        it('multiple campaigns signals have unique ucid', function () {
+        it('multiple campaigns signals have unique ucid', async function () {
           const sh = new SignalHandler({}, sm);
+          await sh.init();
           const totSigs = 100;
           for (let i = 0; i < totSigs; i += 1) {
             const cid = `cid_${i}`;
@@ -581,7 +548,7 @@ export default describeModule('offers-v2/signals/signals_handler',
             chai.expect(sh.setCampaignSignal(cid, oid, orig, sid)).to.be.equal(true);
           }
           chai.expect(sm.signals.length).to.be.equal(0);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(totSigs);
           const sigIds = new Set();
           sm.signals.forEach((s) => {
@@ -608,64 +575,68 @@ export default describeModule('offers-v2/signals/signals_handler',
         // check old signals are being removed
 
 
-        it('removeCampaignSignals: generates a new ucid after erasing', function () {
+        it('removeCampaignSignals: generates a new ucid after erasing', async function () {
           const sh = new SignalHandler({}, sm);
+          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           const ucid1 = getCampaignUCID(sm.signals[0], 'x');
           // remove the signal and send it again
           sh.removeCampaignSignals('x');
           sm.clear();
           sh.setCampaignSignal('x', 'y', 'z', 'w');
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           const ucid2 = getCampaignUCID(sm.signals[0], 'x');
           chai.expect(ucid1).to.not.equal(ucid2);
         });
 
-        it('removeCampaignSignals: force send signal works', function () {
+        it('removeCampaignSignals: force send signal works', async function () {
           const sh = new SignalHandler({}, sm);
+          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
-          sh.sendCampaignSignalNow('x');
+          await sh.sendCampaignSignalNow('x');
           sh.removeCampaignSignals('x');
           checkCampaignVal(sm.signals[0], 1, 'x', 'y', 'z', 'w');
           // check that the signal doesnt exists anymore
           sm.clear();
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(0);
         });
 
-        it('removeCampaignSignals: same signal after removal starts again', function () {
+        it('removeCampaignSignals: same signal after removal starts again', async function () {
           const sh = new SignalHandler({}, sm);
+          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length, 'len 1').to.be.equal(1);
           checkCampaignVal(sm.signals[0], 1, 'x', 'y', 'z', 'w');
           sm.clear();
           // remove the signal and send it again
           sh.removeCampaignSignals('x');
           sh.setCampaignSignal('x', 'y', 'z', 'w');
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           checkCampaignVal(sm.signals[0], 1, 'x', 'y', 'z', 'w');
         });
 
-        it('removeCampaignSignals: removing a campaign doesnt affects others', function () {
+        it('removeCampaignSignals: removing a campaign doesnt affects others', async function () {
           const sh = new SignalHandler({}, sm);
+          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sh.setCampaignSignal('x2', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(2);
-          checkCampaignVal(sm.signals[0], 1, 'x', 'y', 'z', 'w');
-          checkCampaignVal(sm.signals[1], 1, 'x2', 'y', 'z', 'w');
+          checkCampaignVal(sm.signals[1], 1, 'x', 'y', 'z', 'w');
+          checkCampaignVal(sm.signals[0], 1, 'x2', 'y', 'z', 'w');
           sm.clear();
           // remove the signal and send it again
           sh.removeCampaignSignals('x');
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sh.setCampaignSignal('x2', 'y', 'z', 'w')).to.be.equal(true);
-          sh._sendSignalsToBE();
-          checkCampaignVal(sm.signals[0], 1, 'x', 'y', 'z', 'w');
-          checkCampaignVal(sm.signals[1], 2, 'x2', 'y', 'z', 'w');
+          await sh._sendSignalsToBE();
+          checkCampaignVal(sm.signals[1], 1, 'x', 'y', 'z', 'w');
+          checkCampaignVal(sm.signals[0], 2, 'x2', 'y', 'z', 'w');
         });
       });
 
@@ -677,156 +648,120 @@ export default describeModule('offers-v2/signals/signals_handler',
           sm.makeAsync(true);
         });
 
-        it('retry sending a signal no more than 3 times', function () {
+        it('retry sending a signal no more than 3 times', async function () {
           const sh = new SignalHandler({}, sm);
+          await sh.init();
           sh.setCampaignSignal('x', 'y', 'z', 'w');
-          sh._sendSignalsToBE();
-          return asyncInvoke(() => {
-            chai.expect(sm.errSignals.length).eql(1);
-            checkCampaignVal(sm.errSignals[0], 1, 'x', 'y', 'z', 'w');
 
-            sh._sendSignalsToBE();
-          }, 20)
-            .then(() => asyncInvoke(() => {
-              chai.expect(sm.errSignals.length).eql(2);
-              checkCampaignVal(sm.errSignals[1], 1, 'x', 'y', 'z', 'w');
+          await sh._sendSignalsToBE();
+          chai.expect(sm.errSignals.length).eql(1);
+          checkCampaignVal(sm.errSignals[0], 1, 'x', 'y', 'z', 'w');
 
-              sh._sendSignalsToBE();
-            }, 20)
-              .then(() => asyncInvoke(() => {
-                chai.expect(sm.errSignals.length).eql(3);
-                checkCampaignVal(sm.errSignals[2], 1, 'x', 'y', 'z', 'w');
+          await sh._sendSignalsToBE();
+          chai.expect(sm.errSignals.length).eql(2);
+          checkCampaignVal(sm.errSignals[1], 1, 'x', 'y', 'z', 'w');
 
-                sh._sendSignalsToBE();
-              }, 20)
-                .then(() => asyncInvoke(() => {
-                  chai.expect(sm.errSignals.length).eql(3);
-                  chai.expect(sm.signals.length).eql(0);
-                }, 20))));
+          await sh._sendSignalsToBE();
+          chai.expect(sm.errSignals.length).eql(3);
+          checkCampaignVal(sm.errSignals[2], 1, 'x', 'y', 'z', 'w');
+
+          await sh._sendSignalsToBE();
+          chai.expect(sm.errSignals.length).eql(3);
+          chai.expect(sm.signals.length).eql(0);
         });
 
 
-        it('2 failed attempts followed by 1 success attempt. Then nothing will be sent', function () {
+        it('2 failed attempts followed by 1 success attempt. Then nothing will be sent', async function () {
           const sh = new SignalHandler({}, sm);
+          await sh.init();
           sh.setCampaignSignal('x', 'y', 'z', 'w');
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
 
-          return asyncInvoke(() => {
-            chai.expect(sm.errSignals.length).eql(1);
-            checkCampaignVal(sm.errSignals[0], 1, 'x', 'y', 'z', 'w');
+          chai.expect(sm.errSignals.length).eql(1);
+          checkCampaignVal(sm.errSignals[0], 1, 'x', 'y', 'z', 'w');
 
-            sh._sendSignalsToBE();
-          }, 20)
-            .then(() => asyncInvoke(() => {
-              chai.expect(sm.errSignals.length).eql(2);
-              checkCampaignVal(sm.errSignals[1], 1, 'x', 'y', 'z', 'w');
+          await sh._sendSignalsToBE();
 
-              sm.makeSentFail(false);
-              sh._sendSignalsToBE();
-            }, 20)
-              .then(() => asyncInvoke(() => {
-                chai.expect(sm.errSignals.length).eql(2);
-                chai.expect(sm.signals.length).eql(1);
-                checkCampaignVal(sm.signals[0], 1, 'x', 'y', 'z', 'w');
-              }, 20)
-                .then(() => asyncInvoke(() => {
-                  chai.expect(sm.errSignals.length).eql(2);
-                  chai.expect(sm.signals.length).eql(1);
-                }, 20))));
+          chai.expect(sm.errSignals.length).eql(2);
+          checkCampaignVal(sm.errSignals[1], 1, 'x', 'y', 'z', 'w');
+
+          sm.makeSentFail(false);
+          await sh._sendSignalsToBE();
+
+          chai.expect(sm.errSignals.length).eql(2);
+          chai.expect(sm.signals.length).eql(1);
+          checkCampaignVal(sm.signals[0], 1, 'x', 'y', 'z', 'w');
+
+          chai.expect(sm.errSignals.length).eql(2);
+          chai.expect(sm.signals.length).eql(1);
         });
 
-        it('2 signals - retry sending each signal no more than 3 times', function () {
+        it('2 signals - retry sending each signal no more than 3 times', async function () {
           const sh = new SignalHandler({}, sm);
+          await sh.init();
           sh.setCampaignSignal('x', 'y', 'z', 'w');
           sh.setCampaignSignal('x2', 'y2', 'z2', 'w2');
-          sh._sendSignalsToBE();
-          return asyncInvoke(() => {
-            chai.expect(sm.errSignals.length).eql(2);
-            checkCampaignVal(sm.errSignals[0], 1, 'x', 'y', 'z', 'w');
-            checkCampaignVal(sm.errSignals[1], 1, 'x2', 'y2', 'z2', 'w2');
 
-            sh._sendSignalsToBE();
-          }, 20)
-            .then(() => asyncInvoke(() => {
-              chai.expect(sm.errSignals.length).eql(4);
-              checkCampaignVal(sm.errSignals[2], 1, 'x', 'y', 'z', 'w');
-              checkCampaignVal(sm.errSignals[3], 1, 'x2', 'y2', 'z2', 'w2');
+          await sh._sendSignalsToBE();
+          chai.expect(sm.errSignals.length).eql(2);
+          checkCampaignVal(sm.errSignals[1], 1, 'x', 'y', 'z', 'w');
+          checkCampaignVal(sm.errSignals[0], 1, 'x2', 'y2', 'z2', 'w2');
 
-              sh._sendSignalsToBE();
-            }, 20)
-              .then(() => asyncInvoke(() => {
-                chai.expect(sm.errSignals.length).eql(6);
-                checkCampaignVal(sm.errSignals[4], 1, 'x', 'y', 'z', 'w');
-                checkCampaignVal(sm.errSignals[5], 1, 'x2', 'y2', 'z2', 'w2');
+          await sh._sendSignalsToBE();
+          chai.expect(sm.errSignals.length).eql(4);
+          checkCampaignVal(sm.errSignals[3], 1, 'x', 'y', 'z', 'w');
+          checkCampaignVal(sm.errSignals[2], 1, 'x2', 'y2', 'z2', 'w2');
 
-                sh._sendSignalsToBE();
-              }, 20)
-                .then(() => asyncInvoke(() => {
-                  chai.expect(sm.errSignals.length).eql(6);
-                  chai.expect(sm.signals.length).eql(0);
-                }, 20))));
+          await sh._sendSignalsToBE();
+          chai.expect(sm.errSignals.length).eql(6);
+          checkCampaignVal(sm.errSignals[5], 1, 'x', 'y', 'z', 'w');
+          checkCampaignVal(sm.errSignals[4], 1, 'x2', 'y2', 'z2', 'w2');
+
+          await sh._sendSignalsToBE();
+          chai.expect(sm.errSignals.length).eql(6);
+          chai.expect(sm.signals.length).eql(0);
         });
 
 
-        it('fail, close, save , load, sending success, sending nothing', function () {
+        it('fail, close, save , load, sending success, sending nothing', async function () {
           const db = {};
           let sh = new SignalHandler(db, sm);
+          await sh.init();
           sh.setCampaignSignal('x', 'y', 'z', 'w');
-          sh._sendSignalsToBE();
+          await sh._sendSignalsToBE();
 
-          return asyncInvoke(() => {
-            chai.expect(sm.errSignals.length).eql(1);
-            checkCampaignVal(sm.errSignals[0], 1, 'x', 'y', 'z', 'w');
-            // sm.clear();
-          }, 20)
-            .then(() => sh.savePersistenceData().then(() => {
-              sh = new SignalHandler(db, sm);
-              return sh._loadPersistenceData().then(() => {
-                sm.makeSentFail(false);
-                sh._sendSignalsToBE();
-              })
-                .then(() => asyncInvoke(() => {
-                  chai.expect(sm.errSignals.length).eql(1);
-                  chai.expect(sm.signals.length).eql(1);
-                }, 20))
-                .then(() => asyncInvoke(() => {
-                  chai.expect(sm.errSignals.length).eql(1);
-                  chai.expect(sm.signals.length).eql(1);
-                }, 20));
-            }));
+          chai.expect(sm.errSignals.length).eql(1);
+          checkCampaignVal(sm.errSignals[0], 1, 'x', 'y', 'z', 'w');
+          sh.destroy();
+          sh = new SignalHandler(db, sm);
+          await sh.init();
+          sm.makeSentFail(false);
+          await sh._sendSignalsToBE();
+          chai.expect(sm.errSignals.length).eql(1);
+          chai.expect(sm.signals.length).eql(1);
+          chai.expect(sm.errSignals.length).eql(1);
+          chai.expect(sm.signals.length).eql(1);
         });
 
-        it('3 failed attempts, modify, failed attempts, send success', function () {
+        it('3 failed attempts, modify, failed attempts, send success', async function () {
           const sh = new SignalHandler({}, sm);
+          await sh.init();
           sh.setCampaignSignal('x', 'y', 'z', 'w');
-          sh._sendSignalsToBE();
-          return asyncInvoke(() => {
-            chai.expect(sm.errSignals.length).eql(1);
-            checkCampaignVal(sm.errSignals[0], 1, 'x', 'y', 'z', 'w');
-
-            sh._sendSignalsToBE();
-          }, 20)
-            .then(() => asyncInvoke(() => {
-              chai.expect(sm.errSignals.length).eql(2);
-              checkCampaignVal(sm.errSignals[1], 1, 'x', 'y', 'z', 'w');
-
-              sh._sendSignalsToBE();
-            }, 20)
-              .then(() => asyncInvoke(() => {
-                chai.expect(sm.errSignals.length).eql(3);
-                checkCampaignVal(sm.errSignals[2], 1, 'x', 'y', 'z', 'w');
-                sh.setActionSignal('click', 'yy');
-                sm.makeSentFail(false);
-
-                sh._sendSignalsToBE();
-              }, 20)
-                .then(() => asyncInvoke(() => {
-                  chai.expect(sm.errSignals.length).eql(3);
-                  chai.expect(sm.signals.length).eql(1);
-                  checkActionVal(sm.signals[0], 1, 'click', 'yy');
-                }, 20))
-              )
-            );
+          await sh._sendSignalsToBE();
+          chai.expect(sm.errSignals.length).eql(1);
+          checkCampaignVal(sm.errSignals[0], 1, 'x', 'y', 'z', 'w');
+          await sh._sendSignalsToBE();
+          chai.expect(sm.errSignals.length).eql(2);
+          checkCampaignVal(sm.errSignals[1], 1, 'x', 'y', 'z', 'w');
+          await sh._sendSignalsToBE();
+          chai.expect(sm.errSignals.length).eql(3);
+          checkCampaignVal(sm.errSignals[2], 1, 'x', 'y', 'z', 'w');
+          sh.setActionSignal('click', 'yy');
+          sm.makeSentFail(false);
+          await sh._sendSignalsToBE();
+          chai.expect(sm.errSignals.length).eql(3);
+          chai.expect(sm.signals.length).eql(1);
+          checkActionVal(sm.signals[0], 1, 'click', 'yy');
         });
       });
     });

@@ -10,6 +10,7 @@
                 }
             }
         }
+
         toolbarbutton {
             &#page-action-browser-action {
                 margin: 0;
@@ -31,6 +32,17 @@
                 }
             }
 
+            &#cc-page-action-browser-action {
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 200ms, background-color 100ms;
+
+                &[open] {
+                    opacity: 1;
+                    pointer-events: all;
+                }
+            }
+
             &.toolbarbutton-1 {
                 > .toolbarbutton-badge-stack {
                     border-color: transparent;
@@ -46,14 +58,22 @@
             }
 
             &:hover {
-                .toolbarbutton-icon {
-                    opacity: 0.6;
+                &#cc-page-action-browser-action {
+                    background-color: #f1f1f1;
                 }
+            }
+        }
+
+        &:hover, &[focused] {
+            toolbarbutton#cc-page-action-browser-action {
+                opacity: 1;
+                pointer-events: all;
             }
         }
     }
 
-    #customizationui-widget-multiview {
+    #customizationui-widget-multiview,
+    #customizationui-widget-panel {
         panelview#PanelUI-webext-page-action-browser-action-view:not([extension]),
         panelview#PanelUI-webext-control-center-browser-action-view:not([extension]) {
             max-width: 400px;
@@ -96,6 +116,7 @@
 
 
 #pageActionPanel panelview#PanelUI-webext-control-center-browser-action-view,
-#widget-overflow panelview#PanelUI-webext-control-center-browser-action-view {
+#widget-overflow panelview#PanelUI-webext-control-center-browser-action-view,
+#customizationui-widget-panel panelview#PanelUI-webext-cc-page-action-browser-action-view {
     max-width: 400px;
 }

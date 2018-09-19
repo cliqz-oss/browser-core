@@ -1,6 +1,6 @@
 export default [
   {
-    url: 'http://www.xe.com/de/currencyconverter/convert/?Amount=1,0\u0026From=EUR\u0026To=USD',
+    url: 'http://www.xe.com/de/currencyconverter/convert',
     score: 0,
     snippet: {
       extra: {
@@ -12,7 +12,7 @@ export default [
         multiplyer: 1,
         toAmount: {
           extra: '65',
-          main: 1.1465,
+          main: 1.15,
         },
         toCurrency: 'USD',
         toSymbol: '$',

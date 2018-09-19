@@ -25,7 +25,8 @@ export function generateDataOn(amo) {
     generalState: 'active',
     feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
     amo: amo,
-    compactView: false
+    compactView: false,
+    showPoweredBy: true,
   };
 }
 
@@ -56,7 +57,8 @@ export function generateDataOffSite(amo) {
     generalState: 'inactive',
     feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
     amo: amo,
-    compactView: false
+    compactView: false,
+    showPoweredBy: true,
   };
 }
 
@@ -78,6 +80,7 @@ export function generateDataOffAll(amo) {
     generalState: 'critical',
     feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
     amo: amo,
-    compactView: false
+    compactView: false,
+    showPoweredBy: true,
   };
 }

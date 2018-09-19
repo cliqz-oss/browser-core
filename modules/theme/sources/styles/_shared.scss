@@ -10,15 +10,15 @@ $cliqz-blue-color: #00ADEF;
 
     /* Override dark theme variables */
     &:-moz-lwtheme {
-        --chrome-secondary-background-color: $chrome-dark-color; // Background for nav-bar
-        --lwt-toolbar-field-background-color: $chrome-dark-color; // Background for urlba
+        --chrome-secondary-background-color: #{$chrome-dark-color}; // Background for nav-bar
+        --lwt-toolbar-field-background-color: #{$chrome-dark-color}; // Background for urlba
     }
 
     /* Override light theme variables */
     &:-moz-lwtheme-darktext {
-        --toolbox-border-bottom-color: $chrome-light-color;
-        --chrome-secondary-background-color: $chrome-light-color; // Background for nav-bar
-        --lwt-toolbar-field-background-color: $chrome-light-color; // Background for urlbar
+        --toolbox-border-bottom-color: #{$chrome-light-color};
+        --chrome-secondary-background-color: #{$chrome-light-color}; // Background for nav-bar
+        --lwt-toolbar-field-background-color: #{$chrome-light-color}; // Background for urlbar
     }
 
     /* Style back button the same way as other toolbar buttons (remove border and border radius) */
@@ -108,7 +108,7 @@ $cliqz-blue-color: #00ADEF;
         /* Customize tabs toolbar background color for light theme */
         &:-moz-lwtheme-darktext {
             -moz-appearance: none;
-            background-color: $inactive-tab-color;
+            background-color: #{$inactive-tab-color};
         }
 
 
@@ -192,7 +192,7 @@ $cliqz-blue-color: #00ADEF;
                 &[visuallyselected="true"] {
                     &:-moz-lwtheme {
                         .tab-content {
-                            background-color: $chrome-dark-color;
+                            background-color: #{$chrome-dark-color};
                         }
                     }
 
@@ -244,6 +244,8 @@ $cliqz-blue-color: #00ADEF;
                 // Transition delay to prevent flashing when changing mouse over between url and tabsbar
                 transition: background-color cubic-bezier(.43,-0.01,.26,1.01) 60ms;
                 transition-delay: 60ms;
+                max-width: 100%;
+                margin: 0px 0px;
 
                 /* Add 1px margin for page action buttons */
                 #page-action-buttons {
@@ -256,6 +258,9 @@ $cliqz-blue-color: #00ADEF;
                     &:hover, &[focused="true"] {
                         box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
                         background-color: #585858;
+                    }
+                    &[pageproxystate="valid"] > #identity-box.verifiedIdentity > #identity-icon-labels {
+                        color: #058B00;
                     }
                 }
 
@@ -290,6 +295,8 @@ $cliqz-blue-color: #00ADEF;
     &:after {
         box-shadow: rgba(0, 0, 0, 0.19) 0 -2px 1px 3px;
         border-bottom: unset;
+        -moz-appearance: unset;
+        height: unset;
     }
 
     &:-moz-window-inactive:after {
@@ -308,5 +315,3 @@ $cliqz-blue-color: #00ADEF;
         }
     }
 }
-
-

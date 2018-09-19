@@ -16,7 +16,12 @@ const style = color => StyleSheet.create({
 export default function (props) {
   const color = props.isHistory ? '#551A8B' : descriptionTextColor;
   return (
-    <Text numberOfLines={10} style={style(color).description}>
+    <Text
+      accessible={false}
+      accessibilityLabel={'generic-desc'}
+      numberOfLines={10}
+      style={style(color).description}
+    >
       {props.description}
     </Text>
   );

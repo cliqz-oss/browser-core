@@ -63,7 +63,7 @@
         overflow: hidden;
         max-width: 212px;
         line-height: 17px;
-        padding: 1px 8px 0 24px;
+        padding: 0 8px 0 24px;
         text-overflow: ellipsis;
     }
 
@@ -109,6 +109,10 @@
             line-height: 19px;
             font-size: 15px;
         }
+    }
+
+    &:not([channel='40']) {
+        line-height: 22px;
     }
 }
 

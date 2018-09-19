@@ -8,13 +8,14 @@ import { randomInt } from '../../core/crypto/random';
 import logger from './logger';
 import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
 
+import inject from '../../core/kord/inject';
 
 /**
  * Helper function used to send a json `payload` to `url` using a POST request.
  * This returns a promise resolving to the answer if any, or rejecting on any
  * exception or wrong HTTP code.
  */
-function post(url, payload) {
+async function post(url, payload) {
   return new Promise((resolve, reject) => {
     httpPost(
       url,
@@ -42,6 +43,7 @@ export default class Backend {
   constructor(config) {
     this.config = config;
     this.backendUrl = config.get('backend.url');
+    this.hpnv2 = inject.module('hpnv2');
   }
 
   /**
@@ -110,7 +112,7 @@ export default class Backend {
     // Extract id returned by the backend. This is important because both
     // the backend and the client must agree on a common format. This will
     // be used later to update the GID.
-    const { id } = await post(`${this.backendUrl}/send_demographics`, payload);
+    const { id } = await this.send('/send_demographics', payload);
     if (id) {
       // NOTE: this section is commented out because it was too strict. When we
       // add a new demographics in the backend, it can happen that an extra
@@ -167,7 +169,7 @@ export default class Backend {
     const prefix = hash.slice(0, 3);
 
     // Send a prefix of the hash to the backend
-    return post(`${this.backendUrl}/update_gid`, { hash_prefix: prefix })
+    return this.send('/update_gid', { hash_prefix: prefix })
       .then((data) => {
         logger.log('updateGID response', data);
         if (data.candidates) {
@@ -201,6 +203,36 @@ export default class Backend {
     const payload = this.attachMetadata(signal);
     logger.debug('sendSignal', payload);
 
-    return post(`${this.backendUrl}/collect`, payload);
+    return this.send('/collect', payload);
+  }
+
+  async send(path, payload) {
+    // fallback for now until hpnv2 is fully rolled out
+    if (!this.hpnv2.isEnabled() || !prefs.get('anolysis-over-hpnv2', false)) {
+      logger.log('hpnv2 not available. Falling back to directly sending...');
+      return post(`${this.backendUrl}${path}`, payload);
+    }
+
+    const action = `anolysis.${path.substr(1)}`;
+    let response;
+    try {
+      // TODO: Added to distingish requests from hpnv2 and directly
+      // sent messages. Should only be active for initial experiments.
+      //
+      // eslint-disable-next-line no-param-reassign
+      payload.via_hpn2 = true;
+
+      response = await this.hpnv2.action('send', {
+        action,
+        payload
+      });
+    } catch (e) {
+      // TODO: think through how to handle non-transient errors
+      // properly (e.g., incorrect system clock).
+      logger.error(`Failed to send message to ${path}`, e);
+      throw e;
+    }
+
+    return response.json();
   }
 }

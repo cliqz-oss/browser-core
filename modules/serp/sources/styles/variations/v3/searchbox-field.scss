@@ -1,0 +1,28 @@
+.searchbox-v3 {
+  &-field {
+    height: 48px;
+    border: 2px solid #616161;
+    border-radius: 2px;
+    color: #616161;
+    background: url("../assets/search-icon-brown.svg") 16px center no-repeat;
+    background-size: auto 40%;
+
+    &::placeholder {
+      color: #616161;
+      opacity: 1;
+    }
+
+    &:hover::placeholder {
+      color: #00acf2;
+    }
+
+    &:focus::placeholder {
+      color: #bfcbd6;
+    }
+
+    &:focus {
+      border-color: #00acf2;
+      background-image: url("../assets/search-icon-blue.svg");
+    }
+  }
+}

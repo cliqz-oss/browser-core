@@ -4,7 +4,6 @@ import logger from './common/offers_v2_logger';
 import inject from '../core/kord/inject';
 import { getGeneralDomain, extractHostname } from '../core/tlds';
 import prefs from '../core/prefs';
-import events from '../core/events';
 import config from '../core/config';
 import background from '../core/base/background';
 import OffersConfigs from './offers_configs';
@@ -23,19 +22,51 @@ import GreenAdsHandler from './green-ads/manager';
 import UrlData from './common/url_data';
 import ActionID from './offers/actions-defs';
 import {oncePerInterval} from './utils';
+import md5 from '../core/helpers/md5';
 
 // /////////////////////////////////////////////////////////////////////////////
 // consts
-const OFFERS_CC_ENABLED = 'modules.offers-cc.enabled';
-const PROMO_BAR_ENABLED = 'modules.browser-panel.enabled';
 const POPUPS_INTERVAL = 30 * 60 * 1000; // 30 minutes
+
+// If the offers are toggled on/off, the real estate modules should
+// be activated or deactivated.
+// The module "freshtab" has more responsibility than showing offers
+// and should not be touched from offers-v2.
+const MANAGED_REAL_ESTATE_MODULES = ['offers-cc', 'browser-panel'];
+function touchManagedRealEstateModules(isEnabled) {
+  MANAGED_REAL_ESTATE_MODULES.forEach(moduleName =>
+    prefs.set(`modules.${moduleName}.enabled`, isEnabled));
+}
 
 export default background({
   // to be able to read the config prefs
   requiresServices: ['cliqz-config'],
   popupNotification: inject.module('popup-notification'),
+  collector: inject.module('myoffrz-collector'),
 
-  init(/* settings */) {
+  // Support the constraint for managed real estate modules:
+  // - if a module is initialized, it is in "registeredRealEstates"
+  // - if a module is unloaded, it is not in "registeredRealEstates"
+  //
+  // Retain the list of real estates even if the offers are toggled on
+  // and off (handled by functions "softInit" and "softUnload").
+  // In particular, do not lose an entry for "freshtab".
+  async init() {
+    if (!this.registeredRealEstates) {
+      this.registeredRealEstates = new Map();
+    }
+
+    return this.softInit();
+  },
+
+  unload() {
+    this.softUnload();
+
+    this.registeredRealEstates = null;
+  },
+
+  // ////////
+  async softInit() {
     // check if we need to do something or not
     if (!prefs.get('offers2UserEnabled', true)) {
       this.initialized = false;
@@ -79,6 +110,7 @@ export default background({
       '------------------------------------------------------------------------\n`
     );
 
+    this.purchaseCache = new Set();
     // create the DB to be used over all offers module
     this.db = new Database('cliqz-offers');
 
@@ -93,15 +125,13 @@ export default background({
 
     // for the new ui system
     this.signalsHandler = new SignalHandler(this.db);
+    await this.signalsHandler.init();
 
     // init the features here
     this.featureHandler = new FeatureHandler();
     const historyFeature = this.featureHandler.getFeature('history');
 
     this.historyMatcher = new HistoryMatcher(historyFeature);
-
-    // we will keep track of the real estates that we currently have.
-    this.registeredRealEstates = new Map();
 
     // intent system
     this.intentHandler = new IntentHandler();
@@ -127,9 +157,9 @@ export default background({
       categoryHandler: this.categoryHandler,
       db: this.db,
     });
+    await this.offersHandler.init();
     //
     this.offersAPI = this.offersHandler.offersAPI;
-
 
     this.gaHandler = new GreenAdsHandler();
 
@@ -149,17 +179,10 @@ export default background({
     // to be checked on unload
     this.initialized = true;
 
-    // gather all the real estates we have
-    events.pub('offers-re-registration', { type: 'broadcast' });
-
     return this.gaHandler.init();
   },
 
   // ///////////////////////////////////////////////////////////////////////////
-  unload() {
-    this.softUnload();
-  },
-
   softUnload() {
     if (this.initialized === false) {
       return;
@@ -204,7 +227,7 @@ export default background({
   // ///////////////////////////////////////////////////////////////////////////
   beforeBrowserShutdown() {
     // check if we have the feature  enabled
-    if (this.initialized === false) {
+    if (!this.initialized) {
       return;
     }
 
@@ -216,15 +239,14 @@ export default background({
     }
 
     if (this.signalsHandler) {
-      this.signalsHandler.savePersistenceData();
+      this.signalsHandler.destory();
     }
 
-    // TODO: savePersistentData()
     logger.info('background script unloaded');
   },
 
-  onCategoriesHit(categoriesIDsSet, urlData) {
-    urlData.setActivatedCategoriesIDs(categoriesIDsSet);
+  onCategoriesHit(categoriesIDs, urlData) {
+    urlData.setActivatedCategoriesIDs(new Set(categoriesIDs.keys()));
     // process the trigger engine now
     // We want to have the following behavior to be able to show offers on
     // the same url change:
@@ -234,7 +256,7 @@ export default background({
     //
     // Since fetch intents is now in offers handler this is enough
     this.triggerMachineExecutor.processUrlChange({ url_data: urlData })
-      .then(() => this.offersHandler.urlChangedEvent(urlData));
+      .then(() => this.offersHandler.urlChangedEvent(urlData, categoriesIDs));
   },
 
   onUrlChange(urlData) {
@@ -244,11 +266,11 @@ export default background({
 
     // evaluate categories first and store in the urlData all the categories
     // activated for that given url
-    const categoriesIDsSet = this.categoryHandler.newUrlEvent(urlData.getPatternRequest());
-    if (categoriesIDsSet.size > 0) {
-      logger.debug('Categories hit', urlData, categoriesIDsSet);
+    const categoriesIDs = this.categoryHandler.newUrlEvent(urlData.getPatternRequest());
+    if (categoriesIDs.size > 0) {
+      logger.debug('Categories hit', urlData, categoriesIDs);
     }
-    this.onCategoriesHit(categoriesIDsSet, urlData);
+    this.onCategoriesHit(categoriesIDs, urlData);
   },
 
 
@@ -355,6 +377,15 @@ export default background({
     this.popupNotification.action('push', msg);
   },
 
+  _categoryHitByFakeUrl({fakeUrl}) {
+    const fakeUrlData = new UrlData(fakeUrl);
+    const categoriesIDs = this.categoryHandler.newUrlEvent(fakeUrlData.getPatternRequest());
+    if (categoriesIDs.size > 0) {
+      logger.log('Matching categories by fake url:', categoriesIDs, fakeUrl);
+      this.onCategoriesHit(categoriesIDs, fakeUrlData);
+    }
+  },
+
   // ///////////////////////////////////////////////////////////////////////////
   events: {
     'offers-recv-ch': function onRealEstateMessage(message) {
@@ -362,14 +393,16 @@ export default background({
         this.offersAPI.processRealEstateMessage(message);
       }
     },
-    prefchange: function onPrefChange(pref) {
+    prefchange: async function onPrefChange(pref) {
       if (pref !== 'offers2UserEnabled') { return; }
       const offers2UserEnabled = prefs.get('offers2UserEnabled', true);
-      prefs.set(OFFERS_CC_ENABLED, offers2UserEnabled);
-      prefs.set(PROMO_BAR_ENABLED, offers2UserEnabled);
       if (offers2UserEnabled) {
-        this.init();
+        await this.softInit();
+        touchManagedRealEstateModules(true);
       } else {
+        // The next two unload processes run at the same time,
+        // beware of race conditions
+        touchManagedRealEstateModules(false);
         this.softUnload();
       }
     },
@@ -378,7 +411,8 @@ export default background({
       const result = this._shouldActivateOfferForUrl(url);
       const {activate = false, offerID, offerInfo} = result;
       if (!activate) { return; }
-      const offer = this.offersHandler.getOfferObject(offerID) || {};
+      const offer = this.offersHandler.getOfferObject(offerID);
+      if (!offer) { return; }
 
       const {ui_info: {template_data: templateData = {}} = {}} = offer;
       const domain = getGeneralDomain(url);
@@ -438,6 +472,13 @@ export default background({
     },
 
     processRealEstateMessage(message) {
+      const {origin, data: {action_id: actionId, offer_id: offerId} = {}} = message;
+      if (origin === 'dropdown' && actionId === 'offer_ca_action') {
+        const campaignId = this.offersHandler.getCampaignId(offerId);
+        const fakeUrl = `https://fake.url/landing/${campaignId}`;
+        this._categoryHitByFakeUrl({fakeUrl});
+      }
+
       if (this.offersAPI) {
         this.offersAPI.processRealEstateMessage(message);
       }
@@ -479,10 +520,8 @@ export default background({
       return ActionID;
     },
 
-    flushSignals() {
-      if (this.signalsHandler) {
-        this.signalsHandler.flush();
-      }
+    async flushSignals() {
+      return this.signalsHandler && this.signalsHandler.flush();
     },
 
     onContentCategories({ categories, url, prefix }) {
@@ -499,13 +538,25 @@ export default background({
       const fakeUrlData = new UrlData(fakeUrl);
       // Here we pass a cpt (11) to make request, so it will only match to
       // the special pattern for the categories extracted from the page
-      const categoriesIDsSet = this.categoryHandler.newUrlEvent(fakeUrlData.getPatternRequest(11));
-      if (categoriesIDsSet.size > 0) {
-        logger.log('Matching categories from content category', categories, categoriesIDsSet, url);
+      const categoriesIDs = this.categoryHandler.newUrlEvent(fakeUrlData.getPatternRequest(11));
+      if (categoriesIDs.size > 0) {
+        logger.log('Matching categories from content category', categories, categoriesIDs, url);
         // As if the category hit happens on the real page
-        this.onCategoriesHit(categoriesIDsSet, new UrlData(url));
+        this.onCategoriesHit(categoriesIDs, new UrlData(url));
       }
     },
+
+    async onContentSignal(msg, sender) {
+      logger.log('contentSignal', msg, sender.url);
+      if (msg.action === 'purchase') {
+        if (this.purchaseCache.has(sender.tab.id)) { return; }
+        this.purchaseCache.add(sender.tab.id);
+        const { categories, price } = await this.collector.action('getPageCache', sender);
+        logger.log(sender.tab.id, categories, price, 'contentSignal');
+        this.signalsHandler.onPurchase({
+          domain: md5(getGeneralDomain(sender.url)), categories, price, ...msg });
+      }
+    }
   },
 
 });

@@ -79,9 +79,12 @@ export function isUrl(input) {
 
   // Remove protocol
   input = input.trim();
-  const protocolPos = input.indexOf('://');
-  if (protocolPos >= 0) {
-    input = input.slice(protocolPos + 3);
+  const protocolList = ['http', 'chrome:', 'resource:', 'file:', 'view-source:'];
+  if (protocolList.some(protocol => input.startsWith(protocol))) {
+    const protocolPos = input.indexOf('://');
+    if (protocolPos >= 0) {
+      input = input.slice(protocolPos + 3);
+    }
   }
   // Remove path, search or hash (what comes first)
   input = input.split(/[/?#]/)[0];
@@ -92,6 +95,10 @@ export function isUrl(input) {
   // - if it matches minimal pattern "hostname:port" (here hostname must be ASCII),
   //   i.e. "localhost:3000", but not "उदाहरण:100";
   // - if it is an IP address or "localhost".
+
+  // Remove `single` dot (if any) from the end of the domain
+  input = input.replace(/\.$/, '');
+
   return input === 'localhost' ||
     UrlRegExp.test(input) ||
     LocalUrlRegExp.test(input) ||
@@ -363,23 +370,39 @@ export function generalizeUrl(url, skipCorrection) {
   return url[url.length - 1] === '/' ? url.slice(0, -1) : url;
 }
 
+function flipTrailingSlash(urlObj) {
+  if (urlObj.pathname.endsWith('/')) {
+    urlObj.pathname = urlObj.pathname.slice(0, -1);
+  } else {
+    urlObj.pathname = `${urlObj.pathname}/`;
+  }
+}
+
+function filpWWW(urlObj) {
+  if (urlObj.hostname.startsWith('www.')) {
+    urlObj.hostname = urlObj.hostname.slice(4);
+  } else {
+    urlObj.hostname = `www.${urlObj.hostname}`;
+  }
+}
+
 export function getUrlVariations(url) {
   let protocols = ['http:', 'https:'];
   const u = new URL(url);
+  const urlSet = new Set();
 
   if (!protocols.includes(u.protocol)) {
     protocols = [u.protocol];
   }
 
-  return Array.from(
-    protocols.reduce((urls, protocol) => {
-      const path = u.pathname.replace(/\/+$/, '');
-      u.protocol = protocol;
-      u.pathname = path;
-      urls.add(u.toString());
-      u.pathname = `${path}/`;
-      urls.add(u.toString());
-      return urls;
-    }, new Set())
-  );
+  protocols.forEach((protocol) => {
+    u.protocol = protocol;
+    urlSet.add(u.toString());
+    filpWWW(u);
+    urlSet.add(u.toString());
+    flipTrailingSlash(u);
+    urlSet.add(u.toString());
+  });
+
+  return Array.from(urlSet);
 }

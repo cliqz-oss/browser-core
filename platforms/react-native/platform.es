@@ -1,3 +1,4 @@
+import userAgent from './user-agent';
 
 export default {
   isBootstrap: false,
@@ -8,3 +9,7 @@ export default {
   platformName: 'mobile',
   isOnionMode: false,
 };
+
+export const appName = userAgent.appName;
+
+export const OS = userAgent.OS;

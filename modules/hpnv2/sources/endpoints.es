@@ -66,12 +66,6 @@ export default class Endpoints {
   // Fetch and sync time
   async _fetch(p) {
     return p.then((r) => {
-      const date = r.headers.get('Date');
-      const responseTime = (new Date(date)).getTime() || 0;
-
-      if (Math.abs(Date.now() - responseTime) > Endpoints.MAX_MINUTES_DRIFT * 60 * 1000) {
-        throw new WrongClockError();
-      }
       if (!r.ok) {
         throw new ServerError(r.statusText);
       }
@@ -130,7 +124,13 @@ export default class Endpoints {
 
   async getConfig() {
     const response = await this._fetch(Endpoints.get(this.urls.ENDPOINT_HPNV2_CONFIG));
-    return response.json();
+    const json = await response.json();
+
+    const responseTime = (new Date(json.ts)).getTime() || 0;
+    if (Math.abs(Date.now() - responseTime) > Endpoints.MAX_MINUTES_DRIFT * 60 * 1000) {
+      throw new WrongClockError();
+    }
+    return json;
   }
 
   unload() {

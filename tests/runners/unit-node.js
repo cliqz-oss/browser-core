@@ -48,8 +48,8 @@ const baseURL = baseDir + (cliqzConfig.platform === 'mobile' ? '/dev' : '');
 const testFiles = [];
 
 []
-  .concat(glob.sync(baseDir + '/**/tests/**/unit/**/*-test.js'))
-  .concat(glob.sync(baseDir + '/**/tests/**/*lint-test.js'))
+  .concat(glob.sync(`${baseDir}/**/tests/**/unit/**/*-test.js`))
+  .concat(glob.sync(`${baseDir}/**/tests/**/*lint-test.js`))
   .forEach(function (path) {
     if (fgrep && path.indexOf(fgrep) === -1) {
       return;
@@ -111,7 +111,8 @@ function describeModule(moduleName, loadDeps, testFn) {
           let depName;
           // Handle relative imports
           if (dep.startsWith('.')) {
-            depName = localSystem.normalizeSync(dep, moduleName);
+            const base = localSystem.normalizeSync(moduleName, baseURL);
+            depName = localSystem.normalizeSync(dep, base);
           } else {
             depName = dep;
           }

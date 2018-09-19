@@ -1,18 +1,49 @@
-@import './searchbox';
 @import './searchbox-initial';
-@import './searchbox-results';
+
+@import './variations/shared/searchbox-results';
 @import './variations/v1/searchbox-results';
+@import './variations/v3/searchbox-results';
+
+@import './variations/shared/searchbox';
+@import './variations/v3/searchbox';
+
 @import './search-engine-icon';
-@import './searchbox-field-layout';
+
+@import './variations/v1/searchbox-field-layout';
+@import './variations/v3/searchbox-field-layout';
+
+@import './variations/shared/searchbox-icon';
+@import './variations/v1/searchbox-icon';
+@import './variations/v3/searchbox-icon';
+
+@import './variations/shared/searchbox-field';
+@import './variations/v1/searchbox-field';
+@import './variations/v3/searchbox-field';
+
+@import './variations/shared/searchbox-submit-icon';
+@import './variations/v1/searchbox-submit-icon';
+@import './variations/v3/searchbox-submit-icon';
+
 @import './searchbox-categories';
 @import './variations/v1/searchbox-categories';
+
 @import './dropdown';
 @import './variations/v1/dropdown';
+@import './variations/v2/dropdown';
+@import './variations/v3/dropdown';
+
 @import './tooltip';
 @import './variations/v1/tooltip';
-@import './footer';
+
+@import './variations/shared/footer';
+@import './variations/v1/footer';
+@import './variations/v3/footer';
+
 @import './why-cliqz';
+@import './human-web';
 @import './modal';
+@import './anzeige-label';
+@import './layouts/anzeige-layout';
 
 * {
   margin: 0;

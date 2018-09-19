@@ -450,5 +450,6 @@ export default {
   generalState: 'active',
   feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-04',
   amo: true,
-  compactView: false
+  compactView: false,
+  showPoweredBy: true,
 };

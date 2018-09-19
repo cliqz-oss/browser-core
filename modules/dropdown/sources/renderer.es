@@ -90,15 +90,12 @@ export default class {
       this.setHeight(height);
     },
     adultAction: (actionName) => {
-      this.search.action('adultAction', actionName)
-        .then(() => {
-          this.render({
-            query: this.previousQuery,
-            rawResults: this.previousRawResults,
-            queriedAt: Date.now(),
-            getSessionId: this.getSessionId,
-          });
-        });
+      this.search.action(
+        'adultAction',
+        actionName,
+        this.previousQuery,
+        { contextId: utils.getWindowID(this.window) },
+      );
     },
     locationAction: (actionName, query, rawResult) =>
       this.search.action('locationAction', actionName, query, rawResult),
@@ -348,6 +345,7 @@ export default class {
       padding: contentPadding,
       left: urlbarLeftPos,
       width: urlbarWidth,
+      navbarColor: this.navbarColor,
     };
   }
 
@@ -368,6 +366,7 @@ export default class {
       if (query === '') {
         this.close();
       }
+      return;
     }
 
     const assistantStates = await this.search.action('getAssistantStates');
@@ -381,20 +380,20 @@ export default class {
       query,
       queriedAt,
       sessionId: getSessionId(),
-      navbarColor: this.navbarColor,
     }, {
       assistantStates,
       urlbarAttributes: this.getUrlbarAttributes(),
       maxHeight: this.maxHeight,
     });
     this.selectedResult = result;
-    this.setHeight(height);
+    utils._queryLastDraw = Date.now();
 
     // While we were rendering results the query or search session may have changed.
     // So we have to check if rendered results are still relevant to the current query
     // and that we are still in the same session.
     if (result && renderedSessionId === getSessionId() &&
         this.hasRelevantResults(this.query, [result])) {
+      this.setHeight(height);
       this.open();
 
       this.autocompleteQuery(

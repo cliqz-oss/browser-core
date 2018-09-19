@@ -2,12 +2,11 @@
 /* eslint no-bitwise: 'off' */
 /* eslint no-restricted-syntax: 'off' */
 
-import config from '../core/config';
 import CLIQZEnvironment from '../platform/environment';
 import prefs from './prefs';
 import Storage from './storage';
 import { getPublicSuffix } from './tlds';
-import { fetchFactory } from './http';
+import { fetchFactory } from '../platform/fetch';
 import * as searchUtils from '../core/search-engines';
 import i18n from './i18n';
 import historySearch from '../platform/history/search';
@@ -17,9 +16,6 @@ import random from './helpers/random';
 const CliqzUtils = {
   getLogoDetails: inject.service('logos').getLogoDetails,
   environment: CLIQZEnvironment,
-  get FEEDBACK_URL() {
-    return `${config.settings.FEEDBACK}${config.EXTENSION_VERSION}-${config.settings.channel}`;
-  },
   RESULTS_TIMEOUT: CLIQZEnvironment.RESULTS_TIMEOUT,
   SKIN_PATH: CLIQZEnvironment.SKIN_PATH,
   BROWSER_ONBOARDING_PREF: CLIQZEnvironment.BROWSER_ONBOARDING_PREF,
@@ -40,9 +36,8 @@ const CliqzUtils = {
   getDay() {
     return Math.floor(new Date().getTime() / 86400000);
   },
-  // used in testing only
-  fetchFactory() {
-    return fetchFactory();
+  fetchFactory(params = {}) {
+    return fetchFactory(params);
   },
   historySearch,
   getSuggestions(query) {

@@ -14,6 +14,8 @@ export default {
     search_with_cliqz: 'Anonym suchen mit Cliqz',
     confirm: 'Ok',
     cancel: 'Abbrechen',
+    offer: 'Anzeige',
+    human_web_promo: 'Powered by Human Web ›',
   },
   en: {
     safe_search_from_cliqz: 'Results provided by Cliqz, your private search engine:',
@@ -30,5 +32,7 @@ export default {
     search_with_cliqz: 'Search anonymously with Cliqz',
     confirm: 'Ok',
     cancel: 'Cancel',
+    offer: 'Ad',
+    human_web_promo: 'Powered by Human Web ›',
   },
 };

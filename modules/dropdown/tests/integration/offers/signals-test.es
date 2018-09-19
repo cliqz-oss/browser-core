@@ -11,7 +11,6 @@ import {
   waitFor,
   waitForPopup,
   waitForPopupClosed,
-  win,
   withHistory,
 } from '../helpers';
 
@@ -181,16 +180,8 @@ export default function () {
   if (!testsEnabled()) { return; }
 
   context('Dropdown offers signals', function () {
-    before(function () {
-      win.preventRestarts = true;
-    });
-
     beforeEach(async function () {
       await mockOffersBackend();
-    });
-
-    after(function () {
-      win.preventRestarts = false;
     });
 
     context('for regular offers', function () {

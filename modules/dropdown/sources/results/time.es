@@ -20,6 +20,10 @@ class TimeInfo extends BaseResult {
     return this.rawResult.time;
   }
 
+  get timePeriod() {
+    return this.time.split(' ')[1];
+  }
+
   get location() {
     return this.rawResult.location;
   }

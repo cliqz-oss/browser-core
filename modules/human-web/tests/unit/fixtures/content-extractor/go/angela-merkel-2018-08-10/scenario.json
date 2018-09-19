@@ -1,0 +1,125 @@
+{
+  "url": "https://www.google.com/search?hl=en&q=angela%20merkel",
+
+  "mustContain": [{
+    "type": "humanweb",
+    "action": "query",
+    "payload": {
+      "r": {
+        "0": {
+          "t": "Angela Merkel - Wikipedia",
+          "u": "https://en.wikipedia.org/wiki/Angela_Merkel"
+        },
+        "1": {
+          "t": "Angela Merkel – Wikipedia",
+          "u": "https://de.wikipedia.org/wiki/Angela_Merkel"
+        },
+        "2": {
+          "t": "Chancellor Angela Merkel - Bundeskanzlerin | Homepage",
+          "u": "https://www.bundeskanzlerin.de/Webs/BKin/EN/Homepage/homepage_node.html"
+        },
+        "3": {
+          "t": "Angela Merkel",
+          "u": "https://www.angela-merkel.de/"
+        },
+        "4": {
+          "t": "Angela Merkel - The New York Times",
+          "u": "http://www.nytimes.com/topic/person/angela-merkel"
+        },
+        "5": {
+          "t": "Angela Merkel - SPIEGEL ONLINE",
+          "u": "http://www.spiegel.de/international/topic/angela_merkel/"
+        },
+        "6": {
+          "t": "Angela Merkel - Forbes",
+          "u": "https://www.forbes.com/profile/angela-merkel/"
+        },
+        "7": {
+          "t": "Angela Merkel - Home | Facebook",
+          "u": "https://www.facebook.com/AngelaMerkel/"
+        },
+        "8": {
+          "t": "Angela Merkel - Wikipedia",
+          "u": "https://en.wikipedia.org/wiki/Angela_Merkel"
+        },
+        "9": {
+          "t": "What is the difference between the Chancellor and the President of ...",
+          "u": "https://politics.stackexchange.com/questions/2911/what-is-the-difference-between-the-chancellor-and-the-president-of-germany"
+        },
+        "10": {
+          "t": "Chancellor of Germany (1949–present) - Wikipedia",
+          "u": "https://en.wikipedia.org/wiki/Chancellor_of_Germany_(1949%E2%80%93present)"
+        },
+        "11": {
+          "t": "Politics of Germany - Wikipedia",
+          "u": "https://en.wikipedia.org/wiki/Politics_of_Germany"
+        }
+      },
+      "q": "angela merkel",
+      "qurl": "https://www.google.com/search?hl=en&q=angela%20merkel",
+      "ctry": "de"
+    }
+  }, {
+    "type": "humanweb",
+    "action": "top-stories",
+    "payload": {
+      "r": {
+        "0": {
+          "u": "https://www.tichyseinblick.de/kolumnen/alexander-wallasch-heute/faehrt-angela-merkel-als-bittstellerin-oder-mit-dem-scheckbuch-nach-spanien/",
+          "lu": "2 hours ago",
+          "h": "Fährt Angela Merkel als Bittstellerin oder mit dem Scheckbuch nach Spanien?"
+        },
+        "1": {
+          "u": "https://www.tagesspiegel.de/politik/angela-merkel-sie-ist-wieder-da/22899970.html",
+          "lu": "5 hours ago",
+          "h": "Angela Merkel: Sie ist wieder da"
+        },
+        "2": {
+          "u": "https://www.merkur.de/politik/kevin-kuehnert-darum-gibt-er-merkel-mitschuld-am-erstarken-populismus-zr-10109943.html",
+          "lu": "1 hour ago",
+          "h": "Kevin Kühnert: Darum gibt er Merkel Mitschuld am Erstarken des Populismus | \nPolitik"
+        },
+        "3": {
+          "u": "https://www.t-online.de/nachrichten/deutschland/innenpolitik/id_84259912/merkel-beendet-den-urlaub-rueckkehr-in-ein-veraendertes-land.html",
+          "lu": "2 hours ago",
+          "h": "Merkel beendet den Urlaub: Rückkehr in ein verändertes Land"
+        },
+        "4": {
+          "u": "https://www.merkur.de/politik/radikalisierungsrisiko-unter-zuwanderern-bka-kuendigt-neues-vorgehen-an-zr-10088229.html",
+          "lu": "5 hours ago",
+          "h": "Malu Dreyer kritisiert Ankerzentren: „Was Seehofer will, weiß ich nicht“ | \nPolitik"
+        },
+        "5": {
+          "u": "https://www.tag24.de/nachrichten/neukirch-angela-merkel-kanzlerin-besuch-laser-besuch-sachsen-trumpf-lausitz-724904",
+          "lu": "7 hours ago",
+          "h": "Laser ist Trumpf! Kanzlerin Merkel schaut in der Lausitz vorbei"
+        },
+        "6": {
+          "u": "https://www.bild.de/bild-plus/politik/inland/politik-inland/buergermeister-klagen-an-frau-merkel-das-muessen-sie-lesen-56612006.bild.html",
+          "lu": "8 hours ago",
+          "h": "Bürgermeister klagen an: Frau Merkel, das müssen Sie lesen!"
+        },
+        "7": {
+          "u": "http://www.spiegel.de/politik/deutschland/news-angela-merkel-pedro-sanchez-fluechtlinge-space-force-lira-a-1221820.html",
+          "lu": "9 hours ago",
+          "h": "Die Lage am Freitag: Liebe Leserin, lieber Leser,"
+        },
+        "8": {
+          "u": "https://www.express.de/news/politik-und-wirtschaft/-dunja-hayali--rentnerin-trifft-im-zdf-auf-spd-chefin-und-bricht-fast-in-traenen-aus-29018792",
+          "lu": "16 hours ago",
+          "h": "„Dunja Hayali”: Rentnerin trifft im ZDF auf SPD-Chefin und bricht fast in \nTränen aus"
+        },
+        "9": {
+          "u": "https://www.express.co.uk/news/world/1001276/EU-news-Germany-Angela-Merkel-Spain-migration-deal",
+          "lu": "22 hours ago",
+          "h": "Merkel CLINGS to her job: Spain accepts German deal to take back FIVE \nmigrants a day"
+        }
+      },
+      "q": "angela merkel",
+      "qurl": "https://www.google.com/search?hl=en&q=angela%20merkel",
+      "ctry": "de"
+    }
+  }],
+
+  "mustNotContain": [{ "action": "ads_*" }]
+}

@@ -2,6 +2,7 @@ import React from 'react';
 import cliqz from '../../cliqz';
 import { tt } from '../../i18n';
 import telemetry from '../../services/telemetry/base';
+import { offerClickSignal } from '../../services/telemetry/offers';
 
 export default class OfferFeedback extends React.Component {
   constructor(props) {
@@ -67,6 +68,7 @@ export default class OfferFeedback extends React.Component {
   }
 
   undoDeleteOffer = () => {
+    offerClickSignal('undo_remove');
     this.props.toggleComponents();
   }
 

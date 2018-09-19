@@ -10,6 +10,13 @@ export default class SearchSettings extends React.Component {
     };
   }
 
+  componentWillReceiveProps(props) {
+    // This forces reload of data every time the SearchSettings are shown
+    if (props.isOpen && !this.props.isOpen) {
+      this.actions.getEmptyFrameAndData();
+    }
+  }
+
   componentWillUnmount() {
     this.iframe.contentWindow.removeEventListener('message', this.onMessage);
   }

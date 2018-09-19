@@ -1,7 +1,7 @@
 .voucher-wrapper {
     position: relative;
-    margin: -5px 0 0;
-    padding: 5px 0 8px;
+    margin: -3px 0 0;
+    padding: 0;
     box-shadow: 0px 0px 2px 0px rgba(0,0,0,0.25);
     cursor: pointer;
     background-color: #fff;
@@ -10,7 +10,8 @@
 
     .overview {
         display: block;
-        min-height: 35px;
+        min-height: 45px;
+        padding-top: 3px;
 
         & > * {
             padding: 0 10px;
@@ -42,20 +43,80 @@
         }
     }
 
+    .feedback-thankyou {
+        .voucher-header {
+            .logo-wrapper {
+                margin-top: 5px;
+            }
+        }
+        .thank-you-box {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            height: 280px;
+            > div {
+                width: 100%;
+            }
+            h2 {
+                color: #00AEF0;
+                font-size: 22px;
+                text-transform: capitalize;
+                font-weight: 400;
+                margin-top: 0;
+                margin-bottom: 6px;
+            }
+            p {
+                font-size: 12px;
+                font-weight: 400;
+                color: #909091
+            }
+        }
+    }
+
+    .voucher-header {
+        display: flex;
+        align-items: center;
+        padding: 5px 10px 5px 20px;
+        .left-labels {
+            flex: 1 0 auto;
+        }
+        .logo-wrapper {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center
+        }
+    }
+
     .details {
         overflow: hidden;
         max-height: 0;
         transition: max-height 1ms linear;
+        .feedback {
+            display: none;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,1);
+            z-index: 10;
+            border-radius: 4px;
+            &.show {
+                display: block
+            }
+        }
 
-        & > * {
-            padding: 0 10px 0 20px;
+        .voucher-container  {
+            display:block;
+            &.hide {
+                display: none
+            }
+            & > * {
+                padding: 0 10px 0 20px;
+            }
         }
 
         .left-labels {
-            padding-top: 6px;
-            height: 25px;
-
             & > p {
+                margin-top: 2px;
                 margin-bottom: 1px;
                 padding-left: 14px;
                 color: $color-text-grey;
@@ -82,7 +143,6 @@
         }
 
         .picture {
-            margin-top: 7px;
             margin-bottom: -5px;
             width: 100%;
             height: 120px;
@@ -223,18 +283,53 @@
 
         #voucher-feedback {
             padding: 0;
+            .voucher-header {
+                border-bottom: 1px solid rgba(0,0,0,0.1);
+                padding-top: 10px;
+                padding-bottom: 10px;
+                .left-labels {
+                    span {
+                        font-size: 11.5px;
+                        font-weight: 400;
+                        color: rgba(0,0,0,0.4);
+                    }
+                    button {
+                        font-size: 10.5px;
+                        letter-spacing: .5px;
+                        text-transform: uppercase;
+                        padding: 0;
+                        color: #00AEF0;
+                        cursor: pointer;
+                        font-weight: 400;
+                    }
+                }
+            }
 
             & > p {
-                padding: 7px 0 0 20px;
+                padding: 15px 0 0 20px;
                 font-size: 16px;
                 font-weight: 500;
+                &:after {
+                    content: attr(data-optional);
+                    color: rgba(0, 0, 0, 0.4);
+                    font-size: 11px;
+                    padding-left: 8px;
+                    display: inline-block;
+                    text-transform: capitalize;
+                }
+            }
+
+            h2 {
+                font-size: 12px;
+                font-weight: 500;
+                color: rgba(0,0,0,1)
             }
 
             & > ul {
-                padding: 20px 0 15px 20px;
+                padding: 10px 0 10px 20px;
 
                 & > li {
-                    padding: 3px 0;
+                    padding: 2px 0;
 
                     & > label {
                         font-size: 12.5px;
@@ -245,7 +340,16 @@
                     }
 
                     &:last-child {
-
+                        position: relative;
+                        div {
+                            position: absolute;
+                            width: calc(100% - 20px);
+                            height: 100%;
+                            z-index: 9999;
+                            display: none;
+                            left: 0;
+                            top: 0;
+                        }
                         input[type='radio'] {
                             vertical-align: 37px;
                         }
@@ -253,16 +357,46 @@
                         textarea {
                             resize: none;
                             margin-top: 6px;
-                            padding: 3px;
+                            padding-top: 3px;
+                            padding-left: 3px;
                             border: 1px solid $color-border-light-grey;
-                            border-radius: 4px;
-                            max-width: 180px;
+                            border-radius: 0;
+                            max-width: calc(100% - 25px);
                             vertical-align: 34px;
-
+                            font-family: "-mac-system", "-apple-system", BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+                            font-size: 11.5px;
+                            padding-top: 5px;
+                            padding-left: 10px;
                             &[disabled] {
                                 background-color: $color-bg-light-grey;
+                                + div {
+                                    display: block
+                                }
                             }
                         }
+                    }
+                }
+            }
+            .send_feedback {
+                background: #00AEF0;
+                color: #fff;
+                font-size: 11.5px;
+                letter-spacing: 0.5px;
+                padding: 8px 13px;
+                border: none;
+                cursor: pointer;
+                text-transform: uppercase;
+                font-weight: 300;
+                float: right;
+                margin-right: 25px;
+                opacity: 0.4;
+                margin-bottom: 40px;
+                pointer-events: none;
+                &.active {
+                    pointer-events: auto;
+                    opacity: 1;
+                    &:hover {
+                        background: #0078CA;
                     }
                 }
             }
@@ -287,14 +421,18 @@
     }
 
     .logo-wrapper {
-        position: absolute;
-        top: 5px;
-        right: 0;
-        width: 100%;
-        text-align: right;
-        overflow: hidden;
-        padding-right: 10px;
 
+        .close {
+            width:10px;
+            height: 10px;
+            mask: url('../images/close-offer.svg') no-repeat right;
+            mask-size: contain;
+            background: rgba(0,0,0,1);
+            opacity: 0.3;
+            &:hover {
+                opacity: 1
+            }
+        }
         .setting {
             margin-right: -7px;
             margin-left: -2px;
@@ -303,7 +441,6 @@
             width: 10px;
             height: 18px;
             background: url('../images/3dots-menu.svg') no-repeat center;
-
             &:hover {
                 background-image: url('../images/3dots-menu-hover.svg');
             }
@@ -350,9 +487,13 @@
             }
         }
     }
-
     &.active {
 
+        .logo {
+            display: block;
+            position: static;
+            transform: translateY(0)
+        }
         margin: 7px 0 12px;
         cursor: default;
         background-color: #fff;

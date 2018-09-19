@@ -74,7 +74,8 @@ export default class CliqzPeerConnection {
     return this.cliqzPeer.newConnectionTimeout;
   }
 
-  constructor(cliqzPeer, peerOptions, peer, isLocal) {
+  constructor(cliqzPeer, peerOptions, peer, isLocal, minSDP = false) {
+    this.minSDP = minSDP;
     this.logDebug = cliqzPeer.logDebug.bind(null, `[${peer}]`);
     this.log = cliqzPeer.log.bind(null, `[${peer}]`);
     this.logError = cliqzPeer.logError.bind(null, `[${peer}]`);
@@ -266,7 +267,12 @@ export default class CliqzPeerConnection {
   createOffer() {
     const connection = this.connection;
     connection.createOffer((description) => {
-      description = minimizeSDP(description);
+      if (this.minSDP) {
+        // This was used for compatibility with react-native webrtc
+        // However, does not seem to be needed anymore, and broke in FF63,
+        // so disabling by default.
+        description = minimizeSDP(description);
+      }
       this.logDebug('Created offer', description);
       connection.setLocalDescription(new this.cliqzPeer.RTCSessionDescription(description), () => {
         this.cliqzPeer._sendSignaling(this.peer, { type: 'offer', description }, this.id);

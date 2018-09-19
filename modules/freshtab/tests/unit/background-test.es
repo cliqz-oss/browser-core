@@ -39,6 +39,7 @@ export default describeModule('freshtab/background',
         },
       },
       'core/search-engines': {
+        isSearchServiceReady() { return Promise.resolve(); },
         getSearchEngines: '[dynamic]'
       },
       'core/tlds': {
@@ -74,6 +75,7 @@ export default describeModule('freshtab/background',
       },
       'core/platform': {
         isCliqzBrowser: true,
+        isDesktopBrowser: true,
         getResourceUrl: function () {}
       },
       'core/prefs': {

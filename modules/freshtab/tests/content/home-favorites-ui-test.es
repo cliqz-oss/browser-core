@@ -9,7 +9,7 @@ import {
   Subject,
 } from '../../core/test-helpers-freshtab';
 
-describe('Fresh tab favorites UI', function () {
+describe('Freshtab favorites UI', function () {
   const favoritesAreaSelector = '#section-favorites';
   const headerSelector = '#section-favorites .dial-header';
   const dialSelector = '#section-favorites .dial:not(.dial-plus)';
@@ -140,6 +140,10 @@ describe('Fresh tab favorites UI', function () {
           .to.have.text('freshtab_app_speed_dial_add'.toUpperCase());
       });
     });
+
+    it('does not render undo popup', function () {
+      expect(subject.query('.undo-notification-box')).to.not.have.class('visible');
+    });
   });
 
   context('when the edit button is clicked', function () {
@@ -209,6 +213,10 @@ describe('Fresh tab favorites UI', function () {
           .to.equal(favoritesResponse[0].custom[0].displayTitle);
       });
     });
+
+    it('does not render undo popup', function () {
+      expect(subject.query('.undo-notification-box')).to.not.have.class('visible');
+    });
   });
 
   context('when the edit button is clicked to delete dial', function () {
@@ -236,17 +244,16 @@ describe('Fresh tab favorites UI', function () {
     });
 
     describe('renders undo popup message', function () {
-      // following tests does not make sense as undo box is always in the DOM
-      it.skip('successfully', function () {
-        expect(subject.query(undoBoxSelector)).to.exist;
+      it('successfully', function () {
+        expect(subject.query('.undo-notification-box')).to.have.class('visible');
       });
 
-      it.skip('with a delete button', function () {
+      it('with a delete button', function () {
         const undoBoxDeleteBtnSelector = '.undo-notification-box button.close';
         expect(subject.query(undoBoxDeleteBtnSelector)).to.exist;
       });
 
-      it.skip('with an undo button', function () {
+      it('with an undo button', function () {
         const undoBoxUndoBtnSelector = '.undo-notification-box button.undo';
         expect(subject.query(undoBoxUndoBtnSelector)).to.exist;
       });

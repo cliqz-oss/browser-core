@@ -10,6 +10,13 @@ import Modal from '../../modal';
 const storage = new Storage();
 
 export default class AlternativeSearchEngines extends React.Component {
+  constructor(props = {}) {
+    super(props);
+
+    this.dropdownCss = props.dropdownCss;
+    this._session = props.session;
+  }
+
   state = {
     showEnginesDropdown: false,
     showEnginesTooltip: false,
@@ -26,6 +33,12 @@ export default class AlternativeSearchEngines extends React.Component {
       this.setState({
         query: nextProps.query || '',
       });
+    }
+
+    this.dropdownCss = nextProps.dropdownCss;
+
+    if (nextProps.session !== this._session) {
+      this._session = nextProps.session;
     }
   }
 
@@ -124,6 +137,7 @@ export default class AlternativeSearchEngines extends React.Component {
           data-engine={this._getSelectedEngine().title.toLowerCase()}
           data-view="results"
           data-category={category}
+          data-session={this._session}
         >
           {title}
         </a>
@@ -190,6 +204,7 @@ export default class AlternativeSearchEngines extends React.Component {
                 items={[].concat(this.engines)}
                 onCancelHandler={this._handleCloseEditModal}
                 onSubmitHandler={this._handleSubmitModal}
+                cssClasses={this.dropdownCss}
               />
             </Modal>)
           }

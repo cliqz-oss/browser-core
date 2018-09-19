@@ -2,12 +2,12 @@
 
     /* Override light theme variables */
     &:-moz-lwtheme-darktext, &:-moz-lwtheme {
-        --chrome-background-color: $cliqz-blue-color; // Background for menu toolbar (Windows only)
+        --chrome-background-color: #{$cliqz-blue-color}; // Background for menu toolbar (Windows only)
     }
 
     #navigator-toolbox, #navigator-toolbox #TabsToolbar,
     .tabbrowser-tab .tab-content {
-       background-color: $cliqz-blue-color;
+       background-color: #{$cliqz-blue-color};
     }
 
     #navigator-toolbox #TabsToolbar #tabbrowser-tabs .tabbrowser-tab {
@@ -36,7 +36,7 @@
 
         &:-moz-lwtheme-darktext {
           .tab-content {
-            background-color: $chrome-light-color;
+            background-color: #{$chrome-light-color};
           }
         }
       }

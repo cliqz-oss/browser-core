@@ -117,6 +117,16 @@ $('#control-center').on('change', '[role="searchIndexCountryChanger"]', function
   });
 });
 
+$('#control-center').on('change', '[role="quickSearchStateChanger"]', function () {
+  // $(this).closest('.bullet').addClass('disabled'); // For debugging
+  sendMessageToWindow({
+    action: 'quick-search-state',
+    data: {
+      enabled: $(this).val() === 'true'
+    }
+  });
+});
+
 $('#control-center').on('click', '[role="cliqzTabStatusChanger"]', function () {
   sendMessageToWindow({
     action: 'cliqz-tab',
@@ -587,12 +597,11 @@ function draw(data) {
     resize();
   }
 
-  $('.infobutton').tooltipster({
+  $('.cc-tooltip').tooltipster({
     theme: ['tooltipster-shadow', 'tooltipster-shadow-customized'],
     interactive: true,
     delay: 150,
     animationDuration: 150,
-    side: 'right',
   });
 }
 

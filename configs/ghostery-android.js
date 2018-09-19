@@ -1,7 +1,7 @@
 const base = require('./common/system');
 const subprojects = require('./common/subprojects/bundles');
 const publish = require('./common/publish');
-const urls = require('./common/ghostery-urls')
+const urls = require('./common/urls-ghostery')
 
 const id = "android@cliqz.com";
 const packageName = "cliqz";
@@ -16,6 +16,7 @@ module.exports = {
   "sign": "python ./xpi-sign/xpisign.py -k $CLIQZ_CERT_PATH --signer openssl --passin file:$CLIQZ_CERT_PASS_PATH "+packageName+"-$PACKAGE_VERSION.zip "+packageName+"-$PACKAGE_VERSION-signed.zip && cp "+packageName+"-$PACKAGE_VERSION-signed.zip "+packageName+"-$PACKAGE_VERSION.zip",
   "publish": publish.toEdge(packageName, 'ghostery-android', 'zip'),
   "baseURL": "/modules/",
+  "isMobile": true,
   "settings": Object.assign({}, urls, {
     "id": id,
     "description": "",
@@ -49,6 +50,7 @@ module.exports = {
   }),
   "modules": [
     "core",
+    "core-cliqz",
     "static",
     "mobile-cards",
     "search",
@@ -64,11 +66,10 @@ module.exports = {
     "cliqz-android/cliqz-search-engines.bundle.js",
     "cliqz-android/cliqz-native-bridge.bundle.js",
     "cliqz-android/cliqz-app-constants.bundle.js",
-    "core/content-script.bundle.js",
   ],
   system: Object.assign({}, base.systemConfig, {
     map: Object.assign({}, base.systemConfig.map, {
-      "@cliqz-oss/pouchdb": "node_modules/@cliqz-oss/pouchdb/dist/pouchdb.js",
+      "pouchdb": "node_modules/pouchdb/dist/pouchdb.js",
       "@cliqz-oss/dexie": "node_modules/@cliqz-oss/dexie/dist/dexie.js",
       "mathjs": "node_modules/mathjs/dist/math.min.js",
       "react-native-view-shot": "modules/mobile-cards/external-libs/react-native-view-shot.js",

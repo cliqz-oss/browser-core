@@ -29,7 +29,6 @@ const MAPPINGS = new Map([
   ['liveTicker', 2],
   ['lotto', 2],
   ['movie', 2],
-  ['news', 2],
 
   ['generic', 3],
   ['hq', 3],

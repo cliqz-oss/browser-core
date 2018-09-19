@@ -148,8 +148,13 @@ export const data = {
   },
   generalState: 'active',
   feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
+  locationSharingURL: 'https://cliqz.com/support/local-results',
+  myoffrzURL: 'https://cliqz.com/myoffrz',
+  reportSiteURL: 'https://cliqz.com/report-url',
   amo: false,
-  compactView: false
+  isDesktopBrowser: true,
+  compactView: false,
+  showPoweredBy: true,
 };
 
 export const dataAmo = {
@@ -299,8 +304,12 @@ export const dataAmo = {
   },
   generalState: 'active',
   feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
+  locationSharingURL: 'https://cliqz.com/support/local-results',
+  myoffrzURL: 'https://cliqz.com/myoffrz',
+  reportSiteURL: 'https://cliqz.com/report-url',
   amo: true,
-  compactView: false
+  compactView: false,
+  showPoweredBy: true,
 };
 
 export const dataFunnelCake = {
@@ -450,6 +459,10 @@ export const dataFunnelCake = {
   },
   generalState: 'active',
   feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
+  locationSharingURL: 'https://cliqz.com/support/local-results',
+  myoffrzURL: 'https://cliqz.com/myoffrz',
+  reportSiteURL: 'https://cliqz.com/report-url',
   amo: false,
-  compactView: true
+  compactView: true,
+  showPoweredBy: true,
 };

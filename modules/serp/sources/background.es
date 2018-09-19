@@ -17,6 +17,7 @@ export default background({
     this.supportABtest = setTimeout(() => {
       this.storage = new Storage('https://suchen.cliqz.com');
       this.storage.setItem('serp_test', prefs.get('serp_test', null));
+      this.storage.setItem('experiments.serp', prefs.get('experiments.serp', null));
 
       this.sendSERPtelemetry(this);
     }, 5 * 1000);

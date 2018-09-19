@@ -7,7 +7,7 @@ export default [
   {
     name: 'metrics.experiments.serp.click.result',
     schema: {
-      required: ['source', 'index', 'queryLength', 'isSearchEngine'],
+      required: ['source', 'index', 'queryLength', 'isSearchEngine', 'session'],
       properties: {
         // 'm' for backend result, 'Z' for query suggestion
         source: { type: 'string', enum: ['m', 'Z'] },
@@ -17,6 +17,10 @@ export default [
         queryLength: { type: 'integer', minimum: 0 },
         // true, if result is a search engine (e.g., google.de)*
         isSearchEngine: { type: 'boolean' },
+        // Random number, unique for a SERP search session (i.e. from SERP load
+        // to leaving the SERP or re-loading the SERP, for example with a new query);
+        // use random(32) (from 'helpers/random')
+        session: { type: 'number' },
       },
     },
   },
@@ -26,7 +30,7 @@ export default [
   {
     name: 'metrics.experiments.serp.click.search',
     schema: {
-      required: ['engine', 'category', 'view'],
+      required: ['engine', 'category', 'view', 'session'],
       properties: {
         // selected search engine
         engine: {
@@ -39,6 +43,10 @@ export default [
          * URL bar and 'results' for the actual SERP
          */
         view: { type: 'string', enum: ['landing', 'results'] },
+        // Random number, unique for a SERP search session (i.e. from SERP load
+        // to leaving the SERP or re-loading the SERP, for example with a new query);
+        // use random(32) (from 'helpers/random')
+        session: { type: 'number' },
       }
     },
   },
@@ -46,7 +54,7 @@ export default [
   {
     name: 'metrics.experiments.serp.show',
     schema: {
-      required: ['queryLength', 'resultCount', 'suggestionCount', 'view'],
+      required: ['queryLength', 'resultCount', 'suggestionCount', 'view', 'session'],
       properties: {
         // number of characters
         queryLength: { type: 'integer', minimum: 0 },
@@ -58,6 +66,10 @@ export default [
          * URL bar and 'results' for the actual SERP
          */
         view: { type: 'string', enum: ['landing', 'results'] },
+        // Random number, unique for a SERP search session (i.e. from SERP load
+        // to leaving the SERP or re-loading the SERP, for example with a new query);
+        // use random(32) (from 'helpers/random')
+        session: { type: 'number' },
       },
     },
   },
@@ -68,7 +80,7 @@ export default [
       required: ['group', 'isCliqzDefaultEngine'],
       properties: {
         // AB test group this user is in
-        group: { enum: [null, 'A', 'B', 'C', 'D', 'E', 'F'] },
+        group: { enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', null] },
         // true, if Cliqz is (still) the default search engine (users can change this)
         isCliqzDefaultEngine: { type: 'boolean' },
         // selected alternative search engine on SERP
@@ -83,12 +95,31 @@ export default [
   {
     name: 'metrics.experiments.serp.enter.search',
     schema: {
-      required: ['view'],
+      required: ['view', 'session'],
       properties: {
         /* 'landing' for the landing page with the centered
          * URL bar and 'results' for the actual SERP
          */
         view: { type: 'string', enum: ['landing', 'results'] },
+        // Random number, unique for a SERP search session (i.e. from SERP load
+        // to leaving the SERP or re-loading the SERP, for example with a new query);
+        // use random(32) (from 'helpers/random')
+        session: { type: 'number' },
+      },
+    }
+  },
+  // sent whenever a user types something on the SERP (i.e. for each character typed)
+  {
+    name: 'metrics.experiments.serp.type',
+    schema: {
+      required: ['session', 'queryLength', 'hasSuggestions'],
+      properties: {
+        // SERP search session ID
+        session: { type: 'number' },
+        // number of characters
+        queryLength: { type: 'integer', minimum: 0 },
+        // true, if suggestions were shown for the current query
+        hasSuggestions: { type: 'boolean' },
       },
     }
   },

@@ -1,6 +1,7 @@
 /* eslint-disable no-await-in-loop */
 
 const chrome = require('selenium-webdriver/chrome');
+const getOptionsUrl = require('./test-options');
 
 async function switchToTestPage(driver) {
   let index = 0;
@@ -32,11 +33,7 @@ exports.Browser = class ChromiumBrowser {
     const service = new chrome.ServiceBuilder('./chromedriver').build();
     this.driver = chrome.Driver.createSession(chromeOptions, service);
 
-    // Open fake data-url to allow passing options to mocha
-    const options = {
-      grep: process.env.MOCHA_GREP || '',
-    };
-    this.driver.get(`data:text/plain,${JSON.stringify(options)}`);
+    this.driver.get(getOptionsUrl());
 
     await switchToTestPage(this.driver);
   }

@@ -9,7 +9,7 @@ import events from '../core/events';
 import { getDetailsFromUrl } from '../core/url';
 import UrlData from './common/url_data';
 import inject from '../core/kord/inject';
-
+import LRU from '../core/LRU';
 
 export default class EventHandler {
   constructor() {
@@ -31,6 +31,15 @@ export default class EventHandler {
 
     // Don't execute triggers on localhost, IPs and "internal" urls
     this.notAllowedUrls = RegExp('(admin|login|logout|^https?://localhost|^https?://(\\d+\\.){3}\\d+|\\.(dev|foo)\\b)');
+
+    // Ignore and do not propagate reloads: if a reload happens on
+    // a checkout page, we would register a false conversion. See EX-7839.
+    // As of technical implmentation, the best solution would be a weak
+    // map from tabs to last urls, but in this place we have only tab IDs.
+    // To avoid memory leaks (each new tab adds a new entry to the map),
+    // we allow old entries to expire. The time-to-live value is selected
+    // subjectively.
+    this.tabToLastUrl = new LRU(16);
   }
 
   //
@@ -123,16 +132,22 @@ export default class EventHandler {
     }
 
     if (data.isSameDocument && data.url === data.triggeringUrl) {
-      logger.info('document reload skipping: onTabLocChanged', data.url);
+      logger.info('document reload skipping 1: onTabLocChanged', data.url);
       return;
     }
 
     // we will do a further check here so we can avoid extra execution
-    if (!data.url || data.url.length === 0 || this.lastUrl === data.url) {
+    if (!data.url || data.url.length === 0) {
       return;
     }
 
-    this.lastUrl = data.url;
+    // skip event propagation if it was a page reload
+    const lastUrl = this.tabToLastUrl.get(data.tabId);
+    if (lastUrl === data.url) {
+      logger.info('document reload skipping 2: onTabLocChanged', data.url);
+      return;
+    }
+    this.tabToLastUrl.set(data.tabId, data.url);
 
     // else we emit the event here
     this.onLocationChangeHandler(data.url, data.referrer);

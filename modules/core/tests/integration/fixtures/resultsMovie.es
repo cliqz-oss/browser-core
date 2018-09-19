@@ -31,6 +31,7 @@ export default [
               url: 'http://www.imdb.com/name/nm3915784?ref_=tt_ov_st_sm'
             }
           ],
+          full_cast: 'http://www.imdb.com/title/tt4287320/fullcredits',
           categories: [
             {
               title: 'Trailer',
@@ -52,7 +53,8 @@ export default [
             img: 'http://cdn.cliqz.com/extension/EZ/richresult/stars3.svg',
             nVote: 53496,
             scale: 10,
-            val: 5.300000190734863
+            val: 5.300000190734863,
+            url: 'http://www.imdb.com/title/tt4287320/ratings'
           },
           type: 'bm'
         }

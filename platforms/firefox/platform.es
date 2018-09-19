@@ -1,5 +1,5 @@
 import { Components, Services } from './globals';
-import prefs from '../core/prefs';
+import { getPref } from './prefs';
 
 // Directly exporting this was breaking process-script bundle.
 const def = {
@@ -9,7 +9,7 @@ const def = {
   isChromium: false,
   isEdge: false,
   platformName: 'firefox',
-  isOnionMode: prefs.get('onion-mode'),
+  isOnionMode: getPref('onion-mode'),
 };
 
 export default def;
@@ -29,7 +29,7 @@ export const OS = appInfo
 export const OS_VERSION = Services.sysinfo.getProperty('version');
 
 export function isCliqzAtLeastInVersion(minVersion) {
-  const cliqzVersion = prefs.get('distribution.version', '', '');
+  const cliqzVersion = getPref('distribution.version', '', '');
   return versionChecker.compare(cliqzVersion, minVersion) >= 0;
 }
 
