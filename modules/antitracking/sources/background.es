@@ -23,7 +23,7 @@ export default background({
   // Injected in window.es
   // controlCenter: inject.module('control-center'),
 
-  requiresServices: ['cliqz-config', 'domainInfo'],
+  requiresServices: ['cliqz-config', 'domainInfo', 'pacemaker'],
 
   /**
   * @method init

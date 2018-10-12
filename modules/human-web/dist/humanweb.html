@@ -2,6 +2,7 @@
 <html>
   <head>
       <meta charset="UTF-8" />
+      <meta http-equiv="x-dns-prefetch-control" content="off">
       <meta http-equiv="x-ua-compatible" content="ie=edge">
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <title>Human Web Privacy Statement</title>
@@ -145,26 +146,6 @@
         </div>
         <br><br>
     </div>
-    <script type="text/javascript">
-        Components.utils.import('resource://gre/modules/Services.jsm')
-
-        const hwPref = 'extensions.cliqz.humanWebOptOut';
-        const cb = document.getElementById('enableHumanWeb');
-        const locale = document.getElementsByClassName('cliqz-locale');
-        for (let i = 0; i < locale.length; i += 1) {
-          const el = locale[i];
-          el.textContent = chrome.i18n.getMessage(el.getAttribute('key'));
-        }
-
-        function clickHW(cb) {
-          chrome.runtime.sendMessage({ module: 'human-web', action: 'setStatus', args: [!cb.checked], target: 'cliqz' });
-        }
-
-        if (Services.prefs.getPrefType(hwPref) !== 128 || Services.prefs.getBoolPref(hwPref) === false) {
-          // if the user has opted in or he has default value this checkbox should be checked (human web is opt-out)
-          cb.checked = true;
-        }
-
-    </script>
+    <script type="text/javascript" src="./page.bundle.js"></script>
   </body>
 </html>

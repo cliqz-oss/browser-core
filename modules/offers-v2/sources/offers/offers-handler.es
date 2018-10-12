@@ -87,10 +87,8 @@ const isFreshInstalled = () => {
  * number of offers per hour, etc.
  */
 const shouldWeShowAnyOffer = offersGeneralStats =>
-  config.settings.channel === '99' || (
-    !isFreshInstalled() &&
-    offersGeneralStats.offersAddedToday() < OffersConfigs.MAX_NUM_OFFERS_PER_DAY
-  );
+  config.settings.channel === '99'
+    || (offersGeneralStats.offersAddedToday() < OffersConfigs.MAX_NUM_OFFERS_PER_DAY);
 
 
 /**
@@ -204,6 +202,10 @@ export default class OffersHandler {
     return this.offersDB.getOfferObject(offerId);
   }
 
+  getCampaignId(offerId) {
+    return this.offersDB.getCampaignID(offerId);
+  }
+
   // ///////////////////////////////////////////////////////////////////////////
   // Private methods
   // ///////////////////////////////////////////////////////////////////////////
@@ -244,7 +246,10 @@ export default class OffersHandler {
 
       let tmpOffers = prioritizedOffers.slice();
       tmpOffers.reverse(); // we need it, because of lack of findLast function
-      const pred = offer => shouldShowOfferOnContext(offer, { urlData });
+      const pred = (offer) => {
+        if (!offer.isTargeted() && isFreshInstalled()) { return false; }
+        return shouldShowOfferOnContext(offer, { urlData });
+      };
 
       tmpOffers = tmpOffers.filter(pred);
       if (tmpOffers.length === 0) { return Promise.resolve(true); }

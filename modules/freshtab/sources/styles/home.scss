@@ -255,35 +255,33 @@
 }
 
 @mixin responsive($theme) {
-    @media only screen and (max-width: 649px) {
-        $config: map-get($configs, xsmall);
-        @include container($config, $theme);
-        $modal-configs: map-get($config, modal);
-        @include modal($modal-configs...);
+    $config: map-get($configs, xsmall);
+    @include container($config, $theme);
+    $modal-configs: map-get($config, modal);
+    @include modal($modal-configs...);
 
-        #main-content .fixed-container .offer-middle-notification.offer-notification-box {
-            .content {
-                h1 {
-                    font-size: 13px;
-                    font-weight: bold;
-                }
+    #main-content .fixed-container .offer-middle-notification.offer-notification-box {
+        .content {
+            h1 {
+                font-size: 13px;
+                font-weight: bold;
             }
         }
     }
 
-    @media only screen and (min-width: 650px) and (max-width: 919px) {
+    @media only screen and (min-width: 650px)  {
         $config: map-get($configs, small);
         @include container($config, $theme);
         $modal-configs: map-get($config, modal);
         @include modal($modal-configs...);
     }
-    @media only screen and (min-width: 920px) and (max-width: 1023px) {
+    @media only screen and (min-width: 920px) {
         $config: map-get($configs, xmedium);
         @include container($config, $theme);
         $modal-configs: map-get($config, modal);
         @include modal($modal-configs...);
     }
-    @media only screen and (min-width: 1024px) and (max-width: 1599px) {
+    @media only screen and (min-width: 1024px) {
         $config: map-get($configs, medium);
         @include container($config, $theme);
         $modal-configs: map-get($config, modal);
@@ -368,50 +366,97 @@ body {
 
     &.theme-bg-light,
     &.theme-bg-light::before {
-        background-image: url(https://cdn.cliqz.com/extension/newtab/background/light.jpg);
+        background-image: cdnUrl('extension/newtab/background/light.jpg');
     }
 
     &.theme-bg-dark,
     &.theme-bg-dark::before {
         background-color: #0E213F;
-        background-image: url(https://cdn.cliqz.com/extension/newtab/background/dark.jpg);
+        background-image: cdnUrl('extension/newtab/background/dark.jpg');
     }
 
     &.theme-bg-blue,
     &.theme-bg-blue::before {
         background-color: #00adf3;
-        background-image: url(https://cdn.cliqz.com/extension/newtab/background/alps.jpg);
+        background-image: cdnUrl('extension/newtab/background/alps.jpg');
     }
 
     &.theme-bg-winter,
     &.theme-bg-winter::before {
-        background-image: url(https://cdn.cliqz.com/extension/newtab/background/winter.jpg);
+        background-image: cdnUrl('extension/newtab/background/winter.jpg');
     }
 
     &.theme-bg-matterhorn,
     &.theme-bg-matterhorn::before {
         background-color: #00adf3;
-        background-image: url(https://cdn.cliqz.com/extension/newtab/background/matterhorn.jpg);
+        background-image: cdnUrl('extension/newtab/background/matterhorn.jpg');
     }
 
     &.theme-bg-spring,
     &.theme-bg-spring::before {
         background-color: #00adf3;
-        background-image: url(https://cdn.cliqz.com/extension/newtab/background/spring.png);
+        background-image: cdnUrl('extension/newtab/background/spring.png');
     }
 
     &.theme-bg-worldcup,
     &.theme-bg-worldcup::before {
         background-color: #00adf3;
-        background-image: url(https://cdn.cliqz.com/extension/newtab/background/worldcup.jpg);
+        background-image: cdnUrl('extension/newtab/background/worldcup.jpg');
     }
 
     &.theme-bg-summer,
     &.theme-bg-summer::before {
         background-color: #00adf3;
-        background-image: url(https://cdn.cliqz.com/extension/newtab/background/summer.jpg);
+        background-image: cdnUrl('extension/newtab/background/summer.jpg');
     }
 
+    &.theme-bg-ghostery,
+    &.theme-bg-ghostery::before {
+        background-color: #00adf3;
+        background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab.jpg);
+    }
+
+    &.theme-bg-ghostery-forest,
+    &.theme-bg-ghostery-forest::before {
+        background-color: #1D3D42;
+        background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab-forest.jpg);
+    }
+
+    &.theme-bg-ghostery-city,
+    &.theme-bg-ghostery-city::before {
+        background-color: #161523;
+        background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab-city.jpg);
+    }
+
+    &.theme-bg-ghostery-net,
+    &.theme-bg-ghostery-net::before {
+        background-color: #1A303F;
+        background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab-net.jpg);
+    }
+
+    &.theme-bg-ghostery-ghosties,
+    &.theme-bg-ghostery-ghosties::before {
+        background-color: #1A9FD7;
+        background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab-ghosties.jpg);
+    }
+
+    &.theme-bg-ghostery-ghosty,
+    &.theme-bg-ghostery-ghosty::before {
+        background-color: #595B58;
+        background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab-ghosty.jpg);
+    }
+    &.theme-bg-ghostery-dark,
+    &.theme-bg-ghostery-dark::before {
+        background-color: #23A5D7;
+        background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab-dark.jpg);
+    }
+
+    &.theme-bg-ghostery-forest,
+    &.theme-bg-ghostery-city,
+    &.theme-bg-ghostery-net,
+    &.theme-bg-ghostery-ghosties,
+    &.theme-bg-ghostery-ghosty,
+    &.theme-bg-ghostery-dark,
     &.theme-bg-dark,
     &.theme-bg-blue,
     &.theme-bg-matterhorn,
@@ -449,6 +494,34 @@ body {
 
             }
         }
+    }
+
+    &.theme-bg-ghostery-dark {
+        .dial-header {
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.3);
+        }
+
+
+        .dials-row {
+            .dial {
+                .title {
+                    color: rgba(255, 255, 255, 0.9);
+                    text-shadow: 0px 0px 3px rgba(0, 0, 0, 0.5);
+                }
+
+                .logo {
+                    box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.25);
+                }
+
+                &:hover {
+                    .logo {
+                        box-shadow: 0px 3px 8px 0px rgba(0, 0, 0, 0.25);
+                    }
+                }
+            }
+        }
+
     }
 
     &.theme-bg-blue,

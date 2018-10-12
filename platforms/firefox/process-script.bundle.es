@@ -58,7 +58,7 @@ function forEachTab(fn) {
     if (window.gBrowser && window.gBrowser.tabs) {
       // this is a browser (chrome) window so we need to inject the
       // content scripts in all openend tabs
-      window.gBrowser.tabs.forEach((tab) => {
+      Array.prototype.forEach.call(window.gBrowser.tabs, (tab) => {
         try {
           fn(tab.linkedBrowser.contentDocument);
         } catch (e) {

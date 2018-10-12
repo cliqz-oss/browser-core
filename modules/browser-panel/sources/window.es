@@ -4,10 +4,13 @@ import config from '../core/config';
 import { REAL_ESTATE_ID } from './consts';
 import { getDetailsFromUrl } from '../core/url';
 import { copyToClipboard } from '../core/clipboard';
+import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
+import prefs from '../core/prefs';
+import events from '../core/events';
 
 const MODULE_NAME = 'browser-panel-window';
 const UI_IFRAME_WIDTH_DEF = '100%';
-const UI_IFRAME_HEIGHT_DEF = '101';
+const UI_IFRAME_HEIGHT_DEF = '107';
 const UI_IFRAME_ELEM_ID = 'cqz-b-p-iframe';
 const UI_IFRAME_SRC_DEF = `${config.baseURL}browser-panel/index.html`;
 
@@ -21,7 +24,7 @@ const callToActionSignalsSet = new Set([
   'offer_title',
   'offer_description',
 ]);
-
+const blueThemePref = 'freshtab.blueTheme.enabled';
 
 function linfo(msg) {
   console.log(`[info] ${msg}`, MODULE_NAME);
@@ -36,11 +39,13 @@ export default class Win {
     this.window = settings.window;
     this.settings = settings.settings;
     this.background = settings.background;
+    this.cssUrl = `${config.baseURL}browser-panel/styles/xul.css`;
 
     this.iframeHandlers = {
       offersIFrameHandler: this.offersIFrameHandler.bind(this),
       openUrlHandler: this.openURL.bind(this),
       copyToClipboard: ({ data }) => copyToClipboard(data),
+      sendTelemetry: this.sendTelemetry.bind(this)
     };
 
     // integration of the new ui system here
@@ -59,7 +64,7 @@ export default class Win {
     // actions we will execute coming from the iframe
     this.offersActions = {
       button_pressed: this.iframeButtonPressedAction.bind(this),
-      get_last_data: this.getLastDataToShow.bind(this)
+      get_last_data: this.getLastDataToShow.bind(this),
     };
 
     this.onIframeMessage = this.onIframeMessage.bind(this);
@@ -67,16 +72,17 @@ export default class Win {
   }
 
   init() {
+    addStylesheet(this.window.document, this.cssUrl);
     this.isPrivateMode = utils.isPrivateMode(this.window);
     if (this.isPrivateMode) {
       linfo('we are in private mode, avoid any logic here');
       return Promise.resolve('Private mode active');
     }
-
     return this.injectNotificationFrameIfNeeded(this.window.document);
   }
 
   unload() {
+    removeStylesheet(this.window.document, this.cssUrl);
     if (this.iframe) {
       this.iframe.parentElement.removeChild(this.iframe);
       delete this.iframe;
@@ -141,7 +147,22 @@ export default class Win {
       }
     } catch (e) { /* bummer */ }
 
+    const updateTheme = (panelIframe) => {
+      const isBlueThemeEnabled = prefs.get('freshtab.blueTheme.enabled', false);
+      if (isBlueThemeEnabled) {
+        panelIframe.classList.remove('cliqz-light');
+        panelIframe.classList.add('cliqz-blue');
+        panelIframe.contentDocument.getElementById('cqz-browser-panel-re').classList.add('blue');
+      } else {
+        panelIframe.classList.remove('cliqz-blue');
+        panelIframe.contentDocument.getElementById('cqz-browser-panel-re').classList.remove('blue');
+        panelIframe.classList.add('cliqz-light');
+        panelIframe.contentDocument.getElementById('cqz-browser-panel-re').classList.add('light');
+      }
+    };
+
     function onIframeReady() {
+      this.iframe = iframe;
       iframe.style.height = 0;
       iframe.style.width = UI_IFRAME_WIDTH_DEF;
       iframe.style.overflow = 'visible';
@@ -150,7 +171,9 @@ export default class Win {
       iframe.style.zIndex = '99999';
       iframe.contentWindow.addEventListener('message', this.onIframeMessage);
       resolver();
+      updateTheme(iframe);
     }
+
     // set the cliqz offers iframe
     // TODO: avoid some hardcoded values here
     iframe.id = UI_IFRAME_ELEM_ID;
@@ -159,6 +182,11 @@ export default class Win {
 
     iframe.addEventListener('load', onIframeReady.bind(this), true);
     this.iframe = iframe;
+    this.onPrefChangeEvent = events.subscribe('prefchange', (pref) => {
+      if (pref === blueThemePref) {
+        updateTheme(iframe);
+      }
+    });
 
     // init all cases
     this.setOfferID('');
@@ -512,9 +540,13 @@ export default class Win {
       case 'offer_closed':
         target = 'remove';
         break;
+      case 'more_about_cliqz':
+        target = 'learn_more';
+        break;
       default:
         return;
     }
+
     const signal = {
       type: 'offrz',
       view: 'bar',
@@ -524,6 +556,18 @@ export default class Win {
     utils.telemetry(signal);
   }
 
+  sendTelemetry(message) {
+    const target = message.data.target;
+    const action = message.data.action;
+    console.log(action, target, '!!send Telemetry');
+    const signal = {
+      type: 'offrz',
+      view: 'bar',
+      action,
+      target,
+    };
+    utils.telemetry(signal);
+  }
 
   openURL(data) {
     if (!data || !data.data) {
@@ -535,7 +579,8 @@ export default class Win {
     // Send telemetry for all call to action elements
     const elId = data.data.el_id;
     if (elId) {
-      if (elId === 'offer_description' || elId === 'offer_ca_action' || elId === 'offer_title' || elId === 'offer_logo') {
+      if (elId === 'offer_description' || elId === 'offer_ca_action'
+      || elId === 'offer_title' || elId === 'offer_logo') {
         const signal = {
           type: 'offrz',
           view: 'bar',

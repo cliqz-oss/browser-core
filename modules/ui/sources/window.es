@@ -116,6 +116,9 @@ export default class UIWindow extends AppWindow {
     this._autocompletepopup = this.urlbar.getAttribute('autocompletepopup');
     this.urlbar.setAttribute('autocompletepopup', 'PopupAutoCompleteRichResultCliqz');
 
+    this._disableKeyNavigation = this.urlbar.disableKeyNavigation;
+    this.urlbar.disableKeyNavigation = true;
+
     Object.keys(this.urlbarEventHandlers).forEach((ev) => {
       this.urlbar.addEventListener(ev, this.urlbarEventHandlers[ev]);
     });
@@ -178,7 +181,7 @@ export default class UIWindow extends AppWindow {
     urlbar.style.maxWidth = '100%';
     urlbar.style.margin = '0px 0px';
 
-    if (this.settings.id !== 'funnelcake@cliqz.com' && this.settings.id !== 'description_test@cliqz.com') {
+    if (this.settings.id !== 'funnelcake@cliqz.com' && this.settings.id !== 'ghostery-db@cliqz.com') {
       urlbar.mInputField.placeholder = getMessage('freshtab_urlbar_placeholder');
     }
   }
@@ -210,6 +213,7 @@ export default class UIWindow extends AppWindow {
 
     this.urlbar.setAttribute('autocompletesearch', this._autocompletesearch);
     this.urlbar.setAttribute('autocompletepopup', this._autocompletepopup);
+    this.urlbar.disableKeyNavigation = this._disableKeyNavigation;
 
     Object.keys(this.urlbarEventHandlers).forEach(function (ev) {
       this.urlbar.removeEventListener(ev, this.urlbarEventHandlers[ev]);

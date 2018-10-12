@@ -34,14 +34,15 @@
 
     <script type="text/javascript">
 
-        Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+        ChromeUtils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
 
         var CliqzUtils = CLIQZ.CliqzUtils;
         var CliqzABTests = CliqzUtils.getWindow().CliqzABTests;
+        var cliqz = CliqzUtils.getWindow().CLIQZ;
 
         var current = CliqzABTests.getCurrent();
 
-        var override = CliqzUtils.getPref(CliqzABTests.PREF_OVERRIDE) != undefined;
+        var override = cliqz.prefs.get(CliqzABTests.PREF_OVERRIDE) != undefined;
         if(override) {
             document.getElementById('chk_override').checked = true;
             document.getElementById('add_test').style.display = 'block';

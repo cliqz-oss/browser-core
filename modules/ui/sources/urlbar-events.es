@@ -27,10 +27,11 @@ export default {
 
     const urlbar = this.urlbar;
     const mInputField = urlbar.mInputField;
-    const hasCompletion = mInputField.selectionEnd !== mInputField.selectionStart;
+    const hasSelection = mInputField.selectionEnd !== mInputField.selectionStart;
 
     if (
-      hasCompletion &&
+      hasSelection &&
+      this.window.CLIQZ.UI.renderer.hasAutocompleted &&
       mInputField.value[mInputField.selectionStart] === String.fromCharCode(ev.charCode)
     ) {
       let query = urlbar.value;

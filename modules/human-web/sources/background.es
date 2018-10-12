@@ -9,8 +9,6 @@ import history from '../core/history-service';
 import inject from '../core/kord/inject';
 import WebRequest from '../core/webrequest';
 import logger from './logger';
-import { isBootstrap, isPlatformAtLeastInVersion } from '../core/platform';
-import bindObjectFunctions from '../core/helpers/bind-functions';
 
 /**
 * @namespace human-web
@@ -47,13 +45,7 @@ export default background({
     this.humanWeb = HumanWeb;
     HumanWeb.hpn = this.hpn;
 
-    const FF48_OR_ABOVE = isPlatformAtLeastInVersion('48.0');
-    if (isBootstrap && !FF48_OR_ABOVE) {
-      this.active = false;
-      return Promise.resolve();
-    }
-
-    return Promise.resolve().then(() => {
+    const pendingInit = (this._pendingInits || Promise.resolve()).then(() => {
       if (!this.enabled()) {
         // The module is technically loaded, but human web will not collect any data.
         this.active = true;
@@ -68,8 +60,6 @@ export default background({
           urls: ['*://*/*'],
         }, ['responseHeaders']);
 
-        bindObjectFunctions(this.actions, this);
-
         if (history && history.onVisitRemoved) {
           this.onVisitRemovedListener = (...args) => HumanWeb.onVisitRemoved(...args);
           history.onVisitRemoved.addListener(this.onVisitRemovedListener);
@@ -79,6 +69,8 @@ export default background({
         this.collecting = true;
       });
     });
+    this._pendingInits = pendingInit.catch(() => {});
+    return pendingInit;
   },
 
   unload() {
@@ -101,27 +93,58 @@ export default background({
     }
   },
 
+  async reload() {
+    await this._pendingInits;
+    this.unload();
+    await this.init();
+  },
+
   beforeBrowserShutdown() {
     HumanWeb.unload();
   },
 
   events: {
     /**
+     * When the user opts-out of the Human Web data collection,
+     * 'humanWebOptOut' will be set by the UI. Whenever this
+     * preference changes, we have to reload Human Web to make
+     * sure that the local data collection will be stopped.
+     *
+     * In Cliqz, the user has two ways to opt-out:
+     * - Control Center UI (Search Options --> Human Web)
+     * - chrome://cliqz/content/human-web/humanweb.html (AMO only)
+     *
+     * In Ghostery, the mechanism is different. If the user
+     * opts-out, the whole 'human-web' module gets unloaded.
+     */
+    async prefchange(pref) {
+      if (pref === 'humanWebOptOut') {
+        try {
+          await this.reload();
+          await utils.telemetry({
+            type: 'humanWebStatus',
+            state: this.actions.getStatus(),
+          });
+        } catch (e) {
+          logger.error(e);
+        }
+      }
+    },
+
+    /**
     * @event ui:click-on-url
     */
     'ui:click-on-url': function (data) {
-      if (data.isPrivateMode) {
+      if (data.isPrivateMode || !this.collecting) {
         return;
       }
 
-      if (this.collecting) {
-        HumanWeb.queryCache[data.url] = {
-          d: 1,
-          q: data.query,
-          t: data.isPrivateResult ? 'othr' : 'cl',
-          pt: data.positionType || '',
-        };
-      }
+      HumanWeb.queryCache[data.url] = {
+        d: 1,
+        q: data.query,
+        t: data.isPrivateResult ? 'othr' : 'cl',
+        pt: data.positionType || '',
+      };
 
       const signal = {
         type: 'extension-result-telemetry',
@@ -141,22 +164,15 @@ export default background({
         .then(({ query, url, data: _data }) => HumanWeb.sendResultTelemetry(query, url, _data))
         .catch(logger.error);
     },
+
     /**
-    * @event control-center:toggleHumanWeb
-    */
+     * @event control-center:toggleHumanWeb
+     */
     'control-center:toggleHumanWeb': () => {
-      // 1. we turn off HumanWeb module
-      prefs.set('modules.human-web.enabled', false);
-
-      // 2. change the pref
+      // note: will trigger the 'prefchange' listener
       prefs.set('humanWebOptOut', !prefs.get('humanWebOptOut', false));
-
-      // we need to avoid the throttle on prefs
-      setTimeout(() => {
-        // 3. start again the module
-        prefs.set('modules.human-web.enabled', true);
-      }, 0);
     },
+
     'core:mouse-down': function onMouseDown(...args) {
       if (this.collecting) {
         HumanWeb.captureMouseClickPage(...args);
@@ -199,12 +215,8 @@ export default background({
     },
 
     setStatus(status) {
+      // note: will trigger the 'prefchange' listener
       prefs.set('humanWebOptOut', status);
-
-      utils.telemetry({
-        type: 'humanWebStatus',
-        state: status,
-      });
     },
     /**
      * Check whether there is some state for this url.

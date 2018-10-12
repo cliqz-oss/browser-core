@@ -20,6 +20,8 @@
 
     $dial-header-color,
     $dial-header-bg-color,
+    $dial-header-font-size,
+
     $dial-button-plus-background,
     $dial-button-plus-opacity,
     $dial-button-plus-opacity-hover,
@@ -35,11 +37,13 @@
     $dial-edit-background: url(../images/pencil.svg) no-repeat center;
     $dial-logo-color: #fff;
 
+    #section-most-visited {
+        margin-top: 24px;
+    }
+
     .dial-header {
-        font-size: 14px;
+        font-size: $dial-header-font-size;
         color: $dial-header-color;
-        height: $dial-header-height;
-        padding-top: $dial-header-title;
         animation: fadeIn 0.5s;
         overflow: hidden;
         position: relative;

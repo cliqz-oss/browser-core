@@ -3,7 +3,7 @@ import Adblocker from '../platform/lib/adblocker';
 import config from '../core/config';
 import CachedMap from '../core/persistence/cached-map';
 import logger from './logger';
-import pacemaker from '../core/pacemaker';
+import pacemaker from '../core/services/pacemaker';
 
 // Common durations
 const ONE_SECOND = 1000;
@@ -42,14 +42,12 @@ export default class ContentCategoryManager {
       this.clearCache.bind(this),
       ONE_HOUR
     );
-    pacemaker.start();
   }
 
   async unload() {
     this.loader.stop();
     await this.storage.set('cache', this.cache);
     this.storage.unload();
-    pacemaker.stop();
   }
 
   clearCache() {

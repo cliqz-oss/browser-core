@@ -368,6 +368,7 @@ export default class {
       if (query === '') {
         this.close();
       }
+      return;
     }
 
     const assistantStates = await this.search.action('getAssistantStates');
@@ -388,13 +389,14 @@ export default class {
       maxHeight: this.maxHeight,
     });
     this.selectedResult = result;
-    this.setHeight(height);
+    utils._queryLastDraw = Date.now();
 
     // While we were rendering results the query or search session may have changed.
     // So we have to check if rendered results are still relevant to the current query
     // and that we are still in the same session.
     if (result && renderedSessionId === getSessionId() &&
         this.hasRelevantResults(this.query, [result])) {
+      this.setHeight(height);
       this.open();
 
       this.autocompleteQuery(

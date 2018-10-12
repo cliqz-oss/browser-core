@@ -1,7 +1,6 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
 
 import prefs from '../../core/prefs';
-import config from '../../core/config';
 import ExpressionBuilder from './exp_builder';
 import logger from '../common/offers_v2_logger';
 import ExpressionCache from './expression_cache';
@@ -23,7 +22,7 @@ export default class TriggerMachine {
     this.expressionBuilder = new ExpressionBuilder(this.globObjs);
 
     // we hardcode the trigger root here
-    this.triggersRoot = config.settings['triggers-root'] || 'root';
+    this.triggersRoot = 'root';
 
     // override if exists this flag
     if (prefs.get('offersTriggerRootOverride')) {

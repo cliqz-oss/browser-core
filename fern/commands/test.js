@@ -48,6 +48,8 @@ program.command(`test ${common.configParameter}`)
 
     process.env.OUTPUT_PATH = untildify(OUTPUT_PATH);
 
+    process.env.AUTOSTART = 'true';
+
     const testem = new Testem();
     const launchers = options.launchers;
     const serveFiles = [];

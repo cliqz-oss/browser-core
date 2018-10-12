@@ -8,9 +8,10 @@ You can manually add and remove speed dials. The Cliqz new tab page keeps you
 up-to-date by showing you a mix of headlines from popular news sources and
 news sources you visit often.
 
-The Cliqz Tab page is switched on by default. Prefer your “old” Firefox page?
-You can turn Cliqz Tab off at any time via the Cliqz Control Center
-(see the “Q” symbol in the browser bar or your settings menu).
+On AMO, the Freshtab page is switched on by default. Prefer your
+“old” Firefox page? You can turn Freshtab off at any time via the
+Cliqz Control Center (see the “Q” symbol in the browser bar or your
+settings menu).
 
 Freshtab is available both on Firefox and Google Chrome.
 

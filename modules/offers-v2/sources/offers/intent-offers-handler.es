@@ -29,8 +29,15 @@ class CacheEntry {
     this.data = data;
     this.expireTS = timestampMS() + (durationSecs * 1000);
   }
-  expired() {
-    return (timestampMS() > this.expireTS);
+
+  // An object of type CacheEntry, after storing and loading back from
+  // the local storage, is no more of type CacheEntry. In particular,
+  // the function "expired()" is missed in the object. As a workaround,
+  // define and use the function as a class function.
+  //
+  // @param [CacheEntry-like] self  Rewriting of `self.expired()`
+  static expired(self) {
+    return (timestampMS() > self.expireTS);
   }
 }
 
@@ -85,7 +92,8 @@ export default class IntentOffersHandler {
     return this.backendConnector.sendApiRequest(
       'offers',
       { intent_name: intentName },
-      'GET').then((aIntentOffers) => {
+      'GET'
+    ).then((aIntentOffers) => {
       if (!aIntentOffers) {
         logger.error('Invalid intent offers fetched for intent: ', intentName);
         return Promise.reject();
@@ -121,7 +129,7 @@ export default class IntentOffersHandler {
   _expireCache() {
     this.intentOffers.keys().forEach((intentID) => {
       const cacheEntry = this.intentOffers.get(intentID);
-      if (cacheEntry.expired()) {
+      if (CacheEntry.expired(cacheEntry)) {
         this.intentOffers.delete(intentID);
       }
     });
@@ -129,6 +137,7 @@ export default class IntentOffersHandler {
 
   // return the list of latest intents active we have
   _getLatestIntentsNames() {
+    this._expireCache();
     return [...this.intentOffers.keys()];
   }
 

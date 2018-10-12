@@ -29,22 +29,17 @@ export default background({
     @param settings
   */
   init() {
-    this.is_enabled = true;
     this.displayMngr = new DisplayManager(this.displayCbHandler.bind(this));
-    // register real estate
-    this.registerState();
+    // unconditionally register real estate
+    this.registerState(true);
   },
 
   unload() {
-    if (!this.is_enabled) {
-      return;
-    }
     if (this.displayMngr) {
       this.displayMngr.destroy();
       delete this.displayMngr;
     }
-    this.is_enabled = false;
-    this.registerState();
+    this.registerState(false);
   },
 
   beforeBrowserShutdown() {
@@ -179,12 +174,6 @@ export default background({
       }
       // else we have the proper format we process it
       this.processOfferMessage(msg);
-    },
-
-    'offers-re-registration': function onOffersRegMessage(event) {
-      if (event && event.type === 'broadcast') {
-        this.registerState();
-      }
     }
   },
 
@@ -194,9 +183,9 @@ export default background({
     },
   },
 
-  registerState() {
+  registerState(isEnabled) {
     const msg = { realEstateID: REAL_ESTATE_ID };
-    if (this.is_enabled) {
+    if (isEnabled) {
       this.offersV2.action('registerRealEstate', msg).catch(() => {});
     } else {
       this.offersV2.action('unregisterRealEstate', msg).catch(() => {});

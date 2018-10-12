@@ -31,7 +31,7 @@ class CategoryCollector {
     }
   }
 
-  sendToBackground({ categories, titles, links, productId, prefix }) {
+  sendToBackground({ categories, titles, links, productId, prefix, price }) {
     if (categories.length > 0 || titles.length > 0 || links.length > 0 || this.refetchUrl) {
       this.backgroundModule.action(
         'handleCategories',
@@ -44,6 +44,7 @@ class CategoryCollector {
           prefix,
           fetchUrl: this.refetchUrl,
           rules: this.categoriesRules,
+          price
         }
       );
     }
@@ -120,17 +121,31 @@ class CategoryCollector {
     return links;
   }
 
+  getPrice(selector) {
+    const element = this.document.querySelector(selector);
+    const price = element.textContent.trim().match(/[\d,.]+/g);
+    if (price && price.length > 0) {
+      // always use "." as decimal point
+      const parts = price[0].split(/[,.]/);
+      if (parts.length > 1 && parts[parts.length - 1].length === 2) {
+        parts[parts.length - 1] = `.${parts[parts.length - 1]}`;
+      }
+      return parts.join('');
+    }
+    return null;
+  }
+
   handleRules({ rules, productId, prefix }) {
     /* eslint no-param-reassign: off */
     const _handleRules = () => {
       let categories = [];
       let titles = [];
       let links = [];
+      let price = null;
       this.categoriesRules = rules.category;
       if (rules.category && rules.category.length > 0) {
         categories = (rules.category).map(rule => this.getCategories(rule, rules.refetch));
         categories = categories.reduce((acc, val) => acc.concat(val), []);
-        // deduplication
         categories = [...new Set(categories)];
       }
       if (rules.title && rules.title.length > 0) {
@@ -143,8 +158,14 @@ class CategoryCollector {
           links = links.concat(this.getLinks(rule, rules.linkIdRegex));
         });
       }
+      if (rules.price && rules.price.length > 0) {
+        rules.price.some((rule) => {
+          price = this.getPrice(rule);
+          return !!price;
+        });
+      }
       // We simply send prefix and productId back as metadata
-      this.sendToBackground({ categories, titles, links, productId, prefix });
+      this.sendToBackground({ categories, titles, links, productId, prefix, price });
     };
     if (rules) {
       if (rules.waitForLoad && this.document.readyState !== 'complete') {

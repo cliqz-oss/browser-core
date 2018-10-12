@@ -93,9 +93,7 @@
           {{/each}}
         </select>
 
-        {{#unless compactView}}
-          <span class="location-more" data-open-url="https://cliqz.com/support/local-results" data-i18n="control_center_info_share_location_link"></span>
-        {{/unless}}
+        <span class="location-more" data-open-url="{{ locationSharingURL }}" data-i18n="control_center_info_share_location_link"></span>
       </span>
       {{/if}}
 
@@ -234,7 +232,7 @@
           </svg>
         </span>
       {{/if}}
-      {{#if amo}}
+      {{#unless isDesktopBrowser}}
        <span class="bullet">
           <svg class="infobutton" data-tooltip-content="#telemetry-tooltip" width="15px" height="15px" viewBox="1829 359 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
           <defs></defs>
@@ -258,7 +256,7 @@
               <option {{#unless telemetry}}selected{{/unless}} value="false" data-i18n="control_center_disabled"></option>
         </select>
       </span>
-      {{/if}}
+      {{/unless}}
     </div>
   </div>
   {{#if showHistorySettings}}
@@ -358,7 +356,7 @@
           </div>
           <span data-i18n="control_center_offers_show"></span>
           <span class="location-more"
-                data-open-url="https://cliqz.com/myoffrz"
+                data-open-url="{{ myoffrzURL }}"
                 data-target="offerz_main_learn_more"
                 data-i18n="control_center_info_share_location_link">
           </span>

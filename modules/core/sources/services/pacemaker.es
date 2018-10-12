@@ -1,5 +1,6 @@
-import console from '../core/console';
-import setTimeoutInterval from '../core/helpers/timeout';
+import inject from '../kord/inject';
+import console from '../console';
+import setTimeoutInterval from '../helpers/timeout';
 
 
 const defaultTPace = 10 * 1000;
@@ -81,6 +82,14 @@ class Pacemaker {
   }
 }
 
-// export singleton pacemaker
-const pm = new Pacemaker(30000, 30000);
-export default pm;
+export const service = async function service() {
+  const pm = new Pacemaker(30000, 30000);
+  pm.start();
+
+  service.unload = () => {
+    pm.stop();
+  };
+  return pm;
+};
+
+export default inject.service('pacemaker');

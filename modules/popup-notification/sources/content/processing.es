@@ -19,8 +19,10 @@ const onApplyActions = (key) => {
 const preShowActions = (key) => {
   const m = {
     'try-to-find-coupon': (window, config) => {
-      const {ok} = getCouponsForm([...window.document.querySelectorAll('form')]);
-      const newConfig = {...config, shouldHideButtons: !ok};
+      const result = getCouponsForm([...window.document.querySelectorAll('form')]);
+      const {ok, input} = result;
+      const shouldPreventRender = ok && input.value === config.code;
+      const newConfig = {...config, shouldHideButtons: !ok, shouldPreventRender};
       return {ok, config: newConfig};
     },
   };

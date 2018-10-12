@@ -1,5 +1,5 @@
 /* global Components WebRequest PrivateBrowsingUtils MatchPattern */
-import { isCliqzBrowser } from '../core/platform';
+import { isDesktopBrowser } from '../core/platform';
 
 Components.utils.import('resource://gre/modules/XPCOMUtils.jsm');
 Components.utils.import('resource://gre/modules/WebRequest.jsm');
@@ -72,7 +72,7 @@ function webRequestListenerWrapper(listener, topic) {
       // browser's `loadContext` in order to determine its privacy status.
       // But when tabs gets closed and current requests dropped
       // we may not have `browser.loadContext` anymore.
-      if (!isCliqzBrowser || data.browser.loadContext) {
+      if (!isDesktopBrowser || data.browser.loadContext) {
         isPrivate = PrivateBrowsingUtils.isBrowserPrivate(data.browser);
       }
     }

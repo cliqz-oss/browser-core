@@ -1,5 +1,4 @@
 import random from '../core/crypto/random';
-import OffersConfigs from './offers_configs';
 import prefs from '../core/prefs';
 import config from '../core/config';
 
@@ -88,70 +87,23 @@ function hashString(str) {
 }
 
 /**
- * Perform an sequential or on a list of functions that should return a promise.
- * Given a list pf = [function1, function2, ...], where each function returns a
- * promise, will check function1() || function2() || ...
- * and return true if any of them returns true, otherwise false.
- */
-function orPromises(elemList, idx = 0) {
-  if (!elemList || idx >= elemList.length) {
-    return Promise.resolve(false);
-  }
-  const first = elemList[idx];
-  return first().then((r) => {
-    if (r) {
-      return Promise.resolve(true);
-    }
-    // if we are in the last case return
-    if (elemList.length === (idx + 1)) {
-      return Promise.resolve(false);
-    }
-    return orPromises(elemList, idx + 1);
-  });
-}
-
-/**
  * generates a random number between [a, b)
  */
 function randRange(a, b) {
   return Math.floor(Math.random() * (b - a)) + a;
 }
 
-
 /**
  * This method will check if we should keep or not the given resource.
  * We will check here if the pref for getting all resources is set or not as well
  */
-function shouldKeepResource(userGroup) {
-  // for now we will use offersDevFlag to accept all resources, we can change
-  // this if required in the future
-  if (OffersConfigs.IS_DEV_MODE) {
-    // we keep it
-    return true;
-  }
-
-  // now we should keep the resource if and only if
-  // is not zero and localUserGroupNum >= userGroup
-  // Since resources with userGroup == 0 => debug
-  //
-  const getLocalUserGroupNum = () => {
-    // now check the real id
-    const prefID = 'offersUserGroup';
-    let localUserGroupNum = null;
-    if (!prefs.has(prefID)) {
-      // generate one in [1, 100]
-      localUserGroupNum = randRange(1, 101);
-      prefs.set(prefID, localUserGroupNum.toString());
-    } else {
-      // we get it and transform it to localUserGroupNum
-      localUserGroupNum = Number(prefs.get(prefID, 0));
-    }
-    return localUserGroupNum;
-  };
-
-  // we should keep the resource if local userGroup > 0  and our num > resource num
-  const localUserGroupNum = getLocalUserGroupNum();
-  return (userGroup > 0) && (localUserGroupNum >= userGroup);
+function shouldKeepResource(resourceWeight) {
+  const prefID = 'offersUserGroup';
+  const userGroup = Number(prefs.get(prefID, -1));
+  const isValid = !Number.isNaN(userGroup) && (userGroup >= 0);
+  const newUserGroup = isValid ? userGroup : randRange(0, 100); // generate one in [0, 100);
+  if (!isValid) { prefs.set(prefID, newUserGroup.toString()); }
+  return newUserGroup >= resourceWeight;
 }
 
 function oncePerInterval(f, shift = 1000 * 60 * 5) {
@@ -177,7 +129,6 @@ export {
   getABNumber,
   hashString,
   oncePerInterval,
-  orPromises,
   randRange,
   shouldKeepResource
 };

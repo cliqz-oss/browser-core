@@ -26,6 +26,7 @@ function styles({
 
       display: flex;
       flex-direction: column;
+      font-family: "-mac-system", "-apple-system", BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     }
 
     .header {
@@ -143,7 +144,7 @@ function styles({
 
 
     .benefit {
-      font-size: 41px;
+      font-size: 32px;
       font-weight: 500;
       color: #494949;
       padding: 7px 0 9px 0;
@@ -153,7 +154,7 @@ function styles({
     .headline {
       padding: 0 30px;
       font-size: 19px;
-      font-weight: 500;
+      font-weight: 350;
       padding-bottom: 21px;
       color: ${headlineColor || 'black'};
     }
@@ -247,8 +248,10 @@ function styles({
     }`;
 }
 
-function popupStyles({ shouldHideButtons = false }) {
-  const containerHeight = shouldHideButtons ? '260px' : '336px';
+function popupStyles({ shouldHideButtons = false, headline = '' }) {
+  const halfOfLine = 32;
+  let containerHeight = headline.length > halfOfLine ? '360px' : '336px';
+  if (shouldHideButtons) { containerHeight = '260px'; }
   return {
     position: 'fixed',
     top: '0',

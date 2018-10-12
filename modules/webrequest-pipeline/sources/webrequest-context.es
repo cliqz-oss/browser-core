@@ -68,6 +68,8 @@ class WebRequestContext {
     this._sourceUrlParts = null;
 
     this.trigger = details.trigger || details.originUrl;
+    this.documentUrl = details.documentUrl;
+    this.frameAncestors = details.frameAncestors;
 
     // Content type
     // We should still use the interger type (cpt) from LegacyContext

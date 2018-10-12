@@ -25,20 +25,20 @@ export default background({
     this.settings = settings;
 
     if (isBootstrap) {
-      this.toolbarButton = new ToolbarButton({
-        widgetId: 'control-center',
-        default_title: getMessage('control_center_icon_tooltip'),
-        default_popup: `${config.baseURL}control-center/index.html`,
-        default_icon: `${config.baseURL}${settings.ICONS.active.default}`,
-        badgeBackgroundColor: '#471647',
-        badgeText: '0',
-        defaultHeight: DD_HEIGHT[this.settings.channel] || (() => 246)
-      });
-      this.toolbarButton.build();
-
-      if (this.settings.id === 'description_test@cliqz.com') {
+      if (this.settings.id !== 'ghostery-db@cliqz.com') {
+        this.toolbarButton = new ToolbarButton({
+          widgetId: 'control-center',
+          default_title: getMessage('control_center_icon_tooltip'),
+          default_popup: `${config.baseURL}control-center/index.html`,
+          default_icon: `${config.baseURL}${settings.ICONS.active.default}`,
+          badgeBackgroundColor: '#471647',
+          badgeText: '0',
+          defaultHeight: DD_HEIGHT[this.settings.channel] || (() => 246)
+        });
+        this.toolbarButton.build();
+      } else {
         this.pageAction = new ToolbarButton({
-          widgetId: 'page-action',
+          widgetId: 'cc-page-action',
           default_title: getMessage('control_center_icon_tooltip'),
           default_popup: `${config.baseURL}control-center/index.html`,
           default_icon: getBrowserActionIcon(),

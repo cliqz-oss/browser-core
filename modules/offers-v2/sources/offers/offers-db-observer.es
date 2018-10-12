@@ -2,14 +2,15 @@
  * This module will provide a helper observer class to detect changes on offers.
  *  - offers expiration
  */
-import utils from '../../core/utils';
 import { timestampMS } from '../utils';
 import logger from '../common/offers_v2_logger';
+import OffersConfigs from '../offers_configs';
 
 // ////////////////////////////////////////////////////////////////////////////
 
 const MAX_EXP_TIME = (1000 * 60 * 60 * 24 * 500);
-const MAX_TIMEOUT_DELAY = (2 ** 31) - 1;
+const MAX_TIMEOUT_DELAY = 1000 * 60 * 60 * 24; // one day
+const MIN_TIMEOUT_DELAY = 1000 * 60 * 5; // five minutes
 
 // ////////////////////////////////////////////////////////////////////////////
 //                        Helper methods
@@ -18,17 +19,16 @@ const getAllValidOffers = offersDB => offersDB.getOffers();
 
 /**
  * calculate next expiration time for an offerElement (results of offerDB).
- * @returns null if cannot be computed (offer doesnt have expiration?)
- *          > 0 if the offer will expire in the future
+ * @returns > 0 if the offer will expire in the future
  *          <= 0 if already expired
  */
 const calcExpirationTimeMs = (offerElement) => {
-  // by default, old offers without expiration ms we do not expire them
-  const expirationMs = offerElement ? offerElement.offer.expirationMs : undefined;
-  if (expirationMs === undefined) {
-    return undefined;
-  }
-  return (offerElement.created + expirationMs) - timestampMS();
+  const expFromConfig = OffersConfigs.OFFERS_STORAGE_DEFAULT_TTS_SECS * 1000;
+  const expirationMs = offerElement ? offerElement.offer.expirationMs : expFromConfig;
+  const validTill = Math.min(
+    offerElement.created + expirationMs,
+    offerElement.last_update + expFromConfig);
+  return validTill - timestampMS();
 };
 
 const isOfferExpired = offerElement => calcExpirationTimeMs(offerElement) <= 0;
@@ -41,9 +41,7 @@ const getNextExpirationTimeMs = (offerList) => {
   let nextExpTime = MAX_EXP_TIME;
   offerList.forEach((oe) => {
     const expTime = calcExpirationTimeMs(oe);
-    if (expTime !== undefined) {
-      nextExpTime = Math.min(nextExpTime, expTime);
-    }
+    nextExpTime = Math.min(nextExpTime, expTime);
   });
   return nextExpTime === MAX_EXP_TIME ? null : nextExpTime;
 };
@@ -72,42 +70,39 @@ const calculateNextExpirationTimeMs = (offersDB) => {
 export default class OfferDBObserver {
   constructor(offersDB) {
     this.offersDB = offersDB;
-    this.expirationTimer = null;
 
     // setup the callback here
     this._offersDBCallback = this._offersDBCallback.bind(this);
     this.offersDB.registerCallback(this._offersDBCallback);
+    this._timerId = null;
   }
 
   unload() {
-    if (this.expirationTimer) {
-      utils.clearTimeout(this.expirationTimer);
-      this.expirationTimer = null;
+    if (this._timerId) {
+      clearTimeout(this._timerId);
+      this._timerId = null;
     }
     this.offersDB.unregisterCallback(this._offersDBCallback);
   }
 
-  /**
-   * will perform an expiratoin check on the next ms milliseconds
-   */
   observeExpirations() {
-    // we check here for when is the next time we should be called
-    if (this.expirationTimer) {
-      utils.clearTimeout(this.expirationTimer);
-      this.expirationTimer = null;
+    if (!this._timerId) {
+      this._observeExpirations();
     }
-
-    const nextExpirationTimeMs = calculateNextExpirationTimeMs(this.offersDB);
-    if (nextExpirationTimeMs === null || nextExpirationTimeMs < 0) {
-      return;
-    }
-    // set the timer to be executed in that time
-    this.saveInterval = setTimeout(() => {
-      removeExpiredOffers(this.offersDB);
-      this.observeExpirations();
-    }, Math.min(nextExpirationTimeMs + 10, MAX_TIMEOUT_DELAY));
   }
 
+  _observeExpirations() {
+    const nextExpirationTimeMs = calculateNextExpirationTimeMs(this.offersDB);
+    if (!nextExpirationTimeMs || nextExpirationTimeMs < 0) {
+      if (this._timerId) { clearTimeout(this._timerId); }
+      this._timerId = null;
+      return;
+    }
+    this._timerId = setTimeout(() => {
+      removeExpiredOffers(this.offersDB);
+      this._observeExpirations();
+    }, Math.min(Math.max(nextExpirationTimeMs + 10, MIN_TIMEOUT_DELAY), MAX_TIMEOUT_DELAY));
+  }
 
   _offersDBCallback(msg) {
     if (msg.evt === 'offer-added') {

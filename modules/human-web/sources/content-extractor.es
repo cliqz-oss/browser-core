@@ -1,6 +1,5 @@
 import logger from './logger';
 import { parseURL } from './network';
-import config from '../core/config';
 
 export function parseQueryString(query) {
   if (query.length === 0) {
@@ -68,6 +67,51 @@ export function _mergeArr(arrS) {
     messageList.push(innerDict);
   }
   return messageList;
+}
+
+/**
+ * Verifies that the given payload has all expected fields set.
+ *
+ * @param payload  the payload of the message to be checked
+ * @param expectedFields  array with entries
+ *   { key: name of the field; type: 'object'|'array' }.
+ *
+ * (exported for tests only)
+ */
+export function _allMandatoryFieldsSet(payload, expectedFields) {
+  function isDefined(value) {
+    return value !== null && value !== undefined && value !== '';
+  }
+
+  function isArrayLikeWithAtLeastOneTruthyEntry(arrayValue) {
+    // Not an array according to JavaScript, but what we expect
+    // is a JSON mapping like the following:
+    //
+    //   { "0": <entry0>, "1": <entry1>, ... }
+    //
+    // The message will be rejected only if there is no entry at all,
+    // or if all its entries consists only of undefined mappings:
+    //
+    //  { "0": { "t": null,  "u": null } }  // false
+    //  { "0": { "t": "",    "u": ""   } }  // false
+    //  { "0": { "t": "foo", "u": ""   } }  // true (partial matches are OK)
+    //
+    return Object.values(arrayValue)
+      .some(innerValue => Object.values(innerValue).some(isDefined));
+  }
+
+  for (const { key, type } of expectedFields) {
+    const value = payload[key];
+    if (!isDefined(value)) {
+      return false;
+    }
+
+    // Perform additional checks for aggregated fields (e.g., result lists).
+    if (type === 'array' && !isArrayLikeWithAtLeastOneTruthyEntry(value)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /**
@@ -162,7 +206,7 @@ export class ContentExtractor {
       extractRules: patternConfig.scrape,
       payloads: patternConfig.payloads,
       idMappings: patternConfig.idMapping,
-      rArray: config.settings.ALLOWED_SEARCH_DOMAINS[ruleset].map(x => new RegExp(x)),
+      rArray: patternConfig.urlPatterns.map(x => new RegExp(x)),
       queryTemplate: patternConfig.queryTemplate || {},
     };
     this._patternsLastUpdated = new Date();
@@ -295,16 +339,6 @@ export class ContentExtractor {
               q: urlArray[0],
               t: idMappings
             };
-          } else {
-            // TODO: Do we have to recompute here? Can urlArray change?
-            // For now, leave the logic, but at a first glance it seems unnecessary.
-            urlArray = this._getAttribute(
-              cd, key,
-              rules[key][eachKey].item,
-              rules[key][eachKey].etype,
-              rules[key][eachKey].keyName,
-              rules[key][eachKey].functionsApplied || null);
-            innerDict[eachKey] = urlArray;
           }
         } else {
           urlArray = this._getAttribute(
@@ -400,6 +434,7 @@ export class ContentExtractor {
           this._sendMessageIfAllFieldsAreSet(payloadRules, e);
         });
       } else if (payloadRules.type === 'single' && payloadRules.results === 'custom') {
+        // Note: currently, only used the "maliciousUrl" action.
         const payload = {};
         payloadRules.fields.forEach((e) => {
           try {
@@ -415,11 +450,38 @@ export class ContentExtractor {
           const extractedContent = scrapeResults[e[0]];
           if (extractedContent !== undefined) {
             if (e.length > 2) {
-              const joinArr = {};
-              for (let i = 0; i < extractedContent.length; i += 1) {
-                joinArr[String(i)] = extractedContent[i];
+              if (e[2] === 'join') {
+                // Aggregate all results into one array-like map
+                // ({ "0" => <entry0>, "1": <entry1>, ... }).
+                //
+                // Skip entries where all values are empty, but keep
+                // entries when there is at least one value, for instance,
+                // '{ "t": "foo", "u": null }' would still be added:
+                //
+                // * Filtering values without any match is useful because
+                //   it allows to throw away false positives (i.e., when a
+                //   css selector matched unrelated parts).
+                //
+                // * Partial matches, on the other hand, should not be dropped.
+                //   In general, they are not false positives, but rules that
+                //   used to work before but are now partly broken because of
+                //   recent layout changes. In that case, it is still better
+                //   to send the message with the partial results then dropping
+                //   it completely.
+                //
+                const joinArr = {};
+                let counter = 0;
+                for (let i = 0; i < extractedContent.length; i += 1) {
+                  if (Object.values(extractedContent[i]).some(x => x)) {
+                    joinArr[String(counter)] = extractedContent[i];
+                    counter += 1;
+                  }
+                }
+                payload[e[1]] = joinArr;
+              } else {
+                // Currently unreachable by the published patterns.
+                logger.warn('Ignoring rule with unexpected aggregator:', e);
               }
-              payload[e[1]] = joinArr;
             } else {
               payload[e[1]] = extractedContent[0][e[1]];
             }
@@ -427,6 +489,7 @@ export class ContentExtractor {
         });
         this._sendMessageIfAllFieldsAreSet(payloadRules, payload);
       } else if (payloadRules.type === 'query' && payloadRules.results === 'scattered') {
+        // Note: currently not used (TODO: remove or leave?)
         const payload = {};
         payloadRules.fields.forEach((e) => {
           if (e.length > 2) {
@@ -460,22 +523,14 @@ export class ContentExtractor {
   }
 
   _sendMessageIfAllFieldsAreSet(payloadRules, payload) {
-    function allFieldsSet() {
-      const allKeys = Object.keys(payload);
-      for (const e of Object.keys(payloadRules.fields)) {
-        if (allKeys.indexOf(payloadRules.fields[e][1]) === -1) {
-          return false;
-        }
-        for (const eachField of allKeys) {
-          if (!(payload[eachField])) {
-            return false;
-          }
-        }
-      }
-      return true;
-    }
+    const expectedFields = payloadRules.fields.map(([, key, aggregator]) => {
+      // Note: currently, 'join' is the only aggregator and thus
+      // it is the only possibility to have arrays in the output.
+      const type = aggregator === 'join' ? 'array' : 'object';
+      return { key, type };
+    });
 
-    if (allFieldsSet()) {
+    if (_allMandatoryFieldsSet(payload, expectedFields)) {
       this._CliqzHumanWeb.telemetry({
         type: this.msgType,
         action: payloadRules.action,

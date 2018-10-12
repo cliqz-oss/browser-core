@@ -1,5 +1,6 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
 import { fetch, Request, Headers } from '../core/http';
+import config from '../core/config';
 import logger from './common/offers_v2_logger';
 import OffersConfigs from './offers_configs';
 import { timestampMS } from './utils';
@@ -45,6 +46,7 @@ export default class BEConnector {
    * Otherwise the error message will be returned on the reject method
    * @param  {[type]} endpoint [description]
    * @param  {[type]} params   [description]
+   * @param  {string} method [description]
    * @return {Promise}          [description]
    */
   sendApiRequest(endpoint, params, method = 'POST') {
@@ -52,12 +54,13 @@ export default class BEConnector {
 
     this._expireCache();
 
-    // we will always set the engine version as argument
     params.t_eng_ver = OffersConfigs.TRIGGER_ENGINE_VERSION;
+    params.channel = config.settings.OFFERS_CHANNEL || 'cliqz';
+
     const url = this._buildUrl(endpoint, params);
 
     // check if we have cache here
-    const cacheEntry = this._cache.has(url) ? this._cache.get(url) : null;
+    const cacheEntry = this._cache.get(url);
     if (cacheEntry && !cacheEntry.expired()) {
       logger.debug('we have data cached for ', url);
       // check if was a failed call or not to reject the promise or not and keep

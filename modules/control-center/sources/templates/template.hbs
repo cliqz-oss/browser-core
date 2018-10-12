@@ -13,9 +13,9 @@
           {{/if}}
       </h3>
       <div class="reportsite"
-          data-open-url="https://cliqz.com/report-url"
-          data-target="report_url"
-          data-i18n="control_center_report_url">
+           data-open-url="{{ reportSiteURL }}"
+           data-target="report_url"
+           data-i18n="control_center_report_url">
       </div>
   </div>
 
@@ -64,7 +64,9 @@
 {{#if compactView}}
 <header class="footer">
   <div class="title">
+{{#if showPoweredBy}}
     <span data-i18n="control_center_footer"></span>
+{{/if}}
     {{> support }}
   </div>
 </header>

@@ -1,8 +1,14 @@
 import { Subresult } from './base';
-import { NEWS_RESULT } from '../result-types';
+import { NEWS_RESULT, BREAKING_NEWS_RESULT } from '../result-types';
 
 export default class NewsResult extends Subresult {
-  type = NEWS_RESULT;
+  get type() {
+    if (this.isBreakingNews) {
+      return BREAKING_NEWS_RESULT;
+    }
+
+    return NEWS_RESULT;
+  }
 
   get logo() {
     if (this.rawResult.showLogo) {

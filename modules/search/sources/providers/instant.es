@@ -33,7 +33,7 @@ export default class InstantProvider extends BaseProvider {
     const isQueryUrl = isUrl(query);
 
     let next;
-    let result = {
+    const result = {
       provider: this.id,
     };
     const observable = Rx.Observable.create((o) => {
@@ -41,46 +41,49 @@ export default class InstantProvider extends BaseProvider {
     });
 
     loadSearchEngines().then(() => {
-      if (isQueryUrl) {
-        const url = fixURL(query);
-        result = {
-          ...result,
-          type: 'navigate-to',
-          url,
-          friendlyUrl: url,
-          text: query,
-          data: {
-            extra: {
-              mozActionUrl: getVisitUrl(url),
-            },
-            kind: ['navigate-to'],
-          }
-        };
-      } else {
-        const engine = getEngineByQuery(query);
-        const rawQuery = getSearchEngineQuery(engine, query);
-        result = {
-          ...result,
-          type: 'supplementary-search',
-          url: engine.getSubmissionForQuery(query),
-          text: rawQuery,
-          data: {
-            kind: this.getKind(query),
-            suggestion: query,
-            extra: {
-              mozActionUrl: getSearchEngineUrl(engine, query, rawQuery),
-              searchEngineName: engine.name,
-            },
-          }
-        };
-      }
+      const url = fixURL(query);
+
+      const navigateResult = {
+        ...result,
+        type: 'navigate-to',
+        url,
+        friendlyUrl: url,
+        text: query,
+        data: {
+          extra: {
+            mozActionUrl: getVisitUrl(url),
+          },
+          kind: ['navigate-to'],
+        }
+      };
+
+      const engine = getEngineByQuery(query);
+      const rawQuery = getSearchEngineQuery(engine, query);
+
+      const supplementarySearchResult = {
+        ...result,
+        type: 'supplementary-search',
+        url: engine.getSubmissionForQuery(query),
+        text: rawQuery,
+        data: {
+          kind: this.getKind(query),
+          suggestion: query,
+          extra: {
+            mozActionUrl: getSearchEngineUrl(engine, query, rawQuery),
+            searchEngineName: engine.name,
+          },
+        }
+      };
+
+      const results = isQueryUrl ? [navigateResult, supplementarySearchResult] :
+        [supplementarySearchResult];
 
       next(
         getResponse(
           this.id,
           config,
           query,
-          [result],
+          results,
           'done',
         ),
       );

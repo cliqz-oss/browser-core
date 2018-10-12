@@ -14,8 +14,17 @@
     $search-input-border,
     $search-input-box-shadow-focus,
     $search-input-color,
-    $search-input-bg-image
+    $search-input-cliqz-bg-image,
+    $search-input-ghostery-bg-image
 ){
+    .ghostery-search  input {
+        background-image: $search-input-ghostery-bg-image;
+    }
+
+    .cliqz-search input {
+        background-image: $search-input-cliqz-bg-image;
+    }
+
     .search {
         margin: 0 auto;
         position: relative;
@@ -28,13 +37,13 @@
             box-shadow: $search-input-box-shadow;
             width: $search-size;
             padding: 0 40px 0 $search-text-indent;
-            background-image: $search-input-bg-image;
             background-repeat: no-repeat;
             font-size: $search-font-size;
             color: $search-input-color;
             transition: box-shadow 180ms cubic-bezier(0.4, 0.0, 0.2, 1);
             overflow: hidden;
             text-overflow: ellipsis;
+
 
             &:focus, &:hover {
                 box-shadow: $search-input-box-shadow-focus;

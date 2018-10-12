@@ -5,7 +5,7 @@ import SpeedDial from './speed-dial';
 import Placeholder from './placeholder';
 import AddSpeedDial from './add-speed-dial';
 import { speedDialClickSignal, speedDialDeleteSignal } from '../services/telemetry/speed-dial';
-import { MAX_SPOTS } from '../../constants';
+import config from '../../config';
 
 export default class SpeedDialsRow extends React.Component {
   static get propTypes() {
@@ -33,12 +33,12 @@ export default class SpeedDialsRow extends React.Component {
         }
         return this.state.displayAddBtn();
       },
-      displayAddBtn: () => this.props.dials.length < MAX_SPOTS,
+      displayAddBtn: () => this.props.dials.length < config.constants.MAX_SPOTS,
     });
   }
 
   get getDials() {
-    return this.props.dials.slice(0, MAX_SPOTS);
+    return this.props.dials.slice(0, config.constants.MAX_SPOTS);
   }
 
   removeSpeedDial(dial, index) {
@@ -64,7 +64,7 @@ export default class SpeedDialsRow extends React.Component {
   }
 
   render() {
-    const placeholdersLength = MAX_SPOTS - this.getDials.length;
+    const placeholdersLength = config.constants.MAX_SPOTS - this.getDials.length;
     const placeholders = [...Array(placeholdersLength)];
 
     return (
@@ -78,6 +78,7 @@ export default class SpeedDialsRow extends React.Component {
                 removeSpeedDial={() => this.removeSpeedDial(dial, i)}
                 visitSpeedDial={() => this.visitSpeedDial(i)}
                 updateSpeedDial={newDial => this.props.updateSpeedDial(newDial, i)}
+                updateModalState={this.props.updateModalState}
               />)
             )
           }
@@ -90,7 +91,10 @@ export default class SpeedDialsRow extends React.Component {
             })
           }
           {this.state.showAddButton() &&
-            <AddSpeedDial addSpeedDial={this.props.addSpeedDial} />
+            <AddSpeedDial
+              addSpeedDial={this.props.addSpeedDial}
+              updateModalState={this.props.updateModalState}
+            />
           }
         </div>
       </div>

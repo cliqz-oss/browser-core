@@ -8,6 +8,7 @@ const ROTATION_INTERVAL = 15000;
 class Pagination extends React.Component {
   static get propTypes() {
     return {
+      isModalOpen: PropTypes.bool,
       items: PropTypes.array,
       onChangePage: PropTypes.func,
       isNewsHover: PropTypes.bool,
@@ -42,14 +43,16 @@ class Pagination extends React.Component {
   }
 
   onKeyDown(ev) {
-    if (ev.key === 'ArrowLeft') {
-      this.prevPage();
-      ev.preventDefault();
-    }
+    if (!this.props.isModalOpen) {
+      if (ev.key === 'ArrowLeft') {
+        this.prevPage();
+        ev.preventDefault();
+      }
 
-    if (ev.key === 'ArrowRight') {
-      this.nextPage();
-      ev.preventDefault();
+      if (ev.key === 'ArrowRight') {
+        this.nextPage();
+        ev.preventDefault();
+      }
     }
   }
 

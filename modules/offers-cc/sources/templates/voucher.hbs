@@ -10,82 +10,92 @@
     </p>
 </div>
 <div class="details">
-    <div class="left-labels">
-        {{#each (limit template_data.labels 2)}}
-            <p class={{this}} data-i18n="offers_{{this}}"></p>
-        {{/each}}
-    </div>
-    {{#if template_data.picture_url}}
-    <p class="picture cta-element" style="background-image: url({{template_data.picture_url}})"
-        data-id="{{offer_id}}"
-        data-elem="picture"
-        data-url="{{template_data.call_to_action.url}}"></p>
-    {{/if}}
-    {{#if template_data.benefit}}
-    <p class="benefit cta-element {{#if template_data.benefit_new}}updated{{/if}}"
-        data-id="{{offer_id}}"
-        data-elem="benefit"
-        data-url="{{template_data.call_to_action.url}}">
-        <span class="benefit-txt">{{template_data.benefit}}</span>
-        <span>{{template_data.benefit_new}}</span>
-    </p>
-    {{/if}}
-    <p class="headline cta-element" style="color: {{backgroundColor}}"
-        data-id="{{offer_id}}"
-        data-elem="headline"
-        data-url="{{template_data.call_to_action.url}}">
-        {{either_or template_data.headline template_data.title}}
-    </p>
-    <p class="description cta-element"
-        data-id="{{offer_id}}"
-        data-elem="description"
-        data-url="{{template_data.call_to_action.url}}" >{{template_data.desc}}</p>
-    {{#if template_data.code}}
-    <div class="promocode-wrapper">
-        <input
-            class="code ellipsis"
-            type="text"
-            name="code"
-            value="{{template_data.code}}"
-            readonly="readonly"
-            data-telemetry-id="copy_code"
-        >
+    <div class="feedback"></div>
+    <div class="why-offers"></div>
+    <div class="voucher-container">
+        <header class="voucher-header">
+            <div class="left-labels">
+                {{#each (limit template_data.labels 2)}}
+                    <p class={{this}} data-i18n="offers_{{this}}"></p>
+                {{/each}}
+            </div>
+            <div class="logo-wrapper">
+                <div class="logo {{logoClass}} cta-element"
+                    data-id="{{offer_id}}"
+                    data-elem="logo"
+                    data-url="{{template_data.call_to_action.url}}"
+                    style="background-image: url({{template_data.logo_url}})"
+                ></div>
+                <button class="close"
+                        data-menu-type="delete"
+                        data-i18n="offers_hub_remove"
+                        data-telemetry-id="remove">
+                </button>
+            </div>
+        </header>
+
+        {{#if template_data.picture_url}}
+        <p class="picture cta-element" style="background-image: url({{template_data.picture_url}})"
+            data-id="{{offer_id}}"
+            data-elem="picture"
+            data-url="{{template_data.call_to_action.url}}"></p>
+        {{/if}}
+        {{#if template_data.benefit}}
+        <p class="benefit cta-element {{#if template_data.benefit_new}}updated{{/if}}"
+            data-id="{{offer_id}}"
+            data-elem="benefit"
+            data-url="{{template_data.call_to_action.url}}">
+            <span class="benefit-txt">{{template_data.benefit}}</span>
+            <span>{{template_data.benefit_new}}</span>
+        </p>
+        {{/if}}
+        <p class="headline cta-element" style="color: {{backgroundColor}}"
+            data-id="{{offer_id}}"
+            data-elem="headline"
+            data-url="{{template_data.call_to_action.url}}">
+            {{either_or template_data.headline template_data.title}}
+        </p>
+        <p class="description cta-element"
+            data-id="{{offer_id}}"
+            data-elem="description"
+            data-url="{{template_data.call_to_action.url}}" >{{template_data.desc}}</p>
+        {{#if template_data.code}}
+        <div class="promocode-wrapper">
+            <input
+                class="code ellipsis"
+                type="text"
+                name="code"
+                value="{{template_data.code}}"
+                readonly="readonly"
+                data-telemetry-id="copy_code"
+            >
+            <button
+                class="copy-code"
+                data-i18n="offers_hub_copy_btn"
+                data-telemetry-id="copy_code">
+            </button>
+        </div>
+        {{/if}}
+        <div class="validity-wrapper">
+            <span class="validity {{#if validity.isExpiredSoon}}red{{/if}}">{{validity.text}}</span>
+            {{#if template_data.conditions}}
+            <span class="condition" title="{{template_data.conditions}}">{{local 'offers_conditions'}}
+                <button></button>
+            </span>
+            {{/if}}
+
+        </div>
         <button
-            class="copy-code"
-            data-i18n="offers_hub_copy_btn"
-            data-telemetry-id="copy_code">
+            class="cta-btn"
+            data-id="{{offer_id}}"
+            data-url="{{template_data.call_to_action.url}}"
+            data-telemetry-id="use"
+        >
+            {{template_data.call_to_action.text}}
         </button>
     </div>
-    {{/if}}
-    <div class="validity-wrapper">
-        <span class="validity {{#if validity.isExpiredSoon}}red{{/if}}">{{validity.text}}</span>
-        {{#if template_data.conditions}}
-        <span class="condition" title="{{template_data.conditions}}">{{local 'offers_conditions'}}
-            <button></button>
-        </span>
-        {{/if}}
+</div>
 
-    </div>
-    <button
-        class="cta-btn"
-        data-id="{{offer_id}}"
-        data-url="{{template_data.call_to_action.url}}"
-        data-telemetry-id="use"
-    >
-        {{template_data.call_to_action.text}}
-    </button>
-</div>
-<div class="logo-wrapper">
-    <div class="logo {{logoClass}} cta-element"
-        data-id="{{offer_id}}"
-        data-elem="logo"
-        data-url="{{template_data.call_to_action.url}}"
-        style="background-image: url({{template_data.logo_url}})"
-    ></div>
-    <button class="setting"
-            data-telemetry-id="menu">
-    </button>
-</div>
 <ul class="settings">
     <li
         data-menu-type="delete"

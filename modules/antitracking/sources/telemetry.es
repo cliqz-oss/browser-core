@@ -6,6 +6,34 @@ import platformTelemetry from '../platform/telemetry';
 import inject, { ifModuleEnabled } from '../core/kord/inject';
 import random from '../core/crypto/random';
 import { getConfigTs } from './time';
+import pltfrm from '../platform/platform';
+
+function getPlatformConstants() {
+  if (pltfrm.platformName === 'firefox') {
+    return {
+      platform: '',
+      userAgent: 'firefox'
+    };
+  }
+  if (pltfrm.platformName === 'webextension') {
+    let userAgent = '';
+    if (pltfrm.isFirefox) {
+      userAgent = 'firefox';
+    } else if (pltfrm.isChromium) {
+      userAgent = 'chrome';
+    } else if (pltfrm.isEdge) {
+      userAgent = 'edge';
+    }
+    return {
+      platform: pltfrm.isMobile ? 'mobile' : '',
+      userAgent,
+    };
+  }
+  return {
+    platform: '',
+    userAgent: '',
+  };
+}
 
 function msgSanitize(msg, channel) {
   if (prefs.get('ff-experiment', null)) {
@@ -13,6 +41,7 @@ function msgSanitize(msg, channel) {
   } else {
     msg.channel = channel;
   }
+
   try {
     msg.ts = getConfigTs();
   } catch (ee) {
@@ -34,6 +63,8 @@ export default {
       console.log('No telemetry provider loaded', 'attrack');
       return;
     }
+    payl.platform = this.platform;
+    payl.userAgent = this.userAgent;
 
     if (this.providerName === 'hpn') {
       // sending payload directly through hpn,
@@ -57,6 +88,9 @@ export default {
     console.log(`Load telemetry provider: ${provider}`, 'attrack');
     this.providerName = provider;
     this.channel = channel;
+    const { platform, userAgent } = getPlatformConstants();
+    this.platform = platform;
+    this.userAgent = userAgent;
     if (provider === 'platform') {
       this.telemetry = platformTelemetry.telemetry.bind(platformTelemetry);
       this.msgType = platformTelemetry.msgType;

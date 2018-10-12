@@ -1,34 +1,21 @@
 import background from '../core/base/background';
 import utils from '../core/utils';
-import { isBootstrap, isMobile } from '../core/platform';
 import language from '../core/language';
 import prefs from '../core/prefs';
-import HistoryManager from '../core/history-manager';
 import inject from '../core/kord/inject';
 import config from '../core/config';
 import Storage from '../core/storage';
 import console from '../core/console';
-import { getMessage } from '../core/i18n';
-import bindObjectFunctions from '../core/helpers/bind-functions';
 
 export default background({
   requiresServices: ['utils', 'session'],
 
   init(settings = {}) {
     this.settings = settings;
-    bindObjectFunctions(this.actions, this);
 
-    // load translations
-    getMessage('test');
+    language.init();
 
-    if (isBootstrap) {
-      language.init();
-      HistoryManager.init();
-    }
-
-    if (!isMobile) {
-      this.report = setTimeout(this.reportStartupTime.bind(this), 1000 * 60);
-    }
+    this.report = setTimeout(this.reportStartupTime.bind(this), 1000 * 60);
 
     this.supportInfo = setTimeout(() => {
       this.actions.setSupportInfo();
@@ -41,10 +28,7 @@ export default background({
   unload() {
     clearTimeout(this.report);
     clearTimeout(this.supportInfo);
-    if (isBootstrap) {
-      language.unload();
-      HistoryManager.unload();
-    }
+    language.unload();
   },
 
   reportStartupTime() {

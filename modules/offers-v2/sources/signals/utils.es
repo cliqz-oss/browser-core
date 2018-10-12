@@ -24,7 +24,8 @@ const getMinuteTimestamp = () => Math.floor((Date.now() / 1000) / 60);
 const _modifyOriginDataInplace = (originData) => {
   const m = new Set(Object.values(ActionID));
   Object.keys(originData || {}).forEach((k) => {
-    if (m.has(k)) { return; }
+    if (k.startsWith('filter_exp__') // Exception for filterRules (can be set by server)
+      || m.has(k)) { return; }
     const len = ('repeated_').length; // all signals could appear as `repeated_xxx`
     if (k.startsWith('repeated_') && m.has(k.substring(len))) { return; }
     if (k.startsWith('offers_unexpected_signal_')) { return; }

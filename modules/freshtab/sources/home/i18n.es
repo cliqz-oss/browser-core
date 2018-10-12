@@ -1,6 +1,10 @@
 /* globals chrome */
-export default function t(key, params = []) {
-  return chrome.i18n.getMessage(`freshtab_${key}`, params);
+
+import config from '../config';
+
+export default function t(key) {
+  const tabName = config.features.ghosteryTab.enabled ? 'Ghostery' : 'Cliqz';
+  return chrome.i18n.getMessage(`freshtab_${key}`, [tabName]);
 }
 
 function tt(key, params = []) {

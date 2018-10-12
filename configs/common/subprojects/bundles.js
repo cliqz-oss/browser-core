@@ -80,8 +80,8 @@ const subprojects = {
     include: ['dexie.min.js'],
     dest: 'vendor'
   },
-  '@cliqz-oss/pouchdb': {
-    src: 'node_modules/@cliqz-oss/pouchdb/dist',
+  'pouchdb': {
+    src: 'node_modules/pouchdb/dist',
     include: ['pouchdb.js'],
     dest: 'vendor'
   },

@@ -60,8 +60,9 @@ export default class OffersAPI {
   //        takes an Offer (wrapper) object.
   //        The main logic is as follow:
   //        - Check offer validity
-  //        - Add / update offer on the database if needed.
+  //        - Add or update offer on the database.
   //        - distribute to destination real estates.
+  //        Prerequisite: offer filtering is already done.
   // @param origin will be the origin who is calling this method.
   // @param newDisplayRule if the displayRule is different than the one the offer
   //                       currently has
@@ -72,7 +73,7 @@ export default class OffersAPI {
       return false;
     }
 
-    const ok = this._createOrUpdateDB(offer);
+    const ok = this._createOrUpdateInDB(offer);
     if (!ok) {
       logger.warn('Failed to createOrUpdateDB');
       return false;
@@ -115,19 +116,30 @@ export default class OffersAPI {
     return true;
   }
 
-  _createOrUpdateDB(offer) {
-    if (!this.offersDB.hasOfferData(offer.uniqueID)) {
-      const ok = this.offersDB.addOfferObject(offer.uniqueID, offer.offerObj);
-      const msg = `pushOffer: Error adding the offer to the DB: ${offer.uniqueID}`;
-      if (!ok) { logger.error(msg); }
-      return ok;
-    }
+  _createOrUpdateInDB(offer) {
+    return this.offersDB.hasOfferObject(offer.uniqueID)
+      ? this._updateInDB(offer)
+      : this._createInDB(offer);
+  }
 
+  _updateInDB(offer) {
     const dbOffer = this.offersDB.getOfferObject(offer.uniqueID);
+    // dbOffer!=null is guaranteed by a caller
     if (offer.version === dbOffer.version) { return true; }
     const ok = this.offersDB.updateOfferObject(offer.uniqueID, offer.offerObj);
-    const msg = `pushOffer: Error updating the offer to the DB: ${offer.uniqueID}`;
-    if (!ok) { logger.error(msg); }
+    if (!ok) {
+      const msg = `pushOffer: Error updating the offer to the DB: ${offer.uniqueID}`;
+      logger.error(msg);
+    }
+    return ok;
+  }
+
+  _createInDB(offer) {
+    const ok = this.offersDB.addOfferObject(offer.uniqueID, offer.offerObj);
+    if (!ok) {
+      const msg = `pushOffer: Error adding the offer to the DB: ${offer.uniqueID}`;
+      logger.error(msg);
+    }
     return ok;
   }
 
@@ -173,11 +185,12 @@ export default class OffersAPI {
   }
 
   /* eslint-disable camelcase */
-  _transformRawOffer({ offer_id, offer, created }) {
+  _transformRawOffer({ offer_id, offer, created, last_update }) {
   /* eslint-enable camelcase */
     return {
       offer_info: offer,
       created_ts: created,
+      last_update_ts: last_update,
       attrs: {
         state: this.offersDB.getOfferAttribute(offer_id, 'state')
       },
@@ -463,17 +476,15 @@ export default class OffersAPI {
       return false;
     }
     const offerID = msg.data.offer_id;
-    const campaignID = this.offersDB.getCampaignID(offerID);
+    const campaignID = msg.data.campaign_id || this.offersDB.getCampaignID(offerID);
     if (!campaignID) {
       logger.warn(`_uiFunOfferActionSignal: no campaign id for offer ${offerID}`);
       return false;
     }
 
     // send signal and add it as action on the offer list
-    const counter = msg.data.counter ? msg.data.counter : 1;
+    const counter = msg.data.counter || 1;
     this.sigHandler.setCampaignSignal(campaignID, offerID, msg.origin, msg.data.action_id, counter);
-    this.offersDB.incOfferAction(offerID, msg.data.action_id, counter);
-
-    return true;
+    return this.offersDB.incOfferAction(offerID, msg.data.action_id, counter);
   }
 }

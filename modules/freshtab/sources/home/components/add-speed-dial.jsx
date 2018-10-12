@@ -40,6 +40,7 @@ export default class AddSpeedDial extends React.Component {
   }
 
   handleCloseModal({ sendTelemetry = true } = {}) {
+    this.props.updateModalState(false);
     this.setState({ showModal: false });
     this.setState(this.baseState);
     if (sendTelemetry) {
@@ -50,6 +51,7 @@ export default class AddSpeedDial extends React.Component {
   handleClick(event) {
     event.preventDefault();
     favoriteAddSignal();
+    this.props.updateModalState(true);
     this.setState({ showModal: true });
   }
 
@@ -69,16 +71,19 @@ export default class AddSpeedDial extends React.Component {
     const title = this.state.title;
 
     if (!url) {
+      this.props.updateModalState(true);
       this.setState({
         errorInvalid: true,
         showError: true,
         showModal: true
       });
+
       return false;
     }
 
     this.freshtab.addSpeedDial({ url, title }, null).then((resp) => {
       if (resp.error) {
+        this.props.updateModalState(true);
         this.setState({ showError: true, showModal: true });
         if (resp.reason.indexOf('duplicate') > -1) {
           this.setState({
@@ -133,6 +138,7 @@ export default class AddSpeedDial extends React.Component {
         <Modal
           closeAction={this.handleCloseModal}
           showModal={this.state.showModal}
+          updateModalState={this.props.updateModalState}
         >
           <form
             className="addDialForm"

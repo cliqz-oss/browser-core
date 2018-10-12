@@ -11,23 +11,16 @@ import {
   registerContentScript,
 } from '../core/content/helpers';
 import CouponFormObserver from './content/coupon/observer';
+import { getPurchaseButtons } from './content/utils';
 
 function couponsHandlingScript(window, chrome, CLIQZ) {
-  // TODO: add general check here if offer is disabled or not enabled we do not
-  // inject anything here
+  if (window.parent !== window) { return; }
 
-
-  /**
-   * Helper method to call offers-v2
-   */
   const backgroundAction = (action, ...args) => {
     CLIQZ.app.modules['offers-v2'].action(action, ...args);
   };
 
-  // the current url, check if we need to inject the script here or not based on this
   const url = window.location.href;
-
-  // this class will be the one handling the voucher forms
   let couponObserver = null;
 
   const isForThisScriptMessage = msg =>
@@ -39,15 +32,22 @@ function couponsHandlingScript(window, chrome, CLIQZ) {
         offerInfo,
         window,
         onClick: (couponValue) => {
-          backgroundAction('couponFormUsed', {
-            offerInfo,
-            couponValue,
-            url: window.location.href,
-          });
+          backgroundAction('couponFormUsed', { offerInfo, couponValue, url });
+        },
+        onFindCouponApplication: (value) => {
+          const m = {
+            success: 'coupon_autofill_field_success_use',
+            error: 'coupon_autofill_field_error_use',
+            notfound: 'coupon_autofill_field_application_not_found',
+          };
+          const couponValue = m[value];
+          if (!couponValue) { return; }
+          backgroundAction('couponFormUsed', { offerInfo, couponValue, url });
         }
       });
     }
     couponObserver.processForms([...window.document.querySelectorAll('form')]);
+    couponObserver.seekForCouponApplication(window.document.body);
   };
 
   const deactivateCouponObserver = () => {
@@ -73,9 +73,22 @@ function couponsHandlingScript(window, chrome, CLIQZ) {
     }
   };
 
+  const onBuyButtonClicked = () => {
+    backgroundAction('onContentSignal', { action: 'purchase', state: 'attempted' });
+  };
+
   const onLoad = () => {
     // after we load we check if we should inject (activate) the script here
     backgroundAction('activateCouponDetectionOnUrl', url);
+
+    // Check if there is a purchase button
+    // TODO: This does not work with dynamic page content yet
+    const buyButtons = getPurchaseButtons(window);
+    if (buyButtons.length > 0) {
+      buyButtons.forEach((button) => {
+        button.addEventListener('click', onBuyButtonClicked);
+      });
+    }
   };
 
   const onUnload = () => {

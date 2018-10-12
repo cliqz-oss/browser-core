@@ -116,6 +116,7 @@ export default class News extends React.Component {
           items={this.props.news.data}
           onChangePage={this.onChangePage}
           isNewsHover={this.state.isNewsHover}
+          isModalOpen={this.props.isModalOpen}
         />
 
         <div className="news-container" style={{ ...styles, opacity: this.state.opacity }}>

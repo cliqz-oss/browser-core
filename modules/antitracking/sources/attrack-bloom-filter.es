@@ -1,5 +1,5 @@
 import * as datetime from './time';
-import pacemaker from '../core/pacemaker';
+import pacemaker from '../core/services/pacemaker';
 import QSWhitelistBase from './qs-whitelist-base';
 import prefs from '../core/prefs';
 import { Resource } from '../core/resource-loader';

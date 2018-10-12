@@ -5,6 +5,8 @@ import HeadlineBenefit from './headlineBenefit';
 import { t, tt } from '../../i18n';
 import { sendOffersMessage } from '../../services/offers';
 import { offerClickSignal } from '../../services/telemetry/offers';
+import config from '../../../config';
+
 
 function Label(props) {
   return (
@@ -33,11 +35,8 @@ function SpecialFlags(props) {
 export default class Content extends React.Component {
   constructor(props) {
     super(props);
-
     this.state = {
       showFeedback: false,
-      showMenu: false,
-      showInfo: false
     };
   }
 
@@ -53,12 +52,14 @@ export default class Content extends React.Component {
     return shouldChange;
   }
 
-  handletoggleMenu = () => {
+  handletoggleMenu = (e) => {
+    e.stopPropagation();
     offerClickSignal('menu');
-    this.setState({
-      showMenu: !this.state.showMenu,
-      showInfo: false
-    });
+    this.props.setOfferMenuOpen(!this.props.getOfferMenuOpen());
+  }
+
+  closeWhyInfo = () => {
+    this.props.setOfferInfoOpen(!this.props.getOfferInfoOpen());
   }
 
   handleCloseClick = () => {
@@ -70,9 +71,7 @@ export default class Content extends React.Component {
 
   showInfo = () => {
     offerClickSignal('why_see');
-    this.setState({
-      showInfo: true
-    });
+    this.props.setOfferInfoOpen(!this.props.getOfferInfoOpen());
   }
 
   render() {
@@ -130,7 +129,8 @@ export default class Content extends React.Component {
               className="options"
               onClick={this.handletoggleMenu}
             />
-            <ul className={`offer-menu white-box ${this.state.showMenu ? 'show-it' : ''}`}>
+            <ul className={`offer-menu white-box ${this.props.getOfferMenuOpen() ? 'show-it' : ''}`}>
+
               <li>
                 <button
                   onClick={this.handleCloseClick}
@@ -146,13 +146,13 @@ export default class Content extends React.Component {
                 </button>
               </li>
             </ul>
-            <div className={`why-info white-box ${this.state.showInfo ? 'show-it' : ''}`}>
+            <div className={`why-info white-box ${this.props.getOfferInfoOpen() ? 'show-it' : ''}`}>
               <button
                 className="close"
-                onClick={this.handletoggleMenu}
+                onClick={this.closeWhyInfo}
               />
               <p> {t('why_offers_text')} </p>
-              <a onClick={this.onLearnMoreClicked} href="https://cliqz.com/cliqz-angebote">{tt('learnMore')}</a>
+              <a onClick={this.onLearnMoreClicked} href={config.constants.WHY_OFFERS_URL}>{tt('learnMore')}</a>
             </div>
           </header>
           <p

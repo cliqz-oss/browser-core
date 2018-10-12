@@ -1,6 +1,5 @@
 /* eslint-disable no-param-reassign */
 
-import config from '../core/config';
 import inject from '../core/kord/inject';
 import utils from '../core/utils';
 import prefs from '../core/prefs';
@@ -11,7 +10,9 @@ import { getThemeStyle } from '../platform/browser';
 import { openLink } from '../platform/browser-actions';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import { getDetailsFromUrl } from '../core/url';
-import { isBootstrap } from '../core/platform';
+import { isBootstrap, isDesktopBrowser } from '../core/platform';
+
+import config from './config';
 
 const STYLESHEET_URL = 'chrome://cliqz/content/control-center/styles/xul.css';
 
@@ -77,7 +78,6 @@ export default class Win {
       'antitracking-clearcache': this.antitrackingClearCache.bind(this),
       sendTelemetry: this.sendTelemetry.bind(this),
       openPopUp: this.openPopUp.bind(this),
-      openMockPopUp: this.openMockPopUp.bind(this),
       setMockBadge: this.setMockBadge.bind(this),
       'cliqz-tab': this.cliqzTab.bind(this),
       'complementary-search': this.complementarySearch.bind(this),
@@ -85,8 +85,6 @@ export default class Win {
       'type-filter': this.typeFilter.bind(this),
       status: this.prepareData.bind(this),
     };
-
-    this.hasAntitracking = (new Set(config.modules)).has('antitracking');
   }
 
   init() {
@@ -108,16 +106,13 @@ export default class Win {
       this.toolbarButton.addWindow(this.window, this.actions);
     }
     if (this.pageAction) {
+      const dropMarker = this.window.document.getAnonymousElementByAttribute(
+        this.window.document.getElementById('urlbar'), 'anonid', 'historydropmarker');
+
       this.pageAction.addWindow(this.window, this.actions);
 
       const pageActionBtn = this.window.document.getElementById(this.pageAction.id);
-      const pageActionButtons =
-        // Firefox 56 and bellow
-        this.window.document.getElementById('urlbar-icons') ||
-        // Firefox 57 and above
-        this.window.document.getElementById('page-action-buttons');
-
-      pageActionButtons.appendChild(pageActionBtn);
+      dropMarker.parentNode.insertBefore(pageActionBtn, dropMarker);
 
       // by default the pageActionBtn is hidden with display:none
       pageActionBtn.style.removeProperty('display');
@@ -178,7 +173,7 @@ export default class Win {
       getMessage('btnFeedbackFaq'),
       () => {
         // TODO - use the original channel instead of the current one (it will be changed at update)
-        utils.openTabInWindow(win, utils.FEEDBACK_URL);
+        utils.openTabInWindow(win, config.settings.USER_SUPPORT_URL);
       },
       'feedback'
     );
@@ -186,8 +181,14 @@ export default class Win {
 
   unload() {
     removeStylesheet(this.window.document, STYLESHEET_URL);
-    if (this.toolbarButton) this.toolbarButton.removeWindow(this.window);
-    if (this.pageAction) this.pageAction.removeWindow(this.window);
+    if (this.toolbarButton) {
+      this.toolbarButton.removeWindow(this.window);
+    }
+    if (this.pageAction) {
+      this.pageAction.removeWindow(this.window);
+      const pageActionBtn = this.window.document.getElementById(this.pageAction.id);
+      pageActionBtn.parentNode.removeChild(pageActionBtn);
+    }
 
     this.locChangeEvent.unsubscribe();
     this.themeChangeEvent.unsubscribe();
@@ -388,7 +389,7 @@ export default class Win {
 
   setState(state) {
     if (this.toolbarButton) {
-      const icon = config.baseURL + (this.ICONS[state][getThemeStyle()] ||
+      const icon = config.settings.BASE_URL + (this.ICONS[state][getThemeStyle()] ||
         this.ICONS[state].default);
       this.toolbarButton.setIcon(this.window, icon);
       this.toolbarButton.setBadgeBackgroundColor(this.window, this.BACKGROUNDS[state]);
@@ -473,10 +474,10 @@ export default class Win {
       friendlyURL = url;
       isSpecialUrl = true;
     } else if (url.indexOf(config.settings.NEW_TAB_URL) === 0) {
-      friendlyURL = 'Cliqz Tab';
+      friendlyURL = `${config.settings.BRAND} Tab`;
       isSpecialUrl = true;
     } else if (url.indexOf(config.settings.ONBOARDING_URL) === 0) {
-      friendlyURL = 'Cliqz';
+      friendlyURL = config.settings.BRAND;
       isSpecialUrl = true;
     } else if (url.startsWith('chrome://cliqz/content/anti-phishing/phishing-warning.html')) {
       // in case this is a phishing site (and a warning is displayed),
@@ -497,10 +498,16 @@ export default class Win {
       hostname: urlDetails.host,
       module: {}, // will be filled later
       generalState: 'active',
-      feedbackURL: utils.FEEDBACK_URL,
+      feedbackURL: config.settings.USER_SUPPORT_URL,
+      locationSharingURL: config.settings.LOCATION_SHARING_URL,
+      myoffrzURL: config.settings.MYOFFRZ_URL,
+      reportSiteURL: config.settings.REPORT_SITE_URL,
       debug: prefs.get('showConsoleLogs', false),
+      isDesktopBrowser,
       amo: this.settings.channel === '04',
-      compactView: this.settings.id === 'description_test@cliqz.com',
+      compactView: this.settings.id === 'ghostery-db@cliqz.com',
+      privacyPolicyURL: config.settings.PRIVACY_POLICY_URL,
+      showPoweredBy: config.settings.SHOW_POWERED_BY,
     };
   }
 
@@ -513,7 +520,7 @@ export default class Win {
       const ccData = this.getFrameData();
       // If antitracking module is included, show critical when we get no antitracking state.
       // Otherwise show active.
-      ccData.generalState = this.hasAntitracking ?
+      ccData.generalState = config.settings.HAS_ANTITRACKING ?
         (moduleData.antitracking && moduleData.antitracking.state) || 'critical' : 'active';
 
       moduleData.adult = { visible: true, state: getAdultFilterState() };
@@ -534,46 +541,6 @@ export default class Win {
 
   numberAnimation() {
 
-  }
-
-  _getMockData() {
-    const self = this;
-    let numberCounter = 0;
-    const ccDataMocked = this.getFrameData();
-
-    ccDataMocked.module = this.mockedData;
-    // we also need to override some of the frame Data
-    ccDataMocked.activeURL = 'examplepage.de/webpage';
-    ccDataMocked.isSpecialUrl = false;
-    ccDataMocked.domain = 'examplepage.de';
-    ccDataMocked.extraUrl = '/webpage';
-    ccDataMocked.onboarding = true;
-
-    const numberAnimation = () => {
-      if (numberCounter === 27) {
-        return;
-      }
-
-      if (numberCounter < 18) {
-        ccDataMocked.module.antitracking.totalCount = numberCounter;
-      }
-
-      ccDataMocked.module.adblocker.totalCount = numberCounter;
-
-      self.sendMessageToPopup({
-        action: 'pushData',
-        data: ccDataMocked
-      });
-
-      numberCounter += 1;
-      setTimeout(numberAnimation, 40);
-    };
-    numberAnimation();
-  }
-
-  openMockPopUp(data) {
-    this.mockedData = data;
-    this.openPopUp();
   }
 
   getData() {

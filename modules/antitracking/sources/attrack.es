@@ -8,7 +8,7 @@ import UrlWhitelist from '../core/url-whitelist';
 import console from '../core/console';
 import domainInfo from '../core/services/domain-info';
 import inject, { ifModuleEnabled } from '../core/kord/inject';
-import pacemaker from '../core/pacemaker';
+import pacemaker from '../core/services/pacemaker';
 import { getGeneralDomain } from '../core/tlds';
 import prefs from '../core/prefs';
 import events from '../core/events';
@@ -230,26 +230,22 @@ export default class CliqzAttrack {
     this.checkInstalledAddons();
 
     this.initPacemaker();
-    pacemaker.start();
 
     this.tp_events = new PageEventTracker((payloadData) => {
       // take telemetry data to be pushed and add module metadata
-      const enabled = {
-        qs: this.isQSEnabled(),
-        cookie: this.isCookieEnabled(),
-        bloomFilter: this.isBloomFilterEnabled(),
-        trackTxt: this.isTrackerTxtEnabled(),
-        forceBlock: this.isForceBlockEnabled(),
-      };
       const updateInTime = this.qs_whitelist.isUpToDate();
       payloadData.forEach((pageload) => {
         const payl = generateAttrackPayload([pageload], undefined, {
-          conf: enabled,
+          conf: {},
           addons: this.similarAddon,
           updateInTime,
         });
         this.telemetry({
-          message: { type: telemetry.msgType, action: 'attrack.tp_events', payload: payl },
+          message: {
+            type: telemetry.msgType,
+            action: 'attrack.tp_events',
+            payload: payl
+          },
           raw: true,
         });
       });
@@ -298,7 +294,8 @@ export default class CliqzAttrack {
         tokenTelemetry: new TokenTelemetry(
           this.telemetry.bind(this),
           this.qs_whitelist,
-          this.config),
+          this.config,
+          this.db),
         domChecker: new DomChecker(),
         tokenChecker: new TokenChecker(
           this.qs_whitelist,
@@ -770,7 +767,7 @@ export default class CliqzAttrack {
           name: 'blockSetCookie',
           spec: 'blocking',
           fn: (state, response) => {
-            response.modifyHeader('Set-Cookie', '');
+            response.modifyResponseHeader('Set-Cookie', '');
             state.incrementStat('set_cookie_blocked');
           },
         },
@@ -868,9 +865,6 @@ export default class CliqzAttrack {
       // NOTE - this is an async operation
       this.tp_events.commit(true, true);
       this.tp_events.push(true);
-
-
-      pacemaker.stop();
 
       this.unloadPipeline();
 

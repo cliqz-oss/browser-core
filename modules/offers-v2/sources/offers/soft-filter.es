@@ -7,6 +7,7 @@
 
 import logger from '../common/offers_v2_logger';
 import { timestampMS } from '../utils';
+import OffersBG from '../background';
 
 // /////////////////////////////////////////////////////////////////////////////
 //                        GENERIC METHODS
@@ -99,12 +100,6 @@ const genericCounterComparator = (offer, eArgs, counterFun) => {
   return operation(genCounter, value);
 };
 
-const countClientOffers = (offer, eArgs, offersDB) =>
-  genericCounterComparator(offer, eArgs, (o) => {
-    const clientOffers = offersDB.getClientOffers(o.clientID);
-    return (clientOffers === null) ? 0 : clientOffers.size;
-  });
-
 const countCampaignOffers = (offer, eArgs, offersDB) =>
   genericCounterComparator(offer, eArgs, (o) => {
     const campaignOffers = offersDB.getCampaignOffers(o.campaignID);
@@ -113,7 +108,6 @@ const countCampaignOffers = (offer, eArgs, offersDB) =>
 
 const FILTER_EVAL_FUN_MAP = {
   generic_comparator: currentOfferGenericComparator,
-  count_client_offers: countClientOffers,
   count_campaign_offers: countCampaignOffers,
 };
 
@@ -123,6 +117,8 @@ const FILTER_EVAL_FUN_MAP = {
  * or false if fail or any of the rules (expressions) returns false
  *
  */
+
+let falseExp = [];
 const evalExpression = (offer, expr, offersDB) => {
   let result = false;
   if (expr.type === 'CallExpression') {
@@ -134,7 +130,7 @@ const evalExpression = (offer, expr, offersDB) => {
     }
     result = FILTER_EVAL_FUN_MAP[callee](offer, expr.arguments, offersDB);
     if (!result) {
-      logger.debug('expression result is false', callee, expr.arguments.map(x => x.value).join(' '));
+      falseExp.push(expr.arguments.map(x => x.value).join('_'));
     }
 
     return result;
@@ -187,7 +183,19 @@ export default function shouldFilterOffer(offer, offersDB) {
   // we now evaluate the expression
   let shouldWeShowOffer = false;
   try {
+    falseExp = [];
     shouldWeShowOffer = evalExpression(offer, offer.filterRules, offersDB);
+    if (!shouldWeShowOffer) {
+      OffersBG.offersAPI.processRealEstateMessage({
+        type: 'offer-action-signal',
+        origin: 'processor',
+        data: {
+          offer_id: offer.offerObj.offer_id,
+          action_id: `filter_exp__${falseExp.join('_++_')}`,
+          campaign_id: offer.offerObj.campaign_id
+        }
+      });
+    }
   } catch (e) {
     logger.error(`expr failed: ${JSON.stringify(offer.filterRules)}`, e);
   }

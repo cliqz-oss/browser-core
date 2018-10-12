@@ -1,18 +1,20 @@
-import { getDetailsFromUrl, urlStripProtocol } from '../../core/url';
+import { getDetailsFromUrl, urlStripProtocol, tryDecodeURI } from '../../core/url';
 
 const clean = (result) => {
   const details = getDetailsFromUrl(result.url || '');
   const host = urlStripProtocol(details.host || '');
   let hostAndPort = host;
+  const friendlyUrl = tryDecodeURI(result.friendlyUrl || details.friendly_url);
+  const url = tryDecodeURI(result.url);
 
   if (details.port) {
     hostAndPort += `:${details.port}`;
   }
 
   return {
-    url: result.url,
-    href: result.url,
-    friendlyUrl: result.friendlyUrl || details.friendly_url,
+    url,
+    href: url,
+    friendlyUrl,
     title: result.title,
     description: result.description,
     // TODO: clean `extra`

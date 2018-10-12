@@ -6,10 +6,11 @@ import utils from './utils';
 import random from './helpers/random';
 import events from './events';
 import { isOnionMode, isCliqzBrowser } from './platform';
-import { isSearchServiceReady, addCustomSearchEngine, removeEngine } from './search-engines';
+import { isSearchServiceReady, addCustomSearchEngine } from './search-engines';
 import { service as logos } from './services/logos';
 import { service as telemetry } from './services/telemetry';
 import { service as domainInfo } from './services/domain-info';
+import { service as pacemaker } from './services/pacemaker';
 import i18n from './i18n';
 import getSynchronizedDate, { isSynchronizedDateAvailable } from './synchronized-time';
 import { dateToDaysSinceEpoch } from './helpers/date';
@@ -102,32 +103,28 @@ const services = {
             i18n.PLATFORM_LANGUAGE !== 'de') return;
 
           const r = Math.random();
-          if (r < 0.33) {
-            prefs.set('serp_test', 'E');
-          } else if (r < 0.66) {
-            prefs.set('serp_test', 'F');
+          if (r < 0.25) {
+            prefs.set('serp_test', 'L');
+          } else if (r < 0.50) {
+            prefs.set('serp_test', 'M');
+            isSearchServiceReady().then(() =>
+              addCustomSearchEngine('https://suchen.cliqz.com/opensearch.xml', true));
+          } else if (r < 0.75) {
+            prefs.set('serp_test', 'N');
             isSearchServiceReady().then(() =>
               addCustomSearchEngine('https://suchen.cliqz.com/opensearch.xml', true));
           } else {
-            prefs.set('serp_test', 'G');
+            prefs.set('serp_test', 'O');
             isSearchServiceReady().then(() =>
               addCustomSearchEngine('https://suchen.cliqz.com/opensearch.xml', true));
           }
         });
       }
     }
-
-    // we migrate the SERP tests users from B to D
-    if (prefs.get('serp_test', '-') === 'B') {
-      isSearchServiceReady().then(() => {
-        removeEngine('Cliqz');
-        addCustomSearchEngine('https://search.cliqz.com/opensearch.xml', true);
-        prefs.set('serp_test', 'D');
-      });
-    }
   },
   'search-services': isSearchServiceReady,
   domainInfo,
+  pacemaker,
 };
 
 if (CONFIG.environment !== 'production') {

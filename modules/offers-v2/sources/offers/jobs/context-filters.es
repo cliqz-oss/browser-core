@@ -1,6 +1,5 @@
 import OfferJob from './job';
-import logger from '../../common/offers_v2_logger';
-
+import OffersBG from '../../background';
 
 /**
  * will return false if we have to filter the given offer and the current active
@@ -21,8 +20,15 @@ const filterOfferByCategory = (offer, activeCategories) => {
       }
     }
   }
-  // TODO: remove this debug log
-  logger.debug(`Offer ${offer.uniqueID} context filtered (categories)`);
+  OffersBG.offersAPI.processRealEstateMessage({
+    type: 'offer-action-signal',
+    origin: 'processor',
+    data: {
+      offer_id: offer.offerObj.offer_id,
+      action_id: 'filtered_by_context',
+      campaign_id: offer.offerObj.campaign_id
+    }
+  });
   return false;
 };
 

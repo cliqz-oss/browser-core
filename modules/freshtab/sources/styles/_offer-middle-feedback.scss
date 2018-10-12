@@ -23,7 +23,7 @@
     $offer-mn-header-font-size,
     $offer-mn-header-padding-left,
     $offer-mn-offer-description-padding-top,
-    $offer-mn-header-expire-display
+    $offer-mn-expire-pointer
 
 ) {
     .middle-notification-fluid  {
@@ -37,11 +37,6 @@
         position: relative;
         a {
             text-decoration: none
-        }
-        .__react_component_tooltip {
-            &.show {
-                display: $offer-mn-header-expire-display !important;
-            }
         }
         > div:not(.offer-unit) {
             width: 100%;
@@ -165,7 +160,8 @@
                             }
                             &.expires {
                                 background: url('../images/expire-icon12.svg') left center no-repeat;
-                                text-indent: $offer-mn-expire-text
+                                text-indent: $offer-mn-expire-text;
+                                pointer-events: $offer-mn-expire-pointer;
                             }
                             img {
                                 height: 12px;

@@ -124,6 +124,22 @@ const ActionID = {
   AID_COUPON_AUTOFILL_FIELD_OUTSIDE_ACTION: 'coupon_autofill_field_outside_action',
   AID_COUPON_AUTOFILL_FIELD_X_ACTION: 'coupon_autofill_field_x_action',
   AID_COUPON_AUTOFILL_FIELD_UNKNOWN: 'coupon_autofill_field_unknown',
+  AID_COUPON_AUTOFILL_SUCCESS_USE: 'coupon_autofill_field_success_use',
+  AID_COUPON_AUTOFILL_ERROR_USE: 'coupon_autofill_field_error_use',
+  AID_COUPON_AUTOFILL_APPLICATION_NOT_FOUND: 'coupon_autofill_field_application_not_found',
+
+  // Hard filters
+  AID_OFFER_FILTERED_VALIDIDTY: 'filtered_by_filterByValidity',
+  AID_OFFER_FILTERER_ABTEST: 'filtered_by_filterByABTest',
+  AID_OFFER_FILTERER_REALESTATE: 'filtered_by_filterByRealEstates',
+  AID_OFFER_FILTERER_GEO: 'filtered_by_filterByGeo',
+  AID_OFFER_FILTERER_CATEGORIES: 'filtered_by_filterByCategories',
+  AID_OFFER_FILTERER_HISTORY: 'filtered_by_filterByHistory',
+
+  // context filter
+  AID_OFFER_FILTERER_CONTEXT: 'filtered_by_context',
+
+  AID_OFFER_CC_HIDDEN: 'reward_box_missing_button', // Button hidden by user
 };
 
 export default ActionID;

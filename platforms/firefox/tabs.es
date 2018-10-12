@@ -1,5 +1,6 @@
 import { isWindowActive } from './windows';
 import { waitForAsync } from '../core/helpers/wait';
+import { Services } from './globals';
 
 export function getCurrentgBrowser() {
   return Components.classes['@mozilla.org/appshell/window-mediator;1']
@@ -10,7 +11,8 @@ export function getCurrentgBrowser() {
 
 export function newTab(url, check = true) {
   const gBrowser = getCurrentgBrowser();
-  const tab = gBrowser.addTab(url);
+  const tab = gBrowser.addTab(url,
+    { triggeringPrincipal: Services.scriptSecurityManager.getSystemPrincipal() });
   let tabId = null;
 
   if (!check) {

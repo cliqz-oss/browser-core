@@ -1,8 +1,8 @@
 import i18n from '../../core/i18n';
 import inject from '../../core/kord/inject';
 import prefs from '../../core/prefs';
-import { isCliqzBrowser, isCliqzAtLeastInVersion, isAMO } from '../../core/platform';
 import { getDaysSinceInstall } from '../../core/demographics';
+import { isDesktopBrowser, isCliqzAtLeastInVersion, isAMO } from '../../core/platform';
 import getLocalMessages from './local';
 import getRemoteMessages from './remote';
 
@@ -13,7 +13,7 @@ const VERSION = 1;
 
 const messageFunctions = {
   cliqzVersionCheck(value) {
-    if (!isCliqzBrowser) {
+    if (!isDesktopBrowser) {
       return false;
     }
 
