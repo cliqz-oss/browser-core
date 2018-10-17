@@ -34,20 +34,22 @@ export default class QuerySuggestionProvider extends BaseProvider {
         this.id,
         config,
         query,
-        suggestions.map(suggestion => ({
-          query: q,
-          url: engine.getSubmissionForQuery(suggestion),
-          text: suggestion,
-          data: {
-            suggestion,
-            kind: ['Z'],
-            extra: {
-              searchEngineName: engine.name,
-              mozActionUrl: getSearchEngineUrl(engine, suggestion, suggestion),
+        suggestions
+          .filter(suggestion => suggestion !== query)
+          .map(suggestion => ({
+            query: q,
+            url: engine.getSubmissionForQuery(suggestion),
+            text: suggestion,
+            data: {
+              suggestion,
+              kind: ['Z'],
+              extra: {
+                searchEngineName: engine.name,
+                mozActionUrl: getSearchEngineUrl(engine, suggestion, suggestion),
+              },
             },
-          },
-          type: 'supplementary-search',
-        })),
+            type: 'supplementary-search',
+          })),
         'done'
       )))
       .let(this.getOperators());

@@ -106,28 +106,44 @@ export const mockMessage = {
   }
 };
 
+const now = Date.now();
 export const mockOfferMessage = {
   123: {
     offer_id: '123',
     id: '123',
     offer_info: {
       ui_info: {
+        styles: {
+          'call-to-action-bg-color': '#e741',
+          'call-to-action-color': '#fff'
+        },
         template_data: {
+          labels: [
+            'best_offer',
+            'exclusive'
+          ],
+          benefit: '499€',
           call_to_action: {
             target: '',
-            text: 'Teilnehmen',
-            url: 'https://umfrage.cliqz.com/index.php/545662?lang=de"='
+            text: '(Int-Test) Jetzt anmelden',
+            url: 'http://testpage.cliqz.com'
           },
-          conditions: 'Diese Umfrage dauert ca. 5 Minuten und ist anonym.',
-          desc: 'Hallo! Wir möchten sehr gerne etwas über Ihre Meinung zum Cliqz-Browser erfahren.',
-          logo_url: 'https://cdn.cliqz.com/extension/offers/survey-icon.svg',
-          title: 'Cliqz-Umfrage',
-          validity: 1519967709,
-          voucher_classes: ''
-        }
-      },
+          code: 'IT-ODI-MO4915',
+          desc: '(Int-Test) Jetzt registrieren und zusätzlich 15 Minuten geschenkt bekommen!',
+          headline: '(Int-Test) Anmeldegebuhr',
+          logo_class: 'normal',
+          logo_url: 'https://cdn.cliqz.com/extension/offers/test/resources/drivenow-week/drivenow-week-logo-normal-1524572543.png',
+          title: '(Int-Test) 499€ Anmeldegebühr (statt 29€) & 15 Freiminuten geschenkt! ',
+          validity: (now * 1000) + 1,
+          conditions: 'Das Angebot ist biz',
+        },
+        template_name: 'ticket_template'
+      }
     },
-    validity: 1519967709,
+    validity: {
+      text: '10 days',
+      isExpiredSoon: true,
+    },
     position: 'middle',
     type: 'offer',
   }
@@ -179,6 +195,7 @@ export class Subject {
     this.messages = [];
     this.injectTestUtils = injectTestUtils;
     this.listeners = new Set();
+    this.messages = [];
     this.chrome = {
       runtime: {
         onMessage: {
@@ -190,6 +207,9 @@ export class Subject {
           }
         },
         sendMessage: ({ module, action, requestId, args }) => {
+          this.messages.push({
+            module, action, requestId, args,
+          });
           const response = this.modules[module].actions[action];
 
           this.listeners.forEach((l) => {
@@ -288,6 +308,7 @@ export class Subject {
   }
 
   unload() {
+    this.messages = [];
     document.body.removeChild(this.iframe);
   }
 
@@ -323,6 +344,7 @@ export class Subject {
     return this.iframe.contentWindow.document.querySelectorAll(selector);
   }
 
+  // Do we still use postMessage ?
   pushData(target, data = {}, action = 'render_template') {
     this.iframe.contentWindow.postMessage(JSON.stringify({
       target,
@@ -441,7 +463,12 @@ export const defaultConfig = Object.freeze({
     },
     wallpapers: [
       {
-        name: 'bg-blue',
+        name: 'bg-matterhorn',
+        alias: 'matterhorn',
+        isDefault: true,
+      },
+      {
+        name: 'bg-alps',
         alias: 'alps',
         isDefault: false,
       },
@@ -461,11 +488,6 @@ export const defaultConfig = Object.freeze({
         isDefault: false,
       },
       {
-        name: 'bg-matterhorn',
-        alias: 'matterhorn',
-        isDefault: true,
-      },
-      {
         name: 'bg-spring',
         alias: 'spring',
         isDefault: false,
@@ -479,14 +501,19 @@ export const defaultConfig = Object.freeze({
         name: 'bg-summer',
         alias: 'summer',
         isDefault: false,
-      }
+      },
+      {
+        name: 'bg-autumn',
+        alias: 'autumn',
+        isDefault: false,
+      },
     ]
   },
 });
 
 export function getActiveConfig() {
   const activeConfig = clone(defaultConfig);
-  activeConfig.response.componentsState.background.image = 'bg-blue';
+  activeConfig.response.componentsState.background.image = 'bg-alps';
   activeConfig.response.componentsState.historyDials.visible = true;
   activeConfig.response.componentsState.customDials.visible = true;
   activeConfig.response.componentsState.search.visible = true;
@@ -494,7 +521,7 @@ export function getActiveConfig() {
   return activeConfig;
 }
 
-export const allNewsLanguages = ['de', 'de-tr-en', 'fr', 'intl', 'us', 'gb', 'es', 'pl'];
+export const allNewsLanguages = ['de', 'de-tr-en', 'fr', 'intl', 'us', 'gb', 'es', 'pl', 'it', 'ru'];
 
 function checkCommon({
   defaultState,
@@ -746,7 +773,7 @@ export function checkSettingsUI({
 
       if (defaultState) {
         expect($newsSelectionArea).to.exist;
-        expect($newsSelectionElements).to.have.length(8);
+        expect($newsSelectionElements).to.have.length(allNewsLanguages.length);
       } else {
         expect($newsSelectionArea).to.not.exist;
         expect($newsSelectionElements).to.have.length(0);
@@ -864,11 +891,13 @@ export function checkTelemetry({
 }
 
 export const allBackgrounds = [
-  // { name: 'blue', bgSelector: '', iconSelector: 'img[data-bg="bg-blue"]', className: '' },
+  // { name: 'alps', bgSelector: 'body.theme-bg-alps', iconSelector: 'img[data-bg="bg-alps"]', className: 'theme-bg-alps' },
   { name: 'dark', bgSelector: 'body.theme-bg-dark', iconSelector: 'img[data-bg="bg-dark"]', className: 'theme-bg-dark' },
   { name: 'light', bgSelector: 'body.theme-bg-light', iconSelector: 'img[data-bg="bg-light"]', className: 'theme-bg-light' },
-  { name: 'alps', bgSelector: 'body.theme-bg-matterhorn', iconSelector: 'img[data-bg="bg-matterhorn"]', className: 'theme-bg-matterhorn' },
+  { name: 'matterhorn', bgSelector: 'body.theme-bg-matterhorn', iconSelector: 'img[data-bg="bg-matterhorn"]', className: 'theme-bg-matterhorn' },
   { name: 'winter', bgSelector: 'body.theme-bg-winter', iconSelector: 'img[data-bg="bg-winter"]', className: 'theme-bg-winter' },
   { name: 'spring', bgSelector: 'body.theme-bg-spring', iconSelector: 'img[data-bg="bg-spring"]', className: 'theme-bg-spring' },
   { name: 'summer', bgSelector: 'body.theme-bg-summer', iconSelector: 'img[data-bg="bg-summer"]', className: 'theme-bg-summer' },
+  { name: 'worldcup', bgSelector: 'body.theme-bg-worldcup', iconSelector: 'img[data-bg="bg-worldcup"]', className: 'theme-bg-worldcup' },
+  { name: 'autumn', bgSelector: 'body.theme-bg-autumn', iconSelector: 'img[data-bg="bg-autumn"]', className: 'theme-bg-autumn' },
 ];

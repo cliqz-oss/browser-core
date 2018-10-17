@@ -1,0 +1,5 @@
+$cliqz-purple-color: #6f3b80;
+
+#main-window.cliqz-purple {
+  @include browser-theme($cliqz-purple-color);
+}

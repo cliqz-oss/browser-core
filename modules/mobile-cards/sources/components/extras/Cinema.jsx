@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
 export default class Cinema extends React.Component {
   displayShow(show) {
     return (
-      <Link url={show.booking_link} key={show.booking_link}>
+      <Link label="movie-showtime-link" url={show.booking_link} key={show.booking_link}>
         <View style={styles.show}>
           <Text style={styles.text}>{ show.start_at.substr(11, 5) }</Text>
         </View>
@@ -71,12 +71,20 @@ export default class Cinema extends React.Component {
       return null;
     }
     return (
-      <View>
+      <View
+        accessible={false}
+        accessibilityLabel={'cinema'}
+      >
         <Local data={data.cinema} />
-        <Text style={styles.header}>
-          { getMessage('cinema_movie_showtimes') }
-          <Text style={styles.text}>: { (showsToday.date || '').toUpperCase() }</Text>
-        </Text>
+        <View
+          accessible={false}
+          accessibilityLabel={'cinema-showtimes'}
+        >
+          <Text style={styles.header}>
+            { getMessage('cinema_movie_showtimes') }
+            <Text style={styles.text}>: { (showsToday.date || '').toUpperCase() }</Text>
+          </Text>
+        </View>
         { movieList.map((...args) => this.displayMovie(...args)) }
       </View>
     );

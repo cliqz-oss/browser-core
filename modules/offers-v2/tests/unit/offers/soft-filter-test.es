@@ -4,7 +4,7 @@
 /* eslint no-param-reassign: off */
 
 const adblocker = require('@cliqz/adblocker');
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 
 
 const VALID_OFFER_OBJ = {
@@ -82,9 +82,7 @@ export default describeModule('offers-v2/offers/soft-filter',
     'platform/lib/jsep': {
       default: jspe,
     },
-    'platform/lib/tldjs': {
-      default: tldjs,
-    },
+    'platform/lib/tldts': tldts,
     'core/utils': {
       default: {}
     },

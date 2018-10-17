@@ -1,14 +1,12 @@
 /* global chai */
 /* global describeModule */
 
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 
 export default describeModule('core/url',
   function () {
     return {
-      'platform/lib/tldjs': {
-        default: tldjs,
-      },
+      'platform/lib/tldts': tldts,
       'core/platform': {
       },
       'platform/url': {
@@ -43,6 +41,71 @@ export default describeModule('core/url',
         it('with the same decoded urls return true', function () {
           chai.expect(equals('https://en.wikipedia.org/wiki/Murphy\'s_law', 'https://en.wikipedia.org/wiki/Murphy%27s_law')).to.be.true;
           chai.expect(equals('https://de.wikipedia.org/wiki/Stojanka_Novaković', 'https://de.wikipedia.org/wiki/Stojanka_Novakovi%C4%87')).to.be.true;
+        });
+      });
+
+      describe('isUrl', function () {
+        let isUrl;
+
+        beforeEach(function () {
+          isUrl = this.module().isUrl;
+        });
+
+        it('with normal url returns true', function () {
+          chai.expect(isUrl('http://cliqz.com')).to.be.true;
+          chai.expect(isUrl('http://sport.cliqz.com')).to.be.true;
+          chai.expect(isUrl('https://cliqz.com/about/team')).to.be.true;
+        });
+
+        it('localhost urls returns true', function () {
+          chai.expect(isUrl('http://localhost')).to.be.true;
+          chai.expect(isUrl('localhost')).to.be.true;
+          chai.expect(isUrl('localhost:8080')).to.be.true;
+        });
+
+        it('urls with IP address returns true', function () {
+          chai.expect(isUrl('http://192.168.1.1')).to.be.true;
+          chai.expect(isUrl('ftp://192.168.1.1')).to.be.true;
+          chai.expect(isUrl('ftp://192.168.1.1:25')).to.be.true;
+        });
+
+        it('urls with known procotol returns true', function () {
+          chai.expect(isUrl('https://cliqz.com')).to.be.true;
+          chai.expect(isUrl('view-source:https://cliqz.com')).to.be.true;
+          chai.expect(isUrl('ftp://cliqz.com')).to.be.true;
+        });
+
+        it('urls with unknown procotol returns false', function () {
+          chai.expect(isUrl('abc://cliqz.com')).to.be.false;
+        });
+
+        it('with non-urls returns false', function () {
+          chai.expect(isUrl('https://cliqz,com')).to.be.false;
+          chai.expect(isUrl('https://cliqz')).to.be.false;
+          chai.expect(isUrl('cliqz')).to.be.false;
+        });
+
+        it('with urls have a single dot at the end return true', function () {
+          chai.expect(isUrl('https://cliqz.com.')).to.be.true;
+          chai.expect(isUrl('https://cliqz.com/.')).to.be.true;
+          chai.expect(isUrl('https://cliqz.com. ')).to.be.true;
+          chai.expect(isUrl('http://192.168.1.1.')).to.be.true;
+        });
+
+        it('with url has space(s) before the dot at the end return false', function () {
+          chai.expect(isUrl('https://cliqz.com .')).to.be.false;
+          chai.expect(isUrl('https://cliqz.com  .')).to.be.false;
+          chai.expect(isUrl('https://cliqz.com  . ')).to.be.false;
+        });
+
+        it('with urls have more than one dot at the end return false', function () {
+          chai.expect(isUrl('https://cliqz.com..')).to.be.false;
+          chai.expect(isUrl('https://cliqz.com.. ')).to.be.false;
+          chai.expect(isUrl('https://cliqz.com. .')).to.be.false;
+        });
+
+        it('with urls have ./. at the end return true', function () {
+          chai.expect(isUrl('https://cliqz.com./.')).to.be.true;
         });
       });
 
@@ -130,6 +193,29 @@ export default describeModule('core/url',
             friendly_url: 'cliqz.com',
           };
           chai.expect(getDetailsFromUrl('moz-action:visiturl,{"url":"https://cliqz.com/"}'))
+            .to.deep.equal(urlDetails);
+        });
+
+        it('with host name, followed by a `single` dot, should return correct url', function () {
+          const urlDetails = {
+            action: undefined,
+            originalUrl: 'https://cliqz.com./support',
+            scheme: 'https:',
+            name: 'cliqz',
+            domain: 'cliqz.com',
+            tld: 'com',
+            subdomains: [],
+            path: '/support',
+            query: '',
+            fragment: '',
+            extra: '/support',
+            host: 'cliqz.com',
+            cleanHost: 'cliqz.com',
+            ssl: true,
+            port: '',
+            friendly_url: 'cliqz.com/support',
+          };
+          chai.expect(getDetailsFromUrl('https://cliqz.com./support'))
             .to.deep.equal(urlDetails);
         });
 

@@ -117,9 +117,9 @@ module.exports = {
     "search",
     "cookie-monster",
     "hpnv2",
-    "inter-ext-messaging",
-    "myoffrz-collector",
-    "serp"
+    "myoffrz-helper",
+    "serp",
+    "terms-and-conditions"
   ],
   "subprojects": subprojects([
     '@cliqz-oss/dexie',
@@ -138,7 +138,7 @@ module.exports = {
     'reactDom',
     'rxjs',
     'simple-statistics',
-    'tldjs',
+    'tldts',
     'tooltipster-css',
     'tooltipster-js',
     'tooltipster-sideTip-theme',

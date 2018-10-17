@@ -21,7 +21,7 @@ const preShowActions = (key) => {
     'try-to-find-coupon': (window, config) => {
       const result = getCouponsForm([...window.document.querySelectorAll('form')]);
       const {ok, input} = result;
-      const shouldPreventRender = ok && input.value === config.code;
+      const shouldPreventRender = ok && Boolean(input.value);
       const newConfig = {...config, shouldHideButtons: !ok, shouldPreventRender};
       return {ok, config: newConfig};
     },

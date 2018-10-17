@@ -3,7 +3,7 @@
 
 const Rx = require('rxjs');
 const fastUrlParser = require('fast-url-parser');
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 
 function mockSender(tab, url) {
   return {
@@ -31,9 +31,7 @@ export default describeModule('antitracking/steps/oauth-detector',
       default: Rx,
     },
     'core/helpers/md5': {},
-    'platform/lib/tldjs': {
-      default: tldjs,
-    },
+    'platform/lib/tldts': tldts,
     'core/fast-url-parser': {
       default: fastUrlParser
     },

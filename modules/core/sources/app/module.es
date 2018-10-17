@@ -83,6 +83,10 @@ export default class Module extends EventEmitter {
     return modules[this.name].Window;
   }
 
+  get isOnionReady() {
+    return !!modules[this.name].isOnionReady;
+  }
+
   get isEnabled() {
     return this._state === 'enabled';
   }

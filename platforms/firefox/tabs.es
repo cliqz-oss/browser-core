@@ -1,6 +1,14 @@
+/* globals PrivateBrowsingUtils */
 import { isWindowActive } from './windows';
-import { waitForAsync } from '../core/helpers/wait';
-import { Services } from './globals';
+import { waitFor } from '../core/helpers/wait';
+import { Services, Components } from './globals';
+import { mapWindows, loadURIIntoGBrowser } from './browser';
+
+try {
+  Components.utils.import('resource://gre/modules/PrivateBrowsingUtils.jsm');
+} catch (e) {
+  console.error(e.message); // eslint-disable-line
+}
 
 export function getCurrentgBrowser() {
   return Components.classes['@mozilla.org/appshell/window-mediator;1']
@@ -9,18 +17,22 @@ export function getCurrentgBrowser() {
     .gBrowser;
 }
 
-export function newTab(url, check = true) {
+export function newTab(url, { check = true, focus = false } = {}) {
   const gBrowser = getCurrentgBrowser();
   const tab = gBrowser.addTab(url,
     { triggeringPrincipal: Services.scriptSecurityManager.getSystemPrincipal() });
   let tabId = null;
+
+  if (focus) {
+    gBrowser.selectedTab = tab;
+  }
 
   if (!check) {
     tabId = tab.linkedBrowser ? tab.linkedBrowser.outerWindowID : null;
     return Promise.resolve(tabId);
   }
 
-  return waitForAsync(() => {
+  return waitFor(() => {
     // This might be caused by a blocked main document request
     if (tab.linkedBrowser === null) {
       return false;
@@ -50,9 +62,13 @@ export function closeTab(tabId) {
   // Remove tab
   gBrowser.removeTab(tabToRemove);
 
-  return waitForAsync(() => !isWindowActive(numTabId));
+  return waitFor(() => !isWindowActive(numTabId));
 }
 
+function getCurrentTab() {
+  const gBrowser = getCurrentgBrowser();
+  return [...gBrowser.tabs].find(tab => gBrowser.selectedBrowser === tab.linkedBrowser);
+}
 
 export function updateTab(tabId, url) {
   const numTabId = Number(tabId);
@@ -65,11 +81,16 @@ export function updateTab(tabId, url) {
     return Promise.reject(`Could not find tab ${tabId}`);
   }
 
-  gBrowser.getBrowserForTab(tabToUpdate).loadURI(url);
+  loadURIIntoGBrowser(gBrowser.getBrowserForTab(tabToUpdate), url);
 
-  return waitForAsync(() => Promise.resolve(
+  return waitFor(() => Promise.resolve(
     gBrowser.getBrowserForTab(tabToUpdate).currentURI.spec === url
   ));
+}
+
+export function updateCurrentTab(url) {
+  const tab = getCurrentTab();
+  return updateTab(tab.outerWindowID, url);
 }
 
 export function getTab(tabId) {
@@ -81,6 +102,9 @@ export function getTab(tabId) {
   const tab = gBrowser.getBrowserForTab(tabToUpdate);
   return {
     url: tab.currentURI.spec,
+    id: tab.linkedBrowser.outerWindowID,
+    incognito: PrivateBrowsingUtils.isWindowPrivate(gBrowser.ownerGlobal),
+    active: tab.linkedBrowser === gBrowser.selectedBrowser,
   };
 }
 
@@ -120,3 +144,83 @@ export default {
     removeListener() {},
   },
 };
+
+export function pinTab(window, tab) {
+  let t;
+  if (typeof tab.index === 'number') {
+    t = window.gBrowser.tabs[tab.index];
+  } else {
+    t = tab;
+  }
+  if (!t.pinned) {
+    window.gBrowser.pinTab(t);
+  }
+}
+
+export function queryActiveTabs(window) {
+  if (!window.gBrowser) {
+    return [];
+  }
+
+  const selectedBrowser = window.gBrowser.selectedBrowser;
+  return Array.prototype.map.call(window.gBrowser.tabs, (tab, index) => ({
+    index,
+    url: tab.linkedBrowser.currentURI.spec,
+    isCurrent: selectedBrowser === tab.linkedBrowser,
+    isPinned: tab.pinned,
+  }));
+}
+
+export function getTabsWithUrl(window, url) {
+  return Array.prototype.filter.call(window.gBrowser.tabs,
+    (tab => tab.linkedBrowser.currentURI.spec === url && tab));
+}
+
+function getTabById(window, tabId) {
+  const tab = [...window.gBrowser.tabs].find(t => t.linkedBrowser.outerWindowID === tabId);
+  if (!tab) {
+    return null;
+  }
+  return tab.linkedBrowser;
+}
+
+export function closeTabsWithUrl(url) {
+  mapWindows((window) => {
+    getTabsWithUrl(window, url).forEach(tab => closeTab(window, tab));
+  });
+  return Promise.resolve();
+}
+
+export function getWindowByTabId(tabId) {
+  let win = null;
+  mapWindows(w => w).some((window) => {
+    const tab = getTabById(window, tabId);
+    if (!tab) {
+      return false;
+    }
+    win = window;
+    return true;
+  });
+  return win;
+}
+
+export function getCurrentTabId(window) {
+  return window.gBrowser.selectedBrowser && window.gBrowser.selectedBrowser.outerWindowID;
+}
+
+export function queryTabs() {
+  const windows = mapWindows(w => w);
+  const tabs = windows.map(window =>
+    ([...window.gBrowser.tabs].map((tab) => {
+      const browser = tab.linkedBrowser;
+      return {
+        id: browser.outerWindowID,
+        url: browser.currentURI.spec,
+      };
+    }))
+  );
+
+  return Promise.resolve(
+    [].concat(...tabs)
+  );
+}

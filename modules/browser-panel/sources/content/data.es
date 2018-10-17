@@ -23,7 +23,6 @@ export function messageHandler(message) {
 
 window.addEventListener('message', (ev) => {
   const data = JSON.parse(ev.data);
-  // console.log(`data: ${JSON.stringify(ev)}`);
   if (data.target === 'cqz-browser-panel-re' &&
      data.origin === 'window') {
     messageHandler(data.message);

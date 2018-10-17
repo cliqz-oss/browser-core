@@ -7,11 +7,10 @@ import { dataOn, dataOff } from './fixtures/https-everywhere';
 
 describe('Control Center: HTTPS Everywhere interaction browser', function () {
   let subject;
-  const target = 'cliqz-control-center';
+  const target = 'control-center';
 
   beforeEach(function () {
     subject = new Subject();
-    return subject.load();
   });
 
   afterEach(function () {
@@ -23,16 +22,21 @@ describe('Control Center: HTTPS Everywhere interaction browser', function () {
       subject.query(selector).click();
 
       return waitFor(
-        () => subject.messages.find(message => message.message.action === 'updateState')
+        () => subject.messages.find(message => message.action === 'updateState')
       ).then(
-        message => expect(message).to.have.nested.property('message.data', 'active')
+        message => expect(message).to.have.property('args').that.deep.equals(['active'])
       );
     });
   }
 
   describe('with https everywhere on', function () {
     beforeEach(function () {
-      return subject.pushData(target, dataOn);
+      subject.respondsWith({
+        module: target,
+        action: 'getData',
+        response: dataOn
+      });
+      return subject.load();
     });
 
     it('renders https box', function () {
@@ -46,12 +50,12 @@ describe('Control Center: HTTPS Everywhere interaction browser', function () {
         subject.query('#https .cqz-switch-box').click();
 
         return waitFor(
-          () => subject.messages.find(message => message.message.action === 'updatePref')
+          () => subject.messages.find(message => message.action === 'updatePref')
         ).then(
           (message) => {
-            expect(message).to.have.nested.property('message.data.pref', 'extensions.https_everywhere.globalEnabled');
-            expect(message).to.have.nested.property('message.data.value', false);
-            expect(message).to.have.nested.property('message.data.target', 'https_switch');
+            expect(message).to.have.nested.property('args[0].pref', 'extensions.https_everywhere.globalEnabled');
+            expect(message).to.have.nested.property('args[0].value', false);
+            expect(message).to.have.nested.property('args[0].target', 'https_switch');
           }
         );
       });
@@ -60,7 +64,12 @@ describe('Control Center: HTTPS Everywhere interaction browser', function () {
 
   describe('with https everywhere off', function () {
     beforeEach(function () {
-      return subject.pushData(target, dataOff);
+      subject.respondsWith({
+        module: target,
+        action: 'getData',
+        response: dataOff
+      });
+      return subject.load();
     });
 
     it('renders https box', function () {
@@ -74,12 +83,12 @@ describe('Control Center: HTTPS Everywhere interaction browser', function () {
         subject.query('#https .cqz-switch-box').click();
 
         return waitFor(
-          () => subject.messages.find(message => message.message.action === 'updatePref')
+          () => subject.messages.find(message => message.action === 'updatePref')
         ).then(
           (message) => {
-            expect(message).to.have.nested.property('message.data.pref', 'extensions.https_everywhere.globalEnabled');
-            expect(message).to.have.nested.property('message.data.value', true);
-            expect(message).to.have.nested.property('message.data.target', 'https_switch');
+            expect(message).to.have.nested.property('args[0].pref', 'extensions.https_everywhere.globalEnabled');
+            expect(message).to.have.nested.property('args[0].value', true);
+            expect(message).to.have.nested.property('args[0].target', 'https_switch');
           }
         );
       });

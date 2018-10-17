@@ -12,6 +12,7 @@ import {
   checkTapMessage,
   getElements,
   mockSearch,
+  withHistory,
 } from './helpers';
 
 import { isWebExtension } from '../../../core/platform';
@@ -29,6 +30,7 @@ export default function () {
       win.preventRestarts = true;
 
       id = await newTab(cardsUrl);
+      withHistory([]);
       await mockSearch({ results: [] });
       win.CLIQZ.app.modules.search.action('startSearch', query, { tab: { id } });
       await waitForElement({
@@ -38,9 +40,10 @@ export default function () {
       });
     });
 
-    after(function () {
-      closeTab(id);
+    after(async function () {
+      await closeTab(id);
       win.preventRestarts = false;
+      win.CLIQZ.app.modules.search.action('stopSearch');
     });
 
     it('renders correct result', async function () {

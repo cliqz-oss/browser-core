@@ -158,14 +158,6 @@ export default {
     });
   },
 
-  keyup(ev) {
-    events.pub('urlbar:keyup', {
-      windowId: this.windowId,
-      tabId: getCurrentTabId(this.window),
-      code: ev.code,
-    });
-  },
-
   keydown(ev) {
     lastEvent.set(this.window, ev);
     let cancel;
@@ -195,7 +187,7 @@ export default {
   paste(ev) {
     lastEvent.set(this.window, ev);
     // wait for the value to change
-    this.window.setTimeout(() => {
+    nextTick(() => {
       // ensure the lastSearch value is always correct
       // although paste event has 1 second throttle time.
       utils.telemetry({

@@ -1,16 +1,26 @@
 /* global window, document, $, Handlebars */
 /* eslint-disable func-names, no-param-reassign */
 /* eslint import/no-extraneous-dependencies: 'off' */
-
-import { sendMessageToWindow } from './content/data';
 import helpers from './content/helpers';
 import templates from './templates';
+import createSpananForModule from '../core/helpers/spanan-module-wrapper';
 
+const controlCenterModule = createSpananForModule('control-center');
+const controlCenter = controlCenterModule.createProxy();
 const slideUp = $.fn.slideUp;
 const slideDown = $.fn.slideDown;
 let resizeTimeout = null;
 
 Handlebars.partials = templates;
+
+function sendMessageToWindow(message) {
+  window.postMessage(JSON.stringify({
+    target: 'cliqz-control-center',
+    origin: 'iframe',
+    message
+  }), '*');
+}
+
 function resize() {
   const $controlCenter = $('#control-center');
   const width = $controlCenter.width();
@@ -50,48 +60,25 @@ function localizeDocument() {
     });
 }
 
-function isOnboarding() {
-  return $('#control-center').hasClass('onboarding');
-}
-
 function closeAccordionSection() {
   $('.accordion .accordion-section-title').removeClass('active');
   $('.accordion .accordion-section-content').slideUp(150).removeClass('open');
 }
 
-// ====== GENERIC SETTING ACCORDION FUNCTIONALITY ========= //
-$(document).ready(() => {
-  Object.keys(helpers).forEach((helperName) => {
-    Handlebars.registerHelper(helperName, helpers[helperName]);
-  });
-  sendMessageToWindow({
-    action: 'getEmptyFrameAndData',
-    data: {}
-  });
-});
-
 // open URL
 $('#control-center').on('click', '[data-open-url]', (ev) => {
-  sendMessageToWindow({
-    action: 'openURL',
-    data: {
-      url: ev.currentTarget.getAttribute('data-open-url'),
-      target: ev.currentTarget.getAttribute('data-target'),
-      closePopup: ev.currentTarget.dataset.closepopup || true
-    }
+  controlCenter.openURL({
+    url: ev.currentTarget.getAttribute('data-open-url'),
+    target: ev.currentTarget.getAttribute('data-target'),
+    closePopup: ev.currentTarget.dataset.closepopup || true
   });
 });
 
 $('#control-center').on('click', '[data-function]', function (ev) {
-  if (isOnboarding()) {
-    return;
-  }
-  sendMessageToWindow({
-    action: ev.currentTarget.dataset.function,
-    data: {
-      status: $(this).prop('checked'),
-      target: ev.currentTarget.getAttribute('data-target')
-    }
+  const fn = ev.currentTarget.dataset.function;
+  controlCenter[fn]({
+    status: $(this).prop('checked'),
+    target: ev.currentTarget.getAttribute('data-target')
   });
 });
 
@@ -100,32 +87,29 @@ $('#control-center').on('click', () => {
 });
 
 $('#control-center').on('change', '[role="complementarySearchChanger"]', function () {
-  sendMessageToWindow({
-    action: 'complementary-search',
-    data: {
-      defaultSearch: $(this).val()
-    }
+  controlCenter['complementary-search']({
+    defaultSearch: $(this).val()
   });
 });
 
 $('#control-center').on('change', '[role="searchIndexCountryChanger"]', function () {
-  sendMessageToWindow({
-    action: 'search-index-country',
-    data: {
-      defaultCountry: $(this).val()
-    }
+  controlCenter['search-index-country']({
+    defaultCountry: $(this).val()
   });
+});
+
+$('#control-center').on('change', '[role="quickSearchStateChanger"]', function () {
+  // $(this).closest('.bullet').addClass('disabled'); // For debugging
+  controlCenter['quick-search-state']({
+    enabled: $(this).val() === 'true'
+  }).then(draw); // eslint-disable-line
 });
 
 $('#control-center').on('click', '[role="cliqzTabStatusChanger"]', function () {
-  sendMessageToWindow({
-    action: 'cliqz-tab',
-    data: {
-      status: $(this).closest('.frame-container').attr('data-status') === 'active'
-    }
+  controlCenter['cliqz-tab']({
+    status: $(this).closest('.frame-container').attr('data-status') === 'active'
   });
 });
-
 
 $('#control-center').on('click', '[role="antiTrackingStatusChanger"]', function () {
   let state;
@@ -142,18 +126,11 @@ $('#control-center').on('click', '[role="antiTrackingStatusChanger"]', function 
     state = $(this).attr('data-state');
   }
 
-  if (isOnboarding()) {
-    return;
-  }
-
-  sendMessageToWindow({
-    action: 'antitracking-activator',
-    data: {
-      type,
-      state,
-      status: $(this).closest('.frame-container').attr('data-status'),
-      hostname: $(this).closest('.frame-container').attr('data-hostname'),
-    }
+  controlCenter['antitracking-activator']({
+    type,
+    state,
+    status: $(this).closest('.frame-container').attr('data-status'),
+    hostname: $(this).closest('.frame-container').attr('data-hostname'),
   });
 });
 
@@ -172,18 +149,11 @@ $('#control-center').on('click', '[role="antiPhishingStatusChanger"]', function 
     state = $(this).attr('data-state');
   }
 
-  if (isOnboarding()) {
-    return;
-  }
-
-  sendMessageToWindow({
-    action: 'anti-phishing-activator',
-    data: {
-      type,
-      state,
-      status: $(this).closest('.frame-container').attr('data-status'),
-      url: $(this).closest('.frame-container').attr('data-url'),
-    }
+  controlCenter['anti-phishing-activator']({
+    type,
+    state,
+    status: $(this).closest('.frame-container').attr('data-status'),
+    url: $(this).closest('.frame-container').attr('data-url'),
   });
 });
 
@@ -209,33 +179,24 @@ $('#control-center').on('click', '[role="adBlockerStatusChanger"]', function () 
   }
 
   frame.attr('data-visible', $(this).attr('data-state'));
-  if (isOnboarding()) {
-    return;
-  }
 
-  sendMessageToWindow({
-    action: 'adb-activator',
-    data: {
-      type,
-      state,
-      status: frame.attr('data-status'),
-      url: frame.attr('data-url'),
-      // TODO instead of dropdown-scope selece the active button
-      option
-    }
+  controlCenter['adb-activator']({
+    type,
+    state,
+    status: frame.attr('data-status'),
+    url: frame.attr('data-url'),
+    // TODO instead of dropdown-scope selece the active button
+    option
   });
 });
 
 // select box change
 $('#control-center').on('change', 'select[data-update-pref]', (ev) => {
-  sendMessageToWindow({
-    action: 'updatePref',
-    data: {
-      pref: ev.currentTarget.getAttribute('data-update-pref'),
-      value: ev.currentTarget.value,
-      target: ev.currentTarget.getAttribute('data-target'),
-      prefType: ev.currentTarget.getAttribute('data-update-pref-type'),
-    }
+  controlCenter.updatePref({
+    pref: ev.currentTarget.getAttribute('data-update-pref'),
+    value: ev.currentTarget.value,
+    target: ev.currentTarget.getAttribute('data-target'),
+    prefType: ev.currentTarget.getAttribute('data-update-pref-type'),
   });
 });
 
@@ -251,15 +212,9 @@ function updateGeneralState() {
   }
 
   $('#header').attr('data-status', state);
-  if (isOnboarding()) {
-    return;
-  }
-  sendMessageToWindow({
-    action: 'updateState',
-    data: state
-  });
-}
 
+  controlCenter.updateState(state);
+}
 
 function _getWatchDogUrl(company = {}) {
   const slug = company.wtm || '../tracker-not-found';
@@ -290,9 +245,9 @@ function compile(obj) {
 }
 
 function compileAdblockInfo(data) {
-  const advertisersList = data.module.adblocker.advertisersList;
+  const advertisersList = data.module.adblocker.advertisersList || {};
   const advertisersInfo = data.module.adblocker.advertisersInfo;
-  const advertisers = data.module.adblocker.advertisersList;
+  const advertisers = data.module.adblocker.advertisersList || {};
   const firstParty = advertisers['First party'];
   const unknown = advertisers._Unknown;
   const firstPartyCount = firstParty && firstParty.length;
@@ -330,24 +285,6 @@ function compileAdblockInfo(data) {
 function draw(data) {
   const emptyFrame = Object.keys(data.module || {}).length === 0;
   const module = data.module;
-
-  if (data.onboarding) {
-    document.getElementById('control-center').classList.add('onboarding');
-    if (module.antitracking && module.antitracking.totalCount === 1) {
-      window.postMessage(JSON.stringify({
-        target: 'cliqz',
-        module: 'core',
-        action: 'sendTelemetry',
-        args: [{
-          type: 'onboarding',
-          version: '2.1',
-          action: 'show',
-          view: 'privacy',
-          target: 'dashboard',
-        }]
-      }), '*');
-    }
-  }
 
   if (module) {
     if (!module.antitracking) {
@@ -394,23 +331,17 @@ function draw(data) {
     const closePopup = e.currentTarget.dataset.closepopup || true;
     // openURL already sends telemetry data
     if ($(this).attr('data-open-url')) {
-      sendMessageToWindow({
-        action: 'openURL',
-        data: {
-          url,
-          target,
-          closePopup,
-          index
-        }
+      controlCenter.openURL({
+        url,
+        target,
+        closePopup,
+        index
       });
     } else {
-      sendMessageToWindow({
-        action: 'sendTelemetry',
-        data: {
-          target,
-          action: 'click',
-          index
-        }
+      controlCenter.sendTelemetry({
+        target,
+        action: 'click',
+        index
       });
     }
   });
@@ -447,14 +378,10 @@ function draw(data) {
       $(`.accordion ${currentAttrValue}`).slideDown(150).addClass('open');
       state = 'expanded';
     }
-
-    sendMessageToWindow({
-      action: 'sendTelemetry',
-      data: {
-        target: $(this).attr('data-target'),
-        state,
-        action: 'click'
-      }
+    controlCenter.sendTelemetry({
+      target: $(this).attr('data-target'),
+      state,
+      action: 'click'
     });
   });
 
@@ -470,13 +397,11 @@ function draw(data) {
       return; // Disable clicking on inactive module
     }
 
-    sendMessageToWindow({
-      action: 'sendTelemetry',
-      data: {
-        target: $target,
-        action: 'click'
-      }
+    controlCenter.sendTelemetry({
+      target: $target,
+      action: 'click'
     });
+
     closeAccordionSection();
     $settings.addClass('open');
     $setting.addClass('active');
@@ -489,12 +414,9 @@ function draw(data) {
     $(this).closest('.setting').removeClass('active');
     $('#othersettings').css('display', 'block');
     $('#settings').removeClass('open');
-    sendMessageToWindow({
-      action: 'sendTelemetry',
-      data: {
-        target: $(this).attr('data-target'),
-        action: 'click'
-      }
+    controlCenter.sendTelemetry({
+      target: $(this).attr('data-target'),
+      action: 'click'
     });
     resize();
   });
@@ -506,13 +428,10 @@ function draw(data) {
     );
 
     if (this.hasAttribute('data-update-pref')) {
-      sendMessageToWindow({
-        action: 'updatePref',
-        data: {
-          pref: this.getAttribute('data-update-pref'),
-          value: target.attr('data-status') === 'active',
-          target: this.getAttribute('data-target')
-        }
+      controlCenter.updatePref({
+        pref: this.getAttribute('data-update-pref'),
+        value: target.attr('data-status') === 'active',
+        target: this.getAttribute('data-target')
       });
     }
   });
@@ -530,18 +449,11 @@ function draw(data) {
     );
 
     if (this.hasAttribute('data-update-pref')) {
-      if (isOnboarding()) {
-        return;
-      }
-
-      sendMessageToWindow({
-        action: 'updatePref',
-        data: {
-          type,
-          target: `${target.parent().attr('data-target')}_${type}`,
-          pref: this.getAttribute('data-update-pref'),
-          value: target.attr('data-status') === 'active'
-        }
+      controlCenter.updatePref({
+        type,
+        target: `${target.parent().attr('data-target')}_${type}`,
+        pref: this.getAttribute('data-update-pref'),
+        value: target.attr('data-status') === 'active'
       });
     }
 
@@ -587,13 +499,33 @@ function draw(data) {
     resize();
   }
 
-  $('.infobutton').tooltipster({
+  $('.cc-tooltip').tooltipster({
     theme: ['tooltipster-shadow', 'tooltipster-shadow-customized'],
     interactive: true,
     delay: 150,
     animationDuration: 150,
-    side: 'right',
   });
 }
 
-window.draw = draw;
+function getSearchParam(param) {
+  const URLSearchParams = window.URLSearchParams;
+  const searchParams = new URLSearchParams(window.location.search);
+  return searchParams.get(param);
+}
+
+// ====== GENERIC SETTING ACCORDION FUNCTIONALITY ========= //
+$(document).ready(() => {
+  Object.keys(helpers).forEach((helperName) => {
+    Handlebars.registerHelper(helperName, helpers[helperName]);
+  });
+
+  controlCenter.getFrameData().then(() => {
+    controlCenter.getData().then((data) => {
+      const isCompactView = getSearchParam('compactView');
+      if (isCompactView) {
+        data.compactView = true;
+      }
+      draw(data);
+    });
+  });
+});

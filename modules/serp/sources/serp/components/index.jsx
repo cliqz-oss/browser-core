@@ -66,7 +66,7 @@ export default class Serp extends React.Component {
     }
   }
 
-  _setLocationHash(hash) {
+  _setLocationHash = (hash) => {
     try {
       window.location.hash = encodeURIComponent(hash);
     } catch (e) {

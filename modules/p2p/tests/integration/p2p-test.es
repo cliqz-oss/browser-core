@@ -2,7 +2,7 @@
 
 import {
   app,
-} from '../../../tests/core/test-helpers';
+} from '../../../tests/core/integration/helpers';
 
 
 export default function () {

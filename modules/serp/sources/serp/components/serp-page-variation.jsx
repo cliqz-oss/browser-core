@@ -71,6 +71,7 @@ export default class SerpPageVariation extends React.Component {
 
     this._shouldDisplayQuerySuggestions = this._ABTestExperimentsSerpValue === 'suggestions_test';
     this._session = props.session;
+    this._nextQuerySuggestions = [];
 
     this.state = {
       propsSearchBoxValue: props.query,
@@ -86,18 +87,12 @@ export default class SerpPageVariation extends React.Component {
     }
 
     window.CliqzEvents.sub(SEARCH_SUGGESTIONS, ({ query, suggestions }) => {
-      if (this._searchRequestInitiator !== SEARCH_SUGGESTIONS || !suggestions) {
+      if (this._searchRequestInitiator !== SEARCH_SUGGESTIONS) {
         return;
       }
 
       this._handleSuggestions({ query, suggestions });
     });
-
-    document.addEventListener('click', this.closeQuerySuggestions);
-  }
-
-  componentWillUnmount() {
-    document.removeEventListener('click', this.closeQuerySuggestions);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -132,6 +127,8 @@ export default class SerpPageVariation extends React.Component {
       querySuggestions: this.state.querySuggestions,
       isLoading: this._isLoading,
       handleKeyDown: this.props.handleKeyDown,
+      handleFocus: this._handleSearchboxFocus,
+      handleBlur: this._handleSearchboxBlur,
       handleSubmitIconClick: this.props.handleSubmitIconClick,
       updateSearchboxValue: this.updateSearchboxValue,
       handleItemSuggestion: this._handleItemSuggestion,
@@ -148,6 +145,7 @@ export default class SerpPageVariation extends React.Component {
         || this._ABTestValue === 'N'
         || this._ABTestValue === 'K'
         || this._ABTestValue === 'O',
+      shouldHandleSearchResultItemView: this._searchRequestInitiator === SEARCH_RESULTS,
       v1ResultsFromCliqz: this._ABTestValue === 'F',
       session: this._session,
     };
@@ -169,14 +167,47 @@ export default class SerpPageVariation extends React.Component {
     }
   }
 
+  _handleSearchboxFocus = () => {
+    if (!this._shouldDisplayQuerySuggestions) {
+      return;
+    }
+
+    this.setState({
+      querySuggestions: this._nextQuerySuggestions,
+    });
+  }
+
+  _handleSearchboxBlur = () => {
+    if (!this._shouldDisplayQuerySuggestions) {
+      return;
+    }
+
+    this.closeQuerySuggestions();
+  }
+
   _handleSuggestions = ({ query, suggestions }) => {
     let hasSuggestions = true;
+    // First we need to check an actual value of a searchbox field.
+    // A request for new portion of query suggestions could be sent.
+    // And then a user could type something really quickly.
+    // Which stops it from sending another request. But still.
+    // We have a former request/response to handle here.
+
+    // this.state.searchBoxValue could be different than
+    // query value. Please see comments above.
+    if (!this.state.searchBoxValue) {
+      this.closeQuerySuggestions();
+      return;
+    }
+
     if (suggestions && suggestions.length > 0) {
+      this._nextQuerySuggestions = suggestions.map((suggestion) => {
+        const res = { title: suggestion };
+        return res;
+      });
+
       this.setState({
-        querySuggestions: suggestions.map((suggestion) => {
-          const res = { title: suggestion };
-          return res;
-        }),
+        querySuggestions: this._nextQuerySuggestions,
       });
     } else {
       hasSuggestions = false;

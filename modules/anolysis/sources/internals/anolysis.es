@@ -238,7 +238,7 @@ export default class Anolysis {
               ));
             });
           } catch (ex) {
-            logger.log('Could not genereate signals for analysis:', name, ex);
+            logger.log('Could not generate signals for analysis:', name, ex);
           }
         }
       }

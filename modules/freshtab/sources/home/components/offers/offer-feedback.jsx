@@ -2,6 +2,7 @@ import React from 'react';
 import cliqz from '../../cliqz';
 import { tt } from '../../i18n';
 import telemetry from '../../services/telemetry/base';
+import { offerClickSignal } from '../../services/telemetry/offers';
 
 export default class OfferFeedback extends React.Component {
   constructor(props) {
@@ -67,6 +68,7 @@ export default class OfferFeedback extends React.Component {
   }
 
   undoDeleteOffer = () => {
+    offerClickSignal('undo_remove');
     this.props.toggleComponents();
   }
 
@@ -130,7 +132,7 @@ export default class OfferFeedback extends React.Component {
                 <div className="notification">
                   {tt('offers_offer_removed')}
                   <br />
-                  <button onClick={this.undoDeleteOffer}>UNDO</button>
+                  <button onClick={this.undoDeleteOffer}>{tt('offers_hub_feedback_undo_delete')}</button>
                 </div>
                 <button
                   className="cta-btn"

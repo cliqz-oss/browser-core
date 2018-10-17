@@ -2,7 +2,7 @@ import {
   queryHTML,
   testServer,
   sleep,
-} from '../../../tests/core/test-helpers';
+} from '../../../tests/core/integration/helpers';
 import basicTest from '../../../tests/dropdown-tests/integration/shared/basic';
 import { getTab } from '../../../platform/tabs';
 import { isWebExtension } from '../../../core/platform';

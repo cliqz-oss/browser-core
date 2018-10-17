@@ -360,6 +360,24 @@ export default class {
     return Promise.resolve();
   }
 
+  static async cleanupEmptySearches() {
+    const sql = `
+      SELECT visit_date, place_id, url, moz_historyvisits.id as search_visit_id
+      FROM moz_historyvisits
+        JOIN moz_places ON moz_historyvisits.place_id = moz_places.id
+        WHERE moz_places.url LIKE "https://cliqz.com/search?q=%"
+          AND not exists(SELECT from_visit FROM moz_historyvisits WHERE from_visit = search_visit_id)
+    `;
+    const places = await HistoryProvider
+      .query(sql, ['visit_date', 'place_id', 'url', 'search_visit_id'], {});
+    return places.forEach((place) => {
+      PlacesUtils.history.removeVisitsByFilter({
+        beginDate: PlacesUtils.toDate(+place.visit_date),
+        endDate: PlacesUtils.toDate(+place.visit_date + 1000),
+      });
+    });
+  }
+
   /**
    * Minimal query interface to get the visits between two timestamps.
    */

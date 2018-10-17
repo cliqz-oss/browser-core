@@ -34,6 +34,7 @@ export default describeModule('anolysis/internals/storage/async-storage',
         getFormattedCurrentDate,
         setCurrentDate,
         getStorage: () => Storage,
+        forceReloadDuringTests: true,
       });
     });
   },

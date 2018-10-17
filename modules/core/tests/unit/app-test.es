@@ -59,6 +59,7 @@ export default describeModule('core/app',
       'core/prefs': {
         default: {
           set() {},
+          has: () => false,
         },
       },
       'core/console': {
@@ -72,6 +73,9 @@ export default describeModule('core/app',
       },
       'platform/browser': {
         forEachWindow() {},
+      },
+      'core/platform': {
+        default: { isOnionMode: false },
       },
     };
   },

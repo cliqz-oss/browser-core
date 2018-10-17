@@ -1,14 +1,23 @@
 import { testServer, expect } from '../test-helpers';
-import { promiseHttpHandler } from '../../../core/http';
+import { promiseHttpHandler, fetch } from '../../../core/http';
 
 
 export default function () {
+  const url = testServer.getBaseUrl();
+  const responseTest = 'hello world';
+
+  beforeEach(() => testServer.registerPathHandler('/', { result: responseTest }));
+  describe('fetch', () => {
+    it('doesn\'t send origin header', async () => {
+      await fetch(url);
+      const hits = await testServer.getHitsForPath('/');
+      const origin = hits[0].headers.origin;
+      // Header was either removed or it didn't exist
+      expect(origin === 'null' || origin === undefined).to.be.true;
+    });
+  });
+
   describe('promiseHttpHandler', () => {
-    const url = testServer.getBaseUrl();
-    const responseTest = 'hello world';
-
-    beforeEach(() => testServer.registerPathHandler('/', { result: responseTest }));
-
     context('get request', () => {
       it('gets response of request', async () => {
         const resp = await promiseHttpHandler('GET', url);

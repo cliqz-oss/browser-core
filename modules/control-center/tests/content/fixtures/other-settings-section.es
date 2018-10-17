@@ -19,5 +19,6 @@ export default function (amo) {
     compactView: false,
     privacyPolicyURL: 'privacy_policy_url',
     showPoweredBy: true,
+    showLearnMore: true,
   };
 }

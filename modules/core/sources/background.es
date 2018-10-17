@@ -14,7 +14,8 @@ import inject from './kord/inject';
 import { queryCliqz, openLink, openTab, getOpenTabs, getReminders } from '../platform/browser-actions';
 import providesServices from './services';
 import { httpHandler } from './http';
-import { updateTabById } from './tabs';
+import { updateTab } from './tabs';
+import handleReadContentAsDataUrl from './image-diverter';
 
 let lastRequestId = 1;
 const callbacks = {};
@@ -89,16 +90,16 @@ export default background({
   },
 
   getWindowStatusFromModules(win) {
-    return Object.keys(this.app.modules).map((module) => {
+    return Object.keys(this.app.modules).map(async (module) => {
       const windowModule = this.app.modules[module].getWindowModule(win);
       const backgroundModule = this.app.modules[module].backgroundModule;
-
+      let status = null;
       if (windowModule && windowModule.status) {
-        return windowModule.status();
+        status = await windowModule.status();
       } else if (backgroundModule && backgroundModule.status) {
-        return backgroundModule.status();
+        status = await backgroundModule.status();
       }
-      return null;
+      return { module, status };
     });
   },
 
@@ -244,8 +245,8 @@ export default background({
         .then((allStatus) => {
           const result = {};
 
-          allStatus.forEach((status, moduleIdx) => {
-            result[config.modules[moduleIdx]] = status || null;
+          allStatus.forEach(({ module, status }) => {
+            result[module] = status || null;
           });
 
           return result;
@@ -280,7 +281,7 @@ export default background({
       if (newTab) {
         openLink(url);
       } else if (tabId) {
-        updateTabById(tabId, { url });
+        updateTab(tabId, url);
       }
     },
 
@@ -364,6 +365,10 @@ export default background({
 
     refreshAppState() {
       this.mm.shareAppState(this.app);
+    },
+
+    readContentAsDataUrl(url) {
+      return handleReadContentAsDataUrl(url);
     },
   },
 });

@@ -64,14 +64,14 @@ const chromeQueryComputedStyle = async (url, selector) => {
   );
 };
 
-const chromeClick = async (url, selector) => {
+const chromeClick = async (url, selector, ind) => {
   const window = chrome.extension.getViews().find(w => w.location.href === url);
 
   if (!window) {
     return [];
   }
 
-  return window.document.querySelector(selector).click();
+  return window.document.querySelectorAll(selector)[ind].click();
 };
 
 export const win = wrap(() => chrome.extension.getBackgroundPage().window);
@@ -104,9 +104,9 @@ export function queryComputedStyle(url, ...rest) {
 
 const contentClick = (url, selector) => app.modules.core.action('click', url, selector);
 
-export function click(url, selector) {
+export function click(url, selector, ind = 0) {
   if (url.startsWith(chrome.runtime.getURL(''))) {
-    return chromeClick(url, selector);
+    return chromeClick(url, selector, ind);
   }
   return contentClick(url, selector);
 }

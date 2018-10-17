@@ -1,15 +1,15 @@
 export function toggleSubscription(/* type, subtype, id, isSubscribed */) {
-  return Promise.resolve(false);
+  return Promise.reject('Native subscription is not available');
 }
 
 export function checkSubscriptions(/* batch */) {
-  return Promise.resolve(false);
+  return Promise.reject('Native subscription is not available');
 }
 
 export function isSubscribedToLeague(/* id */) {
-  return Promise.resolve(false);
+  return Promise.reject('Native subscription is not available');
 }
 
 export function isSubscribedToTeam(/* id */) {
-  return Promise.resolve(false);
+  return Promise.reject('Native subscription is not available');
 }

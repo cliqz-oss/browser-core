@@ -16,7 +16,7 @@ export function runContentScripts(window, chrome, CLIQZ) {
     });
   matchingPatterns.forEach((pattern) => {
     CONTENT_SCRIPTS[pattern]
-      .filter(({ moduleName }) => CLIQZ.app.modules[moduleName].isEnabled)
+      .filter(({ moduleName }) => (CLIQZ.app.modules[moduleName] || {}).isEnabled)
       .forEach(({ contentScript }) => {
         try {
           contentScript(window, chrome, CLIQZ);

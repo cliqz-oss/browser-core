@@ -2,7 +2,6 @@ $inactive-tab-color: #D1D1D1;
 $tab-min-height: 30px;
 $chrome-light-color: #f2f2f2;
 $chrome-dark-color: #464646;
-$cliqz-blue-color: #00ADEF;
 
 :root {
     /* Override global variables */
@@ -10,15 +9,15 @@ $cliqz-blue-color: #00ADEF;
 
     /* Override dark theme variables */
     &:-moz-lwtheme {
-        --chrome-secondary-background-color: $chrome-dark-color; // Background for nav-bar
-        --lwt-toolbar-field-background-color: $chrome-dark-color; // Background for urlba
+        --chrome-secondary-background-color: #{$chrome-dark-color}; // Background for nav-bar
+        --lwt-toolbar-field-background-color: #{$chrome-dark-color}; // Background for urlba
     }
 
     /* Override light theme variables */
     &:-moz-lwtheme-darktext {
-        --toolbox-border-bottom-color: $chrome-light-color;
-        --chrome-secondary-background-color: $chrome-light-color; // Background for nav-bar
-        --lwt-toolbar-field-background-color: $chrome-light-color; // Background for urlbar
+        --toolbox-border-bottom-color: #{$chrome-light-color};
+        --chrome-secondary-background-color: #{$chrome-light-color}; // Background for nav-bar
+        --lwt-toolbar-field-background-color: #{$chrome-light-color}; // Background for urlbar
     }
 
     /* Style back button the same way as other toolbar buttons (remove border and border radius) */
@@ -108,7 +107,7 @@ $cliqz-blue-color: #00ADEF;
         /* Customize tabs toolbar background color for light theme */
         &:-moz-lwtheme-darktext {
             -moz-appearance: none;
-            background-color: $inactive-tab-color;
+            background-color: #{$inactive-tab-color};
         }
 
 
@@ -192,7 +191,7 @@ $cliqz-blue-color: #00ADEF;
                 &[visuallyselected="true"] {
                     &:-moz-lwtheme {
                         .tab-content {
-                            background-color: $chrome-dark-color;
+                            background-color: #{$chrome-dark-color};
                         }
                     }
 
@@ -244,6 +243,8 @@ $cliqz-blue-color: #00ADEF;
                 // Transition delay to prevent flashing when changing mouse over between url and tabsbar
                 transition: background-color cubic-bezier(.43,-0.01,.26,1.01) 60ms;
                 transition-delay: 60ms;
+                max-width: 100%;
+                margin: 0px 0px;
 
                 /* Add 1px margin for page action buttons */
                 #page-action-buttons {
@@ -314,4 +315,96 @@ $cliqz-blue-color: #00ADEF;
     }
 }
 
-
+@mixin browser-theme($base-color) {
+    /* Override light theme variables */
+    &:-moz-lwtheme-darktext, &:-moz-lwtheme {
+        --chrome-background-color: #{$base-color}; // Background for menu toolbar (Windows only)
+    }
+  
+    #navigator-toolbox, #navigator-toolbox #TabsToolbar,
+    .tabbrowser-tab .tab-content {
+        background-color: #{$base-color};
+    }
+  
+    #navigator-toolbox #TabsToolbar #tabbrowser-tabs .tabbrowser-tab {
+  
+      &:first-of-type { // [first-tab="true"], [first-visible-tab="true"]
+        // Override the left line of the first tab to be black on dark & blue theme
+        &:-moz-lwtheme {
+          border-left: 0.5px solid rgba(0, 0, 0, 0.2);
+        }
+      }
+  
+      // On blue theme force lines between tabs
+      &:after {
+        opacity: 1;
+        border-left-color: darken($base-color, 10%);
+      }
+  
+      &[visuallyselected="true"] {
+        border-top: 0;
+  
+        &:-moz-lwtheme {
+          .tab-content {
+            background-color: unset;
+          }
+        }
+  
+        &:-moz-lwtheme-darktext {
+          .tab-content {
+            background-color: #{$chrome-light-color};
+          }
+        }
+      }
+  
+      &:hover:not([visuallyselected="true"]) .tab-content {
+        background-color: darken($base-color, 5%);
+        transition: background-color ease 150ms;
+      }
+  
+      .tab-label-container:not([selected="true"]) {
+        opacity: 1;
+  
+        .tab-label:not([selected="true"]) {
+          color: #fff;
+          opacity: 1;
+        }
+      }
+  
+      &:not([visuallyselected="true"]) {
+  
+        .tab-close-button:hover {
+  
+          .toolbarbutton-icon {
+            background-color: darken($base-color, 15%);
+          }
+  
+          &:-moz-lwtheme {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 2px;
+          }
+  
+          &:-moz-lwtheme-darktext {
+            background-color: unset;
+            border-radius: unset;
+          }
+        }
+  
+        .toolbarbutton-icon {
+          --toolbarbutton-icon-fill-opacity: 1;
+          fill:  #fff;
+          stroke-opacity: 1;
+        }
+      }
+    }
+  
+    .tabs-newtab-button,
+    #new-tab-button {
+      --toolbarbutton-icon-fill-opacity: 0.75;
+      fill: #fff;
+  
+      &:hover {
+        --toolbarbutton-icon-fill-opacity: 1;
+      }
+    }
+  }

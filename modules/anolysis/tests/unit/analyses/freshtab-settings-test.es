@@ -16,6 +16,7 @@ require('../telemetry-schemas-test-helpers')({
       default: {
         module() {
           return {
+            isEnabled: () => true,
             async action(action) {
               if (!freshTabEnabled) {
                 throw new ModuleDisabledError();
@@ -51,6 +52,7 @@ require('../telemetry-schemas-test-helpers')({
       default: {
         module() {
           return {
+            isEnabled: () => true,
             async action(action) {
               if (!freshTabEnabled) {
                 throw new ModuleDisabledError();

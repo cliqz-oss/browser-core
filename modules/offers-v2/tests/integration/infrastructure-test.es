@@ -1,8 +1,8 @@
-import { app } from '../../core/test-helpers';
-import OffersConfigs from "../../../offers-v2/offers_configs";
-import config from "../../../core/config";
-import logger from "../../../offers-v2/common/offers_v2_logger";
-import {getHpnTimeStamp, getMinuteTimestamp} from "../../../offers-v2/signals/utils";
+import { app } from '../../core/integration/helpers';
+import OffersConfigs from '../../../offers-v2/offers_configs';
+import config from '../../../core/config';
+import logger from '../../../offers-v2/common/offers_v2_logger';
+import { getHpnTimeStamp, getMinuteTimestamp } from '../../../offers-v2/signals/utils';
 
 export default function () {
   if (app.config.settings.offersInfraTests !== true) {

@@ -72,14 +72,6 @@ export function clearPref(prefKey) {
   syncToStorage();
 }
 
-export function enableChangeEvents() {
-  throw new Error('not implemented - prefs.enableChangeEvents');
-}
-
-export function disableChangeEvents() {
-  throw new Error('not implemented - prefs.disableChangeEvents');
-}
-
 export function getCliqzPrefs() {
   function filterer(entry) {
     // avoid privay leaking prefs ('backup').

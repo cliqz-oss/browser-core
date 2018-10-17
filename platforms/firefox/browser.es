@@ -368,3 +368,26 @@ export function removeMigrationObserver(callback) {
     obs.uninit();
   }
 }
+
+
+export function getPrincipalForUrl(url) {
+  if (url.startsWith('chrome:') || url.startsWith('resource:') || url.startsWith('about:')) {
+    // we return system principal only for chrome, resoure and about: pages
+    return Services.scriptSecurityManager.getSystemPrincipal();
+  }
+
+  // otherwise we simply return a newly created NullPrincipal
+  return Services.scriptSecurityManager.createNullPrincipal({});
+}
+
+
+export function loadURIIntoGBrowser(gBrowser, uri) {
+  try {
+    gBrowser.loadURI(uri);
+  } catch (ex) {
+    // On Firefox 64 and later, loadURI requires a mandatory
+    // `triggeringPrincipal` argument. Unfortunately, specifying this argument
+    // in prior versions of Firefox will throw another exception.
+    gBrowser.loadURI(uri, { triggeringPrincipal: getPrincipalForUrl(uri) });
+  }
+}

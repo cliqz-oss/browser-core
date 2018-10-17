@@ -1,3 +1,11 @@
+import * as FETCH from 'whatwg-fetch';
+
+const {
+  fetch,
+  Headers,
+  Request,
+  Response,
+} = FETCH;
 
 export default fetch;
 

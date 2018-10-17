@@ -1,67 +1,16 @@
-import { expect, waitFor, wait } from '../../core/test-helpers';
+import { expect, waitFor } from '../../core/test-helpers';
 import console from '../../../core/console';
 import config from '../../../core/config';
 import { data, dataAmo } from './fixtures/search-section';
+import Subject from './local-helpers';
 
-
-class Subject {
-  constructor() {
-    this.messages = [];
-  }
-
-  load({ isPageAction = true }) {
-    this.iframe = document.createElement('iframe');
-    this.iframe.src = `/build/${config.settings.id}/chrome/content/control-center/index.html${(isPageAction ? '?pageAction=true' : '')}`;
-
-    this.iframe.width = 455;
-    this.iframe.height = 500;
-    document.body.appendChild(this.iframe);
-
-    return new Promise((resolve) => {
-      this.iframe.contentWindow.addEventListener('message', (ev) => {
-        const _data = JSON.parse(ev.data);
-        this.messages.push(_data);
-      });
-
-      return waitFor(() => this.messages.length === 1).then(resolve);
-    });
-  }
-
-  unload() {
-    document.body.removeChild(this.iframe);
-  }
-
-  query(selector) {
-    return this.iframe.contentWindow.document.querySelector(selector);
-  }
-
-  queryAll(selector) {
-    return this.iframe.contentWindow.document.querySelectorAll(selector);
-  }
-
-  pushData(_data = {}) {
-    this.iframe.contentWindow.postMessage(JSON.stringify({
-      target: 'cliqz-control-center',
-      origin: 'window',
-      message: {
-        action: 'pushData',
-        data: _data,
-      }
-    }), '*');
-    return wait(500);
-  }
-
-  getComputedStyle(selector) {
-    return this.iframe.contentWindow.getComputedStyle(this.query(selector));
-  }
-}
+const target = 'control-center';
 
 describe('Search options UI browser', function () {
   let subject;
 
   beforeEach(function () {
     subject = new Subject();
-    return subject.load({ isPageAction: false });
   });
 
   afterEach(function () {
@@ -70,7 +19,14 @@ describe('Search options UI browser', function () {
 
   describe('Search options section', function () {
     beforeEach(function () {
-      return subject.pushData(data);
+      subject.respondsWith({
+        module: target,
+        action: 'getData',
+        response: data
+      });
+      return subject.load({
+        buildUrl: `/build/${config.settings.id}/chrome/content/control-center/index.html?pageAction=false`
+      });
     });
 
     it('exists', function () {
@@ -123,10 +79,10 @@ describe('Search options UI browser', function () {
             evt.initEvent('change', true, true);
             select.dispatchEvent(evt);
             return waitFor(
-              () => subject.messages.find(message => message.message.action === 'complementary-search')
+              () => subject.messages.find(message => message.action === 'complementary-search')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('message.data.defaultSearch', currentValue);
+                expect(message).to.have.nested.property('args[0].defaultSearch', currentValue);
               }
             );
           });
@@ -152,7 +108,7 @@ describe('Search options UI browser', function () {
 
         it('renders info button', function () {
           const explicitObject = subject.queryAll('#accordion-2 .bullet')[1];
-          expect(explicitObject.querySelector('.infobutton')).to.exist;
+          expect(explicitObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         function explicitContent(currentValue) {
@@ -166,12 +122,12 @@ describe('Search options UI browser', function () {
             evt.initEvent('change', true, true);
             select.dispatchEvent(evt);
             return waitFor(
-              () => subject.messages.find(message => message.message.action === 'updatePref')
+              () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('message.data.pref', 'extensions.cliqz.adultContentFilter');
-                expect(message).to.have.nested.property('message.data.value', `${currentValue}`);
-                expect(message).to.have.nested.property('message.data.target', 'search_adult');
+                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.adultContentFilter');
+                expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
+                expect(message).to.have.nested.property('args[0].target', 'search_adult');
               }
             );
           });
@@ -201,17 +157,17 @@ describe('Search options UI browser', function () {
         });
 
         it('renders info button', function () {
-          const locationObject = subject.queryAll('#accordion-2 .bullet')[2];
-          expect(locationObject.querySelector('.infobutton')).to.exist;
+          const locationObject = subject.queryAll('#accordion-2 .bullet')[4];
+          expect(locationObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         it('renders "Learn more"', function () {
-          const locationObject = subject.queryAll('#accordion-2 .bullet')[2];
+          const locationObject = subject.queryAll('#accordion-2 .bullet')[4];
           expect(locationObject.querySelector('.location-more')).to.exist;
         });
 
         it('url is correct', function () {
-          const locationObject = subject.queryAll('#accordion-2 .bullet')[2];
+          const locationObject = subject.queryAll('#accordion-2 .bullet')[4];
           expect(locationObject.querySelector('.location-more').getAttribute('data-open-url')).to.equal('https://cliqz.com/support/local-results');
         });
 
@@ -226,12 +182,12 @@ describe('Search options UI browser', function () {
             evt.initEvent('change', true, true);
             select.dispatchEvent(evt);
             return waitFor(
-              () => subject.messages.find(message => message.message.action === 'updatePref')
+              () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('message.data.pref', 'extensions.cliqz.share_location');
-                expect(message).to.have.nested.property('message.data.value', `${currentValue}`);
-                expect(message).to.have.nested.property('message.data.target', 'search_location');
+                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.share_location');
+                expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
+                expect(message).to.have.nested.property('args[0].target', 'search_location');
               }
             );
           });
@@ -261,8 +217,8 @@ describe('Search options UI browser', function () {
         });
 
         it('does not render info button', function () {
-          const explicitObject = subject.queryAll('#accordion-2 .bullet')[3];
-          expect(explicitObject.querySelector('.infobutton')).to.be.null;
+          const explicitObject = subject.queryAll('#accordion-2 .bullet')[2];
+          expect(explicitObject.querySelector('.cc-tooltip')).to.be.null;
         });
 
         function countryBackend(currentValue) {
@@ -275,10 +231,10 @@ describe('Search options UI browser', function () {
             evt.initEvent('change', true, true);
             select.dispatchEvent(evt);
             return waitFor(
-              () => subject.messages.find(message => message.message.action === 'search-index-country')
+              () => subject.messages.find(message => message.action === 'search-index-country')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('message.data.defaultCountry', currentValue);
+                expect(message).to.have.nested.property('args[0].defaultCountry', currentValue);
               }
             );
           });
@@ -309,7 +265,7 @@ describe('Search options UI browser', function () {
 
         it('renders info button', function () {
           const locationObject = subject.queryAll('#accordion-2 .bullet')[4];
-          expect(locationObject.querySelector('.infobutton')).to.exist;
+          expect(locationObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         function proxy(currentValue) {
@@ -323,12 +279,12 @@ describe('Search options UI browser', function () {
             evt.initEvent('change', true, true);
             select.dispatchEvent(evt);
             return waitFor(
-              () => subject.messages.find(message => message.message.action === 'updatePref')
+              () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('message.data.pref', 'extensions.cliqz.hpn-query');
-                expect(message).to.have.nested.property('message.data.value', `${currentValue}`);
-                expect(message).to.have.nested.property('message.data.target', 'search_proxy');
+                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.hpn-query');
+                expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
+                expect(message).to.have.nested.property('args[0].target', 'search_proxy');
               }
             );
           });
@@ -360,7 +316,7 @@ describe('Search options UI browser', function () {
 
         it('renders info button', function () {
           const locationObject = subject.queryAll('#accordion-2 .bullet')[5];
-          expect(locationObject.querySelector('.infobutton')).to.exist;
+          expect(locationObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         function humanWeb(currentValue) {
@@ -374,12 +330,12 @@ describe('Search options UI browser', function () {
             evt.initEvent('change', true, true);
             select.dispatchEvent(evt);
             return waitFor(
-              () => subject.messages.find(message => message.message.action === 'updatePref')
+              () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('message.data.pref', 'extensions.cliqz.humanWebOptOut');
-                expect(message).to.have.nested.property('message.data.value', `${currentValue}`);
-                expect(message).to.have.nested.property('message.data.target', 'search_humanweb');
+                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.humanWebOptOut');
+                expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
+                expect(message).to.have.nested.property('args[0].target', 'search_humanweb');
               }
             );
           });
@@ -416,7 +372,7 @@ describe('Search options UI browser', function () {
 
         it('does not render info button', function () {
           const monitorObject = subject.queryAll('#accordion-2 .bullet')[6];
-          expect(monitorObject.querySelector('.infobutton')).to.be.null;
+          expect(monitorObject.querySelector('.cc-tooltip')).to.be.null;
         });
       });
     });
@@ -428,7 +384,6 @@ describe('AMO Search options tests', function () {
 
   beforeEach(function () {
     subject = new Subject();
-    return subject.load({ isPageAction: false });
   });
 
   afterEach(function () {
@@ -437,7 +392,14 @@ describe('AMO Search options tests', function () {
 
   describe('Search options section', function () {
     beforeEach(function () {
-      return subject.pushData(dataAmo);
+      subject.respondsWith({
+        module: target,
+        action: 'getData',
+        response: dataAmo
+      });
+      return subject.load({
+        buildUrl: `/build/${config.settings.id}/chrome/content/control-center/index.html?pageAction=false`
+      });
     });
 
     it('exists', function () {
@@ -490,10 +452,10 @@ describe('AMO Search options tests', function () {
             evt.initEvent('change', true, true);
             select.dispatchEvent(evt);
             return waitFor(
-              () => subject.messages.find(message => message.message.action === 'complementary-search')
+              () => subject.messages.find(message => message.action === 'complementary-search')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('message.data.defaultSearch', currentValue);
+                expect(message).to.have.nested.property('args[0].defaultSearch', currentValue);
               }
             );
           });
@@ -519,7 +481,7 @@ describe('AMO Search options tests', function () {
 
         it('renders info button', function () {
           const explicitObject = subject.queryAll('#accordion-2 .bullet')[1];
-          expect(explicitObject.querySelector('.infobutton')).to.exist;
+          expect(explicitObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         function explicitContent(currentValue) {
@@ -533,12 +495,12 @@ describe('AMO Search options tests', function () {
             evt.initEvent('change', true, true);
             select.dispatchEvent(evt);
             return waitFor(
-              () => subject.messages.find(message => message.message.action === 'updatePref')
+              () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('message.data.pref', 'extensions.cliqz.adultContentFilter');
-                expect(message).to.have.nested.property('message.data.value', `${currentValue}`);
-                expect(message).to.have.nested.property('message.data.target', 'search_adult');
+                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.adultContentFilter');
+                expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
+                expect(message).to.have.nested.property('args[0].target', 'search_adult');
               }
             );
           });
@@ -568,17 +530,17 @@ describe('AMO Search options tests', function () {
         });
 
         it('renders info button', function () {
-          const locationObject = subject.queryAll('#accordion-2 .bullet')[2];
-          expect(locationObject.querySelector('.infobutton')).to.exist;
+          const locationObject = subject.queryAll('#accordion-2 .bullet')[4];
+          expect(locationObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         it('renders "Learn more"', function () {
-          const locationObject = subject.queryAll('#accordion-2 .bullet')[2];
+          const locationObject = subject.queryAll('#accordion-2 .bullet')[4];
           expect(locationObject.querySelector('.location-more')).to.exist;
         });
 
         it('url is correct', function () {
-          const locationObject = subject.queryAll('#accordion-2 .bullet')[2];
+          const locationObject = subject.queryAll('#accordion-2 .bullet')[4];
           expect(locationObject.querySelector('.location-more').getAttribute('data-open-url')).to.equal('https://cliqz.com/support/local-results');
         });
 
@@ -593,12 +555,12 @@ describe('AMO Search options tests', function () {
             evt.initEvent('change', true, true);
             select.dispatchEvent(evt);
             return waitFor(
-              () => subject.messages.find(message => message.message.action === 'updatePref')
+              () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('message.data.pref', 'extensions.cliqz.share_location');
-                expect(message).to.have.nested.property('message.data.value', `${currentValue}`);
-                expect(message).to.have.nested.property('message.data.target', 'search_location');
+                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.share_location');
+                expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
+                expect(message).to.have.nested.property('args[0].target', 'search_location');
               }
             );
           });
@@ -628,8 +590,8 @@ describe('AMO Search options tests', function () {
         });
 
         it('does not render info button', function () {
-          const explicitObject = subject.queryAll('#accordion-2 .bullet')[3];
-          expect(explicitObject.querySelector('.infobutton')).to.be.null;
+          const explicitObject = subject.queryAll('#accordion-2 .bullet')[2];
+          expect(explicitObject.querySelector('.cc-tooltip')).to.be.null;
         });
 
         function countryBackend(currentValue) {
@@ -642,10 +604,10 @@ describe('AMO Search options tests', function () {
             evt.initEvent('change', true, true);
             select.dispatchEvent(evt);
             return waitFor(
-              () => subject.messages.find(message => message.message.action === 'search-index-country')
+              () => subject.messages.find(message => message.action === 'search-index-country')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('message.data.defaultCountry', currentValue);
+                expect(message).to.have.nested.property('args[0].defaultCountry', currentValue);
               }
             );
           });
@@ -676,7 +638,7 @@ describe('AMO Search options tests', function () {
 
         it('renders info button', function () {
           const locationObject = subject.queryAll('#accordion-2 .bullet')[4];
-          expect(locationObject.querySelector('.infobutton')).to.exist;
+          expect(locationObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         function proxy(currentValue) {
@@ -690,12 +652,12 @@ describe('AMO Search options tests', function () {
             evt.initEvent('change', true, true);
             select.dispatchEvent(evt);
             return waitFor(
-              () => subject.messages.find(message => message.message.action === 'updatePref')
+              () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('message.data.pref', 'extensions.cliqz.hpn-query');
-                expect(message).to.have.nested.property('message.data.value', `${currentValue}`);
-                expect(message).to.have.nested.property('message.data.target', 'search_proxy');
+                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.hpn-query');
+                expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
+                expect(message).to.have.nested.property('args[0].target', 'search_proxy');
               }
             );
           });
@@ -727,7 +689,7 @@ describe('AMO Search options tests', function () {
 
         it('renders info button', function () {
           const locationObject = subject.queryAll('#accordion-2 .bullet')[5];
-          expect(locationObject.querySelector('.infobutton')).to.exist;
+          expect(locationObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         function humanWeb(currentValue) {
@@ -741,12 +703,12 @@ describe('AMO Search options tests', function () {
             evt.initEvent('change', true, true);
             select.dispatchEvent(evt);
             return waitFor(
-              () => subject.messages.find(message => message.message.action === 'updatePref')
+              () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('message.data.pref', 'extensions.cliqz.humanWebOptOut');
-                expect(message).to.have.nested.property('message.data.value', `${currentValue}`);
-                expect(message).to.have.nested.property('message.data.target', 'search_humanweb');
+                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.humanWebOptOut');
+                expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
+                expect(message).to.have.nested.property('args[0].target', 'search_humanweb');
               }
             );
           });
@@ -757,6 +719,57 @@ describe('AMO Search options tests', function () {
         it('text for options is correct', function () {
           const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control_center_enabled"]';
           const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control_center_disabled"]';
+          expect(subject.query(enabledSelector)).to.exist;
+          expect(subject.query(enabledSelector).textContent.trim()).to.equal('control_center_enabled');
+          expect(subject.query(disabledSelector)).to.exist;
+          expect(subject.query(disabledSelector).textContent.trim()).to.equal('control_center_disabled');
+        });
+      });
+
+      context('"Send usage data" block', function () {
+        it('renders "Send usage data"', function () {
+          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_telemetry"]';
+          expect(subject.query(titleSelector)).to.exist;
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_telemetry');
+        });
+
+        it('renders dropdown', function () {
+          const dropdownSelector = '#accordion-2 .bullet .custom-dropdown[data-target="telemetry"]';
+          expect(subject.query(dropdownSelector)).to.exist;
+        });
+
+        it('renders info button', function () {
+          const locationObject = subject.queryAll('#accordion-2 .bullet')[6];
+          expect(locationObject.querySelector('.cc-tooltip')).to.exist;
+        });
+
+        function usageData(currentValue) {
+          it(`changed pref to ${currentValue}`, function () {
+            const dropdownSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="telemetry"]';
+            const select = subject.query(dropdownSelector);
+            select.querySelector('[value="true"]').removeAttribute('selected');
+            select.querySelector(`[value="${currentValue}"]`).setAttribute('selected', '');
+            const evt = document.createEvent('HTMLEvents');
+            select.addEventListener('change', console.log);
+            evt.initEvent('change', true, true);
+            select.dispatchEvent(evt);
+            return waitFor(
+              () => subject.messages.find(message => message.action === 'updatePref')
+            ).then(
+              (message) => {
+                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.telemetry');
+                expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
+                expect(message).to.have.nested.property('args[0].target', 'telemetry');
+              }
+            );
+          });
+        }
+        usageData('true');
+        usageData('false');
+
+        it('text for options is correct', function () {
+          const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="telemetry"] [data-i18n="control_center_enabled"]';
+          const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="telemetry"] [data-i18n="control_center_disabled"]';
           expect(subject.query(enabledSelector)).to.exist;
           expect(subject.query(enabledSelector).textContent.trim()).to.equal('control_center_enabled');
           expect(subject.query(disabledSelector)).to.exist;

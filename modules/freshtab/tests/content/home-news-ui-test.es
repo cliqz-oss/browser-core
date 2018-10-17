@@ -60,7 +60,7 @@ describe('Freshtab news UI', function () {
       });
 
       it('has no extra elements (selectors)', function () {
-        expect(subject.queryAll('.radio')).to.have.lengthOf(8);
+        expect(subject.queryAll('.radio')).to.have.lengthOf(10);
       });
     });
 

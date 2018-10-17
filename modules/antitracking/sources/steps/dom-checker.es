@@ -3,7 +3,7 @@
 /* eslint prefer-arrow-callback: 'off' */
 
 import { isTabURL } from '../../platform/browser';
-import pacemaker from '../../core/pacemaker';
+import pacemaker from '../../core/services/pacemaker';
 import core from '../../core/background';
 import { dURIC } from '../../core/url-info';
 

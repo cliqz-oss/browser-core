@@ -1,12 +1,23 @@
+import { NativeModules } from 'react-native';
 import { getDetailsFromUrl } from '../core/url';
 
-const defaultSearchEngine = {
-  name: 'DuckDuckGo',
-  url: 'https://duckduckgo.com/?q=',
-  default: true,
-  getSubmissionForQuery: query => defaultSearchEngine.url + query,
-  get urlDetails() { return getDetailsFromUrl(defaultSearchEngine.url); }
-};
+const SearchEnginesModule = NativeModules.SearchEnginesModule;
+const { locale } = NativeModules.LocaleConstants;
+
+let searchEngines = [];
+const ENGINE_CODES = [
+  'google images',
+  'google maps',
+  'google',
+  'yahoo',
+  'bing',
+  'wikipedia',
+  'amazon',
+  'ebay',
+  'leo',
+  'youtube',
+  'ecosia',
+];
 
 export default {};
 
@@ -24,19 +35,38 @@ export function revertToOriginalEngine() {
 export function addCustomSearchEngine() {
 }
 
+const getEngineCode = name => ENGINE_CODES.indexOf(name.toLowerCase()) + 1;
+
 export function getDefaultSearchEngine() {
-  return defaultSearchEngine;
+  return searchEngines.find(engine => engine.default);
 }
 
-export function loadSearchEngines() { return Promise.resolve(); }
+export async function loadSearchEngines() {
+  const engines = await SearchEnginesModule.getSearchEngines();
+  searchEngines = engines.map(e => ({
+    name: e.name,
+    code: getEngineCode(e.name),
+    alias: '', // todo
+    default: e.default,
+    urlDetails: getDetailsFromUrl(e.base_url),
+    getSubmissionForQuery(q, type = 'text/html') {
+      const url = e.urls[type];
+      // some engines cannot create submissions for all types
+      // eg 'application/x-suggestions+json'
+      if (!url) {
+        return null;
+      }
 
-export function setDefaultSearchEngine({ name, url }) {
-  defaultSearchEngine.name = name;
-  defaultSearchEngine.url = url;
+      return url.replace(e.SearchTermComponent, encodeURIComponent(q))
+        .replace(e.LocaleTermComponent, locale);
+    },
+  }));
 }
+
+export function setDefaultSearchEngine() {}
 
 export function getSearchEngines() {
-  return [defaultSearchEngine];
+  return searchEngines;
 }
 
 export function getEngineByName() {

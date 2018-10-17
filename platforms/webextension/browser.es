@@ -81,10 +81,9 @@ export function getUrlForTab(tabId) {
   });
 }
 
-
 export function getActiveTab() {
   return new Promise((resolve, reject) => {
-    chrome.tabs.query({ active: true }, (result) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (result) => {
       const tab = result[0];
       if (tab) {
         resolve({
@@ -127,4 +126,6 @@ export function disableChangeEvents() {}
 
 export function resetOriginalPrefs() {}
 
-export function getThemeStyle() {}
+export function getThemeStyle() {
+  return 'light';
+}

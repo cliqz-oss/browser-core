@@ -110,25 +110,33 @@
         }
     }
 }
-/* Use grey background when it's displayed in history */
-.history .news-story .result {
 
-    &.selected, &.selected:visited {
-        background-color: unset;
-    }
-}
+.history {
 
-.history .news-story.top-news .result {
-    padding: 0;
+    .news-story {
 
-    .icons {
-        margin-top: 28px;
-    }
+        .result {
+            padding: 0;
 
-    .abstract .content {
+            .icons {
+                margin-top: 28px;
+            }
 
-        .description {
-            display: block;
+            .abstract .content {
+
+                .description {
+                    display: block;
+                }
+
+                .url {
+                    line-height: 1.28051em;
+                }
+            }
+
+            /* Use grey background when it's displayed in history */
+            &.selected, &.selected:visited {
+                background-color: unset;
+            }
         }
     }
 }

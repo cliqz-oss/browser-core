@@ -72,7 +72,11 @@ class Generic extends React.Component {
         style={{ backgroundColor: 'white', ...cardBorderTopRadius }}
       >
         {url &&
-          <View style={styles(`#${headerBackround}`).header}>
+          <View
+            accessible={false}
+            accessibilityLabel={'header-container'}
+            style={styles(`#${headerBackround}`).header}
+          >
             <Icon width={40} height={40} logoDetails={logoDetails} />
             {isSecure &&
               <View

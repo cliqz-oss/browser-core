@@ -22,11 +22,9 @@ export function forEachWindow(cb) {
   cb(window);
 }
 
-export function enableChangeEvents() {
-}
+export function enableChangeEvents() {}
 
-export function disableChangeEvents() {
-}
+export function disableChangeEvents() {}
 
 export function waitWindowReady() {
   return Promise.resolve();

@@ -44,11 +44,19 @@ export default class PageLogger {
           getPageAnnotations: state.getPageAnnotations,
         });
       }
-    }
-    // add triggeringPrinciple info
-    const pageLoad = this.tpEvents._active[state.tabId];
-    if (pageLoad && state.trigger) {
-      pageLoad.addTrigger(state.urlParts.hostname, state.trigger);
+
+      // add triggeringPrinciple info
+      if (state.trigger) {
+        const pageLoad = this.tpEvents.getPage(state.url,
+          urlParts,
+          state.sourceUrl,
+          state.sourceUrlParts,
+          state.tabId
+        );
+        if (pageLoad) {
+          pageLoad.addTrigger(state.urlParts.hostname, state.trigger, state.frameId);
+        }
+      }
     }
     return true;
   }

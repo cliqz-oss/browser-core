@@ -10,7 +10,7 @@ function checkUserAgent(pattern) {
   }
 }
 
-export default {
+const def = {
   isBootstrap: false,
   isMobile: checkUserAgent('Mobile'),
   isFirefox: checkUserAgent('Firefox'),
@@ -19,6 +19,8 @@ export default {
   platformName: 'webextension',
   isOnionMode: false,
 };
+
+export default def;
 
 export function isPlatformAtLeastInVersion() {
   return true;

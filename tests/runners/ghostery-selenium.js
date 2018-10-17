@@ -61,7 +61,7 @@ const TESTS = [
       const element = webdriver.By.id(id);
 
       try {
-        await driver.wait(until.elementLocated(element));
+        await driver.wait(until.elementLocated(element), 10000);
       } catch (ex) {
         throw new Error(`Expected #${id} to exist`);
       }
@@ -134,7 +134,7 @@ async function switchToGhosteryPage(driver) {
  * is running".
  */
 async function ghosteryInitialized(driver) {
-  const element = webdriver.By.id('setup-choice-view');
+  const element = webdriver.By.css('div.HomeView__featureTitle');
   await driver.wait(until.elementLocated(element), 10000);
 }
 

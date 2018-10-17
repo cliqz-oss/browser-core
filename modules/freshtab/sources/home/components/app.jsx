@@ -59,6 +59,7 @@ class App extends React.Component {
       hasHistorySpeedDialsToRestore: false,
       isOfferMenuOpen: false,
       isOfferInfoOpen: false,
+      isModalOpen: false,
     };
 
     window.state = this.state;
@@ -214,9 +215,29 @@ class App extends React.Component {
 
   getConfig() {
     return this.freshtab.getConfig().then((freshtabConfig) => {
-      const bgImage = freshtabConfig.componentsState.background.image;
+      let bgImage = freshtabConfig.componentsState.background.image;
+
+      // Fall back to default background if current config contains
+      // non-existing name of the background
+      if ((bgImage !== config.constants.NO_BG) &&
+        (Object.keys(config.backgrounds).indexOf(bgImage) === -1)) {
+        bgImage = getDefaultWallpaper();
+      }
+
       this.updateTheme(bgImage);
       this.setState({ config: freshtabConfig, messages: freshtabConfig.messages });
+      this.setState(prevState => ({
+        config: {
+          ...prevState.config,
+          componentsState: {
+            ...prevState.config.componentsState,
+            background: {
+              ...prevState.config.componentsState.background,
+              image: bgImage
+            }
+          }
+        }
+      }));
     });
   }
 
@@ -296,6 +317,10 @@ class App extends React.Component {
       return {};
     }
     return this.state.removedDials[len - 1];
+  }
+
+  updateModalState(val) {
+    this.setState({ isModalOpen: val });
   }
 
   toggleSettings() {
@@ -587,6 +612,7 @@ class App extends React.Component {
                     removeSpeedDial={this.removeSpeedDial}
                     addSpeedDial={this.addSpeedDial}
                     getSpeedDials={this.getSpeedDials}
+                    updateModalState={isOpen => this.updateModalState(isOpen)}
                     showPlaceholder
                   />
                 </section>
@@ -603,6 +629,7 @@ class App extends React.Component {
                     addSpeedDial={this.addSpeedDial}
                     removeSpeedDial={this.removeSpeedDial}
                     updateSpeedDial={this.updateSpeedDial}
+                    updateModalState={isOpen => this.updateModalState(isOpen)}
                   />
                 </section>
               }
@@ -637,6 +664,7 @@ class App extends React.Component {
                   <News
                     news={this.state.news}
                     newsLanguage={this.state.config.componentsState.news.preferedCountry}
+                    isModalOpen={this.state.isModalOpen}
                   />
                 </section>
               }

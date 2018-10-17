@@ -7,11 +7,10 @@ import { dataOn, dataOff, dataAmo } from './fixtures/history-section';
 
 describe('Control Center: History options browser', function () {
   let subject;
-  const target = 'cliqz-control-center';
+  const target = 'control-center';
 
   beforeEach(function () {
     subject = new Subject();
-    return subject.load();
   });
 
   afterEach(function () {
@@ -69,7 +68,12 @@ describe('Control Center: History options browser', function () {
 
   describe('with autoforget mode on', function () {
     beforeEach(function () {
-      return subject.pushData(target, dataOn);
+      subject.respondsWith({
+        module: target,
+        action: 'getData',
+        response: dataOn
+      });
+      return subject.load();
     });
 
     it('history section exists', function () {
@@ -91,24 +95,23 @@ describe('Control Center: History options browser', function () {
       });
 
       it('renders info button', function () {
-        expect(subject.query('.accordion #accordion-3 .bullet .infobutton')).to.exist;
+        expect(subject.query('.accordion #accordion-3 .bullet .cc-tooltip')).to.exist;
       });
 
 
       it('Automatic forget mode is on', function () {
         const select = subject.query('.accordion #accordion-3 .bullet .custom-dropdown');
         const evt = document.createEvent('HTMLEvents');
-        select.addEventListener('change', console.log);
         evt.initEvent('change', true, true);
         select.dispatchEvent(evt);
         return waitFor(
-          () => subject.messages.find(message => message.message.action === 'updatePref')
+          () => subject.messages.find(message => message.action === 'updatePref')
         ).then(
           (message) => {
-            expect(message).to.have.nested.property('message.data.pref', 'browser.privatebrowsing.apt');
-            expect(message).to.have.nested.property('message.data.value', 'true');
-            expect(message).to.have.nested.property('message.data.target', 'history_autoforget');
-            expect(message).to.have.nested.property('message.data.prefType', 'boolean');
+            expect(message).to.have.nested.property('args[0].pref', 'browser.privatebrowsing.apt');
+            expect(message).to.have.nested.property('args[0].value', 'true');
+            expect(message).to.have.nested.property('args[0].target', 'history_autoforget');
+            expect(message).to.have.nested.property('args[0].prefType', 'boolean');
           }
         );
       });
@@ -117,7 +120,12 @@ describe('Control Center: History options browser', function () {
 
   describe('with autoforget mode off', function () {
     beforeEach(function () {
-      return subject.pushData(target, dataOff);
+      subject.respondsWith({
+        module: target,
+        action: 'getData',
+        response: dataOff
+      });
+      return subject.load();
     });
 
     it('history section exists', function () {
@@ -139,23 +147,22 @@ describe('Control Center: History options browser', function () {
       });
 
       it('renders info button', function () {
-        expect(subject.query('.accordion #accordion-3 .bullet .infobutton')).to.exist;
+        expect(subject.query('.accordion #accordion-3 .bullet .cc-tooltip')).to.exist;
       });
 
       it('Automatic forget mode is off', function () {
         const select = subject.query('.accordion #accordion-3 .bullet .custom-dropdown');
         const evt = document.createEvent('HTMLEvents');
-        select.addEventListener('change', console.log);
         evt.initEvent('change', true, true);
         select.dispatchEvent(evt);
         return waitFor(
-          () => subject.messages.find(message => message.message.action === 'updatePref')
+          () => subject.messages.find(message => message.action === 'updatePref')
         ).then(
           (message) => {
-            expect(message).to.have.nested.property('message.data.pref', 'browser.privatebrowsing.apt');
-            expect(message).to.have.nested.property('message.data.value', 'false');
-            expect(message).to.have.nested.property('message.data.target', 'history_autoforget');
-            expect(message).to.have.nested.property('message.data.prefType', 'boolean');
+            expect(message).to.have.nested.property('args[0].pref', 'browser.privatebrowsing.apt');
+            expect(message).to.have.nested.property('args[0].value', 'false');
+            expect(message).to.have.nested.property('args[0].target', 'history_autoforget');
+            expect(message).to.have.nested.property('args[0].prefType', 'boolean');
           }
         );
       });
@@ -165,11 +172,10 @@ describe('Control Center: History options browser', function () {
 
 describe('Control Center: AMO, History options tests', function () {
   let subject;
-  const target = 'cliqz-control-center';
+  const target = 'control-center';
 
   beforeEach(function () {
     subject = new Subject();
-    return subject.load();
   });
 
   afterEach(function () {
@@ -222,7 +228,12 @@ describe('Control Center: AMO, History options tests', function () {
   }
 
   beforeEach(function () {
-    return subject.pushData(target, dataAmo);
+    subject.respondsWith({
+      module: target,
+      action: 'getData',
+      response: dataAmo
+    });
+    return subject.load();
   });
 
   it('history section exists', function () {

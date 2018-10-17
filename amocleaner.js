@@ -61,7 +61,7 @@ const cleanSpecificFilesFromFolder = (folder, files) => {
     });
 }
 
-cleanFolders('./', ['.github', 'bin', 'guides', 'tests'], false);
+cleanFolders('./', ['.github', 'bin', 'tests'], false);
 cleanFolders('modules', fs.readdirSync('modules').filter(module => !amoModules.includes(module)), false);
 cleanFolders('modules', ['tests'], true);
 cleanFolders('modules', ['debug'], true);

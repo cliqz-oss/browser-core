@@ -8,12 +8,11 @@ import { generateDataStrictFalse, generateDataStrictTrue } from './fixtures/anti
 function trackersTests(amo) {
   const dataStrictFalse = generateDataStrictFalse(amo);
   const dataStrictTrue = generateDataStrictTrue(amo);
-  const target = 'cliqz-control-center';
+  const target = 'control-center';
   let subject;
 
   beforeEach(function () {
     subject = new Subject();
-    return subject.load();
   });
 
   afterEach(function () {
@@ -22,7 +21,12 @@ function trackersTests(amo) {
 
   describe('pushing data with Strict == false', function () {
     beforeEach(function () {
-      return subject.pushData(target, dataStrictFalse);
+      subject.respondsWith({
+        module: target,
+        action: 'getData',
+        response: dataStrictFalse
+      });
+      return subject.load();
     });
 
     it('anti-tracking section exists', function () {
@@ -48,10 +52,10 @@ function trackersTests(amo) {
         subject.query('.active-window-tracking #bottom-part .squaredFour #squaredFour').click();
 
         return waitFor(
-          () => subject.messages.find(message => message.message.action === 'antitracking-strict')
+          () => subject.messages.find(message => message.action === 'antitracking-strict')
         ).then(
           (message) => {
-            expect(message).to.have.nested.property('message.data.status', true);
+            expect(message).have.nested.property('args[0].status', true);
             expect(subject.query('.active-window-tracking #bottom-part .squaredFour #squaredFour').checked).to.equal(true);
           }
         );
@@ -66,7 +70,7 @@ function trackersTests(amo) {
         subject.query('.active-window-tracking #bottom-part .clear-Tracking-Cache-Button').click();
 
         return waitFor(
-          () => subject.messages.find(message => message.message.action === 'antitracking-clearcache')
+          () => subject.messages.find(message => message.action === 'antitracking-clearcache')
         );
       });
     });
@@ -74,7 +78,12 @@ function trackersTests(amo) {
 
   describe('pushing data with Strict == true', function () {
     beforeEach(function () {
-      return subject.pushData(target, dataStrictTrue);
+      subject.respondsWith({
+        module: target,
+        action: 'getData',
+        response: dataStrictTrue
+      });
+      return subject.load();
     });
 
     it('anti-tracking section exists', function () {
@@ -100,10 +109,10 @@ function trackersTests(amo) {
         subject.query('.active-window-tracking #bottom-part .squaredFour #squaredFour').click();
 
         return waitFor(
-          () => subject.messages.find(message => message.message.action === 'antitracking-strict')
+          () => subject.messages.find(message => message.action === 'antitracking-strict')
         ).then(
           (message) => {
-            expect(message).to.have.nested.property('message.data.status', false);
+            expect(message).have.nested.property('args[0].status', false);
             expect(subject.query('.active-window-tracking #bottom-part .squaredFour #squaredFour').checked).to.equal(false);
           }
         );
@@ -118,7 +127,7 @@ function trackersTests(amo) {
         subject.query('.active-window-tracking #bottom-part .clear-Tracking-Cache-Button').click();
 
         return waitFor(
-          () => subject.messages.find(message => message.message.action === 'antitracking-clearcache')
+          () => subject.messages.find(message => message.action === 'antitracking-clearcache')
         );
       });
     });

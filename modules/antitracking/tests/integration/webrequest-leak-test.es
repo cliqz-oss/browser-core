@@ -4,7 +4,7 @@ import {
   testServer,
   updateTab,
   waitFor,
-} from '../../../tests/core/test-helpers';
+} from '../../../tests/core/integration/helpers';
 
 import WebRequest from '../../../core/webrequest';
 

@@ -82,6 +82,8 @@ function render(id, query, rawResults) {
   });
   const dropdown = new Dropdown(box, window, actions);
   dropdown.init();
+  // Add default padding for results in debug page
+  dropdown.dropdownElement.style.setProperty('--content-padding-start', '50px');
   const queryCliqz = () => {};
   const results = new Results({
     query,

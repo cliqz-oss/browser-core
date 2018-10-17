@@ -9,11 +9,16 @@ import generateData from './fixtures/myoffrz';
 
 function myOffrzTests(amo) {
   const data = generateData(amo);
-  const target = 'cliqz-control-center';
+  const target = 'control-center';
   let subject;
 
   beforeEach(function () {
     subject = new Subject();
+    subject.respondsWith({
+      module: target,
+      action: 'getData',
+      response: data
+    });
     return subject.load();
   });
 
@@ -26,10 +31,6 @@ function myOffrzTests(amo) {
   });
 
   describe('MyOffrz options section', function () {
-    beforeEach(function () {
-      return subject.pushData(target, data);
-    });
-
     it('MyOffrz section exists', function () {
       const sectionSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-4"]';
       expect(subject.query(sectionSelector)).to.exist;
@@ -66,7 +67,7 @@ function myOffrzTests(amo) {
 
         it('renders info button', function () {
           const offersObject = subject.queryAll('#accordion-4 .bullet')[0];
-          expect(offersObject.querySelector('.infobutton')).to.exist;
+          expect(offersObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         it('renders "Learn more"', function () {
@@ -98,13 +99,13 @@ function myOffrzTests(amo) {
             evt.initEvent('change', true, true);
             select.dispatchEvent(evt);
             return waitFor(
-              () => subject.messages.find(message => message.message.action === 'updatePref')
+              () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('message.data.pref', 'extensions.cliqz.offers2UserEnabled');
-                expect(message).to.have.nested.property('message.data.value', `${currentValue}`);
-                expect(message).to.have.nested.property('message.data.target', 'offerz_main');
-                expect(message).to.have.nested.property('message.data.prefType', 'boolean');
+                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.offers2UserEnabled');
+                expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
+                expect(message).to.have.nested.property('args[0].target', 'offerz_main');
+                expect(message).to.have.nested.property('args[0].prefType', 'boolean');
               }
             );
           });
@@ -132,7 +133,7 @@ function myOffrzTests(amo) {
 
         it('renders info button', function () {
           const offersObject = subject.queryAll('#accordion-4 .bullet')[1];
-          expect(offersObject.querySelector('.infobutton')).to.exist;
+          expect(offersObject.querySelector('.cc-tooltip')).to.exist;
         });
 
         it('renders dropdown', function () {
@@ -151,13 +152,13 @@ function myOffrzTests(amo) {
             evt.initEvent('change', true, true);
             select.dispatchEvent(evt);
             return waitFor(
-              () => subject.messages.find(message => message.message.action === 'updatePref')
+              () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('message.data.pref', 'extensions.cliqz.offers_location');
-                expect(message).to.have.nested.property('message.data.value', `${currentValue}`);
-                expect(message).to.have.nested.property('message.data.target', 'offerz_location');
-                expect(message).to.have.nested.property('message.data.prefType', 'integer');
+                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.offers_location');
+                expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
+                expect(message).to.have.nested.property('args[0].target', 'offerz_location');
+                expect(message).to.have.nested.property('args[0].prefType', 'integer');
               }
             );
           });

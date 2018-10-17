@@ -13,7 +13,7 @@ async function getKeysWithPrefix(prefix) {
   for (let i = 0; i < allKeys.length; i += 1) {
     const key = allKeys[i];
     if (key.startsWith(prefix)) {
-      keys.push(key.substr(prefix.length));
+      keys.push(key.slice(prefix.length));
     }
   }
   return keys;
@@ -64,6 +64,10 @@ class BehaviorView {
     return getAnolysisKey(`behavior_${k}`);
   }
 
+  init() {
+    this.cache = new Map();
+  }
+
   async getMetrics(date) {
     const value = await AsyncStorage.getItem(BehaviorView.key(date));
     if (typeof value === 'string') {
@@ -91,11 +95,27 @@ class BehaviorView {
       behavior,
       date,
       type,
+
+      // Add timestamp only for metrics. This is safe as we only use this to
+      // order messages and this information is never sent to backend.
+      ts: Date.now(),
     };
 
-    const signals = await this.getMetrics(date);
-    signals.push(doc);
-    await AsyncStorage.setItem(key, JSON.stringify(signals));
+    if (this.cache.has(key)) {
+      this.cache.get(key).push(doc);
+    } else {
+      this.cache.set(key, []);
+      const storedSignals = await this.getMetrics(date);
+
+      const signals = [
+        ...this.cache.get(key),
+        ...storedSignals,
+        doc,
+      ];
+      this.cache.delete(key);
+
+      await AsyncStorage.setItem(key, JSON.stringify(signals));
+    }
   }
 
   async deleteByDate(date) {
@@ -220,10 +240,11 @@ class GidManagerView {
   }
 
   async init() {
-    const keys = await getKeysWithPrefix(GidManagerView.key());
+    const baseKey = GidManagerView.key();
+    const keys = await getKeysWithPrefix(baseKey);
     const values = await AsyncStorage.multiGet(keys.map(k => GidManagerView.key(k)));
     for (let i = 0; i < keys.length; i += 1) {
-      this.cache.set(values[i][0], values[i][1]);
+      this.cache.set(values[i][0].slice(baseKey.length), values[i][1]);
     }
   }
 
@@ -259,8 +280,10 @@ export default class AnolysisStorage {
 
   async init() {
     this.aggregated = new AggregatedView();
-    this.behavior = new BehaviorView();
     this.retention = new RetentionView();
+
+    this.behavior = new BehaviorView();
+    await this.behavior.init();
 
     this.gid = new GidManagerView();
     await this.gid.init();

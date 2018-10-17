@@ -5,7 +5,7 @@ import prefs from '../core/prefs';
 import telemetry from '../core/services/telemetry';
 import utils from '../core/utils';
 import { shouldEnableModule } from '../core/app';
-import { isMobile } from '../core/platform';
+import { platformName } from '../core/platform';
 
 import Anolysis from './internals/anolysis';
 import Config from './internals/config';
@@ -42,7 +42,12 @@ function sendTelemetry(msg, instantPush, schemaName) {
  */
 async function instantiateAnolysis() {
   const demographics = await getDemographics();
-  const Storage = isMobile ? AsyncStorage : DexieStorage;
+
+  // If platform is 'react-native' (platformName === 'mobile'), this means that
+  // IndexedDB is not available and we should use AsyncStorage instead (on other
+  // platforms this will be mocked with an in-memory storage). On all other
+  // platforms (webextension, bootstrap) we use Dexie on top of IndexedDB.
+  const Storage = platformName === 'mobile' ? AsyncStorage : DexieStorage;
   const config = new Config({ demographics, Storage });
   let anolysis = new Anolysis(config);
 

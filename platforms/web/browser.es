@@ -23,8 +23,7 @@ export function waitWindowReady() {
 export function setOurOwnPrefs() {
 }
 
-export function enableChangeEvents() {
-}
+export function enableChangeEvents() {}
 
 export function addWindowObserver() {
 }

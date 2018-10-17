@@ -1,5 +1,9 @@
 import { Components, Services } from './globals';
-import prefs from '../core/prefs';
+import { getPref } from './prefs';
+
+const { classes: Cc, interfaces: Ci } = (Components || {});
+
+const env = Cc && Cc['@mozilla.org/process/environment;1'].getService(Ci.nsIEnvironment);
 
 // Directly exporting this was breaking process-script bundle.
 const def = {
@@ -9,27 +13,42 @@ const def = {
   isChromium: false,
   isEdge: false,
   platformName: 'firefox',
-  isOnionMode: prefs.get('onion-mode'),
+  isOnionMode: !!(env && env.get('MOZ_CLIQZ_PRIVATE_MODE')),
 };
 
 export default def;
 
-const appInfo = Components.classes['@mozilla.org/xre/app-info;1'];
-const versionChecker = Components.classes['@mozilla.org/xpcom/version-comparator;1']
-  .getService(Components.interfaces.nsIVersionComparator);
+let appInfo;
+let versionChecker;
+let _OS;
+let _OS_VERSION;
+
+try {
+  appInfo = Components.classes['@mozilla.org/xre/app-info;1'];
+
+  versionChecker = Components.classes['@mozilla.org/xpcom/version-comparator;1']
+    .getService(Components.interfaces.nsIVersionComparator);
+
+  _OS = appInfo
+    .getService(Components.interfaces.nsIXULRuntime)
+    .OS.toLowerCase();
+
+  _OS_VERSION = Services.sysinfo.getProperty('version');
+} catch (e) {
+  //
+}
+
 
 export function isPlatformAtLeastInVersion(minVersion) {
   const hostVersion = appInfo.getService(Components.interfaces.nsIXULAppInfo).version;
   return versionChecker.compare(hostVersion, minVersion) >= 0;
 }
 
-export const OS = appInfo
-  .getService(Components.interfaces.nsIXULRuntime)
-  .OS.toLowerCase();
-export const OS_VERSION = Services.sysinfo.getProperty('version');
+export const OS = _OS;
+export const OS_VERSION = _OS_VERSION;
 
 export function isCliqzAtLeastInVersion(minVersion) {
-  const cliqzVersion = prefs.get('distribution.version', '', '');
+  const cliqzVersion = getPref('distribution.version', '', '');
   return versionChecker.compare(cliqzVersion, minVersion) >= 0;
 }
 

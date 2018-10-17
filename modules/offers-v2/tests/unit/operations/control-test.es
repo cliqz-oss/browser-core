@@ -3,7 +3,7 @@
 /* global require */
 /* eslint-disable func-names,prefer-arrow-callback,arrow-body-style, no-param-reassign */
 
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 
 let prefRetVal = {};
 let currentTS = Date.now();
@@ -28,9 +28,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
     'core/platform': {
       isWebExtension: false
     },
-    'platform/lib/tldjs': {
-      default: tldjs,
-    },
+    'platform/lib/tldts': tldts,
     'platform/xmlhttprequest': {
       default: {}
     },

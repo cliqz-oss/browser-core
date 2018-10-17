@@ -51,6 +51,14 @@
             padding: 2px 0px 0px 40px;
         }
 
+        .withRegularSpace {
+            margin-bottom: 1.5em;
+        }
+
+        .withWiderSpace {
+            margin-bottom: 3em;
+        }
+
         .enableHumanWeb {
             width: 20px;
             position: absolute;
@@ -123,28 +131,27 @@
             <h2 class='cliqz-locale' key='humanWeb2'></h2>
         </div>
 
-        <div class="heading cliqz-locale" key='humanWeb3'></div>
-        <br><br>
-        <div class="heading cliqz-locale" key='humanWeb4'></div>
-        <br>
-        <p class='cliqz-locale' key='humanWeb5'></p>
-        <br>
-        <p class='cliqz-locale' key='humanWeb6'></p>
-        <p class='cliqz-locale' key='humanWeb7'></p>
+        <div class="heading cliqz-locale withWiderSpace" key='humanWeb3'></div>
 
-        <br><br>
-        <div class="heading cliqz-locale" key='humanWeb8'></div>
-        <br>
-        <p class='cliqz-locale' key='humanWeb9'></p>
-        <br>
-        <div>
+        <div class="heading cliqz-locale withRegularSpace" key='humanWeb4'></div>
+
+        <p class='cliqz-locale withRegularSpace' key='humanWeb5'></p>
+
+        <p class='cliqz-locale' key='humanWeb6'></p>
+        <p class='cliqz-locale withWiderSpace' key='humanWeb7'></p>
+
+
+        <div class="heading cliqz-locale withRegularSpace" key='humanWeb8'></div>
+
+        <p class='cliqz-locale withRegularSpace' key='humanWeb9'></p>
+
+        <div class="withWiderSpace">
             <div class="enableHumanWeb">
                 <input type="checkbox" id="enableHumanWeb" onclick="clickHW(this);" name="check" />
                 <label for="enableHumanWeb"></label>
             </div>
             <div class='enableHumanWebMessage cliqz-locale' key='humanWeb10'></div>
         </div>
-        <br><br>
     </div>
     <script type="text/javascript" src="./page.bundle.js"></script>
   </body>

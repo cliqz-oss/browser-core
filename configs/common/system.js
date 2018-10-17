@@ -48,25 +48,25 @@ const systemConfig = {
       defaultJSExtensions: true,
       //format: 'system',
       map: {
-        './platform/tldjs': 'node_modules/tldjs/index.js'
+        './platform/tldts': 'node_modules/tldts/dist/tldts.min.js'
       },
       meta: {
-        './platform/lib/zlib.lib.js': {
+        './platform*/lib/zlib.lib.js': {
           'format': 'cjs'
         },
-        './platform/lib/sanitize-filename.js': {
+        './platform*/lib/sanitize-filename.js': {
           'format': 'system'
         },
-        './platform/lib/cron-parser.js': {
+        './platform*/lib/cron-parser.js': {
           'format': 'system'
         },
-        './platform/video-downloader/lib/ytdl-core.js': {
+        './platform*/video-downloader/lib/ytdl-core.js': {
           'format': 'system'
         },
-        './platform/lib/fast-url-parser.js': {
+        './platform*/lib/fast-url-parser.js': {
           'format': 'system'
         },
-        './platform/lib/deep-equal.js': {
+        './platform*/lib/deep-equal.js': {
           'format': 'system'
         },
         '*/templates.js': {

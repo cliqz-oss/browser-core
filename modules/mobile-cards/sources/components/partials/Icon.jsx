@@ -1,10 +1,10 @@
 import React from 'react';
 import { StyleSheet, View, Text, Image, Platform } from 'react-native';
 
-const defaultIconStyle =
+const iconStyle =
   (width, height, backgroundHex = '000') =>
     StyleSheet.create({
-      containter: {
+      container: {
         width,
         height,
         backgroundColor: `#${backgroundHex}`,
@@ -27,16 +27,16 @@ export default class Icon extends React.Component {
   }
 
   getPlaceHolder(width, height, backgroundColor) {
-    const style = defaultIconStyle(width, height, backgroundColor);
+    const style = iconStyle(width, height, backgroundColor);
     return Promise.resolve(
-      <View style={style.containter} />);
+      <View style={style.container} />);
   }
 
   getDefaultIcon(width, height, backgroundColor, text) {
-    const style = defaultIconStyle(width, height, backgroundColor);
+    const style = iconStyle(width, height, backgroundColor);
     return Promise.resolve(
       <View
-        style={style.containter}
+        style={style.container}
         accessible={false}
         accessibilityLabel={'default-icon'}
       >
@@ -45,7 +45,7 @@ export default class Icon extends React.Component {
     );
   }
 
-  getLogo(width, height, url) {
+  getLogo(width, height, backgroundColor, url) {
     // png images (ios and android) have padding by default
     const { iconWidth, iconHeight } = Platform.select({
       default: {
@@ -57,24 +57,19 @@ export default class Icon extends React.Component {
         iconHeight: height * 0.85,
       },
     });
+    const style = iconStyle(iconWidth, iconHeight, backgroundColor);
     return Image.prefetch(url)
       .then(() => (
         <View
           accessible={false}
           accessibilityLabel={'generic-logo'}
-          style={{
-            width,
-            height,
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}
+          style={style.container}
         >
           <Image
             resizeMode="contain"
             style={{
               width: iconWidth,
               height: iconHeight,
-              backgroundColor: 'transparent'
             }}
             source={{ uri: url }}
           />
@@ -115,7 +110,7 @@ export default class Icon extends React.Component {
       this.getPlaceHolder(width, height, backgroundColor)
         .then(icon => this.setState({ icon }));
 
-      this.getLogo(width, height, iconUrl)
+      this.getLogo(width, height, backgroundColor, iconUrl)
         .then(icon => this.isLatestIcon(url, props.logoDetails) && this.setState({ icon }));
     } else if (props.logoDetails.backgroundColor) {
       const text = props.logoDetails.text;

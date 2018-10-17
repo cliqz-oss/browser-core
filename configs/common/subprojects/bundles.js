@@ -1,4 +1,3 @@
-
 const reactLibs = require('./react');
 
 const subprojects = {
@@ -64,9 +63,9 @@ const subprojects = {
     dest: 'vendor',
   },
   '@cliqz/adblocker': {
-    src: 'node_modules/@cliqz/adblocker',
+    src: 'node_modules/@cliqz/adblocker/dist',
     include: [
-      'adblocker.umd.js',
+      'adblocker.umd.min.js',
       'adblocker-cosmetics.umd.js',
     ],
     dest: 'vendor',
@@ -80,7 +79,7 @@ const subprojects = {
     include: ['dexie.min.js'],
     dest: 'vendor'
   },
-  'pouchdb': {
+  pouchdb: {
     src: 'node_modules/pouchdb/dist',
     include: ['pouchdb.js'],
     dest: 'vendor'
@@ -125,9 +124,9 @@ const subprojects = {
     include: ['tooltipster-sideTip-shadow.min.css'],
     dest: 'vendor'
   },
-  tldjs: {
-    src: 'node_modules/tldjs',
-    include: ['tld.min.js'],
+  tldts: {
+    src: 'node_modules/tldts/dist',
+    include: ['tldts.min.js'],
     dest: 'vendor',
   },
   sinon: {
@@ -140,7 +139,7 @@ const subprojects = {
     include: ['sinon-chai.js'],
     dest: 'vendor'
   },
-  'jsep': {
+  jsep: {
     src: 'node_modules/jsep/build',
     include: ['jsep.min.js'],
     dest: 'vendor'

@@ -6,6 +6,7 @@ module.exports = (base) => ({
   BW_URL: 'https://antiphishing.'+base+'/api/bwlist?md5=', // anti-phishing/sources/anti-phishing.es
   CAMPAIGN_SERVER: 'https://fec.'+base+'/message/', // campaign-manager/sources/campaign-manager.es
   CDN_BASEURL: 'https://cdn.'+base,
+  CDN_CONTENTSCRIPT_BASEURL: 'https://cdn3.'+base, // Alternative to CDN_BASEURL for content scripts
   CLIQZ_SAVE_URL: 'https://'+base+'/q=', // core/sources/utils.es (Need to find a more suitable name for this.)
   CONFIG_PROVIDER: 'https://api.'+base+'/api/v1/config',
   ENDPOINT_ANONPATTERNSURL: 'https://cdn.'+base+'/human-web/patterns-anon',
@@ -20,7 +21,6 @@ module.exports = (base) => ({
   ENDPOINT_SAFE_QUORUM_ENDPOINT: 'https://safe-browsing-quorum.'+base+'/',
   ENDPOINT_SAFE_QUORUM_PROVIDER: 'https://safe-browsing-quorum.'+base+'/config',
   ENDPOINT_SOURCE_MAP_PROVIDER: 'https://hpn-collector.'+base+'/sourcemapjson?q=1',
-  ENDPOINT_URL: 'https://api.'+base+'/api/v1/rich-header?path=/map&bmresult=', // autocomplete/sources/smart-cliqz-cache/rich-header.es
   ENDPOINT_USER_REG: 'https://hpn-sign.'+base+'/register',
   FEEDBACK: 'https://'+base+'/feedback/', // core/sources/utils.es
   HB_NEWS: 'hb-news.'+base+'', // freshtab/sources/news.es, history/sources/rich-header-proxy.es

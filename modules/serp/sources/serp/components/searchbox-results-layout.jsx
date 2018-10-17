@@ -32,17 +32,27 @@ const renderSearchResultItem = ({
   uniqueKey,
   shouldDisplayOffers,
   shouldDisplaySearchResultItemLogo,
+  shouldHandleSearchResultItemView,
   session,
-}) => (
-  <SearchResultItem
-    item={item}
-    key={uniqueKey}
-    idx={uniqueKey}
-    isOffer={shouldDisplayOffers && item.isOffer}
-    shouldDisplaySearchResultItemLogo={shouldDisplaySearchResultItemLogo}
-    session={session}
-  />
-);
+  query,
+}) => {
+  if (item.isOffer && !shouldDisplayOffers) {
+    return null;
+  }
+
+  return (
+    <SearchResultItem
+      item={item}
+      key={uniqueKey}
+      idx={uniqueKey}
+      isOffer={shouldDisplayOffers && item.isOffer}
+      shouldDisplaySearchResultItemLogo={shouldDisplaySearchResultItemLogo}
+      shouldHandleSearchResultItemView={shouldHandleSearchResultItemView}
+      session={session}
+      query={query}
+    />
+  );
+};
 
 const renderSearchCategoriesBlock = ({ query, dropdownCss, session }) => (
   <AlternativeSearchEngines
@@ -70,6 +80,8 @@ export default (props = {}) => {
   const v1ResultsFromCliqz = props.v1ResultsFromCliqz;
   const querySuggestions = props.querySuggestions;
   const handleKeyDown = props.handleKeyDown;
+  const handleFocus = props.handleFocus;
+  const handleBlur = props.handleBlur;
   const updateSearchboxValue = props.updateSearchboxValue;
   const handleItemSuggestion = props.handleItemSuggestion;
   const handleItemSelection = props.handleItemSelection;
@@ -78,6 +90,7 @@ export default (props = {}) => {
   const shouldDisplayLookAndFeelV1 = props.shouldDisplayLookAndFeelV1;
   const shouldDisplayLookAndFeelV3 = props.shouldDisplayLookAndFeelV3;
   const shouldDisplaySearchResultItemLogo = props.shouldDisplaySearchResultItemLogo;
+  const shouldHandleSearchResultItemView = props.shouldHandleSearchResultItemView;
   const session = props.session;
 
   let resultsBlock = null;
@@ -90,7 +103,9 @@ export default (props = {}) => {
         uniqueKey: index,
         shouldDisplayOffers,
         shouldDisplaySearchResultItemLogo,
+        shouldHandleSearchResultItemView,
         session,
+        query,
       }));
   } else {
     resultsBlock = renderEmptyResultsBlock();
@@ -150,6 +165,8 @@ export default (props = {}) => {
           renderSearchField({
             query,
             handleKeyDown,
+            handleFocus,
+            handleBlur,
             updateSearchboxValue,
             placeholder: t('search_with_cliqz'),
             shouldDisplayLookAndFeelV1,

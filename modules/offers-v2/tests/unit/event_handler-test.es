@@ -4,7 +4,7 @@
 /* global sinon */
 
 const encoding = require('text-encoding');
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 
 const TextDecoder = encoding.TextDecoder;
 const TextEncoder = encoding.TextEncoder;
@@ -70,9 +70,7 @@ export default describeModule('offers-v2/event_handler',
     'platform/console': {
       default: {}
     },
-    'platform/lib/tldjs': {
-      default: tldjs,
-    },
+    'platform/lib/tldts': tldts,
     'core/prefs': {
       default: {
         get: function (x, y) { return y; }

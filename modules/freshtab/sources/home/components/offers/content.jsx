@@ -2,7 +2,7 @@ import React from 'react';
 import Title from './title';
 import Logo from './logo';
 import HeadlineBenefit from './headlineBenefit';
-import { t, tt } from '../../i18n';
+import { tt } from '../../i18n';
 import { sendOffersMessage } from '../../services/offers';
 import { offerClickSignal } from '../../services/telemetry/offers';
 import config from '../../../config';
@@ -111,7 +111,7 @@ export default class Content extends React.Component {
           <header>
             <ul>
               <li
-                className={`expires info-icon tooltip tooltipstered ${this.props.validity && this.props.validity.isExpiredSoon ? 'red' : ''}`}
+                className={`expires day-icon tooltip tooltipstered ${this.props.validity && this.props.validity.isExpiredSoon ? 'red' : ''}`}
                 ref={(el) => { this.tooltip = el; }}
                 data-tip={this.props.validity.text}
               >
@@ -142,7 +142,7 @@ export default class Content extends React.Component {
                 <button
                   onClick={this.showInfo}
                 >
-                  {t('why_offers')}
+                  {tt('why_offers')}
                 </button>
               </li>
             </ul>
@@ -151,8 +151,13 @@ export default class Content extends React.Component {
                 className="close"
                 onClick={this.closeWhyInfo}
               />
-              <p> {t('why_offers_text')} </p>
-              <a onClick={this.onLearnMoreClicked} href={config.constants.WHY_OFFERS_URL}>{tt('learnMore')}</a>
+              <p> {tt('why_offers_text')} </p>
+              <a
+                onClick={this.onLearnMoreClicked}
+                href={config.constants.WHY_OFFERS_URL}
+                rel="noreferrer noopener"
+                target="_blank"
+              >{tt('learnMore')}</a>
             </div>
           </header>
           <p
@@ -160,6 +165,8 @@ export default class Content extends React.Component {
           >
             <a
               href={this.props.data.call_to_action.url}
+              rel="noreferrer noopener"
+              target="_blank"
               data-type="light"
               data-class="light-tooltip"
               onClick={() => {

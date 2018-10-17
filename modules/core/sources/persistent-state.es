@@ -1,6 +1,6 @@
 /* eslint-disable no-shadow, no-param-reassign */
 import prefs from '../core/prefs';
-import pacemaker from '../core/pacemaker';
+import pacemaker from '../core/services/pacemaker';
 import sto from '../platform/antitracking/storage';
 
 /** Load data from the attrack sqlite table.

@@ -37,7 +37,10 @@ function SubscribeButton(props) {
         <Text style={styles().buttonText}>{title}</Text>
       </View>
     </Link>;
-  return (<View>
+  return (<View
+    accessible={false}
+    accessibilityLabel={'subscribe-button'}
+  >
     {button}
     <Text style={styles().actionMessage}>{props.actionMessage}</Text>
   </View>);

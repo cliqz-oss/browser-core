@@ -3498,7 +3498,7 @@ const CliqzHumanWeb = {
         CliqzHumanWeb.db.getURL(url, function(obj) {
           // If the url is already not in the DB or marked private, then we need save it.
           _log(">>>>> Add url to dbobj" + obj.length + privateHash);
-          if (!privateHash && (obj.length === 0)) {
+          if (!privateHash && obj.length === 0) {
             // does not exist
             var setPrivate = false;
 
@@ -3543,15 +3543,20 @@ const CliqzHumanWeb = {
                 if (setPrivate) CliqzHumanWeb.setAsPrivate(url);
 
             });
-          }
-          else if (obj.length === 1) {
+          } else if (obj.length === 1) {
             _log(">>>>> Add url to dbobj found record" + JSON.stringify(obj));
             let record = obj[0];
             // Looks like the URL is already there, we just need to update the stats.
 
             //Need to aggregate the engagement metrics.
             _log(record);
-            var metricsBefore = JSON.parse(record.payload)['e'];// || {cp: 0, mm: 0, kp: 0, sc: 0, md: 0 };
+            let metricsBefore;
+            if (typeof record.payload === 'string') {
+              // (possibly only reachable on Bootstrapped extensions)
+              metricsBefore = JSON.parse(record.payload).e;
+            } else {
+              metricsBefore = record.payload.e;
+            }
 
             var metricsAfter = paylobj['e'];
             paylobj['e'] = CliqzHumanWeb.aggregateMetrics(metricsBefore, metricsAfter);
@@ -3567,7 +3572,7 @@ const CliqzHumanWeb = {
 
             paylobj['e'] = { 'cp': 0, 'mm': 0, 'kp': 0, 'sc': 0, 'md': 0 };
           }
-          });
+        });
     },
   setAsPrivate: function(url) {
     if(CliqzHumanWeb.bloomFilter){

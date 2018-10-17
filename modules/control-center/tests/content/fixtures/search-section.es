@@ -155,6 +155,7 @@ export const data = {
   isDesktopBrowser: true,
   compactView: false,
   showPoweredBy: true,
+  showLearnMore: true,
 };
 
 export const dataAmo = {
@@ -310,6 +311,7 @@ export const dataAmo = {
   amo: true,
   compactView: false,
   showPoweredBy: true,
+  showLearnMore: true,
 };
 
 export const dataFunnelCake = {
@@ -465,4 +467,5 @@ export const dataFunnelCake = {
   amo: false,
   compactView: true,
   showPoweredBy: true,
+  showLearnMore: true,
 };

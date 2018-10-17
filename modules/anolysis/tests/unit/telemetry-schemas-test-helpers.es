@@ -128,7 +128,9 @@ async function generateAnalysisResults({
 
     for (let i = 0; i < metricsToPush.length; i += 1) {
       const { s, metric } = metricsToPush[i];
+      // eslint-disable-next-line no-await-in-loop
       await anolysis.handleTelemetrySignal(s, metric);
+      // eslint-disable-next-line no-await-in-loop
       await new Promise(resolve => setTimeout(resolve, 1));
     }
   }
@@ -230,6 +232,13 @@ module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) =
     },
     'core/utils': {
       default: {},
+    },
+    'core/kord/inject': {
+      default: {
+        module: () => ({
+          isEnabled: () => true,
+        }),
+      },
     },
     'core/prefs': {
       default: {

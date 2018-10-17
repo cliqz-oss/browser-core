@@ -79,7 +79,7 @@ export function isUrl(input) {
 
   // Remove protocol
   input = input.trim();
-  const protocolList = ['http', 'chrome:', 'resource:', 'file:', 'view-source:'];
+  const protocolList = ['http', 'chrome:', 'resource:', 'file:', 'view-source:', 'ftp:'];
   if (protocolList.some(protocol => input.startsWith(protocol))) {
     const protocolPos = input.indexOf('://');
     if (protocolPos >= 0) {
@@ -95,6 +95,12 @@ export function isUrl(input) {
   // - if it matches minimal pattern "hostname:port" (here hostname must be ASCII),
   //   i.e. "localhost:3000", but not "उदाहरण:100";
   // - if it is an IP address or "localhost".
+
+  // TODO: find a better way to detect chrome/resource/file urls since what is left
+  // after removing these protocols doesn't look like a domain name
+
+  // Remove `single` dot (if any) from the end of the domain
+  input = input.replace(/\.$/, ''); // TODO: don't remove dot after localhost/port
   return input === 'localhost' ||
     UrlRegExp.test(input) ||
     LocalUrlRegExp.test(input) ||
@@ -163,6 +169,8 @@ function _getDetailsFromUrl(_originalUrl) {
   // separate hostname from path, etc. Could be separated from rest by /, ? or #
   let host = url.split(/[/#?]/)[0].toLowerCase();
   path = url.replace(host, '');
+  // Remove `single` dot (if any) from the end of the host, after obtaining correct path
+  host = host.replace(/\.$/, '');
 
   // separate username:password@ from host
   const userpassHost = host.split('@');

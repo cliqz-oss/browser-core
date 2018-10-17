@@ -1,4 +1,5 @@
 import {
+  closeTab,
   expect,
   newTab,
   waitForElement,
@@ -10,8 +11,10 @@ import {
   checkButtons,
   checkComplementarySearchCard,
   checkHeader,
+  checkMainUrl,
   getElements,
   mockSearch,
+  withHistory,
 } from './helpers';
 
 import { getMessage } from '../../../core/i18n';
@@ -29,9 +32,12 @@ export default function () {
   const elementSelector = '[aria-label="lotto-element"]';
 
   describe('for a lotto keno mobile cards result', function () {
+    let id;
+
     before(async function () {
       win.preventRestarts = true;
-      const id = await newTab(cardsUrl);
+      id = await newTab(cardsUrl);
+      withHistory([]);
       await mockSearch({ results });
       win.CLIQZ.app.modules.search.action('startSearch', 'lotto', { tab: { id } });
       await waitForElement({
@@ -41,10 +47,13 @@ export default function () {
       });
     });
 
-    after(function () {
+    after(async function () {
+      await closeTab(id);
       win.preventRestarts = false;
+      win.CLIQZ.app.modules.search.action('stopSearch');
     });
 
+    checkMainUrl({ url: cardsUrl, mainUrl: results[0].url });
     checkHeader({ url: cardsUrl, results, imageName: 'lotto' });
 
     it('renders correct header', async function () {
@@ -80,17 +89,6 @@ export default function () {
     });
 
     describe('renders Keno results', function () {
-      it('with a correct amount of elements', async function () {
-        const $allLottoRows = await getElements({
-          elementSelector: rowSelector,
-          url: cardsUrl,
-        });
-        [0, 1].forEach(function (row) {
-          const $kenoResults = $allLottoRows[row].querySelectorAll(elementSelector);
-          expect($kenoResults.length).to.equal(10);
-        });
-      });
-
       it('with correct value of numerical elements', async function () {
         const $allLottoRows = await getElements({
           elementSelector: rowSelector,
@@ -99,7 +97,7 @@ export default function () {
 
         [0, 1].forEach(function (row) {
           const $kenoResults = $allLottoRows[row].querySelectorAll(elementSelector);
-          expect($kenoResults.length).to.be.above(0);
+          expect($kenoResults.length).to.equal(10);
           [...$kenoResults].forEach(function (element, i) {
             expect(element).to.contain.text(
               results[0].snippet.extra.lotto_list.cur_date.keno.gewinnzahlen[(10 * row) + i]);
@@ -109,24 +107,15 @@ export default function () {
     });
 
     describe('renders plus5 results', function () {
-      it('with correct amount of elements', async function () {
-        const $allLottoRows = await getElements({
-          elementSelector: rowSelector,
-          url: cardsUrl,
-        });
-        const $allPlus5Elements = $allLottoRows[2].querySelectorAll(elementSelector);
-        expect($allPlus5Elements.length)
-          .to.equal(results[0].snippet.extra.lotto_list.cur_date.plus5.gewinnzahlen.length + 1);
-      });
-
       it('with correct value of numerical elelements', async function () {
         const $allLottoRows = await getElements({
           elementSelector: rowSelector,
           url: cardsUrl,
         });
         const $allPlus5Elements = $allLottoRows[2].querySelectorAll(elementSelector);
+        expect($allPlus5Elements.length)
+          .to.equal(6);
         const $plus5Numbers = [...$allPlus5Elements].slice(1);
-        expect($plus5Numbers.length).to.be.above(0);
         [...$plus5Numbers].forEach(function ($element, i) {
           expect($element).to.contain.text(
             results[0].snippet.extra.lotto_list.cur_date.plus5.gewinnzahlen[i]);

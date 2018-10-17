@@ -1,12 +1,18 @@
 {
   "appName": {
-      "message": "Cliqz Tab: Suche anonym! (Beta)"
+      "message": "Cliqz Tab (Beta)"
+  },
+  "appNameNightly": {
+      "message": "Cliqz Tab (Nightly)"
   },
   "appDesc": {
       "message": "Anonyme Suche, Favoriten, Nachrichten, und schöne Hintergrundbilder mit jedem neuen Tab"
   },
   "ghosteryTabAppName": {
-      "message": "Ghostery Tab: Suche anonym! (Beta)"
+      "message": "Ghostery Tab mit anonymer Suche (Beta)"
+  },
+  "ghosteryTabAppNameNightly": {
+      "message": "Ghostery Tab mit anonymer Suche (Nightly)"
   },
   "ghosteryTabAppDesc": {
       "message": "Mach mehr aus Chrome. Mehr Privatsphäre, mehr Favoriten, mehr Freiheit, mehr Style und mehr News in jedem neuen Tab."
@@ -1377,7 +1383,7 @@
       "message": "BEREITGESTELLT VON CLIQZ"
   },
   "control_center_quicksearch": {
-      "message": "Sichere Schnell-Suche"
+      "message": "Sichere Ghost-Suche"
   },
   "control_center_location": {
       "message": "Standort teilen"
@@ -1398,7 +1404,7 @@
       "message": "Anonyme Datenübermittlung"
   },
   "control_center_telemetry_info": {
-      "message": "Cliqz sammelt streng anonyme Daten zu technischen Details und Interaktionen. Zu keinem Zeitpunkt wird eine personenbezogene Information erfasst."
+      "message": "Es werden streng anonyme Daten zu technischen Details und Interaktionen übermittelt. Zu keinem Zeitpunkt wird eine personenbezogene Information erfasst."
   },
   "control_center_backend_country": {
       "message": "Suchergebnisse für"
@@ -1572,7 +1578,7 @@
       "message": "Legende:"
   },
   "transparency_blocked1": {
-      "message": "Blockiert zum Schutz Deiner Privatssphäre"
+      "message": "Blockiert zum Schutz Deiner Privatsphäre"
   },
   "transparency_blocked2": {
       "message": "Wird von Cliqz empfangen"
@@ -1587,7 +1593,7 @@
       "message": "Deine Suche bei Cliqz"
   },
   "transparency_search_content": {
-      "message": "Hier siehst du Daten über die Suchanfragen und Adressen, die du über die Cliqz-Suche eingibst. Diese Informationen helfen uns, dein Sucherlebnis zu optimieren. Wie du sehen kannst, beinhalten diese Daten keinerlei persönliche Information. Für Cliqz bist du anonym. Du hast die Möglichkeit, Suchen über Cliqz über ein Proxy-Netzwerk laufen zu lassen um Deine Privatssphäre noch stärker zu schützen. Weitere Informationen findest du <a target='_blank' rel='noopener noreferrer' href='https://cliqz.com/whycliqz/transparency#your-search'>hier</a>."
+      "message": "Hier siehst du Daten über die Suchanfragen und Adressen, die du über die Cliqz-Suche eingibst. Diese Informationen helfen uns, dein Sucherlebnis zu optimieren. Wie du sehen kannst, beinhalten diese Daten keinerlei persönliche Information. Für Cliqz bist du anonym. Du hast die Möglichkeit, Suchen über Cliqz über ein Proxy-Netzwerk laufen zu lassen um Deine Privatsphäre noch stärker zu schützen. Weitere Informationen findest du <a target='_blank' rel='noopener noreferrer' href='https://cliqz.com/whycliqz/transparency#your-search'>hier</a>."
   },
   "transparency_humanweb_title": {
       "message": "Human Web"
@@ -2053,6 +2059,12 @@
   },
   "freshtab_app_settings_news_language_pl": {
       "message": "Polnische Medien"
+  },
+  "freshtab_app_settings_news_language_it": {
+      "message": "Italienische Medien"
+  },
+  "freshtab_app_settings_news_language_ru": {
+      "message": "Russische Medien"
   },
   "freshtab_app_offers_exclusive": {
       "message": "Exklusiv"

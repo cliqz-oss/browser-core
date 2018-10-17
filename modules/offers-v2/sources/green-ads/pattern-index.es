@@ -9,7 +9,7 @@ import {
 export default class PatternIndex {
   constructor(filters = []) {
     this.index = new ReverseIndex(
-      filters,
+      cb => filters.forEach(cb),
       filter => tokenize(filter.filter).concat(tokenize(filter.hostname)),
     );
 

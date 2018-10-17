@@ -3,15 +3,13 @@
 
 const fastUrlParser = require('fast-url-parser');
 const moment = require('moment');
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 
 const mockDexie = require('../../core/unit/utils/dexie');
 
 export default describeModule('history-analyzer/query-stream',
   () => ({
-    'platform/lib/tldjs': {
-      default: tldjs,
-    },
+    'platform/lib/tldts': tldts,
     ...mockDexie,
     'platform/lib/moment': {
       default: moment,

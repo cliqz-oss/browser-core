@@ -1,46 +1,25 @@
 import {
   expect,
+  getElements,
   getLocalisedString,
   getResourceUrl,
   queryComputedStyle,
   queryHTML,
-  waitForAsync,
+  waitFor,
 } from '../../../tests/core/integration/helpers';
+
+import { getMessage } from '../../../core/i18n';
+
+import { getDetailsFromUrl } from '../../../core/url';
 
 export const cardsUrl = getResourceUrl('mobile-cards/cards.html');
 
 export * from '../../../tests/core/integration/search-helpers';
 export {
+  getElements,
   getLocalisedString,
   queryHTML
 } from '../../../tests/core/integration/helpers';
-
-function getElementsFromParsedHTML({ rawHTML, selector }) {
-  return new DOMParser().parseFromString(rawHTML, 'text/html')
-    .querySelectorAll(selector);
-}
-
-export async function getElements({
-  elementSelector,
-  parentElementSelector = '[aria-label="result-card-0"]',
-  url,
-}) {
-  const $elementsFromParsedHTML = [];
-
-  return waitForAsync(async () => {
-    const results = await queryHTML(url, parentElementSelector, 'innerHTML');
-
-    if (results) {
-      results.forEach((r) => {
-        const $el = getElementsFromParsedHTML({ rawHTML: r, selector: elementSelector });
-        [...$el].map($e => $elementsFromParsedHTML.push($e));
-      });
-      return $elementsFromParsedHTML;
-    }
-
-    return null;
-  });
-}
 
 export function checkMainUrl({ url, mainUrl }) {
   it('renders main result with correct url', async function () {
@@ -95,48 +74,73 @@ export function checkButtons({ url, results, numberButtons }) {
 
 export function checkHeader({ url, results, isDefault = false, imageName }) {
   context('card header', function () {
+    const headerSelector = '[aria-label="header-container"]';
     const isSecure = results[0].url.startsWith('https');
 
+    it('is rendered successfully', async function () {
+      const $cardHeaders = await getElements({
+        elementSelector: headerSelector,
+        url,
+      });
+      expect($cardHeaders).to.have.length(1);
+    });
+
     it('renders correct friendlyUrl', async function () {
-      const $friendlyUrl = await getElements({
-        elementSelector: '[aria-label="generic-link"]',
+      const $cardHeaders = await getElements({
+        elementSelector: headerSelector,
         url,
       });
 
-      expect($friendlyUrl).to.have.length(1);
-      expect($friendlyUrl[0].innerText).to.equal(results[0].snippet.friendlyUrl);
+      expect($cardHeaders).to.have.length(1);
+
+      const $friendlyUrl = $cardHeaders[0].querySelector('[aria-label="generic-link"]');
+
+      expect($friendlyUrl).to.exist;
+      if (results[0].snippet.friendlyUrl) {
+        expect($friendlyUrl.innerText).to.equal(results[0].snippet.friendlyUrl);
+      } else {
+        expect($friendlyUrl.innerText).to.equal(getDetailsFromUrl(results[0].url).friendly_url);
+      }
     });
 
     it(`${isSecure ? 'renders' : 'doesn\'t render'} https lock logo`, async function () {
-      const $logos = await getElements({
-        elementSelector: '[aria-label="https-lock"] img',
+      const $cardHeaders = await getElements({
+        elementSelector: headerSelector,
         url,
       });
 
-      expect($logos).to.have.length(isSecure ? 1 : 0);
+      expect($cardHeaders).to.have.length(1);
+
+      const $logo = $cardHeaders[0].querySelector('[aria-label="https-lock"] img');
+
       if (isSecure) {
-        expect($logos[0].src).to.contain('img/https_lock.svg');
+        expect($logo).to.exist;
+        expect($logo.src).to.contain('img/https_lock.svg');
+      } else {
+        expect($logo).to.not.exist;
       }
     });
 
     it('renders correct logo', async function () {
-      let $logos;
+      let $logo;
+      await waitFor(async function () {
+        const $cardHeaders = await getElements({
+          elementSelector: headerSelector,
+          url,
+        });
 
-      if (isDefault) {
-        $logos = await getElements({
-          elementSelector: '[aria-label="default-icon"]',
-          url,
-        });
-        expect($logos).to.have.length(1);
-        expect($logos[0].textContent).to.equal(imageName);
-      } else {
-        $logos = await getElements({
-          elementSelector: '[aria-label="generic-logo"] img',
-          url,
-        });
-        expect($logos).to.have.length(1);
-        expect($logos[0].src).to.contain(`https://cdn.cliqz.com/brands-database/database/1521469421408/logos/${imageName}/$.svg`);
-      }
+        expect($cardHeaders).to.have.length(1);
+
+        if (isDefault) {
+          $logo = $cardHeaders[0].querySelector('[aria-label="default-icon"]');
+          expect($logo).to.exist;
+          return expect($logo.textContent).to.equal(imageName);
+        }
+
+        $logo = $cardHeaders[0].querySelector('[aria-label="header-container"] [aria-label="generic-logo"] img');
+        expect($logo).to.exist;
+        return expect($logo.src).to.contain(`https://cdn.cliqz.com/brands-database/database/1521469421408/logos/${imageName}/$.svg`);
+      }, 5000);
     });
   });
 }
@@ -229,5 +233,41 @@ export function checkMoreOn({ url, moreUrl }) {
     expect($moreOn[0].textContent).to.contain(moreUrl);
 
     expect($moreOn[0].dataset.url).to.exist;
+  });
+}
+
+export function checkPoweredBySection({ url }) {
+  context('"powered by" section', function () {
+    it('with correct url', async function () {
+      const $poweredByUrl = await getElements({
+        elementSelector: '[aria-label="powered-by"]',
+        url,
+      });
+
+      expect($poweredByUrl).to.have.length(1);
+      expect($poweredByUrl[0]).to.have.attribute('data-url');
+      expect($poweredByUrl[0].getAttribute('data-url'))
+        .to.equal('http://www.kicker.de/?gomobile=1');
+    });
+
+    it('with correct icon', async function () {
+      const $poweredByIcon = await getElements({
+        elementSelector: '[aria-label="powered-by-icon"]',
+        url,
+      });
+      const $logoStyle = await queryComputedStyle(url, '[aria-label="powered-by-icon"] [aria-label="generic-logo"]');
+      expect($poweredByIcon).to.have.length(1);
+      expect($logoStyle[0].backgroundColor).to.equal('rgb(215, 1, 29)');
+    });
+
+    it('with correct text', async function () {
+      const $poweredByText = await getElements({
+        elementSelector: '[aria-label="powered-by-text"]',
+        url,
+      });
+
+      expect($poweredByText).to.have.length(1);
+      expect($poweredByText[0]).to.have.text(getMessage('KickerSponsor'));
+    });
   });
 }

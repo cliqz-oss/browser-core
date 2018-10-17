@@ -1,4 +1,5 @@
 import {
+  closeTab,
   expect,
   newTab,
   waitForElement,
@@ -9,11 +10,13 @@ import {
   cardsUrl,
   checkComplementarySearchCard,
   checkHeader,
+  checkMainUrl,
   checkMoreOn,
   checkTapMessage,
   getElements,
   getLocalisedString,
   mockSearch,
+  withHistory,
 } from './helpers';
 
 import results from '../../../tests/core/integration/fixtures/resultsCurrencyConverter';
@@ -26,10 +29,13 @@ export default function () {
   }
 
   describe('for a currency mobile cards result', function () {
+    let id;
+
     before(async function () {
       win.preventRestarts = true;
 
-      const id = await newTab(cardsUrl);
+      id = await newTab(cardsUrl);
+      withHistory([]);
       await mockSearch({ results });
       win.CLIQZ.app.modules.search.action('startSearch', '1 euro to usd', { tab: { id } });
       await waitForElement({
@@ -39,10 +45,13 @@ export default function () {
       });
     });
 
-    after(function () {
+    after(async function () {
+      await closeTab(id);
       win.preventRestarts = false;
+      win.CLIQZ.app.modules.search.action('stopSearch');
     });
 
+    checkMainUrl({ url: cardsUrl, mainUrl: results[0].url });
     checkHeader({ url: cardsUrl, results, imageName: 'xe' });
 
     it('renders correct title', async function () {

@@ -1,4 +1,5 @@
 import {
+  closeTab,
   expect,
   newTab,
   waitForElement,
@@ -10,8 +11,10 @@ import {
   checkButtons,
   checkComplementarySearchCard,
   checkHeader,
+  checkMainUrl,
   getElements,
   mockSearch,
+  withHistory,
 } from './helpers';
 
 import results from '../../../tests/core/integration/fixtures/resultsNews';
@@ -24,10 +27,13 @@ export default function () {
   }
 
   describe('for a news mobile cards result', function () {
+    let id;
+
     before(async function () {
       win.preventRestarts = true;
 
-      const id = await newTab(cardsUrl);
+      id = await newTab(cardsUrl);
+      withHistory([]);
       await mockSearch({ results });
       win.CLIQZ.app.modules.search.action('startSearch', 'bild', { tab: { id } });
       await waitForElement({
@@ -37,10 +43,13 @@ export default function () {
       });
     });
 
-    after(function () {
+    after(async function () {
+      await closeTab(id);
       win.preventRestarts = false;
+      win.CLIQZ.app.modules.search.action('stopSearch');
     });
 
+    checkMainUrl({ url: cardsUrl, mainUrl: results[0].url });
     checkHeader({ url: cardsUrl, results, imageName: 'bild' });
 
     it('renders correct title', async function () {

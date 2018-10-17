@@ -2,12 +2,12 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import Link from '../Link';
 import ExternalImage from '../custom/ExternalImage';
-import { elementSideMargins, elementTopMargin } from '../../styles/CardStyle';
+import { elementSideMargins, elementTopMargin, getCardWidth } from '../../styles/CardStyle';
 import { getDetailsFromUrl } from '../../../core/url';
 import { agoLine } from '../../helpers/logic';
 
 
-const styles = isInjected => StyleSheet.create({
+const styles = (isInjected, nLines) => StyleSheet.create({
   social: {
     ...elementSideMargins,
     ...elementTopMargin,
@@ -29,11 +29,19 @@ const styles = isInjected => StyleSheet.create({
     width: 65,
     borderRadius: 5,
   },
+  textContainer: {
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    marginLeft: 6,
+    maxHeight: nLines * 20, // line hight
+    overflow: 'hidden',
+  },
   text: {
     color: 'black',
-    marginRight: 65, // the width of the image
+    width: getCardWidth() - 105, // image width + margins
     fontSize: 13,
     lineHeight: 20,
+    fontWeight: '400',
   },
   creation: {
     color: isInjected ? '#2CBA84' : '#999',
@@ -59,16 +67,18 @@ export default class News extends React.Component {
               resizeMode={'cover'}
             />
           </View>
-          <View style={{ flexDirection: 'column', justifyContent: 'flex-start', marginLeft: 6 }}>
+          <View>
             <View
               accessible={false}
               accessibilityLabel={'news-title'}
+              style={styles(isInjected, nLines).textContainer}
             >
               <Text style={styles().text} numberOfLines={nLines} > { link.title }</Text>
             </View>
             <View
               accessible={false}
               accessibilityLabel={'news-timestamp'}
+              style={styles(isInjected, 1).textContainer}
             >
               <Text style={styles(isInjected).creation}> { creationTime }</Text>
             </View>

@@ -8,7 +8,7 @@ import {
   prefs,
   testServer,
   win,
-} from '../tests/core/test-helpers';
+} from '../tests/core/integration/helpers';
 
 
 function mockGlobalState() {

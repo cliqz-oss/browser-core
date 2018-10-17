@@ -130,7 +130,11 @@ export default class ShareCard extends React.Component {
     const src = normalizeUrl('share.png', { isNative: true });
     return (
       <TouchableWithoutFeedback onPress={() => this.shareCard()}>
-        <View style={styles(getCardWidth()).shareSection}>
+        <View
+          style={styles(getCardWidth()).shareSection}
+          accessibilityLabel="share-card-button"
+          accessible={false}
+        >
           <NativeDrawabale
             style={styles().shareImage}
             source={src}

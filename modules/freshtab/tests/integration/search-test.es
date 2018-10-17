@@ -1,9 +1,7 @@
 import {
+  getResourceUrl,
   prefs,
   waitFor,
-} from '../../../tests/core/test-helpers';
-import {
-  getResourceUrl,
 } from '../../../tests/core/integration/helpers';
 import config from '../../../freshtab/config';
 import { isWebExtension } from '../../../core/platform';

@@ -1,7 +1,7 @@
 /* global chai, describeModule */
 
 const fastUrlParser = require('fast-url-parser');
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 
 export default describeModule('antitracking/tracker-txt',
   () => ({
@@ -20,9 +20,7 @@ export default describeModule('antitracking/tracker-txt',
     'core/fast-url-parser': {
       default: fastUrlParser,
     },
-    'platform/lib/tldjs': {
-      default: tldjs,
-    }
+    'platform/lib/tldts': tldts
   }), function () {
     let TT;
     let parser;

@@ -1,12 +1,18 @@
 {
   "appName": {
-      "message": "Cliqz Tab: private search engine (Beta)"
+      "message": "Cliqz Tab (Beta)"
+  },
+  "appNameNightly": {
+      "message": "Cliqz Tab (Nightly)"
   },
   "appDesc": {
       "message": "Cliqz Tab replaces Chrome's default new tab page and adds backgrounds, favorites, news and Cliqz's anonymous quick search."
   },
   "ghosteryTabAppName": {
-      "message": "Ghostery Tab: private search engine (Beta)"
+      "message": "Ghostery Tab with private search (Beta)"
+  },
+  "ghosteryTabAppNameNightly": {
+      "message": "Ghostery Tab with private search (Nightly)"
   },
   "ghosteryTabAppDesc": {
       "message": "Ghostery Tab replaces Chrome's default new tab page and adds backgrounds, favorites, news and Ghostery's anonymous quick search."
@@ -1395,10 +1401,10 @@
       "message": "Recherche complémentaire"
   },
   "control_center_telemetry": {
-      "message": "Envoyer données d'utilisation"
+      "message": "Partage de données anonymes"
   },
   "control_center_telemetry_info": {
-      "message": "Cliqz collecte des données d'utilisation de façon entièrement anonyme. Aucune donnée à caractère personnel sera collectée."
+      "message": "Seules les données strictement anonymes de détails techniques et d'intéractions seront partagées."
   },
   "control_center_backend_country": {
       "message": "Résultats de recherche pour"
@@ -2054,6 +2060,12 @@
   "freshtab_app_settings_news_language_pl": {
       "message": "Édition polonaise"
   },
+  "freshtab_app_settings_news_language_it": {
+      "message": "Médias italiens"
+  },
+  "freshtab_app_settings_news_language_ru": {
+      "message": "Médias russes"
+  },
   "freshtab_app_offers_exclusive": {
       "message": "Exclusif"
   },
@@ -2139,10 +2151,10 @@
     "message": "Delete"
   },
   "why_offers": {
-    "message": "Why do I see this offer?"
+    "message": "Pourquoi me montre-t-on cette offre ?"
   },
   "why_offers_text": {
-    "message": "No personal data leaves your device. Your browser automatically identifies what you might be interested in based on your previous use. "
+    "message": "Vos données privées ne quittent jamais votre appareil. Votre navigateur détecte automatiquement ce qui est susceptible de vous intéressez selon vos précédentes utilisations."
   },
   "offers_hub_feedback_undo_delete": {
     "message": "ANNULER"

@@ -41,10 +41,6 @@ const trees = [
   new Funnel(modules.styleTests,  { destDir: 'chrome/content' })
 ];
 
-if (!env.PRODUCTION) {
-  trees.push(new Funnel(modules.modules,      { destDir: 'chrome/content' }));
-}
-
 var firefoxTree = new MergeTrees([
   ...trees,
   new Funnel(modules.bundles,     { destDir: 'chrome/content' })

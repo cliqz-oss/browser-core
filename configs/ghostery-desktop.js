@@ -9,7 +9,7 @@ const subprojects = require('./common/subprojects/bundles');
 module.exports = {
   "platform": "firefox",
   "baseURL": "resource://cliqz/",
-  "testsBasePath": "./build/ghostery-db@cliqz.com/chrome/content",
+  "testsBasePath": "./build/ghostery@cliqz.com/chrome/content",
   "testem_launchers": ["unit-node", "Chrome"],
   "testem_launchers_ci": ["unit-node"],
   "pack": "cd build && fab package:version=$VERSION,cert_path=$CLIQZ_CERT_PATH,cert_pass_path=$CLIQZ_CERT_PASS_PATH",
@@ -17,7 +17,7 @@ module.exports = {
   "updateURL": "https://s3.amazonaws.com/cdncliqz/update/browser/latest.rdf",
   "updateURLbeta": "https://s3.amazonaws.com/cdncliqz/update/browser_beta/latest.rdf",
   "settings": Object.assign({}, urls, {
-    "id": "ghostery-db@cliqz.com",
+    "id": "ghostery@cliqz.com",
     "name": "Ghostery",
     "channel": "GB00",
     "homepageURL": "https://ghostery.com/",
@@ -32,6 +32,7 @@ module.exports = {
     "KEY_SECURE_LOGGER_PUBKEY": "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAh5HhcRAn6+6woXQXl\/NtZ+fOooNglZct\/HSpYuqkcmrPauHW7EuOSq5bvpBZRTDROjR\/kUPomqVZIzqhdCFPA8BwXSCz7hAel2Q157vtBvh9sngMMLXb5Fgzef5N4EuKO8pL5KrS+I9tfZac41vFJSdpgAirZYhh+tdcQQ1z0Qv\/Rw0zOXjfvddCz3gEv2gB9KsLMVnTS1J4YOOgfza2adg9Ebz1z99DiF4vtCwn0IUwH\/3ToTBwJLbMnC3Ol43yBNk8rgK2mkgCi614vOSD3hnVmio+iW6+AUklM8VPl6l7hEK9cljJY+9UsMVmTrvaFbMPwS6AdZCXKTmNdaMJcy3zSOXu5zvzihoQLwAu9LM3l2eVk0Mw0K7JXOP20fc8BtzWCOLYVP32r4R0BNuhTtvGqjHNZHPJN5OwaxkLpn2dujL9uDWGjRiOItKMVq\/nOqmNGghrbf8IOaKT7VQhqOU4cXRkB\/uF1UjYETBavwUZAxx9Wd\/cMcAGmKiDxighxxQ29jDufl+2WG065tmJz+zCxmgrPh6Zb3KFUxPTe6yksAhWJhmGShA9v20t84M5c6NpZXoUsFcVja6XxzHeSB8dWq9Uu5QcZ83Gz\/ronwdEjT2OGTtBgOFeTDqLYUgphC1gcUEHOCnTNXRMQOXqGwBfZHp+Mq61QcMq2rNS7xECAwEAAQ==",
     "HW_CHANNEL": "ghostery-browser",
     "HPN_CHANNEL": "ghostery",
+    "OFFERS_CHANNEL": "ghostery",
     "NEW_TAB_URL": "resource://cliqz/freshtab/home.html",
     "ONBOARDING_URL": "resource://cliqz/onboarding-v3/index.html",
     "HISTORY_URL": "resource://cliqz/cliqz-history/index.html#/",
@@ -62,7 +63,8 @@ module.exports = {
     "ATTRACK_TELEMETRY_PROVIDER": "hpn",
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
     "antitrackingPlaceholder": ".com/tracking",
-    "antitrackingHeader": "CLIQZ-AntiTracking"
+    "antitrackingHeader": "CLIQZ-AntiTracking",
+    "FRESHTAB_TITLE": 'Ghostery Tab',
   }),
   "default_prefs" : {
     "modules.context-search.enabled": false,
@@ -73,7 +75,9 @@ module.exports = {
     "proxyPeer": false,
     "proxyTrackers": false,
     "modules.cookie-monster.enabled": true,
-    "modules.hpnv2.enabled": true
+    "modules.hpnv2.enabled": true,
+    "suggestionChoice": 2,
+    'freshtab.search.mode': 'search',
   },
   "modules": [
     "core",
@@ -101,7 +105,6 @@ module.exports = {
     "anolysis",
     "anolysis-cc",
     "abtests",
-    "theme",
     "context-search",
     "privacy-dashboard",
     "https-everywhere",
@@ -121,7 +124,7 @@ module.exports = {
     "privacy",
     "inter-ext-messaging",
     "privacy-migration",
-    "myoffrz-collector",
+    "myoffrz-helper",
     "serp"
   ],
   "subprojects": subprojects([
@@ -141,7 +144,7 @@ module.exports = {
     'reactDom',
     'rxjs',
     'simple-statistics',
-    'tldjs',
+    'tldts',
     'tooltipster-css',
     'tooltipster-js',
     'tooltipster-sideTip-theme',

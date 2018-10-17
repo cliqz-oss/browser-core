@@ -1,6 +1,7 @@
 import config from '../core/config';
 
-const isGhosteryTab = config.settings.channel && config.settings.channel.startsWith('GT');
+const isGhosteryTab = config.settings.channel &&
+                      (config.settings.channel.startsWith('GT') || config.settings.channel.startsWith('GB'));
 
 const CLIQZ_BACKGROUNDS = {
   'bg-matterhorn': {
@@ -8,8 +9,8 @@ const CLIQZ_BACKGROUNDS = {
     alias: 'matterhorn',
     isDefault: true,
   },
-  'bg-blue': {
-    name: 'bg-blue',
+  'bg-alps': {
+    name: 'bg-alps',
     alias: 'alps',
     isDefault: false,
   },
@@ -41,6 +42,11 @@ const CLIQZ_BACKGROUNDS = {
   'bg-summer': {
     name: 'bg-summer',
     alias: 'summer',
+    isDefault: false,
+  },
+  'bg-autumn': {
+    name: 'bg-autumn',
+    alias: 'autumn',
     isDefault: false,
   },
 };

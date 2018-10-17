@@ -1,7 +1,7 @@
 /* global chai, describeModule */
 /* eslint no-param-reassign: off */
 
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 
 class MockPersistantObject {
   load() {
@@ -46,9 +46,7 @@ export default describeModule('core/url-whitelist',
       }
     },
     'platform/environment': {},
-    'platform/lib/tldjs': {
-      default: tldjs,
-    },
+    'platform/lib/tldts': tldts,
     'platform/platform': {
       default: {
        isOnionMode: false,

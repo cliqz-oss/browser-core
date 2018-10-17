@@ -15,6 +15,7 @@ import { Window, mapWindows, forEachWindow, addWindowObserver,
   addSessionRestoreObserver, removeSessionRestoreObserver } from '../platform/browser';
 import Defer from './helpers/defer';
 import { getChannel } from '../platform/demographics';
+import { isOnionMode } from './platform';
 
 export function shouldEnableModule(name) {
   const pref = `modules.${name}.enabled`;
@@ -78,6 +79,9 @@ export default class App {
         moduleName,
         Object.assign({}, config.settings, { version })
       );
+      if (isOnionMode && !module.isOnionReady) {
+        return;
+      }
       this.modules[moduleName] = module;
 
       // Keep reference to all module services by their name
@@ -301,9 +305,7 @@ export default class App {
   }
 
   enabledModules() {
-    return config.modules
-      .map(name => this.modules[name])
-      .filter(module => module.isEnabled);
+    return this.moduleList.filter(module => module.isEnabled);
   }
 
   setupPrefs() {
@@ -491,9 +493,9 @@ export default class App {
       return;
     }
 
-    const shouldEnable = prefs.get(pref) === true;
-    const shouldDisable = !shouldEnable;
     const moduleName = prefParts.pop();
+    const shouldEnable = shouldEnableModule(moduleName);
+    const shouldDisable = !shouldEnable;
     const module = this.modules[moduleName];
 
     if (!module) {
@@ -522,7 +524,10 @@ export default class App {
    */
   enableModule(moduleName) {
     const module = this.modules[moduleName];
-    prefs.set(`modules.${moduleName}.enabled`, true);
+    const prefName = `modules.${moduleName}.enabled`;
+    if (prefs.has(prefName) && prefs.get(prefName) !== true) {
+      prefs.set(prefName, true);
+    }
 
     if (module.isEnabled || !this.isRunning) {
       return Promise.resolve();
@@ -553,7 +558,10 @@ export default class App {
    */
   disableModule(moduleName) {
     const module = this.modules[moduleName];
-    prefs.set(`modules.${moduleName}.enabled`, false);
+    const prefName = `modules.${moduleName}.enabled`;
+    if (!prefs.has(prefName) || prefs.get(prefName) !== false) {
+      prefs.set(prefName, false);
+    }
 
     if (module.isDisabled || !this.isRunning) {
       return Promise.resolve();

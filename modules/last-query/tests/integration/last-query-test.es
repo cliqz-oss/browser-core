@@ -3,7 +3,6 @@ import {
   $cliqzResults,
   expect,
   fillIn,
-  focusOnTab,
   mockSearch,
   newTab,
   press,
@@ -50,12 +49,12 @@ export default function () {
 
         win.CLIQZ.TestHelpers.searchEngines.setDefaultSearchEngine('Test');
 
-        await focusOnTab(await newTab(freshtabUrl));
+        await newTab(freshtabUrl, { focus: true });
         blurUrlBar();
         await mockSearch({ results: [{ url }] });
         withHistory([]);
         fillIn(query);
-        await waitForPopup(2);
+        await waitForPopup(2, 2000);
       });
 
       afterEach(async function () {
@@ -80,13 +79,13 @@ export default function () {
       beforeEach(async function () {
         await testServer.registerPathHandler('/url-test', { result: '<html><body><p>success</p></body></html>' });
 
-        await focusOnTab(await newTab(freshtabUrl, true));
+        await newTab(freshtabUrl, { check: true, focus: true });
 
         blurUrlBar();
         await mockSearch({ results: [{ url }] });
         withHistory([]);
         fillIn(query);
-        await waitForPopup(2);
+        await waitForPopup(2, 2000);
       });
 
       it('on Enter renders last query box with the query', async function () {
@@ -110,7 +109,7 @@ export default function () {
       beforeEach(async function () {
         await testServer.registerPathHandler('/url-test', { result: '<html><body><p>success</p></body></html>' });
 
-        await focusOnTab(await newTab(freshtabUrl));
+        await newTab(freshtabUrl, { focus: true });
 
         blurUrlBar();
         await mockSearch({
@@ -121,7 +120,7 @@ export default function () {
         });
         withHistory([]);
         fillIn(query);
-        await waitForPopup(3);
+        await waitForPopup(3, 2000);
       });
 
       it('on Enter doesn\'t render last query box', async function () {

@@ -61,15 +61,27 @@ export default class ExpandView extends React.Component {
     const arrowImage = normalizeUrl('arrow-down.svg');
     const style = styles(isCollapsed, index);
     return (
-      <View style={style.container}>
+      <View
+        accessible={false}
+        accessibilityLabel={'expand-view-container'}
+        style={style.container}
+      >
         <Link
           onPress={() => this.setState({ collapsed: !isCollapsed })}
         >
           <View style={style.header}>
-            <View style={style.headerDetails}>
+            <View
+              accessible={false}
+              accessibilityLabel={'expand-view-header'}
+              style={style.headerDetails}
+            >
               { this.props.header }
             </View>
-            <View style={style.headerExpand}>
+            <View
+              accessible={false}
+              accessibilityLabel={'expand-view-arrow'}
+              style={style.headerExpand}
+            >
               <NativeDrawable
                 source={arrowImage}
                 style={style.arrow}
@@ -80,7 +92,11 @@ export default class ExpandView extends React.Component {
         { isCollapsed ||
           (
             <Link>
-              <View style={style.content}>
+              <View
+                accessible={false}
+                accessibilityLabel={'expand-view-content'}
+                style={style.content}
+              >
                 { this.props.content }
               </View>
             </Link>

@@ -1,4 +1,5 @@
 import {
+  closeTab,
   expect,
   newTab,
   waitForElement,
@@ -9,8 +10,10 @@ import {
   cardsUrl,
   checkComplementarySearchCard,
   checkHeader,
+  checkMainUrl,
   getElements,
   mockSearch,
+  withHistory,
 } from './helpers';
 
 import {
@@ -25,10 +28,13 @@ export default function () {
   }
 
   describe('for a single mobile cards result', function () {
+    let id;
+
     before(async function () {
       win.preventRestarts = true;
 
-      const id = await newTab(cardsUrl);
+      id = await newTab(cardsUrl);
+      withHistory([]);
       await mockSearch({ results });
       win.CLIQZ.app.modules.search.action('startSearch', 'test', { tab: { id } });
       await waitForElement({
@@ -38,10 +44,13 @@ export default function () {
       });
     });
 
-    after(function () {
+    after(async function () {
+      await closeTab(id);
       win.preventRestarts = false;
+      win.CLIQZ.app.modules.search.action('stopSearch');
     });
 
+    checkMainUrl({ url: cardsUrl, mainUrl: results[0].url });
     checkHeader({ url: cardsUrl, results, isDefault: true, imageName: 'ro' });
 
     it('renders title', async function () {

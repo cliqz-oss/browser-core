@@ -87,7 +87,7 @@ class Article extends React.Component {
           {
             this.truncate(
               this.props.article.title,
-              this.props.maxChars - 20
+              this.props.maxChars - this.props.charsToRemoveFromTitle
             )
           }
         </div>
@@ -115,7 +115,8 @@ Article.propTypes = {
     edition: PropTypes.string,
   }),
   index: PropTypes.number,
-  maxChars: PropTypes.number
+  maxChars: PropTypes.number,
+  charsToRemoveFromTitle: PropTypes.number
 };
 
 export default Article;

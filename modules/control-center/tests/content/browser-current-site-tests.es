@@ -7,12 +7,11 @@ import { generateDataFalse, generateDataTrue } from './fixtures/current-site';
 function currentSiteTests(amo) {
   const dataFalse = generateDataFalse(amo);
   const dataTrue = generateDataTrue(amo);
-  const target = 'cliqz-control-center';
+  const target = 'control-center';
   let subject;
 
   before(function () {
     subject = new Subject();
-    return subject.load();
   });
 
   after(function () {
@@ -21,7 +20,12 @@ function currentSiteTests(amo) {
 
   describe('pushing data, specialUrl = false', function () {
     before(function () {
-      return subject.pushData(target, dataFalse);
+      subject.respondsWith({
+        module: target,
+        action: 'getData',
+        response: dataFalse
+      });
+      return subject.load();
     });
 
     it('exists', function () {
@@ -50,7 +54,12 @@ function currentSiteTests(amo) {
 
   describe('pushing data, specialUrl = true', function () {
     before(function () {
-      return subject.pushData(target, dataTrue);
+      subject.respondsWith({
+        module: target,
+        action: 'getData',
+        response: dataTrue
+      });
+      return subject.load();
     });
 
     it('exists', function () {

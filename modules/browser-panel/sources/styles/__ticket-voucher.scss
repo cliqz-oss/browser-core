@@ -86,14 +86,15 @@ body {
     font-family: "-mac-system", "-apple-system", "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
     display: flex;
     justify-content: center;
+    visibility: hidden;
 
     .code-box {
-      position: relative;
+      position: absolute;
       cursor: pointer;
       font-size: 11px;
       font-weight: 500;
       letter-spacing: 1px;
-
+      top: -5px;
       .bevel {
         border-color: #fff;
         border-style: solid;
@@ -168,18 +169,23 @@ body {
         }
       }
     }
+
+    &.show {
+        visibility: visible;
+    }
   }
 
   .promo-container {
 
     display: flex;
     box-shadow: inset 0px 0px 0px 0px #CCC, 0px 8px 31px 0px rgba(0, 0, 0, 0.2);
-    height: 78px;
+    height: 85px;
     align-items: stretch;
     font-family: "-mac-system", "-apple-system", "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
     background: #fff;
     min-width: 275px;
     position: relative;
+    margin-top: 10px;
     &:after {
         content: '';
         width: 100%;
@@ -192,14 +198,14 @@ body {
     }
     .why-offer {
         position: absolute;
-        top: -20px;
+        top: -16px;
         right: 0;
         width: 100%;
         min-width: 100%;
         max-width: 1400px;
         left: 0;
         margin: 0 auto;
-        font-size: 11.5px;
+        font-size: 11.2px;
         color: rgba(0,0,0,0.7);
         font-weight: 600;
         z-index: 1;
@@ -272,13 +278,16 @@ body {
     }
 
     .vertical-txt {
-      writing-mode: vertical-lr;
-      transform: rotate(-180deg);
+      writing-mode: sideways-lr;
+      display: flex;
+      flex-direction: row;
+      flex: 0 0 1px;
     }
 
     .special-flags {
       display: none;
       margin-left: 10px;
+      margin-bottom: 7px;
 
       span {
         text-transform: uppercase;
@@ -299,8 +308,6 @@ body {
       }
       .exclusive {
         position: relative;
-        left: -5px;
-        top: -2px;
       }
 
       .exclusive::before,
@@ -310,17 +317,18 @@ body {
         height: 12px;
         display: inline-block;
         position: relative;
-        top: -3px;
-
+        top: 3px;
+        background-size: contain;
+        transform: rotate(-90deg);
+        background-repeat: no-repeat;
       }
 
       .exclusive::before {
-        background: url("../images/ticket-tmpl/exclusive.svg") no-repeat;
-        transform: rotate(-270deg);
+        background-image: url("../images/ticket-tmpl/exclusive.svg");
       }
 
       .best_offer::before {
-        background: url("../images/ticket-tmpl/bestoffer.svg") no-repeat;
+        background-image: url("../images/ticket-tmpl/bestoffer.svg");
       }
     }
 
@@ -360,7 +368,7 @@ body {
       margin-right: 20px;
       cursor: pointer;
       img {
-        height: 78px;
+        height: 84px;
         width: auto;
         position: relative;
         max-width: none;
@@ -374,7 +382,6 @@ body {
       color: #2d2d2d;
       cursor: pointer;
       padding-right: 10px;
-      text-transform: uppercase;
       &.only-benefit {
         flex: 1;
         font-size: 24px;
@@ -393,6 +400,7 @@ body {
     .headline {
       @include hyphenate;
       cursor: pointer;
+      overflow: hidden
     }
 
     .title {
@@ -401,15 +409,16 @@ body {
       flex: 3;
       font-size: 13.5px;
       cursor: pointer;
+      max-height: 63px;
       overflow: hidden
     }
 
     .common {
       color: #2d2d2d;
       font-weight: 500;
-      line-height: 16px;
+      line-height: 20px;
       padding-right: 20px;
-      max-height: 50px;
+      height: auto;
     }
 
     .description {
@@ -419,17 +428,19 @@ body {
       padding-right: 20px;
       cursor: pointer;
       display: flex;
-      align-items: stretch;
+      border-left: 2px solid #ccc;
+      margin: 15px 0;
       .desc-content {
         color: #2d2d2d;
-        border-left: 2px solid #ccc;
         padding-left: 10px;
         overflow: hidden;
         line-height: 16px;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        margin: 13px 0
+        line-height: 17px;
+        max-height: 55px;
+        justify-content: start
       }
     }
 
@@ -533,6 +544,7 @@ body {
       .headline {
         display: block;
         font-size: 13.5px;
+        max-height: 63px
       }
       .why-offer {
         display: none;
@@ -591,7 +603,7 @@ body {
       }
       .special-flags {
         display: flex;
-        align-items: center
+        align-items: stretch
       }
       .description {
           display: none;
@@ -613,6 +625,7 @@ body {
     .promo-container {
       .description {
         display: flex;
+        align-items: center;
       }
 
       .title {
@@ -630,13 +643,16 @@ body {
 @media only screen and (min-width: 992px) {
   #cqz-browser-panel-re {
     .promo-container {
+      .description {
+          align-items: center
+      }
       .picture {
         display: block;
       }
 
       .headline,
       .title {
-        font-size: 16px;
+        font-size: 15.3px;
       }
 
        .logo {
@@ -656,9 +672,6 @@ body {
 
    #cqz-browser-panel-re  {
     .promo-container {
-
-
-
       .description {
         font-size: 13.5px;
       }
@@ -671,7 +684,7 @@ body {
 
   #cqz-browser-panel-re  {
     .promo-container {
-      margin: 0 auto;
+      margin: 10px auto 0 auto;
       max-width: 1400px;
 
       .call-to-action {

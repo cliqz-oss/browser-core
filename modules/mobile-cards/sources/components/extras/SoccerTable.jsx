@@ -98,30 +98,98 @@ export default class SoccerTable extends React.Component {
   displayHeader(groupName = null) {
     return (<View>
       {groupName && <Text style={styles.tableBody}>{groupName}</Text>}
-      <View style={styles.header}>
+      <View
+        accessible={false}
+        accessibilityLabel={'soccer-header-container'}
+        style={styles.header}
+      >
         <Text numberOfLines={1} style={[styles.narrow, styles.tableHeader]} />
-        <Text numberOfLines={1} style={[styles.wide, styles.tableHeader]}>Mannschaft</Text>
-        <Text numberOfLines={1} style={[styles.narrow, styles.tableHeader]}>SP</Text>
-        <Text numberOfLines={1} style={[styles.narrow, styles.tableHeader]}>TD</Text>
-        <Text numberOfLines={1} style={[styles.narrow, styles.tableHeader]}>PKT</Text>
+        <View
+          accessible={false}
+          accessibilityLabel={'soccer-header-header'}
+          style={styles.wide}
+        >
+          <Text numberOfLines={1} style={styles.tableHeader}>Mannschaft</Text>
+        </View>
+        <View
+          accessible={false}
+          accessibilityLabel={'soccer-header-sp'}
+          style={styles.narrow}
+        >
+          <Text numberOfLines={1} style={styles.tableHeader}>SP</Text>
+        </View>
+        <View
+          accessible={false}
+          accessibilityLabel={'soccer-header-td'}
+          style={styles.narrow}
+        >
+          <Text numberOfLines={1} style={styles.tableHeader}>TD</Text>
+        </View>
+        <View
+          accessible={false}
+          accessibilityLabel={'soccer-header-pkt'}
+          style={styles.narrow}
+        >
+          <Text numberOfLines={1} style={styles.tableHeader}>PKT</Text>
+        </View>
       </View>
     </View>);
   }
 
   displayRanking(ranking) {
     return ranking.map(row =>
-      (<View style={styles.header} key={row.club}>
-        <Text numberOfLines={1} style={[styles.narrow, styles.tableBody]}>{`${row.rank}.`}</Text>
-        <Text numberOfLines={1} style={[styles.wide, styles.tableBody]}>{row.club}</Text>
-        <Text numberOfLines={1} style={[styles.narrow, styles.tableBody]}>{row.SP}</Text>
-        <Text numberOfLines={1} style={[styles.narrow, styles.tableBody]}>{row.TD}</Text>
-        <Text numberOfLines={1} style={[styles.narrow, styles.tableBody]}>{row.PKT}</Text>
+      (<View
+        accessible={false}
+        accessibilityLabel={'soccer-ranking-container'}
+        style={styles.header}
+        key={row.club}
+      >
+        <View
+          accessible={false}
+          accessibilityLabel={'soccer-ranking-rank'}
+          style={styles.narrow}
+        >
+          <Text numberOfLines={1} style={styles.tableBody}>{`${row.rank}.`}</Text>
+        </View>
+        <View
+          accessible={false}
+          accessibilityLabel={'soccer-ranking-club'}
+          style={styles.wide}
+        >
+          <Text numberOfLines={1} style={styles.tableBody}>{row.club}</Text>
+        </View>
+        <View
+          accessible={false}
+          accessibilityLabel={'soccer-ranking-sp'}
+          style={styles.narrow}
+        >
+          <Text numberOfLines={1} style={styles.tableBody}>{row.SP}</Text>
+        </View>
+        <View
+          accessible={false}
+          accessibilityLabel={'soccer-ranking-td'}
+          style={styles.narrow}
+        >
+          <Text numberOfLines={1} style={styles.tableBody}>{row.TD}</Text>
+        </View>
+        <View
+          accessible={false}
+          accessibilityLabel={'soccer-ranking-pkt'}
+          style={styles.narrow}
+        >
+          <Text numberOfLines={1} style={styles.tableBody}>{row.PKT}</Text>
+        </View>
       </View>)
     );
   }
 
   displayGroup(group) {
-    return (<View style={styles.groupContainer} key={group.group || 'key'}>
+    return (<View
+      accessible={false}
+      accessibilityLabel={'soccer-group-container'}
+      style={styles.groupContainer}
+      key={group.group || 'key'}
+    >
       {this.displayHeader(group.group)}
       {this.displayRanking(group.ranking)}
     </View>);
@@ -149,7 +217,11 @@ export default class SoccerTable extends React.Component {
   render() {
     const type = 'soccer';
 
-    return (<View style={styles.elementMargins}>
+    return (<View
+      accessible={false}
+      accessibilityLabel={'soccer-table'}
+      style={styles.elementMargins}
+    >
       {this.content}
       {Boolean(this.isValid) &&
         <View style={{ ...elementTopMargin }}>
@@ -163,7 +235,7 @@ export default class SoccerTable extends React.Component {
           />
         </View>
       }
-      <PoweredByKicker />
+      <PoweredByKicker logo={this.props.result.meta.externalProvidersLogos.kicker} />
     </View>);
   }
 }

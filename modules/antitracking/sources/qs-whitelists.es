@@ -133,6 +133,10 @@ export default class QSWhitelist extends QSWhitelistBase {
     return domain in this.trackerDomains.value;
   }
 
+  shouldCheckDomainTokens(domain) {
+    return this.isTrackerDomain(domain);
+  }
+
   isSafeToken(domain, token) {
     if (!this.isReady()) {
       return true;

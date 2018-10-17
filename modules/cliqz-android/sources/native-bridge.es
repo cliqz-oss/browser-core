@@ -12,6 +12,8 @@ export default class {
         const resolve = this.promises[message.requestId];
         if ('response' in message && resolve) { // response
           resolve(message.response);
+        } else if ('ping' in message) { // check if ready
+          this.sendReadySignal();
         } else { // request
           const module = inject.module(message.module);
           module.action(

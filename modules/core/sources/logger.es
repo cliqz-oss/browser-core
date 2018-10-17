@@ -63,7 +63,7 @@ class Logger {
     // Define loggers
     this._debug = console.debug || noop;
     this._log = console.log || noop;
-    this._warning = console.warning || noop;
+    this._warning = console.warn || noop;
     this._error = console.error || noop;
 
     if (useDump) {

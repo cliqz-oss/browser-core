@@ -21,6 +21,7 @@ registerContentScript('adblocker', 'http*', (window, chrome, CLIQZ) => {
       .then(response => cosmeticsInjection.handleResponseFromBackground(response));
   };
 
+  const isMobile = window.navigator.userAgent.toLowerCase().indexOf('mobile') > -1;
   /**
    * This class is in charge of managing the adblocking in content script:
    * - Script injection.
@@ -31,6 +32,7 @@ registerContentScript('adblocker', 'http*', (window, chrome, CLIQZ) => {
   cosmeticsInjection = new Adblocker.CosmeticsInjection(
     window,
     backgroundAction,
+    !isMobile,
   );
 
   // ------------------ //

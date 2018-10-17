@@ -6,11 +6,16 @@ import generateData from './fixtures/other-settings-section';
 
 function otherSettingsTests(amo) {
   const data = generateData(amo);
-  const target = 'cliqz-control-center';
+  const target = 'control-center';
   let subject;
 
   before(function () {
     subject = new Subject();
+    subject.respondsWith({
+      module: target,
+      action: 'getData',
+      response: data
+    });
     return subject.load();
   });
 
@@ -19,10 +24,6 @@ function otherSettingsTests(amo) {
   });
 
   describe('Other Settings', function () {
-    before(function () {
-      return subject.pushData(target, data);
-    });
-
     it('other setting section exists', function () {
       expect(subject.query('#othersettings')).to.exist;
     });

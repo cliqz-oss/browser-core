@@ -9,6 +9,8 @@ export default function (url) {
         headers: {
           'x-type': type,
           'Content-Type': 'application/json;charset=utf-8',
+          'User-Agent': ' ',
+          'Accept-Language': ' ',
         },
         referrerPolicy: 'no-referrer',
       }).then((response) => {

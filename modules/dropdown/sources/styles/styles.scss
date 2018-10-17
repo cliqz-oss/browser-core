@@ -40,6 +40,7 @@ $basic-line-height: (16 / 14) + 0em;
     @import 'results/movie-cinema';
     @import 'results/news-story';
     @import 'results/offer';
+    @import 'results/weather';
 
     .category {
         font-size: 140%;
@@ -326,7 +327,7 @@ $basic-line-height: (16 / 14) + 0em;
                 }
 
                 .title {
-                  line-height: $basic-line-height;
+                  line-height: ($basic-line-height / 1.11) + 0em;
                 }
 
                 .divider {
@@ -584,7 +585,6 @@ $basic-line-height: (16 / 14) + 0em;
 
                 &:hover .tooltip {
                     opacity: 1;
-                    top:-3px;
                     cursor: pointer;
                 }
 
@@ -624,44 +624,6 @@ $basic-line-height: (16 / 14) + 0em;
 
         .selected {
             // background-color: transparent;
-        }
-    }
-
-    .result.weather {
-        margin-bottom: 6px;
-        .header {
-            cursor: default;
-        }
-        .forecast {
-            margin-bottom: 10px;
-
-            &:after {
-                @extend .clearfix;
-            }
-
-            .forecast-container {
-                box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.17);
-                display: inline-block;
-                padding: 15px 0px 0px 10px;
-            }
-
-            .weather-item {
-                float: left;
-                margin-right: 40px;
-                min-width: 60px;
-                text-align: center;
-            }
-        }
-
-        .source {
-            color: #999999;
-            font-size: 11px;
-            position: relative;
-            top: 18px;
-
-            .source-container {
-                float: right;
-            }
         }
     }
 

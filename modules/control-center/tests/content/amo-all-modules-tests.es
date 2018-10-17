@@ -7,14 +7,17 @@ import data from './fixtures/amo-all-modules';
 
 describe('Control Center: AMO, all modules are present', function () {
   let subject;
-  const target = 'cliqz-control-center';
+  const target = 'control-center';
 
   before(function () {
     subject = new Subject();
-    return subject.load()
-      .then(function () {
-        return subject.pushData(target, data);
-      });
+
+    subject.respondsWith({
+      module: target,
+      action: 'getData',
+      response: data
+    });
+    return subject.load();
   });
 
   after(function () {

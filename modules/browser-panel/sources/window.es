@@ -112,7 +112,6 @@ export default class Win {
     }
     this.iframe.style.height = `${UI_IFRAME_HEIGHT_DEF}px`;
     this.iframe.style.width = UI_IFRAME_WIDTH_DEF;
-    this.resizePanel();
 
     const signal = {
       type: 'offrz',
@@ -485,17 +484,6 @@ export default class Win {
     }
 
     msgs.forEach(msg => this.sendToCoreUIHandler({ handler: 'offers', data: msg }));
-  }
-
-  resizePanel() {
-    if (this.lastDataToShow) {
-      const offerData = this.lastDataToShow.offer_data;
-      const templateData = offerData.ui_info.template_data;
-      if (!templateData.code) {
-        const newHeight = parseInt(UI_IFRAME_HEIGHT_DEF, 10) - 17;
-        this.iframe.style.height = `${newHeight}px`;
-      }
-    }
   }
 
   getLastDataToShow(/* data */) {

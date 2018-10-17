@@ -78,6 +78,7 @@ export default class SpeedDialsRow extends React.Component {
                 removeSpeedDial={() => this.removeSpeedDial(dial, i)}
                 visitSpeedDial={() => this.visitSpeedDial(i)}
                 updateSpeedDial={newDial => this.props.updateSpeedDial(newDial, i)}
+                updateModalState={this.props.updateModalState}
               />)
             )
           }
@@ -90,7 +91,10 @@ export default class SpeedDialsRow extends React.Component {
             })
           }
           {this.state.showAddButton() &&
-            <AddSpeedDial addSpeedDial={this.props.addSpeedDial} />
+            <AddSpeedDial
+              addSpeedDial={this.props.addSpeedDial}
+              updateModalState={this.props.updateModalState}
+            />
           }
         </div>
       </div>

@@ -1,13 +1,10 @@
 import {
   expect,
+  getResourceUrl,
   newTab,
   queryHTML,
-  focusOnTab,
-  waitForAsync,
+  waitFor,
   waitForElement,
-} from '../../../tests/core/test-helpers';
-import {
-  getResourceUrl,
 } from '../../../tests/core/integration/helpers';
 import { isBootstrap } from '../../../core/platform';
 
@@ -23,7 +20,7 @@ export default function () {
     describe('opened in a new tab', function () {
       beforeEach(async function () {
         // Load freshtab in new tab
-        await focusOnTab(await newTab(url));
+        await newTab(url, { focus: true });
         await waitForElement({ url, selector: '#section-favorites .dial-header' });
       });
 
@@ -32,12 +29,12 @@ export default function () {
         expect($favHeader).to.have.length(1);
         expect($favHeader[0]).to.equal('Favorites');
 
-        await waitForAsync(async () => {
+        await waitFor(async () => {
           const $search = await queryHTML(url, '.search', 'nodeName');
           return expect($search).to.have.length(1);
         });
 
-        await waitForAsync(async () => {
+        await waitFor(async () => {
           const $news = await queryHTML(url, '.news', 'nodeName');
           return expect($news).to.have.length(1);
         });

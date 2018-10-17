@@ -7,24 +7,12 @@ import {
   testServer,
   updateTab,
   waitFor,
-  waitForAsync,
-} from '../../../tests/core/test-helpers';
+} from '../../../tests/core/integration/helpers';
 
 import Config from '../../../antitracking/config';
-import pacemaker from '../../../core/pacemaker';
 
 
 export default function () {
-  before(() => {
-    // pause pacemaker to prevent external list updates
-    pacemaker.stop();
-  });
-
-  after(() => {
-    // restart pacemaker
-    pacemaker.start();
-  });
-
 
   let attrack;
   let webRequestPipeline;
@@ -150,7 +138,7 @@ export default function () {
 
           describe('attrack.tp_events.commit', () => {
             it('should stage previous page load', async () => {
-              await waitForAsync(async () => {
+              await waitFor(async () => {
                 await attrack.tp_events.commit(true);
                 return attrack.tp_events._staged.length > 0;
               });
@@ -206,7 +194,7 @@ export default function () {
             });
 
             it('gets host at end of redirect chain', async () => {
-              await waitForAsync(() => testServer.hasHit('/target'));
+              await waitFor(() => testServer.hasHit('/target'));
               // for js redirect the hit comes before webrequest is triggered.
               // we wait a short time to allow for the webrequest event to update tp_events
               if (kind === 'js') {

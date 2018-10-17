@@ -6,7 +6,7 @@ import CLIQZEnvironment from '../platform/environment';
 import prefs from './prefs';
 import Storage from './storage';
 import { getPublicSuffix } from './tlds';
-import { fetchFactory } from './http';
+import { fetchFactory } from '../platform/fetch';
 import * as searchUtils from '../core/search-engines';
 import i18n from './i18n';
 import historySearch from '../platform/history/search';
@@ -36,9 +36,8 @@ const CliqzUtils = {
   getDay() {
     return Math.floor(new Date().getTime() / 86400000);
   },
-  // used in testing only
-  fetchFactory() {
-    return fetchFactory();
+  fetchFactory(params = {}) {
+    return fetchFactory(params);
   },
   historySearch,
   getSuggestions(query) {

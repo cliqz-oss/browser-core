@@ -6,11 +6,10 @@ import { dataOn, dataOff } from './fixtures/amo-cliqz-tab';
 
 describe('Control Center: AMO, Cliqz tab UI tests', function () {
   let subject;
-  const target = 'cliqz-control-center';
+  const target = 'control-center';
 
   before(function () {
     subject = new Subject();
-    return subject.load();
   });
 
   after(function () {
@@ -23,7 +22,7 @@ describe('Control Center: AMO, Cliqz tab UI tests', function () {
     });
 
     it('renders info button', function () {
-      expect(subject.query('.amo #cliqz-tab .title .infobutton')).to.exist;
+      expect(subject.query('.amo #cliqz-tab .title .cc-tooltip')).to.exist;
     });
 
     it('renders title', function () {
@@ -39,13 +38,18 @@ describe('Control Center: AMO, Cliqz tab UI tests', function () {
 
   describe('Cliqz tab on', function () {
     before(function () {
-      return subject.pushData(target, dataOn);
+      subject.respondsWith({
+        module: target,
+        action: 'getData',
+        response: dataOn
+      });
+      return subject.load();
     });
 
     cliqzTabUiTests();
 
     it('renders correct colour of switch', function () {
-      expect(subject.getComputedStyle('.amo #cliqz-tab .cqz-switch-box').background)
+      expect(subject.getComputedStyle(subject.query('.amo #cliqz-tab .cqz-switch-box')).background)
         .to.contain('rgb(0, 173, 239)');
     });
 
@@ -54,21 +58,26 @@ describe('Control Center: AMO, Cliqz tab UI tests', function () {
       const offSelector = '.amo #cliqz-tab .switches [data-i18n="control_center_switch_off"]';
       expect(subject.query(onSelector)).to.exist;
       expect(subject.query(offSelector)).to.exist;
-      expect(subject.getComputedStyle(onSelector).display).to.not.equal('none');
-      expect(subject.getComputedStyle(offSelector).display).to.equal('none');
+      expect(subject.getComputedStyle(subject.query(onSelector)).display).to.not.equal('none');
+      expect(subject.getComputedStyle(subject.query(offSelector)).display).to.equal('none');
       expect(subject.query(onSelector).textContent.trim()).to.equal('control_center_switch_on');
     });
   });
 
   describe('Cliqz tab off', function () {
     before(function () {
-      return subject.pushData(target, dataOff);
+      subject.respondsWith({
+        module: target,
+        action: 'getData',
+        response: dataOff
+      });
+      return subject.load();
     });
 
     cliqzTabUiTests();
 
     it('renders correct colour of switch', function () {
-      expect(subject.getComputedStyle('.amo #cliqz-tab .cqz-switch-box').background)
+      expect(subject.getComputedStyle(subject.query('.amo #cliqz-tab .cqz-switch-box')).background)
         .to.contain('rgb(255, 126, 116)');
     });
 
@@ -77,8 +86,8 @@ describe('Control Center: AMO, Cliqz tab UI tests', function () {
       const offSelector = '.amo #cliqz-tab .switches [data-i18n="control_center_switch_off"]';
       expect(subject.query(onSelector)).to.exist;
       expect(subject.query(offSelector)).to.exist;
-      expect(subject.getComputedStyle(onSelector).display).to.equal('none');
-      expect(subject.getComputedStyle(offSelector).display).to.not.equal('none');
+      expect(subject.getComputedStyle(subject.query(onSelector)).display).to.equal('none');
+      expect(subject.getComputedStyle(subject.query(offSelector)).display).to.not.equal('none');
       expect(subject.query(offSelector).textContent.trim()).to.equal('control_center_switch_off');
     });
   });

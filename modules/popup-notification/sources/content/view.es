@@ -1,11 +1,20 @@
 /* eslint-disable import/prefer-default-export */
-import { styles, PARANJA_STYLES, popupStyles } from './styles';
+import { divertImages } from '../../core/content/image-diverter';
+import { styles, styleImages, PARANJA_STYLES, popupStyles } from './styles';
 import subview from './subview';
 import { createElement } from './utils';
 
 const DEBUG = false;
 
-function render({ chrome, window, onApply, onCancel, onCopyCode, config = {} }) {
+function render({
+  chrome,
+  window,
+  onApply,
+  onCancel,
+  onCopyCode,
+  config = {},
+  readContentAsDataUrl,
+}) {
   const modalId = 'cliqz-offer-modal';
   if (window.document.getElementById(modalId)) {
     window.console.warn('an attempt to render popup twice');
@@ -65,6 +74,7 @@ function render({ chrome, window, onApply, onCancel, onCopyCode, config = {} }) 
       popup.contentDocument.body.appendChild(container);
       popup.contentDocument.head.append(style);
     }
+    divertImages(popup, styleImages(config), readContentAsDataUrl);
   }, 1500);
   window.document.body.appendChild(paranja);
   window.document.body.appendChild(isShadow ? shadow : popup);

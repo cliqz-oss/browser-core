@@ -20,6 +20,7 @@ require('../telemetry-schemas-test-helpers')({
       default: {
         module() {
           return {
+            isEnabled: () => true,
             async action(action) {
               if (action === 'getRunningTests') {
                 return aristotleMocks;

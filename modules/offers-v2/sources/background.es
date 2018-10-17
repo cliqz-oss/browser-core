@@ -2,10 +2,12 @@
 
 import logger from './common/offers_v2_logger';
 import inject from '../core/kord/inject';
+import { isWebExtension } from '../core/platform';
 import { getGeneralDomain, extractHostname } from '../core/tlds';
 import prefs from '../core/prefs';
 import config from '../core/config';
 import background from '../core/base/background';
+import telemetry from '../core/services/telemetry';
 import OffersConfigs from './offers_configs';
 import EventHandler from './event_handler';
 import SignalHandler from './signals/signals_handler';
@@ -32,17 +34,20 @@ const POPUPS_INTERVAL = 30 * 60 * 1000; // 30 minutes
 // be activated or deactivated.
 // The module "freshtab" has more responsibility than showing offers
 // and should not be touched from offers-v2.
-const MANAGED_REAL_ESTATE_MODULES = ['offers-cc', 'browser-panel'];
 function touchManagedRealEstateModules(isEnabled) {
-  MANAGED_REAL_ESTATE_MODULES.forEach(moduleName =>
+  const managedRealEstateModules = [
+    'offers-cc',
+    isWebExtension ? 'offers-banner' : 'browser-panel'
+  ];
+  managedRealEstateModules.forEach(moduleName =>
     prefs.set(`modules.${moduleName}.enabled`, isEnabled));
 }
 
 export default background({
   // to be able to read the config prefs
-  requiresServices: ['cliqz-config'],
+  requiresServices: ['cliqz-config', 'telemetry'],
   popupNotification: inject.module('popup-notification'),
-  collector: inject.module('myoffrz-collector'),
+  helper: inject.module('myoffrz-helper'),
 
   // Support the constraint for managed real estate modules:
   // - if a module is initialized, it is in "registeredRealEstates"
@@ -157,6 +162,7 @@ export default background({
       categoryHandler: this.categoryHandler,
       db: this.db,
     });
+    await this.offersHandler.init();
     //
     this.offersAPI = this.offersHandler.offersAPI;
 
@@ -172,6 +178,7 @@ export default background({
       category_handler: this.categoryHandler,
       offers_status_handler: this.offersHandler.offerStatus,
       ga_handler: this.gaHandler,
+      telemetry,
     };
     this.triggerMachineExecutor = new TriggerMachineExecutor(this.globObjects);
 
@@ -244,8 +251,8 @@ export default background({
     logger.info('background script unloaded');
   },
 
-  onCategoriesHit(categoriesIDsSet, urlData) {
-    urlData.setActivatedCategoriesIDs(categoriesIDsSet);
+  onCategoriesHit(categoriesIDs, urlData) {
+    urlData.setActivatedCategoriesIDs(new Set(categoriesIDs.keys()));
     // process the trigger engine now
     // We want to have the following behavior to be able to show offers on
     // the same url change:
@@ -255,7 +262,7 @@ export default background({
     //
     // Since fetch intents is now in offers handler this is enough
     this.triggerMachineExecutor.processUrlChange({ url_data: urlData })
-      .then(() => this.offersHandler.urlChangedEvent(urlData));
+      .then(() => this.offersHandler.urlChangedEvent(urlData, categoriesIDs));
   },
 
   onUrlChange(urlData) {
@@ -265,11 +272,11 @@ export default background({
 
     // evaluate categories first and store in the urlData all the categories
     // activated for that given url
-    const categoriesIDsSet = this.categoryHandler.newUrlEvent(urlData.getPatternRequest());
-    if (categoriesIDsSet.size > 0) {
-      logger.debug('Categories hit', urlData, categoriesIDsSet);
+    const categoriesIDs = this.categoryHandler.newUrlEvent(urlData.getPatternRequest());
+    if (categoriesIDs.size > 0) {
+      logger.debug('Categories hit', urlData, categoriesIDs);
     }
-    this.onCategoriesHit(categoriesIDsSet, urlData);
+    this.onCategoriesHit(categoriesIDs, urlData);
   },
 
 
@@ -378,10 +385,10 @@ export default background({
 
   _categoryHitByFakeUrl({fakeUrl}) {
     const fakeUrlData = new UrlData(fakeUrl);
-    const categoriesIDsSet = this.categoryHandler.newUrlEvent(fakeUrlData.getPatternRequest());
-    if (categoriesIDsSet.size > 0) {
-      logger.log('Matching categories by fake url:', categoriesIDsSet, fakeUrl);
-      this.onCategoriesHit(categoriesIDsSet, fakeUrlData);
+    const categoriesIDs = this.categoryHandler.newUrlEvent(fakeUrlData.getPatternRequest());
+    if (categoriesIDs.size > 0) {
+      logger.log('Matching categories by fake url:', categoriesIDs, fakeUrl);
+      this.onCategoriesHit(categoriesIDs, fakeUrlData);
     }
   },
 
@@ -414,6 +421,10 @@ export default background({
       if (!offer) { return; }
 
       const {ui_info: {template_data: templateData = {}} = {}} = offer;
+      if (Object.keys(templateData).length === 0) {
+        logger.log('offer for popup-notification with empty template_data: ', offer);
+        return;
+      }
       const domain = getGeneralDomain(url);
       this._publishPopupPushEventCached({
         ghostery: config.settings.channel === 'CH80', // ghostery
@@ -537,11 +548,11 @@ export default background({
       const fakeUrlData = new UrlData(fakeUrl);
       // Here we pass a cpt (11) to make request, so it will only match to
       // the special pattern for the categories extracted from the page
-      const categoriesIDsSet = this.categoryHandler.newUrlEvent(fakeUrlData.getPatternRequest(11));
-      if (categoriesIDsSet.size > 0) {
-        logger.log('Matching categories from content category', categories, categoriesIDsSet, url);
+      const categoriesIDs = this.categoryHandler.newUrlEvent(fakeUrlData.getPatternRequest(11));
+      if (categoriesIDs.size > 0) {
+        logger.log('Matching categories from content category', categories, categoriesIDs, url);
         // As if the category hit happens on the real page
-        this.onCategoriesHit(categoriesIDsSet, new UrlData(url));
+        this.onCategoriesHit(categoriesIDs, new UrlData(url));
       }
     },
 
@@ -550,7 +561,7 @@ export default background({
       if (msg.action === 'purchase') {
         if (this.purchaseCache.has(sender.tab.id)) { return; }
         this.purchaseCache.add(sender.tab.id);
-        const { categories, price } = await this.collector.action('getPageCache', sender);
+        const { categories, price } = await this.helper.action('getPageCache', sender);
         logger.log(sender.tab.id, categories, price, 'contentSignal');
         this.signalsHandler.onPurchase({
           domain: md5(getGeneralDomain(sender.url)), categories, price, ...msg });

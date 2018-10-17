@@ -1,5 +1,6 @@
 import prefs from '../core/prefs';
 import CliqzAntiPhishing from './anti-phishing';
+import { getActiveTab } from '../platform/browser';
 
 export default class Win {
   constructor(settings) {
@@ -12,10 +13,10 @@ export default class Win {
   unload() {
   }
 
-  status() {
-    const currentURL = this.window.gBrowser.currentURI.spec;
-    const isWhitelisted = CliqzAntiPhishing.isInWhitelist(currentURL);
-    const whitelistStatus = CliqzAntiPhishing.getUrlWhitelistStatus(currentURL);
+  async status() {
+    const { url } = await getActiveTab();
+    const isWhitelisted = CliqzAntiPhishing.isInWhitelist(url);
+    const whitelistStatus = CliqzAntiPhishing.getUrlWhitelistStatus(url);
     const active = prefs.get('cliqz-anti-phishing-enabled', true);
     let state = 'active';
     if (isWhitelisted && whitelistStatus !== CliqzAntiPhishing.WHITELISTED_TEMPORARY) {

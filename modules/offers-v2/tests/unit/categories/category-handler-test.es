@@ -5,7 +5,7 @@
 
 let buildSimplePatternIndex;
 const encoding = require('text-encoding');
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 
 const mockDexie = require('../../../core/unit/utils/dexie');
 
@@ -62,9 +62,7 @@ export default describeModule('offers-v2/categories/category-handler',
     'platform/text-encoder': {
       default: TextEncoder,
     },
-    'platform/lib/tldjs': {
-      default: tldjs,
-    },
+    'platform/lib/tldts': tldts,
     'offers-v2/common/offers_v2_logger': {
       default: {
         debug: (x) => { console.log(x); },

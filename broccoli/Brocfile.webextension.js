@@ -8,7 +8,7 @@ const util = require('./util');
 const modules = require('./modules-tree');
 const cliqzConfig = require('./config');
 
-const specific = cliqzConfig.specific || 'webextension';
+const specific = cliqzConfig.specific || 'cliqz-tab';
 let specificTree = new Source.WatchedDir('specific/'+specific);
 
 const localesTree = new Funnel(modules.static, {

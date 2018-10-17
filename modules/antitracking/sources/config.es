@@ -7,6 +7,7 @@ import config from '../core/config';
 
 const VERSIONCHECK_URL = `${config.settings.CDN_BASEURL}/anti-tracking/whitelist/versioncheck.json`;
 const CONFIG_URL = `${config.settings.CDN_BASEURL}/anti-tracking/config.json`;
+const WHITELIST2_URL = `${config.settings.CDN_BASEURL}/anti-tracking/whitelist/2`;
 
 export const VERSION = '0.102';
 export const MIN_BROWSER_VERSION = 35;
@@ -58,10 +59,12 @@ const REMOTELY_CONFIGURED = ['blockRules', 'reportList', 'cookieWhitelist', 'sub
 export default class Config {
   constructor({
     defaults = DEFAULTS,
-    versionUrl = VERSIONCHECK_URL
+    versionUrl = VERSIONCHECK_URL,
+    whitelistUrl = WHITELIST2_URL,
   }, onUpdated) {
     this.debugMode = false;
     this.versionCheckUrl = versionUrl;
+    this.whitelistUrl = whitelistUrl;
     this.onUpdated = onUpdated;
 
     this.tokenDomainCountThreshold = 2;

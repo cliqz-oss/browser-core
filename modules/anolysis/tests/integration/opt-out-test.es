@@ -1,9 +1,9 @@
 import {
   app,
   expect,
-  waitForAsync,
+  waitFor,
   waitForPrefChange,
-} from '../../core/test-helpers';
+} from '../../core/integration/helpers';
 
 import getSynchronizedDate from '../../../core/synchronized-time';
 import prefs from '../../../core/prefs';
@@ -17,7 +17,6 @@ export default function () {
 
   const today = getSynchronizedDate().format('YYYY-MM-DD');
   const anolysis = app.modules.anolysis.background;
-  const pushTelemetry = (...args) => app.services.telemetry.api.push(...args);
 
   const clearTelemetryPrefs = () => {
     prefs.clear('telemetry');
@@ -25,6 +24,7 @@ export default function () {
   };
 
   context('opt-out from anolysis tests', function () {
+    let pushTelemetry;
     afterEach(() => clearTelemetryPrefs());
 
     [
@@ -35,37 +35,47 @@ export default function () {
     ].forEach(({ telemetryEnabled, uploadEnabled, telemetryExpected }) => {
       context(`telemetry: ${telemetryEnabled}, uploadEnabled: ${uploadEnabled} == ${telemetryExpected}`, function () {
         beforeEach(async () => {
+          // Prevent interference from other modules' sendTelemetry calls
+          pushTelemetry = app.services.telemetry.api.push;
+          app.services.telemetry.api.push = () => {};
+
           // Reset prefs to default
           clearTelemetryPrefs();
-          await waitForAsync(() => anolysis.isAnolysisInitialized());
+          await waitFor(() => anolysis.isAnolysisInitialized());
 
           // Reset Anolysis
           const anolysisVersionPrefChanged = waitForPrefChange('anolysisVersion');
           prefs.set('anolysisVersion', 0);
           await anolysisVersionPrefChanged;
+          await app.disableModule('freshtab');
           await app.disableModule('anolysis');
           await app.enableModule('anolysis');
+          await waitFor(() => anolysis.isAnolysisInitialized());
 
           // Set telemetry prefs
           prefs.set('telemetry', telemetryEnabled);
           prefs.set('uploadEnabled', uploadEnabled, 'datareporting.healthreport.');
         });
 
+        afterEach(async () => {
+          // reset mock
+          app.services.telemetry.api.push = pushTelemetry;
+          await app.enableModule('freshtab');
+        });
+
         if (telemetryExpected) {
           it('enables Anolysis and accepts signals', async () => {
-            // We expect Anolysis to be initialized by pref change
-            await waitForAsync(() => anolysis.isAnolysisInitialized());
-
-            await pushTelemetry({ active: false }, 'freshtab.prefs.state');
-            expect((await anolysis.actions.getMetricsForDate(today))['freshtab.prefs.state']).to.have.length(1);
+            await waitFor(() => anolysis.isAnolysisInitialized());
+            await pushTelemetry({ type: 'home', action: 'show' }, 'freshtab.home.show');
+            expect((await anolysis.actions.getMetricsForDate(today))['freshtab.home.show']).to.have.length(1);
           });
         } else {
           it('disables Anolysis and rejects signals', async () => {
             // We expect Anolysis to be unloaded by pref change
-            await waitForAsync(() => !anolysis.isAnolysisInitialized());
+            await waitFor(() => !anolysis.isAnolysisInitialized());
 
             try {
-              await pushTelemetry({ active: false }, 'freshtab.prefs.state');
+              await pushTelemetry({ type: 'home', action: 'show' }, 'freshtab.how.show');
               throw new Error('pushTelemetry should have been rejected');
             } catch (ex) {
               /* We expect a rejection */

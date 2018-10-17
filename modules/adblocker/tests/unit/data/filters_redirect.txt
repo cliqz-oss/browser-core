@@ -1,1 +1,0 @@
-{"filter": "", "url": "http://www.chefkoch.de/ck.de/cms-uploads/ad_bomb/acclaim-kiwi/20161018_KOhBJ4L4_bild_203x104.png", "sourceUrl": "http://www.chefkoch.de/", "cpt": 3, "redirect": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAC0lEQVQI12NgQAcAABIAAe+JVKQAAAAA\nSUVORK5CYII="}

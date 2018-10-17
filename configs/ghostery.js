@@ -50,13 +50,15 @@ module.exports = {
   },
   "bundles": [
     "core/content-script.bundle.js",
-    "hpn/worker.bundle.js"
+    "hpn/worker.bundle.js",
+    "hpnv2/worker.bundle.js"
   ],
   "modules": [
     "core",
     "message-center",
     "human-web",
     "hpn",
+    "hpnv2",
     "antitracking",
     "webrequest-pipeline",
     "static",
@@ -64,7 +66,7 @@ module.exports = {
     "adblocker",
     "anolysis",
     "anti-phishing",
-    "myoffrz-collector",
+    "myoffrz-helper",
     "popup-notification",
   ],
   "system": {

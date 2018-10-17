@@ -3,7 +3,7 @@
 :root {
 
     &:-moz-lwtheme-darktext {
-        --url-and-searchbar-background-color: $chrome-light-color; // Background for urlbar
+        --url-and-searchbar-background-color: #{$chrome-light-color}; // Background for urlbar
     }
 }
 
@@ -20,3 +20,4 @@
 }
 
 @import 'blue-theme';
+@import 'purple-theme';

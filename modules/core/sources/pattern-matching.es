@@ -1,78 +1,65 @@
-function nope(arg) {
-    return arg;
+function noop(filters) {
+    return filters;
 }
-class ReverseIndex {
-    constructor(filters, getTokens, { optimizer = nope, multiKeys = false } = {}) {
+var ReverseIndex = (function () {
+    function ReverseIndex(filters, getTokens, _a) {
+        var _b = _a === void 0 ? {
+            enableOptimizations: true,
+            optimizer: noop
+        } : _a, _c = _b.enableOptimizations, enableOptimizations = _c === void 0 ? true : _c, _d = _b.optimizer, optimizer = _d === void 0 ? noop : _d;
         this.index = new Map();
         this.size = 0;
-        this.optimizer = optimizer;
+        this.optimizer = enableOptimizations ? optimizer : noop;
         this.getTokens = getTokens;
-        this.multiKeys = multiKeys || false;
-        this.addFilters(filters || []);
+        this.addFilters(filters);
     }
-    iterMatchingFilters(tokens, cb) {
-        for (let j = 0; j < tokens.length; j += 1) {
+    ReverseIndex.prototype.iterMatchingFilters = function (tokens, cb) {
+        for (var j = 0; j < tokens.length; j += 1) {
             if (this.iterBucket(tokens[j], cb) === false) {
                 return;
             }
         }
         this.iterBucket(0, cb);
-    }
-    report() {
-        const sizes = new Map();
-        let strResult = '';
-        this.index.forEach((bucket, token) => {
-            const filters = bucket.filters;
-            sizes.set(filters.length, (sizes.get(filters.length) || 0) + 1);
-            if (length > 5) {
-                strResult = strResult.concat(`adblocker size bucket "${token}" => ${filters.length}\n`);
-                filters.forEach((f) => {
-                    strResult = strResult.concat(`    ${f.toString()} ${f.mask}\n`);
-                });
-            }
-        });
-        sizes.forEach((count, size) => {
-            strResult = strResult.concat(`adblocker sizes ${size} => ${count} buckets\n`);
-        });
-        return strResult;
-    }
-    optimizeAheadOfTime() {
+    };
+    ReverseIndex.prototype.optimizeAheadOfTime = function () {
+        var _this = this;
         if (this.optimizer) {
-            this.index.forEach((bucket) => {
-                this.optimize(bucket, true);
+            this.index.forEach(function (bucket) {
+                _this.optimize(bucket, true);
             });
         }
-    }
-    addFilters(filters) {
-        const length = filters.length;
-        this.size = length;
-        const idToTokens = new Map();
-        const histogram = new Map();
-        for (let i = 0; i < filters.length; i += 1) {
-            const filter = filters[i];
-            const multiTokens = this.multiKeys
-                ? this.getTokens(filter)
-                : [this.getTokens(filter)];
-            idToTokens.set(filter.id, multiTokens);
-            for (let j = 0; j < multiTokens.length; j += 1) {
-                const tokens = multiTokens[j];
-                for (let k = 0; k < tokens.length; k += 1) {
-                    const token = tokens[k];
+    };
+    ReverseIndex.prototype.addFilters = function (iterFilters) {
+        var _this = this;
+        var idToTokens = new Map();
+        var histogram = new Map();
+        var totalTokens = 0;
+        iterFilters(function (filter) {
+            var multiTokens = _this.getTokens(filter);
+            idToTokens.set(filter.id, {
+                filter: filter,
+                multiTokens: multiTokens
+            });
+            for (var i = 0; i < multiTokens.length; i += 1) {
+                var tokens = multiTokens[i];
+                for (var j = 0; j < tokens.length; j += 1) {
+                    var token = tokens[j];
                     histogram.set(token, (histogram.get(token) || 0) + 1);
+                    totalTokens += 1;
                 }
             }
-        }
-        for (let i = 0; i < filters.length; i += 1) {
-            let wildCardInserted = false;
-            const filter = filters[i];
-            const multiTokens = idToTokens.get(filter.id);
-            for (let j = 0; j < multiTokens.length; j += 1) {
-                const tokens = multiTokens[j];
-                let bestToken = 0;
-                let count = length;
-                for (let k = 0; k < tokens.length; k += 1) {
-                    const token = tokens[k];
-                    const tokenCount = histogram.get(token);
+        });
+        this.index = new Map();
+        idToTokens.forEach(function (_a) {
+            var filter = _a.filter, multiTokens = _a.multiTokens;
+            var wildCardInserted = false;
+            for (var i = 0; i < multiTokens.length; i += 1) {
+                var tokens = multiTokens[i];
+                var bestToken = 0;
+                var count = totalTokens + 1;
+                for (var k = 0; k < tokens.length; k += 1) {
+                    var token = tokens[k];
+                    var tokenCount = histogram.get(token);
                     if (tokenCount < count) {
                         bestToken = token;
                         count = tokenCount;
@@ -86,48 +73,100 @@ class ReverseIndex {
                         wildCardInserted = true;
                     }
                 }
-                const bucket = this.index.get(bestToken);
+                var bucket = _this.index.get(bestToken);
                 if (bucket === undefined) {
-                    this.index.set(bestToken, {
+                    _this.index.set(bestToken, {
                         filters: [filter],
                         hit: 0,
-                        optimized: false,
+                        optimized: false
                     });
                 }
                 else {
                     bucket.filters.push(filter);
                 }
             }
-        }
-    }
-    optimize(bucket, force = false) {
+        });
+        this.size = idToTokens.size;
+    };
+    ReverseIndex.prototype.optimize = function (bucket, force) {
+        if (force === void 0) { force = false; }
         if (this.optimizer && !bucket.optimized && (force || bucket.hit >= 5)) {
             if (bucket.filters.length > 1) {
                 bucket.filters = this.optimizer(bucket.filters);
             }
             bucket.optimized = true;
         }
-    }
-    iterBucket(token, cb) {
-        const bucket = this.index.get(token);
+    };
+    ReverseIndex.prototype.iterBucket = function (token, cb) {
+        var bucket = this.index.get(token);
         if (bucket !== undefined) {
             bucket.hit += 1;
             this.optimize(bucket);
-            const filters = bucket.filters;
-            for (let k = 0; k < filters.length; k += 1) {
+            var filters = bucket.filters;
+            for (var k = 0; k < filters.length; k += 1) {
                 if (cb(filters[k]) === false) {
                     return false;
                 }
             }
         }
         return true;
+    };
+    return ReverseIndex;
+}());
+
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache Version 2.0 License for specific language governing permissions
+and limitations under the License.
+***************************************************************************** */
+
+var __assign = function() {
+    __assign = Object.assign || function __assign(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+
+function __read(o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
     }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+}
+
+function __spread() {
+    for (var ar = [], i = 0; i < arguments.length; i++)
+        ar = ar.concat(__read(arguments[i]));
+    return ar;
 }
 
 function compactTokens(tokens) {
-    const sorted = tokens.sort();
-    let lastIndex = 1;
-    for (let i = 1; i < sorted.length; i += 1) {
+    var sorted = tokens.sort();
+    var lastIndex = 1;
+    for (var i = 1; i < sorted.length; i += 1) {
         if (sorted[lastIndex - 1] !== sorted[i]) {
             sorted[lastIndex] = sorted[i];
             lastIndex += 1;
@@ -136,8 +175,8 @@ function compactTokens(tokens) {
     return sorted.subarray(0, lastIndex);
 }
 function hasEmptyIntersection(s1, s2) {
-    let i = 0;
-    let j = 0;
+    var i = 0;
+    var j = 0;
     while (i < s1.length && j < s2.length && s1[i] !== s2[j]) {
         if (s1[i] < s2[j]) {
             i += 1;
@@ -148,24 +187,32 @@ function hasEmptyIntersection(s1, s2) {
     }
     return !(i < s1.length && j < s2.length);
 }
-function concatTypedArrays(...arrays) {
-    let totalSize = 0;
-    for (let i = 0; i < arrays.length; i += 1) {
+function concatTypedArrays() {
+    var arrays = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        arrays[_i] = arguments[_i];
+    }
+    var totalSize = 0;
+    for (var i = 0; i < arrays.length; i += 1) {
         totalSize += arrays[i].length;
     }
-    const result = new Uint32Array(totalSize);
-    let index = 0;
-    for (let i = 0; i < arrays.length; i += 1) {
-        const array = arrays[i];
-        for (let j = 0; j < array.length; j += 1) {
+    var result = new Uint32Array(totalSize);
+    var index = 0;
+    for (var i = 0; i < arrays.length; i += 1) {
+        var array = arrays[i];
+        for (var j = 0; j < array.length; j += 1) {
             result[index] = array[j];
             index += 1;
         }
     }
     return result;
 }
-function mergeCompactSets(...arrays) {
-    return compactTokens(concatTypedArrays(...arrays));
+function mergeCompactSets() {
+    var arrays = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        arrays[_i] = arguments[_i];
+    }
+    return compactTokens(concatTypedArrays.apply(void 0, __spread(arrays)));
 }
 
 function getBit(n, mask) {
@@ -177,22 +224,25 @@ function setBit(n, mask) {
 function clearBit(n, mask) {
     return n & ~mask;
 }
+function fastHashBetween(str, begin, end) {
+    var hash = 5407;
+    for (var i = begin; i < end; i += 1) {
+        hash = (hash * 31) ^ str.charCodeAt(i);
+    }
+    return hash >>> 0;
+}
 function fastHash(str) {
     if (!str) {
         return 0;
     }
-    let hash = 5407;
-    for (let i = 0; i < str.length; i += 1) {
-        hash = (hash * 31) ^ str.charCodeAt(i);
-    }
-    return hash >>> 0;
+    return fastHashBetween(str, 0, str.length);
 }
 function fastStartsWith(haystack, needle) {
     if (haystack.length < needle.length) {
         return false;
     }
-    const ceil = needle.length;
-    for (let i = 0; i < ceil; i += 1) {
+    var ceil = needle.length;
+    for (var i = 0; i < ceil; i += 1) {
         if (haystack[i] !== needle[i]) {
             return false;
         }
@@ -203,8 +253,8 @@ function fastStartsWithFrom(haystack, needle, start) {
     if (haystack.length - start < needle.length) {
         return false;
     }
-    const ceil = start + needle.length;
-    for (let i = start; i < ceil; i += 1) {
+    var ceil = start + needle.length;
+    for (var i = start; i < ceil; i += 1) {
         if (haystack[i] !== needle[i - start]) {
             return false;
         }
@@ -224,64 +274,74 @@ function isAlphaExtended(ch) {
 function isAllowed(ch) {
     return isDigit(ch) || isAlpha(ch) || isAlphaExtended(ch);
 }
-function fastTokenizer(pattern, isAllowedCode, allowRegexSurround = false) {
-    const tokens = [];
-    let inside = false;
-    let start = 0;
-    let length = 0;
-    for (let i = 0, len = pattern.length; i < len; i += 1) {
-        const ch = pattern.charCodeAt(i);
+function fastTokenizer(pattern, isAllowedCode, allowRegexSurround, skipLastToken) {
+    var tokens = [];
+    var inside = false;
+    var start = 0;
+    for (var i = 0, len = pattern.length; i < len; i += 1) {
+        var ch = pattern.charCodeAt(i);
         if (isAllowedCode(ch)) {
-            if (!inside) {
+            if (inside === false) {
                 inside = true;
                 start = i;
-                length = 0;
             }
-            length += 1;
         }
-        else if (inside) {
+        else if (inside === true) {
             inside = false;
-            if (allowRegexSurround || ch !== 42) {
-                tokens.push(fastHash(pattern.substr(start, length)));
+            if (allowRegexSurround === true || ch !== 42) {
+                tokens.push(fastHashBetween(pattern, start, i));
             }
         }
     }
-    if (inside) {
-        tokens.push(fastHash(pattern.substr(start, length)));
+    if (inside === true && skipLastToken === false) {
+        tokens.push(fastHashBetween(pattern, start, pattern.length));
     }
     return tokens;
 }
 function tokenize(pattern) {
-    return fastTokenizer(pattern, isAllowed, false);
+    return fastTokenizer(pattern, isAllowed, false, false);
 }
-
+function tokenizeFilter(pattern, skipLastToken) {
+    return fastTokenizer(pattern, isAllowed, false, skipLastToken);
+}
 function createFuzzySignature(pattern) {
     return compactTokens(new Uint32Array(tokenize(pattern)));
 }
 
 function isAnchoredByHostname(filterHostname, hostname) {
-    const matchIndex = hostname.indexOf(filterHostname);
+    if (filterHostname.length === 0) {
+        return true;
+    }
+    if (filterHostname.length > hostname.length) {
+        return false;
+    }
+    var matchIndex = hostname.indexOf(filterHostname);
+    if (matchIndex === -1) {
+        return false;
+    }
     return ((matchIndex === 0 && (hostname.length === filterHostname.length ||
         filterHostname[filterHostname.length - 1] === '.' ||
         hostname[filterHostname.length] === '.')) ||
-        (matchIndex > 0 && hostname[matchIndex - 1] === '.'));
+        ((hostname[matchIndex - 1] === '.' || filterHostname[0] === '.') && ((hostname.length - matchIndex) === filterHostname.length ||
+            filterHostname[filterHostname.length - 1] === '.' ||
+            hostname[matchIndex + filterHostname.length] === '.')));
 }
 function getUrlAfterHostname(url, hostname) {
     return url.substring(url.indexOf(hostname) + hostname.length);
 }
 function checkPatternFuzzyFilter(filter, request) {
-    const signature = filter.getFuzzySignature();
+    var signature = filter.getFuzzySignature();
     if (request.fuzzySignature === undefined) {
         request.fuzzySignature = createFuzzySignature(request.url);
     }
-    const requestSignature = request.fuzzySignature;
+    var requestSignature = request.fuzzySignature;
     if (signature.length > requestSignature.length) {
         return false;
     }
-    let lastIndex = 0;
-    for (let i = 0; i < signature.length; i += 1) {
-        const c = signature[i];
-        const j = requestSignature.indexOf(c, lastIndex);
+    var lastIndex = 0;
+    for (var i = 0; i < signature.length; i += 1) {
+        var c = signature[i];
+        var j = requestSignature.indexOf(c, lastIndex);
         if (j === -1) {
             return false;
         }
@@ -289,44 +349,52 @@ function checkPatternFuzzyFilter(filter, request) {
     }
     return true;
 }
-function checkPatternPlainFilter(filter, { url }) {
+function checkPatternPlainFilter(filter, request) {
+    var url = request.url;
     return url.indexOf(filter.getFilter()) !== -1;
 }
-function checkPatternRightAnchorFilter(filter, { url }) {
+function checkPatternRightAnchorFilter(filter, request) {
+    var url = request.url;
     return url.endsWith(filter.getFilter());
 }
-function checkPatternLeftAnchorFilter(filter, { url }) {
+function checkPatternLeftAnchorFilter(filter, request) {
+    var url = request.url;
     return fastStartsWith(url, filter.getFilter());
 }
-function checkPatternLeftRightAnchorFilter(filter, { url }) {
+function checkPatternLeftRightAnchorFilter(filter, request) {
+    var url = request.url;
     return url === filter.getFilter();
 }
-function checkPatternRegexFilter(filter, { url }) {
+function checkPatternRegexFilter(filter, request) {
+    var url = request.url;
     return filter.getRegex().test(url);
 }
-function checkPatternHostnameAnchorRegexFilter(filter, { url, hostname }) {
+function checkPatternHostnameAnchorRegexFilter(filter, request) {
+    var url = request.url, hostname = request.hostname;
     if (isAnchoredByHostname(filter.getHostname(), hostname)) {
-        const urlAfterHostname = getUrlAfterHostname(url, filter.getHostname());
-        return checkPatternRegexFilter(filter, { url: urlAfterHostname });
+        var urlAfterHostname = getUrlAfterHostname(url, filter.getHostname());
+        return checkPatternRegexFilter(filter, __assign({}, request, { url: urlAfterHostname }));
     }
     return false;
 }
-function checkPatternHostnameRightAnchorFilter(filter, { url, hostname }) {
+function checkPatternHostnameRightAnchorFilter(filter, request) {
+    var url = request.url, hostname = request.hostname;
     if (isAnchoredByHostname(filter.getHostname(), hostname)) {
-        const urlAfterHostname = getUrlAfterHostname(url, filter.getHostname());
+        var urlAfterHostname = getUrlAfterHostname(url, filter.getHostname());
         return filter.getFilter() === urlAfterHostname;
     }
     return false;
 }
-function checkPatternHostnameAnchorFilter(filter, { url, hostname }) {
+function checkPatternHostnameAnchorFilter(filter, request) {
+    var url = request.url, hostname = request.hostname;
     if (isAnchoredByHostname(filter.getHostname(), hostname)) {
-        const urlAfterHostname = getUrlAfterHostname(url, filter.getHostname());
+        var urlAfterHostname = getUrlAfterHostname(url, filter.getHostname());
         return fastStartsWith(urlAfterHostname, filter.getFilter());
     }
     return false;
 }
 function checkPatternHostnameAnchorFuzzyFilter(filter, request) {
-    const { hostname } = request;
+    var hostname = request.hostname;
     if (isAnchoredByHostname(filter.getHostname(), hostname)) {
         return checkPatternFuzzyFilter(filter, request);
     }
@@ -366,10 +434,10 @@ function checkOptions(filter, request) {
     if (!filter.isCptAllowed(request.cpt)) {
         return false;
     }
-    const sHost = request.sourceHostname;
-    const sHostGD = request.sourceGD;
-    const hostGD = request.hostGD;
-    const isFirstParty = sHostGD === hostGD;
+    var sHost = request.sourceHostname;
+    var sHostGD = request.sourceGD;
+    var hostGD = request.hostGD;
+    var isFirstParty = sHostGD === hostGD;
     if (!filter.firstParty() && isFirstParty) {
         return false;
     }
@@ -377,14 +445,14 @@ function checkOptions(filter, request) {
         return false;
     }
     if (filter.hasOptDomains()) {
-        const optDomains = filter.getOptDomains();
+        var optDomains = filter.getOptDomains();
         if (optDomains.size > 0 &&
             !(optDomains.has(sHostGD) || optDomains.has(sHost))) {
             return false;
         }
     }
     if (filter.hasOptNotDomains()) {
-        const optNotDomains = filter.getOptNotDomains();
+        var optNotDomains = filter.getOptNotDomains();
         if (optNotDomains.size > 0 &&
             (optNotDomains.has(sHostGD) || optNotDomains.has(sHost))) {
             return false;
@@ -396,7 +464,7 @@ function matchNetworkFilter(filter, request) {
     return checkOptions(filter, request) && checkPattern(filter, request);
 }
 
-const FROM_ANY = 1 |
+var FROM_ANY = 1 |
     2 |
     4 |
     8 |
@@ -413,7 +481,7 @@ const FROM_ANY = 1 |
     16384 |
     32768 |
     65536;
-const CPT_TO_MASK = {
+var CPT_TO_MASK = {
     1: 16,
     2: 64,
     3: 1,
@@ -431,19 +499,19 @@ const CPT_TO_MASK = {
     18: 16384,
     19: 32768,
     20: 2048,
-    21: 1,
+    21: 1
 };
-const SEPARATOR = /[/^*]/;
+var SEPARATOR = /[/^*]/;
 function compileRegex(filterStr, isRightAnchor, isLeftAnchor, matchCase) {
-    let filter = filterStr;
+    var filter = filterStr;
     filter = filter.replace(/([|.$+?{}()[\]\\])/g, '\\$1');
     filter = filter.replace(/\*/g, '.*');
     filter = filter.replace(/\^/g, '(?:[^\\w\\d_.%-]|$)');
     if (isRightAnchor) {
-        filter = `${filter}$`;
+        filter = filter + "$";
     }
     if (isLeftAnchor) {
-        filter = `^${filter}`;
+        filter = "^" + filter;
     }
     if (matchCase) {
         return new RegExp(filter);
@@ -453,8 +521,9 @@ function compileRegex(filterStr, isRightAnchor, isLeftAnchor, matchCase) {
 function parseDomainsOption(domains) {
     return new Set(domains ? domains.split('|') : []);
 }
-class NetworkFilter {
-    constructor({ mask, filter, optDomains, optNotDomains, redirect, hostname, id, }) {
+var NetworkFilter = (function () {
+    function NetworkFilter(_a) {
+        var mask = _a.mask, filter = _a.filter, optDomains = _a.optDomains, optNotDomains = _a.optNotDomains, redirect = _a.redirect, hostname = _a.hostname, id = _a.id;
         this.id = id;
         this.mask = mask;
         this.filter = filter;
@@ -468,14 +537,14 @@ class NetworkFilter {
         this.regex = null;
         this.rawLine = null;
     }
-    isCosmeticFilter() {
+    NetworkFilter.prototype.isCosmeticFilter = function () {
         return false;
-    }
-    isNetworkFilter() {
+    };
+    NetworkFilter.prototype.isNetworkFilter = function () {
         return true;
-    }
-    toString() {
-        let filter = '';
+    };
+    NetworkFilter.prototype.toString = function () {
+        var filter = '';
         if (this.isException()) {
             filter += '@@';
         }
@@ -495,7 +564,7 @@ class NetworkFilter {
         else {
             filter += this.getRegex().source;
         }
-        const options = [];
+        var options = [];
         if (!this.fromAny()) {
             if (this.isFuzzy()) {
                 options.push('fuzzy');
@@ -541,7 +610,7 @@ class NetworkFilter {
             options.push('important');
         }
         if (this.isRedirect()) {
-            options.push(`redirect=${this.getRedirect()}`);
+            options.push("redirect=" + this.getRedirect());
         }
         if (this.firstParty() !== this.thirdParty()) {
             if (this.firstParty()) {
@@ -552,194 +621,196 @@ class NetworkFilter {
             }
         }
         if (this.hasOptDomains() || this.hasOptNotDomains()) {
-            const domains = [...this.getOptDomains()];
-            this.getOptNotDomains().forEach(nd => domains.push(`~${nd}`));
-            options.push(`domain=${domains.join('|')}`);
+            var domains_1 = __spread(this.getOptDomains());
+            this.getOptNotDomains().forEach(function (nd) { return domains_1.push("~" + nd); });
+            options.push("domain=" + domains_1.join('|'));
         }
         if (options.length > 0) {
-            filter += `$${options.join(',')}`;
+            filter += "$" + options.join(',');
         }
         if (this.isRightAnchor()) {
             filter += '|';
         }
         return filter;
-    }
-    hasFilter() {
+    };
+    NetworkFilter.prototype.hasFilter = function () {
         return !!this.filter;
-    }
-    hasOptNotDomains() {
+    };
+    NetworkFilter.prototype.hasOptNotDomains = function () {
         return !!this.optNotDomains;
-    }
-    getOptNotDomains() {
+    };
+    NetworkFilter.prototype.getOptNotDomains = function () {
         this.optNotDomainsSet =
             this.optNotDomainsSet || parseDomainsOption(this.optNotDomains);
         return this.optNotDomainsSet;
-    }
-    hasOptDomains() {
+    };
+    NetworkFilter.prototype.hasOptDomains = function () {
         return !!this.optDomains;
-    }
-    getOptDomains() {
+    };
+    NetworkFilter.prototype.getOptDomains = function () {
         this.optDomainsSet =
             this.optDomainsSet || parseDomainsOption(this.optDomains);
         return this.optDomainsSet;
-    }
-    getMask() {
+    };
+    NetworkFilter.prototype.getMask = function () {
         return this.mask;
-    }
-    isRedirect() {
+    };
+    NetworkFilter.prototype.isRedirect = function () {
         return !!this.redirect;
-    }
-    getRedirect() {
+    };
+    NetworkFilter.prototype.getRedirect = function () {
         return this.redirect;
-    }
-    hasHostname() {
+    };
+    NetworkFilter.prototype.hasHostname = function () {
         return !!this.hostname;
-    }
-    getHostname() {
+    };
+    NetworkFilter.prototype.getHostname = function () {
         return this.hostname;
-    }
-    getFilter() {
+    };
+    NetworkFilter.prototype.getFilter = function () {
         return this.filter;
-    }
-    setRegex(re) {
+    };
+    NetworkFilter.prototype.setRegex = function (re) {
         this.regex = re;
         this.mask = setBit(this.mask, 16777216);
         this.mask = clearBit(this.mask, 8388608);
-    }
-    getRegex() {
+    };
+    NetworkFilter.prototype.getRegex = function () {
         if (this.regex === null) {
             this.regex = compileRegex(this.filter, this.isRightAnchor(), this.isLeftAnchor(), this.matchCase());
         }
         return this.regex;
-    }
-    getFuzzySignature() {
+    };
+    NetworkFilter.prototype.getFuzzySignature = function () {
         if (this.fuzzySignature === null) {
             this.fuzzySignature = createFuzzySignature(this.filter);
         }
         return this.fuzzySignature;
-    }
-    getTokens() {
-        return tokenize(this.filter).concat(tokenize(this.hostname));
-    }
-    isCptAllowed(cpt) {
-        const mask = CPT_TO_MASK[cpt];
+    };
+    NetworkFilter.prototype.getTokens = function () {
+        return [tokenizeFilter(this.filter, this.isPlain()).concat(tokenizeFilter(this.hostname, false))];
+    };
+    NetworkFilter.prototype.isCptAllowed = function (cpt) {
+        var mask = CPT_TO_MASK[cpt];
         if (mask !== undefined) {
             return getBit(this.mask, mask);
         }
-        return true;
-    }
-    isFuzzy() {
+        return false;
+    };
+    NetworkFilter.prototype.isFuzzy = function () {
         return getBit(this.mask, 524288);
-    }
-    isException() {
+    };
+    NetworkFilter.prototype.isException = function () {
         return getBit(this.mask, 268435456);
-    }
-    isHostnameAnchor() {
+    };
+    NetworkFilter.prototype.isHostnameAnchor = function () {
         return getBit(this.mask, 134217728);
-    }
-    isRightAnchor() {
+    };
+    NetworkFilter.prototype.isRightAnchor = function () {
         return getBit(this.mask, 67108864);
-    }
-    isLeftAnchor() {
+    };
+    NetworkFilter.prototype.isLeftAnchor = function () {
         return getBit(this.mask, 33554432);
-    }
-    matchCase() {
+    };
+    NetworkFilter.prototype.matchCase = function () {
         return getBit(this.mask, 262144);
-    }
-    isImportant() {
+    };
+    NetworkFilter.prototype.isImportant = function () {
         return getBit(this.mask, 131072);
-    }
-    isRegex() {
+    };
+    NetworkFilter.prototype.isRegex = function () {
         return getBit(this.mask, 16777216);
-    }
-    isPlain() {
+    };
+    NetworkFilter.prototype.isPlain = function () {
         return !getBit(this.mask, 16777216);
-    }
-    isHostname() {
+    };
+    NetworkFilter.prototype.isHostname = function () {
         return getBit(this.mask, 4194304);
-    }
-    fromAny() {
+    };
+    NetworkFilter.prototype.fromAny = function () {
         return (this.mask & FROM_ANY) === FROM_ANY;
-    }
-    thirdParty() {
+    };
+    NetworkFilter.prototype.thirdParty = function () {
         return getBit(this.mask, 1048576);
-    }
-    firstParty() {
+    };
+    NetworkFilter.prototype.firstParty = function () {
         return getBit(this.mask, 2097152);
-    }
-    fromImage() {
+    };
+    NetworkFilter.prototype.fromImage = function () {
         return getBit(this.mask, 1);
-    }
-    fromMedia() {
+    };
+    NetworkFilter.prototype.fromMedia = function () {
         return getBit(this.mask, 2);
-    }
-    fromObject() {
+    };
+    NetworkFilter.prototype.fromObject = function () {
         return getBit(this.mask, 4);
-    }
-    fromObjectSubrequest() {
+    };
+    NetworkFilter.prototype.fromObjectSubrequest = function () {
         return getBit(this.mask, 8);
-    }
-    fromOther() {
+    };
+    NetworkFilter.prototype.fromOther = function () {
         return getBit(this.mask, 16);
-    }
-    fromPing() {
+    };
+    NetworkFilter.prototype.fromPing = function () {
         return getBit(this.mask, 32);
-    }
-    fromScript() {
+    };
+    NetworkFilter.prototype.fromScript = function () {
         return getBit(this.mask, 64);
-    }
-    fromStylesheet() {
+    };
+    NetworkFilter.prototype.fromStylesheet = function () {
         return getBit(this.mask, 128);
-    }
-    fromSubdocument() {
+    };
+    NetworkFilter.prototype.fromSubdocument = function () {
         return getBit(this.mask, 256);
-    }
-    fromWebsocket() {
+    };
+    NetworkFilter.prototype.fromWebsocket = function () {
         return getBit(this.mask, 512);
-    }
-    fromXmlHttpRequest() {
+    };
+    NetworkFilter.prototype.fromXmlHttpRequest = function () {
         return getBit(this.mask, 1024);
-    }
-    fromFont() {
+    };
+    NetworkFilter.prototype.fromFont = function () {
         return getBit(this.mask, 8192);
-    }
-}
+    };
+    return NetworkFilter;
+}());
 function setNetworkMask(mask, m, value) {
-    if (value) {
+    if (value === true) {
         return setBit(mask, m);
     }
     return clearBit(mask, m);
 }
 function checkIsRegex(filter, start, end) {
-    const starIndex = filter.indexOf('*', start);
-    const separatorIndex = filter.indexOf('^', start);
+    var starIndex = filter.indexOf('*', start);
+    var separatorIndex = filter.indexOf('^', start);
     return ((starIndex !== -1 && starIndex < end) ||
         (separatorIndex !== -1 && separatorIndex < end));
 }
 function parseNetworkFilter(rawLine) {
-    const line = rawLine;
-    let mask = 1048576 | 2097152;
-    let filter = null;
-    let hostname = null;
-    let optDomains = '';
-    let optNotDomains = '';
-    let redirect = '';
-    let hasCptOption = false;
-    let filterIndexStart = 0;
-    let filterIndexEnd = line.length;
+    var line = rawLine;
+    var mask = 1048576 | 2097152;
+    var cptMaskPositive = 0;
+    var cptMaskNegative = FROM_ANY;
+    var filter = null;
+    var hostname = null;
+    var optDomains = '';
+    var optNotDomains = '';
+    var redirect = '';
+    var filterIndexStart = 0;
+    var filterIndexEnd = line.length;
     if (fastStartsWith(line, '@@')) {
         filterIndexStart += 2;
         mask = setBit(mask, 268435456);
     }
-    const optionsIndex = line.indexOf('$', filterIndexStart);
+    var optionsIndex = line.indexOf('$', filterIndexStart);
     if (optionsIndex !== -1) {
         filterIndexEnd = optionsIndex;
-        const rawOptions = line.substr(optionsIndex + 1);
-        const options = rawOptions.split(',');
-        for (let i = 0; i < options.length; i += 1) {
-            const rawOption = options[i];
-            let negation = false;
-            let option = rawOption;
+        var rawOptions = line.substr(optionsIndex + 1);
+        var options = rawOptions.split(',');
+        for (var i = 0; i < options.length; i += 1) {
+            var rawOption = options[i];
+            var negation = false;
+            var option = rawOption;
             if (fastStartsWith(option, '~')) {
                 negation = true;
                 option = option.substr(1);
@@ -747,18 +818,18 @@ function parseNetworkFilter(rawLine) {
             else {
                 negation = false;
             }
-            let optionValues = [];
+            var optionValues = [];
             if (option.indexOf('=') !== -1) {
-                const optionAndValues = option.split('=', 2);
+                var optionAndValues = option.split('=', 2);
                 option = optionAndValues[0];
                 optionValues = optionAndValues[1].split('|');
             }
             switch (option) {
                 case 'domain': {
-                    const optDomainsArray = [];
-                    const optNotDomainsArray = [];
-                    for (let j = 0; j < optionValues.length; j += 1) {
-                        const value = optionValues[j];
+                    var optDomainsArray = [];
+                    var optNotDomainsArray = [];
+                    for (var j = 0; j < optionValues.length; j += 1) {
+                        var value = optionValues[j];
                         if (value) {
                             if (fastStartsWith(value, '~')) {
                                 optNotDomainsArray.push(value.substr(1));
@@ -776,54 +847,6 @@ function parseNetworkFilter(rawLine) {
                     }
                     break;
                 }
-                case 'image':
-                    hasCptOption = true;
-                    mask = setNetworkMask(mask, 1, !negation);
-                    break;
-                case 'media':
-                    hasCptOption = true;
-                    mask = setNetworkMask(mask, 2, !negation);
-                    break;
-                case 'object':
-                    hasCptOption = true;
-                    mask = setNetworkMask(mask, 4, !negation);
-                    break;
-                case 'object-subrequest':
-                    hasCptOption = true;
-                    mask = setNetworkMask(mask, 8, !negation);
-                    break;
-                case 'other':
-                    hasCptOption = true;
-                    mask = setNetworkMask(mask, 16, !negation);
-                    break;
-                case 'ping':
-                    hasCptOption = true;
-                    mask = setNetworkMask(mask, 32, !negation);
-                    break;
-                case 'script':
-                    hasCptOption = true;
-                    mask = setNetworkMask(mask, 64, !negation);
-                    break;
-                case 'stylesheet':
-                    hasCptOption = true;
-                    mask = setNetworkMask(mask, 128, !negation);
-                    break;
-                case 'subdocument':
-                    hasCptOption = true;
-                    mask = setNetworkMask(mask, 256, !negation);
-                    break;
-                case 'xmlhttprequest':
-                    hasCptOption = true;
-                    mask = setNetworkMask(mask, 1024, !negation);
-                    break;
-                case 'websocket':
-                    hasCptOption = true;
-                    mask = setNetworkMask(mask, 512, !negation);
-                    break;
-                case 'font':
-                    hasCptOption = true;
-                    mask = setNetworkMask(mask, 8192, !negation);
-                    break;
                 case 'important':
                     if (negation) {
                         return null;
@@ -866,13 +889,70 @@ function parseNetworkFilter(rawLine) {
                     }
                     redirect = optionValues[0];
                     break;
-                default:
-                    return null;
+                default: {
+                    var optionMask = 0;
+                    switch (option) {
+                        case 'image':
+                            optionMask = 1;
+                            break;
+                        case 'media':
+                            optionMask = 2;
+                            break;
+                        case 'object':
+                            optionMask = 4;
+                            break;
+                        case 'object-subrequest':
+                            optionMask = 8;
+                            break;
+                        case 'other':
+                            optionMask = 16;
+                            break;
+                        case 'ping':
+                            optionMask = 32;
+                            break;
+                        case 'script':
+                            optionMask = 64;
+                            break;
+                        case 'stylesheet':
+                            optionMask = 128;
+                            break;
+                        case 'subdocument':
+                            optionMask = 256;
+                            break;
+                        case 'xmlhttprequest':
+                            optionMask = 1024;
+                            break;
+                        case 'websocket':
+                            optionMask = 512;
+                            break;
+                        case 'font':
+                            optionMask = 8192;
+                            break;
+                        default:
+                            return null;
+                    }
+                    if (optionMask === 0) {
+                        return null;
+                    }
+                    if (negation) {
+                        cptMaskNegative = clearBit(cptMaskNegative, optionMask);
+                    }
+                    else {
+                        cptMaskPositive = setBit(cptMaskPositive, optionMask);
+                    }
+                    break;
+                }
             }
         }
     }
-    if (hasCptOption === false) {
-        mask = setBit(mask, FROM_ANY);
+    if (cptMaskPositive === 0) {
+        mask |= cptMaskNegative;
+    }
+    else if (cptMaskNegative === FROM_ANY) {
+        mask |= cptMaskPositive;
+    }
+    else {
+        mask |= cptMaskPositive & cptMaskNegative;
     }
     if (fastStartsWith(line, '127.0.0.1')) {
         hostname = line.substr(line.lastIndexOf(' ') + 1);
@@ -898,24 +978,24 @@ function parseNetworkFilter(rawLine) {
             filterIndexEnd - filterIndexStart > 1) {
             filterIndexEnd -= 1;
         }
-        const isRegex = checkIsRegex(line, filterIndexStart, filterIndexEnd);
+        var isRegex = checkIsRegex(line, filterIndexStart, filterIndexEnd);
         mask = setNetworkMask(mask, 16777216, isRegex);
-        const isHostnameAnchor = getBit(mask, 134217728);
+        var isHostnameAnchor = getBit(mask, 134217728);
         if (!isRegex && isHostnameAnchor) {
-            const slashIndex = line.indexOf('/', filterIndexStart);
+            var slashIndex = line.indexOf('/', filterIndexStart);
             if (slashIndex !== -1) {
-                hostname = line.substring(filterIndexStart, slashIndex);
+                hostname = line.slice(filterIndexStart, slashIndex);
                 filterIndexStart = slashIndex;
             }
             else {
-                hostname = line.substring(filterIndexStart, filterIndexEnd);
+                hostname = line.slice(filterIndexStart, filterIndexEnd);
                 filter = '';
             }
         }
         else if (isRegex && isHostnameAnchor) {
-            const firstSeparator = line.search(SEPARATOR);
+            var firstSeparator = line.search(SEPARATOR);
             if (firstSeparator !== -1) {
-                hostname = line.substring(filterIndexStart, firstSeparator);
+                hostname = line.slice(filterIndexStart, firstSeparator);
                 filterIndexStart = firstSeparator;
                 if (filterIndexEnd - filterIndexStart === 1 &&
                     line.charAt(filterIndexStart) === '^') {
@@ -929,13 +1009,13 @@ function parseNetworkFilter(rawLine) {
         }
     }
     if (filter === null) {
-        filter = line.substring(filterIndexStart, filterIndexEnd).toLowerCase();
+        filter = line.slice(filterIndexStart, filterIndexEnd).toLowerCase();
     }
-    let finalHostname = '';
+    var finalHostname = '';
     if (hostname !== null) {
         finalHostname = hostname;
     }
-    let finalFilter = '';
+    var finalFilter = '';
     if (filter !== null) {
         finalFilter = filter;
     }
@@ -946,28 +1026,30 @@ function parseNetworkFilter(rawLine) {
     if (finalHostname !== '') {
         finalHostname = finalHostname.toLowerCase();
     }
-    const id = fastHash(line);
+    var id = fastHash(line);
     return new NetworkFilter({
         filter: finalFilter,
         hostname: finalHostname,
-        id,
-        mask,
-        optDomains,
-        optNotDomains,
-        redirect,
+        id: id,
+        mask: mask,
+        optDomains: optDomains,
+        optNotDomains: optNotDomains,
+        redirect: redirect
     });
 }
 
-function mkRequest({ url = '', hostname = '', domain = '', sourceHostname = '', sourceDomain = '', cpt = 6 }) {
+function mkRequest(_a) {
+    var _b = _a === void 0 ? {} : _a, _c = _b.url, url = _c === void 0 ? '' : _c, _d = _b.hostname, hostname = _d === void 0 ? '' : _d, _e = _b.domain, domain = _e === void 0 ? '' : _e, _f = _b.sourceHostname, sourceHostname = _f === void 0 ? '' : _f, _g = _b.sourceDomain, sourceDomain = _g === void 0 ? '' : _g, _h = _b.cpt, cpt = _h === void 0 ? 6 : _h;
     return {
-        cpt,
+        cpt: cpt,
         tokens: tokenize(url),
         sourceGD: sourceDomain,
-        sourceHostname,
+        sourceHostname: sourceHostname,
         hostGD: domain,
-        hostname,
+        hostname: hostname,
         url: url.toLowerCase(),
+        fuzzySignature: undefined
     };
 }
 
-export { ReverseIndex, matchNetworkFilter, parseNetworkFilter, mkRequest, tokenize, compactTokens, hasEmptyIntersection, mergeCompactSets };
+export { ReverseIndex, matchNetworkFilter, parseNetworkFilter, mkRequest, tokenize, createFuzzySignature, compactTokens, hasEmptyIntersection, mergeCompactSets };

@@ -8,10 +8,9 @@ import {
   testServer,
   wait,
   waitFor,
-  waitForAsync,
   waitForElement,
   win,
-} from '../../../tests/core/test-helpers';
+} from '../../../tests/core/integration/helpers';
 
 import {
   getPage,
@@ -46,17 +45,16 @@ export default function () {
         },
       });
 
-      await waitForAsync(() => testServer.hasHit('/api/v1/categories'));
-      await waitForAsync(() => testServer.hasHit('/api/v1/loadsubtriggers'));
+      await waitFor(() => testServer.hasHit('/api/v1/categories'));
+      await waitFor(() => testServer.hasHit('/api/v1/loadsubtriggers'));
 
       const pageUrl = getPage(`landing?q=${triggerKeyword}`);
-      tabId = await newTab(pageUrl);
-      await focusOnTab(tabId);
-      await waitForAsync(async () =>
+      tabId = await newTab(pageUrl, { focus: true });
+      await waitFor(async () =>
         Boolean((await queryHTML(pageUrl, 'p', 'innerText')).length) === true
       );
 
-      await waitForAsync(() => testServer.hasHit('/api/v1/offers'), 15000);
+      await waitFor(() => testServer.hasHit('/api/v1/offers'), 15000);
 
       allCampaigns = app.modules['offers-v2'].background.signalsHandler.sigMap.campaign;
     });
@@ -79,7 +77,7 @@ export default function () {
           .to.have.property('offer_shown').to.equal(1);
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'), 15000);
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
         const hits = await testServer.getHits();
         expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[0].origin_data, 'offer_triggered, server-side')
@@ -106,9 +104,8 @@ export default function () {
 
       beforeEach(async function () {
         const cartUrl = getPage('cart');
-        const secondTabId = await newTab(getPage('cart'));
+        await newTab(getPage('cart'), { focus: true });
         await waitForElement({ url: cartUrl, selector: 'p' });
-        await focusOnTab(secondTabId);
         await wait(100);
         await focusOnTab(tabId);
         await wait(100);
@@ -129,7 +126,7 @@ export default function () {
           .to.have.property('offer_shown').to.equal(2);
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'), 10000);
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 10000);
         const hits = await testServer.getHits();
         expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_dsp_session, server-side')
@@ -160,7 +157,7 @@ export default function () {
             .to.have.property('offer_timeout').to.equal(1), 2000);
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'), 15000);
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
         const hits = await testServer.getHits();
         expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_timeout, server-side')
@@ -204,7 +201,7 @@ export default function () {
             .to.have.property('code_copied').to.equal(1), 2000);
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'), 15000);
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
         const hits = await testServer.getHits();
         expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'code_copied, server-side')
@@ -248,7 +245,7 @@ export default function () {
           .to.have.property('ref_none'); // actual value is not stable to test
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'), 15000);
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
         const hits = await testServer.getHits();
         expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_logo, server-side')
@@ -300,7 +297,7 @@ export default function () {
           .to.have.property('ref_none'); // actual value is not stable to test
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'), 15000);
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
         const hits = await testServer.getHits();
         expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_picture, server-side')
@@ -352,7 +349,7 @@ export default function () {
           .to.have.property('ref_none'); // actual value is not stable to test
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'), 15000);
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
         const hits = await testServer.getHits();
         expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_benefit, server-side')
@@ -404,7 +401,7 @@ export default function () {
           .to.have.property('ref_none'); // actual value is not stable to test
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'), 15000);
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
         const hits = await testServer.getHits();
         expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_headline, server-side')
@@ -456,7 +453,7 @@ export default function () {
           .to.have.property('ref_none'); // actual value is not stable to test
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'), 15000);
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
         const hits = await testServer.getHits();
         expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_description, server-side')
@@ -506,7 +503,7 @@ export default function () {
           .to.have.property('ref_none'); // actual value is not stable to test
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'), 15000);
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
         const hits = await testServer.getHits();
         expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
@@ -535,13 +532,13 @@ export default function () {
           context(`${signal}`, function () {
             beforeEach(async function () {
               const page = getPage(`${signal}`);
-              focusOnTab(await newTab(page));
-              await waitForAsync(async () =>
+              await newTab(page, { focus: true });
+              await waitFor(async () =>
                 await queryHTML(page, 'p', 'innerText')[0] !== `${signal}`);
             });
 
             it(`increments counter for "${signal}"`, async function () {
-              await waitForAsync(async () =>
+              await waitFor(async () =>
                 expect(allCampaigns).to.have.nested.property(
                   'test_campaign_v1.data.offers.test_offer_v1.origins.trigger'
                 )
@@ -550,7 +547,7 @@ export default function () {
                 .to.have.property(`${signal}`).to.equal(1);
 
               offers.signalsHandler._sendSignalsToBE();
-              await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'), 15000);
+              await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
               const hits = await testServer.getHits();
               expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, `${signal}, server-side`)
                 .to.have.property(`${signal}`).to.equal(1);
@@ -579,7 +576,7 @@ export default function () {
             .to.have.property('offer_closed').to.equal(1), 1000);
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'), 15000);
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
         const hits = await testServer.getHits();
         expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_closed, server-side')

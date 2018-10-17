@@ -32,14 +32,6 @@ export function clearPref(pref) {
   storage.removeItem(pref);
 }
 
-export function enableChangeEvents() {
-  throw new Error('not implemented - prefs.enableChangeEvents');
-}
-
-export function disableChangeEvents() {
-  throw new Error('not implemented - prefs.disableChangeEvents');
-}
-
 export function init() {
   return Promise.resolve();
 }

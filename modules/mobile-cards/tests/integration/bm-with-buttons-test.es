@@ -1,4 +1,5 @@
 import {
+  closeTab,
   expect,
   newTab,
   waitForElement,
@@ -10,12 +11,13 @@ import {
   checkButtons,
   checkComplementarySearchCard,
   checkHeader,
+  checkMainUrl,
   getElements,
   mockSearch,
+  withHistory,
 } from './helpers';
 
 import results from '../../../tests/core/integration/fixtures/resultsBigMachineWithButtons';
-
 import { isWebExtension } from '../../../core/platform';
 
 export default function () {
@@ -24,10 +26,13 @@ export default function () {
   }
 
   describe('for a big machine with buttons mobile cards result', function () {
+    let id;
+
     before(async function () {
       win.preventRestarts = true;
 
-      const id = await newTab(cardsUrl);
+      id = await newTab(cardsUrl);
+      withHistory([]);
       await mockSearch({ results });
       win.CLIQZ.app.modules.search.action('startSearch', 'bing', { tab: { id } });
       await waitForElement({
@@ -37,10 +42,13 @@ export default function () {
       });
     });
 
-    after(function () {
+    after(async function () {
+      await closeTab(id);
       win.preventRestarts = false;
+      win.CLIQZ.app.modules.search.action('stopSearch');
     });
 
+    checkMainUrl({ url: cardsUrl, mainUrl: results[0].url });
     checkHeader({ url: cardsUrl, results, isDefault: false, imageName: 'bing' });
 
     it('renders title', async function () {

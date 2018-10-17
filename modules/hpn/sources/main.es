@@ -20,6 +20,9 @@ import { createProxyList, getProxyVerifyUrl } from './routing';
 */
 let proxyCounter = 0;
 
+const MINUTE = 60 * 1000;
+const HOUR = 60 * MINUTE;
+
 function hpnMessageLogger({ msg, type }) {
   logger.info('Sending', type, 'HPN message:', msg);
 }
@@ -176,11 +179,12 @@ const CliqzSecureMessage = {
 
     if (!CliqzSecureMessage.localTemporalUniq) this.storage.loadLocalCheckTable();
 
-    // Load source map. Update it once an hour.
+    // Load source map.
     this.sourceMapLoader = new ResourceLoader(
       ['hpn', 'sourcemap.json'],
       {
-        remoteURL: CliqzSecureMessage.SOURCE_MAP_PROVIDER
+        remoteURL: CliqzSecureMessage.SOURCE_MAP_PROVIDER,
+        cron: 4 * HOUR,
       }
     );
 
@@ -193,13 +197,13 @@ const CliqzSecureMessage = {
     });
 
     // Load lookuptable, which also contains the list of proxy list.
-    // Update every 5 minutes.
+    // (As the Ghostery proxy list does not change even when we have
+    // to replace failing instances, we can afford to poll less frequently.)
     this.routeTableLoader = new ResourceLoader(
       ['hpn', 'routeTableV2.json'],
       {
         remoteURL: CliqzSecureMessage.LOOKUP_TABLE_PROVIDER,
-        cron: 1 * 5 * 60 * 1000,
-        updateInterval: 1 * 5 * 60 * 1000,
+        cron: config.settings.HPN_CHANNEL === 'ghostery' ? 6 * HOUR : 1 * HOUR,
       }
     );
 

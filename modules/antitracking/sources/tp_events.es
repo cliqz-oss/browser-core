@@ -2,7 +2,7 @@
 /* eslint no-param-reassign: 'off' */
 
 import console from '../core/console';
-import { sameGeneralDomain } from '../core/tlds';
+import { sameGeneralDomain, parse as parseHost } from '../core/tlds';
 import md5 from '../core/helpers/md5';
 import * as browser from '../platform/browser';
 import { TELEMETRY } from './config';
@@ -95,12 +95,12 @@ class PageLoadData {
     return this._plainObject || this._buildPlainObject();
   }
 
-  addTrigger(host, triggeredBy) {
+  addTrigger(host, triggeredBy, frameId) {
     if (triggeredBy.indexOf('://') > 0) {
-      let triggerDomain = triggeredBy.split('://')[1];
+      let triggerDomain = truncateDomain(parseHost(triggeredBy), 1);
       // if trigger is same as page, hide as 'first party'
       if (sameGeneralDomain(triggerDomain, this.hostname)) {
-        triggerDomain = 'first party';
+        triggerDomain = frameId === 0 ? 'first party' : 'first party frame';
       }
       // if triggered by self, don't add
       if (sameGeneralDomain(triggerDomain, host)) {
@@ -109,7 +109,7 @@ class PageLoadData {
       if (!this.triggeringTree[triggerDomain]) {
         this.triggeringTree[triggerDomain] = new Set();
       }
-      this.triggeringTree[triggerDomain].add(host);
+      this.triggeringTree[triggerDomain].add(truncateDomain(parseHost(host), 1));
     }
     this._plainObject = null;
   }
@@ -142,6 +142,10 @@ class PageLoadData {
       triggeringTree: {},
       tsv: this.tsv,
       tsv_id: this.tsvId !== undefined,
+      frames: Object.keys(this.triggeringTree).reduce((frames, key) => {
+        frames[key] = [...this.triggeringTree[key]];
+        return frames;
+      }, {}),
     };
     if (!obj.hostname) return obj;
 
@@ -241,13 +245,7 @@ class PageEventTracker {
     }
   }
 
-  // Get a stats object for the request to url, referred from ref, on tab source.
-  // url_parts and ref_parts contain the decomposed parts (from parseURL)
-  // of url and ref respectively.
-  // returns an object containing keys specified in tp_events._stats representing the running stats
-  // for the requesting third party on the source page.
-  // Returns null if the referrer is not valid.
-  get(url, urlParts, ref, refParts, source) {
+  getPage(url, urlParts, ref, refParts, source) {
     if (source <= 0 || source === null || source === undefined) {
       if (this.debug) console.log('No source for request, not logging!', 'tp_events');
       return null;
@@ -260,8 +258,6 @@ class PageEventTracker {
       if (this.debug) console.log(`No fullpage request for referrer: ${ref} -> ${url}`, 'tp_events');
       return null;
     }
-    // truncate the third-party domain before adding
-    const truncDomain = truncateDomain(urlParts.host, this.config.tpDomainDepth);
 
     const pageGraph = this._active[source];
     if (!pageGraph.isReferredFrom(refParts)) {
@@ -269,14 +265,29 @@ class PageEventTracker {
       if (source in this._old_tab_idx) {
         const prevGraph = this._staged[this._old_tab_idx[source]];
         if (prevGraph && prevGraph.isReferredFrom(refParts)) {
-          if (this.debug) console.log(`Request for expired tab ${refParts.hostname} -> ${truncDomain} (${prevGraph.hostname})`, 'tp_events');
-          return prevGraph.getTpUrl(truncDomain, urlParts.path);
+          if (this.debug) console.log(`Request for expired tab ${refParts.hostname} -> ${urlParts.hostname} (${prevGraph.hostname})`, 'tp_events');
+          return prevGraph;
         }
       }
-      if (this.debug) console.log(`tab/referrer mismatch ${refParts.hostname} -> ${truncDomain} (${pageGraph.hostname})`, 'tp_events');
+      if (this.debug) console.log(`tab/referrer mismatch ${refParts.hostname} -> ${urlParts.hostname} (${pageGraph.hostname})`, 'tp_events');
       return null;
     }
+    return pageGraph;
+  }
 
+  // Get a stats object for the request to url, referred from ref, on tab source.
+  // url_parts and ref_parts contain the decomposed parts (from parseURL)
+  // of url and ref respectively.
+  // returns an object containing keys specified in tp_events._stats representing the running stats
+  // for the requesting third party on the source page.
+  // Returns null if the referrer is not valid.
+  get(url, urlParts, ref, refParts, source) {
+    const pageGraph = this.getPage(url, urlParts, ref, refParts, source);
+    if (!pageGraph) {
+      return null;
+    }
+    // truncate the third-party domain before adding
+    const truncDomain = truncateDomain(urlParts.host, this.config.tpDomainDepth);
     return pageGraph.getTpUrl(truncDomain, urlParts.path);
   }
 

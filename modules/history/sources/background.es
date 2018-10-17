@@ -11,6 +11,8 @@ import { equals } from '../core/url';
 import RichHeaderProxy from './rich-header-proxy';
 import LRU from '../core/LRU';
 import migrate from './history-migration';
+import { isCliqzBrowser } from '../core/platform';
+import prefs from '../core/prefs';
 
 // import Database from '../core/database';
 // import MetaDatabase from './meta-database';
@@ -38,6 +40,13 @@ export default background({
       HistoryService.onVisitRemoved.addListener(this.onVisitRemovedListener);
     }
 
+    if (isCliqzBrowser && !prefs.get('modules.history.cleanupComplete', false)) {
+      // Clean empty search sessions from history in order to get rid of the potentialy
+      // unsafe searches. We perform this operation once as it can be very expensive for
+      // profiles with a large history.
+      prefs.set('modules.history.cleanupComplete', true);
+      this.history.cleanupEmptySearches();
+    }
     this.dbMigration = migrate();
   },
 

@@ -1,5 +1,5 @@
 import * as datetime from './time';
-import pacemaker from '../core/pacemaker';
+import pacemaker from '../core/services/pacemaker';
 import QSWhitelistBase from './qs-whitelist-base';
 import prefs from '../core/prefs';
 import { Resource } from '../core/resource-loader';
@@ -133,6 +133,10 @@ export default class AttrackBloomFilter extends QSWhitelistBase {
       return false;
     }
     return this.bloomFilter.testSingle(`d${domain}`);
+  }
+
+  shouldCheckDomainTokens(domain) {
+    return this.isTrackerDomain(domain);
   }
 
   isSafeKey(domain, key) {

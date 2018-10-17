@@ -1,12 +1,18 @@
 {
   "appName": {
-      "message": "Cliqz Tab: private search engine (Beta)"
+      "message": "Cliqz Tab (Beta)"
+  },
+  "appNameNightly": {
+      "message": "Cliqz Tab (Nightly)"
   },
   "appDesc": {
       "message": "Cliqz Tab replaces Chrome's default new tab page and adds backgrounds, favorites, news and Cliqz's anonymous quick search."
   },
   "ghosteryTabAppName": {
-      "message": "Ghostery Tab: private search engine (Beta)"
+      "message": "Ghostery Tab with private search (Beta)"
+  },
+  "ghosteryTabAppNameNightly": {
+      "message": "Ghostery Tab with private search (Nightly)"
   },
   "ghosteryTabAppDesc": {
       "message": "Get more out of Chrome. More privacy, more favorites, more freedom, more style and more news on each new tab!"
@@ -1377,7 +1383,7 @@
       "message": "POWERED BY CLIQZ"
   },
   "control_center_quicksearch": {
-      "message": "Safe Quick-Search"
+      "message": "Safe Ghost-Search"
   },
   "control_center_location": {
       "message": "Share location"
@@ -1395,10 +1401,10 @@
       "message": "Alternative Search Engine"
   },
   "control_center_telemetry": {
-      "message": "Send usage data"
+      "message": "Share anonymous data"
   },
   "control_center_telemetry_info": {
-      "message": "Cliqz collects strictly anonymous technical and interaction data. Personally identifiable information (“PII”) is never transferred."
+      "message": "Strictly anonymous technical and interaction data is collected. Personally identifiable information (“PII”) is never transferred."
   },
   "control_center_backend_country": {
       "message": "Search Results for"
@@ -2053,6 +2059,12 @@
   },
   "freshtab_app_settings_news_language_pl": {
       "message": "Polish media"
+  },
+  "freshtab_app_settings_news_language_it": {
+      "message": "Italian Media"
+  },
+  "freshtab_app_settings_news_language_ru": {
+      "message": "Russian media"
   },
   "freshtab_app_offers_exclusive": {
       "message": "Exclusive"

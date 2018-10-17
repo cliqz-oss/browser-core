@@ -3,7 +3,7 @@
 /* global require */
 /* eslint camelcase: off */
 
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 
 const persistence = {};
 function delay(fn) {
@@ -98,9 +98,7 @@ export default describeModule('offers-v2/offers/intent-offers-handler',
     'core/platform': {
       isWebExtension: false
     },
-    'platform/lib/tldjs': {
-      default: tldjs,
-    },
+    'platform/lib/tldts': tldts,
     'platform/xmlhttprequest': {
       default: {}
     },

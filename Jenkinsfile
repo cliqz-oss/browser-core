@@ -32,6 +32,11 @@ def matrix = [
         'config': 'configs/ci/browser.js',
         'testParams': '-l firefox-web-ext --firefox ~/firefox60/firefox/firefox',
     ],
+    'firefox 62': [
+        'gpu': true,
+        'config': 'configs/ci/browser.js',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox62/firefox/firefox',
+    ],
     'firefox beta': [
         'gpu': true,
         'config': 'configs/ci/browser.js',
@@ -49,9 +54,9 @@ def matrix = [
         'testParams': '-l firefox-web-ext-stresstest --firefox ~/firefox52/firefox/firefox',
     ],
     */
-    'webextension': [
+    'cliqz-tab': [
         'gpu': true,
-        'config': 'configs/ci/webextension.js',
+        'config': 'configs/ci/cliqz-tab.js',
         'testParams': '-l chromium-selenium',
     ],
     'cliqz-android': [

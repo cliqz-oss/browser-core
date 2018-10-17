@@ -3,14 +3,12 @@
 /* global require */
 
 
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 
 
 export default describeModule('core/tlds',
   () => ({
-    'platform/lib/tldjs': {
-      default: tldjs,
-    },
+    'platform/lib/tldts': tldts,
   }),
   () => {
     let sameGeneralDomain;

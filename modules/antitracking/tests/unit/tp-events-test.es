@@ -2,7 +2,7 @@
 /* global describeModule */
 /* eslint no-param-reassign: off */
 
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 const urlParser = require('fast-url-parser');
 
 const url = {
@@ -29,9 +29,7 @@ export default describeModule('antitracking/tp_events',
   () => ({
     'platform/browser': {},
     'core/utils': { default: {} },
-    'platform/lib/tldjs': {
-      default: tldjs,
-    },
+    'platform/lib/tldts': tldts,
     'core/console': {
       default: {
         log() {}

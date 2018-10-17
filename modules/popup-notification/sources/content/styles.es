@@ -3,11 +3,9 @@ import config from '../../core/config';
 
 function styles({
   ghostery = false,
-  logo_url: logoUrl,
   logo_class: logoClass,
   styles: { headline_color: headlineColor } = {},
 } = {}) {
-  const rewardIconPath = ghostery ? 'ghostery-rewards-beta.svg' : 'offers-cc-icon.svg';
   const offerLogoSize = ghostery ? '111px' : '20px';
   const [mainColor, secondaryColor, tertiaryColor] = ghostery
     ? ['#930194', '#920094', '#850587']
@@ -49,7 +47,7 @@ function styles({
       padding-left: ${offerLogoSize};
       margin-left: 16px;
       background-repeat: no-repeat;
-      background-image: url(${config.settings.CDN_BASEURL}/extension/offers/popup_notification/${rewardIconPath});
+      /* background-image */
       background-position: center;
     }
 
@@ -61,7 +59,7 @@ function styles({
       padding-right: 22px;
       margin-top: -2px;
       background-repeat: no-repeat;
-      background-image: url(${config.settings.CDN_BASEURL}/extension/offers/popup_notification/close-icon.svg);
+      /* background-image */
     }
 
     .header > .billet {
@@ -100,15 +98,15 @@ function styles({
     }
 
     .sub-header > .labels > .exclusive{
-      background-image: url(${config.settings.CDN_BASEURL}/extension/offers/popup_notification/exclusive.svg);
+      /* background-image */
     }
 
     .sub-header > .labels > .best_offer{
-      background-image: url(${config.settings.CDN_BASEURL}/extension/offers/popup_notification/best_offer.svg);
+      /* background-image */
     }
 
     .sub-header > .labels > .offer_of_the_week{
-      background-image: url(${config.settings.CDN_BASEURL}/extension/offers/popup_notification/offer_of_the_week.svg);
+      /* background-image */
     }
 
     .sub-header > .labels > .label {
@@ -139,7 +137,7 @@ function styles({
       min-height: 100%;
       background-repeat: no-repeat;
       background-size: contain;
-      background-image: url(${logoUrl});
+      /* background-image */
     }
 
 
@@ -248,6 +246,19 @@ function styles({
     }`;
 }
 
+function styleImages({ ghostery = false, logo_url: logoUrl } = {}) {
+  const rewardIconPath = ghostery ? 'ghostery-rewards-beta.svg' : 'offers-cc-icon.svg';
+  const baseUrl = config.settings.CDN_CONTENTSCRIPT_BASEURL;
+  return {
+    'offer-logo': `${baseUrl}/extension/offers/popup_notification/${rewardIconPath}`,
+    'btn-close': `${baseUrl}/extension/offers/popup_notification/close-icon.svg`,
+    exclusive: `${baseUrl}/extension/offers/popup_notification/exclusive.svg`,
+    best_offer: `${baseUrl}/extension/offers/popup_notification/best_offer.svg`,
+    offer_of_the_week: `${baseUrl}/extension/offers/popup_notification/offer_of_the_week.svg`,
+    logo: logoUrl.replace(config.settings.CDN_BASEURL, baseUrl),
+  };
+}
+
 function popupStyles({ shouldHideButtons = false, headline = '' }) {
   const halfOfLine = 32;
   let containerHeight = headline.length > halfOfLine ? '360px' : '336px';
@@ -281,4 +292,4 @@ const PARANJA_STYLES = {
   opacity: '0',
 };
 
-export { styles, PARANJA_STYLES, popupStyles };
+export { styles, styleImages, PARANJA_STYLES, popupStyles };

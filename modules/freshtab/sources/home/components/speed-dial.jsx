@@ -19,6 +19,8 @@ function SpeedDial(props) {
           isCustom={props.dial.isCustom}
           removeDial={props.removeSpeedDial}
           updateDial={props.updateSpeedDial}
+          toggleModal={props.toggleModal}
+          updateModalState={props.updateModalState}
         /> :
         <button
           className="delete"

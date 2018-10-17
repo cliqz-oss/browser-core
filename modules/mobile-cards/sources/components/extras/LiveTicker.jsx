@@ -152,29 +152,48 @@ export default class LiveTicker extends React.Component {
           actionMessage = getMessage('mobile_soccer_subscribed_to_one');
         }
         return (
-          <Link url={match.live_url} key={match.live_url}>
+          <Link
+            label={'liveticker-game-container'}
+            url={match.live_url}
+            key={match.live_url}
+          >
             <View style={styles(index, gameContainerWidth, gameContainerHeight).gameContainer}>
-              <Text
-                style={styles(index, gameContainerWidth, gameContainerHeight).gameText}
-                numberOfLines={1}
+              <View
+                accessible={false}
+                accessibilityLabel={'liveticker-game-host'}
               >
-                {match.HOST}
-              </Text>
-              <Text
-                style={styles(index, gameContainerWidth, gameContainerHeight).gameText}
-                numberOfLines={1}
-              >
-                {match.scored}
-                <Text style={styles().gameHourText}>
-                  {` (${match.gameTime})`}
+                <Text
+                  style={styles(index, gameContainerWidth, gameContainerHeight).gameText}
+                  numberOfLines={1}
+                >
+                  {match.HOST}
                 </Text>
-              </Text>
-              <Text
-                style={styles(index, gameContainerWidth, gameContainerHeight).gameText}
-                numberOfLines={1}
+              </View>
+              <View
+                accessible={false}
+                accessibilityLabel={'liveticker-game-score-date'}
               >
-                {match.GUESS}
-              </Text>
+                <Text
+                  style={styles(index, gameContainerWidth, gameContainerHeight).gameText}
+                  numberOfLines={1}
+                >
+                  {match.scored}
+                  <Text style={styles().gameHourText}>
+                    {` (${match.gameTime})`}
+                  </Text>
+                </Text>
+              </View>
+              <View
+                accessible={false}
+                accessibilityLabel={'liveticker-game-guess'}
+              >
+                <Text
+                  style={styles(index, gameContainerWidth, gameContainerHeight).gameText}
+                  numberOfLines={1}
+                >
+                  {match.GUESS}
+                </Text>
+              </View>
               {Boolean(isValid) &&
                 <View style={{ marginTop: 4, width: gameContainerWidth - 10 }}>
                   <SubscribeButton
@@ -197,9 +216,23 @@ export default class LiveTicker extends React.Component {
 
   displayMatchDay(matchDay) {
     return (
-      <View key={matchDay.date} style={{ ...elementTopMargin }}>
-        <Text style={styles().headerText}>{matchDay.date}</Text>
-        <View style={styles().matchesView}>
+      <View
+        accessible={false}
+        accessibilityLabel={'liveticker-matches'}
+        key={matchDay.date}
+        style={{ ...elementTopMargin }}
+      >
+        <View
+          accessible={false}
+          accessibilityLabel={'liveticker-matches-date'}
+        >
+          <Text style={styles().headerText}>{matchDay.date}</Text>
+        </View>
+        <View
+          accessible={false}
+          accessibilityLabel={'liveticker-matches-container'}
+          style={styles().matchesView}
+        >
           {this.displayMatches(matchDay.matches)}
         </View>
       </View>
@@ -232,9 +265,8 @@ export default class LiveTicker extends React.Component {
             />
           </View>
         }
-        <PoweredByKicker />
+        <PoweredByKicker logo={this.props.result.meta.externalProvidersLogos.kicker} />
       </View>
     );
   }
 }
-

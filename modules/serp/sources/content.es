@@ -142,6 +142,6 @@ function registerScript(window, CLIQZ) {
 registerContentScript('core-cliqz', 'https://suchen.cliqz.com/', (window, _, CLIQZ) => {
   registerScript(window, CLIQZ);
 });
-registerContentScript('core-cliqz', 'https://s3.amazonaws.com/cdncliqz/update/edge/serp/master/latest/*', (window, _, CLIQZ) => {
+registerContentScript('core-cliqz', 'https://s3.amazonaws.com/cdncliqz/update/edge/serp/master/*', (window, _, CLIQZ) => {
   registerScript(window, CLIQZ);
 });

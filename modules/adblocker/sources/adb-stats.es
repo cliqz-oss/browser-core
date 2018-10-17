@@ -1,7 +1,6 @@
 import { checkIsWindowActive } from '../platform/browser';
 import domainInfo from '../core/services/domain-info';
-import { URLInfo } from '../core/url-info';
-import { getGeneralDomain } from '../core/tlds';
+import { parse, getGeneralDomain } from '../core/tlds';
 import TrackerCounter from '../core/helpers/tracker-counter';
 
 const FIRSTPARTY = 'First party';
@@ -9,7 +8,7 @@ const FIRSTPARTY = 'First party';
 class PageStats {
   constructor(url) {
     this.pageUrl = url;
-    this.hostGD = getGeneralDomain(URLInfo.get(url).hostname);
+    this.hostGD = getGeneralDomain(url);
     this.count = 0;
     this.blocked = new Map();
     this.blockedDomains = new Set();
@@ -20,8 +19,7 @@ class PageStats {
 
   addBlockedUrl(url, bugId) {
     // retrieve company
-    const host = URLInfo.get(url).hostname;
-    const domain = getGeneralDomain(host);
+    const { host, domain } = parse(url);
     this.blockedDomains.add(domain);
     this.counter.addAdBlocked(bugId, host);
 

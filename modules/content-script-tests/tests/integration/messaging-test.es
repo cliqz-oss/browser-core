@@ -2,7 +2,7 @@ import {
   expect,
   sleep,
   win,
-} from '../../../tests/core/test-helpers';
+} from '../../../tests/core/integration/helpers';
 import { isBootstrap } from '../../../core/platform';
 
 export default function () {

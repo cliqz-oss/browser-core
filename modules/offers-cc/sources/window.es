@@ -6,6 +6,7 @@ import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import config from '../core/config';
 import { getMessage } from '../core/i18n';
 import { getDetailsFromUrl } from '../core/url';
+import { forEachWindow } from '../core/browser';
 import logger from './logger';
 import DefaultMap from '../core/helpers/default-map';
 
@@ -74,6 +75,15 @@ export default class Win {
     this.reshowPopup = event.type === 'mouseenter' && this.showTooltip;
   }
 
+  resetButtonState(toolbarButtonId) {
+    forEachWindow((win) => {
+      const toolbarButton = win.document.getElementById(toolbarButtonId);
+      if (toolbarButton) {
+        toolbarButton.setAttribute('state', '');
+      }
+    });
+  }
+
   onButtonClicked() {
     this.showTooltip = false;
 
@@ -123,8 +133,7 @@ export default class Win {
       return;
     }
 
-    this.toolbarButtonElement.setAttribute('state', '');
-    // else we will change the state of all offers
+    this.resetButtonState(this.toolbarButtonElement.id);
 
     const signal = {
       type: 'offrz',
@@ -228,7 +237,7 @@ export default class Win {
         });
       });
 
-      this.toolbarButtonElement.setAttribute('state', '');
+      this.resetButtonState(this.toolbarButtonElement.id);
     }
 
     /*

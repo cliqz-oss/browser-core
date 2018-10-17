@@ -15,6 +15,7 @@ const styles = (backgroundColor, width) =>
     card: {
       width,
       height: getVPHeight() / 3,
+      minHeight: 90,
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: `#${backgroundColor}`,

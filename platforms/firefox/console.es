@@ -1,8 +1,8 @@
 /* global Components */
-
 import Components from './globals-components';
+import window from './globals-window';
 
-if (typeof Components !== 'undefined') {
+if (typeof Components !== 'undefined' && (window === undefined || !window.console)) {
   try {
     Components.utils.import('resource://gre/modules/Console.jsm');
   } catch (e) {
@@ -11,4 +11,4 @@ if (typeof Components !== 'undefined') {
   }
 }
 
-export default console;
+export default (window ? window.console : console);

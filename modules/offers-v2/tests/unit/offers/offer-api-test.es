@@ -3,7 +3,7 @@
 /* global require */
 /* eslint no-param-reassign: off */
 
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 
 const VALID_OFFER_OBJ = {
   action_info: {
@@ -76,9 +76,7 @@ export default describeModule('offers-v2/offers/offers-api',
     },
     'platform/globals': {
     },
-    'platform/lib/tldjs': {
-      default: tldjs,
-    },
+    'platform/lib/tldts': tldts,
     'core/utils': {
       default: {}
     },

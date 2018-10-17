@@ -3,7 +3,7 @@
 import * as persist from '../core/persistent-state';
 import * as datetime from './time';
 import { generateAttrackPayload } from './utils';
-import pacemaker from '../core/pacemaker';
+import pacemaker from '../core/services/pacemaker';
 import telemetry from './telemetry';
 import utils from '../core/utils';
 import { TELEMETRY } from './config';

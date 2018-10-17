@@ -8,13 +8,18 @@ import { randomInt } from '../../core/crypto/random';
 import logger from './logger';
 import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
 
+import inject from '../../core/kord/inject';
+
+const HPNV2_OFF = 0; // https only (i.e., send directly to the Anolyis backend)
+const HPNV2_ONLY = 1; // only hpnv2, otherwise fail
+const HPNV2_WITH_FALLBACK = 2; // hpnv2 if possible, otherwise https
 
 /**
  * Helper function used to send a json `payload` to `url` using a POST request.
  * This returns a promise resolving to the answer if any, or rejecting on any
  * exception or wrong HTTP code.
  */
-function post(url, payload) {
+async function post(url, payload) {
   return new Promise((resolve, reject) => {
     httpPost(
       url,
@@ -42,6 +47,7 @@ export default class Backend {
   constructor(config) {
     this.config = config;
     this.backendUrl = config.get('backend.url');
+    this.hpnv2 = inject.module('hpnv2');
   }
 
   /**
@@ -110,7 +116,7 @@ export default class Backend {
     // Extract id returned by the backend. This is important because both
     // the backend and the client must agree on a common format. This will
     // be used later to update the GID.
-    const { id } = await post(`${this.backendUrl}/send_demographics`, payload);
+    const { id } = await this.send('/send_demographics', payload);
     if (id) {
       // NOTE: this section is commented out because it was too strict. When we
       // add a new demographics in the backend, it can happen that an extra
@@ -167,7 +173,7 @@ export default class Backend {
     const prefix = hash.slice(0, 3);
 
     // Send a prefix of the hash to the backend
-    return post(`${this.backendUrl}/update_gid`, { hash_prefix: prefix })
+    return this.send('/update_gid', { hash_prefix: prefix })
       .then((data) => {
         logger.log('updateGID response', data);
         if (data.candidates) {
@@ -201,6 +207,62 @@ export default class Backend {
     const payload = this.attachMetadata(signal);
     logger.debug('sendSignal', payload);
 
-    return post(`${this.backendUrl}/collect`, payload);
+    return this.send('/collect', payload);
+  }
+
+  getHpnv2Mode() {
+    const mode = prefs.get('anolysis.hpnv2-mode');
+    if (mode === HPNV2_OFF || mode === HPNV2_ONLY || mode === HPNV2_WITH_FALLBACK) {
+      return mode;
+    }
+
+    // The mode was not overwritten by the user. In that case,
+    // always send directly if the staging backend was been configured.
+    //
+    // Otherwise, try hpnv2 but if there are errors, conservatively
+    // fallback back to https to limit message loss (if there are no
+    // problems, we can later switch to HPNV2_ONLY).
+    return this.config.get('useStaging') ? HPNV2_OFF : HPNV2_WITH_FALLBACK;
+  }
+
+  async send(path, payload) {
+    const sendOverHttps = () => post(`${this.backendUrl}${path}`, payload);
+
+    const mode = this.getHpnv2Mode();
+    if (mode === HPNV2_OFF) {
+      return sendOverHttps();
+    }
+
+    if (!this.hpnv2.isEnabled()) {
+      if (mode === HPNV2_WITH_FALLBACK) {
+        logger.log('hpnv2 not available. Falling back to sending over https...');
+        return sendOverHttps();
+      }
+      throw new Error('Failed to sent message, as hpnv2 is not available');
+    }
+
+    const action = `anolysis.${path.substr(1)}`;
+    let response;
+    try {
+      // TODO: Added to distingish requests from hpnv2 and directly
+      // sent messages. Should only be active for initial experiments.
+      //
+      // eslint-disable-next-line no-param-reassign
+      payload.via_hpn2 = true;
+
+      response = await this.hpnv2.action('send', {
+        action,
+        payload
+      });
+    } catch (e) {
+      if (mode === HPNV2_WITH_FALLBACK) {
+        // TODO: Keep track of the error types that we see on the client
+        logger.warn(`Failed to send message over hpnv2 (reason: ${e}). Falling back to https...`);
+        return sendOverHttps();
+      }
+      logger.error(`Failed to send message to ${path}`, e);
+      throw e;
+    }
+    return response.json();
   }
 }

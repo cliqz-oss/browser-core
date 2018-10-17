@@ -52,7 +52,8 @@
             border: 0;
             cursor: pointer;
             position: relative;
-            opacity: 1;
+            opacity:0.6;
+
             &:after {
                 content:"";
                 position: absolute;
@@ -64,17 +65,12 @@
                 }
             }
             &#cliqz-home {
-                // opacity: 0.8;
-                // background: map-get($base-theme, cliqz-home-bg);
-                &:after {
-                    background: map-get($base-theme, cliqz-home-bg);
-                }
+                opacity: 1;
+                background: map-get($base-theme, cliqz-home-bg);
             }
 
             &#cliqz-history {
-                &:after {
-                    background: map-get($base-theme, cliqz-history-bg);
-                }
+                background: map-get($base-theme, cliqz-history-bg);
             }
 
             &#cliqz-worldcup {
@@ -375,8 +371,8 @@ body {
         background-image: cdnUrl('extension/newtab/background/dark.jpg');
     }
 
-    &.theme-bg-blue,
-    &.theme-bg-blue::before {
+    &.theme-bg-alps,
+    &.theme-bg-alps::before {
         background-color: #00adf3;
         background-image: cdnUrl('extension/newtab/background/alps.jpg');
     }
@@ -408,6 +404,12 @@ body {
     &.theme-bg-summer::before {
         background-color: #00adf3;
         background-image: cdnUrl('extension/newtab/background/summer.jpg');
+    }
+
+    &.theme-bg-autumn,
+    &.theme-bg-autumn::before {
+        background-color: #00adf3;
+        background-image: cdnUrl('extension/newtab/background/autumn.jpg');
     }
 
     &.theme-bg-ghostery,
@@ -458,9 +460,10 @@ body {
     &.theme-bg-ghostery-ghosty,
     &.theme-bg-ghostery-dark,
     &.theme-bg-dark,
-    &.theme-bg-blue,
+    &.theme-bg-alps,
     &.theme-bg-matterhorn,
-    &.theme-bg-worldcup {
+    &.theme-bg-worldcup,
+    &.theme-bg-autumn {
         $dark-theme: map-get($themes, dark);
 
         @include responsive($dark-theme);
@@ -488,10 +491,8 @@ body {
                         .dash:hover span {
                             background-color: rgba(255, 255, 255, 1);
                         }
-
                     }
                 }
-
             }
         }
     }
@@ -501,7 +502,6 @@ body {
             color: rgba(255, 255, 255, 0.8);
             text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.3);
         }
-
 
         .dials-row {
             .dial {
@@ -521,35 +521,12 @@ body {
                 }
             }
         }
-
     }
 
-    &.theme-bg-blue,
+    &.theme-bg-alps,
     &.theme-bg-matterhorn,
-    &.theme-bg-worldcup {
-        .aside {
-            & > a, & > button {
-                &#settings-btn,
-                &#cliqz-modules-btn,
-                &#cliqz-home,
-                &#cliqz-history,
-                &#cliqz-worldcup {
-                    opacity: 1;
-                    &:after {
-                        opacity:0.75;
-                    }
-                }
-                &#settings-btn:hover,
-                &#cliqz-modules-btn:hover,
-                &#cliqz-home:hover,
-                &#cliqz-history:hover,
-                &#cliqz-worldcup:hover {
-                    &:after {
-                        opacity:1
-                    }
-                }
-            }
-        }
+    &.theme-bg-worldcup,
+    &.theme-bg-autumn {
         #main-content {
             .fixed-container {
 
@@ -606,8 +583,9 @@ body {
         }
     }
 
+    &.theme-bg-worldcup,
     &.theme-bg-dark,
-    &.theme-bg-blue {
+    &.theme-bg-alps {
         #main-content {
             .fixed-container {
                 #section-middle {
@@ -620,26 +598,6 @@ body {
     }
 
     &.theme-bg-summer {
-        .aside {
-            & > a, & > button {
-                &#settings-btn,
-                &#cliqz-modules-btn,
-                &#cliqz-home,
-                &#cliqz-worldcup:after,
-                &#cliqz-history {
-                    opacity: 0.4;
-                }
-
-                &#settings-btn:hover,
-                &#cliqz-modules-btn:hover,
-                &#cliqz-home:hover,
-                &#cliqz-worldcup:hover:after,
-                &#cliqz-history:hover {
-                    opacity: 1;
-                }
-            }
-        }
-
         #main-content {
             .fixed-container {
                 .middle-notification-box {

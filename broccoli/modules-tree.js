@@ -82,16 +82,27 @@ function getPlatformFunnel() {
   });
 }
 
+const dirs = p => fs.readdirSync(p).filter(f => fs.statSync(path.join(p, f)).isDirectory())
 
 function getPlatformTree() {
+  const platformName = cliqzConfig.platform;
   let platform = getPlatformFunnel();
 
   platform = Babel(platform, Object.assign({}, babelOptions));
+  const platforms = dirs('./platforms');
 
-  return new Funnel(platform, {
-    srcDir: cliqzConfig.platform,
-    destDir: 'platform',
-  });
+  return new MergeTrees([
+    new Funnel(platform, {
+      srcDir: platformName,
+      destDir: 'platform',
+    }),
+    ...platforms.map(p =>
+      new Funnel(platform, {
+        srcDir: p,
+        destDir: 'platform-'+p,
+      }),
+    ),
+  ]);
 }
 
 function getSourceFunnel() {
@@ -209,9 +220,38 @@ function getBrowserifyTree() {
   });
 
   // Browserify platform
-  const platformPath = path.join('platforms/', cliqzConfig.platform);
-  walk(platformPath, p => p.endsWith('.browserify'))
+  const basePlatformPath = path.join('platforms/', cliqzConfig.platform);
+  walk(basePlatformPath, p => p.endsWith('.browserify'))
   .forEach((p) => {
+    const rel = path.relative(basePlatformPath, p);
+    const options = {
+      browserify: {
+        entries: [rel],
+        debug: false,
+        paths: [
+          path.join(basePath, 'node_modules'),
+        ],
+      },
+      outputFile: rel.replace(/\.browserify$/, '.js'),
+      cache: true,
+    };
+    browserifyTrees.push(new Funnel(watchify(basePlatformPath, options), {
+      getDestinationPath(p) {
+        return `platform/${p}`;
+      },
+    }));
+});
+
+  // Browserify platform
+  const platformPath = path.join('platforms/');
+
+  walk('platforms', p => p.endsWith('.browserify'))
+  .forEach((p) => {
+    const pathParts = p.split(path.sep);
+    if (pathParts[1] === cliqzConfig.platform) {
+      return;
+    }
+
     const rel = path.relative(platformPath, p);
     const options = {
       browserify: {
@@ -224,11 +264,17 @@ function getBrowserifyTree() {
       outputFile: rel.replace(/\.browserify$/, '.js'),
       cache: true,
     };
-    browserifyTrees.push(new Funnel(watchify(platformPath, options), {
-      getDestinationPath(p) {
-        return `platform/${p}`;
-      },
-    }));
+
+    browserifyTrees.push(
+      new Funnel(
+        watchify(platformPath, options),
+        {
+          getDestinationPath(p) {
+            return `platform-${p}`;
+          },
+        }
+      )
+    );
   });
 
   return new MergeTrees(browserifyTrees);

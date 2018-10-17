@@ -6,7 +6,7 @@ import { isBootstrap } from '../../../core/platform';
 import {
   expect,
   waitFor,
-} from '../../../tests/core/test-helpers';
+} from '../../../tests/core/integration/helpers';
 
 /**
  * Loads a resource URL from the xpi.

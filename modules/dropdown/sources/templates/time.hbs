@@ -9,7 +9,7 @@
     <div class="timezone-results">
         {{#each (take timezoneResults rowsLimit)}}
         <p class='timezone-results-row'>
-            <span class="main space">{{time}}</span>
+            <span class="main space {{#if timePeriod}}with-period{{/if}}">{{time}}</span>
             <span class="main city">{{location}}</span>
             <span class="timezone">&#183; {{expression}} ({{timeZone}})</span>
         </p>

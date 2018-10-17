@@ -14,6 +14,7 @@ import { getMessage } from '../core/i18n';
 
 const ACproviderName = 'cliqz-results';
 const STYLESHEET_URL = 'chrome://cliqz/content/static/styles/styles.css';
+const QUICK_SEARCH_PREF = 'modules.search.providers.cliqz.enabled';
 
 /**
   @namespace ui
@@ -104,6 +105,7 @@ export default class UIWindow extends AppWindow {
     // mock default FF function
     this.popup.enableOneOffSearches = function () {};
     this.popup.closePopup = function () {};
+    this.popup.richlistbox = {};
     this.popup.oneOffSearchButtons = {
       maybeRecordTelemetry() { return false; }
     };
@@ -135,8 +137,19 @@ export default class UIWindow extends AppWindow {
     this.initialized = true;
 
     this.goButton = attachGoButton(this.window, inject.module('search'));
+    this.onPrefChange = CliqzEvents.subscribe('prefchange', (pref) => {
+      if (pref === QUICK_SEARCH_PREF) {
+        this.updateUrlbarPlaceholder();
+      }
+    });
 
     this.applyAdditionalThemeStyles();
+  }
+
+  updateUrlbarPlaceholder() {
+    this.urlbar.mInputField.placeholder = prefs.get(QUICK_SEARCH_PREF, true) ?
+      getMessage('freshtab_urlbar_placeholder') :
+      this.originalUrlbarPlaceholder;
   }
 
   /**
@@ -175,15 +188,8 @@ export default class UIWindow extends AppWindow {
 
   applyAdditionalThemeStyles() {
     const urlbar = this.urlbar;
-
     this.originalUrlbarPlaceholder = urlbar.mInputField.placeholder;
-
-    urlbar.style.maxWidth = '100%';
-    urlbar.style.margin = '0px 0px';
-
-    if (this.settings.id !== 'funnelcake@cliqz.com' && this.settings.id !== 'ghostery-db@cliqz.com') {
-      urlbar.mInputField.placeholder = getMessage('freshtab_urlbar_placeholder');
-    }
+    this.updateUrlbarPlaceholder();
   }
 
   revertAdditionalThemeStyles() {
@@ -210,6 +216,7 @@ export default class UIWindow extends AppWindow {
     if (!this.initialized) return;
 
     removeStylesheet(this.window.document, STYLESHEET_URL);
+    this.onPrefChange.unsubscribe();
 
     this.urlbar.setAttribute('autocompletesearch', this._autocompletesearch);
     this.urlbar.setAttribute('autocompletepopup', this._autocompletepopup);

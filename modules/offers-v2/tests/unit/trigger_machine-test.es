@@ -2,7 +2,7 @@
 /* global describeModule */
 /* global require */
 
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 
 const prefRetVal = {};
 let currentTS = Date.now();
@@ -27,9 +27,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
     'core/platform': {
       isWebExtension: false
     },
-    'platform/lib/tldjs': {
-      default: tldjs,
-    },
+    'platform/lib/tldts': tldts,
     'platform/xmlhttprequest': {
       default: {}
     },

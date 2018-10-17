@@ -4,23 +4,20 @@ import {
   CliqzEvents,
   closeTab,
   expect,
-  focusOnTab,
+  getResourceUrl,
   newTab,
   queryHTML,
   testServer,
+  wait,
   waitFor,
-  waitForAsync,
   waitForElement,
-} from '../../../tests/core/test-helpers';
-
-import {
-  getResourceUrl,
+  waitForPageLoad,
 } from '../../../tests/core/integration/helpers';
 
 import {
+  clearOffersDB,
   getPage,
   mockOffersBackend,
-  clearOffersDB,
 } from '../../../tests/core/integration/offers-helpers';
 
 export default function () {
@@ -48,8 +45,7 @@ export default function () {
       await testServer.hasHit('/api/v1/loadsubtriggers');
 
       // Load freshtab in new tab
-      freshtabId = await newTab(freshtabUrl);
-      focusOnTab(freshtabId);
+      freshtabId = await newTab(freshtabUrl, { focus: true });
 
       // Expect offer to appear in notification box
       offerShown = await waitForElement({
@@ -100,7 +96,7 @@ export default function () {
         );
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'));
         const hits = await testServer.getHits();
         expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'code_copied, server-side')
@@ -146,7 +142,7 @@ export default function () {
           .to.have.property('offer_description').to.equal(1);
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'));
         const hits = await testServer.getHits();
         expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
@@ -197,7 +193,7 @@ export default function () {
           .to.have.property('ref_none'); // actual value is not stable to test
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'));
         const hits = await testServer.getHits();
         expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
@@ -248,7 +244,7 @@ export default function () {
           .to.have.property('ref_none'); // actual value is not stable to test
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'));
         const hits = await testServer.getHits();
         expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_benefit, server-side')
@@ -301,7 +297,7 @@ export default function () {
           .to.have.property('offer_headline').to.equal(1);
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'));
         const hits = await testServer.getHits();
         expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
@@ -354,7 +350,7 @@ export default function () {
           .to.have.property('offer_logo').to.equal(1);
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'));
         const hits = await testServer.getHits();
         expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
@@ -373,8 +369,7 @@ export default function () {
     // TODO: rewrite these tests without needing to close extra freshtab
     describe('opening second instance of Freshtab', function () {
       beforeEach(async function () {
-        const newFreshTab = await newTab(freshtabUrl);
-        await focusOnTab(newFreshTab);
+        const newFreshTab = await newTab(freshtabUrl, { focus: true });
 
         // close first instance of freshtab, so we can use queryHTML
         await closeTab(freshtabId);
@@ -384,7 +379,7 @@ export default function () {
       });
 
       it('sends a signal containing NOT incremented "offer_triggered" and "offer_pushed", and incremented values of "offer_dsp_session" and "offer_shown"', async function () {
-        await waitForAsync(() =>
+        await waitFor(() =>
           allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'].offer_shown > 1
         );
 
@@ -402,7 +397,7 @@ export default function () {
           .to.have.property('offer_shown').to.equal(2);
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'));
         const hits = await testServer.getHits();
         expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[0].origin_data, 'offer_triggered, server-side')
@@ -424,11 +419,15 @@ export default function () {
     describe('opening another page and then moving focus back to the Freshtab instance', function () {
       beforeEach(async function () {
         const landingUrl = getPage('landing');
-        const landingPageId = await newTab(landingUrl);
-        await focusOnTab(landingPageId);
-        await waitForElement({ url: landingUrl, selector: 'p' });
+
+        const isPageLoaded = waitForPageLoad(landingUrl);
+        const landingPageId = await newTab(landingUrl, { focus: true });
+        await isPageLoaded;
+
+        // "offer_shown" is increased on "visibilitychange" event
+        // if we close the tab too fast, it won't get increased
+        await wait(1000);
         await closeTab(landingPageId);
-        await focusOnTab(freshtabId);
       });
 
       it('increments the counter counter for "offer_shown" and does NOT increment the counter for "offer_dsp_session"', async function () {
@@ -441,7 +440,7 @@ export default function () {
           .to.have.property('offer_dsp_session').to.equal(1);
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'));
         const hits = await testServer.getHits();
         expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_dsp_session, server-side')
@@ -470,12 +469,13 @@ export default function () {
         context(signal, function () {
           beforeEach(async function () {
             const page = getPage(signal);
-            await focusOnTab(await newTab(page));
-            await waitForAsync(async () => (await queryHTML(page, 'p', 'innerText'))[0] === signal);
+            await newTab(page, { focus: true });
+
+            await waitFor(async () => (await queryHTML(page, 'p', 'innerText'))[0] === signal);
           });
 
           it(`increments counter for "${signal}"`, async function () {
-            await waitForAsync(() =>
+            await waitFor(() =>
               expect(allCampaigns).to.have.nested.property(
                 'test_campaign_v1.data.offers.test_offer_v1.origins.trigger'
               )
@@ -484,7 +484,7 @@ export default function () {
               .to.have.property(`${signal}`).to.equal(1);
 
             offers.signalsHandler._sendSignalsToBE();
-            await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+            await waitFor(() => testServer.hasHit('/api/v1/savesignal'));
             const hits = await testServer.getHits();
             expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, `${signal}, server-side`)
               .to.have.property(signal).to.equal(1);
@@ -528,7 +528,7 @@ export default function () {
           .to.have.property('offer_db_removed').to.equal(1);
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitForAsync(() => testServer.hasHit('/api/v1/savesignal'));
+        await waitFor(() => testServer.hasHit('/api/v1/savesignal'));
         const hits = await testServer.getHits();
         expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_removed, server-side')
           .to.have.property('offer_removed').to.equal(1);

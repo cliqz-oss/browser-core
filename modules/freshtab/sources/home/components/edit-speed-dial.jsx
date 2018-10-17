@@ -29,6 +29,7 @@ export default class EditSpeedDial extends React.Component {
   editSpeedDialModal = (event) => {
     event.preventDefault();
     event.stopPropagation();
+    this.props.updateModalState(true);
     this.setState({ showModal: true });
   }
 
@@ -48,6 +49,7 @@ export default class EditSpeedDial extends React.Component {
     const title = this.state.title;
 
     if (!url) {
+      this.props.updateModalState(true);
       this.setState({
         errorInvalid: true,
         showError: true,
@@ -58,6 +60,7 @@ export default class EditSpeedDial extends React.Component {
 
     this.freshtab.editSpeedDial(this.props.dial, { url, title }).then((resp) => {
       if (resp.error) {
+        this.props.updateModalState(true);
         this.setState({ showError: true, showModal: true });
         if (resp.reason.indexOf('duplicate') > -1) {
           this.setState({
@@ -69,6 +72,7 @@ export default class EditSpeedDial extends React.Component {
           });
         }
       } else {
+        this.props.updateModalState(false);
         this.setState({
           showModal: false
         });
@@ -89,6 +93,7 @@ export default class EditSpeedDial extends React.Component {
   handleRemove = (event) => {
     event.preventDefault();
     event.stopPropagation();
+    this.props.updateModalState(false);
     this.setState({ showModal: false });
     this.props.removeDial(this.props.dial);
   }

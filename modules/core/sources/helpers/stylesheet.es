@@ -1,7 +1,7 @@
-import { isBootstrap } from '../platform';
+import { isBootstrap, isAMO } from '../platform';
 
 export function addStylesheet(document, url) {
-  if (!isBootstrap) {
+  if (!isBootstrap && !isAMO) {
     return;
   }
   const stylesheet = document.createElementNS('http://www.w3.org/1999/xhtml', 'h:link');
@@ -15,7 +15,7 @@ export function addStylesheet(document, url) {
 }
 
 export function removeStylesheet(document, url) {
-  if (!isBootstrap) {
+  if (!isBootstrap && !isAMO) {
     return;
   }
   const styles = [].slice.call(document.getElementsByClassName('cliqz-theme'));

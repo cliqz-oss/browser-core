@@ -3,7 +3,7 @@
 /* global require */
 /* eslint-disable func-names,prefer-arrow-callback,arrow-body-style, no-param-reassign */
 
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 
 const mockedTS = Date.now();
 const DAY_MS = 1000 * 60 * 60 * 24;
@@ -38,9 +38,7 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
     'platform/environment': {
       default: {}
     },
-    'platform/lib/tldjs': {
-      default: tldjs,
-    },
+    'platform/lib/tldts': tldts,
     'core/crypto/random': {
       random: function () {
         return Math.random();

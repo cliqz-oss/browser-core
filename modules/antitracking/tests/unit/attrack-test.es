@@ -4,7 +4,7 @@
 const jsonData = require('../../../antitracking/prob.json');
 const Rx = require('rxjs');
 const fastUrlParser = require('fast-url-parser');
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 const encoding = require('text-encoding');
 const mockDexie = require('../../core/unit/utils/dexie');
 
@@ -87,9 +87,7 @@ export default describeModule('antitracking/attrack',
     'core/gzip': {
       compress: false,
     },
-    'platform/lib/tldjs': {
-      default: tldjs,
-    },
+    'platform/lib/tldts': tldts,
     'platform/lib/rxjs': {
       default: Rx,
     },
@@ -169,6 +167,12 @@ export default describeModule('antitracking/attrack',
       default: () => {},
       migrateTokenDomain: () => Promise.resolve(),
       migrateRequestKeyValue: () => Promise.resolve(),
+    },
+    'core/services/pacemaker': {
+      default: {
+        register() {},
+        deregister() {},
+      },
     }
   }), function () {
     let attrack;

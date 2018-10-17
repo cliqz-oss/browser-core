@@ -147,10 +147,6 @@ export default background({
 
   events: {
     'content:location-change': function onLocationChange({ url }) {
-      const blackList = ['resource://', 'about:', 'chrome://', 'file://'];
-      if (blackList.some(e => url.startsWith(e))) {
-        return;
-      }
       if (this.displayMngr) {
         this.displayMngr.onTabOrUrlChange({ url });
       }

@@ -5,8 +5,7 @@
 
 
 const adblocker = require('@cliqz/adblocker');
-const tldjs = require('tldjs');
-
+const tldts = require('tldts');
 
 const prefRetVal = {};
 const currentTS = Date.now();
@@ -333,8 +332,18 @@ export default describeModule('offers-v2/offers/offers-handler',
     'platform/environment': {
       default: {}
     },
-    'platform/lib/tldjs': {
-      default: tldjs,
+    'platform/lib/tldts': tldts,
+    './blacklist': {
+      default: class {
+        init() {}
+        has() { return false; }
+      }
+    },
+    './patterns_stat': {
+      default: class {
+        init() {}
+        add() {}
+      }
     },
     'offers-v2/utils': {
       timestamp: function () {},

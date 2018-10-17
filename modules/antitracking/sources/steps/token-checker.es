@@ -62,7 +62,7 @@ export default class TokenChecker {
    */
   findBadTokens(state) {
     const stats = {};
-    state.isTracker = this.qsWhitelist.isTrackerDomain(state.urlParts.generalDomainHash);
+    state.isTracker = this.qsWhitelist.shouldCheckDomainTokens(state.urlParts.generalDomainHash);
     state.badTokens = this.checkTokens(state.urlParts, state.sourceUrl, state.cookieValues,
       stats, state.sourceUrlParts, state.isTracker, state.isPrivate);
     // set stats

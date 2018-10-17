@@ -262,6 +262,34 @@ export default class Settings extends React.Component {
                       {t('app_settings_news_language_pl')}
                     </label>
                   </div>
+                  <div className="radio">
+                    <label htmlFor="news-radio-selector-10">
+                      <input
+                        id="news-radio-selector-10"
+                        type="radio"
+                        tabIndex="-1"
+                        name="news"
+                        value="it"
+                        checked={this.state.componentsState.news.preferedCountry === 'it'}
+                        onChange={this.onNewsSelectionChanged}
+                      />
+                      {t('app_settings_news_language_it')}
+                    </label>
+                  </div>
+                  <div className="radio">
+                    <label htmlFor="news-radio-selector-11">
+                      <input
+                        id="news-radio-selector-11"
+                        type="radio"
+                        tabIndex="-1"
+                        name="news"
+                        value="ru"
+                        checked={this.state.componentsState.news.preferedCountry === 'ru'}
+                        onChange={this.onNewsSelectionChanged}
+                      />
+                      {t('app_settings_news_language_ru')}
+                    </label>
+                  </div>
                 </form>
               </div>
             )

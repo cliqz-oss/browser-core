@@ -18,6 +18,7 @@ import {
   addOrCreate,
 } from './utils';
 import Behavior from '../behavior';
+import PatternsStat from '../patterns_stat';
 
 const STORAGE_DB_DOC_ID = 'offers-signals';
 
@@ -56,11 +57,13 @@ export default class SignalHandler {
     this.dbDirty = false;
     this.signalsQueue = [];
     this.behavior = new Behavior();
+    this.patternsStat = new PatternsStat();
   }
 
   async init() {
     await this._loadPersistenceData();
     await this.behavior.init();
+    await this.patternsStat.init();
     // set the interval timer method to send the signals
     this.sendIntervalTimer = null;
     this._startSendSignalsLoop(OffersConfigs.SIGNALS_OFFERS_FREQ_SECS);
@@ -421,7 +424,10 @@ export default class SignalHandler {
     let anotherBatch = await this.behavior.getSignals();
     anotherBatch = anotherBatch.map(payload =>
       ({ payload: JSON.stringify(constructSignal('behavior', payload.type, payload)) }));
-    await this.sendBatch(batch.concat(anotherBatch));
+    let patternsStatBatch = await this.patternsStat.moveAll('views');
+    patternsStatBatch = patternsStatBatch.map(payload =>
+      ({ payload: JSON.stringify(constructSignal('patterns-stats', payload.type, payload)) }));
+    await this.sendBatch(batch.concat(anotherBatch).concat(patternsStatBatch));
     await this.behavior.clearSignals();
     return this.behavior.clearOldBehavior();
   }

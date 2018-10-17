@@ -5,6 +5,8 @@ import SearchboxField from './searchbox-field';
 export default ({
   query,
   handleKeyDown,
+  handleFocus,
+  handleBlur,
   updateSearchboxValue,
   placeholder,
   view,
@@ -25,6 +27,8 @@ export default ({
       cssClasses={cssClasses}
       placeholder={placeholder}
       handleKeyDown={handleKeyDown}
+      handleFocus={handleFocus}
+      handleBlur={handleBlur}
       updateSearchboxValue={updateSearchboxValue}
       value={query}
       shouldHaveFocus={shouldHaveFocus}

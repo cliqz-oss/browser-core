@@ -7,11 +7,10 @@ import { dataOn, dataOffPage, dataOffSite, dataOffAll } from './fixtures/adblock
 
 describe('Control Center: Ad-Block interaction browser', function () {
   let subject;
-  const target = 'cliqz-control-center';
+  const target = 'control-center';
 
   beforeEach(function () {
     subject = new Subject();
-    return subject.load();
   });
 
   afterEach(function () {
@@ -23,9 +22,9 @@ describe('Control Center: Ad-Block interaction browser', function () {
       subject.query(selector).click();
 
       return waitFor(
-        () => subject.messages.find(message => message.message.action === 'updateState')
+        () => subject.messages.find(message => message.action === 'updateState')
       ).then(
-        message => expect(message).to.have.nested.property('message.data', 'active')
+        message => expect(message).to.have.property('args').that.deep.equals(['active'])
       );
     });
   }
@@ -33,23 +32,28 @@ describe('Control Center: Ad-Block interaction browser', function () {
   function adblockerDropdown() {
     it('renders "This page"', function () {
       expect(subject.query('#ad-blocking .new-dropdown .new-dropdown-content .dropdown-content-option[value="page"]')).to.exist;
-      expect(subject.getComputedStyle('#ad-blocking .new-dropdown .new-dropdown-content .dropdown-content-option[value="page"]').display).to.not.equal('none');
+      expect(subject.getComputedStyle(subject.query('#ad-blocking .new-dropdown .new-dropdown-content .dropdown-content-option[value="page"]')).display).to.not.equal('none');
     });
 
     it('renders "This domain"', function () {
       expect(subject.query('#ad-blocking .new-dropdown .new-dropdown-content .dropdown-content-option[value="domain"]')).to.exist;
-      expect(subject.getComputedStyle('#ad-blocking .new-dropdown .new-dropdown-content .dropdown-content-option[value="domain"]').display).to.not.equal('none');
+      expect(subject.getComputedStyle(subject.query('#ad-blocking .new-dropdown .new-dropdown-content .dropdown-content-option[value="domain"]')).display).to.not.equal('none');
     });
 
     it('renders "All websites"', function () {
       expect(subject.query('#ad-blocking .new-dropdown .new-dropdown-content .dropdown-content-option[value="all-sites"]')).to.exist;
-      expect(subject.getComputedStyle('#ad-blocking .new-dropdown .new-dropdown-content .dropdown-content-option[value="all-sites"]').display).to.not.equal('none');
+      expect(subject.getComputedStyle(subject.query('#ad-blocking .new-dropdown .new-dropdown-content .dropdown-content-option[value="all-sites"]')).display).to.not.equal('none');
     });
   }
 
   describe('with ad-blocker on', function () {
     beforeEach(function () {
-      return subject.pushData(target, dataOn);
+      subject.respondsWith({
+        module: target,
+        action: 'getData',
+        response: JSON.parse(JSON.stringify(dataOn)),
+      });
+      return subject.load();
     });
 
     it('renders ad-blocker box', function () {
@@ -63,13 +67,13 @@ describe('Control Center: Ad-Block interaction browser', function () {
         subject.query('#ad-blocking .adblocker .cqz-switch-box').click();
 
         return waitFor(
-          () => subject.messages.find(message => message.message.action === 'adb-activator')
+          () => subject.messages.find(message => message.action === 'adb-activator')
         ).then(
           (message) => {
-            expect(message).to.have.nested.property('message.data.type', 'switch');
-            expect(message).to.have.nested.property('message.data.state', 'off');
-            expect(message).to.have.nested.property('message.data.status', 'off');
-            expect(message).to.have.nested.property('message.data.url', dataOn.activeURL);
+            expect(message).to.have.nested.property('args[0].type', 'switch');
+            expect(message).to.have.nested.property('args[0].state', 'off');
+            expect(message).to.have.nested.property('args[0].status', 'off');
+            expect(message).to.have.nested.property('args[0].url', dataOn.activeURL);
           }
         );
       });
@@ -78,7 +82,12 @@ describe('Control Center: Ad-Block interaction browser', function () {
 
   describe('with ad-blocker off for this page', function () {
     beforeEach(function () {
-      return subject.pushData(target, dataOffPage);
+      subject.respondsWith({
+        module: target,
+        action: 'getData',
+        response: JSON.parse(JSON.stringify(dataOffPage))
+      });
+      return subject.load();
     });
 
     it('renders ad-blocker box', function () {
@@ -92,13 +101,13 @@ describe('Control Center: Ad-Block interaction browser', function () {
         subject.query('#ad-blocking .adblocker .cqz-switch-box').click();
 
         return waitFor(
-          () => subject.messages.find(message => message.message.action === 'adb-activator')
+          () => subject.messages.find(message => message.action === 'adb-activator')
         ).then(
           (message) => {
-            expect(message).to.have.nested.property('message.data.type', 'switch');
-            expect(message).to.have.nested.property('message.data.state', 'active');
-            expect(message).to.have.nested.property('message.data.status', 'active');
-            expect(message).to.have.nested.property('message.data.url', dataOffPage.activeURL);
+            expect(message).to.have.nested.property('args[0].type', 'switch');
+            expect(message).to.have.nested.property('args[0].state', 'active');
+            expect(message).to.have.nested.property('args[0].status', 'active');
+            expect(message).to.have.nested.property('args[0].url', dataOffPage.activeURL);
           }
         );
       });
@@ -119,13 +128,13 @@ describe('Control Center: Ad-Block interaction browser', function () {
           subject.query('#ad-blocking .new-dropdown .new-dropdown-content .dropdown-content-option[value="domain"]').click();
 
           return waitFor(
-            () => subject.messages.find(message => message.message.action === 'adb-activator')
+            () => subject.messages.find(message => message.action === 'adb-activator')
           ).then(
             (message) => {
-              expect(message).to.have.nested.property('message.data.type', 'off_select');
-              expect(message).to.have.nested.property('message.data.state', 'off_domain');
-              expect(message).to.have.nested.property('message.data.status', 'off');
-              expect(message).to.have.nested.property('message.data.url', dataOffPage.activeURL);
+              expect(message).to.have.nested.property('args[0].type', 'off_select');
+              expect(message).to.have.nested.property('args[0].state', 'off_domain');
+              expect(message).to.have.nested.property('args[0].status', 'off');
+              expect(message).to.have.nested.property('args[0].url', dataOffPage.activeURL);
             }
           );
         });
@@ -138,13 +147,13 @@ describe('Control Center: Ad-Block interaction browser', function () {
           subject.query('#ad-blocking .new-dropdown .new-dropdown-content .dropdown-content-option[value="all-sites"]').click();
 
           return waitFor(
-            () => subject.messages.find(message => message.message.action === 'adb-activator')
+            () => subject.messages.find(message => message.action === 'adb-activator')
           ).then(
             (message) => {
-              expect(message).to.have.nested.property('message.data.type', 'off_select');
-              expect(message).to.have.nested.property('message.data.state', 'off_all');
-              expect(message).to.have.nested.property('message.data.status', 'off');
-              expect(message).to.have.nested.property('message.data.url', dataOffPage.activeURL);
+              expect(message).to.have.nested.property('args[0].type', 'off_select');
+              expect(message).to.have.nested.property('args[0].state', 'off_all');
+              expect(message).to.have.nested.property('args[0].status', 'off');
+              expect(message).to.have.nested.property('args[0].url', dataOffPage.activeURL);
             }
           );
         });
@@ -154,7 +163,12 @@ describe('Control Center: Ad-Block interaction browser', function () {
 
   describe('with ad-blocker off for this domain', function () {
     beforeEach(function () {
-      return subject.pushData(target, dataOffSite);
+      subject.respondsWith({
+        module: target,
+        action: 'getData',
+        response: JSON.parse(JSON.stringify(dataOffSite))
+      });
+      return subject.load();
     });
 
     it('renders ad-blocker box', function () {
@@ -168,13 +182,13 @@ describe('Control Center: Ad-Block interaction browser', function () {
         subject.query('#ad-blocking .adblocker .cqz-switch-box').click();
 
         return waitFor(
-          () => subject.messages.find(message => message.message.action === 'adb-activator')
+          () => subject.messages.find(message => message.action === 'adb-activator')
         ).then(
           (message) => {
-            expect(message).to.have.nested.property('message.data.type', 'switch');
-            expect(message).to.have.nested.property('message.data.state', 'active');
-            expect(message).to.have.nested.property('message.data.status', 'active');
-            expect(message).to.have.nested.property('message.data.url', dataOffSite.activeURL);
+            expect(message).to.have.nested.property('args[0].type', 'switch');
+            expect(message).to.have.nested.property('args[0].state', 'active');
+            expect(message).to.have.nested.property('args[0].status', 'active');
+            expect(message).to.have.nested.property('args[0].url', dataOffSite.activeURL);
           }
         );
       });
@@ -195,13 +209,13 @@ describe('Control Center: Ad-Block interaction browser', function () {
           subject.query('#ad-blocking .new-dropdown .new-dropdown-content .dropdown-content-option[value="page"]').click();
 
           return waitFor(
-            () => subject.messages.find(message => message.message.action === 'adb-activator')
+            () => subject.messages.find(message => message.action === 'adb-activator')
           ).then(
             (message) => {
-              expect(message).to.have.nested.property('message.data.type', 'off_select');
-              expect(message).to.have.nested.property('message.data.state', 'off_website');
-              expect(message).to.have.nested.property('message.data.status', 'off');
-              expect(message).to.have.nested.property('message.data.url', dataOffSite.activeURL);
+              expect(message).to.have.nested.property('args[0].type', 'off_select');
+              expect(message).to.have.nested.property('args[0].state', 'off_website');
+              expect(message).to.have.nested.property('args[0].status', 'off');
+              expect(message).to.have.nested.property('args[0].url', dataOffSite.activeURL);
             }
           );
         });
@@ -214,13 +228,13 @@ describe('Control Center: Ad-Block interaction browser', function () {
           subject.query('#ad-blocking .new-dropdown .new-dropdown-content .dropdown-content-option[value="all-sites"]').click();
 
           return waitFor(
-            () => subject.messages.find(message => message.message.action === 'adb-activator')
+            () => subject.messages.find(message => message.action === 'adb-activator')
           ).then(
             (message) => {
-              expect(message).to.have.nested.property('message.data.type', 'off_select');
-              expect(message).to.have.nested.property('message.data.state', 'off_all');
-              expect(message).to.have.nested.property('message.data.status', 'off');
-              expect(message).to.have.nested.property('message.data.url', dataOffSite.activeURL);
+              expect(message).to.have.nested.property('args[0].type', 'off_select');
+              expect(message).to.have.nested.property('args[0].state', 'off_all');
+              expect(message).to.have.nested.property('args[0].status', 'off');
+              expect(message).to.have.nested.property('args[0].url', dataOffSite.activeURL);
             }
           );
         });
@@ -230,7 +244,12 @@ describe('Control Center: Ad-Block interaction browser', function () {
 
   describe('with ad-blocker off for all websites', function () {
     beforeEach(function () {
-      return subject.pushData(target, dataOffAll);
+      subject.respondsWith({
+        module: target,
+        action: 'getData',
+        response: JSON.parse(JSON.stringify(dataOffAll))
+      });
+      return subject.load();
     });
 
     it('renders ad-blocker box', function () {
@@ -244,13 +263,13 @@ describe('Control Center: Ad-Block interaction browser', function () {
         subject.query('#ad-blocking .adblocker .cqz-switch-box').click();
 
         return waitFor(
-          () => subject.messages.find(message => message.message.action === 'adb-activator')
+          () => subject.messages.find(message => message.action === 'adb-activator')
         ).then(
           (message) => {
-            expect(message).to.have.nested.property('message.data.type', 'switch');
-            expect(message).to.have.nested.property('message.data.state', 'active');
-            expect(message).to.have.nested.property('message.data.status', 'active');
-            expect(message).to.have.nested.property('message.data.url', dataOffAll.activeURL);
+            expect(message).to.have.nested.property('args[0].type', 'switch');
+            expect(message).to.have.nested.property('args[0].state', 'active');
+            expect(message).to.have.nested.property('args[0].status', 'active');
+            expect(message).to.have.nested.property('args[0].url', dataOffAll.activeURL);
           }
         );
       });
@@ -271,13 +290,13 @@ describe('Control Center: Ad-Block interaction browser', function () {
           subject.query('#ad-blocking .new-dropdown .new-dropdown-content .dropdown-content-option[value="page"]').click();
 
           return waitFor(
-            () => subject.messages.find(message => message.message.action === 'adb-activator')
+            () => subject.messages.find(message => message.action === 'adb-activator')
           ).then(
             (message) => {
-              expect(message).to.have.nested.property('message.data.type', 'off_select');
-              expect(message).to.have.nested.property('message.data.state', 'off_website');
-              expect(message).to.have.nested.property('message.data.status', 'off');
-              expect(message).to.have.nested.property('message.data.url', dataOffAll.activeURL);
+              expect(message).to.have.nested.property('args[0].type', 'off_select');
+              expect(message).to.have.nested.property('args[0].state', 'off_website');
+              expect(message).to.have.nested.property('args[0].status', 'off');
+              expect(message).to.have.nested.property('args[0].url', dataOffAll.activeURL);
             }
           );
         });
@@ -290,13 +309,13 @@ describe('Control Center: Ad-Block interaction browser', function () {
           subject.query('#ad-blocking .new-dropdown .new-dropdown-content .dropdown-content-option[value="domain"]').click();
 
           return waitFor(
-            () => subject.messages.find(message => message.message.action === 'adb-activator')
+            () => subject.messages.find(message => message.action === 'adb-activator')
           ).then(
             (message) => {
-              expect(message).to.have.nested.property('message.data.type', 'off_select');
-              expect(message).to.have.nested.property('message.data.state', 'off_domain');
-              expect(message).to.have.nested.property('message.data.status', 'off');
-              expect(message).to.have.nested.property('message.data.url', dataOffAll.activeURL);
+              expect(message).to.have.nested.property('args[0].type', 'off_select');
+              expect(message).to.have.nested.property('args[0].state', 'off_domain');
+              expect(message).to.have.nested.property('args[0].status', 'off');
+              expect(message).to.have.nested.property('args[0].url', dataOffAll.activeURL);
             }
           );
         });

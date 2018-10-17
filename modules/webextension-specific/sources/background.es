@@ -13,7 +13,8 @@ const onBrowserActionClick = () => {
  */
 export default background({
   init() {
-    this.isNewTabOverrideEnabled = chrome.runtime.getManifest().chrome_url_overrides.newtab;
+    this.isNewTabOverrideEnabled = chrome.browserAction &&
+      chrome.runtime.getManifest().chrome_url_overrides.newtab;
 
     if (this.isNewTabOverrideEnabled) {
       chrome.browserAction.onClicked.addListener(onBrowserActionClick);

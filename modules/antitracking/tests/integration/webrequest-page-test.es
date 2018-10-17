@@ -6,8 +6,7 @@ import {
   sleep,
   testServer,
   waitFor,
-  waitForAsync,
-} from '../../../tests/core/test-helpers';
+} from '../../../tests/core/integration/helpers';
 
 import WebRequest from '../../../core/webrequest';
 import { isBootstrap } from '../../../core/platform';
@@ -387,7 +386,7 @@ export default function () {
           await newTab(url);
           const numberOfRequestsExpected = Object.keys(expectedUrls).filter(u => u.indexOf('/test') > 0).length;
 
-          await waitForAsync(async () => (
+          await waitFor(async () => (
             (await testServer.getHitCtr('/test')) + (await testServer.getHitCtr('/test.gif')) >= numberOfRequestsExpected
           ));
           const reqsReceived = (await testServer.getAllRequests()).filter(({ path }) => path.startsWith('/test'));
@@ -405,7 +404,7 @@ export default function () {
         async function testBlock() {
           block = true;
           await newTab(url);
-          await waitForAsync(async () => (
+          await waitFor(async () => (
             (await testServer.getHitCtr('/test')) + (await testServer.getHitCtr('/test.gif')) >= 1
           ));
           await sleep(500);

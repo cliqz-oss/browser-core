@@ -46,6 +46,10 @@ class ModuleWrapper {
     return app && app.modules[this.moduleName];
   }
 
+  isPresent() {
+    return !!this.module;
+  }
+
   isWindowReady(window) {
     return this.isReady().then(() => this.module.getWindowLoadingPromise(window));
   }

@@ -1,5 +1,5 @@
 import md5 from '../../core/helpers/md5';
-import pacemaker from '../../core/pacemaker';
+import pacemaker from '../../core/services/pacemaker';
 import { URLInfo } from '../../core/url-info';
 import { sameGeneralDomain, getGeneralDomain } from '../../core/tlds';
 

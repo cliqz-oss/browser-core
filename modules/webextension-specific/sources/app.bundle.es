@@ -1,9 +1,10 @@
 /* global window */
-
 import App from '../core/app';
 
 const CLIQZ = {};
-CLIQZ.app = new App({});
+CLIQZ.app = new App({
+  version: chrome.runtime.getManifest().version
+});
 CLIQZ.app.start();
 window.CLIQZ = CLIQZ;
 

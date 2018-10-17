@@ -1,4 +1,5 @@
 import {
+  closeTab,
   expect,
   newTab,
   waitForElement,
@@ -10,8 +11,10 @@ import {
   checkButtons,
   checkComplementarySearchCard,
   checkHeader,
+  checkMainUrl,
   getElements,
   mockSearch,
+  withHistory,
 } from './helpers';
 
 import { getMessage } from '../../../core/i18n';
@@ -29,9 +32,12 @@ export default function () {
   const elementSelector = '[aria-label="lotto-element"]';
 
   describe('for a lotto 6 aus 49 mobile cards result', function () {
+    let id;
+
     before(async function () {
       win.preventRestarts = true;
-      const id = await newTab(cardsUrl);
+      id = await newTab(cardsUrl);
+      withHistory([]);
       await mockSearch({ results });
       win.CLIQZ.app.modules.search.action('startSearch', 'lotto', { tab: { id } });
       await waitForElement({
@@ -41,10 +47,13 @@ export default function () {
       });
     });
 
-    after(function () {
+    after(async function () {
+      await closeTab(id);
       win.preventRestarts = false;
+      win.CLIQZ.app.modules.search.action('stopSearch');
     });
 
+    checkMainUrl({ url: cardsUrl, mainUrl: results[0].url });
     checkHeader({ url: cardsUrl, results, imageName: 'lotto' });
 
     it('renders correct header', async function () {
@@ -80,18 +89,6 @@ export default function () {
     });
 
     describe('renders lotto 6 Aus 49 results', function () {
-      it('with a correct amount of elements', async function () {
-        const $allLottoRows = await getElements({
-          elementSelector: rowSelector,
-          url: cardsUrl,
-        });
-        const $aus49 = $allLottoRows[0];
-        const $allAus49Elements = $aus49.querySelectorAll(elementSelector);
-
-        expect($allAus49Elements.length)
-          .to.equal(results[0].snippet.extra.lotto_list.cur_date.lotto.gewinnzahlen.length + 1);
-      });
-
       it('with a correct value of numerical elements', async function () {
         const $allLottoRows = await getElements({
           elementSelector: rowSelector,
@@ -99,9 +96,9 @@ export default function () {
         });
         const $aus49 = $allLottoRows[0];
         const $allAus49Elements = $aus49.querySelectorAll(elementSelector);
-        const $6Aus49Numbers = [...$allAus49Elements].slice(0, $allAus49Elements.length - 1);
+        expect($allAus49Elements.length).to.equal(7);
+        const $6Aus49Numbers = [...$allAus49Elements].slice(0, 6);
 
-        expect($6Aus49Numbers.length).to.be.above(0);
         [...$6Aus49Numbers].forEach(function ($element, i) {
           expect($element).to.contain.text(
             results[0].snippet.extra.lotto_list.cur_date.lotto.gewinnzahlen[i]);
@@ -115,7 +112,7 @@ export default function () {
         });
         const $aus49 = $allLottoRows[0];
         const $allAus49Elements = $aus49.querySelectorAll(elementSelector);
-        const $superZahl = $allAus49Elements[$allAus49Elements.length - 1];
+        const $superZahl = $allAus49Elements[6];
 
         expect($superZahl).to.contain.text(
           results[0].snippet.extra.lotto_list.cur_date.lotto.superzahl);
@@ -135,18 +132,6 @@ export default function () {
     });
 
     describe('renders Spiel77 results', function () {
-      it('with a correct amount of elements', async function () {
-        const $allLottoRows = await getElements({
-          elementSelector: rowSelector,
-          url: cardsUrl,
-        });
-        const $spiel77 = $allLottoRows[1];
-        const $allSpiel77Elements = $spiel77.querySelectorAll(elementSelector);
-
-        expect($allSpiel77Elements.length)
-          .to.equal(results[0].snippet.extra.lotto_list.cur_date.spiel77.gewinnzahlen.length + 1);
-      });
-
       it('with a correct value of numerical elements', async function () {
         const $allLottoRows = await getElements({
           elementSelector: rowSelector,
@@ -154,9 +139,9 @@ export default function () {
         });
         const $spiel77 = $allLottoRows[1];
         const $allSpiel77Elements = $spiel77.querySelectorAll(elementSelector);
-        const $spiel77Numbers = [...$allSpiel77Elements].slice(1);
+        expect($allSpiel77Elements.length).to.equal(8);
 
-        expect($spiel77Numbers.length).to.be.above(0);
+        const $spiel77Numbers = [...$allSpiel77Elements].slice(1);
         [...$spiel77Numbers].forEach(function ($element, i) {
           expect($element).to.contain.text(
             results[0].snippet.extra.lotto_list.cur_date.spiel77.gewinnzahlen[i]);
@@ -177,18 +162,6 @@ export default function () {
     });
 
     describe('renders Super6 results', function () {
-      it('with a correct amount of elements', async function () {
-        const $allLottoRows = await getElements({
-          elementSelector: rowSelector,
-          url: cardsUrl,
-        });
-        const $super6 = $allLottoRows[2];
-        const $allSuper6Elements = $super6.querySelectorAll(elementSelector);
-
-        expect($allSuper6Elements.length)
-          .to.equal(results[0].snippet.extra.lotto_list.cur_date.super6.gewinnzahlen.length + 1);
-      });
-
       it('with a correct value of numerical elements', async function () {
         const $allLottoRows = await getElements({
           elementSelector: rowSelector,
@@ -196,9 +169,9 @@ export default function () {
         });
         const $super6 = $allLottoRows[2];
         const $allSuper6Elements = $super6.querySelectorAll(elementSelector);
-        const $super6Numbers = [...$allSuper6Elements].slice(1);
+        expect($allSuper6Elements.length).to.equal(7);
 
-        expect($super6Numbers.length).to.be.above(0);
+        const $super6Numbers = [...$allSuper6Elements].slice(1);
         [...$super6Numbers].forEach(function ($element, i) {
           expect($element).to.contain.text(
             results[0].snippet.extra.lotto_list.cur_date.super6.gewinnzahlen[i]);

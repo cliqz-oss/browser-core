@@ -3,7 +3,7 @@
 const Rx = require('rxjs');
 const rxSandbox = require('rx-sandbox').rxSandbox;
 const fastUrlParser = require('fast-url-parser');
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 const mockDexie = require('../../core/unit/utils/dexie');
 // const rxSandbox = require('rx-sandbox').rxSandbox;
 
@@ -69,9 +69,7 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
       TRACKERS_ONLY: 1,
     },
   },
-  'platform/lib/tldjs': {
-    default: tldjs,
-  },
+  'platform/lib/tldts': tldts,
   'core/fast-url-parser': {
     default: fastUrlParser
   },
@@ -98,7 +96,10 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
       telemetry = new TokenTelemetry(() => {}, // telemetry
         whitelist,
         mockConfig,
-        db);
+        db,
+        {
+          TOKEN_MESSAGE_SIZE: 2,
+        });
     });
 
     afterEach(async () => {
@@ -422,13 +423,13 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
         sandbox.flush();
         await tick();
         chai.expect(output).to.have.length(1);
-        chai.expect(output[0]).to.eql({
+        chai.expect(output[0]).to.eql([{
           ts: mockDate,
           token: 'a',
           safe: false,
           sites: 1,
           trackers: 1,
-        });
+        }]);
         chai.expect(telemetry.tokens.get('a').lastSent).to.equal(mockDate);
       });
 
@@ -445,13 +446,13 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
         sandbox.flush();
         await tick();
         chai.expect(output).to.have.length(1);
-        chai.expect(output[0]).to.eql({
+        chai.expect(output[0]).to.eql([{
           ts: mockDate,
           token: 'a',
           safe: false,
           sites: 1,
           trackers: 1,
-        });
+        }]);
         chai.expect(telemetry.tokens.get('a').lastSent).to.equal(mockDate);
       });
 
@@ -467,13 +468,13 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
         sandbox.advanceTo(5);
         await tick();
         chai.expect(output).to.have.length(1);
-        chai.expect(output[0]).to.eql({
+        chai.expect(output[0]).to.eql([{
           ts: mockDate,
           token: 'a',
           safe: false,
           sites: 1,
           trackers: 1,
-        });
+        }]);
         sandbox.flush();
         chai.expect(output).to.have.length(1);
       });
@@ -490,13 +491,13 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
         sandbox.advanceTo(6);
         await tick();
         chai.expect(output).to.have.length(1);
-        chai.expect(output[0]).to.eql({
+        chai.expect(output[0]).to.eql([{
           ts: mockDate,
           token: 'a',
           safe: false,
           sites: 1,
           trackers: 1,
-        });
+        }]);
         telemetry.tokens.cache.clear();
         sandbox.flush();
         await tick();
@@ -515,25 +516,25 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
         sandbox.advanceTo(5);
         await tick();
         chai.expect(output).to.have.length(1);
-        chai.expect(output[0]).to.eql({
+        chai.expect(output[0]).to.eql([{
           ts: mockDate,
           token: 'a',
           safe: false,
           sites: 1,
           trackers: 1,
-        });
+        }]);
         telemetry.tokens.get('a').lastSent = '20180819';
         await telemetry.tokens.saveBatchToDb(['a']);
         sandbox.flush();
         await tick();
         chai.expect(output).to.have.length(2);
-        chai.expect(output[1]).to.eql({
+        chai.expect(output[1]).to.eql([{
           ts: mockDate,
           token: 'a',
           safe: false,
           sites: 0,
           trackers: 0,
-        });
+        }]);
       });
 
       it('does not send more than batchSize messages per interval', async () => {
@@ -555,7 +556,7 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
         chai.expect(output).to.have.length(batchSize);
         sandbox.flush();
         await tick();
-        chai.expect(output).to.have.length(tokens.length);
+        chai.expect(output).to.have.length(Math.ceil(tokens.length / 2));
       });
     });
 
@@ -695,6 +696,72 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
         sandbox.flush();
         await tick();
         chai.expect(output).to.have.length(4);
+      });
+    });
+
+    context('cleaning', () => {
+
+      it('pushes entries from the cache to db', async () => {
+        const token = '0089af9e6319ca82eabb65b1d571faae';
+        telemetry.tokens.get(token);
+        await telemetry.tokens.clean();
+        const dbItems = await telemetry.tokens.db.toArray();
+        chai.expect(dbItems).to.have.length(1);
+        chai.expect(dbItems[0].token).to.eql(token);
+        chai.expect(telemetry.tokens.cache.has(token)).to.be.true;
+      });
+
+      it('cleans cache for send entries', async () => {
+        const token = '0089af9e6319ca82eabb65b1d571faae';
+        telemetry.tokens.get(token).lastSent = mockDate;
+        await telemetry.tokens.clean();
+        const dbItems = await telemetry.tokens.db.toArray();
+        chai.expect(dbItems).to.have.length(1);
+        chai.expect(dbItems[0].token).to.eql(token);
+        chai.expect(telemetry.tokens.cache.has(token)).to.be.true;
+        // now cache is clean, next clean will clear cache
+        await telemetry.tokens.clean();
+        chai.expect(telemetry.tokens.cache.has(token)).to.be.false;
+      });
+
+      it('cleans old entries from the db', async () => {
+        const token = '0089af9e6319ca82eabb65b1d571faae';
+        Object.assign(telemetry.tokens.get(token), {
+          lastSent: '20180819',
+          created: 1530000007023,
+        });
+        // put it into the db
+        await telemetry.tokens.saveBatchToDb([token]);
+        // trigger cleaning of old db records
+        await telemetry.tokens.clean();
+        chai.expect(await telemetry.tokens.db.toArray()).to.have.length(0);
+      });
+
+      it('pushes due-for-sending entries to the send queue', async () => {
+        const token = '0089af9e6319ca82eabb65b1d571faae';
+        Object.assign(telemetry.tokens.get(token), {
+          lastSent: '20180819',
+          created: 1538120007023,
+          sites: ['example.com'],
+          trackers: ['cliqz.com'],
+        });
+        const testEmitted = new Promise((resolve, reject) => {
+          telemetry.tokens.input = {
+            next: (t) => {
+              if (t === token) {
+                resolve();
+              } else {
+                reject();
+              }
+            }
+          }
+        });
+        // put it into the db
+        await telemetry.tokens.saveBatchToDb([token]);
+        // trigger pulling of to-be-sent entries
+        await telemetry.tokens.clean();
+        chai.expect(await telemetry.tokens.db.toArray()).to.have.length(1);
+        await testEmitted;
       });
     });
   });

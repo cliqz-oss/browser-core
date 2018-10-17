@@ -63,6 +63,7 @@ program.command(`serve ${common.configParameter}`)
       'lightweightThemes.selectedThemeID': 'firefox-compact-light@mozilla.org',
       'browser.tabs.warnonclose': true,
       'dom.min_background_timeout_value': 50,
+      'browser.tabs.remote.autostart': true,
     }, customPrefs);
 
     if (options.includeTests) {

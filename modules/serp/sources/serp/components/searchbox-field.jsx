@@ -4,6 +4,14 @@ export default class SearchboxField extends React.Component {
   constructor(props = {}) {
     super(props);
 
+    this.propsHandleFocusEvent = typeof props.handleFocus === 'function'
+      ? props.handleFocus
+      : () => {};
+
+    this.propsHandleBlurEvent = typeof props.handleBlur === 'function'
+      ? props.handleBlur
+      : () => {};
+
     this.handleKeyDown = typeof props.handleKeyDown === 'function'
       ? props.handleKeyDown
       : () => {};
@@ -34,6 +42,14 @@ export default class SearchboxField extends React.Component {
     if (this.shouldHaveFocus) {
       this.element.focus();
     }
+
+    this.element.addEventListener('focus', this.handleFocusEvent);
+    this.element.addEventListener('blur', this.handleBlurEvent);
+  }
+
+  componentWillUnmount() {
+    this.element.removeEventListener('focus', this.handleFocusEvent);
+    this.element.removeEventListener('blur', this.handleBlurEvent);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -46,6 +62,14 @@ export default class SearchboxField extends React.Component {
     if (typeof nextProps.shouldHaveFocus === 'boolean') {
       this.shouldHaveFocus = nextProps.shouldHaveFocus;
     }
+  }
+
+  handleFocusEvent = (event) => {
+    this.propsHandleFocusEvent(event);
+  }
+
+  handleBlurEvent = (event) => {
+    this.propsHandleBlurEvent(event);
   }
 
   handleChangeEvent = (event) => {

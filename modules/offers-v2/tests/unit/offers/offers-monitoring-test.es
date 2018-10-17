@@ -4,7 +4,7 @@
 /* eslint-disable func-names,prefer-arrow-callback,arrow-body-style, no-param-reassign */
 
 const adblocker = require('@cliqz/adblocker');
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 
 
 const prefRetVal = {};
@@ -95,9 +95,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
     'platform/environment': {
       default: {}
     },
-    'platform/lib/tldjs': {
-      default: tldjs,
-    },
+    'platform/lib/tldts': tldts,
     'offers-v2/utils': {
       timestamp: function () {},
       timestampMS: function () {

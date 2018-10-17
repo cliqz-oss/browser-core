@@ -1,8 +1,10 @@
 import config from '../../../core/config';
-import { GenericSubject } from '../../core/test-helpers';
+import { Subject } from '../../core/test-helpers-freshtab';
 
-export default class extends GenericSubject {
+export default class extends Subject {
   load() {
-    return super.load(`/build/${config.settings.id}/chrome/content/control-center/index.html`);
+    return super.load({
+      buildUrl: `/build/${config.settings.id}/chrome/content/control-center/index.html`
+    });
   }
 }

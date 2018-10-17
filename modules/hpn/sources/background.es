@@ -1,12 +1,16 @@
 import background from '../core/base/background';
 import CliqzSecureMessage from './main';
 import CryptoWorker from './crypto-worker';
+import inject from '../core/kord/inject';
 
 /**
 * @namespace hpn
 * @class Background
 */
 export default background({
+  core: inject.module('core'),
+  hpnv2: inject.module('hpnv2'),
+
   /**
   * @method init
   */
@@ -25,6 +29,10 @@ export default background({
         }
       }
     };
+    // Make sure hpnv2 is enabled if hpn is (to solve issues with module pref being set to false)
+    if (this.hpnv2.isPresent() && !this.hpnv2.isEnabled()) {
+      this.core.action('enableModule', 'hpnv2');
+    }
   },
   /**
   * @method unload

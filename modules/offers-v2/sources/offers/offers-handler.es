@@ -42,7 +42,8 @@ import config from '../../core/config';
 import { getLatestOfferInstallTs, timestampMS } from '../utils';
 import ActionID from './actions-defs';
 import OffersConfigs from '../offers_configs';
-
+import Blacklist from './blacklist';
+import PatternsStat from '../patterns_stat';
 
 // time in secs that we will use to consider offers fresh install
 const FRESH_INSTALL_THRESHOLD_SECS = 45 * 60; // 45 mins
@@ -95,18 +96,6 @@ const shouldWeShowAnyOffer = offersGeneralStats =>
  * This method will check if the current offer should be shown or not on the current
  * url context ({ urlData })
  */
-const shouldShowOfferOnContext = (offer, { urlData }) => {
-  // TODO: add maybe here the global patterns (pages that we do not want to show
-  // at all, maybe will be a little complicated to do this)
-  const isInBlacklist = () => offer.hasBlacklistPatterns() &&
-                              offer.blackListPatterns.match(urlData.getPatternRequest());
-  const result = !isInBlacklist();
-  if (!result) {
-    logger.debug('Should not show offer on context', offer, urlData);
-  }
-
-  return result;
-};
 
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -133,6 +122,9 @@ export default class OffersHandler {
     this.offersAPI = new OffersAPI(sigHandler, this.offersDB);
 
     this.sigHandler = sigHandler;
+
+    this.blacklist = new Blacklist();
+    this.blacklist.init();
 
     // manage the status changes here
     this.offerStatus = new OfferStatus();
@@ -175,16 +167,24 @@ export default class OffersHandler {
       new Prioritizer(),
       new ContextFilter(),
     ];
+
+    this.patternsStat = new PatternsStat();
+  }
+
+  async init() {
+    this.patternsStat.init();
   }
 
   destroy() {
+    this.blacklist.unload();
+    this.blacklist = null;
     this.offersDB.unregisterCallback(this._offersDBCallback);
     this.offersDBObserver.unload();
     // TODO: unregister intent handler callback?
   }
 
-  urlChangedEvent(urlData) {
-    return this.evtQueue.push({ urlData });
+  urlChangedEvent(urlData, categoriesIDs) {
+    return this.evtQueue.push({ urlData, categoriesIDs });
   }
 
   // ///////////////////////////////////////////////////////////////////////////
@@ -210,6 +210,28 @@ export default class OffersHandler {
   // Private methods
   // ///////////////////////////////////////////////////////////////////////////
 
+  _sendBlacklistSignal(campaignId, offerId) {
+    const origin = 'processor';
+    const actionId = 'global_offers_blacklist';
+    this.sigHandler.setCampaignSignal(campaignId, offerId, origin, actionId);
+    return this.offersDB.incOfferAction(offerId, actionId, false);
+  }
+
+  _shouldShowOfferOnContext = (offer, { urlData }) => {
+    if (this.blacklist.has(urlData.getRawUrl())) {
+      this._sendBlacklistSignal(offer.campaignID, offer.uniqueID);
+      return false;
+    }
+    const isInBlacklist = () => offer.hasBlacklistPatterns() &&
+                                offer.blackListPatterns.match(urlData.getPatternRequest());
+    const result = !isInBlacklist();
+    if (!result) {
+      logger.debug('Should not show offer on context', offer, urlData);
+    }
+
+    return result;
+  };
+
   /**
    * this method will be called whenever an offer is accepted to be sent to the
    * real estate
@@ -224,6 +246,18 @@ export default class OffersHandler {
     return Promise.resolve(result);
   }
 
+  _collectInfoAboutSelectedOffer(offer, categoriesIDs = new Map()) {
+    (offer.categories || [])
+      .map(categoriesIDs.get.bind(categoriesIDs))
+      .filter(Boolean)
+      .forEach(pattern =>
+        this.patternsStat.add('views', {
+          campaignId: offer.campaignID,
+          pattern
+        })
+      );
+  }
+
   _updateOffers() {
     const next = this.intentOffersHandler.thereIsNewData()
       ? this.intentOffersHandler.updateIntentOffers()
@@ -232,7 +266,7 @@ export default class OffersHandler {
     return next.then(() => executeJobList(this.jobsPipeline, [], this.context));
   }
 
-  _processEvent({ urlData }) {
+  _processEvent({ urlData, categoriesIDs }) {
     logger.debug('Offers handler processing a new event', urlData.getRawUrl());
 
     if (!shouldWeShowAnyOffer(this.offersGeneralStats)) {
@@ -241,28 +275,34 @@ export default class OffersHandler {
     }
     this.context.urlData = urlData;
 
-    return this._updateOffers().then((prioritizedOffers) => {
-      logger.debug(`We have ${prioritizedOffers.length} on the queue`);
+    return this
+      ._updateOffers()
+      .then(prioritizedOffers =>
+        this._chooseBestOffer(prioritizedOffers, urlData, categoriesIDs));
+  }
 
-      let tmpOffers = prioritizedOffers.slice();
-      tmpOffers.reverse(); // we need it, because of lack of findLast function
-      const pred = (offer) => {
-        if (!offer.isTargeted() && isFreshInstalled()) { return false; }
-        return shouldShowOfferOnContext(offer, { urlData });
-      };
+  _chooseBestOffer(prioritizedOffers, urlData, categoriesIDs) {
+    logger.debug(`We have ${prioritizedOffers.length} on the queue`);
 
-      tmpOffers = tmpOffers.filter(pred);
-      if (tmpOffers.length === 0) { return Promise.resolve(true); }
+    let tmpOffers = prioritizedOffers.slice();
+    tmpOffers.reverse(); // we need it, because of lack of findLast function
+    const pred = (offer) => {
+      if (!offer.isTargeted() && isFreshInstalled()) { return false; }
+      return this._shouldShowOfferOnContext(offer, { urlData });
+    };
 
-      const topOffer = tmpOffers.find(o => !shouldFilterOffer(o, this.offersDB));
-      if (!topOffer) {
-        logger.debug('No offers left after filtering');
-        return Promise.resolve(true);
-      }
+    tmpOffers = tmpOffers.filter(pred);
+    if (tmpOffers.length === 0) { return true; }
 
-      logger.debug('Offer selected: ', topOffer);
-      return this._pushOffersToRealEstates(topOffer, urlData);
-    });
+    const topOffer = tmpOffers.find(o => !shouldFilterOffer(o, this.offersDB));
+    if (!topOffer) {
+      logger.debug('No offers left after filtering');
+      return true;
+    }
+
+    logger.debug('Offer selected: ', topOffer);
+    this._collectInfoAboutSelectedOffer(topOffer, categoriesIDs);
+    return this._pushOffersToRealEstates(topOffer, urlData);
   }
 
   _offersDBCallback(message) {

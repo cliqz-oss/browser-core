@@ -38,7 +38,6 @@ function sanitizeResponse(response, event) {
   return result;
 }
 
-
 function createResponse(details) {
   return {
     redirectTo(url) {
@@ -47,23 +46,23 @@ function createResponse(details) {
     block() {
       this.cancel = true;
     },
-    modifyHeader(name, value) {
-      if (!this.requestHeaders) {
-        this.requestHeaders = [...(details.requestHeaders || [])];
+    _modifyHeaderByType(key, name, value) {
+      if (!this[key]) {
+        this[key] = [...(details[key] || [])];
       }
       const name_ = name.toLowerCase();
-      const headerIndex = this.requestHeaders.findIndex(h => h.name.toLowerCase() === name_);
-      if (isWebExtension && !value) {
-        // empty value on chromium: remove header
-        if (headerIndex > -1) {
-          this.requestHeaders.splice(headerIndex, 1);
-        }
-      } else if (headerIndex > -1) {
-        this.requestHeaders[headerIndex] = { name, value };
-      } else {
-        this.requestHeaders.push({ name, value });
+      // remove all headers with this name
+      this[key] = this[key].filter(h => h.name.toLowerCase() !== name_);
+      if (!isWebExtension || value) {
+        this[key].push({ name, value });
       }
-    }
+    },
+    modifyHeader(name, value) {
+      this._modifyHeaderByType('requestHeaders', name, value);
+    },
+    modifyResponseHeader(name, value) {
+      this._modifyHeaderByType('responseHeaders', name, value);
+    },
   };
 }
 

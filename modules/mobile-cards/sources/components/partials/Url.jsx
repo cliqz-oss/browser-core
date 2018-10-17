@@ -1,14 +1,19 @@
 import React from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { getCardWidth } from '../../styles/CardStyle';
 
-const style = color => StyleSheet.create({
+const style = (color, oneLine) => StyleSheet.create({
   url: {
     color,
-    marginRight: 50, // width of icon ???
+    width: getCardWidth() - 95, // width of icon + margins
     marginLeft: 5,
     fontSize: 11,
     lineHeight: 13,
-    fontWeight: '300',
+    fontWeight: '400',
+  },
+  container: {
+    maxHeight: oneLine ? 13 : 39,
+    overflow: 'hidden',
   }
 });
 
@@ -21,13 +26,15 @@ export default function (props) {
     return null;
   }
   return (
-    <Text
-      accessible={false}
-      accessibilityLabel={'generic-link'}
-      numberOfLines={oneLine ? 1 : 3}
-      style={style(color).url}
-    >
-      {url}
-    </Text>
+    <View style={style(color, oneLine).container}>
+      <Text
+        accessible={false}
+        accessibilityLabel={'generic-link'}
+        numberOfLines={oneLine ? 1 : 3}
+        style={style(color, oneLine).url}
+      >
+        {url}
+      </Text>
+    </View>
   );
 }

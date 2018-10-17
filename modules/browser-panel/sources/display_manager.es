@@ -139,12 +139,12 @@ export default class DisplayManager {
     this._showOrHideElementOnActiveTabs();
   }
 
-  onTabOrUrlChange(/* { url } */) {
+  onTabOrUrlChange({ url }) {
     // TODO: we can improve here the code and check if the current change
     // requires a change in the current tabs, for simplicity we will check
     // always if the current active tabs should or should not show something
     try {
-      this._showOrHideElementOnActiveTabs();
+      this._showOrHideElementOnActiveTabs(url);
     } catch (e) {
       lerr(`onTabOrUrlChange: something bad happened here... ${e}`);
     }
@@ -159,7 +159,12 @@ export default class DisplayManager {
   //                          PRIVATE METHODS
   // ///////////////////////////////////////////////////////////////////////////
 
-  _showElement(win, eType, eData) {
+  _showElement(win, eType, eData, url) {
+    const blackList = ['resource://', 'about:', 'chrome://', 'file://'];
+    if (url && blackList.some(e => url.startsWith(e))) {
+      return;
+    }
+
     if (!win || !eData) {
       lwarn('_showElement: the win object or eData is null');
       return;
@@ -219,7 +224,7 @@ export default class DisplayManager {
   // @brief This method will check if a particular offer should be shown in any
   //        of the current active tabs of all windows
   //
-  _showOrHideElementOnActiveTabs() {
+  _showOrHideElementOnActiveTabs(url) {
     // get all tabs active tabs from the windows
     const activeTabsInfo = [];
     try {
@@ -258,7 +263,7 @@ export default class DisplayManager {
       // TODO: here offerElement shold be inserted maybe on the element data
       // instead of hardcoded here, whenever we have more types we should improve
       // this
-      self._showElement(tabInfo.win, 'offerElement', elemData.data);
+      self._showElement(tabInfo.win, 'offerElement', elemData.data, url);
     });
   }
 }

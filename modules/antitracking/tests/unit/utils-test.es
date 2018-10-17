@@ -21,7 +21,7 @@ export default describeModule('antitracking/utils',
 
       it('does not change domain which is already tld+1', () => {
         chai.expect(truncateDomain({
-          hostname: 'cliqz.com',
+          host: 'cliqz.com',
           subdomain: '',
           domain: 'cliqz.com',
         }, 1)).to.equal('cliqz.com');
@@ -29,7 +29,7 @@ export default describeModule('antitracking/utils',
 
       it('shortens subdomain to tld+N (n=1, n < subdomains)', () => {
         chai.expect(truncateDomain({
-          hostname: 'a.b.cliqz.com',
+          host: 'a.b.cliqz.com',
           subdomain: 'a.b',
           domain: 'cliqz.com',
         }, 1)).to.equal('b.cliqz.com');
@@ -37,7 +37,7 @@ export default describeModule('antitracking/utils',
 
       it('shortens subdomain to tld+N (n=1, n == subdomains)', () => {
         chai.expect(truncateDomain({
-          hostname: 'aa.cliqz.com',
+          host: 'aa.cliqz.com',
           subdomain: 'aa',
           domain: 'cliqz.com',
         }, 1)).to.equal('aa.cliqz.com');
@@ -45,7 +45,7 @@ export default describeModule('antitracking/utils',
 
       it('shortens subdomain to tld+N (n=2, n > subdomains)', () => {
         chai.expect(truncateDomain({
-          hostname: 'aa.cliqz.com',
+          host: 'aa.cliqz.com',
           subdomain: 'aa',
           domain: 'cliqz.com',
         }, 2)).to.equal('aa.cliqz.com');
@@ -53,7 +53,7 @@ export default describeModule('antitracking/utils',
 
       it('shortens subdomain to tld+N (n=3, n < subdomains)', () => {
         chai.expect(truncateDomain({
-          hostname: 'a.b.c.d.e.cliqz.com',
+          host: 'a.b.c.d.e.cliqz.com',
           subdomain: 'a.b.c.d.e',
           domain: 'cliqz.com',
         }, 3)).to.equal('c.d.e.cliqz.com');
@@ -61,7 +61,7 @@ export default describeModule('antitracking/utils',
 
       it('shortens subdomain to tld+N (n=2, n > subdomains)', () => {
         chai.expect(truncateDomain({
-          hostname: 'd.e.cliqz.com',
+          host: 'd.e.cliqz.com',
           subdomain: 'd.e',
           domain: 'cliqz.com',
         }, 3)).to.equal('d.e.cliqz.com');
@@ -69,7 +69,7 @@ export default describeModule('antitracking/utils',
 
       it('leading . on domain', () => {
         chai.expect(truncateDomain({
-          hostname: '.d.e.cliqz.com',
+          host: '.d.e.cliqz.com',
           subdomain: '.d.e',
           domain: 'cliqz.com',
         }, 1)).to.equal('e.cliqz.com');
@@ -77,7 +77,7 @@ export default describeModule('antitracking/utils',
 
       it('removes double .', () => {
         chai.expect(truncateDomain({
-          hostname: 'a..b..cliqz.com',
+          host: 'a..b..cliqz.com',
           subdomain: 'a..b.',
           domain: 'cliqz.com',
         }, 1)).to.equal('b.cliqz.com');
@@ -85,7 +85,7 @@ export default describeModule('antitracking/utils',
 
       it('no general domain', () => {
         chai.expect(truncateDomain({
-          hostname: 'd.e.cliqz.com',
+          host: 'd.e.cliqz.com',
           subdomain: 'd.e.cliqz.com',
           domain: '',
         }, 1)).to.equal('d.e.cliqz.com');
@@ -93,7 +93,7 @@ export default describeModule('antitracking/utils',
 
       it('ip address', () => {
         chai.expect(truncateDomain({
-          hostname: '8.8.4.4',
+          host: '8.8.4.4',
           isIp: true,
           domain: '',
         }, 1)).to.equal('8.8.4.4');

@@ -33,7 +33,10 @@ export default results => results.map(result => ({
     meta: {
       ...link.meta,
       logo: link.url && Logos.getLogoDetails(getDetailsFromUrl(link.url)),
-      extraLogos: getExtraLogos(link.extra)
+      extraLogos: getExtraLogos(link.extra),
+      externalProvidersLogos: {
+        kicker: Logos.getLogoDetails(getDetailsFromUrl('kicker.de'))
+      }
     },
   }))
 }));

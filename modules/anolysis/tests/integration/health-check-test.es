@@ -2,8 +2,8 @@ import {
   app,
   expect,
   testServer,
-  waitForAsync,
-} from '../../core/test-helpers';
+  waitFor,
+} from '../../core/integration/helpers';
 
 import prefs from '../../../core/prefs';
 import { isBootstrap } from '../../../core/platform';
@@ -114,7 +114,7 @@ export default function () {
       it('anolysis does not start', async () => {
         expect(Anolysis.isAnolysisInitialized()).to.be.false;
 
-        await waitForAsync(async () => {
+        await waitFor(async () => {
           const hasHits = await testServer.hasHit('/collect');
           if (hasHits) {
             const collectHits = (await testServer.getHits()).get('/collect');
@@ -150,7 +150,7 @@ export default function () {
       });
 
       it('health metric is emitted', async () => {
-        await waitForAsync(async () => {
+        await waitFor(async () => {
           const hasHits = await testServer.hasHit('/collect');
           if (hasHits) {
             const collectHits = (await testServer.getHits()).get('/collect');

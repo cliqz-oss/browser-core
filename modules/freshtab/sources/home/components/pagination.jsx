@@ -8,6 +8,7 @@ const ROTATION_INTERVAL = 15000;
 class Pagination extends React.Component {
   static get propTypes() {
     return {
+      isModalOpen: PropTypes.bool,
       items: PropTypes.array,
       onChangePage: PropTypes.func,
       isNewsHover: PropTypes.bool,
@@ -42,14 +43,16 @@ class Pagination extends React.Component {
   }
 
   onKeyDown(ev) {
-    if (ev.key === 'ArrowLeft') {
-      this.prevPage();
-      ev.preventDefault();
-    }
+    if (!this.props.isModalOpen) {
+      if (ev.key === 'ArrowLeft') {
+        this.prevPage();
+        ev.preventDefault();
+      }
 
-    if (ev.key === 'ArrowRight') {
-      this.nextPage();
-      ev.preventDefault();
+      if (ev.key === 'ArrowRight') {
+        this.nextPage();
+        ev.preventDefault();
+      }
     }
   }
 
@@ -93,7 +96,8 @@ class Pagination extends React.Component {
     const pageOfItems = items.slice(pager.startIndex, pager.endIndex + 1);
     this.setState({ pager });
 
-    this.props.onChangePage(pageOfItems);
+    const shouldNotAnimate = this.state.pager.totalPages === 1;
+    this.props.onChangePage(pageOfItems, shouldNotAnimate);
 
     clearInterval(this.timer);
     this.timer = setInterval(() => this.tick(), ROTATION_INTERVAL);
@@ -129,6 +133,7 @@ class Pagination extends React.Component {
     const pager = this.state.pager;
     const currentPage = this.state.pager.currentPage;
     const totalPages = this.state.pager.totalPages;
+
     if (currentPage === totalPages) {
       pager.currentPage = 1;
     } else {
@@ -149,7 +154,9 @@ class Pagination extends React.Component {
   render() {
     const pager = this.state.pager;
     if (!pager.pages || pager.pages.length <= 1) {
-      return null;
+      return (
+        <div className="news-pagination" />
+      );
     }
 
     const newsItems = pager.pages.map(page =>

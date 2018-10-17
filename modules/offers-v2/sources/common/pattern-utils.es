@@ -12,13 +12,13 @@ import { parse } from '../../core/tlds';
  */
 export default function tokenizeUrl(theUrl, cpt = 2) {
   if (theUrl) {
-    const { hostname, domain } = parse(theUrl);
+    const { host, domain } = parse(theUrl);
     return mkRequest({
       url: theUrl,
       domain,
-      hostname,
+      hostname: host,
       cpt,
-      sourceHostname: hostname,
+      sourceHostname: host,
       sourceDomain: domain,
     });
   }
@@ -33,18 +33,34 @@ export default function tokenizeUrl(theUrl, cpt = 2) {
  * @return a new MultiPatternIndex object
  */
 function buildMultiPatternIndex(multiPatternsList) {
-  const parsedFilters = [];
+  // Group categories by pattern id
+  const id2filter = new Map();
+
   multiPatternsList.forEach((patternTuple) => {
     patternTuple.patterns.forEach((pattern) => {
       const filter = parseNetworkFilter(pattern);
       if (filter) {
-        filter.groupID = patternTuple.groupID;
-        parsedFilters.push(filter);
+        if (!id2filter.has(filter.id)) {
+          id2filter.set(filter.id, {
+            filter,
+            categories: new Set([patternTuple.groupID]),
+          });
+        } else {
+          id2filter.get(filter.id).categories.add(patternTuple.groupID);
+        }
       } else {
         logger.error('Error parsing the filter / pattern ', pattern);
       }
     });
   });
+
+  const parsedFilters = [];
+  id2filter.forEach(({ filter, categories }) => {
+    // eslint-disable-next-line no-param-reassign
+    filter.groupID = [...categories];
+    parsedFilters.push(filter);
+  });
+
   return new MultiPatternIndex(parsedFilters);
 }
 

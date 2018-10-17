@@ -42,13 +42,18 @@ const styles = StyleSheet.create({
 export default class HistoryUrls extends React.Component {
   displayUrls(data) {
     return (
-      <Link url={data.url} key={data.url}>
-        <View style={styles.row}>
+      <Link label="history-result" url={data.url} key={data.url}>
+        <View style={styles.row} >
           <View style={styles.header}>
             <Icon width={34} height={34} url={data.url} />
             <Url url={data.url} isHistory />
           </View>
-          <Text style={styles.text}>{data.title}</Text>
+          <View
+            accessible={false}
+            accessibilityLabel={'history-title'}
+          >
+            <Text style={styles.text}>{data.title}</Text>
+          </View>
         </View>
       </Link>
     );
@@ -61,8 +66,17 @@ export default class HistoryUrls extends React.Component {
     // some urls are not http urls
     const urls = this.props.urls.filter(data => data.href.startsWith('http'));
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>{getMessage('mobile_history_card_title')}</Text>
+      <View
+        accessible={false}
+        accessibilityLabel={'history-container'}
+        style={styles.container}
+      >
+        <View
+          accessible={false}
+          accessibilityLabel={'history-header'}
+        >
+          <Text style={styles.title}>{getMessage('mobile_history_card_title')}</Text>
+        </View>
         {urls.map(this.displayUrls)}
       </View>
     );

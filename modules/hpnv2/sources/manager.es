@@ -20,7 +20,8 @@ import { decompress } from '../core/gzip';
 import random from '../core/crypto/random';
 import setTimeoutInterval from '../core/helpers/timeout';
 
-const LOAD_CONFIG_SUCCESS_INTERVAL = 60 * 60 * 1000; // 1 hour
+const LOAD_CONFIG_SUCCESS_MIN_INTERVAL = 60 * 60 * 1000; // 1 hour
+const LOAD_CONFIG_SUCCESS_MAX_INTERVAL = 4 * 60 * 60 * 1000; // 4 hours
 const LOAD_CONFIG_FAILURE_INTERVAL = 10 * 1000; // 10 seconds
 
 export default class Manager {
@@ -73,32 +74,35 @@ export default class Manager {
 
     // Trigger config load, but do not wait for it. It will periodically be reloaded
     // with some increasing timeout in case of repeated failures.
-    this._loadConfig()
-      .then(() => {
-        if (!this.unloaded && !this.isOldVersion) {
-          this.logDebug('Config loaded successfully!');
-          this.configFailures = 0;
-          this.isInit = true;
-          return LOAD_CONFIG_SUCCESS_INTERVAL;
-        }
-        return null;
-      })
-      .catch((e) => {
-        if (!this.unloaded) {
-          this.logDebug('Config could not be loaded successfully!', e);
-          this.configFailures += 1;
-          return this.configFailures * LOAD_CONFIG_FAILURE_INTERVAL;
-        }
-        return null;
-      })
-      .then((wait) => {
-        if (wait !== null) {
-          this.configLoader = setTimeout(
-            () => this.init(),
-            Math.floor(random() * wait)
-          );
-        }
-      });
+    let minCooldown;
+    let randomExtraCooldown;
+    try {
+      await this._loadConfig();
+      if (this.unloaded || this.isOldVersion) {
+        return;
+      }
+      this.logDebug('Config loaded successfully!');
+      this.configFailures = 0;
+      this.isInit = true;
+      minCooldown = LOAD_CONFIG_SUCCESS_MIN_INTERVAL;
+      randomExtraCooldown = LOAD_CONFIG_SUCCESS_MAX_INTERVAL - LOAD_CONFIG_SUCCESS_MIN_INTERVAL;
+    } catch (e) {
+      if (this.unloaded) {
+        return;
+      }
+      this.logDebug('Config could not be loaded successfully!', e);
+      this.configFailures += 1;
+      minCooldown = this.configFailures * LOAD_CONFIG_FAILURE_INTERVAL;
+      randomExtraCooldown = minCooldown;
+    }
+
+    // Note: random noise is added, so the collector cannot use
+    // time-based attacks to target individual users by serving
+    // them different group keys.
+    this.configLoader = setTimeout(
+      () => this.init(),
+      Math.floor(minCooldown + (random() * randomExtraCooldown))
+    );
   }
 
   unload() {

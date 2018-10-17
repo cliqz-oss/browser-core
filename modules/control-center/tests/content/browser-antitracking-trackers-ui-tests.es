@@ -7,14 +7,17 @@ import { generateData } from './fixtures/antitracking-trackers';
 
 function trackersTests(amo) {
   const data = generateData(amo);
-  const target = 'cliqz-control-center';
+  const target = 'control-center';
   let subject;
 
   beforeEach(function () {
     subject = new Subject();
-    return subject.load().then(function () {
-      return subject.pushData(target, data);
+    subject.respondsWith({
+      module: target,
+      action: 'getData',
+      response: data
     });
+    return subject.load();
   });
 
   afterEach(function () {
@@ -35,7 +38,7 @@ function trackersTests(amo) {
     it('the section with tracking companies appeared', function () {
       const sectionSelector = '.active-window-tracking';
       expect(subject.query(sectionSelector)).to.exist;
-      expect(subject.getComputedStyle(sectionSelector).display).to.not.equal('none');
+      expect(subject.getComputedStyle(subject.query(sectionSelector)).display).to.not.equal('none');
     });
 
     it('renders title with trackers', function () {

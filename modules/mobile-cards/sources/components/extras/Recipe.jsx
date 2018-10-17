@@ -24,7 +24,12 @@ const styles = StyleSheet.create({
 export default class Recipe extends React.Component {
   displayInstruction(text) {
     return (
-      <Text key={text} style={styles.item}>{ text }</Text>
+      <View
+        accessible={false}
+        accessibilityLabel={'recipe-instructions'}
+      >
+        <Text key={text} style={styles.item}>{ text }</Text>
+      </View>
     );
   }
 
@@ -46,10 +51,19 @@ export default class Recipe extends React.Component {
         <ExpandView key={item.header} index={index} header={item.header} content={item.content} />);
 
     return (
-      <View style={{ marginTop: 5 }}>
+      <View
+        accessible={false}
+        accessibilityLabel={'recipe'}
+        style={{ marginTop: 5 }}
+      >
         <View style={elementSideMargins}>
           <Rating image={richData.url_ratingimg} />
-          <Text style={{ color: 'black' }}>{getMessage('CookTime', richData.cook_time)}</Text>
+          <View
+            accessible={false}
+            accessibilityLabel={'recipe-cooking-time'}
+          >
+            <Text style={{ color: 'black' }}>{getMessage('CookTime', richData.cook_time)}</Text>
+          </View>
         </View>
         <View style={elementTopMargin}>
           { details }

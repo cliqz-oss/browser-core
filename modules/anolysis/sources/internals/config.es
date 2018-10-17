@@ -23,15 +23,17 @@ function getPrefWithDefault(pref, defaultValue) {
 }
 
 function getDefaultConfig() {
+  const useStaging = shouldUseStaging();
   return {
     // TODO - temporary, send session with signals
     ...getPrefWithDefault('session'),
 
     // Backend communication
-    'backend.url': (shouldUseStaging()
+    'backend.url': (useStaging
       ? config.settings.ANOLYSIS_STAGING_BACKEND_URL
       : config.settings.ANOLYSIS_BACKEND_URL
     ),
+    useStaging,
 
     // Signal queue
     ...getPrefWithDefault('signalQueue.batchSize', 5),

@@ -93,71 +93,36 @@ const stylesDay = (cardWidth = 0) => StyleSheet.create({
 });
 
 export default class Weather extends React.Component {
-  displayToday(day) {
-    const cardWidth = getCardWidth();
+  displayDay(day, style) {
     const imageName = normalizeUrl(day.icon);
     return (
       <View
         accessible={false}
         accessibilityLabel={'weather-item'}
         key={day.weekday}
-        style={stylesToday(cardWidth).dayWrapper}
+        style={style.dayWrapper}
       >
         <View
           accessible={false}
           accessibilityLabel={'weather-day'}
         >
-          <Text style={stylesToday().dayText}>{day.weekday}</Text>
+          <Text style={style.dayText}>{day.weekday}</Text>
         </View>
         <View
           accessible={false}
           accessibilityLabel={'weather-temp'}
         >
-          <Text style={stylesToday().temperatureText}>
-            <Text style={stylesToday().maxMinText}>max.</Text> {day.max}{' '}
-            <Text style={stylesToday().maxMinText}>/ min.</Text> {day.min}
+          <Text style={style.temperatureText}>
+            <Text style={style.maxMinText}>max.</Text> {day.max}{' '}
+            <Text style={style.maxMinText}>/ min.</Text> {day.min}
           </Text>
         </View>
         <View
           accessible={false}
           accessibilityLabel={'weather-icon'}
+          style={style.dayIcon}
         >
-          <NativeDrawable source={imageName} style={stylesToday(cardWidth).dayIcon} />
-        </View>
-      </View>
-    );
-  }
-
-  displayDay(day) {
-    const cardWidth = getCardWidth();
-    const imageName = normalizeUrl(day.icon);
-    return (
-      <View
-        accessible={false}
-        accessibilityLabel={'weather-item'}
-        key={day.weekday}
-        style={stylesDay(cardWidth).dayWrapper}
-      >
-        <View
-          accessible={false}
-          accessibilityLabel={'weather-day'}
-        >
-          <Text style={stylesDay().dayText}>{day.weekday}</Text>
-        </View>
-        <View
-          accessible={false}
-          accessibilityLabel={'weather-temp'}
-        >
-          <Text style={stylesDay().temperatureText}>
-            <Text style={stylesDay().maxMinText}>max.</Text> {day.max}{' '}
-            <Text style={stylesDay().maxMinText}>/ min.</Text> {day.min}
-          </Text>
-        </View>
-        <View
-          accessible={false}
-          accessibilityLabel={'weather-icon'}
-        >
-          <NativeDrawable source={imageName} style={stylesDay(cardWidth).dayIcon} />
+          <NativeDrawable source={imageName} style={style.dayIcon} />
         </View>
       </View>
     );
@@ -171,15 +136,18 @@ export default class Weather extends React.Component {
       weekday: data.todayWeekday,
       icon: data.todayIcon,
     };
+    const cardWidth = getCardWidth();
+    const todayStyle = stylesToday(cardWidth);
+    const dayStyle = stylesDay(cardWidth);
 
     return (
       <View>
         <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', ...elementTopMargin }}>
           <View style={styles.containerToday}>
-            { this.displayToday(today) }
+            { this.displayDay(today, todayStyle) }
           </View>
           <View style={styles.tableDays}>
-            { data.forecast.map(this.displayDay) }
+            { data.forecast.map(day => this.displayDay(day, dayStyle)) }
           </View>
         </View>
         <MoreOn

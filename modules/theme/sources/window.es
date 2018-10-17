@@ -26,6 +26,7 @@ export default class Win {
       addClass: this.addClass.bind(this),
       removeClass: this.removeClass.bind(this)
     };
+
     if (prefs.get(DEVELOPER_FLAG_PREF, false)) {
       this.toggleBlueThemeForFFTesting();
     }

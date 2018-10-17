@@ -97,6 +97,11 @@ RUN wget https://ftp.mozilla.org/pub/devedition/releases/60.0b16/linux-x86_64/en
   && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox60 \
   && rm -f /home/node/firefox.tar.bz2
 
+RUN wget https://ftp.mozilla.org/pub/devedition/releases/62.0b20/linux-x86_64/en-US/firefox-62.0b20.tar.bz2 -O /home/node/firefox.tar.bz2 \
+  && mkdir /home/node/firefox62 \
+  && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox62 \
+  && rm -f /home/node/firefox.tar.bz2
+
 RUN wget 'https://download.mozilla.org/?product=firefox-devedition-latest&os=linux64&lang=en-US' -O /home/node/firefox.tar.bz2 \
   && mkdir /home/node/firefoxBeta \
   && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefoxBeta \

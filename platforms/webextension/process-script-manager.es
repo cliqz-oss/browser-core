@@ -129,10 +129,11 @@ export default class ProcessScriptManager {
         events.pub('content:location-change', {
           url,
           frameId,
+          tabId,
           transitionType,
           isPrivate,
           windowId: tabId,
-          windowTreeInformation: {},
+          windowTreeInformation: { tabId }
         });
       });
     }

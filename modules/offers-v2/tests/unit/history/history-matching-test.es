@@ -3,7 +3,7 @@
 /* global require */
 
 const encoding = require('text-encoding');
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 
 const TextDecoder = encoding.TextDecoder;
 const TextEncoder = encoding.TextEncoder;
@@ -101,9 +101,7 @@ function buildUrlToTest(domains, queries, toMatchCount, notMatchCount) {
 
 export default describeModule('offers-v2/history/history-matching',
   () => ({
-    'platform/lib/tldjs': {
-      default: tldjs,
-    },
+    'platform/lib/tldts': tldts,
     'platform/text-decoder': {
       default: TextDecoder,
     },

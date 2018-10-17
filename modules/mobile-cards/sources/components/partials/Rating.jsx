@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import NativeDrawable, { normalizeUrl } from '../custom/NativeDrawable';
 
@@ -19,10 +19,14 @@ export default function ({ image }) {
   }
   const imageName = normalizeUrl(imageUrl);
   return (
-    <NativeDrawable
-      style={styles.rating}
-      source={imageName}
-    />
+    <View
+      accessible={false}
+      accessibilityLabel={'rating'}
+    >
+      <NativeDrawable
+        style={styles.rating}
+        source={imageName}
+      />
+    </View>
   );
 }
-

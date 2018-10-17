@@ -49,6 +49,7 @@ export default describeModule('anolysis/internals/storage/dexie',
         getFormattedCurrentDate,
         setCurrentDate,
         getStorage: () => Storage,
+        forceReloadDuringTests: true,
       });
     });
   },

@@ -5,18 +5,6 @@ import prefs from '../core/prefs';
 // this is the sanitised timestamp retrieved from humanweb.
 let hwTs = null;
 
-export function getConfigTs() {
-  // lazy loading of pref
-  if (hwTs === null) {
-    hwTs = prefs.get('config_ts', null);
-  }
-  return hwTs;
-}
-
-export function updateTimestamp(ts) {
-  hwTs = ts;
-}
-
 /** Get datetime string of the current hour in the format YYYYMMDDHH
  */
 export function getTime() {
@@ -38,6 +26,21 @@ export function getTime() {
     _ts = ts + '' + h;
   }
   return _ts;
+}
+
+export function getConfigTs() {
+  // lazy loading of pref
+  if (hwTs === null) {
+    hwTs = prefs.get('config_ts', null);
+  }
+  if (!hwTs) {
+    hwTs = getTime().substring(0, 8);
+  }
+  return hwTs;
+}
+
+export function updateTimestamp(ts) {
+  hwTs = ts;
 }
 
 export function newUTCDate() {

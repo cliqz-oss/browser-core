@@ -9,12 +9,11 @@ function antitrackingInteractionTests(amo) {
   const dataOn = generateDataOn(amo);
   const dataOffSite = generateDataOffSite(amo);
   const dataOffAll = generateDataOffAll(amo);
-  const target = 'cliqz-control-center';
+  const target = 'control-center';
   let subject;
 
   beforeEach(function () {
     subject = new Subject();
-    return subject.load();
   });
 
   afterEach(function () {
@@ -26,9 +25,9 @@ function antitrackingInteractionTests(amo) {
       subject.query(selector).click();
 
       return waitFor(
-        () => subject.messages.find(message => message.message.action === 'updateState')
+        () => subject.messages.find(message => message.action === 'updateState')
       ).then(
-        message => expect(message).to.have.nested.property('message.data', state)
+        message => expect(message).to.have.property('args').that.deep.equals([state])
       );
     });
   }
@@ -36,18 +35,23 @@ function antitrackingInteractionTests(amo) {
   function antitrackingDropdown() {
     it('renders "This domain"', function () {
       expect(subject.query('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="this"]')).to.exist;
-      expect(subject.getComputedStyle('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="this"]').display).to.not.equal('none');
+      expect(subject.getComputedStyle(subject.query('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="this"]')).display).to.not.equal('none');
     });
 
     it('renders "All websites"', function () {
       expect(subject.query('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="all"]')).to.exist;
-      expect(subject.getComputedStyle('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="all"]').display).to.not.equal('none');
+      expect(subject.getComputedStyle(subject.query('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="all"]')).display).to.not.equal('none');
     });
   }
 
   describe('with anti-tracking on', function () {
     beforeEach(function () {
-      return subject.pushData(target, dataOn);
+      subject.respondsWith({
+        module: target,
+        action: 'getData',
+        response: dataOn
+      });
+      return subject.load();
     });
 
     it('renders anti-tracking box', function () {
@@ -61,13 +65,13 @@ function antitrackingInteractionTests(amo) {
         subject.query('#anti-tracking .cqz-switch-box').click();
 
         return waitFor(
-          () => subject.messages.find(message => message.message.action === 'antitracking-activator')
+          () => subject.messages.find(message => message.action === 'antitracking-activator')
         ).then(
           (message) => {
-            expect(message).to.have.nested.property('message.data.type', 'switch');
-            expect(message).to.have.nested.property('message.data.state', 'inactive');
-            expect(message).to.have.nested.property('message.data.status', 'inactive');
-            expect(message).to.have.nested.property('message.data.hostname', dataOn.hostname);
+            expect(message).to.have.nested.property('args[0].state', 'inactive');
+            expect(message).to.have.nested.property('args[0].type', 'switch');
+            expect(message).to.have.nested.property('args[0].status', 'inactive');
+            expect(message).to.have.nested.property('args[0].hostname', dataOn.hostname);
           }
         );
       });
@@ -76,7 +80,12 @@ function antitrackingInteractionTests(amo) {
 
   describe('with anti-tracking off for this domain', function () {
     beforeEach(function () {
-      return subject.pushData(target, dataOffSite);
+      subject.respondsWith({
+        module: target,
+        action: 'getData',
+        response: dataOffSite
+      });
+      return subject.load();
     });
 
     it('renders anti-tracking box', function () {
@@ -90,13 +99,13 @@ function antitrackingInteractionTests(amo) {
         subject.query('#anti-tracking .cqz-switch-box').click();
 
         return waitFor(
-          () => subject.messages.find(message => message.message.action === 'antitracking-activator')
+          () => subject.messages.find(message => message.action === 'antitracking-activator')
         ).then(
           (message) => {
-            expect(message).to.have.nested.property('message.data.type', 'switch');
-            expect(message).to.have.nested.property('message.data.state', 'active');
-            expect(message).to.have.nested.property('message.data.status', 'active');
-            expect(message).to.have.nested.property('message.data.hostname', dataOffSite.hostname);
+            expect(message).to.have.nested.property('args[0].type', 'switch');
+            expect(message).to.have.nested.property('args[0].state', 'active');
+            expect(message).to.have.nested.property('args[0].status', 'active');
+            expect(message).to.have.nested.property('args[0].hostname', dataOffSite.hostname);
           }
         );
       });
@@ -117,13 +126,13 @@ function antitrackingInteractionTests(amo) {
           subject.query('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="all"]').click();
 
           return waitFor(
-            () => subject.messages.find(message => message.message.action === 'antitracking-activator')
+            () => subject.messages.find(message => message.action === 'antitracking-activator')
           ).then(
             (message) => {
-              expect(message).to.have.nested.property('message.data.type', 'off_select');
-              expect(message).to.have.nested.property('message.data.state', 'off_all');
-              expect(message).to.have.nested.property('message.data.status', 'critical');
-              expect(message).to.have.nested.property('message.data.hostname', dataOffSite.hostname);
+              expect(message).to.have.nested.property('args[0].type', 'off_select');
+              expect(message).to.have.nested.property('args[0].state', 'off_all');
+              expect(message).to.have.nested.property('args[0].status', 'critical');
+              expect(message).to.have.nested.property('args[0].hostname', dataOffSite.hostname);
             }
           );
         });
@@ -133,7 +142,12 @@ function antitrackingInteractionTests(amo) {
 
   describe('with anti-tracking off for all websites', function () {
     beforeEach(function () {
-      return subject.pushData(target, dataOffAll);
+      subject.respondsWith({
+        module: target,
+        action: 'getData',
+        response: dataOffAll
+      });
+      return subject.load();
     });
 
     it('renders anti-tracking box', function () {
@@ -147,13 +161,13 @@ function antitrackingInteractionTests(amo) {
         subject.query('#anti-tracking .cqz-switch-box').click();
 
         return waitFor(
-          () => subject.messages.find(message => message.message.action === 'antitracking-activator')
+          () => subject.messages.find(message => message.action === 'antitracking-activator')
         ).then(
           (message) => {
-            expect(message).to.have.nested.property('message.data.type', 'switch');
-            expect(message).to.have.nested.property('message.data.state', 'active');
-            expect(message).to.have.nested.property('message.data.status', 'active');
-            expect(message).to.have.nested.property('message.data.hostname', dataOffAll.hostname);
+            expect(message).to.have.nested.property('args[0].type', 'switch');
+            expect(message).to.have.nested.property('args[0].state', 'active');
+            expect(message).to.have.nested.property('args[0].status', 'active');
+            expect(message).to.have.nested.property('args[0].hostname', dataOffAll.hostname);
           }
         );
       });
@@ -174,13 +188,13 @@ function antitrackingInteractionTests(amo) {
           subject.query('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="this"]').click();
 
           return waitFor(
-            () => subject.messages.find(message => message.message.action === 'antitracking-activator')
+            () => subject.messages.find(message => message.action === 'antitracking-activator')
           ).then(
             (message) => {
-              expect(message).to.have.nested.property('message.data.type', 'off_select');
-              expect(message).to.have.nested.property('message.data.state', 'off_website');
-              expect(message).to.have.nested.property('message.data.status', 'inactive');
-              expect(message).to.have.nested.property('message.data.hostname', dataOffAll.hostname);
+              expect(message).to.have.nested.property('args[0].type', 'off_select');
+              expect(message).to.have.nested.property('args[0].state', 'off_website');
+              expect(message).to.have.nested.property('args[0].status', 'inactive');
+              expect(message).to.have.nested.property('args[0].hostname', dataOffAll.hostname);
             }
           );
         });

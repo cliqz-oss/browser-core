@@ -1,6 +1,8 @@
 import {
+  closeTab,
   expect,
   newTab,
+  waitFor,
   waitForElement,
   win,
 } from '../../../tests/core/integration/helpers';
@@ -12,6 +14,7 @@ import {
   checkMainUrl,
   getElements,
   mockSearch,
+  withHistory,
 } from './helpers';
 
 import results from '../../../tests/core/integration/fixtures/resultsMovie';
@@ -24,10 +27,13 @@ export default function () {
   }
 
   describe('for a movie mobile cards result', function () {
+    let id;
+
     before(async function () {
       win.preventRestarts = true;
 
-      const id = await newTab(cardsUrl);
+      id = await newTab(cardsUrl);
+      withHistory([]);
       await mockSearch({ results });
       win.CLIQZ.app.modules.search.action('startSearch', 'imdb the circle', { tab: { id } });
       await waitForElement({
@@ -37,8 +43,10 @@ export default function () {
       });
     });
 
-    after(function () {
+    after(async function () {
+      await closeTab(id);
       win.preventRestarts = false;
+      win.CLIQZ.app.modules.search.action('stopSearch');
     });
 
     checkMainUrl({ url: cardsUrl, mainUrl: results[0].url });
@@ -65,14 +73,16 @@ export default function () {
     });
 
     it('renders correct poster', async function () {
-      const $posters = await getElements({
-        elementSelector: '[aria-label="main-image"] img',
-        url: cardsUrl,
-      });
+      await waitFor(async () => {
+        const $posters = await getElements({
+          elementSelector: '[aria-label="main-image"] img',
+          url: cardsUrl,
+        });
 
-      expect($posters).to.have.length(1);
-      expect($posters[0].src).to.exist;
-      expect($posters[0].src).to.equal(results[0].snippet.extra.og.image);
+        expect($posters).to.have.length(1);
+        expect($posters[0].src).to.exist;
+        return expect($posters[0].src).to.equal(results[0].snippet.extra.og.image);
+      }, 10000);
     });
 
     it('renders correct rating', async function () {

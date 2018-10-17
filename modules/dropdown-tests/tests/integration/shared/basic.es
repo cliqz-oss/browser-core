@@ -1,8 +1,8 @@
 import {
   newTab,
-  waitForAsync,
+  waitFor,
   expect,
-} from '../../../../tests/core/test-helpers';
+} from '../../../../tests/core/integration/helpers';
 import {
   mockSearch,
   withHistory,
@@ -26,7 +26,7 @@ export default function ({
   });
 
   it('renders 0 height iframe for results', async function () {
-    await waitForAsync(async () => {
+    await waitFor(async () => {
       const iframeStyle = await getIframeStyle(view);
       return expect(iframeStyle).to.equal('height: 0px;');
     });
@@ -44,7 +44,7 @@ export default function ({
       testUtils,
     });
 
-    await waitForAsync(async () => {
+    await waitFor(async () => {
       const iframeStyle = await getIframeStyle(view);
       return expect(iframeStyle).to.not.equal('height: 0px;');
     });

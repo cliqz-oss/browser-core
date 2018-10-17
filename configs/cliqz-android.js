@@ -58,7 +58,8 @@ module.exports = {
     "anolysis",
     "geolocation",
     "control-center",
-    "cliqz-android"
+    "cliqz-android",
+    "terms-and-conditions"
   ],
   "bundles": [
     "mobile-cards/debug.bundle.js",

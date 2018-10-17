@@ -48,7 +48,6 @@
         overflow: hidden;
         position: relative;
 
-
         @keyframes fadeIn {
           from {opacity: 0;}
           to {opacity: 1;}
@@ -114,6 +113,7 @@
             &:focus {
                 .logo {
                     border: 3px solid white;
+                    padding-block-start: 8px;
 
                     &::after {
                         opacity: 0;

@@ -1,4 +1,5 @@
 import {
+  closeTab,
   expect,
   getLocalisedString,
   newTab,
@@ -18,8 +19,10 @@ import {
   cardsUrl,
   checkComplementarySearchCard,
   checkHeader,
+  checkMainUrl,
   getElements,
   mockSearch,
+  withHistory,
 } from './helpers';
 
 import resultsFlights from '../../../tests/core/integration/fixtures/resultsFlights';
@@ -33,13 +36,15 @@ export default function () {
 
   Object.keys(flightMatrix).forEach((flightType) => {
     describe(`for a flight mobile cards result when plane ${flightMatrix[flightType].name}`, function () {
+      let id;
       let results;
 
       before(async function () {
         win.preventRestarts = true;
 
         results = resultsFlights[flightType];
-        const id = await newTab(cardsUrl);
+        id = await newTab(cardsUrl);
+        withHistory([]);
         await mockSearch({ results });
         win.CLIQZ.app.modules.search.action('startSearch', 'flug lx3029', { tab: { id } });
         await waitForElement({
@@ -49,10 +54,13 @@ export default function () {
         });
       });
 
-      after(function () {
+      after(async function () {
+        await closeTab(id);
         win.preventRestarts = false;
+        win.CLIQZ.app.modules.search.action('stopSearch');
       });
 
+      checkMainUrl({ url: cardsUrl, mainUrl: resultsFlights[flightType][0].url });
       checkHeader({ url: cardsUrl, results: resultsFlights[flightType], imageName: 'flightstats' });
 
       it('renders correct flight title', async function () {
@@ -284,4 +292,3 @@ export default function () {
     });
   });
 }
-

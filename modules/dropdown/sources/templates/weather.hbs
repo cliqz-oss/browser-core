@@ -5,22 +5,27 @@
 
     <div class="forecast padded">
         <div class="forecast-container white-background">
+            <div class="unit-switcher">
+                <span>{{unitsLabel}}:</span> <span class="celsius-btn">&#176;C</span> | <span class="fahrenheit-btn">&#176;F</span>
+            </div>
             <div class="weather-item">
                 <div class="date">{{today.date}}</div>
                 <img width="55" height="55" src="{{today.icon}}" />
                 <div class="temp">
-                    {{today.maxTemp}} {{today.minTemp}}
+                    <span class="celsius">{{today.maxTemp.celsius}} {{today.minTemp.celsius}}</span>
+                    <span class="fahrenheit">{{today.maxTemp.fahrenheit}} {{today.minTemp.fahrenheit}}</span>
                 </div>
             </div>
 
             {{#each forecast}}
-                <div class="weather-item">
-                    <div class="date">{{weekday}}</div>
-                    <img width="55" height="55" src="{{icon}}" />
-                    <div class="temp">
-                        {{max}}  {{min}}
-                    </div>
+            <div class="weather-item">
+                <div class="date">{{weekday}}</div>
+                <img width="55" height="55" src="{{icon}}" />
+                <div class="temp">
+                    <span class="celsius">{{maxByUnit.celsius}}  {{minByUnit.celsius}}</span>
+                    <span class="fahrenheit">{{maxByUnit.fahrenheit}}  {{minByUnit.fahrenheit}}</span>
                 </div>
+            </div>
             {{/each}}
 
             <div class="source">

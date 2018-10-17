@@ -42,6 +42,7 @@ export default describeModule('anolysis/internals/storage/memory',
         getFormattedCurrentDate,
         setCurrentDate,
         getStorage: () => Storage,
+        forceReloadDuringTests: false,
       });
     });
   },

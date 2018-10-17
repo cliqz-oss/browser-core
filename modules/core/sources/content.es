@@ -8,7 +8,7 @@ import {
   isTopWindow,
 } from '../core/content/helpers';
 import { throttle } from '../core/decorators';
-import { waitForAsync } from '../core/helpers/wait';
+import { waitFor } from '../core/helpers/wait';
 import createSpananWrapper from '../core/helpers/spanan-module-wrapper';
 
 function getContextHTML(ev) {
@@ -364,7 +364,7 @@ registerContentScript('core', '*', (window, chrome, CLIQZ) => {
       });
     });
 
-    waitForAsync(getApp)
+    waitFor(getApp)
       .then(runOnce)
       .catch((ex) => {
         window.console.error('Could not run content script', ex, currentURL());

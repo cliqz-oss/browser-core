@@ -1,7 +1,7 @@
 /* global chai */
 /* global describeModule */
 /* global require */
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 
 const VALID_OFFER_OBJ = {
   action_info: {
@@ -74,9 +74,7 @@ export default describeModule('offers-v2/offers/offers-db',
     'core/platform': {
       isWebExtension: false,
     },
-    'platform/lib/tldjs': {
-      default: tldjs,
-    },
+    'platform/lib/tldts': tldts,
     'core/prefs': {
       default: {
         get: () => {},

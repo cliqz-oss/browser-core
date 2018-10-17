@@ -10,6 +10,7 @@ import { isSearchServiceReady, addCustomSearchEngine } from './search-engines';
 import { service as logos } from './services/logos';
 import { service as telemetry } from './services/telemetry';
 import { service as domainInfo } from './services/domain-info';
+import { service as pacemaker } from './services/pacemaker';
 import i18n from './i18n';
 import getSynchronizedDate, { isSynchronizedDateAvailable } from './synchronized-time';
 import { dateToDaysSinceEpoch } from './helpers/date';
@@ -123,6 +124,7 @@ const services = {
   },
   'search-services': isSearchServiceReady,
   domainInfo,
+  pacemaker,
 };
 
 if (CONFIG.environment !== 'production') {

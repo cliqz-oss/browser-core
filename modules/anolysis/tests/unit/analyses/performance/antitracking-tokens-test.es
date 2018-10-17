@@ -98,6 +98,19 @@ test({
         },
       });
     });
+
+    it('missing metrics', async () => {
+      const signals = await generateAnalysisResults({
+        'metrics.antitracking.tokens.batch': [{
+          source: 'keys',
+          size: 3,
+          toBeSentSize: 3,
+          overflow: 0,
+          messages: 4
+        }]
+      });
+      chai.expect(signals).to.have.length(1);
+    });
   },
 });
 
@@ -158,6 +171,20 @@ test({
         cacheDeleted: { min: 27, max: 66, mean: 47, median: 46.5 },
         processed: { min: 0, max: 7, mean: 4, median: 3.5 },
       });
+    });
+
+    it('missing metrics', async () => {
+      const signals = await generateAnalysisResults({
+        'metrics.antitracking.tokens.clean': [{
+          source: 'tokens',
+          dbSize: 808,
+          dbDelete: 0,
+          cacheSize: 387,
+          cacheDeleted: 20,
+          processed: 0
+        }]
+      });
+      chai.expect(signals).to.have.length(1);
     });
   },
 });

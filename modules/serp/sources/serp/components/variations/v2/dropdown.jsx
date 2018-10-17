@@ -172,7 +172,7 @@ export default class Dropdown extends React.Component {
         href=""
         key={item.title}
         className={classNames(cssClass)}
-        onClick={
+        onMouseDown={
           event => this.handleItemSelection(event, items[index])
         }
         onMouseEnter={

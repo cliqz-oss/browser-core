@@ -2,7 +2,7 @@ import {
   app,
   expect,
   newTab,
-} from '../../../tests/core/test-helpers';
+} from '../../../tests/core/integration/helpers';
 
 import { isFirefox } from '../../../core/platform';
 

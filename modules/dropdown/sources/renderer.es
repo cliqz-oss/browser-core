@@ -90,15 +90,12 @@ export default class {
       this.setHeight(height);
     },
     adultAction: (actionName) => {
-      this.search.action('adultAction', actionName)
-        .then(() => {
-          this.render({
-            query: this.previousQuery,
-            rawResults: this.previousRawResults,
-            queriedAt: Date.now(),
-            getSessionId: this.getSessionId,
-          });
-        });
+      this.search.action(
+        'adultAction',
+        actionName,
+        this.previousQuery,
+        { contextId: utils.getWindowID(this.window) },
+      );
     },
     locationAction: (actionName, query, rawResult) =>
       this.search.action('locationAction', actionName, query, rawResult),
@@ -348,6 +345,7 @@ export default class {
       padding: contentPadding,
       left: urlbarLeftPos,
       width: urlbarWidth,
+      navbarColor: this.navbarColor,
     };
   }
 
@@ -382,7 +380,6 @@ export default class {
       query,
       queriedAt,
       sessionId: getSessionId(),
-      navbarColor: this.navbarColor,
     }, {
       assistantStates,
       urlbarAttributes: this.getUrlbarAttributes(),

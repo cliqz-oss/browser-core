@@ -1,16 +1,34 @@
 import { chrome } from './globals';
+import { getActiveTab } from './browser';
 
-
-export function newTab(url, active = true) {
+export function newTab(url, { focus = true } = {}) {
   let resolver;
   const promise = new Promise((resolve) => {
     resolver = resolve;
   });
   chrome.tabs.create(
-    { url, active },
+    { url, active: focus },
     (tab) => { resolver(tab.id); },
   );
   return promise;
+}
+
+export async function getCurrentTabId(/* window */) {
+  const activeTab = await getActiveTab();
+  return activeTab.id;
+}
+
+export function queryTabs() {
+  return chrome.tabs.query({});
+}
+
+export function queryActiveTabs() {
+  // TODO
+  return [];
+}
+
+export function getTabsWithUrl(/* window, url */) {
+  throw new Error('not implemented');
 }
 
 export function getCurrentgBrowser() {
@@ -38,11 +56,33 @@ export function closeTab(tabId) {
   });
 }
 
+function getCurrentTab(id) {
+  const windowId = typeof id === 'number' ? id : chrome.windows.WINDOW_ID_CURRENT;
+  return chrome.tabs.query({ windowId, active: true });
+}
 
-export function updateTab(tabId, url) {
+export function closeTabsWithUrl(url) {
   return new Promise((resolve) => {
-    chrome.tabs.update(Number(tabId), { url }, resolve);
+    chrome.tabs.query({ url }, (tabs) => {
+      Promise.all(tabs.map(tab => closeTab(tab.id))).then(resolve);
+    });
   });
+}
+
+export async function updateTab(tabId, url) {
+  let id = tabId;
+  if (typeof id !== 'number') {
+    const tab = await getCurrentTab();
+    id = tab.id;
+  }
+  return new Promise((resolve) => {
+    chrome.tabs.update(tabId, { url }, resolve);
+  });
+}
+
+export async function updateCurrentTab(url) {
+  const tab = await getCurrentTab();
+  return updateTab(tab.id, url);
 }
 
 export function getTab(tabId) {

@@ -105,35 +105,72 @@ export default class SoccerTeam extends React.Component {
 
   displayGameStatus(data) {
     if (data.isLive) {
-      return (<View>
+      return (<View
+        accessible={false}
+        accessibilityLabel={'soccer-game-status'}
+      >
         <Text style={styles.game}>{data.scored}</Text>
         <Text style={styles.game}>live</Text>
       </View>);
     } else if (data.scored) {
-      return <Text style={styles.game}>{data.scored}</Text>;
+      return (<View
+        accessible={false}
+        accessibilityLabel={'soccer-game-status'}
+      >
+        <Text style={styles.game}>{data.scored}</Text>
+      </View>);
     }
     return <Text style={styles.game}>vs.</Text>;
   }
 
   displayGame(data) {
-    return (<Link url={data.live_url} key={data.live_url}>
+    return (<Link label={'soccer-game-container'} url={data.live_url} key={data.live_url}>
       <View style={styles.gameContainer}>
         <View style={{ flex: 1, flexDirection: 'row' }}>
-          <Text style={[styles.header, { flex: 3 }]}>{data.spielTag}</Text>
-          <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end' }}>
+          <View
+            accessible={false}
+            accessibilityLabel={'soccer-game-spieltag'}
+          >
+            <Text style={[styles.header, { flex: 3 }]}>{data.spielTag}</Text>
+          </View>
+          <View
+            accessible={false}
+            accessibilityLabel={'soccer-game-logo'}
+            style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end' }}
+          >
             <ExternalImage style={{ width: 20, height: 20 }} source={{ uri: data.leagueLogo }} resizeMode={'cover'} />
           </View>
         </View>
         <View style={styles.detailsContainer}>
-          <Text style={styles.details}>{data.gameDate} ({data.gameTime})</Text>
-          <Text style={styles.details}>{data.location}</Text>
+          <View
+            accessible={false}
+            accessibilityLabel={'soccer-game-date'}
+          >
+            <Text style={styles.details}>{data.gameDate} ({data.gameTime})</Text>
+          </View>
+          <View
+            accessible={false}
+            accessibilityLabel={'soccer-game-location'}
+          >
+            <Text style={styles.details}>{data.location}</Text>
+          </View>
         </View>
         <View style={styles.body}>
-          <Text style={[styles.game, { flex: 2, textAlign: 'left' }]}>{data.HOST}</Text>
+          <View
+            accessible={false}
+            accessibilityLabel={'soccer-game-host'}
+          >
+            <Text style={[styles.game, { flex: 2, textAlign: 'left' }]}>{data.HOST}</Text>
+          </View>
           <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'center' }}>
             {this.displayGameStatus(data)}
           </View>
-          <Text style={[styles.game, { flex: 2, textAlign: 'right' }]}>{data.GUESS}</Text>
+          <View
+            accessible={false}
+            accessibilityLabel={'soccer-game-guest'}
+          >
+            <Text style={[styles.game, { flex: 2, textAlign: 'right' }]}>{data.GUESS}</Text>
+          </View>
         </View>
       </View>
     </Link>);
@@ -151,7 +188,11 @@ export default class SoccerTeam extends React.Component {
   render() {
     const type = 'soccer';
 
-    return (<View style={styles.container}>
+    return (<View
+      accessible={false}
+      accessibilityLabel={'soccer'}
+      style={styles.container}
+    >
       {this.content}
       {Boolean(this.isValid) &&
         <View style={{ ...elementTopMargin }}>
@@ -166,7 +207,7 @@ export default class SoccerTeam extends React.Component {
           />
         </View>
       }
-      <PoweredByKicker />
+      <PoweredByKicker logo={this.props.result.meta.externalProvidersLogos.kicker} />
     </View>);
   }
 }

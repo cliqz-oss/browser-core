@@ -1,13 +1,12 @@
 /* globals chai */
-import { win, wrap, CliqzUtils, queryHTML } from '../../platform/test-helpers/helpers';
-import { waitForAsync, waitFor, wait } from '../../core/helpers/wait';
+import { CliqzUtils, queryHTML, testServer, win, wrap } from '../../platform/test-helpers/helpers';
+import { waitFor, wait } from '../../core/helpers/wait';
 import { getCurrentgBrowser } from '../../platform/tabs';
 
 export * from '../../platform/test-helpers/helpers';
 export {
   wait,
-  waitFor,
-  waitForAsync
+  waitFor
 } from '../../core/helpers/wait';
 
 // Re-export some browser utils
@@ -65,7 +64,7 @@ export function waitForElement({
   selector,
   isPresent = true
 }) {
-  return waitForAsync(async () => {
+  return waitFor(async () => {
     const res = await queryHTML(url, selector, 'innerText');
     if (Boolean((res).length) !== isPresent) {
       throw new Error(`selector "${selector}" no found`);
@@ -154,4 +153,12 @@ export async function mockPref(key, value, prefix) {
     () => { prefs.clear(key, prefix); };
 
   return unmockPref;
+}
+
+function getMainPage() {
+  return `http://cliqztest.com:${testServer.port}`;
+}
+
+export function getPage(url) {
+  return `${getMainPage()}/integration_tests/${url}`;
 }

@@ -208,8 +208,8 @@ export default class CategoryHandler {
       logger.error('skipping invalid tokenizedUrl', tokenizedUrl);
       return new Set();
     }
-    const catIDSet = this.catMatch.checkMatches(tokenizedUrl);
-    catIDSet.forEach((catID) => {
+    const catIDs = this.catMatch.checkMatches(tokenizedUrl);
+    [...catIDs.keys()].forEach((catID) => {
       const catNode = this.catTree.getCategoryNode(catID);
       if (catNode === null || !catNode.hasCategory()) {
         logger.error(`We do not have a category with id ${catID}??`);
@@ -227,7 +227,7 @@ export default class CategoryHandler {
     // TODO: optimize here to save not every time but every N url changes
     this.persistentHelper.saveDayCounterData(this.dayCounterHelper.serialize());
 
-    return catIDSet;
+    return catIDs;
   }
 
   loadPersistentData() {

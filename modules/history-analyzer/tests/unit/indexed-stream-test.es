@@ -1,7 +1,7 @@
 /* global chai */
 /* global describeModule */
 
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 const mockDexie = require('../../core/unit/utils/dexie');
 
 const expect = chai.expect;
@@ -30,9 +30,7 @@ export default describeModule('history-analyzer/indexed-stream',
         error() { },
       },
     },
-    'platform/lib/tldjs': {
-      default: tldjs
-    },
+    'platform/lib/tldts': tldts,
     'core/platform': {},
     'platform/url': {},
   }),

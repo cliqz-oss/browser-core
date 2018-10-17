@@ -2,7 +2,7 @@
 /* global describeModule */
 
 const moment = require('moment');
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 const mockDexie = require('../../core/unit/utils/dexie');
 
 export default describeModule('history-analyzer/history-stream',
@@ -33,9 +33,7 @@ export default describeModule('history-analyzer/history-stream',
         error() {},
       },
     },
-    'platform/lib/tldjs': {
-      default: tldjs
-    },
+    'platform/lib/tldts': tldts,
     'core/platform': {},
     'platform/url': {},
   }),

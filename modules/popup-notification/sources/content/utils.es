@@ -59,7 +59,7 @@ function _predicate(form) {
   //  - get input fields that seems to be associated to voucher
   //  - get associated buttons (submit)
   //  - if none or more than one input field => discard?
-  //  - if none button or more than one => discard result completely
+  //  - if none button or more than two => discard result completely
   const inputFields = _getInputFieldsFromTarget(form);
   if (inputFields.length !== 1) {
     // continue with the next one, note that actually here we may want
@@ -67,7 +67,7 @@ function _predicate(form) {
     return { ok: false, input: null, button: null };
   }
   const buttons = _getButtonFieldsFromTarget(form);
-  if (buttons.length !== 1) {
+  if (![1, 2].includes(buttons.length)) {
     return { ok: false, input: null, button: null };
   }
   return { ok: true, input: inputFields[0], button: buttons[0] };

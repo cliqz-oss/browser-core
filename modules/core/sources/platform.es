@@ -24,6 +24,7 @@ export const isDesktopBrowser = isCliqzBrowser || isGhosteryBrowser;
 export const isAMO = config.settings.channel === '04';
 export const isOnionMode = !!platform.isOnionMode;
 export const isWebExtension = platformName === 'webextension';
+export const isGhosteryProduct = config.settings.channel && config.settings.channel.substr(0, 2) === 'GT';
 
 export function isWindows() {
   return OS && OS.indexOf('win') === 0;

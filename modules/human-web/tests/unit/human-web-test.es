@@ -1,7 +1,7 @@
 /* global chai, describeModule */
 
 const expect = chai.expect;
-const tldjs = require('tldjs');
+const tldts = require('tldts');
 
 const MOCK = {
   'core/events': {
@@ -92,9 +92,7 @@ const MOCK = {
       flushExpiredCacheEntries() {}
     }
   },
-  'platform/lib/tldjs': {
-    default: tldjs,
-  },
+  'platform/lib/tldts': tldts,
 };
 
 export default describeModule('human-web/human-web',

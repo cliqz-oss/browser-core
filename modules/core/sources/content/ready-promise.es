@@ -1,6 +1,6 @@
 /* global window chrome */
 
-import { waitForAsync } from '../helpers/wait';
+import { waitFor } from '../helpers/wait';
 
 const isChromeReady = async () => {
   const isWebextension = chrome.extension;
@@ -21,7 +21,7 @@ const isChromeReady = async () => {
 };
 
 export default function checkIfChromeReady() {
-  return waitForAsync(isChromeReady).catch((e) => {
+  return waitFor(isChromeReady).catch((e) => {
     window.console.error('failed to access Cliqz background page', e);
     throw e;
   });
