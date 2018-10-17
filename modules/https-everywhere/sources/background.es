@@ -86,7 +86,17 @@ export default background({
     'control-center:toggleHttpsEverywhere': function toggler(data) {
       getAddon().then((addon) => {
         if (versionChecker.compare(addon.version, FIRST_WEB_EXTENSION_VERSION) >= 0) {
-          addon.userDisabled = !data.newState;
+          if (addon.enable) {
+            // Fx 62+
+            if (data.newState) {
+              addon.enable();
+            } else {
+              addon.disable();
+            }
+          } else {
+            // Fx <62
+            addon.userDisabled = !data.newState;
+          }
         } else {
           prefs.set(STATE_PREF, data.newState, '');
         }

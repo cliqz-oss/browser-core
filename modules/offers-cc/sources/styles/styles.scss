@@ -423,8 +423,7 @@ body, html {
                 padding: 2px 7px;
                 margin-bottom: 0;
                 max-height: 550px; // TODO: 500
-                //overflow: auto;
-                overflow: hidden;
+                overflow: auto;
                 @import "_voucher";
             }
 
