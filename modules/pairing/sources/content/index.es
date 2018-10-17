@@ -61,13 +61,35 @@ class Cliqz {
     };
 
     const onMessage = (message) => {
-      const msg = {
-        uuid: message.requestId,
-        response: message.response
-      };
-      api.handleMessage(msg);
-      coreBridge.handleMessage(msg);
-      pairingBridge.handleMessage(msg);
+      if (message.requestId) {
+        const msg = {
+          uuid: message.requestId,
+          response: message.response
+        };
+
+        coreBridge.handleMessage(msg);
+        pairingBridge.handleMessage(msg);
+        return;
+      }
+
+      // For broadcast messages from pairing background
+      const currentUrl = window.location.href;
+
+      let matchesCurrentUrl = message.url === currentUrl;
+      // wild card for cliqz URLS
+      if (message.url &&
+          (message.url.indexOf('resource://cliqz') === 0 ||
+           message.url.indexOf('chrome://cliqz') === 0)) {
+        if (currentUrl.indexOf(message.url) === 0) {
+          matchesCurrentUrl = true;
+        }
+      }
+
+      if (!matchesCurrentUrl) {
+        return;
+      }
+
+      api.handleMessage(message);
     };
 
     window.addEventListener('unload', () => {

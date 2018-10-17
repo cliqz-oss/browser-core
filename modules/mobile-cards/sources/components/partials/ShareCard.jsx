@@ -5,6 +5,7 @@ import ViewShot from 'react-native-view-shot';
 
 import { elementTopMargin, cardBorderBottomRadius, cardMargins, getCardWidth, elementSidePaddings } from '../../styles/CardStyle';
 import { getMessage } from '../../../core/i18n';
+import { appName } from '../../../platform/platform';
 import NativeDrawabale, { normalizeUrl } from '../custom/NativeDrawable';
 
 const PermissionManager = NativeModules.PermissionManagerModule;
@@ -107,7 +108,7 @@ export default class ShareCard extends React.Component {
             source={{ uri: 'AppIcon' }}
           />
           <Text style={styles().shareText}>
-            { getMessage('mobile_card_shared_via', 'iOS') }
+            { getMessage('mobile_card_shared_via', [appName, 'iOS']) }
           </Text>
         </View>
       ),
@@ -118,7 +119,7 @@ export default class ShareCard extends React.Component {
             source={{ uri: 'mipmap/ic_launcher' }}
           />
           <Text style={styles().shareText}>
-            { getMessage('mobile_card_shared_via', 'Android') }
+            { getMessage('mobile_card_shared_via', [appName, 'Android']) }
           </Text>
         </View>
       )

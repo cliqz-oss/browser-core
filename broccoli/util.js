@@ -154,7 +154,11 @@ module.exports = {
         {
           match: /\{\{CONFIG_PROVIDER\}\}/g,
           replacement: config => config.settings.CONFIG_PROVIDER || ''
-        }
+        },
+        {
+          match: /\{\{FRESHTAB_TITLE\}\}/g,
+          replacement: config => config.settings.FRESHTAB_TITLE || ''
+        },
       ]
     });
   }

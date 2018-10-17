@@ -138,6 +138,7 @@ function getBundlesTree(modulesTree) {
     }),
     {
       srcDir: prefix,
+      allowEmpty: true,
     }
   );
 

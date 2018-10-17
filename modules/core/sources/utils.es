@@ -2,7 +2,6 @@
 /* eslint no-bitwise: 'off' */
 /* eslint no-restricted-syntax: 'off' */
 
-import config from '../core/config';
 import CLIQZEnvironment from '../platform/environment';
 import prefs from './prefs';
 import Storage from './storage';
@@ -17,9 +16,6 @@ import random from './helpers/random';
 const CliqzUtils = {
   getLogoDetails: inject.service('logos').getLogoDetails,
   environment: CLIQZEnvironment,
-  get FEEDBACK_URL() {
-    return `${config.settings.FEEDBACK}${config.EXTENSION_VERSION}-${config.settings.channel}`;
-  },
   RESULTS_TIMEOUT: CLIQZEnvironment.RESULTS_TIMEOUT,
   SKIN_PATH: CLIQZEnvironment.SKIN_PATH,
   BROWSER_ONBOARDING_PREF: CLIQZEnvironment.BROWSER_ONBOARDING_PREF,

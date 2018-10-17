@@ -1,8 +1,10 @@
 import prefs from '../core/prefs';
 import config from '../core/config';
+import inject from '../core/kord/inject';
 import background from '../core/base/background';
 import ToolbarButton from '../core/ui/toolbar-button';
 import { getMessage } from '../core/i18n';
+import { ORIGIN_NAME } from './window';
 
 const UI_TOUR_PREF = 'offerCCUITourDismissed';
 
@@ -12,19 +14,14 @@ const UI_TOUR_PREF = 'offerCCUITourDismissed';
   @class Background
  */
 export default background({
+  offersV2: inject.module('offers-v2'),
+
   /**
     @method init
-    @param settings
   */
   init() {
     if (prefs.has(UI_TOUR_PREF)) {
       prefs.clear(UI_TOUR_PREF);
-    }
-
-    this.is_enabled = prefs.get('modules.offers-cc.enabled', true);
-
-    if (!this.is_enabled) {
-      return;
     }
 
     this.toolbarButton = new ToolbarButton({
@@ -38,13 +35,20 @@ export default background({
       defaultHeight: () => 70,
     });
     this.toolbarButton.build();
+
+    // Unconditionally register real estate
+    const msg = { realEstateID: ORIGIN_NAME };
+    this.offersV2.action('registerRealEstate', msg).catch(() => {});
   },
 
   unload() {
-    if (!this.is_enabled) {
-      return;
+    if (this.toolbarButton) {
+      this.toolbarButton.shutdown();
+      this.toolbarButton = null;
     }
-    this.toolbarButton.shutdown();
+
+    const msg = { realEstateID: ORIGIN_NAME };
+    this.offersV2.action('unregisterRealEstate', msg).catch(() => {});
   },
 
   beforeBrowserShutdown() {

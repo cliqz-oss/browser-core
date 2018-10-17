@@ -1,4 +1,5 @@
 import telemetry from './base';
+import config from '../../../config';
 
 const settingsBaseSignal = {
   type: 'home',
@@ -22,38 +23,16 @@ export function settingsRestoreTopSitesSignal() {
 }
 
 export function settingsBackgroundSelectSignal(bg) {
-  const BACKGROUNDS = {
-    'bg-light': 'light',
-    'bg-dark': 'dark',
-    'bg-blue': 'alps',
-    'bg-winter': 'winter',
-    'bg-spring': 'spring',
-    'bg-worldcup': 'worldcup',
-    'bg-summer': 'summer',
-    'bg-matterhorn': 'matterhorn'
-  };
-
-  const state = BACKGROUNDS[bg];
-
   telemetry({
     ...settingsBaseSignal,
     action: 'click',
     target: 'background_image',
-    state,
+    state: config.backgrounds[bg].alias,
   });
 }
 
 export function settingsComponentsToggleSignal(component, oldState) {
-  const COMPONENTS = {
-    historyDials: 'topsites',
-    customDials: 'favorites',
-    search: 'search_bar',
-    news: 'news',
-    cliqzTheme: 'cliqz_theme',
-    background: 'background'
-  };
-
-  const target = COMPONENTS[component];
+  const target = config.components[component];
   const state = oldState ? 'off' : 'on';
 
   telemetry({

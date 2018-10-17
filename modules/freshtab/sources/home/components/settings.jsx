@@ -4,8 +4,7 @@ import Switch from './switch';
 import BackgroundImage from './background-image';
 import t from '../i18n';
 import { settingsCloseSignal, settingsBackgroundSelectSignal } from '../services/telemetry/settings';
-// import { NO_BG } from '../services/background-image';
-import { NO_BG } from '../../constants';
+import config from '../../config';
 
 export default class Settings extends React.Component {
   constructor(props) {
@@ -77,11 +76,11 @@ export default class Settings extends React.Component {
             <span className="label">{t('app_settings_background_label')}</span>
             <Switch
               name="background"
-              isChecked={this.state.componentsState.background.image !== NO_BG}
+              isChecked={this.state.componentsState.background.image !== config.constants.NO_BG}
               toggleComponent={() => this.props.toggleBackground()}
             />
           </div>
-          {this.state.componentsState.background.image === NO_BG ? (
+          {this.state.componentsState.background.image === config.constants.NO_BG ? (
             ''
           ) : (
             <div className="settings-row">
@@ -150,14 +149,14 @@ export default class Settings extends React.Component {
               ''
             ) : (
               <div>
-                <form>
+                <form className="news-sources-selection">
                   <div className="radio">
                     <label htmlFor="news-radio-selector-2">
                       <input
+                        id="news-radio-selector-2"
                         type="radio"
                         tabIndex="-1"
                         name="news"
-                        id="news-radio-selector-2"
                         value="de"
                         checked={this.state.componentsState.news.preferedCountry === 'de'}
                         onChange={this.onNewsSelectionChanged}
@@ -168,10 +167,10 @@ export default class Settings extends React.Component {
                   <div className="radio">
                     <label htmlFor="news-radio-selector-5">
                       <input
+                        id="news-radio-selector-5"
                         type="radio"
                         tabIndex="-1"
                         name="news"
-                        id="news-radio-selector-5"
                         value="de-tr-en"
                         checked={this.state.componentsState.news.preferedCountry === 'de-tr-en'}
                         onChange={this.onNewsSelectionChanged}
@@ -182,10 +181,10 @@ export default class Settings extends React.Component {
                   <div className={this.props.focusNews ? 'focused radio' : 'radio'}>
                     <label htmlFor="news-radio-selector-3">
                       <input
+                        id="news-radio-selector-3"
                         type="radio"
                         tabIndex="-1"
                         name="news"
-                        id="news-radio-selector-3"
                         value="fr"
                         checked={this.state.componentsState.news.preferedCountry === 'fr'}
                         onChange={this.onNewsSelectionChanged}
@@ -196,10 +195,10 @@ export default class Settings extends React.Component {
                   <div className="radio">
                     <label htmlFor="news-radio-selector-4">
                       <input
+                        id="news-radio-selector-4"
                         type="radio"
                         tabIndex="-1"
                         name="news"
-                        id="news-radio-selector-4"
                         value="intl"
                         checked={this.state.componentsState.news.preferedCountry === 'intl'}
                         onChange={this.onNewsSelectionChanged}
@@ -210,10 +209,10 @@ export default class Settings extends React.Component {
                   <div className="radio">
                     <label htmlFor="news-radio-selector-6">
                       <input
+                        id="news-radio-selector-6"
                         type="radio"
                         tabIndex="-1"
                         name="news"
-                        id="news-radio-selector-6"
                         value="us"
                         checked={this.state.componentsState.news.preferedCountry === 'us'}
                         onChange={this.onNewsSelectionChanged}
@@ -224,10 +223,10 @@ export default class Settings extends React.Component {
                   <div className="radio">
                     <label htmlFor="news-radio-selector-7">
                       <input
+                        id="news-radio-selector-7"
                         type="radio"
                         tabIndex="-1"
                         name="news"
-                        id="news-radio-selector-7"
                         value="gb"
                         checked={this.state.componentsState.news.preferedCountry === 'gb'}
                         onChange={this.onNewsSelectionChanged}
@@ -238,15 +237,29 @@ export default class Settings extends React.Component {
                   <div className="radio">
                     <label htmlFor="news-radio-selector-8">
                       <input
+                        id="news-radio-selector-8"
                         type="radio"
                         tabIndex="-1"
                         name="news"
-                        id="news-radio-selector-8"
                         value="es"
                         checked={this.state.componentsState.news.preferedCountry === 'es'}
                         onChange={this.onNewsSelectionChanged}
                       />
                       {t('app_settings_news_language_es')}
+                    </label>
+                  </div>
+                  <div className="radio">
+                    <label htmlFor="news-radio-selector-9">
+                      <input
+                        id="news-radio-selector-9"
+                        type="radio"
+                        tabIndex="-1"
+                        name="news"
+                        value="pl"
+                        checked={this.state.componentsState.news.preferedCountry === 'pl'}
+                        onChange={this.onNewsSelectionChanged}
+                      />
+                      {t('app_settings_news_language_pl')}
                     </label>
                   </div>
                 </form>

@@ -131,7 +131,6 @@ export default describeModule('offers-v2/offers/offers-api',
           };
         }
         destroy() {}
-        savePersistenceData() {}
 
         setCampaignSignal(cid, oid, origID, sid) {
           let cidm = this.db.campaign[cid];
@@ -275,7 +274,7 @@ export default describeModule('offers-v2/offers/offers-api',
           let sigh;
           // the filtering rule evaluator moc
           beforeEach(function () {
-            db = new OfferDB({get: () => Promise.resolve({})});
+            db = new OfferDB({ get: () => Promise.resolve({}) });
             sigh = new SignalHandler(db);
             op = new OfferProcessor(sigh, db);
             // clear all

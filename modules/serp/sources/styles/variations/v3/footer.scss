@@ -1,0 +1,51 @@
+.footer-v3 {
+  background-color: transparent;
+
+  &-about {
+    float: left;
+    padding-left: 40px;
+  }
+
+  &-partners {
+    float: right;
+    height: 100%;
+    font-size: 0;
+    padding-right: 25px;
+    width: 40%;
+    text-align: right;
+    letter-spacing: 0;
+
+    &:before {
+      content: '';
+      display: inline-block;
+      vertical-align: middle;
+      height: 100%;
+    }
+
+    &-who-tracks-me,
+    &-ghostery,
+    &-made-in-germany {
+      display: inline-block;
+      vertical-align: middle;
+      height: 33%;
+      background-size: auto 100%;
+      background-image: url('../assets/partners_513x40.png');
+      background-repeat: no-repeat;
+    }
+
+    &-who-tracks-me {
+      width: 115px;
+      background-position: left center;
+    }
+
+    &-ghostery {
+      width: 87px;
+      background-position: 65% center;
+    }
+
+    &-made-in-germany {
+      width: 87px;
+      background-position: 112% center;
+    }
+  }
+}

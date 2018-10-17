@@ -6,7 +6,7 @@ import prefs from '../core/prefs';
 import utils from '../core/utils';
 import config from '../core/config';
 import { promiseHttpHandler } from '../core/http';
-import { Components } from '../platform/globals';
+import { Components, Services } from '../platform/globals';
 import telemetry from '../core/services/telemetry';
 import { isOnionMode } from '../core/platform';
 import { Window } from '../core/browser';
@@ -17,6 +17,21 @@ try {
 } catch (e) {
   // empty
 }
+
+const getPrincipalForUrl = (url, selectedTab) => {
+  if (url.startsWith('chrome:') || url.startsWith('resource:') || url.startsWith('about:')) {
+    // we return system principal only for chrome, resoure and about: pages
+    return Services.scriptSecurityManager.getSystemPrincipal();
+  }
+
+  if (selectedTab && selectedTab.linkedBrowser && selectedTab.linkedBrowser.contentPrincipal) {
+    // we try to keep the current principal
+    return selectedTab.linkedBrowser.contentPrincipal;
+  }
+
+  // if we do not have a principal we create a null principal
+  return Services.scriptSecurityManager.createNullPrincipal({ userContextId: 0 });
+};
 
 const CLIQZEnvironment = {
   Promise,
@@ -64,7 +79,9 @@ const CLIQZEnvironment = {
     }
 
     if (newTab) {
-      const tab = win.gBrowser.addTab(url);
+      const tab = win.gBrowser.addTab(url, {
+        triggeringPrincipal: getPrincipalForUrl(url, win.gBrowser.selectedTab)
+      });
       if (focus) {
         win.gBrowser.selectedTab = tab;
       }
@@ -135,7 +152,10 @@ const CLIQZEnvironment = {
     return (new Window(win)).id;
   },
   openTabInWindow(win, url, relatedToCurrent = false) {
-    win.gBrowser.selectedTab = win.gBrowser.addTab(url, { relatedToCurrent });
+    win.gBrowser.selectedTab = win.gBrowser.addTab(url, {
+      relatedToCurrent,
+      triggeringPrincipal: getPrincipalForUrl(url, win.gBrowser.selectedTab)
+    });
   },
   // TODO: move this
   _trk: [],

@@ -47,12 +47,10 @@ function getFormats(info) {
           media.name = 'Audio';
           media.class = 'audio';
           audio = media;
-        } else {
+        } else if (item.audioBitrate !== null && item.resolution !== null) {
           media.name = `${item.container.toUpperCase()} ${item.resolution}`;
-          if (item.audioBitrate !== null) {
-            media.class = 'video';
-            videos.push(media);
-          }
+          media.class = 'video';
+          videos.push(media);
         }
       }
     });

@@ -11,11 +11,18 @@ export default class AttrackDatabase {
 
     this._ready = getDexie().then((Dexie) => {
       this.db = new Dexie('antitracking');
-      this.db.version(1).stores({
+      const tables = {
         tokenDomain: '[token+fp], token, mtime',
         tokenBlocked: 'token, expires',
         requestKeyValue: '[tracker+key+value], [tracker+key], day',
+      };
+      this.db.version(2).stores({
+        ...tables,
+        tokens: 'token, lastSent, created',
+        keys: 'hash, lastSent, created',
       });
+
+      this.db.version(1).stores(tables);
 
       return this.db;
     });
@@ -46,5 +53,13 @@ export default class AttrackDatabase {
 
   get requestKeyValue() {
     return this.db.requestKeyValue;
+  }
+
+  get tokens() {
+    return this.db.tokens;
+  }
+
+  get keys() {
+    return this.db.keys;
   }
 }

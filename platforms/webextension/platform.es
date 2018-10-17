@@ -1,4 +1,4 @@
-import { chrome } from './globals';
+import { chrome, window } from './globals';
 
 /* global navigator */
 
@@ -24,8 +24,12 @@ export function isPlatformAtLeastInVersion() {
   return true;
 }
 
-// TODO
-export const OS = '';
+// this should differentiate between cliqz and ghostery apps for mobile
+export const appName = chrome.cliqzAppConstants ?
+  chrome.cliqzAppConstants.get('MOZ_APP_NAME') : window.navigator.appName;
+
+export const OS = chrome.cliqzAppConstants ?
+  chrome.cliqzAppConstants.get('platform') : window.navigator.platform;
 
 export function isCliqzAtLeastInVersion() {
   // TODO

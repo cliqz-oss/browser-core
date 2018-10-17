@@ -1,5 +1,5 @@
 import OfferJob from './job';
-import logger from '../../common/offers_v2_logger';
+
 
 /**
  * We will remove all the duplicated offers
@@ -11,9 +11,6 @@ const uniqueOffers = (offerList) => {
     if (!onListOffers.has(o.uniqueID)) {
       onListOffers.add(o.uniqueID);
       result.push(o);
-    } else {
-      // TODO: remove this debug once it is all stable
-      logger.debug(`Deduplicating offer ${o.uniqueID} from list`);
     }
   });
   return result;

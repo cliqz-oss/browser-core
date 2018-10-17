@@ -72,8 +72,8 @@ context('Offers Hub Interaction tests for one offer', function () {
   });
 
   context('\'delete offer\' button', function () {
-    const deleteButtonSelector = '.logo-wrapper button.setting';
-    const deletePopupSelector = '.settings';
+    const deleteButtonSelector = '.logo-wrapper button.close';
+    const deletePopupSelector = '.voucher-container';
 
     it('exists', function () {
       expect(subject.query(deleteButtonSelector)).to.exist;
@@ -81,8 +81,7 @@ context('Offers Hub Interaction tests for one offer', function () {
 
     it('popup for deleting exists but not visible', function () {
       expect(subject.query(deletePopupSelector)).to.exist;
-      expect(subject.getComputedStyle(deletePopupSelector).display)
-        .to.equal('none');
+      expect(subject.query(deletePopupSelector).classList.contains('hide'));
     });
 
     context('click on the \'delete offer\' button', function () {
@@ -90,16 +89,14 @@ context('Offers Hub Interaction tests for one offer', function () {
         subject.query(deleteButtonSelector).click();
 
         return waitFor(function () {
-          return subject.query('.logo-wrapper').classList.contains('menu-opened');
+          return subject.query('.details div.feedback').classList.contains('show') &&
+            subject.query('.voucher-container').classList.contains('hide');
         });
       });
 
-      it('renders popup for deleting offer', function () {
-        expect(subject.query(deletePopupSelector)).to.exist;
-        expect(subject.getComputedStyle(deletePopupSelector).display).to.equal('block');
+      it('renders view for deleting offer', function () {
+        expect(subject.query('.details .feedback').classList.contains('show'));
         expect(subject.query(`${deletePopupSelector} [data-i18n="offers_hub_remove"]`)).to.exist;
-        expect(subject.query(`${deletePopupSelector} [data-i18n="offers_hub_remove"]`)
-          .textContent.trim()).to.equal('offers_hub_remove');
       });
     });
   });

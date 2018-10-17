@@ -1,6 +1,6 @@
 @font-face {
-  font-family: "-mac-system", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-  font-weight: 300;
+    font-family: "-mac-system", "-apple-system", BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    font-weight: 300;
 }
 
 $cliqz-orange: #FF7E74;
@@ -32,7 +32,7 @@ html {
 
 #control-center {
     width: 390px;
-    font-family: "-mac-system", "-apple-system", "Helvetica Neue", Helvetica, Arial, "Segoe UI", "Lucida Grande", sans;
+    font-family: "-mac-system", "-apple-system", BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
     font-weight: 300;
     overflow: hidden;
 

@@ -47,16 +47,31 @@ export default class News extends React.Component {
     const nLines = 2;
     const creationTime = agoLine(link.extra.creation_timestamp);
     return (
-      <Link url={link.url} key={link.url}>
+      <Link label="news-item" url={link.url} key={link.url} >
         <View style={styles().item}>
-          <ExternalImage
-            source={{ uri: thumbnail }}
-            style={styles().image}
-            resizeMode={'cover'}
-          />
+          <View
+            accessible={false}
+            accessibilityLabel={'news-image'}
+          >
+            <ExternalImage
+              source={{ uri: thumbnail }}
+              style={styles().image}
+              resizeMode={'cover'}
+            />
+          </View>
           <View style={{ flexDirection: 'column', justifyContent: 'flex-start', marginLeft: 6 }}>
-            <Text style={styles().text} numberOfLines={nLines}>{link.title}</Text>
-            <Text style={styles(isInjected).creation}>{creationTime}</Text>
+            <View
+              accessible={false}
+              accessibilityLabel={'news-title'}
+            >
+              <Text style={styles().text} numberOfLines={nLines} > { link.title }</Text>
+            </View>
+            <View
+              accessible={false}
+              accessibilityLabel={'news-timestamp'}
+            >
+              <Text style={styles(isInjected).creation}> { creationTime }</Text>
+            </View>
           </View>
         </View>
       </Link>

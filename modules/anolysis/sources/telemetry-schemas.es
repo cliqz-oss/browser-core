@@ -9,6 +9,9 @@ import abtestsSignalDefinition from './metrics/abtests';
 import historyVisitsSignalDefinitions from './metrics/history-visits';
 import webrequestPipelinePerformancesMetrics from './metrics/performance/webrequest-pipeline';
 import internalAnolysisMetrics from './metrics/internals/anolysis';
+import coreMetrics from './metrics/core';
+import antitrackingTokenMetrics from './metrics/performance/antitracking-tokens';
+import consentricDefinitions from './metrics/consentric';
 
 // Analyses
 import retention from './analyses/retention';
@@ -33,6 +36,8 @@ import mobile from './analyses/mobile/favorites-migration-folders';
 import newsSearchSchemas from './analyses/news-search';
 import historyVisitsSchemas from './analyses/history-visits';
 import webrequestPipelinePerformances from './analyses/performance/webrequest-pipeline';
+import antitrackingTokenAnalyses from './analyses/performance/antitracking-tokens';
+import consentric from './analyses/consentric';
 
 /**
  * This file is used to list all available metrics and analyses in use by
@@ -55,7 +60,10 @@ const metrics = [
   ...experimentsSignalDefinitions,
   ...historyVisitsSignalDefinitions,
   ...internalAnolysisMetrics,
+  ...coreMetrics,
   webrequestPipelinePerformancesMetrics,
+  ...antitrackingTokenMetrics,
+  ...consentricDefinitions,
 ].map(schema => ({
   ...schema,
   sendToBackend: schema.sendToBackend || false,
@@ -84,6 +92,8 @@ const analyses = [
   ...newsSearchSchemas,
   ...historyVisitsSchemas,
   webrequestPipelinePerformances,
+  ...antitrackingTokenAnalyses,
+  ...consentric,
 ].map(schema => ({
   ...schema,
   sendToBackend: true,

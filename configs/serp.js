@@ -1,5 +1,5 @@
 
-const urls = require('./common/urls');
+const urls = require('./common/urls-cliqz');
 const base = require('./common/system');
 const subprojects = require('./common/subprojects/bundles');
 

@@ -1,8 +1,8 @@
 import i18n from '../../core/i18n';
 import inject from '../../core/kord/inject';
 import prefs from '../../core/prefs';
-import { isCliqzBrowser, isCliqzAtLeastInVersion, isAMO } from '../../core/platform';
 import { getDaysSinceInstall } from '../../core/demographics';
+import { isDesktopBrowser, isCliqzAtLeastInVersion, isAMO } from '../../core/platform';
 import getLocalMessages from './local';
 import getRemoteMessages from './remote';
 
@@ -13,7 +13,7 @@ const VERSION = 1;
 
 const messageFunctions = {
   cliqzVersionCheck(value) {
-    if (!isCliqzBrowser) {
+    if (!isDesktopBrowser) {
       return false;
     }
 
@@ -87,7 +87,7 @@ export default class Triggers {
 
   async init() {
     const dismissedAlerts = JSON.parse(prefs.get(DISMISSED_ALERTS, '{}'));
-    const { handlers, messages } = await Promise.all([this.handlers, this.messages]);
+    const [handlers, messages] = await Promise.all([this.handlers, this.messages]);
 
     for (let i = 0; i < messages.length; i += 1) {
       const message = messages[i];

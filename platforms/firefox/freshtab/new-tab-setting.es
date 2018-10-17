@@ -66,20 +66,19 @@ export class AboutCliqz {
       <script>
         var wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
           .getService(Components.interfaces.nsIWindowMediator);
+        var securityManager = Components.classes['@mozilla.org/scriptsecuritymanager;1']
+          .getService(Components.interfaces.nsIScriptSecurityManager);
         var w = wm.getMostRecentWindow('navigator:browser');
         var url = '${config.settings.NEW_TAB_URL}';
-        w.gBrowser.addTab(url);
+        w.gBrowser.addTab(url, {
+          triggeringPrincipal: securityManager.getSystemPrincipal(),
+        });
         window.close();
       </script>
     `;
-    let channel;
 
-    if (Services.vc.compare(Services.appinfo.version, '47.*') > 0) {
-      const uri = Services.io.newURI(fakePage, null, null);
-      channel = Services.io.newChannelFromURIWithLoadInfo(uri, aLoadInfo);
-    } else {
-      channel = Services.io.newChannel(fakePage, null, null);
-    }
+    const uri = Services.io.newURI(fakePage, null, null);
+    const channel = Services.io.newChannelFromURIWithLoadInfo(uri, aLoadInfo);
 
     channel.owner = Services.scriptSecurityManager.getSystemPrincipal();
 

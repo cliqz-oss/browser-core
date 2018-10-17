@@ -3,9 +3,18 @@ Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 
 try {
   Components.utils.import("resource://gre/modules/Console.jsm");
-} catch(e) {
+} catch (e) {
   // Older version of Firefox
   Components.utils.import("resource://gre/modules/devtools/Console.jsm");
+}
+
+function generateQI(...args) {
+  if (typeof XPCOMUtils !== 'undefined' && XPCOMUtils.generateQI) {
+    return XPCOMUtils.generateQI(...args);
+  } else if (typeof ChromeUtils !== 'undefined' && ChromeUtils.generateQI) {
+    return ChromeUtils.generateQI(...args);
+  }
+  throw new Error('generateQI is not a function');
 }
 
 var FLAGS = {
@@ -64,7 +73,7 @@ function LocationObserver(webProgress) {
   this.previousURIMap = new WeakMap();
 }
 
-LocationObserver.prototype.QueryInterface = XPCOMUtils.generateQI([
+LocationObserver.prototype.QueryInterface = generateQI([
   'nsIWebProgressListener',
   'nsISupportsWeakReference'
 ]);

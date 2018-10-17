@@ -1,5 +1,5 @@
 const publish = require('./common/publish');
-const urls = require('./common/ghostery-urls');
+const urls = require('./common/urls-ghostery');
 
 module.exports = {
   "platform": "react-native",
@@ -10,6 +10,7 @@ module.exports = {
   "testem_launchers_ci": ["unit-node"],
   "pack": "npm pack",
   "publish": publish.toEdge('browser-core', 'ghostery-ios'),
+  "isMobile": true,
   "settings": Object.assign({}, urls, {
     "RESULTS_TIMEOUT": 3000,
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],

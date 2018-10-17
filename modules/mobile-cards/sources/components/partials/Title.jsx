@@ -22,18 +22,24 @@ export default function (props) {
   const meta = props.meta;
   const color = props.isHistory ? '#551A8B' : 'black';
   return (
-    <View
-      accessible={false}
-      accessibilityLabel={'generic-title'}
-      style={style(color).container}
-    >
-      <Text numberOfLines={2} style={style(color).title}>
-        {props.title}
-      </Text>
-      { !!meta &&
-        <Text numberOfLines={1} style={style(color).meta}>
-          {meta}
+    <View style={style(color).container}>
+      <View
+        accessible={false}
+        accessibilityLabel={'generic-title'}
+      >
+        <Text numberOfLines={2} style={style(color).title}>
+          {props.title}
         </Text>
+      </View>
+      {!!meta &&
+        <View
+          accessible={false}
+          accessibilityLabel={'generic-title-meta'}
+        >
+          <Text numberOfLines={1} style={style(color).meta}>
+            {meta}
+          </Text>
+        </View>
       }
     </View>
   );

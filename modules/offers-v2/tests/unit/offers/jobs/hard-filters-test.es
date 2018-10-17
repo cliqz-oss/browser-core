@@ -67,23 +67,6 @@ class CategoryHandlerMock {
   }
 }
 
-function orPromises(elemList, idx = 0) {
-  if (!elemList || idx >= elemList.length) {
-    return Promise.resolve(false);
-  }
-  const first = elemList[idx];
-  return first().then((r) => {
-    if (r) {
-      return Promise.resolve(true);
-    }
-    // if we are in the last case return
-    if (elemList.length === (idx + 1)) {
-      return Promise.resolve(false);
-    }
-    return orPromises(elemList, idx + 1);
-  });
-}
-
 export default describeModule('offers-v2/offers/jobs/hard-filters',
   () => ({
     'platform/lib/adblocker': {
@@ -92,11 +75,10 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
     'offers-v2/common/offers_v2_logger': {
       default: {
         debug: () => {},
-        error: (...x) => { console.error(...x); },
-        info: (...x) => { console.log(...x); },
-        log: (...x) => { console.log(...x); },
-        warn: (...x) => { console.warn(...x); },
-        logObject: () => {},
+        error: () => {},
+        info: () => {},
+        log: () => {},
+        warn: () => {},
       }
     },
     'core/platform': {
@@ -128,7 +110,13 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
       timestampMS: function () {
         return Date.now();
       },
-      orPromises: orPromises,
+    },
+    'offers-v2/background': {
+      default: {
+        offersAPI: {
+          processRealEstateMessage: () => {}
+        }
+      },
     },
     'core/persistence/map': {
       default: class MockMap {

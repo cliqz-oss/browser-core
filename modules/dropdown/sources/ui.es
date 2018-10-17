@@ -111,10 +111,6 @@ export default class Ui {
         }
         // TODO: @chrmod
         const selectedResult = this.renderer.selectedResult;
-        if (!selectedResult.isDeletable) {
-          break;
-        }
-
         const historyUrl = selectedResult.historyUrl;
         HistoryManager.removeFromHistory(historyUrl, { strict: false })
           .then(() => {

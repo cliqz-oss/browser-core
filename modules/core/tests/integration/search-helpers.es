@@ -50,8 +50,14 @@ export async function waitForPopup(resultsCount, timeout = 700) {
   });
 
   if (resultsCount) {
+    const navigateResult = $cliqzResults.querySelector('.result.navigate-to');
+    const searchResult = $cliqzResults.querySelector('.result.search');
+
+    // If we have both navigateResult and searchResult => the searchResult is generated
+    // we should increase the resultsCount by 1
+    const nResults = (navigateResult && searchResult) ? resultsCount + 1 : resultsCount;
     await waitFor(
-      () => expect($cliqzResults.querySelectorAll('.cliqz-result')).to.have.length(resultsCount),
+      () => expect($cliqzResults.querySelectorAll('.cliqz-result')).to.have.length(nResults),
       timeout,
     );
   }

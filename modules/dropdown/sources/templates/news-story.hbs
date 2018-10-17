@@ -3,3 +3,8 @@
     {{> partials/news-story}}
 </div>
 {{/with}}
+{{#each (take moreNewsStoryResults 2)}}
+<div class="news-story extra-news thumbnail-blocks">
+    {{> partials/news-story}}
+</div>
+{{/each}}

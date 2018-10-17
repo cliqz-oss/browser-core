@@ -1,6 +1,7 @@
 /* global chai */
 /* global describeModule */
 /* global require */
+/* global sinon */
 
 const encoding = require('text-encoding');
 const tldjs = require('tldjs');
@@ -104,8 +105,9 @@ export default describeModule('offers-v2/event_handler',
           global.setTimeout = oldTimeout;
         });
 
-        function simLocChange(url) {
+        function simLocChange(url, extra={}) {
           const evt = {
+            ...extra,
             isPrivate: false,
             isSameDocument: false,
             url
@@ -206,6 +208,57 @@ export default describeModule('offers-v2/event_handler',
           simReq('http://www.come.quasiamazon2.com');
           simReq('http://www.come.amazon2quasi.com/pepe');
           chai.expect(counter).eql(0);
+        });
+
+        context('/avoid emiting a location change event on a reload', () => {
+          let cb;
+
+          beforeEach(() => {
+            cb = sinon.spy();
+            eh.subscribeUrlChange(cb, null);
+          });
+
+          afterEach(() => {
+            eh.unsubscribeUrlChange(cb);
+          });
+
+          function doActivityInOtherTabs(countString) {
+            Array.from(countString).forEach(letter =>
+              simLocChange('http://smwhr.com/' + letter, { tabId: letter }));
+          }
+
+          function loadInMainTab() {
+            simLocChange('http://smwhr.com', { tabId: 'testtab' });
+          }
+
+          it('/detect an immediate reload', () => {
+            loadInMainTab();
+
+            cb.resetHistory();
+            loadInMainTab();
+
+            chai.expect(cb.callCount).eql(0);
+          });
+
+          it('/detect a reload after activity in other tabs', () => {
+            loadInMainTab();
+            doActivityInOtherTabs("012345");
+
+            cb.resetHistory();
+            loadInMainTab();
+
+            chai.expect(cb.callCount).eql(0);
+          });
+
+          it('/miss a reload due to expiration of url tracking entries', () => {
+            loadInMainTab();
+            doActivityInOtherTabs("0123456789ABCDEFGHIJKLMNOPQRST");
+
+            cb.resetHistory();
+            loadInMainTab();
+
+            chai.expect(cb.callCount).eql(1);
+          });
         });
       });
     });

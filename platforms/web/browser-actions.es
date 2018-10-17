@@ -1,4 +1,11 @@
-export function handleQuerySuggestions() {}
+import events from '../core/events';
+
+export function handleQuerySuggestions(q, suggestions) {
+  events.pub('search:suggestions', {
+    query: q,
+    suggestions,
+  });
+}
 
 export function queryCliqz() {}
 

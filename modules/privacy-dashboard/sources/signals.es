@@ -97,27 +97,29 @@ const SignalListener = {
   },
 
   monkeyPatchTelemetry(...args) {
-    SignalListener.telemetryOrigin.apply(this, args);
+    SignalListener.telemetryOrigin.apply(this, args)
+      .then(() => {
+        // aggregate data within the predefined aggregation window
+        // To use ONLY the LAST SIGNAL, use this line below instead of the if block,
+        // OR set SignalListener.telSigAggregatePeriod = 0
 
-    // aggregate data within the predefined aggregation window
-    // To use ONLY the LAST SIGNAL, use this line below instead of the if block,
-    // OR set SignalListener.telSigAggregatePeriod = 0
+        SignalListener.SigCache.tel = {
+          sig: [lastElementArray(environment._trk)],
+          timestamp: Date.now()
+        };
+        /*
+        var timeNow = Date.now();
+        if (timeNow - SignalListener.SigCache.tel.timestamp < SignalListener.telSigAggregatePeriod)
+        {
+          SignalListener.SigCache.tel.sig.push(lastElementArray(environment._trk));
+        } else {
+          SignalListener.SigCache.tel.sig = [lastElementArray(environment._trk)];
+          SignalListener.SigCache.tel.timestamp = timeNow;
+        }
+        */
 
-    SignalListener.SigCache.tel = {
-      sig: [lastElementArray(environment.trk)],
-      timestamp: Date.now()
-    };
-    /*
-    var timeNow = Date.now();
-    if (timeNow - SignalListener.SigCache.tel.timestamp < SignalListener.telSigAggregatePeriod) {
-      SignalListener.SigCache.tel.sig.push(lastElementArray(environment.trk));
-    } else {
-      SignalListener.SigCache.tel.sig = [lastElementArray(environment.trk)];
-      SignalListener.SigCache.tel.timestamp = timeNow;
-    }
-    */
-
-    SignalListener.fireNewDataEvent('tel');
+        SignalListener.fireNewDataEvent('tel');
+      });
   },
 
   onCliqzBackendRequest: ({ url }) => {
@@ -159,7 +161,7 @@ const SignalListener = {
 
       // this should be the signal user clicking the privacy dashboard button
       SignalListener.SigCache.tel = {
-        sig: [lastElementArray(environment.trk)],
+        sig: [lastElementArray(environment._trk)],
         timestamp: Date.now()
       };
       // last human web signal

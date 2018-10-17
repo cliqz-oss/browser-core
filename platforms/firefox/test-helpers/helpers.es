@@ -110,6 +110,9 @@ export const testServer = wrap(() => win.CLIQZ.TestHelpers.testServer);
 export const click = (url, selector) =>
   app.modules.core.action('click', url, selector);
 
+export const queryComputedStyle = (url, selector) =>
+  app.modules.core.action('queryComputedStyle', url, selector);
+
 export const queryHTML = (url, selector, property) =>
   app.modules.core.action('queryHTML', url, selector, property);
 

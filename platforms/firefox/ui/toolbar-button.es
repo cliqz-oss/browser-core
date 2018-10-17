@@ -220,6 +220,9 @@ export default class BrowserAction {
 
   removeWindow(window) {
     this.windows.delete(window);
+
+    const view = window.document.querySelector(`#${this.viewId}`);
+    view.parentElement.removeChild(view);
   }
 
   dispatchAction(window, data) {

@@ -31,6 +31,12 @@ export default describeModule('browser-panel/window',
           windowUIConnector() {}
         }
       }
+    },
+    'core/events': {},
+    'core/prefs': {},
+    'core/helpers/stylesheet': {
+      addStylesheet() {},
+      removeStylesheet() {}
     }
   }),
   () => {

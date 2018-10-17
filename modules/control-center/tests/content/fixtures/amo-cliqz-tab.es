@@ -17,6 +17,7 @@ export const dataOn = {
   generalState: 'active',
   feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
   amo: true,
+  showPoweredBy: true,
   compactView: false
 };
 
@@ -39,5 +40,6 @@ export const dataOff = {
   generalState: 'active',
   feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
   amo: true,
-  compactView: false
+  compactView: false,
+  showPoweredBy: true,
 };

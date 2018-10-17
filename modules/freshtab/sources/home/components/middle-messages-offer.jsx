@@ -58,6 +58,10 @@ export default class Offer extends React.Component {
               data={offerTpl}
               offer_id={offerId}
               validity={validity}
+              getOfferInfoOpen={this.props.getOfferInfoOpen}
+              setOfferInfoOpen={this.props.setOfferInfoOpen}
+              getOfferMenuOpen={this.props.getOfferMenuOpen}
+              setOfferMenuOpen={this.props.setOfferMenuOpen}
             />
 
             <OfferFooter

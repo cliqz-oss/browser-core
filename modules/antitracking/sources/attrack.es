@@ -298,7 +298,8 @@ export default class CliqzAttrack {
         tokenTelemetry: new TokenTelemetry(
           this.telemetry.bind(this),
           this.qs_whitelist,
-          this.config),
+          this.config,
+          this.db),
         domChecker: new DomChecker(),
         tokenChecker: new TokenChecker(
           this.qs_whitelist,

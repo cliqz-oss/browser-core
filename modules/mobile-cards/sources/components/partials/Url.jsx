@@ -1,12 +1,11 @@
 import React from 'react';
 import { StyleSheet, Text } from 'react-native';
-import { getDetailsFromUrl } from '../../../core/url';
 
 const style = color => StyleSheet.create({
   url: {
     color,
     marginRight: 50, // width of icon ???
-    marginLeft: 10,
+    marginLeft: 5,
     fontSize: 11,
     lineHeight: 13,
     fontWeight: '300',
@@ -21,13 +20,14 @@ export default function (props) {
   if (!url || url === 'n/a') {
     return null;
   }
-  const urlDetails = getDetailsFromUrl(url);
   return (
     <Text
+      accessible={false}
+      accessibilityLabel={'generic-link'}
       numberOfLines={oneLine ? 1 : 3}
       style={style(color).url}
     >
-      {urlDetails.friendly_url || url}
+      {url}
     </Text>
   );
 }

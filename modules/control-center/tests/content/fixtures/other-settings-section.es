@@ -16,6 +16,8 @@ export default function (amo) {
     generalState: 'active',
     feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
     amo: amo,
-    compactView: false
+    compactView: false,
+    privacyPolicyURL: 'privacy_policy_url',
+    showPoweredBy: true,
   };
 }

@@ -47,4 +47,5 @@ COPY package-lock.json /app/
 
 WORKDIR /app/
 
+RUN npm cache clean --force
 RUN npm ci

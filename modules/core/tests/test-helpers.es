@@ -136,3 +136,22 @@ export class GenericSubject {
     return this.iframe.contentWindow.getComputedStyle(element);
   }
 }
+
+export async function mockPref(key, value, prefix) {
+  const prefValue = prefs.get(key, undefined, prefix);
+
+  if (!prefix) {
+    prefs.clear(key);
+    const p = waitForPrefChange(key);
+    prefs.set(key, value);
+    await p;
+  } else {
+    prefs.set(key, value, prefix);
+  }
+
+  const unmockPref = (prefValue !== undefined) ?
+    () => { prefs.set(key, prefValue, prefix); } :
+    () => { prefs.clear(key, prefix); };
+
+  return unmockPref;
+}

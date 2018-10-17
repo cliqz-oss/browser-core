@@ -28,12 +28,16 @@ class Link extends React.Component {
         </TouchableWithoutFeedback>
       ),
       web: (
-        <div
-          onClick={this._onPress}
-          role="presentation"
-        >
-          { this.props.children }
-        </div>
+        <View style={this.props.style}>
+          <div
+            aria-label={this.props.label}
+            data-url={this.props.url}
+            onClick={this._onPress}
+            role="presentation"
+          >
+            {this.props.children}
+          </div>
+        </View>
       )
     });
   }

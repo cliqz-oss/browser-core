@@ -2,15 +2,15 @@ import React from 'react';
 import { Image } from 'react-native';
 
 export default function (props) {
-  const styles = {};
+  const style = [props.style || {}];
   if (props.color) {
-    styles.color = props.color;
+    style.push({ color: props.color });
   }
-  return <Image {...props} styles={styles} source={{ uri: props.source }} />;
+  return <Image style={style} source={{ uri: props.source }} />;
 }
 
 export function normalizeUrl(url) {
-  if (url.startsWith('http')) {
+  if (/^https?:\/\//.test(url)) {
     return url; // over the network
   }
   return `./img/${url}`; // local image

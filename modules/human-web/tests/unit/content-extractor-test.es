@@ -182,9 +182,9 @@ export default describeModule('human-web/content-extractor',
           });
         });
 
-        describe('when searching in Google for "Donald Trump"', function () {
+        describe('when searching in Google for "Angela Merkel"', function () {
           beforeEach(function () {
-            initFixture('go/donald-trump-2018-05-25');
+            initFixture('go/angela-merkel-2018-08-10');
           });
 
           it('should not find any data (ruleset: "normal")', function () {
@@ -232,9 +232,9 @@ export default describeModule('human-web/content-extractor',
           });
         });
 
-        describe('when searching in Google for "Donald Trump"', function () {
+        describe('when searching in Google for "Angela Merkel"', function () {
           beforeEach(function () {
-            initFixture('go/donald-trump-2018-05-25');
+            initFixture('go/angela-merkel-2018-08-10');
           });
 
           it('should find search results (ruleset: "normal")', function () {
@@ -300,7 +300,7 @@ export default describeModule('human-web/content-extractor',
       });
     });
 
-    describe('_mergeArr', function () {
+    describe('#_mergeArr', function () {
       let _mergeArr;
 
       beforeEach(function () {
@@ -313,6 +313,108 @@ export default describeModule('human-web/content-extractor',
           { x: 2, y: 5, z: 8 },
           { x: 3, y: 6, z: 9 },
         ]);
+      });
+    });
+
+    describe('#_allMandatoryFieldsSet', function () {
+      let _allMandatoryFieldsSet;
+
+      beforeEach(function () {
+        _allMandatoryFieldsSet = this.module()._allMandatoryFieldsSet;
+      });
+
+      it('should accept a message where all mandatory fields are set', function() {
+        // this is similar in structure to a search query
+        const payload = {
+          r: {
+            '0': {
+              t: 'title: foo',
+              u: 'https://example.test/foo'
+            },
+          },
+          q: 'some query',
+          qurl: 'https://example.test/some/query',
+          ctry: 'de',
+        };
+        const expectedFields = [
+          { key: 'r', type: 'array' },
+          { key: 'q', type: 'object' },
+          { key: 'qurl', type: 'object' },
+          { key: 'ctry', type: 'object' },
+        ];
+
+        expect(_allMandatoryFieldsSet(payload, expectedFields)).to.be.true;
+      });
+
+      it('should accept an array where all inner entries are filled', function() {
+        const payload = {
+          r: {
+            '0': {
+              t: 'title: foo',
+              u: 'https://example.test/foo'
+            },
+            '1': {
+              t: 'title: bar',
+              u: 'https://example.test/bar'
+            },
+          },
+        };
+        const expectedFields = [{ key: 'r', type: 'array' }];
+
+        expect(_allMandatoryFieldsSet(payload, expectedFields)).to.be.true;
+      });
+
+      it('should accept an array where at least one inner entry is filled', function() {
+        const payload = {
+          r: {
+            '0': {
+              t: null,
+              u: 'https://example.test/foo'
+            },
+            '1': {
+              t: null,
+              u: null
+            },
+          },
+        };
+        const expectedFields = [{ key: 'r', type: 'array' }];
+
+        expect(_allMandatoryFieldsSet(payload, expectedFields)).to.be.true;
+      });
+
+      describe('should reject an array where all inner entries are missing:', function () {
+        it('when not found by css selectors', function() {
+          const payload = {
+            r: {
+              '0': { t: null, u: null, },
+              '1': { t: null, u: null, },
+            }
+          };
+          const expectedFields = [{ key: 'r', type: 'array' }];
+
+          expect(_allMandatoryFieldsSet(payload, expectedFields)).to.be.false;
+        });
+
+        it('when all values are falsy', function() {
+          const payload = {
+            r: {
+              '0': { t: null, u: undefined },
+              '1': { t: '' },
+            },
+          };
+          const expectedFields = [{ key: 'r', type: 'array' }];
+
+          expect(_allMandatoryFieldsSet(payload, expectedFields)).to.be.false;
+        });
+
+        it('when the array itself is empty', function() {
+          const payload = {
+            r: {}
+          };
+          const expectedFields = [{ key: 'r', type: 'array' }];
+
+          expect(_allMandatoryFieldsSet(payload, expectedFields)).to.be.false;
+        });
       });
     });
   }

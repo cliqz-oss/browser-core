@@ -1,7 +1,7 @@
 const base = require('./common/system');
 const subprojects = require('./common/subprojects/bundles');
 const publish = require('./common/publish');
-const urls = require('./common/urls')
+const urls = require('./common/urls-cliqz');
 
 const id = "android@cliqz.com";
 const packageName = "cliqz";
@@ -17,6 +17,7 @@ module.exports = {
   "publish": publish.toEdge(packageName, 'cliqz-android', 'zip'),
   "baseURL": "/modules/",
   "versionPrefix": "3",
+  "isMobile": true,
   "settings": Object.assign({}, urls, {
     "id": id,
     "description": "",
@@ -50,6 +51,7 @@ module.exports = {
   }),
   "modules": [
     "core",
+    "core-cliqz",
     "static",
     "mobile-cards",
     "search",
@@ -65,11 +67,10 @@ module.exports = {
     "cliqz-android/cliqz-search-engines.bundle.js",
     "cliqz-android/cliqz-native-bridge.bundle.js",
     "cliqz-android/cliqz-app-constants.bundle.js",
-    "core/content-script.bundle.js",
   ],
   system: Object.assign({}, base.systemConfig, {
     map: Object.assign({}, base.systemConfig.map, {
-      "@cliqz-oss/pouchdb": "node_modules/@cliqz-oss/pouchdb/dist/pouchdb.js",
+      "pouchdb": "node_modules/pouchdb/dist/pouchdb.js",
       "@cliqz-oss/dexie": "node_modules/@cliqz-oss/dexie/dist/dexie.js",
       "mathjs": "node_modules/mathjs/dist/math.min.js",
       "react-native-view-shot": "modules/mobile-cards/external-libs/react-native-view-shot.js",

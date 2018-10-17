@@ -5,7 +5,7 @@ import {
 import {
   getResourceUrl,
 } from '../../../tests/core/integration/helpers';
-import { PREF_SEARCH_MODE } from '../../../freshtab/constants';
+import config from '../../../freshtab/config';
 import { isWebExtension } from '../../../core/platform';
 import basicTest from '../../../tests/dropdown-tests/integration/shared/basic';
 
@@ -72,7 +72,7 @@ export default function () {
 
   describe('freshtab search frame', function () {
     before(function () {
-      prefs.set(PREF_SEARCH_MODE, 'search');
+      prefs.set(config.constants.PREF_SEARCH_MODE, 'search');
     });
 
     basicTest({

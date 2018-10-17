@@ -37,7 +37,7 @@ export default [
     schema: {
       required: ['group', 'units_active', 'offset'],
       properties: {
-        group: { enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G', null] },
+        group: { enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', null] },
         units_active: {
           type: 'integer', // 0 for inactive, 1 for active
           minimum: 0,

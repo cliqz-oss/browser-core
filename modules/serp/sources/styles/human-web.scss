@@ -1,0 +1,16 @@
+.human-web {
+  background: url('../assets/human-web.jpg') center 25px no-repeat;
+  background-size: auto 90%;
+  padding-bottom: 150px;
+  margin-top: 37px;
+
+  &-link {
+    color: #616161;
+    font-size: 14.5px;
+    text-decoration: none;
+
+    &:hover {
+      color: #0078ca;
+    }
+  }
+}

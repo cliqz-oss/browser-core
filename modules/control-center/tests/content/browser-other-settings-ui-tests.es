@@ -4,7 +4,7 @@ import {
 import Subject from './local-helpers';
 import generateData from './fixtures/other-settings-section';
 
-function otherSettingsTests(amo, privacyUrl) {
+function otherSettingsTests(amo) {
   const data = generateData(amo);
   const target = 'cliqz-control-center';
   let subject;
@@ -62,7 +62,7 @@ function otherSettingsTests(amo, privacyUrl) {
     it('url for privacy is correct', function () {
       const privacySelector = '#othersettings .title #support [data-i18n="control_center_privacy_policy"]';
       expect(subject.query(privacySelector).hasAttribute('data-open-url')).to.be.true;
-      expect(subject.query(privacySelector).getAttribute('data-open-url')).to.equal(privacyUrl);
+      expect(subject.query(privacySelector).getAttribute('data-open-url')).to.equal('privacy_policy_url');
     });
 
     it('renders "Search options"', function () {
@@ -101,9 +101,9 @@ function otherSettingsTests(amo, privacyUrl) {
 }
 
 describe('Control Center: Other Settings section UI browser', function () {
-  otherSettingsTests(false, 'http://cliqz.com/privacy-browser');
+  otherSettingsTests(false);
 });
 
 describe('Control Center: AMO, Other Settings section tests', function () {
-  otherSettingsTests(true, 'http://cliqz.com/privacy-browser');
+  otherSettingsTests(true);
 });

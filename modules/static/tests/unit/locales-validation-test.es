@@ -8,7 +8,17 @@ const fs = require('fs');
 
 // extracts only the key from a line of text
 function key(line) {
-  return /"(.*?)"/.exec(line)[0];
+  const endOfKey = line.indexOf('":');
+
+  if (endOfKey === -1) {
+    // If there is key, then we expect the line to be identical. This is a
+    // strict check but it will ensure that locales are formatted consistently.
+    return line;
+  }
+
+  // If there is a key, it means that content follows (which differs between
+  // languages). In this case we return only the key.
+  return line.substring(0, endOfKey);
 }
 
 
@@ -40,6 +50,12 @@ export default describeModule('static/main',
         );
       });
 
+      it('All locales are valid JSON', () => {
+        langs.forEach((lang) => {
+          JSON.parse(readLocaleFile(`${localesPath}/${lang}/messages.json`));
+        });
+      });
+
       it('All locales keys have the mandatory "message" key', () => {
         langs.forEach((lang) => {
           const locale = JSON.parse(readLocaleFile(`${localesPath}/${lang}/messages.json`));
@@ -47,12 +63,6 @@ export default describeModule('static/main',
             chai.expect(locale[_key].message,
               `message does not exist for key <"+ key + "> in the locale file for ${lang}`).to.exist;
           });
-        });
-      });
-
-      it('All locales are valid JSON', () => {
-        langs.forEach((lang) => {
-          JSON.parse(readLocaleFile(`${localesPath}/${lang}/messages.json`));
         });
       });
 

@@ -10,9 +10,10 @@ let save = () => {};
 
 function fetchResponseWrapper(response) {
   return {
+    ok: true,
     text() {
       return Promise.resolve(response);
-    }
+    },
   };
 }
 

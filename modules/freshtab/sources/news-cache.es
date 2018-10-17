@@ -1,7 +1,8 @@
-import config from '../core/config';
 import utils from '../core/utils';
 import prefs from '../core/prefs';
 import console from '../core/console';
+
+import config from './config';
 
 const ONE_MINUTE = 60 * 1000;
 

@@ -73,6 +73,16 @@ $(document).ready(() => {
   // link the click function here to the buttons
   document.getElementById('cqz-browser-panel-re').addEventListener('click', cqzOfferBtnClicked);
 
+  $('#cqz-browser-panel-re').on('mouseenter', '.why-offer', () => {
+    sendMessageToWindow({
+      handler: 'sendTelemetry',
+      data: {
+        action: 'hover',
+        target: 'why'
+      }
+    });
+  });
+
   // open URL
   $('#cqz-browser-panel-re').on('click', '[data-openUrl]', (ev) => {
     sendMessageToWindow({

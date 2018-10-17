@@ -16,8 +16,10 @@ const styles = StyleSheet.create({
 
 export default function (props) {
   return (
-    <Link url={props.url}>
-      <Text style={styles.text}>{getMessage('more_on')} {props.provider}</Text>
+    <Link label={'generic-more-on'} url={props.url}>
+      <Text style={styles.text}>
+        {getMessage('more_on')} {props.provider}
+      </Text>
     </Link>
   );
 }

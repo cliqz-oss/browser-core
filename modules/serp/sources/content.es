@@ -40,7 +40,8 @@ function serpTelemetry(win, sendTelemetry) {
             element: target.dataset.telemetryElement,
             isSearchEngine: resultTitle && isSearchEngine(
               resultTitle.host,
-              resultTitle.pathname)
+              resultTitle.pathname),
+            session: result.dataset.session,
           }, 'metrics.experiments.serp.click.result');
           break;
         // Send whenever a user clicks on a query suggestion
@@ -49,6 +50,7 @@ function serpTelemetry(win, sendTelemetry) {
             source: 'Z',
             index: target.closest('.suggestion').dataset.idx,
             queryLength: searchbox(win.document).value.length,
+            session: target.closest('.suggestion').dataset.session,
           }, 'metrics.experiments.serp.click.result');
           break;
         case 'search':
@@ -67,6 +69,7 @@ function serpTelemetry(win, sendTelemetry) {
             engine: element.dataset.engine,
             category: element.dataset.category || null,
             view: element.dataset.view,
+            session: element.dataset.session,
           }, 'metrics.experiments.serp.click.search');
           break;
         default:
@@ -75,7 +78,6 @@ function serpTelemetry(win, sendTelemetry) {
     }
   });
 
-  // Send whenever the SERP page is shown
   win.addEventListener('message', (ev) => {
     const data = ev.data;
     if (!data) {
@@ -83,12 +85,21 @@ function serpTelemetry(win, sendTelemetry) {
     }
 
     if (data.message === 'results' || data.message === 'landing') {
+      // Send whenever the SERP page is shown
       sendTelemetry({
         queryLength: data.payload.queryLength,
         resultCount: data.payload.resultCount,
         suggestionCount: data.payload.suggestionCount,
-        view: data.message
+        view: data.message,
+        session: data.payload.session,
       }, 'metrics.experiments.serp.show');
+    } else if (data.message === 'serp:character-typed') {
+      // Send whenever a user types something on the SERP (i.e. for each character typed)
+      sendTelemetry({
+        queryLength: data.payload.queryLength,
+        hasSuggestions: data.payload.hasSuggestions,
+        session: data.payload.session,
+      }, 'metrics.experiments.serp.type');
     }
   });
 
@@ -110,18 +121,9 @@ function serpTelemetry(win, sendTelemetry) {
     // send whenever a user hits enter to search (on Cliqz)
     sendTelemetry({
       view: dataTarget.dataset.view,
+      session: dataTarget.dataset.session,
     }, 'metrics.experiments.serp.enter.search');
   });
-
-  // we need to send a show also when loading the landing page
-  if (win.location.hash === '' || win.location.hash === '#') {
-    sendTelemetry({
-      queryLength: 0,
-      resultCount: 0,
-      suggestionCount: 0,
-      view: 'landing'
-    }, 'metrics.experiments.serp.show');
-  }
 }
 
 function registerScript(window, CLIQZ) {
@@ -137,6 +139,9 @@ function registerScript(window, CLIQZ) {
   }
 }
 
-registerContentScript('core-cliqz', 'https://suchen.cliqz.com*', (window, _, CLIQZ) => {
+registerContentScript('core-cliqz', 'https://suchen.cliqz.com/', (window, _, CLIQZ) => {
+  registerScript(window, CLIQZ);
+});
+registerContentScript('core-cliqz', 'https://s3.amazonaws.com/cdncliqz/update/edge/serp/master/latest/*', (window, _, CLIQZ) => {
   registerScript(window, CLIQZ);
 });

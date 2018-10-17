@@ -10,6 +10,7 @@ export default function () {
   deletePersistantObject('checkedToken');
   deletePersistantObject('blockedToken');
   deletePersistantObject('loadedPage');
+  deletePersistantObject('tokens');
   if (prefs.get('attrack.tokenDbState', 0) === 0) {
     const db = new Database('cliqz-attrack-tokens', { auto_compaction: true });
     db.destroy();

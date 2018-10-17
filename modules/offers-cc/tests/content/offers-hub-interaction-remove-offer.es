@@ -22,20 +22,20 @@ context('Offers Hub Interaction tests for removing offer', function () {
         return subject.pushData(target, data);
       })
         .then(() => {
-          // click on 'three dots' and wait till popup is open
-          subject.query('.logo-wrapper button.setting').click();
+          // click on delete button and wait
+          subject.query('.logo-wrapper button.close').click();
           return waitFor(function () {
-            return subject.query('.logo-wrapper').classList.contains('menu-opened');
+            return subject.query('.details div.feedback').classList.contains('show');
           });
         })
-        .then(() => {
-          // click on popup to remove offer and wait till feedback window is shown
-          subject.query('.settings [data-menu-type="delete"]').click();
-          return waitFor(() => subject.query('.voucher-wrapper').classList.contains('active'));
-        })
+        // .then(() => {
+        //   // click on popup to remove offer and wait till feedback window is shown
+        //   subject.query('.settings [data-menu-type="delete"]').click();
+        //   return waitFor(() => subject.query('.voucher-wrapper').classList.contains('active'));
+        // })
         .then(() => {
           // click on close button for feedback and wait till the offer is hidden
-          subject.query('#close-feedback').click();
+          subject.query('.feedback button.close').click();
           return waitFor(() => subject.queryAll(offerSelector).length !== 4);
         });
     });
@@ -94,18 +94,18 @@ context('Offers Hub Interaction tests for removing offer', function () {
     });
 
     it('sends message after deleting the offer', function () {
-      subject.query('.logo-wrapper button.setting').click();
+      subject.query('.logo-wrapper button.close').click();
       return waitFor(function () {
-        return subject.query('.logo-wrapper').classList.contains('menu-opened');
+        return subject.query('.details div.feedback').classList.contains('show');
       })
-        .then(() => {
-          // click on popup to remove offer and wait till feedback window is shown
-          subject.query('.settings [data-menu-type="delete"]').click();
-          return waitFor(() => subject.query('.voucher-wrapper').classList.contains('active'));
-        })
+        // .then(() => {
+        //   // click on popup to remove offer and wait till feedback window is shown
+        //   subject.query('.settings [data-menu-type="delete"]').click();
+        //   return waitFor(() => subject.query('.voucher-wrapper').classList.contains('active'));
+        // })
         .then(() => {
           // click on close button for feedback and wait till message is sent
-          subject.query('#close-feedback').click();
+          subject.query('.feedback button.close').click();
           return waitFor(() => subject.messages.find(message => message.message.action === 'getEmptyFrameAndData'));
         })
         .then((message) => {

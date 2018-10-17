@@ -229,7 +229,7 @@ describe('Promo bar', function () {
             expect($headline).to.contain.text(data.template_data.headline);
             expect($headline.getAttribute('data-openurl')).to.equal(data.template_data.call_to_action.url);
           } else {
-            expect(subject.getComputedStyle($headline).display).to.equal('none');
+            expect(subject.getComputedStyle($headline).display).to.not.equal('none');
           }
         });
 
@@ -267,7 +267,6 @@ describe('Promo bar', function () {
 
           expect($tooltipIcon).to.exist;
           expect(subject.getComputedStyle($tooltipIcon).display).to.not.equal('none');
-          expect(subject.getComputedStyle($tooltipIcon).backgroundImage).to.contain('/images/ticket-tmpl/info-icon.svg');
         });
 
         it(sizes[frameWidth].hasConditionHeader
@@ -287,7 +286,7 @@ describe('Promo bar', function () {
 
         it('has an existing and correct ad text', function () {
           const adSelector = '.anzeige .vertical-txt';
-          const $ad = $promoBody.querySelector(adSelector);
+          const $ad = subject.query(promoContainerSelector).querySelector(adSelector);
 
           expect($ad).to.exist;
           expect(subject.getComputedStyle($ad).display).to.not.equal('none');

@@ -1,5 +1,5 @@
-<div class="close" data-cqz-of-btn-id="offer_closed">
-  <img data-cqz-of-btn-id="offer_closed" src="./images/ticket-tmpl/close-offer-hover.svg" />
+<div class="anzeige">
+    <span class="vertical-txt" data-i18n="offers_ad"></span>
 </div>
 
 {{#if code}}
@@ -21,7 +21,22 @@
 {{/if}}
 
 <div class="promo-container {{ logo_class }}">
-
+  <div class="why-offer">
+    <span>
+        <label data-i18n="why_offers">{{local why_offers}}</label>
+        <span class="tooltip-text">
+            <span data-i18n="why_offers_text">{{local why_offers_text}}</span>
+            <a
+                href="#"
+                data-i18n="learnMore"
+                data-cqz-of-btn-id="more_about_cliqz"
+                data-openUrl="https://cliqz.com/en/cliqz-angebote"
+            >
+                {{local learnMore}}
+            </a>
+        </span>
+    </span>
+  </div>
   {{#if labels}}
   <div class="special-flags">
     {{#each labels}}
@@ -114,7 +129,8 @@
     {{/if}}
   </div>
 
-  <div class="anzeige">
-    <span class="vertical-txt" data-i18n="offers_ad"></span>
+
+  <div class="close" data-cqz-of-btn-id="offer_closed">
+    <img data-cqz-of-btn-id="offer_closed" src="./images/ticket-tmpl/close-offer-hover.svg" />
   </div>
 </div>

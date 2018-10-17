@@ -61,7 +61,7 @@ export default background({
 
     // filter page loads: must stay on site for 10s before it is logged
     this.pageStream = this.subjectPages.observeOn(Rx.Scheduler.async)
-      .groupBy(({ tabId }) => tabId)
+      .groupBy(({ tabId }) => tabId, undefined, () => Rx.Observable.timer(300000))
       .flatMap(group => group
         .distinctUntilChanged((a, b) => a.domain === b.domain)
         .debounceTime(10000))
@@ -85,7 +85,7 @@ export default background({
           this.trackers.isTrackerDomain(md5(cookieGeneralDomain(cookie.domain)).substring(0, 16)) &&
           cookie.expirationDate > (Date.now() + (1000 * 60 * 60)) / 1000
       )
-      .groupBy(({ cookie }) => cookieId(cookie))
+      .groupBy(({ cookie }) => cookieId(cookie), undefined, () => Rx.Observable.timer(30000))
       .flatMap(group => group.auditTime(10000))
       .bufferTime(BATCH_UPDATE_FREQUENCY)
       .filter(group => group.length > 0);
@@ -144,7 +144,8 @@ export default background({
     }
 
     const url = URLInfo.get(details.url);
-    if (this.trackers && this.trackers.isTrackerDomain(md5(url.host.domain).substring(0, 16))) {
+    if (url && this.trackers &&
+        this.trackers.isTrackerDomain(md5(url.host.domain).substring(0, 16))) {
       // do not register private tabs
       // on webextensions check tab API, on firefox use details.isPrivate
       const checkIsPrivate = typeof details.isPrivate !== 'boolean' ?

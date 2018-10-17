@@ -186,5 +186,5 @@ export function addListener(listener) {
 }
 
 export function removeListener(listener) {
-  listeners.remove(listener);
+  listeners.delete(listener);
 }

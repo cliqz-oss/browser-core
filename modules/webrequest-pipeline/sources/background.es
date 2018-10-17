@@ -6,6 +6,7 @@ import Pipeline from './pipeline';
 import WebRequestContext from './webrequest-context';
 import PageStore from './page-store';
 import installFetchSanitizer from './fetch-sanitizer';
+import installStripApiHeadersHandler from './strip-api-headers';
 import logger from './logger';
 import { isWebExtension, isEdge } from '../core/platform';
 
@@ -89,12 +90,14 @@ function createWebRequestContext(details, pageStore) {
   // **Chromium addition**
   // We do not get the `sourceUrl` in Chrome, so we keep track of the mapping
   // tabId/sourceUrl in `pageStore`.
-  try {
-    if (!context.sourceUrl && chrome && chrome.tabs) {
+  if (!context.sourceUrl) {
+    if (context.documentUrl) {
+      // firefox
+      context.sourceUrl = context.documentUrl;
+    } else if (context.tabId !== -1) {
+      // chrome does not have documentUrl
       context.sourceUrl = pageStore.getSourceURL(context);
     }
-  } catch (ex) {
-    /* Not defined on firefox yet */
   }
 
   // **Chromium addition**
@@ -104,7 +107,7 @@ function createWebRequestContext(details, pageStore) {
   }
 
   // **Chromium addition**
-  if (context.type === 'main_frame') {
+  if (context.tabId > -1 && context.type === 'main_frame') {
     pageStore.onFullPage(context);
   }
 
@@ -240,6 +243,7 @@ export default background({
     const addHandler = (stage, opts) => {
       this.getPipeline(stage).addPipelineStep(opts);
     };
+    installStripApiHeadersHandler(addHandler);
     installFetchSanitizer(addHandler);
   },
 

@@ -4,8 +4,10 @@ import { chrome } from './globals';
 import { Resource } from '../core/resource-loader';
 import { getDetailsFromUrl } from '../core/url';
 import console from '../core/console';
+import config from '../core/config';
 
-const ORIGINAL_SEARCH_ENGINE_NAME = 'Cliqz';
+const ORIGINAL_SEARCH_ENGINE_NAME = config.settings.DEFAULT_SEARCH_ENGINE || 'Cliqz';
+
 const storage = new Storage();
 const ENGINE_CODES = [
   'google images',
@@ -23,16 +25,19 @@ const ENGINE_CODES = [
 
 const getEngineCode = name => ENGINE_CODES.indexOf(name.toLowerCase()) + 1;
 
-function buildSearchEngines(engines) {
-  // mobile browser experimental api
-  const currentEngine = (engines.find(e => e.isCurrent) || engines[0]).name;
-  const defaultSe = storage.getItem('defaultSearchEngine') || ORIGINAL_SEARCH_ENGINE_NAME;
+function buildSearchEngines(engines, isMobile) {
+  let defaultSearchEngine;
+  if (isMobile) {
+    defaultSearchEngine = engines.find(e => e.isCurrent).name;
+  } else {
+    defaultSearchEngine = storage.getItem('defaultSearchEngine') || ORIGINAL_SEARCH_ENGINE_NAME;
+  }
   return engines
     .map(e => ({
       name: e.name,
       code: getEngineCode(e.name),
       alias: '', // todo
-      default: currentEngine ? e.name === currentEngine : e.name === defaultSe,
+      default: e.name === defaultSearchEngine,
       icon: e.icon,
       base_url: e.searchForm || e.search.template,
       urlDetails: getDetailsFromUrl(e.searchForm || e.search.template),
@@ -82,7 +87,7 @@ export function loadSearchEngines() {
   if (chrome.cliqzSearchEngines) {
     return chrome.cliqzSearchEngines.getEngines()
       .then((engines) => {
-        SEARCH_ENGINES = buildSearchEngines(engines);
+        SEARCH_ENGINES = buildSearchEngines(engines, true);
       });
   }
 
@@ -90,7 +95,7 @@ export function loadSearchEngines() {
     enginesLoading = true;
     loadSearchEnginesFromResources()
       .then((engines) => {
-        SEARCH_ENGINES = buildSearchEngines(engines);
+        SEARCH_ENGINES = buildSearchEngines(engines, false);
       })
       .catch(e => console.error('Could not load search engines.', e))
       .finally(() => {

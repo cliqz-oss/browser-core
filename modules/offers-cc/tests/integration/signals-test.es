@@ -210,7 +210,7 @@ export default function () {
 
       it('shows a blue notification popup with correct text', function () {
         expect(getBlueNotificationPopup().querySelector(tooltipSelector))
-          .to.contain.text('You have a new offer');
+          .to.contain.text(getLocalisedString('offers_hub_tooltip_new_offer'));
       });
 
       context('clicking on the blue notification', function () {
@@ -247,7 +247,7 @@ export default function () {
           const validitySelector = '.validity';
           const conditionSelector = '.condition';
           const ctaButtonSelector = '.cta-btn';
-          const feedbackButtonSelector = '#feedback-button';
+          const feedbackButtonSelector = 'li.feedback';
 
           const $offer = win.document
             .querySelector('#offers-cc-browser-action-iframe').contentWindow.document
@@ -256,7 +256,7 @@ export default function () {
           await waitFor(() => expect($offer).to.exist);
           await waitFor(() => expect($offer.querySelector(`${labelSelector} ${exclusiveLabelSelector}`), 'Exclusive label', 1000).to.exist);
           expect($offer.querySelector(`${labelSelector} ${exclusiveLabelSelector}`))
-            .to.have.text('Exclusive');
+            .to.have.text(getLocalisedString('offers_exclusive'));
 
           const $bestLabel = $offer.querySelector(`${labelSelector} ${bestLabelSelector}`);
           const $settingsButton = $offer.querySelector(settingsButtonSelector);
@@ -271,7 +271,7 @@ export default function () {
           const $feedbackButton = $offer.querySelector(feedbackButtonSelector);
 
           expect($bestLabel, 'Best offer label').to.exist;
-          expect($bestLabel).to.have.text('Best offer');
+          expect($bestLabel).to.have.text(getLocalisedString('offers_best_offer'));
 
           expect($settingsButton, 'Settings button').to.exist;
 

@@ -1,6 +1,15 @@
 /* eslint-disable */
 var { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
+function generateQI(...args) {
+  if (typeof XPCOMUtils !== 'undefined' && XPCOMUtils.generateQI) {
+    return XPCOMUtils.generateQI(...args);
+  } else if (typeof ChromeUtils !== 'undefined' && ChromeUtils.generateQI) {
+    return ChromeUtils.generateQI(...args);
+  }
+  throw new Error('generateQI is not a function');
+}
+
 function CliqzChannel(aUri, aScript) {
   // nsIRequest
   this.loadFlags = 0;
@@ -45,7 +54,7 @@ export default {
   _classID: Components.ID('{12dede52-defd-11e6-bf01-fe55135034f3}'),
   _contractID:  '@mozilla.org/network/protocol;1?name=cliqz',
 
-  QueryInterface: XPCOMUtils.generateQI([
+  QueryInterface: generateQI([
       Ci.nsIFactory,
       Ci.nsIProtocolHandler,
       Ci.nsISupportsWeakReference

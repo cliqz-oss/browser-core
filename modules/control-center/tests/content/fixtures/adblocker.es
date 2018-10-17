@@ -85,6 +85,7 @@ export const dataOffSite = {
   generalState: 'active',
   feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
   amo: false,
+  showPoweredBy: true,
   compactView: false
 };
 
@@ -115,5 +116,6 @@ export const dataOffAll = {
   generalState: 'active',
   feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
   amo: false,
-  compactView: false
+  compactView: false,
+  showPoweredBy: true,
 };

@@ -12,7 +12,7 @@ import {
   win,
   withHistory,
 } from './helpers';
-import { colors, flightMatrix } from './flight-helpers';
+import { colors, flightMatrix } from '../../core/integration/flight-helpers';
 import resultsFlights from '../../core/integration/fixtures/resultsFlights';
 
 export default function () {

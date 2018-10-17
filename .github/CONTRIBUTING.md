@@ -7,6 +7,12 @@
 
 To manage multiple Node.js versions, you can use [nvm](https://github.com/creationix/nvm).
 
+1. `curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash`
+2. Restart your terminal
+3. Ensure that nvm was installed correctly with ```nvm --version```
+4. Install recommended version of Node `nvm install (8 | 9)`
+5. If multiple versions are installed, set recommended Node version as default `nvm alias default (8 | 9)`
+
 ## Contribution Workflow
 
 To setup your environment:
@@ -96,10 +102,18 @@ Running the unit tests can be done with:
 
 ### Integration Tests
 
+Currently we make use of chromedriver 2.40, so make sure to download it from http://chromedriver.chromium.org/
+Current version can always be checked in ```Dockerfile.ci```
+
+You also need to update your hosts file with following
+```
+127.0.0.1   localhost cliqztest.com
+```
+
 There are multiple kinds of integration tests:
 
 * Browser tests: `./fern.js test ./configs/ci/browser.js -l firefox-web-ext`
-* Content tests: `./fern.js test ./configs/ci/browser.js -l chromium`
+* Content tests: `./fern.js test ./configs/ci/browser.js -l (chrome | chromium)`
 * Webextension tests: `./fern.js test ./configs/ci/webextension.js -l chromium-selenium`
 * Ghostery tests: `./fern.js test ./configs/ci/ghostery.js -l ghostery-selenium`
 
@@ -176,3 +190,9 @@ $ /usr/local/bin/bash run_tests_docker.sh '<launcher>'
 Please use the configuration from [editorconfig](/.editorconfig) and check the
 [Airbnb Javascript Style Guide](https://github.com/airbnb/javascript) which we
 use in this project.
+
+
+#### Troubleshooting
+* Make sure you have latest npm version installed
+* Make sure you remove node_modules folder ```rm -rf node_modules``` before running ```npm install```
+* Make sure you have python2 binary executable. On Mac it can be solved by running ```brew install python2```

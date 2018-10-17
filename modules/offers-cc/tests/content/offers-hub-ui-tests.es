@@ -33,37 +33,40 @@ describe('Offers Hub UI tests', function () {
             .to.equal('offers_hub_title');
         });
 
-        it('renders \'About\'', function () {
-          const aboutSelector = '#about-link';
-          expect(subject.query(aboutSelector)).to.exist;
-          expect(subject.query(aboutSelector).textContent.trim())
-            .to.equal('offers_hub_about_cliqz_offers');
-        });
+        // Replaced with three dots menu
+        // Need to cover this with a new test
 
-        it('link for \'About\' is correct', function () {
-          const aboutSelector = '#about-link';
-          expect(subject.query(aboutSelector).hasAttribute('data-url')).to.be.true;
-          expect(subject.query(aboutSelector).getAttribute('data-url'))
-            .to.equal('https://cliqz.com/myoffrz');
-        });
+        // it('renders \'About\'', function () {
+        //   const aboutSelector = '#about-link';
+        //   expect(subject.query(aboutSelector)).to.exist;
+        //   expect(subject.query(aboutSelector).textContent.trim())
+        //     .to.equal('offers_hub_about_cliqz_offers');
+        // });
+
+        // it('link for \'About\' is correct', function () {
+        //   const aboutSelector = '#about-link';
+        //   expect(subject.query(aboutSelector).hasAttribute('data-url')).to.be.true;
+        //   expect(subject.query(aboutSelector).getAttribute('data-url'))
+        //     .to.equal('https://cliqz.com/myoffrz');
+        // });
       });
 
       context('footer part: ', function () {
         it('renders feedback button', function () {
-          const buttonSelector = 'footer #feedback-button';
+          const buttonSelector = '.setting-menu li.feedback';
           expect(subject.query(buttonSelector)).to.exist;
           expect(subject.query(buttonSelector)
-            .textContent.trim()).to.equal('offers_hub_feedback_title');
+            .textContent.trim()).to.equal('offers_menu_give_feedback');
         });
 
         it('renders Cliqz icon', function () {
         });
 
         it('feedback popup exists but not visible', function () {
-          const feedbackContentSelector = 'footer #feedback-content';
+          const feedbackContentSelector = '.overlay';
           expect(subject.query(feedbackContentSelector)).to.exist;
-          expect(subject.getComputedStyle(feedbackContentSelector).display)
-            .to.equal('none');
+          expect(subject.getComputedStyle(feedbackContentSelector).visibility)
+            .to.equal('hidden');
         });
       });
     });
@@ -270,9 +273,9 @@ describe('Offers Hub UI tests', function () {
     offersHubFrameTests();
 
     it('header: renders ad_label', function () {
-      const adLabelSelector = 'header p span';
-      expect(subject.queryAll(adLabelSelector)[1]).to.exist;
-      expect(subject.queryAll(adLabelSelector)[1].textContent.trim()).to.equal('ad_label');
+      const adLabelSelector = 'footer p span';
+      expect(subject.queryAll(adLabelSelector)[0]).to.exist;
+      expect(subject.queryAll(adLabelSelector)[0].textContent.trim()).to.equal('ad_label');
     });
 
     it('footer: renders arrow to see more offers', function () {
@@ -403,11 +406,10 @@ describe('Offers Hub UI tests', function () {
     offersHubFrameTests();
 
     it('header: renders ad_label', function () {
-      const adLabelSelector = 'header p span';
-      expect(subject.queryAll(adLabelSelector)[1]).to.exist;
-      expect(subject.queryAll(adLabelSelector)[1].textContent.trim()).to.equal('ad_label');
+      const adLabelSelector = 'footer p span';
+      expect(subject.queryAll(adLabelSelector)[0]).to.exist;
+      expect(subject.queryAll(adLabelSelector)[0].textContent.trim()).to.equal('ad_label');
     });
-
     it('footer: doesn\'t render arrow to see more offers', function () {
       const buttonSelector = 'footer button#expand-button';
       expect(subject.query(buttonSelector)).to.not.exist;

@@ -14,7 +14,8 @@
     $search-input-border,
     $search-input-box-shadow-focus,
     $search-input-color,
-    $search-input-bg-image
+    $search-input-cliqz-bg-image,
+    $search-input-ghostery-bg-image
 ) {
     $width: $inner-content-width;
     #section-url-bar {
@@ -42,7 +43,7 @@
         right: 0;
         z-index: 100;
         box-shadow: $search-input-box-shadow-focus;
-        
+
         iframe {
             display: block;
             width: 100%;
@@ -51,7 +52,7 @@
             border-radius: 0 0 2px 2px;
             box-shadow: 0 -1px rgb(225, 225, 225);
         }
-        
+
         .results {
             iframe {
                 transition: height 40ms cubic-bezier(0.55, 0.055, 0.675, 0.19);

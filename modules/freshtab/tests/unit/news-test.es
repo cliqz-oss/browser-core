@@ -11,6 +11,7 @@ export default describeModule('freshtab/news',
         default: {
           settings: {
             RICH_HEADER: 'https://api.cliqz.com/api/v1/rich-header?path=/map',
+            channel: '99',
           },
         },
       },

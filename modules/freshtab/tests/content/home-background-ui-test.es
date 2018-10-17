@@ -7,7 +7,7 @@ import {
   Subject,
 } from '../../core/test-helpers-freshtab';
 
-describe('Fresh tab background UI', function () {
+describe('Freshtab background UI', function () {
   let backgroundSwitch;
   let subject;
 

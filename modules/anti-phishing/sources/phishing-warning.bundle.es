@@ -1,4 +1,4 @@
-/* global window, document, CLIQZ */
+/* global window, document, CLIQZ, ChromeUtils */
 import { getMessage } from '../core/i18n';
 
 const telemetry = {
@@ -30,7 +30,7 @@ function getURL() {
 }
 
 function format() {
-  Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+  (ChromeUtils.import || Components.utils.import)('chrome://cliqzmodules/content/CLIQZ.jsm');
 
   // bundling made System imports obsolete so temporary
   // moving towards a more "nasty" way of importing

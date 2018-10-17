@@ -10,6 +10,8 @@ let mockUserDemographics = { };
 let mockSynchronizedDate = Moment(new Date(2017, 5, 1));
 let mockRandom = 0;
 
+const normalizeString = value => value.trim().toLowerCase().replace(/\s+/g, '-');
+
 const MOCK = {
   'abtests/logger': {
     default: {
@@ -28,6 +30,7 @@ const MOCK = {
   },
   'core/demographics': {
     default: () => Promise.resolve(mockUserDemographics),
+    normalizeString,
   },
   'core/synchronized-time': {
     default: () => mockSynchronizedDate,
@@ -507,6 +510,39 @@ export default describeModule('abtests/manager',
         manager.isVersionMatch = () => false;
         return chai.expect(manager.shouldStartTest(mockTest2)).to.eventually.be.false;
       });
+      it('returns true if condition evaluates to true', () => {
+        mockRandom = 0.4;
+        mockTest2.probability = 0.5;
+        return chai.expect(manager.shouldStartTest({
+          ...mockTest2,
+          conditions: {
+            and: [
+              { noneOf: [
+                { pref: { name: 'foo', hasValue: 'baz' } },
+              ] },
+              { noneOf: [
+                { pref: { name: 'foo', hasValue: 'bar' } },
+              ] },
+            ]
+          },
+        })).to.eventually.be.true;
+      });
+
+      it('returns false if condition evaluates to false', () => {
+        mockRandom = 0.4;
+        mockTest2.probability = 0.5;
+        return chai.expect(manager.shouldStartTest({
+          ...mockTest2,
+          conditions: {
+            and: [
+              { pref: { name: 'foo', hasValue: 'baz' } },
+              { noneOf: [
+                { pref: { name: 'foo', hasValue: 'bar' } },
+              ] },
+            ]
+          },
+        })).to.eventually.be.false;
+      });
     });
     describe('#shouldStopTest', () => {
       let manager;
@@ -734,6 +770,10 @@ export default describeModule('abtests/manager',
       describe('with one factor', () => {
         it('matches root', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0' };
+          return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ' } })).to.eventually.be.true;
+        });
+        it('matches different non-normalized values', () => {
+          mockUserDemographics = { product: 'cliqz' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ' } })).to.eventually.be.true;
         });
         it('matches partial path', () => {

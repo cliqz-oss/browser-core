@@ -34,6 +34,7 @@ const TEST_URL = window.location.href;
 async function closeAllTabs() {
   await Promise.all((await tabs.query({}))
     .filter(({ url }) => url !== TEST_URL)
+    .filter(({ url }) => !url.startsWith('about:')) // don't close about pages as they are commonly used to debug state of the browser
     .map(({ id, url }) =>
       // eslint-disable-next-line no-console
       tabs.closeTab(id).catch(ex => console.error('Could not close tab', id, url, ex))
@@ -60,10 +61,17 @@ async function closeAllTabs() {
   const reloadExtensionCounterInc = Number(prefs.get('integration-tests.forceExtensionReload', 0));
   let reloadExtensionCounter = 0;
 
-  beforeEach(async () => {
+  before(async () => {
     await closeAllTabs();
     await testServer.reset();
+  });
 
+  after(async () => {
+    await closeAllTabs();
+    await testServer.reset();
+  });
+
+  beforeEach(async () => {
     if (reloadExtensionCounterInc === 0) {
       mockGlobalState();
     } else if (win.preventRestarts) {
@@ -87,10 +95,20 @@ async function closeAllTabs() {
     CliqzABTests.check = abCheck;
 
     // Reset global state
-    await closeAllTabs();
     await testServer.reset();
+    if (!win.preventRestarts) {
+      await closeAllTabs();
+    }
   });
 
   win.focus();
-  mocha.run();
+
+  // Check if we should autostart the tests
+  const searchParams = new window.URLSearchParams(window.location.search);
+  const autostartParams = searchParams.getAll('autostart');
+  const autostart = autostartParams[autostartParams.length - 1];
+
+  if (autostart === 'true') {
+    mocha.run();
+  }
 }());

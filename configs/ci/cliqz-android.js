@@ -13,8 +13,12 @@ module.exports = Object.assign({}, base, {
     'content-script-tests',
   ]),
   subprojects: base.subprojects.concat(subprojects([
-    'mocha',
     'chai',
+    'chai-dom',
+    'mocha',
+    'reactTestUtils',
+    'sinon',
+    'sinon-chai',
   ])),
   bundles: base.bundles.concat([
     'integration-tests/run.bundle.js',

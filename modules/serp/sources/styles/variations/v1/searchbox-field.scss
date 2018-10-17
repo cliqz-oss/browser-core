@@ -1,0 +1,16 @@
+.searchbox-v1 {
+  &-field {
+    height: 45px;
+    border: none;
+    border-radius: 3px;
+    color: #595959;
+    background: url("../assets/search-icon-grey.svg") 98% center no-repeat;
+    box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 160ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:focus {
+      background-image: url("../assets/search-icon-blue.svg");
+      box-shadow: 0 2px 9px -3px rgba(0, 0, 0, 0.34);
+    }
+  }
+}

@@ -103,13 +103,13 @@ const services = {
 
           const r = Math.random();
           if (r < 0.33) {
-            prefs.set('serp_test', 'E');
+            prefs.set('serp_test', 'H');
           } else if (r < 0.66) {
-            prefs.set('serp_test', 'F');
+            prefs.set('serp_test', 'I');
             isSearchServiceReady().then(() =>
               addCustomSearchEngine('https://suchen.cliqz.com/opensearch.xml', true));
           } else {
-            prefs.set('serp_test', 'G');
+            prefs.set('serp_test', 'J');
             isSearchServiceReady().then(() =>
               addCustomSearchEngine('https://suchen.cliqz.com/opensearch.xml', true));
           }
@@ -117,12 +117,12 @@ const services = {
       }
     }
 
-    // we migrate the SERP tests users from B to D
-    if (prefs.get('serp_test', '-') === 'B') {
+    // we migrate the SERP tests users from D to K
+    if (prefs.get('serp_test', '-') === 'D') {
       isSearchServiceReady().then(() => {
         removeEngine('Cliqz');
         addCustomSearchEngine('https://search.cliqz.com/opensearch.xml', true);
-        prefs.set('serp_test', 'D');
+        prefs.set('serp_test', 'K');
       });
     }
   },

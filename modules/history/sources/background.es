@@ -33,7 +33,7 @@ export default background({
     this.sessionCounts = new Map();
 
     if (HistoryService && HistoryService.onVisitRemoved) {
-      this.onVisitRemovedListener = this.onVisitRemovedListener.bind(this);
+      this.onVisitRemovedListener = this._onVisitRemovedListener.bind(this);
 
       HistoryService.onVisitRemoved.addListener(this.onVisitRemovedListener);
     }
@@ -54,7 +54,7 @@ export default background({
     this.dbMigration.dispose();
   },
 
-  onVisitRemovedListener(...args) {
+  _onVisitRemovedListener(...args) {
     getActiveTab().then(({ id, url }) => {
       if (config.settings.HISTORY_URL.indexOf(url) === -1) {
         return;
@@ -147,12 +147,13 @@ export default background({
         .getService(Components.interfaces.mozIAsyncHistory);
       const queryUrl = `https://cliqz.com/search?q=${encodeURIComponent(query)}`;
       const uri = Services.io.newURI(queryUrl, null, null);
+      const triggeringVisitTimestamp = Date.now() * 1000;
 
       const place = {
         uri,
         title: `${query} - Cliqz Search`,
         visits: [{
-          visitDate: Date.now() * 1000,
+          visitDate: triggeringVisitTimestamp,
           transitionType: Components.interfaces.nsINavHistoryService.TRANSITION_TYPED,
         }],
       };
@@ -162,12 +163,13 @@ export default background({
         handleResult: () => {},
         handleCompletion: () => {
           setTimeout(() => {
-            History.fillFromVisit(url, queryUrl).catch(({ visitId, triggeringVisitId }) => {
+            History.fillFromVisit(url, queryUrl).catch((a) => {
+              const { visitId } = a;
               if (!visitId) {
                 // If there is no visitId, it may be Automatic Forget Tab
                 // taking over this url load, in such case we remove 'Cliqz Search'
                 // visit from history
-                this.history.deleteVisit(triggeringVisitId);
+                this.history.deleteVisit(triggeringVisitTimestamp);
               }
             });
           }, 2000);

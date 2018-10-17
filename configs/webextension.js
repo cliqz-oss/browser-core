@@ -1,5 +1,4 @@
-
-const urls = require('./common/urls');
+const urls = require('./common/urls-cliqz');
 const base = require('./common/system');
 const subprojects = require('./common/subprojects/bundles');
 
@@ -15,44 +14,44 @@ module.exports = {
   "versionPrefix": "9",
   "settings": Object.assign({}, urls, {
     "id": id,
-    "name": "Cliqz Beta",
-    "description": "For internal testers use only.",
     "channel": "CT12", // Cliqz Tab Chrome Beta
     "MSGCHANNEL": "cliqz-tab",
     "freshTabNews": true,
-    "KEY_DS_PUBKEY": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2YQdJOUx4/XT5uRlMl+9rCnyoPVcRLmbdd+DcUDPVYHxLl9bUorgfZHNnu/HPWj5vLRIF7mNnAFhZByZj/FvQHqfOptrFEJP5h9/2iAUBr2ZgRsWHhGGEBDRXI3FLvuqFCf8jcDRsVRXqiJ8ZMJgaF+a4j2Smt7XYDlG56L+MZCXgaR6mlevXMymee8Cf1Y28+mtV4Q8UZPCqARWNKeNu8HG0X39lWb/boqB2IiZHdclpmeYpuHHlcPZ2Qg/5ofi7KlZXA9SW3w3WguQnR/TKC+sZd49fI63H4lpIN/Mkk4tq4oYR9zrvGUP5944+ozLiY4+sXFXjYJ9Lq/jZdHlBQIDAQAB",
-    "KEY_SECURE_LOGGER_PUBKEY": "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA4m2KJ6BCQFZlQSAZHrh8Lx6wxYTUOaT6YZPl5oSISVPJHtL21ZrMzIL8NJLvVytgxpPqq7iFIzKnHJ1uQKrnVHAy0Tdv0FO6jZuNxb0UuBzZPbYNdO9dZHxKUb6beglD8WVsdLbH5rMx650eaAIsG6CgTkKUucCTxFXYcIgOgHKTzr67C/qpyNq5BInH2YpnblEvfAKWvqrzu2/c9a7BfYBTy46U93rI/XRfDgf6tRsF4DHTGPUQ6+s+RvNH8BaTD1o1MhdDgpq4ZOrwvkXmYbKJpYk5x2MJE1EvM8R7EP0zRXYC5M+OFc1p2i7CHd37gQqJRyDkke4iyzsIf8zjNrXnQBzrGxMTT1pyQmbg9e+5XMu0V95h/HQ5/WA+9P0GxTWgpLJlwK+0kWPFAmEp+LK5hNaW9T0pzoxeuRRjH7qDP478j1CK8ZtRUZ7DOXcCV6Xuh/tEXoQNJpuKmRym6nRKb0XQdnJolqVgSMN5Rn7F1B8Kvc5B+AGKnv+0gkzeKEtBtRIUkHBK8MPHlIXzJfxGxnuFjKBiXBJx/CL4EEj7ALkf04zLDstZhLrUQJ1PZLTzobNn7jjsu438oNW1COzzVNoApXaTi0Lgg1GRa8kaOUu1rIVzZoIukqstzg/26+HBR2u64gyS9YRqsLuTrmNfRecsNNlfulDwb30EcacCAwEAAQ==",
+    "KEY_DS_PUBKEY": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwXo4hXvboKHCggNJ0UNFvZQfDWi0jNcF1kBHthxilMu6LB\/hFrSMQ+\/FgTqVE36cCezWE0K1UcwmYGVsuqxcvql82RfCmYUVBroJ3UFG8qnetYfU5FOk43C555p5l5HzlF8QilcCUBCO4SCj9lEZ3\/8FJboCupTqxEUq7nwUgaNZOiGKMdDUBZJO1tW4LSH4lj9IAZccEJ5HKVmJKopQ3hmzWgDqowxni4NQz+0DnsSfCGAupKaJDxjfajJosX5i674rgdHbZGtgHB3M9jhc6HFNPcmtUgLwgtUtRwMhSnya6q\/O06euouNi1h0m5eRrWeMRlJSdUnelLSU8QNy7LQIDAQAB",
+    "KEY_SECURE_LOGGER_PUBKEY": "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAh5HhcRAn6+6woXQXl\/NtZ+fOooNglZct\/HSpYuqkcmrPauHW7EuOSq5bvpBZRTDROjR\/kUPomqVZIzqhdCFPA8BwXSCz7hAel2Q157vtBvh9sngMMLXb5Fgzef5N4EuKO8pL5KrS+I9tfZac41vFJSdpgAirZYhh+tdcQQ1z0Qv\/Rw0zOXjfvddCz3gEv2gB9KsLMVnTS1J4YOOgfza2adg9Ebz1z99DiF4vtCwn0IUwH\/3ToTBwJLbMnC3Ol43yBNk8rgK2mkgCi614vOSD3hnVmio+iW6+AUklM8VPl6l7hEK9cljJY+9UsMVmTrvaFbMPwS6AdZCXKTmNdaMJcy3zSOXu5zvzihoQLwAu9LM3l2eVk0Mw0K7JXOP20fc8BtzWCOLYVP32r4R0BNuhTtvGqjHNZHPJN5OwaxkLpn2dujL9uDWGjRiOItKMVq\/nOqmNGghrbf8IOaKT7VQhqOU4cXRkB\/uF1UjYETBavwUZAxx9Wd\/cMcAGmKiDxighxxQ29jDufl+2WG065tmJz+zCxmgrPh6Zb3KFUxPTe6yksAhWJhmGShA9v20t84M5c6NpZXoUsFcVja6XxzHeSB8dWq9Uu5QcZ83Gz\/ronwdEjT2OGTtBgOFeTDqLYUgphC1gcUEHOCnTNXRMQOXqGwBfZHp+Mq61QcMq2rNS7xECAwEAAQ==",
     "HPN_CHANNEL": "cliqz",
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
+    "FRESHTAB_TITLE": "Cliqz Tab",
   }),
-  'default_prefs' : {
+  default_prefs: {
     'modules.human-web.enabled': false,
     'modules.hpn.enabled': false,
     'freshtab.search.mode': 'search',
-    'showConsoleLogs': true,
-    'developer': true,
-    'offers2FeatureEnabled': true,
+    showConsoleLogs: true,
+    developer: true,
+    offers2FeatureEnabled: true,
   },
-  "modules": [
-    "core",
-    "static",
-    "geolocation",
-    "search",
-    "dropdown",
-    "freshtab",
-    "offers-v2",
-    "human-web",
-    "hpn",
-    "webrequest-pipeline",
-    "webextension-specific",
-    "anolysis",
-    "anolysis-cc",
-    "overlay",
-    "control-center",
-    "message-center"
+  modules: [
+    'core',
+    'core-cliqz',
+    'static',
+    'geolocation',
+    'search',
+    'dropdown',
+    'freshtab',
+    'offers-v2',
+    'human-web',
+    'hpn',
+    'webrequest-pipeline',
+    'webextension-specific',
+    'anolysis',
+    'anolysis-cc',
+    'overlay',
+    'control-center',
+    'message-center'
   ],
-  "subprojects": subprojects([
-    '@cliqz-oss/pouchdb',
+  subprojects: subprojects([
+    'pouchdb',
     '@cliqz-oss/dexie',
     'core-js',
     'handlebars',
@@ -66,28 +65,28 @@ module.exports = {
     'tooltipster-sideTip-theme',
     'jsep',
   ]),
-  "bundles": [
-    "hpn/worker.bundle.js",
-    "core/content-script.bundle.js",
-    "webextension-specific/app.bundle.js",
-    "freshtab/home.bundle.js",
-    "dropdown/dropdown.bundle.js",
-    "control-center/control-center.bundle.js",
+  bundles: [
+    'hpn/worker.bundle.js',
+    'core/content-script.bundle.js',
+    'webextension-specific/app.bundle.js',
+    'freshtab/home.bundle.js',
+    'dropdown/dropdown.bundle.js',
+    'control-center/control-center.bundle.js',
   ],
   system: Object.assign({}, base.systemConfig, {
     map: Object.assign({}, base.systemConfig.map, {
-      "ajv": "node_modules/ajv/dist/ajv.min.js",
-      "jsep": "modules/vendor/jsep.min.js",
+      ajv: 'node_modules/ajv/dist/ajv.min.js',
+      jsep: 'modules/vendor/jsep.min.js',
     })
   }),
   builderDefault: Object.assign({}, base.builderConfig, {
-    externals: base.builderConfig.externals.concat('@cliqz-oss/dexie', '@cliqz-oss/pouchdb', 'rxjs'),
+    externals: base.builderConfig.externals.concat('@cliqz-oss/dexie', 'pouchdb', 'rxjs'),
     globalDeps: Object.assign({}, base.builderConfig.globalDeps, {
       '@cliqz-oss/dexie': 'Dexie',
-      '@cliqz-oss/pouchdb': 'PouchDB',
-      '@cliqz-oss/pouchdb/lib/index.js': 'PouchDB',
-      'rxjs': 'Rx',
+      'pouchdb': 'PouchDB',
+      'pouchdb/lib/index.js': 'PouchDB',
+      rxjs: 'Rx',
       'rxjs/Rx.js': 'Rx',
     }),
   }),
-}
+};

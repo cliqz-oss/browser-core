@@ -97,13 +97,33 @@ export default class Weather extends React.Component {
     const cardWidth = getCardWidth();
     const imageName = normalizeUrl(day.icon);
     return (
-      <View key={day.weekday} style={stylesToday(cardWidth).dayWrapper}>
-        <Text style={stylesToday().dayText}>{day.weekday}</Text>
-        <Text style={stylesToday().temperatureText}>
-          <Text style={stylesToday().maxMinText}>max.</Text> {day.max}{' '}
-          <Text style={stylesToday().maxMinText}>/ min.</Text> {day.min}
-        </Text>
-        <NativeDrawable source={imageName} style={stylesToday(cardWidth).dayIcon} />
+      <View
+        accessible={false}
+        accessibilityLabel={'weather-item'}
+        key={day.weekday}
+        style={stylesToday(cardWidth).dayWrapper}
+      >
+        <View
+          accessible={false}
+          accessibilityLabel={'weather-day'}
+        >
+          <Text style={stylesToday().dayText}>{day.weekday}</Text>
+        </View>
+        <View
+          accessible={false}
+          accessibilityLabel={'weather-temp'}
+        >
+          <Text style={stylesToday().temperatureText}>
+            <Text style={stylesToday().maxMinText}>max.</Text> {day.max}{' '}
+            <Text style={stylesToday().maxMinText}>/ min.</Text> {day.min}
+          </Text>
+        </View>
+        <View
+          accessible={false}
+          accessibilityLabel={'weather-icon'}
+        >
+          <NativeDrawable source={imageName} style={stylesToday(cardWidth).dayIcon} />
+        </View>
       </View>
     );
   }
@@ -112,13 +132,33 @@ export default class Weather extends React.Component {
     const cardWidth = getCardWidth();
     const imageName = normalizeUrl(day.icon);
     return (
-      <View key={day.weekday} style={stylesDay(cardWidth).dayWrapper}>
-        <Text style={stylesDay().dayText}>{day.weekday}</Text>
-        <Text style={stylesDay().temperatureText}>
-          <Text style={stylesDay().maxMinText}>max.</Text> {day.max}{' '}
-          <Text style={stylesDay().maxMinText}>/ min.</Text> {day.min}
-        </Text>
-        <NativeDrawable source={imageName} style={stylesDay(cardWidth).dayIcon} />
+      <View
+        accessible={false}
+        accessibilityLabel={'weather-item'}
+        key={day.weekday}
+        style={stylesDay(cardWidth).dayWrapper}
+      >
+        <View
+          accessible={false}
+          accessibilityLabel={'weather-day'}
+        >
+          <Text style={stylesDay().dayText}>{day.weekday}</Text>
+        </View>
+        <View
+          accessible={false}
+          accessibilityLabel={'weather-temp'}
+        >
+          <Text style={stylesDay().temperatureText}>
+            <Text style={stylesDay().maxMinText}>max.</Text> {day.max}{' '}
+            <Text style={stylesDay().maxMinText}>/ min.</Text> {day.min}
+          </Text>
+        </View>
+        <View
+          accessible={false}
+          accessibilityLabel={'weather-icon'}
+        >
+          <NativeDrawable source={imageName} style={stylesDay(cardWidth).dayIcon} />
+        </View>
       </View>
     );
   }

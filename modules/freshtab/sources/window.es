@@ -1,6 +1,7 @@
-import config from '../core/config';
 import prefs from '../core/prefs';
-import { isCliqzBrowser, isWindows, isPlatformAtLeastInVersion } from '../core/platform';
+import { isDesktopBrowser, isWindows, isPlatformAtLeastInVersion } from '../core/platform';
+
+import config from './config';
 
 const setupInitialPage = (window, url) => {
   const urls = [
@@ -63,7 +64,7 @@ export default class Win {
       return;
     }
 
-    if (isCliqzBrowser && isPlatformAtLeastInVersion('7.0')) {
+    if (isDesktopBrowser && isPlatformAtLeastInVersion('7.0')) {
       return;
     }
 

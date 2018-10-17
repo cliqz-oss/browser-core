@@ -10,21 +10,25 @@ export default {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '06:55',
               gate_full: 'Gate A37',
+              gate: 'A37',
               location_name: 'Hamburg',
               location_short_name: 'HAM',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '07:00',
               terminal_full: 'Terminal 2',
+              terminal: '2',
             },
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '08:20',
               gate_full: 'Gate E53',
+              gate: 'E53',
               location_name: 'Zürich',
               location_short_name: 'ZRH',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '08:25',
               terminal_full: 'Terminal 1',
+              terminal: '1',
             }
           ],
           flight_name: 'SWISS Flug 3029',
@@ -33,9 +37,9 @@ export default {
           plane_icon: 'http://cdn.cliqz.com/extension/EZ/flight/plane.svg',
           plane_position: '100',
           status: 'Gelandet',
-          status_detail: '5 minutes early'
+          status_detail: '5 minutes early',
         },
-        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do'
+        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do',
       },
       type: 'rh',
       subType: {
@@ -52,27 +56,32 @@ export default {
       url: 'http://www.flightstats.com/go/FlightStatus/flightStatusByFlight.do?id=938080635\u0026airlineCode=4U\u0026flightNumber=7760',
       score: 0,
       snippet: {
+        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do',
         extra: {
           depart_arrive: [
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '07:05',
               gate_full: 'Gate A37',
+              gate: 'A37',
               location_name: 'Hamburg',
               location_short_name: 'HAM',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '07:00',
               terminal_full: 'Terminal 2',
+              terminal: '2',
             },
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '08:30',
               gate_full: 'Gate E53',
+              gate: 'E53',
               location_name: 'Zürich',
               location_short_name: 'ZRH',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '08:25',
               terminal_full: 'Terminal 1',
+              terminal: '1',
             }
           ],
           flight_name: 'SWISS Flug 3029',
@@ -82,8 +91,7 @@ export default {
           plane_position: '100',
           status: 'Gelandet',
           status_detail: '5 minutes late'
-        },
-        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do'
+        }
       },
       type: 'rh',
       subType: {
@@ -100,27 +108,32 @@ export default {
       url: 'http://www.flightstats.com/go/FlightStatus/flightStatusByFlight.do?id=938080635\u0026airlineCode=4U\u0026flightNumber=7760',
       score: 0,
       snippet: {
+        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do',
         extra: {
           depart_arrive: [
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '06:55',
               gate_full: 'Gate A37',
+              gate: 'A37',
               location_name: 'Hamburg',
               location_short_name: 'HAM',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '07:00',
               terminal_full: 'Terminal 2',
+              terminal: '2'
             },
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '08:40',
               gate_full: 'Gate E53',
+              gate: 'E53',
               location_name: 'Zürich',
               location_short_name: 'ZRH',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '08:25',
               terminal_full: 'Terminal 1',
+              terminal: '1'
             }
           ],
           flight_name: 'SWISS Flug 3029',
@@ -130,8 +143,7 @@ export default {
           plane_position: '100',
           status: 'Gelandet',
           status_detail: '5 minutes early'
-        },
-        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do'
+        }
       },
       type: 'rh',
       subType: {
@@ -148,27 +160,32 @@ export default {
       url: 'http://www.flightstats.com/go/FlightStatus/flightStatusByFlight.do?id=938080635\u0026airlineCode=4U\u0026flightNumber=7760',
       score: 0,
       snippet: {
+        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do',
         extra: {
           depart_arrive: [
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '07:00',
               gate_full: 'Gate A37',
+              gate: 'A37',
               location_name: 'Hamburg',
               location_short_name: 'HAM',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '07:00',
               terminal_full: 'Terminal 2',
+              terminal: '2'
             },
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '08:25',
               gate_full: 'Gate E53',
+              gate: 'E53',
               location_name: 'Zürich',
               location_short_name: 'ZRH',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '08:25',
               terminal_full: 'Terminal 1',
+              terminal: '1'
             }
           ],
           flight_name: 'SWISS Flug 3029',
@@ -178,8 +195,7 @@ export default {
           plane_position: '100',
           status: 'Gelandet',
           status_detail: 'on time'
-        },
-        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do'
+        }
       },
       type: 'rh',
       subType: {
@@ -196,28 +212,33 @@ export default {
       url: 'http://www.flightstats.com/go/FlightStatus/flightStatusByFlight.do?id=938080635\u0026airlineCode=4U\u0026flightNumber=7760',
       score: 0,
       snippet: {
+        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do',
         extra: {
           depart_arrive: [
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '07:00',
               gate_full: 'Gate A37',
+              gate: 'A37',
               location_name: 'Lebanon',
               location_short_name: 'LEB',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '07:00',
               terminal_full: 'Terminal 2',
+              terminal: '2',
               time_color: '#c3043e'
             },
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '07:55',
               gate_full: '-',
+              gate: '-',
               location_name: 'Boston',
               location_short_name: 'BOS',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '07:55',
               terminal_full: 'C',
+              terminal: 'C',
               time_color: '#c3043e'
             }
           ],
@@ -229,8 +250,7 @@ export default {
           status: 'Gestrichen',
           status_color: '#c3043e',
           status_detail: 'Lufthansa hotline +49 69 86 799 799'
-        },
-        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do'
+        }
       },
       type: 'rh',
       subType: {
@@ -247,27 +267,32 @@ export default {
       url: 'http://www.flightstats.com/go/FlightStatus/flightStatusByFlight.do?id=938080635\u0026airlineCode=4U\u0026flightNumber=7760',
       score: 0,
       snippet: {
+        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do',
         extra: {
           depart_arrive: [
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '06:00',
               gate_full: 'Gate A37',
+              gate: 'A37',
               location_name: 'Hamburg',
               location_short_name: 'HAM',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '07:00',
               terminal_full: 'Terminal 2',
+              terminal: '2'
             },
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '08:35',
               gate_full: 'Gate E53',
+              gate: 'E53',
               location_name: 'Zürich',
               location_short_name: 'ZRH',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '08:25',
               terminal_full: 'Terminal 1',
+              terminal: '1'
             }
           ],
           flight_name: 'SWISS Flug 3029',
@@ -277,8 +302,7 @@ export default {
           plane_position: '40',
           status: 'Verspätet',
           status_detail: 'delayed 10 minutes'
-        },
-        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do'
+        }
       },
       type: 'rh',
       subType: {
@@ -295,26 +319,31 @@ export default {
       url: 'http://www.flightstats.com/go/FlightStatus/flightStatusByFlight.do?id=938080635\u0026airlineCode=4U\u0026flightNumber=7760',
       score: 0,
       snippet: {
+        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do',
         extra: {
           depart_arrive: [
             { estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '07:00',
               gate_full: 'Gate A37',
+              gate: 'A37',
               location_name: 'Hamburg',
               location_short_name: 'HAM',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '07:00',
               terminal_full: 'Terminal 2',
+              terminal: '2'
             },
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '08:25',
               gate_full: 'Gate E53',
+              gate: 'E53',
               location_name: 'Zürich',
               location_short_name: 'ZRH',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '08:25',
               terminal_full: 'Terminal 1',
+              terminal: '1'
             }
           ],
           flight_name: 'SWISS Flug 3029',
@@ -324,8 +353,7 @@ export default {
           plane_position: '40',
           status: 'Verspätet',
           status_detail: '-'
-        },
-        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do'
+        }
       },
       type: 'rh',
       subType: {
@@ -342,29 +370,34 @@ export default {
       url: 'http://www.flightstats.com/go/FlightStatus/flightStatusByFlight.do?id=938080635\u0026airlineCode=4U\u0026flightNumber=7760',
       score: 0,
       snippet: {
+        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do',
         extra: {
           depart_arrive: [
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '07:00',
               gate_full: 'Gate A37',
+              gate: 'A37',
               location_name: 'Shanghai-Pudong',
               location_short_name: 'PVG',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '07:00',
               terminal_full: 'Terminal 1',
+              terminal: '1',
               time_color: '#c3043e'
             },
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '07:55',
               gate_full: 'Gate B12',
+              gate: 'B12',
               location_name: 'Frankfurt',
               actual_location_short_name: 'FRA',
               location_short_name: 'GTO',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '07:55',
               terminal_full: 'Terminal 2',
+              terminal: '2',
               time_color: '#c3043e'
             }
           ],
@@ -376,8 +409,7 @@ export default {
           status: 'Diverted',
           status_color: '#c3043e',
           status_detail: 'Bad weather'
-        },
-        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do'
+        }
       },
       type: 'rh',
       subType: {
@@ -394,13 +426,16 @@ export default {
       url: 'http://www.flightstats.com/go/FlightStatus/flightStatusByFlight.do?id=934356486\u0026airlineCode=SWU\u0026flightNumber=353',
       score: 0,
       snippet: {
+        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do',
         extra: {
           depart_arrive: [
             {
               estimate_actual_date: 'fr.. 22 september',
               estimate_actual_time: '09:15',
               terminal_full: 'Terminal 1',
+              terminal: '1',
               gate_full: 'Gate A37',
+              gate: 'A37',
               location_name: 'London',
               location_short_name: 'LON',
               time_color: '',
@@ -411,7 +446,9 @@ export default {
               estimate_actual_date: 'fr.. 22 september',
               estimate_actual_time: '11:45',
               terminal_full: 'Terminal 1',
+              terminal: '1',
               gate_full: 'Gate A37',
+              gate: 'A37',
               location_name: 'Genf',
               location_short_name: 'GVA',
               time_color: '',
@@ -427,8 +464,7 @@ export default {
           status: 'No information',
           status_color: 'grey',
           status_detail: ''
-        },
-        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do'
+        }
       },
       type: 'rh',
       subType: {
@@ -445,27 +481,32 @@ export default {
       url: 'http://www.flightstats.com/go/FlightStatus/flightStatusByFlight.do?id=938080635\u0026airlineCode=4U\u0026flightNumber=7760',
       score: 0,
       snippet: {
+        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do',
         extra: {
           depart_arrive: [
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '06:00',
               gate_full: 'Gate A37',
+              gate: 'A37',
               location_name: 'Hamburg',
               location_short_name: 'HAM',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '07:00',
               terminal_full: 'Terminal 2',
+              terminal: '2'
             },
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '08:35',
               gate_full: 'Gate E53',
+              gate: 'E53',
               location_name: 'Zürich',
               location_short_name: 'ZRH',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '08:35',
               terminal_full: 'Terminal 1',
+              terminal: '1'
             }
           ],
           flight_name: 'SWISS Flug 3029',
@@ -475,8 +516,7 @@ export default {
           plane_position: '40',
           status: 'Pünktlich',
           status_detail: 'Ankunft in 3 Stunden'
-        },
-        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do'
+        }
       },
       type: 'rh',
       subType: {
@@ -493,27 +533,32 @@ export default {
       url: 'http://www.flightstats.com/go/FlightStatus/flightStatusByFlight.do?id=938080635\u0026airlineCode=4U\u0026flightNumber=7760',
       score: 0,
       snippet: {
+        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do',
         extra: {
           depart_arrive: [
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '07:05',
               gate_full: 'Gate A37',
+              gate: 'A37',
               location_name: 'Hamburg',
               location_short_name: 'HAM',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '07:00',
               terminal_full: 'Terminal 2',
+              terminal: '2'
             },
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '08:35',
               gate_full: 'Gate E53',
+              gate: 'E53',
               location_name: 'Zürich',
               location_short_name: 'ZRH',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '08:35',
               terminal_full: 'Terminal 1',
+              terminal: '1'
             }
           ],
           flight_name: 'SWISS Flug 3029',
@@ -523,8 +568,7 @@ export default {
           plane_position: '40',
           status: 'Pünktlich',
           status_detail: 'Ankunft in 3 Stunden'
-        },
-        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do'
+        }
       },
       type: 'rh',
       subType: {
@@ -541,27 +585,32 @@ export default {
       url: 'http://www.flightstats.com/go/FlightStatus/flightStatusByFlight.do?id=938080635\u0026airlineCode=4U\u0026flightNumber=7760',
       score: 0,
       snippet: {
+        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do',
         extra: {
           depart_arrive: [
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '07:00',
               gate_full: 'Gate A37',
+              gate: 'A37',
               location_name: 'Hamburg',
               location_short_name: 'HAM',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '07:00',
               terminal_full: 'Terminal 2',
+              terminal: '2'
             },
             {
               estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '08:25',
               gate_full: 'Gate E53',
+              gate: 'E53',
               location_name: 'Zürich',
               location_short_name: 'ZRH',
               scheduled_date: 'fr.. 27 oktober',
               scheduled_time: '08:25',
               terminal_full: 'Terminal 1',
+              terminal: '1'
             }
           ],
           flight_name: 'SWISS Flug 3029',
@@ -571,8 +620,7 @@ export default {
           plane_position: '0',
           status: 'Vorgesehen',
           status_detail: 'Abflug in 10 Stunden'
-        },
-        friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do'
+        }
       },
       type: 'rh',
       subType: {

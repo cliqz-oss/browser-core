@@ -1,0 +1,5 @@
+{
+  "url": "https://www.google.com/search?hl=en&q=can%27t%20connect%20to%20wd%20my%20cloud",
+
+  "mustNotContain": [{ "action": "top-stories" }]
+}

@@ -1,6 +1,6 @@
 import {
   expect,
-  waitFor
+  waitFor,
 } from '../../core/test-helpers';
 import Subject from './local-helpers';
 
@@ -18,7 +18,7 @@ context('Offers Hub feedback form tests', function () {
           noVoucher: true,
         });
       }).then(function () {
-        subject.query('#feedback-button').click();
+        subject.query('.setting-menu .feedback').click();
         return waitFor(function () {
           return subject.messages.find(message => message.message.action === 'resize');
         });
@@ -30,7 +30,7 @@ context('Offers Hub feedback form tests', function () {
     });
 
     it('renders feedback vote wrapper', function () {
-      expect(subject.query('#feedback-content')).to.have.class('active');
+      expect(subject.query('.overlay')).to.have.class('show');
       expect(subject.query(feedbackVoteSelector)).to.exist;
       expect(subject.getComputedStyle(feedbackVoteSelector).display).to.not.equal('none');
     });
@@ -64,13 +64,6 @@ context('Offers Hub feedback form tests', function () {
           expect(subject.getComputedStyle('#feedback-comment-wrapper').display).to.not.equal('none');
         });
 
-        it('text is changed to "comments"', function () {
-          const textSelector = `${feedbackCommentSelector} .feedback-text`;
-          expect(subject.query(textSelector)).to.exist;
-          expect(subject.query(textSelector).textContent.trim())
-            .to.equal('offers_hub_feedback_comments');
-        });
-
         it('renders feedback text area', function () {
           const textareaSelector = `${feedbackCommentSelector} #feedback-textarea`;
           expect(subject.query(textareaSelector)).to.exist;
@@ -93,9 +86,11 @@ context('Offers Hub feedback form tests', function () {
           });
 
           it('"thank you" was rendered', function () {
-            expect(subject.query(feedbackCommentSelector)).to.exist;
-            expect(subject.query(feedbackCommentSelector).textContent.trim())
+            expect(subject.query('.feedback-box.thank-you')).to.exist;
+            expect(subject.query('.feedback-box.thank-you h2').textContent.trim())
               .to.equal('offers_hub_feedback_thank_you');
+            expect(subject.query('.feedback-box.thank-you p').textContent.trim())
+              .to.equal('offers_feedback_thank_you');
           });
         });
       });

@@ -18,6 +18,7 @@ const renderPopup = (window, chrome, CLIQZ, renderOnce) => (msg) => {
   const {ok, config: newConfig} = preShowActions(preShow)(window, config);
   const info = {back, url: href};
   log(CLIQZ, {target, data: {...info, type: 'pre-show', ok}});
+  if (newConfig.shouldPreventRender) { return; }
 
   renderOnce({
     chrome,

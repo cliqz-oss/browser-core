@@ -24,8 +24,12 @@ export function generateDataFalse() {
     },
     generalState: 'active',
     feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
+    locationSharingURL: 'https://cliqz.com/support/local-results',
+    myoffrzURL: 'https://cliqz.com/myoffrz',
+    reportSiteURL: 'https://cliqz.com/report-url',
     amo: false,
-    compactView: false
+    showPoweredBy: true,
+    compactView: false,
   };
 }
 
@@ -55,7 +59,11 @@ export function generateDataTrue() {
     },
     generalState: 'active',
     feedbackURL: 'https://cliqz.com/feedback/1.19.0.dev-40',
+    locationSharingURL: 'https://cliqz.com/support/local-results',
+    myoffrzURL: 'https://cliqz.com/myoffrz',
+    reportSiteURL: 'https://cliqz.com/report-url',
     amo: false,
-    compactView: false
+    showPoweredBy: true,
+    compactView: false,
   };
 }

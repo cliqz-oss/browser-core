@@ -44,20 +44,29 @@ function getGeneralDomain(hostname) {
 
 registerContentScript('antitracking', 'http*', (window, chrome, CLIQZ) => {
   const attrack = CLIQZ.app.modules.antitracking;
-  if (!attrack.isEnabled || !attrack.state.cookieBlockingEnabled) {
+  if (!attrack.isEnabled || !attrack.state.cookieBlockingEnabled ||
+      !attrack.state.compatibilityList) {
     return;
   }
   // ghostery pause
-  if (CLIQZ.app.modules.ghostery && CLIQZ.app.modules.ghostery.paused) {
+  if (CLIQZ.app.modules.ghostery &&
+      (CLIQZ.app.modules.ghostery.state.paused ||
+       CLIQZ.app.modules.ghostery.state.whitelisted.indexOf(window.self.location.hostname) !== -1)
+  ) {
     return;
   }
   if (window.self !== window.top) {
-    const parentGd = getGeneralDomain(document.referrer.split('/')[2]);
-    const selfGd = getGeneralDomain(window.self.location.hostname);
-    if (selfGd === parentGd || isNotHtml(window) ||
-        (attrack.state.compatibilityList[selfGd] &&
-         attrack.state.compatibilityList[selfGd].indexOf(parentGd) !== -1)) {
-      return;
+    try {
+      const refererHost = new URL(document.referrer).hostname;
+      const parentGd = getGeneralDomain(refererHost);
+      const selfGd = getGeneralDomain(window.self.location.hostname);
+      if (selfGd === parentGd || isNotHtml(window) ||
+          (attrack.state.compatibilityList[selfGd] &&
+          attrack.state.compatibilityList[selfGd].indexOf(parentGd) !== -1)) {
+        return;
+      }
+    } catch (e) {
+      // if referer is not a url, assume third-party
     }
     insertCookieOverride(window.document);
   }

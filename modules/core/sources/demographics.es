@@ -56,7 +56,7 @@ const LINUX_OS = new Set([
 const ANOLYSIS_BACKEND_DATE_FORMAT = 'YYYY/MM/DD';
 
 
-function normalizeString(value) {
+export function normalizeString(value) {
   return value.trim().toLowerCase().replace(/\s+/g, '-');
 }
 
@@ -197,7 +197,6 @@ function parseProduct(channel, platform) {
     return product;
   } catch (ex) {
     /* Wrong data for product */
-    logger.error('exception', ex);
     return product;
   }
 }

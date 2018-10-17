@@ -1,4 +1,5 @@
 import prefs from '../../../core/prefs';
+import config from '../../../core/config';
 
 import {
   app,
@@ -264,6 +265,8 @@ export const mockOffersBackend = async ({ dest, timeout } = {}) => {
   app.modules['offers-v2'].background.configureFlags({
     triggersBE: testServer.getBaseUrl(),
   });
+
+  prefs.set('offersInstallInfo', `${config.EXTENSION_VERSION}|1`);
 
   // Clear state
   await app.disableModule('offers-v2');

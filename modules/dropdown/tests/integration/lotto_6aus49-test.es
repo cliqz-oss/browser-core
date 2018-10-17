@@ -55,7 +55,7 @@ export default function () {
           .to.equal(results[0].snippet.extra.lotto_list.cur_date.lotto.gewinnzahlen.length + 1);
       });
 
-      it('with a correct value of numerical elelements', function () {
+      it('with a correct value of numerical elements', function () {
         const $allLottoRows = $cliqzResults
           .querySelectorAll(`${mainResultSelector} ${lottoResultSelector} ${rowSelector}`);
         const $aus49 = $allLottoRows[0];
@@ -102,7 +102,7 @@ export default function () {
           .to.equal(results[0].snippet.extra.lotto_list.cur_date.spiel77.gewinnzahlen.length + 1);
       });
 
-      it('with a correct value of numerical elelements', function () {
+      it('with a correct value of numerical elements', function () {
         const $allLottoRows = $cliqzResults
           .querySelectorAll(`${mainResultSelector} ${lottoResultSelector} ${rowSelector}`);
         const $spiel77 = $allLottoRows[1];
@@ -138,7 +138,7 @@ export default function () {
           .to.equal(results[0].snippet.extra.lotto_list.cur_date.super6.gewinnzahlen.length + 1);
       });
 
-      it('with a correct value of numerical elelements', function () {
+      it('with a correct value of numerical elements', function () {
         const $allLottoRows = $cliqzResults
           .querySelectorAll(`${mainResultSelector} ${lottoResultSelector} ${rowSelector}`);
         const $super6 = $allLottoRows[2];

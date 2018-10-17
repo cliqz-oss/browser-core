@@ -4,12 +4,15 @@ import {
   waitFor,
 } from '../../core/test-helpers';
 import {
+  checkMessages,
+  checkNotification,
+  checkTelemetry,
   defaultConfig,
   mockMessage,
   Subject,
 } from '../../core/test-helpers-freshtab';
 
-describe('Fresh tab interactions with notifications', function () {
+describe('Freshtab interactions with notifications', function () {
   const notificationAreaSelector = '.notification';
   const settingsPanelSelector = '#settings-panel';
   const otherMessage = {
@@ -25,8 +28,6 @@ describe('Fresh tab interactions with notifications', function () {
     position: 'middle'
   };
   let subject;
-  let messages;
-  let listener;
   let newsConfig;
 
   beforeEach(function () {
@@ -45,83 +46,49 @@ describe('Fresh tab interactions with notifications', function () {
   context('when one notification message is available', function () {
     beforeEach(async function () {
       await subject.load();
-
-      // Keep track of received messages
-      messages = new Map();
-      listener = function (msg) {
-        if (!messages.has(msg.action)) {
-          messages.set(msg.action, []);
-        }
-
-        messages.get(msg.action).push(msg);
-      };
-      subject.chrome.runtime.onMessage.addListener(listener);
     });
 
     afterEach(function () {
-      subject.chrome.runtime.onMessage.removeListener(listener);
       subject.unload();
     });
 
     describe('clicking on a notification icon', function () {
-      const notificationIconSelector = '.notification .icon';
-
       beforeEach(function () {
-        subject.query(notificationIconSelector).click();
+        subject.query('.notification .icon').click();
         return waitFor(() => subject.query(notificationAreaSelector));
       });
 
-      it('keeps settings panel closed', function () {
-        expect(subject.query(settingsPanelSelector)).to.exist;
-        expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
-      });
-
-      it('keeps notification area open', function () {
-        expect(subject.query(notificationAreaSelector)).to.exist;
+      checkNotification({
+        subject: () => subject,
       });
     });
 
     describe('clicking on a notification title', function () {
-      const titleSelector = '.notification .content h1';
-
       beforeEach(function () {
-        subject.query(titleSelector).click();
+        subject.query('.notification .content h1').click();
         return waitFor(() => subject.query(notificationAreaSelector));
       });
 
-      it('keeps settings panel closed', function () {
-        expect(subject.query(settingsPanelSelector)).to.exist;
-        expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
-      });
-
-      it('keeps notification area open', function () {
-        expect(subject.query(notificationAreaSelector)).to.exist;
+      checkNotification({
+        subject: () => subject,
       });
     });
 
     describe('clicking on a notification decription', function () {
-      const descriptionSelector = '.notification .content p';
-
       beforeEach(function () {
-        subject.query(descriptionSelector).click();
+        subject.query('.notification .content p').click();
         return waitFor(() => subject.query(notificationAreaSelector));
       });
 
-      it('keeps settings panel closed', function () {
-        expect(subject.query(settingsPanelSelector)).to.exist;
-        expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
-      });
-
-      it('keeps notification area open', function () {
-        expect(subject.query(notificationAreaSelector)).to.exist;
+      checkNotification({
+        subject: () => subject,
       });
     });
 
     describe('clicking on a close button', function () {
-      const closeBtnSelector = '.notification .close';
-
       beforeEach(function () {
-        subject.query(closeBtnSelector).click();
+        subject.startListening();
+        subject.query('.notification .close').click();
         return waitFor(() => !subject.query(notificationAreaSelector));
       });
 
@@ -134,29 +101,19 @@ describe('Fresh tab interactions with notifications', function () {
         expect(subject.query(notificationAreaSelector)).to.not.exist;
       });
 
-      it('sends a "dismissMessage" message', function () {
-        expect(messages.has('dismissMessage')).to.equal(true);
-        expect(messages.get('dismissMessage').length).to.equal(1);
+      checkMessages({
+        messageName: 'dismissMessage',
+        subject: () => subject,
       });
 
       it('sends a "message > close > click" telemetry signal', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
-
-        const telemetrySignals = messages.get('sendTelemetry');
-        let count = 0;
-
-        expect(telemetrySignals.length).to.be.above(0);
-
-        count = telemetrySignals.filter(function (s) {
-          return (
-            s.args[0].type === 'home' &&
-            s.args[0].view === 'message' &&
-            s.args[0].target === 'close' &&
-            s.args[0].action === 'click'
-          );
-        }).length;
-
-        expect(count).to.equal(1);
+        checkTelemetry({
+          action: 'click',
+          subject: () => subject,
+          target: 'close',
+          type: 'home',
+          view: 'message',
+        });
       });
     });
 
@@ -164,6 +121,7 @@ describe('Fresh tab interactions with notifications', function () {
       const ctaBtnSelector = '.notification .content button.cta-btn';
 
       beforeEach(function () {
+        subject.startListening();
         subject.query(ctaBtnSelector).click();
         return waitFor(() => subject.query(notificationAreaSelector));
       });
@@ -177,48 +135,28 @@ describe('Fresh tab interactions with notifications', function () {
         expect(subject.query(notificationAreaSelector)).to.exist;
       });
 
-      it('sends a "countMessageClick" message', function () {
-        expect(messages.has('countMessageClick')).to.equal(true);
-        expect(messages.get('countMessageClick').length).to.equal(1);
+      checkMessages({
+        messageName: 'countMessageClick',
+        subject: () => subject,
       });
 
       it('sends a "message > ok > click" telemetry signal', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
-
-        const telemetrySignals = messages.get('sendTelemetry');
-        let count = 0;
-
-        expect(telemetrySignals.length).to.be.above(0);
-
-        count = telemetrySignals.filter(function (s) {
-          return (
-            s.args[0].type === 'home' &&
-            s.args[0].view === 'message' &&
-            s.args[0].target === 'ok' &&
-            s.args[0].action === 'click'
-          );
-        }).length;
-
-        expect(count).to.equal(1);
+        checkTelemetry({
+          action: 'click',
+          subject: () => subject,
+          target: 'ok',
+          type: 'home',
+          view: 'message',
+        });
       });
 
       it('sends a "settings > click" telemetry signal', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
-
-        const telemetrySignals = messages.get('sendTelemetry');
-        let count = 0;
-
-        expect(telemetrySignals.length).to.be.above(0);
-
-        count = telemetrySignals.filter(function (s) {
-          return (
-            s.args[0].type === 'home' &&
-            s.args[0].target === 'settings' &&
-            s.args[0].action === 'click'
-          );
-        }).length;
-
-        expect(count).to.equal(1);
+        checkTelemetry({
+          action: 'click',
+          subject: () => subject,
+          target: 'settings',
+          type: 'home',
+        });
       });
     });
 
@@ -226,6 +164,7 @@ describe('Fresh tab interactions with notifications', function () {
       const ctaBtnSelector = '.notification .content button.cta-btn';
 
       beforeEach(async function () {
+        subject.startListening();
         subject.query(ctaBtnSelector).click();
         await waitFor(() => subject.query(notificationAreaSelector));
         subject.query(ctaBtnSelector).click();
@@ -241,48 +180,30 @@ describe('Fresh tab interactions with notifications', function () {
         expect(subject.query(notificationAreaSelector)).to.exist;
       });
 
-      it('sends two "countMessageClick" messages', function () {
-        expect(messages.has('countMessageClick')).to.equal(true);
-        expect(messages.get('countMessageClick').length).to.equal(2);
+      checkMessages({
+        expectedCount: 2,
+        messageName: 'countMessageClick',
+        subject: () => subject,
       });
 
       it('sends two "message > ok > click" telemetry signals', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
-
-        const telemetrySignals = messages.get('sendTelemetry');
-        let count = 0;
-
-        expect(telemetrySignals.length).to.be.above(0);
-
-        count = telemetrySignals.filter(function (s) {
-          return (
-            s.args[0].type === 'home' &&
-            s.args[0].view === 'message' &&
-            s.args[0].target === 'ok' &&
-            s.args[0].action === 'click'
-          );
-        }).length;
-
-        expect(count).to.equal(2);
+        checkTelemetry({
+          action: 'click',
+          expectedCount: 2,
+          subject: () => subject,
+          target: 'ok',
+          type: 'home',
+          view: 'message',
+        });
       });
 
       it('sends a "settings > click" telemetry signal', function () {
-        expect(messages.has('sendTelemetry')).to.equal(true);
-
-        const telemetrySignals = messages.get('sendTelemetry');
-        let count = 0;
-
-        expect(telemetrySignals.length).to.be.above(0);
-
-        count = telemetrySignals.filter(function (s) {
-          return (
-            s.args[0].type === 'home' &&
-            s.args[0].target === 'settings' &&
-            s.args[0].action === 'click'
-          );
-        }).length;
-
-        expect(count).to.equal(1);
+        checkTelemetry({
+          action: 'click',
+          subject: () => subject,
+          target: 'settings',
+          type: 'home',
+        });
       });
     });
 
@@ -310,7 +231,6 @@ describe('Fresh tab interactions with notifications', function () {
     });
 
     afterEach(function () {
-      subject.chrome.runtime.onMessage.removeListener(listener);
       subject.unload();
     });
 

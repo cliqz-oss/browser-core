@@ -2,32 +2,20 @@ import getTestUrl from '../platform/integration-tests/test-launcher';
 import { getActiveTab } from '../platform/browser';
 import { newTab } from '../platform/tabs';
 
-import BaseWindow from '../core/base/window';
 import prefs from '../core/prefs';
+import BaseWindow from '../core/base/window';
 import sleep from '../core/helpers/sleep';
 
 import initializeHelpers from './initialize-test-helpers';
 
-const TESTS_STATE_PREF = 'integration-tests.started';
-
 export default class IntegrationTestsWindow extends BaseWindow {
-  async init() {
-    if (!this.testsStarted) {
-      initializeHelpers(this.window);
-      this.startTestsWhenExtensionLoaded();
-    }
+  init() {
+    prefs.set('integration-tests.started', true);
+    initializeHelpers(this.window);
+    this.startTestsWhenExtensionLoaded();
   }
 
   unload() {
-    this.testsStarted = false;
-  }
-
-  get testsStarted() {
-    return prefs.get(TESTS_STATE_PREF, false);
-  }
-
-  set testsStarted(value) {
-    return prefs.set(TESTS_STATE_PREF, value);
   }
 
   async startTestsWhenExtensionLoaded() {
@@ -45,28 +33,24 @@ export default class IntegrationTestsWindow extends BaseWindow {
     // tests), since we cannot set prefs directly.
     const { url } = await getActiveTab();
     const prefix = 'data:text/plain,';
+    let grep = '';
+    let forceExtensionReload = false;
+    let autostart = false;
     if (url.startsWith(prefix)) {
-      const { grep, forceExtensionReload } = JSON.parse(url.substr(prefix.length));
-      if (grep !== undefined) {
-        prefs.set('integration-tests.grep', grep);
-      }
-      if (forceExtensionReload !== undefined) {
-        prefs.set('integration-tests.forceExtensionReload', forceExtensionReload);
-      }
+      const options = JSON.parse(url.substr(prefix.length));
+      grep = options.grep;
+      forceExtensionReload = options.forceExtensionReload;
+      autostart = options.autostart;
     }
-
-    // Get options for tests from prefs
-    const forceExtensionReload = prefs.get('integration-tests.forceExtensionReload', 0);
-    const grep = prefs.get('integration-tests.grep', '');
 
     // Create test URL
     const testsUrl = getTestUrl('integration-tests/index.html', {
       forceExtensionReload,
-      grep
+      grep,
+      autostart,
     });
 
     // Start tests
-    this.testsStarted = true;
     await newTab(testsUrl).catch((ex) => {
       // eslint-disable-next-line no-console
       console.error('Could not open new tab', ex);

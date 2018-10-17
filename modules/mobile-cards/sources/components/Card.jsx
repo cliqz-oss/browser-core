@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, ScrollView, View, Platform } from 'react-native';
 import { getMessage } from '../../core/i18n';
+import { appName } from '../../platform/platform';
 import { cardMargins, cardBorderTopRadius, cardBorderBottomRadius } from '../styles/CardStyle';
 import Generic from './Generic';
 import Link from './Link';
@@ -40,7 +41,7 @@ class Card extends React.Component {
     }
     const width = this.props.width;
     const cardTitle = result.data.title || '';
-    const titleExtra = getMessage('mobile_card_look_shared_via');
+    const titleExtra = getMessage('mobile_card_look_shared_via', appName);
     const shareTitle = cardTitle ? `${titleExtra}:\n\n${cardTitle}` : `${titleExtra}.`;
     const shadowProps = {};
     if (Platform.OS === 'ios') {
@@ -63,6 +64,7 @@ class Card extends React.Component {
         >
           <ShareCard style={styles(width).card} title={shareTitle}>
             <Link
+              label="main-url"
               url={result.url}
               onPress={(...args) => this.sendResultClickTelemetry(...args)}
             >

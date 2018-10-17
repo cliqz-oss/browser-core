@@ -51,6 +51,12 @@ if (env.BRANCH_NAME.startsWith('v9.')) {
     ]
 }
 
+if (env.BRANCH_NAME.startsWith('v10.')) {
+    matrix['ghostery-tab'] = [
+        'config': 'releases/ghostery-tab-chrome.js',
+    ]
+}
+
 if (isIntegrationBranch) {
     matrix['browser'] = [
       'config': 'browser.js',
@@ -64,6 +70,9 @@ if (isIntegrationBranch) {
     ]
     matrix['cliqz-tab-beta'] = [
         'config': 'webextension.js',
+    ]
+    matrix['ghostery-tab-beta'] = [
+        'config': 'ghostery-tab.js',
     ]
 }
 
@@ -106,11 +115,13 @@ node('master') {
     codeImageName = "navigation-extension/code:${triggeringCommitHash}";
 
     stage('docker build base') {
-        ansiColor('xterm') {
-            docker.build(
-                baseImageName,
-                '--build-arg UID=`id -u` --build-arg GID=`id -g` -f Dockerfile.publish .',
-            )
+        timeout(30) {
+            ansiColor('xterm') {
+                docker.build(
+                    baseImageName,
+                    '--build-arg UID=`id -u` --build-arg GID=`id -g` -f Dockerfile.publish .',
+                )
+            }
         }
     }
 

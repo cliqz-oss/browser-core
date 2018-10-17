@@ -1,3 +1,3 @@
-import pouchdb from '@cliqz-oss/pouchdb';
+import pouchdb from 'pouchdb';
 
 export default (name, ...rest) => pouchdb(`tmp/${name}`, ...rest);

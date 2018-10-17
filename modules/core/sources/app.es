@@ -14,6 +14,7 @@ import { Window, mapWindows, forEachWindow, addWindowObserver,
   disableChangeEvents, waitWindowReady, addMigrationObserver, removeMigrationObserver,
   addSessionRestoreObserver, removeSessionRestoreObserver } from '../platform/browser';
 import Defer from './helpers/defer';
+import { getChannel } from '../platform/demographics';
 
 export function shouldEnableModule(name) {
   const pref = `modules.${name}.enabled`;
@@ -187,8 +188,15 @@ export default class App {
    * @method start
    * @returns {Promise}
    */
-  start() {
+  async start() {
     this.isRunning = true;
+    if (!config.settings.channel) { // mobile
+      // for mobile, channel is set by native browser builds
+      // so we need to override the config settings
+      // TODO: get rid of all config.settings.channel dependencies
+      // and use one source of channel
+      config.settings.channel = await getChannel();
+    }
     addMigrationObserver(this.onMigrationEnded);
     return this.setupPrefs().then(() =>
       this.load().then(() => {
@@ -571,7 +579,7 @@ export default class App {
 
   status() {
     const appModules = this.modules;
-    const modules = config.modules.reduce((hash, moduleName) => {
+    const modules = Object.keys(appModules).reduce((hash, moduleName) => {
       const module = appModules[moduleName];
       hash[moduleName] = module.status();
       return hash;

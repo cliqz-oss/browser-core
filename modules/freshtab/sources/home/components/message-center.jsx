@@ -64,6 +64,10 @@ export default class MessageCenter extends React.Component {
           offers={this.state.offers}
           fullWidth={this.props.fullWidth}
           submitFeedbackForm={this.props.submitFeedbackForm}
+          getOfferInfoOpen={this.props.getOfferInfoOpen}
+          setOfferInfoOpen={this.props.setOfferInfoOpen}
+          getOfferMenuOpen={this.props.getOfferMenuOpen}
+          setOfferMenuOpen={this.props.setOfferMenuOpen}
         />
       );
     }

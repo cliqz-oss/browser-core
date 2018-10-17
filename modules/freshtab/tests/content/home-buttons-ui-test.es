@@ -2,10 +2,10 @@ import { expect } from '../../core/test-helpers';
 import {
   CONFIG,
   defaultConfig,
-  Subject
+  Subject,
 } from '../../core/test-helpers-freshtab';
 
-describe('Fresh tab buttons UI', function () {
+describe('Freshtab buttons UI', function () {
   const homeButtonSelector = '#cliqz-home';
   const historyButtonSelector = '#cliqz-history';
   const settingsButtonSelector = '#settings-btn';

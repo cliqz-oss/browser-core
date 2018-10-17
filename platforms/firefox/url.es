@@ -1,6 +1,6 @@
 import { Services, Components } from './globals';
 
-const KNOWN_PROTOCOLS = ['http', 'https', 'ftp', 'file', 'about', 'mailto', 'chrome', 'moz-extension', 'resource'];
+const KNOWN_PROTOCOLS = ['http', 'https', 'ftp', 'file', 'about', 'mailto', 'chrome', 'moz-extension', 'resource', 'dat'];
 
 function getExternalProtocolService() {
   if (!getExternalProtocolService._instance) {

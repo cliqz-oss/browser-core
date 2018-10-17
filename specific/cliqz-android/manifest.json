@@ -30,8 +30,8 @@
     },
     "cliqzAppConstants": {
       "schema": "modules/cliqz-android/schemas/cliqz-app-constants.json",
-      "parent": {
-        "scopes": ["addon_parent"],
+      "child": {
+        "scopes": ["addon_child"],
         "script": "modules/cliqz-android/cliqz-app-constants.bundle.js",
         "paths": [["cliqzAppConstants"]]
       }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { View } from 'react-native';
 import ExternalImage from '../custom/ExternalImage';
 import { elementTopMargin, getCardWidth } from '../../styles/CardStyle';
 
@@ -20,10 +21,15 @@ export default ({ extra = {} }) => {
   }
 
   return (
-    <ExternalImage
-      source={{ uri: url }}
-      style={{ width: getCardWidth(), height: 100, ...elementTopMargin }}
-      resizeMode="contain"
-    />
+    <View
+      accessible={false}
+      accessibilityLabel={'main-image'}
+    >
+      <ExternalImage
+        source={{ uri: url }}
+        style={{ width: getCardWidth(), height: 100, ...elementTopMargin }}
+        resizeMode="contain"
+      />
+    </View>
   );
 };

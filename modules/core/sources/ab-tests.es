@@ -9,9 +9,10 @@
 import CliqzUtils from './utils';
 import prefs from './prefs';
 import console from './console';
+import config from './config';
 import { getDefaultEngine, revertToOriginalEngine } from './search-engines';
 import { httpGet } from './http';
-import { isCliqzBrowser } from './platform';
+import { isDesktopBrowser } from './platform';
 
 let timer = null;
 const ONE_HOUR = 60 * 60 * 1000;
@@ -23,7 +24,7 @@ function log(msg) {
 const CliqzABTests = {
   PREF: 'ABTests',
   PREF_OVERRIDE: 'ABTestsOverride',
-  URL: 'https://stats.cliqz.com/abtests/check?session=',
+  URL: `${config.settings.STATISTICS}/abtests/check?session=`,
   // Accessors to list of tests this user is current in
   getCurrent() {
     if (prefs.has(CliqzABTests.PREF)) {
@@ -413,6 +414,10 @@ const CliqzABTests = {
       case '1114_E':
       case '1114_F':
       case '1114_G':
+      case '1114_H':
+      case '1114_I':
+      case '1114_J':
+      case '1114_K':
         // we activate this test locally in services.es/session()
         // so we only need to disable it with the AB test
         if (getDefaultEngine().name === 'Cliqz') {
@@ -421,14 +426,20 @@ const CliqzABTests = {
         prefs.clear('serp_test');
         break;
       case '1115_A':
-        if (isCliqzBrowser) {
+        if (isDesktopBrowser) {
           prefs.set('network.http.referer.XOriginTrimmingPolicy', 0);
         }
         break;
       case '1115_B':
-        if (isCliqzBrowser) {
+        if (isDesktopBrowser) {
           prefs.set('network.http.referer.XOriginTrimmingPolicy', 1);
         }
+        break;
+      case '1116_A':
+        prefs.set('modules.cookie-monster.enabled', false);
+        break;
+      case '1116_B':
+        prefs.set('modules.cookie-monster.enabled', true);
         break;
       default:
         ruleExecuted = false;
@@ -730,6 +741,10 @@ const CliqzABTests = {
       case '1114_E':
       case '1114_F':
       case '1114_G':
+      case '1114_H':
+      case '1114_I':
+      case '1114_J':
+      case '1114_K':
         if (getDefaultEngine().name === 'Cliqz') {
           revertToOriginalEngine();
         }
@@ -737,9 +752,13 @@ const CliqzABTests = {
         break;
       case '1115_A':
       case '1115_B':
-        if (isCliqzBrowser) {
+        if (isDesktopBrowser) {
           prefs.clear('network.http.referer.XOriginTrimmingPolicy');
         }
+        break;
+      case '1116_A':
+      case '1116_B':
+        prefs.set('modules.cookie-monster.enabled', false);
         break;
       default:
         ruleExecuted = false;

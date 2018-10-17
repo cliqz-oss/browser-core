@@ -45,7 +45,6 @@ describe('Promo bar interactions', function () {
     { name: 'CTA button', selector: '.call-to-action a.btn', isClickable: true },
     { name: 'tooltip icon', selector: '.call-to-action .info-icon', isClickable: false },
     { name: 'conditions header', selector: '.call-to-action .conditions', isClickable: false },
-    { name: 'ad text', selector: '.anzeige .vertical-txt', isClickable: false }
   ];
 
   promoBodyElements.forEach(function (element) {
@@ -78,6 +77,28 @@ describe('Promo bar interactions', function () {
         }
         expect(messageCount).to.equal(expectedUrlCount);
       });
+    });
+  });
+
+  context('promo body: clicking on a ad text', function () {
+    const selector = '.call-to-action .conditions';
+    let $domItem;
+    let expectedUrlCount;
+
+    beforeEach(function () {
+      $domItem = subject.query(selector);
+      $domItem.click();
+      msgCount = 2;
+
+      return waitFor(function () {
+        return subject.messages.length === msgCount;
+      });
+    });
+
+    it('does not trigger the openUrl handler', function () {
+      messageCount = subject.messages.filter(msg => msg.message.handler === 'openUrlHandler').length;
+      expectedUrlCount = 0;
+      expect(messageCount).to.equal(expectedUrlCount);
     });
   });
 

@@ -1,7 +1,8 @@
 /* global window */
 /* global document */
 import React from 'react';
-import CONFIG from '../../../core/config';
+import { getDefaultWallpaper } from '../../wallpapers';
+import config from '../../config';
 import cliqz from '../cliqz';
 import SpeedDialsRow from './speed-dials-row';
 import Urlbar from './urlbar/index';
@@ -17,7 +18,6 @@ import { historyClickSignal, settingsClickSignal, homeConfigsStatusSignal,
 import localStorage from '../services/storage';
 import { deleteUndoSignal, undoCloseSignal } from '../services/telemetry/speed-dial';
 import { settingsRestoreTopSitesSignal, settingsComponentsToggleSignal, newsSelectionChangeSignal } from '../services/telemetry/settings';
-import { DEFAULT_BG, FALLBACK_BG, NO_BG } from '../services/background-image';
 import ModulesDeveloperModal from './modules-developer-modal';
 
 class App extends React.Component {
@@ -37,7 +37,6 @@ class App extends React.Component {
           news: {},
           background: {},
           blueTheme: false,
-          isBrowser: false
         }
       },
       dials: {
@@ -58,6 +57,8 @@ class App extends React.Component {
       modules: {},
       focusNews: false,
       hasHistorySpeedDialsToRestore: false,
+      isOfferMenuOpen: false,
+      isOfferInfoOpen: false,
     };
 
     window.state = this.state;
@@ -212,10 +213,10 @@ class App extends React.Component {
   }
 
   getConfig() {
-    return this.freshtab.getConfig().then((config) => {
-      const bgImage = config.componentsState.background.image;
+    return this.freshtab.getConfig().then((freshtabConfig) => {
+      const bgImage = freshtabConfig.componentsState.background.image;
       this.updateTheme(bgImage);
-      this.setState({ config, messages: config.messages });
+      this.setState({ config: freshtabConfig, messages: freshtabConfig.messages });
     });
   }
 
@@ -320,6 +321,19 @@ class App extends React.Component {
     });
   }
 
+  getOfferInfoOpen = () => this.state.isOfferInfoOpen;
+  setOfferInfoOpen = (state) => {
+    this.setState({
+      isOfferInfoOpen: state
+    });
+  }
+  getOfferMenuOpen = () => this.state.isOfferMenuOpen;
+  setOfferMenuOpen = (state) => {
+    this.setState({
+      isOfferMenuOpen: state
+    });
+  }
+
   handleClick(el) {
     if (this.urlbarElem) {
       this.urlbarElem.textInput.style.visibility = 'visible';
@@ -334,8 +348,15 @@ class App extends React.Component {
       this.state.isSettingsOpen) {
       this.setState({ isSettingsOpen: false });
     }
+    const middleboxPanel = document.querySelector('.offer-unit');
+    if (middleboxPanel && !middleboxPanel.contains(el.target) &&
+        el.target.className !== 'why-info') {
+      this.setState({
+        isOfferMenuOpen: false,
+        isOfferInfoOpen: false,
+      });
+    }
   }
-
   removeSpeedDial(dial, index) {
     const isCustom = dial.custom;
     const dialType = isCustom ? 'custom' : 'history';
@@ -430,14 +451,14 @@ class App extends React.Component {
 
   toggleComponent(component) {
     cliqz.freshtab.toggleComponent(component);
-    const config = this.state.config;
-    const componentState = config.componentsState[component];
+    const freshtabConfig = this.state.config;
+    const componentState = freshtabConfig.componentsState[component];
     settingsComponentsToggleSignal(component, componentState.visible);
     this.setState({
       config: {
-        ...config,
+        ...freshtabConfig,
         componentsState: {
-          ...config.componentsState,
+          ...freshtabConfig.componentsState,
           [component]: {
             ...componentState,
             visible: !componentState.visible
@@ -460,18 +481,18 @@ class App extends React.Component {
   }
 
   _hasNoBg() {
-    return this.state.config.componentsState.background.image === NO_BG;
+    return this.state.config.componentsState.background.image === config.constants.NO_BG;
   }
 
   toggleBackground() {
     const oldState = this.state.config.componentsState.background.image;
-    const isOn = (oldState !== NO_BG);
+    const isOn = (oldState !== config.constants.NO_BG);
     settingsComponentsToggleSignal('background', isOn);
     let newBg;
     if (this._hasNoBg()) {
-      newBg = this.state.config.isBlueBackgroundSupported ? DEFAULT_BG : FALLBACK_BG;
+      newBg = getDefaultWallpaper();
     } else {
-      newBg = NO_BG;
+      newBg = config.constants.NO_BG;
     }
     this.onBackgroundImageChanged(newBg);
   }
@@ -522,7 +543,7 @@ class App extends React.Component {
           <aside className="aside">
             {this.state.config.isHistoryEnabled &&
               <a
-                href={CONFIG.settings.NEW_TAB_URL}
+                href={config.settings.NEW_TAB_URL}
                 id="cliqz-home"
                 title={t('cliqz_tab_button')}
                 tabIndex="-1"
@@ -532,7 +553,7 @@ class App extends React.Component {
             }
             {this.state.config.isHistoryEnabled &&
               <a
-                href={CONFIG.settings.HISTORY_URL}
+                href={config.settings.HISTORY_URL}
                 id="cliqz-history"
                 title={t('history_button')}
                 tabIndex="-1"
@@ -603,6 +624,10 @@ class App extends React.Component {
                   messages={this.state.messages}
                   handleLinkClick={msg => this.onMessageClicked(msg)}
                   submitFeedbackForm={this.submitFeedbackForm}
+                  getOfferInfoOpen={this.getOfferInfoOpen}
+                  setOfferInfoOpen={this.setOfferInfoOpen}
+                  getOfferMenuOpen={this.getOfferMenuOpen}
+                  setOfferMenuOpen={this.setOfferMenuOpen}
                 />
 
               </section>
@@ -638,8 +663,6 @@ class App extends React.Component {
               blueTheme={this.state.config.blueTheme}
               isBlueThemeSupported={this.state.config.isBlueThemeSupported}
               toggleBackground={this.toggleBackground}
-              isBlueBackgroundSupported={this.state.config.isBlueBackgroundSupported}
-              isBrowser={this.state.config.isBrowser}
               isOpen={this.state.isSettingsOpen}
               focusNews={this.state.focusNews}
               componentsState={this.state.config.componentsState}

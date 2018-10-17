@@ -5,6 +5,10 @@ import EmptyResultsBlock from './empty-results-block';
 import SearchResultItem from './search-result-item';
 import AlternativeSearchEngines from './variations/v1/alternative-search-engines';
 import ResultsBlockHeader from './results-block-header';
+import t from '../services/i18n';
+import renderQuerySuggestions from './variations/v2/dropdown-helper';
+import renderSearchField from './searchbox-field-helper';
+import renderSearchboxSubmitIcon from './searchbox-submit-icon-helper';
 
 const renderLoadingStateLayout = () => (
   <div>
@@ -14,19 +18,37 @@ const renderLoadingStateLayout = () => (
   </div>
 );
 
+const renderSearchboxIconBlock = searchboxIconClasses => (
+  <a
+    href="/"
+    className={searchboxIconClasses}
+  >Home</a>
+);
+
 const renderEmptyResultsBlock = () => <EmptyResultsBlock />;
 
-const renderSearchResultItem = (item, uniqueKey) => (
+const renderSearchResultItem = ({
+  item,
+  uniqueKey,
+  shouldDisplayOffers,
+  shouldDisplaySearchResultItemLogo,
+  session,
+}) => (
   <SearchResultItem
     item={item}
     key={uniqueKey}
     idx={uniqueKey}
+    isOffer={shouldDisplayOffers && item.isOffer}
+    shouldDisplaySearchResultItemLogo={shouldDisplaySearchResultItemLogo}
+    session={session}
   />
 );
 
-const renderSearchCategoriesBlock = query => (
+const renderSearchCategoriesBlock = ({ query, dropdownCss, session }) => (
   <AlternativeSearchEngines
+    session={session}
     query={query}
+    dropdownCss={dropdownCss}
   />
 );
 
@@ -35,63 +57,145 @@ const renderResultsBlockHeader = (results, searchboxResultsFromCliqzCss) => (
 );
 
 export default (props = {}) => {
-  const searchField = props.searchField || null;
+  const isLoading = props.isLoading === true;
+
   const results = props.results || [];
-  const isLoading = props.isLoading || false;
   const query = props.query || '';
-  const onSubmitIconClick = typeof props.onSubmitIconClick === 'function'
-    ? props.onSubmitIconClick
+  const prevQuery = props.prevQuery || '';
+  const handleSubmitIconClick = typeof props.handleSubmitIconClick === 'function'
+    ? props.handleSubmitIconClick
     : () => {};
-  const engineVariation = props.engineVariation || '';
+
+  const shouldDisplayAlternativeEnginesAtTop = props.shouldDisplayAlternativeEnginesAtTop;
+  const v1ResultsFromCliqz = props.v1ResultsFromCliqz;
+  const querySuggestions = props.querySuggestions;
+  const handleKeyDown = props.handleKeyDown;
+  const updateSearchboxValue = props.updateSearchboxValue;
+  const handleItemSuggestion = props.handleItemSuggestion;
+  const handleItemSelection = props.handleItemSelection;
+  const shouldDisplayQuerySuggestions = props.shouldDisplayQuerySuggestions;
+  const shouldDisplayOffers = props.shouldDisplayOffers;
+  const shouldDisplayLookAndFeelV1 = props.shouldDisplayLookAndFeelV1;
+  const shouldDisplayLookAndFeelV3 = props.shouldDisplayLookAndFeelV3;
+  const shouldDisplaySearchResultItemLogo = props.shouldDisplaySearchResultItemLogo;
+  const session = props.session;
 
   let resultsBlock = null;
   if (isLoading) {
     resultsBlock = renderLoadingStateLayout();
   } else if (results.length) {
-    resultsBlock = results.map(renderSearchResultItem);
+    resultsBlock = results.map((item, index) =>
+      renderSearchResultItem({
+        item,
+        uniqueKey: index,
+        shouldDisplayOffers,
+        shouldDisplaySearchResultItemLogo,
+        session,
+      }));
   } else {
     resultsBlock = renderEmptyResultsBlock();
   }
 
+  const searchboxResultsLayoutCss = classNames({
+    'searchbox-results-layout': true,
+    'searchbox-v3-results-layout': shouldDisplayLookAndFeelV3,
+  });
+
   const searchboxResultsFromCliqzCss = classNames({
     'searchbox-results-from-cliqz': true,
-    'searchbox-v1-results-from-cliqz': engineVariation === 'F',
+    'searchbox-v1-results-from-cliqz': v1ResultsFromCliqz,
   });
+
+  const searchboxFieldLayoutCss = classNames({
+    'searchbox-v1-field-layout': shouldDisplayLookAndFeelV1,
+    'searchbox-v3-field-layout': shouldDisplayLookAndFeelV3,
+  });
+
+  const searchboxIconCss = classNames({
+    'searchbox-icon': true,
+    'searchbox-v1-icon': shouldDisplayLookAndFeelV1,
+    'searchbox-v3-icon': shouldDisplayLookAndFeelV3,
+  });
+
+  const querySuggestionsCss = classNames({
+    'dropdown-v2-results': !shouldDisplayLookAndFeelV3,
+  });
+
+  const dropdownCss = {
+    layout: shouldDisplayLookAndFeelV3 ? ['dropdown-v3'] : [],
+    ctrl: shouldDisplayLookAndFeelV3 ? ['dropdown-v3-ctrl'] : [],
+  };
 
   return (
     <div
-      className="searchbox-results-layout"
+      className={searchboxResultsLayoutCss}
     >
+      {
+        shouldDisplayLookAndFeelV3 &&
+        renderSearchboxIconBlock(searchboxIconCss)
+      }
       <div
-        className="searchbox-field-layout"
+        className={searchboxFieldLayoutCss}
         data-view="results"
         data-group=""
         data-alternative-engine=""
         data-cliqz-default-engine=""
+        data-session={session}
       >
-        <a
-          href="/"
-          className="searchbox-field-icon"
-        >Home</a>
-        {searchField}
-        <a
-          onClick={onSubmitIconClick}
-          href="/"
-          className="searchbox-field-submit-icon suggestion"
-          data-telemetry="search-engine"
-          data-engine="cliqz"
-          data-view="results"
-          data-category={null}
-        >Search</a>
+        {
+          shouldDisplayLookAndFeelV1 &&
+          renderSearchboxIconBlock(searchboxIconCss)
+        }
+        {
+          renderSearchField({
+            query,
+            handleKeyDown,
+            updateSearchboxValue,
+            placeholder: t('search_with_cliqz'),
+            shouldDisplayLookAndFeelV1,
+            shouldDisplayLookAndFeelV3,
+            view: 'results',
+            shouldHaveFocus: true,
+          })
+        }
+        {
+          renderSearchboxSubmitIcon({
+            handleSubmitIconClick,
+            shouldDisplayLookAndFeelV1,
+            shouldDisplayLookAndFeelV3,
+            telemetryView: 'results',
+            session,
+          })
+        }
+        {
+          shouldDisplayQuerySuggestions && renderQuerySuggestions({
+            items: querySuggestions,
+            handleItemSuggestion,
+            handleItemSelection,
+            pattern: prevQuery,
+            cssClasses: querySuggestionsCss,
+            session,
+          })
+        }
       </div>
-      {engineVariation !== 'G' && renderSearchCategoriesBlock(query)}
+      {
+        shouldDisplayAlternativeEnginesAtTop &&
+        renderSearchCategoriesBlock({
+          query, dropdownCss, session,
+        })
+      }
       <div
         className="searchbox-results-section"
       >
         {renderResultsBlockHeader(results, searchboxResultsFromCliqzCss)}
         {resultsBlock}
       </div>
-      {engineVariation === 'G' && renderSearchCategoriesBlock(query)}
+      {
+        !shouldDisplayAlternativeEnginesAtTop &&
+        renderSearchCategoriesBlock({
+          query, dropdownCss, session
+        })
+      }
     </div>
   );
 };

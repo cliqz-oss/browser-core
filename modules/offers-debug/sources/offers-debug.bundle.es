@@ -1,4 +1,4 @@
-/* global CLIQZ, document, SigWrapper,
+/* global CLIQZ, document, SigWrapper, ChromeUtils,
           DataStorageHandler, EnvConfigHandler, ErrorReporter, clearInnerElement,
           SignalsTestCase, TEST_DATA, $ */
 
@@ -7,7 +7,7 @@ import ActionID from '../offers-v2/offers/actions-defs';
 import prefs from '../core/prefs';
 import console from '../core/console';
 
-Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+ChromeUtils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
 
 const Offers = CLIQZ.app.modules['offers-v2'].background;
 const localStorage = CLIQZ.CliqzUtils.getLocalStorage('chrome://cliqz/content/offers-debug/offers-debug.json');

@@ -1,7 +1,11 @@
-/* global window, document, localizeDocument, CLIQZ */
+/* global window, document, localizeDocument, CLIQZ, ChromeUtils */
 import templates from './templates';
 
-Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+try {
+  ChromeUtils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+} catch (e) {
+  Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+}
 const utils = CLIQZ.CliqzUtils;
 const CliqzEvents = utils.getWindow().CliqzEvents;
 const CliqzPrivacyRep = CLIQZ.app.modules['privacy-dashboard'].background.CliqzPrivacyRep;
@@ -38,5 +42,22 @@ function init() {
 
 // re-render  all the dashboard - the signals might be expired
 setInterval(renderDashboard, 20 * 1000);
+
+document.addEventListener('click', (ev) => {
+  if (ev.target.nodeName !== 'A' || ev.button === 2) {
+    return;
+  }
+
+  ev.preventDefault();
+
+  const gBrowser = utils.getWindow().gBrowser;
+  const ssm = Components.classes['@mozilla.org/scriptsecuritymanager;1']
+    .getService(Components.interfaces.nsIScriptSecurityManager);
+
+  const tab = gBrowser.addTab(ev.target.href, {
+    triggeringPrincipal: ssm.createNullPrincipal({ }),
+  });
+  gBrowser.selectedTab = tab;
+});
 
 init();

@@ -109,9 +109,10 @@ export default describeModule('adblocker/filters-loader',
             }
           }
           resolve({
+            ok: true,
             text() {
               return Promise.resolve(content);
-            }
+            },
           });
         });
       },

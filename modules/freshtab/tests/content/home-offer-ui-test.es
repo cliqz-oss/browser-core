@@ -1,14 +1,14 @@
 import {
   clone,
-  defaultConfig,
   expect,
-} from './helpers';
+} from '../../core/test-helpers';
 import {
+  defaultConfig,
   mockOfferMessage,
   Subject,
 } from '../../core/test-helpers-freshtab';
 
-describe('Fresh tab offer notification UI', function () {
+describe('Freshtab offer notification UI', function () {
   let subject;
   let config;
 

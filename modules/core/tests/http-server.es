@@ -40,6 +40,18 @@ async function getHits() {
 }
 
 
+async function getLastHits() {
+  const hits = await getHits();
+  const lastHits = new Map();
+
+  hits.forEach((value, key) => {
+    lastHits.set(key, value.pop());
+  });
+
+  return lastHits;
+}
+
+
 async function mock(mockInfo) {
   const response = await fetch('http://127.0.0.1:3000/mock', {
     method: 'post',
@@ -102,6 +114,10 @@ class TestServer {
 
   getHits() {
     return getHits();
+  }
+
+  getLastHits() {
+    return getLastHits();
   }
 
   async getHitsForPath(path) {

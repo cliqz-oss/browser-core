@@ -10,7 +10,9 @@ function shouldUseStaging() {
     config.settings.channel === 'MA99' || // Jenkins
     config.settings.channel === 'MA02' || // Debug
     config.settings.channel === 'MI99' || // Jenkins
-    config.settings.channel === 'MI02' // Debug
+    config.settings.channel === 'MI02' || // Debug
+    config.settings.channel === 'MI52' || // Debug
+    config.settings.channel === 'MA52' // Debug
   );
 }
 

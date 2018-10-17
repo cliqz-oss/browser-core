@@ -4,11 +4,8 @@
 import inject from '../core/kord/inject';
 import NewTabPage from './main';
 import News from './news';
-import {
-  PREF_SEARCH_MODE,
-  DEFAULT_BG,
-  MAX_SPOTS } from './constants';
-import getWallpapers from './wallpapers';
+import config from './config';
+import { getWallpapers, getDefaultWallpaper } from './wallpapers';
 import History from '../platform/freshtab/history';
 import openImportDialog from '../platform/freshtab/browser-import-dialog';
 import utils from '../core/utils';
@@ -24,7 +21,6 @@ import {
   getActiveTab,
 } from '../core/browser';
 import { queryActiveTabs } from '../core/tabs';
-import config from '../core/config';
 import console from '../core/console';
 import {
   isCliqzBrowser,
@@ -131,7 +127,7 @@ export default background({
 
     HistoryService.onVisitRemoved.addListener(this.onVisitRemoved);
 
-    // register real estate
+    // Unconditionally register real estate
     this._registerToOffersCore();
 
     // offers-update-service
@@ -184,16 +180,10 @@ export default background({
   },
 
   _unregisterFromOffersCore() {
-    if (!this.showOffers) {
-      return;
-    }
     this.offersV2.action('unregisterRealEstate', { realEstateID: REAL_ESTATE_ID }).catch(() => {});
   },
 
   _registerToOffersCore() {
-    if (!this.showOffers) {
-      return;
-    }
     this.offersV2.action('registerRealEstate', { realEstateID: REAL_ESTATE_ID }).catch(error => console.log(error));
   },
 
@@ -205,10 +195,6 @@ export default background({
     const isInABTest = prefs.get('freshtabNewBrand', false);
     const isDismissed = prefs.get('freshtabNewBrandDismissed', false);
     return config.settings.showNewBrandAlert && isInABTest && !isDismissed;
-  },
-
-  get showOffers() {
-    return prefs.get('offers2UserEnabled', true);
   },
 
   get blueTheme() {
@@ -229,18 +215,6 @@ export default background({
     return (isCliqzBrowser && CLIQZ_1_16_OR_ABOVE) || prefs.get(DEVELOPER_FLAG_PREF, false);
   },
 
-  /*
-  * Blue background is supported for all AMO users
-  * and CLIQZ users above 1.16.0
-  */
-  get isBlueBackgroundSupported() {
-    let isSupported = true;
-    if (isCliqzBrowser && !isCliqzAtLeastInVersion('1.16.0')) {
-      isSupported = false;
-    }
-    return isSupported || prefs.get(DEVELOPER_FLAG_PREF, false);
-  },
-
   getNewsEdition() {
     return this.getComponentsState().news.preferedCountry;
   },
@@ -248,14 +222,14 @@ export default background({
   getComponentsState() {
     const freshtabConfig = prefs.getObject(FRESHTAB_CONFIG_PREF);
     const backgroundName = (freshtabConfig.background && freshtabConfig.background.image)
-      || DEFAULT_BG;
+      || getDefaultWallpaper();
     return {
       historyDials: Object.assign({}, DEFAULT_COMPONENT_STATE, freshtabConfig.historyDials),
       customDials: Object.assign({}, DEFAULT_COMPONENT_STATE, freshtabConfig.customDials),
       search: {
         ...DEFAULT_COMPONENT_STATE,
         ...freshtabConfig.search,
-        mode: prefs.get(PREF_SEARCH_MODE, 'urlbar'),
+        mode: prefs.get(config.constants.PREF_SEARCH_MODE, 'urlbar'),
       },
       news: Object.assign({}, DEFAULT_COMPONENT_STATE, freshtabConfig.news),
       background: {
@@ -346,10 +320,11 @@ export default background({
     * Get history based & user defined speedDials
     * @method getSpeedDials
     */
-    getSpeedDials() {
+    async getSpeedDials() {
       const dialUps = prefs.has(DIALUPS, '') ? JSON.parse(prefs.get(DIALUPS, '', '')) : [];
       let historyDialups = [];
       let customDialups = dialUps.custom ? dialUps.custom : [];
+      await searchUtils.isSearchServiceReady();
       const searchEngines = searchUtils.getSearchEngines(blackListedEngines);
 
       historyDialups = History.getTopUrls().then((results) => {
@@ -476,13 +451,14 @@ export default background({
     async editSpeedDial(item, { url, title = '' }) {
       const urlToAdd = stripTrailingSlash(url);
       const validUrl = SpeedDial.getValidUrl(urlToAdd);
+      await searchUtils.isSearchServiceReady();
       const searchEngines = searchUtils.getSearchEngines(blackListedEngines);
 
       if (!validUrl) {
         return makeErrorObject('invalid');
       }
 
-      const dials = await this.getVisibleDials(MAX_SPOTS);
+      const dials = await this.getVisibleDials(config.constants.MAX_SPOTS);
       const allDials = [...dials.history, ...dials.custom];
       const isDuplicate = allDials
         .map(dial => ({ ...dial, url: tryDecodeURIComponent(dial.url) }))
@@ -523,6 +499,7 @@ export default background({
     async addSpeedDial({ url, title = '' }, index) {
       const urlToAdd = stripTrailingSlash(url);
       const validUrl = SpeedDial.getValidUrl(urlToAdd);
+      await searchUtils.isSearchServiceReady();
       const searchEngines = searchUtils.getSearchEngines(blackListedEngines);
 
       if (!validUrl) {
@@ -531,7 +508,7 @@ export default background({
 
       // history returns most frequest 15 results, but we display up to 6
       // so we need to validate only against visible results
-      const dials = await this.getVisibleDials(MAX_SPOTS);
+      const dials = await this.getVisibleDials(config.constants.MAX_SPOTS);
       const allDials = [...dials.history, ...dials.custom];
 
       const isDuplicate = allDials
@@ -635,6 +612,7 @@ export default background({
         const newsList = news.newsList || [];
         const topNewsVersion = news.topNewsVersion || 0;
 
+        const edition = this.getNewsEdition();
         return {
           version: topNewsVersion,
           news: newsList.map(r => ({
@@ -645,7 +623,7 @@ export default background({
             url: r.url,
             type: r.type,
             breaking_label: r.breaking_label,
-            edition: this.getNewsEdition(),
+            edition,
           }))
         };
       });
@@ -656,9 +634,6 @@ export default background({
     * @method getOffers
     */
     getOffers() {
-      // if (!this.showOffers) {
-      //   return undefined;
-      // }
       const args = {
         filters: {
           by_rs_dest: REAL_ESTATE_ID,
@@ -739,15 +714,15 @@ export default background({
 
       return {
         locale: getLanguageFromLocale(i18n.PLATFORM_LOCALE),
-        newTabUrl: config.settings.NEW_TAB_URL,
-        isBrowser: isCliqzBrowser,
         blueTheme: this.blueTheme,
-        isBlueThemeSupported: this.isBlueThemeSupported,
-        isBlueBackgroundSupported: this.isBlueBackgroundSupported,
+        isBlueThemeSupported: this.isBlueThemeEnabled,
         wallpapers: getWallpapers(),
         showNewBrandAlert: this.shouldShowNewBrandAlert,
         messages: this.messages,
-        isHistoryEnabled: prefs.get('modules.history.enabled', false) && config.settings.HISTORY_URL,
+        isHistoryEnabled: (
+          prefs.get('modules.history.enabled', false) &&
+          config.settings.HISTORY_URL !== undefined
+        ),
         componentsState: this.getComponentsState(),
         developer: prefs.get('developer', false),
       };
@@ -896,11 +871,6 @@ export default background({
       this.actions.getNews().then(() => {
         this.actions.refreshFrontend();
       });
-    },
-    'offers-re-registration': function onOffersRegMessage(event) {
-      if (event && event.type === 'broadcast') {
-        this._registerToOffersCore();
-      }
     },
   },
 });

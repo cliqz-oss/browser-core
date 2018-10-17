@@ -257,6 +257,9 @@ $cliqz-blue-color: #00ADEF;
                         box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
                         background-color: #585858;
                     }
+                    &[pageproxystate="valid"] > #identity-box.verifiedIdentity > #identity-icon-labels {
+                        color: #058B00;
+                    }
                 }
 
                 &:-moz-lwtheme-darktext {
@@ -290,6 +293,8 @@ $cliqz-blue-color: #00ADEF;
     &:after {
         box-shadow: rgba(0, 0, 0, 0.19) 0 -2px 1px 3px;
         border-bottom: unset;
+        -moz-appearance: unset;
+        height: unset;
     }
 
     &:-moz-window-inactive:after {

@@ -106,6 +106,9 @@ const getSignalNameForCoupon = (offerCouponCodes, couponUsed) => {
     'coupon_autofill_field_show',
     'coupon_autofill_field_unknown',
     'coupon_autofill_field_x_action',
+    'coupon_autofill_field_success_use',
+    'coupon_autofill_field_error_use',
+    'coupon_autofill_field_application_not_found',
   ];
   if (autofillWhiteList.includes(couponUsed)) {
     return couponUsed;
@@ -367,6 +370,11 @@ export default class OffersMonitorHandler {
     const monitorType = monitorData.type;
     const domains = new Set();
     monitorData.patterns.forEach((pattern) => {
+      // Can happen if the backend sends the same pattern multiple times for the
+      // same signalID, e.g. for _coupon_
+      if (!(pattern in this.monitors[monitorType].patterns)) {
+        return;
+      }
       const editedList = this.monitors[monitorType].patterns[pattern].filter((offer) => {
         if (monitorData.offerID === offer.offerID && monitorData.signalID === offer.signalID) {
           domains.add(offer.domain);

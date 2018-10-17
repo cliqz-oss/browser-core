@@ -2,7 +2,7 @@
 /* global describeModule */
 
 const memdown = require('memdown');
-const PouchDB = require('@cliqz-oss/pouchdb');
+const PouchDB = require('pouchdb');
 
 export default describeModule('core/persistence/ordered-queue',
   () => ({

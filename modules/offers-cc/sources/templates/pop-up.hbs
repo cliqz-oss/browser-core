@@ -1,52 +1,60 @@
-<header>
-    <p>
-        <span data-i18n="offers_hub_title"></span>
-        <span>{{#unless noVoucher}}{{local 'ad_label'}}{{/unless}}</span>
-        <span>
-            <a id="about-link"
-               data-i18n="offers_hub_about_cliqz_offers"
-               data-url="https://cliqz.com/myoffrz"
-            >
-            </a>
-        </span>
-    </p>
-</header>
-
-<section id="cqz-vouchers-wrapper">
-    {{#if noVoucher}}
-    {{> no-voucher}}
-    {{else}}
-    <ul id="cqz-vouchers-holder">
-        {{#each vouchers}}
-        <li data-offer-id="{{offer_id}}"
-            class="voucher-wrapper {{#if preferred}}preferred{{/if}} {{#if @first}}active{{/if}}"
-        >
-            {{> voucher}}
-        </li>
-        {{/each}}
-    </ul>
-    {{/if}}
-</section>
-
-<footer>
-    <p>
-        <span>
-            {{#if true}} {{!-- showFeedbackButton --}}
-            <button
-                id="feedback-button"
-                data-i18n="offers_hub_feedback_title"
+<div class="page-container">
+    <div class="overlay"></div>
+    <header>
+        <p>
+            <span data-i18n="offers_hub_title"></span>
+            <span></span>
+            <span class="setting" data-telemetry-id="menu">
+                <a
+                   data-url="https://cliqz.com/myoffrz"
+                >
+                </a>
+            </span>
+        </p>
+        <ul class="setting-menu">
+            <li class="feedback"
+                data-i18n="offers_menu_give_feedback"
                 data-telemetry-id="feedback">
-            </button>
-            {{/if}}
-        </span>
-        <span>
-            {{#if showExpandButton}}
-            <button id="expand-button"></button>
-            {{/if}}
-        </span>
-        <span title="{{local 'offers_hub_powered_by'}}"></span>
-    </p>
-    <div id="feedback-content">
-    {{> feedback-offer}}
-    </div>
-</footer>
+            </li>
+            <li class="why"
+                data-i18n="why_see_this"
+                data-telemetry-id="why">
+            </li>
+            <li
+                data-telemetry-id="learn_more">
+                <a href="https://cliqz.com/support"  data-i18n="Sitemap_Facebook_Help" target="_blank"></a>
+            </li>
+        </ul>
+    </header>
+
+    <section id="cqz-vouchers-wrapper">
+        {{#if noVoucher}}
+        {{> no-voucher}}
+        {{else}}
+        <ul id="cqz-vouchers-holder">
+            {{#each vouchers}}
+            <li data-offer-id="{{offer_id}}"
+                class="voucher-wrapper {{#if preferred}}preferred{{/if}} {{#if @first}}active{{/if}}"
+            >
+                {{> voucher}}
+            </li>
+            {{/each}}
+        </ul>
+        {{/if}}
+    </section>
+
+    <footer>
+        <p>
+            <span class="ad-label">{{#unless noVoucher}}{{local 'ad_label'}}{{/unless}}</span>
+            <span>
+                {{#if showExpandButton}}
+                <button id="expand-button"></button>
+                {{/if}}
+            </span>
+            <span title="{{local 'offers_hub_powered_by'}}">
+                <a href="https://www.cliqz.com" target="_blank"></a>
+            </span>
+        </p>
+    </footer>
+</div>
+
