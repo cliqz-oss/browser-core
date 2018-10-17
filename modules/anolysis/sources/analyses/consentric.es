@@ -9,7 +9,7 @@ const number = { type: 'number', min: 0 };
 const allowedValues = [0, 1, 2, 3, 4, 5];
 const properties = {
   google: {
-    pageAcountCount: number,
+    pageActionCount: number,
     pageActionSites: number,
     popupCount: number,
     popupSites: number,
@@ -17,7 +17,7 @@ const properties = {
     clickedSites: number,
   },
   facebook: {
-    pageAcountCount: number,
+    pageActionCount: number,
     pageActionSites: number,
     popupCount: number,
     popupSites: number,
@@ -25,7 +25,7 @@ const properties = {
     clickedSites: number,
   },
   iab: {
-    pageAcountCount: number,
+    pageActionCount: number,
     pageActionSites: number,
     popupCount: number,
     popupSites: number,
@@ -41,7 +41,6 @@ function generateForType(type, { records }) {
   const filter = arr => arr.filter(s => s.type === type);
   const pageActionSignals = filter(records.get('metrics.consentric.pageAction'));
   const popupOpenedSignals = filter(records.get('metrics.consentric.popupOpened'));
-  const changedSignals = filter(records.get('metrics.consentric.consentChanged'));
   const clickedSignals = filter(records.get('metrics.consentric.clicked'));
 
   const analysis = {};
@@ -52,6 +51,7 @@ function generateForType(type, { records }) {
   analysis.popupSites = countDistinct(popupOpenedSignals.map(pluckSite));
 
   if (type === 'iab') {
+    const changedSignals = records.get('metrics.consentric.consentChanged');
     analysis.consentChangedCount = changedSignals.length;
     analysis.consentChangedSites = countDistinct(changedSignals.map(pluckSite));
     const hist = new Counter(changedSignals.map(s => s.allowed));
@@ -62,13 +62,13 @@ function generateForType(type, { records }) {
     analysis.clickedCount = clickedSignals.length;
     analysis.clickedSites = countDistinct(clickedSignals.map(pluckSite));
   }
-  return analysis;
+  return [analysis];
 }
 
 export default CONSENT_TYPES.map(type => ({
   name: `analysis.consentric.${type}`,
   version: 1,
-  generate: generateForType.bind(type),
+  generate: ({ records }) => generateForType(type, { records }),
   schema: {
     required: Object.keys(properties[type]),
     properties: properties[type],

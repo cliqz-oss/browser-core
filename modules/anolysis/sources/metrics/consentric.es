@@ -18,7 +18,7 @@ export default [
   }, {
     name: 'metrics.consentric.popupOpened',
     schema: {
-      required: ['type', 'site', 'writeable'],
+      required: ['type', 'site'],
       properties: {
         type: { type: 'string', enum: CONSENT_TYPES },
         writeable: { type: 'boolean' },
@@ -37,7 +37,7 @@ export default [
   }, {
     name: 'metrics.consentric.clicked',
     schema: {
-      required: ['type', 'site'],
+      required: ['type'],
       properties: {
         type: { type: 'string', enum: CONSENT_TYPES },
         site: { type: 'string' },
