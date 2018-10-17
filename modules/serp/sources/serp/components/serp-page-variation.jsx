@@ -139,9 +139,15 @@ export default class SerpPageVariation extends React.Component {
       shouldDisplayQuerySuggestions: this._shouldDisplayQuerySuggestions,
       shouldDisplayOffers: this._ABTestExperimentsSerpValue === 'offers_test',
       shouldDisplayAlternativeEnginesAtTop: this._ABTestValue !== 'G',
-      shouldDisplaySearchResultItemLogo: this._ABTestValue === 'K',
-      shouldDisplayLookAndFeelV1: this._ABTestValue !== 'J' && this._ABTestValue !== 'K',
-      shouldDisplayLookAndFeelV3: this._ABTestValue === 'J' || this._ABTestValue === 'K',
+      shouldDisplaySearchResultItemLogo: this._ABTestValue === 'K' || this._ABTestValue === 'O',
+      shouldDisplayLookAndFeelV1: this._ABTestValue !== 'J'
+        && this._ABTestValue !== 'N'
+        && this._ABTestValue !== 'K'
+        && this._ABTestValue !== 'O',
+      shouldDisplayLookAndFeelV3: this._ABTestValue === 'J'
+        || this._ABTestValue === 'N'
+        || this._ABTestValue === 'K'
+        || this._ABTestValue === 'O',
       v1ResultsFromCliqz: this._ABTestValue === 'F',
       session: this._session,
     };

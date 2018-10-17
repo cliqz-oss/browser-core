@@ -80,7 +80,7 @@ export default [
       required: ['group', 'isCliqzDefaultEngine'],
       properties: {
         // AB test group this user is in
-        group: { enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', null] },
+        group: { enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', null] },
         // true, if Cliqz is (still) the default search engine (users can change this)
         isCliqzDefaultEngine: { type: 'boolean' },
         // selected alternative search engine on SERP

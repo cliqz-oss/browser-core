@@ -197,7 +197,7 @@ export default [
           { type: 'null' },
         ] },
         // AB test group this user is in
-        group: { enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', null] },
+        group: { enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', null] },
         // true, if Cliqz is (still) the default search engine (users can change)
         isCliqzDefaultEngine: { type: 'boolean' },
         // 'dropdown' is a reduced version of the 'search.sessions' analysis
