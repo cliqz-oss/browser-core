@@ -13,6 +13,7 @@
 @import 'offer-middle-feedback.scss';
 @import 'modal.scss';
 @import 'overlay.scss';
+@import 'tooltip.scss';
 @import "mixins";
 
 @mixin container($config, $theme)
@@ -90,112 +91,41 @@
             &:hover {
                 opacity: 1;
             }
-            /* tooltip style */
-            .tooltip {
-                position: absolute;
-                padding:10px 20px;
-                left: 50px;
-                top: -20px;
-                background: #fff;
-                opacity: 1;
-                pointer-events: none;
-                color:#000;
-                font-size: 14px;
-                min-width: 330px;
-                box-shadow: 0 0 25px rgba(0,0,0,0.3);
-                z-index: 300;
-                transition: all linear .3s;
-                &.close {
-                    left: 15px;
-                    opacity: 0
-                }
-                h1 {
-                    padding-bottom: 10px;
-                    font-weight: 400;
-                }
-                p {
-                    padding-bottom: 10px;
-                }
-                button {
-                    border: none;
-                    cursor: pointer;
-                    background: none;
-                    pointer-events: initial;
-                    font-size: 14px;
-                    &.explore {
-                        color:#fff;
-                        background: #00AFF0;
-                        padding: 5px 10px;
-                        border-radius: 3px;
-                        margin-right: 10px;
-                    }
-                }
+        }
 
-                a {
-                    pointer-events: initial
-                }
+        /* tooltip style */
+        [id="blackfriday-group"]{
+            flex: 0 0 calc(map-get($base-configs, aside-width)+4);
+            position: relative;
+            justify-content: flex-start;
+            flex-wrap: nowrap;
+            overflow-x: visible;
+            flex-direction: row;
+
+            & > a, & > button {
+                background: map-get($base-theme, cliqz-blackfriday-bg);
+                display: block;
+                margin: 8px 23px 0px 22px;
+                background-size: 23px auto;
+                width: 29px;
+                height: 34px;
+                color: transparent;
+                font-size: 0;
+                text-decoration: none;
+                border: 0;
+                cursor: pointer;
+                opacity:0.6;
+                background-position: 5px center;
+
                 &:hover {
-                    animation: none;
-                }
-                &-content {
-                    display: inline-block;
-                    width: calc(100% - 50px)
-                }
-                &-icon {
-                    vertical-align: top;
-                    display: inline-block;
-                    margin-right: 15px;
-                    padding-top: 10px;
-                    position: relative;
-                    width:32px;
-                    color: transparent;
-                    &:after {
-                        content: "";
-                        top:10px;
-                        position: absolute;
-                        left:-34px;
-                        width: 0;
-                        height: 0;
-                        border-top: 15px solid transparent;
-                        border-right: 20px solid rgba(255,255,255,01);
-                        border-bottom: 15px solid transparent;
-                    }
-                }
-                &-close {
-                    position: absolute;
-                    width: 25px;
-                    height: 25px;
-                    top: 8px;
-                    right: 8px;
-                    button {
-                        position: relative;
-                        display: block;
-                        text-indent: -9999px;
-                        cursor: pointer;
-                        width: 30px;
-                        height: 22px;
-                        margin: 0px;
-                        &:after, &:before {
-                            content:"";
-                            background: rgba(0,0,0,1);
-                            position: absolute;
-                            top: 0;
-                            right: 10px;
-                            height: 15px;
-                            width: 1px;
-                            transform: rotate(-45deg);
-                        }
-                        &:before {
-                            transform: rotate(45deg);
-                        }
-                    }
+                    opacity: 1;
                 }
             }
         }
 
         /* SPECIAL CASE: SIDE-BAR BUTTONS ON SMALL SCREENS */
         @media only screen and (max-width: 507px) {
-            a, button {
+            a, button, [id="blackfriday-group"], [id="blackfriday-group"] a {
                 display: none;
             }
         }
@@ -204,6 +134,11 @@
             a, button {
                 margin-left: 13px;
                 margin-right: 13px;
+            }
+
+            [id="blackfriday-group"] a {
+                margin-left: 10px;
+                margin-right: 10px;
             }
         }
 

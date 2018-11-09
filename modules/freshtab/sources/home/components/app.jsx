@@ -12,12 +12,14 @@ import Settings from './settings';
 import MessageCenter from './message-center';
 import t from '../i18n';
 import UndoDialRemoval from './undo-dial-removal';
+import Tooltip from './tooltip';
 import HistoryTitle from './history-title';
 import { historyClickSignal, settingsClickSignal, homeConfigsStatusSignal,
   sendHomeUnloadSignal, sendHomeBlurSignal, sendHomeFocusSignal } from '../services/telemetry/home';
 import localStorage from '../services/storage';
 import { deleteUndoSignal, undoCloseSignal } from '../services/telemetry/speed-dial';
 import { settingsRestoreTopSitesSignal, settingsComponentsToggleSignal, newsSelectionChangeSignal } from '../services/telemetry/settings';
+import { clickSignal as blackFridayClickSignal } from '../services/telemetry/blackfriday';
 import ModulesDeveloperModal from './modules-developer-modal';
 
 class App extends React.Component {
@@ -60,6 +62,7 @@ class App extends React.Component {
       isOfferMenuOpen: false,
       isOfferInfoOpen: false,
       isModalOpen: false,
+
     };
 
     window.state = this.state;
@@ -75,6 +78,7 @@ class App extends React.Component {
     this.toggleBlueTheme = this.toggleBlueTheme.bind(this);
     this.toggleBackground = this.toggleBackground.bind(this);
     this.submitFeedbackForm = this.submitFeedbackForm.bind(this);
+    this.tooltip = React.createRef();
   }
 
   componentDidMount() {
@@ -104,6 +108,10 @@ class App extends React.Component {
 
   onHistoryClick() {
     historyClickSignal();
+  }
+
+  onBlackFridayIconClick() {
+    blackFridayClickSignal({ target: 'icon' });
   }
 
   onDeveloperModulesOpen = async () => {
@@ -363,6 +371,11 @@ class App extends React.Component {
     if (this.urlbarElem) {
       this.urlbarElem.textInput.style.visibility = 'visible';
     }
+
+    if (this.state.config.tooltip === config.constants.TOOLTIP_BLACKFRIDAY) {
+      this.tooltip.current.handleSkipClick();
+    }
+
     const settingsPanel = document.querySelector('#settings-panel');
     if (!settingsPanel.contains(el.target) &&
       el.target.id !== 'settings-btn' &&
@@ -586,6 +599,31 @@ class App extends React.Component {
               >
                 History
               </a>
+            }
+            {this.state.config.showBlackFridayIcon
+              && (
+                <div id="blackfriday-group">
+                  <a
+                    href={`${config.settings.BLACKFRIDAY_URL}?lang=${this.state.config.locale}`}
+                    id="cliqz-blackfriday"
+                    tabIndex="-1"
+                    onClick={() => this.onBlackFridayIconClick()}
+                  >
+                    Black Friday
+                  </a>
+                  {this.state.config.tooltip === config.constants.TOOLTIP_BLACKFRIDAY
+                    && (
+                      <Tooltip
+                        id="blackfriday-tooltip"
+                        eventType="blackfriday"
+                        description={t('new_feature')}
+                        urlToOpen={`${config.settings.BLACKFRIDAY_URL}?lang=${this.state.config.locale}`}
+                        ref={this.tooltip}
+                      />
+                    )
+                  }
+                </div>
+              )
             }
           </aside>
           <section id="main-content">

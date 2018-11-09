@@ -2173,5 +2173,11 @@
   },
   "why_see_these_offers": {
     "message": "Warum wird das gezeigt?"
+  },
+  "freshtab_new_feature": {
+    "message": "Neu!"
+  },
+  "freshtab_blackfriday_tooltip": {
+    "message": "Black Friday Angebote!"
   }
 }

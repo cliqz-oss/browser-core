@@ -18,7 +18,7 @@ node('docker') {
       withEnv(["CLIQZ_CONFIG_PATH=./configs/${CLIQZ_CHANNEL}.js"]) {
         helpers.withCache {
           stage('fern test') {
-            sh './fern.js test -l unit-node --ci tests.xml'
+            sh './fern.js test ./configs/ci/unit-tests.js -l unit-node --ci tests.xml'
           }
           if (params.CLIQZ_BETA == 'True') {
             stage('fern build') {

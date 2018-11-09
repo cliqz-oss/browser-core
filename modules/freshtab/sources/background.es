@@ -50,6 +50,8 @@ const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 const BLUE_THEME_PREF = 'freshtab.blueTheme.enabled';
 const DEVELOPER_FLAG_PREF = 'developer';
 const REAL_ESTATE_ID = 'cliqz-tab';
+const DISMISSED_ALERTS = 'dismissedAlerts';
+const TOOLTIP_RENDERED = 'freshtab.tooltipRendered';
 
 const blackListedEngines = [
   'Google Images',
@@ -215,6 +217,36 @@ export default background({
     return (isCliqzBrowser && CLIQZ_1_16_OR_ABOVE) || prefs.get(DEVELOPER_FLAG_PREF, false);
   },
 
+  get tooltip() {
+    const dismissedMessages = prefs.getObject(DISMISSED_ALERTS);
+    const meta = dismissedMessages[config.constants.TOOLTIP_BLACKFRIDAY] || {};
+
+    if (meta.isDismissed) {
+      return false;
+    }
+
+    if (prefs.get(TOOLTIP_RENDERED, false)) {
+      return false;
+    }
+
+    return config.constants.TOOLTIP_BLACKFRIDAY;
+  },
+
+  get shouldShowBlackFridayIcon() {
+    if (prefs.get('config_location', 'de') !== 'de') {
+      return false; // Show icon for users in Germany only
+    }
+    const currentDate = prefs.get('config_ts', null);
+    const minDate = '20181029'; // Update this to be release day
+    const maxDate = '20181126';
+
+    if (currentDate >= minDate && currentDate <= maxDate) {
+      return true;
+    }
+
+    return false;
+  },
+
   getNewsEdition() {
     return this.getComponentsState().news.preferedCountry;
   },
@@ -251,6 +283,29 @@ export default background({
   },
 
   actions: {
+    markTooltipAsSkipped() {
+      const tooltip = this.tooltip;
+      if (!tooltip) {
+        return;
+      }
+
+      const dismissedMessages = prefs.getObject(DISMISSED_ALERTS);
+      prefs.setObject(DISMISSED_ALERTS, {
+        ...dismissedMessages,
+        [tooltip]: {
+          ...dismissedMessages[tooltip],
+          skippedAt: Date.now(),
+          isDismissed: true,
+        },
+      });
+    },
+
+    markTooltipRendered() {
+      if (!prefs.get(TOOLTIP_RENDERED, false)) {
+        prefs.set(TOOLTIP_RENDERED, true);
+      }
+    },
+
     selectResult(
       selection,
       { tab: { id: tabId } = {} } = {},
@@ -725,6 +780,8 @@ export default background({
         ),
         componentsState: this.getComponentsState(),
         developer: prefs.get('developer', false),
+        tooltip: this.tooltip,
+        showBlackFridayIcon: this.shouldShowBlackFridayIcon,
       };
     },
 
