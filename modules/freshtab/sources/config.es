@@ -95,6 +95,7 @@ export default {
   },
   settings: {
     WORLDCUP_URL: 'https://sport.cliqz.com/',
+    BLACKFRIDAY_URL: 'https://blackfriday.cliqz.com/',
     HB_NEWS: 'hb-news.cliqz.com',
     HISTORY_URL: config.settings.HISTORY_URL,
     NEW_TAB_URL: config.settings.NEW_TAB_URL,
@@ -104,8 +105,7 @@ export default {
     showNewBrandAlert: config.settings.showNewBrandAlert,
   },
   constants: {
-    TOOLTIP_WORLDCUP_GROUP: 'worldcup-group',
-    TOOLTIP_WORLDCUP_KNOCKOUT: 'worldcup-knockout',
+    TOOLTIP_BLACKFRIDAY: 'cliqz-blackfriday',
     PREF_SEARCH_MODE: 'freshtab.search.mode',
     NO_BG: 'bg-default',
     MAX_SPOTS: 6,

@@ -47,13 +47,27 @@ export function getCurrentTabId(window) {
   return window.gBrowser.selectedBrowser && window.gBrowser.selectedBrowser.outerWindowID;
 }
 
+function getPrincipalForUrl(url) {
+  if (url.startsWith('chrome:') || url.startsWith('resource:') || url.startsWith('about:')) {
+    // we return system principal only for chrome, resoure and about: pages
+    return Services.scriptSecurityManager.getSystemPrincipal();
+  }
+
+  // otherwise we simply return a newly created NullPrincipal
+  return Services.scriptSecurityManager.createNullPrincipal({});
+}
+
 export function updateTabById(tabId, { url }) {
   mapWindows(w => w).some((window) => {
     const tab = getTabById(window, tabId);
     if (!tab) {
       return false;
     }
-    tab.loadURI(url);
+    try {
+      tab.loadURI(url, { triggeringPrincipal: getPrincipalForUrl(url) });
+    } catch (e) {
+      tab.loadURI(url);
+    }
     return true;
   });
 }

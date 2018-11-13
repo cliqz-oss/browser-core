@@ -104,6 +104,9 @@ export default class UIWindow extends AppWindow {
     // mock default FF function
     this.popup.enableOneOffSearches = function () {};
     this.popup.closePopup = function () {};
+    this.popup.richlistbox = {
+      children: []
+    };
     this.popup.oneOffSearchButtons = {
       maybeRecordTelemetry() { return false; }
     };

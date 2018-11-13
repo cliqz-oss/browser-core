@@ -89,14 +89,18 @@ const CLIQZEnvironment = {
     } else if (newWindow) {
       win.open(url, '_blank');
     } else if (newPrivateWindow) {
-      win.openLinkIn(url, 'window', { private: true });
+      win.openLinkIn(url, 'window', { private: true, triggeringPrincipal: getPrincipalForUrl(url) });
     } else {
       // Set urlbar value to url immediately
       if (win.CLIQZ.Core.urlbar) {
         win.CLIQZ.Core.urlbar.value = url;
       }
       // win.openUILink(url);
-      win.gBrowser.loadURI(url);
+      try {
+        win.gBrowser.loadURI(url, { triggeringPrincipal: getPrincipalForUrl(url) });
+      } catch (e) {
+        win.gBrowser.loadURI(url);
+      }
     }
     return undefined;
   },
