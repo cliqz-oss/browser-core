@@ -75,8 +75,9 @@ export default class InstantProvider extends BaseProvider {
         }
       };
 
-      const results = isQueryUrl ? [navigateResult, supplementarySearchResult] :
-        [supplementarySearchResult];
+      const results = isQueryUrl
+        ? [navigateResult, supplementarySearchResult]
+        : [supplementarySearchResult];
 
       next(
         getResponse(

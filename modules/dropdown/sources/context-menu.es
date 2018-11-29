@@ -2,7 +2,7 @@ import inject from '../core/kord/inject';
 import utils from '../core/utils';
 import events from '../core/events';
 import HistoryManager from '../core/history-manager';
-import { getTabsWithUrl, closeTab } from '../core/tabs';
+import { getTabsWithUrl, closeTabsWithUrl } from '../core/tabs';
 import { dropdownContextMenuSignal } from './telemetry';
 import config from '../core/config';
 import { copyToClipboard } from '../core/clipboard';
@@ -122,7 +122,7 @@ export default class ContextMenu {
       },
       ...(result.isDeletable ? [{
         label: REMOVE_ENTRY_LABEL,
-        command: this.removeEntry.bind(this, url, result, openedTabs),
+        command: this.removeEntry.bind(this, result),
       }] : []),
       {
         label: labels.FEEDBACK,
@@ -168,20 +168,18 @@ export default class ContextMenu {
     copyToClipboard(url);
   }
 
-  removeEntry(url, { query, isBookmark }, openedTabs = []) {
-    HistoryManager.removeFromHistory(url, { strict: false })
+  removeEntry({ query, historyUrl, isBookmark }) {
+    HistoryManager.removeFromHistory(historyUrl, { strict: false })
       .then(() => {
         const telemetrySignal = isBookmark ? 'remove_from_history_and_bookmarks' : 'remove_from_history';
         this.telemetry(telemetrySignal);
         if (isBookmark) {
-          return HistoryManager.removeFromBookmarks(url);
+          return HistoryManager.removeFromBookmarks(historyUrl);
         }
         return Promise.resolve();
       })
+      .then(() => closeTabsWithUrl(historyUrl))
       .then(() => {
-        if (openedTabs.length) {
-          openedTabs.forEach(tab => closeTab(this.window, tab));
-        }
         this.core.action('refreshPopup', query);
       });
   }

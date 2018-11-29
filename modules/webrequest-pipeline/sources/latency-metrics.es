@@ -1,4 +1,4 @@
-import telemetry from '../core/services/telemetry';
+import inject from '../core/kord/inject';
 import setTimeoutInterval from '../core/helpers/timeout';
 
 
@@ -136,7 +136,7 @@ export default class Latency {
     }));
 
     this.resetTimings();
-    await telemetry.push(
+    await inject.service('telemetry').push(
       histogramsMetric,
       'metrics.performance.webrequest-pipeline.timings',
     );

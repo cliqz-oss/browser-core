@@ -13,9 +13,10 @@ if (typeof Services !== 'undefined') {
   );
 }
 
-export const TIP = (typeof Components !== 'undefined' ?
-  Components.classes['@mozilla.org/text-input-processor;1']
-    .createInstance(Components.interfaces.nsITextInputProcessor) : undefined);
+export const TIP = (typeof Components !== 'undefined'
+  ? Components.classes['@mozilla.org/text-input-processor;1']
+    .createInstance(Components.interfaces.nsITextInputProcessor)
+  : undefined);
 
 export function press(opt) {
   let modifierEvent;

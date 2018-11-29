@@ -1,6 +1,5 @@
 import moment from '../../platform/lib/moment';
-
-import telemetry from '../../core/services/telemetry';
+import inject from '../../core/kord/inject';
 
 import Backend from './backend-communication';
 import getSynchronizedDate, { getSynchronizedDateFormatted, DATE_FORMAT } from './synchronized-date';
@@ -13,6 +12,7 @@ const LAST_GID_UPDATE_DATE = 'anolysisLastGIDUpdate';
 const NEW_INSTALL_DATE = 'anolysisInstalled';
 const NORMALIZED_DEMOGRAPHICS = 'anolysisDemographics';
 const RAW_DEMOGRAPHICS = 'anolysisRawDemographics';
+
 
 /**
  * Check if two sets of demographics (objects) are equal. This means that:
@@ -208,10 +208,11 @@ export default class GidManager {
   async handleSendDemographics() {
     logger.debug('handleSendDemographics');
     try {
-      // If demographics did not change since last time they were sent to the
-      // backend, there is no need to send them again.
-      if (!this.demographicsChanged()) {
-        logger.debug('Demographics did not change since last time');
+      // Granular demographics will be sent at least once per day
+      const lastTimeDemographicsSent = moment(this.getLastTimeDemographicSent(), DATE_FORMAT);
+      const currentDate = getSynchronizedDate();
+      if (!this.demographicsChanged() && lastTimeDemographicsSent.isSame(currentDate, 'day')) {
+        logger.debug('Demographics were already sent');
         return;
       }
 
@@ -227,7 +228,7 @@ export default class GidManager {
           (
             // This is what will be sent to the backend (normalized demographics
             // returned by the GID server).
-            this.getRegisteredDemographics() !== undefined &&
+            this.getRegisteredDemographics() !== undefined
 
             // We also check if `getLastRawDemographics()` is set. The rational
             // is this: during the migration to the new unified `send_demographics`
@@ -252,7 +253,7 @@ export default class GidManager {
             // Note that this will only apply the first time demographics are
             // sent after update/install, since a value for `lastRawDemographics`
             // will be set as soon as the update has been performed.
-            this.getLastRawDemographics() !== undefined
+            && this.getLastRawDemographics() !== undefined
           ) ? JSON.parse(this.getRegisteredDemographics())
             : undefined
         ),
@@ -383,7 +384,7 @@ export default class GidManager {
         return (await this._getGID()) || '';
       } catch (ex) {
         logger.error('Could not get GID', ex);
-        telemetry.push(
+        inject.service('telemetry').push(
           { context: 'gid-manager', exception: `${ex}` },
           'metrics.anolysis.health.exception',
         );

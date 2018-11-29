@@ -1,4 +1,4 @@
-import { ReverseIndex, matchNetworkFilter, compactTokens } from '../../core/pattern-matching';
+import PatternMatching from '../../platform/lib/adblocker';
 
 
 /**
@@ -7,12 +7,12 @@ import { ReverseIndex, matchNetworkFilter, compactTokens } from '../../core/patt
  */
 class PatternIndex {
   constructor(filters) {
-    this.index = new ReverseIndex(
-      filters,
+    this.index = new PatternMatching.ReverseIndex(
+      cb => filters.forEach(cb),
       filter => filter.getTokens(),
     );
 
-    this.tokens = compactTokens(new Uint32Array([...this.index.index.keys()]));
+    this.tokens = PatternMatching.compactTokens(new Uint32Array(this.index.index.keys()));
   }
 
   /**
@@ -37,45 +37,53 @@ export class SimplePatternIndex extends PatternIndex {
    */
   match(request) {
     let matched = false;
-    const checkMatch = (pattern) => {
-      matched = matchNetworkFilter(pattern, request);
+    this.index.iterMatchingFilters(request.getTokens(), (pattern) => {
+      matched = PatternMatching.matchNetworkFilter(pattern, request);
 
       // returning true we will continue iterating but is not needed anymore
       return !matched;
-    };
-
-    this.index.iterMatchingFilters(request.tokens, checkMatch);
+    });
 
     return matched;
   }
 }
 
-
 /**
  * Accelerating data structure for network filters matching for multiple patterns
  * match detection. Makes use of the reverse index structure defined above.
+ *
+ * @class MultiPatternIndex
  */
 export class MultiPatternIndex extends PatternIndex {
   /**
-   * we will check if the request matches the patterns associated.
-   * @param  {[type]} url         [description]
-   * @return {[type]}             the set of patterns id that matched this url
+   * @method match
+   * @param {PatternMatchRequest} request
+   * @returns {Map<string, PatternString>}
    */
   match(request) {
-    const matchedIDsSet = new Set();
-    const checkMatch = (pattern) => {
-      const patternGroupID = pattern.groupID;
-      // we will add the pattern id if it matches and is new
-      if (!matchedIDsSet.has(patternGroupID) && matchNetworkFilter(pattern, request)) {
-        matchedIDsSet.add(patternGroupID);
+    return new Set(this.matchWithPatterns(request).keys());
+  }
+
+  matchWithPatterns(request) {
+    const matchedIDs = new Map();
+
+    this.index.iterMatchingFilters(request.getTokens(), (pattern) => {
+      if (PatternMatching.matchNetworkFilter(pattern, request)) {
+        const patternGroupID = (pattern.groupID instanceof Array)
+          ? pattern.groupID
+          : [pattern.groupID];
+
+        patternGroupID.forEach((groupID) => {
+          // we will add the pattern id if it matches and is new
+          if (!matchedIDs.has(groupID)) {
+            matchedIDs.set(groupID, pattern.rawLine);
+          }
+        });
       }
       // in any case we need to continue iterating
       return true;
-    };
+    });
 
-    this.index.iterMatchingFilters(request.tokens, checkMatch);
-
-    return matchedIDsSet;
+    return matchedIDs;
   }
 }
-

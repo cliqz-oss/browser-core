@@ -1,15 +1,13 @@
 import config from '../core/config';
 
-const isGhosteryTab = config.settings.channel && config.settings.channel.startsWith('GT');
-
 const CLIQZ_BACKGROUNDS = {
   'bg-matterhorn': {
     name: 'bg-matterhorn',
     alias: 'matterhorn',
     isDefault: true,
   },
-  'bg-blue': {
-    name: 'bg-blue',
+  'bg-alps': {
+    name: 'bg-alps',
     alias: 'alps',
     isDefault: false,
   },
@@ -41,6 +39,11 @@ const CLIQZ_BACKGROUNDS = {
   'bg-summer': {
     name: 'bg-summer',
     alias: 'summer',
+    isDefault: false,
+  },
+  'bg-autumn': {
+    name: 'bg-autumn',
+    alias: 'autumn',
     isDefault: false,
   },
 };
@@ -90,32 +93,33 @@ export default {
     // TODO: platform-specific features to enable
     privacyStats: { enabled: false },
     history: { enabled: config.settings.channel !== '04' /* AMO */ },
-    ghosteryTab: { enabled: isGhosteryTab },
-    cliqzTab: { enabled: !isGhosteryTab }
   },
   settings: {
     WORLDCUP_URL: 'https://sport.cliqz.com/',
-    BLACKFRIDAY_URL: 'https://blackfriday.cliqz.com/',
     HB_NEWS: 'hb-news.cliqz.com',
     HISTORY_URL: config.settings.HISTORY_URL,
     NEW_TAB_URL: config.settings.NEW_TAB_URL,
+    CLIQZ_FOR_FRIENDS: config.settings.CLIQZ_FOR_FRIENDS,
     ROTATED_TOP_NEWS: 'rotated-top-news.cliqz.com',
     SUGGESTIONS_URL: config.settings.SUGGESTIONS_URL,
     frameScriptWhitelist: config.settings.frameScriptWhitelist,
     showNewBrandAlert: config.settings.showNewBrandAlert,
   },
   constants: {
-    TOOLTIP_BLACKFRIDAY: 'cliqz-blackfriday',
+    TOOLTIP_WORLDCUP_GROUP: 'worldcup-group',
+    TOOLTIP_WORLDCUP_KNOCKOUT: 'worldcup-knockout',
     PREF_SEARCH_MODE: 'freshtab.search.mode',
     NO_BG: 'bg-default',
     MAX_SPOTS: 6,
-    WHY_OFFERS_URL: (
-      isGhosteryTab
-        ? 'https://www.ghostery.com/faqs/what-is-ghostery-rewards/'
-        : 'https://cliqz.com/cliqz-angebote'
-    ),
+    WHY_OFFERS_URL: {
+      CLIQZ: 'https://cliqz.com/cliqz-angebote',
+      GHOSTERY: 'https://www.ghostery.com/faqs/what-is-ghostery-rewards/',
+    },
   },
-  backgrounds: isGhosteryTab ? GHOSTERY_BACKGROUNDS : CLIQZ_BACKGROUNDS,
+  backgrounds: {
+    CLIQZ: CLIQZ_BACKGROUNDS,
+    GHOSTERY: GHOSTERY_BACKGROUNDS,
+  },
   components: {
     background: 'background',
     cliqzTheme: 'cliqz_theme',

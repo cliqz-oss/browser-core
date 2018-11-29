@@ -36,8 +36,11 @@ export default class CookieContext {
     // trusted domain pairs
     const now = Date.now();
     this.trustedThirdParties.forEach((counter, key) => {
-      const timeoutAt = counter.ts +
-        (counter.c > 0 ? this.USED_TRUST_TIMEOUT : this.UNUSED_TRUST_TIMEOUT);
+      const timeoutAt = counter.ts + (
+        counter.c > 0
+          ? this.USED_TRUST_TIMEOUT
+          : this.UNUSED_TRUST_TIMEOUT
+      );
       if (now > timeoutAt) {
         this.trustedThirdParties.delete(key);
       }

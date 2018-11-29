@@ -5,8 +5,12 @@ import resourceManager from '../core/resource-manager';
 import prefs from '../core/prefs';
 import config from '../core/config';
 
-const VERSIONCHECK_URL = `${config.settings.CDN_BASEURL}/anti-tracking/whitelist/versioncheck.json`;
-const CONFIG_URL = `${config.settings.CDN_BASEURL}/anti-tracking/config.json`;
+const SETTINGS = config.settings;
+const VERSIONCHECK_URL = `${SETTINGS.CDN_BASEURL}/anti-tracking/whitelist/versioncheck.json`;
+const CONFIG_URL = `${SETTINGS.CDN_BASEURL}/anti-tracking/config.json`;
+const WHITELIST2_URL = `${SETTINGS.CDN_BASEURL}/anti-tracking/whitelist/2`;
+const PROTECTION = 'antitrackingProtectionEnabled';
+
 
 export const VERSION = '0.102';
 export const MIN_BROWSER_VERSION = 35;
@@ -20,11 +24,13 @@ export const TELEMETRY = {
 export const DEFAULTS = {
   safekeyValuesThreshold: 4,
   shortTokenLength: 6,
-  placeHolder: config.settings.antitrackingPlaceholder,
-  cliqzHeader: config.settings.antitrackingHeader,
+  placeHolder: SETTINGS.antitrackingPlaceholder,
+  cliqzHeader: SETTINGS.antitrackingHeader,
   enabled: true,
-  cookieEnabled: true,
-  qsEnabled: true,
+  cookieEnabled: Object.prototype.hasOwnProperty.call(SETTINGS, PROTECTION)
+    ? SETTINGS[PROTECTION] : true,
+  qsEnabled: Object.prototype.hasOwnProperty.call(SETTINGS, PROTECTION)
+    ? SETTINGS[PROTECTION] : true,
   bloomFilterEnabled: true,
   telemetryMode: TELEMETRY.ALL,
   sendAntiTrackingHeader: true,
@@ -35,8 +41,6 @@ export const DEFAULTS = {
 
 export const PREFS = {
   enabled: 'modules.antitracking.enabled',
-  cookieEnabled: 'attrackBlockCookieTracking',
-  qsEnabled: 'attrackRemoveQueryStringTracking',
   fingerprintEnabled: 'attrackCanvasFingerprintTracking',
   referrerEnabled: 'attrackRefererTracking',
   trackerTxtEnabled: 'trackerTxt',
@@ -58,10 +62,12 @@ const REMOTELY_CONFIGURED = ['blockRules', 'reportList', 'cookieWhitelist', 'sub
 export default class Config {
   constructor({
     defaults = DEFAULTS,
-    versionUrl = VERSIONCHECK_URL
+    versionUrl = VERSIONCHECK_URL,
+    whitelistUrl = WHITELIST2_URL,
   }, onUpdated) {
     this.debugMode = false;
     this.versionCheckUrl = versionUrl;
+    this.whitelistUrl = whitelistUrl;
     this.onUpdated = onUpdated;
 
     this.tokenDomainCountThreshold = 2;
@@ -70,10 +76,10 @@ export default class Config {
 
     Object.assign(this, defaults);
 
-    this.safekeyValuesThreshold = parseInt(persist.getValue('safekeyValuesThreshold'), 10) ||
-                                  this.safekeyValuesThreshold;
-    this.shortTokenLength = parseInt(persist.getValue('shortTokenLength'), 10) ||
-                            this.shortTokenLength;
+    this.safekeyValuesThreshold = parseInt(persist.getValue('safekeyValuesThreshold'), 10)
+                                  || this.safekeyValuesThreshold;
+    this.shortTokenLength = parseInt(persist.getValue('shortTokenLength'), 10)
+                            || this.shortTokenLength;
 
     this.paused = false;
 
@@ -128,8 +134,8 @@ export default class Config {
 
     if (versioncheck.safekeyValuesThreshold) {
       persist.setValue('safekeyValuesThreshold', versioncheck.safekeyValuesThreshold);
-      this.safekeyValuesThreshold = parseInt(versioncheck.safekeyValuesThreshold, 10) ||
-                                    this.safekeyValuesThreshold;
+      this.safekeyValuesThreshold = parseInt(versioncheck.safekeyValuesThreshold, 10)
+                                    || this.safekeyValuesThreshold;
     }
 
     // fire events for list update

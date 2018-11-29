@@ -35,7 +35,8 @@ export default class Module extends EventEmitter {
   constructor(name, settings) {
     super(eventNames);
     this.name = name;
-    this.loadingTime = null;
+    this.loadingTime = 0;
+    this.loadingTimeSync = 0;
     this.settings = settings;
     this._bgReadyDefer = new Defer();
     this._state = 'disabled';
@@ -46,8 +47,8 @@ export default class Module extends EventEmitter {
     this._windows = new DefaultWindowMap(() => ({
       windowModule: null,
       loadingDefer: new Defer(),
-      loadingTime: null,
-      loadingStarted: false
+      loadingTime: 0,
+      loadingStarted: 0,
     }));
   }
 
@@ -83,6 +84,10 @@ export default class Module extends EventEmitter {
     return modules[this.name].Window;
   }
 
+  get isOnionReady() {
+    return !!modules[this.name].isOnionReady;
+  }
+
   get isEnabled() {
     return this._state === 'enabled';
   }
@@ -105,7 +110,10 @@ export default class Module extends EventEmitter {
     return Promise.resolve(this.backgroundModule)
       .then((background) => {
         this.background = background;
-        return background.init(this.settings, app);
+        const loadingSyncStartedAt = Date.now();
+        const initPromise = background.init(this.settings, app);
+        this.loadingTimeSync = Date.now() - loadingSyncStartedAt;
+        return initPromise;
       })
       .then(() => {
         this._state = 'enabled';
@@ -127,8 +135,8 @@ export default class Module extends EventEmitter {
 
     if (quick) {
       // background does not need to have beforeBrowserShutdown defined
-      const quickShutdown = background.beforeBrowserShutdown ||
-        function beforeBrowserShutdown() {};
+      const quickShutdown = background.beforeBrowserShutdown
+        || function beforeBrowserShutdown() {};
       quickShutdown.call(background);
     } else {
       background.unload();
@@ -145,7 +153,7 @@ export default class Module extends EventEmitter {
    */
   loadWindow(window) {
     if (this.isDisabled) {
-      return Promise.reject('cannot load window of disabled module');
+      return Promise.reject(new Error('cannot load window of disabled module'));
     }
     const windowModuleState = this._windows.get(window);
     const { loadingDefer, loadingStarted } = windowModuleState;
@@ -232,6 +240,7 @@ export default class Module extends EventEmitter {
       name: this.name,
       isEnabled: this.isEnabled || this.isEnabling,
       loadingTime: this.loadingTime,
+      loadingTimeSync: this.loadingTimeSync,
       windows,
       state: this.isEnabled && this.backgroundModule.getState && this.backgroundModule.getState(),
     };

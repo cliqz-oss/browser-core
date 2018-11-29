@@ -39,6 +39,22 @@ export default background({
         type: 'startup',
         modules: status.modules,
       });
+
+      inject.service('telemetry').push(
+        Object.keys(status.modules).map((module) => {
+          const moduleStatus = status.modules[module];
+          return {
+            module,
+            isEnabled: moduleStatus.isEnabled,
+            loadingTime: moduleStatus.loadingTime,
+            loadingTimeSync: moduleStatus.loadingTimeSync,
+            windows: Object.keys(moduleStatus.windows).map(id => ({
+              id, loadingTime: moduleStatus.windows[id].loadingTime,
+            }))
+          };
+        }),
+        'metrics.performance.app.startup'
+      );
     });
   },
 

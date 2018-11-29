@@ -1,51 +1,28 @@
 /**
- * This file is the entry point for the "offers" module.
- *
- * This class will be in charge of given an user event (url change), take all
- * the active intents, all the associated offers for it and decide which should
- * be the offer that we should send to the real estate.
- * This class will depend on:
- * - intent system (to know which intents are active + get the associated offers).
- * - "offers-api" to be able to distribute the offers to the real estates
- * - "offers_db" to access the data of the offers that had been shown and the
- *   associated signals (actions).
- * - signals handler to delivery the interesting signals.
- *
- * The goal is to "handle" all the other sub classes and coordinate the flow of
- * the offers:
- * - get all the active offers (for the active intents)
- * - prioritize them based in some heuristic.
- * - filter the offers that doesnt met any criteria
- * - handle the monitoring of the current offers (store and monitoring)
- * - broadcast to all the real estates when needed
- * - receive signals from real estates and store the data
- *
+ * @module offers-v2
  */
+// Component description see the comment to `OffersHandler` class below
 
 import MessageQueue from '../../core/message-queue';
 import OffersGeneralStats from './offers-general-stats';
 import logger from '../common/offers_v2_logger';
 import OfferStatus from './offers-status';
 import OffersAPI from './offers-api';
-import OfferDB from './offers-db';
 import OfferDBObserver from './offers-db-observer';
 import IntentOffersHandler from './intent-offers-handler';
-import shouldFilterOffer from './soft-filter';
 import OffersMonitorHandler from './offers-monitoring';
 import IntentGatherer from './jobs/intent-gather';
 import DBReplacer from './jobs/db-replacer';
 import HardFilters from './jobs/hard-filters';
-import Prioritizer from './jobs/prioritizer';
+import SoftFilters from './jobs/soft-filters';
 import ContextFilter from './jobs/context-filters';
-import prefs from '../../core/prefs';
 import config from '../../core/config';
-import { getLatestOfferInstallTs, timestampMS } from '../utils';
 import ActionID from './actions-defs';
 import OffersConfigs from '../offers_configs';
+import Blacklist from './blacklist';
+import chooseBestOffer from './best-offer';
+import { OfferMatchTraits } from '../categories/category-match';
 
-
-// time in secs that we will use to consider offers fresh install
-const FRESH_INSTALL_THRESHOLD_SECS = 45 * 60; // 45 mins
 
 // /////////////////////////////////////////////////////////////////////////////
 //                              Helper methods
@@ -64,23 +41,8 @@ const executeJobList = (jobList, offersList, ctx, idx = 0) => {
   }
   const first = jobList[idx];
   return first.process(offersList, ctx).then(newResult =>
-    executeJobList(jobList, newResult, ctx, idx + 1)
-  );
+    executeJobList(jobList, newResult, ctx, idx + 1));
 };
-
-/**
- * Will check if the user just installed or not the extension, this will
- * be used to avoid showing offers if thats the case, except it is development
- */
-const isFreshInstalled = () => {
-  if (prefs.get('offersDevFlag', false)) {
-    return false;
-  }
-
-  const timeSinceInstallSecs = (timestampMS() - getLatestOfferInstallTs()) / 1000;
-  return timeSinceInstallSecs < FRESH_INSTALL_THRESHOLD_SECS;
-};
-
 
 /**
  * This method will check global things like total amount of offers per day,
@@ -90,27 +52,46 @@ const shouldWeShowAnyOffer = offersGeneralStats =>
   config.settings.channel === '99'
     || (offersGeneralStats.offersAddedToday() < OffersConfigs.MAX_NUM_OFFERS_PER_DAY);
 
-
-/**
- * This method will check if the current offer should be shown or not on the current
- * url context ({ urlData })
- */
-const shouldShowOfferOnContext = (offer, { urlData }) => {
-  // TODO: add maybe here the global patterns (pages that we do not want to show
-  // at all, maybe will be a little complicated to do this)
-  const isInBlacklist = () => offer.hasBlacklistPatterns() &&
-                              offer.blackListPatterns.match(urlData.getPatternRequest());
-  const result = !isInBlacklist();
-  if (!result) {
-    logger.debug('Should not show offer on context', offer, urlData);
-  }
-
-  return result;
-};
-
-
 // /////////////////////////////////////////////////////////////////////////////
+/**
+ * This file is the entry point for the "offers" module.
+ *
+ * This class will be in charge of given an user event (url change), take all
+ * the active intents, all the associated offers for it and decide which should
+ * be the offer that we should send to the real estate.
+ * This class will depend on:
+ *
+ * - intent system (to know which intents are active + get the associated offers).
+ * - "offers-api" to be able to distribute the offers to the real estates
+ * - "offers_db" to access the data of the offers that had been shown and the
+ *   associated signals (actions).
+ * - signals handler to delivery the interesting signals.
+ *
+ * The goal is to "handle" all the other sub classes and coordinate the flow of
+ * the offers:
+ *
+ * - get all the active offers (for the active intents)
+ * - prioritize them based in some heuristic.
+ * - filter the offers that doesnt met any criteria
+ * - handle the monitoring of the current offers (store and monitoring)
+ * - broadcast to all the real estates when needed
+ * - receive signals from real estates and store the data
+ *
+ * @class OffersHandler
+ */
 export default class OffersHandler {
+  /**
+   * @constructor
+   * @param intentHandler
+   * @param backendConnector
+   * @param presentRealEstates
+   * @param historyMatcher
+   * @param featuresHandler
+   * @param sigHandler
+   * @param eventHandler
+   * @param categoryHandler
+   * @param offersDB
+   */
   constructor({
     intentHandler,
     backendConnector,
@@ -120,10 +101,10 @@ export default class OffersHandler {
     sigHandler,
     eventHandler,
     categoryHandler,
-    db,
+    offersDB,
   }) {
     this.intentHandler = intentHandler;
-    this.offersDB = new OfferDB(db);
+    this.offersDB = offersDB;
     this.offersDBObserver = new OfferDBObserver(this.offersDB);
     this.offersGeneralStats = new OffersGeneralStats(this.offersDB);
     this.offersMonitorHandler = new OffersMonitorHandler(sigHandler, this.offersDB, eventHandler);
@@ -133,6 +114,9 @@ export default class OffersHandler {
     this.offersAPI = new OffersAPI(sigHandler, this.offersDB);
 
     this.sigHandler = sigHandler;
+
+    this.blacklist = new Blacklist();
+    this.blacklist.init();
 
     // manage the status changes here
     this.offerStatus = new OfferStatus();
@@ -172,19 +156,33 @@ export default class OffersHandler {
       new IntentGatherer(),
       new DBReplacer(),
       new HardFilters(),
-      new Prioritizer(),
       new ContextFilter(),
+      new SoftFilters(),
     ];
   }
 
+  async init() {
+    return Promise.resolve(true);
+  }
+
   destroy() {
+    this.blacklist.unload();
+    this.blacklist = null;
     this.offersDB.unregisterCallback(this._offersDBCallback);
     this.offersDBObserver.unload();
     // TODO: unregister intent handler callback?
   }
 
-  urlChangedEvent(urlData) {
-    return this.evtQueue.push({ urlData });
+  /**
+   * Entry point to handle an URL change. Called after the trigger
+   * machine executor, after it matched the URL against the triggers.
+   *
+   * @method urlChangeEvent
+   * @param {UrlData} urlData
+   * @param {CategoriesMatchTraits} catMatches
+   */
+  urlChangedEvent(urlData, catMatches) {
+    return this.evtQueue.push({ urlData, catMatches });
   }
 
   // ///////////////////////////////////////////////////////////////////////////
@@ -207,20 +205,38 @@ export default class OffersHandler {
   }
 
   // ///////////////////////////////////////////////////////////////////////////
-  // Private methods
+  // Protected methods
+
+  isUrlBlacklisted(url) {
+    return this.blacklist.has(url);
+  }
+
+  sendBlacklistSignal(campaignId, offerId) {
+    const origin = 'processor';
+    const actionId = 'global_offers_blacklist';
+    this.sigHandler.setCampaignSignal(campaignId, offerId, origin, actionId);
+    return this.offersDB.incOfferAction(offerId, actionId, false);
+  }
+
   // ///////////////////////////////////////////////////////////////////////////
+  // Private methods
 
   /**
    * this method will be called whenever an offer is accepted to be sent to the
    * real estate
    */
-  _pushOffersToRealEstates(offer, urlData) {
+  _pushOffersToRealEstates(offer, urlData, catMatches) {
     const displayRuleInfo = {
       type: 'exact_match',
       url: [urlData.getRawUrl()],
       display_time_secs: offer.ruleInfo.display_time_secs,
     };
-    const result = this.offersAPI.pushOffer(offer, displayRuleInfo);
+    const result = this.offersAPI.pushOffer(
+      offer,
+      displayRuleInfo,
+      null, /* originID */
+      new OfferMatchTraits(catMatches, offer.categories)
+    );
     return Promise.resolve(result);
   }
 
@@ -229,10 +245,15 @@ export default class OffersHandler {
       ? this.intentOffersHandler.updateIntentOffers()
       : Promise.resolve();
 
-    return next.then(() => executeJobList(this.jobsPipeline, [], this.context));
+    const jobContext = { ...this.context, offersHandler: this };
+    return next.then(() => executeJobList(this.jobsPipeline, [], jobContext));
   }
 
-  _processEvent({ urlData }) {
+  /**
+   * @param {UrlData} urlData
+   * @param {CategoriesMatchTraits} catMatches
+   */
+  _processEvent({ urlData, catMatches }) {
     logger.debug('Offers handler processing a new event', urlData.getRawUrl());
 
     if (!shouldWeShowAnyOffer(this.offersGeneralStats)) {
@@ -241,28 +262,26 @@ export default class OffersHandler {
     }
     this.context.urlData = urlData;
 
-    return this._updateOffers().then((prioritizedOffers) => {
-      logger.debug(`We have ${prioritizedOffers.length} on the queue`);
+    return this
+      ._updateOffers()
+      .then(offers =>
+        this._chooseBestOffer(offers, urlData, catMatches));
+  }
 
-      let tmpOffers = prioritizedOffers.slice();
-      tmpOffers.reverse(); // we need it, because of lack of findLast function
-      const pred = (offer) => {
-        if (!offer.isTargeted() && isFreshInstalled()) { return false; }
-        return shouldShowOfferOnContext(offer, { urlData });
-      };
+  _chooseBestOffer(offers, urlData, catMatches) {
+    logger.debug(`We have ${offers.length} on the queue`);
+    if (!offers.length) {
+      return Promise.resolve(false);
+    }
+    const getOfferDisplayCount = o => this.offersDB.getDisplayCount(o.uniqueID);
 
-      tmpOffers = tmpOffers.filter(pred);
-      if (tmpOffers.length === 0) { return Promise.resolve(true); }
+    const [topOffer, score] = chooseBestOffer(offers, catMatches, getOfferDisplayCount);
+    if (!(topOffer && score)) {
+      return Promise.resolve(false);
+    }
+    logger.debug(`Offer selected with score ${score}:`, topOffer);
 
-      const topOffer = tmpOffers.find(o => !shouldFilterOffer(o, this.offersDB));
-      if (!topOffer) {
-        logger.debug('No offers left after filtering');
-        return Promise.resolve(true);
-      }
-
-      logger.debug('Offer selected: ', topOffer);
-      return this._pushOffersToRealEstates(topOffer, urlData);
-    });
+    return this._pushOffersToRealEstates(topOffer, urlData, catMatches);
   }
 
   _offersDBCallback(message) {

@@ -3,8 +3,6 @@ import {
   setPref,
   hasPref,
   clearPref,
-  enableChangeEvents,
-  disableChangeEvents,
   init,
   getAllCliqzPrefs,
 } from '../platform/prefs';
@@ -35,10 +33,6 @@ export default {
    * @param {string=} prefix - prefix for pref
    */
   clear: clearPref,
-
-  enableChangeEvents,
-
-  disableChangeEvents,
 
   /**
    * Set a value of type object in preferences db

@@ -12,8 +12,10 @@ class Cliqz {
     const search = createSpananForModule('search');
     const offersV2 = createSpananForModule('offers-v2');
     const controlCenter = createSpananForModule('control-center');
+    const cliqzForFriends = createSpananForModule('cliqz-for-friends');
     const api = new Spanan();
     const cliqz = this;
+    this.state = {};
 
     this.export = api.export;
 
@@ -50,7 +52,8 @@ class Cliqz {
             action: message.action,
             args: [message.messageId],
           };
-        } else if (message.action === 'addMessage') {
+        }
+        if (message.action === 'addMessage') {
           return {
             action: message.action,
             args: [message.message],
@@ -72,6 +75,7 @@ class Cliqz {
       controlCenter.handleMessage(msg);
       search.handleMessage(msg);
       api.handleMessage(msg);
+      cliqzForFriends.handleMessage(msg);
     };
 
     checkIfChromeReady().then(() => {
@@ -90,6 +94,7 @@ class Cliqz {
     this.offersV2 = offersV2.createProxy();
     this.search = search.createProxy();
     this.controlCenter = controlCenter.createProxy();
+    this.cliqzForFriends = cliqzForFriends.createProxy();
   }
 
   static getInstance() {

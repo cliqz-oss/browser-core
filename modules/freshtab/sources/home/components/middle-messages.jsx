@@ -37,57 +37,62 @@ export default class MiddleMessages extends React.Component {
       <div>
         {
           this.props.messages.map(message =>
-            (<div
-              key={message.id}
-              className={`middle-notification-box ${message.type}`}
-            >
+            (
               <div
-                className="close"
-                onClick={() => this.handleCloseClick(message)}
-              />
-              <div
-                className="icon"
-                style={{
-                  backgroundImage: `url(${message.icon})`,
-                  backgroundSize: message.icon_dimensions ? message.icon_dimensions.width : null,
-                  width: message.icon_dimensions ? message.icon_dimensions.width : null,
-                  height: message.icon_dimensions ? message.icon_dimensions.height : null
-                }}
-              />
-              <div
-                className="content"
-                style={{ width: `calc(100% - ${message.icon_dimensions ? message.icon_dimensions.width : null}px)` }}
+                key={message.id}
+                className={`middle-notification-box ${message.type}`}
               >
-                <h1>{message.title}</h1>
-                <p>{message.description}</p>
-                <button
-                  className="cta-btn"
-                  onClick={() => this.handleCTAClick(message)}
+                <div
+                  className="close"
+                  onClick={() => this.handleCloseClick(message)}
+                />
+                <div
+                  className="icon"
+                  style={{
+                    backgroundImage: `url(${message.icon})`,
+                    backgroundSize: message.icon_dimensions ? message.icon_dimensions.width : null,
+                    width: message.icon_dimensions ? message.icon_dimensions.width : null,
+                    height: message.icon_dimensions ? message.icon_dimensions.height : null
+                  }}
+                />
+                <div
+                  className="content"
+                  style={{ width: `calc(100% - ${message.icon_dimensions ? message.icon_dimensions.width : null}px)` }}
                 >
-                  {message.cta_text}
-                </button>
+                  <h1>{message.title}</h1>
+                  <p>{message.description}</p>
+                  <button
+                    type="button"
+                    className="cta-btn"
+                    onClick={() => this.handleCTAClick(message)}
+                  >
+                    {message.cta_text}
+                  </button>
 
-                {message.buttons && message.buttons.length > 0 &&
-                  <div className="buttons">
-                    {message.buttons.map(button =>
-                      (<a
-                        key={button.id}
-                        href={button.link[this.props.locale]}
-                        rel="noreferrer noopener"
-                        target="_blank"
-                      >
-                        <img
-                          alt={button.id}
-                          className={button.class}
-                          src={`./images/${button.src}`}
-                        />
-                      </a>)
-                    )}
-                  </div>
-                }
-              </div>
-            </div>)
-          )
+                  {message.buttons && message.buttons.length > 0
+                    && (
+                      <div className="buttons">
+                        {message.buttons.map(button =>
+                          (
+                            <a
+                              key={button.id}
+                              href={button.link[this.props.locale]}
+                              rel="noreferrer noopener"
+                              target="_blank"
+                            >
+                              <img
+                                alt={button.id}
+                                className={button.class}
+                                src={`./images/${button.src}`}
+                              />
+                            </a>
+                          ))
+                        }
+                      </div>
+                    )
+                  }
+                </div>
+              </div>))
         }
       </div>
     );

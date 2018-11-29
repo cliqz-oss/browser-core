@@ -6,6 +6,8 @@ function Logo(props) {
     <a
       className="logo-url"
       href={props.url}
+      rel="noreferrer noopener"
+      target="_blank"
       onClick={() => {
         sendOffersMessage(props.offer_id, 'offer_ca_action');
         sendOffersMessage(props.offer_id, 'offer_logo');

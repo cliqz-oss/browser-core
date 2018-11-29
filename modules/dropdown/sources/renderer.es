@@ -90,15 +90,12 @@ export default class {
       this.setHeight(height);
     },
     adultAction: (actionName) => {
-      this.search.action('adultAction', actionName)
-        .then(() => {
-          this.render({
-            query: this.previousQuery,
-            rawResults: this.previousRawResults,
-            queriedAt: Date.now(),
-            getSessionId: this.getSessionId,
-          });
-        });
+      this.search.action(
+        'adultAction',
+        actionName,
+        this.previousQuery,
+        { contextId: utils.getWindowID(this.window) },
+      );
     },
     locationAction: (actionName, query, rawResult) =>
       this.search.action('locationAction', actionName, query, rawResult),
@@ -138,10 +135,10 @@ export default class {
 
     // Check if toolbar background color is light-grey-ish and non-transparent
     const [, r, g, b, a] = bgColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+))?/) || ['', '0', '0', '0', '0'];
-    if (r > CHANNEL_TRESHOLD &&
-        g > CHANNEL_TRESHOLD &&
-        b > CHANNEL_TRESHOLD &&
-       (a === undefined || a >= 1)
+    if (r > CHANNEL_TRESHOLD
+        && g > CHANNEL_TRESHOLD
+        && b > CHANNEL_TRESHOLD
+       && (a === undefined || a >= 1)
     ) {
       return bgColor;
     }
@@ -152,6 +149,7 @@ export default class {
     const cliqzToolbar = this.document.createElement('toolbar');
     cliqzToolbar.id = 'cliqz-toolbar';
     cliqzToolbar.style.height = '0px';
+    cliqzToolbar.style.display = 'none';
     this.toolbar = cliqzToolbar;
 
     const container = this.document.createElement('div');
@@ -183,6 +181,7 @@ export default class {
     });
 
     iframe.addEventListener('DOMContentLoaded', () => {
+      cliqzToolbar.style.display = 'block';
       iframe.contentWindow.addEventListener('message', (event) => {
         const message = event.data;
 
@@ -247,8 +246,8 @@ export default class {
   handleEnter = async ({ newTab }) => {
     if (
       this.isOpen && (
-        newTab ||
-        this.hasRelevantResults(this.query, this.selectedResult ? [this.selectedResult] : [])
+        newTab
+        || this.hasRelevantResults(this.query, this.selectedResult ? [this.selectedResult] : [])
       )
     ) {
       return this.dropdownAction.handleEnter({ newTab });
@@ -293,11 +292,11 @@ export default class {
 
   hasRelevantResults(query, rawResults) {
     return (
-      rawResults.length &&
-      rawResults.some(
+      rawResults.length
+      && rawResults.some(
         result =>
-          (result.text === query) ||
-          (result.suggestion && (result.suggestion === query))
+          (result.text === query)
+          || (result.suggestion && (result.suggestion === query))
       )
     );
   }
@@ -348,6 +347,7 @@ export default class {
       padding: contentPadding,
       left: urlbarLeftPos,
       width: urlbarWidth,
+      navbarColor: this.navbarColor,
     };
   }
 
@@ -382,7 +382,6 @@ export default class {
       query,
       queriedAt,
       sessionId: getSessionId(),
-      navbarColor: this.navbarColor,
     }, {
       assistantStates,
       urlbarAttributes: this.getUrlbarAttributes(),
@@ -394,8 +393,8 @@ export default class {
     // While we were rendering results the query or search session may have changed.
     // So we have to check if rendered results are still relevant to the current query
     // and that we are still in the same session.
-    if (result && renderedSessionId === getSessionId() &&
-        this.hasRelevantResults(this.query, [result])) {
+    if (result && renderedSessionId === getSessionId()
+        && this.hasRelevantResults(this.query, [result])) {
       this.setHeight(height);
       this.open();
 

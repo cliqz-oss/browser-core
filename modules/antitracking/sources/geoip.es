@@ -171,7 +171,8 @@ export default class GeoIp {
   lookup(ip) {
     if (ip.indexOf('.') > 0) {
       return this.lookup4(ip);
-    } else if (ip.indexOf(':') > -1) {
+    }
+    if (ip.indexOf(':') > -1) {
       return this.lookup6(ip);
     }
     throw new Error('Not an ip address');

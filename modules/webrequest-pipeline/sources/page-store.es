@@ -128,7 +128,8 @@ export default class PageStore {
     const { tabId, initiator } = details;
     if (tabId > -1 && tabId in this.tabs) {
       return this.tabs[tabId].url;
-    } else if (tabId !== -1) {
+    }
+    if (tabId !== -1) {
       if (initiator && initiator !== 'null') {
         // Sometimes requests from iframes can have different tabid,
         // try to use `initiator` as the source url

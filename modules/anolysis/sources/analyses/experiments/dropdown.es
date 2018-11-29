@@ -17,8 +17,8 @@ export default [
       const [{ group } = {}] = testSignals[0]
         // determine if user is in AB test based on pref it sets
         .filter(({ groups: { A = {}, B = {} } = {} } = {}) =>
-          Object.prototype.hasOwnProperty.call(A, PREF) ||
-          Object.prototype.hasOwnProperty.call(B, PREF));
+          Object.prototype.hasOwnProperty.call(A, PREF)
+          || Object.prototype.hasOwnProperty.call(B, PREF));
 
       if (!group) {
         return [];

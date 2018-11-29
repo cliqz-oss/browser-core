@@ -1,4 +1,5 @@
 import telemetry from './base';
+import cliqz from '../../cliqz';
 
 let start = 0;
 let focusTotalTime = 0;
@@ -15,6 +16,12 @@ export function historyClickSignal() {
     type: 'home',
     action: 'click',
     target: 'history',
+  });
+}
+
+export function friendsClickSignal() {
+  return cliqz.cliqzForFriends.report({
+    click: 1,
   });
 }
 

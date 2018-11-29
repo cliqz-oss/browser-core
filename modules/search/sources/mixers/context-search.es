@@ -44,8 +44,7 @@ const mergeResults = ([expanded, original]) => {
           }
           return original.results[index];
         })
-    }))
-  );
+    })));
 };
 
 /*

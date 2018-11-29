@@ -137,8 +137,9 @@ const searchQuery = ({ limit, frameStartsAt, frameEndsAt, domain, query },
         ${aMatchBehavior}, ${aSearchBehavior})`);
   }
 
-  const conditionsStatement = conditions.length > 0 ?
-    `WHERE ${conditions.join(' AND ')}` : '';
+  const conditionsStatement = conditions.length > 0
+    ? `WHERE ${conditions.join(' AND ')}`
+    : '';
 
   let limitStatement = '';
   if (limit) {
@@ -222,8 +223,7 @@ export default class {
       ).then(() => PlacesUtils.history.removeVisitsByFilter({
         beginDate: PlacesUtils.toDate(+visitId),
         endDate: PlacesUtils.toDate(+visitId + 1000)
-      }))
-    );
+      })));
   }
 
   static deleteVisits(visitIds) {
@@ -358,6 +358,24 @@ export default class {
       `);
     }
     return Promise.resolve();
+  }
+
+  static async cleanupEmptySearches() {
+    const sql = `
+      SELECT visit_date, place_id, url, moz_historyvisits.id as search_visit_id
+      FROM moz_historyvisits
+        JOIN moz_places ON moz_historyvisits.place_id = moz_places.id
+        WHERE moz_places.url LIKE "https://cliqz.com/search?q=%"
+          AND not exists(SELECT from_visit FROM moz_historyvisits WHERE from_visit = search_visit_id)
+    `;
+    const places = await HistoryProvider
+      .query(sql, ['visit_date', 'place_id', 'url', 'search_visit_id'], {});
+    return places.forEach((place) => {
+      PlacesUtils.history.removeVisitsByFilter({
+        beginDate: PlacesUtils.toDate(+place.visit_date),
+        endDate: PlacesUtils.toDate(+place.visit_date + 1000),
+      });
+    });
   }
 
   /**

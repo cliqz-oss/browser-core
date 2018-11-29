@@ -31,10 +31,10 @@ const OPERATIONS_MAP = {
  * Compares a given offer attribute to an input number
  * @param  {[type]} offerDisplayID  the offer display id we want to check
  * @param  {Object} args  contains the following 4 elements
- * * @param {string} actionID offer's action involved
- * * @param {string} attType attribute to be evaluated (counter, c_ts, l_u_ts)
- * * @param {string} operator one of these: '>=', '<=', '==', '!='
- * * @param {integer} value numerical value to be compared to
+ * @param {string} actionID offer's action involved
+ * @param {string} attType attribute to be evaluated (counter, c_ts, l_u_ts)
+ * @param {string} operator one of these: '>=', '<=', '==', '!='
+ * @param {integer} value numerical value to be compared to
  * @param {object} offersDB the needed offer database
  * @return {boolean} true on success (show it) | false otherwise
  * @version 1.0
@@ -52,7 +52,8 @@ const genericComparator = (displayID, { actionID, attType, operator, value }, of
   if (attType === 'counter') {
     // compare counter of events
     return operation(offerAction.count, value);
-  } else if (attType === 'c_ts' || attType === 'l_u_ts') {
+  }
+  if (attType === 'c_ts' || attType === 'l_u_ts') {
     // calculate the time diff assuming attType has the right name,
     // we could make a map to do this as well
     const timeDelta = (timestampMS() - offerAction[attType]) / 1000;
@@ -134,7 +135,8 @@ const evalExpression = (offer, expr, offersDB) => {
     }
 
     return result;
-  } else if (expr.type === 'LogicalExpression') {
+  }
+  if (expr.type === 'LogicalExpression') {
     const left = evalExpression(offer, expr.left, offersDB);
     const right = evalExpression(offer, expr.right, offersDB);
     switch (expr.operator) {

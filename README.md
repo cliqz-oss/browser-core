@@ -11,7 +11,6 @@ Browser Core is used in:
 ## Documentation
 
 * [API](http://docs.clyqz.com/browser-core/api/)
-* [Guides](http://docs.clyqz.com/browser-core/guides/)
 
 ## Core modules
 
@@ -28,5 +27,5 @@ A full list of modules can be found [here](https://github.com/cliqz-oss/browser-
 
 ## Contributing
 
-Please make sure you read [CONTRIBUTING](./.github/CONTRIBUTING.md) for more
+Please make sure you read [CONTRIBUTING](./CONTRIBUTING.md) for more
 information about how to setup your developement environment.

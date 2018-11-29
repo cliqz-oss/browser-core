@@ -4,11 +4,17 @@ $safe: #e7ffe7;
 $unsafe: #fce8f0;
 $black: #1a1a25;
 $light-background: #fcfcfc;
+$purple: #5755d9;
+$orange: orange;
 
 .container {
     color: $black;
     padding-top: 5%;
     width: 75%;
+    max-width: 1000px;
+    .toast{
+        margin-bottom: 20px;
+    }
     .no-background{ background: none;}
     .unsafe {
         background: $unsafe;
@@ -29,6 +35,9 @@ $light-background: #fcfcfc;
     }
     pre {
         font-size: 80%;
+        font-family: monospace;
+        font-weight: 500;
+        color: black;
         background: $neutral;
         padding: 20px;
         border-radius: 3px;
@@ -41,6 +50,28 @@ $light-background: #fcfcfc;
         line-height: 1.2;
         padding: 0.1rem 0.3rem;
         white-space: nowrap;
+        font-family: monospace;
+    }
+    .status-legend{
+        text-align: right;
+        margin-right: 10px;
+        margin-top: 0;
+        margin-bottom: 10px;
+        line-height: 1;
+        li{
+            list-style: none;
+        }
+    }
+    .aggregation-needed{
+        color: $orange;
+        margin-left: 10px;
+    }
+    .no-aggregation-needed{
+        color: $purple;
+        margin-left: 10px;
+    }
+    .send-status{
+        float: right;
     }
     .nav {
         position: fixed;
@@ -65,17 +96,21 @@ $light-background: #fcfcfc;
           min-width: 30px;
           text-align: center;
           border-radius: 15px;
-          background: $safe;
-          border: solid 1px #e7e7ff;
+          background: $purple;
+          color: white;
           padding-left: 5px;
           padding-right: 5px;
         }
         .accordion-body {
-            width: 90%;
+            padding: 2%;
             max-height: 100%;
             margin: auto;
             .btn {
-                float: right;
+                float: left;
+            }
+            .description{
+                color: gray;
+                font-size: 0.75rem;
             }
         }
     }

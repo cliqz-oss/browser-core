@@ -4,9 +4,9 @@ import cluster from './cluster';
 
 function containsRichInfo(result) {
   const mainLink = getMainLink(result);
-  return result.links > 1 ||
-     mainLink.type === 'rh' ||
-    (mainLink.extra && mainLink.extra.rich_data);
+  return result.links > 1
+     || mainLink.type === 'rh'
+    || (mainLink.extra && mainLink.extra.rich_data);
 }
 
 // TODO: should this be a RX subject? A pipeline step? Maybe a hot observable?

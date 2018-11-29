@@ -28,9 +28,9 @@ const getLatestUpdatedOfferFromCampaign = (offerID, offersDB) => {
   }
 
   const latestUpdatedOffers = offersDB.getLatestUpdatedOffer(campaignOffers);
-  if (!latestUpdatedOffers ||
-      latestUpdatedOffers.length <= 0 ||
-      !latestUpdatedOffers[0].offer_id) {
+  if (!latestUpdatedOffers
+      || latestUpdatedOffers.length <= 0
+      || !latestUpdatedOffers[0].offer_id) {
     return null;
   }
   return { oid: latestUpdatedOffers[0].offer_id, cid: campaignID };
@@ -68,8 +68,8 @@ const sendSignal = (offersDB, sigHandler, offerId, key, referrer = null) => {
   let result = sigHandler.setCampaignSignal(campaignId, offerId, originID, key);
   // we also add the referrer category here
   if (referrer !== null) {
-    result = sigHandler.setCampaignSignal(campaignId, offerId, originID, referrer) &&
-             result;
+    result = sigHandler.setCampaignSignal(campaignId, offerId, originID, referrer)
+             && result;
   }
   return result;
 };

@@ -32,8 +32,8 @@ export function getRequest(url) {
       } else {
         // there has been a redirect, we cannot guarantee that cookies were
         // not sent, therefore fail and consider as private
-        if (!urlEquals(req.responseURL, url) &&
-            !urlEquals(decodeURI(decodeURI(req.responseURL)), decodeURI(decodeURI(url)))) {
+        if (!urlEquals(req.responseURL, url)
+            && !urlEquals(decodeURI(decodeURI(req.responseURL)), decodeURI(decodeURI(url)))) {
           errorMessage = 'dangerous redirect';
           req.onerror();
           return;

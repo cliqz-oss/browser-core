@@ -7,14 +7,17 @@ const Cc = Components.classes;
 const UncompressConverter = CC(
   '@mozilla.org/streamconv;1?from=gzip&to=uncompressed',
   'nsIStreamConverter',
-  'asyncConvertData');
+  'asyncConvertData'
+);
 const CompressConverter = CC(
   '@mozilla.org/streamconv;1?from=uncompressed&to=gzip',
   'nsIStreamConverter',
-  'asyncConvertData');
+  'asyncConvertData'
+);
 const StringInputStream = CC(
   '@mozilla.org/io/string-input-stream;1',
-  'nsIStringInputStream');
+  'nsIStringInputStream'
+);
 
 /**
  * For request simulation

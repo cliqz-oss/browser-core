@@ -25,9 +25,10 @@ export default [{
   version: 1,
   generate: ({ records }) => {
     const batches = records.get('metrics.antitracking.tokens.batch');
-    return SOURCES.map((source) => {
-      const metrics = batches.filter(m => m.source === source)
-        .reduce((signals, metric) => {
+    return SOURCES.map(source => batches.filter(m => m.source === source))
+      .filter(sourceBatches => sourceBatches.length > 0)
+      .map((sourceBatches) => {
+        const metrics = sourceBatches.reduce((signals, metric) => {
           Object.keys(metric).forEach((m) => {
             if (!signals[m]) {
               signals[m] = [];
@@ -36,15 +37,15 @@ export default [{
           });
           return signals;
         }, {});
-      return {
-        source,
-        batches: metrics.size.length,
-        size: getDistribution(metrics.size),
-        toBeSentSize: getDistribution(metrics.toBeSentSize),
-        overflow: getDistribution(metrics.overflow),
-        messages: getDistribution(metrics.messages),
-      };
-    });
+        return {
+          source: sourceBatches[0].source,
+          batches: metrics.size.length,
+          size: getDistribution(metrics.size),
+          toBeSentSize: getDistribution(metrics.toBeSentSize),
+          overflow: getDistribution(metrics.overflow),
+          messages: getDistribution(metrics.messages),
+        };
+      });
   },
   schema: {
     required: [
@@ -69,9 +70,10 @@ export default [{
   version: 1,
   generate: ({ records }) => {
     const batches = records.get('metrics.antitracking.tokens.clean');
-    return SOURCES.map((source) => {
-      const metrics = batches.filter(m => m.source === source)
-        .reduce((signals, metric) => {
+    return SOURCES.map(source => batches.filter(m => m.source === source))
+      .filter(sourceBatches => sourceBatches.length > 0)
+      .map((sourceBatches) => {
+        const metrics = sourceBatches.reduce((signals, metric) => {
           Object.keys(metric).forEach((m) => {
             if (!signals[m]) {
               signals[m] = [];
@@ -80,16 +82,16 @@ export default [{
           });
           return signals;
         }, {});
-      return {
-        source,
-        runs: metrics.dbSize.length,
-        dbSize: Math.round(Stats.mean(metrics.dbSize)),
-        cacheSize: Math.round(Stats.mean(metrics.cacheSize)),
-        dbDelete: getDistribution(metrics.dbDelete),
-        cacheDeleted: getDistribution(metrics.cacheDeleted),
-        processed: getDistribution(metrics.processed),
-      };
-    });
+        return {
+          source: sourceBatches[0].source,
+          runs: metrics.dbSize.length,
+          dbSize: Math.round(Stats.mean(metrics.dbSize)),
+          cacheSize: Math.round(Stats.mean(metrics.cacheSize)),
+          dbDelete: getDistribution(metrics.dbDelete),
+          cacheDeleted: getDistribution(metrics.cacheDeleted),
+          processed: getDistribution(metrics.processed),
+        };
+      });
   },
   schema: {
     required: [

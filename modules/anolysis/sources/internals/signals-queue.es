@@ -33,10 +33,10 @@ export default class SignalsQueue {
     this.failureTimeout = 1000 * 60;
   }
 
-  async init(db) {
+  init(db) {
     this.db = db;
     this.initialized = true;
-    await this.startListening();
+    this.startListening();
   }
 
   unload() {
@@ -76,8 +76,6 @@ export default class SignalsQueue {
             await this.processNextBatch(this.batchSize);
             // Reset failure timeout after we could send a batch successfuly
             this.failureTimeout = 1000 * 60;
-            // Wait a bit before next batch
-            await this.sleep(this.sendInterval);
           } catch (err) {
             if (this.initialized) {
               logger.debug('error while sending batch', err);

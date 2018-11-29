@@ -72,13 +72,10 @@ function parseInstallDate(rawInstallDate) {
   }
 
   // Else, this is the legacy format: number of days since epoch
+  const integerRawInstallDate = parseInt(rawInstallDate, 10);
   const currentDaysSinceEpoch = dateToDaysSinceEpoch(getSynchronizedDate());
-  if (
-    Number.isInteger(rawInstallDate) &&
-    rawInstallDate >= 16129 &&
-    rawInstallDate <= currentDaysSinceEpoch
-  ) {
-    const installDate = daysSinceEpochToDate(rawInstallDate);
+  if (integerRawInstallDate >= 16129 && integerRawInstallDate <= currentDaysSinceEpoch) {
+    const installDate = daysSinceEpochToDate(integerRawInstallDate);
     if (installDate.isValid()) {
       return installDate.format(ANOLYSIS_BACKEND_DATE_FORMAT);
     }
@@ -187,11 +184,31 @@ function parseProduct(channel, platform) {
     } else if (channel === 'MA10') {
       product = 'third-party/mobile/Telefonica';
     } else if (channel.startsWith('MA')) {
-      product = 'CLIQZ/mobile/Cliqz for Android';
+      if (channel.startsWith('MA5')) {
+        product = 'Ghostery/mobile/Ghostery for Android';
+      } else {
+        product = 'CLIQZ/mobile/Cliqz for Android';
+      }
     } else if (channel.startsWith('MI')) {
-      product = 'CLIQZ/mobile/Cliqz for iOS';
+      if (channel.startsWith('MI5')) {
+        product = 'Ghostery/mobile/Ghostery for iOS';
+      } else {
+        product = 'CLIQZ/mobile/Cliqz for iOS';
+      }
     } else if (channel === 'CH50') {
       product = 'third-party/desktop/Avira Scout';
+    } else if (channel === 'CT10') {
+      product = 'CLIQZ/desktop/CliqzTab for Chrome';
+    } else if (channel === 'GT00') {
+      product = 'Ghostery/desktop/GhosteryTab for Firefox';
+    } else if (channel === 'GT10') {
+      product = 'Ghostery/desktop/GhosteryTab for Chrome';
+    } else if (channel === 'MO00') {
+      product = 'MyOffrz/desktop/Standalone for Firefox';
+    } else if (channel === 'MO10') {
+      product = 'MyOffrz/desktop/Standalone for Chrome';
+    } else if (channel === 'MO02') {
+      product = 'MyOffrz/desktop/Standalone Test';
     }
     logger.debug('product', product);
     return product;

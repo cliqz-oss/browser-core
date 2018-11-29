@@ -62,8 +62,7 @@ export default class TriggerMachine {
 
   run(trigger, context) {
     if (!trigger || !context) {
-      logger.warn('run: Invalid trigger or context');
-      return Promise.reject(false);
+      return Promise.reject(new Error('run: Invalid trigger or context'));
     }
 
     // check if the current pass already happened for the given trigger
@@ -81,9 +80,7 @@ export default class TriggerMachine {
     // if not we do it now
     if (!trigger.built_actions || !trigger.built_conds) {
       if (!this._buildTriggerData(trigger)) {
-        // something bad happened, we should return false here
-        logger.warn(`run: We couldnt build the trigger: ${JSON.stringify(trigger.trigger_id)}`);
-        return Promise.reject(false);
+        return Promise.reject(new Error(`run: We couldnt build the trigger: ${JSON.stringify(trigger.trigger_id)}`));
       }
     }
 

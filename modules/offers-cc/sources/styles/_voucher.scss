@@ -98,7 +98,6 @@
             height: 100%;
             background: rgba(255,255,255,1);
             z-index: 10;
-            padding: 0 6px;
             border-radius: 4px;
             &.show {
                 display: block
@@ -111,7 +110,7 @@
                 display: none
             }
             & > * {
-                padding: 0 10px 0 20px;
+                padding: 5px 10px 5px 15px
             }
         }
 
@@ -151,6 +150,7 @@
             background-repeat: no-repeat;
             background-position: center;
             background-size: contain;
+            background-color: #ccc;
         }
 
         .benefit {
@@ -187,9 +187,7 @@
         }
 
         .promocode-wrapper {
-            padding-left: 9px;
-            padding-top: 0;
-            padding-right: 5px;
+            padding: 0 5px 0 9px;
             margin: 7px 10px 0;
             border: 1px solid $color-border-light-grey;
             background-color: $color-bg-light-grey;
@@ -227,8 +225,10 @@
         }
 
         .validity-wrapper {
-            padding-top: 2px;
+            padding-top: 5px;
             height: 31px;
+            display: flex;
+            justify-content: space-between;
 
             .validity {
                 font-size: 11.5px;
@@ -240,7 +240,7 @@
             }
 
             .condition {
-                margin-top: 4px;
+                margin-top: 0px;
                 float: right;
                 font-size: 11.5px;
                 color: $color-text-grey;
@@ -251,9 +251,9 @@
                     width: 14px;
                     height: 14px;
                     background: url('../images/info-icon.svg') no-repeat center;
-                    vertical-align: 4px;
                     cursor: default;
                     background-size: 14px;
+                    float: right;
                 }
 
                 &:hover {
@@ -288,6 +288,7 @@
                 border-bottom: 1px solid rgba(0,0,0,0.1);
                 padding-top: 10px;
                 padding-bottom: 10px;
+                background: #fef7d7;
                 .left-labels {
                     span {
                         font-size: 11.5px;
@@ -362,12 +363,11 @@
                             padding-left: 3px;
                             border: 1px solid $color-border-light-grey;
                             border-radius: 0;
-                            max-width: calc(100% - 25px);
+                            width: calc(100% - 25px);
                             vertical-align: 34px;
                             font-family: "-mac-system", "-apple-system", BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
                             font-size: 11.5px;
-                            padding-top: 5px;
-                            padding-left: 10px;
+
                             &[disabled] {
                                 background-color: $color-bg-light-grey;
                                 + div {
@@ -388,8 +388,8 @@
                 cursor: pointer;
                 text-transform: uppercase;
                 font-weight: 300;
-                float: right;
-                margin-right: 25px;
+                float: left;
+                margin-left: 20px;
                 opacity: 0.4;
                 margin-bottom: 40px;
                 pointer-events: none;
@@ -399,6 +399,16 @@
                     &:hover {
                         background: #0078CA;
                     }
+                }
+            }
+            .skip {
+                color:#00AEF0;
+                text-transform: uppercase;
+                padding-top: 6px;
+                padding-left: 10px;
+                opacity: 0.6;
+                &:hover {
+                    opacity: 1
                 }
             }
 
@@ -427,7 +437,9 @@
             width:10px;
             height: 10px;
             mask: url('../images/close-offer.svg') no-repeat right;
+            -webkit-mask: url('../images/close-offer.svg') no-repeat right;
             mask-size: contain;
+            -webkit-mask-size: contain;
             background: rgba(0,0,0,1);
             opacity: 0.3;
             &:hover {

@@ -40,8 +40,7 @@ const groupBySession = (signals) => {
 };
 
 const countSessions = (selector, sessions) => Object.values(sessions).reduce((acc, session) =>
-  (acc + (selector(session) ? 1 : 0))
-  , 0);
+  (acc + (selector(session) ? 1 : 0)), 0);
 
 export default [
   {
@@ -66,8 +65,8 @@ export default [
         [{ id, group } = {}] = testSignals[0]
           // determine if user is in AB test based on pref it sets
           .filter(({ groups: { A = {}, B = {} } = {} } = {}) =>
-            Object.prototype.hasOwnProperty.call(A, PREF) ||
-            Object.prototype.hasOwnProperty.call(B, PREF));
+            Object.prototype.hasOwnProperty.call(A, PREF)
+            || Object.prototype.hasOwnProperty.call(B, PREF));
       }
 
       // use values from last state signal on a day
@@ -88,20 +87,15 @@ export default [
         .get('metrics.experiments.serp.type')
         .map(signal => ({ ...signal, name: 'metrics.experiments.serp.type' }));
 
-      const resultClickSignals =
-        records.get('metrics.experiments.serp.click.result');
-      const searchClickSignals =
-        records.get('metrics.experiments.serp.click.search');
-      const searchEnterSignals =
-        records.get('metrics.experiments.serp.enter.search');
+      const resultClickSignals = records.get('metrics.experiments.serp.click.result');
+      const searchClickSignals = records.get('metrics.experiments.serp.click.search');
+      const searchEnterSignals = records.get('metrics.experiments.serp.enter.search');
       // see also 'search.session' analysis
       const dropdownSelections = records.get('search.session')
         .filter(({ hasUserInput }) => hasUserInput)
         .map(({ selection = [] }) => selection);
-      const cliqzSelections =
-        dropdownSelections.filter(s => s.origin === 'cliqz');
-      const directSelections =
-        dropdownSelections.filter(s => s.origin === 'direct');
+      const cliqzSelections = dropdownSelections.filter(s => s.origin === 'cliqz');
+      const directSelections = dropdownSelections.filter(s => s.origin === 'direct');
 
       const showSignalsBySession = groupBySession(serpShowSignals.concat(serpTypeSignals));
       const abandonedSignalsBySession = groupBySession(
@@ -157,9 +151,10 @@ export default [
               .filter(({ source, class: c }) => source === 'm' && !c).length,
             isSearchEngine: resultClickSignals
               .filter(({ source, class: c, isSearchEngine }) => source === 'm' && !c && isSearchEngine).length,
-            index: integersToHistogram(resultClickSignals
-              .filter(({ source, class: c }) => source === 'm' && !c)
-              .map(({ index }) => index)
+            index: integersToHistogram(
+              resultClickSignals
+                .filter(({ source, class: c }) => source === 'm' && !c)
+                .map(({ index }) => index)
             ),
           },
           suggestion: resultClickSignals
@@ -176,11 +171,11 @@ export default [
           query: {
             views: {
               landing: searchClickSignals
-                .filter(({ engine, view }) => engine === 'cliqz' && view === 'landing').length +
-                searchEnterSignals.filter(({ view }) => view === 'landing').length,
+                .filter(({ engine, view }) => engine === 'cliqz' && view === 'landing').length
+                + searchEnterSignals.filter(({ view }) => view === 'landing').length,
               results: searchClickSignals
-                .filter(({ engine, view }) => engine === 'cliqz' && view === 'results').length +
-                searchEnterSignals.filter(({ view }) => view === 'results').length,
+                .filter(({ engine, view }) => engine === 'cliqz' && view === 'results').length
+                + searchEnterSignals.filter(({ view }) => view === 'results').length,
             },
           },
         },

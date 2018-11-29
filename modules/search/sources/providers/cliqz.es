@@ -1,6 +1,5 @@
 import Rx from '../../platform/lib/rxjs';
 import utils from '../../core/utils';
-import CONFIG from '../../core/config';
 import prefs from '../../core/prefs';
 import CliqzLanguage from '../../core/language';
 import { isOnionMode } from '../../core/platform';
@@ -33,45 +32,35 @@ function getEmptyBackendResponse(query) {
 
 const encodeResultCount = count => `&count=${count || 5}`;
 const encodeQuerySuggestionParam = () => {
-  const suggestionsEnabled = prefs.get('suggestionsEnabled', false) ||
-    prefs.get('suggestionChoice', 0) === 1;
+  const suggestionsEnabled = prefs.get('suggestionsEnabled', false)
+    || prefs.get('suggestionChoice', 0) === 1;
 
   return `&suggest=${suggestionsEnabled ? 1 : 0}`;
-};
-
-const encodeJSONPCallback = (jsonpCallback) => {
-  const res = jsonpCallback
-    ? `&callback=${jsonpCallback}`
-    : '';
-
-  return res;
 };
 
 const getResultsProviderQueryString = (q, {
   resultOrder,
   backendCountry,
   count,
-  jsonpCallback
 }) => {
   let numberResults = count || 5;
   if (prefs.get('modules.context-search.enabled', false)) {
     numberResults = 10;
   }
-  return encodeURIComponent(q) +
-    encodeSessionParams() +
-    CliqzLanguage.stateToQueryString() +
-    encodeLocale() +
-    encodePlatform() +
-    encodeResultOrder(resultOrder) +
-    encodeCountry(backendCountry) +
-    encodeFilter() +
-    encodeJSONPCallback(jsonpCallback) +
-    encodeLocation(true) + // @TODO: remove true
-    encodeResultCount(numberResults) +
-    encodeQuerySuggestionParam();
+  return encodeURIComponent(q)
+    + encodeSessionParams()
+    + CliqzLanguage.queryString
+    + encodeLocale()
+    + encodePlatform()
+    + encodeResultOrder(resultOrder)
+    + encodeCountry(backendCountry)
+    + encodeFilter()
+    + encodeLocation(true) // @TODO: remove true
+    + encodeResultCount(numberResults)
+    + encodeQuerySuggestionParam();
 };
 
-const getBackendResults = (originalQuery, params = {}) => {
+const getBackendResults = (originalQuery, config, params = {}) => {
   if (isOnionMode) {
     return Promise.resolve(getEmptyBackendResponse(originalQuery));
   }
@@ -85,14 +74,14 @@ const getBackendResults = (originalQuery, params = {}) => {
   // quickly get evicted by new searches. But to be safe, never add
   // entries in private mode.)
   const rememberSafeQueries = !params.isPrivate;
-  const q = prefs.get('query-sanitizer', true) ?
-    querySanitizer.sanitize(originalQuery, { rememberSafeQueries }) : originalQuery;
+  const q = prefs.get('query-sanitizer', true)
+    ? querySanitizer.sanitize(originalQuery, { rememberSafeQueries }) : originalQuery;
 
   if (!q) {
     return Promise.resolve(getEmptyBackendResponse(originalQuery));
   }
 
-  const url = CONFIG.settings.RESULTS_PROVIDER + getResultsProviderQueryString(q, params);
+  const url = config.settings.RESULTS_PROVIDER + getResultsProviderQueryString(q, params);
   const fetch = utils.fetchFactory();
 
   utils._sessionSeq += 1;
@@ -108,7 +97,7 @@ const getBackendResults = (originalQuery, params = {}) => {
   };
 
   const startTs = Date.now();
-  const backendPromise = fetch(url, privacyOptions)
+  const backendPromise = fetch(url, privacyOptions, params)
     .then(res => res.json())
     .then((response) => {
       response.latency = Date.now() - startTs;
@@ -122,7 +111,7 @@ const getBackendResults = (originalQuery, params = {}) => {
           ...offerResults,
         ];
       }
-      if ((response.results && (response.results.length > 0 || !CONFIG.settings.suggestions))
+      if ((response.results && (response.results.length > 0 || !config.settings.suggestions))
         || (response.offers && response.offers.length > 0)) {
         return {
           response,
@@ -130,7 +119,7 @@ const getBackendResults = (originalQuery, params = {}) => {
         };
       }
 
-      return getEmptyResponse(q);
+      return { response: getEmptyResponse(this.id, config, q), query: q };
     });
 
 
@@ -142,8 +131,8 @@ export default class Cliqz extends BackendProvider {
     this.cache = new Map();
   }
 
-  fetch(q, params) {
-    return getBackendResults(q, params)
+  fetch(q, config, params) {
+    return getBackendResults(q, config, params)
       .then(e => e.response)
       .catch(error => ({ q, results: [], error }));
   }
@@ -157,21 +146,21 @@ export default class Cliqz extends BackendProvider {
   }
 
   search(query, config, params) {
-    if (!query) {
+    if (!query || !config.providers[this.id].isEnabled) {
       return this.getEmptySearch(config);
     }
 
-    const { providers: { cliqz: { includeOffers, count, jsonpCallback } = {} } = {} } = config;
+    const { providers: { cliqz: { includeOffers, count, jsonp } = {} } = {} } = config;
 
     // TODO: only get at beginning of search session
     Object.assign(params, {
       backendCountry: prefs.get('backend_country.override', prefs.get('backend_country', 'de')),
       count,
-      jsonpCallback,
+      jsonp,
     });
 
     const cliqz$ = Rx.Observable
-      .fromPromise(this.fetch(query, params))
+      .fromPromise(this.fetch(query, config, params))
       .share();
 
     cliqz$.subscribe(({ q, suggestions }) => handleQuerySuggestions(q, suggestions));

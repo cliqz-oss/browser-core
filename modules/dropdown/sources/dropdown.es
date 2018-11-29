@@ -20,9 +20,8 @@ export default class Dropdown {
 
   init() {
     this.rootElement.innerHTML = templates.main();
-    this.dropdownElement.addEventListener('click', this.onMouseUp);
-    this.dropdownElement.addEventListener('mouseup', this.onMouseUp);
-    this.dropdownElement.addEventListener('contextmenu', this.onMouseUp);
+    this.dropdownElement.addEventListener('click', this.onClick);
+    this.dropdownElement.addEventListener('auxclick', this.onClick);
     this.dropdownElement.addEventListener('mousemove', this.onMouseMove);
   }
 
@@ -40,6 +39,7 @@ export default class Dropdown {
     } else {
       this.selectedIndex += 1;
     }
+    this.scrollToResult(this.selectedResult);
 
     return this.updateSelection();
   }
@@ -50,6 +50,7 @@ export default class Dropdown {
     } else {
       this.selectedIndex -= 1;
     }
+    this.scrollToResult(this.selectedResult);
 
     return this.updateSelection();
   }
@@ -60,15 +61,38 @@ export default class Dropdown {
     );
   }
 
-  selectResult(result) {
+  getResultElement(result) {
     if (!result) {
-      return;
+      return null;
     }
-    const el = [...this.rootElement.querySelectorAll('a')].find(a => equals(a.dataset.url, result.url));
-    if (!el) {
-      return;
+    return [...this.rootElement.querySelectorAll('a')].find(a => equals(a.dataset.url, result.url)) || null;
+  }
+
+  selectResult(result) {
+    const el = this.getResultElement(result);
+    if (el) {
+      el.classList.add('selected');
     }
-    el.classList.add('selected');
+  }
+
+  scrollToResult(result) {
+    const el = this.getResultElement(result);
+    if (el) {
+      const wHeight = this.window.innerHeight;
+      const dHeight = this.rootElement.scrollHeight;
+      if (wHeight !== dHeight) {
+        const scrollTop = this.window.pageYOffset;
+        const scrollBottom = scrollTop + wHeight;
+        const elTop = el.offsetTop;
+        const elBottom = el.offsetTop + el.scrollHeight;
+        if (scrollTop > elTop) {
+          this.window.scrollTo(0, elTop);
+        }
+        if (scrollBottom < elBottom) {
+          this.window.scrollTo(0, elBottom - wHeight);
+        }
+      }
+    }
   }
 
   updateSelection() {
@@ -121,14 +145,9 @@ export default class Dropdown {
     });
 
     [...this.rootElement.querySelectorAll('a')].forEach((anchor) => {
-      anchor.addEventListener('mousedown', (ev) => {
-        ev.preventDefault();
-        return false;
-      });
-      anchor.addEventListener('click', (ev) => {
-        ev.preventDefault();
-        return false;
-      });
+      anchor.addEventListener('mousedown', ev => ev.preventDefault());
+      anchor.addEventListener('auxclick', ev => ev.preventDefault());
+      anchor.addEventListener('click', ev => ev.preventDefault());
     });
 
     this.selectResult(this.results.firstResult);
@@ -139,11 +158,11 @@ export default class Dropdown {
     }
   }
 
-  onMouseUp = (ev) => {
-    // In order to capture middle mouse event, we need 'mouseup'
-    // But we don't want to have 2 different events (mouseup & click)
-    // fired for leftClick or rightClick, we need to filter them out
-    if (ev.type === 'mouseup' && ev.button !== 1) {
+  onClick = (ev) => {
+    // We use the same listener for events 'click' (for handling left clicks)
+    // and 'auxclick' (for handlings middle and right clicks).
+    // Make sure we don't handle same event twice.
+    if (ev.type === 'click' && ev.button !== 0) {
       return;
     }
 

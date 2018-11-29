@@ -8,26 +8,26 @@ import Database from './database';
 import GroupSigner from './group-signer';
 import Endpoints from './endpoints';
 import md5 from '../core/helpers/md5';
-import { deflate } from '../core/zlib';
 import { digest } from './digest';
 import { MsgQuotaError, NotReadyError, InvalidMsgError, NoCredentialsError, BadCredentialsError,
-  SignMsgError, TooBigMsgError, FetchConfigError,
+  SignMsgError, FetchConfigError,
   JoinGroupsError, InitSignerError, OldVersionError, WrongClockError } from './errors';
-import { formatDate, reflectPromise } from './utils';
+import { formatDate, reflectPromise, encodeWithPadding } from './utils';
 import logger from './logger';
 import MessageQueue from '../core/message-queue';
 import { decompress } from '../core/gzip';
 import random from '../core/crypto/random';
 import setTimeoutInterval from '../core/helpers/timeout';
+import { VERSION } from './constants';
+import prefs from '../core/prefs';
 
-const LOAD_CONFIG_SUCCESS_INTERVAL = 60 * 60 * 1000; // 1 hour
+const LOAD_CONFIG_SUCCESS_MIN_INTERVAL = 60 * 60 * 1000; // 1 hour
+const LOAD_CONFIG_SUCCESS_MAX_INTERVAL = 4 * 60 * 60 * 1000; // 4 hours
 const LOAD_CONFIG_FAILURE_INTERVAL = 10 * 1000; // 10 seconds
 
-export default class Manager {
-  static get VERSION() {
-    return 1;
-  }
+const MSG_SIGNED = 0x03;
 
+export default class Manager {
   _initDefaults() {
     this.configFailures = 0;
     this.signerInitialized = false;
@@ -40,6 +40,7 @@ export default class Manager {
     this.isOldVersion = false;
     this.configLoader = null;
     this.signer = null;
+    this.ecdhPubKey = {};
     this.minutesLocal = 0;
 
     this.logError = logger.error;
@@ -73,32 +74,35 @@ export default class Manager {
 
     // Trigger config load, but do not wait for it. It will periodically be reloaded
     // with some increasing timeout in case of repeated failures.
-    this._loadConfig()
-      .then(() => {
-        if (!this.unloaded && !this.isOldVersion) {
-          this.logDebug('Config loaded successfully!');
-          this.configFailures = 0;
-          this.isInit = true;
-          return LOAD_CONFIG_SUCCESS_INTERVAL;
-        }
-        return null;
-      })
-      .catch((e) => {
-        if (!this.unloaded) {
-          this.logDebug('Config could not be loaded successfully!', e);
-          this.configFailures += 1;
-          return this.configFailures * LOAD_CONFIG_FAILURE_INTERVAL;
-        }
-        return null;
-      })
-      .then((wait) => {
-        if (wait !== null) {
-          this.configLoader = setTimeout(
-            () => this.init(),
-            Math.floor(random() * wait)
-          );
-        }
-      });
+    let minCooldown;
+    let randomExtraCooldown;
+    try {
+      await this._loadConfig();
+      if (this.unloaded || this.isOldVersion) {
+        return;
+      }
+      this.logDebug('Config loaded successfully!');
+      this.configFailures = 0;
+      this.isInit = true;
+      minCooldown = LOAD_CONFIG_SUCCESS_MIN_INTERVAL;
+      randomExtraCooldown = LOAD_CONFIG_SUCCESS_MAX_INTERVAL - LOAD_CONFIG_SUCCESS_MIN_INTERVAL;
+    } catch (e) {
+      if (this.unloaded) {
+        return;
+      }
+      this.logDebug('Config could not be loaded successfully!', e);
+      this.configFailures += 1;
+      minCooldown = this.configFailures * LOAD_CONFIG_FAILURE_INTERVAL;
+      randomExtraCooldown = minCooldown;
+    }
+
+    // Note: random noise is added, so the collector cannot use
+    // time-based attacks to target individual users by serving
+    // them different group keys.
+    this.configLoader = setTimeout(
+      () => this.init(),
+      Math.floor(minCooldown + (random() * randomExtraCooldown))
+    );
   }
 
   unload() {
@@ -145,9 +149,9 @@ export default class Manager {
     // We do not skip in order to check whether the system clock is correct or not
     // based on the Date response header. If there is significant drift, loading
     // will fail.
-    const { groupPubKeys, sourceMap, minVersion } = await this.endpoints.getConfig();
+    const { groupPubKeys, pubKeys, sourceMap, minVersion } = await this.endpoints.getConfig();
 
-    if (Manager.VERSION < minVersion) {
+    if (VERSION < minVersion) {
       this.isOldVersion = true;
       return;
     }
@@ -169,7 +173,8 @@ export default class Manager {
       Object.keys(groupPubKeys).forEach((shortDate) => {
         if (!this.groupPubKeys[shortDate]) {
           const groupPubKey = fromBase64(groupPubKeys[shortDate]);
-          this.db.setGroupPubKey(shortDate, { groupPubKey });
+          const pubKey = pubKeys[shortDate] && fromBase64(pubKeys[shortDate]);
+          this.db.setGroupPubKey(shortDate, { groupPubKey, pubKey });
         }
       });
     }
@@ -249,19 +254,42 @@ export default class Manager {
     }
   }
 
-  // Loads locally stored credentials into the signer, but does not fetch them.
-  async loadCredentials() {
+  // Loads server ECDH pubKey (but does not fetch them).
+  // if !skipGroupKeys, also loads locally stored credentials into the signer.
+  async loadKeys(skipGroupKeys) {
     if (this.unloaded) {
       throw new NotReadyError();
     }
     const today = this.today();
     const pk = this.getPublicKey(today);
-    if (!pk || !pk.credentials) {
+
+    if (!pk) {
       throw new NoCredentialsError();
     }
 
-    const { groupPubKey, credentials, date } = pk;
-    if (this.loadedCredentialsDate >= date) {
+    const { groupPubKey, credentials, date, pubKey } = pk;
+
+    if (pubKey && this.ecdhPubKey.date !== date) {
+      const key = await crypto.subtle.importKey(
+        'raw',
+        pubKey,
+        { name: 'ECDH', namedCurve: 'P-256' },
+        false,
+        []
+      );
+
+      this.ecdhPubKey = { key, date };
+    }
+
+    if (skipGroupKeys) {
+      return;
+    }
+
+    if (!credentials) {
+      throw new NoCredentialsError();
+    }
+
+    if (this.loadedCredentialsDate === date) {
       return;
     }
 
@@ -335,12 +363,12 @@ export default class Manager {
 
     this.logDebug('Joining group', date);
 
-    const { groupPubKey } = data;
+    const { groupPubKey, pubKey } = data;
     const challengeStr = JSON.stringify([this.publicKeyB64, toBase64(groupPubKey)]);
     const challenge = await sha256(challengeStr, 'bin');
     const { gsk, joinmsg } = (data.gsk ? data : await this.signer.startJoin(challenge));
     const sig = await signRSA(this.userPK, joinmsg);
-    await this.db.setGroupPubKey(date, { groupPubKey, gsk, joinmsg });
+    await this.db.setGroupPubKey(date, { groupPubKey, gsk, joinmsg, pubKey });
 
     const msg = {
       ts: date,
@@ -349,8 +377,6 @@ export default class Manager {
       sig: toBase64(fromHex(sig)),
     };
 
-    Manager._setVersion(msg);
-
     const { joinResponse } = await this.endpoints.join(msg);
 
     const credentials = await this.signer.finishJoin(
@@ -358,7 +384,7 @@ export default class Manager {
       gsk,
       fromBase64(joinResponse)
     );
-    await this.db.setGroupPubKey(date, { groupPubKey, credentials });
+    await this.db.setGroupPubKey(date, { groupPubKey, credentials, pubKey });
     return this.groupPubKeys[date];
   }
 
@@ -378,16 +404,51 @@ export default class Manager {
   //
   //   (Should never happen, but theoretically possible): SignMsgError, BadCredentialsError
   async send(msg) {
-    return this.msgQueue.push(msg);
+    try {
+      if (this.isOldVersion) {
+        throw new OldVersionError();
+      }
+
+      if (!this.isInit || this.unloaded) {
+        throw new NotReadyError();
+      }
+
+      if (!msg || typeof msg !== 'object') {
+        throw (new InvalidMsgError('msg must be an object'));
+      }
+
+      const { action, payload } = msg;
+
+      const config = this.sourceMap[action];
+
+      if (!config) {
+        throw (new InvalidMsgError(`unknown action ${action}`));
+      }
+
+      if (payload === null || payload === undefined) {
+        throw (new InvalidMsgError('msg must not be null or undefined'));
+      }
+
+      const { noverify } = config;
+
+      await this.loadKeys(noverify);
+
+      const publicKey = Manager.clearText ? undefined : this.ecdhPubKey;
+
+      // Do not queue noverify messages, these are ok to do in parallel
+      if (noverify) {
+        return await this._sendNoVerify({ msg, config, publicKey });
+      }
+
+      return await this.msgQueue.push({ msg, config, publicKey });
+    } catch (e) {
+      this.logError('Send error', e);
+      throw e;
+    }
   }
 
-  // If noverify = true, just returns an empty signature
-  // Otherwise, signs the message with the currently loaded credentials
-  async _signMessage(message, pretag, hours, period, limit, skipQuotaCheck, noverify) {
-    if (noverify) {
-      return { sig: new Uint8Array(), cnt: 0 };
-    }
-
+  // signs the message with the currently loaded credentials
+  async _signMessage(message, pretag, hours, period, limit, skipQuotaCheck) {
     let cnt;
     try {
       cnt = await this.db.consumeFreshCounter(
@@ -414,90 +475,55 @@ export default class Manager {
     }
   }
 
-  _encodeMessage(message, sig, cnt, MSG_SIZE = 16 * 1024) {
-    // Formats (all should have same size, 16KB, at least for now):
-    //   UNCOMPRESSED:
-    //     0x00|
-    //     msg_size(2 bytes)|
-    //     msg(deflated_msg_size bytes)|
-    //     cnt(8 bytes)
-    //     sig_with_padding(16384 - 1 - 2 - msg_size bytes - 8)
+  // Do not encrypt/compress/pad messages (for debugging purposes)
+  static get clearText() {
+    return prefs.get('hpnv2.cleartext', false) || prefs.get('hpnv2.plaintext', false);
+  }
 
-    //   COMPRESSED:
-    //     0x01|
-    //     deflated_msg_size(2 bytes)|
-    //     deflated_msg(deflated_msg_size bytes)|
-    //     cnt(8 bytes)
-    //     sig_with_padding(16384 - 1 - 2 - deflated_msg_size bytes - 8)
+  static compressAndPad(data) {
+    return Manager.clearText ? data : encodeWithPadding(data);
+  }
 
-    //   UNCOMPRESSED_UNSIGNED:
-    //     0x7B|
-    //     rest_of_msg(16384 - 1 bytes)
-
-    let mb = message;
-    let msgCode = 0;
-    if (1 + 2 + mb.length + 8 + sig.length > MSG_SIZE) {
-      msgCode = 1; // COMPRESSED
-      mb = deflate(mb);
-    }
-    if (1 + 2 + mb.length + 8 + sig.length > MSG_SIZE) {
-      throw (new TooBigMsgError());
-    }
-    const data = new Uint8Array(MSG_SIZE);
-    data[0] = msgCode;
-    (new DataView(data.buffer)).setUint16(1, mb.length);
-    data.set(mb, 1 + 2);
-    (new DataView(data.buffer)).setFloat64(1 + 2 + mb.length, cnt);
-    data.set(sig, 1 + 2 + mb.length + 8);
+  static encodeMessage(code, msg) {
+    const data = new Uint8Array(1 + msg.length);
+    data[0] = code;
+    data.set(msg, 1);
     return data;
   }
 
-  static _setVersion(_msg) {
-    const msg = _msg;
-    if (!msg.hpnv2) {
-      msg.hpnv2 = {};
-    } else if (typeof msg.hpnv2 !== 'object') {
-      this.logError('msg.hpnv2 should be an object');
-      msg.hpnv2 = {};
-    }
-    msg.hpnv2.version = Manager.VERSION;
+  static encodeSignedMessage(msg, sig, cnt) {
+    const len = msg.length;
+    const data = new Uint8Array(8 + 389 + len);
+    const view = new DataView(data.buffer);
+    data.set(msg); // msg
+    view.setFloat64(len, cnt); // count
+    data.set(sig, len + 8); // signature
+    return Manager.compressAndPad(Manager.encodeMessage(MSG_SIGNED, data));
   }
 
-  async _send(_msg, skipQuotaCheck = false) {
-    if (this.isOldVersion) {
-      // Should we fail silently here?
-      throw new OldVersionError();
-    }
+  async _sendNoVerify({ msg, config, publicKey }) {
+    const { instant = false } = config;
 
-    if (!this.isInit || this.unloaded) {
-      throw new NotReadyError();
-    }
+    // Hack: this uses the first '{' as the message code.
+    this.log('Sending noverify msg', msg);
+    return this.endpoints.send(
+      Manager.compressAndPad(toUTF8(JSON.stringify(msg))),
+      { instant, publicKey }
+    );
+  }
 
-    if (!_msg || typeof _msg !== 'object') {
-      throw (new InvalidMsgError('msg must be an object'));
-    }
-
+  async _send({ msg: _msg, config, publicKey }, skipQuotaCheck = false) {
     const msg = _msg;
-
-    const action = msg.action;
+    const { action } = msg;
 
     if (msg.compressed) {
       delete msg.compressed;
       msg.payload = JSON.parse(decompress(fromBase64(msg.payload)));
     }
 
-    const payload = msg.payload;
-    const config = this.sourceMap[action];
+    const { payload } = msg;
 
-    if (!config) {
-      throw (new InvalidMsgError(`unknown action ${action}`));
-    }
-
-    if (payload === null || payload === undefined) {
-      throw (new InvalidMsgError('msg must not be null or undefined'));
-    }
-
-    const { limit = 1, period = 24, keys = [], noverify = false, instant = false } = config;
+    const { limit = 1, period = 24, keys = [], instant = false } = config;
     const dig = digest(keys, payload);
     const hours = period * Math.floor(this.hours() / period);
 
@@ -508,7 +534,7 @@ export default class Manager {
       msg.ts = ts;
     }
 
-    Manager._setVersion(msg);
+    const utf8Msg = toUTF8(JSON.stringify(msg));
 
     const pretag = [
       action,
@@ -518,12 +544,6 @@ export default class Manager {
       hours
     ];
 
-    const utf8Msg = toUTF8(JSON.stringify(msg));
-
-    if (!noverify) {
-      await this.loadCredentials();
-    }
-
     const { sig, cnt } = await this._signMessage(
       utf8Msg,
       pretag,
@@ -531,10 +551,13 @@ export default class Manager {
       period,
       limit,
       skipQuotaCheck,
-      noverify,
     );
 
-    return this.endpoints.send(this._encodeMessage(utf8Msg, sig, cnt), instant);
+    this.log('Sending signed msg', msg);
+    return this.endpoints.send(
+      Manager.encodeSignedMessage(utf8Msg, sig, cnt),
+      { instant, publicKey }
+    );
   }
 
   get groupPubKeys() {
@@ -604,8 +627,8 @@ export default class Manager {
       // Make sure the server cannot change keys that we saw before,
       // or include additional keys in the interval defined by the keys
       // that we already know.
-      const check = x => x < smallestOldDate || x > largestOldDate ||
-        (oldKeys[x] && toBase64(oldKeys[x].groupPubKey) === newKeys[x]);
+      const check = x => x < smallestOldDate || x > largestOldDate
+        || (oldKeys[x] && toBase64(oldKeys[x].groupPubKey) === newKeys[x]);
       if (!dates.every(check)) {
         return false;
       }

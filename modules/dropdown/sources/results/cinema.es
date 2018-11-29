@@ -88,6 +88,7 @@ class ShowTimeDate extends GenericResult {
 
 export default class CinemaResult extends GenericResult {
   showTimesLimit = 2;
+
   maxRowsLimit = 5;
 
   get template() {

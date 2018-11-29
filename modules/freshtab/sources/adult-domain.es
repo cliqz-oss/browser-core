@@ -11,6 +11,7 @@ export default class AdultDomain {
       console.log('Adult Domain List failed loading');
     }
   }
+
   isAdult(domain) {
     if (!this.filter) return false;
     return this.filter.test(domain);

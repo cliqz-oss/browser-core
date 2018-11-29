@@ -23,9 +23,9 @@ const getValidDaysFromHistory = (timeRangeSecs, historyData) => {
   const dataDays = Object.keys(historyData.per_day);
   for (let i = 0; i < dataDays.length; i += 1) {
     const day = dataDays[i];
-    if (supportedDays.has(day) &&
-        historyData.per_day[day] &&
-        historyData.per_day[day].m > 0) {
+    if (supportedDays.has(day)
+        && historyData.per_day[day]
+        && historyData.per_day[day].m > 0) {
       result[day] = historyData.per_day[day];
     }
   }
@@ -141,8 +141,8 @@ export default class Category {
   isActive() {
     const now = timestampMS();
     if (this.lastActivationTS !== null) {
-      const stillActive = ((now - this.lastActivationTS) / 1000) <=
-        this.activationData.activationTimeSecs;
+      const stillActive = ((now - this.lastActivationTS) / 1000)
+        <= this.activationData.activationTimeSecs;
       if (stillActive) {
         return true;
       }
@@ -305,15 +305,15 @@ export default class Category {
   // ///////////////////////////////////////////////////////////////////////////
 
   _simpleCountResults({ numDays, totNumHits }) {
-    return ((numDays === undefined) || (this.countDaysWithMatches() >= numDays)) &&
-           ((totNumHits === undefined) || (this.getTotalMatches() >= totNumHits));
+    return ((numDays === undefined) || (this.countDaysWithMatches() >= numDays))
+           && ((totNumHits === undefined) || (this.getTotalMatches() >= totNumHits));
   }
 
   _normalizedResults(args) {
     // check cached results:
     const todayKey = getTodayDayKey();
-    if (todayKey !== this.todayKey ||
-        this._sumTotalCount === undefined) {
+    if (todayKey !== this.todayKey
+        || this._sumTotalCount === undefined) {
       this._sumTotalCount = 0;
       this._sumTotMatches = 0;
       if (args.endDayIdx > 0) {

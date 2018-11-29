@@ -49,10 +49,6 @@ function waitForImpl(fn, timeout) {
   return promise;
 }
 
-export function waitForAsync(fn, timeout = 20000) {
-  return waitForImpl(fn, timeout);
-}
-
 export function waitFor(fn, timeout = 20000) {
   return waitForImpl(fn, timeout);
 }

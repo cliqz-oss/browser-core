@@ -10,4 +10,3 @@ export default function getRemoteMessages() {
   });
   return resourceLoader.load();
 }
-

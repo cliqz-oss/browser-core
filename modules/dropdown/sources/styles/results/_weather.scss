@@ -1,0 +1,103 @@
+.result.weather {
+    margin-bottom: 6px;
+    .header {
+        cursor: default;
+
+        .title {
+            display: inline-block;
+            white-space: nowrap;
+            width: 410px;
+            overflow: hidden;
+            text-overflow: ellipsis; 
+        }
+    }
+    .forecast {
+        margin-bottom: 10px;
+
+        &:after {
+            clear: both;
+            content: " ";
+            display: block;
+            font-size: 0;
+            height: 0;
+            visibility: hidden;
+        }
+
+        .forecast-container {
+            box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.17);
+            display: inline-block;
+            padding: 15px 0px 0px 10px;
+            position: relative;
+
+            .unit-switcher {
+                position: absolute;
+                top: -22px;
+                right: 0;
+                font-size: 12.5px;
+                font-weight: 500;
+                color: #5E5E5E;
+
+                .fahrenheit-btn {
+                    font-weight: 600;
+                    cursor: pointer;
+                    font-size: 14px;
+                }
+
+                .celsius-btn {
+                    font-weight: 600;
+                    cursor: pointer;
+                    font-size: 13.5px;
+
+                    color: #00AEF0;
+                    pointer-events: none;
+                }
+            }
+        }
+
+        .weather-item {
+            float: left;
+            margin-right: 40px;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .fahrenheit {
+            display: none;
+        }
+
+        &.fahrenheit-selected {
+
+            .fahrenheit {
+                display: unset;
+            }
+
+            .celsius {
+                display: none;
+            }
+
+            .forecast-container .unit-switcher {
+
+                .celsius-btn {
+                    color: unset;
+                    pointer-events: auto;
+                }
+
+                .fahrenheit-btn {
+                    color: #00AEF0;
+                    pointer-events: none;
+                }
+            }
+        }
+    }
+
+    .source {
+        color: #999999;
+        font-size: 11px;
+        position: relative;
+        top: 18px;
+
+        .source-container {
+            float: right;
+        }
+    }
+}

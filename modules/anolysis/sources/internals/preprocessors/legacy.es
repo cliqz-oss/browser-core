@@ -5,7 +5,8 @@ function getSelectionType(signal) {
       return 'autocomplete';
     }
     return 'url';
-  } else if (positionType === 'inbar_query') {
+  }
+  if (positionType === 'inbar_query') {
     return 'query';
   }
   return 'enter';

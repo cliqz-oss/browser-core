@@ -16,4 +16,3 @@ export const getDuplicateLinksByUrl = (target, reference) => new Map(
 // TODO: verify that first response always exist (check `merge-results`)
 export const getResultOrder = ({ responses: [{ results = [] }] = [{}] } = {}) =>
   results.map(result => result.kind);
-

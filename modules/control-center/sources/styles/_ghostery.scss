@@ -1,0 +1,48 @@
+.compact-view.ghostery {
+
+    #othersettings .accordion .accordion-section {
+
+        .header {
+            margin-bottom: 10px;
+            border-bottom: 0.5px solid #D4D4D4;
+
+            .search-settings-title {
+                margin-top: 8px;
+
+                #support {
+                    line-height: 18px;
+                }
+            }
+        }
+
+        .accordion-section-content {
+
+            .bullet {
+                [data-i18n="control_center_backend_country"],
+                [data-i18n="control_center_explicit"],
+                [data-i18n="control_center_location"],
+                [data-i18n="control_center_proxy"],
+                [data-i18n="control_center_transparency"] {
+                    padding-left: 36px;
+                    font-size: 12px;
+                }
+
+                button[data-i18n="control_center_open"] {
+                    left: 226px;
+                    margin-left: 0;
+                }
+
+                &.disabled ~ .bullet {
+                    & > span, & > select, & > button {
+                        color: #8A8A8A;
+                        pointer-events: none;
+                    }
+                }
+            }
+        }
+    }
+
+    header.footer {
+        display: none;
+    }
+}

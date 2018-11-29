@@ -1,0 +1,17 @@
+{
+  "subprojects": [
+    "ajv",
+    "@cliqz-oss/dexie",
+    "@cliqz/adblocker",
+    "jsep",
+    "handlebars",
+    "mathjs",
+    "moment",
+    "moment-range",
+    "pako",
+    "rxjs",
+    "simple-statistics",
+    "tldts",
+    "ua-parser-js"
+  ]
+}

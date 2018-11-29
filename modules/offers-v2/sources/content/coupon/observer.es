@@ -71,7 +71,6 @@ export default class CouponFormObserver {
   processForms(targets) {
     const { input, button, ok } = getCouponsForm(targets);
     if (!ok) { return; }
-
     if (this.offerInfo && this.offerInfo.autoFillField) {
       const tmp = new CouponForm({ input, button, onClick: this._onClick });
       if (this.coupon) { this.coupon.unload(); }

@@ -42,6 +42,7 @@ import { buildCachedMap } from '../common/cached-map-ext';
  * collection. In particular, OfferDB doesn't care if an offer should
  * disappear.
  *
+ * @class OfferDB
  */
 class OfferDB {
   /**
@@ -88,6 +89,8 @@ class OfferDB {
 
   /**
    * will return the metadata for a particular offer or null if not exists
+   *
+   * @method getOfferMeta
    * @param  {string} offerID the offer id
    * @return {object} metadata or null if not exists.
    * <pre>
@@ -111,8 +114,10 @@ class OfferDB {
   /**
    * adds a new offer object, this should be the object coming from the backend
    * with all the required fields
-   * @param {[type]} offerID   [description]
-   * @param {[type]} offerData [description]
+   *
+   * @method addOfferObject
+   * @param {string} offerID
+   * @param {BackendOffer} offerData [description]
    * @return {bool} true if was added | false otherwise
    */
   addOfferObject(offerID, offerData) {
@@ -144,7 +149,9 @@ class OfferDB {
 
   /**
    * will remove the offer object but not the action history
-   * @param  {[type]} offerID [description]
+   *
+   * @method removeOfferObject
+   * @param  {string} offerID
    * @return {boolean} true on success false otherwise
    */
   removeOfferObject(offerID) {
@@ -154,7 +161,7 @@ class OfferDB {
       return false;
     }
 
-    // we should not remove this since we relay still on accessing the display_id
+    // we should not remove this since we rely still on accessing the display_id
     // information of the offer
     // this._removeIndexTablesForOffer(offerID);
 
@@ -176,6 +183,8 @@ class OfferDB {
   /**
    * this method will completely remove the offer from the DB without leaving
    * any entry nor data associated to it.
+   *
+   * @method eraseOfferObject
    * @param  offerID to be removed
    * @return true on success | false otherwise
    */
@@ -201,8 +210,10 @@ class OfferDB {
   /**
    * will return the offer object if we have it or null if not
    * Do not modify this object from outside.
-   * @param  {[type]} offerID [description]
-   * @return {[type]}         [description]
+   *
+   * @method getOfferObject
+   * @param  {string} offerID
+   * @return {BackendOffer}
    */
   getOfferObject(offerID) {
     const container = this.offersIndexMap.get(offerID);
@@ -214,18 +225,38 @@ class OfferDB {
 
   /**
    * will check if there is information about the offer or not
-   * @param  {[type]}  offerID [description]
+   *
+   * @method hasOfferData
+   * @param  {string}  offerID
    * @return {Boolean}         true if there are or false otherwise
    */
   hasOfferData(offerID) {
     return this.offersIndexMap.has(offerID);
   }
+
+  /**
+   * More strong statement than `hasOfferData`. Who will touch the code
+   * that uses a has-function, please describe the difference.
+   *
+   * @method hasOfferObject
+   * @param offerID
+   * @returns {boolean}
+   */
   hasOfferObject(offerID) {
     if (this.getOfferObject(offerID)) {
       return true;
     }
     return false;
   }
+
+  /**
+   * Check logical presence of an offer.
+   * For accounting reasons, removed offers are not really removed.
+   *
+   * @method isOfferPresent
+   * @param offerID
+   * @returns {boolean}
+   */
   isOfferPresent(offerID) {
     const container = this.offersIndexMap.get(offerID);
     if (!container) {
@@ -236,11 +267,14 @@ class OfferDB {
 
   /**
    * will update an offer object.
-   * @param  {[type]} offerID   [description]
-   * @param  {[type]} offerData [description]
+   *
+   * @method updateOfferObject
+   * @param  {string} offerID
+   * @param  {BackendOffer} offerData
    * @param {boolean} retainAbTestInfo  Used and explained in
    *   offers/jobs/db-replacer.es, search by EX-7894
    * @return {boolean} true on success | false otherwise
+   *
    * If the offer was removed before, it becomes present again.
    */
   updateOfferObject(offerID, offerData, retainAbTestInfo = false) {
@@ -259,8 +293,8 @@ class OfferDB {
     if (container.offer_obj) {
       // check if we have an old object here
       const localOffer = container.offer_obj;
-      if (offerData.offer_id !== localOffer.offer_id ||
-          offerData.campaign_id !== localOffer.campaign_id) {
+      if (offerData.offer_id !== localOffer.offer_id
+          || offerData.campaign_id !== localOffer.campaign_id) {
         logger.warn('updateOfferObject: the offer core data is not similar? not supported for now');
         return false;
       }
@@ -299,6 +333,11 @@ class OfferDB {
 
   /**
    * This function will check if an offer has been removed or not.
+   * Reverse of `isOfferPresent`.
+   *
+   * @method hasOfferRemoved
+   * @param {string} offerID
+   * @return {boolean}
    */
   hasOfferRemoved(offerID) {
     const container = this.offersIndexMap.get(offerID);
@@ -309,12 +348,18 @@ class OfferDB {
   }
 
   /**
-   * this method will increment +1 a particular action for a given offer. This
-   * will also update if needed the display ID
-   * @param  {[type]} offerID  [description]
-   * @param  {[type]} actionID [description]
-   * @param  {[type]} incDisplay if true this will also increment the signal in the
-   *                             display map.
+   * this method will increment +1 a particular action for a given offer.
+   * This will also update if needed the display ID
+   *
+   * @method incOfferAction
+   * @param  {string} offerID
+   * @param  {string} actionID
+   *   Some possible values: `offer_shown`, `offer_pushed`, `offer_notif_popup`,
+   *   `offer_dsp_session`, `offer_added`, `filter_exp__*`
+   * @param  {boolean} incDisplay
+   *   if true this will also increment the signal in the display map.
+   * @param {number} count
+   *   Increment value, default is 1
    * @return {boolean} true on success | false otherwise
    */
   incOfferAction(offerID, actionID, incDisplay = true, count = 1) {
@@ -354,7 +399,7 @@ class OfferDB {
       this.displayIdIndexMap.set(offerObj.display_id, displayActionMap);
     }
 
-    container.l_u_ts = now;
+    if (!actionID.startsWith('filtered_by')) { container.l_u_ts = now; }
     this.offersIndexMap.set(offerID, container);
 
     // propagate event
@@ -365,8 +410,10 @@ class OfferDB {
 
   /**
    * will return the metadata for a particular actionID and offerID.
-   * @param  {[type]} offerID  [description]
-   * @param  {[type]} actionID [description]
+   *
+   * @method getOfferActionMeta
+   * @param  {string} offerID
+   * @param  {string} actionID
    * @return {object} the metadata for an action or null | undefined if not found
    * <pre>
    * {
@@ -386,9 +433,11 @@ class OfferDB {
 
   /**
    * add a generic attribute data to be stored on the offer with a generic value
-   * @param {[type]} offerID [description]
-   * @param {[type]} attrID  [description]
-   * @param {[type]} data    [description]
+   *
+   * @method addOfferAttribute
+   * @param {string} offerID
+   * @param {string} attrID
+   * @param {any} data
    * @return {boolean} true on success | false otherwise
    */
   addOfferAttribute(offerID, attrID, data) {
@@ -421,11 +470,13 @@ class OfferDB {
   }
 
   /**
-   * will return the associated attribute for the given offer and attrID, null if
-   * not exists
-   * @param  {[type]} offerID [description]
-   * @param  {[type]} attrID  [description]
-   * @return {[type]}         [description]
+   * will return the associated attribute for the given offer and attrID,
+   * null if not exists
+   *
+   * @method getOfferAttribute
+   * @param  {string} offerID
+   * @param  {string} attrID
+   * @return {any}
    */
   getOfferAttribute(offerID, attrID) {
     if (!offerID || !attrID) {
@@ -446,9 +497,39 @@ class OfferDB {
   }
 
   /**
+   * Store information why the offer is in the database.
+   *
+   * @method addReasonForHaving
+   * @param {string} }offerID
+   * @param {OfferMatchTraits} reason
+   * @returns {boolean} true on success
+   */
+  addReasonForHaving(offerID, reason) {
+    return this.addOfferAttribute(offerID, 'reason', reason);
+  }
+
+  /**
+   * Explain why the offer was stored in the database.
+   *
+   * @method getReasonForHaving
+   * @param {string} offerID
+   * @returns {OfferMatchTraits} or null
+   */
+  getReasonForHaving(offerID) {
+    const reasonObj = this.getOfferAttribute(offerID, 'reason');
+    if (reasonObj && (!reasonObj.getReason)) {
+      // Duck-cast a JSON object (from storage) to OfferMatchTraits
+      reasonObj.getReason = () => reasonObj.reason;
+    }
+    return reasonObj;
+  }
+
+  /**
    * will return the metadata of a display id for a particular actionID and displayID.
-   * @param  {[type]} displayID  [description]
-   * @param  {[type]} actionID [description]
+   *
+   * @method getOfferisplayActionMera
+   * @param  {string} displayID
+   * @param  {string} actionID
    * @return {object} the metadata for an action and displayID or null if not found
    * <pre>
    * {
@@ -468,8 +549,10 @@ class OfferDB {
 
   /**
    * will return the associated campaign id for a particular offer, or null if not found
-   * @param  {[type]} offerID [description]
-   * @return {[type]}         [description]
+   *
+   * @method getCampaignID
+   * @param  {string} offerID
+   * @return {string}
    */
   getCampaignID(offerID) {
     const container = this.offersIndexMap.get(offerID);
@@ -482,8 +565,10 @@ class OfferDB {
   /**
    * will return a set of all offers ids associated to a campaign, or null if no
    * campaign is found
-   * @param  {[type]} campaignID [description]
-   * @return {[type]}            [description]
+   *
+   * @method getCampaignOffers
+   * @param  {string} campaignID
+   * @return {string}
    */
   getCampaignOffers(campaignID) {
     if (!campaignID) {
@@ -493,9 +578,11 @@ class OfferDB {
   }
 
   /**
-   * @param {Offer} offer  An Offer object is used instead of offerID
-   *     because we need campaignID, which we don't have in the database
-   *     for yet unseen offers.
+   * @method hasAnotherOfferOfSameCampaign
+   * @param {Offer} offer
+   *   An Offer object is used instead of offerID because we need
+   *   campaignID, which we don't have in the database for yet unseen offers.
+   * @return {boolean}
    */
   hasAnotherOfferOfSameCampaign(offer) {
     const offerID = offer.uniqueID;
@@ -509,8 +596,10 @@ class OfferDB {
   /**
    * this method will check on the given set of offers ids which is the offer
    * that was latest updated and still on the DB (i/e not removed).
-   * @param  {[type]} offersIDsSet [description]
-   * @return {list}              sorted list (by latest updated offer) of objects
+   *
+   * @method getLatestUpdatedOffer
+   * @param  {string_set} offersIDsSet
+   * @return {string_arr} sorted list (by latest updated offer) of objects
    * with the following information:
    * {
    *   l_u_ts: ts,
@@ -544,23 +633,11 @@ class OfferDB {
   }
 
   /**
-   * will retrieve all the offers we have applying filters and also sorting given
-   * on the options argument.
-   * @param  {object} opt containing the filter and sorting options:
-   * <pre>
-   * {
-   *   filter: {
-   *     // the dest field will be used just to query all the offers that
-   *     // belong to a particular destination (on the list).
-   *     // If the offer destination field is on the list will be returned
-   *     dest: ['dest1', ...]
-   *   },
-   *   // how we want to sort the list, for now will be the newest first, olders
-   *   // at the end
-   *   sort: 'c_ts' or 'l_u_ts',
-   * }
-   * </pre>
-   * @return {[type]}     [description]
+   * will retrieve all the offers we have
+   *
+   * @method getOffers
+   * @param {boolean} includeRemoved
+   * @return {OfferInfo}
    */
   getOffers(includeRemoved = false) {
     // for now we will list all the current offers and return them in a list
@@ -596,11 +673,13 @@ class OfferDB {
   /**
    * Will return a list of offers and metadata associated to them from a set
    * of offers IDs,
-   * @param  {Set} offerIDsSet Set containing the offers ids
+   *
+   * @method getOffersFromIDs
+   * @param  {string_set} offerIDsSet
    * @return {array}  of objects as follow:
    * {
    *   offer_id: X,
-   *   offer: {...},
+   *   offer: {...}, // type BackendOffer
    *   removed: true / false,
    *   last_update: TS of last update.
    * }
@@ -619,6 +698,17 @@ class OfferDB {
       }
     });
     return result;
+  }
+
+  /**
+   * @method getDisplayCount
+   * @param offerID
+   * @returns {number}
+   * For unknown offers, return zero.
+   */
+  getDisplayCount(offerID) {
+    const meta = this.getOfferActionMeta(offerID, 'offer_shown');
+    return meta && meta.count ? meta.count : 0;
   }
 
   // ---------------------------------------------------------------------------
@@ -651,12 +741,12 @@ class OfferDB {
    * @return {Boolean} true on success | false otherwise
    */
   _isOfferValid(offerID, offerData) {
-    if (!offerID ||
-        !offerData ||
-        !offerData.offer_id ||
-        offerData.offer_id !== offerID ||
-        !offerData.display_id ||
-        !offerData.campaign_id) {
+    if (!offerID
+        || !offerData
+        || !offerData.offer_id
+        || offerData.offer_id !== offerID
+        || !offerData.display_id
+        || !offerData.campaign_id) {
       return false;
     }
     return !this._isOfferExpired(offerData);

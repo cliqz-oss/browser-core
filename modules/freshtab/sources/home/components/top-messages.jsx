@@ -50,47 +50,50 @@ export default class TopMessages extends React.Component {
       <div id="topNotificationBox" ref={(div) => { this.container = div; }}>
         {
           this.props.messages.map(message =>
-            (<div
-              key={message.id}
-              className={`top-notification-box ${message.type}`}
-            >
+            (
               <div
-                className="close"
-                onClick={() => this.handleCloseClick(message)}
-              />
-              <div className="content">
-                <div>
-                  <h1
-                    title={message.title}
-                    style={{
-                      backgroundImage: `url(${message.icon})`,
-                      paddingLeft: message.icon ? '40px' : '0px'
-                    }}
-                  >
-                    {message.title}
-                  </h1>
+                key={message.id}
+                className={`top-notification-box ${message.type}`}
+              >
+                <div
+                  className="close"
+                  onClick={() => this.handleCloseClick(message)}
+                />
+                <div className="content">
+                  <div>
+                    <h1
+                      title={message.title}
+                      style={{
+                        backgroundImage: `url(${message.icon})`,
+                        paddingLeft: message.icon ? '40px' : '0px'
+                      }}
+                    >
+                      {message.title}
+                    </h1>
+                  </div>
+                  <div>
+                    <button
+                      type="button"
+                      className="cta-btn"
+                      tabIndex="-1"
+                      onClick={() => this.handleCTAClick(message)}
+                    >
+                      {message.cta_text}
+                    </button>
+                    {message.later_text
+                      && (
+                        <button
+                          type="button"
+                          className="later-btn"
+                          tabIndex="-1"
+                          onClick={() => this.handleLaterClick(message)}
+                        >
+                          {message.later_text}
+                        </button>)
+                    }
+                  </div>
                 </div>
-                <div>
-                  <button
-                    className="cta-btn"
-                    tabIndex="-1"
-                    onClick={() => this.handleCTAClick(message)}
-                  >
-                    {message.cta_text}
-                  </button>
-                  {message.later_text &&
-                  <button
-                    className="later-btn"
-                    tabIndex="-1"
-                    onClick={() => this.handleLaterClick(message)}
-                  >
-                    {message.later_text}
-                  </button>
-                  }
-                </div>
-              </div>
-            </div>)
-          )
+              </div>))
         }
       </div>
     );

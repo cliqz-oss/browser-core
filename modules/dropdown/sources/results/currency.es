@@ -32,8 +32,8 @@ export default class CurrencyResult extends BaseResult {
 
   // FIXME: symbols not displayed (encoding issue?)
   get toSymbol() {
-    return this._extra.toSymbol ||
-      this._extra.toCurrency;
+    return this._extra.toSymbol
+      || this._extra.toCurrency;
   }
 
   get fromCurrency() {
@@ -43,8 +43,8 @@ export default class CurrencyResult extends BaseResult {
   // FIXME: symbols not displayed (encoding issue?)
   get fromSymbol() {
     // API v2 uses 'formCurrency' instead of 'fromCurrency'
-    return this._extra.formCurrency ||
-      this._extra.fromCurrency;
+    return this._extra.formCurrency
+      || this._extra.fromCurrency;
   }
 
   get multiplyer() {
@@ -86,7 +86,7 @@ export default class CurrencyResult extends BaseResult {
     }
 
     this.resultTools.actions.copyToClipboard(this.toAmount);
-    this.$tooltip.innerText = i18n.getMesasge('Copied');
+    this.$tooltip.innerText = i18n.getMessage('Copied');
     setTimeout(() => {
       this.$tooltip.style.display = 'none';
     }, 1000);

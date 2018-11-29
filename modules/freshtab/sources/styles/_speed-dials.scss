@@ -21,6 +21,8 @@
     $dial-header-color,
     $dial-header-bg-color,
     $dial-header-font-size,
+    $dial-header-text-shadow,
+    $dial-title-text-shadow,
 
     $dial-button-plus-background,
     $dial-button-plus-opacity,
@@ -38,7 +40,11 @@
     $dial-logo-color: #fff;
 
     #section-most-visited {
-        margin-top: 24px;
+        margin-top: 12px;
+    }
+
+    #section-favorites {
+        margin-top: 20px;
     }
 
     .dial-header {
@@ -47,7 +53,7 @@
         animation: fadeIn 0.5s;
         overflow: hidden;
         position: relative;
-
+        text-shadow: $dial-header-text-shadow;
 
         @keyframes fadeIn {
           from {opacity: 0;}
@@ -88,39 +94,6 @@
             position: relative;
             text-decoration: none;
 
-            &:hover {
-                .edit{
-                    visibility: visible;
-                    opacity: 1;
-                    transition: visibility 0s linear 0s, opacity 300ms;
-                }
-
-                .delete {
-                    visibility: visible;
-                    opacity: 1;
-                    transition: visibility 0s linear 0s, opacity 300ms;
-                }
-
-               .logo {
-                    box-shadow: $dial-logo-box-shadow-hover;
-                }
-
-                .title {
-                    color: $dial-title-color-hover;
-                    text-decoration: none;
-                }
-            }
-
-            &:focus {
-                .logo {
-                    border: 3px solid white;
-
-                    &::after {
-                        opacity: 0;
-                    }
-                }
-            }
-
             .logo {
                 background-repeat: no-repeat;
                 background-size: contain;
@@ -135,7 +108,7 @@
                 color: $dial-logo-color;
                 font-weight: 700;
                 margin: 0 auto;
-                border-radius: 2px;
+                border-radius: 4px;
                 box-shadow: $dial-logo-box-shadow;
                 position: relative;
                 transition: box-shadow 180ms cubic-bezier(0.4, 0.0, 0.2, 1);
@@ -155,7 +128,7 @@
             }
 
             .title {
-                margin: 10px auto 0 auto;
+                margin: 7px auto 0 auto;
                 font-size: $dial-title-font-size;
                 font-weight: 500;
                 white-space: nowrap;
@@ -165,6 +138,7 @@
                 color: $dial-title-color;
                 cursor: pointer;
                 text-decoration: none;
+                text-shadow: $dial-title-text-shadow;
             }
 
             .edit {
@@ -204,7 +178,7 @@
                 overflow: hidden;
                 text-indent: 100%;
                 white-space: nowrap;
-                transition: visibility 0s linear 300ms, opacity 300ms;
+                transition: visibility 0s linear 300ms 0.2s, opacity 300ms linear 0.2s;
             }
 
             .flex-container {
@@ -221,7 +195,7 @@
 
                 &.plus-dial-icon {
                     opacity: $dial-button-plus-opacity;
-                    margin-top: 10px;
+                    margin-top: 12px;
                     width: $logo-size;
                     height: $logo-size;
                     background: $dial-button-plus-background;
@@ -241,14 +215,60 @@
                 padding: $logo-padding;
                 box-sizing: border-box;
                 margin: 0 auto;
-                border-radius: 2px;
+                border-radius: 4px;
+            }
+
+            &.with-animation {
+                opacity: 0;
+                animation: fadeIn .5s forwards;
+                animation-delay: .1s;
+                transition: opacity .3s ease-in;
+            }
+
+            &:hover {
+                .edit{
+                    visibility: visible;
+                    opacity: 1;
+                    transition: visibility 0s linear 0s, opacity 300ms;
+                }
+
+                .delete {
+                    visibility: visible;
+                    opacity: 1;
+                    transition: visibility 0s linear 0.7s, opacity 300ms linear 0.7s;
+                }
+
+               .logo {
+                    box-shadow: $dial-logo-box-shadow-hover;
+                }
+
+                .title {
+                    color: $dial-title-color-hover;
+                    text-decoration: none;
+                }
+            }
+
+            &:focus {
+                .logo {
+                    border: 3px solid white;
+                    padding-block-start: 8px;
+
+                    &::after {
+                        opacity: 0;
+                    }
+                }
             }
         }
 
         .dial-plus {
             padding: 0;
             height: calc(#{$dial-height} + 8px);
-
+            display: flex;
+            align-items: top;
+            justify-content:center;
+            > span {
+                line-height: 34px;
+            }
             .error {
                 text-align: center;
                 color: #fff;

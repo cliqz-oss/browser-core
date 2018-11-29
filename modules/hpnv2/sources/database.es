@@ -29,7 +29,7 @@ export default class Database {
     return this.groupPubKeys[date];
   }
 
-  async setGroupPubKey(date, { groupPubKey, credentials, gsk, joinmsg, banned }) {
+  async setGroupPubKey(date, { groupPubKey, pubKey, credentials, gsk, joinmsg, banned }) {
     this.groupPubKeys[date] = {
       groupPubKey,
       credentials,
@@ -37,6 +37,7 @@ export default class Database {
       gsk,
       joinmsg,
       banned,
+      pubKey,
     };
     return this.db ? this.db.meta.put({ key: 'groupPubKeys', value: this.groupPubKeys }) : Promise.resolve();
   }

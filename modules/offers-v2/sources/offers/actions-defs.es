@@ -128,6 +128,9 @@ const ActionID = {
   AID_COUPON_AUTOFILL_ERROR_USE: 'coupon_autofill_field_error_use',
   AID_COUPON_AUTOFILL_APPLICATION_NOT_FOUND: 'coupon_autofill_field_application_not_found',
 
+  // global blacklist
+  AID_GLOBAL_OFFERS_BLACKLIST: 'global_offers_blacklist',
+
   // Hard filters
   AID_OFFER_FILTERED_VALIDIDTY: 'filtered_by_filterByValidity',
   AID_OFFER_FILTERER_ABTEST: 'filtered_by_filterByABTest',

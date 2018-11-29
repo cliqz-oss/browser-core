@@ -57,7 +57,7 @@ program.command(`build ${common.configParameter}`)
           copyDereferenceSync(builder.outputPath, OUTPUT_PATH);
           printSlowNodes(builder.outputNodeWrapper, 0);
           // builder.cleanup();
-          console.log('Build successful - took ', Date.now() - buildStartAt, 's');
+          console.log('Build successful - took ', (Date.now() - buildStartAt) / 1000, 's');
           process.exit(0);
         })
         .catch((err) => {

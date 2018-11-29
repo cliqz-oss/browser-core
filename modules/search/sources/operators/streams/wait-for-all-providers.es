@@ -4,9 +4,9 @@ const { filter } = Rx.operators;
 
 const shouldIgnore = (name, config) =>
   // 'rich-header' is a non-stand-alone provider, it's only queried from 'cliqz'
-  name === 'rich-header' ||
+  name === 'rich-header'
   // ignore 'querySuggestions' if it is disabled
-  (name === 'querySuggestions' && !config.providers.querySuggestions.isEnabled);
+  || (name === 'querySuggestions' && !config.providers.querySuggestions.isEnabled);
 
 /**
  * Factory for the `waitForAllProviders` operator, which ensures that results

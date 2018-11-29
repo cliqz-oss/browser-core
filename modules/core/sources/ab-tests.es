@@ -107,7 +107,8 @@ const CliqzABTests = {
         } catch (e) {
           log(`retrieve error: ${e.message}`);
         }
-      });
+      }
+    );
   },
   retrieve(callback) {
     const url = CliqzABTests.URL + encodeURIComponent(prefs.get('session', ''));
@@ -141,12 +142,6 @@ const CliqzABTests = {
       case '1045_B':
         prefs.set('antiTrackTest', true);
         break;
-      case '1046_B':
-        prefs.set('attrackBlockCookieTracking', true);
-        break;
-      case '1047_B':
-        prefs.set('attrackRemoveQueryStringTracking', true);
-        break;
       case '1048_B':
         prefs.set('attrackAlterPostdataTracking', true);
         break;
@@ -158,18 +153,6 @@ const CliqzABTests = {
         break;
       case '1051_B':
         prefs.set('antiTrackTest', true);
-        break;
-      case '1052_A':
-        prefs.set('attrackBlockCookieTracking', false);
-        break;
-      case '1052_B':
-        prefs.set('attrackBlockCookieTracking', true);
-        break;
-      case '1053_A':
-        prefs.set('attrackRemoveQueryStringTracking', false);
-        break;
-      case '1053_B':
-        prefs.set('attrackRemoveQueryStringTracking', true);
         break;
       case '1057_A':
         prefs.set('trackerTxt', false);
@@ -507,9 +490,11 @@ const CliqzABTests = {
       case '1051_B':
         prefs.clear('antiTrackTest');
         break;
+      case '1052_A':
       case '1052_B':
         prefs.clear('attrackBlockCookieTracking');
         break;
+      case '1053_A':
       case '1053_B':
         prefs.clear('attrackRemoveQueryStringTracking');
         break;

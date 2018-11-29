@@ -8,7 +8,7 @@ export default {
   },
 
   local(key) {
-    return chrome.i18n.getMessage(key);
+    return key ? chrome.i18n.getMessage(key) : '';
   },
 
   truncate(text, maxChars) {
@@ -22,4 +22,3 @@ export default {
     return str;
   }
 };
-

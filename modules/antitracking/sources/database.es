@@ -38,7 +38,7 @@ export default class AttrackDatabase {
 
   get ready() {
     if (this._ready === null) {
-      return Promise.reject('init not called');
+      return Promise.reject(new Error('init not called'));
     }
     return this._ready;
   }

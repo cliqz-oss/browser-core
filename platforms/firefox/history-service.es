@@ -26,8 +26,8 @@ class FirefoxLegacyHistory {
     if (!this.HISTORY_EVENTS.includes(eventName)) {
       throw new Error(`Unrecognized history event "${eventName}"`);
     }
-    if (this._historyObserver &&
-        this._historyObserver.hasHandler(eventName, callback)) {
+    if (this._historyObserver
+        && this._historyObserver.hasHandler(eventName, callback)) {
       throw new Error('Callback already registered');
     }
 

@@ -44,20 +44,38 @@ export const NEWS_EDITIONS = [
   'it',
   'pl',
   'us',
+  'ru',
 ];
 
 export default [
+  /**
+   * metrics.freshtab.state informs us about how many of our users have freshtab enabled.
+   */
   {
-    name: 'freshtab.prefs.state',
+    name: 'metrics.freshtab.state',
     offsets: [0],
-    generate: () => inject.module('freshtab').action('getState').then(
-      state => [state],
-      actionFallback([]),
-    ),
+    version: 1,
+    needsGid: true,
+    sendToBackend: true,
+    generate: async () => {
+      try {
+        const { active } = await inject.module('freshtab').action('getState');
+        return [{
+          is_freshtab_on: !!active,
+        }];
+      } catch (ex) {
+        // We should always send a result for this signal, even if freshtab's
+        // state cannot be retrieved (background is disabled, state is broken,
+        // etc.)
+        return [{
+          is_freshtab_on: false,
+        }];
+      }
+    },
     schema: {
-      required: ['active'],
+      required: ['is_freshtab_on'],
       properties: {
-        active: { type: 'boolean' },
+        is_freshtab_on: { type: 'boolean' },
       },
     },
   },
@@ -203,57 +221,6 @@ export default [
     { key: 'type', value: 'home' },
     { key: 'action', value: 'click' },
     { key: 'target', value: 'history' },
-  ], false),
-
-  // Worldcup button
-  // =========
-  mkFreshtabSchema([
-    { key: 'type', value: 'home' },
-    { key: 'action', value: 'click' },
-    { key: 'target', value: 'worldcup' },
-  ], false),
-
-  // World cup tooltip
-  // ============
-  mkFreshtabSchema([
-    { key: 'type', value: 'worldcup.notification' },
-    { key: 'action', value: 'click' },
-    { key: 'target', value: 'group.later' },
-  ], false),
-  mkFreshtabSchema([
-    { key: 'type', value: 'worldcup.notification' },
-    { key: 'action', value: 'click' },
-    { key: 'target', value: 'knockout.later' },
-  ], false),
-  mkFreshtabSchema([
-    { key: 'type', value: 'worldcup.notification' },
-    { key: 'action', value: 'click' },
-    { key: 'target', value: 'knockout.close' },
-  ], false),
-  mkFreshtabSchema([
-    { key: 'type', value: 'worldcup.notification' },
-    { key: 'action', value: 'click' },
-    { key: 'target', value: 'group.close' },
-  ], false),
-  mkFreshtabSchema([
-    { key: 'type', value: 'worldcup.notification' },
-    { key: 'action', value: 'show' },
-    { key: 'target', value: 'group' },
-  ], false),
-  mkFreshtabSchema([
-    { key: 'type', value: 'worldcup.notification' },
-    { key: 'action', value: 'show' },
-    { key: 'target', value: 'knockout' },
-  ], false),
-  mkFreshtabSchema([
-    { key: 'type', value: 'worldcup.notification' },
-    { key: 'action', value: 'click' },
-    { key: 'target', value: 'knockout.explore' },
-  ], false),
-  mkFreshtabSchema([
-    { key: 'type', value: 'worldcup.notification' },
-    { key: 'action', value: 'click' },
-    { key: 'target', value: 'group.explore' },
   ], false),
 
   // Top Sites

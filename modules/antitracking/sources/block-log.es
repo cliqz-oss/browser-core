@@ -154,11 +154,13 @@ export default class BlockLog {
       const keyList = this.blockReportList[tracker];
       if (keyList === '*') {
         return true;
-      } else if (key in keyList || md5(key) in keyList) {
+      }
+      if (key in keyList || md5(key) in keyList) {
         const valueList = keyList[key] || keyList[md5(key)];
         if (valueList === '*') {
           return true;
-        } else if (value in valueList || md5(value) in valueList) {
+        }
+        if (value in valueList || md5(value) in valueList) {
           return true;
         }
       }

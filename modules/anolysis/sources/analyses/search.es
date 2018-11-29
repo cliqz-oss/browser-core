@@ -123,14 +123,15 @@ export default [
         // flatten result sources per session
         .map(r => [].concat(...r.map(({ sources: s = [] }) => s)))
         .map(mapCliqzSources)
-        .filter(({
-          hasOnlyHistorySources,
-          hasOnlyBackendSources,
-          hasMixedSources
-        }) =>
-          hasOnlyHistorySources ||
-          hasOnlyBackendSources ||
-          hasMixedSources
+        .filter(
+          ({
+            hasOnlyHistorySources,
+            hasOnlyBackendSources,
+            hasMixedSources
+          }) =>
+            hasOnlyHistorySources
+            || hasOnlyBackendSources
+            || hasMixedSources
         );
 
       // selections by origin
@@ -140,8 +141,8 @@ export default [
       const selectionsAbandoned = selections.filter(s => s.origin === null);
 
       // sources of Cliqz selections, mapped to history vs. backend
-      const selectionsCliqzSources =
-        selectionsCliqz.map(({ sources: s = [] }) => mapCliqzSources(s));
+      const selectionsCliqzSources = selectionsCliqz
+        .map(({ sources: s = [] }) => mapCliqzSources(s));
 
       return [{
         // statistics on non-empty last results across sessions
@@ -186,12 +187,13 @@ export default [
           // histogram of selected indices
           index: integersToHistogram(
             selections.map(({ index }) => index),
-            { binSize: 1, binCount: 16 }),
+            { binSize: 1, binCount: 16 }
+          ),
           // histogram of query lengths at time of selection
           queryLength: integersToHistogram(
-            selections.map(
-              ({ queryLength }) => queryLength),
-            { binSize: 1, binCount: 32 }),
+            selections.map(({ queryLength }) => queryLength),
+            { binSize: 1, binCount: 32 }
+          ),
           // statistics on selections split by origin; note: origins are
           // mutually exclusive and collectively exhaustive
           origin: {
@@ -244,7 +246,8 @@ export default [
               showTime: integersToHistogram(
                 selectionsAbandoned
                   .map(({ showTime }) => Math.round(showTime / 1000),
-                    { binSize: 1, binCount: 10 })),
+                    { binSize: 1, binCount: 10 })
+              ),
             },
           },
         },

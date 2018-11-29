@@ -84,8 +84,8 @@ export function generateAttrackPayload(data, ts, qsVersion) {
 export function truncateDomain(host, depth) {
   const generalDomain = host.domain;
 
-  if (host.isIp || host.hostname === generalDomain || generalDomain.length === 0) {
-    return host.hostname;
+  if (host.isIp || host.host === generalDomain || generalDomain.length === 0) {
+    return host.host;
   }
 
   const subdomains = host.subdomain

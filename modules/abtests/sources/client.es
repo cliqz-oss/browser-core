@@ -16,7 +16,7 @@ export default class Client {
     return fetch(request)
       .then((response) => {
         if (!response.ok) {
-          return Promise.reject(`Backend ${url} answered with code ${response.status}`);
+          return Promise.reject(new Error(`Backend ${url} answered with code ${response.status}`));
         }
         return response.json();
       });

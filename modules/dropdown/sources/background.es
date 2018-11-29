@@ -45,8 +45,8 @@ export default background({
       }
 
       if (
-        this.currentResults &&
-        (rawResult.text === this.currentResults[0].text)
+        this.currentResults
+        && (rawResult.text === this.currentResults[0].text)
       ) {
         await this.offersReporter.reportShows(this.currentResults);
       }
@@ -56,8 +56,8 @@ export default background({
 
     'search:session-end': function onBlur() {
       if (
-        !this.inOffersAB ||
-        !this.currentResults
+        !this.inOffersAB
+        || !this.currentResults
       ) {
         return;
       }

@@ -3,6 +3,7 @@
 import {
   registerContentScript,
 } from '../core/content/helpers';
+import { throttle } from '../core/decorators';
 
 import { normalizeAclkUrl } from './ad-detection';
 
@@ -148,4 +149,45 @@ registerContentScript('human-web', 'http*', (window, chrome, CLIQZ) => {
       parseDom(url, window, hw);
     });
   }
+
+  function proxyWindowEvent(action) {
+    return (ev) => {
+      hw.action(action, {
+        target: {
+          baseURI: ev.target.baseURI,
+        }
+      });
+    };
+  }
+
+  const onKeyPress = throttle(window, proxyWindowEvent('hw:keypress'), 250);
+  const onMouseMove = throttle(window, proxyWindowEvent('hw:mousemove'), 250);
+  const onScroll = throttle(window, proxyWindowEvent('hw:scroll'), 250);
+  const onCopy = throttle(window, proxyWindowEvent('hw:copy'), 250);
+
+  window.addEventListener('keypress', onKeyPress);
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('scroll', onScroll);
+  window.addEventListener('copy', onCopy);
+
+  function stop(ev) {
+    if (ev && (ev.target !== window.document)) {
+      return;
+    }
+
+    // detect dead windows
+    // https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Errors/Dead_object
+    try {
+      String(window);
+    } catch (e) {
+      return;
+    }
+
+    window.removeEventListener('keypress', onKeyPress);
+    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('scroll', onScroll);
+    window.removeEventListener('copy', onCopy);
+  }
+
+  window.addEventListener('unload', stop);
 });

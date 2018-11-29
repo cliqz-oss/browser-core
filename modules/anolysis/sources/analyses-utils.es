@@ -36,10 +36,10 @@ export function indicesHistogramToArray(counter) {
  */
 export const actionFallback = fallbackValue => (error) => {
   if (
-    error &&
-    (
-      error.name === 'ModuleDisabledError' ||
-      error.name === 'ModuleMissingError'
+    error
+    && (
+      error.name === 'ModuleDisabledError'
+      || error.name === 'ModuleMissingError'
     )
   ) {
     return fallbackValue;

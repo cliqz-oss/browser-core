@@ -2,7 +2,7 @@
 
 import Expression from '../expression';
 import logger from '../../common/offers_v2_logger';
-import { shouldKeepResource } from '../../utils';
+import { timestampMS, shouldKeepResource } from '../../utils';
 
 
 /**
@@ -50,11 +50,25 @@ class ActivateSubtriggersExpr extends Expression {
       let subtriggers = this.data.trigger_cache.getSubtriggers(this.parentTriggerId);
       if (!subtriggers || subtriggers.length === 0) {
         // load from server
+        const startLoadMs = timestampMS();
+        const recordLoadMs = () => {
+          const thisLoadMs = timestampMS() - startLoadMs;
+          ctx['#httpLoadMs'] = (ctx['#httpLoadMs'] || 0) + thisLoadMs;
+        };
 
         this.data.be_connector.sendApiRequest(
           'loadsubtriggers',
           { parent_id: this.parentTriggerId },
-          'GET').then((payload) => {
+          'GET'
+        //
+        ).then((ok) => {
+          recordLoadMs();
+          return ok;
+        }, (err) => {
+          recordLoadMs();
+          return Promise.reject(err);
+        //
+        }).then((payload) => {
           subtriggers = payload;
 
           // we filter here the triggers that are not associated to the user group

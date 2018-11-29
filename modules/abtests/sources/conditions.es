@@ -17,7 +17,8 @@ export default function evalCondition(condition) {
       }
     }
     return true;
-  } else if (condition.or !== undefined) {
+  }
+  if (condition.or !== undefined) {
     // `or`: One of the operands needs to evaluate to `true`
     const operands = condition.or;
     for (let i = 0; i < operands.length; i += 1) {
@@ -26,7 +27,8 @@ export default function evalCondition(condition) {
       }
     }
     return false;
-  } else if (condition.noneOf !== undefined) {
+  }
+  if (condition.noneOf !== undefined) {
     // `noneOf`: None of the operands should evaluate to `true`
     const operands = condition.noneOf;
     for (let i = 0; i < operands.length; i += 1) {
@@ -35,7 +37,8 @@ export default function evalCondition(condition) {
       }
     }
     return true;
-  } else if (condition.pref !== undefined) {
+  }
+  if (condition.pref !== undefined) {
     const { name, hasValue } = condition.pref;
     return prefs.get(name) === hasValue;
   }

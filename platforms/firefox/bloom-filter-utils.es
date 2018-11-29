@@ -97,8 +97,8 @@ export const BloomFilterUtils = {
   saveToFile(filter, version, file) {
     const foStream = Components.classes['@mozilla.org/network/file-output-stream;1']
       .createInstance(Components.interfaces.nsIFileOutputStream);
-    const openFlags = FileUtils.MODE_WRONLY | FileUtils.MODE_CREATE |
-        FileUtils.MODE_TRUNCATE;
+    const openFlags = FileUtils.MODE_WRONLY | FileUtils.MODE_CREATE
+        | FileUtils.MODE_TRUNCATE;
     const permFlags = 0o0666;
     foStream.init(file, openFlags, permFlags, 0);
     try {

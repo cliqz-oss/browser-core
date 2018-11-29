@@ -1,36 +1,18 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import express from '../../platform/lib/express';
 import bodyParser from '../../platform/lib/body-parser';
-import compression from '../../platform/lib/compression';
 
 import prefs from '../../core/prefs';
 import console from '../../core/console';
+import { waitFor } from '../../core/wait';
 
 import Anolysis from './anolysis';
-import Config from './config';
+import createConfig from './config';
 import Storage from './storage/memory';
 import telemetrySchemas from '../telemetry-schemas';
 
 function log(...args) {
   console.log('[nodejs]', ...args);
-}
-
-function waitForAsync(fn) {
-  return fn()
-    .then((value) => {
-      if (value) {
-        return Promise.resolve();
-      }
-      return Promise.reject();
-    })
-    .catch(() => new Promise((resolve) => {
-      setTimeout(
-        () => {
-          resolve(waitForAsync(fn));
-        },
-        1000,
-      );
-    }));
 }
 
 const clients = new Map();
@@ -43,33 +25,33 @@ const app = express();
 app.use(bodyParser.json({
   limit: '1000MB',
 }));
-app.use(compression());
 
-app.post('/', (req, res) => {
+app.post('/', async (req, res) => {
   const { date, users } = req.body;
   log('Simulate new day:', date);
 
   // Change global config_ts
   prefs.set('config_ts', date);
 
-  const promises = Object.keys(users).map((uid) => {
+  const promises = Object.keys(users).map(async (uid) => {
     const demographics = users[uid];
 
     // Lazily create a new instance of Anolysis if there is none yet for this uid
-    let promise = Promise.resolve(clients.get(uid));
+    let client = clients.get(uid);
     if (!clients.has(uid)) {
       // log('Create new client', uid, `(total: ${clients.size})`);
-      const newClient = new Anolysis(new Config({
+      client = new Anolysis(await createConfig({
         // TODO - temporary, this will need to be removed in the future. For
         // now, we send the session with Anolysis signals.
         session: uid,
 
         // Use local server
         'backend.url': 'http://localhost:8342',
+        useStaging: true,
 
         // Speed-up signal queue
-        'signalQueue.batchSize': 100,
-        'signalQueue.sendInterval': 15,
+        'signalQueue.batchSize': 1000,
+        'signalQueue.sendInterval': 100000000,
         'signalQueue.maxAttempts': 1,
 
         // Inject demographics
@@ -81,28 +63,33 @@ app.post('/', (req, res) => {
 
       // Cache available definitions to limit memory consumption
       if (availableDefinitions === null) {
-        newClient.registerSignalDefinitions(telemetrySchemas);
-        availableDefinitions = newClient.availableDefinitions;
+        client.registerSignalDefinitions(telemetrySchemas);
+        availableDefinitions = client.availableDefinitions;
       } else {
-        newClient.availableDefinitions = availableDefinitions;
+        client.availableDefinitions = availableDefinitions;
       }
 
-      clients.set(uid, newClient);
-      promise = newClient.init().then(() => newClient);
+      clients.set(uid, client);
+      await client.init();
     }
 
-    // TODO - [optional] Inject telemetry signals
-    return promise.then(client =>
-      client.onNewDay(date)
-        .then(() => waitForAsync(() => client.signalQueue.getSize().then(s => s === 0)))
-        .catch(err => log('Error in client', uid, err)));
+    // Trigger sending of signals for this day
+    try {
+      await client.onNewDay(date);
+      await client.signalQueue.processNextBatch(1000);
+      await waitFor(async () => (await client.signalQueue.getSize()) === 0);
+    } catch (ex) {
+      log('Error in client', uid, ex);
+    }
   });
 
-  Promise.all(promises)
-    .catch(err => log('Error while processing day', err))
-    .then(() => {
-      res.end('{}');
-    });
+  try {
+    await Promise.all(promises);
+  } catch (ex) {
+    log('Error while processing day', ex);
+  }
+
+  res.end('{}');
 });
 
 const server = app.listen(port, () => {

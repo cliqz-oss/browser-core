@@ -65,7 +65,6 @@ function couponsHandlingScript(window, chrome, CLIQZ) {
     if (!isForThisScriptMessage(msg)) {
       return;
     }
-
     if (msg.response.activate) {
       activateCouponObserver(msg.response.offerInfo);
     } else {

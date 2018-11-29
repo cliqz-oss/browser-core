@@ -2,7 +2,6 @@ const urls = require('./urls');
 
 module.exports = Object.assign(urls('ghostery.net'), {
   SUPPORT_URL: 'https://ghostery.zendesk.com/hc/en-us', // autocomplete/sources/result-providers.es
-  TEAM_URL: 'https://cliqz.com/team/', // autocomplete/sources/result-providers.es
   TRIQZ_URL: 'https://cliqz.com/tips', // control-center/sources/window.es
   PRIVACY_POLICY_URL: 'https://www.ghostery.com/about-ghostery/privacy-statements/',
   LOCATION_SHARING_URL: 'https://cliqz.com/support/local-results',

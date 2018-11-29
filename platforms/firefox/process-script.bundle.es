@@ -1,10 +1,10 @@
 /* globals ChromeUtils, sendAsyncMessage, removeMessageListener, addMessageListener */
 
-import { Components, Services } from '../platform/globals';
+import { Components, Services } from './globals';
 import store from '../core/content/store';
 import config from '../core/config';
 import { getMessage } from '../core/i18n';
-import console from '../platform/console';
+import console from './console';
 
 const CLIQZ = {};
 
@@ -92,8 +92,8 @@ const DocumentManager = {
 
   cleanup(document) {
     const window = document && document.defaultView;
-    if (!document || !document.location ||
-      !window || !this._windowsInfo.has(window)) {
+    if (!document || !document.location
+      || !window || !this._windowsInfo.has(window)) {
       return;
     }
     const info = this._windowsInfo.get(window);
@@ -125,7 +125,7 @@ const DocumentManager = {
     }
 
     const contentScript = getContentScript.compiledContentScript;
-
+    let sandbox;
     const windowId = getWindowId(window);
     const listeners = new Set();
     let unsafeWindow = null;
@@ -156,6 +156,9 @@ const DocumentManager = {
     const onUnload = () => {
       removeMessageListener(`window-${windowId}`, onMessage);
       removeMessageListener('cliqz:core', onMessage);
+      if (sandbox) {
+        Components.utils.nukeSandbox(sandbox);
+      }
       this._windowsInfo.delete(window);
     };
 
@@ -186,7 +189,10 @@ const DocumentManager = {
             removeListener(listener) {
               listeners.delete(listener);
             },
-          }
+          },
+          getURL(url) {
+            return url.replace(/^modules\//, config.baseURL);
+          },
         },
         i18n: {
           getMessage,
@@ -214,6 +220,9 @@ const DocumentManager = {
           removeListener(listener) {
             listeners.delete(listener);
           }
+        },
+        getURL(url) {
+          return url.replace(/^modules\//, config.baseURL);
         },
       },
       i18n: {
@@ -254,7 +263,7 @@ const DocumentManager = {
         principal = [contentPrincipal, extensionPrincipal];
       }
 
-      const sandbox = Components.utils.Sandbox(principal, {
+      sandbox = Components.utils.Sandbox(principal, {
         sandboxName: 'Content Script Cliqz',
         sandboxPrototype: window,
         sameZoneAs: window,

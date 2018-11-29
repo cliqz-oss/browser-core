@@ -46,8 +46,9 @@ const CliqzMarketAnalyzer = {
   /**
    * this function is called whenever the browser starts
    */
-  init() {
+  async init() {
     const self = this;
+    await self.dataAccessProvider.init();
     self.dataAccessProvider.loadMATable((docData) => {
       if (docData) {
         self.maTable = docData;

@@ -1,6 +1,6 @@
 /* global window chrome */
 
-import { waitForAsync } from '../helpers/wait';
+import { waitFor } from '../helpers/wait';
 
 const isChromeReady = async () => {
   const isWebextension = chrome.extension;
@@ -15,13 +15,20 @@ const isChromeReady = async () => {
     return true;
   }
 
-  // on webextensions, we wait for cliqz app to get ready
-  await chrome.extension.getBackgroundPage().CLIQZ.app.ready();
-  return true;
+  // on webextensions, we connect to background and wait for message back
+  return new Promise((resolve) => {
+    const port = browser.runtime.connect({ name: 'appReady' });
+    port.onMessage.addListener((message) => {
+      if (message.ready) {
+        port.disconnect();
+        resolve(true);
+      }
+    });
+  });
 };
 
 export default function checkIfChromeReady() {
-  return waitForAsync(isChromeReady).catch((e) => {
+  return waitFor(isChromeReady).catch((e) => {
     window.console.error('failed to access Cliqz background page', e);
     throw e;
   });

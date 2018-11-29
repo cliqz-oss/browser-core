@@ -1,11 +1,12 @@
 import { URLInfo } from '../core/url-info';
-import { compactTokens } from '../core/pattern-matching';
+import PatternMatching from '../platform/lib/adblocker';
 import { isUrl } from '../core/url';
 
 import IndexedStream from './indexed-stream';
 import TIME_LIMIT_MS from './config';
 import logger from './logger';
 import tokenize from './utils';
+
 
 /**
  * Try to extract a query from an URL.
@@ -16,13 +17,13 @@ export function extractQueryFromUrl(url) {
     const queryParams = urlParts.query_keys;
     if (queryParams !== undefined) {
       const query = (
-        queryParams.q ||
-        queryParams.query ||
-        queryParams.search_query ||
-        queryParams.keywords ||
-        queryParams['field-keywords'] ||
-        queryParams.p ||
-        null
+        queryParams.q
+        || queryParams.query
+        || queryParams.search_query
+        || queryParams.keywords
+        || queryParams['field-keywords']
+        || queryParams.p
+        || null
       );
 
       if (query !== null) {
@@ -108,7 +109,7 @@ export default class QueryStream {
       query,
       ts,
       source,
-      tokens: compactTokens(tokenize(query)),
+      tokens: PatternMatching.compactTokens(tokenize(query)),
     });
   }
 

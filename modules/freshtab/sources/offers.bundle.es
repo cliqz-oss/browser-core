@@ -25,8 +25,8 @@ class OffersTests extends React.Component {
     /* eslint-disable react/jsx-filename-extension */
     return (
       <div>
-        {this.state.offer &&
-          <Offer offer={this.state.offer} />
+        {this.state.offer
+          && <Offer offer={this.state.offer} />
         }
       </div>
     );
@@ -37,4 +37,3 @@ ReactDOM.render(
   React.createElement(OffersTests, {}, null),
   document.getElementById('root')
 );
-

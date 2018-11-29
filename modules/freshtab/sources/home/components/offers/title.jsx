@@ -9,6 +9,8 @@ function Title(props) {
       >
         <a
           href={props.url}
+          rel="noreferrer noopener"
+          target="_blank"
           style={{ color: props.color }}
           onClick={() => {
             sendOffersMessage(props.offer_id, 'offer_ca_action');

@@ -6,7 +6,8 @@ import getSynchronizedDate, {
   DATE_FORMAT,
   DAY_FORMAT,
   WEEK_FORMAT,
-  MONTH_FORMAT } from './synchronized-date';
+  MONTH_FORMAT,
+} from './synchronized-date';
 import logger from './logger';
 
 

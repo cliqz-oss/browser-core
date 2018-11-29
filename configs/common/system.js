@@ -8,13 +8,13 @@ const cliqzEnv = require('../../broccoli/cliqz-env');
 const systemConfig = {
   transpiler: false,
   packageConfigPaths: [
-    path.join('node_modules', '*', 'package.json'),
+    'node_modules/*/package.json',
+    'node_modules/@*/*/package.json',
   ],
   map: {
     'handlebars': 'node_modules/handlebars/dist/handlebars.min.js',
     'jquery': 'node_modules/jquery/dist/jquery.min.js',
     'mathjs': 'node_modules/mathjs/dist/math.min.js',
-    'BigInt': 'node_modules/BigInt/src/BigInt.js',
     'react': 'node_modules/react/cjs/react.production.min.js',
     'chai': 'node_modules/chai/chai.js',
     'chai-dom': 'node_modules/chai-dom/chai-dom.js',
@@ -23,6 +23,7 @@ const systemConfig = {
     'plugin-json': 'node_modules/systemjs-plugin-json/json.js',
     'pako': 'node_modules/pako/dist/pako.js',
     'fast-url-parser': 'modules/platform/lib/fast-url-parser',
+    'react-tooltip': 'react-tooltip/standalone/react-tooltip.js',
   },
   paths: {
     'specific/*': './specific/firefox/*',
@@ -35,7 +36,6 @@ const systemConfig = {
     'specific/*': {
       format: 'global',
     },
-    'BigInt': { format: 'cjs' },
     '*.json': {
       loader: 'plugin-json',
     },
@@ -48,25 +48,25 @@ const systemConfig = {
       defaultJSExtensions: true,
       //format: 'system',
       map: {
-        './platform/tldjs': 'node_modules/tldjs/index.js'
+        './platform/tldts': 'node_modules/tldts/dist/tldts.js'
       },
       meta: {
-        './platform/lib/zlib.lib.js': {
+        './platform*/lib/zlib.lib.js': {
           'format': 'cjs'
         },
-        './platform/lib/sanitize-filename.js': {
+        './platform*/lib/sanitize-filename.js': {
           'format': 'system'
         },
-        './platform/lib/cron-parser.js': {
+        './platform*/lib/cron-parser.js': {
           'format': 'system'
         },
-        './platform/video-downloader/lib/ytdl-core.js': {
+        './platform*/video-downloader/lib/ytdl-core.js': {
           'format': 'system'
         },
-        './platform/lib/fast-url-parser.js': {
+        './platform*/lib/fast-url-parser.js': {
           'format': 'system'
         },
-        './platform/lib/deep-equal.js': {
+        './platform*/lib/deep-equal.js': {
           'format': 'system'
         },
         '*/templates.js': {

@@ -28,10 +28,10 @@ export function isWindowActive(windowID) {
     // check for http URI.
     if (win !== undefined) {
       return win.currentURI && (
-        win.currentURI.schemeIs('http') ||
-        win.currentURI.schemeIs('https') ||
-        win.currentURI.schemeIs('resource') ||
-        win.currentURI.schemeIs('chrome')
+        win.currentURI.schemeIs('http')
+        || win.currentURI.schemeIs('https')
+        || win.currentURI.schemeIs('resource')
+        || win.currentURI.schemeIs('chrome')
       );
     }
   }

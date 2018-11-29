@@ -155,9 +155,20 @@ export default ({ results: _results, ...response }) => {
     supplementaryStart,
     hasInstantResult,
     hasSmartCliqz,
+    newsStoryIndexes,
+    hasOtherNews,
   } = results.reduce((info, result, index) => {
     const mainLink = getMainLink(result);
     const type = TYPES.get(MAPPINGS.get(mainLink.template));
+
+    if (mainLink.template === 'news') {
+      info.newsStoryIndexes.push(index);
+    }
+
+    if ((mainLink.template && mainLink.template.startsWith('entity-news-'))
+      || result.links.some(link => link.meta && link.meta.type === 'news')) {
+      info.hasOtherNews = true;
+    }
 
     if (mainLink.providers === PROVIDER_INSTANT) {
       info.hasInstantResult = true;
@@ -182,7 +193,14 @@ export default ({ results: _results, ...response }) => {
     hasInstantResult: false,
     supplementaryStart: Infinity,
     hasSmartCliqz: false,
+    newsStoryIndexes: [],
+    hasOtherNews: false,
   });
+
+  // Remove News Story results if there is other news
+  if (newsStoryIndexes.length && hasOtherNews) {
+    newsStoryIndexes.forEach(idx => results.splice(idx, 1));
+  }
 
   const hasTopSupplementaryResult = supplementaryStart === Number(hasInstantResult);
 

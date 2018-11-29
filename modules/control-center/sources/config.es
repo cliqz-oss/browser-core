@@ -10,7 +10,6 @@ export default {
     NEW_TAB_URL: config.settings.NEW_TAB_URL,
     TRIQZ_URL: config.settings.TRIQZ_URL,
     ONBOARDING_URL: config.settings.ONBOARDING_URL,
-    HAS_ANTITRACKING: config.modules.indexOf('antitracking') !== -1,
     BRAND: isGhosteryTab ? 'Ghostery' : 'Cliqz',
     PRIVACY_POLICY_URL: config.settings.PRIVACY_POLICY_URL,
     USER_SUPPORT_URL: (

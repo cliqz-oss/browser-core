@@ -60,9 +60,8 @@ const normalize = ({
     {
       ...clean({ ...result, extra, kind, template, suggestion, friendlyUrl, meta: { level: 0, type: 'main' } }),
     },
-    ...deepResults.map(({ links, type }) =>
-      links
-        .map(link => clean({ ...link, meta: { level: 1, type } }))
+    ...deepResults.map(
+      ({ links, type }) => links.map(link => clean({ ...link, meta: { level: 1, type } }))
     ).reduce((a, b) => a.concat(b), [])
   ],
 });

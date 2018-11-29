@@ -22,8 +22,7 @@ function _getInputFieldsFromTarget(target) {
   return [...inputFileds].filter(x =>
     x.type !== 'hidden'
     && x.type !== 'password'
-    && couponKeyWords.some(key => includes(x.name, key) || includes(x.id, key))
-  );
+    && couponKeyWords.some(key => includes(x.name, key) || includes(x.id, key)));
 }
 
 function _getButtonFieldsFromTarget(target) {

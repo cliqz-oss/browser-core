@@ -1,7 +1,6 @@
 /* eslint func-names: 'off' */
 
 import utils from '../core/utils';
-import config from '../core/config';
 import prefs from '../core/prefs';
 import background from '../core/base/background';
 import HumanWeb from './human-web';
@@ -17,7 +16,7 @@ import logger from './logger';
 export default background({
   requiresServices: ['cliqz-config'],
 
-  hpn: inject.module('hpn'),
+  hpn: inject.module('hpnv2'),
   /**
   * @method enabled
   * @return pref
@@ -31,7 +30,7 @@ export default background({
   /**
   * @method init
   */
-  init() {
+  init(settings) {
     // Protection: By default, skip all human web listeners.
     // Only allow it if the user has not opted out
     // and if human web is fully initialized.
@@ -41,6 +40,7 @@ export default background({
     //  that we would otherwise had to deal with. Startup should
     //  not take too long, anyway.)
     this.collecting = false;
+    this.settings = settings;
 
     this.humanWeb = HumanWeb;
     HumanWeb.hpn = this.hpn;
@@ -156,7 +156,7 @@ export default background({
           u: data.url,
           a: data.isFromAutocompletedURL,
         },
-        endpoint: config.settings.RESULTS_PROVIDER_LOG,
+        endpoint: this.settings.RESULTS_PROVIDER_LOG,
         method: 'GET',
       };
 
@@ -176,26 +176,6 @@ export default background({
     'core:mouse-down': function onMouseDown(...args) {
       if (this.collecting) {
         HumanWeb.captureMouseClickPage(...args);
-      }
-    },
-    'core:key-press': function onKeyPress(...args) {
-      if (this.collecting) {
-        HumanWeb.captureKeyPressPage(...args);
-      }
-    },
-    'core:mouse-move': function onMouseMove(...args) {
-      if (this.collecting) {
-        HumanWeb.captureMouseMovePage(...args);
-      }
-    },
-    'core:scroll': function onScroll(...args) {
-      if (this.collecting) {
-        HumanWeb.captureScrollPage(...args);
-      }
-    },
-    'core:copy': function onCopy(...args) {
-      if (this.collecting) {
-        HumanWeb.captureCopyPage(...args);
       }
     },
     'content:location-change': function onLocationChange(...args) {
@@ -250,6 +230,27 @@ export default background({
 
     telemetry(payload, instantPush) {
       HumanWeb.telemetry(payload, instantPush);
+    },
+
+    'hw:keypress': function onKeyPress(...args) {
+      if (this.collecting) {
+        HumanWeb.captureKeyPressPage(...args);
+      }
+    },
+    'hw:mousemove': function onMouseMove(...args) {
+      if (this.collecting) {
+        HumanWeb.captureMouseMovePage(...args);
+      }
+    },
+    'hw:scroll': function onScroll(...args) {
+      if (this.collecting) {
+        HumanWeb.captureScrollPage(...args);
+      }
+    },
+    'hw:copy': function onCopy(...args) {
+      if (this.collecting) {
+        HumanWeb.captureCopyPage(...args);
+      }
     },
 
     contentScriptTopAds() {

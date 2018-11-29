@@ -42,7 +42,6 @@ function setConfigPath(configPath, buildIntoSubdir) {
   const _configPath = configPath || process.env.CLIQZ_CONFIG_PATH;
   process.env.CLIQZ_CONFIG_PATH = _configPath;
   CONFIG = require(path.resolve(_configPath));
-  CONFIG.subprojects = CONFIG.subprojects || [];
 
   let defaultBuildDir = path.resolve(process.cwd(), 'build');
   if (buildIntoSubdir) {

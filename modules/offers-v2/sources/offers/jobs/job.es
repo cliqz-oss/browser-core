@@ -21,4 +21,3 @@ export default class OfferJob {
     throw new Error('should be implemented by the inheritance class');
   }
 }
-

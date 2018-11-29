@@ -20,12 +20,13 @@ const retentionSchema = {
 };
 
 
-function generateRetention({
-  state,
-  date,
-  timeframe,
-  getPreviousUnit,
-  initialOffset }) {
+function generateRetention(
+  { state,
+    date,
+    timeframe,
+    getPreviousUnit,
+    initialOffset }
+) {
   const getLength = offset => (state[getPreviousUnit(date, offset)] || []).length;
 
   const signals = [{

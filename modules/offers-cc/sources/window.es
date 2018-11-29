@@ -6,6 +6,7 @@ import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import config from '../core/config';
 import { getMessage } from '../core/i18n';
 import { getDetailsFromUrl } from '../core/url';
+import { forEachWindow } from '../core/browser';
 import logger from './logger';
 import DefaultMap from '../core/helpers/default-map';
 
@@ -19,6 +20,7 @@ const telemetryLocMap = new DefaultMap(() => 'hidden', [
 
 export default class Win {
   core = inject.module('core');
+
   offersV2 = inject.module('offers-v2');
 
   constructor({ background, window }) {
@@ -74,6 +76,15 @@ export default class Win {
     this.reshowPopup = event.type === 'mouseenter' && this.showTooltip;
   }
 
+  resetButtonState(toolbarButtonId) {
+    forEachWindow((win) => {
+      const toolbarButton = win.document.getElementById(toolbarButtonId);
+      if (toolbarButton) {
+        toolbarButton.setAttribute('state', '');
+      }
+    });
+  }
+
   onButtonClicked() {
     this.showTooltip = false;
 
@@ -123,8 +134,7 @@ export default class Win {
       return;
     }
 
-    this.toolbarButtonElement.setAttribute('state', '');
-    // else we will change the state of all offers
+    this.resetButtonState(this.toolbarButtonElement.id);
 
     const signal = {
       type: 'offrz',
@@ -190,8 +200,8 @@ export default class Win {
     const maxOffersNum = 200;
     const fetch = utils.fetchFactory();
     fetch('http://offers-api-stage.clyqz.com:81/portal/api/v1/debug/offers',
-      { credentials: 'include', cache: 'no-store' }
-    ).then(res => res.json())
+      { credentials: 'include', cache: 'no-store' })
+      .then(res => res.json())
       .then((allOffers) => {
         const desiredOffers = allOffers
           .filter(offer => offer.rs_dest.includes('offers-cc'))
@@ -228,7 +238,7 @@ export default class Win {
         });
       });
 
-      this.toolbarButtonElement.setAttribute('state', '');
+      this.resetButtonState(this.toolbarButtonElement.id);
     }
 
     /*
@@ -339,10 +349,10 @@ export default class Win {
     let desiredOffer;
 
     recentData.forEach((elem) => {
-      if (elem &&
-          elem.offer_id &&
-          elem.offer_info &&
-          elem.offer_info.ui_info) {
+      if (elem
+          && elem.offer_id
+          && elem.offer_info
+          && elem.offer_info.ui_info) {
         // we need to send the template name and template data here from the
         // ui info
         const uiInfo = elem.offer_info.ui_info;
@@ -367,9 +377,9 @@ export default class Win {
         }
 
         // Expect this to be always greater than Date.now();
-        const expirationTime = elem.offer_info.expirationMs ?
-          (elem.created_ts + elem.offer_info.expirationMs) / 1000 :
-          uiInfo.template_data.validity;
+        const expirationTime = elem.offer_info.expirationMs
+          ? (elem.created_ts + elem.offer_info.expirationMs) / 1000
+          : uiInfo.template_data.validity;
         if (expirationTime) {
           // Expect the expirationTime from backend to be always greater than Date.now()
           const timeDiff = Math.abs((expirationTime * 1000) - Date.now());

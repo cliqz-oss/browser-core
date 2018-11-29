@@ -16,10 +16,14 @@ export default class TrackerCounter {
     this.others = {};
   }
 
-  _incrementEntry(base, key, stat) {
+  _createEntry(base, key) {
     if (!base[key]) {
       base[key] = emptyEntry();
     }
+  }
+
+  _incrementEntry(base, key, stat) {
+    this._createEntry(base, key);
     base[key][stat] += 1;
   }
 
@@ -28,6 +32,14 @@ export default class TrackerCounter {
       this._incrementEntry(this.bugs, bugId, stat);
     } else {
       this._incrementEntry(this.others, domain, stat);
+    }
+  }
+
+  addTrackerSeen(bugId, domain) {
+    if (bugId) {
+      this._createEntry(this.bugs, bugId);
+    } else {
+      this._createEntry(this.others, domain);
     }
   }
 

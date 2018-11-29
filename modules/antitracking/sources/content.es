@@ -11,8 +11,8 @@ import {
 function isNotHtml(window) {
   const document = window.document;
   return document instanceof window.HTMLDocument === false && (
-    document instanceof window.XMLDocument === false ||
-    document.createElement('div') instanceof window.HTMLDivElement === false);
+    document instanceof window.XMLDocument === false
+    || document.createElement('div') instanceof window.HTMLDivElement === false);
 }
 
 function clobberCookie() {
@@ -44,14 +44,16 @@ function getGeneralDomain(hostname) {
 
 registerContentScript('antitracking', 'http*', (window, chrome, CLIQZ) => {
   const attrack = CLIQZ.app.modules.antitracking;
-  if (!attrack.isEnabled || !attrack.state.cookieBlockingEnabled ||
-      !attrack.state.compatibilityList) {
+  if (!attrack.isEnabled || !attrack.state.cookieBlockingEnabled
+      || !attrack.state.compatibilityList) {
     return;
   }
   // ghostery pause
-  if (CLIQZ.app.modules.ghostery &&
-      (CLIQZ.app.modules.ghostery.state.paused ||
-       CLIQZ.app.modules.ghostery.state.whitelisted.indexOf(window.self.location.hostname) !== -1)
+  if (CLIQZ.app.modules.ghostery
+    && (
+      CLIQZ.app.modules.ghostery.state.paused
+      || CLIQZ.app.modules.ghostery.state.whitelisted.indexOf(window.self.location.hostname) !== -1
+    )
   ) {
     return;
   }
@@ -60,9 +62,9 @@ registerContentScript('antitracking', 'http*', (window, chrome, CLIQZ) => {
       const refererHost = new URL(document.referrer).hostname;
       const parentGd = getGeneralDomain(refererHost);
       const selfGd = getGeneralDomain(window.self.location.hostname);
-      if (selfGd === parentGd || isNotHtml(window) ||
-          (attrack.state.compatibilityList[selfGd] &&
-          attrack.state.compatibilityList[selfGd].indexOf(parentGd) !== -1)) {
+      if (selfGd === parentGd || isNotHtml(window)
+          || (attrack.state.compatibilityList[selfGd]
+          && attrack.state.compatibilityList[selfGd].indexOf(parentGd) !== -1)) {
         return;
       }
     } catch (e) {

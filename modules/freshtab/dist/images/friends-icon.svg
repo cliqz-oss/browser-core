@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="24.000002"
+   height="24.000002"
+   version="1.1"
+   id="svg881"
+   sodipodi:docname="friends-icon.svg"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)">
+  <metadata
+     id="metadata887">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs885" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="2556"
+     inkscape:window-height="1412"
+     id="namedview883"
+     showgrid="false"
+     inkscape:zoom="32.693333"
+     inkscape:cx="10.696718"
+     inkscape:cy="13.816659"
+     inkscape:window-x="1920"
+     inkscape:window-y="24"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="g1209"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <style
+     id="style1075"
+     type="text/css">
+    .st0{opacity:0;fill:#262624;}
+    .st1{fill:#FFFFFF;}
+</style>
+  <g
+     id="g1136"
+     transform="translate(-43.33992,-31.010057)">
+    <g
+       id="g1184">
+      <g
+         id="g1209">
+        <g
+           id="g1215">
+          <text
+             xml:space="preserve"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:24.78520393px;line-height:1.25;font-family:'Fira Code';-inkscape-font-specification:'Fira Code';letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.61963016;"
+             x="45.129604"
+             y="51.486599"
+             id="text1112"><tspan
+               sodipodi:role="line"
+               id="tspan1110"
+               x="45.129604"
+               y="51.486599"
+               style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Latin Modern Sans Quotation';-inkscape-font-specification:'Latin Modern Sans Quotation';fill:#ffffff;stroke-width:0.61963016;">€</tspan></text>
+          <rect
+             style="opacity:1;fill:#333333;fill-opacity:0;stroke:#c8294f;stroke-width:0;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+             id="rect1131"
+             width="24"
+             height="24"
+             x="43.33992"
+             y="31.010057"
+             ry="0" />
+          <circle
+             r="2.8504803"
+             cy="34.260052"
+             cx="64.046669"
+             id="path1178"
+             style="fill:#ff3e4b;fill-rule:evenodd;stroke-width:0.26270473;fill-opacity:1" />
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

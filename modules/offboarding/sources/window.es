@@ -29,8 +29,11 @@ export default class Win {
       });
     }
   }
+
   init() {}
+
   unload() {}
+
   disable() {
     const version = this.settings.version;
     const window = this.window;
@@ -48,7 +51,8 @@ export default class Win {
             true, // newTab
             false, // newWindow
             false, // newPrivateWindow
-            true); // focus
+            true // focus
+          );
         }
       } catch (e) {
         // Nothing

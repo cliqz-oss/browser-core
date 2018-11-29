@@ -12,8 +12,8 @@ export default class BlockRules {
     for (let i = 0; i < this.qsBlockRule.length; i += 1) {
       const sRule = this.qsBlockRule[i][0];
       const uRule = this.qsBlockRule[i][1];
-      if (sourceHost.endsWith(sRule) &&
-        host.endsWith(uRule)) {
+      if (sourceHost.endsWith(sRule)
+        && host.endsWith(uRule)) {
         return true;
       }
     }

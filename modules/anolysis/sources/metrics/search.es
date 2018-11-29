@@ -211,4 +211,3 @@ export default [
 
 // TODO: move to central file?
 export { RESULT_SOURCE_MAP };
-

@@ -26,8 +26,8 @@ export function formattedToDate(date, format) {
 
 export function isConfigTsDate(date) {
   return (
-    typeof date === 'string' &&
-    date.length === CONFIG_TS_FORMAT.length &&
-    moment(date, CONFIG_TS_FORMAT).isValid()
+    typeof date === 'string'
+    && date.length === CONFIG_TS_FORMAT.length
+    && moment(date, CONFIG_TS_FORMAT).isValid()
   );
 }

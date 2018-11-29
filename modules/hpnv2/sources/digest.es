@@ -1,3 +1,5 @@
+import { InvalidMsgError } from './errors';
+
 const punctuation = '!"\'()*,-./:;?[\\]^_`{|}~%$=&+#';
 const punctuationRegex = new RegExp(`[${punctuation}]`, 'g');
 
@@ -30,8 +32,8 @@ NORM_FUNCTIONS.set(undefined, x => x);
 // of hpnv2 and hpnv, but at some point we should review it, as well as the fact
 // that we apply the same url normalization to many fields that are not actually url.
 NORM_FUNCTIONS.set('url', (s) => {
-  if (!s) {
-    return '';
+  if (s === undefined || s === null) {
+    return undefined;
   }
   // Because in some telemetry message we only create unique based on anti-duplicate.
   // Anti-duplicate is not a string, hence converting it to string.
@@ -55,7 +57,18 @@ NORM_FUNCTIONS.set('url', (s) => {
     // Remove all punctuation marks
     .replace(punctuationRegex, '');
 });
-NORM_FUNCTIONS.set('obj', flatten);
+NORM_FUNCTIONS.set('obj', (o) => {
+  if (!o) {
+    return undefined;
+  }
+  const flat = flatten(o);
+  flat.sort(([a], [b]) => {
+    if (a < b) return -1;
+    if (a > b) return 1;
+    return 0;
+  });
+  return flat;
+});
 
 /**
  * Given some string path like "a.b[0].c..." it returns the element
@@ -72,7 +85,11 @@ function getField(obj, path) {
 function digest(keys, payload) {
   return keys.map((k) => {
     const [key, norm] = k.split('->');
-    return (NORM_FUNCTIONS.get(norm))(getField(payload, key));
+    const field = (NORM_FUNCTIONS.get(norm))(getField(payload, key));
+    if (field === undefined) {
+      throw new InvalidMsgError('Found undefined field when calculating digest');
+    }
+    return field;
   });
 }
 

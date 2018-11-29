@@ -5,8 +5,6 @@ import WebRequest, { VALID_RESPONSE_PROPERTIES, EXTRA_INFO_SPEC } from '../core/
 import Pipeline from './pipeline';
 import WebRequestContext from './webrequest-context';
 import PageStore from './page-store';
-import installFetchSanitizer from './fetch-sanitizer';
-import installStripApiHeadersHandler from './strip-api-headers';
 import logger from './logger';
 import { isWebExtension, isEdge } from '../core/platform';
 
@@ -131,8 +129,6 @@ export default background({
     this.pageStore.init();
 
     this.initialized = true;
-
-    this.installGlobalHandlers();
   },
 
   unload() {
@@ -236,14 +232,6 @@ export default background({
     }
 
     return pipeline;
-  },
-
-  installGlobalHandlers() {
-    const addHandler = (stage, opts) => {
-      this.getPipeline(stage).addPipelineStep(opts);
-    };
-    installStripApiHeadersHandler(addHandler);
-    installFetchSanitizer(addHandler);
   },
 
   events: {

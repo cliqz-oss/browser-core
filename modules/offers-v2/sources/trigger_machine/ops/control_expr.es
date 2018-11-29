@@ -102,8 +102,8 @@ class LogExpr extends Expression {
 
   getExprValue(/* ctx */) {
     return new Promise((resolve) => {
-      if (this.data.raw_op.args &&
-          this.data.raw_op.args.length > 0) {
+      if (this.data.raw_op.args
+          && this.data.raw_op.args.length > 0) {
         logger.info('log_expr', `[trigger_id: ${this.data.parent_trigger.trigger_id}]: ${this.data.raw_op.args[0]}`);
       }
       return resolve(true);
@@ -264,7 +264,8 @@ class EqExpr extends Expression {
 
   getExprValue(ctx) {
     return Promise.all([this.lExpr.evalExpr(ctx), this.rExpr.evalExpr(ctx)]).then(
-      result => Promise.resolve(result[0] === result[1]));
+      result => Promise.resolve(result[0] === result[1])
+    );
   }
 }
 
@@ -306,7 +307,8 @@ class GtExpr extends Expression {
 
   getExprValue(ctx) {
     return Promise.all([this.lExpr.evalExpr(ctx), this.rExpr.evalExpr(ctx)]).then(
-      result => Promise.resolve(result[0] > result[1]));
+      result => Promise.resolve(result[0] > result[1])
+    );
   }
 }
 
@@ -348,7 +350,8 @@ class LtExpr extends Expression {
 
   getExprValue(ctx) {
     return Promise.all([this.lExpr.evalExpr(ctx), this.rExpr.evalExpr(ctx)]).then(
-      result => Promise.resolve(result[0] < result[1]));
+      result => Promise.resolve(result[0] < result[1])
+    );
   }
 }
 
@@ -445,8 +448,7 @@ class MatchGAExpr extends Expression {
       .then(condition =>
         this.ga_handler.getNewMatches(condition.lastEventTs || 0)
           .then(events => condition.match(events))
-          .catch(ex => logger.error('exception in MatchGAExpr', ex))
-      );
+          .catch(ex => logger.error('exception in MatchGAExpr', ex)));
   }
 }
 
@@ -692,8 +694,8 @@ class PatternMatchExpr extends Expression {
       if (!(args.min_matches_expected > 0)) {
         throw new Error('PatternMatchExpr invalid args, min_matches_expected argument missing?');
       }
-      if (args.since_secs === undefined || args.till_secs === undefined ||
-          args.since_secs < args.till_secs) {
+      if (args.since_secs === undefined || args.till_secs === undefined
+          || args.since_secs < args.till_secs) {
         throw new Error('PatternMatchExpr invalid args, since_secs or till_secs are wrong?');
       }
     }

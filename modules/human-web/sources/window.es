@@ -31,7 +31,6 @@ export default class Win {
       this._dataCollectionTimer = undefined;
     }
 
-    this.removeNotification();
     delete this.window.CliqzHumanWeb;
   }
 
@@ -45,14 +44,6 @@ export default class Win {
     return undefined;
   }
 
-  removeNotification() {
-    if (this.notification) {
-      this.notification.close();
-      this.window.document.getElementById('global-notificationbox').removeNotification(this.notification);
-      this.notification = null;
-    }
-  }
-
   /**
    * dataCollectionMessageState
    *   0 - not shown
@@ -62,8 +53,8 @@ export default class Win {
    */
   // TODO: migrate to message-manager
   showDataCollectionMessage() {
-    if (!this.settings.showDataCollectionMessage ||
-       prefs.get('dataCollectionMessageState', 0) !== 0) {
+    if (!this.settings.showDataCollectionMessage
+       || prefs.get('dataCollectionMessageState', 0) !== 0) {
       return;
     }
 
@@ -76,33 +67,17 @@ export default class Win {
       prefs.set('dataCollectionMessageState', state);
     }
 
-    const box = this.window.document.getElementById('global-notificationbox');
-    const buttons = [];
-
-    buttons.push({
-      label: getMessage('learnMore'),
-      callback: () => {
-        const learnMoreUrl = 'resource://cliqz/human-web/humanweb.html';
-        utils.openLink(this.window, learnMoreUrl, true, false, false, true);
-        updateDataCollectionState(3);
-        this.removeNotification();
-      }
+    browser.notifications.create({
+      type: 'basic',
+      message: getMessage('dataCollection'),
+      title: 'Human Web',
     });
 
-    this.notification = box.appendNotification(
-      getMessage('dataCollection'),
-      null,
-      null,
-      box.PRIORITY_INFO_HIGH,
-      buttons,
-      () => {
-        // notification hides if the user closes it or presses learn more
-        if (prefs.get('dataCollectionMessageState', 0) < 2) {
-          updateDataCollectionState(2);
-          this.removeNotification();
-        }
-      }
-    );
+    browser.notifications.onClicked.addListener(() => {
+      const learnMoreUrl = browser.runtime.getURL('modules/human-web/humanweb.html');
+      utils.openLink(this.window, learnMoreUrl, true, false, false, true);
+      updateDataCollectionState(3);
+    });
 
     updateDataCollectionState(1);
   }

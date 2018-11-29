@@ -3,11 +3,9 @@ import config from '../../core/config';
 
 function styles({
   ghostery = false,
-  logo_url: logoUrl,
   logo_class: logoClass,
   styles: { headline_color: headlineColor } = {},
 } = {}) {
-  const rewardIconPath = ghostery ? 'ghostery-rewards-beta.svg' : 'offers-cc-icon.svg';
   const offerLogoSize = ghostery ? '111px' : '20px';
   const [mainColor, secondaryColor, tertiaryColor] = ghostery
     ? ['#930194', '#920094', '#850587']
@@ -15,6 +13,10 @@ function styles({
   const sizesByClass = { square: '30px', short: '55px', normal: '70px', long: '105px' };
   const logoSize = sizesByClass[logoClass] || '70px';
   return `
+    body {
+      overflow: hidden;
+    }
+
     .content {
       position: relative;
       width: 100%;
@@ -49,7 +51,7 @@ function styles({
       padding-left: ${offerLogoSize};
       margin-left: 16px;
       background-repeat: no-repeat;
-      background-image: url(${config.settings.CDN_BASEURL}/extension/offers/popup_notification/${rewardIconPath});
+      /* background-image */
       background-position: center;
     }
 
@@ -61,7 +63,7 @@ function styles({
       padding-right: 22px;
       margin-top: -2px;
       background-repeat: no-repeat;
-      background-image: url(${config.settings.CDN_BASEURL}/extension/offers/popup_notification/close-icon.svg);
+      /* background-image */
     }
 
     .header > .billet {
@@ -100,15 +102,15 @@ function styles({
     }
 
     .sub-header > .labels > .exclusive{
-      background-image: url(${config.settings.CDN_BASEURL}/extension/offers/popup_notification/exclusive.svg);
+      /* background-image */
     }
 
     .sub-header > .labels > .best_offer{
-      background-image: url(${config.settings.CDN_BASEURL}/extension/offers/popup_notification/best_offer.svg);
+      /* background-image */
     }
 
     .sub-header > .labels > .offer_of_the_week{
-      background-image: url(${config.settings.CDN_BASEURL}/extension/offers/popup_notification/offer_of_the_week.svg);
+      /* background-image */
     }
 
     .sub-header > .labels > .label {
@@ -139,7 +141,7 @@ function styles({
       min-height: 100%;
       background-repeat: no-repeat;
       background-size: contain;
-      background-image: url(${logoUrl});
+      /* background-image */
     }
 
 
@@ -181,7 +183,7 @@ function styles({
       overflow: hidden;
       text-overflow: ellipsis;
       padding-left: 16px;
-      padding-right: 37%;
+      padding-right: 43%;
     }
 
     .code-wrapper > .copy-code {
@@ -245,13 +247,63 @@ function styles({
 
     .footer-billet {
       padding-bottom: 20px;
+    }
+
+    .conditions {
+      text-align: right;
+      padding-top: 3px;
+      color: #B2B2B2;
+      font-size: x-small;
+    }
+
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted #B2B2B2;
+      margin-right: 27px;
+    }
+
+    .tooltip .tooltip-text {
+      box-shadow: rgba(0, 0, 0, 0.19) 3px 2px 13px 2px;
+      visibility: hidden;
+      width: 180px;
+      background-color: gray;
+      color: #fff;
+      text-align: left;
+      border-radius: 6px;
+      padding: 5px 8px;
+
+      position: absolute;
+      z-index: 1;
+      bottom: 11px;
+      right: -11px;
+    }
+
+    .tooltip:hover .tooltip-text {
+      visibility: visible;
+      overflow-y: auto;
+      overflow-x: hidden;
+      max-height: 200px;
     }`;
+}
+
+function styleImages({ ghostery = false, logo_url: logoUrl } = {}) {
+  const rewardIconPath = ghostery ? 'ghostery-rewards-beta.svg' : 'offers-cc-icon.svg';
+  const baseUrl = config.settings.CDN_CONTENTSCRIPT_BASEURL;
+  return {
+    'offer-logo': `${baseUrl}/extension/offers/popup_notification/${rewardIconPath}`,
+    'btn-close': `${baseUrl}/extension/offers/popup_notification/close-icon.svg`,
+    exclusive: `${baseUrl}/extension/offers/popup_notification/exclusive.svg`,
+    best_offer: `${baseUrl}/extension/offers/popup_notification/best_offer.svg`,
+    offer_of_the_week: `${baseUrl}/extension/offers/popup_notification/offer_of_the_week.svg`,
+    logo: logoUrl.replace(config.settings.CDN_BASEURL, baseUrl),
+  };
 }
 
 function popupStyles({ shouldHideButtons = false, headline = '' }) {
   const halfOfLine = 32;
-  let containerHeight = headline.length > halfOfLine ? '360px' : '336px';
-  if (shouldHideButtons) { containerHeight = '260px'; }
+  let containerHeight = headline.length > halfOfLine ? '372px' : '352px';
+  if (shouldHideButtons) { containerHeight = '280px'; }
   return {
     position: 'fixed',
     top: '0',
@@ -281,4 +333,4 @@ const PARANJA_STYLES = {
   opacity: '0',
 };
 
-export { styles, PARANJA_STYLES, popupStyles };
+export { styles, styleImages, PARANJA_STYLES, popupStyles };

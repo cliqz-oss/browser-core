@@ -1,0 +1,7 @@
+{
+  "subprojects": [
+    "cliqz-history",
+    "react",
+    "reactDom"
+  ]
+}

@@ -36,12 +36,13 @@ const DEFAULT_CONFIG = {
       order: 3,
     },
     cliqz: {
+      isEnabled: true,
       dependencies: [
         { provider: 'history', condition: prioritizeHistoryCondition },
       ],
       includeOffers: true,
       count: config.settings['search.config.providers.cliqz.count'] || 5,
-      jsonpCallback: config.settings['search.config.providers.cliqz.jsonpCallback'] || '',
+      jsonp: config.settings['search.config.providers.cliqz.jsonp'] || false,
       order: 4,
     },
     'rich-header': {
@@ -71,7 +72,7 @@ const DEFAULT_CONFIG = {
     },
     streams: {
       throttleQueries: {
-        interval: 10,
+        interval: config.settings.THROTTLE_QUERIES || 10,
       },
       limitResults: {
         limits: {
@@ -105,8 +106,9 @@ if (typeof clearResultsOnSessionStart === 'boolean') {
 
 deepFreeze(DEFAULT_CONFIG);
 
-export default function ({ isPrivateMode }) {
+export default function ({ isPrivateMode }, settings = {}) {
   return {
+    settings,
     ...DEFAULT_CONFIG,
     isPrivateMode,
     mixers: {
@@ -135,9 +137,9 @@ export default function ({ isPrivateMode }) {
         ...DEFAULT_CONFIG.providers.querySuggestions,
         get isEnabled() {
           return (
-            !isPrivateMode &&
-            DEFAULT_CONFIG.providers.querySuggestions.isEnabled &&
-            (prefs.get('suggestionChoice', 0) === 2)
+            !isPrivateMode
+            && DEFAULT_CONFIG.providers.querySuggestions.isEnabled
+            && (prefs.get('suggestionChoice', 0) === 2)
           );
         },
       },
@@ -149,6 +151,13 @@ export default function ({ isPrivateMode }) {
             ? res
             : true;
         }
+      },
+      cliqz: {
+        ...DEFAULT_CONFIG.providers.cliqz,
+        get isEnabled() {
+          return prefs.get('modules.search.providers.cliqz.enabled',
+            DEFAULT_CONFIG.providers.cliqz.isEnabled);
+        },
       },
     },
     operators: {
@@ -198,8 +207,8 @@ export default function ({ isPrivateMode }) {
           ...DEFAULT_CONFIG.operators.streams.limitResults,
           limits: {
             ...DEFAULT_CONFIG.operators.streams.limitResults.limits,
-            ...prefs.get('experiments.dropdown.fullHeight') === true ?
-              { cliqz: undefined, history: undefined, cluster: undefined } : {},
+            ...prefs.get('experiments.dropdown.fullHeight') === true
+              ? { cliqz: undefined, history: undefined, cluster: undefined } : {},
           },
         },
         smoothResults: {

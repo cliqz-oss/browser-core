@@ -1,5 +1,6 @@
 import { Components } from '../globals';
 import utils from '../../core/utils';
+import { getWindowByTabId } from '../../core/tabs';
 import getContainer from './helpers';
 import DefaultWeakMap from '../../core/helpers/default-weak-map';
 import Defer from '../../core/helpers/defer';
@@ -276,8 +277,9 @@ export default class BrowserAction {
     }
   }
 
-  setBadgeText(window, value) {
-    const node = window.document.getElementById(this.id);
+  setBadgeText(tabId, value) {
+    const win = getWindowByTabId(tabId);
+    const node = win && win.document.getElementById(this.id);
     if (node) {
       this.updateButton(node, {
         badgeText: value,
@@ -286,7 +288,8 @@ export default class BrowserAction {
     }
   }
 
-  setBadgeBackgroundColor(window, value) {
+  setBadgeBackgroundColor(tabId, value) {
+    const window = getWindowByTabId(tabId);
     const node = window.document.getElementById(this.id);
     if (node) {
       this.updateButton(node, {
@@ -296,11 +299,12 @@ export default class BrowserAction {
     }
   }
 
-  setIcon(window, value) {
+  setIcon(tabId, value) {
+    const window = getWindowByTabId(tabId);
     const node = window.document.getElementById(this.id);
     if (node) {
       this.updateButton(node, {
-        icon: value,
+        icon: () => value,
         enabled: true,
       });
     }
@@ -332,21 +336,22 @@ export default class BrowserAction {
       'toolbarbutton-badge'
     );
     if (badgeNode) {
-      const color = tabData.badgeBackgroundColor ||
-                    badgeNode.style.backgroundColor ||
-                    this.defaults.badgeBackgroundColor;
+      const color = tabData.badgeBackgroundColor
+                    || badgeNode.style.backgroundColor
+                    || this.defaults.badgeBackgroundColor;
       if (color) {
         badgeNode.style.backgroundColor = color;
       }
     }
 
     if (tabData.icon) {
+      const icon = tabData.icon();
       node.setAttribute('style', `
-        list-style-image: url(${tabData.icon});
-        --webextension-menupanel-image: url(${tabData.icon});
-        --webextension-menupanel-image-2x: url(${tabData.icon});
-        --webextension-toolbar-image: url(${tabData.icon});
-        --webextension-toolbar-image-2x: url(${tabData.icon});
+        list-style-image: url(${icon});
+        --webextension-menupanel-image: url(${icon});
+        --webextension-menupanel-image-2x: url(${icon});
+        --webextension-toolbar-image: url(${icon});
+        --webextension-toolbar-image-2x: url(${icon});
       `);
     }
   }

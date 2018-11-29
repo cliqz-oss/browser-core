@@ -1,4 +1,4 @@
-import telemetry from '../core/services/telemetry';
+import inject from '../core/kord/inject';
 
 import logger from './logger';
 import LatencyMetrics from './latency-metrics';
@@ -22,7 +22,7 @@ export default class Pipeline {
     this.isBreakable = isBreakable;
 
     // Collect timings for steps of the pipeline
-    this.measureLatency = telemetry.isEnabled();
+    this.measureLatency = inject.service('telemetry').isEnabled();
     if (this.measureLatency) {
       this.latencyMetrics = new LatencyMetrics(name);
       this.latencyMetrics.init();

@@ -21,8 +21,8 @@ export default class GeoChecker extends Feature {
 
     // for now we will listen for a pref change
     this.onPrefChange = events.subscribe('prefchange', (pref) => {
-      if (pref === GEO_CITY_PREF_NAME ||
-          pref === GEO_COUNTRY_PREF_NAME) {
+      if (pref === GEO_CITY_PREF_NAME
+          || pref === GEO_COUNTRY_PREF_NAME) {
         this._updateLocFromPrefs();
       }
     });

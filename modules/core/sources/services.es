@@ -8,7 +8,6 @@ import events from './events';
 import { isOnionMode, isCliqzBrowser } from './platform';
 import { isSearchServiceReady, addCustomSearchEngine } from './search-engines';
 import { service as logos } from './services/logos';
-import { service as telemetry } from './services/telemetry';
 import { service as domainInfo } from './services/domain-info';
 import { service as pacemaker } from './services/pacemaker';
 import i18n from './i18n';
@@ -17,12 +16,12 @@ import { dateToDaysSinceEpoch } from './helpers/date';
 
 const services = {
   utils: () => utils.init(),
-  telemetry,
   logos,
   // IP driven configuration
   'cliqz-config': () => {
     const EXPECTED_CONFIGS = new Set([
       'backends',
+      'language_whitelist',
       'location',
       'location.city',
       'location.granular',
@@ -99,8 +98,8 @@ const services = {
           if (prefs.has('serp_test')) return;
 
           // we only activate the test for german users inside germany
-          if (prefs.get('config_location') !== 'de' ||
-            i18n.PLATFORM_LANGUAGE !== 'de') return;
+          if (prefs.get('config_location') !== 'de'
+            || i18n.PLATFORM_LANGUAGE !== 'de') return;
 
           const r = Math.random();
           if (r < 0.25) {

@@ -2,7 +2,8 @@ import React from 'react';
 import Title from './title';
 import Logo from './logo';
 import HeadlineBenefit from './headlineBenefit';
-import { t, tt } from '../../i18n';
+import AppContext from '../app-context';
+import { tt } from '../../i18n';
 import { sendOffersMessage } from '../../services/offers';
 import { offerClickSignal } from '../../services/telemetry/offers';
 import config from '../../../config';
@@ -28,18 +29,10 @@ function SpecialFlags(props) {
   return labels && labels.slice(0, 2).map(label =>
     (
       <Label label={label} key={label} />
-    )
-  );
+    ));
 }
 
 export default class Content extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      showFeedback: false,
-    };
-  }
-
   onLearnMoreClicked = () => {
     offerClickSignal('learn_more');
   }
@@ -78,20 +71,22 @@ export default class Content extends React.Component {
     const benefitOrHeadline = (this.props.data.benefit && this.props.data.headline);
     let heading;
     if (benefitOrHeadline) {
-      heading = (<HeadlineBenefit
-        headline={this.props.data.headline}
-        benefit={this.props.data.benefit}
-        color={this.props.data.titleColor}
-        url={this.props.data.call_to_action.url}
-        offer_id={this.props.offer_id}
-      />);
+      heading = (
+        <HeadlineBenefit
+          headline={this.props.data.headline}
+          benefit={this.props.data.benefit}
+          color={this.props.data.titleColor}
+          url={this.props.data.call_to_action.url}
+          offer_id={this.props.offer_id}
+        />);
     } else {
-      heading = (<Title
-        title={this.props.data.title}
-        color={this.props.data.titleColor}
-        url={this.props.data.call_to_action.url}
-        offer_id={this.props.offer_id}
-      />);
+      heading = (
+        <Title
+          title={this.props.data.title}
+          color={this.props.data.titleColor}
+          url={this.props.data.call_to_action.url}
+          offer_id={this.props.offer_id}
+        />);
     }
     return (
       <div className="row">
@@ -111,7 +106,7 @@ export default class Content extends React.Component {
           <header>
             <ul>
               <li
-                className={`expires info-icon tooltip tooltipstered ${this.props.validity && this.props.validity.isExpiredSoon ? 'red' : ''}`}
+                className={`expires day-icon tooltip tooltipstered ${this.props.validity && this.props.validity.isExpiredSoon ? 'red' : ''}`}
                 ref={(el) => { this.tooltip = el; }}
                 data-tip={this.props.validity.text}
               >
@@ -126,6 +121,7 @@ export default class Content extends React.Component {
               />
             </span>
             <button
+              type="button"
               className="options"
               onClick={this.handletoggleMenu}
             />
@@ -133,6 +129,7 @@ export default class Content extends React.Component {
 
               <li>
                 <button
+                  type="button"
                   onClick={this.handleCloseClick}
                 >
                   {tt('delete')}
@@ -140,19 +137,38 @@ export default class Content extends React.Component {
               </li>
               <li>
                 <button
+                  type="button"
                   onClick={this.showInfo}
                 >
-                  {t('why_offers')}
+                  {tt('why_offers')}
                 </button>
               </li>
             </ul>
             <div className={`why-info white-box ${this.props.getOfferInfoOpen() ? 'show-it' : ''}`}>
               <button
+                type="button"
                 className="close"
                 onClick={this.closeWhyInfo}
               />
-              <p> {t('why_offers_text')} </p>
-              <a onClick={this.onLearnMoreClicked} href={config.constants.WHY_OFFERS_URL}>{tt('learnMore')}</a>
+              <p>
+                {' '}
+                {tt('why_offers_text')}
+                {' '}
+              </p>
+              <AppContext.Consumer>
+                {
+                  ({ config: appConfig }) => (
+                    <a
+                      onClick={this.onLearnMoreClicked}
+                      href={config.constants.WHY_OFFERS_URL[appConfig.product]}
+                      rel="noreferrer noopener"
+                      target="_blank"
+                    >
+                      {tt('learnMore')}
+                    </a>
+                  )
+                }
+              </AppContext.Consumer>
             </div>
           </header>
           <p
@@ -160,6 +176,8 @@ export default class Content extends React.Component {
           >
             <a
               href={this.props.data.call_to_action.url}
+              rel="noreferrer noopener"
+              target="_blank"
               data-type="light"
               data-class="light-tooltip"
               onClick={() => {

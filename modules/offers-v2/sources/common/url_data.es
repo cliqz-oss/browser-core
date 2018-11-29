@@ -1,3 +1,6 @@
+/**
+ * @module offers-v2
+ */
 import { getDetailsFromUrl } from '../../core/url';
 import tokenizeUrl from './pattern-utils';
 import { getGeneralDomain } from '../../core/tlds';
@@ -6,6 +9,8 @@ import { getGeneralDomain } from '../../core/tlds';
  * This class will be a wrapper containing the url information that will calculate
  * the data needed on demand. This way we can use one unique object containing
  * all the url information we need and share it between different operations
+ *
+ * @class UrlData
  */
 export default class UrlData {
   constructor(rawUrl, referrerName = null) {
@@ -20,8 +25,7 @@ export default class UrlData {
     this.urlDetails = null;
     this.domain = null;
     this.patternsRequest = null;
-    // active categories to be shared on this url data
-    this.activatedCategoriesIDs = new Set();
+    this.categoriesMatches = null;
   }
 
   hasReferrerName() {
@@ -61,7 +65,10 @@ export default class UrlData {
     return this.domain;
   }
 
-  // https://github.com/cliqz-oss/adblocker/blob/fa1d8304e98ecf43a99c0082338672417c14e61b/example/background.ts#L79
+  /**
+   * @method getPatternRequest
+   * @returns {PatternMatchRequest}
+   */
   getPatternRequest(cpt = 2) {
     if (this.patternsRequest === null) {
       this.patternsRequest = tokenizeUrl(this.getNormalizedUrl(), cpt);
@@ -69,11 +76,19 @@ export default class UrlData {
     return this.patternsRequest;
   }
 
-  setActivatedCategoriesIDs(catIDsSet) {
-    this.activatedCategoriesIDs = catIDsSet;
+  /**
+   * @method setCategoriesMatchTraits
+   * @param {CategoriesMatchTraits} matches
+   */
+  setCategoriesMatchTraits(matches) {
+    this.categoriesMatches = matches;
   }
 
-  getActivatedCategoriesIDs() {
-    return this.activatedCategoriesIDs;
+  /**
+   * @method getCategoriesMatchTraits
+   * @returns {CategoriesMatchTraits}
+   */
+  getCategoriesMatchTraits() {
+    return this.categoriesMatches;
   }
 }

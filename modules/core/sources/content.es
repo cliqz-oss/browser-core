@@ -8,7 +8,7 @@ import {
   isTopWindow,
 } from '../core/content/helpers';
 import { throttle } from '../core/decorators';
-import { waitForAsync } from '../core/helpers/wait';
+import { waitFor } from '../core/helpers/wait';
 import createSpananWrapper from '../core/helpers/spanan-module-wrapper';
 
 function getContextHTML(ev) {
@@ -221,7 +221,7 @@ registerContentScript('core', '*', (window, chrome, CLIQZ) => {
         value: ev.target.value,
         href: ev.target.href,
         parentNode: {
-          href: ev.target.parentNode.href
+          href: ev.target.parentNode ? ev.target.parentNode.href : null
         },
         linksSrc,
       }
@@ -264,17 +264,7 @@ registerContentScript('core', '*', (window, chrome, CLIQZ) => {
     }
   }
 
-  const onKeyPress = throttle(window, proxyWindowEvent('recordKeyPress'), 250);
-  const onMouseMove = throttle(window, proxyWindowEvent('recordMouseMove'), 250);
-  const onScroll = throttle(window, proxyWindowEvent('recordScroll'), 250);
-  const onCopy = throttle(window, proxyWindowEvent('recordCopy'), 250);
-
-
-  window.addEventListener('keypress', onKeyPress);
-  window.addEventListener('mousemove', onMouseMove);
   window.addEventListener('mousedown', onMouseDown);
-  window.addEventListener('scroll', onScroll);
-  window.addEventListener('copy', onCopy);
   window.addEventListener('DOMContentLoaded', onReady);
   chrome.runtime.onMessage.addListener(onBackgroundMessage);
 
@@ -292,11 +282,7 @@ registerContentScript('core', '*', (window, chrome, CLIQZ) => {
     }
 
     chrome.runtime.onMessage.removeListener(onBackgroundMessage);
-    window.removeEventListener('keypress', onKeyPress);
-    window.removeEventListener('mousemove', onMouseMove);
     window.removeEventListener('mousedown', onMouseDown);
-    window.removeEventListener('scroll', onScroll);
-    window.removeEventListener('copy', onCopy);
     window.removeEventListener('DOMContentLoaded', onReady);
   }
 
@@ -364,7 +350,7 @@ registerContentScript('core', '*', (window, chrome, CLIQZ) => {
       });
     });
 
-    waitForAsync(getApp)
+    waitFor(getApp)
       .then(runOnce)
       .catch((ex) => {
         window.console.error('Could not run content script', ex, currentURL());

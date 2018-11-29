@@ -40,11 +40,11 @@ export function migrate() {
   // migrate old homepage url to new one
   const currentHomepage = getHomePage();
   if (
-    currentHomepage === 'about:cliqz' ||
+    currentHomepage === 'about:cliqz'
     // we moved from the resource url to chrome url in X.21.0
     // we moved from chrome url to https url in X.21.3 and X.22.X
-    currentHomepage === 'chrome://cliqz/content/freshtab/home.html' ||
-    currentHomepage === 'resource://cliqz/freshtab/home.html'
+    || currentHomepage === 'chrome://cliqz/content/freshtab/home.html'
+    || currentHomepage === 'resource://cliqz/freshtab/home.html'
   ) {
     setHomePage(config.settings.NEW_TAB_URL);
   }

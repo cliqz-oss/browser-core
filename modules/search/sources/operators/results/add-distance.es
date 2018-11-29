@@ -4,12 +4,12 @@ export default results => results.map(result => ({
   ...result,
   links: result.links.map((link) => {
     if (
-      !link.extra ||
-      !link.extra.lat ||
-      !link.extra.lon ||
-      (
-        typeof link.extra.distance === 'number' &&
-        link.extra.distance > -1
+      !link.extra
+      || !link.extra.lat
+      || !link.extra.lon
+      || (
+        typeof link.extra.distance === 'number'
+        && link.extra.distance > -1
       )
     ) {
       return link;

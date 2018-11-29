@@ -19,10 +19,28 @@ const notifyListeners = (params) => {
   });
 };
 
+let fetchHandler = null;
+
+export function overrideFetchHandler(cb) {
+  if (!fetchHandler) {
+    fetchHandler = cb;
+  } else {
+    throw new Error('Can only override fetch handler once');
+  }
+}
+
+export function resetFetchHandler() {
+  fetchHandler = null;
+}
+
 export function fetch(...args) {
   notifyListeners({
     url: args[0],
   });
+  const result = fetchHandler && fetchHandler(...args);
+  if (result) {
+    return result;
+  }
   return _fetch(...args);
 }
 
@@ -31,7 +49,6 @@ export function fetchFactory() {
 }
 
 export { Headers, Request, Response } from '../platform/fetch';
-
 
 /** Legacy httpHandler implementation, based on XMLHttpRequest.
  *
@@ -52,6 +69,7 @@ export function defaultHttpHandler(
     chromeUrlHandler(url, callback, onerror);
     return undefined;
   }
+
   const XMLHttpRequest = XMLHttpRequestFactory();
   const req = new XMLHttpRequest();
   req.timestamp = Date.now();

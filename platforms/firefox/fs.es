@@ -41,8 +41,7 @@ export function write(path, data, { isText } = {}) {
   return OS.File.open(getFullPath(path), { write: true, append: false, truncate: true }, options)
     .then(f =>
       f.write(isText ? encodeText(data) : data)
-        .then(() => f.close())
-    );
+        .then(() => f.close()));
 }
 
 export function mkdir(dirPath) {

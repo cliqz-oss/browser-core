@@ -69,4 +69,3 @@ export default class HistoryCluster extends GenericResult {
     return lottoResult.lottoResults;
   }
 }
-

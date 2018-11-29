@@ -80,6 +80,8 @@ program.command('sign [file]')
       .then(() => getExtensionVersion('package'))
       .then((version) => {
         process.env.PACKAGE_VERSION = version;
+        process.env.EXTENSION_VERSION = version;
+
 
         if (!process.env.VERSION) {
           process.env.VERSION = version;
@@ -109,6 +111,7 @@ program.command('publish [file]')
       .then(() => getExtensionVersion('package'))
       .then((version) => {
         process.env.PACKAGE_VERSION = version;
+        process.env.EXTENSION_VERSION = version;
 
         if (!process.env.VERSION) {
           process.env.VERSION = version;

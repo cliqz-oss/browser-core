@@ -2,7 +2,7 @@ import Renderer from './renderer';
 import inject from '../core/kord/inject';
 import HistoryManager from '../core/history-manager';
 import { removeFromHistorySignal } from './telemetry';
-import { getTabsWithUrl, closeTab } from '../core/tabs';
+import { closeTabsWithUrl } from '../core/tabs';
 import Defer from '../core/helpers/defer';
 
 export default class Ui {
@@ -120,8 +120,8 @@ export default class Ui {
             }
             return Promise.resolve();
           })
+          .then(() => closeTabsWithUrl(historyUrl))
           .then(() => {
-            getTabsWithUrl(this.window, historyUrl).forEach(tab => closeTab(this.window, tab));
             this.core.action('refreshPopup', this.renderer.query);
           });
 

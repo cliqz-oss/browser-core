@@ -47,9 +47,9 @@ const performHistoryCheck = (historyMatcher, historyCheck) => {
     }
 
     const matchesMinExpected = result >= historyCheck.min_matches_expected;
-    const shouldRemoveOffer = historyCheck.remove_if_matches ?
-      matchesMinExpected :
-      !matchesMinExpected;
+    const shouldRemoveOffer = historyCheck.remove_if_matches
+      ? matchesMinExpected
+      : !matchesMinExpected;
     return Promise.resolve(shouldRemoveOffer);
   });
 };
@@ -67,20 +67,20 @@ const shouldFilterOffer = async (
   const filterByValidity = () => !offer || !offer.isValid();
 
   // if an AB test offer, we filter out the ones that cannot be shown for this user
-  const filterByABTest = () => offer.ABTestInfo &&
-    !isInRange(getABNumber(), offer.ABTestInfo.start, offer.ABTestInfo.end);
+  const filterByABTest = () => offer.ABTestInfo
+    && !isInRange(getABNumber(), offer.ABTestInfo.start, offer.ABTestInfo.end);
 
   // check if the targeted real estate is present on the client
-  const filterByRealEstates = () => !offer.destinationRealEstates ||
-    !offer.destinationRealEstates.some(re => presentRealEstates.has(re));
+  const filterByRealEstates = () => !offer.destinationRealEstates
+    || !offer.destinationRealEstates.some(re => presentRealEstates.has(re));
 
   // check if they are geo targeted, we filter them by location
-  const filterByGeo = () => offer.isGeoLocated() &&
-    (!geoChecker || !geoChecker.matches(offer.geoInfo));
+  const filterByGeo = () => offer.isGeoLocated()
+    && (!geoChecker || !geoChecker.matches(offer.geoInfo));
 
   // check at least one category is active, if not filter
-  const filterByCategories = () => offer.hasCategories() &&
-    !offer.categories.some(cat => categoryHandler.isCategoryActive(cat));
+  const filterByCategories = () => offer.hasCategories()
+    && !offer.categories.some(cat => categoryHandler.isCategoryActive(cat));
 
   // we will check the history if needed
   const filterByHistory = async () => {

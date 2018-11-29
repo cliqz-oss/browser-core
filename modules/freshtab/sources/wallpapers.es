@@ -1,15 +1,15 @@
 import config from './config';
 
-function getValues(obj) {
+function getValues(obj = {}) {
   return Object.keys(obj).map(key => obj[key]);
 }
 
-export function getWallpapers() {
-  return getValues(config.backgrounds);
+export function getWallpapers(product = 'CLIQZ') {
+  return getValues(config.backgrounds[product]);
 }
 
-export function getDefaultWallpaper() {
-  const defaults = getWallpapers().filter(w => w.isDefault);
+export function getDefaultWallpaper(product) {
+  const defaults = getWallpapers(product).filter(w => w.isDefault);
 
   if (defaults.length === 0) {
     throw new Error('No default wallpaper specified');

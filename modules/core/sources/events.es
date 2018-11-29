@@ -30,8 +30,7 @@ const CliqzEvents = {
         ev.call(null, ...args);
       }).catch((e) => {
         console.error(`CliqzEvents error: ${id}`, e);
-      })
-    );
+      }));
 
     const finishedPromise = Promise.all(callbacks).then(() => {
       const index = this.queue.indexOf(finishedPromise);

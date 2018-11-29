@@ -1,7 +1,7 @@
 import DefaultMap from '../core/helpers/default-map';
 import EventStream from '../core/persistence/event-store';
 import assert from '../core/assert';
-import { compactTokens, mergeCompactSets, hasEmptyIntersection } from '../core/pattern-matching';
+import PatternMatching from '../platform/lib/adblocker';
 
 import BucketStore from './bucket-store';
 
@@ -92,10 +92,9 @@ export default class IndexedStream {
       // the compact sets of newly inserted events.
       ...[...index.entries()].map(([bucket, arrays]) =>
         this.tokenIndex.update(bucket, existingTokens =>
-          compactTokens(
-            mergeCompactSets(existingTokens || new Uint32Array(), ...arrays)
-          )
-        )),
+          PatternMatching.compactTokens(
+            PatternMatching.mergeCompactSets(existingTokens || new Uint32Array(), ...arrays)
+          ))),
     ]);
   }
 
@@ -116,9 +115,9 @@ export default class IndexedStream {
     this.tokenIndex.forEach((bucketTokens, bucketTs) => {
       const bucketTsEnd = bucketTs + HOUR;
       if (
-        bucketTs > lowerTs &&
-        bucketTsEnd < upperTs &&
-        !hasEmptyIntersection(bucketTokens, tokens)
+        bucketTs > lowerTs
+        && bucketTsEnd < upperTs
+        && !PatternMatching.hasEmptyIntersection(bucketTokens, tokens)
       ) {
         buckets.push({
           after: bucketTs - 1,
@@ -143,9 +142,9 @@ export default class IndexedStream {
       for (let j = 0; j < events.length; j += 1) {
         const event = events[j];
         if (
-          event.ts > lowerTs &&
-          event.ts < upperTs &&
-          !hasEmptyIntersection(event.tokens, tokens)
+          event.ts > lowerTs
+          && event.ts < upperTs
+          && !PatternMatching.hasEmptyIntersection(event.tokens, tokens)
         ) {
           yield event;
         }

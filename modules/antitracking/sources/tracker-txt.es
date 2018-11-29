@@ -74,8 +74,8 @@ TrackerTXT.get = (urlParts) => {
 
 TrackerTXT.prototype = {
   update() {
-    if (this.status === 'updating' ||
-      this.last_update === getTime()) return; // try max once per hour
+    if (this.status === 'updating'
+      || this.last_update === getTime()) return; // try max once per hour
     this.status = 'updating';
     const self = this;
     httpGet(

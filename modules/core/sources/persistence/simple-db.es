@@ -19,15 +19,20 @@ export default class SimpleDB {
   upsert(docID, docData) {
     return this.db.get(docID)
       .catch(() => ({ _id: docID, [this.contID]: {} }))
-      .then(
-        data => this.db.put({
+      .then((data) => {
+        // Dexie will not raise error but simply return undefined when docID does not exist
+        if (data === undefined) {
+          /* eslint-disable-next-line */
+          data = { _id: docID, [this.contID]: {} };
+        }
+        this.db.put({
           ...data,
           [this.contID]: {
             ...data.docData,
             ...docData,
           },
-        })
-      );
+        });
+      });
   }
 
   get(docID) {

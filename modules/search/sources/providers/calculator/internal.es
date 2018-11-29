@@ -148,8 +148,8 @@ const CliqzCalculator = {
     if (number.indexOf(this.decimalSeparator) > -1) {
       secondPart = number.substring(number.indexOf(this.decimalSeparator) + 1);
       // If there are more than two decimal separators, there should be no thousands separator
-      if (secondPart.indexOf(this.decimalSeparator) > -1 &&
-        number.indexOf(this.thousandsSeparator) > -1) {
+      if (secondPart.indexOf(this.decimalSeparator) > -1
+        && number.indexOf(this.thousandsSeparator) > -1) {
         throw NumberException(number);
       }
       // Thousands separator should come before decimal separator
@@ -283,8 +283,7 @@ const CliqzCalculator = {
           return true;
         }
         return false;
-      })
-    );
+      }));
     return unitFound || ['', false, null];
   },
 

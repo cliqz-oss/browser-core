@@ -4,14 +4,16 @@ import t from '../../i18n';
 function Header(props) {
   return (
     <div className="flex-container header">
-      {props.data.labels &&
-        <div className="special-flags">
-          {props.data.labels.map(label =>
-            (
-              <span className={label}>{t(`app.offers.${label}`)}</span>
-            )
-          )}
-        </div>
+      {props.data.labels
+        && (
+          <div className="special-flags">
+            {props.data.labels.map(label =>
+              (
+                <span className={label}>{t(`app.offers.${label}`)}</span>
+              ))
+            }
+          </div>
+        )
       }
       <div
         className={`logo ${props.data.logo_class}`}

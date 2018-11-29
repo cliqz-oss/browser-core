@@ -1,5 +1,5 @@
 import { Services, Components } from './globals';
-import console from '../core/console';
+import console from './console';
 
 const prefs = typeof Services !== 'undefined' ? Services.prefs.getBranch('') : undefined;
 const complexRegEx = /^chrome:\/\/.+\/locale\/.+\.properties/;
@@ -63,14 +63,6 @@ export function hasPref(key, prefix) {
 export function clearPref(key, prefix) {
   const pref = prefixPref(key, prefix);
   prefs.clearUserPref(pref);
-}
-
-export function enableChangeEvents() {
-
-}
-
-export function disableChangeEvents() {
-
 }
 
 export function init() {

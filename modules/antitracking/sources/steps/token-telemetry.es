@@ -3,12 +3,13 @@ import DefaultMap from '../../core/helpers/default-map';
 import { TELEMETRY } from '../config';
 import Rx from '../../platform/lib/rxjs';
 import { getConfigTs } from '../time';
-import telemetryService from '../../core/services/telemetry';
+import inject from '../../core/kord/inject';
 
 const DEFAULT_CONFIG = {
   // token batchs, max 720 messages/hour
   TOKEN_BATCH_INTERVAL: 50000,
-  TOKEN_BATCH_SIZE: 10,
+  TOKEN_BATCH_SIZE: 2,
+  TOKEN_MESSAGE_SIZE: 10,
   // key batches, max 450 messages/hour
   KEY_BATCH_INTERVAL: 80000,
   KEY_BATCH_SIZE: 10,
@@ -136,7 +137,13 @@ class CachedEntryPipeline {
    * as well as cleaning and persisting the map cache.
    */
   async clean() {
-    const batchSize = 100;
+    const batchSize = 1000;
+    // max messages will will push from this clean - next clean will be triggered by the time
+    // the queue empties
+    const maxSending = Math.ceil(
+      (this.options.CLEAN_INTERVAL / this.options.TOKEN_BATCH_INTERVAL)
+      * (this.options.TOKEN_BATCH_SIZE * this.options.TOKEN_MESSAGE_SIZE)
+    );
     // get values from the database which have not yet been sent today
     const notSentToday = (await this.db
       .where('lastSent')
@@ -148,16 +155,20 @@ class CachedEntryPipeline {
     // - The former are pushed to the batch processing queue
     // - The later can be discarded, as they were just markers for previously sent data
     const toBeDeleted = [];
+    const queuedForSending = [];
     notSentToday.forEach((t) => {
       if (this.hasData(t)) {
         // this data should be sent
-        this.input.next(t[this.primaryKey]);
+        queuedForSending.push(t[this.primaryKey]);
       } else {
         toBeDeleted.push(t[this.primaryKey]);
       }
     });
+    // push first maxSending entries to input queue
+    queuedForSending.splice(maxSending);
+    queuedForSending.forEach(v => this.input.next(v));
     // delete old entries
-    await this.db.where(this.primaryKey).anyOf(toBeDeleted).delete();
+    const dbDeleted = await this.db.where(this.primaryKey).anyOf(toBeDeleted).delete();
 
     // check the cache for items to persist to the db.
     // if we already sent the data, we can remove it from the cache.
@@ -171,8 +182,14 @@ class CachedEntryPipeline {
         this.cache.delete(key);
       }
     });
-    await this.saveBatchToDb(saveBatch);
-
+    await this.saveBatchToDb(saveBatch, {
+      source: this.name,
+      dbSize: await this.db.count(),
+      dbDelete: dbDeleted,
+      cacheSize: this.cache.size,
+      cacheDeleted: deleted,
+      processed: queuedForSending.length,
+    });
     this.logger.next({
       type: 'tokens.clean',
       signal: {
@@ -181,7 +198,7 @@ class CachedEntryPipeline {
         dbDelete: toBeDeleted.length,
         cacheSize: this.cache.size,
         cacheDeleted: deleted,
-        processed: notSentToday.length,
+        processed: queuedForSending.length,
       },
     });
   }
@@ -235,6 +252,23 @@ export class TokenPipeline extends CachedEntryPipeline {
       lastSent: lastSent || '',
       sites: [...sites],
       trackers: [...trackers],
+    };
+  }
+
+  createMessagePayloads(toBeSent, batchLimit) {
+    const overflow = batchLimit ? toBeSent.splice(batchLimit * this.options.TOKEN_MESSAGE_SIZE)
+      : [];
+    // group into batchs of size TOKEN_MESSAGE_SIZE
+    const nMessages = Math.ceil(toBeSent.length / this.options.TOKEN_MESSAGE_SIZE);
+    const messages = [...new Array(nMessages)]
+      .map((_, i) => {
+        const baseIndex = i * this.options.TOKEN_MESSAGE_SIZE;
+        return toBeSent.slice(baseIndex, baseIndex + this.options.TOKEN_MESSAGE_SIZE);
+      })
+      .map(batch => batch.map(this.createMessagePayload.bind(this)));
+    return {
+      messages,
+      overflow,
     };
   }
 
@@ -356,9 +390,10 @@ export class KeyPipeline extends CachedEntryPipeline {
  * persistence, or load old data.
  */
 export default class TokenTelemetry {
-  constructor(telemetry, qsWhitelist, config, database, options = DEFAULT_CONFIG) {
-    Object.keys(options).forEach((confKey) => {
-      this[confKey] = options[confKey];
+  constructor(telemetry, qsWhitelist, config, database, options) {
+    const opts = Object.assign({}, DEFAULT_CONFIG, options);
+    Object.keys(DEFAULT_CONFIG).forEach((confKey) => {
+      this[confKey] = opts[confKey];
     });
     this.telemetry = telemetry;
     this.qsWhitelist = qsWhitelist;
@@ -369,11 +404,11 @@ export default class TokenTelemetry {
     this.messageQueue = new Rx.Subject();
     this.telemetrySender = {
       next: ({ type, signal }) => {
-        telemetryService.push(signal, `metrics.antitracking.${type}`);
+        inject.service('telemetry').push(signal, `metrics.antitracking.${type}`);
       },
     };
-    this.tokens = new TokenPipeline(database.tokens, this.telemetrySender, options);
-    this.keys = new KeyPipeline(database.keys, this.telemetrySender, options);
+    this.tokens = new TokenPipeline(database.tokens, this.telemetrySender, opts);
+    this.keys = new KeyPipeline(database.keys, this.telemetrySender, opts);
   }
 
   init() {
@@ -381,8 +416,7 @@ export default class TokenTelemetry {
     const filteredTokens = this.subjectTokens
       .groupBy(el => el.token, undefined, () => Rx.Observable.timer(60000))
       .flatMap(group => group
-        .buffer(bufferInterval())
-      )
+        .buffer(bufferInterval()))
       .filter(batch => batch.length > 0);
 
     // token subscription pipeline takes batches of tokens (grouped by value)
@@ -410,13 +444,13 @@ export default class TokenTelemetry {
           const siteTokens = keyStats.sitesTokens.get(entry.fp);
           siteTokens.set(entry.token, entry.safe);
 
-          if (keyStats.lastSent !== currentDay() &&
-            (keyStats.sitesTokens.size > 1 || keyStats.created < entryCutoff)) {
+          if (keyStats.lastSent !== currentDay()
+            && (keyStats.sitesTokens.size > 1 || keyStats.created < entryCutoff)) {
             this.keySendQueue.next(keyKey);
           }
         });
-        if (tokenStats.lastSent !== currentDay() &&
-          (tokenStats.sites.size > 1 || tokenStats.created < entryCutoff)) {
+        if (tokenStats.lastSent !== currentDay()
+          && (tokenStats.sites.size > 1 || tokenStats.created < entryCutoff)) {
           this.tokenSendQueue.next(token);
         }
       });
@@ -437,6 +471,7 @@ export default class TokenTelemetry {
 
     // run every x minutes while there is activity
     this._onIdleSubscription = Rx.Observable.merge(
+      Rx.Observable.of(''),
       filteredTokens,
       this.tokenSendQueue,
       this.keySendQueue,
@@ -489,8 +524,8 @@ export default class TokenTelemetry {
     const isTracker = this.qsWhitelist.isTrackerDomain(thirdPartyGeneralDomain);
 
     // telemetryMode 0: collect nothing, telemetryMode 1: collect only for tracker domains
-    if (this.config.telemetryMode === TELEMETRY.DISABLED ||
-       (this.config.telemetryMode === TELEMETRY.TRACKERS_ONLY && !isTracker)) {
+    if (this.config.telemetryMode === TELEMETRY.DISABLED
+       || (this.config.telemetryMode === TELEMETRY.TRACKERS_ONLY && !isTracker)) {
       return;
     }
 
@@ -504,9 +539,9 @@ export default class TokenTelemetry {
       }
       // put token in safe bucket if: value is short, domain is not a tracker,
       // or key or value is whitelisted
-      const safe = !isTracker ||
-                   this.qsWhitelist.isSafeKey(thirdPartyGeneralDomain, key) ||
-                   this.qsWhitelist.isSafeToken(thirdPartyGeneralDomain, token);
+      const safe = !isTracker
+                   || this.qsWhitelist.isSafeKey(thirdPartyGeneralDomain, key)
+                   || this.qsWhitelist.isSafeToken(thirdPartyGeneralDomain, token);
 
       this.subjectTokens.next({
         day: currentDay(),

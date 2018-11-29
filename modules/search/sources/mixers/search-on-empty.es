@@ -29,8 +29,7 @@ const searchIf = (provider, base$, query, config, params, condition = _alwaysTru
       .take(1)
       .flatMap(() =>
         provider
-          .search(query, config, params)
-      ),
+          .search(query, config, params)),
     // emit empty response if nothing else was emitted
     base$
       .filter(condition)

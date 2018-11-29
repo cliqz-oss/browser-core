@@ -8,10 +8,14 @@ import controlCenterSignalDefinitions from './metrics/control-center-interaction
 import abtestsSignalDefinition from './metrics/abtests';
 import historyVisitsSignalDefinitions from './metrics/history-visits';
 import webrequestPipelinePerformancesMetrics from './metrics/performance/webrequest-pipeline';
+import generalPerformancesMetrics from './metrics/performance/general';
 import internalAnolysisMetrics from './metrics/internals/anolysis';
 import coreMetrics from './metrics/core';
 import antitrackingTokenMetrics from './metrics/performance/antitracking-tokens';
 import consentricDefinitions from './metrics/consentric';
+import termsAndConditionsDuration from './metrics/time-spent-terms-and-conditions';
+import moduleStartupPerformanceMetrics from './metrics/performance/modules-startup';
+import cliqzForFriendsMetrics from './metrics/cliqz-for-friends';
 
 // Analyses
 import retention from './analyses/retention';
@@ -19,7 +23,6 @@ import activeUser from './analyses/active-user';
 
 import freshtabActivity from './analyses/freshtab-activity';
 import freshtabSettings from './analyses/freshtab-settings';
-import freshtabState from './analyses/freshtab-state';
 import freshtabBackground from './analyses/freshtab-background';
 
 import newsPagination from './analyses/news-pagination';
@@ -36,6 +39,7 @@ import mobile from './analyses/mobile/favorites-migration-folders';
 import newsSearchSchemas from './analyses/news-search';
 import historyVisitsSchemas from './analyses/history-visits';
 import webrequestPipelinePerformances from './analyses/performance/webrequest-pipeline';
+import generalPerformances from './analyses/performance/general';
 import antitrackingTokenAnalyses from './analyses/performance/antitracking-tokens';
 import consentric from './analyses/consentric';
 
@@ -62,10 +66,15 @@ const metrics = [
   ...internalAnolysisMetrics,
   ...coreMetrics,
   webrequestPipelinePerformancesMetrics,
+  generalPerformancesMetrics,
   ...antitrackingTokenMetrics,
   ...consentricDefinitions,
+  ...termsAndConditionsDuration,
+  ...cliqzForFriendsMetrics,
+  moduleStartupPerformanceMetrics,
 ].map(schema => ({
   ...schema,
+  description: schema.description || 'missing description',
   sendToBackend: schema.sendToBackend || false,
 }));
 
@@ -76,7 +85,6 @@ const analyses = [
   controlCenter,
   freshtabActivity,
   freshtabSettings,
-  freshtabState,
   freshtabBackground,
   mobile,
   newsPagination,
@@ -92,10 +100,12 @@ const analyses = [
   ...newsSearchSchemas,
   ...historyVisitsSchemas,
   webrequestPipelinePerformances,
+  generalPerformances,
   ...antitrackingTokenAnalyses,
   ...consentric,
 ].map(schema => ({
   ...schema,
+  description: schema.description || 'missing description',
   sendToBackend: true,
 }));
 

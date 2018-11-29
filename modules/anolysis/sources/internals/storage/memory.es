@@ -163,19 +163,30 @@ class GidManagerView {
 
 export default class AnolysisStorage {
   constructor() {
-    this.aggregated = null;
-    this.behavior = null;
-    this.retention = null;
-    this.signals = null;
-    this.gid = null;
+    this.unload();
   }
 
   init() {
-    this.aggregated = new AggregatedView();
-    this.behavior = new BehaviorView();
-    this.gid = new GidManagerView();
-    this.retention = new RetentionView();
-    this.signals = new SignalQueueView();
+    if (this.aggregated === null) {
+      this.aggregated = new AggregatedView();
+    }
+
+    if (this.behavior === null) {
+      this.behavior = new BehaviorView();
+    }
+
+    if (this.gid === null) {
+      this.gid = new GidManagerView();
+    }
+
+    if (this.retention === null) {
+      this.retention = new RetentionView();
+    }
+
+    if (this.signals === null) {
+      this.signals = new SignalQueueView();
+    }
+
     return Promise.resolve();
   }
 
@@ -187,5 +198,11 @@ export default class AnolysisStorage {
     return Promise.resolve();
   }
 
-  unload() {}
+  unload() {
+    this.aggregated = null;
+    this.behavior = null;
+    this.retention = null;
+    this.signals = null;
+    this.gid = null;
+  }
 }

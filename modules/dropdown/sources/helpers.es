@@ -71,7 +71,7 @@ export default {
     }
 
     const map = Array(text.length);
-    const tokens = latinMap(q.toLowerCase()).split(/\s+|\.+/).filter(function (t) { return t && t.length > 1; });
+    const tokens = latinMap(q.toLowerCase()).split(/\s+|\.+|\/+/).filter(function (t) { return t && t.length > 1; });
     const lowerText = latinMap(text.toLowerCase());
     const out = [];
     let high = false;

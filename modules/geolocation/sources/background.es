@@ -150,7 +150,7 @@ export default background({
     getGeo() {
       const locationPref = prefs.get('share_location', config.settings.geolocation || 'ask');
       if (!['yes', 'showOnce'].includes(locationPref)) {
-        return Promise.reject("No permission to get user's location");
+        return Promise.reject(new Error("No permission to get user's location"));
       }
       const telemetryEvent = {
         type: 'performance',
@@ -192,8 +192,7 @@ export default background({
         ({
           latitude: utils.USER_LAT,
           longitude: utils.USER_LNG,
-        })
-      );
+        }));
     },
 
     setLocationPermission(newPerm) {

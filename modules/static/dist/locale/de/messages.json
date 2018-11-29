@@ -1,15 +1,30 @@
 {
   "appName": {
-      "message": "Cliqz Tab: Suche anonym! (Beta)"
+      "message": "Cliqz Tab (Beta)"
+  },
+  "appNameNightly": {
+      "message": "Cliqz Tab (Nightly)"
   },
   "appDesc": {
       "message": "Anonyme Suche, Favoriten, Nachrichten, und schöne Hintergrundbilder mit jedem neuen Tab"
   },
   "ghosteryTabAppName": {
-      "message": "Ghostery Tab: Suche anonym! (Beta)"
+      "message": "Ghostery Tab mit anonymer Suche (Beta)"
+  },
+  "ghosteryTabAppNameNightly": {
+      "message": "Ghostery Tab mit anonymer Suche (Nightly)"
   },
   "ghosteryTabAppDesc": {
       "message": "Mach mehr aus Chrome. Mehr Privatsphäre, mehr Favoriten, mehr Freiheit, mehr Style und mehr News in jedem neuen Tab."
+  },
+  "offersAppName": {
+    "message": "MyOffrz"
+  },
+  "offersAppNameNightly": {
+    "message": "MyOffrz (Nightly)"
+  },
+  "offersAppDesc": {
+    "message": "Spare bares Geld beim Online-Shopping!MyOffrz liefert dir attraktive Angebote mit echtem Mehrwert –genau dann, wenn du sie brauchst."
   },
   "more_on": {
       "message": "Mehr auf"
@@ -1376,8 +1391,11 @@
   "control_center_footer": {
       "message": "BEREITGESTELLT VON CLIQZ"
   },
+  "offers_hub_powered_by_offrz": {
+    "message": "BEREITGESTELLT VON MyOffrz"
+  },
   "control_center_quicksearch": {
-      "message": "Sichere Schnell-Suche"
+      "message": "Sichere Ghost-Suche"
   },
   "control_center_location": {
       "message": "Standort teilen"
@@ -1398,7 +1416,7 @@
       "message": "Anonyme Datenübermittlung"
   },
   "control_center_telemetry_info": {
-      "message": "Cliqz sammelt streng anonyme Daten zu technischen Details und Interaktionen. Zu keinem Zeitpunkt wird eine personenbezogene Information erfasst."
+      "message": "Es werden streng anonyme Daten zu technischen Details und Interaktionen übermittelt. Zu keinem Zeitpunkt wird eine personenbezogene Information erfasst."
   },
   "control_center_backend_country": {
       "message": "Suchergebnisse für"
@@ -1572,7 +1590,7 @@
       "message": "Legende:"
   },
   "transparency_blocked1": {
-      "message": "Blockiert zum Schutz Deiner Privatssphäre"
+      "message": "Blockiert zum Schutz Deiner Privatsphäre"
   },
   "transparency_blocked2": {
       "message": "Wird von Cliqz empfangen"
@@ -1587,7 +1605,7 @@
       "message": "Deine Suche bei Cliqz"
   },
   "transparency_search_content": {
-      "message": "Hier siehst du Daten über die Suchanfragen und Adressen, die du über die Cliqz-Suche eingibst. Diese Informationen helfen uns, dein Sucherlebnis zu optimieren. Wie du sehen kannst, beinhalten diese Daten keinerlei persönliche Information. Für Cliqz bist du anonym. Du hast die Möglichkeit, Suchen über Cliqz über ein Proxy-Netzwerk laufen zu lassen um Deine Privatssphäre noch stärker zu schützen. Weitere Informationen findest du <a target='_blank' rel='noopener noreferrer' href='https://cliqz.com/whycliqz/transparency#your-search'>hier</a>."
+      "message": "Hier siehst du Daten über die Suchanfragen und Adressen, die du über die Cliqz-Suche eingibst. Diese Informationen helfen uns, dein Sucherlebnis zu optimieren. Wie du sehen kannst, beinhalten diese Daten keinerlei persönliche Information. Für Cliqz bist du anonym. Du hast die Möglichkeit, Suchen über Cliqz über ein Proxy-Netzwerk laufen zu lassen um Deine Privatsphäre noch stärker zu schützen. Weitere Informationen findest du <a target='_blank' rel='noopener noreferrer' href='https://cliqz.com/whycliqz/transparency#your-search'>hier</a>."
   },
   "transparency_humanweb_title": {
       "message": "Human Web"
@@ -1743,13 +1761,13 @@
       "message": "Konditionen"
   },
   "offers_expires_in": {
-      "message": "Endet in"
+      "message": "Verfügbar für"
   },
   "offers_expires_day": {
       "message": "Tag"
   },
   "offers_expires_days": {
-      "message": "Tagen"
+      "message": "Tage"
   },
   "offers_expires_hour": {
       "message": "Stunde"
@@ -1910,6 +1928,12 @@
   "freshtab_app_speed_dials_row_custom": {
       "message": "Favoriten"
   },
+  "freshtab_search_reminder": {
+      "message": "Hallo! Willst du private suchen?"
+  },
+  "freshtab_search_reminder_action": {
+      "message": "Drucke TAB"
+  },
   "freshtab_urlbar_placeholder": {
       "message": "Anonym suchen"
   },
@@ -2054,6 +2078,12 @@
   "freshtab_app_settings_news_language_pl": {
       "message": "Polnische Medien"
   },
+  "freshtab_app_settings_news_language_it": {
+      "message": "Italienische Medien"
+  },
+  "freshtab_app_settings_news_language_ru": {
+      "message": "Russische Medien"
+  },
   "freshtab_app_offers_exclusive": {
       "message": "Exklusiv"
   },
@@ -2129,6 +2159,9 @@
   "freshtab_cliqz_tab_button": {
       "message": "$1 Tab"
   },
+  "freshtab_cliqz_for_friends_button": {
+      "message": "Cliqz for friends"
+  },
   "freshtab_cliqz_modules_button": {
       "message": "Cliqz Modules"
   },
@@ -2151,7 +2184,7 @@
     "message": "Optional"
   },
   "feedback_submit_feedback": {
-    "message": "Feedback senden"
+    "message": "Senden"
   },
   "offers_menu_give_feedback": {
     "message": "Feedback geben"
@@ -2162,10 +2195,58 @@
   "why_see_these_offers": {
     "message": "Warum wird das gezeigt?"
   },
-  "freshtab_new_feature": {
-    "message": "Neu!"
+  "feedback_skip": {
+    "message": "Überspringen"
   },
-  "freshtab_blackfriday_tooltip": {
-    "message": "Black Friday Angebote!"
+  "freshtab_stats_gt_trackers_blocked": {
+    "message": "Tracker blockiert"
+  },
+  "freshtab_stats_gt_trackers_seen": {
+    "message": "von $1 der insgesamt von Ghostery entdeckten Tracker"
+  },
+  "freshtab_stats_dp_anonymized": {
+    "message": "Datenpunkte anonymisiert"
+  },
+  "freshtab_stats_data_anonymized_by_desc": {
+    "message": "Deine privaten Daten wurden von $1 anonymisiert."
+  },
+  "freshtab_stats_ads_blocked": {
+    "message": "Blockierte Werbungen"
+  },
+  "freshtab_stats_ads_blocked_by_desc": {
+    "message": "Gesamtzahl der von $1 blockierten Werbungen seit dem ersten Browserstart."
+  },
+  "freshtab_stats_time_saved": {
+    "message": "Gesparte Zeit"
+  },
+  "freshtab_stats_time_saved_desc": {
+    "message": "Geschätzte Zeit, die du dank Cliqz-Werbeblocker seit dem ersten Browserstart gespart hast."
+  },
+  "freshtab_stats_cliqz_trackers_blocked": {
+    "message": "Anonymisierte Tracking-Daten"
+  },
+  "freshtab_stats_cliqz_trackers_blocked_desc": {
+    "message": "Gesamtzahl der von Cliqz entfernten persönlichen Daten seit dem ersten Browserstart."
+  },
+  "promo_data_brand_name": {
+    "message": "Ghostery - datenschutzorientierter Werbeblocker"
+  },
+  "promo_data_description": {
+    "message": "Füge deinem Browser die leistungsstarke Datenschutz-Erweiterung hinzu."
+  },
+  "promo_data_description_2": {
+    "message": "Blockiere Werbung, stoppe Tracker und beschleunige Websites."
+  },
+  "later_link": {
+    "message": "Später"
+  },
+  "add_to_chrome": {
+    "message": "Zu Chrome hinzufügen"
+  },
+  "freshtab_app_settings_privacy_stats": {
+    "message": "Datenschutz-Statistiken"
+  },
+  "cliqz_offers" : {
+    "message": "Cliqz Offers"
   }
 }

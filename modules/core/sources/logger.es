@@ -63,7 +63,7 @@ class Logger {
     // Define loggers
     this._debug = console.debug || noop;
     this._log = console.log || noop;
-    this._warning = console.warning || noop;
+    this._warning = console.warn || noop;
     this._error = console.error || noop;
 
     if (useDump) {
@@ -111,6 +111,7 @@ class Logger {
   }
 
   get info() { return this.log; }
+
   get log() {
     if (this.isEnabledFor('log')) {
       return this._log;
@@ -119,6 +120,7 @@ class Logger {
   }
 
   get warn() { return this.warning; }
+
   get warning() {
     if (this.isEnabledFor('warn')) {
       return this._warning;

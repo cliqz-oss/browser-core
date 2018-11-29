@@ -1,0 +1,7 @@
+{
+  "subprojects": [
+    "@cliqz/adblocker",
+    "moment",
+    "tldts"
+  ]
+}

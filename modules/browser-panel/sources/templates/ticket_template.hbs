@@ -2,23 +2,21 @@
     <span class="vertical-txt" data-i18n="offers_ad"></span>
 </div>
 
-{{#if code}}
-  <div class="code-container">
-    <div
-      class="code-box"
-      data-cqz-of-btn-id="code_copied"
-    >
-      <div class="bevel tl tr">
-        <div class="content">
-          <span class="code" data-cqz-of-btn-id="code_copied">{{code}}</span>
-          <span class="divider">&middot;</span>
-          <span class="code-copy" data-cqz-of-btn-id="code_copied" data-i18n="offers_copy_code">{{local offers_copy_code}}</span>
-          <span class="code-copied" data-i18n="offers_code_copied">{{local offers_code_copied}}</span>
-        </div>
+<div class="code-container {{#if code}}show{{/if}}">
+  <div
+    class="code-box"
+    data-cqz-of-btn-id="code_copied"
+  >
+    <div class="bevel tl tr">
+      <div class="content">
+        <span class="code" data-cqz-of-btn-id="code_copied">{{code}}</span>
+        <span class="divider">&middot;</span>
+        <span class="code-copy" data-cqz-of-btn-id="code_copied" data-i18n="offers_copy_code">{{local offers_copy_code}}</span>
+        <span class="code-copied" data-i18n="offers_code_copied">{{local offers_code_copied}}</span>
       </div>
     </div>
   </div>
-{{/if}}
+</div>
 
 <div class="promo-container {{ logo_class }}">
   <div class="why-offer">
@@ -30,7 +28,11 @@
                 href="#"
                 data-i18n="learnMore"
                 data-cqz-of-btn-id="more_about_cliqz"
+                {{#if isWebExtension }}
+                data-openUrl="https://myoffrz.com/fuer-nutzer/"
+                {{else}}
                 data-openUrl="https://cliqz.com/en/cliqz-angebote"
+                {{/if}}
             >
                 {{local learnMore}}
             </a>

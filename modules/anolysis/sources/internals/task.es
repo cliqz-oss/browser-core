@@ -61,6 +61,7 @@ function hardenSchema(schema) {
   return hardened;
 }
 
+const AGGREGATION_OFFSETS = range(1, 30);
 
 /**
  * Task is an abstraction over the concept of daily aggregation (as used in
@@ -70,25 +71,50 @@ function hardenSchema(schema) {
  *
  */
 export default class Task {
-  constructor({ name, schema, sendToBackend, needsGid, version, offsets, generate }) {
-    // Harden schema if signal will be sent to backend. Otherwise, be less strict.
-    try {
-      this.schema = sendToBackend ? hardenSchema(schema) : schema;
-    } catch (ex) {
-      logger.error('failed to harden schema', {
-        name,
-        schema,
-        sendToBackend,
-      }, ex);
-    }
+  constructor({
+    name,
+    description,
+    schema,
+    sendToBackend = false,
+    needsGid = false,
+    version = null,
+    offsets = AGGREGATION_OFFSETS,
+    generate,
+  }) {
+    this.originalSchema = schema;
+    this._hardenedSchema = null;
 
-    this.sendToBackend = sendToBackend !== undefined ? sendToBackend : false;
-    this.needsGid = needsGid !== undefined ? needsGid : false;
-    this.version = version !== undefined ? version : null;
-    this.offsets = new Set(offsets || range(1, 30));
+    this.name = name;
+    this.description = description;
+    this.sendToBackend = sendToBackend;
+    this.needsGid = needsGid;
+    this.version = version;
+    this.offsets = new Set(offsets);
     this.generate = generate;
 
     this._validate = null;
+  }
+
+  get schema() {
+    if (this._hardenedSchema === null) {
+      try {
+        this._hardenedSchema = this.sendToBackend
+          ? hardenSchema(this.originalSchema)
+          : this.originalSchema;
+      } catch (ex) {
+        logger.error(
+          'failed to harden schema',
+          {
+            name,
+            schema: this.originalSchema,
+            sendToBackend: this.sendToBackend,
+          },
+          ex,
+        );
+      }
+    }
+
+    return this._hardenedSchema;
   }
 
   validate(...args) {
@@ -104,6 +130,6 @@ export default class Task {
   }
 
   shouldGenerateForOffset(offset) {
-    return (this.generate !== undefined && this.offsets.has(offset));
+    return this.generate !== undefined && this.offsets.has(offset);
   }
 }

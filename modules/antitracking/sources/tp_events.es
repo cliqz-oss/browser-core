@@ -46,6 +46,7 @@ class PageLoadData {
     this.annotations = {};
     this.tsv = '';
     this.tsvId = undefined;
+    this.bugIdMapping = {};
 
     this.triggeringTree = {};
     this._plainObject = null;
@@ -114,6 +115,10 @@ class PageLoadData {
     this._plainObject = null;
   }
 
+  addGhosteryBug(host, bid) {
+    this.bugIdMapping[host] = bid;
+  }
+
   setAsStaged() {
     this.e = Date.now();
     this._plainObject = null;
@@ -166,6 +171,10 @@ class PageLoadData {
                 delete obj.tps[tpDomain][eachKey];
               }
             });
+            // add ghostery bid mappings
+            if (this.bugIdMapping[tpDomain]) {
+              obj.tps[tpDomain].ghostery_bid = this.bugIdMapping[tpDomain];
+            }
           }
         }
       }
@@ -204,6 +213,7 @@ class PageEventTracker {
     this.config = config;
     this.listeners = new Map();
   }
+
   // Called when a url is loaded on windowID source.
   // Returns the PageLoadData object for this url.
   //  or returns null if the url is malformed or null.
@@ -322,8 +332,7 @@ class PageEventTracker {
               if (this.debug) console.log(`Stage tab ${tabId}`, 'tp_events');
               this.stage(tabId);
             }
-          })
-        )
+          }))
       );
     }
 
@@ -334,15 +343,14 @@ class PageEventTracker {
   // Will run at a period specified by tp_events._push_interval, unless force_push is true.
   push(forcePush) {
     const now = (new Date()).getTime();
-    if (this._staged.length > 0 && (now - this._last_push > this._push_interval ||
-      forcePush === true)) {
+    if (this._staged.length > 0 && (now - this._last_push > this._push_interval
+      || forcePush === true)) {
       // convert staged objects into simple objects, and aggregate.
       // then filter out ones with bad data (undefined hostname or no third parties)
       const payloadData = this._staged.filter(pl => !pl.private)
         .map(item => item.asPlainObject())
         .filter(item =>
-          item.hostname.length > 0 && Object.keys(item.tps).length > 0
-        );
+          item.hostname.length > 0 && Object.keys(item.tps).length > 0);
 
       // if we still have some data, send the telemetry
       // if telemetryMode is 0, don't actually send it
@@ -399,8 +407,8 @@ class PageEventTracker {
   }
 
   containsPlaceHolder(url) {
-    return url.toString().indexOf(this.config.placeHolder > -1) &&
-      url.hostname !== this.config.placeHolder.split('/')[0];
+    return url.toString().indexOf(this.config.placeHolder > -1)
+      && url.hostname !== this.config.placeHolder.split('/')[0];
   }
 }
 

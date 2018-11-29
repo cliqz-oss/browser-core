@@ -44,7 +44,8 @@ export default class GroupSigner {
   }
 
   constructor() {
-    this.worker = new Worker(`${config.baseURL}hpnv2/worker.bundle.js`);
+    const build = typeof WebAssembly !== 'undefined' ? 'wasm' : 'asmjs';
+    this.worker = new Worker(`${config.baseURL}hpnv2/worker.${build}.bundle.js`);
     this.promises = {};
     this.worker.onmessage = (args) => {
       if (args.data.logMessage) {

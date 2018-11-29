@@ -1,7 +1,6 @@
 import * as datetime from './time';
 import console from '../core/console';
 import Rx from '../platform/lib/rxjs';
-import { migrateTokenDomain } from './legacy/database';
 
 const DAYS_EXPIRE = 7;
 
@@ -15,11 +14,6 @@ export default class TokenDomain {
     this._currentDay = null;
 
     this.subjectTokens = new Rx.Subject();
-
-    this.db.db.on('populate', () => {
-      // migrate old db
-      migrateTokenDomain(this, this.config.tokenDomainCountThreshold);
-    });
   }
 
   init() {
@@ -169,11 +163,10 @@ export default class TokenDomain {
             return this.addBlockedToken(token);
           }
           return Promise.resolve();
-        })
-      ))
-    ).catch((e) => {
-      console.error('tokendomain', 'count error', e);
-    });
+        }))))
+      .catch((e) => {
+        console.error('tokendomain', 'count error', e);
+      });
   }
 
   clean() {

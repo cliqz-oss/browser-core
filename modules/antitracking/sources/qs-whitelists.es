@@ -133,6 +133,10 @@ export default class QSWhitelist extends QSWhitelistBase {
     return domain in this.trackerDomains.value;
   }
 
+  shouldCheckDomainTokens(domain) {
+    return this.isTrackerDomain(domain);
+  }
+
   isSafeToken(domain, token) {
     if (!this.isReady()) {
       return true;
@@ -233,8 +237,8 @@ export default class QSWhitelist extends QSWhitelistBase {
           this.safeKeys.value[s] = safeKey[s];
         } else {
           for (const key in safeKey[s]) {
-            if (this.safeKeys.value[s][key] == null ||
-                this.safeKeys.value[s][key][0] < safeKey[s][key][0]) {
+            if (this.safeKeys.value[s][key] == null
+                || this.safeKeys.value[s][key][0] < safeKey[s][key][0]) {
               this.safeKeys.value[s][key] = safeKey[s][key];
             }
           }

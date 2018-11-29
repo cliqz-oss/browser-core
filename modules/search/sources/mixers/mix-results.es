@@ -29,8 +29,11 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
   const searchParams = [query, config, params];
   // TODO: also dedup within history results
   results.history.source$ = providers.history.search(...searchParams).share();
-  results.historyView.source$ =
-    searchOnNotEmpty(providers.historyView, results.history.source$, ...searchParams);
+  results.historyView.source$ = searchOnNotEmpty(
+    providers.historyView,
+    results.history.source$,
+    ...searchParams
+  );
   results.cliqz.source$ = providers.cliqz.search(...searchParams).share();
   results.instant.source$ = providers.instant.search(...searchParams);
   results.calculator.source$ = providers.calculator.search(...searchParams);
@@ -117,7 +120,8 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
       // wait until one of the dependencies has results
       return results[id].latest$.let(
         waitForResultsFrom(
-          dependencies.map(({ provider }) => results[provider].latest$))
+          dependencies.map(({ provider }) => results[provider].latest$)
+        )
       );
     });
 

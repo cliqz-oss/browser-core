@@ -6,6 +6,8 @@ function Benefit(props) {
     <span className="benefit">
       <a
         href={props.url}
+        rel="noreferrer noopener"
+        target="_blank"
         onClick={() => {
           sendOffersMessage(props.offer_id, 'offer_ca_action');
           sendOffersMessage(props.offer_id, 'offer_benefit');
@@ -28,6 +30,8 @@ function Headline(props) {
           className="headline-url"
           style={{ color: props.color }}
           href={props.url}
+          rel="noreferrer noopener"
+          target="_blank"
           onClick={() => {
             sendOffersMessage(props.offer_id, 'offer_ca_action');
             sendOffersMessage(props.offer_id, 'offer_headline');

@@ -124,10 +124,6 @@ module.exports = {
           replacement: config => config.settings.ENDPOINT_ANONPATTERNSURL || ''
         },
         {
-          match: /\{\{ENDPOINT_CONFIGURL\}\}/g,
-          replacement: config => config.settings.ENDPOINT_CONFIGURL || ''
-        },
-        {
           match: /\{\{ENDPOINT_SAFE_QUORUM_ENDPOINT\}\}/g,
           replacement: config => config.settings.ENDPOINT_SAFE_QUORUM_ENDPOINT || ''
         },
@@ -138,14 +134,6 @@ module.exports = {
         {
           match: /\{\{MSGCHANNEL\}\}/g,
           replacement: config => config.settings.MSGCHANNEL || ''
-        },
-        {
-          match: /\{\{KEY_DS_PUBKEY\}\}/g,
-          replacement: config => config.settings.KEY_DS_PUBKEY || ''
-        },
-        {
-          match: /\{\{KEY_SECURE_LOGGER_PUBKEY\}\}/g,
-          replacement: config => config.settings.KEY_SECURE_LOGGER_PUBKEY || ''
         },
         {
           match: /\{\{HW_CHANNEL\}\}/g,

@@ -68,8 +68,8 @@ export default class IntentOffersHandler {
     const currentIntents = this._getCurrentIntentsNames();
     this.intentOffers.clear();
     return Promise.all(currentIntents.map(
-      intentName => this.fetchOffersForIntent(intentName)) || []
-    );
+      intentName => this.fetchOffersForIntent(intentName)
+    ) || []);
   }
 
   /**
@@ -121,9 +121,9 @@ export default class IntentOffersHandler {
   }
 
   getOffersForIntent(intentName) {
-    return this.intentOffers.has(intentName) ?
-      this.intentOffers.get(intentName).data.map(offerObj => new Offer(offerObj)) :
-      [];
+    return this.intentOffers.has(intentName)
+      ? this.intentOffers.get(intentName).data.map(offerObj => new Offer(offerObj))
+      : [];
   }
 
   _expireCache() {

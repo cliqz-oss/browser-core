@@ -41,7 +41,8 @@ class Cliqz {
             action: message.action,
             args: [message.messageId],
           };
-        } else if (message.action === 'addMessage') {
+        }
+        if (message.action === 'addMessage') {
           return {
             action: message.action,
             args: [message.message],

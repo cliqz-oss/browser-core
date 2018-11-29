@@ -11,16 +11,27 @@ class ProviderAutoCompleteResultCliqz {
   }
 
   get searchString() { return this._searchString; }
+
   get searchResult() { return this._searchResult; }
+
   get defaultIndex() { return this._defaultIndex; }
+
   get errorDescription() { return this._errorDescription; }
+
   get matchCount() { return this._results.length; }
+
   getValueAt(index) { return (this._results[index] || {}).val; }
+
   getFinalCompleteValueAt(index) { return this.getValueAt(index); }
+
   getCommentAt(index) { return (this._results[index] || {}).comment; }
+
   getStyleAt(index) { return (this._results[index] || {}).style; }
+
   getImageAt(index) { return (this._results[index] || {}).image || ''; }
+
   getLabelAt(index) { return (this._results[index] || {}).label; }
+
   getDataAt(index) { return (this._results[index] || {}).data; }
 
   setResults(results) {

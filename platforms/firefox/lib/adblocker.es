@@ -1,3 +1,3 @@
 import lazyLoader from './helpers';
 
-export default lazyLoader('adblocker.umd.js', 'adblocker');
+export default lazyLoader('adblocker.umd.min.js', 'adblocker');

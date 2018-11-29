@@ -10,7 +10,17 @@
       backend. Each analysis will be triggered automatically by Anolysis
       once a day, using the metrics collected from the previous day.
       <div class="divider"></div>
-      Here's a list of all current analyses:
+      <div class="columns">
+        <div class="column">
+          Here's a list of all current analyses:
+        </div>
+        <div class="column">
+          <ul class="status-legend text-gray">
+            <li>No aggregation needed <span class='no-aggregation-needed'> ●</span></li>
+            <li>Waiting for daily aggregation <span class='aggregation-needed'> ●</span></li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
   <div class="card-body">
@@ -21,11 +31,18 @@
         <summary class="accordion-header">
           <i class="icon icon-arrow-right mr-1 text-gray"></i>
           <span>{{this.name}}</span>
+          <span class={{this.class}} style="float: right">⏺</span>
         </summary>
         <div class="accordion-body">
           <!-- Accordions content -->
-          <pre class="code" data-lang="analysis schema">{{this.schema}}</pre>
-        </div>
+          <div class="columns">
+            <div class="column col-4">
+              <p class="description">{{this.description}}</p>
+            </div>
+            <div class="column col-8">
+              <pre class="code" data-lang="analysis schema">{{this.schema}}</pre>
+            </div>
+          </div>
       </details>
     </li>
     {{/each}}

@@ -26,9 +26,10 @@ export function ifModuleEnabled(promise) {
   return promise.catch((err) => {
     if (err.name === ModuleDisabledError.name) {
       Logger.get('core').debug(
-        'Ignoring disabled module exception while calling action,' +
-        ' the following exception can be safely ignored. This log' +
-        ' is only printed in "debug" mode.', err);
+        'Ignoring disabled module exception while calling action,'
+        + ' the following exception can be safely ignored. This log'
+        + ' is only printed in "debug" mode.', err
+      );
       return Promise.resolve();
     }
 
@@ -44,6 +45,10 @@ class ModuleWrapper {
 
   get module() {
     return app && app.modules[this.moduleName];
+  }
+
+  isPresent() {
+    return !!this.module;
   }
 
   isWindowReady(window) {
@@ -101,9 +106,10 @@ export default {
               return api[prop](...args);
             } catch (ex) {
               throw new Error(
-                `Could not access '${prop}' from service: ${serviceName}. ` +
-                'Make sure it appears in the "requiresServices" property ' +
-                `of the module's background where is it used. Reason: ${ex}`);
+                `Could not access '${prop}' from service: ${serviceName}. `
+                + 'Make sure it appears in the "requiresServices" property '
+                + `of the module's background where is it used. Reason: ${ex}`
+              );
             }
           },
         });

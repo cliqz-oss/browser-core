@@ -4,16 +4,15 @@ import prefs from '../core/prefs';
 import { getSearchEngines } from '../core/search-engines';
 
 function getProviders() {
+  const currentBackend = prefs.get('backend_country', 'de');
   const all = JSON.parse(prefs.get('config_backends', '["de"]'))
     .reduce((acc, cur) => {
       acc[cur] = {
-        selected: cur === prefs.get('backend_country', 'de'),
+        selected: cur === currentBackend,
         name: getMessage(`country_code_${cur.toUpperCase()}`),
       };
-
       return acc;
     }, {});
-
   if (prefs.has('backend_country.override')) {
     const customCountry = prefs.get('backend_country.override');
     all[customCountry] = {
@@ -21,7 +20,6 @@ function getProviders() {
       name: `Custom - [${customCountry}]`
     };
   }
-
   return all;
 }
 
@@ -69,9 +67,12 @@ export default class SearchWindow extends AppWindow {
     super.unload();
   }
 
+  actions = {
+    getBackendCountries: getProviders
+  }
+
   status() {
     let engines = [];
-
     try {
       engines = getSearchEngines().map(engine => ({
         name: engine.name,
@@ -82,11 +83,11 @@ export default class SearchWindow extends AppWindow {
     } catch (e) {
       // may be not initailized yet
     }
-
     return {
       visible: true,
       state: engines,
       supportedIndexCountries: getProviders(),
+      quickSearchEnabled: prefs.get('modules.search.providers.cliqz.enabled', true),
       showQuerySuggestions: prefs.get('suggestionsEnabled', false)
     };
   }

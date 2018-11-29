@@ -18,15 +18,22 @@
       <details class="accordion">
         <summary class="accordion-header">
           <i class="icon icon-arrow-right mr-1 text-gray"></i>
-          <span  class="">{{this.name}}</span>
+          <span class="">{{this.name}}</span>
           <span class="{{this.class}}">{{this.count}}</span>
         </summary>
         <div class="accordion-body">
           <!-- Accordions content -->
-          <pre class="code" data-lang="metric schema">{{this.schema}}</pre>
-          <a class="btn btn-sm" href="resource://cliqz/anolysis-cc/metric.html?metric={{this.name}}">
-          View
-          </a>
+          <div class="columns">
+            <div class="column col-4">
+              <p class="description">{{this.description}}</p>
+              <a class="btn btn-primary btn-sm" href="resource://cliqz/anolysis-cc/metric.html?metric={{this.name}}">
+                View
+              </a>
+            </div>
+            <div class="column col-8">
+              <pre class="code" data-lang="analysis schema">{{this.schema}}</pre>
+            </div>
+          </div>
         </div>
       </details>
     </li>

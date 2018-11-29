@@ -1,8 +1,14 @@
-<div class="page-container">
+<div class="page-container {{#if isWebExtension }}web-ext{{/if}}">
     <div class="overlay"></div>
     <header>
         <p>
-            <span data-i18n="offers_hub_title"></span>
+            <img class="gift_icon" src="./images/offers-cc-icon.svg" alt="">
+            {{#if isWebExtension}}
+                <span class="offers_label" data-i18n="offers_hub_title"></span>
+            {{else}}
+                <span class="offers_label" data-i18n="cliqz_offers"></span>
+            {{/if}}
+
             <span></span>
             <span class="setting" data-telemetry-id="menu">
                 <a
@@ -10,19 +16,28 @@
                 >
                 </a>
             </span>
+             {{#if isWebExtension }}<span class="hide-reward-box"></span>{{/if}}
         </p>
         <ul class="setting-menu">
+            {{#unless isWebExtension}}
             <li class="feedback"
                 data-i18n="offers_menu_give_feedback"
                 data-telemetry-id="feedback">
             </li>
+            {{/unless}}
             <li class="why"
                 data-i18n="why_see_this"
                 data-telemetry-id="why">
             </li>
             <li
                 data-telemetry-id="learn_more">
-                <a href="https://cliqz.com/support"  data-i18n="Sitemap_Facebook_Help" target="_blank"></a>
+                <a
+                {{#if isWebExtension }}
+                href="https://myoffrz.com/kontakt/"
+                {{else}}
+                href="https://cliqz.com/support"
+                {{/if}}
+                data-i18n="Sitemap_Facebook_Help" target="_blank"></a>
             </li>
         </ul>
     </header>
@@ -45,14 +60,30 @@
 
     <footer>
         <p>
-            <span class="ad-label">{{#unless noVoucher}}{{local 'ad_label'}}{{/unless}}</span>
+            {{#unless isWebExtension}}<span class="ad-label">{{#unless noVoucher}}{{local 'ad_label'}}{{/unless}}</span>{{/unless}}
+            {{#if isWebExtension }}
+            <span class="feedback">
+                <img src="./images/feedback-face.svg" alt="">
+                <label>{{ local 'offers_hub_feedback_title'}}</label>
+            </span>
+            {{/if}}
             <span>
                 {{#if showExpandButton}}
                 <button id="expand-button"></button>
                 {{/if}}
             </span>
-            <span title="{{local 'offers_hub_powered_by'}}">
-                <a href="https://www.cliqz.com" target="_blank"></a>
+            {{#if isWebExtension}}
+            <span title="{{local 'offers_hub_powered_by_offrz'}}">
+            {{else}}
+            <span title="{{local 'offers_hub_powered_by'}}"></span>
+            {{/if}}
+                <a
+                {{#if isWebExtension}}
+                href="https://myoffrz.com/fuer-nutzer"
+                {{else}}
+                href="https://cliqz.com/myoffrz"
+                {{/if}}
+                target="_blank"></a>
             </span>
         </p>
     </footer>

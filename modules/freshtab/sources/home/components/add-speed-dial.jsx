@@ -115,8 +115,9 @@ export default class AddSpeedDial extends React.Component {
   render() {
     let isEnabled = !(this.state.errorDuplicate || this.state.errorInvalid);
     const classes = ['submit'];
-    const errorStr = this.state.errorDuplicate ? t('app_speed_dial_exists_already') :
-      t('app_speed_dial_not_valid');
+    const errorStr = this.state.errorDuplicate
+      ? t('app_speed_dial_exists_already')
+      : t('app_speed_dial_not_valid');
 
     if (!this.state.url) {
       isEnabled = false;
@@ -130,6 +131,7 @@ export default class AddSpeedDial extends React.Component {
       <div className="dial dial-plus">
         <ToggleDisplay show={this.state.show}>
           <button
+            type="button"
             className="plus-dial-icon"
             onClick={this.handleClick}
             tabIndex="-1"
@@ -139,18 +141,20 @@ export default class AddSpeedDial extends React.Component {
           closeAction={this.handleCloseModal}
           showModal={this.state.showModal}
           updateModalState={this.props.updateModalState}
+          className="modal"
         >
           <form
             className="addDialForm"
             onSubmit={this.handleSubmit}
           >
-            <div className="modal-header">{t('app_speed_dial_add_header')}
-              <button
-                className="closeForm"
-                type="button"
-                role="link"
-                onClick={this.handleCloseModal}
-              />
+            <button
+              className="closeForm"
+              type="button"
+              role="link"
+              onClick={this.handleCloseModal}
+            />
+            <div className="modal-header">
+              {t('app_speed_dial_add_header')}
             </div>
             <div className="field">
               <input
@@ -197,4 +201,3 @@ export default class AddSpeedDial extends React.Component {
     );
   }
 }
-

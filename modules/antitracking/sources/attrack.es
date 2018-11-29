@@ -12,13 +12,12 @@ import pacemaker from '../core/services/pacemaker';
 import { getGeneralDomain } from '../core/tlds';
 import prefs from '../core/prefs';
 import events from '../core/events';
-import privacy from '../platform/privacy';
 
 import * as browser from '../platform/browser';
 import * as datetime from './time';
 import PageEventTracker from './tp_events';
 import Pipeline from '../webrequest-pipeline/pipeline';
-import QSWhitelist from './qs-whitelists';
+import QSWhitelist2 from './qs-whitelist2';
 import TempSet from './temp-set';
 import cleanLegacyDb from './legacy/database';
 import md5 from '../core/helpers/md5';
@@ -33,6 +32,7 @@ import { compressionAvailable, compressJSONToBase64, generateAttrackPayload } fr
 import AttrackDatabase from './database';
 import getTrackingStatus from './dnt';
 import TrackerCounter from '../core/helpers/tracker-counter';
+import { isMobile } from '../core/platform';
 
 import BlockRules from './steps/block-rules';
 import CookieContext from './steps/cookie-context';
@@ -65,7 +65,7 @@ export default class CliqzAttrack {
     this.pipelineSteps = {};
     this.pipelines = {};
 
-    this.geoip = new GeoIp();
+    this.geoip = !isMobile ? new GeoIp() : null;
     this.db = new AttrackDatabase();
   }
 
@@ -165,7 +165,8 @@ export default class CliqzAttrack {
     pacemaker.register(
       this.hourChanged.bind(this),
       twoMinutes,
-      timeChangeConstraint('hourChanged', 'hour'));
+      timeChangeConstraint('hourChanged', 'hour')
+    );
 
     pacemaker.register(() => {
       this.tp_events.commit().then(() => {
@@ -212,13 +213,13 @@ export default class CliqzAttrack {
     // Large static caches (e.g. token whitelist) are loaded from sqlite
     // Smaller caches (e.g. update timestamps) are kept in prefs
 
-    this.qs_whitelist = this.isBloomFilterEnabled() ? new AttrackBloomFilter(this.config) :
-      new QSWhitelist(this.config);
+    this.qs_whitelist = this.isBloomFilterEnabled()
+      ? new AttrackBloomFilter(this.config)
+      : new QSWhitelist2(this.config.whitelistUrl);
 
     initPromises.push(this.qs_whitelist.init());
     initPromises.push(this.urlWhitelist.init());
     initPromises.push(this.db.init());
-    initPromises.push(this.initPrivacySettings());
 
     // force clean requestKeyValue
     this.onSafekeysUpdated = events.subscribe('attrack:safekeys_updated', (version, forceClean) => {
@@ -252,37 +253,17 @@ export default class CliqzAttrack {
     }, this.config);
 
     initPromises.push(this.initPipeline());
-    initPromises.push(this.geoip.load());
+    if (this.geoip) {
+      initPromises.push(this.geoip.load());
+    }
+
+    this._onPageStaged = this.onPageStaged.bind(this);
+    this.tp_events.addEventListener('stage', this._onPageStaged);
 
     // cleanup legacy database
     cleanLegacyDb();
 
     return Promise.all(initPromises);
-  }
-
-  async initPrivacySettings() {
-    // check if first party isolation is available
-    if (!privacy || !privacy.websites || !privacy.websites.firstPartyIsolate) {
-      return;
-    }
-
-    const firstPartyIsolateEnabled = (await privacy.websites.firstPartyIsolate.get({})).value;
-    if (firstPartyIsolateEnabled) {
-      this.config.setPref('cookieEnabled', false);
-    } else if (this.config.firstPartyIsolation) {
-      // turn on first party isolation, and set cookies to allowed from visited
-      await privacy.websites.cookieConfig.set({
-        value: {
-          behavior: 'allow_visited',
-          nonPersistentCookies: true,
-        }
-      });
-      await privacy.websites.firstPartyIsolate.set({ value: true });
-      // disable cookie blocking -> they're already isolated
-      this.config.setPref('cookieEnabled', false);
-    } else {
-      this.config.setPref('cookieEnabled', true);
-    }
   }
 
   initPipeline() {
@@ -295,7 +276,8 @@ export default class CliqzAttrack {
           this.telemetry.bind(this),
           this.qs_whitelist,
           this.config,
-          this.db),
+          this.db
+        ),
         domChecker: new DomChecker(),
         tokenChecker: new TokenChecker(
           this.qs_whitelist,
@@ -303,7 +285,8 @@ export default class CliqzAttrack {
           this.hashProb,
           this.config,
           this.telemetry,
-          this.db),
+          this.db
+        ),
         blockRules: new BlockRules(this.config),
         cookieContext: new CookieContext(this.config, this.tp_events, this.qs_whitelist),
         redirectTagger: new RedirectTagger(),
@@ -376,6 +359,17 @@ export default class CliqzAttrack {
           fn: state => steps.pageLogger.logRequestMetadata(state),
         },
         {
+          name: 'logIsTracker',
+          spec: 'collect',
+          fn: (state) => {
+            if (this.qs_whitelist.isTrackerDomain(state.urlParts.generalDomainHash)) {
+              const annotations = state.getPageAnnotations();
+              annotations.counter = annotations.counter || new TrackerCounter();
+              annotations.counter.addTrackerSeen(state.ghosteryBug, state.urlParts.hostname);
+            }
+          },
+        },
+        {
           name: 'checkExternalBlocking',
           spec: 'blocking',
           fn: (state, response) => {
@@ -426,8 +420,8 @@ export default class CliqzAttrack {
         {
           name: 'checkShouldBlock',
           spec: 'break',
-          fn: state => state.badTokens.length > 0 && this.qs_whitelist.isUpToDate() &&
-                       !this.config.paused,
+          fn: state => state.badTokens.length > 0 && this.qs_whitelist.isUpToDate()
+                       && !this.config.paused,
         },
         {
           name: 'oauthDetector.checkIsOAuth',
@@ -509,8 +503,8 @@ export default class CliqzAttrack {
           name: 'catchMissedOpenListener',
           spec: 'blocking',
           fn: (state, response) => {
-            if ((state.reqLog && state.reqLog.c === 0) ||
-                steps.redirectTagger.isFromRedirect(state.url)) {
+            if ((state.reqLog && state.reqLog.c === 0)
+                || steps.redirectTagger.isFromRedirect(state.url)) {
               // take output from 'open' pipeline and copy into our response object
               this.pipelines.onBeforeRequest.execute(state, response);
             }
@@ -537,11 +531,11 @@ export default class CliqzAttrack {
             if (referrer && referrer.indexOf(state.sourceUrl) > -1) {
               state.incrementStat('referer_leak_header');
             }
-            if (state.url.indexOf(state.sourceUrlParts.hostname) > -1 ||
-                state.url.indexOf(encodeURIComponent(state.sourceUrlParts.hostname)) > -1) {
+            if (state.url.indexOf(state.sourceUrlParts.hostname) > -1
+                || state.url.indexOf(encodeURIComponent(state.sourceUrlParts.hostname)) > -1) {
               state.incrementStat('referer_leak_site');
-              if (state.url.indexOf(state.sourceUrlParts.path) > -1 ||
-                  state.url.indexOf(encodeURIComponent(state.sourceUrlParts.path)) > -1) {
+              if (state.url.indexOf(state.sourceUrlParts.path) > -1
+                  || state.url.indexOf(encodeURIComponent(state.sourceUrlParts.path)) > -1) {
                 state.incrementStat('referer_leak_path');
               }
             }
@@ -593,8 +587,8 @@ export default class CliqzAttrack {
           name: 'shouldBlockCookie',
           spec: 'break',
           fn: (state) => {
-            const shouldBlock = this.isCookieEnabled(state.sourceUrlParts.hostname) &&
-                                !this.config.paused;
+            const shouldBlock = this.isCookieEnabled(state.sourceUrlParts.hostname)
+                                && !this.config.paused;
             if (!shouldBlock) {
               state.incrementStat('bad_cookie_sent');
             }
@@ -701,7 +695,8 @@ export default class CliqzAttrack {
               state.incrementStat('content_length', parseInt(state.getResponseHeader('Content-Length'), 10) || 0);
               state.incrementStat(`status_${state.responseStatus}`);
             }
-            if (this.qs_whitelist.isTrackerDomain(state.urlParts.generalDomainHash) && state.ip) {
+            if (this.geoip && this.qs_whitelist.isTrackerDomain(state.urlParts.generalDomainHash)
+                && state.ip) {
               try {
                 const ipLoc = this.geoip.lookup(state.ip);
                 if (ipLoc) {
@@ -764,6 +759,15 @@ export default class CliqzAttrack {
           fn: state => steps.cookieContext.checkContextFromEvent(state),
         },
         {
+          name: 'logSetBlockedCookie',
+          spec: 'collect',
+          fn: (state) => {
+            const annotations = state.getPageAnnotations();
+            annotations.counter = annotations.counter || new TrackerCounter();
+            annotations.counter.addCookieBlocked(state.ghosteryBug, state.urlParts.hostname);
+          },
+        },
+        {
           name: 'blockSetCookie',
           spec: 'blocking',
           fn: (state, response) => {
@@ -806,15 +810,15 @@ export default class CliqzAttrack {
 
       // Add steps to the global web request pipeline
       return Promise.all(Object.keys(this.pipelines).map(stage =>
-        this.webRequestPipeline.action('addPipelineStep',
+        this.webRequestPipeline.action(
+          'addPipelineStep',
           stage,
           {
             name: `antitracking.${stage}`,
             spec: 'blocking',
             fn: (...args) => this.pipelines[stage].execute(...args),
           }
-        )
-      ));
+        )));
     });
   }
 
@@ -836,11 +840,17 @@ export default class CliqzAttrack {
     // a synchronous `unload` method which will clean up everything anyway.
     // But if we reload only the antitracking module, we need to be sure we
     // removed the steps before we try to add them again.
-    return Promise.all(Object.keys(this.pipelines).map(stage =>
-      ifModuleEnabled(this.webRequestPipeline.action('removePipelineStep',
-        stage,
-        `antitracking.${stage}`))
-    )).then(() => {
+    return Promise.all(
+      Object.keys(this.pipelines).map(
+        stage => ifModuleEnabled(
+          this.webRequestPipeline.action(
+            'removePipelineStep',
+            stage,
+            `antitracking.${stage}`
+          )
+        )
+      )
+    ).then(() => {
       this.pipelines = {};
     });
   }
@@ -865,6 +875,8 @@ export default class CliqzAttrack {
       // NOTE - this is an async operation
       this.tp_events.commit(true, true);
       this.tp_events.push(true);
+
+      this.tp_events.removeEventListener('stage', this._onPageStaged);
 
       this.unloadPipeline();
 
@@ -976,9 +988,9 @@ export default class CliqzAttrack {
   checkCompatibilityList(state) {
     const tpGd = state.urlParts.generalDomain;
     const fpGd = state.sourceUrlParts.generalDomain;
-    if (this.config.compabilityList &&
-        this.config.compatibilityList[tpGd] &&
-        this.config.compatibilityList[tpGd].indexOf(fpGd) !== -1) {
+    if (this.config.compabilityList
+        && this.config.compatibilityList[tpGd]
+        && this.config.compatibilityList[tpGd].indexOf(fpGd) !== -1) {
       return false;
     }
     return true;
@@ -1008,9 +1020,9 @@ export default class CliqzAttrack {
     };
 
     // ignore special tabs
-    if (url && (url.startsWith('about') ||
-                url.startsWith('chrome') ||
-                url.startsWith('resource'))) {
+    if (url && (url.startsWith('about')
+                || url.startsWith('chrome')
+                || url.startsWith('resource'))) {
       result.error = 'Special tab';
       return Promise.resolve(result);
     }
@@ -1032,8 +1044,8 @@ export default class CliqzAttrack {
     const tabData = this.tp_events._active[tabId];
     const plainData = tabData.asPlainObject();
     const trackers = Object.keys(plainData.tps).filter(domain => Promise.resolve(
-      this.qs_whitelist.isTrackerDomain(md5(getGeneralDomain(domain)).substring(0, 16)) ||
-      plainData.tps[domain].blocked_blocklist > 0
+      this.qs_whitelist.isTrackerDomain(md5(getGeneralDomain(domain)).substring(0, 16))
+      || plainData.tps[domain].blocked_blocklist > 0
     ));
 
     // const firstPartyCompany = domainInfo.domainOwners[getGeneralDomain(tabData.hostname)];
@@ -1051,8 +1063,8 @@ export default class CliqzAttrack {
       result.trackers[dom].tokens_removed = ['empty', 'replace', 'placeholder', 'block'].reduce(
         (cumsum, action) => cumsum + (plainData.tps[dom][`token_blocked_${action}`] || 0), 0
       );
-      result.trackers[dom].tokens_removed += plainData.tps[dom].blocked_blocklist || 0 +
-        plainData.tps[dom].blocked_external || 0;
+      result.trackers[dom].tokens_removed += plainData.tps[dom].blocked_blocklist || 0
+        + plainData.tps[dom].blocked_external || 0;
 
       result.cookies.allowed += (
         result.trackers[dom].cookie_set - result.trackers[dom].cookie_blocked
@@ -1136,11 +1148,11 @@ export default class CliqzAttrack {
       Object.keys(info.trackers).forEach((domain) => {
         const tld = getGeneralDomain(domain);
         const id = domainInfo.domains[tld];
-        const blocked = info.trackers[domain].tokens_removed > 0 ||
-          info.trackers[domain].blocked_blocklist > 0;
-        const unsafe = info.trackers[domain].bad_qs > 0 ||
-          info.trackers[domain].cookie_blocked > 0 ||
-          info.trackers[domain].set_cookie_blocked > 0;
+        const blocked = info.trackers[domain].tokens_removed > 0
+          || info.trackers[domain].blocked_blocklist > 0;
+        const unsafe = info.trackers[domain].bad_qs > 0
+          || info.trackers[domain].cookie_blocked > 0
+          || info.trackers[domain].set_cookie_blocked > 0;
         if (id) {
           apps.known[id] = actionName(blocked || apps.known[id] === true, unsafe);
         } else {
@@ -1156,16 +1168,12 @@ export default class CliqzAttrack {
    *  if module_only is set to true, will not set preferences for cookie, QS
    *  and referrer protection (for selective loading in AB tests)
    */
-  enableModule(moduleOnly) {
+  enableModule() {
     if (this.isEnabled()) {
       return;
     }
 
     this.config.setPref('enabled', true);
-    if (!moduleOnly) {
-      this.config.setPref('cookieEnabled', true);
-      this.config.setPref('qsEnabled', true);
-    }
   }
 
   /** Disables anti-tracking immediately.
@@ -1192,5 +1200,22 @@ export default class CliqzAttrack {
     if (this.pipelineSteps.tokenChecker) {
       this.pipelineSteps.tokenChecker.tokenDomain.clear();
     }
+  }
+
+  onPageStaged(tabId, page) {
+    let report = {
+      bugs: {},
+      others: {},
+    };
+    if (page && page.annotations && page.annotations.counter) {
+      report = page.annotations.counter.getSummary();
+    }
+    events.pub('antitracking:tracker-report', {
+      tabId,
+      ts: page.s,
+      url: page.url,
+      host: page.hostname,
+      report,
+    });
   }
 }

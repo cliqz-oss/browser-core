@@ -1,5 +1,5 @@
 import prefs from '../core/prefs';
-import Database from '../core/database';
+import Database from '../core/database-migrate';
 
 
 export class ModuleStorage {
@@ -7,14 +7,17 @@ export class ModuleStorage {
     this.database = new Database('cliqz-abtests');
   }
 
+  init() {
+    return this.database.init();
+  }
+
   get(k, d) {
     return this.database.get(k)
-      .then(doc => doc.v)
-      .catch((error) => {
-        if (error.status === 404) {
+      .then((doc) => {
+        if (doc === undefined) {
           return d;
         }
-        throw error;
+        return doc.v;
       });
   }
 

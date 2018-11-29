@@ -3,6 +3,7 @@ import Spanan from 'spanan';
 export default class BaseDropdownManager {
   constructor() {
     this.selectedResult = null;
+    this.hasAutocompleted = false;
   }
 
   actions = {
@@ -18,28 +19,52 @@ export default class BaseDropdownManager {
   }
 
   _telemetry() {}
+
   _copyToClipboard() {}
+
   _openLink() {}
+
   _focus() {}
+
   _reportHighlight() {}
+
+  _reportClick() {}
+
   _adultAction() {}
+
   _locationAction() {}
 
   _setUrlbarValue() {}
+
   _getUrlbarValue() {}
+
   _setSelectionRange() {}
+
   _getSelectionRange() {}
+
   _setHeight() {}
+
   _queryCliqz() {}
+
   _getHeight() {}
+
   _removeFromHistory() {}
+
   _removeFromBookmarks() {}
+
   _closeTabsWithUrl() {}
+
   _getQuery() {}
+
   _getAssistantStates() {}
+
   _getUrlbarAttributes() {}
+
   _getMaxHeight() {}
+
   _createIframe() {}
+
+  _getSessionId() {}
 
   get isOpen() {
     return this._getHeight() > 0;
@@ -93,6 +118,15 @@ export default class BaseDropdownManager {
     }
   }
 
+  removeFromHistoryAndBookmarks(url) {
+    Promise.all([
+      this._removeFromHistory(url),
+      this._removeFromBookmarks(url),
+    ])
+      .then(() => this._closeTabsWithUrl(url))
+      .then(() => this._queryCliqz());
+  }
+
   createIframeWrapper(_iframe) {
     if (!this.iframe) {
       if (_iframe) {
@@ -137,6 +171,10 @@ export default class BaseDropdownManager {
     this.dropdownAction = iframeWrapper.createProxy();
   }
 
+  close() {
+    this.setHeight(0);
+  }
+
   unload() {
     if (this.iframe) {
       this.iframe.contentWindow.removeEventListener('message', this.onMessage);
@@ -148,14 +186,14 @@ export default class BaseDropdownManager {
     return true;
   }
 
-  onKeyDown(ev) {
+  onKeydown(ev) {
     let preventDefault = false;
     switch (ev.key) {
       case 'ArrowUp':
       case 'ArrowDown': {
         preventDefault = true;
         if (!this.isOpen) {
-          this._queryCliqz();
+          this._queryCliqz('', { allowEmptyQuery: true });
           break;
         }
         (ev.key === 'ArrowUp' ? this.previousResult() : this.nextResult())
@@ -163,7 +201,7 @@ export default class BaseDropdownManager {
         break;
       }
       case 'Tab': {
-        if (this.textInput.value) {
+        if (this.isOpen || this.textInput.value) {
           (ev.shiftKey ? this.previousResult() : this.nextResult())
             .then(this.setUrlbarValue);
         }
@@ -181,24 +219,23 @@ export default class BaseDropdownManager {
       }
       case 'Escape': {
         this._setUrlbarValue('');
-        this.setHeight(0);
+        if (this.isOpen) {
+          this.setHeight(0);
+        } else {
+          this.close();
+        }
         break;
       }
       case 'Delete':
       case 'Backspace': {
-        if (!ev.shiftKey || ev.metaKey || (ev.altKey && ev.ctrlKey) ||
-            !this.selectedResult || !this.selectedResult.isDeletable
+        if (!ev.shiftKey || ev.metaKey || (ev.altKey && ev.ctrlKey)
+            || !this.selectedResult || !this.selectedResult.isDeletable
         ) {
           break;
         }
 
         const historyUrl = this.selectedResult.historyUrl;
-        Promise.all([
-          this._removeFromHistory(historyUrl),
-          this._removeFromBookmarks(historyUrl),
-        ])
-          .then(() => this._closeTabsWithUrl(historyUrl))
-          .then(() => this._queryCliqz());
+        this.removeFromHistoryAndBookmarks(historyUrl);
 
         preventDefault = true;
         break;
@@ -213,8 +250,9 @@ export default class BaseDropdownManager {
     const query = this._getUrlbarValue();
     const { selectionStart, selectionEnd } = this._getSelectionRange();
     return (
-      selectionEnd === query.length &&
-      selectionEnd !== selectionStart
+      selectionEnd === query.length
+      && selectionEnd !== selectionStart
+      && selectionStart !== 0
     );
   }
 
@@ -224,8 +262,8 @@ export default class BaseDropdownManager {
     const { selectionStart } = this._getSelectionRange();
 
     if (
-      this.hasCompletion &&
-      query[selectionStart] === String.fromCharCode(charCode)
+      this.hasCompletion
+      && query[selectionStart] === String.fromCharCode(charCode)
     ) {
       this._setSelectionRange(selectionStart + 1, query.length);
       this._queryCliqz();
@@ -233,6 +271,17 @@ export default class BaseDropdownManager {
     }
 
     return preventDefault;
+  }
+
+  onDrop(ev) {
+    const dTypes = ev.dataTransfer.types;
+    if ((dTypes.indexOf && dTypes.indexOf('text/plain') !== -1)
+      || (dTypes.contains && dTypes.contains('text/plain') !== -1)) {
+      this._telemetry({
+        type: 'activity',
+        action: 'textdrop'
+      });
+    }
   }
 
   autocompleteQuery(query, completion) {
@@ -245,12 +294,13 @@ export default class BaseDropdownManager {
       this._setUrlbarValue(value);
     }
     this._setSelectionRange(query.length, value.length);
+    this.hasAutocompleted = true;
   }
 
   hasRelevantResults(query, results) {
     const result = results[0];
-    return (result.text === query) ||
-           (result.suggestion && (result.suggestion === query));
+    return (result.text === query)
+           || (result.suggestion && (result.suggestion === query));
   }
 
   async render({
@@ -259,6 +309,7 @@ export default class BaseDropdownManager {
     rawResults,
     /* getSessionId, */
   }) {
+    this.hasAutocompleted = false;
     let urlbarQuery = this._getQuery();
     const firstResult = rawResults && rawResults[0];
     if (!firstResult || !this.hasRelevantResults(urlbarQuery, rawResults)) {
@@ -284,23 +335,29 @@ export default class BaseDropdownManager {
     const {
       height,
       result,
+      renderedSessionId,
     } = await this.dropdownAction.render({
       rawResults,
       query,
       queriedAt,
+      sessionId: this._getSessionId(),
     }, params);
 
     urlbarQuery = this._getQuery();
-    if (this.hasRelevantResults(urlbarQuery, [result])) {
+    if (renderedSessionId === this._getSessionId()
+        && this.hasRelevantResults(urlbarQuery, [result])) {
       this.autocompleteQuery(
         urlbarQuery,
         result.meta.completion,
       );
 
-      if (this._getUrlbarValue()) {
-        this.selectedResult = result;
-        this.setHeight(height);
-      }
+      this.selectedResult = result;
+      this.setHeight(height);
+      return;
+    }
+
+    if (renderedSessionId !== this._getSessionId() || urlbarQuery === '') {
+      this.setHeight(0);
     }
   }
 }

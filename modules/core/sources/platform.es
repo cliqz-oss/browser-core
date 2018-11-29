@@ -12,18 +12,23 @@ export function notImplemented() {
   throw new Error('Not implemented');
 }
 
+const { channel = '' } = config.settings;
+
 export const isBootstrap = platform.isBootstrap;
 export const isFirefox = platform.isFirefox;
 export const isMobile = platform.isMobile || Boolean(config.isMobile);
 export const isChromium = platform.isChromium;
 export const isEdge = platform.isEdge;
 export const platformName = platform.platformName;
-export const isCliqzBrowser = config.settings.channel === '40';
-export const isGhosteryBrowser = config.settings.channel === 'GB00';
+export const isCliqzBrowser = channel === '40';
+export const isGhosteryBrowser = channel.startsWith('GB');
+export const isGhosteryTab = channel.startsWith('GT');
 export const isDesktopBrowser = isCliqzBrowser || isGhosteryBrowser;
-export const isAMO = config.settings.channel === '04';
+export const isAMO = channel === '04';
 export const isOnionMode = !!platform.isOnionMode;
 export const isWebExtension = platformName === 'webextension';
+export const isGhostery = isGhosteryBrowser || isGhosteryTab;
+export const product = isGhostery ? 'GHOSTERY' : 'CLIQZ';
 
 export function isWindows() {
   return OS && OS.indexOf('win') === 0;

@@ -17,13 +17,14 @@ export function BloomFilter(elementsOrSize, nHashes) {
     let elements = [];
     if (typeof elementsOrSize === 'number') {
       size = elementsOrSize;
-    } else if (typeof elementsOrSize === 'object' &&
-             elementsOrSize.constructor.name === 'Array') {
+    } else if (typeof elementsOrSize === 'object'
+             && elementsOrSize.constructor.name === 'Array') {
       elements = elementsOrSize;
       size = elements.length;
     } else {
       throw new TypeError(
-        'First argument must be either an integer, or array or ArrayBuffer');
+        'First argument must be either an integer, or array or ArrayBuffer'
+      );
     }
     const buckets = new Int32Array(size);
     this._buckets = new Int32Array(size);

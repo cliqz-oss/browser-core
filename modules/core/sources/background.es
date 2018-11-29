@@ -14,7 +14,10 @@ import inject from './kord/inject';
 import { queryCliqz, openLink, openTab, getOpenTabs, getReminders } from '../platform/browser-actions';
 import providesServices from './services';
 import { httpHandler } from './http';
-import { updateTabById } from './tabs';
+import { updateTab } from './tabs';
+import handleReadContentAsDataUrl from './image-diverter';
+import { enableRequestSanitizer, disableRequestSanitizer } from './request-sanitizer';
+
 
 let lastRequestId = 1;
 const callbacks = {};
@@ -29,6 +32,8 @@ export default background({
   providesServices,
 
   init(settings, app) {
+    enableRequestSanitizer();
+
     this.settings = settings;
     this.utils = utils;
     this.app = app;
@@ -44,6 +49,8 @@ export default background({
   },
 
   unload() {
+    disableRequestSanitizer();
+
     this.mm.unload();
     resourceManager.unload();
     logger.unload();
@@ -89,16 +96,16 @@ export default background({
   },
 
   getWindowStatusFromModules(win) {
-    return Object.keys(this.app.modules).map((module) => {
+    return Object.keys(this.app.modules).map(async (module) => {
       const windowModule = this.app.modules[module].getWindowModule(win);
       const backgroundModule = this.app.modules[module].backgroundModule;
-
+      let status = null;
       if (windowModule && windowModule.status) {
-        return windowModule.status();
+        status = await windowModule.status();
       } else if (backgroundModule && backgroundModule.status) {
-        return backgroundModule.status();
+        status = await backgroundModule.status();
       }
-      return null;
+      return { module, status };
     });
   },
 
@@ -128,8 +135,8 @@ export default background({
   },
 
   events: {
-    'core:tab_select': function onTabSelect({ url, isPrivate }) {
-      events.pub('core.location_change', url, isPrivate);
+    'core:tab_select': function onTabSelect({ url, incognito }) {
+      events.pub('core.location_change', url, incognito);
     },
     'content:location-change': function onLocationChange({ url, isPrivate }) {
       events.pub('core.location_change', url, isPrivate);
@@ -179,30 +186,6 @@ export default background({
       events.pub('core:mouse-down', ...args);
     },
     /**
-    * @method actions.recordKeyPress
-    */
-    recordKeyPress(...args) {
-      events.pub('core:key-press', ...args);
-    },
-    /**
-    * @method actions.recordMouseMove
-    */
-    recordMouseMove(...args) {
-      events.pub('core:mouse-move', ...args);
-    },
-    /**
-    * @method actions.recordScroll
-    */
-    recordScroll(...args) {
-      events.pub('core:scroll', ...args);
-    },
-    /**
-    * @method actions.recordCopy
-    */
-    recordCopy(...args) {
-      events.pub('core:copy', ...args);
-    },
-    /**
      * publish an event using events.pub
      * @param  {String}    evtChannel channel name
      * @param  {...[objects]} args       arguments to sent
@@ -244,8 +227,8 @@ export default background({
         .then((allStatus) => {
           const result = {};
 
-          allStatus.forEach((status, moduleIdx) => {
-            result[config.modules[moduleIdx]] = status || null;
+          allStatus.forEach(({ module, status }) => {
+            result[module] = status || null;
           });
 
           return result;
@@ -280,7 +263,7 @@ export default background({
       if (newTab) {
         openLink(url);
       } else if (tabId) {
-        updateTabById(tabId, { url });
+        updateTab(tabId, url);
       }
     },
 
@@ -364,6 +347,10 @@ export default background({
 
     refreshAppState() {
       this.mm.shareAppState(this.app);
+    },
+
+    readContentAsDataUrl(url) {
+      return handleReadContentAsDataUrl(url);
     },
   },
 });

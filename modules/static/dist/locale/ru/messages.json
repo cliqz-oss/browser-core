@@ -1,15 +1,30 @@
 {
   "appName": {
-      "message": "Cliqz Tab: private search engine (Beta)"
+      "message": "Cliqz Tab (Beta)"
+  },
+  "appNameNightly": {
+      "message": "Cliqz Tab (Nightly)"
   },
   "appDesc": {
       "message": "Cliqz Tab replaces Chrome's default new tab page and adds backgrounds, favorites, news and Cliqz's anonymous quick search."
   },
   "ghosteryTabAppName": {
-      "message": "Ghostery Tab: private search engine (Beta)"
+      "message": "Ghostery Tab with private search (Beta)"
+  },
+  "ghosteryTabAppNameNightly": {
+      "message": "Ghostery Tab with private search (Nightly)"
   },
   "ghosteryTabAppDesc": {
       "message": "Get more out of Chrome. More privacy, more favorites, more freedom, more style and more news on each new tab!"
+  },
+  "offersAppName": {
+    "message": "MyOffrz"
+  },
+  "offersAppNameNightly": {
+    "message": "MyOffrz (Nightly)"
+  },
+  "offersAppDesc": {
+    "message": "Save money while shopping online with our high value vouchers.When you need them, where you need them. And absolutely private."
   },
   "more_on": {
       "message": "More on"
@@ -1329,10 +1344,10 @@
       "message": "Websites that contain explicit content are automatically opened in Forget tabs. Visits to such sites are therefore not saved to your history."
   },
   "control_center_info_share_location_title": {
-      "message": "Share Location"
+      "message": "Учитывать местоположение"
   },
   "control_center_info_share_location": {
-      "message": "You will see the most relevant search results by setting \"Share location\" to <strong>\"Always\"</strong>. Location data is used solely to automatically enhance search results."
+      "message": "Вы увидите наиболее релевантные результаты поиска, установив «Учитывать местоположение» в режим «Всегда». Данные местоположения используются исключительно для автоматического улучшения результатов поиска."
   },
   "control_center_info_share_location_link": {
       "message": "Learn more"
@@ -1341,7 +1356,7 @@
       "message": "Block adult content"
   },
   "control_center_info_explicit": {
-      "message": "Would you like to block websites with explicit content from the search results?"
+      "message": "Вы хотите исключить веб-сайты которые связаны с порнографией или насилием из результатов поиска?"
   },
   "control_center_adblock_title": {
       "message": "Ad-block"
@@ -1365,10 +1380,10 @@
       "message": "Report phishing Site"
   },
   "control_center_privacy_policy": {
-      "message": "Privacy Policy"
+      "message": "Политика конфиденциальности"
   },
   "control_center_support": {
-      "message": "Support"
+      "message": "Поддержка"
   },
   "control_center_othersettings": {
       "message": "Settings"
@@ -1376,32 +1391,35 @@
   "control_center_footer": {
       "message": "POWERED BY CLIQZ"
   },
+  "offers_hub_powered_by_offrz": {
+      "message": "POWERED BY MyOffrz"
+  },
   "control_center_quicksearch": {
-      "message": "Safe Quick-Search"
+      "message": "Safe Ghost-Search"
   },
   "control_center_location": {
       "message": "Share location"
   },
   "control_center_explicit": {
-      "message": "Block adult websites"
+      "message": "Блокировка сайтов для взрослых"
   },
   "control_center_proxy": {
       "message": "Search via proxy"
   },
   "control_center_searchoptions": {
-      "message": "Search Options"
+      "message": "Настройки поиска"
   },
   "control_center_search_engine": {
-      "message": "Alternative Search Engine"
+      "message": "Альтернативная поисковая система"
   },
   "control_center_telemetry": {
-      "message": "Send usage data"
+      "message": "Поделиться анонимными данными"
   },
   "control_center_telemetry_info": {
-      "message": "Cliqz collects strictly anonymous technical and interaction data. Personally identifiable information (“PII”) is never transferred."
+      "message": "Только строгие анонимные технические данные и данные взаимодействия. Лично идентифицируемая информация («PII») никогда не высылается."
   },
   "control_center_backend_country": {
-      "message": "Search Results for"
+      "message": "Результаты поиска для"
   },
   "control_center_report_url": {
       "message": "Report URL"
@@ -1668,7 +1686,7 @@
       "message": "Send Tab to Mobile"
   },
   "ad_label": {
-      "message": "Anzeige"
+      "message": "Ad"
   },
   "offers_hub_title": {
       "message": "MyOffrz"
@@ -1743,7 +1761,7 @@
       "message": "Conditions"
   },
   "offers_expires_in": {
-      "message": "Ends in"
+      "message": "Available for"
   },
   "offers_expires_day": {
       "message": "day"
@@ -1902,22 +1920,28 @@
     "message": "See all results and what's happening."
   },
   "freshtab_app_speed_dials_row_history": {
-      "message": "Most visited sites"
+      "message": "Самые посещаемые сайты"
   },
   "freshtab_app_speed_dials_row_history_onboarding": {
       "message": "Your most visited pages will appear here"
   },
   "freshtab_app_speed_dials_row_custom": {
-      "message": "Favorites"
+      "message": "Избранные"
+  },
+  "freshtab_search_reminder": {
+      "message": "Hey! Want to search privately?"
+  },
+  "freshtab_search_reminder_action": {
+      "message": "Click Tab"
   },
   "freshtab_urlbar_placeholder": {
-      "message": "Search privately"
+      "message": "Анонимный поиск"
   },
   "freshtab_app_speed_dial_removed": {
-      "message": "removed"
+      "message": "Удалено"
   },
   "freshtab_app_speed_dial_undo": {
-      "message": "Undo"
+      "message": "Отмена"
   },
   "freshtab_app_speed_dial_exists_already": {
       "message": "Address already exists"
@@ -1929,22 +1953,22 @@
       "message": "Add"
   },
   "freshtab_app_speed_dial_save": {
-      "message": "Save"
+      "message": "Сохранить"
   },
   "freshtab_app_speed_dial_delete": {
-      "message": "Delete"
+      "message": "Uдалить"
   },
   "freshtab_app_speed_dial_add_header": {
       "message": "Add to $1 Tab"
   },
   "freshtab_app_speed_dial_edit_header": {
-      "message": "Edit Title or Address"
+      "message": "Изменить название или адрес"
   },
   "freshtab_app_speed_dial_edit_address_header": {
-      "message": "Edit Address"
+      "message": "Изменить адрес"
   },
   "freshtab_app_speed_dial_edit_title_header": {
-      "message": "Edit Title"
+      "message": "Изменить название"
   },
   "freshtab_app_speed_dial_input_address_placeholder": {
       "message": "Enter Address"
@@ -2010,49 +2034,55 @@
       "message": "Read more"
   },
   "freshtab_app_settings_header": {
-      "message": "Customize"
+      "message": "Настройка"
   },
   "freshtab_app_settings_background_label": {
-      "message": "Background"
+      "message": "Фон"
   },
   "freshtab_app_settings_most_visited_label": {
-      "message": "Most visited sites"
+      "message": "Самые посещаемые сайты"
   },
   "freshtab_app_settings_most_visited_restore": {
-      "message": "Restore all"
+      "message": "Восстановить все"
   },
   "freshtab_app_settings_favorites_label": {
-      "message": "Favorites"
+      "message": "Избранные"
   },
   "freshtab_app_settings_search_label": {
-      "message": "Search bar"
+      "message": "Поиск"
   },
   "freshtab_app_settings_news_label": {
-      "message": "News"
+      "message": "Новости"
   },
   "freshtab_app_settings_news_language_de": {
-      "message": "German media"
+      "message": "Немецкие СМИ"
   },
   "freshtab_app_settings_news_language_en": {
-      "message": "UK & U.S. media"
+      "message": "СМИ Великобритании и США"
   },
   "freshtab_app_settings_news_language_fr": {
-      "message": "French media"
+      "message": "Француские СМИ"
   },
   "freshtab_app_settings_news_language_de_tr_en": {
-      "message": "German media in English"
+      "message": "Немецкие СМИ на английском"
   },
   "freshtab_app_settings_news_language_gb": {
-      "message": "UK media"
+      "message": "СМИ Великобритании"
   },
   "freshtab_app_settings_news_language_us": {
-      "message": "U.S. media"
+      "message": "СМИ США"
   },
   "freshtab_app_settings_news_language_es": {
-      "message": "Spanish media"
+      "message": "Испанские СМИ"
   },
   "freshtab_app_settings_news_language_pl": {
       "message": "Polish media"
+  },
+  "freshtab_app_settings_news_language_it": {
+      "message": "Итальянские СМИ"
+  },
+  "freshtab_app_settings_news_language_ru": {
+      "message": "Русские СМИ"
   },
   "freshtab_app_offers_exclusive": {
       "message": "Exclusive"
@@ -2129,6 +2159,9 @@
   "freshtab_cliqz_tab_button": {
       "message": "$1 Tab"
   },
+  "freshtab_cliqz_for_friends_button": {
+      "message": "Cliqz for friends"
+  },
   "freshtab_cliqz_modules_button": {
       "message": "Cliqz Modules"
   },
@@ -2151,7 +2184,7 @@
     "message": "Optional"
   },
   "feedback_submit_feedback": {
-    "message": "Send Feedback"
+    "message": "Send"
   },
   "offers_menu_give_feedback": {
     "message": "Give Feedback"
@@ -2162,10 +2195,58 @@
   "why_see_these_offers": {
     "message": "Why do I see these offers?"
   },
-  "freshtab_new_feature": {
-    "message": "New!"
+  "feedback_skip": {
+    "message": "Skip"
   },
-  "freshtab_blackfriday_tooltip": {
-    "message": "Black Friday Offers!"
+  "freshtab_stats_gt_trackers_blocked": {
+    "message": "Заблокировано трекеров"
+  },
+  "freshtab_stats_gt_trackers_seen": {
+    "message": "Из $1 трекеров, обнаруженных Ghostery"
+  },
+  "freshtab_stats_dp_anonymized": {
+    "message": "Анонимизировано персональных данных"
+  },
+  "freshtab_stats_data_anonymized_by_desc": {
+    "message": "Ваши персональные данные были анонимизированы $1"
+  },
+  "freshtab_stats_ads_blocked": {
+    "message": "Анонимизировано персональных данных"
+  },
+  "freshtab_stats_ads_blocked_by_desc": {
+    "message": "Ваши личные данные были анонимизированы $1"
+  },
+  "freshtab_stats_time_saved": {
+    "message": "Time Saved"
+  },
+  "freshtab_stats_time_saved_desc": {
+    "message": "Estimated time you saved by using Cliqz Ad-Blocker since the first browser start."
+  },
+  "freshtab_stats_cliqz_trackers_blocked": {
+    "message": "Заблокировано отслеживающих(tracking-) cookie"
+  },
+  "freshtab_stats_cliqz_trackers_blocked_desc": {
+    "message": "Total number of private data points removed by Cliqz since the first browser start."
+  },
+  "promo_data_brand_name": {
+    "message": "Ghostery - персональный блокировщик рекламы"
+  },
+  "promo_data_description": {
+    "message": "Дополните свой браузер мощным расширением конфиденциальности."
+  },
+  "promo_data_description_2": {
+    "message": "Блокирует рекламу, останавливает трекеры и ускоряет загрузку сайтов."
+  },
+  "later_link": {
+    "message": "Позже"
+  },
+  "add_to_chrome": {
+    "message": "Добавить в Chrome"
+  },
+  "freshtab_app_settings_privacy_stats": {
+    "message": "Статистика конфиденциальности"
+  },
+  "cliqz_offers" : {
+    "message": "Cliqz Offers"
   }
 }

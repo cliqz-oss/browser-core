@@ -1,4 +1,4 @@
-import Database from '../core/database';
+import Database from '../core/database-migrate';
 import logger from './common/logger';
 
 /**
@@ -8,10 +8,10 @@ class DataAccessProvider {
   constructor() {
     this.db = new Database('market-analysis', { revs_limit: 1, auto_compaction: true });
     this.STORAGE_KEY = 'webstats';
+  }
 
-    this.db.info().then((info) => {
-      logger.log(`Current Database Info: ${JSON.stringify(info)}`);
-    });
+  init() {
+    return this.db.init();
   }
 
   /**

@@ -43,8 +43,9 @@ export default {
       const preAggregatedHistograms = histogramsMetrics[i];
       for (let j = 0; j < preAggregatedHistograms.length; j += 1) {
         const { step, histogram } = preAggregatedHistograms[j];
-        cumulativeHistograms.update(step, existingHistogram =>
-          mergeHistograms(existingHistogram, histogram)
+        cumulativeHistograms.update(
+          step,
+          existingHistogram => mergeHistograms(existingHistogram, histogram)
         );
       }
     }

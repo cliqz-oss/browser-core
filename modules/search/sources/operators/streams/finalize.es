@@ -13,6 +13,7 @@ import reconstructResults from '../streams/reconstruct-results';
 import smoothResults from '../streams/smooth-results';
 import trimResults from '../streams/trim-results';
 import waitForAllProviders from '../streams/wait-for-all-providers';
+import eliminateRepeatedResults from '../streams/eliminate-repeated-results';
 
 const { pipe } = Rx;
 
@@ -29,5 +30,6 @@ export default config => pipe(
   mapResponses(rerank, config),
   trimResults(config),
   enhanceResults(config),
+  eliminateRepeatedResults(),
   reconstructResults(config),
 );

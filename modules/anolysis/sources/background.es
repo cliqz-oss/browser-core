@@ -2,16 +2,18 @@ import background from '../core/base/background';
 import getDemographics from '../core/demographics';
 import getSynchronizedDate from '../core/synchronized-time';
 import prefs from '../core/prefs';
-import telemetry from '../core/services/telemetry';
 import utils from '../core/utils';
 import { shouldEnableModule } from '../core/app';
-import { isMobile } from '../core/platform';
+import { platformName } from '../core/platform';
+import inject from '../core/kord/inject';
 
 import Anolysis from './internals/anolysis';
-import Config from './internals/config';
+import createConfig from './internals/config';
 import DexieStorage from './internals/storage/dexie';
 import AsyncStorage from './internals/storage/async-storage';
 import logger from './internals/logger';
+import { getSynchronizedDateFormatted } from './internals/synchronized-date';
+import telemetryService from './services/telemetry';
 
 import signalDefinitions from './telemetry-schemas';
 
@@ -23,6 +25,8 @@ const LATEST_VERSION_USED_PREF = 'anolysisVersion';
  * temporary thing.
  */
 const VERSION = 7;
+
+const telemetry = inject.service('telemetry');
 
 function versionWasUpdated() {
   return prefs.get(LATEST_VERSION_USED_PREF, null) !== VERSION;
@@ -42,8 +46,13 @@ function sendTelemetry(msg, instantPush, schemaName) {
  */
 async function instantiateAnolysis() {
   const demographics = await getDemographics();
-  const Storage = isMobile ? AsyncStorage : DexieStorage;
-  const config = new Config({ demographics, Storage });
+
+  // If platform is 'react-native' (platformName === 'mobile'), this means that
+  // IndexedDB is not available and we should use AsyncStorage instead (on other
+  // platforms this will be mocked with an in-memory storage). On all other
+  // platforms (webextension, bootstrap) we use Dexie on top of IndexedDB.
+  const Storage = platformName === 'mobile' ? AsyncStorage : DexieStorage;
+  const config = await createConfig({ demographics, Storage });
   let anolysis = new Anolysis(config);
 
   // Check if we should reset
@@ -80,6 +89,9 @@ async function instantiateAnolysis() {
 export default background({
   // to be able to read the config prefs
   requiresServices: ['cliqz-config', 'session', 'telemetry'],
+  providesServices: {
+    telemetry: telemetryService,
+  },
   isBackgroundInitialized: false,
   app: null,
   settings: null,
@@ -151,7 +163,7 @@ export default background({
       // not be needed as we are now using the `telemetry` service to send
       // telemetry through Anolysis:
       // ```js
-      // import telemetry from 'core/services/telemetry';
+      // import telemetry from 'anolysis/services/telemetry';
       //
       // telemetry.push({}, 'schema_name');
       // ```
@@ -222,6 +234,10 @@ export default background({
   },
 
   actions: {
+    isAnolysisInitialized() {
+      return this.isAnolysisInitialized();
+    },
+
     getSignalDefinitions() {
       return [...this.anolysis.availableDefinitions.entries()];
     },
@@ -239,7 +255,7 @@ export default background({
       // for Anolysis module to be initialized before calling the action, so we
       // should not loose any signal.
       if (!this.isAnolysisInitialized()) {
-        return Promise.reject(`Anolysis is disabled, ignoring: ${schemaName} ${JSON.stringify(msg)}`);
+        return Promise.reject(new Error(`Anolysis is disabled, ignoring: ${schemaName} ${JSON.stringify(msg)}`));
       }
 
       // No telemetry in private windows
@@ -270,23 +286,27 @@ export default background({
       });
     },
 
+    getDate() {
+      return getSynchronizedDateFormatted();
+    },
+
     getGID() {
       if (!this.isAnolysisInitialized()) {
-        return Promise.reject('Cannot call `getGID` when Anolysis is unloaded');
+        return Promise.reject(new Error('Cannot call `getGID` when Anolysis is unloaded'));
       }
       return this.anolysis.gidManager.getGID();
     },
 
     async getMetricsForDate(date) {
       if (!this.isAnolysisInitialized()) {
-        return Promise.reject('Cannot call `getMetricsForDate` when Anolysis is unloaded');
+        return Promise.reject(new Error('Cannot call `getMetricsForDate` when Anolysis is unloaded'));
       }
       return (await this.anolysis.storage.behavior.getTypesForDate(date)).toObj();
     },
 
     getLastGIDUpdateDate() {
       if (!this.isAnolysisInitialized()) {
-        return Promise.reject('Cannot call `getLastGIDUpdateDate` when Anolysis is unloaded');
+        return Promise.reject(new Error('Cannot call `getLastGIDUpdateDate` when Anolysis is unloaded'));
       }
       return this.anolysis.gidManager.getLastGIDUpdateDate();
     },

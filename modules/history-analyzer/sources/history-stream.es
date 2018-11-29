@@ -1,5 +1,5 @@
 import EventEmitter from '../core/event-emitter';
-import { compactTokens } from '../core/pattern-matching';
+import PatternMatching from '../platform/lib/adblocker';
 
 import IndexedStream from './indexed-stream';
 import TIME_LIMIT_MS from './config';
@@ -45,7 +45,7 @@ export default class HistoryStream extends EventEmitter {
       const historyEntry = {
         ts: Date.now(),
         url,
-        tokens: compactTokens(tokenize(url)),
+        tokens: PatternMatching.compactTokens(tokenize(url)),
       };
 
       logger.debug('got state change', historyEntry);

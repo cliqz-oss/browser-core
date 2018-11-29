@@ -15,6 +15,8 @@ import { Window, mapWindows, forEachWindow, addWindowObserver,
   addSessionRestoreObserver, removeSessionRestoreObserver } from '../platform/browser';
 import Defer from './helpers/defer';
 import { getChannel } from '../platform/demographics';
+import { isOnionMode } from './platform';
+import createSettings from './settings';
 
 export function shouldEnableModule(name) {
   const pref = `modules.${name}.enabled`;
@@ -45,6 +47,7 @@ export default class App {
    * @param {object} config
    */
   constructor({ version, debug } = {}) {
+    this.settings = createSettings(config.settings, { version });
     this.isFullyLoaded = false;
 
     /**
@@ -76,8 +79,11 @@ export default class App {
     config.modules.forEach((moduleName) => {
       const module = new Module(
         moduleName,
-        Object.assign({}, config.settings, { version })
+        this.settings,
       );
+      if (isOnionMode && !module.isOnionReady) {
+        return;
+      }
       this.modules[moduleName] = module;
 
       // Keep reference to all module services by their name
@@ -190,13 +196,11 @@ export default class App {
    */
   async start() {
     this.isRunning = true;
-    if (!config.settings.channel) { // mobile
-      // for mobile, channel is set by native browser builds
-      // so we need to override the config settings
-      // TODO: get rid of all config.settings.channel dependencies
-      // and use one source of channel
-      config.settings.channel = await getChannel();
+
+    if (!this.settings.channel) {
+      this.settings.channel = await getChannel();
     }
+
     addMigrationObserver(this.onMigrationEnded);
     return this.setupPrefs().then(() =>
       this.load().then(() => {
@@ -224,8 +228,7 @@ export default class App {
         };
 
         addSessionRestoreObserver(this.sessionRestoreObserver);
-      })
-    );
+      }));
   }
 
   /**
@@ -261,7 +264,7 @@ export default class App {
      *
      */
 
-    if (disable && config.settings.channel === '40') {
+    if (disable && this.settings.channel === '40') {
       // in the Cliqz browser the extension runns as a system addon and
       // the user cannot disable or uninstall it. Therefore we do not need
       // to consider an uninstall signal.
@@ -301,9 +304,7 @@ export default class App {
   }
 
   enabledModules() {
-    return config.modules
-      .map(name => this.modules[name])
-      .filter(module => module.isEnabled);
+    return this.moduleList.filter(module => module.isEnabled);
   }
 
   setupPrefs() {
@@ -491,9 +492,9 @@ export default class App {
       return;
     }
 
-    const shouldEnable = prefs.get(pref) === true;
-    const shouldDisable = !shouldEnable;
     const moduleName = prefParts.pop();
+    const shouldEnable = shouldEnableModule(moduleName);
+    const shouldDisable = !shouldEnable;
     const module = this.modules[moduleName];
 
     if (!module) {
@@ -522,7 +523,10 @@ export default class App {
    */
   enableModule(moduleName) {
     const module = this.modules[moduleName];
-    prefs.set(`modules.${moduleName}.enabled`, true);
+    const prefName = `modules.${moduleName}.enabled`;
+    if (prefs.has(prefName) && prefs.get(prefName) !== true) {
+      prefs.set(prefName, true);
+    }
 
     if (module.isEnabled || !this.isRunning) {
       return Promise.resolve();
@@ -553,7 +557,10 @@ export default class App {
    */
   disableModule(moduleName) {
     const module = this.modules[moduleName];
-    prefs.set(`modules.${moduleName}.enabled`, false);
+    const prefName = `modules.${moduleName}.enabled`;
+    if (!prefs.has(prefName) || prefs.get(prefName) !== false) {
+      prefs.set(prefName, false);
+    }
 
     if (module.isDisabled || !this.isRunning) {
       return Promise.resolve();

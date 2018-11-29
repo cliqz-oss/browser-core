@@ -6,6 +6,49 @@ import t from '../i18n';
 import { settingsCloseSignal, settingsBackgroundSelectSignal } from '../services/telemetry/settings';
 import config from '../../config';
 
+const newsEditions = [
+  {
+    value: 'de',
+    text: 'app_settings_news_language_de',
+  },
+  {
+    value: 'de-tr-en',
+    text: 'app_settings_news_language_de_tr_en',
+  },
+  {
+    value: 'fr',
+    text: 'app_settings_news_language_fr',
+  },
+  {
+    value: 'intl',
+    text: 'app_settings_news_language_en',
+  },
+  {
+    value: 'us',
+    text: 'app_settings_news_language_us',
+  },
+  {
+    value: 'gb',
+    text: 'app_settings_news_language_gb',
+  },
+  {
+    value: 'es',
+    text: 'app_settings_news_language_es',
+  },
+  {
+    value: 'pl',
+    text: 'app_settings_news_language_pl',
+  },
+  {
+    value: 'it',
+    text: 'app_settings_news_language_it',
+  },
+  {
+    value: 'ru',
+    text: 'app_settings_news_language_ru',
+  },
+];
+
 export default class Settings extends React.Component {
   constructor(props) {
     super(props);
@@ -16,22 +59,21 @@ export default class Settings extends React.Component {
         search: {},
         news: {},
         background: {},
+        stats: {},
       },
     };
-    this.onBackgroundImageChanged = this.onBackgroundImageChanged.bind(this);
-    this.onNewsSelectionChanged = this.onNewsSelectionChanged.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
     this.setState({ componentsState: nextProps.componentsState });
   }
 
-  onBackgroundImageChanged(bg, index) {
-    settingsBackgroundSelectSignal(bg);
+  onBackgroundImageChanged = (bg, index, product) => {
+    settingsBackgroundSelectSignal(bg, product);
     this.props.onBackgroundImageChanged(bg, index);
   }
 
-  onNewsSelectionChanged(changeEvent) {
+  onNewsSelectionChanged = (changeEvent) => {
     this.props.onNewsSelectionChanged(changeEvent.target.value);
   }
 
@@ -51,6 +93,7 @@ export default class Settings extends React.Component {
           tabIndex="-1"
         >
           <button
+            type="button"
             onClick={() => this.onCloseButtonClick()}
             tabIndex="-1"
             className="close"
@@ -61,15 +104,17 @@ export default class Settings extends React.Component {
             <h1>{t('app_settings_header')}</h1>
           </div>
 
-          {this.props.isBlueThemeSupported &&
-            <div className="settings-row">
-              <span className="label">Cliqz Theme</span>
-              <Switch
-                name="blueTheme"
-                isChecked={this.props.blueTheme}
-                toggleComponent={() => this.props.toggleBlueTheme()}
-              />
-            </div>
+          {this.props.isBlueThemeSupported
+            && (
+              <div className="settings-row">
+                <span className="label">Cliqz Theme</span>
+                <Switch
+                  name="blueTheme"
+                  isChecked={this.props.blueTheme}
+                  toggleComponent={() => this.props.toggleBlueTheme()}
+                />
+              </div>
+            )
           }
 
           <div className="settings-row">
@@ -83,7 +128,7 @@ export default class Settings extends React.Component {
           {this.state.componentsState.background.image === config.constants.NO_BG ? (
             ''
           ) : (
-            <div className="settings-row">
+            <div className="settings-row background-selection-wrapper">
               <ul className="background-selection-list">
                 { this.props.wallpapers && this.props.wallpapers.map((background, index) =>
                   (
@@ -93,8 +138,8 @@ export default class Settings extends React.Component {
                         index={index}
                         bg={background.name}
                         src={`./images/bg-${background.alias}-thumbnail.png`}
-                        isActive={this.state.componentsState.background.image === background.name ||
-                              !this.state.componentsState.background.image
+                        isActive={this.state.componentsState.background.image === background.name
+                              || !this.state.componentsState.background.image
                         }
                       />
                     </li>
@@ -105,6 +150,18 @@ export default class Settings extends React.Component {
           )
           }
 
+          {this.props.shouldShowSearchSwitch
+            && (
+              <div className="settings-row">
+                <span className="label">{t('app_settings_search_label')}</span>
+                <Switch
+                  isChecked={this.state.componentsState.search.visible}
+                  toggleComponent={() => this.props.toggleComponent('search')}
+                />
+              </div>
+            )
+          }
+
           <div className="settings-row">
             <span className="label">{t('app_settings_most_visited_label')}</span>
             <Switch
@@ -112,6 +169,7 @@ export default class Settings extends React.Component {
               toggleComponent={() => this.props.toggleComponent('historyDials')}
             />
             <button
+              type="button"
               className="link"
               tabIndex="-1"
               disabled={!this.props.hasHistorySpeedDialsToRestore}
@@ -129,13 +187,17 @@ export default class Settings extends React.Component {
             />
           </div>
 
-          <div className="settings-row">
-            <span className="label">{t('app_settings_search_label')}</span>
-            <Switch
-              isChecked={this.state.componentsState.search.visible}
-              toggleComponent={() => this.props.toggleComponent('search')}
-            />
-          </div>
+          {this.props.isStatsSupported
+            && (
+              <div className="settings-row">
+                <span className="label">{t('app_settings_privacy_stats')}</span>
+                <Switch
+                  isChecked={this.state.componentsState.stats.visible}
+                  toggleComponent={() => this.props.toggleComponent('stats')}
+                />
+              </div>
+            )
+          }
 
           <div className="settings-row">
             <div>
@@ -148,121 +210,25 @@ export default class Settings extends React.Component {
             {!this.state.componentsState.news.visible ? (
               ''
             ) : (
-              <div>
-                <form className="news-sources-selection">
-                  <div className="radio">
-                    <label htmlFor="news-radio-selector-2">
-                      <input
-                        id="news-radio-selector-2"
-                        type="radio"
-                        tabIndex="-1"
-                        name="news"
-                        value="de"
-                        checked={this.state.componentsState.news.preferedCountry === 'de'}
-                        onChange={this.onNewsSelectionChanged}
-                      />
-                      {t('app_settings_news_language_de')}
-                    </label>
-                  </div>
-                  <div className="radio">
-                    <label htmlFor="news-radio-selector-5">
-                      <input
-                        id="news-radio-selector-5"
-                        type="radio"
-                        tabIndex="-1"
-                        name="news"
-                        value="de-tr-en"
-                        checked={this.state.componentsState.news.preferedCountry === 'de-tr-en'}
-                        onChange={this.onNewsSelectionChanged}
-                      />
-                      {t('app_settings_news_language_de_tr_en')}
-                    </label>
-                  </div>
-                  <div className={this.props.focusNews ? 'focused radio' : 'radio'}>
-                    <label htmlFor="news-radio-selector-3">
-                      <input
-                        id="news-radio-selector-3"
-                        type="radio"
-                        tabIndex="-1"
-                        name="news"
-                        value="fr"
-                        checked={this.state.componentsState.news.preferedCountry === 'fr'}
-                        onChange={this.onNewsSelectionChanged}
-                      />
-                      {t('app_settings_news_language_fr')}
-                    </label>
-                  </div>
-                  <div className="radio">
-                    <label htmlFor="news-radio-selector-4">
-                      <input
-                        id="news-radio-selector-4"
-                        type="radio"
-                        tabIndex="-1"
-                        name="news"
-                        value="intl"
-                        checked={this.state.componentsState.news.preferedCountry === 'intl'}
-                        onChange={this.onNewsSelectionChanged}
-                      />
-                      {t('app_settings_news_language_en')}
-                    </label>
-                  </div>
-                  <div className="radio">
-                    <label htmlFor="news-radio-selector-6">
-                      <input
-                        id="news-radio-selector-6"
-                        type="radio"
-                        tabIndex="-1"
-                        name="news"
-                        value="us"
-                        checked={this.state.componentsState.news.preferedCountry === 'us'}
-                        onChange={this.onNewsSelectionChanged}
-                      />
-                      {t('app_settings_news_language_us')}
-                    </label>
-                  </div>
-                  <div className="radio">
-                    <label htmlFor="news-radio-selector-7">
-                      <input
-                        id="news-radio-selector-7"
-                        type="radio"
-                        tabIndex="-1"
-                        name="news"
-                        value="gb"
-                        checked={this.state.componentsState.news.preferedCountry === 'gb'}
-                        onChange={this.onNewsSelectionChanged}
-                      />
-                      {t('app_settings_news_language_gb')}
-                    </label>
-                  </div>
-                  <div className="radio">
-                    <label htmlFor="news-radio-selector-8">
-                      <input
-                        id="news-radio-selector-8"
-                        type="radio"
-                        tabIndex="-1"
-                        name="news"
-                        value="es"
-                        checked={this.state.componentsState.news.preferedCountry === 'es'}
-                        onChange={this.onNewsSelectionChanged}
-                      />
-                      {t('app_settings_news_language_es')}
-                    </label>
-                  </div>
-                  <div className="radio">
-                    <label htmlFor="news-radio-selector-9">
-                      <input
-                        id="news-radio-selector-9"
-                        type="radio"
-                        tabIndex="-1"
-                        name="news"
-                        value="pl"
-                        checked={this.state.componentsState.news.preferedCountry === 'pl'}
-                        onChange={this.onNewsSelectionChanged}
-                      />
-                      {t('app_settings_news_language_pl')}
-                    </label>
-                  </div>
-                </form>
+              <div className="news-editions-wrapper">
+                <select
+                  className="news-editions-select"
+                  value={this.state.componentsState.news.preferedCountry}
+                  onChange={this.onNewsSelectionChanged}
+                  tabIndex="-1"
+                >
+                  {newsEditions.map(edition =>
+                    (
+                      <option
+                        className="news-edition-option"
+                        value={edition.value}
+                        key={edition.value}
+                      >
+                        {t(edition.text)}
+                      </option>
+                    ))
+                  }
+                </select>
               </div>
             )
             }
@@ -279,7 +245,6 @@ Settings.propTypes = {
   onNewsSelectionChanged: PropTypes.func,
   toggle: PropTypes.func,
   isOpen: PropTypes.bool,
-  focusNews: PropTypes.bool,
   blueTheme: PropTypes.bool,
   isBlueThemeSupported: PropTypes.func,
   toggleComponent: PropTypes.func,

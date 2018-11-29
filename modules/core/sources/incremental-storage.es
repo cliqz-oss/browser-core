@@ -20,6 +20,7 @@ export default class IncrementalStorage {
   constructor() {
     this.setInitialState();
   }
+
   open(dbName, processFunction, dirName, exactName = false, immediateSnap = false) {
     if (this.isOpening) {
       return new Error('already opening incremental-storage db');
@@ -43,6 +44,7 @@ export default class IncrementalStorage {
         this.onShutdown = () => this.close();
       });
   }
+
   close() {
     if (this.isOpen) {
       this.isOpen = false;
@@ -51,10 +53,12 @@ export default class IncrementalStorage {
     }
     return Promise.resolve();
   }
+
   snapshot() {
     this.scheduledSnapshot = true;
     this.flush();
   }
+
   processEvent(event) {
     if (!this.isOpen) {
       throw new Error('IncrementalStorage instance is not open');
@@ -67,6 +71,7 @@ export default class IncrementalStorage {
       this.appendError(event, error);
     }
   }
+
   destroy() {
     if (this.isOpen) {
       const nsf = this.getNewSnapshotFile();
@@ -85,6 +90,7 @@ export default class IncrementalStorage {
     }
     return Promise.resolve();
   }
+
   // Replaces internal object by new one
   replace(obj) {
     this.obj = obj;
@@ -109,6 +115,7 @@ export default class IncrementalStorage {
     this.processFunction = null;
     this.filePrefix = null;
   }
+
   handleCorrupt() {
     return renameFile(this.getNewSnapshotFile(), this.getNewSnapshotFile(true))
       .catch(() => {})
@@ -122,6 +129,7 @@ export default class IncrementalStorage {
       .catch(() => {})
       .then(() => this.recoverBadState());
   }
+
   processAux(event) {
     const now = Date.now();
     try {
@@ -140,6 +148,7 @@ export default class IncrementalStorage {
     this.acumTime += Date.now() - now;
     return null;
   }
+
   doRealSnapshot() {
     const s = this.getSnapshotFile();
     const j = this.getJournalFile();
@@ -168,10 +177,12 @@ export default class IncrementalStorage {
         this.acumTime = 0;
       });
   }
+
   _flush() {
     const data = this.toFlush.splice(0, this.toFlush.length).join('');
     return writeFD(this.journalFile, data, { isText: true });
   }
+
   flush() {
     if (!this.isOpen) {
       return Promise.reject(new Error('incremental-storage not open'));
@@ -182,9 +193,9 @@ export default class IncrementalStorage {
           .catch(e => this.error('Error in flush', e))
           .then(() => {
             if (
-              this.isOpen &&
-              (this.scheduledSnapshot ||
-              (this.dirty && (this.immediateSnap || this.acumTime >= 1000)))) {
+              this.isOpen
+              && (this.scheduledSnapshot
+              || (this.dirty && (this.immediateSnap || this.acumTime >= 1000)))) {
               return this.doRealSnapshot();
             }
             return null;
@@ -207,6 +218,7 @@ export default class IncrementalStorage {
     }
     return this.flushPromise;
   }
+
   recoverBadState() {
     this.acumTime = 0;
     const s = this.getSnapshotFile();
@@ -221,7 +233,8 @@ export default class IncrementalStorage {
           if (!present[1]) {
             return write(s, JSON.stringify(this.obj), { isText: true })
               .then(() => createFile(j));
-          } else if (present[0]) {
+          }
+          if (present[0]) {
             return null;
           }
           throw new Error('unknown file state(1)');
@@ -247,6 +260,7 @@ export default class IncrementalStorage {
         return null;
       });
   }
+
   // Pre: !this.isOpen
   readFromDisk() {
     const snapshotFile = this.getSnapshotFile();
@@ -261,29 +275,37 @@ export default class IncrementalStorage {
       lines.forEach(e => this.processAux(JSON.parse(e)));
     });
   }
+
   getJournalFile(corrupt = false) {
     return this.getFile(`${this.filePrefix}.journal${corrupt ? '.corrupt' : ''}`);
   }
+
   getNewJournalFile(corrupt = false) {
     return this.getFile(`${this.filePrefix}.journal_new${corrupt ? '.corrupt' : ''}`);
   }
+
   getSnapshotFile(corrupt = false) {
     return this.getFile(`${this.filePrefix}${corrupt ? '.corrupt' : ''}`);
   }
+
   getNewSnapshotFile(corrupt = false) {
     return this.getFile(`${this.filePrefix}.new${corrupt ? '.corrupt' : ''}`);
   }
+
   getErrorFile(corrupt = false) {
     return this.getFile(`${this.filePrefix}.error${corrupt ? '.corrupt' : ''}`);
   }
+
   getFile(filename) {
     return this.dir.concat(filename);
   }
+
   appendToJournal(e) {
     this.dirty = true;
     this.toFlush.push(`${JSON.stringify(e)}\n`);
     this.flush();
   }
+
   appendError(event, error) {
     openForAppend(this.getErrorFile())
       .then((f) => {

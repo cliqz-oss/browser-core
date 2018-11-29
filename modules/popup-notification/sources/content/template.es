@@ -9,6 +9,17 @@ function _getLabelsTemplate(chrome, labels = []) {
   `).join('');
 }
 
+function _getConditions(chrome, conditions) {
+  return conditions
+    ? `<div class="conditions">
+      <div class="tooltip">
+        <span class="tooltip-text">${escape(conditions)}</span>
+        ${chrome.i18n.getMessage('offers_conditions')} &#9432
+      </div>
+    </div>`
+    : '';
+}
+
 function getTemplate(chrome, {
   ghostery,
   logoText,
@@ -16,6 +27,7 @@ function getTemplate(chrome, {
   headline,
   code,
   labels,
+  conditions,
   shouldHideButtons,
 }) {
   return `
@@ -47,6 +59,7 @@ function getTemplate(chrome, {
             type="text">
           <span class="copy-code">${chrome.i18n.getMessage('offers_hub_copy_btn')}</span>
         </div>
+        ${_getConditions(chrome, conditions)}
         <button class="btn-cancel ${shouldHideButtons ? 'none' : ''}">
           ${chrome.i18n.getMessage('popup_cancel_button')}
         </button>

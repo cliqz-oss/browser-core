@@ -16,8 +16,12 @@ class DomainInfo {
   }
 
   getBugOwner(bugId) {
-    const appId = this.bugs[bugId];
+    const appId = this.getAppForBug(bugId);
     return this.getAppOwner(appId);
+  }
+
+  getAppForBug(bugId) {
+    return this.bugs[bugId];
   }
 
   _getDomainOwner(dom) {

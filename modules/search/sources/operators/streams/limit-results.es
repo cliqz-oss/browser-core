@@ -52,8 +52,8 @@ export function limitHistoryResults(results, limit) {
     const reservedSlots = (results.length - 1) - i; // Minimum 1 slot for each result
     const availableSlots = limit - (nAddedHistoryLinks + reservedSlots);
     const limitedResult = limitHistoryLinksInResult(results[i], availableSlots);
-    nAddedHistoryLinks +=
-      limitedResult.links.filter(link => ['history', 'main'].includes(link.meta.type)).length;
+    nAddedHistoryLinks += limitedResult.links
+      .filter(link => ['history', 'main'].includes(link.meta.type)).length;
 
     limitedResults.push(limitedResult);
   }

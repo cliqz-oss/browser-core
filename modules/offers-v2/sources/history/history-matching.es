@@ -169,8 +169,8 @@ export default class HistoryMatcher {
   }
 
   _checkPatternObj(po) {
-    return (po !== undefined && po !== null) && po.pid &&
-      (po.p_list && po.p_list.length > 0);
+    return (po !== undefined && po !== null) && po.pid
+      && (po.p_list && po.p_list.length > 0);
   }
 
   _checkQuery(q) {

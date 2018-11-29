@@ -5,28 +5,31 @@ function Logo(props) {
   const hasBgImage = props.logo.backgroundImage !== undefined;
   return (
     <div>
-      { hasBgImage ?
-        <div
-          className="logo"
-          style={{
-            color: props.logo.color,
-            textIndent: '-1000em',
-            backgroundImage: props.logo.backgroundImage,
-            backgroundColor: `#${props.logo.backgroundColor}`,
-          }}
-        >
-          { props.logo.text }
-        </div>
-        :
-        <div
-          className="logo"
-          style={{
-            color: props.logo.color,
-            backgroundColor: `#${props.logo.backgroundColor}`,
-          }}
-        >
-          { props.logo.text}
-        </div>
+      { hasBgImage
+        ? (
+          <div
+            className="logo"
+            style={{
+              color: props.logo.color,
+              textIndent: '-1000em',
+              backgroundImage: props.logo.backgroundImage,
+              backgroundColor: `#${props.logo.backgroundColor}`,
+            }}
+          >
+            { props.logo.text }
+          </div>
+        )
+        : (
+          <div
+            className="logo"
+            style={{
+              color: props.logo.color,
+              backgroundColor: `#${props.logo.backgroundColor}`,
+            }}
+          >
+            { props.logo.text}
+          </div>
+        )
       }
     </div>
   );

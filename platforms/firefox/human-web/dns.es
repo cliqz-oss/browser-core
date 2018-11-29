@@ -24,6 +24,7 @@ export class Dns {
 
   // no need to explicitely cache, as we can
   // always resolve domains using the Firefox API
-  cacheDnsResolution() {}
+  cacheDnsResolution() { }
+
   flushExpiredCacheEntries() {}
 }
