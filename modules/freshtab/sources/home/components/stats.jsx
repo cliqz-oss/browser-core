@@ -1,6 +1,7 @@
 /* global window */
 
 import React from 'react';
+import { tt } from '../i18n';
 import { statsHoverSignal, statsClickSignal } from '../services/telemetry/stats';
 
 function StatsBox({ item, hoverFn, clickFn }) {
@@ -19,7 +20,7 @@ function StatsBox({ item, hoverFn, clickFn }) {
         <span>{item.val}</span>
       </p>
       <p className="stats-description">{item.description}</p>
-      <p className="learn-more">Learn more</p>
+      <p className="learn-more">{tt('learnMore')}</p>
     </a>
   );
 }

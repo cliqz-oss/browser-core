@@ -231,7 +231,9 @@ export default background({
       || getDefaultWallpaper(product);
     return {
       historyDials: Object.assign({}, COMPONENT_STATE_VISIBLE, freshtabConfig.historyDials),
-      customDials: Object.assign({}, COMPONENT_STATE_INVISIBLE, freshtabConfig.customDials),
+      customDials: Object.assign({},
+        this.actions.hasCustomDialups() ? COMPONENT_STATE_VISIBLE : COMPONENT_STATE_INVISIBLE,
+        freshtabConfig.customDials),
       search: {
         ...COMPONENT_STATE_VISIBLE,
         ...freshtabConfig.search,
@@ -319,9 +321,12 @@ export default background({
     saveMessageDismission,
 
     checkForHistorySpeedDialsToRestore() {
-      const history = JSON.parse(prefs.get(DIALUPS, '{}', '')).history
-       || {};
+      const history = JSON.parse(prefs.get(DIALUPS, '{}', '')).history || {};
       return Object.keys(history).length > 0;
+    },
+
+    hasCustomDialups() {
+      return (JSON.parse(prefs.get(DIALUPS, '{}', '')).custom || []).length;
     },
 
     /**
