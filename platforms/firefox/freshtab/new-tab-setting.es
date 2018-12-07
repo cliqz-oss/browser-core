@@ -45,8 +45,9 @@ export function migrate() {
     // we moved from chrome url to https url in X.21.3 and X.22.X
     || currentHomepage === 'chrome://cliqz/content/freshtab/home.html'
     || currentHomepage === 'resource://cliqz/freshtab/home.html'
+    || currentHomepage.indexOf('chrome://branding/locale/browserconfig.properties') !== -1
   ) {
-    setHomePage(config.settings.NEW_TAB_URL);
+    prefs.clear('browser.startup.homepage', '');
   }
 }
 
