@@ -5,9 +5,9 @@ import Title from '../partials/Title';
 import MoreOn from '../partials/MoreOn';
 import TapToCopy from '../partials/TapToCopy';
 import { elementTopMargin, elementSideMargins } from '../../styles/CardStyle';
+import themeDetails from '../../themes';
 
-
-const styles = StyleSheet.create({
+const styles = theme => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   rightColumn: {
   },
   body: {
-    color: 'black',
+    color: themeDetails[theme].textColor,
   },
 });
 
@@ -50,26 +50,27 @@ export default class Currency extends React.Component {
 
   render() {
     const data = this.props.data;
+    const theme = this.props.theme;
     const array = [1, 10, 50, 100, 200, 500, 1000];
     const title = `${data.toSymbol} ${data.toAmount.main} ${data.toCurrency}`;
     return (
       <View>
-        <View style={styles.container}>
-          <TapToCopy val={data.toAmount.main}>
-            <Title title={title} meta={getMessage('no_legal_disclaimer')} />
+        <View style={styles(theme).container}>
+          <TapToCopy val={data.toAmount.main} theme={theme}>
+            <Title title={title} meta={getMessage('no_legal_disclaimer')} theme={theme} />
           </TapToCopy>
           <View
             accessible={false}
-            accessibilityLabel={'currency-multi'}
-            style={styles.table}
+            accessibilityLabel="currency-multi"
+            style={styles(theme).table}
           >
-            <View style={styles.leftColumn}>
+            <View style={styles(theme).leftColumn}>
               { array.map(coefficient =>
                 (
                   <Text
                     accessible={false}
-                    accessibilityLabel={'currency-multi-row-from'}
-                    style={[styles.body, { textAlign: 'right' }]}
+                    accessibilityLabel="currency-multi-row-from"
+                    style={[styles(theme).body, { textAlign: 'right' }]}
                     key={coefficient}
                   >
                     {this.format(coefficient * data.multiplyer, data.fromCurrency)}
@@ -77,16 +78,18 @@ export default class Currency extends React.Component {
                 ))
               }
             </View>
-            <View style={styles.middleColumn}>
-              { array.map(coefficient => <Text style={styles.body} key={coefficient}>=</Text>) }
+            <View style={styles(theme).middleColumn}>
+              { array.map(coefficient =>
+                <Text style={styles(theme).body} key={coefficient}>=</Text>)
+              }
             </View>
-            <View style={styles.rightColumn}>
+            <View style={styles(theme).rightColumn}>
               { array.map(coefficient =>
                 (
                   <Text
                     accessible={false}
-                    accessibilityLabel={'currency-multi-row-to'}
-                    style={styles.body}
+                    accessibilityLabel="currency-multi-row-to"
+                    style={styles(theme).body}
                     key={coefficient}
                   >
                     {this.format(coefficient * data.mConversionRate, data.toCurrency)}
@@ -99,6 +102,7 @@ export default class Currency extends React.Component {
         <MoreOn
           provider="XE.com"
           url={`http://www.xe.com/${getMessage('lang_code')}`}
+          theme={theme}
         />
       </View>
     );

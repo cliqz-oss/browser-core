@@ -15,9 +15,9 @@ const mockDb = async () => {
     keys: 'hash, lastSent, created',
   });
   return db;
-}
+};
 
-let mockDate = '20180820';
+const mockDate = '20180820';
 
 class MockQsWhitelist {
   constructor(md5) {
@@ -25,18 +25,21 @@ class MockQsWhitelist {
     this.safeKeys = ['safe'].map(md5);
     this.safeTokens = ['callback'].map(md5);
   }
+
   isTrackerDomain(domain) {
     return this.trackers.indexOf(domain) > -1;
   }
+
   isSafeKey(domain, key) {
     return this.isTrackerDomain(domain) && this.safeKeys.indexOf(key) > -1;
   }
+
   isSafeToken(domain, token) {
     return this.isTrackerDomain(domain) && this.safeTokens.indexOf(token) > -1;
   }
-};
+}
 
-const tick = () => new Promise((resolve) => setTimeout(resolve, 10));
+const tick = () => new Promise(resolve => setTimeout(resolve, 10));
 
 const mockConfig = {
   telemetryMode: 2,
@@ -54,7 +57,7 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
         ...Rx.Observable,
         interval: i => mockInterval(i),
         timer: (a, b) => mockTimer(a, b),
-        delay: (n) => mockDelay(n),
+        delay: n => mockDelay(n),
       }
     },
   },
@@ -73,9 +76,13 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
   'core/fast-url-parser': {
     default: fastUrlParser
   },
-  'core/services/telemetry': {
+  'core/kord/inject': {
     default: {
-      push() {},
+      service() {
+        return {
+          push() {}
+        };
+      }
     }
   }
 }), () => {
@@ -107,7 +114,6 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
     });
 
     describe('#extractKeyTokens', () => {
-
       let emitted;
       const testUrls = [{
         url: 'https://track.tracker.com/tracker?safe=helloworld&other=callback&bad=2349023jnfdsa&short=hi',
@@ -141,7 +147,7 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
           urlParts: URLInfo.get(url),
           sourceUrlParts: URLInfo.get(sourceUrl),
         })).forEach(telemetry.extractKeyTokens.bind(telemetry));
-      };
+      }
 
       context('telemetry enabled', () => {
         beforeEach(() => {
@@ -169,7 +175,6 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
           })));
           chai.expect(emitted).to.eql(expected);
         });
-
       });
 
       context('telemetry trackers only', () => {
@@ -214,7 +219,6 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
     }); // extractKeyTokens
 
     context('token filtering pipeline', () => {
-
       let sandbox;
       const tokenMessages = {
         a: {
@@ -265,8 +269,8 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
 
       beforeEach(() => {
         sandbox = rxSandbox.create(false, 1);
-        mockInterval = (i) => sandbox.hot('---x---x---x');
-        mockTimer = (i) => sandbox.hot('   -------x');
+        mockInterval = () => sandbox.hot('---x---x---x');
+        mockTimer = () => sandbox.hot('   -------x');
         // mockDelay = (i) => sandbox.hot('---x');
       });
 
@@ -294,48 +298,43 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
         chai.expect(keySendMessages).to.deep.equal(expectedKeys);
       }
 
-      it('With a single message: does not emit', () => {
-        return testTokenBatching({
+      it('With a single message: does not emit', () =>
+        testTokenBatching({
           tokens: 'a---',
           tokQue: '----',
           keyQue: '----',
-        });
-      });
+        }));
 
-      it('When token only seen on single site: does not emit', () => {
-        return testTokenBatching({
+      it('When token only seen on single site: does not emit', () =>
+        testTokenBatching({
           tokens: 'ab--',
           tokQue: '----',
           keyQue: '----',
-        });
-      });
+        }));
 
-      it('When token/key is cross site: emit', () => {
-        return testTokenBatching({
+      it('When token/key is cross site: emit', () =>
+        testTokenBatching({
           tokens: 'ac--',
           tokQue: '---a',
           keyQue: '---a',
-        });
-      });
+        }));
 
-      it('Emits token/key only after buffer time', () => {
-        return testTokenBatching({
+      it('Emits token/key only after buffer time', () =>
+        testTokenBatching({
           tokens: 'aa-- c---',
           tokQue: '---- ---a',
           keyQue: '---- ---a',
-        });
-      });
+        }));
 
-      it('Only cross site keys will be emitted', () => {
-        return testTokenBatching({
+      it('Only cross site keys will be emitted', () =>
+        testTokenBatching({
           tokens: 'bda- --',
           tokQue: '---b --',
           keyQue: '---- -a', // emission is later because a's token is on a later batch
-        });
-      });
+        }));
 
-      it('Emits non-cross site tokens/keys after max-age criteria is exceeded', () => {
-        return testTokenBatching({
+      it('Emits non-cross site tokens/keys after max-age criteria is exceeded', () =>
+        testTokenBatching({
           tokens: 'ab-- ---- ab-- -',
           tokQue: '---- ---- ---- b',
           keyQue: '---- ---- ---a -',
@@ -348,8 +347,7 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
           telemetry.keys.get('tracker.com:test').created = preCutoffTime;
           // complete rest of pipeline
           sandbox.flush();
-        });
-      });
+        }));
 
       it('Cache stats can be persisted and reloaded', async () => {
         await testTokenBatching({
@@ -394,8 +392,8 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
 
       beforeEach(() => {
         sandbox = rxSandbox.create(false, 1);
-        mockInterval = (i) => sandbox.hot('----x----x----x');
-        mockTimer = (i) => sandbox.hot('----x');
+        mockInterval = () => sandbox.hot('----x----x----x');
+        mockTimer = () => sandbox.hot('----x');
       });
 
       afterEach(() => {
@@ -569,8 +567,8 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
 
       beforeEach(() => {
         sandbox = rxSandbox.create(false, 1);
-        mockInterval = (i) => sandbox.hot('----x----x----x');
-        mockTimer = (i) => sandbox.hot('----x');
+        mockInterval = () => sandbox.hot('----x----x----x');
+        mockTimer = () => sandbox.hot('----x');
       });
 
       afterEach(() => {
@@ -590,7 +588,7 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
         const key = 'tracker.com:a';
         const token = telemetry.keys.get(key);
         token.key = 'a';
-        token.tracker = 'tracker.com',
+        token.tracker = 'tracker.com';
         token.sitesTokens.get('cliqz.com').set('test', false);
 
         const output = await simulateKeySending({
@@ -615,7 +613,7 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
         const key = 'tracker.com:a';
         const token = telemetry.keys.get(key);
         token.key = 'a';
-        token.tracker = 'tracker.com',
+        token.tracker = 'tracker.com';
         token.sitesTokens.get('cliqz.com').set('test', false);
         token.sitesTokens.get('ghostery.com').set('test', false);
 
@@ -634,7 +632,7 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
         ['a', 'b'].forEach((key) => {
           const token = telemetry.keys.get(`tracker.com:${key}`);
           token.key = key;
-          token.tracker = 'tracker.com',
+          token.tracker = 'tracker.com';
           token.sitesTokens.get('cliqz.com').set('test', true);
           token.sitesTokens.get('cliqz.com').set('test2', true);
           token.sitesTokens.get('ghostery.com').set('test', true);
@@ -684,7 +682,7 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
         ['a', 'b'].forEach((key) => {
           const token = telemetry.keys.get(`tracker.com:${key}`);
           token.key = key;
-          token.tracker = 'tracker.com',
+          token.tracker = 'tracker.com';
           token.sitesTokens.get('cliqz.com').set('test', true);
           token.sitesTokens.get('cliqz.com').set('test2', false);
           token.sitesTokens.get('ghostery.com').set('test', false);
@@ -700,7 +698,6 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
     });
 
     context('cleaning', () => {
-
       it('pushes entries from the cache to db', async () => {
         const token = '0089af9e6319ca82eabb65b1d571faae';
         telemetry.tokens.get(token);
@@ -754,7 +751,7 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
                 reject();
               }
             }
-          }
+          };
         });
         // put it into the db
         await telemetry.tokens.saveBatchToDb([token]);

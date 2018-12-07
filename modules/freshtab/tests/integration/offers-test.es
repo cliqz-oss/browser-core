@@ -25,7 +25,7 @@ export default function () {
   let allCampaigns;
   let offers;
 
-  describe('Freshtab offers tests', function () {
+  xdescribe('Freshtab offers tests', function () {
     let offerShown;
     let freshtabId;
 
@@ -92,8 +92,7 @@ export default function () {
       it('increments counter for "code_copied"', async function () {
         await waitFor(() =>
           expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'code_copied, browser-side')
-            .to.have.property('code_copied').to.equal(1),
-        );
+            .to.have.property('code_copied').to.equal(1));
 
         offers.signalsHandler._sendSignalsToBE();
         await waitFor(() => testServer.hasHit('/api/v1/savesignal'));
@@ -136,8 +135,6 @@ export default function () {
           .to.have.property('landing').to.equal(1);
         expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp, browser-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none, browser-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
         expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_description, browser-side')
           .to.have.property('offer_description').to.equal(1);
 
@@ -151,8 +148,6 @@ export default function () {
           .to.have.property('landing').to.equal(1);
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'ref_none, server-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_description, server-side')
           .to.have.property('offer_description').to.equal(1);
       });
@@ -189,8 +184,6 @@ export default function () {
           .to.have.property('landing').to.equal(1);
         expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp, browser-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none, browser-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
 
         offers.signalsHandler._sendSignalsToBE();
         await waitFor(() => testServer.hasHit('/api/v1/savesignal'));
@@ -202,8 +195,6 @@ export default function () {
           .to.have.property('landing').to.equal(1);
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'ref_none, server-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
       });
     });
 
@@ -240,8 +231,6 @@ export default function () {
           .to.have.property('landing').to.equal(1);
         expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp, browser-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none, browser-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
 
         offers.signalsHandler._sendSignalsToBE();
         await waitFor(() => testServer.hasHit('/api/v1/savesignal'));
@@ -255,8 +244,6 @@ export default function () {
           .to.have.property('landing').to.equal(1);
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'ref_none, server-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
       });
     });
 
@@ -291,8 +278,6 @@ export default function () {
           .to.have.property('landing').to.equal(1);
         expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp, browser-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none, browser-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
         expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_headline, browser-side')
           .to.have.property('offer_headline').to.equal(1);
 
@@ -306,8 +291,6 @@ export default function () {
           .to.have.property('landing').to.equal(1);
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'ref_none, server-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_headline, server-side')
           .to.have.property('offer_headline');
       });
@@ -344,8 +327,6 @@ export default function () {
           .to.have.property('landing').to.equal(1);
         expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp, browser-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none, browser-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
         expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_logo, browser-side')
           .to.have.property('offer_logo').to.equal(1);
 
@@ -359,8 +340,6 @@ export default function () {
           .to.have.property('landing').to.equal(1);
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'ref_none, server-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
         expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_logo, server-side')
           .to.have.property('offer_logo');
       });
@@ -380,21 +359,20 @@ export default function () {
 
       it('sends a signal containing NOT incremented "offer_triggered" and "offer_pushed", and incremented values of "offer_dsp_session" and "offer_shown"', async function () {
         await waitFor(() =>
-          allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'].offer_shown > 1
-        );
+          allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'].offer_shown > 1);
 
         expect(
-          allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.processor, 'offer_triggered, browser-side')
-          .to.have.property('offer_triggered').to.equal(1);
+          allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.processor, 'offer_triggered, browser-side'
+        ).to.have.property('offer_triggered').to.equal(1);
         expect(
-          allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.processor, 'offer_pushed, browser-side')
-          .to.have.property('offer_pushed').to.equal(1);
+          allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.processor, 'offer_pushed, browser-side'
+        ).to.have.property('offer_pushed').to.equal(1);
         expect(
-          allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_dsp_session, browser-side')
-          .to.have.property('offer_dsp_session').to.equal(2);
+          allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_dsp_session, browser-side'
+        ).to.have.property('offer_dsp_session').to.equal(2);
         expect(
-          allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_shown, browser-side')
-          .to.have.property('offer_shown').to.equal(2);
+          allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins['cliqz-tab'], 'offer_shown, browser-side'
+        ).to.have.property('offer_shown').to.equal(2);
 
         offers.signalsHandler._sendSignalsToBE();
         await waitFor(() => testServer.hasHit('/api/v1/savesignal'));
@@ -478,8 +456,7 @@ export default function () {
             await waitFor(() =>
               expect(allCampaigns).to.have.nested.property(
                 'test_campaign_v1.data.offers.test_offer_v1.origins.trigger'
-              )
-            );
+              ));
             expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, `${signal}, browser-side`)
               .to.have.property(`${signal}`).to.equal(1);
 

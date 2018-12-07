@@ -29,4 +29,5 @@ registerContentScript(
     }
 
     measureDurationToConsent();
-  });
+  }
+);

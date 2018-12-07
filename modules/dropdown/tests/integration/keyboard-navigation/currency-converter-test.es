@@ -8,7 +8,8 @@ import {
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 import expectSelection from './common';
 import { currencyAndSimpleResults } from '../../../core/integration/fixtures/resultsCurrencyConverter';
 
@@ -30,9 +31,9 @@ export default function () {
       await mockSearch({ results: currencyAndSimpleResults });
       fillIn(query);
       await waitForPopup();
-      await waitFor(() => $cliqzResults.querySelector(searchWithSelector) &&
-        $cliqzResults.querySelector(resultSelector) &&
-        $cliqzResults.querySelector(currencySelector));
+      await waitFor(() => $cliqzResults.querySelector(searchWithSelector)
+        && $cliqzResults.querySelector(resultSelector)
+        && $cliqzResults.querySelector(currencySelector));
       $searchWithElement = $cliqzResults.querySelector(searchWithSelector);
       $resultElement = $cliqzResults.querySelector(resultSelector);
     });

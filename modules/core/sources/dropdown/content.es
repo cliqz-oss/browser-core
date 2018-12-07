@@ -20,6 +20,11 @@ export default class ContentDropdownManager extends BaseDropdownManager {
     window.document.execCommand('copy');
     window.document.body.removeChild(input);
   }
+
+  _reportClick(selection) {
+    this.cliqz.freshtab.selectResult(selection);
+  }
+
   _openLink(
     url,
     {
@@ -43,7 +48,7 @@ export default class ContentDropdownManager extends BaseDropdownManager {
       elementName: meta.elementName,
     };
 
-    this.cliqz.freshtab.selectResult(selection);
+    this._reportClick(selection);
 
     if (newTab) {
       this.cliqz.core.openLink(url, { newTab });
@@ -51,18 +56,22 @@ export default class ContentDropdownManager extends BaseDropdownManager {
       window.location.href = url;
     }
   }
+
   // setHeight: () => {},
   _focus() {
     const len = this.textInput.value.length;
     this.textInput.focus();
     this.textInput.setSelectionRange(len, len);
   }
+
   _reportHighlight() {
     this.cliqz.search.reportHighlight();
   }
+
   _adultAction(actionName) {
     return this.cliqz.search.adultAction(actionName, this._getQuery());
   }
+
   _locationAction(actionName, query, rawResult) {
     return this.cliqz.search.locationAction(actionName, query, rawResult);
   }
@@ -85,25 +94,35 @@ export default class ContentDropdownManager extends BaseDropdownManager {
       selectionEnd: this.textInput.selectionEnd,
     };
   }
+
   _setHeight(height) {
     this.view.setState({
       iframeHeight: Math.min(this._getMaxHeight(), height),
     });
   }
-  _queryCliqz = (_query) => {
+
+  _queryCliqz = (_query, { allowEmptyQuery } = { allowEmptyQuery: false }) => {
     const query = _query || this._getQuery();
-    if (query) {
-      this.cliqz.search.startSearch(query, { keyCode: this.lastEvent.code });
+    if (query || allowEmptyQuery) {
+      this.cliqz.search.startSearch(query,
+        {
+          allowEmptyQuery,
+          isTyped: true,
+          keyCode: this.lastEvent && this.lastEvent.code,
+        });
     } else {
       this.setHeight(0);
     }
   }
+
   _getHeight() {
     return this.view.state.iframeHeight;
   }
+
   _removeFromHistory(url) {
     return this.cliqz.freshtab.removeFromHistory(url);
   }
+
   _removeFromBookmarks(url) {
     return this.cliqz.freshtab.removeFromBookmarks(url);
   }
@@ -120,11 +139,13 @@ export default class ContentDropdownManager extends BaseDropdownManager {
   _getAssistantStates() {
     return this.cliqz.search.getAssistantStates();
   }
+
   _getUrlbarAttributes() {
     return {
       padding: 35
     };
   }
+
   _getMaxHeight() {
     return window.innerHeight - 140;
   }

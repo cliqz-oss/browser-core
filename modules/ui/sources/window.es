@@ -11,6 +11,7 @@ import inject from '../core/kord/inject';
 import urlbarEventHandlers from './urlbar-events';
 import attachGoButton from './go-button';
 import { getMessage } from '../core/i18n';
+import { _httpHandler } from '../core/http';
 
 const ACproviderName = 'cliqz-results';
 const STYLESHEET_URL = 'chrome://cliqz/content/static/styles/styles.css';
@@ -25,9 +26,9 @@ export default class UIWindow extends AppWindow {
 
   actions = {
     setUrlbarValue: (value, options = {}) => {
-      const opts = typeof options === 'object' ?
-        options :
-        { visibleValue: options };
+      const opts = typeof options === 'object'
+        ? options
+        : { visibleValue: options };
 
       let ifMatches = opts.match || (() => true);
 
@@ -148,10 +149,14 @@ export default class UIWindow extends AppWindow {
     this.applyAdditionalThemeStyles();
   }
 
+  pingCliqzResults() {
+    _httpHandler('HEAD', this.settings.RESULTS_PROVIDER_PING);
+  }
+
   updateUrlbarPlaceholder() {
-    this.urlbar.mInputField.placeholder = prefs.get(QUICK_SEARCH_PREF, true) ?
-      getMessage('freshtab_urlbar_placeholder') :
-      this.originalUrlbarPlaceholder;
+    this.urlbar.mInputField.placeholder = prefs.get(QUICK_SEARCH_PREF, true)
+      ? getMessage('freshtab_urlbar_placeholder')
+      : this.originalUrlbarPlaceholder;
   }
 
   /**

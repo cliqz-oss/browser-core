@@ -8,8 +8,7 @@ function makeDirRecursive(path, from = []) {
   }
 
   return mkdir(from.concat(first)).then(() =>
-    makeDirRecursive(rest, from.concat(first))
-  );
+    makeDirRecursive(rest, from.concat(first)));
 }
 
 export default class Storage {

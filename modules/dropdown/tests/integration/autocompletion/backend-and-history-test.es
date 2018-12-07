@@ -3,7 +3,7 @@ import {
   blurUrlBar,
   expect,
   fillIn,
-  respondWith,
+  mockSearch,
   testsEnabled,
   urlbar,
   waitFor,
@@ -28,7 +28,7 @@ export default function () {
       before(async function () {
         blurUrlBar();
         withHistory([{ value: historyUrl }]);
-        respondWith({ results: [{ url: backendUrl }] }, 600);
+        await mockSearch({ results: [{ url: backendUrl }] }, 600);
         fillIn(query);
         await waitForPopup();
         await Promise.all([
@@ -49,13 +49,13 @@ export default function () {
         win.preventRestarts = true;
         blurUrlBar();
         withHistory([{ value: historyUrl1 }], 600);
-        respondWith({ results: [{ url: backendUrl1 }] });
+        await mockSearch({ results: [{ url: backendUrl1 }] });
         fillIn(query);
         await waitForPopup();
         /* need to be sure that there is no "search with" result, which means
         the query was autocompleted */
-        await waitFor(() => !$cliqzResults.querySelector('.result.search') &&
-          urlbar.textValue !== query);
+        await waitFor(() => !$cliqzResults.querySelector('.result.search')
+          && urlbar.textValue !== query);
       });
 
       after(function () {

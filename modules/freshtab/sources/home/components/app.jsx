@@ -1,5 +1,6 @@
 /* global window */
 /* global document */
+
 import React from 'react';
 import { getDefaultWallpaper } from '../../wallpapers';
 import config from '../../config';
@@ -8,27 +9,25 @@ import SpeedDialsRow from './speed-dials-row';
 import Urlbar from './urlbar/index';
 import UrlbarWithResults from './urlbar/urlbar-with-results';
 import News from './news';
+import Stats from './stats';
 import Settings from './settings';
 import MessageCenter from './message-center';
+import AppContext from './app-context';
 import t from '../i18n';
 import UndoDialRemoval from './undo-dial-removal';
-import Tooltip from './tooltip';
 import HistoryTitle from './history-title';
 import { historyClickSignal, settingsClickSignal, homeConfigsStatusSignal,
-  sendHomeUnloadSignal, sendHomeBlurSignal, sendHomeFocusSignal } from '../services/telemetry/home';
+  sendHomeUnloadSignal, sendHomeBlurSignal, sendHomeFocusSignal, friendsClickSignal } from '../services/telemetry/home';
 import localStorage from '../services/storage';
 import { deleteUndoSignal, undoCloseSignal } from '../services/telemetry/speed-dial';
 import { settingsRestoreTopSitesSignal, settingsComponentsToggleSignal, newsSelectionChangeSignal } from '../services/telemetry/settings';
-import { clickSignal as blackFridayClickSignal } from '../services/telemetry/blackfriday';
 import ModulesDeveloperModal from './modules-developer-modal';
+import Pagination from './pagination';
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.freshtab = cliqz.freshtab;
-    cliqz.setStorage({
-      setState: this.setState.bind(this)
-    });
 
     this.state = {
       config: {
@@ -39,7 +38,9 @@ class App extends React.Component {
           news: {},
           background: {},
           blueTheme: false,
-        }
+          stats: {},
+        },
+        product: '',
       },
       dials: {
         history: [],
@@ -51,21 +52,25 @@ class App extends React.Component {
         version: '',
         data: [],
       },
+      stats: {},
       results: [],
       removedDials: [],
       messages: {},
       isSettingsOpen: false,
       isOverlayOpen: false,
       modules: {},
-      focusNews: false,
       hasHistorySpeedDialsToRestore: false,
       isOfferMenuOpen: false,
       isOfferInfoOpen: false,
       isModalOpen: false,
-
     };
-
-    window.state = this.state;
+    const self = this;
+    cliqz.setStorage({
+      setState: this.setState.bind(this),
+      get state() {
+        return self.state;
+      }
+    });
 
     this.getSpeedDials = this.getSpeedDials.bind(this);
     this.addSpeedDial = this.addSpeedDial.bind(this);
@@ -78,22 +83,25 @@ class App extends React.Component {
     this.toggleBlueTheme = this.toggleBlueTheme.bind(this);
     this.toggleBackground = this.toggleBackground.bind(this);
     this.submitFeedbackForm = this.submitFeedbackForm.bind(this);
-    this.tooltip = React.createRef();
   }
 
-  componentDidMount() {
+  async componentDidMount() {
+    /* Make sure all the configs have been received */
+    await this.getConfig();
+
+    /* tabindex is now returned by getconfig, so as to avoid double message passing */
+    const tabIndex = this.state.config.tabIndex;
+    this.tabIndex = tabIndex;
     window.addEventListener('click', this.handleClick);
-    cliqz.freshtab.getTabIndex().then((tabIndex) => {
-      this.tabIndex = tabIndex;
-      window.addEventListener('beforeunload', () => sendHomeUnloadSignal({ tabIndex }));
-      window.addEventListener('blur', () => sendHomeBlurSignal({ tabIndex }));
-      window.addEventListener('focus', () => sendHomeFocusSignal({ tabIndex }));
-    });
+    window.addEventListener('beforeunload', () => sendHomeUnloadSignal({ tabIndex }));
+    window.addEventListener('blur', () => sendHomeBlurSignal({ tabIndex }));
+    window.addEventListener('focus', () => sendHomeFocusSignal({ tabIndex }));
 
     Promise.all([
       this.getNews(),
-      this.getConfig(),
       this.getSpeedDials(),
+      this.getStats(),
+
     ]).then(() => {
       this.onFinishedLoading();
     });
@@ -106,23 +114,21 @@ class App extends React.Component {
     window.removeEventListener('focus', sendHomeFocusSignal);
   }
 
+
   onHistoryClick() {
     historyClickSignal();
   }
 
-  onBlackFridayIconClick() {
-    blackFridayClickSignal({ target: 'icon' });
+  onFriendsClick() {
+    return friendsClickSignal();
   }
 
   onDeveloperModulesOpen = async () => {
     try {
-      const response = await this.getCliqzStatus();
-
       this.setState({
         modules: {
           isOpen: true,
           error: null,
-          items: response,
         }
       });
     } catch (error) {
@@ -130,7 +136,6 @@ class App extends React.Component {
         modules: {
           isOpen: true,
           error: error.message,
-          items: [],
         }
       });
     }
@@ -141,19 +146,8 @@ class App extends React.Component {
       modules: {
         isOpen: false,
         error: null,
-        items: [],
       }
     });
-  }
-
-  onDeveloperModuleStateChange = async (moduleId, { isEnabled }) => {
-    if (isEnabled) {
-      await cliqz.core.enableModule(moduleId);
-    } else {
-      await cliqz.core.disableModule(moduleId);
-    }
-
-    this.onDeveloperModulesOpen();
   }
 
   onMessageClicked(message) {
@@ -164,10 +158,7 @@ class App extends React.Component {
       if (action === 'settings') {
         this.toggleSettings();
       }
-      if (action === 'settings&news') {
-        this.toggleSettings();
-        this.focusNews();
-      }
+
       if (action === 'openImportDialog') {
         this.freshtab.openImportDialog();
       }
@@ -201,7 +192,6 @@ class App extends React.Component {
 
     // TODO: state object is too deep - we should squash it
     this.setState(prevState => ({
-      focusNews: false,
       config: {
         ...prevState.config,
         componentsState: {
@@ -224,12 +214,13 @@ class App extends React.Component {
   getConfig() {
     return this.freshtab.getConfig().then((freshtabConfig) => {
       let bgImage = freshtabConfig.componentsState.background.image;
+      const { product } = freshtabConfig;
 
       // Fall back to default background if current config contains
       // non-existing name of the background
-      if ((bgImage !== config.constants.NO_BG) &&
-        (Object.keys(config.backgrounds).indexOf(bgImage) === -1)) {
-        bgImage = getDefaultWallpaper();
+      if ((bgImage !== config.constants.NO_BG)
+        && (Object.keys(config.backgrounds[product]).indexOf(bgImage) === -1)) {
+        bgImage = getDefaultWallpaper(product);
       }
 
       this.updateTheme(bgImage);
@@ -272,6 +263,12 @@ class App extends React.Component {
     });
   }
 
+  getStats() {
+    return this.freshtab.getStats().then((data) => {
+      this.setState({ stats: data });
+    });
+  }
+
   getCliqzStatus() {
     return cliqz.core.status().then((res) => {
       if (!res || !res.modules) {
@@ -284,7 +281,8 @@ class App extends React.Component {
         .map(key => ({
           name: res.modules[key].name,
           isEnabled: res.modules[key].isEnabled,
-          loadingTime: res.modules[key].loadingTime || 0 }));
+          loadingTime: res.modules[key].loadingTime || 0
+        }));
     });
   }
 
@@ -311,12 +309,12 @@ class App extends React.Component {
   restoreHistorySpeedDials() {
     settingsRestoreTopSitesSignal();
     return this.freshtab.resetAllHistory()
-      .then(dials => this.setState({
+      .then(dials => this.setState(prevState => ({
         dials: { ...dials, isLoaded: true },
         // keep only custom dials
-        removedDials: this.state.removedDials.filter(d => d.custom),
+        removedDials: prevState.removedDials.filter(d => d.custom),
         hasHistorySpeedDialsToRestore: false,
-      }));
+      })));
   }
 
   get recentlyRemovedDial() {
@@ -334,33 +332,26 @@ class App extends React.Component {
   toggleSettings() {
     if (!this.state.isSettingsOpen) {
       settingsClickSignal();
-    } else {
-      this.setState({
-        focusNews: false,
-      });
     }
 
-    this.setState({
-      isSettingsOpen: !this.state.isSettingsOpen,
-    });
+    this.setState(prevState => ({
+      isSettingsOpen: !prevState.isSettingsOpen,
+    }));
 
     this.freshtab.checkForHistorySpeedDialsToRestore()
       .then(has => this.setState({ hasHistorySpeedDialsToRestore: has }));
   }
 
-  focusNews() {
-    this.setState({
-      focusNews: true,
-    });
-  }
-
   getOfferInfoOpen = () => this.state.isOfferInfoOpen;
+
   setOfferInfoOpen = (state) => {
     this.setState({
       isOfferInfoOpen: state
     });
   }
+
   getOfferMenuOpen = () => this.state.isOfferMenuOpen;
+
   setOfferMenuOpen = (state) => {
     this.setState({
       isOfferMenuOpen: state
@@ -371,53 +362,49 @@ class App extends React.Component {
     if (this.urlbarElem) {
       this.urlbarElem.textInput.style.visibility = 'visible';
     }
-
-    if (this.state.config.tooltip === config.constants.TOOLTIP_BLACKFRIDAY) {
-      this.tooltip.current.handleSkipClick();
-    }
-
     const settingsPanel = document.querySelector('#settings-panel');
-    if (!settingsPanel.contains(el.target) &&
-      el.target.id !== 'settings-btn' &&
-      el.target.className !== 'cta-btn' &&
-      el.target.className !== 'close' &&
-      el.target.id !== 'undo-notification-close' &&
-      el.target.id !== 'undo-close' &&
-      this.state.isSettingsOpen) {
+    if (!settingsPanel.contains(el.target)
+      && el.target.id !== 'settings-btn'
+      && el.target.className !== 'cta-btn'
+      && el.target.className !== 'close'
+      && el.target.id !== 'undo-notification-close'
+      && el.target.id !== 'undo-close'
+      && this.state.isSettingsOpen) {
       this.setState({ isSettingsOpen: false });
     }
     const middleboxPanel = document.querySelector('.offer-unit');
-    if (middleboxPanel && !middleboxPanel.contains(el.target) &&
-        el.target.className !== 'why-info') {
+    if (middleboxPanel && !middleboxPanel.contains(el.target)
+        && el.target.className !== 'why-info') {
       this.setState({
         isOfferMenuOpen: false,
         isOfferInfoOpen: false,
       });
     }
   }
+
   removeSpeedDial(dial, index) {
     const isCustom = dial.custom;
     const dialType = isCustom ? 'custom' : 'history';
     const newItems = this.state.dials[dialType].filter(item => item !== dial);
 
-    this.setState({
+    this.setState(prevState => ({
       dials: {
-        ...this.state.dials,
+        ...prevState.dials,
         [dialType]: newItems
       }
-    });
+    }));
 
     this.freshtab.removeSpeedDial(dial);
 
-    this.setState({
+    this.setState(prevState => ({
       removedDials: [
-        ...this.state.removedDials,
+        ...prevState.removedDials,
         {
           ...dial,
           removedAt: index,
         },
       ]
-    });
+    }));
   }
 
   updateDials(dial, index, update = false) {
@@ -438,12 +425,12 @@ class App extends React.Component {
       ];
     }
 
-    this.setState({
+    this.setState(prevState => ({
       dials: {
-        ...this.state.dials,
+        ...prevState.dials,
         [dialType]: dials,
       },
-    });
+    }));
   }
 
   addSpeedDial(dial, index) {
@@ -473,10 +460,9 @@ class App extends React.Component {
     const url = dial.url;
     const title = dial.displayTitle;
     cliqz.freshtab.addSpeedDial({ url, title }, index).then(() => {
-      const newItems = this.state.removedDials.filter(item => item !== dial);
-      this.setState({
-        removedDials: newItems,
-      });
+      this.setState(prevState => ({
+        removedDials: prevState.removedDials.filter(item => item !== dial),
+      }));
     });
   }
 
@@ -489,33 +475,33 @@ class App extends React.Component {
 
   toggleComponent(component) {
     cliqz.freshtab.toggleComponent(component);
-    const freshtabConfig = this.state.config;
-    const componentState = freshtabConfig.componentsState[component];
+
+    const componentState = this.state.config.componentsState[component];
     settingsComponentsToggleSignal(component, componentState.visible);
-    this.setState({
+    this.setState(prevState => ({
       config: {
-        ...freshtabConfig,
+        ...prevState.config,
         componentsState: {
-          ...freshtabConfig.componentsState,
+          ...prevState.config.componentsState,
           [component]: {
             ...componentState,
             visible: !componentState.visible
           }
         },
       },
-    });
+    }));
   }
 
   toggleBlueTheme() {
     const oldState = this.state.config.blueTheme;
     settingsComponentsToggleSignal('cliqzTheme', oldState);
     cliqz.freshtab.toggleBlueTheme();
-    this.setState({
+    this.setState(prevState => ({
       config: {
-        ...this.state.config,
-        blueTheme: !this.state.config.blueTheme
+        ...prevState.config,
+        blueTheme: !prevState.config.blueTheme
       },
-    });
+    }));
   }
 
   _hasNoBg() {
@@ -528,7 +514,7 @@ class App extends React.Component {
     settingsComponentsToggleSignal('background', isOn);
     let newBg;
     if (this._hasNoBg()) {
-      newBg = getDefaultWallpaper();
+      newBg = getDefaultWallpaper(this.state.config.product);
     } else {
       newBg = config.constants.NO_BG;
     }
@@ -552,211 +538,261 @@ class App extends React.Component {
 
   get shouldShowTopUrlBar() {
     const searchConfig = this.state.config.componentsState.search;
-    return searchConfig.visible && searchConfig.mode === 'search';
+    return searchConfig.mode === 'search';
   }
 
   get shouldShowDeveloperModulesIcon() {
     return this.state.config.developer === true;
   }
 
+  get shouldShowStats() {
+    return this.state.config.isStatsSupported
+      && this.state.config.componentsState.stats.visible;
+  }
+
+  onHistoryPageChanged = ({ page, shouldAnimate }) => {
+    this.setState(prevState => ({
+      dials: {
+        ...prevState.dials,
+        page,
+        shouldAnimate,
+      },
+    }));
+  }
+
   render() {
+    /* Make sure all config has been received till then show blank screen(maybe loader in future) */
+    if (!this.state.config.product) {
+      return (
+        <div>
+          <div id="app" />
+        </div>
+      );
+    }
     return (
       <div>
         <div
           id="app"
         >
-          <UndoDialRemoval
-            dial={this.recentlyRemovedDial}
-            undoRemoval={this.undoRemoval}
-            closeUndo={this.closeUndo}
-            isSettingsOpen={this.state.isSettingsOpen}
-            visible={this.state.removedDials.length > 0}
-          />
-          <MessageCenter
-            position="top"
-            locale={this.state.config.locale}
-            messages={this.state.messages}
-            handleLinkClick={msg => this.onMessageClicked(msg)}
-          />
-          <aside className="aside">
-            {this.state.config.isHistoryEnabled &&
-              <a
-                href={config.settings.NEW_TAB_URL}
-                id="cliqz-home"
-                title={t('cliqz_tab_button')}
-                tabIndex="-1"
-              >
-                Home
-              </a>
-            }
-            {this.state.config.isHistoryEnabled &&
-              <a
-                href={config.settings.HISTORY_URL}
-                id="cliqz-history"
-                title={t('history_button')}
-                tabIndex="-1"
-                onClick={() => this.onHistoryClick()}
-              >
-                History
-              </a>
-            }
-            {this.state.config.showBlackFridayIcon
-              && (
-                <div id="blackfriday-group">
+          <AppContext.Provider value={this.state}>
+            <UndoDialRemoval
+              dial={this.recentlyRemovedDial}
+              undoRemoval={this.undoRemoval}
+              closeUndo={this.closeUndo}
+              isSettingsOpen={this.state.isSettingsOpen}
+              visible={this.state.removedDials.length > 0}
+            />
+            <MessageCenter
+              position="top"
+              locale={this.state.config.locale}
+              messages={this.state.messages}
+              handleLinkClick={msg => this.onMessageClicked(msg)}
+            />
+            <aside className="aside">
+              {this.state.config.isHistoryEnabled
+                && (
                   <a
-                    href={`${config.settings.BLACKFRIDAY_URL}?lang=${this.state.config.locale}`}
-                    id="cliqz-blackfriday"
+                    href={config.settings.NEW_TAB_URL}
+                    id="cliqz-home"
+                    title={t('cliqz_tab_button')}
                     tabIndex="-1"
-                    onClick={() => this.onBlackFridayIconClick()}
                   >
-                    Black Friday
+                    Home
                   </a>
-                  {this.state.config.tooltip === config.constants.TOOLTIP_BLACKFRIDAY
+                )
+              }
+              {this.state.config.isHistoryEnabled
+                && (
+                  <a
+                    href={config.settings.HISTORY_URL}
+                    id="cliqz-history"
+                    title={t('history_button')}
+                    tabIndex="-1"
+                    onClick={() => this.onHistoryClick()}
+                  >
+                    History
+                  </a>
+                )
+              }
+              {this.state.config.isFriendsEnabled
+                && (
+                  <a
+                    href={config.settings.CLIQZ_FOR_FRIENDS}
+                    id="cliqz-for-friends"
+                    title={t('cliqz_for_friends_button')}
+                    tabIndex="-1"
+                    onClick={async () => this.onFriendsClick()}
+                  >
+                    Cliqz for Friends
+                  </a>
+                )
+              }
+            </aside>
+            <section id="main-content">
+              <div className="fixed-container" tabIndex="-1">
+                <section id="section-top-space" />
+
+                <section id="section-top">
+                  {this.shouldShowTopUrlBar
                     && (
-                      <Tooltip
-                        id="blackfriday-tooltip"
-                        eventType="blackfriday"
-                        description={t('new_feature')}
-                        urlToOpen={`${config.settings.BLACKFRIDAY_URL}?lang=${this.state.config.locale}`}
-                        ref={this.tooltip}
-                      />
+                      <section id="section-url-bar">
+                        <UrlbarWithResults
+                          ref={(c) => { this.urlbarElem = c; }}
+                          visible={this.state.config.componentsState.search.visible}
+                          shouldShowReminder={
+                            this.state.config.componentsState.searchReminder.visible
+                          }
+                          toggleComponent={this.toggleComponent}
+                          results={this.state.results}
+                          showOverlay={this.showOverlay}
+                          hideOverlay={this.hideOverlay}
+                          product={this.state.config.product}
+                        />
+                      </section>
                     )
                   }
-                </div>
-              )
-            }
-          </aside>
-          <section id="main-content">
-            <div className="fixed-container" tabIndex="-1">
-              {this.shouldShowTopUrlBar &&
-                <section id="section-url-bar">
-                  <UrlbarWithResults
-                    ref={(c) => { this.urlbarElem = c; }}
-                    visible={this.state.config.componentsState.search.visible}
-                    results={this.state.results}
-                    showOverlay={this.showOverlay}
-                    hideOverlay={this.hideOverlay}
-                  />
+                  {this.shouldShowMiddleUrlBar
+                    && (
+                      <div id="section-url-bar">
+                        <Urlbar
+                          ref={(c) => { this.urlbarElem = c; }}
+                          visible={this.state.config.componentsState.search.visible}
+                          product={this.state.config.product}
+                        />
+                      </div>
+                    )
+                  }
+                  { this.state.config.componentsState.historyDials.visible
+                    && (
+                      <section id="section-most-visited">
+                        <Pagination
+                          items={this.state.dials.history}
+                          onChangePage={this.onHistoryPageChanged}
+                          contentType="history"
+                          currentPage={this.state.dials.page}
+                        />
+                        <HistoryTitle dials={this.state.dials} />
+
+                        <SpeedDialsRow
+                          dials={this.state.dials.history}
+                          type="history"
+                          currentPage={this.state.dials.page}
+                          shouldAnimate={this.state.dials.shouldAnimate}
+                          removeSpeedDial={this.removeSpeedDial}
+                          addSpeedDial={this.addSpeedDial}
+                          getSpeedDials={this.getSpeedDials}
+                          updateModalState={isOpen => this.updateModalState(isOpen)}
+                          showPlaceholder
+                        />
+                      </section>
+                    )
+                  }
+                  { this.state.config.componentsState.customDials.visible
+                    && (
+                      <section id="section-favorites">
+                        <div className="dial-header with-line">
+                          {t('app_speed_dials_row_custom')}
+                        </div>
+
+                        <SpeedDialsRow
+                          dials={this.state.dials.custom}
+                          type="custom"
+                          addSpeedDial={this.addSpeedDial}
+                          removeSpeedDial={this.removeSpeedDial}
+                          updateSpeedDial={this.updateSpeedDial}
+                          updateModalState={isOpen => this.updateModalState(isOpen)}
+                        />
+                      </section>
+                    )
+                  }
                 </section>
-              }
-              <section id="section-top" />
-              { this.state.config.componentsState.historyDials.visible &&
-                <section id="section-most-visited">
-                  <HistoryTitle dials={this.state.dials} />
 
-                  <SpeedDialsRow
-                    dials={this.state.dials.history}
-                    type="history"
-                    removeSpeedDial={this.removeSpeedDial}
-                    addSpeedDial={this.addSpeedDial}
-                    getSpeedDials={this.getSpeedDials}
-                    updateModalState={isOpen => this.updateModalState(isOpen)}
-                    showPlaceholder
-                  />
+                <section id="section-middle-space" />
+
+                <section id="section-middle">
+                  { this.shouldShowStats
+                    && (
+                      <div id="section-stats">
+                        <Stats
+                          stats={this.state.stats}
+                          toggleComponent={this.toggleComponent}
+                        />
+                      </div>
+                    )
+                  }
+                  { this.state.config.componentsState.news.visible
+                    && (
+                      <section id="section-news">
+                        <News
+                          news={this.state.news}
+                          newsLanguage={this.state.config.componentsState.news.preferedCountry}
+                          isModalOpen={this.state.isModalOpen}
+                        />
+                      </section>
+                    )
+                  }
                 </section>
-              }
-              { this.state.config.componentsState.customDials.visible &&
-                <section id="section-favorites">
-                  <div className="dial-header with-line">
-                    {t('app_speed_dials_row_custom')}
-                  </div>
 
-                  <SpeedDialsRow
-                    dials={this.state.dials.custom}
-                    type="custom"
-                    addSpeedDial={this.addSpeedDial}
-                    removeSpeedDial={this.removeSpeedDial}
-                    updateSpeedDial={this.updateSpeedDial}
-                    updateModalState={isOpen => this.updateModalState(isOpen)}
+                <section id="section-bottom-space" />
+              </div>
+              {this.shouldShowDeveloperModulesIcon
+                && (
+                  <ModulesDeveloperModal
+                    isOpen={this.state.modules.isOpen}
+                    error={this.state.modules.error}
+                    closeAction={this.onDeveloperModulesClose}
                   />
-                </section>
+                )
               }
+            </section>
 
-              <section id="section-middle">
-                {this.shouldShowMiddleUrlBar &&
-                  <div id="section-url-bar">
-                    <Urlbar
-                      ref={(c) => { this.urlbarElem = c; }}
-                      visible={this.state.config.componentsState.search.visible}
-                    />
-                  </div>
-                }
-
-                <MessageCenter
-                  position="middle"
-                  locale={this.state.config.locale}
-                  fullWidth={this.shouldShowTopUrlBar}
-                  messages={this.state.messages}
-                  handleLinkClick={msg => this.onMessageClicked(msg)}
-                  submitFeedbackForm={this.submitFeedbackForm}
-                  getOfferInfoOpen={this.getOfferInfoOpen}
-                  setOfferInfoOpen={this.setOfferInfoOpen}
-                  getOfferMenuOpen={this.getOfferMenuOpen}
-                  setOfferMenuOpen={this.setOfferMenuOpen}
-                />
-
-              </section>
-
-              { this.state.config.componentsState.news.visible &&
-                <section id="section-news">
-                  <News
-                    news={this.state.news}
-                    newsLanguage={this.state.config.componentsState.news.preferedCountry}
-                    isModalOpen={this.state.isModalOpen}
-                  />
-                </section>
-              }
-              <section id="section-bottom" />
-            </div>
-            {this.shouldShowDeveloperModulesIcon &&
-              <ModulesDeveloperModal
-                modules={this.state.modules.items}
-                isOpen={this.state.modules.isOpen}
-                error={this.state.modules.error}
-                closeAction={this.onDeveloperModulesClose}
-                moduleStateChangeAction={this.onDeveloperModuleStateChange}
+            <aside className="aside">
+              <Settings
+                wallpapers={this.state.config.wallpapers}
+                onBackgroundImageChanged={(bg, index) => this.onBackgroundImageChanged(bg, index)}
+                onNewsSelectionChanged={country => this.onNewsSelectionChanged(country)}
+                toggleComponent={this.toggleComponent}
+                toggleBlueTheme={this.toggleBlueTheme}
+                blueTheme={this.state.config.blueTheme}
+                isBlueThemeSupported={this.state.config.isBlueThemeSupported}
+                isStatsSupported={this.state.config.isStatsSupported}
+                shouldShowSearchSwitch={!this.shouldShowTopUrlBar}
+                toggleBackground={this.toggleBackground}
+                isOpen={this.state.isSettingsOpen}
+                componentsState={this.state.config.componentsState}
+                hasHistorySpeedDialsToRestore={this.state.hasHistorySpeedDialsToRestore}
+                toggle={() => this.toggleSettings()}
+                restoreHistorySpeedDials={() => this.restoreHistorySpeedDials()}
               />
-            }
-          </section>
-
-          <aside className="aside">
-            <Settings
-              wallpapers={this.state.config.wallpapers}
-              onBackgroundImageChanged={(bg, index) => this.onBackgroundImageChanged(bg, index)}
-              onNewsSelectionChanged={country => this.onNewsSelectionChanged(country)}
-              toggleComponent={this.toggleComponent}
-              toggleBlueTheme={this.toggleBlueTheme}
-              blueTheme={this.state.config.blueTheme}
-              isBlueThemeSupported={this.state.config.isBlueThemeSupported}
-              toggleBackground={this.toggleBackground}
-              isOpen={this.state.isSettingsOpen}
-              focusNews={this.state.focusNews}
-              componentsState={this.state.config.componentsState}
-              hasHistorySpeedDialsToRestore={this.state.hasHistorySpeedDialsToRestore}
-              toggle={() => this.toggleSettings()}
-              restoreHistorySpeedDials={() => this.restoreHistorySpeedDials()}
-            />
-            {this.state.isSettingsOpen ||
-              <button
-                id="settings-btn"
-                title={t('cliqz_tab_settings_button')}
-                tabIndex="-1"
-                onClick={() => this.toggleSettings()}
-              >
-                Settings
-              </button>
-            }
-            {this.shouldShowDeveloperModulesIcon &&
-              <button
-                id="cliqz-modules-btn"
-                title={t('cliqz_modules_button')}
-                tabIndex="-1"
-                onClick={this.onDeveloperModulesOpen}
-              >
-                {t('cliqz_modules_button')}
-              </button>
-            }
-          </aside>
+              {
+                /* eslint-disable react/button-has-type */
+                this.state.isSettingsOpen
+                || (
+                  <button
+                    id="settings-btn"
+                    title={t('cliqz_tab_settings_button')}
+                    tabIndex="-1"
+                    onClick={() => this.toggleSettings()}
+                  >
+                    Settings
+                  </button>
+                )
+              }
+              {this.shouldShowDeveloperModulesIcon
+                && (
+                  <button
+                    id="cliqz-modules-btn"
+                    title={t('cliqz_modules_button')}
+                    tabIndex="-1"
+                    onClick={this.onDeveloperModulesOpen}
+                  >
+                    {t('cliqz_modules_button')}
+                  </button>
+                )
+                /* eslint-enable react/button-has-type */
+              }
+            </aside>
+          </AppContext.Provider>
         </div>
       </div>
     );

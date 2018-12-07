@@ -9,8 +9,10 @@ import Category from './category';
 import logger from '../common/offers_v2_logger';
 import SimpleDB from '../../core/persistence/simple-db';
 import setTimeoutInterval from '../../core/helpers/timeout';
+import { setTimeout } from '../../core/timers';
 import { shouldKeepResource } from '../utils';
 import prefs from '../../core/prefs';
+import initialCategories from './initial-categories';
 
 // Constant defining how frequently we want to fetch categories from BE
 const FETCH_FREQ_MS = 1000 * 60 * 60 * 1;
@@ -24,12 +26,12 @@ const CATEGORY_FETCHER_DB_ID = 'cliqz-cat-fetcher';
  * Returns null if not, a new category otherwise
  */
 const buildCategoryFromJSON = (jsonObj) => {
-  if (!jsonObj ||
-      !jsonObj.name ||
-      !jsonObj.patterns ||
-      !jsonObj.revHash ||
-      !jsonObj.timeRangeSecs ||
-      !jsonObj.activationData) {
+  if (!jsonObj
+      || !jsonObj.name
+      || !jsonObj.patterns
+      || !jsonObj.revHash
+      || !jsonObj.timeRangeSecs
+      || !jsonObj.activationData) {
     return null;
   }
   return new Category(
@@ -67,11 +69,12 @@ export default class CategoryFetcher {
       return this.db.get(CATEGORY_FETCHER_DB_ID).then((data) => {
         if (data) {
           this.lastRevision = data.lastRevision;
+        } else {
+          this._updateCategories(initialCategories());
         }
         startIntervalFetch();
       });
     }
-
     // no db
     startIntervalFetch();
     return Promise.resolve();
@@ -92,7 +95,8 @@ export default class CategoryFetcher {
     return this.beConnector.sendApiRequest(
       'categories',
       { last_rev: this.lastRevision },
-      'GET').then((payload) => {
+      'GET'
+    ).then((payload) => {
       let categories = payload.categories;
       const revision = payload.revision;
 

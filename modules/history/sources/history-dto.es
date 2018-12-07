@@ -83,15 +83,16 @@ function mergeQueryDatabase(history, queryDatabase) {
     // thats messy, need to find a way to create deep clone
     Object.keys(newHistory.domains).forEach((domain) => {
       newHistory.domains[domain] = Object.assign({}, newHistory.domains[domain]);
-      newHistory.domains[domain].urls =
-        Object.assign({}, newHistory.domains[domain].urls);
+      newHistory.domains[domain].urls = Object.assign({}, newHistory.domains[domain].urls);
 
       Object.keys(newHistory.domains[domain].urls).forEach((url) => {
         const urlIndex = urls.indexOf(url);
         const query = queries[urlIndex];
 
-        newHistory.domains[domain].urls[url] =
-          Object.assign({}, newHistory.domains[domain].urls[url]);
+        newHistory.domains[domain].urls[url] = Object.assign(
+          {},
+          newHistory.domains[domain].urls[url]
+        );
         newHistory.domains[domain].urls[url].query = query;
       });
     });
@@ -115,15 +116,16 @@ function mergeMetaDatabase(h, metaDatabase) {
 
       Object.keys(newHistory.domains).forEach((domain) => {
         newHistory.domains[domain] = Object.assign({}, newHistory.domains[domain]);
-        newHistory.domains[domain].urls =
-          Object.assign({}, newHistory.domains[domain].urls);
+        newHistory.domains[domain].urls = Object.assign({}, newHistory.domains[domain].urls);
 
         Object.keys(newHistory.domains[domain].urls).forEach((url) => {
           const urlIndex = urls.indexOf(url);
           const meta = metas[urlIndex] || {};
 
-          newHistory.domains[domain].urls[url] =
-            Object.assign({}, newHistory.domains[domain].urls[url]);
+          newHistory.domains[domain].urls[url] = Object.assign(
+            {},
+            newHistory.domains[domain].urls[url]
+          );
           newHistory.domains[domain].urls[url].meta = meta;
         });
       });

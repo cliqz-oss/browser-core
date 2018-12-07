@@ -93,13 +93,13 @@ export default class Triggers {
       const message = messages[i];
       if (
         // filter only the active ones
-        message.active &&
+        message.active
         // make sure the message is supported in this version
-        message.version <= VERSION &&
+        && message.version <= VERSION
         // check if the message was already dismissed
-        (dismissedAlerts[message.id] || { count: 0 }).count === 0 &&
+        && (dismissedAlerts[message.id] || { count: 0 }).count === 0
         // check the rules
-        (await checkRulesForMessage(message)) // eslint-disable-line no-await-in-loop
+        && (await checkRulesForMessage(message)) // eslint-disable-line no-await-in-loop
       ) {
         const { handler } = message;
         if (handlers.indexOf(handler) !== -1) {

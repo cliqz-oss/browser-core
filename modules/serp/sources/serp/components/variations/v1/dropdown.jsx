@@ -68,6 +68,7 @@ export default class Dropdown extends React.Component {
         >
           {this.headerText}
           <button
+            type="button"
             className="dropdown-v1-close"
             onClick={this._handleCancelClick}
           />
@@ -88,7 +89,7 @@ export default class Dropdown extends React.Component {
                   key={item.title}
                 >
                   <a
-                    href=""
+                    href={`#${item.title}`}
                     className={classNames(cssClass)}
                     onClick={
                       event => this._handleItemClick(event, index)
@@ -123,4 +124,3 @@ export default class Dropdown extends React.Component {
     );
   }
 }
-

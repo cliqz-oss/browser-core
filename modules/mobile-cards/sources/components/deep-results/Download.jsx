@@ -3,26 +3,28 @@ import { StyleSheet, Text, View } from 'react-native';
 import { getMessage } from '../../../core/i18n';
 import Link from '../Link';
 import { elementSideMargins, elementTopMargin } from '../../styles/CardStyle';
+import themeDetails from '../../themes';
 
-const styles = StyleSheet.create({
+const styles = theme => StyleSheet.create({
   row: {
     ...elementTopMargin,
-    borderTopWidth: 1,
-    borderTopColor: '#EDECEC',
+    borderTopWidth: 0.5,
+    borderTopColor: themeDetails[theme].separatorColor,
     paddingTop: 10,
   },
   text: {
     fontSize: 16,
     ...elementSideMargins,
-    color: '#000000',
+    color: 'white',
   }
 });
 
 export default class Download extends React.Component {
   displayLink(link) {
+    const theme = this.props.theme;
     return (
       <Link url={link.url} style={styles.row} key={link.url}>
-        <Text style={styles.text}>{ getMessage(link.extra.domain) }</Text>
+        <Text style={styles(theme).text}>{ getMessage(link.extra.domain) }</Text>
       </Link>
     );
   }

@@ -1,19 +1,14 @@
-'use strict';
-
 const path = require('path');
-const SystemBuilder = require('./broccoli-systemjs');
-const MergeTrees = require('broccoli-merge-trees');
 const Funnel = require('broccoli-funnel');
-const SourceMaps = require('broccoli-source-map');
 const deepAssign = require('deep-assign');
-const env = require('../cliqz-env');
-const replace = require('broccoli-replace');
+const replace = require('broccoli-string-replace');
+const SystemBuilder = require('./broccoli-systemjs');
 
 const cliqzEnv = require('../cliqz-env');
 const cliqzConfig = require('../config');
 const helpers = require('./helpers');
+
 const walk = helpers.walk;
-const SourceMapExtractor = SourceMaps.SourceMapExtractor;
 
 const bundlesSourceMapPaths = {};
 
@@ -36,54 +31,54 @@ function getBundlesTree(modulesTree) {
   const prefix = 'modules';
   const bundleFiles = cliqzConfig.bundles;
   const platformName = cliqzConfig.platform;
-  let allBundleFiles = [].concat(
+  const allBundleFiles = [].concat(
     // modules
     cliqzConfig.modules.map((moduleName) => {
       const modulePath = path.join('modules', moduleName);
-      const inputFiles =  walk(modulePath, fileName => fileName.endsWith('.bundle.es'));
+      const inputFiles = walk(modulePath, fileName => fileName.endsWith('.bundle.es'));
       return inputFiles.map((bundlePath) => {
-        const bundlePathParts = bundlePath.split(path.sep)
-        let bundleName = bundlePathParts[bundlePathParts.length-1];
+        const bundlePathParts = bundlePath.split(path.sep);
+        let bundleName = bundlePathParts[bundlePathParts.length - 1];
         bundleName = replaceFileExtension(bundleName);
         saveBundleSourceMapPath(bundleName, bundlePath, 'http://localhost:4300/cliqz@cliqz.com/chrome/content/');
 
-        return moduleName+'/'+bundleName;
+        return `${moduleName}/${bundleName}`;
       });
     }).reduce((all, curr) => all.concat(curr), []),
 
     // platform
     walk(path.join('platforms', platformName), fileName => fileName.endsWith('.bundle.es'))
-    .map((bundlePath) => {
-      const bundlePathParts = bundlePath.split(path.sep)
-      let bundleName = bundlePathParts[bundlePathParts.length-1];
-      bundleName = replaceFileExtension(bundleName);
-      saveBundleSourceMapPath(bundleName, bundlePath, 'http://localhost:4300/cliqz@cliqz.com/chrome/content/platform/');
+      .map((bundlePath) => {
+        const bundlePathParts = bundlePath.split(path.sep);
+        let bundleName = bundlePathParts[bundlePathParts.length - 1];
+        bundleName = replaceFileExtension(bundleName);
+        saveBundleSourceMapPath(bundleName, bundlePath, 'http://localhost:4300/cliqz@cliqz.com/chrome/content/platform/');
 
-      return 'platform/'+bundleName;
-    }),
+        return `platform/${bundleName}`;
+      }),
     // other platforms
     walk(path.join('platforms'), fileName => fileName.endsWith('.bundle.es'))
-    .filter(p => p.split(path.sep)[0] !== platformName)
-    .map((bundlePath) => {
-      const bundlePathParts = bundlePath.split(path.sep)
-      let bundleName = bundlePathParts[bundlePathParts.length-1];
-      const platformName = bundlePathParts[1];
+      .filter(p => p.split(path.sep)[0] !== platformName)
+      .map((bundlePath) => {
+        const bundlePathParts = bundlePath.split(path.sep);
+        let bundleName = bundlePathParts[bundlePathParts.length - 1];
+        const platformName = bundlePathParts[1];
 
-      // remove "platforms"
-      bundlePathParts.shift();
-      // remove platform name
-      bundlePathParts.shift();
+        // remove "platforms"
+        bundlePathParts.shift();
+        // remove platform name
+        bundlePathParts.shift();
 
-      bundleName = replaceFileExtension(bundlePathParts.join('/'));
-      saveBundleSourceMapPath(bundleName, bundlePath, 'http://localhost:4300/cliqz@cliqz.com/chrome/content/platform-'+platformName+'/');
+        bundleName = replaceFileExtension(bundlePathParts.join('/'));
+        saveBundleSourceMapPath(bundleName, bundlePath, `http://localhost:4300/cliqz@cliqz.com/chrome/content/platform-${platformName}/`);
 
-      return 'platform-'+platformName+'/'+bundleName;
-    })
+        return `platform-${platformName}/${bundleName}`;
+      })
   );
 
   let excludedBundleFiles;
 
-  if (typeof bundleFiles === "undefined") {
+  if (typeof bundleFiles === 'undefined') {
     excludedBundleFiles = [];
   } else if (bundleFiles.length === 0) {
     excludedBundleFiles = ['**/*'];
@@ -102,16 +97,16 @@ function getBundlesTree(modulesTree) {
   const systemConfig = {
     transpiler: false,
     packageConfigPaths: [
-      path.join('node_modules', '*', 'package.json'),
-      path.join('node_modules', '@*', '*', 'package.json'),
+      'node_modules/*/package.json',
+      'node_modules/@*/*/package.json',
     ],
     map: Object.assign({
       'plugin-json': 'node_modules/systemjs-plugin-json/json.js',
     }, cliqzConfigSystem.map || {}),
     paths: {
-      'specific/*': './specific/'+cliqzConfig.platform+'/*',
+      'specific/*': `./specific/${cliqzConfig.platform}/*`,
       'modules/*': 'modules/*',
-      'modules': 'modules',
+      modules: 'modules',
       'node_modules/*': './node_modules/*',
       '*': './node_modules/*',
     },
@@ -126,7 +121,7 @@ function getBundlesTree(modulesTree) {
     packages: deepAssign({
       [prefix]: {
         defaultJSExtensions: true,
-        //format: 'system',
+        // format: 'system',
         meta: {
           '*/templates.js': {
             format: 'system',
@@ -168,17 +163,15 @@ function getBundlesTree(modulesTree) {
       '**/*.bundle.js'
     ],
     usePrefix: false,
-    patterns: [
-      {
-        match: /(?:^|\n)\/\/# sourceMappingURL=([^\s]+)/,
-        replacement: function(_, bundleMapName) {
-          const bundleNameParts = bundleMapName.split('.');
-          bundleNameParts.pop();
-          const bundleName = bundleNameParts.join('.');
-          return `//# sourceMappingURL=${bundlesSourceMapPaths[bundleName]}`;
-        }
+    pattern: {
+      match: /(?:^|\n)\/\/# sourceMappingURL=([^\s]+)/,
+      replacement(_, bundleMapName) {
+        const bundleNameParts = bundleMapName.split('.');
+        bundleNameParts.pop();
+        const bundleName = bundleNameParts.join('.');
+        return `//# sourceMappingURL=${bundlesSourceMapPaths[bundleName]}`;
       }
-    ]
+    },
   });
 }
 

@@ -196,12 +196,16 @@ const PRODUCT_TESTS = [
 
 const INSTALL_DATE_TESTS = [
   { signal: { install_date: 16128 }, result: 'other/16128' },
+  { signal: { install_date: '16128' }, result: 'other/16128' },
   { signal: { install_date: 16129 }, result: '2014/02/28' },
+  { signal: { install_date: '16129' }, result: '2014/02/28' },
   { signal: { install_date: 17070 }, result: '2016/09/26' },
   { signal: { install_date: 17170 }, result: 'other/17170' },
+  { signal: { install_date: '17170' }, result: 'other/17170' },
   { signal: { install_date: 17175 }, result: 'other/17175' },
   { signal: { install_date: 17180 }, result: 'other/17180' },
   { signal: { install_date: 20000 }, result: 'other/20000' },
+  { signal: { install_date: '20000' }, result: 'other/20000' },
   { signal: { install_date: '' }, result: 'other/' },
   { signal: { install_date: 0 }, result: 'other/0' },
   { signal: { install_date: '2018/' }, result: 'other/2018/' },
@@ -661,5 +665,4 @@ export default describeModule('core/demographics',
         });
       });
     });
-  },
-);
+  });

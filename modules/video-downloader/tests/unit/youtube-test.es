@@ -57,5 +57,4 @@ export default describeModule('video-downloader/utils/get-youtube-id',
         });
       });
     });
-  },
-);
+  });

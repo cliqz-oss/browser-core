@@ -95,7 +95,8 @@ export default class Win {
           });
           func();
         },
-        false);
+        false
+      );
     } else {
       item.setAttribute('disabled', 'true');
     }
@@ -104,7 +105,8 @@ export default class Win {
   }
 
   tipsAndTricks(win) {
-    return this.simpleBtn(win.document,
+    return this.simpleBtn(
+      win.document,
       getMessage('btnTipsTricks'),
       () => utils.openTabInWindow(win, TRIQZ_URL),
       'triqz'
@@ -112,7 +114,8 @@ export default class Win {
   }
 
   feedback(win) {
-    return this.simpleBtn(win.document,
+    return this.simpleBtn(
+      win.document,
       getMessage('btnFeedbackFaq'),
       () => {
         // TODO - use the original channel instead of the current one (it will be changed at update)

@@ -280,31 +280,31 @@ export default class {
   }
 
   createTable() {
-    const usafe = 'create table if not exists usafe(\n' +
-                'url VARCHAR(255) PRIMARY KEY NOT NULL,\n' +
-                'ref VARCHAR(255),\n' +
-                'last_visit INTEGER,\n' +
-                'first_visit INTEGER,\n' +
-                'reason VARCHAR(256), \n' +
-                'private BOOLEAN DEFAULT 0,\n' +
-                'checked BOOLEAN DEFAULT 0, \n' +
-                'payload VARCHAR(4096), \n' +
-                'ft BOOLEAN DEFAULT 1 \n' +
-            ')';
+    const usafe = 'create table if not exists usafe(\n'
+                + 'url VARCHAR(255) PRIMARY KEY NOT NULL,\n'
+                + 'ref VARCHAR(255),\n'
+                + 'last_visit INTEGER,\n'
+                + 'first_visit INTEGER,\n'
+                + 'reason VARCHAR(256), \n'
+                + 'private BOOLEAN DEFAULT 0,\n'
+                + 'checked BOOLEAN DEFAULT 0, \n'
+                + 'payload VARCHAR(4096), \n'
+                + 'ft BOOLEAN DEFAULT 1 \n'
+            + ')';
 
-    const hashUnsafe = 'create table if not exists hashusafe(\n' +
-                'hash VARCHAR(32) PRIMARY KEY NOT NULL,\n' +
-                'private BOOLEAN DEFAULT 0 \n' +
-            ')';
+    const hashUnsafe = 'create table if not exists hashusafe(\n'
+                + 'hash VARCHAR(32) PRIMARY KEY NOT NULL,\n'
+                + 'private BOOLEAN DEFAULT 0 \n'
+            + ')';
 
-    const hashCans = 'create table if not exists hashcans(\n' +
-                'hash VARCHAR(32) PRIMARY KEY NOT NULL \n' +
-            ')';
+    const hashCans = 'create table if not exists hashcans(\n'
+                + 'hash VARCHAR(32) PRIMARY KEY NOT NULL \n'
+            + ')';
 
-    const telemetry = 'create table if not exists telemetry(\n' +
-                'id VARCHAR(24) PRIMARY KEY NOT NULL,\n' +
-                'data VARCHAR(1000000) \n' +
-            ')';
+    const telemetry = 'create table if not exists telemetry(\n'
+                + 'id VARCHAR(24) PRIMARY KEY NOT NULL,\n'
+                + 'data VARCHAR(1000000) \n'
+            + ')';
 
     // TODO: Used to be asynchronous. In principle, there is no need
     // to use synchronous APIs here, but when using asynchronous APIs,

@@ -3,255 +3,34 @@
 /* global require */
 /* eslint no-param-reassign: off */
 
-const tldts = require('tldts');
+const commonMocks = require('../utils/common');
+const persistenceMocks = require('../utils/persistence');
+const eventsMock = require('../utils/events');
+const signalsMock = require('../utils/offers/signals');
+const VALID_OFFER_OBJ = require('../utils/offers/data').VALID_OFFER_OBJ;
 
-const VALID_OFFER_OBJ = {
-  action_info: {
-    on_click: 'https://www.cliqz.com'
-  },
-  campaign_id: 'cid_1',
-  client_id: 'client-1',
-  display_id: 'x-d',
-  filterRules: "generic_comparator('offer_closed','l_u_ts','>=',30) && " +
-                 "generic_comparator('offer_shown','counter','<=',5)",
-  offer_id: 'x',
-  rule_info: {
-    display_time_secs: 999999,
-    type: 'exact_match',
-    url: []
-  },
-  ui_info: {
-    template_data: {
-      call_to_action: {
-        target: '',
-        text: 'Jetzt Anfordern',
-        url: 'http://newurl'
-      },
-      conditions: 'Some conditions',
-      desc: 'Some description',
-      logo_url: 'somelogourl',
-      title: 'This is the title',
-      voucher_classes: ''
-    },
-    template_name: 'ticket_template'
-  },
-  rs_dest: ['offers-cc'],
-  types: ['type1', 'type2'],
-  monitorData: [],
-};
 const CH = 'offers-send-ch';
-
-// needed for the map
-const persistence = {};
-function delay(fn) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      Promise.resolve()
-        .then(fn)
-        .then(resolve)
-        .catch(reject);
-    }, 100);
-  });
-}
-
 
 export default describeModule('offers-v2/offers/offers-api',
   () => ({
-    'offers-v2/common/offers_v2_logger': {
-      default: {
-        debug: () => {},
-        error: () => {},
-        info: () => {},
-        log: () => {},
-        warn: () => {},
-        logObject: () => {},
-      }
-    },
-    'core/platform': {
-    },
-    'core/crypto/random': {
-      random: function () {
-        return Math.random();
-      }
-    },
-    'platform/globals': {
-    },
-    'platform/lib/tldts': tldts,
-    'core/utils': {
-      default: {}
-    },
-    'core/helpers/timeout': {
-      default: function () { const stop = () => {}; return { stop }; }
-    },
-    'platform/console': {
-      default: {},
-    },
-    'core/prefs': {
-      default: {
-        get() {}
-      },
-    },
-    'core/events': {
-      default: {
-        msgs: {},
-        sub(channel) {
-          // we dont care about functions subscriber or anything just get the
-          // messages and store them to process them later
-          if (!this.msgs[channel]) {
-            this.msgs[channel] = [];
-          }
-        },
-        un_sub() {
-        },
-        pub(ch, msg) {
-          if (!this.msgs[ch]) {
-            this.msgs[ch] = [];
-          }
-          this.msgs[ch].push(msg);
-        },
-
-        // helper methods
-        clearAll() {
-          this.msgs = {};
-        },
-        countMsgs(ch) {
-          return !this.msgs[ch] ? 0 : this.msgs[ch].length;
-        }
-
-      }
-    },
-    'offers-v2/signals/signals_handler': {
-      default: class {
-        constructor() {
-          this.db = {
-            campaign: {},
-            action: {}
-          };
-        }
-        destroy() {}
-
-        setCampaignSignal(cid, oid, origID, sid) {
-          let cidm = this.db.campaign[cid];
-          if (!cidm) {
-            cidm = {};
-            this.db.campaign[cid] = cidm;
-          }
-          let oidm = cidm[oid];
-          if (!oidm) {
-            oidm = {};
-            cidm[oid] = oidm;
-          }
-          let origm = oidm[origID];
-          if (!origm) {
-            origm = {};
-            oidm[origID] = origm;
-          }
-          if (!origm[sid]) {
-            origm[sid] = 1;
-          } else {
-            origm[sid] += 1;
-          }
-        }
-
-        setActionSignal(actionID, origID) {
-          let origm = this.db.action[origID];
-          if (!origm) {
-            origm = {};
-            this.db.action[origID] = origm;
-          }
-          if (!origID[actionID]) {
-            origID[actionID] = 1;
-          } else {
-            origID[actionID] += 1;
-          }
-        }
-
-        // helper methods to get some values
-        getCampaignSignal(cid, oid, origID, sid) {
-          let m = this.db.campaign[cid];
-          if (!m) { return null; }
-          m = m[oid];
-          if (!m) { return null; }
-          m = m[origID];
-          if (!m) { return null; }
-          return m[sid];
-        }
-        getCampaignSignalsCount() {
-          return Object.keys(this.db.campaign).length;
-        }
-
-        getActionSignal(actionID, origID) {
-          const m = this.db.action[origID];
-          if (!m) { return null; }
-          return m[actionID];
-        }
-        getActionSignalCount() {
-          return Object.keys(this.db.action).length;
-        }
-      }
-    },
-    'core/persistence/map': {
-      default: class MockMap {
-        constructor(dbName) {
-          persistence[dbName] = (persistence[dbName] || new Map());
-          this.db = persistence[dbName];
-        }
-
-        init() {
-          return Promise.resolve();
-        }
-
-        unload() {
-          return Promise.resolve();
-        }
-
-        get(key) {
-          return delay(() => this.db.get(key));
-        }
-
-        set(key, value) {
-          return delay(() => this.db.set(key, value));
-        }
-
-        has(key) {
-          return delay(() => this.db.has(key));
-        }
-
-        delete(key) {
-          return delay(() => this.db.delete(key));
-        }
-
-        clear() {
-          return delay(() => this.db.clear());
-        }
-
-        size() {
-          return delay(() => this.db.size());
-        }
-
-        keys() {
-          return delay(() => [...this.db.keys()]);
-        }
-
-        entries() {
-          return delay(() => [...this.db.entries()]);
-        }
-      }
-    }
+    ...commonMocks,
+    ...persistenceMocks,
+    ...eventsMock,
+    ...signalsMock,
   }),
   () => {
     describe('OffersAPI', function () {
       let OfferProcessor;
       let OfferDB;
-      let events;
-      let SignalHandler;
+      const events = eventsMock['core/events'].default;
+      const SignalHandler = signalsMock['offers-v2/signals/signals_handler'].default;
       let ActionID;
       let Offer;
 
       beforeEach(function () {
         OfferProcessor = this.module().default;
-        SignalHandler = this.deps('offers-v2/signals/signals_handler').default;
-        events = this.deps('core/events').default;
+        events.clearAll();
+        persistenceMocks['core/persistence/map'].reset();
         return Promise.all([
           this.system.import('offers-v2/offers/offers-db'),
           this.system.import('offers-v2/offers/actions-defs'),
@@ -378,7 +157,7 @@ export default describeModule('offers-v2/offers/offers-api',
 
           context('offers are empty', function () {
             it('getStoredOffers should return []', function () {
-              const r = op.getStoredOffers({})
+              const r = op.getStoredOffers({});
               chai.expect(r).to.be.eql([]);
             });
           });
@@ -390,12 +169,12 @@ export default describeModule('offers-v2/offers/offers-api',
             });
 
             it('getStoredOffers should return offers', function () {
-              const r = op.getStoredOffers({})
+              const r = op.getStoredOffers({});
               chai.expect(r.length).to.be.equal(1);
             });
 
             it('getStoredOffers should [] because of filters', function () {
-              const r = op.getStoredOffers({filters: {by_rs_dest: 'foo_bar filter'}})
+              const r = op.getStoredOffers({ filters: { by_rs_dest: 'foo_bar filter' } });
               chai.expect(r.length).to.be.equal(0);
             });
           });
@@ -427,7 +206,7 @@ export default describeModule('offers-v2/offers/offers-api',
             beforeEach(function () {
               const offer = cloneValidOffer();
               o1 = bo(offer);
-              o2 = bo({...offer, version: `${+Date.now()}`});
+              o2 = bo({ ...offer, version: `${+Date.now()}` });
               op.pushOffer(o1);
               op.pushOffer(o2);
             });
@@ -465,5 +244,4 @@ export default describeModule('offers-v2/offers/offers-api',
         });
       });
     });
-  }
-);
+  });

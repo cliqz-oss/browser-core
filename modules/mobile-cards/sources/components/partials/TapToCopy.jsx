@@ -3,10 +3,11 @@ import { StyleSheet, View, Text } from 'react-native';
 import Link from '../Link';
 import { getMessage } from '../../../core/i18n';
 import { copyToClipboard } from '../../../core/clipboard';
+import themeDetails from '../../themes';
 
-const styles = StyleSheet.create({
+const styles = theme => StyleSheet.create({
   copy: {
-    color: '#CECECE',
+    color: themeDetails[theme].tapToCopyColor,
     alignSelf: 'center',
   }
 });
@@ -22,6 +23,7 @@ export default class TapToCopy extends React.Component {
   }
 
   render() {
+    const theme = this.props.theme;
     return (
       <Link
         onPress={() => {
@@ -33,8 +35,8 @@ export default class TapToCopy extends React.Component {
           { this.props.children }
           <Text
             accessible={false}
-            accessibilityLabel={'generic-copy-msg'}
-            style={styles.copy}
+            accessibilityLabel="generic-copy-msg"
+            style={styles(theme).copy}
           >
             {getMessage(this.state.copied ? 'Copied' : 'mobile_calc_copy_ans')}
           </Text>

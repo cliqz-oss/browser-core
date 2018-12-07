@@ -79,8 +79,7 @@ export default function () {
             true,
             false,
             false
-          ))
-        );
+          )));
       });
 
       context('click on "Open in a New Window"', function () {
@@ -95,8 +94,7 @@ export default function () {
             false,
             true,
             false
-          ))
-        );
+          )));
       });
 
       context('click on "Open in a New Private Window"', function () {
@@ -111,8 +109,7 @@ export default function () {
             false,
             false,
             true
-          ))
-        );
+          )));
       });
 
       context('click on "Copy link location"', function () {
@@ -121,8 +118,7 @@ export default function () {
         });
 
         it('url was copied', () =>
-          waitFor(() => expect(spyCopyURL).to.have.been.calledWith(expectedUrl))
-        );
+          waitFor(() => expect(spyCopyURL).to.have.been.calledWith(expectedUrl)));
       });
 
       context('click on "Feedback for Cliqz"', function () {
@@ -135,8 +131,7 @@ export default function () {
             sinon.match.instanceOf(win.constructor),
             'https://cliqz.com/feedback/?kind=custom-search',
             true
-          ))
-        );
+          )));
       });
     });
 
@@ -166,8 +161,7 @@ export default function () {
             true,
             false,
             false
-          ))
-        );
+          )));
       });
 
       context('click on "Open in a New Window"', function () {
@@ -182,8 +176,7 @@ export default function () {
             false,
             true,
             false
-          ))
-        );
+          )));
       });
 
       context('click on "Open in a New Private Window"', function () {
@@ -198,8 +191,7 @@ export default function () {
             false,
             false,
             true
-          ))
-        );
+          )));
       });
 
       context('click on "Copy link location"', function () {
@@ -208,8 +200,7 @@ export default function () {
         });
 
         it('url was copied', () =>
-          waitFor(() => expect(spyCopyURL).to.have.been.calledWith(historyUrl))
-        );
+          waitFor(() => expect(spyCopyURL).to.have.been.calledWith(historyUrl)));
       });
 
       context('click on "Feedback for Cliqz"', function () {
@@ -222,8 +213,7 @@ export default function () {
             sinon.match.instanceOf(win.constructor),
             'https://cliqz.com/feedback/?kind=H',
             true
-          ))
-        );
+          )));
       });
     });
 
@@ -258,8 +248,7 @@ export default function () {
             true,
             false,
             false
-          ))
-        );
+          )));
       });
 
       context('click on "Open in a New Window"', function () {
@@ -274,8 +263,7 @@ export default function () {
             false,
             true,
             false
-          ))
-        );
+          )));
       });
 
       context('click on "Open in a New Private Window"', function () {
@@ -290,8 +278,7 @@ export default function () {
             false,
             false,
             true
-          ))
-        );
+          )));
       });
 
       context('click on "Copy link location"', function () {
@@ -300,8 +287,7 @@ export default function () {
         });
 
         it('url was copied', () =>
-          waitFor(() => expect(spyCopyURL).to.have.been.calledWith(mainClusterUrl))
-        );
+          waitFor(() => expect(spyCopyURL).to.have.been.calledWith(mainClusterUrl)));
       });
 
       context('click on "Feedback for Cliqz"', function () {
@@ -314,8 +300,7 @@ export default function () {
             sinon.match.instanceOf(win.constructor),
             'https://cliqz.com/feedback/?kind=C',
             true
-          ))
-        );
+          )));
       });
     });
 
@@ -344,8 +329,7 @@ export default function () {
             true,
             false,
             false
-          ))
-        );
+          )));
       });
 
       context('click on "Open in a New Window"', function () {
@@ -360,8 +344,7 @@ export default function () {
             false,
             true,
             false
-          ))
-        );
+          )));
       });
 
       context('click on "Open in a New Private Window"', function () {
@@ -376,8 +359,7 @@ export default function () {
             false,
             false,
             true
-          ))
-        );
+          )));
       });
 
       context('click on "Copy link location"', function () {
@@ -386,8 +368,7 @@ export default function () {
         });
 
         it('url was copied', () =>
-          waitFor(() => expect(spyCopyURL).to.have.been.calledWith(backendUrl))
-        );
+          waitFor(() => expect(spyCopyURL).to.have.been.calledWith(backendUrl)));
       });
 
       context('click on "Feedback for Cliqz"', function () {
@@ -400,8 +381,7 @@ export default function () {
             sinon.match.instanceOf(win.constructor),
             'https://cliqz.com/feedback/?kind=',
             true
-          ))
-        );
+          )));
       });
     });
   });

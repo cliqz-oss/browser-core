@@ -105,7 +105,7 @@ export default class SiteRetention {
 
     // we don't know what mode we were in on this day - don't send data
     if (from > to) {
-      return Promise.reject('Before greenads setting changed');
+      return Promise.reject(new Error('Before greenads setting changed'));
     }
 
     const domains = [...this.domains];
@@ -123,8 +123,9 @@ export default class SiteRetention {
         d.forEach(item => days.add(item));
         return d;
       }, new Set());
-      const lastActive = activeDays.size > 0 ?
-        Math.max(...[...activeDays].map(Number)).toString() : null;
+      const lastActive = activeDays.size > 0
+        ? Math.max(...[...activeDays].map(Number)).toString()
+        : null;
       return {
         daysActive: activeDays.size,
         lastActive,

@@ -57,8 +57,8 @@ export default background({
 
   events: {
     prefchange: function onPrefChange(pref) {
-      if (pref === BLOCKLIST_PREF &&
-        prefs.get(BLOCKLIST_PREF, DEFAULT_BLOCKLIST) !== this.blockList) {
+      if (pref === BLOCKLIST_PREF
+        && prefs.get(BLOCKLIST_PREF, DEFAULT_BLOCKLIST) !== this.blockList) {
         // reload with new blocklist
         this.unload();
         this.init();

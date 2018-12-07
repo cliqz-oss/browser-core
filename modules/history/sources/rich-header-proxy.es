@@ -5,8 +5,9 @@ import config from '../core/config';
 import { promiseHttpHandler } from '../core/http';
 
 export default class RichHeaderProxy {
-  constructor() {
+  constructor(settings) {
     this.newsCache = Object.create(null);
+    this.settings = settings;
   }
 
   getNews(domainName) {
@@ -17,7 +18,7 @@ export default class RichHeaderProxy {
 
     const hash = _hash(domain);
 
-    const richHeaderUrl = config.settings.RICH_HEADER + utils.getRichHeaderQueryString(`[${hash}]`);
+    const richHeaderUrl = this.settings.RICH_HEADER + utils.getRichHeaderQueryString(`[${hash}]`);
 
     if (!(hash in NEWS_DOMAINS)) {
       return Promise.resolve(null);

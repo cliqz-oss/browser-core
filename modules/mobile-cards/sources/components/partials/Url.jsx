@@ -1,37 +1,35 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { getCardWidth } from '../../styles/CardStyle';
+import themeDetails from '../../themes';
 
-const style = (color, oneLine) => StyleSheet.create({
+const styles = theme => StyleSheet.create({
   url: {
-    color,
+    color: themeDetails[theme].card.headerTxtColor,
     width: getCardWidth() - 95, // width of icon + margins
-    marginLeft: 5,
     fontSize: 11,
     lineHeight: 13,
-    fontWeight: '400',
+    fontWeight: 'bold',
   },
   container: {
-    maxHeight: oneLine ? 13 : 39,
+    maxHeight: 13,
     overflow: 'hidden',
   }
 });
 
 export default function (props) {
   const url = props.url;
-  const oneLine = props.oneLine;
-  let color = props.isHistory ? '#551A8B' : '#4A90E2';
-  color = props.color || color;
-  if (!url || url === 'n/a') {
+  const theme = props.theme;
+  if (!url || url === 'n/a' || url === 'undefined') {
     return null;
   }
   return (
-    <View style={style(color, oneLine).container}>
+    <View style={styles(theme).container}>
       <Text
         accessible={false}
-        accessibilityLabel={'generic-link'}
-        numberOfLines={oneLine ? 1 : 3}
-        style={style(color, oneLine).url}
+        accessibilityLabel="generic-link"
+        numberOfLines={1}
+        style={styles(theme).url}
       >
         {url}
       </Text>

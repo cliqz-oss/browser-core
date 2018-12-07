@@ -1,15 +1,17 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import ExternalImage from '../custom/ExternalImage';
-import { getCardWidth, elementTopMargin } from '../../styles/CardStyle';
+import { View, StyleSheet, Image } from 'react-native';
+import { getCardWidth } from '../../styles/CardStyle';
+import themeDetails from '../../themes';
 
 const MAX_IMAGE_COUNT = 3;
 
-const styles = StyleSheet.create({
+const styles = theme => StyleSheet.create({
   container: {
     flexDirection: 'row',
-    ...elementTopMargin,
     justifyContent: 'center',
+    backgroundColor: themeDetails[theme].images.backgroundColor,
+    paddingTop: 5,
+    paddingBottom: 5,
   },
 });
 
@@ -18,8 +20,8 @@ export default class Images extends React.Component {
     const width = getCardWidth() / MAX_IMAGE_COUNT;
     const resizeMode = length > 1 ? 'cover' : 'contain';
     return (
-      <ExternalImage
-        key={data.image}
+      <Image
+        key={data.image + index}
         source={{ uri: data.image }}
         style={{ height: 100, width }}
         resizeMode={resizeMode}
@@ -28,12 +30,13 @@ export default class Images extends React.Component {
   }
 
   render() {
+    const theme = this.props.theme;
     const imageList = (this.props.data || [])
       .filter(data => !data.image.endsWith('.svg'))
       .slice(0, MAX_IMAGE_COUNT)
       .map(this.displayImage);
     return (
-      <View style={styles.container}>
+      <View style={styles(theme).container}>
         { imageList }
       </View>
     );

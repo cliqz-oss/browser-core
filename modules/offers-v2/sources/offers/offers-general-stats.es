@@ -26,10 +26,10 @@ const addOfferOnSetDayMap = (map, day, offerID) => {
  * check if the offer come from dropdown or not
  */
 const isDropdownOffer = offerObj =>
-  offerObj &&
-  offerObj.rs_dest &&
-  offerObj.rs_dest.length === 1 &&
-  offerObj.rs_dest[0] === 'dropdown';
+  offerObj
+  && offerObj.rs_dest
+  && offerObj.rs_dest.length === 1
+  && offerObj.rs_dest[0] === 'dropdown';
 
 
 /**
@@ -75,9 +75,9 @@ export default class OffersGeneralStats {
    */
   offersAddedToday() {
     const today = todayTs();
-    return this.addedPerDayMap.has(today) ?
-      this.addedPerDayMap.get(today).size :
-      0;
+    return this.addedPerDayMap.has(today)
+      ? this.addedPerDayMap.get(today).size
+      : 0;
   }
 
   // ///////////////////////////////////////////////////////////////////////////

@@ -41,6 +41,7 @@ describe('Freshtab interactions with notifications', function () {
     subject.respondsWithEmptySpeedDials();
     subject.respondsWithEmptyNews();
     subject.respondsWithEmptyOffers();
+    subject.respondsWithEmptyStats();
   });
 
   context('when one notification message is available', function () {

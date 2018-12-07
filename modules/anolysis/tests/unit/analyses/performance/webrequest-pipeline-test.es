@@ -38,12 +38,16 @@ let telemetrySignals = [];
 
 describeModule('webrequest-pipeline/latency-metrics',
   () => ({
-    'core/services/telemetry': {
+    'core/kord/inject': {
       default: {
-        push: (signal) => {
-          telemetrySignals.push(signal);
+        service() {
+          return {
+            push: (signal) => {
+              telemetrySignals.push(signal);
+            },
+            isEnabled: () => true,
+          };
         },
-        isEnabled: () => true,
       },
     },
     'core/helpers/timeout': {
@@ -114,5 +118,4 @@ describeModule('webrequest-pipeline/latency-metrics',
         });
       });
     });
-  },
-);
+  });

@@ -25,5 +25,4 @@ export default describeModule('core/http',
   function () {
     context('promiseHttpHandler', function () {
     });
-  }
-);
+  });

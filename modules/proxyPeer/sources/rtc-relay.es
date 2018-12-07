@@ -27,7 +27,8 @@ export default class RtcRelay {
       () => {
         logger.log(`RTCRelay healthcheck ${JSON.stringify(this.healthcheck())}`);
       },
-      60 * 1000);
+      60 * 1000
+    );
 
     // Clean-up dead connections (no activity for one minute)
     this.closeDeadConnections = setInterval(
@@ -49,7 +50,8 @@ export default class RtcRelay {
           }
         });
       },
-      10 * 1000);
+      10 * 1000
+    );
   }
 
   healthcheck() {
@@ -134,7 +136,8 @@ export default class RtcRelay {
       {
         sender,
         lastActivity: Date.now()
-      });
+      }
+    );
 
     // Sends payload to the next peer
     this.dataOut += nextData.length;
@@ -147,7 +150,8 @@ export default class RtcRelay {
         return this.signalClosedConnectionToClient(
           connectionID,
           sender,
-          ERROR_CODE.RELAY_CANNOT_CONNECT_TO_EXIT);
+          ERROR_CODE.RELAY_CANNOT_CONNECT_TO_EXIT
+        );
       });
   }
 

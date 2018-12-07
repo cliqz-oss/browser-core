@@ -50,5 +50,4 @@ export default describeModule('hpnv2/digest',
         expect(JSON.stringify(flatten(msg))).to.equal(JSON.stringify(flatMsg));
       });
     });
-  }
-);
+  });

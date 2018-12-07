@@ -51,8 +51,7 @@ export default function () {
         await waitForPopup(2);
         $cliqzResults.querySelector('.result.expand-btn').click();
         await waitFor(() =>
-          $cliqzResults.querySelectorAll('.table-row').length !== 2
-        );
+          $cliqzResults.querySelectorAll('.table-row').length !== 2);
       });
 
       checkMainResult({ $result: $cliqzResults });

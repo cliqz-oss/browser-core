@@ -1,4 +1,4 @@
 
-export default function getDbConn (databaseName) {
+export default function getDbConn() {
   return null;
 }

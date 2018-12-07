@@ -1,5 +1,5 @@
 /* global System */
-import { NativeModules, InteractionManager } from 'react-native';
+import { NativeModules } from 'react-native';
 import { setPref, getPref } from './prefs';
 import console from '../core/console';
 import App from '../core/app';
@@ -43,8 +43,8 @@ const startup = Promise.all([seedPromise]).then(() => {
   app = new App();
   // register background actions
   Object.keys(app.modules)
-    .filter(mod => modules[mod].Background &&
-                  modules[mod].Background.actions)
+    .filter(mod => modules[mod].Background
+                  && modules[mod].Background.actions)
     .forEach((mod) => {
       const actions = modules[mod].Background.actions;
       const injectedModule = inject.module(mod);
@@ -59,8 +59,7 @@ const startup = Promise.all([seedPromise]).then(() => {
     getPref(prefname, defaultValue));
   bridge.registerAction('core:setPref', setPref);
   bridge.registerAction('getLogoDetails',
-    url => utils.getLogoDetails(getDetailsFromUrl(url))
-  );
+    url => utils.getLogoDetails(getDetailsFromUrl(url)));
   bridge.registerAction('webRequest', webRequest.onBeforeRequest._trigger.bind(webRequest.onBeforeRequest));
   return app.modules.search.getWindowLoadingPromise(window);
 }).then(() => {

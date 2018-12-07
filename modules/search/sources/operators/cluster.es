@@ -52,8 +52,7 @@ const cluster = (({ results, ...response }) => {
     .from(results
       .map(result => ({ ...result, domain: getMainLink(result).meta.hostAndPort }))
       .reduce(group, new Map())
-      .entries()
-    )
+      .entries())
     .map(([domain, grouped]) => {
       if (grouped.length === 1) {
         return grouped[0];

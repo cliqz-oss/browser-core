@@ -171,7 +171,8 @@ export default class TrackerProxy {
         this.proxyPeer.getSocksProxyPort(), // aPort
         Components.interfaces.nsIProxyInfo.TRANSPARENT_PROXY_RESOLVES_HOST,
         5000, // aFailoverTimeout
-        null); // aFailoverProxy
+        null // aFailoverProxy
+      );
 
       this.pps.registerFilter(this, 0);
     }

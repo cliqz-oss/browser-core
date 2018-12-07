@@ -10,7 +10,8 @@ export default {
         type: 'string',
         enum: [
           'offers-v2.trigger.process',
-        ] },
+        ]
+      },
       ms: { type: 'number', minimum: 0 },
     },
   },

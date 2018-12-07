@@ -306,4 +306,3 @@ export default class SerpPageVariation extends React.Component {
     );
   }
 }
-

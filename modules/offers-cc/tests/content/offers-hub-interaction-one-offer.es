@@ -7,96 +7,60 @@ import { dataNewOffer } from './fixtures/offers';
 
 context('Offers Hub Interaction tests for one offer', function () {
   let subject;
-  let data;
-  const offerDetailsSelector = '#cqz-vouchers-holder li.voucher-wrapper.active .details';
+  const data = dataNewOffer;
+  const offerSelector = '#cqz-vouchers-wrapper #cqz-vouchers-holder '
+        + `[data-offer-id="${data.vouchers[0].offer_id}"] .details`;
   const target = 'cliqz-offers-cc';
 
-  beforeEach(function () {
+  beforeEach(async function () {
     subject = new Subject();
-    return subject.load().then(function () {
-      data = dataNewOffer;
-      return subject.pushData(target, data);
-    });
+    await subject.load();
+    await subject.pushData(target, data);
   });
 
   afterEach(function () {
     subject.unload();
   });
 
-  it('is rendered', function () {
-    expect(subject.query(offerDetailsSelector)).to.exist;
-  });
-
   context('code button', function () {
-    const codeButtonSelector = '.promocode-wrapper button.copy-code';
+    const codeButtonSelector = `${offerSelector} .promocode-wrapper button.copy-code`;
 
     it('exists', function () {
       expect(subject.query(codeButtonSelector)).to.exist;
     });
 
     it('with the text \'copy code\'', function () {
-      expect(subject.query(codeButtonSelector).textContent.trim())
-        .to.equal('offers_hub_copy_btn');
+      expect(subject.query(codeButtonSelector)).to.have.text('offers_hub_copy_btn');
     });
 
     context('click on the code button', function () {
       let execCommand;
+      let codeSelected = false;
+      const eventHandler = () => { codeSelected = true; };
 
-      beforeEach(function () {
+      beforeEach(async function () {
+        subject.query(`${offerSelector} .promocode-wrapper input.code`)
+          .addEventListener('select', eventHandler);
         execCommand = subject.iframe.contentWindow.document.execCommand;
         subject.iframe.contentWindow.document.execCommand = () => true;
         subject.query(codeButtonSelector).click();
 
-        return waitFor(function () {
-          return subject.query(codeButtonSelector).textContent.trim() !== 'offers_hub_copy_btn';
-        });
+        await waitFor(() =>
+          subject.query(codeButtonSelector).textContent.trim() !== 'offers_hub_copy_btn');
       });
 
       afterEach(function () {
+        subject.query(`${offerSelector} .promocode-wrapper input.code`)
+          .removeEventListener('select', eventHandler);
         subject.iframe.contentWindow.document.execCommand = execCommand;
       });
 
+      it('the code was selected', function () {
+        expect(codeSelected).to.be.true;
+      });
+
       it('renders \'code copied\'', function () {
-        expect(subject.query(codeButtonSelector).textContent.trim())
-          .to.equal('offers_hub_code_copy');
-      });
-    });
-  });
-
-  context('condition button', function () {
-    const conditionButtonSelector = '.validity-wrapper .condition button';
-
-    it('exists', function () {
-      expect(subject.query(conditionButtonSelector)).to.exist;
-    });
-  });
-
-  context('\'delete offer\' button', function () {
-    const deleteButtonSelector = '.logo-wrapper button.close';
-    const deletePopupSelector = '.voucher-container';
-
-    it('exists', function () {
-      expect(subject.query(deleteButtonSelector)).to.exist;
-    });
-
-    it('popup for deleting exists but not visible', function () {
-      expect(subject.query(deletePopupSelector)).to.exist;
-      expect(subject.query(deletePopupSelector).classList.contains('hide'));
-    });
-
-    context('click on the \'delete offer\' button', function () {
-      beforeEach(function () {
-        subject.query(deleteButtonSelector).click();
-
-        return waitFor(function () {
-          return subject.query('.details div.feedback').classList.contains('show') &&
-            subject.query('.voucher-container').classList.contains('hide');
-        });
-      });
-
-      it('renders view for deleting offer', function () {
-        expect(subject.query('.details .feedback').classList.contains('show'));
-        expect(subject.query(`${deletePopupSelector} [data-i18n="offers_hub_remove"]`)).to.exist;
+        expect(subject.query(codeButtonSelector)).to.have.text('offers_hub_code_copy');
       });
     });
   });

@@ -10,7 +10,8 @@ import {
   urlbar,
   waitFor,
   waitForPopup,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 import expectSelection from './common';
 import { results } from '../../../core/integration/fixtures/resultsTwoSimpleWithoutAutocomplete';
 
@@ -32,9 +33,9 @@ export default function () {
       await mockSearch({ results });
       fillIn(query);
       await waitForPopup();
-      await waitFor(() => $cliqzResults.querySelector(searchWithSelector) &&
-        $cliqzResults.querySelector(result1Selector) &&
-        $cliqzResults.querySelector(result2Selector));
+      await waitFor(() => $cliqzResults.querySelector(searchWithSelector)
+        && $cliqzResults.querySelector(result1Selector)
+        && $cliqzResults.querySelector(result2Selector));
       $searchWithElement = $cliqzResults.querySelector(searchWithSelector);
       $result1Element = $cliqzResults.querySelector(result1Selector);
       $result2Element = $cliqzResults.querySelector(result2Selector);

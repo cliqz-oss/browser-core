@@ -1,7 +1,9 @@
+/* eslint no-param-reassign: off */
+
 // import RNFS from 'react-native-fs';
 import { AsyncStorage } from 'react-native';
 
-const PREFIX = "@fs:"
+const PREFIX = '@fs:';
 
 function getFullPath(filePath) {
   if (typeof filePath === 'string') {
@@ -26,7 +28,7 @@ export function readFile(filePath) {
 
 export function writeFile(filePath, data) {
   const key = getKey(filePath);
-  if ( typeof data !== 'string') {
+  if (typeof data !== 'string') {
     data = JSON.stringify(data);
   }
   return AsyncStorage.setItem(key, data);

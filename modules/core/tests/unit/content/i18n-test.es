@@ -1,11 +1,13 @@
+/* global chai, describeModule, sinon  */
+
 export default describeModule('core/content/i18n',
   () => ({}),
   () => {
-    describe('#getMessage', function() {
+    describe('#getMessage', function () {
       let i18n;
       let getMessage;
 
-      beforeEach(function() {
+      beforeEach(function () {
         i18n = this.module().default;
         global.chrome = {
           i18n: {
@@ -18,7 +20,7 @@ export default describeModule('core/content/i18n',
 
       afterEach(function () {
         delete global.chrome;
-      })
+      });
 
       it('getMessage without substitutions correctly', function () {
         getMessage = () => 'en';
@@ -49,5 +51,4 @@ export default describeModule('core/content/i18n',
         chai.expect(getMessage).to.have.been.calledWith('lang_code', ['1', '2']);
       });
     });
-  }
-);
+  });

@@ -1,15 +1,10 @@
 import React from 'react';
-import { StyleSheet, View, Text, Image, TouchableWithoutFeedback, Platform, NativeModules } from 'react-native';
-
+import { StyleSheet, View, Image, TouchableWithoutFeedback, Platform, NativeModules } from 'react-native';
 import ViewShot from 'react-native-view-shot';
-
-import { elementTopMargin, cardBorderBottomRadius, cardMargins, getCardWidth, elementSidePaddings } from '../../styles/CardStyle';
-import { getMessage } from '../../../core/i18n';
-import { appName } from '../../../platform/platform';
 import NativeDrawabale, { normalizeUrl } from '../custom/NativeDrawable';
 
 const PermissionManager = NativeModules.PermissionManagerModule;
-const ShareCardModule = NativeModules.RNShare || NativeModules.ShareCardModule;
+const ShareCardModule = NativeModules.ShareCardModule;
 
 const OPTIONS = {
   format: 'png',
@@ -17,38 +12,16 @@ const OPTIONS = {
   result: 'data-uri',
 };
 
-const styles = width => StyleSheet.create({
+const styles = StyleSheet.create({
   shareSection: {
-    borderTopWidth: 1,
-    borderTopColor: '#EDECEC',
-    ...elementTopMargin,
-    paddingTop: 10,
-    paddingBottom: 5,
-    marginBottom: 5,
-    ...elementSidePaddings,
-    width,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  shareText: {
-    color: 'black',
-    textAlign: 'center',
-    fontSize: 10,
-    marginRight: 5,
+    position: 'absolute',
+    right: 10,
+    top: 10,
   },
   shareImage: {
-    marginRight: 5,
-    width: 15,
-    height: 15,
+    width: 11,
+    height: 11,
   },
-  shareOverlay: {
-    position: 'absolute',
-    flex: 1,
-    alignItems: 'center',
-    backgroundColor: 'white',
-    bottom: cardMargins.marginBottom,
-    ...cardBorderBottomRadius,
-  }
 });
 
 export default class ShareCard extends React.Component {
@@ -91,8 +64,8 @@ export default class ShareCard extends React.Component {
     const granted = PermissionManager.RESULTS.GRANTED;
 
     const isStorageAccessGranted = (
-      await PermissionManager.check(type) === granted ||
-      await PermissionManager.request(type) === granted
+      await PermissionManager.check(type) === granted
+      || await PermissionManager.request(type) === granted
     );
     if (isStorageAccessGranted) {
       this.setState({ capturing: true });
@@ -100,47 +73,30 @@ export default class ShareCard extends React.Component {
   }
 
   displaySharedViaCliqz() {
-    return Platform.select({
-      ios: (
-        <View style={styles(getCardWidth()).shareSection}>
-          <Image
-            style={styles().shareImage}
-            source={{ uri: 'AppIcon' }}
-          />
-          <Text style={styles().shareText}>
-            { getMessage('mobile_card_shared_via', [appName, 'iOS']) }
-          </Text>
-        </View>
-      ),
-      android: (
-        <View style={styles(getCardWidth()).shareSection}>
-          <Image
-            style={styles().shareImage}
-            source={{ uri: 'mipmap/ic_launcher' }}
-          />
-          <Text style={styles().shareText}>
-            { getMessage('mobile_card_shared_via', [appName, 'Android']) }
-          </Text>
-        </View>
-      )
-    });
+    return (
+      <View style={styles.shareSection}>
+        <Image
+          style={styles.shareImage}
+          source={{ uri: 'AppIcon' }}
+        />
+      </View>
+    );
   }
 
   displayShareLink() {
-    const src = normalizeUrl('share.png', { isNative: true });
+    const src = normalizeUrl('ic_share.png', { isNative: true });
     return (
       <TouchableWithoutFeedback onPress={() => this.shareCard()}>
         <View
-          style={styles(getCardWidth()).shareSection}
+          style={styles.shareSection}
           accessibilityLabel="share-card-button"
           accessible={false}
         >
           <NativeDrawabale
-            style={styles().shareImage}
+            style={styles.shareImage}
             source={src}
-            color={'black'}
+            color="#FFFFFF"
           />
-          <Text style={styles().shareText}>{getMessage('mobile_share_card')}</Text>
         </View>
       </TouchableWithoutFeedback>
     );
@@ -162,16 +118,11 @@ export default class ShareCard extends React.Component {
             { this.props.children }
             {
               this.state.capturing
-                ?
-                this.displaySharedViaCliqz()
-                :
-                this.displayShareLink()
+                ? this.displaySharedViaCliqz()
+                : this.displayShareLink()
             }
           </View>
         </ViewShot>
-        <View style={styles().shareOverlay} >
-          { this.displayShareLink() }
-        </View>
       </View>
     );
   }

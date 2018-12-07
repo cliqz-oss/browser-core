@@ -19,6 +19,7 @@ describe('Freshtab news UI', function () {
     subject = new Subject();
     subject.respondsWithEmptyTelemetry();
     subject.respondsWithEmptySpeedDials();
+    subject.respondsWithEmptyStats();
 
     configVisible = clone(defaultConfig);
     configVisible.response.componentsState.news.visible = true;
@@ -60,7 +61,7 @@ describe('Freshtab news UI', function () {
       });
 
       it('has no extra elements (selectors)', function () {
-        expect(subject.queryAll('.radio')).to.have.lengthOf(10);
+        expect(subject.queryAll('.news-edition-option')).to.have.lengthOf(10);
       });
     });
 
@@ -102,10 +103,7 @@ describe('Freshtab news UI', function () {
         });
 
         it(`has the ${lang.toUpperCase()} option selected`, function () {
-          allNewsLanguages.forEach((news) => {
-            const state = news === lang;
-            expect(subject.getNews(news)).to.have.property('checked', state);
-          });
+          expect(subject.getNewsSelect().value).to.equal(lang);
         });
       });
     });

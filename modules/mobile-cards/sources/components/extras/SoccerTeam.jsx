@@ -1,24 +1,23 @@
 import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, Image } from 'react-native';
 
 import Link from '../Link';
-import ExternalImage from '../custom/ExternalImage';
 import { getMessage } from '../../../core/i18n';
 import { toggleSubscription, isSubscribedToTeam } from '../../../platform/subscriptions';
 import SubscribeButton from '../SubscribeButton';
 import PoweredByKicker from '../partials/PoweredByKicker';
 import { elementTopMargin, elementSideMargins } from '../../styles/CardStyle';
+import themeDetails from '../../themes';
 
-const styles = StyleSheet.create({
+const styles = theme => StyleSheet.create({
   container: {
-    ...elementTopMargin,
     ...elementSideMargins,
   },
   gameContainer: {
     marginTop: 5,
     flex: 1,
     flexDirection: 'column',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: themeDetails[theme].soccer.container,
     borderRadius: 5,
     paddingTop: 10,
     paddingLeft: 8,
@@ -37,19 +36,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    color: 'black',
+    color: themeDetails[theme].soccer.mainText,
     fontWeight: 'bold',
     fontSize: 14,
     flex: 1,
   },
   details: {
     marginTop: 2,
-    color: '#999999',
+    color: themeDetails[theme].soccer.subText,
     fontWeight: '100',
     fontSize: 12,
   },
   game: {
-    color: 'black',
+    color: themeDetails[theme].soccer.mainText,
     fontSize: 14,
   }
 });
@@ -92,9 +91,9 @@ export default class SoccerTeam extends React.Component {
   }
 
   get actionMessage() {
-    return this.isSubscribed ?
-      getMessage('mobile_soccer_subscribe_league_done', this.teamName) :
-      getMessage('mobile_soccer_subscribe_team', this.teamName);
+    return this.isSubscribed
+      ? getMessage('mobile_soccer_subscribe_league_done', this.teamName)
+      : getMessage('mobile_soccer_subscribe_team', this.teamName);
   }
 
   updateSubscriptionData() {
@@ -104,76 +103,88 @@ export default class SoccerTeam extends React.Component {
   }
 
   displayGameStatus(data) {
+    const theme = this.props.theme;
     if (data.isLive) {
-      return (<View
-        accessible={false}
-        accessibilityLabel={'soccer-game-status'}
-      >
-        <Text style={styles.game}>{data.scored}</Text>
-        <Text style={styles.game}>live</Text>
-      </View>);
-    } else if (data.scored) {
-      return (<View
-        accessible={false}
-        accessibilityLabel={'soccer-game-status'}
-      >
-        <Text style={styles.game}>{data.scored}</Text>
-      </View>);
+      return (
+        <View
+          accessible={false}
+          accessibilityLabel="soccer-game-status"
+        >
+          <Text style={styles(theme).game}>{data.scored}</Text>
+          <Text style={styles(theme).game}>live</Text>
+        </View>
+      );
     }
-    return <Text style={styles.game}>vs.</Text>;
+    if (data.scored) {
+      return (
+        <View
+          accessible={false}
+          accessibilityLabel="soccer-game-status"
+        >
+          <Text style={styles(theme).game}>{data.scored}</Text>
+        </View>
+      );
+    }
+    return <Text style={styles(theme).game}>vs.</Text>;
   }
 
   displayGame(data) {
-    return (<Link label={'soccer-game-container'} url={data.live_url} key={data.live_url}>
-      <View style={styles.gameContainer}>
-        <View style={{ flex: 1, flexDirection: 'row' }}>
-          <View
-            accessible={false}
-            accessibilityLabel={'soccer-game-spieltag'}
-          >
-            <Text style={[styles.header, { flex: 3 }]}>{data.spielTag}</Text>
+    const theme = this.props.theme;
+
+    return (
+      <Link label="soccer-game-container" url={data.live_url} key={data.live_url}>
+        <View style={styles(theme).gameContainer}>
+          <View style={{ flex: 1, flexDirection: 'row' }}>
+            <View
+              accessible={false}
+              accessibilityLabel="soccer-game-spieltag"
+            >
+              <Text style={[styles(theme).header, { flex: 3 }]}>{data.spielTag}</Text>
+            </View>
+            <View
+              accessible={false}
+              accessibilityLabel="soccer-game-logo"
+              style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end' }}
+            >
+              <Image style={{ width: 20, height: 20 }} source={{ uri: data.leagueLogo }} resizeMode="cover" />
+            </View>
           </View>
-          <View
-            accessible={false}
-            accessibilityLabel={'soccer-game-logo'}
-            style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end' }}
-          >
-            <ExternalImage style={{ width: 20, height: 20 }} source={{ uri: data.leagueLogo }} resizeMode={'cover'} />
+          <View style={styles(theme).detailsContainer}>
+            <View
+              accessible={false}
+              accessibilityLabel="soccer-game-date"
+            >
+              <Text style={styles(theme).details}>
+                {`${data.gameDate} (${data.gameTime})`}
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              accessibilityLabel="soccer-game-location"
+            >
+              <Text style={styles(theme).details}>{data.location}</Text>
+            </View>
+          </View>
+          <View style={styles(theme).body}>
+            <View
+              accessible={false}
+              accessibilityLabel="soccer-game-host"
+            >
+              <Text style={[styles(theme).game, { flex: 2, textAlign: 'left' }]}>{data.HOST}</Text>
+            </View>
+            <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'center' }}>
+              {this.displayGameStatus(data)}
+            </View>
+            <View
+              accessible={false}
+              accessibilityLabel="soccer-game-guest"
+            >
+              <Text style={[styles(theme).game, { flex: 2, textAlign: 'right' }]}>{data.GUESS}</Text>
+            </View>
           </View>
         </View>
-        <View style={styles.detailsContainer}>
-          <View
-            accessible={false}
-            accessibilityLabel={'soccer-game-date'}
-          >
-            <Text style={styles.details}>{data.gameDate} ({data.gameTime})</Text>
-          </View>
-          <View
-            accessible={false}
-            accessibilityLabel={'soccer-game-location'}
-          >
-            <Text style={styles.details}>{data.location}</Text>
-          </View>
-        </View>
-        <View style={styles.body}>
-          <View
-            accessible={false}
-            accessibilityLabel={'soccer-game-host'}
-          >
-            <Text style={[styles.game, { flex: 2, textAlign: 'left' }]}>{data.HOST}</Text>
-          </View>
-          <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'center' }}>
-            {this.displayGameStatus(data)}
-          </View>
-          <View
-            accessible={false}
-            accessibilityLabel={'soccer-game-guest'}
-          >
-            <Text style={[styles.game, { flex: 2, textAlign: 'right' }]}>{data.GUESS}</Text>
-          </View>
-        </View>
-      </View>
-    </Link>);
+      </Link>
+    );
   }
 
   get content() {
@@ -187,27 +198,35 @@ export default class SoccerTeam extends React.Component {
 
   render() {
     const type = 'soccer';
+    const theme = this.props.theme;
 
-    return (<View
-      accessible={false}
-      accessibilityLabel={'soccer'}
-      style={styles.container}
-    >
-      {this.content}
-      {Boolean(this.isValid) &&
-        <View style={{ ...elementTopMargin }}>
-          <SubscribeButton
-            onPress={() => {
-              toggleSubscription(type, this.subtype, this.id, this.isSubscribed)
-              //  .then(this.updateSubscriptionData.bind(this));
-                .then((...args) => this.updateSubscriptionData(...args));
-            }}
-            isSubscribed={this.isSubscribed}
-            actionMessage={this.actionMessage}
-          />
-        </View>
-      }
-      <PoweredByKicker logo={this.props.result.meta.externalProvidersLogos.kicker} />
-    </View>);
+    return (
+      <View
+        accessible={false}
+        accessibilityLabel="soccer"
+        style={styles(theme).container}
+      >
+        {this.content}
+        {Boolean(this.isValid)
+          && (
+            <View style={{ ...elementTopMargin }}>
+              <SubscribeButton
+                onPress={() => {
+                  toggleSubscription(type, this.subtype, this.id, this.isSubscribed)
+                  //  .then(this.updateSubscriptionData.bind(this));
+                    .then((...args) => this.updateSubscriptionData(...args));
+                }}
+                isSubscribed={this.isSubscribed}
+                actionMessage={this.actionMessage}
+              />
+            </View>
+          )
+        }
+        <PoweredByKicker
+          logo={this.props.result.meta.externalProvidersLogos.kicker}
+          theme={theme}
+        />
+      </View>
+    );
   }
 }

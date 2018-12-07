@@ -2,8 +2,8 @@
 /* global describeModule */
 /* global sinon */
 
-const mockDexie = require('../../../core/unit/utils/dexie');
 const moment = require('moment');
+const mockDexie = require('../../../core/unit/utils/dexie');
 
 let sendSignal = () => {};
 
@@ -20,9 +20,6 @@ export default describeModule('anolysis/internals/signals-queue',
       default: {},
     },
     'core/console': { default: {} },
-    'core/database': {
-      default: class Database { destroy() { return Promise.resolve(); } }
-    },
     'core/helpers/timeout': {
       default: () => ({ stop: () => {} }),
     },
@@ -79,8 +76,7 @@ export default describeModule('anolysis/internals/signals-queue',
         queue.push({ signal: 1 })
           .then(() => queue.push({ signal: 2 }))
           .then(() => storage.signals.getAll())
-          .then(signals => chai.expect(signals).to.have.length(2))
-      );
+          .then(signals => chai.expect(signals).to.have.length(2)));
 
       it('process batch of size 1', () => {
         sendSignal = sinon.spy(() => Promise.resolve({ ok: true }));
@@ -120,7 +116,7 @@ export default describeModule('anolysis/internals/signals-queue',
 
       it('sends signals even when storage fails', () => {
         const sentSignals = [];
-        storage.signals.push = sinon.spy(() => Promise.reject('Could not persist signal'));
+        storage.signals.push = sinon.spy(() => Promise.reject(new Error('Could not persist signal')));
         sendSignal = sinon.spy((signal) => {
           sentSignals.push(signal);
           return Promise.resolve();
@@ -138,5 +134,4 @@ export default describeModule('anolysis/internals/signals-queue',
           .then(() => chai.expect(sentSignals[1]).to.have.nested.include({ 'meta.forcePushed': true }));
       });
     });
-  },
-);
+  });

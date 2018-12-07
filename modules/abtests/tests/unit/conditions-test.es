@@ -309,5 +309,4 @@ export default describeModule('abtests/conditions',
         });
       });
     });
-  },
-);
+  });

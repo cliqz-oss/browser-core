@@ -42,18 +42,19 @@ export const elementTopMargin = {
 };
 
 export const cardBorderTopRadius = {
-  borderTopLeftRadius: 5,
-  borderTopRightRadius: 5,
+  borderTopLeftRadius: 10,
+  borderTopRightRadius: 10,
 };
 
 export const cardBorderBottomRadius = {
-  borderBottomLeftRadius: 5,
-  borderBottomRightRadius: 5,
+  borderBottomLeftRadius: 10,
+  borderBottomRightRadius: 10,
 };
 
 export const cardMargins = {
-  marginBottom: 5,
+  marginBottom: 50,
   marginTop: 5,
 };
 
-export const descriptionTextColor = '#0C2B4A';
+export const highlightedBackgroundColor = 'rgba(0, 0, 0, 0.7)';
+export const separatorColor = 'rgba(255, 255, 255, 0.5)';

@@ -5,8 +5,7 @@ import CLIQZ from './cliqz';
 
 function showControls() {
   CLIQZ.abtests.isRunning().then((isRunning) => {
-    document.getElementById('controls').innerHTML =
-      templates.controls({ isRunning });
+    document.getElementById('controls').innerHTML = templates.controls({ isRunning });
 
     $('#start').on('click', function start() {
       CLIQZ.abtests.start().then(() => showControls());
@@ -19,8 +18,7 @@ function showControls() {
 
 function showCoreVersion() {
   CLIQZ.abtests.getCoreVersion().then((version) => {
-    document.getElementById('core-version').innerHTML =
-      templates.version(version);
+    document.getElementById('core-version').innerHTML = templates.version(version);
   });
 }
 
@@ -33,8 +31,7 @@ function showDemographics() {
 function showCompletedTests() {
   CLIQZ.abtests.getCompletedTests().then(function show(tests) {
     const options = { showRemove: true };
-    document.getElementById('completed-tests').innerHTML =
-      templates.tests({ tests, options });
+    document.getElementById('completed-tests').innerHTML = templates.tests({ tests, options });
 
     $('.remove-test').each(function assignRemoveTest() {
       $(this).on('click', function removeTest() {
@@ -51,8 +48,7 @@ function showCompletedTests() {
 function showActiveTests() {
   CLIQZ.abtests.getRunningTests().then(function show(tests) {
     const options = { showStop: true };
-    document.getElementById('active-tests').innerHTML =
-      templates.tests({ tests, options });
+    document.getElementById('active-tests').innerHTML = templates.tests({ tests, options });
 
     $('.stop-test').each(function assignStopTest() {
       $(this).on('click', function stopTest() {
@@ -70,8 +66,7 @@ function showActiveTests() {
 function showAvailableTests() {
   CLIQZ.abtests.getAvailableTests().then(function show(tests) {
     const options = { showStart: true };
-    document.getElementById('available-tests').innerHTML =
-      templates.tests({ tests, options });
+    document.getElementById('available-tests').innerHTML = templates.tests({ tests, options });
 
     $('.start-test').each(function assignStartTest() {
       $(this).on('click', function startTest() {

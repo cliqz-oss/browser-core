@@ -26,8 +26,11 @@ export default describeModule('notifications/notification-center',
       'notifications/storage': {
         default: class {
           watchedDomainNames() { return []; }
+
           notifications() { return {}; }
+
           saveDomain() { return {}; }
+
           updateDomain() { return {}; }
         }
       },
@@ -369,5 +372,4 @@ export default describeModule('notifications/notification-center',
         });
       });
     });
-  }
-);
+  });

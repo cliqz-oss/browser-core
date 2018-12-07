@@ -6,7 +6,8 @@ import { exportPrivateKey, exportPublicKey } from './pkcs-conversion';
 function fromByteArray(data, format) {
   if (format === 'hex') {
     return toHex(data);
-  } else if (format === 'b64') {
+  }
+  if (format === 'b64') {
     return toBase64(data);
   }
   return data;
@@ -14,7 +15,8 @@ function fromByteArray(data, format) {
 function toByteArray(data, format) {
   if (format === 'hex') {
     return fromHex(data);
-  } else if (format === 'b64') {
+  }
+  if (format === 'b64') {
     return fromBase64(data);
   }
   return data;
@@ -44,9 +46,7 @@ async function encryptAES(data, key, iv) {
     .then(([_iv, _key]) =>
       crypto.subtle.encrypt({ name: 'AES-GCM', iv: _iv }, _key, data)
         .then(encrypted =>
-          [fromArrayBuffer(_iv, 'b64'), fromArrayBuffer(encrypted, 'b64')],
-        ),
-    );
+          [fromArrayBuffer(_iv, 'b64'), fromArrayBuffer(encrypted, 'b64')]));
 }
 // Returns [IV, encryptedData]
 async function encryptStringAES(txt, key, iv) {
@@ -103,8 +103,7 @@ async function wrapAESKey(aesKey, publicKey) {
     typeof publicKey === 'string' ? importRSAKey(publicKey, true) : publicKey,
   )
     .then(pk =>
-      crypto.subtle.wrapKey('raw', aesKey, pk, { name: 'RSA-OAEP', hash: { name: 'SHA-256' } }),
-    )
+      crypto.subtle.wrapKey('raw', aesKey, pk, { name: 'RSA-OAEP', hash: { name: 'SHA-256' } }))
     .then(wrapped => toBase64(wrapped));
 }
 async function unwrapAESKey(aesKey, privateKey) {
@@ -128,8 +127,7 @@ async function unwrapAESKey(aesKey, privateKey) {
         },
         true,
         ['encrypt', 'decrypt'],
-      ),
-    );
+      ));
 }
 async function encryptStringRSA(txt, publicKey) {
   return generateAESKey()
@@ -152,9 +150,9 @@ async function rawEncryptRSA(data, publicKey) {
     .then(d => new Uint8Array(d));
 }
 async function _encryptRSA(data, pubKey, aesKey) {
-  const wrapPromise = Array.isArray(pubKey) ?
-    Promise.all(pubKey.map(x => wrapAESKey(aesKey, x))) :
-    wrapAESKey(aesKey, pubKey);
+  const wrapPromise = Array.isArray(pubKey)
+    ? Promise.all(pubKey.map(x => wrapAESKey(aesKey, x)))
+    : wrapAESKey(aesKey, pubKey);
   return Promise.all([
     encryptAES(data, aesKey),
     wrapPromise
@@ -185,10 +183,10 @@ function randomBytes(numBytes) {
 async function deriveAESKey(bytes) {
   return sha256(bytes, 'raw')
     .then(h =>
-      crypto.subtle.importKey('raw', h, { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']),
-    );
+      crypto.subtle.importKey('raw', h, { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']));
 }
 
+// TODO: polyfill for Edge!
 async function sha1(s) {
   return hash('SHA-1', s);
 }

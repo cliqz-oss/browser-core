@@ -21,6 +21,7 @@
     "<all_urls>",
     "bookmarks",
     "clipboardWrite",
+    "commands",
     "cookies",
     "geolocation",
     "history",
@@ -40,14 +41,22 @@
   "background": {
     "scripts": [
       "modules/vendor/Rx.min.js",
-      "modules/vendor/math.min.js",
       "modules/vendor/dexie.min.js",
-      "modules/vendor/pouchdb.js",
+      "modules/vendor/math.min.js",
       "modules/webextension-specific/app.bundle.js"
     ]
   },
   "chrome_url_overrides": {
     "newtab": "modules/freshtab/home.html"
+  },
+  "commands": {
+    "toggle-quicksearch": {
+      "suggested_key": {
+        "default": "Ctrl+Space",
+        "mac": "Alt+Space"
+      },
+      "description": "Toggle in-page quick search"
+    }
   },
   "content_scripts": [
     {
@@ -58,6 +67,8 @@
     }
   ],
   "web_accessible_resources": [
-    "modules/dropdown/dropdown.html"
+    "modules/dropdown/dropdown.html",
+    "modules/overlay/styles/overlay.css",
+    "modules/freshtab/images/ghostery-tab-search-icon.svg"
   ]
 }

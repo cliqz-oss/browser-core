@@ -169,7 +169,7 @@ export default class Dropdown extends React.Component {
 
     return (
       <a
-        href=""
+        href={`#${item.title}`}
         key={item.title}
         className={classNames(cssClass)}
         onMouseDown={

@@ -1,9 +1,9 @@
 /* eslint no-param-reassign: off */
 
 import prefs from '../../core/prefs';
+import utils from '../../core/utils';
 import ActionID from '../offers/actions-defs';
 import OffersConfigs from '../offers_configs';
-import config from '../../core/config';
 import logger from '../common/offers_v2_logger';
 
 const addOrCreate = (d, field, value = 1) => {
@@ -52,7 +52,7 @@ const constructSignal = (signalID, signalType, signalData) => {
     timestamp: getHpnTimeStamp(),
     payload: {
       v: OffersConfigs.SIGNALS_VERSION,
-      ex_v: config.EXTENSION_VERSION,
+      ex_v: utils.extensionVersion,
       is_developer: isDeveloper(),
       gid: getGID(),
       type: signalType,

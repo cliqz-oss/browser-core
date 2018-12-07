@@ -1,12 +1,11 @@
 export default fetch;
 
-export function fetchFactory() {
-  return fetch;
-}
+const isTrackableOriginHeaderFromOurExtension = () => false;
 
 export {
   fetch,
   Headers,
   Request,
   Response,
+  isTrackableOriginHeaderFromOurExtension
 };

@@ -229,10 +229,8 @@ export default class AnolysisStorage {
       .subtract(30, 'days')
       .format(DATE_FORMAT);
 
-    await Promise.all([
-      this.aggregated.deleteOlderThan(oneMonthAgo),
-      this.signals.deleteOlderThan(oneMonthAgo),
-    ]);
+    this.aggregated.deleteOlderThan(oneMonthAgo);
+    this.signals.deleteOlderThan(oneMonthAgo);
   }
 
   async healthCheck() {
@@ -246,15 +244,6 @@ export default class AnolysisStorage {
     if (await this.db.hasFailed()) {
       throw new Error('Dexie DB has failed to open');
     }
-
-    // Check if we can perform a basic operation on each table
-    await Promise.all([
-      this.db.aggregated.count(),
-      this.db.behavior.count(),
-      this.db.gid.count(),
-      this.db.retention.count(),
-      this.db.signals.count(),
-    ]);
   }
 
   async destroy() {

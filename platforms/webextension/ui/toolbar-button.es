@@ -4,13 +4,17 @@ export default class {
       popup: options.default_popup || ''
     };
   }
+
   build() {
     chrome.browserAction.setPopup({
       popup: this.defaults.popup,
     });
   }
+
   setPositionBeforeElement() {}
+
   addWindow() {}
+
   setIcon(tabId, value) {
     chrome.browserAction.setIcon({
       path: {
@@ -21,14 +25,19 @@ export default class {
       tabId
     });
   }
+
   setBadgeBackgroundColor(tabId, color) {
     chrome.browserAction.setBadgeBackgroundColor({ color, tabId });
   }
+
   removeWindow() {}
+
   shutdown() {}
+
   setBadgeText(tabId, text) {
     chrome.browserAction.setBadgeText({ text, tabId });
   }
+
   resizePopup() {
   }
 }

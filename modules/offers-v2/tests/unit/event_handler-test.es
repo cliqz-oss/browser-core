@@ -4,7 +4,8 @@
 /* global sinon */
 
 const encoding = require('text-encoding');
-const tldts = require('tldts');
+const commonMocks = require('./utils/common');
+const eventsMock = require('./utils/events');
 
 const TextDecoder = encoding.TextDecoder;
 const TextEncoder = encoding.TextEncoder;
@@ -13,30 +14,13 @@ let getDetailsFromUrlReal;
 
 export default describeModule('offers-v2/event_handler',
   () => ({
+    ...commonMocks,
+    ...eventsMock,
     'platform/text-decoder': {
       default: TextDecoder,
     },
     'platform/text-encoder': {
       default: TextEncoder,
-    },
-    'offers-v2/common/offers_v2_logger': {
-      default: {
-        debug: (x) => { console.log(x); },
-        error: (x) => { console.log(x); },
-        info: (x) => { console.log(x); },
-        log: (x) => { console.log(x); },
-        warn: (x) => { console.log(x); },
-        logObject: (x) => { console.log(x); },
-      }
-    },
-    'core/platform': {
-      isChromium: false
-    },
-    'core/helpers/timeout': {
-      default: function () { const stop = () => {}; return { stop }; }
-    },
-    'core/utils': {
-      default: {},
     },
     'core/url': {
       getDetailsFromUrl: function (url) {
@@ -44,66 +28,30 @@ export default describeModule('offers-v2/event_handler',
         return getDetailsFromUrlReal(url);
       }
     },
-    'core/events': {
-      default: {
-        d: {
-          id_map: {}
-        },
-        sub: function (id, cb) {
-          this.d.id_map[id] = cb;
-        },
-        un_sub: function (id) {
-          delete this.d.id_map[id];
-        },
-        pub: function (id, ...args) {
-          const cb = this.d.id_map[id];
-          if (cb) {
-            cb(...args);
-          }
-        }
-      }
+    'core/timers': {
+      setTimeout: cb => cb(),
     },
-    'platform/globals': {
-    },
-    // 'core/crypto/random': {
-    // },
-    'platform/console': {
-      default: {}
-    },
-    'platform/lib/tldts': tldts,
-    'core/prefs': {
-      default: {
-        get: function (x, y) { return y; }
-      }
-    }
   }),
   () => {
     describe('#event_handler', function () {
       let EventHandler;
-      let events;
+      const events = eventsMock['core/events'].default;
       beforeEach(function () {
         EventHandler = this.module().default;
-        events = this.deps('core/events').default;
+        events.clearAll();
         return this.system.import('core/url').then((mod) => {
           getDetailsFromUrlReal = mod.getDetailsFromUrl;
         });
       });
 
       context('basic tests', function () {
-        let oldTimeout;
         let eh;
 
         beforeEach(function () {
           eh = new EventHandler();
-          oldTimeout = global.setTimeout;
-          global.setTimeout = (cb) => { cb(); };
         });
 
-        afterEach(function () {
-          global.setTimeout = oldTimeout;
-        });
-
-        function simLocChange(url, extra={}) {
+        function simLocChange(url, extra = {}) {
           const evt = {
             ...extra,
             isPrivate: false,
@@ -222,7 +170,7 @@ export default describeModule('offers-v2/event_handler',
 
           function doActivityInOtherTabs(countString) {
             Array.from(countString).forEach(letter =>
-              simLocChange('http://smwhr.com/' + letter, { tabId: letter }));
+              simLocChange(`http://smwhr.com/${letter}`, { tabId: letter }));
           }
 
           function loadInMainTab() {
@@ -240,7 +188,7 @@ export default describeModule('offers-v2/event_handler',
 
           it('/detect a reload after activity in other tabs', () => {
             loadInMainTab();
-            doActivityInOtherTabs("012345");
+            doActivityInOtherTabs('012345');
 
             cb.resetHistory();
             loadInMainTab();
@@ -250,7 +198,7 @@ export default describeModule('offers-v2/event_handler',
 
           it('/miss a reload due to expiration of url tracking entries', () => {
             loadInMainTab();
-            doActivityInOtherTabs("0123456789ABCDEFGHIJKLMNOPQRST");
+            doActivityInOtherTabs('0123456789ABCDEFGHIJKLMNOPQRST');
 
             cb.resetHistory();
             loadInMainTab();
@@ -260,5 +208,4 @@ export default describeModule('offers-v2/event_handler',
         });
       });
     });
-  }
-);
+  });

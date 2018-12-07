@@ -10,6 +10,12 @@ class UndoDialRemoval extends React.Component {
     };
   }
 
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.visible !== this.state.visible) {
+      this.setState({ visible: nextProps.visible });
+    }
+  }
+
   handleUndoRemoval() {
     this.setState({ visible: false });
     this.props.undoRemoval();
@@ -30,7 +36,7 @@ class UndoDialRemoval extends React.Component {
     }
 
     return (
-      <div className={classes.join(' ')} >
+      <div className={classes.join(' ')}>
         <span
           className="removed-dial"
         >
@@ -38,6 +44,7 @@ class UndoDialRemoval extends React.Component {
         </span>&nbsp;
         {t('app_speed_dial_removed')}
         <button
+          type="button"
           id="undo-close"
           className="undo"
           tabIndex="-1"
@@ -46,6 +53,7 @@ class UndoDialRemoval extends React.Component {
           {t('app_speed_dial_undo')}
         </button>
         <button
+          type="button"
           id="undo-notification-close"
           className="close"
           tabIndex="-1"

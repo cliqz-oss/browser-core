@@ -6,7 +6,8 @@ import {
   testsEnabled,
   urlbar,
   waitForPopup,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 
 export default function () {
   if (!testsEnabled()) { return; }

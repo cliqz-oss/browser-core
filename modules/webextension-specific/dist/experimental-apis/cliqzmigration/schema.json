@@ -1,0 +1,32 @@
+[{
+  "namespace": "cliqzmigration",
+  "description": "API giving read access to 'extensions.cliqz.' branch of firefox prefs (needed for migration).",
+  "functions": [{
+    "name": "getPrefs",
+    "type": "function",
+    "description": "Gets all prefs from 'extensions.cliqz.' branch.",
+    "async": "callback",
+    "parameters": [
+      {
+        "type": "function",
+        "name": "callback",
+        "parameters": [{
+          "name": "prefs",
+          "type": "object"
+        }]
+      }
+    ]
+  }, {
+    "name": "purge",
+    "type": "function",
+    "description": "Removes all previously stored data by Cliqz in user profile. This operation cannot be undone.",
+    "async": "callback",
+    "parameters": [
+      {
+        "type": "function",
+        "name": "callback",
+        "parameters": []
+      }
+    ]
+  }]
+}]

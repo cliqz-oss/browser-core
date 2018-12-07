@@ -7,8 +7,7 @@ export default {
     return Promise.all(urls.map(url =>
       new Promise(resolve => chrome.history.deleteUrl({
         url
-      }, resolve))
-    ));
+      }, resolve))));
   },
 
   removeFromBookmarks(url) {

@@ -108,8 +108,8 @@ export default class GenericResult extends BaseResult {
 
   get newsResults() {
     const deepLinks = getDeepResults(this.rawResult, 'news');
-    const hostname = this.url &&
-      urlStripProtocol(fastUrlParser.parse(cleanMozillaActions(this.url)[1]).hostname);
+    const hostname = this.url
+      && urlStripProtocol(fastUrlParser.parse(cleanMozillaActions(this.url)[1]).hostname);
     return deepLinks.map(({ url, title, extra = {} } = {}) => new NewsResult(this, {
       ...this.topResultProps,
       url,
@@ -179,8 +179,8 @@ export default class GenericResult extends BaseResult {
     const locationAssistant = this.resultTools.assistants.location;
 
     if (!this._shareLocationButtons) {
-      this._shareLocationButtons = !this.isAskingForLocation ? [] :
-        locationAssistant.actions.map((action) => {
+      this._shareLocationButtons = !this.isAskingForLocation ? []
+        : locationAssistant.actions.map((action) => {
           let additionalClassName = '';
           if (action.actionName === 'allowOnce') {
             additionalClassName = 'location-allow-once';

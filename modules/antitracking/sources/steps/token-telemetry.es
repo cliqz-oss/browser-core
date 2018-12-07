@@ -3,7 +3,7 @@ import DefaultMap from '../../core/helpers/default-map';
 import { TELEMETRY } from '../config';
 import Rx from '../../platform/lib/rxjs';
 import { getConfigTs } from '../time';
-import telemetryService from '../../core/services/telemetry';
+import inject from '../../core/kord/inject';
 
 const DEFAULT_CONFIG = {
   // token batchs, max 720 messages/hour
@@ -142,7 +142,8 @@ class CachedEntryPipeline {
     // the queue empties
     const maxSending = Math.ceil(
       (this.options.CLEAN_INTERVAL / this.options.TOKEN_BATCH_INTERVAL)
-        * (this.options.TOKEN_BATCH_SIZE * this.options.TOKEN_MESSAGE_SIZE));
+      * (this.options.TOKEN_BATCH_SIZE * this.options.TOKEN_MESSAGE_SIZE)
+    );
     // get values from the database which have not yet been sent today
     const notSentToday = (await this.db
       .where('lastSent')
@@ -403,7 +404,7 @@ export default class TokenTelemetry {
     this.messageQueue = new Rx.Subject();
     this.telemetrySender = {
       next: ({ type, signal }) => {
-        telemetryService.push(signal, `metrics.antitracking.${type}`);
+        inject.service('telemetry').push(signal, `metrics.antitracking.${type}`);
       },
     };
     this.tokens = new TokenPipeline(database.tokens, this.telemetrySender, opts);
@@ -415,8 +416,7 @@ export default class TokenTelemetry {
     const filteredTokens = this.subjectTokens
       .groupBy(el => el.token, undefined, () => Rx.Observable.timer(60000))
       .flatMap(group => group
-        .buffer(bufferInterval())
-      )
+        .buffer(bufferInterval()))
       .filter(batch => batch.length > 0);
 
     // token subscription pipeline takes batches of tokens (grouped by value)
@@ -444,13 +444,13 @@ export default class TokenTelemetry {
           const siteTokens = keyStats.sitesTokens.get(entry.fp);
           siteTokens.set(entry.token, entry.safe);
 
-          if (keyStats.lastSent !== currentDay() &&
-            (keyStats.sitesTokens.size > 1 || keyStats.created < entryCutoff)) {
+          if (keyStats.lastSent !== currentDay()
+            && (keyStats.sitesTokens.size > 1 || keyStats.created < entryCutoff)) {
             this.keySendQueue.next(keyKey);
           }
         });
-        if (tokenStats.lastSent !== currentDay() &&
-          (tokenStats.sites.size > 1 || tokenStats.created < entryCutoff)) {
+        if (tokenStats.lastSent !== currentDay()
+          && (tokenStats.sites.size > 1 || tokenStats.created < entryCutoff)) {
           this.tokenSendQueue.next(token);
         }
       });
@@ -524,8 +524,8 @@ export default class TokenTelemetry {
     const isTracker = this.qsWhitelist.isTrackerDomain(thirdPartyGeneralDomain);
 
     // telemetryMode 0: collect nothing, telemetryMode 1: collect only for tracker domains
-    if (this.config.telemetryMode === TELEMETRY.DISABLED ||
-       (this.config.telemetryMode === TELEMETRY.TRACKERS_ONLY && !isTracker)) {
+    if (this.config.telemetryMode === TELEMETRY.DISABLED
+       || (this.config.telemetryMode === TELEMETRY.TRACKERS_ONLY && !isTracker)) {
       return;
     }
 
@@ -539,9 +539,9 @@ export default class TokenTelemetry {
       }
       // put token in safe bucket if: value is short, domain is not a tracker,
       // or key or value is whitelisted
-      const safe = !isTracker ||
-                   this.qsWhitelist.isSafeKey(thirdPartyGeneralDomain, key) ||
-                   this.qsWhitelist.isSafeToken(thirdPartyGeneralDomain, token);
+      const safe = !isTracker
+                   || this.qsWhitelist.isSafeKey(thirdPartyGeneralDomain, key)
+                   || this.qsWhitelist.isSafeToken(thirdPartyGeneralDomain, token);
 
       this.subjectTokens.next({
         day: currentDay(),

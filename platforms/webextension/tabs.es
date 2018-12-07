@@ -91,10 +91,9 @@ export function getTab(tabId) {
       if (tab) {
         resolve(tab);
       } else {
-        reject('tab not found');
+        reject(new Error('tab not found'));
       }
-    })
-  );
+    }));
 }
 
 export function query(queryInfo) {

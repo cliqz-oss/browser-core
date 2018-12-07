@@ -14,7 +14,8 @@ import coreMetrics from './metrics/core';
 import antitrackingTokenMetrics from './metrics/performance/antitracking-tokens';
 import consentricDefinitions from './metrics/consentric';
 import termsAndConditionsDuration from './metrics/time-spent-terms-and-conditions';
-
+import moduleStartupPerformanceMetrics from './metrics/performance/modules-startup';
+import cliqzForFriendsMetrics from './metrics/cliqz-for-friends';
 
 // Analyses
 import retention from './analyses/retention';
@@ -69,8 +70,11 @@ const metrics = [
   ...antitrackingTokenMetrics,
   ...consentricDefinitions,
   ...termsAndConditionsDuration,
+  ...cliqzForFriendsMetrics,
+  moduleStartupPerformanceMetrics,
 ].map(schema => ({
   ...schema,
+  description: schema.description || 'missing description',
   sendToBackend: schema.sendToBackend || false,
 }));
 
@@ -101,6 +105,7 @@ const analyses = [
   ...consentric,
 ].map(schema => ({
   ...schema,
+  description: schema.description || 'missing description',
   sendToBackend: true,
 }));
 

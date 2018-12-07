@@ -5,8 +5,8 @@ import NativeDrawable, { normalizeUrl } from '../custom/NativeDrawable';
 
 const styles = StyleSheet.create({
   rating: {
-    height: 20,
-    width: 120,
+    height: 15,
+    width: 90,
     marginTop: 5,
     marginBottom: 5,
   },
@@ -21,7 +21,7 @@ export default function ({ image }) {
   return (
     <View
       accessible={false}
-      accessibilityLabel={'rating'}
+      accessibilityLabel="rating"
     >
       <NativeDrawable
         style={styles.rating}

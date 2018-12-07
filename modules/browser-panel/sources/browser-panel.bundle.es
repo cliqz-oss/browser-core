@@ -22,9 +22,9 @@ function localizeDocument() {
 // retrieves the current offer id from the document
 function cqzOfferGetCurrentOfferID() {
   const offerIDElem = document.getElementById('cqz-browser-panel-re');
-  if (!offerIDElem ||
-      !offerIDElem.hasAttribute('data-cliqzofferid') ||
-      offerIDElem.getAttribute('data-cliqzofferid') === '') {
+  if (!offerIDElem
+      || !offerIDElem.hasAttribute('data-cliqzofferid')
+      || offerIDElem.getAttribute('data-cliqzofferid') === '') {
     return 'unknown';
   }
   return offerIDElem.getAttribute('data-cliqzofferid');
@@ -119,6 +119,9 @@ function draw(data) {
   // docElem.setAttribute('lang', data.lang);
 
   const panel = document.getElementById('cqz-browser-panel-re');
+  if (data.isWebExtension) {
+    panel.classList.add('web-ext');
+  }
   const html = templates[templateName](templateData);
   panel.innerHTML = html;
 

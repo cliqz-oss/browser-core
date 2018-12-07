@@ -3,103 +3,24 @@
 /* global require */
 /* eslint camelcase: off */
 
-const tldts = require('tldts');
+const commonMocks = require('../utils/common');
+const persistenceMocks = require('../utils/persistence');
+const beMocks = require('../utils/offers/intent');
 
-const persistence = {};
-function delay(fn) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      Promise.resolve()
-        .then(fn)
-        .then(resolve)
-        .catch(reject);
-    }, 100);
-  });
-}
+const BackendConnectorMock = beMocks['offers-v2/backend-connector'].BackendConnectorMock;
+const IntentHandlerMock = beMocks['offers-v2/backend-connector'].IntentHandlerMock;
 
 let shouldKeepResourceRet = false;
 
-class BackendConnectorMock {
-  constructor() {
-    this.calls = [];
-    this.ret = [];
-  }
-
-  sendApiRequest(endpoint, params, method = 'POST') {
-    this.calls.push({ endpoint, params, method });
-    return Promise.resolve(this.ret);
-  }
-
-  clear() {
-    this.ret = [];
-    this.calls = [];
-  }
-}
-
-class IntentMock {
-  constructor(n, d) {
-    this.n = n;
-    this.d = d;
-  }
-  getName() {
-    return this.n;
-  }
-  getDurationSecs() {
-    return this.d;
-  }
-}
-
-class IntentHandlerMock {
-  constructor() {
-    this.intents = new Map();
-  }
-  mock_addIntent(n, d) {
-    this.intents.set(n, new IntentMock(n, d));
-  }
-  registerCallback() {}
-  unregisterCallback() {}
-  activateIntent() {}
-  getActiveIntents() {
-    const r = [];
-    this.intents.forEach((v, k) => r.push(this.intents.get(k)));
-    return r;
-  }
-  isIntentActiveByName() {
-    return false;
-  }
-  isIntentActive() {
-    return false;
-  }
-  getActiveIntent(intentName) {
-    return this.intents.get(intentName);
-  }
-}
-
 export default describeModule('offers-v2/offers/intent-offers-handler',
   () => ({
-    'offers-v2/backend-connector': {
-      default: BackendConnectorMock,
-    },
-    'offers-v2/common/offers_v2_logger': {
-      default: {
-        debug: () => {},
-        error: () => {},
-        info: () => {},
-        log: () => {},
-        warn: () => {},
-        logObject: () => {},
-      }
-    },
-    'core/prefs': {
-      default: {
-        get: function (x, y) { return y; }
-      }
-    },
-    'core/platform': {
-      isWebExtension: false
-    },
-    'platform/lib/tldts': tldts,
+    ...commonMocks,
+    ...persistenceMocks,
+    ...beMocks,
     'platform/xmlhttprequest': {
+      default: {}
+    },
+    'core/http': {
       default: {}
     },
     'platform/fetch': {
@@ -108,9 +29,7 @@ export default describeModule('offers-v2/offers/intent-offers-handler',
     'platform/gzip': {
       default: {}
     },
-    'platform/globals': {
-      default: {}
-    },
+
     'platform/environment': {
       default: {}
     },
@@ -122,54 +41,6 @@ export default describeModule('offers-v2/offers/intent-offers-handler',
         return shouldKeepResourceRet;
       },
     },
-    'core/persistence/map': {
-      default: class MockMap {
-        constructor(dbName) {
-          persistence[dbName] = (persistence[dbName] || new Map());
-          this.db = persistence[dbName];
-        }
-
-        init() {
-          return Promise.resolve();
-        }
-
-        unload() {
-          return Promise.resolve();
-        }
-
-        get(key) {
-          return delay(() => this.db.get(key));
-        }
-
-        set(key, value) {
-          return delay(() => this.db.set(key, value));
-        }
-
-        has(key) {
-          return delay(() => this.db.has(key));
-        }
-
-        delete(key) {
-          return delay(() => this.db.delete(key));
-        }
-
-        clear() {
-          return delay(() => this.db.clear());
-        }
-
-        size() {
-          return delay(() => this.db.size());
-        }
-
-        keys() {
-          return delay(() => [...this.db.keys()]);
-        }
-
-        entries() {
-          return delay(() => [...this.db.entries()]);
-        }
-      }
-    }
   }),
   () => {
     describe('general tests', function () {
@@ -188,12 +59,12 @@ export default describeModule('offers-v2/offers/intent-offers-handler',
           resultOffers.forEach(o => resultIDs.add(o.uniqueID));
           chai.expect(resultIDs.size, 'there are more or less elements than expected').eql(idList.length);
           idList.forEach(id =>
-            chai.expect(resultIDs.has(id), `missing offer id: ${id}`).eql(true)
-          );
+            chai.expect(resultIDs.has(id), `missing offer id: ${id}`).eql(true));
         }
 
         context('/validity checks', function () {
           beforeEach(function () {
+            persistenceMocks['core/persistence/map'].reset();
             beConnector = new BackendConnectorMock();
             ihandlerMock = new IntentHandlerMock();
             ioh = new IntentOffersHandler(beConnector, ihandlerMock);
@@ -215,7 +86,7 @@ export default describeModule('offers-v2/offers/intent-offers-handler',
               }
             ];
             // configure the bemock
-            beConnector.ret = offers;
+            beConnector.setMockResult(offers);
             ihandlerMock.mock_addIntent('intent-name', 999);
             return ioh.fetchOffersForIntent('intent-name').then(() => {
               checkResult(['o1', 'o2', 'o3', 'o4']);
@@ -240,7 +111,7 @@ export default describeModule('offers-v2/offers/intent-offers-handler',
               }
             ];
             // configure the bemock
-            beConnector.ret = offers;
+            beConnector.setMockResult(offers);
             shouldKeepResourceRet = false;
             ihandlerMock.mock_addIntent('intent-name', 999);
             return ioh.fetchOffersForIntent('intent-name').then(() => {
@@ -266,7 +137,7 @@ export default describeModule('offers-v2/offers/intent-offers-handler',
               }
             ];
             // configure the bemock
-            beConnector.ret = offers;
+            beConnector.setMockResult(offers);
             shouldKeepResourceRet = true;
             ihandlerMock.mock_addIntent('intent-name', 999);
             return ioh.fetchOffersForIntent('intent-name').then(() => {
@@ -276,5 +147,4 @@ export default describeModule('offers-v2/offers/intent-offers-handler',
         });
       });
     });
-  }
-);
+  });

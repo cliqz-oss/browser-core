@@ -1,25 +1,27 @@
+/**
+ * @module offers-v2
+ * @class PatternUtils
+ * @static
+ */
 import logger from '../common/offers_v2_logger';
-import { parseNetworkFilter, mkRequest } from '../../core/pattern-matching';
+import PatternMatching from '../../platform/lib/adblocker';
 import { MultiPatternIndex, SimplePatternIndex } from './pattern-utils-imp';
-import { parse } from '../../core/tlds';
 
 
 /**
  * this method will generate the proper structure we need to use when matching
  * later against the patterns. This will build the "tokenizedURL object"
- * @param  {[type]} url [description]
- * @return {Object}     will be the object needed to parse later
+ *
+ * @method tokenizeUrl
+ * @param  {string} theUrl
+ * @return {PatternMatchRequest} will be the object needed to parse later
  */
-export default function tokenizeUrl(theUrl, cpt = 2) {
-  if (theUrl) {
-    const { host, domain } = parse(theUrl);
-    return mkRequest({
-      url: theUrl,
-      domain,
-      hostname: host,
-      cpt,
-      sourceHostname: host,
-      sourceDomain: domain,
+export default function tokenizeUrl(url, cpt = 2) {
+  if (url) {
+    return new PatternMatching.Request({
+      url,
+      type: cpt,
+      sourceUrl: url,
     });
   }
   return null;
@@ -38,15 +40,18 @@ function buildMultiPatternIndex(multiPatternsList) {
 
   multiPatternsList.forEach((patternTuple) => {
     patternTuple.patterns.forEach((pattern) => {
-      const filter = parseNetworkFilter(pattern);
+      const filter = PatternMatching.parseNetworkFilter(pattern);
       if (filter) {
-        if (!id2filter.has(filter.id)) {
-          id2filter.set(filter.id, {
+        // Keep track of original pattern
+        filter.rawLine = pattern;
+
+        if (!id2filter.has(filter.getId())) {
+          id2filter.set(filter.getId(), {
             filter,
             categories: new Set([patternTuple.groupID]),
           });
         } else {
-          id2filter.get(filter.id).categories.add(patternTuple.groupID);
+          id2filter.get(filter.getId()).categories.add(patternTuple.groupID);
         }
       } else {
         logger.error('Error parsing the filter / pattern ', pattern);
@@ -68,8 +73,9 @@ function buildMultiPatternIndex(multiPatternsList) {
 function buildMultiPatternIndexPatternAsID(multiPatternsList) {
   const parsedFilters = [];
   multiPatternsList.forEach((pattern) => {
-    const filter = parseNetworkFilter(pattern);
+    const filter = PatternMatching.parseNetworkFilter(pattern);
     if (filter) {
+      filter.rawLine = pattern;
       filter.groupID = pattern;
       parsedFilters.push(filter);
     } else {
@@ -83,8 +89,15 @@ function buildMultiPatternIndexPatternAsID(multiPatternsList) {
  * Will construct a simple PatternIndex given a list of patterns (patternList)
  */
 function buildSimplePatternIndex(patternList) {
-  const filterList = (patternList.map(pattern => parseNetworkFilter(pattern)) || [])
-    .filter(f => (!!f));
+  const filterList = [];
+  for (let i = 0; i < patternList.length; i += 1) {
+    const pattern = patternList[i];
+    const filter = PatternMatching.parseNetworkFilter(pattern);
+    if (filter) {
+      filter.rawLine = pattern;
+      filterList.push(filter);
+    }
+  }
   return new SimplePatternIndex(filterList);
 }
 

@@ -55,19 +55,32 @@ export default class OffersAPI {
   // /////////////////////////////////////////////////////////////////////////////
   // add / remove offers
 
+  /**
+   * This method will push the offer to all the proper real estates.
+   * It takes an Offer (wrapper) object.
+   *
+   * The main logic is as follow:
+   * - Check offer validity
+   * - Add or update offer on the database.
+   * - distribute to destination real estates.
+   *
+   * Prerequisite: offer filtering is already done.
+   *
+   * @method pushOffer
+   * @param {Offer} offer
+   * @param {object} newDisplayRule
+   *   If the displayRule is different than the one the offer
+   *   currently has
+   * @param {string} origin
+   *   will be the origin who is calling this method.
+   * @param {OfferMatchTraits} matchTraits
+   *   Reason why to push the offer
+   * @returns {boolean} true on success
+   */
   //
-  // @brief This method will push the offer to all the proper real estates. It
-  //        takes an Offer (wrapper) object.
-  //        The main logic is as follow:
-  //        - Check offer validity
-  //        - Add or update offer on the database.
-  //        - distribute to destination real estates.
-  //        Prerequisite: offer filtering is already done.
-  // @param origin will be the origin who is calling this method.
-  // @param newDisplayRule if the displayRule is different than the one the offer
-  //                       currently has
   //
-  pushOffer(offer, newDisplayRule = null, originID = ORIGIN_ID) {
+  pushOffer(offer, newDisplayRule = null, originIDin = null, matchTraits = null) {
+    const originID = originIDin || ORIGIN_ID;
     if (!offer || !offer.isValid()) {
       logger.warn('pushOffer: invalid offer or missing fields');
       return false;
@@ -76,6 +89,10 @@ export default class OffersAPI {
     const ok = this._createOrUpdateInDB(offer);
     if (!ok) {
       logger.warn('Failed to createOrUpdateDB');
+      return false;
+    }
+    if (!this.offersDB.addReasonForHaving(offer.uniqueID, matchTraits)) {
+      logger.warn('Failed to addReasonForHaving');
       return false;
     }
 
@@ -264,9 +281,9 @@ export default class OffersAPI {
    * @return {Boolean}         true if we have | false otherwise.
    */
   hasExternalOffer(args) {
-    if (!args ||
-        !args.data ||
-        !args.data.offer_id) {
+    if (!args
+        || !args.data
+        || !args.data.offer_id) {
       return false;
     }
     return this.offersDB.isOfferPresent(args.data.offer_id);
@@ -468,10 +485,10 @@ export default class OffersAPI {
    * @return {[type]}                 [description]
    */
   _uiFunOfferActionSignal(msg) {
-    if (!msg.data ||
-        !msg.data.offer_id ||
-        !msg.data.action_id ||
-        typeof msg.data.action_id !== 'string') {
+    if (!msg.data
+        || !msg.data.offer_id
+        || !msg.data.action_id
+        || typeof msg.data.action_id !== 'string') {
       logger.warn(`_uiFunOfferActionSignal: invalid arguments: ${JSON.stringify(msg)}`);
       return false;
     }

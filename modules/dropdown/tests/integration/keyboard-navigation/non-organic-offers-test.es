@@ -8,7 +8,8 @@ import {
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 import expectSelection from './common';
 import offersResults from '../../../core/integration/fixtures/offers/non-organic/noOffersInResultsExtraOffers';
 
@@ -31,10 +32,9 @@ export default function () {
       fillIn(query);
       await waitForPopup(3);
       await waitFor(() =>
-        $cliqzResults.querySelector(searchWithSelector) &&
-        $cliqzResults.querySelector(offersSelector) &&
-        $cliqzResults.querySelector(resultSelector)
-      );
+        $cliqzResults.querySelector(searchWithSelector)
+        && $cliqzResults.querySelector(offersSelector)
+        && $cliqzResults.querySelector(resultSelector));
       $searchWithElement = $cliqzResults.querySelector(searchWithSelector);
       $offersElement = $cliqzResults.querySelector(offersSelector);
       $resultElement = $cliqzResults.querySelector(resultSelector);

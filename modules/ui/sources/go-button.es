@@ -2,17 +2,18 @@ import utils from '../core/utils';
 import { isUrl } from '../core/url';
 
 export default function (window, search) {
-  const $button = window.document.getElementById('urlbar-go-button') ||
+  const $button = window.document.getElementById('urlbar-go-button')
     // FF56+
-    window.document.getAnonymousElementByAttribute(window.gURLBar, 'anonid', 'go-button') ||
+    || window.document.getAnonymousElementByAttribute(window.gURLBar, 'anonid', 'go-button')
     // FF58+?
-    window.document.getAnonymousElementByAttribute(window.gURLBar, 'anonid', 'urlbar-go-button');
+    || window.document.getAnonymousElementByAttribute(window.gURLBar, 'anonid', 'urlbar-go-button');
 
   const urlbarGoClick = async () => {
     // Ticket EX-7519: DNS lookup leakage also happens
     // when clicking on a Browser Forward Button.
     const mInputFieldValue = await search.action(
-      'queryToUrl', window.gURLBar.mInputField.value);
+      'queryToUrl', window.gURLBar.mInputField.value
+    );
     const isAutocompleted = window.gURLBar.value !== mInputFieldValue;
 
     // we somehow break default FF -> on goclick the autocomplete doesnt get considered

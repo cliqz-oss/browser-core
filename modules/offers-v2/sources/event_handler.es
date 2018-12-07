@@ -9,6 +9,7 @@ import events from '../core/events';
 import { getDetailsFromUrl } from '../core/url';
 import UrlData from './common/url_data';
 import inject from '../core/kord/inject';
+import { setTimeout } from '../core/timers';
 import LRU from '../core/LRU';
 
 export default class EventHandler {
@@ -64,6 +65,7 @@ export default class EventHandler {
   subscribeUrlChange(cb, cargs = null) {
     this.urlChangeCbs.set(cb, cargs);
   }
+
   unsubscribeUrlChange(cb) {
     this.urlChangeCbs.delete(cb);
   }
@@ -155,9 +157,9 @@ export default class EventHandler {
 
   // ///////////////////////////////////////////////////////////////////////////
   onLocationChangeHandler(url, referrer) {
-    if (!url ||
-        !(url.startsWith('http://') || url.startsWith('https://')) ||
-        this.notAllowedUrls.test(url)) {
+    if (!url
+        || !(url.startsWith('http://') || url.startsWith('https://'))
+        || this.notAllowedUrls.test(url)) {
       return;
     }
 
@@ -182,9 +184,9 @@ export default class EventHandler {
     const url = ctx.url;
 
     // do first filtering
-    if (!url ||
-        !(url.startsWith('http://') || url.startsWith('https://')) ||
-        ctx.isPrivate || ctx.statusCode !== 200) {
+    if (!url
+        || !(url.startsWith('http://') || url.startsWith('https://'))
+        || ctx.isPrivate || ctx.statusCode !== 200) {
       return;
     }
 
@@ -225,8 +227,7 @@ export default class EventHandler {
           name: 'offers-evt-handler',
           spec: 'collect',
           fn: this.webrequestPipelineCallback,
-        },
-      );
+        });
     }
   }
 

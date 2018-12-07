@@ -80,9 +80,9 @@ export function parseRequest(data) {
   // TCP_BIND
   // UDP_ASSOCIATE
   const command = data[1];
-  if (command !== COMMAND_TYPE.TCP_BIND &&
-      command !== COMMAND_TYPE.TCP_CONNECT &&
-      command !== COMMAND_TYPE.UDP_ASSOCIATE) {
+  if (command !== COMMAND_TYPE.TCP_BIND
+      && command !== COMMAND_TYPE.TCP_CONNECT
+      && command !== COMMAND_TYPE.UDP_ASSOCIATE) {
     // SERVER_REPLY.COMMAND_NOT_SUPPORTED
     logger.error(`socks-protocol: command not supported: ${command}`);
     return undefined;

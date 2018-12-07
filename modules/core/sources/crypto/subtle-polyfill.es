@@ -65,7 +65,8 @@ function digest(params, data) {
     const h = forge.md.sha1.create().start();
     h.update(toString(data));
     return Promise.resolve(toBuffer(h.digest()));
-  } else if (name === 'SHA-256') {
+  }
+  if (name === 'SHA-256') {
     const h = forge.md.sha256.create().start();
     h.update(toString(data));
     return Promise.resolve(toBuffer(h.digest()));
@@ -90,7 +91,8 @@ function importKey(type, data, { name, length = 256 }/* , extractable , usages *
       const pem = `-----BEGIN PUBLIC KEY-----\r\n${toBase64(data)}\r\n-----END PUBLIC KEY-----\r\n`;
       const publicKey = forge.pki.publicKeyFromPem(pem);
       return Promise.resolve({ name, data: publicKey });
-    } else if (type === 'pkcs8') {
+    }
+    if (type === 'pkcs8') {
       const newKey = exportPrivateKey(importPrivateKeyPKCS8(toBase64(data)));
       const pem = `-----BEGIN RSA PRIVATE KEY-----\r\n${newKey}\r\n-----END RSA PRIVATE KEY-----\r\n`;
       const privateKey = forge.pki.privateKeyFromPem(pem);
@@ -113,7 +115,8 @@ function exportKey(type, key) {
         .slice(1, -2)
         .join('');
       return Promise.resolve(fromBase64(exported).buffer);
-    } else if (type === 'pkcs8') {
+    }
+    if (type === 'pkcs8') {
       const exported = forge.pki.privateKeyToPem(key.data)
         .split('\r\n')
         .slice(1, -2)
@@ -142,15 +145,15 @@ function encrypt({ name, iv, additionalData = undefined, tagLength = 128 }, key,
     final.set(output);
     final.set(tag, output.length);
     return Promise.resolve(final.buffer);
-  } else if (name === 'RSA-OAEP') {
+  }
+  if (name === 'RSA-OAEP') {
     return Promise.resolve(fromString(key.data.encrypt(toString(data), 'RSA-OAEP',
       {
         md: forge.md.sha256.create(),
         mgf1: {
           md: forge.md.sha256.create()
         }
-      }
-    )).buffer);
+      })).buffer);
   }
   return Promise.reject(new Error('subtle.encrypt: Unknown cipher'));
 }
@@ -170,10 +173,11 @@ function decrypt({ name, iv, additionalData = undefined, tagLength = 128 }, key,
     cipher.update(forge.util.createBuffer(encrypted));
     const pass = cipher.finish();
     if (!pass) {
-      return Promise.reject('subtle.decrypt: auth did not match');
+      return Promise.reject(new Error('subtle.decrypt: auth did not match'));
     }
     return Promise.resolve(toBuffer(cipher.output));
-  } else if (name === 'RSA-OAEP') {
+  }
+  if (name === 'RSA-OAEP') {
     return Promise.resolve(fromString(key.data.decrypt(toString(data), 'RSA-OAEP', {
       md: forge.md.sha256.create(),
       mgf1: {
@@ -207,7 +211,8 @@ function generateKey({
       name,
       data: getRandomValues(new Uint8Array(length / 8)),
     });
-  } else if (name === 'RSA-OAEP' || name === 'RSASSA-PKCS1-v1_5') {
+  }
+  if (name === 'RSA-OAEP' || name === 'RSASSA-PKCS1-v1_5') {
     const _e = toByteArray(publicExponent || new Uint8Array([0x01, 0x00, 0x01]));
     const e = (new forge.jsbn.BigInteger(_e)).intValue();
 

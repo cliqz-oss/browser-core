@@ -4,10 +4,11 @@ import {
   expect,
   testsEnabled,
   fillIn,
+  mockSearch,
   press,
-  respondWith,
   waitFor,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 import { results } from '../../../core/integration/fixtures/resultsTwoSimpleWithoutAutocomplete';
 
 export default function () {
@@ -30,13 +31,13 @@ export default function () {
     let resultSignals;
     let resultSignalCount;
 
-    beforeEach(function () {
+    beforeEach(async function () {
       blurUrlBar();
       // clear telemetry
       win.allTelemetry = [];
 
       withHistory([]);
-      respondWith({ results });
+      await mockSearch({ results });
       fillIn('');
     });
 

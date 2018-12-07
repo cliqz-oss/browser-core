@@ -9,10 +9,6 @@ const {
 
 export default fetch;
 
-export function fetchFactory() {
-  return fetch;
-}
-
 /**
  * Note: On Chrome, chrome.runtime.id is the same, but
  * on Firefox, they distinguish between the extension ID

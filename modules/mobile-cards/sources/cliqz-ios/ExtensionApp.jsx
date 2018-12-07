@@ -22,6 +22,7 @@ export default class MobileCards extends React.Component {
 
   state = {
     results: [],
+    theme: 'light'
   }
 
   componentWillUnmount() {
@@ -33,13 +34,22 @@ export default class MobileCards extends React.Component {
 
   setSearchEngine = (engine) => {
     setDefaultSearchEngine(engine);
-    this.setState({ engine });
+  }
+
+  _setTheme(incognito) {
+    const theme = incognito ? 'dark' : 'light';
+    this.setState({ theme });
   }
 
   updatePreferences = (_prefs) => {
     // clear cache with every visit to tab overiew and settings
     this.appStart.then(() => {
-      Object.keys(_prefs).forEach(key => prefs.set(key, _prefs[key]));
+      Object.keys(_prefs).forEach((key) => {
+        prefs.set(key, _prefs[key]);
+        if ((key === 'incognito')) {
+          this._setTheme(_prefs[key]);
+        }
+      });
     });
   }
 
@@ -47,12 +57,13 @@ export default class MobileCards extends React.Component {
 
   render() {
     const results = this.state.results;
+    const theme = this.state.theme;
     if (!results.length) {
       return null;
     }
     return (
       <CliqzProvider value={this.cliqz}>
-        <SearchUI results={results} />
+        <SearchUI results={results} theme={theme} />
       </CliqzProvider>
     );
   }

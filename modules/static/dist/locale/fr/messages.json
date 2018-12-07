@@ -17,6 +17,15 @@
   "ghosteryTabAppDesc": {
       "message": "Ghostery Tab replaces Chrome's default new tab page and adds backgrounds, favorites, news and Ghostery's anonymous quick search."
   },
+  "offersAppName": {
+    "message": "MyOffrz"
+  },
+  "offersAppNameNightly": {
+    "message": "MyOffrz (Nightly)"
+  },
+  "offersAppDesc": {
+    "message": "Save money while shopping online with our high value vouchers.When you need them, where you need them. And absolutely private."
+  },
   "more_on": {
       "message": "Plus sur"
   },
@@ -1382,6 +1391,9 @@
   "control_center_footer": {
       "message": "FOURNI PAR CLIQZ"
   },
+  "offers_hub_powered_by_offrz": {
+      "message": "FOURNI PAR MyOffrz"
+  },
   "control_center_quicksearch": {
       "message": "Recherche rapide sécurisée"
   },
@@ -1749,7 +1761,7 @@
       "message": "Conditions"
   },
   "offers_expires_in": {
-      "message": "Expire dans"
+      "message": "Disponible"
   },
   "offers_expires_day": {
       "message": "jour"
@@ -1917,7 +1929,7 @@
       "message": "Favoris"
   },
   "freshtab_urlbar_placeholder": {
-      "message": "Recherchez anonymement"
+      "message": "Rechercher anonymement"
   },
   "freshtab_app_speed_dial_removed": {
       "message": "A été retiré"
@@ -2037,25 +2049,25 @@
       "message": "Actualité"
   },
   "freshtab_app_settings_news_language_de": {
-      "message": "Édition allemande"
+      "message": "Médias allemands"
   },
   "freshtab_app_settings_news_language_en": {
-      "message": "Édition anglophone"
+      "message": "Médias britanniques et U.S."
   },
   "freshtab_app_settings_news_language_fr": {
-      "message": "Édition française"
+      "message": "Médias français"
   },
   "freshtab_app_settings_news_language_de_tr_en": {
-      "message": "Médias Allemands en Anglais"
+      "message": "Médias allemands en anglais"
   },
   "freshtab_app_settings_news_language_gb": {
-      "message": "Édition Royaume-Uni"
+      "message": "Médias britannniques"
   },
   "freshtab_app_settings_news_language_us": {
-      "message": "Édition États-Unis"
+      "message": "Médias U.S."
   },
   "freshtab_app_settings_news_language_es": {
-      "message": "Édition espagnole"
+      "message": "Médias espagnoles"
   },
   "freshtab_app_settings_news_language_pl": {
       "message": "Édition polonaise"
@@ -2141,6 +2153,9 @@
   "freshtab_cliqz_tab_button": {
       "message": "$1 Tab"
   },
+  "freshtab_cliqz_for_friends_button": {
+      "message": "Cliqz for friends"
+  },
   "freshtab_cliqz_modules_button": {
       "message": "Cliqz Modules"
   },
@@ -2163,7 +2178,7 @@
     "message": "Optional"
   },
   "feedback_submit_feedback": {
-    "message": "Send Feedback"
+    "message": "Envoyer"
   },
   "offers_menu_give_feedback": {
     "message": "Give Feedback"
@@ -2174,10 +2189,58 @@
   "why_see_these_offers": {
     "message": "Why do I see these offers?"
   },
-  "freshtab_new_feature": {
-    "message": "New!"
+  "feedback_skip": {
+    "message": "Ignorer"
   },
-  "freshtab_blackfriday_tooltip": {
-    "message": "Black Friday Offers!"
+  "freshtab_stats_gt_trackers_blocked": {
+    "message": "Mouchards Bloqués"
+  },
+  "freshtab_stats_gt_trackers_seen": {
+    "message": "parmis les $1 mouchards trouvés par Ghostery"
+  },
+  "freshtab_stats_dp_anonymized": {
+    "message": "Points de Données Anonymisés"
+  },
+  "freshtab_stats_data_anonymized_by_desc": {
+    "message": "Vos données personnelles ont été anonymisées par $1."
+  },
+  "freshtab_stats_ads_blocked": {
+    "message": "Publicités bloquées"
+  },
+  "freshtab_stats_ads_blocked_by_desc": {
+    "message": "Nombre total de publicités bloquées par $1"
+  },
+  "freshtab_stats_time_saved": {
+    "message": "Temps économisé"
+  },
+  "freshtab_stats_time_saved_desc": {
+    "message": "Temps estimé que vous avez gagné en utilisant le bloqueur de publicités de Cliqz"
+  },
+  "freshtab_stats_cliqz_trackers_blocked": {
+    "message": "Données anonymisées"
+  },
+  "freshtab_stats_cliqz_trackers_blocked_desc": {
+    "message": "Nombre total de points de donnée privée supprimés par Cliqz"
+  },
+  "promo_data_brand_name": {
+    "message": "Ghostery - Bloqueur de publicités protégeant votre vie privée"
+  },
+  "promo_data_description": {
+    "message": "Complémentarisez votre navigateur avec la performante extension protectrice de votre vie privée."
+  },
+  "promo_data_description_2": {
+    "message": "Bloquer les publicités, suspendre les mouchards et accélérer les sites webs."
+  },
+  "later_link": {
+    "message": "Plus tard"
+  },
+  "add_to_chrome": {
+    "message": "Ajouter à Chrome"
+  },
+  "freshtab_app_settings_privacy_stats": {
+    "message": "Statistiques de protection de la vie privée"
+  },
+  "cliqz_offers" : {
+    "message": "Cliqz Offers"
   }
 }

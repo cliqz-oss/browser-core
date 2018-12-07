@@ -1,3 +1,4 @@
+/* global chai */
 
 const test = require('../telemetry-schemas-test-helpers');
 
@@ -33,7 +34,7 @@ const testSignals = {
   'metrics.consentric.clicked': [{
     type: 'google',
   }],
-}
+};
 
 test({
   name: 'analysis.consentric.iab',
@@ -55,12 +56,12 @@ test({
         consentChangedCount: 1,
         consentChangedSites: 1,
         allowedHist: {
-          '0': 0,
-          '1': 0,
-          '2': 1,
-          '3': 0,
-          '4': 0,
-          '5': 0,
+          0: 0,
+          1: 0,
+          2: 1,
+          3: 0,
+          4: 0,
+          5: 0,
         },
       });
     });

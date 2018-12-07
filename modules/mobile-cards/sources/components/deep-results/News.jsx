@@ -1,19 +1,16 @@
 import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, Image } from 'react-native';
 import Link from '../Link';
-import ExternalImage from '../custom/ExternalImage';
 import { elementSideMargins, elementTopMargin, getCardWidth } from '../../styles/CardStyle';
 import { getDetailsFromUrl } from '../../../core/url';
+import CONFIG from '../../../core/config';
 import { agoLine } from '../../helpers/logic';
+import themeDetails from '../../themes';
 
-
-const styles = (isInjected, nLines) => StyleSheet.create({
+const styles = ({ isInjected, nLines, theme } = {}) => StyleSheet.create({
   social: {
     ...elementSideMargins,
     ...elementTopMargin,
-    paddingLeft: 8,
-    paddingRight: 8,
-    backgroundColor: isInjected ? '#F5F5F5' : 'white',
     borderRadius: 5,
   },
   item: {
@@ -22,65 +19,82 @@ const styles = (isInjected, nLines) => StyleSheet.create({
     alignItems: 'flex-start',
     flexDirection: 'row',
     marginTop: isInjected ? 0 : 5,
+    backgroundColor: isInjected ? themeDetails[theme].highlightedBackgroundColor : 'transparent',
     marginBottom: 5,
+    borderRadius: 5,
+    overflow: 'hidden',
   },
   image: {
     height: 60,
     width: 65,
-    borderRadius: 5,
+    borderRadius: isInjected ? 0 : 5,
   },
   textContainer: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     justifyContent: 'flex-start',
     marginLeft: 6,
-    maxHeight: nLines * 20, // line hight
+    maxHeight: nLines * 16, // line hight
     overflow: 'hidden',
   },
   text: {
-    color: 'black',
+    color: themeDetails[theme].textColor,
     width: getCardWidth() - 105, // image width + margins
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 14,
+    lineHeight: 16,
     fontWeight: '400',
   },
   creation: {
-    color: isInjected ? '#2CBA84' : '#999',
+    color: themeDetails[theme].textColor,
+    fontSize: 11,
+    lineHeight: 16,
   }
 });
 
 export default class News extends React.Component {
-  displayLink(link, isInjected) {
+  displayLink(link, isInjected, firstNewsDomain) {
+    const theme = this.props.theme;
     const thumbnail = (link.extra && link.extra.thumbnail)
-          || 'https://cdn.cliqz.com/extension/EZ/news/no-image-mobile.png';
+          || `${CONFIG.settings.CDN_BASEURL}/extension/EZ/news/no-image-mobile.png`;
     const nLines = 2;
     const creationTime = agoLine(link.extra.creation_timestamp);
     return (
-      <Link label="news-item" url={link.url} key={link.url} >
-        <View style={styles().item}>
+      <Link label="news-item" url={link.url} key={link.url}>
+        <View style={styles({ isInjected, theme }).item}>
           <View
             accessible={false}
-            accessibilityLabel={'news-image'}
+            accessibilityLabel="news-image"
           >
-            <ExternalImage
+            <Image
               source={{ uri: thumbnail }}
-              style={styles().image}
-              resizeMode={'cover'}
+              style={styles({ theme }).image}
+              resizeMode="cover"
             />
           </View>
-          <View>
+          <View style={{ paddingTop: 5, paddingBottom: 5 }}>
             <View
               accessible={false}
-              accessibilityLabel={'news-title'}
-              style={styles(isInjected, nLines).textContainer}
+              accessibilityLabel="news-title"
+              style={styles({ isInjected, nLines, theme }).textContainer}
             >
-              <Text style={styles().text} numberOfLines={nLines} > { link.title }</Text>
+              <Text style={styles({ theme }).text} numberOfLines={nLines}>
+                {link.title}
+              </Text>
             </View>
-            <View
-              accessible={false}
-              accessibilityLabel={'news-timestamp'}
-              style={styles(isInjected, 1).textContainer}
-            >
-              <Text style={styles(isInjected).creation}> { creationTime }</Text>
+            <View style={styles({ isInjected, nLines: 1, theme }).textContainer}>
+              {isInjected === true
+                && (
+                  <View style={{ flexDirection: 'row' }}>
+                    <Text style={{ color: '#2CBA84', fontSize: 11, lineHeight: 16 }}>{firstNewsDomain}</Text>
+                    <Text style={{ color: 'white', fontSize: 11, lineHeight: 16 }}> -</Text>
+                  </View>
+                )
+              }
+              <View
+                accessible={false}
+                accessibilityLabel="news-timestamp"
+              >
+                <Text style={styles({ isInjected, theme }).creation}>{creationTime}</Text>
+              </View>
             </View>
           </View>
         </View>
@@ -89,6 +103,7 @@ export default class News extends React.Component {
   }
 
   render() {
+    const theme = this.props.theme;
     if (!this.props.data || !this.props.data.length) {
       return null;
     }
@@ -107,11 +122,11 @@ export default class News extends React.Component {
     const numberOfNews = isInjected === false ? 3 : 1;
 
     return (
-      <View style={styles(isInjected).social}>
-        {isInjected === true &&
-          <Text style={{ color: '#4A90E2', fontSize: 12, marginTop: 4 }}>{firstNewsDomain}</Text>
+      <View style={styles({ isInjected, theme }).social}>
+        {
+          this.props.data.slice(0, numberOfNews)
+            .map(link => this.displayLink(link, isInjected, firstNewsDomain))
         }
-        {this.props.data.slice(0, numberOfNews).map(link => this.displayLink(link, isInjected))}
       </View>
     );
   }

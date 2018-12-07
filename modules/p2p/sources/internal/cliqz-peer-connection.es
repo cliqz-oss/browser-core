@@ -6,11 +6,10 @@ import constants from './constants';
 function fixBundle(desc) {
   const split = desc.sdp.split('\r\n');
   const mid = split.filter(line =>
-    line.indexOf('a=mid:') === 0
-  ).map(x => x.slice(6));
+    line.indexOf('a=mid:') === 0)
+    .map(x => x.slice(6));
   const group = split.filter(line =>
-    line.indexOf('a=group:BUNDLE') === 0
-  );
+    line.indexOf('a=group:BUNDLE') === 0);
   if (group.length === 0 && mid.length > 0) {
     split.splice(4, 0, `a=group:BUNDLE ${mid.join(' ')}`);
   }
@@ -23,8 +22,7 @@ function minimizeSDP(desc) {
 
   let first = 'o=- 5498186869896684180 2 IN IP4 127.0.0.1';
   const o = split.filter(line =>
-    line.indexOf('o=') === 0
-  );
+    line.indexOf('o=') === 0);
   if (o.length === 1) {
     const sp = o[0].slice(2).split(' ');
     if (sp.length === 6) {
@@ -32,10 +30,9 @@ function minimizeSDP(desc) {
     }
   }
   const lines = split.filter(line =>
-    line.indexOf('a=ice-ufrag:') === 0 ||
-    line.indexOf('a=ice-pwd:') === 0 ||
-    line.indexOf('a=fingerprint:') === 0
-  );
+    line.indexOf('a=ice-ufrag:') === 0
+    || line.indexOf('a=ice-pwd:') === 0
+    || line.indexOf('a=fingerprint:') === 0);
 
   const sdp = [
     'v=0',
@@ -188,33 +185,32 @@ export default class CliqzPeerConnection {
       return new Promise((resolve, reject) => {
         window.WebrtcGlobalInformation.getAllStats((stats) => {
           if (!stats) {
-            return reject('no stats');
+            return reject(new Error('no stats'));
           }
           const reports = stats.reports;
           if (!reports) {
-            return reject('no reports');
+            return reject(new Error('no reports'));
           }
           const conn = reports.find(x => x.pcid === this.connection.id);
           if (!conn) {
-            return reject('no conn');
+            return reject(new Error('no conn'));
           }
           const pairs = conn.iceCandidatePairStats.filter(x => x.selected);
           if (pairs.length === 0) {
-            return reject('no candidate pairs');
-          } else if (pairs.length > 1) {
-            return reject('more than one candidate pair');
+            return reject(new Error('no candidate pairs'));
+          }
+          if (pairs.length > 1) {
+            return reject(new Error('more than one candidate pair'));
           }
           const localCandidate = conn.iceCandidateStats.find(x =>
-            x.type.indexOf('local') === 0 && x.id === pairs[0].localCandidateId
-          );
+            x.type.indexOf('local') === 0 && x.id === pairs[0].localCandidateId);
           const remoteCandidate = conn.iceCandidateStats.find(x =>
-            x.type.indexOf('remote') === 0 && x.id === pairs[0].remoteCandidateId
-          );
+            x.type.indexOf('remote') === 0 && x.id === pairs[0].remoteCandidateId);
           if (!localCandidate) {
-            return reject('no local candidate');
+            return reject(new Error('no local candidate'));
           }
           if (!remoteCandidate) {
-            return reject('no remote candidate');
+            return reject(new Error('no remote candidate'));
           }
           return resolve({
             localPeer: this.cliqzPeer.peerID,

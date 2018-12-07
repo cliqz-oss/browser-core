@@ -12,7 +12,7 @@ const waitForTestPage = async tabId => getTab(tabId);
 const injectTestUtils = async () => {};
 const getIframeStyle = async () => {
   const style = await queryHTML(testPageUrl, '#cliqz-dropdown', 'style', {
-    shadowRootSelector: '.cliqz-search',
+    shadowRootSelector: 'body > span:last-of-type',
     attributeType: 'attribute',
   });
   return style[0];

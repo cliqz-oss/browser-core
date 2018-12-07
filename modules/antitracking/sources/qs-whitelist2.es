@@ -193,6 +193,8 @@ export default class QSWhitelist2 {
   }
 
   getVersion() {
-    return this.version;
+    return {
+      day: this.version,
+    };
   }
 }

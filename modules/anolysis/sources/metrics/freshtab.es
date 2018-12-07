@@ -223,57 +223,6 @@ export default [
     { key: 'target', value: 'history' },
   ], false),
 
-  // Worldcup button
-  // =========
-  mkFreshtabSchema([
-    { key: 'type', value: 'home' },
-    { key: 'action', value: 'click' },
-    { key: 'target', value: 'worldcup' },
-  ], false),
-
-  // World cup tooltip
-  // ============
-  mkFreshtabSchema([
-    { key: 'type', value: 'worldcup.notification' },
-    { key: 'action', value: 'click' },
-    { key: 'target', value: 'group.later' },
-  ], false),
-  mkFreshtabSchema([
-    { key: 'type', value: 'worldcup.notification' },
-    { key: 'action', value: 'click' },
-    { key: 'target', value: 'knockout.later' },
-  ], false),
-  mkFreshtabSchema([
-    { key: 'type', value: 'worldcup.notification' },
-    { key: 'action', value: 'click' },
-    { key: 'target', value: 'knockout.close' },
-  ], false),
-  mkFreshtabSchema([
-    { key: 'type', value: 'worldcup.notification' },
-    { key: 'action', value: 'click' },
-    { key: 'target', value: 'group.close' },
-  ], false),
-  mkFreshtabSchema([
-    { key: 'type', value: 'worldcup.notification' },
-    { key: 'action', value: 'show' },
-    { key: 'target', value: 'group' },
-  ], false),
-  mkFreshtabSchema([
-    { key: 'type', value: 'worldcup.notification' },
-    { key: 'action', value: 'show' },
-    { key: 'target', value: 'knockout' },
-  ], false),
-  mkFreshtabSchema([
-    { key: 'type', value: 'worldcup.notification' },
-    { key: 'action', value: 'click' },
-    { key: 'target', value: 'knockout.explore' },
-  ], false),
-  mkFreshtabSchema([
-    { key: 'type', value: 'worldcup.notification' },
-    { key: 'action', value: 'click' },
-    { key: 'target', value: 'group.explore' },
-  ], false),
-
   // Top Sites
   // =========
   mkFreshtabSchema([

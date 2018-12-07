@@ -91,8 +91,8 @@ export default background({
             .then(() => oldStorage.destroy())
             .catch(() => {})
             .then(() => Promise.all(Object.keys(oldData).map(
-              key => this.storage.set(key, oldData[key]))
-            ));
+              key => this.storage.set(key, oldData[key])
+            )));
         }
         return null;
       })

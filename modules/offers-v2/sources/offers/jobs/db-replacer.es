@@ -9,8 +9,8 @@ import logger from '../../common/offers_v2_logger';
 const replaceOffersOnDB = (offerList, offersDB) => {
   const result = [];
   offerList.forEach((offer) => {
-    if (offersDB.isOfferPresent(offer.uniqueID) &&
-        offersDB.getOfferObject(offer.uniqueID).version !== offer.version) {
+    if (offersDB.isOfferPresent(offer.uniqueID)
+        && offersDB.getOfferObject(offer.uniqueID).version !== offer.version) {
       // update it and add it to be processed again
       //
       // The parameter "retainAbTestInfo=true" is inspired by EX-7894.
@@ -59,8 +59,8 @@ const replaceOffersOnDB = (offerList, offersDB) => {
 const getSameOffersFromDB = (offerList, offersDB) => {
   const resultList = [];
   offerList.forEach((offer) => {
-    if (offersDB.isOfferPresent(offer.uniqueID) &&
-        offersDB.getOfferObject(offer.uniqueID).version === offer.version) {
+    if (offersDB.isOfferPresent(offer.uniqueID)
+        && offersDB.getOfferObject(offer.uniqueID).version === offer.version) {
       // TODO: remove this debug once it is all stable
       logger.debug(`Replacing backend offer ${offer.uniqueID} from the db one`);
       resultList.push(new Offer(offersDB.getOfferObject(offer.uniqueID)));

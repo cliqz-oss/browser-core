@@ -11,8 +11,7 @@ export default class DropdownWindow extends AppWindow {
       if (!this.ui.renderer) {
         return;
       }
-      this.ui.sessionEnd();
-      this.ui.renderer.close();
+      this.ui.renderer.scheduleClose(() => this.ui.sessionEnd());
     },
     'core:tab_select': () => {
       if (!this.ui.renderer) {

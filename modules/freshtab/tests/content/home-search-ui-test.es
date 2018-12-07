@@ -17,6 +17,7 @@ describe('Freshtab search UI', function () {
     subject.respondsWithEmptyTelemetry();
     subject.respondsWithOneHistory();
     subject.respondsWithEmptyNews();
+    subject.respondsWithEmptyStats();
 
     searchConfig = clone(defaultConfig);
     searchConfig.response.componentsState.search.visible = true;

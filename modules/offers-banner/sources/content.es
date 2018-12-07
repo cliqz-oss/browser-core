@@ -4,13 +4,23 @@ import {
 import render from './content/view';
 import { once } from './content/utils';
 
-const onAction = (offerId, CLIQZ) => (msg) => {
-  CLIQZ.app.modules['offers-banner'].action('send', offerId, msg);
+const onAction = ({ type, offerId, CLIQZ, autoTrigger }) => (msg) => {
+  CLIQZ.app.modules['offers-banner'].action('send', type, offerId, msg, autoTrigger);
 };
 
-function renderBanner(data, CLIQZ, renderOnce) {
-  const { offerId, config } = data;
-  renderOnce(chrome, window, data, onAction(offerId, CLIQZ), config);
+function renderBanner(payload, CLIQZ, renderOnce) {
+  const { offerId, config, autoTrigger, data } = payload;
+  const action = onAction({
+    type: config.type,
+    offerId,
+    CLIQZ,
+    autoTrigger,
+  });
+  if (autoTrigger) {
+    renderOnce(chrome, window, data, action, config);
+  } else {
+    render(chrome, window, data, action, config);
+  }
 }
 
 registerContentScript('offers-banner', 'http*', (window, chrome, CLIQZ) => {
@@ -18,7 +28,11 @@ registerContentScript('offers-banner', 'http*', (window, chrome, CLIQZ) => {
   const renderOnce = once(render);
   const onMessage = ({ module, action, args } = {}) => {
     if (module !== 'offers-banner' || action !== 'renderBanner') { return; }
-    renderBanner(args[0], CLIQZ, renderOnce);
+    if (window.document && window.document.readyState !== 'loading') {
+      renderBanner(args[0], CLIQZ, renderOnce);
+    } else {
+      window.addEventListener('DOMContentLoaded', () => renderBanner(args[0], CLIQZ, renderOnce));
+    }
   };
   chrome.runtime.onMessage.addListener(onMessage);
   window.addEventListener('unload', () => {

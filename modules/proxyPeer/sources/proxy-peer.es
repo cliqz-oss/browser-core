@@ -50,7 +50,8 @@ function MultiplexedQueue(name, callback) {
         }
       });
     },
-    10 * 1000);
+    10 * 1000
+  );
 
   return {
     push,
@@ -96,8 +97,7 @@ export default class ProxyPeer {
             chunkSize: 100 * 1024,
             DEBUG: true,
           }
-        )
-      )
+        ))
       .then((p) => {
         this.peer = p;
         this.peer.setMessageSizeLimit(5 * 1024 * 1024);
@@ -130,7 +130,8 @@ export default class ProxyPeer {
             this.rtcRelay.handleRelayMessage(
               message, /* Original message */
               msg, /* Decrypted message */
-              peer), /* Sender */
+              peer /* Sender */
+            ),
         );
 
         // Exit
@@ -141,7 +142,8 @@ export default class ProxyPeer {
             this.rtcToNet.handleExitMessage(
               msg, /* Decrypted message */
               peer, /* Sender */
-              this.ppk[1]), /* Private key of current peer */
+              this.ppk[1] /* Private key of current peer */
+            ),
         );
 
         // All messages

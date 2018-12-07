@@ -121,7 +121,7 @@ export const data = {
       visible: true,
       state: true
     },
-    hpn: {
+    hpnv2: {
       visible: true,
       state: false
     },
@@ -281,7 +281,7 @@ export const dataAmo = {
       visible: true,
       state: true
     },
-    hpn: {
+    hpnv2: {
       visible: true,
       state: false
     },
@@ -437,7 +437,7 @@ export const dataFunnelCake = {
       visible: true,
       state: true
     },
-    hpn: {
+    hpnv2: {
       visible: true,
       state: false
     },

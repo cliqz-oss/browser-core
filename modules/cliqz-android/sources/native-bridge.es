@@ -25,8 +25,7 @@ export default class {
               target: ANDROID_ID,
               response,
               requestId: message.requestId,
-            })
-          );
+            }));
         }
       }
     });

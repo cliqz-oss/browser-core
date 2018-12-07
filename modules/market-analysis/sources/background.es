@@ -1,5 +1,5 @@
 import background from '../core/base/background';
-import telemetry from '../core/services/telemetry';
+import inject from '../core/kord/inject';
 import { httpGet } from '../core/http';
 import { shouldEnableModule } from '../core/app';
 
@@ -23,6 +23,8 @@ export default background({
   init() {
     // If module is already running, skip.
     if (this.isRunning) { return; }
+
+    const telemetry = inject.service('telemetry');
 
     // Register listeners for telemetry state change.
     telemetry.onTelemetryEnabled(this.actions.onTelemetryEnabled);

@@ -34,10 +34,9 @@ function getCookieValues(c, url) {
       .match(/(?:^|\s+)([!#$%&'*+\-.0-9A-Z^`a-z|~]+)=([!#$%&'*+\-.0-9A-Z^`a-z|~]*|"(?:[\x20-\x7E\x80\xFF]|\\[\x00-\x7F])*")(?=\s*[,;]|$)/g)
       .forEach(($0, $1) => {
         const name = $0;
-        const value =
-          $1.charAt(0) === '"'
-            ? $1.substr(1, -1).replace(/\\(.)/g, '$1')
-            : $1;
+        const value = $1.charAt(0) === '"'
+          ? $1.substr(1, -1).replace(/\\(.)/g, '$1')
+          : $1;
         cookies[name] = value;
       });
   }

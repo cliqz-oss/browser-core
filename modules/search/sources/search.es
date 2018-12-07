@@ -3,7 +3,6 @@ import Rx from '../platform/lib/rxjs';
 
 
 // streams
-import deepEqual from '../platform/lib/deep-equal';
 import handleSession from './mixers/handle-sessions';
 
 // wraps `handleSession` to recursively call `handleSession` if an
@@ -19,7 +18,6 @@ const handleSessionWrapper = (query$, highlight$, providers, config) => {
       return handleSessionWrapper(query$, highlight$, providers, config);
     });
 };
-
 
 const search = ({ query$, focus$, highlight$ = Rx.Observable.empty() }, providers, config) => {
   const results$ = focus$
@@ -40,7 +38,6 @@ const search = ({ query$, focus$, highlight$ = Rx.Observable.empty() }, provider
     })
     // prevent same final result set from emitting more than once
     // TODO: consider more efficient way to compare
-    .distinctUntilChanged(deepEqual)
     .do(results => logger.log('Results', results));
 
   return results$;

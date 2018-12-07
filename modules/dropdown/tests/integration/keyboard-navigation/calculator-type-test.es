@@ -8,7 +8,8 @@ import {
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 import expectSelection from './common';
 import { calcAndSimpleResults } from '../../../core/integration/fixtures/resultsSimple';
 
@@ -30,9 +31,9 @@ export default function () {
       await mockSearch({ results: calcAndSimpleResults });
       fillIn(query);
       await waitForPopup();
-      await waitFor(() => $cliqzResults.querySelector(searchWithSelector) &&
-        $cliqzResults.querySelector(resultSelector) &&
-        $cliqzResults.querySelector(calculatorSelector));
+      await waitFor(() => $cliqzResults.querySelector(searchWithSelector)
+        && $cliqzResults.querySelector(resultSelector)
+        && $cliqzResults.querySelector(calculatorSelector));
       $searchWithElement = $cliqzResults.querySelector(searchWithSelector);
       $resultElement = $cliqzResults.querySelector(resultSelector);
     });

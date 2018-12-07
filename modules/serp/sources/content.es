@@ -40,7 +40,8 @@ function serpTelemetry(win, sendTelemetry) {
             element: target.dataset.telemetryElement,
             isSearchEngine: resultTitle && isSearchEngine(
               resultTitle.host,
-              resultTitle.pathname),
+              resultTitle.pathname
+            ),
             session: result.dataset.session,
           }, 'metrics.experiments.serp.click.result');
           break;

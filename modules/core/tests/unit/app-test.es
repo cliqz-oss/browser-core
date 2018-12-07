@@ -60,6 +60,7 @@ export default describeModule('core/app',
         default: {
           set() {},
           has: () => false,
+          get() {},
         },
       },
       'core/console': {
@@ -79,5 +80,4 @@ export default describeModule('core/app',
       },
     };
   },
-  tests,
-);
+  tests);

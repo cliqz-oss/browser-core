@@ -43,6 +43,7 @@ const MOCK = {
   'platform/resource-loader-storage': {
     default: class {
       save() { return save(); }
+
       load() { return load(); }
     }
   },
@@ -130,13 +131,13 @@ function mockModule(testCase) {
         if (testCase.inChrome) {
           resolve(fetchResponseWrapper(response));
         } else {
-          reject('Error while fetching from chrome://');
+          reject(new Error('Error while fetching from chrome://'));
         }
       } else if (testCase.inRemote) {
         // Handle remote loading
         resolve(fetchResponseWrapper(response));
       } else {
-        reject('Error while fetching from remote');
+        reject(new Error('Error while fetching from remote'));
       }
     });
 
@@ -144,14 +145,14 @@ function mockModule(testCase) {
     if (testCase.inProfile) {
       return Promise.resolve(getMockData(testCase));
     }
-    return Promise.reject('Error while reading from profile');
+    return Promise.reject(new Error('Error while reading from profile'));
   };
 
   save = () => {
     if (testCase.persistSuccess) {
       return Promise.resolve();
     }
-    return Promise.reject('Error while writing to profile');
+    return Promise.reject(new Error('Error while writing to profile'));
   };
 }
 
@@ -184,8 +185,7 @@ export default describeModule('core/resource-loader',
               resource.load()
                 .then(reject)
                 .catch(resolve);
-            })
-          );
+            }));
         });
       });
 
@@ -204,8 +204,7 @@ export default describeModule('core/resource-loader',
               resource.load()
                 .then(resolve)
                 .catch(reject);
-            })
-          );
+            }));
         });
       });
     });
@@ -235,8 +234,7 @@ export default describeModule('core/resource-loader',
               resource.updateFromRemote()
                 .then(reject)
                 .catch(resolve);
-            })
-          );
+            }));
         });
       });
 
@@ -253,10 +251,8 @@ export default describeModule('core/resource-loader',
               resource.updateFromRemote()
                 .then(resolve)
                 .catch(reject);
-            })
-          );
+            }));
         });
       });
     });
-  }
-);
+  });

@@ -67,7 +67,8 @@ export default function () {
             if (row === 0) { idx = i; } else { idx = i + 10; }
 
             expect(element).to.contain.text(
-              results[0].snippet.extra.lotto_list.cur_date.keno.gewinnzahlen[idx]);
+              results[0].snippet.extra.lotto_list.cur_date.keno.gewinnzahlen[idx]
+            );
           });
         });
       });
@@ -92,7 +93,8 @@ export default function () {
         expect($plus5Numbers.length).to.be.above(0);
         [...$plus5Numbers].forEach(function ($element, i) {
           expect($element).to.contain.text(
-            results[0].snippet.extra.lotto_list.cur_date.plus5.gewinnzahlen[i]);
+            results[0].snippet.extra.lotto_list.cur_date.plus5.gewinnzahlen[i]
+          );
         });
       });
 

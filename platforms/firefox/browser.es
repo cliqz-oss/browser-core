@@ -210,7 +210,7 @@ export function resetOriginalPrefs() {
 
 export function getThemeStyle() {
   const selectedThemeID = prefs.get('lightweightThemes.selectedThemeID', '', '');
-  return selectedThemeID === 'firefox-compact-dark@mozilla.org' ? 'dark' : 'light';
+  return selectedThemeID === 'firefox-compact-dark@mozilla.org' ? 'dark' : 'default';
 }
 
 const branches = new Map();
@@ -312,7 +312,7 @@ export function getActiveTab(w) {
       .getService(Components.interfaces.nsIWindowMediator);
     window = wm.getMostRecentWindow('navigator:browser');
     if (!window) {
-      return Promise.reject('No open window available');
+      return Promise.reject(new Error('No open window available'));
     }
   }
   return new Promise((resolve, reject) => {
@@ -335,7 +335,7 @@ export function getActiveTab(w) {
 
 
 export function getCookies() {
-  return Promise.reject('Not implemented');
+  return Promise.reject(new Error('Not implemented'));
 }
 
 export function getStartupInfo() {

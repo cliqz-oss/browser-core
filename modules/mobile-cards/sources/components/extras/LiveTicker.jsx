@@ -7,47 +7,49 @@ import { toggleSubscription, checkSubscriptions, isSubscribedToLeague } from '..
 import SubscribeButton from '../SubscribeButton';
 import PoweredByKicker from '../partials/PoweredByKicker';
 import { elementTopMargin, elementSideMargins, cardWidth } from '../../styles/CardStyle';
+import themeDetails from '../../themes';
 
-const styles = (containerIndex, containerWidth, containerHeight) => StyleSheet.create({
-  elementMargins: {
-    ...elementTopMargin,
-    ...elementSideMargins,
-  },
-  headerText: {
-    marginTop: 0,
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: 'black',
-  },
-  matchesView: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-  },
-  gameContainer: {
-    width: containerWidth,
-    height: containerHeight,
-    backgroundColor: '#f5f5f5',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: !(containerIndex % 2 === 0) ? 10 : 0,
-    marginTop: 10,
-    borderRadius: 5,
-    padding: 5,
-  },
-  gameText: {
-    color: 'black',
-    fontSize: 12,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    lineHeight: containerHeight / 5,
-  },
-  gameHourText: {
-    color: '#999999',
-    fontSize: 10,
-  }
-});
+const styles = ({ index, gameContainerWidth, gameContainerHeight, theme } = {}) =>
+  StyleSheet.create({
+    elementMargins: {
+      ...elementTopMargin,
+      ...elementSideMargins,
+    },
+    headerText: {
+      marginTop: 0,
+      fontSize: 14,
+      fontWeight: 'bold',
+      color: themeDetails[theme].txtColor,
+    },
+    matchesView: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'flex-start',
+      alignItems: 'flex-start',
+    },
+    gameContainer: {
+      width: gameContainerWidth,
+      height: gameContainerHeight,
+      backgroundColor: themeDetails[theme].soccer.container,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginLeft: !(index % 2 === 0) ? 10 : 0,
+      marginTop: 10,
+      borderRadius: 5,
+      padding: 5,
+    },
+    gameText: {
+      color: themeDetails[theme].soccer.mainText,
+      fontSize: 12,
+      fontWeight: 'bold',
+      textAlign: 'center',
+      lineHeight: gameContainerHeight / 5,
+    },
+    gameHourText: {
+      color: themeDetails[theme].soccer.subText,
+      fontSize: 10,
+    }
+  });
 
 export default class LiveTicker extends React.Component {
   constructor(props) {
@@ -89,22 +91,18 @@ export default class LiveTicker extends React.Component {
                   subscribedToHost,
                   subscribedToGuest,
                   subscribedToGame,
-                })
-              );
+                }));
           })).then(matches =>
             // append gameday games list to gameday data
             ({
               ...gameDay,
               matches,
-            })
-          )
-        )).then(matches =>
+            })))).then(matches =>
         // append gamedays list to data
           ({
             ...data,
             matches,
-          })
-        );
+          }));
       }).catch(() => {
         // subscriptions are not implemented natively
         // return unmodified data
@@ -118,33 +116,35 @@ export default class LiveTicker extends React.Component {
   }
 
   get actionMessage() {
-    return this.isSubscribed ?
-      getMessage('mobile_soccer_subscribe_league_done', this.leagueName) :
-      getMessage('mobile_soccer_subscribe_league', this.leagueName);
+    return this.isSubscribed
+      ? getMessage('mobile_soccer_subscribe_league_done', this.leagueName)
+      : getMessage('mobile_soccer_subscribe_league', this.leagueName);
   }
 
   updateSubscriptionData() {
     const data = this.props.data;
+    // TODO fix the unused state
+    /* eslint-disable-next-line react/no-unused-state */
     this.getSubscriptionData(data).then(subscriptionData => this.setState({ subscriptionData }));
   }
 
   displayMatches(matches) {
+    const theme = this.props.theme;
     const gameContainerWidth = (
-      cardWidth() -
-      elementSideMargins.marginLeft -
-      elementSideMargins.marginRight - 10
+      cardWidth()
+      - elementSideMargins.marginLeft
+      - elementSideMargins.marginRight - 10
     ) / 2;
     const gameContainerHeight = (
-      cardWidth() -
-      elementSideMargins.marginLeft -
-      elementSideMargins.marginRight - 10
+      cardWidth()
+      - elementSideMargins.marginLeft
+      - elementSideMargins.marginRight - 10
     ) / 2.5;
     return (
       matches.map((match, index) => {
-        const isValid =
-          match.id &&
-          (match.isLive || match.isScheduled) &&
-          match.notSubscribedToLeague;
+        const isValid = match.id
+          && (match.isLive || match.isScheduled)
+          && match.notSubscribedToLeague;
         let actionMessage = '';
         if (match.subscribedToHost && match.subscribedToGuest) {
           actionMessage = getMessage('mobile_soccer_subscribed_to_both');
@@ -153,17 +153,21 @@ export default class LiveTicker extends React.Component {
         }
         return (
           <Link
-            label={'liveticker-game-container'}
+            label="liveticker-game-container"
             url={match.live_url}
             key={match.live_url}
           >
-            <View style={styles(index, gameContainerWidth, gameContainerHeight).gameContainer}>
+            <View
+              style={
+                styles({ index, gameContainerWidth, gameContainerHeight, theme }).gameContainer
+              }
+            >
               <View
                 accessible={false}
-                accessibilityLabel={'liveticker-game-host'}
+                accessibilityLabel="liveticker-game-host"
               >
                 <Text
-                  style={styles(index, gameContainerWidth, gameContainerHeight).gameText}
+                  style={styles({ index, gameContainerWidth, gameContainerHeight, theme }).gameText}
                   numberOfLines={1}
                 >
                   {match.HOST}
@@ -171,41 +175,43 @@ export default class LiveTicker extends React.Component {
               </View>
               <View
                 accessible={false}
-                accessibilityLabel={'liveticker-game-score-date'}
+                accessibilityLabel="liveticker-game-score-date"
               >
                 <Text
-                  style={styles(index, gameContainerWidth, gameContainerHeight).gameText}
+                  style={styles({ index, gameContainerWidth, gameContainerHeight, theme }).gameText}
                   numberOfLines={1}
                 >
                   {match.scored}
-                  <Text style={styles().gameHourText}>
+                  <Text style={styles({ theme }).gameHourText}>
                     {` (${match.gameTime})`}
                   </Text>
                 </Text>
               </View>
               <View
                 accessible={false}
-                accessibilityLabel={'liveticker-game-guess'}
+                accessibilityLabel="liveticker-game-guess"
               >
                 <Text
-                  style={styles(index, gameContainerWidth, gameContainerHeight).gameText}
+                  style={styles({ index, gameContainerWidth, gameContainerHeight, theme }).gameText}
                   numberOfLines={1}
                 >
                   {match.GUESS}
                 </Text>
               </View>
-              {Boolean(isValid) &&
-                <View style={{ marginTop: 4, width: gameContainerWidth - 10 }}>
-                  <SubscribeButton
-                    onPress={() => {
-                      toggleSubscription('soccer', 'game', match.id, match.subscribedToGame)
-                        .then(this.updateSubscriptionData.bind(this));
-                    }}
-                    isSubscribed={match.subscribedToGame}
-                    actionMessage={actionMessage}
-                    noButton={Boolean(actionMessage)}
-                  />
-                </View>
+              {Boolean(isValid)
+                && (
+                  <View style={{ marginTop: 4, width: gameContainerWidth - 10 }}>
+                    <SubscribeButton
+                      onPress={() => {
+                        toggleSubscription('soccer', 'game', match.id, match.subscribedToGame)
+                          .then(this.updateSubscriptionData.bind(this));
+                      }}
+                      isSubscribed={match.subscribedToGame}
+                      actionMessage={actionMessage}
+                      noButton={Boolean(actionMessage)}
+                    />
+                  </View>
+                )
               }
             </View>
           </Link>
@@ -215,23 +221,24 @@ export default class LiveTicker extends React.Component {
   }
 
   displayMatchDay(matchDay) {
+    const theme = this.props.theme;
     return (
       <View
         accessible={false}
-        accessibilityLabel={'liveticker-matches'}
+        accessibilityLabel="liveticker-matches"
         key={matchDay.date}
         style={{ ...elementTopMargin }}
       >
         <View
           accessible={false}
-          accessibilityLabel={'liveticker-matches-date'}
+          accessibilityLabel="liveticker-matches-date"
         >
-          <Text style={styles().headerText}>{matchDay.date}</Text>
+          <Text style={styles({ theme }).headerText}>{matchDay.date}</Text>
         </View>
         <View
           accessible={false}
-          accessibilityLabel={'liveticker-matches-container'}
-          style={styles().matchesView}
+          accessibilityLabel="liveticker-matches-container"
+          style={styles({ theme }).matchesView}
         >
           {this.displayMatches(matchDay.matches)}
         </View>
@@ -242,30 +249,38 @@ export default class LiveTicker extends React.Component {
   get content() {
     const data = this.state.data;
 
-    return data && <View>
-      {data.matches.map(this.displayMatchDay.bind(this))}
-    </View>;
+    return data
+      && (
+        <View>
+          {data.matches.map(this.displayMatchDay.bind(this))}
+        </View>
+      );
   }
 
   render() {
     const type = 'soccer';
-
+    const theme = this.props.theme;
     return (
-      <View style={styles().elementMargins}>
+      <View style={styles({ theme }).elementMargins}>
         {this.content}
-        {Boolean(this.isValid) &&
-          <View style={{ ...elementTopMargin }}>
-            <SubscribeButton
-              onPress={() => {
-                toggleSubscription(type, this.subtype, this.id, this.isSubscribed)
-                  .then((...args) => this.updateSubscriptionData(...args));
-              }}
-              isSubscribed={this.isSubscribed}
-              actionMessage={this.actionMessage}
-            />
-          </View>
+        {Boolean(this.isValid)
+          && (
+            <View style={{ ...elementTopMargin }}>
+              <SubscribeButton
+                onPress={() => {
+                  toggleSubscription(type, this.subtype, this.id, this.isSubscribed)
+                    .then((...args) => this.updateSubscriptionData(...args));
+                }}
+                isSubscribed={this.isSubscribed}
+                actionMessage={this.actionMessage}
+              />
+            </View>
+          )
         }
-        <PoweredByKicker logo={this.props.result.meta.externalProvidersLogos.kicker} />
+        <PoweredByKicker
+          logo={this.props.result.meta.externalProvidersLogos.kicker}
+          theme={theme}
+        />
       </View>
     );
   }

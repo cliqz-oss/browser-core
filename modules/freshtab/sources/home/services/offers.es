@@ -26,4 +26,3 @@ export function sendOfferShownMessage(offerId, actionId, counter) {
 
   cliqz.offersV2.processRealEstateMessage(message);
 }
-

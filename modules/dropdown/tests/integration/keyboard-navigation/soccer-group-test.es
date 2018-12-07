@@ -9,7 +9,8 @@ import {
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 import expectSelection from './common';
 import results from '../../../core/integration/fixtures/resultsSoccerLigaGroup';
 

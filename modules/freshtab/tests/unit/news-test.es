@@ -239,10 +239,12 @@ export default describeModule('freshtab/news',
             [
               readMock('tests/mocks/topNewsExample.json'),
               readMock('tests/mocks/historyBasedNewsExample.json')
-            ]).then(function ([topNewsC, hbasedR]) {
-            topNewsCache = JSON.parse(topNewsC);
-            hbasedResponse = JSON.parse(hbasedR);
-          });
+            ]
+          )
+            .then(function ([topNewsC, hbasedR]) {
+              topNewsCache = JSON.parse(topNewsC);
+              hbasedResponse = JSON.parse(hbasedR);
+            });
         });
 
         it('Merge news lists', function () {
@@ -382,5 +384,4 @@ export default describeModule('freshtab/news',
         });
       });
     });
-  }
-);
+  });

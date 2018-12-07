@@ -26,8 +26,7 @@ export default class CliqzMsgHandlerDropdown extends CliqzMsgHandler {
             text: el.label,
             state: el.style,
             action: el.action
-          })
-        )
+          }))
       }
     };
   }

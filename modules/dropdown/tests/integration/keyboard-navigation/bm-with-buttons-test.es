@@ -39,9 +39,9 @@ export default function () {
       await mockSearch({ results });
       fillIn(query);
       await waitForPopup();
-      await waitFor(() => $cliqzResults.querySelector(result1Selector) &&
-        $cliqzResults.querySelector(result2Selector) &&
-        $cliqzResults.querySelectorAll('.result.btn').length === 4);
+      await waitFor(() => $cliqzResults.querySelector(result1Selector)
+        && $cliqzResults.querySelector(result2Selector)
+        && $cliqzResults.querySelectorAll('.result.btn').length === 4);
       $result1Element = $cliqzResults.querySelector(result1Selector);
       $result2Element = $cliqzResults.querySelector(result2Selector);
       $button1Element = $cliqzResults.querySelector(button1Selector);

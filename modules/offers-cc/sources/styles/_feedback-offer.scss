@@ -70,6 +70,7 @@
             &:after {
                 content: "";
                 mask: url('../images/thumb-up.svg') no-repeat top center;
+                -webkit-mask: url('../images/thumb-up.svg') no-repeat top center;
                 background: #b1b1b1;
                 position: absolute;
                 width: 100%;
@@ -77,6 +78,7 @@
                 top: 0;
                 left: 0;
                 mask-position: center 4px;
+                -webkit-mask-position: center 4px;
             }
 
             &[data-vote='down'] {

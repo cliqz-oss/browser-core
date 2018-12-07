@@ -16,6 +16,8 @@ export default class SpeedDialsRow extends React.Component {
       addSpeedDial: PropTypes.func,
       getSpeedDials: PropTypes.func,
       showPlaceholder: PropTypes.bool,
+      currentPage: PropTypes.number,
+      shouldAnimate: PropTypes.bool,
     };
   }
 
@@ -24,21 +26,26 @@ export default class SpeedDialsRow extends React.Component {
     this.resetAll = this.resetAll.bind(this);
   }
 
+  showAddButton() {
+    if (!this.state.isCustom) {
+      return null;
+    }
+    return this.state.displayAddBtn();
+  }
+
   componentWillMount() {
     this.setState({
       isCustom: this.props.type === 'custom',
-      showAddButton: () => {
-        if (!this.state.isCustom) {
-          return null;
-        }
-        return this.state.displayAddBtn();
-      },
       displayAddBtn: () => this.props.dials.length < config.constants.MAX_SPOTS,
     });
   }
 
+  get pageNumber() {
+    return this.props.currentPage || 1; // Page number is one-based
+  }
+
   get getDials() {
-    return this.props.dials.slice(0, config.constants.MAX_SPOTS);
+    return (this.props.dials || []).slice(0, config.constants.MAX_SPOTS * this.pageNumber);
   }
 
   removeSpeedDial(dial, index) {
@@ -63,38 +70,54 @@ export default class SpeedDialsRow extends React.Component {
     });
   }
 
+  getRealIndex(index) {
+    return (config.constants.MAX_SPOTS * (this.pageNumber - 1)) + index;
+  }
+
   render() {
-    const placeholdersLength = config.constants.MAX_SPOTS - this.getDials.length;
+    const placeholdersLength = (config.constants.MAX_SPOTS * this.pageNumber)
+                              - this.getDials.length;
     const placeholders = [...Array(placeholdersLength)];
 
     return (
       <div>
         <div className="dials-row">
           {
-            this.getDials.map((dial, i) =>
-              (<SpeedDial
-                key={dial.url}
-                dial={dial}
-                removeSpeedDial={() => this.removeSpeedDial(dial, i)}
-                visitSpeedDial={() => this.visitSpeedDial(i)}
-                updateSpeedDial={newDial => this.props.updateSpeedDial(newDial, i)}
-                updateModalState={this.props.updateModalState}
-              />)
-            )
+            this.getDials
+              .slice(config.constants.MAX_SPOTS * (this.pageNumber - 1),
+                config.constants.MAX_SPOTS * this.pageNumber)
+              .map((dial, i) =>
+                (
+                  <SpeedDial
+                    key={dial.url}
+                    dial={dial}
+                    removeSpeedDial={() => this.removeSpeedDial(dial, this.getRealIndex(i))}
+                    visitSpeedDial={() => this.visitSpeedDial(this.getRealIndex(i))}
+                    updateSpeedDial={
+                      newDial => this.props.updateSpeedDial(newDial, this.getRealIndex(i))
+                    }
+                    updateModalState={this.props.updateModalState}
+                    shouldAnimate={this.props.shouldAnimate}
+                  />
+                ))
           }
-          {this.props.showPlaceholder &&
-            placeholders.map((el, ind) => {
+          {this.props.showPlaceholder
+            && placeholders.map((el, ind) => {
               const placeholderKey = `placeholder-${ind}`;
-              return (<Placeholder
-                key={placeholderKey}
-              />);
+              return (
+                <Placeholder
+                  key={placeholderKey}
+                />
+              );
             })
           }
-          {this.state.showAddButton() &&
-            <AddSpeedDial
-              addSpeedDial={this.props.addSpeedDial}
-              updateModalState={this.props.updateModalState}
-            />
+          {this.showAddButton()
+            && (
+              <AddSpeedDial
+                addSpeedDial={this.props.addSpeedDial}
+                updateModalState={this.props.updateModalState}
+              />
+            )
           }
         </div>
       </div>

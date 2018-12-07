@@ -67,7 +67,8 @@ export default class GreenAds {
     if (this.onBeforeRequestListener === undefined) {
       // onBeforeRequest will be used to block third party requests.
       this.onBeforeRequestListener = this.onBeforeRequest.bind(this);
-      promises.push(this.webRequestPipeline.action('addPipelineStep',
+      promises.push(this.webRequestPipeline.action(
+        'addPipelineStep',
         'open',
         {
           name: 'greenads.open',
@@ -81,7 +82,8 @@ export default class GreenAds {
     // captured by the former (eg: 302 moved temporarily).
     if (this.onBeforeSendHeadersListener === undefined) {
       this.onBeforeSendHeadersListener = this.onBeforeSendHeaders.bind(this);
-      promises.push(this.webRequestPipeline.action('addPipelineStep',
+      promises.push(this.webRequestPipeline.action(
+        'addPipelineStep',
         'modify',
         {
           name: 'greenads.modify',
@@ -93,7 +95,8 @@ export default class GreenAds {
     // onHeadersReceived is used to collect statistics about responses.
     if (this.onHeadersReceivedListener === undefined) {
       this.onHeadersReceivedListener = this.onHeadersReceived.bind(this);
-      promises.push(this.webRequestPipeline.action('addPipelineStep',
+      promises.push(this.webRequestPipeline.action(
+        'addPipelineStep',
         'response',
         {
           name: 'greenads.response',
@@ -184,8 +187,8 @@ export default class GreenAds {
 
   isProbablyAdvertiser(url, sourceUrl, cpt) {
     return (
-      this.isFromAllowedAdvertiser(url) ||
-      this.wouldBeBlocked(url, sourceUrl, cpt)
+      this.isFromAllowedAdvertiser(url)
+      || this.wouldBeBlocked(url, sourceUrl, cpt)
     );
   }
 
@@ -312,15 +315,16 @@ export default class GreenAds {
 
     // Check if the domain is a tracker, and consider this as an ad.
     const sourceUrl = lastActiveTab.url;
-    if (this.isTrackerOrAdvertiser(originUrl, sourceUrl) ||
-        this.isTrackerOrAdvertiser(triggeringUrl, sourceUrl)) {
+    if (this.isTrackerOrAdvertiser(originUrl, sourceUrl)
+        || this.isTrackerOrAdvertiser(triggeringUrl, sourceUrl)) {
       logger.log(`adCheck locationChange isAd ${tabId} ${originUrl} ${triggeringUrl}`);
       this.adsClickedTabs.add(tabId);
       this.onAdClicked(
         lastActiveTab.windowTreeInformation,
         lastActiveTab.url,
         originUrl,
-        Date.now());
+        Date.now()
+      );
     } else {
       logger.log(`adCheck locationChange NOT AD ${tabId} ${originUrl} ${triggeringUrl}`);
     }
@@ -368,10 +372,11 @@ export default class GreenAds {
 
       // Allow double-click
       const page = this.getPage(windowTreeInformation, tabUrl);
-      if (page.whitelistedFrames.has(windowTreeInformation.frameId) ||
-          page.whitelistedFrames.has(windowTreeInformation.parentFrameId)) {
+      if (page.whitelistedFrames.has(windowTreeInformation.frameId)
+          || page.whitelistedFrames.has(windowTreeInformation.parentFrameId)) {
         return true;
-      } else if (isDoubleclick(hostGD)) {
+      }
+      if (isDoubleclick(hostGD)) {
         if (cpt === 7) {
           logger.debug('update whitelist 7', url, windowTreeInformation.frameId);
           page.whitelistedFrames.add(windowTreeInformation.frameId);
@@ -395,7 +400,8 @@ export default class GreenAds {
     if (result.redirect) {
       response.redirectTo(result.redirect);
       return false;
-    } else if (result.match) {
+    }
+    if (result.match) {
       response.block();
       return false;
     }
@@ -474,8 +480,8 @@ export default class GreenAds {
     const isAdvertiser = this.isProbablyAdvertiser(url, tabUrl, cpt);
     const isAdvertiserFrame = (
       state.tabId !== state.frameId && (
-        page.whitelistedFrames.has(windowTreeInformation.frameId) ||
-        page.whitelistedFrames.has(windowTreeInformation.parentFrameId)
+        page.whitelistedFrames.has(windowTreeInformation.frameId)
+        || page.whitelistedFrames.has(windowTreeInformation.parentFrameId)
       )
     );
 
@@ -655,8 +661,8 @@ export default class GreenAds {
         } else {
           // Check all parents
           iframe.parents.forEach((parent) => {
-            if (!page.whitelistedFrames.has(parent.id) &&
-                this.isFromAllowedAdvertiser(parent.url)) {
+            if (!page.whitelistedFrames.has(parent.id)
+                && this.isFromAllowedAdvertiser(parent.url)) {
               logger.debug('update whitelist 5', parent.url, parent.id);
               logger.debug(`found doubleclick iframe ${parent.id}`);
               page.whitelistedFrames.add(parent.id);
@@ -697,9 +703,9 @@ export default class GreenAds {
         }
 
         // Check the presence of a canvas in the iframe
-        if (iframe.hasCanvas &&
-            iframe.src &&
-            this.isFromAllowedAdvertiser(iframe.src)) {
+        if (iframe.hasCanvas
+            && iframe.src
+            && this.isFromAllowedAdvertiser(iframe.src)) {
           page.onAdShown(iframe.windowTreeInformation, iframe.src, Date.now(), {
             kind: 'canvas',
             parents: iframe.parents,

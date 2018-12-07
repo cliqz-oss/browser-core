@@ -25,7 +25,7 @@ require('../telemetry-schemas-test-helpers')({
               if (action === 'getRunningTests') {
                 return aristotleMocks;
               }
-              return Promise.reject(`No such action: ${action}`);
+              return Promise.reject(new Error(`No such action: ${action}`));
             },
           };
         },

@@ -45,5 +45,4 @@ export default describeModule('anolysis/internals/storage/memory',
         forceReloadDuringTests: false,
       });
     });
-  },
-);
+  });

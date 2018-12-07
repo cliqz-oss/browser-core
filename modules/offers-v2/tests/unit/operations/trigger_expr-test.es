@@ -3,9 +3,11 @@
 /* global require */
 /* eslint-disable func-names,prefer-arrow-callback,arrow-body-style */
 
-const tldts = require('tldts');
+const commonMocks = require('../utils/common');
+const beMocks = require('../utils/offers/intent');
 
-let prefRetVal = {};
+const BackendConnectorMock = beMocks['offers-v2/backend-connector'].BackendConnectorMock;
+
 const currentTS = Date.now();
 const mockedTimestamp = Date.now() / 1000;
 const currentDayHour = 0;
@@ -15,29 +17,13 @@ let shouldKeepResourceRet = false;
 
 const copy = e => JSON.parse(JSON.stringify(e));
 
-class BackendConnectorMock {
-  constructor() {
-    this.calls = [];
-    this.ret = [];
-  }
-
-  sendApiRequest(endpoint, params, method = 'POST') {
-    this.calls.push({ endpoint, params, method });
-    return Promise.resolve(this.ret);
-  }
-
-  clear() {
-    this.ret = [];
-    this.calls = [];
-  }
-}
-
 export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
   () => ({
-    'core/platform': {
-      isWebExtension: false
+    ...commonMocks,
+    ...beMocks,
+    'core/http': {
+      default: {}
     },
-    'platform/lib/tldts': tldts,
     'platform/xmlhttprequest': {
       default: {}
     },
@@ -45,9 +31,6 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
       default: {}
     },
     'platform/gzip': {
-      default: {}
-    },
-    'platform/globals': {
       default: {}
     },
     'platform/environment': {
@@ -73,23 +56,16 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
         return shouldKeepResourceRet;
       },
     },
-    'offers-v2/backend-connector': {
-      default: BackendConnectorMock,
-    },
-    'core/time': {
-      getDaysFromTimeRange: function () { },
-      getDateFromDateKey: function () { },
-      timestamp: function () { },
-      getTodayDayKey: function () { }
-    },
     'offers-v2/trigger_machine/trigger_machine': {
       default: class {
         constructor() {
           this.runCalls = [];
         }
+
         clear() {
           this.runCalls = [];
         }
+
         run(trigger, ctx) {
           this.runCalls.push({ trigger: copy(trigger), ctx });
         }
@@ -104,17 +80,21 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
           this.triggerId = null;
           this.retSubtriggers = [];
         }
+
         addTrigger(t) {
           this.triggersAdded.push(t);
         }
+
         setSubtriggers(parentTriggerId, subtriggers) {
           this.parentTriggerId = parentTriggerId;
           this.subtriggers = subtriggers;
         }
+
         getSubtriggers(triggerId) {
           this.triggerId = triggerId;
           return this.retSubtriggers;
         }
+
         clear() {
           this.triggersAdded = [];
           this.parentTriggerId = null;
@@ -124,44 +104,10 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
         }
       }
     },
-    'core/crypto/random': {
-      random: function () {
-        return Math.random();
-      }
-    },
-    'core/prefs': {
-      default: {
-        get: function (v, d) {
-          if (prefRetVal[v]) {
-            return prefRetVal[v];
-          }
-          return d;
-        },
-        setMockVal: function (varName, val) {
-          prefRetVal[varName] = val;
-        }
-      }
-    },
     'core/cliqz': {
       default: {},
       utils: {
         setInterval: function () {},
-      }
-    },
-    'core/helpers/timeout': {
-      default: function () { const stop = () => {}; return { stop }; }
-    },
-    'platform/console': {
-      default: {},
-    },
-    'offers-v2/common/offers_v2_logger': {
-      default: {
-        debug: () => {},
-        error: () => {},
-        info: () => {},
-        log: () => {},
-        warn: () => {},
-        logObject: () => {},
       }
     },
   }),
@@ -197,12 +143,10 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
         tmeMock.runCalls.forEach(pair => runTriggers.add(pair.trigger.trigger_id));
         chai.expect(runTriggers.size, 'there are more or less elements than expected').eql(tIdlist.length);
         tIdlist.forEach(tid =>
-          chai.expect(runTriggers.has(tid), `missing trigger id: ${tid}`).eql(true)
-        );
+          chai.expect(runTriggers.has(tid), `missing trigger id: ${tid}`).eql(true));
       }
 
       beforeEach(function () {
-        prefRetVal = {};
         TriggerMachine = this.deps('offers-v2/trigger_machine/trigger_machine').default;
         const TriggerCache = this.deps('offers-v2/trigger_machine/trigger_cache').default;
         triggerCacheMock = new TriggerCache();
@@ -231,7 +175,6 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
         let ctx;
         beforeEach(function () {
           ctx = {};
-          prefRetVal = {};
           beConnMock.clear();
           triggerCacheMock.clear();
         });
@@ -346,5 +289,4 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
         });
       });
     });
-  },
-);
+  });

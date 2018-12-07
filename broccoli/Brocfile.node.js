@@ -22,7 +22,6 @@ console.log(cliqzConfig);
 var assets = new MergeTrees([
   modules.bundles,
   modules.static,
-  new Funnel(specific, { srcDir: 'modules' }),
 ]);
 
 var srcTree = new MergeTrees([

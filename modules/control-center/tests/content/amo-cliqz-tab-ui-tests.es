@@ -12,10 +12,6 @@ describe('Control Center: AMO, Cliqz tab UI tests', function () {
     subject = new Subject();
   });
 
-  after(function () {
-    subject.unload();
-  });
-
   function cliqzTabUiTests() {
     it('renders cliqz tab box', function () {
       expect(subject.query('.amo #cliqz-tab')).to.not.be.null;
@@ -46,6 +42,10 @@ describe('Control Center: AMO, Cliqz tab UI tests', function () {
       return subject.load();
     });
 
+    after(function () {
+      subject.unload();
+    });
+
     cliqzTabUiTests();
 
     it('renders correct colour of switch', function () {
@@ -72,6 +72,10 @@ describe('Control Center: AMO, Cliqz tab UI tests', function () {
         response: dataOff
       });
       return subject.load();
+    });
+
+    after(function () {
+      subject.unload();
     });
 
     cliqzTabUiTests();

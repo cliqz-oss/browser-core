@@ -5,24 +5,22 @@ import console from './console';
 import utils from './utils';
 import random from './helpers/random';
 import events from './events';
-import { isOnionMode, isCliqzBrowser } from './platform';
-import { isSearchServiceReady, addCustomSearchEngine } from './search-engines';
+import { isOnionMode } from './platform';
+import { isSearchServiceReady } from './search-engines';
 import { service as logos } from './services/logos';
-import { service as telemetry } from './services/telemetry';
 import { service as domainInfo } from './services/domain-info';
 import { service as pacemaker } from './services/pacemaker';
-import i18n from './i18n';
 import getSynchronizedDate, { isSynchronizedDateAvailable } from './synchronized-time';
 import { dateToDaysSinceEpoch } from './helpers/date';
 
 const services = {
   utils: () => utils.init(),
-  telemetry,
   logos,
   // IP driven configuration
   'cliqz-config': () => {
     const EXPECTED_CONFIGS = new Set([
       'backends',
+      'language_whitelist',
       'location',
       'location.city',
       'location.granular',
@@ -89,36 +87,6 @@ const services = {
       if (!prefs.has('freshtab.state')) {
         // freshtab is opt-out since 2.20.3
         prefs.set('freshtab.state', true);
-      }
-
-      if (isCliqzBrowser) {
-        const configUpdate = events.subscribe('cliqz-config:update', () => {
-          configUpdate.unsubscribe(); // we only need the first update
-
-          // this should never happen but just to be double sure
-          if (prefs.has('serp_test')) return;
-
-          // we only activate the test for german users inside germany
-          if (prefs.get('config_location') !== 'de' ||
-            i18n.PLATFORM_LANGUAGE !== 'de') return;
-
-          const r = Math.random();
-          if (r < 0.25) {
-            prefs.set('serp_test', 'L');
-          } else if (r < 0.50) {
-            prefs.set('serp_test', 'M');
-            isSearchServiceReady().then(() =>
-              addCustomSearchEngine('https://suchen.cliqz.com/opensearch.xml', true));
-          } else if (r < 0.75) {
-            prefs.set('serp_test', 'N');
-            isSearchServiceReady().then(() =>
-              addCustomSearchEngine('https://suchen.cliqz.com/opensearch.xml', true));
-          } else {
-            prefs.set('serp_test', 'O');
-            isSearchServiceReady().then(() =>
-              addCustomSearchEngine('https://suchen.cliqz.com/opensearch.xml', true));
-          }
-        });
       }
     }
   },

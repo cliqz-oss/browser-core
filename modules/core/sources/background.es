@@ -16,6 +16,8 @@ import providesServices from './services';
 import { httpHandler } from './http';
 import { updateTab } from './tabs';
 import handleReadContentAsDataUrl from './image-diverter';
+import { enableRequestSanitizer, disableRequestSanitizer } from './request-sanitizer';
+
 
 let lastRequestId = 1;
 const callbacks = {};
@@ -30,6 +32,8 @@ export default background({
   providesServices,
 
   init(settings, app) {
+    enableRequestSanitizer();
+
     this.settings = settings;
     this.utils = utils;
     this.app = app;
@@ -45,6 +49,8 @@ export default background({
   },
 
   unload() {
+    disableRequestSanitizer();
+
     this.mm.unload();
     resourceManager.unload();
     logger.unload();
@@ -129,8 +135,8 @@ export default background({
   },
 
   events: {
-    'core:tab_select': function onTabSelect({ url, isPrivate }) {
-      events.pub('core.location_change', url, isPrivate);
+    'core:tab_select': function onTabSelect({ url, incognito }) {
+      events.pub('core.location_change', url, incognito);
     },
     'content:location-change': function onLocationChange({ url, isPrivate }) {
       events.pub('core.location_change', url, isPrivate);
@@ -178,30 +184,6 @@ export default background({
     },
     recordMouseDown(...args) {
       events.pub('core:mouse-down', ...args);
-    },
-    /**
-    * @method actions.recordKeyPress
-    */
-    recordKeyPress(...args) {
-      events.pub('core:key-press', ...args);
-    },
-    /**
-    * @method actions.recordMouseMove
-    */
-    recordMouseMove(...args) {
-      events.pub('core:mouse-move', ...args);
-    },
-    /**
-    * @method actions.recordScroll
-    */
-    recordScroll(...args) {
-      events.pub('core:scroll', ...args);
-    },
-    /**
-    * @method actions.recordCopy
-    */
-    recordCopy(...args) {
-      events.pub('core:copy', ...args);
     },
     /**
      * publish an event using events.pub

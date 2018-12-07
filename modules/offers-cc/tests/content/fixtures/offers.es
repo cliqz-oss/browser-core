@@ -84,7 +84,7 @@ export const dataNewOffer = {
           'best_offer',
         ],
       },
-      offer_id: 'SilkesWK_TG1_O1_V1',
+      offer_id: 'SilkesWK_TG1_O1_V2',
       logoClass: 'normal',
       backgroundColor: '#d7011d',
       validity: {
@@ -114,7 +114,7 @@ export const dataNewOffer = {
           'best_offer',
         ],
       },
-      offer_id: 'SilkesWK_TG1_O1_V1',
+      offer_id: 'SilkesWK_TG1_O1_V3',
       logoClass: 'square',
       backgroundColor: '#d7011d',
       validity: {
@@ -145,7 +145,7 @@ export const dataNewOffer = {
           'best_offer',
         ],
       },
-      offer_id: 'SilkesWK_TG1_O1_V1',
+      offer_id: 'SilkesWK_TG1_O1_V4',
       logoClass: 'long',
       backgroundColor: '#d7011d',
       validity: {

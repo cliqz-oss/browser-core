@@ -1,10 +1,10 @@
 
-export let background = {
+export const background = {
   init() { },
   unload() {}
 };
-export let Window = {
-    init(window) {
-    },
-    unload(window) {}
-}
+export const Window = {
+  init() {
+  },
+  unload() {}
+};

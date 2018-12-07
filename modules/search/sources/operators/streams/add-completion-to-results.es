@@ -23,10 +23,10 @@ function getCompletion(query, link) {
   // an autocompletable, so instant result will be shown and if used will
   // not be counted as provided by Cliqz
   if (
-    (url === query) ||
-    (url === strippedQuery) ||
-    (strippedUrl === query) ||
-    (strippedUrl === strippedQuery)
+    (url === query)
+    || (url === strippedQuery)
+    || (strippedUrl === query)
+    || (strippedUrl === strippedQuery)
   ) {
     return '';
   }

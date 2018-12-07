@@ -6,8 +6,6 @@ import { compress } from './gzip';
 import { XMLHttpRequestFactory, setPrivateFlags, setBackgroundRequest } from '../platform/xmlhttprequest';
 import { fetch as _fetch } from '../platform/fetch';
 import { chromeUrlHandler } from '../platform/chrome-url-handler';
-import { isSafeToRemoveHeaders } from '../core/helpers/strip-api-headers';
-import { isFirefox } from '../core/platform';
 
 const listeners = new Set();
 
@@ -21,10 +19,28 @@ const notifyListeners = (params) => {
   });
 };
 
+let fetchHandler = null;
+
+export function overrideFetchHandler(cb) {
+  if (!fetchHandler) {
+    fetchHandler = cb;
+  } else {
+    throw new Error('Can only override fetch handler once');
+  }
+}
+
+export function resetFetchHandler() {
+  fetchHandler = null;
+}
+
 export function fetch(...args) {
   notifyListeners({
     url: args[0],
   });
+  const result = fetchHandler && fetchHandler(...args);
+  if (result) {
+    return result;
+  }
   return _fetch(...args);
 }
 
@@ -70,33 +86,6 @@ export function defaultHttpHandler(
   // headers for compressed data
   if (encoding) {
     req.setRequestHeader('Content-Encoding', encoding);
-  }
-
-  // Remove optional headers, which the Cliqz APIs do not need,
-  // but which could be potentially used for linking messages.
-  //
-  // Note: On WebExtension, this should be redundant, as
-  // webrequest-pipeline/strip-api-headers should already take
-  // care of it. However, for unknown reasons, the webrequestAPI
-  // cannot modify requests from the extension itself if you
-  // are on bootstrapped extensions.
-  try {
-    const host = new URL(url).host;
-    if (isSafeToRemoveHeaders(host)) {
-      req.setRequestHeader('Accept-Language', ' ');
-
-      // According to the updated standard, the 'User-Agent' is no longer
-      // a forbidden header and can be removed. Firefox seems to be the only
-      // browser today that adopted the new standard. Worse, Chrome does not
-      // even allow to handle the error that it raises.
-      //
-      // See https://developer.mozilla.org/en-US/docs/Glossary/Forbidden_header_name
-      if (isFirefox) {
-        req.setRequestHeader('User-Agent', ' ');
-      }
-    }
-  } catch (e) {
-    console.log('Could not parse URL. Leaving headers for', url, e);
   }
 
   req.onload = () => {

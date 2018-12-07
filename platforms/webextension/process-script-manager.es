@@ -178,7 +178,11 @@ export default class ProcessScriptManager {
         });
       });
     } else if (!channel) {
-      chrome.runtime.sendMessage(msg);
+      chrome.runtime.sendMessage(msg, () => {
+        if (chrome.runtime.lastError) {
+          // Supress "Receiving end does not exist" error
+        }
+      });
     } else {
       const windowId = msg.windowId || channel.split('-')[1];
       chrome.tabs.sendMessage(Number(windowId), msg);

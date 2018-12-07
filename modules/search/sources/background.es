@@ -1,7 +1,6 @@
 import background from '../core/base/background';
 import utils from '../core/utils';
 import prefs from '../core/prefs';
-import config from '../core/config';
 import inject from '../core/kord/inject';
 import { promiseHttpHandler } from '../core/http';
 import {
@@ -42,6 +41,7 @@ import LocationAssistant from './assistants/location';
 import * as offersAssistant from './assistants/offers';
 import settingsAssistant from './assistants/settings';
 import pluckResults from './operators/streams/pluck-results';
+import { isMobile } from '../core/platform';
 
 /**
   @namespace search
@@ -52,12 +52,14 @@ export default background({
   requiresServices: ['search-services', 'logos'],
 
   core: inject.module('core'),
+  search: inject.module('search'),
 
   /**
     @method init
     @param settings
   */
-  init() {
+  init(settings) {
+    this.settings = settings;
     const geolocation = inject.module('geolocation');
     this.searchSessions = new Map();
     this.adultAssistant = new AdultAssistant();
@@ -75,7 +77,7 @@ export default background({
       historyView: new HistoryView(),
       instant: new Instant(),
       querySuggestions: new QuerySuggestions(),
-      richHeader: new RichHeader(),
+      richHeader: new RichHeader(settings), //
     };
   },
 
@@ -156,6 +158,7 @@ export default background({
         isPrivate = false,
         isTyped = true,
         keyCode,
+        forceUpdate = !isMobile,
       } = {},
       { contextId, tab: { id: tabId } = {} } = { tab: {} },
     ) {
@@ -171,6 +174,7 @@ export default background({
           tabId: sessionId,
           keyCode,
           isPasted,
+          forceUpdate,
           allowEmptyQuery,
           ts: now,
         });
@@ -179,7 +183,7 @@ export default background({
 
       const _config = getConfig({
         isPrivateMode: isPrivate,
-      });
+      }, this.settings);
 
       const selectionEventProxy = new ObservableProxy();
       const queryEventProxy = new ObservableProxy();
@@ -284,7 +288,7 @@ export default background({
         latitude: utils.USER_LAT,
         longitude: utils.USER_LNG,
       };
-      const url = config.settings.RICH_HEADER + getRichHeaderQueryString(
+      const url = this.settings.RICH_HEADER + getRichHeaderQueryString(
         query,
         loc,
       );
@@ -320,7 +324,7 @@ export default background({
         });
       }
 
-      const url = config.settings.RICH_HEADER + getRichHeaderQueryString(query) + params;
+      const url = this.settings.RICH_HEADER + getRichHeaderQueryString(query) + params;
       const data = {
         q: query,
         results: [
@@ -342,6 +346,10 @@ export default background({
       prefs.set('backend_country', country);
     },
 
+    getBackendCountries() {
+      return this.search.windowAction(utils.getWindow(), 'getBackendCountries');
+    },
+
     setAdultFilter(filter) {
       prefs.set('adultContentFilter', filter);
     },
@@ -358,6 +366,7 @@ export default background({
           isPasted: false,
           isPrivate: false,
           isTyped: true,
+          forceUpdate: true,
         }, sender);
       }
     },

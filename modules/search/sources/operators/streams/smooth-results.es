@@ -22,9 +22,11 @@ const smoothResults = (
     responses: providerNames
       .map((name) => {
         const previousResponse = previousResult.responses.find(
-          response => response.provider === name);
+          response => response.provider === name
+        );
         const currentResponse = currentResult.responses.find(
-          response => response.provider === name);
+          response => response.provider === name
+        );
 
         if (!isEnabled) {
           return currentResponse;
@@ -41,7 +43,8 @@ const smoothResults = (
           return smoothClusters(
             previousResponse,
             smoothResponses(previousResponse, currentResponse, config),
-            config);
+            config
+          );
         }
 
         return previousResponse;

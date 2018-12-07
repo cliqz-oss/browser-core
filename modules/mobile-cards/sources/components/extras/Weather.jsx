@@ -3,14 +3,9 @@ import { StyleSheet, View, Text } from 'react-native';
 import { getCardWidth, elementTopMargin } from '../../styles/CardStyle';
 import NativeDrawable, { normalizeUrl } from '../custom/NativeDrawable';
 import MoreOn from '../partials/MoreOn';
+import themeDetails from '../../themes';
 
 const styles = StyleSheet.create({
-  containerToday: {
-    flex: 1,
-    justifyContent: 'space-around',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
   tableDays: {
     flex: 1,
     justifyContent: 'space-around',
@@ -20,20 +15,20 @@ const styles = StyleSheet.create({
 });
 
 
-const stylesToday = (cardWidth = 0) => StyleSheet.create({
+const stylesToday = (cardWidth = 0, theme) => StyleSheet.create({
   dayText: {
-    color: '#474747',
+    color: themeDetails[theme].weather.dayTxtColor,
     fontSize: 17,
     fontWeight: '200',
     paddingBottom: 4,
   },
   temperatureText: {
-    color: 'black',
+    color: themeDetails[theme].weather.tempTxtColor,
     fontWeight: 'bold',
     fontSize: 17,
   },
   maxMinText: {
-    color: '#8A8A8A',
+    color: themeDetails[theme].weather.maxMinTxtColor,
     fontSize: 14,
     fontWeight: '200',
   },
@@ -56,20 +51,20 @@ const stylesToday = (cardWidth = 0) => StyleSheet.create({
   }
 });
 
-const stylesDay = (cardWidth = 0) => StyleSheet.create({
+const stylesDay = (cardWidth = 0, theme) => StyleSheet.create({
   temperatureText: {
-    color: 'black',
+    color: themeDetails[theme].weather.tempTxtColor,
     fontWeight: 'bold',
     fontSize: 15,
   },
   dayText: {
-    color: '#474747',
+    color: themeDetails[theme].weather.dayTxtColor,
     fontSize: 15,
     fontWeight: '200',
     paddingBottom: 4,
   },
   maxMinText: {
-    color: '#8A8A8A',
+    color: themeDetails[theme].weather.maxMinTxtColor,
     fontSize: 12,
     fontWeight: '200',
   },
@@ -98,28 +93,30 @@ export default class Weather extends React.Component {
     return (
       <View
         accessible={false}
-        accessibilityLabel={'weather-item'}
+        accessibilityLabel="weather-item"
         key={day.weekday}
         style={style.dayWrapper}
       >
         <View
           accessible={false}
-          accessibilityLabel={'weather-day'}
+          accessibilityLabel="weather-day"
         >
           <Text style={style.dayText}>{day.weekday}</Text>
         </View>
         <View
           accessible={false}
-          accessibilityLabel={'weather-temp'}
+          accessibilityLabel="weather-temp"
         >
           <Text style={style.temperatureText}>
-            <Text style={style.maxMinText}>max.</Text> {day.max}{' '}
-            <Text style={style.maxMinText}>/ min.</Text> {day.min}
+            <Text style={style.maxMinText}>max.</Text>
+            {` ${day.max} `}
+            <Text style={style.maxMinText}>/ min.</Text>
+            {` ${day.min}`}
           </Text>
         </View>
         <View
           accessible={false}
-          accessibilityLabel={'weather-icon'}
+          accessibilityLabel="weather-icon"
           style={style.dayIcon}
         >
           <NativeDrawable source={imageName} style={style.dayIcon} />
@@ -130,6 +127,7 @@ export default class Weather extends React.Component {
 
   render() {
     const data = this.props.data;
+    const theme = this.props.theme;
     const today = {
       max: data.todayMax,
       min: data.todayMin,
@@ -137,15 +135,13 @@ export default class Weather extends React.Component {
       icon: data.todayIcon,
     };
     const cardWidth = getCardWidth();
-    const todayStyle = stylesToday(cardWidth);
-    const dayStyle = stylesDay(cardWidth);
+    const todayStyle = stylesToday(cardWidth, theme);
+    const dayStyle = stylesDay(cardWidth, theme);
 
     return (
       <View>
         <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', ...elementTopMargin }}>
-          <View style={styles.containerToday}>
-            { this.displayDay(today, todayStyle) }
-          </View>
+          { this.displayDay(today, todayStyle) }
           <View style={styles.tableDays}>
             { data.forecast.map(day => this.displayDay(day, dayStyle)) }
           </View>
@@ -153,6 +149,7 @@ export default class Weather extends React.Component {
         <MoreOn
           provider="weatherunderground.com"
           url="http://www.weatherunderground.com"
+          theme={theme}
         />
       </View>
     );

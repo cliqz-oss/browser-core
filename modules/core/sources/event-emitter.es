@@ -68,8 +68,7 @@ export default class EventEmitter {
         }
 
         nextTick(() => callback(...args)).catch(ex =>
-          console.error('Error while emitting event', eventName, callback, args, ex)
-        );
+          console.error('Error while emitting event', eventName, callback, args, ex));
       });
     }
   }

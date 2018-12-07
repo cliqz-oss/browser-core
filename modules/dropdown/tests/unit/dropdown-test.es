@@ -123,5 +123,4 @@ export default describeModule('dropdown/dropdown',
         });
       });
     });
-  }
-);
+  });

@@ -1,11 +1,15 @@
 /* global chai */
 /* global describeModule */
 
+const adblocker = require('@cliqz/adblocker');
 const mockDexie = require('../../core/unit/utils/dexie');
 
 export default describeModule('history-analyzer/bucket-store',
   () => ({
     ...mockDexie,
+    'platform/lib/adblocker': {
+      default: adblocker,
+    },
   }),
   () => {
     let kv;
@@ -22,15 +26,13 @@ export default describeModule('history-analyzer/bucket-store',
       it('inserts an element', () =>
         kv.set('foo', 'bar')
           .then(() => chai.expect(kv.get('foo')).to.be.eql('bar'))
-          .then(() => chai.expect(kv.size).to.be.eql(1))
-      );
+          .then(() => chai.expect(kv.size).to.be.eql(1)));
 
       it('replaces an existing element', () =>
         kv.set('foo', 'bar')
           .then(() => kv.set('foo', 'baz'))
           .then(() => chai.expect(kv.get('foo')).to.be.eql('baz'))
-          .then(() => chai.expect(kv.size).to.be.eql(1))
-      );
+          .then(() => chai.expect(kv.size).to.be.eql(1)));
     });
 
     describe('#update', () => {
@@ -39,8 +41,7 @@ export default describeModule('history-analyzer/bucket-store',
           chai.expect(v).to.be.undefined;
           return 'bar';
         }).then(() => chai.expect(kv.get('foo')).to.be.eql('bar'))
-          .then(() => chai.expect(kv.size).to.be.eql(1))
-      );
+          .then(() => chai.expect(kv.size).to.be.eql(1)));
 
       it('when key already exists', () =>
         kv.set('foo', 'bar')
@@ -50,8 +51,7 @@ export default describeModule('history-analyzer/bucket-store',
             return 'baz';
           }))
           .then(() => chai.expect(kv.get('foo')).to.be.eql('baz'))
-          .then(() => chai.expect(kv.size).to.be.eql(1))
-      );
+          .then(() => chai.expect(kv.size).to.be.eql(1)));
     });
 
     it('#deleteDataOlderThan', () =>
@@ -65,7 +65,5 @@ export default describeModule('history-analyzer/bucket-store',
       ]).then(() => kv.deleteDataOlderThan(4))
         .then(() => chai.expect(kv.keys()).to.be.eql([
           4, 5, 6
-        ]))
-    );
-  }
-);
+        ])));
+  });

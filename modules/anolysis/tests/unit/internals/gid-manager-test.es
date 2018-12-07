@@ -2,9 +2,8 @@
 /* global sinon */
 /* global describeModule */
 
-
-const mockDexie = require('../../../core/unit/utils/dexie');
 const moment = require('moment');
+const mockDexie = require('../../../core/unit/utils/dexie');
 
 const DEFAULT_DATE = '2017-01-02';
 
@@ -32,6 +31,7 @@ let updateGID;
 
 const BACKEND_MOCK = class Backend {
   updateGID(demographics) { return updateGID(demographics); }
+
   sendDemographics(demographics) { return sendDemographics(demographics); }
 };
 
@@ -52,9 +52,6 @@ export default describeModule('anolysis/internals/gid-manager',
     'core/crypto/random': {
       randomInt() { return 0; },
     },
-    'core/database': {
-      default: class Database { destroy() { return Promise.resolve(); } }
-    },
     'core/events': {
       default: {
         pub() {},
@@ -64,9 +61,13 @@ export default describeModule('anolysis/internals/gid-manager',
       default: {},
     },
     'core/console': { default: {} },
-    'core/services/telemetry': {
+    'core/kord/inject': {
       default: {
-        push: () => {},
+        service() {
+          return {
+            push: () => {},
+          };
+        },
       },
     },
     'anolysis/internals/logger': {
@@ -130,7 +131,7 @@ export default describeModule('anolysis/internals/gid-manager',
       // Pretend today is `date`.
       setCurrentDate(date);
 
-      const demographics = 'demographics';
+      const demographics = '{"demographics": "demographics"}';
       sendDemographics = () => Promise.resolve(demographics);
       await gidManager.handleSendDemographics();
       await gidManager.setNewInstallDate(date);
@@ -184,7 +185,7 @@ export default describeModule('anolysis/internals/gid-manager',
 
           // From handleSendDemographics
           anolysisDemographics: demographics,
-          anolysisLastAliveSignal: yesterday,
+          anolysisLastAliveSignal: today,
           anolysisRawDemographics: '{}',
         });
       });
@@ -207,7 +208,7 @@ export default describeModule('anolysis/internals/gid-manager',
           // From handleSendDemographics
           anolysisDemographics: demographics,
           anolysisRawDemographics: '{}',
-          anolysisLastAliveSignal: yesterday,
+          anolysisLastAliveSignal: today,
         });
       });
     });
@@ -215,6 +216,8 @@ export default describeModule('anolysis/internals/gid-manager',
     describe('#getGID', () => {
       it('resolves to the same promise if called several times', async () => {
         // Mock `_getGID` to make sure it's called only once.
+        sendDemographics = () => Promise.resolve('{}');
+        updateGID = () => Promise.resolve('{}');
         const _getGID = sinon.spy(gidManager._getGID.bind(gidManager));
         gidManager._getGID = _getGID;
 
@@ -229,7 +232,7 @@ export default describeModule('anolysis/internals/gid-manager',
       });
 
       const fromUpdateGID = 'gid';
-      const fromSendDemographics = 'demographics';
+      const fromSendDemographics = '{"demographics": "demographics"}';
 
       it('updates GID if needed', async () => {
         sendDemographics = sinon.spy(() => Promise.resolve(fromSendDemographics));
@@ -247,20 +250,20 @@ export default describeModule('anolysis/internals/gid-manager',
         // Get GID
         setCurrentDate('2016-01-02');
         chai.expect(await gidManager.getGID()).to.be.eql(fromUpdateGID);
-        chai.expect(sendDemographics).to.have.been.calledOnce;
+        chai.expect(sendDemographics).to.have.been.calledTwice;
         chai.expect(updateGID).to.have.been.calledOnce;
 
         // Get GID should trigger update
         setCurrentDate('2016-01-03');
         updateGID = sinon.spy(() => Promise.resolve('gid2'));
         chai.expect(await gidManager.getGID()).to.be.eql('gid2');
-        chai.expect(sendDemographics).to.have.been.calledOnce;
+        chai.expect(sendDemographics).to.have.been.calledThrice;
         chai.expect(updateGID).to.have.been.calledOnce;
 
         // Calling again on same day should not change anything
         const state = getState();
         chai.expect(await gidManager.getGID()).to.be.eql('gid2');
-        chai.expect(sendDemographics).to.have.been.calledOnce;
+        chai.expect(sendDemographics).to.have.been.calledThrice;
         chai.expect(updateGID).to.have.been.calledOnce;
         chai.expect(getState()).to.be.eql(state);
 
@@ -272,5 +275,4 @@ export default describeModule('anolysis/internals/gid-manager',
         chai.expect(await gidManager.getGID()).to.be.eql('gid2');
       });
     });
-  },
-);
+  });

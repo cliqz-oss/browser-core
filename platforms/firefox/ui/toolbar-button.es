@@ -304,7 +304,7 @@ export default class BrowserAction {
     const node = window.document.getElementById(this.id);
     if (node) {
       this.updateButton(node, {
-        icon: value,
+        icon: () => value,
         enabled: true,
       });
     }
@@ -336,21 +336,22 @@ export default class BrowserAction {
       'toolbarbutton-badge'
     );
     if (badgeNode) {
-      const color = tabData.badgeBackgroundColor ||
-                    badgeNode.style.backgroundColor ||
-                    this.defaults.badgeBackgroundColor;
+      const color = tabData.badgeBackgroundColor
+                    || badgeNode.style.backgroundColor
+                    || this.defaults.badgeBackgroundColor;
       if (color) {
         badgeNode.style.backgroundColor = color;
       }
     }
 
     if (tabData.icon) {
+      const icon = tabData.icon();
       node.setAttribute('style', `
-        list-style-image: url(${tabData.icon});
-        --webextension-menupanel-image: url(${tabData.icon});
-        --webextension-menupanel-image-2x: url(${tabData.icon});
-        --webextension-toolbar-image: url(${tabData.icon});
-        --webextension-toolbar-image-2x: url(${tabData.icon});
+        list-style-image: url(${icon});
+        --webextension-menupanel-image: url(${icon});
+        --webextension-menupanel-image-2x: url(${icon});
+        --webextension-toolbar-image: url(${icon});
+        --webextension-toolbar-image-2x: url(${icon});
       `);
     }
   }

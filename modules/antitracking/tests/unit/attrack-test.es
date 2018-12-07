@@ -1,11 +1,11 @@
 /* global chai, describeModule */
 /* eslint no-param-reassign : off */
 
-const jsonData = require('../../../antitracking/prob.json');
 const Rx = require('rxjs');
 const fastUrlParser = require('fast-url-parser');
 const tldts = require('tldts');
 const encoding = require('text-encoding');
+const jsonData = require('../../../antitracking/prob.json');
 const mockDexie = require('../../core/unit/utils/dexie');
 
 const testPages = require('./attrack-test-data');
@@ -28,7 +28,7 @@ class MockResourceStorage {
     if (resources[this.name]) {
       return Promise.resolve(JSON.stringify(resources[this.name]));
     }
-    return Promise.reject(`load rejected for ${this.name}`);
+    return Promise.reject(new Error(`load rejected for ${this.name}`));
   }
 
   save() {}
@@ -73,7 +73,7 @@ export default describeModule('antitracking/attrack',
     },
     'core/http': {
       default: {},
-      fetch: url => Promise.reject(`fetch rejected for ${url}`),
+      fetch: url => Promise.reject(new Error(`fetch rejected for ${url}`)),
     },
     'core/fast-url-parser': {
       default: fastUrlParser
@@ -101,7 +101,6 @@ export default describeModule('antitracking/attrack',
     },
     'platform/url': {},
     'platform/crypto': {},
-    'platform/database': {},
     'core/search-engines': {},
     'platform/environment': {
       default: {
@@ -117,12 +116,6 @@ export default describeModule('antitracking/attrack',
         get() { return null; },
         set() {},
       }
-    },
-    'core/services/telemetry': {
-      default: {
-        isEnabled: () => true,
-        push: () => {},
-      },
     },
     'platform/fetch': {
     },
@@ -199,7 +192,15 @@ export default describeModule('antitracking/attrack',
             background: pipeline,
             isReady: () => Promise.resolve(true),
           }
-        }
+        },
+        services: {
+          telemetry: {
+            api: {
+              isEnabled: () => true,
+              push: () => {},
+            },
+          },
+        },
       });
       md5 = (await this.system.import('core/helpers/md5')).default;
       const Config = (await this.system.import('antitracking/config')).default;

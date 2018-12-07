@@ -6,5 +6,4 @@ export default describeModule('ui/background',
     };
   },
   function () {
-  }
-);
+  });

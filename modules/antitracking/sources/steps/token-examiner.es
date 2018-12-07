@@ -3,8 +3,6 @@
 import * as datetime from '../time';
 import md5 from '../../core/helpers/md5';
 import console from '../../core/console';
-import { migrateRequestKeyValue } from '../legacy/database';
-
 
 class TokenSet {
   constructor() {
@@ -47,10 +45,6 @@ export default class TokenExaminer {
     this._syncTimer = null;
     this._lastPrune = null;
     this._currentDay = null;
-
-    this.db.db.on('populate', () => {
-      migrateRequestKeyValue();
-    });
   }
 
   init() {
@@ -135,7 +129,8 @@ export default class TokenExaminer {
           this.qsWhitelist.addSafeKey(
             tracker,
             this.hashTokens ? key : md5(key),
-            this.config.safekeyValuesThreshold);
+            this.config.safekeyValuesThreshold
+          );
         }
         return hash;
       }, cachedKvs);
@@ -211,8 +206,6 @@ export default class TokenExaminer {
             );
           }
           this.removeRequestKeyValueEntry(tracker, key);
-        }).catch(e => console.error(e))
-      )
-    );
+        }).catch(e => console.error(e))));
   }
 }

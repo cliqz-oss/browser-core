@@ -58,8 +58,8 @@ export default class CliqzMsgCenter {
   }
 
   static getInstance() {
-    CliqzMsgCenter.getInstance.instance =
-      CliqzMsgCenter.getInstance.instance || new CliqzMsgCenter();
+    CliqzMsgCenter.getInstance.instance = CliqzMsgCenter.getInstance.instance
+      || new CliqzMsgCenter();
     return CliqzMsgCenter.getInstance.instance;
   }
 }

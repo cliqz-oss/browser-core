@@ -13,6 +13,10 @@ function styles({
   const sizesByClass = { square: '30px', short: '55px', normal: '70px', long: '105px' };
   const logoSize = sizesByClass[logoClass] || '70px';
   return `
+    body {
+      overflow: hidden;
+    }
+
     .content {
       position: relative;
       width: 100%;
@@ -179,7 +183,7 @@ function styles({
       overflow: hidden;
       text-overflow: ellipsis;
       padding-left: 16px;
-      padding-right: 37%;
+      padding-right: 43%;
     }
 
     .code-wrapper > .copy-code {
@@ -243,6 +247,43 @@ function styles({
 
     .footer-billet {
       padding-bottom: 20px;
+    }
+
+    .conditions {
+      text-align: right;
+      padding-top: 3px;
+      color: #B2B2B2;
+      font-size: x-small;
+    }
+
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted #B2B2B2;
+      margin-right: 27px;
+    }
+
+    .tooltip .tooltip-text {
+      box-shadow: rgba(0, 0, 0, 0.19) 3px 2px 13px 2px;
+      visibility: hidden;
+      width: 180px;
+      background-color: gray;
+      color: #fff;
+      text-align: left;
+      border-radius: 6px;
+      padding: 5px 8px;
+
+      position: absolute;
+      z-index: 1;
+      bottom: 11px;
+      right: -11px;
+    }
+
+    .tooltip:hover .tooltip-text {
+      visibility: visible;
+      overflow-y: auto;
+      overflow-x: hidden;
+      max-height: 200px;
     }`;
 }
 
@@ -261,8 +302,8 @@ function styleImages({ ghostery = false, logo_url: logoUrl } = {}) {
 
 function popupStyles({ shouldHideButtons = false, headline = '' }) {
   const halfOfLine = 32;
-  let containerHeight = headline.length > halfOfLine ? '360px' : '336px';
-  if (shouldHideButtons) { containerHeight = '260px'; }
+  let containerHeight = headline.length > halfOfLine ? '372px' : '352px';
+  if (shouldHideButtons) { containerHeight = '280px'; }
   return {
     position: 'fixed',
     top: '0',

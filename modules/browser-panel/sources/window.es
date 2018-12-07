@@ -365,11 +365,11 @@ export default class Win {
       return;
     }
 
-    if (!aOfferData.offer_id ||
-        !aOfferData.offer_data ||
-        !aOfferData.offer_data.ui_info ||
-        !aOfferData.offer_data.ui_info.template_name ||
-        !aOfferData.offer_data.ui_info.template_data) {
+    if (!aOfferData.offer_id
+        || !aOfferData.offer_data
+        || !aOfferData.offer_data.ui_info
+        || !aOfferData.offer_data.ui_info.template_name
+        || !aOfferData.offer_data.ui_info.template_data) {
       lwarn('showOfferElementHandler: Some of the fields are missing to render the offer');
       return;
     }

@@ -7,8 +7,9 @@ import { getDetailsFromUrl } from '../core/url';
 const parseURL = UrlParser.parse;
 
 function getAlias(host, searchEngines) {
-  const engine = searchEngines.find(({ urlDetails }) =>
-    host === urlDetails.host || host === urlDetails.domain
+  const engine = searchEngines.find(
+    ({ urlDetails }) =>
+      host === urlDetails.host || host === urlDetails.domain
   ) || {};
 
   return engine.alias;

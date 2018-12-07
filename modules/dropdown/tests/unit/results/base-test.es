@@ -100,5 +100,4 @@ export default describeModule('dropdown/results/generic',
         });
       });
     });
-  }
-);
+  });

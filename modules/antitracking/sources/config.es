@@ -73,10 +73,10 @@ export default class Config {
 
     Object.assign(this, defaults);
 
-    this.safekeyValuesThreshold = parseInt(persist.getValue('safekeyValuesThreshold'), 10) ||
-                                  this.safekeyValuesThreshold;
-    this.shortTokenLength = parseInt(persist.getValue('shortTokenLength'), 10) ||
-                            this.shortTokenLength;
+    this.safekeyValuesThreshold = parseInt(persist.getValue('safekeyValuesThreshold'), 10)
+                                  || this.safekeyValuesThreshold;
+    this.shortTokenLength = parseInt(persist.getValue('shortTokenLength'), 10)
+                            || this.shortTokenLength;
 
     this.paused = false;
 
@@ -131,8 +131,8 @@ export default class Config {
 
     if (versioncheck.safekeyValuesThreshold) {
       persist.setValue('safekeyValuesThreshold', versioncheck.safekeyValuesThreshold);
-      this.safekeyValuesThreshold = parseInt(versioncheck.safekeyValuesThreshold, 10) ||
-                                    this.safekeyValuesThreshold;
+      this.safekeyValuesThreshold = parseInt(versioncheck.safekeyValuesThreshold, 10)
+                                    || this.safekeyValuesThreshold;
     }
 
     // fire events for list update

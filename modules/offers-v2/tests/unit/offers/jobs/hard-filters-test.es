@@ -3,104 +3,21 @@
 /* global require */
 /* eslint camelcase: off */
 
-const adblocker = require('@cliqz/adblocker');
-const tldts = require('tldts');
+const commonMocks = require('../../utils/common');
+const persistenceMocks = require('../../utils/persistence');
+const VALID_OFFER_OBJ = require('../../utils/offers/data').VALID_OFFER_OBJ;
+const beMocks = require('../../utils/offers/intent');
 
-const VALID_OFFER_OBJ = {
-  action_info: {
-    on_click: 'https://www.cliqz.com'
-  },
-  campaign_id: 'cid_1',
-  client_id: 'client-1',
-  display_id: 'x-d',
-  filterRules: "generic_comparator('offer_closed','l_u_ts','>=',30) && " +
-                 "generic_comparator('offer_shown','counter','<=',5)",
-  offer_id: 'x',
-  rule_info: {
-    display_time_secs: 999999,
-    type: 'exact_match',
-    url: []
-  },
-  ui_info: {
-    template_data: {
-      call_to_action: {
-        target: '',
-        text: 'Jetzt Anfordern',
-        url: 'http://newurl'
-      },
-      conditions: 'Some conditions',
-      desc: 'Some description',
-      logo_url: 'somelogourl',
-      title: 'This is the title',
-      voucher_classes: ''
-    },
-    template_name: 'ticket_template'
-  },
-  rs_dest: ['offers-cc'],
-  types: ['type1', 'type2'],
-  monitorData: [],
-  categories: ['cat1'],
-};
+const HistoryMatcherMock = beMocks['offers-v2/backend-connector'].HistoryMatcherMock;
+const CategoryHandlerMock = beMocks['offers-v2/backend-connector'].CategoryHandlerMock;
 
 let ABTestNumber = 0;
 
-// needed for the map
-const persistence = {};
-function delay(fn) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      Promise.resolve()
-        .then(fn)
-        .then(resolve)
-        .catch(reject);
-    }, 100);
-  });
-}
-
-class CategoryHandlerMock {
-  constructor() {
-    this.result = true;
-  }
-
-  isCategoryActive() {
-    return this.result;
-  }
-}
-
 export default describeModule('offers-v2/offers/jobs/hard-filters',
   () => ({
-    'platform/lib/adblocker': {
-      default: adblocker,
-    },
-    'offers-v2/common/offers_v2_logger': {
-      default: {
-        debug: () => {},
-        error: () => {},
-        info: () => {},
-        log: () => {},
-        warn: () => {},
-      }
-    },
-    'core/platform': {
-      isWebExtension: false
-    },
-    'core/utils': {
-      default: {},
-    },
-    'platform/globals': {
-      default: {}
-    },
-    'core/crypto/random': {
-    },
-    'platform/console': {
-      default: {}
-    },
-    'core/prefs': {
-      default: {
-        get() {}
-      },
-    },
-    'platform/lib/tldts': tldts,
+    ...commonMocks,
+    ...persistenceMocks,
+    ...beMocks,
     'offers-v2/utils': {
       getABNumber: function () {
         return ABTestNumber;
@@ -116,54 +33,6 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
         }
       },
     },
-    'core/persistence/map': {
-      default: class MockMap {
-        constructor(dbName) {
-          persistence[dbName] = (persistence[dbName] || new Map());
-          this.db = persistence[dbName];
-        }
-
-        init() {
-          return Promise.resolve();
-        }
-
-        unload() {
-          return Promise.resolve();
-        }
-
-        get(key) {
-          return delay(() => this.db.get(key));
-        }
-
-        set(key, value) {
-          return delay(() => this.db.set(key, value));
-        }
-
-        has(key) {
-          return delay(() => this.db.has(key));
-        }
-
-        delete(key) {
-          return delay(() => this.db.delete(key));
-        }
-
-        clear() {
-          return delay(() => this.db.clear());
-        }
-
-        size() {
-          return delay(() => this.db.size());
-        }
-
-        keys() {
-          return delay(() => [...this.db.keys()]);
-        }
-
-        entries() {
-          return delay(() => [...this.db.entries()]);
-        }
-      }
-    }
   }),
   () => {
     describe('#hard-filters', function () {
@@ -175,21 +44,9 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
         setRet(v) {
           this.retVal = v;
         }
+
         matches() {
           return this.retVal;
-        }
-      }
-
-      class HistoryMatcherMock {
-        setRet(v) {
-          this.retVal = v;
-        }
-        hasHistoryEnabled() { return true; }
-        countMatchesWithPartialCheck() {
-          return this.retVal;
-        }
-        countMatches() {
-          return Promise.resolve(this.retVal);
         }
       }
 
@@ -242,7 +99,7 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
           ctx = {
             presentRealEstates: new Map(),
             geoChecker: new GeoCheckerMock(),
-            historyMatcher: new HistoryMatcherMock(),
+            historyMatcher: new HistoryMatcherMock(/* isHistoryEnabled */ true),
             offersDB: db,
             categoryHandler: catHandlerMock,
           };
@@ -369,7 +226,8 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
             min_matches_expected: 2,
             since_secs: 10,
             till_secs: 0,
-            remove_if_matches: false }];
+            remove_if_matches: false
+          }];
           ctx.historyMatcher = undefined;
           return hardFilter.process([offer], ctx).then((r) => {
             chai.expect(r).eql([]);
@@ -478,7 +336,7 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
             })
           ];
           // we will set history hceck but dissable feature
-          ctx.historyMatcher.setRet(2);
+          ctx.historyMatcher.setMockCountMatches(2);
           return hardFilter.process(offers, ctx).then((r) => {
             checkForOffers(r, ['yes1', 'yes2', 'yes3']);
           });
@@ -487,12 +345,11 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
 
         it('/categories checks works to filter offers out', function () {
           offer = buildOffer({});
-          catHandlerMock.result = false;
+          catHandlerMock.setMockIsCategoryActive(false);
           return hardFilter.process([offer], ctx).then((r) => {
             chai.expect(r).eql([]);
           });
         });
       });
     });
-  }
-);
+  });

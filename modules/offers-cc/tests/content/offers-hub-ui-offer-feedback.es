@@ -72,9 +72,9 @@ context('Offers Hub UI tests for feedback for one offer', function () {
   });
 
   it('renders \'close\' button', function () {
-    const buttonSelector = `${feedbackSelector} .logo-wrapper button.close`;
+    const buttonSelector = `${feedbackSelector}  button.skip`;
     expect(subject.query(buttonSelector)).to.exist;
     expect(subject.query(buttonSelector).textContent.trim())
-      .to.equal('offers_hub_remove');
+      .to.equal('feedback_skip');
   });
 });

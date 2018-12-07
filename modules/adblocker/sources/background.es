@@ -40,16 +40,14 @@ export default background({
 
   events: {
     'content:location-change': function onLocationChange({ windowId, url }) {
-      if (!CliqzADB.isAdbActive(url)) {
+      if (!isSupportedProtocol(url) || !CliqzADB.isAdbActive(url)) {
         return;
       }
 
-      if (isSupportedProtocol(url)) {
-        const response = CliqzADB.adBlocker.engine.getDomainFilters(
-          extractHostname(url),
-        );
-        this.core.action('broadcastActionToWindow', windowId, 'adblocker', 'update', response);
-      }
+      const response = CliqzADB.adBlocker.engine.getDomainFilters(
+        extractHostname(url),
+      );
+      this.core.action('broadcastActionToWindow', windowId, 'adblocker', 'update', response);
     },
 
     'control-center:adb-optimized': () => {
@@ -93,8 +91,9 @@ export default background({
   actions: {
     // handles messages coming from process script
     getCosmeticsForNodes(nodes, sender) {
-      const url = sender.tab.url;
-      if (!CliqzADB.isAdbActive(url)) {
+      const tabUrl = sender.tab.url;
+      const url = sender.url;
+      if (!isSupportedProtocol(tabUrl) || !CliqzADB.isAdbActive(tabUrl)) {
         return { active: false };
       }
 
@@ -105,9 +104,9 @@ export default background({
     },
 
     getCosmeticsForDomain(sender) {
-      const url = sender.url;
       const tabUrl = sender.tab.url;
-      if (!CliqzADB.isAdbActive(tabUrl)) {
+      const url = sender.url;
+      if (!isSupportedProtocol(tabUrl) || !CliqzADB.isAdbActive(tabUrl)) {
         return { active: false };
       }
 
@@ -163,7 +162,7 @@ export default background({
 
     addPipelineStep(opts) {
       if (!this.adb.pipeline) {
-        return Promise.reject(`Could not add pipeline step: ${opts.name}`);
+        return Promise.reject(new Error(`Could not add pipeline step: ${opts.name}`));
       }
 
       return this.adb.pipeline.addPipelineStep(opts);
@@ -175,6 +174,9 @@ export default background({
     },
     addWhiteListCheck(fn) {
       CliqzADB.addWhiteListCheck(fn);
-    }
+    },
+    isEnabled() {
+      return CliqzADB.adbEnabled();
+    },
   },
 });

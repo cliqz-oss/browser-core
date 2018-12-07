@@ -71,10 +71,8 @@ export default class Anolysis {
     }
 
     if (this.isHealthy) {
-      await Promise.all([
-        this.gidManager.init(this.storage.gid),
-        this.signalQueue.init(this.storage.signals),
-      ]);
+      this.gidManager.init(this.storage.gid);
+      this.signalQueue.init(this.storage.signals);
       this.running = true;
     } else {
       this.unload();
@@ -103,7 +101,8 @@ export default class Anolysis {
   }
 
   registerSignalDefinitions(definitions) {
-    definitions.forEach((definition) => {
+    for (let i = 0; i < definitions.length; i += 1) {
+      const definition = definitions[i];
       const name = definition.name;
       logger.debug('Register definition', name);
       if (!this.availableDefinitions.has(name)) {
@@ -111,7 +110,7 @@ export default class Anolysis {
       } else {
         throw new Error(`Signal ${name} already exists with value ${JSON.stringify(definition)}`);
       }
-    });
+    }
   }
 
   async onNewDay(date) {
@@ -291,7 +290,8 @@ export default class Anolysis {
           // The environment signal from legacy telemetry is ignored, since we
           // now have a cross-platform mechanism to get demographics.
           return Promise.resolve();
-        } else if (isSendToBackend && !isLegacy) {
+        }
+        if (isSendToBackend && !isLegacy) {
           logger.debug('Signal is sendToBackend', processedSignal);
 
           return (schema.needsGid ? this.gidManager.getGID() : Promise.resolve(''))

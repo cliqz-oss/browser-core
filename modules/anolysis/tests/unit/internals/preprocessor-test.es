@@ -44,8 +44,7 @@ export default describeModule('anolysis/internals/preprocessor',
             action: 'bar',
             baz: 42,
           },
-        }))
-      );
+        })));
 
       it('transforms legacy signal (with custom preprocessor)', () =>
         preprocessor.process({
@@ -65,8 +64,7 @@ export default describeModule('anolysis/internals/preprocessor',
             display_time: 10,
             urlbar_time: 10,
           },
-        }))
-      );
+        })));
     });
 
     describe('#getId', () => {
@@ -118,5 +116,4 @@ export default describeModule('anolysis/internals/preprocessor',
         chai.expect(preprocessor.isDemographics({ type: 'environment' })).to.be.true;
       });
     });
-  }
-);
+  });

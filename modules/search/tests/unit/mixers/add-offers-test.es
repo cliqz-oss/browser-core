@@ -49,7 +49,8 @@ export default describeModule('search/mixers/add-offers',
         };
         const expected = [offer, ...results];
         chai.expect(
-          addOffer(results, offer, config)).to.deep.equal(expected);
+          addOffer(results, offer, config)
+        ).to.deep.equal(expected);
       });
 
       it('injects offer as last result', function () {
@@ -72,7 +73,8 @@ export default describeModule('search/mixers/add-offers',
         };
         const expected = [...results, offer];
         chai.expect(
-          addOffer(results, offer, config)).to.deep.equal(expected);
+          addOffer(results, offer, config)
+        ).to.deep.equal(expected);
       });
     });
 
@@ -296,5 +298,4 @@ export default describeModule('search/mixers/add-offers',
         chai.expect(attachOffer(results, offer, config)).to.deep.equal(expected);
       });
     });
-  },
-);
+  });

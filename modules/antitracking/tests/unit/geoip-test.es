@@ -159,5 +159,4 @@ export default describeModule('antitracking/geoip',
         });
       });
     });
-  }
-);
+  });

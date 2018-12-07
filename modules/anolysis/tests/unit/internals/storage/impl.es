@@ -4,7 +4,8 @@ export default function sortBy(signals, by = (v => v)) {
   return signals.sort((s1, s2) => {
     if (by(s1) === undefined || by(s1) < by(s2)) {
       return -1;
-    } else if (by(s2) === undefined || by(s1) > by(s2)) {
+    }
+    if (by(s2) === undefined || by(s1) > by(s2)) {
       return 1;
     }
     return 0;

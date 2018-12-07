@@ -3,7 +3,7 @@ import {
   blurUrlBar,
   expect,
   fillIn,
-  respondWith,
+  mockSearch,
   testsEnabled,
   waitFor,
   waitForPopup,
@@ -36,9 +36,9 @@ export default function () {
     context('query length >= 4', function () {
       context('sent 1 backend, then 1 history', function () {
         const query = 'test ';
-        before(function () {
+        before(async function () {
           blurUrlBar();
-          respondWith({ results: [{ url: backendUrl1 }] });
+          await mockSearch({ results: [{ url: backendUrl1 }] });
           withHistory([{ value: historyUrl1 }], 600);
         });
 
@@ -48,8 +48,7 @@ export default function () {
           expect($cliqzResults.querySelector(backend1Selector)).to.exist;
           expect($cliqzResults.querySelector(history1Selector)).to.not.exist;
           await waitFor(() =>
-            expect($cliqzResults.querySelector(history1Selector)).to.exist
-          );
+            expect($cliqzResults.querySelector(history1Selector)).to.exist);
         });
       });
     });
@@ -59,7 +58,7 @@ export default function () {
         const query = 'tes';
         before(async function () {
           blurUrlBar();
-          respondWith({ results: [{ url: backendUrl1 }] });
+          await mockSearch({ results: [{ url: backendUrl1 }] });
           withHistory([{ value: historyUrl1 }], 600);
         });
 
@@ -67,8 +66,7 @@ export default function () {
           fillIn(query);
           await waitForPopup();
           await waitFor(() =>
-            expect($cliqzResults.querySelector(backend1Selector)).to.exist
-          );
+            expect($cliqzResults.querySelector(backend1Selector)).to.exist);
           expect($cliqzResults.querySelector(history1Selector)).to.exist;
         });
       });
@@ -77,7 +75,7 @@ export default function () {
         const query = 'test';
         before(async function () {
           blurUrlBar();
-          respondWith({ results: [{ url: backendUrl1 }] }, 1000);
+          await mockSearch({ results: [{ url: backendUrl1 }] }, 1000);
           withMultipleHistory([
             {
               res: [{ value: historyUrl1 }],
@@ -99,16 +97,13 @@ export default function () {
           await waitForPopup(2);
           expect($cliqzResults.querySelector(history1Selector)).to.exist;
           await waitFor(() =>
-            expect($cliqzResults.querySelector(history2Selector)).to.exist
-          );
+            expect($cliqzResults.querySelector(history2Selector)).to.exist);
           expect($cliqzResults.querySelectorAll('.cliqz-result')).to.have.length(3);
           await waitFor(() =>
-            expect($cliqzResults.querySelector(backend1Selector)).to.exist
-          );
+            expect($cliqzResults.querySelector(backend1Selector)).to.exist);
           expect($cliqzResults.querySelectorAll('.cliqz-result')).to.have.length(4);
           await waitFor(() =>
-            expect($cliqzResults.querySelector(history3Selector)).to.exist
-          );
+            expect($cliqzResults.querySelector(history3Selector)).to.exist);
         });
       });
     });

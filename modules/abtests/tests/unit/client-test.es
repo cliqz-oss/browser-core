@@ -105,5 +105,4 @@ export default describeModule('abtests/client',
         return chai.expect(client.leaveTest()).to.be.rejected;
       });
     });
-  },
-);
+  });

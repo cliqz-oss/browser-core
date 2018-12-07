@@ -9,9 +9,6 @@ let startEnter = 0;
 class Article extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      isBreakingNews: false
-    };
 
     this.onMouseEnter = this.onMouseEnter.bind(this);
     this.onMouseLeave = this.onMouseLeave.bind(this);
@@ -65,7 +62,8 @@ class Article extends React.Component {
           ev,
           this.props.article.type,
           this.props.index,
-          this.props.article.edition)}
+          this.props.article.edition
+        )}
         onMouseEnter={this.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
         data-index={`${this.props.index}`}
@@ -76,13 +74,15 @@ class Article extends React.Component {
         </div>
 
         <div className="news-title">
-          { this.isBreakingNews &&
-            <span className="breaking-news">
-              { this.props.article.breaking_label
-                ? this.props.article.breaking_label
-                : t('app_news_breaking_news')
-              }&nbsp;
-            </span>
+          { this.isBreakingNews
+            && (
+              <span className="breaking-news">
+                { this.props.article.breaking_label
+                  ? this.props.article.breaking_label
+                  : t('app_news_breaking_news')
+                }&nbsp;
+              </span>
+            )
           }
           {
             this.truncate(

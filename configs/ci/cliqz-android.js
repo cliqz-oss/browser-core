@@ -1,5 +1,4 @@
 const base = require('../cliqz-android');
-const subprojects = require('../common/subprojects/bundles');
 const ciUrl = require('./common/urls');
 
 module.exports = Object.assign({}, base, {
@@ -15,14 +14,6 @@ module.exports = Object.assign({}, base, {
     'integration-tests',
     'content-script-tests',
   ]),
-  subprojects: base.subprojects.concat(subprojects([
-    'chai',
-    'chai-dom',
-    'mocha',
-    'reactTestUtils',
-    'sinon',
-    'sinon-chai',
-  ])),
   bundles: base.bundles.concat([
     'integration-tests/run.bundle.js',
     'core/integration-tests.bundle.js',

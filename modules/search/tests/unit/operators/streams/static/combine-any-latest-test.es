@@ -55,5 +55,4 @@ export default describeModule('search/operators/streams/static/combine-any-lates
         return chai.expect(messages).to.deep.equal(expected);
       });
     });
-  },
-);
+  });

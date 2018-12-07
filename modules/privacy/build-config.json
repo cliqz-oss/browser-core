@@ -1,0 +1,7 @@
+{
+  "subprojects": [
+    "jquery",
+    "handlebars",
+    "moment"
+  ]
+}

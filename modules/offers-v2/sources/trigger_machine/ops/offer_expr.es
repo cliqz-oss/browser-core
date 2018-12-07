@@ -34,8 +34,8 @@ class SetOffersStatusExpr extends Expression {
       // nothing to do
       return;
     }
-    if (this.data.raw_op.args.length < 1 ||
-        (typeof this.data.raw_op.args[0] !== 'object')) {
+    if (this.data.raw_op.args.length < 1
+        || (typeof this.data.raw_op.args[0] !== 'object')) {
       throw new Error('SetOffersStatusExpr invalid args');
     }
     this.statusObj = this.data.raw_op.args[0];

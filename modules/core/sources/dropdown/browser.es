@@ -109,7 +109,12 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     return copyToClipboard(val);
   }
 
-  async _openLink(url,
+  _reportClick(selection) {
+    events.pub('ui:click-on-url', selection);
+  }
+
+  async _openLink(
+    url,
     {
       newTab,
       eventType,
@@ -173,13 +178,13 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
       elementName: meta.elementName,
     };
 
-    events.pub('ui:click-on-url', onUrlClickedPayload);
+    this._reportClick(onUrlClickedPayload);
 
-    if (onUrlClickedPayload.isNewTab ||
-        onUrlClickedPayload.isPrivateMode ||
-        !onUrlClickedPayload.url ||
-        onUrlClickedPayload.isFromAutocompletedURL ||
-        isUrl(result.query)
+    if (onUrlClickedPayload.isNewTab
+        || onUrlClickedPayload.isPrivateMode
+        || !onUrlClickedPayload.url
+        || onUrlClickedPayload.isFromAutocompletedURL
+        || isUrl(result.query)
     ) {
       omniboxapi.urlbarAction.hide({});
     } else {
@@ -188,6 +193,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   }
 
   _focus() {
+    clearTimeout(this.closeTimeout);
     return omniboxapi.focus();
   }
 
@@ -237,6 +243,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   _removeFromHistory(...args) {
     return HistoryManager.removeFromHistory(...args);
   }
+
   _removeFromBookmarks(...args) {
     return HistoryManager.removeFromBookmarks(...args);
   }
@@ -250,13 +257,16 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     }
     return query;
   }
+
   _getAssistantStates() {
     return this._cliqz.search.action('getAssistantStates');
   }
+
   _getUrlbarAttributes() {
     const { padding, left, width, navbarColor } = this._urlbarDetails;
     return { padding, left, width, navbarColor };
   }
+
   _getMaxHeight() {
     // TODO
     return 1e4;
@@ -291,11 +301,11 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
           if (selectionStart !== selectionEnd) {
             newValue = value.slice(0, selectionStart) + value.slice(selectionEnd, value.length);
           } else if (ev.code === 'Delete') {
-            newValue = value.slice(0, selectionStart) +
-              value.slice(selectionStart + 1, value.length);
+            newValue = value.slice(0, selectionStart)
+              + value.slice(selectionStart + 1, value.length);
           } else if (ev.code === 'Backspace') {
-            newValue = value.slice(0, selectionStart - 1) +
-              value.slice(selectionStart, value.length);
+            newValue = value.slice(0, selectionStart - 1)
+              + value.slice(selectionStart, value.length);
           }
           this._setURLBarDetails({
             value: newValue,
@@ -321,9 +331,18 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
       this._shouldIgnoreNextBlur = false;
       return;
     }
-    this._endSession();
-    this._setHeight(0);
-    this.dropdownAction.clear();
+    this._scheduleClose(() => this._endSession());
+  }
+
+  _scheduleClose(callback) {
+    clearTimeout(this.closeTimeout);
+    this.closeTimeout = setTimeout(() => {
+      this._setHeight(0);
+      this.dropdownAction.clear();
+      if (callback) {
+        callback();
+      }
+    }, 50);
   }
 
   onDropmarker() {
@@ -354,5 +373,12 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     });
 
     this.dropdownAction = iframeWrapper.createProxy();
+  }
+
+  render(...args) {
+    if (this._urlbarDetails.focused) {
+      return super.render(...args);
+    }
+    return Promise.resolve();
   }
 }

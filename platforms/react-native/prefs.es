@@ -1,17 +1,18 @@
 import { AsyncStorage } from 'react-native';
 import events from '../core/events';
 import config from '../core/config';
+import console from './console';
 
-const PREFIX = "@cliqzprefs:"
+const PREFIX = '@cliqzprefs:';
 
 const prefs = config.default_prefs || {};
 
 // load prefs from storage
 export function init() {
-  console.log("load prefs from storage");
-  return AsyncStorage.getAllKeys().then(keys => {
-    const prefKeys = keys.filter((k) => k.startsWith(PREFIX));
-    return AsyncStorage.multiGet(prefKeys).then(result => {
+  console.log('load prefs from storage');
+  return AsyncStorage.getAllKeys().then((keys) => {
+    const prefKeys = keys.filter(k => k.startsWith(PREFIX));
+    return AsyncStorage.multiGet(prefKeys).then((result) => {
       if (!result) {
         return;
       }
@@ -26,9 +27,8 @@ export function init() {
 export function getPref(prefKey, defaultValue) {
   if (prefs && prefs[prefKey] !== undefined) {
     return prefs[prefKey];
-  } else {
-    return defaultValue
   }
+  return defaultValue;
 }
 
 export function setPref(prefKey, value) {

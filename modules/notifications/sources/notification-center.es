@@ -94,8 +94,8 @@ export default Evented(class {
     );
 
     const availableDomains = domains.filter(
-      domain => allAvailabledDomains.has(domain) &&
-        !allWatchedDomains.has(domain)
+      domain => allAvailabledDomains.has(domain)
+        && !allWatchedDomains.has(domain)
     );
 
     const notifications = this.storage.notifications(watchedDomains);
@@ -118,8 +118,7 @@ export default Evented(class {
     const provider = this.getProvider(domain);
     provider.activate();
     return this.updateDomain(domain).then(() =>
-      this.updateUnreadStatus()
-    );
+      this.updateUnreadStatus());
   }
 
   getProviderCount(domain) {

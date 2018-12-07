@@ -5,6 +5,7 @@
 @import 'url-bar.scss';
 @import 'url-bar-with-results.scss';
 @import 'news.scss';
+@import 'stats.scss';
 @import 'settings.scss';
 @import 'switch.scss';
 @import 'middle-notifications.scss';
@@ -13,7 +14,6 @@
 @import 'offer-middle-feedback.scss';
 @import 'modal.scss';
 @import 'overlay.scss';
-@import 'tooltip.scss';
 @import "mixins";
 
 @mixin container($config, $theme)
@@ -22,6 +22,7 @@
     $speed-dials-configs: map-merge($base-configs, map-get($config, speed-dials));
     $url-bar-configs: map-merge($base-configs, map-get($config, url-bar));
     $news-configs: map-get($config, news);
+    $stats-configs: map-merge($news-configs, map-get($config, stats));
     $middle-notifications-configs: map-get($config, middle-notifications);
     $top-notifications-configs: map-get($config, top-notifications);
     $offer-middle-notifications-configs: map-merge($base-configs, map-get($config, offer-middle-notifications));
@@ -41,147 +42,245 @@
         min-height: 100vh;
 
         .aside {
-        flex: 0 0 map-get($base-configs, aside-width);
-        & > a, & > button {
-            display: block;
-            margin: 20px auto;
-            width: 24px;
-            height: 24px;
-            color: transparent;
-            font-size: 0;
-            text-decoration: none;
-            border: 0;
-            cursor: pointer;
-            position: relative;
-            opacity:0.6;
-
-            &:after {
-                content:"";
-                position: absolute;
-                width: 100%;
-                height:100%;
-                opacity: 0.75;
-                &:hover {
-                    opacity:1
-                }
-            }
-            &#cliqz-home {
-                opacity: 1;
-                background: map-get($base-theme, cliqz-home-bg);
-            }
-
-            &#cliqz-history {
-                background: map-get($base-theme, cliqz-history-bg);
-            }
-
-            &#cliqz-worldcup {
-                &:after {
-                    background: map-get($base-theme, cliqz-worldcup-bg);
-                }
-            }
-
-            &#settings-btn {
-                background: map-get($base-theme, cliqz-settings-bg);
-            }
-
-            &#cliqz-modules-btn {
-                background: map-get($base-theme, cliqz-modules-bg);
-            }
-
-            &:hover {
-                opacity: 1;
-            }
-        }
-
-        /* tooltip style */
-        [id="blackfriday-group"]{
-            flex: 0 0 calc(map-get($base-configs, aside-width)+4);
-            position: relative;
-            justify-content: flex-start;
-            flex-wrap: nowrap;
-            overflow-x: visible;
-            flex-direction: row;
+            flex: 0 0 map-get($base-configs, aside-width);
 
             & > a, & > button {
-                background: map-get($base-theme, cliqz-blackfriday-bg);
                 display: block;
-                margin: 8px 23px 0px 22px;
-                background-size: 23px auto;
-                width: 29px;
-                height: 34px;
+                margin: 20px auto;
+                width: 24px;
+                height: 24px;
                 color: transparent;
                 font-size: 0;
                 text-decoration: none;
                 border: 0;
                 cursor: pointer;
+                position: relative;
                 opacity:0.6;
-                background-position: 5px center;
+
+                &:after {
+                    content:"";
+                    position: absolute;
+                    width: 100%;
+                    height:100%;
+                    opacity: 0.75;
+
+                    &:hover {
+                        opacity: 1;
+                    }
+                }
+
+                &#cliqz-home {
+                    opacity: 1;
+                    background: map-get($base-theme, cliqz-home-bg);
+                }
+
+                &#cliqz-history {
+                    background: map-get($base-theme, cliqz-history-bg);
+                }
+
+                &#cliqz-for-friends {
+                    background: map-get($base-theme, cliqz-for-friends-bg);
+                }
+
+                &#cliqz-worldcup {
+                    &:after {
+                        background: map-get($base-theme, cliqz-worldcup-bg);
+                    }
+                }
+
+                &#settings-btn {
+                    background: map-get($base-theme, cliqz-settings-bg);
+                }
+
+                &#cliqz-modules-btn {
+                    background: map-get($base-theme, cliqz-modules-bg);
+                }
 
                 &:hover {
                     opacity: 1;
                 }
+                /* tooltip style */
+                .tooltip {
+                    position: absolute;
+                    padding:10px 20px;
+                    left: 50px;
+                    top: -20px;
+                    background: #fff;
+                    opacity: 1;
+                    pointer-events: none;
+                    color:#000;
+                    font-size: 14px;
+                    min-width: 330px;
+                    box-shadow: 0 0 25px rgba(0,0,0,0.3);
+                    z-index: 300;
+                    transition: all linear .3s;
+
+                    &.close {
+                        left: 15px;
+                        opacity: 0
+                    }
+
+                    h1 {
+                        padding-bottom: 10px;
+                        font-weight: 400;
+                    }
+
+                    p {
+                        padding-bottom: 10px;
+                    }
+
+                    button {
+                        border: none;
+                        cursor: pointer;
+                        background: none;
+                        pointer-events: initial;
+                        font-size: 14px;
+                        &.explore {
+                            color:#fff;
+                            background: #00AFF0;
+                            padding: 5px 10px;
+                            border-radius: 3px;
+                            margin-right: 10px;
+                        }
+                    }
+
+                    a {
+                        pointer-events: initial;
+                    }
+
+                    &:hover {
+                        animation: none;
+                    }
+
+                    &-content {
+                        display: inline-block;
+                        width: calc(100% - 50px)
+                    }
+
+                    &-icon {
+                        vertical-align: top;
+                        display: inline-block;
+                        margin-right: 15px;
+                        padding-top: 10px;
+                        position: relative;
+                        width:32px;
+                        color: transparent;
+
+                        &:after {
+                            content: "";
+                            top:10px;
+                            position: absolute;
+                            left:-34px;
+                            width: 0;
+                            height: 0;
+                            border-top: 15px solid transparent;
+                            border-right: 20px solid rgba(255,255,255,01);
+                            border-bottom: 15px solid transparent;
+                        }
+                    }
+
+                    &-close {
+                        position: absolute;
+                        width: 25px;
+                        height: 25px;
+                        top: 8px;
+                        right: 8px;
+
+                        button {
+                            position: relative;
+                            display: block;
+                            text-indent: -9999px;
+                            cursor: pointer;
+                            width: 30px;
+                            height: 22px;
+                            margin: 0px;
+
+                            &:after, &:before {
+                                content:"";
+                                background: rgba(0,0,0,1);
+                                position: absolute;
+                                top: 0;
+                                right: 10px;
+                                height: 15px;
+                                width: 1px;
+                                transform: rotate(-45deg);
+                            }
+
+                            &:before {
+                                transform: rotate(45deg);
+                            }
+                        }
+                    }
+                }
             }
+
+            /* SPECIAL CASE: SIDE-BAR BUTTONS ON SMALL SCREENS */
+            @media only screen and (max-width: 507px) {
+                a, button {
+                    display: none;
+                }
+            }
+
+            @media only screen and (min-width: 508px) and (max-width: 648px) {
+                a, button {
+                    margin-left: 13px;
+                    margin-right: 13px;
+                }
+            }
+
+            @include settings(map-get($base-theme, cliqz-settings-bg));
         }
 
-        /* SPECIAL CASE: SIDE-BAR BUTTONS ON SMALL SCREENS */
-        @media only screen and (max-width: 507px) {
-            a, button, [id="blackfriday-group"], [id="blackfriday-group"] a {
-                display: none;
-            }
-        }
-
-        @media only screen and (min-width: 508px) and (max-width: 648px) {
-            a, button {
-                margin-left: 13px;
-                margin-right: 13px;
-            }
-
-            [id="blackfriday-group"] a {
-                margin-left: 10px;
-                margin-right: 10px;
-            }
-        }
-
-        @include settings(map-get($base-theme, cliqz-settings-bg));
-    }
-
-    #main-content {
-        display: flex;
-        flex: 1;
-        justify-content: center;
-        max-width: 100%;
-
-        .fixed-container {
-            max-width: map-get($base-configs, container-width);
+        #main-content {
             display: flex;
             flex: 1;
-            justify-content: space-evenly;
-            align-items: center;
-            flex-direction: column;
-            overflow-x: auto;
-            overflow-y: hidden;
+            justify-content: center;
+            max-width: 100%;
 
-            > section {
-                width: 100%;
-                text-align: center;
+            .fixed-container {
+                max-width: map-get($base-configs, container-width);
+                display: flex;
+                flex: 1;
+                justify-content: space-evenly;
+                align-items: center;
+                flex-direction: column;
+                overflow-x: auto;
+                overflow-y: hidden;
+
+                > section {
+                    width: 100%;
+                    text-align: center;
+                }
+
+                #section-middle {
+                    margin-top: map-get($base-configs, section-padding);
+                    margin-bottom: map-get($base-configs, section-padding);
+                }
+
+                @include speed-dials(map-merge($speed-dials-configs, $speed-dials-theme)...);
+                @include url-bar(map-merge($url-bar-configs, $url-bar-theme)...);
+                @include url-bar-with-results(map-merge($url-bar-configs, $url-bar-theme)...);
+                @include news(map-merge($news-configs, $news-theme)...);
+                @include stats(map-merge($stats-configs, $news-theme)...);
+                @include middle-notifications(map-merge($middle-notifications-configs, $middle-notifications-theme)...);
+                @include offer-middle-notifications(map-merge($offer-middle-notifications-configs, $offer-middle-notifications-theme)...);
+                @include offer-middle-feedback(map-merge($offer-middle-feedback-configs, $offer-middle-feedback-theme)...);
             }
-
-            #section-middle {
-                margin-top: map-get($base-configs, section-padding);
-                margin-bottom: map-get($base-configs, section-padding);
-            }
-
-            @include speed-dials(map-merge($speed-dials-configs, $speed-dials-theme)...);
-            @include url-bar(map-merge($url-bar-configs, $url-bar-theme)...);
-            @include url-bar-with-results(map-merge($url-bar-configs, $url-bar-theme)...);
-            @include news(map-merge($news-configs, $news-theme)...);
-            @include middle-notifications(map-merge($middle-notifications-configs, $middle-notifications-theme)...);
-            @include offer-middle-notifications(map-merge($offer-middle-notifications-configs, $offer-middle-notifications-theme)...);
-            @include offer-middle-feedback(map-merge($offer-middle-feedback-configs, $offer-middle-feedback-theme)...);
         }
-    }
 
-    @include top-notifications(map-merge($top-notifications-configs, $top-notifications-theme)...);
+        @include top-notifications(map-merge($top-notifications-configs, $top-notifications-theme)...);
+
+        &:before {
+            display: block;
+            position: fixed;
+            z-index: -1;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: map-get($base-theme, background-mask-color);
+            content: ' ';
+        }
     }
 }
 
@@ -200,7 +299,7 @@
         }
     }
 
-    @media only screen and (min-width: 650px)  {
+    @media only screen and (min-width: 650px) {
         $config: map-get($configs, small);
         @include container($config, $theme);
         $modal-configs: map-get($config, modal);
@@ -253,11 +352,10 @@ button::-moz-focus-inner {
 }
 
 body {
-    background: #f7f7f7 no-repeat center center fixed;
+    background: #fff no-repeat center center fixed;
     background-size: cover;
 
     .openOverlay {
-        #section-top,
         #section-most-visited,
         #section-favorites,
         #section-news {
@@ -285,66 +383,68 @@ body {
     &::before {
         display: block;
         position: fixed;
-        z-index: -1;
+        z-index: -2;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: #f7f7f7 no-repeat center center fixed;
+        background: #fff no-repeat center center fixed;
         background-size: cover;
         content: ' ';
     }
 
     &.theme-bg-light,
     &.theme-bg-light::before {
-        background-image: cdnUrl('extension/newtab/background/light.jpg');
+        background-color: #7a888f;
+        background-image: cdnUrl('extension/newtab/background/light2.jpg');
     }
 
     &.theme-bg-dark,
     &.theme-bg-dark::before {
-        background-color: #0E213F;
-        background-image: cdnUrl('extension/newtab/background/dark.jpg');
+        background-color: #11324b;
+        background-image: cdnUrl('extension/newtab/background/dark2.jpg');
     }
 
     &.theme-bg-alps,
     &.theme-bg-alps::before {
-        background-color: #00adf3;
-        background-image: cdnUrl('extension/newtab/background/alps.jpg');
+        background-color: #00a6ae;
+        background-image: cdnUrl('extension/newtab/background/alps2.jpg');
     }
 
     &.theme-bg-winter,
     &.theme-bg-winter::before {
-        background-image: cdnUrl('extension/newtab/background/winter.jpg');
+        background-color: #1185a8;
+        background-image: cdnUrl('extension/newtab/background/winter2.jpg');
     }
 
     &.theme-bg-matterhorn,
     &.theme-bg-matterhorn::before {
-        background-color: #00adf3;
-        background-image: cdnUrl('extension/newtab/background/matterhorn.jpg');
+        background-color: #138ab0;
+        background-image: cdnUrl('extension/newtab/background/matterhorn2.jpg');
     }
 
     &.theme-bg-spring,
     &.theme-bg-spring::before {
-        background-color: #00adf3;
-        background-image: cdnUrl('extension/newtab/background/spring.png');
+        background-color: #3383a5;
+        background-image: cdnUrl('extension/newtab/background/spring2.jpg');
     }
 
     &.theme-bg-worldcup,
     &.theme-bg-worldcup::before {
-        background-color: #00adf3;
-        background-image: cdnUrl('extension/newtab/background/worldcup.jpg');
+        background-color: #00080c;
+        background-image: cdnUrl('extension/newtab/background/worldcup2.jpg');
     }
 
     &.theme-bg-summer,
     &.theme-bg-summer::before {
-        background-color: #00adf3;
-        background-image: cdnUrl('extension/newtab/background/summer.jpg');
+        background-color: #007296;
+        background-image: cdnUrl('extension/newtab/background/summer2.jpg');
     }
 
     &.theme-bg-autumn,
     &.theme-bg-autumn::before {
-        background-color: #00adf3;
-        background-image: cdnUrl('extension/newtab/background/autumn.jpg');
+        background-color: #436b8d;
+        background-image: cdnUrl('extension/newtab/background/autumn2.jpg');
     }
 
     &.theme-bg-ghostery,
@@ -394,202 +494,19 @@ body {
     &.theme-bg-ghostery-ghosties,
     &.theme-bg-ghostery-ghosty,
     &.theme-bg-ghostery-dark,
-    &.theme-bg-dark,
-    &.theme-bg-alps,
+
     &.theme-bg-matterhorn,
+    &.theme-bg-alps,
+    &.theme-bg-light,
+    &.theme-bg-dark,
+    &.theme-bg-winter,
+    &.theme-bg-spring,
     &.theme-bg-worldcup,
+    &.theme-bg-summer,
     &.theme-bg-autumn {
         $dark-theme: map-get($themes, dark);
 
         @include responsive($dark-theme);
         @include undo-notifications(map-get($dark-theme, base)...);
-    }
-
-    &.theme-bg-winter {
-        #main-content {
-            .fixed-container {
-                .middle-notification-box {
-                    background-color: rgba(255, 255, 255, 0.7);
-                }
-
-                #section-news {
-                    .news-pagination {
-                        .dash span {
-                            background-color: rgba(255, 255, 255, 0.6);
-                        }
-
-                        .dash.active span {
-                            background-color: rgba(255, 255, 255, 0.9);
-                        }
-
-                        .dash.active:hover span,
-                        .dash:hover span {
-                            background-color: rgba(255, 255, 255, 1);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    &.theme-bg-ghostery-dark {
-        .dial-header {
-            color: rgba(255, 255, 255, 0.8);
-            text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .dials-row {
-            .dial {
-                .title {
-                    color: rgba(255, 255, 255, 0.9);
-                    text-shadow: 0px 0px 3px rgba(0, 0, 0, 0.5);
-                }
-
-                .logo {
-                    box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.25);
-                }
-
-                &:hover {
-                    .logo {
-                        box-shadow: 0px 3px 8px 0px rgba(0, 0, 0, 0.25);
-                    }
-                }
-            }
-        }
-    }
-
-    &.theme-bg-alps,
-    &.theme-bg-matterhorn,
-    &.theme-bg-worldcup,
-    &.theme-bg-autumn {
-        #main-content {
-            .fixed-container {
-
-                .dial-header {
-                    color: rgba(255, 255, 255, 0.8);
-                    text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.3);
-                }
-
-                .dials-row {
-                    .dial {
-                        .title {
-                            color: rgba(255, 255, 255, 0.9);
-                            text-shadow: 0px 0px 3px rgba(0, 0, 0, 0.6);
-                        }
-
-                        .logo {
-                            box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.25);
-                        }
-
-                        &:hover {
-                            .logo {
-                                box-shadow: 0px 3px 8px 0px rgba(0, 0, 0, 0.25);
-                            }
-                        }
-                    }
-                }
-
-                #section-middle {
-                    .middle-notification-box {
-                        background-color: rgba(0, 0, 0, 0.2);
-                    }
-                }
-
-                #section-news {
-                    .news-pagination {
-                        .dash span {
-                            background-color: rgba(255, 255, 255, 0.4);
-                        }
-
-                        .dash.active span {
-                            background-color: rgba(255, 255, 255, 0.8);
-                        }
-
-                        .dash.active:hover span {
-                            background-color: rgba(255, 255, 255, 1);
-                        }
-
-                    }
-                    .news-container .news-content .box {
-                        background-color: rgba(0, 0, 0, 0.5)
-                    }
-                }
-            }
-        }
-    }
-
-    &.theme-bg-worldcup,
-    &.theme-bg-dark,
-    &.theme-bg-alps {
-        #main-content {
-            .fixed-container {
-                #section-middle {
-                    .anzeige {
-                        color: rgba(255, 255, 255, 0.5);
-                    }
-                }
-            }
-        }
-    }
-
-    &.theme-bg-summer {
-        #main-content {
-            .fixed-container {
-                .middle-notification-box {
-                    background-color: rgba(255, 255, 255, 0.7);
-                }
-                .dial-header {
-                    color: rgba(0, 0, 0, 0.6);
-                }
-
-                .dials-row {
-                    .dial {
-                        .logo {
-                            box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.25);
-                        }
-
-                        &:hover {
-                            .logo {
-                                box-shadow: 0px 3px 8px 0px rgba(0, 0, 0, 0.25);
-                            }
-                        }
-                    }
-                }
-
-                #section-news {
-                    .news-pagination {
-                        .dash span {
-                            background-color: rgba(255, 255, 255, 0.4);
-                        }
-
-                        .dash.active span {
-                            background-color: rgba(255, 255, 255, 0.8);
-                        }
-
-                        .dash.active:hover span {
-                            background-color: rgba(255, 255, 255, 1);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    &.theme-bg-worldcup {
-        #main-content {
-            .fixed-container {
-                #section-news {
-                    .news-container {
-                        .news-content {
-                            .box {
-                                .read-more-button {
-                                    color: #00AEF0;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 }

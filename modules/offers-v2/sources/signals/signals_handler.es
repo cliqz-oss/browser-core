@@ -18,33 +18,47 @@ import {
   addOrCreate,
 } from './utils';
 import Behavior from '../behavior';
-import PatternsStat from '../patterns_stat';
 
 const STORAGE_DB_DOC_ID = 'offers-signals';
 
+/**
+ * [v3.0] we will not use bucket anymore so now we will have the following
+ *        data for each signal:
+ * <pre>
+ * {
+ *    sig_id: {
+ *      created_ts: (when the signal was created),
+ *      modified_ts: (when was last modified),
+ *      be_sync: true/false (defines if the signal was sent properly to the BE)
+ *      data: {
+ *        // the signal data
+ *      }
+ *    }
+ *  }
+ * </pre>
+ *
+ * additionally we will have types of signals that will be stored in different
+ * containers. Each type of signal should be identified with a unique ID as well.
+ *
+ * @class SignalHandler
+ */
 export default class SignalHandler {
-  //
-  // @brief [v3.0] we will not use bucket anymore so now we will have the following
-  //        data for each signal:
-  // {
-  //   sig_id: {
-  //     created_ts: (when the signal was created),
-  //     modified_ts: (when was last modified),
-  //     be_sync: true/false (defines if the signal was sent properly to the BE)
-  //     data: {
-  //       // the signal data
-  //     }
-  //   }
-  // }
-  //
-  // additionally we will have types of signals that will be stored in different
-  // containers. Each type of signal should be identified with a unique ID as well.
-  // @param sender is the interface to be use to sent messages, it will take:
-  //  sender.httpPost args: (url, success_callback, data, onerror_callback, timeout)
-  //
-  constructor(offersDB, sender) {
+  /**
+   * @constructor
+   * @method constructor
+   * @param {OffersDB} offersDB
+   * @param {object|null} sender
+   *   Interface to be use to sent messages, it will take:
+   *   <pre>
+   *   sender.httpPost args: (url, success_callback, data, onerror_callback, timeout)
+   *   </pre>
+   *   If not given, `httpdPost` is used.
+   * @param {PatternsStat} patternsStat
+   */
+  constructor(offersDB, sender, patternsStat) {
     this.db = new SimpleDB(offersDB, logger, 'doc_data');
     this.sender = sender || { httpPost };
+    this.patternsStat = patternsStat;
     this.sigMap = {}; // map from sig_type -> (sig_id -> sig_data)
     this.sigBuilder = {
       campaign: this._sigBuilderCampaign.bind(this),
@@ -57,13 +71,11 @@ export default class SignalHandler {
     this.dbDirty = false;
     this.signalsQueue = [];
     this.behavior = new Behavior();
-    this.patternsStat = new PatternsStat();
   }
 
   async init() {
     await this._loadPersistenceData();
     await this.behavior.init();
-    await this.patternsStat.init();
     // set the interval timer method to send the signals
     this.sendIntervalTimer = null;
     this._startSendSignalsLoop(OffersConfigs.SIGNALS_OFFERS_FREQ_SECS);
@@ -88,8 +100,9 @@ export default class SignalHandler {
   }
 
   _increaseNumRetriesRecord(signalType, signalKey) {
-    this.signalSendingRetries[[signalType, signalKey]] =
-      (this.signalSendingRetries[[signalType, signalKey]] || 0) + 1;
+    this.signalSendingRetries[[signalType, signalKey]] = (
+      this.signalSendingRetries[[signalType, signalKey]] || 0
+    ) + 1;
   }
 
   // destructor
@@ -178,8 +191,10 @@ export default class SignalHandler {
     const shouldSend = !sid.startsWith('filtered_by_') || sid === 'filtered_by_filterByRealEstates';
     this._markSignalAsModified(sigType, cid, shouldSend);
 
-    logger.info(`setCampaignSignal${shouldSend ? '' : ' (silent)'}:` +
-      `new signal added: ${cid} - ${oid} - ${origID} - ${sid} - +${count}`);
+    logger.info(`setCampaignSignal${shouldSend ? '' : ' (silent)'}:`
+      + `new signal added: ${cid} - ${oid} - ${origID} - ${sid} - +${count}`);
+
+    this.patternsStat.reinterpretCampaignSignalAsync(cid, oid, sid);
 
     return true;
   }
@@ -404,8 +419,8 @@ export default class SignalHandler {
         return;
       }
       this.sigsToSend[signalType].forEach((sigID) => {
-        if ((sigIDToSend && sigIDToSend !== sigID) ||
-          this._isMaximumNumRetriesReached(signalType, sigID)) {
+        if ((sigIDToSend && sigIDToSend !== sigID)
+          || this._isMaximumNumRetriesReached(signalType, sigID)) {
           return;
         }
         const sigInfo = this._getSignalInfo(signalType, sigID);
@@ -420,14 +435,34 @@ export default class SignalHandler {
       });
     });
 
-    // TODO: Store all the signals in one place
     let anotherBatch = await this.behavior.getSignals();
     anotherBatch = anotherBatch.map(payload =>
       ({ payload: JSON.stringify(constructSignal('behavior', payload.type, payload)) }));
-    let patternsStatBatch = await this.patternsStat.moveAll('views');
-    patternsStatBatch = patternsStatBatch.map(payload =>
-      ({ payload: JSON.stringify(constructSignal('patterns-stats', payload.type, payload)) }));
-    await this.sendBatch(batch.concat(anotherBatch).concat(patternsStatBatch));
+
+    const patternPromises = Array.from(
+      this.patternsStat.getPatternSignals(),
+      signalName => this.patternsStat.moveAll(signalName)
+    );
+    const patternBatches = await Promise.all(patternPromises);
+    const patternBatch = patternBatches
+      .filter(payload => payload.length !== 0)
+      .map(payload =>
+        ({ payload: JSON.stringify(constructSignal('patterns-stats', payload.type, payload)) }));
+
+    // Save signals before sending them
+    //
+    // It is possible that `destroy` will not be called or that browser
+    // components including persistence are already destroyed before
+    // calling the destructor. Then the signals would not be stored,
+    // and on the next browser start, the old signals would be loaded.
+    // The aggregated statistics and sequence would be reset to old values,
+    // and the backend would get duplicate signals with wrong data.
+    //
+    // To prevent the confusion, synchronize the stored and sent signals.
+    await this._savePersistenceData();
+
+    // Now send the signals
+    await this.sendBatch(batch.concat(anotherBatch).concat(patternBatch));
     await this.behavior.clearSignals();
     return this.behavior.clearOldBehavior();
   }
@@ -482,12 +517,11 @@ export default class SignalHandler {
       this.db.upsert(STORAGE_DB_DOC_ID,
         {
           sig_map: this.sigMap
-        }
-      ).then(() => {
-        this.dbDirty = false;
-        resolve(true);
-      })
-    );
+        })
+        .then(() => {
+          this.dbDirty = false;
+          resolve(true);
+        }));
   }
 
   // load persistence data

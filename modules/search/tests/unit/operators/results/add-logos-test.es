@@ -49,5 +49,4 @@ export default describeModule('search/operators/results/add-logos',
         chai.expect(firstLink.meta.extraLogos).to.haveOwnProperty(fakeExtraWebsite);
       });
     });
-  },
-);
+  });

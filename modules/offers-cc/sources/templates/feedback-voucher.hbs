@@ -4,13 +4,7 @@
              <span data-i18n="offers_offer_removed"></span>
              <button class="undo" data-i18n="offers_hub_feedback_undo_delete"></button>
         </div>
-        <div class="logo-wrapper">
-            <button class="close close-offer"
-                    data-menu-type="delete"
-                    data-i18n="offers_hub_remove"
-                    data-telemetry-id="remove">
-            </button>
-        </div>
+        <div class="logo-wrapper"></div>
     </header>
     <p data-i18n="offers_hub_feedback_title" data-optional="{{local 'offers_hub_feedback_optional'}}"></p>
     <ul>
@@ -33,6 +27,12 @@
         </li>
     </ul>
     <button class="send_feedback" data-i18n="feedback_submit_feedback"></button>
+    <button
+            class="skip"
+            data-i18n="feedback_skip"
+            data-menu-type="delete"
+            data-telemetry-id="remove">
+    </button>
     {{!-- should be removed --}}
     {{!-- <button id="close-feedback" data-i18n="offers_hub_feedback_close"></button> --}}
 </div>

@@ -56,38 +56,6 @@ export function respondWithSuggestions(options) {
 }
 
 
-// patches getBackendResults
-export function respondWith(res, ms = 0) {
-  function getQuery(url) {
-    const a = document.createElement('a');
-    a.setAttribute('href', url);
-
-    const params = new URLSearchParams(a.search);
-    const queries = params.getAll('q');
-    return queries[queries.length - 1];
-  }
-  const response = {
-    results: res.results || [],
-    offers: res.offers || [],
-    suggestions: res.suggestions,
-  };
-
-  CliqzUtils.fetchFactory = function () {
-    return url => new Promise(function (resolve) {
-      setTimeout(resolve, ms, {
-        json() {
-          return Promise.resolve(
-            Object.assign(response, {
-              q: getQuery(url),
-            })
-          );
-        },
-      });
-    });
-  };
-}
-
-
 // patches getSnippet which calls RichHeader directly
 export function respondWithSnippet(res) {
   CliqzUtils.fetchFactory = function () {
@@ -114,8 +82,8 @@ export function withMultipleHistory(resultsArray) {
                 results: current.res,
                 ready: index === resultsArray.length - 1,
               });
-            })
-          ), Promise.resolve()
+            })),
+      Promise.resolve()
     );
   };
 }
@@ -1344,8 +1312,8 @@ export function checkMap({ $result, results, isDistanceShown = true, scType = 'c
   const mapPhoneSelector = '.local-phone';
   const extra = results[0].snippet.extra || {};
 
-  const distance = (extra.data && extra.data.cinema && extra.data.cinema.distance) ||
-    CliqzUtils.distance(extra.lat, extra.lon, CliqzUtils.USER_LAT, CliqzUtils.USER_LNG);
+  const distance = (extra.data && extra.data.cinema && extra.data.cinema.distance)
+    || CliqzUtils.distance(extra.lat, extra.lon, CliqzUtils.USER_LAT, CliqzUtils.USER_LNG);
 
   context('renders map area', function () {
     it('successfully', function () {

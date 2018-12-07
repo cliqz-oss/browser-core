@@ -2,7 +2,6 @@ import React from 'react';
 import cliqz from '../../cliqz';
 import t from '../../i18n';
 import { urlBarBlurSignal, urlBarFocusSignal } from '../../services/telemetry/urlbar';
-import config from '../../../config';
 
 const SPECIAL_KEYS = [8, 9, 13, 16, 17, 18, 19, 20, 27, 33, 34, 35, 36, 37, 38, 39, 40, 91, 224];
 const styles = {
@@ -13,7 +12,6 @@ class Urlbar extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      value: '',
       visible: true
     };
 
@@ -58,9 +56,6 @@ class Urlbar extends React.Component {
   handleKeyDown(ev) {
     const value = ev.target.value;
     let input = SPECIAL_KEYS.indexOf(ev.which) > -1 ? '' : ev.key;
-    this.setState({
-      value,
-    });
 
     if (ev.keyCode === 13) {
       input = value;
@@ -95,9 +90,8 @@ class Urlbar extends React.Component {
   }
 
   get classes() {
-    return `search ${
-      config.features.ghosteryTab.enabled ? 'ghostery-search' : 'cliqz-search'
-    }`;
+    const { product } = this.props;
+    return `search ${product.toLowerCase()}-search`;
   }
 
   render() {

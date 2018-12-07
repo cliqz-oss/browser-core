@@ -49,8 +49,7 @@ export default function () {
           ({
             config,
             value: prefs.get(`config_${config}`)
-          })
-        );
+          }));
 
         // clean these prefs
         expectedConfigs.forEach(function (config) {

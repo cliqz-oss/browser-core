@@ -9,7 +9,8 @@ import {
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from './helpers';
+  withHistory,
+} from './helpers';
 import testArray from '../../core/integration/fixtures/unitConverter';
 
 export default function () {

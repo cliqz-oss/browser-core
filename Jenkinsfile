@@ -37,6 +37,11 @@ def matrix = [
         'config': 'configs/ci/browser.js',
         'testParams': '-l firefox-web-ext --firefox ~/firefox62/firefox/firefox',
     ],
+    'firefox 62 offers': [
+        'gpu': true,
+        'config': 'configs/ci/offers.js',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox62/firefox/firefox',
+    ],
     'firefox beta': [
         'gpu': true,
         'config': 'configs/ci/browser.js',
@@ -46,6 +51,7 @@ def matrix = [
         'gpu': true,
         'config': 'configs/ci/browser.js',
         'testParams': '-l firefox-web-ext --firefox ~/firefoxNightly/firefox/firefox',
+        'ignoreFailure': true
     ],
     /*
     'firefox stresstest (52)': [
@@ -197,6 +203,7 @@ def test(Map m) {
     def stashName = "${env.JOB_BASE_NAME}_${env.BUILD_NUMBER}_${config.bytes.encodeBase64().toString()}"
     def getCodeDockerImage = m.getCodeDockerImage
     def getTriggeringCommitHash = m.getTriggeringCommitHash
+    def ignoreFailure = m.ignoreFailure
 
     def nodeLabels = gpu ? 'us-east-1 && docker && gpu' : 'us-east-1 && docker && !gpu'
 
@@ -235,12 +242,12 @@ def test(Map m) {
                             "VNC ${HOST}:${VNC_PORT}"
                         )
 
-                        timeout(25) {
-                            stage('tests: run') {
-                                def report
-                                def hasErrors
+                        stage('tests: run') {
+                            def report
+                            def hasErrors
 
-                                try {
+                            try {
+                                timeout(15) {
                                     def timeBefore = new Date()
 
                                     sh """#!/bin/bash
@@ -270,7 +277,14 @@ def test(Map m) {
                                       r.errors = '0'
                                     }
                                     report = "tests: ${r.tests}, f/e: ${r.failures}/${r.errors}, time: ${duration}"
-                                    hasErrors = (r.failures != '0') || (r.errors != '0')
+
+                                    // Set status as green for test suites we want to ignore
+                                    // in the global job status (e.g. Nightly)
+                                    if (ignoreFailure == true) {
+                                        hasErrors = false;
+                                    } else {
+                                        hasErrors = (r.failures != '0') || (r.errors != '0')
+                                    }
 
                                     if (r.tests == '0') {
                                         throw new Exception('No tests have been run!')
@@ -281,19 +295,24 @@ def test(Map m) {
                                         healthScaleFactor: 0.0,
                                         testResults: 'report.xml'
                                     )
-                                } catch (e) {
-                                    report = e
+                                }  // end timeout
+
+                            } catch (e) {
+                                report = e
+                                if (ignoreFailure == true) {
+                                    hasErrors = false;
+                                } else {
                                     hasErrors = true
                                 }
+                            }
 
-                                setGithubCommitStatus(
-                                    triggeringCommitHash,
-                                    context,
-                                    hasErrors ? 'failure' : 'success',
-                                    report
-                                )
-                            } // end stage
-                        } // end timeout
+                            setGithubCommitStatus(
+                                triggeringCommitHash,
+                                context,
+                                hasErrors ? 'failure' : 'success',
+                                report
+                            )
+                        } // end stage
                     } // end docker
                 }
             }
@@ -318,7 +337,8 @@ def stepsForParallelTests = helpers.entries(matrix).collectEntries {
         testParams: it[1]['testParams'],
         gpu: it[1]['gpu'],
         getCodeDockerImage: { codeDockerImage },
-        getTriggeringCommitHash: { triggeringCommitHash }
+        getTriggeringCommitHash: { triggeringCommitHash },
+        ignoreFailure: it[1]['ignoreFailure']
     )]
 }
 

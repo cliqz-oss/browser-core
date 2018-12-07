@@ -79,11 +79,6 @@ const subprojects = {
     include: ['dexie.min.js'],
     dest: 'vendor'
   },
-  pouchdb: {
-    src: 'node_modules/pouchdb/dist',
-    include: ['pouchdb.js'],
-    dest: 'vendor'
-  },
   jquery: {
     src: 'node_modules/jquery/dist',
     include: ['jquery.min.js'],
@@ -126,7 +121,7 @@ const subprojects = {
   },
   tldts: {
     src: 'node_modules/tldts/dist',
-    include: ['tldts.min.js'],
+    include: ['tldts.js'],
     dest: 'vendor',
   },
   sinon: {

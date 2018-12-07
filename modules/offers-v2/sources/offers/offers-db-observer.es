@@ -2,6 +2,7 @@
  * This module will provide a helper observer class to detect changes on offers.
  *  - offers expiration
  */
+import { setTimeout } from '../../core/timers';
 import { timestampMS } from '../utils';
 import logger from '../common/offers_v2_logger';
 import OffersConfigs from '../offers_configs';
@@ -23,15 +24,31 @@ const getAllValidOffers = offersDB => offersDB.getOffers();
  *          <= 0 if already expired
  */
 const calcExpirationTimeMs = (offerElement) => {
+  //
+  // Offer live time, as given by backend or default
+  //
   const expFromConfig = OffersConfigs.OFFERS_STORAGE_DEFAULT_TTS_SECS * 1000;
-  const expirationMs = offerElement ? offerElement.offer.expirationMs : expFromConfig;
-  const validTill = Math.min(
+  const expirationMs = offerElement.offer.expirationMs || expFromConfig;
+  const offerTill = Math.min(
     offerElement.created + expirationMs,
-    offerElement.last_update + expFromConfig);
+    offerElement.last_update + expFromConfig
+  );
+  //
+  // Campaign live time if given by backend
+  //
+  const campaignTillSec = ['offer', 'ui_info', 'template_data', 'validity'].reduce(
+    (soFar, field) => (soFar ? soFar[field] : null),
+    offerElement
+  );
+  const campaignTill = campaignTillSec * 1000;
+  //
+  // Combine both
+  //
+  const validTill = campaignTill ? Math.min(campaignTill, offerTill) : offerTill;
   return validTill - timestampMS();
 };
 
-const isOfferExpired = offerElement => calcExpirationTimeMs(offerElement) <= 0;
+export const isOfferExpired = offerElement => calcExpirationTimeMs(offerElement) <= 0;
 
 const getExpiredOffers = offerList => offerList.filter(oe => isOfferExpired(oe));
 const getNonExpiredOffers = offerList => offerList.filter(oe => !isOfferExpired(oe));
@@ -78,28 +95,29 @@ export default class OfferDBObserver {
   }
 
   unload() {
-    if (this._timerId) {
-      clearTimeout(this._timerId);
-      this._timerId = null;
-    }
+    this._resetTimer();
     this.offersDB.unregisterCallback(this._offersDBCallback);
   }
 
-  observeExpirations() {
+  _resetTimer() {
     if (!this._timerId) {
-      this._observeExpirations();
+      clearTimeout(this._timerId);
+      this._timerId = null;
     }
   }
 
+  observeExpirations() {
+    this._resetTimer();
+    this._observeExpirations();
+  }
+
   _observeExpirations() {
+    removeExpiredOffers(this.offersDB);
     const nextExpirationTimeMs = calculateNextExpirationTimeMs(this.offersDB);
-    if (!nextExpirationTimeMs || nextExpirationTimeMs < 0) {
-      if (this._timerId) { clearTimeout(this._timerId); }
-      this._timerId = null;
+    if (!nextExpirationTimeMs || nextExpirationTimeMs <= 0) {
       return;
     }
     this._timerId = setTimeout(() => {
-      removeExpiredOffers(this.offersDB);
       this._observeExpirations();
     }, Math.min(Math.max(nextExpirationTimeMs + 10, MIN_TIMEOUT_DELAY), MAX_TIMEOUT_DELAY));
   }

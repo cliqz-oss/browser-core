@@ -13,4 +13,4 @@ If you don't fall into any of those use cases you are free to choose whatever yo
 
 Note that currently *chrome.storage* in Firefox is crippled and should not be used too extensively.
 
-Any wrapper or top of them is fine to use. So `Dexie` or `Pouchdb` are welcome.
+Any wrapper or top of them is fine to use. So `Dexie` is welcome.

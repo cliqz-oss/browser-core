@@ -1,6 +1,7 @@
 /* eslint no-param-reassign: 'off' */
 /* eslint no-restricted-syntax: 'off' */
-import { registerContentScript,
+import {
+  registerContentScript,
   throttle,
   getWindowTreeInformation,
   getWindowId,
@@ -162,7 +163,8 @@ function greenAdsListenerOnAdDivs(args) {
     documentUrl,
     window,
     send,
-    windowTreeInformation } = args;
+    windowTreeInformation
+  } = args;
 
   // Attach listener to all native ads
   forEachAdPlacement(window, (element) => {
@@ -198,7 +200,8 @@ function greenAdsCollectIframesRec(args) {
     window,
     send,
     windowTreeInformation,
-    documentUrl } = args;
+    documentUrl
+  } = args;
 
   const parents = getWindowParents(window);
 
@@ -717,7 +720,8 @@ function greenAdsOnDOMLoaded(args) {
     windowTreeInformation,
     mode,
     inventory,
-    documentUrl } = args;
+    documentUrl
+  } = args;
 
   const {
     tabId,
@@ -750,7 +754,8 @@ function greenAdsOnDOMLoaded(args) {
         windowTreeInformation,
         documentUrl,
         inventory,
-        throttle })
+        throttle
+      })
         .then(() => unhideDocument(window))
         .then(() => {
           // In green mode, full load is after ads have been loaded.
@@ -782,7 +787,8 @@ function greenAdsOnFullLoad(args) {
     send,
     windowId,
     windowTreeInformation,
-    documentUrl } = args;
+    documentUrl
+  } = args;
 
   const {
     tabId,

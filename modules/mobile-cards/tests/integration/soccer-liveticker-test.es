@@ -186,7 +186,8 @@ export default function () {
                 expect($game.querySelector('[aria-label="liveticker-game-score-date"]')).to.exist;
                 expect($game.querySelector('[aria-label="liveticker-game-score-date"]'))
                   .to.have.text(
-                    `${results[0].snippet.extra.matches[i].matches[j].scored} (${results[0].snippet.extra.matches[i].matches[j].gameTime})`);
+                    `${results[0].snippet.extra.matches[i].matches[j].scored} (${results[0].snippet.extra.matches[i].matches[j].gameTime})`
+                  );
               });
             });
           });

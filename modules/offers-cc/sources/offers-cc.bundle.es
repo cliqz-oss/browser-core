@@ -6,7 +6,10 @@ import templates from './templates';
 Handlebars.partials = templates;
 
 function sendMessageToWindow(message) {
-  postMessage(JSON.stringify({
+  const searchParams = new URLSearchParams(window.location.search);
+  const isCrossOrigin = searchParams.get('cross-origin') !== null;
+  const target = isCrossOrigin ? window.parent : window;
+  target.postMessage(JSON.stringify({
     target: 'cliqz-offers-cc',
     origin: 'iframe',
     message
@@ -95,12 +98,21 @@ function draw(data) {
   localizeDocument();
   resize();
 }
+// Send Signal that close button ( hide reward box) is pressed
+$(document).on('click', '.web-ext .hide-reward-box', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  sendMessageToWindow({
+    action: 'hideBanner',
+    data: {}
+  });
+});
 
 // Check if feedback field's have value to enable send Btn
 function enableSendFeedbackBtn() {
-  if ($('#feedback_option1').is(':checked') ||
-      $('#feedback_option2').is(':checked') ||
-      $('#feedback_option3').is(':checked')
+  if ($('#feedback_option1').is(':checked')
+      || $('#feedback_option2').is(':checked')
+      || $('#feedback_option3').is(':checked')
   ) {
     $('.send_feedback').addClass('active');
     $('#feedback_option4_textarea').val('');
@@ -128,11 +140,10 @@ $(document).on('click', '.feedback-box .close', () => {
   }
 });
 
-// Handle clicking on menu item - Feedback
-$(document).on('click', '.setting-menu .feedback', function itemClick() {
+function handleFeedbackLinkClick(el) {
   $('.overlay').addClass('show');
   $('.setting-menu').removeClass('show');
-  const currentVoucher = $(this).closest('.page-container');
+  const currentVoucher = el.closest('.page-container');
   currentVoucher.children('.overlay').html(templates['give-feedback']({}));
   localizeDocument();
 
@@ -140,6 +151,15 @@ $(document).on('click', '.setting-menu .feedback', function itemClick() {
     $('.cqz-no-vouchers-msg').height('300px');
     resize();
   }
+}
+
+// Handle clicking on menu item - Feedback
+$(document).on('click', '.setting-menu .feedback', function itemClick() {
+  handleFeedbackLinkClick($(this));
+});
+
+$(document).on('click', 'footer .feedback', function itemClick() {
+  handleFeedbackLinkClick($(this));
 });
 
 // Handle Reward box Menu Open
@@ -176,6 +196,7 @@ $(document).on('focus', '#feedback_option4_textarea', function itemClick() {
     $('.send_feedback').removeClass('active');
   }
 });
+
 
 // When user click on a collapsed offer to expand it
 $(document).on('click', 'ul#cqz-vouchers-holder > li:not(.active)', function itemClick() {
@@ -388,9 +409,9 @@ $(document).on('click', '.cta-element', function itemClick() {
 
 // Enable/disable text area if user select the 4th option
 $(document).on('click', '#voucher-feedback input:radio', function itemClick() {
-  if ($(this).attr('id') === 'feedback_option1' ||
-      $(this).attr('id') === 'feedback_option2' ||
-      $(this).attr('id') === 'feedback_option3'
+  if ($(this).attr('id') === 'feedback_option1'
+      || $(this).attr('id') === 'feedback_option2'
+      || $(this).attr('id') === 'feedback_option3'
   ) {
     $('#feedback_option4_textarea').attr('disabled', 'disabled');
     enableSendFeedbackBtn();
@@ -437,7 +458,7 @@ function closeFeedbackScreen(elem) {
   if (!$('ul#cqz-vouchers-holder > li').length) {
     sendMessageToWindow({
       action: 'getEmptyFrameAndData',
-      data: {}
+      data: { noVouchersLeft: true }
     });
   }
   setTimeout(() => {
@@ -449,10 +470,9 @@ function closeFeedbackScreen(elem) {
 $(document).on('click', '.feedback-thankyou .close', function itemClick() {
   closeFeedbackScreen($(this));
 });
-/* eslint-enable */
 
-// When user send feedback for a specified offer
-$(document).on('click', '.feedback-box .close-offer', function itemClick() {
+// When user press skip feedback
+$(document).on('click', '.feedback .skip', function itemClick() {
   sendFeedback();
   sendMessageToWindow({
     action: 'sendOfferActionSignal',
@@ -462,7 +482,10 @@ $(document).on('click', '.feedback-box .close-offer', function itemClick() {
       offer_id: getOfferId($(this)),
     }
   });
+
   closeFeedbackScreen($(this));
+  const vouchers = $('#cqz-vouchers-holder > li');
+  if (vouchers.length) { $(vouchers[0]).addClass('active'); }
 });
 
 // Handle Send Feedback
@@ -471,7 +494,6 @@ $(document).on('click', '.send_feedback', function itemClick() {
 
   $('.feedback').removeClass('show');
   const currentVoucher = $(this).closest('.voucher-wrapper');
-
   sendFeedback();
   sendMessageToWindow({
     action: 'sendOfferActionSignal',
@@ -491,7 +513,6 @@ $(document).on('click', '.send_feedback', function itemClick() {
 // When user click on why i see this
 $(document).on('click', '.why', () => {
   const detailsClass = $('.details');
-  detailsClass.children('.why-offers').html(templates['why-offers']({}));
   detailsClass.children('.why-offers').addClass('show');
   detailsClass.children('.voucher-container').addClass('hide');
 
@@ -520,9 +541,11 @@ $(document).on('click', '.why-offers .close', () => {
 });
 
 // Handle UNDO remove offer
-$(document).on('click', '.undo', () => {
+$(document).on('click', '.undo', function onUndoClick() {
   $('.feedback').removeClass('show');
   $('.voucher-container').removeClass('hide');
+  const currentVoucher = $(this).closest('.voucher-wrapper');
+  currentVoucher.removeClass('deleted');
   resize();
 });
 
@@ -555,6 +578,8 @@ $(document).on('click', '.tooltip', () => {
 // Close offer menu when user clicks anywhere outside
 $(document).on('click', '#cliqz-offers-cc', () => {
   $('.logo-wrapper.menu-opened').removeClass('menu-opened');
+  $('.setting-menu.show').removeClass('show');
+  $('.setting').removeClass('opacity-up');
 });
 
 function messageHandler(message) {
@@ -570,8 +595,8 @@ function messageHandler(message) {
 
 window.addEventListener('message', (ev) => {
   const data = JSON.parse(ev.data);
-  if (data.target === 'cliqz-offers-cc' &&
-     data.origin === 'window') {
+  if (data.target === 'cliqz-offers-cc'
+     && data.origin === 'window') {
     messageHandler(data.message);
   }
 });

@@ -1,6 +1,7 @@
 /* global chai */
 /* global describeModule */
 
+const adblocker = require('@cliqz/adblocker');
 const tldts = require('tldts');
 const mockDexie = require('../../core/unit/utils/dexie');
 
@@ -22,6 +23,9 @@ export default describeModule('history-analyzer/indexed-stream',
     ...mockDexie,
     'core/assert': {
       default() {},
+    },
+    'platform/lib/adblocker': {
+      default: adblocker,
     },
     'history-analyzer/logger': {
       default: {
@@ -55,8 +59,7 @@ export default describeModule('history-analyzer/indexed-stream',
           { id: 1, ts: 1, tokens: new Uint32Array([1]) },
           { id: 2, ts: 2, tokens: new Uint32Array([2]) },
           { id: 3, ts: 3, tokens: new Uint32Array([1, 2]) },
-        ]))
-    );
+        ])));
 
     describe('#query', () => {
       const h1 = (0 * HOUR) + 1;
@@ -73,8 +76,7 @@ export default describeModule('history-analyzer/indexed-stream',
       ]));
 
       it('no tokens and not timespan', async () =>
-        expect(await asyncGeneratorToArray(stream.query())).to.be.eql([])
-      );
+        expect(await asyncGeneratorToArray(stream.query())).to.be.eql([]));
 
       it('matches with one token', async () =>
         expect(await asyncGeneratorToArray(stream.query({
@@ -83,8 +85,7 @@ export default describeModule('history-analyzer/indexed-stream',
           { id: 1, ts: h1, tokens: new Uint32Array([1]) },
           { id: 3, ts: h2, tokens: new Uint32Array([1, 2]) },
           { id: 6, ts: h3 + 1, tokens: new Uint32Array([1, 3]) },
-        ])
-      );
+        ]));
 
       it('matches with two tokens', async () =>
         expect(await asyncGeneratorToArray(stream.query({
@@ -95,8 +96,7 @@ export default describeModule('history-analyzer/indexed-stream',
           { id: 4, ts: h2 + 1, tokens: new Uint32Array([3]) },
           { id: 5, ts: h3, tokens: new Uint32Array([2, 3]) },
           { id: 6, ts: h3 + 1, tokens: new Uint32Array([1, 3]) },
-        ])
-      );
+        ]));
 
       it('matches with two tokens and timespan (after)', async () =>
         expect(await asyncGeneratorToArray(stream.query({
@@ -105,8 +105,7 @@ export default describeModule('history-analyzer/indexed-stream',
         }))).to.be.eql([
           { id: 5, ts: h3, tokens: new Uint32Array([2, 3]) },
           { id: 6, ts: h3 + 1, tokens: new Uint32Array([1, 3]) },
-        ])
-      );
+        ]));
 
       it('matches with two tokens and timespan (before)', async () =>
         expect(await asyncGeneratorToArray(stream.query({
@@ -114,8 +113,7 @@ export default describeModule('history-analyzer/indexed-stream',
           tokens: new Uint32Array([2, 3]),
         }))).to.be.eql([
           { id: 2, ts: h1 + 1, tokens: new Uint32Array([2]) },
-        ])
-      );
+        ]));
 
       it('matches with two tokens and timespan (after + before)', async () =>
         expect(await asyncGeneratorToArray(stream.query({
@@ -125,8 +123,6 @@ export default describeModule('history-analyzer/indexed-stream',
         }))).to.be.eql([
           { id: 3, ts: h2, tokens: new Uint32Array([1, 2]) },
           { id: 4, ts: h2 + 1, tokens: new Uint32Array([3]) },
-        ])
-      );
+        ]));
     });
-  }
-);
+  });

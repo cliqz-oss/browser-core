@@ -31,8 +31,7 @@ export default function () {
           .then(
             () => { throw new Error('promise unexpectedly fulfilled'); },
             () => {},
-          )
-      );
+          ));
     });
 
     context('post request', () => {

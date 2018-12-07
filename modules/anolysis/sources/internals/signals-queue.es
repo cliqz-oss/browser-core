@@ -33,10 +33,10 @@ export default class SignalsQueue {
     this.failureTimeout = 1000 * 60;
   }
 
-  async init(db) {
+  init(db) {
     this.db = db;
     this.initialized = true;
-    await this.startListening();
+    this.startListening();
   }
 
   unload() {

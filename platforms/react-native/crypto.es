@@ -57,7 +57,7 @@ subtle.generateKey = ({
   length = null,
   modulusLength = null,
   publicExponent = null
-}/* , extractable , usages*/) => {
+}/* , extractable , usages */) => {
   if (Crypto && Crypto.generateRSAKey && (name === 'RSA-OAEP' || name === 'RSASSA-PKCS1-v1_5')) {
     return Crypto.generateRSAKey()
       .then((key) => {

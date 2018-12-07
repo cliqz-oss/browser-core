@@ -18,6 +18,7 @@ describe('Freshtab notification UI', function () {
     subject.respondsWithEmptySpeedDials();
     subject.respondsWithEmptyNews();
     subject.respondsWithEmptyOffers();
+    subject.respondsWithEmptyStats();
 
     newsConfig = clone(defaultConfig);
     newsConfig.response.componentsState.news.visible = true;

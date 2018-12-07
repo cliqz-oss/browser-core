@@ -6,7 +6,7 @@ export default function maybe(object, methodName, ...args) {
     if (returnedValue) {
       resolve(returnedValue);
     } else {
-      reject(`${methodName} returned falsy value`);
+      reject(new Error(`${methodName} returned falsy value`));
     }
   });
 }

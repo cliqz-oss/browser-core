@@ -11,14 +11,16 @@ import getDexie from '../../../platform/lib/dexie';
 
 const stagingUrlOriginal = app.config.settings.ANOLYSIS_STAGING_BACKEND_URL;
 
-async function mockAnolysisBackend({
-  ping = 'healthy',
-  newInstall = '{}',
-  reappearingUser = '{}',
-  activeUser = '{}',
-  collect = '{}',
-  updateGid = '{}',
-} = {}, stagingUrl = testServer.getBaseUrl(),
+async function mockAnolysisBackend(
+  {
+    ping = 'healthy',
+    newInstall = '{}',
+    reappearingUser = '{}',
+    activeUser = '{}',
+    collect = '{}',
+    updateGid = '{}',
+  } = {},
+  stagingUrl = testServer.getBaseUrl(),
 ) {
   app.config.settings.ANOLYSIS_STAGING_BACKEND_URL = stagingUrl;
   await Promise.all([
@@ -119,8 +121,8 @@ export default function () {
           if (hasHits) {
             const collectHits = (await testServer.getHits()).get('/collect');
             return (
-              collectHits.some(({ body }) => body.type === 'metrics.anolysis.health.exception') &&
-              collectHits.some(({ body }) => body.type === 'metrics.anolysis.health.storage')
+              collectHits.some(({ body }) => body.type === 'metrics.anolysis.health.exception')
+              && collectHits.some(({ body }) => body.type === 'metrics.anolysis.health.storage')
             );
           }
           return false;

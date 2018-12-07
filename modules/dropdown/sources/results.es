@@ -59,8 +59,8 @@ class ResultFactory {
       Constructor = MovieResult;
     }
 
-    if (rawResult.data.template === 'movie-showtimes' ||
-        rawResult.data.template === 'cinemaEZ') {
+    if (rawResult.data.template === 'movie-showtimes'
+        || rawResult.data.template === 'cinemaEZ') {
       Constructor = CinemaResult;
     }
 
@@ -68,10 +68,10 @@ class ResultFactory {
       Constructor = SessionsResult;
     }
 
-    if (rawResult.data.template === 'ligaEZ1Game' ||
-        rawResult.data.template === 'ligaEZTable' ||
-        rawResult.data.template === 'ligaEZGroup' ||
-        rawResult.data.template === 'liveTicker') {
+    if (rawResult.data.template === 'ligaEZ1Game'
+        || rawResult.data.template === 'ligaEZTable'
+        || rawResult.data.template === 'ligaEZGroup'
+        || rawResult.data.template === 'liveTicker') {
       Constructor = SoccerResult;
     }
 

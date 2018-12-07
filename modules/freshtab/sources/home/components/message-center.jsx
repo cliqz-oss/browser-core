@@ -49,7 +49,8 @@ export default class MessageCenter extends React.Component {
           handleLinkClick={this.props.handleLinkClick}
         />
       );
-    } else if (position === 'middle' && this.state.middle.length > 0 && this.state.offers.length <= 0) {
+    }
+    if (position === 'middle' && this.state.middle.length > 0 && this.state.offers.length <= 0) {
       return (
         <MiddleMessages
           messages={this.state.middle}
@@ -58,7 +59,8 @@ export default class MessageCenter extends React.Component {
           locale={this.props.locale}
         />
       );
-    } else if (position === 'middle' && this.state.offers.length > 0) {
+    }
+    if (position === 'middle' && this.state.offers.length > 0) {
       return (
         <OfferMiddleMessages
           offers={this.state.offers}
@@ -80,4 +82,3 @@ MessageCenter.propTypes = {
   settingsElem: PropTypes.string,
   handleLinkClick: PropTypes.func
 };
-

@@ -12,10 +12,6 @@ describe('Control Center: Ad-Block UI browser', function () {
     subject = new Subject();
   });
 
-  after(function () {
-    subject.unload();
-  });
-
   function headerProtected() {
     context('control center header', function () {
       it('renders header', function () {
@@ -85,6 +81,10 @@ describe('Control Center: Ad-Block UI browser', function () {
       return subject.load();
     });
 
+    after(function () {
+      subject.unload();
+    });
+
     headerProtected();
     adBlockerUiTests();
 
@@ -146,6 +146,10 @@ describe('Control Center: Ad-Block UI browser', function () {
         response: dataOffPage
       });
       return subject.load();
+    });
+
+    after(function () {
+      subject.unload();
     });
 
     headerProtected();
@@ -223,6 +227,10 @@ describe('Control Center: Ad-Block UI browser', function () {
       return subject.load();
     });
 
+    after(function () {
+      subject.unload();
+    });
+
     headerProtected();
     adBlockerUiTests();
 
@@ -296,6 +304,10 @@ describe('Control Center: Ad-Block UI browser', function () {
         response: dataOffAll
       });
       return subject.load();
+    });
+
+    after(function () {
+      subject.unload();
     });
 
     headerProtected();

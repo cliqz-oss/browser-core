@@ -5,6 +5,7 @@ import {
   callNumber,
   openMap,
   hideKeyboard,
+  sendUIReadySignal,
 } from '../platform/browser-actions';
 
 
@@ -47,5 +48,6 @@ export default background({
     callNumber,
     openMap,
     hideKeyboard,
+    sendUIReadySignal,
   },
 });

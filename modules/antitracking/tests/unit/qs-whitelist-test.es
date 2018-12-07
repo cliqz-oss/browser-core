@@ -11,7 +11,7 @@ class MockResource {
     if (mockRemoteResources[this.name]) {
       return Promise.resolve(mockRemoteResources[this.name]);
     }
-    return Promise.reject(`not found: ${this.name}`);
+    return Promise.reject(new Error(`not found: ${this.name}`));
   }
 }
 export default describeModule('antitracking/qs-whitelists',

@@ -59,5 +59,4 @@ export default describeModule('search/mixers/handle-sessions',
         return chai.expect(messages).to.deep.equal(expected);
       });
     });
-  },
-);
+  });

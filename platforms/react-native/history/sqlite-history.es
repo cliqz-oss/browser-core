@@ -4,7 +4,6 @@ import events from '../../core/events';
 const CREATE_VISIT_TABLE = 'CREATE TABLE IF NOT EXISTS visits(url TEXT PRIMARY KEY NOT NULL, title TEXT, last_visit INT NOT NULL, visit_count INT NOT NULL DEFAULT 0)';
 
 export default class {
-
   constructor() {
     this.db = SQLite.openDatabase('visits.db', '1.0', '', 1);
     this.db.transaction((txn) => {
@@ -19,7 +18,7 @@ export default class {
   query(limit, frameStartsAt, frameEndsAt, domain, query) {
     return new Promise((resolve) => {
       this.db.transaction((txn) => {
-        let sql = `SELECT url, title, last_visit AS visit_date FROM visits WHERE `;
+        let sql = 'SELECT url, title, last_visit AS visit_date FROM visits WHERE ';
         const filters = [`last_visit >= ${frameStartsAt || 0}`,
           `last_visit < ${frameEndsAt || Number.MAX_SAFE_INTEGER}`];
         if (domain) {
@@ -46,7 +45,7 @@ export default class {
     });
   }
 
-  static fillFromVisit(url, triggeringUrl) {
+  static fillFromVisit() {
   }
 
   addHistoryEntry(entry) {

@@ -189,5 +189,4 @@ export default describeModule('search/operators/results/utils',
         });
       });
     });
-  },
-);
+  });

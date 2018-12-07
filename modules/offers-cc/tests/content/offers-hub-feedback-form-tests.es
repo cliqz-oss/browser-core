@@ -20,12 +20,10 @@ context('Offers Hub feedback form tests', function () {
       });
       subject.query('.setting').click();
       await waitFor(() =>
-        subject.query('.setting-menu').classList.contains('show')
-      );
+        subject.query('.setting-menu').classList.contains('show'));
       subject.query('.setting-menu .feedback').click();
       await waitFor(() =>
-        subject.messages.find(message => message.message.action === 'resize')
-      );
+        subject.messages.find(message => message.message.action === 'resize'));
     });
 
     after(function () {
@@ -96,12 +94,10 @@ context('Offers Hub feedback form tests', function () {
       });
       subject.query('.setting').click();
       await waitFor(() =>
-        subject.query('.setting-menu').classList.contains('show')
-      );
+        subject.query('.setting-menu').classList.contains('show'));
       subject.query('.setting-menu .feedback').click();
       await waitFor(() =>
-        subject.messages.find(message => message.message.action === 'resize')
-      );
+        subject.messages.find(message => message.message.action === 'resize'));
     });
 
     afterEach(function () {
@@ -114,8 +110,7 @@ context('Offers Hub feedback form tests', function () {
           subject.query(`.feedback-button[data-vote="${reaction}"]`).click();
 
           await waitFor(() =>
-            subject.messages.find(message => message.message.action === 'sendUserFeedback')
-          );
+            subject.messages.find(message => message.message.action === 'sendUserFeedback'));
         });
 
         it('the value of sent message is correct', function () {
@@ -129,8 +124,7 @@ context('Offers Hub feedback form tests', function () {
             subject.query('#submit-feedback').click();
 
             await waitFor(() =>
-              subject.messages.find(message => message.message.action === 'sendUserFeedback')
-            );
+              subject.messages.find(message => message.message.action === 'sendUserFeedback'));
           });
 
           it('the vote of sent message is correct', function () {
@@ -164,8 +158,7 @@ context('Offers Hub feedback form tests', function () {
         subject.query('#submit-feedback').click();
 
         await waitFor(() =>
-          subject.messages.find(message => message.message.action === 'sendUserFeedback')
-        );
+          subject.messages.find(message => message.message.action === 'sendUserFeedback'));
       });
 
       it('the comments of sent message is correct', function () {

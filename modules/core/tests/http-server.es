@@ -90,9 +90,9 @@ class TestServer {
     this.needsReset = false;
   }
 
-  registerPathHandler(path, { result = '{}', headers = [], status = '200' } = {}) {
+  registerPathHandler(path, { result = '{}', headers = [], status = '200', timeout = 0 } = {}) {
     this.needsReset = true;
-    return mockPath({ path, result, headers, status });
+    return mockPath({ path, result, headers, status, timeout });
   }
 
   registerDirectory(path, directories) {

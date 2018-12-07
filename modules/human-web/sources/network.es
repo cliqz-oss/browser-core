@@ -96,12 +96,12 @@ export function parseURL(url) {
 export function isIPInternal(ip) {
   // Need to check for ipv6.
   const ipSplit = ip.split('.');
-  if (parseInt(ipSplit[0]) === 10 ||
-      (parseInt(ipSplit[0]) === 172 &&
-       (parseInt(ipSplit[1]) >= 16 && parseInt(ipSplit[1]) <= 31)) ||
-      (parseInt(ipSplit[0]) === 192 && parseInt(ipSplit[1]) === 168) ||
-      (parseInt(ipSplit[0]) === 127) ||
-      (parseInt(ipSplit[0]) === 0)) {
+  if (parseInt(ipSplit[0]) === 10
+      || (parseInt(ipSplit[0]) === 172
+       && (parseInt(ipSplit[1]) >= 16 && parseInt(ipSplit[1]) <= 31))
+      || (parseInt(ipSplit[0]) === 192 && parseInt(ipSplit[1]) === 168)
+      || (parseInt(ipSplit[0]) === 127)
+      || (parseInt(ipSplit[0]) === 0)) {
     return true;
   }
 
@@ -126,8 +126,8 @@ export class Network {
       }
 
       // 2) check for fields which can be nulled out without dropping the messages:
-      if (msg.payload.x && msg.payload.x.canonical_url &&
-          await this.isHostNamePrivate(msg.payload.x.canonical_url)) {
+      if (msg.payload.x && msg.payload.x.canonical_url
+          && await this.isHostNamePrivate(msg.payload.x.canonical_url)) {
         logger.debug('sanitizeUrlsWithPrivateDomains: private "canonical_url" URL nulled out:', msg.payload.url);
         msg.payload.x.canonical_url = null;
       }
@@ -170,7 +170,8 @@ export class Network {
     } catch (e) {
       logger.error(
         'Could not resolve domain', host,
-        '. Be conservative and assume that the domain is private.', e);
+        '. Be conservative and assume that the domain is private.', e
+      );
       return true;
     }
   }

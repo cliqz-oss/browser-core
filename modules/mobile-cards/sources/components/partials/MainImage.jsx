@@ -1,10 +1,19 @@
 import React from 'react';
-import { View } from 'react-native';
-import ExternalImage from '../custom/ExternalImage';
-import { elementTopMargin, getCardWidth } from '../../styles/CardStyle';
+import { View, Image, StyleSheet } from 'react-native';
+import { getCardWidth } from '../../styles/CardStyle';
+import themeDetails from '../../themes';
 
+const styles = theme => StyleSheet.create({
+  container: {
+    backgroundColor: themeDetails[theme].images.backgroundColor,
+    paddingTop: 5,
+    paddingBottom: 5,
+    borderBottomWidth: themeDetails[theme].images.border,
+    borderBottomColor: themeDetails[theme].separatorColor,
+  }
+});
 
-export default ({ extra = {} }) => {
+export default ({ extra = {}, theme }) => {
   let url;
   if (extra.og && extra.og.image) {
     url = extra.og.image;
@@ -23,11 +32,12 @@ export default ({ extra = {} }) => {
   return (
     <View
       accessible={false}
-      accessibilityLabel={'main-image'}
+      accessibilityLabel="main-image"
+      style={styles(theme).container}
     >
-      <ExternalImage
+      <Image
         source={{ uri: url }}
-        style={{ width: getCardWidth(), height: 100, ...elementTopMargin }}
+        style={{ width: getCardWidth(), height: 100 }}
         resizeMode="contain"
       />
     </View>

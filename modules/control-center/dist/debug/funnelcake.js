@@ -406,7 +406,7 @@ DATA.push({
       "state": "active"
     },
     "performance": null,
-    "hpn": {
+    "hpnv2": {
       "visible": true,
       "state": false
     },

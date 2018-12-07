@@ -52,11 +52,10 @@ export function closeTab(tabId) {
   const numTabId = Number(tabId);
   const gBrowser = getCurrentgBrowser();
   const tabToRemove = [...gBrowser.tabs].find(tab =>
-    numTabId === tab.linkedBrowser.outerWindowID
-  );
+    numTabId === tab.linkedBrowser.outerWindowID);
 
   if (tabToRemove === undefined) {
-    return Promise.reject(`Could not find tab ${tabId}`);
+    return Promise.reject(new Error(`Could not find tab ${tabId}`));
   }
 
   // Remove tab
@@ -74,11 +73,10 @@ export function updateTab(tabId, url) {
   const numTabId = Number(tabId);
   const gBrowser = getCurrentgBrowser();
   const tabToUpdate = [...gBrowser.tabs].find(tab =>
-    numTabId === tab.linkedBrowser.outerWindowID
-  );
+    numTabId === tab.linkedBrowser.outerWindowID);
 
   if (tabToUpdate === undefined) {
-    return Promise.reject(`Could not find tab ${tabId}`);
+    return Promise.reject(new Error(`Could not find tab ${tabId}`));
   }
 
   loadURIIntoGBrowser(gBrowser.getBrowserForTab(tabToUpdate), url);
@@ -97,8 +95,7 @@ export function getTab(tabId) {
   const numTabId = Number(tabId);
   const gBrowser = getCurrentgBrowser();
   const tabToUpdate = [...gBrowser.tabs].find(tab =>
-    numTabId === tab.linkedBrowser.outerWindowID
-  );
+    numTabId === tab.linkedBrowser.outerWindowID);
   const tab = gBrowser.getBrowserForTab(tabToUpdate);
   return {
     url: tab.currentURI.spec,
@@ -186,7 +183,8 @@ function getTabById(window, tabId) {
 
 export function closeTabsWithUrl(url) {
   mapWindows((window) => {
-    getTabsWithUrl(window, url).forEach(tab => closeTab(window, tab));
+    getTabsWithUrl(window, url).forEach(tab =>
+      tab.ownerGlobal.gBrowser.removeTab(tab));
   });
   return Promise.resolve();
 }
@@ -217,8 +215,7 @@ export function queryTabs() {
         id: browser.outerWindowID,
         url: browser.currentURI.spec,
       };
-    }))
-  );
+    })));
 
   return Promise.resolve(
     [].concat(...tabs)

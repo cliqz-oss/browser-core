@@ -90,5 +90,4 @@ export default describeModule('market-analysis/common/utils',
         chai.expect(generator.next().value).eql(undefined);
       });
     });
-  },
-);
+  });

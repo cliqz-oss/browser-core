@@ -211,5 +211,4 @@ export default describeModule('search/providers/calculator/internal',
         });
       });
     });
-  }
-);
+  });

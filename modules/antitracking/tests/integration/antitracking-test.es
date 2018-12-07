@@ -13,7 +13,6 @@ import Config from '../../../antitracking/config';
 
 
 export default function () {
-
   let attrack;
   let webRequestPipeline;
 

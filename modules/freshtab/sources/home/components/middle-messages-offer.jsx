@@ -22,12 +22,14 @@ export default class Offer extends React.Component {
   componentDidMount() {
     offerShowSignal();
   }
+
   toggleComponents = () => {
-    this.setState({
-      showOffer: !this.state.showOffer,
-      showFeedback: !this.state.showFeedback
-    });
+    this.setState(prevState => ({
+      showOffer: !prevState.showOffer,
+      showFeedback: !prevState.showFeedback
+    }));
   }
+
   handleVoucherClick() {
     const offer = this.props.offer;
     sendOffersMessage(offer.offer_id, 'offer_ca_action');
@@ -47,54 +49,56 @@ export default class Offer extends React.Component {
     return (
       /* eslint-disable jsx-a11y/no-static-element-interactions */
       <div className={`middle-notification-fluid  ${this.props.fullWidth ? 'full-width' : ''}`}>
-        { this.state.showOffer ?
-          <div
-            className="offer-unit"
-            role="button"
-            data-id={offer.offer_id}
-          >
-            <OfferContent
-              toggleComponents={this.toggleComponents}
-              data={offerTpl}
-              offer_id={offerId}
-              validity={validity}
-              getOfferInfoOpen={this.props.getOfferInfoOpen}
-              setOfferInfoOpen={this.props.setOfferInfoOpen}
-              getOfferMenuOpen={this.props.getOfferMenuOpen}
-              setOfferMenuOpen={this.props.setOfferMenuOpen}
-            />
+        { this.state.showOffer
+          ? (
+            <div
+              className="offer-unit"
+              role="button"
+              data-id={offer.offer_id}
+            >
+              <OfferContent
+                toggleComponents={this.toggleComponents}
+                data={offerTpl}
+                offer_id={offerId}
+                validity={validity}
+                getOfferInfoOpen={this.props.getOfferInfoOpen}
+                setOfferInfoOpen={this.props.setOfferInfoOpen}
+                getOfferMenuOpen={this.props.getOfferMenuOpen}
+                setOfferMenuOpen={this.props.setOfferMenuOpen}
+              />
 
-            <OfferFooter
-              data={offerTpl}
-              offer={this.props.offer}
-              handleVoucherClick={this.handleVoucherClick}
-            />
+              <OfferFooter
+                data={offerTpl}
+                offer={this.props.offer}
+                handleVoucherClick={this.handleVoucherClick}
+              />
 
-            <ReactTooltip afterShow={() => { sendOffersMessage(offer.offer_id, 'offer_more_info'); }} />
-          </div>
+              <ReactTooltip afterShow={() => { sendOffersMessage(offer.offer_id, 'offer_more_info'); }} />
+            </div>
+          )
 
-          :
-          null
+          : null
         }
 
-        { this.state.showFeedback ?
-          <div>
-            <OfferFeedback
-              submitFeedbackForm={this.props.submitFeedbackForm}
-              offer_id={offer.offer_id}
-              toggleComponents={this.toggleComponents}
-            />
-          </div>
-          :
-          null
+        { this.state.showFeedback
+          ? (
+            <div>
+              <OfferFeedback
+                submitFeedbackForm={this.props.submitFeedbackForm}
+                offer_id={offer.offer_id}
+                toggleComponents={this.toggleComponents}
+              />
+            </div>
+          )
+          : null
         }
 
-        { this.state.showOffer ?
-          <div className="anzeige">
-            {tt('ad_label')}
-          </div>
-          :
-          null
+        { this.state.showOffer
+          ? (
+            <div className="anzeige">
+              {tt('ad_label')}
+            </div>)
+          : null
         }
 
       </div>

@@ -29,6 +29,7 @@ import {
   isWebExtension,
   isAMO,
   getResourceUrl,
+  product,
 } from '../core/platform';
 import prefs from '../core/prefs';
 import { dismissMessage, countMessageClick, dismissOffer, saveMessageDismission } from './actions/message';
@@ -50,16 +51,18 @@ const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 const BLUE_THEME_PREF = 'freshtab.blueTheme.enabled';
 const DEVELOPER_FLAG_PREF = 'developer';
 const REAL_ESTATE_ID = 'cliqz-tab';
-const DISMISSED_ALERTS = 'dismissedAlerts';
-const TOOLTIP_RENDERED = 'freshtab.tooltipRendered';
 
 const blackListedEngines = [
   'Google Images',
   'Google Maps'
 ];
 
-const DEFAULT_COMPONENT_STATE = {
+const COMPONENT_STATE_VISIBLE = {
   visible: true,
+};
+
+const COMPONENT_STATE_INVISIBLE = {
+  visible: false,
 };
 
 const historyWhitelist = [
@@ -97,6 +100,7 @@ export default background({
   theme: inject.module('theme'),
   ui: inject.module('ui'),
   offersV2: inject.module('offers-v2'),
+  insights: inject.module('insights'),
   requiresServices: ['logos', 'utils', 'session'],
 
   /**
@@ -217,36 +221,6 @@ export default background({
     return (isCliqzBrowser && CLIQZ_1_16_OR_ABOVE) || prefs.get(DEVELOPER_FLAG_PREF, false);
   },
 
-  get tooltip() {
-    const dismissedMessages = prefs.getObject(DISMISSED_ALERTS);
-    const meta = dismissedMessages[config.constants.TOOLTIP_BLACKFRIDAY] || {};
-
-    if (meta.isDismissed) {
-      return false;
-    }
-
-    if (prefs.get(TOOLTIP_RENDERED, false)) {
-      return false;
-    }
-
-    return config.constants.TOOLTIP_BLACKFRIDAY;
-  },
-
-  get shouldShowBlackFridayIcon() {
-    if (prefs.get('config_location', 'de') !== 'de') {
-      return false; // Show icon for users in Germany only
-    }
-    const currentDate = prefs.get('config_ts', null);
-    const minDate = '20181029'; // Update this to be release day
-    const maxDate = '20181126';
-
-    if (currentDate >= minDate && currentDate <= maxDate) {
-      return true;
-    }
-
-    return false;
-  },
-
   getNewsEdition() {
     return this.getComponentsState().news.preferedCountry;
   },
@@ -254,20 +228,22 @@ export default background({
   getComponentsState() {
     const freshtabConfig = prefs.getObject(FRESHTAB_CONFIG_PREF);
     const backgroundName = (freshtabConfig.background && freshtabConfig.background.image)
-      || getDefaultWallpaper();
+      || getDefaultWallpaper(product);
     return {
-      historyDials: Object.assign({}, DEFAULT_COMPONENT_STATE, freshtabConfig.historyDials),
-      customDials: Object.assign({}, DEFAULT_COMPONENT_STATE, freshtabConfig.customDials),
+      historyDials: Object.assign({}, COMPONENT_STATE_VISIBLE, freshtabConfig.historyDials),
+      customDials: Object.assign({}, COMPONENT_STATE_INVISIBLE, freshtabConfig.customDials),
       search: {
-        ...DEFAULT_COMPONENT_STATE,
+        ...COMPONENT_STATE_VISIBLE,
         ...freshtabConfig.search,
         mode: prefs.get(config.constants.PREF_SEARCH_MODE, 'urlbar'),
       },
-      news: Object.assign({}, DEFAULT_COMPONENT_STATE, freshtabConfig.news),
+      news: Object.assign({}, COMPONENT_STATE_VISIBLE, freshtabConfig.news),
       background: {
         image: backgroundName,
-        index: getWallpapers().findIndex(bg => bg.name === backgroundName),
+        index: getWallpapers(product).findIndex(bg => bg.name === backgroundName),
       },
+      stats: Object.assign({}, COMPONENT_STATE_VISIBLE, freshtabConfig.stats),
+      searchReminder: Object.assign({}, COMPONENT_STATE_VISIBLE, freshtabConfig.searchReminder),
     };
   },
 
@@ -283,29 +259,6 @@ export default background({
   },
 
   actions: {
-    markTooltipAsSkipped() {
-      const tooltip = this.tooltip;
-      if (!tooltip) {
-        return;
-      }
-
-      const dismissedMessages = prefs.getObject(DISMISSED_ALERTS);
-      prefs.setObject(DISMISSED_ALERTS, {
-        ...dismissedMessages,
-        [tooltip]: {
-          ...dismissedMessages[tooltip],
-          skippedAt: Date.now(),
-          isDismissed: true,
-        },
-      });
-    },
-
-    markTooltipRendered() {
-      if (!prefs.get(TOOLTIP_RENDERED, false)) {
-        prefs.set(TOOLTIP_RENDERED, true);
-      }
-    },
-
     selectResult(
       selection,
       { tab: { id: tabId } = {} } = {},
@@ -334,7 +287,7 @@ export default background({
     toggleComponent(component) {
       const _config = JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}'));
       // component might be uninitialized
-      _config[component] = Object.assign({}, DEFAULT_COMPONENT_STATE, _config[component]);
+      _config[component] = Object.assign({}, COMPONENT_STATE_VISIBLE, _config[component]);
       _config[component].visible = !_config[component].visible;
       prefs.set(FRESHTAB_CONFIG_PREF, JSON.stringify(_config));
     },
@@ -392,8 +345,7 @@ export default background({
             hashedUrl: hash(r.url),
             total_count: r.total_count,
             custom: false
-          })
-        );
+          }));
 
         function isDeleted(url) {
           return dialUps.history
@@ -454,23 +406,22 @@ export default background({
 
       // Promise all concatenate results and return
       return Promise.all([historyDialups, customDialups]).then(results =>
-        // TODO EX-4276: uncomment when moving Freshtab to WebExtensions
-        // const urls = new Set();
+      // TODO EX-4276: uncomment when moving Freshtab to WebExtensions
+      // const urls = new Set();
 
-        // const history = results[0].filter((dial) => {
-        //   if (urls.has(dial.id)) {
-        //     return false;
-        //   } else {
-        //     urls.add(dial.id);
-        //     return true;
-        //   }
-        // });
+      // const history = results[0].filter((dial) => {
+      //   if (urls.has(dial.id)) {
+      //     return false;
+      //   } else {
+      //     urls.add(dial.id);
+      //     return true;
+      //   }
+      // });
 
         ({
           history: results[0],
           custom: results[1]
-        })
-      );
+        }));
     },
 
     /**
@@ -485,8 +436,7 @@ export default background({
 
       if (isCustom) {
         dialUps.custom = dialUps.custom.filter(dialup =>
-          tryDecodeURIComponent(dialup.url) !== url
-        );
+          tryDecodeURIComponent(dialup.url) !== url);
       } else {
         if (!dialUps.history) {
           dialUps.history = {};
@@ -529,13 +479,15 @@ export default background({
         savedDials.custom = [];
       }
       const index = savedDials.custom.findIndex(
-        dial => areUrlsEqual(tryDecodeURIComponent(dial.url), item.url));
+        dial => areUrlsEqual(tryDecodeURIComponent(dial.url), item.url)
+      );
 
       prefs.setObject(DIALUPS, {
         ...savedDials,
         custom: [
           ...savedDials.custom.slice(0, index),
-          { url: validUrl,
+          {
+            url: validUrl,
             title,
           },
           ...savedDials.custom.slice(index + 1),
@@ -685,6 +637,129 @@ export default background({
     },
 
     /**
+    * Get stats for ghostery tab
+    * @method getStats
+    */
+    async getStats() {
+      const getRandomInt = (min, max) => {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return (Math.floor(Math.random() * (max - min)) + min).toLocaleString();
+      };
+
+      const formatNumber = (number) => {
+        if (!number) {
+          return '0';
+        }
+
+        return (number > 999999 ? `${(number / 1000000).toFixed()}M` : number)
+          .toLocaleString();
+      };
+
+      const formatTime = (ms) => {
+        if (!ms) {
+          return '0 s';
+        }
+
+        const seconds = Math.floor(ms / 1000);
+
+        if (seconds >= 3600) {
+          const hours = Math.floor(seconds / 3600);
+          return `${hours} h`;
+        }
+        if (seconds >= 60) {
+          const minutes = Math.floor(seconds / 60);
+          return `${minutes} min`;
+        }
+        return `${seconds} s`;
+      };
+
+      let data = [];
+      let promoData = {};
+
+      if (product === 'CLIQZ' && this.insights.isPresent()) {
+        const summary = await this.insights.action('getDashboardStats');
+        const isAntitrackingDisabled = !prefs.get('modules.antitracking.enabled', true);
+        const isAdBlockerDisabled = prefs.get('cliqz-adb', 1) === 0;
+
+        data = [
+          {
+            title: `${getMessage('freshtab_stats_cliqz_trackers_blocked')}`,
+            icon: 'images/cliqz-shield.svg',
+            val: formatNumber(summary.cookiesBlocked + summary.fingerprintsRemoved),
+            description: `${getMessage('freshtab_stats_cliqz_trackers_blocked_desc')}`,
+            link: 'https://cliqz.com/support/privacy-statistics#anti-tracking',
+            disabled: isAntitrackingDisabled,
+          },
+          {
+            title: `${getMessage('freshtab_stats_ads_blocked')}`,
+            icon: 'images/cliqz-ad-blocker.svg',
+            val: formatNumber(summary.adsBlocked),
+            description: `${getMessage('freshtab_stats_ads_blocked_by_desc', 'Cliqz')}`,
+            link: 'https://cliqz.com/support/privacy-statistics#ads',
+            disabled: isAdBlockerDisabled,
+          },
+          {
+            title: `${getMessage('freshtab_stats_time_saved')}`,
+            icon: 'images/cliqz-time.svg',
+            val: formatTime(summary.timeSaved),
+            description: `${getMessage('freshtab_stats_time_saved_desc')}`,
+            link: 'https://cliqz.com/support/privacy-statistics#time-saved',
+            disabled: isAdBlockerDisabled,
+          },
+        ];
+      } else if (product === 'GHOSTERY') {
+        data = [
+          {
+            title: `${getMessage('freshtab_stats_gt_trackers_blocked')}`,
+            icon: 'images/stats-anti-tracking.svg',
+            val: getRandomInt(10000, 12000),
+            description: `${getMessage('freshtab_stats_gt_trackers_seen', getRandomInt(100000, 120000))}`,
+            link: 'https://www.ghostery.com/',
+          },
+          {
+            title: `${getMessage('freshtab_stats_dp_anonymized')}`,
+            icon: 'images/stats-datapoints.svg',
+            val: getRandomInt(15000, 18000),
+            description: `${getMessage('freshtab_stats_data_anonymized_by_desc', 'Ghostery')}`,
+            link: 'https://www.ghostery.com/',
+          },
+          {
+            title: `${getMessage('freshtab_stats_ads_blocked')}`,
+            icon: 'images/stats-ad-blocker.svg',
+            val: getRandomInt(12000, 14000),
+            description: `${getMessage('freshtab_stats_ads_blocked_by_desc', 'Ghostery')}`,
+            link: 'https://www.ghostery.com/',
+          },
+        ];
+
+        promoData = {
+          brand: {
+            name: `${getMessage('promo_data_brand_name')}`,
+            icon: 'images/ghosty.svg',
+          },
+          description: `${getMessage('promo_data_description')}${getMessage('promo_data_description_2')}`,
+          learnMore: {
+            text: `${getMessage('learnMore')}`,
+            link: 'https://www.ghostery.com/',
+          },
+          buttons: [
+            {
+              label: `${getMessage('add_to_chrome')}`,
+              link: 'https://www.ghostery.com/',
+            },
+          ]
+        };
+      }
+
+      return {
+        data,
+        isEmpty: !data.length,
+        promoData,
+      };
+    },
+
+    /**
     * Get offers
     * @method getOffers
     */
@@ -704,9 +779,9 @@ export default background({
           let validity = {};
           const templateData = offer.offer_info.ui_info.template_data;
           // calculate the expiration time if we have the new field #EX-7028
-          const expirationTime = offer.offer_info.expirationMs ?
-            (offer.created_ts + offer.offer_info.expirationMs) / 1000 :
-            templateData.validity;
+          const expirationTime = offer.offer_info.expirationMs
+            ? (offer.created_ts + offer.offer_info.expirationMs) / 1000
+            : templateData.validity;
           if (expirationTime) {
             const timeDiff = Math.abs((expirationTime * 1000) - Date.now());
             let difference = Math.floor(timeDiff / 86400000);
@@ -755,7 +830,7 @@ export default background({
     * Get configuration regarding locale, onBoarding and browser
     * @method getConfig
     */
-    getConfig(sender) {
+    async getConfig(sender) {
       const windowWrapper = Window.findByTabId(sender.tab.id);
 
       // cleanup urlbar value if it has visible url
@@ -767,21 +842,29 @@ export default background({
         });
       }
 
+      const { id: tabIndex } = await getActiveTab();
+
       return {
         locale: getLanguageFromLocale(i18n.PLATFORM_LOCALE),
         blueTheme: this.blueTheme,
         isBlueThemeSupported: this.isBlueThemeEnabled,
-        wallpapers: getWallpapers(),
+        wallpapers: getWallpapers(product),
+        product,
+        tabIndex,
         showNewBrandAlert: this.shouldShowNewBrandAlert,
         messages: this.messages,
         isHistoryEnabled: (
-          prefs.get('modules.history.enabled', false) &&
-          config.settings.HISTORY_URL !== undefined
+          prefs.get('modules.history.enabled', false)
+          && config.settings.HISTORY_URL !== undefined
         ),
         componentsState: this.getComponentsState(),
         developer: prefs.get('developer', false),
-        tooltip: this.tooltip,
-        showBlackFridayIcon: this.shouldShowBlackFridayIcon,
+        isStatsSupported: this.settings.freshTabStats,
+        isFriendsEnabled: (
+          // keep it in Beta
+          utils.extensionVersion.indexOf('b') > -1
+          || utils.extensionVersion.indexOf('dev') > -1
+        )
       };
     },
 
@@ -818,16 +901,12 @@ export default background({
       this.newTabPage.rollback();
     },
 
-    getTabIndex() {
-      return getActiveTab().then(tab => tab.id);
-    },
-
     shareLocation(decision) {
       events.pub('msg_center:hide_message', { id: 'share-location' }, 'MESSAGE_HANDLER_FRESHTAB');
       this.geolocation.action('setLocationPermission', decision);
 
-      const target = (decision === 'yes') ?
-        'always_share' : 'never_share';
+      const target = (decision === 'yes')
+        ? 'always_share' : 'never_share';
 
       utils.telemetry({
         type: 'notification',

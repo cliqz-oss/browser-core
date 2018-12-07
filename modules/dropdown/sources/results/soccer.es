@@ -219,6 +219,7 @@ class SoccerSubResult extends Subresult {
 
 export default class SoccerResult extends GenericResult {
   internalResultsLimit = 4;
+
   newsResultsLimit = 2;
 
   constructor(...args) {

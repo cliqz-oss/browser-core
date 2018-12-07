@@ -3,9 +3,8 @@
 /* global require */
 /* eslint-disable func-names,prefer-arrow-callback,arrow-body-style */
 
-const tldts = require('tldts');
+const commonMocks = require('../utils/common');
 
-const prefRetVal = {};
 const currentTS = Date.now();
 const mockedTimestamp = Date.now() / 1000;
 const currentDayHour = 0;
@@ -15,23 +14,17 @@ const abNumber = 0;
 
 export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
   () => ({
-    'core/platform': {
-      isWebExtension: false
-    },
-    'platform/lib/tldts': tldts,
+    ...commonMocks,
     'platform/xmlhttprequest': {
       default: {}
     },
-    'platform/lib/moment': {
+    'core/http': {
       default: {}
     },
     'platform/fetch': {
       default: {}
     },
     'platform/gzip': {
-      default: {}
-    },
-    'platform/globals': {
       default: {}
     },
     'platform/environment': {
@@ -54,49 +47,14 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
         return abNumber;
       }
     },
-    'core/crypto/random': {
-      random: function () {
-        return Math.random();
-      }
-    },
-    'core/prefs': {
-      default: {
-        get: function (v, d) {
-          if (prefRetVal[v]) {
-            return prefRetVal[v];
-          }
-          return d;
-        },
-        setMockVal: function (varName, val) {
-          prefRetVal[varName] = val;
-        }
-      }
-    },
-    'core/utils': {
-      default: {}
-    },
-    'core/helpers/timeout': {
-      default: function () { const stop = () => {}; return { stop }; }
-    },
-    'platform/console': {
-      default: {},
-    },
-    'offers-v2/common/offers_v2_logger': {
-      default: {
-        debug: () => {},
-        error: () => {},
-        info: () => {},
-        log: () => {},
-        warn: () => {},
-        logObject: () => {},
-      }
-    },
     'offers-v2/offers-status': {
       default: class {
         constructor() {
           this.lastData = null;
         }
+
         loadStatusFromObject(d) { this.lastData = d; }
+
         clear() { this.lastData = null; }
       }
     }
@@ -194,5 +152,4 @@ export default describeModule('offers-v2/trigger_machine/ops/offer_expr',
         });
       });
     });
-  },
-);
+  });

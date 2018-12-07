@@ -11,7 +11,8 @@ import {
   testServer,
   wait,
   waitForPopup,
-  withHistory } from './helpers';
+  withHistory,
+} from './helpers';
 
 async function getSearchParams(query, { resultsNumber = 1, blur = true } = {}) {
   if (blur) {
@@ -174,8 +175,8 @@ export default function () {
         restorePref();
       });
 
-      it('top 3 languages received by server', async function () {
-        expect(parameters.lang).to.equal('en,de,ru');
+      it('top 2 languages received by server', async function () {
+        expect(parameters.lang).to.equal('en,de');
       });
     });
 
@@ -313,8 +314,7 @@ export default function () {
             it(`parameter "count=${preferences.countExpected}" received by server`, function () {
               expect(parameters.count).to.equal(preferences.countExpected);
             });
-          }
-        );
+          });
       });
     });
 
@@ -343,8 +343,7 @@ export default function () {
             it(`parameter "suggest=${preferences.suggestionsExpected}" received by server`, function () {
               expect(parameters.suggest).to.equal(preferences.suggestionsExpected);
             });
-          }
-        );
+          });
       });
     });
 

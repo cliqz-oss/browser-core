@@ -104,7 +104,8 @@ parseValue = function parseVal(data, counter) {
   const firstChar = data.charAt(counter.getPos());
   if (firstChar === '{') {
     return parseObject(data, counter);
-  } else if (firstChar === '[') {
+  }
+  if (firstChar === '[') {
     return parseArray(data, counter);
   }
 

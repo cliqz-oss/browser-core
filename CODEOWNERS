@@ -31,19 +31,21 @@
 /modules/integration-tests/ @remusao @zhonghao-cliqz @chrmod @marta-cliqz @tamara-cliqz @sammacbeth
 /modules/last-query/ @chrmod
 /modules/market-analysis @eleniS
-/modules/mobile-cards/ @khaled-cliqz @timotei-cliqz
+/modules/mobile-cards/ @khaled-cliqz
 /modules/mobile-dev/ @khaled-cliqz
 /modules/mobile-history/ @khaled-cliqz
 /modules/mobile-ui/ @khaled-cliqz
 /modules/new-tab-button/ @chrmod @giota-cliqz
 /modules/notifications/ @chrmod
 /modules/offboarding/ @luciancor
+/modules/offers-banner/ @aleksandr-cliqz
 /modules/offers-cc/ @gabriel-cliqz @giota-cliqz @mai-cliqz
 /modules/offers-cc/tests/content/ @marta-cliqz @tamara-cliqz
 /modules/offers-v2/ @zhonghao-cliqz @eleniS
 /modules/onboarding-v3/ @mai-cliqz @luciancor
 /modules/p2p/ @alex-cliqz
 /modules/pairing/ @alex-cliqz
+/modules/popup-notification/ @aleksandr-cliqz @olpa-cliqz
 /modules/privacy-dashboard/ @private-face
 /modules/privacy/ @ecnmst
 /modules/proxyPeer/ @alex-cliqz @remusao

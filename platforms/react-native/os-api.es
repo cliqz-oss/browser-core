@@ -1,4 +1,5 @@
 import events from '../core/events';
+import console from './console';
 
 const osAPI = {
   deviceARN(...args) {

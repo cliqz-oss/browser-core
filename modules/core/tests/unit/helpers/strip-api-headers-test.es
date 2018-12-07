@@ -18,6 +18,8 @@ export default describeModule('core/helpers/strip-api-headers',
           'hpn-proxy-1.ghostery.com',
           'collector-hpn.cliqz.com',
           'any-domain-ending-with.ghostery.net',
+          'anotherdomain.ghostery.com',
+          'anotherdomain.cliqz.com',
         ];
         for (const hostname of safeToRemoveHosts) {
           expect(isSafeToRemoveHeaders(hostname)).to.be.true;
@@ -30,11 +32,14 @@ export default describeModule('core/helpers/strip-api-headers',
           'www.amazon.com',
           'localhost',
           '127.0.0.1',
+          'accountapi.ghostery.com',
+          'consumerapi.ghostery.com',
+          'accountapi.ghostery.net',
+          'consumerapi.ghostery.net',
         ];
         for (const hostname of protectedHosts) {
           expect(isSafeToRemoveHeaders(hostname)).to.be.false;
         }
       });
     });
-  }
-);
+  });

@@ -26,8 +26,8 @@ export default background({
   /**
   * @method init
   */
-  init() {
-    this.richHeader = new RichHeaderProxy();
+  init(settings) {
+    this.richHeader = new RichHeaderProxy(settings);
     // const metaDB = new Database('cliqz-metas');
     // this.metaDatabase = new MetaDatabase(metaDB);
     this.history = History;
@@ -70,7 +70,8 @@ export default background({
       }
 
       this.core.action(
-        'broadcastActionToWindow', id, 'history', 'updateHistoryUrls', args);
+        'broadcastActionToWindow', id, 'history', 'updateHistoryUrls', args
+      );
     });
   },
 
@@ -237,8 +238,7 @@ export default background({
           Object.assign({
             frameStartsAt: from,
             frameEndsAt: to,
-          }, dto))
-        );
+          }, dto)));
       });
     },
 

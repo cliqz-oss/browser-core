@@ -4,7 +4,6 @@ import Link from './Link';
 import Icon from './partials/Icon';
 import { elementSideMargins, cardMargins, getVPHeight, cardBorderTopRadius, cardBorderBottomRadius } from '../styles/CardStyle';
 import { getMessage } from '../../core/i18n';
-import telemetry from '../../core/services/telemetry';
 
 const styles = (backgroundColor, width) =>
   StyleSheet.create({
@@ -33,19 +32,24 @@ const styles = (backgroundColor, width) =>
   });
 
 export default class SearchEngineCard extends React.Component {
-  sendResultClickTelemetry(event) {
+  sendResultClickTelemetry(/* event */) {
+    // @khaled: please send telemetry to background
+    /*
     const result = this.props.result;
     const resultKind = result.data.kind || [];
     const tapPosition = [
       event.nativeEvent.pageX,
       event.nativeEvent.pageY
     ];
+
     const signal = {
       position_type: resultKind,
       current_position: this.props.index,
       tap_position: tapPosition,
     };
-    telemetry.push(signal, 'mobile_result_selection');
+    */
+
+    // telemetry.push(signal, 'mobile_result_selection');
   }
 
   render() {

@@ -28,6 +28,7 @@ export default class YoutubeExtractor {
     }
     return false;
   }
+
   static getVideoInfo(url) {
     const id = getYoutubeID(url);
     if (!id) {
@@ -40,8 +41,9 @@ export default class YoutubeExtractor {
           if (error) {
             reject(error);
           } else {
-            const isLiveStream = typeof info.livestream === 'string' ?
-              JSON.parse(info.livestream) : info.livestream;
+            const isLiveStream = typeof info.livestream === 'string'
+              ? JSON.parse(info.livestream)
+              : info.livestream;
             if (isLiveStream) {
               reject(new Error('live_video'));
             } else {

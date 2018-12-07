@@ -255,22 +255,22 @@ function hex(x) {
   const h1 = x[1];
   const h2 = x[2];
   const h3 = x[3];
-  return hexChars[(h0 >> 4) & 0x0F] + hexChars[h0 & 0x0F] +
-    hexChars[(h0 >> 12) & 0x0F] + hexChars[(h0 >> 8) & 0x0F] +
-    hexChars[(h0 >> 20) & 0x0F] + hexChars[(h0 >> 16) & 0x0F] +
-    hexChars[(h0 >> 28) & 0x0F] + hexChars[(h0 >> 24) & 0x0F] +
-    hexChars[(h1 >> 4) & 0x0F] + hexChars[h1 & 0x0F] +
-    hexChars[(h1 >> 12) & 0x0F] + hexChars[(h1 >> 8) & 0x0F] +
-    hexChars[(h1 >> 20) & 0x0F] + hexChars[(h1 >> 16) & 0x0F] +
-    hexChars[(h1 >> 28) & 0x0F] + hexChars[(h1 >> 24) & 0x0F] +
-    hexChars[(h2 >> 4) & 0x0F] + hexChars[h2 & 0x0F] +
-    hexChars[(h2 >> 12) & 0x0F] + hexChars[(h2 >> 8) & 0x0F] +
-    hexChars[(h2 >> 20) & 0x0F] + hexChars[(h2 >> 16) & 0x0F] +
-    hexChars[(h2 >> 28) & 0x0F] + hexChars[(h2 >> 24) & 0x0F] +
-    hexChars[(h3 >> 4) & 0x0F] + hexChars[h3 & 0x0F] +
-    hexChars[(h3 >> 12) & 0x0F] + hexChars[(h3 >> 8) & 0x0F] +
-    hexChars[(h3 >> 20) & 0x0F] + hexChars[(h3 >> 16) & 0x0F] +
-    hexChars[(h3 >> 28) & 0x0F] + hexChars[(h3 >> 24) & 0x0F];
+  return hexChars[(h0 >> 4) & 0x0F] + hexChars[h0 & 0x0F]
+    + hexChars[(h0 >> 12) & 0x0F] + hexChars[(h0 >> 8) & 0x0F]
+    + hexChars[(h0 >> 20) & 0x0F] + hexChars[(h0 >> 16) & 0x0F]
+    + hexChars[(h0 >> 28) & 0x0F] + hexChars[(h0 >> 24) & 0x0F]
+    + hexChars[(h1 >> 4) & 0x0F] + hexChars[h1 & 0x0F]
+    + hexChars[(h1 >> 12) & 0x0F] + hexChars[(h1 >> 8) & 0x0F]
+    + hexChars[(h1 >> 20) & 0x0F] + hexChars[(h1 >> 16) & 0x0F]
+    + hexChars[(h1 >> 28) & 0x0F] + hexChars[(h1 >> 24) & 0x0F]
+    + hexChars[(h2 >> 4) & 0x0F] + hexChars[h2 & 0x0F]
+    + hexChars[(h2 >> 12) & 0x0F] + hexChars[(h2 >> 8) & 0x0F]
+    + hexChars[(h2 >> 20) & 0x0F] + hexChars[(h2 >> 16) & 0x0F]
+    + hexChars[(h2 >> 28) & 0x0F] + hexChars[(h2 >> 24) & 0x0F]
+    + hexChars[(h3 >> 4) & 0x0F] + hexChars[h3 & 0x0F]
+    + hexChars[(h3 >> 12) & 0x0F] + hexChars[(h3 >> 8) & 0x0F]
+    + hexChars[(h3 >> 20) & 0x0F] + hexChars[(h3 >> 16) & 0x0F]
+    + hexChars[(h3 >> 28) & 0x0F] + hexChars[(h3 >> 24) & 0x0F];
 }
 
 function md5(message) {

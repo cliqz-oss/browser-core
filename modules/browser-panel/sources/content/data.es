@@ -2,7 +2,10 @@
 
 // iframe to browser window
 export function sendMessageToWindow(message) {
-  window.postMessage(JSON.stringify({
+  const searchParams = new URLSearchParams(window.location.search);
+  const isCrossOrigin = searchParams.get('cross-origin') !== null;
+  const target = isCrossOrigin ? window.parent : window;
+  target.postMessage(JSON.stringify({
     target: 'cqz-browser-panel-re',
     origin: 'iframe',
     message
@@ -23,8 +26,8 @@ export function messageHandler(message) {
 
 window.addEventListener('message', (ev) => {
   const data = JSON.parse(ev.data);
-  if (data.target === 'cqz-browser-panel-re' &&
-     data.origin === 'window') {
+  if (data.target === 'cqz-browser-panel-re'
+     && data.origin === 'window') {
     messageHandler(data.message);
   }
 });

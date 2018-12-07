@@ -1,6 +1,6 @@
 import moment from '../../platform/lib/moment';
 
-import { parseNetworkFilter } from '../../core/pattern-matching';
+import PatternMatching from '../../platform/lib/adblocker';
 import DefaultMap from '../../core/helpers/default-map';
 
 import logger from './logger';
@@ -16,15 +16,15 @@ function buildLazyMatch(condition, parent, context) {
 
   let id;
   if (atom.query !== undefined) {
-    const parsed = parseNetworkFilter(atom.query);
+    const parsed = PatternMatching.parseNetworkFilter(atom.query);
     queryPatterns.push(parsed);
-    id = parsed.id;
-    result.query = parsed.id;
+    id = parsed.getId();
+    result.query = parsed.getId();
   } else if (atom.url !== undefined) {
-    const parsed = parseNetworkFilter(atom.url);
+    const parsed = PatternMatching.parseNetworkFilter(atom.url);
     urlPatterns.push(parsed);
-    id = parsed.id;
-    result.url = parsed.id;
+    id = parsed.getId();
+    result.url = parsed.getId();
   }
 
   map.update(id, (parents) => {
@@ -61,8 +61,7 @@ function buildLazyCondition(condition, parent, context) {
     }, condition);
 
     result[key] = condition[key].map(operand =>
-      buildLazyCondition(operand, result, context)
-    );
+      buildLazyCondition(operand, result, context));
   }
 
   return result;
@@ -144,7 +143,8 @@ function shrinkConditionFromLeaf(match, map) {
   if (parent === null) {
     removeMatchFromMap(match, map);
     return;
-  } else if (parent.and !== undefined) {
+  }
+  if (parent.and !== undefined) {
     const operands = parent.and;
     const indexOfOperand = operands.indexOf(match);
 
@@ -257,7 +257,8 @@ export default class Condition {
       const ago = moment.duration(Date.now() - event.ts).humanize();
       if (event.type === 'query') {
         return `You queried '${event.target.query}' on ${event.target.source} ${ago} ago (pattern: { query: ${event.pattern.filter} })`;
-      } else if (event.type === 'url') {
+      }
+      if (event.type === 'url') {
         return `You visited ${event.target.url} ${ago} ago (pattern: { url: ${event.pattern.filter} })`;
       }
 
@@ -335,9 +336,9 @@ export default class Condition {
     }
 
     this.triggered = (
-      this.reversed.size === 0 ||
+      this.reversed.size === 0
       // NOTE: this could be cached and computed only once
-      [...this.reversed.values()].every(nodes => nodes.every(hasNoneParent))
+      || [...this.reversed.values()].every(nodes => nodes.every(hasNoneParent))
     );
 
     return this.triggered;

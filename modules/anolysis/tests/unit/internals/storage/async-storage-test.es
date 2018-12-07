@@ -37,5 +37,4 @@ export default describeModule('anolysis/internals/storage/async-storage',
         forceReloadDuringTests: true,
       });
     });
-  },
-);
+  });

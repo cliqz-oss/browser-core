@@ -49,6 +49,13 @@ class CardList extends React.Component {
   }
 
   autocomplete({ url, text }) {
+    // to eliminate sending multiple autocomplete signals when
+    // results get updated multiple times because of smoothing
+    if (this.lastUrl === url && this.lastQuery === text) {
+      return;
+    }
+    this.lastUrl = url;
+    this.lastQuery = text;
     handleAutoCompletion(url, text);
   }
 
@@ -65,7 +72,7 @@ class CardList extends React.Component {
     }
   }
 
-  renderItem(result, index, { length }) {
+  renderItem(result, index, { length }, theme) {
     if (result.type === 'supplementary-search') {
       return (
         <SearchEngineCard
@@ -81,12 +88,14 @@ class CardList extends React.Component {
         index={index}
         width={getCardWidth()}
         result={result}
+        theme={theme}
       />
     );
   }
 
   render() {
     const results = this.props.results;
+    const theme = this.props.theme;
     return (
       <Carousel
         onLayout={() => {
@@ -101,7 +110,7 @@ class CardList extends React.Component {
         }}
         ref={(c) => { this._carousel = c; }}
         data={results}
-        renderItem={({ item: result, index }) => this.renderItem(result, index, results)}
+        renderItem={({ item: result, index }) => this.renderItem(result, index, results, theme)}
         sliderWidth={this.state.vp.width}
         itemWidth={getCardWidth()}
         onSnapToItem={index => this.handleSwipe(index)}

@@ -59,7 +59,7 @@ export default class CategoryPersistentDataHelper {
    * Will remove all the data from DB
    */
   destroyDB() {
-    return Promise.all([this.categoriesDataMap.destroy(), this.categoriesPatternsMap.destroy()]);
+    return Promise.all([this.categoriesDataMap.clear(), this.categoriesPatternsMap.clear()]);
   }
 
   loadMetadata() {

@@ -225,5 +225,4 @@ export default describeModule('core/anacron',
     //     chai.expect(queue.length).to.equal(1);
     //   });
     // });
-  }
-);
+  });

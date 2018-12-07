@@ -3,37 +3,23 @@
 /* global require */
 /* eslint-disable func-names,prefer-arrow-callback,arrow-body-style, no-param-reassign */
 
-const adblocker = require('@cliqz/adblocker');
-const tldts = require('tldts');
+const commonMocks = require('../utils/common');
+const persistenceMocks = require('../utils/persistence');
+const signalsMock = require('../utils/offers/signals');
+const VALID_OFFER_OBJ = require('../utils/offers/data').VALID_OFFER_OBJ;
+const ehMocks = require('../utils/offers/event_handler')['offers-v2/event_handler'];
 
+const EventHandlerMock = ehMocks.default;
 
-const prefRetVal = {};
 let currentTS = Date.now();
 const currentDayHour = 0;
 const currentWeekDay = 0;
 let getDetailsFromUrlReal;
-let UrlData;
 
 const mockOffer = { offer_id: 'HC1', cid: 'cid', click: 0, last_update: 20000, view: 2003 };
 const mockOfferEarlierUpdate = { offer_id: 'HC2', cid: 'cid2', click: 0, last_update: mockOffer.last_update - 100, view: 0 };
 
-
-const buildUrlData = (url, referrer) => {
-  return new UrlData(url, referrer);
-};
-
-// needed for the map
-const persistence = {};
-function delay(fn) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      Promise.resolve()
-        .then(fn)
-        .then(resolve)
-        .catch(reject);
-    }, 100);
-  });
-}
+const buildUrlData = ehMocks.buildUrlData;
 
 let buildMultiPatternIndex;
 let buildSimplePatternIndex;
@@ -41,44 +27,11 @@ let tokenizeUrl;
 
 export default describeModule('offers-v2/offers/offers-monitoring',
   () => ({
-    'platform/lib/adblocker': {
-      default: adblocker,
-    },
-    'offers-v2/signals/signals_handler': {
-      default: class {
-        constructor() {
-          this.signals = {};
-        }
-        setCampaignSignal(campaignId, offerId, originID, key) {
-          let cm = this.signals[campaignId];
-          if (cm === undefined) {
-            cm = {};
-            this.signals[campaignId] = cm;
-          }
-          cm = cm[offerId];
-          if (cm === undefined) {
-            cm = {};
-            this.signals[campaignId][offerId] = cm;
-          }
-          cm = cm[originID];
-          if (cm === undefined) {
-            cm = {};
-            this.signals[campaignId][offerId][originID] = cm;
-          }
-          cm = cm[key];
-          if (cm === undefined) {
-            this.signals[campaignId][offerId][originID][key] = 0;
-          }
-          this.signals[campaignId][offerId][originID][key] += 1;
-          return true;
-        }
-        clear() {
-          this.signals = {};
-        }
-      }
-    },
-    'core/platform': {
-      isWebExtension: false
+    ...commonMocks,
+    ...persistenceMocks,
+    ...signalsMock,
+    'core/http': {
+      default: {}
     },
     'platform/xmlhttprequest': {
       default: {}
@@ -89,13 +42,9 @@ export default describeModule('offers-v2/offers/offers-monitoring',
     'platform/gzip': {
       default: {}
     },
-    'platform/globals': {
-      default: {}
-    },
     'platform/environment': {
       default: {}
     },
-    'platform/lib/tldts': tldts,
     'offers-v2/utils': {
       timestamp: function () {},
       timestampMS: function () {
@@ -109,195 +58,19 @@ export default describeModule('offers-v2/offers/offers-monitoring',
       },
       getABNumber: function () {}
     },
-    'offers-v2/offers/offers-db': {
-      default: class {
-        // isOfferPresent: offerId => oidList.indexOf(offerId) >= 0,
-        // sendSignal: (offerId, k) => hookedFunc(offerId, k),
-        // getCampaignID: offerId => (oidList.indexOf(offerId) >= 0) ? cid : null,
-        // getCampaignOffers: c => cid === c ? new Set([oidList]) : null,
-        // getLatestUpdatedOffer: offersSet => [{ offer_id: 'offer1', campaign_id: cid }],
-        constructor() {
-          this.offers = {};
-          this.cids = {};
-          this.luo = null;
-        }
-
-        registerCallback() {}
-        unregisterCallback() {}
-
-        forceLatestUpdated(offers) {
-          this.luo = offers;
-        }
-        addOffer(obj) {
-          this.offers[obj.offer_id] = obj;
-          if (!this.cids[obj.cid]) {
-            this.cids[obj.cid] = new Set();
-          }
-          this.cids[obj.cid].add(obj.offer_id);
-        }
-        isOfferPresent(oid) {
-          return this.offers[oid];
-        }
-        getCampaignID(oid) {
-          if (!this.offers[oid]) {
-            return null;
-          }
-          return this.offers[oid].cid;
-        }
-        getCampaignOffers(cid) { return this.cids[cid]; }
-        getLatestUpdatedOffer(ofs) {
-          if (this.luo) {
-            return this.luo;
-          }
-          if (ofs.size === 0) {
-            return null;
-          }
-          // return first
-          const oid = ofs.values().next().value;
-          return [this.offers[oid]];
-        }
-        clear() {
-          this.offers = {};
-          this.cids = {};
-          this.luo = null;
-        }
-      }
-    },
-    'offers-v2/event_handler': {
-      default: class {
-        constructor() {
-          this.httpMap = new Map();
-          this.urlMap = new Map();
-        }
-        isHttpReqDomainSubscribed(cb, dom) {
-          return this.httpMap.has(dom) && this.httpMap.get(dom).has(cb);
-        }
-        subscribeHttpReq(cb, domainName) {
-          if (!this.httpMap.has(domainName)) {
-            this.httpMap.set(domainName, new Set());
-          }
-          this.httpMap.get(domainName).add(cb);
-        }
-        unsubscribeHttpReq(cb, domainName) {
-          if (this.httpMap.has(domainName)) {
-            this.httpMap.get(domainName).delete(cb);
-          }
-        }
-        subscribeUrlChange(cb, cargs = null) {
-          this.urlMap.set(cb, cargs);
-        }
-        unsubscribeUrlChange(cb) {
-          this.urlMap.delete(cb);
-        }
-
-        simUrlChange(url, ref) {
-          this.urlMap.forEach((cargs, cb) => cb(buildUrlData(url, ref), cargs));
-        }
-        simWebRequest(url, ref) {
-          // need to get domain here
-          const urlData = buildUrlData(url, ref);
-          const domain = urlData.getDomain();
-          if (this.httpMap.has(domain)) {
-            this.httpMap.get(domain).forEach(cb => cb({ url_data: urlData }));
-          }
-        }
-      }
-    },
-    'core/crypto/random': {
-      random: function () {
-        return Math.random();
-      }
-    },
-    'core/prefs': {
-      default: {
-        get: function (v, d) {
-          if (prefRetVal[v]) {
-            return prefRetVal[v];
-          }
-          return d;
-        },
-        setMockVal: function (varName, val) {
-          prefRetVal[varName] = val;
-        }
-      }
-    },
-    'core/utils': {
-      default: {}
-    },
     'core/url': {
       getDetailsFromUrl: function (url) {
         // we should extract the name here
         return getDetailsFromUrlReal(url);
       },
     },
-    'platform/console': {
-      default: {},
-    },
-    'offers-v2/common/offers_v2_logger': {
-      default: {
-        debug: () => {},
-        error: () => {},
-        info: () => {},
-        log: () => {},
-        warn: () => {},
-      }
-    },
-    'core/persistence/map': {
-      default: class MockMap {
-        constructor(dbName) {
-          persistence[dbName] = (persistence[dbName] || new Map());
-          this.db = persistence[dbName];
-        }
-
-        init() {
-          return Promise.resolve();
-        }
-
-        unload() {
-          return Promise.resolve();
-        }
-
-        get(key) {
-          return delay(() => this.db.get(key));
-        }
-
-        set(key, value) {
-          return delay(() => this.db.set(key, value));
-        }
-
-        has(key) {
-          return delay(() => this.db.has(key));
-        }
-
-        delete(key) {
-          return delay(() => this.db.delete(key));
-        }
-
-        clear() {
-          return delay(() => this.db.clear());
-        }
-
-        size() {
-          return delay(() => this.db.size());
-        }
-
-        keys() {
-          return delay(() => [...this.db.keys()]);
-        }
-
-        entries() {
-          return delay(() => [...this.db.entries()]);
-        }
-      }
-    }
   }),
   () => {
     describe('/signal operations', function () {
       let odb;
       let OfferDB;
-      let EventHandler;
       let evtHandlerMock;
-      let SignalHandler;
+      const SignalHandler = signalsMock['offers-v2/signals/signals_handler'].default;
       let sigHandlerMock;
       let OffersMonitorHandler;
       let omh;
@@ -306,7 +79,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
         function pmock() {
           return JSON.stringify(sigHandlerMock);
         }
-        let cm = sigHandlerMock.signals[cid];
+        let cm = sigHandlerMock.getAllCampaignSignals()[cid];
         chai.expect(cm, `no campaign_id found: ${cid} - ${pmock()} -- ${msg}`).to.exist;
         cm = cm[oid];
         chai.expect(cm, `no offer id found: ${oid} - ${pmock()} -- ${msg}`).to.exist;
@@ -320,7 +93,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
         function pmock() {
           return JSON.stringify(sigHandlerMock);
         }
-        let cm = sigHandlerMock.signals[cid];
+        let cm = sigHandlerMock.getAllCampaignSignals()[cid];
         cm = cm === undefined ? undefined : cm[oid];
         cm = cm === undefined ? undefined : cm[origID];
         cm = cm === undefined ? undefined : cm[key];
@@ -333,8 +106,10 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           md.type = md.type || 'urlchange';
           monitorData.push(md);
         });
-        return {
+        const mocked = {
           offer: {
+            ...VALID_OFFER_OBJ,
+            campaign_id: od.cid,
             offer_id: od.offer_id,
             monitorData,
             ui_info: od.ui_info
@@ -343,6 +118,16 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           last_update: od.last_update,
           view: od.view
         };
+        if (!mocked.offer.ui_info) {
+          mocked.offer.ui_info = {};
+        }
+        if (!mocked.offer.ui_info.template_data) {
+          mocked.offer.ui_info.template_data = {};
+        }
+        if (!mocked.offer.ui_info.template_data.validity) {
+          mocked.offer.ui_info.template_data.validity = Date.now() / 1000 + 60 * 60 * 24 * 30;
+        }
+        return mocked;
       }
 
       function simulateEvents(eList) {
@@ -358,13 +143,15 @@ export default describeModule('offers-v2/offers/offers-monitoring',
       }
 
       function checkNoSignals() {
-        chai.expect(sigHandlerMock.signals).eql({});
+        chai.expect(sigHandlerMock.getAllCampaignSignals()).eql({});
       }
 
       function buildAndAddOffer(offer, monitorData) {
-        odb.addOffer(offer);
         const mo = buildMockOffer(offer, monitorData);
         mo.ui_info = offer.ui_info;
+        odb.addOfferObject(mo.offer.offer_id, mo.offer);
+        // Install own test version of monitors instead one of OfferDB
+        omh.removeOfferMonitors(mo);
         omh.addOfferMonitors(mo);
         omh.build();
         return mo;
@@ -401,21 +188,19 @@ export default describeModule('offers-v2/offers/offers-monitoring',
       }
 
       beforeEach(function () {
+        persistenceMocks['core/persistence/map'].reset();
         OffersMonitorHandler = this.module().default;
-        OfferDB = this.deps('offers-v2/offers/offers-db').default;
-        EventHandler = this.deps('offers-v2/event_handler').default;
-        SignalHandler = this.deps('offers-v2/signals/signals_handler').default;
 
         return Promise.all([
-          this.system.import('offers-v2/common/url_data'),
           this.system.import('core/url'),
           this.system.import('offers-v2/common/pattern-utils'),
+          this.system.import('offers-v2/offers/offers-db'),
         ]).then((mods) => {
-          UrlData = mods[0].default;
-          getDetailsFromUrlReal = mods[1].getDetailsFromUrl;
-          buildMultiPatternIndex = mods[2].buildMultiPatternIndex;
-          buildSimplePatternIndex = mods[2].buildSimplePatternIndex;
-          tokenizeUrl = mods[2].default;
+          getDetailsFromUrlReal = mods[0].getDetailsFromUrl;
+          buildMultiPatternIndex = mods[1].buildMultiPatternIndex;
+          buildSimplePatternIndex = mods[1].buildSimplePatternIndex;
+          tokenizeUrl = mods[1].default;
+          OfferDB = mods[2].default;
         });
       });
 
@@ -432,9 +217,10 @@ export default describeModule('offers-v2/offers/offers-monitoring',
        */
       describe('/offers-monitoring tests', function () {
         context('/all tests', function () {
-          beforeEach(function () {
+          beforeEach(async function () {
             odb = new OfferDB();
-            evtHandlerMock = new EventHandler();
+            await ehMocks.init(this.system);
+            evtHandlerMock = new EventHandlerMock();
             sigHandlerMock = new SignalHandler();
             omh = new OffersMonitorHandler(
               sigHandlerMock,
@@ -852,10 +638,10 @@ export default describeModule('offers-v2/offers/offers-monitoring',
 
           it('/getting last active offer works', function () {
             const offers = [
-              mockOffer,
-              { offer_id: 'HC2', cid: 'cid2', last_update: mockOffer.last_update, click: mockOffer.click, view: mockOffer.view },
-              { offer_id: 'HC3', cid: 'cid3', last_update: mockOffer.last_update, click: mockOffer.click, view: mockOffer.view },
-              { offer_id: 'HC4', cid: 'cid4', last_update: mockOffer.last_update + 100, click: mockOffer.click, view: mockOffer.view },
+              { offer_id: 'HC1', cid: 'cid', last_update: Date.now() - 20, click: mockOffer.click, view: mockOffer.view },
+              { offer_id: 'HC2', cid: 'cid2', last_update: Date.now() - 20, click: mockOffer.click, view: mockOffer.view },
+              { offer_id: 'HC3', cid: 'cid3', last_update: Date.now() - 20, click: mockOffer.click, view: mockOffer.view },
+              { offer_id: 'HC4', cid: 'cid4', last_update: Date.now(), click: mockOffer.click, view: mockOffer.view },
               // { offer_id: 'HC5', cid: 'cid-2' },
             ];
             const monitors = [];
@@ -889,116 +675,6 @@ export default describeModule('offers-v2/offers/offers-monitoring',
             checkCampaignSignal(offers[3].cid, offers[3].offer_id, 'trigger', 'sig', 1);
             checkNotExistCampaignSignal(offers[3].cid, offers[3].offer_id, 'trigger', 'repeated_sig');
           });
-
-
-          // // ////////////////////////////////////////////////////////////////////
-          // // Referrer test ("referrer_cat": true)
-          // // ////////////////////////////////////////////////////////////////////
-          // //
-
-          it('/referrer_cat true -> no referrer = none cat', function () {
-            const offer = mockOffer;
-            const monitors = [{
-              signalID: 's1',
-              type: 'urlchange',
-              params: { referrer_cat: true },
-              patterns: ['||google.de']
-            }];
-            let evts = [
-              { u: 'http://www.google.de' },
-            ];
-
-            buildAndAddOffer(offer, monitors);
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'ref_none', 1);
-            sigHandlerMock.clear();
-            checkNoSignals();
-
-            evts = [
-              { u: 'http://www.google.de', r: '' },
-            ];
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'ref_none', 1);
-          });
-
-          it('/referrer_cat true -> referrer = search cat', function () {
-            const offer = mockOffer;
-            const monitors = [{
-              signalID: 's1',
-              type: 'urlchange',
-              params: { referrer_cat: true },
-              patterns: ['||google.de']
-            }];
-            let evts = [
-              { u: 'http://www.google.de', r: 'google' },
-            ];
-
-            buildAndAddOffer(offer, monitors);
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'ref_search', 1);
-            sigHandlerMock.clear();
-            checkNoSignals();
-
-            evts = [
-              { u: 'http://www.google.de', r: 'yahoo' },
-            ];
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'ref_search', 1);
-            sigHandlerMock.clear();
-            checkNoSignals();
-
-            evts = [
-              { u: 'http://www.google.de', r: 'bing' },
-            ];
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'ref_search', 1);
-            sigHandlerMock.clear();
-            checkNoSignals();
-
-            evts = [
-              { u: 'http://www.google.de', r: 'duckduckgo' },
-            ];
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'ref_search', 1);
-          });
-
-          it('/referrer_cat true -> referrer = other cat', function () {
-            const offer = mockOffer;
-            const monitors = [{
-              signalID: 's1',
-              type: 'urlchange',
-              params: { referrer_cat: true },
-              patterns: ['||google.de']
-            }];
-            let evts = [
-              { u: 'http://www.google.de', r: 'something ' },
-            ];
-
-            buildAndAddOffer(offer, monitors);
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'ref_other', 1);
-            sigHandlerMock.clear();
-            checkNoSignals();
-
-            evts = [
-              { u: 'http://www.google.de', r: 'bank' },
-            ];
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'ref_other', 1);
-            sigHandlerMock.clear();
-            checkNoSignals();
-
-            evts = [
-              { u: 'http://www.google.de', r: 'xyz' },
-            ];
-            simulateEvents(evts);
-            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'ref_other', 1);
-            sigHandlerMock.clear();
-            checkNoSignals();
-          });
-
-          // TODO add watch requests tests
-
 
           it('/remove an offer works', function () {
             const offer = mockOffer;
@@ -1052,16 +728,14 @@ export default describeModule('offers-v2/offers/offers-monitoring',
             sigHandlerMock.clear();
             omh.removeOfferMonitors(buildMockOffer(offer, monitors));
             omh.build();
-            console.log('Before', sigHandlerMock, JSON.stringify(omh.monitors));
             simulateEvents(evts);
-            console.log('After', sigHandlerMock);
             checkCampaignSignal(offer2.cid, offer2.offer_id, 'trigger', monitors2[0].signalID, 1);
             checkNotExistCampaignSignal(offer.cid, offer.offer_id, 'trigger', monitors[0].signalID);
           });
 
           it('/add signals only for the last clicked campaign', function () {
             const offer = mockOffer;
-            const offer2 = { offer_id: 'HC2', cid: 'cid2', last_update: mockOffer.last_update-100, click: mockOffer.last_update, view: mockOffer.view-100 };
+            const offer2 = { offer_id: 'HC2', cid: 'cid2', last_update: mockOffer.last_update - 100, click: mockOffer.last_update, view: mockOffer.view - 100 };
             const monitors = [{
               signalID: 's1',
               type: 'urlchange',
@@ -1325,7 +999,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           //
 
           it('/coupon: shouldActivateOfferForUrl on invalid urls works', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } }, click: null, last_update: 20000, view: 2003};
+            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } }, click: null, last_update: 20000, view: 2003 };
             const monitors = [{
               signalID: 's1',
               type: 'coupon',
@@ -1352,7 +1026,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           });
 
           it('/coupon: shouldActivateOfferForUrl on valid urls works', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } }, click: null, last_update: 20000, view: 2003};
+            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } }, click: null, last_update: 20000, view: 2003 };
             const monitors = [{
               signalID: 's1',
               type: 'coupon',
@@ -1405,11 +1079,9 @@ export default describeModule('offers-v2/offers/offers-monitoring',
             buildAndAddOffer(offer, monitors);
             buildAndAddOffer(offer2, monitors2);
             testShouldActivateOfferForUrl('http://www.google.de/activate_second',
-              { activate: true, code: 'TEST_CODE' }
-            );
+              { activate: true, code: 'TEST_CODE' });
             testShouldActivateOfferForUrl('http://www.google.de/activate_third',
-              { activate: true, code: 'TEST_CODE2' }
-            );
+              { activate: true, code: 'TEST_CODE2' });
           });
 
           it('/coupon: couponFormUsed works for proper coupon code', function () {
@@ -1428,8 +1100,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
 
             const url = 'http://www.google.de/activate_second';
             const r1 = testShouldActivateOfferForUrl(url,
-              { activate: true, code: 'TEST_CODE' }
-            );
+              { activate: true, code: 'TEST_CODE' });
             callCouponFormUsed(r1.offerInfo, 'TEST_CODE', url);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'coupon_own_used', 1);
           });
@@ -1449,8 +1120,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
             buildAndAddOffer(offer, monitors);
             const url = 'http://www.google.de/activate_second';
             const r1 = testShouldActivateOfferForUrl(url,
-              { activate: true, code: 'TEST_CODE' }
-            );
+              { activate: true, code: 'TEST_CODE' });
             callCouponFormUsed(r1.offerInfo, 'TEasdaST_CODasdaE', url);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'coupon_other_used', 1);
           });
@@ -1470,13 +1140,73 @@ export default describeModule('offers-v2/offers/offers-monitoring',
             buildAndAddOffer(offer, monitors);
             const url = 'http://www.google.de/activate_second';
             const r1 = testShouldActivateOfferForUrl(url,
-              { activate: true, code: 'TEST_CODE' }
-            );
+              { activate: true, code: 'TEST_CODE' });
+            callCouponFormUsed(r1.offerInfo, '', url);
+            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'coupon_empty', 1);
+          });
+
+          it('/coupon: should not show autofill pop up due to no recent interaction', function () {
+            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } }, click: null, last_update: 20000 };
+            offer.view = 2003;
+            const monitors = [{
+              signalID: '-',
+              type: 'coupon',
+              params: {},
+              patterns: [
+                '||google.de/activate_second',
+              ],
+              couponInfo: { autoFillField: true },
+            }
+            ];
+            buildAndAddOffer(offer, monitors);
+            const url = 'http://www.google.de/activate_second';
+            const r1 = testShouldActivateOfferForUrl(url,
+              { activate: true, code: 'TEST_CODE', autoFillField: false });
+            callCouponFormUsed(r1.offerInfo, '', url);
+            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'coupon_empty', 1);
+          });
+
+          it('/coupon: should show autofill pop up', function () {
+            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } }, click: null, last_update: 20000 };
+            offer.view = Date.now() - 1000 * 60 * 20; // Small amount of time, f.e. 20 minutes
+            const monitors = [{
+              signalID: '-',
+              type: 'coupon',
+              params: {},
+              patterns: [
+                '||google.de/activate_second',
+              ],
+              couponInfo: { autoFillField: true },
+            }
+            ];
+            buildAndAddOffer(offer, monitors);
+            const url = 'http://www.google.de/activate_second';
+            const r1 = testShouldActivateOfferForUrl(url,
+              { activate: true, code: 'TEST_CODE', autoFillField: true });
+            callCouponFormUsed(r1.offerInfo, '', url);
+            checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'coupon_empty', 1);
+          });
+
+          it('/coupon: should not show autofill pop up due to backend setting', function () {
+            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } }, click: null, last_update: 20000, view: 1543231629086 };
+            const monitors = [{
+              signalID: '-',
+              type: 'coupon',
+              params: {},
+              patterns: [
+                '||google.de/activate_second',
+              ],
+              couponInfo: { autoFillField: false },
+            }
+            ];
+            buildAndAddOffer(offer, monitors);
+            const url = 'http://www.google.de/activate_second';
+            const r1 = testShouldActivateOfferForUrl(url,
+              { activate: true, code: 'TEST_CODE', autoFillField: false });
             callCouponFormUsed(r1.offerInfo, '', url);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'coupon_empty', 1);
           });
         });
       });
     });
-  },
-);
+  });

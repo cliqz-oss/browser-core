@@ -123,7 +123,7 @@ export default class BrowserDropdown extends EventEmitter {
 
   override(url) {
     if (this._overriden) {
-      return Promise.reject('Dropdown is already overriden');
+      return Promise.reject(new Error('Dropdown is already overriden'));
     }
     const readyPromises = [];
     this._url = url;
@@ -225,6 +225,9 @@ export default class BrowserDropdown extends EventEmitter {
     // mock default FF function
     popup.enableOneOffSearches = () => {};
     popup.closePopup = () => {};
+    popup.richlistbox = {
+      children: []
+    };
     popup.oneOffSearchButtons = {
       maybeRecordTelemetry() { return false; }
     };

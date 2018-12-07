@@ -51,6 +51,10 @@ export default background({
       return this.statCounter.getTrackerSummaries(day);
     },
 
+    getAllDaysSummary() {
+      return this.statCounter.getAllDaysSummary();
+    },
+
     getTrackersOnSite(site) {
       return this.statCounter.getTrackersOnSite(site);
     },

@@ -16,6 +16,8 @@ export default [
     sendToBackend: true,
     needsGid: true,
     version: 1,
+    description: `This metric measures how much time users spend interacting with
+    terms and conditions`,
     schema: {
       required: ['duration'],
       properties: {

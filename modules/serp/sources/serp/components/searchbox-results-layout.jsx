@@ -22,7 +22,9 @@ const renderSearchboxIconBlock = searchboxIconClasses => (
   <a
     href="/"
     className={searchboxIconClasses}
-  >Home</a>
+  >
+    Home
+  </a>
 );
 
 const renderEmptyResultsBlock = () => <EmptyResultsBlock />;
@@ -146,8 +148,8 @@ export default (props = {}) => {
       className={searchboxResultsLayoutCss}
     >
       {
-        shouldDisplayLookAndFeelV3 &&
-        renderSearchboxIconBlock(searchboxIconCss)
+        shouldDisplayLookAndFeelV3
+        && renderSearchboxIconBlock(searchboxIconCss)
       }
       <div
         className={searchboxFieldLayoutCss}
@@ -158,8 +160,8 @@ export default (props = {}) => {
         data-session={session}
       >
         {
-          shouldDisplayLookAndFeelV1 &&
-          renderSearchboxIconBlock(searchboxIconCss)
+          shouldDisplayLookAndFeelV1
+          && renderSearchboxIconBlock(searchboxIconCss)
         }
         {
           renderSearchField({
@@ -196,8 +198,8 @@ export default (props = {}) => {
         }
       </div>
       {
-        shouldDisplayAlternativeEnginesAtTop &&
-        renderSearchCategoriesBlock({
+        shouldDisplayAlternativeEnginesAtTop
+        && renderSearchCategoriesBlock({
           query, dropdownCss, session,
         })
       }
@@ -208,8 +210,8 @@ export default (props = {}) => {
         {resultsBlock}
       </div>
       {
-        !shouldDisplayAlternativeEnginesAtTop &&
-        renderSearchCategoriesBlock({
+        !shouldDisplayAlternativeEnginesAtTop
+        && renderSearchCategoriesBlock({
           query, dropdownCss, session
         })
       }

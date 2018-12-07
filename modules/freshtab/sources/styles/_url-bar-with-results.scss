@@ -8,7 +8,7 @@
     $search-input-height,
     $search-font-size,
     $search-text-indent,
-    $search-settings-btn-top,
+    $search-reminder-indent,
 
     $search-input-box-shadow,
     $search-input-border,
@@ -18,9 +18,11 @@
     $search-input-ghostery-bg-image
 ) {
     $width: $inner-content-width;
+
     #section-url-bar {
         position: relative;
     }
+
     .with-results {
         position: relative;
         z-index: 15;
@@ -34,6 +36,66 @@
             }
         }
     }
+
+    .search-reminder {
+        width: $inner-content-width;
+        margin: 0 auto;
+        text-align: left;
+        height: calc(#{$search-input-height} * 1.5);
+        padding-bottom: 12px;
+        display: flex;
+        justify-content: flex-end;
+        flex-direction: column;
+
+        & > span {
+            padding: 5px 9px 7px 15px;
+            background-color: #00AEF0;
+            color: #fff;
+            border-radius: 4px;
+            position: relative;
+            align-self: flex-start;
+
+            & > span:first-child {
+                padding-right: 36px;
+                background-repeat: no-repeat;
+                background-position: right center;
+                background-size: contain;
+                background-image: url("../images/tab.svg");
+                font-size: 13px;
+
+                em {
+                    font-weight: 600;
+                    font-style: normal;
+                }
+            }
+
+            &:after {
+                border-style: solid;
+                border-width: 10px 10px;
+                content: "";
+                height: 0;
+                left: $search-reminder-indent;
+                bottom: -18px;
+                position: absolute;
+                border-color: #00AEF0 transparent transparent;
+            }
+
+            @include cliqzCloseBtn(15px, 2px);
+
+            .cliqz-close-btn {
+                height: 12px;
+                display: none;
+            }
+
+            &:hover {
+                .cliqz-close-btn {
+                    display: inline-block;
+                    margin-left: 10px;
+                }
+            }
+        }
+    }
+
     .inner-container {
         width: $inner-content-width;
         margin: 0 auto;
@@ -59,19 +121,24 @@
             }
         }
     }
+
     .search-settings-btn {
         position: absolute;
-        right: 10px;
-        top: $search-settings-btn-top;
-        background: url("../images/search-setting-icon.svg") no-repeat;
-        width: 21px;
-        height: 17px;
+        right: 0;
+        top: -#{$search-input-height};
+        background-image: url("../images/search-setting-icon.svg");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: auto 36%;
+        background-color: transparent;
+        width: $search-input-height;
+        height: $search-input-height;
         border: 0;
         z-index: 15;
         cursor: pointer;
 
         &:active, &:hover, &.active {
-            background: url("../images/search-setting-click.svg") no-repeat;
+            background-image: url("../images/search-setting-click.svg");
         }
     }
 

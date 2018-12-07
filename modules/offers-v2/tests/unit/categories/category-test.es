@@ -1,62 +1,18 @@
 /* global chai */
 /* global describeModule */
 /* global require */
+const commonMocks = require('../utils/common');
 
+const timeMock = commonMocks['core/time'];
 
-let mockedTS = Date.now();
 let CATEGORY_LIFE_TIME_SECS;
 
 export default describeModule('offers-v2/categories/category',
   () => ({
-    'offers-v2/common/offers_v2_logger': {
-      default: {
-        debug: (x) => { console.log(x); },
-        error: (x) => { console.log(x); },
-        info: (x) => { console.log(x); },
-        log: (x) => { console.log(x); },
-        warn: (x) => { console.log(x); },
-        logObject: (x) => { console.log(x); },
-      }
-    },
-    'core/platform': {
-      isChromium: false
-    },
-    'core/utils': {
-      default: {
-      },
-    },
-    'platform/globals': {
-    },
-    'platform/crypto': {
-      default: {}
-    },
-    'core/crypto/random': {
-    },
-    'platform/console': {
-      default: {}
-    },
-    'core/prefs': {
-      default: {
-        get: function (x, y) {
-          return y;
-        }
-      }
-    },
-    'core/time': {
-      getDaysFromTimeRange: function () {},
-      // getDateFromDateKey: function (dateKey, hours = 0, min = 0, seconds = 0) {
-      //   return getDateFromDateKeyResult;
-      // },
-      timestamp: function () {
-        return mockedTS;
-      },
-      getTodayDayKey: function () {
-        return mockedTS / (1000 * 60 * 60 * 24);
-      }
-    },
+    ...commonMocks,
     'offers-v2/utils': {
       timestampMS: function () {
-        return mockedTS;
+        return timeMock.timestamp();
       },
     },
   }),
@@ -121,8 +77,8 @@ export default describeModule('offers-v2/categories/category',
           chai.expect(c1.getLastMatchTs()).eql(null);
           chai.expect(c1.getFirstMatchTs()).eql(null);
           c1.hit();
-          chai.expect(c1.getLastMatchTs()).eql(mockedTS);
-          chai.expect(c1.getFirstMatchTs()).eql(mockedTS);
+          chai.expect(c1.getLastMatchTs()).eql(timeMock.getMockedTS());
+          chai.expect(c1.getFirstMatchTs()).eql(timeMock.getMockedTS());
           chai.expect(c1.getTotalMatches()).eql(1);
           chai.expect(c1.countDaysWithMatches()).eql(1);
         });
@@ -132,10 +88,10 @@ export default describeModule('offers-v2/categories/category',
           chai.expect(c1.getLastMatchTs()).eql(null);
           chai.expect(c1.getFirstMatchTs()).eql(null);
           c1.hit();
-          const lastMockedTS = mockedTS;
-          mockedTS += 25 * 60 * 60 * 1000;
+          const lastMockedTS = timeMock.getMockedTS();
+          timeMock.setMockedTS(timeMock.getMockedTS() + 25 * 60 * 60 * 1000);
           c1.hit();
-          chai.expect(c1.getLastMatchTs()).eql(mockedTS);
+          chai.expect(c1.getLastMatchTs()).eql(timeMock.getMockedTS());
           chai.expect(c1.getFirstMatchTs()).eql(lastMockedTS);
           chai.expect(c1.getTotalMatches()).eql(2);
           chai.expect(c1.countDaysWithMatches()).eql(2);
@@ -144,16 +100,17 @@ export default describeModule('offers-v2/categories/category',
         it('/isObsolete works', function () {
           const c1 = new Category('test', ['p1', 'p2'], 1, 10);
           chai.expect(c1.isObsolete()).eql(false);
-          mockedTS += 9 * 1000;
+          timeMock.setMockedTS(timeMock.getMockedTS() + 9 * 1000);
           chai.expect(c1.isObsolete()).eql(false);
-          mockedTS += (2 * 1000) + (CATEGORY_LIFE_TIME_SECS * 1000);
+          timeMock.setMockedTS(timeMock.getMockedTS()
+            + (2 * 1000) + (CATEGORY_LIFE_TIME_SECS * 1000));
           chai.expect(c1.isObsolete()).eql(true);
           c1.hit();
           chai.expect(c1.isObsolete()).eql(false);
-          mockedTS += (11 * 1000) + (CATEGORY_LIFE_TIME_SECS * 1000);
+          timeMock.setMockedTS(timeMock.getMockedTS()
+            + (1 * 1000) + (CATEGORY_LIFE_TIME_SECS * 1000));
           chai.expect(c1.isObsolete(), 'should be obsolete').eql(true);
         });
       });
     });
-  }
-);
+  });

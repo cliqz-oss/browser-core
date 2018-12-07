@@ -14,30 +14,39 @@ class CategoryNode {
     this.category = category;
     this.children = new Map();
   }
+
   setCategory(cat) {
     this.category = cat;
   }
+
   hasCategory() {
     return !!this.category;
   }
+
   getCategory() {
     return this.category;
   }
+
   getName() {
     return this.name;
   }
+
   addChild(cnode) {
     this.children.set(cnode.name, cnode);
   }
+
   removeChild(name) {
     this.children.delete(name);
   }
+
   hasChildName(cnodeName) {
     return this.children.has(cnodeName);
   }
+
   getChild(cname) {
     return this.children.get(cname);
   }
+
   getChildren() {
     return [...this.children.values()];
   }

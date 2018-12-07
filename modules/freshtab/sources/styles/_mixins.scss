@@ -4,3 +4,43 @@
   -webkit-hyphens: auto;
   hyphens: auto;
 }
+
+@mixin cliqzCloseBtn($width, $thickness) {
+
+    .cliqz-close-btn {
+        position: relative;
+        display: inline-block;
+        height: $width;
+        width: $width;
+        cursor: pointer;
+
+        &:before, &:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: $thickness;
+            background-color: #fff;
+            opacity: 0.55;
+        }
+
+        &:before {
+            -webkit-transform: rotate(45deg);
+            -moz-transform:    rotate(45deg);
+            transform:         rotate(45deg);
+        }
+
+        &:after {
+            -webkit-transform: rotate(-45deg);
+            -moz-transform:    rotate(-45deg);
+            transform:         rotate(-45deg);
+        }
+
+        &:hover {
+            &:before, &:after {
+                opacity: 1;
+            }
+        }
+    }
+}

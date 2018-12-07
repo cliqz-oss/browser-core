@@ -110,5 +110,4 @@ export default describeModule('core/events',
         });
       });
     });
-  }
-);
+  });

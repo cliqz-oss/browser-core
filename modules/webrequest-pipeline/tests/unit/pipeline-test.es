@@ -23,10 +23,14 @@ export default describeModule('webrequest-pipeline/pipeline',
         warning() {},
       },
     },
-    'core/services/telemetry': {
+    'core/kord/inject': {
       default: {
-        push: () => {},
-        isEnabled: () => true,
+        service() {
+          return {
+            push: () => {},
+            isEnabled: () => true,
+          };
+        },
       },
     },
     'core/helpers/timeout': {
@@ -229,5 +233,4 @@ export default describeModule('webrequest-pipeline/pipeline',
         chai.expect(response.beforeError).to.eql(1);
       });
     });
-  }
-);
+  });

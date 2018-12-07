@@ -3,4 +3,11 @@
 </header>
 <h2 data-i18n="why_see_these_offers"></h2>
 <p data-i18n="why_offers_text"></p>
-<a href="https://cliqz.com/cliqz-angebote" target="_blank" data-i18n="attrack_help"></a>
+<a
+{{#if @root.isWebExtension}}
+href="https://myoffrz.com/fuer-nutzer"
+{{else}}
+href="https://cliqz.com/cliqz-angebote"
+{{/if}}
+target="_blank"
+data-i18n="attrack_help"></a>

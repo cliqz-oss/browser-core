@@ -1,5 +1,6 @@
 import background from '../core/base/background';
 import Bridge from './native-bridge';
+import { load as loadMathjs } from '../platform/lib/mathjs';
 
 /**
   @namespace cliqz-android
@@ -11,9 +12,21 @@ export default background({
     @method init
     @param settings
   */
-  init() {
+  async init() {
     this.bridge = new Bridge();
-    return this.bridge.init();
+    await this.bridge.init();
+
+    window.requestIdleCallback(async () => {
+      const idle = performance.now();
+
+      await loadMathjs();
+
+      const libsLoaded = performance.now();
+      this.bridge.callAndroidAction('idle', {
+        idle,
+        libsLoaded,
+      });
+    });
   },
 
   unload() {

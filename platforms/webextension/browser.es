@@ -84,14 +84,14 @@ export function getUrlForTab(tabId) {
 export function getActiveTab() {
   return new Promise((resolve, reject) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (result) => {
-      const tab = result[0];
-      if (tab) {
+      if (result && result[0]) {
+        const tab = result[0];
         resolve({
           id: tab.id,
           url: tab.url,
         });
       } else {
-        reject('Result of query for active tab is undefined');
+        reject(new Error('Result of query for active tab is undefined'));
       }
     });
   });
@@ -108,9 +108,9 @@ export function getCookies(url) {
     chrome.cookies.getAll(query, (cookies) => {
       // check for firstPartyDomain error. This indicates that first party isolation is enabled.
       // we need to set a firstPartyDomain option on cookie api calls.
-      if (chrome.runtime.lastError &&
-          chrome.runtime.lastError.message &&
-          chrome.runtime.lastError.message.indexOf('firstPartyDomain') > -1) {
+      if (chrome.runtime.lastError
+          && chrome.runtime.lastError.message
+          && chrome.runtime.lastError.message.indexOf('firstPartyDomain') > -1) {
         firstPartyIsolationEnabled = !firstPartyIsolationEnabled;
         resolve(getCookies(url));
       } else {
@@ -127,5 +127,5 @@ export function disableChangeEvents() {}
 export function resetOriginalPrefs() {}
 
 export function getThemeStyle() {
-  return 'light';
+  return 'default';
 }

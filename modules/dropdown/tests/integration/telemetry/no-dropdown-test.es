@@ -4,10 +4,11 @@ import {
   expect,
   testsEnabled,
   fillIn,
+  mockSearch,
   press,
-  respondWith,
   waitFor,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 import { results } from '../../../core/integration/fixtures/resultsTwoSimpleWithoutAutocomplete';
 
 export default function () {
@@ -31,7 +32,7 @@ export default function () {
     let resultSignalCount;
     let urlClicked;
 
-    beforeEach(function () {
+    beforeEach(async function () {
       urlClicked = false;
 
       blurUrlBar();
@@ -49,7 +50,7 @@ export default function () {
       };
 
       withHistory([]);
-      respondWith({ results });
+      await mockSearch({ results });
       fillIn('qws');
     });
 

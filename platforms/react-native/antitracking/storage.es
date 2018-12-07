@@ -1,6 +1,6 @@
 import { AsyncStorage } from 'react-native';
 
-const PREFIX = "@cliqzstorage:";
+const PREFIX = '@cliqzstorage:';
 
 export default {
 

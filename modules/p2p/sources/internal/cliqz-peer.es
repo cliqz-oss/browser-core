@@ -65,8 +65,9 @@ export default class CliqzPeer {
     const _options = options || {};
     this.window = window;
     this.RTCSessionDescription = window.RTCSessionDescription || window.mozRTCSessionDescription;
-    this.RTCPeerConnection =
-      window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
+    this.RTCPeerConnection = window.RTCPeerConnection
+      || window.mozRTCPeerConnection
+      || window.webkitRTCPeerConnection;
     this.RTCIceCandidate = window.RTCIceCandidate || window.mozRTCIceCandidate;
     this.WebSocket = window.WebSocket;
 
@@ -118,8 +119,9 @@ export default class CliqzPeer {
       ],
     };
     this.maxReconnections = has(_options, 'maxReconnections') ? _options.maxReconnections : 0;
-    this.maxSocketConnectionTime = has(_options, 'maxSocketConnectionTime') ?
-      _options.maxSocketConnectionTime : 5;
+    this.maxSocketConnectionTime = has(_options, 'maxSocketConnectionTime')
+      ? _options.maxSocketConnectionTime
+      : 5;
     this.lastSocketTime = 0;
     this.pingInterval = Math.round(has(_options, 'pingInterval') ? _options.pingInterval : 0);
     this.maxMessageRetries = has(_options, 'maxMessageRetries') ? _options.maxMessageRetries : 0;
@@ -279,8 +281,8 @@ export default class CliqzPeer {
       this.log('Dropping signaling message from peer not in whitelist:', from);
       return;
     }
-    const pr = this.decryptSignaling ?
-      this.decryptSignaling(_message, from) : Promise.resolve(_message);
+    const pr = this.decryptSignaling
+      ? this.decryptSignaling(_message, from) : Promise.resolve(_message);
     pr.then((message) => {
       const type = message.type;
       if (type === 'ice') { // Receive ICE candidates
@@ -667,7 +669,7 @@ export default class CliqzPeer {
       return Promise.reject(new Error('CliqzPeer is closed'));
     }
     if (msg === undefined) {
-      return Promise.reject('undefined is not a valid message: use null instead');
+      return Promise.reject(new Error('undefined is not a valid message: use null instead'));
     }
     this.stats.outtotalmsgs += 1;
     return this.connectPeer(peer)
@@ -770,11 +772,13 @@ export default class CliqzPeer {
         try {
           connection.getCandidatesInfo()
             .then((x) => {
-              this.stats.localcandidatedist[x.localCandidateType] =
-                (this.stats.localcandidatedist[x.localCandidateType] || 0) + 1;
+              this.stats.localcandidatedist[x.localCandidateType] = (
+                this.stats.localcandidatedist[x.localCandidateType] || 0
+              ) + 1;
 
-              this.stats.remotecandidatedist[x.remoteCandidateType] =
-                (this.stats.remotecandidatedist[x.remoteCandidateType] || 0) + 1;
+              this.stats.remotecandidatedist[x.remoteCandidateType] = (
+                this.stats.remotecandidatedist[x.remoteCandidateType] || 0
+              ) + 1;
             })
             .catch(() => {
               this.log('Could not retrieve candidates info');
@@ -988,8 +992,8 @@ export default class CliqzPeer {
       }
 
       if (
-        this.lastSocketTime &&
-        (Date.now() - this.lastSocketTime) / 1000 >= this.maxSocketConnectionTime
+        this.lastSocketTime
+        && (Date.now() - this.lastSocketTime) / 1000 >= this.maxSocketConnectionTime
       ) {
         this.lastSocketTime = Date.now();
         // Reject promises if we have been trying to connect for too long, but keep trying...

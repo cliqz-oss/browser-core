@@ -3,101 +3,19 @@
 /* global require */
 /* eslint no-param-reassign: off */
 
-const adblocker = require('@cliqz/adblocker');
-const tldts = require('tldts');
-
-
-const VALID_OFFER_OBJ = {
-  action_info: {
-    on_click: 'https://www.cliqz.com'
-  },
-  campaign_id: 'cid_1',
-  client_id: 'client-1',
-  display_id: 'x-d',
-  filterRules: {
-    eval_expression: "generic_comparator('offer_closed','l_u_ts','>=',30) && " +
-                 "generic_comparator('offer_shown','counter','<=',5)",
-  },
-  offer_id: 'x',
-  rule_info: {
-    display_time_secs: 999999,
-    type: 'exact_match',
-    url: []
-  },
-  ui_info: {
-    template_data: {
-      call_to_action: {
-        target: '',
-        text: 'Jetzt Anfordern',
-        url: 'http://newurl'
-      },
-      conditions: 'Some conditions',
-      desc: 'Some description',
-      logo_url: 'somelogourl',
-      title: 'This is the title',
-      voucher_classes: ''
-    },
-    template_name: 'ticket_template'
-  },
-  rs_dest: ['offers-cc'],
-  types: ['type1', 'type2'],
-  monitorData: [],
-  categories: ['cat1'],
-};
+const jspe = require('jsep');
+const commonMocks = require('../utils/common');
+const persistenceMocks = require('../utils/persistence');
+const VALID_OFFER_OBJ = require('../utils/offers/data').VALID_OFFER_OBJ;
 
 const ABTestNumber = 0;
 
-// needed for the map
-const persistence = {};
-function delay(fn) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      Promise.resolve()
-        .then(fn)
-        .then(resolve)
-        .catch(reject);
-    }, 100);
-  });
-}
-
-const jspe = require('jsep');
-
 export default describeModule('offers-v2/offers/soft-filter',
   () => ({
-    'platform/lib/adblocker': {
-      default: adblocker,
-    },
-    'offers-v2/common/offers_v2_logger': {
-      default: {
-        debug: () => {},
-        error: () => {},
-        info: () => {},
-        log: () => {},
-        warn: () => {},
-      }
-    },
-    'core/platform': {
-      isWebExtension: false
-    },
+    ...commonMocks,
+    ...persistenceMocks,
     'platform/lib/jsep': {
       default: jspe,
-    },
-    'platform/lib/tldts': tldts,
-    'core/utils': {
-      default: {}
-    },
-    'platform/globals': {
-      default: {}
-    },
-    'core/crypto/random': {
-    },
-    'platform/console': {
-      default: {}
-    },
-    'core/prefs': {
-      default: {
-        get() {}
-      },
     },
     'offers-v2/utils': {
       getABNumber: function () {
@@ -114,54 +32,6 @@ export default describeModule('offers-v2/offers/soft-filter',
         }
       },
     },
-    'core/persistence/map': {
-      default: class MockMap {
-        constructor(dbName) {
-          persistence[dbName] = (persistence[dbName] || new Map());
-          this.db = persistence[dbName];
-        }
-
-        init() {
-          return Promise.resolve();
-        }
-
-        unload() {
-          return Promise.resolve();
-        }
-
-        get(key) {
-          return delay(() => this.db.get(key));
-        }
-
-        set(key, value) {
-          return delay(() => this.db.set(key, value));
-        }
-
-        has(key) {
-          return delay(() => this.db.has(key));
-        }
-
-        delete(key) {
-          return delay(() => this.db.delete(key));
-        }
-
-        clear() {
-          return delay(() => this.db.clear());
-        }
-
-        size() {
-          return delay(() => this.db.size());
-        }
-
-        keys() {
-          return delay(() => [...this.db.keys()]);
-        }
-
-        entries() {
-          return delay(() => [...this.db.entries()]);
-        }
-      }
-    }
   }),
   () => {
     describe('#soft-filter', function () {
@@ -328,8 +198,8 @@ export default describeModule('offers-v2/offers/soft-filter',
         });
 
         it('/shouldFilterOffer checking multiple rules with &&', function () {
-          let rules = "generic_comparator('offer_closed','l_u_ts','>=',0) && " +
-                             "generic_comparator('offer_shown','counter','<=',1)";
+          let rules = "generic_comparator('offer_closed','l_u_ts','>=',0) && "
+                             + "generic_comparator('offer_shown','counter','<=',1)";
           offer = buildOffer(rules);
 
           chai.expect(db.addOfferObject(offer.uniqueID, offerObj)).to.be.equal(true);
@@ -352,19 +222,19 @@ export default describeModule('offers-v2/offers/soft-filter',
             .to.be.equal(2);
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(true);
           // not shown more than 2, should pass again
-          rules = "generic_comparator('offer_closed','l_u_ts','>=',0) && " +
-                                  "generic_comparator('offer_shown','counter','<=',2)";
+          rules = "generic_comparator('offer_closed','l_u_ts','>=',0) && "
+                                  + "generic_comparator('offer_shown','counter','<=',2)";
           offer = buildOffer(rules);
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(false);
           // not shown more than 2 AND not updated 99999 sec ago, shouldn't pass
-          rules = "generic_comparator('offer_closed','l_u_ts','>=',99999) && " +
-                                  "generic_comparator('offer_shown','counter','<=',2)";
+          rules = "generic_comparator('offer_closed','l_u_ts','>=',99999) && "
+                                  + "generic_comparator('offer_shown','counter','<=',2)";
           offer = buildOffer(rules);
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(true);
           // adding extra rule and last update back to 0 ago, should pass
-          rules = "generic_comparator('offer_closed','l_u_ts','>=',0) && " +
-                                  "generic_comparator('offer_shown','counter','<=',2) && " +
-                                  "generic_comparator('offer_closed','counter','<=',1)";
+          rules = "generic_comparator('offer_closed','l_u_ts','>=',0) && "
+                                  + "generic_comparator('offer_shown','counter','<=',2) && "
+                                  + "generic_comparator('offer_closed','counter','<=',1)";
           offer = buildOffer(rules);
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(false);
           // adding offer_closed, should not pass
@@ -376,8 +246,8 @@ export default describeModule('offers-v2/offers/soft-filter',
         });
 
         it('/shouldFilterOffer checking multiple rules with ||', function () {
-          let rules = "generic_comparator('offer_closed','l_u_ts','>=',0) || " +
-                             "generic_comparator('offer_shown','counter','<=',1)";
+          let rules = "generic_comparator('offer_closed','l_u_ts','>=',0) || "
+                             + "generic_comparator('offer_shown','counter','<=',1)";
           offer = buildOffer(rules);
 
           chai.expect(db.addOfferObject(offer.uniqueID, offerObj)).to.be.equal(true);
@@ -400,19 +270,19 @@ export default describeModule('offers-v2/offers/soft-filter',
             .to.be.equal(2);
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(false);
           // updated more than 99999 sec ago, shouldn't pass now
-          rules = "generic_comparator('offer_closed','l_u_ts','>=',99999) || " +
-                                  "generic_comparator('offer_shown','counter','<=',1)";
+          rules = "generic_comparator('offer_closed','l_u_ts','>=',99999) || "
+                                  + "generic_comparator('offer_shown','counter','<=',1)";
           offer = buildOffer(rules);
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(true);
           // not shown more than 2 OR not updated 99999 sec ago, should pass again
-          rules = "generic_comparator('offer_closed','l_u_ts','>=',99999) || " +
-                                  "generic_comparator('offer_shown','counter','<=',2)";
+          rules = "generic_comparator('offer_closed','l_u_ts','>=',99999) || "
+                                  + "generic_comparator('offer_shown','counter','<=',2)";
           offer = buildOffer(rules);
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(false);
           // adding extra rule and reseting offer_shown <= 1, should pass
-          rules = "generic_comparator('offer_closed','l_u_ts','>=',99999) || " +
-                                  "generic_comparator('offer_shown','counter','<=',1) || " +
-                                  "generic_comparator('offer_closed','counter','<=',1)";
+          rules = "generic_comparator('offer_closed','l_u_ts','>=',99999) || "
+                                  + "generic_comparator('offer_shown','counter','<=',1) || "
+                                  + "generic_comparator('offer_closed','counter','<=',1)";
           offer = buildOffer(rules);
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(false);
           // adding offer_closed, shouldn't pass
@@ -424,9 +294,9 @@ export default describeModule('offers-v2/offers/soft-filter',
         });
 
         it('/shouldFilterOffer checking multiple rules with || and &&', function () {
-          let rules = "generic_comparator('offer_closed','l_u_ts','>=',0) && " +
-                             "generic_comparator('offer_shown','counter','<=',0) || " +
-                             "generic_comparator('offer_closed','counter','<=',0)";
+          let rules = "generic_comparator('offer_closed','l_u_ts','>=',0) && "
+                             + "generic_comparator('offer_shown','counter','<=',0) || "
+                             + "generic_comparator('offer_closed','counter','<=',0)";
 
           offer = buildOffer(rules);
           chai.expect(db.addOfferObject(offer.uniqueID, offerObj)).to.be.equal(true);
@@ -447,15 +317,15 @@ export default describeModule('offers-v2/offers/soft-filter',
             .to.be.equal(1);
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(true);
           // setting offer_shown < 2, should pass again
-          rules = "generic_comparator('offer_closed','l_u_ts','>=',0) && " +
-                                  "generic_comparator('offer_shown','counter','<=',1) || " +
-                                  "generic_comparator('offer_closed','counter','<=',0)";
+          rules = "generic_comparator('offer_closed','l_u_ts','>=',0) && "
+                                  + "generic_comparator('offer_shown','counter','<=',1) || "
+                                  + "generic_comparator('offer_closed','counter','<=',0)";
           offer = buildOffer(rules);
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(false);
           // updated more than 99999 sec ago and shown < 3, shouldn't pass now
-          rules = "generic_comparator('offer_closed','l_u_ts','>=',99999) && " +
-                                  "generic_comparator('offer_shown','counter','<=',1) || " +
-                                  "generic_comparator('offer_closed','counter','<=',0)";
+          rules = "generic_comparator('offer_closed','l_u_ts','>=',99999) && "
+                                  + "generic_comparator('offer_shown','counter','<=',1) || "
+                                  + "generic_comparator('offer_closed','counter','<=',0)";
           offer = buildOffer(rules);
           chai.expect(shouldFilterOffer(offer, db)).to.be.equal(true);
         });
@@ -501,5 +371,4 @@ export default describeModule('offers-v2/offers/soft-filter',
         });
       });
     });
-  }
-);
+  });

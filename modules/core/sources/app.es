@@ -16,6 +16,7 @@ import { Window, mapWindows, forEachWindow, addWindowObserver,
 import Defer from './helpers/defer';
 import { getChannel } from '../platform/demographics';
 import { isOnionMode } from './platform';
+import createSettings from './settings';
 
 export function shouldEnableModule(name) {
   const pref = `modules.${name}.enabled`;
@@ -46,6 +47,7 @@ export default class App {
    * @param {object} config
    */
   constructor({ version, debug } = {}) {
+    this.settings = createSettings(config.settings, { version });
     this.isFullyLoaded = false;
 
     /**
@@ -77,7 +79,7 @@ export default class App {
     config.modules.forEach((moduleName) => {
       const module = new Module(
         moduleName,
-        Object.assign({}, config.settings, { version })
+        this.settings,
       );
       if (isOnionMode && !module.isOnionReady) {
         return;
@@ -194,13 +196,11 @@ export default class App {
    */
   async start() {
     this.isRunning = true;
-    if (!config.settings.channel) { // mobile
-      // for mobile, channel is set by native browser builds
-      // so we need to override the config settings
-      // TODO: get rid of all config.settings.channel dependencies
-      // and use one source of channel
-      config.settings.channel = await getChannel();
+
+    if (!this.settings.channel) {
+      this.settings.channel = await getChannel();
     }
+
     addMigrationObserver(this.onMigrationEnded);
     return this.setupPrefs().then(() =>
       this.load().then(() => {
@@ -228,8 +228,7 @@ export default class App {
         };
 
         addSessionRestoreObserver(this.sessionRestoreObserver);
-      })
-    );
+      }));
   }
 
   /**
@@ -265,7 +264,7 @@ export default class App {
      *
      */
 
-    if (disable && config.settings.channel === '40') {
+    if (disable && this.settings.channel === '40') {
       // in the Cliqz browser the extension runns as a system addon and
       // the user cannot disable or uninstall it. Therefore we do not need
       // to consider an uninstall signal.

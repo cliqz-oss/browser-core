@@ -10,7 +10,8 @@ import {
   urlbar,
   waitFor,
   waitForPopup,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 import expectSelection from './common';
 import { results, friendlyUrl } from '../../../core/integration/fixtures/resultsTwoSimple';
 
@@ -30,9 +31,9 @@ export default function () {
       await mockSearch({ results });
       fillIn(query);
       await waitForPopup();
-      await waitFor(() => $cliqzResults.querySelector(result1Selector) &&
-        $cliqzResults.querySelector(result2Selector) &&
-        urlbar.mInputField.value === friendlyUrl[results[0].url]);
+      await waitFor(() => $cliqzResults.querySelector(result1Selector)
+        && $cliqzResults.querySelector(result2Selector)
+        && urlbar.mInputField.value === friendlyUrl[results[0].url]);
       $result1Element = $cliqzResults.querySelector(result1Selector);
       $result2Element = $cliqzResults.querySelector(result2Selector);
     });

@@ -38,9 +38,13 @@ export default describeModule('firefox-specific/background',
           },
         },
       },
-      '../core/services/telemetry': {
+      '../core/kord/inject': {
         default: {
-          push: () => null,
+          service() {
+            return {
+              push: () => null,
+            };
+          },
         },
       },
       '../core/search-engines': {
@@ -119,5 +123,4 @@ export default describeModule('firefox-specific/background',
         );
       });
     });
-  }
-);
+  });

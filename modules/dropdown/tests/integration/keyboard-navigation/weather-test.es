@@ -8,7 +8,8 @@ import {
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 import expectSelection from './common';
 import { weatherResults } from '../../../core/integration/fixtures/resultsWeather';
 
@@ -29,9 +30,9 @@ export default function () {
       await mockSearch({ results: weatherResults });
       fillIn(query);
       await waitForPopup();
-      await waitFor(() => $cliqzResults.querySelector(searchWithSelector) &&
-        $cliqzResults.querySelector(resultSelector) &&
-        $cliqzResults.querySelector(weatherSelector));
+      await waitFor(() => $cliqzResults.querySelector(searchWithSelector)
+        && $cliqzResults.querySelector(resultSelector)
+        && $cliqzResults.querySelector(weatherSelector));
       $searchWithElement = $cliqzResults.querySelector(searchWithSelector);
       $resultElement = $cliqzResults.querySelector(resultSelector);
     });

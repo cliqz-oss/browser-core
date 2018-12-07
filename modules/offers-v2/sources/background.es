@@ -1,17 +1,22 @@
 /* eslint object-curly-spacing: off */
 
+/**
+ * @module offers-v2
+ * @main offers-v2
+ */
+
 import logger from './common/offers_v2_logger';
 import inject from '../core/kord/inject';
 import { isWebExtension } from '../core/platform';
+import utils from '../core/utils';
 import { getGeneralDomain, extractHostname } from '../core/tlds';
 import prefs from '../core/prefs';
 import config from '../core/config';
 import background from '../core/base/background';
-import telemetry from '../core/services/telemetry';
 import OffersConfigs from './offers_configs';
 import EventHandler from './event_handler';
 import SignalHandler from './signals/signals_handler';
-import Database from '../core/database';
+import Database from '../core/database-migrate';
 import TriggerMachineExecutor from './trigger_machine/trigger_machine_executor';
 import FeatureHandler from './features/feature-handler';
 import IntentHandler from './intent/intent-handler';
@@ -25,24 +30,29 @@ import UrlData from './common/url_data';
 import ActionID from './offers/actions-defs';
 import {oncePerInterval} from './utils';
 import md5 from '../core/helpers/md5';
+import OfferDB from './offers/offers-db';
+import PatternsStat from './patterns_stat';
 
 // /////////////////////////////////////////////////////////////////////////////
 // consts
 const POPUPS_INTERVAL = 30 * 60 * 1000; // 30 minutes
+const PRINT_ONBOARDING = 'print_onboarding';
 
 // If the offers are toggled on/off, the real estate modules should
 // be activated or deactivated.
 // The module "freshtab" has more responsibility than showing offers
 // and should not be touched from offers-v2.
 function touchManagedRealEstateModules(isEnabled) {
-  const managedRealEstateModules = [
-    'offers-cc',
-    isWebExtension ? 'offers-banner' : 'browser-panel'
-  ];
+  const managedRealEstateModules = isWebExtension
+    ? ['offers-banner']
+    : ['offers-cc', 'browser-panel'];
   managedRealEstateModules.forEach(moduleName =>
     prefs.set(`modules.${moduleName}.enabled`, isEnabled));
 }
 
+/**
+ * @class Background
+ */
 export default background({
   // to be able to read the config prefs
   requiresServices: ['cliqz-config', 'telemetry'],
@@ -78,8 +88,10 @@ export default background({
       return Promise.resolve();
     }
 
-    this._publishPopupPushEventCached =
-      oncePerInterval(this._publishPopupPushEvent, POPUPS_INTERVAL);
+    this._publishPopupPushEventCached = oncePerInterval(
+      this._publishPopupPushEvent,
+      POPUPS_INTERVAL
+    );
 
     // check if we need to set dev flags or not
     // extensions.cliqz.offersDevFlag
@@ -112,13 +124,13 @@ export default background({
       dev_flag: ${prefs.get('offersDevFlag', false)}
       triggersBE: ${OffersConfigs.BACKEND_URL}
       offersTelemetryFreq: ${OffersConfigs.SIGNALS_OFFERS_FREQ_SECS}
-      '------------------------------------------------------------------------\n`
-    );
+      '------------------------------------------------------------------------\n`);
 
     this.purchaseCache = new Set();
     // create the DB to be used over all offers module
     this.db = new Database('cliqz-offers');
-
+    await this.db.init();
+    this.offersDB = new OfferDB(this.db);
     // the backend connector
     this.backendConnector = new BEConnector();
 
@@ -128,8 +140,18 @@ export default background({
     this.onUrlChange = this.onUrlChange.bind(this);
     this.eventHandler.subscribeUrlChange(this.onUrlChange);
 
-    // for the new ui system
-    this.signalsHandler = new SignalHandler(this.db);
+    // campaign signals with match patterns
+    this.patternsStat = new PatternsStat(
+      offerID => this.offersDB.getReasonForHaving(offerID)
+    );
+    this.patternsStat.init();
+
+    // campaign signals
+    this.signalsHandler = new SignalHandler(
+      this.db,
+      null, /* sender mock */
+      this.patternsStat
+    );
     await this.signalsHandler.init();
 
     // init the features here
@@ -145,10 +167,17 @@ export default background({
     // category system
     this.categoryHandler = new CategoryHandler(historyFeature, this.db);
 
+
     // load the data from the category handler and the fetcher
-    this.categoryFetcher =
-      new CategoryFetcher(this.backendConnector, this.categoryHandler, this.db);
-    this.categoryHandler.loadPersistentData().then(() => this.categoryFetcher.init());
+    this.categoryFetcher = new CategoryFetcher(
+      this.backendConnector,
+      this.categoryHandler,
+      this.db
+    );
+
+    await this.categoryHandler.loadPersistentData();
+    await this.categoryFetcher.init();
+
 
     // offers handling system
     this.offersHandler = new OffersHandler({
@@ -160,13 +189,14 @@ export default background({
       sigHandler: this.signalsHandler,
       eventHandler: this.eventHandler,
       categoryHandler: this.categoryHandler,
-      db: this.db,
+      offersDB: this.offersDB,
     });
     await this.offersHandler.init();
     //
     this.offersAPI = this.offersHandler.offersAPI;
 
     this.gaHandler = new GreenAdsHandler();
+
 
     // create the trigger machine executor
     this.globObjects = {
@@ -178,12 +208,16 @@ export default background({
       category_handler: this.categoryHandler,
       offers_status_handler: this.offersHandler.offerStatus,
       ga_handler: this.gaHandler,
-      telemetry,
+      telemetry: inject.service('telemetry'),
     };
-    this.triggerMachineExecutor = new TriggerMachineExecutor(this.globObjects);
+    this.triggerMachineExecutor = await new TriggerMachineExecutor(this.globObjects);
 
     // to be checked on unload
     this.initialized = true;
+    if (prefs.get('full_distribution') === 'pk_campaign=fp1' && !prefs.get(PRINT_ONBOARDING, false)) {
+      this.actions.onContentCategories({ categories: ['freundin'], prefix: 'onboarding', url: 'https://myoffrz.com/freundin' });
+      prefs.set(PRINT_ONBOARDING, true);
+    }
 
     return this.gaHandler.init();
   },
@@ -206,6 +240,10 @@ export default background({
       this.signalsHandler.destroy();
       this.signalsHandler = null;
     }
+    if (this.patternsStat) {
+      this.patternsStat.destroy();
+      this.patternsStat = null;
+    }
     if (this.eventHandler) {
       this.eventHandler.destroy();
       this.eventHandler = null;
@@ -222,6 +260,7 @@ export default background({
     }
 
     this._publishPopupPushEventCached = null;
+    this.offersDB = null;
     this.initialized = false;
   },
 
@@ -239,20 +278,21 @@ export default background({
 
     logger.info('unloading background');
 
-    if (this.triggerMachineExecutor) {
-      this.triggerMachineExecutor.destroy();
-      this.triggerMachineExecutor = null;
-    }
-
     if (this.signalsHandler) {
-      this.signalsHandler.destory();
+      this.signalsHandler.destroy();
+      this.signalsHandler = null;
     }
 
     logger.info('background script unloaded');
   },
 
-  onCategoriesHit(categoriesIDs, urlData) {
-    urlData.setActivatedCategoriesIDs(new Set(categoriesIDs.keys()));
+  /**
+   * @nethod onCategoriesHit
+   * @param {CategoriesMatchTraits} matches
+   * @param {UrlData} urlData updated with `matches`
+   */
+  onCategoriesHit(matches, urlData) {
+    urlData.setCategoriesMatchTraits(matches);
     // process the trigger engine now
     // We want to have the following behavior to be able to show offers on
     // the same url change:
@@ -262,9 +302,16 @@ export default background({
     //
     // Since fetch intents is now in offers handler this is enough
     this.triggerMachineExecutor.processUrlChange({ url_data: urlData })
-      .then(() => this.offersHandler.urlChangedEvent(urlData, categoriesIDs));
+      .then(() => this.offersHandler.urlChangedEvent(urlData, matches));
   },
 
+  /**
+   * Called from `EventHandler`, which listen for location change events
+   * and tokenizes the current url.
+   *
+   * @method onUrlChange
+   * @param {UrlData} urlData
+   */
   onUrlChange(urlData) {
     if (!urlData || !this.triggerMachineExecutor) {
       return;
@@ -272,11 +319,11 @@ export default background({
 
     // evaluate categories first and store in the urlData all the categories
     // activated for that given url
-    const categoriesIDs = this.categoryHandler.newUrlEvent(urlData.getPatternRequest());
-    if (categoriesIDs.size > 0) {
-      logger.debug('Categories hit', urlData, categoriesIDs);
+    const matches = this.categoryHandler.newUrlEvent(urlData.getPatternRequest());
+    if (matches.matches.size > 0) {
+      logger.debug('Categories hit', urlData, matches.getCategoriesIDs());
     }
-    this.onCategoriesHit(categoriesIDs, urlData);
+    this.onCategoriesHit(matches, urlData);
   },
 
 
@@ -312,7 +359,7 @@ export default background({
         // check if it is a normal pref or a particular
         switch (prefName) {
           case 'offersInstallInfo':
-            prefs.set(prefName, `${config.EXTENSION_VERSION}|${prefValue}`);
+            prefs.set(prefName, `${utils.extensionVersion}|${prefValue}`);
             break;
           default:
             prefs.set(prefName, prefValue);
@@ -342,8 +389,8 @@ export default background({
   _shouldActivateOfferForUrl(url) {
     if (this.offersHandler) {
       const urlData = new UrlData(url);
-      const result = this.offersHandler.shouldActivateOfferForUrl(urlData) ||
-        { activate: false };
+      const result = this.offersHandler.shouldActivateOfferForUrl(urlData)
+        || { activate: false };
       return {...result, url, module: 'offers-v2' };
     }
     return { url, activate: false, module: 'offers-v2' };
@@ -385,10 +432,10 @@ export default background({
 
   _categoryHitByFakeUrl({fakeUrl}) {
     const fakeUrlData = new UrlData(fakeUrl);
-    const categoriesIDs = this.categoryHandler.newUrlEvent(fakeUrlData.getPatternRequest());
-    if (categoriesIDs.size > 0) {
-      logger.log('Matching categories by fake url:', categoriesIDs, fakeUrl);
-      this.onCategoriesHit(categoriesIDs, fakeUrlData);
+    const matches = this.categoryHandler.newUrlEvent(fakeUrlData.getPatternRequest());
+    if (matches.matches.size > 0) {
+      logger.log('Matching categories by fake url:', matches.getCategoriesIDs(), fakeUrl);
+      this.onCategoriesHit(matches, fakeUrlData);
     }
   },
 
@@ -426,6 +473,9 @@ export default background({
         return;
       }
       const domain = getGeneralDomain(url);
+      if (!(offerInfo.autoFillField || false)) {
+        return;
+      }
       this._publishPopupPushEventCached({
         ghostery: config.settings.channel === 'CH80', // ghostery
         key: domain,
@@ -548,11 +598,11 @@ export default background({
       const fakeUrlData = new UrlData(fakeUrl);
       // Here we pass a cpt (11) to make request, so it will only match to
       // the special pattern for the categories extracted from the page
-      const categoriesIDs = this.categoryHandler.newUrlEvent(fakeUrlData.getPatternRequest(11));
-      if (categoriesIDs.size > 0) {
-        logger.log('Matching categories from content category', categories, categoriesIDs, url);
+      const matches = this.categoryHandler.newUrlEvent(fakeUrlData.getPatternRequest(11));
+      if (matches.matches.size > 0) {
+        logger.log('Matching categories from content category', categories, matches.getCategoriesIDs(), url);
         // As if the category hit happens on the real page
-        this.onCategoriesHit(categoriesIDs, new UrlData(url));
+        this.onCategoriesHit(matches, new UrlData(url));
       }
     },
 
@@ -564,7 +614,8 @@ export default background({
         const { categories, price } = await this.helper.action('getPageCache', sender);
         logger.log(sender.tab.id, categories, price, 'contentSignal');
         this.signalsHandler.onPurchase({
-          domain: md5(getGeneralDomain(sender.url)), categories, price, ...msg });
+          domain: md5(getGeneralDomain(sender.url)), categories, price, ...msg
+        });
       }
     }
   },

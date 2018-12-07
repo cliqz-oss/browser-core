@@ -18,7 +18,8 @@ module.exports = {
     "CLEAR_RESULTS_AT_SESSION_START": false,
   }),
   "default_prefs" : {
-    "modules.pairing.enabled": false
+    "modules.pairing.enabled": false,
+    "modules.insights.enabled": false,
   },
   "modules": [
     "core",
@@ -31,7 +32,8 @@ module.exports = {
     "mobile-cards",
     "video-downloader",
     "anolysis",
-    "geolocation"
+    "geolocation",
+    "insights",
   ],
   "bundles": [
   ],

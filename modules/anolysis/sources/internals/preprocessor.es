@@ -50,7 +50,8 @@ export default class Preprocessor {
     if (this.isDev && isBootstrap && schema.sendToBackend) {
       const { valid, errors } = schema.validate(signal);
       if (!valid) {
-        logger.error('Signal does not respect schema',
+        logger.error(
+          'Signal does not respect schema',
           schemaName,
           signal,
           errors,
@@ -59,7 +60,7 @@ export default class Preprocessor {
         const prettySignal = JSON.stringify(signal, undefined, 2);
         const prettyErrors = JSON.stringify(errors, undefined, 2);
         const prettySchema = JSON.stringify(schema.schema, undefined, 2);
-        return Promise.reject(`Signal could not be validated: got ${prettySignal} with errors: ${prettyErrors} for schema: ${prettySchema}`);
+        return Promise.reject(new Error(`Signal could not be validated: got ${prettySignal} with errors: ${prettyErrors} for schema: ${prettySchema}`));
       }
     }
 

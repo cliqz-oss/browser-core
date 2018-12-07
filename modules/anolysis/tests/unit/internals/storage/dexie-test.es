@@ -1,7 +1,7 @@
 /* global describeModule */
 
-const mockDexie = require('../../../../core/unit/utils/dexie');
 const moment = require('moment');
+const mockDexie = require('../../../../core/unit/utils/dexie');
 const storageTests = require('./impl');
 
 const DATE_FORMAT = 'YYYY-MM-DD';
@@ -13,9 +13,6 @@ const getFormattedCurrentDate = () => getCurrentMoment().format(DATE_FORMAT);
 export default describeModule('anolysis/internals/storage/dexie',
   () => ({
     ...mockDexie,
-    'core/database': {
-      default: class Database { destroy() { return Promise.resolve(); } },
-    },
     'core/utils': {
       default: {},
     },
@@ -52,5 +49,4 @@ export default describeModule('anolysis/internals/storage/dexie',
         forceReloadDuringTests: true,
       });
     });
-  },
-);
+  });

@@ -1,6 +1,7 @@
 /* global chai */
 /* global describeModule */
 
+const adblocker = require('@cliqz/adblocker');
 const moment = require('moment');
 
 
@@ -41,6 +42,9 @@ function waitFor(fn) {
 
 export default describeModule('history-analyzer/history-processor',
   () => ({
+    'platform/lib/adblocker': {
+      default: adblocker,
+    },
     'platform/lib/moment': {
       default: moment,
     },
@@ -54,10 +58,15 @@ export default describeModule('history-analyzer/history-processor',
     'core/persistence/map': {
       default: class PersistentMap {
         init() {}
+
         unload() {}
+
         destroy() {}
+
         set(key) { processedKeys.push(key); }
+
         keys() { return mapKeysMock; }
+
         values() { return mapKeysMock; }
       },
     },
@@ -152,5 +161,4 @@ export default describeModule('history-analyzer/history-processor',
         }
       });
     });
-  }
-);
+  });

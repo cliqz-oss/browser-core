@@ -1,6 +1,5 @@
 import Rx from '../../platform/lib/rxjs';
 import utils from '../../core/utils';
-import CONFIG from '../../core/config';
 import prefs from '../../core/prefs';
 import CliqzLanguage from '../../core/language';
 import { isOnionMode } from '../../core/platform';
@@ -33,8 +32,8 @@ function getEmptyBackendResponse(query) {
 
 const encodeResultCount = count => `&count=${count || 5}`;
 const encodeQuerySuggestionParam = () => {
-  const suggestionsEnabled = prefs.get('suggestionsEnabled', false) ||
-    prefs.get('suggestionChoice', 0) === 1;
+  const suggestionsEnabled = prefs.get('suggestionsEnabled', false)
+    || prefs.get('suggestionChoice', 0) === 1;
 
   return `&suggest=${suggestionsEnabled ? 1 : 0}`;
 };
@@ -48,17 +47,17 @@ const getResultsProviderQueryString = (q, {
   if (prefs.get('modules.context-search.enabled', false)) {
     numberResults = 10;
   }
-  return encodeURIComponent(q) +
-    encodeSessionParams() +
-    CliqzLanguage.stateToQueryString() +
-    encodeLocale() +
-    encodePlatform() +
-    encodeResultOrder(resultOrder) +
-    encodeCountry(backendCountry) +
-    encodeFilter() +
-    encodeLocation(true) + // @TODO: remove true
-    encodeResultCount(numberResults) +
-    encodeQuerySuggestionParam();
+  return encodeURIComponent(q)
+    + encodeSessionParams()
+    + CliqzLanguage.queryString
+    + encodeLocale()
+    + encodePlatform()
+    + encodeResultOrder(resultOrder)
+    + encodeCountry(backendCountry)
+    + encodeFilter()
+    + encodeLocation(true) // @TODO: remove true
+    + encodeResultCount(numberResults)
+    + encodeQuerySuggestionParam();
 };
 
 const getBackendResults = (originalQuery, config, params = {}) => {
@@ -75,15 +74,15 @@ const getBackendResults = (originalQuery, config, params = {}) => {
   // quickly get evicted by new searches. But to be safe, never add
   // entries in private mode.)
   const rememberSafeQueries = !params.isPrivate;
-  const q = prefs.get('query-sanitizer', true) ?
-    querySanitizer.sanitize(originalQuery, { rememberSafeQueries }) : originalQuery;
+  const q = prefs.get('query-sanitizer', true)
+    ? querySanitizer.sanitize(originalQuery, { rememberSafeQueries }) : originalQuery;
 
   if (!q) {
     return Promise.resolve(getEmptyBackendResponse(originalQuery));
   }
 
-  const url = CONFIG.settings.RESULTS_PROVIDER + getResultsProviderQueryString(q, params);
-  const fetch = utils.fetchFactory({ jsonp: params.jsonp });
+  const url = config.settings.RESULTS_PROVIDER + getResultsProviderQueryString(q, params);
+  const fetch = utils.fetchFactory();
 
   utils._sessionSeq += 1;
 
@@ -98,7 +97,7 @@ const getBackendResults = (originalQuery, config, params = {}) => {
   };
 
   const startTs = Date.now();
-  const backendPromise = fetch(url, privacyOptions)
+  const backendPromise = fetch(url, privacyOptions, params)
     .then(res => res.json())
     .then((response) => {
       response.latency = Date.now() - startTs;
@@ -112,7 +111,7 @@ const getBackendResults = (originalQuery, config, params = {}) => {
           ...offerResults,
         ];
       }
-      if ((response.results && (response.results.length > 0 || !CONFIG.settings.suggestions))
+      if ((response.results && (response.results.length > 0 || !config.settings.suggestions))
         || (response.offers && response.offers.length > 0)) {
         return {
           response,

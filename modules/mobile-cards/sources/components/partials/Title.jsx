@@ -1,8 +1,9 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { elementSideMargins, elementTopMargin } from '../../styles/CardStyle';
+import themeDetails from '../../themes';
 
-const style = color => StyleSheet.create({
+const style = (theme, color) => StyleSheet.create({
   container: {
     ...elementSideMargins,
     ...elementTopMargin,
@@ -20,26 +21,29 @@ const style = color => StyleSheet.create({
 
 export default function (props) {
   const meta = props.meta;
-  const color = props.isHistory ? '#551A8B' : 'black';
+  const theme = props.theme;
+  const color = (theme === 'light' && props.isHistory) ? '#551A8B' : themeDetails[theme].textColor;
   return (
-    <View style={style(color).container}>
+    <View style={style(theme, color).container}>
       <View
         accessible={false}
-        accessibilityLabel={'generic-title'}
+        accessibilityLabel="generic-title"
       >
-        <Text numberOfLines={2} style={style(color).title}>
+        <Text numberOfLines={2} style={style(theme, color).title}>
           {props.title}
         </Text>
       </View>
-      {!!meta &&
-        <View
-          accessible={false}
-          accessibilityLabel={'generic-title-meta'}
-        >
-          <Text numberOfLines={1} style={style(color).meta}>
-            {meta}
-          </Text>
-        </View>
+      {!!meta
+        && (
+          <View
+            accessible={false}
+            accessibilityLabel="generic-title-meta"
+          >
+            <Text numberOfLines={1} style={style(theme, color).meta}>
+              {meta}
+            </Text>
+          </View>
+        )
       }
     </View>
   );

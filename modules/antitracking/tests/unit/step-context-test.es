@@ -58,5 +58,4 @@ export default describeModule('antitracking/steps/check-context',
         });
       });
     });
-  }
-);
+  });

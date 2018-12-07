@@ -67,8 +67,8 @@ export default class AlternativeSearchEngines extends React.Component {
     });
   }
 
-  _toggleEnginesDropdown = () => {
-    const shouldShowEnginesDropdown = !this.state.showEnginesDropdown;
+  _toggleEnginesDropdown = (prevState) => {
+    const shouldShowEnginesDropdown = !prevState.showEnginesDropdown;
 
     if (shouldShowEnginesDropdown) {
       document.addEventListener('click', this._closeDropdownGlobalHandler);
@@ -174,10 +174,12 @@ export default class AlternativeSearchEngines extends React.Component {
           className="searchbox-categories-dropdown"
         >
           {
-            showEnginesTooltip &&
-            (<Tooltip
-              text={t('alternative_search_engines')}
-            />)
+            showEnginesTooltip
+            && (
+              <Tooltip
+                text={t('alternative_search_engines')}
+              />
+            )
           }
           <button
             type="button"
@@ -189,12 +191,14 @@ export default class AlternativeSearchEngines extends React.Component {
             {selectedEngine.title}
           </button>
           {
-            showEnginesDropdown &&
-            (<Dropdown
-              headerText={t('alternative_search_engines')}
-              items={this.engines}
-              onItemSelected={this._onEngineSelectedHandler}
-            />)
+            showEnginesDropdown
+            && (
+              <Dropdown
+                headerText={t('alternative_search_engines')}
+                items={this.engines}
+                onItemSelected={this._onEngineSelectedHandler}
+              />
+            )
           }
         </div>
 
@@ -207,4 +211,3 @@ export default class AlternativeSearchEngines extends React.Component {
     );
   }
 }
-

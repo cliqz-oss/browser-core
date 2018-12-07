@@ -15,22 +15,22 @@
     }
   },
   "experiment_apis": {
-    "omnibox2": {
-      "schema": "modules/webextension-specific/experimental-apis/omnibox/schema.json",
+    "cliqzmigration": {
+      "schema": "modules/webextension-specific/experimental-apis/cliqzmigration/schema.json",
       "parent": {
         "scopes": ["addon_parent"],
-        "paths": [["omnibox2"]],
-        "script": "modules/webextension-specific/experimental-apis/omnibox/api.bundle.js"
+        "paths": [["cliqzmigration"]],
+        "script": "modules/webextension-specific/experimental-apis/cliqzmigration/api.bundle.js"
       }
     }
   },
   "browser_action": {
     "default_icon": {
-      "16": "modules/control-center/images/cc-active-16.png",
-      "48": "modules/control-center/images/cc-active-16.png",
-      "128": "modules/control-center/images/cc-active-16.png"
+      "16": "assets/icon16.png",
+      "48": "assets/icon48.png",
+      "128": "assets/icon128.png"
     },
-    "default_title": "Cliqz"
+    "default_title": "MyOffrz"
   },
   "permissions": [
     "<all_urls>",
@@ -59,7 +59,6 @@
       "modules/vendor/Rx.min.js",
       "modules/vendor/math.min.js",
       "modules/vendor/dexie.min.js",
-      "modules/vendor/pouchdb.js",
       "modules/webextension-specific/app.bundle.js"
     ]
   },
@@ -68,14 +67,19 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*/*"],
+      "matches": [
+        "*://*/*"
+      ],
       "run_at": "document_start",
       "match_about_blank": true,
-      "js": ["modules/core/content-script.bundle.js"]
+      "js": [
+        "modules/core/content-script.bundle.js"
+      ]
     }
   ],
   "web_accessible_resources": [
     "modules/dropdown/dropdown.html",
-    "modules/browser-panel/index.html"
+    "modules/browser-panel/index.html",
+    "modules/offers-cc/index.html"
   ]
 }

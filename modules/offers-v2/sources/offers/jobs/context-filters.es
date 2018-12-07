@@ -1,24 +1,25 @@
 import OfferJob from './job';
 import OffersBG from '../../background';
+/**
+ * @class ContextFilter
+ */
 
 /**
  * will return false if we have to filter the given offer and the current active
  * categories.
  * true otherwise
+ *
+ * @method filterOfferByCategory
+ * @param {Offer} offer
+ * @param {CategoriesMatchTraits} activeCategoriesMatches
  */
-const filterOfferByCategory = (offer, activeCategories) => {
+const filterOfferByCategory = (offer, activeCategoriesMatches) => {
   if (!offer.hasCategories() || offer.categories.length === 0) {
     return true;
   }
   const offerCatList = offer.categories;
-  for (const catID of activeCategories) {
-    for (let i = 0; i < offerCatList.length; i += 1) {
-      if (catID.indexOf(offerCatList[i]) === 0) {
-        // there is at least one category active for the current context and
-        // the given offer
-        return true;
-      }
-    }
+  if (activeCategoriesMatches.haveCommonWith(offerCatList)) {
+    return true;
   }
   OffersBG.offersAPI.processRealEstateMessage({
     type: 'offer-action-signal',
@@ -42,8 +43,12 @@ export default class ContextFilter extends OfferJob {
     super('ContextFilter');
   }
 
+  /**
+   * @param {BackendOffer[]}
+   * @param {UrlData} urlData
+   */
   process(offerList, { urlData }) {
     return Promise.resolve(offerList.filter(offer =>
-      filterOfferByCategory(offer, urlData.getActivatedCategoriesIDs())));
+      filterOfferByCategory(offer, urlData.getCategoriesMatchTraits())));
   }
 }

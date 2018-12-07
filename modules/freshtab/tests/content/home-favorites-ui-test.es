@@ -22,6 +22,7 @@ describe('Freshtab favorites UI', function () {
     subject = new Subject();
     subject.respondsWithEmptyTelemetry();
     subject.respondsWithEmptyNews();
+    subject.respondsWithEmptyStats();
 
     favConfig = clone(defaultConfig);
     favConfig.response.componentsState.customDials.visible = true;
@@ -352,7 +353,7 @@ describe('Freshtab favorites UI', function () {
             expect(favoritesItemsDials.length).to.be.above(0);
             [...favoritesItemsDials].forEach(function (item, j) {
               expect(item.title).to.exist;
-              expect(item.title).to.equal(favoritesResponse[i].custom[j].url);
+              expect(item.title).to.equal(favoritesResponse[i].custom[j].displayTitle);
             });
           });
 

@@ -1,5 +1,7 @@
 /* global chai */
+
 const test = require('../../telemetry-schemas-test-helpers');
+
 test({
   name: 'antitracking.tokens.batches',
   metrics: [

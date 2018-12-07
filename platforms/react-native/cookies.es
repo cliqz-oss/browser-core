@@ -1,5 +1,5 @@
 
-const notImplemented = () => Promise.reject('not implemented');
+const notImplemented = () => Promise.reject(new Error('not implemented'));
 
 export default {
   get: notImplemented,

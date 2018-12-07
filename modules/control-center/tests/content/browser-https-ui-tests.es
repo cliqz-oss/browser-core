@@ -12,10 +12,6 @@ describe('Control Center: HTTPS Everywhere UI browser', function () {
     subject = new Subject();
   });
 
-  after(function () {
-    subject.unload();
-  });
-
   function headerProtected() {
     context('control center header', function () {
       it('renders header', function () {
@@ -73,6 +69,10 @@ describe('Control Center: HTTPS Everywhere UI browser', function () {
       return subject.load();
     });
 
+    after(function () {
+      subject.unload();
+    });
+
     headerProtected();
     httpsUiTests();
 
@@ -99,6 +99,10 @@ describe('Control Center: HTTPS Everywhere UI browser', function () {
         response: dataOff
       });
       return subject.load();
+    });
+
+    after(function () {
+      subject.unload();
     });
 
     headerProtected();

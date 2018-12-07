@@ -211,5 +211,4 @@ export default describeModule('search/operators/links/utils',
         chai.expect(revertHistorySubLinkToMainLink(subLink)).to.deep.equal(mainLink);
       });
     });
-  },
-);
+  });

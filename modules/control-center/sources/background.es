@@ -1,14 +1,15 @@
 /* eslint-disable no-param-reassign */
 
 import ToolbarButton from '../core/ui/toolbar-button';
-import config from '../core/config';
+import globalConfig from '../core/config';
+import moduleConfig from './config';
 import utils from '../core/utils';
 import { getDetailsFromUrl } from '../core/url';
 import prefs from '../core/prefs';
 import events from '../core/events';
 import inject from '../core/kord/inject';
 import { getMessage } from '../core/i18n';
-import { isBootstrap, isDesktopBrowser, isAMO, isGhosteryProduct } from '../core/platform';
+import { isBootstrap, isDesktopBrowser, isAMO, isGhostery, isMobile, getResourceUrl } from '../core/platform';
 import background from '../core/base/background';
 import { getThemeStyle, getActiveTab } from '../platform/browser';
 import { openLink } from '../platform/browser-actions';
@@ -22,8 +23,8 @@ const DD_HEIGHT = {
 const TELEMETRY_TYPE = 'control_center';
 
 function getBrowserActionIcon() {
-  const icons = config.settings.PAGE_ACTION_ICONS;
-  return config.baseURL + (icons[getThemeStyle()] || icons.default);
+  const icons = globalConfig.settings.PAGE_ACTION_ICONS;
+  return globalConfig.baseURL + (icons[getThemeStyle()] || icons.default);
 }
 
 function getAdultFilterState() {
@@ -50,6 +51,32 @@ function getAdultFilterState() {
   return data;
 }
 
+class IntervalManager {
+  constructor() {
+    this.intervals = new Map();
+  }
+
+  add(windowId, interval) {
+    this.intervals.set(windowId, interval);
+  }
+
+  has(windowId) {
+    return this.intervals.has(windowId);
+  }
+
+  remove(windowId) {
+    const interval = this.intervals.get(windowId);
+    clearInterval(interval);
+    this.intervals.delete(windowId);
+  }
+
+  removeAll() {
+    for (const [windowId] of this.intervals) {
+      this.remove(windowId);
+    }
+  }
+}
+
 export default background({
   // injecting ourselfs to get access to windowModule on webextensions
   core: inject.module('core'),
@@ -61,6 +88,7 @@ export default background({
     this.settings = settings;
     this.ICONS = settings.ICONS;
     this.BACKGROUNDS = settings.BACKGROUNDS;
+    this.intervals = new IntervalManager();
 
     if (settings.disableControlCenterButton) {
       return;
@@ -71,8 +99,8 @@ export default background({
         this.toolbarButton = new ToolbarButton({
           widgetId: 'control-center',
           default_title: getMessage('control_center_icon_tooltip'),
-          default_popup: `${config.baseURL}control-center/index.html`,
-          default_icon: `${config.baseURL}${settings.ICONS.active.default}`,
+          default_popup: `${globalConfig.baseURL}control-center/index.html`,
+          default_icon: () => `${globalConfig.baseURL}${settings.ICONS.active[getThemeStyle()]}`,
           badgeBackgroundColor: '#471647',
           badgeText: '0',
           defaultHeight: DD_HEIGHT[this.settings.channel] || (() => 246)
@@ -82,16 +110,16 @@ export default background({
         this.pageAction = new ToolbarButton({
           widgetId: 'cc-page-action',
           default_title: getMessage('control_center_icon_tooltip'),
-          default_popup: `${config.baseURL}control-center/index.html`,
-          default_icon: getBrowserActionIcon(),
+          default_popup: `${globalConfig.baseURL}control-center/index.html`,
+          default_icon: getBrowserActionIcon,
           defaultHeight: () => 251
         }, true);
         this.pageAction.build();
       }
-    } else {
+    } else if (!isMobile && !isAMO) {
       this.toolbarButton = new ToolbarButton({
         default_title: getMessage('control_center_icon_tooltip'),
-        default_popup: `${config.baseURL}control-center/index.html`
+        default_popup: `${globalConfig.baseURL}control-center/index.html`
       }, true);
       this.toolbarButton.build();
     }
@@ -109,6 +137,7 @@ export default background({
     if (this.pageAction) {
       this.pageAction.shutdown();
     }
+    this.intervals.removeAll();
   },
 
   beforeBrowserShutdown() {
@@ -121,15 +150,41 @@ export default background({
     });
   },
 
-  onLocationChange({ url, tabId }) {
+  onLocationChange({ url, tabId, windowId }) {
+    if (this.intervals.has(windowId)) {
+      this.intervals.remove(windowId);
+    }
+
+    this.updateBadge(tabId, '0');
     // wait for tab content to load
-    if (!url ||
-      url === 'about:blank' ||
-      // do not try to prepare the date while loading control center
-      url.indexOf('chrome://cliqz/content/control-center') === 0) {
+    if (!url
+      || url === 'about:blank'
+      || url.startsWith(getResourceUrl(''))) {
       return;
     }
+
+    const updateBadgeForUrl = async () => {
+      const info = await this.antitracking.action('getBadgeData', { tabId, url });
+      this.updateBadge(tabId, info);
+    };
+
     this.refreshState(tabId);
+    updateBadgeForUrl();
+    let counter = 12;
+    const interval = setInterval(() => {
+      updateBadgeForUrl();
+      counter -= 1;
+      if (counter <= 0) {
+        this.intervals.remove(windowId);
+      }
+    }, 2000);
+    this.intervals.add(windowId, interval);
+  },
+
+  updateBadge(tabId, info) {
+    if (this.toolbarButton && info !== undefined) {
+      this.toolbarButton.setBadgeText(tabId, `${info}`);
+    }
   },
 
   prepareData(/* tabId */) {
@@ -142,8 +197,10 @@ export default background({
       return this.actions.getFrameData().then((ccData) => {
         // If antitracking module is included, show critical when we get no antitracking state.
         // Otherwise show active.
-        ccData.generalState = this.antitracking.isPresent() ?
-          (moduleData.antitracking && moduleData.antitracking.state) || 'critical' : 'active';
+
+        ccData.generalState = this.antitracking.isPresent()
+          ? (moduleData.antitracking && moduleData.antitracking.state) || 'critical'
+          : 'active';
 
         moduleData.adult = { visible: true, state: getAdultFilterState() };
         if (prefs.has('browser.privatebrowsing.apt', '') && this.settings.channel === '40') {
@@ -239,11 +296,11 @@ export default background({
       if (url.indexOf('about:') === 0) {
         friendlyURL = url;
         isSpecialUrl = true;
-      } else if (url.indexOf(config.settings.NEW_TAB_URL) === 0) {
-        friendlyURL = `${config.settings.BRAND} Tab`;
+      } else if (url.indexOf(globalConfig.settings.NEW_TAB_URL) === 0) {
+        friendlyURL = `${moduleConfig.settings.BRAND} Tab`;
         isSpecialUrl = true;
-      } else if (url.indexOf(config.settings.ONBOARDING_URL) === 0) {
-        friendlyURL = config.settings.BRAND;
+      } else if (url.indexOf(globalConfig.settings.ONBOARDING_URL) === 0) {
+        friendlyURL = moduleConfig.settings.BRAND;
         isSpecialUrl = true;
       } else if (url.startsWith('chrome://cliqz/content/anti-phishing/phishing-warning.html')) {
         // in case this is a phishing site (and a warning is displayed),
@@ -264,7 +321,7 @@ export default background({
         hostname: urlDetails.host,
         module: {}, // will be filled later
         generalState: 'active',
-        feedbackURL: config.settings.USER_SUPPORT_URL,
+        feedbackURL: moduleConfig.settings.USER_SUPPORT_URL,
         locationSharingURL: 'https://cliqz.com/support/local-results',
         myoffrzURL: 'https://cliqz.com/myoffrz',
         reportSiteURL: 'https://cliqz.com/report-url',
@@ -273,9 +330,9 @@ export default background({
         amo: isAMO,
         compactView: this.settings.id === 'ghostery@cliqz.com',
         ghostery: this.settings.id === 'ghostery@cliqz.com',
-        privacyPolicyURL: config.settings.PRIVACY_POLICY_URL,
-        showPoweredBy: config.settings.SHOW_POWERED_BY,
-        showLearnMore: !isGhosteryProduct
+        privacyPolicyURL: globalConfig.settings.PRIVACY_POLICY_URL,
+        showPoweredBy: moduleConfig.settings.SHOW_POWERED_BY,
+        showLearnMore: !isGhostery
       };
     },
 
@@ -284,15 +341,9 @@ export default background({
 
       return this.prepareData(tabId).then((data) => {
         const count = data.module.antitracking ? data.module.antitracking.badgeData : 0;
-        this.actions.updateBadge(tabId, count);
+        this.updateBadge(tabId, count);
         return data;
       });
-    },
-
-    updateBadge(tabId, info) {
-      if (this.toolbarButton && info !== undefined) {
-        this.toolbarButton.setBadgeText(tabId, `${info}`);
-      }
     },
 
     async updateState(state) {
@@ -316,9 +367,9 @@ export default background({
         return;
       }
 
-      const icon = config.baseURL + (
-        this.ICONS[state][getThemeStyle()] ||
-        this.ICONS[state].default
+      const icon = globalConfig.baseURL + (
+        this.ICONS[state][getThemeStyle()]
+        || this.ICONS[state].default
       );
 
       this.toolbarButton.setIcon(tabId, icon);
@@ -433,7 +484,7 @@ export default background({
           });
 
           // reset the badge when the anti tracking module gets offline
-          this.actions.updateBadge(tabId, '0');
+          this.updateBadge(tabId, '0');
           break;
         default:
           break;

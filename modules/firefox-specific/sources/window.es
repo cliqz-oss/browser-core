@@ -23,7 +23,7 @@ export default class Win {
           windowId: win.id,
           url: browser.currentURI.spec,
           tabId: browser.outerWindowID,
-          isPrivate: browser.loadContext.usePrivateBrowsing,
+          incognito: browser.loadContext.usePrivateBrowsing,
         };
         return [msg];
       }
@@ -41,7 +41,7 @@ export default class Win {
         const msg = {
           windowId: win.id,
           tabId: browser.outerWindowID,
-          isPrivate: browser.loadContext.usePrivateBrowsing,
+          incognito: browser.loadContext.usePrivateBrowsing,
         };
         return [msg];
       }
@@ -59,7 +59,7 @@ export default class Win {
         const msg = {
           windowId: win.id,
           tabId: browser.outerWindowID,
-          isPrivate: browser.loadContext.usePrivateBrowsing,
+          incognito: browser.loadContext.usePrivateBrowsing,
         };
         return [msg];
       }

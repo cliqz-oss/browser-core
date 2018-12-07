@@ -56,5 +56,4 @@ export default describeModule('human-web/fallback-dns',
         });
       });
     });
-  }
-);
+  });

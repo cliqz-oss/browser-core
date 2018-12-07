@@ -105,7 +105,8 @@ export default class Win {
 
   buttonA() {
     const btn = this.window.document.getAnonymousElementByAttribute(
-      this.window.gBrowser.tabContainer, 'anonid', 'tabs-newtab-button');
+      this.window.gBrowser.tabContainer, 'anonid', 'tabs-newtab-button'
+    );
     if (this.channel !== '40') {
       btn.classList.add('amo');
     }

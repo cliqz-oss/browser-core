@@ -73,6 +73,9 @@ export default class ProcessScriptManager {
     this.broadcast('cliqz:process-script', {
       action: 'unload'
     });
+    this.gmm.broadcastAsyncMessage('cliqz:process-script', {
+      action: 'unload'
+    });
     this.ppmm.removeDelayedProcessScript(this.processScriptUrl);
     this.gmm.removeDelayedFrameScript(this.frameScriptUrl);
   }

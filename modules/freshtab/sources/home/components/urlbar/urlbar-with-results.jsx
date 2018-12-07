@@ -92,8 +92,8 @@ export default class UrlbarWithResults extends Urlbar {
   }
 
   async componentWillReceiveProps(props) {
-    if (props.results === this.props.results ||
-      props.results.length === 0) {
+    if (props.results === this.props.results
+      || props.results.length === 0) {
       return;
     }
 
@@ -103,9 +103,9 @@ export default class UrlbarWithResults extends Urlbar {
   }
 
   componentDidUpdate() {
-    const shouldShowOverlay = this.isSearchSettingsOpen ||
-      this.isDropdownOpen ||
-      (this.state.focused && this.textInput && this.textInput.value);
+    const shouldShowOverlay = this.isSearchSettingsOpen
+      || this.isDropdownOpen
+      || (this.state.focused && this.textInput && this.textInput.value);
 
     if (shouldShowOverlay !== this.state.isOverlayOpen) {
       // this setState will not trigger infinite loop because it of the check above
@@ -126,6 +126,18 @@ export default class UrlbarWithResults extends Urlbar {
     this.setState({
       focused: true,
     });
+
+    if (this.props.shouldShowReminder) {
+      this.props.toggleComponent('searchReminder');
+    }
+
+    if (!this.dropdown.isOpen) {
+      if (this.textInput.value) {
+        this.dropdown._queryCliqz(this.textInput.value);
+      } else {
+        this.dropdown._queryCliqz('', { allowEmptyQuery: true });
+      }
+    }
   }
 
   handleBlur = () => {
@@ -169,15 +181,30 @@ export default class UrlbarWithResults extends Urlbar {
   }
 
   render() {
+    /* eslint-disable jsx-a11y/no-static-element-interactions */
     return (
       <div>
         <Overlay
           isOpen={this.state.isOverlayOpen}
           onClick={this.closeAll}
         />
+        <div className="search-reminder">
+          {this.props.shouldShowReminder
+            && (
+              <span>
+                <span>
+                  Hey! Want to search privately?
+                  <em> Click Tab</em>
+                </span>
+                <span className="cliqz-close-btn" onClick={() => this.props.toggleComponent('searchReminder')} />
+              </span>
+            )
+          }
+        </div>
         {super.render()}
         <div className="inner-container">
           <button
+            type="button"
             className={`search-settings-btn ${this.state.isSearchSettingsOpen ? 'active' : ''}`}
             tabIndex="-1"
             onClick={this.toggleSettings}

@@ -164,7 +164,7 @@ class SocksConnection {
       // TODO: Check if we should return an error code
       // End socket clientConnection
       this.close();
-      return Promise.reject('Wrong socks version');
+      return Promise.reject(new Error('Wrong socks version'));
     }
 
     const resp = new Uint8Array(2);
@@ -176,7 +176,7 @@ class SocksConnection {
       // Close socket (client must close it)
       resp[1] = 0xFF;
       this.close(resp);
-      return Promise.reject('Wrong authent method');
+      return Promise.reject(new Error('Wrong authent method'));
     }
 
     // Accept authent
@@ -204,8 +204,7 @@ class SocksConnection {
         this.messageNumber += 1;
         return wrapOnionRequest(data, this.route, this.id, packedAESKey, messageNumber)
           .then(onionRequest => sendOnionRequest(onionRequest, this.route, this.peer)
-            .then(() => logger.debug(`CLIENT ${this.id} ${messageNumber} sends ${onionRequest.length}`))
-          );
+            .then(() => logger.debug(`CLIENT ${this.id} ${messageNumber} sends ${onionRequest.length}`)));
 
         // Note: Socks response is handled by the exit node and will be
         // transmitted directly to client.
@@ -228,8 +227,7 @@ class SocksConnection {
         .then(onionRequest => sendOnionRequest(onionRequest, this.route, this.peer)
           .then(() => {
             logger.debug(`CLIENT ${this.id} ${messageNumber} sends ${onionRequest.length}`);
-          }),
-        );
+          }));
     } catch (ex) {
       return Promise.reject(ex);
     }
@@ -355,7 +353,8 @@ export default class SocksToRtc {
           }
         });
       },
-      10 * 1000);
+      10 * 1000
+    );
 
     // Register handler to SocksProxy
     logger.log('SocksToRTC attach listener');

@@ -65,7 +65,7 @@ cleanFolders('./', ['.github', 'bin', 'tests'], false);
 cleanFolders('modules', fs.readdirSync('modules').filter(module => !amoModules.includes(module)), false);
 cleanFolders('modules', ['tests'], true);
 cleanFolders('modules', ['debug'], true);
-cleanFolders('specific', ['chromium', 'mobile', 'node', 'react-native', 'web', 'webextension', 'cliqz-android', 'ghostery-tab'], false);
+cleanFolders('specific', ['chromium', 'mobile', 'node', 'react-native', 'web', 'webextension', 'cliqz-android', 'ghostery-tab', 'offers'], false);
 cleanFolders('platforms', ['node', 'react-native', 'web', 'webextension', 'chromium', 'mobile'], false);
 cleanFolders('configs', ['ci', 'experiments', 'releases'], false);
 

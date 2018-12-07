@@ -29,10 +29,6 @@ node('docker') {
               sh './fern.js build --no-debug --environment=production'
             }
           }
-
-          stage('npm run doc') {
-            sh 'npm run doc'
-          }
         }
       }
 

@@ -4,7 +4,8 @@
     ".search.yahoo\\..*?[#?&;]p=[^$&]+",
     ".linkedin.*?\\/pub\\/dir+",
     "\\.bing\\..*?[#?&;]q=[^$&]+",
-    "\\.amazon\\.[^/]+\\/s(?:/?[?]|/ref=).*[?&]field-keywords=[^$&]+"
+    "\\.amazon\\.[^/]+\\/.*[?&]field-keywords=[^$&]+",
+    "\\.amazon\\..*(/dp/|/gp/product/)"
   ],
   "searchEngines": [
     "0",
@@ -95,6 +96,30 @@
           "keyName": "query"
         }
       }
+    },
+    "5": {
+      "#wayfinding-breadcrumbs_container": {
+        "c": {
+          "item": "div",
+          "type": "searchQuery",
+          "etype": "textContent",
+          "keyName": "query"
+        }
+      },
+      "ctry": {
+        "ctry": {
+          "type": "standard",
+          "etype": "ctry",
+          "keyName": "ctry"
+        }
+      },
+      "head": {
+        "curl": {
+          "item": "link[rel='canonical']",
+          "etype": "href",
+          "keyName": "curl"
+        }
+      }
     }
   },
   "payloads": {
@@ -103,6 +128,27 @@
         "type": "single",
         "results": "single",
         "action": "linkedin"
+      }
+    },
+    "5": {
+      "q": {
+        "type": "query",
+        "results": "clustered",
+        "action": "category-am",
+        "fields": [
+          [
+            "#wayfinding-breadcrumbs_container",
+            "c"
+          ],
+          [
+            "head",
+            "curl"
+          ],
+          [
+            "ctry",
+            "ctry"
+          ]
+        ]
       }
     }
   },

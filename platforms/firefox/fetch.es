@@ -7,12 +7,8 @@ if (typeof fetch === 'undefined') {
 
 export default fetch;
 
-export function fetchFactory() {
-  return fetch;
-}
-
 // fetch does not leak on Firefox
-const isTrackableOriginHeaderFromOurExtension = false;
+const isTrackableOriginHeaderFromOurExtension = () => false;
 
 export {
   fetch,

@@ -55,8 +55,7 @@ function buildSearchEngines(engines, isMobile) {
           params.set(
             param.name.replace('{searchTerms}', q),
             param.value.replace('{searchTerms}', q)
-          )
-        );
+          ));
         url.search = params.toString();
         return url.toString();
       },
@@ -155,4 +154,3 @@ export function restoreHiddenSearchEngines() {}
 export function addEngineWithDetails() {}
 
 export function updateAlias() {}
-

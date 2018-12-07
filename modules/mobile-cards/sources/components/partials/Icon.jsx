@@ -1,20 +1,22 @@
 import React from 'react';
 import { StyleSheet, View, Text, Image, Platform } from 'react-native';
 
-const iconStyle =
-  (width, height, backgroundHex = '000') =>
-    StyleSheet.create({
-      container: {
-        width,
-        height,
-        backgroundColor: `#${backgroundHex}`,
-        justifyContent: 'center',
-        alignItems: 'center',
-      },
-      text: {
-        color: 'white',
-      }
-    });
+const iconStyle = (width, height, backgroundHex = '000') =>
+  StyleSheet.create({
+    container: {
+      width,
+      height,
+      backgroundColor: `#${backgroundHex}`,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderRadius: 6,
+      overflow: 'hidden',
+      marginRight: 5,
+    },
+    text: {
+      color: 'white',
+    }
+  });
 
 
 export default class Icon extends React.Component {
@@ -29,7 +31,8 @@ export default class Icon extends React.Component {
   getPlaceHolder(width, height, backgroundColor) {
     const style = iconStyle(width, height, backgroundColor);
     return Promise.resolve(
-      <View style={style.container} />);
+      <View style={style.container} />
+    );
   }
 
   getDefaultIcon(width, height, backgroundColor, text) {
@@ -38,7 +41,7 @@ export default class Icon extends React.Component {
       <View
         style={style.container}
         accessible={false}
-        accessibilityLabel={'default-icon'}
+        accessibilityLabel="default-icon"
       >
         <Text style={style.text}>{text}</Text>
       </View>
@@ -53,16 +56,16 @@ export default class Icon extends React.Component {
         iconHeight: height,
       },
       web: {
-        iconWidth: width * 0.85,
-        iconHeight: height * 0.85,
+        iconWidth: width * 0.75,
+        iconHeight: height * 0.75,
       },
     });
-    const style = iconStyle(iconWidth, iconHeight, backgroundColor);
+    const style = iconStyle(width, height, backgroundColor);
     return Image.prefetch(url)
       .then(() => (
         <View
           accessible={false}
-          accessibilityLabel={'generic-logo'}
+          accessibilityLabel="generic-logo"
           style={style.container}
         >
           <Image

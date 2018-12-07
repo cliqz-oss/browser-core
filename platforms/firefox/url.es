@@ -1,14 +1,26 @@
 import { Services, Components } from './globals';
 
-const KNOWN_PROTOCOLS = ['http', 'https', 'ftp', 'file', 'about', 'mailto', 'chrome', 'moz-extension', 'resource', 'dat'];
+const KNOWN_PROTOCOLS = new Set(['http', 'https', 'ftp', 'file', 'about', 'mailto', 'chrome', 'moz-extension', 'resource', 'dat', 'view-source', 'data']);
+let ExternalProtocolService = null;
 
-function getExternalProtocolService() {
-  if (!getExternalProtocolService._instance) {
-    getExternalProtocolService._instance =
-      Components.classes['@mozilla.org/uriloader/external-protocol-service;1']
+export function isKnownProtocol(protocol) {
+  if (!ExternalProtocolService) {
+    try {
+      ExternalProtocolService = Components
+        .classes['@mozilla.org/uriloader/external-protocol-service;1']
         .getService(Ci.nsIExternalProtocolService);
+    } catch (e) {
+      ExternalProtocolService = {
+        getProtocolHandlerInfo() {
+          return { possibleApplicationHandlers: [] };
+        }
+      };
+    }
   }
-  return getExternalProtocolService._instance;
+  return KNOWN_PROTOCOLS.has(protocol.replace(/:$/, '').toLowerCase())
+    || !!ExternalProtocolService
+      .getProtocolHandlerInfo(protocol)
+      .possibleApplicationHandlers.length;
 }
 
 export class URI extends URL {
@@ -19,6 +31,7 @@ export class URI extends URL {
     }
     return cleanHost;
   }
+
   get path() {
     // Services.io.newURI().path changed in Fx 57 and returns undefined
     // in case there is no path. It was returning '/' in Fx56 and bellow
@@ -26,10 +39,7 @@ export class URI extends URL {
   }
 
   get isKnownProtocol() {
-    const protocol = this.protocol.slice(0, -1).toLowerCase();
-    return KNOWN_PROTOCOLS.includes(protocol) ||
-      !!getExternalProtocolService().getProtocolHandlerInfo(protocol)
-        .possibleApplicationHandlers.length;
+    return isKnownProtocol(this.protocol);
   }
 }
 
@@ -37,9 +47,8 @@ export function fixURL(url) {
   let fixedURL = url;
   let redirectedToSearch = false;
   /* eslint-disable no-bitwise */
-  const fixupFlags =
-    Services.uriFixup.FIXUP_FLAG_NONE |
-    Services.uriFixup.FIXUP_FLAG_FIX_SCHEME_TYPOS;
+  const fixupFlags = Services.uriFixup.FIXUP_FLAG_NONE
+    | Services.uriFixup.FIXUP_FLAG_FIX_SCHEME_TYPOS;
   /* eslint-enable no-bitwise */
 
   try {

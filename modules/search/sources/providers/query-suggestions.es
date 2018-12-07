@@ -14,15 +14,15 @@ export default class QuerySuggestionProvider extends BaseProvider {
     // We are not requesing query suggestion for url-like queries
     // (like starting with "htt"), pasted or corrected queries.
     // This is what Mozilla does in Firefox so should we.
-    return !query ||
-      query.trim().startsWith('htt') ||
-      params.isPasted ||
-      ['Backspace', 'Delete'].includes(params.keyCode);
+    return !query
+      || query.trim().startsWith('htt')
+      || params.isPasted
+      || ['Backspace', 'Delete'].includes(params.keyCode);
   }
 
   search(query, config, params) {
-    if (!config.providers[this.id].isEnabled ||
-        this.suggestionsNotAllowed(query, params)) {
+    if (!config.providers[this.id].isEnabled
+        || this.suggestionsNotAllowed(query, params)) {
       return this.getEmptySearch(config, query);
     }
 

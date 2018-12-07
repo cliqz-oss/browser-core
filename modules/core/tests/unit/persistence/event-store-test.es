@@ -61,14 +61,12 @@ export default describeModule('core/persistence/event-store',
       it('empty list', () =>
         store.pushMany([])
           .then(() => store.query())
-          .then(events => chai.expect(events).to.be.eql([]))
-      );
+          .then(events => chai.expect(events).to.be.eql([])));
 
       it('one event', () =>
         store.pushMany([{ ts: 1 }])
           .then(() => store.query())
-          .then(events => chai.expect(events).to.be.eql([{ ts: 1, id: 1 }]))
-      );
+          .then(events => chai.expect(events).to.be.eql([{ ts: 1, id: 1 }])));
 
       it('several events', () =>
         store.pushMany([
@@ -82,8 +80,7 @@ export default describeModule('core/persistence/event-store',
             { ts: 2, id: 4 },
             { ts: 3, id: 3 },
             { ts: 4, id: 2 },
-          ]))
-      );
+          ])));
     });
 
     it('#latestTs', () =>
@@ -95,8 +92,7 @@ export default describeModule('core/persistence/event-store',
         { ts: 42 },
         { ts: 5 },
       ]).then(() => store.latestTs())
-        .then(ts => chai.expect(ts).to.be.eql(42))
-    );
+        .then(ts => chai.expect(ts).to.be.eql(42)));
 
     it('#query', () =>
       store.pushMany([
@@ -128,8 +124,7 @@ export default describeModule('core/persistence/event-store',
         .then(events => chai.expect(events).to.be.eql([
           { id: 3, ts: 3 },
           { id: 2, ts: 4 },
-        ]))
-    );
+        ])));
 
     it('#deleteDataOlderThan', () =>
       store.pushMany([
@@ -145,7 +140,5 @@ export default describeModule('core/persistence/event-store',
           { id: 2, ts: 4 },
           { id: 6, ts: 5 },
           { id: 5, ts: 42 },
-        ]))
-    );
-  },
-);
+        ])));
+  });

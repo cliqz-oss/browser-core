@@ -146,8 +146,8 @@ function scriptedRequests(scriptRequests, opts = {}) {
         if (wasCancelled && scriptRequests[otherUrl].onCancel) {
           scriptRequests[otherUrl].onCancel();
         } else if (scriptRequests[otherUrl].onHeadersSent) {
-          scriptRequests[otherUrl].onHeadersSent(otherResponse.requestHeaders ||
-                                                 scriptRequests[otherUrl].requestHeaders);
+          scriptRequests[otherUrl].onHeadersSent(otherResponse.requestHeaders
+                                                 || scriptRequests[otherUrl].requestHeaders);
         }
       }
 
@@ -159,8 +159,9 @@ function scriptedRequests(scriptRequests, opts = {}) {
         if (requestInfo.onCancel) {
           requestInfo.onCancel();
         }
-        return Promise.reject(`${url} was aborted`);
-      } else if (requestInfo.onHeadersSent) {
+        return Promise.reject(new Error(`${url} was aborted`));
+      }
+      if (requestInfo.onHeadersSent) {
         requestInfo.onHeadersSent(response.requestHeaders || requestInfo.requestHeaders);
       }
     }
@@ -179,7 +180,8 @@ function scriptedRequests(scriptRequests, opts = {}) {
         {
           includeResponse: true,
           requestCompleted: false,
-        });
+        }
+      );
 
       // Simulate some other requests that have nothing to do with the current
       // doublefetch request. These requests should not be cancelled.
@@ -192,7 +194,8 @@ function scriptedRequests(scriptRequests, opts = {}) {
           {
             includeResponse: true,
             requestCompleted: false,
-          }),
+          }
+        ),
         otherResponse);
 
         const wasAborted = proceed === false || !!otherResponse.cancel;
@@ -209,12 +212,12 @@ function scriptedRequests(scriptRequests, opts = {}) {
         if (requestInfo.onCancel) {
           requestInfo.onCancel();
         }
-        return Promise.reject(`${url} was aborted`);
+        return Promise.reject(new Error(`${url} was aborted`));
       }
 
-      if (requestInfo.statusCode &&
-          requestInfo.statusCode >= 300 && requestInfo.statusCode < 400 &&
-          requestInfo.responseHeaders) {
+      if (requestInfo.statusCode
+          && requestInfo.statusCode >= 300 && requestInfo.statusCode < 400
+          && requestInfo.responseHeaders) {
         for (const redirectTo of requestInfo.responseHeaders
           .filter(x => x.name.toLowerCase() === 'location')
           .map(x => x.value)) {
@@ -233,7 +236,8 @@ function scriptedRequests(scriptRequests, opts = {}) {
 
       const response = mkFakeResponse();
       const fakeRequestContext = mkFakeRequestContext(
-        url, requestInfo, { includeResponse: true, requestCompleted: true });
+        url, requestInfo, { includeResponse: true, requestCompleted: true }
+      );
 
       // Simulate some other requests that have nothing to do with the current
       // doublefetch request. These requests should not be cancelled.
@@ -243,7 +247,8 @@ function scriptedRequests(scriptRequests, opts = {}) {
         const otherFakeContext = mkFakeRequestContext(
           otherUrl, scriptRequests[otherUrl], {
             includeResponse: true, requestCompleted: true
-          });
+          }
+        );
         handler(otherFakeContext, otherResponse);
       }
 
@@ -465,7 +470,8 @@ export default describeModule('human-web/doublefetch-handler',
               responseHeaders: [{ name: 'Content-Length', value: '1000000' }],
               onCancel: () => { cancelledAfterRedirect = true; }
             },
-          });
+          }
+        );
         uut.maxDoubleFetchSize = 10;
 
         let doublefetchFailed = false;
@@ -493,7 +499,8 @@ export default describeModule('human-web/doublefetch-handler',
               responseHeaders: [{ name: 'Content-Length', value: '1' }],
               onCancel: () => { cancelledAfterRedirect = true; }
             },
-          });
+          }
+        );
         uut.maxDoubleFetchSize = 10;
 
         let doublefetchFailed = false;
@@ -527,7 +534,8 @@ export default describeModule('human-web/doublefetch-handler',
           },
           {
             simulateNonDoublefetchRequests: ['https://api.cliqz.test/foo', 'https://api.cliqz.test/bar']
-          });
+          }
+        );
         uut.maxDoubleFetchSize = 10;
 
         let doublefetchFailed = false;
@@ -561,7 +569,8 @@ export default describeModule('human-web/doublefetch-handler',
           },
           {
             simulateNonDoublefetchRequests: ['https://api.cliqz.test/foo', 'https://api.cliqz.test/bar']
-          });
+          }
+        );
         uut.maxDoubleFetchSize = 10;
 
         let doublefetchFailed = false;
@@ -641,7 +650,8 @@ export default describeModule('human-web/doublefetch-handler',
                 expect(headers).to.deep.equal([{ name: 'CONTENT-TYPE', value: 'text/html' }]);
               }
             }
-          });
+          }
+        );
 
         let doublefetchFailed = false;
         return uut.init()
@@ -658,7 +668,7 @@ export default describeModule('human-web/doublefetch-handler',
           });
       });
 
-      const shouldNotModifyNonSensitiveHeaders = (headers) => {
+      const shouldNotModifyNonSensitiveHeaders = () => {
         let sent = false;
 
         // Dump of an example request. All these headers should not be touched.
@@ -747,7 +757,8 @@ export default describeModule('human-web/doublefetch-handler',
           },
           {
             simulateNonDoublefetchRequests: ['https://api.cliqz.test/foo', 'https://api.cliqz.test/bar']
-          });
+          }
+        );
 
         return uut.init()
           .then(() => uut.anonymousHttpGet('http://doublefetch.test'))
@@ -756,5 +767,4 @@ export default describeModule('human-web/doublefetch-handler',
           });
       });
     });
-  }
-);
+  });

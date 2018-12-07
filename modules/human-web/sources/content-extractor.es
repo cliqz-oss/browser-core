@@ -328,7 +328,8 @@ export class ContentExtractor {
             rules[key][eachKey].item,
             rules[key][eachKey].etype,
             rules[key][eachKey].keyName,
-            rules[key][eachKey].functionsApplied || null);
+            rules[key][eachKey].functionsApplied || null
+          );
           innerDict[eachKey] = urlArray;
           if (ruleset === 'normal') {
             logger.debug('Populating query Cache <<<< ', url, ' >>>> ', urlArray[0]);
@@ -346,7 +347,8 @@ export class ContentExtractor {
             rules[key][eachKey].item,
             rules[key][eachKey].etype,
             rules[key][eachKey].keyName,
-            rules[key][eachKey].functionsApplied || null);
+            rules[key][eachKey].functionsApplied || null
+          );
           innerDict[eachKey] = urlArray;
         }
       }
@@ -515,7 +517,8 @@ export class ContentExtractor {
         logger.warn(
           '_processExtractedData failed (scrapeResults:', scrapeResults,
           ', key:', key, ', ruleset:', ruleset, ', payloadRules:',
-          payloadRules, ', error:', ee, ')');
+          payloadRules, ', error:', ee, ')'
+        );
       } else {
         logger.warn(`_processExtractedData failed: ${ee}`);
       }

@@ -4,7 +4,7 @@ import moment from '../platform/lib/moment';
 import EventEmitter from '../core/event-emitter';
 import PersistentMap from '../core/persistence/map';
 import setTimeoutInterval from '../core/helpers/timeout';
-import { compactTokens } from '../core/pattern-matching';
+import PatternMatching from '../platform/lib/adblocker';
 
 import tokenize, { HOUR, SECOND } from './utils';
 import logger from './logger';
@@ -24,10 +24,10 @@ function fetchHistoryForDate(timestamp) {
 
 function isValidTimestamp(timestamp) {
   return (
-    typeof timestamp === 'number' &&
-    !isNaN(timestamp) &&
-    timestamp > 0 &&
-    timestamp < Date.now()
+    typeof timestamp === 'number'
+    && !isNaN(timestamp)
+    && timestamp > 0
+    && timestamp < Date.now()
   );
 }
 
@@ -125,7 +125,7 @@ export default class HistoryProcessor extends EventEmitter {
     const processedUrls = places.map(({ ts, url }) => ({
       ts,
       url,
-      tokens: compactTokens(tokenize(url)),
+      tokens: PatternMatching.compactTokens(tokenize(url)),
     }));
     const processingTime = Date.now() - t0;
 
@@ -141,9 +141,9 @@ export default class HistoryProcessor extends EventEmitter {
       processingTime,
       persistingTime,
       time: (
-        fetchingTime +
-        processingTime +
-        persistingTime
+        fetchingTime
+        + processingTime
+        + persistingTime
       ),
     });
 

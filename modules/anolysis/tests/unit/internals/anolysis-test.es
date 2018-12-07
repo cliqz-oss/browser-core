@@ -2,10 +2,10 @@
 /* global sinon */
 /* global describeModule */
 
-const mockDexie = require('../../../core/unit/utils/dexie');
 const ajv = require('ajv');
 const moment = require('moment');
 const stats = require('simple-statistics');
+const mockDexie = require('../../../core/unit/utils/dexie');
 
 const CURRENT_DATE = '2017-01-01';
 const DATE_FORMAT = 'YYYY-MM-DD';
@@ -32,9 +32,6 @@ export default describeModule('anolysis/internals/anolysis',
     },
     'core/crypto/random': {
       randomInt() { return 0; },
-    },
-    'core/database': {
-      default: class Database { destroy() { return Promise.resolve(); } },
     },
     'core/events': {
       default: {
@@ -66,7 +63,9 @@ export default describeModule('anolysis/internals/anolysis',
     'anolysis/internals/gid-manager': {
       default: class GIDManager {
         init() { return Promise.resolve(); }
+
         getNewInstallDate() { return '2000-01-01'; }
+
         getGID() { return Promise.resolve(''); }
       },
     },
@@ -76,6 +75,7 @@ export default describeModule('anolysis/internals/anolysis',
     'anolysis/internals/signals-queue': {
       default: class SignalQueue {
         init() { return Promise.resolve(); }
+
         flush() { return Promise.resolve(); }
       },
     },
@@ -132,8 +132,7 @@ export default describeModule('anolysis/internals/anolysis',
               { name: 'signal2', schema: {} },
             ]))
             .then(() => anolysis.registerSignalDefinitions([{ name: 'signal1', schema: {} }]))
-        ).to.be.rejected
-      );
+        ).to.be.rejected);
     });
 
     describe('#runDailyTasks', () => {
@@ -252,5 +251,4 @@ export default describeModule('anolysis/internals/anolysis',
 
     describe('#handleTelemetrySignal', () => {
     });
-  },
-);
+  });

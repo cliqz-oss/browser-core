@@ -4,19 +4,15 @@ import { StyleSheet, View } from 'react-native';
 import NativeDrawable, { normalizeUrl } from './custom/NativeDrawable';
 import Link from './Link';
 import { elementSideMargins } from '../styles/CardStyle';
+import themeDetails from '../themes';
 
-const styles = (collapsed = true, index) => StyleSheet.create({
+const styles = (collapsed = true, index, theme) => StyleSheet.create({
   container: {
-    borderTopWidth: index === 0 ? 1 : 0,
-    borderBottomWidth: 1,
-    borderTopColor: '#EDECEC',
-    borderBottomColor: '#EDECEC',
+    borderTopWidth: index === 0 ? 0.5 : 0,
+    borderBottomWidth: 0.5,
+    borderTopColor: themeDetails[theme].separatorColor,
+    borderBottomColor: themeDetails[theme].separatorColor,
     flex: 1,
-  },
-  headerText: {
-    marginTop: 3,
-    marginBottom: 3,
-    color: 'black',
   },
   arrow: {
     height: 8,
@@ -42,11 +38,6 @@ const styles = (collapsed = true, index) => StyleSheet.create({
   content: {
     ...elementSideMargins,
   },
-  item: {
-    color: 'black',
-    marginTop: 12,
-    ...elementSideMargins,
-  },
 });
 
 export default class ExpandView extends React.Component {
@@ -57,13 +48,15 @@ export default class ExpandView extends React.Component {
 
   render() {
     const isCollapsed = this.state.collapsed;
+    const theme = this.props.theme;
     const index = this.props.index;
     const arrowImage = normalizeUrl('arrow-down.svg');
-    const style = styles(isCollapsed, index);
+
+    const style = styles(isCollapsed, index, theme);
     return (
       <View
         accessible={false}
-        accessibilityLabel={'expand-view-container'}
+        accessibilityLabel="expand-view-container"
         style={style.container}
       >
         <Link
@@ -72,14 +65,14 @@ export default class ExpandView extends React.Component {
           <View style={style.header}>
             <View
               accessible={false}
-              accessibilityLabel={'expand-view-header'}
+              accessibilityLabel="expand-view-header"
               style={style.headerDetails}
             >
               { this.props.header }
             </View>
             <View
               accessible={false}
-              accessibilityLabel={'expand-view-arrow'}
+              accessibilityLabel="expand-view-arrow"
               style={style.headerExpand}
             >
               <NativeDrawable
@@ -89,12 +82,12 @@ export default class ExpandView extends React.Component {
             </View>
           </View>
         </Link>
-        { isCollapsed ||
-          (
+        { isCollapsed
+          || (
             <Link>
               <View
                 accessible={false}
-                accessibilityLabel={'expand-view-content'}
+                accessibilityLabel="expand-view-content"
                 style={style.content}
               >
                 { this.props.content }

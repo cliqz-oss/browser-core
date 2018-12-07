@@ -26,9 +26,9 @@ export default background({
 
     this.toolbarButton = new ToolbarButton({
       widgetId: 'offers-cc',
-      default_title: getMessage('offers_hub_title'),
+      default_title: getMessage('cliqz_offers'),
       default_popup: `${config.baseURL}offers-cc/index.html`,
-      default_icon: `${config.baseURL}offers-cc/images/offers-cc-icon.svg`,
+      default_icon: () => `${config.baseURL}offers-cc/images/offers-cc-icon.svg`,
       badgeBackgroundColor: 'transparent',
       badgeText: '',
       defaultWidth: () => 264,

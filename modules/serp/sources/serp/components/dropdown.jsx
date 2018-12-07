@@ -29,7 +29,7 @@ export default (props = {}) => {
 
             return (
               <a
-                href=""
+                href={`#${item.title}`}
                 key={item.title}
                 className={classNames(cssClass)}
                 onClick={

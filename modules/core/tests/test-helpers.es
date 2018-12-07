@@ -148,9 +148,9 @@ export async function mockPref(key, value, prefix) {
     prefs.set(key, value, prefix);
   }
 
-  const unmockPref = (prefValue !== undefined) ?
-    () => { prefs.set(key, prefValue, prefix); } :
-    () => { prefs.clear(key, prefix); };
+  const unmockPref = (prefValue !== undefined)
+    ? () => { prefs.set(key, prefValue, prefix); }
+    : () => { prefs.clear(key, prefix); };
 
   return unmockPref;
 }

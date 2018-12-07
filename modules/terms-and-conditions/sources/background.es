@@ -1,5 +1,5 @@
 import background from '../core/base/background';
-import telemetry from '../core/services/telemetry';
+import inject from '../core/kord/inject';
 
 /**
   @namespace <namespace>
@@ -30,8 +30,7 @@ export default background({
 
   actions: {
     async report(message) {
-      await telemetry.push(message, 'metrics.termsAndConditions.duration');
+      await inject.service('telemetry').push(message, 'metrics.termsAndConditions.duration');
     }
   },
 });
-

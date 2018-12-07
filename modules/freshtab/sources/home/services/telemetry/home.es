@@ -1,4 +1,5 @@
 import telemetry from './base';
+import cliqz from '../../cliqz';
 
 let start = 0;
 let focusTotalTime = 0;
@@ -15,6 +16,21 @@ export function historyClickSignal() {
     type: 'home',
     action: 'click',
     target: 'history',
+  });
+}
+
+export function historyPaginationClickSignal(index) {
+  telemetry({
+    type: 'home',
+    action: 'click',
+    target: 'history_pagination',
+    index,
+  });
+}
+
+export function friendsClickSignal() {
+  return cliqz.cliqzForFriends.report({
+    click: 1,
   });
 }
 
@@ -54,6 +70,7 @@ export function homeConfigsStatusSignal(state, tabIndex) {
     is_topsites_on: state.config.componentsState.historyDials.visible,
     is_search_bar_on: state.config.componentsState.search.visible,
     is_news_on: state.config.componentsState.news.visible,
+    is_stats_on: state.config.componentsState.stats.visible,
   }, newsTypes));
 }
 

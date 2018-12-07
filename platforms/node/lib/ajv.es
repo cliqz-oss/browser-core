@@ -1,1 +1,5 @@
-export { default } from 'ajv';
+export default class {
+  compile() {
+    return () => true;
+  }
+}

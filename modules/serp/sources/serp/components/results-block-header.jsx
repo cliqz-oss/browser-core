@@ -14,4 +14,3 @@ export default ({ results = [], cssClasses = '' }) => {
 
   return null;
 };
-

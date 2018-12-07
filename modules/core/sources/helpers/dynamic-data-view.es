@@ -128,8 +128,8 @@ export default class DynamicDataView {
 
   getUint16() {
     const uint16 = (
-      (this.buffer[this.pos] << 8) |
-      this.buffer[this.pos + 1]
+      (this.buffer[this.pos] << 8)
+      | this.buffer[this.pos + 1]
     ) >>> 0;
     this.pos += 2;
     return uint16;
@@ -137,10 +137,10 @@ export default class DynamicDataView {
 
   getUint32() {
     const uint32 = (
-      ((this.buffer[this.pos] << 24) >>> 0) +
-      ((this.buffer[this.pos + 1] << 16) |
-       (this.buffer[this.pos + 2] << 8) |
-        this.buffer[this.pos + 3])
+      ((this.buffer[this.pos] << 24) >>> 0)
+      + ((this.buffer[this.pos + 1] << 16)
+       | (this.buffer[this.pos + 2] << 8)
+        | this.buffer[this.pos + 3])
     ) >>> 0;
     this.pos += 4;
     return uint32;

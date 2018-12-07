@@ -424,8 +424,7 @@ function draw(data) {
   $('.cqz-switch-label, .cqz-switch-grey').click(function () {
     const target = $(this).closest('.bullet');
     target.attr('data-status',
-      (idx, attr) => (attr !== 'active' ? 'active' : target.attr('data-inactiveState'))
-    );
+      (idx, attr) => (attr !== 'active' ? 'active' : target.attr('data-inactiveState')));
 
     if (this.hasAttribute('data-update-pref')) {
       controlCenter.updatePref({
@@ -445,8 +444,7 @@ function draw(data) {
       dropdownContent.toggleClass('visible');
     }
     target.attr('data-status',
-      (idx, attr) => (attr !== 'active' ? 'active' : target.attr('data-inactiveState'))
-    );
+      (idx, attr) => (attr !== 'active' ? 'active' : target.attr('data-inactiveState')));
 
     if (this.hasAttribute('data-update-pref')) {
       controlCenter.updatePref({
@@ -473,8 +471,9 @@ function draw(data) {
     const content = '.new-dropdown-content';
     const $this = $(this);
 
-    target.attr('data-status', state === 'all' ?
-      'critical' : target.attr('data-inactiveState'));
+    target.attr('data-status', state === 'all'
+      ? 'critical'
+      : target.attr('data-inactiveState'));
 
     $this.siblings(option).each((index, elem) => {
       $(elem).removeClass('selected');

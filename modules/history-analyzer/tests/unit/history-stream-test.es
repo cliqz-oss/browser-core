@@ -1,6 +1,7 @@
 /* global chai */
 /* global describeModule */
 
+const adblocker = require('@cliqz/adblocker');
 const moment = require('moment');
 const tldts = require('tldts');
 const mockDexie = require('../../core/unit/utils/dexie');
@@ -8,6 +9,9 @@ const mockDexie = require('../../core/unit/utils/dexie');
 export default describeModule('history-analyzer/history-stream',
   () => ({
     ...mockDexie,
+    'platform/lib/adblocker': {
+      default: adblocker,
+    },
     'platform/lib/moment': {
       default: moment,
     },
@@ -69,8 +73,7 @@ export default describeModule('history-analyzer/history-stream',
           chai.expect(urls[1].id).to.be.eql(2);
           chai.expect(urls[2].url).to.be.eql('http://baz.com');
           chai.expect(urls[2].id).to.be.eql(3);
-        })
-    );
+        }));
 
     it('Receives event from history processor', () => {
       const urls = [
@@ -101,5 +104,4 @@ export default describeModule('history-analyzer/history-stream',
           { ...urls[2], id: 3 },
         ]));
     });
-  },
-);
+  });

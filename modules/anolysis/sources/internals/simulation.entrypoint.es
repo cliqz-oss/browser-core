@@ -7,7 +7,7 @@ import console from '../../core/console';
 import { waitFor } from '../../core/wait';
 
 import Anolysis from './anolysis';
-import Config from './config';
+import createConfig from './config';
 import Storage from './storage/memory';
 import telemetrySchemas from '../telemetry-schemas';
 
@@ -40,7 +40,7 @@ app.post('/', async (req, res) => {
     let client = clients.get(uid);
     if (!clients.has(uid)) {
       // log('Create new client', uid, `(total: ${clients.size})`);
-      client = new Anolysis(new Config({
+      client = new Anolysis(await createConfig({
         // TODO - temporary, this will need to be removed in the future. For
         // now, we send the session with Anolysis signals.
         session: uid,

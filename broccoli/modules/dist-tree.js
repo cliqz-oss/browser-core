@@ -9,6 +9,8 @@ const writeFile = require('broccoli-file-creator');
 const cliqzConfig = require('../config');
 const util = require('../util');
 
+const subprojects = require(path.resolve(__dirname, '../../configs/common/subprojects/bundles'));
+
 const UnwatchedDir = broccoliSource.UnwatchedDir;
 
 const FILES_WITH_PLACEHOLDERS = {
@@ -26,6 +28,24 @@ module.exports = function getDistTree(modulesTree) {
       },
     })
   ];
+
+  const suprojectsSet = new Set();
+  const getSubprojects = (moduleName) => {
+    try {
+      const { subprojects = [] } = require(path.resolve(__dirname, `../../modules/${moduleName}/build-config`));
+      subprojects.forEach((project) => {
+        suprojectsSet.add(project);
+      });
+    } catch (error) {
+      // this error is expected, because not all the modules have 'build-config.json'
+    }
+  };
+
+  cliqzConfig.modules.forEach((mod) => {
+    getSubprojects(mod);
+  });
+
+  cliqzConfig.subprojects = subprojects(Array.from(suprojectsSet));
 
   const distTrees = modulesTrees.concat(
     (cliqzConfig.subprojects || []).map(
@@ -57,5 +77,4 @@ module.exports = function getDistTree(modulesTree) {
     distTree,
     distWithConfig,
   ], { overwrite: true });
-}
-
+};

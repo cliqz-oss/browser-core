@@ -25,7 +25,8 @@ const LOADERS = {
         updateInterval: ONE_HOUR,
         dataType: 'json',
         remoteURL: `${config.settings.CDN_BASEURL}/offers/display_rules/rules.json.gz`
-      });
+      }
+    );
     return loader;
   },
 };
@@ -60,7 +61,7 @@ export default class Blacklist {
   }
 
   has(url) {
-    const request = { url, cpt: 2, sourceUrl: url };
+    const request = { url, type: 2, sourceUrl: url };
     const result = this.engine.match(request);
     return result.match;
   }

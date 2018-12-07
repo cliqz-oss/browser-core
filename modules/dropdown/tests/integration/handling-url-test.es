@@ -7,7 +7,8 @@ import {
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from './helpers';
+  withHistory,
+} from './helpers';
 
 export default function () {
   if (!testsEnabled()) { return; }
@@ -37,21 +38,19 @@ export default function () {
 
       // invalid urls
       // uncomment this after removing FF 52 from CI
-      // { query: 'http://', isUrl: false },
-      // { query: 'https://', isUrl: false },
-      // { query: 'ftp://', isUrl: false },
-      // { query: 'http://?', isUrl: false },
+      { query: 'http://', isUrl: false },
+      { query: 'https://', isUrl: false },
+      { query: 'ftp://', isUrl: false },
+      { query: 'http://?', isUrl: false },
       { query: 'www.f', isUrl: false },
       { query: 'www.', isUrl: false },
-      { query: 'userid@example.com', isUrl: false },
       { query: 'file:', isUrl: false },
       { query: 'about:', isUrl: false },
       { query: 'KeyError: \'credential_provider\'', isUrl: false },
-      { query: 'userid:password@example.com:8080', isUrl: false },
 
       // these are shown as 'visit', but go to google
-      // { query: 'facebook.c]', isUrl: false},
-      // { query: 'anything://test', isUrl: false},
+      { query: 'facebook.c]', isUrl: false },
+      { query: 'anything://test', isUrl: false },
     ];
 
     before(function () {

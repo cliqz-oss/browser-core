@@ -2,6 +2,152 @@
 /* global describeModule */
 
 const tldts = require('tldts');
+const url = require('url');
+
+const URLS = [
+  'http://cliqz.com',
+  'http://www.cliqz.com',
+  'http://userid:password@example.com:8080',
+  'http://foo.com/blah_blah_(wikipedia)_(again)#cite-1',
+  'http://www.example.com/foo/?bar=baz&inga=42&quux',
+  'http://✪df.ws/123',
+  'http://userid@example.com',
+  'http://userid@example.com:8080/',
+  'http://userid:password@example.com',
+  'http://➡.ws/䨹',
+  'http://⌘.ws',
+  'http://⌘.ws/',
+  'http://foo.com/unicode_(✪)_in_parens',
+  'http://foo.com/(something)?after=parens',
+  'http://☺.damowmow.com/',
+  'http://code.google.com/events/#&product=browser',
+  'http://foo.bar/baz',
+  'http://foo.bar/?q=Test%20URL-encoded%20stuff',
+  'http://مثال.إختبار',
+  'http://例子.测试',
+  'http://उदाहरण.परीक्षा',
+  "http://-.~_!$&'()*+,;=:%40:80%2f::::::@example.com",
+
+  // short url
+  'http://j.mp',
+  'https://t.co/2Y2tPh0TuJ/',
+
+  // ip
+  'http://142.42.1.1',
+  'http://142.42.1.1:8080',
+  'http://223.255.255.254',
+  'http://[2001:4860:0:2001::68]/',
+  'https://[2001:db8:85a3:8d3:1319:8a2e:370:7348]:443/',
+
+  // url with known protocol
+  'ftp://ftp.mozilla.org/pub/firefox/',
+  'file:///etc/passwd',
+  'chrome://cliqz/content/pairing/index.html',
+  'moz-extension://f4091876df6a5d39e6690b7395a95399/index.html',
+  'about:blank',
+  'mailto:Cliqz <info@cliqz.com>',
+  'view-source:https://cliqz.com',
+  'data:text/plain,hello',
+  'data:text,hello',
+
+  // urls without protocols
+  'cliqz.com',
+  'www.cliqz.com',
+  'userid:password@example.com:8080',
+  'foo.com/blah_blah_(wikipedia)_(again)#cite-1',
+  'www.example.com/foo/?bar=baz&inga=42&quux',
+  '✪df.ws/123',
+  'userid@example.com',
+  'userid@example.com:8080/',
+  'userid:password@example.com',
+  '➡.ws/䨹',
+  '⌘.ws',
+  '⌘.ws/',
+  'foo.com/unicode_(✪)_in_parens',
+  'foo.com/(something)?after=parens',
+  '☺.damowmow.com/',
+  'code.google.com/events/#&product=browser',
+  'foo.bar/baz',
+  'foo.bar/?q=Test%20URL-encoded%20stuff',
+  'مثال.إختبار',
+  '例子.测试',
+  'उदाहरण.परीक्षा',
+  "-.~_!$&'()*+,;=:%40:80%2f::::::@example.com",
+  '1337.net',
+  'a.d-b.de',
+
+  // short URLs
+  'j.mp',
+  't.co/2Y2tPh0TuJ/',
+
+  // ip
+  '142.42.1.1/',
+  '142.42.1.1:8080',
+  '223.255.255.254',
+  '[2001:4860:0:2001::68]',
+  '[2001:db8:85a3:8d3:1319:8a2e:370:7348]:443/',
+
+  // invalid, but fixable
+  'https://cliqz.com.',
+  'https://cliqz.com. ',
+  'http://192.168.1.1.',
+  'cliqz.com.',
+  'cliqz.com. ',
+  '192.168.1.1.',
+
+  // special exception
+  'localhost',
+  'LOCALHOST',
+
+  // known protocol + host, or host + port
+  'http:localhost',
+  'http:localhost:4300',
+  'http:weird-local-domain.dev',
+  'maghratea:8080',
+  'cliqz-test:4300',
+];
+
+const QUERIES = [
+  // search query
+  'cliqz',
+  'google.com is a suspicious site',
+  'how do I go to facebook.com?',
+  'undefined',
+
+  // search alias
+  '#go youtube.com',
+
+  // bad url
+  'cliqz,com',
+  'cliqz.c om',
+  'cliqz.c/om',
+  'cliqz.com..',
+  'cliqz.com.. ',
+  'cliqz.com. .',
+  'cliqz.c',
+  'i.e',
+  '-cliqz.com',
+  'cliqz-.cat',
+  'cliqz-.com',
+  '.www.foo.bar.',
+  'about:',
+  'https://?query=0#top',
+  'http:// shouldfail.com',
+  'https://@_@_@_@_@',
+  'http://facebok.com is a fishing site',
+
+  // unknown protocol
+  'abc://cliqz.com',
+  "KeyError: 'credential_provider'",
+
+  // bad port
+  'warhammer:40k',
+  // '192.168.1.1:65536',
+  // 'www.bild.de:0',
+
+  // unicode in hostname and no protocol or TLD
+  'Wiedźmin_3:Dziki_Gon',
+];
 
 export default describeModule('core/url',
   function () {
@@ -10,11 +156,27 @@ export default describeModule('core/url',
       'core/platform': {
       },
       'platform/url': {
-        default: '[dynamic]',
+        default: (a, b) => Boolean(a && b && a === b),
+        isKnownProtocol: proto => [
+          'http',
+          'https',
+          'ftp',
+          'file',
+          'about',
+          'mailto',
+          'chrome',
+          'moz-extension',
+          'resource',
+          'dat',
+          'view-source',
+          'data'
+        ].includes(proto),
+        URI: url.URL,
       },
       'core/LRU': {
         default: class {
-          get() {}
+          get() { }
+
           set() {}
         },
       },
@@ -25,7 +187,6 @@ export default describeModule('core/url',
       describe('compare', function () {
         let equals;
         beforeEach(function () {
-          this.deps('platform/url').default = () => false;
           equals = this.module().equals;
         });
         it('with exactly same urls returns true', function () {
@@ -44,68 +205,23 @@ export default describeModule('core/url',
         });
       });
 
-      describe('isUrl', function () {
+      describe('#isUrl', function () {
         let isUrl;
 
         beforeEach(function () {
           isUrl = this.module().isUrl;
         });
 
-        it('with normal url returns true', function () {
-          chai.expect(isUrl('http://cliqz.com')).to.be.true;
-          chai.expect(isUrl('http://sport.cliqz.com')).to.be.true;
-          chai.expect(isUrl('https://cliqz.com/about/team')).to.be.true;
+        describe('should return true on URLs or URL-like strings', () => {
+          URLS.forEach((urlStr) => {
+            it(urlStr, () => chai.expect(isUrl(urlStr)).to.be.true);
+          });
         });
 
-        it('localhost urls returns true', function () {
-          chai.expect(isUrl('http://localhost')).to.be.true;
-          chai.expect(isUrl('localhost')).to.be.true;
-          chai.expect(isUrl('localhost:8080')).to.be.true;
-        });
-
-        it('urls with IP address returns true', function () {
-          chai.expect(isUrl('http://192.168.1.1')).to.be.true;
-          chai.expect(isUrl('ftp://192.168.1.1')).to.be.true;
-          chai.expect(isUrl('ftp://192.168.1.1:25')).to.be.true;
-        });
-
-        it('urls with known procotol returns true', function () {
-          chai.expect(isUrl('https://cliqz.com')).to.be.true;
-          chai.expect(isUrl('view-source:https://cliqz.com')).to.be.true;
-          chai.expect(isUrl('ftp://cliqz.com')).to.be.true;
-        });
-
-        it('urls with unknown procotol returns false', function () {
-          chai.expect(isUrl('abc://cliqz.com')).to.be.false;
-        });
-
-        it('with non-urls returns false', function () {
-          chai.expect(isUrl('https://cliqz,com')).to.be.false;
-          chai.expect(isUrl('https://cliqz')).to.be.false;
-          chai.expect(isUrl('cliqz')).to.be.false;
-        });
-
-        it('with urls have a single dot at the end return true', function () {
-          chai.expect(isUrl('https://cliqz.com.')).to.be.true;
-          chai.expect(isUrl('https://cliqz.com/.')).to.be.true;
-          chai.expect(isUrl('https://cliqz.com. ')).to.be.true;
-          chai.expect(isUrl('http://192.168.1.1.')).to.be.true;
-        });
-
-        it('with url has space(s) before the dot at the end return false', function () {
-          chai.expect(isUrl('https://cliqz.com .')).to.be.false;
-          chai.expect(isUrl('https://cliqz.com  .')).to.be.false;
-          chai.expect(isUrl('https://cliqz.com  . ')).to.be.false;
-        });
-
-        it('with urls have more than one dot at the end return false', function () {
-          chai.expect(isUrl('https://cliqz.com..')).to.be.false;
-          chai.expect(isUrl('https://cliqz.com.. ')).to.be.false;
-          chai.expect(isUrl('https://cliqz.com. .')).to.be.false;
-        });
-
-        it('with urls have ./. at the end return true', function () {
-          chai.expect(isUrl('https://cliqz.com./.')).to.be.true;
+        describe('should return false on non-URL-like strings', () => {
+          QUERIES.forEach((queryStr) => {
+            it(queryStr, () => chai.expect(isUrl(queryStr)).to.be.false);
+          });
         });
       });
 
@@ -342,5 +458,4 @@ export default describeModule('core/url',
         });
       });
     });
-  },
-);
+  });

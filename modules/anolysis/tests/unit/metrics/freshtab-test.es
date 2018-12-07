@@ -16,7 +16,7 @@ require('../telemetry-schemas-test-helpers')({
                 return freshtTabActionResult;
               }
 
-              return Promise.reject(`No such action: ${action}`);
+              return Promise.reject(new Error(`No such action: ${action}`));
             },
           };
         },

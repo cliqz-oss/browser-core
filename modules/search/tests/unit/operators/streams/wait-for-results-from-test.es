@@ -36,7 +36,8 @@ export default describeModule('search/operators/streams/wait-for-results-from',
         const expected = sandbox.e(' --');
 
         const messages = sandbox.getMessages(source$.let(
-          waitForResultsFrom([other1$, other2$])));
+          waitForResultsFrom([other1$, other2$])
+        ));
         sandbox.flush();
 
         return chai.expect(messages).to.deep.equal(expected);
@@ -49,7 +50,8 @@ export default describeModule('search/operators/streams/wait-for-results-from',
         const expected = sandbox.e(' ---1-');
 
         const messages = sandbox.getMessages(source$.let(
-          waitForResultsFrom([other1$, other2$])));
+          waitForResultsFrom([other1$, other2$])
+        ));
         sandbox.flush();
 
         return chai.expect(messages).to.deep.equal(expected);
@@ -62,7 +64,8 @@ export default describeModule('search/operators/streams/wait-for-results-from',
         const expected = sandbox.e(' -----');
 
         const messages = sandbox.getMessages(source$.let(
-          waitForResultsFrom([other1$, other2$])));
+          waitForResultsFrom([other1$, other2$])
+        ));
         sandbox.flush();
 
         return chai.expect(messages).to.deep.equal(expected);
@@ -75,11 +78,11 @@ export default describeModule('search/operators/streams/wait-for-results-from',
         const expected = sandbox.e(' --1-2');
 
         const messages = sandbox.getMessages(source$.let(
-          waitForResultsFrom([other1$, other2$])));
+          waitForResultsFrom([other1$, other2$])
+        ));
         sandbox.flush();
 
         return chai.expect(messages).to.deep.equal(expected);
       });
     });
-  },
-);
+  });

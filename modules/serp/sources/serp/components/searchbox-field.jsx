@@ -29,7 +29,6 @@ export default class SearchboxField extends React.Component {
       : '';
 
     this.state = {
-      shouldHaveFocus: false,
       value: props.value
         ? props.value
         : '',

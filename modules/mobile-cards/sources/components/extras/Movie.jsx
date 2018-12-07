@@ -7,13 +7,14 @@ import Link from '../Link';
 import Icon from '../partials/Icon';
 import Url from '../partials/Url';
 import ExpandView from '../ExpandView';
+import themeDetails from '../../themes';
 
 // trigger with query: cadillac kino
 // make sure results are set to germany
 
-const styles = StyleSheet.create({
+const styles = theme => StyleSheet.create({
   header: {
-    color: 'black',
+    color: themeDetails[theme].textColor,
     marginBottom: 5,
     ...elementTopMargin,
     marginLeft: 12,
@@ -25,10 +26,10 @@ const styles = StyleSheet.create({
   cinemaTitle: {
     marginLeft: 10,
     marginRight: 34, // logo size
-    color: 'black',
+    color: themeDetails[theme].cinema.movieTxtColor,
   },
   text: {
-    color: 'black',
+    color: themeDetails[theme].textColor,
   },
   showContainer: {
     flex: 1,
@@ -39,17 +40,17 @@ const styles = StyleSheet.create({
     padding: 3,
     marginRight: 10,
     marginBottom: 8,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: themeDetails[theme].cinema.showBgColor,
     borderRadius: 5,
   },
 });
 
 export default class extends React.Component {
-  displayShow(show) {
+  displayShow(show, theme) {
     return (
       <Link url={show.booking_link} key={show.booking_link}>
-        <View style={styles.show}>
-          <Text style={styles.text}>{ show.start_at.substr(11, 5) }</Text>
+        <View style={styles(theme).show}>
+          <Text style={styles(theme).text}>{ show.start_at.substr(11, 5) }</Text>
         </View>
       </Link>
     );
@@ -57,28 +58,30 @@ export default class extends React.Component {
 
   displayCinema(cinema, index) {
     const logo = this.props.result.meta.extraLogos[cinema.website];
+    const theme = this.props.theme;
     const key = `${cinema.website}${index}`;
     const content = (
-      <View style={styles.showContainer}>
-        { cinema.showtimes.map(this.displayShow) }
+      <View style={styles(theme).showContainer}>
+        { cinema.showtimes.map(show => this.displayShow(show, theme)) }
       </View>
     );
     const header = (
       <View style={{ flexDirection: 'row' }}>
         <Icon logoDetails={logo} width={34} height={34} />
-        <View style={styles.cinemaHeader}>
+        <View style={styles(theme).cinemaHeader}>
           <Url url={cinema.website} oneLine />
-          <Text numberOfLines={1} style={styles.cinemaTitle}>{cinema.name}</Text>
+          <Text numberOfLines={1} style={styles(theme).cinemaTitle}>{cinema.name}</Text>
         </View>
       </View>
     );
     return (
-      <ExpandView key={key} index={index} header={header} content={content} />
+      <ExpandView key={key} index={index} header={header} content={content} theme={theme} />
     );
   }
 
   render() {
     const data = this.props.data.data || {};
+    const theme = this.props.theme;
     const showsToday = data.showdates[0] || {};
     const cinemaList = showsToday.cinema_list || [];
     if (cinemaList.length === 0) {
@@ -86,9 +89,11 @@ export default class extends React.Component {
     }
     return (
       <View>
-        <Text style={styles.header}>
+        <Text style={styles(theme).header}>
           { getMessage('cinema_movie_showtimes') }
-          <Text style={styles.text}>: { (showsToday.date || '').toUpperCase() }</Text>
+          <Text style={styles(theme).text}>
+            {`: ${(showsToday.date || '').toUpperCase()}`}
+          </Text>
         </Text>
         { cinemaList.map((...args) => this.displayCinema(...args)) }
       </View>

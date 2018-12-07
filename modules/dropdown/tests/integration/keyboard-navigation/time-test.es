@@ -8,7 +8,8 @@ import {
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 import expectSelection from './common';
 import timeResult from '../../../core/integration/fixtures/resultsTime';
 
@@ -31,9 +32,9 @@ export default function () {
       await mockSearch({ results });
       fillIn(query);
       await waitForPopup();
-      await waitFor(() => $cliqzResults.querySelector(searchWithSelector) &&
-        $cliqzResults.querySelector(resultSelector) &&
-        $cliqzResults.querySelector(timeAreaSelector));
+      await waitFor(() => $cliqzResults.querySelector(searchWithSelector)
+        && $cliqzResults.querySelector(resultSelector)
+        && $cliqzResults.querySelector(timeAreaSelector));
       $searchWithElement = $cliqzResults.querySelector(searchWithSelector);
       $resultElement = $cliqzResults.querySelector(resultSelector);
     });

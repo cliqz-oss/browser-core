@@ -22,6 +22,7 @@ export default class Win {
     this.config = settings;
     this.contextMenu = inject.module('context-menu');
   }
+
   /**
   * @method init
   */
@@ -114,8 +115,8 @@ export default class Win {
           const tabPos = this.window.TabContextMenu.contextTab._tPos;
           const tabData = background.getTabData(this.window, tabPos);
           const beforeElem = this.window.document.getElementById('context_openTabInWindow');
-          const isEnabled = this.peerComm.isPaired &&
-            background.isValidURL(tabData.url);
+          const isEnabled = this.peerComm.isPaired
+            && background.isValidURL(tabData.url);
           const onclick = isEnabled ? () => {
             background.sendTab(tabData);
             utils.telemetry({

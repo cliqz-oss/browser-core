@@ -56,7 +56,7 @@ describe('Freshtab interactions with favorites', function () {
       injectTestUtils: true,
     });
     subject.respondsWithEmptyTelemetry();
-
+    subject.respondsWithEmptyStats();
     subject.respondsWithEmptyNews();
 
     const favConfig = clone(defaultConfig);

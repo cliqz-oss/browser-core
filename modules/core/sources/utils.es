@@ -6,7 +6,7 @@ import CLIQZEnvironment from '../platform/environment';
 import prefs from './prefs';
 import Storage from './storage';
 import { getPublicSuffix } from './tlds';
-import { fetchFactory } from '../platform/fetch';
+import { fetchFactory } from './http';
 import * as searchUtils from '../core/search-engines';
 import i18n from './i18n';
 import historySearch from '../platform/history/search';
@@ -20,7 +20,6 @@ const CliqzUtils = {
   SKIN_PATH: CLIQZEnvironment.SKIN_PATH,
   BROWSER_ONBOARDING_PREF: CLIQZEnvironment.BROWSER_ONBOARDING_PREF,
   telemetryHandlers: [
-    CLIQZEnvironment.telemetry
   ],
 
   init() {
@@ -102,9 +101,9 @@ const CliqzUtils = {
   encodeSessionParams() {
     if (CliqzUtils._searchSession.length) {
       // eslint-disable-next-line prefer-template
-      return '&s=' + encodeURIComponent(CliqzUtils._searchSession) +
-        '&n=' + CliqzUtils._sessionSeq +
-        '&qc=' + CliqzUtils._queryCount;
+      return '&s=' + encodeURIComponent(CliqzUtils._searchSession)
+        + '&n=' + CliqzUtils._sessionSeq
+        + '&qc=' + CliqzUtils._queryCount;
     }
     return '';
   },
@@ -142,9 +141,9 @@ const CliqzUtils = {
     if (!lon2 || !lon1 || !lat2 || !lat1) { return -1; }
     const dLat = degreesToRad(lat2 - lat1); // Javascript functions in radians
     const dLon = degreesToRad(lon2 - lon1);
-    const a = (Math.sin(dLat / 2) * Math.sin(dLat / 2)) +
-            (Math.cos(degreesToRad(lat1)) * Math.cos(degreesToRad(lat2)) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2));
+    const a = (Math.sin(dLat / 2) * Math.sin(dLat / 2))
+      + (Math.cos(degreesToRad(lat1)) * Math.cos(degreesToRad(lat2))
+        * Math.sin(dLon / 2) * Math.sin(dLon / 2));
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const d = R * c; // Distance in km
     return d;

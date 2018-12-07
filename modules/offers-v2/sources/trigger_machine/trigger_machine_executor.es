@@ -7,6 +7,9 @@ import logger from '../common/offers_v2_logger';
 import { timestampMS } from '../utils';
 import TriggerMachine from './trigger_machine';
 
+/**
+ * @class TriggerMachineExecutor
+ */
 export default class TriggerMachineExecutor {
   constructor(globObjs) {
     this.globObjs = globObjs;
@@ -37,8 +40,9 @@ export default class TriggerMachineExecutor {
 
   /**
    * this method should be called everytime there is a url change
-   * @param  {[type]} data contains the url and url object information.
-   * @return {[type]}      [description]
+   *
+   * @method processUrlChange
+   * @param  {UrlData} data.url_data
    */
   processUrlChange(data, evtType = 'url') {
     return this.evtQueue.push({ evt_type: evtType, evt_data: data });
@@ -50,10 +54,10 @@ export default class TriggerMachineExecutor {
    * @return {[type]}      [description]
    */
   processWatchReqCallback(data, cbArgs) {
-    if (!data ||
-        !data.url_data ||
-        !cbArgs ||
-        !cbArgs.trigger_id) {
+    if (!data
+        || !data.url_data
+        || !cbArgs
+        || !cbArgs.trigger_id) {
       // invalid call?
       logger.warn('processWatchReqCallback: invalid args');
       return;
@@ -75,6 +79,12 @@ export default class TriggerMachineExecutor {
   // ///////////////////////////////////////////////////////////////////////////
   //
 
+  /**
+   * Qmethod _processEvent
+   * @param {UrlData} evt_data.url_data
+   * @returns {Promise<boolean>}
+   * @private
+   */
   async _processEvent(evtData) {
     if (!evtData || !evtData.evt_data) {
       return false;
@@ -109,7 +119,8 @@ export default class TriggerMachineExecutor {
           const processMs = timestampMS() - startMs - (ctx['#httpLoadMs'] || 0);
           return this.telemetry.push(
             { action: 'offers-v2.trigger.process', ms: processMs },
-            'metrics.performance.general');
+            'metrics.performance.general'
+          );
         };
         if (this.telemetry) {
           step.then(telemetryPush, telemetryPush)

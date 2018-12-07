@@ -2,6 +2,7 @@ import { checkIsWindowActive } from '../platform/browser';
 import domainInfo from '../core/services/domain-info';
 import { parse, getGeneralDomain } from '../core/tlds';
 import TrackerCounter from '../core/helpers/tracker-counter';
+import events from '../core/events';
 
 const FIRSTPARTY = 'First party';
 
@@ -15,6 +16,7 @@ class PageStats {
     this.blockedInfo = {};
     // for ghostery counts
     this.counter = new TrackerCounter();
+    this.ts = Date.now();
   }
 
   addBlockedUrl(url, bugId) {
@@ -88,6 +90,17 @@ class AdbStats {
 
   addNewPage(sourceUrl, tabId) {
     const page = new PageStats(sourceUrl);
+    if (this.tabs.has(tabId)) {
+      // emit summary of stats from previous page
+      const p = this.tabs.get(tabId);
+      events.pub('adblocker:tracker-report', {
+        tabId,
+        ts: p.ts,
+        url: p.pageUrl,
+        host: p.hostGD,
+        report: p.reportTrackers(),
+      });
+    }
     this.tabs.set(tabId, page);
     return page;
   }

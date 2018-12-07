@@ -92,5 +92,4 @@ export default describeModule('human-web/ad-detection',
         expect(keys).to.have.lengthOf(1);
       });
     });
-  }
-);
+  });

@@ -49,6 +49,8 @@ export default class SearchSettings extends React.Component {
     try {
       // eslint-disable-next-line
       iframe.contentWindow.chrome.i18n = chrome.i18n;
+      // eslint-disable-next-line
+      iframe.contentWindow.chrome.runtime = chrome.runtime;
     } catch (e) {
       // throws on platform firefox, but i18n is there already
     }
@@ -72,18 +74,18 @@ export default class SearchSettings extends React.Component {
         <div
           className="settings-panel"
         >
-          {this.props.isOpen &&
-            <iframe
-              tabIndex="-1"
-              src="../control-center/index.html?pageAction=true&compactView=true"
-              title="Settings"
-              ref={this.connectIframe}
-              style={{ height: `${Math.min(this.state.iframeHeight, this.props.maxHeight)}px` }}
-            />
+          {this.props.isOpen
+            && (
+              <iframe
+                tabIndex="-1"
+                src="../control-center/index.html?pageAction=true&compactView=true"
+                title="Settings"
+                ref={this.connectIframe}
+                style={{ height: `${Math.min(this.state.iframeHeight, this.props.maxHeight)}px` }}
+              />)
           }
         </div>
       </div>
     );
   }
 }
-

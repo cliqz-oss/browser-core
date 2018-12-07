@@ -15,10 +15,17 @@ body {
     width: 20px;
     height: 19px;
     mask: url("../images/ticket-tmpl/cliqz-logo-offrz.svg");
+    -webkit-mask: url("../images/ticket-tmpl/cliqz-logo-offrz.svg");
     position: absolute;
     bottom: 10px;
     left: -30px;
     background: rgba(0,0,0,0.4);
+  }
+
+  &.web-ext:before {
+    background: url("../images/ticket-tmpl/myoffrz-logo.svg") no-repeat right center;
+    mask: none;
+    -webkit-mask: none;
   }
 
   //blue theme customization
@@ -466,7 +473,9 @@ body {
         width: 15px;
         height: 15px;
         mask-image: url('../images/ticket-tmpl/info-icon.svg');
+        -webkit-mask-image: url('../images/ticket-tmpl/info-icon.svg');
         mask-repeat: no-repeat;
+        -webkit-mask-repeat: no-repeat;
         background-color: #ADB8C2;
         vertical-align: 4px;
         cursor: default;
@@ -694,4 +703,25 @@ body {
       }
     }
   }
+}
+
+@media only screen and (max-width: 375px) {
+    #cqz-browser-panel-re {
+        margin-top: 12px;
+        .promo-container {
+            .headline-container {
+                display: none;
+            }
+            .description {
+                display: none
+            }
+            .benefit {
+                flex: 2;
+                justify-content: center
+            }
+            .why-offer {
+                display: none
+            }
+        }
+    }
 }

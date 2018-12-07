@@ -4,16 +4,9 @@ import { nextTick } from '../core/decorators';
 import console from '../core/console';
 import { getCurrentTabId } from '../core/tabs';
 import { isOnionMode } from '../core/platform';
-import { _httpHandler } from '../core/http';
-import config from '../core/config';
 
 const ACproviderName = 'cliqz-results';
 const lastEvent = new WeakMap();
-
-// establishes the connection
-export function pingCliqzResults() {
-  _httpHandler('HEAD', config.settings.RESULTS_PROVIDER_PING);
-}
 
 export default {
   /**
@@ -30,9 +23,9 @@ export default {
     const hasSelection = mInputField.selectionEnd !== mInputField.selectionStart;
 
     if (
-      hasSelection &&
-      this.window.CLIQZ.UI.renderer.hasAutocompleted &&
-      mInputField.value[mInputField.selectionStart] === String.fromCharCode(ev.charCode)
+      hasSelection
+      && this.window.CLIQZ.UI.renderer.hasAutocompleted
+      && mInputField.value[mInputField.selectionStart] === String.fromCharCode(ev.charCode)
     ) {
       let query = urlbar.value;
       const queryWithCompletion = mInputField.value;
@@ -86,7 +79,7 @@ export default {
 
     // try to 'heat up' the connection
     if (!isOnionMode) {
-      pingCliqzResults();
+      this.pingCliqzResults();
     }
 
     utils.setSearchSession();
@@ -126,8 +119,8 @@ export default {
   */
   drop(ev) {
     const dTypes = ev.dataTransfer.types;
-    if ((dTypes.indexOf && dTypes.indexOf('text/plain') !== -1) ||
-      (dTypes.contains && dTypes.contains('text/plain') !== -1)) {
+    if ((dTypes.indexOf && dTypes.indexOf('text/plain') !== -1)
+      || (dTypes.contains && dTypes.contains('text/plain') !== -1)) {
       utils.telemetry({
         type: 'activity',
         action: 'textdrop'

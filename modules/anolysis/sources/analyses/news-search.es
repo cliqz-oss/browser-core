@@ -183,11 +183,15 @@ export default [
         .filter(({ subResult }) => subResult.type === BREAKING_NEWS_RESULT);
 
       // indices of news inside sc
-      const scNewsSubResultSelectionsNewsIndices =
-        getSelectionsSubResultSCIndices(scNewsSelections, NEWS_RESULT);
+      const scNewsSubResultSelectionsNewsIndices = getSelectionsSubResultSCIndices(
+        scNewsSelections,
+        NEWS_RESULT
+      );
       // indices of categories inside sc
-      const scNewsSubResultSelectionsCategoriesIndices =
-        getSelectionsSubResultSCIndices(scNewsSelections, INTERNAL_RESULT);
+      const scNewsSubResultSelectionsCategoriesIndices = getSelectionsSubResultSCIndices(
+        scNewsSelections,
+        INTERNAL_RESULT
+      );
 
       // TOP NEWS SMART CLIQZ EntityTopNews
       // SC: filter TOP news sc sessions
@@ -221,8 +225,10 @@ export default [
         .filter(({ subResult }) => subResult.type === BREAKING_NEWS_RESULT);
 
       // indices of news inside sc
-      const scTopNewsSubResultSelectionsNewsIndices =
-        getSelectionsSubResultSCIndices(scTopNewsSelections, NEWS_RESULT);
+      const scTopNewsSubResultSelectionsNewsIndices = getSelectionsSubResultSCIndices(
+        scTopNewsSelections,
+        NEWS_RESULT
+      );
 
 
       return [{
@@ -258,13 +264,15 @@ export default [
             subResult: {
               news: {
                 total: scNewsSubResultSelectionsNews.length,
-                index: integersToHistogram(scNewsSubResultSelectionsNewsIndices,
+                index: integersToHistogram(
+                  scNewsSubResultSelectionsNewsIndices,
                   { binSize: 1, binCount: 16 }
                 ),
               },
               category: {
                 total: scNewsSubResultSelectionsCategory.length,
-                index: integersToHistogram(scNewsSubResultSelectionsCategoriesIndices,
+                index: integersToHistogram(
+                  scNewsSubResultSelectionsCategoriesIndices,
                   { binSize: 1, binCount: 16 }
                 ),
               },
@@ -292,8 +300,7 @@ export default [
               news: {
                 total: scTopNewsSubResultSelectionsNews.length,
                 index: integersToHistogram(scTopNewsSubResultSelectionsNewsIndices,
-                  { binSize: 1, binCount: 16 }
-                ),
+                  { binSize: 1, binCount: 16 }),
               },
               breaking: scTopNewsSubResultSelectionsBreakingNews.length,
             },

@@ -50,7 +50,6 @@
   "background": {
     "scripts": [
       "modules/vendor/Rx.min.js",
-      "modules/vendor/math.min.js",
       "modules/cliqz-android/app.bundle.js"
     ]
   }

@@ -34,7 +34,7 @@ try {
           } else if (res[key]) {
             resolve(res[key]);
           } else {
-            reject(`storage has no value for ${key}`);
+            reject(new Error(`storage has no value for ${key}`));
           }
         });
       });
@@ -50,7 +50,8 @@ try {
             } else {
               resolve();
             }
-          });
+          }
+        );
       });
     },
     remove(key) {

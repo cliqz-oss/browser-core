@@ -24,8 +24,7 @@ require('../../telemetry-schemas-test-helpers')({
         signal => chai.expect(signal).to.include({
           group: 'A',
           serpAlternativeSearchEngine: 'duckduckgo',
-        }))
-      );
+        })));
     });
 
     context('counts', function () {
@@ -49,8 +48,7 @@ require('../../telemetry-schemas-test-helpers')({
           videos: 1,
           maps: 1,
           news: 1,
-        }))
-      );
+        })));
     });
   }
 });

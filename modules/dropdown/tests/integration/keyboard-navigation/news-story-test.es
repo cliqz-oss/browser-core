@@ -8,7 +8,8 @@ import {
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 import expectSelection from './common';
 import results from '../../../core/integration/fixtures/resultsNewsStoryOfTheDay';
 
@@ -28,8 +29,8 @@ export default function () {
       await mockSearch({ results });
       fillIn(query);
       await waitForPopup();
-      await waitFor(() => $cliqzResults.querySelector(searchWithSelector) &&
-        $cliqzResults.querySelector(newsSelector));
+      await waitFor(() => $cliqzResults.querySelector(searchWithSelector)
+        && $cliqzResults.querySelector(newsSelector));
       $searchWithElement = $cliqzResults.querySelector(searchWithSelector);
       $newsElement = $cliqzResults.querySelector(newsSelector);
     });

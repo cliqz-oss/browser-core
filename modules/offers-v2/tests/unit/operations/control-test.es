@@ -3,32 +3,21 @@
 /* global require */
 /* eslint-disable func-names,prefer-arrow-callback,arrow-body-style, no-param-reassign */
 
-const tldts = require('tldts');
+const commonMocks = require('../utils/common');
 
-let prefRetVal = {};
+const prefs = commonMocks['core/prefs'].default;
+
 let currentTS = Date.now();
 let currentDayHour = 0;
 let currentWeekDay = 0;
 let platformLaguage;
 
-const DAY_MS = 1000 * 60 * 60 * 24;
-
-const getDaysFromTimeRange = (start, end) => {
-  const result = [];
-  while (start <= end) {
-    result.push(`${Math.floor(start / DAY_MS)}`);
-    start += DAY_MS;
-  }
-  return result;
-};
-const getTodayDayKey = timeMs => `${Math.floor((timeMs / DAY_MS))}`;
-
 export default describeModule('offers-v2/trigger_machine/ops/control_expr',
   () => ({
-    'core/platform': {
-      isWebExtension: false
+    ...commonMocks,
+    'core/http': {
+      default: {}
     },
-    'platform/lib/tldts': tldts,
     'platform/xmlhttprequest': {
       default: {}
     },
@@ -36,9 +25,6 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
       default: {}
     },
     'platform/gzip': {
-      default: {}
-    },
-    'platform/globals': {
       default: {}
     },
     'platform/environment': {
@@ -55,28 +41,10 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         return currentWeekDay;
       }
     },
-    'core/crypto/random': {
-      random: function () {
-        return Math.random();
-      }
-    },
     'offers-v2/regexp_cache': {
       default: class {
         getRegexp(p) {
           return new RegExp(p);
-        }
-      }
-    },
-    'core/prefs': {
-      default: {
-        get: function (prefName, defaultVal) {
-          if (prefRetVal) {
-            return prefRetVal;
-          }
-          return defaultVal;
-        },
-        setMockVal: function (varName, val) {
-          prefRetVal[varName] = val;
         }
       }
     },
@@ -87,36 +55,19 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         },
       },
     },
-    'core/utils': {
-      default: {},
-    },
-    'platform/console': {
-      default: {},
-    },
-    'offers-v2/common/offers_v2_logger': {
-      default: {
-        debug: () => {},
-        error: (...args) => { console.error(...args); },
-        info: (...args) => { console.log(args); },
-        log: () => {},
-        warn: (...args) => { console.error(...args); },
-        logObject: () => {},
-      }
-    },
-    'core/helpers/timeout': {
-      default: function () { const stop = () => {}; return { stop }; }
-    },
     'offers-v2/query_handler': {
       default: class {
         normalize() {
           return 'normal';
         }
+
         normalizeTokenList(list) {
           if (list === ['test']) {
             return ['test'];
           }
           return [];
         }
+
         matchTokens() {
           return true;
         }
@@ -127,30 +78,22 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         constructor() {
           this.features = {};
         }
+
         clear() {
           this.features = {};
         }
+
         addFeaturesToCheck() {}
 
         isFeatureAvailable(featureName) {
           return !!this.features[featureName];
         }
+
         getFeature(featureName) {
           return this.features[featureName];
         }
+
         dumpFeaturesData() {}
-      }
-    },
-    'core/time': {
-      getDaysFromTimeRange: function (startTS, endTS) {
-        return getDaysFromTimeRange(startTS, endTS);
-      },
-      getDateFromDateKey: function (dateKey) {
-        return `${Number(dateKey) * DAY_MS}`;
-      },
-      timestamp: function () {},
-      getTodayDayKey: function () {
-        return getTodayDayKey();
       }
     },
     'offers-v2/pattern-matching/pattern-matching-handler': {
@@ -158,18 +101,22 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         constructor() {
           this.clear();
         }
+
         setitMatchesResult(r) { this.itMatchesResult = r; }
+
         itMatches(tokenizedURL, patternObj) {
           this.lastTokenizedURL = tokenizedURL;
           this.lastPatternObj = patternObj;
           return this.itMatchesResult;
         }
+
         countHistoryMatches(query, patternObj) {
           console.log('### HEREE', query);
           this.lastQuery = query;
           this.lastPatternObj = patternObj;
           return this.countHistoryMatchesResult;
         }
+
         clear() {
           this.lastTokenizedURL = null;
           this.lastPatternObj = null;
@@ -184,12 +131,19 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         constructor(url) {
           this.rawUrl = url;
         }
+
         hasReferrer() { return false; }
+
         getReferrer() { return ''; }
+
         getRawUrl() { return this.rawUrl; }
+
         getNormalizedUrl() { return decodeURIComponent(this.rawUrl.replace(/\+/g, '%20')).toLowerCase(); }
+
         getUrlDetails() { return {}; }
+
         getDomain() { return ''; }
+
         getPatternRequest() { return this.rawUrl; }
       }
     },
@@ -198,24 +152,32 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         constructor() {
           this.clear();
         }
+
         clear() {
           this.locs = null;
           this.lastLocCheck = [];
           this.isSameLocationRet = true;
         }
+
         isLocAvailable() {
           return this.loc !== null;
         }
+
         isAvailable() {
           return this.isLocAvailable();
         }
+
         updateLocation() { }
+
         updateCity() { }
+
         updateCountry() { }
+
         checkLocByCoords() {
           // TODO: implement this when required
           return false;
         }
+
         isSameLocation(loc) {
           this.lastLocCheck.push(loc);
           return this.isSameLocationRet;
@@ -256,7 +218,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         patternMatchMock = new PatternMatchingHandlerMock();
         featureHandlerMock = new FeatureHandler();
         geoMock = new GeoCheckerMock();
-        prefRetVal = {};
+        prefs.reset();
         buildDataGen = {
           regex_cache: new RegexpCache(),
           query_handler: new QHandlerMock(),
@@ -331,31 +293,31 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
 
         it('/simple checks exists but different value', () => {
           const o = ['$if_pref', ['test_pref', false]];
-          prefRetVal = true;
+          prefs.set('test_pref', true);
           return testCase(o, false, ctx);
         });
 
         it('/simple checks exists and same value', () => {
           const o = ['$if_pref', ['test_pref', false]];
-          prefRetVal = false;
-          return testCase(o, false, ctx);
+          prefs.set('test_pref', false);
+          return testCase(o, true, ctx);
         });
 
         it('/simple checks not exists string', () => {
           const o = ['$if_pref', ['test_pref_str', 'value1']];
-          prefRetVal = true;
+          prefs.set('test_pref_str', true);
           return testCase(o, false, ctx);
         });
 
         it('/simple checks exists string different value', () => {
           const o = ['$if_pref', ['test_pref_str', 'value1']];
-          prefRetVal = 'value2';
+          prefs.set('test_pref_str', 'value2');
           return testCase(o, false, ctx);
         });
 
         it('/simple checks exists string same value', () => {
           const o = ['$if_pref', ['test_pref_str', 'value1']];
-          prefRetVal = 'value1';
+          prefs.set('test_pref_str', 'value1');
           return testCase(o, true, ctx);
         });
       });
@@ -370,7 +332,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         let op;
         beforeEach(function () {
           ctx = {};
-          prefRetVal = {};
+          prefs.reset();
         });
 
         it('/invalid args call', () => {
@@ -427,7 +389,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         let ctx;
         beforeEach(function () {
           ctx = {};
-          prefRetVal = {};
+          prefs.reset();
         });
 
         it('/invalid args call', () => {
@@ -489,7 +451,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         let ctx;
         beforeEach(function () {
           ctx = {};
-          prefRetVal = {};
+          prefs.reset();
         });
 
         it('/invalid args call', () => {
@@ -558,7 +520,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         let ctx;
         beforeEach(function () {
           ctx = {};
-          prefRetVal = {};
+          prefs.reset();
         });
 
         it('/invalid args call', () => {
@@ -607,7 +569,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         let ctx;
         beforeEach(function () {
           ctx = {};
-          prefRetVal = {};
+          prefs.reset();
         });
 
         it('/invalid args call', () => {
@@ -666,7 +628,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         let ctx;
         beforeEach(function () {
           ctx = {};
-          prefRetVal = {};
+          prefs.reset();
         });
 
         it('/invalid args call', () => {
@@ -715,7 +677,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         let ctx;
         beforeEach(function () {
           ctx = {};
-          prefRetVal = {};
+          prefs.reset();
         });
 
         it('/invalid args call', () => {
@@ -763,7 +725,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         let ctx;
         beforeEach(function () {
           ctx = {};
-          prefRetVal = {};
+          prefs.reset();
         });
 
         it('/simple check', () => {
@@ -782,7 +744,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         let ctx;
         beforeEach(function () {
           ctx = {};
-          prefRetVal = {};
+          prefs.reset();
         });
 
         it('/simple check', () => {
@@ -801,7 +763,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         let ctx;
         beforeEach(function () {
           ctx = {};
-          prefRetVal = {};
+          prefs.reset();
         });
 
         it('/simple check', () => {
@@ -821,7 +783,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         let ctx;
         beforeEach(function () {
           ctx = {};
-          prefRetVal = {};
+          prefs.reset();
           featureHandlerMock.clear();
         });
 
@@ -873,7 +835,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         let ctx;
         beforeEach(function () {
           ctx = {};
-          prefRetVal = {};
+          prefs.reset();
           geoMock.clear();
           featureHandlerMock.clear();
         });
@@ -1064,7 +1026,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         let ctx;
         beforeEach(function () {
           ctx = {};
-          prefRetVal = {};
+          prefs.reset();
         });
 
         it('/invalid args call', () => {
@@ -1124,5 +1086,4 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
       });
     });
-  },
-);
+  });

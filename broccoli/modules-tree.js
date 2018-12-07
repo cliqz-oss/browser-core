@@ -82,6 +82,13 @@ function getPlatformFunnel() {
   });
 }
 
+function getTestsFunnel() {
+  return new Funnel(modulesTree, {
+    include: cliqzConfig.modules.map(name => `${name}/**/tests/**/*.es`),
+    exclude: cliqzConfig.modules.map(name => `${name}/**/tests/**/*lint-test.js`),
+  });
+}
+
 const dirs = p => fs.readdirSync(p).filter(f => fs.statSync(path.join(p, f)).isDirectory())
 
 function getPlatformTree() {
@@ -182,10 +189,12 @@ function getLintTestsTree() {
 
   const platform = getPlatformFunnel();
   const sources = getSourceFunnel();
+  const tests = getTestsFunnel();
 
   return new MergeTrees([
-    generateTestTree(platform, 'tests/platform', cliqzConfig.platform),
+    generateTestTree(platform, 'tests/platform'),
     generateTestTree(sources, 'tests'),
+    generateTestTree(tests, 'tests/tests'),
   ]);
 }
 

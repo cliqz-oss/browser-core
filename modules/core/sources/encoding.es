@@ -99,8 +99,8 @@ function fromBase64Slow(data) {
     const sextc = data[i] === '=' ? 0 & i++ : dectable[data[i++].charCodeAt()];
     const sextd = data[i] === '=' ? 0 & i++ : dectable[data[i++].charCodeAt()];
 
-    const triple = (sexta << 3 * 6) + (sextb << 2 * 6) +
-      (sextc << 1 * 6) + (sextd << 0 * 6);
+    const triple = (sexta << 3 * 6) + (sextb << 2 * 6)
+      + (sextc << 1 * 6) + (sextd << 0 * 6);
     if (j < outlength) {
       decdata[j++] = (triple >> 2 * 8) & 0xFF;
     }
@@ -139,9 +139,8 @@ function fromHex(data) {
   const outlength = data.length / 2;
   const decdata = new Uint8Array(outlength);
   for (let i = 0; i < outlength; i++) {
-    decdata[i] =
-      (dectablehex[data[2 * i].charCodeAt()] << 4) |
-      (dectablehex[data[(2 * i) + 1].charCodeAt()]);
+    decdata[i] = (dectablehex[data[2 * i].charCodeAt()] << 4)
+      | (dectablehex[data[(2 * i) + 1].charCodeAt()]);
   }
   return decdata;
 }

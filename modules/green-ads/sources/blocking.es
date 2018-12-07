@@ -202,9 +202,9 @@ export function isException(url) {
     };
   }
 
-  if (url.indexOf('1x1-transparent.gif') !== -1 ||
-      url.indexOf('1x1_default.gif') !== -1 ||
-      url.indexOf('1x1_Pixel.png') !== -1) {
+  if (url.indexOf('1x1-transparent.gif') !== -1
+      || url.indexOf('1x1_default.gif') !== -1
+      || url.indexOf('1x1_Pixel.png') !== -1) {
     return {
       redirectUrl: 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==',
     };

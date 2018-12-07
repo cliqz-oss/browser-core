@@ -21,6 +21,7 @@ export default class PeerMaster {
   get lastVersion() {
     return this.getStorage('lastVersion');
   }
+
   set lastVersion(version) {
     this.setStorage('lastVersion', version);
   }
@@ -28,6 +29,7 @@ export default class PeerMaster {
   get secret() {
     return this.getStorage('secret');
   }
+
   set secret(value) {
     this.setStorage('secret', value);
   }
@@ -54,9 +56,11 @@ export default class PeerMaster {
     }
     this.pairingTimeout = 5000;
   }
+
   setObject(key, object) {
     this.storage.setItem(key, JSON.stringify(object));
   }
+
   getObject(key, notFound = false) {
     const o = this.storage.getItem(key);
     if (o) {
@@ -64,21 +68,27 @@ export default class PeerMaster {
     }
     return notFound;
   }
+
   getStorage(key) {
     return this.storage ? this.getObject(this.storagePrefix + key, null) : null;
   }
+
   setStorage(key, value) {
     return this.setObject(this.storagePrefix + key, value);
   }
+
   clearStorage(key) {
     return this.storage.removeItem(this.storagePrefix + key);
   }
+
   get keypair() {
     return this.getStorage('keypair');
   }
+
   set keypair(value) {
     this.setStorage('keypair', value);
   }
+
   get privateKey() {
     return this.keypair[1];
   }
@@ -111,11 +121,10 @@ export default class PeerMaster {
   __loadSlaves() {
     this.slaves = (this.getStorage('__slaves') || [])
       .filter(x => // Just in case: ignore slaves with wrong format
-        x.name &&
-        x.peerID &&
-        x.publicKey &&
-        x.randomToken
-      );
+        x.name
+        && x.peerID
+        && x.publicKey
+        && x.randomToken);
 
     this.slaves.forEach((slave) => {
       this.slavesById[slave.peerID] = slave;
@@ -163,6 +172,7 @@ export default class PeerMaster {
     this.secret = toBase64(crypto.getRandomValues(new Uint8Array(128)));
     return Promise.resolve();
   }
+
   init(storage) {
     if (this.isInit) {
       throw new Error('Module already init!');
@@ -261,7 +271,7 @@ export default class PeerMaster {
     if (has(this.slavesById, slaveID)) {
       return this.masterPeer.send(slaveID, msg);
     }
-    return Promise.reject('unknown slaveName');
+    return Promise.reject(new Error('unknown slaveName'));
   }
 
   sendMessages(slaveID, msgs) {
@@ -429,6 +439,7 @@ export default class PeerMaster {
       app.onmessage(msg, source, type);
     }
   }
+
   processMessage(data, label, peerID) {
     if (has(this.slavesById, peerID)) {
       this.pushEncryptedMessage(data);
@@ -500,19 +511,19 @@ export default class PeerMaster {
         ordered: true,
         maxMessageRetries: 0,
         signalingEnabled: false,
-      },
-    ).then((peer) => {
-      this.masterPeer = peer;
-      this.masterPeer.encryptSignaling = (data, peerID) =>
-        this.loadPairingAESKey(peerID)
-          .then(aesKey => PeerMaster.sendEncrypted(data, aesKey))
-          .catch(() => data);
-      this.masterPeer.decryptSignaling = (data, peerID) =>
-        this.loadPairingAESKey(peerID)
-          .then(aesKey => PeerMaster.receiveEncrypted(data, aesKey))
-          .catch(() => data);
-      this.masterPeer.setMessageSizeLimit(maxSize);
-    });
+      })
+      .then((peer) => {
+        this.masterPeer = peer;
+        this.masterPeer.encryptSignaling = (data, peerID) =>
+          this.loadPairingAESKey(peerID)
+            .then(aesKey => PeerMaster.sendEncrypted(data, aesKey))
+            .catch(() => data);
+        this.masterPeer.decryptSignaling = (data, peerID) =>
+          this.loadPairingAESKey(peerID)
+            .then(aesKey => PeerMaster.receiveEncrypted(data, aesKey))
+            .catch(() => data);
+        this.masterPeer.setMessageSizeLimit(maxSize);
+      });
   }
 
   checkConnections() {

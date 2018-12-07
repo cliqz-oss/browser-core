@@ -84,7 +84,11 @@
         }
 
         .settings-row {
-            padding: 10px 0px 10px 20px;
+            padding: 12px 0px 12px 20px;
+            line-height: 21px;
+            span {
+                vertical-align: top
+            }
 
             .label {
                 font-size: 14px;
@@ -92,77 +96,58 @@
                 padding-left: 1px;
             }
 
-            form {
-                margin-top: 7px;
-                .radio {
+            .news-editions-wrapper {
+                padding-top: 7px;
+                padding-right: 25px;
+
+                .news-editions-select {
+                    width: 100%;
+                    cursor: pointer;
+                    height: 30px;
+                    border: 1px solid #ccc;
+                    border-radius: 4px;
                     font-size: 12px;
-                    color: rgba(0, 0, 0, 0.7);
-                    margin: 4px 0px;
-                    padding: 2px 0px 1px 0px;
+                    -webkit-appearance: none;
+                    -moz-appearance: none;
+                    padding: 1px 18px 1px 2px;
+                    background-image: url("../images/dropmarker.png");
+                    background-repeat: no-repeat;
+                    background-position: 96% center;
 
-                    input {
-                        margin-right: 8px;
-                        cursor: pointer;
-                    }
-
-                    label {
-                        cursor: pointer;
-                        display: inline-flex;
-                    }
-
-                    &.focused {
-                        border-radius: 10px;
-                        opacity: 57%;
-                        margin-right: 26px;
-                        margin-left: -2px;
-                        padding-left: 2px;
-                        animation-name: animationFrames;
-                        animation-duration: 2s;
-                        animation-iteration-count: infinite;
-                    }
-
-                    @keyframes animationFrames{
-                      0% {
-                        background-color: rgba(00, 174, 240, 0.10); /* $color-cliqz-blue */
-                      }
-                      50% {
-                        background-color: rgba(00, 174, 240, 0.30); /* $color-cliqz-blue */
-                      }
-                      100% {
-                        background-color: rgba(00, 174, 240, 0.10); /* $color-cliqz-blue */
-                      }
+                    &:-moz-focusring {
+                        color: transparent;
+                        text-shadow: 0 0 0 #000;
                     }
                 }
             }
 
             .background-selection-list {
                 list-style: none;
-
                 li {
                     display: inline-block;
                     padding-right: 5px;
                     position: relative;
                     cursor: pointer;
-
+                    margin-bottom: 4px;
                     &:first-child,
                     &:last-child {
                         padding-left: 0;
-
-                        .selected-img {
-                            left: 23px !important;
-                        }
                     }
 
                     &:hover {
                        .selected-img {
-                            display: block;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center
                        }
                     }
 
                     .selected-img {
                         position: absolute;
-                        top: 8px;
-                        left: 22px;
+                        top: 0px;
+                        left: 0px;
+                        width: calc(100% - 5px);
+                        height: 100%;
                         display: none;
                         img {
                             box-shadow: none !important;
@@ -174,10 +159,16 @@
                         box-shadow: 0px 0px 2px 0px rgba(0,0,0,0.15);
 
                         &.active + .selected-img {
-                            display: block;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center
                         }
                     }
                 }
+            }
+
+            &.background-selection-wrapper {
+                padding-top: 0;
             }
         }
     }

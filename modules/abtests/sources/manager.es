@@ -40,6 +40,10 @@ export default class Manager {
     this.completedTests = { };
   }
 
+  init() {
+    return this.moduleStorage.init();
+  }
+
   /*
    * Loads tests from persistent storage.
    */
@@ -87,8 +91,8 @@ export default class Manager {
       })
       // (5) start and stop selected tests; tell remote about stopped tests
       .then(async ([expiredTests, upcomingTests]) => {
-        await Promise.all(expiredTests
-          .map(async (test) => {
+        await Promise.all(
+          expiredTests.map(async (test) => {
             const stoppedTest = await this.stopTest(test);
             try {
               await this.client.leaveTest(stoppedTest);
@@ -98,8 +102,8 @@ export default class Manager {
           })
         );
 
-        await Promise.all(upcomingTests
-          .map(test => this.startTest(test))
+        await Promise.all(
+          upcomingTests.map(test => this.startTest(test))
         );
       })
       // (6) persist state
@@ -233,34 +237,33 @@ export default class Manager {
       .then(async (reports) => {
         const pendingTests = {};
         const runningLegacyTests = await this.getRunningLegacyTests();
-        const upcomingTests =
-          reports
-            // (2) remove tests that should not start
-            .filter(({ shouldStart }) => shouldStart)
-            .map(({ test }) => test)
-            // (3) remove competing tests
-            .filter((test) => {
-              const isCompeting = this.isTestCompeting(test, {
-                ...pendingTests,
-                ...this.runningTests,
-                ...this.completedTests,
-                ...runningLegacyTests,
-              });
-              if (!isCompeting) {
-                pendingTests[test.id] = test;
-              }
-              return !isCompeting;
-            })
-            // (4) assign test groups
-            .map(test => ({ ...test, group: this.chooseTestGroup(test) }));
+        const upcomingTests = reports
+          // (2) remove tests that should not start
+          .filter(({ shouldStart }) => shouldStart)
+          .map(({ test }) => test)
+          // (3) remove competing tests
+          .filter((test) => {
+            const isCompeting = this.isTestCompeting(test, {
+              ...pendingTests,
+              ...this.runningTests,
+              ...this.completedTests,
+              ...runningLegacyTests,
+            });
+            if (!isCompeting) {
+              pendingTests[test.id] = test;
+            }
+            return !isCompeting;
+          })
+          // (4) assign test groups
+          .map(test => ({ ...test, group: this.chooseTestGroup(test) }));
 
         // (5) check (remotely) which tests can be entered
         return Promise.all(
           upcomingTests.map(test =>
             this.client.enterTest(test.id, test.group)
               .then(success => ({ test, success }))
-              .catch(() => ({ test, success: false }))
-          ));
+              .catch(() => ({ test, success: false })))
+        );
       })
       // (6) remove tests that were not entered
       .then(reports => reports
@@ -335,8 +338,8 @@ export default class Manager {
    * @returns {Boolean} - True, if the test is active.
    */
   isTestActive(test) {
-    return (test.status === 'Active') &&
-      getSynchronizedDate().isBefore(moment(test.end_date, DATE_FORMAT));
+    return (test.status === 'Active')
+      && getSynchronizedDate().isBefore(moment(test.end_date, DATE_FORMAT));
   }
 
   /*
@@ -370,16 +373,14 @@ export default class Manager {
 
           if (factor === 'install_date') {
             const userDate = moment(userValue, DATE_FORMAT);
-            const [testFirstDate, testLastDate] =
-              testValue.split('-').map(date => moment(date));
+            const [testFirstDate, testLastDate] = testValue.split('-').map(date => moment(date));
             const testDateRange = moment.range(testFirstDate, testLastDate || testFirstDate);
 
             return testDateRange.contains(userDate);
           }
 
           return userValue.startsWith(testValue);
-        })
-      );
+        }));
   }
 
   /*

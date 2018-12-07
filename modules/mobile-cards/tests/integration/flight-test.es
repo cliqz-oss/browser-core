@@ -107,8 +107,8 @@ export default function () {
         expect($smallActualTimeStyle[0].color).to.equal(colors.grey);
 
         if (
-          flightMatrix[flightType].arrival.estimate.isShown === true ||
-          flightMatrix[flightType].depart.estimate.isShown === true
+          flightMatrix[flightType].arrival.estimate.isShown === true
+          || flightMatrix[flightType].depart.estimate.isShown === true
         ) {
           expect($smallActualTimeStyle[0].textDecoration).to.equal('line-through');
 
@@ -131,9 +131,9 @@ export default function () {
           elementSelector: '[aria-label="flight-updated"]',
           url: cardsUrl,
         });
-        const updateString = flightType === 'cancelled' ?
-          'mobile_flight_no_updates' :
-          'updated';
+        const updateString = flightType === 'cancelled'
+          ? 'mobile_flight_no_updates'
+          : 'updated';
 
         expect($updates).to.have.length(1);
         expect($updates[0].textContent).to.contain(getLocalisedString(updateString));

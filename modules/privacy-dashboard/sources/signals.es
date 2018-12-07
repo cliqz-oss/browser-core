@@ -7,7 +7,6 @@
 
 import events from '../core/events';
 import utils from '../core/utils';
-import config from '../core/config';
 import prefs from '../core/prefs';
 import { addListener, removeListener } from '../core/http';
 import { getMessage } from '../core/i18n';
@@ -123,8 +122,8 @@ const SignalListener = {
   },
 
   onCliqzBackendRequest: ({ url }) => {
-    if (!url.startsWith(config.settings.RESULTS_PROVIDER) &&
-        !url.startsWith(config.settings.RESULTS_PROVIDER_LOG)) {
+    if (!url.startsWith(this.settings.RESULTS_PROVIDER)
+        && !url.startsWith(this.settings.RESULTS_PROVIDER_LOG)) {
       return;
     }
 
@@ -141,7 +140,8 @@ const SignalListener = {
     SignalListener.fireNewDataEvent('ql');
   },
 
-  init() {
+  init(settings) {
+    this.settings = settings;
     if (!(SignalListener.monkeyPatchTelemetry && SignalListener.monkeyPatchHmw)) {
       SignalListener.telemetryOrigin = utils.telemetry;
       SignalListener.hwOrigin = CliqzHumanWeb.telemetry;
@@ -191,11 +191,11 @@ const HumanwebSignal = {
   dataKey: 'payload',
   dataSubKey: ['c', 'r', 'e', 'x', 'red'],
   dataSubKeyDes: {
-    r: local('signals-search-results'),
-    c: local('signals-visited-page'),
-    e: local('signals-count-action'),
-    x: local('signals-page-info'),
-    red: local('signals-redirected-links')
+    r: 'signals-search-results',
+    c: 'signals-visited-page',
+    e: 'signals-count-action',
+    x: 'signals-page-info',
+    red: 'signals-redirected-links'
   },
 
   reformatDataKey(data) {
@@ -220,10 +220,10 @@ const HumanwebSignal = {
   },
 
   reformatSignals(sig) {
-    return (sig !== null && Object.prototype.hasOwnProperty.call(sig, HumanwebSignal.dataKey)) ?
-      reformatSignalsFlat(sig, [HumanwebSignal.dataKey])
-        .concat(HumanwebSignal.reformatDataKey(sig[HumanwebSignal.dataKey])) :
-      reformatSignalsFlat(sig);
+    return (sig !== null && Object.prototype.hasOwnProperty.call(sig, HumanwebSignal.dataKey))
+      ? reformatSignalsFlat(sig, [HumanwebSignal.dataKey])
+        .concat(HumanwebSignal.reformatDataKey(sig[HumanwebSignal.dataKey]))
+      : reformatSignalsFlat(sig);
   }
 };
 
@@ -317,9 +317,10 @@ const Signals = {
           des: ''
         }];
       } else {
-        info[sigType] =
-          Date.now() - SignalListener.SigCache[sigType].timestamp < Signals.sigExpireTime ?
-            Signals.reformatSignals(SignalListener.SigCache[sigType].sig, sigType) : [];
+        info[sigType] = Date.now() - SignalListener.SigCache[sigType].timestamp
+          < Signals.sigExpireTime
+          ? Signals.reformatSignals(SignalListener.SigCache[sigType].sig, sigType)
+          : [];
       }
     });
     return info;

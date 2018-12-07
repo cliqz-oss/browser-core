@@ -64,7 +64,7 @@ NORM_FUNCTIONS.set('obj', (o) => {
   const flat = flatten(o);
   flat.sort(([a], [b]) => {
     if (a < b) return -1;
-    else if (a > b) return 1;
+    if (a > b) return 1;
     return 0;
   });
   return flat;

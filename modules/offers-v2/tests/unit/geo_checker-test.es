@@ -1,29 +1,19 @@
 /* global chai */
 /* global describeModule */
 /* global require */
-
+const prefsMock = require('./utils/prefs');
 
 export default describeModule('offers-v2/features/geo_checker',
   () => ({
-    'platform/console': {
-      default: {}
-    },
+    ...prefsMock,
     'platform/gzip': {
-      default: {}
-    },
-    'platform/globals': {
       default: {}
     },
     'core/utils': {
       default: {}
     },
-    'core/helpers/timeout': {
-      default: function () { const stop = () => {}; return { stop }; }
-    },
-    'core/prefs': {
-      default: {
-        get(x, y) { return y; }
-      }
+    'core/http': {
+      default: {}
     },
     'platform/xmlhttprequest': {
       default: {}
@@ -231,5 +221,4 @@ export default describeModule('offers-v2/features/geo_checker',
         });
       });
     });
-  }
-);
+  });

@@ -3,13 +3,17 @@ import { StyleSheet, View, Text } from 'react-native';
 
 import Link from '../Link';
 import Rating from '../partials/Rating';
-import { elementSideMargins, descriptionTextColor } from '../../styles/CardStyle';
+import { elementSideMargins } from '../../styles/CardStyle';
+import themeDetails from '../../themes';
 
-const styles = StyleSheet.create({
+const styles = theme => StyleSheet.create({
   container: {
     marginTop: 5,
     ...elementSideMargins,
   },
+  director: {
+    color: themeDetails[theme].movieData.txtColor
+  }
 });
 
 export default class MobieData extends React.Component {
@@ -21,14 +25,15 @@ export default class MobieData extends React.Component {
   }
 
   displayDirector(director) {
+    const theme = this.props.theme;
     if (!director || !director.info) {
       return null;
     }
     return (
       <Link label="director-link" url={director.info.url}>
         <View>
-          <Text style={{ color: descriptionTextColor }}>
-            {director.title}: {director.info.name}
+          <Text style={styles(theme).director}>
+            {`${director.title}: ${director.info.name}`}
           </Text>
         </View>
       </Link>
@@ -37,20 +42,21 @@ export default class MobieData extends React.Component {
 
   render() {
     const data = this.props.data;
+    const theme = this.props.theme;
     const richData = data.rich_data || {};
     const rating = richData.rating;
     const director = richData.director;
     return (
-      <View style={styles.container}>
+      <View style={styles(theme).container}>
         <View
           accessible={false}
-          accessibilityLabel={'movie-rating'}
+          accessibilityLabel="movie-rating"
         >
           {this.displayRating(rating)}
         </View>
         <View
           accessible={false}
-          accessibilityLabel={'movie-director'}
+          accessibilityLabel="movie-director"
         >
           { this.displayDirector(director) }
         </View>

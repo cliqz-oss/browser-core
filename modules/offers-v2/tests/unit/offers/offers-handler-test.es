@@ -4,76 +4,30 @@
 /* eslint-disable func-names,prefer-arrow-callback,arrow-body-style, no-param-reassign */
 
 
-const adblocker = require('@cliqz/adblocker');
-const tldts = require('tldts');
+const commonMocks = require('../utils/common');
+const persistenceMocks = require('../utils/persistence');
+const beMocks = require('../utils/offers/intent');
+const eventsMock = require('../utils/events');
+const VALID_OFFER_OBJ = require('../utils/offers/data').VALID_OFFER_OBJ;
+const VALID_OOTW_OFFER_OBJ = require('../utils/offers/data').VALID_OOTW_OFFER_OBJ;
+const SignalHandlerMock = require('../utils/offers/signals')['offers-v2/signals/signals_handler'].default;
+const ehMocks = require('../utils/offers/event_handler')['offers-v2/event_handler'];
 
-const prefRetVal = {};
+const BackendConnectorMock = beMocks['offers-v2/backend-connector'].BackendConnectorMock;
+const IntentHandlerMock = beMocks['offers-v2/backend-connector'].IntentHandlerMock;
+const HistoryMatcherMock = beMocks['offers-v2/backend-connector'].HistoryMatcherMock;
+const CategoryHandlerMock = beMocks['offers-v2/backend-connector'].CategoryHandlerMock;
+const EventHandlerMock = ehMocks.default;
+const buildUrlData = ehMocks.buildUrlData;
+
 const currentTS = Date.now();
 let latestOffersInstalledTs = 0;
 const currentDayHour = 0;
 const currentWeekDay = 0;
 let getDetailsFromUrlReal;
-let UrlData;
-let eventMessages = [];
 let shouldFilterOfferID = '';
 
-let persistence = {};
-function delay(fn) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      Promise.resolve()
-        .then(fn)
-        .then(resolve)
-        .catch(reject);
-    }, 100);
-  });
-}
-
 let globalActiveCats = new Set();
-
-const buildUrlData = (url, referrer, activeCats = globalActiveCats) => {
-  const urlData = new UrlData(url, referrer);
-  urlData.setActivatedCategoriesIDs(activeCats);
-  return urlData;
-};
-
-const VALID_OFFER_OBJ = {
-  action_info: {
-    on_click: 'https://www.cliqz.com'
-  },
-  campaign_id: 'cid_1',
-  client_id: 'client-1',
-  display_id: 'x-d',
-  filterRules: "generic_comparator('offer_closed','l_u_ts','>=',30) && " +
-                 "generic_comparator('offer_shown','counter','<=',5)",
-  offer_id: 'x',
-  rule_info: {
-    display_time_secs: 999999,
-    type: 'exact_match',
-    url: []
-  },
-  ui_info: {
-    template_data: {
-      call_to_action: {
-        target: '',
-        text: 'Jetzt Anfordern',
-        url: 'http://newurl'
-      },
-      conditions: 'Some conditions',
-      desc: 'Some description',
-      logo_url: 'somelogourl',
-      title: 'This is the title',
-      voucher_classes: ''
-    },
-    template_name: 'ticket_template'
-  },
-  rs_dest: ['offers-cc'],
-  types: ['type1', 'type2'],
-  monitorData: [],
-  displayPriority: 0.0,
-  version: '',
-  categories: ['cat1'],
-};
 
 const cloneObject = obj => JSON.parse(JSON.stringify(obj));
 const cloneOffer = () => cloneObject(VALID_OFFER_OBJ);
@@ -99,215 +53,22 @@ const VALID_4_OFFERS = [
 //                              MOCKS
 // /////////////////////////////////////////////////////////////////////////////
 
-class IntentMock {
-  constructor(d) {
-    this.name = d.name;
-    this.active = d.active;
-    this.durationSecs = d.durationSecs || 10;
-  }
-  getName() {
-    return this.name;
-  }
-  isActive() {
-    return this.active;
-  }
-  getDurationSecs() {
-    return this.durationSecs;
-  }
-}
-
-class IntentHandlerMock {
-  constructor() {
-    this.cb = [];
-    this.activeIntents = [];
-  }
-  registerCallback(cb) { this.cb.push(cb); }
-  unregisterCallback() {}
-  activateIntentMock(intentData) {
-    const intent = new IntentMock(intentData);
-    this.activeIntents.push(intent);
-    this.cb.forEach(cb => cb('intent-active', intent));
-  }
-  getActiveIntents() {
-    return this.activeIntents;
-  }
-  getActiveIntent(intentName) {
-    let idx = -1;
-    for (let i = 0; idx < 0 && i < this.activeIntents.length; i += 1) {
-      if (this.activeIntents[i].name === intentName) {
-        idx = i;
-      }
-    }
-    return idx < 0 ? null : this.activeIntents[idx];
-  }
-  isIntentActiveByName(intentName) {
-    return this.activeIntents.some(i => i.getName() === intentName);
-  }
-  isIntentActive(intent) {
-    return this.isIntentActiveByName(intent.getName());
-  }
-}
-
-class BackendConnectorMock {
-  constructor() {
-    this.result = {};
-  }
-  sendApiRequest(endpoint, params) {
-    return Promise.resolve(this.result[params.intent_name]);
-  }
-}
-
 class FeatureHandlerMock {
   isFeatureAvailable() {
     return false;
   }
+
   getFeature() {
     return null;
   }
 }
 
-class HistoryMatcherMock {
-  constructor() {
-    this.isHistoryEnabled = false;
-    this.countMatchesResult = { isPartial: false, count: 0 };
-  }
-  hasHistoryEnabled() {
-    return this.isHistoryEnabled;
-  }
-  countMatchesWithPartialCheck() {
-    return this.countMatchesResult;
-  }
-  countMatches() {
-    return this.countMatchesResult.count;
-  }
-}
-
-class CategoryHandlerMock {
-  constructor() {
-    this.result = true;
-  }
-
-  isCategoryActive() {
-    return this.result;
-  }
-}
-
-class SignalHandlerMock {
-  constructor() {
-    this.db = {
-      campaign: {},
-      action: {}
-    };
-  }
-  destroy() {}
-
-  setCampaignSignal(cid, oid, origID, sid) {
-    let cidm = this.db.campaign[cid];
-    if (!cidm) {
-      cidm = {};
-      this.db.campaign[cid] = cidm;
-    }
-    let oidm = cidm[oid];
-    if (!oidm) {
-      oidm = {};
-      cidm[oid] = oidm;
-    }
-    let origm = oidm[origID];
-    if (!origm) {
-      origm = {};
-      oidm[origID] = origm;
-    }
-    if (!origm[sid]) {
-      origm[sid] = 1;
-    } else {
-      origm[sid] += 1;
-    }
-  }
-
-  setActionSignal(actionID, origID) {
-    let origm = this.db.action[origID];
-    if (!origm) {
-      origm = {};
-      this.db.action[origID] = origm;
-    }
-    if (!origID[actionID]) {
-      origID[actionID] = 1;
-    } else {
-      origID[actionID] += 1;
-    }
-  }
-
-  // helper methods to get some values
-  getCampaignSignal(cid, oid, origID, sid) {
-    let m = this.db.campaign[cid];
-    if (!m) { return null; }
-    m = m[oid];
-    if (!m) { return null; }
-    m = m[origID];
-    if (!m) { return null; }
-    return m[sid];
-  }
-  getCampaignSignalsCount() {
-    return Object.keys(this.db.campaign).length;
-  }
-
-  getActionSignal(actionID, origID) {
-    const m = this.db.action[origID];
-    if (!m) { return null; }
-    return m[actionID];
-  }
-  getActionSignalCount() {
-    return Object.keys(this.db.action).length;
-  }
-}
-
-class EventHandlerMock {
-  constructor() {
-    this.httpMap = new Map();
-    this.urlMap = new Map();
-  }
-  isHttpReqDomainSubscribed(cb, dom) {
-    return this.httpMap.has(dom) && this.httpMap.get(dom).has(cb);
-  }
-  subscribeHttpReq(cb, domainName) {
-    if (!this.httpMap.has(domainName)) {
-      this.httpMap.set(domainName, new Set());
-    }
-    this.httpMap.get(domainName).add(cb);
-  }
-  unsubscribeHttpReq(cb, domainName) {
-    if (this.httpMap.has(domainName)) {
-      this.httpMap.get(domainName).delete(cb);
-    }
-  }
-  subscribeUrlChange(cb, cargs = null) {
-    this.urlMap.set(cb, cargs);
-  }
-  unsubscribeUrlChange(cb) {
-    this.urlMap.delete(cb);
-  }
-
-  simUrlChange(url, ref) {
-    this.urlMap.forEach((cargs, cb) => cb(buildUrlData(url, ref), cargs));
-  }
-  simWebRequest(url, ref) {
-    // need to get domain here
-    const urlData = buildUrlData(url, ref);
-    const domain = urlData.getDomain();
-    if (this.httpMap.has(domain)) {
-      this.httpMap.get(domain).forEach(cb => cb({ url_data: urlData }));
-    }
-  }
-}
-
 export default describeModule('offers-v2/offers/offers-handler',
   () => ({
-    'platform/lib/adblocker': {
-      default: adblocker,
-    },
-    'core/platform': {
-      isWebExtension: false
-    },
+    ...commonMocks,
+    ...persistenceMocks,
+    ...beMocks,
+    ...eventsMock,
     'core/config': {
       default: {
         settings: {
@@ -316,6 +77,9 @@ export default describeModule('offers-v2/offers/offers-handler',
           },
         },
       },
+    },
+    'core/http': {
+      default: {}
     },
     'platform/xmlhttprequest': {
       default: {}
@@ -326,22 +90,20 @@ export default describeModule('offers-v2/offers/offers-handler',
     'platform/gzip': {
       default: {}
     },
-    'platform/globals': {
-      default: {}
-    },
     'platform/environment': {
       default: {}
     },
-    'platform/lib/tldts': tldts,
     './blacklist': {
       default: class {
         init() {}
+
         has() { return false; }
       }
     },
     './patterns_stat': {
       default: class {
         init() {}
+
         add() {}
       }
     },
@@ -360,27 +122,7 @@ export default describeModule('offers-v2/offers/offers-handler',
       getLatestOfferInstallTs: function () {
         return latestOffersInstalledTs;
       },
-    },
-    'core/crypto/random': {
-      random: function () {
-        return Math.random();
-      }
-    },
-    'core/prefs': {
-      default: {
-        get: function (v, d) {
-          if (prefRetVal[v]) {
-            return prefRetVal[v];
-          }
-          return d;
-        },
-        setMockVal: function (varName, val) {
-          prefRetVal[varName] = val;
-        }
-      }
-    },
-    'core/utils': {
-      default: {}
+      shouldKeepResource: () => 1,
     },
     'core/url': {
       getDetailsFromUrl: function (url) {
@@ -388,98 +130,9 @@ export default describeModule('offers-v2/offers/offers-handler',
         return getDetailsFromUrlReal(url);
       },
     },
-    'platform/console': {
-      default: {},
-    },
-    'offers-v2/common/offers_v2_logger': {
-      default: {
-        debug: () => {},
-        error: () => {},
-        info: () => {},
-        log: () => {},
-        warn: () => {},
-      }
-    },
     'offers-v2/offers/soft-filter': {
       default: (offer) => {
         return !offer || offer.uniqueID === shouldFilterOfferID;
-      }
-    },
-    'core/events': {
-      default: {
-        msgs: {},
-        sub(channel) {
-          // we dont care about functions subscriber or anything just get the
-          // messages and store them to process them later
-          if (!eventMessages[channel]) {
-            eventMessages[channel] = [];
-          }
-        },
-        un_sub() {
-        },
-        pub(ch, msg) {
-          if (!eventMessages[ch]) {
-            eventMessages[ch] = [];
-          }
-          eventMessages[ch].push(msg);
-        },
-
-        // helper methods
-        clearAll() {
-          eventMessages = {};
-        },
-        countMsgs(ch) {
-          return !eventMessages[ch] ? 0 : eventMessages[ch].length;
-        }
-
-      }
-    },
-    'core/persistence/map': {
-      default: class MockMap {
-        constructor(dbName) {
-          persistence[dbName] = (persistence[dbName] || new Map());
-          this.db = persistence[dbName];
-        }
-
-        init() {
-          return Promise.resolve();
-        }
-
-        unload() {
-          return Promise.resolve();
-        }
-
-        get(key) {
-          return delay(() => this.db.get(key));
-        }
-
-        set(key, value) {
-          return delay(() => this.db.set(key, value));
-        }
-
-        has(key) {
-          return delay(() => this.db.has(key));
-        }
-
-        delete(key) {
-          return delay(() => this.db.delete(key));
-        }
-
-        clear() {
-          return delay(() => this.db.clear());
-        }
-
-        size() {
-          return delay(() => this.db.size());
-        }
-
-        keys() {
-          return delay(() => [...this.db.keys()]);
-        }
-
-        entries() {
-          return delay(() => [...this.db.entries()]);
-        }
       }
     },
     'offers-v2/background': {
@@ -493,20 +146,17 @@ export default describeModule('offers-v2/offers/offers-handler',
   () => {
     describe('/offers-handler', function () {
       let OffersHandler;
-      let events;
+      let OfferDB;
+      const events = eventsMock['core/events'].default;
 
-      beforeEach(function () {
+      beforeEach(async function () {
+        persistenceMocks['core/persistence/map'].reset();
         OffersHandler = this.module().default;
-        events = this.deps('core/events').default;
-        return Promise.all([
-          this.system.import('offers-v2/common/url_data'),
-          this.system.import('core/url'),
-        ]).then((mods) => {
-          UrlData = mods[0].default;
-          getDetailsFromUrlReal = mods[1].getDetailsFromUrl;
-        });
+        events.clearAll();
+        getDetailsFromUrlReal = (await this.system.import('core/url')).getDetailsFromUrl;
+        OfferDB = (await this.system.import('offers-v2/offers/offers-db')).default;
+        await ehMocks.init(this.system);
       });
-
 
       describe('/offers-handler-test basic test', function () {
         context('/all tests', function () {
@@ -522,7 +172,6 @@ export default describeModule('offers-v2/offers/offers-handler',
           let offersDB;
 
           beforeEach(function () {
-            persistence = {};
             globalActiveCats = new Set();
 
             shouldFilterOfferID = '';
@@ -530,11 +179,12 @@ export default describeModule('offers-v2/offers/offers-handler',
             intentHandlerMock = new IntentHandlerMock();
             backendConnectorMock = new BackendConnectorMock();
             presentRealEstates = new Map();
-            historyMatcherMock = new HistoryMatcherMock();
+            historyMatcherMock = new HistoryMatcherMock(/* isHistoryEnabled */ false);
             catHandlerMock = new CategoryHandlerMock();
             sigHandlerMock = new SignalHandlerMock();
             eventHadlerMock = new EventHandlerMock();
             featuresHandlerMock = new FeatureHandlerMock();
+            offersDB = new OfferDB();
 
             presentRealEstates.set('offers-cc', true);
 
@@ -547,23 +197,27 @@ export default describeModule('offers-v2/offers/offers-handler',
               sigHandler: sigHandlerMock,
               eventHandler: eventHadlerMock,
               categoryHandler: catHandlerMock,
+              offersDB: offersDB,
             });
 
-            offersDB = ohandler.offersDB;
-
-            eventMessages = [];
+            events.clearAll();
             latestOffersInstalledTs = 0;
           });
 
           function configureMockData(md) {
             // backend result: intent_name -> [offer1, offer2, ...]
             if (md.backendResult) {
-              backendConnectorMock.result = md.backendResult;
+              backendConnectorMock.setMockResult(
+                params => md.backendResult[params.intent_name]
+              );
             }
           }
 
           function checkEventPushedForOffer(offerID) {
-            const msg = eventMessages['offers-send-ch'][0];
+            const msgs = events.getMessagesForChannel('offers-send-ch');
+            chai.expect(msgs).to.be.not.undefined;
+            chai.expect(msgs).to.be.not.empty;
+            const msg = msgs[0];
             chai.expect(msg.type).eql('push-offer');
             chai.expect(msg.origin).eql('offers-core');
             chai.expect(msg.data.offer_id).eql(offerID);
@@ -579,22 +233,15 @@ export default describeModule('offers-v2/offers/offers-handler',
           }
 
           function waitForBEPromise() {
-            // return backendConnectorMock.lastPromise;
-            return new Promise((resolve) => {
-              const wait = () => {
-                setTimeout(() => {
-                  resolve(true);
-                }, 10);
-              };
-              wait();
-            });
+            return Promise.resolve(true);
           }
 
           function simulateUrlEventsAndWait(urls) {
             const promises = [];
             urls.forEach((u) => {
-              const urlData = buildUrlData(u, null);
-              promises.push(ohandler._processEvent({ urlData }));
+              const urlData = buildUrlData(u, null, globalActiveCats);
+              const catMatches = urlData.getCategoriesMatchTraits();
+              promises.push(ohandler._processEvent({ urlData, catMatches }));
             });
             return Promise.all(promises);
           }
@@ -905,7 +552,7 @@ export default describeModule('offers-v2/offers/offers-handler',
                 // check that we could push the
                 checkOfferPushed('o2');
                 // sim again and we should show now the o1 offer
-                eventMessages = [];
+                events.clearAll();
                 shouldFilterOfferID = 'o2';
                 setActiveCategoriesFromOffers(offersList);
                 return simulateUrlEventsAndWait(urls).then(() => {
@@ -948,7 +595,7 @@ export default describeModule('offers-v2/offers/offers-handler',
               .then(() => {
                 // check that we could push
                 checkOfferPushed('o2');
-                eventMessages = [];
+                events.clearAll();
 
                 // we now should get again the same offer since it is stored on the DB
                 return triggerOffers(offersList).then(() => {
@@ -1067,7 +714,7 @@ export default describeModule('offers-v2/offers/offers-handler',
                 // now we should push again and with anything except google.de and
                 // should work
                 urls[0] = 'http://www.amazon.de';
-                eventMessages = [];
+                events.clearAll();
                 setActiveCategoriesFromOffers(offersList);
                 return simulateUrlEventsAndWait(urls).then(() => {
                   // check that we could push the
@@ -1106,7 +753,7 @@ export default describeModule('offers-v2/offers/offers-handler',
 
                 // now we should push again and with google.de and should work
                 urls[0] = 'http://www.amazon.de';
-                eventMessages = [];
+                events.clearAll();
                 setActiveCategoriesFromOffers(offersList);
                 return simulateUrlEventsAndWait(urls).then(() => {
                   // check that we could push the
@@ -1114,7 +761,7 @@ export default describeModule('offers-v2/offers/offers-handler',
 
                   // now we should push again and with google.de and should work
                   urls[0] = 'http://www.focus.de';
-                  eventMessages = [];
+                  events.clearAll();
                   setActiveCategoriesFromOffers(offersList);
                   return simulateUrlEventsAndWait(urls).then(() => {
                     // check that we could push the
@@ -1151,12 +798,12 @@ export default describeModule('offers-v2/offers/offers-handler',
                 // check that we could push the
                 checkOfferPushed('o2');
                 // sim again and we should show now the o1 offer
-                eventMessages = [];
+                events.clearAll();
                 // again
                 setActiveCategoriesFromOffers(offersList);
                 return simulateUrlEventsAndWait(urls).then(() => {
                   checkOfferPushed('o2');
-                  eventMessages = [];
+                  events.clearAll();
 
                   // and again
                   setActiveCategoriesFromOffers(offersList);
@@ -1169,7 +816,7 @@ export default describeModule('offers-v2/offers/offers-handler',
             });
           });
 
-          it('/context filters works for offers categories not activated recently', function () {
+          it('/context filters works for offers categories not activated recently', async () => {
             const offersList = [
               buildOffer('o1', 'cid1', 'client1', 0.1),
               buildOffer('o2', 'cid2', 'client2', 0.9),
@@ -1179,60 +826,60 @@ export default describeModule('offers-v2/offers/offers-handler',
             offersList[0].categories = ['cat1'];
             offersList[1].categories = ['cat2'];
             offersList[2].categories = ['cat3'];
+            prepareTriggerOffers(offersList);
+            await waitForBEPromise();
 
-            const mockData = {
-              backendResult: { 'intent-1': offersList },
-            };
-            configureMockData(mockData);
-
-            // activate intents
-            const intents = [
-              { name: 'intent-1', active: true },
+            const urls = [
+              'http://www.google.com',
             ];
-            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
-
-            // wait for the fetch
-            return waitForBEPromise().then(() => {
-              const urls = [
-                'http://www.google.com',
-              ];
-              // activate only categories of offer 1 and 2 only
-              let activeCatsOffers = [
-                offersList[0],
-                offersList[1],
-              ];
+            const activateAndCheck = async (activeCatsOffers, expectedPushedOffer) => {
               setActiveCategoriesFromOffers(activeCatsOffers);
+              await simulateUrlEventsAndWait(urls);
+              checkOfferPushed(expectedPushedOffer);
+              events.clearAll();
+            };
 
-              return simulateUrlEventsAndWait(urls).then(() => {
-                // check that we could push the
-                checkOfferPushed('o2');
-                // sim again and we should show now the o1 offer
-                eventMessages = [];
-                // activate now 1 and 3
-                activeCatsOffers = [
-                  offersList[0],
-                  offersList[2],
-                ];
-                setActiveCategoriesFromOffers(activeCatsOffers);
-                return simulateUrlEventsAndWait(urls).then(() => {
-                  checkOfferPushed('o3');
-                  eventMessages = [];
+            // activate only categories of offer 1 and 2 only
+            let activeCatsOffers = [
+              offersList[0],
+              offersList[1],
+            ];
+            await activateAndCheck(activeCatsOffers, 'o2');
 
-                  // activate now 1 only
-                  activeCatsOffers = [
-                    offersList[0],
-                  ];
-                  setActiveCategoriesFromOffers(activeCatsOffers);
-                  return simulateUrlEventsAndWait(urls).then(() => {
-                    // check that we could push the
-                    checkOfferPushed('o1');
-                  });
-                });
-              });
-            });
+            // activate now 1 and 3
+            activeCatsOffers = [
+              offersList[0],
+              offersList[2],
+            ];
+            await activateAndCheck(activeCatsOffers, 'o3');
+
+            // activate now 1 only
+            activeCatsOffers = [
+              offersList[0],
+            ];
+            await activateAndCheck(activeCatsOffers, 'o1');
+          });
+
+          it('/store how offer was matched', async () => {
+            const offer = buildOffer('oid', 'cid', 'client', 1);
+            prepareTriggerOffers([offer]);
+            await waitForBEPromise();
+
+            await triggerOffers([offer]);
+
+            const r = offersDB.getReasonForHaving(offer.offer_id);
+            chai.expect(r.getReason()).is.eql(['SomeMatchPattern']);
+          });
+
+          it('/check offer of the week is pushed', async () => {
+            prepareTriggerOffers([VALID_OOTW_OFFER_OBJ]);
+            await waitForBEPromise();
+
+            await triggerOffers([VALID_OOTW_OFFER_OBJ]);
+
+            checkOfferPushed(VALID_OOTW_OFFER_OBJ.offer_id);
           });
         });
       });
     });
-  },
-);
+  });

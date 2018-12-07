@@ -1,3 +1,5 @@
+/* global chai, describeModule */
+
 const mock = {
   'search/operators/normalize': {
     getMainLink: ({ links }) => links[0],
@@ -840,5 +842,4 @@ export default describeModule('search/operators/responses/rerank',
         });
       });
     });
-  }
-);
+  });

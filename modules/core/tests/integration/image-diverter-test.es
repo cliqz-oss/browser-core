@@ -11,11 +11,13 @@ export default function () {
     const goodUrl = testServer.getBaseUrl(goodUrlRel);
 
     beforeEach(async () => {
-      await testServer.registerPathHandler(goodUrlRel, {
-        result: svgData,
-        headers: [
-          { name: 'Content-type', value: 'image/svg+xml' },
-          { name: 'Cache-Control', value: 'max-age=300' }] });
+      await testServer.registerPathHandler(
+        goodUrlRel,
+        { result: svgData,
+          headers: [
+            { name: 'Content-type', value: 'image/svg+xml' },
+            { name: 'Cache-Control', value: 'max-age=300' }] }
+      );
     });
 
     describe('read content as data url', () => {

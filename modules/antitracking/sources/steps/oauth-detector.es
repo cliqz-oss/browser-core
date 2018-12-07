@@ -26,8 +26,7 @@ function timedOutStream(observable, groupExtractor, timeout) {
  */
 function objectStreamToMap(observable, keyExtractor, valueExtractor) {
   return observable.map(value => state =>
-    Object.assign({}, state, { [keyExtractor(value)]: valueExtractor(value) })
-  );
+    Object.assign({}, state, { [keyExtractor(value)]: valueExtractor(value) }));
 }
 
 /**
@@ -140,8 +139,8 @@ export default class OAuthDetector {
     const reducer = (accumulator, currentValue) => accumulator || currentValue;
     const isOAuthFlow = oAuthUrls.map(mapper).reduce(reducer);
 
-    if (isOAuthFlow &&
-      this.clickActivity[state.tabId] && this.siteActivitiy[state.urlParts.hostname]) {
+    if (isOAuthFlow
+      && this.clickActivity[state.tabId] && this.siteActivitiy[state.urlParts.hostname]) {
       const clickedPage = URLInfo.get(this.clickActivity[state.tabId]);
       if (clickedPage !== null && clickedPage.hostname === state.sourceUrlParts.hostname) {
         state.incrementStat(`${type}_allow_oauth`);

@@ -21,13 +21,12 @@ export default function () {
       beforeEach(async function () {
         // Load freshtab in new tab
         await newTab(url, { focus: true });
-        await waitForElement({ url, selector: '#section-favorites .dial-header' });
+        await waitForElement({ url, selector: '#section-most-visited .dial-header' });
       });
 
       it('renders successfully', async () => {
-        const $favHeader = await queryHTML(url, '#section-favorites .dial-header', 'innerText');
-        expect($favHeader).to.have.length(1);
-        expect($favHeader[0]).to.equal('Favorites');
+        const $mostVisitedHeader = await queryHTML(url, '#section-most-visited .dial-header', 'innerText');
+        expect($mostVisitedHeader).to.have.length(1);
 
         await waitFor(async () => {
           const $search = await queryHTML(url, '.search', 'nodeName');

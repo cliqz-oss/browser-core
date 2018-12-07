@@ -31,6 +31,7 @@ describe('Freshtab most visited UI', function () {
     subject = new Subject();
     subject.respondsWithEmptyTelemetry();
     subject.respondsWithEmptyNews();
+    subject.respondsWithEmptyStats();
     mostVisitedConfig = clone(defaultConfig);
     mostVisitedConfig.response.componentsState.historyDials.visible = true;
   });
@@ -231,7 +232,7 @@ describe('Freshtab most visited UI', function () {
 
             expect($dials.length).to.be.above(0);
             [...$dials].forEach(function (item, j) {
-              expect(item.title).to.equal(historyResponse[i].history[j].url);
+              expect(item.title).to.equal(historyResponse[i].history[j].displayTitle);
             });
           });
 

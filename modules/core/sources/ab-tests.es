@@ -107,7 +107,8 @@ const CliqzABTests = {
         } catch (e) {
           log(`retrieve error: ${e.message}`);
         }
-      });
+      }
+    );
   },
   retrieve(callback) {
     const url = CliqzABTests.URL + encodeURIComponent(prefs.get('session', ''));

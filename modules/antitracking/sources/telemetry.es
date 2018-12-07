@@ -66,7 +66,7 @@ export default {
     payl.platform = this.platform;
     payl.userAgent = this.userAgent;
 
-    if (this.providerName === 'hpn') {
+    if (this.providerName.startsWith('hpn')) {
       // sending payload directly through hpn,
       // this is used in ghostery since humanweb is not always there
       // and we need to do add meta data that humanweb added

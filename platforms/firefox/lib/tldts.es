@@ -1,6 +1,6 @@
 import lazyLoader from './helpers';
 
-const tldts = lazyLoader('tldts.min.js', 'tldts');
+const tldts = lazyLoader('tldts.js', 'tldts');
 
 const getDomain = (...args) => tldts.getDomain(...args);
 const getHostname = (...args) => tldts.getHostname(...args);

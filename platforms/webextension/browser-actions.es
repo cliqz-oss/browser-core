@@ -9,6 +9,10 @@ function sendMessageToAndroid(action, ...args) {
     target: TARGET_ANDROID,
     action,
     args,
+  }, () => {
+    if (chrome.runtime.lastError) {
+      // Supress "Receiving end does not exist" error
+    }
   });
 }
 
@@ -63,3 +67,7 @@ export function handleQuerySuggestions(query = '', suggestions = []) {
 }
 
 export function hideKeyboard() {}
+
+export function sendUIReadySignal() {
+  sendMessageToAndroid('renderReady');
+}

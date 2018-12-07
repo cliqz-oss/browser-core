@@ -135,5 +135,4 @@ export default describeModule('search/operators/streams/smooth-results',
         return chai.expect(messages).to.deep.equal(expected);
       });
     });
-  },
-);
+  });

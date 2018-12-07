@@ -83,8 +83,8 @@ function tryParseAsUrlWithIncompleteSchema(query) {
  */
 export function _smallQueryButCouldBeUrlShortener(query) {
   const [host, rest] = query.split('/');
-  return rest !== undefined && rest.length >= 4 &&
-    host.length <= 7 && host.split('.').length === 2;
+  return rest !== undefined && rest.length >= 4
+    && host.length <= 7 && host.split('.').length === 2;
 }
 
 /**
@@ -105,8 +105,8 @@ function isPotentiallyLeakingUrlInformation(query) {
   // an extremely compact representation of an URL. Although it is
   // safe to assume that they do not encode URLs with secrets, we
   // would still leak the site that the user is going to visit.
-  if (query.length <= 11 ||
-      (query.length <= 18 && !_smallQueryButCouldBeUrlShortener(query))) {
+  if (query.length <= 11
+      || (query.length <= 18 && !_smallQueryButCouldBeUrlShortener(query))) {
     return false;
   }
 
@@ -228,7 +228,8 @@ export function sanitizeSearchQuery(originalQuery) {
       return originalQuery;
     }
     return null;
-  } else if (isPotentiallyLeakingUrlInformation(query)) {
+  }
+  if (isPotentiallyLeakingUrlInformation(query)) {
     // This rule is vague, but there is enough evidence that the user
     // is currently editing an URL. Do not query the backend, but
     // instead rely on history information only.

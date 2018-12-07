@@ -28,8 +28,8 @@ export default ({
     data-idx={idx}
   >
     {
-      shouldDisplaySearchResultItemLogo &&
-      (
+      shouldDisplaySearchResultItemLogo
+      && (
         <span
           className="searchbox-results-item-logo"
           style={item.logoStyle}

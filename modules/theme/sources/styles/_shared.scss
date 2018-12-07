@@ -101,6 +101,15 @@ $chrome-dark-color: #464646;
     }
 }
 
+#main-window {
+    &:-moz-lwtheme {
+        background-color: $chrome-dark-color !important;
+    }
+    &:-moz-lwtheme-darktext {
+        background-color: $inactive-tab-color !important;
+    }
+}
+
 #navigator-toolbox {
     /* TABS TOOLBAR */
     #TabsToolbar {
@@ -320,76 +329,76 @@ $chrome-dark-color: #464646;
     &:-moz-lwtheme-darktext, &:-moz-lwtheme {
         --chrome-background-color: #{$base-color}; // Background for menu toolbar (Windows only)
     }
-  
+
     #navigator-toolbox, #navigator-toolbox #TabsToolbar,
     .tabbrowser-tab .tab-content {
         background-color: #{$base-color};
     }
-  
+
     #navigator-toolbox #TabsToolbar #tabbrowser-tabs .tabbrowser-tab {
-  
+
       &:first-of-type { // [first-tab="true"], [first-visible-tab="true"]
         // Override the left line of the first tab to be black on dark & blue theme
         &:-moz-lwtheme {
           border-left: 0.5px solid rgba(0, 0, 0, 0.2);
         }
       }
-  
+
       // On blue theme force lines between tabs
       &:after {
         opacity: 1;
         border-left-color: darken($base-color, 10%);
       }
-  
+
       &[visuallyselected="true"] {
         border-top: 0;
-  
+
         &:-moz-lwtheme {
           .tab-content {
             background-color: unset;
           }
         }
-  
+
         &:-moz-lwtheme-darktext {
           .tab-content {
             background-color: #{$chrome-light-color};
           }
         }
       }
-  
+
       &:hover:not([visuallyselected="true"]) .tab-content {
         background-color: darken($base-color, 5%);
         transition: background-color ease 150ms;
       }
-  
+
       .tab-label-container:not([selected="true"]) {
         opacity: 1;
-  
+
         .tab-label:not([selected="true"]) {
           color: #fff;
           opacity: 1;
         }
       }
-  
+
       &:not([visuallyselected="true"]) {
-  
+
         .tab-close-button:hover {
-  
+
           .toolbarbutton-icon {
             background-color: darken($base-color, 15%);
           }
-  
+
           &:-moz-lwtheme {
             background-color: rgba(0, 0, 0, 0.2);
             border-radius: 2px;
           }
-  
+
           &:-moz-lwtheme-darktext {
             background-color: unset;
             border-radius: unset;
           }
         }
-  
+
         .toolbarbutton-icon {
           --toolbarbutton-icon-fill-opacity: 1;
           fill:  #fff;
@@ -397,12 +406,12 @@ $chrome-dark-color: #464646;
         }
       }
     }
-  
+
     .tabs-newtab-button,
     #new-tab-button {
       --toolbarbutton-icon-fill-opacity: 0.75;
       fill: #fff;
-  
+
       &:hover {
         --toolbarbutton-icon-fill-opacity: 1;
       }

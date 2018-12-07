@@ -1,0 +1,64 @@
+{
+  "name": "__MSG_{{name}}__",
+  "description": "__MSG_offersAppDesc__",
+  "version": "{{version}}",
+  "manifest_version": 2,
+  "default_locale": "de",
+  "icons": {
+    "16": "assets/icon16.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  },
+  "browser_action": {
+    "default_icon": {
+      "16": "assets/icon16.png",
+      "48": "assets/icon48.png",
+      "128": "assets/icon128.png"
+    },
+    "default_title": "MyOffrz"
+  },
+  "permissions": [
+    "<all_urls>",
+    "activeTab",
+    "history",
+    "management",
+    "storage",
+    "tabs",
+    "unlimitedStorage",
+    "webNavigation",
+    "webRequest",
+    "webRequestBlocking"
+  ],
+  "applications": {
+    "gecko": {
+      "id": "{{id}}",
+      "strict_min_version": "57.0"
+    }
+  },
+  "background": {
+    "scripts": [
+      "modules/vendor/dexie.min.js",
+      "modules/offers-banner/app.bundle.js"
+    ]
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*/*"
+      ],
+      "run_at": "document_start",
+      "match_about_blank": false,
+      "js": [
+        "modules/core/content-script.bundle.js"
+      ]
+    }
+  ],
+  "web_accessible_resources": [
+    "modules/browser-panel/index.html",
+    "modules/offers-cc/index.html"
+  ]
+}

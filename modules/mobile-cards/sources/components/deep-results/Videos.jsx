@@ -1,8 +1,8 @@
 import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, Image } from 'react-native';
 import Link from '../Link';
-import ExternalImage from '../custom/ExternalImage';
 import { elementSideMargins, elementTopMargin, getCardWidth } from '../../styles/CardStyle';
+import CONFIG from '../../../core/config';
 
 const styles = nLines => StyleSheet.create({
   social: {
@@ -46,15 +46,15 @@ const styles = nLines => StyleSheet.create({
 export default class Videos extends React.Component {
   displayLink(link) {
     const thumbnail = (link.extra && link.extra.thumbnail)
-          || 'https://cdn.cliqz.com/extension/EZ/news/no-image-mobile.png';
+          || `${CONFIG.settings.CDN_BASEURL}/extension/EZ/news/no-image-mobile.png`;
     const nLines = 3;
     return (
       <Link url={link.url} key={link.url}>
         <View style={styles().item}>
-          <ExternalImage
+          <Image
             source={{ uri: thumbnail }}
             style={styles().image}
-            resizeMode={'cover'}
+            resizeMode="cover"
           />
           <View style={styles(nLines).textContainer}>
             <Text style={styles().text} numberOfLines={nLines}>{link.title}</Text>
@@ -69,7 +69,7 @@ export default class Videos extends React.Component {
       return null;
     }
     return (
-      <View style={styles().social} >
+      <View style={styles().social}>
         {this.props.data.slice(0, 3).map(this.displayLink)}
       </View>
     );

@@ -45,9 +45,9 @@ function checkSingleScript(script) {
   }
 
   // if someone try to get the current date
-  if (script.indexOf('getTime') > -1 &&
-      script.indexOf('getDay') > -1 &&
-      script.indexOf('getDate') > -1) {
+  if (script.indexOf('getTime') > -1
+      && script.indexOf('getDay') > -1
+      && script.indexOf('getDate') > -1) {
     return true;
   }
 
@@ -79,9 +79,9 @@ function checkHTML(url, callback) {
       return;
     }
 
-    if (html.indexOf('security') > -1 &&
-        html.indexOf('update') > -1 &&
-        html.indexOf('account') > -1) {
+    if (html.indexOf('security') > -1
+        && html.indexOf('update') > -1
+        && html.indexOf('account') > -1) {
       callback(url, 'password');
     }
   });
@@ -194,8 +194,8 @@ const CliqzAntiPhishing = {
   onHwActiveURL(msg) {
     const url = msg.activeURL;
     const [md5Prefix, md5Surfix] = CliqzAntiPhishing.getSplitMd5(url);
-    if (CliqzAntiPhishing.blackWhiteList[md5Prefix] &&
-      CliqzAntiPhishing.blackWhiteList[md5Prefix][md5Surfix]) {
+    if (CliqzAntiPhishing.blackWhiteList[md5Prefix]
+      && CliqzAntiPhishing.blackWhiteList[md5Prefix][md5Surfix]) {
       // don't update if the status is already set
       return;
     }
@@ -225,8 +225,8 @@ const CliqzAntiPhishing = {
   },
 
   isInWhitelist(url) {
-    return CliqzAntiPhishing.getUrlWhitelistStatus(url) !==
-      CliqzAntiPhishing.WHITELISTED_NONE;
+    return CliqzAntiPhishing.getUrlWhitelistStatus(url)
+      !== CliqzAntiPhishing.WHITELISTED_NONE;
   },
 
   removeForceWhitelist(url) {

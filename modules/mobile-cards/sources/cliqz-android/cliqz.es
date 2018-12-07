@@ -29,6 +29,7 @@ export default class Cliqz {
     this.mobileCardsWrapper.handleMessage(msg);
     this.api.handleMessage(msg);
   };
+
   init() {
     this.api.export(this.actions);
 

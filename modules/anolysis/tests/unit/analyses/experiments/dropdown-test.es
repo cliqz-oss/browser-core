@@ -31,8 +31,8 @@ require('../../telemetry-schemas-test-helpers')({
             ],
           ],
         },
-        signals => chai.expect(signals[0].group).to.eql('B'))
-      );
+        signals => chai.expect(signals[0].group).to.eql('B')));
+
       it('ignores legacy AB tests', () =>
         test({
           'metrics.core.abtests': [
@@ -41,14 +41,14 @@ require('../../telemetry-schemas-test-helpers')({
             ]
           ],
         },
-        signals => chai.expect(signals).to.be.empty)
-      );
+        signals => chai.expect(signals).to.be.empty));
+
       it('does not emit if there are no AB tests', () =>
         test({
           'metrics.core.abtests': [[]],
         },
-        signals => chai.expect(signals).to.be.empty)
-      );
+        signals => chai.expect(signals).to.be.empty));
+
       it('does not emit for other AB tests', () =>
         test({
           'metrics.core.abtests': [
@@ -67,8 +67,7 @@ require('../../telemetry-schemas-test-helpers')({
             ],
           ],
         },
-        signals => chai.expect(signals).to.be.empty)
-      );
+        signals => chai.expect(signals).to.be.empty));
     });
   },
 });

@@ -7,8 +7,8 @@ let AboutURLFactoryPrivacy;
 const PrivacyRep = {
   openingStreamCount: 0,
 
-  onExtensionStart() {
-    Signals.init();
+  onExtensionStart(settings) {
+    Signals.init(settings);
     Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
 
     AboutURLPrivacy.prototype = {

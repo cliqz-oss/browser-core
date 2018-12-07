@@ -14,7 +14,7 @@ body {
   &.show-overlay {
       &::before,
       .aside, .undo-notification-box,
-      .fixed-container > section:not(#section-url-bar) {
+      .fixed-container > section:not(#section-top) {
           filter: blur($overlay-blur-amount);
       }
   }

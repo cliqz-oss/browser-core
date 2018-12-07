@@ -301,9 +301,9 @@ function composeHistoryBasedRecommendations(globalVisitCount) {
     const topDomainsList = [];
 
     Object.keys(glVisit).forEach((domain) => {
-      if ((Object.prototype.hasOwnProperty.call(glVisit, domain)) &&
-          (glVisit[domain].count > domainCountThreshold) &&
-          (checkIfNewsDomain(domain))) {
+      if ((Object.prototype.hasOwnProperty.call(glVisit, domain))
+          && (glVisit[domain].count > domainCountThreshold)
+          && (checkIfNewsDomain(domain))) {
         glVisit[domain].key = domain;
         topDomainsList.push(glVisit[domain]);
       }
@@ -498,8 +498,10 @@ export function composeNewsList(historyObject, topNewsCache, hbasedResults) {
       }
       if (!art.bloomFilterObj) {
         const clusterArticlesBloomfilter = JSON.parse(art.cluster_articles_bloomfilter);
-        const bloomFilterObj =
-          new BloomFilter(clusterArticlesBloomfilter.bkt, clusterArticlesBloomfilter.k);
+        const bloomFilterObj = new BloomFilter(
+          clusterArticlesBloomfilter.bkt,
+          clusterArticlesBloomfilter.k
+        );
 
         art.bloomFilterObj = bloomFilterObj;
       }
@@ -518,8 +520,11 @@ export function composeNewsList(historyObject, topNewsCache, hbasedResults) {
     * NOTE: if articleTocheck already has a bloomfilter, then we skipp checking
     * the duplication in previous clusters bloomfilter
     */
-    return freshtabArticlesList.every(urlCheck) &&
-      (articleTocheck.cluster_articles_bloomfilter || freshtabArticlesList.every(bloomFilterCheck));
+    return freshtabArticlesList.every(urlCheck)
+      && (
+        articleTocheck.cluster_articles_bloomfilter
+        || freshtabArticlesList.every(bloomFilterCheck)
+      );
   }
 
   function mergeToList(
@@ -531,9 +536,9 @@ export function composeNewsList(historyObject, topNewsCache, hbasedResults) {
     urlPatern
   ) {
     function mergeCheck(article, checkHist, urlDomainPatern) {
-      return (!(!(article.breaking === true) && checkHist && article.isVisited) &&
-            (notAlreadyInList(article, freshtabArticlesList)) &&
-            (article.url.indexOf(urlDomainPatern) !== -1));
+      return (!(!(article.breaking === true) && checkHist && article.isVisited)
+            && (notAlreadyInList(article, freshtabArticlesList))
+            && (article.url.indexOf(urlDomainPatern) !== -1));
     }
     function mergeArticle(article, returnList) {
       const artAdd = article;
@@ -680,8 +685,8 @@ export function composeNewsList(historyObject, topNewsCache, hbasedResults) {
 
   return new Promise((resolve) => {
     let freshtabArticlesList = [];
-    const newsPlacement = historyObject.newsPlacing ||
-      [{ type: topNewsTypeKey, domain: topNewsTypeKey, number: 9 }];
+    const newsPlacement = historyObject.newsPlacing
+      || [{ type: topNewsTypeKey, domain: topNewsTypeKey, number: 9 }];
 
     const topNewsList = topNewsCache;
     const hbasedNewsDict = hbasedResults;
@@ -730,8 +735,7 @@ function addVisitedFlagToArticles(articlesList) {
     isURLVisited(article.url).then((isVisited) => {
       article.isVisited = isVisited;
       return article;
-    })
-  );
+    }));
 
   return Promise.all(promiseList);
 }
@@ -746,8 +750,7 @@ function checkHbasedNewsIfInHistory(hbNewsDict) {
       addVisitedFlagToArticles(hbNewsDict[domain]).then((articlesList) => {
         resolve([domain, articlesList]);
       });
-    })
-  );
+    }));
 
   return Promise.all(promiseList).then((hbNewsChecked) => {
     const hbDictResult = {};

@@ -13,8 +13,7 @@ export default class Win {
           return Promise.resolve();
         }
         return this.notifications.action('updateUnreadStatus');
-      })
-    );
+      }));
   }
 
   unload() {

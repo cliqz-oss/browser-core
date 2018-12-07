@@ -6,12 +6,13 @@ import {
   expect,
   testsEnabled,
   fillIn,
+  mockSearch,
   press,
   release,
-  respondWith,
   waitFor,
   waitForPopup,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 import { results } from '../../../core/integration/fixtures/resultsTwoSimple';
 
 export default function () {
@@ -50,7 +51,7 @@ export default function () {
     let urlClicked;
     let handleCommandWhere;
 
-    beforeEach(function () {
+    beforeEach(async function () {
       urlClicked = false;
       handleCommandWhere = '';
 
@@ -76,9 +77,9 @@ export default function () {
       };
 
       withHistory([]);
-      respondWith({ results });
+      await mockSearch({ results });
       fillIn('www.royalgames.com');
-      return waitForPopup();
+      await waitForPopup();
     });
 
     afterEach(function () {

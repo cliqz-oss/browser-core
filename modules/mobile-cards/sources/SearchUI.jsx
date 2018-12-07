@@ -10,6 +10,28 @@ const styles = StyleSheet.create({
   }
 });
 
+function isJustHistoryResult({ provider, template }) {
+  return provider === 'history' && template === undefined;
+}
+
+function extractHistoryLinks(result) {
+  let urls = [];
+  if (result.kind.includes('H')) {
+    urls.push({
+      title: result.title,
+      url: result.url,
+      href: result.url,
+    });
+  }
+  if (result.kind.includes('C')) {
+    urls = urls.concat(result.data.urls || []);
+  }
+  return urls.map(url => ({
+    ...url,
+    logo: result.meta.logo,
+  }));
+}
+
 export default class SearchUI extends React.Component {
   filterResults(results = []) {
     return (
@@ -20,19 +42,43 @@ export default class SearchUI extends React.Component {
     );
   }
 
+  regroupHistory(results = []) {
+    const historyResults = results.filter(isJustHistoryResult);
+    if (historyResults.length < 3) {
+      return results;
+    }
+    const backendResults = results.filter(result => !isJustHistoryResult(result));
+    const historyCard = {
+      provider: 'history',
+      template: 'cluster',
+      meta: {},
+      data: {
+        kind: ['H'],
+        urls: historyResults.map(extractHistoryLinks).reduce((a, b) => a.concat(b), [])
+      }
+    };
+    return [
+      historyCard,
+      ...backendResults,
+    ];
+  }
+
   render() {
     const results = this.props.results;
+    const theme = this.props.theme;
     const filteredResults = this.filterResults(results);
     if (!filteredResults.length) {
       return null;
     }
+    // TODO: Move this whole logic to search module
+    const regroupedResults = this.regroupHistory(filteredResults);
     return (
       <View
         accessible={false}
         accessibilityLabel="search-results"
         style={styles.container}
       >
-        <CardList results={filteredResults} />
+        <CardList results={regroupedResults} theme={theme} />
       </View>
     );
   }

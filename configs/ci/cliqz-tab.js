@@ -1,5 +1,4 @@
 const webextensionBase = require('../cliqz-tab');
-const subprojects = require('../common/subprojects/bundles');
 
 module.exports = Object.assign({}, webextensionBase, {
   settings: Object.assign({}, webextensionBase.settings, {
@@ -18,14 +17,6 @@ module.exports = Object.assign({}, webextensionBase, {
     'logger.offers-v2.level': 'debug',
     showConsoleLogs: true,
   },
-  subprojects: webextensionBase.subprojects.concat(subprojects([
-    'chai',
-    'chai-dom',
-    'mocha',
-    'reactTestUtils',
-    'sinon',
-    'sinon-chai',
-  ])),
   bundles: webextensionBase.bundles.concat([
     'integration-tests/run.bundle.js',
     'core/integration-tests.bundle.js',

@@ -67,6 +67,10 @@ export default class SearchWindow extends AppWindow {
     super.unload();
   }
 
+  actions = {
+    getBackendCountries: getProviders
+  }
+
   status() {
     let engines = [];
     try {

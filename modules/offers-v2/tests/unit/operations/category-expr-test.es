@@ -3,25 +3,13 @@
 /* global require */
 /* eslint-disable func-names,prefer-arrow-callback,arrow-body-style, no-param-reassign */
 
-const tldts = require('tldts');
-
-const mockedTS = Date.now();
-const DAY_MS = 1000 * 60 * 60 * 24;
-const getTodayDayKey = timeMs => `${Math.floor((timeMs / DAY_MS))}`;
-
-const getDaysFromTimeRange = (start, end) => {
-  const result = [];
-  while (start <= end) {
-    result.push(`${Math.floor(start / DAY_MS)}`);
-    start += DAY_MS;
-  }
-  return result;
-};
+const commonMocks = require('../utils/common');
 
 export default describeModule('offers-v2/trigger_machine/ops/category_expr',
   () => ({
-    'core/platform': {
-      isWebExtension: false
+    ...commonMocks,
+    'core/http': {
+      default: {}
     },
     'platform/xmlhttprequest': {
       default: {}
@@ -32,63 +20,15 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
     'platform/gzip': {
       default: {}
     },
-    'platform/globals': {
-      default: {}
-    },
     'platform/environment': {
       default: {}
-    },
-    'platform/lib/tldts': tldts,
-    'core/crypto/random': {
-      random: function () {
-        return Math.random();
-      }
-    },
-    'platform/console': {
-      default: {},
-    },
-    'offers-v2/common/offers_v2_logger': {
-      default: {
-        debug: () => {},
-        error: (...args) => { console.error(...args); },
-        info: (...args) => { console.log(args); },
-        log: () => {},
-        warn: (...args) => { console.error(...args); },
-        logObject: () => {},
-      }
-    },
-    'core/utils': {
-      default: {},
-    },
-    'core/prefs': {
-      default: {
-        get: function (x, y) {
-          return y;
-        }
-      }
-    },
-    'core/helpers/timeout': {
-      default: function () { const stop = () => {}; return { stop }; }
-    },
-    'core/time': {
-      getDaysFromTimeRange: function (startTS, endTS) {
-        return getDaysFromTimeRange(startTS, endTS);
-      },
-      getDateFromDateKey: function (dateKey) {
-        return `${Number(dateKey) * DAY_MS}`;
-      },
-      timestamp: function () {
-        return mockedTS;
-      },
-      getTodayDayKey: function () {
-        return getTodayDayKey(mockedTS);
-      }
     },
     'offers-v2/categories/category-handler': {
       default: class {
         constructor() {
           this.clear();
         }
+
         clear() {
           this.categories = {};
           this.buildCalled = false;
@@ -96,12 +36,19 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
         }
 
         hasCategory(catName) { return !!(this.categories[catName]); }
+
         addCategory(category) { this.categoriesAdded.push(category); }
+
         removeCategory() { }
+
         build() { this.buildCalled = true; }
+
         cleanUp() { }
+
         newUrlEvent() {}
+
         loadPersistentData() {}
+
         savePersistentData() { }
 
         getMatchesForCategory() {
@@ -115,6 +62,7 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
         getLastMatchTsForCategory() {
           // TODO
         }
+
         isCategoryActive(catName) { return !!this.categories[catName]; }
       }
     }
@@ -267,5 +215,4 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
         });
       });
     });
-  },
-);
+  });

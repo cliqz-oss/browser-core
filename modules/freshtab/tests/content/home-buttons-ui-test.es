@@ -15,6 +15,7 @@ describe('Freshtab buttons UI', function () {
     subject = new Subject();
     subject.respondsWithEmptyTelemetry();
     subject.respondsWithEmptyNews();
+    subject.respondsWithEmptyStats();
     subject.respondsWith(defaultConfig);
 
     subject.respondsWith({

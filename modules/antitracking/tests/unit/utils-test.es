@@ -99,5 +99,4 @@ export default describeModule('antitracking/utils',
         }, 1)).to.equal('8.8.4.4');
       });
     });
-  }
-);
+  });

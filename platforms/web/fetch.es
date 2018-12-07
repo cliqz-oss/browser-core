@@ -14,48 +14,49 @@ function fetchLocal(url) {
   });
 }
 
-export function fetchFactory({ jsonp }) {
+function _fetch(url, options, { jsonp } = {}) {
   if (jsonp !== true) {
-    return fetch;
+    return fetch(url, options);
   }
 
-  return (apiUrl) => {
-    const promise = new Promise((fulfilled, rejected) => {
-      const jsonpCallback = `c${new Date().getTime()}`;
+  const promise = new Promise((fulfilled, rejected) => {
+    const jsonpCallback = `c${new Date().getTime()}`;
 
-      window[jsonpCallback] = (response) => {
-        const res = {
-          json: () => response
-        };
-        fulfilled(res);
+    window[jsonpCallback] = (response) => {
+      const res = {
+        json: () => response
       };
-      const script = document.createElement('script');
-      script.src = `${apiUrl}&callback=${jsonpCallback}`;
+      fulfilled(res);
+    };
+    const script = document.createElement('script');
+    script.src = `${url}&callback=${jsonpCallback}`;
 
-      script.onload = () => {
-        script.onload = null;
-        document.body.removeChild(script);
-        window[jsonpCallback] = null;
-      };
-      script.onerror = (error) => {
-        script.onerror = null;
-        document.body.removeChild(script);
-        window[jsonpCallback] = null;
+    script.onload = () => {
+      script.onload = null;
+      document.body.removeChild(script);
+      window[jsonpCallback] = null;
+    };
+    script.onerror = (error) => {
+      script.onerror = null;
+      document.body.removeChild(script);
+      window[jsonpCallback] = null;
 
-        rejected(error);
-      };
-      document.body.appendChild(script);
-    });
+      rejected(error);
+    };
+    document.body.appendChild(script);
+  });
 
-    return promise;
-  };
+  return promise;
 }
 
-export default fetch;
+const isTrackableOriginHeaderFromOurExtension = () => false;
+
+export default _fetch;
 export {
-  fetch,
+  _fetch as fetch,
   Headers,
   Request,
   Response,
-  fetchLocal
+  fetchLocal,
+  isTrackableOriginHeaderFromOurExtension
 };

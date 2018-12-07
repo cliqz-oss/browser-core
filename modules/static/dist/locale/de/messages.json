@@ -17,6 +17,15 @@
   "ghosteryTabAppDesc": {
       "message": "Mach mehr aus Chrome. Mehr Privatsphäre, mehr Favoriten, mehr Freiheit, mehr Style und mehr News in jedem neuen Tab."
   },
+  "offersAppName": {
+    "message": "MyOffrz"
+  },
+  "offersAppNameNightly": {
+    "message": "MyOffrz (Nightly)"
+  },
+  "offersAppDesc": {
+    "message": "Spare bares Geld beim Online-Shoppen! MyOffrz liefert dir attraktive Angebote mit echtem Mehrwert, genau dann, wenn du sie brauchst."
+  },
   "more_on": {
       "message": "Mehr auf"
   },
@@ -1382,6 +1391,9 @@
   "control_center_footer": {
       "message": "BEREITGESTELLT VON CLIQZ"
   },
+  "offers_hub_powered_by_offrz": {
+    "message": "BEREITGESTELLT VON MyOffrz"
+  },
   "control_center_quicksearch": {
       "message": "Sichere Ghost-Suche"
   },
@@ -1749,13 +1761,13 @@
       "message": "Konditionen"
   },
   "offers_expires_in": {
-      "message": "Endet in"
+      "message": "Verfügbar für"
   },
   "offers_expires_day": {
       "message": "Tag"
   },
   "offers_expires_days": {
-      "message": "Tagen"
+      "message": "Tage"
   },
   "offers_expires_hour": {
       "message": "Stunde"
@@ -2141,6 +2153,9 @@
   "freshtab_cliqz_tab_button": {
       "message": "$1 Tab"
   },
+  "freshtab_cliqz_for_friends_button": {
+      "message": "Cliqz for friends"
+  },
   "freshtab_cliqz_modules_button": {
       "message": "Cliqz Modules"
   },
@@ -2163,7 +2178,7 @@
     "message": "Optional"
   },
   "feedback_submit_feedback": {
-    "message": "Feedback senden"
+    "message": "Senden"
   },
   "offers_menu_give_feedback": {
     "message": "Feedback geben"
@@ -2174,10 +2189,58 @@
   "why_see_these_offers": {
     "message": "Warum wird das gezeigt?"
   },
-  "freshtab_new_feature": {
-    "message": "Neu!"
+  "feedback_skip": {
+    "message": "Überspringen"
   },
-  "freshtab_blackfriday_tooltip": {
-    "message": "Black Friday Angebote!"
+  "freshtab_stats_gt_trackers_blocked": {
+    "message": "Tracker blockiert"
+  },
+  "freshtab_stats_gt_trackers_seen": {
+    "message": "von $1 der insgesamt von Ghostery entdeckten Tracker"
+  },
+  "freshtab_stats_dp_anonymized": {
+    "message": "Datenpunkte anonymisiert"
+  },
+  "freshtab_stats_data_anonymized_by_desc": {
+    "message": "Deine privaten Daten wurden von $1 anonymisiert."
+  },
+  "freshtab_stats_ads_blocked": {
+    "message": "Blockierte Werbungen"
+  },
+  "freshtab_stats_ads_blocked_by_desc": {
+    "message": "Summe der von $1 blockierten Werbungen"
+  },
+  "freshtab_stats_time_saved": {
+    "message": "Gesparte Zeit"
+  },
+  "freshtab_stats_time_saved_desc": {
+    "message": "Geschätzte Zeit, die du dank Cliqz-Werbeblocker gespart hast."
+  },
+  "freshtab_stats_cliqz_trackers_blocked": {
+    "message": "Anonymisierte Daten"
+  },
+  "freshtab_stats_cliqz_trackers_blocked_desc": {
+    "message": "Summe der von Cliqz entfernten persönlichen Tracking-Daten"
+  },
+  "promo_data_brand_name": {
+    "message": "Ghostery - datenschutzorientierter Werbeblocker"
+  },
+  "promo_data_description": {
+    "message": "Füge deinem Browser die leistungsstarke Datenschutz-Erweiterung hinzu."
+  },
+  "promo_data_description_2": {
+    "message": "Blockiere Werbung, stoppe Tracker und beschleunige Websites."
+  },
+  "later_link": {
+    "message": "Später"
+  },
+  "add_to_chrome": {
+    "message": "Zu Chrome hinzufügen"
+  },
+  "freshtab_app_settings_privacy_stats": {
+    "message": "Datenschutz-Statistiken"
+  },
+  "cliqz_offers" : {
+    "message": "Cliqz Offers"
   }
 }

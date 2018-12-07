@@ -12,10 +12,6 @@ const storage = new Storage();
 
 const CLIQZEnvironment = {
   RESULTS_TIMEOUT: 60000, // 1 minute
-  // TODO: check if calling the bridge for each telemetry point is expensive or not
-  telemetry(msg) {
-    msg.ts = Date.now();
-  },
   _resultsHandler(r) {
     if (CLIQZEnvironment.lastSearch !== r._searchString) {
       console.log(`u='${CLIQZEnvironment.lastSearch}' s='${r._searchString}', returning`, 'urlbar!=search');
@@ -81,8 +77,8 @@ CLIQZEnvironment.setCurrentQuery = (query) => {
   ) {
     // DO NOTHING
     // temporary work around repetitive queries coming from iOS
-  } else if (recentItems[0].query.indexOf(query) + query.indexOf(recentItems[0].query) > -2 &&
-    Date.now() - recentItems[0].timestamp < 5 * 1000) {
+  } else if (recentItems[0].query.indexOf(query) + query.indexOf(recentItems[0].query) > -2
+    && Date.now() - recentItems[0].timestamp < 5 * 1000) {
     recentItems[0] = { id: recentItems[0].id, query, timestamp: Date.now() };
     storage.setObject('recentQueries', recentItems);
   } else {

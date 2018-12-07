@@ -65,4 +65,3 @@ export function urlStripProtocol(url, { stripTrailingSlash } = { stripTrailingSl
 
   return resultUrl;
 }
-

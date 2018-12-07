@@ -59,7 +59,8 @@ export default function () {
           $result: $cliqzResults,
           results: notLocalResults,
           isExpanded: false,
-          activeTabIdx: 0 });
+          activeTabIdx: 0
+        });
       });
 
       context('with "never" share location settings', function () {

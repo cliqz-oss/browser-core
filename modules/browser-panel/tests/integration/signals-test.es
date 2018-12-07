@@ -1,3 +1,4 @@
+import { isWebExtension } from '../../../core/platform';
 import {
   app,
   CliqzEvents,
@@ -23,6 +24,7 @@ import {
 const offers = app.modules['offers-v2'].background;
 
 export default function () {
+  if (isWebExtension) { return; }
   let tabId;
 
   describe('browser-panel', function () {
@@ -51,13 +53,22 @@ export default function () {
       const pageUrl = getPage(`landing?q=${triggerKeyword}`);
       tabId = await newTab(pageUrl, { focus: true });
       await waitFor(async () =>
-        Boolean((await queryHTML(pageUrl, 'p', 'innerText')).length) === true
-      );
+        Boolean((await queryHTML(pageUrl, 'p', 'innerText')).length) === true);
 
       await waitFor(() => testServer.hasHit('/api/v1/offers'), 15000);
 
       allCampaigns = app.modules['offers-v2'].background.signalsHandler.sigMap.campaign;
     });
+
+    async function getSentSignalData() {
+      await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
+      const hits = (await testServer.getHits()).get('/api/v1/savesignal');
+      const campaignHits = hits.filter(hit =>
+        ((hit.body.action === 'offers-signal')
+          && hit.body.signal_id === 'test_campaign_v1'));
+      expect(campaignHits.length).to.be.eq(1, 'One and only one compound campaign signal is expected');
+      return campaignHits[0].body.payload.data;
+    }
 
     describe('opening a categories trigger URL', function () {
       it('increments counters for: "offer_triggered", "offer_pushed", "offer_dsp_session" and "offer_shown"', async function () {
@@ -77,16 +88,15 @@ export default function () {
           .to.have.property('offer_shown').to.equal(1);
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
-        const hits = await testServer.getHits();
-        expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[0].origin_data, 'offer_triggered, server-side')
+
+        const signal = await getSentSignalData();
+        expect(signal.c_data.offers[0].offer_data[0].origin_data, 'offer_triggered, server-side')
           .to.have.property('offer_triggered').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[0].origin_data, 'offer_pushed, server-side')
+        expect(signal.c_data.offers[0].offer_data[0].origin_data, 'offer_pushed, server-side')
           .to.have.property('offer_pushed').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_dsp_session, server-side')
+        expect(signal.c_data.offers[0].offer_data[1].origin_data, 'offer_dsp_session, server-side')
           .to.have.property('offer_dsp_session').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_shown, server-side')
+        expect(signal.c_data.offers[0].offer_data[1].origin_data, 'offer_shown, server-side')
           .to.have.property('offer_shown').to.equal(1);
       });
 
@@ -126,12 +136,11 @@ export default function () {
           .to.have.property('offer_shown').to.equal(2);
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 10000);
-        const hits = await testServer.getHits();
-        expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_dsp_session, server-side')
+
+        const signal = await getSentSignalData();
+        expect(signal.c_data.offers[0].offer_data[1].origin_data, 'offer_dsp_session, server-side')
           .to.have.property('offer_dsp_session').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_shown, server-side')
+        expect(signal.c_data.offers[0].offer_data[1].origin_data, 'offer_shown, server-side')
           .to.have.property('offer_shown').to.equal(2);
       });
     });
@@ -157,10 +166,9 @@ export default function () {
             .to.have.property('offer_timeout').to.equal(1), 2000);
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
-        const hits = await testServer.getHits();
-        expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_timeout, server-side')
+
+        const signal = await getSentSignalData();
+        expect(signal.c_data.offers[0].offer_data[1].origin_data, 'offer_timeout, server-side')
           .to.have.property('offer_timeout').to.equal(1);
       });
     });
@@ -201,10 +209,9 @@ export default function () {
             .to.have.property('code_copied').to.equal(1), 2000);
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
-        const hits = await testServer.getHits();
-        expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'code_copied, server-side')
+
+        const signal = await getSentSignalData();
+        expect(signal.c_data.offers[0].offer_data[1].origin_data, 'code_copied, server-side')
           .to.have.property('code_copied').to.equal(1);
       });
     });
@@ -228,7 +235,7 @@ export default function () {
         expect(landingPageContent[0]).to.equal('Hello world');
       });
 
-      it('increments counters for: "offer_logo", "offer_ca_action", "landing", "ref_none" and "page_imp"', async function () {
+      it('increments counters for: "offer_logo", "offer_ca_action", "landing" and "page_imp"', async function () {
         await waitFor(() =>
           expect(allCampaigns)
             .to.have.nested.property('test_campaign_v1.data.offers.test_offer_v1.origins.trigger'), 1000);
@@ -241,23 +248,18 @@ export default function () {
           .to.have.property('landing').to.equal(1);
         expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp, browser-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none, browser-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
-        const hits = await testServer.getHits();
-        expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_logo, server-side')
+
+        const signal = await getSentSignalData();
+        expect(signal.c_data.offers[0].offer_data[1].origin_data, 'offer_logo, server-side')
           .to.have.property('offer_logo').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
+        expect(signal.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
           .to.have.property('offer_ca_action').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'landing, server-side')
+        expect(signal.c_data.offers[0].offer_data[2].origin_data, 'landing, server-side')
           .to.have.property('landing').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
+        expect(signal.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'ref_none, server-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
       });
     });
 
@@ -280,7 +282,7 @@ export default function () {
         expect(landingPageContent[0]).to.equal('Hello world');
       });
 
-      it('increments counters for: "offer_picture", "offer_ca_action", "landing", "ref_none" and "page_imp"', async function () {
+      it('increments counters for: "offer_picture", "offer_ca_action", "landing" and "page_imp"', async function () {
         await waitFor(() =>
           expect(allCampaigns)
             .to.have.nested.property('test_campaign_v1.data.offers.test_offer_v1.origins.trigger'), 1000);
@@ -293,23 +295,18 @@ export default function () {
           .to.have.property('landing').to.equal(1);
         expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp, browser-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none, browser-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
-        const hits = await testServer.getHits();
-        expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_picture, server-side')
+
+        const signal = await getSentSignalData();
+        expect(signal.c_data.offers[0].offer_data[1].origin_data, 'offer_picture, server-side')
           .to.have.property('offer_picture').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
+        expect(signal.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
           .to.have.property('offer_ca_action').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'landing, server-side')
+        expect(signal.c_data.offers[0].offer_data[2].origin_data, 'landing, server-side')
           .to.have.property('landing').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
+        expect(signal.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'ref_none, server-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
       });
     });
 
@@ -332,7 +329,7 @@ export default function () {
         expect(landingPageContent[0]).to.equal('Hello world');
       });
 
-      it('increments counters for: "offer_benefit", "offer_ca_action", "landing", "ref_none" and "page_imp"', async function () {
+      it('increments counters for: "offer_benefit", "offer_ca_action", "landing" and "page_imp"', async function () {
         await waitFor(() =>
           expect(allCampaigns)
             .to.have.nested.property('test_campaign_v1.data.offers.test_offer_v1.origins.trigger'), 1000);
@@ -345,23 +342,18 @@ export default function () {
           .to.have.property('landing').to.equal(1);
         expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp, browser-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none, browser-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
-        const hits = await testServer.getHits();
-        expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_benefit, server-side')
+
+        const signal = await getSentSignalData();
+        expect(signal.c_data.offers[0].offer_data[1].origin_data, 'offer_benefit, server-side')
           .to.have.property('offer_benefit').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
+        expect(signal.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
           .to.have.property('offer_ca_action').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'landing, server-side')
+        expect(signal.c_data.offers[0].offer_data[2].origin_data, 'landing, server-side')
           .to.have.property('landing').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
+        expect(signal.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'ref_none, server-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
       });
     });
 
@@ -384,7 +376,7 @@ export default function () {
         expect(landingPageContent[0]).to.equal('Hello world');
       });
 
-      it('increments counters for: "offer_headline", "offer_ca_action", "landing", "ref_none" and "page_imp"', async function () {
+      it('increments counters for: "offer_headline", "offer_ca_action", "landing" and "page_imp"', async function () {
         await waitFor(() =>
           expect(allCampaigns)
             .to.have.nested.property('test_campaign_v1.data.offers.test_offer_v1.origins.trigger'), 1000);
@@ -397,23 +389,18 @@ export default function () {
           .to.have.property('landing').to.equal(1);
         expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp, browser-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none, browser-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
-        const hits = await testServer.getHits();
-        expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_headline, server-side')
+
+        const signal = await getSentSignalData();
+        expect(signal.c_data.offers[0].offer_data[1].origin_data, 'offer_headline, server-side')
           .to.have.property('offer_headline').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
+        expect(signal.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
           .to.have.property('offer_ca_action').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'landing, server-side')
+        expect(signal.c_data.offers[0].offer_data[2].origin_data, 'landing, server-side')
           .to.have.property('landing').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
+        expect(signal.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'ref_none, server-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
       });
     });
 
@@ -436,7 +423,7 @@ export default function () {
         expect(landingPageContent[0]).to.equal('Hello world');
       });
 
-      it('increments counters for: "offer_description", "offer_ca_action", "landing", "ref_none" and "page_imp"', async function () {
+      it('increments counters for: "offer_description", "offer_ca_action", "landing" and "page_imp"', async function () {
         await waitFor(() =>
           expect(allCampaigns)
             .to.have.nested.property('test_campaign_v1.data.offers.test_offer_v1.origins.trigger'), 1000);
@@ -449,23 +436,18 @@ export default function () {
           .to.have.property('landing').to.equal(1);
         expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp, browser-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none, browser-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
-        const hits = await testServer.getHits();
-        expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_description, server-side')
+
+        const signal = await getSentSignalData();
+        expect(signal.c_data.offers[0].offer_data[1].origin_data, 'offer_description, server-side')
           .to.have.property('offer_description').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
+        expect(signal.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
           .to.have.property('offer_ca_action').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'landing, server-side')
+        expect(signal.c_data.offers[0].offer_data[2].origin_data, 'landing, server-side')
           .to.have.property('landing').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
+        expect(signal.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'ref_none, server-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
       });
     });
 
@@ -488,7 +470,7 @@ export default function () {
         expect(landingPageContent[0]).to.equal('Hello world');
       });
 
-      it('increments counters for: "offer_ca_action", "landing", "ref_none" and "page_imp"', async function () {
+      it('increments counters for: "offer_ca_action", "landing" and "page_imp"', async function () {
         await waitFor(() =>
           expect(allCampaigns)
             .to.have.nested.property('test_campaign_v1.data.offers.test_offer_v1.origins.trigger'), 1000);
@@ -499,21 +481,16 @@ export default function () {
           .to.have.property('landing').to.equal(1);
         expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'page_imp, browser-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, 'ref_none, browser-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
-        const hits = await testServer.getHits();
-        expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
+
+        const signal = await getSentSignalData();
+        expect(signal.c_data.offers[0].offer_data[1].origin_data, 'offer_ca_action, server-side')
           .to.have.property('offer_ca_action').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'landing, server-side')
+        expect(signal.c_data.offers[0].offer_data[2].origin_data, 'landing, server-side')
           .to.have.property('landing').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
+        expect(signal.c_data.offers[0].offer_data[2].origin_data, 'page_imp, server-side')
           .to.have.property('page_imp').to.equal(1);
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, 'ref_none, server-side')
-          .to.have.property('ref_none'); // actual value is not stable to test
       });
     });
 
@@ -541,15 +518,14 @@ export default function () {
               await waitFor(async () =>
                 expect(allCampaigns).to.have.nested.property(
                   'test_campaign_v1.data.offers.test_offer_v1.origins.trigger'
-                )
-              );
+                ));
               expect(allCampaigns.test_campaign_v1.data.offers.test_offer_v1.origins.trigger, `${signal}, browser-side`)
                 .to.have.property(`${signal}`).to.equal(1);
 
               offers.signalsHandler._sendSignalsToBE();
-              await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
-              const hits = await testServer.getHits();
-              expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[2].origin_data, `${signal}, server-side`)
+
+              const signalData = await getSentSignalData();
+              expect(signalData.c_data.offers[0].offer_data[2].origin_data, `${signal}, server-side`)
                 .to.have.property(`${signal}`).to.equal(1);
             });
           });
@@ -576,10 +552,9 @@ export default function () {
             .to.have.property('offer_closed').to.equal(1), 1000);
 
         offers.signalsHandler._sendSignalsToBE();
-        await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
-        const hits = await testServer.getHits();
-        expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
-        expect(hits.get('/api/v1/savesignal')[0].body.payload.data.c_data.offers[0].offer_data[1].origin_data, 'offer_closed, server-side')
+
+        const signal = await getSentSignalData();
+        expect(signal.c_data.offers[0].offer_data[1].origin_data, 'offer_closed, server-side')
           .to.have.property('offer_closed').to.equal(1);
       });
     });

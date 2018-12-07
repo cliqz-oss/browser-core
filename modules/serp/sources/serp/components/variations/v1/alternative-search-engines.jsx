@@ -177,11 +177,13 @@ export default class AlternativeSearchEngines extends React.Component {
           className="searchbox-v1-categories-dropdown searchbox-categories-dropdown"
         >
           {
-            showEnginesTooltip &&
-            (<Tooltip
-              text={t('choose_alternative_search_engines')}
-              cssClasses={['tooltip-v1', 'tooltip-v1-above']}
-            />)
+            showEnginesTooltip
+            && (
+              <Tooltip
+                text={t('choose_alternative_search_engines')}
+                cssClasses={['tooltip-v1', 'tooltip-v1-above']}
+              />
+            )
           }
           <button
             type="button"
@@ -193,24 +195,26 @@ export default class AlternativeSearchEngines extends React.Component {
             {selectedEngine.title}
           </button>
           {
-            (<Modal
-              showModal={showEnginesDropdown}
-              closeAction={this._handleCloseEditModal}
-            >
-              <Dropdown
-                headerText={t('alternative_search_engines_list')}
-                cancelButtonText={t('cancel')}
-                submitButtonText={t('confirm')}
-                items={[].concat(this.engines)}
-                onCancelHandler={this._handleCloseEditModal}
-                onSubmitHandler={this._handleSubmitModal}
-                cssClasses={this.dropdownCss}
-              />
-            </Modal>)
+            (
+              <Modal
+                showModal={showEnginesDropdown}
+                closeAction={this._handleCloseEditModal}
+                className="modal"
+              >
+                <Dropdown
+                  headerText={t('alternative_search_engines_list')}
+                  cancelButtonText={t('cancel')}
+                  submitButtonText={t('confirm')}
+                  items={[].concat(this.engines)}
+                  onCancelHandler={this._handleCloseEditModal}
+                  onSubmitHandler={this._handleSubmitModal}
+                  cssClasses={this.dropdownCss}
+                />
+              </Modal>
+            )
           }
         </div>
       </div>
     );
   }
 }
-

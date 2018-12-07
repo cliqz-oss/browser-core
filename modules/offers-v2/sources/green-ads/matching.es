@@ -1,9 +1,7 @@
-import { parse } from '../../core/tlds';
 import inject from '../../core/kord/inject';
-
 import EventStore from '../../core/persistence/event-store';
-
 import PatternIndex from './pattern-index';
+import PatternMatching from '../../platform/lib/adblocker';
 
 
 function buildIndex(conditions) {
@@ -84,15 +82,10 @@ export default class MatchingEngine {
 
   matchUrl({ url, ts }, index = null) {
     const urlIndex = index || this.patternIndex;
-    const lowerCaseUrl = url.toLowerCase();
-    const { hostname, domain } = parse(lowerCaseUrl);
-    const request = {
-      url: lowerCaseUrl,
-      cpt: 2,
-      hostname,
-      hostGD: domain,
-    };
-    const matches = urlIndex.match(request);
+    const matches = urlIndex.match(new PatternMatching.Request({
+      url,
+      type: 2,
+    }));
     return matches.map(pattern => ({
       event: 'match',
       type: 'url',
@@ -110,14 +103,10 @@ export default class MatchingEngine {
 
   matchQuery({ query, source, ts }, index = null) {
     const queryIndex = index || this.patternIndex;
-    const lowerCaseQuery = query.toLowerCase();
-    const request = {
-      url: lowerCaseQuery,
-      cpt: 2,
-      hostname: '',
-      hostGD: '',
-    };
-    const matches = queryIndex.match(request);
+    const matches = queryIndex.match(new PatternMatching.Request({
+      url: query,
+      type: 2,
+    }));
     return matches.map(pattern => ({
       event: 'match',
       type: 'query',

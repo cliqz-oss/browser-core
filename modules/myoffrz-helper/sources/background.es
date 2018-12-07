@@ -2,8 +2,8 @@ import background from '../core/base/background';
 import ContentCategoryManager from './category-manager';
 import logger from './logger';
 import inject from '../core/kord/inject';
-import { getCurrentWindow } from '../platform/windows';
 import LRU from '../core/LRU';
+import getDocument from '../platform/myoffrz-helper/document';
 
 export default background({
   offersModule: inject.module('offers-v2'),
@@ -91,13 +91,7 @@ export default background({
       logger.debug('handleCategories', categories, fromContent, titles, linkIds, productId, sender.url);
       if (fetchUrl && fromContent && (!categories || categories.length === 0) && rules) {
         // No categories from the page and Content script message provides a refetch url
-        let fetchedDom;
-        try {
-          fetchedDom = (new Document()).implementation.createHTMLDocument('New Document').createElement('html');
-        } catch (e) {
-          // Fallback to getting the window and then document
-          fetchedDom = getCurrentWindow().document.implementation.createHTMLDocument('New Document').createElement('html');
-        }
+        const fetchedDom = getDocument().createHTMLDocument('New Document').createElement('html');
 
         const resp = await fetch(fetchUrl);
         fetchedDom.innerHTML = await resp.text();
@@ -119,7 +113,8 @@ export default background({
         } else if (productId) {
           logger.debug('Caching result');
           this.contentCategoryManager.cacheCategories({
-            categories, titles, productId, url: sender.url });
+            categories, titles, productId, url: sender.url
+          });
         }
         // TODO: Send back the collected categories
         if (sender.tab && sender.tab.id) {

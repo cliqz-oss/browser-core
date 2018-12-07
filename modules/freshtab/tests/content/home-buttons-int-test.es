@@ -18,6 +18,7 @@ describe('Freshtab interactions with buttons', function () {
     subject.respondsWith(defaultConfig);
     subject.respondsWithEmptySpeedDials();
     subject.respondsWithEmptyNews();
+    subject.respondsWithEmptyStats();
 
     await subject.load();
   });

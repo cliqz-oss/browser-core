@@ -40,9 +40,9 @@ export default class OffersUpdate {
         let validity = {};
         const templateData = offer.offer_info.ui_info.template_data;
         // calculate the expiration time if we have the new field #EX-7028
-        const expirationTime = offer.offer_info.expirationMs ?
-          (offer.created_ts + offer.offer_info.expirationMs) / 1000 :
-          templateData.validity;
+        const expirationTime = offer.offer_info.expirationMs
+          ? (offer.created_ts + offer.offer_info.expirationMs) / 1000
+          : templateData.validity;
         if (expirationTime) {
           const timeDiff = Math.abs((expirationTime * 1000) - Date.now());
           let difference = Math.floor(timeDiff / 86400000);

@@ -43,7 +43,7 @@ module.exports = function (NodeJSPathModule) {
         FS.files.set(getFullPath(path), [data]);
         resolve();
       } else {
-        reject('file dir does not exist');
+        reject(new Error('file dir does not exist'));
       }
     }),
     removeFile: (path) => {

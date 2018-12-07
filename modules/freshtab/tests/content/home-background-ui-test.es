@@ -40,6 +40,7 @@ describe('Freshtab background UI', function () {
     });
 
     subject.respondsWithEmptyNews();
+    subject.respondsWithEmptyStats();
   });
 
   context('with background turned off', function () {
@@ -60,7 +61,7 @@ describe('Freshtab background UI', function () {
 
     it('renders with correct background color', function () {
       expect(subject.getComputedStyle(subject.query('body.theme-bg-default')).background)
-        .to.contain('rgb(247, 247, 247)');
+        .to.contain('rgb(255, 255, 255)');
     });
 
     it('renders without any bg settings being selected', function () {

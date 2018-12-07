@@ -42,6 +42,7 @@ export default class UI {
       );
     }
   }
+
   constructor(PeerComm, window, settings, background) {
     this.settings = settings;
     const { Downloads } = Components.utils.import('resource://gre/modules/Downloads.jsm');
@@ -82,11 +83,8 @@ export default class UI {
       defaultHeight: 115,
     });
 
-    this.pageActionButtons =
-      // Firefox 56 and bellow
-      window.document.getElementById('urlbar-icons') ||
-      // Firefox 57 and above
-      window.document.getElementById('page-action-buttons');
+    this.pageActionButtons = window.document.getElementById('urlbar-icons') // Firefox 56 and bellow
+      || window.document.getElementById('page-action-buttons'); // Firefox 57 and above
 
     this.pageActionBtn = window.document.createElement('div');
     this.pageActionBtn.id = BUTTON_ID; // Use id to style this button

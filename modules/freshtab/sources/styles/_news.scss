@@ -13,6 +13,7 @@
     $news-dash-span-bg-color-active,
     $news-dash-span-bg-color-hover,
     $news-box-shadow,
+    $news-box-shadow-hover,
     $news-bg-color,
     $news-a-color,
     $news-header-url-color,
@@ -21,53 +22,55 @@
     $news-read-more-btn-color,
     $news-breaking-news-color
 ){
-    #section-news {
-        height: $news-height;
+    .news-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 30px;
+        padding-top: 5px;
 
-        .news-pagination {
+        .dash {
+            background-color: transparent;
+            border: 0px;
+            cursor: pointer;
+            width: $news-dash-width;
+            padding: $news-dash-padding;
+            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 30px;
 
-            .dash {
-                background-color: transparent;
-                border: 0px;
-                cursor: pointer;
-                width: $news-dash-width;
-                padding: $news-dash-padding;
-                height: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+            span {
+                height: 5px;
+                width: 30px;
+                background-color: $news-dash-span-bg-color;
+                border-radius: 3px;
 
+                &.overflow-hidden {
+                    overflow: hidden;
+                    text-indent: 100%;
+                    white-space: nowrap;
+                    display: block;
+                    cursor: pointer;
+                }
+            }
+
+            &.active {
                 span {
-                    height: 5px;
-                    width: 30px;
-                    background-color: $news-dash-span-bg-color;
-
-                    &.overflow-hidden {
-                        overflow: hidden;
-                        text-indent: 100%;
-                        white-space: nowrap;
-                        display: block;
-                        cursor: pointer;
-                    }
+                    background-color: $news-dash-span-bg-color-active;
                 }
+            }
 
-                &.active {
-                    span {
-                        background-color: $news-dash-span-bg-color-active;
-                    }
-                }
-
-                &:hover {
-                    span {
-                        background-color: $news-dash-span-bg-color-hover;
-                    }
+            &:hover {
+                span {
+                    background-color: $news-dash-span-bg-color-hover;
                 }
             }
         }
+    }
+
+    #section-news {
+        height: $news-height;
 
         .news-container {
             width: $news-container;
@@ -82,14 +85,14 @@
                     margin-left: $news-margin;
                     margin-right: $news-margin;
                     height: $news-box-height;
-                    border-radius: 2px;
+                    border-radius: 4px;
                     box-shadow: $news-box-shadow;
                     background-color: $news-bg-color;
                     position: relative;
                     max-width: $news-box-max-width;
                     width: calc(#{$news-container} / 3);
                     overflow: hidden;
-                    transition: height 0.1s ease-out;
+                    transition: transform 0.5s ease-in, height .2s ease-out, opacity .5s ease-in;
 
                     a {
                         text-decoration: none;
@@ -121,7 +124,7 @@
                         .url {
                             font-size: 13px;
                             color: $news-header-url-color;
-                            padding-top: 7px;
+                            padding-top: 6px;
                             padding-left: 5px;
                         }
                     }
@@ -143,12 +146,13 @@
                         display: none;
                         font-size: 14px;
                         font-weight: normal;
-                        color: news-description-color;
+                        color: $news-description-color;
                         padding: 7px 25px;
                     }
 
                     &:hover {
                         height: calc(#{$news-box-height} + 20px);
+                        box-shadow: $news-box-shadow-hover;
 
                         .news-title {
                             display: none;
@@ -167,9 +171,19 @@
                         bottom: 11px;
                         left: 20px;
                         padding: 0 5px;
-                        font-size: 12px;
+                        font-size: 11.5px;
                         color: $news-read-more-btn-color;
                         visibility: hidden;
+                    }
+
+                    &.with-animation {
+                        opacity: 0;
+                        transform: translateX(-20px);
+                        animation: boxAnimation 500ms forwards;
+
+                        &:nth-child(1) { animation-delay: .2s }
+                        &:nth-child(2) { animation-delay: .4s }
+                        &:nth-child(3) { animation-delay: .6s }
                     }
                 }
             }
@@ -179,3 +193,13 @@
 }
 
 
+@keyframes boxAnimation {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0px);
+    }
+}

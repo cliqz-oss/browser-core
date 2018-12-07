@@ -52,7 +52,8 @@ const MOCK = {
       get: (k, d) => {
         if (k === 'developer') {
           return true;
-        } else if (k === 'session') {
+        }
+        if (k === 'session') {
           return 'session';
         }
         return d;
@@ -219,5 +220,4 @@ export default describeModule('anolysis/internals/backend-communication',
         return chai.expect(sendSignal({ behavior: 42 })).to.be.rejected;
       });
     });
-  },
-);
+  });

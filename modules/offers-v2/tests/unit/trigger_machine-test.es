@@ -2,9 +2,8 @@
 /* global describeModule */
 /* global require */
 
-const tldts = require('tldts');
+const commonMocks = require('./utils/common');
 
-const prefRetVal = {};
 let currentTS = Date.now();
 let mockedTimestamp = Date.now() / 1000;
 const currentDayHour = 0;
@@ -14,30 +13,17 @@ const abNumber = 0;
 
 export default describeModule('offers-v2/trigger_machine/trigger_machine',
   () => ({
-    'offers-v2/common/offers_v2_logger': {
-      default: {
-        debug: (x) => { console.log(x); },
-        error: (x) => { console.log(x); },
-        info: (x) => { console.log(x); },
-        log: (x) => { console.log(x); },
-        warn: (x) => { console.log(x); },
-        logObject: (x) => { console.log(x); },
-      }
-    },
-    'core/platform': {
-      isWebExtension: false
-    },
-    'platform/lib/tldts': tldts,
+    ...commonMocks,
     'platform/xmlhttprequest': {
+      default: {}
+    },
+    'core/http': {
       default: {}
     },
     'platform/fetch': {
       default: {}
     },
     'platform/gzip': {
-      default: {}
-    },
-    'platform/globals': {
       default: {}
     },
     'platform/environment': {
@@ -68,36 +54,6 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
         // For higher values, we cannot pack/unpack
         return (hash >>> 0) % 2147483648;
       }
-    },
-    'core/crypto/random': {
-      random: function () {
-        return Math.random();
-      }
-    },
-    'core/prefs': {
-      default: {
-        get: function (p, v) {
-          return v;
-        },
-        setMockVal: function (varName, val) {
-          prefRetVal[varName] = val;
-        },
-      }
-    },
-    'core/utils': {
-      default: {}
-    },
-    'core/helpers/timeout': {
-      default: function () { const stop = () => {}; return { stop }; }
-    },
-    'core/time': {
-      getDaysFromTimeRange: function () { },
-      getDateFromDateKey: function () { },
-      timestamp: function () { },
-      getTodayDayKey: function () { }
-    },
-    'platform/console': {
-      default: {},
     },
   }),
   () => {
@@ -142,24 +98,28 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
               this.opName = this.getOpName();
               this.hasMockCallbacks = exprMockCallbacks && exprMockCallbacks[this.opName];
             }
+
             isBuilt() {
               if (this.hasMockCallbacks && exprMockCallbacks[this.opName].isBuilt) {
                 return exprMockCallbacks[this.opName].isBuilt();
               }
               return true;
             }
+
             build() {
               if (this.hasMockCallbacks && exprMockCallbacks[this.opName].build) {
                 return exprMockCallbacks[this.opName].build();
               }
               return undefined;
             }
+
             destroy() {
               if (this.hasMockCallbacks && exprMockCallbacks[this.opName].destroy) {
                 return exprMockCallbacks[this.opName].destroy();
               }
               return undefined;
             }
+
             getExprValue(ctx) {
               if (this.hasMockCallbacks && exprMockCallbacks[this.opName].getExprValue) {
                 return exprMockCallbacks[this.opName].getExprValue(ctx);
@@ -229,7 +189,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             return tm.run(t, context).then(() => {
               chai.expect(counter).eql(0);
             }).catch((err) => {
-              chai.expect(err).eql(false);
+              chai.expect(err).to.exist;
             });
           });
 
@@ -248,7 +208,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             return tm.run(t, context).then((result) => {
               chai.expect(result).eql(false);
             }).catch((err) => {
-              chai.expect(err).eql(false);
+              chai.expect(err).to.exist;
             });
           });
 
@@ -270,7 +230,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             return tm.run(t, context).then((result) => {
               chai.expect(result).eql(false);
             }).catch((err) => {
-              chai.expect(err).eql(false);
+              chai.expect(err).to.exist;
             });
           });
 
@@ -292,7 +252,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             return tm.run(t, context).then((result) => {
               chai.expect(result).eql(false);
             }).catch((err) => {
-              chai.expect(err).eql(false);
+              chai.expect(err).to.exist;
             });
           });
 
@@ -367,7 +327,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             return tm.run(t, context).then(() => {
               chai.expect(counter).eql(0);
             }).catch((err) => {
-              chai.expect(err).eql(false);
+              chai.expect(err).to.exist;
             });
           });
 
@@ -394,7 +354,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             return tm.run(t, context).then(() => {
               chai.expect(counter).eql(0);
             }).catch((err) => {
-              chai.expect(err).eql(false);
+              chai.expect(err).to.exist;
             });
           });
 
@@ -769,5 +729,4 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
       //   });
       // });
     });
-  }
-);
+  });

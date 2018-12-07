@@ -35,20 +35,20 @@ const _encodeCliqzResultType = (type) => {
 
 const encodeResultType = (type) => {
   if (type.indexOf('action') !== -1) return ['T'];
-  else if (type.indexOf('cliqz-results') === 0) return _encodeCliqzResultType(type);
-  else if (type.indexOf('cliqz-pattern') === 0) return ['C'];
-  else if (type === 'cliqz-extra') return ['X'];
-  else if (type === 'cliqz-series') return ['S'];
-  else if (type === 'cliqz-suggestion') return ['Z'];
+  if (type.indexOf('cliqz-results') === 0) return _encodeCliqzResultType(type);
+  if (type.indexOf('cliqz-pattern') === 0) return ['C'];
+  if (type === 'cliqz-extra') return ['X'];
+  if (type === 'cliqz-series') return ['S'];
+  if (type === 'cliqz-suggestion') return ['Z'];
 
-  else if (type.indexOf('bookmark') === 0 ||
-    type.indexOf('tag') === 0) return ['B'].concat(_encodeCliqzResultType(type));
+  if (type.indexOf('bookmark') === 0
+    || type.indexOf('tag') === 0) return ['B'].concat(_encodeCliqzResultType(type));
 
-  else if (type.indexOf('favicon') === 0 ||
-    type.indexOf('history') === 0) return ['H'].concat(_encodeCliqzResultType(type));
+  if (type.indexOf('favicon') === 0
+    || type.indexOf('history') === 0) return ['H'].concat(_encodeCliqzResultType(type));
 
   // cliqz type = "cliqz-custom sources-X"
-  else if (type.indexOf('cliqz-custom') === 0) return type.substr(21);
+  if (type.indexOf('cliqz-custom') === 0) return type.substr(21);
 
   return type; // should never happen
 };
@@ -102,8 +102,7 @@ export default background({
       let isSameResult = false;
 
       if (!isGoogleAd && this.isLastPopupOpen && googleUrlMatch) {
-        const googleUrl =
-          generalizeUrl(decodeURIComponent(googleUrlMatch[1]));
+        const googleUrl = generalizeUrl(decodeURIComponent(googleUrlMatch[1]));
 
         isSameResult = cliqzResults && cliqzResults.some((r, i) => {
           const cliqzUrl = generalizeUrl(r.url);

@@ -62,5 +62,4 @@ export default describeModule('market-analysis/common/session_checker',
         });
       });
     });
-  }
-);
+  });

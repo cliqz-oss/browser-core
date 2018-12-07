@@ -88,9 +88,9 @@ export default describeModule('core/message-queue',
         return Promise.all(promises).then((promiseResults) => {
           const expected = JSON.stringify(expectedResult);
           if (expected !== JSON.stringify(messages)) {
-            reject(`Wrong order in 'messages' ${JSON.stringify(messages)}`);
+            reject(new Error(`Wrong order in 'messages' ${JSON.stringify(messages)}`));
           } else if (expected !== JSON.stringify(promiseResults)) {
-            reject(`Wrong order in 'promises' ${JSON.stringify(promiseResults)}`);
+            reject(new Error(`Wrong order in 'promises' ${JSON.stringify(promiseResults)}`));
           } else {
             resolve();
           }
@@ -190,5 +190,4 @@ export default describeModule('core/message-queue',
         });
       });
     });
-  },
-);
+  });

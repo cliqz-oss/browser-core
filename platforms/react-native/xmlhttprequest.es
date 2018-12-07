@@ -9,4 +9,4 @@ export {
   XMLHttpRequestFactory,
   setPrivateFlags,
   setBackgroundRequest
-}
+};

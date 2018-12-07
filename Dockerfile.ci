@@ -1,4 +1,4 @@
-FROM node:9.11.1-stretch
+FROM node:10.14.0-stretch
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -83,7 +83,7 @@ RUN mkdir /tmp/.X11-unix \
 # Expose port for VNC
 EXPOSE 5900
 
-RUN npm install -g npm@latest yarn
+RUN npm install -g npm@latest yarn@latest
 
 USER node
 
@@ -121,7 +121,6 @@ RUN wget --no-verbose -O /tmp/chromedriver_linux64.zip https://chromedriver.stor
 
 COPY package.json /app/
 COPY package-lock.json /app/
-COPY bin /app/bin
 
 WORKDIR /app/
 

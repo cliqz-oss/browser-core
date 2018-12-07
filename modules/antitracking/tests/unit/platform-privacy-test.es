@@ -1,22 +1,20 @@
+/* global chai, describeModule */
 
 const prefs = new Map();
 
 const mockPrefs = {
-  getPref: (name) => {
-    return prefs.get(name);
-  },
+  getPref: name => prefs.get(name),
   setPref: (name, value) => {
     prefs.set(name, value);
   },
   clearPref: (name) => {
     prefs.delete(name);
   },
-}
+};
 
 export default describeModule('platform/privacy', () => ({
   'platform/prefs': mockPrefs,
 }), function () {
-
   let privacy;
 
   beforeEach(function () {
@@ -37,7 +35,6 @@ export default describeModule('platform/privacy', () => ({
   });
 
   describe('privacy.websites', function () {
-
     it('has cookieConfig property', () => {
       chai.expect(privacy.websites.cookieConfig).to.exist;
     });
@@ -47,7 +44,6 @@ export default describeModule('platform/privacy', () => ({
     });
 
     describe('firstPartyIsolate', () => {
-
       it('read (undefined)', async () => {
         chai.expect(await privacy.websites.firstPartyIsolate.get()).to.eql({
           levelOfControl: 'controllable_by_this_extension',
@@ -74,7 +70,6 @@ export default describeModule('platform/privacy', () => ({
     });
 
     describe('cookieConfig', () => {
-
       it('read (undefined)', async () => {
         chai.expect(await privacy.websites.cookieConfig.get()).to.eql({
           levelOfControl: 'controllable_by_this_extension',

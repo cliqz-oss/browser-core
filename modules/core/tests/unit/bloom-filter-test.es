@@ -27,5 +27,4 @@ export default describeModule('core/bloom-filter',
         expect(uut.testSingle('y')).to.be.true;
       });
     });
-  }
-);
+  });

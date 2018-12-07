@@ -20,6 +20,11 @@ export default class ContentCategoryManager {
       version: 0.1,
       loadNetworkFilters: true,
       loadCosmeticFilters: false,
+      // We currently disable the optimizations since this module relies on the
+      // fact that original filters can always be retrieved if there is a match.
+      // Moreover, the number of filters is very small so this should not make
+      // any difference.
+      enableOptimizations: false,
     });
     this.loader = new ResourceLoader(
       ['myoffrz-helper', 'category-pattern.json'],
@@ -62,14 +67,12 @@ export default class ContentCategoryManager {
 
   getRules(url) {
     logger.debug(`check rules for ${url}`);
-    // TODO: Seems the `mkrequest` is abused in offers-v2
-    // module, need to double check
-    const request = { url, cpt: 2, sourceUrl: url };
+    const request = { url, type: 2, sourceUrl: url };
     const result = { styles: null, productId: null };
     const match = this.engine.match(request);
     if (match.match) {
       // Get the matching filter
-      const filterData = this.filtersData[match.filter];
+      const filterData = this.filtersData[match.filter.rawLine];
       logger.log(`found rules for ${url}`, match.filter, filterData);
       if (filterData) {
         // Check if there is a regex to extract the product id,
@@ -93,9 +96,6 @@ export default class ContentCategoryManager {
         // Attached the cosmetic filters
         return { ...result, styles: patterns, prefix };
       }
-      // This is due to the optimizing of adblocker,
-      // need to be careful
-      logger.warn('Filter has been changed', match.filter);
     }
     return result;
   }
@@ -124,13 +124,11 @@ export default class ContentCategoryManager {
 
   updatePatterns(filtersData) {
     const filters = Object.keys(filtersData).join('\n');
-    // Note: There is a chance that the filter returned from
-    // adblocker will not be same, this will be fixed later
-    // from adblocker side
     // The patterns are small so we still build it every time
     this.engine.onUpdateFilters(
       [{ checksum: '', asset: 'asset', filters }],
       new Set(['asset']),
+      true, // debug so that we can access the original filter
     );
     this.filtersData = filtersData;
   }

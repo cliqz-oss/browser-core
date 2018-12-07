@@ -35,8 +35,8 @@ export default () =>
     }
 
     if (lastIndexOfInstantResult > -1 && (trimmedResults.length > lastIndexOfInstantResult + 1)) {
-      const nextResultIsAutocompletable =
-        getMainLink(trimmedResults[lastIndexOfInstantResult + 1]).meta.completion;
+      const nextResultIsAutocompletable = getMainLink(trimmedResults[lastIndexOfInstantResult + 1])
+        .meta.completion;
 
       if (nextResultIsAutocompletable && !shouldKeepInstantResult) {
         trimmedResults = trimmedResults.filter(res => getMainLink(res).provider !== 'instant');

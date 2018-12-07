@@ -1,4 +1,5 @@
 import background from '../core/base/background';
+import { chrome } from '../platform/globals';
 
 /**
   @namespace <namespace>
@@ -10,7 +11,19 @@ export default background({
     @param settings
   */
   init() {
-
+    chrome.commands.onCommand.addListener((command) => {
+      if (command === 'toggle-quicksearch') {
+        chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+          if (!tab) {
+            return;
+          }
+          chrome.tabs.sendMessage(tab.id, {
+            module: 'overlay',
+            action: 'toggle-quicksearch',
+          });
+        });
+      }
+    });
   },
 
   unload() {

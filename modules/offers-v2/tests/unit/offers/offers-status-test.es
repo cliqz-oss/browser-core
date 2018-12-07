@@ -40,5 +40,4 @@ export default describeModule('offers-v2/offers/offers-status',
         });
       });
     });
-  }
-);
+  });

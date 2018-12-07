@@ -20,4 +20,3 @@ export const loadTranslation = (lang) => {
 };
 
 export function getMessage() {}
-

@@ -59,7 +59,8 @@ window.addEventListener('load', () => {
       .mapTo({ event: 'focus' }),
     Rx.Observable
       .fromEvent($urlbar, 'blur')
-      .mapTo({ event: 'blur' }));
+      .mapTo({ event: 'blur' })
+  );
 
   background.init();
 

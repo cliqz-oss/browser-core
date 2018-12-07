@@ -64,9 +64,9 @@ export default background({
       case 'offers':
         this.sendOffersMessage(msg.data);
         // check if the message is close we need to close it on the display manager
-        if (msg.data &&
-            msg.data.type === 'offer-action-signal' &&
-            msg.data.data.action_id === 'offer_closed') {
+        if (msg.data
+            && msg.data.type === 'offer-action-signal'
+            && msg.data.data.action_id === 'offer_closed') {
           // close the offer / remove it
           if (this.displayMngr) {
             this.displayMngr.removeElement(msg.data.data.offer_id);

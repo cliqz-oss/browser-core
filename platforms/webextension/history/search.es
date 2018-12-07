@@ -78,6 +78,32 @@ export default function getHistory(query, callback) {
       }
     }
 
+    if (!(results.length || query)) {
+      results.push(...[
+        {
+          index: 1,
+          style: '',
+          comment: 'Amazon.com: Online Shopping for Electronics, Apparel, Computers, Books, DVDs & more',
+          value: 'https://amazon.com',
+          query,
+        },
+        {
+          index: 2,
+          style: '',
+          comment: 'YouTube',
+          value: 'https://youtube.com',
+          query,
+        },
+        {
+          index: 3,
+          style: '',
+          comment: 'Facebook',
+          value: 'https://facebook.com',
+          query,
+        },
+      ]);
+    }
+
     callback({
       query,
       results: isShortQuery ? results.sort((r1, r2) => r1.index - r2.index) : results,

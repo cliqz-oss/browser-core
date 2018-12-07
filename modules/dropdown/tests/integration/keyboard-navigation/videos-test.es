@@ -8,7 +8,8 @@ import {
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 import expectSelection from './common';
 import { videosResults } from '../../../core/integration/fixtures/resultsYoutube';
 
@@ -33,8 +34,8 @@ export default function () {
       await mockSearch({ results });
       fillIn(query);
       await waitForPopup();
-      await waitFor(() => $cliqzResults.querySelector(resultSelector) &&
-        $cliqzResults.querySelectorAll('.videos .result').length === 3);
+      await waitFor(() => $cliqzResults.querySelector(resultSelector)
+        && $cliqzResults.querySelectorAll('.videos .result').length === 3);
       $resultElement = $cliqzResults.querySelector(resultSelector);
       $video1Element = $cliqzResults.querySelector(video1Selector);
       $video2Element = $cliqzResults.querySelector(video2Selector);

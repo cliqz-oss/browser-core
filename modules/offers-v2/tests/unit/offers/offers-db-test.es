@@ -1,160 +1,23 @@
 /* global chai */
 /* global describeModule */
 /* global require */
-const tldts = require('tldts');
-
-const VALID_OFFER_OBJ = {
-  action_info: {
-    on_click: 'https://www.cliqz.com'
-  },
-  campaign_id: 'cid_1',
-  display_id: 'x-d',
-  filter_info: {
-    not_closed_mt: 3
-  },
-  offer_id: 'x',
-  rule_info: {
-    display_time_secs: 999999,
-    type: 'exact_match',
-    url: []
-  },
-  ui_info: {
-    template_data: {
-      call_to_action: {
-        target: '',
-        text: 'Jetzt Anfordern',
-        url: 'http://newurl'
-      },
-      conditions: 'Some conditions',
-      desc: 'Some description',
-      logo_url: 'somelogourl',
-      title: 'This is the title',
-      voucher_classes: ''
-    },
-    template_name: 'ticket_template'
-  },
-  client_id: 'client1',
-  types: ['type1', 'type2'],
-};
+const commonMocks = require('../utils/common');
+const persistenceMocks = require('../utils/persistence');
+const VALID_OFFER_OBJ = require('../utils/offers/data').VALID_OFFER_OBJ;
+const waitFor = require('../utils/waitfor');
 
 let mockedTS = Date.now();
 function mockCurrentTS(ts) {
   mockedTS = ts;
 }
 
-// needed for the map
-const persistence = {};
-function delay(fn) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      Promise.resolve()
-        .then(fn)
-        .then(resolve)
-        .catch(reject);
-    }, 100);
-  });
-}
-
-
 export default describeModule('offers-v2/offers/offers-db',
   () => ({
+    ...commonMocks,
+    ...persistenceMocks,
     'offers-v2/utils': {
       timestampMS: () => mockedTS
     },
-    'offers-v2/common/offers_v2_logger': {
-      default: {
-        debug: () => {},
-        error: () => {},
-        info: () => {},
-        log: () => {},
-        warn: () => {},
-        logObject: () => {},
-      }
-    },
-    'core/platform': {
-      isWebExtension: false,
-    },
-    'platform/lib/tldts': tldts,
-    'core/prefs': {
-      default: {
-        get: () => {},
-      }
-    },
-    'core/utils': {
-      default: {}
-    },
-    'core/helpers/timeout': {
-      default: function () { const stop = () => {}; return { stop }; }
-    },
-    'core/persistence/simple-db': {
-      default: class {
-        constructor(db) {
-          this.db = db;
-        }
-        upsert(docID, docData) {
-          const self = this;
-          return new Promise((resolve) => {
-            self.db[docID] = JSON.parse(JSON.stringify(docData));
-            resolve();
-          });
-        }
-        get(docID) {
-          const self = this;
-          return new Promise((resolve) => {
-            resolve(JSON.parse(JSON.stringify(self.db[docID])));
-          });
-        }
-        remove() {}
-      }
-    },
-    'core/persistence/map': {
-      default: class MockMap {
-        constructor(dbName) {
-          persistence[dbName] = (persistence[dbName] || new Map());
-          this.db = persistence[dbName];
-        }
-
-        init() {
-          return Promise.resolve();
-        }
-
-        unload() {
-          return Promise.resolve();
-        }
-
-        get(key) {
-          return delay(() => this.db.get(key));
-        }
-
-        set(key, value) {
-          return delay(() => this.db.set(key, value));
-        }
-
-        has(key) {
-          return delay(() => this.db.has(key));
-        }
-
-        delete(key) {
-          return delay(() => this.db.delete(key));
-        }
-
-        clear() {
-          return delay(() => this.db.clear());
-        }
-
-        size() {
-          return delay(() => this.db.size());
-        }
-
-        keys() {
-          return delay(() => [...this.db.keys()]);
-        }
-
-        entries() {
-          return delay(() => [...this.db.entries()]);
-        }
-      }
-    }
   }),
   () => {
     describe('OffersDB', function () {
@@ -167,18 +30,7 @@ export default describeModule('offers-v2/offers/offers-db',
       }
 
       function waitForDBLoaded(db) {
-        return new Promise((resolve) => {
-          const wait = () => {
-            setTimeout(() => {
-              if (db.dbLoaded) {
-                resolve(true);
-              } else {
-                wait();
-              }
-            }, 10);
-          };
-          wait();
-        });
+        return waitFor(() => db.dbLoaded, 'Database loaded');
       }
 
       beforeEach(function () {
@@ -216,6 +68,7 @@ export default describeModule('offers-v2/offers/offers-db',
           let offerObj;
 
           beforeEach(function () {
+            persistenceMocks['core/persistence/map'].reset();
             db = new OffersDB({});
             offerObj = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
           });
@@ -244,6 +97,7 @@ export default describeModule('offers-v2/offers/offers-db',
           let offerObj;
 
           beforeEach(function () {
+            persistenceMocks['core/persistence/map'].reset();
             db = new OffersDB({});
             offerObj = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
           });
@@ -288,6 +142,7 @@ export default describeModule('offers-v2/offers/offers-db',
           let offerObj;
 
           beforeEach(function () {
+            persistenceMocks['core/persistence/map'].reset();
             db = new OffersDB({});
             offerObj = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
           });
@@ -427,6 +282,7 @@ export default describeModule('offers-v2/offers/offers-db',
           let offerObj;
 
           beforeEach(function () {
+            persistenceMocks['core/persistence/map'].reset();
             db = new OffersDB({});
             offerObj = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
           });
@@ -450,6 +306,7 @@ export default describeModule('offers-v2/offers/offers-db',
           let db;
 
           beforeEach(function () {
+            persistenceMocks['core/persistence/map'].reset();
             db = new OffersDB({});
           });
 
@@ -475,6 +332,7 @@ export default describeModule('offers-v2/offers/offers-db',
           let o;
 
           beforeEach(function () {
+            persistenceMocks['core/persistence/map'].reset();
             o = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
           });
 
@@ -583,6 +441,7 @@ export default describeModule('offers-v2/offers/offers-db',
 
           beforeEach(function () {
             baseDB = {};
+            persistenceMocks['core/persistence/map'].reset();
             db = new OffersDB(baseDB);
           });
 
@@ -690,6 +549,7 @@ export default describeModule('offers-v2/offers/offers-db',
           let db;
 
           beforeEach(function () {
+            persistenceMocks['core/persistence/map'].reset();
             db = new OffersDB({});
           });
 
@@ -870,18 +730,11 @@ export default describeModule('offers-v2/offers/offers-db',
           });
         });
 
-        context('check new mappings', function () {
-          let db;
-
-          beforeEach(function () {
-            db = new OffersDB({});
-          });
-        });
-
         context('/offer erase', function () {
           let db;
 
           beforeEach(function () {
+            persistenceMocks['core/persistence/map'].reset();
             db = new OffersDB({});
           });
 
@@ -944,6 +797,7 @@ export default describeModule('offers-v2/offers/offers-db',
           let anotherOffer;
 
           beforeEach(() => {
+            persistenceMocks['core/persistence/map'].reset();
             db = new OffersDB({});
             offer = new Offer(JSON.parse(JSON.stringify(VALID_OFFER_OBJ)));
             const o = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
@@ -977,9 +831,48 @@ export default describeModule('offers-v2/offers/offers-db',
           });
         });
 
-        // TODO: we need to add more tests
-        // - check persistence on hard disk, and if they are stored properly
+        context('/display count', () => {
+          let db;
+          let offerID;
+
+          beforeEach(() => {
+            persistenceMocks['core/persistence/map'].reset();
+            db = new OffersDB({});
+            const offer = new Offer(JSON.parse(JSON.stringify(VALID_OFFER_OBJ)));
+            offerID = offer.uniqueID;
+            db.addOfferObject(offerID, offer.offerObj);
+          });
+
+          it('/zero for unknown offer', () => {
+            const count = db.getDisplayCount('no-such-offer');
+
+            chai.expect(count).to.eql(0);
+          });
+
+          it('/zero for a just added offer', () => {
+            const count = db.getDisplayCount(offerID);
+
+            chai.expect(count).to.eql(0);
+          });
+
+          it('/counts', () => {
+            db.incOfferAction(offerID, 'offer_shown');
+            db.incOfferAction(offerID, 'offer_shown');
+            db.incOfferAction(offerID, 'offer_shown');
+
+            const count = db.getDisplayCount(offerID);
+
+            chai.expect(count).to.eql(3);
+          });
+
+          it('/reason: make js object from stored json', () => {
+            db.addReasonForHaving(offerID, { reason: ['smth'] });
+
+            const reasonObj = db.getReasonForHaving(offerID);
+
+            chai.expect(reasonObj.getReason()).is.eql(['smth']);
+          });
+        });
       });
     });
-  }
-);
+  });

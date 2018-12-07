@@ -15,10 +15,8 @@ export default class EditSpeedDial extends React.Component {
     this.state = {
       show: true,
       errorDuplicate: false,
-      errorInvalid: false,
       showError: false,
       showModal: false,
-      submitDisabled: false,
       url: this.props.dial.url,
       title: this.props.dial.displayTitle,
     };
@@ -51,7 +49,6 @@ export default class EditSpeedDial extends React.Component {
     if (!url) {
       this.props.updateModalState(true);
       this.setState({
-        errorInvalid: true,
         showError: true,
         showModal: true
       });
@@ -65,10 +62,6 @@ export default class EditSpeedDial extends React.Component {
         if (resp.reason.indexOf('duplicate') > -1) {
           this.setState({
             errorDuplicate: true,
-          });
-        } else {
-          this.setState({
-            errorInvalid: true,
           });
         }
       } else {
@@ -108,8 +101,9 @@ export default class EditSpeedDial extends React.Component {
   render() {
     const inputClasses = ['field'];
     let inputClass = '';
-    const errorStr = this.state.errorDuplicate ? t('app_speed_dial_exists_already') :
-      t('app_speed_dial_not_valid');
+    const errorStr = this.state.errorDuplicate
+      ? t('app_speed_dial_exists_already')
+      : t('app_speed_dial_not_valid');
 
     if (!this.props.dial.custom) {
       inputClasses.push('disabled');
@@ -124,6 +118,7 @@ export default class EditSpeedDial extends React.Component {
       <div role="presentation" onClick={e => e.stopPropagation()}>
         <ToggleDisplay show={this.state.show}>
           <button
+            type="button"
             className="edit"
             title="Edit"
             onClick={(e) => { favoriteEditSignal(); this.editSpeedDialModal(e); }}
@@ -132,17 +127,19 @@ export default class EditSpeedDial extends React.Component {
         <Modal
           closeAction={e => this.handleCloseEditModal(e)}
           showModal={this.state.showModal}
+          className="modal"
         >
           <form
             className="editForm"
             onSubmit={e => this.handleEditSubmit(e)}
           >
-            <div className="modal-header">{t('app_speed_dial_edit_header')}
-              <button
-                className="closeForm"
-                type="button"
-                onClick={e => this.handleCloseEditModal(e)}
-              />
+            <button
+              className="closeForm"
+              type="button"
+              onClick={e => this.handleCloseEditModal(e)}
+            />
+            <div className="modal-header">
+              {t('app_speed_dial_edit_header')}
             </div>
             <div className={inputClass}>
               <input
@@ -155,13 +152,12 @@ export default class EditSpeedDial extends React.Component {
                 onChange={this.handleEditChange}
                 placeholder=""
               />
-              {this.state.showError ?
-                [
+              {this.state.showError
+                ? [
                   <label htmlFor="url" className="errorMessage">{errorStr}</label>,
                   <i className="errorIcon" />
                 ]
-                :
-                <label htmlFor="url">{t('app_speed_dial_edit_address_header')}</label>
+                : <label htmlFor="url">{t('app_speed_dial_edit_address_header')}</label>
               }
             </div>
             <div className="field">
@@ -185,6 +181,7 @@ export default class EditSpeedDial extends React.Component {
                 {t('app_speed_dial_save').toUpperCase()}
               </button>
               <button
+                type="button"
                 className="deleteDial"
                 onKeyPress={e => this.handleRemoveKeyPress(e)}
                 onClick={e => this.handleRemove(e)}
@@ -199,4 +196,3 @@ export default class EditSpeedDial extends React.Component {
     );
   }
 }
-

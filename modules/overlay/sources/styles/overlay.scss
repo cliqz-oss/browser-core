@@ -1,0 +1,69 @@
+.hidden {
+  display: none;
+}
+
+.ui {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2147483646;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,.3), rgba(0,0,0,.3) 1px, rgba(0,0,0,.4) 1px, rgba(0,0,0,.4) 2px);
+  // background-color: rgba(0, 0, 0, 0.3);
+}
+
+.container {
+  width: 80%;
+  min-width: 400px;
+  max-width: 700px;
+  margin: 10vh auto;
+  max-height: 80vh;
+  position: relative;
+  margin-top: 10vh;
+  border-radius: 4px;
+}
+
+input {
+  position: relative;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  height: 52px;
+  font-size: 21px;
+  border-radius: 4px;
+  box-shadow: 0px 7px 11px -4px rgba(0, 0, 0, 0.52);
+  background: url(../../freshtab/images/cliqz_icon2_1024.svg) 2% 50% no-repeat #fff;
+  background-size: auto 50%;
+  padding-left: 57px;
+  border: 0;
+  z-index: 2147483646;
+  outline: none;
+}
+
+.channel-GT12 input {
+  background: url(../../freshtab/images/ghostery-tab-search-icon.svg) 2% center no-repeat #fff;
+  background-size: auto 50%;
+}
+
+.opened {
+  input {
+    border-radius: 4px 4px 0 0;
+    box-shadow: none;
+  }
+
+  .container {
+    background: #fff;
+    box-shadow: 0px 7px 11px -4px rgba(0, 0, 0, 0.52);
+  }
+
+  .dropdown {
+    border-top: 1px solid #e5e5e5;
+  }
+}
+
+iframe {
+  border: 0px;
+  width: 100%;
+  height: 0;
+}

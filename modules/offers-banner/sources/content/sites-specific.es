@@ -23,4 +23,3 @@ export function afterIframeRemoved(window) {
     _setMargins(window, 'searchform', '0 0');
   }
 }
-

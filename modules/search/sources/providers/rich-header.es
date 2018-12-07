@@ -1,6 +1,5 @@
 import Rx from '../../platform/lib/rxjs';
 import { fetch as f } from '../../core/http';
-import config from '../../core/config';
 import BackendProvider from './backend';
 import { getResponse } from '../responses';
 import CliqzLanguage from '../../core/language';
@@ -17,7 +16,7 @@ import {
 export const getRichHeaderQueryString = (q, loc) => [
   `&q=${encodeURIComponent(q)}`,
   encodeSessionParams(),
-  CliqzLanguage.stateToQueryString(),
+  CliqzLanguage.queryString,
   encodeLocale(),
   encodePlatform(),
   encodeResultOrder(),
@@ -27,8 +26,9 @@ export const getRichHeaderQueryString = (q, loc) => [
 ].join('');
 
 export default class RichHeader extends BackendProvider {
-  constructor() {
+  constructor(settings) {
     super('rich-header');
+    this.settings = settings;
   }
 
   createMessageBody(query, links) {
@@ -44,7 +44,7 @@ export default class RichHeader extends BackendProvider {
   }
 
   fetch(query, links) {
-    const url = config.settings.RICH_HEADER + getRichHeaderQueryString(query);
+    const url = this.settings.RICH_HEADER + getRichHeaderQueryString(query);
     const body = this.createMessageBody(query, links);
 
     return f(url, { method: 'PUT', body, credentials: 'omit', cache: 'no-store' })
@@ -52,7 +52,7 @@ export default class RichHeader extends BackendProvider {
       .then(({ results }) => {
         const isIncomplete = results.some(result => result._incomplete);
         if (isIncomplete) {
-          return Promise.reject('incomplete');
+          return Promise.reject(new Error('incomplete'));
         }
         return results;
       });
@@ -70,8 +70,7 @@ export default class RichHeader extends BackendProvider {
       .defer(() => this.fetch(query, links))
       .retryWhen(errors => errors
         .delay(retry.delay)
-        .take(retry.count)
-      )
+        .take(retry.count))
       .map(results => getResponse(
         this.id,
         _config,

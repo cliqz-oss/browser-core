@@ -47,15 +47,15 @@ const isSearchEngine = (url) => {
     return hasNoPath && (
       (
         (
-          name === 'google' ||
-          name === 'bing' ||
-          name === 'duckduckgo' ||
-          name === 'startpage'
+          name === 'google'
+          || name === 'bing'
+          || name === 'duckduckgo'
+          || name === 'startpage'
         ) && (!firstSubdomain || firstSubdomain === 'www')
-      ) ||
-      (
-        name === 'yahoo' &&
-        (!firstSubdomain || firstSubdomain === 'de')
+      )
+      || (
+        name === 'yahoo'
+        && (!firstSubdomain || firstSubdomain === 'de')
       )
     );
   } catch (e) {
@@ -79,8 +79,7 @@ const telemetry = (focus$, query$, results$, selection$) => {
           .scan((hasUserInput, { isPasted, isTyped }) =>
             hasUserInput || isPasted || isTyped, false)
           .startWith(false),
-      )
-    ).share();
+      )).share();
 
   const telemetry$ = focus$
     // emit telemetry on session end, which is URL bar blur

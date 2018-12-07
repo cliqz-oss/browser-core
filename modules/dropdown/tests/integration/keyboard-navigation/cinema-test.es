@@ -9,7 +9,8 @@ import {
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 import expectSelection from './common';
 import { notLocalResults } from '../../../core/integration/fixtures/resultsCinema';
 import prefs from '../../../../core/prefs';

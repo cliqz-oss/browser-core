@@ -52,8 +52,8 @@ export default class IntentHandler {
   }
 
   isIntentActiveByName(intentName) {
-    return this.activeIntents.has(intentName) &&
-           Intent.deserialize(this.activeIntents.get(intentName)).isActive();
+    return this.activeIntents.has(intentName)
+           && Intent.deserialize(this.activeIntents.get(intentName)).isActive();
   }
 
   isIntentActive(intent) {
@@ -61,9 +61,9 @@ export default class IntentHandler {
   }
 
   getActiveIntent(intentName) {
-    return this.isIntentActiveByName(intentName) ?
-      Intent.deserialize(this.activeIntents.get(intentName)) :
-      null;
+    return this.isIntentActiveByName(intentName)
+      ? Intent.deserialize(this.activeIntents.get(intentName))
+      : null;
   }
 
   // ///////////////////////////////////////////////////////////////////////////

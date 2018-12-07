@@ -39,7 +39,8 @@ export default class RtcToNet {
       () => {
         logger.log(`RTCToNet healthcheck ${JSON.stringify(this.healthcheck())}`);
       },
-      60 * 1000);
+      60 * 1000
+    );
 
     // Clean-up dead connections
     this.closeDeadConnections = setInterval(
@@ -50,7 +51,8 @@ export default class RtcToNet {
             socket,
             lastActivity,
             key,
-            sender } = this.outgoingTcpConnections.get(connectionID);
+            sender
+          } = this.outgoingTcpConnections.get(connectionID);
           if (lastActivity < (timestamp - (1000 * 15))) {
             logger.debug(`EXIT ${connectionID} garbage collect`);
             this.outgoingTcpConnections.delete(connectionID);
@@ -72,7 +74,8 @@ export default class RtcToNet {
           }
         });
       },
-      10 * 1000);
+      10 * 1000
+    );
   }
 
   healthcheck() {
@@ -117,7 +120,7 @@ export default class RtcToNet {
 
       return this.relayToOpenedConnection(message, connectionHash);
     } catch (ex) {
-      return Promise.reject(`EXIT exception in handle message ${ex} ${ex.stack}`);
+      return Promise.reject(new Error(`EXIT exception in handle message ${ex} ${ex.stack}`));
     }
   }
 
@@ -147,9 +150,10 @@ export default class RtcToNet {
           peer,
           sender,
           key,
-          ERROR_CODE.EXIT_INCORRECT_SOCKS_REQUEST)
+          ERROR_CODE.EXIT_INCORRECT_SOCKS_REQUEST
+        )
           .then(() => Promise.reject(
-            `EXIT ${connectionID} ${message.messageNumber} proxy request is not valid ${data}`
+            new Error(`EXIT ${connectionID} ${message.messageNumber} proxy request is not valid ${data}`)
           ));
       }
 
@@ -160,9 +164,10 @@ export default class RtcToNet {
           peer,
           sender,
           key,
-          ERROR_CODE.EXIT_HOST_NOT_ALLOWED_BY_POLICY)
+          ERROR_CODE.EXIT_HOST_NOT_ALLOWED_BY_POLICY
+        )
           .then(() => Promise.reject(
-            `EXIT ${connectionID} ${req['DST.ADDR']} exit not permitted`
+            new Error(`EXIT ${connectionID} ${req['DST.ADDR']} exit not permitted`)
           ));
       }
 
@@ -182,9 +187,10 @@ export default class RtcToNet {
             peer,
             sender,
             key,
-            ERROR_CODE.EXIT_PRIVATE_ADDRESS)
+            ERROR_CODE.EXIT_PRIVATE_ADDRESS
+          )
             .then(() => Promise.reject(
-              `refuse to proxy private address ${req['DST.ADDR']} -> ${ip}`
+              new Error(`refuse to proxy private address ${req['DST.ADDR']} -> ${ip}`)
             ));
         }
 
@@ -223,8 +229,8 @@ export default class RtcToNet {
                 .catch((e) => {
                   // Here it means that we could not contact the relay peer for
                   // some reason.
-                  logger.error(`EXIT ${connectionID} ${currentMessageNumber} ` +
-                      `ERROR: could not send message ${e}`);
+                  logger.error(`EXIT ${connectionID} ${currentMessageNumber} `
+                      + `ERROR: could not send message ${e}`);
                 });
             });
           },
@@ -245,9 +251,10 @@ export default class RtcToNet {
               peer,
               sender,
               key,
-              ERROR_CODE.EXIT_CLOSED_BY_REMOTE)
+              ERROR_CODE.EXIT_CLOSED_BY_REMOTE
+            )
               .then(() => Promise.reject(
-                `EXIT ${connectionHash} garbage collect TCP closed`
+                new Error(`EXIT ${connectionHash} garbage collect TCP closed`)
               ));
           }
 
@@ -273,8 +280,8 @@ export default class RtcToNet {
           this.dataOut += acknowledgement.length;
           return peer.send(sender, acknowledgement, 'antitracking')
             .catch((ex) => {
-              logger.error(`EXIT ${connectionHash} ${message.messageNumber} ` +
-                  `ERROR: could not send message ${ex}`);
+              logger.error(`EXIT ${connectionHash} ${message.messageNumber} `
+                  + `ERROR: could not send message ${ex}`);
             });
         });
       });
@@ -283,8 +290,8 @@ export default class RtcToNet {
       // perspective, but then client sends a request again through the
       // same channel. Then it's ok to make this fail as we don't really
       // want to have long-lived connection through proxy network.
-      logger.error(`EXIT ${connectionHash} exception while unpacking ` +
-        `AES keys ${ex} ${JSON.stringify(message)}`);
+      logger.error(`EXIT ${connectionHash} exception while unpacking `
+        + `AES keys ${ex} ${JSON.stringify(message)}`);
     });
   }
 
@@ -306,7 +313,7 @@ export default class RtcToNet {
 
     // Drop message because connection doesn't exist anymore
     this.droppedMessages += 1;
-    return Promise.reject(`EXIT ${connectionID} ${message.messageNumber} dropped message`);
+    return Promise.reject(new Error(`EXIT ${connectionID} ${message.messageNumber} dropped message`));
   }
 
   signalClosedConnectionToClient(connectionID, peer, sender, key, error) {

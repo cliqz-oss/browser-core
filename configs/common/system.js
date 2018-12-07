@@ -8,13 +8,13 @@ const cliqzEnv = require('../../broccoli/cliqz-env');
 const systemConfig = {
   transpiler: false,
   packageConfigPaths: [
-    path.join('node_modules', '*', 'package.json'),
+    'node_modules/*/package.json',
+    'node_modules/@*/*/package.json',
   ],
   map: {
     'handlebars': 'node_modules/handlebars/dist/handlebars.min.js',
     'jquery': 'node_modules/jquery/dist/jquery.min.js',
     'mathjs': 'node_modules/mathjs/dist/math.min.js',
-    'BigInt': 'node_modules/BigInt/src/BigInt.js',
     'react': 'node_modules/react/cjs/react.production.min.js',
     'chai': 'node_modules/chai/chai.js',
     'chai-dom': 'node_modules/chai-dom/chai-dom.js',
@@ -23,6 +23,7 @@ const systemConfig = {
     'plugin-json': 'node_modules/systemjs-plugin-json/json.js',
     'pako': 'node_modules/pako/dist/pako.js',
     'fast-url-parser': 'modules/platform/lib/fast-url-parser',
+    'react-tooltip': 'react-tooltip/standalone/react-tooltip.js',
   },
   paths: {
     'specific/*': './specific/firefox/*',
@@ -35,7 +36,6 @@ const systemConfig = {
     'specific/*': {
       format: 'global',
     },
-    'BigInt': { format: 'cjs' },
     '*.json': {
       loader: 'plugin-json',
     },
@@ -48,7 +48,7 @@ const systemConfig = {
       defaultJSExtensions: true,
       //format: 'system',
       map: {
-        './platform/tldts': 'node_modules/tldts/dist/tldts.min.js'
+        './platform/tldts': 'node_modules/tldts/dist/tldts.js'
       },
       meta: {
         './platform*/lib/zlib.lib.js': {

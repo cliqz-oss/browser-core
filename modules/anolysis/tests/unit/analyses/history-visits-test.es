@@ -19,14 +19,12 @@ require('../telemetry-schemas-test-helpers')({
     ];
 
     it('generates 0 signals if no telemetry was sent', () =>
-      generateAnalysisResults({}).then(signals => chai.expect(signals).to.have.length(0))
-    );
+      generateAnalysisResults({}).then(signals => chai.expect(signals).to.have.length(0)));
 
     it('shows correct visits count', () =>
       generateAnalysisResults({
         'metrics.history.visits.count': visits
-      }).then(([first]) => chai.expect(first.count).to.equal(6))
-    );
+      }).then(([first]) => chai.expect(first.count).to.equal(6)));
 
     it('shows null if count > 300', () => {
       const moreVisits = visits.concat({
@@ -35,7 +33,7 @@ require('../telemetry-schemas-test-helpers')({
 
       return generateAnalysisResults({
         'metrics.history.visits.count': moreVisits
-      }).then(([first]) => chai.expect(first.count).to.equal(null))
+      }).then(([first]) => chai.expect(first.count).to.equal(null));
     });
   },
 });

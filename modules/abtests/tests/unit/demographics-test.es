@@ -43,5 +43,4 @@ export default describeModule('abtests/demographics',
         chai.expect(getCoreVersion()).to.be.null;
       });
     });
-  }
-);
+  });

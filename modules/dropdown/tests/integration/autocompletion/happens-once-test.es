@@ -2,7 +2,7 @@ import {
   blurUrlBar,
   expect,
   fastFillIn,
-  respondWith,
+  mockSearch,
   sleep,
   testsEnabled,
   urlbar,
@@ -46,13 +46,13 @@ export default function () {
     });
 
     context('for one history result', function () {
-      before(function () {
+      before(async function () {
         blurUrlBar();
         checkUrlBarValue(urlbar.mInputField.value);
         withHistory([{ value: url1 }]);
-        respondWith({ results: [] });
+        await mockSearch({ results: [] });
         fastFillIn(query);
-        return Promise.all([
+        await Promise.all([
           waitFor(() => urlbar.mInputField.value === friendlyUrl),
           sleep(1000),
         ]);
@@ -69,13 +69,13 @@ export default function () {
     });
 
     context('for one backend result', function () {
-      before(function () {
+      before(async function () {
         blurUrlBar();
         checkUrlBarValue(urlbar.mInputField.value);
         withHistory([]);
-        respondWith({ results: [{ url: url1 }] });
+        await mockSearch({ results: [{ url: url1 }] });
         fastFillIn(query);
-        return Promise.all([
+        await Promise.all([
           waitFor(() => urlbar.mInputField.value === friendlyUrl),
           sleep(1000),
         ]);
@@ -92,13 +92,13 @@ export default function () {
     });
 
     context('for history & backend, history pushed first', function () {
-      before(function () {
+      before(async function () {
         blurUrlBar();
         checkUrlBarValue(urlbar.mInputField.value);
         withHistory([{ value: url1 }]);
-        respondWith({ results: [{ url: url2 }] }, 400);
+        await mockSearch({ results: [{ url: url2 }] }, 400);
         fastFillIn(query);
-        return Promise.all([
+        await Promise.all([
           waitFor(() => urlbar.mInputField.value === friendlyUrl),
           sleep(1000),
         ]);
@@ -115,13 +115,13 @@ export default function () {
     });
 
     context('for history & backend, backend pushed first', function () {
-      before(function () {
+      before(async function () {
         blurUrlBar();
         checkUrlBarValue(urlbar.mInputField.value);
         withHistory([{ value: url1 }], 400);
-        respondWith({ results: [{ url: url2 }] });
+        await mockSearch({ results: [{ url: url2 }] });
         fastFillIn(query);
-        return Promise.all([
+        await Promise.all([
           waitFor(() => urlbar.mInputField.value === friendlyUrl),
           sleep(1000),
         ]);

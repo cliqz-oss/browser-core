@@ -1,6 +1,6 @@
 import ResourceLoader, { Resource, UpdateCallbackHandler } from '../core/resource-loader';
 import Language from '../core/language';
-import { platformName } from '../core/platform';
+import { isMobile } from '../core/platform';
 import logger from './logger';
 import config from '../core/config';
 import { fetch } from '../core/http';
@@ -24,7 +24,7 @@ const LANG_FACTOR = 20;
 // - firefox is currently used for any browser (including chromium), it should
 //   be renamed to 'browser' in the future, or 'firefox', 'chromium', etc.
 //   should simply be aliases for 'browser'.
-const PLATFORM = platformName === 'mobile' ? 'mobile-new' : 'firefox';
+const PLATFORM = isMobile ? 'mobile-new' : 'firefox';
 const CDN_URL = `${config.settings.CDN_BASEURL}/adblocking`;
 const BASE_URL = `${CDN_URL}/latest-filters/`;
 
@@ -41,16 +41,24 @@ function stripProtocol(url) {
 }
 
 
+function getAssetName(asset) {
+  if (asset.endsWith('resources.txt')) {
+    return 'resources.txt';
+  }
+
+  return stripProtocol(asset);
+}
+
 export class FiltersList {
   constructor(checksum, asset, remoteURL) {
     this.checksum = checksum;
     this.baseRemoteURL = remoteURL;
-    this.assetName = stripProtocol(asset);
+    this.assetName = getAssetName(asset);
 
     const load = () => fetch(this.remoteURL()).then(response => response.text());
 
     // We still need caching for mobile
-    if (platformName === 'mobile') {
+    if (isMobile) {
       this.resource = new Resource(
         RESOURCES_PATH.concat(this.assetName.split('/')),
         { remoteURL: this.remoteURL(), dataType: 'plainText' },
@@ -170,7 +178,7 @@ export default class FiltersLoader extends UpdateCallbackHandler {
   }
 
   getLoadedAssets() {
-    return new Set([...this.lists.keys()]);
+    return new Set(this.lists.keys());
   }
 
   // Private API
@@ -238,13 +246,13 @@ export default class FiltersLoader extends UpdateCallbackHandler {
           this.availableLang.add(lang);
         }
 
-        const assetName = stripProtocol(asset);
+        const assetName = getAssetName(asset);
         const filterRemoteURL = BASE_URL + assetName;
 
         if (lang === null || userLang.indexOf(lang) !== -1) {
-          filtersLists.set(asset, {
+          filtersLists.set(assetName, {
             checksum,
-            asset,
+            asset: assetName,
             remoteURL: filterRemoteURL,
             key: list,
           });

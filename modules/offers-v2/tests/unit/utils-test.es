@@ -3,33 +3,18 @@
 /* global require */
 /* eslint-disable func-names */
 
-const prefs = {};
+const commonMocks = require('./utils/common');
+const waitFor = require('./utils/waitfor');
+
+const prefs = commonMocks['core/prefs'].default;
+
 const VERSION = '1.28.1';
 
 export default describeModule('offers-v2/utils',
   () => ({
+    ...commonMocks,
     './offers_configs': {
       default: {},
-    },
-    'core/crypto/random': {
-      random: function () {
-        return Math.random();
-      }
-    },
-    'core/prefs': {
-      default: {
-        get: function (k, v) {
-          return prefs[k] || v;
-        },
-        set: function(k, v) {
-          prefs[k] = v;
-        }
-      }
-    },
-    'core/config': {
-      default: {
-        EXTENSION_VERSION: VERSION,
-      }
     },
   }),
   () => {
@@ -39,11 +24,11 @@ export default describeModule('offers-v2/utils',
       describe('basic cases', () => {
         beforeEach(function () {
           shouldKeepResource = this.module().shouldKeepResource;
-          prefs.offersUserGroup = '35';
+          prefs.set('offersUserGroup', '35');
         });
 
         afterEach(function () {
-          prefs.offersUserGroup = undefined;
+          prefs.clear('offersUserGroup');
         });
 
         it('should return true for zero resource', () => {
@@ -63,11 +48,11 @@ export default describeModule('offers-v2/utils',
       describe('when offersUserGroup undefined', () => {
         beforeEach(function () {
           shouldKeepResource = this.module().shouldKeepResource;
-          prefs.offersUserGroup = undefined;
+          prefs.clear('offersUserGroup');
         });
 
         afterEach(function () {
-          prefs.offersUserGroup = undefined;
+          prefs.clear('offersUserGroup');
         });
 
         it('should return true for zero resource', () => {
@@ -77,7 +62,7 @@ export default describeModule('offers-v2/utils',
         it('should set offersUserGroup pref', () => {
           const r = shouldKeepResource(0);
           chai.expect(r).to.be.true;
-          chai.expect(Number(prefs.offersUserGroup) > 0).to.be.true;
+          chai.expect(Number(prefs.get('offersUserGroup')) > 0).to.be.true;
         });
         it('should return false for weight 100', () => {
           const r = shouldKeepResource(100);
@@ -88,11 +73,11 @@ export default describeModule('offers-v2/utils',
       describe('when offersUserGroup smaller than zero', () => {
         beforeEach(function () {
           shouldKeepResource = this.module().shouldKeepResource;
-          prefs.offersUserGroup = '-1';
+          prefs.set('offersUserGroup', '-1');
         });
 
         afterEach(function () {
-          prefs.offersUserGroup = undefined;
+          prefs.clear('offersUserGroup');
         });
 
         it('should return true for zero resource', () => {
@@ -102,18 +87,18 @@ export default describeModule('offers-v2/utils',
         it('should set offersUserGroup pref', () => {
           const r = shouldKeepResource(0);
           chai.expect(r).to.be.true;
-          chai.expect(Number(prefs.offersUserGroup) >= 0).to.be.true;
+          chai.expect(Number(prefs.get('offersUserGroup')) >= 0).to.be.true;
         });
       });
 
       describe('when offersUserGroup in dev mode', () => {
         beforeEach(function () {
           shouldKeepResource = this.module().shouldKeepResource;
-          prefs.offersUserGroup = '100'
+          prefs.set('offersUserGroup', '100');
         });
 
         afterEach(function () {
-          prefs.offersUserGroup = undefined;
+          prefs.clear('offersUserGroup');
         });
 
         it('should return true for weight 100', () => {
@@ -125,11 +110,11 @@ export default describeModule('offers-v2/utils',
       describe('when offersUserGroup is equal zero', () => {
         beforeEach(function () {
           shouldKeepResource = this.module().shouldKeepResource;
-          prefs.offersUserGroup = '0'
+          prefs.set('offersUserGroup', '0');
         });
 
         afterEach(function () {
-          prefs.offersUserGroup = undefined;
+          prefs.clear('offersUserGroup');
         });
 
         it('should return true for zero resource', () => {
@@ -149,37 +134,35 @@ export default describeModule('offers-v2/utils',
       });
 
       it('should cache on second invocation', () => {
-        const {cached} = oncePerIntervalCached({key: 'foo'})
+        const { cached } = oncePerIntervalCached({ key: 'foo' });
         chai.expect(cached).to.be.false;
-        const {cached: newCached} = oncePerIntervalCached({key: 'foo'})
+        const { cached: newCached } = oncePerIntervalCached({ key: 'foo' });
         chai.expect(newCached).to.be.true;
       });
 
-      it('should cache before interval ends', () => {
-        const {cached} = oncePerIntervalCached({key: 'foo'})
+      it('should cache before interval ends', async () => {
+        const { cached } = oncePerIntervalCached({ key: 'foo' });
         chai.expect(cached).to.be.false;
-        new Promise(resolve => setTimeout(resolve, 100))
-          .then(() => {
-            const {cached: newCached} = oncePerIntervalCached({key: 'foo'})
-            chai.expect(newCached).to.be.true;
-          });
+        await waitFor(() => {
+          const { cached: newCached } = oncePerIntervalCached({ key: 'foo' });
+          chai.expect(newCached).to.be.true;
+        });
       });
 
       it('should not cache for new key', () => {
-        const {cached} = oncePerIntervalCached({key: 'foo'})
+        const { cached } = oncePerIntervalCached({ key: 'foo' });
         chai.expect(cached).to.be.false;
-        const {cached: newCached} = oncePerIntervalCached({key: 'bar'})
+        const { cached: newCached } = oncePerIntervalCached({ key: 'bar' });
         chai.expect(newCached).to.be.false;
       });
 
-      it('should not cache after interval ends', () => {
-        const {cached} = oncePerIntervalCached({key: 'foo'})
+      it('should not cache after interval ends', async () => {
+        const { cached } = oncePerIntervalCached({ key: 'foo' });
         chai.expect(cached).to.be.false;
-        new Promise(resolve => setTimeout(resolve, 300))
-          .then(() => {
-            const {cached: newCached} = oncePerIntervalCached({key: 'foo'})
-            chai.expect(newCached).to.be.false;
-          });
+        await waitFor(() => {
+          const { cached: newCached } = oncePerIntervalCached({ key: 'foo' });
+          chai.expect(newCached).to.be.false;
+        });
       });
     });
 
@@ -198,11 +181,11 @@ export default describeModule('offers-v2/utils',
 
       describe('with prefs and old version of ext', () => {
         beforeEach(function () {
-          prefs.offersInstallInfo = '0.1.1|777777777';
+          prefs.set('offersInstallInfo', '0.1.1|777777777');
         });
 
         afterEach(function () {
-          prefs.offersInstallInfo = undefined;
+          prefs.clear('offersInstallInfo');
         });
 
         it('check with old version', () => {
@@ -213,11 +196,11 @@ export default describeModule('offers-v2/utils',
 
       describe('with not valid prefs', () => {
         beforeEach(function () {
-          prefs.offersInstallInfo = `${VERSION}`;
+          prefs.set('offersInstallInfo', `${VERSION}`);
         });
 
         afterEach(function () {
-          prefs.offersInstallInfo = undefined;
+          prefs.clear('offersInstallInfo');
         });
 
         it('check with not valid prefs', () => {
@@ -228,11 +211,11 @@ export default describeModule('offers-v2/utils',
 
       describe('with valid prefs', () => {
         beforeEach(function () {
-          prefs.offersInstallInfo = `${VERSION}|7777777`;
+          prefs.set('offersInstallInfo', `${VERSION}|7777777`);
         });
 
         afterEach(function () {
-          prefs.offersInstallInfo = undefined;
+          prefs.clear('offersInstallInfo');
         });
 
         it('check with valid prefs', () => {
@@ -240,5 +223,4 @@ export default describeModule('offers-v2/utils',
         });
       });
     });
-  },
-);
+  });

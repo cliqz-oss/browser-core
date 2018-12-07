@@ -32,9 +32,11 @@ export function getGreenadsState() {
 
   if (value === GREENADS_STATE.GREEN) {
     return GREENADS_STATE.GREEN;
-  } else if (value === GREENADS_STATE.COLLECT) {
+  }
+  if (value === GREENADS_STATE.COLLECT) {
     return GREENADS_STATE.COLLECT;
-  } else if (value === GREENADS_STATE.DISABLED) {
+  }
+  if (value === GREENADS_STATE.DISABLED) {
     return GREENADS_STATE.DISABLED;
   }
 
@@ -347,8 +349,7 @@ export default background({
               data,
             }
           ]
-        },
-      );
+        });
     },
 
     /**
@@ -423,7 +424,8 @@ export default background({
 
     highlightAd(frameId) {
       if (getGreenadsState() === GREENADS_STATE.COLLECT) {
-        return this.core.action('broadcastMessageToWindow',
+        return this.core.action(
+          'broadcastMessageToWindow',
           { ad: true },
           frameId,
           'green-ads',

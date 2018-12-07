@@ -145,6 +145,7 @@ export default class CliqzPairing {
   get masterID() {
     return this.data.get('masterID');
   }
+
   set masterID(x) {
     this.data.set('masterID', x);
   }
@@ -152,6 +153,7 @@ export default class CliqzPairing {
   get aesKey() {
     return this.data.get('aesKey');
   }
+
   set aesKey(x) {
     this.data.set('aesKey', x);
   }
@@ -166,6 +168,7 @@ export default class CliqzPairing {
   get devices() {
     return this.data.get('devices');
   }
+
   set devices(x) {
     this.data.set('devices', x);
   }
@@ -173,6 +176,7 @@ export default class CliqzPairing {
   get keypair() {
     return this.data.get('keypair');
   }
+
   set keypair(x) {
     this.data.set('keypair', x);
   }
@@ -180,6 +184,7 @@ export default class CliqzPairing {
   get secret() {
     return this.data.get('secret');
   }
+
   set secret(x) {
     this.data.set('secret', x);
   }
@@ -187,6 +192,7 @@ export default class CliqzPairing {
   get publicKey() {
     return this.keypair[0];
   }
+
   get privateKey() {
     return this.keypair[1];
   }
@@ -411,6 +417,7 @@ export default class CliqzPairing {
   get lastVersion() {
     return this.data.get('lastVersion');
   }
+
   set lastVersion(version) {
     this.data.set('lastVersion', version);
   }
@@ -431,8 +438,7 @@ export default class CliqzPairing {
         CliqzPairing.sendEncrypted(
           [this.publicKey, this.pairingName, this.version],
           pairingAESKey,
-        ),
-      )
+        ))
       .then(encrypted => this.peer.send(masterID, encrypted));
   }
 
@@ -496,20 +502,20 @@ export default class CliqzPairing {
         ordered: true,
         maxMessageRetries: 0,
         signalingEnabled: false,
-      },
-    ).then((peer) => {
-      this.peer = peer;
-      this.peer.setMessageSizeLimit(this.maxMsgSize);
-      this.peer.encryptSignaling = data =>
-        this.loadPairingAESKey()
-          .then(aesKey => CliqzPairing.sendEncrypted(data, aesKey))
-          .catch(() => data);
+      })
+      .then((peer) => {
+        this.peer = peer;
+        this.peer.setMessageSizeLimit(this.maxMsgSize);
+        this.peer.encryptSignaling = data =>
+          this.loadPairingAESKey()
+            .then(aesKey => CliqzPairing.sendEncrypted(data, aesKey))
+            .catch(() => data);
 
-      this.peer.decryptSignaling = data =>
-        this.loadPairingAESKey()
-          .then(aesKey => CliqzPairing.receiveEncrypted(data, aesKey))
-          .catch(() => data);
-    });
+        this.peer.decryptSignaling = data =>
+          this.loadPairingAESKey()
+            .then(aesKey => CliqzPairing.receiveEncrypted(data, aesKey))
+            .catch(() => data);
+      });
   }
 
   constructor(debug = false) {
@@ -643,7 +649,7 @@ export default class CliqzPairing {
       unpair: () => self.unpair(),
       stopPairing: () => self.stopPairing(),
       getDeviceVersion(deviceID) {
-        if (deviceID === this.deviceID) {
+        if (deviceID === self.deviceID) {
           return self.version;
         }
         if (self.isPaired) {

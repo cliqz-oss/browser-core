@@ -53,7 +53,8 @@ class MockStorage {
 
   get(k, d) {
     return Promise.resolve(
-      Object.prototype.hasOwnProperty.call(this.database, k) ? this.database[k] : d);
+      Object.prototype.hasOwnProperty.call(this.database, k) ? this.database[k] : d
+    );
   }
 
   set(k, v) {
@@ -106,18 +107,20 @@ export default describeModule('abtests/manager',
               A: {
                 a_pref: 10,
               },
-            } }
+            }
+          }
         ];
         manager.chooseTestGroup = () => 'A';
         manager.client.getAvailableTests = () => Promise.resolve(availableTests);
         manager.client.leaveTest = () => Promise.resolve();
         manager.updateRunningTests = sinon.spy(() => []);
       });
+
       it('calls `updateRunningTests` with available tests', () =>
         manager.updateTests().then(() => {
           chai.expect(manager.updateRunningTests).to.have.been.calledWith(availableTests);
-        })
-      );
+        }));
+
       it('starts upcoming tests and stops expired tests', () => {
         const startedTests = [];
         const stoppedTests = [];
@@ -135,6 +138,7 @@ export default describeModule('abtests/manager',
           chai.expect(stoppedTests[0].id).to.equal('3');
         });
       });
+
       it('takes prefs of upcoming tests if expired and upcoming tests modify the same prefs', () => {
         manager.runningTests = {
           3: {
@@ -159,6 +163,7 @@ export default describeModule('abtests/manager',
         });
       });
     });
+
     describe('#getRunningLegacyTests', () => {
       let manager;
       let mockModuleStorage;
@@ -183,6 +188,7 @@ export default describeModule('abtests/manager',
         chai.expect(tests).to.be.deep.equal({});
       });
     });
+
     describe('#startTest', () => {
       let manager;
       let mockModuleStorage;
@@ -194,24 +200,25 @@ export default describeModule('abtests/manager',
         mockSharedStorage = new MockStorage();
         manager = new Manager(null, mockModuleStorage, mockSharedStorage);
       });
+
       it('sets test-specific prefs for selected group', () =>
         manager.startTest({ ...mockTest1, group: 'A' }).then(() => {
           chai.expect(mockSharedStorage.database.pref_1a1).to.be.true;
           chai.expect(mockSharedStorage.database.pref_1a2).to.equal(5);
-        })
-      );
+        }));
+
       it('add test to running tests', () =>
         manager.startTest({ ...mockTest1, group: 'A' }).then(() => {
           chai.expect(manager.runningTests).to.have.key(mockTest1.id);
           chai.expect(manager.runningTests[mockTest1.id].started).to.equal('2017/06/01');
-        })
-      );
+        }));
+
       it('accepts empty test group prefs', () =>
         manager.startTest({ ...mockTest1, groups: { A: { } }, group: 'A' }).then(() => {
           chai.expect(mockSharedStorage.database).to.be.empty;
-        })
-      );
+        }));
     });
+
     describe('#stopTest', () => {
       let manager;
       let mockModuleStorage;
@@ -223,12 +230,14 @@ export default describeModule('abtests/manager',
         mockSharedStorage = new MockStorage();
         manager = new Manager(null, mockModuleStorage, mockSharedStorage);
       });
+
       it('sets test-specific prefs for selected group', () => {
         mockSharedStorage.database = { pref_1a1: true, pref_1a2: 5, other: 'foo' };
         return manager.stopTest({ ...mockTest1, group: 'A' }).then(() => {
           chai.expect(mockSharedStorage.database).to.have.key('other');
         });
       });
+
       it('removes test from running tests and ads it to completed tests', () => {
         manager.runningTests = { [mockTest1.id]: { } };
         return manager.stopTest({ ...mockTest1, group: 'A' }).then(() => {
@@ -238,6 +247,7 @@ export default describeModule('abtests/manager',
         });
       });
     });
+
     describe('#updateRunningTests', () => {
       let manager;
       let mockModuleStorage;
@@ -249,6 +259,7 @@ export default describeModule('abtests/manager',
         mockSharedStorage = new MockStorage();
         manager = new Manager(null, mockModuleStorage, mockSharedStorage);
       });
+
       it('updates status and end date', () => {
         manager.runningTests = { 1: { status: 'a', end_date: 'b' } };
         manager.updateRunningTests([{ id: '1', status: 'x', end_date: 'y' }]);
@@ -256,6 +267,7 @@ export default describeModule('abtests/manager',
         chai.expect(manager.runningTests['1'].end_date).to.equal('y');
       });
     });
+
     describe('#getNewTests', () => {
       let manager;
       let mockModuleStorage;
@@ -267,12 +279,14 @@ export default describeModule('abtests/manager',
         mockSharedStorage = new MockStorage();
         manager = new Manager(null, mockModuleStorage, mockSharedStorage);
       });
+
       it('removes tests that are running', () => {
         manager.runningTests = { 1: { } };
         const newTests = manager.getNewTests([{ id: '1' }, { id: '2' }]);
         chai.expect(newTests.length).to.equal(1);
         chai.expect(newTests[0]).to.deep.equal({ id: '2' });
       });
+
       it('filters tests that have been completed', () => {
         manager.completedTests = { 1: { } };
         const newTests = manager.getNewTests([{ id: '1' }, { id: '2' }]);
@@ -280,6 +294,7 @@ export default describeModule('abtests/manager',
         chai.expect(newTests[0]).to.deep.equal({ id: '2' });
       });
     });
+
     describe('#getExpiredTests', () => {
       let manager;
       let mockModuleStorage;
@@ -291,6 +306,7 @@ export default describeModule('abtests/manager',
         mockSharedStorage = new MockStorage();
         manager = new Manager(null, mockModuleStorage, mockSharedStorage);
       });
+
       it('finds tests (from running tests) that should be stopped', () => {
         manager.shouldStopTest = ({ id }) => id === '2';
         manager.runningTests = { 1: { id: '1' }, 2: { id: '2' }, 3: { id: '3' } };
@@ -299,6 +315,7 @@ export default describeModule('abtests/manager',
         chai.expect(expiredTests[0]).to.deep.equal({ id: '2' });
       });
     });
+
     describe('#getUpcomingTests', () => {
       let manager;
       let mockModuleStorage;
@@ -310,6 +327,7 @@ export default describeModule('abtests/manager',
         mockSharedStorage = new MockStorage();
         manager = new Manager({ }, mockModuleStorage, mockSharedStorage);
       });
+
       it('finds tests that pass local enter tests and calls `chooseTestGroup`', () => {
         manager.chooseTestGroup = () => 'A';
         manager.shouldStartTest = ({ id }) => Promise.resolve(id === '2');
@@ -319,6 +337,7 @@ export default describeModule('abtests/manager',
           chai.expect(upcomingTests[0]).to.deep.equal({ id: '2', group: 'A' });
         });
       });
+
       it('finds tests that pass remote enter tests and calls `chooseTestGroup`', () => {
         manager.chooseTestGroup = () => '';
         manager.shouldStartTest = () => Promise.resolve(true);
@@ -329,6 +348,7 @@ export default describeModule('abtests/manager',
           chai.expect(upcomingTests[1].id).to.equal('2');
         });
       });
+
       it('finds tests that pass both local and remote enter tests and calls `chooseTestGroup`', () => {
         manager.chooseTestGroup = () => 'A';
         manager.shouldStartTest = ({ id }) => Promise.resolve(id === '2');
@@ -338,6 +358,7 @@ export default describeModule('abtests/manager',
           chai.expect(upcomingTests[0]).to.deep.equal({ id: '2', group: 'A' });
         });
       });
+
       it('excludes tests for which remote call fails', () => {
         manager.chooseTestGroup = () => '';
         manager.shouldStartTest = () => Promise.resolve(true);
@@ -348,6 +369,7 @@ export default describeModule('abtests/manager',
           chai.expect(upcomingTests[1].id).to.equal('2');
         });
       });
+
       it('excludes test if running test lists it as competitor', () => {
         manager.chooseTestGroup = () => '';
         manager.shouldStartTest = () => Promise.resolve(true);
@@ -358,6 +380,7 @@ export default describeModule('abtests/manager',
           chai.expect(upcomingTests[0].id).to.equal('3');
         });
       });
+
       it('excludes test if it lists running test as competitor', () => {
         manager.chooseTestGroup = () => '';
         manager.shouldStartTest = () => Promise.resolve(true);
@@ -368,6 +391,7 @@ export default describeModule('abtests/manager',
           chai.expect(upcomingTests[0].id).to.equal('3');
         });
       });
+
       it('excludes test if completed test lists it as competitor', () => {
         manager.chooseTestGroup = () => '';
         manager.shouldStartTest = () => Promise.resolve(true);
@@ -378,6 +402,7 @@ export default describeModule('abtests/manager',
           chai.expect(upcomingTests[0].id).to.equal('3');
         });
       });
+
       it('excludes test if it lists completed test as competitor', () => {
         manager.chooseTestGroup = () => '';
         manager.shouldStartTest = () => Promise.resolve(true);
@@ -388,6 +413,7 @@ export default describeModule('abtests/manager',
           chai.expect(upcomingTests[0].id).to.equal('3');
         });
       });
+
       it('excludes test if it lists legacy test as competitor', () => {
         manager.chooseTestGroup = () => '';
         manager.shouldStartTest = () => Promise.resolve(true);
@@ -398,6 +424,7 @@ export default describeModule('abtests/manager',
           chai.expect(upcomingTests[0].id).to.equal('3');
         });
       });
+
       it('excludes test that is listed by an earlier new test as competitor', () => {
         manager.chooseTestGroup = () => '';
         manager.shouldStartTest = () => Promise.resolve(true);
@@ -407,6 +434,7 @@ export default describeModule('abtests/manager',
           chai.expect(upcomingTests[0].id).to.equal('1');
         });
       });
+
       it('excludes test that lists an earlier new test as competitor', () => {
         manager.chooseTestGroup = () => '';
         manager.shouldStartTest = () => Promise.resolve(true);
@@ -417,6 +445,7 @@ export default describeModule('abtests/manager',
           chai.expect(upcomingTests[1].id).to.equal('3');
         });
       });
+
       it('does not exlude tests if they are not competing', () => {
         manager.chooseTestGroup = () => '';
         manager.shouldStartTest = () => Promise.resolve(true);
@@ -430,6 +459,7 @@ export default describeModule('abtests/manager',
         });
       });
     });
+
     describe('#chooseTestGroup', () => {
       let manager;
 
@@ -445,6 +475,7 @@ export default describeModule('abtests/manager',
         mockRandom = 0.99999999;
         chai.expect(manager.chooseTestGroup(test)).to.equal('A');
       });
+
       it('chooses one group out of two', () => {
         const test = { groups: { A: { }, B: { } } };
         mockRandom = 0;
@@ -454,6 +485,7 @@ export default describeModule('abtests/manager',
         mockRandom = 0.5;
         chai.expect(manager.chooseTestGroup(test)).to.equal('B');
       });
+
       it('chooses one group out of three', () => {
         const test = { groups: { A: { }, B: { }, C: { } } };
         mockRandom = 0;
@@ -466,6 +498,7 @@ export default describeModule('abtests/manager',
         chai.expect(manager.chooseTestGroup(test)).to.equal('C');
       });
     });
+
     describe('#shouldStartTest', () => {
       let manager;
       let mockTest2;
@@ -493,23 +526,27 @@ export default describeModule('abtests/manager',
         mockTest2.probability = 0.5;
         return chai.expect(manager.shouldStartTest(mockTest2)).to.eventually.be.true;
       });
+
       it('returns false if probability threshold is lower than random draw', () => {
         mockRandom = 0.4;
         mockTest2.probability = 0.3;
         return chai.expect(manager.shouldStartTest(mockTest2)).to.eventually.be.false;
       });
+
       it('returns false if demographics do not match', () => {
         mockRandom = 0.4;
         mockTest2.probability = 0.5;
         manager.isDemographicsMatch = () => Promise.resolve(false);
         return chai.expect(manager.shouldStartTest(mockTest2)).to.eventually.be.false;
       });
+
       it('returns false if version does not match', () => {
         mockRandom = 0.4;
         mockTest2.probability = 0.5;
         manager.isVersionMatch = () => false;
         return chai.expect(manager.shouldStartTest(mockTest2)).to.eventually.be.false;
       });
+
       it('returns true if condition evaluates to true', () => {
         mockRandom = 0.4;
         mockTest2.probability = 0.5;
@@ -544,6 +581,7 @@ export default describeModule('abtests/manager',
         })).to.eventually.be.false;
       });
     });
+
     describe('#shouldStopTest', () => {
       let manager;
       let mockTest2;
@@ -559,6 +597,7 @@ export default describeModule('abtests/manager',
           return true;
         };
       });
+
       it('returns false if treatment is ongoing', () => {
         mockTest2.started = '2017/01/01';
         mockTest2.treatment_length = 1;
@@ -571,6 +610,7 @@ export default describeModule('abtests/manager',
         mockSynchronizedDate = Moment(new Date(2017, 0, 3));
         chai.expect(manager.shouldStopTest(mockTest2)).to.be.false;
       });
+
       it('returns true if treatment is over', () => {
         mockTest2.started = '2017/01/01';
         mockTest2.treatment_length = 0;
@@ -582,6 +622,7 @@ export default describeModule('abtests/manager',
         chai.expect(manager.shouldStopTest(mockTest2)).to.be.true;
       });
     });
+
     describe('#isTestActive', () => {
       let manager;
       let mockTest2;
@@ -598,22 +639,26 @@ export default describeModule('abtests/manager',
         mockTest2.end_date = mockSynchronizedDate.clone().add(1, 'days').format('YYYY/MM/DD');
         chai.expect(manager.isTestActive(mockTest2)).to.be.true;
       });
+
       it('returns false if is active and end date is current date', () => {
         mockTest2.status = 'Active';
         mockTest2.end_date = mockSynchronizedDate.format('YYYY/MM/DD');
         chai.expect(manager.isTestActive(mockTest2)).to.be.false;
       });
+
       it('returns false if is active and end date is after current date', () => {
         mockTest2.status = 'Active';
         mockTest2.end_date = mockSynchronizedDate.clone().subtract(1, 'days').format('YYYY/MM/DD');
         chai.expect(manager.isTestActive(mockTest2)).to.be.false;
       });
+
       it('returns false if is not active and end date is before current date', () => {
         mockTest2.status = 'Inactive';
         mockTest2.end_date = mockSynchronizedDate.clone().add(1, 'days').format('YYYY/MM/DD');
         chai.expect(manager.isTestActive(mockTest2)).to.be.false;
       });
     });
+
     describe('#isTestCompeting', () => {
       let manager;
       let mockTest2;
@@ -628,31 +673,37 @@ export default describeModule('abtests/manager',
       it('returns false if current test has no competitor field', () => {
         chai.expect(manager.isTestCompeting(mockTest2, {})).to.be.false;
       });
+
       it('returns false if all others tests have no competitor fields', () => {
         const tests = { 1: { id: '1' }, 2: { id: '2' } };
         mockTest2.competitors = [];
         chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.false;
       });
+
       it('returns false if some others tests have no competitor fields', () => {
         const tests = { 1: { id: '1', competitors: [] }, 2: { id: '2' } };
         mockTest2.competitors = [];
         chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.false;
       });
+
       it('returns false if current test does not list competing tests', () => {
         mockTest2.competitors = ['0'];
         const tests = { 1: { id: '1', competitors: [] }, 2: { id: '2', competitors: [] } };
         chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.false;
       });
+
       it('returns false if current test is not listed by others tests as competing', () => {
         mockTest2.competitors = ['0'];
         const tests = { 1: { id: '1', competitors: ['10'] }, 2: { id: '2', competitors: ['11'] } };
         chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.false;
       });
+
       it('returns true if current test lists another test as competing', () => {
         mockTest2.competitors = ['1'];
         const tests = { 1: { id: '1', competitors: [] }, 2: { id: '2', competitors: [] } };
         chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.true;
       });
+
       it('returns true if current test is listed as competing by another test', () => {
         mockTest2.id = '0';
         mockTest2.competitors = [];
@@ -666,6 +717,7 @@ export default describeModule('abtests/manager',
         chai.expect(manager.isTestCompeting(mockTest2, tests)).to.be.true;
       });
     });
+
     describe('#isVersionMatch', () => {
       let manager;
       let mockTest2;
@@ -682,6 +734,7 @@ export default describeModule('abtests/manager',
         mockTest2.core_version = '1.0.0';
         chai.expect(manager.isVersionMatch(mockTest2)).to.be.true;
       });
+
       it('returns true for partial match', () => {
         mockCoreVersion = '1.0.0';
         mockTest2.core_version = '1.0';
@@ -689,6 +742,7 @@ export default describeModule('abtests/manager',
         mockTest2.core_version = '1';
         chai.expect(manager.isVersionMatch(mockTest2)).to.be.true;
       });
+
       it('returns false for no match', () => {
         mockCoreVersion = '1.0.0';
         mockTest2.core_version = '2.0.0';
@@ -698,11 +752,13 @@ export default describeModule('abtests/manager',
         mockTest2.core_version = '2';
         chai.expect(manager.isVersionMatch(mockTest2)).to.be.false;
       });
+
       it('returns false for missing core version in client', () => {
         mockCoreVersion = null;
         mockTest2.core_version = '2.0.0';
         chai.expect(manager.isVersionMatch(mockTest2)).to.be.false;
       });
+
       it('returns true for missing core version in test', () => {
         mockCoreVersion = '1.0.0';
         mockTest2.core_version = '';
@@ -713,6 +769,7 @@ export default describeModule('abtests/manager',
         chai.expect(manager.isVersionMatch(mockTest2)).to.be.true;
       });
     });
+
     describe('#isDemographicsMatch', () => {
       let manager;
 
@@ -734,60 +791,74 @@ export default describeModule('abtests/manager',
           mockUserDemographics = { install_date: '2017/04/28' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/28' } })).to.eventually.eventually.be.true;
         });
+
         it('matches center date', () => {
           mockUserDemographics = { install_date: '2017/04/24' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20-2017/04/28' } })).to.eventually.be.true;
         });
+
         it('matches start date', () => {
           mockUserDemographics = { install_date: '2017/04/20' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20-2017/04/28' } })).to.eventually.be.true;
         });
+
         it('matches end date', () => {
           mockUserDemographics = { install_date: '2017/04/28' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20-2017/04/28' } })).to.eventually.be.true;
         });
+
         it('does not match date before range', () => {
           mockUserDemographics = { install_date: '2017/04/19' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20-2017/04/28' } })).to.eventually.be.false;
         });
+
         it('does not match date after range', () => {
           mockUserDemographics = { install_date: '2017/04/29' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20-2017/04/28' } })).to.eventually.be.false;
         });
+
         it('does not match date before date', () => {
           mockUserDemographics = { install_date: '2017/04/19' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20' } })).to.eventually.be.false;
         });
+
         it('does not match date before date', () => {
           mockUserDemographics = { install_date: '2017/04/21' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20' } })).to.eventually.be.false;
         });
+
         it('matches date and other factor', () => {
           mockUserDemographics = { install_date: '2017/04/24', product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { install_date: '2017/04/20-2017/04/28', product: 'CLIQZ' } })).to.eventually.be.true;
         });
       });
+
       describe('with one factor', () => {
         it('matches root', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ' } })).to.eventually.be.true;
         });
+
         it('matches different non-normalized values', () => {
           mockUserDemographics = { product: 'cliqz' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ' } })).to.eventually.be.true;
         });
+
         it('matches partial path', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ/desktop' } })).to.eventually.be.true;
         });
+
         it('matches full path', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0' } })).to.eventually.be.true;
         });
+
         it('does not match root', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'Firefox' } })).to.eventually.be.false;
         });
+
         it('does not match node', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ/mobile' } })).to.eventually.be.false;
@@ -799,23 +870,26 @@ export default describeModule('abtests/manager',
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0', platform: 'Desktop/Mac OS/10.12' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ' } })).to.eventually.be.true;
         });
+
         it('matches full test specification', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0', platform: 'Desktop/Mac OS/10.12' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ', platform: 'Desktop' } })).to.eventually.be.true;
         });
+
         it('does not match in one factor for full specification', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0', platform: 'Desktop/Mac OS/10.12' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'CLIQZ', platform: 'Mobile' } })).to.eventually.be.false;
         });
+
         it('does not match in one factor for partial specification', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0', platform: 'Desktop/Mac OS/10.12' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'Firefox' } })).to.eventually.be.false;
         });
+
         it('does not match in all factors', () => {
           mockUserDemographics = { product: 'CLIQZ/desktop/Cliqz for Mac OS/1.12.0', platform: 'Desktop/Mac OS/10.12' };
           return chai.expect(manager.isDemographicsMatch({ demographic: { product: 'Firefox', platform: 'Mobile' } })).to.eventually.be.false;
         });
       });
     });
-  },
-);
+  });

@@ -52,32 +52,32 @@ function checkSignalsAfterBlur({ fixture, query = '', position, amountOfElements
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, 'offer_shown')
             .to.have.nested.property(
-              'HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_shown')
-            .that.equals(1),
+              'HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_shown'
+            ).that.equals(1),
         1000
       );
       await waitFor(
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, `offer_shown_${position}`)
             .to.have.nested.property(
-              `HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_shown_${position}`)
-            .that.equals(1),
+              `HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_shown_${position}`
+            ).that.equals(1),
         1000
       );
       await waitFor(
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, 'offer_dsp_session')
             .to.have.nested.property(
-              'HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_dsp_session')
-            .that.equals(1),
+              'HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_dsp_session'
+            ).that.equals(1),
         1000
       );
       await waitFor(
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, `offer_dsp_session_${position}`)
             .to.have.nested.property(
-              `HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_dsp_session_${position}`)
-            .that.equals(1),
+              `HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_dsp_session_${position}`
+            ).that.equals(1),
         1000
       );
     });
@@ -128,48 +128,48 @@ function checkSignalsAfterClick({ fixture, query = '', position, amountOfElement
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, 'offer_shown')
             .to.have.nested.property(
-              'HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_shown')
-            .that.equals(1),
+              'HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_shown'
+            ).that.equals(1),
         1000
       );
       await waitFor(
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, `offer_shown_${position}`)
             .to.have.nested.property(
-              `HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_shown_${position}`)
-            .that.equals(1),
+              `HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_shown_${position}`
+            ).that.equals(1),
         1000
       );
       await waitFor(
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, 'offer_dsp_session')
             .to.have.nested.property(
-              'HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_dsp_session')
-            .that.equals(1),
+              'HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_dsp_session'
+            ).that.equals(1),
         1000
       );
       await waitFor(
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, `offer_dsp_session_${position}`)
             .to.have.nested.property(
-              `HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_dsp_session_${position}`)
-            .that.equals(1),
+              `HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_dsp_session_${position}`
+            ).that.equals(1),
         1000
       );
       await waitFor(
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, 'offer_ca_action')
             .to.have.nested.property(
-              'HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_ca_action')
-            .that.equals(1),
+              'HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_ca_action'
+            ).that.equals(1),
         1000
       );
       await waitFor(
         () =>
           expect(app.modules['offers-v2'].background.signalsHandler.sigMap.campaign, `offer_ca_action_${position}`)
             .to.have.nested.property(
-              `HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_ca_action_${position}`)
-            .that.equals(1),
+              `HCar_test_campaign.data.offers.HCar_test_offer.origins.dropdown.offer_ca_action_${position}`
+            ).that.equals(1),
         1000
       );
     });

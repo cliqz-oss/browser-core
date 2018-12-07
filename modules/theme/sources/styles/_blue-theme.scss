@@ -2,4 +2,6 @@ $cliqz-blue-color: #00ADEF;
 
 #main-window.cliqz-blue {
   @include browser-theme($cliqz-blue-color);
+  background-color: $cliqz-blue-color !important;
 }
+

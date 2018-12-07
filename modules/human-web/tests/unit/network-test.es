@@ -1,5 +1,6 @@
 /* global chai */
 /* global describeModule */
+/* eslint camelcase: off */
 
 const expect = chai.expect;
 
@@ -206,13 +207,8 @@ export default describeModule('human-web/network',
     });
 
     describe('#Network', function () {
-      let Network, uut;
-
-      function mkPageMsg() {
-        return {
-          action: 'page'
-        };
-      }
+      let Network;
+      let uut;
 
       function setupDns({ publicDomains = [], privateDomains = [] }) {
         // Use knowledge about the real implementation to make sure that
@@ -329,5 +325,4 @@ export default describeModule('human-web/network',
           .and.deep.equal(expectedMessage);
       });
     });
-  }
-);
+  });

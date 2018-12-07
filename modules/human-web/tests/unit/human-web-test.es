@@ -2,6 +2,7 @@
 
 const expect = chai.expect;
 const tldts = require('tldts');
+const crypto = require('crypto');
 
 const MOCK = {
   'core/events': {
@@ -19,6 +20,9 @@ const MOCK = {
   },
   'core/crypto/random': {
     default: Math.random.bind(Math),
+  },
+  'core/crypto/utils': {
+    sha1: x => Promise.resolve(crypto.createHash('sha1').update(x).digest('hex')),
   },
   'core/http': {
     fetch: {},
@@ -59,6 +63,25 @@ const MOCK = {
   'platform/human-web/tabInfo': {
     getTabInfo: {},
   },
+  'platform/text-encoder': {
+    default: function () {
+      return {
+        encode: function (s) {
+          const buf = Buffer.from(s, 'utf8');
+          return buf;
+        }
+      };
+    },
+  },
+  'platform/text-decoder': {
+    default: function () {
+      return {
+        decode: function (s) {
+          return Buffer.from(s).toString();
+        }
+      };
+    },
+  },
   'human-web/logger': {
     default: {
       debug() {},
@@ -89,6 +112,7 @@ const MOCK = {
       }
 
       cacheDnsResolution() {}
+
       flushExpiredCacheEntries() {}
     }
   },
@@ -234,7 +258,7 @@ export default describeModule('human-web/human-web',
             time: 2
           }
         };
-        for (let i = 0; i < 10000; i++) {
+        for (let i = 0; i < 10000; i += 1) {
           HumanWeb.httpCache[`https://dummy-url${i}.test/`] = {
             status: 301,
             location: `https://other-dummy-url${i}.test/`,
@@ -348,5 +372,4 @@ export default describeModule('human-web/human-web',
       //     .then(({ url }) => chai.expect(url).to.equal('https://www.google.com (PROTECTED)'));
       // });
     });
-  }
-);
+  });

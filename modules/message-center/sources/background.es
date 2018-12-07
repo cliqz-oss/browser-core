@@ -1,6 +1,7 @@
 /* eslint func-names: 'off' */
 
 import background from '../core/base/background';
+import { product } from '../core/platform';
 import MessageCenter from './message-center';
 import MessageHandlerBase from './handlers/base';
 import Triggers from './triggers/triggers';
@@ -18,7 +19,9 @@ export default background({
   */
   init() {
     this.messageCenter = new MessageCenter();
-    (new Triggers()).init();
+    if (product !== 'GHOSTERY') {
+      (new Triggers()).init();
+    }
   },
 
   unload() {

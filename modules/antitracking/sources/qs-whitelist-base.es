@@ -61,6 +61,7 @@ export default class QsWhitelistBase {
   isSafeKey(domain, key) {
     return domain in this.safeKeys.value && key in this.safeKeys.value[domain];
   }
+
   addSafeKey(domain, key, valueCount) {
     const today = datetime.dateString(datetime.newUTCDate());
     if (!(domain in this.safeKeys.value)) {

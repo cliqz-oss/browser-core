@@ -3,7 +3,8 @@
 /* global require */
 
 const encoding = require('text-encoding');
-const tldts = require('tldts');
+const commonMocks = require('../utils/common');
+const persistenceMocks = require('../utils/persistence');
 
 const TextDecoder = encoding.TextDecoder;
 const TextEncoder = encoding.TextEncoder;
@@ -101,77 +102,13 @@ function buildUrlToTest(domains, queries, toMatchCount, notMatchCount) {
 
 export default describeModule('offers-v2/history/history-matching',
   () => ({
-    'platform/lib/tldts': tldts,
+    ...commonMocks,
+    ...persistenceMocks,
     'platform/text-decoder': {
       default: TextDecoder,
     },
     'platform/text-encoder': {
       default: TextEncoder,
-    },
-    'offers-v2/common/offers_v2_logger': {
-      default: {
-        debug: () => {},
-        error: (...args) => { console.error(...args); },
-        info: () => {},
-        log: () => {},
-        warn: () => {},
-        logObject: () => {},
-      }
-    },
-    'core/platform': {
-      isChromium: false
-    },
-    'core/utils': {
-      default: {},
-    },
-    'core/helpers/timeout': {
-      default: function () { const stop = () => {}; return { stop }; }
-    },
-    'core/crypto/random': {
-    },
-    'platform/console': {
-      default: {}
-    },
-    'platform/globals': {
-      default: {}
-    },
-    'core/prefs': {
-      default: {
-        get: function () {},
-        set() {}
-      }
-    },
-    'core/persistence/simple-db': {
-      default: class {
-        constructor() {
-          this.db = {};
-        }
-
-        upsert(docID, docData) {
-          const self = this;
-          return new Promise((resolve) => {
-            self.db[docID] = JSON.parse(JSON.stringify(docData));
-            resolve();
-          });
-        }
-
-        get(docID) {
-          const self = this;
-          return new Promise((resolve) => {
-            resolve(JSON.parse(JSON.stringify(self.db[docID])));
-          });
-        }
-
-        remove(docID) {
-          const self = this;
-          return new Promise((resolve) => {
-            if (self.db[docID]) {
-              delete self.db[docID];
-            }
-            resolve(true);
-          });
-        }
-      }
     },
     'offers-v2/features/history-feature': {
       default: class {
@@ -180,16 +117,21 @@ export default describeModule('offers-v2/history/history-matching',
           this.promises = [];
           this.callCount = 0;
         }
+
         // to be implemented by the inherited classes
         init() { return true; }
+
         unload() { return true; }
+
         isAvailable() { return true; }
+
         performQuery() {
           this.callCount += 1;
           const p = Promise.resolve(this.data);
           this.promises.push(p);
           return p;
         }
+
         clear() {
           this.data = null;
           this.promises = [];
@@ -427,5 +369,4 @@ export default describeModule('offers-v2/history/history-matching',
         });
       });
     });
-  }
-);
+  });

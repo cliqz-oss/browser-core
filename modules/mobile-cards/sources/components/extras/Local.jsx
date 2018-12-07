@@ -11,8 +11,9 @@ import Link from '../Link';
 import NativeDrawable, { normalizeUrl } from '../custom/NativeDrawable';
 import { elementTopMargin, elementSideMargins } from '../../styles/CardStyle';
 import { withCliqz } from '../../cliqz';
+import themeDetails from '../../themes';
 
-const styles = StyleSheet.create({
+const styles = theme => StyleSheet.create({
   container: {
     ...elementTopMargin,
     ...elementSideMargins,
@@ -71,6 +72,12 @@ const styles = StyleSheet.create({
     width: 16,
     height: 22,
     marginRight: 5,
+  },
+  location: {
+    color: themeDetails[theme].textColor
+  },
+  distance: {
+    color: themeDetails[theme].local.distanceTxtColor
   }
 });
 
@@ -170,8 +177,8 @@ class Local extends React.Component {
     const granted = PermissionManager.RESULTS.GRANTED;
 
     const isLocationAccessGranted = (
-      await PermissionManager.check(type) === granted ||
-      await PermissionManager.request(type) === granted
+      await PermissionManager.check(type) === granted
+      || await PermissionManager.request(type) === granted
     );
     if (!isLocationAccessGranted) {
       return;
@@ -188,66 +195,87 @@ class Local extends React.Component {
   }
 
   renderLocation(data) {
+    const theme = this.props.theme;
     const distance = Helpers.calculateDistance(data.lon, data.lat, data.distance);
     const opening = Helpers.calculateOpeningStatus(data.opening_hours) || {};
     const mapIcon = normalizeUrl('maps-logo.svg');
     const callIcon = normalizeUrl('call-icon.svg');
-    return (<View style={styles.container}>
-      <View style={[styles.row, styles.centerCenter, styles.size3]}>
-        <Link action="openMap" param={data.mu} style={styles.size1}>
-          <View style={[styles.column, styles.centerCenter]}>
-            <NativeDrawable style={styles.map} source={mapIcon} />
-            <Text style={{ color: '#00AEF0' }}>{distance}</Text>
-          </View>
-        </Link>
-        <Text style={[styles.size2, { color: 'black' }]}>{data.address}</Text>
-      </View>
-      <View style={[styles.row, styles.centerCenter, styles.size3, styles.topMargin15]}>
-        {
-          opening.stt_text && <View style={[styles.column, styles.centerCenter, styles.size1]}>
-            <View style={[styles.column, styles.centerStart, styles.size1]}>
-              <Text style={{ color: opening.color }}>{opening.stt_text}</Text>
-              <Text style={{ color: 'black' }}>{opening.time_info_til}</Text>
-              <Text style={{ color: 'black' }}>{opening.time_info_str}</Text>
-            </View>
-          </View>
-        }
-        {
-          data.phonenumber &&
-          <Link
-            action="callNumber"
-            param={data.phonenumber}
-            style={styles.size1}
-          >
-            <View style={[styles.column, styles.centerCenter]}>
-              <NativeDrawable style={styles.call} source={callIcon} />
-              <Text style={{ color: 'black' }}>{getMessage('mobile_local_card_call')}</Text>
+    return (
+      <View style={styles(theme).container}>
+        <View style={[styles(theme).row, styles(theme).centerCenter, styles(theme).size3]}>
+          <Link action="openMap" param={data.mu} style={styles(theme).size1}>
+            <View style={[styles(theme).column, styles(theme).centerCenter]}>
+              <NativeDrawable style={styles(theme).map} source={mapIcon} />
+              <Text style={styles(theme).distance}>{distance}</Text>
             </View>
           </Link>
-        }
+          <Text style={[styles(theme).size2, styles(theme).location]}>{data.address}</Text>
+        </View>
+        <View
+          style={[
+            styles(theme).row,
+            styles(theme).centerCenter,
+            styles(theme).size3,
+            styles(theme).topMargin15
+          ]}
+        >
+          {
+            opening.stt_text
+            && (
+              <View style={[styles(theme).column, styles(theme).centerCenter, styles(theme).size1]}>
+                <View
+                  style={[styles(theme).column, styles(theme).centerStart, styles(theme).size1]}
+                >
+                  <Text style={{ color: opening.color }}>{opening.stt_text}</Text>
+                  <Text style={styles(theme).location}>{opening.time_info_til}</Text>
+                  <Text style={styles(theme).location}>{opening.time_info_str}</Text>
+                </View>
+              </View>
+            )
+          }
+          {
+            data.phonenumber
+            && (
+              <Link
+                action="callNumber"
+                param={data.phonenumber}
+                style={styles(theme).size1}
+              >
+                <View style={[styles(theme).column, styles(theme).centerCenter]}>
+                  <NativeDrawable style={styles(theme).call} source={callIcon} />
+                  <Text style={styles(theme).location}>{getMessage('mobile_local_card_call')}</Text>
+                </View>
+              </Link>
+            )
+          }
+        </View>
       </View>
-    </View>);
+    );
   }
 
   renderNoLocation() {
     const locationPin = normalizeUrl('location_pin.svg');
+    const theme = this.props.theme;
 
-    return (<Link
-      style={styles.size1}
-      onPress={() => this.getLocationData()}
-    >
-      <View style={styles.button}>
-        <NativeDrawable style={styles.pin} source={locationPin} />
-        <Text style={styles.buttonText} >{getMessage('mobile_share_location')}</Text>
-      </View>
-    </Link>);
+    return (
+      <Link
+        style={styles(theme).size1}
+        onPress={() => this.getLocationData()}
+      >
+        <View style={styles(theme).button}>
+          <NativeDrawable style={styles(theme).pin} source={locationPin} />
+          <Text style={styles(theme).buttonText}>{getMessage('mobile_share_location')}</Text>
+        </View>
+      </Link>
+    );
   }
 
   render() {
     const data = this.state.data;
     if (data.no_location) {
       return this.renderNoLocation(data);
-    } else if (data.address) {
+    }
+    if (data.address) {
       return this.renderLocation(data);
     }
     return null;

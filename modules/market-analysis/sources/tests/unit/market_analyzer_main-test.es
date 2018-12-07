@@ -545,5 +545,4 @@ export default describeModule('market-analysis/market_analyzer_main',
         chai.expect(CliqzMarketAnalyzer.maTable['tlcat|Travel']).eql(expected);
       });
     });
-  },
-);
+  });

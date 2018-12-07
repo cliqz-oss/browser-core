@@ -104,5 +104,4 @@ export default describeModule('human-web/content-extraction-patterns-loader',
           .then(() => { expectUnloaded(); });
       });
     });
-  }
-);
+  });

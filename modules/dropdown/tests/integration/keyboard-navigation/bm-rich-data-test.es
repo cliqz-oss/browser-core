@@ -30,9 +30,9 @@ export default function () {
       await mockSearch({ results });
       fillIn(query);
       await waitForPopup();
-      await waitFor(() => $cliqzResults.querySelector(result1Selector) &&
-        $cliqzResults.querySelector(result2Selector) &&
-        $cliqzResults.querySelectorAll('.anchors .result').length === 4);
+      await waitFor(() => $cliqzResults.querySelector(result1Selector)
+        && $cliqzResults.querySelector(result2Selector)
+        && $cliqzResults.querySelectorAll('.anchors .result').length === 4);
       $result1Element = $cliqzResults.querySelector(result1Selector);
       $result2Element = $cliqzResults.querySelector(result2Selector);
     });

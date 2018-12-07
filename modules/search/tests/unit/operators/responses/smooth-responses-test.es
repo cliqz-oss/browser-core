@@ -100,5 +100,4 @@ export default describeModule('search/operators/responses/smooth-responses',
         chai.expect(smoothedNewResponse.results).to.be.empty;
       });
     });
-  },
-);
+  });

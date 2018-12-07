@@ -5,7 +5,7 @@ import { fetch } from './http';
 import Storage from '../platform/resource-loader-storage';
 import { fromUTF8 } from '../core/encoding';
 import { inflate, deflate } from './zlib';
-import { isWebExtension, platformName } from '../core/platform';
+import { isWebExtension, platformName, isMobile } from '../core/platform';
 
 const logger = Logger.get('core', {
   level: 'log',
@@ -56,7 +56,7 @@ export class Resource {
     this.chromeURL = options.chromeURL || `${config.baseURL}${this.name.join('/')}`;
     this.storage = new Storage(this.filePath);
     this.remoteOnly = options.remoteOnly || platformName === 'mobile';
-    this.compress = options.compress || isWebExtension;
+    this.compress = options.compress || (isMobile ? false : isWebExtension);
   }
 
   /**
@@ -83,7 +83,7 @@ export class Resource {
       .then(data => this.parseData(data))
       .catch(() => {
         if (this.remoteOnly) {
-          return Promise.reject('Should update only from remote');
+          return Promise.reject(new Error('Should update only from remote'));
         }
         return this.updateFromURL(this.chromeURL);
       })
@@ -99,7 +99,7 @@ export class Resource {
    */
   updateFromRemote() {
     if (this.remoteURL === undefined) {
-      return Promise.reject('updateFromRemote: remoteURL is undefined');
+      return Promise.reject(new Error('updateFromRemote: remoteURL is undefined'));
     }
     return this.updateFromURL(this.remoteURL);
   }
@@ -114,7 +114,7 @@ export class Resource {
         .then(this.persist.bind(this));
     }
 
-    return Promise.reject('updateFromURL: url is undefined');
+    return Promise.reject(new Error('updateFromURL: url is undefined'));
   }
 
   compressData(data) {
@@ -151,7 +151,7 @@ export class Resource {
         const parsed = JSON.parse(data);
         return Promise.resolve(parsed);
       } catch (e) {
-        return Promise.reject(`parseData: failed with exception ${e} ${data}`);
+        return Promise.reject(new Error(`parseData: failed with exception ${e} ${data}`));
       }
     }
 
@@ -171,10 +171,11 @@ export default class ResourceLoader extends UpdateCallbackHandler {
   }
 
   init() {
-    if (!this.intervalTimer) {
+    if (!this.intervalTimer && this.resource.remoteURL) {
       this.intervalTimer = setInterval(
         this.updateFromRemote.bind(this),
-        this.updateInterval);
+        this.updateInterval
+      );
     }
   }
 

@@ -106,15 +106,13 @@ export default background({
     'content:location-change': function handleLocationChange(...args) {
       if (this.historyStream !== null) {
         this.historyStreamReady.promise.then(() =>
-          this.historyStream.handleLocationChange(...args)
-        );
+          this.historyStream.handleLocationChange(...args));
       }
     },
     'urlbar:input': function handleUrlBarInput(...args) {
       if (this.queryStream !== null) {
         this.queryStreamReady.promise.then(() =>
-          this.queryStream.handleUrlBarInput(...args)
-        );
+          this.queryStream.handleUrlBarInput(...args));
       }
     },
   },

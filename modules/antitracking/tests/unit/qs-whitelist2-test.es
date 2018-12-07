@@ -1,6 +1,7 @@
 /* global chai, describeModule */
 const moment = require('moment');
 const { TextEncoder, TextDecoder } = require('text-encoding');
+
 const mockStorage = new Map();
 
 class MockStorage {
@@ -41,7 +42,7 @@ function mockUpdateFile(version, useDiff = true) {
       version,
       useDiff,
     })
-  }
+  };
 }
 
 function testWhitelist(whitelist) {
@@ -73,7 +74,7 @@ export default describeModule('antitracking/qs-whitelist2',
     'platform/lib/moment': {
       default: (...args) => {
         if (momentMock) {
-          return momentMock(...args)
+          return momentMock(...args);
         }
         return moment(...args);
       },
@@ -98,7 +99,6 @@ export default describeModule('antitracking/qs-whitelist2',
     },
   }), function () {
     let whitelist;
-    let md5;
     let fromBase64;
     const MOCK_CDN = 'https://cdn';
     const MOCK_BF_B64 = 'AAAAAgrdwUcnN1113w==';
@@ -107,7 +107,6 @@ export default describeModule('antitracking/qs-whitelist2',
     beforeEach(async function () {
       const QSWhitelist = this.module().default;
       whitelist = new QSWhitelist(MOCK_CDN);
-      md5 = (await this.system.import('core/helpers/md5')).default;
       fromBase64 = (await this.system.import('core/encoding')).fromBase64;
     });
 
@@ -117,9 +116,7 @@ export default describeModule('antitracking/qs-whitelist2',
     });
 
     context('loading', () => {
-      afterEach(() => {
-        return whitelist.destroy();
-      });
+      afterEach(() => whitelist.destroy());
 
       it('no local or remote bf', async () => {
         await whitelist.init();
@@ -147,7 +144,7 @@ export default describeModule('antitracking/qs-whitelist2',
         });
         await whitelist.init();
         chai.expect(whitelist.bloomFilter).to.not.be.null;
-        chai.expect(whitelist.getVersion()).to.eql(version);
+        chai.expect(whitelist.getVersion()).to.eql({ day: version });
         testWhitelist(whitelist);
       });
 
@@ -164,7 +161,7 @@ export default describeModule('antitracking/qs-whitelist2',
         whitelist.bloomFilter = null;
         await whitelist.init();
         chai.expect(whitelist.bloomFilter).to.not.be.null;
-        chai.expect(whitelist.getVersion()).to.eql(version);
+        chai.expect(whitelist.getVersion()).to.eql({ day: version });
         testWhitelist(whitelist);
       });
 
@@ -189,7 +186,7 @@ export default describeModule('antitracking/qs-whitelist2',
         });
         await whitelist.init();
 
-        chai.expect(whitelist.getVersion()).to.eql(version);
+        chai.expect(whitelist.getVersion()).to.eql({ day: version });
         // all previous entries should be there
         testWhitelist(whitelist);
         // also new ones
@@ -223,7 +220,7 @@ export default describeModule('antitracking/qs-whitelist2',
         });
         await whitelist.init();
 
-        chai.expect(whitelist.getVersion()).to.eql(version);
+        chai.expect(whitelist.getVersion()).to.eql({ day: version });
         // all previous entries should be there
         testWhitelist(whitelist);
         // no new ones (because we loaded a fresh version)
@@ -260,9 +257,7 @@ export default describeModule('antitracking/qs-whitelist2',
       it('#cleanLocalSafekey removes safekeys after 7 days', () => {
         const d = 'example.com';
         const k = 'test';
-        momentMock = () => {
-          return moment().subtract(8, 'days');
-        }
+        momentMock = () => moment().subtract(8, 'days');
         whitelist.addSafeKey(d, k);
         whitelist._cleanLocalSafekey();
         chai.expect(whitelist.isSafeKey(d, k)).to.be.true;
@@ -281,5 +276,4 @@ export default describeModule('antitracking/qs-whitelist2',
         chai.expect(whitelist.isSafeKey(d, k)).to.be.true;
       });
     });
-
   });

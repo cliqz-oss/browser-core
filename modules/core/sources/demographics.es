@@ -72,13 +72,10 @@ function parseInstallDate(rawInstallDate) {
   }
 
   // Else, this is the legacy format: number of days since epoch
+  const integerRawInstallDate = parseInt(rawInstallDate, 10);
   const currentDaysSinceEpoch = dateToDaysSinceEpoch(getSynchronizedDate());
-  if (
-    Number.isInteger(rawInstallDate) &&
-    rawInstallDate >= 16129 &&
-    rawInstallDate <= currentDaysSinceEpoch
-  ) {
-    const installDate = daysSinceEpochToDate(rawInstallDate);
+  if (integerRawInstallDate >= 16129 && integerRawInstallDate <= currentDaysSinceEpoch) {
+    const installDate = daysSinceEpochToDate(integerRawInstallDate);
     if (installDate.isValid()) {
       return installDate.format(ANOLYSIS_BACKEND_DATE_FORMAT);
     }
@@ -206,6 +203,12 @@ function parseProduct(channel, platform) {
       product = 'Ghostery/desktop/GhosteryTab for Firefox';
     } else if (channel === 'GT10') {
       product = 'Ghostery/desktop/GhosteryTab for Chrome';
+    } else if (channel === 'MO00') {
+      product = 'MyOffrz/desktop/Standalone for Firefox';
+    } else if (channel === 'MO10') {
+      product = 'MyOffrz/desktop/Standalone for Chrome';
+    } else if (channel === 'MO02') {
+      product = 'MyOffrz/desktop/Standalone Test';
     }
     logger.debug('product', product);
     return product;

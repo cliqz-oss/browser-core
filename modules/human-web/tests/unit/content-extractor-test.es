@@ -6,20 +6,22 @@ const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 const mockBrowser = require('mock-browser');
+
 const expect = chai.expect;
 const R = require('ramda');
 const FileHound = require('filehound');
 
 const stripJsonComments = require('strip-json-comments');
+
 function jsonParse(text) {
   return JSON.parse(stripJsonComments(text));
 }
 
 const FIXTURES_BASE_PATH = 'modules/human-web/tests/unit/fixtures/content-extractor';
 
-function readFixtureFromDisk(path) {
-  const fixture = jsonParse(fs.readFileSync(`${FIXTURES_BASE_PATH}/${path}/scenario.json`, 'utf8'));
-  fixture.html = zlib.gunzipSync(fs.readFileSync(`${FIXTURES_BASE_PATH}/${path}/page.html.gz`)).toString();
+function readFixtureFromDisk(_path) {
+  const fixture = jsonParse(fs.readFileSync(`${FIXTURES_BASE_PATH}/${_path}/scenario.json`, 'utf8'));
+  fixture.html = zlib.gunzipSync(fs.readFileSync(`${FIXTURES_BASE_PATH}/${_path}/page.html.gz`)).toString();
   return fixture;
 }
 
@@ -76,11 +78,14 @@ export default describeModule('human-web/content-extractor',
   }),
   () => {
     describe('ContentExtractor', function () {
-      let ContentExtractor, CliqzHumanWeb, uut;
-      let mockWindow, document;
+      let ContentExtractor;
+      let CliqzHumanWeb;
+      let uut;
+      let mockWindow;
+      let document;
       let fixture;
 
-      const setupDocument = function setupDocument(html) {
+      const setupDocument = function (html) {
         mockWindow = mockBrowser.mocks.MockBrowser.createWindow();
 
         document = mockWindow.document;
@@ -89,19 +94,19 @@ export default describeModule('human-web/content-extractor',
         document.close();
       };
 
-      const initFixture = function initFixture(path) {
+      const initFixture = function (_path) {
         try {
-          fixture = readFixtureFromDisk(path);
+          fixture = readFixtureFromDisk(_path);
           setupDocument(fixture.html);
         } catch (e) {
-          throw new Error(`Failed to load test fixture "${path}": ${e}`, e);
+          throw new Error(`Failed to load test fixture "${_path}": ${e}`, e);
         }
       };
 
-      const verifyFixtureExpectations = function verifyFixtureExpectations() {
+      const verifyFixtureExpectations = function () {
         function groupTelemetryCallsByAction(sinonSpy) {
           return R.pipe(
-            R.map(args => {
+            R.map((args) => {
               expect(args.length).to.equal(1);
               return args[0];
             }),
@@ -131,8 +136,8 @@ export default describeModule('human-web/content-extractor',
             const blacklist = new RegExp(`^${check.action.replace('*', '.*')}$`);
             const matches = Object.keys(messages).filter(x => blacklist.test(x));
             if (matches.length > 0) {
-              throw new Error(`Expected no messages with action '${check.action}' ` +
-                              `but got messages for the following actions: [${matches}]`);
+              throw new Error(`Expected no messages with action '${check.action}' `
+                              + `but got messages for the following actions: [${matches}]`);
             }
           }
         }
@@ -184,7 +189,7 @@ export default describeModule('human-web/content-extractor',
 
         describe('when searching in Google for "Angela Merkel"', function () {
           beforeEach(function () {
-            initFixture('go/angela-merkel-2018-08-10');
+            initFixture('go/angela-merkel-2018-10-16');
           });
 
           it('should not find any data (ruleset: "normal")', function () {
@@ -234,7 +239,7 @@ export default describeModule('human-web/content-extractor',
 
         describe('when searching in Google for "Angela Merkel"', function () {
           beforeEach(function () {
-            initFixture('go/angela-merkel-2018-08-10');
+            initFixture('go/angela-merkel-2018-10-16');
           });
 
           it('should find search results (ruleset: "normal")', function () {
@@ -271,7 +276,6 @@ export default describeModule('human-web/content-extractor',
           });
         });
       });
-
     });
 
     describe('parseQueryString', function () {
@@ -281,7 +285,7 @@ export default describeModule('human-web/content-extractor',
         parseQueryString = this.module().parseQueryString;
       });
 
-      it('should pass regression tests', function() {
+      it('should pass regression tests', function () {
         expect(parseQueryString('')).to.deep.equal({});
         expect(parseQueryString('foo')).to.deep.equal({ foo: [true] });
         expect(parseQueryString('foo=bar')).to.deep.equal({ foo: ['bar'] });
@@ -307,7 +311,7 @@ export default describeModule('human-web/content-extractor',
         _mergeArr = this.module()._mergeArr;
       });
 
-      it('should pass regression tests', function() {
+      it('should pass regression tests', function () {
         expect(_mergeArr({ x: [1, 2, 3], y: [4, 5, 6], z: [7, 8, 9] })).to.deep.equal([
           { x: 1, y: 4, z: 7 },
           { x: 2, y: 5, z: 8 },
@@ -323,11 +327,11 @@ export default describeModule('human-web/content-extractor',
         _allMandatoryFieldsSet = this.module()._allMandatoryFieldsSet;
       });
 
-      it('should accept a message where all mandatory fields are set', function() {
+      it('should accept a message where all mandatory fields are set', function () {
         // this is similar in structure to a search query
         const payload = {
           r: {
-            '0': {
+            0: {
               t: 'title: foo',
               u: 'https://example.test/foo'
             },
@@ -346,14 +350,14 @@ export default describeModule('human-web/content-extractor',
         expect(_allMandatoryFieldsSet(payload, expectedFields)).to.be.true;
       });
 
-      it('should accept an array where all inner entries are filled', function() {
+      it('should accept an array where all inner entries are filled', function () {
         const payload = {
           r: {
-            '0': {
+            0: {
               t: 'title: foo',
               u: 'https://example.test/foo'
             },
-            '1': {
+            1: {
               t: 'title: bar',
               u: 'https://example.test/bar'
             },
@@ -364,14 +368,14 @@ export default describeModule('human-web/content-extractor',
         expect(_allMandatoryFieldsSet(payload, expectedFields)).to.be.true;
       });
 
-      it('should accept an array where at least one inner entry is filled', function() {
+      it('should accept an array where at least one inner entry is filled', function () {
         const payload = {
           r: {
-            '0': {
+            0: {
               t: null,
               u: 'https://example.test/foo'
             },
-            '1': {
+            1: {
               t: null,
               u: null
             },
@@ -383,11 +387,11 @@ export default describeModule('human-web/content-extractor',
       });
 
       describe('should reject an array where all inner entries are missing:', function () {
-        it('when not found by css selectors', function() {
+        it('when not found by css selectors', function () {
           const payload = {
             r: {
-              '0': { t: null, u: null, },
-              '1': { t: null, u: null, },
+              0: { t: null, u: null },
+              1: { t: null, u: null },
             }
           };
           const expectedFields = [{ key: 'r', type: 'array' }];
@@ -395,11 +399,11 @@ export default describeModule('human-web/content-extractor',
           expect(_allMandatoryFieldsSet(payload, expectedFields)).to.be.false;
         });
 
-        it('when all values are falsy', function() {
+        it('when all values are falsy', function () {
           const payload = {
             r: {
-              '0': { t: null, u: undefined },
-              '1': { t: '' },
+              0: { t: null, u: undefined },
+              1: { t: '' },
             },
           };
           const expectedFields = [{ key: 'r', type: 'array' }];
@@ -407,7 +411,7 @@ export default describeModule('human-web/content-extractor',
           expect(_allMandatoryFieldsSet(payload, expectedFields)).to.be.false;
         });
 
-        it('when the array itself is empty', function() {
+        it('when the array itself is empty', function () {
           const payload = {
             r: {}
           };
@@ -417,5 +421,4 @@ export default describeModule('human-web/content-extractor',
         });
       });
     });
-  }
-);
+  });

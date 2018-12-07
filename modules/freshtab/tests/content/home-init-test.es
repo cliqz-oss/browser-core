@@ -14,6 +14,7 @@ describe('Initializing Freshtab', function () {
     subject.respondsWith(defaultConfig);
     subject.respondsWithEmptySpeedDials();
     subject.respondsWithEmptyNews();
+    subject.respondsWithEmptyStats();
     subject.startListening();
 
     messages = subject.messagesByAction;
@@ -46,14 +47,15 @@ describe('Initializing Freshtab', function () {
 
     count = telemetrySignals.filter(function (s) {
       return (
-        s.args[0].type === 'home' &&
-        s.args[0].action === 'show' &&
-        (typeof s.args[0].favorite_count !== 'undefined') &&
-        (typeof s.args[0].is_favorites_on !== 'undefined') &&
-        (typeof s.args[0].is_news_on !== 'undefined') &&
-        (typeof s.args[0].is_search_bar_on !== 'undefined') &&
-        (typeof s.args[0].is_topsites_on !== 'undefined') &&
-        (typeof s.args[0].topsite_count !== 'undefined')
+        s.args[0].type === 'home'
+        && s.args[0].action === 'show'
+        && (typeof s.args[0].favorite_count !== 'undefined')
+        && (typeof s.args[0].is_favorites_on !== 'undefined')
+        && (typeof s.args[0].is_news_on !== 'undefined')
+        && (typeof s.args[0].is_stats_on !== 'undefined')
+        && (typeof s.args[0].is_search_bar_on !== 'undefined')
+        && (typeof s.args[0].is_topsites_on !== 'undefined')
+        && (typeof s.args[0].topsite_count !== 'undefined')
       );
     }).length;
 

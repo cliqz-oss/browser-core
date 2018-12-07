@@ -31,19 +31,23 @@ const styles = backgroundColor => StyleSheet.create({
 function SubscribeButton(props) {
   const color = props.isSubscribed ? 'grey' : 'red';
   const title = getMessage(props.isSubscribed ? 'mobile_soccer_unsubscribe' : 'mobile_soccer_subscribe');
-  const button = props.noButton ||
-    <Link onPress={props.onPress}>
-      <View style={styles(color).button}>
-        <Text style={styles().buttonText}>{title}</Text>
-      </View>
-    </Link>;
-  return (<View
-    accessible={false}
-    accessibilityLabel={'subscribe-button'}
-  >
-    {button}
-    <Text style={styles().actionMessage}>{props.actionMessage}</Text>
-  </View>);
+  const button = props.noButton
+    || (
+      <Link onPress={props.onPress}>
+        <View style={styles(color).button}>
+          <Text style={styles().buttonText}>{title}</Text>
+        </View>
+      </Link>
+    );
+  return (
+    <View
+      accessible={false}
+      accessibilityLabel="subscribe-button"
+    >
+      {button}
+      <Text style={styles().actionMessage}>{props.actionMessage}</Text>
+    </View>
+  );
 }
 
 SubscribeButton.propTypes = {

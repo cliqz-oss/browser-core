@@ -146,5 +146,4 @@ export default describeModule('core/persistence/cached-map',
           });
       });
     });
-  }
-);
+  });

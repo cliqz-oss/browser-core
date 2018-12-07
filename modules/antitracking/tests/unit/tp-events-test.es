@@ -371,5 +371,4 @@ export default describeModule('antitracking/tp_events',
         });
       });
     });
-  }
-);
+  });

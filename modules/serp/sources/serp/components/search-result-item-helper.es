@@ -10,9 +10,9 @@ export const getMaxHeightValue = (element) => {
     return nextClientHeight;
   }
 
-  return nextClientHeight >= maxHeightValue ?
-    nextClientHeight :
-    maxHeightValue;
+  return nextClientHeight >= maxHeightValue
+    ? nextClientHeight
+    : maxHeightValue;
 };
 
 export const highlightTokens = (nextText = '', tokens = []) => {
@@ -20,7 +20,8 @@ export const highlightTokens = (nextText = '', tokens = []) => {
     tokens[i] = tokens[i].trim(); // eslint-disable-line no-param-reassign
     if (tokens[i]) {
       nextText = nextText.replace( // eslint-disable-line no-param-reassign
-        new RegExp(['(\\b', tokens[i], '\\b)'].join(''), 'ig'), '<b>$1</b>');
+        new RegExp(['(\\b', tokens[i], '\\b)'].join(''), 'ig'), '<b>$1</b>'
+      );
     }
   }
 
@@ -61,8 +62,9 @@ export const shouldModifyToken = (
   while (k > 0) {
     if (matchedTokenDictionary[tokenIndex]) {
       return false;
-    } else if (matchedTokenDictionary[tokenIndex - delta] ||
-      matchedTokenDictionary[tokenIndex + delta]
+    }
+    if (matchedTokenDictionary[tokenIndex - delta]
+      || matchedTokenDictionary[tokenIndex + delta]
     ) {
       return false;
     }

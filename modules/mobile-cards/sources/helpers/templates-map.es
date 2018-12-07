@@ -19,9 +19,12 @@ import Cinema from '../components/extras/Cinema';
 import Movie from '../components/extras/Movie';
 import Flight from '../components/extras/Flight';
 
-
 export const headersMap = {
   images: Images,
+};
+
+
+export const contentsMap = {
   news: News,
   videos: Videos,
 };

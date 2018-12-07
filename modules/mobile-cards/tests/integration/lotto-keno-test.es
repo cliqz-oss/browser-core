@@ -100,7 +100,8 @@ export default function () {
           expect($kenoResults.length).to.equal(10);
           [...$kenoResults].forEach(function (element, i) {
             expect(element).to.contain.text(
-              results[0].snippet.extra.lotto_list.cur_date.keno.gewinnzahlen[(10 * row) + i]);
+              results[0].snippet.extra.lotto_list.cur_date.keno.gewinnzahlen[(10 * row) + i]
+            );
           });
         });
       });
@@ -118,7 +119,8 @@ export default function () {
         const $plus5Numbers = [...$allPlus5Elements].slice(1);
         [...$plus5Numbers].forEach(function ($element, i) {
           expect($element).to.contain.text(
-            results[0].snippet.extra.lotto_list.cur_date.plus5.gewinnzahlen[i]);
+            results[0].snippet.extra.lotto_list.cur_date.plus5.gewinnzahlen[i]
+          );
         });
       });
 

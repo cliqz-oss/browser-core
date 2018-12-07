@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="13px" viewBox="0 0 24 13" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.2 (67145) - http://www.bohemiancoding.com/sketch -->
+    <title>Group 15</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Ghostery-focus-switch-4b" transform="translate(-555.742188, -147.000000)" stroke="#FFFFFF">
+            <g id="Group-15" transform="translate(555.900000, 146.250000)">
+                <g id="Group-10" transform="translate(2.627762, 1.950180)">
+                    <g id="Line-11" transform="translate(0.573214, 0.420853)">
+                        <g id="Group-11">
+                            <path d="M0.903076223,4.77427767 L9.47728707,4.77427767" id="Line-9"></path>
+                            <path d="M11.78056,1.3483275 L11.78056,8.27056871" id="Line-10"></path>
+                        </g>
+                        <path d="M5.6889395,2.83784151 L8.9291497,6.07805171 L8.9291497,2.83784151 L5.6889395,2.83784151 Z" id="Rectangle" transform="translate(6.955491, 4.811500) rotate(-315.000000) translate(-6.955491, -4.811500) "></path>
+                    </g>
+                </g>
+                <rect id="Rectangle" x="0.5" y="1.29321289" width="22.3575684" height="11.9135742" rx="2.1"></rect>
+            </g>
+        </g>
+    </g>
+</svg>

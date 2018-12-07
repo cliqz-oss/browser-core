@@ -29,7 +29,7 @@ export default function () {
     return;
   }
 
-  describe.only('for history mobile cards', function () {
+  describe('for history mobile cards', function () {
     const historyContainerSelector = '[aria-label="history-container"]';
     const historyHeaderSelector = '[aria-label="history-header"]';
     const historyResultSelector = '[aria-label="history-result"]';
@@ -249,8 +249,8 @@ export default function () {
             expect($historyResults).to.have.length(results.length - 1);
 
             [...$historyResults].forEach(($result, ind) => {
-              expect($result.querySelector('[aria-label="generic-link"]')).to.exist;
-              expect($result.querySelector('[aria-label="generic-link"]'))
+              expect($result.querySelector('[aria-label="history-link"]')).to.exist;
+              expect($result.querySelector('[aria-label="history-link"]'))
                 .to.have.text(results[ind + 1].value);
             });
           });
@@ -424,8 +424,8 @@ export default function () {
             expect($historyResults).to.have.length(results.length);
 
             [...$historyResults].forEach(($result, ind) => {
-              expect($result.querySelector('[aria-label="generic-link"]')).to.exist;
-              expect($result.querySelector('[aria-label="generic-link"]'))
+              expect($result.querySelector('[aria-label="history-link"]')).to.exist;
+              expect($result.querySelector('[aria-label="history-link"]'))
                 .to.have.text(results[ind].value);
             });
           });

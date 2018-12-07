@@ -10,6 +10,7 @@ export default class MessageStorage {
     this.storage = storage;
     this._loadData();
   }
+
   cleanMessages(peers) {
     const myPeers = new Set(JSON.parse(this.storage.getItem(this.storagePeerListKey) || '[]'));
     const yourPeers = new Set(peers || []);
@@ -19,12 +20,15 @@ export default class MessageStorage {
       }
     });
   }
+
   _has(obj, prop) {
     return Object.prototype.hasOwnProperty.call(obj, prop);
   }
+
   _persistPeerList() {
     this.storage.setItem(this.storagePeerListKey, JSON.stringify(Object.keys(this.messages)));
   }
+
   _persistPeerMessages(peer) {
     const messages = this.messages[peer];
     let sm = JSON.stringify(messages);
@@ -34,10 +38,12 @@ export default class MessageStorage {
     }
     this.storage.setItem(this.storagePeerMessageKey + peer, sm);
   }
+
   _loadPeerMessages(peer) {
     const msg = this.storage.getItem(this.storagePeerMessageKey + peer);
     this.messages[peer] = msg ? JSON.parse(msg) : [];
   }
+
   _loadData() {
     let peers = this.storage.getItem(this.storagePeerListKey);
     if (peers) {
@@ -47,6 +53,7 @@ export default class MessageStorage {
       });
     }
   }
+
   addPeer(peer, deferPersist) {
     if (!this._has(this.messages, peer)) {
       this.messages[peer] = [];
@@ -55,12 +62,14 @@ export default class MessageStorage {
       }
     }
   }
+
   addPeers(peers) {
     peers.forEach((peer) => {
       this.addPeer(peer, true);
     });
     this._persistPeerList();
   }
+
   popPeerMessage(peer) {
     this.addPeer(peer);
     if (this.messages[peer].length) {
@@ -68,16 +77,19 @@ export default class MessageStorage {
     }
     this._persistPeerMessages(peer);
   }
+
   pushPeerMessage(msg, peer) {
     this.addPeer(peer);
     this.messages[peer].push(msg);
     this._persistPeerMessages(peer);
   }
+
   pushPeerMessages(msgs, peer) {
     this.addPeer(peer);
     Array.prototype.push.apply(this.messages[peer], msgs);
     this._persistPeerMessages(peer);
   }
+
   pushMessage(msg, peers, source) {
     const myPeers = peers && peers.length > 0 ? peers : Object.keys(this.messages);
     myPeers.forEach((peer) => {
@@ -86,18 +98,22 @@ export default class MessageStorage {
       }
     });
   }
+
   getMessages(peer) {
     return this.messages[peer] || [];
   }
+
   clearMessages(peer) {
     this.messages[peer] = [];
     this.storage.removeItem(this.storagePeerMessageKey + peer);
   }
+
   removePeer(peer) {
     this.clearMessages(peer);
     delete this.messages[peer];
     this._persistPeerList();
   }
+
   destroy() {
     this.storage.removeItem(this.storagePeerListKey);
     this.storage.removeItem(this.storagePeerMessageKey);

@@ -1,4 +1,8 @@
-const KNOWN_PROTOCOLS = ['http', 'https', 'ftp', 'file', 'about', 'mailto', 'chrome', 'moz-extension'];
+const KNOWN_PROTOCOLS = new Set(['http', 'https', 'ftp', 'file', 'about', 'mailto', 'chrome', 'moz-extension', 'chrome-extension', 'view-source', 'data']);
+
+export function isKnownProtocol(protocol) {
+  return KNOWN_PROTOCOLS.has(protocol.replace(/:$/, '').toLowerCase());
+}
 
 export function fixURL(url) {
   try {
@@ -32,6 +36,6 @@ export class URI extends URL {
   }
 
   get isKnownProtocol() {
-    return KNOWN_PROTOCOLS.includes(this.protocol.slice(0, -1).toLowerCase());
+    return isKnownProtocol(this.protocol);
   }
 }

@@ -1,34 +1,28 @@
-import {
-  ReverseIndex,
-  compactTokens,
-  matchNetworkFilter,
-  tokenize,
-} from '../../core/pattern-matching';
-
+import PatternMatching from '../../platform/lib/adblocker';
 
 export default class PatternIndex {
   constructor(filters = []) {
-    this.index = new ReverseIndex(
+    this.index = new PatternMatching.ReverseIndex(
       cb => filters.forEach(cb),
-      filter => tokenize(filter.filter).concat(tokenize(filter.hostname)),
+      filter => filter.getTokens(),
     );
 
     // Stores a set of all tokens used as keys in the index
-    this.tokens = compactTokens(new Uint32Array([...this.index.index.keys()]));
+    this.tokens = PatternMatching.compactTokens(new Uint32Array(this.index.index.keys()));
   }
 
   match(request) {
     const matches = [];
 
     const checkMatch = (filter) => {
-      if (matchNetworkFilter(filter, request)) {
+      if (PatternMatching.matchNetworkFilter(filter, request)) {
         matches.push(filter);
       }
 
       return true; // Continue iterating on buckets
     };
 
-    this.index.iterMatchingFilters(tokenize(request.url), checkMatch);
+    this.index.iterMatchingFilters(request.getTokens(), checkMatch);
 
     return matches;
   }

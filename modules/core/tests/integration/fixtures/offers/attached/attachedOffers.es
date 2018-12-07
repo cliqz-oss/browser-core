@@ -196,7 +196,7 @@ export default {
                 }
               ],
               offer_id: 'HCar_test_offer',
-              rs_dest: [ 'dropdown' ],
+              rs_dest: ['dropdown'],
               rule_info: {},
               ui_info: {}
             },

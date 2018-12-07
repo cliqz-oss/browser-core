@@ -35,7 +35,7 @@ export default class PinTab {
     );
 
     if (!this.canCount()) {
-      return Promise.reject('no-data');
+      return Promise.reject(new Error('no-data'));
     }
 
     return Promise.all(urls.map(countForUrl))

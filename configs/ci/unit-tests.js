@@ -18,7 +18,6 @@ module.exports = {
     'channel': '99',
     // TODO: need to find a better way to include this in the config
     // default setting for the module may be okay
-    'TEAM_URL': 'https://cliqz.com/team/',
   }),
   'default_prefs' : {
   },

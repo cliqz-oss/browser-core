@@ -10,7 +10,6 @@ import WebRequest from '../core/webrequest';
 import { URLInfo } from '../core/url-info';
 import tabs from '../platform/tabs';
 import moment from '../platform/lib/moment';
-import telemetry from '../core/services/telemetry';
 
 const LOGKEY = 'CookieMonster';
 const TELEMETRY_PREFIX = 'cookie-monster';
@@ -79,12 +78,11 @@ export default background({
     // batches and groups them to remove duplicates
     const batchObservable = this.subjectCookies.observeOn(Rx.Scheduler.async)
       .filter(({ cookie }) =>
-        !cookie.session &&
-          ['firefox-private', '1'].indexOf(cookie.storeId) === -1 && // skip private tab cookies
-          this.trackers &&
-          this.trackers.isTrackerDomain(md5(cookieGeneralDomain(cookie.domain)).substring(0, 16)) &&
-          cookie.expirationDate > (Date.now() + (1000 * 60 * 60)) / 1000
-      )
+        !cookie.session
+          && ['firefox-private', '1'].indexOf(cookie.storeId) === -1 // skip private tab cookies
+          && this.trackers
+          && this.trackers.isTrackerDomain(md5(cookieGeneralDomain(cookie.domain)).substring(0, 16))
+          && cookie.expirationDate > (Date.now() + (1000 * 60 * 60)) / 1000)
       .groupBy(({ cookie }) => cookieId(cookie), undefined, () => Rx.Observable.timer(30000))
       .flatMap(group => group.auditTime(10000))
       .bufferTime(BATCH_UPDATE_FREQUENCY)
@@ -130,7 +128,7 @@ export default background({
     if (this.DEBUG) {
       console.log(LOGKEY, 'telemetry', signal, value);
     }
-    return telemetry.push(value, `${TELEMETRY_PREFIX}.${signal}`).catch((e) => {
+    return inject.service('telemetry').push(value, `${TELEMETRY_PREFIX}.${signal}`).catch((e) => {
       console.error('anolysis error', e);
     });
   },
@@ -144,13 +142,13 @@ export default background({
     }
 
     const url = URLInfo.get(details.url);
-    if (url && this.trackers &&
-        this.trackers.isTrackerDomain(md5(url.host.domain).substring(0, 16))) {
+    if (url && this.trackers
+        && this.trackers.isTrackerDomain(md5(url.host.domain).substring(0, 16))) {
       // do not register private tabs
       // on webextensions check tab API, on firefox use details.isPrivate
-      const checkIsPrivate = typeof details.isPrivate !== 'boolean' ?
-        isPrivateTab(details.tabId) :
-        Promise.resolve(details.isPrivate);
+      const checkIsPrivate = typeof details.isPrivate !== 'boolean'
+        ? isPrivateTab(details.tabId)
+        : Promise.resolve(details.isPrivate);
       if (await checkIsPrivate) {
         return;
       }
@@ -171,8 +169,7 @@ export default background({
           [row.domain]: {
             visits: (visited[row.domain] ? visited[row.domain].visits : 0) + 1,
           },
-        }), {})
-      );
+        }), {}));
   },
 
   onCookieBatch(ckis) {
@@ -209,10 +206,11 @@ export default background({
             this.db.trackerCookies.where(cookieKeyCols.reduce((hash, col) =>
               Object.assign(hash, {
                 [col]: cookie[col]
-              }), Object.create(null))
-            ).delete();
+              }), Object.create(null)))
+              .delete();
             return 'delete';
-          } else if (modExpiry < cookie.expirationDate) {
+          }
+          if (modExpiry < cookie.expirationDate) {
             const cookieUpdate = {
               url: `https://${cookie.domain}${cookie.path}`,
               httpOnly: cookie.httpOnly,
@@ -281,8 +279,7 @@ export default background({
       }).then(() =>
         // update db, then return the results
         this.db.trackerCookies.bulkPut(Object.values(cookieMap))
-          .then(() => Object.values(cookieMap))
-      );
+          .then(() => Object.values(cookieMap)));
   },
 
   async pruneDb() {

@@ -1,0 +1,89 @@
+
+#cqz-offer-cc-content{
+    .web-ext {
+        header {
+            > p {
+                .hide-reward-box {
+                    display: flex;
+                    flex: 0 0 auto;
+                    width: 14px;
+                    height: 14px;
+                    mask: url('../images/close-offer.svg') no-repeat center;
+                    -webkit-mask: url('../images/close-offer.svg') no-repeat center;
+                    mask-size: contain;
+                    -webkit-mask-size: contain;
+                    background: rgba(0,0,0,1);
+                    opacity: 0.3;
+                    display: inline-block;
+                    margin-right: 2px;
+                    margin-top: 4px;
+                    &:hover {
+                        opacity: 1
+                    }
+                }
+            }
+        }
+        #cqz-vouchers-wrapper{
+            #cqz-vouchers-holder {
+                .voucher-wrapper {
+                    .logo-wrapper {
+                        .close {
+                            mask: url('../images/trash.svg') no-repeat right;
+                            -webkit-mask: url('../images/trash.svg') no-repeat right;
+                            transform: scale(2.8) translateX(-3px) translateY(1px);
+                            -webkit-mask-size: contain;
+                            mask-size: contain;
+                        }
+                    }
+                }
+            }
+        }
+        footer {
+            > p {
+                .feedback {
+                    display: flex;
+                    align-items: center;
+                    font-size: 10px;
+                    background: transparent;
+                    cursor: pointer;
+                    label {
+                        cursor: pointer
+                    }
+                    img {
+                        margin-right: 5px
+                    }
+                }
+                span {
+                    &:last-child {
+                        background: url("../images/myoffrz-logo.svg") no-repeat right center;
+                        background-size: contain;
+                        mask: none;
+                        -webkit-mask: none;
+                        height: 16px;
+                        margin-top: 2px;
+                        margin-right: 2px;
+                    }
+                }
+            }
+        }
+        .show {
+            &~ footer {
+                > p {
+                    span {
+                        &:last-child {
+                            mask: url("../images/myoffrz-logo.svg") no-repeat right center;
+                            -webkit-mask: url("../images/myoffrz-logo.svg") no-repeat right center;
+                            mask-size: contain;
+                            -webkit-mask-size: contain;
+                            background: rgba(255, 255, 255, 0.8)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+

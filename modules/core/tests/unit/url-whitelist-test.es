@@ -7,6 +7,7 @@ class MockPersistantObject {
   load() {
     return Promise.resolve({});
   }
+
   setValue() {}
 }
 
@@ -49,7 +50,7 @@ export default describeModule('core/url-whitelist',
     'platform/lib/tldts': tldts,
     'platform/platform': {
       default: {
-       isOnionMode: false,
+        isOnionMode: false,
       },
     }
   }), function () {

@@ -2,34 +2,28 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Link from '../Link';
 import Icon from './Icon';
-import Url from './Url';
-import { elementSideMargins, elementTopMargin } from '../../styles/CardStyle';
+import NativeDrawable, { normalizeUrl } from '../custom/NativeDrawable';
+import {
+  elementSideMargins,
+  elementTopMargin,
+  getCardWidth,
+} from '../../styles/CardStyle';
 import { getMessage } from '../../../core/i18n';
+import themeDetails from '../../themes';
 
-const styles = StyleSheet.create({
-  container: {
-    ...elementTopMargin,
+const commonStyles = theme => ({
+  historyIcon: {
+    width: 15,
+    height: 15,
+    marginLeft: 10,
   },
   title: {
-    color: 'black',
+    color: themeDetails[theme].textColor,
     fontWeight: 'bold',
     fontSize: 15,
     ...elementSideMargins,
     paddingTop: 6,
     paddingBottom: 6,
-  },
-  text: {
-    color: 'black',
-    ...elementSideMargins,
-    marginTop: 10,
-  },
-  row: {
-    borderTopWidth: 1,
-    borderTopColor: '#EDECEC',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    paddingTop: 12,
-    paddingBottom: 12,
   },
   header: {
     flexDirection: 'row',
@@ -37,22 +31,103 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     ...elementSideMargins,
   },
+  textContainer: {
+    maxHeight: 15,
+    overflow: 'hidden',
+  },
+});
+
+const cluster = (theme, color) => ({
+  historyHeader: {
+    backgroundColor: themeDetails[theme].highlightedBackgroundColor,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  row: {
+    borderTopWidth: 0.5,
+    borderTopColor: themeDetails[theme].separatorColor,
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    paddingTop: 12,
+    paddingBottom: 12,
+  },
+  text: {
+    color: themeDetails[theme].textColor,
+    lineHeight: 15,
+    width: getCardWidth() - 95, // width of icon + margins
+  },
+  url: {
+    color,
+    lineHeight: 15,
+    width: getCardWidth() - 95, // width of icon + margins
+    fontSize: 11,
+    fontWeight: 'bold',
+  }
+});
+
+const nonCluster = (theme, color) => ({
+  historyHeader: {
+    borderTopWidth: 0.5,
+    borderTopColor: themeDetails[theme].separatorColor,
+    flexDirection: 'row',
+    alignItems: 'center',
+    ...elementTopMargin,
+  },
+  row: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    paddingTop: 5,
+    paddingBottom: 5,
+  },
+  text: {
+    color: themeDetails[theme].textColor,
+    lineHeight: 15,
+    width: getCardWidth() - 50, // width of icon + margins
+  },
+  url: {
+    color,
+    lineHeight: 15,
+    width: getCardWidth() - 50, // width of icon + margins
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+});
+
+const clusterStyle = (theme, color) => StyleSheet.create({
+  ...commonStyles(theme, color),
+  ...cluster(theme, color),
+});
+
+const nonClusterStyle = (theme, color) => StyleSheet.create({
+  ...commonStyles(theme, color),
+  ...nonCluster(theme, color),
 });
 
 export default class HistoryUrls extends React.Component {
-  displayUrls(data) {
+  displayUrls(data, styles, theme) {
+    const color = (theme === 'light') ? '#551A8B' : themeDetails[theme].textColor;
+
     return (
       <Link label="history-result" url={data.url} key={data.url}>
-        <View style={styles.row} >
-          <View style={styles.header}>
-            <Icon width={34} height={34} url={data.url} />
-            <Url url={data.url} isHistory />
-          </View>
-          <View
-            accessible={false}
-            accessibilityLabel={'history-title'}
-          >
-            <Text style={styles.text}>{data.title}</Text>
+        <View style={styles(theme, color).row}>
+          <View style={styles(theme, color).header}>
+            <Icon width={34} height={34} logoDetails={data.logo} />
+            <View style={{ flexDirection: 'column' }}>
+              <View
+                accessible={false}
+                accessibilityLabel="history-link"
+                style={styles(theme, color).textContainer}
+              >
+                <Text numberOfLines={1} style={styles(theme, color).url}>{data.url}</Text>
+              </View>
+              <View
+                accessible={false}
+                accessibilityLabel="history-title"
+                style={styles(theme, color).textContainer}
+              >
+                <Text numberOfLines={1} style={styles(theme, color).text}>{data.title}</Text>
+              </View>
+            </View>
           </View>
         </View>
       </Link>
@@ -60,24 +135,34 @@ export default class HistoryUrls extends React.Component {
   }
 
   render() {
-    if (!this.props.urls || !this.props.urls.length) {
+    const props = this.props;
+    const theme = props.theme;
+    const color = (theme === 'light') ? '#551A8B' : themeDetails[theme].textColor;
+
+    if (!props.urls || !props.urls.length) {
       return null;
     }
     // some urls are not http urls
-    const urls = this.props.urls.filter(data => data.href.startsWith('http'));
+    const urls = props.urls.filter(data => data.href.startsWith('http'));
+    const styles = props.template === 'cluster' ? clusterStyle : nonClusterStyle;
     return (
       <View
         accessible={false}
-        accessibilityLabel={'history-container'}
-        style={styles.container}
+        accessibilityLabel="history-container"
       >
         <View
           accessible={false}
-          accessibilityLabel={'history-header'}
+          accessibilityLabel="history-header"
+          style={styles(theme, color).historyHeader}
         >
-          <Text style={styles.title}>{getMessage('mobile_history_card_title')}</Text>
+          <NativeDrawable
+            style={styles(theme, color).historyIcon}
+            source={normalizeUrl(`PanelIconCliqzHistory_${theme}.svg`)}
+            color={themeDetails[theme].textColor}
+          />
+          <Text style={styles(theme, color).title}>{getMessage('mobile_history_card_title')}</Text>
         </View>
-        {urls.map(this.displayUrls)}
+        {urls.map(data => this.displayUrls(data, styles, theme))}
       </View>
     );
   }

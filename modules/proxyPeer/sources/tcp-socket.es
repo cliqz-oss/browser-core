@@ -158,7 +158,8 @@ export function openSocket(host, port) {
     0, // aTypeCount
     host, // aHost
     port, // aPort
-    null); // aProxyInfo
+    null // aProxyInfo
+  );
 
   return new TcpConnection(transport);
 }

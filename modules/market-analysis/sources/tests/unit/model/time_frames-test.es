@@ -33,5 +33,4 @@ export default describeModule('market-analysis/model/time_frames',
         chai.expect(tf.weekOfYear).eql(20);
       });
     });
-  },
-);
+  });

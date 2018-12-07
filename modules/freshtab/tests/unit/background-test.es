@@ -33,11 +33,6 @@ export default describeModule('freshtab/background',
       'platform/freshtab/browser-import-dialog': {
         default: { openImportDialog() { } }
       },
-      'core/services/telemetry': {
-        default: {
-          push() {},
-        },
-      },
       'core/search-engines': {
         isSearchServiceReady() { return Promise.resolve(); },
         getSearchEngines: '[dynamic]'
@@ -52,6 +47,7 @@ export default describeModule('freshtab/background',
         },
       },
       'fast-url-parser': {
+        /* eslint-disable-next-line global-require */
         default: require('fast-url-parser'),
       },
       'core/url': {
@@ -146,8 +142,9 @@ export default describeModule('freshtab/background',
       describe('geolocation:wake-notification', function () {
         it('fetches news', function (done) {
           subject.actions.getNews = () => Promise.resolve().then(() => done());
-          subject.events['geolocation:wake-notification'] =
-            subject.events['geolocation:wake-notification'].bind(subject);
+          subject.events[
+            'geolocation:wake-notification'
+          ] = subject.events['geolocation:wake-notification'].bind(subject);
 
           subject.events['geolocation:wake-notification']();
         });
@@ -158,8 +155,9 @@ export default describeModule('freshtab/background',
           subject.actions.getNews = () => Promise.resolve();
           subject.actions.refreshFrontend = () => done();
 
-          subject.events['geolocation:wake-notification'] =
-            subject.events['geolocation:wake-notification'].bind(subject);
+          subject.events[
+            'geolocation:wake-notification'
+          ] = subject.events['geolocation:wake-notification'].bind(subject);
 
           subject.events['geolocation:wake-notification']();
         });
@@ -208,8 +206,7 @@ export default describeModule('freshtab/background',
               base_url: 'https://www.google.com/search?q=&ie=utf-8&oe=utf-8&client=firefox-b',
               urlDetails: {},
             }
-          ])
-        ;
+          ]);
 
         this.deps('core/utils').default.hash = function (url) {
           if (url === 'http://cliqz.com/') {
@@ -327,7 +324,8 @@ export default describeModule('freshtab/background',
                 const speedDials = prefs['extensions.cliqzLocal.freshtab.speedDials'];
 
                 chai.expect(speedDials.custom).to.deep.equal([
-                  { url: url,
+                  {
+                    url: url,
                     title: title
                   }
                 ]);
@@ -336,7 +334,8 @@ export default describeModule('freshtab/background',
                 chai.expect(newSpeedDial).to.have.property('displayTitle').that.equal(title);
                 chai.expect(newSpeedDial).to.have.property('custom').that.equal(true);
                 chai.expect(newSpeedDial).to.have.property('logo').that.equal('');
-              });
+              }
+            );
           });
         });
 
@@ -351,7 +350,8 @@ export default describeModule('freshtab/background',
               return Promise.resolve({
                 history: [],
                 custom: [
-                  { url: 'https://www.cliqz.com',
+                  {
+                    url: 'https://www.cliqz.com',
                     title: 'cliqz'
                   }
                 ]
@@ -360,7 +360,8 @@ export default describeModule('freshtab/background',
 
             this.module().default.actions.getVisibleDials = function () {
               return Promise.resolve([
-                { url: 'https://www.cliqz.com',
+                {
+                  url: 'https://www.cliqz.com',
                   title: 'cliqz'
                 }
               ]);
@@ -427,10 +428,10 @@ export default describeModule('freshtab/background',
             chai.expect(speedDials).to.deep.equal({
               custom: [
                 { url: 'https://www.spiegel.com/' }
-              ] });
+              ]
+            });
           });
         });
       });
     });
-  }
-);
+  });

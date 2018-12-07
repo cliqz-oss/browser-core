@@ -2,11 +2,10 @@ import config from '../core/config';
 
 const CLIQZEnvironment = {
   RESULTS_TIMEOUT: config.settings.RESULTS_TIMEOUT,
-  historySearch() {},
+  historySearch() { },
   // mocked functions
-  getWindow() {},
+  getWindow() { },
   Promise,
-  telemetry: () => {},
 };
 
 export default CLIQZEnvironment;

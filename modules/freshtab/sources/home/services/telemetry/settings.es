@@ -22,12 +22,12 @@ export function settingsRestoreTopSitesSignal() {
   });
 }
 
-export function settingsBackgroundSelectSignal(bg) {
+export function settingsBackgroundSelectSignal(bg, product) {
   telemetry({
     ...settingsBaseSignal,
     action: 'click',
     target: 'background_image',
-    state: config.backgrounds[bg].alias,
+    state: config.backgrounds[product][bg].alias,
   });
 }
 

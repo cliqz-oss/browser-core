@@ -64,4 +64,3 @@ export function reportError() {}
 export function disableChangeEvents() {}
 
 export function resetOriginalPrefs() {}
-

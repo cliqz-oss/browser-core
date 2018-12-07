@@ -6,8 +6,6 @@ const base = require('./common/system');
 const urls = require('./common/urls-cliqz');
 const settings = require('./common/amo-settings');
 
-const subprojects = require('./common/subprojects/bundles');
-
 module.exports = {
   'platform': 'firefox',
   'baseURL': 'resource://cliqz/',
@@ -32,14 +30,16 @@ module.exports = {
       }
     },
   }),
-  'default_prefs' : {
+  'default_prefs': {
     'modules.history-analyzer.enabled': false,
     'modules.anolysis.enabled': false,
   },
   'modules': [
     'core',
+    'telemetry',
     'core-cliqz',
     'dropdown',
+    'offboarding',
     'firefox-specific',
     'static',
     'geolocation',
@@ -52,7 +52,6 @@ module.exports = {
     'webrequest-pipeline',
     'antitracking',
     'performance',
-    'hpn',
     'control-center',
     'offers-v2',
     'popup-notification',
@@ -60,7 +59,6 @@ module.exports = {
     'offers-cc',
     'browser-panel',
     'message-center',
-    'offboarding',
     'anolysis',
     'anolysis-cc',
     'market-analysis',
@@ -70,28 +68,6 @@ module.exports = {
     'hpnv2',
     "terms-and-conditions"
   ],
-  'subprojects': subprojects([
-    '@cliqz-oss/dexie',
-    'pouchdb',
-    '@cliqz/adblocker',
-    'ajv',
-    'handlebars',
-    'jquery',
-    'mathjs',
-    'moment',
-    'moment-range',
-    'pako',
-    'react',
-    'reactDom',
-    'rxjs',
-    'simple-statistics',
-    'tldts',
-    'tooltipster-css',
-    'tooltipster-js',
-    'tooltipster-sideTip-theme',
-    'ua-parser-js',
-    'jsep',
-  ]),
   systemDefault: base.systemConfig,
   builderDefault: base.builderConfig,
   bundleConfigs: Object.assign({}, base.appBundleConfig),

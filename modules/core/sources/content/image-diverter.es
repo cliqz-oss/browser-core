@@ -32,8 +32,7 @@ export function divertImages(rootElement, classToImage, contentReader) {
     return asyncActions;
   }
   // If `rootElement` is an iframe, unwrap it
-  const searchRoot =
-    rootElement.contentDocument
+  const searchRoot = rootElement.contentDocument
     || (rootElement.contentWindow && rootElement.contentWindow.document)
     || rootElement;
 
@@ -61,5 +60,6 @@ export function getImageDiverterCallerFunc(CLIQZ) {
   return contentUrl =>
     CLIQZ.app.modules.core.action(
       'readContentAsDataUrl',
-      contentUrl);
+      contentUrl
+    );
 }

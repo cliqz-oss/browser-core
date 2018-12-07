@@ -4,6 +4,7 @@ export default class Win {
   constructor(settings) {
     this.window = settings.window;
   }
+
   init() {
     const PeerMaster = MobilePairing.peerMaster;
     const window = this.window;
@@ -44,5 +45,6 @@ export default class Win {
       }
     };
   }
+
   unload() {}
 }

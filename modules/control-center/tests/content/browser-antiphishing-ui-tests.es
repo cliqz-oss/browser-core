@@ -15,10 +15,6 @@ function antiphishingUiTests(amo) {
     subject = new Subject();
   });
 
-  after(function () {
-    subject.unload();
-  });
-
   function headerProtected() {
     context('control center header', function () {
       it('renders header', function () {
@@ -75,6 +71,10 @@ function antiphishingUiTests(amo) {
       return subject.load();
     });
 
+    after(function () {
+      subject.unload();
+    });
+
     headerProtected();
     antiPhishingUiTests();
 
@@ -104,6 +104,10 @@ function antiphishingUiTests(amo) {
         response: dataOffSite
       });
       return subject.load();
+    });
+
+    after(function () {
+      subject.unload();
     });
 
     headerProtected();
@@ -138,6 +142,10 @@ function antiphishingUiTests(amo) {
         response: dataOffAll
       });
       return subject.load();
+    });
+
+    after(function () {
+      subject.unload();
     });
 
     headerProtected();

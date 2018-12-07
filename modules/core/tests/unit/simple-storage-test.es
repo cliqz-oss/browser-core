@@ -3,8 +3,10 @@
 
 const expect = chai.expect;
 const crypto = require('crypto');
+const _path = require('path');
 const FSBuilder = require('./utils/fs');
-const _fs = FSBuilder(require('path'));
+
+const _fs = FSBuilder(_path);
 
 export default describeModule('core/simple-storage',
   () => ({
@@ -73,5 +75,4 @@ export default describeModule('core/simple-storage',
           });
       });
     });
-  }
-);
+  });

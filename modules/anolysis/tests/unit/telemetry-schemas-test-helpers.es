@@ -18,13 +18,12 @@
  * into `anolysis/tests/unit/analyses` for examples.
  */
 
-
-const mockDexie = require('../../core/unit/utils/dexie');
 const UAParser = require('ua-parser-js');
 const ajv = require('ajv');
 const faker = require('json-schema-faker');
 const moment = require('moment');
 const stats = require('simple-statistics');
+const mockDexie = require('../../core/unit/utils/dexie');
 
 const DATE_FORMAT = 'YYYY-MM-DD';
 const DAY_FORMAT = 'YYYY-DDD';
@@ -48,9 +47,9 @@ function onlyKeepAnalysisWithName(availableDefinitions, name, metrics = []) {
   // generation of signal for the analysis we intend to test.
   [...availableDefinitions.entries()].forEach(([schemaName, schema]) => {
     if (
-      schema.generate !== undefined &&
-      schemaName !== name &&
-      metrics.indexOf(schemaName) === -1
+      schema.generate !== undefined
+      && schemaName !== name
+      && metrics.indexOf(schemaName) === -1
     ) {
       availableDefinitions.delete(schemaName);
     }
@@ -103,8 +102,8 @@ async function generateAnalysisResults({
   // argument (function `generate` has length > 0), then we generate fake
   // random signals from the schema, which specifies the shape of signals to
   // be aggregated for this analysis.
-  if (schema.generate !== undefined &&
-    schema.generate.length > 0
+  if (schema.generate !== undefined
+    && schema.generate.length > 0
   ) {
     const metricsToPush = [];
     if (metrics.forEach !== undefined) {
@@ -245,9 +244,11 @@ module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) =
         get: (k, d) => {
           if (k === 'developer') {
             return true;
-          } else if (k === 'session') {
+          }
+          if (k === 'session') {
             return 'session';
-          } else if (k === 'signalQueue.sendInterval') {
+          }
+          if (k === 'signalQueue.sendInterval') {
             // Speed-up signal queue by waiting only 5ms between each interval
             return 5;
           }
@@ -275,7 +276,9 @@ module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) =
         init() {
           return Promise.resolve();
         }
+
         getNewInstallDate() { return '2000-01-01'; }
+
         getGID() {
           return Promise.resolve('gid');
         }
@@ -298,8 +301,8 @@ module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) =
     let availableDefinitions;
 
     beforeEach(async function () {
-      const Config = (await this.system.import('anolysis/internals/config')).default;
-      const config = new Config({ demographics: {}, Storage: (await this.system.import('anolysis/internals/storage/dexie')).default });
+      const createConfig = (await this.system.import('anolysis/internals/config')).default;
+      const config = await createConfig({ demographics: {}, Storage: (await this.system.import('anolysis/internals/storage/dexie')).default });
       const Anolysis = (await this.system.import('anolysis/internals/anolysis')).default;
       anolysis = new Anolysis(config);
 
@@ -351,5 +354,4 @@ module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) =
         }));
       }
     });
-  },
-);
+  });

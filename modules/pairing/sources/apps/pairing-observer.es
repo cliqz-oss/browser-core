@@ -26,6 +26,7 @@ export default class PairingObserver {
         isPairing, isUnpaired, pairingToken, pairingRemaining);
     }
   }
+
   // The comm object.... TODO: explain
   oninit(comm) {
     this.comm = comm;

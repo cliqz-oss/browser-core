@@ -1,9 +1,15 @@
 /* global window */
 import PropTypes from 'prop-types';
 import React from 'react';
+import { historyPaginationClickSignal } from '../services/telemetry/home';
 import { newsPaginationClickSignal } from '../services/telemetry/news';
+import config from '../../config';
 
 const ROTATION_INTERVAL = 15000;
+const DEFAULT_PAGESIZE = {
+  news: 3,
+  history: config.constants.MAX_SPOTS,
+};
 
 class Pagination extends React.Component {
   static get propTypes() {
@@ -12,6 +18,8 @@ class Pagination extends React.Component {
       items: PropTypes.array,
       onChangePage: PropTypes.func,
       isNewsHover: PropTypes.bool,
+      contentType: PropTypes.string,
+      currentPage: PropTypes.number,
     };
   }
 
@@ -22,18 +30,21 @@ class Pagination extends React.Component {
     };
 
     this.timer = null;
-    this.setPageSize = this.setPageSize.bind(this);
-    this.onKeyDown = this.onKeyDown.bind(this);
   }
 
   componentDidMount() {
     this.timer = setInterval(() => this.tick(), ROTATION_INTERVAL);
     window.addEventListener('keydown', this.onKeyDown);
+    this.setPage(1, { shouldAnimate: false });
   }
 
   componentDidUpdate(prevProps) {
     if (this.props.items !== prevProps.items) {
-      this.setPage(1);
+      if (this.props.currentPage) {
+        this.setPage(this.props.currentPage, { shouldAnimate: false });
+      } else {
+        this.setPage(1, { shouldAnimate: false });
+      }
     }
   }
 
@@ -42,7 +53,7 @@ class Pagination extends React.Component {
     window.removeEventListener('keydown', this.onKeyDown);
   }
 
-  onKeyDown(ev) {
+  onKeyDown = (ev) => {
     if (!this.props.isModalOpen) {
       if (ev.key === 'ArrowLeft') {
         this.prevPage();
@@ -57,11 +68,16 @@ class Pagination extends React.Component {
   }
 
   onPageSelected(page) {
-    newsPaginationClickSignal(page - 1);
+    if (this.props.contentType === 'news') {
+      newsPaginationClickSignal(page - 1);
+    } else if (this.props.contentType === 'history' && page === 2) {
+      historyPaginationClickSignal(page);
+    }
+
     this.setPage(page);
   }
 
-  getPager(totalItems, currentPage = 1, pageSize = 3) {
+  getPager(totalItems, currentPage = 1, pageSize = DEFAULT_PAGESIZE[this.props.contentType]) {
     const totalPages = Math.ceil(totalItems / pageSize);
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = Math.min((startIndex + pageSize) - 1, totalItems - 1);
@@ -82,8 +98,9 @@ class Pagination extends React.Component {
     };
   }
 
-  setPage(page) {
+  setPage(page, { shouldAnimate = true } = {}) {
     const items = this.props.items;
+    /* eslint-disable-next-line react/no-access-state-in-setstate */
     let pager = this.state.pager;
     const pageSize = pager.pageSize;
 
@@ -96,14 +113,17 @@ class Pagination extends React.Component {
     const pageOfItems = items.slice(pager.startIndex, pager.endIndex + 1);
     this.setState({ pager });
 
-    const shouldNotAnimate = this.state.pager.totalPages === 1;
-    this.props.onChangePage(pageOfItems, shouldNotAnimate);
+    this.props.onChangePage({
+      pageOfItems,
+      shouldAnimate: this.state.pager.totalPages > 1 && shouldAnimate,
+      page,
+    });
 
     clearInterval(this.timer);
     this.timer = setInterval(() => this.tick(), ROTATION_INTERVAL);
   }
 
-  setPageSize(size) {
+  setPageSize = (size) => {
     const pager = this.state.pager;
     pager.pageSize = size;
     this.setState(pager);
@@ -130,23 +150,23 @@ class Pagination extends React.Component {
   }
 
   rotateNews() {
-    const pager = this.state.pager;
     const currentPage = this.state.pager.currentPage;
     const totalPages = this.state.pager.totalPages;
 
     if (currentPage === totalPages) {
-      pager.currentPage = 1;
+      this.state.pager.currentPage = 1;
     } else {
-      pager.currentPage = currentPage + 1;
+      this.state.pager.currentPage = currentPage + 1;
     }
-    this.setState({
-      pager,
-    });
+
+    this.setState(prevState => ({
+      pager: prevState.pager,
+    }));
     this.setPage(this.state.pager.currentPage);
   }
 
   tick() {
-    if (!this.props.isNewsHover) {
+    if (this.props.contentType === 'news' && !this.props.isNewsHover) {
       this.rotateNews();
     }
   }
@@ -159,19 +179,21 @@ class Pagination extends React.Component {
       );
     }
 
-    const newsItems = pager.pages.map(page =>
-      (<button
-        href="#"
-        key={page}
-        tabIndex="-1"
-        className={`dash ${((page === pager.currentPage) ? 'active' : '')}`}
-        onClick={() => this.onPageSelected(page)}
-      >
-        <span className="overflow-hidden">{page}</span>
-      </button>)
-    );
+    const items = pager.pages.map(page =>
+      (
+        <button
+          type="button"
+          href="#"
+          key={page}
+          tabIndex="-1"
+          className={`dash ${((page === pager.currentPage) ? 'active' : '')}`}
+          onClick={() => this.onPageSelected(page)}
+        >
+          <span className="overflow-hidden">{page}</span>
+        </button>
+      ));
     return (
-      <div className="news-pagination">{newsItems}</div>
+      <div className="news-pagination">{items}</div>
     );
   }
 }

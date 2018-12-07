@@ -1,5 +1,5 @@
 /* eslint-disable global-require */
-export function  loadTranslation(url, locale) {
+export function loadTranslation(url, locale) {
   switch (locale) {
     case 'de':
       return require('../static/locale/de/cliqz.json');

@@ -1,5 +1,4 @@
 const browserBase = require('../browser');
-const subprojects = require('../common/subprojects/bundles');
 
 module.exports = Object.assign({}, browserBase, {
   settings: Object.assign({}, browserBase.settings, {
@@ -12,23 +11,15 @@ module.exports = Object.assign({}, browserBase, {
   modules: [
     'core',
     'core-cliqz',
+    'anolysis-remote',
     'static',
     'integration-tests',
     'ui',
     'webrequest-pipeline',
-    'hpn',
+    'hpnv2',
     'human-web',
     'offers-v2',
     'offers-debug',
     'offers-cc',
   ],
-  subprojects: browserBase.subprojects.concat(subprojects([
-    'chai',
-    'chai-dom',
-    'mocha',
-    'core-js',
-    'sinon',
-    'sinon-chai',
-    'reactTestUtils',
-  ])),
 });

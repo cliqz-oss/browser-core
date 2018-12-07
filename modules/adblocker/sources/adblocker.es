@@ -1,8 +1,6 @@
-import LRUCache from '../core/helpers/fixed-size-cache';
 import events from '../core/events';
 import inject, { ifModuleEnabled } from '../core/kord/inject';
 import prefs from '../core/prefs';
-import { getGeneralDomain } from '../core/tlds';
 import UrlWhitelist from '../core/url-whitelist';
 
 import { deflate, inflate } from '../core/zlib';
@@ -19,7 +17,7 @@ import logger from './logger';
 import Pipeline from '../webrequest-pipeline/pipeline';
 
 // adb version
-export const ADB_VERSION = 12;
+export const ADB_VERSION = 13;
 
 // Preferences
 export const ADB_DISK_CACHE = 'cliqz-adb-disk-cache';
@@ -41,35 +39,11 @@ export function adbABTestEnabled() {
 
 export function isSupportedProtocol(url) {
   return (
-    url.startsWith('http://') ||
-    url.startsWith('https://') ||
-    url.startsWith('ws://') ||
-    url.startsWith('wss://'));
+    url.startsWith('http://')
+    || url.startsWith('https://')
+    || url.startsWith('ws://')
+    || url.startsWith('wss://'));
 }
-
-const CPT_TO_NAME = {
-  1: 'other',
-  2: 'script',
-  3: 'image',
-  4: 'css',
-  5: 'object',
-  6: 'document',
-  7: 'iframe',
-  8: 'refresh',
-  9: 'xbl',
-  10: 'ping',
-  11: 'xhr',
-  12: 'object_subrequest',
-  13: 'dtd',
-  14: 'font',
-  15: 'media',
-  16: 'websocket',
-  17: 'csp_report',
-  18: 'xslt',
-  19: 'beacon',
-  20: 'fetch',
-  21: 'imageset',
-};
 
 
 const DEFAULT_OPTIONS = {
@@ -125,7 +99,7 @@ export class AdBlocker {
     logger.log(msg);
   }
 
-  logBlocking(request, isAd, totalTime) {
+  logBlocking(request, matchResult, totalTime) {
     // Only enabled when the diagnosis page is opened
     if (this.diagnosisEnabled) {
       if (request.cpt === 6 || !this.blockingLogger.has(request.sourceUrl)) {
@@ -140,21 +114,21 @@ export class AdBlocker {
       }
 
       let color = 'white';
-      if (isAd.redirect) {
+      if (matchResult.redirect) {
         color = '#ffe552';
-      } else if (isAd.exception) {
+      } else if (matchResult.exception) {
         color = '#33cc33';
-      } else if (isAd.match) {
+      } else if (matchResult.match) {
         color = '#ff5050';
       }
 
       this.blockingLogger.get(request.sourceUrl).push(`<tr
         style="background: ${color}">
         <td>${totalTime}</td>
-        <td>${!!isAd.match}</td>
-        <td>${!!isAd.redirect}</td>
-        <td>${isAd.filter || ''}</td>
-        <td>${CPT_TO_NAME[request.cpt] || request.cpt}</td>
+        <td>${matchResult.match}</td>
+        <td>${!!matchResult.redirect}</td>
+        <td>${matchResult.filter || matchResult.exception || ''}</td>
+        <td>${request.type}</td>
         <td>${request.url}</td>
       </tr>`);
     }
@@ -189,8 +163,8 @@ export class AdBlocker {
       if (resourcesLists.length > 0) {
         const startResourcesUpdate = Date.now();
         this.engine.onUpdateResource(resourcesLists);
-        this.log(`Engine updated with ${resourcesLists.length} resources` +
-                 ` (${Date.now() - startResourcesUpdate} ms)`);
+        this.log(`Engine updated with ${resourcesLists.length} resources`
+                 + ` (${Date.now() - startResourcesUpdate} ms)`);
       }
 
       // -------------------- //
@@ -205,36 +179,33 @@ export class AdBlocker {
         return false;
       });
 
-      let serializedEngine = null;
-      if (filtersLists.length > 0) {
-        const startFiltersUpdate = Date.now();
-        serializedEngine = this.engine.onUpdateFilters(
+      const startFiltersUpdate = Date.now();
+      const loadedAssets = new Set(
+        [...this.listsManager.getLoadedAssets()]
+          .filter(asset => !asset.endsWith('resources.txt'))
+      );
+      const updateNeeded = (
+        filtersLists.length !== 0
+        || this.engine.lists.size !== loadedAssets.size
+      );
+      if (updateNeeded) {
+        this.engine.onUpdateFilters(
           filtersLists,
-          this.listsManager.getLoadedAssets(),
-          this.onDiskCache,
+          loadedAssets,
         );
-        this.log(`Engine updated with ${filtersLists.length} lists` +
-                 ` (${Date.now() - startFiltersUpdate} ms)`);
-      } else {
-        // Call the method with an empty list + the list of loaded filters to
-        // trigger clean-up of removed lists if needed.
-        serializedEngine = this.engine.onUpdateFilters(
-          [],
-          this.listsManager.getLoadedAssets(),
-          this.onDiskCache,
-        );
+        this.log(`Engine updated with ${filtersLists.length} lists`
+          + ` (${Date.now() - startFiltersUpdate} ms)`);
       }
-
-      // Flush the cache since the engine is now different
-      this.initCache();
 
       // Serialize new version of the engine on disk if needed
       // We need to avoid dumping data on disk in Onion mode.
-      if (serializedEngine !== null && !isOnionMode) {
+      if (this.onDiskCache && !isOnionMode && updateNeeded) {
         const t0 = Date.now();
         const db = new PersistentMap('cliqz-adb');
+        const serializedEngine = this.engine.serialize();
         db.init()
-          .then(() => db.set('engine',
+          .then(() => db.set(
+            'engine',
             this.compressDiskCache ? deflate(serializedEngine) : serializedEngine
           ))
           .then(() => {
@@ -264,22 +235,9 @@ export class AdBlocker {
       version: ADB_VERSION,
       loadNetworkFilters: this.loadNetworkFilters,
       loadCosmeticFilters: this.loadCosmeticFilters,
+      enableOptimizations: true,
+      optimizeAOT: false,
     });
-  }
-
-  initCache() {
-    this.log('Init in-memory cache');
-    // To make sure we don't break any filter behavior, each key in the LRU
-    // cache is made up of { source general domain } + { url }.
-    // This is because some filters will behave differently based on the
-    // domain of the source.
-
-    // Cache queries to FiltersEngine
-    this.cache = new LRUCache(
-      this.engine.match.bind(this.engine), // Compute result
-      1000, // Maximum number of entries
-      request => getGeneralDomain(request.sourceUrl) + request.url, // Select key
-    );
   }
 
   loadEngineFromDisk() {
@@ -302,6 +260,15 @@ export class AdBlocker {
             );
             this.listsManager.lists.set(asset, filterslist);
           });
+
+          // Also restore the resources.txt in filters loader
+          const resourcesAsset = 'resources.txt';
+          this.listsManager.lists.set(resourcesAsset, new FiltersList(
+            this.engine.resourceChecksum,
+            resourcesAsset,
+            '',
+          ));
+
           const totalTime = Date.now() - t0;
           this.log(`Loaded filters engine (${totalTime} ms)`);
         })
@@ -326,8 +293,6 @@ export class AdBlocker {
   }
 
   init() {
-    this.initCache();
-
     return this.loadEngineFromDisk()
       .then(() => this.listsManager.load())
       .then(() => {
@@ -335,7 +300,8 @@ export class AdBlocker {
         this.log('Check for updates');
         this.loadingTimer = setTimeout(
           () => this.listsManager.update(),
-          30 * 1000);
+          30 * 1000
+        );
       });
   }
 
@@ -349,13 +315,13 @@ export class AdBlocker {
    */
   match(request) {
     const t0 = Date.now();
-    const isAd = this.cache.get(request);
+    const matchResult = this.engine.match(request);
     const totalTime = Date.now() - t0;
 
     // Keeps track of altered requests (only if the diagnosis page is opened)
-    this.logBlocking(request, isAd, totalTime);
+    this.logBlocking(request, matchResult, totalTime);
 
-    return isAd;
+    return matchResult;
   }
 }
 
@@ -376,9 +342,9 @@ const CliqzADB = {
     // 0 = Disabled
     // 1 = Enabled
     return (
-      !CliqzADB.paused &&
-      adbABTestEnabled() &&
-      prefs.get(ADB_PREF, ADB_PREF_VALUES.Disabled) !== ADB_PREF_VALUES.Disabled
+      !CliqzADB.paused
+      && adbABTestEnabled()
+      && prefs.get(ADB_PREF, ADB_PREF_VALUES.Disabled) !== ADB_PREF_VALUES.Disabled
     );
   },
 
@@ -391,9 +357,9 @@ const CliqzADB = {
   },
 
   isAdbActive(url) {
-    return CliqzADB.adbEnabled() &&
-    CliqzADB.adblockInitialized &&
-    !CliqzADB.whitelistChecks.some(fn => fn(url));
+    return CliqzADB.adbEnabled()
+    && CliqzADB.adblockInitialized
+    && !CliqzADB.whitelistChecks.some(fn => fn(url));
   },
 
   logActionHW(url, action, type) {
@@ -450,7 +416,8 @@ const CliqzADB = {
 
       return CliqzADB.adBlocker.init().then(() => {
         CliqzADB.initPacemaker();
-        return CliqzADB.webRequestPipeline.action('addPipelineStep',
+        return CliqzADB.webRequestPipeline.action(
+          'addPipelineStep',
           'onBeforeRequest',
           {
             name: 'adblocker',
@@ -559,15 +526,17 @@ const CliqzADB = {
     const result = CliqzADB.adBlocker.match({
       sourceUrl,
       url,
-      cpt: state.cpt,
+      type: state.type,
     });
+
     if (result.redirect) {
       response.redirectTo(result.redirect);
       return false;
-    } else if (result.match) {
+    }
+
+    if (result.match) {
       CliqzADB.adbStats.addBlockedUrl(sourceUrl, url, state.tabId, state.ghosteryBug);
       response.block();
-      // TODO - should we stop the pipeline?
       return false;
     }
 

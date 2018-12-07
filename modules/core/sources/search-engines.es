@@ -33,11 +33,11 @@ function getParamValue(params, query) {
 export function isValidUrl(url) {
   const urlparts = getDetailsFromUrl(url);
   // Google Filters
-  if (urlparts.name.toLowerCase() === 'google' &&
-    urlparts.subdomains.length > 0 && urlparts.subdomains[0].toLowerCase() === 'www' &&
-    (urlparts.extra.indexOf('/search') !== -1 || // '/search?' for regular SERPS and '.*/search/.*' for maps
-    urlparts.extra.indexOf('/url?') === 0 || // www.google.*/url? - for redirects
-    urlparts.extra.indexOf('q=') !== -1)) { // for instant search results
+  if (urlparts.name.toLowerCase() === 'google'
+    && urlparts.subdomains.length > 0 && urlparts.subdomains[0].toLowerCase() === 'www'
+    && (urlparts.extra.indexOf('/search') !== -1 // '/search?' for regular SERPS and '.*/search/.*' for maps
+    || urlparts.extra.indexOf('/url?') === 0 // www.google.*/url? - for redirects
+    || urlparts.extra.indexOf('q=') !== -1)) { // for instant search results
     log(`Discarding result page from history: ${url}`);
     return false;
   }
@@ -53,10 +53,10 @@ export function isValidUrl(url) {
   //   search.yahoo.com/search
   //   *.search.yahooo.com/search - for international 'de.search.yahoo.com'
   //   r.search.yahoo.com - for redirects 'r.search.yahoo.com'
-  if (urlparts.name.toLowerCase() === 'yahoo' &&
-    ((urlparts.subdomains.length === 1 && urlparts.subdomains[0].toLowerCase() === 'search' && urlparts.path.indexOf('/search') === 0) ||
-    (urlparts.subdomains.length === 2 && urlparts.subdomains[1].toLowerCase() === 'search' && urlparts.path.indexOf('/search') === 0) ||
-    (urlparts.subdomains.length === 2 && urlparts.subdomains[0].toLowerCase() === 'r' && urlparts.subdomains[1].toLowerCase() === 'search'))) {
+  if (urlparts.name.toLowerCase() === 'yahoo'
+    && ((urlparts.subdomains.length === 1 && urlparts.subdomains[0].toLowerCase() === 'search' && urlparts.path.indexOf('/search') === 0)
+    || (urlparts.subdomains.length === 2 && urlparts.subdomains[1].toLowerCase() === 'search' && urlparts.path.indexOf('/search') === 0)
+    || (urlparts.subdomains.length === 2 && urlparts.subdomains[0].toLowerCase() === 'r' && urlparts.subdomains[1].toLowerCase() === 'search'))) {
     log(`Discarding result page from history: ${url}`);
     return false;
   }
@@ -103,8 +103,8 @@ export function isValidUrl(url) {
 export function getEngineByQuery(query) {
   const token = query.split(' ')[0];
   const engines = searchUtils.getSearchEngines();
-  return engines.find(e => e.alias === token) ||
-    searchUtils.getDefaultSearchEngine();
+  return engines.find(e => e.alias === token)
+    || searchUtils.getDefaultSearchEngine();
 }
 
 export function getSearchEngineQuery(engine, query) {
@@ -113,4 +113,3 @@ export function getSearchEngineQuery(engine, query) {
   }
   return query;
 }
-

@@ -119,7 +119,8 @@ exports.Browser = class FirefoxBrowser {
     outputPath = process.env.OUTPUT_PATH || './build',
     firefoxPath = process.env.FIREFOX_PATH,
     sourceDir,
-    firefoxKeepChanges = false,
+    firefoxProfile,
+    keepProfileChanges = false,
   } = {}) {
     if (config === undefined) {
       config = require(path.resolve(configFilePath));
@@ -137,7 +138,8 @@ exports.Browser = class FirefoxBrowser {
       sourceDir,
       artifactsDir: sourceDir,
       startUrl: getOptionsUrl(),
-      firefoxKeepChanges,
+      keepProfileChanges,
+      firefoxProfile,
       pref: {
         ...prefsFromTalos,
         'lightweightThemes.selectedThemeID': 'firefox-compact-light@mozilla.org',
@@ -148,6 +150,7 @@ exports.Browser = class FirefoxBrowser {
         ...this.prefs,
       },
     };
+    console.log('options', options);
     const runner = await webExt.cmd.run(options, {
       getValidatedManifest() {
         return {

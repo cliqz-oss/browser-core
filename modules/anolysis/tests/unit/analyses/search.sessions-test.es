@@ -43,18 +43,15 @@ require('../telemetry-schemas-test-helpers')({
       context('total count', function () {
         it('empty results', () =>
           test([{ hasUserInput: true, results: [] }],
-            signal => chai.expect(signal.results.total).to.be.eql(0))
-        );
+            signal => chai.expect(signal.results.total).to.be.eql(0)));
 
         it('some results', () =>
           test([{ hasUserInput: true, results }, { hasUserInput: true, results }],
-            signal => chai.expect(signal.results.total).to.be.eql(2))
-        );
+            signal => chai.expect(signal.results.total).to.be.eql(2)));
 
         it('mixed results', () =>
           test([{ hasUserInput: true, results }, {}],
-            signal => chai.expect(signal.results.total).to.be.eql(1))
-        );
+            signal => chai.expect(signal.results.total).to.be.eql(1)));
       });
 
       context('origin cliqz', function () {
@@ -62,8 +59,7 @@ require('../telemetry-schemas-test-helpers')({
           it('no cliqz results', () =>
             test([
               { hasUserInput: true, results: [mkResult(['navigate-to'])] },
-            ], signal => chai.expect(signal.results.origin.cliqz.total).to.eql(0))
-          );
+            ], signal => chai.expect(signal.results.origin.cliqz.total).to.eql(0)));
 
           it('some cliqz selections', () =>
             test([
@@ -72,8 +68,7 @@ require('../telemetry-schemas-test-helpers')({
               { hasUserInput: true, results: [mkResult(['m'])] },
               { hasUserInput: true, results: [mkResult(['C'])] },
               { hasUserInput: true, results: [mkResult(['default-search'])] },
-            ], signal => chai.expect(signal.results.origin.cliqz.total).to.eql(3))
-          );
+            ], signal => chai.expect(signal.results.origin.cliqz.total).to.eql(3)));
         });
 
         context('source', function () {
@@ -81,29 +76,25 @@ require('../telemetry-schemas-test-helpers')({
             test([{ hasUserInput: true, results: [] }],
               signal => chai.expect(signal.results.origin.cliqz.source).to.deep.eql({
                 history: 0, backend: 0, mixed: 0
-              }))
-          );
+              })));
 
           it('history results', () =>
             test([{ hasUserInput: true, results: [mkResult(['H'])] }],
               signal => chai.expect(signal.results.origin.cliqz.source).to.deep.eql({
                 history: 1, backend: 0, mixed: 0
-              }))
-          );
+              })));
 
           it('backend results', () =>
             test([{ hasUserInput: true, results: [mkResult(['X'])] }],
               signal => chai.expect(signal.results.origin.cliqz.source).to.deep.eql({
                 history: 0, backend: 1, mixed: 0
-              }))
-          );
+              })));
 
           it('mixed results', () =>
             test([{ hasUserInput: true, results: [mkResult(['C', 'm'])] }],
               signal => chai.expect(signal.results.origin.cliqz.source).to.deep.eql({
                 history: 0, backend: 0, mixed: 1
-              }))
-          );
+              })));
 
           it('multiple results', () =>
             test([
@@ -114,8 +105,7 @@ require('../telemetry-schemas-test-helpers')({
               { hasUserInput: true, results: [mkResult(['m'])] },
             ], signal => chai.expect(signal.results.origin.cliqz.source).to.deep.eql({
               history: 1, backend: 2, mixed: 1
-            }))
-          );
+            })));
         });
       });
     });
@@ -124,18 +114,15 @@ require('../telemetry-schemas-test-helpers')({
       context('total count', function () {
         it('with user input', () =>
           test([{ hasUserInput: true }, { hasUserInput: true }],
-            signal => chai.expect(signal.selections.total).to.be.eql(2))
-        );
+            signal => chai.expect(signal.selections.total).to.be.eql(2)));
 
         it('without user input', () =>
           test([{ hasUserInput: false }, { hasUserInput: false }],
-            signal => chai.expect(signal.selections.total).to.be.eql(0))
-        );
+            signal => chai.expect(signal.selections.total).to.be.eql(0)));
 
         it('with and without user input', () =>
           test([{ hasUserInput: true }, { hasUserInput: false }],
-            signal => chai.expect(signal.selections.total).to.be.eql(1))
-        );
+            signal => chai.expect(signal.selections.total).to.be.eql(1)));
       });
 
       context('index', function () {
@@ -144,8 +131,7 @@ require('../telemetry-schemas-test-helpers')({
             { hasUserInput: true, selection: { index: 0 } },
           ], signal => chai.expect(signal.selections.index).to.deep.eql({
             0: 1,
-          }))
-        );
+          })));
 
         it('multiple selections', () =>
           test([
@@ -157,8 +143,7 @@ require('../telemetry-schemas-test-helpers')({
             0: 2,
             1: 1,
             4: 1,
-          }))
-        );
+          })));
 
         it('multiple selections with overflow', () =>
           test([
@@ -170,8 +155,7 @@ require('../telemetry-schemas-test-helpers')({
             0: 1,
             15: 1,
             rest: 2,
-          }))
-        );
+          })));
       });
 
       context('query length', function () {
@@ -180,8 +164,7 @@ require('../telemetry-schemas-test-helpers')({
             { hasUserInput: true, selection: { queryLength: 0 } },
           ], signal => chai.expect(signal.selections.queryLength).to.deep.eql({
             0: 1,
-          }))
-        );
+          })));
 
         it('multiple selections', () =>
           test([
@@ -193,8 +176,7 @@ require('../telemetry-schemas-test-helpers')({
             0: 2,
             1: 1,
             4: 1,
-          }))
-        );
+          })));
 
         it('multiple selections with overflow', () =>
           test([
@@ -206,8 +188,7 @@ require('../telemetry-schemas-test-helpers')({
             0: 1,
             31: 1,
             rest: 2,
-          }))
-        );
+          })));
       });
 
       context('origin', function () {
@@ -216,8 +197,7 @@ require('../telemetry-schemas-test-helpers')({
             it('no cliqz selections', () =>
               test([
                 { hasUserInput: true, selection: { origin: 'other' } },
-              ], signal => chai.expect(signal.selections.origin.cliqz.total).to.eql(0))
-            );
+              ], signal => chai.expect(signal.selections.origin.cliqz.total).to.eql(0)));
 
             it('some cliqz selections', () =>
               test([
@@ -226,8 +206,7 @@ require('../telemetry-schemas-test-helpers')({
                 { hasUserInput: true, selection: { origin: 'direct' } },
                 { hasUserInput: true, selection: { origin: 'cliqz' } },
                 { hasUserInput: true, selection: { origin: null } },
-              ], signal => chai.expect(signal.selections.origin.cliqz.total).to.eql(2))
-            );
+              ], signal => chai.expect(signal.selections.origin.cliqz.total).to.eql(2)));
           });
 
           context('action', function () {
@@ -239,16 +218,14 @@ require('../telemetry-schemas-test-helpers')({
                 { hasUserInput: true, selection: { origin: 'cliqz', action: 'enter', isAutocomplete: false } },
                 { hasUserInput: true, selection: { origin: 'other', action: 'enter' } },
               ],
-              signal => chai.expect(signal.selections.origin.cliqz.action.autocomplete).to.eql(1))
-            );
+              signal => chai.expect(signal.selections.origin.cliqz.action.autocomplete).to.eql(1)));
 
             it('click', () =>
               test([
                 { hasUserInput: true, selection: { origin: 'cliqz', action: 'click' } },
                 { hasUserInput: true, selection: { origin: 'cliqz', action: 'enter' } },
                 { hasUserInput: true, selection: { origin: 'other', action: 'click' } },
-              ], signal => chai.expect(signal.selections.origin.cliqz.action.click).to.eql(1))
-            );
+              ], signal => chai.expect(signal.selections.origin.cliqz.action.click).to.eql(1)));
 
             it('enter', () =>
               test([
@@ -256,8 +233,7 @@ require('../telemetry-schemas-test-helpers')({
                 { hasUserInput: true, selection: { origin: 'cliqz', action: 'enter', isAutocomplete: false } },
                 { hasUserInput: true, selection: { origin: 'cliqz', action: 'click' } },
                 { hasUserInput: true, selection: { origin: 'other', action: 'enter' } },
-              ], signal => chai.expect(signal.selections.origin.cliqz.action.enter).to.eql(1))
-            );
+              ], signal => chai.expect(signal.selections.origin.cliqz.action.enter).to.eql(1)));
           });
 
           context('source', function () {
@@ -266,24 +242,21 @@ require('../telemetry-schemas-test-helpers')({
                 { hasUserInput: true, selection: { origin: 'cliqz', sources: ['H'] } },
                 { hasUserInput: true, selection: { origin: 'cliqz', sources: ['C'] } },
                 { hasUserInput: true, selection: { origin: 'cliqz', sources: ['m'] } },
-              ], signal => chai.expect(signal.selections.origin.cliqz.source.history).to.eql(2))
-            );
+              ], signal => chai.expect(signal.selections.origin.cliqz.source.history).to.eql(2)));
 
             it('backend', () =>
               test([
                 { hasUserInput: true, selection: { origin: 'cliqz', sources: ['m'] } },
                 { hasUserInput: true, selection: { origin: 'cliqz', sources: ['C'] } },
                 { hasUserInput: true, selection: { origin: 'cliqz', sources: ['X'] } },
-              ], signal => chai.expect(signal.selections.origin.cliqz.source.backend).to.eql(2))
-            );
+              ], signal => chai.expect(signal.selections.origin.cliqz.source.backend).to.eql(2)));
 
             it('mixed', () =>
               test([
                 { hasUserInput: true, selection: { origin: 'cliqz', sources: ['H'] } },
                 { hasUserInput: true, selection: { origin: 'cliqz', sources: ['C', 'X'] } },
                 { hasUserInput: true, selection: { origin: 'cliqz', sources: ['X'] } },
-              ], signal => chai.expect(signal.selections.origin.cliqz.source.mixed).to.eql(1))
-            );
+              ], signal => chai.expect(signal.selections.origin.cliqz.source.mixed).to.eql(1)));
           });
         });
 
@@ -292,8 +265,7 @@ require('../telemetry-schemas-test-helpers')({
             it('no direct selections', () =>
               test([
                 { hasUserInput: true, selection: { origin: 'other' } },
-              ], signal => chai.expect(signal.selections.origin.direct.total).to.eql(0))
-            );
+              ], signal => chai.expect(signal.selections.origin.direct.total).to.eql(0)));
 
             it('some direct selections', () =>
               test([
@@ -302,8 +274,7 @@ require('../telemetry-schemas-test-helpers')({
                 { hasUserInput: true, selection: { origin: 'cliqz' } },
                 { hasUserInput: true, selection: { origin: 'direct' } },
                 { hasUserInput: true, selection: { origin: null } },
-              ], signal => chai.expect(signal.selections.origin.direct.total).to.eql(2))
-            );
+              ], signal => chai.expect(signal.selections.origin.direct.total).to.eql(2)));
           });
 
           context('action', function () {
@@ -312,16 +283,14 @@ require('../telemetry-schemas-test-helpers')({
                 { hasUserInput: true, selection: { origin: 'cliqz', action: 'click' } },
                 { hasUserInput: true, selection: { origin: 'direct', action: 'enter' } },
                 { hasUserInput: true, selection: { origin: 'direct', action: 'click' } },
-              ], signal => chai.expect(signal.selections.origin.direct.action.click).to.eql(1))
-            );
+              ], signal => chai.expect(signal.selections.origin.direct.action.click).to.eql(1)));
 
             it('enter', () =>
               test([
                 { hasUserInput: true, selection: { origin: 'cliqz', action: 'enter' } },
                 { hasUserInput: true, selection: { origin: 'direct', action: 'click' } },
                 { hasUserInput: true, selection: { origin: 'direct', action: 'enter' } },
-              ], signal => chai.expect(signal.selections.origin.direct.action.enter).to.eql(1))
-            );
+              ], signal => chai.expect(signal.selections.origin.direct.action.enter).to.eql(1)));
           });
         });
 
@@ -331,8 +300,7 @@ require('../telemetry-schemas-test-helpers')({
               test([
                 { hasUserInput: true, selection: { origin: 'direct' } },
                 { hasUserInput: true, selection: { origin: 'cliqz' } },
-              ], signal => chai.expect(signal.selections.origin.other.total).to.eql(0))
-            );
+              ], signal => chai.expect(signal.selections.origin.other.total).to.eql(0)));
 
             it('some other selections', () =>
               test([
@@ -341,8 +309,7 @@ require('../telemetry-schemas-test-helpers')({
                 { hasUserInput: true, selection: { origin: 'direct' } },
                 { hasUserInput: true, selection: { origin: 'other' } },
                 { hasUserInput: true, selection: { origin: null } },
-              ], signal => chai.expect(signal.selections.origin.other.total).to.eql(2))
-            );
+              ], signal => chai.expect(signal.selections.origin.other.total).to.eql(2)));
           });
 
           context('action', function () {
@@ -351,16 +318,14 @@ require('../telemetry-schemas-test-helpers')({
                 { hasUserInput: true, selection: { origin: 'cliqz', action: 'click' } },
                 { hasUserInput: true, selection: { origin: 'other', action: 'enter' } },
                 { hasUserInput: true, selection: { origin: 'other', action: 'click' } },
-              ], signal => chai.expect(signal.selections.origin.other.action.click).to.eql(1))
-            );
+              ], signal => chai.expect(signal.selections.origin.other.action.click).to.eql(1)));
 
             it('enter', () =>
               test([
                 { hasUserInput: true, selection: { origin: 'cliqz', action: 'enter' } },
                 { hasUserInput: true, selection: { origin: 'other', action: 'click' } },
                 { hasUserInput: true, selection: { origin: 'other', action: 'enter' } },
-              ], signal => chai.expect(signal.selections.origin.other.action.enter).to.eql(1))
-            );
+              ], signal => chai.expect(signal.selections.origin.other.action.enter).to.eql(1)));
           });
         });
 
@@ -373,8 +338,7 @@ require('../telemetry-schemas-test-helpers')({
                 { hasUserInput: true, selection: { origin: 'direct' } },
                 { hasUserInput: true, selection: { origin: null } },
                 { hasUserInput: true, selection: { origin: null } },
-              ], signal => chai.expect(signal.selections.origin.abandoned.total).to.eql(2))
-            );
+              ], signal => chai.expect(signal.selections.origin.abandoned.total).to.eql(2)));
           });
 
           context('show time', function () {
@@ -388,8 +352,7 @@ require('../telemetry-schemas-test-helpers')({
                 1: 1,
                 5: 1,
                 9: 1,
-              }))
-            );
+              })));
 
             it('multiple selections with overflow', () =>
               test([
@@ -402,8 +365,7 @@ require('../telemetry-schemas-test-helpers')({
                 5: 1,
                 9: 1,
                 rest: 1,
-              }))
-            );
+              })));
           });
         });
       });

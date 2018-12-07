@@ -9,7 +9,7 @@ function Modal(props) {
         contentLabel="custom"
         shouldCloseOnOverlayClick
         onRequestClose={props.closeAction}
-        className="modal"
+        className={props.className}
         overlayClassName="overlay"
       >
         {props.children}

@@ -9,8 +9,8 @@ export default background({
   /**
   * @method init
   */
-  init() {
-    PrivacyRep.onExtensionStart();
+  init(settings) {
+    PrivacyRep.onExtensionStart(settings);
   },
 
   get CliqzPrivacyRep() {

@@ -44,9 +44,11 @@ export default class ContextMenu {
   */
   init() {
     this.contextMenu.addEventListener(
-      'popupshowing', this.onPopupShowing, false);
+      'popupshowing', this.onPopupShowing, false
+    );
     this.contextMenu.addEventListener(
-      'popuphiding', this.onPopupHiding, false);
+      'popuphiding', this.onPopupHiding, false
+    );
   }
 
   /**

@@ -25,8 +25,7 @@ export default function handleSessions(query$, highlight$, providers, config) {
         resultOrder: getResultOrder(lastResult),
       }, providers, enricher, config)
         // stop updating once user highlighted a result
-        .takeUntil(highlight$.do(() => logger.log('Highlight')))
-    )
+        .takeUntil(highlight$.do(() => logger.log('Highlight'))))
     .let(finalize(config))
     // TODO: verify that first response always exist (check `merge-results`)
     .do((result) => { lastResult = result; });

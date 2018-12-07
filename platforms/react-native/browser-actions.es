@@ -71,3 +71,4 @@ export const openTab = BrowserActions.openTab || osAPI.openTab;
 export const getOpenTabs = BrowserActions.getOpenTabs;
 export const getReminders = BrowserActions.getReminders;
 export const importBookmarks = BrowserActions.importBookmarks;
+export function sendUIReadySignal() {}

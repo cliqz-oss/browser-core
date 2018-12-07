@@ -748,5 +748,4 @@ export default describeModule('core/url-info',
         });
       });
     });
-  }
-);
+  });

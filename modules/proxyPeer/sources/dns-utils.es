@@ -21,10 +21,10 @@ export function isPrivateIPAddress(ip) {
   try {
     const digits = ip.split('.').map(Number);
     const isv4 = digits.length === 4;
-    const privSubnet = () => (digits[0] === 10 ||
-      (digits[0] === 172 && digits[1] >= 16 && digits[1] < 32) ||
-      (digits[0] === 192 && digits[1] === 168) ||
-      digits[0] === 127);
+    const privSubnet = () => (digits[0] === 10
+      || (digits[0] === 172 && digits[1] >= 16 && digits[1] < 32)
+      || (digits[0] === 192 && digits[1] === 168)
+      || digits[0] === 127);
     if (isv4 && privSubnet()) {
       return true;
     }

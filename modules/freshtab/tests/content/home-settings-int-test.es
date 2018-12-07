@@ -10,9 +10,12 @@ describe('Freshtab interactions with settings switches', function () {
   let subject;
 
   beforeEach(function () {
-    subject = new Subject();
+    subject = new Subject({
+      injectTestUtils: true,
+    });
     subject.respondsWithEmptyTelemetry();
     subject.respondsWithOneHistory();
+    subject.respondsWithEmptyStats();
     subject.respondsWith({
       module: 'freshtab',
       action: 'getNews',

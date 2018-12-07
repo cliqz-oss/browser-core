@@ -90,9 +90,9 @@ program.command(`serve ${common.configParameter}`)
         let donePromise = Promise.resolve();
         rimraf.sync(OUTPUT_PATH);
         copyDereferenceSync(watcher.builder.outputPath, OUTPUT_PATH);
-        if (['firefox', 'webextension'].indexOf(CONFIG.platform) >= 0 &&
-          options.launch !== false &&
-          !configPath.includes('ghostery.js')
+        if (['firefox', 'webextension'].indexOf(CONFIG.platform) >= 0
+          && options.launch !== false
+          && !configPath.includes('ghostery.js')
         ) {
           if (extensionRunner) {
             donePromise = extensionRunner.reloadAllExtensions();
@@ -104,7 +104,8 @@ program.command(`serve ${common.configParameter}`)
               outputPath: OUTPUT_PATH,
               firefoxPath: options.firefox,
               sourceDir: path.join(OUTPUT_PATH, addonID),
-              firefoxKeepChanges: options.firefoxKeepChanges || false,
+              keepProfileChanges: options.firefoxKeepChanges || false,
+              firefoxProfile: options.firefoxProfile
             }).then(() => {
               extensionRunner = firefoxRunner;
             });

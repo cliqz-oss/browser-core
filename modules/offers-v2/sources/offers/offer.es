@@ -31,15 +31,15 @@ const buildGeoMap = (geoData) => {
  * will verify if the history check entry is valid or not
  */
 const isHistoryCheckValid = historyCheck =>
-  (historyCheck &&
-  historyCheck.patterns &&
-  (historyCheck.patterns.p_list && historyCheck.patterns.p_list.length > 0) &&
-  historyCheck.patterns.pid &&
-  historyCheck.min_matches_expected > 0 &&
-  historyCheck.since_secs > 0 &&
-  historyCheck.till_secs >= 0 &&
-  historyCheck.since_secs >= historyCheck.till_secs &&
-  historyCheck.remove_if_matches !== undefined);
+  (historyCheck
+  && historyCheck.patterns
+  && (historyCheck.patterns.p_list && historyCheck.patterns.p_list.length > 0)
+  && historyCheck.patterns.pid
+  && historyCheck.min_matches_expected > 0
+  && historyCheck.since_secs > 0
+  && historyCheck.till_secs >= 0
+  && historyCheck.since_secs >= historyCheck.till_secs
+  && historyCheck.remove_if_matches !== undefined);
 
 /**
  * will build the history check pattern index and needed data for later steps
@@ -50,10 +50,9 @@ const buildHistoryCheckEntry = (historyCheck) => {
   return historyCheck;
 };
 
-
 /**
- * The wrapper of an offer object. Will provide some easy access functions
- * The expected structure:
+ * The expected structure of a backend offer:
+ * <pre>
  * {
  *   // [required] the unique tracking id for the offer
  *   offer_id: XYZ,
@@ -206,8 +205,23 @@ const buildHistoryCheckEntry = (historyCheck) => {
  *   categories: ['cat1', 'cat2',...],
  *
  * }
+ * </pre>
+ *
+ * @class BackendOffer
+ */
+
+/**
+ * The wrapper of an offer object from the backend.
+ * Will provide some easy access functions.
+ * See also {{#crossLink "BackendOffer"}}{{/crossLink}}
+ *
+ * @class Offer
  */
 export default class Offer {
+  /**
+   * @constructor
+   * @param {BackendOffer} offerObj
+   */
   constructor(offerObj) {
     this.offerObj = offerObj;
     // cache for this object
@@ -220,13 +234,15 @@ export default class Offer {
   isValid() {
     // TODO: take into account that client_id should be added to all the
     // new offers including dropdown
-    return !!(this.offerObj &&
-           this.offerObj.offer_id &&
-           this.offerObj.campaign_id &&
-           this.offerObj.display_id &&
-           this.offerObj.ui_info &&
-           this.offerObj.monitorData &&
-           (!this.hasHistoryChecks() || !this.historyChecks.some(hc => !isHistoryCheckValid(hc))));
+    return !!(this.offerObj
+           && this.offerObj.offer_id
+           && this.offerObj.campaign_id
+           && this.offerObj.display_id
+           && this.offerObj.ui_info
+           && this.offerObj.monitorData
+          && (
+            !this.hasHistoryChecks() || !this.historyChecks.some(hc => !isHistoryCheckValid(hc))
+          ));
   }
 
   get ABTestInfo() {
@@ -261,9 +277,9 @@ export default class Offer {
   }
 
   get displayPriority() {
-    return this.offerObj.displayPriority !== undefined ?
-      this.offerObj.displayPriority :
-      0.0;
+    return this.offerObj.displayPriority !== undefined
+      ? this.offerObj.displayPriority
+      : 0.0;
   }
 
   hasBlacklistPatterns() {
@@ -318,9 +334,9 @@ export default class Offer {
    * Probably we should deprecate this and think in another way
    */
   get ruleInfo() {
-    return this.offerObj.rule_info ?
-      this.offerObj.rule_info :
-      { rule_info: { display_time_secs: 999999, type: 'exact_match', url: [] } };
+    return this.offerObj.rule_info
+      ? this.offerObj.rule_info
+      : { rule_info: { display_time_secs: 999999, type: 'exact_match', url: [] } };
   }
 
   hasHistoryChecks() {
@@ -353,5 +369,21 @@ export default class Offer {
 
   isTargeted() {
     return Boolean(this.offerObj.targeted);
+  }
+
+  /**
+   * The offer's reward will be based on eCPM (effective cost per mille).
+   * At the moment, it is based on manually set display priority.
+   * If the display priority is not set, return 1.
+   *
+   * Exact values are not important because they are normalized during
+   * calculations. Important are the proportions between the values.
+   *
+   * @method getReward
+   * @returns {number} Positive value
+   */
+  getReward() {
+    const reward = this.displayPriority;
+    return (reward || 0) <= 0 ? 1.0 : reward;
   }
 }

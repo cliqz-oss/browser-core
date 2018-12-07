@@ -75,5 +75,4 @@ export default describeModule('pairing/shared',
           .then(data => chai.expect(data.msg).to.equal('hello'));
       });
     });
-  }
-);
+  });

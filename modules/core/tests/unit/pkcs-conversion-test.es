@@ -96,5 +96,4 @@ export default describeModule('core/crypto/pkcs-conversion',
         expect(PKCS.exportPublicKeySimple(privateKeyJWK)).to.equal(publicKeySimple);
       });
     });
-  }
-);
+  });

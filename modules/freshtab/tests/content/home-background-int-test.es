@@ -18,6 +18,7 @@ describe('Freshtab interactions with background', function () {
     subject.respondsWithEmptyTelemetry();
     subject.respondsWithEmptySpeedDials();
     subject.respondsWithEmptyNews();
+    subject.respondsWithEmptyStats();
     subject.respondsWith(defaultConfig);
 
     await subject.load();

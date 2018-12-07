@@ -12,6 +12,7 @@ context('Freshtab settings panel UI', function () {
     subject.respondsWithEmptyTelemetry();
     subject.respondsWithEmptySpeedDials();
     subject.respondsWithEmptyNews();
+    subject.respondsWithEmptyStats();
   });
 
   checkSettingsUI({

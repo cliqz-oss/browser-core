@@ -17,8 +17,9 @@ export default function () {
   if (!testsEnabled()) { return; }
 
   function getResultString() {
-    return $cliqzResults.querySelector('#calc-answer') ?
-      $cliqzResults.querySelector('#calc-answer').textContent.trim() : '= -1';
+    return $cliqzResults.querySelector('#calc-answer')
+      ? $cliqzResults.querySelector('#calc-answer').textContent.trim()
+      : '= -1';
   }
 
   describe('calculator', function () {

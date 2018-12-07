@@ -111,8 +111,8 @@ export default class ContentExtractionPatternsLoader {
       });
 
       return Promise.race([loading, timeout]).catch(() => {
-        logger.log(`WARNING: Timeout of ${this.initTimeoutInMs} ms exceeded ` +
-                   `while initializing the "${ruleset}" content extraction patterns`);
+        logger.log(`WARNING: Timeout of ${this.initTimeoutInMs} ms exceeded `
+                   + `while initializing the "${ruleset}" content extraction patterns`);
       });
     });
 

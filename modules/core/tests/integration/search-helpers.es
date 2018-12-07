@@ -34,9 +34,9 @@ export function fillIn(text) {
   EventUtils.sendString(text);
 }
 
-export async function mockSearch(response) {
-  await testServer.registerPathHandler('/api/v2/results', { result: JSON.stringify(response) });
-  app.config.settings.RESULTS_PROVIDER = testServer.getBaseUrl('/api/v2/results?nrh=1&q=');
+export async function mockSearch(response, timeout = 0) {
+  await testServer.registerPathHandler('/api/v2/results', { result: JSON.stringify(response), timeout });
+  app.settings.RESULTS_PROVIDER = testServer.getBaseUrl('/api/v2/results?nrh=1&q=');
 }
 
 export function testsEnabled() {

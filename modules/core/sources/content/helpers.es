@@ -2,6 +2,10 @@ import globToRegexp from './glob';
 
 const CONTENT_SCRIPTS = {};
 
+export function isTopWindow(window) {
+  return window.self === window.top;
+}
+
 export function registerContentScript(moduleName, urlPattern, script) {
   CONTENT_SCRIPTS[urlPattern] = CONTENT_SCRIPTS[urlPattern] || [];
   CONTENT_SCRIPTS[urlPattern].push({ moduleName, contentScript: script });
@@ -25,8 +29,4 @@ export function runContentScripts(window, chrome, CLIQZ) {
         }
       });
   });
-}
-
-export function isTopWindow(window) {
-  return window.self === window.top;
 }

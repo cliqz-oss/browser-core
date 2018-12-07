@@ -1,33 +1,14 @@
 /* global chai */
 /* global describeModule */
 /* global require */
+const commonMocks = require('../utils/common');
+const persistenceMocks = require('../utils/persistence');
+const beMocks = require('../utils/offers/intent');
+const waitFor = require('../utils/waitfor');
 
+const BackendConnectorMock = beMocks['offers-v2/backend-connector'].BackendConnectorMock;
+const CategoryHandlerMock = beMocks['offers-v2/backend-connector'].CategoryHandlerMock;
 let shouldKeepResourceRet = false;
-
-class BEConnectorMock {
-  constructor() {
-    this.result = {};
-    this.lastCallEndpoint = null;
-    this.lastCallParams = null;
-    this.called = false;
-  }
-  sendApiRequest(endpoint, params) {
-    this.lastCallParams = params;
-    this.lastCallEndpoint = endpoint;
-    this.called = true;
-    return Promise.resolve(this.result);
-  }
-}
-
-class CategoryHandlerMock {
-  constructor() {
-    this.categoriesAdded = [];
-  }
-  addCategory(cat) {
-    this.categoriesAdded.push(cat);
-  }
-  build() {}
-}
 
 const DEFAULT_CAT_RESP = {
   categories: [{
@@ -99,19 +80,8 @@ const DEFAULT_CAT_RESP = {
 
 export default describeModule('offers-v2/categories/category-fetcher',
   () => ({
-    'offers-v2/common/offers_v2_logger': {
-      default: {
-        debug: (x) => { console.log(x); },
-        error: (x) => { console.log(x); },
-        info: (x) => { console.log(x); },
-        log: (x) => { console.log(x); },
-        warn: (x) => { console.log(x); },
-        logObject: (x) => { console.log(x); },
-      }
-    },
-    'core/platform': {
-      isChromium: false
-    },
+    ...commonMocks,
+    ...persistenceMocks,
     'offers-v2/utils': {
       shouldKeepResource: function () {
         return shouldKeepResourceRet;
@@ -120,45 +90,10 @@ export default describeModule('offers-v2/categories/category-fetcher',
         return Date.now();
       },
     },
-    'core/utils': {
-      default: {},
-    },
-    'core/prefs': {
-      default: {
-        get: function (v, d) { return d; },
-      }
-    },
-    'core/helpers/timeout': {
-      default: function () { const stop = () => {}; return { stop }; }
-    },
-    'core/persistence/simple-db': {
-      default: class {
-        constructor(db) {
-          this.db = db;
-        }
-        upsert(docID, docData) {
-          const self = this;
-          return new Promise((resolve) => {
-            self.db[docID] = JSON.parse(JSON.stringify(docData));
-            resolve();
-          });
-        }
-        get(docID) {
-          const self = this;
-          return new Promise((resolve) => {
-            if (self.db[docID]) {
-              resolve(JSON.parse(JSON.stringify(self.db[docID])));
-            } else {
-              resolve(null);
-            }
-          });
-        }
-        remove() {}
-      }
-    },
-    'platform/globals': {
-    },
     'platform/gzip': {
+    },
+    'core/http': {
+      default: {}
     },
     'platform/xmlhttprequest': {
       default: {}
@@ -175,16 +110,19 @@ export default describeModule('offers-v2/categories/category-fetcher',
     'platform/history-manager': {
       default: {}
     },
-    'platform/crypto': {
-      default: {}
-    },
-    'platform/console': {
-      default: {}
-    },
     'core/time': {
       getTodayDayKey: function () {
         return 1;
       }
+    },
+    'core/helpers/timeout': {
+      default: () => false, // setTimeoutInterval, don't start periodic fetch
+    },
+    'core/timers': {
+      setTimeout: cb => cb(),
+    },
+    'offers-v2/categories/initial-categories': {
+      default: () => [],
     }
   }),
   () => {
@@ -193,6 +131,7 @@ export default describeModule('offers-v2/categories/category-fetcher',
 
       beforeEach(function () {
         CategoryFetcher = this.module().default;
+        persistenceMocks['core/persistence/simple-db'].reset();
       });
 
       context('basic tests', function () {
@@ -200,43 +139,21 @@ export default describeModule('offers-v2/categories/category-fetcher',
         let handlerMock;
         let db;
         let fetcher;
-        let oldTimeout;
 
         beforeEach(function () {
-          oldTimeout = global.setTimeout;
-          global.setTimeout = (cb) => { cb(); };
           shouldKeepResourceRet = true;
           db = {};
-          beMock = new BEConnectorMock();
+          beMock = new BackendConnectorMock();
           handlerMock = new CategoryHandlerMock();
           fetcher = new CategoryFetcher(beMock, handlerMock, db);
         });
 
-        afterEach(function () {
-          global.setTimeout = oldTimeout;
-        });
-
-        function waitForCondition(f) {
-          return new Promise((resolve) => {
-            const wait = () => {
-              oldTimeout(() => {
-                if (f()) {
-                  resolve(true);
-                  return;
-                }
-                wait();
-              }, 10);
-            };
-            wait();
-          });
-        }
-
         function waitForBECalled() {
-          return waitForCondition(() => beMock.called);
+          return waitFor(beMock.isCalled.bind(beMock));
         }
 
         function waitForCategoriesAdded(count) {
-          return waitForCondition(() => handlerMock.categoriesAdded.length >= count);
+          return waitFor(() => handlerMock.categoriesAdded.length >= count);
         }
 
         function checkCategoriesAdded(idList) {
@@ -244,8 +161,7 @@ export default describeModule('offers-v2/categories/category-fetcher',
           handlerMock.categoriesAdded.forEach(c => catIds.add(c.name));
           chai.expect(catIds.size, 'there are more or less elements than expected').eql(idList.length);
           idList.forEach(id =>
-            chai.expect(catIds.has(id), `missing category id: ${id}`).eql(true)
-          );
+            chai.expect(catIds.has(id), `missing category id: ${id}`).eql(true));
         }
 
         function getCatNamesWithUndefinedUserGroup(catList) {
@@ -275,52 +191,53 @@ export default describeModule('offers-v2/categories/category-fetcher',
         });
 
         it('/endpoint is properly called', function () {
-          chai.expect(beMock.lastCallEndpoint).to.not.exist;
-          chai.expect(beMock.lastCallParams).to.not.exist;
+          chai.expect(beMock.getLastCallEndpoint()).to.not.exist;
+          chai.expect(beMock.getLastCallParams()).to.not.exist;
           fetcher.init();
           return waitForBECalled().then(() => {
-            chai.expect(beMock.lastCallEndpoint).to.exist;
-            chai.expect(beMock.lastCallParams).to.exist;
+            chai.expect(beMock.getLastCallEndpoint()).to.exist;
+            chai.expect(beMock.getLastCallParams()).to.exist;
           });
         });
 
         it('/categories are properly added when returned', function () {
-          beMock.result = DEFAULT_CAT_RESP;
+          beMock.setMockResult(DEFAULT_CAT_RESP);
           fetcher.init();
           return waitForCategoriesAdded(5).then(() => {
-            chai.expect(beMock.lastCallEndpoint).to.exist;
-            chai.expect(beMock.lastCallParams).to.exist;
+            chai.expect(beMock.getLastCallEndpoint()).to.exist;
+            chai.expect(beMock.getLastCallParams()).to.exist;
             chai.expect(DEFAULT_CAT_RESP.categories.length).eql(handlerMock.categoriesAdded.length);
           });
         });
 
         it('/check revision is sent with the latest data from be', function () {
-          beMock.result = DEFAULT_CAT_RESP;
+          beMock.setMockResult(DEFAULT_CAT_RESP);
           fetcher.init();
           return waitForBECalled().then(() => {
-            chai.expect(beMock.lastCallEndpoint).to.exist;
-            chai.expect(beMock.lastCallParams).to.exist;
-            chai.expect(beMock.lastCallParams.last_rev).eql(null);
-            beMock.called = false;
+            chai.expect(beMock.getLastCallEndpoint()).to.exist;
+            chai.expect(beMock.getLastCallParams()).to.exist;
+            chai.expect(beMock.getLastCallParams().last_rev).eql(null);
+            beMock.clear();
+            beMock.setMockResult(DEFAULT_CAT_RESP);
             return Promise.all([fetcher._performFetch(), waitForBECalled()]).then(() => {
-              chai.expect(beMock.lastCallParams.last_rev).eql(DEFAULT_CAT_RESP.revision);
+              chai.expect(beMock.getLastCallParams().last_rev).eql(DEFAULT_CAT_RESP.revision);
             });
           });
         });
 
         it('/check if no categories are returned nothing happens', function () {
-          beMock.result = [];
+          beMock.setMockResult([]);
           fetcher.init();
           return waitForBECalled().then(() => {
-            chai.expect(beMock.lastCallEndpoint).to.exist;
-            chai.expect(beMock.lastCallParams).to.exist;
-            chai.expect(beMock.lastCallParams.last_rev).eql(null);
+            chai.expect(beMock.getLastCallEndpoint()).to.exist;
+            chai.expect(beMock.getLastCallParams()).to.exist;
+            chai.expect(beMock.getLastCallParams().last_rev).eql(null);
             chai.expect(handlerMock.categoriesAdded.length).eql(0);
           });
         });
 
         it('/check user_group filtering works for undefined', function () {
-          beMock.result = DEFAULT_CAT_RESP;
+          beMock.setMockResult(DEFAULT_CAT_RESP);
           fetcher.init();
           const catWithUndefinedUserGroup = getCatNamesWithUndefinedUserGroup(
             DEFAULT_CAT_RESP.categories
@@ -328,7 +245,8 @@ export default describeModule('offers-v2/categories/category-fetcher',
           chai.expect(catWithUndefinedUserGroup.length).not.eql(0);
           shouldKeepResourceRet = false;
           return waitForBECalled().then(() => {
-            beMock.called = false;
+            beMock.clear();
+            beMock.setMockResult(DEFAULT_CAT_RESP);
             return Promise.all([fetcher._performFetch(), waitForBECalled()]).then(() => {
               checkCategoriesAdded(catWithUndefinedUserGroup);
             });
@@ -337,7 +255,7 @@ export default describeModule('offers-v2/categories/category-fetcher',
 
 
         it('/check user_group filtering works for not undefined', function () {
-          beMock.result = DEFAULT_CAT_RESP;
+          beMock.setMockResult(DEFAULT_CAT_RESP);
           fetcher.init();
           const catWithUndefinedUserGroup = getCatNamesWithUndefinedUserGroup(
             DEFAULT_CAT_RESP.categories
@@ -350,7 +268,8 @@ export default describeModule('offers-v2/categories/category-fetcher',
           const all = catWithUndefinedUserGroup.concat(catWithDefinedUserGroup);
           shouldKeepResourceRet = true;
           return waitForBECalled().then(() => {
-            beMock.called = false;
+            beMock.clear();
+            beMock.setMockResult(DEFAULT_CAT_RESP);
             return Promise.all([fetcher._performFetch(), waitForBECalled()]).then(() => {
               checkCategoriesAdded(all);
             });
@@ -362,5 +281,4 @@ export default describeModule('offers-v2/categories/category-fetcher',
         // - check invalid categories are not being added to the category handler
       });
     });
-  }
-);
+  });

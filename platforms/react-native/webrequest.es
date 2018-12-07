@@ -1,15 +1,16 @@
 // import utils from "../core/utils";
+/* eslint no-param-reassign: off */
+
+import console from './console';
 
 const webRequest = {
   onBeforeRequest: {
     listeners: [],
     addListener(listener, filter, extraInfo) {
-      this.listeners.push({fn: listener, filter, extraInfo});
+      this.listeners.push({ fn: listener, filter, extraInfo });
     },
     removeListener(listener) {
-      const ind = this.listeners.findIndex((l) => {
-        return l.fn === listener;
-      });
+      const ind = this.listeners.findIndex(l => l.fn === listener);
       if (ind > -1) {
         this.listeners.splice(ind, 1);
       }
@@ -18,29 +19,28 @@ const webRequest = {
     _triggerJson(requestInfoJson) {
       const requestInfo = JSON.parse(requestInfoJson);
       try {
-          const response = webRequest.onBeforeRequest._trigger(requestInfo) || {};
-          return JSON.stringify(response);
-      } catch(e) {
+        const response = webRequest.onBeforeRequest._trigger(requestInfo) || {};
+        return JSON.stringify(response);
+      } catch (e) {
         console.error('webrequest trigger error', e);
+        return null;
       }
     },
 
     _trigger(requestInfo) {
       requestInfo.sourceUrl = requestInfo.source;
       // getter for request headers
-      requestInfo.getRequestHeader = function(header) {
-        return requestInfo.requestHeaders[header];
-      };
-      const blockingResponse = this.listeners.map(listener => {
-        const {fn, filter, extraInfo} = listener;
+      requestInfo.getRequestHeader = header => requestInfo.requestHeaders[header];
+      const blockingResponse = this.listeners.map((listener) => {
+        const { fn, extraInfo } = listener;
         if (extraInfo.indexOf('blocking') === -1) {
           // non blocking listener, run async
           setTimeout(fn.bind(undefined, requestInfo), 0);
-          return {}
+          return {};
         }
         return fn(requestInfo);
       }).reduce((acc, val) => {
-        Object.keys(val).forEach(k => {
+        Object.keys(val).forEach((k) => {
           acc[k] = val[k];
         });
         return acc;
@@ -50,25 +50,25 @@ const webRequest = {
   },
 
   onBeforeSendHeaders: {
-    addListener(listener, filter, extraInfo) {},
-    removeListener(listener) {}
+    addListener() {},
+    removeListener() {}
   },
 
   onHeadersReceived: {
-    addListener(listener, filter, extraInfo) {},
-    removeListener(listener) {}
+    addListener() {},
+    removeListener() {}
   },
 
   onCompleted: {
-    addListener(listener, filter, extraInfo) {},
-    removeListener(listener) {}
+    addListener() {},
+    removeListener() {}
   },
 
   onErrorOccurred: {
-    addListener(listener, filter, extraInfo) {},
-    removeListener(listener) {}
+    addListener() {},
+    removeListener() {}
   }
-}
+};
 
 
 // extra response property to indicate that the ghostery counter should be increase

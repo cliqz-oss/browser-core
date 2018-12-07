@@ -8,7 +8,8 @@ import {
   testsEnabled,
   waitForPopup,
   waitFor,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 import expectSelection from './common';
 import { flightAndNormalResult } from '../../../core/integration/fixtures/resultsFlights';
 
@@ -30,9 +31,9 @@ export default function () {
       await mockSearch({ results: flightAndNormalResult });
       fillIn(query);
       await waitForPopup();
-      await waitFor(() => $cliqzResults.querySelector(searchWithSelector) &&
-        $cliqzResults.querySelector(resultSelector) &&
-        $cliqzResults.querySelector(flightAreaSelector));
+      await waitFor(() => $cliqzResults.querySelector(searchWithSelector)
+        && $cliqzResults.querySelector(resultSelector)
+        && $cliqzResults.querySelector(flightAreaSelector));
       $searchWithElement = $cliqzResults.querySelector(searchWithSelector);
       $resultElement = $cliqzResults.querySelector(resultSelector);
     });

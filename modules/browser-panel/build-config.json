@@ -1,0 +1,9 @@
+{
+  "subprojects": [
+    "jquery",
+    "handlebars",
+    "tooltipster-css",
+    "tooltipster-js",
+    "tooltipster-sideTip-theme"
+  ]
+}

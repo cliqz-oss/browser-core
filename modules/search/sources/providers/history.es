@@ -27,8 +27,7 @@ const mapResults = (results, query) =>
       ...r,
       kind: ['H'],
     },
-  })
-  );
+  }));
 
 export default class History extends BaseProvider {
   constructor() {

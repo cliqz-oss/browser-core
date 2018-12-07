@@ -81,6 +81,5 @@ export default function (results$, offers$, config, options = {}) {
   return results$
     .combineLatest(offers$.startWith({ results: [] }))
     .map(([resultResponse, offerResponse]) =>
-      mergeOfferAndResultResponses(resultResponse, offerResponse, config, options)
-    );
+      mergeOfferAndResultResponses(resultResponse, offerResponse, config, options));
 }

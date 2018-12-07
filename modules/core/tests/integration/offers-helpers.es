@@ -1,5 +1,7 @@
 import prefs from '../../../core/prefs';
-import config from '../../../core/config';
+import utils from '../../../core/utils';
+import { isWebExtension } from '../../../core/platform';
+
 
 import {
   app,
@@ -30,7 +32,8 @@ export const offersDB = [
   'cliqz-intent-offers-db',
   'offers-db-index',
   'offers-db-display-index',
-  '_pouch_cliqz-offers'
+  '_pouch_cliqz-offers',
+  'cliqz-offers'
 ];
 
 function getApiCategoriesMock() {
@@ -111,6 +114,9 @@ function getRawApiOffersMock({ timeout = 7 } = {}) {
     types: ['test_campaign_v1'],
     version: '123123123123123',
     targeted: true,
+    categories: [
+      'tempcat_Sparbonus.com_RewardBox_200€AmazonGiftCard_TG1'
+    ],
     monitorData: [
       {
         params: {
@@ -246,6 +252,7 @@ export function getApiOffersMock({ dest, timeout }) {
     };
   } else if (dest === 'offers-cc') {
     mock.ui_info = {
+      notif_type: isWebExtension ? 'pop-up' : 'tooltip',
       created: 1514984136299,
       template_data: {
         benefit: '2x',
@@ -291,7 +298,7 @@ export const mockOffersBackend = async ({ dest, timeout } = {}) => {
     triggersBE: testServer.getBaseUrl(),
   });
 
-  prefs.set('offersInstallInfo', `${config.EXTENSION_VERSION}|1`);
+  prefs.set('offersInstallInfo', `${utils.extensionVersion}|1`);
 
   // Clear state
   await app.disableModule('offers-v2');
@@ -302,10 +309,12 @@ export const mockOffersBackend = async ({ dest, timeout } = {}) => {
   }
 
   if (dest === 'browser-panel') {
+    if (isWebExtension) { await app.disableModule('offers-banner'); }
     await app.disableModule('browser-panel');
   }
 
   if (dest === 'offers-cc') {
+    if (isWebExtension) { await app.disableModule('offers-banner'); }
     await app.disableModule('offers-cc');
   }
 
@@ -332,11 +341,19 @@ export const mockOffersBackend = async ({ dest, timeout } = {}) => {
   }
 
   if (dest === 'browser-panel') {
-    await app.enableModule('browser-panel');
+    if (isWebExtension) {
+      await app.enableModule('offers-banner');
+    } else {
+      await app.enableModule('browser-panel');
+    }
   }
 
   if (dest === 'offers-cc') {
-    await app.enableModule('offers-cc');
+    if (isWebExtension) {
+      await app.enableModule('offers-banner');
+    } else {
+      await app.enableModule('offers-cc');
+    }
   }
 
   // Force call to /api/v1/categories

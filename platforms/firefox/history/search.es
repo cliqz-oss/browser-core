@@ -9,8 +9,8 @@ function getProvider() {
     _provider = (
       // history autocomplete provider is removed
       // https://hg.mozilla.org/mozilla-central/rev/44a989cf6c16
-      Components.classes['@mozilla.org/autocomplete/search;1?name=history'] ||
-      Components.classes['@mozilla.org/autocomplete/search;1?name=unifiedcomplete']
+      Components.classes['@mozilla.org/autocomplete/search;1?name=history']
+      || Components.classes['@mozilla.org/autocomplete/search;1?name=unifiedcomplete']
     ).getService(Components.interfaces.nsIAutoCompleteSearch);
   }
   return _provider;

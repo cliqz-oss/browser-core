@@ -97,7 +97,7 @@ export default class DoublefetchHandler {
 
       if (this._state === State.DISABLED) {
         this._stats.rejected.doubleFetchDisabled += 1;
-        return Promise.reject(`doublefetch disabled: skipping request to fetch ${url}`);
+        return Promise.reject(new Error(`doublefetch disabled: skipping request to fetch ${url}`));
       }
 
       // bookkeeping: remember the request and clean it up in the end
@@ -168,7 +168,8 @@ export default class DoublefetchHandler {
     // Requests like "http://goo.gl/..." may have been modified to "https://goo.gl/...".
     const normalizeSchema = x => x.replace(/^https:\/\//, 'http://');
     const ignoringSchema = pendingWithUnknownRequestId.filter(
-      x => urlEquals(normalizeSchema(request.url), normalizeSchema(x.url)));
+      x => urlEquals(normalizeSchema(request.url), normalizeSchema(x.url))
+    );
     if (ignoringSchema.length > 0) {
       // should not be ambiguous, but when in doubt, let the oldest one win
       this._stats.matchDetails.relaxedMatch += 1;
@@ -186,8 +187,8 @@ export default class DoublefetchHandler {
    * obvious that the entry is no longer relevant.
    */
   _purgeObsoleteRequests(requestStartedAt) {
-    while (this._pendingRequests.length > 0 &&
-           requestStartedAt - this._pendingRequests[0].ts > this.zombieRequestTimelimitMs) {
+    while (this._pendingRequests.length > 0
+           && requestStartedAt - this._pendingRequests[0].ts > this.zombieRequestTimelimitMs) {
       logger.error(`doublefetch for url ${this._pendingRequests[0].url} was not cleaned up after ${this.zombieRequestTimelimitMs} ms.`);
       this._stats.errors.danglingEntryFound += 1;
       this._pendingRequests.shift();
@@ -228,7 +229,8 @@ export default class DoublefetchHandler {
         if (matchingPendingEvent) {
           /* eslint-disable no-param-reassign */
           response.requestHeaders = request.requestHeaders.filter(
-            header => !isSensitiveHeader(header));
+            header => !isSensitiveHeader(header)
+          );
           if (response.requestHeaders.length !== request.requestHeaders.length) {
             this._stats.strippedHeaders += 1;
           }
@@ -307,7 +309,8 @@ export default class DoublefetchHandler {
         this._stats.populatedDnsMappings += 1;
         logger.debug(
           'Learned new DNS resolution from doublefetch:',
-          parsedURL.hostname, ' -> ', request.ip);
+          parsedURL.hostname, ' -> ', request.ip
+        );
       }
     };
   }
@@ -315,8 +318,8 @@ export default class DoublefetchHandler {
   init() {
     this._pendingInit = this._pendingInit.catch(logger.debug).then(() => {
       if (this._state === State.INITIALIZING) {
-        throw new Error('Assertion failed: After all pending operation have finished, ' +
-                        'we must never end up in the INITIALIZING state');
+        throw new Error('Assertion failed: After all pending operation have finished, '
+                        + 'we must never end up in the INITIALIZING state');
       }
 
       if (this._state === State.READY) {

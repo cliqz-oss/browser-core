@@ -5,8 +5,10 @@
 
 const expect = chai.expect;
 const crypto = require('crypto');
+const _path = require('path');
 const FSBuilder = require('./utils/fs');
-const _fs = FSBuilder(require('path'));
+
+const _fs = FSBuilder(_path);
 
 export default describeModule('core/incremental-storage',
   () => ({
@@ -118,7 +120,7 @@ export default describeModule('core/incremental-storage',
                     if (s === '') {
                       resolve();
                     } else {
-                      reject('Snapshot not correct');
+                      reject(new Error('Snapshot not correct'));
                     }
                   });
               }, 2000);
@@ -160,7 +162,7 @@ export default describeModule('core/incremental-storage',
                     if (s === '') {
                       resolve();
                     } else {
-                      reject('Snapshot not correct');
+                      reject(new Error('Snapshot not correct'));
                     }
                   });
               }, 2000);
@@ -225,11 +227,10 @@ export default describeModule('core/incremental-storage',
             _fs.readFile(storage.getJournalFile(), { isText: true })
               .then((s) => {
                 if (s !== '') {
-                  return Promise.reject('Snapshot not correct: journal not empty');
+                  return Promise.reject(new Error('Snapshot not correct: journal not empty'));
                 }
                 return undefined;
-              })
-          )
+              }))
           .then(() => {
             N = 5000;
             while (N !== 1) {
@@ -253,5 +254,4 @@ export default describeModule('core/incremental-storage',
           });
       });
     });
-  }
-);
+  });

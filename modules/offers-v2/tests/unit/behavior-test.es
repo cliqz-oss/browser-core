@@ -1,29 +1,13 @@
 /* global describeModule */
 /* global chai */
 
-const mockDexie = require('../../core/unit/utils/dexie');
-const moment = require('moment');
+const commonMocks = require('./utils/common');
 
-const mockPrefs = {};
+const prefs = commonMocks['core/prefs'].default;
 
 export default describeModule('offers-v2/behavior',
   () => ({
-    ...mockDexie,
-    'core/prefs': {
-      default: {
-        init: () => Promise.resolve(),
-        get: (name, d = null) => mockPrefs[name] || d,
-        set: (name, value) => { mockPrefs[name] = value; },
-      }
-    },
-    'offers-v2/common/offers_v2_logger': {
-      default: {
-        log() {}
-      }
-    },
-    'platform/lib/moment': {
-      default: moment,
-    }
+    ...commonMocks,
   }),
   () => {
     let behavior;
@@ -31,7 +15,7 @@ export default describeModule('offers-v2/behavior',
       const Behavior = this.module().default;
       behavior = new Behavior();
       await behavior.init();
-      mockPrefs.config_ts = '20180101';
+      prefs.set('config_ts', '20180101');
     });
 
     afterEach(async function () {
@@ -54,21 +38,20 @@ export default describeModule('offers-v2/behavior',
       });
 
       it('Remove purchases when expired', async () => {
-        mockPrefs.config_ts = '20000101';
+        prefs.set('config_ts', '20000101');
         await behavior.clear();
         await behavior.onPurchase({ domain: 'abcd', price: 10 });
-        mockPrefs.config_ts = '20180101';
+        prefs.set('config_ts', '20180101');
         await behavior.onPurchase({ domain: 'abcd', price: 10 });
         let count = await behavior.db.purchase.count();
         chai.expect(count).to.be.above(0);
         await behavior.clearOldBehavior();
         count = await behavior.db.purchase.count();
         chai.expect(count).to.eql(1);
-        mockPrefs.config_ts = '20180601';
+        prefs.set('config_ts', '20180601');
         await behavior.clearOldBehavior();
         count = await behavior.db.purchase.count();
         chai.expect(count).to.eql(0);
       });
     });
-  },
-);
+  });

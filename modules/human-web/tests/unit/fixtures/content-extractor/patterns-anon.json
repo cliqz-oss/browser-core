@@ -4,7 +4,7 @@
     ".search.yahoo\\..*?[#?&;][pq]=[^$&]+",
     ".linkedin.*?\\/pub\\/dir+",
     "\\.bing\\..*?[#?&;]q=[^$&]+",
-    "\\.amazon\\.[^/]+\\/s/[?]?(?:ref=.*[?&])?field-keywords=[^$&]+"
+    "\\.amazon\\.[^/]+\\/.*[?&]field-keywords=[^$&]+"
   ],
   "searchEngines": [
     "0",
@@ -22,9 +22,9 @@
           "keyName": "q"
         }
       },
-      ".r": {
+      ".rc .r": {
         "t": {
-          "item": "a",
+          "item": "a > h3",
           "type": "arr",
           "etype": "textContent",
           "keyName": "t"
@@ -109,19 +109,7 @@
           "item": ".ads-visurl cite",
           "type": "multiple",
           "etype": "textContent",
-          "keyName": "u",
-          "functionsApplied": [
-            [
-              false,
-              false,
-              false
-            ],
-            [
-              false,
-              false,
-              false
-            ]
-          ]
+          "keyName": "u"
         }
       },
       "#search .VoEfsd": {
@@ -131,11 +119,6 @@
           "etype": "href",
           "keyName": "u",
           "functionsApplied": [
-            [
-              false,
-              false,
-              false
-            ],
             [
               "maskU",
               false,
@@ -203,19 +186,7 @@
           "item": ".ads-visurl cite",
           "type": "multiple",
           "etype": "textContent",
-          "keyName": "u",
-          "functionsApplied": [
-            [
-              false,
-              false,
-              false
-            ],
-            [
-              "maskU",
-              false,
-              false
-            ]
-          ]
+          "keyName": "u"
         }
       },
       "qurl": {
@@ -261,19 +232,19 @@
       },
       ".kp-blk.fm06If.Wnoohf.OJXvsb": {
         "ent": {
-          "item": ".kno-fb-ctx.GzssTd span",
+          "item": "div[role=\"heading\"] > :nth-child(1)",
           "type": "arr",
           "etype": "textContent",
           "keyName": "ent"
         },
         "pred": {
-          "item": ".kno-fb-ctx.qLLird span",
+          "item": "div[role=\"heading\"] > :nth-child(3)",
           "type": "arr",
           "etype": "textContent",
           "keyName": "pred"
         },
         "ans": {
-          "item": ".Z0LcW",
+          "item": "div.kno-fb-ctx[role=\"heading\"] > div",
           "type": "arr",
           "etype": "textContent",
           "keyName": "ans"
@@ -496,13 +467,13 @@
   },
   "payloads": {
     "0": {
-      ".r": {
+      ".rc .r": {
         "type": "query",
         "results": "clustered",
         "action": "query",
         "fields": [
           [
-            ".r",
+            ".rc .r",
             "r",
             "join"
           ],
@@ -537,6 +508,10 @@
           [
             "qurl",
             "qurl"
+          ],
+          [
+            "ctry",
+            "ctry"
           ]
         ]
       },
@@ -557,6 +532,10 @@
           [
             "qurl",
             "qurl"
+          ],
+          [
+            "ctry",
+            "ctry"
           ]
         ]
       },
@@ -601,6 +580,10 @@
           [
             "qurl",
             "qurl"
+          ],
+          [
+            "ctry",
+            "ctry"
           ]
         ]
       },
@@ -621,6 +604,10 @@
           [
             "qurl",
             "qurl"
+          ],
+          [
+            "ctry",
+            "ctry"
           ]
         ]
       },

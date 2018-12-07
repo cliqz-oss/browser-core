@@ -11,7 +11,8 @@ import {
   waitFor,
   waitForPopup,
   win,
-  withHistory } from './helpers';
+  withHistory,
+} from './helpers';
 
 import { getResourceUrl } from '../../../tests/core/integration/helpers';
 

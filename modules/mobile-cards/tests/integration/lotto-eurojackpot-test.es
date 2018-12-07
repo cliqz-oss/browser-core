@@ -99,7 +99,8 @@ export default function () {
         expect($allAus50Elements.length).to.equal(5);
         [...$allAus50Elements].forEach(function (element, i) {
           expect(element).to.contain.text(
-            results[0].snippet.extra.lotto_list.cur_date.ej.gewinnzahlen[i]);
+            results[0].snippet.extra.lotto_list.cur_date.ej.gewinnzahlen[i]
+          );
         });
       });
 
@@ -128,7 +129,8 @@ export default function () {
         expect($all2Aus10Elements.length).to.equal(2);
         [...$all2Aus10Elements].forEach(function ($element, i) {
           expect($element).to.contain.text(
-            results[0].snippet.extra.lotto_list.cur_date.ej.zwei_aus_acht[i]);
+            results[0].snippet.extra.lotto_list.cur_date.ej.zwei_aus_acht[i]
+          );
         });
       });
 

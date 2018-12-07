@@ -28,6 +28,16 @@
         "class-property"
     ],
     "rules": {
+        "jsx-a11y/mouse-events-have-key-events": "off",
+        "jsx-a11y/click-events-have-key-events": "off",
+        "jsx-a11y/label-has-for": "off",
+        "implicit-arrow-linebreak": "off",
+        "prefer-destructuring": "off",
+        "object-curly-newline": [
+            "error",
+            {
+                "consistent": true
+            }],
         "no-control-regex": "off",
         "compat/compat": "error",
         "import/extensions": "off",
@@ -46,15 +56,23 @@
         }],
         "react/require-default-props": "off",
         "react/prop-types": "off",
+        "react/destructuring-assignment": "off",
 
-        // Rules to keep
         "no-underscore-dangle": "off",
         "import/no-unresolved": "off",
         "no-restricted-globals": ["error", "Worker"],
         "react/sort-comp": "off",
-        "react/forbid-prop-types": "off",
+        "react/forbid-prop-types": "off"
     },
     "overrides": [
+        {
+            "files": [
+                "modules/mobile-cards/**/*.*"
+            ],
+            "rules" : {
+                "jsx-a11y/anchor-is-valid": "off"
+            }
+        },
         {
             "files": [
                 "modules/**/tests/**/*.*",
@@ -66,7 +84,8 @@
                 "func-names": ["error", "never"],
                 "prefer-arrow-callback": "off",
                 "no-unused-expressions": "off",
-                "object-shorthand": "off"
+                "object-shorthand": "off",
+                "no-console": "off"
             }
         },
         {

@@ -1,7 +1,6 @@
 
 const urls = require('./common/urls-cliqz');
 const base = require('./common/system');
-const subprojects = require('./common/subprojects/bundles');
 
 module.exports = {
   "platform": "web",
@@ -27,12 +26,6 @@ module.exports = {
     'dropdown',
     'serp',
   ],
-  'subprojects': subprojects([
-    'mathjs',
-    'react',
-    'handlebars',
-    'reactDom',
-  ]),
   'bundles': [
     'serp/serp.bundle.js',
     'dropdown/dropdown.bundle.js',

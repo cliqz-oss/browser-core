@@ -1041,7 +1041,7 @@ DATA.push({
     },
     "webrequest-pipeline": null,
     "performance": null,
-    "hpn": {
+    "hpnv2": {
       "visible": true,
       "state": false
     },

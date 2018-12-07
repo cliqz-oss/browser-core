@@ -1,105 +1,70 @@
 /* eslint-disable */
 
-'use strict';
+"use strict";
 
-const base = require('./common/system');
-const urls = require('./common/urls-cliqz');
-const settings = require('./common/amo-settings');
-const subprojects = require('./common/subprojects/bundles');
+const base = require("./common/system");
+const urls = require("./common/urls-cliqz");
+const settings = require("./common/amo-settings");
 
 module.exports = {
   "platform": "webextension",
   "specific": "amo",
   "baseURL": "/modules/",
   "pack": "web-ext build -s build -a .",
-  'publish': '',
-  'settings': Object.assign({}, urls, settings, {
-    'ICONS': {
-      'active': {
-        'default': 'control-center/images/cc-active-16.png',
-        'dark': 'control-center/images/cc-active-dark-16.png'
-      },
-      'inactive': {
-        'default': 'control-center/images/cc-critical.svg',
-        'dark': 'control-center/images/cc-critical-dark.svg'
-      },
-      'critical': {
-        'default': 'control-center/images/cc-critical-16.png',
-        'dark': 'control-center/images/cc-critical-dark-16.png'
-      }
-    },
+  "publish": "",
+  "settings": Object.assign({}, urls, settings, {
+    'OFFERS_BUTTON': true,
   }),
-  'default_prefs' : {
-    'modules.history-analyzer.enabled': false,
-    'modules.anolysis.enabled': false,
-    showConsoleLogs: true,
-    'modules.browser-panel.enabled': false,
+  "default_prefs" : {
+    "freshtab.search.mode": "search",
+    "modules.history-analyzer.enabled": false,
+    "modules.anolysis.enabled": false,
+    "showConsoleLogs": true,
+    "modules.browser-panel.enabled": false,
+    "modules.offers-cc.enabled": false,
   },
   "modules": [
-    'core',
-    'core-cliqz',
-    'dropdown',
-    'static',
-    'geolocation',
-    //'ui',
-    'last-query',
-    'human-web',
-    'anti-phishing',
-    'omnibox',
-    // 'context-menu',
-    'freshtab',
-    'webrequest-pipeline',
-    'antitracking',
-    'performance',
-    'hpn',
-    'control-center',
-    'offers-v2',
-    'offers-banner',
-    'popup-notification',
-    // 'history-analyzer', TODO
-    // 'offers-cc',
-    'browser-panel',
-    'message-center',
-    'offboarding',
-    'anolysis',
-    'anolysis-cc',
-    'market-analysis',
-    'abtests',
-    'search',
-    'myoffrz-helper',
-    // 'hpnv2',
-    'webextension-specific',
+    "core",
+    "core-cliqz",
+    "dropdown",
+    "static",
+    "geolocation",
+    "last-query",
+    "human-web",
+    // "omnibox",
+    // "context-menu", TODO
+    "freshtab",
+    "webrequest-pipeline",
+    "performance",
+    "hpnv2",
+    "myoffrz-helper",
+    "offers-banner",
+    "offers-cc",
+    "offers-v2",
+    "popup-notification",
+    "history-analyzer",
+    "browser-panel",
+    "control-center",
+    "message-center",
+    "offboarding",
+    "anolysis",
+    "anolysis-cc",
+    "market-analysis",
+    "abtests",
+    "search",
+    "webextension-specific",
   ],
-  "subprojects": subprojects([
-    '@cliqz-oss/dexie',
-    '@cliqz/adblocker',
-    'pouchdb',
-    'ajv',
-    'handlebars',
-    'jquery',
-    'mathjs',
-    'moment',
-    'moment-range',
-    'pako',
-    'react',
-    'reactDom',
-    'rxjs',
-    'simple-statistics',
-    'tldts',
-    'tooltipster-css',
-    'tooltipster-js',
-    'tooltipster-sideTip-theme',
-    'ua-parser-js',
-    'jsep',
-  ]),
   "bundles": [
-    "hpn/worker.bundle.js",
+    "hpnv2/worker.wasm.bundle.js",
+    "hpnv2/worker.asmjs.bundle.js",
     "core/content-script.bundle.js",
     "webextension-specific/app.bundle.js",
     "freshtab/home.bundle.js",
     "dropdown/dropdown.bundle.js",
     "control-center/control-center.bundle.js",
     "browser-panel/browser-panel.bundle.js",
+    "offers-cc/offers-cc.bundle.js",
+    "offers-banner/app.bundle.js",
   ],
   system: Object.assign({}, base.systemConfig, {
     map: Object.assign({}, base.systemConfig.map, {
@@ -108,13 +73,11 @@ module.exports = {
     })
   }),
   builderDefault: Object.assign({}, base.builderConfig, {
-    externals: base.builderConfig.externals.concat('@cliqz-oss/dexie', 'pouchdb', 'rxjs'),
+    externals: base.builderConfig.externals.concat("@cliqz-oss/dexie", "rxjs"),
     globalDeps: Object.assign({}, base.builderConfig.globalDeps, {
-      '@cliqz-oss/dexie': 'Dexie',
-      'pouchdb': 'PouchDB',
-      'pouchdb/lib/index.js': 'PouchDB',
-      'rxjs': 'Rx',
-      'rxjs/Rx.js': 'Rx',
+      "@cliqz-oss/dexie": "Dexie",
+      "rxjs": "Rx",
+      "rxjs/Rx.js": "Rx",
     }),
   })
 }

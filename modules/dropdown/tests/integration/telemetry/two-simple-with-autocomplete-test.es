@@ -4,11 +4,12 @@ import {
   expect,
   testsEnabled,
   fillIn,
+  mockSearch,
   press,
-  respondWith,
   release,
   waitFor,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 import { results } from '../../../core/integration/fixtures/resultsTwoSimple';
 
 export default function () {
@@ -37,7 +38,7 @@ export default function () {
     let urlClicked;
     let handleCommandWhere;
 
-    beforeEach(function () {
+    beforeEach(async function () {
       urlClicked = false;
       handleCommandWhere = '';
 
@@ -63,9 +64,9 @@ export default function () {
       };
 
       withHistory([]);
-      respondWith({ results });
+      await mockSearch({ results });
       fillIn('ro');
-      return waitFor(function () {
+      await waitFor(function () {
         // wait for autocomplete
         return urlBar.textValue === 'royalgames.com';
       });

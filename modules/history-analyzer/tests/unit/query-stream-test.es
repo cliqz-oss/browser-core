@@ -1,6 +1,7 @@
 /* global chai */
 /* global describeModule */
 
+const adblocker = require('@cliqz/adblocker');
 const fastUrlParser = require('fast-url-parser');
 const moment = require('moment');
 const tldts = require('tldts');
@@ -9,6 +10,9 @@ const mockDexie = require('../../core/unit/utils/dexie');
 
 export default describeModule('history-analyzer/query-stream',
   () => ({
+    'platform/lib/adblocker': {
+      default: adblocker,
+    },
     'platform/lib/tldts': tldts,
     ...mockDexie,
     'platform/lib/moment': {
@@ -19,7 +23,8 @@ export default describeModule('history-analyzer/query-stream',
     },
     'core/LRU': {
       default: class {
-        get() {}
+        get() { }
+
         set() {}
       },
     },
@@ -86,8 +91,7 @@ export default describeModule('history-analyzer/query-stream',
 
       cases.forEach(({ url, query, source }) => {
         it(`extracts query from ${source}`, () =>
-          chai.expect(extractQueryFromUrl(url)).to.be.eql({ query, source })
-        );
+          chai.expect(extractQueryFromUrl(url)).to.be.eql({ query, source }));
       });
     });
 
@@ -96,5 +100,4 @@ export default describeModule('history-analyzer/query-stream',
 
     describe('#deleteDataOlderThan', () => {
     });
-  },
-);
+  });

@@ -28,7 +28,7 @@ class FakeWorker {
       TextDecoder,
       atob,
       btoa,
-      WebAssembly,
+      WebAssembly: typeof WebAssembly !== 'undefined' ? WebAssembly : undefined,
       console,
     };
     target.self = target;

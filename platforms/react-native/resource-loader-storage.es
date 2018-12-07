@@ -1,5 +1,8 @@
+/* eslint no-param-reassign: off */
+
 import { readFile, writeFile } from './fs';
 import resources from '../../resources';
+import console from './console';
 
 function getBundlePath(filePath) {
   if (typeof filePath === 'string') {

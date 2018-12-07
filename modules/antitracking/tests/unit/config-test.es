@@ -78,5 +78,4 @@ export default describeModule('antitracking/config',
         chai.expect(() => config.setPref('unknown', true)).to.throw(Error);
       });
     });
-  }
-);
+  });

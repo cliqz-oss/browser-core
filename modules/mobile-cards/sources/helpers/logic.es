@@ -1,7 +1,6 @@
 import { getMessage } from '../../core/i18n';
 
-const AGO_CEILINGS =
-[
+const AGO_CEILINGS = [
   [0, '', 1],
   [120, 'ago1Minute', 1],
   [3600, 'agoXMinutes', 60],

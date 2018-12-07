@@ -64,5 +64,4 @@ export default describeModule('search/mixers/search-on-empty',
         return chai.expect(messages).to.deep.equal(expected);
       });
     });
-  },
-);
+  });

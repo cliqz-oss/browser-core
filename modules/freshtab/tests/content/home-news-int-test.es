@@ -18,6 +18,7 @@ describe('Freshtab interactions with news', function () {
     subject = new Subject();
     subject.respondsWithEmptyTelemetry();
     subject.respondsWithEmptySpeedDials();
+    subject.respondsWithEmptyStats();
     subject.respondsWith({
       module: 'freshtab',
       action: 'getNews',

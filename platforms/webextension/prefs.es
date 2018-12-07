@@ -5,18 +5,18 @@ const PREFS_KEY = 'cliqzprefs';
 let initialised = false;
 const prefs = {};
 
+function syncToStorage() {
+  chrome.storage.local.set({ [PREFS_KEY]: prefs });
+}
+
 export function init() {
   return new Promise((resolve) => {
-    chrome.storage.local.get(PREFS_KEY, (result) => {
+    chrome.storage.local.get([PREFS_KEY], (result) => {
       Object.assign(prefs, result[PREFS_KEY] || {});
       initialised = true;
       resolve();
     });
   });
-}
-
-function syncToStorage() {
-  chrome.storage.local.set({ [PREFS_KEY]: prefs });
 }
 
 function cleanPref(pref) {
@@ -79,9 +79,9 @@ export function getCliqzPrefs() {
     // avoid prefs sending domains.
     // allow 'enabled' prefs
     return ((
-      entry.indexOf('.') === -1 &&
-      entry.indexOf('backup') === -1 &&
-      entry.indexOf('attrackSourceDomainWhitelist') === -1
+      entry.indexOf('.') === -1
+      && entry.indexOf('backup') === -1
+      && entry.indexOf('attrackSourceDomainWhitelist') === -1
     )
       || entry.indexOf('.enabled') !== -1);
   }

@@ -1,34 +1,11 @@
 /* global chai */
 /* global describeModule */
 /* global require */
-
+const commonMocks = require('../utils/common');
 
 export default describeModule('offers-v2/categories/category-tree',
   () => ({
-    'offers-v2/common/offers_v2_logger': {
-      default: {
-        debug: (x) => { console.log(x); },
-        error: (x) => { console.log(x); },
-        info: (x) => { console.log(x); },
-        log: (x) => { console.log(x); },
-        warn: (x) => { console.log(x); },
-        logObject: (x) => { console.log(x); },
-      }
-    },
-    'core/platform': {
-      isChromium: false
-    },
-    'core/utils': {
-      default: {
-      },
-    },
-    'platform/globals': {
-    }
-    // 'core/crypto/random': {
-    // },
-    // 'platform/console': {
-    //   default: {}
-    // },
+    ...commonMocks,
   }),
   () => {
     describe('#category-tree', function () {
@@ -43,7 +20,9 @@ export default describeModule('offers-v2/categories/category-tree',
           this.name = n;
           this.uniqueID = Math.random();
         }
+
         getName() { return this.name; }
+
         eql(o) { return this.name === o.name && this.uniqueID === o.uniqueID; }
       }
 
@@ -203,5 +182,4 @@ export default describeModule('offers-v2/categories/category-tree',
         });
       });
     });
-  }
-);
+  });

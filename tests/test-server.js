@@ -58,9 +58,10 @@ function normalizePath(path) {
   let fileIndex = {};
   let mocks = {};
 
-  app.post('/mock', (request, response) => {
+  app.post('/mock', async (request, response) => {
     log('MOCK', JSON.stringify(request.body));
-    const { path, result, headers, directories, status } = request.body;
+    const { path, result, headers, directories, status, timeout } = request.body;
+
     let endpoint = path;
     if (directories) {
       directories.forEach((dir) => {
@@ -93,6 +94,7 @@ function normalizePath(path) {
         headers,
         result,
         status,
+        timeout,
       };
     }
 
@@ -114,7 +116,7 @@ function normalizePath(path) {
   });
 
   // Listen to everything and dispatch to known mocks
-  app.all('/*', (req, res) => {
+  app.all('/*', async (req, res) => {
     const path = req.path;
     const requestObj = clone({
       baseUrl: req.baseUrl,
@@ -142,7 +144,11 @@ function normalizePath(path) {
       // Keep track of requests seen
       requests[path].push(requestObj);
 
-      const { headers, result, status } = mocks[path];
+      const { headers, result, status, timeout } = mocks[path];
+
+      if (timeout) {
+        await new Promise(resolveTimeout => setTimeout(resolveTimeout, timeout));
+      }
 
       // Set resulting headers
       (headers || []).forEach(({ name, value }) => {

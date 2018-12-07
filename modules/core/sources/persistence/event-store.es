@@ -6,7 +6,8 @@ export function sortEventsByTs(events) {
   return events.sort((a, b) => {
     if (a.ts < b.ts) {
       return -1;
-    } else if (a.ts > b.ts) {
+    }
+    if (a.ts > b.ts) {
       return 1;
     }
     return 0;

@@ -19,9 +19,11 @@ class CacheEntry {
     this.responseStatus = responseStatus;
     this.createdTS = timestampMS();
   }
+
   expired() {
     return ((timestampMS() - this.createdTS) / 1000) > CACHE_ENTRY_DURATION_SECS;
   }
+
   wasFailedCall() {
     return this.responseStatus !== null && this.responseStatus >= 400;
   }
@@ -66,7 +68,7 @@ export default class BEConnector {
       // check if was a failed call or not to reject the promise or not and keep
       // the same behavior for the one who calls
       if (cacheEntry.wasFailedCall()) {
-        return Promise.reject(`Cached failed call: code ${cacheEntry.responseStatus} - ${url}`);
+        return Promise.reject(new Error(`Cached failed call: code ${cacheEntry.responseStatus} - ${url}`));
       }
       return Promise.resolve(cacheEntry.data);
     }
@@ -85,7 +87,7 @@ export default class BEConnector {
         });
       }
       this._cache.set(url, new CacheEntry(null, response.status));
-      return Promise.reject(`Status code ${response.status} for ${url}`);
+      return Promise.reject(new Error(`Status code ${response.status} for ${url}`));
     });
   }
 

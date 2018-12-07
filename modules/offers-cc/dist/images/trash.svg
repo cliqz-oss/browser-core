@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="28px" height="30px" viewBox="0 0 28 30" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 51.2 (57519) - http://www.bohemiancoding.com/sketch -->
+    <title>Rectangle-39-Copy-6</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <filter x="-5.1%" y="-3.3%" width="109.6%" height="107.7%" filterUnits="objectBoundingBox" id="filter-1">
+            <feOffset dx="0" dy="3" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="4" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.3 0" type="matrix" in="shadowBlurOuter1" result="shadowMatrixOuter1"></feColorMatrix>
+            <feMerge>
+                <feMergeNode in="shadowMatrixOuter1"></feMergeNode>
+                <feMergeNode in="SourceGraphic"></feMergeNode>
+            </feMerge>
+        </filter>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="2_Black-Friday_offers-Copy-36" transform="translate(-1166.000000, -932.000000)" fill="#909090" fill-rule="nonzero">
+            <g id="Group" filter="url(#filter-1)" transform="translate(945.000000, 918.506097)">
+                <g id="trash-visit-copy-4" transform="translate(228.206845, 18.139406)">
+                    <path d="M2.9,0.7 L10.1,0.7 L10.1,2.3 L12.5,2.3 L12.5,4.7 L10.9,4.7 L10.9,14.5 L2.1,14.5 L2.1,4.7 L0.5,4.7 L0.5,2.3 L2.9,2.3 L2.9,0.7 Z M1.3,3.9 L11.7,3.9 L11.7,3.1 L1.3,3.1 L1.3,3.9 Z M3.7,2.3 L9.3,2.3 L9.3,1.5 L3.7,1.5 L3.7,2.3 Z M2.9,13.7 L10.1,13.7 L10.1,4.7 L2.9,4.7 L2.9,13.7 Z" id="Rectangle-39-Copy-6"></path>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

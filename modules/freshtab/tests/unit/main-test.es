@@ -47,5 +47,4 @@ export default describeModule('freshtab/main',
     context('inside non CLIQZ browser', function () {
 
     });
-  }
-);
+  });

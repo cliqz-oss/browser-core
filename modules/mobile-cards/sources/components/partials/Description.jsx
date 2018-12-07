@@ -1,12 +1,13 @@
 import React from 'react';
 import { StyleSheet, Text } from 'react-native';
-import { elementSideMargins, elementTopMargin, descriptionTextColor } from '../../styles/CardStyle';
+import { elementSideMargins, elementTopMargin } from '../../styles/CardStyle';
+import themeDetails from '../../themes';
 
-const style = color => StyleSheet.create({
+const style = theme => StyleSheet.create({
   description: {
     ...elementSideMargins,
     ...elementTopMargin,
-    color,
+    color: themeDetails[theme].textColor,
     textAlign: 'left',
     fontSize: 16,
     lineHeight: 19,
@@ -14,13 +15,12 @@ const style = color => StyleSheet.create({
 });
 
 export default function (props) {
-  const color = props.isHistory ? '#551A8B' : descriptionTextColor;
   return (
     <Text
       accessible={false}
-      accessibilityLabel={'generic-desc'}
+      accessibilityLabel="generic-desc"
       numberOfLines={10}
-      style={style(color).description}
+      style={style(props.theme).description}
     >
       {props.description}
     </Text>

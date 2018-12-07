@@ -1,7 +1,7 @@
 /* global document, location, Handlebars */
 import moment from 'moment';
 import plotBar from './charts';
-import templates from './../templates';
+import templates from '../templates';
 
 
 /**
@@ -29,8 +29,7 @@ function getDailyStats(privacy, today) {
       };
     }
 
-    document.getElementById('daily-stats').innerHTML =
-      templates.daily_stats({ dailyStats, lastDay });
+    document.getElementById('daily-stats').innerHTML = templates.daily_stats({ dailyStats, lastDay });
 
     // TODO: Make the following a bit more elegant
     plotBar('trackers-plot', dailyStats, 'trackersSum', 'Trackers Blocked');

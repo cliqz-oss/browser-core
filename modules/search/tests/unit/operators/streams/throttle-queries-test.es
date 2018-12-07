@@ -74,5 +74,4 @@ export default describeModule('search/operators/streams/throttle-queries',
         return chai.expect(messages).to.deep.equal(expected);
       });
     });
-  },
-);
+  });

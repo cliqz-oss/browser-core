@@ -62,8 +62,8 @@ export default class Win {
    */
   // TODO: migrate to message-manager
   showDataCollectionMessage() {
-    if (!this.settings.showDataCollectionMessage ||
-       prefs.get('dataCollectionMessageState', 0) !== 0) {
+    if (!this.settings.showDataCollectionMessage
+       || prefs.get('dataCollectionMessageState', 0) !== 0) {
       return;
     }
 

@@ -336,7 +336,8 @@ export default class PageLoad {
     if (!this.hasFrame(frameId)) {
       frameContext = this.setFrame(
         windowTreeInformation,
-        new FrameContext(windowTreeInformation, url, isAdvertiser));
+        new FrameContext(windowTreeInformation, url, isAdvertiser)
+      );
     } else {
       // Update metadata
       frameContext = this.getFrame(frameId);
@@ -352,17 +353,17 @@ export default class PageLoad {
 
     // Check if the current frame is probably an ad
     if (
-      (isAdvertiser || frameContext.isAdvertiser) &&
-      frameContext.getNumberOfRequests() > 1 &&
-      (
-        cpt !== 1 && // == OTHER
-        cpt !== 3 && // == IMAGE (dealt with in response Observer)
-        cpt !== 4 && // == STYLESHEET
-        cpt !== 14 && // == FONT
-        cpt !== 2 && // == SCRIPT
-        cpt !== 11 && // == XMLHTTPREQUEST
-        cpt !== 19 && // == BEACON
-        cpt !== 7)
+      (isAdvertiser || frameContext.isAdvertiser)
+      && frameContext.getNumberOfRequests() > 1
+      && (
+        cpt !== 1 // == OTHER
+        && cpt !== 3 // == IMAGE (dealt with in response Observer)
+        && cpt !== 4 // == STYLESHEET
+        && cpt !== 14 // == FONT
+        && cpt !== 2 // == SCRIPT
+        && cpt !== 11 // == XMLHTTPREQUEST
+        && cpt !== 19 // == BEACON
+        && cpt !== 7)
     ) { // == SUBDOCUMENT
       requestContext.isAd = true;
 
@@ -437,11 +438,13 @@ export default class PageLoad {
 
         const newFrame = this.setFrame(
           windowTreeInformation,
-          new FrameContext(windowTreeInformation, url, isAdvertiser));
+          new FrameContext(windowTreeInformation, url, isAdvertiser)
+        );
 
         const newRequest = newFrame.setRequest(
           url,
-          new RequestContext(url, cpt, isAdvertiser));
+          new RequestContext(url, cpt, isAdvertiser)
+        );
 
         newRequest.contentLength = contentLength;
         return;
@@ -471,9 +474,9 @@ export default class PageLoad {
         // Hacky tracking pixel removal
         // NOTE - at the moment, some of them can be seen as ad (because they are
         // actually pretty big...)
-        if (url.indexOf('1x1-transparent.gif') !== -1 ||
-            url.indexOf('1x1_default.gif') !== -1 ||
-            url.indexOf('1x1_Pixel.png') !== -1) {
+        if (url.indexOf('1x1-transparent.gif') !== -1
+            || url.indexOf('1x1_default.gif') !== -1
+            || url.indexOf('1x1_Pixel.png') !== -1) {
           requestContext.isTrackingPixel = true;
           logger.log(`probably pixel ${contentLength} ${url}`);
           return;

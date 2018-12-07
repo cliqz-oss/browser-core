@@ -11,14 +11,17 @@ export default class PairingUI {
   isPreferencesPage() {
     return this.window.parent.location.href.indexOf('about:preferences') === 0;
   }
+
   isConnectSection() {
     return this.window.parent.location.hash === '#connect';
   }
+
   mustStartPairing() {
     // If we are in about:preferences, start pairing only for Connect section.
     // Otherwise (in video downloader), always start pairing.
     return !this.isPreferencesPage() || this.isConnectSection();
   }
+
   constructor(window, PeerComm, telemetry) {
     this.i18n = window.chrome.i18n.getMessage.bind(window.chrome.i18n);
     this.document = window.document;
@@ -165,8 +168,8 @@ export default class PairingUI {
   renderInitial() {
     const window = this.window;
 
-    const deviceName = $('#browser-name').val() ||
-      `Cliqz Browser on ${window.navigator.platform}`;
+    const deviceName = $('#browser-name').val()
+      || `Cliqz Browser on ${window.navigator.platform}`;
 
     const data = {
       deviceName,

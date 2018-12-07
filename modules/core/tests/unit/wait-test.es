@@ -16,20 +16,16 @@ export default describeModule('core/helpers/wait',
       });
 
       it('resolves immediatly', async () =>
-        chai.expect(await waitFor(() => true)).to.be.true
-      );
+        chai.expect(await waitFor(() => true)).to.be.true);
 
       it('resolves with result of function (sync)', async () =>
-        chai.expect(await waitFor(() => 'foo')).to.be.eql('foo')
-      );
+        chai.expect(await waitFor(() => 'foo')).to.be.eql('foo'));
 
       it('resolves with result of function (async)', async () =>
-        chai.expect(await waitFor(() => Promise.resolve('foo'))).to.be.eql('foo')
-      );
+        chai.expect(await waitFor(() => Promise.resolve('foo'))).to.be.eql('foo'));
 
       it('times out', () =>
-        chai.expect(waitFor(() => false, 100)).to.eventually.be.rejectedWith('waitFor timeout')
-      );
+        chai.expect(waitFor(() => false, 100)).to.eventually.be.rejectedWith('waitFor timeout'));
 
       it('succeeds after a few tries (sync)', () => {
         let i = 0;
@@ -52,5 +48,4 @@ export default describeModule('core/helpers/wait',
         return waitFor(fn);
       });
     });
-  }
-);
+  });

@@ -51,8 +51,7 @@ export default function (name, callback) {
       .then(([data, resolvePush, rejectPush]) =>
         Promise.resolve(callback(data))
           .then(resolvePush)
-          .catch(rejectPush)
-      )
+          .catch(rejectPush))
       .catch(ex => console.error(`MessageQueue ${name} :: error: ${ex}`))
       .then(registerCallbackOnData);
   };

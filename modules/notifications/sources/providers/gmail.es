@@ -22,12 +22,12 @@ function get(url, headers, data, timeout) {
       if (req.status === 200) {
         resolve(req);
       } else {
-        reject('cannot-fetch-count');
+        reject(new Error('cannot-fetch-count'));
       }
     };
 
     req.onerror = () => {
-      reject('cannot-fetch-count');
+      reject(new Error('cannot-fetch-count'));
     };
 
     req.channel

@@ -19,28 +19,51 @@ export default class BaseDropdownManager {
   }
 
   _telemetry() {}
+
   _copyToClipboard() {}
+
   _openLink() {}
+
   _focus() {}
+
   _reportHighlight() {}
+
+  _reportClick() {}
+
   _adultAction() {}
+
   _locationAction() {}
 
   _setUrlbarValue() {}
+
   _getUrlbarValue() {}
+
   _setSelectionRange() {}
+
   _getSelectionRange() {}
+
   _setHeight() {}
+
   _queryCliqz() {}
+
   _getHeight() {}
+
   _removeFromHistory() {}
+
   _removeFromBookmarks() {}
+
   _closeTabsWithUrl() {}
+
   _getQuery() {}
+
   _getAssistantStates() {}
+
   _getUrlbarAttributes() {}
+
   _getMaxHeight() {}
+
   _createIframe() {}
+
   _getSessionId() {}
 
   get isOpen() {
@@ -148,6 +171,10 @@ export default class BaseDropdownManager {
     this.dropdownAction = iframeWrapper.createProxy();
   }
 
+  close() {
+    this.setHeight(0);
+  }
+
   unload() {
     if (this.iframe) {
       this.iframe.contentWindow.removeEventListener('message', this.onMessage);
@@ -174,7 +201,7 @@ export default class BaseDropdownManager {
         break;
       }
       case 'Tab': {
-        if (this.textInput.value) {
+        if (this.isOpen || this.textInput.value) {
           (ev.shiftKey ? this.previousResult() : this.nextResult())
             .then(this.setUrlbarValue);
         }
@@ -191,17 +218,18 @@ export default class BaseDropdownManager {
         break;
       }
       case 'Escape': {
+        this._setUrlbarValue('');
         if (this.isOpen) {
           this.setHeight(0);
         } else {
-          this._setUrlbarValue('');
+          this.close();
         }
         break;
       }
       case 'Delete':
       case 'Backspace': {
-        if (!ev.shiftKey || ev.metaKey || (ev.altKey && ev.ctrlKey) ||
-            !this.selectedResult || !this.selectedResult.isDeletable
+        if (!ev.shiftKey || ev.metaKey || (ev.altKey && ev.ctrlKey)
+            || !this.selectedResult || !this.selectedResult.isDeletable
         ) {
           break;
         }
@@ -222,8 +250,9 @@ export default class BaseDropdownManager {
     const query = this._getUrlbarValue();
     const { selectionStart, selectionEnd } = this._getSelectionRange();
     return (
-      selectionEnd === query.length &&
-      selectionEnd !== selectionStart
+      selectionEnd === query.length
+      && selectionEnd !== selectionStart
+      && selectionStart !== 0
     );
   }
 
@@ -233,8 +262,8 @@ export default class BaseDropdownManager {
     const { selectionStart } = this._getSelectionRange();
 
     if (
-      this.hasCompletion &&
-      query[selectionStart] === String.fromCharCode(charCode)
+      this.hasCompletion
+      && query[selectionStart] === String.fromCharCode(charCode)
     ) {
       this._setSelectionRange(selectionStart + 1, query.length);
       this._queryCliqz();
@@ -246,8 +275,8 @@ export default class BaseDropdownManager {
 
   onDrop(ev) {
     const dTypes = ev.dataTransfer.types;
-    if ((dTypes.indexOf && dTypes.indexOf('text/plain') !== -1) ||
-      (dTypes.contains && dTypes.contains('text/plain') !== -1)) {
+    if ((dTypes.indexOf && dTypes.indexOf('text/plain') !== -1)
+      || (dTypes.contains && dTypes.contains('text/plain') !== -1)) {
       this._telemetry({
         type: 'activity',
         action: 'textdrop'
@@ -270,8 +299,8 @@ export default class BaseDropdownManager {
 
   hasRelevantResults(query, results) {
     const result = results[0];
-    return (result.text === query) ||
-           (result.suggestion && (result.suggestion === query));
+    return (result.text === query)
+           || (result.suggestion && (result.suggestion === query));
   }
 
   async render({
@@ -315,8 +344,8 @@ export default class BaseDropdownManager {
     }, params);
 
     urlbarQuery = this._getQuery();
-    if (renderedSessionId === this._getSessionId() &&
-        this.hasRelevantResults(urlbarQuery, [result])) {
+    if (renderedSessionId === this._getSessionId()
+        && this.hasRelevantResults(urlbarQuery, [result])) {
       this.autocompleteQuery(
         urlbarQuery,
         result.meta.completion,

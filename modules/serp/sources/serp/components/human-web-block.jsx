@@ -12,4 +12,3 @@ export default ({ text = '' }) => (
     </a>
   </div>
 );
-

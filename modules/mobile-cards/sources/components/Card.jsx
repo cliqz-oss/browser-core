@@ -7,19 +7,21 @@ import Generic from './Generic';
 import Link from './Link';
 import ShareCard from './partials/ShareCard';
 import { withCliqz } from '../cliqz';
+import themeDetails from '../themes';
 
-const styles = width => StyleSheet.create({
+const styles = (width, theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0)' // allow snapping along viewport (outside of card)
+    backgroundColor: themeDetails[theme].container.bgColor, // allow snapping along viewport
   },
   card: {
     elevation: 2, // android
-    backgroundColor: '#FFFFFF',
+    backgroundColor: themeDetails[theme].card.backgroundColor,
     width,
     ...cardBorderTopRadius,
     ...cardBorderBottomRadius,
     ...cardMargins,
+    overflow: 'hidden',
   },
 });
 
@@ -27,7 +29,8 @@ class Card extends React.Component {
   shouldComponentUpdate(nextProps) {
     const resultChanged = nextProps.result !== this.props.result;
     const layoutChanged = nextProps.width !== this.props.width;
-    return resultChanged || layoutChanged;
+    const themeChanged = nextProps.theme !== this.props.theme;
+    return resultChanged || layoutChanged || themeChanged;
   }
 
   sendResultClickTelemetry() {
@@ -36,6 +39,7 @@ class Card extends React.Component {
 
   render() {
     const result = this.props.result;
+    const theme = this.props.theme;
     if (!result || !result.data) {
       return null;
     }
@@ -55,20 +59,20 @@ class Card extends React.Component {
         {...shadowProps}
         accessible={false}
         accessibilityLabel={`result-card-${this.props.index}`}
-        style={styles(width).container}
+        style={styles(width, theme).container}
         onTouchStart={() => this.props.cliqz.mobileCards.hideKeyboard()}
         key={result.url}
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
         >
-          <ShareCard style={styles(width).card} title={shareTitle}>
+          <ShareCard style={styles(width, theme).card} title={shareTitle}>
             <Link
               label="main-url"
               url={result.url}
               onPress={(...args) => this.sendResultClickTelemetry(...args)}
             >
-              <Generic result={result} />
+              <Generic result={result} theme={theme} />
             </Link>
           </ShareCard>
         </ScrollView>

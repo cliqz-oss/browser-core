@@ -1,0 +1,114 @@
+* {
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+    font-family: "-mac-system", "-apple-system", BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    outline: none;
+    font-size: 14px;
+    // overflow: hidden;
+}
+
+.tabs {
+    height: 94%;
+}
+
+.tabs-labels {
+    display: flex;
+    flex-wrap: wrap;
+    list-style-type: none;
+
+    .tab {
+        border: 1px solid black;
+        padding: 5px;
+        transition: background 0.1s, color 0.1s;
+
+        &:hover {
+            background: #d8d8d8;
+        }
+
+        &.active {
+            background: #ccc;
+        }
+    }
+
+    .tab-input {
+        position: absolute;
+        opacity: 0;
+    }
+
+    .tab-label {
+        width: 100%;
+        padding: 5px 20px;
+        cursor: pointer;
+        font-weight: bold;
+        color: #7f7f7f;
+    }
+}
+
+.modal-group {
+    border: 1px solid black;
+    display: flex;
+
+    .modal-item {
+        padding: 10px;
+        margin: 3px 0;
+        overflow-y: auto;
+
+        &.first {
+            flex: 3;
+            border-right: 1px solid black;
+        }
+
+        &.second {
+            flex: 2;
+        }
+
+        .modal-header {
+            font-size: 16.5px;
+            font-weight: 500;
+            margin: 5px 0;
+        }
+    }
+}
+
+
+input[type="checkbox"].switch {
+    cursor: pointer;
+    width: 38px;
+    height: 20px;
+}
+
+table {
+    border: none;
+    width: 100%;
+
+    td {
+        padding: 5px;
+
+        input {
+            margin: 0 5px;
+        }
+    }
+}
+
+.textinput {
+    padding: 5px;
+    width: 100%;
+}
+
+.reload-area {
+    display: flex;
+
+    .reload-confirmed {
+        color: red;
+        margin: 5px;
+    }
+}
+
+.reload-button, .endpoints-button {
+    height: 30px;
+    padding: 5px;
+    margin: 15px 0;
+    background: #ccc;
+    border: 1px solid black;
+}

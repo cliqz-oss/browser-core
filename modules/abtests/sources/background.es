@@ -21,7 +21,8 @@ export default background({
 
     this.isRunning = false;
     this.manager = new Manager(client, moduleStorage, sharedStorage);
-    return this.manager.loadTests()
+    return this.manager.init()
+      .then(() => this.manager.loadTests())
       .then(() => this.start());
   },
 
@@ -42,8 +43,7 @@ export default background({
   updateTests() {
     this.manager.updateTests();
     if (this.isRunning) {
-      this.runTimer = setTimeout(
-        this.updateTests.bind(this), UPDATE_INTERVAL);
+      this.runTimer = setTimeout(this.updateTests.bind(this), UPDATE_INTERVAL);
     }
   },
 

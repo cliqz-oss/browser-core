@@ -5,7 +5,7 @@ import NativeDrawable, { normalizeUrl } from '../custom/NativeDrawable';
 import Link from '../Link';
 import { agoDuration } from '../../helpers/logic';
 import { elementSideMargins } from '../../styles/CardStyle';
-
+import themeDetails from '../../themes';
 // trigger with flug lh123
 
 const colors = {
@@ -17,14 +17,14 @@ const colors = {
   lightGrey: 'rgb(166, 166, 166)'
 };
 
-const styles = StyleSheet.create({
+const styles = theme => StyleSheet.create({
   container: {
     flex: 1,
     marginTop: 5,
     ...elementSideMargins,
   },
   title: {
-    color: 'black',
+    color: themeDetails[theme].textColor,
     fontSize: 18,
     marginTop: 10,
   },
@@ -51,9 +51,13 @@ const styles = StyleSheet.create({
     ...elementSideMargins,
   },
   routeCity: {
-    color: 'black',
+    color: themeDetails[theme].textColor,
     fontSize: 20,
     fontWeight: '500',
+  },
+  routeRemaining: {
+    backgroundColor: themeDetails[theme].flight.routeRemaining,
+    height: 1
   },
   bannerText: {
     color: 'white',
@@ -63,8 +67,8 @@ const styles = StyleSheet.create({
   },
   hotlineWrapper: {
     marginTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#EDECEC',
+    borderTopWidth: 0.5,
+    borderTopColor: themeDetails[theme].separatorColor,
   },
   hotlineView: {
     paddingTop: 10,
@@ -77,10 +81,23 @@ const styles = StyleSheet.create({
     marginRight: 5
   },
   hotlineText: {
-    color: 'black',
+    color: themeDetails[theme].textColor,
     fontSize: 10,
     marginRight: 5,
   },
+  updated: {
+    color: themeDetails[theme].flight.updated
+  },
+  cityAndDate: {
+    color: themeDetails[theme].flight.cityAndDate
+  },
+  flightLabel: {
+    color: themeDetails[theme].flight.label
+  },
+  flightInfo: {
+    color: themeDetails[theme].flight.info,
+    fontSize: 20
+  }
 });
 
 const timeStyle = (color, textDecorationLine) => StyleSheet.create({
@@ -101,8 +118,7 @@ export default class Flight extends React.Component {
   get onSchedule() {
     return (
       this.departure.actualTime === this.departure.scheduledTime
-      &&
-      this.arrival.actualTime === this.arrival.scheduledTime
+      && this.arrival.actualTime === this.arrival.scheduledTime
     );
   }
 
@@ -184,13 +200,14 @@ export default class Flight extends React.Component {
   }
 
   displayTitle() {
+    const theme = this.props.theme;
     return (
       <View
         accessible={false}
-        accessibilityLabel={'flight-title'}
-        style={styles.container}
+        accessibilityLabel="flight-title"
+        style={styles(theme).container}
       >
-        <Text style={styles.title}>
+        <Text style={styles(theme).title}>
           { this.props.data.flight_name }
         </Text>
       </View>
@@ -198,14 +215,15 @@ export default class Flight extends React.Component {
   }
 
   displayUpdatedSince() {
+    const theme = this.props.theme;
     if (this.cancelled) {
       return (
         <View
           accessible={false}
-          accessibilityLabel={'flight-updated'}
+          accessibilityLabel="flight-updated"
           style={{ marginTop: 10, backgroundColor: this.statusColor }}
         >
-          <Text style={styles.bannerText}>{ getMessage('mobile_flight_no_updates') }</Text>
+          <Text style={styles(theme).bannerText}>{ getMessage('mobile_flight_no_updates') }</Text>
         </View>
       );
     }
@@ -216,11 +234,11 @@ export default class Flight extends React.Component {
     return (
       <View
         accessible={false}
-        accessibilityLabel={'flight-updated'}
-        style={styles.container}
+        accessibilityLabel="flight-updated"
+        style={styles(theme).container}
       >
-        <Text style={{ color: colors.lightGrey }}>
-          { getMessage('updated') } { agoDuration(updatedSince)}
+        <Text style={styles(theme).updated}>
+          {`${getMessage('updated')} ${agoDuration(updatedSince)}`}
         </Text>
       </View>
     );
@@ -228,16 +246,18 @@ export default class Flight extends React.Component {
 
   displayStatus() {
     const data = this.props.data;
+    const theme = this.props.theme;
+    const timeColor = themeDetails[theme].flight.statusTime;
     const status = (data.status || '').toUpperCase();
     const statusColor = this.statusColor;
     const scheduledDecoration = this.onSchedule ? 'none' : 'line-through';
     const actualDecoration = this.cancelled ? 'line-through' : 'none';
     return (
-      <View style={styles.statusContainer}>
+      <View style={styles(theme).statusContainer}>
         <View
           accessible={false}
-          accessibilityLabel={'flight-status'}
-          style={[styles.status, { backgroundColor: statusColor }]}
+          accessibilityLabel="flight-status"
+          style={[styles(theme).status, { backgroundColor: statusColor }]}
         >
           <Text style={{ color: 'white', fontSize: 12 }}>
             { status }
@@ -245,25 +265,30 @@ export default class Flight extends React.Component {
         </View>
         <View
           accessible={false}
-          accessibilityLabel={'flight-actual-time-small'}
-          style={styles.status}
+          accessibilityLabel="flight-actual-time-small"
+          style={styles(theme).status}
         >
-          <Text style={timeStyle(colors.grey, scheduledDecoration).status}>
-            { this.departure.scheduledTime } &#8594; { this.arrival.scheduledTime }
+          <Text style={timeStyle(timeColor, scheduledDecoration).status}>
+            {this.departure.scheduledTime}
+            &#8594;
+            {this.arrival.scheduledTime}
           </Text>
         </View>
         {
           !this.onSchedule
-          &&
-          <View
-            accessible={false}
-            accessibilityLabel={'flight-estimated-time-small'}
-            style={styles.status}
-          >
-            <Text style={timeStyle(statusColor, actualDecoration).status}>
-              { this.departure.actualTime } &#8594; { this.arrival.actualTime }
-            </Text>
-          </View>
+          && (
+            <View
+              accessible={false}
+              accessibilityLabel="flight-estimated-time-small"
+              style={styles(theme).status}
+            >
+              <Text style={timeStyle(statusColor, actualDecoration).status}>
+                {this.departure.actualTime}
+                &#8594;
+                {this.arrival.actualTime}
+              </Text>
+            </View>
+          )
         }
       </View>
     );
@@ -271,44 +296,43 @@ export default class Flight extends React.Component {
 
   displayRoute() {
     const data = this.props.data;
+    const theme = this.props.theme;
     const statusColor = this.statusColor;
     const progress = Number(data.plane_position);
     const remaining = 100 - progress;
     return (
-      <View style={styles.routeContainer}>
+      <View style={styles(theme).routeContainer}>
         <View
           accessible={false}
-          accessibilityLabel={'flight-depart-city'}
+          accessibilityLabel="flight-depart-city"
           style={{ flex: 1 }}
         >
-          <Text style={styles.routeCity}>
+          <Text style={styles(theme).routeCity}>
             {this.departure.locationShortcut}
           </Text>
         </View>
         <View style={{ flex: 3, flexDirection: 'row', alignItems: 'center' }}>
           {
             Boolean(progress)
-            &&
-            <View style={{ backgroundColor: statusColor, height: 1, flex: progress }} />
+            && <View style={{ backgroundColor: statusColor, height: 1, flex: progress }} />
           }
           <View
             accessible={false}
-            accessibilityLabel={'flight-plane-icon'}
+            accessibilityLabel="flight-plane-icon"
           >
             <NativeDrawable source={this.planeIcon} style={{ height: 20, width: 20 }} />
           </View>
           {
             Boolean(remaining)
-            &&
-            <View style={{ backgroundColor: colors.blackish, height: 1, flex: remaining }} />
+            && <View style={[styles(theme).routeRemaining, { flex: remaining }]} />
           }
         </View>
         <View
           accessible={false}
-          accessibilityLabel={'flight-arrival-city'}
+          accessibilityLabel="flight-arrival-city"
           style={{ flex: 1 }}
         >
-          <Text style={[styles.routeCity, { textAlign: 'right' }]}>
+          <Text style={[styles(theme).routeCity, { textAlign: 'right' }]}>
             {this.arrival.locationShortcut}
           </Text>
         </View>
@@ -317,43 +341,45 @@ export default class Flight extends React.Component {
   }
 
   displayDetails(data) {
+    const theme = this.props.theme;
+    const timeColor = themeDetails[theme].flight.time;
     const onSchedule = data.scheduledTime === data.actualTime;
     const early = data.scheduledTime > data.actualTime;
     const scheduledDecoration = onSchedule ? 'none' : 'line-through';
     const actualColor = early ? colors.green : colors.red;
     const actualDecoration = this.cancelled ? 'line-through' : 'none';
     return (
-      <View style={styles.container}>
+      <View style={styles(theme).container}>
         <Text
           accessible={false}
-          accessibilityLabel={'flight-city-and-date'}
-          style={{ color: colors.blackish }}
+          accessibilityLabel="flight-city-and-date"
+          style={styles(theme).cityAndDate}
         >
-          {data.locationName} {data.scheduledDate}
+          {`${data.locationName} ${data.scheduledDate}`}
         </Text>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
           <View
             accessible={false}
-            accessibilityLabel={'flight-direction-time-label'}
+            accessibilityLabel="flight-direction-time-label"
             style={{ flex: 5 }}
           >
-            <Text style={{ color: colors.lightGrey }}>
+            <Text style={styles(theme).flightLabel}>
               { getMessage(data.scheduledMessage) }
             </Text>
           </View>
           <View
             accessible={false}
-            accessibilityLabel={'flight-terminal-label'}
+            accessibilityLabel="flight-terminal-label"
             style={{ flex: 3 }}
           >
-            <Text style={{ color: colors.lightGrey }}>Terminal</Text>
+            <Text style={styles(theme).flightLabel}>Terminal</Text>
           </View>
           <View
             accessible={false}
-            accessibilityLabel={'flight-gate-label'}
+            accessibilityLabel="flight-gate-label"
             style={{ flex: 2 }}
           >
-            <Text style={{ color: colors.lightGrey }}>
+            <Text style={styles(theme).flightLabel}>
               { getMessage('mobile_flight_gate') }
             </Text>
           </View>
@@ -362,36 +388,39 @@ export default class Flight extends React.Component {
           <View style={{ flex: 5, flexDirection: 'row' }}>
             <View
               accessible={false}
-              accessibilityLabel={'flight-scheduled-time-big'}
+              accessibilityLabel="flight-scheduled-time-big"
             >
-              <Text style={timeStyle(colors.black, scheduledDecoration).time}>
+              <Text style={timeStyle(timeColor, scheduledDecoration).time}>
                 { data.scheduledTime }
               </Text>
             </View>
             {
               onSchedule
-              ||
-              <View
-                accessible={false}
-                accessibilityLabel={'flight-actual-time-big'}
-              >
-                <Text style={timeStyle(actualColor, actualDecoration).time}>{data.actualTime}</Text>
-              </View>
+              || (
+                <View
+                  accessible={false}
+                  accessibilityLabel="flight-actual-time-big"
+                >
+                  <Text style={timeStyle(actualColor, actualDecoration).time}>
+                    {data.actualTime}
+                  </Text>
+                </View>
+              )
             }
           </View>
           <View
             accessible={false}
-            accessibilityLabel={'flight-terminal'}
+            accessibilityLabel="flight-terminal"
             style={{ flex: 3 }}
           >
-            <Text style={{ color: colors.blackish, fontSize: 20 }}>{ data.terminal }</Text>
+            <Text style={styles(theme).flightInfo}>{ data.terminal }</Text>
           </View>
           <View
             accessible={false}
-            accessibilityLabel={'flight-gate'}
+            accessibilityLabel="flight-gate"
             style={{ flex: 2 }}
           >
-            <Text style={{ color: colors.blackish, fontSize: 20 }}>{ data.gate }</Text>
+            <Text style={styles(theme).flightInfo}>{ data.gate }</Text>
           </View>
         </View>
       </View>
@@ -399,6 +428,7 @@ export default class Flight extends React.Component {
   }
 
   displayHotline(flightName) {
+    const theme = this.props.theme;
     if (!flightName.startsWith('Lufthansa')) {
       return null;
     }
@@ -408,14 +438,14 @@ export default class Flight extends React.Component {
         action="callNumber"
         param="+496986799799"
       >
-        <View style={styles.hotlineWrapper}>
-          <View style={styles.hotlineView}>
+        <View style={styles(theme).hotlineWrapper}>
+          <View style={styles(theme).hotlineView}>
             <NativeDrawable
               source={callIcon}
               color="black"
-              style={styles.callIcon}
+              style={styles(theme).callIcon}
             />
-            <Text style={styles.hotlineText}>
+            <Text style={styles(theme).hotlineText}>
               { getMessage('mobile_flight_hotline', '+49 69 86 799 799') }
             </Text>
           </View>

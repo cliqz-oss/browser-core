@@ -23,11 +23,11 @@ const CliqzHistoryManager = {
 
     this.PlacesInterestsStorage
       ._execute(
-        'SELECT count(*) cnt, MIN(v.visit_date) first ' +
-        'FROM moz_historyvisits v ' +
-        'JOIN moz_places h ' +
-        'ON h.id = v.place_id ' +
-        'WHERE h.hidden = 0 AND h.visit_count > 0 ',
+        'SELECT count(*) cnt, MIN(v.visit_date) first '
+        + 'FROM moz_historyvisits v '
+        + 'JOIN moz_places h '
+        + 'ON h.id = v.place_id '
+        + 'WHERE h.hidden = 0 AND h.visit_count > 0 ',
         ['cnt', 'first'],
         (result) => {
           try {
@@ -58,12 +58,11 @@ const CliqzHistoryManager = {
     }
 
     // copied from http://mxr.mozilla.org/mozilla-central/source/toolkit/components/places/nsNavHistory.cpp#4525
-    const sql =
-        'INSERT OR REPLACE INTO moz_inputhistory ' +
-        'SELECT h.id, IFNULL(i.input, :input_text), IFNULL(i.use_count, 0) * .9 + 1 ' +
-        'FROM moz_places h ' +
-        'LEFT JOIN moz_inputhistory i ON i.place_id = h.id AND i.input = :input_text ' +
-        'WHERE url = :page_url ';
+    const sql = 'INSERT OR REPLACE INTO moz_inputhistory '
+        + 'SELECT h.id, IFNULL(i.input, :input_text), IFNULL(i.use_count, 0) * .9 + 1 '
+        + 'FROM moz_places h '
+        + 'LEFT JOIN moz_inputhistory i ON i.place_id = h.id AND i.input = :input_text '
+        + 'WHERE url = :page_url ';
     setTimeout(() => {
       CliqzHistoryManager.PlacesInterestsStorage
         ._execute(
@@ -90,10 +89,9 @@ const CliqzHistoryManager = {
       url = `http://${url}`;
     }
 
-    const sql =
-      'UPDATE moz_places ' +
-      'SET title = :title ' +
-      'WHERE url = :page_url ';
+    const sql = 'UPDATE moz_places '
+      + 'SET title = :title '
+      + 'WHERE url = :page_url ';
 
     CliqzHistoryManager.PlacesInterestsStorage
       ._execute(
@@ -134,9 +132,8 @@ const CliqzHistoryManager = {
   getIoService() {
     if (!CliqzHistoryManager.ioService) {
       try {
-        CliqzHistoryManager.ioService =
-          Components.classes['@mozilla.org/network/io-service;1']
-            .getService(Ci.nsIIOService);
+        CliqzHistoryManager.ioService = Components.classes['@mozilla.org/network/io-service;1']
+          .getService(Ci.nsIIOService);
       } catch (e) {
         console.log(`unable to get IO service: ${e}`);
       }

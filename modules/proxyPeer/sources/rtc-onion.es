@@ -71,7 +71,8 @@ export function wrapOnionRequest(data, peers, connectionID, aesKey, messageNumbe
           nextPeer: peerName,
           data: encrypted,
         },
-        i - 1)).catch((e) => { logger.error(`PEER ERROR ${e} ${e.stack}`); });
+        i - 1
+      )).catch((e) => { logger.error(`PEER ERROR ${e} ${e.stack}`); });
     }
 
     return encryptPayload(layer, peers[0].pubKey);

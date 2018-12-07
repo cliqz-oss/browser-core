@@ -31,6 +31,7 @@ describe('Freshtab interactions with most visited', function () {
     subject = new Subject();
     subject.respondsWithEmptyTelemetry();
     subject.respondsWithEmptyNews();
+    subject.respondsWithEmptyStats();
 
     const mostVisitedConfig = clone(defaultConfig);
     mostVisitedConfig.response.componentsState.historyDials.visible = true;

@@ -23,7 +23,7 @@ function extensionMessageFilter({ data }) {
       const content = msg.data.deserialize(global);
       listeners.forEach((fn) => {
         try {
-          fn({ message: content, sender: msg.sender.id });
+          fn(content, msg.sender);
         } catch (e) {
           console.error('unhandled error in message handler', e);
         }

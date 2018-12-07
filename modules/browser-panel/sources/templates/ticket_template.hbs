@@ -28,7 +28,11 @@
                 href="#"
                 data-i18n="learnMore"
                 data-cqz-of-btn-id="more_about_cliqz"
+                {{#if isWebExtension }}
+                data-openUrl="https://myoffrz.com/fuer-nutzer/"
+                {{else}}
                 data-openUrl="https://cliqz.com/en/cliqz-angebote"
+                {{/if}}
             >
                 {{local learnMore}}
             </a>

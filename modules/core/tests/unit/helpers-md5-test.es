@@ -30,5 +30,4 @@ export default describeModule('core/helpers/md5',
         expect(md5('日本')).to.equal('4dbed2e657457884e67137d3514119b3');
       });
     });
-  }
-);
+  });

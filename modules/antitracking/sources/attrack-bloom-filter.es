@@ -78,8 +78,7 @@ export default class AttrackBloomFilter extends QSWhitelistBase {
     if (this.version.major < dt) {
       return this._getFilterForDay(dt) // fast update (guessing the url)
         .catch(() => this._config.updateFromRemote() // fast failed, pull the config too
-          .then(conf => this._getFilterForDay(conf.major))
-        )
+          .then(conf => this._getFilterForDay(conf.major)))
         // process the fetched file, or suppress the error if we weren't able to fetch
         .then(
           ({ bf, major, minor }) => this.updateFilter(bf, major, minor)
@@ -198,8 +197,8 @@ export default class AttrackBloomFilter extends QSWhitelistBase {
 
   getVersion() {
     let bloomFilterversion = null;
-    if (this.bloomFilter && this.bloomFilter.version !== null &&
-        this.bloomFilter.version !== undefined) {
+    if (this.bloomFilter && this.bloomFilter.version !== null
+        && this.bloomFilter.version !== undefined) {
       bloomFilterversion = this.bloomFilter.version;
     }
     return { bloomFilterversion };

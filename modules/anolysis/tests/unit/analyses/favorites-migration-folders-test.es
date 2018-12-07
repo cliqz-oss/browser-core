@@ -21,24 +21,20 @@ require('../telemetry-schemas-test-helpers')({
     };
 
     it('generates 0 signals if no telemetry was sent', () =>
-      generateAnalysisResults({}).then(signals => chai.expect(signals).to.have.length(0))
-    );
+      generateAnalysisResults({}).then(signals => chai.expect(signals).to.have.length(0)));
 
     it('takes last signal', () =>
-      generateAnalysisResults(telemetry).then(([first]) => chai.expect(first).to.eql(signal2))
-    );
+      generateAnalysisResults(telemetry).then(([first]) => chai.expect(first).to.eql(signal2)));
 
     it('shows correct folder count', () =>
-      generateAnalysisResults(telemetry).then(([first]) => chai.expect(first.count).to.equal(5))
-    );
+      generateAnalysisResults(telemetry).then(([first]) => chai.expect(first.count).to.equal(5)));
 
     it('shows correct root folder count', () =>
       generateAnalysisResults(telemetry).then(([first]) =>
-        chai.expect(first.rootFolderCount).to.equal(2))
-    );
+        chai.expect(first.rootFolderCount).to.equal(2)));
 
     it('shows correct max depth', () =>
-      generateAnalysisResults(telemetry).then(([first]) => chai.expect(first.maxDepth).to.equal(4))
-    );
+      generateAnalysisResults(telemetry)
+        .then(([first]) => chai.expect(first.maxDepth).to.equal(4)));
   },
 });

@@ -1,0 +1,701 @@
+{
+  "keywords": [
+    "price", "pp", "pr", "bidprice", "bid_price", "bp", "winprice", "computedprice", "pricefloor",
+    "win_price", "wp", "chargeprice", "charge_price", "cp", "extcost", "tt_bidprice", "bdrct",
+    "hbprice", "hb_bid", "cost", "wtbwinprice", "rtb_win_price", "rtbwp", "bidfloor", "seatbid",
+    "price_paid", "maxPriceInUserCurrency", "_pp", "x_price", "title", "_p", "add_code", "acp", "p",
+    "ep", "wp_exchange", "z", "value", "crtbwp"
+  ],
+  "vendorKeywords": {
+    "a2g-secure.com": [
+      "cp"
+    ],
+    "adform.net": [
+      "cp",
+      "crtbwp"
+    ],
+    "adfox.ru": [
+      "pr"
+    ],
+    "adnear.net": [
+      "price",
+      "wp"
+    ],
+    "adnxs.com": [
+      "pp",
+      "price_paid",
+      "add_code",
+      "pp"
+    ],
+    "adonly.com": [
+      "wp"
+    ],
+    "adscience.nl": [
+      "price"
+    ],
+    "adsniper.ru": [
+      "winprice"
+    ],
+    "adsrvr.org": [
+      "wp"
+    ],
+    "adtarget.me": [
+      "cp"
+    ],
+    "advertexa.ru": [
+      "pr"
+    ],
+    "aeoloscarrentals.com": [
+      "pr"
+    ],
+    "ajillionmax.com": [
+      "cost"
+    ],
+    "amazonaws.com": [
+      "cost",
+      "price"
+    ],
+    "applovin.com": [
+      "price"
+    ],
+    "appturbo.net": [
+      "price"
+    ],
+    "aromatti.com.ua": [
+      "pr"
+    ],
+    "artsource.com.tw": [
+      "pr"
+    ],
+    "assembly.ca.gov": [
+      "pr"
+    ],
+    "asuwebdevilarchive.asu.edu": [
+      "pr"
+    ],
+    "avazutracking.net": [
+      "price"
+    ],
+    "banyuasinkab.go.id": [
+      "pr"
+    ],
+    "bawaslu-jatengprov.go.id": [
+      "pr"
+    ],
+    "blackhatprotools.org": [
+      "pp"
+    ],
+    "bloggagratis.se": [
+      "pr"
+    ],
+    "bloggplatsen.se": [
+      "pr"
+    ],
+    "bluecava.com": [
+      "pp"
+    ],
+    "bnb.com.tw": [
+      "pr"
+    ],
+    "bravejournal.com": [
+      "cp"
+    ],
+    "casalemedia.com": [
+      "cp"
+    ],
+    "chinhua-hotel.com.tw": [
+      "pr"
+    ],
+    "coremetrics.com": [
+      "pr"
+    ],
+    "cornexcapital.com": [
+      "pr"
+    ],
+    "cpmfx.com": [
+      "pr"
+    ],
+    "creative-serving.com": [
+      "pp"
+    ],
+    "criteo.com": [
+      "z"
+    ],
+    "dataxu.net": [
+      "price"
+    ],
+    "depok.go.id": [
+      "pr"
+    ],
+    "doubleclick.net": [
+      "value",
+      "pr",
+      "rtbwp",
+      "wp"
+    ],
+    "dprd-manadokota.go.id": [
+      "pr"
+    ],
+    "dtzads.com": [
+      "cp",
+      "pr"
+    ],
+    "expocasa.com": [
+      "cp"
+    ],
+    "famehosted.com": [
+      "pr"
+    ],
+    "fatecriopreto.edu.br": [
+      "pr"
+    ],
+    "foro20.com": [
+      "pp"
+    ],
+    "forocoches.com": [
+      "pp"
+    ],
+    "foroparalelo.com": [
+      "pp"
+    ],
+    "gamer.com.tw": [
+      "pr"
+    ],
+    "get.it": [
+      "price"
+    ],
+    "godlife.com": [
+      "pp"
+    ],
+    "grandprestige.com.ua": [
+      "pr"
+    ],
+    "green.erne.co": [
+      "wp"
+    ],
+    "gscontxt.net": [
+      "pp"
+    ],
+    "gvardija.com.ua": [
+      "pr"
+    ],
+    "gwallet.com": [
+      "winprice",
+      "win_price"
+    ],
+    "hotels.com": [
+      "pr"
+    ],
+    "hrcapacity.co.za": [
+      "pr"
+    ],
+    "icecentury.com": [
+      "price"
+    ],
+    "intel.com": [
+      "cp"
+    ],
+    "ioam.de": [
+      "cp"
+    ],
+    "isaev.info": [
+      "pr"
+    ],
+    "jampp.com": [
+      "pr"
+    ],
+    "jembranakab.go.id": [
+      "pr"
+    ],
+    "jntwrk.com": [
+      "pp"
+    ],
+    "kemenperin.go.id": [
+      "pr"
+    ],
+    "kfw001.com": [
+      "pr"
+    ],
+    "kidstaff.com.ua": [
+      "pr"
+    ],
+    "korop-hirurgiya.com.ua": [
+      "pr"
+    ],
+    "ladyslife.com.ua": [
+      "pr"
+    ],
+    "latinchatnet.com": [
+      "pp"
+    ],
+    "lavega.cz": [
+      "pr"
+    ],
+    "lavtour.com.ua": [
+      "pr"
+    ],
+    "lbscek.ac.in": [
+      "pr"
+    ],
+    "levi.com": [
+      "cp"
+    ],
+    "lfstmedia.com": [
+      "price"
+    ],
+    "linkfame.com": [
+      "pr"
+    ],
+    "liverail.com": [
+      "pp"
+    ],
+    "lqm.io": [
+      "price"
+    ],
+    "mail.ru": [
+      "cp",
+      "pp"
+    ],
+    "mainchat.net": [
+      "pr"
+    ],
+    "manage.com": [
+      "pr"
+    ],
+    "manualidadesmadera.com": [
+      "cp"
+    ],
+    "mathtag.com": [
+      "price"
+    ],
+    "mdotm.com": [
+      "price",
+      "wp"
+    ],
+    "mdotm.co": [
+      "price"
+    ],
+    "media.net": [
+      "bdrct",
+      "price"
+    ],
+    "mediasmart.es": [
+      "computedPrice",
+      "priceFloor"
+    ],
+    "med-life.com.ua": [
+      "pr"
+    ],
+    "messware.cl": [
+      "cp"
+    ],
+    "metamx.com": [
+      "charge_price"
+    ],
+    "ml314.com": [
+      "cp"
+    ],
+    "mobfox.com": [
+      "price"
+    ],
+    "mopub.com": [
+      "charge_price"
+    ],
+    "mtrtb.com": [
+      "price"
+    ],
+    "myav.com.tw": [
+      "cp",
+      "pp"
+    ],
+    "mygaming.co.za": [
+      "pp"
+    ],
+    "mythings.com": [
+      "rtbwinprice"
+    ],
+    "neodatavalle.com.mx": [
+      "pp"
+    ],
+    "netadge.com": [
+      "pr"
+    ],
+    "nihr.ac.uk": [
+      "pr"
+    ],
+    "nudeinfrance.com": [
+      "cp"
+    ],
+    "nxtck.com": [
+      "wp"
+    ],
+    "obenri.com": [
+      "pp"
+    ],
+    "oysteryachts.com": [
+      "Price"
+    ],
+    "perload.com": [
+      "wp"
+    ],
+    "pertanian.go.id": [
+      "pr"
+    ],
+    "pioneeringad.com": [
+      "wp"
+    ],
+    "playhaven.com": [
+      "cp"
+    ],
+    "playtika.com": [
+      "cost"
+    ],
+    "primo-net.com.tw": [
+      "pr"
+    ],
+    "pubmatic.com": [
+      "cp"
+    ],
+    "pxxtz.com": [
+      "pp"
+    ],
+    "qservz.com": [
+      "wp"
+    ],
+    "quantserve.com": [
+      "winPrice"
+    ],
+    "racalacarta.com": [
+      "cp"
+    ],
+    "radenfatah.ac.id": [
+      "pr"
+    ],
+    "rdsrv.com": [
+      "cost"
+    ],
+    "recoverymisfits.com": [
+      "pr"
+    ],
+    "remerge.io": [
+      "price"
+    ],
+    "revsci.net": [
+      "price"
+    ],
+    "rfihub.com": [
+      "ep",
+      "price"
+    ],
+    "rfihub.net": [
+      "ep"
+    ],
+    "rtbfy.com": [
+      "price"
+    ],
+    "rtbserv.com": [
+      "price"
+    ],
+    "rubiconproject.com": [
+      "price"
+    ],
+    "scarabresearch.com": [
+      "cp"
+    ],
+    "selectmedia.asia": [
+      "price"
+    ],
+    "semarangkota.go.id": [
+      "pr"
+    ],
+    "senate.ca.gov": [
+      "pr"
+    ],
+    "servebom.com": [
+      "cp"
+    ],
+    "socialblade.com": [
+      "pp"
+    ],
+    "solostocks.com": [
+      "pr"
+    ],
+    "sourcesite360.com": [
+      "price"
+    ],
+    "spoutable.com": [
+      "bidFloor"
+    ],
+    "startmenubutton.com": [
+      "price"
+    ],
+    "steroid-forums.com": [
+      "pp"
+    ],
+    "stikespanakkukang.ac.id": [
+      "pr"
+    ],
+    "strikead.com": [
+      "price"
+    ],
+    "sums.ac.ir": [
+      "pr"
+    ],
+    "taptapnetworks.com": [
+      "winPrice"
+    ],
+    "taptica.com": [
+      "pR",
+      "price",
+      "tt_bidprice"
+    ],
+    "tasikmalayakab.go.id": [
+      "pr"
+    ],
+    "terdir.com": [
+      "cost"
+    ],
+    "thetraveltailor.co.za": [
+      "pr"
+    ],
+    "tlvmedia.com": [
+      "cost"
+    ],
+    "tpbid.com": [
+      "price"
+    ],
+    "ubemogul.com": [
+      "cp"
+    ],
+    "tubemogul.com": [
+      "pp",
+      "price",
+      "x_price"
+    ],
+    "turn.com": [
+      "acp"
+    ],
+    "ucr.ac.cr": [
+      "pr"
+    ],
+    "ufabc.edu.br": [
+      "pr"
+    ],
+    "ufam.edu.br": [
+      "pr"
+    ],
+    "ultra-all.com.ua": [
+      "pr"
+    ],
+    "umpalembang.ac.id": [
+      "pr"
+    ],
+    "umsida.ac.id": [
+      "pr"
+    ],
+    "univpgri-palembang.ac.id": [
+      "pr"
+    ],
+    "unud.ac.id": [
+      "pr"
+    ],
+    "utorrent.com": [
+      "pr"
+    ],
+    "varisk.co.za": [
+      "pr"
+    ],
+    "w55c.net": [
+      "wp_exchange"
+    ],
+    "webcal.fi": [
+      "wp"
+    ],
+    "webcrawler.com": [
+      "pp"
+    ],
+    "wedpro.com.ua": [
+      "pr"
+    ],
+    "wooga.com": [
+      "price"
+    ],
+    "wtp101.com": [
+      "pp"
+    ],
+    "yhd.com": [
+      "cp"
+    ],
+    "yunmingi.com.tw": [
+      "pr"
+    ],
+    "zemanta.com": [
+      "price"
+    ],
+    "zendesk.com": [
+      "pr"
+    ],
+    "888.hn": [
+      "pr"
+    ],
+    "11870.com": [
+      "pr"
+    ],
+    "invitemedia.com": [
+      "cost"
+    ],
+    "ru4.com": [
+      "_pp"
+    ],
+    "bluekai.com": [
+      "phint"
+    ],
+    "pardot.com": [
+      "title"
+    ],
+    "adsvana.com": [
+      "_p"
+    ],
+    "quantcount.com": [
+      "p"
+    ],
+    "openx.net": [
+      "bp"
+    ]
+  },
+  "adDomains": [
+    "adition.com",
+    "adtech.de",
+    "adtechus.com",
+    "agkn.com",
+    "advertising.com",
+    "adfox.ru",
+    "adriver.ru",
+    "adroll.com",
+    "adsafeprotected.com",
+    "adspirit.de",
+    "euroclick.com",
+    "adform.net",
+    "atemda.com",
+    "2o7.net",
+    "demdex.net",
+    "everesttech.net",
+    "omtrdc.net",
+    "adverticum.net",
+    "amazon-adsystem.com",
+    "amazon.de",
+    "amazon.fr",
+    "adnxs.com",
+    "bizographics.com",
+    "bluecava.com",
+    "bkrtx.com",
+    "bluekai.com",
+    "thebrighttag.com",
+    "buysellads.com",
+    "contextweb.com",
+    "casalemedia.com",
+    "channeladvisor.com",
+    "creative-serving.com",
+    "criteo.com",
+    "criteo.net",
+    "crsspxl.com",
+    "dc-storm.com",
+    "serving-sys.com",
+    "w55c.net",
+    "de17a.com",
+    "doublepimp.com",
+    "doubleverify.com",
+    "adsymptotic.com",
+    "effectivemeasure.net",
+    "ensighten.com",
+    "ero-advertising.com",
+    "betrad.com",
+    "exoclick.com",
+    "tribalfusion.com",
+    "lijit.com",
+    "flashtalking.com",
+    "rubiconproject.com",
+    "fout.jp",
+    "gemius.pl",
+    "ligatus.com",
+    "gumgum.com",
+    "smartadserver.com",
+    "hurra.com",
+    "360yield.com",
+    "intentmedia.net",
+    "juicyads.com",
+    "xg4ken.com",
+    "krxd.net",
+    "levexis.com",
+    "lfstmedia.com",
+    "linksynergy.com",
+    "listrakbi.com",
+    "liadm.com",
+    "list-manage.com",
+    "marketgid.com",
+    "marketo.com",
+    "mathtag.com",
+    "microad.jp",
+    "atdmt.com",
+    "moatads.com",
+    "monetate.net",
+    "navdmp.com",
+    "netmng.com",
+    "nxtck.com",
+    "imrworldwide.com",
+    "openx.net",
+    "outbrain.com",
+    "owneriq.net",
+    "pardot.com",
+    "po.st",
+    "popads.net",
+    "pubmatic.com",
+    "quantserve.com",
+    "rambler.ru",
+    "rlcdn.com",
+    "revcontent.com",
+    "richrelevance.com",
+    "rfihub.com",
+    "sas.com",
+    "simpli.fi",
+    "skimresources.com",
+    "spotxchange.com",
+    "steelhousemedia.com",
+    "switchadhub.com",
+    "taboola.com",
+    "tapad.com",
+    "teads.tv",
+    "terra.com.br",
+    "rkdms.com",
+    "adsrvr.org",
+    "inq.com",
+    "tradedoubler.com",
+    "unrulymedia.com",
+    "dotomi.com",
+    "mediaplex.com",
+    "intellitxt.com",
+    "vizury.com",
+    "mookie1.com",
+    "weborama.com",
+    "weborama.fr",
+    "wp.pl",
+    "yandex.ru",
+    "yieldlab.net",
+    "zedo.com",
+    "zemanta.com",
+    "ru4.com",
+    "adscale.de",
+    "cxense.com",
+    "ebay.com",
+    "exelator.com",
+    "media.net",
+    "nuggad.net",
+    "plista.com",
+    "sociomantic.com",
+    "sophus3.com",
+    "twyn.com",
+    "ucoz.net",
+    "xplosion.de",
+    "zanox.com"
+  ]
+}

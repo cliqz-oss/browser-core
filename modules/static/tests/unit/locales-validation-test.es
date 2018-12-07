@@ -46,8 +46,7 @@ export default describeModule('static/main',
         locales = langs.map(lang =>
           readLocaleFile(`${localesPath}/${lang}/messages.json`)
             .split('\n')
-            .slice(1, -2)
-        );
+            .slice(1, -2));
       });
 
       it('All locales are valid JSON', () => {
@@ -85,5 +84,4 @@ export default describeModule('static/main',
         }
       });
     });
-  },
-);
+  });

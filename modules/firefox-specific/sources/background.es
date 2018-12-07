@@ -7,7 +7,7 @@ import { Services } from '../platform/globals';
 import HistoryManager from '../core/history-manager';
 import ObservableProxy from '../core/helpers/observable-proxy';
 import HistoryService from '../core/history-service';
-import telemetry from '../core/services/telemetry';
+import inject from '../core/kord/inject';
 import { getDaysSinceInstall } from '../core/demographics';
 
 /**
@@ -39,16 +39,16 @@ export default background({
         .take(1)
         // merge with location-change that matches the url
         .withLatestFrom(locationChanges$.filter(({ url: u }) => u === url))
-        .map(([, { status }]) => ({ resultType, status }))
-    ).subscribe(({ status, resultType }) => {
-      utils.telemetry({
-        type: 'performance',
-        action: 'response',
-        response_code: status / 100,
-        result_type: resultType,
-        v: 1,
+        .map(([, { status }]) => ({ resultType, status })))
+      .subscribe(({ status, resultType }) => {
+        utils.telemetry({
+          type: 'performance',
+          action: 'response',
+          response_code: status / 100,
+          result_type: resultType,
+          v: 1,
+        });
       });
-    });
 
     this.onVisited = this.onVisited.bind(this);
     HistoryService.onVisited.addListener(this.onVisited);
@@ -83,13 +83,13 @@ export default background({
   },
 
   onVisited(visits) {
-    telemetry.push({ visitsCount: visits.length }, 'metrics.history.visits.count');
+    inject.service('telemetry').push({ visitsCount: visits.length }, 'metrics.history.visits.count');
   },
 
   whoAmI({ startup, windowId }) {
-    (Services.search.init ?
-      new Promise(resolve => Services.search.init(resolve)) :
-      Promise.resolve()
+    (Services.search.init
+      ? new Promise(resolve => Services.search.init(resolve))
+      : Promise.resolve()
     ).then(() => this.sendEnvironmentalSignal({
       startup,
       defaultSearchEngine: Services.search.currentEngine.name,

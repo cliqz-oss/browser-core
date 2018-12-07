@@ -9,8 +9,9 @@ import { toggleSubscription, isSubscribedToLeague } from '../../../platform/subs
 import SubscribeButton from '../SubscribeButton';
 import PoweredByKicker from '../partials/PoweredByKicker';
 import { elementTopMargin, elementSideMargins } from '../../styles/CardStyle';
+import themeDetails from '../../themes';
 
-const styles = StyleSheet.create({
+const styles = theme => StyleSheet.create({
   elementMargins: {
     ...elementTopMargin,
     ...elementSideMargins,
@@ -21,7 +22,7 @@ const styles = StyleSheet.create({
   },
   groupContainer: {
     marginTop: 5,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: themeDetails[theme].soccer.container,
     borderRadius: 4,
     padding: 10,
   },
@@ -40,12 +41,12 @@ const styles = StyleSheet.create({
     flex: 4,
   },
   tableHeader: {
-    color: '#999999',
+    color: themeDetails[theme].soccer.subText,
     fontWeight: '100',
     fontSize: 12,
   },
   tableBody: {
-    color: 'black',
+    color: themeDetails[theme].soccer.mainText,
     fontWeight: 'bold',
     fontSize: 12,
   }
@@ -82,6 +83,8 @@ export default class SoccerTable extends React.Component {
   updateSubscriptionData() {
     const data = this.props.data;
     return this.getSubscriptionData(data)
+      // TODO fix the unused state
+      /* eslint-disable-next-line react/no-unused-state */
       .then(subscriptionData => this.setState({ subscriptionData }));
   }
 
@@ -90,152 +93,175 @@ export default class SoccerTable extends React.Component {
   }
 
   get actionMessage() {
-    return this.isSubscribed ?
-      getMessage('mobile_soccer_subscribe_league_done', this.props.data.leagueName) :
-      getMessage('mobile_soccer_subscribe_league', this.props.data.leagueName);
+    return this.isSubscribed
+      ? getMessage('mobile_soccer_subscribe_league_done', this.props.data.leagueName)
+      : getMessage('mobile_soccer_subscribe_league', this.props.data.leagueName);
   }
 
   displayHeader(groupName = null) {
-    return (<View>
-      {groupName && <Text style={styles.tableBody}>{groupName}</Text>}
-      <View
-        accessible={false}
-        accessibilityLabel={'soccer-header-container'}
-        style={styles.header}
-      >
-        <Text numberOfLines={1} style={[styles.narrow, styles.tableHeader]} />
+    const theme = this.props.theme;
+    return (
+      <View>
+        {groupName && <Text style={styles(theme).tableBody}>{groupName}</Text>}
         <View
           accessible={false}
-          accessibilityLabel={'soccer-header-header'}
-          style={styles.wide}
+          accessibilityLabel="soccer-header-container"
+          style={styles(theme).header}
         >
-          <Text numberOfLines={1} style={styles.tableHeader}>Mannschaft</Text>
-        </View>
-        <View
-          accessible={false}
-          accessibilityLabel={'soccer-header-sp'}
-          style={styles.narrow}
-        >
-          <Text numberOfLines={1} style={styles.tableHeader}>SP</Text>
-        </View>
-        <View
-          accessible={false}
-          accessibilityLabel={'soccer-header-td'}
-          style={styles.narrow}
-        >
-          <Text numberOfLines={1} style={styles.tableHeader}>TD</Text>
-        </View>
-        <View
-          accessible={false}
-          accessibilityLabel={'soccer-header-pkt'}
-          style={styles.narrow}
-        >
-          <Text numberOfLines={1} style={styles.tableHeader}>PKT</Text>
+          <Text numberOfLines={1} style={[styles(theme).narrow, styles(theme).tableHeader]} />
+          <View
+            accessible={false}
+            accessibilityLabel="soccer-header-header"
+            style={styles(theme).wide}
+          >
+            <Text numberOfLines={1} style={styles(theme).tableHeader}>Mannschaft</Text>
+          </View>
+          <View
+            accessible={false}
+            accessibilityLabel="soccer-header-sp"
+            style={styles(theme).narrow}
+          >
+            <Text numberOfLines={1} style={styles(theme).tableHeader}>SP</Text>
+          </View>
+          <View
+            accessible={false}
+            accessibilityLabel="soccer-header-td"
+            style={styles(theme).narrow}
+          >
+            <Text numberOfLines={1} style={styles(theme).tableHeader}>TD</Text>
+          </View>
+          <View
+            accessible={false}
+            accessibilityLabel="soccer-header-pkt"
+            style={styles(theme).narrow}
+          >
+            <Text numberOfLines={1} style={styles(theme).tableHeader}>PKT</Text>
+          </View>
         </View>
       </View>
-    </View>);
-  }
-
-  displayRanking(ranking) {
-    return ranking.map(row =>
-      (<View
-        accessible={false}
-        accessibilityLabel={'soccer-ranking-container'}
-        style={styles.header}
-        key={row.club}
-      >
-        <View
-          accessible={false}
-          accessibilityLabel={'soccer-ranking-rank'}
-          style={styles.narrow}
-        >
-          <Text numberOfLines={1} style={styles.tableBody}>{`${row.rank}.`}</Text>
-        </View>
-        <View
-          accessible={false}
-          accessibilityLabel={'soccer-ranking-club'}
-          style={styles.wide}
-        >
-          <Text numberOfLines={1} style={styles.tableBody}>{row.club}</Text>
-        </View>
-        <View
-          accessible={false}
-          accessibilityLabel={'soccer-ranking-sp'}
-          style={styles.narrow}
-        >
-          <Text numberOfLines={1} style={styles.tableBody}>{row.SP}</Text>
-        </View>
-        <View
-          accessible={false}
-          accessibilityLabel={'soccer-ranking-td'}
-          style={styles.narrow}
-        >
-          <Text numberOfLines={1} style={styles.tableBody}>{row.TD}</Text>
-        </View>
-        <View
-          accessible={false}
-          accessibilityLabel={'soccer-ranking-pkt'}
-          style={styles.narrow}
-        >
-          <Text numberOfLines={1} style={styles.tableBody}>{row.PKT}</Text>
-        </View>
-      </View>)
     );
   }
 
+  displayRanking(ranking) {
+    const theme = this.props.theme;
+    return ranking.map(row =>
+      (
+        <View
+          accessible={false}
+          accessibilityLabel="soccer-ranking-container"
+          style={styles(theme).header}
+          key={row.club}
+        >
+          <View
+            accessible={false}
+            accessibilityLabel="soccer-ranking-rank"
+            style={styles(theme).narrow}
+          >
+            <Text numberOfLines={1} style={styles(theme).tableBody}>{`${row.rank}.`}</Text>
+          </View>
+          <View
+            accessible={false}
+            accessibilityLabel="soccer-ranking-club"
+            style={styles(theme).wide}
+          >
+            <Text numberOfLines={1} style={styles(theme).tableBody}>{row.club}</Text>
+          </View>
+          <View
+            accessible={false}
+            accessibilityLabel="soccer-ranking-sp"
+            style={styles(theme).narrow}
+          >
+            <Text numberOfLines={1} style={styles(theme).tableBody}>{row.SP}</Text>
+          </View>
+          <View
+            accessible={false}
+            accessibilityLabel="soccer-ranking-td"
+            style={styles(theme).narrow}
+          >
+            <Text numberOfLines={1} style={styles(theme).tableBody}>{row.TD}</Text>
+          </View>
+          <View
+            accessible={false}
+            accessibilityLabel="soccer-ranking-pkt"
+            style={styles(theme).narrow}
+          >
+            <Text numberOfLines={1} style={styles(theme).tableBody}>{row.PKT}</Text>
+          </View>
+        </View>
+      ));
+  }
+
   displayGroup(group) {
-    return (<View
-      accessible={false}
-      accessibilityLabel={'soccer-group-container'}
-      style={styles.groupContainer}
-      key={group.group || 'key'}
-    >
-      {this.displayHeader(group.group)}
-      {this.displayRanking(group.ranking)}
-    </View>);
+    const theme = this.props.theme;
+
+    return (
+      <View
+        accessible={false}
+        accessibilityLabel="soccer-group-container"
+        style={styles(theme).groupContainer}
+        key={group.group || 'key'}
+      >
+        {this.displayHeader(group.group)}
+        {this.displayRanking(group.ranking)}
+      </View>
+    );
   }
 
   displayGroups(data) {
     if (!data.groups) {
       data.groups = [{ ranking: data.ranking }];
     }
-    return (<View>
-      {data.groups.map(this.displayGroup.bind(this))}
-    </View>);
+    return (
+      <View>
+        {data.groups.map(this.displayGroup.bind(this))}
+      </View>
+    );
   }
 
   get content() {
+    const theme = this.props.theme;
     const data = this.state.data;
 
-    return data && <Link url={data.url}>
-      <View style={[styles.outerContainer]}>
-        {this.displayGroups(data)}
-      </View>
-    </Link>;
+    return data
+      && (
+        <Link url={data.url}>
+          <View style={[styles(theme).outerContainer]}>
+            {this.displayGroups(data)}
+          </View>
+        </Link>
+      );
   }
 
   render() {
     const type = 'soccer';
+    const theme = this.props.theme;
 
-    return (<View
-      accessible={false}
-      accessibilityLabel={'soccer-table'}
-      style={styles.elementMargins}
-    >
-      {this.content}
-      {Boolean(this.isValid) &&
-        <View style={{ ...elementTopMargin }}>
-          <SubscribeButton
-            onPress={() => {
-              toggleSubscription(type, this.subtype, this.id, this.isSubscribed)
-                .then((...args) => this.updateSubscriptionData(...args));
-            }}
-            isSubscribed={this.isSubscribed}
-            actionMessage={this.actionMessage}
-          />
-        </View>
-      }
-      <PoweredByKicker logo={this.props.result.meta.externalProvidersLogos.kicker} />
-    </View>);
+    return (
+      <View
+        accessible={false}
+        accessibilityLabel="soccer-table"
+        style={styles(theme).elementMargins}
+      >
+        {this.content}
+        {Boolean(this.isValid)
+          && (
+            <View style={{ ...elementTopMargin }}>
+              <SubscribeButton
+                onPress={() => {
+                  toggleSubscription(type, this.subtype, this.id, this.isSubscribed)
+                    .then((...args) => this.updateSubscriptionData(...args));
+                }}
+                isSubscribed={this.isSubscribed}
+                actionMessage={this.actionMessage}
+              />
+            </View>
+          )
+        }
+        <PoweredByKicker
+          logo={this.props.result.meta.externalProvidersLogos.kicker}
+          theme={theme}
+        />
+      </View>
+    );
   }
 }

@@ -1,0 +1,10 @@
+{
+  "subprojects": [
+    "chai",
+    "chai-dom",
+    "mocha",
+    "reactTestUtils",
+    "sinon",
+    "sinon-chai"
+  ]
+}

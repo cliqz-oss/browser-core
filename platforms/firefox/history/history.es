@@ -137,8 +137,9 @@ const searchQuery = ({ limit, frameStartsAt, frameEndsAt, domain, query },
         ${aMatchBehavior}, ${aSearchBehavior})`);
   }
 
-  const conditionsStatement = conditions.length > 0 ?
-    `WHERE ${conditions.join(' AND ')}` : '';
+  const conditionsStatement = conditions.length > 0
+    ? `WHERE ${conditions.join(' AND ')}`
+    : '';
 
   let limitStatement = '';
   if (limit) {
@@ -222,8 +223,7 @@ export default class {
       ).then(() => PlacesUtils.history.removeVisitsByFilter({
         beginDate: PlacesUtils.toDate(+visitId),
         endDate: PlacesUtils.toDate(+visitId + 1000)
-      }))
-    );
+      })));
   }
 
   static deleteVisits(visitIds) {

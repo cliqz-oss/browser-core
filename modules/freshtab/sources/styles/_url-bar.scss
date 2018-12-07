@@ -8,7 +8,7 @@
     $search-input-height,
     $search-font-size,
     $search-text-indent,
-    $search-settings-btn-top,
+    $search-reminder-indent,
 
     $search-input-box-shadow,
     $search-input-border,
@@ -17,25 +17,16 @@
     $search-input-cliqz-bg-image,
     $search-input-ghostery-bg-image
 ){
-    .ghostery-search  input {
-        background-image: $search-input-ghostery-bg-image;
-    }
-
-    .cliqz-search input {
-        background-image: $search-input-cliqz-bg-image;
-    }
-
     .search {
         margin: 0 auto;
         position: relative;
-        margin-top: 40px;
 
         input {
             height: $search-input-height;
-            border-radius: 2px;
+            border-radius: 4px;
             border: $search-input-border;
             box-shadow: $search-input-box-shadow;
-            width: $search-size;
+            width: $inner-content-width;
             padding: 0 40px 0 $search-text-indent;
             background-repeat: no-repeat;
             font-size: $search-font-size;
@@ -73,6 +64,24 @@
             font-size: $search-font-size;
             color:    $search-input-color;
             opacity:  1;
+        }
+
+        &.ghostery-search input {
+            background-image: $search-input-ghostery-bg-image;
+            background-size: auto 50%;
+            background-position: 2% center;
+        }
+
+        &.cliqz-search {
+            input {
+                background-image: $search-input-cliqz-bg-image;
+                background-size: auto 50%;
+                background-position: 2% center;
+            }
+        }
+
+        &:not(.with-results) {
+            margin-top: $search-input-height;
         }
     }
 }

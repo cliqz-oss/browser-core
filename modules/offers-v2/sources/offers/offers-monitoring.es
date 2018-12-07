@@ -19,8 +19,9 @@
 
 import logger from '../common/offers_v2_logger';
 import MonitorDBHandler from './monitor/monitor-db';
-import { buildMultiPatternIndexPatternAsID } from '.././common/pattern-utils';
+import { buildMultiPatternIndexPatternAsID } from '../common/pattern-utils';
 import sendMonitorSignal from './monitor/utils';
+import moment from '../../platform/lib/moment';
 
 const URLCHANGE_TYPE = 'urlchange';
 const WEBREQUEST_TYPE = 'webrequest';
@@ -53,10 +54,10 @@ const buildMonitorsFromOffer = (offer) => {
       monitorInfo.couponInfo = md.couponInfo;
       // take the code from the offer itself, which is located in
       // ui_info -> template_data -> code
-      const code = (offerData.ui_info &&
-        offerData.ui_info.template_data &&
-        offerData.ui_info.template_data.code) ?
-        offerData.ui_info.template_data.code : '';
+      const code = (offerData.ui_info
+        && offerData.ui_info.template_data
+        && offerData.ui_info.template_data.code)
+        ? offerData.ui_info.template_data.code : '';
       monitorInfo.couponInfo.code = code;
 
       if (md.couponInfo.autoFillField === undefined) {
@@ -80,9 +81,8 @@ const selectActiveMonitors = (activeMonitors) => {
   }
   activeMonitors.sort((a, b) =>
     // find the first of these fields that is not empty for any of the values
-    ((b.click || 0) - (a.click || 0)) || ((b.view || 0) - (a.view || 0)) ||
-    ((b.last_update || 0) - (a.last_update || 0)) || 0
-  );
+    ((b.click || 0) - (a.click || 0)) || ((b.view || 0) - (a.view || 0))
+    || ((b.last_update || 0) - (a.last_update || 0)) || 0);
   const offerID = activeMonitors[0].offerID;
 
   return activeMonitors.map((mit) => {
@@ -186,8 +186,7 @@ export default class OffersMonitorHandler {
   removeOfferMonitors(offer) {
     const domains = new Set();
     buildMonitorsFromOffer(offer).forEach(md =>
-      this._removeOfferMonitor(md).forEach(domain => domains.add(domain))
-    );
+      this._removeOfferMonitor(md).forEach(domain => domains.add(domain)));
 
     // Before unsubscribing a domain from the eventhandler we need to
     // verify it is not used by still active monitors
@@ -195,9 +194,7 @@ export default class OffersMonitorHandler {
     Object.keys(this.monitors[WEBREQUEST_TYPE].patterns)
       .map(pattern =>
         this.monitors[WEBREQUEST_TYPE].patterns[pattern].map(mon =>
-          allDomains.add(mon.domain)
-        )
-      );
+          allDomains.add(mon.domain)));
     [...domains].forEach((domain) => {
       if (!(allDomains.has(domain))) {
         this.eventHandler.unsubscribeHttpReq(this.webRequestCallback, domain);
@@ -245,14 +242,20 @@ export default class OffersMonitorHandler {
     }
 
     const allActiveMonitors = [...patterns].map(pattern =>
-      this.monitors[COUPON_TYPE].patterns[pattern]
-    ).reduce((activeMonitors, monitor) => activeMonitors.concat(monitor), []);
+      this.monitors[COUPON_TYPE].patterns[pattern])
+      .reduce((activeMonitors, monitor) => activeMonitors.concat(monitor), []);
 
     const activeOffer = selectActiveMonitors(allActiveMonitors)[0];
-    activeOffer.couponInfo.pattern = activeOffer.patterns[0];
+    const couponInfo = JSON.parse(JSON.stringify(activeOffer.couponInfo));
+    couponInfo.pattern = activeOffer.patterns[0];
+    const pastDay = moment() - 24 * 60 * 60 * 1000;
+    const autoFillField = couponInfo.autoFillField
+      && (activeOffer.click > pastDay || activeOffer.view > pastDay);
+    couponInfo.autoFillField = autoFillField;
+    logger.log('shouldActivateOfferForUrl: autoFillField:', autoFillField, ' for:', JSON.stringify(activeOffer));
     return {
       offerID: activeOffer.offerID,
-      offerInfo: activeOffer.couponInfo,
+      offerInfo: couponInfo,
       activate: true
     };
   }
@@ -288,14 +291,14 @@ export default class OffersMonitorHandler {
   // ///////////////////////////////////////////////////////////////////////////
 
   _isMonitorDataValid(monitorData) {
-    return monitorData &&
-      monitorData.offerID &&
-      monitorData.signalID &&
-      ((monitorData.type === 'webrequest' && monitorData.domain) ||
-       (monitorData.type === 'urlchange') ||
-       (monitorData.type === 'coupon' && monitorData.couponInfo)) &&
-      (monitorData.patterns && monitorData.patterns.length > 0) &&
-      (!monitorData.patterns.some(p => p.length === 0));
+    return monitorData
+      && monitorData.offerID
+      && monitorData.signalID
+      && ((monitorData.type === 'webrequest' && monitorData.domain)
+       || (monitorData.type === 'urlchange')
+       || (monitorData.type === 'coupon' && monitorData.couponInfo))
+      && (monitorData.patterns && monitorData.patterns.length > 0)
+      && (!monitorData.patterns.some(p => p.length === 0));
   }
 
   /**
@@ -400,8 +403,8 @@ export default class OffersMonitorHandler {
 
     const patterns = monitorIndex.match(urlData.getPatternRequest());
 
-    const allActiveMonitors = [...patterns].map(pattern =>
-      this.monitors[monitorType].patterns[pattern]
+    const allActiveMonitors = [...patterns].map(
+      pattern => this.monitors[monitorType].patterns[pattern]
     ).reduce((activeMonitors, monitor) => activeMonitors.concat(monitor), []);
 
     // Only send signals for the last clicked or if none clicked the last pushed campaign

@@ -78,5 +78,4 @@ export default describeModule('search/operators/normalize',
         return chai.expect(normalize(legacy)).to.deep.equal(normalized);
       });
     });
-  },
-);
+  });

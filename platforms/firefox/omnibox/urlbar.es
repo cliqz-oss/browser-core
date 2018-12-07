@@ -7,6 +7,7 @@ const { Management: { global: { windowTracker } } } = ChromeUtils.import('resour
 
 export default class BrowserURLBar extends EventEmitter {
   _oldPlaceholder = null;
+
   _placeholder = null;
 
   constructor(dropdown) {
@@ -222,8 +223,8 @@ export default class BrowserURLBar extends EventEmitter {
         const mInputField = urlbar.mInputField;
         const hasCompletion = mInputField.selectionEnd !== mInputField.selectionStart;
         if (
-          hasCompletion &&
-          mInputField.value[mInputField.selectionStart] === String.fromCharCode(event.charCode)
+          hasCompletion
+          && mInputField.value[mInputField.selectionStart] === String.fromCharCode(event.charCode)
         ) {
           let query = urlbar.value;
           const queryWithCompletion = mInputField.value;
@@ -262,10 +263,10 @@ export default class BrowserURLBar extends EventEmitter {
 
       // Check if toolbar background color is light-grey-ish and non-transparent
       const [, r, g, b, a] = bgColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+))?/) || ['', '0', '0', '0', '0'];
-      if (r > CHANNEL_TRESHOLD &&
-          g > CHANNEL_TRESHOLD &&
-          b > CHANNEL_TRESHOLD &&
-          (a === undefined || a >= 1)
+      if (r > CHANNEL_TRESHOLD
+          && g > CHANNEL_TRESHOLD
+          && b > CHANNEL_TRESHOLD
+          && (a === undefined || a >= 1)
       ) {
         this._color = bgColor;
       } else {

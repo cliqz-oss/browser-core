@@ -2,7 +2,7 @@
 /* eslint camelcase: 'off'  */
 /* eslint no-multi-spaces: 'off'  */
 
-import platformEquals, { URI } from '../platform/url';
+import platformEquals, { URI, isKnownProtocol } from '../platform/url';
 import { getPublicSuffix } from './tlds';
 import MapCache from './helpers/fixed-size-cache';
 import {
@@ -23,17 +23,18 @@ const ULD = `${LD}\\u{00c0}-\\u{ffff}`;
 const LDH = `${LD}-_`;    // technically underscore cannot be the part of hostname
 const ULDH = `${ULD}-_`;  // but it is being used too often to ignore it
 
-const UrlRegExp = new RegExp(
-  `^([${ULDH}]{2,63}\\.)*` +             // optional subdomains
-  `[${ULD}][${ULDH}]{0,61}[${ULD}]\\.` + // mandatory hostname
-  `[${ULD}]{2,63}` +                     // mandatory TLD
-  '(:\\d{2,5})?$',                       // optional port
-  'iu');
+const UrlRegExp = new RegExp([
+  `^(?:[${ULDH}]{1,63}\\.)*`,             // optional subdomains
+  `((?:[${ULD}][${ULDH}]{0,61}[${ULD}])|`,
+  `(?:[${ULD}]))\\.`,                     // mandatory hostname
+  `([${ULD}]{2,63})`,                     // mandatory TLD
+  '(?:(?::(\\d{1,5}))|\\.)?$',             // optional port or dot
+].join(''), 'iu');
 
-const LocalUrlRegExp = new RegExp(
-  `^[${LD}][${LDH}]{0,61}[${LD}]` + // mandatory ascii hostname
-  ':\\d{2,5}$',                    // mandatory port
-  'i');
+const LocalUrlRegExp = new RegExp([
+  `(^[${LD}][${LDH}]{0,61}[${LD}])`, // mandatory ascii hostname
+  '(:\\d{1,5})$',                     // mandatory port
+].join(''), 'i');
 
 function tryFn(fn) {
   return (...args) => {
@@ -62,49 +63,81 @@ export function isIpAddress(host) {
   return isIpv4Address(host) || isIpv6Address(host);
 }
 
-export function isUrl(input) {
+/**
+ * This function performs a loose check against given input string in order to decide
+ * whether it LOOKS LIKE a URL or not. It relies on a number of heuristics and cannot be
+ * 100% correct.
+ *
+ * Typical use case for this function would be testing if user-typed value in the URL bar
+ * is a URL (and we should navigate to that address) or just a search query (and we should
+ * lead them to search).
+ *
+ * It DOES NOT run strict URL checks or tests URL's validity, DO NOT USE IT FOR THESE PURPOSES.
+ * @param {String} input
+ * @returns {Boolean}
+ */
+export function isUrl(_input) {
+  const input = _input.trim();
   if (!input) {
     return false;
   }
 
-  try {
-    const uri = new URI(input);
-    if ((uri.host || uri.path !== '/') && uri.isKnownProtocol) {
-      return true;
+  // General heuristics are:
+  // 1. If the input string can be successfuly parsed with a URL constructor
+  //    and has a known protocol — it IS A URL.
+  //    Examples: 'https://cliqz.com', 'mailto:info@cliqz.com', 'data:text/plain,hello'
+  // 2. If the input string starts with a known protocol but cannot be parsed — it is NOT A URL.
+  //    Examples: 'http://?q=0#wat', 'about:'
+  // 3. If the input string is not valid URL (usually due to the lack of protocol) extract
+  //    domain name and port out of it and run the following checks:
+  //    a. If domain name is 'localhost' or IP-address IT IS A URL. Port is optional.
+  //       Examples: 'localhost', '192.168.1.1', '[2001:db8:85a3:8d3:1319:8a2e:370:7348]:443'
+  //    b. If domain matches "höstnäme.tld" pattern IT IS A URL
+  //       (höstnäme can contain Unicode symbols, port is optional).
+  //       Examples: 'bild.de', 'www.nürnberg.de', 'cliqz.com:443'
+  //    c. If domain matches "hostname:port" pattern IT IS A URL
+  //       (hostname can only contain ASCII symbols).
+  //       Examples: 'cliqznas:80', magrathea:8080'
+  // 4. If none of the conditions above can be applied to the input string IT IS NOT A URL.
+
+  function isUrlLike(host) {
+    // TODO strict check port validity
+    if (!host) {
+      return false;
     }
-  } catch (e) {
-    // Strict url parsing has failed (most likely due to lack of protocol).
-    // Falling back to a loose check to see if user input _looks_ like URL.
+    return host.toLowerCase() === 'localhost'
+      || UrlRegExp.test(host)
+      || LocalUrlRegExp.test(host)
+      || isIpAddress(host);
   }
 
-  // Remove protocol
-  input = input.trim();
-  const protocolList = ['http', 'chrome:', 'resource:', 'file:', 'view-source:', 'ftp:'];
-  if (protocolList.some(protocol => input.startsWith(protocol))) {
-    const protocolPos = input.indexOf('://');
-    if (protocolPos >= 0) {
-      input = input.slice(protocolPos + 3);
+  // TODO extract regexp
+  const [, proto, slashes, auth, host] = input.match(/^(?:([^:/\s@]*):(\/*))?([^@#?/]+@)?([^/?#]+).*$/) || [];
+
+  if (proto) {
+    if (host) {
+      if (isKnownProtocol(proto)) {
+        try {
+          const uri = new URI(input);
+          return !!(uri.host || uri.path !== '/');
+        } catch (e) {
+          return false;
+        }
+      }
+
+      // If there were no slashes after colon, iț might be in fact an 'auth' or 'port' delimiter.
+      // I.e. 'localhost:3000' or 'username:password@somewhere.com'
+      if (!slashes) {
+        const newhost = auth ? host : `${proto}:${host}`;
+        return isUrlLike(newhost);
+      }
     }
+
+    // cases like 'http://?q=0' or 'unknown-protocol://whatever'
+    return false;
   }
-  // Remove path, search or hash (what comes first)
-  input = input.split(/[/?#]/)[0];
 
-  // What is left should look like a domain name (potentially local). So we check:
-  // - if it matches minimal pattern "hostname.tld" (here hostname can be unicode),
-  //   i.e. "cliqz.com" or "www.nürnberg.de";
-  // - if it matches minimal pattern "hostname:port" (here hostname must be ASCII),
-  //   i.e. "localhost:3000", but not "उदाहरण:100";
-  // - if it is an IP address or "localhost".
-
-  // TODO: find a better way to detect chrome/resource/file urls since what is left
-  // after removing these protocols doesn't look like a domain name
-
-  // Remove `single` dot (if any) from the end of the domain
-  input = input.replace(/\.$/, ''); // TODO: don't remove dot after localhost/port
-  return input === 'localhost' ||
-    UrlRegExp.test(input) ||
-    LocalUrlRegExp.test(input) ||
-    isIpAddress(input);
+  return isUrlLike(host);
 }
 
 
@@ -365,8 +398,8 @@ export function generalizeUrl(url, skipCorrection) {
       // only fix symbols in host
       if (SYMBOLS.test(host[3]) && host[4] !== ' ') {
       // replace only issues in the host name, not ever in the path
-        val = val.substr(0, val.length - pathLength).replace(SYMBOLS, '.') +
-        (pathLength ? val.substr(-pathLength) : '');
+        val = val.substr(0, val.length - pathLength).replace(SYMBOLS, '.')
+        + (pathLength ? val.substr(-pathLength) : '');
       }
     }
   }

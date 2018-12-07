@@ -4,15 +4,6 @@
 
 import { timestampMS } from '../../utils';
 
-const REFERRER_CATEGORY_MAP = {
-  // search cat
-  google: 'search',
-  yahoo: 'search',
-  bing: 'search',
-  duckduckgo: 'search'
-  // meta-searchers?
-};
-
 // /////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -28,31 +19,15 @@ const getLatestUpdatedOfferFromCampaign = (offerID, offersDB) => {
   }
 
   const latestUpdatedOffers = offersDB.getLatestUpdatedOffer(campaignOffers);
-  if (!latestUpdatedOffers ||
-      latestUpdatedOffers.length <= 0 ||
-      !latestUpdatedOffers[0].offer_id) {
+  if (!latestUpdatedOffers
+      || latestUpdatedOffers.length <= 0
+      || !latestUpdatedOffers[0].offer_id) {
     return null;
   }
   return { oid: latestUpdatedOffers[0].offer_id, cid: campaignID };
 };
 
-/**
- * Get the referrer category
- */
-const getReferrerCat = (referrerName) => {
-  if (!referrerName || referrerName === '') {
-    // it is none
-    return 'none';
-  }
-  const refCat = REFERRER_CATEGORY_MAP[referrerName];
-  if (!refCat) {
-    // is other
-    return 'other';
-  }
-  return refCat;
-};
-
-const sendSignal = (offersDB, sigHandler, offerId, key, referrer = null) => {
+const sendSignal = (offersDB, sigHandler, offerId, key) => {
   if (!offerId || !key || !offersDB) {
     return false;
   }
@@ -65,13 +40,7 @@ const sendSignal = (offersDB, sigHandler, offerId, key, referrer = null) => {
 
   // send the signal associated to the campaign using the origin trigger
   const originID = 'trigger';
-  let result = sigHandler.setCampaignSignal(campaignId, offerId, originID, key);
-  // we also add the referrer category here
-  if (referrer !== null) {
-    result = sigHandler.setCampaignSignal(campaignId, offerId, originID, referrer) &&
-             result;
-  }
-  return result;
+  return sigHandler.setCampaignSignal(campaignId, offerId, originID, key);
 };
 
 
@@ -101,7 +70,6 @@ export default function sendMonitorSignal(monitor, handlers, urlData) {
   // check if we have monitor.params as arguments
   let sigToSend = monitor.signalID;
   let shouldFilterSignal = false;
-  let referrerCat = null;
   if (monitor.params) {
     const currUrl = urlData.getNormalizedUrl();
     if (monitor.params.store && currUrl) {
@@ -149,14 +117,6 @@ export default function sendMonitorSignal(monitor, handlers, urlData) {
         shouldFilterSignal = true;
       }
     }
-
-    if (monitor.params.referrer_cat) {
-      // we get the referrer cat
-      referrerCat = getReferrerCat(urlData.getReferrerName());
-      if (referrerCat) {
-        referrerCat = `ref_${referrerCat}`;
-      }
-    }
   }
 
   // check if we need to filter the signal or not
@@ -167,7 +127,6 @@ export default function sendMonitorSignal(monitor, handlers, urlData) {
       handlers.sigHandler,
       offerIDToUse,
       sigToSend,
-      referrerCat
     );
   }
 

@@ -1,4 +1,5 @@
 export default class {
-  init() {}
+  init() { }
+
   unload() {}
 }

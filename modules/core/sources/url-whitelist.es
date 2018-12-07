@@ -69,9 +69,9 @@ export default class UrlWhitelist {
   }
 
   isWhitelisted(url) {
-    return this.whitelist.has(`u:${cleanUrlProtocol(url, true)}`) ||
-      this.whitelist.has(`h:${extractHostname(url)}`) ||
-      this.whitelist.has(`g:${getGeneralDomain(url)}`);
+    return this.whitelist.has(`u:${cleanUrlProtocol(url, true)}`)
+      || this.whitelist.has(`h:${extractHostname(url)}`)
+      || this.whitelist.has(`g:${getGeneralDomain(url)}`);
   }
 
   getState(url) {

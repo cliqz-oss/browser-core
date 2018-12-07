@@ -12,8 +12,8 @@ export function messageHandler(message) {
 
 window.addEventListener('message', (ev) => {
   const data = JSON.parse(ev.data);
-  if (data.target === 'cliqz-video-downloader' &&
-     data.origin === 'window') {
+  if (data.target === 'cliqz-video-downloader'
+     && data.origin === 'window') {
     messageHandler(data.message);
   }
 });

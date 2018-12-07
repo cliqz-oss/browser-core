@@ -207,5 +207,4 @@ export default describeModule('core/helpers/fixed-size-cache',
         });
       });
     });
-  }
-);
+  });

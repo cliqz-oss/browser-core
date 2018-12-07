@@ -6,7 +6,8 @@ import config from '../core/config';
 
 export const BLOCK_MODE = ['BLOCK', 'ALLOW_SAFE', 'ALLOW_UNSAFE'].reduce(
   (hash, val) => Object.assign(hash, { [val]: val }),
-  Object.create(null));
+  Object.create(null)
+);
 
 export default class Blocker {
   constructor(blocklist, defaultAction, categoryPolicies, companyPolicies, firstPartyPolicies) {
@@ -50,8 +51,8 @@ export default class Blocker {
 
   ruleMatches(urlParts) {
     const hostPartsReversed = urlParts.hostname.split('.').reverse();
-    return this.hostRuleMatches(hostPartsReversed) ||
-      this.hostPathRuleMatches(hostPartsReversed, urlParts.path);
+    return this.hostRuleMatches(hostPartsReversed)
+      || this.hostPathRuleMatches(hostPartsReversed, urlParts.path);
   }
 
   hostRuleMatches(hostPartsReversed) {
@@ -156,10 +157,10 @@ export default class Blocker {
   }
 
   _getOverrideAction(firstParty, trackerName, trackerCategory) {
-    const fpPolicy = this.firstPartyPolicies[firstParty] &&
-        (this.firstPartyPolicies[firstParty].company[trackerName] ||
-          this.firstPartyPolicies[firstParty].category[trackerCategory]);
-    return fpPolicy || this.companyPolicies[trackerName] ||
-      this.categoryPolicies[trackerCategory] || undefined;
+    const fpPolicy = this.firstPartyPolicies[firstParty]
+        && (this.firstPartyPolicies[firstParty].company[trackerName]
+          || this.firstPartyPolicies[firstParty].category[trackerCategory]);
+    return fpPolicy || this.companyPolicies[trackerName]
+      || this.categoryPolicies[trackerCategory] || undefined;
   }
 }

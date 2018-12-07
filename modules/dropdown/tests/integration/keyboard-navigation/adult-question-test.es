@@ -8,7 +8,8 @@ import {
   testsEnabled,
   waitFor,
   waitForPopup,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 import { explicitAndSimpleResults } from '../../../core/integration/fixtures/resultsAdultQuestion';
 import prefs from '../../../../core/prefs';
 

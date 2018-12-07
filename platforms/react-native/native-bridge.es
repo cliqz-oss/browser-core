@@ -1,6 +1,7 @@
 
 import { NativeModules, NativeEventEmitter } from 'react-native';
 import events from '../core/events';
+import console from './console';
 
 const nativeBridge = NativeModules.JSBridge;
 
@@ -10,18 +11,17 @@ const nativeBridge = NativeModules.JSBridge;
  * @return {Function}    Function which wraps a call to this function in a Promise
  */
 function makePromise(fn) {
-  return function() {
+  return (...args) => {
     try {
-      const ret = fn(...arguments);
+      const ret = fn(...args);
       return Promise.resolve(ret);
     } catch (e) {
       return Promise.reject(e);
     }
-  }
+  };
 }
 
 export default class Bridge {
-
   constructor() {
     (nativeBridge.events || []).forEach((event) => {
       events.subscribe(event, (...args) => {
@@ -36,26 +36,27 @@ export default class Bridge {
     this.eventEmitter.addListener('publishEvent', this.onEvent.bind(this));
   }
 
-  onAction({id, action, args}) {
-    const fn = this.registeredActions[action]
+  onAction({ id, action, args }) {
+    const fn = this.registeredActions[action];
     if (!fn) {
-      nativeBridge.replyToAction(id, {error: 'invalid action'});
+      nativeBridge.replyToAction(id, { error: 'invalid action' });
       return;
     }
 
     const call = fn(...(args || []));
     call.then((ret) => {
-      nativeBridge.replyToAction(id, {result: ret});
+      nativeBridge.replyToAction(id, { result: ret });
     }, (e) => {
       console.log('onAction err', e);
-      nativeBridge.replyToAction(id, {error: 'exception when running action'});
+      nativeBridge.replyToAction(id, { error: 'exception when running action' });
     });
   }
 
-  onEvent({event, args}) {
+  onEvent(argument) {
     if (!this.isActive) {
-      this.eventQueue.push(arguments);
+      this.eventQueue.push([argument]);
     } else {
+      const { event, args } = argument;
       console.log('broadcast native event', event, args);
       events.pub(event, ...(args || []));
     }
@@ -69,7 +70,7 @@ export default class Bridge {
 
   registerAction(name, fn, isPromise) {
     if (this.registeredActions[name] !== undefined) {
-      throw new Error("action already exists");
+      throw new Error('action already exists');
     }
     this.registeredActions[name] = isPromise ? fn : makePromise(fn);
     nativeBridge.registerAction(name);

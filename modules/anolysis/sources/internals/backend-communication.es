@@ -28,7 +28,7 @@ async function post(url, payload) {
           const json = JSON.parse(req.response);
           resolve(json);
         } catch (ex) {
-          reject(`Backend ${url} could not parse JSON: ${req.response}`);
+          reject(new Error(`Backend ${url} could not parse JSON: ${req.response}`));
         }
       },
       JSON.stringify(payload),
@@ -148,7 +148,7 @@ export default class Backend {
       return id;
     }
 
-    return Promise.reject('No id returned by the backend.');
+    return Promise.reject(new Error('No id returned by the backend.'));
   }
 
   /**
@@ -192,7 +192,7 @@ export default class Backend {
           }
         }
 
-        return Promise.reject(`No valid GID found ${hash}`);
+        return Promise.reject(new Error(`No valid GID found ${hash}`));
       });
   }
 
@@ -201,7 +201,7 @@ export default class Backend {
   */
   sendSignal(signal) {
     if (network.type !== 'wifi') {
-      return Promise.reject('Device is not connected to WiFi');
+      return Promise.reject(new Error('Device is not connected to WiFi'));
     }
 
     const payload = this.attachMetadata(signal);
@@ -244,12 +244,6 @@ export default class Backend {
     const action = `anolysis.${path.substr(1)}`;
     let response;
     try {
-      // TODO: Added to distingish requests from hpnv2 and directly
-      // sent messages. Should only be active for initial experiments.
-      //
-      // eslint-disable-next-line no-param-reassign
-      payload.via_hpn2 = true;
-
       response = await this.hpnv2.action('send', {
         action,
         payload

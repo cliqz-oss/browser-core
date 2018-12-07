@@ -805,17 +805,7 @@ html {
                     }
                 }
             }
-
-            .custom-dropdown {
-                background-color: #F9F9F9;
-
-                &:hover {
-                    background-color: #EBEBEB;
-                }
-            }
-
         }
-
     }
 
     .tooltip-content {
@@ -1294,7 +1284,6 @@ html {
     display: inline;
     border: 1px solid #ccc;
     border-radius: 5px;
-    background-color: #F0F0F0;
     font-size: 12px;
     -webkit-appearance: none;
     -moz-appearance: none;

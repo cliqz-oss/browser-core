@@ -59,7 +59,8 @@ export default class AntitrackingStatCounter {
     // subset of domains which are tracker domains
     const trackerDomains = Object.keys(page.tps)
       .filter(
-        domain => this.trackerList.isTrackerDomain(md5(getGeneralDomain(domain)).substring(0, 16)));
+        domain => this.trackerList.isTrackerDomain(md5(getGeneralDomain(domain)).substring(0, 16))
+      );
     // object: domain names -> owner company
     const trackerOwners = trackerDomains
       .reduce((owners, domain) => ({
@@ -200,6 +201,23 @@ export default class AntitrackingStatCounter {
       .equals(day)
       .reverse()
       .sortBy('pagesPresent');
+  }
+
+  async getAllDaysSummary() {
+    const summary = {
+      cookiesBlocked: 0,
+      datapointsRemoved: 0,
+      requestsBlocked: 0,
+    };
+
+    const allDaysSummary = await this.db.daily.toArray();
+
+    return allDaysSummary
+      .reduce((sum, el) => ({
+        cookiesBlocked: sum.cookiesBlocked + el.cookiesBlocked,
+        datapointsRemoved: sum.datapointsRemoved + el.datapointsRemoved,
+        requestsBlocked: sum.requestsBlocked + el.requestsBlocked,
+      }), summary);
   }
 
   async getTrackersOnSite(site) {

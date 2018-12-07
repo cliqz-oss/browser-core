@@ -1,11 +1,11 @@
 import TLDs from '../core/tlds-legacy';
 import { tryDecodeURI } from '../core/url';
-import { tokenize } from '../core/pattern-matching';
+import PatternMatching from '../platform/lib/adblocker';
 
 // Create blacklist
 const BLACKLIST = Object.create(null);
 function blacklist(str) {
-  const tokens = tokenize(str);
+  const tokens = PatternMatching.tokenize(str);
 
   if (tokens.length > 0) {
     BLACKLIST[tokens[0]] = str;
@@ -25,9 +25,10 @@ function normalize(str) {
 }
 
 export default function (str) {
-  return new Uint32Array(tokenize(normalize(str)).filter(t => BLACKLIST[t] === undefined));
+  return new Uint32Array(
+    PatternMatching.tokenize(normalize(str)).filter(t => BLACKLIST[t] === undefined),
+  );
 }
-
 
 // Time constants
 export const SECOND = 1000;

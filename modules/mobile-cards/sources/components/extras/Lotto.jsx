@@ -3,15 +3,16 @@ import { StyleSheet, View, Text } from 'react-native';
 
 import { getMessage } from '../../../core/i18n';
 import { elementTopMargin, elementSideMargins } from '../../styles/CardStyle';
+import themeDetails from '../../themes';
 
-const styles = StyleSheet.create(
+const styles = theme => StyleSheet.create(
   {
     container: {
       ...elementTopMargin,
       ...elementSideMargins,
     },
     text: {
-      color: 'black',
+      color: themeDetails[theme].textColor,
       fontSize: 15,
     },
     bold: {
@@ -48,7 +49,11 @@ const styles = StyleSheet.create(
     highlight: {
       height: 30,
       width: 30,
-      backgroundColor: '#eee'
+      backgroundColor: themeDetails[theme].lotto.highlightColor
+    },
+    subText: {
+      color: themeDetails[theme].lotto.subText,
+      fontSize: 12
     }
   }
 );
@@ -60,6 +65,7 @@ export default class Lotto extends React.Component {
   }
 
   get6aus49Results() {
+    const theme = this.props.theme;
     const lotto = this.lottoList.lotto;
     const spiel77 = this.lottoList.spiel77;
     const super6 = this.lottoList.super6;
@@ -67,14 +73,13 @@ export default class Lotto extends React.Component {
     if (!lotto || !spiel77 || !super6) {
       return [];
     }
-
     return [
       {
         result: lotto.gewinnzahlen.concat(lotto.superzahl),
         styles: {
-          style_all: [styles.circle],
-          style_first: [styles.circle],
-          style_last: [styles.circle, styles.highlight],
+          style_all: [styles(theme).circle],
+          style_first: [styles(theme).circle],
+          style_last: [styles(theme).circle, styles(theme).highlight],
           text_style_first: [{ fontWeight: 'bold' }],
           text_style_last: [{ fontWeight: 'bold' }],
           text_style_all: [{ fontWeight: 'bold' }],
@@ -87,7 +92,7 @@ export default class Lotto extends React.Component {
           style_all: [],
           style_first: [],
           style_last: [],
-          text_style_first: [styles.bold],
+          text_style_first: [styles(theme).bold],
         },
       },
       {
@@ -96,7 +101,7 @@ export default class Lotto extends React.Component {
           style_all: [],
           style_first: [],
           style_last: [],
-          text_style_first: [styles.bold],
+          text_style_first: [styles(theme).bold],
         },
       },
     ];
@@ -104,6 +109,7 @@ export default class Lotto extends React.Component {
 
   getEurojackpotResults() {
     const ej = this.lottoList.ej;
+    const theme = this.props.theme;
 
     if (!ej) {
       return [];
@@ -113,9 +119,9 @@ export default class Lotto extends React.Component {
       {
         result: ej.gewinnzahlen,
         styles: {
-          style_all: [styles.circle],
-          style_first: [styles.circle],
-          style_last: [styles.circle],
+          style_all: [styles(theme).circle],
+          style_first: [styles(theme).circle],
+          style_last: [styles(theme).circle],
           text_style_first: [],
         },
         description: 'lotto_5aus50',
@@ -123,9 +129,9 @@ export default class Lotto extends React.Component {
       {
         result: ej.zwei_aus_acht,
         styles: {
-          style_all: [styles.circle],
-          style_first: [styles.circle],
-          style_last: [styles.circle],
+          style_all: [styles(theme).circle],
+          style_first: [styles(theme).circle],
+          style_last: [styles(theme).circle],
           text_style_first: [],
         },
         description: 'lotto_2aus8',
@@ -136,22 +142,24 @@ export default class Lotto extends React.Component {
   getKenoResults() {
     const keno = this.lottoList.keno;
     const plus5 = this.lottoList.plus5;
+    const theme = this.props.theme;
+
     return [
       {
         result: keno.gewinnzahlen.slice(0, 10),
         styles: {
-          style_all: [styles.square],
-          style_first: [styles.square],
-          style_last: [styles.square],
+          style_all: [styles(theme).square],
+          style_first: [styles(theme).square],
+          style_last: [styles(theme).square],
           text_style_first: [],
         },
       },
       {
         result: keno.gewinnzahlen.slice(10, 20),
         styles: {
-          style_all: [styles.square],
-          style_first: [styles.square],
-          style_last: [styles.square],
+          style_all: [styles(theme).square],
+          style_first: [styles(theme).square],
+          style_last: [styles(theme).square],
           text_style_first: [],
         },
       },
@@ -161,7 +169,7 @@ export default class Lotto extends React.Component {
           style_all: [],
           style_first: [],
           style_last: [],
-          text_style_first: [styles.bold],
+          text_style_first: [styles(theme).bold],
         },
       },
     ];
@@ -169,6 +177,7 @@ export default class Lotto extends React.Component {
 
   getGlueckspiraleResults() {
     const gs = this.lottoList.gs;
+    const theme = this.props.theme;
 
     if (!gs) {
       return [];
@@ -178,9 +187,9 @@ export default class Lotto extends React.Component {
       {
         result: gs.gewinnzahlen[6][0].split(''),
         styles: {
-          style_all: [styles.square],
-          style_first: [styles.square],
-          style_last: [styles.square],
+          style_all: [styles(theme).square],
+          style_first: [styles(theme).square],
+          style_last: [styles(theme).square],
           text_style_first: [],
         },
         description: 'lotto_gewinnklasse7',
@@ -188,9 +197,9 @@ export default class Lotto extends React.Component {
       {
         result: gs.gewinnzahlen[6][1].split(''),
         styles: {
-          style_all: [styles.square],
-          style_first: [styles.square],
-          style_last: [styles.square],
+          style_all: [styles(theme).square],
+          style_first: [styles(theme).square],
+          style_last: [styles(theme).square],
           text_style_first: [],
         },
         description: 'lotto_gewinnklasse7',
@@ -236,73 +245,86 @@ export default class Lotto extends React.Component {
   }
 
   renderRow(numbers, description, rowStyles) {
+    const theme = this.props.theme;
     const size = numbers.length;
-    return (<View style={styles.result_container}>
-      <View
-        accessible={false}
-        accessibilityLabel={'lotto-row'}
-        style={styles.number_container}
-      >
-        {
-          numbers.map((number, index) => {
-            const key = `${number}${index}`;
-            let viewStyle = [styles.normal, { marginRight: 5 }];
-            let textStyle = [styles.text];
-            if (index === 0) {
-              viewStyle = viewStyle.concat(rowStyles.style_first);
-              textStyle = textStyle.concat(rowStyles.text_style_first);
-            } else if (index === size - 1) {
-              viewStyle = viewStyle.concat(rowStyles.style_last);
-              textStyle = textStyle.concat(rowStyles.text_style_last);
-            } else {
-              viewStyle = viewStyle.concat(rowStyles.style_all);
-              textStyle = textStyle.concat(rowStyles.text_style_all);
-            }
-            return (<View
-              accessible={false}
-              accessibilityLabel={'lotto-element'}
-              style={viewStyle}
-              key={key}
-            >
-              <Text style={textStyle}>{number}</Text>
-            </View>);
-          })
-        }
+    return (
+      <View style={styles(theme).result_container}>
         <View
           accessible={false}
-          accessibilityLabel={'lotto-desc'}
+          accessibilityLabel="lotto-row"
+          style={styles(theme).number_container}
         >
-          <Text style={[styles.text, { marginTop: 5, color: '#565656', fontSize: 12 }]}>{getMessage(description)}</Text>
+          {
+            numbers.map((number, index) => {
+              const key = `${number}${index}`;
+              let viewStyle = [styles(theme).normal, { marginRight: 5 }];
+              let textStyle = [styles(theme).text];
+              if (index === 0) {
+                viewStyle = viewStyle.concat(rowStyles.style_first);
+                textStyle = textStyle.concat(rowStyles.text_style_first);
+              } else if (index === size - 1) {
+                viewStyle = viewStyle.concat(rowStyles.style_last);
+                textStyle = textStyle.concat(rowStyles.text_style_last);
+              } else {
+                viewStyle = viewStyle.concat(rowStyles.style_all);
+                textStyle = textStyle.concat(rowStyles.text_style_all);
+              }
+              return (
+                <View
+                  accessible={false}
+                  accessibilityLabel="lotto-element"
+                  style={viewStyle}
+                  key={key}
+                >
+                  <Text style={textStyle}>{number}</Text>
+                </View>
+              );
+            })
+          }
+          <View
+            accessible={false}
+            accessibilityLabel="lotto-desc"
+          >
+            <Text style={[styles(theme).subText, { marginTop: 5 }]}>{getMessage(description)}</Text>
+          </View>
         </View>
       </View>
-    </View>);
+    );
   }
 
   renderResult({ result, description, styles: st }) {
-    return (<View key={result.toString()}>
-      {this.renderRow(result, description, st)}
-    </View>);
+    return (
+      <View key={result.toString()}>
+        {this.renderRow(result, description, st)}
+      </View>
+    );
   }
 
   render() {
     const lottoResults = this.lottoResults;
+    const theme = this.props.theme;
     if (!lottoResults) {
       return null;
     }
+
     const results = lottoResults.map((...args) => this.renderResult(...args));
-    return (<View style={styles.container}>
-      <View
-        accessible={false}
-        accessibilityLabel={'lotto-header'}
-      >
-        <Text style={{ color: '#565656', fontSize: 12 }}>{getMessage('lotto_gewinnzahlen')} &#8226; {this.localeDate}</Text>
+    return (
+      <View style={styles(theme).container}>
+        <View
+          accessible={false}
+          accessibilityLabel="lotto-header"
+        >
+          <Text style={styles(theme).subText}>
+            {`${getMessage('lotto_gewinnzahlen')} &#8226; ${this.localeDate}`}
+          </Text>
+        </View>
+        <View
+          accessible={false}
+          accessibilityLabel="lotto-result"
+        >
+          {results}
+        </View>
       </View>
-      <View
-        accessible={false}
-        accessibilityLabel={'lotto-result'}
-      >
-        {results}
-      </View>
-    </View>);
+    );
   }
 }

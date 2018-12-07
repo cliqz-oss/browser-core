@@ -13,9 +13,6 @@ currentBuild.description = ''
 def isIntegrationBranch = env.BRANCH_NAME == 'master'
 
 def matrix = [
-    'serp': [
-        'config': 'serp.js',
-    ],
     'cliqz-ios': [
         'config': 'cliqz-ios.js',
     ],
@@ -43,6 +40,12 @@ def matrix = [
         'cert_credentials_id': '86407680-3a2a-42ea-9bd8-d42c0c75ed96',
         'cert_pass_credentials_id': 'cae4ee4b-bb2c-4aec-99b0-040919318d87',
     ],
+    'black-friday': [
+        'config': 'black-friday.js',
+    ],
+    'ghostery-mobile': [
+        'config': 'ghostery-mobile.js',
+    ],
     /*
     'anolysis': [
         'config': 'experiments/anolysis.js',
@@ -62,22 +65,50 @@ if (env.BRANCH_NAME.startsWith('v10.')) {
     ]
 }
 
+if (env.BRANCH_NAME.startsWith('v11.')) {
+    matrix['offers-chrome'] = [
+        'config': 'releases/offers-chrome.js',
+    ]
+    matrix['offers-firefox'] = [
+        'config': 'releases/offers-firefox.js',
+    ]
+}
+
+if (isIntegrationBranch || env.BRANCH_NAME == 'serp') {
+    matrix['serp'] = [
+        'config': 'serp.js',
+    ]
+}
+
 if (isIntegrationBranch) {
     matrix['browser'] = [
-      'config': 'browser.js',
-      'cert_credentials_id': '766bbf53-83c2-4917-a837-ee612afcbb87',
-      'cert_pass_credentials_id': '9983e1f3-9c73-42e7-8036-3b34a592dd52',
+        'config': 'browser.js',
+        'cert_credentials_id': '766bbf53-83c2-4917-a837-ee612afcbb87',
+        'cert_pass_credentials_id': '9983e1f3-9c73-42e7-8036-3b34a592dd52',
     ]
     matrix['amo'] = [
-      'config': 'amo.js',
-      'cert_credentials_id': '766bbf53-83c2-4917-a837-ee612afcbb87',
-      'cert_pass_credentials_id': '9983e1f3-9c73-42e7-8036-3b34a592dd52',
+        'config': 'amo.js',
+        'cert_credentials_id': '766bbf53-83c2-4917-a837-ee612afcbb87',
+        'cert_pass_credentials_id': '9983e1f3-9c73-42e7-8036-3b34a592dd52',
     ]
-    matrix['cliqz-tab-beta'] = [
-        'config': 'cliqz-tab.js',
+    matrix['cliqz-tab-chrome-beta'] = [
+        'config': 'cliqz-tab-chrome.js',
     ]
-    matrix['ghostery-tab-beta'] = [
-        'config': 'ghostery-tab.js',
+    // matrix['cliqz-tab-firefox-beta'] = [
+    //     'config': 'cliqz-tab-firefox.js',
+    //     'upload_api_id': '17f59394-d13b-476e-84d5-7888c9737ced',
+    //     'upload_api_secret': '64b879c6-90f0-4242-9da8-87e1f0cacf94',
+    // ]
+    matrix['ghostery-tab-chrome-beta'] = [
+        'config': 'ghostery-tab-chrome.js',
+    ]
+    matrix['ghostery-tab-firefox-beta'] = [
+        'config': 'ghostery-tab-firefox.js',
+        'upload_api_id': '17f59394-d13b-476e-84d5-7888c9737ced',
+        'upload_api_secret': '64b879c6-90f0-4242-9da8-87e1f0cacf94',
+    ]
+    matrix['offers-beta'] = [
+        'config': 'offers.js',
     ]
 }
 
@@ -151,6 +182,8 @@ def build(Map m) {
     def config = m.config
     def certCredentialsId = m.certCredentialsId  ? m.certCredentialsId : '766bbf53-83c2-4917-a837-ee612afcbb87'
     def certPassCredentialsId = m.certPassCredentialsId ? m.certPassCredentialsId : '9983e1f3-9c73-42e7-8036-3b34a592dd52'
+    def uploadApiId = m.uploadApiId ? m.uploadApiId : 'aee682e7-3992-479f-b5a9-85c6ec105e5a'
+    def uploadApiSecret = m.uploadApiSecret ? m.uploadApiSecret : 'b35a2a5d-6b52-4e61-a7c5-dd8a78fd9108'
     def getImageName = m.getImageName
     def getCommitId = m.getCommitId
     def getIsIntegrationBranch = m.getIsIntegrationBranch
@@ -187,20 +220,20 @@ def build(Map m) {
                             passwordVariable: 'BALROG_PASSWORD',
                             usernameVariable: 'BALROG_ADMIN',
                         ),
-                        /* credentials for webstore publish */
+                        /* credentials for webstore / AMO publish */
                         string(
-                            credentialsId: 'aee682e7-3992-479f-b5a9-85c6ec105e5a',
-                            variable: 'CLIENT_ID',
+                            credentialsId: uploadApiId,
+                            variable: 'UPLOAD_API_KEY',
                         ),
                         string(
-                            credentialsId: 'b35a2a5d-6b52-4e61-a7c5-dd8a78fd9108',
-                            variable: 'CLIENT_SECRET',
+                            credentialsId: uploadApiSecret,
+                            variable: 'UPLOAD_API_SECRET',
                         ),
                         string(
                             credentialsId: '2ac4ba97-d033-46bb-9e78-d8ae9b069e1d',
                             variable: 'REFRESH_TOKEN',
                         ),
-                        /* end - credentials for webstore publish */
+                        /* end - credentials for webstore / AMO publish */
                         file(
                             credentialsId: certCredentialsId,
                             variable: 'CLIQZ_CERT_PATH',
@@ -242,6 +275,8 @@ def stepsForParallel = helpers.entries(matrix).collectEntries {
         config: it[1]['config'],
         certCredentialsId: it[1]['cert_credentials_id'],
         certPassCredentialsId: it[1]['cert_pass_credentials_id'],
+        uploadApiId: it[1]['upload_api_id'],
+        uploadApiSecret: it[1]['upload_api_secret'],
         getImageName: { codeImageName },
         getCommitId: { triggeringCommitHash },
         getIsIntegrationBranch: { isIntegrationBranch },

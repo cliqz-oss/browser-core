@@ -126,5 +126,4 @@ export default describeModule('search/operators/responses/deduplicate',
         });
       });
     });
-  },
-);
+  });

@@ -90,6 +90,7 @@ export default class {
   }
 
   deleteVisit() {}
+
   clearHistory() {}
 
   // Need to improve this.

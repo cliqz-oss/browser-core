@@ -13,22 +13,7 @@ import { updateTimestamp } from './time';
 import domainInfo from '../core/services/domain-info';
 import bindObjectFunctions from '../core/helpers/bind-functions';
 import inject from '../core/kord/inject';
-
-function onLocationChange({ url, tabId }) {
-  if (this.interval) { clearInterval(this.interval); }
-  let counter = 12;
-
-  this.updateBadge({ tabId, url });
-
-  this.interval = setInterval(() => {
-    this.updateBadge({ tabId, url });
-
-    counter -= 1;
-    if (counter <= 0) {
-      clearInterval(this.interval);
-    }
-  }, 2000);
-}
+import { isMobile } from '../core/platform';
 
 /**
 * @namespace antitracking
@@ -48,6 +33,11 @@ export default background({
     // Create new attrack class
     this.settings = settings;
     this.core = inject.module('core');
+
+    if (isMobile) {
+      prefs.set('attrackBloomFilter', false);
+    }
+
     this.attrack = new Attrack();
 
     if (browser.getBrowserMajorVersion() < MIN_BROWSER_VERSION) {
@@ -92,7 +82,6 @@ export default background({
     }
 
     this.enabled = false;
-    clearInterval(this.interval);
   },
 
   /**
@@ -106,12 +95,21 @@ export default background({
   },
 
   actions: {
+    getBadgeData({ tabId, url }) {
+      return this.attrack.getTabBlockingInfo(tabId, url).then((info) => {
+        if (this.attrack.urlWhitelist.isWhitelisted(info.hostname)) {
+          // do not display number if site is whitelisted
+          return 0;
+        }
+        return info.cookies.blocked + info.requests.unsafe;
+      });
+    },
     getCurrentTabBlockingInfo() {
       return this.attrack.getCurrentTabBlockingInfo();
     },
     addPipelineStep(stage, opts) {
       if (!this.attrack.pipelines || !this.attrack.pipelines[stage]) {
-        return Promise.reject(`Could not add pipeline step: ${stage}, ${opts.name}`);
+        return Promise.reject(new Error(`Could not add pipeline step: ${stage}, ${opts.name}`));
       }
 
       return this.attrack.pipelines[stage].addPipelineStep(opts);
@@ -159,9 +157,9 @@ export default background({
       });
     },
     getGhosteryStats(tabId) {
-      if (!this.attrack.tp_events._active[tabId] ||
-          !this.attrack.tp_events._active[tabId].annotations ||
-          !this.attrack.tp_events._active[tabId].annotations.counter) {
+      if (!this.attrack.tp_events._active[tabId]
+          || !this.attrack.tp_events._active[tabId].annotations
+          || !this.attrack.tp_events._active[tabId].annotations.counter) {
         return {
           bugs: {},
           others: {},
@@ -302,24 +300,6 @@ export default background({
     };
   },
 
-  updateBadge({ tabId, url }) {
-    this.attrack.getTabBlockingInfo(tabId, url).then((info) => {
-      this.controlCenter.action(
-        'updateBadge',
-        tabId,
-        this.getBadgeData(info),
-      );
-    });
-  },
-
-  getBadgeData(info) {
-    if (this.attrack.urlWhitelist.isWhitelisted(info.hostname)) {
-      // do not display number if site is whitelisted
-      return 0;
-    }
-    return info.cookies.blocked + info.requests.unsafe;
-  },
-
   events: {
     prefchange: function onPrefChange(pref) {
       if (pref === DEFAULT_ACTION_PREF) {
@@ -374,7 +354,5 @@ export default background({
         target: 'clearcache',
       });
     },
-    'content:location-change': onLocationChange,
-    'core:tab_select': onLocationChange,
   },
 });

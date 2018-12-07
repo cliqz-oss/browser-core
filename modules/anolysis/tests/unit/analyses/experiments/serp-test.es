@@ -32,8 +32,7 @@ require('../../telemetry-schemas-test-helpers')({
             signal => chai.expect(signal).to.include({
               experiment: null,
               group: 'A',
-            }))
-          );
+            })));
 
           it('takes default from last state signal', () =>
             test({
@@ -43,8 +42,7 @@ require('../../telemetry-schemas-test-helpers')({
               ],
               'metrics.core.abtests': [],
             },
-            signal => chai.expect(signal.isCliqzDefaultEngine).to.be.true)
-          );
+            signal => chai.expect(signal.isCliqzDefaultEngine).to.be.true));
         });
         context('with irrelevant new AB tests', function () {
           it('takes group from last state signal', () =>
@@ -73,8 +71,7 @@ require('../../telemetry-schemas-test-helpers')({
             signal => chai.expect(signal).to.include({
               experiment: null,
               group: 'A',
-            }))
-          );
+            })));
 
           it('takes default from last state signal', () =>
             test({
@@ -99,8 +96,7 @@ require('../../telemetry-schemas-test-helpers')({
                 ],
               ],
             },
-            signal => chai.expect(signal.isCliqzDefaultEngine).to.be.true)
-          );
+            signal => chai.expect(signal.isCliqzDefaultEngine).to.be.true));
         });
         context('with relevant new AB tests', function () {
           it('takes group and experiment ID from (first) AB test signal', () =>
@@ -129,8 +125,7 @@ require('../../telemetry-schemas-test-helpers')({
             signal => chai.expect(signal).to.include({
               experiment: 42,
               group: 'B',
-            }))
-          );
+            })));
 
           it('takes default from last state signal', () =>
             test({
@@ -155,8 +150,7 @@ require('../../telemetry-schemas-test-helpers')({
                 ],
               ],
             },
-            signal => chai.expect(signal.isCliqzDefaultEngine).to.be.true)
-          );
+            signal => chai.expect(signal.isCliqzDefaultEngine).to.be.true));
         });
       });
       context('dropdownSelections', function () {
@@ -174,9 +168,7 @@ require('../../telemetry-schemas-test-helpers')({
             .to.deep.eql({
               total: 3,
               isSearchEngine: 1,
-            })
-          )
-        );
+            })));
 
         it('counts direct selections', () =>
           test({
@@ -192,9 +184,7 @@ require('../../telemetry-schemas-test-helpers')({
             .to.deep.eql({
               total: 3,
               isSearchEngine: 1,
-            })
-          )
-        );
+            })));
 
         it('counts other selections', () =>
           test({
@@ -205,8 +195,7 @@ require('../../telemetry-schemas-test-helpers')({
               { hasUserInput: true, selection: { origin: 'cliqz' } },
             ],
           },
-          signal => chai.expect(signal.dropdownSelections.other).to.eql(2))
-        );
+          signal => chai.expect(signal.dropdownSelections.other).to.eql(2)));
 
         it('counts abandoned selections', () =>
           test({
@@ -217,8 +206,7 @@ require('../../telemetry-schemas-test-helpers')({
               { hasUserInput: true, selection: { origin: null } },
             ],
           },
-          signal => chai.expect(signal.dropdownSelections.abandoned).to.eql(2))
-        );
+          signal => chai.expect(signal.dropdownSelections.abandoned).to.eql(2)));
       });
       context('serpShows', function () {
         it('counts impressions with offers', () =>
@@ -230,8 +218,7 @@ require('../../telemetry-schemas-test-helpers')({
               { view: 'results', offerCount: 1 },
             ],
           },
-          signal => chai.expect(signal.serpShows.withOffer).to.eql(2))
-        );
+          signal => chai.expect(signal.serpShows.withOffer).to.eql(2)));
         it('counts `landing` view impressions', () =>
           test({
             'metrics.experiments.serp.state': [{}],
@@ -241,8 +228,7 @@ require('../../telemetry-schemas-test-helpers')({
               { view: 'results' },
             ],
           },
-          signal => chai.expect(signal.serpShows.views.landing).to.eql(1))
-        );
+          signal => chai.expect(signal.serpShows.views.landing).to.eql(1)));
         it('counts `results` view impressions', () =>
           test({
             'metrics.experiments.serp.state': [{}],
@@ -252,8 +238,7 @@ require('../../telemetry-schemas-test-helpers')({
               { view: 'results' },
             ],
           },
-          signal => chai.expect(signal.serpShows.views.results).to.eql(2))
-        );
+          signal => chai.expect(signal.serpShows.views.results).to.eql(2)));
         it('counts `withUserInput` impressions', () =>
           test({
             'metrics.experiments.serp.state': [{}],
@@ -271,8 +256,7 @@ require('../../telemetry-schemas-test-helpers')({
           signal => chai.expect(signal.serpShows.withUserInput).to.deep.eql({
             true: 3, // session: 2, 3, 4
             false: 1, // session: 1
-          }))
-        );
+          })));
         it('counts `withAnySuggestions` impressions', () =>
           test({
             'metrics.experiments.serp.state': [{}],
@@ -291,8 +275,7 @@ require('../../telemetry-schemas-test-helpers')({
           signal => chai.expect(signal.serpShows.withAnySuggestions).to.deep.eql({
             true: 2, // session: 2, 4
             false: 2, // session: 1, 3
-          }))
-        );
+          })));
         it('counts `withFinalSuggestions` impressions', () =>
           test({
             'metrics.experiments.serp.state': [{}],
@@ -313,8 +296,7 @@ require('../../telemetry-schemas-test-helpers')({
           signal => chai.expect(signal.serpShows.withFinalSuggestions).to.deep.eql({
             true: 2, // session: 2, 5
             false: 3, // session: 1, 3, 4
-          }))
-        );
+          })));
       });
       context('serpSelections', function () {
         it('counts results', () =>
@@ -334,8 +316,7 @@ require('../../telemetry-schemas-test-helpers')({
               1: 1,
               rest: 1,
             },
-          }))
-        );
+          })));
 
         it('counts offers', () =>
           test({
@@ -347,8 +328,7 @@ require('../../telemetry-schemas-test-helpers')({
               { source: 'm', class: 'EntityKPI', isSearchEngine: false, index: 99 },
             ],
           },
-          signal => chai.expect(signal.serpSelections.offer).to.eql(1))
-        );
+          signal => chai.expect(signal.serpSelections.offer).to.eql(1)));
 
         it('counts suggestions', () =>
           test({
@@ -360,8 +340,7 @@ require('../../telemetry-schemas-test-helpers')({
               { source: 'Z' },
             ],
           },
-          signal => chai.expect(signal.serpSelections.suggestion).to.eql(3))
-        );
+          signal => chai.expect(signal.serpSelections.suggestion).to.eql(3)));
 
         it('counts other', () =>
           test({
@@ -373,8 +352,7 @@ require('../../telemetry-schemas-test-helpers')({
               { engine: 'cliqz' },
             ],
           },
-          signal => chai.expect(signal.serpSelections.other).to.eql(2))
-        );
+          signal => chai.expect(signal.serpSelections.other).to.eql(2)));
 
         it('counts query', () =>
           test({
@@ -396,8 +374,7 @@ require('../../telemetry-schemas-test-helpers')({
               landing: 3,
               results: 2,
             },
-          }))
-        );
+          })));
 
         it('counts abandoned', () =>
           test({
@@ -433,8 +410,7 @@ require('../../telemetry-schemas-test-helpers')({
               landing: 4, // session: 1, 2, 3, 4
               results: 5, // session: 6, 7, 8, 9, 10
             },
-          }))
-        );
+          })));
       });
     });
   },

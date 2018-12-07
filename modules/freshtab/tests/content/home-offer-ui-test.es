@@ -18,6 +18,7 @@ describe('Freshtab offer notification UI', function () {
     config.response.componentsState.news.visible = true;
     config.response.messages = mockOfferMessage;
     subject.respondsWith(config);
+    subject.respondsWithEmptyStats();
 
     subject.respondsWith({
       module: 'offers-v2',

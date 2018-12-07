@@ -1,0 +1,97 @@
+{
+  "name": "Cliqz",
+  "description": "Cliqz AMO",
+  "version": "{{version}}",
+  "manifest_version": 2,
+  "default_locale": "de",
+  "icons": {
+    "16": "assets/icon16.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  },
+  "applications": {
+    "gecko": {
+      "id": "cliqz@cliqz.com"
+    }
+  },
+  "experiment_apis": {
+    "cliqzmigration": {
+      "schema": "modules/webextension-specific/experimental-apis/cliqzmigration/schema.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "paths": [["cliqzmigration"]],
+        "script": "modules/webextension-specific/experimental-apis/cliqzmigration/api.bundle.js"
+      }
+    },
+    "omnibox2": {
+      "schema": "modules/webextension-specific/experimental-apis/omnibox/schema.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "paths": [["omnibox2"]],
+        "script": "modules/webextension-specific/experimental-apis/omnibox/api.bundle.js"
+      }
+    },
+    "browserAction2": {
+      "schema": "modules/webextension-specific/experimental-apis/browser-action/schema.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "paths": [["browserAction2"]],
+        "script": "modules/webextension-specific/experimental-apis/browser-action/api.bundle.js"
+      }
+    }
+  },
+  "browser_action": {
+    "default_icon": {
+      "16": "modules/control-center/images/cc-active-16.png",
+      "48": "modules/control-center/images/cc-active-16.png",
+      "128": "modules/control-center/images/cc-active-16.png"
+    },
+    "default_title": "Cliqz"
+  },
+  "permissions": [
+    "<all_urls>",
+    "bookmarks",
+    "clipboardWrite",
+    "cookies",
+    "geolocation",
+    "history",
+    "idle",
+    "management",
+    "notifications",
+    "contextMenus",
+    "privacy",
+    "proxy",
+    "storage",
+    "tabs",
+    "activeTab",
+    "topSites",
+    "unlimitedStorage",
+    "webNavigation",
+    "webRequest",
+    "webRequestBlocking"
+  ],
+  "background": {
+    "scripts": [
+      "modules/vendor/Rx.min.js",
+      "modules/vendor/math.min.js",
+      "modules/vendor/dexie.min.js",
+      "modules/webextension-specific/app.bundle.js"
+    ]
+  },
+  "chrome_url_overrides": {
+    "newtab": "modules/freshtab/home.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "run_at": "document_start",
+      "match_about_blank": true,
+      "js": ["modules/core/content-script.bundle.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    "modules/dropdown/dropdown.html",
+    "modules/browser-panel/index.html",
+    "modules/offers-cc/index.html"
+  ]
+}

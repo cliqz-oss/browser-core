@@ -85,8 +85,8 @@ export default background({
       // check cache
       CliqzAntiPhishing.clearBWList();
       const blackWhiteList = CliqzAntiPhishing.blackWhiteList.value;
-      if (blackWhiteList[md5Prefix] && blackWhiteList[md5Prefix][md5Surfix] &&
-      !blackWhiteList[md5Prefix][md5Surfix].startsWith('suspicious')) {
+      if (blackWhiteList[md5Prefix] && blackWhiteList[md5Prefix][md5Surfix]
+      && !blackWhiteList[md5Prefix][md5Surfix].startsWith('suspicious')) {
         return Promise.resolve({
           block: checkStatus(url, md5Prefix, md5Surfix),
           type: 'phishingURL',

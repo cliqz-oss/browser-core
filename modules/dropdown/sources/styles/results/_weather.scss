@@ -2,6 +2,14 @@
     margin-bottom: 6px;
     .header {
         cursor: default;
+
+        .title {
+            display: inline-block;
+            white-space: nowrap;
+            width: 410px;
+            overflow: hidden;
+            text-overflow: ellipsis; 
+        }
     }
     .forecast {
         margin-bottom: 10px;

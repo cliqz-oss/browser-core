@@ -24,6 +24,9 @@ function makeFakeGroupPublicKey(str) {
 
 export default describeModule('hpnv2/manager',
   () => ({
+    'core/utils': {
+      default: {},
+    },
     'platform/crypto': {
       default: {},
     },
@@ -32,6 +35,9 @@ export default describeModule('hpnv2/manager',
     },
     'platform/text-encoder': {
       default: TextEncoder,
+    },
+    'core/http': {
+      default: {},
     },
     'platform/fetch': {
       default: {},
@@ -61,7 +67,6 @@ export default describeModule('hpnv2/manager',
       });
 
       describe('#checkGroupPublicKeys', () => {
-
         function setupOldKeys(dates) {
           const keys = {};
           for (const date of dates) {
@@ -128,5 +133,4 @@ export default describeModule('hpnv2/manager',
         });
       });
     });
-  }
-);
+  });

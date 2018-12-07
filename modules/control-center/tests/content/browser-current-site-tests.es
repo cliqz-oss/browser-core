@@ -14,10 +14,6 @@ function currentSiteTests(amo) {
     subject = new Subject();
   });
 
-  after(function () {
-    subject.unload();
-  });
-
   describe('pushing data, specialUrl = false', function () {
     before(function () {
       subject.respondsWith({
@@ -26,6 +22,10 @@ function currentSiteTests(amo) {
         response: dataFalse
       });
       return subject.load();
+    });
+
+    after(function () {
+      subject.unload();
     });
 
     it('exists', function () {
@@ -60,6 +60,10 @@ function currentSiteTests(amo) {
         response: dataTrue
       });
       return subject.load();
+    });
+
+    after(function () {
+      subject.unload();
     });
 
     it('exists', function () {

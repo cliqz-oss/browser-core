@@ -106,5 +106,4 @@ export default describeModule('core/unquoted-json-parser',
         });
       });
     });
-  }
-);
+  });

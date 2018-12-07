@@ -1,6 +1,5 @@
 /* global document, location, Handlebars */
 
-import moment from 'moment';
 import templates from '../templates';
 
 /**
@@ -23,24 +22,20 @@ function demographicsAndGID(anolysis) {
     }
 
     // Update browser_attributes section
-    document.getElementById('browser-attributes').innerHTML =
-      templates.browser_attributes(demographics);
+    document.getElementById('browser-attributes').innerHTML = templates.browser_attributes(demographics);
 
     // Update group-id section
     const gidUpdate = {};
     if (lastUpdate !== undefined) {
-      gidUpdate.message =
-        `The GID was anonymously received on date: ${lastUpdate}`;
+      gidUpdate.message = `The GID was anonymously received on date: ${lastUpdate}`;
     } else {
-      gidUpdate.message =
-        'The GID will be anonymously retrieved within the next 24 hours';
+      gidUpdate.message = 'The GID will be anonymously retrieved within the next 24 hours';
     }
-    document.getElementById('group-id').innerHTML =
-      templates.group_id({
-        demographics,
-        parsedGID,
-        gidUpdate
-      });
+    document.getElementById('group-id').innerHTML = templates.group_id({
+      demographics,
+      parsedGID,
+      gidUpdate
+    });
   });
 }
 
@@ -56,7 +51,8 @@ function showSignalDefinitions(anolysis, metricsToday) {
     definitions.forEach(([name, def]) => {
       const entity = {};
       entity.name = name;
-      entity.schema = JSON.stringify(def.schema, null, 2);
+      entity.schema = JSON.stringify(def.originalSchema, null, 2);
+      entity.description = def.description;
       entity.class = '';
       entity.count = '';
       if (name in triggeredMetrics) {
@@ -64,13 +60,27 @@ function showSignalDefinitions(anolysis, metricsToday) {
         entity.class = 'label';
       }
       if (def.generate !== undefined || def.sendToBackend === true) {
+        const noAggregationNeeded = [
+          'retention-daily',
+          'retention-weekly',
+          'retention-monthly',
+          'daily-active',
+          'weekly-active',
+          'monthly-active',
+          'freshtab-settings',
+          'freshtab-state'
+        ];
+        if (name.startsWith('metrics.') || noAggregationNeeded.includes(name)) {
+          entity.class = 'no-aggregation-needed';
+        } else {
+          entity.class = 'aggregation-needed';
+        }
         analyses.push(entity);
       } else {
         metrics.push(entity);
       }
     });
-    document.getElementById('analyses').innerHTML =
-      templates.analyses(analyses);
+    document.getElementById('analyses').innerHTML = templates.analyses(analyses);
     document.getElementById('metrics').innerHTML = templates.metrics(metrics);
   });
 }
@@ -111,7 +121,7 @@ export default async function main(anolysis) {
   );
 
   // Will update on page refresh only
-  const today = moment().format('YYYY-MM-DD');
+  const today = await anolysis.getDate();
   const metricsToday = await anolysis.getMetricsForDate(today);
 
   // Register and plug in the templates
@@ -121,6 +131,14 @@ export default async function main(anolysis) {
     path = 'resource://cliqz/anolysis-cc/index.html';
   }
   document.getElementById('main').innerHTML = templates.main({ path });
+
+  anolysis.isAnolysisInitialized().then((state) => {
+    if (state === false) {
+      document.getElementById('messages').innerHTML = templates.error({
+        message: 'Anolysis has not been initialized properly'
+      });
+    }
+  });
 
   if (!entityType) {
     demographicsAndGID(anolysis);

@@ -32,8 +32,8 @@ try {
     }
 
     build() {
-      this.pageAction = PageActions.actionForID(this.id) ||
-        PageActions.addAction(new PageActions.Action(this.defaults));
+      this.pageAction = PageActions.actionForID(this.id)
+        || PageActions.addAction(new PageActions.Action(this.defaults));
     }
 
     shutdown() {
@@ -47,6 +47,7 @@ try {
   PageActionClass = class {
     build() {
     }
+
     shutdown() {
     }
   };

@@ -65,8 +65,8 @@ DATA.push({
     },
     'webrequest-pipeline': null,
     performance: null,
-    hpn: {
-      name: 'hpn',
+    hpnv2: {
+      name: 'hpnv2',
       isEnabled: true,
       loadingTime: 207,
       windows: {
@@ -249,7 +249,6 @@ DATA.push({
       showQuerySuggestions: false
     },
     'cookie-monster': null,
-    hpnv2: null,
     privacy: null,
     'inter-ext-messaging': null,
     'privacy-migration': null,

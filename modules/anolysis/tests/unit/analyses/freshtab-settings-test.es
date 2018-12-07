@@ -25,7 +25,7 @@ require('../telemetry-schemas-test-helpers')({
               if (action === 'isBlueThemeEnabled') {
                 return true;
               }
-              return Promise.reject(`No such action: ${action}`);
+              return Promise.reject(new Error(`No such action: ${action}`));
             },
           };
         },
@@ -61,7 +61,7 @@ require('../telemetry-schemas-test-helpers')({
               if (action === 'getComponentsState') {
                 return {};
               }
-              return Promise.reject(`No such action: ${action}`);
+              return Promise.reject(new Error(`No such action: ${action}`));
             },
           };
         },
@@ -103,6 +103,7 @@ require('../telemetry-schemas-test-helpers')({
       is_favorites_on: false,
       is_search_on: false,
       is_news_on: false,
+      is_stats_on: false,
     })));
 
     describe('reports theme state from pref', () => {
@@ -113,61 +114,61 @@ require('../telemetry-schemas-test-helpers')({
     describe('reports background state from pref', () => {
       it('no background', () => test(true,
         { background: { image: 'bg-default' } },
-        s => chai.expect(s.is_background_on).to.be.false),
-      );
+        s => chai.expect(s.is_background_on).to.be.false));
 
       it('background on', () => test(true,
         { background: { image: 'some_img' } },
-        s => chai.expect(s.is_background_on).to.be.true),
-      );
+        s => chai.expect(s.is_background_on).to.be.true));
     });
 
     describe('reports most visited state from pref', () => {
       it('no most visited', () => test(true,
         { historyDials: { visible: false } },
-        s => chai.expect(s.is_most_visited_on).to.be.false),
-      );
+        s => chai.expect(s.is_most_visited_on).to.be.false));
 
       it('most visited on', () => test(true,
         { historyDials: { visible: true } },
-        s => chai.expect(s.is_most_visited_on).to.be.true),
-      );
+        s => chai.expect(s.is_most_visited_on).to.be.true));
     });
 
     describe('reports favorites state from pref', () => {
       it('no favorites', () => test(true,
         { customDials: { visible: false } },
-        s => chai.expect(s.is_favorites_on).to.be.false),
-      );
+        s => chai.expect(s.is_favorites_on).to.be.false));
 
       it('favorites on', () => test(true,
         { customDials: { visible: true } },
-        s => chai.expect(s.is_favorites_on).to.be.true),
-      );
+        s => chai.expect(s.is_favorites_on).to.be.true));
     });
 
     describe('reports search state from pref', () => {
       it('no search', () => test(true,
         { search: { visible: false } },
-        s => chai.expect(s.is_search_on).to.be.false),
-      );
+        s => chai.expect(s.is_search_on).to.be.false));
 
       it('search on', () => test(true,
         { search: { visible: true } },
-        s => chai.expect(s.is_search_on).to.be.true),
-      );
+        s => chai.expect(s.is_search_on).to.be.true));
     });
 
     describe('reports news state from pref', () => {
       it('no news', () => test(true,
         { news: { visible: false } },
-        s => chai.expect(s.is_news_on).to.be.false),
-      );
+        s => chai.expect(s.is_news_on).to.be.false));
 
       it('news on', () => test(true,
         { news: { visible: true } },
-        s => chai.expect(s.is_news_on).to.be.true),
-      );
+        s => chai.expect(s.is_news_on).to.be.true));
+    });
+
+    describe('reports stats state from pref', () => {
+      it('no stats', () => test(true,
+        { stats: { visible: false } },
+        s => chai.expect(s.is_stats_on).to.be.false));
+
+      it('stats on', () => test(true,
+        { stats: { visible: true } },
+        s => chai.expect(s.is_stats_on).to.be.true));
     });
   },
 });

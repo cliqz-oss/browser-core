@@ -113,12 +113,12 @@ class AddCategoriesExpr extends Expression {
   }
 
   _buildCategoryFromObj(catObj) {
-    if (!catObj ||
-        !catObj.name ||
-        !catObj.patterns ||
-        !catObj.version ||
-        !catObj.timeRangeSecs ||
-        !catObj.activationData) {
+    if (!catObj
+        || !catObj.name
+        || !catObj.patterns
+        || !catObj.version
+        || !catObj.timeRangeSecs
+        || !catObj.activationData) {
       logger.warn('invalid category object: ', catObj);
       return null;
     }

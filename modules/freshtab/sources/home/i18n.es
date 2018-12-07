@@ -1,9 +1,9 @@
 /* globals chrome */
-
-import config from '../config';
+import cliqz from './cliqz';
 
 export default function t(key) {
-  const tabName = config.features.ghosteryTab.enabled ? 'Ghostery' : 'Cliqz';
+  const product = cliqz.storage.state.config.product;
+  const tabName = product.charAt(0) + product.slice(1).toLowerCase();
   return chrome.i18n.getMessage(`freshtab_${key}`, [tabName]);
 }
 

@@ -15,7 +15,6 @@ require('../telemetry-schemas-test-helpers')({
     };
 
     it('gets right defaults', () => test({ background: { index: 4 } },
-      s => chai.expect(s).to.deep.equal({ index: 4 })
-    ));
+      s => chai.expect(s).to.deep.equal({ index: 4 })));
   },
 });

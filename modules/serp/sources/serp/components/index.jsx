@@ -36,9 +36,9 @@ export default class Serp extends React.Component {
 
   componentDidMount() {
     window.CliqzEvents.sub(SEARCH_RESULTS, ({ results }) => {
-      if (this.state.searchRequestInitiator !== SEARCH_RESULTS ||
-        !results ||
-        !results.length) {
+      if (this.state.searchRequestInitiator !== SEARCH_RESULTS
+        || !results
+        || !results.length) {
         return;
       }
 
@@ -119,9 +119,9 @@ export default class Serp extends React.Component {
       // TODO: remove those hardcode instant
       // provider handling;
       const results = list.filter(item =>
-        item &&
-        item.provider !== 'instant' &&
-        item.provider !== 'calculator');
+        item
+        && item.provider !== 'instant'
+        && item.provider !== 'calculator');
       //
 
       this.setState({

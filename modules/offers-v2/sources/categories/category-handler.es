@@ -88,18 +88,21 @@
  *   offers, which currently  are alltogeather in the triggers and is giving us
  *   some problems (complexity).
  *
- *
+ * @module offers-v2
+ * @submodule category-handler
  */
 
 import { timestampMS } from '../utils';
 import CategoryTree from './category-tree';
-import CategoryMatch from './category-match';
+import { CategoriesMatchTraits, CategoryMatch } from './category-match';
 import CategoryPersistentDataHelper from './category-persistent-helper';
 import logger from '../common/offers_v2_logger';
 import DayCounterHelper from './day-counter-helper';
 import { buildSimplePatternIndex } from '../common/pattern-utils';
 
-
+/**
+ * @class CategoryHandler
+ */
 export default class CategoryHandler {
   constructor(historyFeature, db) {
     this.catTree = new CategoryTree();
@@ -200,34 +203,41 @@ export default class CategoryHandler {
     });
   }
 
-  // we will call this method whenever there is a new location change so we
-  // can evaluate all the categories for this case.
-  // We will return the set of categories ids that had been activated for this url
+  /**
+   * we will call this method whenever there is a new location change so we
+   * can evaluate all the categories for this case.
+   * We will return the set of categories ids that had been activated for this url
+   *
+   * @method newUrlEvent
+   * @param {PatternMatchRequest} tokenizedUrl
+   * @returns {CategoriesMatchTraits}
+  */
   newUrlEvent(tokenizedUrl) {
     if (!tokenizedUrl) {
       logger.error('skipping invalid tokenizedUrl', tokenizedUrl);
-      return new Set();
+      return new CategoriesMatchTraits();
     }
-    const catIDs = this.catMatch.checkMatches(tokenizedUrl);
-    [...catIDs.keys()].forEach((catID) => {
+
+    const matches = this.catMatch.checkMatches(tokenizedUrl);
+    for (const catID of matches.getCategoriesIDs()) {
       const catNode = this.catTree.getCategoryNode(catID);
       if (catNode === null || !catNode.hasCategory()) {
         logger.error(`We do not have a category with id ${catID}??`);
-        return;
-      }
-      // hit the category
-      catNode.getCategory().hit();
-      this._catModified(catNode.getCategory());
+      } else {
+        // hit the category
+        catNode.getCategory().hit();
+        this._catModified(catNode.getCategory());
 
-      logger.debug(`Category hitted: ${catID}`);
-    });
+        logger.debug(`Category hitted: ${catID}`);
+      }
+    }
 
     // increment the number of urls we have for this particular day
     this.dayCounterHelper.incToday();
     // TODO: optimize here to save not every time but every N url changes
     this.persistentHelper.saveDayCounterData(this.dayCounterHelper.serialize());
 
-    return catIDs;
+    return matches;
   }
 
   loadPersistentData() {
@@ -290,8 +300,8 @@ export default class CategoryHandler {
   }
 
   isCategoryActive(catName) {
-    return this.hasCategory(catName) &&
-      this.catTree.someSubCategory(catName, catNode =>
+    return this.hasCategory(catName)
+      && this.catTree.someSubCategory(catName, catNode =>
         (catNode.hasCategory() && catNode.getCategory().isActive()));
   }
 
@@ -299,9 +309,9 @@ export default class CategoryHandler {
 
   _shouldUpdateCategory(category) {
     const catNode = this.catTree.getCategoryNode(category.getName());
-    return catNode === null ||
-           !catNode.hasCategory() ||
-           (catNode.getCategory().getVersion() !== category.getVersion());
+    return catNode === null
+           || !catNode.hasCategory()
+           || (catNode.getCategory().getVersion() !== category.getVersion());
   }
 
   _addNewCategory(category) {

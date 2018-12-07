@@ -1,8 +1,9 @@
 import { NativeModules } from 'react-native';
-import language from './language/language';
 import window from './window';
 
 const nativeWebRequest = NativeModules.WebRequest;
+const LocaleConstants = NativeModules.LocaleConstants;
+const defaultLocale = 'en';
 
 export function currentURI() {}
 
@@ -60,7 +61,7 @@ export function mapWindows() {
 }
 
 export function getLocale() {
-  return language.lang;
+  return LocaleConstants ? LocaleConstants.lang : defaultLocale;
 }
 
 export function isTabURL() {
@@ -72,7 +73,7 @@ export function getBrowserMajorVersion() {
 }
 
 export function getCookies() {
-  return Promise.reject('Not implemented');
+  return Promise.reject(new Error('Not implemented'));
 }
 
 export class Window {

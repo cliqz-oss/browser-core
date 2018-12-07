@@ -8,7 +8,8 @@ import {
   urlbar,
   waitFor,
   waitForPopup,
-  withHistory } from '../helpers';
+  withHistory,
+} from '../helpers';
 
 import {
   testAutocompleteArray,

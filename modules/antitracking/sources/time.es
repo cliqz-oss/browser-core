@@ -49,8 +49,8 @@ export function newUTCDate() {
     dayHour.substring(0, 4),
     parseInt(dayHour.substring(4, 6), 10) - 1,
     dayHour.substring(6, 8),
-    dayHour.substring(8, 10))
-  );
+    dayHour.substring(8, 10)
+  ));
 }
 
 export function dateString(date) {

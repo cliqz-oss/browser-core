@@ -3,9 +3,9 @@ export function getTabInfo(tabId, type) {
     try {
       chrome.tabs.get(tabId, (tab) => {
         if (chrome.runtime.lastError || !tab) {
-          reject(`Could not find tabId=${tabId}, type=${type}. ` +
-                 'Either the id is wrong or the tab was closed. ' +
-                 `(lastError: ${chrome.runtime.lastError})`);
+          reject(new Error(`Could not find tabId=${tabId}, type=${type}. `
+                 + 'Either the id is wrong or the tab was closed. '
+                 + `(lastError: ${chrome.runtime.lastError})`));
         } else {
           const tabInfo = {
             type,

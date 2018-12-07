@@ -32,8 +32,8 @@ export default class CurrencyResult extends BaseResult {
 
   // FIXME: symbols not displayed (encoding issue?)
   get toSymbol() {
-    return this._extra.toSymbol ||
-      this._extra.toCurrency;
+    return this._extra.toSymbol
+      || this._extra.toCurrency;
   }
 
   get fromCurrency() {
@@ -43,8 +43,8 @@ export default class CurrencyResult extends BaseResult {
   // FIXME: symbols not displayed (encoding issue?)
   get fromSymbol() {
     // API v2 uses 'formCurrency' instead of 'fromCurrency'
-    return this._extra.formCurrency ||
-      this._extra.fromCurrency;
+    return this._extra.formCurrency
+      || this._extra.fromCurrency;
   }
 
   get multiplyer() {

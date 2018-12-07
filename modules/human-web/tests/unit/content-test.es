@@ -194,5 +194,4 @@ export default describeModule('human-web/content',
         checkDetectedAds(loadFixture('android-user-agent-page-with-ads'));
       });
     });
-  }
-);
+  });

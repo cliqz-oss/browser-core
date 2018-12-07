@@ -162,8 +162,8 @@ export default describeModule('antitracking/steps/oauth-detector',
         beforeEach(function () {
           return Promise.all([
             this.system.import('core/events'),
-            this.system.import('core/url-info')]
-          ).then((mods) => {
+            this.system.import('core/url-info')
+          ]).then((mods) => {
             events = mods[0].default;
             URLInfo = mods[1].URLInfo;
             detectorInstance = new OAuthDetector({ CLICK_TIMEOUT: 10, VISIT_TIMEOUT: 8 });
@@ -233,5 +233,4 @@ export default describeModule('antitracking/steps/oauth-detector',
         });
       });
     });
-  }
-);
+  });

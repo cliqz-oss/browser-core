@@ -53,7 +53,8 @@ export default describeModule('adblocker/filters-loader',
     'platform/url': {},
     'platform/resource-loader-storage': {
       default: class {
-        load() { return Promise.reject('load should not be called'); }
+        load() { return Promise.reject(new Error('load should not be called')); }
+
         save() { return Promise.resolve(); }
       }
     },
@@ -148,13 +149,13 @@ export default describeModule('adblocker/filters-loader',
         platformName = 'mobile';
 
         return platformSpecificLoadingTest(new Set([
-          'https://easylist-downloads.adblockplus.org/antiadblockfilters.txt',
-          'https://raw.githubusercontent.com/reek/anti-adblock-killer/master/anti-adblock-killer-filters.txt',
-          'https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/resources.txt',
-          'https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/unbreak.txt',
-          'https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt',
-          'https://s3.amazonaws.com/cdn.cliqz.com/adblocking/customized_filters_mobile_specific.txt',
-          'https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/thirdparties/easylist-downloads.adblockplus.org/easylist.txt',
+          'easylist-downloads.adblockplus.org/antiadblockfilters.txt',
+          'raw.githubusercontent.com/reek/anti-adblock-killer/master/anti-adblock-killer-filters.txt',
+          'resources.txt',
+          'raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/unbreak.txt',
+          'raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt',
+          's3.amazonaws.com/cdn.cliqz.com/adblocking/customized_filters_mobile_specific.txt',
+          'raw.githubusercontent.com/uBlockOrigin/uAssets/master/thirdparties/easylist-downloads.adblockplus.org/easylist.txt',
         ]), FilterLoader);
       });
 
@@ -163,14 +164,13 @@ export default describeModule('adblocker/filters-loader',
         platformName = 'firefox';
 
         return platformSpecificLoadingTest(new Set([
-          'https://easylist-downloads.adblockplus.org/antiadblockfilters.txt',
-          'https://raw.githubusercontent.com/reek/anti-adblock-killer/master/anti-adblock-killer-filters.txt',
-          'https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/resources.txt',
-          'https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/unbreak.txt',
-          'https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt',
-          'https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/thirdparties/easylist-downloads.adblockplus.org/easylist.txt',
+          'easylist-downloads.adblockplus.org/antiadblockfilters.txt',
+          'raw.githubusercontent.com/reek/anti-adblock-killer/master/anti-adblock-killer-filters.txt',
+          'resources.txt',
+          'raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/unbreak.txt',
+          'raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt',
+          'raw.githubusercontent.com/uBlockOrigin/uAssets/master/thirdparties/easylist-downloads.adblockplus.org/easylist.txt',
         ]), FilterLoader);
       });
     });
-  }
-);
+  });

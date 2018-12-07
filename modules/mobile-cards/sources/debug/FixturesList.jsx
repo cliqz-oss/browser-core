@@ -23,7 +23,9 @@ const styles = StyleSheet.create({
 function Search({ result }) {
   return (
     <View style={styles.wrapper}>
-      <Text style={styles.query}>Query: {result._searchString}</Text>
+      <Text style={styles.query}>
+        {`Query: ${result._searchString}`}
+      </Text>
       <SearchUI
         result={result}
         style={styles.search}
@@ -36,8 +38,7 @@ export default function () {
   return (
     <ScrollView style={styles.background}>
       {fixtures.map(result =>
-        <Search result={result} />
-      )}
+        <Search result={result} />)}
     </ScrollView>
   );
 }

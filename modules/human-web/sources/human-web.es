@@ -2,6 +2,7 @@ import CliqzEvents from '../core/events';
 import CliqzBloomFilter from './cliqz-bloom-filter';
 import utils from '../core/utils';
 import md5 from '../core/helpers/md5';
+import { sha1 } from '../core/crypto/utils';
 import random from '../core/crypto/random';
 import { fetch, httpGet } from '../core/http';
 import { equals as urlEquals, getDetailsFromUrl, isIpAddress } from '../core/url';
@@ -104,7 +105,6 @@ const CliqzHumanWeb = {
       CliqzHumanWeb.contentExtractor.updatePatterns(patternsConfig, ruleset);
     }),
 
-    configURL: config.settings.ENDPOINT_CONFIGURL,
     ts : "",
     mRefresh : {},
     can_url_match :{},
@@ -2315,10 +2315,17 @@ const CliqzHumanWeb = {
                         cleanR.push(msg.payload.r[eachResult]);
                     }
                 });
-                // If after the check, the number of results is less than 8,
-                // drop the message.
-
-                if (cleanR.length < 8) return null;
+                // If there are too few results, the search query tends to be very specific.
+                // To avoid leaking personal information, drop them.
+                //
+                // Note: This limit only takes into account the results on the first page.
+                // For navigational queries, like 'facebook', 'web', 'sueddeutsche', although
+                // there are billions of results, only few of them are on the first page.
+                // That it where we currently set the threshold.
+                if (cleanR.length < 6) {
+                  _log(`Dropping message for query ${msg.payload.q}, as there are too few search results.`);
+                  return null;
+                }
                 cleanR.slice(0,8).forEach( (each, idx) => {
                     newR[idx] = each;
                 });
@@ -3181,7 +3188,7 @@ const CliqzHumanWeb = {
         return promise;
     },
     sha1: function(s) {
-      return CliqzHumanWeb.hpn.action('sha1', s);
+      return sha1(s);
     },
     sendQuorumIncrement: function(hashedUrl){
         let promise = new Promise( (resolve, reject) => {

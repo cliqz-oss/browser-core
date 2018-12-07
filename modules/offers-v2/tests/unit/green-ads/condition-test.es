@@ -1,20 +1,13 @@
 /* global chai */
 /* global describeModule */
 
-const moment = require('moment');
+const commonMocks = require('../utils/common');
+
+const moment = commonMocks['platform/lib/moment'].default;
 
 export default describeModule('offers-v2/green-ads/condition',
   () => ({
-    'offers-v2/green-ads/logger': {
-      default: {
-        debug() {},
-        log(...args) { console.log(...args); },
-        error(...args) { console.log('ERROR', ...args); },
-      },
-    },
-    'platform/lib/moment': {
-      default: moment,
-    },
+    ...commonMocks,
   }),
   () => {
     describe('Condition evaluation', () => {
@@ -516,5 +509,4 @@ export default describeModule('offers-v2/green-ads/condition',
         });
       });
     });
-  }
-);
+  });

@@ -77,9 +77,9 @@ class Cliqz {
 
       let matchesCurrentUrl = message.url === currentUrl;
       // wild card for cliqz URLS
-      if (message.url &&
-          (message.url.indexOf('resource://cliqz') === 0 ||
-           message.url.indexOf('chrome://cliqz') === 0)) {
+      if (message.url
+          && (message.url.indexOf('resource://cliqz') === 0
+           || message.url.indexOf('chrome://cliqz') === 0)) {
         if (currentUrl.indexOf(message.url) === 0) {
           matchesCurrentUrl = true;
         }

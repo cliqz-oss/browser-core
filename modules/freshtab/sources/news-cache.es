@@ -43,8 +43,7 @@ export default class NewsCache {
       Promise.resolve(this.isStale())
         .then(isStale => (isStale ? this.updateCache() : Promise.resolve()))
         .then(() => {
-          this.updateTimer =
-          setTimeout(
+          this.updateTimer = setTimeout(
             this.asynchronousUpdate.bind(this),
             Math.max(this.getTimeToNextUpdate(), 1000)
           );

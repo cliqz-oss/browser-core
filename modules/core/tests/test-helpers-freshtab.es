@@ -266,9 +266,10 @@ export class Subject {
     }
   }
 
-  async load({
-    buildUrl = `/build/${config.settings.id}/chrome/content/freshtab/home.html`,
-    iframeWidth = 900 } = {}) {
+  async load(
+    { buildUrl = `/build/${config.settings.id}/chrome/content/freshtab/home.html`,
+      iframeWidth = 900 } = {}
+  ) {
     this.iframe = document.createElement('iframe');
     this.iframe.src = buildUrl;
     this.iframe.width = iframeWidth;
@@ -296,9 +297,9 @@ export class Subject {
     });
 
     await waitFor(() => (
-      testsUtilsInjected &&
-      iframeLoaded &&
-      this.iframe.contentWindow.document
+      testsUtilsInjected
+      && iframeLoaded
+      && this.iframe.contentWindow.document
     ));
 
     // We need to wait a bit so that the iframe is fully operational. If we
@@ -412,20 +413,35 @@ export class Subject {
     });
   }
 
+  respondsWithEmptyStats() {
+    this.respondsWith({
+      module: 'freshtab',
+      action: 'getStats',
+      response: {}
+    });
+  }
+
   getNews(lang) {
-    const $newsNodes = this.queryAll('.news-sources-selection [type="radio"]');
+    const $newsNodes = this.queryAll('.news-editions-select .news-edition-option');
     return [...$newsNodes].find(n => n.value === lang);
+  }
+
+  getNewsSelect() {
+    return this.query('.news-editions-select');
   }
 
   getSettingsElementByLabel(label, elType) {
     return this.queryByI18n(label, elType);
   }
+
   getSettingsElementByName(elementName) {
     return this.getSettingsElementByLabel(allElements.find(e => e.name === elementName).label);
   }
+
   getElementLabel(name) {
     return this.getSettingsElementByName(name).querySelector('.label');
   }
+
   getElementSwitch(name) {
     return this.getSettingsElementByName(name).querySelector('.switch');
   }
@@ -443,6 +459,7 @@ export const defaultConfig = Object.freeze({
     isHistoryEnabled: true,
     hasActiveNotifications: false,
     isBlue: false,
+    product: 'CLIQZ',
     componentsState: {
       historyDials: {
         visible: false
@@ -459,7 +476,8 @@ export const defaultConfig = Object.freeze({
       },
       background: {
         image: 'bg-default'
-      }
+      },
+      stats: {}
     },
     wallpapers: [
       {
@@ -556,8 +574,8 @@ function checkCommon({
   });
 
   it('renders news source selection form in correct state with correct number of elements', function () {
-    const newsSourcesSelector = '.news-sources-selection';
-    const newsSourceSelector = '.radio';
+    const newsSourcesSelector = '.news-editions-select';
+    const newsSourceSelector = '.news-edition-option';
 
     if (newsState) {
       expect(subject().query(newsSourcesSelector)).to.exist;
@@ -585,11 +603,11 @@ function checkCommon({
     expect(telemetrySignals.length).to.be.above(0);
 
     count = telemetrySignals.filter(({ args: [arg] }) => (
-      arg.type === 'home' &&
-      arg.view === 'settings' &&
-      arg.target === telemetryName &&
-      arg.action === 'click' &&
-      arg.state === telemetryState
+      arg.type === 'home'
+      && arg.view === 'settings'
+      && arg.target === telemetryName
+      && arg.action === 'click'
+      && arg.state === telemetryState
     )).length;
 
     expect(count).to.equal(1);
@@ -646,21 +664,24 @@ function checkAllElements({
 
   if (defaultState) {
     context('with DE as a default news source', function () {
-      let allNewsSources;
+      let newsSelect;
 
       beforeEach(function () {
-        allNewsSources = allNewsLanguages.map(language => subject().getNews(language));
+        newsSelect = subject().getNewsSelect();
       });
 
-      allNewsLanguages.forEach((language, i) => {
+      allNewsLanguages.forEach((language) => {
         describe(`clicking on ${language.toUpperCase()} news source`, function () {
           let isDeCurrentLang;
 
           beforeEach(async function () {
             isDeCurrentLang = language === 'de';
             subject().startListening();
-            allNewsSources[i].click();
-            await waitFor(() => allNewsSources[i].checked);
+            newsSelect.value = language;
+            if (!isDeCurrentLang) {
+              subject().testUtils.Simulate.change(newsSelect);
+            }
+            await waitFor(() => newsSelect.value === language);
           });
 
           it(`${isDeCurrentLang ? 'does not send any related' : 'sends correct'} telemetry signals`, function () {
@@ -673,11 +694,11 @@ function checkAllElements({
               expect(telemetrySignals.length).to.be.above(0);
 
               count = telemetrySignals.filter(({ args: [arg] }) => (
-                arg.type === 'home' &&
-                arg.view === 'settings' &&
-                arg.target === 'news_language' &&
-                arg.action === 'click' &&
-                arg.state === language
+                arg.type === 'home'
+                && arg.view === 'settings'
+                && arg.target === 'news_language'
+                && arg.action === 'click'
+                && arg.state === language
               )).length;
 
               expect(count).to.equal(1);
@@ -768,8 +789,8 @@ export function checkSettingsUI({
     });
 
     it(`${defaultState ? 'renders' : 'does not render'} news selection`, function () {
-      const $newsSelectionArea = subject().query('.news-sources-selection');
-      const $newsSelectionElements = subject().queryAll('.news-sources-selection .radio');
+      const $newsSelectionArea = subject().query('.news-editions-select');
+      const $newsSelectionElements = subject().queryAll('.news-editions-select .news-edition-option');
 
       if (defaultState) {
         expect($newsSelectionArea).to.exist;
@@ -858,32 +879,32 @@ export function checkTelemetry({
   expect(telemetrySignals.length).to.be.above(0);
   if (index && element && view) {
     count = telemetrySignals.filter(({ args: [arg] }) => (
-      arg.action === action &&
-      arg.element === element &&
-      arg.index === index &&
-      arg.target === target &&
-      arg.type === type &&
-      arg.view === view
+      arg.action === action
+      && arg.element === element
+      && arg.index === index
+      && arg.target === target
+      && arg.type === type
+      && arg.view === view
     )).length;
   } else if (index) {
     count = telemetrySignals.filter(({ args: [arg] }) => (
-      arg.action === action &&
-      arg.index === index &&
-      arg.target === target &&
-      arg.type === type
+      arg.action === action
+      && arg.index === index
+      && arg.target === target
+      && arg.type === type
     )).length;
   } else if (view) {
     count = telemetrySignals.filter(({ args: [arg] }) => (
-      arg.action === action &&
-      arg.target === target &&
-      arg.type === type &&
-      arg.view === view
+      arg.action === action
+      && arg.target === target
+      && arg.type === type
+      && arg.view === view
     )).length;
   } else {
     count = telemetrySignals.filter(({ args: [arg] }) => (
-      arg.action === action &&
-      arg.target === target &&
-      arg.type === type
+      arg.action === action
+      && arg.target === target
+      && arg.type === type
     )).length;
   }
 
@@ -891,7 +912,6 @@ export function checkTelemetry({
 }
 
 export const allBackgrounds = [
-  // { name: 'alps', bgSelector: 'body.theme-bg-alps', iconSelector: 'img[data-bg="bg-alps"]', className: 'theme-bg-alps' },
   { name: 'dark', bgSelector: 'body.theme-bg-dark', iconSelector: 'img[data-bg="bg-dark"]', className: 'theme-bg-dark' },
   { name: 'light', bgSelector: 'body.theme-bg-light', iconSelector: 'img[data-bg="bg-light"]', className: 'theme-bg-light' },
   { name: 'matterhorn', bgSelector: 'body.theme-bg-matterhorn', iconSelector: 'img[data-bg="bg-matterhorn"]', className: 'theme-bg-matterhorn' },

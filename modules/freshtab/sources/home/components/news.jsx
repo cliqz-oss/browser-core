@@ -25,18 +25,12 @@ export default class News extends React.Component {
     this.state = {
       pageOfItems: [],
       isNewsHover: false,
-      boxClassName: '',
       opacity: 1,
+      shouldAnimate: false,
       currentPageSize: 0,
       articleCharsLimit: 120,
       charsToRemoveFromTitle: 20,
     };
-
-    this.onChangePage = this.onChangePage.bind(this);
-    this.onMouseEnter = this.onMouseEnter.bind(this);
-    this.onMouseLeave = this.onMouseLeave.bind(this);
-    this.didResize = this.didResize.bind(this);
-    this.updatePageSize = this.updatePageSize.bind(this);
   }
 
   componentDidMount() {
@@ -55,40 +49,43 @@ export default class News extends React.Component {
     }
   }
 
-  onMouseEnter() {
+  onMouseEnter = () => {
     this.setState({ isNewsHover: true });
   }
 
-  onMouseLeave() {
+  onMouseLeave = () => {
     this.setState({ isNewsHover: false });
   }
 
-  onChangePage(pageOfItems, shouldNotAnimate) {
-    if (this.state.pageOfItems.length === 0 || shouldNotAnimate) {
+  onChangePage = ({ pageOfItems, shouldAnimate }) => {
+    if (!shouldAnimate) {
       this.setState({
         pageOfItems,
-        opacity: 1
+        opacity: 1,
       });
       return;
     }
-    this.setState({
-      pageOfItems: this.state.pageOfItems,
-      opacity: 0
-    });
+
+    this.setState(prevState => ({
+      pageOfItems: prevState.pageOfItems,
+      opacity: 0,
+      shouldAnimate: true,
+    }));
+
     setTimeout(() => {
       this.setState({
         pageOfItems,
-        opacity: 1
+        opacity: 1,
       });
     }, 300);
   }
 
-  didResize(event) {
+  didResize = (event) => {
     const width = event.target.innerWidth;
     this.updatePageSize(width);
   }
 
-  updatePageSize(width) {
+  updatePageSize = (width) => {
     if (width > threeNewsBreakpoint) {
       if (this.state.currentPageSize === 3) {
         return;
@@ -122,6 +119,10 @@ export default class News extends React.Component {
     }
   }
 
+  get classNames() {
+    return this.state.shouldAnimate ? 'box with-animation' : 'box';
+  }
+
   render() {
     return (
       <div className="news">
@@ -131,30 +132,32 @@ export default class News extends React.Component {
           onChangePage={this.onChangePage}
           isNewsHover={this.state.isNewsHover}
           isModalOpen={this.props.isModalOpen}
+          contentType="news"
         />
 
         <div className="news-container" style={{ ...styles, opacity: this.state.opacity }}>
           <div className="news-content">
             {
               this.state.pageOfItems.map((article, index) =>
-                (<div
-                  key={article.url}
-                  className="box"
-                  onMouseEnter={this.onMouseEnter}
-                  onMouseLeave={this.onMouseLeave}
-                >
-                  <Article
-                    article={article}
-                    index={(this._pagination.state.pager.pageSize
-                      * (this._pagination.state.pager.currentPage - 1)) + index}
-                    currentPage={this._pagination.state.pager.currentPage}
-                    pageSize={this._pagination.state.pager.pageSize}
-                    maxChars={this.state.articleCharsLimit}
-                    newsLanguage={this.props.newsLanguage}
-                    charsToRemoveFromTitle={this.state.charsToRemoveFromTitle}
-                  />
-                </div>)
-              )
+                (
+                  <div
+                    key={article.url}
+                    className={this.classNames}
+                    onMouseEnter={this.onMouseEnter}
+                    onMouseLeave={this.onMouseLeave}
+                  >
+                    <Article
+                      article={article}
+                      index={(this._pagination.state.pager.pageSize
+                        * (this._pagination.state.pager.currentPage - 1)) + index}
+                      currentPage={this._pagination.state.pager.currentPage}
+                      pageSize={this._pagination.state.pager.pageSize}
+                      maxChars={this.state.articleCharsLimit}
+                      newsLanguage={this.props.newsLanguage}
+                      charsToRemoveFromTitle={this.state.charsToRemoveFromTitle}
+                    />
+                  </div>
+                ))
             }
           </div>
         </div>

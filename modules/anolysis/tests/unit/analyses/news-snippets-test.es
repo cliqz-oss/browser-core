@@ -35,23 +35,23 @@ require('../telemetry-schemas-test-helpers')({
     };
 
     it('handles no interaction', () =>
-      test([], signals => chai.expect(signals).to.be.empty)
-    );
+      test([], signals => chai.expect(signals).to.be.empty));
 
     // Generate tests for all targets/actions/editions
-    cartesian([
-      'de',
-      'de-tr-en',
-      'es',
-      'fr',
-      'gb',
-      'intl',
-      'it',
-      'pl',
-      'us',
-    ],
-    ['click', 'hover'], // action
-    ['topnews', 'breakingnews', 'yournews'], // target
+    cartesian(
+      [
+        'de',
+        'de-tr-en',
+        'es',
+        'fr',
+        'gb',
+        'intl',
+        'it',
+        'pl',
+        'us',
+      ],
+      ['click', 'hover'], // action
+      ['topnews', 'breakingnews', 'yournews'], // target
     ).forEach(([edition, action, target]) => {
       it(`handles ${action} on ${target} with edition ${edition}`, () =>
         test([
@@ -66,8 +66,7 @@ require('../telemetry-schemas-test-helpers')({
             target,
             histogram: [1, 1, 1],
           });
-        })
-      );
+        }));
     });
   },
 });

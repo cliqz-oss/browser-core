@@ -42,9 +42,23 @@ export default class MiddleMessagesOffer extends React.Component {
     this.scrollFinished();
   }
 
-  // TODO: @salvador, please rethink and document this logic, we want complete
-  // test covrage for it.
   scrollFinished() {
+    //
+    // The following return workarounds a timing issue is integration tests.
+    //
+    // The scrolling handler is called several times for a page.
+    // To avoid false "offer shown" signals, the code tracks which
+    // offers are already shown.
+    //
+    // The actual handling of scrolling happens with delay.
+    // If the visibility is changed in this interval (for example,
+    // test has opened a new tab), the tracking information is reset
+    // by `handleVisibility`, and code would send an extra signal.
+    //
+    if (window.document.hidden) {
+      return;
+    }
+
     const offset = 100;
     const currentSeenElements = [];
 
@@ -87,19 +101,21 @@ export default class MiddleMessagesOffer extends React.Component {
 
   render() {
     return (
-      <div ref={(el) => { this.offersWrapper = el; }} >
+      <div ref={(el) => { this.offersWrapper = el; }}>
         {this.props.offers.map(offer =>
-          (<Offer
-            offer={offer}
-            key={offer.offer_id}
-            fullWidth={this.props.fullWidth}
-            submitFeedbackForm={this.props.submitFeedbackForm}
-            getOfferInfoOpen={this.props.getOfferInfoOpen}
-            setOfferInfoOpen={this.props.setOfferInfoOpen}
-            getOfferMenuOpen={this.props.getOfferMenuOpen}
-            setOfferMenuOpen={this.props.setOfferMenuOpen}
-          />)
-        )}
+          (
+            <Offer
+              offer={offer}
+              key={offer.offer_id}
+              fullWidth={this.props.fullWidth}
+              submitFeedbackForm={this.props.submitFeedbackForm}
+              getOfferInfoOpen={this.props.getOfferInfoOpen}
+              setOfferInfoOpen={this.props.setOfferInfoOpen}
+              getOfferMenuOpen={this.props.getOfferMenuOpen}
+              setOfferMenuOpen={this.props.setOfferMenuOpen}
+            />
+          ))
+        }
       </div>
     );
   }
@@ -108,6 +124,6 @@ export default class MiddleMessagesOffer extends React.Component {
 MiddleMessagesOffer.propTypes = {
   offers: PropTypes.shape({
     map: PropTypes.func,
-    length: PropTypes.Number
+    length: PropTypes.number
   })
 };

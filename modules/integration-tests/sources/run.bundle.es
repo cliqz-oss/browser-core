@@ -24,7 +24,6 @@ function mockGlobalState() {
   // We only need the tests for the regular cliqz dropdown
   prefs.set('dropDownABCGroup', 'cliqz');
   prefs.clear('dropDownStyle');
-  app.services.pingCliqzResults = () => {};
 }
 
 
@@ -37,9 +36,7 @@ async function closeAllTabs() {
     .filter(({ url }) => !url.startsWith('about:')) // don't close about pages as they are commonly used to debug state of the browser
     .map(({ id, url }) =>
       // eslint-disable-next-line no-console
-      tabs.closeTab(id).catch(ex => console.error('Could not close tab', id, url, ex))
-    )
-  );
+      tabs.closeTab(id).catch(ex => console.error('Could not close tab', id, url, ex))));
 }
 
 

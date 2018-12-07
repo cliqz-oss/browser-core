@@ -26,5 +26,4 @@ export default describeModule('market-analysis/common/regex_helper',
         chai.expect(regexHelper.test(regexStr, url)).eql(true);
       });
     });
-  }
-);
+  });

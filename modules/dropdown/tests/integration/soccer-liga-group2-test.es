@@ -49,8 +49,7 @@ export default function () {
         await waitForPopup(2);
         $cliqzResults.querySelector('#tab-1').click();
         await waitFor(() =>
-          !$cliqzResults.querySelector('#tab-0').classList.contains('checked')
-        );
+          !$cliqzResults.querySelector('#tab-0').classList.contains('checked'));
       });
 
       checkMainResult({ $result: $cliqzResults });

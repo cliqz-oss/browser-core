@@ -35,9 +35,10 @@ export default class Social extends React.Component {
     if (!this.props.data || !this.props.data.length) {
       return null;
     }
-    return (<View style={styles.social} >
-      {this.props.data.slice(0, 3).map(this.displayLink)}
-    </View>);
+    return (
+      <View style={styles.social}>
+        {this.props.data.slice(0, 3).map(this.displayLink)}
+      </View>
+    );
   }
 }
-

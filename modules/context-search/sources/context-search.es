@@ -168,10 +168,10 @@ class ContextSearch {
   addWordsToCache(cacheId, words, type) {
     for (let i = 0; i < words.length; i += 1) {
       const word = words[i];
-      if (word.length > 3 &&
-          word.length < 30 &&
-          /^\d+$/.test(word) === false &&
-          !this.stopwords.has(word)) {
+      if (word.length > 3
+          && word.length < 30
+          && /^\d+$/.test(word) === false
+          && !this.stopwords.has(word)) {
         const minI = Math.max(i - this.window, 0);
         const maxI = Math.min(i + this.window + 1, words.length);
         const windowStr = words.slice(minI, maxI).join();
@@ -356,10 +356,10 @@ class ContextSearch {
   static isNotUrl(str) {
     const trimmed = str.trim().toLowerCase();
     return (
-      trimmed.startsWith('about:') ||
-      trimmed.startsWith('view-source:') ||
-      trimmed.startsWith('file:') ||
-      trimmed.startsWith('chrome:')
+      trimmed.startsWith('about:')
+      || trimmed.startsWith('view-source:')
+      || trimmed.startsWith('file:')
+      || trimmed.startsWith('chrome:')
     );
   }
 
@@ -370,12 +370,12 @@ class ContextSearch {
    */
   static isUrl(str) {
     const trimmed = str.trim().toLowerCase();
-    return (trimmed.startsWith('http') ||
-      trimmed.startsWith('about:') ||
-      trimmed.startsWith('view-source:') ||
-      trimmed.startsWith('file:') ||
-      trimmed.startsWith('chrome:') ||
-      trimmed.startsWith('resource:')
+    return (trimmed.startsWith('http')
+      || trimmed.startsWith('about:')
+      || trimmed.startsWith('view-source:')
+      || trimmed.startsWith('file:')
+      || trimmed.startsWith('chrome:')
+      || trimmed.startsWith('resource:')
     );
   }
 
@@ -495,9 +495,9 @@ class ContextSearch {
 
   testUrlDistribution(url) {
     const activeURL = ContextSearch.cleanCurrentUrl(url);
-    if (this.validUrl(activeURL) &&
-        Object.keys(this.distribution).length > 0 &&
-        !(this.sentUrls.has(activeURL))) {
+    if (this.validUrl(activeURL)
+        && Object.keys(this.distribution).length > 0
+        && !(this.sentUrls.has(activeURL))) {
       const strippedUrl = urlHelpers.urlStripProtocol(url);
       this.sentUrls.add(activeURL);
 
@@ -558,8 +558,8 @@ class ContextSearch {
     const newResponse = [];
     let count = 0;
     for (let i = 0; i < bufResponse.length - 1; i += 1) {
-      if (bufResponse[i].rerank_length < bufResponse[i + 1].rerank_length &&
-        bufResponse[i].score < bufResponse[i + 1].score * threshold) {
+      if (bufResponse[i].rerank_length < bufResponse[i + 1].rerank_length
+        && bufResponse[i].score < bufResponse[i + 1].score * threshold) {
         newResponse.push(bufResponse[i + 1]);
         bufResponse[i + 1] = response[i];
         count += 1;
@@ -742,8 +742,8 @@ class ContextSearch {
       mergedResponse = response[0];
     } else {
       mergedResponse = ContextSearch.mergeResults(response[0], response[1]);
-      count = mergedResponse.filter((v, i) => (i < Math.min(10, response[0].length - 1) &&
-                                               v !== response[0][i])).length;
+      count = mergedResponse.filter((v, i) => (i < Math.min(10, response[0].length - 1)
+                                               && v !== response[0][i])).length;
       telemetrySignal.context_search = true;
     }
 

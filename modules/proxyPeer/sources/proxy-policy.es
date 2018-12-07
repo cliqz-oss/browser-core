@@ -70,8 +70,8 @@ export class CompositePolicy {
   }
 
   shouldProxyAddress(addr) {
-    return !this.blacklists.some(bl => bl.shouldNotProxyAddress(addr)) &&
-            this.whitelists.some(wl => wl.shouldProxyAddress(addr));
+    return !this.blacklists.some(bl => bl.shouldNotProxyAddress(addr))
+            && this.whitelists.some(wl => wl.shouldProxyAddress(addr));
   }
 }
 
@@ -115,7 +115,8 @@ export class PublicDomainOnlyPolicy {
     const status = this.verified.get(addr);
     if (status === 'public') {
       return true;
-    } else if (status === undefined) {
+    }
+    if (status === undefined) {
       this.verified.set(addr, 'lookup');
       asyncResolve(addr)
         .then(ip => this.verified.set(addr, isPrivateIPAddress(ip) ? 'private' : 'public'))

@@ -98,7 +98,8 @@ export class Cookie {
   get storeId() {
     if (this._cookie.originAttributes.userContextId) {
       return CONTAINER_STORE + this._cookie.originAttributes.userContextId;
-    } else if (this._cookie.originAttributes.privateBrowsingId) {
+    }
+    if (this._cookie.originAttributes.privateBrowsingId) {
       return PRIVATE_STORE;
     }
     return DEFAULT_STORE;
@@ -175,15 +176,25 @@ class OnCookieChangedListener {
 
 export default {
   get({ url, name, storeId }) {
-    return Promise.reject('not yet implemented');
+    return Promise.reject(new Error('not yet implemented'));
   },
   getAll({ url, name, domain, path, secure, session, storeId }) {
     // Currently only returns all cookies. Filtering is not yet implemented
+    let enumerator;
+    try {
+      enumerator = XPCOMUtils.IterSimpleEnumerator(
+        Services.cookies.enumerator,
+        Components.interfaces.nsICookie2
+      );
+    } catch (e) {
+      enumerator = Services.cookies.getCookiesWithOriginAttributes(
+        JSON.stringify({
+          privateBrowsingId: 0,
+        }), domain
+      );
+    }
     const cookies = [];
-    for (const cookie of XPCOMUtils.IterSimpleEnumerator(
-      Services.cookies.enumerator,
-      Components.interfaces.nsICookie2
-    )) {
+    for (const cookie of enumerator) {
       cookies.push(new Cookie(cookie));
     }
     return Promise.resolve(cookies);

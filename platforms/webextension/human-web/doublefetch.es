@@ -14,14 +14,14 @@ export function getRequest(url) {
 
     return Promise.race([timeout, request]).then((response) => {
       if (response.status !== 200 && response.status !== 0 /* local files */) {
-        reject(`status not valid: ${response.status}`);
+        reject(new Error(`status not valid: ${response.status}`));
       }
 
-      if (!urlEquals(response.url, url) &&
-        !urlEquals(decodeURI(decodeURI(response.url)), decodeURI(decodeURI(url)))) {
+      if (!urlEquals(response.url, url)
+        && !urlEquals(decodeURI(decodeURI(response.url)), decodeURI(decodeURI(url)))) {
         // there has been a redirect, we cannot guarantee that cookies were
         // not sent, therefore fail and consider as private
-        reject(`DANGER: ${url} != ${response.url}`);
+        reject(new Error(`DANGER: ${url} != ${response.url}`));
       }
 
       response.text().then((text) => {

@@ -46,7 +46,7 @@ function deleteFromEnd({ numChars, query }) {
 }
 
 function allPrefixes(query) {
-  return deleteFromEnd({ query, numChars: query.length - 1}).reverse();
+  return deleteFromEnd({ query, numChars: query.length - 1 }).reverse();
 }
 
 /**
@@ -61,13 +61,16 @@ export default describeModule('search/providers/cliqz/query-sanitizer',
   }),
   () => {
     describe('query-sanitizer module:', function () {
-      let sanitizeSearchQuery, QuerySanitizerWithHistory, BoundedMap;
+      let sanitizeSearchQuery;
+      let QuerySanitizerWithHistory;
+      let BoundedMap;
 
       let oldURL;
       beforeEach(function () {
         sanitizeSearchQuery = this.module().sanitizeSearchQuery;
         QuerySanitizerWithHistory = this.module().QuerySanitizerWithHistory;
         BoundedMap = this.module().BoundedMap;
+        /* eslint-disable-next-line global-require */
         global.URL = global.URL || require('url').URL;
       });
 
@@ -84,7 +87,7 @@ export default describeModule('search/providers/cliqz/query-sanitizer',
         }
 
         chai.assert(result === query,
-                    `Expected query <<${query}>> to be allowed, but it was rejected (result is ${result})`);
+          `Expected query <<${query}>> to be allowed, but it was rejected (result is ${result})`);
       };
 
       const reject = (query) => {
@@ -96,7 +99,7 @@ export default describeModule('search/providers/cliqz/query-sanitizer',
         }
 
         chai.assert(!result,
-                    `Expected query <<${query}>> to be rejected, but it was allowed (result is ${result})`);
+          `Expected query <<${query}>> to be rejected, but it was allowed (result is ${result})`);
       };
 
       // Use them for documentation only, or if you have a test
@@ -294,7 +297,7 @@ export default describeModule('search/providers/cliqz/query-sanitizer',
 
         describe('should be more conservative if queries are quoted:', function () {
           it('should skip URL guessing', function () {
-            unintendedReject("/proc/sys/net/ipv4/tcp_tw_recycle");
+            unintendedReject('/proc/sys/net/ipv4/tcp_tw_recycle');
             ok("'/proc/sys/net/ipv4/tcp_tw_recycle'");
             ok('"/proc/sys/net/ipv4/tcp_tw_recycle"');
             ok('linux "/proc/sys/net/ipv4/tcp_tw_recycle"');
@@ -434,7 +437,7 @@ export default describeModule('search/providers/cliqz/query-sanitizer',
             query: 'https://gist.github.test/rsobers/2016e57e0cb00c8e7a2d'
           })) {
             reject(query);
-          };
+          }
 
           for (const query of deleteFromFront({
             numChars: 10,
@@ -460,7 +463,7 @@ export default describeModule('search/providers/cliqz/query-sanitizer',
             query: 'https://gist.github.test/rsobers/2016e57e0cb00c8e7a2d'
           })) {
             reject(query);
-          };
+          }
 
           for (const query of deleteFromEnd({
             numChars: 10,
@@ -583,7 +586,7 @@ export default describeModule('search/providers/cliqz/query-sanitizer',
       describe('#_smallQueryButCouldBeUrlShortener', function () {
         let _smallQueryButCouldBeUrlShortener;
 
-        beforeEach(function() {
+        beforeEach(function () {
           _smallQueryButCouldBeUrlShortener = this.module()._smallQueryButCouldBeUrlShortener;
         });
 
@@ -670,10 +673,10 @@ export default describeModule('search/providers/cliqz/query-sanitizer',
               lastEntries.shift();
             }
 
-            for (const key of allKeys) {
-              const value = map.get(key);
-              const expectedValue = lastEntries.includes(key) ? fullMap.get(key) : null;
-              expect(value).to.equal(expectedValue);
+            for (const _key of allKeys) {
+              const _value = map.get(_key);
+              const expectedValue = lastEntries.includes(_key) ? fullMap.get(_key) : null;
+              expect(_value).to.equal(expectedValue);
             }
           });
 
@@ -734,5 +737,4 @@ export default describeModule('search/providers/cliqz/query-sanitizer',
         });
       });
     });
-  }
-);
+  });

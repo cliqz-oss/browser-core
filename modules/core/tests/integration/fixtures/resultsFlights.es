@@ -322,7 +322,8 @@ export default {
         friendlyUrl: 'flightstats.com/go/flightstatus/flightstatusbyflight.do',
         extra: {
           depart_arrive: [
-            { estimate_actual_date: 'fr.. 27 oktober',
+            {
+              estimate_actual_date: 'fr.. 27 oktober',
               estimate_actual_time: '07:00',
               gate_full: 'Gate A37',
               gate: 'A37',

@@ -19,6 +19,8 @@ export default (props = {}) => {
       data-view={telemetry.view}
       data-category={telemetry.category}
       data-session={telemetry.session}
-    >Search</a>
+    >
+      Search
+    </a>
   );
 };

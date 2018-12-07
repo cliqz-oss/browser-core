@@ -101,7 +101,8 @@ export default function () {
 
         [...$6Aus49Numbers].forEach(function ($element, i) {
           expect($element).to.contain.text(
-            results[0].snippet.extra.lotto_list.cur_date.lotto.gewinnzahlen[i]);
+            results[0].snippet.extra.lotto_list.cur_date.lotto.gewinnzahlen[i]
+          );
         });
       });
 
@@ -115,7 +116,8 @@ export default function () {
         const $superZahl = $allAus49Elements[6];
 
         expect($superZahl).to.contain.text(
-          results[0].snippet.extra.lotto_list.cur_date.lotto.superzahl);
+          results[0].snippet.extra.lotto_list.cur_date.lotto.superzahl
+        );
       });
 
       it('with a correct label of Superzahl', async function () {
@@ -144,7 +146,8 @@ export default function () {
         const $spiel77Numbers = [...$allSpiel77Elements].slice(1);
         [...$spiel77Numbers].forEach(function ($element, i) {
           expect($element).to.contain.text(
-            results[0].snippet.extra.lotto_list.cur_date.spiel77.gewinnzahlen[i]);
+            results[0].snippet.extra.lotto_list.cur_date.spiel77.gewinnzahlen[i]
+          );
         });
       });
 
@@ -174,7 +177,8 @@ export default function () {
         const $super6Numbers = [...$allSuper6Elements].slice(1);
         [...$super6Numbers].forEach(function ($element, i) {
           expect($element).to.contain.text(
-            results[0].snippet.extra.lotto_list.cur_date.super6.gewinnzahlen[i]);
+            results[0].snippet.extra.lotto_list.cur_date.super6.gewinnzahlen[i]
+          );
         });
       });
 
