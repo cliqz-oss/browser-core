@@ -214,10 +214,6 @@ export default background({
 
     // to be checked on unload
     this.initialized = true;
-    if (prefs.get('full_distribution') === 'pk_campaign=fp1' && !prefs.get(PRINT_ONBOARDING, false)) {
-      this.actions.onContentCategories({ categories: ['freundin'], prefix: 'onboarding', url: 'https://myoffrz.com/freundin' });
-      prefs.set(PRINT_ONBOARDING, true);
-    }
 
     return this.gaHandler.init();
   },
@@ -551,6 +547,13 @@ export default background({
     registerRealEstate({ realEstateID }) {
       if (this.registeredRealEstates) {
         this.registeredRealEstates.set(realEstateID, true);
+      }
+      if (realEstateID === 'offers-cc') {
+        if (prefs.get('full_distribution', '').includes('fp1') && !prefs.get(PRINT_ONBOARDING, false)) {
+          logger.info('Onboarding offer pushed');
+          this.actions.onContentCategories({ categories: ['freundin'], prefix: 'onboarding', url: 'https://myoffrz.com/freundin' });
+          prefs.set(PRINT_ONBOARDING, true);
+        }
       }
     },
 
