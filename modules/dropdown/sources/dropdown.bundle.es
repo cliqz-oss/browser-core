@@ -144,6 +144,8 @@ const exportedActions = {
         telemetry: importedActions.telemetry,
         openLink: importedActions.openLink,
         copyToClipboard: importedActions.copyToClipboard,
+        setPref: importedActions.setPref,
+        getPref: importedActions.getPref,
       },
     };
 
@@ -151,11 +153,14 @@ const exportedActions = {
     // the order of the runloop when innerHTML is called. This happens only for
     // first batch of renders. having nextTick here, makes the problem go away
     await new Promise(resolve => window.setTimeout(resolve), 0);
+    const retirementIgnoredOn = await importedActions.getPref('retirementIgnoredOn');
+    const today = await importedActions.getPref('config_ts');
 
     const results = new Results({
       query,
       rawResults,
       queriedAt,
+      showRetirement: retirementIgnoredOn !== '4EVER' && retirementIgnoredOn !== today
     }, resultTools);
 
     previousResults = results;

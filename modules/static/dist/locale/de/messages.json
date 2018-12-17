@@ -2117,6 +2117,24 @@
   "breaking_news_label": {
       "message": "Eilmeldung"
   },
+  "retirement.headline": {
+      "message": "Achtung! Diese Suchergebnisse gibts hier in Kürze nicht mehr."
+  },
+  "retirement.content": {
+      "message" : "erfährst Du, was sich in den nächsten Tagen ändert."
+  },
+  "retirement.more": {
+      "message" : "Hier"
+  },
+  "retirement.more.url": {
+      "message" : "https://cliqz.com/lp/cliqzchanges"
+  },
+  "retirement.action": {
+      "message" : "Mehr erfahren "
+  },
+  "retirement.action2": {
+      "message" : "Nicht mehr zeigen"
+  },
   "TEST": {
       "message": "OK"
   },

@@ -17,6 +17,7 @@ import MovieResult from './results/movie';
 import CinemaResult from './results/cinema';
 import NavigateToResult from './results/navigate-to';
 import NewsStory from './results/news-story';
+import RetirementResult from './results/retirement';
 import TopNews from './results/top-news';
 import { equals } from '../core/content/url';
 
@@ -110,8 +111,8 @@ class ResultFactory {
     return new Constructor(rawResult, resultTools);
   }
 
-  static createAll(rawResults, resultTools) {
-    return rawResults.reduce((resultList, rawResult) => {
+  static createAll(rawResults, resultTools, showRetirement) {
+    const all = rawResults.reduce((resultList, rawResult) => {
       try {
         const result = ResultFactory.create(
           rawResult,
@@ -129,6 +130,14 @@ class ResultFactory {
 
       return resultList;
     }, []);
+
+    if (showRetirement) {
+      const retirement = new RetirementResult({}, resultTools);
+      retirement.actions = resultTools.actions;
+      all.unshift(retirement);
+    }
+
+    return all;
   }
 }
 
@@ -138,6 +147,7 @@ export default class Results {
       query,
       rawResults,
       queriedAt,
+      showRetirement,
     },
     resultTools,
   ) {
@@ -146,14 +156,14 @@ export default class Results {
       actions: {
         ...resultTools.actions,
         replaceResult: this.replaceResult,
+        removeResult: this.removeResult,
       },
       results: this,
     };
 
     this.query = query;
     this.queriedAt = queriedAt;
-
-    this.results = ResultFactory.createAll(rawResults, this.resultTools);
+    this.results = ResultFactory.createAll(rawResults, this.resultTools, showRetirement);
 
     if (this.hasAdultResults) {
       if (this.resultTools.assistants.adult.isBlockingAdult) {
@@ -224,6 +234,12 @@ export default class Results {
   replaceResult = (oldResult, newResult) => {
     const index = this.indexOf(oldResult);
     this.results.splice(index, 1, newResult);
+    this.resultTools.actions.rerender();
+  };
+
+  removeResult = (result) => {
+    const index = this.indexOf(result);
+    this.results.splice(index, 1);
     this.resultTools.actions.rerender();
   };
 

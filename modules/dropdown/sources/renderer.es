@@ -2,6 +2,7 @@ import Spanan from 'spanan';
 import config from '../core/config';
 import events from '../core/events';
 import utils from '../core/utils';
+import prefs from '../core/prefs';
 import { cleanMozillaActions } from '../core/url';
 import { copyToClipboard } from '../core/clipboard';
 import { getCurrentTabId } from '../core/tabs';
@@ -10,6 +11,8 @@ import ContextMenu from './context-menu';
 export default class {
   actions = {
     telemetry: utils.telemetry,
+    getPref: prefs.get,
+    setPref: prefs.set,
     openLink: (
       url,
       {

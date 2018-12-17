@@ -911,6 +911,87 @@ $basic-line-height: (16 / 14) + 0em;
             }
         }
     }
+    /* retirement */
+    .retirement {
+        max-width: 827px;
+        background-color: rgba(254,166,35,0.1);
+        border-color: rgba(254,166,35,1);
+        border-style: dashed;
+        border-width: 1.5px;
+        background-image: url-prefix("dropdown/images/retirement.svg");
+        background-size: 56px;
+        background-repeat: no-repeat;
+        background-position: 18px center;
+        padding-left: 88px;
+        padding-bottom: 12px !important;
+        padding-top: 10px;
+        margin-left: calc(var(--content-padding-start) - 20px);
+        margin-top: 15px;
+        margin-bottom: 15px;
+        position: relative;
+        div {
+            display: inline-block;
+        }
+        .close {
+            background-image: url-prefix("dropdown/images/close.svg");
+            background-size: 10px;
+            background-repeat: no-repeat;
+            position: absolute !important;
+            right: 11px;
+            width: 10px;
+            height: 10px;
+            top: 11px;
+            cursor: pointer;
+        }
+        .headline {
+            color: #4A4A4A;
+            font-weight: 500;
+            line-height: 25px;
+            width: calc(100% - 10px);
+            font-size: 16px;
+        }
+        .content {
+            font-size: 0.833em;
+            max-width: calc(100% - 260px);
+            .text {
+                a {
+                    text-decoration: underline;
+                }
+            }
+            .action {
+                position: absolute;
+                right: 10px;
+                bottom: 12px;
+                a {
+                    float: left;
+                    display: inline-block;
+                    height: 31px;
+                    vertical-align: top;
+                    padding: 6px 10px;
+                    font-weight: 500;
+                    border-radius: 3px;
+                    cursor: pointer;
+                    &.close4ever {
+                        color: #aaa;
+                        &.selected, &:hover {
+                            color: #333;
+                        }
+                    }
+                    &.learnmore {
+                        background-color: #2385E7;
+                        color: white;
+                        &.selected, &:hover {
+                            background-color: rgba(254, 166, 35, 1);
+                        }
+                    }
+                }
+            }
+            .result {
+                display: inline-block;
+                cursor: pointer;
+            }
+        }
+    }
 }
 
 //===========================

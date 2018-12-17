@@ -2117,6 +2117,24 @@
   "breaking_news_label": {
       "message": "Breaking News"
   },
+  "retirement.headline": {
+      "message": "Attention! These search results are going away."
+  },
+  "retirement.content": {
+      "message" : "is what's going to change in the upcoming days."
+  },
+  "retirement.more": {
+      "message" : "Here"
+  },
+  "retirement.more.url": {
+      "message" : "https://cliqz.com/lp/cliqzchanges"
+  },
+  "retirement.action": {
+      "message" : "Learn more"
+  },
+  "retirement.action2": {
+      "message" : "Don't show again"
+  },
   "TEST": {
       "message": "OK"
   },
