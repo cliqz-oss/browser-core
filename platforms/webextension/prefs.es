@@ -27,6 +27,7 @@ function cleanPref(pref) {
 }
 
 export function getAllCliqzPrefs() {
+  return Object.keys(prefs) || [];
 }
 
 export function getPref(prefKey, notFound) {

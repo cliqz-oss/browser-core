@@ -25,6 +25,7 @@ module.exports = {
   },
   "modules": [
     "core",
+    "telemetry",
     "core-cliqz",
     "dropdown",
     "static",
@@ -44,7 +45,6 @@ module.exports = {
     "browser-panel",
     "control-center",
     "message-center",
-    "offboarding",
     "anolysis",
     "anolysis-cc",
     "market-analysis",

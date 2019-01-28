@@ -1929,10 +1929,10 @@
       "message": "Favoriten"
   },
   "freshtab_search_reminder": {
-      "message": "Hallo! Willst du private suchen?"
+      "message": "Drücke die Tab-Taste, um zur anonymen Cliqz-Suche zu wechseln!"
   },
   "freshtab_search_reminder_action": {
-      "message": "Drucke TAB"
+      "message": ""
   },
   "freshtab_urlbar_placeholder": {
       "message": "Anonym suchen"

@@ -1,5 +1,6 @@
 /* global window */
 import App from '../core/app';
+import config from '../core/config';
 
 function migratePrefs() {
   return new Promise((resolve) => {
@@ -39,3 +40,5 @@ migratePrefs().then(() => {
     CLIQZ.app.stop();
   });
 });
+
+chrome.runtime.setUninstallURL(config.settings.UNINSTALL);
