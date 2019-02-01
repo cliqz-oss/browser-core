@@ -48,7 +48,7 @@ const systemConfig = {
       defaultJSExtensions: true,
       //format: 'system',
       map: {
-        './platform/tldts': 'node_modules/tldts/dist/tldts.js'
+        './platform/tldts': 'node_modules/tldts/dist/tldts.umd.min.js'
       },
       meta: {
         './platform*/lib/zlib.lib.js': {

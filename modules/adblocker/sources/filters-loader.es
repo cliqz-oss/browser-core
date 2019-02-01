@@ -247,7 +247,7 @@ export default class FiltersLoader extends UpdateCallbackHandler {
         }
 
         const assetName = getAssetName(asset);
-        const filterRemoteURL = BASE_URL + assetName;
+        const filterRemoteURL = BASE_URL + stripProtocol(asset);
 
         if (lang === null || userLang.indexOf(lang) !== -1) {
           filtersLists.set(assetName, {

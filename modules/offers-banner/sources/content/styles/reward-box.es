@@ -16,5 +16,6 @@ export function banner() {
     opacity: '0',
     'box-shadow': 'rgba(0, 0, 0, 0.19) 3px 2px 13px 2px',
     'border-radius': '8px',
+    background: '#f2f2f2'
   };
 }

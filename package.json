@@ -1,6 +1,6 @@
 {
   "name": "browser-core",
-  "version": "1.32.3",
+  "version": "1.32.4",
   "description": "",
   "main": "build/index.js",
   "scripts": {
@@ -16,7 +16,7 @@
   ],
   "dependencies": {
     "@cliqz-oss/dexie": "^2.0.4",
-    "@cliqz/adblocker": "^0.3.1",
+    "@cliqz/adblocker": "^0.4.1",
     "ajv": "^6.5.0",
     "anonymous-credentials": "https://github.com/cliqz-oss/anonymous-credentials/releases/download/0.1.1/anonymous-credentials-0.1.1.tgz",
     "classnames": "^2.2.5",
@@ -52,7 +52,7 @@
     "spanan": "^2.0.0",
     "tablesorter": "^2.29.2",
     "text-encoding": "^0.6.4",
-    "tldts": "^3.0.0",
+    "tldts": "^3.1.2",
     "tooltipster": "^4.2.6",
     "ua-parser-js": "^0.7.12",
     "whatwg-fetch": "^3.0.0",

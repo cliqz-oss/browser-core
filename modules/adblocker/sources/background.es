@@ -39,17 +39,6 @@ export default background({
   },
 
   events: {
-    'content:location-change': function onLocationChange({ windowId, url }) {
-      if (!isSupportedProtocol(url) || !CliqzADB.isAdbActive(url)) {
-        return;
-      }
-
-      const response = CliqzADB.adBlocker.engine.getDomainFilters(
-        extractHostname(url),
-      );
-      this.core.action('broadcastActionToWindow', windowId, 'adblocker', 'update', response);
-    },
-
     'control-center:adb-optimized': () => {
       prefs.set(ADB_PREF_OPTIMIZED, !prefs.get(ADB_PREF_OPTIMIZED, false));
     },
@@ -90,27 +79,15 @@ export default background({
 
   actions: {
     // handles messages coming from process script
-    getCosmeticsForNodes(nodes, sender) {
+    getCosmeticsFilters(sender) {
       const tabUrl = sender.tab.url;
       const url = sender.url;
+
       if (!isSupportedProtocol(tabUrl) || !CliqzADB.isAdbActive(tabUrl)) {
         return { active: false };
       }
 
       return CliqzADB.adBlocker.engine.getCosmeticsFilters(
-        extractHostname(url),
-        nodes
-      );
-    },
-
-    getCosmeticsForDomain(sender) {
-      const tabUrl = sender.tab.url;
-      const url = sender.url;
-      if (!isSupportedProtocol(tabUrl) || !CliqzADB.isAdbActive(tabUrl)) {
-        return { active: false };
-      }
-
-      return CliqzADB.adBlocker.engine.getDomainFilters(
         extractHostname(url),
       );
     },

@@ -121,7 +121,7 @@ const subprojects = {
   },
   tldts: {
     src: 'node_modules/tldts/dist',
-    include: ['tldts.js'],
+    include: ['tldts.umd.min.js'],
     dest: 'vendor',
   },
   sinon: {
