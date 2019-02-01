@@ -8,7 +8,7 @@ export default class PageLogger {
 
   logMainDocument(state) {
     if (state.isFullPage()) {
-      this.tpEvents.onFullPage(state.urlParts, state.tabId, state.isPrivate);
+      this.tpEvents.onFullPage(state.urlParts, state.tabId, state.isPrivate, state.requestId);
       // if (CliqzAttrack.isTrackerTxtEnabled()) {
       //   TrackerTXT.get(url_parts).update();
       // }

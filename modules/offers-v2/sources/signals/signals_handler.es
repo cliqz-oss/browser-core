@@ -106,7 +106,7 @@ export default class SignalHandler {
   }
 
   // destructor
-  destroy() {
+  async destroy() {
     // stop interval
     if (this.sendIntervalTimer) {
       this.sendIntervalTimer.stop();
@@ -116,7 +116,7 @@ export default class SignalHandler {
       this.saveInterval.stop();
     }
 
-    return this._savePersistenceData();
+    await this._savePersistenceData();
   }
 
   // ///////////////////////////////////////////////////////////////////////////
@@ -188,7 +188,7 @@ export default class SignalHandler {
     addOrCreate(origin, sid, count);
 
     // mark it as modified
-    const shouldSend = !sid.startsWith('filtered_by_') || sid === 'filtered_by_filterByRealEstates';
+    const shouldSend = !sid.startsWith('filter');
     this._markSignalAsModified(sigType, cid, shouldSend);
 
     logger.info(`setCampaignSignal${shouldSend ? '' : ' (silent)'}:`

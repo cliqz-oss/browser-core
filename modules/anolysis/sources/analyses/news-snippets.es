@@ -13,6 +13,7 @@ import { NEWS_EDITIONS } from '../metrics/freshtab';
  */
 export default {
   name: 'news-snippets',
+  needsGid: true,
   version: 1,
   generate: ({ records }) => {
     const histogram = new DefaultMap(() => new Counter());

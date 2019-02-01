@@ -1,4 +1,5 @@
-import Rx from '../platform/lib/rxjs';
+import { pipe, interval } from 'rxjs';
+import { mergeMap, withLatestFrom, take, map, filter } from 'rxjs/operators';
 import background from '../core/base/background';
 import { Window } from '../core/browser';
 import prefs, { getCliqzPrefs } from '../core/prefs';
@@ -31,15 +32,17 @@ export default background({
 
     // For every click (or enter) on a cliqz result, start a new stream that
     // will wait for upcoming page load
-    clicks$.mergeMap(({ url, resultType }) =>
-      Rx.Observable
+    clicks$.pipe(
+      mergeMap(({ url, resultType }) => pipe(
         // open a time window to capture location change
-        .interval(5000)
+        interval(5000),
         // wait only once
-        .take(1)
+        take(1),
         // merge with location-change that matches the url
-        .withLatestFrom(locationChanges$.filter(({ url: u }) => u === url))
-        .map(([, { status }]) => ({ resultType, status })))
+        withLatestFrom(locationChanges$.pipe(filter(({ url: u }) => u === url))),
+        map(([, { status }]) => ({ resultType, status }))
+      ))
+    )
       .subscribe(({ status, resultType }) => {
         utils.telemetry({
           type: 'performance',

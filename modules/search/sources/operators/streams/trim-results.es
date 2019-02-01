@@ -1,7 +1,6 @@
+import { pipe } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { getMainLink } from '../normalize';
-import Rx from '../../../platform/lib/rxjs';
-
-const { map } = Rx.operators;
 
 const PREVENT_AUTOCOMPLETE_KEYS = ['Backspace', 'Delete'];
 
@@ -14,7 +13,7 @@ const PREVENT_AUTOCOMPLETE_KEYS = ['Backspace', 'Delete'];
  * @function trimResults
  */
 export default () =>
-  map(({
+  pipe(map(({
     query,
     responses: [firstResponse, ...remainingResponses],
     ...result
@@ -56,4 +55,4 @@ export default () =>
         ...remainingResponses,
       ],
     };
-  });
+  }));

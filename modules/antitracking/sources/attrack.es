@@ -12,7 +12,6 @@ import pacemaker from '../core/services/pacemaker';
 import { getGeneralDomain } from '../core/tlds';
 import prefs from '../core/prefs';
 import events from '../core/events';
-import privacy from '../platform/privacy';
 
 import * as browser from '../platform/browser';
 import * as datetime from './time';
@@ -20,10 +19,8 @@ import PageEventTracker from './tp_events';
 import Pipeline from '../webrequest-pipeline/pipeline';
 import QSWhitelist2 from './qs-whitelist2';
 import TempSet from './temp-set';
-import cleanLegacyDb from './legacy/database';
 import md5 from '../core/helpers/md5';
 import telemetry from './telemetry';
-import AttrackBloomFilter from './attrack-bloom-filter';
 import { HashProb } from './hash';
 import { TrackerTXT, getDefaultTrackerTxtRule } from './tracker-txt';
 import { URLInfo, shuffle } from '../core/url-info';
@@ -192,7 +189,7 @@ export default class CliqzAttrack {
 
   /** Global module initialisation.
   */
-  init(config) {
+  init(config, settings) {
     const initPromises = [];
     this.config = config;
     // disable for older browsers
@@ -205,7 +202,7 @@ export default class CliqzAttrack {
 
     if (!this.hashProb) {
       this.hashProb = new HashProb();
-      initPromises.push(this.hashProb.init());
+      this.hashProb.init();
     }
 
     // load all caches:
@@ -214,14 +211,15 @@ export default class CliqzAttrack {
     // Large static caches (e.g. token whitelist) are loaded from sqlite
     // Smaller caches (e.g. update timestamps) are kept in prefs
 
-    this.qs_whitelist = this.isBloomFilterEnabled()
-      ? new AttrackBloomFilter(this.config)
-      : new QSWhitelist2(this.config.whitelistUrl);
+    this.qs_whitelist = new QSWhitelist2(this.config.whitelistUrl);
 
-    initPromises.push(this.qs_whitelist.init());
-    initPromises.push(this.urlWhitelist.init());
+    // load the whitelist async - qs protection will start once it is ready
+    this.qs_whitelist.init();
+    // urlWhitelist is not needed on ghostery
+    if (!settings || settings.channel !== 'CH80') {
+      initPromises.push(this.urlWhitelist.init());
+    }
     initPromises.push(this.db.init());
-    initPromises.push(this.initPrivacySettings());
 
     // force clean requestKeyValue
     this.onSafekeysUpdated = events.subscribe('attrack:safekeys_updated', (version, forceClean) => {
@@ -256,41 +254,13 @@ export default class CliqzAttrack {
 
     initPromises.push(this.initPipeline());
     if (this.geoip) {
-      initPromises.push(this.geoip.load());
+      this.geoip.load();
     }
 
     this._onPageStaged = this.onPageStaged.bind(this);
     this.tp_events.addEventListener('stage', this._onPageStaged);
 
-    // cleanup legacy database
-    cleanLegacyDb();
-
     return Promise.all(initPromises);
-  }
-
-  async initPrivacySettings() {
-    // check if first party isolation is available
-    if (!privacy || !privacy.websites || !privacy.websites.firstPartyIsolate) {
-      return;
-    }
-
-    const firstPartyIsolateEnabled = (await privacy.websites.firstPartyIsolate.get({})).value;
-    if (firstPartyIsolateEnabled) {
-      this.config.setPref('cookieEnabled', false);
-    } else if (this.config.firstPartyIsolation) {
-      // turn on first party isolation, and set cookies to allowed from visited
-      await privacy.websites.cookieConfig.set({
-        value: {
-          behavior: 'allow_visited',
-          nonPersistentCookies: true,
-        }
-      });
-      await privacy.websites.firstPartyIsolate.set({ value: true });
-      // disable cookie blocking -> they're already isolated
-      this.config.setPref('cookieEnabled', false);
-    } else {
-      this.config.setPref('cookieEnabled', true);
-    }
   }
 
   initPipeline() {
@@ -303,7 +273,8 @@ export default class CliqzAttrack {
           this.telemetry.bind(this),
           this.qs_whitelist,
           this.config,
-          this.db
+          this.db,
+          this.config.tokenTelemetry
         ),
         domChecker: new DomChecker(),
         tokenChecker: new TokenChecker(
@@ -668,6 +639,7 @@ export default class CliqzAttrack {
                   redirectUrlParts,
                   state.tabId,
                   state.isPrivate,
+                  state.requestId,
                 );
               }
               // check for tracking status headers for first party
@@ -1195,16 +1167,12 @@ export default class CliqzAttrack {
    *  if module_only is set to true, will not set preferences for cookie, QS
    *  and referrer protection (for selective loading in AB tests)
    */
-  enableModule(moduleOnly) {
+  enableModule() {
     if (this.isEnabled()) {
       return;
     }
 
     this.config.setPref('enabled', true);
-    if (!moduleOnly) {
-      this.config.setPref('cookieEnabled', true);
-      this.config.setPref('qsEnabled', true);
-    }
   }
 
   /** Disables anti-tracking immediately.

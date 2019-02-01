@@ -26,7 +26,7 @@ const _getAdultContentFilterState = () => {
 
 export const encodeFilter = () => `&adult=${_getAdultContentFilterState()}`;
 
-export const encodeLocation = (specifySource, lat, lng) => {
+export const encodeLocation = (lat, lng) => {
   // default geolocation 'yes' for funnelCake - 'ask' for everything else
   let locationPref = prefs.get('share_location', CONFIG.settings.geolocation || 'ask');
   if (locationPref === 'showOnce') {
@@ -40,7 +40,7 @@ export const encodeLocation = (specifySource, lat, lng) => {
       lat || utils.USER_LAT,
       ',',
       lng || utils.USER_LNG,
-      (specifySource ? ',U' : '')
+      ',U' // Specify source for both richheader and search
     ].join('');
   }
 

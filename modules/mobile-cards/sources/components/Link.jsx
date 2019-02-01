@@ -22,7 +22,7 @@ class Link extends React.Component {
 
   render() {
     return Platform.select({
-      ios: (
+      default: (
         <TouchableWithoutFeedback onPress={this._onPress}>
           <View {...this.props} />
         </TouchableWithoutFeedback>

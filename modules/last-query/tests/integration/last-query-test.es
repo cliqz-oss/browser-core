@@ -51,7 +51,7 @@ export default function () {
         win.CLIQZ.TestHelpers.searchEngines.setDefaultSearchEngine('Test');
 
         await newTab(freshtabUrl, { focus: true });
-        blurUrlBar();
+        await blurUrlBar();
         await mockSearch({ results: [{ url }] });
         withHistory([]);
         fillIn(query);
@@ -82,7 +82,7 @@ export default function () {
 
         await newTab(freshtabUrl, { check: true, focus: true });
 
-        blurUrlBar();
+        await blurUrlBar();
         await mockSearch({ results: [{ url }] });
         withHistory([]);
         fillIn(query);
@@ -112,7 +112,7 @@ export default function () {
 
         await newTab(freshtabUrl, { focus: true });
 
-        blurUrlBar();
+        await blurUrlBar();
         await mockSearch({
           results: [
             { url: url1 },

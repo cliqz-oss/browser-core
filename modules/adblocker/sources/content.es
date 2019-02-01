@@ -8,27 +8,12 @@ registerContentScript('adblocker', 'http*', (window, chrome, CLIQZ) => {
   }
 
   /**
-   * This class is in charge of managing the adblocking in content script:
-   * - Script injection.
-   * - Script blocking.
-   * - CSS injection.
+   * This function will immediatly query the background for cosmetics (scripts,
+   * CSS) to inject in the page using its second argument function; then proceed
+   * to the injection.
    */
-  const cosmeticsInjection = new Adblocker.CosmeticsInjection(
+  Adblocker.injectCosmetics(
     window,
-    /**
-     * Helper used to trigger action from the adblocker's background:
-     * @param {string} action - name of the action found in the background.
-     * @param {array} args - arguments to forward to the action.
-     */
-    (action, ...args) => {
-      CLIQZ.app.modules.adblocker
-        .action(action, ...args)
-        .then((response) => {
-          cosmeticsInjection.handleResponseFromBackground(response);
-        });
-    },
+    () => CLIQZ.app.modules.adblocker.action('getCosmeticsFilters'),
   );
-
-  // Inject hard-coded circumvention logic
-  cosmeticsInjection.injectCircumvention();
 });

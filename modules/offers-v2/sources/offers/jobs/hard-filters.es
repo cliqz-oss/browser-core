@@ -10,8 +10,7 @@
 import OfferJob from './job';
 import { getABNumber } from '../../utils';
 import logger from '../../common/offers_v2_logger';
-import OffersBG from '../../background';
-
+import ActionID from '../actions-defs';
 
 // /////////////////////////////////////////////////////////////////////////////
 //
@@ -61,7 +60,7 @@ const performHistoryCheck = (historyMatcher, historyCheck) => {
  */
 const shouldFilterOffer = async (
   offer,
-  { presentRealEstates, geoChecker, historyMatcher, categoryHandler }
+  { presentRealEstates, geoChecker, historyMatcher, categoryHandler, offerIsFilteredOutCb }
 ) => {
   // check the offer is valid and contains all the data we need
   const filterByValidity = () => !offer || !offer.isValid();
@@ -117,15 +116,7 @@ const shouldFilterOffer = async (
     const fn = allFiltersFunctions[i];
     const filtered = await fn();
     if (filtered) {
-      OffersBG.offersAPI.processRealEstateMessage({
-        type: 'offer-action-signal',
-        origin: 'processor',
-        data: {
-          offer_id: offer.offerObj.offer_id,
-          action_id: `filtered_by_${fn.name}`,
-          campaign_id: offer.offerObj.campaign_id
-        }
-      });
+      offerIsFilteredOutCb(offer, `${ActionID.AID_OFFER_FILTERED_HARD_PREFIX}${fn.name}`);
       return true;
     }
   }

@@ -51,7 +51,7 @@ export function dispatcher(type, offerId, msg = {}, autoTrigger) {
     sendTelemetry: payload => commonTelemetry(payload, 'box'),
     openURL: (payload) => {
       rewardBox.callToAction(payload);
-      utils.openLink(window, payload.url, true);
+      utils.openLink(window, payload.url, true, !payload.isBackgroundTab);
     },
   };
   const noop = () => {};

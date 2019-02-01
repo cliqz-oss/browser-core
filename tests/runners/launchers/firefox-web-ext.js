@@ -144,7 +144,7 @@ exports.Browser = class FirefoxBrowser {
         ...prefsFromTalos,
         'lightweightThemes.selectedThemeID': 'firefox-compact-light@mozilla.org',
         'browser.link.open_newwindow': 3,
-        'extensions.cliqz.browserOnboarding': '3.0',
+        'extensions.cliqz.browserOnboarding': true,
         'freshtab.tooltip.enabled': true,
         'dom.min_background_timeout_value': 50,
         ...this.prefs,

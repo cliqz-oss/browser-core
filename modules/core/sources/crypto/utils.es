@@ -191,13 +191,13 @@ async function sha1(s) {
   return hash('SHA-1', s);
 }
 
-async function generateRSAKeypair(bits = 2048) {
+async function generateRSAKeypair(bits = 2048, hashName = 'SHA-256') {
   return crypto.subtle.generateKey(
     {
       name: 'RSASSA-PKCS1-v1_5',
       modulusLength: bits,
       publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
-      hash: { name: 'SHA-256' },
+      hash: { name: hashName },
     },
     true,
     ['sign', 'verify'],
@@ -218,7 +218,11 @@ async function generateRSAKeypair(bits = 2048) {
 
 async function signRSA(privateKey, data) {
   const _data = typeof data === 'string' ? toUTF8(data) : data;
-  return crypto.subtle.sign({ name: 'RSASSA-PKCS1-v1_5' }, privateKey, _data).then(toHex);
+  return toHex(await crypto.subtle.sign(
+    { name: 'RSASSA-PKCS1-v1_5', hash: { name: 'SHA-256' } },
+    privateKey,
+    _data
+  ));
 }
 
 export {

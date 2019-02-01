@@ -2,7 +2,7 @@ import config from '../core/config';
 import { fetch, Headers, Response } from '../core/http';
 import random, { randomInt } from '../core/crypto/random';
 import logger from './logger';
-import { TransportError, WrongClockError, ServerError } from './errors';
+import { TransportError, ServerError } from './errors';
 import { VERSION, ECDH_P256_AES_128_GCM } from './constants';
 import { inflate } from '../core/zlib';
 import { fromUTF8, toUTF8, toByteArray, toBase64, fromBase64 } from '../core/encoding';
@@ -47,11 +47,11 @@ async function importAesKey(data) {
 }
 
 async function encryptAES(iv, key, data) {
-  return new Uint8Array(await subtle.encrypt({ name: 'AES-GCM', iv }, key, data));
+  return new Uint8Array(await subtle.encrypt({ name: 'AES-GCM', iv, tagLength: 128 }, key, data));
 }
 
 async function decryptAES(iv, key, data) {
-  return new Uint8Array(await subtle.decrypt({ name: 'AES-GCM', iv }, key, data));
+  return new Uint8Array(await subtle.decrypt({ name: 'AES-GCM', iv, tagLength: 128 }, key, data));
 }
 
 async function encrypt(data, serverPublicKey) {
@@ -208,7 +208,7 @@ export default class Endpoints {
         const { status, body } = JSON.parse(fromUTF8(data));
         return new Response(body, { status });
       } catch (e) {
-        if ((e instanceof ServerError) || (e instanceof WrongClockError)) {
+        if (e instanceof ServerError) {
           throw e;
         }
         throw new TransportError(e.message);
@@ -225,14 +225,7 @@ export default class Endpoints {
   }
 
   async getConfig() {
-    const response = await myfetch(this.ENDPOINT_HPNV2_CONFIG);
-    const json = await response.json();
-
-    const responseTime = (new Date(json.ts)).getTime() || 0;
-    if (Math.abs(Date.now() - responseTime) > Endpoints.MAX_MINUTES_DRIFT * 60 * 1000) {
-      throw new WrongClockError('Wrong clock');
-    }
-    return json;
+    return (await myfetch(this.ENDPOINT_HPNV2_CONFIG)).json();
   }
 
   unload() {

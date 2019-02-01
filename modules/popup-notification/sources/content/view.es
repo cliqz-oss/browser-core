@@ -1,6 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { divertImages } from '../../core/content/image-diverter';
-import { styles, styleImages, PARANJA_STYLES, popupStyles } from './styles';
+import { styles, PARANJA_STYLES, popupStyles } from './styles';
 import subview from './subview';
 import { createElement } from './utils';
 
@@ -13,7 +12,6 @@ function render({
   onCancel,
   onCopyCode,
   config = {},
-  readContentAsDataUrl,
 }) {
   const modalId = 'cliqz-offer-modal';
   if (window.document.getElementById(modalId)) {
@@ -74,7 +72,6 @@ function render({
       popup.contentDocument.body.appendChild(container);
       popup.contentDocument.head.append(style);
     }
-    divertImages(popup, styleImages(config), readContentAsDataUrl);
   }, 1500);
   window.document.body.appendChild(paranja);
   window.document.body.appendChild(isShadow ? shadow : popup);

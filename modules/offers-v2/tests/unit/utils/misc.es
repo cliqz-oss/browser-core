@@ -13,6 +13,7 @@ module.exports = {
   'core/platform': {
     isChromium: false,
     isWebExtension: false,
+    getResourceUrl: url => `baseUrl/${url}`,
   },
   'platform/globals': {
   },

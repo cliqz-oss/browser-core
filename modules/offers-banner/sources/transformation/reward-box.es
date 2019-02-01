@@ -1,10 +1,16 @@
 import { getResourceUrl } from '../../core/platform';
 import config from '../../core/config';
 import { getMessage } from '../../core/i18n';
-import getTitleColor from '../utils';
+import { getTitleColor } from '../utils';
 import calculateValidity from './helpers';
 
-function popup(uiInfo, { createdTs, offerState, offerId, lastUpdateTs, expirationMs }) {
+function popup(uiInfo, {
+  createdTs,
+  offerId,
+  lastUpdateTs,
+  expirationMs,
+  attrs: { state: offerState = 'new', isCodeHidden },
+}) {
   const { template_data: templateData = {}, template_name: templateName = {} } = uiInfo;
   const backgroundColor = getTitleColor(templateData);
   const { logo_class: logoClass = 'normal' } = templateData;
@@ -30,6 +36,7 @@ function popup(uiInfo, { createdTs, offerState, offerId, lastUpdateTs, expiratio
     logoClass,
     validity,
     notif_type: uiInfo.notif_type || 'tooltip',
+    isCodeHidden,
   };
 }
 
@@ -42,7 +49,7 @@ function tooltip(uiInfo) {
 
   const {
     logo_class: logoClass = 'normal',
-    logo_url: logoUrl,
+    logo_dataurl: logoDataurl,
     labels = [],
     benefit,
     headline,
@@ -53,13 +60,13 @@ function tooltip(uiInfo) {
   if (notifType === 'tooltip_extra') {
     return {
       showTooltip: true,
-      logo: uiInfo.template_data.logo_url,
+      logo: uiInfo.template_data.logo_dataurl,
       headline: headline || title,
       benefit,
       labels,
       backgroundColor,
       logoClass,
-      backgroundImage: logoUrl,
+      backgroundImage: logoDataurl,
       isWebExtension: config.platform === 'webextension',
     };
   }
@@ -73,8 +80,13 @@ function tooltip(uiInfo) {
   };
 }
 
-function popupWrapper(uiInfo, offerId) {
-  const offer = popup(uiInfo, { offerId, offerState: 'new' });
+function popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs }) {
+  const offer = popup(uiInfo, {
+    offerId,
+    expirationMs,
+    createdTs,
+    attrs: { ...attrs, state: 'new' },
+  });
   offer.preferred = true;
   const payload = {
     offerId,
@@ -91,13 +103,18 @@ function popupWrapper(uiInfo, offerId) {
   return [true, payload];
 }
 
-function tooltipWrapper(uiInfo, offerId) {
+function tooltipWrapper(offerId, {
+  uiInfo,
+  expirationMs,
+  createdTs,
+  attrs,
+}) {
   const payload = {
     data: {
       isPair: true,
       tooltip: tooltip(uiInfo),
       popup: {
-        vouchers: [popup(uiInfo, offerId)],
+        vouchers: [popup(uiInfo, { offerId, expirationMs, createdTs, attrs })],
         showExpandButton: false,
         isWebExtension: config.platform === 'webextension',
       },
@@ -112,11 +129,16 @@ function tooltipWrapper(uiInfo, offerId) {
 }
 
 export function transform(data = {}) {
-  const { offer_data: { ui_info: uiInfo } = {}, offer_id: offerId } = data;
+  const {
+    createdTs,
+    offer_data: { ui_info: uiInfo, expirationMs } = {},
+    offer_id: offerId,
+    attrs,
+  } = data;
   const { notif_type: notifType } = uiInfo;
   return notifType === 'pop-up'
-    ? popupWrapper(uiInfo, offerId)
-    : tooltipWrapper(uiInfo, offerId);
+    ? popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs })
+    : tooltipWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs });
 }
 
 export function transformMany({ offers, preferredOffer } = {}) {
@@ -125,13 +147,19 @@ export function transformMany({ offers, preferredOffer } = {}) {
     const {
       last_update_ts: lastUpdateTs,
       created_ts: createdTs,
-      attrs: { state: offerState = 'new' } = {},
+      attrs,
       offer_id: offerId,
       offer_info: offerInfo = {}
     } = elem || {};
     const { ui_info: uiInfo, expirationMs } = offerInfo;
     if (!offerId || !uiInfo) { return null; }
-    return popup(uiInfo, { createdTs, offerState, offerId, lastUpdateTs, expirationMs });
+    return popup(uiInfo, {
+      createdTs,
+      offerId,
+      lastUpdateTs,
+      expirationMs,
+      attrs,
+    });
   }).filter(Boolean);
 
   newOffers.sort((a, b) => (b.last_update - a.last_update));

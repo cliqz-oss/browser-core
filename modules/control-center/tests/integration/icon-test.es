@@ -15,7 +15,7 @@ export default function () {
   const activeIconUrl = 'resource://cliqz/control-center/images/cc-active.svg';
   const inactiveIconUrl = 'resource://cliqz/control-center/images/cc-critical.svg';
 
-  context('control center icon', function () {
+  xcontext('control center icon', function () {
     context('when active', function () {
       before(function () {
         const tabId = getCurrentTabId(win);
@@ -45,7 +45,7 @@ export default function () {
       });
     });
 
-    context('when inactive', function () {
+    xcontext('when inactive', function () {
       before(function () {
         const tabId = getCurrentTabId(win);
         app.modules['control-center'].background.actions.setState(tabId, 'inactive');

@@ -1,8 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-function Logo(props) {
-  const hasBgImage = props.logo.backgroundImage !== undefined;
+function Logo({
+  logo: {
+    backgroundColor,
+    backgroundImage,
+    color,
+    text
+  }
+}) {
+  const hasBgImage = backgroundImage !== undefined;
   return (
     <div>
       { hasBgImage
@@ -10,24 +17,24 @@ function Logo(props) {
           <div
             className="logo"
             style={{
-              color: props.logo.color,
+              color,
               textIndent: '-1000em',
-              backgroundImage: props.logo.backgroundImage,
-              backgroundColor: `#${props.logo.backgroundColor}`,
+              backgroundImage,
+              backgroundColor: `#${backgroundColor}`,
             }}
           >
-            { props.logo.text }
+            { text }
           </div>
         )
         : (
           <div
             className="logo"
             style={{
-              color: props.logo.color,
-              backgroundColor: `#${props.logo.backgroundColor}`,
+              color,
+              backgroundColor: `#${backgroundColor}`,
             }}
           >
-            { props.logo.text}
+            { text}
           </div>
         )
       }

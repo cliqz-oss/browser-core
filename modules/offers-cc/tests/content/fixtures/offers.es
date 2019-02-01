@@ -1,11 +1,16 @@
+import config from '../../../../core/config';
+import { isWebExtension } from '../../../../core/platform';
+
 export const dataGenericTooltip = {
+  isWebExtension,
   showTooltip: true,
   isGeneric: true,
   headline: 'You have a new offer',
-  icon: '/build/cliqz@cliqz.com/chrome/content/offers-cc/images/offers-cc-icon-white.svg',
+  icon: `/${config.testsBasePath.slice(1)}/offers-cc/images/offers-cc-icon-white.svg`,
 };
 
 export const dataExtraTooltip = {
+  isWebExtension,
   showTooltip: true,
   backgroundImage: 'https://cdn.cliqz.com/snippets/wikipedia/images/de/Logo_REWE.svg',
   logoClass: 'short',
@@ -19,6 +24,7 @@ export const dataExtraTooltip = {
 };
 
 export const dataExtraTooltip1 = {
+  isWebExtension,
   showTooltip: true,
   backgroundImage: 'https://cdn.cliqz.com/snippets/wikipedia/images/de/Logo_REWE.svg',
   logoClass: 'short',
@@ -28,6 +34,7 @@ export const dataExtraTooltip1 = {
 };
 
 export const dataNewOffer = {
+  isWebExtension,
   vouchers:
   [
     {
@@ -45,8 +52,8 @@ export const dataNewOffer = {
         conditions: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Tenetur, architecto, explicabo perferendis nostrum, maxime impedit atque odit sunt pariatur illo obcaecati soluta molestias iure facere dolorum adipisci eum? Saepe, itaque.',
         desc: 'Genießen Sie die besten Weine aus Spanien, Italien und aus aller Welt. Jetzt Angebot sichern!',
         headline: 'Extra-Rabatt',
-        logo_url: '/build/cliqz@cliqz.com/chrome/content/offers-cc/debug/images/rewe.png',
-        picture_url: '/build/cliqz@cliqz.com/chrome/content/offers-cc/debug/images/picture.png',
+        logo_dataurl: `/${config.testsBasePath.slice(1)}/offers-cc/debug/images/rewe.png`,
+        picture_dataurl: `/${config.testsBasePath.slice(1)}/offers-cc/debug/images/picture.png`,
         voucher_classes: '',
         labels: [
           'exclusive',
@@ -77,7 +84,7 @@ export const dataNewOffer = {
         conditions: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Tenetur, architecto, explicabo perferendis nostrum, maxime impedit atque odit sunt pariatur illo obcaecati soluta molestias iure facere dolorum adipisci eum? Saepe, itaque.',
         desc: 'Genießen Sie die besten Weine aus Spanien, Italien und aus aller Welt. Jetzt Angebot sichern!',
         headline: 'Kostenlose Horbucher',
-        logo_url: '/build/cliqz@cliqz.com/chrome/content/offers-cc/debug/images/audible.png',
+        logo_dataurl: `/${config.testsBasePath.slice(1)}/offers-cc/debug/images/audible.png`,
         voucher_classes: '',
         labels: [
           'exclusive',
@@ -107,7 +114,7 @@ export const dataNewOffer = {
         conditions: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Tenetur, architecto, explicabo perferendis nostrum, maxime impedit atque odit sunt pariatur illo obcaecati soluta molestias iure facere dolorum adipisci eum? Saepe, itaque.',
         desc: 'Genießen Sie die besten Weine aus Spanien, Italien und aus aller Welt. Jetzt Angebot sichern!',
         headline: 'BMW i8',
-        logo_url: '/build/cliqz@cliqz.com/chrome/content/offers-cc/debug/images/bmw.png',
+        logo_dataurl: `/${config.testsBasePath.slice(1)}/offers-cc/debug/images/bmw.png`,
         voucher_classes: '',
         labels: [
           'exclusive',
@@ -138,7 +145,7 @@ export const dataNewOffer = {
         conditions: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Tenetur, architecto, explicabo perferendis nostrum, maxime impedit atque odit sunt pariatur illo obcaecati soluta molestias iure facere dolorum adipisci eum? Saepe, itaque.',
         desc: 'Genießen Sie die besten Weine aus Spanien, Italien und aus aller Welt. Jetzt Angebot sichern!',
         headline: 'Superior Room',
-        logo_url: '/build/cliqz@cliqz.com/chrome/content/offers-cc/debug/images/sofitel.png',
+        logo_dataurl: `/${config.testsBasePath.slice(1)}/offers-cc/debug/images/sofitel.png`,
         voucher_classes: '',
         labels: [
           'exclusive',
@@ -158,6 +165,7 @@ export const dataNewOffer = {
 };
 
 export const dataNewOffer1 = {
+  isWebExtension,
   vouchers:
   [
     {
@@ -173,7 +181,7 @@ export const dataNewOffer1 = {
         },
         code: 'cLsWk17',
         desc: 'Genießen Sie die besten Weine aus Spanien, Italien und aus aller Welt. Jetzt Angebot sichern!',
-        logo_url: '/build/cliqz@cliqz.com/chrome/content/offers-cc/debug/images/rewe.png',
+        logo_dataurl: `/${config.testsBasePath.slice(1)}/offers-cc/debug/images/rewe.png`,
         voucher_classes: '',
         title: 'Extra-Rabatt title',
       },

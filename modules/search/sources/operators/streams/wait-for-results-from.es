@@ -1,8 +1,8 @@
-import Rx from '../../../platform/lib/rxjs';
+import { combineLatest, merge } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 import { isDone, hasResults } from '../responses/utils';
 import waitFor from './wait-for';
-
 /**
  * Operator that surpresses results from the source until the first result
  * from another provider has arrived, or until all other providers are done
@@ -13,10 +13,10 @@ import waitFor from './wait-for';
  * @returns {operator} The `waitForResultsFrom` operator.
  */
 export default others => waitFor(
-  Rx.Observable.merge(
+  merge(
     // emits as soon as all providers are done
-    Rx.Observable.combineLatest(others.map(other$ => other$.filter(isDone))),
+    combineLatest(others.map(other$ => other$.pipe(filter(isDone)))),
     // emits for the first response with results
-    Rx.Observable.merge(...others).filter(hasResults),
+    merge(...others).pipe(filter(hasResults)),
   )
 );

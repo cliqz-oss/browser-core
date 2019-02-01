@@ -1,8 +1,8 @@
-import Rx from '../../platform/lib/rxjs';
+import { Observable } from 'rxjs';
 
 export default class ObservableProxy {
   constructor() {
-    this.observable = Rx.Observable.create((o) => {
+    this.observable = Observable.create((o) => {
       this._next = o.next.bind(o);
     });
   }

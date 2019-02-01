@@ -42,7 +42,7 @@ export default function () {
       urlClicked = false;
       handleCommandWhere = '';
 
-      blurUrlBar();
+      await blurUrlBar();
 
       // clear telemetry
       win.allTelemetry = [];

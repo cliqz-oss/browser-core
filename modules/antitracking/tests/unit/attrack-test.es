@@ -2,6 +2,7 @@
 /* eslint no-param-reassign : off */
 
 const Rx = require('rxjs');
+const operators = require('rxjs/operators');
 const fastUrlParser = require('fast-url-parser');
 const tldts = require('tldts');
 const encoding = require('text-encoding');
@@ -68,6 +69,8 @@ const listenerStub = {
 export default describeModule('antitracking/attrack',
   () => ({
     ...mockDexie,
+    rxjs: Rx,
+    'rxjs/operators': operators,
     'platform/console': {
       default: console,
     },
@@ -88,9 +91,6 @@ export default describeModule('antitracking/attrack',
       compress: false,
     },
     'platform/lib/tldts': tldts,
-    'platform/lib/rxjs': {
-      default: Rx,
-    },
     'platform/addon-check': {
       checkInstalledPrivacyAddons() { return Promise.resolve([]); }
     },
@@ -122,6 +122,7 @@ export default describeModule('antitracking/attrack',
     'platform/globals': {},
     'platform/platform': {
       default: {},
+      isBetaVersion: () => false,
     },
     'platform/resource-loader-storage': {
       default: MockResourceStorage,

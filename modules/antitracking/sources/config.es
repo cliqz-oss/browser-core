@@ -5,9 +5,12 @@ import resourceManager from '../core/resource-manager';
 import prefs from '../core/prefs';
 import config from '../core/config';
 
-const VERSIONCHECK_URL = `${config.settings.CDN_BASEURL}/anti-tracking/whitelist/versioncheck.json`;
-const CONFIG_URL = `${config.settings.CDN_BASEURL}/anti-tracking/config.json`;
-const WHITELIST2_URL = `${config.settings.CDN_BASEURL}/anti-tracking/whitelist/2`;
+const SETTINGS = config.settings;
+const VERSIONCHECK_URL = `${SETTINGS.CDN_BASEURL}/anti-tracking/whitelist/versioncheck.json`;
+const CONFIG_URL = `${SETTINGS.CDN_BASEURL}/anti-tracking/config.json`;
+const WHITELIST2_URL = `${SETTINGS.CDN_BASEURL}/anti-tracking/whitelist/2`;
+const PROTECTION = 'antitrackingProtectionEnabled';
+
 
 export const VERSION = '0.102';
 export const MIN_BROWSER_VERSION = 35;
@@ -21,17 +24,20 @@ export const TELEMETRY = {
 export const DEFAULTS = {
   safekeyValuesThreshold: 4,
   shortTokenLength: 6,
-  placeHolder: config.settings.antitrackingPlaceholder,
-  cliqzHeader: config.settings.antitrackingHeader,
+  placeHolder: SETTINGS.antitrackingPlaceholder,
+  cliqzHeader: SETTINGS.antitrackingHeader,
   enabled: true,
-  cookieEnabled: true,
-  qsEnabled: true,
+  cookieEnabled: Object.prototype.hasOwnProperty.call(SETTINGS, PROTECTION)
+    ? SETTINGS[PROTECTION] : true,
+  qsEnabled: Object.prototype.hasOwnProperty.call(SETTINGS, PROTECTION)
+    ? SETTINGS[PROTECTION] : true,
   bloomFilterEnabled: true,
   telemetryMode: TELEMETRY.ALL,
   sendAntiTrackingHeader: true,
   blockCookieNewToken: false,
   tpDomainDepth: 2,
   firstPartyIsolation: false,
+  tokenTelemetry: {},
 };
 
 export const PREFS = {
@@ -54,7 +60,8 @@ export const PREFS = {
  * These are attributes which are loaded from the remote CONFIG_URL
  * @type {Array}
  */
-const REMOTELY_CONFIGURED = ['blockRules', 'reportList', 'cookieWhitelist', 'subdomainRewriteRules', 'compatibilityList'];
+const REMOTELY_CONFIGURED = ['blockRules', 'reportList', 'cookieWhitelist',
+  'subdomainRewriteRules', 'compatibilityList', 'tokenTelemetry'];
 
 export default class Config {
   constructor({

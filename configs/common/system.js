@@ -14,8 +14,9 @@ const systemConfig = {
   map: {
     'handlebars': 'node_modules/handlebars/dist/handlebars.min.js',
     'jquery': 'node_modules/jquery/dist/jquery.min.js',
-    'mathjs': 'node_modules/mathjs/dist/math.min.js',
+    'math-expression-evaluator': 'node_modules/math-expression-evaluator/dist/browser/math-expression-evaluator.min.js',
     'react': 'node_modules/react/cjs/react.production.min.js',
+    'prop-types': 'node_modules/prop-types/prop-types.js',
     'chai': 'node_modules/chai/chai.js',
     'chai-dom': 'node_modules/chai-dom/chai-dom.js',
     'react-dom': 'node_modules/react-dom/cjs/react-dom.production.min.js',
@@ -24,6 +25,8 @@ const systemConfig = {
     'pako': 'node_modules/pako/dist/pako.js',
     'fast-url-parser': 'modules/platform/lib/fast-url-parser',
     'react-tooltip': 'react-tooltip/standalone/react-tooltip.js',
+    'rxjs/operators': 'rxjs/operators/index',
+    'deep-equal': 'modules/platform/lib/deep-equal',
   },
   paths: {
     'specific/*': './specific/firefox/*',
@@ -78,13 +81,13 @@ const systemConfig = {
 };
 
 const builderConfig = {
-  externals: ['react', 'react-dom', 'jquery', 'handlebars', 'mathjs'],
+  externals: ['react', 'react-dom', 'jquery', 'handlebars', 'math-expression-evaluator'],
   globalDeps: {
     'react': 'React',
     'react-dom': 'ReactDOM',
     'jquery': '$',
     'handlebars': 'Handlebars',
-    'mathjs': 'math'
+    'math-expression-evaluator': 'mexp',
   },
   sourceMaps: !cliqzEnv.PRODUCTION,
   lowResSourceMaps: true,
@@ -106,9 +109,9 @@ const appBundleConfig = {
       })
     }),
     builderConfig: Object.assign({}, builderConfig, {
-      externals: ['mathjs'],
+      externals: ['math-expression-evaluator'],
       globalDeps: {
-        'mathjs': 'math'
+        'math-expression-evaluator': 'mexp'
       },
     }),
   },

@@ -74,9 +74,9 @@ function signalsTests(dest, config) {
           const cartUrl = getPage('cart');
           await newTab(getPage('cart'), { focus: true });
           await waitForElement({ url: cartUrl, selector: 'p' });
-          await wait(100);
+          await wait(1000);
           await focusOnTab(tabId);
-          await wait(100);
+          await wait(1000);
         });
 
         it('increments the counter for "offer_shown", does NOT increment the counter for "offer_dsp_session"', async function () {
@@ -95,7 +95,7 @@ function signalsTests(dest, config) {
             await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 10000);
             hits = await testServer.getHits();
           });
-          it('should check server-side', function () {
+          it('should check server-side', async function () {
             expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
             const originData = hits.get('/api/v1/savesignal')[1]
               .body.payload.data.c_data.offers[0].offer_data[1].origin_data;

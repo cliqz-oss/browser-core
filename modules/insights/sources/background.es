@@ -5,10 +5,14 @@ import { extractHostname, sameGeneralDomain } from '../core/tlds';
 import config from '../core/config';
 import prefs from '../core/prefs';
 import WTMApi from './wtm-api';
-import InsightsDb from './insights-db';
+import InsightsDb, { mergeStats as statReducer } from './insights-db';
 import logger from './logger';
+import { query as getTabs } from '../core/tabs';
+import { chrome } from '../platform/globals';
 
-const isFirefox = config.platform === 'firefox';
+// check whether we should collect stats ourselves, or
+// if they will be triggered externally (i.e. by Ghostery).
+const isFirefox = config.settings.channel !== 'CH80';
 
 function mergeStats(stats) {
   return stats.reduce((_agg, elem) => {
@@ -52,10 +56,6 @@ function timeSaved(loadTime, trackersBlocked) {
 
 function shouldCalculateDataSaved() {
   return prefs.get('insights.datasaved', false);
-}
-
-function shouldSendDatabaseSuggestions() {
-  return prefs.get('insights.sendsuggestions', false);
 }
 
 /**
@@ -103,19 +103,26 @@ export default background({
         },
       });
     }
+    // migration of bootstrap DB to webextensions
+    if (chrome.cliqzdbmigration && !prefs.has('insights.migrated')) {
+      chrome.cliqzdbmigration.exportDexieTable('insights', 1, 'daily').then(async (rows) => {
+        await this.db.db.daily.bulkPut(rows);
+        await chrome.cliqzdbmigration.deleteDatabase('insights');
+        prefs.set('insights.migrated', true);
+      });
+    }
   },
 
   async onPageEnd({ tabId, isPrivate }) {
-    if (isFirefox && !isPrivate && (this.pageInfo.has(tabId)
-        || (this.tabInfo && this.tabInfo._active[tabId]))) {
+    if (isPrivate) {
+      return null;
+    }
+    if (isFirefox) {
       // we either have page stats for a completed load from pageinfo (sent from content-script),
       // or we can get partial information from the anti-tracking module.
-      const info = this.pageInfo.get(tabId) || {
-        host: this.tabInfo._active[tabId].hostname,
-        timestamp: this.tabInfo._active[tabId].s
-      };
+      const result = await this.getStatsForTab(tabId);
       this.pageInfo.delete(tabId);
-      return this.actions.pushGhosteryPageStats(tabId, info, [], {});
+      return this.db.insertPageStats(result);
     }
     this.pageInfo.delete(tabId);
     return null;
@@ -150,6 +157,115 @@ export default background({
       }
     }
     return this.adblocker.action('getGhosteryStats', tabId);
+  },
+
+  async getStatsForTab(tabId) {
+    if (isFirefox) {
+      if ((this.pageInfo.has(tabId) || (this.tabInfo && this.tabInfo._active[tabId]))) {
+        // we either have page stats for a completed load from pageinfo (sent from content-script),
+        // or we can get partial information from the anti-tracking module.
+        const info = this.pageInfo.get(tabId) || {
+          host: this.tabInfo._active[tabId].hostname,
+          timestamp: this.tabInfo._active[tabId].s
+        };
+        return this.aggregatePageStats(tabId, info, [], {});
+      }
+      return {};
+    }
+    return {};
+  },
+
+  async aggregatePageStats(tabId, pageInfo, apps, bugs) {
+    const loadTime = pageLoadTime(pageInfo);
+    const blocked = apps.filter(t => t.blocked).length;
+    const requestsBlocked = apps
+      .reduce((count, t) => t.sources.filter(s => s.blocked).length + count, 0);
+
+    // Stats from anti-tracking modules, merged into a single result.
+    const antitrackingStats = this.getAntitrackingReport(tabId, pageInfo.host);
+    const adblockerStats = this.getAdblockerReport(tabId, pageInfo.host);
+    const {
+      cookies,
+      fingerprints,
+      ads
+    } = await Promise.all([
+      antitrackingStats.then(mergeStatPair, () => { }),
+      adblockerStats.then(mergeStatPair, () => { }),
+    ]).then(mergeStats);
+
+    // Count the total number of trackers we blocked on this page
+    // Combine bugs blocked by ghostery with ones blocked by the adblocker
+    const allBlockedApps = new Set();
+    const trackersAndAdsBlocked = await adblockerStats
+      .catch(() => ({ bugs: {}, others: {} }))
+      .then((stats) => {
+        // get bugIds from ghostery
+        const bugIds = new Set(Object.keys(bugs).filter(b => bugs[b].blocked));
+        // bugids blocked by adblocker
+        Object.keys(stats.bugs).forEach(id => bugIds.add(id));
+        // convert bugids to app ids
+        [...bugIds].forEach(bid => allBlockedApps.add(domainInfo.getAppForBug(bid)));
+        return allBlockedApps.size + Object.keys(stats.others).length;
+      });
+
+    // Count the total number of trackers seen on this page.
+    // Combine antitracking and ghostery counts
+    const trackersSeen = await antitrackingStats
+      .catch(() => ({ bugs: {}, others: {} }))
+      .then((stats) => {
+        // ghostery bugids
+        const bugIds = new Set(Object.keys(bugs));
+        Object.keys(stats.bugs).forEach(id => bugIds.add(id));
+        // get wtm ids for 'others' group
+        const othersWtm = Object.values(stats.others).map(s => s.wtm);
+        // find wtm ids for ghostery bugs where possible
+        return new Set([...bugIds].map((bid) => {
+          const aid = domainInfo.getAppForBug(bid);
+          const owner = domainInfo.getAppOwner(aid);
+          return owner.wtm || aid;
+        }).concat(othersWtm)
+          .filter(tracker => !!tracker));
+      });
+
+    // collect WTM links for trackers blocked on this page
+    const trackerOwners = apps.filter(t => t.blocked || allBlockedApps.has(t.id))
+      .reduce((ownersList, { id, sources }) => {
+        const app = domainInfo.getAppOwner(id);
+        if (!app.wtm) {
+          const hosts = [...new Set(sources.map(({ src }) => extractHostname(src)))];
+          const owners = hosts.map(h => domainInfo.getDomainOwner(h));
+          hosts.forEach((h, i) => {
+            if (owners[i].wtm && !sameGeneralDomain(pageInfo.host, h)) {
+              ownersList.push(owners[i]);
+            }
+          });
+        } else {
+          ownersList.push(app);
+        }
+        return ownersList;
+      }, []);
+    // fetch data consumption stats for these trackers
+    let dataSaved = 0;
+    if (shouldCalculateDataSaved()) {
+      const statsForTrackers = await this.api.getTrackerInfo(trackerOwners.map(o => o.wtm));
+      dataSaved = Math.round(
+        Object.values(statsForTrackers)
+          .reduce((sum, s) => sum + (s && s.overview ? s.overview.content_length : 0), 0)
+      );
+    }
+
+    return {
+      loadTime,
+      timeSaved: timeSaved(loadTime, trackersAndAdsBlocked),
+      trackersDetected: trackersSeen.size,
+      trackersBlocked: blocked,
+      trackerRequestsBlocked: requestsBlocked,
+      cookiesBlocked: cookies,
+      fingerprintsRemoved: fingerprints,
+      adsBlocked: ads,
+      dataSaved,
+      trackers: trackersSeen
+    };
   },
 
   events: {
@@ -204,123 +320,30 @@ export default background({
      */
     async pushGhosteryPageStats(tabId, pageInfo, apps, bugs) {
       logger.debug(`page stats were pushed for tab ${tabId} - ${pageInfo.host}`);
-      const loadTime = pageLoadTime(pageInfo);
-      const blocked = apps.filter(t => t.blocked).length;
-      const requestsBlocked = apps
-        .reduce((count, t) => t.sources.filter(s => s.blocked).length + count, 0);
-
-      // Stats from anti-tracking modules, merged into a single result.
-      const antitrackingStats = this.getAntitrackingReport(tabId, pageInfo.host);
-      const adblockerStats = this.getAdblockerReport(tabId, pageInfo.host);
-      const {
-        cookies,
-        fingerprints,
-        ads
-      } = await Promise.all([
-        antitrackingStats.then(mergeStatPair, () => { }),
-        adblockerStats.then(mergeStatPair, () => { }),
-      ]).then(mergeStats);
-
-      // Count the total number of trackers we blocked on this page
-      // Combine bugs blocked by ghostery with ones blocked by the adblocker
-      const allBlockedApps = new Set();
-      const trackersAndAdsBlocked = await adblockerStats
-        .catch(() => ({ bugs: {}, others: {} }))
-        .then((stats) => {
-          // get bugIds from ghostery
-          const bugIds = new Set(Object.keys(bugs).filter(b => bugs[b].blocked));
-          // bugids blocked by adblocker
-          Object.keys(stats.bugs).forEach(id => bugIds.add(id));
-          // convert bugids to app ids
-          [...bugIds].forEach(bid => allBlockedApps.add(domainInfo.getAppForBug(bid)));
-          return allBlockedApps.size + Object.keys(stats.others).length;
-        });
-
-      // Count the total number of trackers seen on this page.
-      // Combine antitracking and ghostery counts
-      const trackersSeen = await antitrackingStats
-        .catch(() => ({ bugs: {}, others: {} }))
-        .then((stats) => {
-          // ghostery bugids
-          const bugIds = new Set(Object.keys(bugs));
-          Object.keys(stats.bugs).forEach(id => bugIds.add(id));
-          // get wtm ids for 'others' group
-          const othersWtm = Object.values(stats.others).map(s => s.wtm);
-          // find wtm ids for ghostery bugs where possible
-          return new Set([...bugIds].map((bid) => {
-            const aid = domainInfo.getAppForBug(bid);
-            const owner = domainInfo.getAppOwner(aid);
-            return owner.wtm || aid;
-          }).concat(othersWtm)
-            .filter(tracker => !!tracker));
-        });
-
-      // collect WTM links for trackers blocked on this page
-      const linkSuggestions = [];
-      const trackerOwners = apps.filter(t => t.blocked || allBlockedApps.has(t.id))
-        .reduce((ownersList, { id, name, sources }) => {
-          const app = domainInfo.getAppOwner(id);
-          if (!app.wtm) {
-            const hosts = [...new Set(sources.map(({ src }) => extractHostname(src)))];
-            const owners = hosts.map(h => domainInfo.getDomainOwner(h));
-            hosts.forEach((h, i) => {
-              if (owners[i].wtm && !sameGeneralDomain(pageInfo.host, h)) {
-                linkSuggestions.push({
-                  id,
-                  name,
-                  domain: h,
-                  wtm: owners[i].wtm,
-                });
-                ownersList.push(owners[i]);
-              }
-            });
-          } else {
-            ownersList.push(app);
-          }
-          return ownersList;
-        }, []);
-      // fetch data consumption stats for these trackers
-      let dataSaved = 0;
-      if (shouldCalculateDataSaved()) {
-        const statsForTrackers = await this.api.getTrackerInfo(trackerOwners.map(o => o.wtm));
-        dataSaved = Math.round(
-          Object.values(statsForTrackers)
-            .reduce((sum, s) => sum + (s && s.overview ? s.overview.content_length : 0), 0)
-        );
-      }
-
-      const result = {
-        loadTime,
-        timeSaved: timeSaved(loadTime, trackersAndAdsBlocked),
-        trackersDetected: trackersSeen.size,
-        trackersBlocked: blocked,
-        trackerRequestsBlocked: requestsBlocked,
-        cookiesBlocked: cookies,
-        fingerprintsRemoved: fingerprints,
-        adsBlocked: ads,
-        dataSaved,
-        trackers: trackersSeen
-      };
+      const result = await this.aggregatePageStats(tabId, pageInfo, apps, bugs);
       await this.db.insertPageStats(result);
-      if (shouldSendDatabaseSuggestions()) {
-        logger.debug('Link suggestions', linkSuggestions);
-        linkSuggestions.forEach((s) => {
-          const key = `${s.id}-${s.domain}-${s.wtm}`;
-          if (!this.suggestionsSet.has(key)) {
-            this.suggestionsSet.add(key);
-            this.hpn.action('sendTelemetry', {
-              action: 'wtm.suggestion',
-              payload: s,
-            });
-          }
-        });
-      }
-
       return result;
     },
 
-    async getDashboardStats(period) {
-      return this.db.getDashboardStats(period);
+    async getDashboardStats(period, tabs) {
+      const historicalStats = this.db.getDashboardStats(period);
+      let result = {};
+      if (!tabs && getTabs) {
+        // on firefox, instead of providing tabs we can pull in data.
+        const currentTabs = await getTabs({});
+        const activeTabStats = await Promise.all(
+          currentTabs.map(({ id }) => this.getStatsForTab(id))
+        );
+        result = activeTabStats.reduce(statReducer, result);
+      } else if (tabs) {
+        // active tabs provided by the caller - merge with antitracking and adblocker data
+        const activeTabStats = await Promise.all(
+          tabs.map(({ tabId, pageInfo, apps, bugs }) =>
+            this.aggregatePageStats(tabId, pageInfo, apps, bugs))
+        );
+        result = activeTabStats.reduce(statReducer, result);
+      }
+      return statReducer(result, await historicalStats);
     },
 
     /**

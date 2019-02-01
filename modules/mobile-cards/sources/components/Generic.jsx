@@ -42,8 +42,8 @@ const styles = theme => StyleSheet.create({
 });
 
 class Generic extends React.Component {
-  getDeepResultsList(map, list) {
-    return (list || []).filter(res => map[res.type])
+  getDeepResultsList(map, { deepResults, template }) {
+    return (deepResults || []).filter(res => map[res.type])
       .sort((res1, res2) => deepResultsList.indexOf(res1.type) > deepResultsList.indexOf(res2.type))
       .map((res) => {
         const Component = map[res.type];
@@ -53,6 +53,7 @@ class Generic extends React.Component {
             key={res.type}
             data={res.links}
             theme={this.props.theme}
+            template={template}
           />
         );
       });
@@ -71,20 +72,21 @@ class Generic extends React.Component {
 
   render() {
     const result = this.props.result;
+    const data = result.data;
     const theme = this.props.theme;
     const isSecure = (result.url || '').startsWith('https');
     const url = result.friendlyUrl || result.url || null;
     const title = result.title || null;
-    const timestamp = result.data.extra && result.data.extra.rich_data
-                && result.data.extra.rich_data.discovery_timestamp;
+    const timestamp = data.extra && data.extra.rich_data
+                && data.extra.rich_data.discovery_timestamp;
     const description = result.description || null;
-    const headerDeepResults = this.getDeepResultsList(headersMap, result.data.deepResults);
-    const contentDeepResults = this.getDeepResultsList(contentsMap, result.data.deepResults);
-    const footerDeepResults = this.getDeepResultsList(footersMap, result.data.deepResults);
-    const extraComponent = this.getExtraComponent(result.data);
+    const headerDeepResults = this.getDeepResultsList(headersMap, data);
+    const contentDeepResults = this.getDeepResultsList(contentsMap, data);
+    const footerDeepResults = this.getDeepResultsList(footersMap, data);
+    const extraComponent = this.getExtraComponent(data);
     const logoDetails = result.meta.logo || {};
-    const isHistory = result.data.kind.includes('H') || result.data.kind.includes('C');
-    const historyUrls = result.data.urls || [];
+    const isHistory = data.kind.includes('H') || data.kind.includes('C');
+    const historyUrls = data.urls || [];
 
     return (
       <View
@@ -117,7 +119,7 @@ class Generic extends React.Component {
             </View>
           )
         }
-        {result.data.extra && <MainImage extra={result.data.extra} theme={theme} />}
+        {data.extra && <MainImage extra={data.extra} theme={theme} />}
         {headerDeepResults}
         { title
           && (

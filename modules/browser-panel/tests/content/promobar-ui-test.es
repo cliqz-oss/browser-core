@@ -4,7 +4,16 @@ import {
 import {
   expect,
 } from '../../core/test-helpers';
-import data from './fixtures/full-long-logo';
+import fixtureData from './fixtures/full-long-logo';
+import config from '../../../core/config';
+
+function withDataUrl(fixture) {
+  let s = JSON.stringify(fixture);
+  s = s.replace('logo_url', 'logo_dataurl');
+  s = s.replace('picture_url', 'picture_dataurl');
+  return JSON.parse(s);
+}
+const data = withDataUrl(fixtureData);
 
 describe('Promo bar', function () {
   let subject;
@@ -65,8 +74,9 @@ describe('Promo bar', function () {
     context(`rendered in a window ${frameWidth}px wide`, function () {
       before(async function () {
         subject = new Subject();
+        const path = `/${config.testsBasePath}/browser-panel/index.html`;
         await subject.load({
-          buildUrl: '/build/cliqz@cliqz.com/chrome/content/browser-panel/index.html',
+          buildUrl: path,
           iframeWidth: frameWidth
         });
         await subject.pushData(target, data, 'render_template');
@@ -185,7 +195,7 @@ describe('Promo bar', function () {
 
           expect($logo).to.exist;
           expect(subject.getComputedStyle($logo).display).to.not.equal('none');
-          expect($logo.src).to.contain(data.template_data.logo_url.slice(1));
+          expect($logo.src).to.contain(data.template_data.logo_dataurl.slice(1));
           expect($logo.getAttribute('data-openurl')).to.equal(data.template_data.call_to_action.url);
         });
 
@@ -200,7 +210,7 @@ describe('Promo bar', function () {
           expect($pictureContainer).to.exist;
           if (sizes[frameWidth].hasPicture) {
             expect(subject.getComputedStyle($pictureContainer).display).to.not.equal('none');
-            expect($picture.src).to.equal(data.template_data.picture_url);
+            expect($picture.src).to.equal(data.template_data.picture_dataurl);
             expect($picture.getAttribute('data-openurl')).to.equal(data.template_data.call_to_action.url);
           } else {
             expect(subject.getComputedStyle($pictureContainer).display).to.equal('none');

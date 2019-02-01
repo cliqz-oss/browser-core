@@ -15,9 +15,16 @@ const isChromeReady = async () => {
     return true;
   }
 
-  // on webextensions, we wait for cliqz app to get ready
-  await chrome.extension.getBackgroundPage().CLIQZ.app.ready();
-  return true;
+  // on webextensions, we connect to background and wait for message back
+  return new Promise((resolve) => {
+    const port = chrome.runtime.connect({ name: 'appReady' });
+    port.onMessage.addListener((message) => {
+      if (message.ready) {
+        port.disconnect();
+        resolve(true);
+      }
+    });
+  });
 };
 
 export default function checkIfChromeReady() {

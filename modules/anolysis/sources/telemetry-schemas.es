@@ -13,8 +13,8 @@ import internalAnolysisMetrics from './metrics/internals/anolysis';
 import coreMetrics from './metrics/core';
 import antitrackingTokenMetrics from './metrics/performance/antitracking-tokens';
 import consentricDefinitions from './metrics/consentric';
-import termsAndConditionsDuration from './metrics/time-spent-terms-and-conditions';
 import moduleStartupPerformanceMetrics from './metrics/performance/modules-startup';
+import adblockerMetrics from './metrics/adblocker';
 import cliqzForFriendsMetrics from './metrics/cliqz-for-friends';
 
 // Analyses
@@ -42,6 +42,7 @@ import webrequestPipelinePerformances from './analyses/performance/webrequest-pi
 import generalPerformances from './analyses/performance/general';
 import antitrackingTokenAnalyses from './analyses/performance/antitracking-tokens';
 import consentric from './analyses/consentric';
+import cliqzForFriendsAnalyses from './analyses/cliqz-for-friends';
 
 /**
  * This file is used to list all available metrics and analyses in use by
@@ -69,8 +70,8 @@ const metrics = [
   generalPerformancesMetrics,
   ...antitrackingTokenMetrics,
   ...consentricDefinitions,
-  ...termsAndConditionsDuration,
   ...cliqzForFriendsMetrics,
+  ...adblockerMetrics,
   moduleStartupPerformanceMetrics,
 ].map(schema => ({
   ...schema,
@@ -103,6 +104,7 @@ const analyses = [
   generalPerformances,
   ...antitrackingTokenAnalyses,
   ...consentric,
+  ...cliqzForFriendsAnalyses,
 ].map(schema => ({
   ...schema,
   description: schema.description || 'missing description',

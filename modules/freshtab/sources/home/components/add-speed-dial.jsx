@@ -1,45 +1,31 @@
-/* eslint-disable jsx-a11y/no-autofocus */
-import PropTypes from 'prop-types';
+/* eslint-disable react/no-unused-state */
+
 import React from 'react';
-import ToggleDisplay from 'react-toggle-display';
-import sanitizeUrl from '../services/url-check';
-import Modal from './modal';
+import PropTypes from 'prop-types';
+
 import cliqz from '../cliqz';
+import sanitizeUrl from '../services/url-check';
 import t from '../i18n';
 import { favoriteAddSignal, addFormCloseSignal, addFormSubmitSignal } from '../services/telemetry/speed-dial';
 
-const DEFAULT_STATE = Object.freeze({
-  show: true,
-  showError: false,
-  errorDuplicate: false,
-  errorInvalid: false,
-  showModal: false,
-});
+import SpeedDialModal from './partials/speed-dial-modal';
 
 export default class AddSpeedDial extends React.Component {
-  static get propTypes() {
-    return {
-      addSpeedDial: PropTypes.func,
-    };
+  state = {
+    errorDuplicate: false,
+    errorInvalid: false,
+    show: true,
+    showError: false,
+    showModal: false,
+    url: '',
+    title: '',
   }
 
-  constructor(props) {
-    super(props);
-    this.freshtab = cliqz.freshtab;
-    this.state = {
-      ...DEFAULT_STATE,
-      url: '',
-      title: '',
-    };
+  freshtab = cliqz.freshtab;
 
-    this.baseState = this.state; // used later for resetting the form
-    this.handleClick = this.handleClick.bind(this);
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleCloseModal = this.handleCloseModal.bind(this);
-  }
+  baseState = this.state; // used later for resetting the form
 
-  handleCloseModal({ sendTelemetry = true } = {}) {
+  handleCloseModal = ({ sendTelemetry = true } = {}) => {
     this.props.updateModalState(false);
     this.setState({ showModal: false });
     this.setState(this.baseState);
@@ -48,14 +34,14 @@ export default class AddSpeedDial extends React.Component {
     }
   }
 
-  handleClick(event) {
+  handleClick = (event) => {
     event.preventDefault();
     favoriteAddSignal();
     this.props.updateModalState(true);
     this.setState({ showModal: true });
   }
 
-  handleChange(event) {
+  handleChange = (event) => {
     const value = event.target.value;
     const name = event.target.name;
 
@@ -65,7 +51,7 @@ export default class AddSpeedDial extends React.Component {
     });
   }
 
-  handleSubmit(event) {
+  handleSubmit = (event) => {
     event.preventDefault();
     const url = sanitizeUrl(this.state.url);
     const title = this.state.title;
@@ -115,9 +101,6 @@ export default class AddSpeedDial extends React.Component {
   render() {
     let isEnabled = !(this.state.errorDuplicate || this.state.errorInvalid);
     const classes = ['submit'];
-    const errorStr = this.state.errorDuplicate
-      ? t('app_speed_dial_exists_already')
-      : t('app_speed_dial_not_valid');
 
     if (!this.state.url) {
       isEnabled = false;
@@ -128,76 +111,26 @@ export default class AddSpeedDial extends React.Component {
     }
 
     return (
-      <div className="dial dial-plus">
-        <ToggleDisplay show={this.state.show}>
-          <button
-            type="button"
-            className="plus-dial-icon"
-            onClick={this.handleClick}
-            tabIndex="-1"
-          />
-        </ToggleDisplay>
-        <Modal
-          closeAction={this.handleCloseModal}
-          showModal={this.state.showModal}
-          updateModalState={this.props.updateModalState}
-          className="modal"
-        >
-          <form
-            className="addDialForm"
-            onSubmit={this.handleSubmit}
-          >
-            <button
-              className="closeForm"
-              type="button"
-              role="link"
-              onClick={this.handleCloseModal}
-            />
-            <div className="modal-header">
-              {t('app_speed_dial_add_header')}
-            </div>
-            <div className="field">
-              <input
-                name="url"
-                className="addUrl"
-                id="url"
-                type="text"
-                value={this.state.url}
-                onChange={this.handleChange}
-                placeholder=""
-                autoFocus={!this.state.showError}
-              />
-              {this.state.showError
-                ? [
-                  <label htmlFor="url" className="errorMessage">{errorStr}</label>,
-                  <i className="errorIcon" />
-                ]
-                : <label htmlFor="url">{t('app_speed_dial_input_address_placeholder')}</label>
-              }
-            </div>
-            <div className="field">
-              <input
-                name="title"
-                className="title"
-                id="title"
-                type="text"
-                value={this.state.title}
-                onChange={this.handleChange}
-                placeholder=""
-              />
-              <label htmlFor="title">{t('app_speed_dial_input_title_placeholder')}</label>
-            </div>
-            <button
-              className="submit"
-              type="submit"
-              onClick={this.handleSubmit}
-              disabled={!this.state.url ? 'disabled' : ''}
-            >
-              {t('app_speed_dial_add').toUpperCase()}
-            </button>
-          </form>
-        </Modal>
-      </div>
+      <SpeedDialModal
+        buttonClass="plus-dial-icon"
+        buttonOnClick={this.handleClick}
+        fieldLabel={t('app_speed_dial_input_address_placeholder')}
+        formClass="addDialForm"
+        formOnSubmit={this.handleSubmit}
+        handleCloseModal={this.handleCloseModal}
+        handleFieldChange={this.handleChange}
+        mainElementClass="dial dial-plus"
+        modalHeader={t('app_speed_dial_add_header')}
+        state={this.state}
+        submitLabel={t('app_speed_dial_add').toUpperCase()}
+        titleLabel={t('app_speed_dial_input_title_placeholder')}
+        urlClass="addUrl"
+        urlLabel={t('app_speed_dial_input_address_placeholder')}
+      />
     );
   }
 }
+
+AddSpeedDial.propTypes = {
+  addSpeedDial: PropTypes.func,
+};

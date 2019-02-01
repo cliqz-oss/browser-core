@@ -13,14 +13,22 @@ export default background({
     PrivacyRep.onExtensionStart(settings);
   },
 
-  get CliqzPrivacyRep() {
-    return PrivacyRep;
-  },
-
   /**
   * @method unload
   */
   unload() {
     PrivacyRep.unload();
+  },
+
+  actions: {
+    register() {
+      PrivacyRep.registerStream();
+    },
+    unregister() {
+      PrivacyRep.unregisterStream();
+    },
+    getData() {
+      return PrivacyRep.getCurrentData();
+    }
   }
 });

@@ -40,8 +40,7 @@
   ],
   "background": {
     "scripts": [
-      "modules/vendor/Rx.min.js",
-      "modules/vendor/math.min.js",
+      "modules/vendor/math-expression-evaluator.min.js",
       "modules/vendor/dexie.min.js",
       "modules/webextension-specific/app.bundle.js"
     ]

@@ -14,7 +14,7 @@ function toByteArray(data) {
 }
 
 function _toString(data) {
-  const CHUNK_SIZE = 32767;
+  const CHUNK_SIZE = 16383; // 32767 is too much for MS Edge in 2 Gb virtual machine
   const c = [];
   const len = data.length;
   for (let i = 0; i < len; i += CHUNK_SIZE) {

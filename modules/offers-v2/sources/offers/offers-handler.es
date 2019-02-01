@@ -22,6 +22,7 @@ import OffersConfigs from '../offers_configs';
 import Blacklist from './blacklist';
 import chooseBestOffer from './best-offer';
 import { OfferMatchTraits } from '../categories/category-match';
+import { ImageDownloaderForPush } from './image-downloader';
 
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -102,16 +103,18 @@ export default class OffersHandler {
     eventHandler,
     categoryHandler,
     offersDB,
+    offersImageDownloader = new ImageDownloaderForPush(),
   }) {
     this.intentHandler = intentHandler;
     this.offersDB = offersDB;
+    this.offersImageDownloader = offersImageDownloader;
     this.offersDBObserver = new OfferDBObserver(this.offersDB);
     this.offersGeneralStats = new OffersGeneralStats(this.offersDB);
     this.offersMonitorHandler = new OffersMonitorHandler(sigHandler, this.offersDB, eventHandler);
 
     this.intentOffersHandler = new IntentOffersHandler(backendConnector, intentHandler);
 
-    this.offersAPI = new OffersAPI(sigHandler, this.offersDB);
+    this.offersAPI = new OffersAPI(sigHandler, this.offersDB, backendConnector);
 
     this.sigHandler = sigHandler;
 
@@ -211,15 +214,26 @@ export default class OffersHandler {
     return this.blacklist.has(url);
   }
 
-  sendBlacklistSignal(campaignId, offerId) {
-    const origin = 'processor';
-    const actionId = 'global_offers_blacklist';
-    this.sigHandler.setCampaignSignal(campaignId, offerId, origin, actionId);
-    return this.offersDB.incOfferAction(offerId, actionId, false);
-  }
-
   // ///////////////////////////////////////////////////////////////////////////
   // Private methods
+
+  /**
+   * Notify backend that an event was filtered out.
+   * Called from the filters, passed to the filters as a callback.
+   *
+   * @param {Offer} offer
+   * @param {string} filterId
+   *   Something like 'filtered_by_compete' or 'filter_exp__...'
+   */
+  _onOfferIsFilteredOut(offer, filterId) {
+    this.sigHandler.setCampaignSignal(
+      offer.campaignID,
+      offer.uniqueID,
+      'processor',
+      filterId,
+      1 // counter
+    );
+  }
 
   /**
    * this method will be called whenever an offer is accepted to be sent to the
@@ -243,9 +257,13 @@ export default class OffersHandler {
   _updateOffers() {
     const next = this.intentOffersHandler.thereIsNewData()
       ? this.intentOffersHandler.updateIntentOffers()
-      : Promise.resolve();
+      : Promise.resolve([]);
 
-    const jobContext = { ...this.context, offersHandler: this };
+    const jobContext = {
+      ...this.context,
+      offersHandler: this,
+      offerIsFilteredOutCb: this._onOfferIsFilteredOut.bind(this)
+    };
     return next.then(() => executeJobList(this.jobsPipeline, [], jobContext));
   }
 
@@ -253,35 +271,80 @@ export default class OffersHandler {
    * @param {UrlData} urlData
    * @param {CategoriesMatchTraits} catMatches
    */
-  _processEvent({ urlData, catMatches }) {
+  async _processEvent({ urlData, catMatches }) {
     logger.debug('Offers handler processing a new event', urlData.getRawUrl());
 
     if (!shouldWeShowAnyOffer(this.offersGeneralStats)) {
       logger.debug('we should not show any offer now');
-      return Promise.resolve(false);
+      return false;
     }
     this.context.urlData = urlData;
 
-    return this
-      ._updateOffers()
-      .then(offers =>
-        this._chooseBestOffer(offers, urlData, catMatches));
+    const offers = await this._updateOffers();
+    if (!offers) {
+      return false;
+    }
+    const bestOffer = this._chooseBestOffer(offers, urlData, catMatches);
+    if (!bestOffer) {
+      return false;
+    }
+    await this._preloadImages(bestOffer);
+    await this._pushOffersToRealEstates(bestOffer, urlData, catMatches);
+    return true;
   }
 
+  // sync
   _chooseBestOffer(offers, urlData, catMatches) {
+    //
+    // Prepare calculations
+    //
     logger.debug(`We have ${offers.length} on the queue`);
     if (!offers.length) {
-      return Promise.resolve(false);
+      return false;
     }
     const getOfferDisplayCount = o => this.offersDB.getDisplayCount(o.uniqueID);
 
-    const [topOffer, score] = chooseBestOffer(offers, catMatches, getOfferDisplayCount);
-    if (!(topOffer && score)) {
-      return Promise.resolve(false);
+    //
+    // Make the choice
+    //
+    const [bestOffer, score] = chooseBestOffer(offers, catMatches, getOfferDisplayCount);
+    if (!(bestOffer && score)) {
+      return false;
     }
-    logger.debug(`Offer selected with score ${score}:`, topOffer);
+    logger.debug(`Offer selected with score ${score}:`, bestOffer);
+    //
+    // Notify backend
+    //
+    offers.forEach((offer) => {
+      if (offer !== bestOffer) {
+        this._onOfferIsFilteredOut(offer, ActionID.AID_OFFER_FILTERED_COMPETE);
+      }
+    });
+    return bestOffer;
+  }
 
-    return this._pushOffersToRealEstates(topOffer, urlData, catMatches);
+  //
+  // Two side effects at once:
+  //
+  // - The callback with `setSmthDataurl` can be called twice.
+  //   It happens if an image is successfully downloaded after timeout.
+  //
+  // - If the offer is already in `OffersDB`, then `offer` is an object
+  //   from the database.
+  //   Therefore, `setSmthDataurl` changes the content of `OffersDB`.
+  //
+  async _preloadImages(offer) {
+    const logo = this.offersImageDownloader.downloadWithinTimeLimit(
+      offer.getLogoUrl(),
+      offer.getLogoDataurl(),
+      dataurl => offer.setLogoDataurl(dataurl),
+    );
+    const picture = this.offersImageDownloader.downloadWithinTimeLimit(
+      offer.getPictureUrl(),
+      offer.getPictureDataurl(),
+      dataurl => offer.setPictureDataurl(dataurl),
+    );
+    await Promise.all([logo, picture]);
   }
 
   _offersDBCallback(message) {

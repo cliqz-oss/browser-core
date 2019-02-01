@@ -3,9 +3,7 @@ import { Image } from 'react-native';
 
 export default function (props) {
   const style = [props.style || {}];
-  if (props.color) {
-    style.push({ color: props.color });
-  }
+  // TODO: separate react native android from webextension android
   return <Image style={style} source={{ uri: props.source }} />;
 }
 

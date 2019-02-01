@@ -20,12 +20,9 @@ function Header(props) {
         style={{
           color: 'red',
           textIndent: '-1000em',
-          backgroundImage: `url(${props.data.logo_url})`,
+          backgroundImage: `url(${props.data.logo_dataurl})`,
         }}
       />
-      {/* <div className={`logo ${props.data.logo_class}`}>
-        <img src={props.data.logo_url} alt="" />
-      </div> */}
     </div>
   );
 }

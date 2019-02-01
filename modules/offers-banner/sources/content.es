@@ -1,14 +1,13 @@
-import {
-  registerContentScript,
-} from '../core/content/helpers';
-import render from './content/view';
-import { once } from './content/utils';
+/* eslint no-param-reassign: off */
+
+import { registerContentScript } from '../core/content/helpers';
+import Handler from './content/handler';
 
 const onAction = ({ type, offerId, CLIQZ, autoTrigger }) => (msg) => {
   CLIQZ.app.modules['offers-banner'].action('send', type, offerId, msg, autoTrigger);
 };
 
-function renderBanner(payload, CLIQZ, renderOnce) {
+function renderBanner(payload, CLIQZ, handler) {
   const { offerId, config, autoTrigger, data } = payload;
   const action = onAction({
     type: config.type,
@@ -16,26 +15,28 @@ function renderBanner(payload, CLIQZ, renderOnce) {
     CLIQZ,
     autoTrigger,
   });
+  handler.payload = data;
+  handler.config = config;
+  handler.onaction = action;
+
   if (autoTrigger) {
-    renderOnce(chrome, window, data, action, config);
+    handler.showBanner();
   } else {
-    render(chrome, window, data, action, config);
+    handler.toggleBanner();
   }
 }
 
-registerContentScript('offers-banner', 'http*', (window, chrome, CLIQZ) => {
-  if (window.top !== window) { return; }
-  const renderOnce = once(render);
-  const onMessage = ({ module, action, args } = {}) => {
-    if (module !== 'offers-banner' || action !== 'renderBanner') { return; }
+registerContentScript('offers-banner', 'http*', function contentScript(window, chrome, CLIQZ) {
+  if (window.top !== window) { return {}; }
+  const handler = new Handler({ window });
+  const onMessage = (data) => {
     if (window.document && window.document.readyState !== 'loading') {
-      renderBanner(args[0], CLIQZ, renderOnce);
+      renderBanner(data, CLIQZ, handler);
     } else {
-      window.addEventListener('DOMContentLoaded', () => renderBanner(args[0], CLIQZ, renderOnce));
+      window.addEventListener('DOMContentLoaded', () => renderBanner(data, CLIQZ, handler));
     }
   };
-  chrome.runtime.onMessage.addListener(onMessage);
-  window.addEventListener('unload', () => {
-    chrome.runtime.onMessage.removeListener(onMessage);
-  });
+  return {
+    renderBanner: onMessage.bind(this),
+  };
 });

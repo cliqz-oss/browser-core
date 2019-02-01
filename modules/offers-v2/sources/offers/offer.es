@@ -386,4 +386,28 @@ export default class Offer {
     const reward = this.displayPriority;
     return (reward || 0) <= 0 ? 1.0 : reward;
   }
+
+  getLogoUrl() {
+    return this.offerObj.ui_info.template_data.logo_url;
+  }
+
+  getLogoDataurl() {
+    return this.offerObj.ui_info.template_data.logo_dataurl;
+  }
+
+  setLogoDataurl(dataurl) {
+    this.offerObj.ui_info.template_data.logo_dataurl = dataurl;
+  }
+
+  getPictureUrl() {
+    return this.offerObj.ui_info.template_data.picture_url;
+  }
+
+  getPictureDataurl() {
+    return this.offerObj.ui_info.template_data.picture_dataurl;
+  }
+
+  setPictureDataurl(dataurl) {
+    this.offerObj.ui_info.template_data.picture_dataurl = dataurl;
+  }
 }

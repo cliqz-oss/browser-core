@@ -16,23 +16,22 @@ import OffersUpdateService from './services/offers-update';
 import background from '../core/base/background';
 import {
   forEachWindow,
-  mapWindows,
   Window,
   getActiveTab,
 } from '../core/browser';
-import { queryActiveTabs } from '../core/tabs';
+import { queryTabs, reloadTab } from '../core/tabs';
 import console from '../core/console';
 import {
+  getResourceUrl,
   isCliqzBrowser,
   isCliqzAtLeastInVersion,
   isChromium,
   isWebExtension,
   isAMO,
-  getResourceUrl,
   product,
 } from '../core/platform';
 import prefs from '../core/prefs';
-import { dismissMessage, countMessageClick, dismissOffer, saveMessageDismission } from './actions/message';
+import { pauseMessage, dismissMessage, countMessageClick, dismissOffer, saveMessageDismission } from './actions/message';
 import i18n, { getLanguageFromLocale, getMessage } from '../core/i18n';
 import hash from '../core/helpers/hash';
 import HistoryService from '../platform/history-service';
@@ -45,6 +44,7 @@ import {
   tryEncodeURIComponent,
   tryDecodeURIComponent,
 } from '../core/url';
+import extChannel from '../platform/ext-messaging';
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
@@ -65,9 +65,12 @@ const COMPONENT_STATE_INVISIBLE = {
   visible: false,
 };
 
+const NEW_TAB_URL = isChromium ? 'chrome://newtab/' : getResourceUrl(config.settings.NEW_TAB_URL);
+const HISTORY_URL = getResourceUrl(config.settings.HISTORY_URL);
+
 const historyWhitelist = [
-  config.settings.NEW_TAB_URL,
-  config.settings.HISTORY_URL
+  NEW_TAB_URL,
+  HISTORY_URL
 ];
 
 if (config.settings.frameScriptWhitelist) {
@@ -85,8 +88,6 @@ function makeErrorObject(reason) {
   };
 }
 
-const NEW_TAB_URL = isChromium ? 'chrome://newtab/' : getResourceUrl('freshtab/home.html');
-
 /**
  * @module freshtab
  * @namespace freshtab
@@ -101,7 +102,9 @@ export default background({
   ui: inject.module('ui'),
   offersV2: inject.module('offers-v2'),
   insights: inject.module('insights'),
+  friends: inject.module('cliqz-for-friends'),
   requiresServices: ['logos', 'utils', 'session'],
+  searchReminderCounter: 0,
 
   /**
   * @method init
@@ -123,6 +126,7 @@ export default background({
     }
 
     this.newTabPage = NewTabPage;
+    this.newTabPage.NEW_TAB_URL = NEW_TAB_URL;
 
     this.newTabPage.startup();
 
@@ -164,25 +168,18 @@ export default background({
   _onVisitRemoved(removed) {
     if (removed.allHistory) {
       this.actions.refreshHistoryDependentPages();
-    } else {
-      const historyUrls = [...mapWindows(w => w).map(queryActiveTabs).reduce((aUrls, aTabs) =>
-        new Set([
-          ...removed.urls,
-          ...aTabs.map(t => t.url),
-        ]), new Set())]
-        .filter(isHistoryDependentPage);
-
-      historyUrls.forEach((url) => {
-        this.core.action(
-          'broadcastMessage',
-          url,
-          {
-            action: 'updateHistoryUrls',
-            message: { urls: removed.urls },
-          }
-        );
-      });
+      return;
     }
+    historyWhitelist.forEach((url) => {
+      this.core.action(
+        'broadcastMessage',
+        url,
+        {
+          action: 'updateHistoryUrls',
+          message: { urls: removed.urls },
+        }
+      );
+    });
   },
 
   _unregisterFromOffersCore() {
@@ -195,12 +192,6 @@ export default background({
 
   isAdult(url) {
     return this.adultDomainChecker.isAdult(getDetailsFromUrl(url).domain);
-  },
-
-  get shouldShowNewBrandAlert() {
-    const isInABTest = prefs.get('freshtabNewBrand', false);
-    const isDismissed = prefs.get('freshtabNewBrandDismissed', false);
-    return config.settings.showNewBrandAlert && isInABTest && !isDismissed;
   },
 
   get blueTheme() {
@@ -289,7 +280,10 @@ export default background({
     toggleComponent(component) {
       const _config = JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}'));
       // component might be uninitialized
-      _config[component] = Object.assign({}, COMPONENT_STATE_VISIBLE, _config[component]);
+      const COMPONENT_DEFAULT_STATE = component !== 'customDials' || this.actions.hasCustomDialups()
+        ? COMPONENT_STATE_VISIBLE
+        : COMPONENT_STATE_INVISIBLE;
+      _config[component] = Object.assign({}, COMPONENT_DEFAULT_STATE, _config[component]);
       _config[component].visible = !_config[component].visible;
       prefs.set(FRESHTAB_CONFIG_PREF, JSON.stringify(_config));
     },
@@ -316,6 +310,7 @@ export default background({
     },
 
     dismissMessage,
+    pauseMessage,
     dismissOffer,
     countMessageClick,
     saveMessageDismission,
@@ -646,12 +641,6 @@ export default background({
     * @method getStats
     */
     async getStats() {
-      const getRandomInt = (min, max) => {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return (Math.floor(Math.random() * (max - min)) + min).toLocaleString();
-      };
-
       const formatNumber = (number) => {
         if (!number) {
           return '0';
@@ -714,47 +703,65 @@ export default background({
           },
         ];
       } else if (product === 'GHOSTERY') {
-        data = [
-          {
-            title: `${getMessage('freshtab_stats_gt_trackers_blocked')}`,
-            icon: 'images/stats-anti-tracking.svg',
-            val: getRandomInt(10000, 12000),
-            description: `${getMessage('freshtab_stats_gt_trackers_seen', getRandomInt(100000, 120000))}`,
-            link: 'https://www.ghostery.com/',
-          },
-          {
-            title: `${getMessage('freshtab_stats_dp_anonymized')}`,
-            icon: 'images/stats-datapoints.svg',
-            val: getRandomInt(15000, 18000),
-            description: `${getMessage('freshtab_stats_data_anonymized_by_desc', 'Ghostery')}`,
-            link: 'https://www.ghostery.com/',
-          },
-          {
-            title: `${getMessage('freshtab_stats_ads_blocked')}`,
-            icon: 'images/stats-ad-blocker.svg',
-            val: getRandomInt(12000, 14000),
-            description: `${getMessage('freshtab_stats_ads_blocked_by_desc', 'Ghostery')}`,
-            link: 'https://www.ghostery.com/',
-          },
-        ];
+        const ghosteryExtId = isChromium
+          ? 'mlomiejdfkolichcflejclcbmpeaniij' : 'firefox@ghostery.com';
+        const summary = await new Promise((resolve) => {
+          extChannel.sendMessage(ghosteryExtId, { name: 'getStatsAndSettings' },
+            ({ historicalDataAndSettings } = {}) => resolve(historicalDataAndSettings));
+        });
 
-        promoData = {
-          brand: {
-            name: `${getMessage('promo_data_brand_name')}`,
-            icon: 'images/ghosty.svg',
-          },
-          description: `${getMessage('promo_data_description')}${getMessage('promo_data_description_2')}`,
-          learnMore: {
-            text: `${getMessage('learnMore')}`,
-            link: 'https://www.ghostery.com/',
-          },
-          buttons: [
+        if (summary) {
+          // TODO: update links
+          const dataPointsAnonymized = summary.cumulativeData.cookiesBlocked
+            + summary.cumulativeData.fingerprintsRemoved;
+          data = [
             {
-              label: `${getMessage('add_to_chrome')}`,
+              title: `${getMessage('freshtab_stats_gt_trackers_blocked')}`,
+              icon: 'images/stats-anti-tracking.svg',
+              val: formatNumber(summary.cumulativeData.trackersBlocked),
+              description: `${getMessage('freshtab_stats_gt_trackers_seen', formatNumber(summary.cumulativeData.trackersDetected))}`,
+              link: 'https://www.ghostery.com/faqs/what-do-the-statistics-in-ghostery-start-tab-show/',
+              disabled: !summary.blockTrackersEnabled,
+            },
+            {
+              title: `${getMessage('freshtab_stats_dp_anonymized')}`,
+              icon: 'images/stats-datapoints.svg',
+              val: formatNumber(dataPointsAnonymized),
+              description: `${getMessage('freshtab_stats_data_anonymized_by_desc', 'Ghostery')}`,
+              link: 'https://www.ghostery.com/faqs/what-do-the-statistics-in-ghostery-start-tab-show/',
+              disabled: !summary.antiTrackingEnabled,
+            },
+            {
+              title: `${getMessage('freshtab_stats_ads_blocked')}`,
+              icon: 'images/stats-ad-blocker.svg',
+              val: formatNumber(summary.cumulativeData.adsBlocked),
+              description: `${getMessage('freshtab_stats_ads_blocked_by_desc', 'Ghostery')}`,
+              link: 'https://www.ghostery.com/faqs/what-do-the-statistics-in-ghostery-start-tab-show/',
+              disabled: !summary.adBlockEnabled,
+            },
+          ];
+        } else {
+          const downloadGhosteryLink = isChromium
+            ? 'https://chrome.google.com/webstore/detail/ghostery-–-privacy-ad-blo/mlomiejdfkolichcflejclcbmpeaniij'
+            : 'https://addons.mozilla.org/firefox/addon/ghostery/';
+          promoData = {
+            brand: {
+              name: `${getMessage('promo_data_brand_name')}`,
+              icon: 'images/ghosty.svg',
+            },
+            description: `${getMessage('promo_data_description')} ${getMessage('promo_data_description_2')}`,
+            learnMore: {
+              text: `${getMessage('learnMore')}`,
               link: 'https://www.ghostery.com/',
             },
-          ]
-        };
+            buttons: [
+              {
+                label: `${getMessage('add_to_browser', isChromium ? 'Chrome' : 'Firefox')}`,
+                link: downloadGhosteryLink,
+              },
+            ]
+          };
+        }
       }
 
       return {
@@ -838,25 +845,38 @@ export default background({
     async getConfig(sender) {
       const windowWrapper = Window.findByTabId(sender.tab.id);
 
-      // cleanup urlbar value if it has visible url
+      // Count when the search reminder is not shown
+      if (!this.getComponentsState().searchReminder.visible) {
+        if (this.searchReminderCounter === 6) {
+          this.actions.toggleComponent('searchReminder');
+        }
+        this.searchReminderCounter += 1;
+      }
+
       // and set it on focus if missing
       if (windowWrapper) {
         this.ui.windowAction(windowWrapper.window, 'setUrlbarValue', '', {
-          match: config.settings.NEW_TAB_URL,
+          match: NEW_TAB_URL,
           focus: true,
         });
       }
 
       const { id: tabIndex } = await getActiveTab();
+      let displayFriendsIcon = false;
+      try {
+        displayFriendsIcon = await this.friends.action('displayFreshtabIcon');
+      } catch (e) {
+        // module might be missing
+      }
 
       return {
+        searchReminderCounter: this.searchReminderCounter,
         locale: getLanguageFromLocale(i18n.PLATFORM_LOCALE),
         blueTheme: this.blueTheme,
         isBlueThemeSupported: this.isBlueThemeEnabled,
         wallpapers: getWallpapers(product),
         product,
         tabIndex,
-        showNewBrandAlert: this.shouldShowNewBrandAlert,
         messages: this.messages,
         isHistoryEnabled: (
           prefs.get('modules.history.enabled', false)
@@ -864,12 +884,12 @@ export default background({
         ),
         componentsState: this.getComponentsState(),
         developer: prefs.get('developer', false),
+        cliqzPostPosition: prefs.get('freshtab.post.position', 'bottom-right'), // bottom-left, top-right
         isStatsSupported: this.settings.freshTabStats,
-        isFriendsEnabled: (
-          // keep it in Beta
-          utils.extensionVersion.indexOf('b') > -1
-          || utils.extensionVersion.indexOf('dev') > -1
-        )
+        displayFriendsIcon,
+        NEW_TAB_URL: '',
+        HISTORY_URL,
+        CLIQZ_FOR_FRIENDS: this.settings.CLIQZ_FOR_FRIENDS ? getResourceUrl(this.settings.CLIQZ_FOR_FRIENDS) : '',
       };
     },
 
@@ -927,22 +947,19 @@ export default background({
         const tabs = [...window.gBrowser.tabs];
         tabs.forEach((tab) => {
           const browser = tab.linkedBrowser;
-          if (browser.currentURI.spec === config.settings.NEW_TAB_URL) {
+          if (browser.currentURI.spec === NEW_TAB_URL) {
             browser.reload();
           }
         });
       });
     },
 
-    refreshHistoryDependentPages() {
-      forEachWindow((window) => {
-        const tabs = [...window.gBrowser.tabs];
-        tabs.forEach((tab) => {
-          const browser = tab.linkedBrowser;
-          if (isHistoryDependentPage(browser.currentURI.spec)) {
-            browser.reload();
-          }
-        });
+    async refreshHistoryDependentPages() {
+      const tabs = await queryTabs();
+      tabs.forEach(({ id, url }) => {
+        if (isHistoryDependentPage(url)) {
+          reloadTab(id);
+        }
       });
     },
 
@@ -966,6 +983,14 @@ export default background({
     getComponentsState() {
       return this.getComponentsState();
     },
+    reportEvent({ type }) {
+      if (type === 'urlbar-focus') {
+        utils.setSearchSession();
+        if (this.searchReminderCounter < 7) {
+          this.searchReminderCounter = 0;
+        }
+      }
+    }
   },
 
   events: {

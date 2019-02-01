@@ -1,3 +1,5 @@
+import { chrome } from '../../platform/content/globals';
+
 function isArray(arr) {
   return (Array.isArray && Array.isArray(arr)) || (arr instanceof Array);
 }

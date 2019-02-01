@@ -11,7 +11,7 @@ import md5 from '../core/helpers/md5';
 import { digest } from './digest';
 import { MsgQuotaError, NotReadyError, InvalidMsgError, NoCredentialsError, BadCredentialsError,
   SignMsgError, FetchConfigError,
-  JoinGroupsError, InitSignerError, OldVersionError, WrongClockError } from './errors';
+  JoinGroupsError, InitSignerError, OldVersionError } from './errors';
 import { formatDate, reflectPromise, encodeWithPadding } from './utils';
 import logger from './logger';
 import MessageQueue from '../core/message-queue';
@@ -20,6 +20,7 @@ import random from '../core/crypto/random';
 import setTimeoutInterval from '../core/helpers/timeout';
 import { VERSION } from './constants';
 import prefs from '../core/prefs';
+import events from '../core/events';
 
 const LOAD_CONFIG_SUCCESS_MIN_INTERVAL = 60 * 60 * 1000; // 1 hour
 const LOAD_CONFIG_SUCCESS_MAX_INTERVAL = 4 * 60 * 60 * 1000; // 4 hours
@@ -42,6 +43,7 @@ export default class Manager {
     this.signer = null;
     this.ecdhPubKey = {};
     this.minutesLocal = 0;
+    this.timeDrift = 0;
 
     this.logError = logger.error;
     this.log = logger.log;
@@ -116,32 +118,32 @@ export default class Manager {
   }
 
   _wrongClock() {
-    this.logError('Wrong system clock! restarting...');
-    if (this.clock) {
-      this.clock.stop();
-    }
+    this.logError('Wrong system clock! Syncing...');
     clearTimeout(this.configLoader);
     this.configLoader = null;
-    this.isInit = false;
     this.init();
-    throw new WrongClockError();
   }
 
   hours() {
     const minutesLocal = this.minutesLocal;
-    const minutesSystem = Math.round(Date.now() / (1000 * 60));
+    const minutesSystem = Math.round((this.timeDrift + Date.now()) / (1000 * 60));
+    const hours = Math.floor(minutesSystem / 60);
     if (Math.abs(minutesLocal - minutesSystem) > Endpoints.MAX_MINUTES_DRIFT) {
       this._wrongClock();
+    } else if (formatDate(hours).slice(0, 8) !== prefs.get('config_ts')) {
+      // Let's try to keep config_ts in sync.
+      this.log('Syncing config_ts');
+      events.pub('cliqz-config:triggerUpdate');
     }
-    return Math.floor(minutesSystem / 60);
+    return hours;
   }
 
-  punish() {
+  async punish() {
     // This bans all stored credentials, temporarily stopping data collection.
-    Object.keys(this.groupPubKeys).forEach((shortDate) => {
+    return Promise.all(Object.keys(this.groupPubKeys).map((shortDate) => {
       this.groupPubKeys[shortDate].banned = true;
-      this.db.setGroupPubKey(shortDate, this.groupPubKeys[shortDate]);
-    });
+      return this.db.setGroupPubKey(shortDate, this.groupPubKeys[shortDate]);
+    }));
   }
 
   async fetchConfig() {
@@ -149,7 +151,11 @@ export default class Manager {
     // We do not skip in order to check whether the system clock is correct or not
     // based on the Date response header. If there is significant drift, loading
     // will fail.
-    const { groupPubKeys, pubKeys, sourceMap, minVersion } = await this.endpoints.getConfig();
+    const { groupPubKeys, pubKeys, sourceMap, minVersion, ts } = await this.endpoints.getConfig();
+    const time = (new Date(ts)).getTime();
+    this.timeDrift = time - Date.now();
+    this.minutesLocal = Math.round(time / (1000 * 60));
+    const hours = Math.floor(this.minutesLocal / 60);
 
     if (VERSION < minVersion) {
       this.isOldVersion = true;
@@ -157,26 +163,25 @@ export default class Manager {
     }
 
     // Now we can trust system clock, so start our timer to detect further changes to it...
-    this.minutesLocal = Math.round(Date.now() / (1000 * 60));
     if (this.clock) {
       this.clock.stop();
     }
     this.clock = setTimeoutInterval(() => {
       this.minutesLocal += 1;
+      this.hours(); // Check out of sync clock
     }, 60 * 1000);
 
-    await this.db.setLastConfigTime(this.hours());
-    const ok = Manager.checkGroupPublicKeys(groupPubKeys, this.groupPubKeys);
+    const ok = Manager.checkGroupPublicKeys(groupPubKeys, pubKeys, this.groupPubKeys);
     if (!ok) {
-      this.punish();
+      await this.punish();
     } else {
-      Object.keys(groupPubKeys).forEach((shortDate) => {
-        if (!this.groupPubKeys[shortDate]) {
-          const groupPubKey = fromBase64(groupPubKeys[shortDate]);
-          const pubKey = pubKeys[shortDate] && fromBase64(pubKeys[shortDate]);
-          this.db.setGroupPubKey(shortDate, { groupPubKey, pubKey });
-        }
-      });
+      // Update server public keys in db.
+      await Promise.all(Object.keys(groupPubKeys).map((shortDate) => {
+        const key = this.groupPubKeys[shortDate] || {};
+        key.groupPubKey = fromBase64(groupPubKeys[shortDate]);
+        key.pubKey = pubKeys[shortDate] && fromBase64(pubKeys[shortDate]);
+        return this.db.setGroupPubKey(shortDate, key);
+      }));
     }
 
     // TODO: add some protection for malicious server trying to target by
@@ -186,7 +191,7 @@ export default class Manager {
       this.db.setSourceMapAction(action, sourceMap.actions[action]);
     });
 
-    await this.db.purgeTags(this.hours());
+    await this.db.purgeTags(hours);
   }
 
   getPublicKey(date) {
@@ -398,7 +403,6 @@ export default class Manager {
   //     persistent system clock drift.
   //   NoCredentialsError: There are no available credentials for today. Should happen very rarely,
   //     for example if a system wakes up from suspend mode.
-  //   WrongClockError: Either system clock changed or it differs from server time.
   //   TransportError: A network error when sending the message.
   //   ServerError: Unexpected server error.
   //
@@ -448,11 +452,12 @@ export default class Manager {
   }
 
   // signs the message with the currently loaded credentials
-  async _signMessage(message, pretag, hours, period, limit, skipQuotaCheck) {
+  async _signMessage(message, action, pretag, hours, period, limit, skipQuotaCheck) {
+    const tag = md5(JSON.stringify(pretag));
     let cnt;
     try {
       cnt = await this.db.consumeFreshCounter(
-        md5(JSON.stringify(pretag)),
+        tag,
         hours + period,
         limit
       );
@@ -460,7 +465,7 @@ export default class Manager {
       if (skipQuotaCheck) {
         cnt = 0;
       } else {
-        throw new MsgQuotaError(e.message);
+        throw new MsgQuotaError(`${e.message} (action: ${action}, tag: ${tag}, limit: ${limit} per ${period} hours)`);
       }
     }
 
@@ -546,6 +551,7 @@ export default class Manager {
 
     const { sig, cnt } = await this._signMessage(
       utf8Msg,
+      action,
       pretag,
       hours,
       period,
@@ -600,19 +606,24 @@ export default class Manager {
   // This aims to protect against a server trying to target users by returning different
   // group public keys. It assumes oldKeys are already checked or undefined, for the first time.
   // If it returns false for some keys returned by server, feel free to punish!
-  static checkGroupPublicKeys(newKeys, oldKeys) {
-    if (!newKeys || typeof newKeys !== 'object') {
+  static checkGroupPublicKeys(newGroupKeys, newPubKeys, oldKeys) {
+    if (!newGroupKeys || typeof newGroupKeys !== 'object') {
       return false;
     }
-    const dates = Object.keys(newKeys);
+    if (!newPubKeys || typeof newPubKeys !== 'object') {
+      return false;
+    }
+    const dates = Object.keys(newGroupKeys);
     if (dates.length > 4 || !dates.every(Manager.isValidDate)) {
       return false;
     }
-    const values = dates.map(x => newKeys[x]);
     // Just testing if the group public keys are valid base64. If some is invalid (e.g. garbage)
     // the user will not be able to start joining the group, so server does not gain anything with
     // that.
-    if (!values.every(Manager.isValidBase64)) {
+    if (!dates.map(x => newGroupKeys[x]).every(Manager.isValidBase64)) {
+      return false;
+    }
+    if (!dates.map(x => newPubKeys[x]).every(Manager.isValidBase64)) {
       return false;
     }
 
@@ -628,7 +639,8 @@ export default class Manager {
       // or include additional keys in the interval defined by the keys
       // that we already know.
       const check = x => x < smallestOldDate || x > largestOldDate
-        || (oldKeys[x] && toBase64(oldKeys[x].groupPubKey) === newKeys[x]);
+        || (oldKeys[x] && toBase64(oldKeys[x].groupPubKey) === newGroupKeys[x]
+        && (!oldKeys[x].pubKey || toBase64(oldKeys[x].pubKey) === newPubKeys[x]));
       if (!dates.every(check)) {
         return false;
       }

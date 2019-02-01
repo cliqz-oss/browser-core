@@ -1,13 +1,61 @@
 import background from '../core/base/background';
 import inject from '../core/kord/inject';
 import prefs from '../core/prefs';
+import { getDetailsFromUrl } from '../core/url';
 
-const getDomainAndParametersFromUrl = (url) => {
-  const idx = url.split('/', 3).join('/').length;
-  return {
-    domain: url.substring(0, idx),
-    parameters: url.substring(idx),
-  };
+const _setScheme = (url) => {
+  const details = getDetailsFromUrl(url);
+  const hasScheme = (details.scheme !== '') && (details.originalUrl.includes(details.scheme));
+  return hasScheme ? details.scheme : 'https:';
+};
+
+const _getFullURLWithoutParameters = (url) => {
+  const details = getDetailsFromUrl(url);
+  const port = (details.port !== '') ? `:${details.port}` : '';
+  return `${_setScheme(url)}//${details.cleanHost}${port}`;
+};
+
+const _getFullURL = (url) => {
+  const details = getDetailsFromUrl(url);
+  return `${_getFullURLWithoutParameters(url)}${details.extra}`;
+};
+
+const msg = {
+  ver: '2.4',
+  ts: '20170212',
+  'anti-duplicates': 4105180,
+  action: 'page',
+  type: 'humanweb',
+  payload: {
+    a: 76,
+    c: null,
+    e: { mm: 0, sc: 0, kp: 0, cp: 0, md: 0 },
+    url: 'https://www.arzt-auskunft.de/',
+    st: '200',
+    x: {
+      ni: 2,
+      pagel: 'de',
+      nl: 34,
+      nfsh: 0,
+      nifsh: 1,
+      lt: 7989,
+      nf: 1,
+      nifshmatch: true,
+      canonical_url: 'https://www.arzt-auskunft.de/',
+      ctry: 'de',
+      lh: 36324,
+      iall: true,
+      nfshmatch: true,
+      ninh: 2,
+      nip: 0,
+      nfshbf: 1,
+      nifshbf: 1,
+      t: 'Dr. med. Andreas Seifert, Hautarzt in Trier | Arzt-Auskunft'
+    },
+    dur: 23333,
+    ref: 'https://www.google.de/ (PROTECTED)',
+    red: null
+  }
 };
 
 /**
@@ -17,6 +65,7 @@ const getDomainAndParametersFromUrl = (url) => {
 export default background({
   deps: {
     core: inject.module('core'),
+    humanWeb: inject.module('human-web'),
   },
   /**
     @method init
@@ -28,27 +77,36 @@ export default background({
 
   unload() {},
 
-  beforeBrowserShutdown() {},
+  beforeBrowserShutdown() { },
 
   events: {},
 
   actions: {
-    async getState() {
+    async getState(url) {
       return {
-        modules: await this.actions.getCliqzStatus(),
-        endpointsUrl: getDomainAndParametersFromUrl(this.settings.RICH_HEADER).domain,
-        showConsoleLogs: prefs.get('showConsoleLogs', true),
+        endpointsUrl: _getFullURLWithoutParameters(this.settings.RICH_HEADER),
         extensionsLegacyEnabled: prefs.get('enabled', true, 'extensions.legacy.'),
+        modules: await this.actions.getCliqzStatus(),
+        showConsoleLogs: prefs.get('showConsoleLogs', true),
         signaturesRequired: prefs.get('required', false, 'xpinstall.signatures.'),
 
         // prefs for offers
         developer: prefs.get('developer', true),
+        loggerLevel: prefs.get('logger.offers-v2.level', ''),
         offersDevFlag: prefs.get('offersDevFlag', true),
-        offersLogsEnabled: prefs.get('offersLogsEnabled', true),
-        triggersBE: prefs.get('triggersBE', ''),
         offersLoadSignalsFromDB: prefs.get('offersLoadSignalsFromDB', true),
-        offersTelemetryFreq: prefs.get('offersTelemetryFreq', 10),
-        loggerLevel: prefs.get('logger.offers-v2.level', 'log'),
+        offersLogsEnabled: prefs.get('offersLogsEnabled', true),
+        offersTelemetryFreq: prefs.get('offersTelemetryFreq', ''),
+        triggersBE: prefs.get('triggersBE', ''),
+
+        // state from HumanWeb
+        HWCheckUrlStatus: await this.deps.humanWeb.action('getURLCheckStatus', url)
+          .catch(e => ({ message: e.message, stack: e.stack })),
+        HWStatus: await this.deps.humanWeb.action(
+          'getState',
+          { msg },
+        ).catch(e => ({ message: e.message, stack: e.stack })),
+        timestamp: prefs.get('config_ts', null),
       };
     },
     setPref(name, value, prefix) {
@@ -58,8 +116,8 @@ export default background({
     setEndpoints(address) {
       ['RICH_HEADER', 'RESULTS_PROVIDER', 'RESULTS_PROVIDER_LOG', 'RESULTS_PROVIDER_PING']
         .forEach((endpoint) => {
-          const parameters = getDomainAndParametersFromUrl(this.settings[endpoint]).parameters;
-          this.settings[endpoint] = `${address}${parameters}`;
+          const parameters = getDetailsFromUrl(this.settings[endpoint]).extra;
+          this.settings[endpoint] = `${_getFullURL(address)}${parameters}`;
         });
     },
     async getCliqzStatus() {

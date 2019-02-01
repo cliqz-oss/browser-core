@@ -4,7 +4,7 @@ import background from '../core/base/background';
 import inject from '../core/kord/inject';
 import prefs from '../core/prefs';
 
-import { extractHostname } from '../core/tlds';
+import { extractHostname, getGeneralDomain } from '../core/tlds';
 
 import CliqzADB, {
   ADB_PREF_VALUES,
@@ -87,8 +87,10 @@ export default background({
         return { active: false };
       }
 
+      const hostname = extractHostname(url);
+      const domain = getGeneralDomain(hostname);
       return CliqzADB.adBlocker.engine.getCosmeticsFilters(
-        extractHostname(url),
+        hostname, domain,
       );
     },
 
@@ -138,15 +140,19 @@ export default background({
     },
 
     addPipelineStep(opts) {
-      if (!this.adb.pipeline) {
+      if (!this.adb.onBeforeRequestPipeline) {
         return Promise.reject(new Error(`Could not add pipeline step: ${opts.name}`));
       }
 
-      return this.adb.pipeline.addPipelineStep(opts);
+      return Promise.all([this.adb.onBeforeRequestPipeline, this.adb.onHeadersReceivedPipeline]
+        .map(pipeline => pipeline.addPipelineStep(opts)));
     },
     removePipelineStep(name) {
-      if (this.adb && this.adb.pipeline) {
-        this.adb.pipeline.removePipelineStep(name);
+      if (this.adb && this.adb.onBeforeRequestPipeline) {
+        [this.adb.onBeforeRequestPipeline, this.adb.onHeadersReceivedPipeline]
+          .forEach((pipeline) => {
+            pipeline.removePipelineStep(name);
+          });
       }
     },
     addWhiteListCheck(fn) {

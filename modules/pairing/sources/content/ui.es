@@ -1,5 +1,6 @@
 /* global $, Handlebars */
 import QRCode from 'qrcodejs';
+import templates from '../templates';
 
 const images = {
   pairing_status_disconnected: './images/pairing-status-disconnected.png',
@@ -8,21 +9,7 @@ const images = {
 };
 
 export default class PairingUI {
-  isPreferencesPage() {
-    return this.window.parent.location.href.indexOf('about:preferences') === 0;
-  }
-
-  isConnectSection() {
-    return this.window.parent.location.hash === '#connect';
-  }
-
-  mustStartPairing() {
-    // If we are in about:preferences, start pairing only for Connect section.
-    // Otherwise (in video downloader), always start pairing.
-    return !this.isPreferencesPage() || this.isConnectSection();
-  }
-
-  constructor(window, PeerComm, telemetry) {
+  init(window, PeerComm, telemetry) {
     this.i18n = window.chrome.i18n.getMessage.bind(window.chrome.i18n);
     this.document = window.document;
     this.window = window;
@@ -32,16 +19,11 @@ export default class PairingUI {
 
     this.TEMPLATE_NAMES = ['template'];
     this.TEMPLATE_CACHE = {};
-
-    this.onHashChange = this.onHashChange.bind(this);
-    this.window.parent.addEventListener('hashchange', this.onHashChange);
-    this.onHashChange();
+    this.start();
 
     this.connectionChecker = setInterval(() => {
-      if (this.mustStartPairing()) {
-        this.startPairing();
-        PeerComm.checkMasterConnection().catch(() => {});
-      }
+      this.startPairing();
+      PeerComm.checkMasterConnection().catch(() => {});
     }, PairingUI.checkInterval);
 
     // Pairing events
@@ -60,54 +42,23 @@ export default class PairingUI {
     this.onpaired = this.renderPaired.bind(this);
     this.onunpaired = ({ isUnpaired }) => {
       this.renderUnpaired();
-      if (isUnpaired && this.mustStartPairing()) {
+      if (isUnpaired) {
         this.startPairing();
       }
     };
     this.onmasterconnected = this.renderPaired.bind(this);
     this.onmasterdisconnected = this.renderPaired.bind(this);
-  }
 
-  init() {
-    this.compileTemplate().then(() => {
-      this.PeerComm.getInfo().then((info) => {
-        if (info.isInit) {
-          this.oninit(info);
-        }
-      });
+    Handlebars.partials = templates;
+    this.PeerComm.getInfo().then((info) => {
+      if (info.isInit) {
+        this.oninit(info);
+      }
     });
   }
 
   startPairing() {
     this.PeerComm.startPairing();
-  }
-
-  fetchTemplate(name) {
-    const url = `./template/${name}.hbs`;
-    return new Promise((resolve, reject) => {
-      try {
-        fetch(url).then((res) => {
-          if (res.status === 200) {
-            res.text().then((text) => {
-              resolve({ name, html: text });
-            });
-          } else {
-            reject();
-          }
-        });
-      } catch (err) {
-        reject(err);
-      }
-    });
-  }
-
-  compileTemplate() {
-    return Promise.all(this.TEMPLATE_NAMES.map(this.fetchTemplate.bind(this))).then((templates) => {
-      templates.forEach((tpl) => {
-        this.TEMPLATE_CACHE[tpl.name] = Handlebars.compile(tpl.html);
-      });
-      return Promise.resolve();
-    });
   }
 
   updatePairingStatus(status) {
@@ -177,6 +128,8 @@ export default class PairingUI {
 
     data.i18n = {
       title: this.i18n('pairing_title'),
+      connectInProgressHeader: this.i18n('connect_in_progress_header'),
+      connectInProgressMessage: this.i18n('connect_in_progress_message'),
       instructionsTitle: this.i18n('pairing_instructions_title'),
       instructionsAndroid: this.i18n('pairing_instructions_playstore'),
       instructionsIOs: this.i18n('pairing_instructions_appstore'),
@@ -192,15 +145,13 @@ export default class PairingUI {
       contactLearnMore: this.i18n('pairing_contact_learn_more'),
 
       pairingScanTitle: this.i18n('pairing_scan_title'),
-      pairingErrorMessage: this.i18n('pairing_error_message'),
-
       pairingAllFeatures: this.i18n('pairing_all_features_title'),
       pairingEnabledFeatures: this.i18n('pairing_enabled_features_title'),
 
       unpair: this.i18n('pairing_unpair'),
     };
 
-    $('#content').html(this.TEMPLATE_CACHE.template(data));
+    $('#content').html(templates.main(data));
 
     $('#unpair-button').click(() => {
       this.PeerComm.unpair();
@@ -229,19 +180,16 @@ export default class PairingUI {
 
   unload() {
     clearInterval(this.connectionChecker);
-    this.window.parent.removeEventListener('hashchange', this.onHashChange);
   }
 
-  onHashChange() {
-    if (this.mustStartPairing()) {
-      this.startPairing();
-      this.telemetry({
-        type: 'settings',
-        version: 1,
-        view: 'connect',
-        action: 'show',
-      });
-    }
+  start() {
+    this.startPairing();
+    this.telemetry({
+      type: 'settings',
+      version: 1,
+      view: 'connect',
+      action: 'show',
+    });
   }
 
   get observerID() {

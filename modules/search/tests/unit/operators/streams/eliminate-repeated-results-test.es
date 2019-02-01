@@ -1,12 +1,15 @@
 /* global chai, describeModule */
 
 const Rx = require('rxjs');
+const operators = require('rxjs/operators');
 const rxSandbox = require('rx-sandbox').rxSandbox;
-
+const deepEqual = require('deep-equal');
 
 const mock = {
-  'platform/lib/rxjs': {
-    default: Rx,
+  rxjs: Rx,
+  'rxjs/operators': operators,
+  'deep-equal': {
+    default: deepEqual,
   },
 };
 
@@ -78,7 +81,7 @@ export default describeModule('search/operators/streams/eliminate-repeated-resul
         const source$ = sandbox.hot('-acb', fixtures);
         const expected = sandbox.e(' -acb', fixtures);
 
-        const messages = sandbox.getMessages(source$.let(eliminateRepeatedResults()));
+        const messages = sandbox.getMessages(source$.pipe(eliminateRepeatedResults()));
         sandbox.flush();
 
         return chai.expect(messages).to.deep.equal(expected);
@@ -88,7 +91,7 @@ export default describeModule('search/operators/streams/eliminate-repeated-resul
         const source$ = sandbox.hot('-abbbc', fixtures);
         const expected = sandbox.e(' -a---c', fixtures);
 
-        const messages = sandbox.getMessages(source$.let(eliminateRepeatedResults()));
+        const messages = sandbox.getMessages(source$.pipe(eliminateRepeatedResults()));
         sandbox.flush();
 
         return chai.expect(messages).to.deep.equal(expected);

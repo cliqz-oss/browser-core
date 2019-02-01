@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import cliqz from '../cliqz';
+import Button from './partials/button';
 import { messageShowSignal, messageClickSignal, messageCloseSignal, messageSkipSignal } from '../services/telemetry/top-messages';
 
 export default class TopMessages extends React.Component {
@@ -25,6 +26,7 @@ export default class TopMessages extends React.Component {
   handleLaterClick(message) {
     messageSkipSignal(message.id);
     cliqz.freshtab.skipMessage(message);
+    this.container.remove();
   }
 
   handleCloseClick(message) {
@@ -72,24 +74,18 @@ export default class TopMessages extends React.Component {
                     </h1>
                   </div>
                   <div>
-                    <button
-                      type="button"
+                    <Button
                       className="cta-btn"
-                      tabIndex="-1"
+                      label={message.cta_text}
                       onClick={() => this.handleCTAClick(message)}
-                    >
-                      {message.cta_text}
-                    </button>
+                    />
                     {message.later_text
                       && (
-                        <button
-                          type="button"
+                        <Button
                           className="later-btn"
-                          tabIndex="-1"
+                          label={message.later_text}
                           onClick={() => this.handleLaterClick(message)}
-                        >
-                          {message.later_text}
-                        </button>)
+                        />)
                     }
                   </div>
                 </div>
@@ -102,9 +98,6 @@ export default class TopMessages extends React.Component {
 }
 
 TopMessages.propTypes = {
-  messages: PropTypes.shape({
-    title: PropTypes.string,
-    map: PropTypes.func
-  }),
-  handleLinkClick: PropTypes.func
+  handleLinkClick: PropTypes.func,
+  messages: PropTypes.array,
 };

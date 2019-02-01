@@ -36,7 +36,7 @@ export default function () {
         context(`Search with ${testCase.engine}`, function () {
           before(async function () {
             win.preventRestarts = true;
-            blurUrlBar();
+            await blurUrlBar();
             app.modules.search.action('setDefaultSearchEngine', testCase.engine);
             await mockSearch({ results });
             withHistory([]);
@@ -85,7 +85,7 @@ export default function () {
       searchEnginesEn.forEach(function (testCase) {
         context(`Search with query: ${testCase.query}`, function () {
           before(async function () {
-            blurUrlBar();
+            await blurUrlBar();
             await mockSearch({ results: [] });
             withHistory([]);
             fillIn(testCase.query);

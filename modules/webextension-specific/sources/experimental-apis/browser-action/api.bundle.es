@@ -13,19 +13,23 @@ const browserAreas = {
   personaltoolbar: CustomizableUI.AREA_BOOKMARKS,
 };
 
-const { makeWidgetId, EventManager } = ExtensionCommon;
+const { EventManager } = ExtensionCommon;
 const { Management: { global: { windowTracker, tabTracker } } } = ChromeUtils.import('resource://gre/modules/Extension.jsm', {});
 const {
   IconDetails,
   StartupCache,
 } = ExtensionParent;
 
+const makeWidgetId = id => id.toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+
 /**
  * Manages tab-specific and window-specific context data, and dispatches
  * tab select events across all windows.
  *
  * Copypasted from https://github.com/mozilla/gecko-dev/blob/master/browser/components/extensions/parent/ext-browser.js#L136
+ * ESlint disabled for easier tracking changes
  */
+/* eslint-disable */
 const TabContext = class extends EventEmitter {
   /**
    * @param {Function} getDefaultPrototype
@@ -40,11 +44,11 @@ const TabContext = class extends EventEmitter {
 
     this.tabData = new WeakMap();
 
-    windowTracker.addListener('progress', this);
-    windowTracker.addListener('TabSelect', this);
+    windowTracker.addListener("progress", this);
+    windowTracker.addListener("TabSelect", this);
 
     this.tabAdopted = this.tabAdopted.bind(this);
-    tabTracker.on('tab-adopted', this.tabAdopted);
+    tabTracker.on("tab-adopted", this.tabAdopted);
   }
 
   /**
@@ -56,7 +60,7 @@ const TabContext = class extends EventEmitter {
    */
   get(keyObject) {
     if (!this.tabData.has(keyObject)) {
-      const data = Object.create(this.getDefaultPrototype(keyObject));
+      let data = Object.create(this.getDefaultPrototype(keyObject));
       this.tabData.set(keyObject, data);
     }
 
@@ -74,20 +78,25 @@ const TabContext = class extends EventEmitter {
   }
 
   handleEvent(event) {
-    if (event.type === 'TabSelect') {
-      const nativeTab = event.target;
-      this.emit('tab-select', nativeTab);
-      this.emit('location-change', nativeTab);
+    if (event.type == "TabSelect") {
+      let nativeTab = event.target;
+      this.emit("tab-select", nativeTab);
+      this.emit("location-change", nativeTab);
     }
   }
 
   onLocationChange(browser, webProgress, request, locationURI, flags) {
-    const gBrowser = browser.ownerGlobal.gBrowser;
-    const tab = gBrowser.getTabForBrowser(browser);
+    if (!webProgress.isTopLevel) {
+      // Only pageAction and browserAction are consuming the "location-change" event
+      // to update their per-tab status, and they should only do so in response of
+      // location changes related to the top level frame (See Bug 1493470 for a rationale).
+      return;
+    }
+    let gBrowser = browser.ownerGlobal.gBrowser;
+    let tab = gBrowser.getTabForBrowser(browser);
     // fromBrowse will be false in case of e.g. a hash change or history.pushState
-    // eslint-disable-next-line
-    const fromBrowse = !(flags & Ci.nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT);
-    this.emit('location-change', tab, fromBrowse);
+    let fromBrowse = !(flags & Ci.nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT);
+    this.emit("location-change", tab, fromBrowse);
   }
 
   /**
@@ -106,8 +115,8 @@ const TabContext = class extends EventEmitter {
     }
     // Create a new object (possibly with different inheritance) when a tab is moved
     // into a new window. But then reassign own properties from the old object.
-    const newData = this.get(adoptingTab);
-    const oldData = this.tabData.get(adoptedTab);
+    let newData = this.get(adoptingTab);
+    let oldData = this.tabData.get(adoptedTab);
     this.tabData.delete(adoptedTab);
     Object.assign(newData, oldData);
   }
@@ -116,11 +125,12 @@ const TabContext = class extends EventEmitter {
    * Makes the TabContext instance stop emitting events.
    */
   shutdown() {
-    windowTracker.removeListener('progress', this);
-    windowTracker.removeListener('TabSelect', this);
-    tabTracker.off('tab-adopted', this.tabAdopted);
+    windowTracker.removeListener("progress", this);
+    windowTracker.removeListener("TabSelect", this);
+    tabTracker.off("tab-adopted", this.tabAdopted);
   }
 };
+/* eslint-enable */
 
 // global functions required to `ext-browserAction.js` execute correctly
 global.makeWidgetId = makeWidgetId;
@@ -137,6 +147,13 @@ const BrowserAction = global.browserAction;
 delete global.browserAction;
 
 global.browserAction2 = class extends BrowserAction {
+  constructor(...args) {
+    super(...args);
+    this._isReady = new Promise((resolve) => {
+      this._ready = resolve;
+    });
+  }
+
   async create(options) {
     const { extension } = this;
 
@@ -160,7 +177,7 @@ global.browserAction2 = class extends BrowserAction {
       badgeBackgroundColor: [0xd9, 0, 0, 255],
       badgeDefaultColor: [255, 255, 255, 255],
       badgeTextColor: null,
-      popup: options.default_popup || '',
+      popup: (options.default_popup && extension.baseURI.resolve(options.default_popup)) || '',
       area: browserAreas[options.default_area || 'navbar'],
     };
     this.globals = Object.create(this.defaults);
@@ -171,7 +188,7 @@ global.browserAction2 = class extends BrowserAction {
       extension, ['browserAction2', 'default_icon'],
       () => IconDetails.normalize({
         path: options.default_icon,
-        iconType: 'browserAction',
+        iconType: 'browserAction2',
         themeIcons: options.theme_icons,
       }, extension)
     );
@@ -196,12 +213,27 @@ global.browserAction2 = class extends BrowserAction {
     this.tabContext.on('location-change', this.handleLocationChange.bind(this));
 
     this.build();
+    this._ready();
+  }
+
+  wrapOriginalAPI(api) {
+    return Object.keys(api).reduce((wrappedAPI, prop) => {
+      if (typeof api[prop] === 'function') {
+        wrappedAPI[prop] = async (...args) => { // eslint-disable-line
+          await this._isReady;
+          return api[prop](...args);
+        };
+      } else {
+        wrappedAPI[prop] = api[prop]; // eslint-disable-line
+      }
+      return wrappedAPI;
+    }, Object.create(null));
   }
 
   getAPI(context) {
     const originalAPI = super.getAPI(context);
     return {
-      browserAction2: Object.assign(originalAPI.browserAction, {
+      browserAction2: Object.assign(this.wrapOriginalAPI(originalAPI.browserAction), {
         create: options => this.create(options),
       })
     };

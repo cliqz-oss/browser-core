@@ -3,6 +3,11 @@
  * @class PatternUtils
  * @static
  */
+import {
+  extractHostname as getHostname,
+  getGeneralDomain as getDomain,
+} from '../../core/tlds';
+
 import logger from '../common/offers_v2_logger';
 import PatternMatching from '../../platform/lib/adblocker';
 import { MultiPatternIndex, SimplePatternIndex } from './pattern-utils-imp';
@@ -18,11 +23,11 @@ import { MultiPatternIndex, SimplePatternIndex } from './pattern-utils-imp';
  */
 export default function tokenizeUrl(url, cpt = 2) {
   if (url) {
-    return new PatternMatching.Request({
+    return PatternMatching.makeRequest({
       url,
       type: cpt,
       sourceUrl: url,
-    });
+    }, { getDomain, getHostname });
   }
   return null;
 }

@@ -27,6 +27,10 @@
         "selectionEnd": {
           "type": "integer",
           "optional": true
+        },
+        "triggerEvent": {
+          "type": "boolean",
+          "optional": true
         }
       }
     },
@@ -74,10 +78,6 @@
               "name": "details",
               "type": "object",
               "properties": {
-                "windowId": {
-                  "type": "number",
-                  "optional": true
-                },
                 "tabId": {
                   "type": "number",
                   "optional": true
@@ -243,6 +243,21 @@
           "optional": true
         },
         {
+          "type": "object",
+          "optional": true,
+          "default": {},
+          "properties": {
+            "triggerEvent": {
+              "type": "boolean",
+              "optional": true
+            },
+            "openLocation": {
+              "type": "boolean",
+              "optional": true
+            }
+          }
+        },
+        {
           "type": "function",
           "name": "callback",
           "parameters": [{
@@ -331,6 +346,35 @@
         {
           "name": "details",
           "$ref": "UrlbarOverrideDetails"
+        },
+        {
+          "type": "function",
+          "name": "callback",
+          "parameters": [{
+            "name": "omnibox",
+            "type": "object"
+          }]
+        }
+      ]
+    },
+    {
+      "name": "complete",
+      "type": "function",
+      "description": "Complete current urlbar value with specified query/completion (if it is possible)",
+      "async": "callback",
+      "parameters": [{
+          "name": "windowId",
+          "type": "number",
+          "minimum": -2,
+          "optional": true
+        },
+        {
+          "name": "query",
+          "type": "string"
+        },
+        {
+          "name": "completion",
+          "type": "string"
         },
         {
           "type": "function",

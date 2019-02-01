@@ -1,8 +1,7 @@
-import Rx from '../../../platform/lib/rxjs';
+import { pipe } from 'rxjs';
+import { map } from 'rxjs/operators';
 
-const { map } = Rx.operators;
-
-export default (operator, config) => map(({ responses, ...result }) => ({
+export default (operator, config) => pipe(map(({ responses, ...result }) => ({
   ...result,
   responses: responses.map(response => operator(response, config)),
-}));
+})));

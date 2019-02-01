@@ -1,9 +1,11 @@
 /* global document, window, $, Handlebars */
 /* eslint-disable no-param-reassign */
 import helpers from './content/helpers';
-import { sendMessageToWindow } from './content/data';
 import templates from './templates';
+import createSpananForModule from '../core/helpers/spanan-module-wrapper';
 
+const videoDownloaderModule = createSpananForModule('video-downloader');
+const actions = videoDownloaderModule.createProxy();
 Handlebars.partials = templates;
 
 function localizeDocument() {
@@ -15,24 +17,13 @@ function localizeDocument() {
   });
 }
 
-function resize() {
-  const $videoDownloader = $('#video-downloader');
-  const width = $videoDownloader.width();
-  const height = $videoDownloader.height();
-  sendMessageToWindow({
-    action: 'resize',
-    data: {
-      width,
-      height,
-    }
-  });
-}
-
-function hidePopup() {
-  sendMessageToWindow({
-    action: 'hidePopup',
-    data: {}
-  });
+function draw(data) {
+  if (data.hidePairingIframe) {
+    $('#connect-iframe').addClass('hidden');
+  } else {
+    $('#video-downloader').html(templates.template(data));
+  }
+  localizeDocument();
 }
 
 $(() => {
@@ -40,10 +31,9 @@ $(() => {
     Handlebars.registerHelper(helperName, helpers[helperName]);
   });
 
-  sendMessageToWindow({
-    action: 'getMockData',
-    data: {}
-  });
+  $('#video-downloader').html(templates.template({ loading: true }));
+
+  actions.getVideoLinks(undefined).then(draw);
 });
 
 let lastClickedId;
@@ -57,19 +47,15 @@ $(document).on('click', 'ul.vd-tabs li', function itemClick(e) {
 
   lastClickedId = tabId;
 
-  sendMessageToWindow({
-    action: 'sendTelemetry',
-    data: {
-      action: 'click',
-      target: tabId,
-    }
+  actions.telemetry({
+    action: 'click',
+    target: tabId,
   });
 
   $('ul.vd-tabs li').removeClass('active');
   $(this).addClass('active');
 
   $('#vd-tab-content').attr('class', tabId);
-  resize();
 });
 
 $(document).on('click', '.link-button', function btnClick(e) {
@@ -85,25 +71,19 @@ $(document).on('click', '.link-button', function btnClick(e) {
   const buttonId = $(this)[0].id;
 
   if (buttonId === 'download-desktop') {
-    sendMessageToWindow({
-      action: 'download',
-      data: {
-        url,
-        filename,
-        size,
-        format,
-        origin,
-      }
-    });
+    actions.download({
+      url,
+      filename,
+      size,
+      format,
+      origin,
+    }).then(window.close);
   } else if (buttonId === 'download-mobile') {
-    sendMessageToWindow({
-      action: 'sendToMobile',
-      data: {
-        url,
-        title,
-        type,
-        format,
-      }
+    actions.sendToMobile({
+      url,
+      title,
+      type,
+      format,
     });
 
     $('#sending-status').addClass('show');
@@ -114,21 +94,5 @@ $(document).on('click', '.link-button', function btnClick(e) {
 });
 
 $(document).on('click', '.connect-page-link', () => {
-  sendMessageToWindow({
-    action: 'openConnectPage',
-    data: {}
-  });
-  hidePopup();
+  actions.openConnectPage();
 });
-
-function draw(data) {
-  if (data.hidePairingIframe) {
-    $('#connect-iframe').addClass('hidden');
-  } else {
-    $('#video-downloader').html(templates.template(data));
-  }
-  localizeDocument();
-  resize();
-}
-
-window.draw = draw;

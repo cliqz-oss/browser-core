@@ -211,9 +211,9 @@ export default describeModule('antitracking/tp_events',
           });
         });
 
-        it('does not add a tab to _active if the tab ID <= 0', function () {
+        it('does not add a tab to _active if the tab ID < 0', function () {
           const urlParts = URLInfo.get('https://cliqz.com');
-          [null, undefined, 0, -1].forEach(function (id) {
+          [null, undefined, -1].forEach(function (id) {
             const pageLoad = tp.onFullPage(urlParts, id);
 
             chai.expect(pageLoad).is.null;

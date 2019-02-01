@@ -5,13 +5,11 @@ import {
   waitForElement,
   waitForPageLoad,
 } from '../../../tests/core/integration/helpers';
-import config from '../../../core/config';
 
-const onboardingUrl = config.settings.ONBOARDING_URL;
-const freshtabUrl = getResourceUrl('freshtab/home.html');
+const onboardingUrl = getResourceUrl('onboarding-v3/index.html');
 
 export default function () {
-  describe('onboarding-v3', function () {
+  xdescribe('onboarding-v3', function () {
     beforeEach(async function () {
       await newTab(onboardingUrl, { focus: true });
       await waitForElement({
@@ -22,7 +20,7 @@ export default function () {
 
     context('on start button click', function () {
       it('opens new tab page', async function () {
-        const isPageLoaded = waitForPageLoad(freshtabUrl);
+        const isPageLoaded = waitForPageLoad(onboardingUrl);
         await click(onboardingUrl, '#cqb-start-btn');
         await isPageLoaded;
       });

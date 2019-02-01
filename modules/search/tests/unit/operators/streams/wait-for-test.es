@@ -1,13 +1,13 @@
 /* global chai, describeModule */
 
 const Rx = require('rxjs');
+const operators = require('rxjs/operators');
 const rxSandbox = require('rx-sandbox').rxSandbox;
 
 
 const mock = {
-  'platform/lib/rxjs': {
-    default: Rx,
-  }
+  rxjs: Rx,
+  'rxjs/operators': operators,
 };
 
 export default describeModule('search/operators/streams/wait-for',
@@ -27,7 +27,7 @@ export default describeModule('search/operators/streams/wait-for',
         const signal$ = sandbox.hot('-----');
         const expected = sandbox.e(' -----');
 
-        const messages = sandbox.getMessages(source$.let(waitFor(signal$)));
+        const messages = sandbox.getMessages(source$.pipe(waitFor(signal$)));
         sandbox.flush();
 
         return chai.expect(messages).to.deep.equal(expected);
@@ -38,7 +38,7 @@ export default describeModule('search/operators/streams/wait-for',
         const signal$ = sandbox.hot('-x');
         const expected = sandbox.e(' --');
 
-        const messages = sandbox.getMessages(source$.let(waitFor(signal$)));
+        const messages = sandbox.getMessages(source$.pipe(waitFor(signal$)));
         sandbox.flush();
 
         return chai.expect(messages).to.deep.equal(expected);
@@ -49,7 +49,7 @@ export default describeModule('search/operators/streams/wait-for',
         const signal$ = sandbox.hot('---x--');
         const expected = sandbox.e(' ---23');
 
-        const messages = sandbox.getMessages(source$.let(waitFor(signal$)));
+        const messages = sandbox.getMessages(source$.pipe(waitFor(signal$)));
         sandbox.flush();
 
         return chai.expect(messages).to.deep.equal(expected);
@@ -60,7 +60,7 @@ export default describeModule('search/operators/streams/wait-for',
         const signal$ = sandbox.hot('-x---');
         const expected = sandbox.e(' --1-2');
 
-        const messages = sandbox.getMessages(source$.let(waitFor(signal$)));
+        const messages = sandbox.getMessages(source$.pipe(waitFor(signal$)));
         sandbox.flush();
 
         return chai.expect(messages).to.deep.equal(expected);
@@ -71,7 +71,7 @@ export default describeModule('search/operators/streams/wait-for',
         const signal$ = sandbox.hot('-x--x');
         const expected = sandbox.e(' --1--');
 
-        const messages = sandbox.getMessages(source$.let(waitFor(signal$)));
+        const messages = sandbox.getMessages(source$.pipe(waitFor(signal$)));
         sandbox.flush();
 
         return chai.expect(messages).to.deep.equal(expected);

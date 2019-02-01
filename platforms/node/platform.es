@@ -21,3 +21,7 @@ export function isMac() {
 export function isMobile() {
   return false;
 }
+
+export function isBetaVersion() {
+  return false;
+}

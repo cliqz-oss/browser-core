@@ -66,6 +66,9 @@ export default describeModule('core/app',
       'core/console': {
         default: {},
       },
+      'core/i18n': {
+        default: {},
+      },
       'core/kord': {
         setApp() {},
       },
@@ -76,8 +79,13 @@ export default describeModule('core/app',
         forEachWindow() {},
       },
       'core/platform': {
-        default: { isOnionMode: false },
+        default: {},
+        isOnionModeFactory: () => (() => false),
       },
+      'platform/sqlite': {
+        openDBHome: () => {},
+        close: () => {},
+      }
     };
   },
   tests);

@@ -114,5 +114,11 @@ Offer.propTypes = {
         template_data: PropTypes.shape({})
       })
     })
-  })
+  }),
+  fullWidth: PropTypes.string,
+  submitFeedbackForm: PropTypes.string,
+  getOfferInfoOpen: PropTypes.string,
+  setOfferInfoOpen: PropTypes.string,
+  getOfferMenuOpen: PropTypes.string,
+  setOfferMenuOpen: PropTypes.string,
 };

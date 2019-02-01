@@ -60,7 +60,7 @@ const tests = {
 
 const stylesheet = document.createElement('link');
 stylesheet.setAttribute('rel', 'stylesheet');
-stylesheet.setAttribute('href', `chrome://cliqz/content/dropdown/styles/styles.css?r=${Date.now()}`);
+stylesheet.setAttribute('href', `./styles/styles.css?r=${Date.now()}`);
 document.head.appendChild(stylesheet);
 
 

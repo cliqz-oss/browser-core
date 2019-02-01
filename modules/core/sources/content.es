@@ -10,6 +10,9 @@ import {
 import { throttle } from '../core/decorators';
 import { waitFor } from '../core/helpers/wait';
 import createSpananWrapper from '../core/helpers/spanan-module-wrapper';
+import { chrome, window } from '../platform/content/globals';
+
+const MAX_BUFFER_LEN = 5000;
 
 function getContextHTML(ev) {
   let target = ev.target,
@@ -308,6 +311,18 @@ registerContentScript('core', '*', (window, chrome, CLIQZ) => {
   let hasRun = false;
   const actionWrappers = [];
 
+  let buffer = [];
+  function collectingBeforeContentScriptsReady(msg) {
+    if (buffer.length < MAX_BUFFER_LEN) { buffer.push(msg); }
+  }
+  chrome.runtime.onMessage.addListener(collectingBeforeContentScriptsReady);
+
+  function sendToContentScripts(contentScriptsOnMessage, msg) {
+    const { module, action, args } = msg || {};
+    const onmessage = (contentScriptsOnMessage[module] || {})[action];
+    if (onmessage) { onmessage(...args); }
+  }
+
   function runOnce(cliqz) {
     if (hasRun) {
       return;
@@ -321,10 +336,22 @@ registerContentScript('core', '*', (window, chrome, CLIQZ) => {
       mod.action = wrapper.send.bind(wrapper);
       actionWrappers.push(wrapper);
     });
+    chrome.runtime.onMessage.removeListener(collectingBeforeContentScriptsReady);
     chrome.runtime.onMessage.addListener((message) => {
       actionWrappers.forEach(wrapper => wrapper.handleMessage(message));
     });
-    runContentScripts(window, chrome, cliqz);
+
+    const contentScriptsOnMessage = runContentScripts(window, chrome, cliqz);
+    buffer.forEach(msg => {
+      try {
+        sendToContentScripts(contentScriptsOnMessage, msg);
+      } catch (e) {
+        window.console.error(`CLIQZ content-script failed onmessage: ${e} ${e.stack}`);
+      }
+    });
+    buffer = [];
+    chrome.runtime.onMessage.addListener(msg =>
+      sendToContentScripts(contentScriptsOnMessage, msg));
   }
 
   if (typeof CLIQZ !== 'undefined' && CLIQZ.app) {
@@ -334,7 +361,8 @@ registerContentScript('core', '*', (window, chrome, CLIQZ) => {
 
     const getApp = () => new Promise((resolve, reject) => {
       if (hasRun) {
-        reject('hasRun');
+        // resolve to break waitFor loop - runOnce will prevent scripts running again
+        resolve({});
         return;
       }
 
@@ -351,9 +379,6 @@ registerContentScript('core', '*', (window, chrome, CLIQZ) => {
     });
 
     waitFor(getApp)
-      .then(runOnce)
-      .catch((ex) => {
-        window.console.error('Could not run content script', ex, currentURL());
-      });
+      .then(runOnce, () => {});
   }
 }());

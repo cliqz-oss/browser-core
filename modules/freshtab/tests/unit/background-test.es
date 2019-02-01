@@ -33,6 +33,9 @@ export default describeModule('freshtab/background',
       'platform/freshtab/browser-import-dialog': {
         default: { openImportDialog() { } }
       },
+      'platform/ext-messaging': {
+        default: { sendMessage() {} }
+      },
       'core/search-engines': {
         isSearchServiceReady() { return Promise.resolve(); },
         getSearchEngines: '[dynamic]'

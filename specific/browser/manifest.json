@@ -1,6 +1,6 @@
 {
-  "name": "Cliqz",
-  "description": "Cliqz AMO",
+  "name": "__MSG_{{name}}__",
+  "description": "__MSG_browserAppDesc__",
   "version": "{{version}}",
   "manifest_version": 2,
   "default_locale": "de",
@@ -11,7 +11,8 @@
   },
   "applications": {
     "gecko": {
-      "id": "cliqz@cliqz.com"
+      "id": "cliqz@cliqz.com",
+      "update_url": "{{updateUrl}}"
     }
   },
   "experiment_apis": {
@@ -21,6 +22,14 @@
         "scopes": ["addon_parent"],
         "paths": [["cliqzmigration"]],
         "script": "modules/webextension-specific/experimental-apis/cliqzmigration/api.bundle.js"
+      }
+    },
+    "cliqzdbmigration": {
+      "schema": "modules/webextension-specific/experimental-apis/cliqzdbmigration/schema.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "paths": [["cliqzdbmigration"]],
+        "script": "modules/webextension-specific/experimental-apis/cliqzdbmigration/api.bundle.js"
       }
     },
     "omnibox2": {
@@ -38,21 +47,42 @@
         "paths": [["browserAction2"]],
         "script": "modules/webextension-specific/experimental-apis/browser-action/api.bundle.js"
       }
+    },
+    "demographics": {
+      "schema": "modules/webextension-specific/experimental-apis/demographics/schema.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "paths": [["demographics"]],
+        "script": "modules/webextension-specific/experimental-apis/demographics/api.bundle.js"
+      }
+    },
+    "cliqz": {
+      "schema": "modules/webextension-specific/experimental-apis/cliqz/schema.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "paths": [["cliqz"]],
+        "script": "modules/webextension-specific/experimental-apis/cliqz/api.bundle.js"
+      }
     }
   },
   "browser_action": {
+    "default_title": "__MSG_offers_hub_title__",
+    "default_icon": "modules/offers-cc/images/offers-cc-icon.svg"
+  },
+  "page_action": {
     "default_icon": {
-      "16": "modules/control-center/images/cc-active-16.png",
-      "48": "modules/control-center/images/cc-active-16.png",
-      "128": "modules/control-center/images/cc-active-16.png"
+      "19": "modules/video-downloader/images/video-downloader.svg",
+      "38": "modules/video-downloader/images/video-downloader.svg"
     },
-    "default_title": "Cliqz"
+    "default_title": "__MSG_video_downloader_title__",
+    "default_popup": "modules/video-downloader/index.html"
   },
   "permissions": [
     "<all_urls>",
     "bookmarks",
     "clipboardWrite",
     "cookies",
+    "downloads",
     "geolocation",
     "history",
     "idle",
@@ -72,10 +102,10 @@
   ],
   "background": {
     "scripts": [
-      "modules/vendor/Rx.min.js",
-      "modules/vendor/math.min.js",
+      "modules/vendor/math-expression-evaluator.min.js",
       "modules/vendor/dexie.min.js",
-      "modules/webextension-specific/app.bundle.js"
+      "modules/webextension-specific/app.bundle.js",
+      "background.js"
     ]
   },
   "chrome_url_overrides": {
@@ -92,6 +122,7 @@
   "web_accessible_resources": [
     "modules/dropdown/dropdown.html",
     "modules/browser-panel/index.html",
-    "modules/offers-cc/index.html"
+    "modules/offers-cc/index.html",
+    "modules/cliqz-history/index.html"
   ]
 }

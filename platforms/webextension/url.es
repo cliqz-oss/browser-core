@@ -19,7 +19,11 @@ export function fixURL(url) {
 }
 
 export default function equal(url1, url2) {
-  return url1 === url2;
+  try {
+    return new URL(url1).href === new URL(url2).href;
+  } catch (e) {
+    return false;
+  }
 }
 
 export class URI extends URL {

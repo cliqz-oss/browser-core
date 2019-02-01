@@ -79,7 +79,7 @@ export default background({
         // entries are removed. We currently reset the history-analyzer for
         // both, which is sub-optimal (but safe privacy-wise). It would be nice
         // to find a more efficient way to do this.
-        history.onVisitRemoved.addListener(this.removePersistedData);
+        if (history) { history.onVisitRemoved.addListener(this.removePersistedData); }
       } catch (e) {
         logger.error('Error setting the history onVisitRemoved listener: ', e);
       }
@@ -88,7 +88,7 @@ export default background({
 
   unload() {
     try {
-      history.onVisitRemoved.removeListener(this.removePersistedData);
+      if (history) { history.onVisitRemoved.removeListener(this.removePersistedData); }
     } catch (e) {
       logger.error('Error removing the history onVisitRemoved listener', e);
     }

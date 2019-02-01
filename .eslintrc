@@ -31,6 +31,21 @@
         "jsx-a11y/mouse-events-have-key-events": "off",
         "jsx-a11y/click-events-have-key-events": "off",
         "jsx-a11y/label-has-for": "off",
+        "jsx-a11y/label-has-associated-control": [
+            "error",
+            {
+                "controlComponents": [
+                    "RadioInput",
+                    "TextInput"
+                ],
+                "required": {
+                    "some": [
+                        "nesting",
+                        "id"
+                    ]
+                }
+            }
+        ],
         "implicit-arrow-linebreak": "off",
         "prefer-destructuring": "off",
         "object-curly-newline": [

@@ -4,6 +4,7 @@ var Funnel = require('broccoli-funnel');
 var MergeTrees = require('broccoli-merge-trees');
 var broccoliSource = require('broccoli-source');
 var writeFile = require('broccoli-file-creator');
+const uglify = require('broccoli-uglify-sourcemap');
 
 var WatchedDir = broccoliSource.WatchedDir;
 
@@ -19,8 +20,20 @@ console.log('Source maps:', cliqzConfig.sourceMaps);
 console.log(cliqzConfig);
 // cliqz.json is finalized
 
+let sourceTree = modules.bundles;
+
+if (process.env.CLIQZ_ENVIRONMENT === 'production') {
+  sourceTree = uglify(sourceTree, {
+    uglify: {
+      mangle: false,    // defaults to true
+      compress: true,  // defaults to true
+      sourceMap: false, // defaults to true
+    },
+  })
+}
+
 var assets = new MergeTrees([
-  modules.bundles,
+  sourceTree,
   modules.static,
 ]);
 

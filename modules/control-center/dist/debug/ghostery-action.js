@@ -251,7 +251,6 @@ DATA.push({
     'cookie-monster': null,
     privacy: null,
     'inter-ext-messaging': null,
-    'privacy-migration': null,
     'myoffrz-helper': null,
     serp: null,
     adult: {

@@ -1,13 +1,13 @@
 /* global chai, describeModule */
 
 const Rx = require('rxjs');
+const operators = require('rxjs/operators');
 const rxSandbox = require('rx-sandbox').rxSandbox;
 
 
 const mock = {
-  'platform/lib/rxjs': {
-    default: Rx,
-  },
+  rxjs: Rx,
+  'rxjs/operators': operators,
   'search/responses': {
     getPendingResponse: () => 'p',
   },
@@ -35,7 +35,7 @@ export default describeModule('search/operators/streams/wait-for-results-from',
         const other2$ = sandbox.hot('--');
         const expected = sandbox.e(' --');
 
-        const messages = sandbox.getMessages(source$.let(
+        const messages = sandbox.getMessages(source$.pipe(
           waitForResultsFrom([other1$, other2$])
         ));
         sandbox.flush();
@@ -49,7 +49,7 @@ export default describeModule('search/operators/streams/wait-for-results-from',
         const other2$ = sandbox.hot('---d-');
         const expected = sandbox.e(' ---1-');
 
-        const messages = sandbox.getMessages(source$.let(
+        const messages = sandbox.getMessages(source$.pipe(
           waitForResultsFrom([other1$, other2$])
         ));
         sandbox.flush();
@@ -63,7 +63,7 @@ export default describeModule('search/operators/streams/wait-for-results-from',
         const other2$ = sandbox.hot('---d-');
         const expected = sandbox.e(' -----');
 
-        const messages = sandbox.getMessages(source$.let(
+        const messages = sandbox.getMessages(source$.pipe(
           waitForResultsFrom([other1$, other2$])
         ));
         sandbox.flush();
@@ -77,7 +77,7 @@ export default describeModule('search/operators/streams/wait-for-results-from',
         const other2$ = sandbox.hot('-----');
         const expected = sandbox.e(' --1-2');
 
-        const messages = sandbox.getMessages(source$.let(
+        const messages = sandbox.getMessages(source$.pipe(
           waitForResultsFrom([other1$, other2$])
         ));
         sandbox.flush();

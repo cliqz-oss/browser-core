@@ -28,7 +28,7 @@ export default function () {
     async function setupTabs(page1, page2) {
       const tab = await newTab(page1);
       await waitFor(() => onBeforeRequest.some(req => req.url.endsWith('leaktest.html')));
-      await updateTab(tab, page2);
+      await updateTab(tab, { url: page2 });
       await waitFor(() => onBeforeRequest.some(req => req.url.endsWith('2E85855CF4C75134')));
     }
 

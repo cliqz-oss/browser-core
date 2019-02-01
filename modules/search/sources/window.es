@@ -1,7 +1,7 @@
 import AppWindow from '../core/base/window';
 import { getMessage } from '../core/i18n';
 import prefs from '../core/prefs';
-import { getSearchEngines } from '../core/search-engines';
+import { getSearchEnginesAsync } from '../core/search-engines';
 
 function getProviders() {
   const currentBackend = prefs.get('backend_country', 'de');
@@ -71,10 +71,10 @@ export default class SearchWindow extends AppWindow {
     getBackendCountries: getProviders
   }
 
-  status() {
-    let engines = [];
+  async status() {
+    let engines = await getSearchEnginesAsync();
     try {
-      engines = getSearchEngines().map(engine => ({
+      engines = engines.map(engine => ({
         name: engine.name,
         code: engine.code,
         alias: engine.alias,

@@ -12,7 +12,7 @@ export default background({
   history: inject.module('history'),
   offers: inject.module('offers-v2'),
 
-  requiresServices: ['logos'],
+  requiresServices: ['logos', 'telemetry'],
 
   /**
     @method init

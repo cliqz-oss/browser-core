@@ -2,7 +2,6 @@
 
 import { app } from '../../core/integration/helpers';
 import OffersConfigs from '../../../offers-v2/offers_configs';
-import utils from '../../../core/utils';
 import logger from '../../../offers-v2/common/offers_v2_logger';
 import { getHpnTimeStamp, getMinuteTimestamp } from '../../../offers-v2/signals/utils';
 
@@ -47,7 +46,7 @@ export default function () {
         timestamp: getHpnTimeStamp(),
         payload: {
           v: OffersConfigs.SIGNALS_VERSION,
-          ex_v: utils.extensionVersion,
+          ex_v: '99.99.99',
           is_developer: false,
           gid: {},
           type: 'campaign',

@@ -77,17 +77,6 @@ function otherSettingsTests(amo) {
       expect(subject.query(arrowSelector)).to.exist;
     });
 
-    it('renders "History options"', function () {
-      const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-3"] [data-i18n="control_center_history_options"]';
-      expect(subject.query(titleSelector)).to.exist;
-      expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_history_options');
-    });
-
-    it('renders arrow for history options', function () {
-      const arrowSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-3"] #arrow';
-      expect(subject.query(arrowSelector)).to.exist;
-    });
-
     it('renders "MyOffrz options"', function () {
       const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-4"] [data-i18n="control_center_offers_options"]';
       expect(subject.query(titleSelector)).to.exist;

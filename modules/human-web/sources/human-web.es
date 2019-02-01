@@ -22,6 +22,9 @@ import { parseURL, Network } from './network';
 import prefs from '../core/prefs';
 import { promiseHttpHandler } from '../core/http';
 import setTimeoutInterval from '../core/helpers/timeout';
+import { isEdge } from '../core/platform';
+import Worker from '../platform/worker';
+import { toUTF8 } from '../core/encoding';
 
 /*
 Configuration for Bloomfilter
@@ -1814,6 +1817,12 @@ const CliqzHumanWeb = {
         }
     },
     unload: function() {
+      if (CliqzHumanWeb.rushaWorker) {
+        delete CliqzHumanWeb.rushaCallbacks;
+        delete CliqzHumanWeb.rushaWorker.onmessage;
+        CliqzHumanWeb.rushaWorker.terminate();
+        delete CliqzHumanWeb.rushaWorker;
+      }
       //Check is active usage, was sent
       CliqzHumanWeb.checkActiveUsage();
       // send all the data
@@ -2489,6 +2498,7 @@ const CliqzHumanWeb = {
             }
         }
         callback(r);
+        return r;
     },
 
   // to invoke in console: CliqzHumanWeb.listOfUnchecked(1000000000000, 0, null, function(x) {console.log(x)})
@@ -3096,7 +3106,7 @@ const CliqzHumanWeb = {
                       url: null,
                       data,
                     };
-                })
+                });
             } else {
                 if (sanitisedQuery) {
                     query = sanitisedQuery;
@@ -3187,7 +3197,31 @@ const CliqzHumanWeb = {
         });
         return promise;
     },
+    initWorker: function() {
+      if (!CliqzHumanWeb.rushaWorker) {
+        CliqzHumanWeb.rushaWorker = new Worker(`${config.baseURL}human-web/rusha.bundle.js`);
+        CliqzHumanWeb.rushaCallbacks = new Map();
+        CliqzHumanWeb.rushaWorker.onmessage = ({ data }) => {
+          const { id, error, hash } = data;
+          const { resolve, reject } = CliqzHumanWeb.rushaCallbacks.get(id);
+          CliqzHumanWeb.rushaCallbacks.delete(id);
+          if (error) {
+            reject(error);
+          } else {
+            resolve(hash);
+          }
+        };
+      }
+    },
     sha1: function(s) {
+      if (isEdge) {
+        CliqzHumanWeb.initWorker();
+        return new Promise((resolve, reject) => {
+          const id = Math.random() * (2 ** 53);
+          CliqzHumanWeb.rushaCallbacks.set(id, { resolve, reject });
+          CliqzHumanWeb.rushaWorker.postMessage({ id, data: toUTF8(s) });
+        });
+      }
       return sha1(s);
     },
     sendQuorumIncrement: function(hashedUrl){
@@ -3213,11 +3247,15 @@ const CliqzHumanWeb = {
         });
         return promise;
     },
-    getQuorumConsent: function(hashedUrl){
-        let payload = "?hu=" + hashedUrl;
-        let _rp = CliqzHumanWeb.SAFE_QUORUM_ENDPOINT + "checkquorum";
+    async getQuorumConsent(hashedUrl) {
+      const payload = "?hu=" + hashedUrl;
+      const _rp = CliqzHumanWeb.SAFE_QUORUM_ENDPOINT + "checkquorum";
 
-        return CliqzHumanWeb.hpn.action('sendInstantMessage', _rp, payload);
+      const quorumReached = await CliqzHumanWeb.hpn.action('sendInstantMessage', _rp, payload);
+      if (quorumReached !== true && quorumReached !== false) {
+        throw new Error(`Got unexpected result from quorum server: ${quorumReached}`);
+      }
+      return quorumReached;
     },
     registerQuorumBloomFilters: function(){
         let promise = new Promise( (resolve, reject) => {
@@ -3623,11 +3661,9 @@ const CliqzHumanWeb = {
       var page_struct_before = page_doc['x'];
       url_pagedocPair[url] = page_doc;
 
-      CliqzHumanWeb.log("Going for double fetch: " + url);
-      CliqzHumanWeb.log("Going for double fetch2: " + page_doc);
-      CliqzHumanWeb.log("Going for double fetch3: " + page_struct_before);
-      CliqzHumanWeb.log("Going for double fetch3: " + JSON.stringify(page_struct_before));
-
+      CliqzHumanWeb.log('Going for double fetch (url:', url, ', page_doc:',
+                        page_doc, ', page_struct_before:',
+                        page_struct_before, ')');
 
       // only do doubleFetch for the same url 3 times in a row
       // (set up as this.humanWeb.MAX_NUMBER_DOUBLEFETCH_ATTEMPS).

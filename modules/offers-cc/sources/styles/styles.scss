@@ -113,18 +113,16 @@ body, html {
         header {
             margin: 10px 0 ;
             .close {
-                width:10px;
-                height: 10px;
-                mask: url('../images/close-offer.svg') no-repeat right;
-                -webkit-mask: url('../images/close-offer.svg') no-repeat right;
-                mask-size: contain;
-                -webkit-mask-size: contain;
-                background: rgba(0,0,0,1);
+                width:13px;
+                height: 13px;
+                background: url('../images/close-offer.svg') no-repeat right;
+                background-size: contain;
                 opacity: 0.3;
                 display: inline-block;
                 float: right;
                 &:hover {
-                    opacity: 1
+                    opacity: 1;
+                    -webkit-filter: brightness(0);
                 }
             }
         }
@@ -188,7 +186,7 @@ body, html {
                         }
                         .setting:after {
                             z-index: 500;
-                            background: rgba(255,255,255,0.8);
+                            -webkit-filter: brightness(0);
                         }
                      }
                 }
@@ -197,7 +195,7 @@ body, html {
                         span {
                             &:last-child {
                                 z-index: 500;
-                                background: rgba(255,255,255,0.8)
+                                -webkit-filter: brightness(200%) grayscale(100%);
                             }
                         }
                     }
@@ -249,16 +247,14 @@ body, html {
                        color: #4d4d4d;
                    }
                    .close {
-                    width: 10px;
-                    height: 10px;
-                    mask: url("../images/close-offer.svg") no-repeat right;
-                    -webkit-mask: url("../images/close-offer.svg") no-repeat right;
-                    mask-size: contain;
-                    -webkit-mask-size: contain;
-                    background: black;
+                    width: 13px;
+                    height: 13px;
+                    background: url("../images/close-offer.svg") no-repeat right;
+                    background-size: contain;
                     opacity: 0.3;
                     &:hover {
                         opacity: 1;
+                        -webkit-filter: brightness(0);
                     }
                    }
                 }
@@ -298,18 +294,16 @@ body, html {
                     &:after {
                         content: "";
                         position: absolute;
-                        top:-9px;
+                        top:-7px;
                         right: 20px;
-                        mask: url("../images/3dots-menu.svg") no-repeat top right;
-                        -webkit-mask: url("../images/3dots-menu.svg") no-repeat top right;
                         height: 24px;
                         width: 10px;
-                        background: rgba(0,0,0,0.3);
+                        background: url('../images/3dots-menu.svg') no-repeat center;
                         transform: rotate(90deg);
                     }
                     &:hover {
                         &:after{
-                            background: rgba(0,0,0,0.8);
+                            -webkit-filter: brightness(0);
                         }
                     }
                     & > a {
@@ -325,7 +319,7 @@ body, html {
                     }
                     &.opacity-up {
                         &:after {
-                            background: rgba(0,0,0,1);
+                            -webkit-filter: brightness(0);
                         }
                     }
                 }
@@ -420,7 +414,7 @@ body, html {
                     }
 
                     &:last-child {
-                        flex-basis: 40%;
+                        flex-basis: 20%;
                         text-align: right;
                         width: 19px;
                         height: 19px;
@@ -445,9 +439,13 @@ body, html {
         #cqz-vouchers-wrapper {
 
             #cqz-vouchers-holder {
+                &.small-screen {
+                  max-height: 500px;
+                }
+
                 padding: 2px 7px;
                 margin-bottom: 0;
-                max-height: 550px; // TODO: 500
+                max-height: 650px; // TODO: 500
                 overflow: auto;
                 overflow-x: hidden;
                 @import "_voucher";

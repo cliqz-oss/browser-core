@@ -22,19 +22,29 @@ def matrix = [
         'config': 'configs/ci/browser.js',
         'testParams': '-l chromium',
     ],
-    'firefox 52': [
+    'browser-legacy: content': [
+        'gpu': true,
+        'config': 'configs/ci/browser-legacy.js',
+        'testParams': '-l chromium',
+    ],
+    'browser-webextension': [
         'gpu': true,
         'config': 'configs/ci/browser.js',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox62/firefox/firefox',
+    ],
+    'firefox 52': [
+        'gpu': true,
+        'config': 'configs/ci/browser-legacy.js',
         'testParams': '-l firefox-web-ext --firefox ~/firefox52/firefox/firefox',
     ],
     'firefox 60': [
         'gpu': true,
-        'config': 'configs/ci/browser.js',
+        'config': 'configs/ci/browser-legacy.js',
         'testParams': '-l firefox-web-ext --firefox ~/firefox60/firefox/firefox',
     ],
     'firefox 62': [
         'gpu': true,
-        'config': 'configs/ci/browser.js',
+        'config': 'configs/ci/browser-legacy.js',
         'testParams': '-l firefox-web-ext --firefox ~/firefox62/firefox/firefox',
     ],
     'firefox 62 offers': [
@@ -42,21 +52,10 @@ def matrix = [
         'config': 'configs/ci/offers.js',
         'testParams': '-l firefox-web-ext --firefox ~/firefox62/firefox/firefox',
     ],
-    'firefox beta': [
-        'gpu': true,
-        'config': 'configs/ci/browser.js',
-        'testParams': '-l firefox-web-ext --firefox ~/firefoxBeta/firefox/firefox',
-    ],
-    'firefox nightly': [
-        'gpu': true,
-        'config': 'configs/ci/browser.js',
-        'testParams': '-l firefox-web-ext --firefox ~/firefoxNightly/firefox/firefox',
-        'ignoreFailure': true
-    ],
     /*
     'firefox stresstest (52)': [
         'gpu': true,
-        'config': 'configs/ci/browser.js',
+        'config': 'configs/ci/browser-legacy.js',
         'testParams': '-l firefox-web-ext-stresstest --firefox ~/firefox52/firefox/firefox',
     ],
     */

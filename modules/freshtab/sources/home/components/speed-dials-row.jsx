@@ -10,20 +10,16 @@ import config from '../../config';
 export default class SpeedDialsRow extends React.Component {
   static get propTypes() {
     return {
-      type: PropTypes.string,
-      dials: PropTypes.array,
-      removeSpeedDial: PropTypes.func,
       addSpeedDial: PropTypes.func,
-      getSpeedDials: PropTypes.func,
-      showPlaceholder: PropTypes.bool,
       currentPage: PropTypes.number,
+      dials: PropTypes.array,
+      getSpeedDials: PropTypes.func,
+      removeSpeedDial: PropTypes.func,
       shouldAnimate: PropTypes.bool,
+      showPlaceholder: PropTypes.bool,
+      type: PropTypes.string,
+      updateModalState: PropTypes.func,
     };
-  }
-
-  constructor(props) {
-    super(props);
-    this.resetAll = this.resetAll.bind(this);
   }
 
   showAddButton() {
@@ -57,7 +53,7 @@ export default class SpeedDialsRow extends React.Component {
     speedDialClickSignal(this.state.isCustom, index);
   }
 
-  resetAll() {
+  resetAll = () => {
     cliqz.freshtab.resetAllHistory().then(() => {
       this.closeUndo('history');
       this.props.getSpeedDials();
@@ -92,12 +88,12 @@ export default class SpeedDialsRow extends React.Component {
                     key={dial.url}
                     dial={dial}
                     removeSpeedDial={() => this.removeSpeedDial(dial, this.getRealIndex(i))}
-                    visitSpeedDial={() => this.visitSpeedDial(this.getRealIndex(i))}
+                    shouldAnimate={this.props.shouldAnimate}
+                    updateModalState={this.props.updateModalState}
                     updateSpeedDial={
                       newDial => this.props.updateSpeedDial(newDial, this.getRealIndex(i))
                     }
-                    updateModalState={this.props.updateModalState}
-                    shouldAnimate={this.props.shouldAnimate}
+                    visitSpeedDial={() => this.visitSpeedDial(this.getRealIndex(i))}
                   />
                 ))
           }

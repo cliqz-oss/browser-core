@@ -6,6 +6,4 @@ export function copyToClipboard(text) {
   gClipboardHelper.copyString(text);
 }
 
-export default {
-  copyToClipboard,
-};
+export default copyToClipboard;

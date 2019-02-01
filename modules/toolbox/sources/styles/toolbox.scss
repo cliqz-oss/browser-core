@@ -5,11 +5,31 @@
     font-family: "-mac-system", "-apple-system", BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
     outline: none;
     font-size: 14px;
-    // overflow: hidden;
 }
 
 .tabs {
     height: 94%;
+}
+
+.tabs-labels {
+    display: flex;
+    flex-wrap: wrap;
+    list-style-type: none;
+
+    &.first {
+        flex: 3;
+    }
+
+    &.second {
+        flex: 2;
+        border-left: 1px solid black;
+    }
+
+    .modal-header {
+        font-size: 16.5px;
+        font-weight: 500;
+        margin: 5px 0;
+    }
 }
 
 .tabs-labels {
@@ -71,7 +91,6 @@
     }
 }
 
-
 input[type="checkbox"].switch {
     cursor: pointer;
     width: 38px;
@@ -79,6 +98,7 @@ input[type="checkbox"].switch {
 }
 
 table {
+    border-collapse: collapse;
     border: none;
     width: 100%;
 
@@ -88,6 +108,23 @@ table {
         input {
             margin: 0 5px;
         }
+    }
+}
+
+.human-web-state {
+    margin: 5px 0;
+
+    th {
+        height: 30px;
+    }
+
+    td {
+        border: 1px solid grey;
+        vertical-align: top;
+    }
+
+    td:first-child {
+        width: 60%;
     }
 }
 
@@ -105,10 +142,24 @@ table {
     }
 }
 
-.reload-button, .endpoints-button {
-    height: 30px;
-    padding: 5px;
-    margin: 15px 0;
-    background: #ccc;
-    border: 1px solid black;
+.button {
+    margin: 5px 0;
+    padding: 5px 10px;
+    text-align: center;
+    cursor: pointer;
+    outline: none;
+    background-color: rgb(238, 238, 238);
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 5px #ccc;
+}
+
+.button:hover {
+    background-color: #999;
+}
+
+.button:active {
+    background-color: #999;
+    box-shadow: 0 5px #666;
+    transform: translateY(4px);
 }

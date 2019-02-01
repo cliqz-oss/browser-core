@@ -78,16 +78,7 @@ export default describeModule('offers-v2/offers/offers-handler',
         },
       },
     },
-    'core/http': {
-      default: {}
-    },
     'platform/xmlhttprequest': {
-      default: {}
-    },
-    'platform/fetch': {
-      default: {}
-    },
-    'platform/gzip': {
       default: {}
     },
     'platform/environment': {
@@ -97,7 +88,9 @@ export default describeModule('offers-v2/offers/offers-handler',
       default: class {
         init() {}
 
-        has() { return false; }
+        has(url) {
+          return url.startsWith('http://global.blacklist');
+        }
       }
     },
     './patterns_stat': {
@@ -147,13 +140,19 @@ export default describeModule('offers-v2/offers/offers-handler',
     describe('/offers-handler', function () {
       let OffersHandler;
       let OfferDB;
+      let Offer;
       const events = eventsMock['core/events'].default;
+      let ImageDownloaderMod;
+      let ImageDownloader;
 
       beforeEach(async function () {
         persistenceMocks['core/persistence/map'].reset();
         OffersHandler = this.module().default;
         events.clearAll();
         getDetailsFromUrlReal = (await this.system.import('core/url')).getDetailsFromUrl;
+        ImageDownloaderMod = await this.system.import('offers-v2/offers/image-downloader');
+        ImageDownloader = ImageDownloaderMod.ImageDownloaderForPush;
+        Offer = (await this.system.import('offers-v2/offers/offer')).default;
         OfferDB = (await this.system.import('offers-v2/offers/offers-db')).default;
         await ehMocks.init(this.system);
       });
@@ -198,6 +197,9 @@ export default describeModule('offers-v2/offers/offers-handler',
               eventHandler: eventHadlerMock,
               categoryHandler: catHandlerMock,
               offersDB: offersDB,
+              offersImageDownloader: new ImageDownloader({
+                setTimeout: () => {}, // no timeout for `fetch`
+              }),
             });
 
             events.clearAll();
@@ -226,6 +228,12 @@ export default describeModule('offers-v2/offers/offers-handler',
           function checkOfferPushed(offerID) {
             checkEventPushedForOffer(offerID);
             // TODO: check signal handler here?
+          }
+
+          function getPushedOffer(offerID) {
+            checkEventPushedForOffer(offerID);
+            const msgs = events.getMessagesForChannel('offers-send-ch');
+            return msgs[0].data;
           }
 
           function checkZeroOfferPushed() {
@@ -574,10 +582,7 @@ export default describeModule('offers-v2/offers/offers-handler',
             intents.forEach(i => intentHandlerMock.activateIntentMock(i));
           }
 
-          function triggerOffers(offersList) {
-            const urls = [
-              'http://www.google.com',
-            ];
+          function triggerOffers(offersList, urls = ['http://www.google.com']) {
             setActiveCategoriesFromOffers(offersList);
             return simulateUrlEventsAndWait(urls);
           }
@@ -878,6 +883,114 @@ export default describeModule('offers-v2/offers/offers-handler',
             await triggerOffers([VALID_OOTW_OFFER_OBJ]);
 
             checkOfferPushed(VALID_OOTW_OFFER_OBJ.offer_id);
+          });
+
+          describe('/augment offer with pre-downloaded images, seen by push and offerDB', () => {
+            const offer = cloneObject(VALID_OFFER_OBJ);
+
+            beforeEach(() => {
+              offer.ui_info.template_data = {
+                ...offer.ui_info.template_data,
+                logo_url: 'fake://?body=some data&header.content-type=image/smth',
+                logo_dataurl: undefined,
+                picture_url: 'fake://?body=another data&header.content-type=image/smth',
+                picture_dataurl: undefined,
+              };
+            });
+
+            async function triggerOffer() {
+              prepareTriggerOffers([offer]);
+              await waitForBEPromise();
+              await triggerOffers([offer]);
+            }
+
+            function getPushedAndDbOfers() {
+              const pushedOffer = new Offer(getPushedOffer(offer.offer_id).offer_data);
+              const dbOffer = new Offer(offersDB.getOfferObject(offer.offer_id));
+              return [pushedOffer, dbOffer];
+            }
+
+            function checkDataurlInOffer(
+              expectedLogoDataurl = 'data:image/smth;base64,c29tZSBkYXRh',
+              expectedPictureDataurl = 'data:image/smth;base64,YW5vdGhlciBkYXRh'
+            ) {
+              const [pushedOffer, dbOffer] = getPushedAndDbOfers();
+              // offer as pushed
+              chai.expect(pushedOffer.getLogoDataurl()).to.eq(expectedLogoDataurl);
+              chai.expect(pushedOffer.getPictureDataurl()).to.eq(expectedPictureDataurl);
+
+              // offer in the database
+              chai.expect(dbOffer.getLogoDataurl()).to.eq(expectedLogoDataurl);
+              chai.expect(dbOffer.getPictureDataurl()).to.eq(expectedPictureDataurl);
+            }
+
+            it('/new offer', async () => {
+              chai.expect(offersDB.getOfferObject(offer.offer_id)).is.null;
+
+              await triggerOffer();
+
+              checkDataurlInOffer();
+            });
+
+            it('/offer already in database', async () => {
+              offersDB.addOfferObject(offer.offer_id, offer);
+
+              await triggerOffer();
+
+              checkDataurlInOffer();
+            });
+
+            it('/on error, use url for pushed offer, use fallback for db offer', async () => {
+              const fakeFailUrl = 'fake://?status=404';
+              offer.ui_info.template_data.logo_url = fakeFailUrl;
+              offer.ui_info.template_data.picture_url = fakeFailUrl;
+
+              await triggerOffer();
+
+              const [pushedOffer, dbOffer] = getPushedAndDbOfers();
+              chai.expect(pushedOffer.getLogoDataurl()).to.eq(fakeFailUrl);
+              chai.expect(pushedOffer.getPictureDataurl()).to.eq(fakeFailUrl);
+              chai.expect(dbOffer.getLogoDataurl()).to.eq(ImageDownloaderMod.FALLBACK_IMAGE);
+              chai.expect(dbOffer.getPictureDataurl()).to.eq(ImageDownloaderMod.FALLBACK_IMAGE);
+            });
+          });
+
+          it('/send signal for filter-out by competition', async () => {
+            sigHandlerMock.clear();
+            const offerWinner = buildOffer('oidWinner', 'cid', 'client', 1);
+            const offerLoser = buildOffer('oidLoser', 'cid', 'client', 1);
+            offerLoser.categories.push('YetAnotherCat');
+            prepareTriggerOffers([offerLoser, offerWinner]);
+
+            // Actually triggers the both offers, but without activating
+            // the category 'YetAnotherCat' of offerLoser
+            await triggerOffers([offerWinner]);
+
+            let sig = sigHandlerMock.getCampaignSignal('cid', 'oidWinner', 'processor', 'filtered_by_compete');
+            chai.expect(sig).to.be.undefined;
+            sig = sigHandlerMock.getCampaignSignal('cid', 'oidLoser', 'processor', 'filtered_by_compete');
+            chai.expect(sig).to.eq(1, 'Loser is filtered out');
+          });
+
+          it('/send signals for filter-out by global blacklist', async () => {
+            const offer = buildOffer('oid', 'cid', 'client', 1);
+            prepareTriggerOffers([offer]);
+
+            await triggerOffers([offer], ['http://global.blacklist.google.de']);
+
+            const sig = sigHandlerMock.getCampaignSignal('cid', 'oid', 'processor', 'filtered_by_global_blacklist');
+            chai.expect(sig).to.eq(1, 'Offer is filtered out');
+          });
+
+          it('/send signals for filter-out by local blacklist', async () => {
+            const offer = buildOffer('oid', 'cid', 'client', 1);
+            offer.blackListPatterns = ['||local.blacklist.google.de'];
+            prepareTriggerOffers([offer]);
+
+            await triggerOffers([offer], ['http://local.blacklist.google.de']);
+
+            const sig = sigHandlerMock.getCampaignSignal('cid', 'oid', 'processor', 'filtered_by_offer_blacklist');
+            chai.expect(sig).to.eq(1, 'Offer is filtered out');
           });
         });
       });

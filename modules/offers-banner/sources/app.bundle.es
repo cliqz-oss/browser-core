@@ -7,6 +7,7 @@ import { dateToDaysSinceEpoch } from '../core/helpers/date';
 import utils from '../core/utils';
 import prefs from '../core/prefs';
 import config from '../core/config';
+import { chrome } from '../platform/globals';
 
 const ONBOARDING_URL = 'https://myoffrz.com/on-boarding/';
 const OFFBOARDING_URL = 'https://myoffrz.com/off-boarding/';
@@ -68,20 +69,23 @@ async function onboarding(details) {
         }, true);
       });
     });
-    query({ url: 'https://myoffrz.com/instyle*' }).then(() => {
-      CLIQZ.app.modules['offers-v2'].action('onContentCategories', { categories: ['instyle'], prefix: 'onboarding', url: 'https://myoffrz.com/instyle' });
-      utils.telemetry({
-        type: 'activity',
-        action: 'install',
-        referrer_url: 'instyle',
-        advert_id: 'instyle'
-      }, true);
+    query({ url: 'https://myoffrz.com/instyle*' }).then((tabs) => {
+      if (!(tabs === undefined || tabs.length === 0)) {
+        utils.telemetry({
+          type: 'activity',
+          action: 'install',
+          referrer_url: 'instyle',
+          advert_id: 'instyle'
+        }, true);
+        setTimeout(() => {
+          CLIQZ.app.modules['offers-v2'].action('onContentCategories', { categories: ['instyle'], prefix: 'onboarding', url: 'https://myoffrz.com/instyle' });
+        }, 1500);
+      }
     });
   }
 }
 
 chrome.runtime.onInstalled.addListener(onboarding);
-
 
 window.addEventListener('unload', () => {
   CLIQZ.app.stop();

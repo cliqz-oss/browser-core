@@ -34,7 +34,7 @@ export default function () {
 
     context('with "Always ask" settings', function () {
       before(async function () {
-        blurUrlBar();
+        await blurUrlBar();
         prefs.set('share_location', 'ask');
         withHistory([]);
         await mockSearch({ results: resultsWithoutLocal });
@@ -54,7 +54,7 @@ export default function () {
 
     context('with "Never" settings', function () {
       before(async function () {
-        blurUrlBar();
+        await blurUrlBar();
         prefs.set('share_location', 'no');
         withHistory([]);
         await mockSearch({ results: resultsWithoutLocal });
@@ -75,7 +75,7 @@ export default function () {
 
     context('with "Always" settings', function () {
       before(async function () {
-        blurUrlBar();
+        await blurUrlBar();
         prefs.set('share_location', 'yes');
         withHistory([]);
         await mockSearch({ results: resultsWithLocal });

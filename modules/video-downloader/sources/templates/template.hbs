@@ -1,5 +1,5 @@
 <h3><span data-i18n="video_downloader_title"></span></h3>
-{{#if isMockData}}
+{{#if loading}}
 <div class="preloader">
     <img src='images/preloader.gif' />
 </div>
@@ -24,28 +24,35 @@
         {{/if}}
     </ul>
     <div id="vd-tab-content" class="{{#if isConnectPreferred}}mobile{{/if}}">
-        <iframe
-            id="connect-iframe"
-            {{#if isPaired}}class="hidden"{{/if}}
-            src="resource://cliqz/pairing/index.html"
-            width="270px" height="475px">
-        </iframe>
+        <div id="connect-in-progress">
+            <p id="connect-in-progress-header" data-i18n="connect_in_progress_header"></p>
+            <p id="connect-in-progress-message" data-i18n="connect_in_progress_message"></p>
+        </div>
 
-        {{> downloads}}
+        <div id="connect-content">
+            <iframe
+                id="connect-iframe"
+                {{#if isPaired}}class="hidden"{{/if}}
+                src="/modules/pairing/index.html"
+                width="270px" height="475px">
+            </iframe>
 
-        <p id="wifi-warning">
-            <span data-i18n="video_downloader_wifi_warning"></span>
-        </p>
-        <span id="download-mobile" class="link-button" data-i18n="video_downloader_send_button_label"></span>
-        <span id="download-desktop" class="link-button" data-i18n="video_downloader_download_button_label"></span>
-        <span class="connect-page-link">
-            <span data-i18n="video_downloader_open_connect_page"></span>
-            <span data-i18n="video_downloader_connect_settings"></span>
-            <span class="connect-icon"></span>
-        </span>
-        <div id="sending-status">
-            <img src="images/sent-to-mobile.svg" alt="" />
-            <p><span data-i18n="video_downloader_sent_message"></span></p>
+            {{> downloads}}
+
+            <p id="wifi-warning">
+                <span data-i18n="video_downloader_wifi_warning"></span>
+            </p>
+            <span id="download-mobile" class="link-button" data-i18n="video_downloader_send_button_label"></span>
+            <span id="download-desktop" class="link-button" data-i18n="video_downloader_download_button_label"></span>
+            <span class="connect-page-link">
+                <span data-i18n="video_downloader_open_connect_page"></span>
+                <span data-i18n="video_downloader_connect_settings"></span>
+                <span class="connect-icon"></span>
+            </span>
+            <div id="sending-status">
+                <img src="images/sent-to-mobile.svg" alt="" />
+                <p><span data-i18n="video_downloader_sent_message"></span></p>
+            </div>
         </div>
     </div>
     {{/if}}

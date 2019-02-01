@@ -5,7 +5,7 @@ import console from './console';
 import utils from './utils';
 import random from './helpers/random';
 import events from './events';
-import { isOnionMode } from './platform';
+import { isOnionModeFactory } from './platform';
 import { isSearchServiceReady } from './search-engines';
 import { service as logos } from './services/logos';
 import { service as domainInfo } from './services/domain-info';
@@ -13,6 +13,7 @@ import { service as pacemaker } from './services/pacemaker';
 import getSynchronizedDate, { isSynchronizedDateAvailable } from './synchronized-time';
 import { dateToDaysSinceEpoch } from './helpers/date';
 
+const isOnionMode = isOnionModeFactory(prefs);
 const services = {
   utils: () => utils.init(),
   logos,
@@ -21,6 +22,7 @@ const services = {
     const EXPECTED_CONFIGS = new Set([
       'backends',
       'language_whitelist',
+      'locale_whitelist',
       'location',
       'location.city',
       'location.granular',
@@ -29,7 +31,7 @@ const services = {
       'ts',
     ]);
 
-    if (isOnionMode) {
+    if (isOnionMode()) {
       return Promise.resolve();
     }
     const update = () => fetch(CONFIG.settings.CONFIG_PROVIDER)
@@ -58,10 +60,17 @@ const services = {
         utils.setDefaultCountryIndex();
 
         events.pub('cliqz-config:update');
+        console.log('cliqz-config update succeeded');
       }).catch(e => console.log('cliqz-config update failed', e));
 
-    return update()
-      .then(() => setInterval(update, 1000 * 60 * 60));
+    let interval = setInterval(update, 1000 * 60 * 60);
+    events.sub('cliqz-config:triggerUpdate', update);
+    services['cliqz-config'].unload = () => {
+      clearInterval(interval);
+      interval = null;
+      events.un_sub('cliqz-config:triggerUpdate', update);
+    };
+    return update();
   },
   session: () => {
     if (!prefs.has('session')) {

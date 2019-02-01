@@ -1,4 +1,4 @@
-/* global chai, describeModule, sinon */
+/* global chai, describeModule */
 /* eslint no-param-reassign: off */
 
 const R = require('ramda');
@@ -19,7 +19,9 @@ const SAFE_TEST_IP1 = '198.51.100.1';
 const SAFE_FALLBACK_TEST_IP = '198.51.100.255';
 
 function resetMocks() {
-  mocks.getRequest = sinon.stub().resolves('');
+  // will be created in "scriptedRequests" (cannot be trivially mocked here,
+  // as it has to ensure that webrequestAPI handlers are called).
+  mocks.getRequest = null;
 
   // simplified model: keeps track of installed allHeaders, but makes the
   // assumption that only 'onHeadersReceived' (with spec='blocking') is used
@@ -232,7 +234,25 @@ function scriptedRequests(scriptRequests, opts = {}) {
       // If more than one handler was registered, something went wrong.
       // So, ignore that case and assume that there is at most one handler.
       expect(mocks._handlers.onCompleted).to.have.lengthOf(1);
-      const handler = mocks._handlers.onCompleted[0].fn;
+      const onCompletedHandler = mocks._handlers.onCompleted[0].fn;
+      let handler;
+      if (!opts.runOnCompletedHandlersAfterTheRequestIsResolved) {
+        // By default, fire onCompletedHandlers before the request resolves.
+        // The advantage is that we will not miss errors thrown by the handler.
+        //
+        // Note that in the browser itself, the order in which "onCompleted"
+        // is called, is not guaranteed. It can happen before or after the
+        // request itself.
+        handler = onCompletedHandler;
+      } else {
+        // Simulate a race condition: the handler will get triggered
+        // after we already have resolved the request.
+        handler = (...args) => {
+          setTimeout(() => {
+            onCompletedHandler(...args);
+          }, 0);
+        };
+      }
 
       const response = mkFakeResponse();
       const fakeRequestContext = mkFakeRequestContext(
@@ -296,12 +316,13 @@ export default describeModule('human-web/doublefetch-handler',
       default: {
         debug() {},
         log() {},
+        warn() {},
         error() {},
       }
     },
   }),
   () => {
-    describe('DoublefetchHandler', function () {
+    describe('#DoublefetchHandler', function () {
       let DoublefetchHandler;
       let onHostnameResolvedHook;
       let uut;
@@ -384,29 +405,31 @@ export default describeModule('human-web/doublefetch-handler',
       it('should reject requests when state is DISABLED', function () {
         expect(uut._state).to.equal(State.DISABLED);
 
+        let sent = false;
+        scriptedRequests({
+          'http://dummy.test': { onHeadersSent: () => { sent = true; } }
+        });
+
         let wasRejected = false;
         return uut.anonymousHttpGet('http://dummy.test')
           .catch(() => {
             wasRejected = true;
           }).then(() => {
             expect(wasRejected).to.be.true;
-            expect(mocks.getRequest.called).to.be.false;
+            expect(sent).to.be.false;
           });
       });
 
       it('should send requests when state is INITIALIZED', function () {
-        return uut.init()
-          .then(() => uut.anonymousHttpGet('http://dummy.test'))
-          .then(() => {
-            expect(mocks.getRequest.called).to.be.true;
-          });
-      });
+        let sent = false;
+        scriptedRequests({
+          'http://dummy.test': { onHeadersSent: () => { sent = true; } }
+        });
 
-      it('should send requests when state is INITIALIZED', function () {
         return uut.init()
           .then(() => uut.anonymousHttpGet('http://dummy.test'))
           .then(() => {
-            expect(mocks.getRequest.called).to.be.true;
+            expect(sent).to.be.true;
           });
       });
 
@@ -456,7 +479,7 @@ export default describeModule('human-web/doublefetch-handler',
           });
       });
 
-      it('should should follow redirects, but block following request if it is too big', function () {
+      it('should should follow redirects, but block the following request if it is too big', function () {
         let cancelledBeforeRedirect = false;
         let cancelledAfterRedirect = false;
         scriptedRequests(
@@ -738,33 +761,44 @@ export default describeModule('human-web/doublefetch-handler',
         return shouldNotModifyNonSensitiveHeaders(originalHeaders);
       });
 
-      it('should call "onHostnameResolved" after successful doublefetch requests', function () {
-        const onHostnameResolvedCalls = [];
-        onHostnameResolvedHook = (hostname, ip) => {
-          onHostnameResolvedCalls.push([hostname, ip]);
-        };
+      describe('should call "onHostnameResolved" after successful doublefetch requests', function () {
+        function runTest({ runHandlerAfterRequest }) {
+          const onHostnameResolvedCalls = [];
+          onHostnameResolvedHook = (hostname, ip) => {
+            onHostnameResolvedCalls.push([hostname, ip]);
+          };
 
-        const resolvedIP = SAFE_TEST_IP1;
-        scriptedRequests(
-          {
-            'http://doublefetch.test': {
-              ip: resolvedIP
+          const resolvedIP = SAFE_TEST_IP1;
+          scriptedRequests(
+            {
+              'http://doublefetch.test': {
+                ip: resolvedIP
+              },
+              'https://api.cliqz.test/foo': {
+              },
+              'https://api.cliqz.test/bar': {
+              },
             },
-            'https://api.cliqz.test/foo': {
-            },
-            'https://api.cliqz.test/bar': {
-            },
-          },
-          {
-            simulateNonDoublefetchRequests: ['https://api.cliqz.test/foo', 'https://api.cliqz.test/bar']
-          }
-        );
+            {
+              simulateNonDoublefetchRequests: ['https://api.cliqz.test/foo', 'https://api.cliqz.test/bar'],
+              runOnCompletedHandlersAfterTheRequestIsResolved: runHandlerAfterRequest
+            }
+          );
 
-        return uut.init()
-          .then(() => uut.anonymousHttpGet('http://doublefetch.test'))
-          .then(() => {
-            expect(onHostnameResolvedCalls).to.eql([['doublefetch.test', resolvedIP]]);
-          });
+          return uut.init()
+            .then(() => uut.anonymousHttpGet('http://doublefetch.test'))
+            .then(() => {
+              expect(onHostnameResolvedCalls).to.eql([['doublefetch.test', resolvedIP]]);
+            });
+        }
+
+        it('when onCompletedHandler is triggered after the request promise is resolved', function () {
+          return runTest({ runHandlerAfterRequest: true });
+        });
+
+        it('when onCompletedHandler is triggered before the request promise is resolved', function () {
+          return runTest({ runHandlerAfterRequest: false });
+        });
       });
     });
   });

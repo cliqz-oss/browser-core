@@ -208,7 +208,7 @@
         <span class="bullet">
           <span class="no-tooltip-label" data-i18n="control_center_transparency"></span>
           <button
-            data-open-url="about:transparency"
+            data-open-url="{{ module.privacy-dashboard.url }}"
             data-target="search_transparency"
             data-i18n="control_center_open">
           </button>
@@ -236,68 +236,8 @@
       {{/unless}}
     </div>
   </div>
-  {{#if showHistorySettings}}
-  <div class="accordion-section">
-    <a class="accordion-section-title"
-       href="#accordion-3"
-       data-target="history">
-      <svg id="arrow" width="13px" height="13px" viewBox="1017 657 13 13" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-        <defs></defs>
-        <polygon id="Rectangle-546-Copy-11" stroke="none" fill="#838383" fill-rule="evenodd" transform="translate(1023.344411, 663.208565) rotate(45.000000) translate(-1023.344411, -663.208565) " points="1018.95691 660.49484 1027.73191 658.821065 1026.05814 667.596065"></polygon>
-      </svg>
-      <span data-i18n="control_center_history_options"></span>
-    </a>
-    <div id="accordion-3" class="accordion-section-content">
-      <span class="bullet">
-        <span class="no-tooltip-label" data-i18n="control_center_show_history"></span>
-        <button
-            data-open-url="history"
-            data-target="history_showall"
-            data-i18n="control_center_open">
-        </button>
-        <svg class="bulletarrow" width="9px" height="12px" viewBox="175 40 9 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-          <defs></defs>
-          <polyline id="Path-164-Copy-140" stroke="#7D7D7D" stroke-width="1.5999999" fill="none" opacity="0.554279384" points="176 41 181.896928 46.9067547 176.230646 52.5824794"></polyline>
-        </svg>
-      </span>
-      <span class="bullet">
-        <span class="no-tooltip-label" data-i18n="control_center_forget_history"></span>
-        <button
-            data-open-url="forget_history"
-            data-target="history_forget"
-            data-i18n="control_center_open">
-        </button>
-        <svg class="bulletarrow" width="9px" height="12px" viewBox="175 40 9 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-          <defs></defs>
-          <polyline id="Path-164-Copy-140" stroke="#7D7D7D" stroke-width="1.5999999" fill="none" opacity="0.554279384" points="176 41 181.896928 46.9067547 176.230646 52.5824794"></polyline>
-        </svg>
-      </span>
-      {{#if module.apt.visible}}
-        <span class="bullet"
-              data-status="{{#if module.apt.state}}active{{ else }}inactive{{/if}}"
-              data-inactiveState="inactive">
-          <div id="forget-mode-tooltip" class="tooltip-content">
-            <span class="title" data-i18n="control_center_info_forget_mode_title"></span>
-            <span data-i18n="control_center_info_forget_mode"></span>
-          </div>
-          <span class="cqz-switch-label cc-tooltip"
-                data-tooltip-content="#forget-mode-tooltip"
-                data-i18n="control_center_forget_mode">
-          </span>
-          <select class="custom-dropdown"
-                  data-update-pref='browser.privatebrowsing.apt'
-                  data-update-pref-type="boolean"
-                  data-target="history_autoforget">
-                <option {{#if module.apt.state}}selected{{/if}} value="true" data-i18n="control_center_enabled"></option>
-                <option {{#unless module.apt.state}}selected{{/unless}} value="false" data-i18n="control_center_disabled"></option>
-          </select>
-        </span>
-      {{/if}}
-    </div>
-  </div>
-  {{/if}}
-    {{#if module.offers-v2.visible}}
-    <!-- offrz menu -->
+  {{#if module.offers-v2.visible}}
+  <!-- offrz menu -->
     <div class="accordion-section">
       <a class="accordion-section-title"
          href="#accordion-4"
@@ -344,6 +284,6 @@
         </span>
       </div>
     </div>
-    <!-- end offerz -->
-    {{/if}}
+  <!-- end offerz -->
+  {{/if}}
 </div>

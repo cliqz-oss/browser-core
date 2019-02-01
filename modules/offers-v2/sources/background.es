@@ -71,13 +71,13 @@ export default background({
       this.registeredRealEstates = new Map();
     }
 
-    return this.softInit();
+    await this.softInit();
   },
 
-  unload() {
-    this.softUnload();
-
-    this.registeredRealEstates = null;
+  unload() { // always sync
+    return this.softUnload().then(() => {
+      this.registeredRealEstates = null;
+    });
   },
 
   // ////////
@@ -85,7 +85,7 @@ export default background({
     // check if we need to do something or not
     if (!prefs.get('offers2UserEnabled', true)) {
       this.initialized = false;
-      return Promise.resolve();
+      return;
     }
 
     this._publishPopupPushEventCached = oncePerInterval(
@@ -144,7 +144,7 @@ export default background({
     this.patternsStat = new PatternsStat(
       offerID => this.offersDB.getReasonForHaving(offerID)
     );
-    this.patternsStat.init();
+    await this.patternsStat.init();
 
     // campaign signals
     this.signalsHandler = new SignalHandler(
@@ -162,11 +162,12 @@ export default background({
 
     // intent system
     this.intentHandler = new IntentHandler();
-    this.intentHandler.init();
+    await this.intentHandler.init();
 
     // category system
-    this.categoryHandler = new CategoryHandler(historyFeature, this.db);
-
+    this.categoryHandler = new CategoryHandler(historyFeature);
+    await this.categoryHandler.init(this.db);
+    await this.categoryHandler.loadPersistentData();
 
     // load the data from the category handler and the fetcher
     this.categoryFetcher = new CategoryFetcher(
@@ -174,8 +175,6 @@ export default background({
       this.categoryHandler,
       this.db
     );
-
-    await this.categoryHandler.loadPersistentData();
     await this.categoryFetcher.init();
 
 
@@ -196,7 +195,7 @@ export default background({
     this.offersAPI = this.offersHandler.offersAPI;
 
     this.gaHandler = new GreenAdsHandler();
-
+    await this.gaHandler.init();
 
     // create the trigger machine executor
     this.globObjects = {
@@ -210,22 +209,24 @@ export default background({
       ga_handler: this.gaHandler,
       telemetry: inject.service('telemetry'),
     };
-    this.triggerMachineExecutor = await new TriggerMachineExecutor(this.globObjects);
+    this.triggerMachineExecutor = new TriggerMachineExecutor(this.globObjects);
 
     // to be checked on unload
     this.initialized = true;
-
-    return this.gaHandler.init();
+    if (prefs.get('full_distribution') === 'pk_campaign=fp1' && !prefs.get(PRINT_ONBOARDING, false)) {
+      this.actions.onContentCategories({ categories: ['freundin'], prefix: 'onboarding', url: 'https://myoffrz.com/freundin' });
+      prefs.set(PRINT_ONBOARDING, true);
+    }
   },
 
   // ///////////////////////////////////////////////////////////////////////////
-  softUnload() {
+  async softUnload() {
     if (this.initialized === false) {
       return;
     }
 
     if (this.triggerMachineExecutor) {
-      this.triggerMachineExecutor.destroy();
+      await this.triggerMachineExecutor.destroy();
       this.triggerMachineExecutor = null;
     }
 
@@ -233,25 +234,25 @@ export default background({
       this.globObjects = null;
     }
     if (this.signalsHandler) {
-      this.signalsHandler.destroy();
+      await this.signalsHandler.destroy();
       this.signalsHandler = null;
     }
     if (this.patternsStat) {
-      this.patternsStat.destroy();
+      await this.patternsStat.destroy();
       this.patternsStat = null;
     }
     if (this.eventHandler) {
-      this.eventHandler.destroy();
+      await this.eventHandler.destroy();
       this.eventHandler = null;
     }
     if (this.featureHandler) {
-      this.featureHandler.unload();
+      await this.featureHandler.unload();
       this.featureHandler = null;
     }
 
     // this.categoryHandler = null;
     if (this.categoryFetcher) {
-      this.categoryFetcher.unload();
+      await this.categoryFetcher.unload();
       this.categoryFetcher = null;
     }
 
@@ -452,7 +453,7 @@ export default background({
         // The next two unload processes run at the same time,
         // beware of race conditions
         touchManagedRealEstateModules(false);
-        this.softUnload();
+        await this.softUnload();
       }
     },
     'content:dom-ready': function onDomReady(url) {
@@ -547,13 +548,6 @@ export default background({
     registerRealEstate({ realEstateID }) {
       if (this.registeredRealEstates) {
         this.registeredRealEstates.set(realEstateID, true);
-      }
-      if (realEstateID === 'offers-cc') {
-        if (prefs.get('full_distribution', '').includes('fp1') && !prefs.get(PRINT_ONBOARDING, false)) {
-          logger.info('Onboarding offer pushed');
-          this.actions.onContentCategories({ categories: ['freundin'], prefix: 'onboarding', url: 'https://myoffrz.com/freundin' });
-          prefs.set(PRINT_ONBOARDING, true);
-        }
       }
     },
 

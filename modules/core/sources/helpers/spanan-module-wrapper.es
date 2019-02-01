@@ -1,4 +1,5 @@
 import Spanan from 'spanan';
+import { chrome } from '../../platform/content/globals';
 
 export default function createSpananForModule(moduleName) {
   const spanan = new Spanan(({ uuid, action, args }) => {
@@ -8,8 +9,7 @@ export default function createSpananForModule(moduleName) {
       requestId: uuid,
       args
     };
-
-    chrome.runtime.sendMessage(message, (response) => {
+    const onResponse = (response) => {
       if (!response) {
         return;
       }
@@ -17,7 +17,13 @@ export default function createSpananForModule(moduleName) {
         uuid,
         response: response.response
       });
-    });
+    };
+
+    const promise = chrome.runtime.sendMessage(message, onResponse);
+
+    if (promise && promise.then) {
+      promise.then(onResponse);
+    }
   });
 
   chrome.runtime.onMessage.addListener(

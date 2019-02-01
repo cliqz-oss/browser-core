@@ -1,6 +1,7 @@
 /* global chai */
 /* global describeModule */
 /* global require */
+/* global sinon */
 const commonMocks = require('../utils/common');
 const persistenceMocks = require('../utils/persistence');
 const VALID_OFFER_OBJ = require('../utils/offers/data').VALID_OFFER_OBJ;
@@ -10,6 +11,8 @@ let mockedTS = Date.now();
 function mockCurrentTS(ts) {
   mockedTS = ts;
 }
+
+const getEmptyOfferDB = persistenceMocks.lib.getEmptyOfferDB;
 
 export default describeModule('offers-v2/offers/offers-db',
   () => ({
@@ -33,14 +36,11 @@ export default describeModule('offers-v2/offers/offers-db',
         return waitFor(() => db.dbLoaded, 'Database loaded');
       }
 
-      beforeEach(function () {
+      beforeEach(async function () {
         OffersDB = this.module().default;
-        const p1 = this.system.import('offers-v2/offers_configs');
-        const p2 = this.system.import('offers-v2/offers/offer');
-        return Promise.all([p1, p2]).then((mods) => {
-          OffersConfigs = mods[0].default;
-          Offer = mods[1].default;
-        });
+        OffersConfigs = (await this.system.import('offers-v2/offers_configs')).default;
+        Offer = (await this.system.import('offers-v2/offers/offer')).default;
+        mockCurrentTS(Date.now());
       });
 
       function genOffers(data) {
@@ -871,6 +871,75 @@ export default describeModule('offers-v2/offers/offers-db',
             const reasonObj = db.getReasonForHaving(offerID);
 
             chai.expect(reasonObj.getReason()).is.eql(['smth']);
+          });
+        });
+
+        describe('/download offer images', () => {
+          let db;
+          let offerObj;
+          let templateData;
+
+          beforeEach(async function () {
+            db = await getEmptyOfferDB(this.system, db);
+            db.addOfferObject(VALID_OFFER_OBJ.offer_id, VALID_OFFER_OBJ);
+            offerObj = db.getOfferObject(VALID_OFFER_OBJ.offer_id);
+            templateData = offerObj.ui_info.template_data;
+            templateData.logo_url = 'fake://?body=some data&header.content-type=image/smth';
+            templateData.picture_url = 'fake://?body=another data&header.content-type=image/smth';
+            templateData.logo_dataurl = undefined;
+            templateData.picture_dataurl = undefined;
+          });
+
+          it('/download missed images', async () => {
+            const expectedLogoDataurl = 'data:image/smth;base64,c29tZSBkYXRh';
+            const expectedPictureDataurl = 'data:image/smth;base64,YW5vdGhlciBkYXRh';
+
+            const dbOffers = db.getOffers();
+            await waitFor(() => !db.imageDownloader.nThreads);
+
+            const dbOffer = new Offer(dbOffers[0].offer);
+            await waitFor(() => {
+              chai.expect(dbOffer.getLogoDataurl()).to.eq(expectedLogoDataurl);
+              chai.expect(dbOffer.getPictureDataurl()).to.eq(expectedPictureDataurl);
+            });
+          });
+
+          context('/do not download', () => {
+            let fetch;
+            let downloader;
+            let db2;
+
+            beforeEach(() => {
+              fetch = sinon.stub().callsFake(url => db.imageDownloader.fetch(url));
+              downloader = new db.imageDownloader.constructor({ fetch });
+              db2 = new OffersDB({ imageDownloader: downloader });
+              db2.addOfferObject(offerObj.offer_id, offerObj);
+              templateData = db2.getOfferObject(offerObj.offer_id).ui_info.template_data;
+            });
+
+            it('/do not download already downloaded images', async () => {
+              templateData.logo_dataurl = 'data:image/smth;base64,etc';
+              templateData.picture_dataurl = 'data:image/smth;base64,etc';
+
+              db2.getOffers();
+              await waitFor(() => !downloader.nThreads);
+
+              chai.expect(fetch).to.have.not.been.called;
+            });
+
+            it('/do not download images often', async () => {
+              db2.getOffers();
+              await waitFor(() => !downloader.nThreads);
+
+              templateData.logo_dataurl = undefined;
+              templateData.picture_dataurl = undefined;
+              fetch.reset();
+
+              db2.getOffers();
+              await waitFor(() => !downloader.nThreads);
+
+              chai.expect(fetch).to.have.not.been.called;
+            });
           });
         });
       });

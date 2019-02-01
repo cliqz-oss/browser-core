@@ -39,7 +39,7 @@ context('Offers Hub three dots menu', function () {
     it('renders "Help"', function () {
       expect(subject.query(`${settingsMenuSelector} [data-telemetry-id="learn_more"]`)).to.exist;
       expect(subject.query(`${settingsMenuSelector} [data-telemetry-id="learn_more"]`))
-        .to.contain.text('Sitemap_Facebook_Help');
+        .to.contain.text('help');
     });
 
     it('"Help" contains a link to the support page', function () {

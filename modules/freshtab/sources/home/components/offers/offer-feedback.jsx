@@ -3,6 +3,8 @@ import cliqz from '../../cliqz';
 import { tt } from '../../i18n';
 import telemetry from '../../services/telemetry/base';
 import { offerClickSignal } from '../../services/telemetry/offers';
+import Button from '../partials/button';
+import Radio from '../partials/radio';
 
 export default class OfferFeedback extends React.Component {
   constructor(props) {
@@ -75,8 +77,7 @@ export default class OfferFeedback extends React.Component {
   render() {
     return (
       <div className="offer-middle-feedback offer-container offer-unit">
-        <button
-          type="button"
+        <Button
           className="close"
           onClick={this.handleCloseClick}
         />
@@ -90,34 +91,32 @@ export default class OfferFeedback extends React.Component {
                 <div className="col1">
                   <ul>
                     <li>
-                      <input
-                        type="radio"
-                        name="remove_feedback"
+                      <Radio
                         id="feedback_option1"
+                        labelValue={tt('offers_hub_feedback_option1')}
+                        name="remove_feedback"
+                        onChange={this.handleOptionChange}
+                        type="radio"
                         value="already_used"
-                        onChange={this.handleOptionChange}
                       />
-                      <label htmlFor="feedback_option1">{tt('offers_hub_feedback_option1')}</label>
                     </li>
                     <li>
-                      <input
-                        name="remove_feedback"
+                      <Radio
                         id="feedback_option2"
-                        value="not_good_deal"
-                        type="radio"
+                        labelValue={tt('offers_hub_feedback_option2')}
+                        name="remove_feedback"
                         onChange={this.handleOptionChange}
+                        value="not_good_deal"
                       />
-                      <label htmlFor="feedback_option2">{tt('offers_hub_feedback_option2')}</label>
                     </li>
                     <li>
-                      <input
-                        name="remove_feedback"
+                      <Radio
                         id="feedback_option3"
-                        value="not_relevant"
-                        type="radio"
+                        labelValue={tt('offers_hub_feedback_option3')}
+                        name="remove_feedback"
                         onChange={this.handleOptionChange}
+                        value="not_relevant"
                       />
-                      <label htmlFor="feedback_option3">{tt('offers_hub_feedback_option3')}</label>
                     </li>
                   </ul>
                 </div>
@@ -134,21 +133,17 @@ export default class OfferFeedback extends React.Component {
                   <div className="notification">
                     {tt('offers_offer_removed')}
                     <br />
-                    <button
-                      type="button"
+                    <Button
+                      label={tt('offers_hub_feedback_undo_delete')}
                       onClick={this.undoDeleteOffer}
-                    >
-                      {tt('offers_hub_feedback_undo_delete')}
-                    </button>
+                    />
                   </div>
-                  <button
+                  <Button
                     className="cta-btn"
-                    type="button"
-                    onClick={this.handleSubmit}
                     disabled={this.state.submitDisabled}
-                  >
-                    <span>{tt('offers_send_feedback')}</span>
-                  </button>
+                    label={tt('offers_send_feedback')}
+                    onClick={this.handleSubmit}
+                  />
                 </div>
               </div>
             </div>)

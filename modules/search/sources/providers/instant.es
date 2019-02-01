@@ -1,4 +1,4 @@
-import Rx from '../../platform/lib/rxjs';
+import { Observable } from 'rxjs';
 import {
   isUrl,
   getSearchEngineUrl,
@@ -25,7 +25,7 @@ export default class InstantProvider extends BaseProvider {
     return [kind];
   }
 
-  search(query, config) {
+  search(query = '', config) {
     if (!query) {
       return this.getEmptySearch(config);
     }
@@ -36,7 +36,7 @@ export default class InstantProvider extends BaseProvider {
     const result = {
       provider: this.id,
     };
-    const observable = Rx.Observable.create((o) => {
+    const observable = Observable.create((o) => {
       next = o.next.bind(o);
     });
 
@@ -90,6 +90,6 @@ export default class InstantProvider extends BaseProvider {
       );
     });
 
-    return observable.let(this.getOperators());
+    return observable.pipe(this.getOperators());
   }
 }

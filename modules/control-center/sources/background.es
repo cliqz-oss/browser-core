@@ -1,6 +1,5 @@
 /* eslint-disable no-param-reassign */
 
-import ToolbarButton from '../core/ui/toolbar-button';
 import globalConfig from '../core/config';
 import moduleConfig from './config';
 import utils from '../core/utils';
@@ -9,22 +8,17 @@ import prefs from '../core/prefs';
 import events from '../core/events';
 import inject from '../core/kord/inject';
 import { getMessage } from '../core/i18n';
-import { isBootstrap, isDesktopBrowser, isAMO, isGhostery, isMobile, getResourceUrl } from '../core/platform';
+import { isDesktopBrowser, isAMO, isGhostery, getResourceUrl } from '../core/platform';
 import background from '../core/base/background';
-import { getThemeStyle, getActiveTab } from '../platform/browser';
+import { getActiveTab } from '../platform/browser';
 import { openLink } from '../platform/browser-actions';
 import { queryTabs, getCurrentTabId } from '../core/tabs';
 
-const DD_HEIGHT = {
-  '04': () => 413, // amo
-  40: () => 496, // Q browser
-};
-
 const TELEMETRY_TYPE = 'control_center';
 
-function getBrowserActionIcon() {
-  const icons = globalConfig.settings.PAGE_ACTION_ICONS;
-  return globalConfig.baseURL + (icons[getThemeStyle()] || icons.default);
+function isInternalProtocol(url) {
+  const internalProtocols = ['chrome', 'resource', 'moz-extension', 'chrome-extension'];
+  return internalProtocols.findIndex(protocol => url.startsWith(protocol)) > -1;
 }
 
 function getAdultFilterState() {
@@ -89,51 +83,9 @@ export default background({
     this.ICONS = settings.ICONS;
     this.BACKGROUNDS = settings.BACKGROUNDS;
     this.intervals = new IntervalManager();
-
-    if (settings.disableControlCenterButton) {
-      return;
-    }
-
-    if (isBootstrap) {
-      if (this.settings.id !== 'ghostery@cliqz.com') {
-        this.toolbarButton = new ToolbarButton({
-          widgetId: 'control-center',
-          default_title: getMessage('control_center_icon_tooltip'),
-          default_popup: `${globalConfig.baseURL}control-center/index.html`,
-          default_icon: () => `${globalConfig.baseURL}${settings.ICONS.active[getThemeStyle()]}`,
-          badgeBackgroundColor: '#471647',
-          badgeText: '0',
-          defaultHeight: DD_HEIGHT[this.settings.channel] || (() => 246)
-        });
-        this.toolbarButton.build();
-      } else {
-        this.pageAction = new ToolbarButton({
-          widgetId: 'cc-page-action',
-          default_title: getMessage('control_center_icon_tooltip'),
-          default_popup: `${globalConfig.baseURL}control-center/index.html`,
-          default_icon: getBrowserActionIcon,
-          defaultHeight: () => 251
-        }, true);
-        this.pageAction.build();
-      }
-    } else if (!isMobile && !isAMO) {
-      this.toolbarButton = new ToolbarButton({
-        default_title: getMessage('control_center_icon_tooltip'),
-        default_popup: `${globalConfig.baseURL}control-center/index.html`
-      }, true);
-      this.toolbarButton.build();
-    }
-
-    // TODO: @chrmod, it looks like it was doing nothing as at this point of time
-    // there may be no tabs
-    // setTimeout(this.actions.setState.bind(this), 0, 'active');
   },
 
   unload() {
-    if (this.toolbarButton) {
-      this.toolbarButton.shutdown();
-    }
-
     if (this.pageAction) {
       this.pageAction.shutdown();
     }
@@ -156,6 +108,9 @@ export default background({
     }
 
     this.updateBadge(tabId, '0');
+    if (isInternalProtocol(url)) {
+      chrome.browserAction2.setBadgeBackgroundColor({ color: '#666', tabId });
+    }
     // wait for tab content to load
     if (!url
       || url === 'about:blank'
@@ -164,8 +119,10 @@ export default background({
     }
 
     const updateBadgeForUrl = async () => {
-      const info = await this.antitracking.action('getBadgeData', { tabId, url });
-      this.updateBadge(tabId, info);
+      if (tabId && url) {
+        const info = await this.antitracking.action('getBadgeData', { tabId, url });
+        this.updateBadge(tabId, info);
+      }
     };
 
     this.refreshState(tabId);
@@ -182,8 +139,8 @@ export default background({
   },
 
   updateBadge(tabId, info) {
-    if (this.toolbarButton && info !== undefined) {
-      this.toolbarButton.setBadgeText(tabId, `${info}`);
+    if (typeof chrome !== 'undefined' && chrome.browserAction2 && info !== undefined) {
+      chrome.browserAction2.setBadgeText({ text: `${info}`, tabId });
     }
   },
 
@@ -203,10 +160,6 @@ export default background({
           : 'active';
 
         moduleData.adult = { visible: true, state: getAdultFilterState() };
-        if (prefs.has('browser.privatebrowsing.apt', '') && this.settings.channel === '40') {
-          moduleData.apt = { visible: true, state: prefs.get('browser.privatebrowsing.apt', false, '') };
-        }
-
         moduleData.humanWebOptOut = prefs.get('humanWebOptOut', false);
         moduleData.searchProxy = { enabled: prefs.get('hpn-query', false) };
 
@@ -228,20 +181,15 @@ export default background({
   },
 
   events: {
-    hostthemechange: async function onThemeChange() {
-      const tabs = await queryTabs();
-      tabs.forEach((tab) => {
-        this.refreshState(tab.id);
-        if (this.pageAction) {
-          this.pageAction.setIcon(tab.id, getBrowserActionIcon());
-        }
-      });
-    },
     'content:location-change': function onLocationChange(...args) {
-      this.onLocationChange(...args);
+      if (!isAMO) {
+        this.onLocationChange(...args);
+      }
     },
     'core:tab_select': function onTabSelect(...args) {
-      this.onLocationChange(...args);
+      if (!isAMO) {
+        this.onLocationChange(...args);
+      }
     },
   },
   actions: {
@@ -296,8 +244,11 @@ export default background({
       if (url.indexOf('about:') === 0) {
         friendlyURL = url;
         isSpecialUrl = true;
-      } else if (url.indexOf(globalConfig.settings.NEW_TAB_URL) === 0) {
+      } else if (url.endsWith('modules/freshtab/home.html')) {
         friendlyURL = `${moduleConfig.settings.BRAND} Tab`;
+        isSpecialUrl = true;
+      } else if (url.endsWith('modules/cliqz-history/index.html')) {
+        friendlyURL = `${getMessage('freshtab_history_button')}`;
         isSpecialUrl = true;
       } else if (url.indexOf(globalConfig.settings.ONBOARDING_URL) === 0) {
         friendlyURL = moduleConfig.settings.BRAND;
@@ -363,37 +314,25 @@ export default background({
     },
 
     setState(tabId, state) {
-      if (!this.toolbarButton) {
+      if (!chrome.browserAction2) {
         return;
       }
 
-      const icon = globalConfig.baseURL + (
-        this.ICONS[state][getThemeStyle()]
-        || this.ICONS[state].default
-      );
+      const icon = globalConfig.baseURL + this.ICONS[state];
 
-      this.toolbarButton.setIcon(tabId, icon);
-      this.toolbarButton.setBadgeBackgroundColor(tabId, this.BACKGROUNDS[state]);
+      chrome.browserAction2.setIcon({
+        path: {
+          16: icon,
+          48: icon,
+          128: icon
+        },
+        tabId
+      });
+      chrome.browserAction2.setBadgeBackgroundColor({ color: this.BACKGROUNDS[state], tabId });
     },
 
     openURL(data) {
-      const win = utils.getWindow();
-
-      switch (data.url) {
-        case 'history': {
-          // use firefox command to ensure compatibility
-          win.document.getElementById('Browser:ShowAllHistory').click();
-          break;
-        }
-        case 'forget_history': {
-          // use firefox command to ensure compatibility
-          win.document.getElementById('Tools:Sanitize').click();
-          break;
-        }
-        default: {
-          openLink(data.url, true);
-        }
-      }
+      openLink(data.url, true);
 
       utils.telemetry({
         type: TELEMETRY_TYPE,

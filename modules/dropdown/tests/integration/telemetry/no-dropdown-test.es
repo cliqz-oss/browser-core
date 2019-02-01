@@ -35,7 +35,7 @@ export default function () {
     beforeEach(async function () {
       urlClicked = false;
 
-      blurUrlBar();
+      await blurUrlBar();
 
       // clear telemetry
       win.allTelemetry = [];

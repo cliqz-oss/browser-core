@@ -1,4 +1,5 @@
 import getInfo from '../../platform/video-downloader/lib/ytdl-core';
+import { OS } from '../../platform/platform';
 import getYoutubeID from '../utils/get-youtube-id';
 
 // This takes a bit, not perfect... Will it be blocked if too much traffic?
@@ -35,9 +36,13 @@ export default class YoutubeExtractor {
       return Promise.reject(new Error('url not valid'));
     }
     const goodURL = `https://www.youtube.com/watch?v=${id}`;
+    const requestOptions = {};
+    if (OS === 'ios') {
+      requestOptions.mode = 'disable-fetch';
+    }
     return new Promise((resolve, reject) => {
       try {
-        getInfo(goodURL, (error, info) => {
+        getInfo(goodURL, { requestOptions }, (error, info) => {
           if (error) {
             reject(error);
           } else {

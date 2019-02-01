@@ -22,15 +22,15 @@
           "keyName": "q"
         }
       },
-      ".rc .r": {
+      ".srg .g .rc": {
         "t": {
-          "item": "a > h3",
+          "item": ".r a > h3",
           "type": "arr",
           "etype": "textContent",
           "keyName": "t"
         },
         "u": {
-          "item": "a",
+          "item": ".r a",
           "type": "arr",
           "etype": "href",
           "keyName": "u",
@@ -41,6 +41,12 @@
               false
             ]
           ]
+        },
+        "age": {
+          "item": ".s span.st span.f",
+          "type": "arr",
+          "etype": "textContent",
+          "keyName": "age"
         }
       },
       ".g .r": {
@@ -112,7 +118,7 @@
           "keyName": "u"
         }
       },
-      "#search .VoEfsd": {
+      "#search .rSr7Wd .So9e7d": {
         "u": {
           "item": ":not(div) > a",
           "type": "arr",
@@ -135,6 +141,35 @@
         },
         "h": {
           "item": ".pAx2Gb > div",
+          "type": "arr",
+          "etype": "textContent",
+          "keyName": "h",
+          "functionsApplied": []
+        }
+      },
+      "#search div.dbsr": {
+        "u": {
+          "item": "a",
+          "type": "arr",
+          "etype": "href",
+          "keyName": "u",
+          "functionsApplied": [
+            [
+              "maskU",
+              false,
+              false
+            ]
+          ]
+        },
+        "lu": {
+          "item": "span.FGlSad",
+          "type": "arr",
+          "etype": "textContent",
+          "keyName": "lu",
+          "functionsApplied": []
+        },
+        "h": {
+          "item": "div.y9oXvf",
           "type": "arr",
           "etype": "textContent",
           "keyName": "h",
@@ -467,13 +502,13 @@
   },
   "payloads": {
     "0": {
-      ".rc .r": {
+      ".srg .g .rc": {
         "type": "query",
         "results": "clustered",
         "action": "query",
         "fields": [
           [
-            ".rc .r",
+            ".srg .g .rc",
             "r",
             "join"
           ],
@@ -539,13 +574,37 @@
           ]
         ]
       },
-      "#search .VoEfsd": {
+      "#search .rSr7Wd .So9e7d": {
         "type": "query",
         "results": "clustered",
         "action": "top-stories",
         "fields": [
           [
-            "#search .VoEfsd",
+            "#search .rSr7Wd .So9e7d",
+            "r",
+            "join"
+          ],
+          [
+            ".med #search",
+            "q"
+          ],
+          [
+            "qurl",
+            "qurl"
+          ],
+          [
+            "ctry",
+            "ctry"
+          ]
+        ]
+      },
+      "#search div.dbsr": {
+        "type": "query",
+        "results": "clustered",
+        "action": "top-stories",
+        "fields": [
+          [
+            "#search div.dbsr",
             "r",
             "join"
           ],

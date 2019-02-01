@@ -103,7 +103,7 @@ export default class ShareCard extends React.Component {
   }
 
   render() {
-    if (Platform.OS === 'web') {
+    if (Platform.OS === 'web' || Platform.OS === 'android') {
       return (
         <View style={[this.props.style || {}]}>
           { this.props.children }

@@ -40,7 +40,11 @@ function getBundlesTree(modulesTree) {
         const bundlePathParts = bundlePath.split(path.sep);
         let bundleName = bundlePathParts[bundlePathParts.length - 1];
         bundleName = replaceFileExtension(bundleName);
-        saveBundleSourceMapPath(bundleName, bundlePath, 'http://localhost:4300/cliqz@cliqz.com/chrome/content/');
+        const basePath = cliqzConfig.testsBasePath
+          ? `http://localhost:4300/${cliqzConfig.testsBasePath.slice(8)}/`
+          : 'http://localhost:4300/cliqz@cliqz.com/chrome/content/';
+        saveBundleSourceMapPath(bundleName, bundlePath, basePath);
+
 
         return `${moduleName}/${bundleName}`;
       });
@@ -52,7 +56,10 @@ function getBundlesTree(modulesTree) {
         const bundlePathParts = bundlePath.split(path.sep);
         let bundleName = bundlePathParts[bundlePathParts.length - 1];
         bundleName = replaceFileExtension(bundleName);
-        saveBundleSourceMapPath(bundleName, bundlePath, 'http://localhost:4300/cliqz@cliqz.com/chrome/content/platform/');
+        const basePath = cliqzConfig.testsBasePath
+          ? `http://localhost:4300/${cliqzConfig.testsBasePath.slice(8)}/platform/`
+          : 'http://localhost:4300/cliqz@cliqz.com/chrome/content/platform/';
+        saveBundleSourceMapPath(bundleName, bundlePath, basePath);
 
         return `platform/${bundleName}`;
       }),
@@ -63,6 +70,9 @@ function getBundlesTree(modulesTree) {
         const bundlePathParts = bundlePath.split(path.sep);
         let bundleName = bundlePathParts[bundlePathParts.length - 1];
         const platformName = bundlePathParts[1];
+        const basePath = cliqzConfig.testsBasePath
+          ? `http://localhost:4300/${cliqzConfig.testsBasePath.slice(8)}/platform-${platformName}/`
+          : `http://localhost:4300/cliqz@cliqz.com/chrome/content/platform-${platformName}/`;
 
         // remove "platforms"
         bundlePathParts.shift();
@@ -70,7 +80,7 @@ function getBundlesTree(modulesTree) {
         bundlePathParts.shift();
 
         bundleName = replaceFileExtension(bundlePathParts.join('/'));
-        saveBundleSourceMapPath(bundleName, bundlePath, `http://localhost:4300/cliqz@cliqz.com/chrome/content/platform-${platformName}/`);
+        saveBundleSourceMapPath(bundleName, bundlePath, basePath);
 
         return `platform-${platformName}/${bundleName}`;
       })

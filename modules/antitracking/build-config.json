@@ -2,7 +2,6 @@
   "subprojects": [
     "jquery",
     "moment",
-    "rxjs",
     "tldts"
   ]
 }

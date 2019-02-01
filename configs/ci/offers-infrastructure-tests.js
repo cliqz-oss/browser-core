@@ -1,25 +1,23 @@
-const browserBase = require('../browser');
+const offersBase = require('../offers');
 
-module.exports = Object.assign({}, browserBase, {
-  settings: Object.assign({}, browserBase.settings, {
+module.exports = Object.assign({}, offersBase, {
+  settings: Object.assign({}, offersBase.settings, {
     channel: '99',
+    antitrackingPlaceholder: "cliqz.com/tracking",
+    antitrackingHeader: "CLIQZ-AntiTracking",
     offersInfraTests: true,
   }),
-  default_prefs: Object.assign({}, browserBase.default_prefs, {
-    'integration-tests.grep': 'send fake signals to backend through hpn',
-  }),
-  modules: [
-    'core',
-    'core-cliqz',
-    'anolysis-remote',
-    'static',
+  modules: offersBase.modules.concat([
+    'adblocker',
     'integration-tests',
-    'ui',
-    'webrequest-pipeline',
-    'hpnv2',
-    'human-web',
-    'offers-v2',
-    'offers-debug',
-    'offers-cc',
-  ],
+    'content-script-tests',
+  ]),
+  default_prefs: {
+    'integration-tests.grep': 'send fake signals to backend through hpn',
+    showConsoleLogs: true,
+  },
+  bundles: offersBase.bundles.concat([
+    'integration-tests/run.bundle.js',
+    'core/integration-tests.bundle.js',
+  ]),
 });

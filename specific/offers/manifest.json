@@ -1,4 +1,5 @@
 {
+  "author": "__MSG_{{name}}__",
   "name": "__MSG_{{name}}__",
   "description": "__MSG_offersAppDesc__",
   "version": "{{version}}",
@@ -6,12 +7,14 @@
   "default_locale": "de",
   "icons": {
     "16": "assets/icon16.png",
+    "25": "assets/icon25.png",
     "48": "assets/icon48.png",
     "128": "assets/icon128.png"
   },
   "browser_action": {
     "default_icon": {
       "16": "assets/icon16.png",
+      "25": "assets/icon25.png",
       "48": "assets/icon48.png",
       "128": "assets/icon128.png"
     },
@@ -25,6 +28,7 @@
     "storage",
     "tabs",
     "unlimitedStorage",
+    "clipboardWrite",
     "webNavigation",
     "webRequest",
     "webRequestBlocking"
@@ -38,8 +42,10 @@
   "background": {
     "scripts": [
       "modules/vendor/dexie.min.js",
-      "modules/offers-banner/app.bundle.js"
-    ]
+      "modules/offers-banner/app.bundle.js",
+      "background.js"
+    ],
+    "persistent": true
   },
   "options_ui": {
     "page": "options.html",

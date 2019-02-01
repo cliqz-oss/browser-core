@@ -1,5 +1,6 @@
 import { chrome } from './globals';
 import { OS } from './platform';
+import { cleanMozillaActions } from '../core/content/url';
 
 const TARGET_ANDROID = 'ANDROID_BROWSER';
 
@@ -16,7 +17,9 @@ function sendMessageToAndroid(action, ...args) {
   });
 }
 
-export function queryCliqz() {
+export async function queryCliqz(q) {
+  await chrome.omnibox2.focus({ openLocation: true });
+  return chrome.omnibox2.update({ value: q, triggerEvent: true });
 }
 
 export function openLinkAndroid(url) {
@@ -27,8 +30,9 @@ export function openLink(url, focused = false) {
   if (OS === 'android') {
     sendMessageToAndroid('openUrl', url);
   } else {
+    const [, originalUrl] = cleanMozillaActions(url);
     chrome.tabs.create({
-      url,
+      url: originalUrl,
       active: focused
     });
   }
@@ -52,7 +56,7 @@ export function openMap(url) {
   sendMessageToAndroid('openUrl', url);
 }
 
-export function handleAutoCompletion(url = '', query = '') {
+export function handleAutocompletion(url = '', query = '') {
   const urlTrimmed = url.replace(/http([s]?):\/\/(www.)?/, '').toLowerCase();
   const searchLower = query.toLowerCase();
   if (urlTrimmed.startsWith(searchLower)) {

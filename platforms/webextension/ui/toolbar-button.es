@@ -35,7 +35,11 @@ export default class {
   shutdown() {}
 
   setBadgeText(tabId, text) {
-    chrome.browserAction.setBadgeText({ text, tabId });
+    chrome.browserAction.setBadgeText({ text, tabId }, () => {
+      if (chrome.runtime.lastError) {
+        // tab probably no longer exists
+      }
+    });
   }
 
   resizePopup() {

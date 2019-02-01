@@ -1,9 +1,13 @@
 /* global describeModule */
 /* global chai */
+const Rx = require('rxjs');
+const operators = require('rxjs/operators');
 
 export default describeModule('firefox-specific/background',
   function () {
     return {
+      rxjs: Rx,
+      'rxjs/operators': operators,
       '../core/base/background': {
         default: x => x,
       },

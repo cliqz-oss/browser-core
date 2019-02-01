@@ -63,7 +63,7 @@ export default function () {
       });
 
       expect($expressions).to.have.length(1);
-      expect($expressions[0].textContent).to.equal(query);
+      expect($expressions[0].textContent).to.equal('2+2');
     });
 
     checkTapMessage({ url: cardsUrl });

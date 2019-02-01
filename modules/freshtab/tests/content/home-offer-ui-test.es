@@ -161,7 +161,7 @@ describe('Freshtab offer notification UI', function () {
           it('offer renders with condition label', function () {
             expect(subject.query(`${offerSelector} ${conditionsLabelSelector}`)).to.exist;
             expect(subject.query(`${offerSelector} ${conditionsLabelSelector}`))
-              .to.have.text('freshtab_app_conditions');
+              .to.have.text('offers_conditions');
           });
         }
         it('offer renders with expires day icon', function () {

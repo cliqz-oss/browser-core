@@ -1,4 +1,8 @@
+/* globals chai */
 import { chrome } from '../globals';
+import { waitFor } from '../../core/helpers/wait';
+
+const expect = chai.expect;
 
 export const wrap = getObj => new Proxy({}, {
   get(target, name) {
@@ -74,9 +78,10 @@ const chromeClick = async (url, selector, ind) => {
   return window.document.querySelectorAll(selector)[ind].click();
 };
 
-export const win = wrap(() => chrome.extension.getBackgroundPage().window);
-export const CLIQZ = wrap(() => win.CLIQZ);
-export const app = wrap(() => win.CLIQZ.app);
+const bgWindow = wrap(() => chrome.extension.getBackgroundPage().window);
+export const win = wrap(() => bgWindow.CLIQZ.utils.getWindow());
+export const CLIQZ = wrap(() => bgWindow.CLIQZ);
+export const app = wrap(() => bgWindow.CLIQZ.app);
 
 const contentQueryHTML = async (...args) => {
   const response = await app.modules.core.action('queryHTML', ...args);
@@ -110,26 +115,133 @@ export function click(url, selector, ind = 0) {
   }
   return contentClick(url, selector);
 }
-export function press() {}
+export function press(options) {
+  return chrome.testHelpers.press(options);
+}
 
-export function release() {}
+export function release(options) {
+  return chrome.testHelpers.release(options);
+}
 
-export const urlBar = wrap(() => { throw new Error('Not implemented'); });
-export const lang = wrap(() => { throw new Error('Not implemented'); });
-export const popup = wrap(() => { throw new Error('Not implemented'); });
-export const $dropdown = wrap(() => { throw new Error('Not implemented'); });
-export const CliqzUtils = wrap(() => win.CliqzUtils);
-export const CliqzEvents = wrap(() => win.CliqzEvents);
-export const CliqzABTests = wrap(() => win.CliqzABTests);
-export const getComputedStyle = wrap(() => { throw new Error('Not implemented'); });
-export const urlbar = wrap(() => { throw new Error('Not implemented'); });
-export const blurUrlBar = wrap(() => { throw new Error('Not implemented'); });
-export const EventUtils = wrap(() => { throw new Error('Not implemented'); });
+function getCSSPath(_el, baseSelector = '') {
+  const path = [];
+  let el = _el;
+  while (el && el.parentNode && el.parentNode.tagName !== 'BODY') {
+    const selector = [el.nodeName];
+
+    const n = Array.from(el.parentNode.children).indexOf(el) + 1;
+    selector.push(`:nth-child(${n}n)`);
+
+    el = el.parentNode;
+    path.push(selector.join(''));
+  }
+
+  if (baseSelector) {
+    path.push(baseSelector);
+  }
+
+  return path.reverse().join(' > ');
+}
+
+export const getComputedStyle = async (_selectorOrEl, property) => {
+  let selector = _selectorOrEl;
+  if (_selectorOrEl instanceof Node) {
+    selector = getCSSPath(_selectorOrEl, '#cliqz-dropdown');
+  }
+  const { styles } = await chrome.testHelpers.querySelector(selector, {
+    attributes: false,
+    classes: false,
+    properties: [],
+    children: false,
+    text: false,
+    html: false,
+    styles: [property]
+  });
+  return styles[property];
+};
+export const dropdownClick = async selector =>
+  chrome.testHelpers.callMethod(selector, 'click', []);
+
+export const urlbar = {
+  _cache: {},
+  _updateCache(data) {
+    Object.assign(this._cache, data);
+  },
+  blur: () => chrome.omnibox2.blur(),
+  focus: () => chrome.omnibox2.focus(),
+  get textValue() {
+    return chrome.omnibox2.get()
+      .then(data => data.visibleValue);
+  },
+  get selectionStart() {
+    return chrome.omnibox2.get()
+      .then(data => data.selectionStart);
+  },
+  get selectionEnd() {
+    return chrome.omnibox2.get()
+      .then(data => data.selectionEnd);
+  },
+  get value() {
+    return chrome.omnibox2.get()
+      .then(data => data.value);
+  },
+};
+export const EventUtils = {
+  sendString(text) {
+    // returns promise
+    return chrome.testHelpers.sendString(text);
+  }
+};
 export const TIP = wrap(() => { throw new Error('Not implemented'); });
 export const testServer = wrap(() => win.CLIQZ.TestHelpers.testServer);
+export const $cliqzResults = {
+  _parser: new DOMParser(),
+  _outerHTML: {
+    attributes: false,
+    classes: false,
+    properties: ['outerHTML'],
+    styles: [],
+    children: false,
+    text: false,
+    html: false,
+  },
+  async _getEl() {
+    const html = await chrome.testHelpers.querySelector('#cliqz-dropdown', this._outerHTML);
+    if (!html) {
+      return null;
+    }
+    return this._parser
+      .parseFromString(html.properties.outerHTML, 'text/html');
+  },
+  async querySelector(selector) {
+    const dom = await this._getEl();
+    if (!dom) {
+      return null;
+    }
+
+    return dom.querySelector(`#cliqz-dropdown ${selector}`);
+  },
+  async querySelectorAll(selector) {
+    const dom = await this._getEl();
+    if (!dom) {
+      return [];
+    }
+
+    return dom
+      .querySelectorAll(`#cliqz-dropdown ${selector}`);
+  }
+};
+
+export async function blurUrlBar() {
+  await chrome.omnibox2.blur();
+  return waitFor(async () => {
+    const height = await chrome.testHelpers.getDropdownHeight();
+    return height === 0;
+  });
+}
 
 function clearSingleDB(dbName) {
-  const req = win.indexedDB.deleteDatabase(dbName);
+  const req = bgWindow.indexedDB.deleteDatabase(dbName);
   return new Promise((resolve) => {
     req.onsuccess = resolve;
   });
@@ -137,6 +249,35 @@ function clearSingleDB(dbName) {
 
 export function clearDB(dbNames) {
   return Promise.all(dbNames.map(dbName => clearSingleDB(dbName)));
+}
+
+export function fillIn(text) {
+  return chrome.omnibox2.focus()
+    .then(chrome.omnibox2.update({ value: '' }))
+    .then(() => EventUtils.sendString(text));
+}
+
+export async function waitForPopup(resultsCount, timeout = 700) {
+  let nResults;
+  await waitFor(async () => {
+    const height = await chrome.testHelpers.getDropdownHeight();
+    return height !== 0;
+  });
+
+  if (resultsCount) {
+    await waitFor(
+      async () => {
+        const navigateResult = await chrome.testHelpers.querySelector('.result.navigate-to');
+        const searchResult = await chrome.testHelpers.querySelector('.result.search');
+        nResults = navigateResult ? resultsCount + 1 : resultsCount;
+        nResults = searchResult ? nResults + 1 : nResults;
+        return expect(await chrome.testHelpers.querySelectorAll('.cliqz-result')).to.have.length(nResults);
+      },
+      timeout,
+    );
+  }
+
+  return null;
 }
 
 export function focusOnTab(tabId) {

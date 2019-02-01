@@ -1,3 +1,15 @@
+import { Subject, timer, asyncScheduler } from 'rxjs';
+import {
+  observeOn,
+  groupBy,
+  flatMap,
+  distinctUntilChanged,
+  debounceTime,
+  filter,
+  bufferTime,
+  map,
+  auditTime,
+} from 'rxjs/operators';
 import inject from '../core/kord/inject';
 import background from '../core/base/background';
 import cookies from '../platform/cookies';
@@ -5,19 +17,26 @@ import { getGeneralDomain } from '../core/tlds';
 import md5 from '../core/helpers/md5';
 import console from '../core/console';
 import getDexie from '../platform/lib/dexie';
-import Rx from '../platform/lib/rxjs';
 import WebRequest from '../core/webrequest';
 import { URLInfo } from '../core/url-info';
 import tabs from '../platform/tabs';
-import moment from '../platform/lib/moment';
+import Logger from '../core/logger';
+import prefs from '../core/prefs';
+import { chrome } from '../platform/globals';
 
-const LOGKEY = 'CookieMonster';
+const logger = Logger.get('cookie-monster', { level: 'debug' });
 const TELEMETRY_PREFIX = 'cookie-monster';
 
 const BATCH_UPDATE_FREQUENCY = 180000;
 const BASE_EXPIRY = 1000 * 60 * 60; // one hour
 const VISITED_EXPIRY = 1000 * 60 * 60 * 24 * 7; // one week
 const REGULAR_VISITED_EXPIRY = 1000 * 60 * 60 * 24 * 30; // 30 days
+
+const cookieSpecialTreatment = {
+  _ga: VISITED_EXPIRY,
+  _gid: BASE_EXPIRY,
+  _fbp: 1,
+};
 
 const cookieKeyCols = ['domain', 'path', 'name', 'storeId', 'firstPartyDomain'];
 function cookieId(cookie) {
@@ -37,18 +56,24 @@ function isPrivateTab(tabId) {
   });
 }
 
+function formatDate(date) {
+  return date.toISOString().substring(0, 10);
+}
+
 export default background({
 
   requiresServices: ['telemetry'],
   antitracking: inject.module('antitracking'),
-  DEBUG: false,
 
   init() {
-    this.subjectCookies = new Rx.Subject();
+    this.sessionCookieExpiry = prefs.get('cookie-monster.expireSession', false);
+    this.nonTrackerCookieExpiry = prefs.get('cookie-monster.nonTracker', false);
+
+    this.subjectCookies = new Subject();
     this.onCookieChanged = (changeInfo) => {
       this.subjectCookies.next(changeInfo);
     };
-    this.subjectPages = new Rx.Subject();
+    this.subjectPages = new Subject();
     this.onPage = this.onPage.bind(this);
     cookies.onChanged.addListener(this.onCookieChanged);
 
@@ -59,34 +84,36 @@ export default background({
     });
 
     // filter page loads: must stay on site for 10s before it is logged
-    this.pageStream = this.subjectPages.observeOn(Rx.Scheduler.async)
-      .groupBy(({ tabId }) => tabId, undefined, () => Rx.Observable.timer(300000))
-      .flatMap(group => group
-        .distinctUntilChanged((a, b) => a.domain === b.domain)
-        .debounceTime(10000))
+    this.pageStream = this.subjectPages.pipe(
+      observeOn(asyncScheduler),
+      groupBy(({ tabId }) => tabId, undefined, () => timer(300000)),
+      flatMap(group => group.pipe(
+        distinctUntilChanged((a, b) => a.domain === b.domain),
+        debounceTime(10000)
+      ))
+    )
       .subscribe((visit) => {
-        if (this.DEBUG) {
-          console.log(LOGKEY, 'visit to tracker domain', visit);
-        }
+        logger.debug('visit to tracker domain', visit);
         this.db.visits.put({
           domain: visit.domain,
-          day: moment().format('YYYY-DD-MM'),
+          day: formatDate(new Date()),
         });
       });
 
     // filter modified cookies for ones from trackers
     // batches and groups them to remove duplicates
-    const batchObservable = this.subjectCookies.observeOn(Rx.Scheduler.async)
-      .filter(({ cookie }) =>
-        !cookie.session
-          && ['firefox-private', '1'].indexOf(cookie.storeId) === -1 // skip private tab cookies
-          && this.trackers
-          && this.trackers.isTrackerDomain(md5(cookieGeneralDomain(cookie.domain)).substring(0, 16))
-          && cookie.expirationDate > (Date.now() + (1000 * 60 * 60)) / 1000)
-      .groupBy(({ cookie }) => cookieId(cookie), undefined, () => Rx.Observable.timer(30000))
-      .flatMap(group => group.auditTime(10000))
-      .bufferTime(BATCH_UPDATE_FREQUENCY)
-      .filter(group => group.length > 0);
+
+    const batchObservable = this.subjectCookies.pipe(
+      observeOn(asyncScheduler),
+      filter(({ cookie }) =>
+        ['firefox-private', '1'].indexOf(cookie.storeId) === -1 // skip private tab cookies
+        && (this.nonTrackerCookieExpiry || this.isTrackerDomain(cookie.domain))
+        && (!cookie.session || this.sessionCookieExpiry)),
+      groupBy(({ cookie }) => cookieId(cookie), undefined, () => timer(30000)),
+      flatMap(group => group.pipe(auditTime(10000))),
+      bufferTime(BATCH_UPDATE_FREQUENCY),
+      filter(group => group.length > 0)
+    );
 
     this.trackerCookiesStream = batchObservable
       .subscribe((ckis) => {
@@ -99,18 +126,30 @@ export default background({
         trackerCookies: '[domain+path+name+storeId+firstPartyDomain], created',
         visits: '[domain+day], domain, day',
       });
+      this.db.version(2).stores({
+        trackerCookies: '[domain+path+name+storeId+firstPartyDomain], created, session',
+      });
     });
     const initTrackerList = this.antitracking.action('getWhitelist').then((qsWhitelist) => {
       this.trackers = qsWhitelist;
     });
 
     // trigger pruning after first batch on startup, or when the date changes
-    this.pruneStream = batchObservable
-      .map(() => (new Date()).toISOString().substring(0, 10))
-      .distinctUntilChanged()
+    this.pruneStream = batchObservable.pipe(
+      map(() => formatDate(new Date())),
+      distinctUntilChanged()
+    )
       .subscribe(() => {
         this.pruneDb();
       });
+
+    if (chrome.cliqzdbmigration && !prefs.has('cookie-monster.migrated')) {
+      chrome.cliqzdbmigration.exportDexieTable('cookie-monster', 2, 'visits').then(async (rows) => {
+        await this.db.visits.bulkPut(rows);
+        await chrome.cliqzdbmigration.deleteDatabase('cookie-monster');
+        prefs.set('cookie-monster.migrated', true);
+      });
+    }
 
     return Promise.all([initDb, initTrackerList]);
   },
@@ -125,9 +164,7 @@ export default background({
   },
 
   telemetry(signal, value) {
-    if (this.DEBUG) {
-      console.log(LOGKEY, 'telemetry', signal, value);
-    }
+    logger.debug('telemetry', signal, value);
     return inject.service('telemetry').push(value, `${TELEMETRY_PREFIX}.${signal}`).catch((e) => {
       console.error('anolysis error', e);
     });
@@ -175,34 +212,30 @@ export default background({
   onCookieBatch(ckis) {
     return Promise.all([this.upsertCookies(ckis), this.getTrackerCookieVisits(ckis)])
       .then(([results, visited]) => {
-        if (this.DEBUG) {
-          console.log(LOGKEY, 'cookies', results, visited);
-        }
+        logger.debug('cookies', results, visited);
 
         // timestamps are in seconds for compatibility with cookie expirations
         const nows = Date.now() / 1000;
         const actions = results.filter(cookie => !cookie.removed).map((cookie) => {
-          let duration = BASE_EXPIRY;
+          const isTracker = this.isTrackerDomain(cookie.domain);
+          // non trackers: 30 day expiry.
+          // trackers: 1 hour
+          let duration = isTracker ? BASE_EXPIRY : REGULAR_VISITED_EXPIRY;
+          if (cookie.session) {
+            // 1 day
+            duration = BASE_EXPIRY * 24;
+          }
           if (visited[cookieGeneralDomain(cookie.domain)]) {
             const visits = visited[cookieGeneralDomain(cookie.domain)].visits;
             duration = visits > 6 ? REGULAR_VISITED_EXPIRY : VISITED_EXPIRY;
+          } else if (cookieSpecialTreatment[cookie.name]) {
+            duration = cookieSpecialTreatment[cookie.name];
           }
           const modExpiry = (cookie.created + duration) / 1000;
 
           if (modExpiry < nows) {
-            // this cookie should be expired, delete it
-            if (this.DEBUG) {
-              console.log(LOGKEY, 'delete cookie', cookieId(cookie));
-            }
-            const cookieDesc = {
-              url: `https://${cookie.domain}${cookie.path}`,
-              name: cookie.name,
-              storeId: cookie.storeId,
-            };
-            if (cookie.firstPartyDomain) {
-              cookieDesc.firstPartyDomain = cookie.firstPartyDomain;
-            }
-            cookies.remove(cookieDesc);
+            // this cookie should be expired, delete it from the db
+            logger.debug('delete cookie', cookieId(cookie));
             this.db.trackerCookies.where(cookieKeyCols.reduce((hash, col) =>
               Object.assign(hash, {
                 [col]: cookie[col]
@@ -210,9 +243,10 @@ export default background({
               .delete();
             return 'delete';
           }
-          if (modExpiry < cookie.expirationDate) {
+          if (cookie.expirationDate && modExpiry < cookie.expirationDate) {
+            const protocol = cookie.secure ? 'https' : 'http';
             const cookieUpdate = {
-              url: `https://${cookie.domain}${cookie.path}`,
+              url: `${protocol}://${cookie.domain}${cookie.path}`,
               httpOnly: cookie.httpOnly,
               name: cookie.name,
               value: cookie.value,
@@ -220,18 +254,18 @@ export default background({
               secure: cookie.secure,
               expirationDate: parseInt(modExpiry, 10),
               storeId: cookie.storeId,
+              sameSite: cookie.sameSite,
             };
             // non host-only domains need a domain property
             if (cookie.domain.startsWith('.')) {
               cookieUpdate.domain = cookie.domain;
+              cookieUpdate.url = `${protocol}://${cookie.domain.substring(1)}${cookie.path}`;
             }
             // firstPartyDomain only if provided, not supported on chrome
             if (cookieUpdate.firstPartyDomain) {
               cookieUpdate.firstPartyDomain = cookie.firstPartyDomain;
             }
-            if (this.DEBUG) {
-              console.log(LOGKEY, 'update cookie expiry', cookieId(cookie), new Date(modExpiry * 1000));
-            }
+            logger.debug('update cookie expiry', cookieId(cookie), new Date(cookie.expirationDate * 1000), '->', new Date(modExpiry * 1000));
             cookies.set(cookieUpdate);
             return 'update';
           }
@@ -252,7 +286,7 @@ export default background({
     // convert cookies to a map against the database keys
     const cookieMap = ckis.reduce((hash, { cookie, removed }) => {
       const { domain, expirationDate, httpOnly, name, secure, value, path, storeId,
-        firstPartyDomain } = cookie;
+        firstPartyDomain, sameSite, session } = cookie;
       return Object.assign(hash, {
         [cookieId(cookie)]: {
           domain,
@@ -266,6 +300,8 @@ export default background({
           removed,
           storeId,
           firstPartyDomain: firstPartyDomain || '',
+          sameSite,
+          session: session ? 1 : 0,
         }
       });
     }, Object.create(null));
@@ -283,23 +319,36 @@ export default background({
   },
 
   async pruneDb() {
-    if (this.DEBUG) {
-      console.log(LOGKEY, 'prunedb');
-    }
     const dayCutoff = new Date();
     dayCutoff.setDate(dayCutoff.getDate() - 30);
     const pruneVisits = this.db.visits.where('day')
-      .below(dayCutoff.toISOString().substring(0, 10))
+      .below(formatDate(dayCutoff))
       .delete();
     const pruneCookies = this.db.trackerCookies.where('created')
       .below(dayCutoff.getTime())
       .delete();
+    // prune session cookies
+    dayCutoff.setDate(dayCutoff.getDate() + 29);
+    const sessionCookies = this.db.trackerCookies.where('session').equals(1)
+      .filter(c => c.created < dayCutoff);
+    // run a batch for session cookies to make sure they are deleted
+    await this.onCookieBatch(
+      (await sessionCookies.toArray()).map(cookie => ({ cookie, removed: false }))
+    );
     return this.telemetry('prune', {
       visitsPruned: await pruneVisits,
       cookiesPruned: await pruneCookies,
+      sessionsPruned: await sessionCookies.delete(),
       visitsCount: await this.db.visits.count(),
       cookiesCount: await this.db.trackerCookies.count(),
     });
+  },
+
+  isTrackerDomain(domain) {
+    if (!this.trackers) {
+      return false;
+    }
+    return this.trackers.isTrackerDomain(md5(cookieGeneralDomain(domain)).substring(0, 16));
   },
 
   events: {},

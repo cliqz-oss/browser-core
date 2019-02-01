@@ -1,4 +1,5 @@
-import Rx from '../../platform/lib/rxjs';
+import { from } from 'rxjs';
+import { map } from 'rxjs/operators';
 import BaseProvider from './base';
 import { getResponse } from '../responses';
 import utils from '../../core/utils';
@@ -28,30 +29,31 @@ export default class QuerySuggestionProvider extends BaseProvider {
 
     const engine = searchUtils.getDefaultSearchEngine();
 
-    return Rx.Observable
-      .fromPromise(utils.getSuggestions(query))
-      .map(([q, suggestions]) => (getResponse(
-        this.id,
-        config,
-        query,
-        suggestions
-          .filter(suggestion => suggestion !== query)
-          .map(suggestion => ({
-            query: q,
-            url: engine.getSubmissionForQuery(suggestion),
-            text: suggestion,
-            data: {
-              suggestion,
-              kind: ['Z'],
-              extra: {
-                searchEngineName: engine.name,
-                mozActionUrl: getSearchEngineUrl(engine, suggestion, suggestion),
+    return from(utils.getSuggestions(query))
+      .pipe(
+        map(([q, suggestions]) => (getResponse(
+          this.id,
+          config,
+          query,
+          suggestions
+            .filter(suggestion => suggestion !== query)
+            .map(suggestion => ({
+              query: q,
+              url: engine.getSubmissionForQuery(suggestion),
+              text: suggestion,
+              data: {
+                suggestion,
+                kind: ['Z'],
+                extra: {
+                  searchEngineName: engine.name,
+                  mozActionUrl: getSearchEngineUrl(engine, suggestion, suggestion),
+                },
               },
-            },
-            type: 'supplementary-search',
-          })),
-        'done'
-      )))
-      .let(this.getOperators());
+              type: 'supplementary-search',
+            })),
+          'done'
+        ))),
+        this.getOperators()
+      );
   }
 }

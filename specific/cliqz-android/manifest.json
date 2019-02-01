@@ -49,7 +49,7 @@
   ],
   "background": {
     "scripts": [
-      "modules/vendor/Rx.min.js",
+      "modules/vendor/math-expression-evaluator.min.js",
       "modules/cliqz-android/app.bundle.js"
     ]
   }

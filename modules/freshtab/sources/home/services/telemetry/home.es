@@ -19,6 +19,15 @@ export function historyClickSignal() {
   });
 }
 
+export function historyPaginationHoverSignal(index) {
+  telemetry({
+    type: 'home',
+    action: 'hover',
+    target: 'history_pagination',
+    index,
+  });
+}
+
 export function historyPaginationClickSignal(index) {
   telemetry({
     type: 'home',

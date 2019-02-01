@@ -9,9 +9,6 @@ import {
   AboutCliqz,
 } from '../platform/freshtab/new-tab-setting';
 
-import config from './config';
-
-const NEW_TAB_URL = config.settings.NEW_TAB_URL;
 const PREF_NEW_TAB_BUTTON_STATE = 'freshtab.state';
 const PREF_HOME_PAGE_BACKUP = 'backup.homepage';
 
@@ -48,7 +45,7 @@ export default {
 
   enableNewTabPage() {
     AboutCliqz.register();
-    setNewTabPage(NEW_TAB_URL);
+    setNewTabPage(this.NEW_TAB_URL);
   },
 
   enableHomePage() {
@@ -64,7 +61,7 @@ export default {
     prefs.set(PREF_HOME_PAGE_BACKUP, currentHomePage);
     prefs.set(PREF_NEW_TAB_BUTTON_STATE, true);
 
-    setHomePage(NEW_TAB_URL);
+    setHomePage(this.NEW_TAB_URL);
   },
 
 
@@ -77,9 +74,9 @@ export default {
 
     AboutCliqz.unregister();
 
-    if ((currentHomePage === NEW_TAB_URL) && homePageBackup) {
+    if ((currentHomePage === this.NEW_TAB_URL) && homePageBackup) {
       setHomePage(homePageBackup);
-    } else if (currentHomePage !== NEW_TAB_URL) {
+    } else if (currentHomePage !== this.NEW_TAB_URL) {
       prefs.set(PREF_HOME_PAGE_BACKUP, currentHomePage);
     }
 

@@ -20,7 +20,7 @@ export default function () {
     let resultSignalCount;
 
     beforeEach(async function () {
-      blurUrlBar();
+      await blurUrlBar();
 
       // clear telemetry
       win.allTelemetry = [];

@@ -195,20 +195,20 @@ export default function () {
         }
       },
 
-      'imgtest.html': {
-        'http://localhost:3000/imgtest.html': function (r, topic, md) {
-          testMainDocument(r, topic, md);
-          testResponseCode(r, topic);
-        },
-        'http://localhost:3000/test.gif?context=imgtest&callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
-          testInMainFrame(r, topic, md, 'image');
-          testResponseCode(r, topic);
-        },
-        'http://127.0.0.1:3000/test.gif?context=imgtest&callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
-          testInMainFrame(r, topic, md, 'image');
-          testResponseCode(r, topic);
-        }
-      },
+      // 'imgtest.html': {
+      //   'http://localhost:3000/imgtest.html': function (r, topic, md) {
+      //     testMainDocument(r, topic, md);
+      //     testResponseCode(r, topic);
+      //   },
+      //   'http://localhost:3000/test.gif?context=imgtest&callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
+      //     testInMainFrame(r, topic, md, 'image');
+      //     testResponseCode(r, topic);
+      //   },
+      //   'http://127.0.0.1:3000/test.gif?context=imgtest&callback=func&uid=04C2EAD03BAB7F5E-2E85855CF4C75134': function (r, topic, md) {
+      //     testInMainFrame(r, topic, md, 'image');
+      //     testResponseCode(r, topic);
+      //   }
+      // },
 
       // 'crossdomainxhr.html': {
       //   'http://localhost:3000/crossdomainxhr.html': function(r, topic, md) {

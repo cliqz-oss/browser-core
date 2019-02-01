@@ -1,10 +1,9 @@
-import Rx from '../../../platform/lib/rxjs';
+import { pipe } from 'rxjs';
+import { scan } from 'rxjs/operators';
 
 import smoothClusters from '../responses/smooth-clusters';
 import smoothResponses from '../responses/smooth-responses';
 import { hasResults, isDone } from '../responses/utils';
-
-const { scan } = Rx.operators;
 
 const smoothResults = (
   previousResult,
@@ -65,9 +64,9 @@ const smoothResults = (
  * @param {Object} config - The configuration.
  * @param {Object} config.providers - Available providers (with order).
  */
-export default config => scan(
+export default config => pipe(scan(
   (previousResult, currentResult) =>
     smoothResults(previousResult, currentResult, config),
   // initial value (result) for `scan`
   { responses: [] }
-);
+));

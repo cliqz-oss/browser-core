@@ -1,7 +1,8 @@
 /* global document */
 /* eslint no-param-reassign: 'off' */
 
-import { window } from './globals';
+import { chrome } from './globals';
+import { getWindow } from './browser';
 
 const eventIDs = {};
 const port = chrome.runtime.connect({ name: 'encrypted-query' });
@@ -20,10 +21,10 @@ const CLIQZEnvironment = {
   OS: 'chromium',
   isPrivate() { return chrome.extension.inIncognitoContext; },
   isOnPrivateTab() { return chrome.extension.inIncognitoContext; },
-  getWindow() { return window; },
-  openLink(win, url, newTab = false) {
+  getWindow,
+  openLink(win, url, newTab = false, active = true) {
     if (newTab) {
-      chrome.tabs.create({ url });
+      chrome.tabs.create({ url, active });
     } else {
       chrome.windows.getCurrent({ populate: true }, ({ tabs }) => {
         const activeTab = tabs.find(tab => tab.active);

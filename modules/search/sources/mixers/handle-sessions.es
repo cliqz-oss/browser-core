@@ -1,3 +1,5 @@
+import { tap, switchMap, takeUntil } from 'rxjs/operators';
+
 import Enricher from '../operators/enricher';
 import logger from '../logger';
 import mixResults from '../mixers/mix-results';
@@ -13,22 +15,30 @@ export default function handleSessions(query$, highlight$, providers, config) {
   const enricher = new Enricher();
 
   // TODO: create session ID here
-
+  const highlightWithLogger$ = highlight$.pipe(
+    tap(() => logger.log('Highlight'))
+  );
   let lastResult = {};
 
-  const results$ = query$
-    .do(({ query }) => logger.log(`Query '${query}'`))
-    .switchMap(({ query, ...params }) =>
-      mixResults({
-        query,
-        ...params,
-        resultOrder: getResultOrder(lastResult),
-      }, providers, enricher, config)
-        // stop updating once user highlighted a result
-        .takeUntil(highlight$.do(() => logger.log('Highlight'))))
-    .let(finalize(config))
-    // TODO: verify that first response always exist (check `merge-results`)
-    .do((result) => { lastResult = result; });
+  const results$ = query$.pipe(
+    tap(({ query }) => logger.log(`Query '${query}'`)),
+    switchMap(
+      ({ query, ...params }) => mixResults(
+        {
+          query,
+          ...params,
+          resultOrder: getResultOrder(lastResult),
+        },
+        providers,
+        enricher,
+        config,
+      ).pipe(takeUntil(highlightWithLogger$)),
+    ),
+    finalize(config),
+    tap((result) => {
+      lastResult = result;
+    }),
+  );
 
   return results$;
 }

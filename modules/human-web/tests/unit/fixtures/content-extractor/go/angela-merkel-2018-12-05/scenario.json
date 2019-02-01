@@ -1,0 +1,79 @@
+{
+  "url": "https://www.google.com/search?hl=en&q=angela%20merkel",
+
+  "mustContain": [{
+    "type": "humanweb",
+    "action": "query",
+    "payload": {
+      "r": {
+        "0": { "t": "Angela Merkel - Wikipedia",
+               "u": "https://en.wikipedia.org/wiki/Angela_Merkel",
+               "age": null },
+        "1": { "t": "Angela Merkel – Wikipedia",
+               "u": "https://de.wikipedia.org/wiki/Angela_Merkel",
+               "age": null },
+        "2": { "t": "Angela Merkel - The New York Times",
+               "u": "http://www.nytimes.com/topic/person/angela-merkel",
+               "age": null },
+        "3": { "t": "Bundeskanzlerin | Angela Merkel",
+               "u": "https://www.bundeskanzlerin.de/bkin-en/angela-merkel",
+               "age": null },
+        "4": { "t": "Angela Merkel | World | The Guardian",
+               "u": "https://www.theguardian.com/world/angela-merkel",
+               "age": null },
+        "5": { "t": "Angela Merkel: Verzicht auf den Parteivorsitz | ZEIT ONLINE - Die Zeit",
+               "u": "https://www.zeit.de/thema/angela-merkel",
+               "age": null },
+        "6": { "t": "Angela Merkel - Forbes",
+               "u": "https://www.forbes.com/profile/angela-merkel/",
+               "age": null },
+        "7": { "t": "Angela Merkel - SPIEGEL ONLINE",
+               "u": "http://www.spiegel.de/thema/angela_merkel/",
+               "age": null } },
+      "q": "angela merkel",
+      "qurl": "https://www.google.com/search?hl=en&q=angela%20merkel",
+      "ctry": "de"
+    }
+  }, {
+    "type": "humanweb",
+    "action": "top-stories",
+    "payload": {
+      "r": {
+        "0": { "u": "http://www.spiegel.de/politik/deutschland/angela-merkel-von-forbes-magazin-zur-maechtigsten-frau-der-welt-gekuert-a-1242126.html",
+               "lu": "4 hours ago",
+               "h": "Auszeichnung: \"Forbes\" kürt Merkel erneut zur mächtigsten Frau der Welt" },
+        "1": { "u": "https://www.faz.net/aktuell/politik/inland/schaeuble-oder-merz-wer-hat-angela-merkel-erfunden-15926332.html",
+               "lu": "1 day ago",
+               "h": "Wer hat das Copyright auf Merkels Karriere?" },
+        "2": { "u": "https://www.gala.de/stars/news/angela-merkel--sie-ist-die-maechtigste-frau-der-welt-21966450.html",
+               "lu": "4 hours ago",
+               "h": "Angela Merkel: Sie ist die mächtigste Frau der Welt" },
+        "3": { "u": "https://www.welt.de/politik/ausland/article185050430/Washington-Fuer-Merkels-Zukunft-haben-Amerikas-CDU-Mitglieder-schon-eine-Idee.html",
+               "lu": "4 hours ago",
+               "h": "Washington: Für Merkels Zukunft haben Amerikas CDU-Mitglieder schon eine \nIdee" },
+        "4": { "u": "https://www.cicero.de/innenpolitik/cdu-parteitag-parteivorsitz-angela-merkel-jens-spahn-annegret-kramp-karrenbauer-friedrich-merz",
+               "lu": "8 hours ago",
+               "h": "Rennen um den Vorsitz beim CDU-Parteitag - „Erteilt den alten \nTempelideologen eine Absage!“ | Cicero ..." },
+        "5": { "u": "https://jungefreiheit.de/politik/ausland/2018/merkel-soll-kampagne-gegen-jerusalem-als-hauptstadt-israels-gefuehrt-haben/",
+               "lu": "8 hours ago",
+               "h": "Merkel soll Kampagne gegen Jerusalem als Hauptstadt Israels geführt haben" },
+        "6": { "u": "https://www.bild.de/politik/inland/politik-inland/forbes-angela-merkel-ist-wieder-die-maechtigste-frau-des-jahres-58836364.bild.html",
+               "lu": "9 hours ago",
+               "h": "„Forbes“: Angela Merkel ist die „mächtigste Frau des Jahres“" },
+        "7": { "u": "https://www.stern.de/politik/deutschland/cdu--wolfgang-schaeuble-und-seine-art-zu-sagen---angela-merkel-muss-weg-8478218.html",
+               "lu": "9 hours ago",
+               "h": "CDU: Wolfgang Schäuble und seine Art zu sagen - Angela Merkel muss weg" },
+        "8": { "u": "https://www.jpost.com/International/Merkel-urged-EU-countries-to-not-move-embassies-to-Jerusalem-due-to-Iran-573452",
+               "lu": "12 hours ago",
+               "h": "Merkel urged EU countries not to move embassies to Jerusalem" },
+        "9": { "u": "https://www.nbcnews.com/card/who-attending-president-george-h-w-bush-s-funeral-n944101",
+               "lu": "12 hours ago",
+               "h": "Prince Charles, Angela Merkel among foreign dignitaries attending Bush's \nfuneral" } },
+      "q": "angela merkel",
+      "qurl": "https://www.google.com/search?hl=en&q=angela%20merkel",
+      "ctry": "de"
+    }
+  }],
+
+  "mustNotContain": [{ "action": "ads_*" }]
+}

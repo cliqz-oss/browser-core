@@ -9,7 +9,6 @@ const CLIQZEnvironment = {
   SKIN_PATH: 'chrome://cliqz/content/static/skin/',
   prefs: Components.classes['@mozilla.org/preferences-service;1'].getService(Components.interfaces.nsIPrefService).getBranch(''),
   RESULTS_TIMEOUT: 1000, // 1 second
-  BROWSER_ONBOARDING_PREF: 'browserOnboarding',
 
   init() { },
 

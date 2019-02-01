@@ -2,7 +2,6 @@
 import {
   registerContentScript,
 } from '../core/content/helpers';
-import { getImageDiverterCallerFunc } from '../core/content/image-diverter';
 import { onApplyActions, preShowActions } from './content/processing';
 import { pop, log } from './content/transport';
 import { render } from './content/view';
@@ -31,7 +30,6 @@ const renderPopup = (window, chrome, CLIQZ, renderOnce) => (msg) => {
     onCancel: type => pop(CLIQZ, {target, data: {...info, ok: false, type}}),
     onCopyCode: () => log(CLIQZ, {target, data: {...info, type: 'copy-code', ok: true}}),
     config: newConfig,
-    readContentAsDataUrl: getImageDiverterCallerFunc(CLIQZ),
   });
   log(CLIQZ, { target, data: {...info, type: 'show', ok: true}});
 };

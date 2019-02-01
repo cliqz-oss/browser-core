@@ -1,5 +1,5 @@
 import OfferJob from './job';
-import OffersBG from '../../background';
+import ActionID from '../actions-defs';
 /**
  * @class ContextFilter
  */
@@ -12,8 +12,9 @@ import OffersBG from '../../background';
  * @method filterOfferByCategory
  * @param {Offer} offer
  * @param {CategoriesMatchTraits} activeCategoriesMatches
+ * @param {(Offer, string) => ()} offerIsFilteredOutCb
  */
-const filterOfferByCategory = (offer, activeCategoriesMatches) => {
+const filterOfferByCategory = (offer, activeCategoriesMatches, offerIsFilteredOutCb) => {
   if (!offer.hasCategories() || offer.categories.length === 0) {
     return true;
   }
@@ -21,15 +22,7 @@ const filterOfferByCategory = (offer, activeCategoriesMatches) => {
   if (activeCategoriesMatches.haveCommonWith(offerCatList)) {
     return true;
   }
-  OffersBG.offersAPI.processRealEstateMessage({
-    type: 'offer-action-signal',
-    origin: 'processor',
-    data: {
-      offer_id: offer.offerObj.offer_id,
-      action_id: 'filtered_by_context',
-      campaign_id: offer.offerObj.campaign_id
-    }
-  });
+  offerIsFilteredOutCb(offer, ActionID.AID_OFFER_FILTERED_CONTEXT);
   return false;
 };
 
@@ -47,8 +40,8 @@ export default class ContextFilter extends OfferJob {
    * @param {BackendOffer[]}
    * @param {UrlData} urlData
    */
-  process(offerList, { urlData }) {
+  process(offerList, { urlData, offerIsFilteredOutCb }) {
     return Promise.resolve(offerList.filter(offer =>
-      filterOfferByCategory(offer, urlData.getCategoriesMatchTraits())));
+      filterOfferByCategory(offer, urlData.getCategoriesMatchTraits(), offerIsFilteredOutCb)));
   }
 }

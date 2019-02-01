@@ -1,11 +1,16 @@
 import background from '../core/base/background';
 import utils from '../core/utils';
 import inject from '../core/kord/inject';
-import prefs from '../core/prefs';
+import prefs, { getCliqzPrefs } from '../core/prefs';
 import console from '../core/console';
 import config from '../core/config';
 import { promiseHttpHandler } from '../core/http';
-import { isOnionMode } from '../core/platform';
+import { isOnionModeFactory } from '../core/platform';
+import { getDaysSinceInstall } from '../core/demographics';
+import setTimeoutInterval from '../core/helpers/timeout';
+
+const INFO_INTERVAL = 60 * 60 * 1e3; // 1 hour
+const isOnionMode = isOnionModeFactory(prefs);
 
 /* eslint-disable no-param-reassign */
 const createTelemetry = (bg) => {
@@ -75,7 +80,7 @@ const createTelemetry = (bg) => {
       return;
     }
 
-    if (isOnionMode) {
+    if (isOnionMode()) {
       return;
     }
 
@@ -101,7 +106,25 @@ const createTelemetry = (bg) => {
 };
 /* eslint-enable no-param-reassign */
 
+async function sendEnvironmentalSignal({ startup, instantPush }) {
+  const info = {
+    type: 'environment',
+    agent: navigator.userAgent,
+    language: navigator.language,
+    version: utils.extensionVersion,
+    history_days: -1, // TODO ?
+    history_urls: -1, // TODO ?
+    startup,
+    prefs: getCliqzPrefs(),
+    install_date: await getDaysSinceInstall(),
+  };
+  utils.telemetry(info, instantPush);
+}
+
+
 export default background({
+  requiresServices: ['cliqz-config'],
+
   init() {
     this.trk = [];
     this.telemetry = createTelemetry(this);
@@ -109,12 +132,23 @@ export default background({
     if (index === -1) {
       utils.telemetryHandlers.push(this.telemetry);
     }
+
+    sendEnvironmentalSignal({ startup: true, instantPush: true });
+    this.whoAmItimer = setTimeoutInterval(
+      sendEnvironmentalSignal.bind(null, { startup: false }),
+      INFO_INTERVAL
+    );
   },
 
   unload() {
     const index = utils.telemetryHandlers.indexOf(this.telemetry);
     if (index !== -1) {
       utils.telemetryHandlers.splice(index, 1);
+    }
+
+    if (this.whoAmItimer !== null) {
+      this.whoAmItimer.stop();
+      this.whoAmItimer = null;
     }
   },
 

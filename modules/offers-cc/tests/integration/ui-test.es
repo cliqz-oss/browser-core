@@ -25,7 +25,7 @@ const getBlueNotificationPopup = () => win.document.querySelector('#offers-cc-br
 
 export default function () {
   if (isWebExtension) { return; }
-  describe('offers-cc offers UI', function () {
+  xdescribe('offers-cc offers UI', function () {
     beforeEach(async function () {
       await mockOffersBackend({ dest: 'offers-cc' });
 

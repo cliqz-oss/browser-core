@@ -104,7 +104,7 @@ import { buildSimplePatternIndex } from '../common/pattern-utils';
  * @class CategoryHandler
  */
 export default class CategoryHandler {
-  constructor(historyFeature, db) {
+  constructor(historyFeature) {
     this.catTree = new CategoryTree();
     this.catMatch = new CategoryMatch();
     if (historyFeature && historyFeature.isAvailable()) {
@@ -112,17 +112,20 @@ export default class CategoryHandler {
     } else {
       this.historyFeature = null;
     }
+    // the caller should call init()
+  }
+
+  async init(db) {
     this.persistentHelper = new CategoryPersistentDataHelper(db);
     this.metadata = {
       version: 1
     };
     // for now we always save metadata
     this.dayCounterHelper = new DayCounterHelper();
-    this.persistentHelper.loadDayCounterData().then((data) => {
-      if (data) {
-        this.dayCounterHelper.deserialize(data);
-      }
-    });
+    const data = await this.persistentHelper.loadDayCounterData();
+    if (data) {
+      this.dayCounterHelper.deserialize(data);
+    }
   }
 
   /**

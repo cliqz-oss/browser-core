@@ -1,0 +1,48 @@
+{
+  "url": "https://www.google.com/search?hl=en&ei=7OV_W-SnIYe0sAfUsKOoBg&q=ungeheuer+von+loch+ns&oq=ungeheuer+von+loch+ns",
+
+  "mustContain": [{
+    "type": "humanweb",
+    "action": "query",
+    "payload": {
+      "r": {
+        "0": { "t": "Loch Ness Monster - Wikipedia",
+               "u": "https://en.wikipedia.org/wiki/Loch_Ness_Monster",
+               "age": null },
+        "1": { "t": "Ungeheuer von Loch Ness – Wikipedia",
+               "u": "https://de.wikipedia.org/wiki/Ungeheuer_von_Loch_Ness",
+               "age": null },
+        "2": { "t": "Loch Ness: Wissenschaftler wollen Geheimnis um Nessie endgültig ...",
+               "u": "https://www.tagesspiegel.de/weltspiegel/loch-ness-wissenschaftler-wollen-geheimnis-um-nessie-endgueltig-loesen/22611984.html",
+               "age": "May 29, 2018 - " },
+        "3": { "t": "Britische Schauergestalten: Nessie – das Ungeheuer von Loch Ness ...",
+               "u": "https://www.planet-wissen.de/kultur/fabelwesen/britische_schauergestalten/pwienessiedasungeheuervonlochness100.html",
+               "age": null },
+        "4": { "t": "Das Monster von Loch Ness - Mystisches England",
+               "u": "http://www.mystisches-england.de/mystisches-schottland/schottland-highlands/loch-ness/monster-von-loch-ness.html",
+               "age": null },
+        "5": { "t": "Das machen die Schotten, sollten sie das Loch-Ness-Ungeheuer fangen",
+               "u": "https://www.stern.de/neon/feierabend/reise/loch-ness--das-machen-die-schotten--sollten-sie-das-ungeheuer-fangen-8159668.html",
+               "age": "Jul 8, 2018 - " },
+        "6": { "t": "Ungeheuer von Loch Ness – Klexikon - Das Freie Kinderlexikon",
+               "u": "https://klexikon.zum.de/wiki/Ungeheuer_von_Loch_Ness",
+               "age": "Sep 11, 2018 - " },
+        "7": { "t": "Der wahre Kern: Das Ungeheuer von Loch Ness - [P.M. MAGAZIN]",
+               "u": "https://www.pm-magazin.de/38-rtkl-der-wahre-kern-das-ungeheuer-von-loch-ness",
+               "age": null } },
+      "q": "ungeheuer von loch ness",
+      "qurl": "https://www.google.com/search?hl=en&ei=7OV_W-SnIYe0sAfUsKOoBg&q=ungeheuer+von+loch+ns&oq=ungeheuer+von+loch+ns",
+      "ctry": "de"
+    }
+  }, {
+    "type": "humanweb",
+    "action": "sq",
+    "payload": {
+      "oq": "ungeheuer von loch ns",
+      "sq": "ungeheuer von loch ness",
+      "ctry": "de"
+    }
+  }],
+
+  "mustNotContain": [{ "action": "ads_*" }, { "action": "top-stories" }]
+}

@@ -52,10 +52,10 @@ describe('Initializing Freshtab', function () {
         && (typeof s.args[0].favorite_count !== 'undefined')
         && (typeof s.args[0].is_favorites_on !== 'undefined')
         && (typeof s.args[0].is_news_on !== 'undefined')
-        && (typeof s.args[0].is_stats_on !== 'undefined')
         && (typeof s.args[0].is_search_bar_on !== 'undefined')
         && (typeof s.args[0].is_topsites_on !== 'undefined')
         && (typeof s.args[0].topsite_count !== 'undefined')
+        && (typeof s.args[0].is_stats_on !== 'undefined')
       );
     }).length;
 

@@ -12,7 +12,8 @@ export default class Win {
 
   status() {
     return {
-      visible: true
+      visible: true,
+      url: chrome.runtime.getURL('modules/privacy-dashboard/index.html')
     };
   }
 }

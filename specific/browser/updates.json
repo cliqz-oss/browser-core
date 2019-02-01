@@ -1,0 +1,12 @@
+{
+  "addons": {
+    "{{id}}": {
+      "updates": [
+        {
+          "version": "{{version}}",
+          "update_link": "{{artifactUrl}}"
+        }
+      ]
+    }
+  }
+}

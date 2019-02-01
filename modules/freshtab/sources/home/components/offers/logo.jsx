@@ -16,7 +16,7 @@ function Logo(props) {
       <div
         className={`logo ${props.data.logo_class}`}
       >
-        <img src={props.data.logo_url} alt="logo" />
+        <img src={props.data.logo_dataurl} alt="logo" />
       </div>
     </a>
   );

@@ -11,7 +11,6 @@
     "RESULTS_TIMEOUT": 3000,
     "freshTabNews": true,
     "CDN_BASEURL": "https://cdn.cliqz.com",
-    "CDN_CONTENTSCRIPT_BASEURL": "https://cdn3.cliqz.com",
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
     "OFFERS_BE_BASE_URL": "https://offers-api.cliqz.com",
     "TRACKER_PROXY_PROXY_SIGNALING_DEFAULT": "wss://p2p-signaling-proxypeer.cliqz.com",

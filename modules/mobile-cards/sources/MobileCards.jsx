@@ -17,7 +17,7 @@ export default class MobileCards extends React.Component {
 
   actions = {
     renderResults: results => this.setState({ results }),
-    changeTheme: theme => this.setState({ theme })
+    changeTheme: theme => this.setState({ theme, results: [] })
   }
 
   async init() {

@@ -1,3 +1,5 @@
+import { map, startWith, combineLatest } from 'rxjs/operators';
+
 import logger from '../logger';
 import { getMainLink } from './normalize';
 import cluster from './cluster';
@@ -19,10 +21,11 @@ class Enricher {
   //       note: history might come after backend
   connect(target, source) {
     // FIXME: this is never unsubscribed from!
-    return target
-      .map(cluster)
-      .combineLatest(source.startWith({ results: [] }))
-      .map(this.enrich.bind(this));
+    return target.pipe(
+      map(cluster),
+      combineLatest(source.pipe(startWith({ results: [] }))),
+      map(this.enrich.bind(this))
+    );
   }
 
   /*

@@ -21,7 +21,8 @@ export default {
                 estimate_actual_time: '11:04',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 2',
-                gate_full: 'Gate L11'
+                gate_full: 'Gate L11',
+                GMT: 'GMT+10'
               },
               1: {
                 location_name: 'Frankfurt',
@@ -30,7 +31,8 @@ export default {
                 estimate_actual_time: '16:15',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 1',
-                gate_full: 'Gate B54'
+                gate_full: 'Gate B54',
+                GMT: 'GMT+10'
               }
             }
           }
@@ -61,7 +63,8 @@ export default {
                 estimate_actual_time: '11:04',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 2',
-                gate_full: 'Gate L11'
+                gate_full: 'Gate L11',
+                GMT: 'GMT+10'
               },
               1: {
                 location_name: 'Frankfurt',
@@ -71,7 +74,8 @@ export default {
                 estimate_actual_date: 'Tue, 14 February',
                 scheduled_time: '16:15',
                 terminal_full: 'Terminal 1',
-                gate_full: 'Gate B54'
+                gate_full: 'Gate B54',
+                GMT: 'GMT+10'
               }
             }
           }
@@ -102,7 +106,8 @@ export default {
                 estimate_actual_time: '10:59',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 2',
-                gate_full: 'Gate L11'
+                gate_full: 'Gate L11',
+                GMT: 'GMT+10'
               },
               1: {
                 location_name: 'Frankfurt',
@@ -112,7 +117,8 @@ export default {
                 estimate_actual_date: 'Tue, 14 February',
                 estimate_actual_time: '17:25',
                 terminal_full: 'Terminal 1',
-                gate_full: 'Gate B54'
+                gate_full: 'Gate B54',
+                GMT: 'GMT+10'
               }
             }
           }
@@ -143,7 +149,8 @@ export default {
                 estimate_actual_time: '11:00',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 2',
-                gate_full: 'Gate L11'
+                gate_full: 'Gate L11',
+                GMT: 'GMT+10'
               },
               1: {
                 location_name: 'Frankfurt',
@@ -153,7 +160,8 @@ export default {
                 estimate_actual_date: 'Tue, 14 February',
                 actual_time: '17:25',
                 terminal_full: 'Terminal 1',
-                gate_full: 'Gate B54'
+                gate_full: 'Gate B54',
+                GMT: 'GMT+10'
               }
             }
           }
@@ -184,7 +192,8 @@ export default {
                 estimate_actual_time: '10:59',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 2',
-                gate_full: 'Gate L11'
+                gate_full: 'Gate L11',
+                GMT: 'GMT+10'
               },
               1: {
                 location_name: 'Frankfurt',
@@ -194,7 +203,8 @@ export default {
                 estimate_actual_date: 'Tue, 14 February',
                 estimate_actual_time: '16:05',
                 terminal_full: 'Terminal 1',
-                gate_full: 'Gate B54'
+                gate_full: 'Gate B54',
+                GMT: 'GMT+10'
               }
             }
           }
@@ -224,7 +234,8 @@ export default {
                 estimate_actual_time: '11:04',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 2',
-                gate_full: 'Gate L11'
+                gate_full: 'Gate L11',
+                GMT: 'GMT+10'
               },
               1: {
                 location_name: 'Frankfurt',
@@ -233,7 +244,8 @@ export default {
                 estimate_actual_time: '16:15',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 1',
-                gate_full: 'Gate B54'
+                gate_full: 'Gate B54',
+                GMT: 'GMT+10'
               }
             }
           }
@@ -264,7 +276,8 @@ export default {
                 estimate_actual_time: '13:14',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 2',
-                gate_full: 'Gate L11'
+                gate_full: 'Gate L11',
+                GMT: 'GMT+10'
               },
               1: {
                 location_name: 'Frankfurt',
@@ -274,7 +287,8 @@ export default {
                 estimate_actual_time: '17:25',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 1',
-                gate_full: 'Gate B54'
+                gate_full: 'Gate B54',
+                GMT: 'GMT+10'
               }
             }
           }
@@ -305,7 +319,8 @@ export default {
                 estimate_actual_time: '11:00',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 2',
-                gate_full: 'Gate L11'
+                gate_full: 'Gate L11',
+                GMT: 'GMT+10'
               },
               1: {
                 location_name: 'Frankfurt',
@@ -315,7 +330,8 @@ export default {
                 estimate_actual_time: '17:25',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 1',
-                gate_full: 'Gate B54'
+                gate_full: 'Gate B54',
+                GMT: 'GMT+10'
               }
             }
           }
@@ -346,7 +362,8 @@ export default {
                 estimate_actual_time: '11:04',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 2',
-                gate_full: 'Gate L11'
+                gate_full: 'Gate L11',
+                GMT: 'GMT+10'
               },
               1: {
                 location_name: 'Frankfurt',
@@ -356,7 +373,8 @@ export default {
                 estimate_actual_time: '16:15',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 1',
-                gate_full: 'Gate B54'
+                gate_full: 'Gate B54',
+                GMT: 'GMT+10'
               }
             }
           }
@@ -387,7 +405,8 @@ export default {
                 estimate_actual_time: '11:04',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 2',
-                gate_full: 'Gate L11'
+                gate_full: 'Gate L11',
+                GMT: 'GMT+10'
               },
               1: {
                 location_name: 'Frankfurt',
@@ -397,7 +416,8 @@ export default {
                 estimate_actual_time: '16:15',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 1',
-                gate_full: 'Gate B54'
+                gate_full: 'Gate B54',
+                GMT: 'GMT+10'
               }
             }
           }
@@ -428,7 +448,8 @@ export default {
                 estimate_actual_time: '11:04',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 2',
-                gate_full: 'Gate L11'
+                gate_full: 'Gate L11',
+                GMT: 'GMT+10'
               },
               1: {
                 location_name: 'Frankfurt',
@@ -439,7 +460,8 @@ export default {
                 scheduled_time: '16:15',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 1',
-                gate_full: 'Gate B54'
+                gate_full: 'Gate B54',
+                GMT: 'GMT+10'
               }
             }
           }
@@ -468,7 +490,8 @@ export default {
                 estimate_actual_time: '11:04',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 2',
-                gate_full: 'Gate L11'
+                gate_full: 'Gate L11',
+                GMT: 'GMT+10'
               },
               1: {
                 location_name: 'Frankfurt',
@@ -477,7 +500,8 @@ export default {
                 estimate_actual_time: '16:15',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 1',
-                gate_full: 'Gate B54'
+                gate_full: 'Gate B54',
+                GMT: 'GMT+10'
               }
             }
           }
@@ -507,7 +531,8 @@ export default {
                 estimate_actual_time: '11:04',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 2',
-                gate_full: 'Gate L11'
+                gate_full: 'Gate L11',
+                GMT: 'GMT+10'
               },
               1: {
                 location_name: 'Frankfurt',
@@ -516,7 +541,8 @@ export default {
                 estimate_actual_time: '16:15',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 1',
-                gate_full: 'Gate B54'
+                gate_full: 'Gate B54',
+                GMT: 'GMT+10'
               }
             }
           }
@@ -547,7 +573,8 @@ export default {
                 estimate_actual_time: '11:04',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 2',
-                gate_full: 'Gate L11'
+                gate_full: 'Gate L11',
+                GMT: 'GMT+10'
               },
               1: {
                 location_name: 'Frankfurt',
@@ -556,7 +583,8 @@ export default {
                 estimate_actual_time: '16:15',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 1',
-                gate_full: 'Gate B54'
+                gate_full: 'Gate B54',
+                GMT: 'GMT+10'
               }
             }
           }
@@ -587,7 +615,8 @@ export default {
                 estimate_actual_time: '11:10',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 2',
-                gate_full: 'Gate L11'
+                gate_full: 'Gate L11',
+                GMT: 'GMT+10'
               },
               1: {
                 location_name: 'Frankfurt',
@@ -596,7 +625,8 @@ export default {
                 estimate_actual_time: '16:15',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 1',
-                gate_full: 'Gate B54'
+                gate_full: 'Gate B54',
+                GMT: 'GMT+10'
               }
             }
           }
@@ -627,7 +657,8 @@ export default {
                 estimate_actual_time: '11:10',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 2',
-                gate_full: 'Gate L11'
+                gate_full: 'Gate L11',
+                GMT: 'GMT+10'
               },
               1: {
                 location_name: 'Frankfurt',
@@ -636,7 +667,8 @@ export default {
                 estimate_actual_time: '16:15',
                 estimate_actual_date: 'Tue, 14 February',
                 terminal_full: 'Terminal 1',
-                gate_full: 'Gate B54'
+                gate_full: 'Gate B54',
+                GMT: 'GMT+10'
               }
             }
           }

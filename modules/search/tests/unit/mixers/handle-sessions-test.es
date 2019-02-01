@@ -1,10 +1,11 @@
 /* global chai, describeModule */
-
-const Rx = require('rxjs');
-const rxSandbox = require('rx-sandbox').rxSandbox;
+const { EMPTY } = require('rxjs');
+const { TestScheduler } = require('rxjs/testing');
+const operators = require('rxjs/operators');
 
 
 const mock = {
+  'rxjs/operators': operators,
   'search/logger': {
     default: {
       log() {},
@@ -29,34 +30,37 @@ export default describeModule('search/mixers/handle-sessions',
   () => {
     describe('#handleSessions', function () {
       let handleSessions;
-      let sandbox;
+      let scheduler;
 
       beforeEach(function () {
-        sandbox = rxSandbox.create();
-        this.deps('search/mixers/mix-results').default = () => sandbox.hot('rr|');
+        scheduler = new TestScheduler((actual, expected) => {
+          chai.expect(actual).to.deep.equal(expected);
+        });
         handleSessions = this.module().default;
       });
 
 
       it('start search for each query', function () {
-        const query$ = sandbox.hot('-q--q--|');
-        const expected = sandbox.e('   -rr-rr-|');
-
-        const messages = sandbox.getMessages(handleSessions(query$, Rx.Observable.empty()));
-        sandbox.flush();
-
-        return chai.expect(messages).to.deep.equal(expected);
+        scheduler.run((helpers) => {
+          const { hot, expectObservable, cold } = helpers;
+          this.deps('search/mixers/mix-results').default = () => cold('rr|');
+          const query$ = hot('-q--q--|');
+          const expected = '   -rr-rr-|';
+          const messages = handleSessions(query$, EMPTY);
+          expectObservable(messages).toBe(expected);
+        });
       });
 
       it('stop updating results on highlight', function () {
-        const query$ = sandbox.hot('-q--q--|');
-        const highlight$ = sandbox.hot('-----h-|');
-        const expected = sandbox.e('    -rr-r--|');
-
-        const messages = sandbox.getMessages(handleSessions(query$, highlight$));
-        sandbox.flush();
-
-        return chai.expect(messages).to.deep.equal(expected);
+        scheduler.run((helpers) => {
+          const { hot, expectObservable, cold } = helpers;
+          this.deps('search/mixers/mix-results').default = () => cold('rr|');
+          const query$ = hot('-q--q--|');
+          const highlight$ = hot('-----h-|');
+          const expected = '    -rr-r--|';
+          const messages = handleSessions(query$, highlight$);
+          expectObservable(messages).toBe(expected);
+        });
       });
     });
   });

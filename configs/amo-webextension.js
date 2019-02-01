@@ -13,7 +13,7 @@ module.exports = {
   "pack": "web-ext build -s build -a .",
   "publish": "",
   "settings": Object.assign({}, urls, settings, {
-    'OFFERS_BUTTON': true,
+    "antitrackingProtectionEnabled": false
   }),
   "default_prefs" : {
     "freshtab.search.mode": "search",
@@ -25,16 +25,15 @@ module.exports = {
   },
   "modules": [
     "core",
+    "telemetry",    
     "core-cliqz",
     "dropdown",
     "static",
     "geolocation",
-    "last-query",
     "human-web",
-    // "omnibox",
-    // "context-menu", TODO
     "freshtab",
     "webrequest-pipeline",
+    'antitracking',
     "performance",
     "hpnv2",
     "myoffrz-helper",
@@ -46,7 +45,6 @@ module.exports = {
     "browser-panel",
     "control-center",
     "message-center",
-    "offboarding",
     "anolysis",
     "anolysis-cc",
     "market-analysis",
@@ -65,6 +63,8 @@ module.exports = {
     "browser-panel/browser-panel.bundle.js",
     "offers-cc/offers-cc.bundle.js",
     "offers-banner/app.bundle.js",
+    "human-web/page.bundle.js",
+    "human-web/rusha.bundle.js",
   ],
   system: Object.assign({}, base.systemConfig, {
     map: Object.assign({}, base.systemConfig.map, {
@@ -73,11 +73,9 @@ module.exports = {
     })
   }),
   builderDefault: Object.assign({}, base.builderConfig, {
-    externals: base.builderConfig.externals.concat("@cliqz-oss/dexie", "rxjs"),
+    externals: base.builderConfig.externals.concat("@cliqz-oss/dexie"),
     globalDeps: Object.assign({}, base.builderConfig.globalDeps, {
-      "@cliqz-oss/dexie": "Dexie",
-      "rxjs": "Rx",
-      "rxjs/Rx.js": "Rx",
+      "@cliqz-oss/dexie": "Dexie"
     }),
   })
 }

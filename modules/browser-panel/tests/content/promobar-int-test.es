@@ -6,6 +6,7 @@ import {
   waitFor,
 } from '../../core/test-helpers';
 import data from './fixtures/full-long-logo';
+import config from '../../../core/config';
 
 describe('Promo bar interactions', function () {
   let subject;
@@ -21,8 +22,9 @@ describe('Promo bar interactions', function () {
 
   beforeEach(async function () {
     subject = new Subject();
+    const path = `/${config.testsBasePath}/browser-panel/index.html`;
     await subject.load({
-      buildUrl: '/build/cliqz@cliqz.com/chrome/content/browser-panel/index.html',
+      buildUrl: path,
       iframeWidth: 1700
     });
     await subject.pushData(target, data, 'render_template');

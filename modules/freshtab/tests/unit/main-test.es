@@ -17,6 +17,7 @@ export default describeModule('freshtab/main',
       },
       'core/platform': {
         isDesktopBrowser: false,
+        getResourceUrl: () => {},
       },
       'platform/freshtab/new-tab-setting': {
         setNewTabPage: '[dynamic]',

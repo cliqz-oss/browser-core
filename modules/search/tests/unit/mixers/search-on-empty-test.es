@@ -1,12 +1,12 @@
 /* global chai, describeModule */
 
 const Rx = require('rxjs');
+const operators = require('rxjs/operators');
 const rxSandbox = require('rx-sandbox').rxSandbox;
 
 const mock = {
-  'platform/lib/rxjs': {
-    default: Rx,
-  },
+  rxjs: Rx,
+  'rxjs/operators': operators,
   'search/responses': {
     getEmptyResponse: () => 'e',
   },
@@ -23,11 +23,11 @@ export default describeModule('search/mixers/search-on-empty',
       });
 
       it('searches using provider if base stream concludes without results', function () {
-        const { hot, flush, getMessages, e } = rxSandbox.create();
+        const { hot, flush, getMessages, e, cold } = rxSandbox.create();
 
         const query = '';
         const provider = {
-          search: () => hot('s-ss|'),
+          search: () => cold('s-ss|'),
         };
         const base$ = hot('----n|', {
           n: {

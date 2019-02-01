@@ -24,9 +24,9 @@ module.exports = {
     "freshTabStats": false,
     "showDataCollectionMessage": false,
     "helpMenus": true,
-    "showNewBrandAlert": true,
     "suggestions": false,
-    "onBoardingVersion": "3.0",
+    "onBoardingVersion": "3.1",
+    "onBoardingPref": "browserOnboarding",
     "HW_CHANNEL": "ghostery-browser",
     "OFFERS_CHANNEL": "ghostery",
     "NEW_TAB_URL": "resource://cliqz/freshtab/home.html",
@@ -34,26 +34,13 @@ module.exports = {
     "HISTORY_URL": "resource://cliqz/cliqz-history/index.html#/",
     "modules.history.search-path": "?query=",
     "ICONS": {
-      "active": {
-        "default": "control-center/images/cc-active.svg",
-        "dark": "control-center/images/cc-active-dark.svg"
-      },
-      "inactive": {
-        "default": "control-center/images/cc-critical.svg",
-        "dark": "control-center/images/cc-critical-dark.svg"
-      },
-      "critical": {
-        "default": "control-center/images/cc-critical.svg",
-        "dark": "control-center/images/cc-critical-dark.svg"
-      }
-    },
-    "PAGE_ACTION_ICONS": {
-      "default": "control-center/images/page-action-dark.svg",
-      "light": "control-center/images/page-action-dark.svg",
-      "dark": "control-center/images/page-action-light.svg"
+      "active": "control-center/images/cc-active.svg",
+      "inactive": "control-center/images/cc-critical.svg",
+      "critical": "control-center/images/cc-critical.svg"
     },
     "BACKGROUNDS": {
       "active": "#471647",
+      "inactive": "#471647",
       "critical": "#471647"
     },
     "ATTRACK_TELEMETRY_PROVIDER": "hpnv2",
@@ -117,7 +104,6 @@ module.exports = {
     "cookie-monster",
     "privacy",
     "inter-ext-messaging",
-    "privacy-migration",
     "myoffrz-helper"
   ],
   systemDefault: base.systemConfig,

@@ -69,6 +69,10 @@ export function getSearchEngines() {
   return searchEngines;
 }
 
+export function getSearchEnginesAsync() {
+  return Promise.resolve(searchEngines);
+}
+
 export function getEngineByName() {
   return '';
 }

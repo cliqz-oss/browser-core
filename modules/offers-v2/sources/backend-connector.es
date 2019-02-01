@@ -59,7 +59,7 @@ export default class BEConnector {
     params.t_eng_ver = OffersConfigs.TRIGGER_ENGINE_VERSION;
     params.channel = config.settings.OFFERS_CHANNEL || 'cliqz';
 
-    const url = this._buildUrl(endpoint, params);
+    const url = this._buildUrl(endpoint, params, method);
 
     // check if we have cache here
     const cacheEntry = this._cache.get(url);
@@ -76,25 +76,38 @@ export default class BEConnector {
     logger.info('backend_connector', `url called: ${url}`);
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');
-    const request = new Request(url, { headers, method });
+    const request = new Request(url, {
+      headers,
+      method,
+      body: method === 'POST' ? JSON.stringify(params) : undefined,
+    });
 
     return fetch(request).then((response) => {
       if (response.ok) {
         // set the cache
         return response.json().then((resultResponse) => {
-          this._cache.set(url, new CacheEntry(resultResponse));
+          if (method !== 'POST') {
+            this._cache.set(url, new CacheEntry(resultResponse));
+          }
           return Promise.resolve(resultResponse);
         });
       }
-      this._cache.set(url, new CacheEntry(null, response.status));
+      if (method !== 'POST') {
+        this._cache.set(url, new CacheEntry(null, response.status));
+      }
       return Promise.reject(new Error(`Status code ${response.status} for ${url}`));
     });
   }
 
-  _buildUrl(endpoint, params) {
-    return `${OffersConfigs.BACKEND_URL}/api/v1/${endpoint}?`.concat(
-      Object.keys(params).map(key => `${key}=${encodeURIComponent(params[key])}`).join('&')
-    );
+  _buildUrl(endpoint, params, method) {
+    const url = `${OffersConfigs.BACKEND_URL}/api/v1/${endpoint}`;
+    return method === 'POST'
+      ? url
+      : `${url}?${
+        Object
+          .keys(params)
+          .map(key => `${key}=${encodeURIComponent(params[key])}`)
+          .join('&')}`;
   }
 
   _expireCache() {

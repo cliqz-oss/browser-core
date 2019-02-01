@@ -6,7 +6,11 @@ import { getDetailsFromUrl } from '../core/url';
 import console from '../core/console';
 import config from '../core/config';
 
-const ORIGINAL_SEARCH_ENGINE_NAME = config.settings.DEFAULT_SEARCH_ENGINE || 'Cliqz';
+const ORIGINAL_SEARCH_ENGINE_NAME = config.settings.DEFAULT_SEARCH_ENGINE || 'Google';
+
+const browserCliqzExists = typeof browser !== 'undefined'
+  && Object(browser) === browser
+  && Object(browser.cliqz) === browser.cliqz;
 
 const storage = new Storage();
 const ENGINE_CODES = [
@@ -28,7 +32,9 @@ const getEngineCode = name => ENGINE_CODES.indexOf(name.toLowerCase()) + 1;
 function buildSearchEngines(engines, isMobile) {
   let defaultSearchEngine;
   if (isMobile) {
-    defaultSearchEngine = engines.find(e => e.isCurrent).name;
+    defaultSearchEngine = engines.find(e => e.isDefault).name;
+  } else if (browserCliqzExists) {
+    defaultSearchEngine = engines.filter(engine => engine.default)[0].name;
   } else {
     defaultSearchEngine = storage.getItem('defaultSearchEngine') || ORIGINAL_SEARCH_ENGINE_NAME;
   }
@@ -36,7 +42,7 @@ function buildSearchEngines(engines, isMobile) {
     .map(e => ({
       name: e.name,
       code: getEngineCode(e.name),
-      alias: '', // todo
+      alias: e.alias || '',
       default: e.name === defaultSearchEngine,
       icon: e.icon,
       base_url: e.searchForm || e.search.template,
@@ -49,14 +55,23 @@ function buildSearchEngines(engines, isMobile) {
           return null;
         }
 
-        const url = new URL(urlObj.template.replace('{searchTerms}', encodeURIComponent(q)));
+        let queryList = q.split(/\s+/);
+        if (queryList.length > 0 && queryList[0].trim() === e.alias) {
+          queryList.shift();
+        }
+        queryList = queryList.join(' ');
+
+        const url = new URL(urlObj.template.replace('{searchTerms}', encodeURIComponent(queryList)));
         const params = new URLSearchParams(url.search);
         (urlObj.params || []).forEach(param =>
           params.set(
-            param.name.replace('{searchTerms}', q),
-            param.value.replace('{searchTerms}', q)
+            param.name.replace('{searchTerms}', queryList),
+            param.value.replace('{searchTerms}', queryList)
           ));
-        url.search = params.toString();
+        if (urlObj.params && urlObj.params.length > 0) {
+          url.search = params.toString();
+        }
+
         return url.toString();
       },
     }));
@@ -83,6 +98,13 @@ function loadSearchEnginesFromResources() {
 }
 
 export function loadSearchEngines() {
+  if (browserCliqzExists) {
+    return browser.cliqz.getSearchEngines()
+      .then((engines) => {
+        SEARCH_ENGINES = buildSearchEngines(engines, false);
+      });
+  }
+
   if (chrome.cliqzSearchEngines) {
     return chrome.cliqzSearchEngines.getEngines()
       .then((engines) => {
@@ -130,6 +152,14 @@ export function getSearchEngines(blackListed = []) {
   return SEARCH_ENGINES.filter(e => !blackListed.includes(e.name));
 }
 
+export function getSearchEnginesAsync(blackListed = []) {
+  if (browserCliqzExists) {
+    return loadSearchEngines().then(() => getSearchEngines(blackListed));
+  }
+
+  return Promise.resolve(getSearchEngines(blackListed));
+}
+
 export function getEngineByName(name) {
   return SEARCH_ENGINES.find(engine => engine.name === name);
 }
@@ -142,6 +172,10 @@ export function setDefaultSearchEngine(name) {
   SEARCH_ENGINES.forEach((e) => {
     e.default = e.name === name;
   });
+
+  if (browserCliqzExists) {
+    browser.cliqz.setSelectedSearchEngine(name);
+  }
 }
 
 export function revertToOriginalEngine() {

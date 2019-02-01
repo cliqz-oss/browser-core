@@ -19,7 +19,9 @@ class LoaderFake {
 
 export default describeModule('offers-v2/offers/blacklist',
   () => ({
-    '../../platform/lib/adblocker': { default: {} },
+    '../../platform/lib/adblocker': { default: {
+      makeRequest: req => req,
+    } },
     '../../core/resource-loader': { default: {} },
     '../../core/config': { default: {} },
   }),

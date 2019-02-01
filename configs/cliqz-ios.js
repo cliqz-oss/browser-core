@@ -31,8 +31,7 @@ module.exports = {
     "mobile-cards",
     "video-downloader",
     "anolysis",
-    "geolocation",
-    "terms-and-conditions"
+    "geolocation"
   ],
   "bundles": [
   ],

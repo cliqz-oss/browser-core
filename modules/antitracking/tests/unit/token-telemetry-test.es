@@ -1,11 +1,13 @@
 /* global chai */
 /* global describeModule */
 const Rx = require('rxjs');
+const operators = require('rxjs/operators');
 const rxSandbox = require('rx-sandbox').rxSandbox;
 const fastUrlParser = require('fast-url-parser');
 const tldts = require('tldts');
 const mockDexie = require('../../core/unit/utils/dexie');
 // const rxSandbox = require('rx-sandbox').rxSandbox;
+const { Subject } = Rx;
 
 const mockDb = async () => {
   const Dexie = await mockDexie['platform/lib/dexie'].default();
@@ -47,20 +49,14 @@ const mockConfig = {
 
 let mockInterval;
 let mockTimer;
-let mockDelay;
 
 export default describeModule('antitracking/steps/token-telemetry', () => ({
-  'platform/lib/rxjs': {
-    default: {
-      ...Rx,
-      Observable: {
-        ...Rx.Observable,
-        interval: i => mockInterval(i),
-        timer: (a, b) => mockTimer(a, b),
-        delay: n => mockDelay(n),
-      }
-    },
+  rxjs: {
+    ...Rx,
+    interval: i => mockInterval(i),
+    timer: (a, b) => mockTimer(a, b),
   },
+  'rxjs/operators': operators,
   'antitracking/time': {
     getConfigTs() {
       return mockDate;
@@ -269,9 +265,8 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
 
       beforeEach(() => {
         sandbox = rxSandbox.create(false, 1);
-        mockInterval = () => sandbox.hot('---x---x---x');
+        mockInterval = () => sandbox.cold('---x---x---x');
         mockTimer = () => sandbox.hot('   -------x');
-        // mockDelay = (i) => sandbox.hot('---x');
       });
 
       afterEach(() => {
@@ -374,6 +369,7 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
         // only change after loading is that dirty is now false and lastSent is set to ''
         expectedToken.dirty = true;
         expectedToken.lastSent = '';
+        expectedToken.count = 3;
         expectedKey.dirty = true;
         expectedKey.lastSent = '';
 
@@ -401,7 +397,7 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
       });
 
       async function simulateTokenSending({ inp, batchSize }) {
-        const messages = new Rx.Subject();
+        const messages = new Subject();
         const output = [];
         const input = sandbox.hot(inp);
         messages.subscribe(m => output.push(m));
@@ -576,7 +572,7 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
       });
 
       async function simulateKeySending({ inp, batchSize }) {
-        const messages = new Rx.Subject();
+        const messages = new Subject();
         const output = [];
         const input = sandbox.hot(inp, values);
         messages.subscribe(m => output.push(m));
@@ -652,13 +648,13 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
             tracker: 'tracker.com',
             key: 'a',
             site: 'cliqz.com',
-            tokens: [['test', true], ['test2', true]]
+            tokens: [['test', true], ['test2', true]],
           }, {
             ts: mockDate,
             tracker: 'tracker.com',
             key: 'b',
             site: 'cliqz.com',
-            tokens: [['test', true], ['test2', true]]
+            tokens: [['test', true], ['test2', true]],
           }
         ]);
         chai.expect(output[1]).to.deep.equal([
@@ -741,6 +737,7 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
           created: 1538120007023,
           sites: ['example.com'],
           trackers: ['cliqz.com'],
+          count: 2,
         });
         const testEmitted = new Promise((resolve, reject) => {
           telemetry.tokens.input = {

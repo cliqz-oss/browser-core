@@ -80,6 +80,9 @@ export default describeModule('insights/background',
         return moment(mockDay);
       },
     },
+    'core/tabs': {
+      default: {},
+    }
   }), function () {
     let insights;
     const mockPageTimings = {

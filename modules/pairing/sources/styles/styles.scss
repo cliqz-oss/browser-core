@@ -3,7 +3,31 @@ body {
     overflow: auto;
 }
 
+#connect-in-progress {
+    border: 1px solid #9B9B9B;
+    font: small-caption;
+    font-weight: normal;
+    font-size: 13.75px;
+    line-height: 19px;
+    color: #9B9B9B;
+    text-align: center;
+
+    #header-name {
+        line-height: 2.5rem;
+        font-size: 22px;
+        font-weight: 300;
+        line-height: 30px;
+        margin: 20px;
+        -moz-user-select: none;
+    }
+
+    #instructions {
+        line-height: 20px;
+    }
+}
+
 #page-container {
+    display: none;
     font: small-caption;
     font-weight: normal;
     font-size: 13.75px;

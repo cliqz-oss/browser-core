@@ -6,7 +6,7 @@ import HistoryManager from '../../core/history-manager';
 import { cleanMozillaActions, isUrl } from '../../core/url';
 import utils from '../../core/utils';
 import events from '../../core/events';
-import { getTab, getCurrentTabId, closeTabsWithUrl } from '../../platform/tabs';
+import { closeTabsWithUrl } from '../../platform/tabs';
 
 export default class BrowserDropdownManager extends BaseDropdownManager {
   constructor({ cliqz }) {
@@ -71,7 +71,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
 
   _setURLBarDetails(details) {
     this.updateURLBarCache(details);
-    omniboxapi.update(details);
+    return omniboxapi.update(details);
   }
 
   _setDropdownDetails({ height, opened }) {
@@ -91,6 +91,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
 
   _reportHighlight(result) {
     this._cache.lastResult = result;
+    this.selectedResult = result;
     this._cliqz.search.action('reportHighlight', result);
   }
 
@@ -113,6 +114,25 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     events.pub('ui:click-on-url', selection);
   }
 
+  _reportEnter(selection) {
+    events.pub('ui:enter', selection);
+  }
+
+  async autocompleteQuery(query, completion = '') {
+    const value = `${query}${completion}`;
+    if (this._getUrlbarValue() !== value) {
+      const details = await omniboxapi.complete(query, completion);
+      this.updateURLBarCache(details);
+    } else if (completion) {
+      const { selectionStart, selectionEnd } = this._getSelectionRange();
+      if (selectionStart !== query.length && selectionEnd !== value.length) {
+        this._setSelectionRange(query.length, value.length);
+      }
+    }
+
+    this.hasAutocompleted = !!completion;
+  }
+
   async _openLink(
     url,
     {
@@ -124,6 +144,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     },
   ) {
     let href = url;
+    const isFromAutocompletedURL = this.fromAutocompledURL && eventType === 'keyboard';
 
     if (newTab) {
       const [action, originalUrl] = cleanMozillaActions(href);
@@ -132,15 +153,16 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
       }
     }
 
-    let value;
-    let selectionStart;
-    let selectionEnd;
+    const {
+      windowId,
+      tabId,
+      incognito,
+      selectionStart,
+      selectionEnd,
+      visibleValue: value,
+    } = this._urlbarDetails;
 
     if (newTab) {
-      value = this._urlbarDetails.value;
-      selectionStart = this._urlbarDetails.selectionStart;
-      selectionEnd = this._urlbarDetails.selectionEnd;
-
       // setting the flag to ignore the next blur event
       this._shouldIgnoreNextBlur = true;
     }
@@ -159,19 +181,15 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
       this._setHeight(0);
     }
 
-    const { windowId } = this._urlbarDetails;
-    const tabId = await getCurrentTabId();
-    const tab = await getTab(tabId);
-
     const onUrlClickedPayload = {
       url: href,
       query: result.query,
       rawResult: result,
       resultOrder,
       isNewTab: Boolean(newTab),
-      isPrivateMode: tab.incognito,
+      isPrivateMode: incognito,
       isPrivateResult: utils.isPrivateResultType(result.kind),
-      isFromAutocompletedURL: this.hasAutocompleted && eventType === 'keyboard',
+      isFromAutocompletedURL,
       windowId,
       tabId,
       action: eventType === 'keyboard' ? 'enter' : 'click',
@@ -192,9 +210,34 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     }
   }
 
+  async _handleEnter(newTab = false) {
+    const query = this.selectedResult ? this.selectedResult.query : this._getQuery();
+    if (!query) {
+      return;
+    }
+
+    const { windowId, id, incognito, visibleValue } = this._urlbarDetails;
+
+    this._reportEnter({
+      isPrivateMode: incognito,
+      windowId,
+      tabId: id,
+      query,
+      newTab,
+      url: visibleValue,
+      isFromAutocompletedURL: this.fromAutocompledURL
+    });
+
+    await this._setUrlbarValue(visibleValue);
+    omniboxapi.enter(newTab);
+  }
+
   _focus() {
-    clearTimeout(this.closeTimeout);
-    return omniboxapi.focus();
+    this.cancelClose();
+    const { selectionStart, selectionEnd } = this._getSelectionRange();
+    return omniboxapi
+      .focus()
+      .then(() => omniboxapi.update({ selectionStart, selectionEnd }));
   }
 
   _setUrlbarValue(value) {
@@ -202,7 +245,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   }
 
   _getUrlbarValue() {
-    return this._urlbarDetails.value;
+    return this._urlbarDetails.visibleValue;
   }
 
   _setSelectionRange(selectionStart, selectionEnd) {
@@ -224,14 +267,16 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
 
   _queryCliqz(_query, { allowEmptyQuery } = { allowEmptyQuery: false }) {
     const query = _query || this._getQuery();
-    const { windowId, isPasted } = this._urlbarDetails;
+    const { windowId, isPasted, incognito } = this._urlbarDetails;
+    const keyCode = this.lastEvent && this.lastEvent.code;
+
     if (query || allowEmptyQuery) {
       this._cliqz.search.action('startSearch', query, {
         allowEmptyQuery,
         isPasted,
-        // isPrivate: false, // TODO
+        isPrivate: incognito,
         isTyped: true,
-        keyCode: this.lastEvent && this.lastEvent.code,
+        keyCode,
       }, {
         contextId: windowId
       });
@@ -272,6 +317,19 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     return 1e4;
   }
 
+  removeFromHistoryAndBookmarks(url) {
+    Promise.all([
+      this._removeFromHistory(url),
+      this._removeFromBookmarks(url),
+    ])
+      .then(() => this._closeTabsWithUrl(url))
+      .then(() => {
+        const query = this.lastResult && this.lastResult.query;
+        return this._setUrlbarValue(query);
+      })
+      .then(() => this._queryCliqz());
+  }
+
   onInput(details) {
     this.updateURLBarCache(details);
     if (details.isPasted) {
@@ -288,6 +346,9 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     this.lastEvent = ev;
     const defaultIsPrevented = ev.defaultPrevented;
     const defaultShouldBePrevented = super.onKeydown(ev);
+    if (ev.code === 'ArrowLeft' || ev.code === 'ArrowRight') {
+      this.close();
+    }
     if (defaultIsPrevented && !defaultShouldBePrevented) {
       // We prevented default behavior for this event while we shouldn't have been.
       // Now we have to simulate default behavior.
@@ -335,7 +396,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   }
 
   _scheduleClose(callback) {
-    clearTimeout(this.closeTimeout);
+    this.cancelClose();
     this.closeTimeout = setTimeout(() => {
       this._setHeight(0);
       this.dropdownAction.clear();
@@ -343,6 +404,10 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
         callback();
       }
     }, 50);
+  }
+
+  cancelClose() {
+    clearTimeout(this.closeTimeout);
   }
 
   onDropmarker() {
@@ -377,7 +442,10 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
 
   render(...args) {
     if (this._urlbarDetails.focused) {
-      return super.render(...args);
+      return super.render(...args)
+        .then(() => {
+          utils._queryLastDraw = Date.now();
+        });
     }
     return Promise.resolve();
   }

@@ -1,7 +1,5 @@
 /* global PlacesUtils */
-
 import { Components } from '../globals';
-import * as urlUtils from '../../core/url';
 
 Components.utils.import('resource://gre/modules/PlacesUtils.jsm');
 
@@ -187,20 +185,7 @@ function findLastVisitId(url, since = 0) {
   ).then(([{ id } = {}] = []) => id);
 }
 
-// second * minute * hour * day * year
-const YEAR_IN_MS = 1000 * 60 * 60 * 24 * 365;
-
 export default class {
-  static sessionCountObservable(query) {
-    const { sql, params } = searchQuery({
-      query,
-      frameStartsAt: (Date.now() - (YEAR_IN_MS / 2)) * 1000,
-      frameEndsAt: Date.now() * 1000,
-    }, { onlyCount: true });
-
-    return observableFromSql(sql, ['count'], params);
-  }
-
   static deleteVisit(visitId) {
     return HistoryProvider.query(
       `
@@ -244,6 +229,31 @@ export default class {
       const Sanitizer = SanitizerWrapper.Sanitizer;
       Sanitizer.showUI();
     }
+  }
+
+  static addVisit({ url, title, transition, visitTime }) {
+    if (!url || !visitTime) {
+      return Promise.resolve();
+    }
+
+    const asyncHistory = Components.classes['@mozilla.org/browser/history;1']
+      .getService(Components.interfaces.mozIAsyncHistory);
+    const uri = Services.io.newURI(url, null, null);
+    const visitTimestamp = visitTime * 1000;
+    const place = {
+      uri,
+      title,
+      visits: [{
+        visitDate: visitTimestamp,
+        transitionType: transition || Components.interfaces.nsINavHistoryService.TRANSITION_TYPED,
+      }],
+    };
+
+    return new Promise((handleCompletion, handleError) => asyncHistory.updatePlaces(place, {
+      handleError,
+      handleResult: () => {},
+      handleCompletion,
+    }));
   }
 
   // TODO: introduce command method to separate read from write
@@ -301,22 +311,8 @@ export default class {
 
   static fillFromVisit(url, triggeringUrl) {
     const oneSecondAgo = (Date.now() - (60 * 1000)) * 1000;
-    const { action, scheme, path, originalUrl } = urlUtils.getDetailsFromUrl(url);
-    let cleanUrl = originalUrl;
-    if (action && action !== 'visiturl') {
-      return Promise.resolve();
-    }
-
-    // normalize url
-    if (!scheme) {
-      cleanUrl = `http://${originalUrl}`;
-    }
-    if (!path) {
-      cleanUrl += '/';
-    }
-
     return Promise.all([
-      findLastVisitId(cleanUrl, oneSecondAgo),
+      findLastVisitId(url, oneSecondAgo),
       findLastVisitId(triggeringUrl),
     ]).then(async ([visitId, triggeringVisitId]) => {
       const meta = {

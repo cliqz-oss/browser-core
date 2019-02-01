@@ -1,11 +1,12 @@
 /* eslint-disable import/prefer-default-export */
-import config from '../../core/config';
 
 function styles({
   ghostery = false,
   logo_class: logoClass,
   styles: { headline_color: headlineColor } = {},
+  baseUrl,
 } = {}) {
+  const rewardIconPath = ghostery ? 'ghostery-rewards-beta.svg' : 'offers-cc-icon.svg';
   const offerLogoSize = ghostery ? '111px' : '20px';
   const [mainColor, secondaryColor, tertiaryColor] = ghostery
     ? ['#930194', '#920094', '#850587']
@@ -51,7 +52,7 @@ function styles({
       padding-left: ${offerLogoSize};
       margin-left: 16px;
       background-repeat: no-repeat;
-      /* background-image */
+      background-image: url(${baseUrl}images/${rewardIconPath});
       background-position: center;
     }
 
@@ -63,7 +64,7 @@ function styles({
       padding-right: 22px;
       margin-top: -2px;
       background-repeat: no-repeat;
-      /* background-image */
+      background-image: url(${baseUrl}images/close-icon.svg);
     }
 
     .header > .billet {
@@ -102,15 +103,15 @@ function styles({
     }
 
     .sub-header > .labels > .exclusive{
-      /* background-image */
+      background-image: url(${baseUrl}images/exclusive.svg);
     }
 
     .sub-header > .labels > .best_offer{
-      /* background-image */
+      background-image: url(${baseUrl}images/best_offer.svg);
     }
 
     .sub-header > .labels > .offer_of_the_week{
-      /* background-image */
+      background-image: url(${baseUrl}images/offer_of_the_week.svg);
     }
 
     .sub-header > .labels > .label {
@@ -141,7 +142,6 @@ function styles({
       min-height: 100%;
       background-repeat: no-repeat;
       background-size: contain;
-      /* background-image */
     }
 
 
@@ -287,19 +287,6 @@ function styles({
     }`;
 }
 
-function styleImages({ ghostery = false, logo_url: logoUrl } = {}) {
-  const rewardIconPath = ghostery ? 'ghostery-rewards-beta.svg' : 'offers-cc-icon.svg';
-  const baseUrl = config.settings.CDN_CONTENTSCRIPT_BASEURL;
-  return {
-    'offer-logo': `${baseUrl}/extension/offers/popup_notification/${rewardIconPath}`,
-    'btn-close': `${baseUrl}/extension/offers/popup_notification/close-icon.svg`,
-    exclusive: `${baseUrl}/extension/offers/popup_notification/exclusive.svg`,
-    best_offer: `${baseUrl}/extension/offers/popup_notification/best_offer.svg`,
-    offer_of_the_week: `${baseUrl}/extension/offers/popup_notification/offer_of_the_week.svg`,
-    logo: logoUrl.replace(config.settings.CDN_BASEURL, baseUrl),
-  };
-}
-
 function popupStyles({ shouldHideButtons = false, headline = '' }) {
   const halfOfLine = 32;
   let containerHeight = headline.length > halfOfLine ? '372px' : '352px';
@@ -333,4 +320,4 @@ const PARANJA_STYLES = {
   opacity: '0',
 };
 
-export { styles, styleImages, PARANJA_STYLES, popupStyles };
+export { styles, PARANJA_STYLES, popupStyles };

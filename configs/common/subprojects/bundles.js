@@ -89,16 +89,6 @@ const subprojects = {
     include: ['handlebars.min.js'],
     dest: 'vendor'
   },
-  mathjs: {
-    src: 'node_modules/mathjs/dist',
-    include: ['math.min.js'],
-    dest: 'vendor'
-  },
-  rxjs: {
-    src: 'node_modules/rxjs/bundles',
-    include: ['Rx.min.js'],
-    dest: 'vendor'
-  },
   pako: {
     src: 'node_modules/pako/dist',
     include: ['pako.min.js'],
@@ -137,6 +127,16 @@ const subprojects = {
   jsep: {
     src: 'node_modules/jsep/build',
     include: ['jsep.min.js'],
+    dest: 'vendor'
+  },
+  spectrecss: {
+    src: 'node_modules/spectre.css/dist/',
+    include: ['spectre.min.css', 'spectre-icons.min.css', 'spectre-exp.min.css'],
+    dest: 'vendor'
+  },
+  math: {
+    src: 'node_modules/math-expression-evaluator/dist/browser/',
+    include: ['math-expression-evaluator.min.js'],
     dest: 'vendor'
   },
 };

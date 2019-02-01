@@ -1,8 +1,10 @@
+import { share, filter, map, debounceTime } from 'rxjs/operators';
+
 // operators
 import Enricher from '../operators/enricher';
 
 // mixers
-import contextSearch from '../mixers/context-search';
+import ContextSearch from '../mixers/context-search';
 import deduplicate from '../mixers/deduplicate';
 import enrich from '../mixers/enrich';
 import { searchOnEmpty, searchOnNotEmpty } from '../mixers/search-on-empty';
@@ -28,23 +30,26 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
 
   const searchParams = [query, config, params];
   // TODO: also dedup within history results
-  results.history.source$ = providers.history.search(...searchParams).share();
+  results.history.source$ = providers.history.search(...searchParams).pipe(share());
   results.historyView.source$ = searchOnNotEmpty(
     providers.historyView,
     results.history.source$,
     ...searchParams
   );
-  results.cliqz.source$ = providers.cliqz.search(...searchParams).share();
+  results.cliqz.source$ = providers.cliqz.search(...searchParams).pipe(share());
   results.instant.source$ = providers.instant.search(...searchParams);
   results.calculator.source$ = providers.calculator.search(...searchParams);
 
-  results.cliqz.results$ = results.cliqz.source$
-    .filter(({ provider }) => provider === 'cliqz')
-    .map(removeOffers)
-    .share();
-  results.cliqz.offers$ = results.cliqz.source$
-    .filter(({ provider }) => provider === 'cliqz::offers')
-    .share();
+  results.cliqz.results$ = results.cliqz.source$.pipe(
+    filter(({ provider }) => provider === 'cliqz'),
+    map(removeOffers),
+    share()
+  );
+
+  results.cliqz.offers$ = results.cliqz.source$.pipe(
+    filter(({ provider }) => provider === 'cliqz::offers'),
+    share()
+  );
 
   results.cliqz.resultsWithOffers$ = addOffers(
     results.cliqz.results$,
@@ -74,12 +79,12 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
   );
 
   // contextSearch (if enabled) makes a second call to the cliqz
-  results.cliqz.expanded$ = contextSearch(
+  const contextSearch = new ContextSearch();
+  results.cliqz.expanded$ = contextSearch.search(
     providers.cliqz,
     results.cliqz.updated$,
     ...searchParams
-  ).share();
-
+  ).pipe(share());
 
   // TODO: how to update 'kind' for enriched history results?
   results.history.enriched$ = enrich(
@@ -118,25 +123,26 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
       }
 
       // wait until one of the dependencies has results
-      return results[id].latest$.let(
+      return results[id].latest$.pipe(
         waitForResultsFrom(
           dependencies.map(({ provider }) => results[provider].latest$)
         )
       );
     });
 
-  const mixed$ = combineAnyLatest(latestResults)
+  const mixed$ = combineAnyLatest(latestResults).pipe(
     // throttle because, otherwise, 'instant' will emit before 'history'
     // even if 'instant' was waiting for 'history' (supposingly due to
     // internal wiring of RxJS)
-    .debounceTime(1)
-    .map(responses => ({
+    debounceTime(1),
+    map(responses => ({
       query: {
         query,
         ...params,
       },
       responses: responses.map(response => ({ ...response, params })),
-    }));
+    }))
+  );
   return mixed$;
 };
 

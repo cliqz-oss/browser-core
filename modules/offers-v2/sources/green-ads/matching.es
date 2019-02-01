@@ -1,3 +1,7 @@
+import {
+  extractHostname as getHostname,
+  getGeneralDomain as getDomain,
+} from '../../core/tlds';
 import inject from '../../core/kord/inject';
 import EventStore from '../../core/persistence/event-store';
 import PatternIndex from './pattern-index';
@@ -82,10 +86,10 @@ export default class MatchingEngine {
 
   matchUrl({ url, ts }, index = null) {
     const urlIndex = index || this.patternIndex;
-    const matches = urlIndex.match(new PatternMatching.Request({
+    const matches = urlIndex.match(PatternMatching.makeRequest({
       url,
       type: 2,
-    }));
+    }, { getDomain, getHostname }));
     return matches.map(pattern => ({
       event: 'match',
       type: 'url',
@@ -103,10 +107,10 @@ export default class MatchingEngine {
 
   matchQuery({ query, source, ts }, index = null) {
     const queryIndex = index || this.patternIndex;
-    const matches = queryIndex.match(new PatternMatching.Request({
+    const matches = queryIndex.match(PatternMatching.makeRequest({
       url: query,
       type: 2,
-    }));
+    }, { getDomain, getHostname }));
     return matches.map(pattern => ({
       event: 'match',
       type: 'query',

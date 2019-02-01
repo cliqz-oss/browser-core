@@ -1,10 +1,11 @@
 /* global window, document */
-
+import { fromEvent } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import background from '../background';
 import getThrottleQueries from '../operators/streams/throttle-queries';
 import getConfig from '../config';
-import Rx from '../../platform/lib/rxjs';
 import templates from '../templates';
+import globalConfig from '../../core/config';
 
 
 const $ = window.document.querySelector.bind(window.document);
@@ -21,12 +22,13 @@ window.addEventListener('load', () => {
   $urlbar.value = '';
   setTimeout(() => $urlbar.focus(), 100);
 
-  const config = getConfig({ isPrivateMode: false });
+  const config = getConfig({ isPrivateMode: false }, globalConfig.settings);
 
-  const query$ = Rx.Observable
-    .fromEvent($urlbar, 'keyup')
-    .map(() => $urlbar.value)
-    .let(getThrottleQueries(config));
+  const query$ = fromEvent($urlbar, 'keyup')
+    .pipe(
+      map(() => $urlbar.value),
+      getThrottleQueries(config)
+    );
 
   background.init();
 
@@ -41,7 +43,9 @@ window.addEventListener('load', () => {
     const provider = background.providers[name];
 
     query$
-      .switchMap(query => provider.search(query, config, {}))
+      .pipe(
+        switchMap(query => provider.search(query, config, {})),
+      )
       .subscribe((response) => {
         if (!containers.has(response.provider)) {
           const container = createProviderContainer(response.provider);

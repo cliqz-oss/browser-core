@@ -37,7 +37,7 @@ export default function () {
       context('sent 1 backend, then 1 history', function () {
         const query = 'test ';
         before(async function () {
-          blurUrlBar();
+          await blurUrlBar();
           await mockSearch({ results: [{ url: backendUrl1 }] });
           withHistory([{ value: historyUrl1 }], 600);
         });
@@ -57,7 +57,7 @@ export default function () {
       context('sent 1 backend, then 1 history', function () {
         const query = 'tes';
         before(async function () {
-          blurUrlBar();
+          await blurUrlBar();
           await mockSearch({ results: [{ url: backendUrl1 }] });
           withHistory([{ value: historyUrl1 }], 600);
         });
@@ -74,7 +74,7 @@ export default function () {
       context('sent results in order: 1 his, 1his, 1 backend, 1 his', function () {
         const query = 'test';
         before(async function () {
-          blurUrlBar();
+          await blurUrlBar();
           await mockSearch({ results: [{ url: backendUrl1 }] }, 1000);
           withMultipleHistory([
             {

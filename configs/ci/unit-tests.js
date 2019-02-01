@@ -22,5 +22,5 @@ module.exports = {
   'default_prefs' : {
   },
   'bundles': [
-  ]
+  ],
 }

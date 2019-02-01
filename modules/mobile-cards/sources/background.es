@@ -6,6 +6,7 @@ import {
   openMap,
   hideKeyboard,
   sendUIReadySignal,
+  handleAutocompletion,
 } from '../platform/browser-actions';
 
 
@@ -49,5 +50,6 @@ export default background({
     openMap,
     hideKeyboard,
     sendUIReadySignal,
+    handleAutocompletion,
   },
 });

@@ -1,11 +1,11 @@
-/* global window, document, CLIQZ, ChromeUtils */
-import { getMessage } from '../core/i18n';
+/* global window, document */
+import checkIfChromeReady from '../core/content/ready-promise';
+import createSpananForModule from '../core/helpers/spanan-module-wrapper';
 
-const telemetry = {
-  type: 'anti-phishing',
-  action: 'click',
-  target: null
-};
+const antiPhishingBridge = createSpananForModule('anti-phishing');
+const antiPhishing = antiPhishingBridge.createProxy();
+
+let phishingURL = '';
 
 // gets all the elements with the class 'cliqz-locale' and adds
 // the localized string - key attribute - as content
@@ -13,7 +13,7 @@ function localizeDoc(doc) {
   const locale = doc.getElementsByClassName('cliqz-locale');
   for (let i = 0; i < locale.length; i += 1) {
     const el = locale[i];
-    el.textContent = getMessage(el.getAttribute('key'));
+    el.textContent = chrome.i18n.getMessage(el.getAttribute('key'));
   }
 }
 
@@ -30,74 +30,60 @@ function getURL() {
 }
 
 function format() {
-  (ChromeUtils.import || Components.utils.import)('chrome://cliqzmodules/content/CLIQZ.jsm');
-
   // bundling made System imports obsolete so temporary
   // moving towards a more "nasty" way of importing
-  const CliqzUtils = CLIQZ.CliqzUtils;
-  const hw = CLIQZ.app.modules['human-web'].background.humanWeb;
-  const CliqzAntiPhishing = CLIQZ.app.modules['anti-phishing'].background.CliqzAntiPhishing;
-  const freshtab = CLIQZ.app.modules.freshtab && CLIQZ.app.modules.freshtab.background;
+  // const CliqzUtils = CLIQZ.CliqzUtils;
+  // const hw = CLIQZ.app.modules['human-web'].background.humanWeb;
+  // const CliqzAntiPhishing = CLIQZ.app.modules['anti-phishing'].background.CliqzAntiPhishing;
+  // const freshtab = CLIQZ.app.modules.freshtab && CLIQZ.app.modules.freshtab.background;
 
   // get phishing url
-  const url = getURL();
+  phishingURL = getURL();
 
   // urlbar
-  const urlbar = CliqzUtils.getWindow().document.getElementById('urlbar');
-  urlbar.textValue = url;
-  urlbar.value = url;
-  urlbar.mInputField.value = url;
+  browser.omnibox2.update({ value: phishingURL });
 
   // i18n
   localizeDoc(document);
+}
 
-  // update messages
-  document.getElementById('phishing-url').innerText = url;
-
-  // update buttons
+function updateButtons(aph, url) {
   // safe out
   document.getElementsByClassName('cqz-button-save-out')[0].onclick = () => {
-    telemetry.target = 'safe_out';
-    CliqzUtils.telemetry(telemetry);
-    if (hw && hw.state.v[url]) {
-      hw.state.v[url]['anti-phishing'] = 'safe_out';
-    }
-    let safeUrl;
-    if (freshtab && freshtab.newTabPage && freshtab.newTabPage.isActive) {
-      safeUrl = CLIQZ.config.settings.NEW_TAB_URL;
-    } else {
-      safeUrl = 'about:newtab';
-    }
-    window.location.replace(safeUrl);
+    aph.telemetry('safe_out');
+    window.location.replace(chrome.runtime.getURL('modules/freshtab/home.html'));
   };
 
   // learn more
   document.getElementById('learn-more').onclick = () => {
-    telemetry.target = 'learn_more';
-    CliqzUtils.telemetry(telemetry);
+    aph.telemetry('learn_more');
   };
 
   // proceed at risk
   document.getElementById('proceed').onclick = () => {
-    telemetry.target = 'ignore';
-    CliqzUtils.telemetry(telemetry);
-    if (hw && hw.state.v[url]) {
-      hw.state.v[url]['anti-phishing'] = 'report';
-    }
-    CliqzAntiPhishing.whitelistTemporary(url);
+    aph.telemetry('ignore');
+    aph.whitelistTemporary(url);
     window.location.replace(url);
   };
 
   // report as safe
   document.getElementById('report-safe').onclick = () => {
-    telemetry.target = 'report';
-    CliqzUtils.telemetry(telemetry);
-    if (hw && hw.state.v[url]) {
-      hw.state.v[url]['anti-phishing'] = 'report';
-    }
-    CliqzAntiPhishing.markAsSafe(url);
+    aph.telemetry('report');
+    aph.markAsSafe(url);
     window.location.replace(url);
   };
 }
 
 format();
+checkIfChromeReady().then(() => {
+  chrome.runtime.onMessage.addListener((message) => {
+    antiPhishingBridge.handleMessage({
+      uuid: message.requestId,
+      response: message.respone,
+    });
+  });
+  updateButtons(antiPhishing, phishingURL);
+}).catch((ex) => {
+  // eslint-disable-next-line no-console
+  console.error('Chrome was never ready', ex);
+});

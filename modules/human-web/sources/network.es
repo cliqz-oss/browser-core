@@ -168,7 +168,7 @@ export class Network {
       const address = await this.dns.resolveHost(host);
       return isIPInternal(address);
     } catch (e) {
-      logger.error(
+      logger.log(
         'Could not resolve domain', host,
         '. Be conservative and assume that the domain is private.', e
       );

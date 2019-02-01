@@ -1,4 +1,5 @@
 import { expect } from '../../core/test-helpers';
+import { isWebExtension } from '../../../core/platform';
 
 import Subject from './local-helpers';
 import {
@@ -26,9 +27,13 @@ describe('Offers Hub UI tests', function () {
   function offersHubFrameTests() {
     context('header part: ', function () {
       it('renders \'MyOffrz\'', function () {
-        const offersHubTitleSelector = 'header [data-i18n="offers_hub_title"]';
+        const offersHubTitleSelector = '.offers_label';
         expect(subject.query(offersHubTitleSelector)).to.exist;
-        expect(subject.query(offersHubTitleSelector)).to.have.text('offers_hub_title');
+        if (isWebExtension) {
+          expect(subject.query(offersHubTitleSelector)).to.have.text('offers_hub_title');
+        } else {
+          expect(subject.query(offersHubTitleSelector)).to.have.text('cliqz_offers');
+        }
       });
 
       it('renders three dots menu icon', function () {
@@ -37,15 +42,27 @@ describe('Offers Hub UI tests', function () {
     });
 
     context('footer part: ', function () {
-      it('renders ad label', function () {
-        expect(subject.query('footer .ad-label')).to.exist;
-      });
+      if (isWebExtension) {
+        it('doesn\'t render ad label', function () {
+          expect(subject.query('footer .ad-label')).to.not.exist;
+        });
 
-      it('renders Cliqz icon - link', function () {
-        expect(subject.query('footer [title="offers_hub_powered_by"]')).to.exist;
-        expect(subject.query('footer [title="offers_hub_powered_by"] a').href)
-          .to.equal('https://cliqz.com/myoffrz');
-      });
+        it('renders Cliqz icon - link', function () {
+          expect(subject.query('footer [title="offers_hub_powered_by_offrz"]')).to.exist;
+          expect(subject.query('footer a').href)
+            .to.equal('https://myoffrz.com/fuer-nutzer');
+        });
+      } else {
+        it('renders ad label', function () {
+          expect(subject.query('footer .ad-label')).to.exist;
+        });
+
+        it('renders Cliqz icon - link', function () {
+          expect(subject.query('footer [title="offers_hub_powered_by"]')).to.exist;
+          expect(subject.query('footer a').href)
+            .to.equal('https://cliqz.com/myoffrz');
+        });
+      }
     });
   }
 
@@ -213,6 +230,7 @@ describe('Offers Hub UI tests', function () {
       await subject.load();
       await subject.pushData(target, {
         noVoucher: true,
+        isWebExtension,
       });
     });
 
@@ -259,7 +277,7 @@ describe('Offers Hub UI tests', function () {
       const pictureSelector = `${offerSelector} .picture`;
       expect(subject.query(pictureSelector)).to.exist;
       expect(subject.getComputedStyle(pictureSelector).backgroundImage)
-        .to.contain(data.vouchers[0].template_data.picture_url);
+        .to.contain(data.vouchers[0].template_data.picture_dataurl);
     });
 
     it('with benefit', function () {

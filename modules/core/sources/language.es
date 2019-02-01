@@ -40,13 +40,13 @@ const CliqzLanguage = {
   LOG_KEY: 'CliqzLanguage',
   LOCALE_HASH: 333,
   currentState: {},
-  queryString: 'lang=',
+  qs: '',
   cron: 24 * 60 * 60 * 1000, // default one day
   checkInterval: 5 * 60 * 1000, // default 5 min
   removeHashId: null,
 
   getLocale() {
-    return i18n.PLATFORM_LANGUAGE;
+    return i18n.PLATFORM_LANGUAGE_FILTERED;
   },
 
   // load from the about:config settings
@@ -57,11 +57,11 @@ const CliqzLanguage = {
       this.removeHashId = setInterval(this.updateTicker.bind(this), this.checkInterval);
     }
 
-    if (prefs.has('data', 'extensions.cliqz-lang.')) {
+    if (prefs.has('extensions.cliqz-lang.data')) {
       try {
         // catch empty value or malformed json
         CliqzLanguage.currentState = JSON.parse(
-          prefs.get('data', {}, 'extensions.cliqz-lang.')
+          prefs.get('extensions.cliqz-lang.data', {})
         );
       } catch (e) {
         // empty
@@ -117,9 +117,9 @@ const CliqzLanguage = {
   },
   updateTicker() {
     let lastUpdate = 0;
-    if (prefs.has('lastUpdate', 'extensions.cliqz-lang.')) {
+    if (prefs.has('extensions.cliqz-lang.lastUpdate')) {
       try {
-        lastUpdate = parseInt(prefs.get('lastUpdate', 0, 'extensions.cliqz-lang.'), 10);
+        lastUpdate = parseInt(prefs.get('extensions.cliqz-lang.lastUpdate', 0), 10);
       } catch (e) {
         lastUpdate = 0;
       }
@@ -127,7 +127,7 @@ const CliqzLanguage = {
     const currentTime = Date.now();
     if (currentTime > this.cron + lastUpdate) {
       this.removeHash();
-      prefs.set('lastUpdate', String(currentTime), 'extensions.cliqz-lang.');
+      prefs.set('extensions.cliqz-lang.lastUpdate', String(currentTime));
     }
   },
   // create array of unique hashes
@@ -286,17 +286,25 @@ const CliqzLanguage = {
       });
     }
 
-    return `&lang=${encodeURIComponent(filteredString)}`;
+    return filteredString;
   },
 
   // Save the current state to preferences,
   saveCurrentState() {
     console.log(`Going to save languages: ${JSON.stringify(CliqzLanguage.currentState)}`, CliqzLanguage.LOG_KEY);
-    prefs.set('data',
-      JSON.stringify(CliqzLanguage.currentState || {}),
-      'extensions.cliqz-lang.');
+    prefs.set('extensions.cliqz-lang.data',
+      JSON.stringify(CliqzLanguage.currentState || {}));
     // Updates queryString on any change in state ie. whenever state is saved
-    CliqzLanguage.queryString = CliqzLanguage.stateToQueryString();
+    CliqzLanguage.qs = CliqzLanguage.stateToQueryString();
+  },
+
+  queryString() {
+    let qString = CliqzLanguage.qs;
+    // if still we do not have any language fallback to locale
+    if (qString === '') {
+      qString = CliqzLanguage.getLocale();
+    }
+    return `&lang=${encodeURIComponent(qString)}`;
   }
 };
 

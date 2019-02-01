@@ -11,7 +11,6 @@ import './content/browser-antitracking-interaction-tests';
 import './content/browser-antitracking-ui-tests';
 import './content/browser-antitracking-trackers-ui-tests';
 import './content/browser-antitracking-trackers-interaction-tests';
-import './content/browser-history-ui-tests';
 import './content/browser-https-interaction-tests';
 import './content/browser-https-ui-tests';
 import './content/browser-other-settings-ui-tests';

@@ -86,7 +86,7 @@ export default {
               offer_id: 'HCar_test_offer',
               rs_dest: ['dropdown'],
               rule_info: {},
-              ui_info: {}
+              ui_info: { template_data: { validity: Date.now() + 1000 * 60 * 60 * 24 } }
             },
             description: 'Nur für Neukunden. Code eingeben, zwei Hörbucher aussuchen und anhören',
             promo_code: 'nicht benötigt',

@@ -7,14 +7,20 @@ import SimpleStorage from '../core/simple-storage';
 import PairingObserver from './apps/pairing-observer';
 import background from '../core/base/background';
 import CachedMap from '../core/persistence/cached-map';
-import UrlbarButton from '../core/ui/urlbar-button';
-import { getMessage } from '../core/i18n';
 import inject from '../core/kord/inject';
 import events from '../core/events';
+import { getResourceUrl } from '../core/platform';
+import contextmenuapi from '../platform/context-menu';
+import { getMessage } from '../core/i18n';
+
+function isValidURL(url) {
+  return url.indexOf('https:') === 0 || url.indexOf('http:') === 0;
+}
 
 export default background({
   core: inject.module('core'),
   init() {
+    this.initContextMenus();
     const PeerComm = new PeerSlave();
     this.peerSlave = PeerComm;
 
@@ -48,6 +54,7 @@ export default background({
       const targets = [
         'resource://cliqz/pairing/index.html',
         'chrome://cliqz/content/pairing/index.html',
+        getResourceUrl('pairing/index.html'),
       ];
 
       targets.forEach((target) => {
@@ -96,13 +103,10 @@ export default background({
         }
         return null;
       })
-      .then(() => PeerComm.init(this.storage))
-      .then(() => {
-        this.initUI();
-      });
+      .then(() => PeerComm.init(this.storage));
   },
   unload() {
-    this.unloadUI();
+    this.unloadContextMenus();
     if (this.peerSlave) {
       this.peerSlave.unload();
       delete this.peerSlave;
@@ -113,60 +117,75 @@ export default background({
     }
   },
 
-  initUI() {
-    this.pageAction = new UrlbarButton({
-      id: 'connect-sendtab',
-      title: getMessage('pairing_send_tab_to_mobile'),
-      iconURL: 'chrome://cliqz/content/pairing/images/tab-icon.svg',
-      _insertBeforeActionID: 'screenshots',
-
-      onShowingInPanel: (buttonNode) => {
-        this.tobeSentData = null;
-        const browserWin = buttonNode.ownerGlobal;
-        const tabPos = browserWin.gBrowser.tabContainer.selectedIndex;
-        const tabData = this.getTabData(browserWin, tabPos);
-        const isEnabled = this.peerSlave.isPaired && this.isValidURL(tabData.url);
-        if (isEnabled) {
-          buttonNode.removeAttribute('disabled');
-          this.tobeSentData = tabData;
-        } else {
-          buttonNode.setAttribute('disabled', true);
-        }
-      },
-      onCommand: () => {
-        if (this.tobeSentData) {
-          CliqzUtils.telemetry({
-            type: 'page_action_menu',
-            version: 1,
-            action: 'click',
-            target: 'send_to_mobile',
-          });
-          this.sendTab(this.tobeSentData);
-        }
-      },
-    });
-
-    this.pageAction.build();
-  },
-
-  unloadUI() {
-    if (this.pageAction) {
-      this.pageAction.shutdown();
-      delete this.pageAction;
+  initContextMenus() {
+    if (!contextmenuapi) {
+      return;
     }
+    const show = () => {
+      contextmenuapi.create({
+        id: 'send-cliqz-to-mobile',
+        title: getMessage('video_downloader_send_to_mobile'),
+        contexts: ['link', 'page', 'tab', 'video'],
+      });
+    };
+    const hide = () => {
+      contextmenuapi.remove('send-cliqz-to-mobile');
+    };
+
+    show();
+
+    const getItem = (info, tab) => {
+      const { linkUrl, mediaType/* , srcUrl */ } = info;
+      const { incognito, title, url } = tab;
+
+      if (linkUrl) {
+        if (isValidURL(linkUrl)) {
+          return { url: linkUrl, title: '', isPrivate: incognito };
+        }
+      } else if (mediaType) {
+        // TODO: perhaps we can send video/audio in the future
+        return undefined;
+        // return { mediaType, srcUrl };
+      } else if (url) {
+        if (isValidURL(url)) {
+          return { url, title, isPrivate: incognito };
+        }
+      }
+      return null;
+    };
+
+    this._onShown = (info, tab) => {
+      hide();
+      // TODO: could show it anyways and open Connect page if not paired.
+      const isPaired = this.peerSlave.isInit && this.peerSlave.isPaired;
+      if (isPaired && getItem(info, tab)) {
+        show();
+      }
+      contextmenuapi.refresh();
+    };
+
+    this._onClicked = (info, tab) => {
+      const { menuItemId } = info;
+      if (menuItemId === 'send-cliqz-to-mobile') {
+        const item = getItem(info, tab);
+        if (item && item.url) {
+          this.sendTab(item);
+        }
+      }
+    };
+    contextmenuapi.onShown.addListener(this._onShown);
+    contextmenuapi.onClicked.addListener(this._onClicked);
   },
 
-  isValidURL(url) {
-    return url.indexOf('https:') === 0 || url.indexOf('http:') === 0;
-  },
-
-  getTabData(window, tabPos) {
-    const selectedBrowser = window.gBrowser.getBrowserAtIndex(tabPos);
-    const url = selectedBrowser.currentURI.spec;
-    const title = window.gBrowser.tabs[tabPos].label;
-    const isPrivate = CliqzUtils.isPrivateMode(window);
-
-    return { url, title, isPrivate };
+  unloadContextMenus() {
+    if (!contextmenuapi) {
+      return;
+    }
+    contextmenuapi.remove('send-cliqz-to-mobile');
+    contextmenuapi.onShown.removeListener(this._onShown);
+    contextmenuapi.onClicked.removeListener(this._onClicked);
+    delete this._onClicked;
+    delete this._onShown;
   },
 
   sendTab(data) {

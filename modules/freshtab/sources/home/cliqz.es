@@ -13,6 +13,7 @@ class Cliqz {
     const offersV2 = createSpananForModule('offers-v2');
     const controlCenter = createSpananForModule('control-center');
     const cliqzForFriends = createSpananForModule('cliqz-for-friends');
+    const antiPhishing = createSpananForModule('anti-phishing');
     const api = new Spanan();
     const cliqz = this;
     this.state = {};
@@ -41,7 +42,7 @@ class Cliqz {
             [message.id]: message,
           }
         }));
-      },
+      }
     }, {
       filter(message) {
         return Object.keys(this.actions).indexOf(message.action) >= 0;
@@ -76,6 +77,7 @@ class Cliqz {
       search.handleMessage(msg);
       api.handleMessage(msg);
       cliqzForFriends.handleMessage(msg);
+      antiPhishing.handleMessage(msg);
     };
 
     checkIfChromeReady().then(() => {
@@ -84,6 +86,10 @@ class Cliqz {
       window.addEventListener('unload', () => {
         chrome.runtime.onMessage.removeListener(onMessage);
       });
+
+      if (chrome.omnibox2) {
+        chrome.omnibox2.focus();
+      }
     }).catch((ex) => {
       // eslint-disable-next-line no-console
       console.error('Chrome was never ready', ex);
@@ -95,6 +101,7 @@ class Cliqz {
     this.search = search.createProxy();
     this.controlCenter = controlCenter.createProxy();
     this.cliqzForFriends = cliqzForFriends.createProxy();
+    this.antiPhishing = antiPhishing.createProxy();
   }
 
   static getInstance() {

@@ -76,11 +76,6 @@ describe('Control Center: AMO, all modules are present', function () {
       expect(subject.query(searchSelector)).to.exist;
     });
 
-    it('renders History options', function () {
-      const historySelector = '#control-center .amo #othersettings .accordion .accordion-section-title[href="#accordion-3"]';
-      expect(subject.query(historySelector)).to.exist;
-    });
-
     it('renders MyOffrz options', function () {
       const myOffrzSelector = '#control-center .amo #othersettings .accordion .accordion-section-title[href="#accordion-4"]';
       expect(subject.query(myOffrzSelector)).to.exist;

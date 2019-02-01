@@ -23,8 +23,8 @@ export default class LastQueryWindow extends AppWindow {
       this.searchHistoryUI.showTabQuery(getCurrentTabId(this.window));
     },
 
-    'ui:enter': ({ query, tabId }) => {
-      if (isUrl(query)) {
+    'ui:enter': ({ query, tabId, newTab, isPrivateMode }) => {
+      if (newTab || isPrivateMode || isUrl(query)) {
         return;
       }
 

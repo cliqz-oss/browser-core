@@ -30,6 +30,10 @@ export function getSearchEngines() {
   return [defaultSearchEngine];
 }
 
+export function getSearchEnginesAsync() {
+  return Promise.resolve([defaultSearchEngine]);
+}
+
 export function loadSearchEngines() { return Promise.resolve(); }
 
 export function getEngineByName() {

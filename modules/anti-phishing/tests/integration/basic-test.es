@@ -28,7 +28,7 @@ async function setupTestServer() {
 
 export default function () {
   describe('Anti-phishing', function () {
-    context('when turned on', function () {
+    xcontext('when turned on', function () {
       let oldIsPhishingURL;
 
       before(async function () {

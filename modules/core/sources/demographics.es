@@ -86,7 +86,7 @@ function parseInstallDate(rawInstallDate) {
 }
 
 
-function parsePlatform(agent) {
+export function parsePlatform(agent) {
   let platform = `Other/${agent}`;
   if (agent === 'ios') {
     platform = 'Mobile/iOS';

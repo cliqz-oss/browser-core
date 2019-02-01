@@ -4,13 +4,18 @@ import logger from './logger';
 
 const DATE_FORMAT = 'YYYY-MM-DD';
 
-function mergeStats(_a, b) {
+export function mergeStats(_a, b) {
   const a = _a;
   Object.keys(b).forEach((key) => {
     if (key === 'day') {
       a[key] = a[key] > b[key] ? a[key] : b[key];
     } else if (key === 'trackers') {
-      a[key] = [...new Set((a[key] || []).concat([...b[key]]))];
+      a[key] = [...new Set(
+        [
+          ...(a[key] || []),
+          ...(b[key] || [])
+        ]
+      )];
     } else {
       a[key] = (a[key] || 0) + b[key];
     }

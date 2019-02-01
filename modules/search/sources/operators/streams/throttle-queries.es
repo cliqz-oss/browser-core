@@ -1,7 +1,5 @@
-import Rx from '../../../platform/lib/rxjs';
-
-const { throttle, distinct } = Rx.operators;
-const { pipe } = Rx;
+import { pipe, interval as rxInterval } from 'rxjs';
+import { throttle, distinct } from 'rxjs/operators';
 
 /**
  * Factory for the `throttleQueries` operator, which throttles a user's input.
@@ -18,6 +16,6 @@ export default ({
     } = {},
   } = {},
 } = {}) => pipe(
-  throttle(() => Rx.Observable.interval(interval), { trailing: true, leading: true }),
+  throttle(() => rxInterval(interval), { trailing: true, leading: true }),
   distinct(),
 );

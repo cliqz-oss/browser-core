@@ -1,37 +1,65 @@
 import React from 'react';
-import ModulesList from './modules-list';
-import EndpointsList from './endpoints-list';
-import Reload from './reload';
-import LogsList from './logs-list';
-import Tabs from './tabs';
-import Pane from './pane';
 import createSpananWrapper from '../../../core/helpers/spanan-module-wrapper';
+
+import AppModules from './app-modules';
+import ActionButtons from './action-buttons';
+import HumanWeb from './humanweb';
+import ModalCell from './partials/modal-cell';
+import Pane from './partials/pane';
+import Preferences from './preferences';
+import SearchBackendConfig from './search-backend-config';
+import Tabs from './partials/tabs';
+import ToolsShortcuts from './tools-shortcuts';
 
 export default class App extends React.Component {
   state = {
-    modules: [],
-    endpointsUrl: '',
-    showConsoleLogs: false,
-    extensionsLegacyEnabled: false,
-    signaturesRequired: false,
     developer: false,
-    offersDevFlag: false,
-    offersLogsEnabled: false,
-    triggersBE: '',
-    offersLoadSignalsFromDB: true,
-    offersTelemetryFreq: 10,
+    endpointsUrl: '',
+    extensionsLegacyEnabled: false,
+    HWCheckUrlStatus: {
+      host: '',
+      isHostPrivate: null,
+      isPagePrivate: null,
+      quorumConsent: '',
+    },
+    HWStatus: {
+      allOpenPages: [],
+      counter: -1,
+      countryCode: '',
+      oc: null,
+      quorumOtherUrl: '',
+      rulesets: [],
+      state: {},
+      strictQueries: [],
+      trk: [],
+    },
     loggerLevel: 'debug',
+    modules: [],
+    offersDevFlag: false,
+    offersLoadSignalsFromDB: true,
+    offersLogsEnabled: false,
+    offersTelemetryFreq: 10,
+    showConsoleLogs: false,
+    signaturesRequired: false,
+    timestamp: null,
+    triggersBE: '',
+    urlToCheck: 'twitter.com',
   }
 
-  async componentDidMount() {
+  componentDidMount() {
     this.background = createSpananWrapper('toolbox').createProxy();
-    await this.syncState();
+    this.syncState();
   }
 
   syncState = async () => {
-    this.setState(
-      await this.background.getState(),
-    );
+    const newState = await this.background.getState(this.state.urlToCheck);
+    this.setState(newState);
+  }
+
+  onTextInputChange = (v) => {
+    this.setState({
+      urlToCheck: v,
+    });
   }
 
   render() {
@@ -40,46 +68,83 @@ export default class App extends React.Component {
     }
 
     return (
-      <Tabs selected={0}>
+      <Tabs
+        selected={0}
+        syncState={this.syncState}
+      >
+        <Pane label="Tools shortcuts">
+          <ModalCell modalClass="first">
+            <ToolsShortcuts />
+          </ModalCell>
+        </Pane>
         <Pane label="Modules + endpoints">
-          <div className="modal-group">
-            <ModulesList
+          <ModalCell
+            modalClass="first"
+            modalHeader="Cliqz modules list"
+          >
+            <AppModules
+              cliqz={this.background}
               modules={this.state.modules}
-              cliqz={this.background}
               syncState={this.syncState}
-              modalClass="first"
             />
+          </ModalCell>
 
-            <EndpointsList
-              endpointsUrl={this.state.endpointsUrl}
+          <ModalCell
+            modalClass="second"
+            modalHeader="Change search backend endpoints"
+          >
+            <SearchBackendConfig
               cliqz={this.background}
-              modalClass="second"
+              endpointsUrl={this.state.endpointsUrl}
+              syncState={this.syncState}
             />
-          </div>
+          </ModalCell>
         </Pane>
 
         <Pane label="Prefs + reload">
-          <div className="modal-group">
-            <LogsList
+          <ModalCell
+            modalClass="first"
+            modalHeader="Change prefs"
+          >
+            <Preferences
               cliqz={this.background}
-              syncState={this.syncState}
-              showConsoleLogs={this.state.showConsoleLogs}
-              extensionsLegacyEnabled={this.state.extensionsLegacyEnabled}
-              signaturesRequired={this.state.signaturesRequired}
               developer={this.state.developer}
-              offersDevFlag={this.state.offersDevFlag}
-              offersLogsEnabled={this.state.offersLogsEnabled}
-              triggersBE={this.state.triggersBE}
-              offersLoadSignalsFromDB={this.state.offersLoadSignalsFromDB}
-              offersTelemetryFreq={this.state.offersTelemetryFreq}
+              extensionsLegacyEnabled={this.state.extensionsLegacyEnabled}
               loggerLevel={this.state.loggerLevel}
-              modalClass="first"
+              offersDevFlag={this.state.offersDevFlag}
+              offersLoadSignalsFromDB={this.state.offersLoadSignalsFromDB}
+              offersLogsEnabled={this.state.offersLogsEnabled}
+              offersTelemetryFreq={this.state.offersTelemetryFreq}
+              showConsoleLogs={this.state.showConsoleLogs}
+              signaturesRequired={this.state.signaturesRequired}
+              syncState={this.syncState}
+              triggersBE={this.state.triggersBE}
             />
-            <Reload
+          </ModalCell>
+
+          <ModalCell
+            modalClass="second"
+          >
+            <ActionButtons
               cliqz={this.background}
-              modalClass="second"
             />
-          </div>
+          </ModalCell>
+        </Pane>
+
+        <Pane label="HumanWeb">
+          <ModalCell
+            modalClass="first"
+            modalHeader="HumanWeb"
+          >
+            <HumanWeb
+              HWCheckUrlStatus={this.state.HWCheckUrlStatus}
+              HWStatus={this.state.HWStatus}
+              onTextInputChange={this.onTextInputChange}
+              syncState={this.syncState}
+              timestamp={this.state.timestamp}
+              urlToCheck={this.state.urlToCheck}
+            />
+          </ModalCell>
         </Pane>
       </Tabs>
     );

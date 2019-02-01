@@ -3,8 +3,7 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 
-import i18n, { getMessage } from '../../../core/i18n';
-import utils from '../../../core/utils';
+import { getMessage } from '../../../core/i18n';
 import prefs from '../../../core/prefs';
 import PermissionManager from '../../../platform/permission-manager';
 import Link from '../Link';
@@ -141,25 +140,7 @@ const Helpers = {
     return null;
   },
 
-  calculateDistance(lon, lat, distance = []) {
-    let meters = -1;
-    if (distance[0]) {
-      meters = distance[0];
-    } if (lon && lat) {
-      meters = utils.distance(lon, lat) * 1000;
-    }
-    if (meters > -1) {
-      let dist;
-      let unit;
-      if (meters < 1000) {
-        dist = meters.toFixed(0);
-        unit = 'm';
-      } else {
-        dist = (meters / 1000).toFixed(1);
-        unit = 'km';
-      }
-      return `${dist.toLocaleString(i18n.currLocale)} ${unit}`;
-    }
+  calculateDistance() {
     return null;
   },
 };

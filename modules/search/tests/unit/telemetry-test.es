@@ -1,5 +1,10 @@
 /* global describeModule, chai */
+const Rx = require('rxjs');
+const operators = require('rxjs/operators');
+
 const mock = {
+  rxjs: Rx,
+  'rxjs/operators': operators,
   'core/url': {
     getDetailsFromUrl: () => ({}),
   }

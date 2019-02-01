@@ -126,7 +126,8 @@ export const data = {
       state: false
     },
     'privacy-dashboard': {
-      visible: true
+      visible: true,
+      url: 'about:transparency',
     },
     adult: {
       visible: true,

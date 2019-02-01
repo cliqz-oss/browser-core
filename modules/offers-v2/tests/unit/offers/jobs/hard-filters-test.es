@@ -102,6 +102,7 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
             historyMatcher: new HistoryMatcherMock(/* isHistoryEnabled */ true),
             offersDB: db,
             categoryHandler: catHandlerMock,
+            offerIsFilteredOutCb: () => {},
           };
           // set by default the offers-cc real estate
           ctx.presentRealEstates.set('offers-cc', true);

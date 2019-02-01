@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import t from '../i18n';
 
 export default function HistoryTitle({ dials: { history, isLoaded } }) {
@@ -14,3 +15,10 @@ export default function HistoryTitle({ dials: { history, isLoaded } }) {
     </div>
   );
 }
+
+HistoryTitle.propTypes = {
+  dials: PropTypes.shape({
+    history: PropTypes.array,
+    isLoaded: PropTypes.bool,
+  }),
+};

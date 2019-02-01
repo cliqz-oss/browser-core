@@ -7,9 +7,16 @@ export default {
   isChromium: false,
   isEdge: false,
   platformName: 'mobile',
-  isOnionMode: false,
 };
+
+export function isOnionModeFactory() {
+  return () => false;
+}
 
 export const appName = userAgent.appName;
 
 export const OS = userAgent.OS;
+
+export function isBetaVersion() {
+  return false;
+}

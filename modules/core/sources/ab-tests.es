@@ -54,6 +54,10 @@ const CliqzABTests = {
 
   // Check for newest list of AB tests from server
   check() {
+    if (config.settings.channel === '99') {
+      return;
+    }
+
     log('AB checking');
     // clear the last timer
     clearTimeout(timer);
@@ -142,12 +146,6 @@ const CliqzABTests = {
       case '1045_B':
         prefs.set('antiTrackTest', true);
         break;
-      case '1046_B':
-        prefs.set('attrackBlockCookieTracking', true);
-        break;
-      case '1047_B':
-        prefs.set('attrackRemoveQueryStringTracking', true);
-        break;
       case '1048_B':
         prefs.set('attrackAlterPostdataTracking', true);
         break;
@@ -159,18 +157,6 @@ const CliqzABTests = {
         break;
       case '1051_B':
         prefs.set('antiTrackTest', true);
-        break;
-      case '1052_A':
-        prefs.set('attrackBlockCookieTracking', false);
-        break;
-      case '1052_B':
-        prefs.set('attrackBlockCookieTracking', true);
-        break;
-      case '1053_A':
-        prefs.set('attrackRemoveQueryStringTracking', false);
-        break;
-      case '1053_B':
-        prefs.set('attrackRemoveQueryStringTracking', true);
         break;
       case '1057_A':
         prefs.set('trackerTxt', false);
@@ -442,6 +428,36 @@ const CliqzABTests = {
       case '1116_B':
         prefs.set('modules.cookie-monster.enabled', true);
         break;
+      case '1117_A':
+        prefs.set('cookie-monster.expireSession', false);
+        break;
+      case '1117_B':
+        prefs.set('cookie-monster.expireSession', true);
+        break;
+      case '1118_A':
+        prefs.set('cookie-monster.nonTracker', false);
+        break;
+      case '1118_B':
+        prefs.set('cookie-monster.nonTracker', true);
+        break;
+      case '1119_A':
+        prefs.set('friends.enable.level', 'development');
+        break;
+      case '1119_B':
+        prefs.set('friends.enable.level', 'beta');
+        break;
+      case '1119_C':
+        prefs.set('friends.enable.level', 'production');
+        break;
+      case '1120_A':
+        prefs.set('freshtab.post.position', 'top');
+        break;
+      case '1120_B':
+        prefs.set('freshtab.post.position', 'bottom-left');
+        break;
+      case '1120_C':
+        prefs.set('freshtab.post.position', 'bottom-right');
+        break;
       default:
         ruleExecuted = false;
     }
@@ -508,9 +524,11 @@ const CliqzABTests = {
       case '1051_B':
         prefs.clear('antiTrackTest');
         break;
+      case '1052_A':
       case '1052_B':
         prefs.clear('attrackBlockCookieTracking');
         break;
+      case '1053_A':
       case '1053_B':
         prefs.clear('attrackRemoveQueryStringTracking');
         break;
@@ -760,6 +778,26 @@ const CliqzABTests = {
       case '1116_A':
       case '1116_B':
         prefs.set('modules.cookie-monster.enabled', false);
+        break;
+      case '1117_A':
+      case '1117_B':
+        prefs.clear('cookie-monster.expireSession');
+        break;
+      case '1118_A':
+      case '1118_B':
+        prefs.clear('cookie-monster.nonTracker');
+        break;
+      case '1119_A':
+      case '1119_B':
+        prefs.set('friends.enable.level', 'development');
+        break;
+      case '1119_C':
+        prefs.set('friends.enable.level', 'development');
+        break;
+      case '1120_A':
+      case '1120_B':
+      case '1120_C':
+        prefs.clear('freshtab.post.position');
         break;
       default:
         ruleExecuted = false;

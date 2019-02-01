@@ -5,6 +5,7 @@ import background from '../core/base/background';
 import inject from '../core/kord/inject';
 import * as datetime from '../antitracking/time';
 import console from '../core/console';
+import utils from '../core/utils';
 
 function addDataToUrl(...args) {
   const hw = inject.module('human-web');
@@ -129,17 +130,27 @@ export default background({
         default:
           break;
       }
-    }
+    },
+
+    telemetry(target) {
+      const signal = {
+        type: 'anti-phishing',
+        action: 'click',
+        target,
+      };
+      utils.telemetry(signal);
+    },
+
+    markAsSafe(url) {
+      CliqzAntiPhishing.markAsSafe(url);
+    },
+
+    whitelistTemporary(url) {
+      CliqzAntiPhishing.whitelistTemporary(url);
+    },
   },
 
   events: {
-    'content:dom-ready': function onPageLoad(url, sender) {
-      this.actions.isPhishingURL(url).then((response) => {
-        if (response.block) {
-          this.core.action('broadcastActionToWindow', sender.windowId, 'anti-phishing', 'block', response);
-        }
-      });
-    },
     'human-web:active-url': function onActiveUrl(...args) {
       return CliqzAntiPhishing.onHwActiveURL(...args);
     },

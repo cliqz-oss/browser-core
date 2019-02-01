@@ -2,7 +2,6 @@ import React from 'react';
 import { StyleSheet, View, Text, Image } from 'react-native';
 import Link from '../Link';
 import { elementSideMargins, elementTopMargin, getCardWidth } from '../../styles/CardStyle';
-import { getDetailsFromUrl } from '../../../core/url';
 import CONFIG from '../../../core/config';
 import { agoLine } from '../../helpers/logic';
 import themeDetails from '../../themes';
@@ -51,7 +50,7 @@ const styles = ({ isInjected, nLines, theme } = {}) => StyleSheet.create({
 });
 
 export default class News extends React.Component {
-  displayLink(link, isInjected, firstNewsDomain) {
+  displayLink(link, isInjected) {
     const theme = this.props.theme;
     const thumbnail = (link.extra && link.extra.thumbnail)
           || `${CONFIG.settings.CDN_BASEURL}/extension/EZ/news/no-image-mobile.png`;
@@ -84,7 +83,7 @@ export default class News extends React.Component {
               {isInjected === true
                 && (
                   <View style={{ flexDirection: 'row' }}>
-                    <Text style={{ color: '#2CBA84', fontSize: 11, lineHeight: 16 }}>{firstNewsDomain}</Text>
+                    <Text style={{ color: '#2CBA84', fontSize: 11, lineHeight: 16 }}>{link.extra.domain}</Text>
                     <Text style={{ color: 'white', fontSize: 11, lineHeight: 16 }}> -</Text>
                   </View>
                 )
@@ -109,14 +108,9 @@ export default class News extends React.Component {
     }
 
     let isInjected = false;
-    let firstNewsDomain = '';
 
-    if (this.props.data[0] !== undefined) {
-      const cardDomain = getDetailsFromUrl(this.props.url).domain;
-      firstNewsDomain = getDetailsFromUrl(this.props.data[0].url).domain;
-      if (cardDomain !== firstNewsDomain) {
-        isInjected = true;
-      }
+    if (this.props.template !== 'entity-news-1') {
+      isInjected = true;
     }
 
     const numberOfNews = isInjected === false ? 3 : 1;
@@ -125,7 +119,7 @@ export default class News extends React.Component {
       <View style={styles({ isInjected, theme }).social}>
         {
           this.props.data.slice(0, numberOfNews)
-            .map(link => this.displayLink(link, isInjected, firstNewsDomain))
+            .map(link => this.displayLink(link, isInjected))
         }
       </View>
     );

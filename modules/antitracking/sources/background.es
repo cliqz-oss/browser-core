@@ -44,11 +44,6 @@ export default background({
       return Promise.resolve();
     }
 
-    // fix for users without pref properly set: set to value from build config
-    if (!prefs.has('attrackRemoveQueryStringTracking')) {
-      prefs.set('attrackRemoveQueryStringTracking', true);
-    }
-
     // indicates if the antitracking background is initiated
     this.enabled = true;
     this.clickCache = {};
@@ -64,7 +59,7 @@ export default background({
 
     // load config
     this.config = new Config({}, () => this.core.action('refreshAppState'));
-    return this.config.init().then(() => this.attrack.init(this.config));
+    return this.config.init().then(() => this.attrack.init(this.config, settings));
   },
 
   /**

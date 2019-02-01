@@ -8,7 +8,7 @@ function toSerializable(engine) {
     name: engine.name,
     icon: engine.iconURI.spec,
     searchForm: engine.searchForm,
-    isCurrent: Services.search.currentEngine === engine,
+    isDefault: Services.search.defaultEngine === engine,
     urls: {}
   };
   urlTypes.forEach((type) => {
@@ -30,7 +30,7 @@ this.cliqzSearchEngines = class extends ExtensionAPI {
           const engines = Services.search.getEngines();
           return engines.map(toSerializable);
         },
-        getDefaultEngine: () => toSerializable(Services.search.currentEngine)
+        getDefaultEngine: () => toSerializable(Services.search.defaultEngine)
       }
     };
   }

@@ -1,4 +1,5 @@
-import Rx from '../../platform/lib/rxjs';
+import { merge as rxMerge } from 'rxjs';
+import { map, filter, share, flatMap, withLatestFrom } from 'rxjs/operators';
 import { getMainLink } from '../operators/normalize';
 
 const getMainLinks = ({ results }) =>
@@ -45,16 +46,18 @@ const merge = ([{ results: completed }, { results: original, ...rest }]) => {
 };
 
 export default function update(richHeader, cliqz$, query, config) {
-  return Rx.Observable.merge(
+  return rxMerge(
     cliqz$,
-    cliqz$
-      .map(getMainLinks)
-      .map(removeCompletedLinks)
-      .filter(isNotEmpty)
-      .flatMap(links => richHeader.search(query, links, config))
-      .withLatestFrom(cliqz$)
-      .map(merge),
-  )
-    .map(removeEmptyResults)
-    .share();
+    cliqz$.pipe(
+      map(getMainLinks),
+      map(removeCompletedLinks),
+      filter(isNotEmpty),
+      flatMap(links => richHeader.search(query, links, config)),
+      withLatestFrom(cliqz$),
+      map(merge)
+    )
+  ).pipe(
+    map(removeEmptyResults),
+    share()
+  );
 }

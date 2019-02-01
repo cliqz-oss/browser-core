@@ -4,7 +4,7 @@ import { Dimensions } from 'react-native';
 export const { width: vpWidth, height: vpHeight } = Dimensions.get('window');
 
 export function getScreenHeight() {
-  return Dimensions.get('screen').height;
+  return Dimensions.get('screen').height - 80;
 }
 
 export function getVPWidth() {

@@ -1,14 +1,22 @@
-/* global window, document, localizeDocument, CLIQZ, ChromeUtils */
+/* global window, document */
 import templates from './templates';
+import createSpananForModule from '../core/helpers/spanan-module-wrapper';
 
-try {
-  ChromeUtils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
-} catch (e) {
-  Components.utils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
+
+const privacyModule = createSpananForModule('privacy-dashboard');
+const actions = privacyModule.createProxy();
+
+function localizeDocument() {
+  Array.from(document.querySelectorAll('[data-i18n]'))
+    .forEach((el) => {
+      const elArgs = el.dataset.i18n.split(',');
+      const key = elArgs.shift();
+      /* eslint-disable */
+      el.innerHTML = chrome.i18n.getMessage(key, elArgs);
+      /* eslint-enable */
+    });
 }
-const utils = CLIQZ.CliqzUtils;
-const CliqzEvents = utils.getWindow().CliqzEvents;
-const CliqzPrivacyRep = CLIQZ.app.modules['privacy-dashboard'].background.CliqzPrivacyRep;
+localizeDocument();
 
 const template = templates.data_list;
 const SIG_TYPES = {
@@ -23,41 +31,16 @@ function renderSignal(signals, sigType) {
 }
 
 function renderDashboard() {
-  const signals = CliqzPrivacyRep.getCurrentData();
-  Object.keys(SIG_TYPES).forEach(sigType => renderSignal(signals, sigType));
-  localizeDocument();
-}
-
-function onUpdateData(sigType) {
-  const signals = CliqzPrivacyRep.getCurrentData();
-  renderSignal(signals, sigType);
-}
-
-function init() {
-  Promise.resolve().then(renderDashboard);
-  CliqzPrivacyRep.registerStream();
-  CliqzEvents.sub('PRIVACY_DASHBOARD_NEWDATA', onUpdateData);
-  window.addEventListener('unload', CliqzPrivacyRep.unregisterStream);
-}
-
-// re-render  all the dashboard - the signals might be expired
-setInterval(renderDashboard, 20 * 1000);
-
-document.addEventListener('click', (ev) => {
-  if (ev.target.nodeName !== 'A' || ev.button === 2) {
-    return;
-  }
-
-  ev.preventDefault();
-
-  const gBrowser = utils.getWindow().gBrowser;
-  const ssm = Components.classes['@mozilla.org/scriptsecuritymanager;1']
-    .getService(Components.interfaces.nsIScriptSecurityManager);
-
-  const tab = gBrowser.addTab(ev.target.href, {
-    triggeringPrincipal: ssm.createNullPrincipal({ }),
+  actions.getData().then((data) => {
+    Object.keys(data).forEach(sigType => renderSignal(data, sigType));
+    localizeDocument();
   });
-  gBrowser.selectedTab = tab;
-});
+}
 
-init();
+// TEMP force refresh whole dashboard
+setInterval(renderDashboard, 2000);
+
+actions.register();
+renderDashboard();
+
+window.addEventListener('unload', actions.unregister);

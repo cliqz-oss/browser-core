@@ -1,13 +1,13 @@
 /* global chai, describeModule */
 
 const Rx = require('rxjs');
+const operators = require('rxjs/operators');
 const rxSandbox = require('rx-sandbox').rxSandbox;
 
 
 const mock = {
-  'platform/lib/rxjs': {
-    default: Rx,
-  }
+  rxjs: Rx,
+  'rxjs/operators': operators,
 };
 
 export default describeModule('search/operators/streams/static/combine-any-latest',

@@ -16,7 +16,11 @@ const largeBreakpoint = 1600;
 export default class News extends React.Component {
   static get propTypes() {
     return {
-      news: PropTypes.array,
+      isModalOpen: PropTypes.bool,
+      news: PropTypes.shape({
+        data: PropTypes.array,
+      }),
+      newsLanguage: PropTypes.string,
     };
   }
 
@@ -127,12 +131,12 @@ export default class News extends React.Component {
     return (
       <div className="news">
         <Pagination
-          ref={(pagination) => { this._pagination = pagination; }}
+          contentType="news"
+          isModalOpen={this.props.isModalOpen}
+          isNewsHover={this.state.isNewsHover}
           items={this.props.news.data}
           onChangePage={this.onChangePage}
-          isNewsHover={this.state.isNewsHover}
-          isModalOpen={this.props.isModalOpen}
-          contentType="news"
+          ref={(pagination) => { this._pagination = pagination; }}
         />
 
         <div className="news-container" style={{ ...styles, opacity: this.state.opacity }}>
@@ -150,8 +154,6 @@ export default class News extends React.Component {
                       article={article}
                       index={(this._pagination.state.pager.pageSize
                         * (this._pagination.state.pager.currentPage - 1)) + index}
-                      currentPage={this._pagination.state.pager.currentPage}
-                      pageSize={this._pagination.state.pager.pageSize}
                       maxChars={this.state.articleCharsLimit}
                       newsLanguage={this.props.newsLanguage}
                       charsToRemoveFromTitle={this.state.charsToRemoveFromTitle}

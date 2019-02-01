@@ -1,6 +1,5 @@
 import config from '../core/config';
 import background from '../core/base/background';
-import utils from '../core/utils';
 import prefs from '../core/prefs';
 
 /**
@@ -31,11 +30,11 @@ export default background({
 
   actions: {
     show() {
-      prefs.set(utils.BROWSER_ONBOARDING_PREF, true);
+      prefs.set(config.settings.onBoardingPref, true);
     },
 
     finishOnboarding() {
-      utils.openLink(utils.getWindow(), config.settings.NEW_TAB_URL);
+      chrome.tabs.reload();
     },
   },
 });

@@ -1,0 +1,259 @@
+[{
+  "namespace": "testHelpers",
+  "description": "API giving read access to 'extensions.cliqz.' branch of firefox prefs (needed for migration).",
+  "types": [
+    {
+      "id": "QueryNodeOptions",
+      "type": "object",
+      "description": "",
+      "properties": {
+        "windowId": {
+          "type": "number",
+          "minimum": -2,
+          "optional": true
+        },
+        "attributes": {
+          "type": "boolean",
+          "default": true,
+          "optional": true
+        },
+        "classes": {
+          "type": "boolean",
+          "default": true,
+          "optional": true
+        },
+        "children": {
+          "type": "boolean",
+          "default": true,
+          "optional": true
+        },
+        "properties": {
+          "type": "array",
+          "optional": true,
+          "items": {
+            "type": "string",
+            "minimum": 0
+          }
+        },
+        "text": {
+          "type": "boolean",
+          "default": true,
+          "optional": true
+        },
+        "html": {
+          "type": "boolean",
+          "default": true,
+          "optional": true
+        },
+        "styles": {
+          "type": "array",
+          "optional": true,
+          "items": {
+            "type": "string",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "KeyEventOptions",
+      "type": "object",
+      "description": "",
+      "properties": {
+        "windowId": {
+          "type": "number",
+          "minimum": -2,
+          "optional": true
+        },
+        "code": {
+          "type": "string",
+          "optional": true
+        },
+        "key": {
+          "type": "string",
+          "optional": true
+        },
+        "ctrlKey": {
+          "type": "boolean",
+          "default": false,
+          "optional": true
+        },
+        "shiftKey": {
+          "type": "boolean",
+          "default": false,
+          "optional": true
+        },
+        "altKey": {
+          "type": "boolean",
+          "default": false,
+          "optional": true
+        },
+        "metaKey": {
+          "type": "boolean",
+          "default": false,
+          "optional": true
+        }
+      }
+    }
+  ],
+  "functions": [{
+    "name": "sendString",
+    "type": "function",
+    "description": "Simulate typing a string into urlbar",
+    "async": "callback",
+    "parameters": [
+      {
+        "type": "number",
+        "name": "windowId",
+        "optional": true
+      },
+      {
+        "type": "string",
+        "name": "text"
+      },
+      {
+        "type": "function",
+        "name": "callback",
+        "parameters": []
+      }
+    ]
+  }, {
+    "name": "getDropdownHeight",
+    "type": "function",
+    "description": "Get dropdown height",
+    "async": "callback",
+    "parameters": [
+      {
+        "type": "number",
+        "name": "windowId",
+        "optional": true
+      },
+      {
+        "type": "function",
+        "name": "callback",
+        "parameters": [{
+          "name": "height",
+          "type": "number"
+        }]
+      }
+    ]
+  }, {
+    "name": "querySelector",
+    "type": "function",
+    "description": "rrrrrrrrr",
+    "async": "callback",
+    "parameters": [
+      {
+        "type": "string",
+        "name": "selector"
+      },
+      {
+        "name": "parameters",
+        "optional": true,
+        "$ref": "QueryNodeOptions"
+      },
+      {
+        "type": "function",
+        "name": "callback",
+        "parameters": [{
+          "name": "dropdown",
+          "type": "any"
+        }]
+      }
+    ]
+  }, {
+    "name": "querySelectorAll",
+    "type": "function",
+    "description": "rrrrrrrrr",
+    "async": "callback",
+    "parameters": [
+      {
+        "type": "string",
+        "name": "selector"
+      },
+      {
+        "name": "parameters",
+        "optional": true,
+        "$ref": "QueryNodeOptions"
+      },
+      {
+        "type": "function",
+        "name": "callback",
+        "parameters": [{
+          "name": "dropdown",
+          "type": "any"
+        }]
+      }
+    ]
+  }, {
+    "name": "callMethod",
+    "type": "function",
+    "description": "rrrrrrrrrooooooo",
+    "async": "callback",
+    "parameters": [
+      {
+        "type": "string",
+        "name": "selector"
+      },
+      {
+        "name": "method",
+        "type": "string"
+      },
+      {
+        "name": "args",
+        "type": "array",
+        "optional": true,
+        "items": {
+          "type": "any",
+          "minimum": 0
+        }
+      },
+      {
+        "type": "function",
+        "name": "callback",
+        "parameters": [{
+          "name": "dropdown",
+          "type": "any"
+        }]
+      }
+    ]
+  }, {
+    "name": "press",
+    "type": "function",
+    "description": "rrrrrrrrr",
+    "async": "callback",
+    "parameters": [
+      {
+        "name": "parameters",
+        "$ref": "KeyEventOptions"
+      },
+      {
+        "type": "function",
+        "name": "callback",
+        "parameters": [{
+          "name": "dropdown",
+          "type": "any"
+        }]
+      }
+    ]
+  }, {
+    "name": "release",
+    "type": "function",
+    "description": "rrrrrrrrr",
+    "async": "callback",
+    "parameters": [
+      {
+        "name": "parameters",
+        "$ref": "KeyEventOptions"
+      },
+      {
+        "type": "function",
+        "name": "callback",
+        "parameters": [{
+          "name": "dropdown",
+          "type": "any"
+        }]
+      }
+    ]
+  }]
+}]

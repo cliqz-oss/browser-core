@@ -225,13 +225,14 @@ export default describeModule('offers-v2/categories/category-handler',
         let historyFeatureMock;
         let catHandler;
 
-        beforeEach(function () {
+        beforeEach(async function () {
           timeMock.setMockedTS(Date.now());
           sharedDB = {};
           fh = new FeatureHandler();
           historyFeatureMock = fh.getFeature('history');
-          catHandler = new CategoryHandler(historyFeatureMock, sharedDB);
-          return catHandler.loadPersistentData();
+          catHandler = new CategoryHandler(historyFeatureMock);
+          await catHandler.init(sharedDB);
+          await catHandler.loadPersistentData();
         });
 
         afterEach(() => catHandler.persistentHelper.destroyDB());
@@ -462,7 +463,8 @@ export default describeModule('offers-v2/categories/category-handler',
 
           await catHandler.persistentHelper.unloadDB();
 
-          const catHandler2 = new CategoryHandler(historyFeatureMock, sharedDB);
+          const catHandler2 = new CategoryHandler(historyFeatureMock);
+          await catHandler2.init(sharedDB);
           chai.expect(catHandler2.hasCategory('c1')).eql(false);
           chai.expect(catHandler2.hasCategory('c2')).eql(false);
           chai.expect(catHandler2.hasCategory('c3')).eql(false);

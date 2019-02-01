@@ -11,10 +11,17 @@ export class Window {
   static findByTabId() {
 
   }
+
+  get id() {
+    return this.window.id;
+  }
 }
 
+let currentWindow = null;
+const windowsMap = new Map();
+
 export function mapWindows(fn) {
-  return [window].map((win) => {
+  return [...windowsMap.values()].map((win) => {
     let ret;
     try {
       ret = fn(win);
@@ -25,6 +32,9 @@ export function mapWindows(fn) {
   });
 }
 
+export function getWindow() {
+  return currentWindow;
+}
 
 export function isTabURL() {
   return false;
@@ -50,16 +60,65 @@ export function getBrowserMajorVersion() {
 export function setOurOwnPrefs() { }
 export function enableChangeEvents() {}
 
-export function addWindowObserver() {}
-export function removeWindowObserver() {}
+const windowObservers = new WeakMap();
+
+export function addWindowObserver(fn) {
+  if (!chrome.windows) {
+    return;
+  }
+  const observer = {
+    open: win => fn(win, 'opened'),
+    focus: windowId => fn({ id: windowId }, 'focused'),
+    close: windowId => fn({ id: windowId }, 'closed'),
+  };
+  windowObservers.set(fn, observer);
+  chrome.windows.onCreated.addListener(observer.open);
+  chrome.windows.onFocusChanged.addListener(observer.focus);
+  chrome.windows.onRemoved.addListener(observer.close);
+}
+
+export function removeWindowObserver(fn) {
+  if (!chrome.windows) {
+    return;
+  }
+  const observer = windowObservers.get(fn);
+  chrome.windows.onCreated.removeListener(observer.open);
+  chrome.windows.onFocusChanged.removeListener(observer.focus);
+  chrome.windows.onRemoved.removeListener(observer.close);
+}
 
 export function addSessionRestoreObserver() {}
 export function removeSessionRestoreObserver() {}
 
+function windowObserver(win, event) {
+  if (event === 'opened') {
+    windowsMap.set(win.id, win);
+  }
+  if (event === 'closed') {
+    windowsMap.delete(win.id);
+  }
+  if (event === 'focused') {
+    currentWindow = windowsMap.get(win.id) || currentWindow;
+  }
+  if (win.focused) {
+    currentWindow = win;
+  }
+}
+
+if (chrome.windows) {
+  addWindowObserver(windowObserver);
+  chrome.windows.getAll(
+    windows => windows.forEach(win => windowObserver(win, 'opened'))
+  );
+} else {
+  currentWindow = window;
+  windowsMap.set(undefined, window);
+}
+
 export function addMigrationObserver() {}
 export function removeMigrationObserver() {}
 export function forEachWindow(cb) {
-  mapWindows(w => w).forEach(cb);
+  return mapWindows(cb);
 }
 export function mustLoadWindow() {
   return true;
@@ -125,7 +184,3 @@ export function reportError() {}
 export function disableChangeEvents() {}
 
 export function resetOriginalPrefs() {}
-
-export function getThemeStyle() {
-  return 'default';
-}

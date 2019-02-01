@@ -40,7 +40,7 @@ export function historySearch(q, callback) {
   });
 }
 
-export function handleAutoCompletion(url = '', query = '') {
+export function handleAutocompletion(url = '', query = '') {
   if (!NativeModules.AutoCompletion) {
     return;
   }

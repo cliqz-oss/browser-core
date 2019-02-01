@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import TopMessages from './top-messages';
 import MiddleMessages from './middle-messages';
 import OfferMiddleMessages from './middle-messages-offers';
+import CliqzPost from './cliqz-post';
 
 export default class MessageCenter extends React.Component {
   constructor(props) {
@@ -10,6 +11,7 @@ export default class MessageCenter extends React.Component {
     this.state = {
       top: [],
       middle: [],
+      cliqzpost: [],
       offers: [],
     };
   }
@@ -19,10 +21,10 @@ export default class MessageCenter extends React.Component {
     const top = [];
     const middle = [];
     const offers = [];
+    const cliqzpost = [];
     Object.keys(messages).forEach((message) => {
       const msg = messages[message];
       const { position, type } = msg;
-
       if (position === 'top') {
         top.push(msg);
       } else if (position === 'middle') {
@@ -31,11 +33,15 @@ export default class MessageCenter extends React.Component {
         } else {
           middle.push(msg);
         }
+      } else if (position === 'post') {
+        cliqzpost.push(msg);
       }
     });
+
     this.setState({
       top,
       middle,
+      cliqzpost,
       offers,
     });
   }
@@ -45,31 +51,38 @@ export default class MessageCenter extends React.Component {
     if (position === 'top' && this.state.top.length > 0) {
       return (
         <TopMessages
-          messages={this.state.top}
           handleLinkClick={this.props.handleLinkClick}
+          messages={this.state.top}
         />
       );
     }
     if (position === 'middle' && this.state.middle.length > 0 && this.state.offers.length <= 0) {
       return (
         <MiddleMessages
-          messages={this.state.middle}
-          settingsIcon={this.props.settingsElem}
           handleLinkClick={this.props.handleLinkClick}
           locale={this.props.locale}
+          messages={this.state.middle}
         />
       );
     }
     if (position === 'middle' && this.state.offers.length > 0) {
       return (
         <OfferMiddleMessages
-          offers={this.state.offers}
           fullWidth={this.props.fullWidth}
-          submitFeedbackForm={this.props.submitFeedbackForm}
           getOfferInfoOpen={this.props.getOfferInfoOpen}
-          setOfferInfoOpen={this.props.setOfferInfoOpen}
           getOfferMenuOpen={this.props.getOfferMenuOpen}
+          offers={this.state.offers}
+          setOfferInfoOpen={this.props.setOfferInfoOpen}
           setOfferMenuOpen={this.props.setOfferMenuOpen}
+          submitFeedbackForm={this.props.submitFeedbackForm}
+        />
+      );
+    }
+    if (position === 'post' && this.state.cliqzpost.length > 0) {
+      return (
+        <CliqzPost
+          positioning={this.props.positioning}
+          messages={this.state.cliqzpost}
         />
       );
     }
@@ -78,7 +91,12 @@ export default class MessageCenter extends React.Component {
 }
 
 MessageCenter.propTypes = {
+  handleLinkClick: PropTypes.func,
+  locale: PropTypes.string,
+  messages: PropTypes.shape({
+    title: PropTypes.string,
+    description: PropTypes.string,
+    map: PropTypes.func
+  }),
   position: PropTypes.string,
-  settingsElem: PropTypes.string,
-  handleLinkClick: PropTypes.func
 };

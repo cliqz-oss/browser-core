@@ -1,15 +1,15 @@
 /* global chai, describeModule */
 
 const Rx = require('rxjs');
+const operators = require('rxjs/operators');
 const { resultsBeforeLimit } = require('./limit-results-fixture');
 
 const mock = {
   'search/operators/normalize': {
     getMainLink: ({ links }) => links[0],
   },
-  'platform/lib/rxjs': {
-    default: Rx,
-  }
+  rxjs: Rx,
+  'rxjs/operators': operators,
 };
 
 export default describeModule('search/operators/streams/limit-results',

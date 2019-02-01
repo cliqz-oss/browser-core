@@ -1,88 +1,86 @@
+import { afterIframeRemoved, beforeIframeShown } from './sites-specific';
 import { createElement } from './utils';
-import Handler from './handler';
 import * as styles from './styles/index';
-import { beforeIframeShown } from './sites-specific';
 
-const AUTO_HIDE_TIMEOUT = 20 * 60 * 1000;
-const DEBUG = false;
 const WAIT_BEFORE_SHOWING = 500;
+const DEBUG = false;
+const SMALL_SCREEN_HEIGHT = 725;
 
-/*
-  payload -- can be object or pair of objects [payload.isPair = true]
-  Payload will be pair when data for realEstate are strongly connected
-  e.g `tooltip` and `popup` -> user clicks on `tooltip` and gets `popup`
-*/
-export default function render(chrome, window, payload, onAction, config) {
-  const bannerId = 'cliqz-offers-banner';
-  const isRewardBox = config.type === 'offers-cc';
-  if (window.document.getElementById(bannerId)) {
-    window.console.warn('an attempt to render banner twice');
-    return;
-  }
-  const wrapper = createElement(window, { tag: 'div' });
-  const iframe = createElement(window, { tag: 'iframe' });
-  Object.assign(wrapper.style, styles.wrapper(isRewardBox));
-  Object.assign(iframe.style, styles.banner(isRewardBox, config));
-
-  iframe.frameBorder = 0;
-  wrapper.appendChild(iframe);
-
-  const head = window.document.head;
-  const isShadow = head.createShadowRoot || head.attachShadow;
-  let shadowRoot = null;
-  if (isShadow) {
-    shadowRoot = createElement(window, { tag: 'span', id: bannerId });
-    const shadow = shadowRoot.attachShadow({ mode: DEBUG ? 'open' : 'closed' });
-    shadow.appendChild(wrapper);
-    window.document.body.appendChild(shadowRoot);
-  } else {
-    wrapper.setAttribute('id', bannerId);
-    window.document.body.appendChild(wrapper);
+export default class View {
+  constructor({ onaction, window, config }) {
+    this.isRewardBox = config.type === 'offers-cc';
+    this.window = window;
+    this.onaction = onaction;
+    this.iframe = null;
+    this.wrapper = null;
+    this.config = config;
   }
 
-  const handler = new Handler({
-    window,
-    wrapper: isShadow ? shadowRoot : wrapper,
-    iframe,
-    onAction,
-    isRewardBox,
-    onHideTooltipData: isRewardBox && payload.isPair ? payload.popup : null,
-    config,
-    initialPayload: isRewardBox && payload.isPair ? payload.tooltip : payload,
-    onIframeLoad: () => {
-      setTimeout(() => {
-        if (!isRewardBox) { beforeIframeShown(window); }
-        wrapper.style.opacity = 1;
-        iframe.style.opacity = 1;
-        if (!isRewardBox) {
-          onAction({ handler: 'offerShown', data: {} });
-          onAction({ handler: 'offersFirstAppearance', data: {} });
-        }
-      }, config.waitBeforeShowing || WAIT_BEFORE_SHOWING);
-    },
-  });
-  handler.init();
-  iframe.src = config.url;
+  unload() {
+    if (!this.isRewardBox) { afterIframeRemoved(this.window); }
+    if (this.shadowRoot) { this.shadowRoot.remove(); }
+    this.iframe.remove();
+    this.wrapper.remove();
+    this.iframe = null;
+    this.window = null;
+    this.onaction = null;
+    this.config = null;
+  }
 
-  window.document.addEventListener('visibilitychange', () => {
-    const node = window.document.getElementById(bannerId);
-    const isVisible = window.document.visibilityState === 'visible';
-    if (node && isVisible && !isRewardBox) {
-      onAction({ handler: 'offerShown', data: {} });
-    }
-  });
-  window.document.addEventListener('scroll', () => {
-    const node = window.document.getElementById(bannerId);
-    const scrollY = window.pageYOffset;
-    const partOfBannersHeight = 100; // 70 percent of banner's height
-    if (node && !isRewardBox && scrollY > partOfBannersHeight) {
-      handler.removeFromWindow();
-    }
-  });
+  makeVisible() {
+    setTimeout(() => {
+      if (!this.isRewardBox) { beforeIframeShown(this.window); }
+      this.wrapper.style.opacity = 1;
+      this.iframe.style.opacity = 1;
+      if (!this.isRewardBox) {
+        this.onaction({ handler: 'offerShown', data: {} });
+        this.onaction({ handler: 'offersFirstAppearance', data: {} });
+      }
+    }, this.config.waitBeforeShowing || WAIT_BEFORE_SHOWING);
+  }
 
-  window.setTimeout(() => {
-    if (window.document.getElementById(bannerId)) {
-      handler.removeFromWindow();
+  resize({ width, height }) {
+    this.iframe.style.height = `${height}px`;
+    this.iframe.style.width = `${width}px`;
+  }
+
+  sendToIframe(payload) {
+    const isSmallScreen = this.window.innerHeight < SMALL_SCREEN_HEIGHT;
+    this.iframe.contentWindow.postMessage(JSON.stringify({
+      target: this.isRewardBox ? 'cliqz-offers-cc' : 'cqz-browser-panel-re',
+      origin: 'window',
+      message: {
+        action: this.isRewardBox ? 'pushData' : 'render_template',
+        data: { ...payload, isSmallScreen },
+      }
+    }), '*');
+  }
+
+  render(bannerId) {
+    const wrapper = createElement(this.window, { tag: 'div' });
+    const iframe = createElement(this.window, { tag: 'iframe' });
+    Object.assign(wrapper.style, styles.wrapper(this.isRewardBox));
+    Object.assign(iframe.style, styles.banner(this.isRewardBox, this.config));
+
+    iframe.frameBorder = 0;
+    wrapper.appendChild(iframe);
+    iframe.src = this.config.url;
+
+    const head = this.window.document.head;
+    const isShadow = head.createShadowRoot || head.attachShadow;
+    let shadowRoot = null;
+    if (isShadow) {
+      shadowRoot = createElement(this.window, { tag: 'span', id: bannerId });
+      const shadow = shadowRoot.attachShadow({ mode: DEBUG ? 'open' : 'closed' });
+      shadow.appendChild(wrapper);
+      this.window.document.body.appendChild(shadowRoot);
+    } else {
+      wrapper.setAttribute('id', bannerId);
+      this.window.document.body.appendChild(wrapper);
     }
-  }, AUTO_HIDE_TIMEOUT);
+
+    this.iframe = iframe;
+    this.wrapper = wrapper;
+    this.shadowRoot = shadowRoot;
+  }
 }

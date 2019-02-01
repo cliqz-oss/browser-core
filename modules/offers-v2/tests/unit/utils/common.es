@@ -4,6 +4,7 @@ const prefs = require('./prefs');
 const misc = require('./misc');
 const time = require('./time');
 const patternidx = require('./patterindex-deps');
+const fetch = require('./fetch');
 
 module.exports = {
   ...dexie,
@@ -12,4 +13,5 @@ module.exports = {
   ...misc,
   ...time,
   ...patternidx,
+  ...fetch,
 };

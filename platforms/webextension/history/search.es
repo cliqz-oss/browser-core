@@ -6,6 +6,7 @@ const URL_PREFIX_BLACKLIST = [
   'moz-extension://',
   'chrome-extension://',
 ];
+const unifiedSearchAvailable = chrome.cliqz && chrome.cliqz.unifiedSearch;
 
 function isURLBlacklisted(url) {
   return URL_PREFIX_BLACKLIST.find(prefix => url.indexOf(prefix) === 0);
@@ -23,7 +24,7 @@ function updateBookmarksCache() {
   });
 }
 
-if (chrome.bookmarks) {
+if (chrome.bookmarks && !unifiedSearchAvailable) {
   chrome.bookmarks.onCreated.addListener(updateBookmarksCache);
   chrome.bookmarks.onRemoved.addListener(updateBookmarksCache);
   chrome.bookmarks.onChanged.addListener(updateBookmarksCache);
@@ -34,7 +35,32 @@ if (chrome.bookmarks) {
   updateBookmarksCache();
 }
 
+let openedURLs = new Set();
+
+function updateOpenedTabsCache() {
+  if (chrome.windows) {
+    chrome.windows.getAll({ populate: true, windowTypes: ['normal'] }, (windows) => {
+      openedURLs = new Set();
+      windows.forEach(w => w.tabs.forEach(tab => openedURLs.add(tab.url)));
+    });
+  }
+}
+
+if (chrome.tabs && !unifiedSearchAvailable) {
+  chrome.tabs.onCreated.addListener(updateOpenedTabsCache);
+  chrome.tabs.onRemoved.addListener(updateOpenedTabsCache);
+  chrome.tabs.onUpdated.addListener(updateOpenedTabsCache);
+  chrome.tabs.onReplaced.addListener(updateOpenedTabsCache);
+  updateOpenedTabsCache();
+}
+
 export default function getHistory(query, callback) {
+  // we use the unified search experimental API in the Cliqz browser
+  if (unifiedSearchAvailable) {
+    chrome.cliqz.unifiedSearch(query).then(callback);
+    return;
+  }
+
   // `chrome.history.search` in Chrome returns no results for queries shorter than 3 symbols.
   // So in case of short query we request last MAX_RESULTS_WITH_EMPTY_QUERY history results and
   // filter them manually.
@@ -46,6 +72,9 @@ export default function getHistory(query, callback) {
     const styles = [];
     if (bookmarkedURLs.has(url)) {
       styles.push('bookmark');
+    }
+    if (openedURLs.has(url)) {
+      styles.push('switchtab');
     }
     // TODO switchtab
     return styles.join(' ');
@@ -112,14 +141,9 @@ export default function getHistory(query, callback) {
   };
 
   // Support both callback and promise APIs styles
-  const promise = chrome.history.search(
-    {
-      text,
-      startTime: 0,
-      maxResults,
-    },
-    cb
-  );
+  const promise = chrome.history
+    ? chrome.history.search({ text, startTime: 0, maxResults }, cb)
+    : Promise.resolve([]);
 
   if (promise && promise.then) {
     promise.then(cb);

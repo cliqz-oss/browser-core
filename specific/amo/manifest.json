@@ -1,6 +1,6 @@
 {
-  "name": "Cliqz",
-  "description": "Cliqz AMO",
+  "name": "__MSG_addon_name_amo__",
+  "description": "__MSG_addon_desc_amo__",
   "version": "{{version}}",
   "manifest_version": 2,
   "default_locale": "de",
@@ -26,40 +26,36 @@
   },
   "browser_action": {
     "default_icon": {
-      "16": "assets/icon16.png",
-      "48": "assets/icon48.png",
-      "128": "assets/icon128.png"
+      "16":  "assets/button16.png",
+      "48":  "assets/button48.png",
+      "128": "assets/button128.png"
     },
-    "default_title": "MyOffrz"
+    "default_title": "__MSG_offers_hub_title__"
   },
   "permissions": [
     "<all_urls>",
     "bookmarks",
-    "clipboardWrite",
-    "cookies",
     "geolocation",
     "history",
-    "idle",
     "management",
     "notifications",
     "contextMenus",
-    "privacy",
-    "proxy",
     "storage",
     "tabs",
     "activeTab",
     "topSites",
     "unlimitedStorage",
-    "webNavigation",
+    "clipboardWrite",
     "webRequest",
+    "webNavigation",
     "webRequestBlocking"
   ],
   "background": {
     "scripts": [
-      "modules/vendor/Rx.min.js",
-      "modules/vendor/math.min.js",
+      "modules/vendor/math-expression-evaluator.min.js",
       "modules/vendor/dexie.min.js",
-      "modules/webextension-specific/app.bundle.js"
+      "modules/webextension-specific/app.bundle.js",
+      "background.js"
     ]
   },
   "chrome_url_overrides": {

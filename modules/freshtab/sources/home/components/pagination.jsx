@@ -1,9 +1,10 @@
 /* global window */
 import PropTypes from 'prop-types';
 import React from 'react';
-import { historyPaginationClickSignal } from '../services/telemetry/home';
+import { historyPaginationHoverSignal, historyPaginationClickSignal } from '../services/telemetry/home';
 import { newsPaginationClickSignal } from '../services/telemetry/news';
 import config from '../../config';
+import Button from './partials/button';
 
 const ROTATION_INTERVAL = 15000;
 const DEFAULT_PAGESIZE = {
@@ -14,12 +15,12 @@ const DEFAULT_PAGESIZE = {
 class Pagination extends React.Component {
   static get propTypes() {
     return {
-      isModalOpen: PropTypes.bool,
-      items: PropTypes.array,
-      onChangePage: PropTypes.func,
-      isNewsHover: PropTypes.bool,
       contentType: PropTypes.string,
       currentPage: PropTypes.number,
+      isModalOpen: PropTypes.bool,
+      isNewsHover: PropTypes.bool,
+      items: PropTypes.array,
+      onChangePage: PropTypes.func,
     };
   }
 
@@ -64,6 +65,12 @@ class Pagination extends React.Component {
         this.nextPage();
         ev.preventDefault();
       }
+    }
+  }
+
+  onMouseOver(page) {
+    if (this.props.contentType === 'history' && page === 2) {
+      historyPaginationHoverSignal(page);
     }
   }
 
@@ -181,16 +188,14 @@ class Pagination extends React.Component {
 
     const items = pager.pages.map(page =>
       (
-        <button
-          type="button"
+        <Button
+          className={`dash ${((page === pager.currentPage) ? 'active' : '')}`}
           href="#"
           key={page}
-          tabIndex="-1"
-          className={`dash ${((page === pager.currentPage) ? 'active' : '')}`}
+          label={page}
           onClick={() => this.onPageSelected(page)}
-        >
-          <span className="overflow-hidden">{page}</span>
-        </button>
+          onMouseOver={() => this.onMouseOver(page)}
+        />
       ));
     return (
       <div className="news-pagination">{items}</div>

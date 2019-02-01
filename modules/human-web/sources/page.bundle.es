@@ -14,9 +14,9 @@ import checkIfChromeReady from '../core/content/ready-promise';
     el.textContent = chrome.i18n.getMessage(el.getAttribute('key'));
   }
 
-  window.clickHW = (checkbox) => {
-    humanWeb.setStatus(!checkbox.checked);
-  };
+  document.getElementById('enableHumanWeb').addEventListener('click', (ev) => {
+    humanWeb.setStatus(!ev.target.checked);
+  });
 
   humanWeb.getStatus().then((status) => {
     cb.checked = !status;

@@ -1,6 +1,8 @@
 /* global window, document, Handlebars */
 
-import Rx from '../../platform/lib/rxjs';
+import { fromEvent, merge } from 'rxjs';
+import { map, mapTo } from 'rxjs/operators';
+
 import search from '../search';
 import background from '../background';
 import getThrottleQueries from '../operators/streams/throttle-queries';
@@ -48,24 +50,23 @@ window.addEventListener('load', () => {
 
   const config = getConfig({ isPrivateMode: false });
 
-  const query$ = Rx.Observable
-    .fromEvent($urlbar, 'keyup')
-    .map(() => ({ query: $urlbar.value }))
-    .let(getThrottleQueries(config));
+  const query$ = fromEvent($urlbar, 'keyup')
+    .pipe(
+      map(() => ({ query: $urlbar.value })),
+      getThrottleQueries(config)
+    );
 
-  const focus$ = Rx.Observable.merge(
-    Rx.Observable
-      .fromEvent($urlbar, 'focus')
-      .mapTo({ event: 'focus' }),
-    Rx.Observable
-      .fromEvent($urlbar, 'blur')
-      .mapTo({ event: 'blur' })
+  const focus$ = merge(
+    fromEvent($urlbar, 'focus')
+      .pipe(mapTo({ event: 'focus' })),
+    fromEvent($urlbar, 'blur')
+      .pipe(mapTo({ event: 'blur' }))
   );
 
   background.init();
 
   const results$ = search({ query$, focus$ },
-    background.providers, config).let(pluckResults());
+    background.providers, config).pipe(pluckResults());
 
   const dropdown = new Dropdown($results, window);
 

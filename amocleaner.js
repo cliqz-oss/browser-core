@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // cleans the repo for an easier AMO review
-const config = require('./configs/amo.js');
+const config = require('./configs/amo-webextension.js');
 const rimraf = require('rimraf');
 const fs = require('fs');
 const path = require('path');
@@ -65,13 +65,13 @@ cleanFolders('./', ['.github', 'bin', 'tests'], false);
 cleanFolders('modules', fs.readdirSync('modules').filter(module => !amoModules.includes(module)), false);
 cleanFolders('modules', ['tests'], true);
 cleanFolders('modules', ['debug'], true);
-cleanFolders('specific', ['chromium', 'mobile', 'node', 'react-native', 'web', 'webextension', 'cliqz-android', 'ghostery-tab', 'offers'], false);
-cleanFolders('platforms', ['node', 'react-native', 'web', 'webextension', 'chromium', 'mobile'], false);
+cleanFolders('specific', ['cliqz-android', 'firefox', 'node','react-native', 'browser', 'cliqz-tab', 'ghostery-tab', 'offers', 'web'], false);
+cleanFolders('platforms', ['node', 'react-native', 'web'], false);
 cleanFolders('configs', ['ci', 'experiments', 'releases'], false);
 
 cleanFolderWithExceptions('./', ['.eslintignore', '.eslintrc', '.gitignore', 'LICENSE', 'README.md', 'VERSION', 'amocleaner.js', 'amobuilder.sh', 'config.es', 'fern.js', 'package.json','package-lock.json', 'Brocfile.js'], false);
-cleanFolderWithExceptions('broccoli', ['modules', 'Brocfile.firefox.js', 'modules-tree.js', 'cliqz-env.js', 'config.js', 'util.js', 'instrument.js'], false);
-cleanFolderWithExceptions('configs', ['amo.js'], false);
+cleanFolderWithExceptions('broccoli', ['modules', 'Brocfile.webextension.js', 'modules-tree.js', 'cliqz-env.js', 'config.js', 'util.js', 'instrument.js'], false);
+cleanFolderWithExceptions('configs', ['amo-webextension.js'], false);
 
 cleanSpecificFilesFromFolder('modules', ['debug.html', 'debug0.html', 'debug.bundle.es', 'inspect.bundle.es']);
 cleanSpecificFilesFromFolder('configs', ['ghostery-urls.js']);

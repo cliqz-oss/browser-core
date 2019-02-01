@@ -28,11 +28,7 @@
                 href="#"
                 data-i18n="learnMore"
                 data-cqz-of-btn-id="more_about_cliqz"
-                {{#if isWebExtension }}
                 data-openUrl="https://myoffrz.com/fuer-nutzer/"
-                {{else}}
-                data-openUrl="https://cliqz.com/en/cliqz-angebote"
-                {{/if}}
             >
                 {{local learnMore}}
             </a>
@@ -49,16 +45,16 @@
 
   <div class="flex-item logo">
     <img
-      src="{{logo_url}}"
+      src="{{logo_dataurl}}"
       data-cqz-of-btn-id="offer_logo"
       data-openUrl="{{ call_to_action.url }}"
      />
   </div>
 
-  {{#if picture_url}}
+  {{#if picture_dataurl}}
   <div class="flex-item picture">
     <img
-      src="{{picture_url}}"
+      src="{{picture_dataurl}}"
       data-cqz-of-btn-id="offer_picture"
       data-openUrl="{{ call_to_action.url }}"
     />

@@ -6,7 +6,7 @@ import UrlWhitelist from '../core/url-whitelist';
 import { deflate, inflate } from '../core/zlib';
 
 import PersistentMap from '../core/persistence/map';
-import { platformName, isOnionMode } from '../core/platform';
+import { platformName, isOnionModeFactory } from '../core/platform';
 
 import Adblocker from '../platform/lib/adblocker';
 
@@ -42,6 +42,7 @@ export function isSupportedProtocol(url) {
     || url.startsWith('wss://'));
 }
 
+const isOnionMode = isOnionModeFactory(prefs);
 
 const DEFAULT_OPTIONS = {
   onDiskCache: true,
@@ -196,7 +197,7 @@ export class AdBlocker {
 
       // Serialize new version of the engine on disk if needed
       // We need to avoid dumping data on disk in Onion mode.
-      if (this.onDiskCache && !isOnionMode && updateNeeded) {
+      if (this.onDiskCache && !isOnionMode() && updateNeeded) {
         const t0 = Date.now();
         const db = new PersistentMap('cliqz-adb');
         const serializedEngine = this.engine.serialize();
@@ -538,12 +539,23 @@ const CliqzADB = {
   },
 
   stepOnBeforeRequest(state, response) {
-    const { sourceUrl, url } = state;
-    const result = CliqzADB.adBlocker.match({
-      sourceUrl,
-      url,
+    const result = CliqzADB.adBlocker.match(Adblocker.makeRequest({
+      url: state.url,
+      hostname: state.urlParts.hostname,
+      domain: state.urlParts.generalDomain,
+
+      sourceUrl: state.url,
+      sourceHostname: state.sourceUrlParts.hostname,
+      sourceDomain: state.sourceUrlParts.generalDomain,
+
       type: state.type,
-    });
+    }, {
+      // Because we already provide information about `hostname` and `domain`
+      // from the webrequest context, we do not need to provide parsing
+      // utilities (usually we would pass in `tldts`).
+      getDomain: () => '',
+      getHostname: () => '',
+    }));
 
     if (result.redirect) {
       response.redirectTo(result.redirect);
@@ -551,7 +563,7 @@ const CliqzADB = {
     }
 
     if (result.match) {
-      CliqzADB.adbStats.addBlockedUrl(sourceUrl, url, state.tabId, state.ghosteryBug);
+      CliqzADB.adbStats.addBlockedUrl(state.sourceUrl, state.url, state.tabId, state.ghosteryBug);
       response.block();
       return false;
     }
@@ -561,11 +573,19 @@ const CliqzADB = {
 
   stepOnHeadersReceived(state, response) {
     if (state.type === 'main_frame') {
-      const directives = CliqzADB.adBlocker.engine.getCSPDirectives({
-        sourceUrl: state.sourceUrl,
-        type: state.type,
+      const directives = CliqzADB.adBlocker.engine.getCSPDirectives(Adblocker.makeRequest({
         url: state.url,
-      });
+        hostname: state.urlParts.hostname,
+        domain: state.urlParts.generalDomain,
+
+        type: state.type,
+      }, {
+        // Because we already provide information about `hostname` and `domain`
+        // from the webrequest context, we do not need to provide parsing
+        // utilities (usually we would pass in `tldts`).
+        getDomain: () => '',
+        getHostname: () => '',
+      }));
 
       if (directives !== undefined) {
         const cspHeader = 'content-security-policy';

@@ -1,7 +1,7 @@
 /* global chai */
 /* global describeModule */
 
-const mathJs = require('mathjs');
+const mathJs = require('math-expression-evaluator');
 
 const LANG_OPTIONS = {
   'de-DE': {
@@ -146,7 +146,7 @@ const CASES = [
 export default describeModule('search/providers/calculator/internal',
   function () {
     return {
-      mathjs: {
+      math: {
         default: mathJs,
       },
       'core/utils': {
@@ -160,7 +160,7 @@ export default describeModule('search/providers/calculator/internal',
           error(e) { throw e; }
         }
       },
-      'platform/lib/mathjs': {
+      'platform/lib/math': {
         default: mathJs,
       },
     };

@@ -6,7 +6,8 @@ function drawGradient() {
     const width = window.screen.availWidth;
     // use max so gradient doesn't change in landscape
     // fixed across android phones: 56dp urlbar + 24dp status bar
-    const max = (height > width ? height - 80 : width);
+    // +1 because of rounding of scale on some phones = 81dp
+    const max = (height > width ? height - 81 : width);
     root.style.height = `${max}px`;
     root.style.width = `${max}px`;
     root.style.backgroundImage = `linear-gradient(${color}, #000000)`;

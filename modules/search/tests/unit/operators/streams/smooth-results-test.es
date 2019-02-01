@@ -1,13 +1,13 @@
 /* global chai, describeModule */
 
 const Rx = require('rxjs');
+const operators = require('rxjs/operators');
 const rxSandbox = require('rx-sandbox').rxSandbox;
 
 
 const mock = {
-  'platform/lib/rxjs': {
-    default: Rx,
-  },
+  rxjs: Rx,
+  'rxjs/operators': operators,
   'search/operators/responses/utils': {
     hasResults: ({ hasResults } = {}) => hasResults,
     isDone: ({ isDone } = {}) => isDone,
@@ -63,7 +63,7 @@ export default describeModule('search/operators/streams/smooth-results',
           }
         });
 
-        const messages = sandbox.getMessages(source$.let(smoothResults(config)));
+        const messages = sandbox.getMessages(source$.pipe(smoothResults(config)));
         sandbox.flush();
 
         return chai.expect(messages).to.deep.equal(expected);
@@ -89,7 +89,7 @@ export default describeModule('search/operators/streams/smooth-results',
           }
         });
 
-        const messages = sandbox.getMessages(source$.let(smoothResults(config)));
+        const messages = sandbox.getMessages(source$.pipe(smoothResults(config)));
         sandbox.flush();
 
         return chai.expect(messages).to.deep.equal(expected);
@@ -129,7 +129,7 @@ export default describeModule('search/operators/streams/smooth-results',
           }
         });
 
-        const messages = sandbox.getMessages(source$.let(smoothResults(config)));
+        const messages = sandbox.getMessages(source$.pipe(smoothResults(config)));
         sandbox.flush();
 
         return chai.expect(messages).to.deep.equal(expected);

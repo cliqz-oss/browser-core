@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import cliqz from '../cliqz';
+import Button from './partials/button';
 import { messageShowSignal, messageClickSignal, messageCloseSignal } from '../services/telemetry/middle-messages';
 
 export default class MiddleMessages extends React.Component {
@@ -61,13 +62,11 @@ export default class MiddleMessages extends React.Component {
                 >
                   <h1>{message.title}</h1>
                   <p>{message.description}</p>
-                  <button
-                    type="button"
+                  <Button
                     className="cta-btn"
+                    label={message.cta_text}
                     onClick={() => this.handleCTAClick(message)}
-                  >
-                    {message.cta_text}
-                  </button>
+                  />
 
                   {message.buttons && message.buttons.length > 0
                     && (
@@ -101,10 +100,11 @@ export default class MiddleMessages extends React.Component {
 }
 
 MiddleMessages.propTypes = {
+  handleLinkClick: PropTypes.func,
+  locale: PropTypes.string,
   messages: PropTypes.shape({
     title: PropTypes.string,
     description: PropTypes.string,
     map: PropTypes.func
   }),
-  handleLinkClick: PropTypes.func
 };

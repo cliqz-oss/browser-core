@@ -24,6 +24,7 @@ const fillIn = async ({
   view,
   testUtils,
 }) => {
+  await waitFor(() => view.document.querySelector('input'));
   const input = view.document.querySelector('input');
   input.value = query;
   testUtils.Simulate.keyDown(input, {});

@@ -2,7 +2,12 @@ import React from 'react';
 import { StyleSheet, ScrollView, View, Platform } from 'react-native';
 import { getMessage } from '../../core/i18n';
 import { appName } from '../../platform/platform';
-import { cardMargins, cardBorderTopRadius, cardBorderBottomRadius } from '../styles/CardStyle';
+import {
+  cardMargins,
+  cardBorderTopRadius,
+  cardBorderBottomRadius,
+  getScreenHeight,
+} from '../styles/CardStyle';
 import Generic from './Generic';
 import Link from './Link';
 import ShareCard from './partials/ShareCard';
@@ -65,6 +70,7 @@ class Card extends React.Component {
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
+          style={{ height: getScreenHeight() }}
         >
           <ShareCard style={styles(width, theme).card} title={shareTitle}>
             <Link

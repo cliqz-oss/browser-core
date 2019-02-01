@@ -267,7 +267,7 @@ export class Subject {
   }
 
   async load(
-    { buildUrl = `/build/${config.settings.id}/chrome/content/freshtab/home.html`,
+    { buildUrl = `/${config.testsBasePath}/freshtab/home.html`,
       iframeWidth = 900 } = {}
   ) {
     this.iframe = document.createElement('iframe');
@@ -417,7 +417,11 @@ export class Subject {
     this.respondsWith({
       module: 'freshtab',
       action: 'getStats',
-      response: {}
+      response: {
+        data: [],
+        isEmpty: true,
+        promoData: {}
+      }
     });
   }
 
@@ -460,6 +464,7 @@ export const defaultConfig = Object.freeze({
     hasActiveNotifications: false,
     isBlue: false,
     product: 'CLIQZ',
+    displayFriendsIcon: true,
     componentsState: {
       historyDials: {
         visible: false
@@ -477,7 +482,9 @@ export const defaultConfig = Object.freeze({
       background: {
         image: 'bg-default'
       },
-      stats: {}
+      stats: {
+        visible: false,
+      }
     },
     wallpapers: [
       {
@@ -536,6 +543,7 @@ export function getActiveConfig() {
   activeConfig.response.componentsState.customDials.visible = true;
   activeConfig.response.componentsState.search.visible = true;
   activeConfig.response.componentsState.news.visible = true;
+  activeConfig.response.componentsState.stats.visible = true;
   return activeConfig;
 }
 

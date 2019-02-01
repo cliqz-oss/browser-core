@@ -2,7 +2,6 @@ import { window } from '../platform/globals';
 import * as tabs from '../platform/tabs';
 
 import {
-  CliqzABTests,
   CliqzUtils,
   app,
   prefs,
@@ -12,9 +11,6 @@ import {
 
 
 function mockGlobalState() {
-  // Disable core/ab-tests
-  CliqzABTests.check = () => {};
-
   // Store all telemetry signals globally so that tests can use them
   win.allTelemetry = [];
   CliqzUtils.telemetry = (signal) => {
@@ -48,7 +44,6 @@ async function closeAllTabs() {
   });
 
   // Keep track of original versions of mocked objects
-  const abCheck = CliqzABTests.check;
   const fetchFactory = CliqzUtils.fetchFactory;
   const getSuggestions = CliqzUtils.getSuggestions;
   const historySearch = CliqzUtils.historySearch;
@@ -89,7 +84,6 @@ async function closeAllTabs() {
     CliqzUtils.fetchFactory = fetchFactory;
     CliqzUtils.getSuggestions = getSuggestions;
     CliqzUtils.historySearch = historySearch;
-    CliqzABTests.check = abCheck;
 
     // Reset global state
     await testServer.reset();
@@ -97,8 +91,6 @@ async function closeAllTabs() {
       await closeAllTabs();
     }
   });
-
-  win.focus();
 
   // Check if we should autostart the tests
   const searchParams = new window.URLSearchParams(window.location.search);

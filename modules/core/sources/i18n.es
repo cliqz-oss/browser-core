@@ -6,6 +6,31 @@ import {
   loadTranslation,
   IMPLEMENTS_GET_MESSAGE,
 } from '../platform/i18n';
+import prefs from '../core/prefs';
+
+const fallbackWhitelist = JSON.stringify([
+  'de-DE',
+  'en-US',
+  'da-DK',
+  'de',
+  'en-GB',
+  'fr-FR',
+  'en-DE',
+  'es-ES',
+  'ru-RU',
+  'nl-NL',
+  'en',
+  'de-CH',
+  'it-IT',
+  'de-AT',
+  'sv-SE',
+  'pl-PL',
+  'nb-NO',
+  'fi-FI',
+  'en-DK',
+  'hu-HU',
+  'fr'
+]);
 
 export {
   LOCALE_PATH
@@ -21,16 +46,36 @@ function getSupportedLanguage(lang) {
   return 'en';
 }
 
+function whitelistedLocale() {
+  let sets;
+  try {
+    sets = JSON.parse(prefs.get('config_locale_whitelist', fallbackWhitelist));
+  } catch (e) {
+    sets = JSON.parse(fallbackWhitelist);
+    // eslint-disable-next-line
+    console.log(`Locale - Malformed JSON: ${e}`);
+  }
+  let locale = getLocale();
+  if (!sets.includes(locale)) {
+    // fallback to english if no whitelisted locale is present
+    locale = 'en';
+  }
+  return locale;
+}
+
 const i18n = {
   locale: _locale,
   get currLocale() {
     return getSupportedLanguage(this.PLATFORM_LANGUAGE);
   },
   get PLATFORM_LOCALE() {
-    return getLocale();
+    return whitelistedLocale();
+  },
+  get PLATFORM_LANGUAGE_FILTERED() {
+    return getLanguageFromLocale(whitelistedLocale());
   },
   get PLATFORM_LANGUAGE() {
-    return getLanguageFromLocale(this.PLATFORM_LOCALE);
+    return getLanguageFromLocale(getLocale());
   },
 };
 

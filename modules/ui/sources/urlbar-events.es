@@ -3,10 +3,12 @@ import events from '../core/events';
 import { nextTick } from '../core/decorators';
 import console from '../core/console';
 import { getCurrentTabId } from '../core/tabs';
-import { isOnionMode } from '../core/platform';
+import { isOnionModeFactory } from '../core/platform';
+import prefs from '../core/prefs';
 
 const ACproviderName = 'cliqz-results';
 const lastEvent = new WeakMap();
+const isOnionMode = isOnionModeFactory(prefs);
 
 export default {
   /**
@@ -78,7 +80,7 @@ export default {
     }
 
     // try to 'heat up' the connection
-    if (!isOnionMode) {
+    if (!isOnionMode()) {
       this.pingCliqzResults();
     }
 

@@ -11,8 +11,11 @@ export default {
   isChromium: false,
   isEdge: false,
   platformName: 'mobile',
-  isOnionMode: false,
 };
+
+export function isOnionModeFactory() {
+  return () => false;
+}
 
 const userAgent = window.navigator.userAgent.toLowerCase();
 export const mobilePlatformName = /iphone|ipod|ipad/.test(userAgent) ? 'ios' : 'android';
@@ -31,3 +34,7 @@ export function isCliqzAtLeastInVersion() {
 }
 
 export function getResourceUrl() {}
+
+export function isBetaVersion() {
+  return false;
+}

@@ -144,7 +144,7 @@ export default function () {
           elementSelector: '[aria-label="flight-plane-icon"]',
           url: cardsUrl,
         });
-        const $planeIconStyle = await queryComputedStyle(cardsUrl, '[aria-label="flight-plane-icon"] div');
+        const $planeIconStyle = await queryComputedStyle(cardsUrl, '[aria-label="flight-plane-icon"] div div');
 
         if (flightMatrix[flightType].icon === false) {
           expect($planeIcons).to.have.length(0);
@@ -256,7 +256,7 @@ export default function () {
 
         expect($terminalLabels).to.have.length(2);
         [...$terminalLabels].forEach(function ($label) {
-          expect($label.textContent).to.equal(getLocalisedString('Terminal'));
+          expect($label.textContent).to.equal('Terminal');
         });
 
         expect($terminals).to.have.length(2);
@@ -278,7 +278,7 @@ export default function () {
 
         expect($gateLabels).to.have.length(2);
         [...$gateLabels].forEach(function ($label) {
-          expect($label.textContent).to.equal(getLocalisedString('Gate'));
+          expect($label.textContent).to.equal(getLocalisedString('mobile_flight_gate'));
         });
 
         expect($gates).to.have.length(2);

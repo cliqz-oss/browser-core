@@ -1,0 +1,262 @@
+.cliqz-post {
+	display:flex;
+	flex-direction: column;
+	padding:0;
+	position: absolute;
+	width:240px;
+	box-sizing: border-box;
+	max-height: 80vH;
+	transition: visibility 200s linear 300ms;
+	z-index: 200000;
+	box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.24);
+
+	.cliqz-post-icon {
+		display: inline-block;
+		position: absolute;
+		left: 13px;
+		width: 26px;
+		height: 26px;
+		box-sizing: border-box;
+		background-size: contain;
+		background: url('../images/cliqz_icon.svg') center no-repeat;
+		z-index: 2;
+	}
+
+	.basic {
+		overflow: hidden;
+		background-color: #FFFFFF;
+		border-radius: 4px;
+
+		.cliqz-post-icon {
+			top:14px;
+		}
+
+		.title {
+			margin-top: 35px;
+		}
+
+		.image {
+			display:none;
+		}
+	}
+
+	.standard {
+		overflow: hidden;
+		border-radius: 5px 5px 4px 4px;
+		background-color: #FFFFFF;
+
+		.title {
+			margin-top: 4px;
+		}
+
+		.cliqz-post-icon {
+			top:115px;
+		}
+
+		.image {
+			width: 240px;
+			margin: 0px;
+			height:130px;
+			padding:0px;
+			background-size: contain;
+			background-color: #00AEF0;
+			background-position: center;
+			background-repeat: no-repeat;
+		}
+	}
+
+	.overlay {
+		z-index:3;
+		position: absolute;
+		top:0;
+		left:0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0,0,0,0.2);
+	}
+
+	.content {
+		overflow: hidden;
+		position: relative;
+		overflow-wrap: break-word;
+		font-size: 13.5px;
+		font-weight: 400;
+		padding: 18px 18px 18px 18px;
+		color: #525353;
+		background-color: #FFFFFF;
+
+		.title {
+			font-weight: 600;
+		}
+
+		.article {
+			margin-top: 5px;
+		}
+
+	}
+
+	.cta-button-1, .cta-button-2 {
+		display: inline-block;
+		height: 38px;
+		width: 202px;
+		margin-top: 26px;
+		border-radius: 4px;
+		text-align: center;
+		font-size: 14px;
+		font-weight: 400;
+		text-transform: uppercase;
+		outline: none;
+		text-decoration: none;
+		line-height: 38px;
+	}
+
+	.cta-button-1 {
+		border: 0.5px solid #D1E1F0;
+		color: #0078CA;
+		background-color: #F6FAFB;
+
+		&:hover, &:active {
+			border: 0.5px solid #0078CA;
+		}
+	}
+
+	.cta-button-2 {
+		border: none;
+		color: #FFFFFF;
+		background-color: #00AEF0;
+
+		&:hover, &:active {
+		  	background-color: #0078CA;
+		}
+	}
+
+	.footer {
+		padding: 0 18px 14px 18px;
+		height: 29px;
+		margin-top: -3px;
+	}
+
+	.later {
+		font-weight: 400;
+		color:#8C9AA5;
+		font-size: 13.5px;
+		text-decoration: none;
+		background: none;
+		border: none;
+		float: left;
+
+		&:hover {
+			color: #0078CA;
+		}
+	}
+
+	.wrapper {
+		width: 15px;
+		height: 15px;
+		background: transparent;
+		position: absolute;
+		opacity: 1;
+		z-index: 3;
+		right: 19px;
+		float: right;
+	}
+
+	.post-info-icon {
+		pointer-events: none;
+		background-image: url("../images/info-cliqzpost.svg");
+		background-size: cover;
+		opacity: 0.8;
+		display: inline-block;
+		cursor: pointer;
+		width: 15px;
+		height: 15px;
+		z-index: 1;
+
+		&:hover {
+		    opacity: 1;
+		}
+	}
+
+	.tooltip-bubble {
+		width: 100%;
+		position: absolute;
+		z-index: 10;
+		font-size: .75rem;
+		line-height: 1.4;
+		padding: 18px;
+		text-align: left;
+		background: #FFF;
+		border-radius: 4px;
+		color: #525353;
+		box-shadow: 3px 5px 10px 1px rgba(0,0,0,0.18);
+
+		&::after {
+			content: '';
+			position: absolute;
+		}
+	}
+
+	.post-tooltip {
+		bottom: 36px;
+		left: 0px;
+
+		&::after {
+			border-left: 9px solid transparent;
+			border-right: 9px solid transparent;
+			border-top: 9px solid #FFF;
+			bottom: -6px;
+			right: 18px;
+		}
+	}
+
+	.close-post {
+		z-index: 10;
+		position: absolute;
+		top: -10px;
+		right: -9px;
+		visibility: hidden;
+		opacity: 0;
+		width: 20px;
+		height: 20px;
+		background: url(../images/delete.svg) no-repeat center;
+		background-color: white;
+		border-radius: 18px;
+		box-shadow: 0px 2px 3px -1px rgba(0,0,0,0.18);
+		border: 0px;
+		cursor: pointer;
+		overflow: hidden;
+		text-indent: 100%;
+		white-space: nowrap;
+	}
+
+	&:hover {
+		box-shadow: 0px 3px 8px 0px rgba(0, 0, 0, 0.2);
+		transition: box-shadow 300ms;
+
+		.close-post {
+			visibility: visible;
+			opacity: 1;
+			transition: visibility 0s linear 0s, opacity 300ms;
+		}
+	}
+
+}
+
+.cliqz-post.top {
+	top: 20px;
+	right: 60px;
+}
+
+.cliqz-post.bottom-left {
+	bottom: 30px;
+	left: 60px;
+}
+
+.cliqz-post.bottom-right {
+	bottom: 30px;
+	right: 60px;
+}
+
+
+
+

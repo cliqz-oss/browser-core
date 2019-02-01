@@ -68,7 +68,7 @@ context('Offers Hub Interaction tests for removing offer', function () {
       subject.queryAll(offersSelector).forEach(function (offer, i) {
         expect(offer.querySelector('.logo-wrapper .logo')).to.exist;
         expect(offer.querySelector('.logo-wrapper .logo').style.backgroundImage)
-          .to.equal(`url("${data.vouchers[i + 1].template_data.logo_url}")`);
+          .to.equal(`url("${data.vouchers[i + 1].template_data.logo_dataurl}")`);
       });
     });
 

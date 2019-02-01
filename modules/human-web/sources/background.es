@@ -8,6 +8,7 @@ import history from '../core/history-service';
 import inject from '../core/kord/inject';
 import WebRequest from '../core/webrequest';
 import logger from './logger';
+import { fixURL, getDetailsFromUrl } from '../core/url';
 
 /**
 * @namespace human-web
@@ -190,6 +191,35 @@ export default background({
   },
 
   actions: {
+    async getURLCheckStatus(url) {
+      const cleanHost = getDetailsFromUrl(url).cleanHost;
+      return {
+        host: await HumanWeb.doublefetchHandler
+          .anonymousHttpGet(`https://${cleanHost}`)
+          .then(() => HumanWeb.network.dns.resolveHost(cleanHost)),
+        isHostPrivate: await HumanWeb.network.isHostNamePrivate(fixURL(url)),
+        isPagePrivate: await HumanWeb.isAlreadyMarkedPrivate(url, () => { }),
+        quorumConsent: await HumanWeb.sha1(url)
+          .then(e => HumanWeb.getQuorumConsent(e)),
+      };
+    },
+
+    async getState({
+      msg,
+    }) {
+      return {
+        allOpenPages: await HumanWeb.getAllOpenPages(),
+        counter: HumanWeb.counter,
+        countryCode: HumanWeb.getCountryCode(),
+        oc: HumanWeb.oc,
+        quorumOtherUrl: await HumanWeb.quorumCheckOtherUrls(msg),
+        rulesets: Object.values(HumanWeb.contentExtractor.patterns.normal.extractRules),
+        state: HumanWeb.state,
+        strictQueries: HumanWeb.strictQueries,
+        trk: HumanWeb.strictQueries,
+      };
+    },
+
     getStatus() {
       return prefs.get('humanWebOptOut', false);
     },

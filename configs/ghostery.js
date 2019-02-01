@@ -39,7 +39,6 @@ module.exports = {
     "humanWeb": true,
     "cliqz-anti-phishing": true,
     "cliqz-anti-phishing-enabled": true,
-    "attrackRemoveQueryStringTracking": false,
     "attrackTelemetryMode": 1,
     "attrackDefaultAction": "placeholder",
     "sendAntiTrackingHeader": false,
@@ -49,7 +48,8 @@ module.exports = {
   "bundles": [
     "core/content-script.bundle.js",
     "hpnv2/worker.wasm.bundle.js",
-    "hpnv2/worker.asmjs.bundle.js"
+    "hpnv2/worker.asmjs.bundle.js",
+    "human-web/rusha.bundle.js",
   ],
   "modules": [
     "core",

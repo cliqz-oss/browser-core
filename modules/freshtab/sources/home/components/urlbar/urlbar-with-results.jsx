@@ -4,6 +4,8 @@ import Urlbar from './index';
 import SearchSettings from './search-settings';
 import cliqz from '../../cliqz';
 import Dropdown from '../../../../core/dropdown/content';
+import t from '../../i18n';
+import Button from '../partials/button';
 
 class CliqzTabDropdown extends Dropdown {
   _getUrlbarAttributes() {
@@ -21,6 +23,10 @@ class CliqzTabDropdown extends Dropdown {
     return {
       padding,
     };
+  }
+
+  _getMaxHeight() {
+    return window.innerHeight - this.iframe.getBoundingClientRect().y - 20;
   }
 }
 
@@ -132,6 +138,9 @@ export default class UrlbarWithResults extends Urlbar {
     }
 
     if (!this.dropdown.isOpen) {
+      cliqz.freshtab.reportEvent({
+        type: 'urlbar-focus',
+      });
       if (this.textInput.value) {
         this.dropdown._queryCliqz(this.textInput.value);
       } else {
@@ -193,8 +202,10 @@ export default class UrlbarWithResults extends Urlbar {
             && (
               <span>
                 <span>
-                  Hey! Want to search privately?
-                  <em> Click Tab</em>
+                  {t('search_reminder')}
+                  <em>
+                    &nbsp;{t('search_reminder_action')}
+                  </em>
                 </span>
                 <span className="cliqz-close-btn" onClick={() => this.props.toggleComponent('searchReminder')} />
               </span>
@@ -203,10 +214,8 @@ export default class UrlbarWithResults extends Urlbar {
         </div>
         {super.render()}
         <div className="inner-container">
-          <button
-            type="button"
+          <Button
             className={`search-settings-btn ${this.state.isSearchSettingsOpen ? 'active' : ''}`}
-            tabIndex="-1"
             onClick={this.toggleSettings}
           />
           <div className="results">

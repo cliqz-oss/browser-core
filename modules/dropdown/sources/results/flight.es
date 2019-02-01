@@ -79,7 +79,8 @@ export default class FlightResult extends BaseResult {
       scheduledDate: depart.scheduled_date,
       actualTime: depart.estimate_actual_time,
       terminal: depart.terminal_full,
-      gate: depart.gate_full
+      gate: depart.gate_full,
+      GMT: depart.GMT
     };
   }
 
@@ -94,7 +95,8 @@ export default class FlightResult extends BaseResult {
       scheduledDate: arrival.scheduled_date,
       actualTime: arrival.estimate_actual_time,
       terminal: arrival.terminal_full,
-      gate: arrival.gate_full
+      gate: arrival.gate_full,
+      GMT: arrival.GMT
     };
   }
 

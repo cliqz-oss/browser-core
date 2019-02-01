@@ -265,6 +265,9 @@ export default class {
       windowId: utils.getWindowID(this.window),
       tabId: getCurrentTabId(this.window),
       query: this.query,
+      url: handledQuery,
+      newTab,
+      isFromAutocompletedURL: this.hasAutocompleted,
     });
 
     /* If a user did not type anything in

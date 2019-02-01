@@ -17,7 +17,6 @@ module.exports = {
     MSGCHANNEL: 'ghostery-tab',
     freshTabNews: true,
     freshTabStats: true,
-    disableControlCenterButton: true,
     browserAction: 'quicksearch',
     OFFERS_CHANNEL: 'ghostery-tab',
     ALLOWED_COUNTRY_CODES: ['de', 'at', 'ch', 'es', 'us', 'fr', 'nl', 'gb', 'it', 'se'],
@@ -59,6 +58,7 @@ module.exports = {
     'freshtab/home.bundle.js',
     'dropdown/dropdown.bundle.js',
     'control-center/control-center.bundle.js',
+    'human-web/rusha.bundle.js',
   ],
   system: Object.assign({}, base.systemConfig, {
     map: Object.assign({}, base.systemConfig.map, {
@@ -67,11 +67,9 @@ module.exports = {
     })
   }),
   builderDefault: Object.assign({}, base.builderConfig, {
-    externals: base.builderConfig.externals.concat('@cliqz-oss/dexie', 'rxjs'),
+    externals: base.builderConfig.externals.concat('@cliqz-oss/dexie'),
     globalDeps: Object.assign({}, base.builderConfig.globalDeps, {
       '@cliqz-oss/dexie': 'Dexie',
-      rxjs: 'Rx',
-      'rxjs/Rx.js': 'Rx',
     }),
   }),
 };

@@ -1,8 +1,8 @@
 import OfferJob from './job';
-import logger from '../../common/offers_v2_logger';
 import prefs from '../../../core/prefs';
 import { getLatestOfferInstallTs, timestampMS } from '../../utils';
 import shouldFilterOffer from '../soft-filter';
+import ActionID from '../actions-defs';
 
 //
 // If user have just installed the extension, ignore non-targeted
@@ -26,15 +26,15 @@ function shouldShowInFreshInstalled(offer) {
 //
 // First check the global blacklist, then check the offer's blacklist
 //
-function passBlacklist(offer, { urlData, offersHandler }) {
+function passBlacklist(offer, { urlData, offersHandler, offerIsFilteredOutCb }) {
   if (offersHandler.isUrlBlacklisted(urlData.getRawUrl())) {
-    offersHandler.sendBlacklistSignal(offer.campaignID, offer.uniqueID);
+    offerIsFilteredOutCb(offer, ActionID.AID_OFFER_FILTERED_GLOBAL_BLACKLIST);
     return false;
   }
   const isInBlacklist = () => offer.hasBlacklistPatterns()
     && offer.blackListPatterns.match(urlData.getPatternRequest());
   if (isInBlacklist()) {
-    logger.debug('Should not show offer on context', offer, urlData);
+    offerIsFilteredOutCb(offer, ActionID.AID_OFFER_FILTERED_OFFER_BLACKLIST);
     return false;
   }
   return true;
@@ -52,7 +52,7 @@ export default class SoftFilter extends OfferJob {
     const result = offers
       .filter(shouldShowInFreshInstalled)
       .filter(offer => passBlacklist(offer, context))
-      .filter(offer => !shouldFilterOffer(offer, context.offersDB));
+      .filter(offer => !shouldFilterOffer(offer, context.offersDB, context.offerIsFilteredOutCb));
     return Promise.resolve(result);
   }
 }

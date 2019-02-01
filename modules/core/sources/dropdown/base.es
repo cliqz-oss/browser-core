@@ -24,11 +24,15 @@ export default class BaseDropdownManager {
 
   _openLink() {}
 
+  _handleEnter() {}
+
   _focus() {}
 
   _reportHighlight() {}
 
   _reportClick() {}
+
+  _reportEnter() {}
 
   _adultAction() {}
 
@@ -68,6 +72,13 @@ export default class BaseDropdownManager {
 
   get isOpen() {
     return this._getHeight() > 0;
+  }
+
+  get fromAutocompledURL() {
+    return this.selectedResult
+      && this.previousResults
+      && this.previousResults[0].url === this.selectedResult.url
+      && this.hasCompletion;
   }
 
   setHeight(height) {
@@ -172,6 +183,7 @@ export default class BaseDropdownManager {
   }
 
   close() {
+    this.selectedResult = null;
     this.setHeight(0);
   }
 
@@ -212,13 +224,17 @@ export default class BaseDropdownManager {
       }
       case 'Enter':
       case 'NumpadEnter': {
-        this.dropdownAction.handleEnter({
-          newTab: ev.altKey || ev.metaKey || ev.ctrlKey,
-        });
+        const newTab = ev.altKey || ev.metaKey || ev.ctrlKey;
+        const query = this.selectedResult ? this.selectedResult.query : this._getQuery();
+
+        if (this.isOpen && this.hasRelevantResults(query, this.previousResults)) {
+          this.dropdownAction.handleEnter({ newTab });
+        } else {
+          this._handleEnter(newTab);
+        }
         break;
       }
       case 'Escape': {
-        this._setUrlbarValue('');
         if (this.isOpen) {
           this.setHeight(0);
         } else {
@@ -310,6 +326,8 @@ export default class BaseDropdownManager {
     /* getSessionId, */
   }) {
     this.hasAutocompleted = false;
+    this.selectedResult = null;
+
     let urlbarQuery = this._getQuery();
     const firstResult = rawResults && rawResults[0];
     if (!firstResult || !this.hasRelevantResults(urlbarQuery, rawResults)) {

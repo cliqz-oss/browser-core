@@ -25,6 +25,10 @@ export function getSearchEngines() {
   return [];
 }
 
+export function getSearchEnginesAsync() {
+  return Promise.resolve([]);
+}
+
 export function loadSearchEngines() { return Promise.resolve(); }
 
 export function getEngineByName() {

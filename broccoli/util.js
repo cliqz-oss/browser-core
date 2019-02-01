@@ -52,6 +52,10 @@ module.exports = {
           replacement: config => config.VERSION
         },
         {
+          match: /\{\{artifactUrl\}\}/g,
+          replacement: config => config.artifactUrl
+        },
+        {
           match: /\{\{updateUrl\}\}/g,
           replacement: config => process.env['CLIQZ_BETA'] === 'True' ? config.updateURLbeta : config.updateURL,
         },
@@ -90,30 +94,6 @@ module.exports = {
         {
           match: /\{\{rdfHomepageURL\}\}/g,
           replacement: config => config.settings.homepageURL || ''
-        },
-        {
-          match: /\{\{ENDPOINT_BLIND_SIGNER\}\}/g,
-          replacement: config => config.settings.ENDPOINT_BLIND_SIGNER || ''
-        },
-        {
-          match: /\{\{ENDPOINT_USER_REG\}\}/g,
-          replacement: config => config.settings.ENDPOINT_USER_REG || ''
-        },
-        {
-          match: /\{\{ENDPOINT_SOURCE_MAP_PROVIDER\}\}/g,
-          replacement: config => config.settings.ENDPOINT_SOURCE_MAP_PROVIDER || ''
-        },
-        {
-          match: /\{\{ENDPOINT_LOOKUP_TABLE_PROVIDER\}\}/g,
-          replacement: config => config.settings.ENDPOINT_LOOKUP_TABLE_PROVIDER || ''
-        },
-        {
-          match: /\{\{ENDPOINT_KEYS_PROVIDER\}\}/g,
-          replacement: config => config.settings.ENDPOINT_KEYS_PROVIDER || ''
-        },
-        {
-          match: /\{\{ENDPOINT_PROXY_LIST_PROVIDER\}\}/g,
-          replacement: config => config.settings.ENDPOINT_PROXY_LIST_PROVIDER || ''
         },
         {
           match: /\{\{ENDPOINT_PATTERNSURL\}\}/g,

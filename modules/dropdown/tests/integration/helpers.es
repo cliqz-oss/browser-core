@@ -7,8 +7,9 @@ import {
   EventUtils,
   app,
   expect,
+  getComputedStyle,
   lang,
-  urlBar,
+  urlbar,
   wait,
   waitFor,
   win,
@@ -28,9 +29,9 @@ export function getWindowModule(/* name */) {
 
 
 export function fastFillIn(text) {
-  urlBar.focus();
-  urlBar.mInputField.focus();
-  urlBar.mInputField.value = '';
+  urlbar.focus();
+  urlbar.mInputField.focus();
+  urlbar.mInputField.value = '';
   EventUtils.sendString(text);
 }
 
@@ -134,13 +135,13 @@ const mainResultSelector = '.cliqz-result:not(.history)';
 */
 export function checkMainResult({ $result, isPresent = true }) {
   if (isPresent) {
-    it('renders result successfully', function () {
-      const $mainResult = $result.querySelector(mainResultSelector);
+    it('renders result successfully', async function () {
+      const $mainResult = await $result.querySelector(mainResultSelector);
       expect($mainResult).to.exist;
     });
   } else {
-    it('does not render main result', function () {
-      const $mainResult = $result.querySelector(mainResultSelector);
+    it('does not render main result', async function () {
+      const $mainResult = await $result.querySelector(mainResultSelector);
       expect($mainResult).to.not.exist;
     });
   }
@@ -164,26 +165,26 @@ export function checkhistoryResult({ $result, historyResults, isPresent = true }
 
   if (isPresent) {
     describe('renders history result', function () {
-      it('successfully', function () {
-        const $historyResult = $result.querySelector(historyResultSelector);
+      it('successfully', async function () {
+        const $historyResult = await $result.querySelector(historyResultSelector);
         expect($historyResult).to.exist;
       });
 
-      it('with correct amount of elements', function () {
-        const $allHistoryElements = $result
+      it('with correct amount of elements', async function () {
+        const $allHistoryElements = await $result
           .querySelectorAll(`${historyResultSelector} ${singleHistorySelector}`);
         expect($allHistoryElements.length).to.equal(historyResults.length);
       });
 
-      it('with an option to search in all history results', function () {
-        const $historySearch = $result.querySelectorAll($historySearchSelector);
+      it('with an option to search in all history results', async function () {
+        const $historySearch = await $result.querySelectorAll($historySearchSelector);
         expect($historySearch).to.exist;
       });
     });
 
     context('each rendered history result', function () {
-      it('has an existing logo', function () {
-        const $allHistoryElements = $result
+      it('has an existing logo', async function () {
+        const $allHistoryElements = await $result
           .querySelectorAll(`${historyResultSelector} ${singleHistorySelector}`);
 
         [...$allHistoryElements].forEach(function ($history) {
@@ -191,8 +192,8 @@ export function checkhistoryResult({ $result, historyResults, isPresent = true }
         });
       });
 
-      it('has an existing and correct description', function () {
-        const $allHistoryElements = $result
+      it('has an existing and correct description', async function () {
+        const $allHistoryElements = await $result
           .querySelectorAll(`${historyResultSelector} ${singleHistorySelector}`);
 
         [...$allHistoryElements].forEach(function ($history, historyIndex) {
@@ -201,8 +202,8 @@ export function checkhistoryResult({ $result, historyResults, isPresent = true }
         });
       });
 
-      it('has an existing domain', function () {
-        const $allHistoryElements = $result
+      it('has an existing domain', async function () {
+        const $allHistoryElements = await $result
           .querySelectorAll(`${historyResultSelector} ${singleHistorySelector}`);
 
         [...$allHistoryElements].forEach(function ($history) {
@@ -210,8 +211,8 @@ export function checkhistoryResult({ $result, historyResults, isPresent = true }
         });
       });
 
-      it('links to a correct URL', function () {
-        const $allHistoryElements = $result
+      it('links to a correct URL', async function () {
+        const $allHistoryElements = await $result
           .querySelectorAll(`${historyResultSelector} ${singleHistorySelector}`);
 
         [...$allHistoryElements].forEach(function ($history, historyIndex) {
@@ -223,17 +224,19 @@ export function checkhistoryResult({ $result, historyResults, isPresent = true }
     });
 
     context('the option to search in all history results', function () {
-      it('has an existing and correct icon', function () {
-        const $historySearchIcon = $result
+      it('has an existing and correct icon', async function () {
+        const $historySearchIcon = await $result
           .querySelector(`${$historySearchSelector} ${historySearchIconSelector}`);
 
         expect($historySearchIcon).to.exist;
-        expect(win.getComputedStyle($historySearchIcon).backgroundImage)
+        // expect(win.getComputedStyle($historySearchIcon).backgroundImage)
+        //   .to.contain('history_tool_grey');
+        expect(await getComputedStyle(`${$historySearchSelector} ${historySearchIconSelector}`, 'backgroundImage'))
           .to.contain('history_tool_grey');
       });
 
-      it('has existing and correct text', function () {
-        const $historySearchText = $result
+      it('has existing and correct text', async function () {
+        const $historySearchText = await $result
           .querySelectorAll(`${$historySearchSelector} ${$historySearchTextSelector}`);
         const foundInHistory = getLocalisedString('results_found_in_history');
 
@@ -241,8 +244,8 @@ export function checkhistoryResult({ $result, historyResults, isPresent = true }
       });
     });
   } else {
-    it('does not render history result', function () {
-      const $historyResult = $result.querySelector(historyResultSelector);
+    it('does not render history result', async function () {
+      const $historyResult = await $result.querySelector(historyResultSelector);
       expect($historyResult).to.not.exist;
     });
   }
@@ -255,16 +258,16 @@ function checkSoccerCommon({ $result, results }) {
   const captionSelector = 'a.powered-by';
 
   describe('renders title', function () {
-    it('successfully', function () {
-      const $title = $result
+    it('successfully', async function () {
+      const $title = await $result
         .querySelector(`${mainResultSelector} ${titleSelector} .padded`);
 
       expect($title).to.exist;
       expect($title).to.have.text(results[0].snippet.extra.title);
     });
 
-    it('with a correct URL', function () {
-      const $title = $result
+    it('with a correct URL', async function () {
+      const $title = await $result
         .querySelector(`${mainResultSelector} ${titleSelector}`);
 
       expect($title).to.exist;
@@ -272,8 +275,8 @@ function checkSoccerCommon({ $result, results }) {
       expect($title.href).to.equal(results[0].snippet.extra.url);
     });
 
-    it('with a correct domain', function () {
-      const $domain = $result
+    it('with a correct domain', async function () {
+      const $domain = await $result
         .querySelector(`${mainResultSelector} ${domainSelector}`);
 
       expect($domain).to.exist;
@@ -281,8 +284,8 @@ function checkSoccerCommon({ $result, results }) {
     });
   });
 
-  it('renders correct "Powered by" caption', function () {
-    const $caption = $result
+  it('renders correct "Powered by" caption', async function () {
+    const $caption = await $result
       .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${captionSelector}`);
 
     expect($caption).to.exist;
@@ -311,31 +314,31 @@ export function checkSoccerLigaGame({ $result, results, isExpanded = false }) {
   checkSoccerCommon({ $result, results });
 
   describe('renders results table', function () {
-    it('successfully', function () {
-      const $soccerTable = $result
+    it('successfully', async function () {
+      const $soccerTable = await $result
         .querySelector(`${mainResultSelector} ${soccerAreaSelector}`);
       expect($soccerTable).to.exist;
     });
 
-    it('with details of correct amount of matches', function () {
+    it('with details of correct amount of matches', async function () {
       let amountOfRows = 2;
       if (isExpanded) { amountOfRows = 3; }
 
-      const $allRows = $result
+      const $allRows = await $result
         .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
       expect($allRows.length).to.equal(amountOfRows);
     });
 
     if (isExpanded) {
-      it('without "Show more" button', function () {
-        const $showMore = $result
+      it('without "Show more" button', async function () {
+        const $showMore = await $result
           .querySelector(`${mainResultSelector} ${soccerAreaSelector} ${showMoreSelector}`);
 
         expect($showMore).to.not.exist;
       });
     } else {
-      it('with a correct "Show more" being a link', function () {
-        const $showMore = $result
+      it('with a correct "Show more" being a link', async function () {
+        const $showMore = await $result
           .querySelector(`${mainResultSelector} ${soccerAreaSelector} ${showMoreSelector}`);
 
         expect($showMore).to.exist;
@@ -346,8 +349,8 @@ export function checkSoccerLigaGame({ $result, results, isExpanded = false }) {
   });
 
   context('each table match row', function () {
-    it('has a correct URL', function () {
-      const $allRows = $result
+    it('has a correct URL', async function () {
+      const $allRows = await $result
         .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
       expect($allRows.length).to.be.above(0);
@@ -358,8 +361,8 @@ export function checkSoccerLigaGame({ $result, results, isExpanded = false }) {
       });
     });
 
-    it('has correct names of two teams', function () {
-      const $allRows = $result
+    it('has correct names of two teams', async function () {
+      const $allRows = await $result
         .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
       expect($allRows.length).to.be.above(0);
@@ -371,25 +374,25 @@ export function checkSoccerLigaGame({ $result, results, isExpanded = false }) {
       });
     });
 
-    it('has logos of two teams', function () {
-      const $allRows = $result
+    it('has logos of two teams', async function () {
+      const $allRows = await $result
         .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
       expect($allRows.length).to.be.above(0);
-      [...$allRows].forEach(function ($row, i) {
+      [...$allRows].forEach(async function ($row, i) {
         const $allSoccerTeamLogos = $row.querySelectorAll(teamLogoSelector);
         expect($allSoccerTeamLogos.length).to.equal(2);
 
-        expect(getComputedStyle($allSoccerTeamLogos[0]).backgroundImage)
+        expect(await getComputedStyle($allSoccerTeamLogos[0], 'backgroundImage'))
           .to.contain(results[0].snippet.extra.matches[i].hostLogo);
 
-        expect(getComputedStyle($allSoccerTeamLogos[1]).backgroundImage)
+        expect(await getComputedStyle($allSoccerTeamLogos[1], 'backgroundImage'))
           .to.contain(results[0].snippet.extra.matches[i].guestLogo);
       });
     });
 
-    it('has a result with correct two numbers', function () {
-      const $allRows = $result
+    it('has a result with correct two numbers', async function () {
+      const $allRows = await $result
         .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
       expect($allRows.length).to.be.above(0);
@@ -400,8 +403,8 @@ export function checkSoccerLigaGame({ $result, results, isExpanded = false }) {
       });
     });
 
-    it('has an existing date and time', function () {
-      const $allRows = $result
+    it('has an existing date and time', async function () {
+      const $allRows = await $result
         .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
       expect($allRows.length).to.be.above(0);
@@ -411,45 +414,45 @@ export function checkSoccerLigaGame({ $result, results, isExpanded = false }) {
       });
     });
 
-    it('has a correct league logo', function () {
-      const $allRows = $result
+    it('has a correct league logo', async function () {
+      const $allRows = await $result
         .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
       expect($allRows.length).to.be.above(0);
-      [...$allRows].forEach(function ($row, i) {
+      [...$allRows].forEach(async function ($row, i) {
         const $leagueLogo = $row.querySelector(leagueLogoSelector);
 
         expect($leagueLogo).to.exist;
-        expect(getComputedStyle($leagueLogo).backgroundImage)
+        expect(await getComputedStyle($leagueLogo, 'backgroundImage'))
           .to.contain(results[0].snippet.extra.matches[i].leagueLogo);
       });
     });
   });
 
   context('renders news area', function () {
-    it('successfully', function () {
-      const $soccerNews = $result
+    it('successfully', async function () {
+      const $soccerNews = await $result
         .querySelector(`${mainResultSelector} ${newsAreaSelector}`);
       expect($soccerNews).to.exist;
     });
 
-    it('with an existing and correct header', function () {
-      const $newsHeader = $result
+    it('with an existing and correct header', async function () {
+      const $newsHeader = await $result
         .querySelector(`${mainResultSelector} ${newsHeaderSelector}`);
 
       expect($newsHeader).to.exist;
       expect($newsHeader).to.have.text(getLocalisedString('soccer_news_title'));
     });
 
-    it('with two news items', function () {
-      const $allNews = $result
+    it('with two news items', async function () {
+      const $allNews = await $result
         .querySelectorAll(`${mainResultSelector} ${newsAreaSelector} ${newsElementSelector}`);
       expect($allNews.length).to.equal(2);
     });
 
     context('each news item', function () {
-      it('has a correct thumbnail', function () {
-        const $allNews = $result
+      it('has a correct thumbnail', async function () {
+        const $allNews = await $result
           .querySelectorAll(`${mainResultSelector} ${newsAreaSelector} ${newsElementSelector}`);
 
         expect($allNews.length).to.be.above(0);
@@ -462,8 +465,8 @@ export function checkSoccerLigaGame({ $result, results, isExpanded = false }) {
         });
       });
 
-      it('has a correct title', function () {
-        const $allNews = $result
+      it('has a correct title', async function () {
+        const $allNews = await $result
           .querySelectorAll(`${mainResultSelector} ${newsAreaSelector} ${newsElementSelector}`);
 
         expect($allNews.length).to.be.above(0);
@@ -476,8 +479,8 @@ export function checkSoccerLigaGame({ $result, results, isExpanded = false }) {
         });
       });
 
-      it('has an existing and correct domain', function () {
-        const $allNews = $result
+      it('has an existing and correct domain', async function () {
+        const $allNews = await $result
           .querySelectorAll(`${mainResultSelector} ${newsAreaSelector} ${newsElementSelector}`);
 
         expect($allNews.length).to.be.above(0);
@@ -490,8 +493,8 @@ export function checkSoccerLigaGame({ $result, results, isExpanded = false }) {
         });
       });
 
-      it('has an existing timestamp', function () {
-        const $allNews = $result
+      it('has an existing timestamp', async function () {
+        const $allNews = await $result
           .querySelectorAll(`${mainResultSelector} ${newsAreaSelector} ${newsElementSelector}`);
 
         expect($allNews.length).to.be.above(0);
@@ -501,8 +504,8 @@ export function checkSoccerLigaGame({ $result, results, isExpanded = false }) {
         });
       });
 
-      it('has an existing and correct URL', function () {
-        const $allNews = $result
+      it('has an existing and correct URL', async function () {
+        const $allNews = await $result
           .querySelectorAll(`${mainResultSelector} ${newsAreaSelector} ${newsElementSelector}`);
 
         expect($allNews.length).to.be.above(0);
@@ -526,14 +529,14 @@ export function checkSoccerLigaTable({ $result, results, isExpanded = false }) {
   checkSoccerCommon({ $result, results });
 
   describe('renders results table', function () {
-    it('successfully', function () {
-      const $soccerTable = $result
+    it('successfully', async function () {
+      const $soccerTable = await $result
         .querySelector(`${mainResultSelector} ${soccerAreaSelector}`);
       expect($soccerTable).to.exist;
     });
 
-    it('with details of correct amount of teams', function () {
-      const $allRows = $result
+    it('with details of correct amount of teams', async function () {
+      const $allRows = await $result
         .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
       if (!isExpanded) {
@@ -544,15 +547,15 @@ export function checkSoccerLigaTable({ $result, results, isExpanded = false }) {
     });
 
     if (isExpanded) {
-      it('without "Show more" button', function () {
-        const $showMore = $result
+      it('without "Show more" button', async function () {
+        const $showMore = await $result
           .querySelector(`${mainResultSelector} ${soccerAreaSelector} ${showMoreSelector}`);
 
         expect($showMore).to.not.exist;
       });
     } else {
-      it('with a correct "Show more" being a link', function () {
-        const $showMore = $result
+      it('with a correct "Show more" being a link', async function () {
+        const $showMore = await $result
           .querySelector(`${mainResultSelector} ${soccerAreaSelector} ${showMoreSelector}`);
 
         expect($showMore).to.exist;
@@ -562,20 +565,20 @@ export function checkSoccerLigaTable({ $result, results, isExpanded = false }) {
     }
 
     describe('renders teams header', function () {
-      it('successfully', function () {
-        const $teamsHeader = $result
+      it('successfully', async function () {
+        const $teamsHeader = await $result
           .querySelector(`${mainResultSelector} ${soccerAreaSelector} ${teamsHeaderSelector}`);
         expect($teamsHeader).to.exist;
       });
 
-      it('with correct amount of elements', function () {
-        const $allTeamsHeaders = $result
+      it('with correct amount of elements', async function () {
+        const $allTeamsHeaders = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${teamsHeaderSelector} ${tableCellSelector}`);
         expect($allTeamsHeaders.length).to.equal(10);
       });
 
-      it('with each element having a correct label', function () {
-        const $allTeamsHeaders = $result
+      it('with each element having a correct label', async function () {
+        const $allTeamsHeaders = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${teamsHeaderSelector} ${tableCellSelector}`);
 
         expect($allTeamsHeaders[0])
@@ -601,8 +604,8 @@ export function checkSoccerLigaTable({ $result, results, isExpanded = false }) {
     });
 
     context('each team row', function () {
-      it('has a correct index', function () {
-        const $allRows = $result
+      it('has a correct index', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -612,22 +615,22 @@ export function checkSoccerLigaTable({ $result, results, isExpanded = false }) {
         });
       });
 
-      it('has a correct team logo', function () {
-        const $allRows = $result
+      it('has a correct team logo', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
-        [...$allRows].forEach(function ($row, i) {
+        [...$allRows].forEach(async function ($row, i) {
           const $logo = $row
             .querySelectorAll(tableCellSelector)[1].querySelector('div');
 
-          expect(getComputedStyle($logo).backgroundImage)
+          expect(await getComputedStyle($logo, 'backgroundImage'))
             .to.contain(results[0].snippet.extra.ranking[i].logo);
         });
       });
 
-      it('has a correct team name', function () {
-        const $allRows = $result
+      it('has a correct team name', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -638,8 +641,8 @@ export function checkSoccerLigaTable({ $result, results, isExpanded = false }) {
         });
       });
 
-      it('has a correct amount of matches', function () {
-        const $allRows = $result
+      it('has a correct amount of matches', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -650,8 +653,8 @@ export function checkSoccerLigaTable({ $result, results, isExpanded = false }) {
         });
       });
 
-      it('has an existing and correct amount of victories', function () {
-        const $allRows = $result
+      it('has an existing and correct amount of victories', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -662,8 +665,8 @@ export function checkSoccerLigaTable({ $result, results, isExpanded = false }) {
         });
       });
 
-      it('has an existing and correct amount of losses', function () {
-        const $allRows = $result
+      it('has an existing and correct amount of losses', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -674,8 +677,8 @@ export function checkSoccerLigaTable({ $result, results, isExpanded = false }) {
         });
       });
 
-      it('has an existing and correct amount of ties', function () {
-        const $allRows = $result
+      it('has an existing and correct amount of ties', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -686,8 +689,8 @@ export function checkSoccerLigaTable({ $result, results, isExpanded = false }) {
         });
       });
 
-      it('has an existing and correct amount of goals', function () {
-        const $allRows = $result
+      it('has an existing and correct amount of goals', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -698,8 +701,8 @@ export function checkSoccerLigaTable({ $result, results, isExpanded = false }) {
         });
       });
 
-      it('has an existing and correct difference of goals', function () {
-        const $allRows = $result
+      it('has an existing and correct difference of goals', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -710,8 +713,8 @@ export function checkSoccerLigaTable({ $result, results, isExpanded = false }) {
         });
       });
 
-      it('has an existing and correct amount of points', function () {
-        const $allRows = $result
+      it('has an existing and correct amount of points', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -737,41 +740,41 @@ export function checkSoccerLeague({ $result, results, activeTabIdx = 0 }) {
   checkSoccerCommon({ $result, results });
 
   describe('renders results table', function () {
-    it('successfully', function () {
-      const $soccerTable = $result
+    it('successfully', async function () {
+      const $soccerTable = await $result
         .querySelector(`${mainResultSelector} ${soccerAreaSelector}`);
       expect($soccerTable).to.exist;
     });
 
-    it('with details of correct amount of teams', function () {
-      const $allRows = $result
+    it('with details of correct amount of teams', async function () {
+      const $allRows = await $result
         .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
       expect($allRows.length).to.equal(results[0].snippet.extra.groups[0].ranking.length);
     });
 
     describe('renders tab header', function () {
-      it('successfully', function () {
-        const $tabsHeader = $result
+      it('successfully', async function () {
+        const $tabsHeader = await $result
           .querySelector(`${mainResultSelector} ${soccerAreaSelector} ${tabsHeaderSelector}`);
         expect($tabsHeader).to.exist;
       });
 
-      it('with a correct "Group" label', function () {
-        const $tabsGroupLabel = $result
+      it('with a correct "Group" label', async function () {
+        const $tabsGroupLabel = await $result
           .querySelector(`${mainResultSelector} ${soccerAreaSelector} ${tabsHeaderSelector} ${tabsGroupLabelSelector}`);
 
         expect($tabsGroupLabel).to.exist;
         expect($tabsGroupLabel).to.contain.text(results[0].snippet.extra.group_name);
       });
 
-      it('with a correct number of rendered tabs', function () {
-        const $allTabs = $result
+      it('with a correct number of rendered tabs', async function () {
+        const $allTabs = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${tabsHeaderSelector} ${tabSelector}`);
         expect($allTabs.length).to.equal(results[0].snippet.extra.groups.length);
       });
 
-      it(`with tab #${activeTabIdx} selected as default`, function () {
-        const $allTabs = $result
+      it(`with tab #${activeTabIdx} selected as default`, async function () {
+        const $allTabs = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${tabsHeaderSelector} ${tabSelector}`);
 
         expect($allTabs.length).to.be.above(0);
@@ -786,20 +789,20 @@ export function checkSoccerLeague({ $result, results, activeTabIdx = 0 }) {
     });
 
     describe('renders teams header', function () {
-      it('successfully', function () {
-        const $teamsHeader = $result
+      it('successfully', async function () {
+        const $teamsHeader = await $result
           .querySelector(`${mainResultSelector} ${soccerAreaSelector} ${teamsHeaderSelector}`);
         expect($teamsHeader).to.exist;
       });
 
-      it('with correct amount of elements', function () {
-        const $allTeamsHeaders = $result
+      it('with correct amount of elements', async function () {
+        const $allTeamsHeaders = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${teamsHeaderSelector} ${tableCellSelector}`);
         expect($allTeamsHeaders.length).to.equal(10);
       });
 
-      it('with each element having a correct label', function () {
-        const $allTeamsHeaders = $result
+      it('with each element having a correct label', async function () {
+        const $allTeamsHeaders = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${teamsHeaderSelector} ${tableCellSelector}`);
 
         expect($allTeamsHeaders[0])
@@ -825,8 +828,8 @@ export function checkSoccerLeague({ $result, results, activeTabIdx = 0 }) {
     });
 
     context('each team row', function () {
-      it('has a correct index', function () {
-        const $allRows = $result
+      it('has a correct index', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -836,22 +839,22 @@ export function checkSoccerLeague({ $result, results, activeTabIdx = 0 }) {
         });
       });
 
-      it('has a correct team logo', function () {
-        const $allRows = $result
+      it('has a correct team logo', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
-        [...$allRows].forEach(function ($row, i) {
+        [...$allRows].forEach(async function ($row, i) {
           const $logo = $row
             .querySelectorAll(tableCellSelector)[1].querySelector('div');
 
-          expect(getComputedStyle($logo).backgroundImage)
+          expect(await getComputedStyle($logo, 'backgroundImage'))
             .to.contain(results[0].snippet.extra.groups[activeTabIdx].ranking[i].logo);
         });
       });
 
-      it('has a correct team name', function () {
-        const $allRows = $result
+      it('has a correct team name', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -862,8 +865,8 @@ export function checkSoccerLeague({ $result, results, activeTabIdx = 0 }) {
         });
       });
 
-      it('has a correct amount of matches', function () {
-        const $allRows = $result
+      it('has a correct amount of matches', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -874,8 +877,8 @@ export function checkSoccerLeague({ $result, results, activeTabIdx = 0 }) {
         });
       });
 
-      it('has an existing and correct amount of victories', function () {
-        const $allRows = $result
+      it('has an existing and correct amount of victories', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -886,8 +889,8 @@ export function checkSoccerLeague({ $result, results, activeTabIdx = 0 }) {
         });
       });
 
-      it('has an existing and correct amount of losses', function () {
-        const $allRows = $result
+      it('has an existing and correct amount of losses', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -898,8 +901,8 @@ export function checkSoccerLeague({ $result, results, activeTabIdx = 0 }) {
         });
       });
 
-      it('has an existing and correct amount of ties', function () {
-        const $allRows = $result
+      it('has an existing and correct amount of ties', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -910,8 +913,8 @@ export function checkSoccerLeague({ $result, results, activeTabIdx = 0 }) {
         });
       });
 
-      it('has an existing and correct amount of goals', function () {
-        const $allRows = $result
+      it('has an existing and correct amount of goals', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -922,8 +925,8 @@ export function checkSoccerLeague({ $result, results, activeTabIdx = 0 }) {
         });
       });
 
-      it('has an existing and correct difference of goals', function () {
-        const $allRows = $result
+      it('has an existing and correct difference of goals', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -934,8 +937,8 @@ export function checkSoccerLeague({ $result, results, activeTabIdx = 0 }) {
         });
       });
 
-      it('has an existing and correct amount of points', function () {
-        const $allRows = $result
+      it('has an existing and correct amount of points', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -964,14 +967,14 @@ export function checkSoccerLiveticker({ $result, results, isExpanded = false, ac
   checkSoccerCommon({ $result, results });
 
   describe('renders results table', function () {
-    it('successfully', function () {
-      const $soccerTable = $result
+    it('successfully', async function () {
+      const $soccerTable = await $result
         .querySelector(`${mainResultSelector} ${soccerAreaSelector}`);
       expect($soccerTable).to.exist;
     });
 
-    it('with details of correct amount of matches', function () {
-      const $allRows = $result
+    it('with details of correct amount of matches', async function () {
+      const $allRows = await $result
         .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
       if (!isExpanded) {
@@ -983,15 +986,15 @@ export function checkSoccerLiveticker({ $result, results, isExpanded = false, ac
     });
 
     if (isExpanded) {
-      it('without "Show more" button', function () {
-        const $showMore = $result
+      it('without "Show more" button', async function () {
+        const $showMore = await $result
           .querySelector(`${mainResultSelector} ${soccerAreaSelector} ${showMoreSelector}`);
 
         expect($showMore).to.not.exist;
       });
     } else {
-      it('with a correct "Show more" being a link', function () {
-        const $showMore = $result
+      it('with a correct "Show more" being a link', async function () {
+        const $showMore = await $result
           .querySelector(`${mainResultSelector} ${soccerAreaSelector} ${showMoreSelector}`);
 
         expect($showMore).to.exist;
@@ -1001,20 +1004,20 @@ export function checkSoccerLiveticker({ $result, results, isExpanded = false, ac
     }
 
     describe('renders tab header', function () {
-      it('successfully', function () {
-        const $tabsHeader = $result
+      it('successfully', async function () {
+        const $tabsHeader = await $result
           .querySelector(`${mainResultSelector} ${soccerAreaSelector} ${tabsHeaderSelector}`);
         expect($tabsHeader).to.exist;
       });
 
-      it('with a correct number of rendered tabs', function () {
-        const $allTabs = $result
+      it('with a correct number of rendered tabs', async function () {
+        const $allTabs = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${tabsHeaderSelector} ${tabSelector}`);
         expect($allTabs.length).to.equal(results[0].snippet.extra.weeks.length);
       });
 
-      it(`with tab #${activeTabIdx} selected as default`, function () {
-        const $allTabs = $result
+      it(`with tab #${activeTabIdx} selected as default`, async function () {
+        const $allTabs = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${tabsHeaderSelector} ${tabSelector}`);
 
         expect($allTabs.length).to.be.above(0);
@@ -1029,8 +1032,8 @@ export function checkSoccerLiveticker({ $result, results, isExpanded = false, ac
     });
 
     context('each table match row', function () {
-      it('has a correct URL', function () {
-        const $allRows = $result
+      it('has a correct URL', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -1041,8 +1044,8 @@ export function checkSoccerLiveticker({ $result, results, isExpanded = false, ac
         });
       });
 
-      it('has correct names of two teams', function () {
-        const $allRows = $result
+      it('has correct names of two teams', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -1056,25 +1059,25 @@ export function checkSoccerLiveticker({ $result, results, isExpanded = false, ac
         });
       });
 
-      it('has logos of two teams', function () {
-        const $allRows = $result
+      it('has logos of two teams', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
-        [...$allRows].forEach(function ($row, i) {
+        [...$allRows].forEach(async function ($row, i) {
           const $allSoccerTeamLogos = $row.querySelectorAll(teamLogoSelector);
           expect($allSoccerTeamLogos.length).to.equal(2);
 
-          expect(getComputedStyle($allSoccerTeamLogos[0]).backgroundImage)
+          expect(await getComputedStyle($allSoccerTeamLogos[0], 'backgroundImage'))
             .to.contain(results[0].snippet.extra.weeks[activeTabIdx].matches[i].hostLogo);
 
-          expect(getComputedStyle($allSoccerTeamLogos[1]).backgroundImage)
+          expect(await getComputedStyle($allSoccerTeamLogos[1], 'backgroundImage'))
             .to.contain(results[0].snippet.extra.weeks[activeTabIdx].matches[i].guestLogo);
         });
       });
 
-      it('has a result with correct two numbers', function () {
-        const $allRows = $result
+      it('has a result with correct two numbers', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -1085,8 +1088,8 @@ export function checkSoccerLiveticker({ $result, results, isExpanded = false, ac
         });
       });
 
-      it('has an existing date and time', function () {
-        const $allRows = $result
+      it('has an existing date and time', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
@@ -1096,16 +1099,16 @@ export function checkSoccerLiveticker({ $result, results, isExpanded = false, ac
         });
       });
 
-      it('has a correct league logo', function () {
-        const $allRows = $result
+      it('has a correct league logo', async function () {
+        const $allRows = await $result
           .querySelectorAll(`${mainResultSelector} ${soccerAreaSelector} ${rowSelector}`);
 
         expect($allRows.length).to.be.above(0);
-        [...$allRows].forEach(function ($row, i) {
+        [...$allRows].forEach(async function ($row, i) {
           const $leagueLogo = $row.querySelector(leagueLogoSelector);
 
           expect($leagueLogo).to.exist;
-          expect(getComputedStyle($leagueLogo).backgroundImage)
+          expect(await getComputedStyle($leagueLogo, 'backgroundImage'))
             .to.contain(results[0].snippet.extra.weeks[activeTabIdx].matches[i].leagueLogo);
         });
       });
@@ -1121,33 +1124,33 @@ export function checkSearchResult({ $result, query, urlText = 'Search with Googl
   const $urlSelector = '.abstract .url';
 
   describe('renders search result', function () {
-    it('successfully', function () {
-      const $searchResult = $result
+    it('successfully', async function () {
+      const $searchResult = await $result
         .querySelector(`${resultSelector}${searchResultSelector}`);
       expect($searchResult).to.exist;
     });
 
-    it('as the only result', function () {
-      const $allResults = $result.querySelectorAll(resultSelector);
+    it('as the only result', async function () {
+      const $allResults = await $result.querySelectorAll(resultSelector);
       expect($allResults.length).to.equal(1);
     });
 
-    it('with correct logo', function () {
-      const $logo = $result
+    it('with correct logo', async function () {
+      const $logo = await $result
         .querySelector(`${resultSelector}${searchResultSelector} ${logoSelector}`);
       expect($logo).to.exist;
     });
 
-    it('with correct query', function () {
-      const $query = $result
+    it('with correct query', async function () {
+      const $query = await $result
         .querySelector(`${resultSelector}${searchResultSelector} ${querySelector}`);
 
       expect($query).to.exist;
       expect($query).to.contain.text(query);
     });
 
-    it('with correct URL', function () {
-      const $url = $result
+    it('with correct URL', async function () {
+      const $url = await $result
         .querySelector(`${resultSelector}${searchResultSelector} ${$urlSelector}`);
 
       expect($url).to.exist;
@@ -1165,19 +1168,19 @@ export function checkButtons({ $result, results }) {
   const buttonSelector = '.btn';
 
   context('renders buttons area', function () {
-    it('successfully', function () {
-      const $buttonsArea = $result.querySelector(buttonsAreaSelector);
+    it('successfully', async function () {
+      const $buttonsArea = await $result.querySelector(buttonsAreaSelector);
       expect($buttonsArea).to.exist;
     });
 
-    it('with correct amount of buttons', function () {
-      const $allButtons = $result.querySelectorAll(buttonSelector);
+    it('with correct amount of buttons', async function () {
+      const $allButtons = await $result.querySelectorAll(buttonSelector);
       expect($allButtons.length).to.equal(results[0].snippet.deepResults[0].links.length);
     });
 
     context('each button', function () {
-      it('renders with correct text', function () {
-        const $allButtons = $result.querySelectorAll(buttonSelector);
+      it('renders with correct text', async function () {
+        const $allButtons = await $result.querySelectorAll(buttonSelector);
 
         expect($allButtons.length).to.be.above(0);
         [...$allButtons].forEach(function ($button, i) {
@@ -1185,8 +1188,8 @@ export function checkButtons({ $result, results }) {
         });
       });
 
-      it('renders with correct URL', function () {
-        const $allButtons = $result.querySelectorAll(buttonSelector);
+      it('renders with correct URL', async function () {
+        const $allButtons = await $result.querySelectorAll(buttonSelector);
 
         expect($allButtons.length).to.be.above(0);
         [...$allButtons].forEach(function ($button, i) {
@@ -1209,20 +1212,20 @@ export function checkAdultButtons({ $result, areButtonsPresent = true }) {
 
   if (areButtonsPresent) {
     context('renders adult question buttons', function () {
-      it('successfully', function () {
-        const $buttonsArea = $result
+      it('successfully', async function () {
+        const $buttonsArea = await $result
           .querySelector(`${mainResultSelector} ${buttonsAreaSelector}`);
         expect($buttonsArea).to.exist;
       });
 
-      it('in correct amount', function () {
-        const $allLocationBtns = $result
+      it('in correct amount', async function () {
+        const $allLocationBtns = await $result
           .querySelectorAll(`${mainResultSelector} ${buttonsAreaSelector} ${adultBtnSelector}`);
         expect($allLocationBtns.length).to.equal(3);
       });
 
-      it('with correct text', function () {
-        const $allLocationBtns = $result
+      it('with correct text', async function () {
+        const $allLocationBtns = await $result
           .querySelectorAll(`${mainResultSelector} ${buttonsAreaSelector} ${adultBtnSelector}`);
         const showOnceText = getLocalisedString('show_once');
         const alwaysText = getLocalisedString('always');
@@ -1234,8 +1237,8 @@ export function checkAdultButtons({ $result, areButtonsPresent = true }) {
       });
     });
   } else {
-    it('does not render adult question', function () {
-      const $buttonsArea = $result
+    it('does not render adult question', async function () {
+      const $buttonsArea = await $result
         .querySelector(`${mainResultSelector} ${buttonsAreaSelector}`);
       expect($buttonsArea).to.not.exist;
     });
@@ -1256,40 +1259,39 @@ export function checkLocationButtons({ $result, areButtonsPresent = true, scType
 
   if (areButtonsPresent) {
     context('renders location buttons', function () {
-      it('successfully', function () {
-        const $locationArea = $result
+      it('successfully', async function () {
+        const $locationArea = await $result
           .querySelector(`${mainResultSelector} ${locationAreaSelector}`);
         expect($locationArea).to.exist;
       });
 
-      it('in correct amount', function () {
-        const $allLocationBtns = $result
+      it('in correct amount', async function () {
+        const $allLocationBtns = await $result
           .querySelectorAll(`${mainResultSelector} ${locationAreaSelector} ${locationBtnSelector}`);
         expect($allLocationBtns.length).to.equal(2);
       });
 
-      it('with correct text', function () {
-        const $allowOnceBtn = $result
+      it('with correct text', async function () {
+        const $allowOnceBtn = await $result
           .querySelectorAll(`${mainResultSelector} ${locationAreaSelector} ${allowOnceBtnSelector}`);
-        const $allowAlwaysBtn = $result
+        const $allowAlwaysBtn = await $result
           .querySelectorAll(`${mainResultSelector} ${locationAreaSelector} ${alwaysShowBtnSelector}`);
 
         if (scType === 'cinema') {
           expect($allowOnceBtn)
             .to.contain.text(getLocalisedString('cinema_show_location_and_contact'));
-          expect($allowAlwaysBtn)
-            .to.contain.text(getLocalisedString('cinema_always_show_location'));
         } else if (scType === 'local') {
           expect($allowOnceBtn)
             .to.contain.text(getLocalisedString('show_location_and_contact'));
-          expect($allowAlwaysBtn)
-            .to.contain.text(getLocalisedString('always_show_location'));
         }
+
+        expect($allowAlwaysBtn)
+          .to.contain.text(getLocalisedString('always_show_location'));
       });
     });
   } else {
-    it('does not render location question', function () {
-      const $locationArea = $result
+    it('does not render location question', async function () {
+      const $locationArea = await $result
         .querySelector(`${mainResultSelector} ${locationAreaSelector}`);
       expect($locationArea).to.be.empty;
     });
@@ -1316,25 +1318,25 @@ export function checkMap({ $result, results, isDistanceShown = true, scType = 'c
     || CliqzUtils.distance(extra.lat, extra.lon, CliqzUtils.USER_LAT, CliqzUtils.USER_LNG);
 
   context('renders map area', function () {
-    it('successfully', function () {
-      const $mapArea = $result.querySelector(`${mainResultSelector} ${mapAreaSelector}`);
+    it('successfully', async function () {
+      const $mapArea = await $result.querySelector(`${mainResultSelector} ${mapAreaSelector}`);
       expect($mapArea).to.exist;
     });
 
-    it('with an existing map icon with an URL', function () {
-      const $mapIcon = $result.querySelector(`${mainResultSelector} ${mapAreaSelector} ${mapIconSelector}`);
+    it('with an existing map icon with an URL', async function () {
+      const $mapIcon = await $result.querySelector(`${mainResultSelector} ${mapAreaSelector} ${mapIconSelector}`);
       expect($mapIcon).to.exist;
       expect($mapIcon.href).to.exist;
     });
 
-    it('with existing and correct contact data', function () {
-      const $mapContact = $result
+    it('with existing and correct contact data', async function () {
+      const $mapContact = await $result
         .querySelector(`${mainResultSelector} ${mapAreaSelector} ${mapContactSelector}`);
-      const $mapAddress = $result
+      const $mapAddress = await $result
         .querySelector(`${mainResultSelector} ${mapAreaSelector} ${mapContactSelector} ${mapAddressSelector}`);
-      const $mapDistance = $result
+      const $mapDistance = await $result
         .querySelector(`${mainResultSelector} ${mapAreaSelector} ${mapContactSelector} ${mapDistanceSelector}`);
-      const $mapPhone = $result
+      const $mapPhone = await $result
         .querySelector(`${mainResultSelector} ${mapAreaSelector} ${mapContactSelector} ${mapPhoneSelector}`);
 
       expect($mapContact).to.exist;
@@ -1371,40 +1373,40 @@ export function checkParent({ $result, results }) {
   const parentIconSelector = '.icons .logo';
 
   context('renders parent result', function () {
-    it('successfully', function () {
-      const $parent = $result.querySelector(`${mainResultSelector} ${parentSelector}`);
+    it('successfully', async function () {
+      const $parent = await $result.querySelector(`${mainResultSelector} ${parentSelector}`);
       expect($parent).to.exist;
     });
 
-    it('with an existing and correct title', function () {
-      const $parentTitle = $result
+    it('with an existing and correct title', async function () {
+      const $parentTitle = await $result
         .querySelector(`${mainResultSelector} ${parentSelector} ${parentTitleSelector}`);
       expect($parentTitle).to.exist;
       expect($parentTitle).to.have.text(results[0].snippet.title);
     });
 
-    it('with an existing and correct domain', function () {
-      const $parentDomain = $result
+    it('with an existing and correct domain', async function () {
+      const $parentDomain = await $result
         .querySelector(`${mainResultSelector} ${parentSelector} ${parentDomainSelector}`);
       expect($parentDomain).to.exist;
       expect($parentDomain).to.have.text(results[0].snippet.friendlyUrl);
     });
 
-    it('with an existing and correct URL', function () {
-      const $parent = $result.querySelector(`${mainResultSelector} ${parentSelector}`);
+    it('with an existing and correct URL', async function () {
+      const $parent = await $result.querySelector(`${mainResultSelector} ${parentSelector}`);
       expect($parent.href).to.exist;
       expect($parent.href).to.equal(results[0].url);
     });
 
-    it('with an existing and correct description', function () {
-      const $parentDescription = $result
+    it('with an existing and correct description', async function () {
+      const $parentDescription = await $result
         .querySelector(`${mainResultSelector} ${parentSelector} ${parentDescriptionSelector}`);
       expect($parentDescription).to.exist;
       expect($parentDescription).to.have.text(results[0].snippet.description);
     });
 
-    it('with an existing icon', function () {
-      const $parentIcon = $result
+    it('with an existing icon', async function () {
+      const $parentIcon = await $result
         .querySelector(`${mainResultSelector} ${parentSelector} ${parentIconSelector}`);
       expect($parentIcon).to.exist;
     });
@@ -1422,13 +1424,14 @@ export function checkLotto({ $result, amountOfRows }) {
     const disclaimerSelector = '.no-guarantee';
     const rowSelector = '.row';
 
-    it('successfully', function () {
-      const $lottoResult = $result.querySelector(`${mainResultSelector} ${lottoResultSelector}`);
+    it('successfully', async function () {
+      const $lottoResult = await $result
+        .querySelector(`${mainResultSelector} ${lottoResultSelector}`);
       expect($lottoResult).to.exist;
     });
 
-    it('with a correct header', function () {
-      const $header = $result
+    it('with a correct header', async function () {
+      const $header = await $result
         .querySelector(`${mainResultSelector} ${lottoResultSelector} ${headerSelector}`);
 
       expect($header).to.exist;
@@ -1437,16 +1440,16 @@ export function checkLotto({ $result, amountOfRows }) {
       expect($header).to.contain.text('19.7.2017');
     });
 
-    it('with a correct disclaimer', function () {
-      const $disclaimer = $result
+    it('with a correct disclaimer', async function () {
+      const $disclaimer = await $result
         .querySelector(`${mainResultSelector} ${lottoResultSelector} ${disclaimerSelector}`);
 
       expect($disclaimer).to.exist;
       expect($disclaimer).to.have.text(getLocalisedString('no_guarantee'));
     });
 
-    it('with correct amount of results blocks', function () {
-      const $allLottoRows = $result
+    it('with correct amount of results blocks', async function () {
+      const $allLottoRows = await $result
         .querySelectorAll(`${mainResultSelector} ${lottoResultSelector} ${rowSelector}`);
 
       expect($allLottoRows.length).to.equal(amountOfRows);
@@ -1465,18 +1468,18 @@ export function checkChildren({ $result, results, parentSelector, youtube = fals
   const durationSelector = '.duration';
 
   describe('renders all childen results', function () {
-    it('successfully', function () {
-      const $childrenArea = $result
+    it('successfully', async function () {
+      const $childrenArea = await $result
         .querySelector(`${mainResultSelector} ${parentSelector}`);
-      const $allChildrenElements = $result
+      const $allChildrenElements = await $result
         .querySelectorAll(`${mainResultSelector} ${parentSelector} ${childSelector}`);
 
       expect($childrenArea).to.exist;
       expect($allChildrenElements.length).to.be.above(0);
     });
 
-    it('with correct images', function () {
-      const $allChildrenElements = $result
+    it('with correct images', async function () {
+      const $allChildrenElements = await $result
         .querySelectorAll(`${mainResultSelector} ${parentSelector} ${childSelector}`);
 
       expect($allChildrenElements.length).to.be.above(0);
@@ -1494,8 +1497,8 @@ export function checkChildren({ $result, results, parentSelector, youtube = fals
       });
     });
 
-    it('with correct titles', function () {
-      const $allChildrenElements = $result
+    it('with correct titles', async function () {
+      const $allChildrenElements = await $result
         .querySelectorAll(`${mainResultSelector} ${parentSelector} ${childSelector}`);
 
       expect($allChildrenElements.length).to.be.above(0);
@@ -1508,8 +1511,8 @@ export function checkChildren({ $result, results, parentSelector, youtube = fals
     });
 
     if (!youtube) {
-      it('with correct domains', function () {
-        const $allChildrenElements = $result
+      it('with correct domains', async function () {
+        const $allChildrenElements = await $result
           .querySelectorAll(`${mainResultSelector} ${parentSelector} ${childSelector}`);
 
         expect($allChildrenElements.length).to.be.above(0);
@@ -1523,8 +1526,8 @@ export function checkChildren({ $result, results, parentSelector, youtube = fals
       });
     }
 
-    it('with correct URLs', function () {
-      const $allChildrenElements = $result
+    it('with correct URLs', async function () {
+      const $allChildrenElements = await $result
         .querySelectorAll(`${mainResultSelector} ${parentSelector} ${childSelector}`);
 
       expect($allChildrenElements.length).to.be.above(0);
@@ -1535,8 +1538,8 @@ export function checkChildren({ $result, results, parentSelector, youtube = fals
     });
 
     if (!youtube) {
-      it('with existing ages', function () {
-        const $allChildrenElements = $result
+      it('with existing ages', async function () {
+        const $allChildrenElements = await $result
           .querySelectorAll(`${mainResultSelector} ${parentSelector} ${childSelector}`);
 
         expect($allChildrenElements.length).to.be.above(0);
@@ -1547,12 +1550,12 @@ export function checkChildren({ $result, results, parentSelector, youtube = fals
       });
     }
 
-    it('with existing and correct descriptions', function () {
+    it('with existing and correct descriptions', async function () {
       if (youtube) {
         descriptionSelector = viewCountSelector;
       }
 
-      const $allChildrenElements = $result
+      const $allChildrenElements = await $result
         .querySelectorAll(`${mainResultSelector} ${parentSelector} ${childSelector}`);
 
       expect($allChildrenElements.length).to.be.above(0);
@@ -1572,8 +1575,8 @@ export function checkChildren({ $result, results, parentSelector, youtube = fals
     });
 
     if (youtube) {
-      it('with an existing duration time', function () {
-        const $allChildrenElements = $result
+      it('with an existing duration time', async function () {
+        const $allChildrenElements = await $result
           .querySelectorAll(`${mainResultSelector} ${parentSelector} ${childSelector}`);
 
         expect($allChildrenElements.length).to.be.above(0);
@@ -1611,34 +1614,35 @@ export function checkTableOfShowings({ $result, results, isExpanded = false, act
   const showMoreBtnSelector = '.expand-btn';
 
   context('renders showings table', function () {
-    it('succesfully', function () {
-      const $showtimeArea = $result
+    it('succesfully', async function () {
+      const $showtimeArea = await $result
         .querySelector(`${mainResultSelector} ${showtimeAreaSelector}`);
       expect($showtimeArea).to.exist;
     });
 
-    it('with an existing and correct header', function () {
-      const $showtimeTitle = $result
+    it('with an existing and correct header', async function () {
+      const $showtimeTitle = await $result
         .querySelector(`${mainResultSelector} ${showtimeTitleSelector}`);
-      const $showtimeHeader = $result
+      const $showtimeHeader = await $result
         .querySelector(`${mainResultSelector} ${showtimeHeaderSelector}`);
-      const $showtimeIcon = $result
+      const $showtimeIcon = await $result
         .querySelector(`${mainResultSelector} ${showtimeIconSelector}`);
-      const $showtimeCity = $result
+      const $showtimeCity = await $result
         .querySelector(`${mainResultSelector} ${showtimeCitySelector}`);
+      const iconSelector = `${mainResultSelector} ${showtimeIconSelector}`;
 
       expect($showtimeTitle).to.exist;
       expect($showtimeHeader).to.exist;
       expect($showtimeHeader).to.contain.text(results[0].snippet.extra.data.cinema.name);
       expect($showtimeIcon).to.exist;
-      expect(getComputedStyle($showtimeIcon).backgroundImage)
+      expect(await getComputedStyle(iconSelector, 'backgroundImage'))
         .to.contain('location-icon.svg');
       expect($showtimeCity).to.exist;
       expect($showtimeCity).to.contain.text(results[0].snippet.extra.data.city);
     });
 
-    it('with existing and correct table tabs', function () {
-      const $allShowTimeTabs = $result
+    it('with existing and correct table tabs', async function () {
+      const $allShowTimeTabs = await $result
         .querySelectorAll(`${mainResultSelector} ${showtimeTabsSelector}`);
 
       expect($allShowTimeTabs.length).to.be.above(0);
@@ -1649,8 +1653,8 @@ export function checkTableOfShowings({ $result, results, isExpanded = false, act
       });
     });
 
-    it(`with tab #${activeTabIdx} being selected as default`, function () {
-      const $allShowTimeTabs = $result
+    it(`with tab #${activeTabIdx} being selected as default`, async function () {
+      const $allShowTimeTabs = await $result
         .querySelectorAll(`${mainResultSelector} ${showtimeTabsSelector}`);
 
       expect($allShowTimeTabs.length).to.be.above(0);
@@ -1663,7 +1667,7 @@ export function checkTableOfShowings({ $result, results, isExpanded = false, act
       });
     });
 
-    it('with correct amount of movies rows', function () {
+    it('with correct amount of movies rows', async function () {
       let amountOfRows;
 
       if (isExpanded) {
@@ -1671,14 +1675,14 @@ export function checkTableOfShowings({ $result, results, isExpanded = false, act
       } else {
         amountOfRows = 2;
       }
-      const $allMovies = $result
+      const $allMovies = await $result
         .querySelectorAll(`${mainResultSelector} ${showtimeActiveTabSelector} ${showtimeTableRowSelector}`);
 
       expect($allMovies.length).to.equal(amountOfRows);
     });
 
-    it('with correct data in each movie row', function () {
-      const $allMovies = $result
+    it('with correct data in each movie row', async function () {
+      const $allMovies = await $result
         .querySelectorAll(`${mainResultSelector} ${showtimeActiveTabSelector} ${showtimeTableRowSelector}`);
 
       expect($allMovies.length).to.be.above(0);
@@ -1693,9 +1697,9 @@ export function checkTableOfShowings({ $result, results, isExpanded = false, act
           results[0].snippet.extra.data.showdates[activeTabIdx].movie_list[i].showtimes.length
         );
 
-        [...$allMovieTimes].forEach(function ($time, j) {
-          const $movieLang = $time.querySelector(showtimeMovieLangSelector);
-          const $movie3d = $time.querySelector(showtimeMovie3dSelector);
+        [...$allMovieTimes].forEach(async function ($time, j) {
+          const $movieLang = await $time.querySelector(showtimeMovieLangSelector);
+          const $movie3d = await $time.querySelector(showtimeMovie3dSelector);
 
           expect($time.href).to.exist;
           expect($time.href).to.equal(
@@ -1720,14 +1724,14 @@ export function checkTableOfShowings({ $result, results, isExpanded = false, act
     });
 
     if (isExpanded) {
-      it('without "Show more" item', function () {
-        const $showMoreButton = $result
+      it('without "Show more" item', async function () {
+        const $showMoreButton = await $result
           .querySelector(`${mainResultSelector} ${showMoreBtnSelector}`);
         expect($showMoreButton).to.not.exist;
       });
     } else {
-      it('with an existing and correct "Show more" item', function () {
-        const $showMoreButton = $result
+      it('with an existing and correct "Show more" item', async function () {
+        const $showMoreButton = await $result
           .querySelector(`${mainResultSelector} ${showMoreBtnSelector}`);
         expect($showMoreButton).to.exist;
         expect($showMoreButton)
@@ -1764,35 +1768,36 @@ export function checkTableOfCinemas({ $result, results, isExpanded = false, acti
   const showMoreBtnSelector = '.expand-btn';
 
   context('renders showings table', function () {
-    it('succesfully', function () {
-      const $showtimeArea = $result
+    it('succesfully', async function () {
+      const $showtimeArea = await $result
         .querySelector(`${mainResultSelector} ${showtimeAreaSelector}`);
       expect($showtimeArea).to.exist;
     });
 
-    it('with an existing and correct header', function () {
-      const $showtimeTitle = $result
+    it('with an existing and correct header', async function () {
+      const $showtimeTitle = await $result
         .querySelector(`${mainResultSelector} ${showtimeTitleSelector}`);
-      const $showtimeHeader = $result
+      const $showtimeHeader = await $result
         .querySelector(`${mainResultSelector} ${showtimeHeaderSelector}`);
-      const $showtimeIcon = $result
+      const $showtimeIcon = await $result
         .querySelector(`${mainResultSelector} ${showtimeIconSelector}`);
-      const $showtimeCity = $result
+      const $showtimeCity = await $result
         .querySelector(`${mainResultSelector} ${showtimeCitySelector}`);
+      const iconSelector = `${mainResultSelector} ${showtimeIconSelector}`;
 
       expect($showtimeTitle).to.exist;
       expect($showtimeHeader).to.exist;
       expect($showtimeHeader).to.contain.text(getLocalisedString('cinema_movie_showtimes'));
       expect($showtimeHeader).to.contain.text(results[0].snippet.extra.data.title);
       expect($showtimeIcon).to.exist;
-      expect(getComputedStyle($showtimeIcon).backgroundImage)
+      expect(await getComputedStyle(iconSelector, 'backgroundImage'))
         .to.contain('location-icon.svg');
       expect($showtimeCity).to.exist;
       expect($showtimeCity).to.contain.text(results[0].snippet.extra.data.city);
     });
 
-    it('with existing and correct table tabs', function () {
-      const $allShowTimeTabs = $result
+    it('with existing and correct table tabs', async function () {
+      const $allShowTimeTabs = await $result
         .querySelectorAll(`${mainResultSelector} ${showtimeTabsSelector}`);
 
       expect($allShowTimeTabs.length).to.be.above(0);
@@ -1803,8 +1808,8 @@ export function checkTableOfCinemas({ $result, results, isExpanded = false, acti
       });
     });
 
-    it(`with tab #${activeTabIdx} being selected as default`, function () {
-      const $allShowTimeTabs = $result
+    it(`with tab #${activeTabIdx} being selected as default`, async function () {
+      const $allShowTimeTabs = await $result
         .querySelectorAll(`${mainResultSelector} ${showtimeTabsSelector}`);
 
       expect($allShowTimeTabs.length).to.be.above(0);
@@ -1817,7 +1822,7 @@ export function checkTableOfCinemas({ $result, results, isExpanded = false, acti
       });
     });
 
-    it('with correct amount of cinemas rows', function () {
+    it('with correct amount of cinemas rows', async function () {
       let amountOfRows;
 
       if (isExpanded) {
@@ -1826,13 +1831,13 @@ export function checkTableOfCinemas({ $result, results, isExpanded = false, acti
         amountOfRows = 2;
       }
 
-      const $allCinemas = $result
+      const $allCinemas = await $result
         .querySelectorAll(`${mainResultSelector} ${showtimeActiveTabSelector} ${showtimeTableRowSelector}`);
       expect($allCinemas.length).to.equal(amountOfRows);
     });
 
-    it('with correct data in each cinema row', function () {
-      const $allCinemas = $result
+    it('with correct data in each cinema row', async function () {
+      const $allCinemas = await $result
         .querySelectorAll(`${mainResultSelector} ${showtimeActiveTabSelector} ${showtimeTableRowSelector}`);
 
       expect($allCinemas.length).to.be.above(0);
@@ -1878,14 +1883,14 @@ export function checkTableOfCinemas({ $result, results, isExpanded = false, acti
     });
 
     if (isExpanded) {
-      it('without "Show more" item', function () {
-        const $showMoreButton = $result
+      it('without "Show more" item', async function () {
+        const $showMoreButton = await $result
           .querySelector(`${mainResultSelector} ${showMoreBtnSelector}`);
         expect($showMoreButton).to.not.exist;
       });
     } else {
-      it('with an existing and correct "Show more" item', function () {
-        const $showMoreButton = $result
+      it('with an existing and correct "Show more" item', async function () {
+        const $showMoreButton = await $result
           .querySelector(`${mainResultSelector} ${showMoreBtnSelector}`);
         expect($showMoreButton).to.exist;
         expect($showMoreButton)

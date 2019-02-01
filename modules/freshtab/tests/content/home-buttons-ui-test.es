@@ -65,9 +65,9 @@ describe('Freshtab buttons UI', function () {
         expect(subject.query(homeButtonSelector)).to.have.text('Home');
       });
 
-      it('with correct link', function () {
+      it('with the link which is empty string', function () {
         expect(subject.query(homeButtonSelector).href)
-          .to.equal(CONFIG.settings.NEW_TAB_URL);
+          .to.equal('');
       });
     });
 

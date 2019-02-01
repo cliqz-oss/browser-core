@@ -49,9 +49,9 @@ export default describeModule('core/url-whitelist',
     'platform/environment': {},
     'platform/lib/tldts': tldts,
     'platform/platform': {
-      default: {
-        isOnionMode: false,
-      },
+      default: {},
+      isBetaVersion: () => false,
+      isOnionModeFactory: () => (() => false),
     }
   }), function () {
     let urlWhitelist;

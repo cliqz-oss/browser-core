@@ -60,6 +60,12 @@ const MOCK = {
   'human-web/content-extraction-patterns-loader': {
     default: class {},
   },
+  'platform/crypto': {
+    default: {},
+  },
+  'platform/fetch': {
+    default: {},
+  },
   'platform/human-web/tabInfo': {
     getTabInfo: {},
   },

@@ -6,6 +6,7 @@
  */
 export default {
   name: 'freshtab-settings',
+  needsGid: true,
   version: 1,
   generate: ({ records }) => {
     const freshtabConfigSignals = records.get('freshtab.prefs.config');

@@ -8,7 +8,6 @@ const path = require('path');
 const moment = require('moment');
 const spawn = require('child_process').spawn;
 const common = require('./common');
-const FirefoxBrowser = require('../../tests/runners/launchers/firefox-web-ext').Browser;
 
 const setConfigPath = common.setConfigPath;
 const getExtensionVersion = common.getExtensionVersion;
@@ -67,7 +66,7 @@ program.command(`serve ${common.configParameter}`)
     }, customPrefs);
 
     if (options.includeTests) {
-      prefs['extensions.cliqz.browserOnboarding'] = '3.0';
+      prefs['extensions.cliqz.browserOnboarding'] = true;
       prefs['extensions.cliqz.freshtab.tooltip.enabled'] = true;
       server = spawn('node', ['./tests/test-server.js']);
       process.on('SIGTERM', () => server.kill());
@@ -97,6 +96,7 @@ program.command(`serve ${common.configParameter}`)
           if (extensionRunner) {
             donePromise = extensionRunner.reloadAllExtensions();
           } else {
+            const FirefoxBrowser = require('../../tests/runners/launchers/firefox-web-ext').Browser;
             const firefoxRunner = new FirefoxBrowser(prefs);
             donePromise = firefoxRunner.run({
               configFilePath: configPath,

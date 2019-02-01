@@ -113,7 +113,6 @@ export default class UIWindow extends AppWindow {
       maybeRecordTelemetry() { return false; }
     };
     this.popup.openAutocompletePopup = function () {};
-    this.window.CLIQZ.Core.popup = this.popup;
     popup.setAttribute('id', 'PopupAutoCompleteRichResultCliqz');
     this.elems.push(popup);
     document.getElementById('PopupAutoCompleteRichResult').parentElement.appendChild(popup);

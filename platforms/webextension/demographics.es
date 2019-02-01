@@ -1,13 +1,22 @@
-import { getPref } from './prefs';
+import { getPref, setPref } from './prefs';
 import config from '../core/config';
 import { chrome } from './globals';
+
+const DEFAULT_DIST_VAL = 'web0003';
 
 export function getUserAgent() {
   return navigator.userAgent;
 }
 
-export function getDistribution() {
-  return getPref('distribution', '');
+export async function getDistribution() {
+  let distribution = getPref('distribution', '');
+  if (chrome.demographics && !distribution
+    && config.settings.channel === '40'
+    && navigator.userAgent.indexOf('Mac OS') > -1) {
+    distribution = await chrome.demographics.getMacDistribution() || DEFAULT_DIST_VAL;
+    setPref('distribution', distribution);
+  }
+  return distribution;
 }
 
 export function getChannel() {

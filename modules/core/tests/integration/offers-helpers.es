@@ -1,7 +1,7 @@
 import prefs from '../../../core/prefs';
 import utils from '../../../core/utils';
 import { isWebExtension } from '../../../core/platform';
-
+import config from '../../../core/config';
 
 import {
   app,
@@ -251,6 +251,7 @@ export function getApiOffersMock({ dest, timeout }) {
       template_name: 'ticket_template'
     };
   } else if (dest === 'offers-cc') {
+    const path = `/${config.testsBasePath}/offers-cc/debug/images/audible.png`;
     mock.ui_info = {
       notif_type: isWebExtension ? 'pop-up' : 'tooltip',
       created: 1514984136299,
@@ -265,7 +266,7 @@ export function getApiOffersMock({ dest, timeout }) {
         conditions: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Tenetur, architecto, explicabo perferendis nostrum, maxime impedit atque odit sunt pariatur illo obcaecati soluta molestias iure facere dolorum adipisci eum? Saepe, itaque.',
         desc: 'Genießen Sie die besten Weine aus Spanien, Italien und aus aller Welt. Jetzt Angebot sichern!',
         headline: 'Kostenlose Horbucher',
-        logo_url: '/build/cliqz@cliqz.com/chrome/content/offers-cc/debug/images/audible.png',
+        logo_url: path,
         voucher_classes: '',
         labels: [
           'exclusive',

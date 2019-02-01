@@ -12,7 +12,6 @@ export default class Database {
     this.groupPubKeys = {};
     this.userPK = null;
     this.sourceMap = {};
-    this.lastConfigTime = 0;
     this.tags = new Map();
   }
 
@@ -47,15 +46,6 @@ export default class Database {
     return this.db ? this.db.meta.put({ key: 'sourceMap', value: this.sourceMap }) : Promise.resolve();
   }
 
-  async setLastConfigTime(value) {
-    this.lastConfigTime = value;
-    return this.db ? this.db.meta.put({ key: 'lastConfigTime', value }) : Promise.resolve();
-  }
-
-  getLastConfigTime() {
-    return this.lastConfigTime;
-  }
-
   async init() {
     if (this.isInit) {
       return;
@@ -68,16 +58,14 @@ export default class Database {
         meta: 'key',
         tags: 'tag,expireat',
       });
-      const [groupPubKeys, userPK, sourceMap, lastConfigTime] = await Promise.all([
+      const [groupPubKeys, userPK, sourceMap] = await Promise.all([
         this.db.meta.get('groupPubKeys'),
         this.db.meta.get('userPK'),
         this.db.meta.get('sourceMap'),
-        this.db.meta.get('lastConfigTime'),
       ]);
       this.groupPubKeys = (groupPubKeys && groupPubKeys.value) || this.groupPubKeys;
       this.userPK = (userPK && userPK.value) || this.userPK;
       this.sourceMap = (sourceMap && sourceMap.value) || this.sourceMap;
-      this.lastConfigTime = (lastConfigTime && lastConfigTime.value) || this.lastConfigTime;
       this.isInit = true;
     } catch (e) {
       // Assuming if there is an error here it's because indexedDB corruption

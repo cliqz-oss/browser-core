@@ -2,6 +2,7 @@
 /* global describeModule */
 
 const Rx = require('rxjs');
+const operators = require('rxjs/operators');
 const fastUrlParser = require('fast-url-parser');
 const tldts = require('tldts');
 
@@ -27,9 +28,8 @@ function delayedTest(test, done, delay) {
 
 export default describeModule('antitracking/steps/oauth-detector',
   () => ({
-    'platform/lib/rxjs': {
-      default: Rx,
-    },
+    rxjs: Rx,
+    'rxjs/operators': operators,
     'core/helpers/md5': {},
     'platform/lib/tldts': tldts,
     'core/fast-url-parser': {

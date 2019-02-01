@@ -1,0 +1,61 @@
+{
+  "url": "https://www.google.com/search?hl=en&q=vladimir+putin",
+
+  "mustContain": [{
+    "type": "humanweb",
+    "action": "query",
+    "payload": {
+      "r": {
+        "0": { "t": "Vladimir Putin - Wikipedia",
+               "u": "https://en.wikipedia.org/wiki/Vladimir_Putin",
+               "age": null },
+        "1": { "t": "Wladimir Wladimirowitsch Putin – Wikipedia",
+               "u": "https://de.wikipedia.org/wiki/Wladimir_Wladimirowitsch_Putin",
+               "age": null },
+        "2": { "t": "Biography - Vladimir Putin – Personal website",
+               "u": "http://en.putin.kremlin.ru/bio",
+               "age": null },
+        "3": { "t": "Wladimir Putin - SPIEGEL ONLINE",
+               "u": "http://www.spiegel.de/thema/wladimir_putin/",
+               "age": null },
+        "4": { "t": "LeMO Biografie Wladimir Putin",
+               "u": "https://www.hdg.de/lemo/biografie/wladimir-putin.html",
+               "age": null },
+        "5": { "t": "Wladimir Putin - News und Infos | ZEIT ONLINE",
+               "u": "https://www.zeit.de/thema/wladimir-putin",
+               "age": null },
+        "6": { "t": "Vladimir Putin - Forbes",
+               "u": "https://www.forbes.com/profile/vladimir-putin/",
+               "age": null },
+        "7": { "t": "Vladimir Putin | Biography, KGB, Political Career, & Facts | Britannica ...",
+               "u": "https://www.britannica.com/biography/Vladimir-Putin",
+               "age": "14.11.2018 - " },
+        "8": { "t": "Vladimir Putin - BBC News",
+               "u": "https://www.bbc.co.uk/news/topics/cvenzmgywd4t/vladimir-putin",
+               "age": null } },
+      "q": "vladimir putin",
+      "qurl": "https://www.google.com/search?hl=en&q=vladimir+putin",
+      "ctry": "de"
+    }
+  }, {
+    "type": "humanweb",
+    "action": "top-stories",
+    "payload": {
+      "r": {
+        "0": { "u": "https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=3&cad=rja&uact=8&ved=2ahUKEwjzuKnDuIvfAhXD_SwKHYcxDlkQxfQBMAJ6BAgAEAM&url=https%3A%2F%2Fwww.tagesschau.de%2Fausland%2Frussland-inf-105.html&usg=AOvVaw2nBJce7nA7k_a0YOw7uInR",
+               "lu": "vor 1 Tag",
+               "h": "Streit um INF-Vertrag: Putin droht mit Bau neuer Waffen" },
+        "1": { "u": "https://de.sputniknews.com/politik/20181205323185517-usa-inf-austritt-putin-reaktion/",
+               "lu": "vor 1 Tag",
+               "h": "Im Falle von US-Austritt aus INF-Vertrag: Putin kündigt Reaktion an" },
+        "2": { "u": "https://www.welt.de/debatte/kommentare/plus184908958/Russland-Ukraine-Konflikt-Wladimir-Putin-der-Meister-der-Eskalationsdominanz.html",
+               "lu": "vor 2 Tagen",
+               "h": "Russland-Ukraine-Konflikt: Wladimir Putin, der Meister der \nEskalationsdominanz" } },
+      "q": "vladimir putin",
+      "qurl": "https://www.google.com/search?hl=en&q=vladimir+putin",
+      "ctry": "de"
+    }
+  }],
+
+  "mustNotContain": [{ "action": "ads_*" }]
+}

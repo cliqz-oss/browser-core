@@ -24,8 +24,14 @@ const VALID_OFFER_OBJ = {
       },
       conditions: 'Some conditions',
       desc: 'Some description',
-      logo_url: 'somelogourl',
       title: 'This is the title',
+      headline: 'Ihr 10% Rabatt wurde erfolgreich gesichert.',
+      labels: [
+        'exclusive'
+      ],
+      logo_class: 'long',
+      logo_url: 'https://cdn.cliqz.com/extension/offers/test/resources/some-folder/some-logo.png',
+      picture_url: 'https://cdn.cliqz.com/extension/offers/test/resources/some-folder/some-picture.png',
       voucher_classes: '',
       validity: Date.now() / 1000 + 60 * 60 * 24 * 30,
     },

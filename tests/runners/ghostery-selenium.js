@@ -12,7 +12,6 @@ const chrome = require('selenium-webdriver/chrome');
 const logging = require('selenium-webdriver/lib/logging');
 const until = require('selenium-webdriver/lib/until');
 
-
 // Incremented counter to number TAP results
 let tapId = 1;
 
@@ -31,10 +30,13 @@ function logTap(msg, error = null) {
   } else {
     // eslint-disable-next-line no-console
     console.log(`not ok ${id} - ${msg}`);
-    String(error).trim().split(/\n+/g).forEach((line) => {
-      // eslint-disable-next-line no-console
-      console.log(`   ${line.trim()}`);
-    });
+    String(error)
+      .trim()
+      .split(/\n+/g)
+      .forEach((line) => {
+        // eslint-disable-next-line no-console
+        console.log(`   ${line.trim()}`);
+      });
   }
 }
 
@@ -66,9 +68,8 @@ const TESTS = [
         throw new Error(`Expected #${id} to exist`);
       }
     },
-  }
+  },
 ];
-
 
 // ***************************************************************************\
 // * Internals                                                                |
@@ -82,26 +83,26 @@ const TESTS = [
  */
 function streamLogs(driver, tearDown) {
   // Get logs from Chromium
-  return setInterval(
-    async () => {
-      try {
-        // Check if the browser is closed
-        await driver.getTitle();
-        // Browser is open
-        await driver.manage().logs().get(logging.Type.BROWSER).then((entries) => {
+  return setInterval(async () => {
+    try {
+      // Check if the browser is closed
+      await driver.getTitle();
+      // Browser is open
+      await driver
+        .manage()
+        .logs()
+        .get(logging.Type.BROWSER)
+        .then((entries) => {
           entries.forEach((entry) => {
             log('browser log', entry.message);
           });
         });
-      } catch (ex) {
-        // Browser is closed
-        tearDown();
-      }
-    },
-    1000
-  );
+    } catch (ex) {
+      // Browser is closed
+      tearDown();
+    }
+  }, 1000);
 }
-
 
 /**
  * Try to actively switch to the on-boarding page of Ghostery. This is needed
@@ -127,7 +128,6 @@ async function switchToGhosteryPage(driver) {
   }
 }
 
-
 /**
  * Wait for Ghostery to be initialized by checking if some element is present on
  * the on-boarding page. This seems to be a good-enough proxy for "extension
@@ -137,7 +137,6 @@ async function ghosteryInitialized(driver) {
   const element = webdriver.By.css('div.HomeView__featureTitle');
   await driver.wait(until.elementLocated(element), 10000);
 }
-
 
 /**
  * Helper function used to wrap the execution of a test with the boiler-plate
@@ -181,9 +180,7 @@ async function _withGhosteryDriver(ghosteryExtension, fn) {
     // Run test
     await Promise.race([
       fn(driver),
-      new Promise((resolve, reject) => setTimeout(
-        () => reject(new Error('Timeout')), 5000,
-      )),
+      new Promise((resolve, reject) => setTimeout(() => reject(new Error('Timeout')), 5000)),
     ]);
 
     // Graceful shutdown
@@ -197,7 +194,6 @@ async function _withGhosteryDriver(ghosteryExtension, fn) {
   // Close browser if everything went well
   tearDown();
 }
-
 
 /**
  * Handle running all the tests. Each test will run in a newly created Chromium
@@ -217,7 +213,6 @@ async function runSeleniumTests(ghosteryExtension) {
     }
   }
 }
-
 
 /**
  * Helper used to run a shell command. It will also emit TAP results based on
@@ -255,7 +250,6 @@ function run(cmd, options = [], { returnStdout = false } = {}) {
   return output.join('\n');
 }
 
-
 /**
  * Prepare Ghostery extension from latest `develop` branch revision and current
  * version of navigation-extension (the commit currently being tested). This
@@ -273,12 +267,27 @@ async function createGhosteryExtension(navigationExtension) {
     ghosteryExtensionSource,
   ]);
 
-  // Build Ghostery
+  // Checkout develop branch
   process.chdir(`./${ghosteryExtensionSource}`);
   run('git', ['fetch', '--depth=1', 'origin', 'develop:develop']);
   run('git', ['checkout', 'develop']);
-  run('yarn', ['install', '--frozen-lockfile']);
+
+  // Make sure we can install the latest adblocker version
+  const newPackageJson = run(
+    'jq',
+    ['delpaths([["resolutions", "@cliqz/adblocker"]])', 'package.json'],
+    { returnStdout: true },
+  );
+  fs.writeFileSync('package.json', newPackageJson, { encoding: 'utf-8' });
+
+  // Update browser-core to latest
+  run('yarn', ['remove', 'browser-core']);
   run('yarn', ['add', navigationExtension]);
+
+  // Make sure everything is installed properly
+  run('yarn', ['install', '--frozen-lockfile']);
+
+  // Build Ghostery!
   run('yarn', ['run', 'build.dev']);
 
   // Package Ghostery
@@ -287,7 +296,7 @@ async function createGhosteryExtension(navigationExtension) {
     log('> package Ghostery extension');
     const output = fs.createWriteStream(extensionPath);
     const archive = archiver('zip', {
-      zlib: { level: 1 } // Sets the compression level.
+      zlib: { level: 1 }, // Sets the compression level.
     });
 
     // listen for all archive data to be written
@@ -319,18 +328,14 @@ async function createGhosteryExtension(navigationExtension) {
   return extensionPath;
 }
 
-
 /**
  * Package navigation-ghostery.
  */
 async function createNavigationExtension() {
-  return run(
-    'node',
-    ['fern.js', 'pack', 'configs/ci/ghostery.js'],
-    { returnStdout: true },
-  ).split('\n').splice(-1)[0];
+  return run('node', ['fern.js', 'pack', 'configs/ci/ghostery.js'], { returnStdout: true })
+    .split('\n')
+    .splice(-1)[0];
 }
-
 
 async function main() {
   // Package navigation-extension
@@ -355,6 +360,5 @@ async function main() {
   // Start tests
   runSeleniumTests(ghosteryExtensionPath);
 }
-
 
 main();

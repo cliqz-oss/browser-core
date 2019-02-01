@@ -294,6 +294,10 @@ module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) =
         error() { },
       },
     },
+    'platform/sqlite': {
+      openDBHome: () => {},
+      close: () => {},
+    },
     ...(mock || {}),
   }),
   () => {

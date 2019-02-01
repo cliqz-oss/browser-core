@@ -3,59 +3,6 @@
 import random from '../../core/crypto/random';
 import constants from './constants';
 
-function fixBundle(desc) {
-  const split = desc.sdp.split('\r\n');
-  const mid = split.filter(line =>
-    line.indexOf('a=mid:') === 0)
-    .map(x => x.slice(6));
-  const group = split.filter(line =>
-    line.indexOf('a=group:BUNDLE') === 0);
-  if (group.length === 0 && mid.length > 0) {
-    split.splice(4, 0, `a=group:BUNDLE ${mid.join(' ')}`);
-  }
-  return { type: desc.type, sdp: split.join('\r\n') };
-}
-
-// Adapted from https://github.com/fippo/minimal-webrtc
-function minimizeSDP(desc) {
-  const split = desc.sdp.split('\r\n');
-
-  let first = 'o=- 5498186869896684180 2 IN IP4 127.0.0.1';
-  const o = split.filter(line =>
-    line.indexOf('o=') === 0);
-  if (o.length === 1) {
-    const sp = o[0].slice(2).split(' ');
-    if (sp.length === 6) {
-      first = `o=- ${sp.slice(1).join(' ')}`;
-    }
-  }
-  const lines = split.filter(line =>
-    line.indexOf('a=ice-ufrag:') === 0
-    || line.indexOf('a=ice-pwd:') === 0
-    || line.indexOf('a=fingerprint:') === 0);
-
-  const sdp = [
-    'v=0',
-    first,
-    's=-',
-    't=0 0',
-    'a=group:BUNDLE data',
-    'a=msid-semantic: WMS',
-    'm=application 9 DTLS/SCTP 5000',
-    'c=IN IP4 0.0.0.0',
-    'a=mid:data',
-    'a=sctpmap:5000 webrtc-datachannel 1024'
-  ];
-  if (desc.type === 'answer') {
-    sdp.push('a=setup:active');
-  } else {
-    sdp.push('a=setup:actpass');
-  }
-  sdp.push(...lines);
-
-  return { type: desc.type, sdp: `${sdp.join('\r\n')}\r\n` };
-}
-
 // CliqzPeerConnection: encapsulates a RTCDataChannel and RTCPeerConnection
 // TODO: everything that changes CliqzPeerConnection state should be done
 // here (adding ice candidates, offers, etc)
@@ -263,12 +210,6 @@ export default class CliqzPeerConnection {
   createOffer() {
     const connection = this.connection;
     connection.createOffer((description) => {
-      if (this.minSDP) {
-        // This was used for compatibility with react-native webrtc
-        // However, does not seem to be needed anymore, and broke in FF63,
-        // so disabling by default.
-        description = minimizeSDP(description);
-      }
       this.logDebug('Created offer', description);
       connection.setLocalDescription(new this.cliqzPeer.RTCSessionDescription(description), () => {
         this.cliqzPeer._sendSignaling(this.peer, { type: 'offer', description }, this.id);
@@ -311,7 +252,6 @@ export default class CliqzPeerConnection {
   }
 
   receiveOffer(offer, id) {
-    offer.description = fixBundle(offer.description);
     const from = this.peer;
     // TODO: Does it really make sense to receive two offers from same id?
     if (!this.remoteId || this.remoteId === id) {
@@ -341,7 +281,6 @@ export default class CliqzPeerConnection {
   }
 
   receiveAnswer(answer, id) {
-    answer.description = fixBundle(answer.description);
     if (!this.remoteId || this.remoteId === id) {
       const from = this.peer;
       this.logDebug('Received answer', answer.description, from, answer, id, this.remoteId);

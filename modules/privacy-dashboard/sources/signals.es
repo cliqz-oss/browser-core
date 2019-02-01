@@ -10,9 +10,9 @@ import utils from '../core/utils';
 import prefs from '../core/prefs';
 import { addListener, removeListener } from '../core/http';
 import { getMessage } from '../core/i18n';
-import environment from '../platform/environment';
 import CliqzHumanWeb from '../human-web/human-web';
 import { getDetailsFromUrl, tryDecodeURIComponent } from '../core/url';
+import telemetry from '../telemetry/background';
 
 let streamMode = false;
 
@@ -103,25 +103,15 @@ const SignalListener = {
         // OR set SignalListener.telSigAggregatePeriod = 0
 
         SignalListener.SigCache.tel = {
-          sig: [lastElementArray(environment._trk)],
+          sig: [lastElementArray(telemetry.trk)],
           timestamp: Date.now()
         };
-        /*
-        var timeNow = Date.now();
-        if (timeNow - SignalListener.SigCache.tel.timestamp < SignalListener.telSigAggregatePeriod)
-        {
-          SignalListener.SigCache.tel.sig.push(lastElementArray(environment._trk));
-        } else {
-          SignalListener.SigCache.tel.sig = [lastElementArray(environment._trk)];
-          SignalListener.SigCache.tel.timestamp = timeNow;
-        }
-        */
 
         SignalListener.fireNewDataEvent('tel');
       });
   },
 
-  onCliqzBackendRequest: ({ url }) => {
+  onCliqzBackendRequest({ url }) {
     if (!url.startsWith(this.settings.RESULTS_PROVIDER)
         && !url.startsWith(this.settings.RESULTS_PROVIDER_LOG)) {
       return;
@@ -147,7 +137,7 @@ const SignalListener = {
       SignalListener.hwOrigin = CliqzHumanWeb.telemetry;
     }
 
-    addListener(this.onCliqzBackendRequest);
+    addListener(this.onCliqzBackendRequest.bind(this));
 
     if (SignalListener.monkeyPatchTelemetry && SignalListener.monkeyPatchHmw) {
       utils.telemetry = SignalListener.monkeyPatchTelemetry;
@@ -161,7 +151,7 @@ const SignalListener = {
 
       // this should be the signal user clicking the privacy dashboard button
       SignalListener.SigCache.tel = {
-        sig: [lastElementArray(environment._trk)],
+        sig: [lastElementArray(telemetry.trk)],
         timestamp: Date.now()
       };
       // last human web signal
@@ -231,13 +221,14 @@ const Signals = {
   sigExpireTime: 1 * 60 * 1000, // miliseconds, if a signal is older than this, it's expired
   IPs: '',
   initialized: false,
-  init() {
-    Signals.IPs = local('signals-your-ip-address');
+  init(settings) {
+    this.settings = settings;
+    Signals.IPs = 'signals-your-ip-address';
   },
 
   startListening() {
     if (!Signals.initialized) {
-      Signals.initialized = SignalListener.init();
+      Signals.initialized = SignalListener.init(this.settings);
     }
   },
 

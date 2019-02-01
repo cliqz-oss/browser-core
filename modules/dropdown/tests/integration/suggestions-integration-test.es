@@ -21,7 +21,7 @@ export default function () {
   describe('query suggestions', function () {
     context('data contain suggestions, suggestions turned off', function () {
       before(async function () {
-        blurUrlBar();
+        await blurUrlBar();
         prefs.set('suggestionChoice', 0);
         app.modules.search.action('setDefaultSearchEngine', 'Google');
         respondWithSuggestions(response);
@@ -44,7 +44,7 @@ export default function () {
     context('data contain suggestions, suggestions turned on', function () {
       before(async function () {
         win.preventRestarts = true;
-        blurUrlBar();
+        await blurUrlBar();
         prefs.set('suggestionChoice', 2);
         await app.modules.search.action('setDefaultSearchEngine', 'Google');
         respondWithSuggestions(response);

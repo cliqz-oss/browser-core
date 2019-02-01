@@ -1,5 +1,5 @@
 /* globals chai */
-import { CliqzUtils, queryHTML, testServer, win, wrap } from '../../platform/test-helpers/helpers';
+import { queryHTML, testServer, win, wrap, app } from '../../platform/test-helpers/helpers';
 import { waitFor, wait } from '../../core/helpers/wait';
 import { getCurrentgBrowser } from '../../platform/tabs';
 
@@ -24,9 +24,13 @@ export { checkIsWindowActive } from '../../platform/windows';
  * directly in core.
  */
 
-export const lang = wrap(() => CliqzUtils.getWindow().CLIQZ.i18n.getMessage('locale_lang_code'));
+export const CliqzUtils = wrap(() => app.utils);
 
-export const prefs = wrap(() => CliqzUtils.getWindow().CLIQZ.prefs);
+export const CliqzEvents = wrap(() => app.events);
+
+export const lang = wrap(() => app.i18n.getMessage('locale_lang_code'));
+
+export const prefs = wrap(() => app.prefs);
 
 export const sleep = wait;
 

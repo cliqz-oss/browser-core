@@ -145,10 +145,6 @@ const exportedActions = {
         copyToClipboard: importedActions.copyToClipboard,
       },
     };
-    // on Firefox 60 there is some wierd optiomization that results in reversed
-    // the order of the runloop when innerHTML is called. This happens only for
-    // first batch of renders. having nextTick here, makes the problem go away
-    await new Promise(resolve => window.setTimeout(resolve), 0);
 
     const results = new Results({
       query,

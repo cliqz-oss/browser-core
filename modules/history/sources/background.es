@@ -7,15 +7,23 @@ import background from '../core/base/background';
 import utils from '../core/utils';
 import { queryActiveTabs } from '../core/tabs';
 import createHistoryDTO from './history-dto';
-import { equals } from '../core/url';
+import { equals, getDetailsFromUrl } from '../core/url';
 import RichHeaderProxy from './rich-header-proxy';
 import LRU from '../core/LRU';
 import migrate from './history-migration';
-import { isCliqzBrowser } from '../core/platform';
+import { isCliqzBrowser, getResourceUrl } from '../core/platform';
 import prefs from '../core/prefs';
 
 // import Database from '../core/database';
 // import MetaDatabase from './meta-database';
+const NEW_TAB_URL = getResourceUrl(config.settings.NEW_TAB_URL);
+const HISTORY_URL = getResourceUrl(config.settings.HISTORY_URL);
+
+const CLIQZ_INTERFACE_PAGES = [
+  NEW_TAB_URL,
+  HISTORY_URL,
+  getResourceUrl(config.settings.ONBOARDING_URL),
+];
 
 /**
 * @namespace history
@@ -36,8 +44,10 @@ export default background({
 
     if (HistoryService && HistoryService.onVisitRemoved) {
       this.onVisitRemovedListener = this._onVisitRemovedListener.bind(this);
+      this.onVisitedListener = this._onVisitedListener.bind(this);
 
       HistoryService.onVisitRemoved.addListener(this.onVisitRemovedListener);
+      HistoryService.onVisited.addListener(this.onVisitedListener);
     }
 
     if (isCliqzBrowser && !prefs.get('modules.history.cleanupComplete', false)) {
@@ -57,7 +67,9 @@ export default background({
 
     if (this.onVisitRemovedListener) {
       HistoryService.onVisitRemoved.removeListener(this.onVisitRemovedListener);
+      HistoryService.onVisited.removeListener(this.onVisitedListener);
       this.onVisitRemovedListener = null;
+      this.onVisitedListener = null;
     }
 
     this.dbMigration.dispose();
@@ -65,7 +77,7 @@ export default background({
 
   _onVisitRemovedListener(...args) {
     getActiveTab().then(({ id, url }) => {
-      if (config.settings.HISTORY_URL.indexOf(url) === -1) {
+      if (url.indexOf(HISTORY_URL) !== 0) {
         return;
       }
 
@@ -73,6 +85,13 @@ export default background({
         'broadcastActionToWindow', id, 'history', 'updateHistoryUrls', args
       );
     });
+  },
+
+  _onVisitedListener({ url }) {
+    const isCliqzInterfacePage = CLIQZ_INTERFACE_PAGES.find(page => url.startsWith(page));
+    if (isCliqzInterfacePage) {
+      HistoryService.deleteUrl({ url });
+    }
   },
 
   beforeBrowserShutdown() {
@@ -96,98 +115,65 @@ export default background({
     ]);
   },
 
-  events: {
-    'autocomplete:search': function onSearch(query) {
-      /* eslint-disable */
-      if (true) {
-        return; // TEMP
-      }
-      /* eslint-enable */
-      if (this.sessionCountSubscribtion) {
-        this.sessionCountSubscribtion.dispose();
-      }
+  fillFromVisit(url, triggeringUrl) {
+    const { action, scheme, path, originalUrl } = getDetailsFromUrl(url);
+    let cleanUrl = originalUrl;
+    if (action && action !== 'visiturl') {
+      return Promise.resolve();
+    }
 
-      let sessionCount = this.sessionCounts.get(query);
-      if (sessionCount && sessionCount.hasValue) {
-        // cache already populated
-        return;
-      }
+    // normalize url
+    if (!scheme) {
+      cleanUrl = `http://${originalUrl}`;
+    }
+    if (!path) {
+      cleanUrl += '/';
+    }
+    return this.history.fillFromVisit(cleanUrl, triggeringUrl);
+  },
 
-      let resolver;
-      let rejecter;
-      const promise = new Promise((resolve, reject) => {
-        resolver = resolve;
-        rejecter = reject;
-      });
+  onResult({ query, url, isPrivateMode, isFromAutocompletedURL }) {
+    if (isPrivateMode || !url || isFromAutocompletedURL || !query) {
+      return;
+    }
 
-      sessionCount = {
-        promise,
-      };
-      this.sessionCounts.set(query, sessionCount);
+    const queryUrl = `https://cliqz.com/search?q=${encodeURIComponent(query)}`;
+    const visitTime = Date.now();
 
-      const observable = History.sessionCountObservable(query);
-      const subscribtion = observable.subscribe(
-        result => resolver(result.count),
-        rejecter,
-        (success) => {
-          // success = 0
-          // canceled = 1
-          // error = 2
-          if (success !== 0) {
-            this.sessionCounts.delete(query);
-            rejecter();
-          } else {
-            sessionCount.hasValue = true;
+    this.history.addVisit({
+      url: queryUrl,
+      title: `${query} - Cliqz Search`,
+      visitTime
+    }).then(() => {
+      // TODO don't
+      setTimeout(() => {
+        this.fillFromVisit(url, queryUrl).catch(({ visitId }) => {
+          if (!visitId) {
+            // If there is no visitId, it may be Automatic Forget Tab
+            // taking over this url load, in such case we remove 'Cliqz Search'
+            // visit from history
+            const triggeringVisitTimestamp = visitTime * 1000;
+            this.history.deleteVisit(triggeringVisitTimestamp);
           }
-        },
-      );
+        });
+      }, 2000);
+      History.markAsHidden(queryUrl);
+    });
+  },
 
-      this.sessionCountSubscribtion = subscribtion;
-    },
+  events: {
     /**
     * @event ui:click-on-url
     * @param data
     */
-    'ui:click-on-url': function onResult({ query, url, isPrivateMode, isFromAutocompletedURL }) {
-      if (isPrivateMode || !url || isFromAutocompletedURL || !query) {
-        return;
-      }
-
-      const asyncHistory = Components.classes['@mozilla.org/browser/history;1']
-        .getService(Components.interfaces.mozIAsyncHistory);
-      const queryUrl = `https://cliqz.com/search?q=${encodeURIComponent(query)}`;
-      const uri = Services.io.newURI(queryUrl, null, null);
-      const triggeringVisitTimestamp = Date.now() * 1000;
-
-      const place = {
-        uri,
-        title: `${query} - Cliqz Search`,
-        visits: [{
-          visitDate: triggeringVisitTimestamp,
-          transitionType: Components.interfaces.nsINavHistoryService.TRANSITION_TYPED,
-        }],
-      };
-
-      asyncHistory.updatePlaces(place, {
-        handleError: () => {},
-        handleResult: () => {},
-        handleCompletion: () => {
-          setTimeout(() => {
-            History.fillFromVisit(url, queryUrl).catch((a) => {
-              const { visitId } = a;
-              if (!visitId) {
-                // If there is no visitId, it may be Automatic Forget Tab
-                // taking over this url load, in such case we remove 'Cliqz Search'
-                // visit from history
-                this.history.deleteVisit(triggeringVisitTimestamp);
-              }
-            });
-          }, 2000);
-
-          History.markAsHidden(queryUrl);
-        },
-      });
+    'ui:click-on-url': function onUIClick({ query, url, isPrivateMode, isFromAutocompletedURL }) {
+      this.onResult({ query, url, isPrivateMode, isFromAutocompletedURL });
     },
+
+    'ui:enter': function onUIEnter({ query, url, isPrivateMode, isFromAutocompletedURL }) {
+      this.onResult({ query, url, isPrivateMode, isFromAutocompletedURL });
+    },
+
     /**
     * @event core:url-meta
     * @param url {string}
@@ -208,7 +194,7 @@ export default background({
     'content:location-change': function onLocationChange({ url, triggeringUrl }) {
       const sourceUrl = this.getSourceUrl(triggeringUrl);
       if (url && sourceUrl && (!equals(url, triggeringUrl))) {
-        History.fillFromVisit(url, sourceUrl);
+        this.fillFromVisit(url, sourceUrl);
       }
     },
   },
@@ -252,18 +238,17 @@ export default background({
 
     newTab(inCurrentTab = false) {
       const window = utils.getWindow();
-      const newTabUrl = config.settings.NEW_TAB_URL;
       const activeTabs = queryActiveTabs(window);
 
       if (!inCurrentTab) {
-        const freshTab = activeTabs.find(tab => tab.url === newTabUrl);
+        const freshTab = activeTabs.find(tab => tab.url === NEW_TAB_URL);
         if (freshTab) {
           window.gBrowser.selectTabAtIndex(freshTab.index);
           return;
         }
       }
 
-      const tab = utils.openLink(window, newTabUrl, !inCurrentTab);
+      const tab = utils.openLink(window, NEW_TAB_URL, !inCurrentTab);
       window.gBrowser.selectedTab = tab;
     },
 

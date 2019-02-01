@@ -114,7 +114,7 @@ export default function () {
           elementSelector: '[aria-label="weather-icon"]',
           url: cardsUrl,
         });
-        const forecastIconStyle = await queryComputedStyle(cardsUrl, '[aria-label="weather-icon"]>div');
+        const forecastIconStyle = await queryComputedStyle(cardsUrl, '[aria-label="weather-icon"] div div');
         const [iconStyleToday, ...iconStyleRemainingDays] = forecastIconStyle;
 
         expect($forecastIcons).to.have.length(5);

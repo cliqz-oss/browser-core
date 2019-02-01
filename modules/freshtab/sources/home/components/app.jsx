@@ -10,7 +10,6 @@ import Urlbar from './urlbar/index';
 import UrlbarWithResults from './urlbar/urlbar-with-results';
 import News from './news';
 import Stats from './stats';
-import Settings from './settings';
 import MessageCenter from './message-center';
 import AppContext from './app-context';
 import t from '../i18n';
@@ -23,47 +22,50 @@ import { deleteUndoSignal, undoCloseSignal } from '../services/telemetry/speed-d
 import { settingsRestoreTopSitesSignal, settingsComponentsToggleSignal, newsSelectionChangeSignal } from '../services/telemetry/settings';
 import ModulesDeveloperModal from './modules-developer-modal';
 import Pagination from './pagination';
+import AsideLeft from './aside-left';
+import AsideRight from './aside-right';
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.freshtab = cliqz.freshtab;
-
     this.state = {
       config: {
+        searchReminderCounter: 0,
         componentsState: {
-          historyDials: {},
-          customDials: {},
-          search: {},
-          news: {},
           background: {},
           blueTheme: false,
+          customDials: {},
+          historyDials: {},
+          news: {},
+          search: {},
           stats: {},
         },
         product: '',
       },
       dials: {
-        history: [],
         custom: [],
+        history: [],
         isLoaded: false,
       },
       offers: [],
       news: {
-        version: '',
         data: [],
+        version: '',
       },
-      stats: {},
-      results: [],
-      removedDials: [],
-      messages: {},
-      isSettingsOpen: false,
-      isOverlayOpen: false,
-      modules: {},
       hasHistorySpeedDialsToRestore: false,
-      isOfferMenuOpen: false,
-      isOfferInfoOpen: false,
       isModalOpen: false,
+      isOfferInfoOpen: false,
+      isOfferMenuOpen: false,
+      isOverlayOpen: false,
+      isSettingsOpen: false,
+      messages: {},
+      modules: {},
+      removedDials: [],
+      results: [],
+      stats: {},
     };
+
     const self = this;
     cliqz.setStorage({
       setState: this.setState.bind(this),
@@ -71,24 +73,11 @@ class App extends React.Component {
         return self.state;
       }
     });
-
-    this.getSpeedDials = this.getSpeedDials.bind(this);
-    this.addSpeedDial = this.addSpeedDial.bind(this);
-    this.removeSpeedDial = this.removeSpeedDial.bind(this);
-    this.updateSpeedDial = this.updateSpeedDial.bind(this);
-    this.handleClick = this.handleClick.bind(this);
-    this.undoRemoval = this.undoRemoval.bind(this);
-    this.closeUndo = this.closeUndo.bind(this);
-    this.toggleComponent = this.toggleComponent.bind(this);
-    this.toggleBlueTheme = this.toggleBlueTheme.bind(this);
-    this.toggleBackground = this.toggleBackground.bind(this);
-    this.submitFeedbackForm = this.submitFeedbackForm.bind(this);
   }
 
   async componentDidMount() {
     /* Make sure all the configs have been received */
     await this.getConfig();
-
     /* tabindex is now returned by getconfig, so as to avoid double message passing */
     const tabIndex = this.state.config.tabIndex;
     this.tabIndex = tabIndex;
@@ -97,11 +86,11 @@ class App extends React.Component {
     window.addEventListener('blur', () => sendHomeBlurSignal({ tabIndex }));
     window.addEventListener('focus', () => sendHomeFocusSignal({ tabIndex }));
 
+    await this.getSpeedDials();
+
     Promise.all([
       this.getNews(),
-      this.getSpeedDials(),
       this.getStats(),
-
     ]).then(() => {
       this.onFinishedLoading();
     });
@@ -112,15 +101,6 @@ class App extends React.Component {
     window.removeEventListener('beforeunload', sendHomeUnloadSignal);
     window.removeEventListener('blur', sendHomeBlurSignal);
     window.removeEventListener('focus', sendHomeFocusSignal);
-  }
-
-
-  onHistoryClick() {
-    historyClickSignal();
-  }
-
-  onFriendsClick() {
-    return friendsClickSignal();
   }
 
   onDeveloperModulesOpen = async () => {
@@ -240,7 +220,7 @@ class App extends React.Component {
     });
   }
 
-  async getSpeedDials() {
+  getSpeedDials = async () => {
     // TODO Backend should return only visible dials
     const dials = await this.freshtab.getSpeedDials();
     this.setState({
@@ -358,7 +338,7 @@ class App extends React.Component {
     });
   }
 
-  handleClick(el) {
+  handleClick = (el) => {
     if (this.urlbarElem) {
       this.urlbarElem.textInput.style.visibility = 'visible';
     }
@@ -382,7 +362,7 @@ class App extends React.Component {
     }
   }
 
-  removeSpeedDial(dial, index) {
+  removeSpeedDial = (dial, index) => {
     const isCustom = dial.custom;
     const dialType = isCustom ? 'custom' : 'history';
     const newItems = this.state.dials[dialType].filter(item => item !== dial);
@@ -433,15 +413,15 @@ class App extends React.Component {
     }));
   }
 
-  addSpeedDial(dial, index) {
+  addSpeedDial = (dial, index) => {
     this.updateDials(dial, index, false);
   }
 
-  updateSpeedDial(newDial, index) {
+  updateSpeedDial = (newDial, index) => {
     this.updateDials(newDial, index, true);
   }
 
-  undoRemoval() {
+  undoRemoval = () => {
     const speedDial = this.state.removedDials.pop();
 
     deleteUndoSignal(speedDial);
@@ -466,14 +446,14 @@ class App extends React.Component {
     });
   }
 
-  closeUndo() {
+  closeUndo = () => {
     undoCloseSignal();
     this.setState({
       removedDials: []
     });
   }
 
-  toggleComponent(component) {
+  toggleComponent = (component) => {
     cliqz.freshtab.toggleComponent(component);
 
     const componentState = this.state.config.componentsState[component];
@@ -492,7 +472,7 @@ class App extends React.Component {
     }));
   }
 
-  toggleBlueTheme() {
+  toggleBlueTheme = () => {
     const oldState = this.state.config.blueTheme;
     settingsComponentsToggleSignal('cliqzTheme', oldState);
     cliqz.freshtab.toggleBlueTheme();
@@ -508,7 +488,7 @@ class App extends React.Component {
     return this.state.config.componentsState.background.image === config.constants.NO_BG;
   }
 
-  toggleBackground() {
+  toggleBackground = () => {
     const oldState = this.state.config.componentsState.background.image;
     const isOn = (oldState !== config.constants.NO_BG);
     settingsComponentsToggleSignal('background', isOn);
@@ -521,7 +501,7 @@ class App extends React.Component {
     this.onBackgroundImageChanged(newBg);
   }
 
-  submitFeedbackForm(vote, comments) {
+  submitFeedbackForm = (vote, comments) => {
     cliqz.freshtab.sendUserFeedback({
       data: {
         target: 'myoffrz',
@@ -539,10 +519,6 @@ class App extends React.Component {
   get shouldShowTopUrlBar() {
     const searchConfig = this.state.config.componentsState.search;
     return searchConfig.mode === 'search';
-  }
-
-  get shouldShowDeveloperModulesIcon() {
-    return this.state.config.developer === true;
   }
 
   get shouldShowStats() {
@@ -576,58 +552,33 @@ class App extends React.Component {
         >
           <AppContext.Provider value={this.state}>
             <UndoDialRemoval
-              dial={this.recentlyRemovedDial}
-              undoRemoval={this.undoRemoval}
               closeUndo={this.closeUndo}
+              dial={this.recentlyRemovedDial}
               isSettingsOpen={this.state.isSettingsOpen}
+              undoRemoval={this.undoRemoval}
               visible={this.state.removedDials.length > 0}
             />
             <MessageCenter
-              position="top"
-              locale={this.state.config.locale}
-              messages={this.state.messages}
               handleLinkClick={msg => this.onMessageClicked(msg)}
+              messages={this.state.messages}
+              position="top"
             />
-            <aside className="aside">
-              {this.state.config.isHistoryEnabled
-                && (
-                  <a
-                    href={config.settings.NEW_TAB_URL}
-                    id="cliqz-home"
-                    title={t('cliqz_tab_button')}
-                    tabIndex="-1"
-                  >
-                    Home
-                  </a>
-                )
-              }
-              {this.state.config.isHistoryEnabled
-                && (
-                  <a
-                    href={config.settings.HISTORY_URL}
-                    id="cliqz-history"
-                    title={t('history_button')}
-                    tabIndex="-1"
-                    onClick={() => this.onHistoryClick()}
-                  >
-                    History
-                  </a>
-                )
-              }
-              {this.state.config.isFriendsEnabled
-                && (
-                  <a
-                    href={config.settings.CLIQZ_FOR_FRIENDS}
-                    id="cliqz-for-friends"
-                    title={t('cliqz_for_friends_button')}
-                    tabIndex="-1"
-                    onClick={async () => this.onFriendsClick()}
-                  >
-                    Cliqz for Friends
-                  </a>
-                )
-              }
-            </aside>
+            <MessageCenter
+              messages={this.state.messages}
+              positioning={this.state.config.cliqzPostPosition}
+              position="post"
+            />
+
+            <AsideLeft
+              cliqzForFriends={config.settings.CLIQZ_FOR_FRIENDS}
+              displayFriendsIcon={this.state.config.displayFriendsIcon}
+              historyUrl={this.state.config.HISTORY_URL}
+              isHistoryEnabled={this.state.config.isHistoryEnabled}
+              newTabUrl={config.settings.NEW_TAB_URL}
+              onFriendsClick={async () => friendsClickSignal()}
+              onHistoryClick={() => historyClickSignal()}
+            />
+
             <section id="main-content">
               <div className="fixed-container" tabIndex="-1">
                 <section id="section-top-space" />
@@ -637,16 +588,16 @@ class App extends React.Component {
                     && (
                       <section id="section-url-bar">
                         <UrlbarWithResults
+                          hideOverlay={this.hideOverlay}
+                          product={this.state.config.product}
                           ref={(c) => { this.urlbarElem = c; }}
-                          visible={this.state.config.componentsState.search.visible}
+                          results={this.state.results}
                           shouldShowReminder={
                             this.state.config.componentsState.searchReminder.visible
                           }
-                          toggleComponent={this.toggleComponent}
-                          results={this.state.results}
                           showOverlay={this.showOverlay}
-                          hideOverlay={this.hideOverlay}
-                          product={this.state.config.product}
+                          toggleComponent={this.toggleComponent}
+                          visible={this.state.config.componentsState.search.visible}
                         />
                       </section>
                     )
@@ -655,9 +606,9 @@ class App extends React.Component {
                     && (
                       <div id="section-url-bar">
                         <Urlbar
+                          product={this.state.config.product}
                           ref={(c) => { this.urlbarElem = c; }}
                           visible={this.state.config.componentsState.search.visible}
-                          product={this.state.config.product}
                         />
                       </div>
                     )
@@ -666,23 +617,24 @@ class App extends React.Component {
                     && (
                       <section id="section-most-visited">
                         <Pagination
-                          items={this.state.dials.history}
-                          onChangePage={this.onHistoryPageChanged}
                           contentType="history"
                           currentPage={this.state.dials.page}
+                          isModalOpen={this.state.isModalOpen}
+                          items={this.state.dials.history}
+                          onChangePage={this.onHistoryPageChanged}
                         />
                         <HistoryTitle dials={this.state.dials} />
 
                         <SpeedDialsRow
-                          dials={this.state.dials.history}
-                          type="history"
-                          currentPage={this.state.dials.page}
-                          shouldAnimate={this.state.dials.shouldAnimate}
-                          removeSpeedDial={this.removeSpeedDial}
                           addSpeedDial={this.addSpeedDial}
+                          currentPage={this.state.dials.page}
+                          dials={this.state.dials.history}
                           getSpeedDials={this.getSpeedDials}
-                          updateModalState={isOpen => this.updateModalState(isOpen)}
+                          removeSpeedDial={this.removeSpeedDial}
+                          shouldAnimate={this.state.dials.shouldAnimate}
                           showPlaceholder
+                          type="history"
+                          updateModalState={isOpen => this.updateModalState(isOpen)}
                         />
                       </section>
                     )
@@ -695,12 +647,12 @@ class App extends React.Component {
                         </div>
 
                         <SpeedDialsRow
-                          dials={this.state.dials.custom}
-                          type="custom"
                           addSpeedDial={this.addSpeedDial}
+                          dials={this.state.dials.custom}
                           removeSpeedDial={this.removeSpeedDial}
-                          updateSpeedDial={this.updateSpeedDial}
+                          type="custom"
                           updateModalState={isOpen => this.updateModalState(isOpen)}
+                          updateSpeedDial={this.updateSpeedDial}
                         />
                       </section>
                     )
@@ -724,9 +676,9 @@ class App extends React.Component {
                     && (
                       <section id="section-news">
                         <News
+                          isModalOpen={this.state.isModalOpen}
                           news={this.state.news}
                           newsLanguage={this.state.config.componentsState.news.preferedCountry}
-                          isModalOpen={this.state.isModalOpen}
                         />
                       </section>
                     )
@@ -735,63 +687,27 @@ class App extends React.Component {
 
                 <section id="section-bottom-space" />
               </div>
-              {this.shouldShowDeveloperModulesIcon
-                && (
-                  <ModulesDeveloperModal
-                    isOpen={this.state.modules.isOpen}
-                    error={this.state.modules.error}
-                    closeAction={this.onDeveloperModulesClose}
-                  />
-                )
-              }
+
+              <ModulesDeveloperModal
+                closeAction={this.onDeveloperModulesClose}
+                error={this.state.modules.error}
+                isOpen={this.state.modules.isOpen}
+              />
             </section>
 
-            <aside className="aside">
-              <Settings
-                wallpapers={this.state.config.wallpapers}
-                onBackgroundImageChanged={(bg, index) => this.onBackgroundImageChanged(bg, index)}
-                onNewsSelectionChanged={country => this.onNewsSelectionChanged(country)}
-                toggleComponent={this.toggleComponent}
-                toggleBlueTheme={this.toggleBlueTheme}
-                blueTheme={this.state.config.blueTheme}
-                isBlueThemeSupported={this.state.config.isBlueThemeSupported}
-                isStatsSupported={this.state.config.isStatsSupported}
-                shouldShowSearchSwitch={!this.shouldShowTopUrlBar}
-                toggleBackground={this.toggleBackground}
-                isOpen={this.state.isSettingsOpen}
-                componentsState={this.state.config.componentsState}
-                hasHistorySpeedDialsToRestore={this.state.hasHistorySpeedDialsToRestore}
-                toggle={() => this.toggleSettings()}
-                restoreHistorySpeedDials={() => this.restoreHistorySpeedDials()}
-              />
-              {
-                /* eslint-disable react/button-has-type */
-                this.state.isSettingsOpen
-                || (
-                  <button
-                    id="settings-btn"
-                    title={t('cliqz_tab_settings_button')}
-                    tabIndex="-1"
-                    onClick={() => this.toggleSettings()}
-                  >
-                    Settings
-                  </button>
-                )
-              }
-              {this.shouldShowDeveloperModulesIcon
-                && (
-                  <button
-                    id="cliqz-modules-btn"
-                    title={t('cliqz_modules_button')}
-                    tabIndex="-1"
-                    onClick={this.onDeveloperModulesOpen}
-                  >
-                    {t('cliqz_modules_button')}
-                  </button>
-                )
-                /* eslint-enable react/button-has-type */
-              }
-            </aside>
+            <AsideRight
+              onBackgroundImageChanged={(bg, index) => this.onBackgroundImageChanged(bg, index)}
+              onDeveloperModulesOpen={this.onDeveloperModulesOpen}
+              onNewsSelectionChanged={country => this.onNewsSelectionChanged(country)}
+              restoreHistorySpeedDials={() => this.restoreHistorySpeedDials()}
+              shouldShowDeveloperModulesIcon={this.shouldShowDeveloperModulesIcon}
+              shouldShowSearchSwitch={!this.shouldShowTopUrlBar}
+              state={this.state}
+              toggleBackground={this.toggleBackground}
+              toggleBlueTheme={this.toggleBlueTheme}
+              toggleComponent={this.toggleComponent}
+              toggleSettings={() => this.toggleSettings()}
+            />
           </AppContext.Provider>
         </div>
       </div>

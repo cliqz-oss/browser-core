@@ -12,12 +12,14 @@ rm -fr node_modules
 npm ci
 
 # build a production version of the Cliqz extension
-./fern.js build configs/amo.js --no-maps --environment=production
-VERSION=`cat VERSION`
-EXPECTED_FILENAME="Cliqz.`cat VERSION`.xpi"
+./fern.js build configs/amo-webextension.js --no-maps --environment=production
 
-cd build && fab package:beta=False,channel=amo,version=$VERSION
-cp $EXPECTED_FILENAME ../
+cd build
+RAW_VERSION=`cat manifest.json | jq '.version'`
+VERSION=${RAW_VERSION//\"}
+EXPECTED_FILENAME="Cliqz.$VERSION.xpi"
+zip --exclude=*.DS_Store* ../$EXPECTED_FILENAME -r *
+
 cd ..
 
 echo

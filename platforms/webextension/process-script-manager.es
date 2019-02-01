@@ -1,13 +1,19 @@
 /* eslint no-param-reassign: 'off' */
 
 import events from '../core/events';
-import { chrome, isContentScriptsSupported } from './globals';
+import { chrome, isContentScriptsSupported, window } from './globals';
 import { equals as urlEquals } from '../core/url';
 
 function cliqzConfigScript(cliqz) {
   window.CLIQZ = cliqz;
   if (window.runCliqz) {
     window.runCliqz(window.CLIQZ);
+  }
+}
+
+function supressLastError() {
+  if (chrome.runtime.lastError) {
+    // do nothing
   }
 }
 
@@ -171,21 +177,17 @@ export default class ProcessScriptManager {
         const tabs = _tabs.filter(tab => urlEquals(tab.url, msg.url));
         tabs.forEach((tab) => {
           try {
-            chrome.tabs.sendMessage(tab.id, msg);
+            chrome.tabs.sendMessage(tab.id, msg, supressLastError);
           } catch (e) {
             // error on one tab should not prevent sending to other ones
           }
         });
       });
     } else if (!channel) {
-      chrome.runtime.sendMessage(msg, () => {
-        if (chrome.runtime.lastError) {
-          // Supress "Receiving end does not exist" error
-        }
-      });
+      chrome.runtime.sendMessage(msg, supressLastError);
     } else {
       const windowId = msg.windowId || channel.split('-')[1];
-      chrome.tabs.sendMessage(Number(windowId), msg);
+      chrome.tabs.sendMessage(Number(windowId), msg, supressLastError);
     }
   }
 

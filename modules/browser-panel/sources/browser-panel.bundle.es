@@ -1,5 +1,6 @@
 /* global document, window, $, Handlebars */
 
+import { chrome } from '../platform/content/globals';
 import { sendMessageToWindow } from './content/data';
 import templates from './templates';
 import helpers from './helpers';

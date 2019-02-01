@@ -1,70 +1,47 @@
-import prefs from '../core/prefs';
 import background from '../core/base/background';
-import { isVideoURL, getVideoInfo } from './video-downloader';
-
-const UI_TOUR_PREF = 'videoDownloaderUITourDismissed';
-const DOWNLOADS_UI_TOUR_PREF = 'downloadsUITourDismissed';
-const ONE_DAY = 24 * 60 * 60 * 1000;
+import inject from '../core/kord/inject';
+import UI from './ui';
+import { getActiveTab } from '../platform/browser';
+import { chrome } from '../platform/globals';
 
 export default background({
   init() {
+    // The UI's constructor receives Peercomm as the first param.
+    // If pairing module is available, we pass it.
+    // If not, we pass a null value.
+    // So this video-downloader module could work
+    // with/without 'pairing' module.
+    inject.module('pairing').action('getPairingPeer')
+      .catch(() => {})
+      .then((peerComm) => {
+        this.UI = new UI(peerComm);
+        if (chrome) {
+          this.UI.init();
+        }
+      });
   },
 
   unload() {
+    if (this.UI) this.UI.unload();
   },
 
-  beforeBrowserShutdown() {
-  },
-
-  get isUITourDismissed() {
-    const lastSkip = prefs.get(UI_TOUR_PREF, '0');
-
-    if (lastSkip === 'dismissed') {
-      return true;
-    }
-
-    if (parseInt(lastSkip, 10) + ONE_DAY < Date.now()) {
-      return false;
-    }
-
-    return true;
-  },
-
-  get isDownloadsUITourDismissed() {
-    const lastSkip = prefs.get(DOWNLOADS_UI_TOUR_PREF, '0');
-
-    if (lastSkip === 'dismissed') {
-      return true;
-    }
-
-    if (parseInt(lastSkip, 10) + ONE_DAY < Date.now()) {
-      return false;
-    }
-
-    return true;
-  },
-
+  beforeBrowserShutdown() { },
   actions: {
-    findVideoLinks(url) {
-      if (!isVideoURL(url)) {
-        return Promise.resolve([]);
-      }
-      return getVideoInfo(url)
-        .catch(() => []);
+    async getVideoLinks(originalUrl) {
+      const url = originalUrl || (await getActiveTab()).url;
+      return this.UI.getVideoLinks(url);
     },
-    closeUITour(isSkipping) {
-      if (isSkipping) {
-        prefs.set(UI_TOUR_PREF, Date.now().toString());
-      } else {
-        prefs.set(UI_TOUR_PREF, 'dismissed');
-      }
+    download(data) {
+      this.UI.download(data);
     },
-    closeDownloadsUITour(isSkipping) {
-      if (isSkipping) {
-        prefs.set(DOWNLOADS_UI_TOUR_PREF, Date.now().toString());
-      } else {
-        prefs.set(DOWNLOADS_UI_TOUR_PREF, 'dismissed');
-      }
+    telemetry(data) {
+      this.UI.sendTelemetry(data);
     },
+    sendToMobile(...args) {
+      return this.UI.sendToMobile(...args);
+    },
+    openConnectPage() {
+      // TODO
+    }
   }
 });

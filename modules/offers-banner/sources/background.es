@@ -3,9 +3,8 @@ import inject from '../core/kord/inject';
 import { getActiveTab } from '../core/browser';
 import { dispatcher } from './transport/index';
 import { transform, transformMany } from './transformation/index';
-import { chrome } from '../platform/globals';
-import config from '../core/config';
 import prefs from '../core/prefs';
+import { toggleApp } from './utils';
 
 const REAL_ESTATE_IDS = ['browser-panel', 'offers-cc'];
 const ALLOWED_PREFS = ['telemetry'];
@@ -20,18 +19,12 @@ export default background({
       this.offersV2
         .action('registerRealEstate', { realEstateID })
         .catch(() => {}));
-    if (config.settings.OFFERS_BUTTON) {
-      chrome.browserAction.onClicked.addListener(this.actions.showOffers);
-    }
   },
   unload() {
     REAL_ESTATE_IDS.forEach(realEstateID =>
       this.offersV2
         .action('unregisterRealEstate', { realEstateID })
         .catch(() => {}));
-    if (config.settings.OFFERS_BUTTON) {
-      chrome.browserAction.onClicked.removeListener(this.actions.showOffers);
-    }
   },
   beforeBrowserShutdown() { },
   actions: {
@@ -46,6 +39,9 @@ export default background({
           const payload = transformMany(banner, { offers, preferredOffer });
           this._renderBanner({ ...payload, autoTrigger: false });
         });
+    },
+    toggleApp(data) {
+      return toggleApp(data);
     },
     setPref(args) {
       if (!(ALLOWED_PREFS.includes(args.prefKey))) {
@@ -83,19 +79,12 @@ export default background({
       without passing info about tab.id
     */
     const tab = await getActiveTab();
-
-    /*
-      We have a timing issue. We are sending the message,
-      but contentScript is not ready yet. For firefox is not
-      a issue, but for Chrome is.  This should be fixed in the core,
-      meanwhile lets give our users additional tick.
-    */
-    setTimeout(() => this.core.action(
+    this.core.action(
       'broadcastActionToWindow',
       tab.id,
       'offers-banner',
       'renderBanner',
       data
-    ), 0);
+    );
   },
 });

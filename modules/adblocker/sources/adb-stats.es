@@ -21,9 +21,9 @@ class PageStats {
 
   addBlockedUrl(url, bugId) {
     // retrieve company
-    const { host, domain } = parse(url);
+    const { hostname, domain } = parse(url);
     this.blockedDomains.add(domain);
-    this.counter.addAdBlocked(bugId, host);
+    this.counter.addAdBlocked(bugId, hostname);
 
     let company;
     if (domain === this.hostGD) {

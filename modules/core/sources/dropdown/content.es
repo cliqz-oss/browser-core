@@ -49,12 +49,7 @@ export default class ContentDropdownManager extends BaseDropdownManager {
     };
 
     this._reportClick(selection);
-
-    if (newTab) {
-      this.cliqz.core.openLink(url, { newTab });
-    } else {
-      window.location.href = url;
-    }
+    this.cliqz.core.openLink(url, { newTab });
   }
 
   // setHeight: () => {},
@@ -157,6 +152,10 @@ export default class ContentDropdownManager extends BaseDropdownManager {
     this.lastEvent = {
       code: ev.key,
     };
+
+    if (ev.key === 'Escape') {
+      this._setUrlbarValue('');
+    }
 
     return super.onKeydown(ev);
   }

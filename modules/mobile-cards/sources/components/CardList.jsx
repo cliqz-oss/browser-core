@@ -3,7 +3,6 @@ import Carousel from './custom/Carousel';
 import Card from './Card';
 import SearchEngineCard from './SearchEngineCard';
 import { getVPWidth, getCardWidth } from '../styles/CardStyle';
-import { handleAutoCompletion } from '../../platform/browser-actions';
 import { withCliqz } from '../cliqz';
 
 const INITIAL_PAGE_INDEX = 0;
@@ -56,7 +55,7 @@ class CardList extends React.Component {
     }
     this.lastUrl = url;
     this.lastQuery = text;
-    handleAutoCompletion(url, text);
+    this.props.cliqz.mobileCards.handleAutocompletion(url, text);
   }
 
   handleSwipe(index) {

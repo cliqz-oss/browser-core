@@ -59,7 +59,7 @@ export default function () {
       beforeEach(async function () {
         const engine = win.CLIQZ.TestHelpers.searchEngines.getDefaultSearchEngine();
         expectedUrl = engine.getSubmissionForQuery(query);
-        blurUrlBar();
+        await blurUrlBar();
         withHistory([]);
         await mockSearch({});
         fillIn(query);
@@ -139,7 +139,7 @@ export default function () {
       const historyUrl = 'https://history-test.com';
 
       beforeEach(async function () {
-        blurUrlBar();
+        await blurUrlBar();
         withHistory([{ value: historyUrl }]);
         await mockSearch({});
         fillIn('test');
@@ -223,7 +223,7 @@ export default function () {
       const mainClusterUrl = 'https://test.com/';
 
       beforeEach(async function () {
-        blurUrlBar();
+        await blurUrlBar();
         withHistory([
           { value: historyUrl1 },
           { value: historyUrl2 }
@@ -307,7 +307,7 @@ export default function () {
     context('for backend result', function () {
       const backendUrl = 'https://backend-test.com';
       beforeEach(async function () {
-        blurUrlBar();
+        await blurUrlBar();
         withHistory([]);
         await mockSearch({ results: [{ url: backendUrl }] });
         fillIn('test');

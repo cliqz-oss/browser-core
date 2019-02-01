@@ -37,7 +37,7 @@
                 {{else}}
                 href="https://cliqz.com/support"
                 {{/if}}
-                data-i18n="Sitemap_Facebook_Help" target="_blank"></a>
+                data-i18n="help" target="_blank"></a>
             </li>
         </ul>
     </header>
@@ -46,7 +46,9 @@
         {{#if noVoucher}}
         {{> no-voucher}}
         {{else}}
-        <ul id="cqz-vouchers-holder">
+        <ul
+          class="{{#if isSmallScreen}} small-screen {{/if}}"
+          id="cqz-vouchers-holder">
             {{#each vouchers}}
             <li data-offer-id="{{offer_id}}"
                 class="voucher-wrapper {{#if preferred}}preferred{{/if}} {{#if @first}}active{{/if}}"

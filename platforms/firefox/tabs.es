@@ -69,7 +69,7 @@ function getCurrentTab() {
   return [...gBrowser.tabs].find(tab => gBrowser.selectedBrowser === tab.linkedBrowser);
 }
 
-export function updateTab(tabId, url) {
+export function updateTab(tabId, { url }) {
   const numTabId = Number(tabId);
   const gBrowser = getCurrentgBrowser();
   const tabToUpdate = [...gBrowser.tabs].find(tab =>
@@ -88,7 +88,7 @@ export function updateTab(tabId, url) {
 
 export function updateCurrentTab(url) {
   const tab = getCurrentTab();
-  return updateTab(tab.outerWindowID, url);
+  return updateTab(tab.outerWindowID, { url });
 }
 
 export function getTab(tabId) {
@@ -220,4 +220,14 @@ export function queryTabs() {
   return Promise.resolve(
     [].concat(...tabs)
   );
+}
+
+export function reloadTab(tabId) {
+  mapWindows((w) => {
+    const tab = getTabById(w, tabId);
+    if (tab) {
+      tab.reload();
+    }
+  });
+  return Promise.resolve();
 }

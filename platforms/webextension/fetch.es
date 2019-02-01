@@ -1,4 +1,5 @@
 import * as FETCH from 'whatwg-fetch';
+import { chrome } from './globals';
 
 const {
   fetch,
