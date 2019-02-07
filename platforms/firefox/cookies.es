@@ -5,6 +5,12 @@ const DEFAULT_STORE = 'firefox-default';
 const PRIVATE_STORE = 'firefox-private';
 const CONTAINER_STORE = 'firefox-container-';
 
+const SAME_SITE_STATUSES = [
+  'no_restriction',
+  'lax',
+  'strict',
+];
+
 // From webextensions
 // https://github.com/mozilla/gecko-dev/blob/master/toolkit/components/extensions/parent/ext-cookies.js
 const convertCookie = ({ cookie, isPrivate }) => {
@@ -18,6 +24,7 @@ const convertCookie = ({ cookie, isPrivate }) => {
     httpOnly: cookie.isHttpOnly,
     session: cookie.isSession,
     firstPartyDomain: cookie.originAttributes.firstPartyDomain || '',
+    sameSite: SAME_SITE_STATUSES[cookie.sameSite],
   };
 
   if (!cookie.isSession) {
@@ -103,6 +110,10 @@ export class Cookie {
       return PRIVATE_STORE;
     }
     return DEFAULT_STORE;
+  }
+
+  get sameSite() {
+    return this._cookie.sameSite;
   }
 }
 
@@ -211,8 +222,15 @@ export default {
       privateBrowsingId: storeId === PRIVATE_STORE ? 1 : 0,
       firstPartyDomain,
     };
-    Services.cookies.add(domain, path, name, value,
-      secure, httpOnly, isSession, expiry, originAttributes);
+    try {
+      Services.cookies.add(domain, path, name, value,
+        secure, httpOnly, isSession, expiry, originAttributes);
+    } catch (e) {
+      // since FF64, there is an extra argument `sameSite`
+      const sameSite = SAME_SITE_STATUSES.indexOf(details.sameSite) || SAME_SITE_STATUSES[0];
+      Services.cookies.add(domain, path, name, value,
+        secure, httpOnly, isSession, expiry, originAttributes, sameSite);
+    }
     if (callback) {
       callback(details);
     }

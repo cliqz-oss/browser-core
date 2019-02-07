@@ -1,8 +1,9 @@
-import Rx from '../../platform/lib/rxjs';
+import { from, empty, merge } from 'rxjs';
+import { share, map, delay } from 'rxjs/operators';
 import utils from '../../core/utils';
 import prefs from '../../core/prefs';
 import CliqzLanguage from '../../core/language';
-import { isOnionMode } from '../../core/platform';
+import { isOnionModeFactory } from '../../core/platform';
 import BackendProvider from './backend';
 import { getResponse, getEmptyResponse } from '../responses';
 import { handleQuerySuggestions } from '../../platform/browser-actions';
@@ -19,6 +20,7 @@ import { PROVIDER_CLIQZ, PROVIDER_OFFERS } from '../consts';
 import { QuerySanitizerWithHistory } from './cliqz/query-sanitizer';
 
 const querySanitizer = new QuerySanitizerWithHistory();
+const isOnionMode = isOnionModeFactory(prefs);
 
 function getEmptyBackendResponse(query) {
   return {
@@ -49,19 +51,19 @@ const getResultsProviderQueryString = (q, {
   }
   return encodeURIComponent(q)
     + encodeSessionParams()
-    + CliqzLanguage.queryString
+    + CliqzLanguage.queryString()
     + encodeLocale()
     + encodePlatform()
     + encodeResultOrder(resultOrder)
     + encodeCountry(backendCountry)
     + encodeFilter()
-    + encodeLocation(true) // @TODO: remove true
+    + encodeLocation()
     + encodeResultCount(numberResults)
     + encodeQuerySuggestionParam();
 };
 
 const getBackendResults = (originalQuery, config, params = {}) => {
-  if (isOnionMode) {
+  if (isOnionMode()) {
     return Promise.resolve(getEmptyBackendResponse(originalQuery));
   }
 
@@ -139,7 +141,7 @@ export default class Cliqz extends BackendProvider {
 
   // TODO: fix me
   getEmptySearch(config) {
-    return Rx.Observable.from([
+    return from([
       getEmptyResponse(this.id, config),
       getEmptyResponse(PROVIDER_OFFERS, config),
     ]);
@@ -159,21 +161,22 @@ export default class Cliqz extends BackendProvider {
       jsonp,
     });
 
-    const cliqz$ = Rx.Observable
-      .fromPromise(this.fetch(query, config, params))
-      .share();
+    const cliqz$ = from(this.fetch(query, config, params))
+      .pipe(share());
 
     cliqz$.subscribe(({ q, suggestions }) => handleQuerySuggestions(q, suggestions));
 
     const results$ = cliqz$
-      .map(({ results = [], latency }) => getResponse(
-        this.id,
-        config,
-        query,
-        this.mapResults(results, query, null, latency, params.backendCountry),
-        'done',
-      ))
-      .let(this.getOperators());
+      .pipe(
+        map(({ results = [], latency }) => getResponse(
+          this.id,
+          config,
+          query,
+          this.mapResults(results, query, null, latency, params.backendCountry),
+          'done',
+        )),
+        this.getOperators()
+      );
 
     // offers are optionally included depending on config;
     // if included, any consumer of `search` needs to split
@@ -181,21 +184,23 @@ export default class Cliqz extends BackendProvider {
 
     const offersProvider = Object.assign({}, this, { id: PROVIDER_OFFERS });
     const offers$ = cliqz$
-      .map(({ offers = [] }) => getResponse(
-        PROVIDER_OFFERS,
-        config,
-        query,
-        this.mapResults(offers, query, offersProvider.id),
-        'done',
-      ))
-      .let(this.getOperators.call(offersProvider, config));
+      .pipe(
+        map(({ offers = [] }) => getResponse(
+          PROVIDER_OFFERS,
+          config,
+          query,
+          this.mapResults(offers, query, offersProvider.id),
+          'done',
+        )),
+        this.getOperators.call(offersProvider, config)
+      );
 
-    return Rx.Observable
-      .merge(
-        results$,
-        includeOffers ? offers$ : Rx.Observable.empty(),
-      )
+    return merge(
+      results$,
+      includeOffers ? offers$ : empty(),
+    ).pipe(
       // TODO: check if this is really needed
-      .delay(0);
+      delay(0)
+    );
   }
 }

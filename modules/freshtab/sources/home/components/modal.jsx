@@ -1,21 +1,33 @@
 import React from 'react';
 import ReactModal from 'react-modal';
+import PropTypes from 'prop-types';
 
-function Modal(props) {
+function Modal({
+  children,
+  className,
+  closeAction,
+  showModal,
+}) {
   return (
     <div>
       <ReactModal
-        isOpen={props.showModal}
+        className={className}
         contentLabel="custom"
-        shouldCloseOnOverlayClick
-        onRequestClose={props.closeAction}
-        className={props.className}
+        isOpen={showModal}
+        onRequestClose={closeAction}
         overlayClassName="overlay"
+        shouldCloseOnOverlayClick
       >
-        {props.children}
+        {children}
       </ReactModal>
     </div>
   );
 }
+
+Modal.propTypes = {
+  className: PropTypes.string,
+  closeAction: PropTypes.func,
+  showModal: PropTypes.bool,
+};
 
 export default Modal;

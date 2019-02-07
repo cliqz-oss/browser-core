@@ -2,49 +2,48 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import AppContext from './app-context';
 
-export default class BackgroundImage extends React.Component {
-  constructor(props) {
-    super(props);
+export default function BackgroundImage({
+  bg,
+  index,
+  isActive,
+  onBackgroundImageChanged,
+  src,
+}) {
+  const selectBackground = (product) => {
+    onBackgroundImageChanged(bg, index, product);
+  };
 
-    this.selectBackground = this.selectBackground.bind(this);
-  }
-
-  selectBackground(product) {
-    this.props.onBackgroundImageChanged(this.props.bg, this.props.index, product);
-  }
-
-  render() {
-    /* eslint-disable jsx-a11y/no-static-element-interactions */
-    return (
-      <AppContext.Consumer>
-        {
-          ({ config }) => (
-            <div onClick={() => this.selectBackground(config.product)}>
+  /* eslint-disable jsx-a11y/no-static-element-interactions */
+  return (
+    <AppContext.Consumer>
+      {
+        ({ config }) => (
+          <div onClick={() => selectBackground(config.product)}>
+            <img
+              alt=""
+              data-bg={bg}
+              width="71"
+              src={src}
+              className={isActive ? 'active' : ''}
+            />
+            <span className="selected-img">
               <img
                 alt=""
-                data-bg={this.props.bg}
-                width="71"
-                src={this.props.src}
-                className={this.props.isActive ? 'active' : ''}
+                src="./images/bg-check.svg"
               />
-              <span className="selected-img">
-                <img
-                  alt=""
-                  src="./images/bg-check.svg"
-                />
-              </span>
-            </div>
-          )
-        }
-      </AppContext.Consumer>
-    );
-    /* eslint-enable jsx-a11y/no-static-element-interactions */
-  }
+            </span>
+          </div>
+        )
+      }
+    </AppContext.Consumer>
+  );
+  /* eslint-enable jsx-a11y/no-static-element-interactions */
 }
 
 BackgroundImage.propTypes = {
-  isActive: PropTypes.bool,
   bg: PropTypes.string,
-  src: PropTypes.string,
+  isActive: PropTypes.bool,
+  index: PropTypes.number,
   onBackgroundImageChanged: PropTypes.func,
+  src: PropTypes.string,
 };

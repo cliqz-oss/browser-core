@@ -59,7 +59,7 @@ export default background({
 
     // load config
     this.config = new Config({}, () => this.core.action('refreshAppState'));
-    return this.config.init().then(() => this.attrack.init(this.config));
+    return this.config.init().then(() => this.attrack.init(this.config, settings));
   },
 
   /**

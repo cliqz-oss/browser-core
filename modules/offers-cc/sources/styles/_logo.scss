@@ -1,7 +1,7 @@
 .logo {
     background-color: transparent;
     padding: 0;
-    height: 32px;
+    height: 26.5px;
     background-repeat: no-repeat;
     background-position: right center;
     background-size: contain;
@@ -9,7 +9,7 @@
     top: 50%;
     right: 10px;
     display: block;
-    max-width: 90px;
+    max-width: 75px;
     transform: translateY(calc(-50% - 2px));
     &.long {
         width: 105px;

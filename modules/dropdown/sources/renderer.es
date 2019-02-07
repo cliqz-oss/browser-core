@@ -89,6 +89,13 @@ export default class {
     setHeight: (height) => {
       this.setHeight(height);
     },
+    focus: () => {
+      clearTimeout(this.closeTimeout);
+      const start = this.urlbar.selectionStart;
+      const end = this.urlbar.selectionEnd;
+      this.urlbar.focus();
+      this.urlbar.setSelectionRange(start, end);
+    },
     adultAction: (actionName) => {
       this.search.action(
         'adultAction',
@@ -149,7 +156,6 @@ export default class {
     const cliqzToolbar = this.document.createElement('toolbar');
     cliqzToolbar.id = 'cliqz-toolbar';
     cliqzToolbar.style.height = '0px';
-    cliqzToolbar.style.display = 'none';
     this.toolbar = cliqzToolbar;
 
     const container = this.document.createElement('div');
@@ -181,7 +187,6 @@ export default class {
     });
 
     iframe.addEventListener('DOMContentLoaded', () => {
-      cliqzToolbar.style.display = 'block';
       iframe.contentWindow.addEventListener('message', (event) => {
         const message = event.data;
 
@@ -260,6 +265,9 @@ export default class {
       windowId: utils.getWindowID(this.window),
       tabId: getCurrentTabId(this.window),
       query: this.query,
+      url: handledQuery,
+      newTab,
+      isFromAutocompletedURL: this.hasAutocompleted,
     });
 
     /* If a user did not type anything in
@@ -299,6 +307,16 @@ export default class {
           || (result.suggestion && (result.suggestion === query))
       )
     );
+  }
+
+  scheduleClose(callback) {
+    clearTimeout(this.closeTimeout);
+    this.closeTimeout = setTimeout(() => {
+      this.close();
+      if (callback) {
+        callback();
+      }
+    }, 50);
   }
 
   close() {

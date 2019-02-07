@@ -1,7 +1,6 @@
-import Rx from '../../../platform/lib/rxjs';
+import { pipe } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { urlStripProtocol } from '../../../core/url';
-
-const { map } = Rx.operators;
 
 const isAd = l => l.extra && l.extra.is_ad;
 
@@ -53,7 +52,7 @@ function getCompletion(query, link) {
   return completion;
 }
 
-export default config => map((result) => {
+export default config => pipe(map((result) => {
   const options = config.operators.addCompletion;
 
   return {
@@ -78,4 +77,4 @@ export default config => map((result) => {
       })),
     }))
   };
-});
+}));

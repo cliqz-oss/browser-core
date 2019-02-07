@@ -1,7 +1,8 @@
+import { Subject, interval, timer, of, merge } from 'rxjs';
+import { groupBy, flatMap, filter, map, delay, distinct, buffer, auditTime } from 'rxjs/operators';
 import md5 from '../../core/helpers/md5';
 import DefaultMap from '../../core/helpers/default-map';
 import { TELEMETRY } from '../config';
-import Rx from '../../platform/lib/rxjs';
 import { getConfigTs } from '../time';
 import inject from '../../core/kord/inject';
 
@@ -19,6 +20,9 @@ const DEFAULT_CONFIG = {
   TOKEN_BUFFER_TIME: 10000,
   // minium time to wait before a new token can be sent
   NEW_ENTRY_MIN_AGE: 60 * 60 * 1000,
+  // criteria for not sending data
+  MIN_COUNT: 1,
+  LOW_COUNT_DISCARD_AGE: 1000 * 60 * 60 * 24 * 3,
 };
 
 function currentDay() {
@@ -38,7 +42,9 @@ class CachedEntryPipeline {
   }
 
   get(key) {
-    return this.cache.get(key);
+    const entry = this.cache.get(key);
+    entry.count += 1;
+    return entry;
   }
 
   /**
@@ -73,57 +79,58 @@ class CachedEntryPipeline {
    * @param batchLimit maximum messages per batch
    */
   init(inputObservable, outputSubject, batchInterval, batchLimit) {
-    const bufferInterval = () => Rx.Observable.interval(batchInterval);
-    const clearDistinct = new Rx.Subject();
-    const retryQueue = new Rx.Subject();
+    const bufferInterval = () => interval(batchInterval);
+    const clearDistinct = new Subject();
+    const retryQueue = new Subject();
     this.input = inputObservable;
-    this.pipelineSubscription = Rx.Observable.merge(
+    this.pipelineSubscription = merge(
       inputObservable,
-      retryQueue.delay(1)
-    ).distinct(undefined, clearDistinct)
-      .buffer(bufferInterval())
-      .filter(batch => batch.length > 0)
-      .subscribe(async (batch) => {
-        // merge existing entries from DB
-        await this.loadBatchIntoCache(batch);
-        // extract message and clear
-        const toBeSent = batch
-          .map(token => [token, this.cache.get(token)])
-          .filter(([, { lastSent }]) => lastSent !== currentDay());
+      retryQueue.pipe(delay(1))
+    ).pipe(
+      distinct(undefined, clearDistinct),
+      buffer(bufferInterval()),
+      filter(batch => batch.length > 0)
+    ).subscribe(async (batch) => {
+      // merge existing entries from DB
+      await this.loadBatchIntoCache(batch);
+      // extract message and clear
+      const toBeSent = batch
+        .map(token => [token, this.cache.get(token)])
+        .filter(([, { lastSent }]) => lastSent !== currentDay());
 
-        // generate the set of messages to be sent from the candiate list
-        const { messages, overflow } = this.createMessagePayloads(toBeSent, batchLimit);
-        // get the keys of the entries not being sent this time
-        const overflowKeys = new Set(overflow.map(tup => tup[0]));
+      // generate the set of messages to be sent from the candiate list
+      const { messages, overflow } = this.createMessagePayloads(toBeSent, batchLimit);
+      // get the keys of the entries not being sent this time
+      const overflowKeys = new Set(overflow.map(tup => tup[0]));
 
-        // update lastSent for sent messages
-        toBeSent.filter(tup => !overflowKeys.has(tup[0]))
-          .forEach(([, _entry]) => {
-            const entry = _entry;
-            entry.lastSent = currentDay();
-          });
-
-        await this.saveBatchToDb(batch);
-        // clear the distinct map
-        clearDistinct.next(true);
-        messages.forEach((msg) => {
-          outputSubject.next(msg);
+      // update lastSent for sent messages
+      toBeSent.filter(tup => !overflowKeys.has(tup[0]))
+        .forEach(([, _entry]) => {
+          const entry = _entry;
+          entry.lastSent = currentDay();
         });
-        // push overflowed entries back into the queue
-        overflowKeys.forEach(k => retryQueue.next(k));
 
-        // send telemetry about batch process
-        this.logger.next({
-          type: 'tokens.batch',
-          signal: {
-            source: this.name,
-            size: batch.length,
-            toBeSentSize: toBeSent.length,
-            overflow: overflow.length,
-            messages: messages.length,
-          },
-        });
+      await this.saveBatchToDb(batch);
+      // clear the distinct map
+      clearDistinct.next(true);
+      messages.forEach((msg) => {
+        outputSubject.next(msg);
       });
+      // push overflowed entries back into the queue
+      overflowKeys.forEach(k => retryQueue.next(k));
+
+      // send telemetry about batch process
+      this.logger.next({
+        type: 'tokens.batch',
+        signal: {
+          source: this.name,
+          size: batch.length,
+          toBeSentSize: toBeSent.length,
+          overflow: overflow.length,
+          messages: messages.length,
+        },
+      });
+    });
   }
 
   unload() {
@@ -156,11 +163,15 @@ class CachedEntryPipeline {
     // - The later can be discarded, as they were just markers for previously sent data
     const toBeDeleted = [];
     const queuedForSending = [];
+    const pruneCutoff = Date.now() - this.options.LOW_COUNT_DISCARD_AGE;
     notSentToday.forEach((t) => {
-      if (this.hasData(t)) {
+      const hasData = this.hasData(t);
+      const minCount = t.count > this.options.MIN_COUNT;
+      if (hasData && minCount) {
         // this data should be sent
         queuedForSending.push(t[this.primaryKey]);
-      } else {
+      } else if (!hasData || t.createdAt < pruneCutoff) {
+        // data has been sent, or this is old data that has not reached the threshold
         toBeDeleted.push(t[this.primaryKey]);
       }
     });
@@ -225,10 +236,11 @@ export class TokenPipeline extends CachedEntryPipeline {
       trackers: new Set(),
       safe: true,
       dirty: true,
+      count: 0,
     };
   }
 
-  updateCache({ token, lastSent, safe, created, sites, trackers }) {
+  updateCache({ token, lastSent, safe, created, sites, trackers, count }) {
     const stats = this.cache.get(token);
     if (stats.lastSent === undefined || lastSent > stats.lastSent) {
       stats.lastSent = lastSent;
@@ -241,10 +253,11 @@ export class TokenPipeline extends CachedEntryPipeline {
     trackers.forEach((tracker) => {
       stats.trackers.add(tracker);
     });
+    stats.count = Math.max(stats.count, count);
   }
 
   serialiseEntry(key, tok) {
-    const { created, safe, lastSent, sites, trackers } = tok;
+    const { created, safe, lastSent, sites, trackers, count } = tok;
     return {
       token: key,
       created,
@@ -252,6 +265,7 @@ export class TokenPipeline extends CachedEntryPipeline {
       lastSent: lastSent || '',
       sites: [...sites],
       trackers: [...trackers],
+      count,
     };
   }
 
@@ -283,6 +297,8 @@ export class TokenPipeline extends CachedEntryPipeline {
     // clear
     stats.sites.clear();
     stats.trackers.clear();
+    /* eslint no-param-reassign: 'off' */
+    stats.count = 0;
     return msg;
   }
 
@@ -302,10 +318,11 @@ export class KeyPipeline extends CachedEntryPipeline {
       created: Date.now(),
       dirty: true,
       sitesTokens: new DefaultMap(() => (new Map())),
+      count: 0,
     };
   }
 
-  updateCache({ hash, lastSent, key, tracker, created, sitesTokens }) {
+  updateCache({ hash, lastSent, key, tracker, created, sitesTokens, count }) {
     const stats = this.cache.get(hash);
     if (stats.lastSent === undefined || lastSent > stats.lastSent) {
       stats.lastSent = lastSent;
@@ -320,10 +337,11 @@ export class KeyPipeline extends CachedEntryPipeline {
         st.set(token, safe);
       });
     });
+    stats.count = Math.max(stats.count, count);
   }
 
   serialiseEntry(hash, stats) {
-    const { created, lastSent, key, tracker, sitesTokens } = stats;
+    const { created, lastSent, key, tracker, sitesTokens, count } = stats;
     return {
       hash,
       key,
@@ -331,6 +349,7 @@ export class KeyPipeline extends CachedEntryPipeline {
       created,
       lastSent: lastSent || '',
       sitesTokens: sitesTokens.toObj(),
+      count,
     };
   }
 
@@ -356,6 +375,7 @@ export class KeyPipeline extends CachedEntryPipeline {
           });
         });
         stats.sitesTokens.clear();
+        stats.count = 0;
       }
     });
     return {
@@ -398,10 +418,10 @@ export default class TokenTelemetry {
     this.telemetry = telemetry;
     this.qsWhitelist = qsWhitelist;
     this.config = config;
-    this.subjectTokens = new Rx.Subject();
-    this.tokenSendQueue = new Rx.Subject();
-    this.keySendQueue = new Rx.Subject();
-    this.messageQueue = new Rx.Subject();
+    this.subjectTokens = new Subject();
+    this.tokenSendQueue = new Subject();
+    this.keySendQueue = new Subject();
+    this.messageQueue = new Subject();
     this.telemetrySender = {
       next: ({ type, signal }) => {
         inject.service('telemetry').push(signal, `metrics.antitracking.${type}`);
@@ -412,12 +432,14 @@ export default class TokenTelemetry {
   }
 
   init() {
-    const bufferInterval = () => Rx.Observable.interval(this.TOKEN_BUFFER_TIME);
-    const filteredTokens = this.subjectTokens
-      .groupBy(el => el.token, undefined, () => Rx.Observable.timer(60000))
-      .flatMap(group => group
-        .buffer(bufferInterval()))
-      .filter(batch => batch.length > 0);
+    const bufferInterval = () => interval(this.TOKEN_BUFFER_TIME);
+    const filteredTokens = this.subjectTokens.pipe(
+      groupBy(el => el.token, undefined, () => timer(60000)),
+      flatMap(group => group.pipe(
+        buffer(bufferInterval())
+      )),
+      filter(batch => batch.length > 0)
+    );
 
     // token subscription pipeline takes batches of tokens (grouped by value)
     // caches their state, and pushes values for sending once they reach a sending
@@ -445,22 +467,24 @@ export default class TokenTelemetry {
           siteTokens.set(entry.token, entry.safe);
 
           if (keyStats.lastSent !== currentDay()
-            && (keyStats.sitesTokens.size > 1 || keyStats.created < entryCutoff)) {
+              && (keyStats.sitesTokens.size > 1
+              || (keyStats.count > this.MIN_COUNT && keyStats.created < entryCutoff))) {
             this.keySendQueue.next(keyKey);
           }
         });
         if (tokenStats.lastSent !== currentDay()
-          && (tokenStats.sites.size > 1 || tokenStats.created < entryCutoff)) {
+            && (tokenStats.sites.size > 1
+            || (tokenStats.count > this.MIN_COUNT && tokenStats.created < entryCutoff))) {
           this.tokenSendQueue.next(token);
         }
       });
 
     // pipe tokens sending to messageQueue
-    const tokenMessages = new Rx.Subject();
-    const keyMessages = new Rx.Subject();
-    this.messageQueue = Rx.Observable.merge(
-      tokenMessages.map(payload => ({ action: 'attrack.tokensv2', payload })),
-      keyMessages.map(payload => ({ action: 'attrack.keysv2', payload })),
+    const tokenMessages = new Subject();
+    const keyMessages = new Subject();
+    this.messageQueue = merge(
+      tokenMessages.pipe(map(payload => ({ action: 'attrack.tokensv2', payload }))),
+      keyMessages.pipe(map(payload => ({ action: 'attrack.keysv2', payload }))),
     );
 
     this.tokens.init(this.tokenSendQueue, tokenMessages,
@@ -470,13 +494,13 @@ export default class TokenTelemetry {
 
 
     // run every x minutes while there is activity
-    this._onIdleSubscription = Rx.Observable.merge(
-      Rx.Observable.of(''),
+    this._onIdleSubscription = merge(
+      of(''),
       filteredTokens,
       this.tokenSendQueue,
       this.keySendQueue,
       this.messageQueue,
-    ).auditTime(this.CLEAN_INTERVAL)
+    ).pipe(auditTime(this.CLEAN_INTERVAL))
       .subscribe(async () => {
         await this.tokens.clean();
         await this.keys.clean();

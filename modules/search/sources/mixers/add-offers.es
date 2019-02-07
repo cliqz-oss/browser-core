@@ -1,3 +1,5 @@
+import { combineLatest } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 import { getMainLink } from '../operators/normalize';
 import { urlStripProtocol } from '../../core/url';
 
@@ -78,8 +80,9 @@ const mergeOfferAndResultResponses = (
 };
 
 export default function (results$, offers$, config, options = {}) {
-  return results$
-    .combineLatest(offers$.startWith({ results: [] }))
-    .map(([resultResponse, offerResponse]) =>
-      mergeOfferAndResultResponses(resultResponse, offerResponse, config, options));
+  return combineLatest(results$, offers$.pipe(startWith({ results: [] })))
+    .pipe(
+      map(([resultResponse, offerResponse]) =>
+        mergeOfferAndResultResponses(resultResponse, offerResponse, config, options))
+    );
 }

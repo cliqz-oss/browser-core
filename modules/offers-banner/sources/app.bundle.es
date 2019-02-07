@@ -1,12 +1,13 @@
 /* global window */
 import App from '../core/app';
-import { newTab } from '../platform/tabs';
+import { newTab, query } from '../platform/tabs';
 import moment from '../platform/lib/moment';
 import { getDaysSinceInstall } from '../core/demographics';
 import { dateToDaysSinceEpoch } from '../core/helpers/date';
 import utils from '../core/utils';
 import prefs from '../core/prefs';
 import config from '../core/config';
+import { chrome } from '../platform/globals';
 
 const ONBOARDING_URL = 'https://myoffrz.com/on-boarding/';
 const OFFBOARDING_URL = 'https://myoffrz.com/off-boarding/';
@@ -57,11 +58,34 @@ async function onboarding(details) {
       type: 'activity',
       action: 'onboarding-show',
     }, true);
+    query({ url: 'https://myoffrz.com/lp*' }).then((tabs) => {
+      tabs.forEach((tab) => {
+        const url = new URL(tab.url);
+        utils.telemetry({
+          type: 'activity',
+          action: 'install',
+          referrer_url: url.pathname,
+          advert_id: url.searchParams.get('pk_campaign')
+        }, true);
+      });
+    });
+    query({ url: 'https://myoffrz.com/instyle*' }).then((tabs) => {
+      if (!(tabs === undefined || tabs.length === 0)) {
+        utils.telemetry({
+          type: 'activity',
+          action: 'install',
+          referrer_url: 'instyle',
+          advert_id: 'instyle'
+        }, true);
+        setTimeout(() => {
+          CLIQZ.app.modules['offers-v2'].action('onContentCategories', { categories: ['instyle'], prefix: 'onboarding', url: 'https://myoffrz.com/instyle' });
+        }, 1500);
+      }
+    });
   }
 }
 
 chrome.runtime.onInstalled.addListener(onboarding);
-
 
 window.addEventListener('unload', () => {
   CLIQZ.app.stop();

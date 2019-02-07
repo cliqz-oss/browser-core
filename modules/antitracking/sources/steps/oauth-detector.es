@@ -1,4 +1,5 @@
-import Rx from '../../platform/lib/rxjs';
+import { Subject, merge, fromEventPattern, asyncScheduler } from 'rxjs';
+import { map, groupBy, flatMap, scan, observeOn, debounceTime } from 'rxjs/operators';
 import events from '../../core/events';
 import { URLInfo } from '../../core/url-info';
 
@@ -11,9 +12,10 @@ import { URLInfo } from '../../core/url-info';
  * @returns {Observable} group timeouts
  */
 function timedOutStream(observable, groupExtractor, timeout) {
-  return observable
-    .groupBy(groupExtractor)
-    .flatMap(group => group.debounceTime(timeout));
+  return observable.pipe(
+    groupBy(groupExtractor),
+    flatMap(group => group.pipe(debounceTime(timeout)))
+  );
 }
 
 /**
@@ -25,8 +27,11 @@ function timedOutStream(observable, groupExtractor, timeout) {
  * @returns {Observable} state map
  */
 function objectStreamToMap(observable, keyExtractor, valueExtractor) {
-  return observable.map(value => state =>
-    Object.assign({}, state, { [keyExtractor(value)]: valueExtractor(value) }));
+  return observable
+    .pipe(
+      map(value => state =>
+        Object.assign({}, state, { [keyExtractor(value)]: valueExtractor(value) }))
+    );
 }
 
 /**
@@ -37,11 +42,14 @@ function objectStreamToMap(observable, keyExtractor, valueExtractor) {
  * @returns {Observable}
  */
 function deleteMapEntriesFromStream(observable, keyExtractor) {
-  return observable.map(value => (state) => {
-    const nextState = Object.assign({}, state);
-    delete nextState[keyExtractor(value)];
-    return nextState;
-  });
+  return observable
+    .pipe(
+      map(value => (state) => {
+        const nextState = Object.assign({}, state);
+        delete nextState[keyExtractor(value)];
+        return nextState;
+      })
+    );
 }
 
 /**
@@ -53,10 +61,10 @@ function deleteMapEntriesFromStream(observable, keyExtractor) {
  * @param timeout
  */
 function objectStreamToMapWithTimeout(observable, keyExtractor, valueExtractor, timeout) {
-  return Rx.Observable.merge(
+  return merge(
     objectStreamToMap(observable, keyExtractor, valueExtractor),
     deleteMapEntriesFromStream(timedOutStream(observable, keyExtractor, timeout), keyExtractor),
-  ).scan((state, changeFn) => changeFn(state), {});
+  ).pipe(scan((state, changeFn) => changeFn(state), {}));
 }
 
 const DEFAULT_OPTIONS = {
@@ -68,20 +76,20 @@ export default class OAuthDetector {
   constructor(options = DEFAULT_OPTIONS) {
     this.clickActivity = {};
     this.siteActivitiy = {};
-    this.subjectMainFrames = new Rx.Subject();
+    this.subjectMainFrames = new Subject();
     Object.assign(this, DEFAULT_OPTIONS, options);
   }
 
   init() {
     // observe core:mouse-down events and emit tab information
-    const tabClicks = Rx.Observable.fromEventPattern(
+    const tabClicks = fromEventPattern(
       handler => events.sub('core:mouse-down', handler),
       handler => events.un_sub('core:mouse-down', handler),
       (...args) => {
         const [ev, contextHTML, href, sender] = args;
         return { ev, contextHTML, href, sender };
       }
-    ).map(({ sender }) => sender.tab);
+    ).pipe(map(({ sender }) => sender.tab));
 
     // generate a mapping of tabId: url for each tab which had a click in it
     // within the last CLICK_TIMEOUT minutes
@@ -95,8 +103,10 @@ export default class OAuthDetector {
     });
 
     // observe pages loaded for the last VISIT_TIMEOUT ms.
-    const pagesOpened = this.subjectMainFrames.observeOn(Rx.Scheduler.async)
-      .map(details => ({ tabId: details.tabId, hostname: details.urlParts.hostname }));
+    const pagesOpened = this.subjectMainFrames.pipe(
+      observeOn(asyncScheduler),
+      map(details => ({ tabId: details.tabId, hostname: details.urlParts.hostname }))
+    );
 
     this.pageOpenedSubscription = objectStreamToMapWithTimeout(
       pagesOpened,

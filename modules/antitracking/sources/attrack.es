@@ -19,10 +19,8 @@ import PageEventTracker from './tp_events';
 import Pipeline from '../webrequest-pipeline/pipeline';
 import QSWhitelist2 from './qs-whitelist2';
 import TempSet from './temp-set';
-import cleanLegacyDb from './legacy/database';
 import md5 from '../core/helpers/md5';
 import telemetry from './telemetry';
-import AttrackBloomFilter from './attrack-bloom-filter';
 import { HashProb } from './hash';
 import { TrackerTXT, getDefaultTrackerTxtRule } from './tracker-txt';
 import { URLInfo, shuffle } from '../core/url-info';
@@ -191,7 +189,7 @@ export default class CliqzAttrack {
 
   /** Global module initialisation.
   */
-  init(config) {
+  init(config, settings) {
     const initPromises = [];
     this.config = config;
     // disable for older browsers
@@ -204,7 +202,7 @@ export default class CliqzAttrack {
 
     if (!this.hashProb) {
       this.hashProb = new HashProb();
-      initPromises.push(this.hashProb.init());
+      this.hashProb.init();
     }
 
     // load all caches:
@@ -213,12 +211,14 @@ export default class CliqzAttrack {
     // Large static caches (e.g. token whitelist) are loaded from sqlite
     // Smaller caches (e.g. update timestamps) are kept in prefs
 
-    this.qs_whitelist = this.isBloomFilterEnabled()
-      ? new AttrackBloomFilter(this.config)
-      : new QSWhitelist2(this.config.whitelistUrl);
+    this.qs_whitelist = new QSWhitelist2(this.config.whitelistUrl);
 
-    initPromises.push(this.qs_whitelist.init());
-    initPromises.push(this.urlWhitelist.init());
+    // load the whitelist async - qs protection will start once it is ready
+    this.qs_whitelist.init();
+    // urlWhitelist is not needed on ghostery
+    if (!settings || settings.channel !== 'CH80') {
+      initPromises.push(this.urlWhitelist.init());
+    }
     initPromises.push(this.db.init());
 
     // force clean requestKeyValue
@@ -254,14 +254,11 @@ export default class CliqzAttrack {
 
     initPromises.push(this.initPipeline());
     if (this.geoip) {
-      initPromises.push(this.geoip.load());
+      this.geoip.load();
     }
 
     this._onPageStaged = this.onPageStaged.bind(this);
     this.tp_events.addEventListener('stage', this._onPageStaged);
-
-    // cleanup legacy database
-    cleanLegacyDb();
 
     return Promise.all(initPromises);
   }
@@ -276,7 +273,8 @@ export default class CliqzAttrack {
           this.telemetry.bind(this),
           this.qs_whitelist,
           this.config,
-          this.db
+          this.db,
+          this.config.tokenTelemetry
         ),
         domChecker: new DomChecker(),
         tokenChecker: new TokenChecker(
@@ -641,6 +639,7 @@ export default class CliqzAttrack {
                   redirectUrlParts,
                   state.tabId,
                   state.isPrivate,
+                  state.requestId,
                 );
               }
               // check for tracking status headers for first party

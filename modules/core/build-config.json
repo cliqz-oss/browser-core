@@ -5,11 +5,10 @@
     "@cliqz/adblocker",
     "jsep",
     "handlebars",
-    "mathjs",
+    "math",
     "moment",
     "moment-range",
     "pako",
-    "rxjs",
     "simple-statistics",
     "tldts",
     "ua-parser-js"

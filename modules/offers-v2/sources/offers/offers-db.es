@@ -8,6 +8,7 @@ import logger from '../common/offers_v2_logger';
 import OffersConfigs from '../offers_configs';
 import { timestampMS } from '../utils';
 import { buildCachedMap } from '../common/cached-map-ext';
+import { ImageDownloaderForOfferDB } from './image-downloader';
 
 /**
  * The class OfferDB wraps a persistent collections of
@@ -48,7 +49,8 @@ class OfferDB {
   /**
    * Asynchronously load the persistent collection and index it.
    */
-  constructor() {
+  constructor({ imageDownloader = new ImageDownloaderForOfferDB() } = {}) {
+    this.imageDownloader = imageDownloader;
     this._dbLoaded = false;
 
     this.offersIndexMap = buildCachedMap('offers-db-index', OffersConfigs.LOAD_OFFERS_STORAGE_DATA);
@@ -221,6 +223,12 @@ class OfferDB {
       return null;
     }
     return container.offer_obj;
+  }
+
+  getOfferTemplateData(offerID) {
+    const { offer_obj: offerObject = {} } = this.offersIndexMap.get(offerID) || {};
+    const { ui_info: { template_data: templateData = {} } = {} } = offerObject;
+    return templateData;
   }
 
   /**
@@ -635,6 +643,18 @@ class OfferDB {
   /**
    * will retrieve all the offers we have
    *
+   * Downloading offer images:
+   *
+   * - Offer images should have been downloaded before offer-push.
+   *   An offer without images in OfferDB is an error path.
+   * - Image is already successfully downloaded if `dataurl` field
+   *   is indeed encoded as data url.
+   * - Otherwise, there was an error downloading image, and then
+   *   the field contains FALLBACK_IMAGE (from `image-downloader.es`)
+   * - In transition between extension versions, the field can be empty.
+   *   For the first moment, the image downloader uses `url` as a fallback
+   *   and then starts to download the image.
+   *
    * @method getOffers
    * @param {boolean} includeRemoved
    * @return {OfferInfo}
@@ -646,6 +666,22 @@ class OfferDB {
       const cont = this.offersIndexMap.get(offerID);
       // we add it if we have the offer object only
       if (cont.offer_obj && (includeRemoved === true || !cont.removed)) {
+        // sync fill `dataurl` fields with an image or fallback
+        // async download an image and update `dataurl` fields
+        const tpl = cont.offer_obj.ui_info.template_data;
+        if (tpl) { // Quicksearch offers are stored without `template_data`
+          this.imageDownloader.download(
+            tpl.logo_url,
+            tpl.logo_dataurl,
+            (dataurl) => { tpl.logo_dataurl = dataurl; }
+          );
+          this.imageDownloader.download(
+            tpl.picture_url,
+            tpl.picture_dataurl,
+            (dataurl) => { tpl.picture_dataurl = dataurl; }
+          );
+        }
+        //
         const offerInfo = {
           offer_id: cont.offer_obj.offer_id,
           offer: cont.offer_obj,
@@ -666,6 +702,7 @@ class OfferDB {
         offers.push(offerInfo);
       }
     });
+    this.imageDownloader.markBatch();
 
     return offers;
   }

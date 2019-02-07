@@ -1,6 +1,5 @@
-import Rx from '../../../platform/lib/rxjs';
-
-const { map } = Rx.operators;
+import { pipe } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 const groupAsMap = (a, b) =>
   a.set(b.meta.type, [...(a.get(b.meta.type) || []), b]);
@@ -61,7 +60,7 @@ const reconstruct = ({ links }) => {
  * @function reconstructResults
  */
 export default () =>
-  map(({
+  pipe(map(({
     query,
     responses,
     ...result
@@ -74,4 +73,4 @@ export default () =>
       ...response,
       results: response.results.map(reconstruct)
     })),
-  }));
+  })));

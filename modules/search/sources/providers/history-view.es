@@ -1,12 +1,13 @@
-import Rx from '../../platform/lib/rxjs';
+import { from } from 'rxjs';
 import BaseProvider from './base';
-
 // responses
 import { getResponse } from '../responses';
 import CONFIG from '../../core/config';
+import { getResourceUrl } from '../../core/platform';
 
 const sessionsUrl = query => ([
-  CONFIG.settings.HISTORY_URL,
+  getResourceUrl(CONFIG.settings.HISTORY_URL),
+  '#/',
   CONFIG.settings['modules.history.search-path'],
   encodeURIComponent(query),
 ].join(''));
@@ -21,7 +22,7 @@ export default class HistoryView extends BaseProvider {
       return this.getEmptySearch(config, query);
     }
 
-    return Rx.Observable.from([getResponse(
+    return from([getResponse(
       this.id,
       config,
       query,
@@ -36,6 +37,6 @@ export default class HistoryView extends BaseProvider {
       }],
       'done'
     )])
-      .let(this.getOperators());
+      .pipe(this.getOperators());
   }
 }

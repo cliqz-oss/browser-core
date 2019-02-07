@@ -208,24 +208,11 @@ export function resetOriginalPrefs() {
   }
 }
 
-export function getThemeStyle() {
-  const selectedThemeID = prefs.get('lightweightThemes.selectedThemeID', '', '');
-  return selectedThemeID === 'firefox-compact-dark@mozilla.org' ? 'dark' : 'default';
-}
-
 const branches = new Map();
 
 const observerCliqz = {
   observe: (subject, topic, data) => {
     events.pub('prefchange', data);
-  },
-};
-
-const observerLightweightThemes = {
-  observe: (subject, topic, data) => {
-    if (data === 'selectedThemeID') {
-      events.pub('hostthemechange', getThemeStyle());
-    }
   },
 };
 
@@ -243,7 +230,6 @@ export function enableChangeEvents() {
 
   [
     { prefix: 'extensions.cliqz.', observer: observerCliqz },
-    { prefix: 'lightweightThemes.', observer: observerLightweightThemes },
     { prefix: 'datareporting.healthreport.', observer: observerHealthReport },
   ].forEach(({ prefix, observer }) => {
     if (!branches.has(prefix)) {

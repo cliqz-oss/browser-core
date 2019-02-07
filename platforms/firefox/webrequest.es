@@ -167,14 +167,31 @@ class WebRequestWrapper {
   }
 }
 
+const BLOCKING = {
+  BLOCKING: 'blocking',
+};
+const REQUEST_HEADERS = {
+  REQUESTHEADERS: 'requestHeaders'
+};
+const RESPONSE_HEADERS = {
+  RESPONSEHEADERS: 'responseHeaders',
+};
+
 export default {
   onBeforeRequest: new WebRequestWrapper('onBeforeRequest'),
+  OnBeforeRequestOptions: BLOCKING,
   onBeforeSendHeaders: new WebRequestWrapper('onBeforeSendHeaders'),
+  OnBeforeSendHeadersOptions: Object.assign({}, BLOCKING, REQUEST_HEADERS),
   onSendHeaders: new WebRequestWrapper('onSendHeaders'),
+  OnSendHeadersOptions: REQUEST_HEADERS,
   onHeadersReceived: new WebRequestWrapper('onHeadersReceived'),
+  OnHeadersReceivedOptions: Object.assign({}, BLOCKING, RESPONSE_HEADERS),
   onAuthRequired: new WebRequestWrapper('onAuthRequired'),
+  OnAuthRequiredOptions: Object.assign({}, BLOCKING, RESPONSE_HEADERS),
   onBeforeRedirect: new WebRequestWrapper('onBeforeRedirect'),
+  OnBeforeRedirectOptions: RESPONSE_HEADERS,
   onResponseStarted: new WebRequestWrapper('onResponseStarted'),
+  OnResponseStartedOptions: RESPONSE_HEADERS,
   onErrorOccurred: new WebRequestWrapper('onErrorOccurred'),
   onCompleted: new WebRequestWrapper('onCompleted'),
 };

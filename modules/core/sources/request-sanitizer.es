@@ -43,7 +43,7 @@ function safeFilter(req) {
 
 export function enableRequestSanitizer() {
   // WebExtension might not have webRequest API permission
-  if (!webRequest) {
+  if (!webRequest || !webRequest.onBeforeSendHeaders) {
     return;
   }
   const networkFilters = {

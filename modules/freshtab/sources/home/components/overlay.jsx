@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 export default class Overlay extends React.Component {
   componentDidUpdate(prevProps) {
@@ -25,3 +26,8 @@ export default class Overlay extends React.Component {
     );
   }
 }
+
+Overlay.propTypes = {
+  isOpen: PropTypes.bool,
+  onClick: PropTypes.func,
+};

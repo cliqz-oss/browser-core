@@ -18,15 +18,17 @@ export function runContentScripts(window, chrome, CLIQZ) {
       const regexp = globToRegexp(pattern);
       return regexp.test(currentUrl);
     });
+  const contentScriptsOnMessage = {};
   matchingPatterns.forEach((pattern) => {
     CONTENT_SCRIPTS[pattern]
       .filter(({ moduleName }) => (CLIQZ.app.modules[moduleName] || {}).isEnabled)
-      .forEach(({ contentScript }) => {
+      .forEach(({ contentScript, moduleName }) => {
         try {
-          contentScript(window, chrome, CLIQZ);
+          contentScriptsOnMessage[moduleName] = contentScript(window, chrome, CLIQZ) || {};
         } catch (e) {
           window.console.error(`CLIQZ content-script failed: ${e} ${e.stack}`);
         }
       });
   });
+  return contentScriptsOnMessage;
 }

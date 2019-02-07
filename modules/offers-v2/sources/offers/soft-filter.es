@@ -7,7 +7,7 @@
 
 import logger from '../common/offers_v2_logger';
 import { timestampMS } from '../utils';
-import OffersBG from '../background';
+import ActionID from './actions-defs';
 
 // /////////////////////////////////////////////////////////////////////////////
 //                        GENERIC METHODS
@@ -168,9 +168,9 @@ const evalExpression = (offer, expr, offersDB) => {
  * {
  *   offersDB: object,
  * }
- * @returns true if we should filter the offer | false otherwise
+ * @returns boolean: true if we should filter the offer | false otherwise
  */
-export default function shouldFilterOffer(offer, offersDB) {
+export default function shouldFilterOffer(offer, offersDB, offerIsFilteredOutCb) {
   if (!offer) {
     logger.warn('shouldFilterOffer: undefined offer');
     return true;
@@ -188,15 +188,7 @@ export default function shouldFilterOffer(offer, offersDB) {
     falseExp = [];
     shouldWeShowOffer = evalExpression(offer, offer.filterRules, offersDB);
     if (!shouldWeShowOffer) {
-      OffersBG.offersAPI.processRealEstateMessage({
-        type: 'offer-action-signal',
-        origin: 'processor',
-        data: {
-          offer_id: offer.offerObj.offer_id,
-          action_id: `filter_exp__${falseExp.join('_++_')}`,
-          campaign_id: offer.offerObj.campaign_id
-        }
-      });
+      offerIsFilteredOutCb(offer, `${ActionID.AID_OFFER_FILTERED_EXP_PREFIX}${falseExp.join('_++_')}`);
     }
   } catch (e) {
     logger.error(`expr failed: ${JSON.stringify(offer.filterRules)}`, e);

@@ -1,4 +1,5 @@
-import Rx from '../../platform/lib/rxjs';
+import { defer } from 'rxjs';
+import { retryWhen, map, take, delay } from 'rxjs/operators';
 import { fetch as f } from '../../core/http';
 import BackendProvider from './backend';
 import { getResponse } from '../responses';
@@ -6,8 +7,6 @@ import CliqzLanguage from '../../core/language';
 import {
   encodeLocale,
   encodePlatform,
-  encodeResultOrder,
-  encodeCountry,
   encodeFilter,
   encodeLocation,
   encodeSessionParams,
@@ -16,13 +15,11 @@ import {
 export const getRichHeaderQueryString = (q, loc) => [
   `&q=${encodeURIComponent(q)}`,
   encodeSessionParams(),
-  CliqzLanguage.queryString,
+  CliqzLanguage.queryString(),
   encodeLocale(),
   encodePlatform(),
-  encodeResultOrder(),
-  encodeCountry(),
   encodeFilter(),
-  encodeLocation(true, loc && loc.latitude, loc && loc.longitude)
+  encodeLocation(loc && loc.latitude, loc && loc.longitude)
 ].join('');
 
 export default class RichHeader extends BackendProvider {
@@ -66,19 +63,22 @@ export default class RichHeader extends BackendProvider {
 
     const { retry } = _config.providers[this.id];
 
-    return Rx.Observable
-      .defer(() => this.fetch(query, links))
-      .retryWhen(errors => errors
-        .delay(retry.delay)
-        .take(retry.count))
-      .map(results => getResponse(
-        this.id,
-        _config,
-        query,
-        this.mapResults(results, query),
-        'done',
-      ))
-      // TODO: do not emit empty result
-      .let(this.getOperators());
+    return defer(() => this.fetch(query, links))
+      .pipe(
+        retryWhen(errors => errors
+          .pipe(
+            delay(retry.delay),
+            take(retry.count)
+          )),
+        map(results => getResponse(
+          this.id,
+          _config,
+          query,
+          this.mapResults(results, query),
+          'done',
+        )),
+        // TODO: do not emit empty result
+        this.getOperators()
+      );
   }
 }

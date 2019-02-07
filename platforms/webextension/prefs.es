@@ -1,5 +1,6 @@
 import events from '../core/events';
 import console from '../core/console';
+import { chrome } from '../platform/globals';
 
 const PREFS_KEY = 'cliqzprefs';
 let initialised = false;
@@ -27,7 +28,7 @@ function cleanPref(pref) {
 }
 
 export function getAllCliqzPrefs() {
-  return Object.keys(prefs) || [];
+  return Object.keys(prefs);
 }
 
 export function getPref(prefKey, notFound) {

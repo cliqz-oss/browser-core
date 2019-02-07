@@ -125,5 +125,11 @@ MiddleMessagesOffer.propTypes = {
   offers: PropTypes.shape({
     map: PropTypes.func,
     length: PropTypes.number
-  })
+  }),
+  fullWidth: PropTypes.string,
+  submitFeedbackForm: PropTypes.string,
+  getOfferInfoOpen: PropTypes.string,
+  setOfferInfoOpen: PropTypes.string,
+  getOfferMenuOpen: PropTypes.string,
+  setOfferMenuOpen: PropTypes.string,
 };

@@ -2,10 +2,7 @@ import PatternMatching from '../../platform/lib/adblocker';
 
 export default class PatternIndex {
   constructor(filters = []) {
-    this.index = new PatternMatching.ReverseIndex(
-      cb => filters.forEach(cb),
-      filter => filter.getTokens(),
-    );
+    this.index = new PatternMatching.ReverseIndex(cb => filters.forEach(cb));
 
     // Stores a set of all tokens used as keys in the index
     this.tokens = PatternMatching.compactTokens(new Uint32Array(this.index.index.keys()));

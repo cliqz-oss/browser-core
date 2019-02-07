@@ -13,10 +13,13 @@ const def = {
   isChromium: false,
   isEdge: false,
   platformName: 'firefox',
-  isOnionMode: !!(env && env.get('MOZ_CLIQZ_PRIVATE_MODE')),
 };
 
 export default def;
+
+export function isOnionModeFactory() {
+  return () => !!(env && env.get('MOZ_CLIQZ_PRIVATE_MODE'));
+}
 
 let appInfo;
 let versionChecker;
@@ -54,4 +57,8 @@ export function isCliqzAtLeastInVersion(minVersion) {
 
 export function getResourceUrl(path) {
   return `resource://cliqz/${path}`;
+}
+
+export function isBetaVersion() {
+  return false;
 }

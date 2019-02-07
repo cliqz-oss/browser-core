@@ -34,7 +34,7 @@ const rewrite = (url) => {
   }
 
   return [
-    'http://cdn2.cliqz.com',
+    'https://s3.amazonaws.com/cdncliqz',
     url.slice(prefix.length),
   ].join('');
 };

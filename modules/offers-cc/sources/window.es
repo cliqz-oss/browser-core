@@ -29,6 +29,10 @@ export default class Win {
   }
 
   init() {
+    if (!this.background.toolbarButton) {
+      return;
+    }
+
     this.cssUrl = `${config.baseURL}offers-cc/styles/xul.css`;
 
     this.actions = {
@@ -64,6 +68,9 @@ export default class Win {
   }
 
   unload() {
+    if (!this.background.toolbarButton) {
+      return;
+    }
     events.un_sub('offers-send-ch', this.onOffersCoreEvent);
     removeStylesheet(this.window.document, this.cssUrl);
     if (this.toolbarButtonElement) {
@@ -169,11 +176,11 @@ export default class Win {
       }
 
       const logoClass = uiInfo.template_data.logo_class || 'normal';
-      const backgroundImage = uiInfo.template_data.logo_url;
+      const backgroundImage = uiInfo.template_data.logo_dataurl;
 
       return {
         showTooltip: true,
-        logo: uiInfo.template_data.logo_url,
+        logo: uiInfo.template_data.logo_dataurl,
         headline: uiInfo.template_data.headline || uiInfo.template_data.title,
         benefit: uiInfo.template_data.benefit,
         labels: uiInfo.template_data.labels,

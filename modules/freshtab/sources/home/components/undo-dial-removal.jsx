@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import Button from './partials/button';
 import t from '../i18n';
 
 class UndoDialRemoval extends React.Component {
@@ -43,36 +44,31 @@ class UndoDialRemoval extends React.Component {
           {this.props.dial.displayTitle}
         </span>&nbsp;
         {t('app_speed_dial_removed')}
-        <button
-          type="button"
-          id="undo-close"
+        <Button
           className="undo"
-          tabIndex="-1"
+          id="undo-close"
+          label={t('app_speed_dial_undo')}
           onClick={() => this.handleUndoRemoval()}
-        >
-          {t('app_speed_dial_undo')}
-        </button>
-        <button
-          type="button"
-          id="undo-notification-close"
+        />
+        <Button
           className="close"
-          tabIndex="-1"
+          id="undo-notification-close"
+          label="X"
           onClick={() => this.handleUndoClose()}
-        >
-          X
-        </button>
+        />
       </div>
     );
   }
 }
 
 UndoDialRemoval.propTypes = {
+  closeUndo: PropTypes.func,
   dial: PropTypes.shape({
     displayTitle: PropTypes.string
   }),
+  isSettingsOpen: PropTypes.bool,
   undoRemoval: PropTypes.func,
-  closeUndo: PropTypes.func,
-  isSettingsOpen: PropTypes.func,
+  visible: PropTypes.bool,
 };
 
 export default UndoDialRemoval;

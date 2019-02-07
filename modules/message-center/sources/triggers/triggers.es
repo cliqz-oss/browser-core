@@ -9,7 +9,7 @@ import getRemoteMessages from './remote';
 
 const DISMISSED_ALERTS = 'dismissedAlerts';
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
-const VERSION = 1;
+const VERSION = 2;
 
 const messageFunctions = {
   cliqzVersionCheck(value) {
@@ -43,8 +43,11 @@ const messageFunctions = {
     const today = prefs.get('config_ts', null);
     return aDate.indexOf(today) !== -1;
   },
-  async daysSinceInstallCheck(numDays) {
+  async installDaysLesserThan(numDays) {
     return (await getDaysSinceInstall()) <= numDays;
+  },
+  async installDaysGreaterThan(numDays) {
+    return (await getDaysSinceInstall()) >= numDays;
   },
   isAMO() {
     return isAMO;
@@ -76,8 +79,8 @@ export default class Triggers {
 
   get messages() {
     return Promise.all([
-      getLocalMessages(),
-      getRemoteMessages()
+      getRemoteMessages(), // remote messages have priority
+      getLocalMessages()
     ]).then(sources => sources.reduce((acc, cur) => acc.concat(cur), []));
   }
 
@@ -88,7 +91,6 @@ export default class Triggers {
   async init() {
     const dismissedAlerts = JSON.parse(prefs.get(DISMISSED_ALERTS, '{}'));
     const [handlers, messages] = await Promise.all([this.handlers, this.messages]);
-
     for (let i = 0; i < messages.length; i += 1) {
       const message = messages[i];
       if (
@@ -98,6 +100,8 @@ export default class Triggers {
         && message.version <= VERSION
         // check if the message was already dismissed
         && (dismissedAlerts[message.id] || { count: 0 }).count === 0
+        // check if message is paused
+        && (dismissedAlerts[message.id] || { pausedOn: 0 }).pausedOn !== prefs.get('config_ts', null)
         // check the rules
         && (await checkRulesForMessage(message)) // eslint-disable-line no-await-in-loop
       ) {

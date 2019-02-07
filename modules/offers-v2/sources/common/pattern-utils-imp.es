@@ -7,11 +7,7 @@ import PatternMatching from '../../platform/lib/adblocker';
  */
 class PatternIndex {
   constructor(filters) {
-    this.index = new PatternMatching.ReverseIndex(
-      cb => filters.forEach(cb),
-      filter => filter.getTokens(),
-    );
-
+    this.index = new PatternMatching.ReverseIndex(cb => filters.forEach(cb));
     this.tokens = PatternMatching.compactTokens(new Uint32Array(this.index.index.keys()));
   }
 

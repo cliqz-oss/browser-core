@@ -66,7 +66,7 @@ program.command(`serve ${common.configParameter}`)
     }, customPrefs);
 
     if (options.includeTests) {
-      prefs['extensions.cliqz.browserOnboarding'] = '3.0';
+      prefs['extensions.cliqz.browserOnboarding'] = true;
       prefs['extensions.cliqz.freshtab.tooltip.enabled'] = true;
       server = spawn('node', ['./tests/test-server.js']);
       process.on('SIGTERM', () => server.kill());

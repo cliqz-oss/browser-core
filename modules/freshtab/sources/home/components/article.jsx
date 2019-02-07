@@ -1,43 +1,41 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import Link from './partials/link';
 import Logo from './logo';
 import t from '../i18n';
 import { newsClickSignal, newsHoverSignal } from '../services/telemetry/news';
 
 let startEnter = 0;
 
-class Article extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.onMouseEnter = this.onMouseEnter.bind(this);
-    this.onMouseLeave = this.onMouseLeave.bind(this);
-  }
-
-  onMouseEnter() {
+function Article({
+  article,
+  charsToRemoveFromTitle,
+  index,
+  maxChars,
+  newsLanguage,
+}) {
+  const onMouseEnter = () => {
     startEnter = Date.now();
-  }
+  };
 
-  onMouseLeave(ev) {
+  const onMouseLeave = (ev) => {
     const elapsed = Date.now() - startEnter;
-    const type = this.props.article.type;
-    const index = this.props.index;
-    const edition = this.props.article.edition;
+    const type = article.type;
+    const edition = article.edition;
     startEnter = 0;
     if (elapsed > 2000) {
       newsHoverSignal(ev, type, index, elapsed, edition);
     }
-  }
+  };
 
-  truncate(text, maxChars) {
+  const truncate = (text, limit) => {
     let requiresSpace = true;
-    if (this.props.newsLanguage === 'fr') {
+    if (newsLanguage === 'fr') {
       requiresSpace = false;
     }
     const dots = '...';
     const truncation = requiresSpace ? ` ${dots}` : dots;
     let str = text.trim();
-    const limit = maxChars;
     if (str.length > limit) {
       str = str.substring(0, limit);
       str = str.substr(0, Math.min(str.length, str.lastIndexOf(' ')));
@@ -47,60 +45,55 @@ class Article extends React.Component {
     }
 
     return str;
-  }
+  };
 
-  get isBreakingNews() {
-    return this.props.article.type === 'breaking-news';
-  }
+  const isBreakingNews = () => article.type === 'breaking-news';
 
-  render() {
-    return (
-      <a
-        href={this.props.article.url}
-        tabIndex="-1"
-        onClick={ev => newsClickSignal(
-          ev,
-          this.props.article.type,
-          this.props.index,
-          this.props.article.edition
-        )}
-        onMouseEnter={this.onMouseEnter}
-        onMouseLeave={this.onMouseLeave}
-        data-index={`${this.props.index}`}
-      >
-        <div className="header">
-          <Logo logo={this.props.article.logo} />
-          <div className="url">{this.props.article.displayUrl}</div>
-        </div>
+  return (
+    <Link
+      href={article.url}
+      idx={`${index}`}
+      onClick={ev => newsClickSignal(
+        ev,
+        article.type,
+        index,
+        article.edition
+      )}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      <div className="header">
+        <Logo logo={article.logo} />
+        <div className="url">{article.displayUrl}</div>
+      </div>
 
-        <div className="news-title">
-          { this.isBreakingNews
-            && (
-              <span className="breaking-news">
-                { this.props.article.breaking_label
-                  ? this.props.article.breaking_label
-                  : t('app_news_breaking_news')
-                }&nbsp;
-              </span>
-            )
-          }
-          {
-            this.truncate(
-              this.props.article.title,
-              this.props.maxChars - this.props.charsToRemoveFromTitle
-            )
-          }
-        </div>
-        <div className="news-description">
-          {
-            this.truncate(this.props.article.description,
-              this.props.maxChars + 15)
-          }
-        </div>
-        <div className="read-more-button">{ t('app_news_read_more') }</div>
-      </a>
-    );
-  }
+      <div className="news-title">
+        {isBreakingNews()
+          && (
+            <span className="breaking-news">
+              {article.breaking_label
+                ? article.breaking_label
+                : t('app_news_breaking_news')
+              }&nbsp;
+            </span>
+          )
+        }
+        {
+          truncate(
+            article.title,
+            maxChars - charsToRemoveFromTitle
+          )
+        }
+      </div>
+      <div className="news-description">
+        {
+          truncate(article.description,
+            maxChars + 15)
+        }
+      </div>
+      <div className="read-more-button">{t('app_news_read_more')}</div>
+    </Link>
+  );
 }
 
 Article.propTypes = {
@@ -110,13 +103,14 @@ Article.propTypes = {
     displayUrl: PropTypes.string,
     title: PropTypes.string,
     description: PropTypes.string,
-    breaking_label: PropTypes.bool,
-    logo: PropTypes.shape({}),
+    breaking_label: PropTypes.string,
+    logo: PropTypes.object,
     edition: PropTypes.string,
   }),
+  charsToRemoveFromTitle: PropTypes.number,
   index: PropTypes.number,
   maxChars: PropTypes.number,
-  charsToRemoveFromTitle: PropTypes.number
+  newsLanguage: PropTypes.string,
 };
 
 export default Article;

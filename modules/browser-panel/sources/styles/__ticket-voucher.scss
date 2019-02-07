@@ -24,6 +24,7 @@ body {
 
   &.web-ext:before {
     background: url("../images/ticket-tmpl/myoffrz-logo.svg") no-repeat right center;
+    background-size: 19px 19px;
     mask: none;
     -webkit-mask: none;
   }
@@ -285,16 +286,16 @@ body {
     }
 
     .vertical-txt {
-      writing-mode: sideways-lr;
-      display: flex;
-      flex-direction: row;
-      flex: 0 0 1px;
+      display: block;
     }
 
     .special-flags {
       display: none;
       margin-left: 10px;
-      margin-bottom: 7px;
+      margin-bottom: -3px;
+      position: relative;
+      left: 36px;
+      top: 10px;
 
       span {
         text-transform: uppercase;
@@ -303,6 +304,7 @@ body {
         font-weight: 500;
         min-height: 63px;
         width: 12px;
+        transform: rotate(-90deg)
       }
 
       .exclusive,
@@ -323,8 +325,9 @@ body {
         width: 12px;
         height: 12px;
         display: inline-block;
-        position: relative;
-        top: 3px;
+        position: absolute;
+        top: 0px;
+        left: -17px;
         background-size: contain;
         transform: rotate(-90deg);
         background-repeat: no-repeat;
@@ -472,17 +475,14 @@ body {
         margin-left: 7px;
         width: 15px;
         height: 15px;
-        mask-image: url('../images/ticket-tmpl/info-icon.svg');
-        -webkit-mask-image: url('../images/ticket-tmpl/info-icon.svg');
-        mask-repeat: no-repeat;
-        -webkit-mask-repeat: no-repeat;
-        background-color: #ADB8C2;
+        background: url('../images/ticket-tmpl/info-icon.svg') no-repeat;
         vertical-align: 4px;
         cursor: default;
         background-size: 14px;
 
         &:hover {
-          background-color: #00AEF0;
+          filter: brightness(0.7);
+          -webkit-filter: brightness(0.7);
         }
       }
 
@@ -564,7 +564,7 @@ body {
     }
 
     .code-container {
-      margin-top: 13px;
+      margin-top: 20px;
       .code-box {
         .code-copy {
           max-width: 100%;
@@ -612,7 +612,6 @@ body {
       }
       .special-flags {
         display: flex;
-        align-items: stretch
       }
       .description {
           display: none;

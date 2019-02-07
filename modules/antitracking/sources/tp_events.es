@@ -29,7 +29,8 @@ function _newStatCounter() {
 
 // Class to hold a page load and third party urls loaded by this page.
 class PageLoadData {
-  constructor(url, isPrivate, reloaded, hasPlaceHolder) {
+  constructor(url, isPrivate, reloaded, hasPlaceHolder, requestId) {
+    this.initiatingRequest = requestId;
     this.url = url.toString();
     this.hostname = url.hostname;
     this.path = this._shortHash(truncatePath(url.path));
@@ -217,11 +218,17 @@ class PageEventTracker {
   // Called when a url is loaded on windowID source.
   // Returns the PageLoadData object for this url.
   //  or returns null if the url is malformed or null.
-  onFullPage(url, tabId, isPrivate) {
+  onFullPage(url, tabId, isPrivate, requestId) {
+    if (this._active[tabId] && this._active[tabId].initiatingRequest === requestId) {
+      // request reissued for a redirect - do not create another page load
+      return null;
+    }
     // previous request finished. Move to staged
     const prevPage = this.stage(tabId);
     // create new page load entry for tab
-    if (url && url.hostname && Number(tabId) > 0 && !this.ignore.has(url.hostname)) {
+    if (url && url.hostname
+      && Number(tabId) >= 0 && tabId !== null
+      && !this.ignore.has(url.hostname)) {
       // check if it is a reload of the same page
       const reloaded = (prevPage && url.toString() === prevPage.url
         && Date.now() - prevPage.s < 30000)
@@ -231,13 +238,14 @@ class PageEventTracker {
         url, isPrivate || false,
         reloaded || false,
         this.containsPlaceHolder(url),
+        requestId,
       );
       return this._active[tabId];
     }
     return null;
   }
 
-  onRedirect(url, tabId, isPrivate) {
+  onRedirect(url, tabId, isPrivate, requestId) {
     if (tabId in this._active) {
       const prev = this._active[tabId];
 
@@ -245,13 +253,14 @@ class PageEventTracker {
         url, isPrivate || false,
         prev.ra || false,
         this.containsPlaceHolder(url),
+        requestId,
       );
       this._active[tabId].redirects = prev.redirects;
       this._active[tabId].redirects.push(prev.hostname);
       this._active[tabId].redirectsPlaceHolder = prev.redirectsPlaceHolder;
       this._active[tabId].redirectsPlaceHolder.push(prev.placeHolder);
     } else {
-      this.onFullPage(url, tabId, isPrivate);
+      this.onFullPage(url, tabId, isPrivate, requestId);
     }
   }
 

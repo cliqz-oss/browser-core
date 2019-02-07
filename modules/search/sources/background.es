@@ -1,3 +1,4 @@
+import { share } from 'rxjs/operators';
 import background from '../core/base/background';
 import utils from '../core/utils';
 import prefs from '../core/prefs';
@@ -191,21 +192,25 @@ export default background({
       const highlightEventProxy = new ObservableProxy();
 
       const query$ = queryEventProxy.observable
-        .let(getThrottleQueries(_config))
-        .share();
-      const focus$ = focusEventProxy.observable.share();
-      const selection$ = selectionEventProxy.observable.share();
-      const highlight$ = highlightEventProxy.observable.share();
+        .pipe(
+          getThrottleQueries(_config),
+          share()
+        );
+      const focus$ = focusEventProxy.observable.pipe(share());
+      const selection$ = selectionEventProxy.observable.pipe(share());
+      const highlight$ = highlightEventProxy.observable.pipe(share());
 
       const responses$ = search(
         { query$, focus$, highlight$ },
         this.providers,
         _config,
-      ).share();
+      ).pipe(share());
 
       const results$ = responses$
-        .let(pluckResults())
-        .share();
+        .pipe(
+          pluckResults(),
+          share()
+        );
 
       const telemetry$ = telemetry(focus$, query$, results$, selection$);
       const telemetrySubscription = telemetry$.subscribe(

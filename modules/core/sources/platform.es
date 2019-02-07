@@ -25,7 +25,7 @@ export const isGhosteryBrowser = channel.startsWith('GB');
 export const isGhosteryTab = channel.startsWith('GT');
 export const isDesktopBrowser = isCliqzBrowser || isGhosteryBrowser;
 export const isAMO = channel === '04';
-export const isOnionMode = !!platform.isOnionMode;
+export const isOnionModeFactory = platform.isOnionModeFactory || (() => (() => false));
 export const isWebExtension = platformName === 'webextension';
 export const isGhostery = isGhosteryBrowser || isGhosteryTab;
 export const product = isGhostery ? 'GHOSTERY' : 'CLIQZ';

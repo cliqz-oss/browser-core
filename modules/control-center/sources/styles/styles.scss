@@ -19,9 +19,57 @@ html {
     height: 100%;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 * {
     margin: 0;
     padding: 0;
+}
+
+.j-vscroll-on-demand {
+  width: 110%;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  &:hover {
+    width: 100%;
+  }
+}
+
+#loader {
+    height: 450px;
+    width: 390px;
+    background: #f9f9f9;
+    position: relative;
+
+    & > div, & > div:after {
+        border-radius: 50%;
+        width: 7em;
+        height: 7em;
+    }
+    & > div {
+        left: calc(50% - 30px);
+        top: calc(50% - 30px);
+        font-size: 3px;
+        position: absolute;
+        text-indent: -9999em;
+        border-top: 2em solid rgba(255, 255, 255, 0.2);
+        border-right: 2em solid rgba(255, 255, 255, 0.2);
+        border-bottom: 2em solid rgba(255, 255, 255, 0.2);
+        border-left: 2em solid #00AEF0;
+        transform: translateZ(0);
+        animation: circle 0.9s infinite linear;
+    }
+    @keyframes circle {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
 }
 
 #control-center.onboarding {
@@ -95,7 +143,7 @@ html {
         background-color: $cliqz-blue;
         height: 29px;
         font-size: 13px;
-        padding-right: 12px;
+        padding-right: 22px;
         line-height: 22px;
         border-bottom: 0.5px solid #E9E9E9;
 
@@ -127,7 +175,7 @@ html {
     #currentsite {
         font-size: 24px;
         height: 40px;
-        padding: 5px 11px 5px 11px;
+        padding: 5px 21px 5px 11px;
         color: #999;
 
         & > {
@@ -135,10 +183,10 @@ html {
         }
 
         .truncate {
-            padding-left: 19px;
+            padding-left: 9px;
             font-weight: 400;
             font-size: 24px;
-            width: 255px;
+            width: 265px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -208,7 +256,7 @@ html {
             }
 
             .counter {
-                margin: 0 10px 0 30px;
+                margin: 0 10px 0 20px;
             }
 
             .row-text {
@@ -246,7 +294,7 @@ html {
         }
 
         .switches {
-            margin-right: 10px;
+            margin-right: 20px;
             font-size: 16px;
             font-weight: 600;
             color: #A4A4A4;
@@ -649,10 +697,22 @@ html {
 
     }
 
+
     #othersettings {
         position: relative;
         width: 100%;
         background-color: #EFEFEF;
+
+        .header.no-border{
+            background: none;
+            padding-left:3.8vw;
+            padding-top: 10px;
+        }
+
+        .header {
+            box-sizing: border-box;
+            padding: 0 9px;
+        }
 
         #arrow {
             margin: 0 3px -1px;
@@ -721,12 +781,9 @@ html {
             }
         }
 
-        .header {
-            background: none;
-        }
-
         .settings-section {
-
+            background-color: #F9F9F9;
+            margin-bottom: 15px;
             .frame-container[data-status="active"] .switches {
                 color: $firefox-green;
                 .cqz-switch-box {
@@ -740,70 +797,42 @@ html {
                     background-color: $firefox-grey;
                 }
             }
-            /*
-            .antitracker {
-                .frame-container {
-                    @keyframes fade-in-from-right {
-                      from {
-                        opacity: 0;
-                        transform: translateX(300px);
-                      }
-                      to {
-                        opacity: 1;
-                        transform: translateX(0);
-                      }
-                    }
-
-                    @keyframes fade-in-from-left {
-                      from {
-                        opacity: 0;
-                        transform: translateX(-300px);
-                      }
-                      to {
-                        opacity: 1;
-                        transform: translateX(0);
-                      }
-                    }
-
-                    .antitracking {
-                        transform: scaleX(0);
-                        transform-origin: left;
-                        animation: fade-in-from-left cubic-bezier(0.785, 0.135, 0.15, 0.86) 0.25s forwards;
-                    }
-
-                    .settings-section-row {
-                        transform: scaleX(0);
-                        transform-origin: left;
-                        animation: fade-in-from-left cubic-bezier(0.785, 0.135, 0.15, 0.86) 0.25s forwards;
-                    }
-
-                    .active-window-tracking {
-                        transform: scaleX(0);
-                        transform-origin: left;
-                        animation: fade-in-from-right cubic-bezier(0.785, 0.135, 0.15, 0.86) 0.25s forwards;
-                    }
-                }
-            }
-            */
         }
 
         #othersettings {
+            background-color: #F9F9F9;
 
             .accordion {
                 background-color: #F9F9F9;
+                height: 205px;
+                overflow-y: scroll;
 
                 .accordion-section-title {
                     display: none;
                 }
 
                 .accordion-section-content {
-                    background-color: transparent;
+                    background-color: #F9F9F9;
+                    padding-left: 3.9vw;
+                    margin-top: 10px;
+
                     .bullet {
                         float: none;
                         display: block;
-                        position: relative;
                     }
+
+                    .custom-dropdown {
+                        position: unset;
+                        float:right;
+                        margin-right: 5.5vw;
+                        min-width:20vw;
+                    }
+
                 }
+            }
+
+            .footer {
+                padding: 5px 0px 5px 0px;
             }
         }
     }
@@ -812,6 +841,7 @@ html {
         display: none;
     }
 }
+
 
 .accordion,
 .accordion * {
@@ -916,7 +946,7 @@ html {
 
         button {
             position: absolute;
-            left: 231px;
+            left: 221px;
             margin-top: 3px;
             cursor: pointer;
             margin-left: 5px;
@@ -1160,9 +1190,9 @@ html {
             display: inline-block !important;
             padding: 1px 5px;
 
-      		.arr {
+          .arr {
                 margin: 5px 0 1px 2px;
-      		}
+          }
         }
     }
 }
@@ -1277,7 +1307,7 @@ html {
 
 .custom-dropdown {
     position: absolute;
-    right: 10px;
+    right: 20px;
     margin-top: 3px;
     cursor: pointer;
     margin-left: 5px;

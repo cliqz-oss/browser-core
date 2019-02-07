@@ -101,7 +101,10 @@ export function isValidUrl(url) {
 }
 
 export function getEngineByQuery(query) {
-  const token = query.split(' ')[0];
+  const token = query.trim().split(' ')[0];
+  if (!token) {
+    return searchUtils.getDefaultSearchEngine();
+  }
   const engines = searchUtils.getSearchEngines();
   return engines.find(e => e.alias === token)
     || searchUtils.getDefaultSearchEngine();

@@ -19,7 +19,7 @@ export async function getCurrentTabId(/* window */) {
 }
 
 export function queryTabs() {
-  return chrome.tabs.query({});
+  return new Promise(resolve => chrome.tabs.query({}, resolve));
 }
 
 export function queryActiveTabs() {
@@ -56,9 +56,9 @@ export function closeTab(tabId) {
   });
 }
 
-function getCurrentTab(id) {
+export function getCurrentTab(id) {
   const windowId = typeof id === 'number' ? id : chrome.windows.WINDOW_ID_CURRENT;
-  return chrome.tabs.query({ windowId, active: true });
+  return new Promise(resolve => chrome.tabs.query({ windowId, active: true }, resolve));
 }
 
 export function closeTabsWithUrl(url) {
@@ -69,36 +69,49 @@ export function closeTabsWithUrl(url) {
   });
 }
 
-export async function updateTab(tabId, url) {
+export async function updateTab(tabId, _updateInfo) {
   let id = tabId;
+  let updateInfo = _updateInfo;
   if (typeof id !== 'number') {
     const tab = await getCurrentTab();
     id = tab.id;
+    updateInfo = tabId;
   }
   return new Promise((resolve) => {
-    chrome.tabs.update(tabId, { url }, resolve);
+    chrome.tabs.update(id, updateInfo, resolve);
   });
 }
 
 export async function updateCurrentTab(url) {
   const tab = await getCurrentTab();
-  return updateTab(tab.id, url);
+  return updateTab(tab.id, { url });
 }
 
 export function getTab(tabId) {
-  return new Promise((resolve, reject) =>
+  return new Promise((resolve, reject) => {
+    if (typeof tabId !== 'number') {
+      chrome.tabs.query({ active: true, currentWindow: true }, tabs => resolve(tabs && tabs[0]));
+      return;
+    }
     chrome.tabs.get(tabId, (tab) => {
       if (tab) {
         resolve(tab);
       } else {
         reject(new Error('tab not found'));
       }
-    }));
+    });
+  });
 }
 
 export function query(queryInfo) {
   return new Promise((resolve) => {
     chrome.tabs.query(queryInfo, resolve);
+  });
+}
+
+export function reloadTab(tabId) {
+  return new Promise((resolve) => {
+    chrome.tabs.reload(tabId, resolve);
   });
 }
 

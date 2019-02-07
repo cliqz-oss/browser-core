@@ -1,5 +1,6 @@
 import console from '../platform/console';
 import prefs from './prefs';
+import { isBetaVersion } from '../platform/platform';
 import { subscribe } from './events';
 import DefaultMap from './helpers/default-map';
 
@@ -39,7 +40,7 @@ const LOG_PREF = 'showConsoleLogs';
 
 function isLoggingEnabled() {
   // detect dev flag on react-native
-  const devMode = typeof global !== 'undefined' && global.__DEV__ === true;
+  const devMode = (typeof global !== 'undefined' && global.__DEV__ === true) || isBetaVersion();
   // either take flag from prefs, or global dev mode flag We need to put a try,
   // catch, to avoid content-scripts throwing error, while trying to get the
   // prefs. Should look for a cleaner solutions at some point.

@@ -37,10 +37,13 @@ export const DEFAULTS = {
   blockCookieNewToken: false,
   tpDomainDepth: 2,
   firstPartyIsolation: false,
+  tokenTelemetry: {},
 };
 
 export const PREFS = {
   enabled: 'modules.antitracking.enabled',
+  cookieEnabled: 'attrackBlockCookieTracking',
+  qsEnabled: 'attrackRemoveQueryStringTracking',
   fingerprintEnabled: 'attrackCanvasFingerprintTracking',
   referrerEnabled: 'attrackRefererTracking',
   trackerTxtEnabled: 'trackerTxt',
@@ -57,7 +60,8 @@ export const PREFS = {
  * These are attributes which are loaded from the remote CONFIG_URL
  * @type {Array}
  */
-const REMOTELY_CONFIGURED = ['blockRules', 'reportList', 'cookieWhitelist', 'subdomainRewriteRules', 'compatibilityList'];
+const REMOTELY_CONFIGURED = ['blockRules', 'reportList', 'cookieWhitelist',
+  'subdomainRewriteRules', 'compatibilityList', 'tokenTelemetry'];
 
 export default class Config {
   constructor({

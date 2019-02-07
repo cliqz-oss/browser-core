@@ -9,6 +9,7 @@ import { indicesHistogramToArray } from '../analyses-utils';
  */
 export default {
   name: 'news-pagination',
+  needsGid: true,
   version: 1,
   generate: ({ records }) => {
     const paginationSignals = records.get('freshtab.home.click.news_pagination');

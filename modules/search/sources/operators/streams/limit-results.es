@@ -1,7 +1,6 @@
-import Rx from '../../../platform/lib/rxjs';
+import { pipe } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { revertHistorySubLinkToMainLink } from '../links/utils';
-
-const { map } = Rx.operators;
 
 // Find the index of the first history link after limit
 // Because we don't want to remove other type of links (buttons, simple_links, etc.)
@@ -78,7 +77,7 @@ export default ({
       } = {},
     } = {},
   } = {},
-}) => map(({ responses, ...result }) => ({
+}) => pipe(map(({ responses, ...result }) => ({
   ...result,
   responses: responses.map(({ provider, results, ...response }) => {
     const limit = limits[provider];
@@ -94,4 +93,4 @@ export default ({
       ...response,
     };
   })
-}));
+})));

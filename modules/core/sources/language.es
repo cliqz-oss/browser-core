@@ -40,13 +40,13 @@ const CliqzLanguage = {
   LOG_KEY: 'CliqzLanguage',
   LOCALE_HASH: 333,
   currentState: {},
-  queryString: 'lang=',
+  qs: '',
   cron: 24 * 60 * 60 * 1000, // default one day
   checkInterval: 5 * 60 * 1000, // default 5 min
   removeHashId: null,
 
   getLocale() {
-    return i18n.PLATFORM_LANGUAGE;
+    return i18n.PLATFORM_LANGUAGE_FILTERED;
   },
 
   // load from the about:config settings
@@ -286,7 +286,7 @@ const CliqzLanguage = {
       });
     }
 
-    return `&lang=${encodeURIComponent(filteredString)}`;
+    return filteredString;
   },
 
   // Save the current state to preferences,
@@ -295,7 +295,16 @@ const CliqzLanguage = {
     prefs.set('extensions.cliqz-lang.data',
       JSON.stringify(CliqzLanguage.currentState || {}));
     // Updates queryString on any change in state ie. whenever state is saved
-    CliqzLanguage.queryString = CliqzLanguage.stateToQueryString();
+    CliqzLanguage.qs = CliqzLanguage.stateToQueryString();
+  },
+
+  queryString() {
+    let qString = CliqzLanguage.qs;
+    // if still we do not have any language fallback to locale
+    if (qString === '') {
+      qString = CliqzLanguage.getLocale();
+    }
+    return `&lang=${encodeURIComponent(qString)}`;
   }
 };
 

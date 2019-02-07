@@ -10,9 +10,9 @@
  *
  *
  */
+import events from '../../core/events';
 import logger from '../common/offers_v2_logger';
 import ActionID from './actions-defs';
-import events from '../../core/events';
 import Offer from './offer';
 
 const MessageType = {
@@ -27,8 +27,9 @@ const ORIGIN_ID = 'processor';
 // /////////////////////////////////////////////////////////////////////////////
 export default class OffersAPI {
   //
-  constructor(sigHandler, offersDB) {
+  constructor(sigHandler, offersDB, backendConnector) {
     this.offersDB = offersDB;
+    this.backendConnector = backendConnector;
 
     // the action function map for signals coming from the UI (not tracking)
     // There will be 2 type of signals:
@@ -123,10 +124,15 @@ export default class OffersAPI {
     // broadcast the message
     const displayRule = newDisplayRule || offer.ruleInfo;
 
+    const isCodeHidden = true;
+    this.offersDB.addOfferAttribute(offer.uniqueID, 'isCodeHidden', isCodeHidden);
+    const offerMeta = this.offersDB.getOfferMeta(offer.uniqueID) || {};
     const msgData = {
       offer_id: offer.uniqueID,
       display_rule: displayRule,
-      offer_data: offer.offerObj
+      offer_data: offer.offerObj,
+      createdTs: offerMeta.c_ts,
+      attrs: { isCodeHidden },
     };
     const realStatesDest = offer.destinationRealEstates;
     this._publishMessage(MessageType.MT_PUSH_OFFER, realStatesDest, msgData);
@@ -209,7 +215,8 @@ export default class OffersAPI {
       created_ts: created,
       last_update_ts: last_update,
       attrs: {
-        state: this.offersDB.getOfferAttribute(offer_id, 'state')
+        state: this.offersDB.getOfferAttribute(offer_id, 'state'),
+        isCodeHidden: this.offersDB.getOfferAttribute(offer_id, 'isCodeHidden') || false,
       },
       offer_id
     };
@@ -497,6 +504,14 @@ export default class OffersAPI {
     if (!campaignID) {
       logger.warn(`_uiFunOfferActionSignal: no campaign id for offer ${offerID}`);
       return false;
+    }
+
+    const isCodeHidden = this.offersDB.getOfferAttribute(offerID, 'isCodeHidden') || false;
+    if (isCodeHidden && ['offer_ca_action', 'code_copied'].includes(msg.data.action_id)) {
+      this.offersDB.addOfferAttribute(offerID, 'isCodeHidden', false);
+      const code = this.offersDB.getOfferTemplateData(offerID).code;
+      const url = `offers/${offerID}/code-was-used/`;
+      if (code) { this.backendConnector.sendApiRequest(url, { code }, 'POST'); }
     }
 
     // send signal and add it as action on the offer list

@@ -1,6 +1,5 @@
-import Rx from '../../../platform/lib/rxjs';
-
-const { map } = Rx.operators;
+import { pipe } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 // TODO: add tests
 
@@ -10,7 +9,7 @@ const { map } = Rx.operators;
  *
  * @function mergeResults
  */
-export default () => map(({ query, responses }) => {
+export default () => pipe(map(({ query, responses }) => {
   if (!query.query && !query.allowEmptyQuery) {
     // TODO: create (shared) result constructor?
     return {
@@ -23,4 +22,4 @@ export default () => map(({ query, responses }) => {
     };
   }
   return { query, responses };
-});
+}));

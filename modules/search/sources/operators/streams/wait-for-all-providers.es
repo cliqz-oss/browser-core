@@ -1,6 +1,5 @@
-import Rx from '../../../platform/lib/rxjs';
-
-const { filter } = Rx.operators;
+import { pipe } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 const shouldIgnore = (name, config) =>
   // 'rich-header' is a non-stand-alone provider, it's only queried from 'cliqz'
@@ -17,7 +16,7 @@ const shouldIgnore = (name, config) =>
  * @function waitForAllProviders
  * @param {Object} result - The result all available responses.
  */
-export default config => filter(({ responses }) => {
+export default config => pipe(filter(({ responses }) => {
   const { isEnabled } = config.operators.streams.waitForAllProviders;
 
   if (!isEnabled) {
@@ -34,4 +33,4 @@ export default config => filter(({ responses }) => {
     .every(response => response && response.state === 'done');
 
   return allDone;
-});
+}));

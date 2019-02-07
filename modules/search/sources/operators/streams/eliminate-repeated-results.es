@@ -1,7 +1,6 @@
-import deepEqual from '../../../platform/lib/deep-equal';
-import Rx from '../../../platform/lib/rxjs';
-
-const { distinctUntilChanged } = Rx.operators;
+import { pipe } from 'rxjs';
+import { distinctUntilChanged } from 'rxjs/operators';
+import deepEqual from 'deep-equal';
 
 /**
  * Shrinks a full normalized result into nested lists of urls
@@ -19,5 +18,7 @@ const shrinkToUrls = ({ responses }) =>
  *
  * @function eliminateRepeatedResults
  */
-export default () => distinctUntilChanged((a, b) =>
-  !b.query.forceUpdate && deepEqual(shrinkToUrls(a), shrinkToUrls(b)));
+export default () => pipe(
+  distinctUntilChanged((a, b) =>
+    !b.query.forceUpdate && deepEqual(shrinkToUrls(a), shrinkToUrls(b)))
+);

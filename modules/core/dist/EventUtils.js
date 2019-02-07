@@ -26,37 +26,7 @@
  *  When adding methods to this file, please add a performance test for it.
  */
 
-// This file is used both in privileged and unprivileged contexts, so we have to
-// be careful about our access to Components.interfaces. We also want to avoid
-// naming collisions with anything that might be defined in the scope that imports
-// this script.
-window.__defineGetter__('_EU_Ci', function() {
-  // Even if the real |Components| doesn't exist, we might shim in a simple JS
-  // placebo for compat. An easy way to differentiate this from the real thing
-  // is whether the property is read-only or not.
-  var c = Object.getOwnPropertyDescriptor(window, 'Components');
-  return c.value && !c.writable ? Components.interfaces : SpecialPowers.Ci;
-});
-
-window.__defineGetter__('_EU_Cc', function() {
-  var c = Object.getOwnPropertyDescriptor(window, 'Components');
-  return c.value && !c.writable ? Components.classes : SpecialPowers.Cc;
-});
-
-window.__defineGetter__('_EU_Cu', function() {
-  var c = Object.getOwnPropertyDescriptor(window, 'Components');
-  return c.value && !c.writable ? Components.utils : SpecialPowers.Cu;
-});
-
-window.__defineGetter__("_EU_OS", function() {
-  delete this._EU_OS;
-  try {
-    this._EU_OS = this._EU_Cu.import("resource://gre/modules/AppConstants.jsm", {}).platform;
-  } catch (ex) {
-    this._EU_OS = null;
-  }
-  return this._EU_OS;
-});
+window._EU_OS = Components.utils.import("resource://gre/modules/AppConstants.jsm", {}).platform;
 
 function _EU_isMac(aWindow = window) {
   if (window._EU_OS) {
@@ -317,7 +287,7 @@ function sendKey(aKey, aWindow) {
 function _parseModifiers(aEvent, aWindow = window)
 {
   var navigator = _getNavigator(aWindow);
-  var nsIDOMWindowUtils = _EU_Ci.nsIDOMWindowUtils;
+  var nsIDOMWindowUtils = Components.interfaces.nsIDOMWindowUtils;
   var mval = 0;
   if (aEvent.shiftKey) {
     mval |= nsIDOMWindowUtils.MODIFIER_SHIFT;
@@ -418,13 +388,13 @@ function synthesizeMouseAtPoint(left, top, aEvent, aWindow = window)
 
     // Default source to mouse.
     var inputSource = ("inputSource" in aEvent) ? aEvent.inputSource :
-                                                  _EU_Ci.nsIDOMMouseEvent.MOZ_SOURCE_MOUSE;
+                                                  Components.interfaces.nsIDOMMouseEvent.MOZ_SOURCE_MOUSE;
     // Compute a pointerId if needed.
     var id;
     if ("id" in aEvent) {
       id = aEvent.id;
     } else {
-      var isFromPen = inputSource === _EU_Ci.nsIDOMMouseEvent.MOZ_SOURCE_PEN;
+      var isFromPen = inputSource === Components.interfaces.nsIDOMMouseEvent.MOZ_SOURCE_PEN;
       id = isFromPen ? utils.DEFAULT_PEN_POINTER_ID :
                        utils.DEFAULT_MOUSE_POINTER_ID;
     }
@@ -754,7 +724,7 @@ function synthesizeAndWaitNativeMouseMove(aTarget, aOffsetX, aOffsetY,
   let browser = gBrowser.selectedTab.linkedBrowser;
   let mm = browser.messageManager;
   let ContentTask =
-    _EU_Cu.import("resource://testing-common/ContentTask.jsm", null).ContentTask;
+    Components.utils.import("resource://testing-common/ContentTask.jsm", null).ContentTask;
 
   let eventRegisteredPromise = new Promise(resolve => {
     mm.addMessageListener("Test:MouseMoveRegistered", function processed(message) {
@@ -953,7 +923,7 @@ function synthesizeAndWaitKey(aKey, aEvent, aWindow = window,
   let browser = gBrowser.selectedTab.linkedBrowser;
   let mm = browser.messageManager;
   let keyCode = _createKeyboardEventDictionary(aKey, aEvent, aWindow).dictionary.keyCode;
-  let ContentTask = _EU_Cu.import("resource://testing-common/ContentTask.jsm", null).ContentTask;
+  let ContentTask = Components.utils.import("resource://testing-common/ContentTask.jsm", null).ContentTask;
 
   let keyRegisteredPromise = new Promise(resolve => {
     mm.addMessageListener("Test:KeyRegistered", function processed(message) {
@@ -1255,8 +1225,8 @@ function _getDOMWindowUtils(aWindow = window)
 
   // TODO: this is assuming we are in chrome space
   return aWindow
-      .QueryInterface(_EU_Ci.nsIInterfaceRequestor)
-      .getInterface(_EU_Ci.nsIDOMWindowUtils);
+      .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+      .getInterface(Components.interfaces.nsIDOMWindowUtils);
 }
 
 function _defineConstant(name, value) {
@@ -1268,16 +1238,16 @@ function _defineConstant(name, value) {
 }
 
 const COMPOSITION_ATTR_RAW_CLAUSE =
-  _EU_Ci.nsITextInputProcessor.ATTR_RAW_CLAUSE;
+  Components.interfaces.nsITextInputProcessor.ATTR_RAW_CLAUSE;
 _defineConstant("COMPOSITION_ATTR_RAW_CLAUSE", COMPOSITION_ATTR_RAW_CLAUSE);
 const COMPOSITION_ATTR_SELECTED_RAW_CLAUSE =
-  _EU_Ci.nsITextInputProcessor.ATTR_SELECTED_RAW_CLAUSE;
+  Components.interfaces.nsITextInputProcessor.ATTR_SELECTED_RAW_CLAUSE;
 _defineConstant("COMPOSITION_ATTR_SELECTED_RAW_CLAUSE", COMPOSITION_ATTR_SELECTED_RAW_CLAUSE);
 const COMPOSITION_ATTR_CONVERTED_CLAUSE =
-  _EU_Ci.nsITextInputProcessor.ATTR_CONVERTED_CLAUSE;
+  Components.interfaces.nsITextInputProcessor.ATTR_CONVERTED_CLAUSE;
 _defineConstant("COMPOSITION_ATTR_CONVERTED_CLAUSE", COMPOSITION_ATTR_CONVERTED_CLAUSE);
 const COMPOSITION_ATTR_SELECTED_CLAUSE =
-  _EU_Ci.nsITextInputProcessor.ATTR_SELECTED_CLAUSE;
+  Components.interfaces.nsITextInputProcessor.ATTR_SELECTED_CLAUSE;
 _defineConstant("COMPOSITION_ATTR_SELECTED_CLAUSE", COMPOSITION_ATTR_SELECTED_CLAUSE);
 
 var TIPMap = new WeakMap();
@@ -1292,8 +1262,8 @@ function _getTIP(aWindow, aCallback)
     tip = TIPMap.get(aWindow);
   } else {
     tip =
-      _EU_Cc["@mozilla.org/text-input-processor;1"].
-        createInstance(_EU_Ci.nsITextInputProcessor);
+      Components.classes["@mozilla.org/text-input-processor;1"].
+        createInstance(Components.interfaces.nsITextInputProcessor);
     TIPMap.set(aWindow, tip);
   }
   if (!tip.beginInputTransactionForTests(aWindow, aCallback)) {
@@ -1746,30 +1716,30 @@ function _createKeyboardEventDictionary(aKey, aKeyEvent, aWindow = window) {
   var keyName = "Unidentified";
   if (aKey.indexOf("KEY_") == 0) {
     keyName = aKey.substr("KEY_".length);
-    result.flags |= _EU_Ci.nsITextInputProcessor.KEY_NON_PRINTABLE_KEY;
+    result.flags |= Components.interfaces.nsITextInputProcessor.KEY_NON_PRINTABLE_KEY;
   } else if (aKey.indexOf("VK_") == 0) {
     keyCode = _getKeyboardEvent(aWindow)["DOM_" + aKey];
     if (!keyCode) {
       throw "Unknown key: " + aKey;
     }
     keyName = _guessKeyNameFromKeyCode(keyCode, aWindow);
-    result.flags |= _EU_Ci.nsITextInputProcessor.KEY_NON_PRINTABLE_KEY;
+    result.flags |= Components.interfaces.nsITextInputProcessor.KEY_NON_PRINTABLE_KEY;
   } else if (aKey != "") {
     keyName = aKey;
     if (!keyCodeIsDefined) {
       keyCode = _computeKeyCodeFromChar(aKey.charAt(0));
     }
     if (!keyCode) {
-      result.flags |= _EU_Ci.nsITextInputProcessor.KEY_KEEP_KEYCODE_ZERO;
+      result.flags |= Components.interfaces.nsITextInputProcessor.KEY_KEEP_KEYCODE_ZERO;
     }
-    result.flags |= _EU_Ci.nsITextInputProcessor.KEY_FORCE_PRINTABLE_KEY;
+    result.flags |= Components.interfaces.nsITextInputProcessor.KEY_FORCE_PRINTABLE_KEY;
   }
   var code = "code" in aKeyEvent ?
     aKeyEvent.code :
     _guessCodeFromKeyName(keyName, aKeyEvent.location, aWindow);
   var locationIsDefined = "location" in aKeyEvent;
   if (locationIsDefined && aKeyEvent.location === 0) {
-    result.flags |= _EU_Ci.nsITextInputProcessor.KEY_KEEP_KEY_LOCATION_STANDARD;
+    result.flags |= Components.interfaces.nsITextInputProcessor.KEY_KEEP_KEY_LOCATION_STANDARD;
   }
   result.dictionary = {
     key: keyName,
@@ -2157,7 +2127,7 @@ function synthesizeSelectionSet(aOffset, aLength, aReverse, aWindow)
  */
 function synthesizeNativeOSXClick(x, y)
 {
-  var { ctypes } = _EU_Cu.import("resource://gre/modules/ctypes.jsm", {});
+  var { ctypes } = Components.utils.import("resource://gre/modules/ctypes.jsm", {});
 
   // Library
   var CoreFoundation = ctypes.open("/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation");
@@ -2474,8 +2444,8 @@ function synthesizeDragOver(aSrcElement, aDestElement, aDragData, aDropEffect, a
     aDestWindow = aWindow;
   }
 
-  const obs = _EU_Cc["@mozilla.org/observer-service;1"].getService(_EU_Ci.nsIObserverService);
-  const ds = _EU_Cc["@mozilla.org/widget/dragservice;1"].getService(_EU_Ci.nsIDragService);
+  const obs = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
+  const ds = Components.classes["@mozilla.org/widget/dragservice;1"].getService(Components.interfaces.nsIDragService);
   var sess = ds.getCurrentSession();
 
   // This method runs before other callbacks, and acts as a way to inject the
@@ -2589,8 +2559,8 @@ function synthesizeDrop(aSrcElement, aDestElement, aDragData, aDropEffect, aWind
     aDestWindow = aWindow;
   }
 
-  var ds = _EU_Cc["@mozilla.org/widget/dragservice;1"]
-           .getService(_EU_Ci.nsIDragService);
+  var ds = Components.classes["@mozilla.org/widget/dragservice;1"]
+           .getService(Components.interfaces.nsIDragService);
 
   ds.startDragSession();
 
@@ -2610,8 +2580,8 @@ var PluginUtils =
 {
   withTestPlugin : function(callback)
   {
-    var ph = _EU_Cc["@mozilla.org/plugin/host;1"]
-             .getService(_EU_Ci.nsIPluginHost);
+    var ph = Components.classes["@mozilla.org/plugin/host;1"]
+             .getService(Components.interfaces.nsIPluginHost);
     var tags = ph.getPluginTags();
 
     // Find the test plugin

@@ -5,10 +5,12 @@ import prefs, { getCliqzPrefs } from '../core/prefs';
 import console from '../core/console';
 import config from '../core/config';
 import { promiseHttpHandler } from '../core/http';
-import { isOnionMode } from '../core/platform';
+import { isOnionModeFactory } from '../core/platform';
 import { getDaysSinceInstall } from '../core/demographics';
+import setTimeoutInterval from '../core/helpers/timeout';
 
 const INFO_INTERVAL = 60 * 60 * 1e3; // 1 hour
+const isOnionMode = isOnionModeFactory(prefs);
 
 /* eslint-disable no-param-reassign */
 const createTelemetry = (bg) => {
@@ -78,7 +80,7 @@ const createTelemetry = (bg) => {
       return;
     }
 
-    if (isOnionMode) {
+    if (isOnionMode()) {
       return;
     }
 
@@ -119,6 +121,7 @@ async function sendEnvironmentalSignal({ startup, instantPush }) {
   utils.telemetry(info, instantPush);
 }
 
+
 export default background({
   requiresServices: ['cliqz-config'],
 
@@ -131,7 +134,7 @@ export default background({
     }
 
     sendEnvironmentalSignal({ startup: true, instantPush: true });
-    this.whoAmItimer = setInterval(
+    this.whoAmItimer = setTimeoutInterval(
       sendEnvironmentalSignal.bind(null, { startup: false }),
       INFO_INTERVAL
     );
@@ -143,7 +146,10 @@ export default background({
       utils.telemetryHandlers.splice(index, 1);
     }
 
-    clearInterval(this.whoAmItimer);
+    if (this.whoAmItimer !== null) {
+      this.whoAmItimer.stop();
+      this.whoAmItimer = null;
+    }
   },
 
   beforeBrowserShutdown() {

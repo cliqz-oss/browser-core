@@ -321,13 +321,13 @@ $basic-line-height: (16 / 14) + 0em;
                     float: left;
                     line-height: ($basic-line-height / 0.833) + 0em;
 
-                    margin-right: 5px;
+                    margin-right: 2px;
                     max-width: 500px;
                     padding-right: 6px;
                 }
 
                 .title {
-                  line-height: ($basic-line-height / 1.11) + 0em;
+                  line-height: $basic-line-height + 0em;
                 }
 
                 .divider {
@@ -714,6 +714,14 @@ $basic-line-height: (16 / 14) + 0em;
         //   display: none;
         // }
         .result {
+            .thumbnail {
+                .no-thumbnail {
+                    padding: 0;
+                    background: url("../images/news-placeholder.svg") no-repeat center center;
+                    background-size: 50%;
+                }
+            }
+
             .logo-blank {
                 background-color: transparent;
                 background: none;

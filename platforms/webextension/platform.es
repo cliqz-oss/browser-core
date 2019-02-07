@@ -17,10 +17,13 @@ const def = {
   isChromium: checkUserAgent('Chrome'),
   isEdge: checkUserAgent('Edge'),
   platformName: 'webextension',
-  isOnionMode: false,
 };
 
 export default def;
+
+export function isOnionModeFactory(prefs) {
+  return () => prefs && prefs.get('onion-mode');
+}
 
 export function isPlatformAtLeastInVersion() {
   return true;
@@ -39,5 +42,19 @@ export function isCliqzAtLeastInVersion() {
 }
 
 export function getResourceUrl(path) {
-  return chrome.runtime.getURL(`modules/${path}`);
+  return chrome.runtime.getURL(`modules/${path}`.replace(/\/+/g, '/'));
+}
+
+export function isBetaVersion() {
+  const manifest = (chrome.runtime
+    && chrome.runtime.getManifest
+    && chrome.runtime.getManifest())
+    || false;
+
+  return (manifest
+    && manifest.applications
+    && manifest.applications.gecko
+    && typeof manifest.applications.gecko.update_url === 'string'
+    && manifest.applications.gecko.update_url.indexOf('/browser_beta/') !== -1)
+    || false;
 }

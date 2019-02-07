@@ -1,6 +1,6 @@
 // TODO: move `finalize` to `streams`
 
-import Rx from '../../../platform/lib/rxjs';
+import { pipe } from 'rxjs';
 
 import mapResponses from '../streams/map-responses';
 
@@ -15,8 +15,6 @@ import mergeResults from '../streams/merge-results';
 import reconstructResults from '../streams/reconstruct-results';
 import smoothResults from '../streams/smooth-results';
 import trimResults from '../streams/trim-results';
-
-const { pipe } = Rx;
 
 export default config => pipe(
   smoothResults(config),

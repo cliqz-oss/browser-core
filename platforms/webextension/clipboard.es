@@ -9,6 +9,4 @@ export function copyToClipboard(val) {
   window.document.body.removeChild(input);
 }
 
-export default {
-  copyToClipboard,
-};
+export default copyToClipboard;

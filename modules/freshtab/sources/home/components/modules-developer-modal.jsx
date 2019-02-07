@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import DeveloperModal from './modal';
+import Modal from './modal';
+import Button from './partials/button';
 import t from '../i18n';
 
 function renderError(errorMessage = '') {
@@ -16,43 +17,40 @@ function renderError(errorMessage = '') {
   );
 }
 
-const ModulesDeveloperModal = (props = {}) => {
-  const error = props.error;
-  const showModal = props.isOpen;
+const ModulesDeveloperModal = ({
+  closeAction,
+  error,
+  isOpen,
+}) => (
+  <Modal
+    className="toolbox-modal"
+    closeAction={closeAction}
+    showModal={isOpen}
+  >
+    <div className="modules-developer-modal">
+      <Button
+        className="closeForm"
+        onClick={closeAction}
+      />
 
-  return (
-    <DeveloperModal
-      closeAction={props.closeAction}
-      showModal={showModal}
-      className="toolbox-modal"
-    >
-      <div className="modules-developer-modal">
-        <button
-          type="button"
-          className="closeForm"
-          role="link"
-          onClick={props.closeAction}
-        />
-
-        {error
-          ? renderError(error)
-          : (
-            <iframe
-              tabIndex="-1"
-              src="../toolbox/index.html"
-              title="Module list"
-            />
-          )
-        }
-      </div>
-    </DeveloperModal>
-  );
-};
+      {error
+        ? renderError(error)
+        : (
+          <iframe
+            tabIndex="-1"
+            src="../toolbox/index.html"
+            title="Module list"
+          />
+        )
+      }
+    </div>
+  </Modal>
+);
 
 ModulesDeveloperModal.propTypes = {
   closeAction: PropTypes.func,
-  isOpen: PropTypes.bool,
   error: PropTypes.string,
+  isOpen: PropTypes.bool,
 };
 
 export default ModulesDeveloperModal;

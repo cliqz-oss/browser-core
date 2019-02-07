@@ -1,7 +1,10 @@
 import loadLogoDb from '../../platform/services/logos';
 import config from '../config';
 import inject from '../kord/inject';
-import { isOnionMode } from '../platform';
+import prefs from '../prefs';
+import { isOnionModeFactory } from '../platform';
+
+const isOnionMode = isOnionModeFactory(prefs);
 
 export async function service() {
   let BRANDS_DATABASE_VERSION = 1521469421408;
@@ -66,7 +69,7 @@ export async function service() {
       result.style = `background-color: #${result.backgroundColor};color:${(result.color || '#fff')};`;
 
       // We want to avoid sending calls to CDN in Tor mode even for logos.
-      if (isOnionMode) {
+      if (isOnionMode()) {
         result.backgroundImage = '';
       }
 

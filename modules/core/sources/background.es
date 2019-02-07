@@ -14,9 +14,9 @@ import inject from './kord/inject';
 import { queryCliqz, openLink, openTab, getOpenTabs, getReminders } from '../platform/browser-actions';
 import providesServices from './services';
 import { httpHandler } from './http';
-import { updateTab } from './tabs';
-import handleReadContentAsDataUrl from './image-diverter';
+import { updateTab, closeTab, query } from './tabs';
 import { enableRequestSanitizer, disableRequestSanitizer } from './request-sanitizer';
+import { cleanMozillaActions } from './content/url';
 
 
 let lastRequestId = 1;
@@ -135,11 +135,11 @@ export default background({
   },
 
   events: {
-    'core:tab_select': function onTabSelect({ url, incognito }) {
-      events.pub('core.location_change', url, incognito);
+    'core:tab_select': function onTabSelect({ url, incognito, id }) {
+      events.pub('core.location_change', url, incognito, id);
     },
-    'content:location-change': function onLocationChange({ url, isPrivate }) {
-      events.pub('core.location_change', url, isPrivate);
+    'content:location-change': function onLocationChange({ url, isPrivate, tabId }) {
+      events.pub('core.location_change', url, isPrivate, tabId);
     },
     prefchange: function onPrefChange(pref) {
       if (pref.startsWith('modules.') && pref.endsWith('.enabled')) {
@@ -242,9 +242,9 @@ export default background({
       return Promise.resolve(utils.telemetry(...args));
     },
 
-    refreshPopup(query = '') {
-      if (query.trim() !== '') {
-        return this.actions.queryCliqz(query);
+    refreshPopup(q = '') {
+      if (q.trim() !== '') {
+        return this.actions.queryCliqz(q);
       }
       const doc = utils.getWindow().document;
       const urlBar = doc.getElementById('urlbar');
@@ -255,16 +255,29 @@ export default background({
       return undefined;
     },
 
-    queryCliqz(query) {
-      queryCliqz(query);
+    queryCliqz(q) {
+      queryCliqz(q);
     },
 
-    openLink(url, { newTab = true } = {}, { tab: { id: tabId } } = { tab: {} }) {
+    async openLink(url, { newTab = true } = {}, { tab: { id: tabId } } = { tab: {} }) {
       if (newTab) {
         openLink(url);
-      } else if (tabId) {
-        updateTab(tabId, url);
+        return;
       }
+
+      const [action, originalUrl] = cleanMozillaActions(url);
+      let id = tabId;
+
+      if (action === 'switchtab') {
+        const [tab] = await query({ url: originalUrl });
+        if (tab) {
+          id = tab.id;
+          updateTab(id, { active: true });
+          closeTab(tabId);
+          return;
+        }
+      }
+      updateTab(id, { url: originalUrl });
     },
 
     openTab(tabId) {
@@ -347,10 +360,6 @@ export default background({
 
     refreshAppState() {
       this.mm.shareAppState(this.app);
-    },
-
-    readContentAsDataUrl(url) {
-      return handleReadContentAsDataUrl(url);
     },
   },
 });

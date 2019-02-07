@@ -1,6 +1,11 @@
 import Adblocker from '../../platform/lib/adblocker';
 import ResourceLoader from '../../core/resource-loader';
 import config from '../../core/config';
+import {
+  extractHostname as getHostname,
+  getGeneralDomain as getDomain,
+} from '../../core/tlds';
+
 
 const ONE_HOUR = 60 * 60 * 1000;
 const ONE_DAY = 24 * ONE_HOUR;
@@ -61,8 +66,10 @@ export default class Blacklist {
   }
 
   has(url) {
-    const request = { url, type: 2, sourceUrl: url };
-    const result = this.engine.match(request);
+    const result = this.engine.match(Adblocker.makeRequest(
+      { url, type: 2, sourceUrl: url },
+      { getDomain, getHostname },
+    ));
     return result.match;
   }
 }

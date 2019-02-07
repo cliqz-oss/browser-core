@@ -15,13 +15,16 @@ import { Window, mapWindows, forEachWindow, addWindowObserver,
   addSessionRestoreObserver, removeSessionRestoreObserver } from '../platform/browser';
 import Defer from './helpers/defer';
 import { getChannel } from '../platform/demographics';
-import { isOnionMode } from './platform';
+import { isOnionModeFactory } from './platform';
 import createSettings from './settings';
+import * as i18n from './i18n';
 
 export function shouldEnableModule(name) {
   const pref = `modules.${name}.enabled`;
   return !prefs.has(pref) || prefs.get(pref) === true;
 }
+
+const isOnionMode = isOnionModeFactory(prefs);
 
 function setupConsole() {
   if (prefs.get('showConsoleLogs')) {
@@ -81,9 +84,7 @@ export default class App {
         moduleName,
         this.settings,
       );
-      if (isOnionMode && !module.isOnionReady) {
-        return;
-      }
+
       this.modules[moduleName] = module;
 
       // Keep reference to all module services by their name
@@ -99,6 +100,13 @@ export default class App {
         this.extensionRestart();
       }
     };
+  }
+
+  injectHelpers() {
+    this.utils = utils;
+    this.events = events;
+    this.prefs = prefs;
+    this.i18n = i18n;
   }
 
   /**
@@ -202,33 +210,52 @@ export default class App {
     }
 
     addMigrationObserver(this.onMigrationEnded);
-    return this.setupPrefs().then(() =>
-      this.load().then(() => {
-        enableChangeEvents();
-        this.windowWatcher = (win, event) => {
-          if (event === 'opened') {
-            this.loadIntoWindow(win, 'windowWatcher');
-          } else if (event === 'closed') {
-            this.unloadFromWindow(win);
-          }
-        };
 
-        addWindowObserver(this.windowWatcher);
+    await this.setupPrefs();
 
-        // Load into currently open windows
-        forEachWindow((win) => {
-          this.loadIntoWindow(win, 'existing window');
-        });
+    // If we are Onion mode, remove non onion-ready modules from 'this.modules'.
+    // We do it here not to break code relying on 'this.modules' before calling
+    // 'start()' (e.g. Ghostery). Besides, we need to load prefs before 'isOnionMode()'.
+    if (isOnionMode()) {
+      // We have to recreate this.services
+      this.services = Object.create(null);
+      Object.keys(this.modules).forEach((name) => {
+        const module = this.modules[name];
+        if (!module.isOnionReady) {
+          delete this.modules[name];
+        } else {
+          Object.assign(this.services, module.providedServices);
+        }
+      });
+    }
 
-        this.sessionRestoreObserver = () => {
-          // Load into all the open windows after session restore hits
-          forEachWindow((win) => {
-            this.loadIntoWindow(win, 'session restore');
-          });
-        };
+    await this.load();
 
-        addSessionRestoreObserver(this.sessionRestoreObserver);
-      }));
+    enableChangeEvents();
+    this.injectHelpers();
+    this.windowWatcher = (win, event) => {
+      if (event === 'opened') {
+        this.loadIntoWindow(win, 'windowWatcher');
+      } else if (event === 'closed') {
+        this.unloadFromWindow(win);
+      }
+    };
+
+    addWindowObserver(this.windowWatcher);
+
+    // Load into currently open windows
+    forEachWindow((win) => {
+      this.loadIntoWindow(win, 'existing window');
+    });
+
+    this.sessionRestoreObserver = () => {
+      // Load into all the open windows after session restore hits
+      forEachWindow((win) => {
+        this.loadIntoWindow(win, 'session restore');
+      });
+    };
+
+    addSessionRestoreObserver(this.sessionRestoreObserver);
   }
 
   /**

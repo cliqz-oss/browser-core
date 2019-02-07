@@ -1,5 +1,6 @@
+import { from } from 'rxjs';
+import { delay } from 'rxjs/operators';
 import CliqzCalculator from './calculator/internal';
-import Rx from '../../platform/lib/rxjs';
 import BaseProvider from './base';
 import { getResponse } from '../responses';
 
@@ -23,9 +24,10 @@ export default class Calculator extends BaseProvider {
     result.provider = 'calculator';
     result.text = query;
 
-    return Rx.Observable
-      .from([getResponse(this.id, config, query, [result], 'done')])
-      .delay(1)
-      .let(this.getOperators());
+    return from([getResponse(this.id, config, query, [result], 'done')])
+      .pipe(
+        delay(1),
+        this.getOperators()
+      );
   }
 }

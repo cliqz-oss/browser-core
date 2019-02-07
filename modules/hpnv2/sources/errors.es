@@ -22,7 +22,6 @@ export class TooBigMsgError extends ExtendableError {}
 export class TransportError extends ExtendableError {}
 export class MsgTimeoutError extends ExtendableError {}
 export class OldVersionError extends ExtendableError {}
-export class WrongClockError extends ExtendableError {}
 export class FetchConfigError extends ExtendableError {}
 export class JoinGroupsError extends ExtendableError {}
 export class InitSignerError extends ExtendableError {}

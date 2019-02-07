@@ -1,9 +1,7 @@
+import { pipe } from 'rxjs';
+import { map } from 'rxjs/operators';
 import addLogos from '../results/add-logos';
 import addDistance from '../results/add-distance';
-
-import Rx from '../../../platform/lib/rxjs';
-
-const { map } = Rx.operators;
 
 const compose = fns => target => fns.reduce((ret, fn) => fn(ret), target);
 
@@ -16,7 +14,7 @@ const compose = fns => target => fns.reduce((ret, fn) => fn(ret), target);
  * @function enhanceResults
  */
 export default () =>
-  map(({
+  pipe(map(({
     query,
     responses,
     ...result
@@ -32,4 +30,4 @@ export default () =>
         addDistance,
       ])(response.results),
     })),
-  }));
+  })));

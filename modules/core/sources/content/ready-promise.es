@@ -17,7 +17,7 @@ const isChromeReady = async () => {
 
   // on webextensions, we connect to background and wait for message back
   return new Promise((resolve) => {
-    const port = browser.runtime.connect({ name: 'appReady' });
+    const port = chrome.runtime.connect({ name: 'appReady' });
     port.onMessage.addListener((message) => {
       if (message.ready) {
         port.disconnect();

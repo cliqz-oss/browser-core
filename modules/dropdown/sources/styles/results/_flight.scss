@@ -37,11 +37,11 @@ $red-color: #d95559;
     .flight-flex-container {
         display: flex;
         margin:8px 0;
+        align-items: center;
 
         span {
             font-weight: 500;
             position: relative;
-            top: 3px;
         }
 
         .flight-progress-container {
@@ -209,13 +209,16 @@ $red-color: #d95559;
 
         .depart, .arrival {
             float: left;
-            width: 200px;
-            max-width: calc(50% - 5px);
             overflow: hidden;
+        }
+
+        .depart {
+            width: 275px;
         }
 
         .arrival {
             float: right;
+            width: calc(100% - 275px);
         }
 
         .bold {
@@ -232,6 +235,12 @@ $red-color: #d95559;
     }
 }
 
+.depart-city-flight-progress-container {
+    flex: 0 0 275px;
+    display: flex;
+    max-width: 275px;
+    align-items: center;
+}
 
 /*** OLD IMPLEMENTATION **/
 

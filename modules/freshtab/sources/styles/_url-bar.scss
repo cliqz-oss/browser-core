@@ -79,5 +79,9 @@
                 background-position: 2% center;
             }
         }
+
+        &:not(.with-results) {
+            margin-top: $search-input-height;
+        }
     }
 }

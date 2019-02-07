@@ -6,6 +6,7 @@
  */
 export default {
   name: 'freshtab-settings',
+  needsGid: true,
   version: 1,
   generate: ({ records }) => {
     const freshtabConfigSignals = records.get('freshtab.prefs.config');
@@ -22,6 +23,7 @@ export default {
       customDials: { visible: is_favorites_on } = {},
       search: { visible: is_search_on } = {},
       news: { visible: is_news_on } = {},
+      stats: { visible: is_stats_on } = {},
     } = freshtabConfigSignals[freshtabConfigSignals.length - 1];
 
     return [{
@@ -34,6 +36,7 @@ export default {
       is_favorites_on: Boolean(is_favorites_on),
       is_search_on: Boolean(is_search_on),
       is_news_on: Boolean(is_news_on),
+      is_stats_on: Boolean(is_stats_on),
     }];
   },
   schema: {
@@ -44,6 +47,7 @@ export default {
       'is_favorites_on',
       'is_search_on',
       'is_news_on',
+      'is_stats_on',
     ],
     properties: {
       is_theme_on: { type: 'boolean' },
@@ -52,6 +56,7 @@ export default {
       is_favorites_on: { type: 'boolean' },
       is_search_on: { type: 'boolean' },
       is_news_on: { type: 'boolean' },
+      is_stats_on: { type: 'boolean' },
     },
   }
 };

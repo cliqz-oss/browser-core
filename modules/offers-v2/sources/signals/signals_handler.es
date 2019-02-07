@@ -106,7 +106,7 @@ export default class SignalHandler {
   }
 
   // destructor
-  destroy() {
+  async destroy() {
     // stop interval
     if (this.sendIntervalTimer) {
       this.sendIntervalTimer.stop();
@@ -116,7 +116,7 @@ export default class SignalHandler {
       this.saveInterval.stop();
     }
 
-    return this._savePersistenceData();
+    await this._savePersistenceData();
   }
 
   // ///////////////////////////////////////////////////////////////////////////
@@ -188,7 +188,7 @@ export default class SignalHandler {
     addOrCreate(origin, sid, count);
 
     // mark it as modified
-    const shouldSend = !sid.startsWith('filtered_by_') || sid === 'filtered_by_filterByRealEstates';
+    const shouldSend = !sid.startsWith('filter');
     this._markSignalAsModified(sigType, cid, shouldSend);
 
     logger.info(`setCampaignSignal${shouldSend ? '' : ' (silent)'}:`
@@ -435,6 +435,22 @@ export default class SignalHandler {
       });
     });
 
+    // Save signals before sending them
+    //
+    // It is possible that `destroy` will not be called or that browser
+    // components including persistence are already destroyed before
+    // calling the destructor. Then the signals would not be stored,
+    // and on the next browser start, the old signals would be loaded.
+    // The aggregated statistics and sequence would be reset to old values,
+    // and the backend would get duplicate signals with wrong data.
+    //
+    // To prevent the confusion, synchronize the stored and sent signals.
+    await this._savePersistenceData();
+
+    // Now send the signals
+    await this.sendBatch(batch);
+
+    // Now send additional signals
     let anotherBatch = await this.behavior.getSignals();
     anotherBatch = anotherBatch.map(payload =>
       ({ payload: JSON.stringify(constructSignal('behavior', payload.type, payload)) }));
@@ -449,20 +465,7 @@ export default class SignalHandler {
       .map(payload =>
         ({ payload: JSON.stringify(constructSignal('patterns-stats', payload.type, payload)) }));
 
-    // Save signals before sending them
-    //
-    // It is possible that `destroy` will not be called or that browser
-    // components including persistence are already destroyed before
-    // calling the destructor. Then the signals would not be stored,
-    // and on the next browser start, the old signals would be loaded.
-    // The aggregated statistics and sequence would be reset to old values,
-    // and the backend would get duplicate signals with wrong data.
-    //
-    // To prevent the confusion, synchronize the stored and sent signals.
-    await this._savePersistenceData();
-
-    // Now send the signals
-    await this.sendBatch(batch.concat(anotherBatch).concat(patternBatch));
+    await this.sendBatch(anotherBatch.concat(patternBatch));
     await this.behavior.clearSignals();
     return this.behavior.clearOldBehavior();
   }

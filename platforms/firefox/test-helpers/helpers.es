@@ -1,9 +1,11 @@
+/* globals $, chai */
 import { getCurrentWindow } from '../windows';
 import { Services, Components } from '../globals';
 import console from '../../core/console';
 import { getCurrentgBrowser } from '../tabs';
 import { waitFor } from '../../core/helpers/wait';
 
+const expect = chai.expect;
 
 export const EventUtils = {};
 if (typeof Services !== 'undefined') {
@@ -100,13 +102,11 @@ export const CLIQZ = wrap(() => win.CLIQZ);
 export const urlBar = wrap(() => win.CLIQZ.Core.urlbar);
 export const popup = wrap(() => win.CLIQZ.Core.popup);
 export const $dropdown = wrap(() => win.$dropdown);
-export const CliqzUtils = wrap(() => win.CliqzUtils);
-export const CliqzEvents = wrap(() => win.CliqzEvents);
-export const CliqzABTests = wrap(() => win.CliqzABTests);
 export const app = wrap(() => win.CLIQZ.app);
 export const getComputedStyle = (...args) => win.getComputedStyle(...args);
 export const urlbar = wrap(() => win.gURLBar);
 export const testServer = wrap(() => win.CLIQZ.TestHelpers.testServer);
+export const dropdownClick = wrap(() => selector => win.document.querySelector(selector).click());
 
 export const click = (url, selector) =>
   app.modules.core.action('click', url, selector);
@@ -144,6 +144,48 @@ function clearSingleDB(dbName) {
 
 export function clearDB(dbNames) {
   return Promise.all(dbNames.map(dbName => clearSingleDB(dbName)));
+}
+
+export function fillIn(text) {
+  urlbar.valueIsTyped = true;
+  urlbar.focus();
+  urlbar.mInputField.focus();
+  urlbar.mInputField.value = '';
+  EventUtils.sendString(text);
+}
+
+export const $cliqzResults = {
+  _getEl() {
+    return $(win.document.getElementById('cliqz-popup').contentWindow.document.getElementById('cliqz-dropdown'));
+  },
+  querySelector(...args) {
+    return this._getEl()[0].querySelector(...args);
+  },
+  querySelectorAll(...args) {
+    return this._getEl()[0].querySelectorAll(...args);
+  }
+};
+
+export async function waitForPopup(resultsCount, timeout = 700) {
+  await waitFor(() => {
+    const cliqzPopup = win.document.getElementById('cliqz-popup');
+    return cliqzPopup && (cliqzPopup.style.height !== '0px');
+  });
+
+  if (resultsCount) {
+    const navigateResult = $cliqzResults.querySelector('.result.navigate-to');
+    const searchResult = $cliqzResults.querySelector('.result.search');
+
+    // If we have both navigateResult and searchResult => the searchResult is generated
+    // we should increase the resultsCount by 1
+    const nResults = (navigateResult && searchResult) ? resultsCount + 1 : resultsCount;
+    await waitFor(
+      () => expect($cliqzResults.querySelectorAll('.cliqz-result')).to.have.length(nResults),
+      timeout,
+    );
+  }
+
+  return $cliqzResults;
 }
 
 // TODO: add a helper to clear pref changes

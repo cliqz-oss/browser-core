@@ -1,3 +1,5 @@
+import { combineLatest } from 'rxjs';
+import { filter, share, switchMap, startWith, map, withLatestFrom, scan } from 'rxjs/operators';
 import { getDetailsFromUrl } from '../core/url';
 
 const getOrigin = ({ provider, type }) => {
@@ -66,58 +68,65 @@ const isSearchEngine = (url) => {
 const telemetry = (focus$, query$, results$, selection$) => {
   // streams latest result and selection (of ongoing search session)
   const sessions$ = focus$
+    .pipe(
     // new session starts on URL bar focus
-    .filter(({ event }) => event === 'focus')
-    // TODO: results should be embedded in a surrounding data structure
-    //       from the beginning
-    .switchMap(() => results$
-      .startWith([])
-      .map(results => ({ results, ts: Date.now() }))
-      .combineLatest(
-        selection$.startWith({}),
-        query$
-          .scan((hasUserInput, { isPasted, isTyped }) =>
-            hasUserInput || isPasted || isTyped, false)
-          .startWith(false),
-      )).share();
+      filter(({ event }) => event === 'focus'),
+      // TODO: results should be embedded in a surrounding data structure
+      //       from the beginning
+      switchMap(() => results$
+        .pipe(
+          startWith([]),
+          map(results => ({ results, ts: Date.now() })),
+          mappedResults$ => combineLatest(mappedResults$,
+            selection$.pipe(startWith({})),
+            query$.pipe(
+              scan((hasUserInput, { isPasted, isTyped }) =>
+                hasUserInput || isPasted || isTyped, false),
+              startWith(false)
+            ))
+        )),
+      share()
+    );
 
   const telemetry$ = focus$
-    // emit telemetry on session end, which is URL bar blur
-    .filter(({ event }) => event === 'blur')
-    .withLatestFrom(sessions$)
-    // re-order and flatten params
-    .map(([blur, session]) => [...session, blur])
-    .map(([
-      { results, ts: resultsTs },
-      selection,
-      hasUserInput,
-      { ts: blurTs }
-    ]) => {
-      const selectedResult = selection.rawResult || {};
-      const metric = {
-        version: 2,
+    .pipe(
+      // emit telemetry on session end, which is URL bar blur
+      filter(({ event }) => event === 'blur'),
+      withLatestFrom(sessions$),
+      map(([blur, session]) => [...session, blur]),
+      // re-order and flatten params
+      map(([
+        { results, ts: resultsTs },
+        selection,
         hasUserInput,
-        results: results.map(({ kind }) => parseKind(kind)),
-        // TODO: add session duration
-        selection: {
-          action: selection.action,
-          element: selection.elementName,
-          index: selectedResult.index,
-          isAutocomplete: !!selection.isFromAutocompletedURL,
-          // note: is false for origin 'other', only applies to 'cliqz' and
-          //       'direct' selections
-          isSearchEngine: isSearchEngine(selectedResult.url),
-          // TODO: verify that 'kind' contains the correct information for deep results
-          ...parseKind(selectedResult.kind || []),
-          origin: getOrigin(selectedResult),
-          queryLength: selection.query && selection.query.length,
-          // TODO: move to results
-          showTime: results.length > 0 ? blurTs - resultsTs : null,
-          subResult: selectedResult.subResult,
-        },
-      };
-      return metric;
-    });
+        { ts: blurTs }
+      ]) => {
+        const selectedResult = selection.rawResult || {};
+        const metric = {
+          version: 2,
+          hasUserInput,
+          results: results.map(({ kind }) => parseKind(kind)),
+          // TODO: add session duration
+          selection: {
+            action: selection.action,
+            element: selection.elementName,
+            index: selectedResult.index,
+            isAutocomplete: !!selection.isFromAutocompletedURL,
+            // note: is false for origin 'other', only applies to 'cliqz' and
+            //       'direct' selections
+            isSearchEngine: isSearchEngine(selectedResult.url),
+            // TODO: verify that 'kind' contains the correct information for deep results
+            ...parseKind(selectedResult.kind || []),
+            origin: getOrigin(selectedResult),
+            queryLength: selection.query && selection.query.length,
+            // TODO: move to results
+            showTime: results.length > 0 ? blurTs - resultsTs : null,
+            subResult: selectedResult.subResult,
+          },
+        };
+        return metric;
+      })
+    );
 
   return telemetry$;
 };

@@ -24,7 +24,7 @@ const getEngineCode = name => ENGINE_CODES.indexOf(name.toLowerCase()) + 1;
 let ENGINE_CACHE = null;
 
 export function setSearchEngine(engine) {
-  Services.search.currentEngine = engine;
+  Services.search.defaultEngine = engine;
 }
 
 export function getSearchEngines(blackListed = []) {
@@ -57,6 +57,10 @@ export function getSearchEngines(blackListed = []) {
   }
 
   return ENGINE_CACHE.filter(e => !blackListed.includes(e.name));
+}
+
+export function getSearchEnginesAsync(blackListed = []) {
+  return Promise.resolve(getSearchEngines(blackListed));
 }
 
 export function loadSearchEngines() { return Promise.resolve(); }

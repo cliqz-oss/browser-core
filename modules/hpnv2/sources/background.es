@@ -5,6 +5,7 @@ import { overRideCliqzResults, unload } from './http-handler-patch';
 import prefs from '../core/prefs';
 
 export default background({
+  requiresServices: ['cliqz-config'],
   init() {
     if (prefs.get('proxyNetwork', true)) {
       this.proxy = true;
@@ -40,8 +41,11 @@ export default background({
         if (rp.startsWith(config.settings.ENDPOINT_SAFE_QUORUM_ENDPOINT)) {
           const path = rp.replace((config.settings.ENDPOINT_SAFE_QUORUM_ENDPOINT), '');
           const res = await this.manager.send({ action: 'safe-browsing-quorum', path, payload, method: 'GET' });
-          const text = await res.text();
-          return text;
+          const { result } = await res.json();
+          if (result === undefined) {
+            throw new Error('Could not parse result from quorum server (expected "result" field)');
+          }
+          return result;
         }
 
         if (rp.startsWith(config.settings.RESULTS_PROVIDER_PING)) {

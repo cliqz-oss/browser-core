@@ -69,7 +69,6 @@
                         line-height: map-get($stats-font-size, title);
                         min-height: calc(#{map-get($stats-font-size, title)} + 2px);
                         font-weight: 500;
-
                         color: $news-title-color;
                         white-space: nowrap;
                         overflow: hidden;
@@ -97,6 +96,7 @@
                         font-weight: 500;
                         color: $news-title-color;
 
+
                         span {
                             &:first-child {
                                 display: inline-block;
@@ -119,6 +119,8 @@
                         display: $stats-description-display;
                         font-size: map-get($stats-font-size, description);
                         color: $news-header-url-color;
+                        flex-basis:52px;
+                        padding-top:3px;
                     }
 
                     .learn-more {

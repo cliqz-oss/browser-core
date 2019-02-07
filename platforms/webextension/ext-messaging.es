@@ -9,7 +9,13 @@ export default {
       return chrome.runtime.onMessageExternal.removeListener(fn);
     },
   },
-  sendMessage(extensionId, message) {
-    chrome.runtime.sendMessage(extensionId, message);
+  sendMessage(extensionId, message, callback = () => null) {
+    chrome.runtime.sendMessage(extensionId, message, (args) => {
+      if (chrome.runtime.lastError) {
+        callback(undefined);
+      }
+
+      callback(args);
+    });
   }
 };

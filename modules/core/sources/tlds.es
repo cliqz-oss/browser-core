@@ -12,7 +12,7 @@ function parse(url) {
   const parsed = tldts.parse(url, TLDTS_OPTIONS);
 
   if (parsed.isIp) {
-    parsed.domain = parsed.host;
+    parsed.domain = parsed.hostname;
   }
 
   return parsed;

@@ -1,9 +1,9 @@
-import math from '../../../platform/lib/mathjs';
+import math from '../../../platform/lib/math';
 import { getMessage } from '../../../core/i18n';
 import console from '../../../core/console';
 
 // REF:
-//      http://mathjs.org/docs/index.html
+//      https://redhivesoftware.github.io/math-expression-evaluator/
 //      http://stackoverflow.com/questions/26603795/variable-name-and-restrict-operators-in-math-js
 //      http://jsbin.com/duduru/1/edit?html,output
 
@@ -103,10 +103,10 @@ const CliqzCalculator = {
   shortenNumber() {
     const fractionLimit = 6;
     const THRESHOLD = 1e-7; // 0.0000001
-    const calculatorResult = math.number(math.format(this.CALCULATOR_RES, { notation: 'fixed', precision: 6 }));
+    const calculatorResult = parseFloat(this.CALCULATOR_RES, 10).toFixed(6);
 
     const difference = this.CALCULATOR_RES - calculatorResult;
-    const isRounded = math.abs(difference) > THRESHOLD * this.MULTIPLIER;
+    const isRounded = Math.abs(difference) > THRESHOLD * this.MULTIPLIER;
 
     try {
       let num;
@@ -166,7 +166,7 @@ const CliqzCalculator = {
           }
           firstPart = replaceAll(firstPart, this.thousandsSeparator, '');
         }
-        // Always use '.' as decimal separator for mathjs
+        // Always use '.' as decimal separator for math-expression-evaluator
         return `${firstPart}.${secondPart}`;
       }
       // There are more than one decimal separators => could be thousands separator
@@ -242,8 +242,9 @@ const CliqzCalculator = {
     if (this.CALCULATOR_RES === null || this.CALCULATOR_RES === q) {
       return null;
     }
+    // TODO: @mai @remi implement the pretty-print for math expressions
     const expandedExpression = this.IS_UNIT_CONVERTER ? this.CLEANED_QUERY
-      : replaceAll(math.parse(this.clean(q)).toString(), '.', this.decimalSeparator);
+      : replaceAll(this.clean(q), '.', this.decimalSeparator);
 
     const results = this.shortenNumber();
     this.CALCULATOR_RES = results[0];

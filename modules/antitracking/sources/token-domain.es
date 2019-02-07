@@ -1,6 +1,7 @@
-import * as datetime from './time';
+import { Subject, asyncScheduler, merge, from } from 'rxjs';
+import { observeOn, auditTime, pluck, distinctUntilChanged, delay, map } from 'rxjs/operators';
 import console from '../core/console';
-import Rx from '../platform/lib/rxjs';
+import * as datetime from './time';
 
 const DAYS_EXPIRE = 7;
 
@@ -13,7 +14,7 @@ export default class TokenDomain {
     // cache of currentDay string (YYYYMMDD)
     this._currentDay = null;
 
-    this.subjectTokens = new Rx.Subject();
+    this.subjectTokens = new Subject();
   }
 
   init() {
@@ -30,9 +31,10 @@ export default class TokenDomain {
     // sample token events to trigger database persist a most
     // once per minute.
     // While a previous persist is running these messages will be suppressed.
-    const persistWhen = this.subjectTokens
-      .observeOn(Rx.Scheduler.async)
-      .auditTime(60000);
+    const persistWhen = this.subjectTokens.pipe(
+      observeOn(asyncScheduler),
+      auditTime(60000)
+    );
 
     // Persist to disk controlled by the persistWhen Observable
     this._persistSubscription = persistWhen.subscribe(() => {
@@ -40,17 +42,18 @@ export default class TokenDomain {
     });
 
     // when cleanup is due: after startup, or when day changes
-    this._cleanupSubscription = Rx.Observable.merge(
-      Rx.Observable.fromPromise(startup).map(() => this.currentDay),
-      this.subjectTokens
-        .observeOn(Rx.Scheduler.async)
-        .pluck('day')
-    )
-      .distinctUntilChanged()
-      .delay(5000)
-      .subscribe(() => {
-        this.clean();
-      });
+    this._cleanupSubscription = merge(
+      from(startup).pipe(map(() => this.currentDay)),
+      this.subjectTokens.pipe(
+        observeOn(asyncScheduler),
+        pluck('day')
+      )
+    ).pipe(
+      distinctUntilChanged(),
+      delay(5000)
+    ).subscribe(() => {
+      this.clean();
+    });
     return startup;
   }
 

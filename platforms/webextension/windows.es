@@ -1,10 +1,11 @@
 import { chrome } from './globals';
 
 export function checkIsWindowActive(tabId) {
-  if (Number(tabId) < 0) return Promise.resolve(false);
+  const id = Number(tabId);
+  if (isNaN(id) || id < 0) return Promise.resolve(false);
 
   return new Promise((resolve) => {
-    chrome.tabs.get(Number(tabId), () => {
+    chrome.tabs.get(id, () => {
       if (chrome.runtime.lastError) {
         resolve(false);
       } else {

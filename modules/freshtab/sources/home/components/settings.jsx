@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Switch from './switch';
+import Switch from './partials/switch';
+import Button from './partials/button';
 import BackgroundImage from './background-image';
 import t from '../i18n';
 import { settingsCloseSignal, settingsBackgroundSelectSignal } from '../services/telemetry/settings';
@@ -92,14 +93,11 @@ export default class Settings extends React.Component {
           className={(this.props.isOpen ? 'visible ' : '')}
           tabIndex="-1"
         >
-          <button
-            type="button"
-            onClick={() => this.onCloseButtonClick()}
-            tabIndex="-1"
+          <Button
             className="close"
-          >
-            Close
-          </button>
+            label="Close"
+            onClick={() => this.onCloseButtonClick()}
+          />
           <div className="settings-header">
             <h1>{t('app_settings_header')}</h1>
           </div>
@@ -109,8 +107,8 @@ export default class Settings extends React.Component {
               <div className="settings-row">
                 <span className="label">Cliqz Theme</span>
                 <Switch
-                  name="blueTheme"
                   isChecked={this.props.blueTheme}
+                  name="blueTheme"
                   toggleComponent={() => this.props.toggleBlueTheme()}
                 />
               </div>
@@ -120,8 +118,8 @@ export default class Settings extends React.Component {
           <div className="settings-row">
             <span className="label">{t('app_settings_background_label')}</span>
             <Switch
-              name="background"
               isChecked={this.state.componentsState.background.image !== config.constants.NO_BG}
+              name="background"
               toggleComponent={() => this.props.toggleBackground()}
             />
           </div>
@@ -134,13 +132,13 @@ export default class Settings extends React.Component {
                   (
                     <li key={`${background.alias}`}>
                       <BackgroundImage
-                        onBackgroundImageChanged={this.onBackgroundImageChanged}
-                        index={index}
                         bg={background.name}
-                        src={`./images/bg-${background.alias}-thumbnail.png`}
+                        index={index}
                         isActive={this.state.componentsState.background.image === background.name
                               || !this.state.componentsState.background.image
                         }
+                        onBackgroundImageChanged={this.onBackgroundImageChanged}
+                        src={`./images/bg-${background.alias}-thumbnail.png`}
                       />
                     </li>
                   ))
@@ -168,15 +166,12 @@ export default class Settings extends React.Component {
               isChecked={this.state.componentsState.historyDials.visible}
               toggleComponent={() => this.props.toggleComponent('historyDials')}
             />
-            <button
-              type="button"
+            <Button
               className="link"
-              tabIndex="-1"
               disabled={!this.props.hasHistorySpeedDialsToRestore}
+              label={t('app_settings_most_visited_restore')}
               onClick={() => this.props.restoreHistorySpeedDials()}
-            >
-              {t('app_settings_most_visited_restore')}
-            </button>
+            />
           </div>
 
           <div className="settings-row">
@@ -241,15 +236,18 @@ export default class Settings extends React.Component {
 }
 
 Settings.propTypes = {
+  blueTheme: PropTypes.bool,
+  hasHistorySpeedDialsToRestore: PropTypes.bool,
+  isBlueThemeSupported: PropTypes.func,
+  isOpen: PropTypes.bool,
+  isStatsSupported: PropTypes.bool,
   onBackgroundImageChanged: PropTypes.func,
   onNewsSelectionChanged: PropTypes.func,
-  toggle: PropTypes.func,
-  isOpen: PropTypes.bool,
-  blueTheme: PropTypes.bool,
-  isBlueThemeSupported: PropTypes.func,
-  toggleComponent: PropTypes.func,
-  toggleBlueTheme: PropTypes.func,
-  toggleBackground: PropTypes.func,
   restoreHistorySpeedDials: PropTypes.func,
-  hasHistorySpeedDialsToRestore: PropTypes.bool,
+  shouldShowSearchSwitch: PropTypes.bool,
+  toggle: PropTypes.func,
+  toggleBackground: PropTypes.func,
+  toggleBlueTheme: PropTypes.func,
+  toggleComponent: PropTypes.func,
+  wallpapers: PropTypes.array,
 };

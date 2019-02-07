@@ -1,4 +1,4 @@
-import Rx from '../../../platform/lib/rxjs';
+import { pipe } from 'rxjs';
 
 import mapResponses from '../streams/map-responses';
 
@@ -14,8 +14,6 @@ import smoothResults from '../streams/smooth-results';
 import trimResults from '../streams/trim-results';
 import waitForAllProviders from '../streams/wait-for-all-providers';
 import eliminateRepeatedResults from '../streams/eliminate-repeated-results';
-
-const { pipe } = Rx;
 
 // TODO: move to 'operators/streams'?
 export default config => pipe(

@@ -1,6 +1,6 @@
 {
-  "name": "Cliqz",
-  "description": "Cliqz AMO",
+  "name": "Cliqz Tab",
+  "description": "__MSG_addon_desc_amo__",
   "version": "{{version}}",
   "manifest_version": 2,
   "default_locale": "de",
@@ -30,7 +30,7 @@
       "48":  "assets/button48.png",
       "128": "assets/button128.png"
     },
-    "default_title": "MyOffrz"
+    "default_title": "__MSG_offers_hub_title__"
   },
   "permissions": [
     "<all_urls>",
@@ -45,16 +45,17 @@
     "activeTab",
     "topSites",
     "unlimitedStorage",
+    "clipboardWrite",
     "webRequest",
     "webNavigation",
     "webRequestBlocking"
   ],
   "background": {
     "scripts": [
-      "modules/vendor/Rx.min.js",
-      "modules/vendor/math.min.js",
+      "modules/vendor/math-expression-evaluator.min.js",
       "modules/vendor/dexie.min.js",
-      "modules/webextension-specific/app.bundle.js"
+      "modules/webextension-specific/app.bundle.js",
+      "background.js"
     ]
   },
   "chrome_url_overrides": {

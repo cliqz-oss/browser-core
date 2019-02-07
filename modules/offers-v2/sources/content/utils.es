@@ -2,7 +2,7 @@
 
 // the keywords we want to check to identify for input fields
 const couponKeyWords = ['voucher', 'discount', 'coupon', 'rabatt', 'gutschein', 'promo'];
-const buyButtonKeyWords = ['buy', 'kaufen', 'bestellen', 'order'];
+const buyButtonKeyWords = ['buy', 'kaufen', 'bestellen', 'order', 'book', 'buchen'];
 
 const COUPON_APPLICATION_KEYWORDS = [
   'code',

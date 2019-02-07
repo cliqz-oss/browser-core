@@ -110,9 +110,6 @@ const ActionID = {
   AID_SUCCESS: 'success',
   AID_PAYMENT: 'payment',
   AID_CART: 'cart',
-  AID_REF_NONE: 'ref_none',
-  AID_REF_OTHER: 'ref_other',
-  AID_REF_SEARCH: 'ref_search',
   AID_COUPON_EMPTY: 'coupon_empty',
   AID_COUPON_OWN_USED: 'coupon_own_used',
   AID_COUPON_OTHER_USED: 'coupon_other_used',
@@ -128,19 +125,22 @@ const ActionID = {
   AID_COUPON_AUTOFILL_ERROR_USE: 'coupon_autofill_field_error_use',
   AID_COUPON_AUTOFILL_APPLICATION_NOT_FOUND: 'coupon_autofill_field_application_not_found',
 
-  // global blacklist
-  AID_GLOBAL_OFFERS_BLACKLIST: 'global_offers_blacklist',
+  // Processor
 
-  // Hard filters
-  AID_OFFER_FILTERED_VALIDIDTY: 'filtered_by_filterByValidity',
-  AID_OFFER_FILTERER_ABTEST: 'filtered_by_filterByABTest',
-  AID_OFFER_FILTERER_REALESTATE: 'filtered_by_filterByRealEstates',
-  AID_OFFER_FILTERER_GEO: 'filtered_by_filterByGeo',
-  AID_OFFER_FILTERER_CATEGORIES: 'filtered_by_filterByCategories',
-  AID_OFFER_FILTERER_HISTORY: 'filtered_by_filterByHistory',
+  AID_OFFER_FILTERED_HARD_PREFIX: 'filtered_by_hard_',
+  AID_OFFER_FILTERED_VALIDIDTY: 'filtered_by_hard_filterByValidity',
+  AID_OFFER_FILTERED_ABTEST: 'filtered_by_hard_filterByABTest',
+  AID_OFFER_FILTERED_REALESTATE: 'filtered_by_hard_filterByRealEstates',
+  AID_OFFER_FILTERED_GEO: 'filtered_by_hard_filterByGeo',
+  AID_OFFER_FILTERED_CATEGORIES: 'filtered_by_hard_filterByCategories',
+  AID_OFFER_FILTERED_HISTORY: 'filtered_by_hard_filterByHistory',
 
-  // context filter
-  AID_OFFER_FILTERER_CONTEXT: 'filtered_by_context',
+  AID_OFFER_FILTERED_EXP_PREFIX: 'filter_exp__',
+  AID_OFFER_FILTERED_CONTEXT: 'filtered_by_context',
+
+  AID_OFFER_FILTERED_GLOBAL_BLACKLIST: 'filtered_by_global_blacklist',
+  AID_OFFER_FILTERED_OFFER_BLACKLIST: 'filtered_by_offer_blacklist',
+  AID_OFFER_FILTERED_COMPETE: 'filtered_by_compete',
 
   AID_OFFER_CC_HIDDEN: 'reward_box_missing_button', // Button hidden by user
 };

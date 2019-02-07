@@ -1,11 +1,18 @@
 const edgeBucket = 's3://cdncliqz/update/edge';
+const edgeBucketPrefix = 'https://s3.amazonaws.com/cdncliqz/update/edge';
 
 module.exports = {
   toEdge(artifact, configName, extension = 'tgz') {
     const artifactName = `${artifact}-$PACKAGE_VERSION.${extension}`;
     const s3Path = `${edgeBucket}/${configName}/$BRANCH_NAME/$VERSION.\${GIT_COMMIT:0:7}.${extension}`;
-    const latestPath = `${edgeBucket}/${configName}/$BRANCH_NAME/latest.${extension}`;
+    const latestPath = `${this.edgeLatestS3Url(configName)}latest.${extension}`;
     return `aws s3 cp ${artifactName} ${s3Path} --acl public-read && aws s3 cp ${s3Path} ${latestPath} --acl public-read`;
+  },
+  edgeLatestS3Url(configName) {
+    return `${edgeBucket}/${configName}/${process.env['BRANCH_NAME'] || '$BRANCH'}/`;
+  },
+  edgeLatestUrl(configName) {
+    return `${edgeBucketPrefix}/${configName}/${process.env['BRANCH_NAME'] || '$BRANCH'}/`;
   },
   toPrerelease(artifact, configName, extension = 'tgz') {
     const artifactName = `${artifact}-$VERSION.${extension}`;

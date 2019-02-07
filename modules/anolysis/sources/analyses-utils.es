@@ -46,3 +46,34 @@ export const actionFallback = fallbackValue => (error) => {
   }
   throw error;
 };
+
+/**
+ * Given a list of possible keys, return the JSON schema of the result of a call
+ * to `count` (defined below).
+ */
+export function counterSchema(keys) {
+  const properties = {};
+
+  keys.forEach((key) => {
+    properties[key] = { type: 'integer', minimum: 0 };
+  });
+
+  return {
+    required: [],
+    properties,
+  };
+}
+
+/**
+ * Return the count of each value in `values`. This can be used in conjunction
+ * with `counterSchema` to help create analyses.
+ */
+export function count(values) {
+  const result = {};
+
+  values.forEach((value) => {
+    result[value] = (result[value] || 0) + 1;
+  });
+
+  return result;
+}

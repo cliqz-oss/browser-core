@@ -98,12 +98,9 @@ export default {
     WORLDCUP_URL: 'https://sport.cliqz.com/',
     HB_NEWS: 'hb-news.cliqz.com',
     HISTORY_URL: config.settings.HISTORY_URL,
-    NEW_TAB_URL: config.settings.NEW_TAB_URL,
-    CLIQZ_FOR_FRIENDS: config.settings.CLIQZ_FOR_FRIENDS,
     ROTATED_TOP_NEWS: 'rotated-top-news.cliqz.com',
     SUGGESTIONS_URL: config.settings.SUGGESTIONS_URL,
     frameScriptWhitelist: config.settings.frameScriptWhitelist,
-    showNewBrandAlert: config.settings.showNewBrandAlert,
   },
   constants: {
     TOOLTIP_WORLDCUP_GROUP: 'worldcup-group',
@@ -127,5 +124,6 @@ export default {
     historyDials: 'topsites',
     news: 'news',
     search: 'search_bar',
+    stats: 'stats',
   },
 };

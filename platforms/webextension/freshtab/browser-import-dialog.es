@@ -1,1 +1,3 @@
-export default function openImportDialog() {}
+export default function openImportDialog() {
+  chrome.cliqz.openImportDialog();
+}

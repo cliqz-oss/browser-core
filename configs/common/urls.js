@@ -5,19 +5,14 @@ module.exports = (base) => ({
   BACKGROUND_IMAGE_URL: 'https://cdn.'+base+'/brands-database/database/', // core/sources/utils.es
   BW_URL: 'https://antiphishing.'+base+'/api/bwlist?md5=', // anti-phishing/sources/anti-phishing.es
   CDN_BASEURL: 'https://cdn.'+base,
-  CDN_CONTENTSCRIPT_BASEURL: 'https://cdn3.'+base, // Alternative to CDN_BASEURL for content scripts
+  CLIQZ_SAVE_URL: 'https://'+base+'/q=', // core/sources/utils.es (Need to find a more suitable name for this.)
   CONFIG_PROVIDER: 'https://api.'+base+'/api/v1/config',
   ENDPOINT_ANONPATTERNSURL: 'https://cdn.'+base+'/human-web/patterns-anon',
-  ENDPOINT_BLIND_SIGNER: 'https://hpn-sign.'+base+'/sign',
   ENDPOINT_HPNV2_DIRECT: 'https://collector-hpn.'+base+'',
   ENDPOINT_HPNV2_ANONYMOUS: 'https://collector-hpn.'+base+'',
-  ENDPOINT_KEYS_PROVIDER: 'https://hpn-collector.'+base+'/signerKey?q=1',
-  ENDPOINT_LOOKUP_TABLE_PROVIDER: 'https://hpn-collector.'+base+'/v2/lookuptable?q=1',
   ENDPOINT_PATTERNSURL: 'https://cdn.'+base+'/human-web/patterns',
   ENDPOINT_SAFE_QUORUM_ENDPOINT: 'https://safe-browsing-quorum.'+base+'/',
   ENDPOINT_SAFE_QUORUM_PROVIDER: 'https://safe-browsing-quorum.'+base+'/config',
-  ENDPOINT_SOURCE_MAP_PROVIDER: 'https://hpn-collector.'+base+'/sourcemapjson?q=1',
-  ENDPOINT_USER_REG: 'https://hpn-sign.'+base+'/register',
   FEEDBACK: 'https://'+base+'/feedback/', // core/sources/utils.es
   HB_NEWS: 'hb-news.'+base+'', // freshtab/sources/news.es, history/sources/rich-header-proxy.es
   HOMPAGE_URL: 'https://'+base+'/', // autocomplete/sources/result-providers.es, history/sources/history-dto.es (Need to check for trailing slash)
@@ -38,4 +33,6 @@ module.exports = (base) => ({
   TRACKER_PROXY_PROXY_SIGNALING_DEFAULT: 'wss://p2p-signaling-proxypeer.'+base+'', // tracker-proxy.es
   UNINSTALL: 'https://'+base+'/home/offboarding', // core/sources/utils.es
   WTM_API: 'https://whotracks.me/data/',
+  FRIENDS_BACKEND_URL: 'https://friends.' + base, // cliqz-for-friends
+  FRIENDS_STAGING_BACKEND_URL: 'https://friends-staging.clyqz.com', // cliqz-for-friends
 });

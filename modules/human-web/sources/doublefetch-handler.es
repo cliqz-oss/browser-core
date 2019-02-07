@@ -91,7 +91,11 @@ export default class DoublefetchHandler {
   anonymousHttpGet(url) {
     this._stats.callsToAnonymousHttpGet += 1;
 
-    return this._pendingInit.catch(logger.debug).then(() => {
+    const logPreviusError = (e) => {
+      logger.debug('Previous request failed (error: ', e || '<missing>',
+        '). Ignore and continue...');
+    };
+    return this._pendingInit.catch(logPreviusError).then(() => {
       const requestStartedAt = new Date();
       this._purgeObsoleteRequests(requestStartedAt);
 
@@ -107,7 +111,7 @@ export default class DoublefetchHandler {
 
       // start the anonymous GET request (stripping cookies, etc)
       this._stats.httpRequests.started += 1;
-      const requestPromise = getRequest(url);
+      const requestPromise = this._makeRequestAndWaitForHandlers(url, entry);
       entry.requestPromise = requestPromise;
 
       requestPromise.catch(logger.debug).then(() => {
@@ -311,6 +315,8 @@ export default class DoublefetchHandler {
           'Learned new DNS resolution from doublefetch:',
           parsedURL.hostname, ' -> ', request.ip
         );
+
+        matchingPendingEvent.onCompletedHandlerFinished();
       }
     };
   }
@@ -369,6 +375,48 @@ export default class DoublefetchHandler {
     this._pendingInit = pendingUnload.catch(logger.error);
 
     return pendingUnload;
+  }
+
+  /**
+   * Fetches the given URL and returns a promise that resolves
+   * with the resulting body.
+   *
+   * In addition, it makes a best-effort attempt to wait for the completion
+   * of the webrequestAPI handlers that are associated with the request.
+   */
+  _makeRequestAndWaitForHandlers(url, entry, onCompletedHandlerTimeoutInMs = 3000) {
+    let handlerTimedOut;
+    let timeoutTimer;
+    let installTimeout = true;
+
+    const waitForHandlersPromise = new Promise((resolve, reject) => {
+      entry.onCompletedHandlerFinished = () => {
+        installTimeout = false;
+        clearTimeout(timeoutTimer);
+        resolve();
+      };
+      handlerTimedOut = () => {
+        const msg = `The request for url=${url} completed successfully, `
+          + `but after waiting for ${onCompletedHandlerTimeoutInMs} ms, `
+          + 'the "onCompleted" handler still did not trigger.';
+        logger.warn(msg);
+        reject(msg);
+      };
+    });
+
+    return getRequest(url).then((body) => {
+      // Normally, the onCompleted handler should trigger immediately
+      // (either before or after the request is resolved).
+      // To avoid that we hang forever if we fail to correlated requests,
+      // install a timeout and give up eventually.
+      if (installTimeout) {
+        timeoutTimer = setTimeout(() => {
+          logger.warn('Waiting for the "onCompleted" handler timed out for url', url);
+          handlerTimedOut();
+        }, onCompletedHandlerTimeoutInMs);
+      }
+      return waitForHandlersPromise.then(() => body);
+    });
   }
 
   _setState(newState) {

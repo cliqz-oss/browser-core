@@ -4,6 +4,7 @@ import CliqzMsgHandlerDropdown from './handlers/dropdown';
 import CliqzMsgHandlerFreshtabTop from './handlers/freshtab-top';
 import CliqzMsgHandlerFreshtabMiddle from './handlers/freshtab-middle';
 import CliqzMsgHandlerFreshtabOffers from './handlers/freshtab-offers';
+import CliqzMsgHandlerFreshtabCliqzPost from './handlers/freshtab-cliqzpost';
 
 /* ************************************************************************* */
 function _log(msg) {
@@ -29,6 +30,8 @@ export default class CliqzMsgCenter {
       new CliqzMsgHandlerFreshtabMiddle());
     this.registerMessageHandler('MESSAGE_HANDLER_FRESHTAB_OFFERS',
       new CliqzMsgHandlerFreshtabOffers());
+    this.registerMessageHandler('MESSAGE_HANDLER_FRESHTAB_CLIQZPOST',
+      new CliqzMsgHandlerFreshtabCliqzPost());
   }
 
   registerMessageHandler(id, handler) {
@@ -49,6 +52,15 @@ export default class CliqzMsgCenter {
   }
 
   hideMessage(message, handlerId) {
+    const handler = this._messageHandlers[handlerId];
+    if (handler) {
+      handler.dequeueMessage(message);
+    } else {
+      _log(`message handler not found: ${handlerId}`);
+    }
+  }
+
+  pauseMessage(message, handlerId) {
     const handler = this._messageHandlers[handlerId];
     if (handler) {
       handler.dequeueMessage(message);

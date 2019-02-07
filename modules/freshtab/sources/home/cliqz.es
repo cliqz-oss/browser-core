@@ -41,7 +41,7 @@ class Cliqz {
             [message.id]: message,
           }
         }));
-      },
+      }
     }, {
       filter(message) {
         return Object.keys(this.actions).indexOf(message.action) >= 0;
@@ -84,6 +84,10 @@ class Cliqz {
       window.addEventListener('unload', () => {
         chrome.runtime.onMessage.removeListener(onMessage);
       });
+
+      if (chrome.omnibox2) {
+        chrome.omnibox2.focus();
+      }
     }).catch((ex) => {
       // eslint-disable-next-line no-console
       console.error('Chrome was never ready', ex);

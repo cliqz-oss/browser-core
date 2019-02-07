@@ -1,8 +1,8 @@
 export function wrapper() {
   return {
     position: 'fixed',
-    top: '18px',
-    right: '300px',
+    top: '55px',
+    right: '290px',
     'z-index': '2147483647',
     opacity: '0',
   };
@@ -16,5 +16,6 @@ export function banner() {
     opacity: '0',
     'box-shadow': 'rgba(0, 0, 0, 0.19) 3px 2px 13px 2px',
     'border-radius': '8px',
+    background: '#f2f2f2'
   };
 }

@@ -1,7 +1,6 @@
 {
   "subprojects": [
     "handlebars",
-    "mathjs",
-    "rxjs"
+    "math"
   ]
 }

@@ -5,6 +5,14 @@ Components.utils.import('resource://gre/modules/FileUtils.jsm');
 
 const connections = new Map();
 
+export function openDBHome(dbNameArr) {
+  const dbName = dbNameArr.join('');
+  const filePath = FileUtils.getFile('Home', dbNameArr);
+  const connection = Services.storage.openDatabase(filePath);
+  connections.set(dbName, connection);
+  return connection;
+}
+
 export function open(databaseName) {
   let connection;
   if (!connections.has(databaseName)) {

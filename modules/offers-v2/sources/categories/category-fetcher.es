@@ -12,6 +12,7 @@ import setTimeoutInterval from '../../core/helpers/timeout';
 import { setTimeout } from '../../core/timers';
 import { shouldKeepResource } from '../utils';
 import prefs from '../../core/prefs';
+import initialCategories from './initial-categories';
 
 // Constant defining how frequently we want to fetch categories from BE
 const FETCH_FREQ_MS = 1000 * 60 * 60 * 1;
@@ -68,11 +69,12 @@ export default class CategoryFetcher {
       return this.db.get(CATEGORY_FETCHER_DB_ID).then((data) => {
         if (data) {
           this.lastRevision = data.lastRevision;
+        } else {
+          this._updateCategories(initialCategories());
         }
         startIntervalFetch();
       });
     }
-
     // no db
     startIntervalFetch();
     return Promise.resolve();

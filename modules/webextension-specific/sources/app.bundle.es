@@ -2,6 +2,14 @@
 import App from '../core/app';
 import config from '../core/config';
 
+async function cleanLegacyDatabases() {
+  if (chrome.cliqzdbmigration) {
+    await chrome.cliqzdbmigration.deleteDatabase('antitracking');
+    await chrome.cliqzdbmigration.deleteDatabase('cliqz-adb');
+    await chrome.cliqzdbmigration.deleteDatabase('anolysis');
+  }
+}
+
 function migratePrefs() {
   return new Promise((resolve) => {
     const PREFS_KEY = 'cliqzprefs';
@@ -14,11 +22,13 @@ function migratePrefs() {
         }
 
         chrome.cliqzmigration.getPrefs((oldPrefs) => {
-          Object.assign(prefs, oldPrefs, prefs);
+          Object.assign(prefs, oldPrefs);
           prefs.isMigrated = true;
           chrome.storage.local.set({ [PREFS_KEY]: prefs });
-          chrome.cliqzmigration.purge(resolve);
+          // chrome.cliqzmigration.purge(resolve);
+          resolve();
         });
+        cleanLegacyDatabases();
       });
     } else {
       resolve();
@@ -27,18 +37,19 @@ function migratePrefs() {
 }
 
 const CLIQZ = {};
+CLIQZ.app = new App({
+  version: chrome.runtime.getManifest().version
+});
+window.CLIQZ = CLIQZ;
 
 migratePrefs().then(() => {
-  CLIQZ.app = new App({
-    version: chrome.runtime.getManifest().version
-  });
-
   CLIQZ.app.start();
-  window.CLIQZ = CLIQZ;
 
   window.addEventListener('unload', () => {
     CLIQZ.app.stop();
   });
 });
 
-chrome.runtime.setUninstallURL(config.settings.UNINSTALL);
+if (config.settings.showOffboarding) {
+  chrome.runtime.setUninstallURL(config.settings.UNINSTALL);
+}

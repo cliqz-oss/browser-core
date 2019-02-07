@@ -18,7 +18,6 @@ const CliqzUtils = {
   environment: CLIQZEnvironment,
   RESULTS_TIMEOUT: CLIQZEnvironment.RESULTS_TIMEOUT,
   SKIN_PATH: CLIQZEnvironment.SKIN_PATH,
-  BROWSER_ONBOARDING_PREF: CLIQZEnvironment.BROWSER_ONBOARDING_PREF,
   telemetryHandlers: [
   ],
 

@@ -5,7 +5,7 @@ import {
   getResourceUrl,
   isWebExtension,
 } from '../../core/platform';
-import getTitleColor from '../utils';
+import { getTitleColor } from '../utils';
 
 export function transform(data = {}) {
   const { offer_data: { ui_info: uiInfo } = {}, offer_id: offerId } = data;

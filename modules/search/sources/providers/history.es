@@ -1,5 +1,6 @@
 /* global Components */
-import Rx from '../../platform/lib/rxjs';
+import { Observable } from 'rxjs';
+import { map, scan, share, filter } from 'rxjs/operators';
 import utils from '../../core/utils';
 import BaseProvider from './base';
 
@@ -40,30 +41,32 @@ export default class History extends BaseProvider {
     }
 
     const results$ = this.historySearch(query, config)
-      // do not emit empty, pending results to reduce flickering
-      .filter(response =>
-        !(response.state === 'pending' && response.results.length === 0))
-      .map(r => [r])
-      .scan(collect, getPendingResponse(this.id, config, query))
-      .map(response => apply(response, normalize))
-      .map(response => apply(response, clean))
-      .map(({ results, ...response }) => ({
-        ...response,
-        results:
-          // TODO: deduplicate is again called in enriched, try to simplify;
-          //       at the moment, both is needed: here because history returns
-          //       duplicates (like http://cliqz.com and https://cliqz.com) and
-          //       in enrich to remove rich data/history duplicates
-          // filter out results without main link (clean above removes links)
-          deduplicate(results.filter(hasMainLink)),
-      }))
-      .share();
+      .pipe(
+        // do not emit empty, pending results to reduce flickering
+        filter(response =>
+          !(response.state === 'pending' && response.results.length === 0)),
+        map(r => [r]),
+        scan(collect, getPendingResponse(this.id, config, query)),
+        map(response => apply(response, normalize)),
+        map(response => apply(response, clean)),
+        map(({ results, ...response }) => ({
+          ...response,
+          results:
+            // TODO: deduplicate is again called in enriched, try to simplify;
+            //       at the moment, both is needed: here because history returns
+            //       duplicates (like http://cliqz.com and https://cliqz.com) and
+            //       in enrich to remove rich data/history duplicates
+            // filter out results without main link (clean above removes links)
+            deduplicate(results.filter(hasMainLink)),
+        })),
+        share()
+      );
 
     return results$;
   }
 
   historySearch(query = '', config) {
-    return Rx.Observable.create((observer) => {
+    return Observable.create((observer) => {
       utils.historySearch(query, (results) => {
         const r = mapResults(results.results, query);
 

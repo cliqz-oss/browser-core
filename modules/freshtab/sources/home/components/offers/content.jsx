@@ -7,7 +7,7 @@ import { tt } from '../../i18n';
 import { sendOffersMessage } from '../../services/offers';
 import { offerClickSignal } from '../../services/telemetry/offers';
 import config from '../../../config';
-
+import Button from '../partials/button';
 
 function Label(props) {
   return (
@@ -120,33 +120,27 @@ export default class Content extends React.Component {
                 url={this.props.data.call_to_action.url}
               />
             </span>
-            <button
-              type="button"
+            <Button
               className="options"
               onClick={this.handletoggleMenu}
             />
             <ul className={`offer-menu white-box ${this.props.getOfferMenuOpen() ? 'show-it' : ''}`}>
 
               <li>
-                <button
-                  type="button"
+                <Button
+                  label={tt('delete')}
                   onClick={this.handleCloseClick}
-                >
-                  {tt('delete')}
-                </button>
+                />
               </li>
               <li>
-                <button
-                  type="button"
+                <Button
+                  label={tt('why_offers')}
                   onClick={this.showInfo}
-                >
-                  {tt('why_offers')}
-                </button>
+                />
               </li>
             </ul>
             <div className={`why-info white-box ${this.props.getOfferInfoOpen() ? 'show-it' : ''}`}>
-              <button
-                type="button"
+              <Button
                 className="close"
                 onClick={this.closeWhyInfo}
               />

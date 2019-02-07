@@ -1,6 +1,5 @@
-import Rx from '../../../platform/lib/rxjs';
-
-const { map } = Rx.operators;
+import { pipe } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 // TODO: add tests
 
@@ -11,4 +10,4 @@ const { map } = Rx.operators;
  * @function pluckResults
  */
 export default () =>
-  map(({ responses: [first] }) => (first && first.results) || []);
+  pipe(map(({ responses: [first] }) => (first && first.results) || []));

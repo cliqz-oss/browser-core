@@ -1,5 +1,6 @@
 /* global window, document, $, Handlebars */
 
+import { chrome } from '../platform/content/globals';
 import helpers from './content/helpers';
 import templates from './templates';
 
@@ -285,8 +286,21 @@ $(document).on('click', '#feedback-button', function itemClick() {
 });
 
 let vote;
+
+// when user focus of feedback textfield from footer
+$(document).on('focus', '#feedback-textarea', () => {
+  $('#submit-feedback').addClass('active');
+});
+
+$(document).on('blur', '#feedback-textarea', function itemClick() {
+  if ($(this).val().trim() === '') {
+    $('#submit-feedback').removeClass('active');
+  }
+});
+
 // When user clicks on thumb up/down button
 $(document).on('click', '.feedback-button', function itemClick() {
+  $('#submit-feedback').addClass('active');
   vote = $(this).data('vote');
   $(this).addClass('selected').siblings('.feedback-button')
     .removeClass('selected');
@@ -352,18 +366,34 @@ $(document).on('click', '#expand-button', function itemClick() {
 // When user clicks to copy the promotion code
 $(document).on('click', '.promocode-wrapper', function itemClick() {
   const offerId = getOfferId($(this));
-  $(this).find('.code').focus().select();
+  const codeNode = $(this).find('.code');
+  codeNode.val(codeNode.data('code'));
+  codeNode.focus().select();
   const success = copySelectionText();
 
-  if (success) {
-    $(this).find('.copy-code').text(chrome.i18n.getMessage('offers_hub_code_copy'));
-    // $(this).find('.code').blur(); // Should we blur it ?
+  if (!success) { return; }
+
+  $(this).find('.copy-code').text(chrome.i18n.getMessage('offers_hub_code_copy'));
+  sendMessageToWindow({
+    action: 'sendOfferActionSignal',
+    data: {
+      signal_type: 'offer-action-signal',
+      element_id: 'code_copied',
+      offer_id: offerId,
+    }
+  });
+
+  const wasRevealed = Boolean(codeNode.data('was-code-revealed'));
+  if (!wasRevealed) {
+    codeNode.data('was-code-revealed', 'true');
     sendMessageToWindow({
-      action: 'sendOfferActionSignal',
+      action: 'openURL',
       data: {
-        signal_type: 'offer-action-signal',
-        element_id: 'code_copied',
-        offer_id: offerId,
+        url: $(this).find('.copy-code').data('url'),
+        isBackgroundTab: true,
+        closePopup: false,
+        isCallToAction: true,
+        offerId: getOfferId($(this)),
       }
     });
   }
@@ -381,11 +411,20 @@ $(document).on('click', '.cta-btn', function itemClick() {
     action: 'openURL',
     data: {
       url: $(this).data('url'),
-      closePopup: true,
+      closePopup: false,
       isCallToAction: true,
       offerId: getOfferId($(this)),
     }
   });
+  const voucherNode = $(this).closest('.voucher-container');
+  const codeNode = voucherNode.find('.code');
+  if (!codeNode) { return; }
+  codeNode.val(codeNode.data('code'));
+  const wasRevealed = Boolean(codeNode.data('was-code-revealed'));
+  codeNode.data('was-code-revealed', 'true');
+  if (!wasRevealed) {
+    voucherNode.find('.copy-code').text(chrome.i18n.getMessage('offers_hub_copy_btn'));
+  }
 });
 
 // When use clicks on "Call to action" elements

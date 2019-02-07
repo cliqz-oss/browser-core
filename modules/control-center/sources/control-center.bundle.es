@@ -7,48 +7,8 @@ import createSpananForModule from '../core/helpers/spanan-module-wrapper';
 
 const controlCenterModule = createSpananForModule('control-center');
 const controlCenter = controlCenterModule.createProxy();
-const slideUp = $.fn.slideUp;
-const slideDown = $.fn.slideDown;
-let resizeTimeout = null;
 
 Handlebars.partials = templates;
-
-function sendMessageToWindow(message) {
-  window.postMessage(JSON.stringify({
-    target: 'cliqz-control-center',
-    origin: 'iframe',
-    message
-  }), '*');
-}
-
-function resize() {
-  const $controlCenter = $('#control-center');
-  const width = $controlCenter.width();
-  const height = $controlCenter.height();
-
-  if (height) {
-    sendMessageToWindow({
-      action: 'resize',
-      data: {
-        width,
-        height
-      }
-    });
-    return;
-  }
-  clearTimeout(resizeTimeout);
-  resizeTimeout = setTimeout(resize, 50);
-}
-$.fn.slideUp = function newSlideUp() {
-  const ret = slideUp.call(this, 0);
-  resize();
-  return ret;
-};
-$.fn.slideDown = function newSlideDown() {
-  const ret = slideDown.call(this, 0);
-  resize();
-  return ret;
-};
 
 function localizeDocument() {
   Array.from(document.querySelectorAll('[data-i18n]'))
@@ -62,7 +22,9 @@ function localizeDocument() {
 
 function closeAccordionSection() {
   $('.accordion .accordion-section-title').removeClass('active');
-  $('.accordion .accordion-section-content').slideUp(150).removeClass('open');
+  $('.accordion .accordion-section-content').slideUp(150, () => {
+    document.body.classList.remove('j-vscroll-on-demand');
+  }).removeClass('open');
 }
 
 // open URL
@@ -283,7 +245,6 @@ function compileAdblockInfo(data) {
 }
 
 function draw(data) {
-  const emptyFrame = Object.keys(data.module || {}).length === 0;
   const module = data.module;
 
   if (module) {
@@ -310,8 +271,6 @@ function draw(data) {
   }
 
   data.showSecuritySettings = !data.compactView;
-  // history settings are hidden in the compactView
-  data.showHistorySettings = !data.compactView;
   // tipps button is hidden for compactView
   data.showTipps = !data.compactView;
 
@@ -320,7 +279,9 @@ function draw(data) {
 
   function closeSettingAccordionSection() {
     $('.setting-accordion .accordion-active-title').removeClass('active');
-    $('.setting-accordion .setting-accordion-section-content').slideUp(150).removeClass('open');
+    $('.setting-accordion .setting-accordion-section-content').slideUp(150, () => {
+      document.body.classList.remove('j-vscroll-on-demand');
+    }).removeClass('open');
   }
 
   $('.setting-accordion-section-title').on('click', function (e) {
@@ -355,7 +316,17 @@ function draw(data) {
     } else {
       closeSettingAccordionSection();
       $(this).addClass('active');
-      $(`.setting-accordion ${currentAttrValue}`).slideDown(150).addClass('open');
+      const $slideDownItem = $(`.setting-accordion ${currentAttrValue}`);
+      $slideDownItem.slideDown(150, () => {
+        // #FF_resize_issue
+        // FF has an issue regarding to resize of WebExtension window depending on its' content.
+        // It is never greater than 800 pixels in height.
+        // So we assign a value of 'auto' to overflowY for cases if document.body.scrollHeight is
+        // greather than document.body.clientHeight.
+        // A user could then decide whether to scroll down to see other options or not.
+        document.body.classList.add('j-vscroll-on-demand');
+      });
+      $slideDownItem.addClass('open');
     }
   });
 
@@ -375,7 +346,12 @@ function draw(data) {
     } else {
       closeAccordionSection();
       $(this).addClass('active');
-      $(`.accordion ${currentAttrValue}`).slideDown(150).addClass('open');
+      const $slideDownItem = $(`.accordion ${currentAttrValue}`);
+      $slideDownItem.slideDown(150, () => {
+        // #FF_resize_issue
+        document.body.classList.add('j-vscroll-on-demand');
+      });
+      $slideDownItem.addClass('open');
       state = 'expanded';
     }
     controlCenter.sendTelemetry({
@@ -406,7 +382,6 @@ function draw(data) {
     $settings.addClass('open');
     $setting.addClass('active');
     $othersettings.css('display', 'none');
-    resize();
   });
 
   $('.cross').click(function (e) {
@@ -418,7 +393,6 @@ function draw(data) {
       target: $(this).attr('data-target'),
       action: 'click'
     });
-    resize();
   });
 
   $('.cqz-switch-label, .cqz-switch-grey').click(function () {
@@ -494,14 +468,9 @@ function draw(data) {
   });
 
   localizeDocument();
-  if (!emptyFrame) {
-    resize();
-  }
 
   $('.cc-tooltip').tooltipster({
     theme: ['tooltipster-shadow', 'tooltipster-shadow-customized'],
-    interactive: true,
-    delay: 150,
     animationDuration: 150,
   });
 }
@@ -524,7 +493,10 @@ $(document).ready(() => {
       if (isCompactView) {
         data.compactView = true;
       }
+      // remove the loader div once the content is populated
+      document.getElementById('loader').remove();
       draw(data);
+      window.postMessage('{ "ready": true }', '*');
     });
   });
 });

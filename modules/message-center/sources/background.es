@@ -12,6 +12,7 @@ import Triggers from './triggers/triggers';
   @class Background
  */
 export default background({
+  requiresServices: ['cliqz-config'],
 
   /**
     @method init
@@ -37,6 +38,9 @@ export default background({
     },
     'msg_center:hide_message': function (...args) {
       this.messageCenter.hideMessage.call(this.messageCenter, ...args);
+    },
+    'msg_center:pause_message': function (...args) {
+      this.messageCenter.pauseMessage.call(this.messageCenter, ...args);
     },
     'offers-send-ch': function onNewOffer(offer) {
       const DEST_TO_HANDLERS = {
@@ -71,6 +75,9 @@ export default background({
     },
     hideMessage(handlerID, message) {
       this.messageCenter.hideMessage(message, handlerID);
+    },
+    pauseMessage(handlerID, message, dated) {
+      this.messageCenter.pauseMessage(message, handlerID, dated);
     }
   },
 });

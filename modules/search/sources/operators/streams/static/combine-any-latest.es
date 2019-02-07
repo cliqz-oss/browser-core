@@ -1,4 +1,5 @@
-import Rx from '../../../../platform/lib/rxjs';
+import { combineLatest } from 'rxjs';
+import { startWith, map, filter } from 'rxjs/operators';
 
 const EMPTY = Symbol('EMPTY');
 
@@ -12,9 +13,9 @@ const EMPTY = Symbol('EMPTY');
  * @returns {operator} The `combineAnyLatest` static operator.
  */
 
-export default observables =>
-  Rx.Observable.combineLatest(
-    observables.map(observable$ => observable$.startWith(EMPTY))
-  )
-    .map(values => values.filter(value => value !== EMPTY))
-    .filter(combined => combined.length > 0);
+export default observables => combineLatest(
+  observables.map(observable$ => observable$.pipe(startWith(EMPTY)))
+).pipe(
+  map(values => values.filter(value => value !== EMPTY)),
+  filter(combined => combined.length > 0)
+);

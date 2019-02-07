@@ -1,5 +1,8 @@
 /* globals ChromeUtils, ExtensionAPI, FileUtils */
-ChromeUtils.import('resource://gre/modules/ExtensionCommon.jsm');
+import config from '../../../core/config';
+
+const isAMO = config.settings.channel === '04';
+
 ChromeUtils.import('resource://gre/modules/FileUtils.jsm');
 ChromeUtils.import('resource://gre/modules/Services.jsm');
 
@@ -19,7 +22,16 @@ const PREFS_BRANCHES = {
   'extensions.cliqz-lang.': 'extensions.cliqz-lang.',
 };
 
+const CLIQZ_BROWSER_PREFS = new Set([
+  'extensions.cliqz.freshtab.blueTheme.enabled',
+  'extensions.cliqz.freshtabConfig',
+  'extensions.cliqz.listed',
+  'extensions.cliqz.onion-mode',
+  'extensions.cliqz.full_distribution',
+]);
+
 const prefSvc = Services.prefs;
+
 
 const COMPLEX_VALUE_RE = /^chrome:\/\/.+\/locale\/.+\.properties/;
 
@@ -79,7 +91,12 @@ function purge() {
   Object.keys(PREFS_BRANCHES).forEach((branchName) => {
     prefSvc.getBranch(branchName)
       .getChildList('')
-      .forEach(prefName => prefSvc.clearUserPref(`${branchName}${prefName}`));
+      .forEach((prefName) => {
+        const pref = `${branchName}${prefName}`;
+        if (isAMO || !CLIQZ_BROWSER_PREFS.has(pref)) {
+          prefSvc.clearUserPref(pref);
+        }
+      });
   });
 
   // remove folders and databases

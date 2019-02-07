@@ -27,7 +27,8 @@ export default class PatternsStat {
   async init() {
     const Dexie = await getDexie();
     this.db = new Dexie('offers-patterns-stat');
-    this.db.version(1).stores(dexieSchema);
+    this.db.version(1).stores({ views: '++id' });
+    this.db.version(2).stores(dexieSchema);
     this.threadCount = 0; // For unit tests to know that operations are done
   }
 
@@ -50,7 +51,9 @@ export default class PatternsStat {
       return;
     }
     const db = await this.db;
-    db[collection].add(data);
+    db[collection]
+      .add(data)
+      .catch(err => this._logError(err, collection, 'add', data));
   }
 
   /**
@@ -74,14 +77,18 @@ export default class PatternsStat {
     }
     const data = this.group(collection);
     const db = await this.db;
-    db[collection].clear();
+    db[collection]
+      .clear()
+      .catch(err => this._logError(err, collection, 'clear'));
     return data;
   }
 
   async group(collection) {
     const map = new Map();
     const db = await this.db;
-    await db[collection].each(item => this.collector(collection, item, map));
+    await db[collection]
+      .each(item => this.collector(collection, item, map))
+      .catch(err => this._logError(err, collection, 'each'));
     return [...map.values()];
   }
 
@@ -147,5 +154,13 @@ export default class PatternsStat {
       }
     }
     this.threadCount -= 1;
+  }
+
+  _logError(err, collection, operation, data = {}) {
+    const dataStr = JSON.stringify(data);
+    logger.error(
+      `PatternsStat failed: collection -> ${collection},
+        operation -> ${operation}, data -> ${dataStr}, err -> ${err.message}`
+    );
   }
 }
