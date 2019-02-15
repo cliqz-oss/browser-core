@@ -45,7 +45,6 @@
     "activeTab",
     "topSites",
     "unlimitedStorage",
-    "clipboardWrite",
     "webRequest",
     "webNavigation",
     "webRequestBlocking"
