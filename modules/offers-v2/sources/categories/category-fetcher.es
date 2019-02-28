@@ -123,6 +123,8 @@ export default class CategoryFetcher {
       // to add here.
       this._updateCategories(categories);
 
+      this.categoryHandler.doDailyAccounting();
+
       return Promise.resolve(true);
     });
   }

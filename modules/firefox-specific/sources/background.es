@@ -86,7 +86,7 @@ export default background({
   },
 
   onVisited(visits) {
-    inject.service('telemetry').push({ visitsCount: visits.length }, 'metrics.history.visits.count');
+    inject.service('telemetry', ['push']).push({ visitsCount: visits.length }, 'metrics.history.visits.count');
   },
 
   whoAmI({ startup, windowId }) {
@@ -131,7 +131,7 @@ export default background({
         defaultSearchEngine,
         isDefaultBrowser: utils.isDefaultBrowser(),
         private_window: utils.isPrivateMode(window),
-        distribution: prefs.get('distribution', ''),
+        distribution: prefs.get('distribution', '', 'extensions.cliqz.'),
         version_host: prefs.get('gecko.mstone', '', ''),
         version_dist: prefs.get('distribution.version', '', ''),
         install_date: await getDaysSinceInstall(),

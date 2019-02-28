@@ -1,5 +1,3 @@
-const waitFor = require('./waitfor');
-
 let persistenceMap = {};
 let simpleDb = {};
 
@@ -97,7 +95,7 @@ module.exports = {
       if (!odb) {
         const OfferDB = (await system.import('offers-v2/offers/offers-db')).default;
         odb = new OfferDB();
-        await waitFor(() => odb.dbLoaded);
+        await odb.loadPersistentData();
       }
       const offerIds = odb.getOffers(/* includeRemoved */ true).map(o => o.offer_id);
       offerIds.forEach(offerId => odb.eraseOfferObject(offerId));

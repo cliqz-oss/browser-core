@@ -44,7 +44,7 @@ const cluster = (theme, color) => ({
     alignItems: 'center',
   },
   row: {
-    borderTopWidth: 0.5,
+    borderTopWidth: 1.5,
     borderTopColor: themeDetails[theme].separatorColor,
     flexDirection: 'column',
     alignItems: 'flex-start',
@@ -67,7 +67,7 @@ const cluster = (theme, color) => ({
 
 const nonCluster = (theme, color) => ({
   historyHeader: {
-    borderTopWidth: 0.5,
+    borderTopWidth: 1.5,
     borderTopColor: themeDetails[theme].separatorColor,
     flexDirection: 'row',
     alignItems: 'center',

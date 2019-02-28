@@ -20,13 +20,14 @@ const styles = (width, theme) => StyleSheet.create({
     backgroundColor: themeDetails[theme].container.bgColor, // allow snapping along viewport
   },
   card: {
-    elevation: 2, // android
     backgroundColor: themeDetails[theme].card.backgroundColor,
     width,
     ...cardBorderTopRadius,
     ...cardBorderBottomRadius,
     ...cardMargins,
     overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: themeDetails[theme].card.borderColor,
   },
 });
 
@@ -38,8 +39,26 @@ class Card extends React.Component {
     return resultChanged || layoutChanged || themeChanged;
   }
 
-  sendResultClickTelemetry() {
-    // TODO: call reportSelection search background action
+  getSelection = () => {
+    const props = this.props;
+    const meta = props.meta;
+    const result = props.result;
+    const selection = {
+      action: 'click',
+      elementName: 'title',
+      isFromAutoCompletedUrl: false,
+      isNewTab: false,
+      isPrivateMode: false,
+      isPrivateResult: meta.isPrivate,
+      query: meta.query,
+      rawResult: {
+        index: props.index,
+        ...props.result,
+      },
+      resultOrder: meta.resultOrder,
+      url: result.url,
+    };
+    return selection;
   }
 
   render() {
@@ -76,7 +95,7 @@ class Card extends React.Component {
             <Link
               label="main-url"
               url={result.url}
-              onPress={(...args) => this.sendResultClickTelemetry(...args)}
+              getSelection={this.getSelection}
             >
               <Generic result={result} theme={theme} />
             </Link>

@@ -47,13 +47,33 @@ CLIQZ.app.start().then(() => {
   sendEnvironmentalSignal({ startup: true, instantPush: true });
   // We need to wait for the first telemetry push before setting the outboarding url
   const session = encodeURIComponent(prefs.get('session'));
-  chrome.runtime.setUninstallURL(`${OFFBOARDING_URL}?session=${session}`);
+  const url = new URL(OFFBOARDING_URL);
+  url.searchParams.append('session', session);
+  chrome.runtime.setUninstallURL(url.href);
 });
 window.CLIQZ = CLIQZ;
 
+function sendInstallSignal(referrerUrl, advertId, error) {
+  utils.telemetry({
+    type: 'activity',
+    action: 'install',
+    referrer_url: referrerUrl,
+    advert_id: advertId,
+    error
+  }, true);
+}
+
 async function onboarding(details) {
   if (details.reason === 'install' && config.settings.channel !== '99') {
-    await newTab(ONBOARDING_URL, { focus: true });
+    // Set an extra parameter if on a development mode
+    if (config.settings.channel === 'MO02') {
+      const url = new URL(ONBOARDING_URL);
+      url.searchParams.append('debug', true);
+      await newTab(url.href, { focus: true });
+    } else {
+      await newTab(ONBOARDING_URL, { focus: true });
+    }
+
     utils.telemetry({
       type: 'activity',
       action: 'onboarding-show',
@@ -61,26 +81,13 @@ async function onboarding(details) {
     query({ url: 'https://myoffrz.com/lp*' }).then((tabs) => {
       tabs.forEach((tab) => {
         const url = new URL(tab.url);
-        utils.telemetry({
-          type: 'activity',
-          action: 'install',
-          referrer_url: url.pathname,
-          advert_id: url.searchParams.get('pk_campaign')
-        }, true);
+        sendInstallSignal(url.pathname + url.search, url.searchParams.get('pk_campaign'));
       });
-    });
-    query({ url: 'https://myoffrz.com/instyle*' }).then((tabs) => {
-      if (!(tabs === undefined || tabs.length === 0)) {
-        utils.telemetry({
-          type: 'activity',
-          action: 'install',
-          referrer_url: 'instyle',
-          advert_id: 'instyle'
-        }, true);
-        setTimeout(() => {
-          CLIQZ.app.modules['offers-v2'].action('onContentCategories', { categories: ['instyle'], prefix: 'onboarding', url: 'https://myoffrz.com/instyle' });
-        }, 1500);
+      if (tabs.length === 0) {
+        sendInstallSignal('', 'no-referal');
       }
+    }).catch((err) => {
+      sendInstallSignal('', '', err.message);
     });
   }
 }

@@ -1,8 +1,14 @@
-import { getResourceUrl } from '../../core/platform';
+import { getResourceUrl, isCliqzBrowser, isWebExtension } from '../../core/platform';
 import config from '../../core/config';
 import { getMessage } from '../../core/i18n';
 import { getTitleColor } from '../utils';
 import calculateValidity from './helpers';
+
+// should be read-only
+const COMMON_DATA = {
+  isCliqzBrowser,
+  isWebExtension,
+};
 
 function popup(uiInfo, {
   createdTs,
@@ -59,6 +65,7 @@ function tooltip(uiInfo) {
 
   if (notifType === 'tooltip_extra') {
     return {
+      ...COMMON_DATA,
       showTooltip: true,
       logo: uiInfo.template_data.logo_dataurl,
       headline: headline || title,
@@ -67,16 +74,15 @@ function tooltip(uiInfo) {
       backgroundColor,
       logoClass,
       backgroundImage: logoDataurl,
-      isWebExtension: config.platform === 'webextension',
     };
   }
 
   return {
+    ...COMMON_DATA,
     showTooltip: true,
     isGeneric: true,
     headline: getMessage('offers_hub_tooltip_new_offer'),
     icon: `${config.baseURL}offers-cc/images/offers-cc-icon-white.svg`,
-    isWebExtension: config.platform === 'webextension',
   };
 }
 
@@ -95,9 +101,9 @@ function popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs }) {
       type: 'offers-cc',
     },
     data: {
+      ...COMMON_DATA,
       vouchers: [offer],
       showExpandButton: false,
-      isWebExtension: config.platform === 'webextension',
     }
   };
   return [true, payload];
@@ -114,9 +120,9 @@ function tooltipWrapper(offerId, {
       isPair: true,
       tooltip: tooltip(uiInfo),
       popup: {
+        ...COMMON_DATA,
         vouchers: [popup(uiInfo, { offerId, expirationMs, createdTs, attrs })],
         showExpandButton: false,
-        isWebExtension: config.platform === 'webextension',
       },
     },
     offerId,
@@ -175,9 +181,9 @@ export function transformMany({ offers, preferredOffer } = {}) {
     return {
       config: offersConfig,
       data: {
+        ...COMMON_DATA,
         vouchers: [newPreferredOffer].concat(withoutPreferred),
         showExpandButton: withoutPreferred.length > 0,
-        isWebExtension: config.platform === 'webextension',
       }
     };
   }
@@ -185,10 +191,10 @@ export function transformMany({ offers, preferredOffer } = {}) {
   return {
     config: offersConfig,
     data: {
+      ...COMMON_DATA,
       vouchers: newOffers,
       noVoucher: newOffers.length === 0,
       showExpandButton: false,
-      isWebExtension: config.platform === 'webextension',
     }
   };
 }

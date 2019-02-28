@@ -1,11 +1,14 @@
 /* global chai */
 /* global describeModule */
 /* global require */
+const commonMocks = require('../utils/common');
 
 class EngineFake {
   constructor() { this.filters = ''; }
 
-  onUpdateFilters([{ filters }]) { this.filters = filters; }
+  updateList({ list }) { this.filters = list; }
+
+  deleteLists() { }
 
   match({ url }) {
     const result = this.filters.split('\n').includes(url);
@@ -19,11 +22,7 @@ class LoaderFake {
 
 export default describeModule('offers-v2/offers/blacklist',
   () => ({
-    '../../platform/lib/adblocker': { default: {
-      makeRequest: req => req,
-    } },
-    '../../core/resource-loader': { default: {} },
-    '../../core/config': { default: {} },
+    ...commonMocks,
   }),
   () => {
     describe('black\'s basic cases', () => {

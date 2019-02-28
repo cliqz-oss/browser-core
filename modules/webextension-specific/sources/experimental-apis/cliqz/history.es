@@ -18,6 +18,10 @@ const searchProvider = Components
   .classes['@mozilla.org/autocomplete/search;1?name=unifiedcomplete']
   .getService(Components.interfaces.nsIAutoCompleteSearch);
 
+function today() {
+  return Math.floor(new Date().getTime() / 86400000);
+}
+
 async function sqlQuery(sql, columns) {
   const results = [];
   await PlacesUtils.withConnectionWrapper('CLIQZ', (conn) => {
@@ -152,4 +156,31 @@ export async function topDomains() {
     }
     return acc;
   }, { result: [], domains: { } }).result;
+}
+
+export async function stats() {
+  const rawStats = await sqlQuery([
+    'SELECT count(*) as size, MIN(v.visit_date) as first '
+    + 'FROM moz_historyvisits v '
+    + 'JOIN moz_places h '
+    + 'ON h.id = v.place_id '
+    + 'WHERE h.hidden = 0 AND h.visit_count > 0 '
+  ].join(' '), ['size', 'first']);
+
+  if (rawStats && rawStats.length === 1) {
+    const history = rawStats[0];
+    try {
+      return {
+        size: history.size,
+        days: history.size ? today() - Math.floor(history.first / 86400000000) : 0
+      };
+    } catch (e) {
+      // console.log('browser.cliqz.historyStats error:', e);
+    }
+  }
+
+  return {
+    size: -1,
+    days: -1
+  };
 }

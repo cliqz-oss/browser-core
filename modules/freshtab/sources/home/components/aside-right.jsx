@@ -21,7 +21,8 @@ function AsideRight({
   toggleComponent,
   toggleSettings,
 }) {
-  const shouldShowDeveloperModulesIcon = state.config.developer === true;
+  const shouldShowDeveloperModulesIcon = state.config.developer === true
+    || state.config.isBetaVersion === true;
 
   return (
     <aside className="aside">

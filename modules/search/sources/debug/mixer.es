@@ -10,10 +10,24 @@ import globalConfig from '../../core/config';
 import pluckResults from '../operators/streams/pluck-results';
 import { setGlobal } from '../../core/kord/inject';
 import { parseKind } from '../telemetry';
-import { RESULT_SOURCE_MAP } from '../../anolysis/metrics/search';
+import createModuleWrapper from '../../core/helpers/spanan-module-wrapper';
+import { COLORS, COLOR_MAP, IGNORED_PROVIDERS, IMAGE_PATHS } from './helpers';
+
+const historySearch = createModuleWrapper('history-search').createProxy();
 
 const app = {
-  modules: {},
+  modules: {
+    'history-search': {
+      isReady() { return Promise.resolve(); },
+      background: {
+        actions: {
+          search(...args) {
+            return historySearch.search(...args);
+          }
+        }
+      }
+    }
+  },
   services: {
     logos: {
       api: {
@@ -28,23 +42,25 @@ const app = {
 setGlobal(app);
 
 const $ = window.document.querySelector.bind(window.document);
+const onlyHistory = window.location.href.endsWith('onlyhistory=true');
 
+if (!onlyHistory) {
+  browser.cliqz._unifiedSearch = browser.cliqz.unifiedSearch;
+  let lastQ = null;
+  // issuing same query multiple times gets trottled by the history search function
+  browser.cliqz.unifiedSearch = function _(q) {
+    if (lastQ !== q) {
+      lastQ = q;
+      return browser.cliqz._unifiedSearch(q);
+    }
 
-browser.cliqz._unifiedSearch = browser.cliqz.unifiedSearch;
-let lastQ = null;
-// issuing same query multiple times gets trottled by the history search function
-browser.cliqz.unifiedSearch = function _(q) {
-  if (lastQ !== q) {
-    lastQ = q;
-    return browser.cliqz._unifiedSearch(q);
-  }
-
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      browser.cliqz._unifiedSearch(q).then(resolve);
-    }, 200);
-  });
-};
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        browser.cliqz._unifiedSearch(q).then(resolve);
+      }, 300);
+    });
+  };
+}
 
 const createProviderContainer = (provider) => {
   const container = document.createElement('div');
@@ -52,38 +68,47 @@ const createProviderContainer = (provider) => {
   return container;
 };
 
-const COLORS = {
-  history: '990099',
-  backend: '009900',
-  cliqz: '009900',
-  instant: 'ee2200',
-  'custom-search': 'ee2200',
+const showPopup = (event) => {
+  if (!event.target.parentNode.getAttribute) {
+    return;
+  }
+
+  const popup = document.getElementById('popup');
+  const jsonContainer = popup.querySelector('#data-json');
+  const json = event.target.parentNode.getAttribute('data-json');
+
+  if (
+    (event.target.classList.contains('ellipsis'))
+    || (event.target.classList.contains('kind'))
+    || (event.target.classList.contains('image'))
+  ) {
+    popup.className = '';
+    jsonContainer.innerHTML = `${json}`;
+  } else if (event.target.classList.contains('close')) {
+    popup.className = 'hidden';
+  }
 };
 
-const COLOR_MAP = Object.keys(RESULT_SOURCE_MAP)
-  .reduce((acc, p) => {
-    const kinds = Object.keys(RESULT_SOURCE_MAP[p])
-      .reduce((acc2, k) => {
-        /* eslint-disable no-param-reassign */
-        acc2[k] = {
-          name: RESULT_SOURCE_MAP[p][k],
-          kind: k,
-          provider: p,
-          color: COLORS[p] || '333333'
-        };
-        /* eslint-enable no-param-reassign */
+Handlebars.registerPartial('parseKind', templates['partials/parseKind']);
+Handlebars.registerPartial('resultContent', templates['partials/resultContent']);
 
-        return acc2;
-      }, {});
-
-
-    return Object.assign({}, acc, kinds);
-  }, {});
-
-Handlebars.registerHelper('json', obj => new Handlebars.SafeString(JSON.stringify(obj, null, 4)));
+Handlebars.registerHelper('json', obj => JSON.stringify(obj, null, 4));
 Handlebars.registerHelper('kindColor', provider => COLORS[provider]);
 Handlebars.registerHelper('desc', desc => desc || 'NO DESCRIPTION');
 Handlebars.registerHelper('parseKind', kind => parseKind(kind).sources.map(s => COLOR_MAP[s]));
+Handlebars.registerHelper('checkImg', (json) => {
+  const parsedJson = JSON.parse(json);
+
+  const getNestedJsonField = (nestedPath, data) => nestedPath.reduce((xs, x) => (
+    (xs && xs[x]) ? xs[x] : null
+  ), data);
+
+  const images = IMAGE_PATHS
+    .map(path => getNestedJsonField(path, parsedJson))
+    .filter(path => path !== null);
+
+  return images.length > 0 ? images[0] : '';
+});
 
 window.addEventListener('load', () => {
   const $urlbar = $('#urlbar');
@@ -92,7 +117,27 @@ window.addEventListener('load', () => {
   $urlbar.value = '';
   setTimeout(() => $urlbar.focus(), 100);
 
-  const config = getConfig({ isPrivateMode: false }, globalConfig.settings);
+  const rawConfig = getConfig({ isPrivateMode: false }, globalConfig.settings);
+  // Enable both history and historyLookup
+  const config = {
+    ...rawConfig,
+    providers: {
+      ...rawConfig.providers,
+      history: {
+        ...rawConfig.providers.history,
+        isEnabled: true,
+      },
+      historyLookup: {
+        ...rawConfig.providers.historyLookup,
+        isEnabled: true,
+      }
+    },
+  };
+
+  const ignoredHistoryProvider = rawConfig.providers.history.isEnabled ? 'historyLookup' : 'history';
+  const ignoredProviders = IGNORED_PROVIDERS.concat(onlyHistory
+    ? ['backend', 'cliqz', 'instant', 'custom-search']
+    : [ignoredHistoryProvider]);
 
   const query$ = fromEvent($urlbar, 'keyup')
     .pipe(
@@ -118,11 +163,9 @@ window.addEventListener('load', () => {
   const results$ = search({ query$, focus$ },
     background.providers, config).pipe(pluckResults());
 
-  const IGNORE = ['richHeader', 'cliqz::offers', 'querySuggestions', 'historyView', 'calculator'];
-
   Object.keys(background.providers).forEach((name) => {
     // needs additional input for search: depends on previous results
-    if (IGNORE.indexOf(name) !== -1) return;
+    if (ignoredProviders.indexOf(name) !== -1) return;
 
     const provider = background.providers[name];
     query1$
@@ -130,17 +173,21 @@ window.addEventListener('load', () => {
         switchMap(query => provider.search(query, config, {})),
       )
       .subscribe((response) => {
-        if (IGNORE.indexOf(response.provider) !== -1) return;
+        if (ignoredProviders.indexOf(response.provider) !== -1) return;
 
         if (!$(`#${response.provider}`)) {
           $mixer.appendChild(createProviderContainer(response.provider));
         }
 
-        $(`#${response.provider}`).innerHTML = templates.mixer(response);
+        $(`#${response.provider}`).innerHTML = templates.mixerProviderResult(response);
       });
   });
 
-  results$.subscribe((r) => {
-    $('#results').innerHTML = templates.mixerResult(r);
-  });
+  if (!onlyHistory) {
+    results$.subscribe((r) => {
+      $('#results').innerHTML = templates.mixerFinalResult(r);
+    });
+  }
+
+  document.addEventListener('click', showPopup);
 });

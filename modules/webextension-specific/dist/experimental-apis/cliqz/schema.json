@@ -91,6 +91,13 @@
             }
           }
         }]
+      },
+      {
+        "name": "stats",
+        "type": "function",
+        "description": "Returns stats for the history DB",
+        "async": "callback",
+        "parameters": []
       }
     ]
   }],
@@ -161,5 +168,41 @@
     "description": "Returns the top domains from the user's history",
     "async": "callback",
     "parameters": []
-  }]
+  },
+  {
+    "name": "setPref",
+    "type": "function",
+    "description": "set the value of browser pref",
+    "parameters": [
+      {
+        "type": "string",
+        "name": "prefName",
+        "description": "Browser pref name"
+      },
+      {
+        "type": "any",
+        "name": "value",
+        "description": "Browser pref value"
+      }
+    ]
+  }],
+  "events": [
+    {
+      "name": "onPrefChange",
+      "type": "function",
+      "description": "Listen to pref change",
+      "extraParameters": [
+        {
+          "name": "prefix",
+          "description": "prefix of pref name",
+          "type": "string"
+        },
+        {
+          "name": "key",
+          "description": "key of pref without prefix",
+          "type": "string"
+        }
+      ]
+    }
+  ]
 }]

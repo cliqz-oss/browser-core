@@ -31,7 +31,6 @@ function AsideLeft({
         label="History"
         title={t('history_button')}
       />
-
       <AsideElement
         condition={displayFriendsIcon}
         href={cliqzForFriends}

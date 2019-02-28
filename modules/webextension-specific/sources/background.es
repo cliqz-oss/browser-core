@@ -9,10 +9,9 @@ import background from '../core/base/background';
  */
 export default background({
   init() {
-    chrome.runtime.onConnect.addListener((port) => {
-      if (port.name === 'appReady') {
-        // ping back
-        port.postMessage({ ready: true });
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message.name === 'appReady') {
+        sendResponse({ ready: true });
       }
     });
 

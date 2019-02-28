@@ -9,7 +9,7 @@ async function init(system) {
 const buildUrlData = (url, referrer, activeCats = new Set()) => {
   const urlData = new UrlData(url, referrer);
   const matchPatterns = new Map(
-    Array.from(activeCats.keys(), k => [k, 'SomeMatchPattern'])
+    Array.from(activeCats.keys(), k => [k, ['SomeMatchPattern']])
   );
   const matches = new CategoriesMatchTraits(matchPatterns);
   urlData.setCategoriesMatchTraits(matches);

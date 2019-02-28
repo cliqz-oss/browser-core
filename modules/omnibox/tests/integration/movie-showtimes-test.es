@@ -4,6 +4,7 @@ import {
   checkLocationButtons,
   checkMainResult,
   checkTableOfCinemas,
+  dropdownClick,
   fillIn,
   mockSearch,
   patchGeolocation,
@@ -38,7 +39,7 @@ export default function () {
           await mockSearch({ results: notLocalResults });
           withHistory([]);
           fillIn(query);
-          await waitForPopup();
+          await waitForPopup(1);
         });
 
         after(async function () {
@@ -63,7 +64,7 @@ export default function () {
           await mockSearch({ results: notLocalResults });
           withHistory([]);
           fillIn(query);
-          await waitForPopup();
+          await waitForPopup(1);
         });
 
         after(async function () {
@@ -88,7 +89,7 @@ export default function () {
           await mockSearch({ results: localResults });
           withHistory([]);
           fillIn(query);
-          await waitForPopup();
+          await waitForPopup(1);
         });
 
         after(async function () {
@@ -107,17 +108,18 @@ export default function () {
       });
     });
 
-    xcontext('(interactions)', function () {
+    context('(interactions)', function () {
       describe('clicking on the "Show more" button', function () {
         before(async function () {
           await blurUrlBar();
           await mockSearch({ results: notLocalResults });
           withHistory([]);
           fillIn(query);
-          await waitForPopup(2);
-          $cliqzResults.querySelector('.expand-btn').click();
-          await waitFor(function () {
-            return $cliqzResults.querySelectorAll('.show-time-row').length > 2;
+          await waitForPopup(1);
+          await dropdownClick('.expand-btn');
+          await waitFor(async () => {
+            const $timeRows = await $cliqzResults.querySelectorAll('.show-time-row');
+            return $timeRows.length > 2;
           });
         });
 
@@ -135,18 +137,16 @@ export default function () {
       });
 
       describe('clicking on the next day tab', function () {
-        const showtimeTabsSelector = '.dropdown-tab';
-
         before(async function () {
           await blurUrlBar();
           await mockSearch({ results: notLocalResults });
           withHistory([]);
           fillIn(query);
-          await waitForPopup(2);
-          $cliqzResults.querySelectorAll(showtimeTabsSelector)[1].click();
-          await waitFor(function () {
-            return $cliqzResults
-              .querySelectorAll(showtimeTabsSelector)[1].classList.contains('checked');
+          await waitForPopup(1);
+          await dropdownClick('#tab-1');
+          await waitFor(async () => {
+            const $tab0 = await $cliqzResults.querySelector('#tab-0');
+            return !$tab0.classList.contains('checked');
           });
         });
 

@@ -20,4 +20,9 @@ module.exports = {
   'platform/console': {
     default: {}
   },
+  'platform/history/history': {
+    default: {
+      queryVisitsForTimespan: () => [],
+    },
+  }
 };

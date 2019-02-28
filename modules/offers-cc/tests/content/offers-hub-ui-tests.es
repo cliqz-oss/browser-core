@@ -1,5 +1,4 @@
 import { expect } from '../../core/test-helpers';
-import { isWebExtension } from '../../../core/platform';
 
 import Subject from './local-helpers';
 import {
@@ -15,6 +14,56 @@ describe('Offers Hub UI tests', function () {
   let subject;
   const target = 'cliqz-offers-cc';
 
+  function headerTests(isCliqzBrowser) {
+    it('renders gift icon', function () {
+      expect(subject.query('.gift_icon')).to.exist;
+    });
+
+    it('renders three dot menu', function () {
+      expect(subject.query('header .setting')).to.exist;
+    });
+
+    it('renders label', function () {
+      const offersHubTitleSelector = '.offers_label';
+      expect(subject.query(offersHubTitleSelector)).to.exist;
+      if (isCliqzBrowser === true) {
+        expect(subject.query(offersHubTitleSelector)).to.have.text('cliqz_offers');
+      } else {
+        expect(subject.query(offersHubTitleSelector)).to.have.text('offers_hub_title');
+      }
+    });
+  }
+
+  function footerTests(isCliqzBrowser) {
+    const titleSelector = 'footer [title="offers_hub_powered_by_offrz"]';
+    it('renders feedback icon and label', function () {
+      const feedbackSelector = 'footer .feedback';
+      expect(subject.query(feedbackSelector)).to.exist;
+      expect(subject.query(`${feedbackSelector} label`)).to.exist;
+      expect(subject.query(`${feedbackSelector} label`)).to.have.text('offers_hub_feedback_title');
+    });
+
+    if (isCliqzBrowser === true) {
+      it('has class "cliqz-logo"', function () {
+        expect(subject.query(titleSelector)).to.have.class('cliqz-logo');
+      });
+
+      it('with correct link', function () {
+        expect(subject.query(`${titleSelector} a`)).to.exist;
+        expect(subject.query(`${titleSelector} a`).href).to.equal('https://cliqz.com/myoffrz');
+      });
+    } else {
+      it('doesn\'t have class "cliqz-logo"', function () {
+        expect(subject.query(titleSelector)).to.not.have.class('cliqz-logo');
+      });
+
+      it('with correct link', function () {
+        expect(subject.query(`${titleSelector} a`)).to.exist;
+        expect(subject.query(`${titleSelector} a`).href).to.equal('https://myoffrz.com/fuer-nutzer');
+      });
+    }
+  }
+
   function hex(input) {
     const rgb = input.match(/\d+/g);
     const [r, g, b] = rgb.map(function (el) {
@@ -22,48 +71,6 @@ describe('Offers Hub UI tests', function () {
       return c.length === 1 ? `0${c}` : c;
     });
     return `#${r}${g}${b}`;
-  }
-
-  function offersHubFrameTests() {
-    context('header part: ', function () {
-      it('renders \'MyOffrz\'', function () {
-        const offersHubTitleSelector = '.offers_label';
-        expect(subject.query(offersHubTitleSelector)).to.exist;
-        if (isWebExtension) {
-          expect(subject.query(offersHubTitleSelector)).to.have.text('offers_hub_title');
-        } else {
-          expect(subject.query(offersHubTitleSelector)).to.have.text('cliqz_offers');
-        }
-      });
-
-      it('renders three dots menu icon', function () {
-        expect(subject.query('header .setting')).to.exist;
-      });
-    });
-
-    context('footer part: ', function () {
-      if (isWebExtension) {
-        it('doesn\'t render ad label', function () {
-          expect(subject.query('footer .ad-label')).to.not.exist;
-        });
-
-        it('renders Cliqz icon - link', function () {
-          expect(subject.query('footer [title="offers_hub_powered_by_offrz"]')).to.exist;
-          expect(subject.query('footer a').href)
-            .to.equal('https://myoffrz.com/fuer-nutzer');
-        });
-      } else {
-        it('renders ad label', function () {
-          expect(subject.query('footer .ad-label')).to.exist;
-        });
-
-        it('renders Cliqz icon - link', function () {
-          expect(subject.query('footer [title="offers_hub_powered_by"]')).to.exist;
-          expect(subject.query('footer a').href)
-            .to.equal('https://cliqz.com/myoffrz');
-        });
-      }
-    });
   }
 
   function noOffersMessageTests() {
@@ -88,6 +95,79 @@ describe('Offers Hub UI tests', function () {
       });
     });
   }
+
+  [true, false].forEach((value) => {
+    context(`isCliqzBrowser: ${value}`, function () {
+      context('with \'Welcome!\' message', function () {
+        before(async function () {
+          data = {
+            noVoucher: true,
+            isCliqzBrowser: value,
+            isWebExtension: true,
+          };
+          subject = new Subject();
+          await subject.load();
+          await subject.pushData(target, data);
+        });
+
+        after(function () {
+          subject.unload();
+        });
+
+        context('header:', function () {
+          headerTests(value);
+        });
+
+        context('footer:', function () {
+          footerTests(value);
+        });
+      });
+
+      context('offer with optional data', function () {
+        before(async function () {
+          data = dataNewOffer;
+          data.isCliqzBrowser = value;
+          subject = new Subject();
+          await subject.load();
+          await subject.pushData(target, data);
+        });
+
+        after(function () {
+          subject.unload();
+        });
+
+        context('header:', function () {
+          headerTests(value);
+        });
+
+        context('footer:', function () {
+          footerTests(value);
+        });
+      });
+
+      context('offer without optional data', function () {
+        before(async function () {
+          data = dataNewOffer1;
+          data.isCliqzBrowser = value;
+          subject = new Subject();
+          await subject.load();
+          await subject.pushData(target, data);
+        });
+
+        after(function () {
+          subject.unload();
+        });
+
+        context('header:', function () {
+          headerTests(value);
+        });
+
+        context('footer:', function () {
+          footerTests(value);
+        });
+      });
+    });
+  });
 
   context('generic tooltip', function () {
     const offerContentSelector = '#cqz-offer-cc-content';
@@ -226,19 +306,16 @@ describe('Offers Hub UI tests', function () {
 
   context('with \'Welcome!\' message', function () {
     before(async function () {
+      data = { noVoucher: true };
       subject = new Subject();
       await subject.load();
-      await subject.pushData(target, {
-        noVoucher: true,
-        isWebExtension,
-      });
+      await subject.pushData(target, data);
     });
 
     after(function () {
       subject.unload();
     });
 
-    offersHubFrameTests();
     noOffersMessageTests();
   });
 
@@ -257,8 +334,6 @@ describe('Offers Hub UI tests', function () {
     after(function () {
       subject.unload();
     });
-
-    offersHubFrameTests();
 
     it('rendered successfully', function () {
       expect(subject.query(offerSelector)).to.exist;
@@ -380,8 +455,6 @@ describe('Offers Hub UI tests', function () {
     after(function () {
       subject.unload();
     });
-
-    offersHubFrameTests();
 
     it('rendered', function () {
       expect(subject.query(offerSelector)).to.exist;

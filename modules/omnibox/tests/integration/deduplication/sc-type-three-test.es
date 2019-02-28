@@ -520,6 +520,10 @@ export default function () {
             const $result1 = await $cliqzResults.querySelector(`.result[data-url="${url1}"]`);
             return $result1.closest('.history');
           });
+          await waitFor(async () => {
+            const $buttons = await $cliqzResults.querySelectorAll('.buttons');
+            return $buttons.length;
+          });
           $historyElement = async () => {
             const $result2 = await $cliqzResults.querySelector(`.result[data-url="${url2}"]`);
             return $result2.closest('.history');
@@ -550,6 +554,10 @@ export default function () {
             const $result1 = await $cliqzResults.querySelector(`.result[data-url="${url1}"]`);
             return $result1.closest('.history');
           });
+          await waitFor(async () => {
+            const $buttons = await $cliqzResults.querySelectorAll('.buttons');
+            return $buttons.length;
+          });
           $historyElement = async () => {
             const $result2 = await $cliqzResults.querySelector(`.result[data-url="${url2}"]`);
             return $result2.closest('.history');
@@ -579,6 +587,10 @@ export default function () {
           await waitFor(async () => {
             const $result1 = await $cliqzResults.querySelector(`.result[data-url="${url1}"]`);
             return $result1.closest('.history');
+          });
+          await waitFor(async () => {
+            const $buttons = await $cliqzResults.querySelectorAll('.buttons');
+            return $buttons.length;
           });
           $historyElement = async () => {
             const $result2 = await $cliqzResults.querySelector(`.result[data-url="${url2}"]`);

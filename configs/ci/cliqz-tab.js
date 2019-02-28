@@ -19,6 +19,5 @@ module.exports = Object.assign({}, webextensionBase, {
   },
   bundles: webextensionBase.bundles.concat([
     'integration-tests/run.bundle.js',
-    'core/integration-tests.bundle.js',
   ]),
 });

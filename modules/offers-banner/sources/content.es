@@ -38,5 +38,6 @@ registerContentScript('offers-banner', 'http*', function contentScript(window, c
   };
   return {
     renderBanner: onMessage.bind(this),
+    closeBanner: () => handler.removeBanner(),
   };
 });

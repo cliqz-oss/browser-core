@@ -6,6 +6,7 @@ const operators = require('rxjs/operators');
 const fastUrlParser = require('fast-url-parser');
 const tldts = require('tldts');
 const encoding = require('text-encoding');
+const moment = require('moment');
 const jsonData = require('../../../antitracking/prob.json');
 const mockDexie = require('../../core/unit/utils/dexie');
 
@@ -167,7 +168,10 @@ export default describeModule('antitracking/attrack',
         register() {},
         deregister() {},
       },
-    }
+    },
+    'platform/lib/moment': {
+      default: moment,
+    },
   }), function () {
     let attrack;
     let pipeline;
@@ -207,8 +211,8 @@ export default describeModule('antitracking/attrack',
       const Config = (await this.system.import('antitracking/config')).default;
       config = new Config({});
       await attrack.init(config);
-      const QSWhitelist = (await this.system.import('antitracking/qs-whitelists')).default;
-      attrack.qs_whitelist = new QSWhitelist();
+      // const QSWhitelist = (await this.system.import('antitracking/qs-whitelist2')).default;
+      // attrack.qs_whitelist = new QSWhitelist();
       attrack.qs_whitelist.isUpToDate = function () { return true; };
       attrack.qs_whitelist.isReady = function () { return true; };
       config.cookieEnabled = false;
@@ -383,21 +387,6 @@ export default describeModule('antitracking/attrack',
                 const responses = simulatePageLoad(reqs);
                 responses.onBeforeRequest.forEach(expectNoModification);
                 responses.onBeforeSendHeaders.forEach(expectNoModification);
-              });
-
-              it('blocks if key listed as unsafe', function () {
-                attrack.qs_whitelist.addSafeKey(trackerHash, key);
-                attrack.qs_whitelist.addUnsafeKey(trackerHash, key);
-
-                const responses = simulatePageLoad(reqs);
-                responses.onBeforeRequest.forEach(expectThirdPartyBlock);
-                responses.onBeforeSendHeaders.forEach(function (req) {
-                  if (isThirdParty(req.url) && req.url.indexOf(uid) > -1) {
-                    // request was already redirected
-                  } else {
-                    expectNoModification(req);
-                  }
-                });
               });
 
               it('does not block if whitelisted token', function () {

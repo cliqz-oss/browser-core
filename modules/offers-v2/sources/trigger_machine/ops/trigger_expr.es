@@ -35,84 +35,54 @@ class ActivateSubtriggersExpr extends Expression {
   destroy() {
   }
 
-  getExprValue(ctx) {
-    return new Promise((resolve, reject) => {
-      if (!ctx._currentTriggerLevel) {
-        ctx._currentTriggerLevel = 0;
-      }
+  async getExprValue(ctx) {
+    if (!ctx._currentTriggerLevel) {
+      ctx._currentTriggerLevel = 0;
+    }
 
-      ctx._currentTriggerLevel += 1;
-      if (ctx._currentTriggerLevel > 25) {
-        reject(new Error('trigger depth > 25'));
-        return;
-      }
+    ctx._currentTriggerLevel += 1;
+    if (ctx._currentTriggerLevel > 25) {
+      throw new Error('trigger depth > 25');
+    }
 
-      let subtriggers = this.data.trigger_cache.getSubtriggers(this.parentTriggerId);
-      if (!subtriggers || subtriggers.length === 0) {
-        // load from server
-        const startLoadMs = timestampMS();
-        const recordLoadMs = () => {
-          const thisLoadMs = timestampMS() - startLoadMs;
-          ctx['#httpLoadMs'] = (ctx['#httpLoadMs'] || 0) + thisLoadMs;
-        };
+    let subtriggers = this.data.trigger_cache.getSubtriggers(this.parentTriggerId);
 
-        this.data.be_connector.sendApiRequest(
-          'loadsubtriggers',
-          { parent_id: this.parentTriggerId },
-          'GET'
-        //
-        ).then((ok) => {
-          recordLoadMs();
-          return ok;
-        }, (err) => {
-          recordLoadMs();
-          return Promise.reject(err);
-        //
-        }).then((payload) => {
-          subtriggers = payload;
+    // load from server
+    if (!subtriggers || subtriggers.length === 0) {
+      const startLoadMs = timestampMS();
+      const recordLoadMs = () => {
+        const thisLoadMs = timestampMS() - startLoadMs;
+        ctx['#httpLoadMs'] = (ctx['#httpLoadMs'] || 0) + thisLoadMs;
+      };
 
-          // we filter here the triggers that are not associated to the user group
-          // #EX-7061
-          const keepTrigger = t =>
-            t && ((t.user_group === undefined) || shouldKeepResource(t.user_group));
+      const downloadedSubtriggers = await this.data.be_connector.sendApiRequest(
+        'loadsubtriggers',
+        { parent_id: this.parentTriggerId },
+        'GET'
+      );
+      recordLoadMs();
 
-          subtriggers = subtriggers.filter(keepTrigger);
+      // we filter here the triggers that are not associated to the user group
+      // #EX-7061
+      const keepTrigger = t =>
+        t && ((t.user_group === undefined) || shouldKeepResource(t.user_group));
 
-          logger.info('ActivateSubtriggersExpr', `Loaded ${subtriggers.length} subtriggers`);
-          if (logger.LOG_LEVEL === 'debug') {
-            logger.logObject(subtriggers.map(trigger => trigger.trigger_id));
-          }
+      subtriggers = downloadedSubtriggers.filter(keepTrigger);
 
-          // first cache
-          this.data.trigger_cache.setSubtriggers(this.parentTriggerId, subtriggers);
+      logger.info('ActivateSubtriggersExpr', `Loaded ${subtriggers.length} subtriggers`);
 
-          const p = [];
-          subtriggers.forEach((trigger) => {
-            this.data.trigger_cache.addTrigger(trigger);
-            p.push(this.data.trigger_machine.run(trigger, ctx));
-          });
+      // cache downloaded triggters
+      this.data.trigger_cache.setSubtriggers(this.parentTriggerId, subtriggers);
+      subtriggers.forEach(t => this.data.trigger_cache.addTrigger(t));
+    }
 
-          Promise.all(p).then(() => {
-            resolve();
-          }).catch((err) => {
-            reject(err);
-          });
-        }).catch((err) => {
-          reject(err);
-        });
-      } else {
-        const p = [];
-
-        subtriggers.forEach((trigger) => {
-          p.push(this.data.trigger_machine.run(trigger, ctx));
-        });
-        Promise.all(p).then(() => {
-          resolve();
-        }).catch((err) => {
-          reject(err);
-        });
-      }
+    // execute subtriggers
+    const p = Array.from(subtriggers, (trigger) => {
+      const localCtx = { ...ctx, vars: {} };
+      return this.data.trigger_machine.run(trigger, localCtx)
+        .catch(e => logger.warn(`Error in subtrigger ${trigger.trigger_id}, skipping: ${e}`));
     });
+    return Promise.all(p);
   }
 }
 

@@ -390,4 +390,11 @@ export default class {
     }
     return places;
   }
+
+  static async stats() {
+    return {
+      size: -1,
+      days: -1
+    };
+  }
 }

@@ -4,6 +4,10 @@
 
 
 const fs = require('fs');
+const path = require('path');
+
+// eslint-disable-next-line import/no-dynamic-require
+const formatLocales = require(path.resolve(__dirname, '../../../static/locale/format_locales.js'));
 
 
 // extracts only the key from a line of text
@@ -24,7 +28,7 @@ function key(line) {
 
 function listLocales(localesPath) {
   return fs.readdirSync(localesPath)
-    .filter(file => !file.startsWith('__') && !file.startsWith('.'));
+    .filter(file => !file.startsWith('__') && !file.startsWith('.') && !file.endsWith('.js'));
 }
 
 
@@ -41,12 +45,12 @@ export default describeModule('static/main',
       // Load all available locales
       const langs = listLocales(localesPath);
       let locales;
+      let rawLocales;
 
       beforeEach(function () {
-        locales = langs.map(lang =>
-          readLocaleFile(`${localesPath}/${lang}/messages.json`)
-            .split('\n')
-            .slice(1, -2));
+        rawLocales = langs.map(lang =>
+          readLocaleFile(`${localesPath}/${lang}/messages.json`));
+        locales = rawLocales.map(content => content.split('\n').slice(1, -2));
       });
 
       it('All locales are valid JSON', () => {
@@ -69,6 +73,12 @@ export default describeModule('static/main',
         for (let i = 0; i < locales.length - 1; i += 1) {
           chai.expect(locales[i].length).to.equal(locales[i + 1].length);
         }
+      });
+
+      langs.forEach((lang, i) => {
+        it(`Keys of locale ${langs[i]} are sorted`, () => {
+          chai.expect(rawLocales[i]).to.eql(formatLocales(rawLocales[i]));
+        });
       });
 
       it('All locales have the same structure', () => {

@@ -2,8 +2,8 @@ import Expression from '../expression';
 import i18n from '../../../core/i18n';
 import prefs from '../../../core/prefs';
 import logger from '../../common/offers_v2_logger';
-import { buildSimplePatternIndex } from '../../common/pattern-utils';
 import { timestampMS, weekDay, dayHour } from '../../utils';
+import { isThrottleError } from '../../common/throttle-with-rejection';
 
 
 // Helper modules
@@ -356,6 +356,36 @@ class LtExpr extends Expression {
 }
 
 /**
+ * Return the value of a variable, or
+ * undefined or default value if no such variable.
+ */
+class GetVariableExpr extends Expression {
+  constructor(data) {
+    super(data);
+    if (!this.data.raw_op.args || !this.data.raw_op.args.length) {
+      throw new Error('VarValue invalid args');
+    }
+    this.varName = data.raw_op.args[0];
+    this.defaultValue = data.raw_op.args[1];
+  }
+
+  isBuilt() {
+    return !!this.varName;
+  }
+
+  build() {
+  }
+
+  destroy() {
+  }
+
+  getExprValue(ctx) {
+    const rawValue = ctx.vars && ctx.vars[this.varName];
+    return Promise.resolve(typeof rawValue === 'undefined' ? this.defaultValue : rawValue);
+  }
+}
+
+/**
  * return the current timestamo
  * @return {Number} current time (Date.now())
  * @version 1.0
@@ -614,159 +644,146 @@ class IsFeatureEnabledExpr extends Expression {
   }
 }
 
-
 /**
- * This operation will be the new way we will performs checks, in the history and
- * in the current url, depending on the type of arguments we provide.
- * The operation will take one argument that will be the arguments associated to it:
- * @param  {Object} args is an array of objects
- * <pre>
- * {
- *   // this flag will define if we should check the current url or the history
- *   // note that if this is set to true all the history flags will be ignored.
- *   match_current: true | false,
+ * Operation `probe_segment` returns true/false if the category was
+ * matched at least `min_matches` times during the last `duration_days`.
  *
- *   // will define the patterns object used for matching
- *   patterns: {
- *     // this will identify this patters uniquely, meaning if something change
- *     // on the patterns this id will change as well. If two operations use
- *     // the same patterns the id should be the same (id = hash(patterns_list))
- *     pid: 'unique pattern id',
- *     p_list: [
- *       p1,
- *       p2,...
- *     ]
- *   },
+ * Additionally, it sets the trigger variable `segment_confidence`.
+ * The value is `0` if the category is not matched and the history
+ * is not loaded. Otherwise the value is `1`.
  *
- *  // this attributes will make only sense if we are in history mode.
+ * If history is not loaded yet, it loads it.
  *
- *  // which is the minimum expected number of matches to make the operation true
- *  // meaning if #of_matches >= min_expected => true
- *  min_matches_expected: 1,
- *
- *  // since how many seconds ago we want to check the history. This is relative
- *  // from NOW_secs - since_secs.
- *  since_secs: N,
- *  // till how many seconds ago (end time = NOW_secs - till_secs).
- *  till_secs: M,
- *
- *  // if this flag is present and set to X then we will cache the value once
- *  // of the operation if and only if (#of_matches >= min_expected == true)
- *  // for the following X seconds.
- *  // Note that this is not the same than caching the value of the operation
- *  // itself since we cache true and false at a trigger level.
- *  cache_if_match_value_secs: X,
- *
- * }
- * </pre>
- * @return {[Promise[boolean]]} async return whether there is a match or not
- * @version 3.0
+ * ['$probe_segment', [
+ *   'categoryName',
+ *   {
+ *     min_matches: 777,
+ *     duration_days: 888
+ *   }]];
  */
-class PatternMatchExpr extends Expression {
+
+class ProbeSegmentExpr extends Expression {
   constructor(data) {
     super(data);
-    this.args = null;
-    this.isHistory = null;
-    this.expireCache = null;
-    this.patternIndex = null;
+    this.categoryName = null;
+    this.minMatches = 3;
+    this.durationDays = 90;
+    this.cachedResult = false;
+    this.cacheSentinel = '';
   }
 
   isBuilt() {
-    return this.args !== null;
+    return Boolean(this.catName);
   }
 
   build() {
-    if (!this.data.raw_op.args || this.data.raw_op.args.length < 1) {
-      throw new Error('PatternMatchExpr invalid args');
-    }
-    // we check that we have the proper arguments
-    const args = this.data.raw_op.args[0];
-    if (!args.patterns || !args.patterns.pid || !args.patterns.p_list) {
-      throw new Error('PatternMatchExpr invalid args, missing patterns?');
-    }
-    // check if it is history or not, this should be defined
-    if (args.match_current === undefined) {
-      throw new Error('PatternMatchExpr invalid args, match_current argument missing?');
-    }
-    this.isHistory = args.match_current === false;
-    if (this.isHistory === true) {
-      // check history arguments
-      if (!(args.min_matches_expected > 0)) {
-        throw new Error('PatternMatchExpr invalid args, min_matches_expected argument missing?');
-      }
-      if (args.since_secs === undefined || args.till_secs === undefined
-          || args.since_secs < args.till_secs) {
-        throw new Error('PatternMatchExpr invalid args, since_secs or till_secs are wrong?');
-      }
+    const args = this.data.raw_op.args;
+    if (!args) {
+      throw new Error('$probe_segment: missed category arg');
     }
 
-    // build the pattern matching index here
-    this.patternIndex = buildSimplePatternIndex(args.patterns.p_list);
-    this.args = args;
+    const categoryName = args[0];
+    if (typeof categoryName !== 'string') {
+      throw new Error('$probe_segment: category name should be a string');
+    }
+    this.categoryName = categoryName;
+
+    const filterArg = args[1] || {};
+    let minMatches = Number.parseInt(filterArg.min_matches, 10);
+    let durationDays = Number.parseInt(filterArg.duration_days, 10);
+    if (minMatches <= 0) {
+      logger.warn('$probe_segment: min_matches should be a positive number');
+      minMatches = 0;
+    }
+    if (Number.isNaN(minMatches)) {
+      logger.warn('$probe_segment: min_matches should be a number');
+      minMatches = 0;
+    }
+    if (durationDays <= 0) {
+      logger.warn('$probe_segment: duration_days should be a positive number');
+      durationDays = 0;
+    }
+    if (Number.isNaN(durationDays)) {
+      logger.warn('$probe_segment: duration_days should be a number');
+      durationDays = 0;
+    }
+    this.minMatches = minMatches || this.minMatches;
+    this.durationDays = durationDays || this.durationDays;
   }
 
   destroy() {
   }
 
-  getExprValue(ctx) {
-    try {
-      let result = false;
-      if (this.isHistory === false) {
-        result = this._matchCurrentUrl(ctx);
-      } else if (this.isHistory === true) {
-        result = this._matchHistory(ctx);
-      }
-
-      return Promise.resolve(result);
-    } catch (e) {
-      logger.error('PatternMatchExpr Error:', e);
-      return Promise.reject(e);
-    }
-  }
-
-  // ///////////////////////////////////////////////////////////////////////////
-  // Private methods
-  //
-
-  _matchCurrentUrl(ctx) {
-    // get the #url_data
-    const urlData = ctx['#url_data'];
-    if (!urlData) {
-      logger.error('We do not have the #url_data object?');
+  async getExprValue(ctx) {
+    const categoryHandler = ctx.category_handler;
+    const setConfidenceVariable = (confidence) => {
+      ctx.vars.segment_confidence = confidence;
+    };
+    //
+    // Get the category. If not found, there is no match
+    //
+    const cat = categoryHandler.getCategory(this.categoryName);
+    if (!cat) {
+      setConfidenceVariable(1);
       return false;
     }
-    return this.patternIndex.match(urlData.getPatternRequest());
-  }
-
-  _matchHistory(/* ctx */) {
-    const query = {
-      since_secs: this.args.since_secs,
-      till_secs: this.args.till_secs
-    };
-
-    // check if we have the cache flag activated, cache will be active only
-    // if we matched and cache_if_match_value_secs > 0
-    if (this.expireCache !== null && this.args.cache_if_match_value_secs > 0) {
-      const lastStoredValSecs = (timestampMS() - this.expireCache) / 1000;
-      if (lastStoredValSecs < this.args.cache_if_match_value_secs) {
-        // we should return true here since we only cache when is true
-        return true;
+    //
+    // Return cached value
+    //
+    const curSentinel = cat.getCacheSentinel();
+    if (this.cacheSentinel === curSentinel) {
+      setConfidenceVariable(this.cachedConfidence);
+      return this.cachedResult;
+    }
+    //
+    // Match and load history if required
+    //
+    let [result, confidence] = cat.probe(this.minMatches, this.durationDays);
+    if (!confidence) {
+      //
+      // We have to load the history, but we don't care much about it.
+      // If we get the result fast, we will use it. Otherwise, the caller
+      // get the result on next call to `$probe_segment`.
+      //
+      let isHistoryLoaded = false;
+      const queryHistory = (async () => {
+        await categoryHandler.importHistoricalData(cat);
+        isHistoryLoaded = true;
+      })();
+      //
+      // Wait only a little
+      //
+      const limitWait = new Promise(resolve => setTimeout(resolve, 50));
+      const noticeIfFail = Promise.race([limitWait, queryHistory]);
+      try {
+        await noticeIfFail;
+      } catch (err) {
+        //
+        // Throttling is an expected behavior, propagate other errors
+        //
+        if (!isThrottleError(err)) {
+          logger.warn(`$probe_segment, non-throttle error ${err}`);
+          throw err;
+        }
+      }
+      //
+      // If history is loaded, match the category again
+      //
+      if (isHistoryLoaded) {
+        [result, confidence] = cat.probe(this.minMatches, this.durationDays);
       }
     }
-    // it is not cached check
-    const handler = this.data.history_matcher;
-    const historyMatchesCount = handler.countMatchesWithPartialCheck(
-      query,
-      this.args.patterns,
-      this.patternIndex
-    );
-
-    // check if it is partial
-    const result = historyMatchesCount.count >= this.args.min_matches_expected;
-    if (result && this.args.cache_if_match_value_secs > 0) {
-      // cache the result
-      this.expireCache = timestampMS();
+    //
+    // Cache and return
+    //
+    this.cachedResult = result;
+    this.cachedConfidence = confidence;
+    this.cacheSentinel = curSentinel;
+    // Cache only definitive results
+    if (!confidence) {
+      this.cacheSentinel = '';
     }
+    setConfidenceVariable(confidence);
     return result;
   }
 }
@@ -820,13 +837,14 @@ const ops = {
   $eq: EqExpr,
   $gt: GtExpr,
   $lt: LtExpr,
+  $get_variable: GetVariableExpr,
   $timestamp: TimestampExpr,
   $day_hour: DayHourExpr,
   $week_day: WeekDayExpr,
   $match_ga: MatchGAExpr,
   $geo_check: GeoCheckExpr,
   $is_feature_enabled: IsFeatureEnabledExpr,
-  $pattern_match: PatternMatchExpr,
+  $probe_segment: ProbeSegmentExpr,
   $lang_is: LangIsExpr,
 };
 

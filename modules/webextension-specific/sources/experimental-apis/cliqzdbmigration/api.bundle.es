@@ -11,9 +11,15 @@ function exportDexieTable(dbName, version, table) {
     };
     request.onsuccess = (event) => {
       const db = event.target.result;
+      if (!db.objectStoreNames.contains(table)) {
+        reject(new Error(`Could not find table ${table}`));
+        return;
+      }
+
       const transaction = db.transaction([table]);
       const query = transaction.objectStore(table).getAll();
       query.onsuccess = (results) => {
+        // eslint-disable-next-line no-console
         console.log('[cliqz-data-migration]', dbName, table, results.target.result);
         resolve(results.target.result);
       };

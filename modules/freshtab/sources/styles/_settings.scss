@@ -15,14 +15,14 @@
         background: #fff;
         position: absolute;
         top: 0px;
-        right: -270px;
+        right: -280px;
         height: 100%;
         overflow: auto;
         box-shadow: 0px 1px 2px 0px rgba(0,0,0,0.24);
         z-index: 2000;
 
         &.visible {
-            transform: translate3d(-270px, 0, 0);
+            transform: translate3d(-280px, 0, 0);
         }
 
         button.close {
@@ -109,7 +109,7 @@
                     font-size: 12px;
                     -webkit-appearance: none;
                     -moz-appearance: none;
-                    padding: 1px 18px 1px 2px;
+                    padding: 1px 18px 1px 5px;
                     background-image: url("../images/dropmarker.png");
                     background-repeat: no-repeat;
                     background-position: 96% center;

@@ -22,15 +22,15 @@ def matrix = [
         'config': 'configs/ci/browser.js',
         'testParams': '-l chromium',
     ],
-    'browser-legacy: content': [
-        'gpu': true,
-        'config': 'configs/ci/browser-legacy.js',
-        'testParams': '-l chromium',
-    ],
     'browser-webextension': [
         'gpu': true,
         'config': 'configs/ci/browser.js',
         'testParams': '-l firefox-web-ext --firefox ~/firefox62/firefox/firefox',
+    ],
+    'cliqz-stable': [
+        'gpu': true,
+        'config': 'configs/ci/browser.js',
+        'testParams': '-l firefox-web-ext --firefox ~/cliqzStable/cliqz/cliqz',
     ],
     'firefox 52': [
         'gpu': true,

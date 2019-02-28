@@ -424,7 +424,7 @@ export default class TokenTelemetry {
     this.messageQueue = new Subject();
     this.telemetrySender = {
       next: ({ type, signal }) => {
-        inject.service('telemetry').push(signal, `metrics.antitracking.${type}`);
+        inject.service('telemetry', ['push']).push(signal, `metrics.antitracking.${type}`);
       },
     };
     this.tokens = new TokenPipeline(database.tokens, this.telemetrySender, opts);
@@ -527,7 +527,7 @@ export default class TokenTelemetry {
     // ignore private requests
     if (state.isPrivate) return true;
 
-    const keyTokens = state.urlParts.getKeyValuesMD5();
+    const keyTokens = state.urlParts.getKeyValues();
     if (keyTokens.length > 0) {
       // const truncatedDomain = truncateDomain(state.urlParts.host, this.config.tpDomainDepth);
       // const domain = md5(truncatedDomain).substr(0, 16);
@@ -554,13 +554,14 @@ export default class TokenTelemetry {
     }
 
     /* eslint camelcase: 'off' */
-    kv.forEach(({ k, v, v_len }) => {
-      const token = v;
-      const key = k;
-
-      if (v_len < 6) {
+    kv.forEach(({ k, v }) => {
+      if (v.length < 6) {
         return;
       }
+      const token = md5(v);
+      const key = md5(k);
+
+
       // put token in safe bucket if: value is short, domain is not a tracker,
       // or key or value is whitelisted
       const safe = !isTracker

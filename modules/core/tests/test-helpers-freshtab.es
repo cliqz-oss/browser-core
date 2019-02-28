@@ -1,9 +1,6 @@
 import config from '../../core/config';
 import { clone, expect, wait, waitFor } from './test-helpers';
 
-
-export const CONFIG = config;
-
 function range(i) {
   return i > 0 ? range(i - 1).concat(i - 1) : [];
 }
@@ -455,16 +452,7 @@ export const defaultConfig = Object.freeze({
   module: 'freshtab',
   action: 'getConfig',
   response: {
-    locale: 'en',
-    newTabUrl: config.settings.NEW_TAB_URL,
-    isBrowser: false,
-    showNewBrandAlert: false,
-    messages: {},
-    isHistoryEnabled: true,
-    hasActiveNotifications: false,
-    isBlue: false,
-    product: 'CLIQZ',
-    displayFriendsIcon: true,
+    CLIQZ_FOR_FRIENDS: '/cliqz-for-friends/dashboard.html',
     componentsState: {
       historyDials: {
         visible: false
@@ -486,6 +474,18 @@ export const defaultConfig = Object.freeze({
         visible: false,
       }
     },
+    displayFriendsIcon: true,
+    hasActiveNotifications: false,
+    HISTORY_URL: '/cliqz-history/index.html',
+    isBetaVersion: false,
+    isBlue: false,
+    isBrowser: false,
+    isHistoryEnabled: true,
+    locale: 'en',
+    messages: {},
+    newTabUrl: config.settings.NEW_TAB_URL,
+    product: 'CLIQZ',
+    showNewBrandAlert: false,
     wallpapers: [
       {
         name: 'bg-matterhorn',

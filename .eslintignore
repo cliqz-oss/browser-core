@@ -1,5 +1,7 @@
 configs/
 
+modules/adblocker/sources/mobile.es
+
 modules/core/sources/content.es
 
 modules/human-web/sources/human-web.es

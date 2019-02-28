@@ -72,7 +72,7 @@ const mapCliqzSources = (sources) => {
   });
 };
 
-export default [
+export default () => [
   {
     name: 'search.sessions',
     version: 1,

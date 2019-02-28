@@ -9,7 +9,7 @@ module.exports = {
   "testem_launchers": ["unit-node"],
   "testem_launchers_ci": ["unit-node"],
   "pack": "npm pack",
-  "publish": publish.toEdge('browser-core', 'mobile-cards-android'),
+  "publish": publish.toEdge('browser-core', 'rn-ghostery-android'),
   "isMobile": true,
   "settings": Object.assign({}, urls, {
     "RESULTS_TIMEOUT": 3000,
@@ -17,12 +17,15 @@ module.exports = {
     "RESULTS_PROVIDER_ORDER": ["calculator", "history", "cliqz", "querySuggestions", "instant"],
     "CLEAR_RESULTS_AT_SESSION_START": false,
   }),
-  "default_prefs" : {
-  },
+  "default_prefs" : {},
   "modules": [
     "core",
+    "core-cliqz",
+    "search",
     "static",
     "mobile-cards",
+    "geolocation",
+    "anolysis-remote",
   ],
   "bundles": [
   ],

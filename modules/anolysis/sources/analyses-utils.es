@@ -77,3 +77,29 @@ export function count(values) {
 
   return result;
 }
+
+
+export function sum(arr) {
+  let total = 0.0;
+  for (let i = 0; i < arr.length; i += 1) {
+    total += arr[i];
+  }
+  return total;
+}
+
+
+export function mean(arr) {
+  return sum(arr) / arr.length;
+}
+
+
+export function median(arr) {
+  arr.sort((a, b) => a - b);
+
+  if (arr.length === 0) return 0;
+
+  const half = Math.floor(arr.length / 2);
+
+  if (arr.length % 2) return arr[half];
+  return (arr[half - 1] + arr[half]) / 2.0;
+}

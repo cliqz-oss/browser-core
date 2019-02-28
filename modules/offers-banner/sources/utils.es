@@ -4,7 +4,6 @@ import { getActiveTab } from '../core/browser';
 import { getDetailsFromUrl } from '../core/url';
 import utils from '../core/utils';
 
-
 const BLACK_LIST = [
   'accounts-static.cdn.mozilla.net',
   'accounts.firefox.com',
@@ -54,4 +53,9 @@ export async function toggleApp(data) {
   } else {
     chrome.browserAction.disable();
   }
+}
+
+export function getOfferNotificationType(data = {}) {
+  const { offer_data: { ui_info: uiInfo = {} } = {} } = data;
+  return uiInfo.notif_type;
 }

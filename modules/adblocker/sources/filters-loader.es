@@ -236,29 +236,35 @@ export default class FiltersLoader extends UpdateCallbackHandler {
     this.availableLang = new Set();
     this.loadedLang = new Set();
     const userLang = this.userLang();
-    Object.keys(allowedLists).forEach((list) => {
-      Object.keys(allowedLists[list]).forEach((asset) => {
-        const checksum = allowedLists[list][asset].checksum;
-        let lang = null;
-
-        if (list === 'country_lists') {
-          lang = allowedLists[list][asset].language;
-          this.availableLang.add(lang);
-        }
-
+    Object.keys(allowedLists).forEach((section) => {
+      Object.keys(allowedLists[section]).forEach((asset) => {
+        const checksum = allowedLists[section][asset].checksum;
         const assetName = getAssetName(asset);
         const filterRemoteURL = BASE_URL + stripProtocol(asset);
+        let loadList = false;
 
-        if (lang === null || userLang.indexOf(lang) !== -1) {
+        if (section === 'country_lists') {
+          const language = allowedLists[section][asset].language;
+          if (language) {
+            language.split(/\s+/g).forEach((lang) => {
+              this.availableLang.add(lang);
+              if (userLang.indexOf(lang) !== -1) {
+                this.loadedLang.add(lang);
+                loadList = true;
+              }
+            });
+          }
+        } else {
+          loadList = true;
+        }
+
+        if (loadList) {
           filtersLists.set(assetName, {
             checksum,
             asset: assetName,
             remoteURL: filterRemoteURL,
-            key: list,
+            key: section,
           });
-          if (lang !== null) {
-            this.loadedLang.add(lang);
-          }
         }
       });
     });

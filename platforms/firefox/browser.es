@@ -377,3 +377,7 @@ export function loadURIIntoGBrowser(gBrowser, uri) {
     gBrowser.loadURI(uri, { triggeringPrincipal: getPrincipalForUrl(uri) });
   }
 }
+
+export function isDefaultBrowser() {
+  return null;
+}

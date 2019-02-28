@@ -77,4 +77,4 @@ export const service = async function service() {
   return domainInfo;
 };
 
-export default inject.service('domainInfo');
+export default inject.service('domainInfo', ['getAppOwner', 'getBugOwner', 'getAppForBug', 'getDomainOwner', 'getTrackerDetails']);

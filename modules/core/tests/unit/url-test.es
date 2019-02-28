@@ -2,7 +2,12 @@
 /* global describeModule */
 
 const tldts = require('tldts');
-const url = require('url');
+const URL = require('url').URL;
+
+if (!global.URL) {
+  // node version less than 10
+  global.URL = URL;
+}
 
 const URLS = [
   'http://cliqz.com',
@@ -154,24 +159,6 @@ export default describeModule('core/url',
     return {
       'platform/lib/tldts': tldts,
       'core/platform': {
-      },
-      'platform/url': {
-        default: (a, b) => Boolean(a && b && a === b),
-        isKnownProtocol: proto => [
-          'http',
-          'https',
-          'ftp',
-          'file',
-          'about',
-          'mailto',
-          'chrome',
-          'moz-extension',
-          'resource',
-          'dat',
-          'view-source',
-          'data'
-        ].includes(proto),
-        URI: url.URL,
       },
       'core/LRU': {
         default: class {

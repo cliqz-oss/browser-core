@@ -25,3 +25,7 @@ export function isMobile() {
 export function isBetaVersion() {
   return false;
 }
+
+export function isOnionModeFactory() {
+  return () => false;
+}

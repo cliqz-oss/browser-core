@@ -18,7 +18,8 @@
       "48": "assets/icon48.png",
       "128": "assets/icon128.png"
     },
-    "default_title": "MyOffrz"
+    "default_title": "MyOffrz",
+    "default_popup": "modules/offers-cc/index.html?popup"
   },
   "permissions": [
     "<all_urls>",
@@ -42,8 +43,7 @@
   "background": {
     "scripts": [
       "modules/vendor/dexie.min.js",
-      "modules/offers-banner/app.bundle.js",
-      "background.js"
+      "modules/offers-banner/app.bundle.js"
     ],
     "persistent": true
   },

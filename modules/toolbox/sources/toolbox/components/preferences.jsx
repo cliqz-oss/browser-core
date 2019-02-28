@@ -6,26 +6,26 @@ import Switch from './partials/switch';
 import TextInput from './partials/text-input';
 
 const radioPrefList = [
-  { shortName: 'showConsoleLogs', name: 'showConsoleLogs', prefix: 'extensions.cliqz.' },
-  { shortName: 'extensionsLegacyEnabled', name: 'enabled', prefix: 'extensions.legacy.' },
-  { shortName: 'signaturesRequired', name: 'required', prefix: 'xpinstall.signatures.' },
   { shortName: 'developer', name: 'developer', prefix: 'extensions.cliqz.' },
+  { shortName: 'extensionsLegacyEnabled', name: 'enabled', prefix: 'extensions.legacy.' },
   { shortName: 'offersDevFlag', name: 'offersDevFlag', prefix: 'extensions.cliqz.' },
-  { shortName: 'offersLogsEnabled', name: 'offersLogsEnabled', prefix: 'extensions.cliqz.' },
   { shortName: 'offersLoadSignalsFromDB', name: 'offersLoadSignalsFromDB', prefix: 'extensions.cliqz.' },
+  { shortName: 'offersLogsEnabled', name: 'offersLogsEnabled', prefix: 'extensions.cliqz.' },
+  { shortName: 'signaturesRequired', name: 'required', prefix: 'xpinstall.signatures.' },
+  { shortName: 'showConsoleLogs', name: 'showConsoleLogs', prefix: 'extensions.cliqz.' },
 ];
 
 const textPrefList = [
-  { shortName: 'triggersBE', name: 'triggersBE', prefix: 'extensions.cliqz.' },
-  { shortName: 'offersTelemetryFreq', name: 'offersTelemetryFreq', prefix: 'extensions.cliqz.', type: 'number' },
+  { shortName: 'configLocation', name: 'config_location', prefix: 'extensions.cliqz.' },
   { shortName: 'loggerLevel', name: 'logger.offers-v2.level', prefix: 'extensions.cliqz.' },
+  { shortName: 'offersTelemetryFreq', name: 'offersTelemetryFreq', prefix: 'extensions.cliqz.', type: 'number' },
+  { shortName: 'triggersBE', name: 'triggersBE', prefix: 'extensions.cliqz.' },
 ];
 
 function Preferences({
   cliqz,
-  modalClass,
+  preferencesStatus,
   syncState,
-  ...prefState
 }) {
   const setPref = async ({ name, value, prefix }) => {
     await cliqz.setPref(name, value, prefix);
@@ -47,7 +47,7 @@ function Preferences({
           value: ev.target.checked,
           prefix: pref.prefix
         })}
-        isChecked={prefState[pref.shortName]}
+        isChecked={preferencesStatus[pref.shortName]}
       />
     </Row>
   ));
@@ -63,7 +63,7 @@ function Preferences({
           prefix: pref.prefix,
           isNumber: pref.type === 'number'
         })}
-        textInputValue={prefState[pref.shortName]}
+        textInputValue={preferencesStatus[pref.shortName]}
       />
     </Row>
   ));
@@ -80,7 +80,7 @@ function Preferences({
 
 Preferences.propTypes = {
   cliqz: PropTypes.object.isRequired,
-  radioPrefNames: PropTypes.array,
+  preferencesStatus: PropTypes.object.isRequired,
   syncState: PropTypes.func.isRequired,
 };
 

@@ -25,10 +25,6 @@ function getProviders() {
 
 export default class SearchWindow extends AppWindow {
   events = {
-    'urlbar:blur': () => {
-      this.background.actions.stopSearch({ contextId: this.windowId });
-    },
-
     'urlbar:input': (ev) => {
       if (!ev.isTyped) {
         return;

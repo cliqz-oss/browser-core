@@ -5,20 +5,15 @@ import {
   extractHostname as getHostname,
   getGeneralDomain as getDomain,
 } from '../../core/tlds';
-
+import logger from '../common/offers_v2_logger';
 
 const ONE_HOUR = 60 * 60 * 1000;
 const ONE_DAY = 24 * ONE_HOUR;
 
 const ENGINES = {
-  adblocker: () => {
-    const engine = new Adblocker.FiltersEngine({
-      version: 0.1,
-      loadNetworkFilters: true,
-      loadCosmeticFilters: false,
-    });
-    return engine;
-  },
+  adblocker: () => new Adblocker.FiltersEngine({
+    loadCosmeticFilters: false,
+  })
 };
 
 const LOADERS = {
@@ -48,7 +43,7 @@ export default class Blacklist {
       .onUpdate(({ negation_rules: negationRules = [] } = {}) => {
         this.update({ filters: negationRules });
       });
-    this.loader.load();
+    this.loader.load().catch(e => logger.warn(`Can't load blacklist rules: ${e}`));
   }
 
   unload() {
@@ -59,10 +54,13 @@ export default class Blacklist {
   }
 
   update({ filters = [] }) {
-    this.engine.onUpdateFilters(
-      [{ checksum: '', asset: 'asset', filters: filters.join('\n') }],
-      new Set(['asset']),
-    );
+    const list = filters.join('\n');
+    this.engine.deleteLists(['blacklist']);
+    this.engine.updateList({
+      name: 'blacklist',
+      list,
+      checksum: `${Adblocker.fastHash(list)}`,
+    });
   }
 
   has(url) {

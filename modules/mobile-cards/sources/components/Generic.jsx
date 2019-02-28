@@ -36,7 +36,7 @@ const styles = theme => StyleSheet.create({
     marginRight: 5,
   },
   separator: {
-    borderBottomWidth: 0.5,
+    borderBottomWidth: 1.5,
     borderBottomColor: themeDetails[theme].separatorColor
   }
 });

@@ -22,7 +22,6 @@ const UAParser = require('ua-parser-js');
 const ajv = require('ajv');
 const faker = require('json-schema-faker');
 const moment = require('moment');
-const stats = require('simple-statistics');
 const mockDexie = require('../../core/unit/utils/dexie');
 
 const DATE_FORMAT = 'YYYY-MM-DD';
@@ -202,9 +201,6 @@ module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) =
         type: 'wifi',
       },
     },
-    'platform/lib/simple-statistics': {
-      default: stats,
-    },
     'platform/lib/moment': {
       default: moment,
     },
@@ -310,10 +306,9 @@ module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) =
       const Anolysis = (await this.system.import('anolysis/internals/anolysis')).default;
       anolysis = new Anolysis(config);
 
-      await anolysis.registerSignalDefinitions(this.module().default);
       await anolysis.init();
-      availableDefinitions = anolysis.availableDefinitions;
 
+      availableDefinitions = anolysis.availableDefinitions;
       onlyKeepAnalysisWithName(availableDefinitions, name, metrics);
 
       // Optionally mock retention state before each test

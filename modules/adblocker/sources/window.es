@@ -3,12 +3,13 @@ import { getActiveTab } from '../platform/browser';
 import { isUrl } from '../core/url';
 import prefs from '../core/prefs';
 
-import CliqzADB, {
+import CliqzADB from './adblocker';
+import {
   adbABTestEnabled,
   ADB_PREF_VALUES,
   ADB_PREF_OPTIMIZED,
   ADB_PREF,
-} from './adblocker';
+} from './config';
 
 
 export default class Win {

@@ -1,5 +1,7 @@
 import parser from 'fast-url-parser';
 
+export { LocalUrlRegExp, UrlRegExp } from '../platform-webextension/url';
+
 const KNOWN_PROTOCOLS = ['http', 'https', 'ftp', 'file', 'about', 'mailto', 'chrome', 'moz-extension', 'resource', 'dat'];
 
 export class URI {

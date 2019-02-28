@@ -17,6 +17,8 @@ import {
 import Logger from './logger';
 import getSynchronizedDate from './synchronized-time';
 
+export { getChannel } from '../platform/demographics';
+
 const logger = Logger.get('core', {
   level: 'log',
   prefix: '[demographics]',

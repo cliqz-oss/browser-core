@@ -64,7 +64,7 @@ export function closeTab(tabId) {
   return waitFor(() => !isWindowActive(numTabId));
 }
 
-function getCurrentTab() {
+export function getCurrentTab() {
   const gBrowser = getCurrentgBrowser();
   return [...gBrowser.tabs].find(tab => gBrowser.selectedBrowser === tab.linkedBrowser);
 }

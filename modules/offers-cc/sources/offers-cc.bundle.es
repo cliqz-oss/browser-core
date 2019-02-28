@@ -1,34 +1,49 @@
 /* global window, document, $, Handlebars */
-
 import { chrome } from '../platform/content/globals';
 import helpers from './content/helpers';
 import templates from './templates';
 
 Handlebars.partials = templates;
+const SEARCH_PARAMS = new URLSearchParams(window.location.search);
+
+function isPopupWindow() { return SEARCH_PARAMS.get('popup') !== null; }
 
 function sendMessageToWindow(message) {
-  const searchParams = new URLSearchParams(window.location.search);
-  const isCrossOrigin = searchParams.get('cross-origin') !== null;
-  const target = isCrossOrigin ? window.parent : window;
-  target.postMessage(JSON.stringify({
-    target: 'cliqz-offers-cc',
-    origin: 'iframe',
-    message
-  }), '*');
+  if (isPopupWindow()) {
+    chrome.runtime.sendMessage({ message, target: 'cliqz-offers-cc' });
+  } else {
+    const isCrossOrigin = SEARCH_PARAMS.get('cross-origin') !== null;
+    const target = isCrossOrigin ? window.parent : window;
+    target.postMessage(JSON.stringify({
+      target: 'cliqz-offers-cc',
+      origin: 'iframe',
+      message
+    }), '*');
+  }
 }
 
 function resize() {
   const $controlCenter = $('#cqz-offer-cc-content');
   const theWidth = $controlCenter.outerWidth(); // Includes the scroll bar
   const theHeight = $controlCenter.outerHeight();
-  sendMessageToWindow({
-    action: 'resize',
-    data: {
-      width: theWidth,
-      height: theHeight
-    }
-  });
+
+  if (isPopupWindow()) {
+    $('html').css({
+      'min-width': $controlCenter.outerWidth(),
+      height: $controlCenter.outerHeight(),
+    });
+  } else {
+    sendMessageToWindow({
+      action: 'resize',
+      data: {
+        width: theWidth,
+        height: theHeight
+      }
+    });
+  }
 }
+
+function resizeDelayed(timeout) { setTimeout(resize, timeout); }
 
 function localizeDocument() {
   Array.prototype.forEach.call(document.querySelectorAll('[data-i18n]'), (el) => {
@@ -56,7 +71,6 @@ function copySelectionText() {
 
 function draw(data) {
   $('#cliqz-offers-cc').html(templates.template(data));
-
   if ($('#cqz-vouchers-holder').length) {
     // Check if there is an expanded offer and report
     const activeOffer = $('ul#cqz-vouchers-holder > li.active');
@@ -71,34 +85,28 @@ function draw(data) {
     }
   }
 
-  $('.condition').tooltipster({
-    theme: ['tooltipster-shadow', 'tooltipster-shadow-customized'],
-    interactive: true,
-    delay: 150,
-    animationDuration: 150,
-    side: 'top',
-    functionPosition: (instance, helper, position) => {
-      const newPos = position;
-      newPos.coord.top += 4; // Add some pixels on the top
-      newPos.coord.left += 14; // Add some pixels on the left
-      newPos.size.width -= 26; // Reduce the tooltip's width
-      return newPos;
-    },
-    functionBefore: () => {
-      sendMessageToWindow({
-        action: 'sendTelemetry',
-        data: {
-          action: 'hover',
-          target: 'conditions'
-        }
-      });
-    }
-  });
-
-
   localizeDocument();
   resize();
 }
+
+function toggleConditions(node) {
+  const condition = $(node).closest('.voucher-container').find('.inpage-condition-content');
+  const isHidden = !(condition[0].style.display === 'block');
+  condition.css({ display: isHidden ? 'block' : 'none' });
+}
+
+$(document).on('click', '.condition', function onConditionClick() {
+  toggleConditions(this);
+  $(this).toggleClass('active');
+  sendMessageToWindow({
+    action: 'sendTelemetry',
+    data: {
+      action: 'hover',
+      target: 'conditions'
+    }
+  });
+});
+
 // Send Signal that close button ( hide reward box) is pressed
 $(document).on('click', '.web-ext .hide-reward-box', (e) => {
   e.preventDefault();
@@ -159,10 +167,6 @@ $(document).on('click', '.setting-menu .feedback', function itemClick() {
   handleFeedbackLinkClick($(this));
 });
 
-$(document).on('click', 'footer .feedback', function itemClick() {
-  handleFeedbackLinkClick($(this));
-});
-
 // Handle Reward box Menu Open
 $(document).on('click', '.setting', () => {
   $('.setting-menu').toggleClass('show');
@@ -202,8 +206,8 @@ $(document).on('focus', '#feedback_option4_textarea', function itemClick() {
 // When user click on a collapsed offer to expand it
 $(document).on('click', 'ul#cqz-vouchers-holder > li:not(.active)', function itemClick() {
   $('ul#cqz-vouchers-holder > li.active').removeClass('active');
-  $('ul#cqz-vouchers-holder > li.deleted').remove();
   $(this).addClass('active');
+  $('ul#cqz-vouchers-holder > li.deleted').remove();
 
   const offerId = $(this).data('offerId');
 
@@ -230,9 +234,7 @@ $(document).on('click', 'ul#cqz-vouchers-holder > li:not(.active)', function ite
     }
   });
 
-  setTimeout(() => {
-    resize();
-  }, 200); // TODO: fix this!.
+  resizeDelayed(isPopupWindow() ? 100 : 200);
 });
 
 // When user clicks on any element which has data-telemetry-id
@@ -480,15 +482,6 @@ function sendFeedback() {
       offer_id: getOfferId($(this)),
     }
   });
-
-  sendMessageToWindow({
-    action: 'sendTelemetry',
-    data: {
-      target: 'remove_offer',
-      vote: feedbackValue,
-      comments,
-    }
-  });
 }
 
 function closeFeedbackScreen(elem) {
@@ -500,9 +493,7 @@ function closeFeedbackScreen(elem) {
       data: { noVouchersLeft: true }
     });
   }
-  setTimeout(() => {
-    resize();
-  }, 200); // TODO: fix this!.
+  resizeDelayed(isPopupWindow() ? 100 : 200);
 }
 
 /* eslint-disable */
@@ -513,15 +504,6 @@ $(document).on('click', '.feedback-thankyou .close', function itemClick() {
 // When user press skip feedback
 $(document).on('click', '.feedback .skip', function itemClick() {
   sendFeedback();
-  sendMessageToWindow({
-    action: 'sendOfferActionSignal',
-    data: {
-      signal_type: 'remove-offer',
-      element_id: 'offer_removed',
-      offer_id: getOfferId($(this)),
-    }
-  });
-
   closeFeedbackScreen($(this));
   const vouchers = $('#cqz-vouchers-holder > li');
   if (vouchers.length) { $(vouchers[0]).addClass('active'); }
@@ -534,15 +516,6 @@ $(document).on('click', '.send_feedback', function itemClick() {
   $('.feedback').removeClass('show');
   const currentVoucher = $(this).closest('.voucher-wrapper');
   sendFeedback();
-  sendMessageToWindow({
-    action: 'sendOfferActionSignal',
-    data: {
-      signal_type: 'remove-offer',
-      element_id: 'offer_removed',
-      offer_id: getOfferId($(this)),
-    }
-  });
-
   currentVoucher.html(templates['feedback-voucher-thankyou']({}));
   localizeDocument();
   resize();
@@ -579,17 +552,25 @@ $(document).on('click', '.why-offers .close', () => {
   resize();
 });
 
-// Handle UNDO remove offer
-$(document).on('click', '.undo', function onUndoClick() {
-  $('.feedback').removeClass('show');
-  $('.voucher-container').removeClass('hide');
-  const currentVoucher = $(this).closest('.voucher-wrapper');
-  currentVoucher.removeClass('deleted');
-  resize();
-});
-
 // Handle user clicks on offer menu
 $(document).on('click', '.voucher-header .close', function itemClick() {
+  sendMessageToWindow({
+    action: 'sendOfferActionSignal',
+    data: {
+      signal_type: 'remove-offer',
+      element_id: 'offer_removed',
+      offer_id: getOfferId($(this)),
+    }
+  });
+
+  sendMessageToWindow({
+    action: 'sendTelemetry',
+    data: {
+      target: 'remove_offer',
+      offer_id: getOfferId($(this)),
+    }
+  });
+
   if ($(this).data('menuType') === 'delete') {
     $(this).closest('.settings')
       .prev().children('.setting')
@@ -602,6 +583,7 @@ $(document).on('click', '.voucher-header .close', function itemClick() {
     currentVoucher.children('.details').children('.feedback').addClass('show');
     currentVoucher.children('.details').children('.voucher-container').addClass('hide');
     resize();
+
   }
 });
 
@@ -639,6 +621,17 @@ window.addEventListener('message', (ev) => {
     messageHandler(data.message);
   }
 });
+
+// Check browser language
+$(document).on('click', 'footer .feedback',() => {
+  const footerFeedback = $('footer .feedback');
+  if (chrome.i18n.getUILanguage() !== 'de') {
+    footerFeedback.attr('href', 'https://myoffrz.com/en/feedback/');
+  } else {
+    footerFeedback.attr('href', 'https://myoffrz.com/feedback/')
+  }
+})
+
 
 // TODO: Create a function named hideTooltipAndMenu() and put the code.
 // Triggering: when clicking on body or any element or pressing ESC button

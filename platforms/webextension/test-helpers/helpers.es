@@ -185,6 +185,9 @@ export const urlbar = {
     return chrome.omnibox2.get()
       .then(data => data.value);
   },
+  get lastQuery() {
+    return chrome.testHelpers.getLastQuery();
+  }
 };
 export const EventUtils = {
   sendString(text) {
@@ -285,4 +288,16 @@ export function focusOnTab(tabId) {
   return new Promise(r => chrome.tabs.update(tabId, updateProperties, () => {
     r();
   }));
+}
+
+export function mockGetSearchEngines(engines) {
+  const getSearchEngines = bgWindow.browser.cliqz.getSearchEngines;
+  bgWindow.browser.cliqz.getSearchEngines = function mockedGetSearchEngines() {
+    return Promise.resolve(engines);
+  };
+  return getSearchEngines;
+}
+
+export function unmockGetSearchEngines(realFunction) {
+  bgWindow.browser.cliqz.getSearchEngines = realFunction;
 }

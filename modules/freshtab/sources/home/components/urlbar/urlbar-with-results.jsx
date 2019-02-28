@@ -93,10 +93,6 @@ export default class UrlbarWithResults extends Urlbar {
     }
   }
 
-  createIframeWrapper = (iframe) => {
-    this.dropdown.createIframeWrapper(iframe);
-  }
-
   async componentWillReceiveProps(props) {
     if (props.results === this.props.results
       || props.results.length === 0) {
@@ -111,7 +107,7 @@ export default class UrlbarWithResults extends Urlbar {
   componentDidUpdate() {
     const shouldShowOverlay = this.isSearchSettingsOpen
       || this.isDropdownOpen
-      || (this.state.focused && this.textInput && this.textInput.value);
+      || (this.state.focused && this.textInput && !!this.textInput.value);
 
     if (shouldShowOverlay !== this.state.isOverlayOpen) {
       // this setState will not trigger infinite loop because it of the check above
@@ -127,7 +123,21 @@ export default class UrlbarWithResults extends Urlbar {
     this.dropdown.unload();
   }
 
-  handleFocus = () => {
+  createIframe = () => {
+    if (this.dropdown.iframe) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+      this.iframe.onload = () => {
+        this.dropdown.createIframeWrapper(this.iframe);
+        resolve();
+      };
+      this.iframe.src = '../dropdown/dropdown.html';
+    });
+  }
+
+  handleFocus = async () => {
+    await this.createIframe();
     this.textInput.select();
     this.setState({
       focused: true,
@@ -155,7 +165,6 @@ export default class UrlbarWithResults extends Urlbar {
         return;
       }
       cliqz.search.stopSearch();
-      cliqz.search.resetAssistantStates();
 
       this.setState({
         iframeHeight: 0,
@@ -226,8 +235,7 @@ export default class UrlbarWithResults extends Urlbar {
               id="cliqz-dropdown"
               tabIndex="-1"
               title="Results"
-              ref={this.createIframeWrapper}
-              src="../dropdown/dropdown.html"
+              ref={(iframe) => { this.iframe = iframe; }}
               className={`${(this.state.isSearchSettingsOpen ? 'hide' : 'show')}`}
               style={{ height: `${this.state.iframeHeight}px` }}
             />

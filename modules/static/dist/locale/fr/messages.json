@@ -1,15 +1,12 @@
 {
-    "addon_desc_amo": {
-        "message": "Plein de fonctionnalités pratiques chaque fois que vous ouvrez un nouvel onglet"
-    },
-    "addon_name_amo": {
-        "message": "Cliqz Tab - Rechercher, Surfer, Faire du Shopping"
-    },
     "ad_label": {
         "message": "Offre"
     },
     "add_to_browser": {
         "message": "Ajouter à $1"
+    },
+    "addon_desc_amo": {
+        "message": "Plein de fonctionnalités pratiques chaque fois que vous ouvrez un nouvel onglet"
     },
     "adultInfo": {
         "message": "Certains résultats à caractère pornographique ont été automatiquement bloqués. Souhaitez-vous maintenir le bloquage ?"
@@ -104,6 +101,9 @@
     "calculator_thousands_separator": {
         "message": "."
     },
+    "cinema_always_show_location": {
+        "message": "Afficher toujours"
+    },
     "cinema_movie_cast": {
         "message": "Casting"
     },
@@ -121,9 +121,6 @@
     },
     "cinema_show_location_and_contact": {
         "message": "Afficher les cinémas près de moi"
-    },
-    "cinema_always_show_location": {
-        "message": "Afficher toujours"
     },
     "Click_anywhere_to_copy": {
         "message": "Cliquer pour copier"
@@ -650,7 +647,7 @@
     "freshtab_cliqz_modules_list": {
         "message": "Cliqz modules list"
     },
-    "freshtab_cliqz_post_remind_later" : {
+    "freshtab_cliqz_post_remind_later": {
         "message": "Remind me later"
     },
     "freshtab_cliqz_tab_button": {
@@ -720,10 +717,10 @@
         "message": "Ghostery Start Tab replaces Chrome's default new tab page and adds backgrounds, favorites, news and Ghostery's anonymous quick search."
     },
     "ghosteryTabAppName": {
-        "message": "Ghostery Start Tab with private Ghost Search (Beta)"
+        "message": "Ghostery Start Tab with Private Search (Beta)"
     },
     "ghosteryTabAppNameNightly": {
-        "message": "Ghostery Start Tab with private Ghost Search (Nightly)"
+        "message": "Ghostery Start Tab (Nightly)"
     },
     "help": {
         "message": "Help"
@@ -878,6 +875,9 @@
     "offers_ad": {
         "message": "Annonce"
     },
+    "offers_badge_text_new": {
+        "message": "NEW"
+    },
     "offers_best_offer": {
         "message": "Meilleure Offre"
     },
@@ -917,6 +917,9 @@
     "offers_feedback_feature": {
         "message": "Do you like MyOffrz?"
     },
+    "offers_feedback_feature_cliqz": {
+        "message": "Do you like Cliqz Offers?"
+    },
     "offers_feedback_thank_you": {
         "message": "Your feedback is important to us"
     },
@@ -925,9 +928,6 @@
     },
     "offers_hub_copy_btn": {
         "message": "Copier le code"
-    },
-    "offers_hub_get_code_btn": {
-        "message": "Get code"
     },
     "offers_hub_feedback_close": {
         "message": "Fermer"
@@ -964,6 +964,9 @@
     },
     "offers_hub_feedback_undo_delete": {
         "message": "ANNULER"
+    },
+    "offers_hub_get_code_btn": {
+        "message": "Get code"
     },
     "offers_hub_powered_by": {
         "message": "Fourni par Cliqz"

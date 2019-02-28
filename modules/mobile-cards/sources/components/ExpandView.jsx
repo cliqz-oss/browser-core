@@ -8,8 +8,8 @@ import themeDetails from '../themes';
 
 const styles = (collapsed = true, index, theme) => StyleSheet.create({
   container: {
-    borderTopWidth: index === 0 ? 0.5 : 0,
-    borderBottomWidth: 0.5,
+    borderTopWidth: index === 0 ? 1.5 : 0,
+    borderBottomWidth: 1.5,
     borderTopColor: themeDetails[theme].separatorColor,
     borderBottomColor: themeDetails[theme].separatorColor,
     flex: 1,

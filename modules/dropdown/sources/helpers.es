@@ -182,4 +182,13 @@ export default {
 
     return `${prefix}_${locale}`;
   },
+
+  truncate(text, maxChars) {
+    const dots = '...';
+    let str = text.trim();
+    if (str.length > maxChars) {
+      str = str.substring(0, maxChars - 3) + dots;
+    }
+    return str;
+  }
 };

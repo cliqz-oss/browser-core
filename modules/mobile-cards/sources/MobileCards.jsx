@@ -11,13 +11,13 @@ export default class MobileCards extends React.Component {
   }
 
   state = {
-    results: [],
+    results: '[]',
     theme: 'light'
   }
 
   actions = {
     renderResults: results => this.setState({ results }),
-    changeTheme: theme => this.setState({ theme, results: [] })
+    changeTheme: theme => this.setState({ theme, results: '[]' })
   }
 
   async init() {
@@ -27,7 +27,7 @@ export default class MobileCards extends React.Component {
   }
 
   render() {
-    const results = this.state.results;
+    const results = JSON.parse(this.state.results);
     const theme = this.state.theme;
     if (!results.length) {
       return null;

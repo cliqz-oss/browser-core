@@ -82,4 +82,4 @@ export async function service() {
   };
 }
 
-export default inject.service('logos');
+export default inject.service('logos', ['getLogoDetails']);

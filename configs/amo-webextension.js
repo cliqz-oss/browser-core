@@ -13,10 +13,14 @@ module.exports = {
   "pack": "web-ext build -s build -a .",
   "publish": "",
   "settings": Object.assign({}, urls, settings, {
-    "antitrackingProtectionEnabled": false
+    "antitrackingProtectionEnabled": false,
+    "offboardingURLs": {
+      "en": "https://cliqz.com/home/offboarding",
+    },
   }),
   "default_prefs" : {
     "freshtab.search.mode": "search",
+    "modules.dropdown.enabled": false,
     "modules.history-analyzer.enabled": false,
     "modules.anolysis.enabled": false,
     "showConsoleLogs": true,
@@ -25,9 +29,10 @@ module.exports = {
   },
   "modules": [
     "core",
-    "telemetry",    
+    "telemetry",
     "core-cliqz",
     "dropdown",
+    'abtests-legacy',
     "static",
     "geolocation",
     "human-web",
@@ -48,7 +53,6 @@ module.exports = {
     "anolysis",
     "anolysis-cc",
     "market-analysis",
-    "abtests",
     "search",
     "webextension-specific",
   ],

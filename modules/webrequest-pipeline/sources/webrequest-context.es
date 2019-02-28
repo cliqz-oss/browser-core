@@ -1,4 +1,5 @@
 import { URLInfo } from '../core/url-info';
+import logger from './logger';
 
 
 const TYPE_LOOKUP = {
@@ -189,4 +190,57 @@ export default class LegacyContext extends WebRequestContext {
   get isCached() {
     return this.fromCache;
   }
+}
+
+
+export function createWebRequestContext(details, pageStore) {
+  const context = details;
+
+  // Check if we have a URL
+  if (!context.url || context.url === '') {
+    logger.error('createWebRequestContext no url', details);
+    return null;
+  }
+
+  // **Chromium addition**
+  // In Chromium, we do not know if the tab is Private from the webrequest
+  // object, so we need to get this information from `pageStore`.
+  if (context.isPrivate === null || context.isPrivate === undefined) {
+    const tabId = context.tabId;
+    if (tabId !== -1 && pageStore.tabs[tabId]) {
+      context.isPrivate = pageStore.tabs[tabId].isPrivate;
+    }
+  }
+
+  // **Chromium addition**
+  // We do not get the `sourceUrl` in Chrome, so we keep track of the mapping
+  // tabId/sourceUrl in `pageStore`.
+  if (!context.sourceUrl) {
+    if (context.type === 'main_frame') {
+      context.sourceUrl = context.url;
+    } else if (context.frameAncestors !== undefined && context.frameAncestors.length !== 0) {
+      // On Firefox Webextension we have access to the list of all ancestors.
+      // The last element of this array is the top level document. We use it as
+      // sourceUrl.
+      context.sourceUrl = context.frameAncestors[context.frameAncestors.length - 1].url;
+    } else if (context.tabId !== -1) {
+      // If `frameAncestors` is not available, we fallback to using `pageStore`
+      // which keeps a mapping from frames to top-level document URLs (e.g.: on
+      // Chrome).
+      context.sourceUrl = pageStore.getSourceURL(context);
+    }
+  }
+
+  // **Chromium addition**
+  // Tag redirects
+  if (context.isRedirect === null || context.isRedirect === undefined) {
+    context.isRedirect = pageStore.isRedirect(context);
+  }
+
+  // **Chromium addition**
+  if (context.tabId > -1 && context.type === 'main_frame') {
+    pageStore.onFullPage(context);
+  }
+
+  return new LegacyContext(context);
 }

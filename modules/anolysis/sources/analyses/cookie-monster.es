@@ -1,4 +1,4 @@
-import Stats from '../../platform/lib/simple-statistics';
+import { sum, median, mean } from '../analyses-utils';
 
 const number = { type: 'number' };
 
@@ -24,21 +24,21 @@ export default {
         return combined;
       }, {});
       Object.assign(summaryStats, {
-        medBatchSize: Stats.median(batchSignals.count),
-        maxBatchSize: Stats.max(batchSignals.count),
-        meanExisting: Stats.mean(batchSignals.existing),
-        meanVisited: Stats.mean(batchSignals.visited),
-        deleted: Stats.sum(batchSignals.deleted),
-        modified: Stats.sum(batchSignals.modified),
+        medBatchSize: median(batchSignals.count),
+        maxBatchSize: Math.max(...batchSignals.count),
+        meanExisting: mean(batchSignals.existing),
+        meanVisited: mean(batchSignals.visited),
+        deleted: sum(batchSignals.deleted),
+        modified: sum(batchSignals.modified),
       });
     }
 
     if (cookiePruneSignals.length > 0) {
       Object.assign(summaryStats, {
-        cookiesSize: Stats.max(cookiePruneSignals.map(s => s.cookiesCount)),
-        visitsSize: Stats.max(cookiePruneSignals.map(s => s.visitsCount)),
-        visitsPruned: Stats.sum(cookiePruneSignals.map(s => s.visitsPruned)),
-        cookiesPruned: Stats.sum(cookiePruneSignals.map(s => s.cookiesPruned)),
+        cookiesSize: Math.max(...cookiePruneSignals.map(s => s.cookiesCount)),
+        visitsSize: Math.max(...cookiePruneSignals.map(s => s.visitsCount)),
+        visitsPruned: sum(cookiePruneSignals.map(s => s.visitsPruned)),
+        cookiesPruned: sum(cookiePruneSignals.map(s => s.cookiesPruned)),
       });
     }
 

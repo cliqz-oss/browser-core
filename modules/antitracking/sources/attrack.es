@@ -24,17 +24,15 @@ import telemetry from './telemetry';
 import { HashProb } from './hash';
 import { TrackerTXT, getDefaultTrackerTxtRule } from './tracker-txt';
 import { URLInfo, shuffle } from '../core/url-info';
-import { VERSION, MIN_BROWSER_VERSION } from './config';
+import { VERSION, MIN_BROWSER_VERSION, TELEMETRY } from './config';
 import { checkInstalledPrivacyAddons } from '../platform/addon-check';
 import { compressionAvailable, compressJSONToBase64, generateAttrackPayload } from './utils';
 import AttrackDatabase from './database';
 import getTrackingStatus from './dnt';
 import TrackerCounter from '../core/helpers/tracker-counter';
-import { isMobile } from '../core/platform';
 
 import BlockRules from './steps/block-rules';
 import CookieContext from './steps/cookie-context';
-import DomChecker from './steps/dom-checker';
 import PageLogger from './steps/page-logger';
 import RedirectTagger from './steps/redirect-tagger';
 import SubdomainChecker from './steps/subdomain-check';
@@ -43,8 +41,6 @@ import TokenExaminer from './steps/token-examiner';
 import TokenTelemetry from './steps/token-telemetry';
 import OAuthDetector from './steps/oauth-detector';
 import { skipInternalProtocols, skipInvalidSource, checkSameGeneralDomain } from './steps/check-context';
-
-import GeoIp from './geoip';
 
 export default class CliqzAttrack {
   constructor() {
@@ -63,7 +59,6 @@ export default class CliqzAttrack {
     this.pipelineSteps = {};
     this.pipelines = {};
 
-    this.geoip = !isMobile ? new GeoIp() : null;
     this.db = new AttrackDatabase();
   }
 
@@ -253,9 +248,6 @@ export default class CliqzAttrack {
     }, this.config);
 
     initPromises.push(this.initPipeline());
-    if (this.geoip) {
-      this.geoip.load();
-    }
 
     this._onPageStaged = this.onPageStaged.bind(this);
     this.tp_events.addEventListener('stage', this._onPageStaged);
@@ -269,14 +261,6 @@ export default class CliqzAttrack {
       const steps = {
         pageLogger: new PageLogger(this.tp_events),
         tokenExaminer: new TokenExaminer(this.qs_whitelist, this.config, this.db),
-        tokenTelemetry: new TokenTelemetry(
-          this.telemetry.bind(this),
-          this.qs_whitelist,
-          this.config,
-          this.db,
-          this.config.tokenTelemetry
-        ),
-        domChecker: new DomChecker(),
         tokenChecker: new TokenChecker(
           this.qs_whitelist,
           {},
@@ -291,6 +275,15 @@ export default class CliqzAttrack {
         subdomainChecker: new SubdomainChecker(this.config),
         oauthDetector: new OAuthDetector(),
       };
+      if (this.config.telemetryMode !== TELEMETRY.DISABLED) {
+        steps.tokenTelemetry = new TokenTelemetry(
+          this.telemetry.bind(this),
+          this.qs_whitelist,
+          this.config,
+          this.db,
+          this.config.tokenTelemetry
+        );
+      }
 
       this.pipelineSteps = steps;
 
@@ -387,17 +380,7 @@ export default class CliqzAttrack {
         {
           name: 'tokenTelemetry.extractKeyTokens',
           spec: 'collect', // TODO - global state
-          fn: state => steps.tokenTelemetry.extractKeyTokens(state),
-        },
-        {
-          name: 'domChecker.checkDomLinks',
-          spec: 'collect', // TODO - global state
-          fn: state => steps.domChecker.checkDomLinks(state),
-        },
-        {
-          name: 'domChecker.parseCookies',
-          spec: 'annotate',
-          fn: state => steps.domChecker.parseCookies(state),
+          fn: state => !steps.tokenTelemetry || steps.tokenTelemetry.extractKeyTokens(state),
         },
         {
           name: 'tokenChecker.findBadTokens',
@@ -693,22 +676,14 @@ export default class CliqzAttrack {
               state.incrementStat('resp_ob');
               state.incrementStat('content_length', parseInt(state.getResponseHeader('Content-Length'), 10) || 0);
               state.incrementStat(`status_${state.responseStatus}`);
-            }
-            if (this.geoip && this.qs_whitelist.isTrackerDomain(state.urlParts.generalDomainHash)
-                && state.ip) {
-              try {
-                const ipLoc = this.geoip.lookup(state.ip);
-                if (ipLoc) {
-                  state.incrementStat(`iploc_${ipLoc}`);
-                }
-              } catch (e) {
-                // invalid or IPv6 IP address, skip
-              }
-              const trackingStatus = getTrackingStatus(state);
-              if (trackingStatus) {
-                state.incrementStat(`tsv_${trackingStatus.value}`);
-                if (trackingStatus.statusId) {
-                  state.incrementStat('tsv_status');
+
+              if (this.qs_whitelist.isTrackerDomain(state.urlParts.generalDomainHash)) {
+                const trackingStatus = getTrackingStatus(state);
+                if (trackingStatus) {
+                  state.incrementStat(`tsv_${trackingStatus.value}`);
+                  if (trackingStatus.statusId) {
+                    state.incrementStat('tsv_status');
+                  }
                 }
               }
             }

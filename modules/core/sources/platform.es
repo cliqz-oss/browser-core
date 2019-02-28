@@ -1,6 +1,8 @@
 import config from './config';
 
-import platform, { OS } from '../platform/platform';
+import platform, * as platformAll from '../platform/platform';
+
+const { OS } = platformAll;
 
 export {
   isPlatformAtLeastInVersion,
@@ -25,7 +27,7 @@ export const isGhosteryBrowser = channel.startsWith('GB');
 export const isGhosteryTab = channel.startsWith('GT');
 export const isDesktopBrowser = isCliqzBrowser || isGhosteryBrowser;
 export const isAMO = channel === '04';
-export const isOnionModeFactory = platform.isOnionModeFactory || (() => (() => false));
+export const isOnionModeFactory = platformAll.isOnionModeFactory || (() => (() => false));
 export const isWebExtension = platformName === 'webextension';
 export const isGhostery = isGhosteryBrowser || isGhosteryTab;
 export const product = isGhostery ? 'GHOSTERY' : 'CLIQZ';

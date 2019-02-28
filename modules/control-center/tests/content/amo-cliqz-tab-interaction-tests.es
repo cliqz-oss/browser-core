@@ -52,7 +52,7 @@ describe('Control Center: AMO, Cliqz tab interaction tests', function () {
           () => subject.messages.find(message => message.action === 'cliqz-tab')
         ).then(
           (message) => {
-            expect(message).to.have.property('args').that.deep.equals([{ status: false }]);
+            expect(message).to.have.property('args').that.deep.equals([{ status: false, isPrivateMode: false }]);
           }
         );
       });
@@ -83,7 +83,7 @@ describe('Control Center: AMO, Cliqz tab interaction tests', function () {
           () => subject.messages.find(message => message.action === 'cliqz-tab')
         ).then(
           (message) => {
-            expect(message).to.have.property('args').that.deep.equals([{ status: true }]);
+            expect(message).to.have.property('args').that.deep.equals([{ status: true, isPrivateMode: false }]);
           }
         );
       });

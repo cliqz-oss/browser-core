@@ -28,29 +28,6 @@ const buildGeoMap = (geoData) => {
 };
 
 /**
- * will verify if the history check entry is valid or not
- */
-const isHistoryCheckValid = historyCheck =>
-  (historyCheck
-  && historyCheck.patterns
-  && (historyCheck.patterns.p_list && historyCheck.patterns.p_list.length > 0)
-  && historyCheck.patterns.pid
-  && historyCheck.min_matches_expected > 0
-  && historyCheck.since_secs > 0
-  && historyCheck.till_secs >= 0
-  && historyCheck.since_secs >= historyCheck.till_secs
-  && historyCheck.remove_if_matches !== undefined);
-
-/**
- * will build the history check pattern index and needed data for later steps
- */
-const buildHistoryCheckEntry = (historyCheck) => {
-  /* eslint-disable no-param-reassign */
-  historyCheck.patternIndex = buildSimplePatternIndex(historyCheck.patterns.p_list);
-  return historyCheck;
-};
-
-/**
  * The expected structure of a backend offer:
  * <pre>
  * {
@@ -159,40 +136,6 @@ const buildHistoryCheckEntry = (historyCheck) => {
  *     eval_expression: "expression here",
  *   },
  *
- *   // [optional] The list of history checks we should perform, probably only 1.
- *   // Each of the elements will be of the shape:
- *   //  {
- *   //    // will define the patterns object used for matching
- *   //    patterns: {
- *   //      // this will identify this patters uniquely, meaning if something change
- *   //      // on the patterns this id will change as well. If two operations use
- *   //      // the same patterns the id should be the same (id = hash(patterns_list))
- *   //      pid: 'unique pattern id',
- *   //      p_list: [
- *   //        p1,
- *   //        p2,...
- *   //      ]
- *   //    },
- *   //
- *   //   // which is the minimum expected number of matches to make the operation true
- *   //   // meaning if #of_matches >= min_expected => true
- *   //   min_matches_expected: 1,
- *   //
- *   //   // since how many seconds ago we want to check the history. This is relative
- *   //   // from NOW_secs - since_secs.
- *   //   since_secs: N,
- *   //   // till how many seconds ago (end time = NOW_secs - till_secs).
- *   //   till_secs: M,
- *   //
- *   //   // flag indicating if we should filter if the above condition is true
- *   //   // or we should not filter if the above condition is true (for example
- *   //   // we should filter if the user already bought a wine in the site, or
- *   //   // maybe we should show the offer if and only if the user already bought
- *   //   // a wine in the site).
- *   //   remove_if_matches: true | false
- *   //  }
- *   historyChecks: [{..},],
- *
  *   // [optional] the expiration time in ms, is a delta value meaning from the time
  *   // the user gets the offer when will be invalidated, basiically will be valid if
  *   // now < offerCreatedTsMs + expirationMs
@@ -228,7 +171,6 @@ export default class Offer {
     this._geo = null;
     this._filterRules = null;
     this._blackListPatterns = null;
-    this._historyChecks = null;
   }
 
   isValid() {
@@ -239,10 +181,7 @@ export default class Offer {
            && this.offerObj.campaign_id
            && this.offerObj.display_id
            && this.offerObj.ui_info
-           && this.offerObj.monitorData
-          && (
-            !this.hasHistoryChecks() || !this.historyChecks.some(hc => !isHistoryCheckValid(hc))
-          ));
+           && this.offerObj.monitorData);
   }
 
   get ABTestInfo() {
@@ -337,18 +276,6 @@ export default class Offer {
     return this.offerObj.rule_info
       ? this.offerObj.rule_info
       : { rule_info: { display_time_secs: 999999, type: 'exact_match', url: [] } };
-  }
-
-  hasHistoryChecks() {
-    return !!this.offerObj.historyChecks;
-  }
-
-  get historyChecks() {
-    if (this._historyChecks === null && this.hasHistoryChecks()) {
-      this._historyChecks = this.offerObj.historyChecks.map(hc => buildHistoryCheckEntry(hc))
-                            || [];
-    }
-    return this._historyChecks;
   }
 
   hasExpirationMs() {

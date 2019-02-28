@@ -20,6 +20,10 @@
           "type": "string",
           "optional": true
         },
+        "searchString": {
+          "type": "string",
+          "optional": true
+        },
         "selectionStart": {
           "type": "integer",
           "optional": true
@@ -29,6 +33,49 @@
           "optional": true
         },
         "triggerEvent": {
+          "type": "boolean",
+          "optional": true
+        }
+      }
+    },
+    {
+      "id": "UrlbarUpdateDetails",
+      "type": "object",
+      "description": "An object containing details of overriden omnibox.",
+      "properties": {
+        "focused": {
+          "type": "boolean",
+          "optional": true
+        },
+        "triggerFocusEvent": {
+          "type": "boolean",
+          "optional": true
+        },
+        "triggerOpenLocation": {
+          "type": "boolean",
+          "optional": true
+        },
+        "value": {
+          "type": "string",
+          "optional": true
+        },
+        "visibleValue": {
+          "type": "string",
+          "optional": true
+        },
+        "searchString": {
+          "type": "string",
+          "optional": true
+        },
+        "selectionStart": {
+          "type": "integer",
+          "optional": true
+        },
+        "selectionEnd": {
+          "type": "integer",
+          "optional": true
+        },
+        "triggerInputEvent": {
           "type": "boolean",
           "optional": true
         }
@@ -346,6 +393,35 @@
         {
           "name": "details",
           "$ref": "UrlbarOverrideDetails"
+        },
+        {
+          "type": "function",
+          "name": "callback",
+          "parameters": [{
+            "name": "omnibox",
+            "type": "object"
+          }]
+        }
+      ]
+    },
+    {
+      "name": "updateMany",
+      "type": "function",
+      "description": "Get omnibox API for current window",
+      "async": "callback",
+      "parameters": [{
+          "name": "windowId",
+          "type": "number",
+          "minimum": -2,
+          "optional": true
+        },
+        {
+          "name": "details",
+          "type": "array",
+          "items": {
+            "$ref": "UrlbarUpdateDetails",
+            "minimum": 1
+          }
         },
         {
           "type": "function",

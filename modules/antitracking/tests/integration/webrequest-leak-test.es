@@ -41,7 +41,7 @@ export default function () {
       WebRequest.onHeadersReceived.addListener(onHeadersReceiveCtr, { urls: ['*://*/*'] });
 
       await Promise.all([
-        testServer.registerDirectory('/', ['modules/antitracking/dist/mockserver']),
+        testServer.registerDirectory('/', ['modules/antitracking/tests/dist/mockserver']),
         testServer.registerPathHandler('/test', {
           headers: [
             { name: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },

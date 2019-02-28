@@ -1,6 +1,5 @@
 import { expect } from '../../core/test-helpers';
 import {
-  CONFIG,
   defaultConfig,
   Subject,
 } from '../../core/test-helpers-freshtab';
@@ -87,7 +86,7 @@ describe('Freshtab buttons UI', function () {
 
       it('with correct link', function () {
         expect(subject.query(historyButtonSelector).href)
-          .to.contain(CONFIG.settings.HISTORY_URL);
+          .to.contain('/cliqz-history/index.html');
       });
     });
 

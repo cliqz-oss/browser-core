@@ -12,6 +12,8 @@ export default function ({
   waitForTestPage,
   injectTestUtils,
   getIframeStyle,
+  checkIframeExists,
+  triggerIframeCreation,
   fillIn,
   testPageUrl,
 }) {
@@ -25,11 +27,11 @@ export default function ({
     testUtils = await injectTestUtils(view);
   });
 
-  it('renders 0 height iframe for results', async function () {
-    await waitFor(async () => {
-      const iframeStyle = await getIframeStyle(view);
-      return expect(iframeStyle).to.equal('height: 0px;');
-    });
+  it('has no iframe on start', async () => expect(await checkIframeExists(view)).to.equal(false));
+
+  it('creates iframe on demand', async function () {
+    triggerIframeCreation(view);
+    await waitFor(async () => expect(await checkIframeExists(view)).to.equal(true));
   });
 
   it('on key input it opens the dropdown', async function () {

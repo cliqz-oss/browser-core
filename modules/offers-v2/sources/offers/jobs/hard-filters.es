@@ -4,12 +4,10 @@
  * - location
  * - ab test
  * - real estate
- * - history checks
  * ...
  */
 import OfferJob from './job';
 import { getABNumber } from '../../utils';
-import logger from '../../common/offers_v2_logger';
 import ActionID from '../actions-defs';
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -17,41 +15,9 @@ import ActionID from '../actions-defs';
 
 const isInRange = (x, A, B) => (x >= A && x <= B);
 
-
 // /////////////////////////////////////////////////////////////////////////////
 //                    DEFINE ALL THE FILTERS HERE
 // /////////////////////////////////////////////////////////////////////////////
-
-/**
- * This method will perform a history check and will return the proper value
- * depending on the conditions and what we get from the history matching
- * @param historyMatcher  Module to perform the history check.
- * @param historyCheck    The data containing the check to be performed and the rules
- * @return true if we should filter the offer, false otherwise
- */
-const performHistoryCheck = (historyMatcher, historyCheck) => {
-  const query = {
-    since_secs: historyCheck.since_secs,
-    till_secs: historyCheck.till_secs
-  };
-  return historyMatcher.countMatches(
-    query,
-    historyCheck.patterns,
-    historyCheck.patternIndex
-  ).then((result) => {
-    if (result < 0) {
-      // remove it
-      logger.error('Something went wrong trying to get the history result for', historyCheck);
-      return Promise.resolve(true);
-    }
-
-    const matchesMinExpected = result >= historyCheck.min_matches_expected;
-    const shouldRemoveOffer = historyCheck.remove_if_matches
-      ? matchesMinExpected
-      : !matchesMinExpected;
-    return Promise.resolve(shouldRemoveOffer);
-  });
-};
 
 /**
  * This method will perform all the filters for a given offer and will return
@@ -60,7 +26,7 @@ const performHistoryCheck = (historyMatcher, historyCheck) => {
  */
 const shouldFilterOffer = async (
   offer,
-  { presentRealEstates, geoChecker, historyMatcher, categoryHandler, offerIsFilteredOutCb }
+  { presentRealEstates, geoChecker, categoryHandler, offerIsFilteredOutCb }
 ) => {
   // check the offer is valid and contains all the data we need
   const filterByValidity = () => !offer || !offer.isValid();
@@ -81,26 +47,6 @@ const shouldFilterOffer = async (
   const filterByCategories = () => offer.hasCategories()
     && !offer.categories.some(cat => categoryHandler.isCategoryActive(cat));
 
-  // we will check the history if needed
-  const filterByHistory = async () => {
-    if (!offer.hasHistoryChecks()) {
-      return false;
-    }
-    // if offer has history checks and we do not have history feature => we
-    // automatically discard this offer since we cannot know about it
-    if (!historyMatcher || !historyMatcher.hasHistoryEnabled()) {
-      return true;
-    }
-
-    // we check history and see if we can return right now or we need to still
-    // wait for the results => PENDING
-    const historyResultsPromises = [];
-    offer.historyChecks.forEach(check =>
-      historyResultsPromises.push(performHistoryCheck(historyMatcher, check)));
-    const results = await Promise.all(historyResultsPromises);
-    return results.some(Boolean);
-  };
-
   // all the filters here
   const allFiltersFunctions = [
     filterByValidity,
@@ -108,7 +54,6 @@ const shouldFilterOffer = async (
     filterByRealEstates,
     filterByGeo,
     filterByCategories,
-    filterByHistory,
   ];
 
   for (let i = 0; i < allFiltersFunctions.length; i += 1) {
@@ -144,8 +89,6 @@ export default class HardFilters extends OfferJob {
    *   presentRealEstates: Map(),
    *   // geo checker instance
    *   geoChecker: {},
-   *   // pattern matching for history checks.
-   *   historyMatcher: {},
    *   // the category handler to check if a category is active
    *   categoryHandler: {},
    * }

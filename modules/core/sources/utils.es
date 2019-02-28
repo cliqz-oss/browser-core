@@ -14,13 +14,11 @@ import inject from './kord/inject';
 import random from './helpers/random';
 
 const CliqzUtils = {
-  getLogoDetails: inject.service('logos').getLogoDetails,
+  getLogoDetails: inject.service('logos', ['getLogoDetails']).getLogoDetails,
+  telemetryService: inject.service('telemetry', ['push']),
   environment: CLIQZEnvironment,
   RESULTS_TIMEOUT: CLIQZEnvironment.RESULTS_TIMEOUT,
   SKIN_PATH: CLIQZEnvironment.SKIN_PATH,
-  telemetryHandlers: [
-  ],
-
   init() {
     // cutting cyclic dependency
     CLIQZEnvironment.getLogoDetails = CliqzUtils.getLogoDetails;
@@ -110,20 +108,13 @@ const CliqzUtils = {
 
   isPrivateMode(win) {
     if (!win) {
-      win = CliqzUtils.getWindow();
+      throw new Error('isPrivateMode was called without a window object');
     }
-    return CLIQZEnvironment.isPrivate(win) || CLIQZEnvironment.isOnPrivateTab(win);
+    return CLIQZEnvironment.isPrivate(win);
   },
-  telemetry(...args) {
-    return Promise.all(
-      CliqzUtils.telemetryHandlers.map(async (handler) => {
-        try {
-          await handler(...args);
-        } catch (e) {
-          // continue with other handlers
-        }
-      })
-    );
+
+  telemetry(signal, instant, schema) {
+    return this.telemetryService.push(signal, schema, instant);
   },
 
   getWindow: CLIQZEnvironment.getWindow,

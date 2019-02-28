@@ -23,7 +23,6 @@
     "HOMPAGE_URL": "https://cliqz.com/",
     "TRIQZ_URL": "https://cliqz.com/tips",
     "RESULTS_PROVIDER_LOG" : "https://api.cliqz.com/api/v1/logging?q=",
-    "RESULTS_PROVIDER_PING": "https://api.cliqz.com/ping",
     "SAFE_BROWSING": "https://safe-browsing.cliqz.com",
     "UNINSTALL": "https://cliqz.com/home/offboarding",
     "FEEDBACK": "https://cliqz.com/feedback/",

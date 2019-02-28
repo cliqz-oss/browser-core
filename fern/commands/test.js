@@ -112,6 +112,7 @@ program.command(`test ${common.configParameter}`)
             if (!isRunning) {
               testem.startDev({
                 debug: true,
+                query_params: options.grep ? { grep: options.grep } : undefined,
                 host: 'localhost',
                 port: '4200',
                 launch: launchers || (CONFIG.testem_launchers || []).join(','),

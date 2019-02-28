@@ -65,7 +65,7 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
         return JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
       }
 
-      function buildOffer({ filterRules, offer_id, rs_dest, historyChecks }) {
+      function buildOffer({ filterRules, offer_id, rs_dest }) {
         const o = getOfferObj();
         if (filterRules) {
           o.filterRules = filterRules;
@@ -75,9 +75,6 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
         }
         if (rs_dest) {
           o.rs_dest = rs_dest;
-        }
-        if (historyChecks) {
-          o.historyChecks = historyChecks;
         }
 
         const offerObj = new Offer(o);
@@ -217,132 +214,6 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
             chai.expect(r).eql([offer]);
           });
         });
-
-        it('/history checks works as expected if no feature present', function () {
-          offer = buildOffer({});
-
-          // we will set history hceck but dissable feature
-          offer.offerObj.historyChecks = [{
-            patterns: { pid: '123', p_list: ['||google.com'] },
-            min_matches_expected: 2,
-            since_secs: 10,
-            till_secs: 0,
-            remove_if_matches: false
-          }];
-          ctx.historyMatcher = undefined;
-          return hardFilter.process([offer], ctx).then((r) => {
-            chai.expect(r).eql([]);
-          });
-        });
-
-        it('/history checks works as expected if returns proper values', function () {
-          const offers = [
-            buildOffer({
-              offer_id: 'no1',
-              historyChecks: [
-                {
-                  patterns: { pid: '123', p_list: ['||google.com'] },
-                  min_matches_expected: 4,
-                  since_secs: 10,
-                  till_secs: 0,
-                  remove_if_matches: false
-                }
-              ]
-            }),
-            buildOffer({
-              offer_id: 'no2',
-              historyChecks: [
-                {
-                  patterns: { pid: '123', p_list: ['||google.com'] },
-                  min_matches_expected: 5,
-                  since_secs: 10,
-                  till_secs: 0,
-                  remove_if_matches: false
-                }
-              ]
-            }),
-            buildOffer({
-              offer_id: 'yes1',
-              historyChecks: [
-                {
-                  patterns: { pid: '123', p_list: ['||google.com'] },
-                  min_matches_expected: 1,
-                  since_secs: 10,
-                  till_secs: 0,
-                  remove_if_matches: false
-                }
-              ]
-            }),
-            buildOffer({
-              offer_id: 'yes2',
-              historyChecks: [
-                {
-                  patterns: { pid: '123', p_list: ['||google.com'] },
-                  min_matches_expected: 2,
-                  since_secs: 10,
-                  till_secs: 0,
-                  remove_if_matches: false
-                }
-              ]
-            }),
-            buildOffer({
-              offer_id: 'no3',
-              historyChecks: [
-                {
-                  patterns: { pid: '123', p_list: ['||google.com'] },
-                  min_matches_expected: 2,
-                  since_secs: 10,
-                  till_secs: 0,
-                  remove_if_matches: true
-                }
-              ]
-            }),
-            buildOffer({
-              offer_id: 'no4',
-              historyChecks: [
-                {
-                  patterns: { pid: '123', p_list: ['||google.com'] },
-                  min_matches_expected: 1,
-                  since_secs: 10,
-                  till_secs: 0,
-                  remove_if_matches: false
-                },
-                {
-                  patterns: { pid: '123', p_list: ['||google.com'] },
-                  min_matches_expected: 5,
-                  since_secs: 10,
-                  till_secs: 0,
-                  remove_if_matches: false
-                }
-              ]
-            }),
-            buildOffer({
-              offer_id: 'yes3',
-              historyChecks: [
-                {
-                  patterns: { pid: '123', p_list: ['||google.com'] },
-                  min_matches_expected: 1,
-                  since_secs: 10,
-                  till_secs: 0,
-                  remove_if_matches: false
-                },
-                {
-                  patterns: { pid: '123', p_list: ['||google.com'] },
-                  min_matches_expected: 2,
-                  since_secs: 10,
-                  till_secs: 0,
-                  remove_if_matches: false
-                }
-              ]
-            })
-          ];
-          // we will set history hceck but dissable feature
-          ctx.historyMatcher.setMockCountMatches(2);
-          return hardFilter.process(offers, ctx).then((r) => {
-            checkForOffers(r, ['yes1', 'yes2', 'yes3']);
-          });
-        });
-
 
         it('/categories checks works to filter offers out', function () {
           offer = buildOffer({});

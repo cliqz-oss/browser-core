@@ -1,33 +1,55 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+
 import Button from './partials/button';
+import Row from './partials/row';
 
 class ActionButtons extends React.Component {
   state = {
-    isReloadFinished: false,
+    isExtReloadFinished: false,
+    isOffersReloadFinished: false,
   }
 
   reloadExtension = async () => {
     await this.props.cliqz.reloadExtension();
     this.setState({
-      isReloadFinished: true,
+      isExtReloadFinished: true,
+    });
+  }
+
+  reloadOffers = async () => {
+    await this.props.cliqz.reloadOffers();
+    this.setState({
+      isOffersReloadFinished: true,
     });
   }
 
   render() {
     return (
-      <div className="button-area">
-        <Button
-          onClick={this.reloadExtension}
-          value="RELOAD EXTENSION"
-        />
+      <table>
+        <tbody>
+          <Row>
+            <Button
+              onClick={this.reloadExtension}
+              value="RELOAD EXTENSION"
+            />
+          </Row>
 
-        {this.state.isReloadFinished
+          <Row>
+            <Button
+              onClick={this.reloadOffers}
+              value="RELOAD OFFERS"
+            />
+          </Row>
+
+          {(this.state.isExtReloadFinished
+            || this.state.isOffersReloadFinished)
           && (
-            <p className="reload-confirmed">Reload finished</p>
+            <Row>Reload finished</Row>
           )
         }
-      </div>
+        </tbody>
+      </table>
     );
   }
 }

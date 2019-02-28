@@ -62,3 +62,7 @@ export function getBrowserMajorVersion() {
 export function getCookies() {
   return Promise.reject();
 }
+
+export function isDefaultBrowser() {
+  return null;
+}

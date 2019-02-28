@@ -26,3 +26,4 @@ export class FetchConfigError extends ExtendableError {}
 export class JoinGroupsError extends ExtendableError {}
 export class InitSignerError extends ExtendableError {}
 export class ServerError extends ExtendableError {}
+export class ClockOutOfSyncWhileJoining extends ExtendableError {}

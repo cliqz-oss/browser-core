@@ -1,8 +1,21 @@
 import React from 'react';
 
 export default class SearchSettings extends React.Component {
-  componentDidUpdate(prevProps) {
+  loadSettingsIframe() {
+    if (this.iframe.src) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+      this.iframe.onload = () => {
+        this.iframe.contentWindow.addEventListener('message', resolve, { once: true });
+      };
+      this.iframe.src = '../control-center/index.html?pageAction=true&compactView=true';
+    });
+  }
+
+  async componentDidUpdate(prevProps) {
     if (!prevProps.isOpen && this.props.isOpen) {
+      await this.loadSettingsIframe();
       const controlCenter = this.iframe.contentWindow.document.getElementById('control-center');
       controlCenter.style.width = 'auto';
       controlCenter.querySelector('.footer').style.width = 'auto';
@@ -18,7 +31,6 @@ export default class SearchSettings extends React.Component {
         >
           <iframe
             tabIndex="-1"
-            src="../control-center/index.html?pageAction=true&compactView=true"
             title="Settings"
             ref={(iframe) => { this.iframe = iframe; }}
           />

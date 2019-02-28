@@ -6,13 +6,13 @@ import prefs from '../core/prefs';
 
 import { extractHostname, getGeneralDomain } from '../core/tlds';
 
-import CliqzADB, {
+import CliqzADB, { isSupportedProtocol } from './adblocker';
+import {
   ADB_PREF_VALUES,
   ADB_PREF,
   ADB_PREF_OPTIMIZED,
   ADB_USER_LANG,
-  isSupportedProtocol,
-} from './adblocker';
+} from './config';
 
 
 export default background({

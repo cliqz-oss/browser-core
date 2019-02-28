@@ -85,4 +85,15 @@ export default class {
       }
     });
   }
+
+  static async stats() {
+    if (chrome.cliqz && chrome.cliqz.history && chrome.cliqz.history.stats) {
+      return chrome.cliqz.history.stats();
+    }
+
+    return {
+      size: -1,
+      days: -1
+    };
+  }
 }

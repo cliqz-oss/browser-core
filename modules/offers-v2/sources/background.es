@@ -22,7 +22,6 @@ import FeatureHandler from './features/feature-handler';
 import IntentHandler from './intent/intent-handler';
 import OffersHandler from './offers/offers-handler';
 import BEConnector from './backend-connector';
-import HistoryMatcher from './history/history-matching';
 import CategoryHandler from './categories/category-handler';
 import CategoryFetcher from './categories/category-fetcher';
 import GreenAdsHandler from './green-ads/manager';
@@ -32,11 +31,13 @@ import {oncePerInterval} from './utils';
 import md5 from '../core/helpers/md5';
 import OfferDB from './offers/offers-db';
 import PatternsStat from './patterns_stat';
+import patternsStatMigrationCheck from './patterns_stat_migration_check';
 
 // /////////////////////////////////////////////////////////////////////////////
 // consts
 const POPUPS_INTERVAL = 30 * 60 * 1000; // 30 minutes
 const PRINT_ONBOARDING = 'print_onboarding';
+const DEBUG_DEXIE_MIGRATION = false;
 
 // If the offers are toggled on/off, the real estate modules should
 // be activated or deactivated.
@@ -108,6 +109,10 @@ export default background({
       OffersConfigs.SEND_SIG_OP_SHOULD_LOAD = false;
     }
 
+    if (DEBUG_DEXIE_MIGRATION) {
+      this.patternsStatMigrationCheck = patternsStatMigrationCheck;
+    }
+
     // set some extra variables
     if (prefs.get('offersTelemetryFreq')) {
       OffersConfigs.SIGNALS_OFFERS_FREQ_SECS = prefs.get('offersTelemetryFreq');
@@ -130,7 +135,11 @@ export default background({
     // create the DB to be used over all offers module
     this.db = new Database('cliqz-offers');
     await this.db.init();
+
+    // OffersDB
     this.offersDB = new OfferDB(this.db);
+    await this.offersDB.loadPersistentData();
+
     // the backend connector
     this.backendConnector = new BEConnector();
 
@@ -158,8 +167,6 @@ export default background({
     this.featureHandler = new FeatureHandler();
     const historyFeature = this.featureHandler.getFeature('history');
 
-    this.historyMatcher = new HistoryMatcher(historyFeature);
-
     // intent system
     this.intentHandler = new IntentHandler();
     await this.intentHandler.init();
@@ -183,7 +190,6 @@ export default background({
       intentHandler: this.intentHandler,
       backendConnector: this.backendConnector,
       presentRealEstates: this.registeredRealEstates,
-      historyMatcher: this.historyMatcher,
       featuresHandler: this.featureHandler,
       sigHandler: this.signalsHandler,
       eventHandler: this.eventHandler,
@@ -203,11 +209,10 @@ export default background({
       feature_handler: this.featureHandler,
       intent_handler: this.intentHandler,
       be_connector: this.backendConnector,
-      history_matcher: this.historyMatcher,
       category_handler: this.categoryHandler,
       offers_status_handler: this.offersHandler.offerStatus,
       ga_handler: this.gaHandler,
-      telemetry: inject.service('telemetry'),
+      telemetry: inject.service('telemetry', ['onTelemetryEnabled', 'onTelemetryDisabled', 'isEnabled', 'push', 'removeListener']),
     };
     this.triggerMachineExecutor = new TriggerMachineExecutor(this.globObjects);
 
@@ -614,7 +619,12 @@ export default background({
           domain: md5(getGeneralDomain(sender.url)), categories, price, ...msg
         });
       }
-    }
+    },
+
+    async softReloadOffers() {
+      await this.softUnload();
+      await this.softInit();
+    },
   },
 
 });

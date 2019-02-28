@@ -109,7 +109,7 @@ export default background({
         await this.db.db.daily.bulkPut(rows);
         await chrome.cliqzdbmigration.deleteDatabase('insights');
         prefs.set('insights.migrated', true);
-      });
+      }, logger.debug);
     }
   },
 

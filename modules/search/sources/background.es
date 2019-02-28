@@ -23,6 +23,7 @@ import Calculator from './providers/calculator';
 import Cliqz from './providers/cliqz';
 import History from './providers/history';
 import HistoryView from './providers/history-view';
+import HistoryLookup from './providers/history-lookup';
 import Instant from './providers/instant';
 import QuerySuggestions from './providers/query-suggestions';
 import RichHeader, { getRichHeaderQueryString } from './providers/rich-header';
@@ -50,7 +51,7 @@ import { isMobile } from '../core/platform';
   @class Background
  */
 export default background({
-  requiresServices: ['search-services', 'logos'],
+  requiresServices: ['search-services', 'logos', 'cliqz-config'],
 
   core: inject.module('core'),
   search: inject.module('search'),
@@ -76,10 +77,16 @@ export default background({
       cliqz: new Cliqz(),
       history: new History(),
       historyView: new HistoryView(),
+      historyLookup: new HistoryLookup(),
       instant: new Instant(),
       querySuggestions: new QuerySuggestions(),
       richHeader: new RichHeader(settings), //
     };
+  },
+
+  resetAssistantStates() {
+    this.adultAssistant.resetAllowOnce();
+    this.locationAssistant.resetAllowOnce();
   },
 
   unload() {
@@ -126,6 +133,7 @@ export default background({
     stopSearch({ contextId, tab: { id: tabId } = {} } = { tab: {} }) {
       const sessionId = tabId || contextId;
 
+      this.resetAssistantStates();
       if (!this.searchSessions.has(sessionId)) {
         return;
       }
@@ -246,7 +254,7 @@ export default background({
             'broadcast',
             {
               action: 'renderResults',
-              args: [results],
+              args: [JSON.stringify(results)],
               contextId,
             },
           );
@@ -395,11 +403,6 @@ export default background({
         offers: offersAssistant.getState(),
         settings: settingsAssistant.getState(),
       };
-    },
-
-    resetAssistantStates() {
-      this.adultAssistant.resetAllowOnce();
-      this.locationAssistant.resetAllowOnce();
     },
 
     queryToUrl(query = '') {

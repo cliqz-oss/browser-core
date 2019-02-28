@@ -52,8 +52,7 @@
   "commands": {
     "toggle-quicksearch": {
       "suggested_key": {
-        "default": "Ctrl+Space",
-        "mac": "Alt+Space"
+        "default": "Ctrl+K"
       },
       "description": "Toggle in-page quick search"
     }

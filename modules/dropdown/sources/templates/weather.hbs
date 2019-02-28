@@ -1,37 +1,66 @@
-<div class="result instant weather">
-    <div class="header padded">
-        <span class="title">{{title}}</span>
-    </div>
+<div class="instant weather">
+    <div class="weather-wrapper padded">
+        <div class="header">
+            {{> partials/logo}}
+            <span class="title">{{title}}</span>
+        </div>
 
-    <div class="forecast padded">
-        <div class="forecast-container white-background">
-            <div class="unit-switcher">
-                <span>{{unitsLabel}}:</span> <span class="celsius-btn">&#176;C</span> | <span class="fahrenheit-btn">&#176;F</span>
-            </div>
-            <div class="weather-item">
-                <div class="date">{{today.date}}</div>
-                <img width="55" height="55" src="{{today.icon}}" />
-                <div class="temp">
-                    <span class="celsius">{{today.maxTemp.celsius}} {{today.minTemp.celsius}}</span>
-                    <span class="fahrenheit">{{today.maxTemp.fahrenheit}} {{today.minTemp.fahrenheit}}</span>
+        <div class="forecast white-background">
+            <div class="days">
+                {{#each (take days 5)}}
+                <div class="day {{#if isActive}}active{{/if}}">
+                    <p class="weekday">{{weekday}}</p>
+                    <p class="date">{{date}}</p>
+                    <div class="day-weather">
+                        <div class="icon"> <img src="{{icon}}" alt="{{description}}"> </div>
+                        <div class="degree">
+                            <span class="max">{{temperature.max}}&deg;</span>
+                            <span class="min">{{temperature.min}}&deg;</span>
+                            <span class="value{{#if tempIsThreeDigits}} dig3{{/if}}">{{temperature.value}}&deg;</span>
+                        </div>
+                    </div>
+                    <p class="description" title="{{description}}">{{truncate description 32}}</p>
                 </div>
+                {{/each}}
             </div>
 
-            {{#each forecast}}
-            <div class="weather-item">
-                <div class="date">{{weekday}}</div>
-                <img width="55" height="55" src="{{icon}}" />
-                <div class="temp">
-                    <span class="celsius">{{maxByUnit.celsius}}  {{minByUnit.celsius}}</span>
-                    <span class="fahrenheit">{{maxByUnit.fahrenheit}}  {{minByUnit.fahrenheit}}</span>
-                </div>
+            <div class="selections">
+                {{#each selectionButtons}}
+                <span class="button {{#if isActive}}active{{/if}}" id="{{id}}">{{text}}</span>
+                {{/each}}
+                {{#each unitButtons}}
+                <span class="button {{#if isActive}}active{{/if}}" id="{{id}}"></span>
+                {{/each}}
+                {{#if otherInfo}}
+                <span class="other-info">
+                    <span>{{otherInfo.precipitation.label}}: {{otherInfo.precipitation.value}}{{otherInfo.precipitation.unit}},</span>
+                    <span>{{otherInfo.humidity.label}}: {{otherInfo.humidity.value}}{{otherInfo.humidity.unit}},</span>
+                    <span>{{otherInfo.wind.label}}: {{otherInfo.wind.value}}{{otherInfo.wind.unit}},</span>
+                    <span>{{otherInfo.uv.label}}: {{otherInfo.uv.value}}{{otherInfo.uv.unit}}</span>
+                </span>
+                {{/if}}
             </div>
-            {{/each}}
 
+            <div class="graph">
+                <a class="result" data-url="{{hourlyForecast.url}}" href="{{hourlyForecast.url}}">
+                    {{> (lookup . 'currentPartial')}}
+                </a>
+                <p class="timeline">
+                    {{#each timeArr}}
+                    <span>{{this}}</span>
+                    {{/each}}
+                </p>
+            </div>
+        </div>
+        <div class="footer">
+            {{> partials/buttons}}
             <div class="source">
-                <div class="source-container">
+                {{#with sourceWrapper}}
                     {{> partials/source}}
-                </div>
+                {{/with}}
+                {{#if updated}}
+                    &#183; {{> partials/timestamp}}
+                {{/if}}
             </div>
         </div>
     </div>

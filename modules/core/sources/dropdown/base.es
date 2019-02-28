@@ -213,7 +213,7 @@ export default class BaseDropdownManager {
         break;
       }
       case 'Tab': {
-        if (this.isOpen || this.textInput.value) {
+        if (this.isOpen) {
           (ev.shiftKey ? this.previousResult() : this.nextResult())
             .then(this.setUrlbarValue);
         }

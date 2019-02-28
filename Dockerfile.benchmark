@@ -1,0 +1,21 @@
+FROM node:10.14.0-stretch
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update --no-install-recommends \
+  && apt-get install -y time jq \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g npm@latest yarn
+
+RUN mkdir /app
+RUN chown node:node -R /app
+
+USER node
+COPY package.json /app/
+COPY package-lock.json /app/
+
+WORKDIR /app/
+
+RUN mkdir -p /app/benchmark && wget -O - https://s3.amazonaws.com/cdncliqz/extension-profiles/session_2018-10-15.jl.gz | gunzip > /app//benchmark/session.jl
+RUN npm ci

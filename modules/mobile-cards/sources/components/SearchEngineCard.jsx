@@ -52,6 +52,28 @@ export default class SearchEngineCard extends React.Component {
     // telemetry.push(signal, 'mobile_result_selection');
   }
 
+  getSelection = () => {
+    const props = this.props;
+    const meta = props.meta;
+    const result = props.result;
+    const selection = {
+      action: 'click',
+      elementName: 'title',
+      isFromAutoCompletedUrl: false,
+      isNewTab: false,
+      isPrivateMode: false,
+      isPrivateResult: meta.isPrivate,
+      query: meta.query,
+      rawResult: {
+        index: props.index,
+        ...props.result,
+      },
+      resultOrder: meta.resultOrder,
+      url: result.url,
+    };
+    return selection;
+  }
+
   render() {
     const result = this.props.result;
     const url = result.url;
@@ -68,7 +90,7 @@ export default class SearchEngineCard extends React.Component {
         <Link
           label="complementary-search-link"
           url={url}
-          onPress={e => this.sendResultClickTelemetry(e)}
+          getSelection={this.getSelection}
         >
           <View
             accessible={false}

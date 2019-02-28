@@ -4,23 +4,21 @@
 /configs/ @luciancor
 
 # please keep module list sorted
+/modules/**/tests/*.es @marta-cliqz @tamara-cliqz
+/modules/**/tests/content/ @marta-cliqz @tamara-cliqz
+/modules/**/tests/integration/ @marta-cliqz @tamara-cliqz
 /modules/adblocker/ @remusao @zhonghao-cliqz
 /modules/anolysis/ @remusao
 /modules/anti-phishing/ @zhonghao-cliqz
 /modules/antitracking/ @sammacbeth @zhonghao-cliqz @remusao
 /modules/autocomplete/ @dominik-s @luciancor
 /modules/browser-panel/ @luciancor @giota-cliqz
-/modules/browser-panel/tests/content @marta-cliqz @tamara-cliqz
 /modules/context-menu/ @alex-cliqz
 /modules/context-search/ @alexandra-cliqz
 /modules/control-center/ @mai-cliqz @giota-cliqz
-/modules/control-center/tests/content/ @marta-cliqz @tamara-cliqz
 /modules/core/ @chrmod @luciancor
 /modules/dropdown/ @chrmod @giota-cliqz
-/modules/dropdown/tests/integration/ @marta-cliqz @tamara-cliqz
 /modules/freshtab/ @giota-cliqz @chrmod
-/modules/freshtab/tests/content/ @marta-cliqz @tamara-cliqz
-/modules/freshtab/tests/integration/ @marta-cliqz @tamara-cliqz
 /modules/geolocation/ @chrmod
 /modules/green-ads/ @remusao
 /modules/history/ @chrmod
@@ -40,7 +38,6 @@
 /modules/offboarding/ @luciancor
 /modules/offers-banner/ @aleksandr-cliqz
 /modules/offers-cc/ @gabriel-cliqz @giota-cliqz @mai-cliqz
-/modules/offers-cc/tests/content/ @marta-cliqz @tamara-cliqz
 /modules/offers-v2/ @zhonghao-cliqz @eleniS
 /modules/onboarding-v3/ @mai-cliqz @luciancor
 /modules/p2p/ @alex-cliqz
@@ -50,6 +47,7 @@
 /modules/privacy/ @ecnmst
 /modules/proxyPeer/ @alex-cliqz @remusao
 /modules/search/ @dominik-s @chrmod @private-face
+/modules/static/ @marta-cliqz
 /modules/theme/ @gabriel-cliqz @mai-cliqz
 /modules/video-downloader/ @mai-cliqz @alex-cliqz
 /modules/webrequest-pipeline/ @remusao @zhonghao-cliqz

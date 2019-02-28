@@ -27,36 +27,46 @@
                     style="background-image: url({{template_data.logo_dataurl}})"
                 ></div>
                 <button class="close"
-                        data-menu-type="delete">
+                        data-menu-type="delete"
+                        data-telemetry-id="remove"
+                >
                 </button>
             </div>
         </header>
-
-        {{#if template_data.picture_dataurl}}
-        <p class="picture cta-element" style="background-image: url({{template_data.picture_dataurl}})"
-            data-id="{{offer_id}}"
-            data-elem="picture"
-            data-url="{{template_data.call_to_action.url}}"></p>
-        {{/if}}
-        {{#if template_data.benefit}}
-        <p class="benefit cta-element {{#if template_data.benefit_new}}updated{{/if}}"
-            data-id="{{offer_id}}"
-            data-elem="benefit"
-            data-url="{{template_data.call_to_action.url}}">
-            <span class="benefit-txt">{{template_data.benefit}}</span>
-            <span>{{template_data.benefit_new}}</span>
-        </p>
-        {{/if}}
-        <p class="headline cta-element" style="color: {{backgroundColor}}"
-            data-id="{{offer_id}}"
-            data-elem="headline"
-            data-url="{{template_data.call_to_action.url}}">
-            {{either_or template_data.headline template_data.title}}
-        </p>
-        <p class="description cta-element"
-            data-id="{{offer_id}}"
-            data-elem="description"
-            data-url="{{template_data.call_to_action.url}}" >{{template_data.desc}}</p>
+        <div class='inpage-condition-wrapper'>
+          <div class='inpage-condition-content'>
+            <div class="benefit">{{template_data.benefit}}</div>
+            <br />
+            <div class='condition'>
+              {{template_data.conditions}}
+            </div>
+          </div>
+          {{#if template_data.picture_dataurl}}
+          <p class="picture cta-element" style="background-image: url({{template_data.picture_dataurl}})"
+              data-id="{{offer_id}}"
+              data-elem="picture"
+              data-url="{{template_data.call_to_action.url}}"></p>
+          {{/if}}
+          {{#if template_data.benefit}}
+          <p class="benefit cta-element {{#if template_data.benefit_new}}updated{{/if}}"
+              data-id="{{offer_id}}"
+              data-elem="benefit"
+              data-url="{{template_data.call_to_action.url}}">
+              <span class="benefit-txt">{{template_data.benefit}}</span>
+              <span>{{template_data.benefit_new}}</span>
+          </p>
+          {{/if}}
+          <p class="headline cta-element" style="color: {{backgroundColor}}"
+              data-id="{{offer_id}}"
+              data-elem="headline"
+              data-url="{{template_data.call_to_action.url}}">
+              {{either_or template_data.headline template_data.title}}
+          </p>
+          <p class="description cta-element"
+              data-id="{{offer_id}}"
+              data-elem="description"
+              data-url="{{template_data.call_to_action.url}}" >{{template_data.desc}}</p>
+        </div>
         {{#if template_data.code}}
         <div class="promocode-wrapper">
             <input
@@ -88,7 +98,7 @@
         <div class="validity-wrapper">
             <span class="validity {{#if validity.isExpiredSoon}}red{{/if}}">{{validity.text}}</span>
             {{#if template_data.conditions}}
-            <span class="condition" title="{{template_data.conditions}}">{{local 'offers_conditions'}}
+            <span class="condition" >{{local 'offers_conditions'}}
                 <button></button>
             </span>
             {{/if}}

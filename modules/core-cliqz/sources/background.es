@@ -31,31 +31,42 @@ export default background({
     language.unload();
   },
 
-  reportStartupTime() {
-    inject.module('core').action(
-      'status'
-    ).then((status) => {
-      utils.telemetry({
-        type: 'startup',
-        modules: status.modules,
-      });
+  async reportStartupTime() {
+    const core = inject.module('core');
+    const status = await core.action('status');
 
-      inject.service('telemetry').push(
-        Object.keys(status.modules).map((module) => {
-          const moduleStatus = status.modules[module];
-          return {
-            module,
-            isEnabled: moduleStatus.isEnabled,
-            loadingTime: moduleStatus.loadingTime,
-            loadingTimeSync: moduleStatus.loadingTimeSync,
-            windows: Object.keys(moduleStatus.windows).map(id => ({
-              id, loadingTime: moduleStatus.windows[id].loadingTime,
-            }))
-          };
-        }),
-        'metrics.performance.app.startup'
-      );
+    utils.telemetry({
+      type: 'startup',
+      modules: status.modules,
     });
+
+    const telemetry = inject.service('telemetry', ['push']);
+
+    await telemetry.push(
+      Object.keys(status.modules).map((module) => {
+        const moduleStatus = status.modules[module];
+        return {
+          module,
+          isEnabled: moduleStatus.isEnabled,
+          loadingTime: moduleStatus.loadingTime,
+          loadingTimeSync: moduleStatus.loadingTimeSync,
+          windows: Object.keys(moduleStatus.windows).map(id => ({
+            id, loadingTime: moduleStatus.windows[id].loadingTime,
+          }))
+        };
+      }),
+      'metrics.performance.app.startup',
+    );
+
+    const resourceLoaderReport = await core.action('reportResourceLoaders');
+
+    telemetry.push(
+      Object.keys(resourceLoaderReport).map(name => ({
+        name,
+        size: resourceLoaderReport[name].size,
+      })),
+      'metrics.performance.app.resource-loaders',
+    );
   },
 
   browserDetection() {

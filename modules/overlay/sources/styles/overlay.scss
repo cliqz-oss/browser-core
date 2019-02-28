@@ -41,7 +41,8 @@ input {
   outline: none;
 }
 
-.channel-GT12 input {
+.channel-GT12 input,
+.channel-GT10 input {
   background: url(../../freshtab/images/ghostery-tab-search-icon.svg) 2% center no-repeat #fff;
   background-size: auto 50%;
 }

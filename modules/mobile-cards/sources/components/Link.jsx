@@ -12,7 +12,7 @@ class Link extends React.Component {
     const param = url || this.props.param;
     if (action) {
       console.debug(`Browser action ${action} is called`);
-      mobileCards[action](param);
+      mobileCards[action](param, this.props.getSelection ? this.props.getSelection() : null);
     }
     // callback onPress
     if (this.props.onPress) {

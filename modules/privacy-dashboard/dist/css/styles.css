@@ -8,7 +8,7 @@
 body, html {
   font-size: 16px;
   margin: 0;
-  font-family: Fira Sans, Lato, "Helvetica Neue", Arial, Helvetica, sans-serif;
+  font-family: "-mac-system", "-apple-system", BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
   background-color: #FBFBFB;
   padding: 0 0 0 15%;
   color: #666; }

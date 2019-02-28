@@ -18,7 +18,6 @@ import md5 from '../core/helpers/md5';
 import console from '../core/console';
 import getDexie from '../platform/lib/dexie';
 import WebRequest from '../core/webrequest';
-import { URLInfo } from '../core/url-info';
 import tabs from '../platform/tabs';
 import Logger from '../core/logger';
 import prefs from '../core/prefs';
@@ -148,7 +147,7 @@ export default background({
         await this.db.visits.bulkPut(rows);
         await chrome.cliqzdbmigration.deleteDatabase('cookie-monster');
         prefs.set('cookie-monster.migrated', true);
-      });
+      }, logger.debug);
     }
 
     return Promise.all([initDb, initTrackerList]);
@@ -165,7 +164,7 @@ export default background({
 
   telemetry(signal, value) {
     logger.debug('telemetry', signal, value);
-    return inject.service('telemetry').push(value, `${TELEMETRY_PREFIX}.${signal}`).catch((e) => {
+    return inject.service('telemetry', ['push']).push(value, `${TELEMETRY_PREFIX}.${signal}`).catch((e) => {
       console.error('anolysis error', e);
     });
   },
@@ -178,9 +177,9 @@ export default background({
       return;
     }
 
-    const url = URLInfo.get(details.url);
-    if (url && this.trackers
-        && this.trackers.isTrackerDomain(md5(url.host.domain).substring(0, 16))) {
+    const domain = getGeneralDomain(details.url);
+    if (domain && this.trackers
+        && this.trackers.isTrackerDomain(md5(domain).substring(0, 16))) {
       // do not register private tabs
       // on webextensions check tab API, on firefox use details.isPrivate
       const checkIsPrivate = typeof details.isPrivate !== 'boolean'
@@ -191,7 +190,7 @@ export default background({
       }
       this.subjectPages.next({
         tabId: details.tabId,
-        domain: url.host.domain,
+        domain,
         statusCode: details.statusCode,
       });
     }
@@ -225,13 +224,19 @@ export default background({
             // 1 day
             duration = BASE_EXPIRY * 24;
           }
+          // expiry default: `duration` since first created
+          let shouldExpireAt = cookie.created + duration;
+
           if (visited[cookieGeneralDomain(cookie.domain)]) {
             const visits = visited[cookieGeneralDomain(cookie.domain)].visits;
+            // if visited: expiry is N-days from now
             duration = visits > 6 ? REGULAR_VISITED_EXPIRY : VISITED_EXPIRY;
+            shouldExpireAt = Date.now() + duration;
           } else if (cookieSpecialTreatment[cookie.name]) {
-            duration = cookieSpecialTreatment[cookie.name];
+            // special treatment: adjust expiry to specified duration
+            shouldExpireAt = cookie.created + cookieSpecialTreatment[cookie.name];
           }
-          const modExpiry = (cookie.created + duration) / 1000;
+          const modExpiry = shouldExpireAt / 1000;
 
           if (modExpiry < nows) {
             // this cookie should be expired, delete it from the db

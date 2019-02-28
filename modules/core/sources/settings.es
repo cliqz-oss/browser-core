@@ -22,10 +22,4 @@ export default (settings, other = {}) =>
     set RESULTS_PROVIDER_LOG(value) {
       prefs.set('override.RESULTS_PROVIDER_LOG', value);
     },
-    get RESULTS_PROVIDER_PING() {
-      return prefs.get('override.RESULTS_PROVIDER_PING', settings.RESULTS_PROVIDER_PING);
-    },
-    set RESULTS_PROVIDER_PING(value) {
-      prefs.set('override.RESULTS_PROVIDER_PING', value);
-    },
   });

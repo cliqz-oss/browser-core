@@ -2,7 +2,12 @@
 /* eslint camelcase: 'off'  */
 /* eslint no-multi-spaces: 'off'  */
 
-import platformEquals, { URI, isKnownProtocol } from '../platform/url';
+import platformEquals, {
+  URI,
+  isKnownProtocol,
+  UrlRegExp,
+  LocalUrlRegExp,
+} from '../platform/url';
 import { getPublicSuffix } from './tlds';
 import MapCache from './helpers/fixed-size-cache';
 import {
@@ -18,24 +23,6 @@ export {
 } from './content/url';
 export { fixURL } from '../platform/url';
 
-const LD = 'a-z0-9';
-const ULD = `${LD}\\u{00c0}-\\u{ffff}`;
-const LDH = `${LD}-_`;    // technically underscore cannot be the part of hostname
-const ULDH = `${ULD}-_`;  // but it is being used too often to ignore it
-
-const UrlRegExp = new RegExp([
-  `^(?:[${ULDH}]{1,63}\\.)*`,             // optional subdomains
-  `((?:[${ULD}][${ULDH}]{0,61}[${ULD}])|`,
-  `(?:[${ULD}]))\\.`,                     // mandatory hostname
-  `([${ULD}]{2,63})`,                     // mandatory TLD
-  '(?:(?::(\\d{1,5}))|\\.)?$',             // optional port or dot
-].join(''), 'iu');
-
-const LocalUrlRegExp = new RegExp([
-  `(^[${LD}][${LDH}]{0,61}[${LD}])`, // mandatory ascii hostname
-  '(:\\d{1,5})$',                     // mandatory port
-].join(''), 'i');
-
 function tryFn(fn) {
   return (...args) => {
     try {
@@ -47,9 +34,9 @@ function tryFn(fn) {
 }
 
 const ipv4Part = '0*([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])'; // numbers 0 - 255
-const ipv4Regex = new RegExp(`^${ipv4Part}\\.${ipv4Part}\\.${ipv4Part}\\.${ipv4Part}([:]([0-9])+)?$`); // port number
-const ipv6Regex = new RegExp('^\\[?(([0-9]|[a-f]|[A-F])*[:.]+([0-9]|[a-f]|[A-F])+[:.]*)+[\\]]?([:][0-9]+)?$');
-const schemeRE = /^(\S+?):(\/\/)?(.*)$/i;
+export const ipv4Regex = new RegExp(`^${ipv4Part}\\.${ipv4Part}\\.${ipv4Part}\\.${ipv4Part}([:]([0-9])+)?$`); // port number
+export const ipv6Regex = new RegExp('^\\[?(([0-9]|[a-f]|[A-F])*[:.]+([0-9]|[a-f]|[A-F])+[:.]*)+[\\]]?([:][0-9]+)?$');
+export const schemeRE = /^(\S+?):(\/\/)?(.*)$/i;
 
 export function isIpv4Address(host) {
   return ipv4Regex.test(host);

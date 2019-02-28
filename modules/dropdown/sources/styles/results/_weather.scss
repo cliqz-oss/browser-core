@@ -1,103 +1,298 @@
-.result.weather {
-    margin-bottom: 6px;
-    .header {
-        cursor: default;
+.weather {
+    margin-top: 5px;
+    .weather-wrapper {
 
-        .title {
-            display: inline-block;
-            white-space: nowrap;
-            width: 410px;
-            overflow: hidden;
-            text-overflow: ellipsis; 
-        }
-    }
-    .forecast {
-        margin-bottom: 10px;
-
-        &:after {
-            clear: both;
-            content: " ";
-            display: block;
-            font-size: 0;
-            height: 0;
-            visibility: hidden;
-        }
-
-        .forecast-container {
-            box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.17);
-            display: inline-block;
-            padding: 15px 0px 0px 10px;
+        .header {
+            width: 600px;
+            cursor: default;
             position: relative;
 
-            .unit-switcher {
+            .icons {
                 position: absolute;
-                top: -22px;
-                right: 0;
-                font-size: 12.5px;
-                font-weight: 500;
-                color: #5E5E5E;
+                top: 0;
+                left: -47px;
+            }
 
-                .fahrenheit-btn {
+            .title {
+                display: inline-block;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                font-size: 24px;
+                font-weight: 500
+            }
+        }
+
+        .forecast {
+            width: 600px;
+            box-shadow: 0px 1px 2px 1px rgba(0, 0, 0, 0.10);
+            position: relative;
+
+            .days {
+                width: 100%;
+                font-size: 0;
+                display: flex;
+                overflow: hidden;
+                .day {
+                    background: no-repeat left 15px top 22px/50px;
+                    font-size: 12px;
+                    position: relative;
+                    padding: 7px 10px 0 15px;
+                    box-sizing: border-box;
+                    flex-wrap: nowrap;
+                    flex-direction: row;
+                    color: rgba(156,156,156,1);
+                    text-transform: uppercase;
+                    font-size: 10px;
+                    flex: 0 0 20%;
+                    max-width: 20%;
+                    border-top: 3px solid #fafafa;
+                    .date {
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        margin-bottom: 4px;
+                    }
+                    .description {
+                        width: 95%;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        font-size: 9px;
+                        text-transform: capitalize;
+                        cursor: default;
+                    }
+                    .min, .max {
+                        font-size: 15px;
+                        font-weight: 300;
+                        align-self: self-end;
+                        padding-right: 8px;
+                        line-height: 16px;
+                    }
+
+                    &:not(.active) {
+                        background-color: rgba(0,0,0,0.02);
+                        background-image: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.01));
+                        background-size: 100% 10px;
+                        background-position: bottom;
+                        .date, .value, .description {
+                            display: none;
+                        }
+                        .degree {
+                            flex-direction: column;
+
+                        }
+                    }
+                    &-weather {
+                        display: flex;
+                        .icon {
+                            flex: 0 0 50%;
+                            max-width: 50%;
+                        }
+                        .degree {
+                            flex: 0 0 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+                    }
+                    &.active {
+                        border-top:3px solid rgba(24,130,234,1);
+                        .weekday, .min, .max {
+                            display: none;
+                        }
+                        .icon {
+                            flex: 0 0 35px;
+                        }
+                        .degree {
+                            flex: 0 0 calc(100% - 35px);
+                            display: flex;
+                            align-items: center;
+                        }
+
+                        .value {
+                            color: rgba(9,9,9,1);
+                            font-weight: 300;
+                            padding-left: 10px;
+                            font-size:37px;
+                        }
+
+                        .value.dig3 {
+                            font-size:27px;
+                        }
+
+                        .date {
+                            font-weight: 600;
+                            font-size: 11px;
+                            color: rgba(38,38,38,1);
+                        }
+                    }
+                }
+            }
+
+            .selections {
+                margin: 10px 0;
+                font-size: 12px;
+                padding: 0 15px;
+                .other-info {
+                    font-size: 10px;
                     font-weight: 600;
+                    padding-left: 10px;
+                    float:right;
+                    line-height: 22px;
+                    span {
+                        padding-right: 5px;
+                        &:last-child {
+                            padding-right: 0;
+                        }
+                    }
+                }
+                .button {
+                    background-color: rgba(245,245,245,1);
+                    border-radius: 4px;
                     cursor: pointer;
+                    padding: 4px 5px;
+                    color: rgba(64,64,64,1);
+                    font-size: 10px;
+                    &.active {
+                        background: rgba(188,188,188,0.5);
+                        font-weight: 500;
+                    }
+
+                    &#metric {
+                        position: absolute;
+                        left: -30px;
+                        top: 9px;
+                        background: none;
+                        color: rgba(169,169,169,1);
+                        font-weight: 600;
+                        padding: 0;
+                        &:after {
+                            content: "°C"
+                        }
+                        &.active {
+                            color: rgba(24,130,234,1);
+                            font-weight: 700;
+                        }
+                        label {
+                            display: none
+                        }
+                    }
+
+                    &#usc {
+                        position: absolute;
+                        left: -30px;
+                        top: 30px;
+                        background: none;
+                        color: rgba(169,169,169,1);
+                        font-weight: 600;
+                        padding: 0;
+                        &.active {
+                            color: rgba(24,130,234,1);
+                            font-weight: 700;
+                        }
+                        &:after {
+                            content: "°F"
+                        }
+                    }
+                }
+            }
+
+            .graph {
+                width: 600px;
+                padding: 20px 15px 8px 15px;
+
+                .temperature {
+                    width: 100%;
+                    height: 100px;
+                    display: flex;
+                }
+
+                .precipitation {
+                    width: 100%;
+                    height: 100px;
+                    display: flex;
+
+                    & > div {
+                        display: flex;
+                        width: 25px;
+                        height: 100%;
+                        flex-direction: column;
+                        justify-content: flex-end;
+
+                        & > div {
+                            background-color: #e7f1fd;
+                            border-top: 2px solid #1878f0;
+                            position: relative;
+
+                            & > span {
+                                position: absolute;
+                                top: -25px;
+                                left: 0px;
+                                font-size: 10px;
+                            }
+                        }
+                    }
+                }
+
+                .wind {
+                    width: 100%;
+                    height: 100px;
+                    display: flex;
                     font-size: 14px;
+                    font: 400;
+                    & > div {
+                        width: 75px;
+                        text-align: center;
+                        position: relative;
+                        figure {
+                            padding-right: 4px;
+                        }
+                        & > span:last-child {
+                            display: inline-block;
+                            transform-origin: 50% 50%;
+                            margin: auto;
+                            background: url('../images/wind.svg') no-repeat center/contain;
+                            position: absolute;
+                            top: 15px;
+                            right: 0;
+                            left: 0;
+                            bottom: 0;
+                        }
+                    }
                 }
 
-                .celsius-btn {
-                    font-weight: 600;
-                    cursor: pointer;
-                    font-size: 13.5px;
-
-                    color: #00AEF0;
-                    pointer-events: none;
-                }
-            }
-        }
-
-        .weather-item {
-            float: left;
-            margin-right: 40px;
-            min-width: 60px;
-            text-align: center;
-        }
-
-        .fahrenheit {
-            display: none;
-        }
-
-        &.fahrenheit-selected {
-
-            .fahrenheit {
-                display: unset;
-            }
-
-            .celsius {
-                display: none;
-            }
-
-            .forecast-container .unit-switcher {
-
-                .celsius-btn {
-                    color: unset;
-                    pointer-events: auto;
-                }
-
-                .fahrenheit-btn {
-                    color: #00AEF0;
-                    pointer-events: none;
+                .timeline {
+                    width: 100%;
+                    font-size: 0;
+                    display: flex;
+                    justify-content: space-around;
+                    margin-top: 5px;
+                    span {
+                        font-size: 10px;
+                        display: inline-block;
+                        color: #9c9c9c
+                    }
                 }
             }
         }
     }
 
-    .source {
-        color: #999999;
-        font-size: 11px;
-        position: relative;
-        top: 18px;
+    .footer {
+        width: 600px;
+        display: flex;
+        justify-content: space-between;
 
-        .source-container {
-            float: right;
+        .source {
+            color: #999999;
+            font-size: 11px;
+            padding-top: 3px;
+            margin-left: auto;
+        }
+
+        .buttons {
+            padding-top: 7px;
+            padding-left: 0;
         }
     }
 }

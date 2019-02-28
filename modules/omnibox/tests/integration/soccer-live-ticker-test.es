@@ -4,6 +4,7 @@ import {
   checkMainResult,
   checkParent,
   checkSoccerLiveticker,
+  dropdownClick,
   fillIn,
   mockSearch,
   waitFor,
@@ -37,7 +38,7 @@ export default function () {
       checkSoccerLiveticker({ $result: $cliqzResults, results });
     });
 
-    xcontext('(interactions)', function () {
+    context('(interactions)', function () {
       describe('after clicking on the "Show more" button', function () {
         before(async function () {
           await blurUrlBar();
@@ -45,9 +46,10 @@ export default function () {
           withHistory([]);
           fillIn('liveticker bundesliga');
           await waitForPopup(1);
-          $cliqzResults.querySelector('.result.expand-btn').click();
-          await waitFor(function () {
-            return $cliqzResults.querySelectorAll('.table-row').length !== 2;
+          await dropdownClick('.result.expand-btn');
+          await waitFor(async function () {
+            const $tableRows = await $cliqzResults.querySelectorAll('.table-row');
+            return $tableRows.length !== 2;
           });
         });
 
@@ -62,10 +64,11 @@ export default function () {
           await mockSearch({ results });
           withHistory([]);
           fillIn('liveticker bundesliga');
-          await waitForPopup(2);
-          $cliqzResults.querySelector('#tab-1').click();
-          await waitFor(function () {
-            return $cliqzResults.querySelector('#tab-0').classList.contains('checked') === false;
+          await waitForPopup(1);
+          await dropdownClick('#tab-1');
+          await waitFor(async () => {
+            const $tab0 = await $cliqzResults.querySelector('#tab-0');
+            return $tab0.classList.contains('checked') === false;
           });
         });
 

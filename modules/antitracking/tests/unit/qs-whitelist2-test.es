@@ -120,7 +120,8 @@ export default describeModule('antitracking/qs-whitelist2',
 
       it('no local or remote bf', async () => {
         await whitelist.init();
-        chai.expect(whitelist.bloomFilter).to.be.null;
+        // bloom filter is an empty one
+        chai.expect(whitelist.bloomFilter).to.be.not.null;
         chai.expect(whitelist.isTrackerDomain('example.com')).to.be.false;
       });
 
@@ -131,7 +132,7 @@ export default describeModule('antitracking/qs-whitelist2',
           ok: false,
         });
         await whitelist.init();
-        chai.expect(whitelist.bloomFilter).to.be.null;
+        chai.expect(whitelist.bloomFilter).to.not.be.null;
         chai.expect(whitelist.isTrackerDomain('example.com')).to.be.false;
       });
 

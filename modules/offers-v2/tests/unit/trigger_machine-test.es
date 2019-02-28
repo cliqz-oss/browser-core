@@ -1,19 +1,18 @@
 /* global chai */
 /* global describeModule */
 /* global require */
+/* global sinon */
 
+const moment = require('moment');
+const MockDate = require('mockdate');
 const commonMocks = require('./utils/common');
-
-let currentTS = Date.now();
-let mockedTimestamp = Date.now() / 1000;
-const currentDayHour = 0;
-const currentWeekDay = 0;
-const abNumber = 0;
-
+const persistenceMocks = require('./utils/persistence');
+const waitFor = require('./utils/waitfor');
 
 export default describeModule('offers-v2/trigger_machine/trigger_machine',
   () => ({
     ...commonMocks,
+    ...persistenceMocks,
     'platform/xmlhttprequest': {
       default: {}
     },
@@ -29,32 +28,6 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
     'platform/environment': {
       default: {}
     },
-    'offers-v2/utils': {
-      timestamp: function () {
-        return mockedTimestamp;
-      },
-      timestampMS: function () {
-        return currentTS;
-      },
-      dayHour: function () {
-        return currentDayHour;
-      },
-      weekDay: function () {
-        return currentWeekDay;
-      },
-      getABNumber: function () {
-        return abNumber;
-      },
-      hashString: function (str) {
-        /* eslint-disable no-bitwise */
-        let hash = 5381;
-        for (let i = 0, len = str.length; i < len; i += 1) {
-          hash = (hash * 33) ^ str.charCodeAt(i);
-        }
-        // For higher values, we cannot pack/unpack
-        return (hash >>> 0) % 2147483648;
-      }
-    },
   }),
   () => {
     describe('trigger_machine', function () {
@@ -63,6 +36,10 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
       // we may need to refactor the code to make this clear later
       // some of the modules will be mocked some others not
       let TriggerMachine;
+      let CategoryHandler;
+      let IntentHandler;
+      let ThrottleError;
+      let Category;
       let exprBuilder;
       let Expression;
       let exprMockCallbacks;
@@ -82,53 +59,51 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
         setMockCallbacks(opName, callbacks);
       }
 
-      beforeEach(function () {
+      beforeEach(async function () {
         exprMockCallbacks = null;
         globObjs = {};
         TriggerMachine = this.module().default;
-        const pTriggerCache = this.system.import('offers-v2/trigger_machine/trigger_cache');
-        const promExpBuilder = this.system.import('offers-v2/trigger_machine/exp_builder');
-        const promExpression = this.system.import('offers-v2/trigger_machine/expression');
-        const pList = [pTriggerCache, promExpBuilder, promExpression];
-        return Promise.all(pList).then((mods) => {
-          Expression = mods[2].default;
-          class mockClass extends Expression {
-            constructor(data) {
-              super(data);
-              this.opName = this.getOpName();
-              this.hasMockCallbacks = exprMockCallbacks && exprMockCallbacks[this.opName];
-            }
-
-            isBuilt() {
-              if (this.hasMockCallbacks && exprMockCallbacks[this.opName].isBuilt) {
-                return exprMockCallbacks[this.opName].isBuilt();
-              }
-              return true;
-            }
-
-            build() {
-              if (this.hasMockCallbacks && exprMockCallbacks[this.opName].build) {
-                return exprMockCallbacks[this.opName].build();
-              }
-              return undefined;
-            }
-
-            destroy() {
-              if (this.hasMockCallbacks && exprMockCallbacks[this.opName].destroy) {
-                return exprMockCallbacks[this.opName].destroy();
-              }
-              return undefined;
-            }
-
-            getExprValue(ctx) {
-              if (this.hasMockCallbacks && exprMockCallbacks[this.opName].getExprValue) {
-                return exprMockCallbacks[this.opName].getExprValue(ctx);
-              }
-              return Promise.resolve(true);
-            }
+        Expression = (await this.system.import('offers-v2/trigger_machine/expression')).default;
+        ThrottleError = (await this.system.import('offers-v2/common/throttle-with-rejection')).ThrottleError;
+        class mockClass extends Expression {
+          constructor(data) {
+            super(data);
+            this.opName = this.getOpName();
+            this.hasMockCallbacks = exprMockCallbacks && exprMockCallbacks[this.opName];
           }
-          MockExpression = mockClass;
-        });
+
+          isBuilt() {
+            if (this.hasMockCallbacks && exprMockCallbacks[this.opName].isBuilt) {
+              return exprMockCallbacks[this.opName].isBuilt();
+            }
+            return true;
+          }
+
+          build() {
+            if (this.hasMockCallbacks && exprMockCallbacks[this.opName].build) {
+              return exprMockCallbacks[this.opName].build();
+            }
+            return undefined;
+          }
+
+          destroy() {
+            if (this.hasMockCallbacks && exprMockCallbacks[this.opName].destroy) {
+              return exprMockCallbacks[this.opName].destroy();
+            }
+            return undefined;
+          }
+
+          getExprValue(ctx) {
+            if (this.hasMockCallbacks && exprMockCallbacks[this.opName].getExprValue) {
+              return exprMockCallbacks[this.opName].getExprValue(ctx);
+            }
+            return Promise.resolve(true);
+          }
+        }
+        MockExpression = mockClass;
+        CategoryHandler = (await this.system.import('offers-v2/categories/category-handler')).default;
+        Category = (await this.system.import('offers-v2/categories/category')).default;
+        IntentHandler = (await this.system.import('offers-v2/intent/intent-handler')).default;
       });
 
       describe('#correctness_tests', function () {
@@ -141,6 +116,10 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             tm = new TriggerMachine(globObjs);
             exprBuilder = tm.expressionBuilder;
             chai.expect(exprBuilder).to.exist;
+          });
+
+          afterEach(function () {
+            MockDate.reset();
           });
 
           it('/trigger machine can evaluate simple trigger', () => {
@@ -676,21 +655,19 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             };
             hookExpr('$ret_true', retTrueCallbacks);
             hookExpr('$ret_false', retFalseCallbacks);
-            currentTS = 1000;
-            mockedTimestamp = currentTS / 1000;
+            MockDate.set(1000);
             return tm.run(t, context).then(() => {
               chai.expect(trueCounter, 'true counter').eql(1);
               chai.expect(falseCounter, 'false counter').eql(1);
               trueCounter = 0;
               falseCounter = 0;
-              currentTS += 99 * 1000;
-              mockedTimestamp = currentTS / 1000;
+              MockDate.set(Date.now() + 99 * 1000);
               return tm.run(t, context).then(() => {
                 chai.expect(trueCounter, 'true counter').eql(1);
                 chai.expect(falseCounter, 'false counter').eql(0);
                 trueCounter = 0;
                 falseCounter = 0;
-                currentTS += 99 * 1000;
+                MockDate.set(Date.now() + 99 * 1000);
                 return tm.run(t, context).then(() => {
                   chai.expect(trueCounter, 'true counter').eql(1);
                   chai.expect(falseCounter, 'false counter').eql(1);
@@ -698,35 +675,191 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
               });
             });
           });
+        });
 
-          // TODO: tests:
-          // - different engine version doesnt run
-          // - trigger machinery test cases
-          // - different syntax checks on the "triggers language", proper and not
-          //   proper syntax cases
-          //
-          // - operations and arguments are properly passed
-          // - no conditions (context):
-          //  - simple action work
-          //  - multiple actions are properly executed
-          //
+        describe('/handle errors in triggers', () => {
+          let objs;
+          let triggerMachine;
+          const triggerAction = sinon.stub();
+
+          beforeEach(() => {
+            triggerAction.reset();
+            objs = {
+              ...globObjs,
+              // called while processing `$activate_intent`
+              intent_handler: {
+                isIntentActiveByName: () => false,
+                activateIntent: triggerAction
+              },
+            };
+            triggerMachine = new TriggerMachine(objs);
+          });
+
+          function setTriggers(triggers) {
+            objs.trigger_cache.getSubtriggers = () => triggers;
+          }
+
+          function getValidTrigger() {
+            return {
+              trigger_id: 'validTrigger',
+              condition: ['$not', [['$and']]], // calculates to `true`
+              actions: [
+                ['$activate_intent', [
+                  { durationSecs: 86400,
+                    name: 'mytoys_intent' }]]],
+            };
+          }
+
+          function getInvalidTrigger() {
+            return {
+              ...getValidTrigger(),
+              trigger_id: 'invalidTrigger',
+              condition: ['$no_such_command'],
+            };
+          }
+
+          it('/do not execute actions for a failing trigger', async () => {
+            setTriggers([getInvalidTrigger()]);
+
+            await triggerMachine.runRoot(objs);
+
+            chai.expect(triggerAction).to.be.not.called;
+          });
+
+          it('/skip subtrigger with an error, execute other subtriggers', async () => {
+            setTriggers([getInvalidTrigger(), getValidTrigger()]);
+
+            await triggerMachine.runRoot(objs);
+
+            chai.expect(triggerAction).to.be.calledOnce;
+          });
+        });
+
+        describe('/offer is only for new users (integration-style test)', () => {
+          let objs;
+          let triggerMachine;
+          let categoryHandler;
+          let intentHandler;
+          let segmentCat;
+          const queryMock = sinon.stub();
+
+          function resetQueryMock(perDayStat) {
+            queryMock.reset();
+            queryMock.returns({ pid: 'segment.mytoys_existing_customer|1',
+              d: { match_data: { per_day: perDayStat } } });
+          }
+
+          function setupInfrastructure() {
+            const simpleDb = persistenceMocks['core/persistence/simple-db'];
+            simpleDb.reset();
+            const historyFeature = {
+              isAvailable: () => true,
+              performQueryOnHistory: queryMock,
+            };
+            const DbProto = simpleDb.default;
+            categoryHandler = new CategoryHandler(historyFeature);
+            categoryHandler.init(new DbProto());
+            intentHandler = new IntentHandler();
+            objs = {
+              category_handler: categoryHandler,
+              intent_handler: intentHandler,
+            };
+            triggerMachine = new TriggerMachine(objs);
+          }
+
+          function setupOffer() {
+            // Offer category
+            const mytoysCat = new Category('tempcat_mytoys');
+            sinon.stub(mytoysCat, 'isActive').returns(true);
+            categoryHandler.addCategory(mytoysCat);
+
+            // Segment category
+            segmentCat = new Category('segment.mytoys_existing_customer', [], 1);
+            segmentCat.timeRangeSecs = 60 * 60 * 24 * 30;
+            categoryHandler.addCategory(segmentCat);
+            chai.expect(segmentCat.isHistoryDataSettedUp()).to.be.false;
+
+            // History
+            resetQueryMock({});
+
+            // Rule
+            const triggers = [{ condition: [
+              '$and', [
+                ['$is_category_active', [
+                  { catName: 'tempcat_mytoys' }]],
+                ['$not',
+                  [['$probe_segment', [
+                    'segment.mytoys_existing_customer',
+                    { min_matches: 1, duration_days: 1000 }]]]],
+                ['$gt', [
+                  ['$get_variable', ['segment_confidence', 0]],
+                  0.75]]]],
+            actions: [
+              ['$activate_intent', [
+                { durationSecs: 86400,
+                  name: 'mytoys_intent' }]]] }];
+            objs.trigger_cache.getSubtriggers = () => triggers;
+          }
+
+          async function waitForHistoryLoaded() {
+            await waitFor(() =>
+              chai.expect(segmentCat.isHistoryDataSettedUp()).to.be.true);
+          }
+
+          beforeEach(() => {
+            setupInfrastructure();
+            setupOffer();
+          });
+
+          it('/disable offer based on history data', async () => {
+            // Arrange: load history
+            const yesterdayKey = moment().subtract(1, 'd').format('YYYYMMDD');
+            resetQueryMock({ [yesterdayKey]: { m: 3 } });
+            await triggerMachine.runRoot(objs);
+            await waitForHistoryLoaded();
+            resetQueryMock({});
+
+            // Act
+            await triggerMachine.runRoot(objs);
+
+            // Assert: no offer
+            const isIntentActive = intentHandler.isIntentActiveByName('mytoys_intent');
+            chai.expect(isIntentActive, 'intent active').to.be.false;
+
+            // Assert: no call to history
+            await waitForHistoryLoaded();
+            sinon.assert.notCalled(queryMock);
+          });
+
+          it('/show offer based on history data', async () => {
+            // Arrange: load history
+            resetQueryMock({});
+            await triggerMachine.runRoot(objs);
+            await waitForHistoryLoaded();
+            resetQueryMock({});
+
+            // Act
+            await triggerMachine.runRoot(objs);
+
+            // Assert: offer
+            const isIntentActive = intentHandler.isIntentActiveByName('mytoys_intent');
+            chai.expect(isIntentActive, 'intent active').to.be.true;
+
+            // Assert: no call to history
+            await waitForHistoryLoaded();
+            sinon.assert.notCalled(queryMock);
+          });
+
+          it('/disable offer if probe_segment returns low confidence', async () => {
+            queryMock.throws(new ThrottleError('UnitTest'));
+
+            await triggerMachine.runRoot(objs);
+
+            // Assert: no offer
+            const isIntentActive = intentHandler.isIntentActiveByName('mytoys_intent');
+            chai.expect(isIntentActive, 'intent active').to.be.false;
+          });
         });
       });
-
-      // - operations are properly executed (each one context)
-      // describe('#operations tests', function () {
-      //   context('if_pref operation', function () {
-      //     let op;
-      //     beforeEach(function () {
-      //       const opEx = new OperationExecutor();
-      //       op = opEx.operations['$if_pref'];
-      //     });
-
-      //     it('check exists', () => {
-      //       chai.expect(op).to.exist;
-      //     });
-
-      //   });
-      // });
     });
   });

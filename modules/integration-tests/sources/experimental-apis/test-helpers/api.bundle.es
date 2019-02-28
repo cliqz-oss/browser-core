@@ -214,6 +214,16 @@ global.testHelpers = class extends ExtensionAPI {
           }
           return height;
         },
+        getLastQuery: async (windowId) => {
+          const window = await this._getWindow(windowId);
+          const lastQueryBox = Array.from(window.gURLBar.mInputField.parentElement.childNodes)
+            .find(node => node.id === 'cliqzShortcutBox');
+          const visible = !!lastQueryBox && lastQueryBox.style.display !== 'none';
+          return {
+            visible,
+            text: visible ? lastQueryBox.textContent : null,
+          };
+        },
         querySelector: async (selector, _options) => {
           const options = Object.assign({}, this.DEFAULT_QUERY_OPTIONS, _options);
           const browser = await this._getBrowser(options.windowId);

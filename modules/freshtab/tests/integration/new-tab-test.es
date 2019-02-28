@@ -10,9 +10,7 @@ import { isBootstrap } from '../../../core/platform';
 
 export default function () {
   const url = getResourceUrl('freshtab/home.html');
-
-  // Currently queryHTML from core/background will only work in firefox.
-  if (!isBootstrap) {
+  if (isBootstrap) {
     return;
   }
 

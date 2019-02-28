@@ -14,7 +14,7 @@
 		},
 		"https://easylist-downloads.adblockplus.org/easylistchina.txt": {
 			"checksum": "c1784fb01eba27c43ee0578f2701ffaa",
-			"language": ["zh", "cn"]
+			"language": "zh cn"
 		}
 	},
 	"js_resources": {

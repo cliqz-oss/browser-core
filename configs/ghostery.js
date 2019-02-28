@@ -7,7 +7,7 @@ const publish = require('./common/publish');
 
 module.exports = {
   "platform": "webextension",
-  "brocfile": "Brocfile.node.js",
+  "brocfile": "Brocfile.ghostery.js",
   "baseURL": "/cliqz/",
   "pack": "npm pack",
   "publish": publish.toEdge('browser-core', 'ghostery'),
@@ -58,7 +58,6 @@ module.exports = {
     "hpnv2",
     "antitracking",
     "webrequest-pipeline",
-    "static",
     "offers-v2",
     "adblocker",
     "anolysis",

@@ -3,10 +3,10 @@ import UrlWhitelist from '../core/url-whitelist';
 
 import WebRequest, { VALID_RESPONSE_PROPERTIES, EXTRA_INFO_SPEC } from '../core/webrequest';
 import Pipeline from './pipeline';
-import WebRequestContext from './webrequest-context';
+import { createWebRequestContext } from './webrequest-context';
 import PageStore from './page-store';
 import logger from './logger';
-import { isWebExtension, isEdge } from '../core/platform';
+import { isWebExtension } from '../core/platform';
 
 
 /**
@@ -62,53 +62,6 @@ function createResponse(details) {
       this._modifyHeaderByType('responseHeaders', name, value);
     },
   };
-}
-
-
-function createWebRequestContext(details, pageStore) {
-  const context = details;
-
-  // Check if we have a URL
-  if (!context.url || context.url === '') {
-    logger.error('createWebRequestContext no url', details);
-    return null;
-  }
-
-  // **Chromium addition**
-  // In Chromium, we do not know if the tab is Private from the webrequest
-  // object, so we need to get this information from `pageStore`.
-  if (context.isPrivate === null || context.isPrivate === undefined) {
-    const tabId = context.tabId;
-    if (tabId !== -1 && pageStore.tabs[tabId]) {
-      context.isPrivate = pageStore.tabs[tabId].isPrivate;
-    }
-  }
-
-  // **Chromium addition**
-  // We do not get the `sourceUrl` in Chrome, so we keep track of the mapping
-  // tabId/sourceUrl in `pageStore`.
-  if (!context.sourceUrl) {
-    if (context.documentUrl) {
-      // firefox
-      context.sourceUrl = context.documentUrl;
-    } else if (context.tabId !== -1) {
-      // chrome does not have documentUrl
-      context.sourceUrl = pageStore.getSourceURL(context);
-    }
-  }
-
-  // **Chromium addition**
-  // Tag redirects
-  if (context.isRedirect === null || context.isRedirect === undefined) {
-    context.isRedirect = pageStore.isRedirect(context);
-  }
-
-  // **Chromium addition**
-  if (context.tabId > -1 && context.type === 'main_frame') {
-    pageStore.onFullPage(context);
-  }
-
-  return new WebRequestContext(context);
 }
 
 
@@ -208,15 +161,6 @@ export default background({
       'http://*/*',
       'https://*/*',
     ];
-
-    // For unknown reason is we listen to ws:// or wss:// on Edge, the
-    // webRequest does not work
-    if (!isEdge) {
-      urls.push(
-        'ws://*/*',
-        'wss://*/*',
-      );
-    }
 
     if (extraInfoSpec === undefined) {
       WebRequest[event].addListener(

@@ -19,7 +19,6 @@ module.exports = Object.assign({}, browserBase, {
     ]),
   bundles: browserBase.bundles.concat([
     'core/content-tests.bundle.js',
-    'core/integration-tests.bundle.js',
     'integration-tests/run.bundle.js',
   ]),
 });

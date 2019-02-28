@@ -57,6 +57,7 @@ export class Resource {
     this.storage = new Storage(this.filePath);
     this.remoteOnly = options.remoteOnly || platformName === 'mobile';
     this.compress = options.compress || (isMobile ? false : isWebExtension);
+    this.size = 0;
   }
 
   /**
@@ -72,6 +73,10 @@ export class Resource {
     return this.storage.load()
       .then(data => this.decompressData(data))
       .then((data) => {
+        if (this.dataType === 'binary') {
+          // binary data comes from decompression as a Uint8Array
+          return data.buffer || data;
+        }
         try {
           // data might be a plain string in web extension case
           // for react native the TextDecoder.decode returns an empty string
@@ -119,7 +124,7 @@ export class Resource {
 
   compressData(data) {
     if (this.compress) {
-      return deflate(data, { to: 'string' });
+      return deflate(data, { to: this.dataType !== 'binary' ? 'string' : undefined });
     }
     return data;
   }
@@ -127,7 +132,7 @@ export class Resource {
   decompressData(data) {
     if (this.compress) {
       try {
-        return inflate(data, { to: 'string' });
+        return inflate(data, { to: this.dataType !== 'binary' ? 'string' : undefined });
       } catch (e) {
         return data;
       }
@@ -146,6 +151,8 @@ export class Resource {
   }
 
   parseData(data) {
+    this.size = data.length;
+
     if (this.dataType === 'json') {
       try {
         const parsed = JSON.parse(data);
@@ -161,6 +168,15 @@ export class Resource {
 
 
 export default class ResourceLoader extends UpdateCallbackHandler {
+  static loaders = [];
+
+  static report() {
+    return this.loaders.reduce((report, loader) => ({
+      ...report,
+      [loader.resource.name]: loader.report(),
+    }), {});
+  }
+
   constructor(resourceName, options = {}) {
     super();
 
@@ -168,6 +184,18 @@ export default class ResourceLoader extends UpdateCallbackHandler {
     this.cron = options.cron || ONE_HOUR;
     this.updateInterval = options.updateInterval || 10 * ONE_MINUTE;
     this.intervalTimer = null;
+
+    this.constructor.loaders.push(this);
+  }
+
+  report() {
+    return {
+      size: this.resource.size,
+      updateInterval: this.updateInterval,
+      cron: this.cron,
+      remoteURL: this.resource.remoteURL,
+      compress: this.resource.compress,
+    };
   }
 
   init() {

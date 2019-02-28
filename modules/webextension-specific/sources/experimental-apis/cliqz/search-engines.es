@@ -42,35 +42,51 @@ function buildUrls(engineWrapper) {
   return urls;
 }
 
-export async function getSearchEngines() {
-  const defaultEngine = searchService.getDefaultEngineInfo();
-  const engineList = searchService.getVisibleEngines().map((engineWrapper) => {
-    const engine = {
-      alias: engineWrapper.alias,
-      default: engineWrapper.name === defaultEngine.name,
-      description: engineWrapper.description,
-      encoding: 'UTF-8',
-      icon: engineWrapper.iconURI.spec,
-      identifier: engineWrapper.identifier,
-      name: engineWrapper.name,
-      searchForm: engineWrapper.searchForm,
-      urls: buildUrls(engineWrapper)
-    };
-
-    return engine;
+const searchServiceGlobalPromise = new Promise((onFulfill, onReject) => {
+  searchService.init({
+    onInitComplete: (initStatus) => {
+      if (initStatus === 0) {
+        onFulfill();
+      } else {
+        onReject();
+      }
+    }
   });
-  return Promise.resolve(engineList);
+});
+
+export async function getSearchEngines() {
+  return searchServiceGlobalPromise.then(() => {
+    const defaultEngine = searchService.getDefaultEngineInfo();
+
+    return searchService.getVisibleEngines().map((engineWrapper) => {
+      const engine = {
+        alias: engineWrapper.alias,
+        default: engineWrapper.name === defaultEngine.name,
+        description: engineWrapper.description,
+        encoding: 'UTF-8',
+        icon: engineWrapper.iconURI.spec,
+        identifier: engineWrapper.identifier,
+        name: engineWrapper.name,
+        searchForm: engineWrapper.searchForm,
+        urls: buildUrls(engineWrapper)
+      };
+      return engine;
+    });
+  }, () => {
+    throw new Error('Reason: SearchService has not been initialized');
+  });
 }
 
 export async function setSelectedSearchEngine(nextSearchEngineName) {
-  return new Promise((onFulfill, onReject) => {
+  return searchServiceGlobalPromise.then(() => {
     const nextEngine = searchService.getEngineByName(nextSearchEngineName);
     if (!nextEngine) {
-      onReject();
-      return;
+      return -1;
     }
 
     searchService.defaultEngine = nextEngine;
-    onFulfill();
+    return 0;
+  }, () => {
+    throw new Error('Reason: SearchService has not been initialized');
   });
 }

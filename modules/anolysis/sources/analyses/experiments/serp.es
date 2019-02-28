@@ -42,7 +42,7 @@ const groupBySession = (signals) => {
 const countSessions = (selector, sessions) => Object.values(sessions).reduce((acc, session) =>
   (acc + (selector(session) ? 1 : 0)), 0);
 
-export default [
+export default () => [
   {
     name: 'analyses.experiments.serp',
     version: 4,

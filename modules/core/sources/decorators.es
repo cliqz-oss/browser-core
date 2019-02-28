@@ -20,3 +20,13 @@ export function throttle(window, fn, threshhold) {
 export function nextTick(fn, ...args) {
   return Promise.resolve().then(() => fn(...args));
 }
+
+export function nextIdle() {
+  if ((typeof window === 'undefined') || !window.requestIdleCallback) {
+    return nextTick(() => {});
+  }
+
+  return new Promise((resolve) => {
+    window.requestIdleCallback(() => resolve());
+  });
+}

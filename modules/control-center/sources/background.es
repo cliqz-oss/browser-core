@@ -81,8 +81,13 @@ export default background({
   init(settings) {
     this.settings = settings;
     this.ICONS = settings.ICONS;
-    this.BACKGROUNDS = settings.BACKGROUNDS;
     this.intervals = new IntervalManager();
+
+    // set default badge color and text
+    if (chrome && chrome.browserAction2) {
+      chrome.browserAction2.setBadgeBackgroundColor({ color: '#471647' });
+      chrome.browserAction2.setBadgeText({ text: '0' });
+    }
   },
 
   unload() {
@@ -107,9 +112,8 @@ export default background({
       this.intervals.remove(windowId);
     }
 
-    this.updateBadge(tabId, '0');
-    if (isInternalProtocol(url)) {
-      chrome.browserAction2.setBadgeBackgroundColor({ color: '#666', tabId });
+    if (isInternalProtocol(url) && chrome && chrome.browserAction2) {
+      chrome.browserAction2.setBadgeText({ text: null, tabId });
     }
     // wait for tab content to load
     if (!url
@@ -119,9 +123,13 @@ export default background({
     }
 
     const updateBadgeForUrl = async () => {
-      if (tabId && url) {
-        const info = await this.antitracking.action('getBadgeData', { tabId, url });
-        this.updateBadge(tabId, info);
+      if (tabId !== undefined && url) {
+        try {
+          const info = await this.antitracking.action('getBadgeData', { tabId, url });
+          this.updateBadge(tabId, info);
+        } catch (e) {
+          // pass
+        }
       }
     };
 
@@ -140,7 +148,11 @@ export default background({
 
   updateBadge(tabId, info) {
     if (typeof chrome !== 'undefined' && chrome.browserAction2 && info !== undefined) {
-      chrome.browserAction2.setBadgeText({ text: `${info}`, tabId });
+      chrome.browserAction2.setBadgeText({ text: `${info}`, tabId }, () => {
+        if (chrome.runtime.lastError) {
+          // do nothing in case something went wrong
+        }
+      });
     }
   },
 
@@ -224,15 +236,18 @@ export default background({
           if (data.prefType === 'integer') {
             prefValue = parseInt(prefValue, 10);
           }
-          prefs.set(data.pref, prefValue, '' /* full pref name required! */);
+          prefs.set(data.pref, prefValue);
         }
       }
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: data.target,
-        state: data.value,
-        action: 'click'
-      });
+
+      if (!data.isPrivateMode) {
+        utils.telemetry({
+          type: TELEMETRY_TYPE,
+          target: data.target,
+          state: data.value,
+          action: 'click'
+        });
+      }
     },
     // creates the static frame data without any module details
     // re-used for fast first render and onboarding
@@ -249,6 +264,9 @@ export default background({
         isSpecialUrl = true;
       } else if (url.endsWith('modules/cliqz-history/index.html')) {
         friendlyURL = `${getMessage('freshtab_history_button')}`;
+        isSpecialUrl = true;
+      } else if (url.endsWith('modules/privacy-dashboard/index.html')) {
+        friendlyURL = `${getMessage('control_center_transparency')}`;
         isSpecialUrl = true;
       } else if (url.indexOf(globalConfig.settings.ONBOARDING_URL) === 0) {
         friendlyURL = moduleConfig.settings.BRAND;
@@ -328,21 +346,27 @@ export default background({
         },
         tabId
       });
-      chrome.browserAction2.setBadgeBackgroundColor({ color: this.BACKGROUNDS[state], tabId });
+      chrome.browserAction2.setBadgeBackgroundColor({ color: '#471647', tabId });
     },
 
     openURL(data) {
       openLink(data.url, true);
 
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: data.target,
-        action: 'click',
-        index: data.index
-      });
+      if (!data.isPrivateMode) {
+        utils.telemetry({
+          type: TELEMETRY_TYPE,
+          target: data.target,
+          action: 'click',
+          index: data.index
+        });
+      }
     },
 
     sendTelemetry(data) {
+      if (data.isPrivateMode) {
+        return;
+      }
+
       const signal = {
         type: TELEMETRY_TYPE,
         target: data.target,
@@ -358,44 +382,52 @@ export default background({
       utils.telemetry(signal);
     },
 
-    'antitracking-strict': function antitrackingStrict(data) {
+    'antitracking-strict': function antitrackingStrict({ isPrivateMode, status }) {
       events.pub('control-center:antitracking-strict');
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: 'attrack_fair',
-        action: 'click',
-        state: data.status === true ? 'on' : 'off'
-      });
+      if (!isPrivateMode) {
+        utils.telemetry({
+          type: TELEMETRY_TYPE,
+          target: 'attrack_fair',
+          action: 'click',
+          state: status === true ? 'on' : 'off'
+        });
+      }
     },
 
-    'complementary-search': function complementarySearch(data) {
-      events.pub('control-center:setDefault-search', data.defaultSearch);
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: 'complementary_search',
-        state: `search_engine_change_${data.defaultSearch}`,
-        action: 'click'
-      });
+    'complementary-search': function complementarySearch({ defaultSearch, isPrivateMode }) {
+      events.pub('control-center:setDefault-search', defaultSearch);
+      if (!isPrivateMode) {
+        utils.telemetry({
+          type: TELEMETRY_TYPE,
+          target: 'complementary_search',
+          state: `search_engine_change_${defaultSearch}`,
+          action: 'click'
+        });
+      }
     },
 
-    'search-index-country': function searchIndexCountry(data) {
-      events.pub('control-center:setDefault-indexCountry', data.defaultCountry);
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: 'search-index-country',
-        state: `search_index_country_${data.defaultCountry}`,
-        action: 'click',
-      });
+    'search-index-country': function searchIndexCountry({ defaultCountry, isPrivateMode }) {
+      events.pub('control-center:setDefault-indexCountry', defaultCountry);
+      if (!isPrivateMode) {
+        utils.telemetry({
+          type: TELEMETRY_TYPE,
+          target: 'search-index-country',
+          state: `search_index_country_${defaultCountry}`,
+          action: 'click',
+        });
+      }
     },
 
-    'cliqz-tab': function cliqzTab(data) {
+    'cliqz-tab': function cliqzTab({ status, isPrivateMode }) {
       events.pub('control-center:cliqz-tab');
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: 'cliqz_tab',
-        action: 'click',
-        state: data.status === true ? 'on' : 'off'
-      });
+      if (!isPrivateMode) {
+        utils.telemetry({
+          type: TELEMETRY_TYPE,
+          target: 'cliqz_tab',
+          action: 'click',
+          state: status === true ? 'on' : 'off'
+        });
+      }
     },
 
     'type-filter': function typeFilter(data) {
@@ -408,16 +440,16 @@ export default background({
       switch (data.status) {
         case 'active':
           this.core.action('enableModule', 'antitracking').then(() => {
-            events.pub('antitracking:whitelist:remove', data.hostname);
+            events.pub('antitracking:whitelist:remove', data.hostname, data.isPrivateMode);
           });
           break;
         case 'inactive':
           this.core.action('enableModule', 'antitracking').then(() => {
-            events.pub('antitracking:whitelist:add', data.hostname, utils.isPrivateMode(this.window));
+            events.pub('antitracking:whitelist:add', data.hostname, data.isPrivateMode);
           });
           break;
         case 'critical':
-          events.pub('antitracking:whitelist:remove', data.hostname);
+          events.pub('antitracking:whitelist:remove', data.hostname, data.isPrivateMode);
           events.nextTick(() => {
             this.core.action('disableModule', 'antitracking');
           });
@@ -436,17 +468,18 @@ export default background({
         state = data.state;
       }
 
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: `attrack_${data.type}`,
-        state,
-        action: 'click',
-      });
+      if (!data.isPrivateMode) {
+        utils.telemetry({
+          type: TELEMETRY_TYPE,
+          target: `attrack_${data.type}`,
+          state,
+          action: 'click',
+        });
+      }
     },
 
     'anti-phishing-activator': function antiphishingActivator(data) {
-      const ph = inject.module('anti-phishing');
-      ph.action('activator', data.state, data.url);
+      inject.module('anti-phishing').action('activator', data.state, data.url);
 
       let state;
       if (data.type === 'switch') {
@@ -454,12 +487,15 @@ export default background({
       } else {
         state = data.state;
       }
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: `antiphishing_${data.type}`,
-        state,
-        action: 'click',
-      });
+
+      if (!data.isPrivateMode) {
+        utils.telemetry({
+          type: TELEMETRY_TYPE,
+          target: `antiphishing_${data.type}`,
+          state,
+          action: 'click',
+        });
+      }
     },
 
     'adb-activator': function adbActivator(data) {
@@ -470,26 +506,32 @@ export default background({
       } else {
         state = data.state;
       }
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: `adblock_${data.type}`,
-        state,
-        action: 'click',
-      });
+
+      if (!data.isPrivateMode) {
+        utils.telemetry({
+          type: TELEMETRY_TYPE,
+          target: `adblock_${data.type}`,
+          state,
+          action: 'click',
+        });
+      }
     },
 
-    'antitracking-clearcache': function antitrackingClearCache() {
-      events.pub('control-center:antitracking-clearcache');
+    'antitracking-clearcache': function antitrackingClearCache({ isPrivateMode }) {
+      events.pub('control-center:antitracking-clearcache', isPrivateMode);
     },
 
     'adb-optimized': function adbOptimized(data) {
       events.pub('control-center:adb-optimized');
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: 'adblock_fair',
-        action: 'click',
-        state: data.status === true ? 'on' : 'off'
-      });
+
+      if (!data.isPrivateMode) {
+        utils.telemetry({
+          type: TELEMETRY_TYPE,
+          target: 'adblock_fair',
+          action: 'click',
+          state: data.status === true ? 'on' : 'off'
+        });
+      }
     },
 
     'quick-search-state': function quickSearchState(data) {

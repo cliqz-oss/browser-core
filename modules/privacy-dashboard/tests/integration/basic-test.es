@@ -1,19 +1,20 @@
 import {
   expect,
   getMessage,
+  getResourceUrl,
   newTab,
   queryHTML,
   waitForElement,
 } from '../../../tests/core/integration/helpers';
-import { isWebExtension } from '../../../core/platform';
+import { isBootstrap } from '../../../core/platform';
 
 export default function () {
-  if (isWebExtension) {
+  if (isBootstrap) {
     return;
   }
 
   describe('Transparency monitor', function () {
-    const transparencyUrl = 'chrome://cliqz/content/privacy-dashboard/index.html';
+    const transparencyUrl = getResourceUrl('privacy-dashboard/index.html');
     const uiElementsToCheck = [
       { name: 'side panel title', selector: 'transparency_document_title' },
       { name: 'side panel "Legend" label', selector: 'transparency_legend_title' },

@@ -30,11 +30,13 @@ module.exports = {
   },
   modules: [
     'core',
+    'telemetry',
     'core-cliqz',
     'static',
     'geolocation',
     'search',
     'dropdown',
+    'abtests-legacy',
     'freshtab',
     'offers-v2',
     'human-web',

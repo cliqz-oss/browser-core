@@ -7,8 +7,11 @@ const PREVENT_AUTOCOMPLETE_KEYS = ['Backspace', 'Delete'];
 
 // do not emit instant or Cliqz results until history has emitted,
 // unless the query is long enough or the user is deleting characters
-const prioritizeHistoryCondition = ({ query, keyCode }) =>
-  query.length < 4 && !PREVENT_AUTOCOMPLETE_KEYS.includes(keyCode);
+const prioritizeHistoryCondition = ({ query, keyCode, provider }) =>
+  !provider.isEnabled || (query.length < 4 && !PREVENT_AUTOCOMPLETE_KEYS.includes(keyCode));
+
+const useHistoryLookup = () => config.modules.indexOf('history-search') > -1
+  && prefs.get('historyLookupEnabled', false);
 
 const DEFAULT_CONFIG = {
   clearResultsOnSessionStart: true,
@@ -23,12 +26,16 @@ const DEFAULT_CONFIG = {
       order: 0,
       dependencies: [
         { provider: 'history', condition: prioritizeHistoryCondition },
+        { provider: 'historyLookup', condition: prioritizeHistoryCondition },
       ],
     },
     calculator: {
       order: 1,
     },
     history: {
+      order: 2,
+    },
+    historyLookup: {
       order: 2,
     },
     historyView: {
@@ -39,6 +46,7 @@ const DEFAULT_CONFIG = {
       isEnabled: true,
       dependencies: [
         { provider: 'history', condition: prioritizeHistoryCondition },
+        { provider: 'historyLookup', condition: prioritizeHistoryCondition },
       ],
       includeOffers: true,
       count: config.settings['search.config.providers.cliqz.count'] || 5,
@@ -48,7 +56,7 @@ const DEFAULT_CONFIG = {
     'rich-header': {
       retry: {
         count: 10,
-        delay: 100,
+        delay: 300,
       },
     },
     querySuggestions: {
@@ -104,7 +112,12 @@ if (typeof clearResultsOnSessionStart === 'boolean') {
   DEFAULT_CONFIG.clearResultsOnSessionStart = clearResultsOnSessionStart;
 }
 
-deepFreeze(DEFAULT_CONFIG);
+// deepFreeze has a cost and we probably do not need to pay it on mobile. If
+// there are issues with config mutations they can be catched on other
+// platforms, during tests and during dev.
+if (config.isMobile !== true) {
+  deepFreeze(DEFAULT_CONFIG);
+}
 
 export default function ({ isPrivateMode }, settings = {}) {
   return {
@@ -150,13 +163,25 @@ export default function ({ isPrivateMode }, settings = {}) {
           return typeof res === 'boolean'
             ? res
             : true;
-        }
+        },
       },
       cliqz: {
         ...DEFAULT_CONFIG.providers.cliqz,
         get isEnabled() {
           return prefs.get('modules.search.providers.cliqz.enabled',
             DEFAULT_CONFIG.providers.cliqz.isEnabled);
+        },
+      },
+      history: {
+        ...DEFAULT_CONFIG.providers.history,
+        get isEnabled() {
+          return !useHistoryLookup();
+        },
+      },
+      historyLookup: {
+        ...DEFAULT_CONFIG.providers.historyLookup,
+        get isEnabled() {
+          return useHistoryLookup();
         },
       },
     },

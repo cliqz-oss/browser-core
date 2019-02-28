@@ -3,7 +3,7 @@ import logger from '../internals/logger';
 import { CLICKS_TARGETS, UPLOADS_TYPES, VISITS_PAGES } from '../metrics/cliqz-for-friends';
 import { counterSchema, count } from '../analyses-utils';
 
-export default [
+export default () => [
   {
     name: 'analysis.cliqzForFriends.interactions',
     description: 'Aggregates interactions with cliqz-for-friends',

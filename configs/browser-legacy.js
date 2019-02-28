@@ -40,11 +40,6 @@ module.exports = {
       "inactive": "control-center/images/cc-critical.svg",
       "critical": "control-center/images/cc-critical.svg"
     },
-    "BACKGROUNDS": {
-      "active": "#471647",
-      "inactive": "#471647",
-      "critical": "#471647"
-    },
     "ATTRACK_TELEMETRY_PROVIDER": "hpnv2",
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
     "antitrackingPlaceholder": "cliqz.com/tracking",
@@ -67,6 +62,7 @@ module.exports = {
     "telemetry",
     "core-cliqz",
     "dropdown",
+    "abtests-legacy",
     "firefox-specific",
     "static",
     "geolocation",
@@ -90,7 +86,6 @@ module.exports = {
     "offboarding",
     "anolysis",
     "anolysis-cc",
-    "abtests",
     "theme",
     "context-search",
     "privacy-dashboard",
@@ -114,12 +109,10 @@ module.exports = {
     "myoffrz-helper",
     "insights",
     "toolbox",
-    "your-ad-value",
     "cliqz-for-friends",
     "antifraud",
   ],
   "bundles": [
-    "abtests/content.bundle.js",
     "adblocker/diagnosis.bundle.js",
     "anolysis-cc/dashboard/anolysis.bundle.js",
     "anti-phishing/phishing-warning.bundle.js",

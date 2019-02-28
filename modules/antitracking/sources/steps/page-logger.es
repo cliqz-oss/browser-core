@@ -46,7 +46,7 @@ export default class PageLogger {
       }
 
       // add triggeringPrinciple info
-      if (state.trigger) {
+      if (state.trigger || state.ghosteryBug) {
         const pageLoad = this.tpEvents.getPage(
           state.url,
           urlParts,
@@ -55,10 +55,12 @@ export default class PageLogger {
           state.tabId
         );
         if (pageLoad) {
-          pageLoad.addTrigger(state.urlParts.hostname, state.trigger, state.frameId);
-        }
-        if (state.ghosteryBug) {
-          pageLoad.addGhosteryBug(state.urlParts.hostname, state.ghosteryBug);
+          if (state.trigger) {
+            pageLoad.addTrigger(state.urlParts.hostname, state.trigger, state.frameId);
+          }
+          if (state.ghosteryBug) {
+            pageLoad.addGhosteryBug(state.urlParts.hostname, state.ghosteryBug);
+          }
         }
       }
     }

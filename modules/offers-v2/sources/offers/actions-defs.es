@@ -133,7 +133,6 @@ const ActionID = {
   AID_OFFER_FILTERED_REALESTATE: 'filtered_by_hard_filterByRealEstates',
   AID_OFFER_FILTERED_GEO: 'filtered_by_hard_filterByGeo',
   AID_OFFER_FILTERED_CATEGORIES: 'filtered_by_hard_filterByCategories',
-  AID_OFFER_FILTERED_HISTORY: 'filtered_by_hard_filterByHistory',
 
   AID_OFFER_FILTERED_EXP_PREFIX: 'filter_exp__',
   AID_OFFER_FILTERED_CONTEXT: 'filtered_by_context',
@@ -143,6 +142,23 @@ const ActionID = {
   AID_OFFER_FILTERED_COMPETE: 'filtered_by_compete',
 
   AID_OFFER_CC_HIDDEN: 'reward_box_missing_button', // Button hidden by user
+
+  // Ghostery
+  AID_GH_CA_ACTION_0: 'offer_ca_action_0',
+  AID_GH_CLICK_HOTDOG: 'offer_click_hotdog',
+  AID_GH_CLICK_SPECIFIC: 'offer_click_specific',
+  AID_GH_CLICK_SPECIFIC_NEW: 'offer_click_specific_new',
+  AID_GH_CLOSED_CARD: 'offer_closed_card',
+  AID_GH_CLOSED_HOTDOG: 'offer_closed_hotdog',
+  AID_GH_DSP_SESSION_0: 'offer_dsp_session_0',
+  AID_GH_FIRST_LEARN: 'offer_first_learn',
+  AID_GH_FIRST_OPTIN: 'offer_first_optin',
+  AID_GH_FIRST_OPTLATER: 'offer_first_optlater',
+  AID_GH_FIRST_OPTOUT: 'offer_first_optout',
+  AID_GH_NOTIFICATION_HOTDOG: 'offer_notification_hotdog',
+  AID_GH_RETURN_HUB: 'offer_return_hub',
+  AID_GH_SETTINGS: 'offer_settings',
+  AID_GH_SHOWN_0: 'offer_shown_0',
 };
 
 export default ActionID;

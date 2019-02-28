@@ -7,6 +7,9 @@ import { VERSION, ECDH_P256_AES_128_GCM } from './constants';
 import { inflate } from '../core/zlib';
 import { fromUTF8, toUTF8, toByteArray, toBase64, fromBase64 } from '../core/encoding';
 import crypto from '../platform/crypto';
+import LRU from '../core/LRU';
+
+const MAX_PROXY_BUCKETS = 10;
 
 const { subtle } = crypto;
 
@@ -65,17 +68,7 @@ async function encrypt(data, serverPublicKey) {
   return { iv, encrypted, clientPublicKey: await exportKey(clientPublicKey), aesKey };
 }
 
-async function myfetch(url, { session, method = 'GET', body, publicKey = {} } = {}) {
-  // We randomize first subdomain to avoid browser reusing connections,
-  // which would defeat our purpose of making messages unlinkable.
-
-  // If session is passed, same subdomain is used (e.g. for proxying search queries).
-
-  // If url doesn't have asterisk, nothing will be replaced (used for non-anonymous
-  // requests, like group joins).
-
-  const urlfinal = url.replace('*', `${session || randomInt()}`);
-
+async function myfetch(url, { method = 'GET', body, publicKey = {}, timeoutInMs = 10000 } = {}) {
   const headers = new Headers({ Version: VERSION.toString() });
   const options = { method, headers, credentials: 'omit', cache: 'no-store', redirect: 'manual' };
 
@@ -103,9 +96,9 @@ async function myfetch(url, { session, method = 'GET', body, publicKey = {} } = 
   }
 
   return new Promise(async (resolve, reject) => {
-    const timer = setTimeout(() => reject(new TransportError('timeout')), 5000);
+    const timer = setTimeout(() => reject(new TransportError('timeout')), timeoutInMs);
     try {
-      let response = await fetch(urlfinal, options);
+      let response = await fetch(url, options);
       const { status, statusText, ok } = response;
 
       if (!ok) {
@@ -128,20 +121,12 @@ async function myfetch(url, { session, method = 'GET', body, publicKey = {} } = 
 }
 
 // Just to have all the endpoints in the same place.
-// Also handles possible clock drift of the user, syncing with time returned
-// by our endpoints or 3rd party popular sites.
-
-// At some point, we should do the transport in the most private way available
-// for the platform, but for now just doing direct requests.
 export default class Endpoints {
-  static get MAX_MINUTES_DRIFT() {
-    return 3;
-  }
-
   constructor({ maxRetries = 3, urls = config.settings } = {}) {
     this._reset();
     this.maxRetries = maxRetries;
     this.urls = urls;
+    this.proxyBuckets = new LRU(MAX_PROXY_BUCKETS);
   }
 
   _reset() {
@@ -176,12 +161,12 @@ export default class Endpoints {
     }
     this.sendTimer = setTimeout(() => {
       const n = Math.floor(random() * this.messages.length);
-      const [msg, cnt, publicKey] = this.messages.splice(n, 1)[0];
-      myfetch(this.ENDPOINT_HPNV2_POST, { method: 'POST', body: msg, publicKey })
+      const [url, msg, cnt, publicKey] = this.messages.splice(n, 1)[0];
+      myfetch(url, { method: 'POST', body: msg, publicKey })
         .catch((e) => {
           if (cnt < this.maxRetries) {
             logger.log('Will retry sending msg after error', e);
-            this.messages.push([msg, cnt + 1, publicKey]);
+            this.messages.push([url, msg, cnt + 1, publicKey]);
           } else {
             logger.error('_scheduleSend failed (gave up after', this.maxRetries,
               'retry attempts)', e);
@@ -196,10 +181,22 @@ export default class Endpoints {
     }, 500 + Math.floor(random() * 1500)); // TODO: improve?
   }
 
-  async send(msg, { instant, session, publicKey } = {}) {
+  // When defined, proxyBucket is random string or number, "big enough" to avoid collisions
+  // Same proxyBucket will be routed via same proxy (e.g. for search queries)
+  async send(msg, { instant, proxyBucket, publicKey } = {}) {
+    const MIN_PROXY_NUM = 1;
+    const MAX_PROXY_NUM = 100;
+    const NUM_PROXIES = MAX_PROXY_NUM - MIN_PROXY_NUM + 1;
+    const randBucket = (randomInt() % NUM_PROXIES) + MIN_PROXY_NUM;
+    const proxyNum = this.proxyBuckets.get(proxyBucket) || randBucket;
+    if (proxyBucket) {
+      this.proxyBuckets.set(proxyBucket, proxyNum);
+    }
+    const url = this.ENDPOINT_HPNV2_POST.replace('*', proxyNum);
+
     if (instant) {
       try {
-        const response = await myfetch(this.ENDPOINT_HPNV2_POST, { session, method: 'POST', body: msg, publicKey });
+        const response = await myfetch(url, { method: 'POST', body: msg, publicKey });
         let data = new Uint8Array(await response.arrayBuffer());
         if (data[0] !== 0x7B) {
           const size = (new DataView(data.buffer)).getUint32();
@@ -214,7 +211,7 @@ export default class Endpoints {
         throw new TransportError(e.message);
       }
     }
-    this.messages.push([msg, 0, publicKey]);
+    this.messages.push([url, msg, 0, publicKey]);
     this._scheduleSend();
     return new Response();
   }
@@ -224,13 +221,14 @@ export default class Endpoints {
     return response.json();
   }
 
-  async getConfig() {
-    return (await myfetch(this.ENDPOINT_HPNV2_CONFIG)).json();
+  async getConfig({ timeoutInMs = 15000 } = {}) {
+    return (await myfetch(this.ENDPOINT_HPNV2_CONFIG, { timeoutInMs })).json();
   }
 
   unload() {
     clearTimeout(this.sendTimer);
     this._reset();
+    this.proxyBuckets.reset();
     this.unloaded = true;
   }
 }

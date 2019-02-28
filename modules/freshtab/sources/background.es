@@ -45,6 +45,7 @@ import {
   tryDecodeURIComponent,
 } from '../core/url';
 import extChannel from '../platform/ext-messaging';
+import { isBetaVersion } from '../platform/platform';
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
@@ -316,12 +317,12 @@ export default background({
     saveMessageDismission,
 
     checkForHistorySpeedDialsToRestore() {
-      const history = JSON.parse(prefs.get(DIALUPS, '{}', '')).history || {};
+      const history = JSON.parse(prefs.get(DIALUPS, '{}')).history || {};
       return Object.keys(history).length > 0;
     },
 
     hasCustomDialups() {
-      return (JSON.parse(prefs.get(DIALUPS, '{}', '')).custom || []).length;
+      return (JSON.parse(prefs.get(DIALUPS, '{}')).custom || []).length;
     },
 
     /**
@@ -329,7 +330,7 @@ export default background({
     * @method getSpeedDials
     */
     async getSpeedDials() {
-      const dialUps = prefs.has(DIALUPS, '') ? JSON.parse(prefs.get(DIALUPS, '', '')) : [];
+      const dialUps = prefs.has(DIALUPS) ? JSON.parse(prefs.get(DIALUPS, '')) : [];
       let historyDialups = [];
       let customDialups = dialUps.custom ? dialUps.custom : [];
       await searchUtils.isSearchServiceReady();
@@ -432,7 +433,7 @@ export default background({
     removeSpeedDial(item) {
       const isCustom = item.custom;
       const url = isCustom ? item.url : hash(item.url);
-      const dialUps = JSON.parse(prefs.get(DIALUPS, '{}', ''));
+      const dialUps = JSON.parse(prefs.get(DIALUPS, '{}'));
 
       if (isCustom) {
         dialUps.custom = dialUps.custom.filter(dialup =>
@@ -444,7 +445,7 @@ export default background({
         dialUps.history[url] = { hidden: true };
       }
 
-      prefs.set(DIALUPS, JSON.stringify(dialUps), '');
+      prefs.set(DIALUPS, JSON.stringify(dialUps));
     },
 
     /**
@@ -474,7 +475,7 @@ export default background({
         return makeErrorObject('duplicate');
       }
 
-      const savedDials = prefs.getObject(DIALUPS, '');
+      const savedDials = prefs.getObject(DIALUPS);
       if (!savedDials.custom) {
         savedDials.custom = [];
       }
@@ -492,7 +493,7 @@ export default background({
           },
           ...savedDials.custom.slice(index + 1),
         ],
-      }, '');
+      });
 
       return new SpeedDial({ url: validUrl, title }, searchEngines);
     },
@@ -526,7 +527,7 @@ export default background({
         return makeErrorObject('duplicate');
       }
 
-      const savedDials = prefs.getObject(DIALUPS, '');
+      const savedDials = prefs.getObject(DIALUPS);
       if (!savedDials.custom) {
         savedDials.custom = [];
       }
@@ -549,7 +550,7 @@ export default background({
 
       prefs.setObject(DIALUPS, {
         ...savedDials
-      }, '');
+      });
       // prefs.set(DIALUPS, JSON.stringify(dialUps), '');
       return new SpeedDial(dialSpecs, searchEngines);
     },
@@ -559,7 +560,7 @@ export default background({
     * @method parseSpeedDials
     */
     parseSpeedDials() {
-      return JSON.parse(prefs.get(DIALUPS, '{}', ''));
+      return JSON.parse(prefs.get(DIALUPS, '{}'));
     },
 
     /**
@@ -568,7 +569,7 @@ export default background({
     * @param dialUps object
     */
     saveSpeedDials(dialUps) {
-      prefs.set(DIALUPS, JSON.stringify(dialUps), '');
+      prefs.set(DIALUPS, JSON.stringify(dialUps));
     },
 
     /**
@@ -720,7 +721,7 @@ export default background({
               icon: 'images/stats-anti-tracking.svg',
               val: formatNumber(summary.cumulativeData.trackersBlocked),
               description: `${getMessage('freshtab_stats_gt_trackers_seen', formatNumber(summary.cumulativeData.trackersDetected))}`,
-              link: 'https://www.ghostery.com/faqs/what-do-the-statistics-in-ghostery-start-tab-show/',
+              link: 'https://www.ghostery.com/faqs/what-do-the-statistics-in-ghostery-start-tab-show-2/',
               disabled: !summary.blockTrackersEnabled,
             },
             {
@@ -728,7 +729,7 @@ export default background({
               icon: 'images/stats-datapoints.svg',
               val: formatNumber(dataPointsAnonymized),
               description: `${getMessage('freshtab_stats_data_anonymized_by_desc', 'Ghostery')}`,
-              link: 'https://www.ghostery.com/faqs/what-do-the-statistics-in-ghostery-start-tab-show/',
+              link: 'https://www.ghostery.com/faqs/what-do-the-statistics-in-ghostery-start-tab-show-2/',
               disabled: !summary.antiTrackingEnabled,
             },
             {
@@ -736,7 +737,7 @@ export default background({
               icon: 'images/stats-ad-blocker.svg',
               val: formatNumber(summary.cumulativeData.adsBlocked),
               description: `${getMessage('freshtab_stats_ads_blocked_by_desc', 'Ghostery')}`,
-              link: 'https://www.ghostery.com/faqs/what-do-the-statistics-in-ghostery-start-tab-show/',
+              link: 'https://www.ghostery.com/faqs/what-do-the-statistics-in-ghostery-start-tab-show-2/',
               disabled: !summary.adBlockEnabled,
             },
           ];
@@ -890,6 +891,7 @@ export default background({
         NEW_TAB_URL: '',
         HISTORY_URL,
         CLIQZ_FOR_FRIENDS: this.settings.CLIQZ_FOR_FRIENDS ? getResourceUrl(this.settings.CLIQZ_FOR_FRIENDS) : '',
+        isBetaVersion: isBetaVersion(),
       };
     },
 

@@ -9,7 +9,7 @@ export default class Service {
    * Service is initialized only once
    * Multiple calls to init return same promise
    */
-  init() {
+  init(app) {
     if (this._readyDefer) {
       return this._readyDefer.promise;
     }
@@ -18,7 +18,7 @@ export default class Service {
 
     // wrap in promise to catch exceptions
     Promise.resolve()
-      .then(() => this._initializer())
+      .then(() => this._initializer(app))
       .then(
         (service) => {
           this._readyDefer.resolve();

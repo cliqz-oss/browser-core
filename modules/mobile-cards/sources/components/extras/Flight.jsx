@@ -67,7 +67,7 @@ const styles = theme => StyleSheet.create({
   },
   hotlineWrapper: {
     marginTop: 10,
-    borderTopWidth: 0.5,
+    borderTopWidth: 1.5,
     borderTopColor: themeDetails[theme].separatorColor,
   },
   hotlineView: {

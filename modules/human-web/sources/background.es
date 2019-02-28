@@ -97,7 +97,7 @@ export default background({
   async reload() {
     await this._pendingInits;
     this.unload();
-    await this.init();
+    await this.init(this.settings);
   },
 
   beforeBrowserShutdown() {
@@ -216,7 +216,7 @@ export default background({
         rulesets: Object.values(HumanWeb.contentExtractor.patterns.normal.extractRules),
         state: HumanWeb.state,
         strictQueries: HumanWeb.strictQueries,
-        trk: HumanWeb.strictQueries,
+        trk: HumanWeb.trk,
       };
     },
 

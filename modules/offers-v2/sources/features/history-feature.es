@@ -1,24 +1,41 @@
-import inject from '../../core/kord/inject';
+import History from '../../platform/history/history';
 import Feature from './feature';
 import moment from '../../platform/lib/moment';
 import DefaultMap from '../../core/helpers/default-map';
 import UrlData from '../common/url_data';
 
-const MOD_NAME = 'history-analyzer';
+/**
+ * {
+ *   pid: string, // some unique ID, unused
+ *   patters: string[], // set of URLs
+ *   index: SimplePatternIndex, // compiled set of URLs
+ *   start_ms: number,
+ *   end_ms: number,
+ * }
+ * @class HistoryQueryRequest
+ */
 
 /**
- * Interface for a feature
+ * {
+ *   pid: string, // some unique ID, taken from `HistoryQueryRequest`
+ *   info: {}, // unused
+ *   match_data: DayCounter
+ * }
+ * @class HistoryQueryResponse
+ */
+
+/**
+ * Query history
+ *
+ * @class HistoryFeature
  */
 export default class HistoryFeature extends Feature {
-  constructor() {
+  constructor(history = History) {
     super('history');
-    this.mod = null;
-    this.ongoingQueries = new Map();
+    this.history = history;
   }
 
-  // to be implemented by the inherited classes
   init() {
-    this.mod = inject.module(MOD_NAME);
     return true;
   }
 
@@ -27,28 +44,24 @@ export default class HistoryFeature extends Feature {
   }
 
   isAvailable() {
-    return this.mod.isEnabled();
+    return true;
   }
 
-
-  // ///////////////////////////////////////////////////////////////////////////
-  //                        INTERFACE
-  //
-
-  async performQuery(q) {
-    const index = q.index;
-    const after = q.start_ms - 1;
-    const before = q.end_ms + 1;
+  /**
+   * @param QueryHistoryRequest
+   * @return {Promise<QueryHistoryResponse>}
+   */
+  async performQueryOnHistory({ pid, index, start_ms: startMs, end_ms: endMs }) {
+    const after = startMs - 1;
+    const before = endMs + 1;
 
     // Group matched urls per day
     const days = new DefaultMap(() => 0);
-    const results = await this.mod.action('query', {
-      after,
-      before,
-      urls: index.tokens,
+    const visits = await this.history.queryVisitsForTimespan({
+      frameStartsAt: after,
+      frameEndsAt: before,
     });
-    // eslint-disable-next-line semi
-    for await (const { ts, url } of results) {
+    for (const { ts, url } of visits) {
       const urlData = new UrlData(url);
       if (index.match(urlData.getPatternRequest())) {
         const day = moment(ts).format('YYYYMMDD');
@@ -61,25 +74,21 @@ export default class HistoryFeature extends Feature {
     const total = {
       num_days: 0,
       m: 0,
-      c: 0,
       last_checked_url_ts: before,
     };
 
     days.forEach((count, day) => {
       total.num_days += 1;
       total.m += count;
-      total.c += count;
 
       per_day[day] = {
         m: count,
-        c: count,
       };
     });
 
     return {
-      pid: q.pid,
+      pid,
       d: {
-        info: {}, // Not used anymore
         match_data: {
           total,
           per_day,

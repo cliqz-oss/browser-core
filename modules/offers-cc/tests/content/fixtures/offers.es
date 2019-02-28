@@ -1,8 +1,7 @@
 import config from '../../../../core/config';
-import { isWebExtension } from '../../../../core/platform';
 
 export const dataGenericTooltip = {
-  isWebExtension,
+  isWebExtension: true,
   showTooltip: true,
   isGeneric: true,
   headline: 'You have a new offer',
@@ -10,7 +9,7 @@ export const dataGenericTooltip = {
 };
 
 export const dataExtraTooltip = {
-  isWebExtension,
+  isWebExtension: true,
   showTooltip: true,
   backgroundImage: 'https://cdn.cliqz.com/snippets/wikipedia/images/de/Logo_REWE.svg',
   logoClass: 'short',
@@ -24,7 +23,7 @@ export const dataExtraTooltip = {
 };
 
 export const dataExtraTooltip1 = {
-  isWebExtension,
+  isWebExtension: true,
   showTooltip: true,
   backgroundImage: 'https://cdn.cliqz.com/snippets/wikipedia/images/de/Logo_REWE.svg',
   logoClass: 'short',
@@ -34,7 +33,7 @@ export const dataExtraTooltip1 = {
 };
 
 export const dataNewOffer = {
-  isWebExtension,
+  isWebExtension: true,
   vouchers:
   [
     {
@@ -165,7 +164,7 @@ export const dataNewOffer = {
 };
 
 export const dataNewOffer1 = {
-  isWebExtension,
+  isWebExtension: true,
   vouchers:
   [
     {

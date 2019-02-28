@@ -2,6 +2,7 @@ import background from '../core/base/background';
 import inject from '../core/kord/inject';
 import { httpGet } from '../core/http';
 import { shouldEnableModule } from '../core/app';
+import config from '../core/config';
 
 import MAConfigs from './conf/ma_configs';
 import logger from './common/logger';
@@ -24,7 +25,7 @@ export default background({
     // If module is already running, skip.
     if (this.isRunning) { return; }
 
-    const telemetry = inject.service('telemetry');
+    const telemetry = inject.service('telemetry', ['onTelemetryEnabled', 'onTelemetryDisabled', 'isEnabled']);
 
     // Register listeners for telemetry state change.
     telemetry.onTelemetryEnabled(this.actions.onTelemetryEnabled);
@@ -40,7 +41,7 @@ export default background({
       CliqzMarketAnalyzer.init();
       // The content of this file is subject to change
       // The file is shipped together with the releases
-      const url = 'chrome://cliqz/content/market-analysis/mappings.json';
+      const url = `${config.baseURL}/market-analysis/mappings.json`;
       httpGet(url, (res) => {
         CliqzMarketAnalyzer.regexMappings = JSON.parse(res.response);
         this.initialized = true;

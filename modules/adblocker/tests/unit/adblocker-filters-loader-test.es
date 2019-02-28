@@ -28,7 +28,7 @@ function platformSpecificLoadingTest(listsToLoad, FilterLoader) {
     // Load filters, then check that loaded filter are
     // the same as what we would expect.
     filtersLoader.load().then(() => {
-      chai.expect(listsToLoad).to.be.deep.equal(loadedLists);
+      chai.expect([...loadedLists].sort()).to.eql([...listsToLoad].sort());
     }).then(resolve, reject);
   });
 }
@@ -39,9 +39,9 @@ export default describeModule('adblocker/filters-loader',
     'core/logger': {
       default: { get() {
         return {
-          debug() {},
-          log() {},
-          error() {},
+          debug() { },
+          log() { },
+          error() { },
         };
       } },
     },

@@ -360,6 +360,7 @@ export default class URLBar extends EventEmitter {
     return {
       value: urlbar.value,
       visibleValue: urlbar.mInputField.value,
+      searchString: urlbar.controller.searchString,
       selectionStart: urlbar.selectionStart,
       selectionEnd: urlbar.selectionEnd,
       focused: urlbar.focused,
@@ -403,59 +404,82 @@ export default class URLBar extends EventEmitter {
     }
   }
 
+  updateMany(windowId = null, details) {
+    const urlbar = this._getURLBarByWindowId(windowId);
+    details.forEach((d) => {
+      // 1. focus/blur
+      if (d.focused !== null) {
+        if (urlbar.focused !== d.focused) {
+          urlbar[d.focused ? 'focus' : 'blur']();
+          if (d.triggerFocusEvent) {
+            this.emit(d.focused ? 'focus' : 'blur', urlbar.ownerGlobal, this._getURLBarDetails(windowId));
+          }
+        }
+        if (d.triggerOpenLocation) {
+          const command = urlbar.ownerDocument.getElementById('Browser:OpenLocation');
+          command.doCommand();
+        }
+      }
+
+      // 2. value/selection change
+      let valueChanged = false;
+      if (typeof d.value === 'string' && urlbar.value !== d.value) {
+        urlbar.value = d.value;
+        valueChanged = true;
+      }
+      if (typeof d.visibleValue === 'string' && urlbar.mInputField.value !== d.visibleValue) {
+        urlbar.mInputField.value = d.visibleValue;
+        valueChanged = true;
+      }
+      if (typeof d.searchString === 'string' && urlbar.controller.searchString !== d.searchString) {
+        urlbar.controller.searchString = d.searchString;
+      }
+      if (typeof d.selectionStart === 'number' && urlbar.selectionStart !== d.selectionStart) {
+        urlbar.selectionStart = d.selectionStart;
+        valueChanged = true;
+      }
+      if (typeof d.selectionEnd === 'number' && urlbar.selectionEnd !== d.selectionEnd) {
+        urlbar.selectionEnd = d.selectionEnd;
+        valueChanged = true;
+      }
+
+      if (d.triggerInputEvent && valueChanged) {
+        this.emit('input', urlbar.ownerGlobal, this._getURLBarDetails(windowId));
+      }
+    });
+    return this._getURLBarDetails(windowId);
+  }
+
   getAPI(context) {
     return {
       enter: (windowId = null, newTab = false) => {
         const urlbar = this._getURLBarByWindowId(windowId);
         urlbar.handleCommand(null, newTab ? 'tabshifted' : 'current');
       },
-      focus: (windowId = null, options) => {
-        const urlbar = this._getURLBarByWindowId(windowId);
-        urlbar.focus();
-        if (options.triggerEvent) {
-          this.emit('focus', urlbar.ownerGlobal, this._getURLBarDetails(windowId));
-        }
-        if (options.openLocation) {
-          const command = urlbar.ownerDocument.getElementById('Browser:OpenLocation');
-          command.doCommand();
-        }
-        return this._getURLBarDetails(windowId);
-      },
-      blur: (windowId = null) => {
-        const urlbar = this._getURLBarByWindowId(windowId);
-        urlbar.blur();
-        return this._getURLBarDetails(windowId);
-      },
+      focus: (windowId = null, options) => this.updateMany(windowId, [{
+        focused: true,
+        triggerFocusEvent: options.triggerEvent,
+        triggerOpenLocation: options.openLocation,
+      }]),
+      blur: (windowId = null) => this.updateMany(windowId, [{
+        focused: false,
+        triggerFocusEvent: null,
+        triggerOpenLocation: null,
+      }]),
       get: (windowId = null) => this._getURLBarDetails(windowId),
       setPlaceholder: placeholder => this._setPlaceholder(placeholder),
-      update: (windowId = null, details) => {
-        const urlbar = this._getURLBarByWindowId(windowId);
-        if (details.value !== null) {
-          urlbar.value = details.value;
-        }
-        if (details.visibleValue !== null) {
-          urlbar.mInputField.value = details.visibleValue;
-        }
-        if (details.selectionStart !== null) {
-          urlbar.selectionStart = details.selectionStart;
-        }
-        if (details.selectionEnd !== null) {
-          urlbar.selectionEnd = details.selectionEnd;
-        }
-        if (details.triggerEvent) {
-          this.emit('input', urlbar.ownerGlobal, this._getURLBarDetails(windowId));
-        }
-        return this._getURLBarDetails(windowId);
-      },
+      update: (windowId = null, details) => this.updateMany(windowId, [{
+        focused: null,
+        triggerFocusEvent: null,
+        triggerOpenLocation: null,
+        triggerInputEvent: details.triggerEvent,
+        ...details,
+      }]),
+      updateMany: (...args) => this.updateMany(...args),
       complete: (windowId = null, query, completion) => {
         const urlbar = this._getURLBarByWindowId(windowId);
         const newValue = `${query}${completion}`;
-        let currentValue = urlbar.value;
-        if (urlbar.selectionStart !== urlbar.selectionEnd
-          && urlbar.selectionEnd === currentValue.length) {
-          currentValue = currentValue.slice(0, urlbar.selectionStart);
-        }
-
+        const currentValue = urlbar.controller.searchString;
         // Unlike "update", this method changes urlbar ONLY IF the current value can be completed
         // to match the new one.
         if (query !== currentValue

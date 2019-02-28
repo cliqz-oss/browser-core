@@ -1,0 +1,13 @@
+<span class='provider'>final</span>
+{{#each @this}}
+  <div class='result' data-json='{{json this}}'>
+    {{> resultContent}}
+    {{> parseKind}}
+
+    {{#each data.urls}}
+      {{> resultContent}}
+      {{> parseKind}}
+    {{/each}}
+  </div>
+{{/each}}
+

@@ -47,7 +47,7 @@ export const NEWS_EDITIONS = [
   'ru',
 ];
 
-export default [
+export default () => [
   /**
    * metrics.freshtab.state informs us about how many of our users have freshtab enabled.
    */

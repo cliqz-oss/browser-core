@@ -1,6 +1,7 @@
 /* global chai */
 /* global describeModule */
 /* global require */
+/* global sinon */
 /* eslint-disable func-names,prefer-arrow-callback,arrow-body-style */
 
 const commonMocks = require('../utils/common');
@@ -16,6 +17,21 @@ const abNumber = 0;
 let shouldKeepResourceRet = false;
 
 const copy = e => JSON.parse(JSON.stringify(e));
+
+class TriggerMachineMock {
+  constructor() {
+    this.runCalls = [];
+  }
+
+  clear() {
+    this.runCalls = [];
+  }
+
+  run(trigger, ctx) {
+    this.runCalls.push({ trigger: copy(trigger), ctx });
+    return Promise.resolve(true);
+  }
+}
 
 export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
   () => ({
@@ -55,21 +71,6 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
       shouldKeepResource: function () {
         return shouldKeepResourceRet;
       },
-    },
-    'offers-v2/trigger_machine/trigger_machine': {
-      default: class {
-        constructor() {
-          this.runCalls = [];
-        }
-
-        clear() {
-          this.runCalls = [];
-        }
-
-        run(trigger, ctx) {
-          this.runCalls.push({ trigger: copy(trigger), ctx });
-        }
-      }
     },
     'offers-v2/trigger_machine/trigger_cache': {
       default: class {
@@ -120,6 +121,7 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
       let triggerCacheMock;
       let tmeMock;
       let beConnMock;
+      let ActivateSubtriggersExpr;
 
       function buildOp(obj) {
         // wrap into a trigger here
@@ -146,22 +148,22 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
           chai.expect(runTriggers.has(tid), `missing trigger id: ${tid}`).eql(true));
       }
 
-      beforeEach(function () {
-        TriggerMachine = this.deps('offers-v2/trigger_machine/trigger_machine').default;
+      beforeEach(async function () {
         const TriggerCache = this.deps('offers-v2/trigger_machine/trigger_cache').default;
         triggerCacheMock = new TriggerCache();
-        tmeMock = new TriggerMachine();
+        tmeMock = new TriggerMachineMock();
         beConnMock = new BackendConnectorMock();
+        ActivateSubtriggersExpr = this.module().default.$activate_subtriggers;
 
         buildDataGen = {
           trigger_machine: tmeMock,
           be_connector: beConnMock,
           trigger_cache: triggerCacheMock,
         };
-        return this.system.import('offers-v2/trigger_machine/exp_builder').then((mod) => {
-          ExpressionBuilder = mod.default;
-          exprBuilder = new ExpressionBuilder(buildDataGen);
-        });
+
+        ExpressionBuilder = (await this.system.import('offers-v2/trigger_machine/exp_builder')).default;
+        exprBuilder = new ExpressionBuilder(buildDataGen);
+        TriggerMachine = (await this.system.import('offers-v2/trigger_machine/trigger_machine')).default;
       });
 
 
@@ -286,6 +288,35 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
           }).catch((err) => {
             chai.expect(false, `unexpected error: ${err}`).eql(true);
           });
+        });
+
+        it('/reset variables before running a trigger', async () => {
+          const trackVars = sinon.spy();
+          class VarAccessMock {
+            evalExpr(localCtx) {
+              trackVars({ ...localCtx.vars });
+              localCtx.vars.smth = 'else'; // eslint-disable-line no-param-reassign
+              return Promise.resolve(false);
+            }
+          }
+          const vam = {
+            built_conds: new VarAccessMock(),
+            built_actions: [],
+          };
+          const subtriggerCache = {
+            getSubtriggers: () => [vam, vam, vam],
+          };
+          const e = new ActivateSubtriggersExpr({
+            trigger_cache: subtriggerCache,
+            raw_op: { args: ['smth'] },
+            trigger_machine: new TriggerMachine({}),
+          });
+
+          await e.evalExpr(ctx);
+
+          chai.expect(trackVars.firstCall.args[0]).to.eql({});
+          chai.expect(trackVars.secondCall.args[0]).to.eql({});
+          chai.expect(trackVars.thirdCall.args[0]).to.eql({});
         });
       });
     });

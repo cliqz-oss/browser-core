@@ -50,6 +50,10 @@ export default class ContentDropdownManager extends BaseDropdownManager {
 
     this._reportClick(selection);
     this.cliqz.core.openLink(url, { newTab });
+
+    if (!newTab) {
+      this.close();
+    }
   }
 
   // setHeight: () => {},

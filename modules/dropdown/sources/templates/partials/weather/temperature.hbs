@@ -1,0 +1,19 @@
+<div class="temperature">
+    {{#with temperature}}
+    <svg width="100%" height="100%" viewBox="0 -20 584 90">
+        <style>
+            .figures {
+                transform: translateY(-5px) translateX(-5px);
+                position: relative;
+                z-index: 9999;
+                font-size: 11px;
+            }
+        </style>
+        {{#each svgTexts}}
+        <text class="figures" x="{{x}}" y="{{y}}">{{text}}</text>
+        {{/each}}
+        <path d="{{svgLine}}" fill="none" stroke="#fc0" stroke-width="2"></path>
+        <path d="{{svgArea}}" fill="rgba(255, 204, 0, 0.2)"></path>
+    </svg>
+    {{/with}}
+</div>

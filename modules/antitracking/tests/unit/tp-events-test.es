@@ -61,6 +61,9 @@ export default describeModule('antitracking/tp_events',
         set() {}
       }
     },
+    'core/http': {
+      fetch: () => Promise.reject(),
+    },
   }),
   function () {
     describe('tp events log placeHolder in url', function () {

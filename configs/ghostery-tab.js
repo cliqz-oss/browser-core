@@ -22,6 +22,10 @@ module.exports = {
     ALLOWED_COUNTRY_CODES: ['de', 'at', 'ch', 'es', 'us', 'fr', 'nl', 'gb', 'it', 'se'],
     DEFAULT_SEARCH_ENGINE: 'DuckDuckGo',
     FRESHTAB_TITLE: 'Ghostery Tab',
+    offboardingURLs: {
+      "en": "https://www.surveymonkey.de/r/StartTabEng",
+      "de": "https://www.surveymonkey.de/r/StartTabDE",
+    },
   }),
   default_prefs: {
     'modules.human-web.enabled': false,
@@ -33,7 +37,9 @@ module.exports = {
   },
   modules: [
     'core',
+    'telemetry',
     'core-cliqz',
+    'abtests-legacy',
     'static',
     'geolocation',
     'search',

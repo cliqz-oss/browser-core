@@ -9,6 +9,15 @@ import basicTest from '../../../tests/dropdown-tests/integration/shared/basic';
 
 const freshtabUrl = getResourceUrl('freshtab/home.html');
 
+const checkIframeExists = async (view) => {
+  const iframe = view.document.querySelector('#cliqz-dropdown');
+  return !!(iframe && iframe.src);
+};
+const triggerIframeCreation = async (view) => {
+  await waitFor(() => view.document.querySelector('input'));
+  const input = view.document.querySelector('input');
+  input.dispatchEvent(new Event('focus'));
+};
 const getIframeStyle = async (view) => {
   const iframe = view.document.querySelector('#cliqz-dropdown');
 
@@ -26,6 +35,8 @@ const fillIn = async ({
 }) => {
   await waitFor(() => view.document.querySelector('input'));
   const input = view.document.querySelector('input');
+  input.dispatchEvent(new Event('focus'));
+  await waitFor(() => checkIframeExists(view));
   input.value = query;
   testUtils.Simulate.keyDown(input, {});
   testUtils.Simulate.input(input);
@@ -78,6 +89,8 @@ export default function () {
       waitForTestPage: waitForFreshtab,
       injectTestUtils,
       getIframeStyle,
+      checkIframeExists,
+      triggerIframeCreation,
       fillIn,
       testPageUrl: freshtabUrl,
     });

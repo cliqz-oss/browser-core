@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "@cliqz/indexeddbshim": "^4.1.1",
-    "browser-core": "file:../../../browser-core-1.33.0.tgz",
     "buffer": "5.0.7",
     "events": "^3.0.0",
     "https-browserify": "1.0.0",

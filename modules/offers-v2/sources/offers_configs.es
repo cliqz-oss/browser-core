@@ -1,4 +1,3 @@
-import { isChromium } from '../core/platform';
 import prefs from '../core/prefs';
 import config from '../core/config';
 
@@ -33,21 +32,22 @@ const OffersConfigs = {
   // the time we want to track the signals after they were created
   OFFERS_HISTORY_LIVE_TIME_SECS: 20 * 60 * 24 * 60,
 
-  // trigger specific browser history
-  TRIGGER_HISTORY_DATA: isChromium ? undefined : 'chrome://cliqz/content/offers-v2/trigger_history.json',
   // the current trigger engine version
-  TRIGGER_ENGINE_VERSION: '22',
+  TRIGGER_ENGINE_VERSION: '23',
 
   // offer storage
   LOAD_OFFERS_STORAGE_DATA: true,
   OFFERS_STORAGE_DEFAULT_TTS_SECS: 60 * 60 * 24 * 10,
+
+  //
+  THROTTLE_HISTORY_QUERIES_SECS: 180,
 
   // ///////////////////////////////////////////////////////////////////////////
   // SIGNALS
 
   // how often we want to send the signals related with the offers to the BE
   // ten minutes
-  SIGNALS_OFFERS_FREQ_SECS: 30,
+  SIGNALS_OFFERS_FREQ_SECS: 30 * 60,
   get SIGNALS_HPN_BE_ADDR() {
     return `${prefs.get('triggersBE', config.settings.OFFERS_BE_BASE_URL)}/api/v1/savesignal`;
   },

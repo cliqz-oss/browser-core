@@ -151,6 +151,9 @@ class CategoryHandlerMock {
     return this.isActive;
   }
 
+  doDailyAccounting() {
+  }
+
   build() {}
 }
 

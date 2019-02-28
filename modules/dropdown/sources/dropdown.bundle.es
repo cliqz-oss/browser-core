@@ -69,7 +69,7 @@ const updateHeight = () => {
 };
 
 const rerender = () => {
-  dropdown.renderResults(previousResults);
+  dropdown.renderResults(previousResults, { isRerendering: true });
   updateHeight();
 };
 

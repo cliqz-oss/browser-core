@@ -9,14 +9,12 @@ import { waitFor } from '../../core/wait';
 import Anolysis from './anolysis';
 import createConfig from './config';
 import Storage from './storage/memory';
-import telemetrySchemas from '../telemetry-schemas';
 
 function log(...args) {
   console.log('[nodejs]', ...args);
 }
 
 const clients = new Map();
-let availableDefinitions = null;
 
 // Create express app to communicate with Python process
 const port = parseInt(process.argv[2], 10);
@@ -60,14 +58,6 @@ app.post('/', async (req, res) => {
         // Use in-memory storage
         Storage,
       }));
-
-      // Cache available definitions to limit memory consumption
-      if (availableDefinitions === null) {
-        client.registerSignalDefinitions(telemetrySchemas);
-        availableDefinitions = client.availableDefinitions;
-      } else {
-        client.availableDefinitions = availableDefinitions;
-      }
 
       clients.set(uid, client);
       await client.init();

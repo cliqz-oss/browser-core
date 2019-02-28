@@ -19,28 +19,10 @@ const notifyListeners = (params) => {
   });
 };
 
-let fetchHandler = null;
-
-export function overrideFetchHandler(cb) {
-  if (!fetchHandler) {
-    fetchHandler = cb;
-  } else {
-    throw new Error('Can only override fetch handler once');
-  }
-}
-
-export function resetFetchHandler() {
-  fetchHandler = null;
-}
-
 export function fetch(...args) {
   notifyListeners({
     url: args[0],
   });
-  const result = fetchHandler && fetchHandler(...args);
-  if (result) {
-    return result;
-  }
   return _fetch(...args);
 }
 

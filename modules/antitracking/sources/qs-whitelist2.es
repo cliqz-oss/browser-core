@@ -1,4 +1,4 @@
-import BloomFilter from '../core/bloom-filter';
+import PackedBloomFilter from '../core/bloom-filter-packed';
 import { Resource } from '../core/resource-loader';
 import { fetch } from '../core/http';
 import moment from '../platform/lib/moment';
@@ -11,18 +11,7 @@ async function fetchPackedBloomFilter(url) {
     throw new Error(response.error);
   }
   const buffer = await response.arrayBuffer();
-  const data = new DataView(buffer);
-  const n = data.getUint32(0, false);
-  const k = data.getUint8(4, false);
-  const buckets = [];
-  for (let i = 0; i < n; i += 1) {
-    buckets.push(data.getUint32(5 + (i * 4), false));
-  }
-  return {
-    n,
-    k,
-    bkt: buckets,
-  };
+  return buffer;
 }
 
 export default class QSWhitelist2 {
@@ -31,6 +20,11 @@ export default class QSWhitelist2 {
     this.CDN_BASE_URL = CDN_BASE_URL;
     this._bfLoader = new Resource(['antitracking', 'bloom_filter2.json'], {
       dataType: 'json',
+      remoteOnly: true,
+    });
+    this._bfBinaryLoader = new Resource(['antitracking', 'bloom_filter2.bin'], {
+      dataType: 'binary',
+      remoteOnly: true,
     });
     this.localSafeKey = {};
   }
@@ -39,11 +33,10 @@ export default class QSWhitelist2 {
     try {
       const {
         version,
-        bkt,
-        k,
         localSafeKey,
       } = await this._bfLoader.load();
-      this.bloomFilter = new BloomFilter(bkt, k);
+      const buffer = await this._bfBinaryLoader.load();
+      this.bloomFilter = new PackedBloomFilter(buffer);
       this.version = version;
       this.localSafeKey = localSafeKey || {};
       logger.debug(`[QSWhitelist2] Bloom filter loaded version ${version}`);
@@ -57,6 +50,14 @@ export default class QSWhitelist2 {
         await this._fullUpdate(update.version);
       } catch (e) {
         logger.error('[QSWhitelist2] Error fetching bloom filter from remote', e);
+        // create empty bloom filter
+        const n = 1000;
+        const k = 10;
+        const buffer = new ArrayBuffer(5 + (n * 4));
+        const view = new DataView(buffer);
+        view.setUint32(0, n, false);
+        view.setUint8(4, k, false);
+        this.bloomFilter = new PackedBloomFilter(buffer);
       }
     } else {
       // we loaded the bloom filter, check for updates
@@ -67,7 +68,7 @@ export default class QSWhitelist2 {
       }
     }
     // check for updates once per hour
-    this._updateChecker = setInterval(this._checkForUpdates.bind(this), 360000);
+    this._updateChecker = setInterval(this._checkForUpdates.bind(this), 3600000);
   }
 
   async _fetchUpdateURL() {
@@ -79,8 +80,8 @@ export default class QSWhitelist2 {
   }
 
   async _fullUpdate(version) {
-    const { k, bkt } = await fetchPackedBloomFilter(`${this.CDN_BASE_URL}/${version}/bloom_filter.gz`);
-    this.bloomFilter = new BloomFilter(bkt, k);
+    const buffer = await fetchPackedBloomFilter(`${this.CDN_BASE_URL}/${version}/bloom_filter.gz`);
+    this.bloomFilter = new PackedBloomFilter(buffer);
     this.version = version;
     logger.debug(`[QSWhitelist2] Bloom filter fetched version ${version}`);
     await this._persistBloomFilter();
@@ -96,8 +97,8 @@ export default class QSWhitelist2 {
     if (useDiff === true && moment(this.version).diff(version, 'days') === -1) {
       logger.debug(`[QSWhitelist2] Updating bloom filter to version ${version} from diff file`);
       // diff update is allowed and our version is one day behind the server
-      const { bkt } = await fetchPackedBloomFilter(`${this.CDN_BASE_URL}/${version}/bf_diff_1.gz`);
-      this.bloomFilter.update(bkt);
+      const buffer = await fetchPackedBloomFilter(`${this.CDN_BASE_URL}/${version}/bf_diff_1.gz`);
+      this.bloomFilter.update(buffer);
       this.version = version;
       await this._persistBloomFilter();
       return;
@@ -106,16 +107,14 @@ export default class QSWhitelist2 {
     await this._fullUpdate(version);
   }
 
-  _persistBloomFilter() {
+  async _persistBloomFilter() {
     if (this.bloomFilter !== null) {
-      return this._bfLoader.persist(JSON.stringify({
+      await this._bfBinaryLoader.persist(this.bloomFilter.data.buffer);
+      await this._bfLoader.persist(JSON.stringify({
         version: this.version,
-        k: this.bloomFilter.k,
-        bkt: [...this.bloomFilter.buckets],
         localSafeKey: this.localSafeKey,
       }));
     }
-    return Promise.resolve();
   }
 
   _cleanLocalSafekey() {
@@ -190,6 +189,16 @@ export default class QSWhitelist2 {
       this.localSafeKey[domain] = {};
     }
     this.localSafeKey[domain][key] = moment().valueOf();
+  }
+
+  addSafeToken(tracker, token) {
+    if (!this.isTrackerDomain(tracker)) {
+      this.bloomFilter.addSingle(`d${tracker}`);
+    }
+    if (!this.shouldCheckDomainTokens(tracker)) {
+      this.bloomFilter.addSingle(`c${tracker}`);
+    }
+    this.bloomFilter.addSingle(`t${token}`);
   }
 
   getVersion() {

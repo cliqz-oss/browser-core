@@ -39,11 +39,15 @@ class OverlayDropdown extends Dropdown {
     this._setUrlbarValue('');
   }
 
+  get isOverlayVisible() {
+    return !this.ui.classList.contains('hidden');
+  }
+
   toggle() {
     this.root.style = 'display: block!important';
     this.ui.classList.toggle('hidden');
     this.setHeight(0);
-    if (!this.ui.classList.contains('hidden')) {
+    if (this.isOverlayVisible) {
       this._setUrlbarValue('');
       this._focus();
     }
@@ -94,6 +98,41 @@ class OverlayDropdown extends Dropdown {
   }
 }
 
+function createFrame(dropdown) {
+  if (dropdown.iframe) {
+    return;
+  }
+  dropdown.createIframeWrapper();
+  ['onKeydown', 'onInput', 'onKeyPress'].forEach((methodName) => {
+    const eventName = methodName.slice(2).toLowerCase();
+    dropdown.input.addEventListener(eventName, (ev) => {
+      if (dropdown.isOverlayVisible) {
+        ev.stopImmediatePropagation();
+      }
+      if (dropdown[methodName](ev)) {
+        ev.preventDefault();
+      }
+    });
+  });
+  dropdown.ui.addEventListener('click', (ev) => {
+    if (ev.target === dropdown.ui) {
+      ev.stopImmediatePropagation();
+      dropdown.close();
+      ev.stopPropagation();
+      ev.preventDefault();
+    }
+  }, true);
+  window.addEventListener('message', dropdown.onMessage);
+  window.addEventListener('keyup', (event) => {
+    if (dropdown.isOverlayVisible) {
+      event.stopImmediatePropagation();
+    }
+    if (dropdown.isOpen) {
+      event.stopPropagation();
+    }
+  }, true);
+}
+
 function onLoad(_window, chrome) {
   const window = _window;
   const searchWrapper = createSpananWrapper('search');
@@ -111,7 +150,6 @@ function onLoad(_window, chrome) {
   const dropdown = new OverlayDropdown({
     cliqz,
   });
-  dropdown.createIframeWrapper();
   const api = new Spanan();
   api.export({
     renderResults: (results) => {
@@ -122,6 +160,7 @@ function onLoad(_window, chrome) {
   });
   chrome.runtime.onMessage.addListener((message) => {
     if (message.module === 'overlay' && message.action === 'toggle-quicksearch') {
+      createFrame(dropdown);
       dropdown.toggle();
     }
     coreWrapper.handleMessage(message);
@@ -129,35 +168,6 @@ function onLoad(_window, chrome) {
     freshtabWrapper.handleMessage(message);
     api.handleMessage(message);
   });
-
-  dropdown.input.addEventListener('keydown', (ev) => {
-    if (dropdown.onKeydown(ev)) {
-      ev.preventDefault();
-    }
-  });
-  dropdown.input.addEventListener('input', (ev) => {
-    if (dropdown.onInput(ev)) {
-      ev.preventDefault();
-    }
-  });
-  dropdown.input.addEventListener('keypress', (ev) => {
-    if (dropdown.onKeyPress(ev)) {
-      ev.preventDefault();
-    }
-  });
-  dropdown.ui.addEventListener('click', (ev) => {
-    if (ev.target === dropdown.ui) {
-      dropdown.close();
-      ev.stopPropagation();
-      ev.preventDefault();
-    }
-  }, true);
-  window.addEventListener('message', dropdown.onMessage);
-  window.addEventListener('keyup', (event) => {
-    if (dropdown.isOpen) {
-      event.stopPropagation();
-    }
-  }, true);
 
   if (DEBUG) {
     if (!window.CLIQZ) {
@@ -167,18 +177,24 @@ function onLoad(_window, chrome) {
       window.CLIQZ.tests = {};
     }
     window.CLIQZ.tests.overlay = {
-      toggle: () => dropdown.toggle(),
+      toggle: () => {
+        createFrame(dropdown);
+        dropdown.toggle();
+      },
       fillIn(query) {
         dropdown.input.value = query;
         search.startSearch(query, { key: 'KeyT', isTyped: true });
       },
+      close: () => {
+        dropdown.close();
+      }
     };
   }
 }
 
 registerContentScript('overlay', '*', (window, chrome) => {
   if (isTopWindow(window)) {
-    if (window.document && window.document.readyState === 'complete') {
+    if (window.document && window.document.body) {
       onLoad(window, chrome);
     } else {
       window.addEventListener('DOMContentLoaded', () => onLoad(window, chrome));

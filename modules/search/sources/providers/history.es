@@ -36,7 +36,7 @@ export default class History extends BaseProvider {
   }
 
   search(query, config, { allowEmptyQuery = false }) {
-    if (!query && !allowEmptyQuery) {
+    if (!config.providers[this.id].isEnabled || (!query && !allowEmptyQuery)) {
       return this.getEmptySearch(config);
     }
 
@@ -81,7 +81,7 @@ export default class History extends BaseProvider {
         if (results.ready) {
           observer.complete();
         }
-      }, utils.isPrivateMode(config.window));
+      }, config.isPrivateMode);
     });
   }
 }

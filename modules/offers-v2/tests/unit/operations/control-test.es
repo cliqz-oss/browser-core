@@ -1,20 +1,36 @@
 /* global chai */
 /* global describeModule */
 /* global require */
+/* global sinon */
 /* eslint-disable func-names,prefer-arrow-callback,arrow-body-style, no-param-reassign */
 
+const MockDate = require('mockdate');
 const commonMocks = require('../utils/common');
+const persistenceMocks = require('../utils/persistence');
 
 const prefs = commonMocks['core/prefs'].default;
+// eslint-disable-next-line new-cap
+const db = new (persistenceMocks['core/persistence/simple-db'].default)();
 
-let currentTS = Date.now();
 let currentDayHour = 0;
 let currentWeekDay = 0;
 let platformLaguage;
 
+async function getEmptyCategoryHandler(system, historyFeature, dbmock, oldCategoryHandler) {
+  let ch = oldCategoryHandler;
+  if (!ch) {
+    const CategoryHandler = (await system.import('offers-v2/categories/category-handler')).default;
+    ch = new CategoryHandler(historyFeature);
+    await ch.init(dbmock);
+  }
+  ch.catTree.clear();
+  return ch;
+}
+
 export default describeModule('offers-v2/trigger_machine/ops/control_expr',
   () => ({
     ...commonMocks,
+    ...persistenceMocks,
     'core/http': {
       default: {}
     },
@@ -32,7 +48,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
     },
     'offers-v2/utils': {
       timestampMS: function () {
-        return currentTS;
+        return Date.now();
       },
       dayHour: function () {
         return currentDayHour;
@@ -73,29 +89,6 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         }
       }
     },
-    'offers-v2/features/feature-handler': {
-      default: class {
-        constructor() {
-          this.features = {};
-        }
-
-        clear() {
-          this.features = {};
-        }
-
-        addFeaturesToCheck() {}
-
-        isFeatureAvailable(featureName) {
-          return !!this.features[featureName];
-        }
-
-        getFeature(featureName) {
-          return this.features[featureName];
-        }
-
-        dumpFeaturesData() {}
-      }
-    },
     'offers-v2/pattern-matching/pattern-matching-handler': {
       default: class {
         constructor() {
@@ -111,7 +104,6 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         }
 
         countHistoryMatches(query, patternObj) {
-          console.log('### HEREE', query);
           this.lastQuery = query;
           this.lastPatternObj = patternObj;
           return this.countHistoryMatchesResult;
@@ -147,56 +139,21 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         getPatternRequest() { return this.rawUrl; }
       }
     },
-    'offers-v2/features/geo_checker': {
-      default: class {
-        constructor() {
-          this.clear();
-        }
-
-        clear() {
-          this.locs = null;
-          this.lastLocCheck = [];
-          this.isSameLocationRet = true;
-        }
-
-        isLocAvailable() {
-          return this.loc !== null;
-        }
-
-        isAvailable() {
-          return this.isLocAvailable();
-        }
-
-        updateLocation() { }
-
-        updateCity() { }
-
-        updateCountry() { }
-
-        checkLocByCoords() {
-          // TODO: implement this when required
-          return false;
-        }
-
-        isSameLocation(loc) {
-          this.lastLocCheck.push(loc);
-          return this.isSameLocationRet;
-        }
-      }
-    }
   }),
   () => {
     describe('/control operations', () => {
       let buildDataGen;
       let ExpressionBuilder;
+      let categoryHandler;
       let exprBuilder;
       let RegexpCache;
       let QHandlerMock;
       let FeatureHandler;
-      let GeoCheckerMock;
-      let geoMock;
-      let featureHandlerMock;
+      let featureHandler;
       let patternMatchMock;
+      let Category;
+      let historyFeature;
+      let isThrottleError;
 
       function buildOp(obj) {
         return exprBuilder.createExp(obj);
@@ -209,23 +166,27 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         });
       }
 
-      beforeEach(function () {
+      beforeEach(async function () {
         RegexpCache = this.deps('offers-v2/regexp_cache').default;
         QHandlerMock = this.deps('offers-v2/query_handler').default;
-        FeatureHandler = this.deps('offers-v2/features/feature-handler').default;
-        GeoCheckerMock = this.deps('offers-v2/features/geo_checker').default;
+        FeatureHandler = (await this.system.import('offers-v2/features/feature-handler')).default;
         const PatternMatchingHandlerMock = this.deps('offers-v2/pattern-matching/pattern-matching-handler').default;
         patternMatchMock = new PatternMatchingHandlerMock();
-        featureHandlerMock = new FeatureHandler();
-        geoMock = new GeoCheckerMock();
+        featureHandler = new FeatureHandler();
         prefs.reset();
+        historyFeature = historyFeature || featureHandler.getFeature('history');
+        categoryHandler = await getEmptyCategoryHandler(
+          this.system, historyFeature, db, categoryHandler
+        );
+        Category = (await this.system.import('offers-v2/categories/category')).default;
         buildDataGen = {
           regex_cache: new RegexpCache(),
           query_handler: new QHandlerMock(),
-          geo_checker: geoMock,
-          feature_handler: featureHandlerMock,
+          feature_handler: featureHandler,
           pattern_matching_handler: patternMatchMock,
+          category_handler: categoryHandler,
         };
+        isThrottleError = (await this.system.import('offers-v2/common/throttle-with-rejection')).isThrottleError;
         return this.system.import('offers-v2/trigger_machine/exp_builder').then((mod) => {
           ExpressionBuilder = mod.default;
           exprBuilder = new ExpressionBuilder(buildDataGen);
@@ -728,9 +689,13 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           prefs.reset();
         });
 
+        afterEach(function () {
+          MockDate.reset();
+        });
+
         it('/simple check', () => {
           const o = ['$timestamp'];
-          currentTS = 123;
+          MockDate.set(123);
           return testCase(o, 123, ctx);
         });
       });
@@ -779,18 +744,20 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
       //  * ==================================================
 
       describe('/is_feature_enabled', () => {
-        let op;
-        let ctx;
+        let isFeatureAvailableMock;
+
         beforeEach(function () {
-          ctx = {};
-          prefs.reset();
-          featureHandlerMock.clear();
+          isFeatureAvailableMock = sinon.stub(featureHandler, 'isFeatureAvailable');
+        });
+
+        afterEach(function () {
+          isFeatureAvailableMock.restore();
         });
 
         it('/invalid args call', () => {
           const o = ['$is_feature_enabled', []];
-          op = buildOp(o);
-          return op.evalExpr(ctx).then((result) => {
+          const op = buildOp(o);
+          return op.evalExpr({}).then((result) => {
             chai.assert.fail(result, 'error');
           }).catch((err) => {
             chai.expect(err).to.exist;
@@ -799,8 +766,8 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
 
         it('/invalid args call 2', () => {
           const o = ['$is_feature_enabled', [{}]];
-          op = buildOp(o);
-          return op.evalExpr(ctx).then((result) => {
+          const op = buildOp(o);
+          return op.evalExpr({}).then((result) => {
             chai.assert.fail(result, 'error');
           }).catch((err) => {
             chai.expect(err).to.exist;
@@ -809,20 +776,22 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
 
         it('/simple check feature doesnt exists', () => {
           const o = ['$is_feature_enabled', [{ name: 'feature_test_not_exists' }]];
-          featureHandlerMock.features = { feature_test: false };
-          return testCase(o, false, ctx);
+          isFeatureAvailableMock.callThrough();
+          return testCase(o, false, {});
         });
 
-        it('/simple check feature exists but dissabled', () => {
+        it('/simple check feature exists but disabled', async () => {
           const o = ['$is_feature_enabled', [{ name: 'feature_test' }]];
-          featureHandlerMock.features = { feature_test: false };
-          return testCase(o, false, ctx);
+          isFeatureAvailableMock.returns(false);
+          await testCase(o, false, {});
+          chai.expect(isFeatureAvailableMock.firstCall.args).is.eql(['feature_test']);
         });
 
-        it('/simple check feature exists and enabled', () => {
+        it('/simple check feature exists and enabled', async () => {
           const o = ['$is_feature_enabled', [{ name: 'feature_test' }]];
-          featureHandlerMock.features = { feature_test: true, feature_test_2: false };
-          return testCase(o, true, ctx);
+          isFeatureAvailableMock.returns(true);
+          await testCase(o, true, {});
+          chai.expect(isFeatureAvailableMock.firstCall.args).is.eql(['feature_test']);
         });
       });
 
@@ -832,18 +801,28 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
        * ==================================================
        */
       describe('/geo_check', () => {
-        let ctx;
+        let isAvailableMock;
+        let isLocAvailableMock;
+        let isSameLocationMock;
+
         beforeEach(function () {
-          ctx = {};
-          prefs.reset();
-          geoMock.clear();
-          featureHandlerMock.clear();
+          const geoFeature = featureHandler.features.get('geo');
+          isAvailableMock = sinon.stub(geoFeature, 'isAvailable');
+          isAvailableMock.returns(true);
+          isLocAvailableMock = sinon.stub(geoFeature, 'isLocAvailable');
+          isLocAvailableMock.returns(true);
+          isSameLocationMock = sinon.stub(geoFeature, 'isSameLocation');
+        });
+
+        afterEach(function () {
+          isAvailableMock.restore();
+          isLocAvailableMock.restore();
+          isSameLocationMock.restore();
         });
 
         it('/missing arguments 1', () => {
           const o = ['$geo_check'];
-          featureHandlerMock.features = { geo: geoMock };
-          return testCase(o, false, ctx).catch((err) => {
+          return testCase(o, false, {}).catch((err) => {
             chai.expect(err).to.exist;
           });
         });
@@ -851,8 +830,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         it('/missing arguments 2', () => {
           const args = [];
           const o = ['$geo_check', args];
-          featureHandlerMock.features = { geo: geoMock };
-          return testCase(o, false, ctx).catch((err) => {
+          return testCase(o, false, {}).catch((err) => {
             chai.expect(err).to.exist;
           });
         });
@@ -860,8 +838,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         it('/missing arguments 3', () => {
           const args = [{}];
           const o = ['$geo_check', args];
-          featureHandlerMock.features = { geo: geoMock };
-          return testCase(o, false, ctx).catch((err) => {
+          return testCase(o, false, {}).catch((err) => {
             chai.expect(err).to.exist;
           });
         });
@@ -869,8 +846,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         it('/missing arguments 4', () => {
           const args = [{ coords: {} }];
           const o = ['$geo_check', args];
-          featureHandlerMock.features = { geo: geoMock };
-          return testCase(o, false, ctx).catch((err) => {
+          return testCase(o, false, {}).catch((err) => {
             chai.expect(err).to.exist;
           });
         });
@@ -878,8 +854,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         it('/missing arguments 5', () => {
           const args = [{ locs: {} }];
           const o = ['$geo_check', args];
-          featureHandlerMock.features = { geo: geoMock };
-          return testCase(o, false, ctx).catch((err) => {
+          return testCase(o, false, {}).catch((err) => {
             chai.expect(err).to.exist;
           });
         });
@@ -887,8 +862,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         it('/missing arguments 6', () => {
           const args = [{ coords: {}, main_check: 'locs' }];
           const o = ['$geo_check', args];
-          featureHandlerMock.features = { geo: geoMock };
-          return testCase(o, false, ctx).catch((err) => {
+          return testCase(o, false, {}).catch((err) => {
             chai.expect(err).to.exist;
           });
         });
@@ -896,8 +870,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         it('/missing arguments 7', () => {
           const args = [{ locs: {}, main_check: 'coords' }];
           const o = ['$geo_check', args];
-          featureHandlerMock.features = { geo: geoMock };
-          return testCase(o, false, ctx).catch((err) => {
+          return testCase(o, false, {}).catch((err) => {
             chai.expect(err).to.exist;
           });
         });
@@ -905,8 +878,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         it('/missing arguments 8', () => {
           const args = [{ coords: {}, locs: {}, main_check: 'whatever' }];
           const o = ['$geo_check', args];
-          featureHandlerMock.features = { geo: geoMock };
-          return testCase(o, false, ctx).catch((err) => {
+          return testCase(o, false, {}).catch((err) => {
             chai.expect(err).to.exist;
           });
         });
@@ -921,12 +893,11 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
             main_check: 'locs'
           }];
 
-          geoMock.isSameLocationRet = true;
+          isSameLocationMock.returns(true);
           const o = ['$geo_check', args];
-          featureHandlerMock.features = { geo: geoMock };
-          return testCase(o, true, ctx).then(() => {
+          return testCase(o, true, {}).then(() => {
             const expected = { country: 'de', city: 'munich', zip: '123' };
-            chai.expect(geoMock.lastLocCheck).eql([expected]);
+            chai.expect(isSameLocationMock.lastCall.args).eql([expected]);
           });
         });
 
@@ -940,14 +911,13 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
             main_check: 'locs'
           }];
 
-          geoMock.isSameLocationRet = true;
+          isSameLocationMock.returns(true);
           const o = ['$geo_check', args];
-          featureHandlerMock.features = { geo: geoMock };
-          return testCase(o, true, ctx).then(() => {
+          return testCase(o, true, {}).then(() => {
             const expected = [
               { country: 'de', city: 'munich', zip: '123' }
             ];
-            chai.expect(geoMock.lastLocCheck).eql(expected);
+            chai.expect(isSameLocationMock.lastCall.args).eql(expected);
           });
         });
 
@@ -962,10 +932,9 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
             main_check: 'locs'
           }];
 
-          geoMock.isSameLocationRet = false;
+          isSameLocationMock.returns(false);
           const o = ['$geo_check', args];
-          featureHandlerMock.features = { geo: geoMock };
-          return testCase(o, false, ctx).then(() => {
+          return testCase(o, false, {}).then(() => {
             const expected = [
               { country: 'de', city: 'berlin', zip: '456' },
               { country: 'de', city: 'berlin', zip: '8989' },
@@ -973,7 +942,8 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
               { country: 'de', city: 'munich', zip: '234' },
               { country: 'de', city: 'munich', zip: '456' }
             ];
-            chai.expect(geoMock.lastLocCheck).eql(expected);
+            const locChecks = Array.from(isSameLocationMock.args, a => a[0]);
+            chai.expect(locChecks).eql(expected);
           });
         });
 
@@ -988,15 +958,15 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
             main_check: 'locs'
           }];
 
-          geoMock.isSameLocationRet = false;
+          isSameLocationMock.returns(false);
           const o = ['$geo_check', args];
-          featureHandlerMock.features = { geo: geoMock };
-          return testCase(o, false, ctx).then(() => {
+          return testCase(o, false, {}).then(() => {
             const expected = [
               { country: 'de', city: 'berlin' },
               { country: 'de', city: 'munich' },
             ];
-            chai.expect(geoMock.lastLocCheck).eql(expected);
+            const locChecks = Array.from(isSameLocationMock.args, a => a[0]);
+            chai.expect(locChecks).eql(expected);
           });
         });
 
@@ -1010,9 +980,9 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
             main_check: 'locs'
           }];
 
+          isAvailableMock.returns(false);
           const o = ['$geo_check', args];
-          featureHandlerMock.features = {};
-          return testCase(o, false, ctx);
+          return testCase(o, false, {});
         });
       });
 
@@ -1083,6 +1053,303 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           ];
           platformLaguage = 'es';
           return testCase(o, false, ctx);
+        });
+      });
+
+      // ==
+      // $get_variable
+      //
+      describe('$get_variable', () => {
+        function buildOpGetSomeVar(o = ['$get_variable', ['someVar']]) {
+          const op = buildOp(o);
+          op.build();
+          return op;
+        }
+
+        it('/parse ok', () => {
+          const op = buildOpGetSomeVar();
+
+          chai.expect(op.varName).to.eq('someVar');
+        });
+
+        it('/error on bad argument', () => {
+          const o = ['$get_variable'];
+
+          chai.expect(
+            () => buildOp(o)
+          ).to.throw();
+        });
+
+        it('/get value of existing variable', async () => {
+          const op = buildOpGetSomeVar();
+
+          const value = await op.evalExpr({ vars: { someVar: 777 } });
+
+          chai.expect(value).to.eq(777);
+        });
+
+        it('/return "undefined" for a non-existent variable', async () => {
+          const op = buildOpGetSomeVar();
+
+          const value = await op.evalExpr({ novars: {} });
+
+          chai.expect(value).to.be.undefined;
+        });
+
+        it('/support default value', async () => {
+          const op = buildOpGetSomeVar(['$get_variable', ['someVar', 777]]);
+
+          const value = await op.evalExpr({ novars: {} });
+
+          chai.expect(value).to.eq(777);
+        });
+      });
+
+      // ==
+      // $probe_segment
+      //
+      describe('$probe_segment', () => {
+        const defaultDuration = 90;
+        const defaultMinMatches = 3;
+
+        context('/parsing', () => {
+          it('/sets values', () => {
+            const o = ['$probe_segment',
+              ['someCategory', {
+                min_matches: 777,
+                duration_days: 888
+              }]];
+            const op = buildOp(o);
+
+            op.build();
+
+            chai.expect(op.categoryName).to.eq('someCategory');
+            chai.expect(op.minMatches).to.eq(777);
+            chai.expect(op.durationDays).to.eq(888);
+          });
+
+          function failOnBadCategoryArgument(explain, categoryArg) {
+            it(`/fail on bad category: ${explain}`, () => {
+              const o = ['$probe_segment', categoryArg];
+              const op = buildOp(o);
+
+              chai.expect(
+                () => op.build()
+              ).to.throw(
+                explain
+              );
+            });
+          }
+
+          failOnBadCategoryArgument('missed category arg');
+          failOnBadCategoryArgument('should be a string', 1234);
+
+          function defaultOnBadFilterArgument(explain, filterArg) {
+            it(`/default on bad filter: ${explain}`, () => {
+              const o = ['$probe_segment', ['someCategory', filterArg]];
+              const op = buildOp(o);
+
+              op.build();
+
+              chai.expect(op.minMatches).to.eq(defaultMinMatches);
+              chai.expect(op.durationDays).to.eq(defaultDuration);
+            });
+          }
+
+          defaultOnBadFilterArgument('no argument', undefined);
+          defaultOnBadFilterArgument('not a map', 12345);
+          defaultOnBadFilterArgument('not integers', { min_matches: 'nan', duration_days: 'nan' });
+          defaultOnBadFilterArgument('not positive', { min_matches: -2, duration_days: -8 });
+        });
+
+        function setupEnvironmentWithCategory() {
+          const o = ['$probe_segment',
+            ['someCategory', {
+              min_matches: 77,
+              duration_days: 88
+            }]];
+          const op = buildOp(o);
+          const category = new Category('someCategory', /* patterns */ [], /* version */ 1);
+          const pmock = sinon.stub(category, 'probe');
+          categoryHandler.addCategory(category);
+          buildDataGen.vars = { segment_confidence: 777 };
+          return { op, category, probeMock: pmock };
+        }
+
+        context('/communicate with Category', () => {
+          let category;
+          let probeMock;
+          let op;
+
+          beforeEach(() => {
+            ({ category, probeMock, op } = setupEnvironmentWithCategory());
+            probeMock.callThrough();
+            categoryHandler._resetHistoryThrottle();
+          });
+
+          it('/pass parameters to category', async () => {
+            await op.evalExpr(buildDataGen);
+
+            chai.expect(probeMock).calledWithExactly(77, 88);
+          });
+
+          it('/return (false, sure) if no category', async () => {
+            categoryHandler.removeCategory(category);
+
+            const isMatched = await op.evalExpr(buildDataGen);
+            const confidence = buildDataGen.vars.segment_confidence;
+
+            chai.expect(isMatched).to.be.false;
+            chai.expect(confidence).to.eq(1);
+          });
+
+          it('/return value from Category::probe', async () => {
+            probeMock.reset();
+            probeMock.returns(['true/false', false]);
+
+            const isMatched = await op.evalExpr(buildDataGen);
+
+            chai.expect(isMatched).to.eql('true/false');
+          });
+
+          it('/set maybe-flag as given by Category::probe', async () => {
+            probeMock.reset();
+            probeMock.returns(['true/false', 0.222]);
+
+            await op.evalExpr(buildDataGen);
+
+            chai.expect(buildDataGen.vars.segment_confidence).to.eql(0.222);
+          });
+
+          it('/call `probe` second time if history loaded fast', async () => {
+            probeMock.reset();
+            probeMock.onCall(0).returns([false, 0]); // not matched, maybe
+            probeMock.onCall(1).returns(['from second call', 1]); // matched, sure
+
+            const isMatched = await op.evalExpr(buildDataGen);
+
+            chai.expect(isMatched).to.eql('from second call');
+            chai.expect(probeMock.callCount).to.eq(2);
+          });
+
+          context('/caching', () => {
+            beforeEach(() => {
+              category.updateWithHistoryData({ per_day: [] }); // make confidence=1
+            });
+
+            it('/caches calls', async () => {
+              await op.evalExpr(buildDataGen);
+              await op.evalExpr(buildDataGen);
+              await op.evalExpr(buildDataGen);
+
+              sinon.assert.calledOnce(probeMock);
+            });
+
+            it('/do not cache if the cache sentinel is changed', async () => {
+              await op.evalExpr(buildDataGen);
+              category.hit();
+
+              await op.evalExpr(buildDataGen);
+
+              sinon.assert.calledTwice(probeMock);
+            });
+
+            it('/do not cache in case of `maybe`', async () => {
+              probeMock.reset();
+              probeMock.returns(['true/false', 0]);
+
+              await op.evalExpr(buildDataGen);
+              await op.evalExpr(buildDataGen);
+              await op.evalExpr(buildDataGen);
+
+              // 2 calls in first `evalExpr`, 1 call in the rest
+              chai.expect(probeMock.callCount).is.eq(4);
+            });
+          });
+        });
+
+        context('/communicate with History', () => {
+          let probeMock;
+          let historyMock;
+          let op;
+
+          beforeEach(() => {
+            ({ probeMock, op } = setupEnvironmentWithCategory());
+            historyMock = sinon.stub(historyFeature, 'performQueryOnHistory');
+            historyMock.returns({ pid: 'someCategory|1', d: { match_data: { total: 0, per_day: {} } } });
+            categoryHandler._resetHistoryThrottle();
+          });
+
+          afterEach(() => {
+            historyMock.restore();
+          });
+
+          it('/load history', async () => {
+            probeMock.returns([false, 0]); // [!matched, maybe]
+
+            await op.evalExpr(buildDataGen);
+
+            sinon.assert.called(historyMock); //
+          });
+
+          it('/use time range from the category', async () => {
+            const cat = categoryHandler.getCategory('someCategory');
+            cat.timeRangeSecs = 777;
+            probeMock.returns([false, 0]); // [!matched, maybe]
+
+            await op.evalExpr(buildDataGen);
+
+            sinon.assert.calledOnce(historyMock);
+            const { start_ms: startMs, end_ms: endMs } = historyMock.firstCall.args[0];
+            chai.expect(endMs).to.be.within(Date.now() - 10 * 1000, Date.now());
+            chai.expect(endMs - startMs).to.be.closeTo(777 * 1000, 3 * 1000);
+          });
+
+          it('/do not load history if the result is for sure', async () => {
+            probeMock.returns([false, 1]); // [!matched, sure]
+
+            await op.evalExpr(buildDataGen);
+
+            sinon.assert.notCalled(historyMock);
+          });
+
+          it('/propagate error from history query', async () => {
+            probeMock.returns([false, 0]); // [!matched, maybe]
+            historyMock.throws(new Error('intended to fail'));
+
+            await chai.expect(
+              op.evalExpr(buildDataGen)
+            )
+
+              .to.be.eventually.rejectedWith('intended to fail');
+          });
+
+          it('/ignore throttling error', async () => {
+            probeMock.returns([false, 0]); // [!matched, maybe]
+            historyMock.returns({ pid: 'someCategory|1', d: { match_data: { total: 0, per_day: {} } } });
+
+            //
+            // Preliminary test: throttling exception is been raising
+            //
+            // Arrange
+            const cat = categoryHandler.getCategory('someCategory');
+            await categoryHandler.importHistoricalData(cat);
+            await chai.expect(
+              categoryHandler.importHistoricalData(cat)
+            )
+
+              .to.be.eventually.rejectedWith(Error)
+              .that.satisfies(isThrottleError);
+
+            //
+            // Main test
+            //
+
+            // Act
+            await op.evalExpr(buildDataGen);
+
+            // Assert: no exception raised
+          });
         });
       });
     });

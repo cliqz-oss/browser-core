@@ -10,7 +10,7 @@ const core = inject.module('core');
 export function send(data, type) {
   const mapper = {
     offers: payload => events.pub('offers-recv-ch', payload),
-    telemetry: utils.telemetry,
+    telemetry: utils.telemetry.bind(utils),
   };
   const noop = () => {};
   (mapper[type] || noop)(data);

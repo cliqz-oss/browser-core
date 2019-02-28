@@ -1,22 +1,17 @@
 import {
   app,
   expect,
+  prefs,
   waitFor,
   waitForPrefChange,
 } from '../../core/integration/helpers';
 
-import getSynchronizedDate from '../../../core/synchronized-time';
-import prefs from '../../../core/prefs';
-import { isBootstrap } from '../../../core/platform';
+import moment from '../../../platform/lib/moment';
 
 
 export default function () {
-  if (!isBootstrap) {
-    return;
-  }
-
-  const today = getSynchronizedDate().format('YYYY-MM-DD');
-  const anolysis = app.modules.anolysis.background;
+  let today;
+  let anolysis;
 
   const clearTelemetryPrefs = () => {
     prefs.clear('telemetry');
@@ -25,6 +20,13 @@ export default function () {
 
   context('opt-out from anolysis tests', function () {
     let pushTelemetry;
+
+    beforeEach(() => {
+      clearTelemetryPrefs();
+      today = moment(prefs.get('config_ts'), 'YYYYMMDD').format('YYYY-MM-DD');
+      anolysis = app.modules.anolysis.background;
+    });
+
     afterEach(() => clearTelemetryPrefs());
 
     [
@@ -47,7 +49,7 @@ export default function () {
           const anolysisVersionPrefChanged = waitForPrefChange('anolysisVersion');
           prefs.set('anolysisVersion', 0);
           await anolysisVersionPrefChanged;
-          await app.disableModule('freshtab');
+
           await app.disableModule('anolysis');
           await app.enableModule('anolysis');
           await waitFor(() => anolysis.isAnolysisInitialized());
@@ -60,7 +62,6 @@ export default function () {
         afterEach(async () => {
           // reset mock
           app.services.telemetry.api.push = pushTelemetry;
-          await app.enableModule('freshtab');
         });
 
         if (telemetryExpected) {

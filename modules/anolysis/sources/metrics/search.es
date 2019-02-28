@@ -122,7 +122,7 @@ const mkResultSchema = () => ({
   },
 });
 
-export default [
+export default () => [
   {
     name: 'search.session',
     schema: {

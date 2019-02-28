@@ -570,7 +570,7 @@ class App extends React.Component {
             />
 
             <AsideLeft
-              cliqzForFriends={config.settings.CLIQZ_FOR_FRIENDS}
+              cliqzForFriends={this.state.config.CLIQZ_FOR_FRIENDS}
               displayFriendsIcon={this.state.config.displayFriendsIcon}
               historyUrl={this.state.config.HISTORY_URL}
               isHistoryEnabled={this.state.config.isHistoryEnabled}

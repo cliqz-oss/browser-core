@@ -9,13 +9,12 @@ import Pane from './partials/pane';
 import Preferences from './preferences';
 import SearchBackendConfig from './search-backend-config';
 import Tabs from './partials/tabs';
+import Telemetry from './telemetry';
 import ToolsShortcuts from './tools-shortcuts';
 
 export default class App extends React.Component {
   state = {
-    developer: false,
     endpointsUrl: '',
-    extensionsLegacyEnabled: false,
     HWCheckUrlStatus: {
       host: '',
       isHostPrivate: null,
@@ -33,16 +32,22 @@ export default class App extends React.Component {
       strictQueries: [],
       trk: [],
     },
-    loggerLevel: 'debug',
     modules: [],
-    offersDevFlag: false,
-    offersLoadSignalsFromDB: true,
-    offersLogsEnabled: false,
-    offersTelemetryFreq: 10,
-    showConsoleLogs: false,
+    preferencesStatus: {
+      configLocation: '',
+      developer: false,
+      extensionsLegacyEnabled: false,
+      loggerLevel: 'debug',
+      offersDevFlag: false,
+      offersLoadSignalsFromDB: true,
+      offersLogsEnabled: false,
+      offersTelemetryFreq: 10,
+      showConsoleLogs: false,
+      triggersBE: '',
+    },
     signaturesRequired: false,
+    telemetryStatus: [],
     timestamp: null,
-    triggersBE: '',
     urlToCheck: 'twitter.com',
   }
 
@@ -108,17 +113,9 @@ export default class App extends React.Component {
           >
             <Preferences
               cliqz={this.background}
-              developer={this.state.developer}
-              extensionsLegacyEnabled={this.state.extensionsLegacyEnabled}
-              loggerLevel={this.state.loggerLevel}
-              offersDevFlag={this.state.offersDevFlag}
-              offersLoadSignalsFromDB={this.state.offersLoadSignalsFromDB}
-              offersLogsEnabled={this.state.offersLogsEnabled}
-              offersTelemetryFreq={this.state.offersTelemetryFreq}
-              showConsoleLogs={this.state.showConsoleLogs}
+              preferencesStatus={this.state.preferencesStatus}
               signaturesRequired={this.state.signaturesRequired}
               syncState={this.syncState}
-              triggersBE={this.state.triggersBE}
             />
           </ModalCell>
 
@@ -143,6 +140,15 @@ export default class App extends React.Component {
               syncState={this.syncState}
               timestamp={this.state.timestamp}
               urlToCheck={this.state.urlToCheck}
+            />
+          </ModalCell>
+        </Pane>
+
+        <Pane label="Telemetry">
+          <ModalCell>
+            <Telemetry
+              syncState={this.syncState}
+              telemetryStatus={this.state.telemetryStatus}
             />
           </ModalCell>
         </Pane>

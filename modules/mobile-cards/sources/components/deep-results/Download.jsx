@@ -8,7 +8,7 @@ import themeDetails from '../../themes';
 const styles = theme => StyleSheet.create({
   row: {
     ...elementTopMargin,
-    borderTopWidth: 0.5,
+    borderTopWidth: 1.5,
     borderTopColor: themeDetails[theme].separatorColor,
     paddingTop: 10,
   },

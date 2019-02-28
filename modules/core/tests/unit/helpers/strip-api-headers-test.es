@@ -20,6 +20,8 @@ export default describeModule('core/helpers/strip-api-headers',
           'any-domain-ending-with.ghostery.net',
           'anotherdomain.ghostery.com',
           'anotherdomain.cliqz.com',
+          'proxy39.cliqz.foxyproxy.com',
+          'proxy10.ghostery.foxyproxy.com',
         ];
         for (const hostname of safeToRemoveHosts) {
           expect(isSafeToRemoveHeaders(hostname)).to.be.true;

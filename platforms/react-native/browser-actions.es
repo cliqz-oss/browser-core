@@ -62,13 +62,13 @@ export function handleQuerySuggestions(query = '', suggestions = []) {
   }
 }
 
-export const openLink = BrowserActions.openLink;
-export const openMap = BrowserActions.openMap;
-export const callNumber = BrowserActions.callNumber;
-export const hideKeyboard = BrowserActions.hideKeyboard;
-export const queryCliqz = BrowserActions.queryCliqz;
-export const openTab = BrowserActions.openTab || osAPI.openTab;
-export const getOpenTabs = BrowserActions.getOpenTabs;
-export const getReminders = BrowserActions.getReminders;
-export const importBookmarks = BrowserActions.importBookmarks;
+export const openLink = BrowserActions.openLink || unsupportedError;
+export const openMap = BrowserActions.openMap || unsupportedError;
+export const callNumber = BrowserActions.callNumber || unsupportedError;
+export const hideKeyboard = BrowserActions.hideKeyboard || unsupportedError;
+export const queryCliqz = BrowserActions.queryCliqz || unsupportedError;
+export const openTab = BrowserActions.openTab || osAPI.openTab || unsupportedError;
+export const getOpenTabs = BrowserActions.getOpenTabs || unsupportedError;
+export const getReminders = BrowserActions.getReminders || unsupportedError;
+export const importBookmarks = BrowserActions.importBookmarks || unsupportedError;
 export function sendUIReadySignal() {}

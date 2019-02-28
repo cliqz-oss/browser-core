@@ -96,26 +96,18 @@ export default {
   module(moduleName) {
     return new ModuleWrapper(moduleName);
   },
-  service(serviceName) {
-    return new Proxy({}, {
-      get(target, prop) {
-        return new Proxy(() => {}, {
-          apply(_target, self, args) {
-            const api = (app && app.services[serviceName].api) || {};
-            try {
-              return api[prop](...args);
-            } catch (ex) {
-              throw new Error(
-                `Could not access '${prop}' from service: ${serviceName}. `
-                + 'Make sure it appears in the "requiresServices" property '
-                + `of the module's background where is it used. Reason: ${ex}`
-              );
-            }
-          },
-        });
-      },
-    });
-  },
+  service: (serviceName, props = []) => props.reduce((curr, prop) => ({ ...curr,
+    [prop]: (...args) => {
+      const api = (app && app.services[serviceName].api);
+      if (!api) {
+        throw new Error(`Service "${serviceName}" is not available. Make sure it appears
+        in the "requiresServices" property of the module's background where is it used.`);
+      }
+      if (!api[prop]) {
+        throw new Error(`Could not access '${prop}' from service: ${serviceName}.`);
+      }
+      return api[prop](...args);
+    } }), {}),
 };
 
 export function setGlobal(cliqzApp) {

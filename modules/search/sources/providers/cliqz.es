@@ -2,8 +2,10 @@ import { from, empty, merge } from 'rxjs';
 import { share, map, delay } from 'rxjs/operators';
 import utils from '../../core/utils';
 import prefs from '../../core/prefs';
+import cliqzConfig from '../../core/config';
 import CliqzLanguage from '../../core/language';
 import { isOnionModeFactory } from '../../core/platform';
+import inject from '../../core/kord/inject';
 import BackendProvider from './backend';
 import { getResponse, getEmptyResponse } from '../responses';
 import { handleQuerySuggestions } from '../../platform/browser-actions';
@@ -16,11 +18,12 @@ import {
   encodeLocation,
   encodeSessionParams,
 } from './cliqz-helpers';
-import { PROVIDER_CLIQZ, PROVIDER_OFFERS } from '../consts';
+import { PROVIDER_CLIQZ, PROVIDER_OFFERS, PROVIDER_SNIPPETS } from '../consts';
 import { QuerySanitizerWithHistory } from './cliqz/query-sanitizer';
 
 const querySanitizer = new QuerySanitizerWithHistory();
 const isOnionMode = isOnionModeFactory(prefs);
+const hpnv2Available = cliqzConfig.modules.indexOf('hpnv2') !== -1;
 
 function getEmptyBackendResponse(query) {
   return {
@@ -84,7 +87,6 @@ const getBackendResults = (originalQuery, config, params = {}) => {
   }
 
   const url = config.settings.RESULTS_PROVIDER + getResultsProviderQueryString(q, params);
-  const fetch = utils.fetchFactory();
 
   utils._sessionSeq += 1;
 
@@ -97,6 +99,11 @@ const getBackendResults = (originalQuery, config, params = {}) => {
     credentials: 'omit',
     cache: 'no-store',
   };
+
+  // If private mode or query proxying is enabled, go through hpnv2
+  const fetch = (hpnv2Available && (config.isPrivateMode || prefs.get('hpn-query', false)))
+    ? (...args) => inject.module('hpnv2').action('search', ...args)
+    : utils.fetchFactory();
 
   const startTs = Date.now();
   const backendPromise = fetch(url, privacyOptions, params)
@@ -144,6 +151,7 @@ export default class Cliqz extends BackendProvider {
     return from([
       getEmptyResponse(this.id, config),
       getEmptyResponse(PROVIDER_OFFERS, config),
+      getEmptyResponse(PROVIDER_SNIPPETS, config),
     ]);
   }
 
@@ -152,7 +160,9 @@ export default class Cliqz extends BackendProvider {
       return this.getEmptySearch(config);
     }
 
-    const { providers: { cliqz: { includeOffers, count, jsonp } = {} } = {} } = config;
+    const { providers: {
+      cliqz: { includeSnippets, includeOffers, count, jsonp } = {}
+    } = {} } = config;
 
     // TODO: only get at beginning of search session
     Object.assign(params, {
@@ -195,9 +205,23 @@ export default class Cliqz extends BackendProvider {
         this.getOperators.call(offersProvider, config)
       );
 
+    const snippetsProvider = Object.assign({}, this, { id: PROVIDER_SNIPPETS });
+    const snippets$ = cliqz$
+      .pipe(
+        map(({ snippets = [] }) => getResponse(
+          PROVIDER_SNIPPETS,
+          config,
+          query,
+          this.mapResults(snippets, query, snippetsProvider.id),
+          'done',
+        )),
+        this.getOperators.call(snippetsProvider, config)
+      );
+
     return merge(
       results$,
       includeOffers ? offers$ : empty(),
+      includeSnippets ? snippets$ : empty(),
     ).pipe(
       // TODO: check if this is really needed
       delay(0)

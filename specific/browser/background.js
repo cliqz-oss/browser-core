@@ -6,11 +6,3 @@ chrome.browserAction2.create({
   default_title: chrome.i18n.getMessage('control_center_icon_tooltip'),
   default_popup: `${config.baseURL}control-center/index.html`
 });
-
-CLIQZ.app.ready().then(() => {
-  const offersActions = CLIQZ.app.modules['offers-banner'].background.actions;
-  chrome.browserAction.onClicked.addListener(offersActions.showOffers);
-  chrome.tabs.onUpdated.addListener(offersActions.toggleApp);
-  chrome.tabs.onActivated.addListener(offersActions.toggleApp);
-  offersActions.toggleApp();
-});

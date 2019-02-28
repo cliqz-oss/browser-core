@@ -16,6 +16,5 @@ module.exports = Object.assign({}, base, {
   ]),
   bundles: base.bundles.concat([
     'integration-tests/run.bundle.js',
-    'core/integration-tests.bundle.js',
   ]),
 });

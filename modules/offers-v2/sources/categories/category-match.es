@@ -13,7 +13,7 @@ import { buildMultiPatternIndex } from '../common/pattern-utils';
 export class CategoriesMatchTraits {
   /**
    * @constructor
-   * @param {Map<string, string>} matches
+   * @param {Map<string, string[]>} matches
    *   Matched category ID to the pattern that caused the match
    */
   constructor(matches) {
@@ -33,13 +33,16 @@ export class CategoriesMatchTraits {
    * return a pattern how it was matched.
    *
    * @method getMatchPatterns
-   * @private // friend of OffersHandler::_collectInfoAboutSelectedOffer
+   * @private // friend of `OfferMatchTraits`
    * @param {IterableIterator<string>} trialCategories
    * @returns {IterableIterator<string>}
    */
   * getMatchPatterns(trialCategories) {
     for (const [, , activeCat] of this.weightsIter(trialCategories)) {
-      yield this.matches.get(activeCat);
+      const patterns = this.matches.get(activeCat);
+      for (const pattern of patterns) {
+        yield pattern;
+      }
     }
   }
 
@@ -62,13 +65,15 @@ export class CategoriesMatchTraits {
     if (!trialCategories) {
       return;
     }
-    for (const [activeCat, pattern] of this.matches.entries()) {
-      for (const trialCat of trialCategories) {
-        const score = CategoriesMatchTraits._scoreCatMatch(
-          activeCat, pattern, trialCat
-        );
-        if (score) {
-          yield [trialCat, score, activeCat];
+    for (const [activeCat, patterns] of this.matches.entries()) {
+      for (const pattern of patterns) {
+        for (const trialCat of trialCategories) {
+          const score = CategoriesMatchTraits._scoreCatMatch(
+            activeCat, pattern, trialCat
+          );
+          if (score) {
+            yield [trialCat, score, activeCat];
+          }
         }
       }
     }
@@ -123,11 +128,28 @@ export class OfferMatchTraits {
    * @param {IterableIterator<string>} offerCategories
    */
   constructor(catMatches, offerCategories) {
+    // After introduction of `addReason`, we could refactor `this.reason`
+    // to be a `Set`. However, as this object is used in the persistent
+    // storage, then we would have to support loading of an old version.
+    this.reason = [];
     if (!catMatches) {
-      this.reason = [];
       return;
     }
-    this.reason = [...catMatches.getMatchPatterns(offerCategories)];
+    for (const reason of catMatches.getMatchPatterns(offerCategories)) {
+      this.addReason(reason);
+    }
+  }
+
+  /**
+   * Create an object from JSON representation. Both share the same
+   * internal object.
+   * @param {Object} reasonJson, null is ok
+   * @returns {OfferMatchTraits}
+   */
+  static fromStorage(reasonJson) {
+    const obj = new OfferMatchTraits(null, null);
+    obj.reason = (reasonJson && reasonJson.reason) || [];
+    return obj;
   }
 
   /**
@@ -136,6 +158,25 @@ export class OfferMatchTraits {
    */
   getReason() {
     return this.reason;
+  }
+
+  /**
+   * @method addReason
+   * @param newReason
+   */
+  addReason(newReason) {
+    if (!this.reason.includes(newReason)) {
+      this.reason.push(newReason);
+    }
+  }
+
+  /**
+   * Represent the object as JSON. Both share the same internal object.
+   *
+   * @returns {Object}
+   */
+  toStorage() {
+    return { reason: this.reason };
   }
 }
 

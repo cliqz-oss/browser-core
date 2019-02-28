@@ -22,7 +22,7 @@ export default class Pipeline {
     this.isBreakable = isBreakable;
 
     // Collect timings for steps of the pipeline
-    this.measureLatency = inject.service('telemetry').isEnabled();
+    this.measureLatency = inject.service('telemetry', ['isEnabled']).isEnabled();
     if (this.measureLatency) {
       this.latencyMetrics = new LatencyMetrics(name);
       this.latencyMetrics.init();
@@ -217,7 +217,7 @@ export default class Pipeline {
       }
 
       // Register this step's execution time
-      if (this.measureLatency) {
+      if (this.measureLatency && !webRequestContext.isPrivate) {
         this.latencyMetrics.addTiming(name, Date.now() - t0);
       }
 

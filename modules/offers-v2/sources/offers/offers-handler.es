@@ -86,7 +86,6 @@ export default class OffersHandler {
    * @param intentHandler
    * @param backendConnector
    * @param presentRealEstates
-   * @param historyMatcher
    * @param featuresHandler
    * @param sigHandler
    * @param eventHandler
@@ -97,7 +96,6 @@ export default class OffersHandler {
     intentHandler,
     backendConnector,
     presentRealEstates,
-    historyMatcher,
     featuresHandler,
     sigHandler,
     eventHandler,
@@ -125,11 +123,8 @@ export default class OffersHandler {
     this.offerStatus = new OfferStatus();
     this.offerStatus.setStatusChangedCallback(this._updateOffersStatusCallback.bind(this));
 
-    // we assume here that the offersDB is already loaded
-    if (this.offersDB.dbLoaded) {
-      this.offersGeneralStats.buildFromOffers(this.offersDB.getOffers({ includeRemoved: true }));
-      this.offersDBObserver.observeExpirations();
-    }
+    this.offersGeneralStats.buildFromOffers(this.offersDB.getOffers({ includeRemoved: true }));
+    this.offersDBObserver.observeExpirations();
 
     this._offersDBCallback = this._offersDBCallback.bind(this);
     this.offersDB.registerCallback(this._offersDBCallback);
@@ -142,7 +137,6 @@ export default class OffersHandler {
     this.context = {
       presentRealEstates,
       geoChecker,
-      historyMatcher,
       offersDB: this.offersDB,
       categoryHandler,
       intentHandler,
@@ -350,10 +344,6 @@ export default class OffersHandler {
   _offersDBCallback(message) {
     if (message.evt === 'offer-action') {
       this.offersGeneralStats.newOfferAction(message);
-    } else if (message.evt === 'offers-db-loaded') {
-      const allOffersMeta = this.offersDB.getOffers({ includeRemoved: true });
-      this.offersGeneralStats.buildFromOffers(allOffersMeta);
-      this.offersDBObserver.observeExpirations();
     } else if (message.evt === 'offer-added') {
       // we will add the action to the offer to keep track of it
       const offerID = message.offer.offer_id;

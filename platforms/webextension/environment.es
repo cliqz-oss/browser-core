@@ -19,8 +19,9 @@ const CLIQZEnvironment = {
   RESULTS_TIMEOUT: 1000, // 1 second
   Promise,
   OS: 'chromium',
-  isPrivate() { return chrome.extension.inIncognitoContext; },
-  isOnPrivateTab() { return chrome.extension.inIncognitoContext; },
+  isPrivate(win) {
+    return win.incognito || chrome.extension.inIncognitoContext;
+  },
   getWindow,
   openLink(win, url, newTab = false, active = true) {
     if (newTab) {

@@ -1,4 +1,5 @@
 import { window, chrome } from './globals';
+import events from '../core/events';
 
 export * from './tabs';
 export * from './windows';
@@ -58,7 +59,14 @@ export function getBrowserMajorVersion() {
 }
 
 export function setOurOwnPrefs() { }
-export function enableChangeEvents() {}
+
+const healthReportPrefObserver = () => events.pub('healthReportChange');
+
+export function enableChangeEvents() {
+  if (chrome.cliqz && chrome.cliqz.onPrefChange) {
+    chrome.cliqz.onPrefChange.addListener(healthReportPrefObserver, 'datareporting.healthreport.', 'uploadEnabled');
+  }
+}
 
 const windowObservers = new WeakMap();
 
@@ -181,6 +189,18 @@ export function getCookies(url) {
 
 export function reportError() {}
 
-export function disableChangeEvents() {}
+export function disableChangeEvents() {
+  if (chrome.cliqz && chrome.cliqz.onPrefChange) {
+    chrome.cliqz.onPrefChange.removeListener(healthReportPrefObserver);
+  }
+}
 
 export function resetOriginalPrefs() {}
+
+export function isDefaultBrowser() {
+  if (browser.cliqzSynchronus && browser.cliqzSynchronus.isDefaultBrowser) {
+    return browser.cliqzSynchronus.isDefaultBrowser();
+  }
+
+  return null;
+}

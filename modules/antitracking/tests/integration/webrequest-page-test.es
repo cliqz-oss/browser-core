@@ -67,7 +67,7 @@ export default function () {
         testServer.registerPathHandler('/tracker302.gif', redirect302('test.gif')),
         testServer.registerPathHandler('/tracker302', redirect302('test')),
         // Add static resources used by tests
-        testServer.registerDirectory('/', ['modules/antitracking/dist/mockserver']),
+        testServer.registerDirectory('/', ['modules/antitracking/tests/dist/mockserver']),
       ]);
     }
 

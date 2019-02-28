@@ -16,12 +16,12 @@ function buildLazyMatch(condition, parent, context) {
 
   let id;
   if (atom.query !== undefined) {
-    const parsed = PatternMatching.parseNetworkFilter(atom.query);
+    const parsed = PatternMatching.NetworkFilter.parse(atom.query);
     queryPatterns.push(parsed);
     id = parsed.getId();
     result.query = parsed.getId();
   } else if (atom.url !== undefined) {
-    const parsed = PatternMatching.parseNetworkFilter(atom.url);
+    const parsed = PatternMatching.NetworkFilter.parse(atom.url);
     urlPatterns.push(parsed);
     id = parsed.getId();
     result.url = parsed.getId();

@@ -51,6 +51,7 @@ const systemConfig = {
       defaultJSExtensions: true,
       //format: 'system',
       map: {
+        './adblocker/mobile': './adblocker/desktop',
         './platform/tldts': 'node_modules/tldts/dist/tldts.umd.min.js'
       },
       meta: {

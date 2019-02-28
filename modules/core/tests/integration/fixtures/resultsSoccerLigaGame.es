@@ -33,7 +33,7 @@ export default [
                 description: 'Die Anhänger des Rekordmeisters müssen laut einer Studie in dieser Saison den weitesten Weg zu den Auswärtsspielen zurücklegen - über 7000 Kilometer mehr als die der Eintracht.',
                 domain: 'sport1.de',
                 murl: 'http://m.sport1.de/fussball/bundesliga/2017/09/bundesliga-fans-von-bayern-muenchen-muessen-am-weitesten-reisen',
-                thumbnail: 'https://images.sport1.de/imagix/filter2/jpeg/_set=og_image,focus=51x62/imagix/970b076f-9d20-11e7-b3ce-f80f41fc6a62',
+                thumbnail: 'https://imgr.cliqz.com/8336CdL5QHvhOZJd-Rzd5hFB8rJShMdljTuykMaRdMs/fill/0/200/no/1/aHR0cHM6Ly93d3cud2VsdC5kZS9pbWcvc3BvcnQvZnVzc2JhbGwvYnVuZGVzbGlnYS9tb2JpbGUxODc4MTI3NTYvNjgxMTM1MjY5Ny1jaTE2eDktdzEyMDAvRkMtQmF5ZXJuLU11ZW5jaGVuLXYtVmZCLVN0dXR0Z2FydC1CdW5kZXNsaWdhLmpwZw.jpg',
                 tweet_count: 1
               },
               title: 'Bundesliga: Fans von Bayern München müssen am weitesten reisen',
@@ -45,7 +45,7 @@ export default [
                 description: 'James Rodriguez führt den FC Bayern München am 5. Spieltag bei Schalke 04 zu einem souveränen Sieg - und an die Spitze. Der Kolumbianer ist an allen Toren beteiligt.',
                 domain: 'sport1.de',
                 murl: 'http://m.sport1.de/fussball/bundesliga/2017/09/bundesliga-spielbericht-fc-schalke-04-fc-bayern-muenchen',
-                thumbnail: 'https://images.sport1.de/imagix/filter2/jpeg/_set=og_image,focus=60x41/imagix/52cbf04b-9d75-11e7-b3ce-f80f41fc6a62',
+                thumbnail: 'https://imgr.cliqz.com/lzA2CLuWx_r7jUxK8koiwfk9OOMSNJFx0A-hsvOu0MI/fill/0/200/no/1/aHR0cHM6Ly93d3cud2VsdC5kZS9pbWcvc3BvcnQvZnVzc2JhbGwvYnVuZGVzbGlnYS9tb2JpbGUxODc4MDM3MDIvNzc5MTM1Njg3Ny1jaTE2eDktdzEyMDAvQnVuZGVzbGlnYS1CYXllcm4tTXVuaWNoLXYtVmZCLVN0dXR0Z2FydC5qcGc.jpg',
                 tweet_count: 2
               },
               title: 'Bundesliga-Spielbericht: FC Schalke 04 - FC Bayern München',

@@ -7,6 +7,7 @@ import createSpananForModule from '../core/helpers/spanan-module-wrapper';
 
 const controlCenterModule = createSpananForModule('control-center');
 const controlCenter = controlCenterModule.createProxy();
+const isPrivateMode = !!(chrome && chrome.extension && chrome.extension.inIncognitoContext);
 
 Handlebars.partials = templates;
 
@@ -30,6 +31,7 @@ function closeAccordionSection() {
 // open URL
 $('#control-center').on('click', '[data-open-url]', (ev) => {
   controlCenter.openURL({
+    isPrivateMode,
     url: ev.currentTarget.getAttribute('data-open-url'),
     target: ev.currentTarget.getAttribute('data-target'),
     closePopup: ev.currentTarget.dataset.closepopup || true
@@ -39,6 +41,7 @@ $('#control-center').on('click', '[data-open-url]', (ev) => {
 $('#control-center').on('click', '[data-function]', function (ev) {
   const fn = ev.currentTarget.dataset.function;
   controlCenter[fn]({
+    isPrivateMode,
     status: $(this).prop('checked'),
     target: ev.currentTarget.getAttribute('data-target')
   });
@@ -50,12 +53,14 @@ $('#control-center').on('click', () => {
 
 $('#control-center').on('change', '[role="complementarySearchChanger"]', function () {
   controlCenter['complementary-search']({
+    isPrivateMode,
     defaultSearch: $(this).val()
   });
 });
 
 $('#control-center').on('change', '[role="searchIndexCountryChanger"]', function () {
   controlCenter['search-index-country']({
+    isPrivateMode,
     defaultCountry: $(this).val()
   });
 });
@@ -63,12 +68,14 @@ $('#control-center').on('change', '[role="searchIndexCountryChanger"]', function
 $('#control-center').on('change', '[role="quickSearchStateChanger"]', function () {
   // $(this).closest('.bullet').addClass('disabled'); // For debugging
   controlCenter['quick-search-state']({
+    isPrivateMode,
     enabled: $(this).val() === 'true'
   }).then(draw); // eslint-disable-line
 });
 
 $('#control-center').on('click', '[role="cliqzTabStatusChanger"]', function () {
   controlCenter['cliqz-tab']({
+    isPrivateMode,
     status: $(this).closest('.frame-container').attr('data-status') === 'active'
   });
 });
@@ -89,6 +96,7 @@ $('#control-center').on('click', '[role="antiTrackingStatusChanger"]', function 
   }
 
   controlCenter['antitracking-activator']({
+    isPrivateMode,
     type,
     state,
     status: $(this).closest('.frame-container').attr('data-status'),
@@ -112,6 +120,7 @@ $('#control-center').on('click', '[role="antiPhishingStatusChanger"]', function 
   }
 
   controlCenter['anti-phishing-activator']({
+    isPrivateMode,
     type,
     state,
     status: $(this).closest('.frame-container').attr('data-status'),
@@ -143,6 +152,7 @@ $('#control-center').on('click', '[role="adBlockerStatusChanger"]', function () 
   frame.attr('data-visible', $(this).attr('data-state'));
 
   controlCenter['adb-activator']({
+    isPrivateMode,
     type,
     state,
     status: frame.attr('data-status'),
@@ -155,6 +165,7 @@ $('#control-center').on('click', '[role="adBlockerStatusChanger"]', function () 
 // select box change
 $('#control-center').on('change', 'select[data-update-pref]', (ev) => {
   controlCenter.updatePref({
+    isPrivateMode,
     pref: ev.currentTarget.getAttribute('data-update-pref'),
     value: ev.currentTarget.value,
     target: ev.currentTarget.getAttribute('data-target'),
@@ -293,12 +304,13 @@ function draw(data) {
     // openURL already sends telemetry data
     if ($(this).attr('data-open-url')) {
       controlCenter.openURL({
+        isPrivateMode,
         url,
         target,
         closePopup,
         index
       });
-    } else {
+    } else if (!isPrivateMode) {
       controlCenter.sendTelemetry({
         target,
         action: 'click',
@@ -354,11 +366,13 @@ function draw(data) {
       $slideDownItem.addClass('open');
       state = 'expanded';
     }
-    controlCenter.sendTelemetry({
-      target: $(this).attr('data-target'),
-      state,
-      action: 'click'
-    });
+    if (!isPrivateMode) {
+      controlCenter.sendTelemetry({
+        target: $(this).attr('data-target'),
+        state,
+        action: 'click'
+      });
+    }
   });
 
   $('[data-start-navigation]').on('click', function () {
@@ -373,10 +387,12 @@ function draw(data) {
       return; // Disable clicking on inactive module
     }
 
-    controlCenter.sendTelemetry({
-      target: $target,
-      action: 'click'
-    });
+    if (!isPrivateMode) {
+      controlCenter.sendTelemetry({
+        target: $target,
+        action: 'click'
+      });
+    }
 
     closeAccordionSection();
     $settings.addClass('open');
@@ -389,10 +405,12 @@ function draw(data) {
     $(this).closest('.setting').removeClass('active');
     $('#othersettings').css('display', 'block');
     $('#settings').removeClass('open');
-    controlCenter.sendTelemetry({
-      target: $(this).attr('data-target'),
-      action: 'click'
-    });
+    if (!isPrivateMode) {
+      controlCenter.sendTelemetry({
+        target: $(this).attr('data-target'),
+        action: 'click'
+      });
+    }
   });
 
   $('.cqz-switch-label, .cqz-switch-grey').click(function () {
@@ -402,6 +420,7 @@ function draw(data) {
 
     if (this.hasAttribute('data-update-pref')) {
       controlCenter.updatePref({
+        isPrivateMode,
         pref: this.getAttribute('data-update-pref'),
         value: target.attr('data-status') === 'active',
         target: this.getAttribute('data-target')
@@ -422,6 +441,7 @@ function draw(data) {
 
     if (this.hasAttribute('data-update-pref')) {
       controlCenter.updatePref({
+        isPrivateMode,
         type,
         target: `${target.parent().attr('data-target')}_${type}`,
         pref: this.getAttribute('data-update-pref'),
@@ -496,6 +516,7 @@ $(document).ready(() => {
       // remove the loader div once the content is populated
       document.getElementById('loader').remove();
       draw(data);
+      window.postMessage('{ "ready": true }', '*');
     });
   });
 });

@@ -805,6 +805,7 @@ html {
             .accordion {
                 background-color: #F9F9F9;
                 height: 205px;
+                overflow-y: auto;
 
                 .accordion-section-title {
                     display: none;
@@ -821,7 +822,9 @@ html {
                     }
 
                     .custom-dropdown {
-                        right:5.5vw;
+                        position: unset;
+                        float:right;
+                        margin-right: 5.5vw;
                         min-width:20vw;
                     }
 

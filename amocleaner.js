@@ -70,7 +70,7 @@ cleanFolders('platforms', ['node', 'react-native', 'web'], false);
 cleanFolders('configs', ['ci', 'experiments', 'releases'], false);
 
 cleanFolderWithExceptions('./', ['.eslintignore', '.eslintrc', '.gitignore', 'LICENSE', 'README.md', 'VERSION', 'amocleaner.js', 'amobuilder.sh', 'config.es', 'fern.js', 'package.json','package-lock.json', 'Brocfile.js'], false);
-cleanFolderWithExceptions('broccoli', ['modules', 'Brocfile.webextension.js', 'modules-tree.js', 'cliqz-env.js', 'config.js', 'util.js', 'instrument.js'], false);
+cleanFolderWithExceptions('broccoli', ['modules', 'Brocfile.webextension.js', 'modules-tree.js', 'cliqz-env.js', 'config.js', 'util.js', 'instrument.js', 'specific-tree.js'], false);
 cleanFolderWithExceptions('configs', ['amo-webextension.js'], false);
 
 cleanSpecificFilesFromFolder('modules', ['debug.html', 'debug0.html', 'debug.bundle.es', 'inspect.bundle.es']);

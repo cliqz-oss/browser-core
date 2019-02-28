@@ -1,12 +1,11 @@
 import {
   app,
   expect,
+  prefs,
   testServer,
   waitFor,
 } from '../../core/integration/helpers';
 
-import prefs from '../../../core/prefs';
-import { isBootstrap } from '../../../core/platform';
 import getDexie from '../../../platform/lib/dexie';
 
 const stagingUrlOriginal = app.config.settings.ANOLYSIS_STAGING_BACKEND_URL;
@@ -46,10 +45,6 @@ async function unMockAnolysisBackend() {
 }
 
 export default function () {
-  if (!isBootstrap) {
-    return;
-  }
-
   const Anolysis = app.modules.anolysis.background;
   const reloadAnolysis = async () => {
     Anolysis.unload();

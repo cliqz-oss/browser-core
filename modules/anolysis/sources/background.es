@@ -13,9 +13,6 @@ import DexieStorage from './internals/storage/dexie';
 import AsyncStorage from './internals/storage/async-storage';
 import logger from './internals/logger';
 import { getSynchronizedDateFormatted } from './internals/synchronized-date';
-import telemetryService from './services/telemetry';
-
-import signalDefinitions from './telemetry-schemas';
 
 const LATEST_VERSION_USED_PREF = 'anolysisVersion';
 
@@ -26,7 +23,14 @@ const LATEST_VERSION_USED_PREF = 'anolysisVersion';
  */
 const VERSION = 7;
 
-const telemetry = inject.service('telemetry');
+const telemetry = inject.service('telemetry', [
+  'onTelemetryEnabled',
+  'onTelemetryDisabled',
+  'isEnabled',
+  'push',
+  'installProvider',
+  'uninstallProvider',
+]);
 
 function versionWasUpdated() {
   return prefs.get(LATEST_VERSION_USED_PREF, null) !== VERSION;
@@ -34,10 +38,6 @@ function versionWasUpdated() {
 
 function storeNewVersionInPrefs() {
   prefs.set(LATEST_VERSION_USED_PREF, VERSION);
-}
-
-function sendTelemetry(msg, instantPush, schemaName) {
-  return telemetry.push(msg, schemaName);
 }
 
 /**
@@ -63,7 +63,6 @@ async function instantiateAnolysis() {
     anolysis = new Anolysis(config);
   }
 
-  await anolysis.registerSignalDefinitions(signalDefinitions);
   const isHealthy = await anolysis.init();
 
   if (!isHealthy) {
@@ -89,9 +88,7 @@ async function instantiateAnolysis() {
 export default background({
   // to be able to read the config prefs
   requiresServices: ['cliqz-config', 'session', 'telemetry'],
-  providesServices: {
-    telemetry: telemetryService,
-  },
+
   isBackgroundInitialized: false,
   app: null,
   settings: null,
@@ -168,10 +165,16 @@ export default background({
       // telemetry.push({}, 'schema_name');
       // ```
       logger.debug('register Anolysis telemetryHandler');
-      const index = utils.telemetryHandlers.indexOf(sendTelemetry);
-      if (index === -1) {
-        utils.telemetryHandlers.push(sendTelemetry);
-      }
+      this.telemetryProvider = {
+        name: 'anolysis',
+        send: (payload, schemaName) => {
+          if (!schemaName) {
+            return Promise.resolve({ error: 'no schema' });
+          }
+          return this.actions.handleTelemetrySignal(payload, false, schemaName);
+        },
+      };
+      telemetry.installProvider(this.telemetryProvider);
 
       // Start aggregations as soon as the extension is loaded.
       logger.debug('trigger aggregations');
@@ -199,14 +202,7 @@ export default background({
     logger.log('unloading');
     this.isBackgroundInitialized = false;
 
-    // TODO - this will be removed when the telemetry function makes use of this
-    // module exclusively.
-    // Unsubscribe telemetry listener
-    const index = utils.telemetryHandlers.indexOf(sendTelemetry);
-    if (index !== -1) {
-      logger.debug('remove Anolysis telemetryHandler');
-      utils.telemetryHandlers.splice(index, 1);
-    }
+    telemetry.uninstallProvider(this.telemetryProvider);
 
     if (this.anolysis) {
       logger.debug('unloading Anolysis');
@@ -242,25 +238,12 @@ export default background({
       return [...this.anolysis.availableDefinitions.entries()];
     },
 
-    registerSignalDefinitions(schemas) {
-      if (!this.anolysis) {
-        return Promise.resolve();
-      }
-
-      return this.anolysis.registerSignalDefinitions(schemas);
-    },
-
     handleTelemetrySignal(msg, instantPush, schemaName) {
       // When calling `telemetry.push` from `core/services`, messages will wait
       // for Anolysis module to be initialized before calling the action, so we
       // should not loose any signal.
       if (!this.isAnolysisInitialized()) {
         return Promise.reject(new Error(`Anolysis is disabled, ignoring: ${schemaName} ${JSON.stringify(msg)}`));
-      }
-
-      // No telemetry in private windows
-      if (utils.isPrivateMode()) {
-        return Promise.resolve();
       }
 
       if (instantPush && schemaName) {

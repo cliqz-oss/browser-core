@@ -109,11 +109,13 @@ export default class TokenExaminer {
       const cachedKvs = this.requestKeyValue.get(tracker) || new Map();
       const reachedThreshold = new Set();
       const kvs = state.urlParts.getKeyValues().reduce((hash, kv) => {
-        if (kv.v.length < this.config.shortTokenLength
-          || this.qsWhitelist.isSafeKey(tracker, md5(kv.k))) {
+        if (kv.v.length < this.config.shortTokenLength) {
           return hash;
         }
         const key = this.hashTokens ? md5(kv.k) : kv.k;
+        if (this.qsWhitelist.isSafeKey(tracker, key)) {
+          return hash;
+        }
         const tok = this.hashTokens ? md5(kv.v) : kv.v;
         if (!hash.has(key)) {
           hash.set(key, new TokenSet());
@@ -164,14 +166,19 @@ export default class TokenExaminer {
     if (this._syncTimer) {
       return;
     }
-    this._syncTimer = setTimeout(() => {
-      const maybePrune = prune ? this.pruneDb() : Promise.resolve();
-      maybePrune.then(() => this._syncDb());
-      this._syncTimer = null;
-    }, 10000);
+    this._syncTimer = setTimeout(async () => {
+      try {
+        if (prune) {
+          await this.pruneDb();
+        }
+        await this._syncDb();
+      } finally {
+        this._syncTimer = null;
+      }
+    }, 20000);
   }
 
-  _syncDb() {
+  async _syncDb() {
     const rows = [];
     const trackerKeys = [];
     for (const [tracker, keys] of this.requestKeyValue.entries()) {
@@ -185,27 +192,41 @@ export default class TokenExaminer {
               day,
             });
           });
-          trackerKeys.push({ tracker, key });
+          if (!this.qsWhitelist.isSafeKey(tracker, key)) {
+            trackerKeys.push({ tracker, key });
+          }
           tokens.setDirty(false);
         }
       }
     }
-    return this.db.requestKeyValue.bulkPut(rows).catch((errors) => {
-      console.error('requestKeyValue', 'bulkPut errors', errors);
-    }).then(() =>
-      trackerKeys.map(({ tracker, key }) =>
-        this.db.requestKeyValue.where('[tracker+key]').equals([tracker, key]).count((tokenCount) => {
-          if (tokenCount > this.config.safekeyValuesThreshold) {
-            if (this.config.debugMode) {
-              console.log('Add safekey', tracker, key);
-            }
-            this.qsWhitelist.addSafeKey(
-              tracker,
-              this.hashTokens ? key : md5(key),
-              tokenCount
-            );
-          }
-          this.removeRequestKeyValueEntry(tracker, key);
-        }).catch(e => console.error(e))));
+    // insert requestKeyValue rows
+    await this.db.requestKeyValue.bulkPut(rows);
+    // fetch tokens for trackerKeys
+    const searchKeys = trackerKeys.map(({ tracker, key }) => [tracker, key]);
+    const matchingTokens = await this.db.requestKeyValue.where('[tracker+key]')
+      .anyOf(searchKeys).toArray();
+    // count number of tokens for key
+    const tokenCounts = matchingTokens.reduce((obj, { tracker, key }) => {
+      const hash = `${tracker}:${key}`;
+      if (!obj[hash]) {
+        obj[hash] = { tracker, key, count: 0 };
+      }
+      obj[hash].count += 1;
+      return obj;
+    }, {});
+    Object.keys(tokenCounts).forEach((hash) => {
+      const { tracker, key, count } = tokenCounts[hash];
+      if (count > this.config.safekeyValuesThreshold) {
+        if (this.config.debugMode) {
+          console.log('Add safekey', tracker, key);
+        }
+        this.qsWhitelist.addSafeKey(
+          tracker,
+          this.hashTokens ? key : md5(key),
+          count,
+        );
+      }
+      this.removeRequestKeyValueEntry(tracker, key);
+    });
   }
 }

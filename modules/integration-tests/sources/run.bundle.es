@@ -1,6 +1,8 @@
 import { window } from '../platform/globals';
 import * as tabs from '../platform/tabs';
 
+import { setGlobal } from '../core/kord/inject';
+
 import {
   CliqzUtils,
   app,
@@ -9,6 +11,10 @@ import {
   win,
 } from '../tests/core/integration/helpers';
 
+// Include all integration tests in the same bundle
+import '../module-integration-tests';
+
+setGlobal(app);
 
 function mockGlobalState() {
   // Store all telemetry signals globally so that tests can use them

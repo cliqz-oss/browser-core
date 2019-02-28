@@ -106,7 +106,7 @@ export default class Dropdown {
     this.dropdownElement.innerHTML = '';
   }
 
-  renderResults(results, { urlbarAttributes, extensionId, channelId } = {}) {
+  renderResults(results, { urlbarAttributes, extensionId, channelId, isRerendering } = {}) {
     this.selectedIndex = 0;
     this.results = results;
 
@@ -150,7 +150,9 @@ export default class Dropdown {
       anchor.addEventListener('click', ev => ev.preventDefault());
     });
 
-    this.selectResult(this.results.firstResult);
+    if (!isRerendering) {
+      this.selectResult(this.results.firstResult);
+    }
 
     const historyResults = this.rootElement.querySelectorAll('.history');
     if (historyResults.length > 0) {

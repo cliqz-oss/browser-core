@@ -31,21 +31,30 @@ export function getAllCliqzPrefs() {
   return Object.keys(prefs);
 }
 
-export function getPref(prefKey, notFound) {
+export function getPref(prefKey, notFound, browserPrefix = null) {
+  if (browserPrefix !== null && chrome.cliqzSynchronous) {
+    return chrome.cliqzSynchronous.getPref(`${browserPrefix}${prefKey}`);
+  }
+
   const pref = cleanPref(prefKey);
   if (!initialised) {
     console.warn(`loading pref ${pref} before prefs were initialised, you will not get the correct result`);
     return prefs[pref] || notFound;
   }
+
   if (prefs && prefs[pref] !== undefined) {
     return prefs[pref];
   }
   return notFound;
 }
 
-export function setPref(prefKey, value) {
-  const pref = cleanPref(prefKey);
+export function setPref(prefKey, value, browserPrefix = null) {
+  if (browserPrefix !== null && chrome.cliqz) {
+    chrome.cliqz.setPref(`${browserPrefix}${prefKey}`, value);
+    return;
+  }
 
+  const pref = cleanPref(prefKey);
   const changed = prefs[pref] !== value;
 
   prefs[pref] = value;
@@ -63,7 +72,11 @@ export function setPref(prefKey, value) {
   }
 }
 
-export function hasPref(prefKey) {
+export function hasPref(prefKey, browserPrefix = null) {
+  if (browserPrefix !== null && chrome.cliqzSynchronous) {
+    return chrome.cliqzSynchronous.hasPref(`${browserPrefix}${prefKey}`);
+  }
+
   const pref = cleanPref(prefKey);
   return pref in prefs;
 }
@@ -71,6 +84,10 @@ export function hasPref(prefKey) {
 export function clearPref(prefKey) {
   const pref = cleanPref(prefKey);
   delete prefs[pref];
+
+  // trigger prefchange event
+  events.pub('prefchange', pref);
+
   syncToStorage();
 }
 

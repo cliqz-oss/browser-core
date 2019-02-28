@@ -82,12 +82,13 @@ const i18n = {
 export default i18n;
 
 export function getMessage(key, substitutions = []) {
-  if (IMPLEMENTS_GET_MESSAGE) {
-    return _getMessage(key, substitutions);
-  }
-
+  // 'undefined' or 'null' raise an exception in _getMessage()
   if (!key) {
     return '';
+  }
+
+  if (IMPLEMENTS_GET_MESSAGE) {
+    return _getMessage(key, substitutions);
   }
 
   if (Object.keys(_locale).length === 0) {

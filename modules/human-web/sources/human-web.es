@@ -483,7 +483,6 @@ const CliqzHumanWeb = {
     httpObserver: {
         // check the non 2xx page and report if this is one of the cliqz result
         observeActivity: function({ url: aUrl, type, responseStatus, statusCode, responseHeaders, isPrivate, tabId }) {
-
           // For bootstrap, we can rely on isPrivate.
           // For web-extensions, we need to get the tab.incognito property,
           // That is why we have an implementation in platforms.
@@ -548,7 +547,6 @@ const CliqzHumanWeb = {
             }).catch((e) => {
               _log(e);
             });
-
         }
     },
     onVisitRemoved({ urls, allHistory }) {
@@ -2387,7 +2385,7 @@ const CliqzHumanWeb = {
           prefs.get('humanWebOptOut', false)) {
         return discard('human web disabled');
       }
-      if (utils.isPrivateMode()) {
+      if (utils.isPrivateMode(utils.getWindow())) {
         return discard('private mode');
       }
 

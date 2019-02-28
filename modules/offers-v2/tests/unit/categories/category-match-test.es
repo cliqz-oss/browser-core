@@ -19,22 +19,22 @@ export default describeModule('offers-v2/categories/category-match',
 
       function getUserCatsForNoMatches() {
         return new CategoriesMatchTraits(new Map([
-          ['hobby', 'pattern'],
-          ['foo', 'bar'],
+          ['hobby', ['pattern']],
+          ['foo', ['bar']],
         ]));
       }
 
       function getUserCatsForExactMatches() {
         return new CategoriesMatchTraits(new Map([
-          ['software.development.cpp', 'pattern'],
-          ['xxx', 'bar'],
-          ['extra', 'buz'],
+          ['software.development.cpp', ['pattern']],
+          ['xxx', ['bar']],
+          ['extra', ['buz']],
         ]));
       }
 
       function getUserCatsForGenericMatches() {
         return new CategoriesMatchTraits(new Map([
-          ['software', 'pattern'],
+          ['software', ['pattern']],
         ]));
       }
 
@@ -165,7 +165,7 @@ export default describeModule('offers-v2/categories/category-match',
 
       it('/Patterns are stored', () => {
         const catMatches = new CategoriesMatchTraits(new Map(
-          [['cat1', 'p1'], ['cat2', 'pat2'], ['cat3', 'pattern3']]
+          [['cat1', ['p1']], ['cat2', ['pat2']], ['cat3', ['pattern3']]]
         ));
         const offerCategories = ['cat1', 'cat2'];
 
@@ -186,6 +186,28 @@ export default describeModule('offers-v2/categories/category-match',
         this._ = new OfferMatchTraits(catMatches, null);
 
         chai.expect(true).to.be.true;
+      });
+
+      it('/take all patterns from a category that matched several times', () => {
+        const catMatches = new CategoriesMatchTraits(new Map(
+          [['cat1', ['p1', 'p2']], ['cat2', ['p3']]]
+        ));
+        const offerCategories = ['cat1', 'cat2'];
+
+        const reason = new OfferMatchTraits(catMatches, offerCategories);
+
+        chai.expect(reason.getReason()).to.eql(['p1', 'p2', 'p3']);
+      });
+
+      it('/Store only unique patterns', () => {
+        const catMatches = new CategoriesMatchTraits(new Map(
+          [['cat1', ['spam', 'spam', 'more spam', 'spam']]]
+        ));
+        const offerCategories = ['cat1'];
+
+        const reason = new OfferMatchTraits(catMatches, offerCategories);
+
+        chai.expect(reason.getReason()).to.eql(['spam', 'more spam']);
       });
     });
   });

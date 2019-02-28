@@ -1,32 +1,41 @@
 import background from '../core/base/background';
-import utils from '../core/utils';
-import telemetry, { sendTelemetry } from './services/telemetry';
+import inject from '../core/kord/inject';
+import config from '../core/config';
+import extMessaging from '../platform/ext-messaging';
+
+function sendTelemetry(...args) {
+  extMessaging.sendMessage(config.settings.telemetryExtensionId, {
+    moduleName: 'core',
+    action: 'sendTelemetry',
+    args,
+  });
+}
 
 /**
   @namespace anolysis-remote
   @class Background
  */
 export default background({
-  providesServices: {
-    telemetry,
-  },
+  requiresServices: ['telemetry'],
+  telemetryService: inject.service('telemetry', ['installProvider', 'uninstallProvider']),
 
   /**
     @method init
     @param settings
   */
   init(settings) {
+    this.telemetryProvider = {
+      name: 'anolysis-remote',
+      send: sendTelemetry,
+    };
     if (settings.telemetryExtensionId) {
-      utils.telemetryHandlers.push(sendTelemetry);
+      this.telemetryService.installProvider(this.telemetryProvider);
     }
   },
 
   unload() {
     if (this.telemetryExtensionId) {
-      const index = utils.telemetryHandlers.indexOf(sendTelemetry);
-      if (index !== -1) {
-        utils.telemetryHandlers.splice(index, 1);
-      }
+      this.telemetryService.uninstallProvider(this.telemetryProvider);
     }
   },
 

@@ -1,15 +1,17 @@
 import {
   app,
   expect,
+  prefs,
   testServer,
   waitForPrefChange,
 } from '../test-helpers';
 
-import prefs from '../../../core/prefs';
 import { isBootstrap } from '../../../core/platform';
 
 const expectedConfigs = [
   'backends',
+  'language_whitelist',
+  'locale_whitelist',
   'location',
   'location.city',
   'logoVersion',
@@ -26,7 +28,7 @@ function mockConfigReponse(response) {
 }
 
 export default function () {
-  if (!isBootstrap) {
+  if (isBootstrap) {
     return;
   }
 
@@ -34,6 +36,8 @@ export default function () {
     context('whitelist configs', function () {
       const response = {
         backends: ['test1', 'test2'],
+        language_whitelist: ['test_de', 'test_en'],
+        locale_whitelist: ['test_de-DE', 'test_en-US'],
         location: 'test_location',
         'location.city': 'test_location_city',
         logoVersion: 'test_logoVersion',

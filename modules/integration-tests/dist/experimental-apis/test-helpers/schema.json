@@ -138,6 +138,27 @@
       }
     ]
   }, {
+    "name": "getLastQuery",
+    "type": "function",
+    "description": "Get last query parameters",
+    "async": "callback",
+    "parameters": [
+      {
+        "type": "number",
+        "name": "windowId",
+        "optional": true
+      },
+      {
+        "type": "function",
+        "name": "callback",
+        "parameters": [{
+          "name": "info",
+          "type": "any"
+
+        }]
+      }
+    ]
+  }, {
     "name": "querySelector",
     "type": "function",
     "description": "rrrrrrrrr",

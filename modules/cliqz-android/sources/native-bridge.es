@@ -14,7 +14,7 @@ export default class {
           resolve(message.response);
         } else if ('ping' in message) { // check if ready
           this.sendReadySignal();
-        } else { // request
+        } else if (message.module) { // request
           const module = inject.module(message.module);
           module.action(
             message.action,

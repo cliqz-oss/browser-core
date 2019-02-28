@@ -4,7 +4,6 @@
 
 const ajv = require('ajv');
 const moment = require('moment');
-const stats = require('simple-statistics');
 const mockDexie = require('../../../core/unit/utils/dexie');
 
 const CURRENT_DATE = '2017-01-01';
@@ -21,9 +20,6 @@ function getCurrentDate() {
 export default describeModule('anolysis/internals/anolysis',
   () => ({
     ...mockDexie,
-    'platform/lib/simple-statistics': {
-      default: stats,
-    },
     'platform/lib/moment': {
       default: moment,
     },
@@ -109,32 +105,6 @@ export default describeModule('anolysis/internals/anolysis',
 
     afterEach(() => anolysis.storage.destroy());
 
-    describe('#registerSignalDefinitions', () => {
-      it('correctly adds schemas', () => {
-        chai.expect(anolysis.availableDefinitions.size).to.equal(0);
-        return Promise.resolve()
-          .then(() => anolysis.registerSignalDefinitions([
-            { name: 'signal1', schema: {} },
-            { name: 'signal2', schema: {} },
-          ]))
-          .then(() => chai.expect(anolysis.availableDefinitions.size).to.equal(2))
-          .then(() => {
-            const schemas = [...anolysis.availableDefinitions.keys()];
-            chai.expect(schemas).to.eql(['signal1', 'signal2']);
-          });
-      });
-
-      it('fails on duplicates', () =>
-        chai.expect(
-          Promise.resolve()
-            .then(() => anolysis.registerSignalDefinitions([
-              { name: 'signal1', schema: {} },
-              { name: 'signal2', schema: {} },
-            ]))
-            .then(() => anolysis.registerSignalDefinitions([{ name: 'signal1', schema: {} }]))
-        ).to.be.rejected);
-    });
-
     describe('#runDailyTasks', () => {
       let oldTimeout;
       let DefaultMap;
@@ -146,7 +116,6 @@ export default describeModule('anolysis/internals/anolysis',
         DefaultMap = (await this.system.import('core/helpers/default-map')).default;
 
         // Register tasks
-        anolysis.registerSignalDefinitions((await this.system.import('anolysis/telemetry-schemas')).default);
         await anolysis.updateRetentionState();
       });
 
@@ -209,16 +178,10 @@ export default describeModule('anolysis/internals/anolysis',
     });
 
     describe('#runTasksForDay', () => {
-      let schemas;
       let DefaultMap;
       beforeEach(function () {
         return this.system.import('core/helpers/default-map')
-          .then((module) => { DefaultMap = module.default; })
-          .then(() => this.system.import('anolysis/telemetry-schemas'))
-          .then((module) => {
-            schemas = module.default;
-            anolysis.registerSignalDefinitions(schemas);
-          });
+          .then((module) => { DefaultMap = module.default; });
       });
 
       it('generates no signals if there is nothing to aggregate', () => {

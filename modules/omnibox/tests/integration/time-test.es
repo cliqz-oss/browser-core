@@ -1,6 +1,7 @@
 import {
   $cliqzResults,
   blurUrlBar,
+  dropdownClick,
   expect,
   fillIn,
   getLocalisedString,
@@ -21,17 +22,23 @@ export default function () {
     const timezoneRowSelector = '.timezone-results-row';
     const showMoreSelector = '.expand-btn';
 
-    xcontext('(interactions) clicking on "Show more" button', function () {
+    context('(interactions) clicking on "Show more" button', function () {
       before(async function () {
         win.preventRestarts = true;
         await blurUrlBar();
         withHistory([]);
         await mockSearch({ results });
-        fillIn('sdkjfhsdkjf');
+        fillIn('time berlin');
         await waitForPopup(1);
-        await waitFor(() => $cliqzResults.querySelectorAll('.timezone-results-row').length === 3);
-        $cliqzResults.querySelector('.result.expand-btn').click();
-        await waitFor(() => $cliqzResults.querySelectorAll('.timezone-results-row').length > 3);
+        await waitFor(async () => {
+          const $timeZoneRows = await $cliqzResults.querySelectorAll('.timezone-results-row');
+          return $timeZoneRows.length === 3;
+        });
+        await dropdownClick('.result.expand-btn');
+        await waitFor(async () => {
+          const $timeZoneRows = await $cliqzResults.querySelectorAll('.timezone-results-row');
+          return $timeZoneRows.length > 3;
+        });
       });
 
       after(function () {
@@ -39,20 +46,20 @@ export default function () {
       });
 
       context('renders main result', function () {
-        it('successfully', function () {
-          const $timeArea = $cliqzResults.querySelector(timeAreaSelector);
+        it('successfully', async function () {
+          const $timeArea = await $cliqzResults.querySelector(timeAreaSelector);
           expect($timeArea).to.exist;
         });
 
-        it('with a correct number of expanded table rows', function () {
-          const $allTimezoneRows = $cliqzResults
+        it('with a correct number of expanded table rows', async function () {
+          const $allTimezoneRows = await $cliqzResults
             .querySelectorAll(`${timeAreaSelector} ${timezonesSelector} ${timezoneRowSelector}`);
           expect($allTimezoneRows.length)
             .to.equal(results[0].snippet.extra.time_data.cities_by_tz.length);
         });
 
-        it('without a "Show more" item', function () {
-          const $showMore = $cliqzResults
+        it('without a "Show more" item', async function () {
+          const $showMore = await $cliqzResults
             .querySelector(`${timeAreaSelector} ${timezonesSelector} ${showMoreSelector}`);
 
           expect($showMore).to.not.exist;
@@ -60,8 +67,8 @@ export default function () {
       });
 
       context('each expanded table row', function () {
-        it('renders with correct time ', function () {
-          const $allTimezoneRows = $cliqzResults
+        it('renders with correct time ', async function () {
+          const $allTimezoneRows = await $cliqzResults
             .querySelectorAll(`${timeAreaSelector} ${timezonesSelector} ${timezoneRowSelector}`);
 
           expect($allTimezoneRows.length).to.be.above(0);
@@ -73,8 +80,8 @@ export default function () {
           });
         });
 
-        it('renders with correct city ', function () {
-          const $allTimezoneRows = $cliqzResults
+        it('renders with correct city ', async function () {
+          const $allTimezoneRows = await $cliqzResults
             .querySelectorAll(`${timeAreaSelector} ${timezonesSelector} ${timezoneRowSelector}`);
 
           expect($allTimezoneRows.length).to.be.above(0);
@@ -86,8 +93,8 @@ export default function () {
           });
         });
 
-        it('renders with correct timezone ', function () {
-          const $allTimezoneRows = $cliqzResults
+        it('renders with correct timezone ', async function () {
+          const $allTimezoneRows = await $cliqzResults
             .querySelectorAll(`${timeAreaSelector} ${timezonesSelector} ${timezoneRowSelector}`);
 
           expect($allTimezoneRows.length).to.be.above(0);

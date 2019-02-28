@@ -1,4 +1,5 @@
 /* global chai, describeModule */
+const fetch = require('node-fetch');
 
 let mockPrefs = {};
 
@@ -25,7 +26,10 @@ export default describeModule('antitracking/config',
         get: (p, d) => (mockPrefs[p] || d),
         set: (p, v) => { mockPrefs[p] = v; },
       }
-    }
+    },
+    'core/http': {
+      fetch,
+    },
   }),
   () => {
     let Config;

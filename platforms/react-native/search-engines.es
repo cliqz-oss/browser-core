@@ -2,7 +2,7 @@ import { NativeModules } from 'react-native';
 import { getDetailsFromUrl } from '../core/url';
 
 const SearchEnginesModule = NativeModules.SearchEnginesModule;
-const { locale } = NativeModules.LocaleConstants;
+const { locale } = NativeModules.LocaleConstants || { locale: 'en' };
 
 let searchEngines = [];
 const ENGINE_CODES = [
@@ -42,7 +42,22 @@ export function getDefaultSearchEngine() {
 }
 
 export async function loadSearchEngines() {
-  const engines = await SearchEnginesModule.getSearchEngines();
+  let engines;
+  if (SearchEnginesModule) {
+    engines = await SearchEnginesModule.getSearchEngines();
+  } else {
+    // TODO: Implement search engines module on android
+    engines = [{
+      default: true,
+      SearchTermComponent: 'XXX',
+      LocaleTermComponent: 'XXX',
+      name: 'google',
+      base_url: 'https://www.google.com/search',
+      urls: {
+        'text/html': 'https://www.google.com/search?q=XXX',
+      }
+    }];
+  }
   searchEngines = engines.map(e => ({
     name: e.name,
     code: getEngineCode(e.name),

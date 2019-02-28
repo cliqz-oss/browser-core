@@ -7,4 +7,5 @@ module.exports = Object.assign(urls('cliqz.com'), {
   LOCATION_SHARING_URL: 'https://cliqz.com/support/local-results',
   MYOFFRZ_URL: 'https://cliqz.com/myoffrz',
   REPORT_SITE_URL: 'https://cliqz.com/report-url',
+  NEW_TAB_URL: "/freshtab/home.html",
 });

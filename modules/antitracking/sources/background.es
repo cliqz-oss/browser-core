@@ -211,46 +211,6 @@ export default background({
   },
 
   popupActions: {
-    /**
-    * @method popupActions.toggleAttrack
-    * @param args
-    * @param cb Callback
-    */
-    toggleAttrack(args, cb) {
-      const currentState = prefs.get('modules.antitracking.enabled', true);
-
-      if (currentState) {
-        this.attrack.disableModule();
-      } else {
-        this.attrack.enableModule();
-      }
-
-      cb();
-
-      this.popupActions.telemetry({ action: 'click', target: (currentState ? 'deactivate' : 'activate') });
-    },
-    /**
-    * @method popupActions.closePopup
-    */
-    closePopup(_, cb) {
-      cb();
-    },
-    /**
-    * @method popupActions.toggleWhiteList
-    * @param args
-    * @param cb Callback
-    */
-    toggleWhiteList(args, cb) {
-      const hostname = args.hostname;
-      if (this.attrack.urlWhitelist.isWhitelisted(hostname)) {
-        this.popupActions.telemetry({ action: 'click', target: 'unwhitelist_domain' });
-      } else {
-        this.popupActions.telemetry({ action: 'click', target: 'whitelist_domain' });
-      }
-      this.attrack.urlWhitelist.changeState(hostname, 'hostname', 'toggle');
-      cb();
-    },
-
     _isDuplicate(info) {
       const now = Date.now();
       const key = info.tab + info.hostname + info.path;
@@ -316,22 +276,24 @@ export default background({
       domChecker.recordLinksForURL(url);
       domChecker.clearDomLinks();
     },
-    'antitracking:whitelist:add': function (hostname, isPrivate) {
+    'antitracking:whitelist:add': function (hostname, isPrivateMode) {
       this.attrack.urlWhitelist.changeState(hostname, 'hostname', 'add');
       this.attrack.logWhitelist(hostname);
-      if (!isPrivate) {
+      if (!isPrivateMode) {
         this.popupActions.telemetry({
           action: 'click',
           target: 'whitelist_domain'
         });
       }
     },
-    'antitracking:whitelist:remove': function (hostname) {
+    'antitracking:whitelist:remove': function (hostname, isPrivateMode) {
       this.attrack.urlWhitelist.changeState(hostname, 'hostname', 'remove');
-      this.popupActions.telemetry({
-        action: 'click',
-        target: 'unwhitelist_domain'
-      });
+      if (!isPrivateMode) {
+        this.popupActions.telemetry({
+          action: 'click',
+          target: 'unwhitelist_domain'
+        });
+      }
     },
     'control-center:antitracking-strict': () => {
       prefs.set('attrackForceBlock', !prefs.get('attrackForceBlock', false));
@@ -342,12 +304,14 @@ export default background({
           .call(this.attrack.pipelineSteps.cookieContext, ...args);
       }
     },
-    'control-center:antitracking-clearcache': function () {
+    'control-center:antitracking-clearcache': function (isPrivateMode) {
       this.attrack.clearCache();
-      this.popupActions.telemetry({
-        action: 'click',
-        target: 'clearcache',
-      });
+      if (!isPrivateMode) {
+        this.popupActions.telemetry({
+          action: 'click',
+          target: 'clearcache',
+        });
+      }
     },
   },
 });

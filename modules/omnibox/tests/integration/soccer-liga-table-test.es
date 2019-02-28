@@ -4,6 +4,7 @@ import {
   checkParent,
   checkSoccerLigaTable,
   $cliqzResults,
+  dropdownClick,
   fillIn,
   mockSearch,
   waitFor,
@@ -37,16 +38,17 @@ export default function () {
       checkSoccerLigaTable({ $result: $cliqzResults, results });
     });
 
-    xcontext('(interactions) after clicking on the "Show more" button', function () {
+    context('(interactions) after clicking on the "Show more" button', function () {
       before(async function () {
         await blurUrlBar();
         await mockSearch({ results });
         withHistory([]);
         fillIn('bundesliga tabelle');
         await waitForPopup(1);
-        $cliqzResults.querySelector('.result.expand-btn').click();
-        await waitFor(function () {
-          return $cliqzResults.querySelectorAll('.table-row').length !== 6;
+        await dropdownClick('.result.expand-btn');
+        await waitFor(async () => {
+          const $tableRows = await $cliqzResults.querySelectorAll('.table-row');
+          return $tableRows.length !== 6;
         });
       });
 

@@ -4,6 +4,7 @@ import {
   checkMainResult,
   checkParent,
   checkSoccerLeague,
+  dropdownClick,
   fillIn,
   mockSearch,
   waitFor,
@@ -37,16 +38,18 @@ export default function () {
       checkSoccerLeague({ $result: $cliqzResults, results });
     });
 
-    xcontext('(interactions) after clicking on a different group tab', function () {
+    context('(interactions) after clicking on a different group tab', function () {
       before(async function () {
         await blurUrlBar();
         await mockSearch({ results });
         withHistory([]);
         fillIn('Champions league');
         await waitForPopup(1);
-        $cliqzResults.querySelector('#tab-1').click();
-        await waitFor(() =>
-          !$cliqzResults.querySelector('#tab-0').classList.contains('checked'));
+        await dropdownClick('#tab-1');
+        await waitFor(async () => {
+          const $tab0 = await $cliqzResults.querySelector('#tab-0');
+          return !$tab0.classList.contains('checked');
+        });
       });
 
       checkMainResult({ $result: $cliqzResults });

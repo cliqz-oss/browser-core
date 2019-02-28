@@ -97,7 +97,7 @@ function signalsTests(dest, config) {
           });
           it('should check server-side', async function () {
             expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
-            const originData = hits.get('/api/v1/savesignal')[1]
+            const originData = hits.get('/api/v1/savesignal')[0]
               .body.payload.data.c_data.offers[0].offer_data[1].origin_data;
             expect(originData, 'offer_dsp_session, server-side').to.have.property('offer_dsp_session').to.equal(1);
             expect(originData, 'offer_shown, server-side').to.have.property('offer_shown').to.equal(2);

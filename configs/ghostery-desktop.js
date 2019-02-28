@@ -38,11 +38,6 @@ module.exports = {
       "inactive": "control-center/images/cc-critical.svg",
       "critical": "control-center/images/cc-critical.svg"
     },
-    "BACKGROUNDS": {
-      "active": "#471647",
-      "inactive": "#471647",
-      "critical": "#471647"
-    },
     "ATTRACK_TELEMETRY_PROVIDER": "hpnv2",
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
     "antitrackingPlaceholder": ".com/tracking",
@@ -86,7 +81,6 @@ module.exports = {
     "offboarding",
     "anolysis",
     "anolysis-cc",
-    "abtests",
     "context-search",
     "privacy-dashboard",
     "https-everywhere",

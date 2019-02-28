@@ -78,3 +78,7 @@ export function getCookies() {
 
 export class Window {
 }
+
+export function isDefaultBrowser() {
+  return null;
+}

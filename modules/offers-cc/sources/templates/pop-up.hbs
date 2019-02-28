@@ -3,10 +3,10 @@
     <header>
         <p>
             <img class="gift_icon" src="./images/offers-cc-icon.svg" alt="">
-            {{#if isWebExtension}}
-                <span class="offers_label" data-i18n="offers_hub_title"></span>
-            {{else}}
+            {{#if isCliqzBrowser}}
                 <span class="offers_label" data-i18n="cliqz_offers"></span>
+            {{else}}
+                <span class="offers_label" data-i18n="offers_hub_title"></span>
             {{/if}}
 
             <span></span>
@@ -64,10 +64,10 @@
         <p>
             {{#unless isWebExtension}}<span class="ad-label">{{#unless noVoucher}}{{local 'ad_label'}}{{/unless}}</span>{{/unless}}
             {{#if isWebExtension }}
-            <span class="feedback">
+            <a class="feedback" href="#" target="_blank" data-telemetry-id="general_feedback">
                 <img src="./images/feedback-face.svg" alt="">
                 <label>{{ local 'offers_hub_feedback_title'}}</label>
-            </span>
+            </a>
             {{/if}}
             <span>
                 {{#if showExpandButton}}
@@ -75,15 +75,20 @@
                 {{/if}}
             </span>
             {{#if isWebExtension}}
-            <span title="{{local 'offers_hub_powered_by_offrz'}}">
+            <span
+                title="{{local 'offers_hub_powered_by_offrz'}}"
+                {{#if isCliqzBrowser}}
+                class="cliqz-logo"
+                {{/if}}
+                >
             {{else}}
             <span title="{{local 'offers_hub_powered_by'}}"></span>
             {{/if}}
                 <a
-                {{#if isWebExtension}}
-                href="https://myoffrz.com/fuer-nutzer"
-                {{else}}
+                {{#if isCliqzBrowser}}
                 href="https://cliqz.com/myoffrz"
+                {{else}}
+                href="https://myoffrz.com/fuer-nutzer"
                 {{/if}}
                 target="_blank"></a>
             </span>

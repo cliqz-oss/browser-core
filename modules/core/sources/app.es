@@ -49,7 +49,11 @@ export default class App {
    * @constructor
    * @param {object} config
    */
-  constructor({ version, debug } = {}) {
+  // Cliqz products extract `version` from the manifest.
+  // But if `App` is instantiated by a third-party that uses
+  // `browser-core` as a library, then no `version` is given
+  // and therefore `App` should find out the version self.
+  constructor({ version = config.EXTENSION_VERSION, debug } = {}) {
     this.settings = createSettings(config.settings, { version });
     this.isFullyLoaded = false;
 
@@ -347,7 +351,8 @@ export default class App {
 
       if ('default_prefs' in config) {
         Object.keys(config.default_prefs).forEach((pref) => {
-          if (!prefs.has(pref)) {
+          // TODO remove check for config.settings.channel after relaseing Cliqz 1.25
+          if (config.settings.channel === '99' || !prefs.has(pref)) {
             console.log('App', 'set up preference', `"${pref}"`);
             prefs.set(pref, config.default_prefs[pref]);
           }
@@ -368,7 +373,7 @@ export default class App {
     return Promise.all(
       serviceNames.map(
         // service is initialized only once, so calling init multiple times is fine
-        serviceName => this.services[serviceName].init()
+        serviceName => this.services[serviceName].init(this)
       )
     );
   }

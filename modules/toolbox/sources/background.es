@@ -66,6 +66,8 @@ export default background({
   deps: {
     core: inject.module('core'),
     humanWeb: inject.module('human-web'),
+    'offers-v2': inject.module('offers-v2'),
+    telemetry: inject.module('telemetry'),
   },
   /**
     @method init
@@ -85,21 +87,20 @@ export default background({
     async getState(url) {
       return {
         endpointsUrl: _getFullURLWithoutParameters(this.settings.RICH_HEADER),
-        extensionsLegacyEnabled: prefs.get('enabled', true, 'extensions.legacy.'),
         modules: await this.actions.getCliqzStatus(),
-        showConsoleLogs: prefs.get('showConsoleLogs', true),
+        preferencesStatus: {
+          configLocation: prefs.get('config_location', ''),
+          developer: prefs.get('developer', true),
+          extensionsLegacyEnabled: prefs.get('enabled', true, 'extensions.legacy.'),
+          loggerLevel: prefs.get('logger.offers-v2.level', ''),
+          offersDevFlag: prefs.get('offersDevFlag', true),
+          offersLoadSignalsFromDB: prefs.get('offersLoadSignalsFromDB', true),
+          offersLogsEnabled: prefs.get('offersLogsEnabled', true),
+          offersTelemetryFreq: prefs.get('offersTelemetryFreq', ''),
+          showConsoleLogs: prefs.get('showConsoleLogs', true),
+          triggersBE: prefs.get('triggersBE', ''),
+        },
         signaturesRequired: prefs.get('required', false, 'xpinstall.signatures.'),
-
-        // prefs for offers
-        developer: prefs.get('developer', true),
-        loggerLevel: prefs.get('logger.offers-v2.level', ''),
-        offersDevFlag: prefs.get('offersDevFlag', true),
-        offersLoadSignalsFromDB: prefs.get('offersLoadSignalsFromDB', true),
-        offersLogsEnabled: prefs.get('offersLogsEnabled', true),
-        offersTelemetryFreq: prefs.get('offersTelemetryFreq', ''),
-        triggersBE: prefs.get('triggersBE', ''),
-
-        // state from HumanWeb
         HWCheckUrlStatus: await this.deps.humanWeb.action('getURLCheckStatus', url)
           .catch(e => ({ message: e.message, stack: e.stack })),
         HWStatus: await this.deps.humanWeb.action(
@@ -107,6 +108,9 @@ export default background({
           { msg },
         ).catch(e => ({ message: e.message, stack: e.stack })),
         timestamp: prefs.get('config_ts', null),
+
+        // state for telemetry
+        telemetryStatus: await this.deps.telemetry.action('getTrk'),
       };
     },
     setPref(name, value, prefix) {
@@ -114,7 +118,7 @@ export default background({
       return true;
     },
     setEndpoints(address) {
-      ['RICH_HEADER', 'RESULTS_PROVIDER', 'RESULTS_PROVIDER_LOG', 'RESULTS_PROVIDER_PING']
+      ['RICH_HEADER', 'RESULTS_PROVIDER', 'RESULTS_PROVIDER_LOG']
         .forEach((endpoint) => {
           const parameters = getDetailsFromUrl(this.settings[endpoint]).extra;
           this.settings[endpoint] = `${_getFullURL(address)}${parameters}`;
@@ -144,6 +148,9 @@ export default background({
     },
     reloadExtension() {
       return this.deps.core.action('restart');
+    },
+    reloadOffers() {
+      return this.deps['offers-v2'].action('softReloadOffers');
     },
   },
 });

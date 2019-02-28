@@ -32,8 +32,8 @@ export default describeModule('offers-v2/offers/offers-db',
         return JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
       }
 
-      function waitForDBLoaded(db) {
-        return waitFor(() => db.dbLoaded, 'Database loaded');
+      async function waitForDBLoaded(db) {
+        await db.loadPersistentData();
       }
 
       beforeEach(async function () {
@@ -866,7 +866,7 @@ export default describeModule('offers-v2/offers/offers-db',
           });
 
           it('/reason: make js object from stored json', () => {
-            db.addReasonForHaving(offerID, { reason: ['smth'] });
+            db.addReasonForHaving(offerID, { toStorage: () => ({ reason: ['smth'] }) });
 
             const reasonObj = db.getReasonForHaving(offerID);
 

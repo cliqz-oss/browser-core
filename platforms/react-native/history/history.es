@@ -16,4 +16,11 @@ export default class {
   static fillFromVisit(url, triggeringUrl) {
     return history.fillFromVisit(url, triggeringUrl);
   }
+
+  static async stats() {
+    return {
+      size: -1,
+      days: -1
+    };
+  }
 }

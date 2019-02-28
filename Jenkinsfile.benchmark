@@ -1,0 +1,69 @@
+#!/bin/env groovy
+
+@Library('cliqz-shared-library@v1.2') _
+
+properties([
+    parameters([
+        string(name: 'CONFIG', defaultValue: 'browser.js'),
+    ]),
+])
+
+def setGithubCommitStatus(commit, status, message) {
+    withCredentials([[
+        $class: 'StringBinding',
+        credentialsId: '5d3e0a3c-2490-491b-8a67-aa5eab2f27f2',
+        variable: 'GITHUB_TOKEN'
+    ]]) {
+        github.setCommitStatus(
+            env.GITHUB_TOKEN,
+            'cliqz/navigation-extension',
+            commit,
+            'Benchmark',
+            status,
+            message
+        )
+    }
+}
+
+String triggeringCommitHash = github.getCommitHash()
+
+node('docker && !gpu && eu-central-1') {
+
+  def imgName = "cliqz/navigation-extension-benchmark"
+  def image
+
+  stage('checkout') {
+    setGithubCommitStatus(triggeringCommitHash, 'pending', 'pending')
+    checkout scm
+  }
+
+  stage('docker build') {
+    image = docker.build(imgName, '-f Dockerfile.benchmark .')
+  }
+
+  image.inside() {
+    withEnv(["CLIQZ_CONFIG_PATH=./configs/${params.CONFIG}"]) {
+      stage('fern build') {
+        sh 'cp -r /app/node_modules ./'
+        sh './fern.js build'
+      }
+
+      stage('benchmark') {
+        sh 'cp /app/benchmark/session.jl ./benchmarks/'
+        sh 'cd ./benchmarks && node run_benchmarks.js | tee results.txt'
+        // read cputime results
+        def cputime = sh(returnStdout: true, script: 'cat ./benchmarks/results.txt | grep -v \'=\' | jq .cputime | awk \'{ sum+=$1 } END { print sum }\'')
+        def memory = sh(returnStdout: true, script: 'cat ./benchmarks/results.txt | grep -v \'=\' | jq .memory | awk \'{ sum+=$1 } END { print sum }\'')
+        def summary = "CPU Time: ${(cputime as Double).round(2)}, Memory: ${((memory as Integer) / (5 * 1024 * 1024)) as Integer}MB"
+        currentBuild.description = summary
+        sh 'du -hs ./benchmarks/data/idb/*'
+        setGithubCommitStatus(triggeringCommitHash, 'success', summary)
+
+        sh "cat ./benchmarks/results.txt | node ./benchmarks/post_results.js ${triggeringCommitHash}"
+        // print diagnostics
+        sh 'cat ./benchmarks/diagnostics.jl | jq .'
+        sh 'rm -r ./benchmarks/data ./benchmarks/diagnostics.jl'
+      }
+    }
+  }
+}

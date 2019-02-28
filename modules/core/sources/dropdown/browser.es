@@ -18,7 +18,6 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
         height: 0,
         opened: false,
       },
-      lastResult: null,
     };
     this._shouldIgnoreNextBlur = false;
     this._sessionId = 0;
@@ -44,10 +43,6 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     return this._cache.dropdown;
   }
 
-  get lastResult() {
-    return this._cache.lastResult;
-  }
-
   _getSessionId() {
     return this._sessionId;
   }
@@ -57,8 +52,9 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   }
 
   _endSession() {
+    const { windowId } = this._urlbarDetails;
     this._incrementSessionId();
-    this._cliqz.search.action('resetAssistantStates');
+    this._cliqz.search.action('stopSearch', { contextId: windowId });
   }
 
   updateURLBarCache(details) {
@@ -90,7 +86,6 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   }
 
   _reportHighlight(result) {
-    this._cache.lastResult = result;
     this.selectedResult = result;
     this._cliqz.search.action('reportHighlight', result);
   }
@@ -160,6 +155,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
       selectionStart,
       selectionEnd,
       visibleValue: value,
+      searchString,
     } = this._urlbarDetails;
 
     if (newTab) {
@@ -170,12 +166,14 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     await omniboxapi.update({ value: href });
     await omniboxapi.enter(newTab);
     if (newTab) {
-      await omniboxapi.update({
+      await omniboxapi.updateMany([{
+        focused: true,
+      }, {
         value,
+        searchString,
         selectionStart,
         selectionEnd,
-      });
-      await omniboxapi.focus();
+      }]);
       this._shouldIgnoreNextBlur = false;
     } else {
       this._setHeight(0);
@@ -211,7 +209,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   }
 
   async _handleEnter(newTab = false) {
-    const query = this.selectedResult ? this.selectedResult.query : this._getQuery();
+    const query = this._getQuery();
     if (!query) {
       return;
     }
@@ -235,9 +233,12 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   _focus() {
     this.cancelClose();
     const { selectionStart, selectionEnd } = this._getSelectionRange();
-    return omniboxapi
-      .focus()
-      .then(() => omniboxapi.update({ selectionStart, selectionEnd }));
+    return omniboxapi.updateMany([{
+      focused: true,
+    }, {
+      selectionStart,
+      selectionEnd
+    }]);
   }
 
   _setUrlbarValue(value) {
@@ -296,11 +297,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   _closeTabsWithUrl(url) { return closeTabsWithUrl(url); }
 
   _getQuery() {
-    const query = this._urlbarDetails.value;
-    if (this.hasCompletion) {
-      return query.slice(0, this._urlbarDetails.selectionStart);
-    }
-    return query;
+    return this._urlbarDetails.searchString;
   }
 
   _getAssistantStates() {
@@ -313,21 +310,9 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   }
 
   _getMaxHeight() {
-    // TODO
+    // `omnibox2` experimental API takes care of managing height of the dropdown,
+    // so here we just set some big number.
     return 1e4;
-  }
-
-  removeFromHistoryAndBookmarks(url) {
-    Promise.all([
-      this._removeFromHistory(url),
-      this._removeFromBookmarks(url),
-    ])
-      .then(() => this._closeTabsWithUrl(url))
-      .then(() => {
-        const query = this.lastResult && this.lastResult.query;
-        return this._setUrlbarValue(query);
-      })
-      .then(() => this._queryCliqz());
   }
 
   onInput(details) {
@@ -347,6 +332,13 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     const defaultIsPrevented = ev.defaultPrevented;
     const defaultShouldBePrevented = super.onKeydown(ev);
     if (ev.code === 'ArrowLeft' || ev.code === 'ArrowRight') {
+      // In case when part of the urlbar value is selected (ex. autocompleted)
+      // pressing Left/Right resets selection.
+      // For some reason it does not change the searchString text.
+      // So here we sync searchString with urlbar visible value.
+      this._setURLBarDetails({
+        searchString: this._urlbarDetails.visibleValue,
+      });
       this.close();
     }
     if (defaultIsPrevented && !defaultShouldBePrevented) {

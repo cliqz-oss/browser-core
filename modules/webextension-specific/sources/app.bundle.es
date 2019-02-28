@@ -50,4 +50,11 @@ migratePrefs().then(() => {
   });
 });
 
-chrome.runtime.setUninstallURL(config.settings.UNINSTALL);
+const offboardingUrls = config.settings.offboardingURLs;
+
+if (offboardingUrls && offboardingUrls.en) {
+  const locale = chrome.i18n.getUILanguage();
+  // Use English as default
+  const offboardingUrl = offboardingUrls[locale] || offboardingUrls.en;
+  chrome.runtime.setUninstallURL(offboardingUrl);
+}

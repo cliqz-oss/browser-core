@@ -8,7 +8,7 @@ const base = require('./common/system');
 
 module.exports = {
   "platform": "webextension",
-  "brocfile": "Brocfile.node.js",
+  "brocfile": "Brocfile.ghostery-mobile.js",
   "baseURL": "/cliqz/",
   "pack": "npm pack",
   "publish": publish.toEdge('browser-core', 'ghostery-mobile'),
@@ -16,7 +16,7 @@ module.exports = {
   "versionPrefix": "7",
   "isMobile": true,
   "settings": Object.assign({}, urls, {
-    "channel": "CH80",
+    "channel": "MA50",
     "MSGCHANNEL": "web-extension",
     "OFFERS_CHANNEL": "ghostery",
     "ATTRACK_TELEMETRY_PROVIDER": "hpnv2",
@@ -34,6 +34,7 @@ module.exports = {
     "modules.antitracking.enabled": true,
     "modules.adblocker.enabled": true,
     "modules.insights.enabled": false,
+    "modules.webextension-specific.enabled": false,
     "showConsoleLogs": false,
     "cliqz-adb": true,
     "cliqz-adb-abtest": true,
@@ -47,10 +48,7 @@ module.exports = {
   },
   "bundles": [
     "core/content-script.bundle.js",
-    // mobile cards
-    "mobile-cards/debug.bundle.js",
     "mobile-cards/cliqz-android.bundle.js",
-    "cliqz-android/app.bundle.js",
     "cliqz-android/cliqz-search-engines.bundle.js",
     "cliqz-android/cliqz-native-bridge.bundle.js",
     "cliqz-android/cliqz-app-constants.bundle.js",
@@ -61,14 +59,16 @@ module.exports = {
     "webrequest-pipeline",
     "static",
     "adblocker",
-    "insights",
     "anolysis",
     // mobile cards
     "core-cliqz",
+    "abtests-legacy",
     "cliqz-android",
     "mobile-cards",
     "geolocation",
     "search",
+    "webextension-specific",
+    "telemetry",
   ],
   system: Object.assign({}, base.systemConfig, {
     map: Object.assign({}, base.systemConfig.map, {

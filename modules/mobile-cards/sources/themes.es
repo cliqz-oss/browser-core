@@ -16,9 +16,10 @@ export default {
       backgroundColor: 'rgba(0, 0, 0, 0.4)',
       headerBgColor: 'rgba(0, 0, 0, 0.7)',
       headerTxtColor: '#fff',
-      headerBorder: 0
+      headerBorder: 0,
+      borderColor: '#383D40',
     },
-    separatorColor: 'rgba(255, 255, 255, 0.5)',
+    separatorColor: '#383D40',
     highlightedBackgroundColor: 'rgba(0, 0, 0, 0.7)',
     textColor: '#ffffff',
     tapToCopyColor: '#ffffff',
@@ -69,7 +70,8 @@ export default {
       backgroundColor: 'rgba(255, 255, 255, 1)',
       headerBgColor: '#fff',
       headerTxtColor: '#000',
-      headerBorder: 0.5
+      headerBorder: 1.5,
+      borderColor: '#EDECEC'
     },
     separatorColor: '#EDECEC',
     highlightedBackgroundColor: 'rgba(255, 255, 255, 0.7)',

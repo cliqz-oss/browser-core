@@ -14,10 +14,11 @@ import inject from './kord/inject';
 import { queryCliqz, openLink, openTab, getOpenTabs, getReminders } from '../platform/browser-actions';
 import providesServices from './services';
 import { httpHandler } from './http';
-import { updateTab, closeTab, query } from './tabs';
+import { updateTab, closeTab, query, getCurrentTab } from './tabs';
 import { enableRequestSanitizer, disableRequestSanitizer } from './request-sanitizer';
 import { cleanMozillaActions } from './content/url';
-
+import ResourceLoader from './resource-loader';
+import { getResourceUrl } from './platform';
 
 let lastRequestId = 1;
 const callbacks = {};
@@ -234,12 +235,8 @@ export default background({
           return result;
         });
     },
-    sendTelemetry(...args) {
-      // Get rid of latest argument, which is the information about sender
-      if (args.length > 1) {
-        args.pop();
-      }
-      return Promise.resolve(utils.telemetry(...args));
+    sendTelemetry(signal, schema, instant) {
+      return Promise.resolve(utils.telemetry(signal, instant, schema));
     },
 
     refreshPopup(q = '') {
@@ -271,9 +268,12 @@ export default background({
       if (action === 'switchtab') {
         const [tab] = await query({ url: originalUrl });
         if (tab) {
+          const currentTab = await getCurrentTab();
           id = tab.id;
           updateTab(id, { active: true });
-          closeTab(tabId);
+          if (currentTab && currentTab.url === getResourceUrl(config.settings.NEW_TAB_URL)) {
+            closeTab(tabId);
+          }
           return;
         }
       }
@@ -360,6 +360,10 @@ export default background({
 
     refreshAppState() {
       this.mm.shareAppState(this.app);
+    },
+
+    reportResourceLoaders() {
+      return ResourceLoader.report();
     },
   },
 });

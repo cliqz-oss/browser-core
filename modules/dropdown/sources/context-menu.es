@@ -14,7 +14,7 @@ function reportClick(window, result, { isNewTab, isNewWindow, isPrivateWindow })
     url: result.url,
     query: result.query,
     rawResult: result,
-    isPrivateMode: utils.isPrivateMode(window),
+    isPrivateMode: isPrivateWindow,
     isPrivateResult: utils.isPrivateResultType(result.kind),
     isFromAutocompletedURL: false,
     windowId: utils.getWindowID(window),
@@ -31,7 +31,7 @@ export default class ContextMenu {
     this.core = inject.module('core');
     this.window = window;
     this.rootElement = rootElement;
-    this.inPrivateMode = utils.isPrivateMode(window);
+    this.inPrivateMode = utils.isPrivateMode(this.window);
     this.labels = this.getLabels();
   }
 
@@ -97,7 +97,7 @@ export default class ContextMenu {
         command: this._open.bind(this, url, result, 'open_new_tab', {
           isNewTab: true,
           isNewWindow: false,
-          isPrivateWindow: false,
+          isPrivateWindow: utils.isPrivateMode(this.window),
         }),
       },
       ...(this.inPrivateMode ? [] : [{
@@ -105,7 +105,7 @@ export default class ContextMenu {
         command: this._open.bind(this, url, result, 'open_new_window', {
           isNewTab: false,
           isNewWindow: true,
-          isPrivateWindow: false,
+          isPrivateWindow: utils.isPrivateMode(this.window),
         }),
       }]),
       {
@@ -113,7 +113,7 @@ export default class ContextMenu {
         command: this._open.bind(this, url, result, 'open_private_window', {
           isNewTab: false,
           isNewWindow: false,
-          isPrivateWindow: true,
+          isPrivateWindow: utils.isPrivateMode(this.window),
         }),
       },
       {

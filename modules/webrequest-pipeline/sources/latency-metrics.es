@@ -136,7 +136,7 @@ export default class Latency {
     }));
 
     this.resetTimings();
-    await inject.service('telemetry').push(
+    await inject.service('telemetry', ['push']).push(
       histogramsMetric,
       'metrics.performance.webrequest-pipeline.timings',
     );
