@@ -6,10 +6,11 @@ const packageName = 'cliqz';
 const channel = 'browser_pre';
 const artifactUrlPrefix = publish.edgeLatestUrl(channel);
 const updateS3Url = `${publish.edgeLatestS3Url(channel)}updates.json`;
-const updateUrl = `${artifactUrlPrefix}updates.json`;
+const updateUrl = 'https://s3.amazonaws.com/cdncliqz/update/browser/updates.json';
 const artifactUrl = `${artifactUrlPrefix}latest.xpi`;
 
 module.exports = Object.assign({}, configBase, {
+  updateURL: updateUrl,
   sign: 'python ./xpi-sign/xpisign.py -k $CLIQZ_CERT_PATH --signer openssl --passin file:$CLIQZ_CERT_PASS_PATH '+packageName+'-$VERSION.zip '+packageName+'-$PACKAGE_VERSION.xpi',
   publish: `${publish.toPrereleaseFullName(packageName, channel, 'cliqz', 'xpi')} && \
      aws s3 cp build/updates.json ${updateS3Url} --acl public-read && \

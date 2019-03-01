@@ -235,7 +235,7 @@ export default background({
           return result;
         });
     },
-    sendTelemetry(signal, schema, instant) {
+    sendTelemetry(signal, instant, schema) {
       return Promise.resolve(utils.telemetry(signal, instant, schema));
     },
 
