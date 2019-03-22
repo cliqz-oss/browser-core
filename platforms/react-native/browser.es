@@ -77,6 +77,11 @@ export function getCookies() {
 }
 
 export class Window {
+  static _window = {};
+
+  static findByTabId() {
+    return this._window;
+  }
 }
 
 export function isDefaultBrowser() {

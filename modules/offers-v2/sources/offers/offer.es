@@ -171,6 +171,7 @@ export default class Offer {
     this._geo = null;
     this._filterRules = null;
     this._blackListPatterns = null;
+    this._hasDynamicContent = false;
   }
 
   isValid() {
@@ -298,6 +299,14 @@ export default class Offer {
     return Boolean(this.offerObj.targeted);
   }
 
+  shouldShowDynamicOffer() {
+    return this.offerObj.show_dynamic_offer || true;
+  }
+
+  hasDynamicContent() {
+    return this._hasDynamicContent;
+  }
+
   /**
    * The offer's reward will be based on eCPM (effective cost per mille).
    * At the moment, it is based on manually set display priority.
@@ -336,5 +345,12 @@ export default class Offer {
 
   setPictureDataurl(dataurl) {
     this.offerObj.ui_info.template_data.picture_dataurl = dataurl;
+  }
+
+  setDynamicContent(productPictureUrl, productCtaUrl) {
+    this.offerObj.ui_info.template_data.picture_url = productPictureUrl;
+    this.offerObj.ui_info.template_data.picture_dataurl = undefined;
+    this.offerObj.ui_info.template_data.call_to_action.url = productCtaUrl;
+    this._hasDynamicContent = true;
   }
 }

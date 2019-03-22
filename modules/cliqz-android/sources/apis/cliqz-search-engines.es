@@ -1,5 +1,5 @@
 /* globals ChromeUtils, ExtensionAPI */
-ChromeUtils.import('resource://gre/modules/Services.jsm');
+const { Services } = ChromeUtils.import('resource://gre/modules/Services.jsm');
 
 function toSerializable(engine) {
   const queryPlaceholder = 'XXXXXX';

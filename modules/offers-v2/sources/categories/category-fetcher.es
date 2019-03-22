@@ -140,19 +140,16 @@ export default class CategoryFetcher {
    * Will update the list of categories using the result from the backend
    */
   _updateCategories(categories) {
-    let shouldRebuild = false;
-    for (let i = 0; i < categories.length; i += 1) {
-      const category = buildCategoryFromJSON(categories[i]);
-      if (category) {
-        // this method will check if the category is new or should be updated
-        this.categoryHandler.addCategory(category);
-        shouldRebuild = true;
-      } else {
-        logger.error('Invalid category from BE?', category);
+    function* categoriesIterator() {
+      for (const jsonCategory of categories) {
+        const category = buildCategoryFromJSON(jsonCategory);
+        if (category) {
+          yield category;
+        } else {
+          logger.error('Invalid category from BE:', category);
+        }
       }
     }
-    if (shouldRebuild) {
-      this.categoryHandler.build();
-    }
+    this.categoryHandler.syncCategories(categoriesIterator());
   }
 }

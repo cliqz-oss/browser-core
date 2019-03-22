@@ -1,87 +1,135 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import CustomPref from './partials/custom-pref';
+import NumericInput from './partials/numeric-input';
 import Row from './partials/row';
 import Switch from './partials/switch';
+import TableHeader from './partials/table-header';
 import TextInput from './partials/text-input';
 
 const radioPrefList = [
-  { shortName: 'developer', name: 'developer', prefix: 'extensions.cliqz.' },
-  { shortName: 'extensionsLegacyEnabled', name: 'enabled', prefix: 'extensions.legacy.' },
-  { shortName: 'offersDevFlag', name: 'offersDevFlag', prefix: 'extensions.cliqz.' },
-  { shortName: 'offersLoadSignalsFromDB', name: 'offersLoadSignalsFromDB', prefix: 'extensions.cliqz.' },
-  { shortName: 'offersLogsEnabled', name: 'offersLogsEnabled', prefix: 'extensions.cliqz.' },
-  { shortName: 'signaturesRequired', name: 'required', prefix: 'xpinstall.signatures.' },
-  { shortName: 'showConsoleLogs', name: 'showConsoleLogs', prefix: 'extensions.cliqz.' },
+  'developer',
+  'offersDevFlag',
+  'offersLoadSignalsFromDB',
+  'offersLogsEnabled',
+  'showConsoleLogs',
 ];
 
 const textPrefList = [
-  { shortName: 'configLocation', name: 'config_location', prefix: 'extensions.cliqz.' },
-  { shortName: 'loggerLevel', name: 'logger.offers-v2.level', prefix: 'extensions.cliqz.' },
-  { shortName: 'offersTelemetryFreq', name: 'offersTelemetryFreq', prefix: 'extensions.cliqz.', type: 'number' },
-  { shortName: 'triggersBE', name: 'triggersBE', prefix: 'extensions.cliqz.' },
+  'config_location',
+  'logger.offers-v2.level',
+  'triggersBE',
 ];
 
-function Preferences({
-  cliqz,
-  preferencesStatus,
-  syncState,
-}) {
-  const setPref = async ({ name, value, prefix }) => {
-    await cliqz.setPref(name, value, prefix);
-    await syncState();
+const numericPrefList = [
+  'offersTelemetryFreq',
+];
+
+class Preferences extends React.Component {
+  state = {
+    preferencesStatus: {
+      configLocation: '',
+      developer: false,
+      extensionsLegacyEnabled: false,
+      loggerLevel: 'debug',
+      offersDevFlag: false,
+      offersLoadSignalsFromDB: true,
+      offersLogsEnabled: false,
+      offersTelemetryFreq: 10,
+      showConsoleLogs: false,
+      signaturesRequired: false,
+      triggersBE: '',
+    },
+  }
+
+  componentDidMount() {
+    this.syncState();
+  }
+
+  syncState = async () => {
+    const newState = await this.props.cliqz.getPreferencesState();
+    this.setState(newState);
+  }
+
+  setPref = async ({ name, value }) => {
+    await this.props.cliqz.setPref(name, value);
+    await this.syncState();
   };
 
-  const onTextInputChange = async ({ event, name, prefix, isNumber }) => {
-    const value = isNumber ? parseInt(event.target.value, 10) : event.target.value;
-    await setPref({ name, value, prefix });
+  onTextInputChange = async ({ value, name }) => {
+    await this.setPref({ name, value });
   };
 
-  const renderRadioPrefList = () => radioPrefList.map(pref => (
-    <Row key={pref.shortName}>
-      {`${pref.shortName}:`}
+  renderRadioPrefList = () => radioPrefList.map(pref => (
+    <Row key={pref}>
+      {`${pref}:`}
 
       <Switch
-        toggleComponent={ev => setPref({
-          name: pref.name,
+        toggleComponent={ev => this.setPref({
+          name: pref,
           value: ev.target.checked,
-          prefix: pref.prefix
         })}
-        isChecked={preferencesStatus[pref.shortName]}
+        isChecked={Boolean(this.state.preferencesStatus[pref])}
       />
     </Row>
   ));
 
-  const renderTextPrefList = () => textPrefList.map(pref => (
-    <Row key={pref.shortName}>
-      {`${pref.shortName}:`}
+  renderTextPrefList = () => textPrefList.map(pref => (
+    <Row key={pref}>
+      {`${pref}:`}
 
       <TextInput
-        onTextChange={event => onTextInputChange({
-          event,
-          name: pref.name,
-          prefix: pref.prefix,
-          isNumber: pref.type === 'number'
+        onTextChange={value => this.onTextInputChange({
+          value,
+          name: pref,
         })}
-        textInputValue={preferencesStatus[pref.shortName]}
+        textInputValue={this.state.preferencesStatus[pref]}
       />
     </Row>
   ));
 
-  return (
-    <table>
-      <tbody>
-        {renderRadioPrefList()}
-        {renderTextPrefList()}
-      </tbody>
-    </table>
-  );
+  renderNumericPrefList = () => numericPrefList.map(pref => (
+    <Row key={pref}>
+      {`${pref}:`}
+
+      <NumericInput
+        minValue={1}
+        onNumberChange={value => this.onTextInputChange({
+          value: parseInt(value, 10),
+          name: pref,
+        })}
+        textInputValue={this.state.preferencesStatus.offersTelemetryFreq}
+      />
+    </Row>
+  ));
+
+  render() {
+    return (
+      <div>
+        <table>
+          <CustomPref
+            setPref={this.setPref}
+          />
+        </table>
+
+        <table>
+          <tbody>
+            <TableHeader
+              header="Other preferences:"
+            />
+            {this.renderRadioPrefList()}
+            {this.renderTextPrefList()}
+            {this.renderNumericPrefList()}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
 }
 
 Preferences.propTypes = {
   cliqz: PropTypes.object.isRequired,
-  preferencesStatus: PropTypes.object.isRequired,
-  syncState: PropTypes.func.isRequired,
 };
 
 export default Preferences;

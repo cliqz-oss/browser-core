@@ -5,7 +5,8 @@
 // "url" specifies the input url
 // "url_parts" specifies the expected output values
 
-const fastUrlParser = require('fast-url-parser');
+const tldts = require('tldts');
+const punycode = require('punycode');
 
 const plainUrls = [
   {
@@ -18,7 +19,6 @@ const plainUrls = [
       query: '',
       query_keys: {},
       password: '',
-      port: 80
     }
   },
   {
@@ -31,7 +31,6 @@ const plainUrls = [
       query: '',
       query_keys: {},
       password: '',
-      port: 80
     }
   },
   {
@@ -44,7 +43,6 @@ const plainUrls = [
       query: '',
       query_keys: {},
       password: '',
-      port: 80
     }
   }];
 
@@ -107,7 +105,6 @@ const queryStrings = [
         impl: 'ss'
       },
       password: '',
-      port: 80
     }
   },
   {
@@ -122,7 +119,6 @@ const queryStrings = [
         confid: 'JZh7-1tL'
       },
       password: '',
-      port: 80
     }
   },
   {
@@ -161,7 +157,6 @@ const queryStrings = [
         ns_c: 'UTF-8'
       },
       password: '',
-      port: 80
     }
   },
   {
@@ -178,7 +173,6 @@ const queryStrings = [
         ru: 'http://ar.atwola.com/atd?it=7&iv=<na_di>&at=8&av=<na_di2>&ds=7&ed=<na_da>&rand=799496'
       },
       password: '',
-      port: 80
     }
   },
   {
@@ -189,14 +183,13 @@ const queryStrings = [
       hostname: 'tags.bluekai.com',
       path: '/site/19275',
       query: 'ret=html&phint=page=Mashable&phint=channel=home&phint=prop2=Channel',
-      query_keys: {
-        ret: 'html',
-        phint_page: 'Mashable',
-        phint_channel: 'home',
-        phint_prop2: 'Channel'
-      },
+      searchParams: [
+        ['ret', 'html'],
+        ['phint', 'page=Mashable'],
+        ['phint', 'channel=home'],
+        ['phint', 'prop2=Channel']
+      ],
       password: '',
-      port: 80
     }
   },
   {
@@ -215,82 +208,6 @@ const queryStrings = [
         gclsrc: 'aw.ds'
       },
       password: '',
-      port: 80
-    }
-  },
-  {
-    url: 'https://tracker.vinsight.de/?vidat={"pv":{"do":"www.holidaycheck.de","ct":"text/html","coe":1,"t":1453725889168,"r":{"pr":":","do":"","pa":"","si":"","ps":{}},"w":2560,"h":1440,"pvs":3,"u":{"pr":"https:","do":"www.holidaycheck.de","pa":"","si":"","ps":{}},"dt":"HolidayCheck • Hotels & Reisen mit Hotelbewertungen günstig buchen"},"ev":{"page_view":1},"pcid":"holidaycheck","mandant":0,"vv":{"lcid":"fvslb2cgh3i0pgyfqkqu","cid":"1453710819346:IcwnLFRl","jsid":"1453710819346:IcwnLFRl"}}',
-    url_parts: {
-      username: '',
-      protocol: 'https',
-      hostname: 'tracker.vinsight.de',
-      path: '/',
-      query: 'vidat={"pv":{"do":"www.holidaycheck.de","ct":"text/html","coe":1,"t":1453725889168,"r":{"pr":":","do":"","pa":"","si":"","ps":{}},"w":2560,"h":1440,"pvs":3,"u":{"pr":"https:","do":"www.holidaycheck.de","pa":"","si":"","ps":{}},"dt":"HolidayCheck • Hotels & Reisen mit Hotelbewertungen günstig buchen"},"ev":{"page_view":1},"pcid":"holidaycheck","mandant":0,"vv":{"lcid":"fvslb2cgh3i0pgyfqkqu","cid":"1453710819346:IcwnLFRl","jsid":"1453710819346:IcwnLFRl"}}',
-      query_keys:
-        {
-          vidatpvdo: 'www.holidaycheck.de',
-          vidatpvct: 'text/html',
-          vidatpvcoe: '1',
-          vidatpvt: '1453725889168',
-          vidatpvrpr: ':',
-          vidatpvrdo: '',
-          vidatpvrpa: '',
-          vidatpvrsi: '',
-          vidatpvw: '2560',
-          vidatpvh: '1440',
-          vidatpvpvs: '3',
-          vidatpvupr: 'https:',
-          vidatpvudo: 'www.holidaycheck.de',
-          vidatpvupa: '',
-          vidatpvusi: '',
-          vidatpvdt: 'HolidayCheck • Hotels & Reisen mit Hotelbewertungen günstig buchen',
-          vidatevpage_view: '1',
-          vidatpcid: 'holidaycheck',
-          vidatmandant: '0',
-          vidatvvlcid: 'fvslb2cgh3i0pgyfqkqu',
-          vidatvvcid: '1453710819346:IcwnLFRl',
-          vidatvvjsid: '1453710819346:IcwnLFRl'
-        },
-      password: '',
-      port: 80
-    }
-  },
-  {
-    url: 'http://tracker.vinsight.de/?vidat=%7B%22pv%22%3A%7B%22do%22%3A%22www.chip.de%22%2C%22ct%22%3A%22text%2Fhtml%22%2C%22coe%22%3A1%2C%22t%22%3A1454677726037%2C%22r%22%3A%7B%22pr%22%3A%22%3A%22%2C%22do%22%3A%22%22%2C%22pa%22%3A%22%22%2C%22si%22%3A%22%22%2C%22ps%22%3A%7B%7D%7D%2C%22w%22%3A2560%2C%22h%22%3A1440%2C%22pvs%22%3A21%2C%22s1%22%3A%22CHIP%20-%20Homepage%22%2C%22u%22%3A%7B%22pr%22%3A%22http%3A%22%2C%22do%22%3A%22www.chip.de%22%2C%22pa%22%3A%22%22%2C%22si%22%3A%22%22%2C%22ps%22%3A%7B%7D%7D%2C%22dt%22%3A%22CHIP%20-%20Deutschlands%20Webseite%20Nr.%201%20f%C3%BCr%20Computer%2C%20Handy%20und%20Home%20Entertainment%22%7D%2C%22ev%22%3A%7B%22page_view%22%3A1%7D%2C%22pcid%22%3A%22chip%22%2C%22mandant%22%3A0%2C%22vv%22%3A%7B%22lcid%22%3A%224qmzpt3d49zqrq3mk95o%22%2C%22cid%22%3A%221453710819346%3AIcwnLFRl%22%2C%22jsid%22%3A%221453710819346%3AIcwnLFRl%22%7D%7D',
-    url_parts: {
-      username: '',
-      protocol: 'http',
-      hostname: 'tracker.vinsight.de',
-      path: '/',
-      query: 'vidat=%7B%22pv%22%3A%7B%22do%22%3A%22www.chip.de%22%2C%22ct%22%3A%22text%2Fhtml%22%2C%22coe%22%3A1%2C%22t%22%3A1454677726037%2C%22r%22%3A%7B%22pr%22%3A%22%3A%22%2C%22do%22%3A%22%22%2C%22pa%22%3A%22%22%2C%22si%22%3A%22%22%2C%22ps%22%3A%7B%7D%7D%2C%22w%22%3A2560%2C%22h%22%3A1440%2C%22pvs%22%3A21%2C%22s1%22%3A%22CHIP%20-%20Homepage%22%2C%22u%22%3A%7B%22pr%22%3A%22http%3A%22%2C%22do%22%3A%22www.chip.de%22%2C%22pa%22%3A%22%22%2C%22si%22%3A%22%22%2C%22ps%22%3A%7B%7D%7D%2C%22dt%22%3A%22CHIP%20-%20Deutschlands%20Webseite%20Nr.%201%20f%C3%BCr%20Computer%2C%20Handy%20und%20Home%20Entertainment%22%7D%2C%22ev%22%3A%7B%22page_view%22%3A1%7D%2C%22pcid%22%3A%22chip%22%2C%22mandant%22%3A0%2C%22vv%22%3A%7B%22lcid%22%3A%224qmzpt3d49zqrq3mk95o%22%2C%22cid%22%3A%221453710819346%3AIcwnLFRl%22%2C%22jsid%22%3A%221453710819346%3AIcwnLFRl%22%7D%7D',
-      query_keys:
-        {
-          vidatpvdo: 'www.chip.de',
-          vidatpvct: 'text/html',
-          vidatpvcoe: '1',
-          vidatpvt: '1454677726037',
-          vidatpvrpr: ':',
-          vidatpvrdo: '',
-          vidatpvrpa: '',
-          vidatpvrsi: '',
-          vidatpvw: '2560',
-          vidatpvh: '1440',
-          vidatpvpvs: '21',
-          vidatpvs1: 'CHIP - Homepage',
-          vidatpvupr: 'http:',
-          vidatpvudo: 'www.chip.de',
-          vidatpvupa: '',
-          vidatpvusi: '',
-          vidatpvdt: 'CHIP - Deutschlands Webseite Nr. 1 für Computer, Handy und Home Entertainment',
-          vidatevpage_view: '1',
-          vidatpcid: 'chip',
-          vidatmandant: '0',
-          vidatvvlcid: '4qmzpt3d49zqrq3mk95o',
-          vidatvvcid: '1453710819346:IcwnLFRl',
-          vidatvvjsid: '1453710819346:IcwnLFRl'
-        },
-      password: '',
-      port: 80
     }
   },
   {
@@ -300,99 +217,14 @@ const queryStrings = [
       hostname: 'pix04.revsci.net',
       path: '/F09828/b3/Z/3/120814/588347998.js',
       query: 'D=DM_LOC%3Dhttp%253A%252F%252Fwww.eltern.de%252F%253Fbpid%253Dgrunerjahr%2526_rsiL%253D0%26DM_EOM%3D1&C=F09828&asidi=cliqz.com/tracking&asidi=V6roVyy38IZUh0ZkC_jXhw',
-      query_keys: {
-        D: 'DM_LOC=http%3A%2F%2Fwww.eltern.de%2F%3Fbpid%3Dgrunerjahr%26_rsiL%3D0&DM_EOM=1',
-        C: 'F09828',
-        asidi: ['cliqz.com/tracking', 'V6roVyy38IZUh0ZkC_jXhw']
-      },
+      searchParams: [
+        ['D', 'DM_LOC=http%3A%2F%2Fwww.eltern.de%2F%3Fbpid%3Dgrunerjahr%26_rsiL%3D0&DM_EOM=1'],
+        ['C', 'F09828'],
+        ['asidi', 'cliqz.com/tracking'],
+        ['asidi', 'V6roVyy38IZUh0ZkC_jXhw'],
+      ],
       username: '',
       password: '',
-      port: 80,
-    }
-  },
-  {
-    url: 'http://tags.bluekai.com/site/19275?ret=html&phint=page=Mashable&phint=channel=home&phint=prop2=Channel&phint=test',
-    url_parts: {
-      username: '',
-      protocol: 'http',
-      hostname: 'tags.bluekai.com',
-      path: '/site/19275',
-      query: 'ret=html&phint=page=Mashable&phint=channel=home&phint=prop2=Channel&phint=test',
-      query_keys: {
-        ret: 'html',
-        phint_page: 'Mashable',
-        phint_channel: 'home',
-        phint_prop2: 'Channel',
-        phint: 'test',
-      },
-      password: '',
-      port: 80
-    }
-  },
-  {
-    url: 'https://dt.adsafeprotected.com/dt?anId=10188&asId=27c4f36f-5782-faba-b692-01afc4311473&tv={c:783epK,pingTime:-2,time:754,type:a,sca:{dfp:{df:4,sz:300.250,dom:body}},env:{sf:0,pom:1},rt:1,cb:0,th:0,es:0,sa:1,sc:0,ha:1,gm:0,fif:0,slTimes:{i:755,o:0,n:0,pp:0,pm:0},slEvents:[{sl:i,t:77,wc:35.72.1349.1098,ac:1040.596.300.250,am:i,cc:35.72.300.250,piv:100,obst:0,th:0,reas:,cmps:1,bkn:{piv:[747~100],as:[747~300.250]}}],slEventCount:1,em:true,fr:true,uf:0,e:,tt:jload,dtt:0,fm:qe8t0Om+11|12|13|14|15.10249|151|16*.10188|1611,idMap:16*,pd:iAJH.Flash Player,slid:[google_ads_iframe_/59666047/theguardian.com/politics/article/ng_1,google_ads_iframe_/59666047/theguardian.com/politics/article/ng_1__container__,dfp-ad--right,article],sinceFw:670,readyFired:true}&br=g',
-    url_parts: {
-      hostname: 'dt.adsafeprotected.com',
-      protocol: 'https',
-      path: '/dt',
-      query: 'anId=10188&asId=27c4f36f-5782-faba-b692-01afc4311473&tv={c:783epK,pingTime:-2,time:754,type:a,sca:{dfp:{df:4,sz:300.250,dom:body}},env:{sf:0,pom:1},rt:1,cb:0,th:0,es:0,sa:1,sc:0,ha:1,gm:0,fif:0,slTimes:{i:755,o:0,n:0,pp:0,pm:0},slEvents:[{sl:i,t:77,wc:35.72.1349.1098,ac:1040.596.300.250,am:i,cc:35.72.300.250,piv:100,obst:0,th:0,reas:,cmps:1,bkn:{piv:[747~100],as:[747~300.250]}}],slEventCount:1,em:true,fr:true,uf:0,e:,tt:jload,dtt:0,fm:qe8t0Om+11|12|13|14|15.10249|151|16*.10188|1611,idMap:16*,pd:iAJH.Flash Player,slid:[google_ads_iframe_/59666047/theguardian.com/politics/article/ng_1,google_ads_iframe_/59666047/theguardian.com/politics/article/ng_1__container__,dfp-ad--right,article],sinceFw:670,readyFired:true}&br=g',
-      query_keys: {
-        anId: '10188',
-        asId: '27c4f36f-5782-faba-b692-01afc4311473',
-        tvc: '783epK',
-        tvpingTime: '-2',
-        tvtime: '754',
-        tvtype: 'a',
-        tvscadfpdf: '4',
-        tvscadfpsz: '300.250',
-        tvscadfpdom: 'body',
-        tvenvsf: '0',
-        tvenvpom: '1',
-        tvrt: '1',
-        tvcb: '0',
-        tvth: '0',
-        tves: '0',
-        tvsa: '1',
-        tvsc: '0',
-        tvha: '1',
-        tvgm: '0',
-        tvfif: '0',
-        tvslTimesi: '755',
-        tvslTimeso: '0',
-        tvslTimesn: '0',
-        tvslTimespp: '0',
-        tvslTimespm: '0',
-        tvslEvents0sl: 'i',
-        tvslEvents0t: '77',
-        tvslEvents0wc: '35.72.1349.1098',
-        tvslEvents0ac: '1040.596.300.250',
-        tvslEvents0am: 'i',
-        tvslEvents0cc: '35.72.300.250',
-        tvslEvents0piv: '100',
-        tvslEvents0obst: '0',
-        tvslEvents0reas: '',
-        tvslEvents0th: '0',
-        tvslEvents0cmps: '1',
-        tvslEvents0bknpiv0: '747~100',
-        tvslEvents0bknas0: '747~300.250',
-        tvslEventCount: '1',
-        tvem: 'true',
-        tvfr: 'true',
-        tvuf: '0',
-        tve: '',
-        tvtt: 'jload',
-        tvdtt: '0',
-        tvfm: 'qe8t0Om+11|12|13|14|15.10249|151|16*.10188|1611',
-        tvidMap: '16*',
-        tvpd: 'iAJH.Flash Player',
-        tvslid0: 'google_ads_iframe_/59666047/theguardian.com/politics/article/ng_1',
-        tvslid1: 'google_ads_iframe_/59666047/theguardian.com/politics/article/ng_1__container__',
-        tvslid2: 'dfp-ad--right',
-        tvslid3: 'article',
-        tvsinceFw: '670',
-        tvreadyFired: 'true',
-        br: 'g',
-      },
     }
   },
   {
@@ -479,7 +311,7 @@ const parameters = [
       username: '',
       protocol: 'http',
       hostname: 'pixel.quantserve.com',
-      path: '/pixel',
+      path: '/pixel;r=1275226977;a=p-3aud4J6uA4Z6Y;labels=verticalHP.index;fpan=0;fpa=P0-113403507-1437990328261;ns=0;ce=1;cm=;je=0;sr=1440x900x24;enc=n;dst=1;et=1438251870170;tzo=-120;ref=;url=http%3A%2F%2Fwww.buzzfeed.com%2F;ogl=site_name.BuzzFeed%2Ctype.website%2Cdescription.BuzzFeed%20has%20the%20hottest%252C%20most%20social%20content%20on%20the%20web%252E%20We%20feature%20breaking%20bu%2Ctitle.BuzzFeed%2Cimage.http%3A%2F%2Fs3-ak%252Ebuzzfed%252Ecom%2Fstatic%2Fimages%2Fglobal%2Fbuzzfeed%252Ejpg%3Fv%3D201507291520%2Curl.http%3A%2F%2Fwww%252Ebuzzfeed%252Ecom',
       parameters: 'r=1275226977;a=p-3aud4J6uA4Z6Y;labels=verticalHP.index;fpan=0;fpa=P0-113403507-1437990328261;ns=0;ce=1;cm=;je=0;sr=1440x900x24;enc=n;dst=1;et=1438251870170;tzo=-120;ref=;url=http%3A%2F%2Fwww.buzzfeed.com%2F;ogl=site_name.BuzzFeed%2Ctype.website%2Cdescription.BuzzFeed%20has%20the%20hottest%252C%20most%20social%20content%20on%20the%20web%252E%20We%20feature%20breaking%20bu%2Ctitle.BuzzFeed%2Cimage.http%3A%2F%2Fs3-ak%252Ebuzzfed%252Ecom%2Fstatic%2Fimages%2Fglobal%2Fbuzzfeed%252Ejpg%3Fv%3D201507291520%2Curl.http%3A%2F%2Fwww%252Ebuzzfeed%252Ecom',
       parameter_keys: {
         r: '1275226977',
@@ -503,7 +335,6 @@ const parameters = [
       query: '',
       query_keys: {},
       password: '',
-      port: 80
     }
   },
 ];
@@ -518,13 +349,12 @@ const fragments = [
       path: '/js/250/addthis_widget.js',
       query: '',
       query_keys: {},
-      fragment: 'async=1&username=wettercom',
+      fragment: '#async=1&username=wettercom',
       fragment_keys: {
         async: '1',
         username: 'wettercom'
       },
       password: '',
-      port: 80
     }
   }];
 
@@ -540,13 +370,12 @@ const combined = [
       query_keys: {
         parent: 'http://www.buzzfeed.com'
       },
-      fragment: 'rpctoken=797034019&forcesecure=1',
+      fragment: '#rpctoken=797034019&forcesecure=1',
       fragment_keys: {
         rpctoken: '797034019',
         forcesecure: '1'
       },
       password: '',
-      port: 80
     }
   },
   {
@@ -560,12 +389,11 @@ const combined = [
       query_keys: {
         d_nsid: '0'
       },
-      fragment: 'http%3A%2F%2Fwww.adobe.com%2F%23',
+      fragment: '#http%3A%2F%2Fwww.adobe.com%2F%23',
       fragment_keys: {
         'http%3A%2F%2Fwww.adobe.com%2F%23': 'true'
       },
       password: '',
-      port: 80
     }
   },
   {
@@ -575,8 +403,8 @@ const combined = [
       username: 'myname',
       password: 'mypassword',
       hostname: 'example.com',
-      port: 81,
-      path: '/some/path',
+      port: '81',
+      path: '/some/path;with=parameters;howmany=2',
       parameters: 'with=parameters;howmany=2',
       parameter_keys: {
         with: 'parameters',
@@ -586,7 +414,7 @@ const combined = [
       query_keys: {
         also: 'query'
       },
-      fragment: 'andfinally=fragment',
+      fragment: '#andfinally=fragment',
       fragment_keys: {
         andfinally: 'fragment'
       }
@@ -612,7 +440,7 @@ const special = [{
       parent: 'https://www.blogger.com',
       jsh: 'm;/_/scs/apps-static/_/js/k=oz.gapi.de.qTommvXNk3Y.O/m=__features__/am=AQ/rt=j/d=1/rs=AGLTcCPFQTY3xyU4E7vwFYmIgrjbG0BFEA',
     },
-    fragment: 'rpctoken=686210141&forcesecure=1',
+    fragment: '#rpctoken=686210141&forcesecure=1',
     fragment_keys: {
       rpctoken: '686210141',
       forcesecure: '1'
@@ -625,7 +453,7 @@ const emptyParts = {
   username: '',
   password: '',
   hostname: '',
-  port: 80,
+  port: '',
   path: '',
   parameters: '',
   parameter_keys: {},
@@ -642,10 +470,10 @@ const keyValueTestCases = [{
 }, {
   url: 'http://pix04.revsci.net/F09828/b3/Z/3/120814/588347998.js?D=DM_LOC%3Dhttp%253A%252F%252Fwww.eltern.de%252F%253Fbpid%253Dgrunerjahr%2526_rsiL%253D0%26DM_EOM%3D1&C=F09828&asidi=cliqz.com/tracking&asidi=V6roVyy38IZUh0ZkC_jXhw',
   expectedKv: [
-    { k: 'D', v: 'DM_LOC=http%3A%2F%2Fwww.eltern.de%2F%3Fbpid%3Dgrunerjahr%26_rsiL%3D0&DM_EOM=1' },
-    { k: 'C', v: 'F09828' },
-    { k: 'asidi', v: 'cliqz.com/tracking' },
-    { k: 'asidi', v: 'V6roVyy38IZUh0ZkC_jXhw' },
+    ['D', 'DM_LOC=http%3A%2F%2Fwww.eltern.de%2F%3Fbpid%3Dgrunerjahr%26_rsiL%3D0&DM_EOM=1'],
+    ['C', 'F09828'],
+    ['asidi', 'cliqz.com/tracking'],
+    ['asidi', 'V6roVyy38IZUh0ZkC_jXhw'],
   ]
 }];
 
@@ -660,36 +488,12 @@ function fillInSpec(spec) {
 export default describeModule('core/url-info',
   () => ({
     'core/helpers/md5': {},
-    'core/tlds': {
-      getGeneralDomain() {}
+    'platform/lib/tldts': tldts,
+    'platform/lib/punycode': {
+      default: punycode,
     },
-    'core/fast-url-parser': {
-      default: fastUrlParser
-    }
   }),
   () => {
-    describe('CliqzAttrack.parseURL', function () {
-      let testFn;
-
-      beforeEach(function () {
-        testFn = this.module().parseURL;
-      });
-
-      describe('invalid inputs', function () {
-        it('null: should throw exception', function () {
-          chai.expect(function () { return testFn(null); }).to.throw;
-        });
-        it('empty string: should return null', function () {
-          chai.expect(testFn('')).to.be.null;
-        });
-        ['http://', 'example.com', '/path/to/index.html'].forEach(function (url) {
-          it(`${url}: should return null`, function () {
-            chai.expect(testFn(url)).to.be.null;
-          });
-        });
-      });
-    });
-
     describe('URLInfo', () => {
       let urlInfo;
 
@@ -705,17 +509,45 @@ export default describeModule('core/url-info',
             it(urlDesc, function () {
               const expected = fillInSpec(testcase.url_parts);
               const actual = urlInfo.get(testcase.url);
-              Object.keys(expected).forEach((attr) => {
-                chai.expect(actual[attr]).to.deep.equal(expected[attr]);
-              });
-              // chai.expect(testFn(testcase['url'])).to.deep.equal();
+              chai.expect(actual.protocol).to.equal(`${expected.protocol}:`);
+              chai.expect(actual.username).to.equal(expected.username);
+              chai.expect(actual.password).to.equal(expected.password);
+              chai.expect(actual.hostname).to.equal(expected.hostname);
+              chai.expect(actual.port).to.equal(expected.port);
+              chai.expect(actual.pathname).to.equal(expected.path);
+              if (expected.query) {
+                chai.expect(actual.search).to.equal(`?${expected.query}`);
+              } else {
+                chai.expect(actual.search).to.equal('');
+              }
+              chai.expect(actual.hash).to.equal(expected.fragment);
+
+              if (expected.searchParams) {
+                chai.expect(actual.searchParams.params.length, 'detected QS values').to.equal(expected.searchParams.length);
+                let i = 0;
+                for (const [k, v] of actual.searchParams.entries()) {
+                  chai.expect(k).to.equal(expected.searchParams[i][0]);
+                  chai.expect(v).to.equal(expected.searchParams[i][1]);
+                  i += 1;
+                }
+              } else {
+                // legacy spec using object
+                chai.expect(actual.searchParams.params.length, 'detected QS values').to.equal(Object.keys(expected.query_keys).length);
+                chai.expect(actual.parameters.params.length, 'detected PS values').to.equal(Object.keys(expected.parameter_keys).length);
+
+                for (const [k, v] of actual.searchParams.entries()) {
+                  chai.expect(v).to.equal(expected.query_keys[k]);
+                }
+                for (const [k, v] of actual.parameters.entries()) {
+                  chai.expect(v).to.equal(expected.parameter_keys[k]);
+                }
+              }
             });
           });
         });
       }
 
       // test examples
-      testSpecArray('plain urls', plainUrls);
       testSpecArray('plain urls', plainUrls);
       testSpecArray('query strings', queryStrings);
       testSpecArray('parameter strings', parameters);
@@ -724,27 +556,65 @@ export default describeModule('core/url-info',
       testSpecArray('special', special);
 
       describe('get', function () {
-        it('returns empty string if argument is falsy', () => {
-          chai.expect(urlInfo.get('')).to.eql('');
-          chai.expect(urlInfo.get()).to.eql('');
-          chai.expect(urlInfo.get(false)).to.eql('');
-          chai.expect(urlInfo.get(null)).to.eql('');
+        it('returns null if argument is falsy', () => {
+          chai.expect(urlInfo.get('')).to.be.null;
+          chai.expect(urlInfo.get()).to.be.null;
+          chai.expect(urlInfo.get(false)).to.be.null;
+          chai.expect(urlInfo.get(null)).to.be.null;
         });
 
         it('returns parsed url info for valid url', () => {
           const urlParts = urlInfo.get('https://cliqz.com');
           chai.expect(urlParts.hostname).to.equal('cliqz.com');
-          chai.expect(urlParts.protocol).to.equal('https');
-          chai.expect(urlParts.path).to.equal('/');
+          chai.expect(urlParts.protocol).to.equal('https:');
+          chai.expect(urlParts.pathname).to.equal('/');
         });
       });
 
       describe('getKeyValues', function () {
         keyValueTestCases.forEach((testCase) => {
           it(testCase.url, () => {
-            const kv = urlInfo.get(testCase.url).getKeyValues();
+            const kv = [...urlInfo.get(testCase.url).searchParams.entries()];
             chai.expect(kv).to.eql(testCase.expectedKv);
           });
+        });
+      });
+    });
+
+    describe('equals', () => {
+      let equals;
+
+      beforeEach(function () {
+        equals = this.module().equals;
+      });
+
+      [
+        ['http://cliqz.com', 'http://cliqz.com'],
+        ['http://cliqz.com', 'http://cliqz.com/'],
+        ['http://cliqz.com:80', 'http://cliqz.com'],
+        ['https://cliqz.com', 'https://cliqz.com:443'],
+        ['https://cliqz.com/test?q=hi#anchor', 'https://cliqz.com:443/test?q=hi#anchor'],
+        ['https://user:pass@cliqz.com/', 'https://user:pass@cliqz.com'],
+        ['http://xn--mnchen-3ya.de/', 'http://münchen.de'],
+        ['http://cliqz.com/test%20site/', 'http://cliqz.com/test site/'],
+      ].forEach((urls) => {
+        const [url1, url2] = urls;
+        it(`returns true for ${url1} and ${url2}`, () => {
+          chai.expect(equals(url1, url2)).to.be.true;
+        });
+      });
+
+      [
+        [null, null],
+        ['', ''],
+        ['http://cliqz.com:443', 'https://cliqz.com'],
+        ['https://user:pass@cliqz.com/', 'https://user:pas@cliqz.com/'],
+        ['https://user:pass@cliqz.com/', 'https://user:pas@cliqz.com/'],
+        ['http://www.cliqz.com/', 'http://www3.cliqz.com/'],
+      ].forEach((urls) => {
+        const [url1, url2] = urls;
+        it(`returns false for ${url1} and ${url2}`, () => {
+          chai.expect(equals(url1, url2)).to.be.false;
         });
       });
     });

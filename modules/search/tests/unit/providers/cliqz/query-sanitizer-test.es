@@ -64,8 +64,8 @@ export default describeModule('search/providers/cliqz/query-sanitizer',
       let sanitizeSearchQuery;
       let QuerySanitizerWithHistory;
       let BoundedMap;
+      const oldURL = global.URL;
 
-      let oldURL;
       beforeEach(function () {
         sanitizeSearchQuery = this.module().sanitizeSearchQuery;
         QuerySanitizerWithHistory = this.module().QuerySanitizerWithHistory;

@@ -31,8 +31,6 @@ const GENERIC_HISTORY_DAY = [
 
 const DAY_MS = 1000 * 60 * 60 * 24;
 
-let CATEGORY_LIFE_TIME_SECS;
-
 // the real tokenize url method
 let tokenizeUrl;
 
@@ -71,7 +69,6 @@ export default describeModule('offers-v2/categories/category-handler',
         FeatureHandler = (await this.system.import('offers-v2/features/feature-handler')).default;
         const catModule = await this.system.import('offers-v2/categories/category');
         Category = catModule.default;
-        CATEGORY_LIFE_TIME_SECS = catModule.CATEGORY_LIFE_TIME_SECS;
         tokenizeUrl = (await this.system.import('offers-v2/common/pattern-utils')).default;
         ThrottleError = (await this.system.import('offers-v2/common/throttle-with-rejection')).ThrottleError;
       });
@@ -195,34 +192,6 @@ export default describeModule('offers-v2/categories/category-handler',
           catHandler.build();
           cats.forEach(_c => catHandler.removeCategory(_c));
           catNames.forEach(cname => chai.expect(catHandler.hasCategory(cname)).eql(false));
-        });
-
-        it('/doDailyAccounting doesnt remove just added categories', function () {
-          const catNames = [
-            'c1',
-            'c1.c11',
-            'c2',
-            'c2.c22.c222'
-          ];
-          const cats = [];
-          catNames.forEach(cname => cats.push(createCategory(GENERIC_CAT_DATA, cname)));
-          cats.forEach((c) => {
-            chai.expect(catHandler.hasCategory(c.getName())).eql(false);
-            catHandler.addCategory(c);
-            chai.expect(catHandler.hasCategory(c.getName())).eql(true);
-          });
-          catHandler.build();
-          catHandler.doDailyAccounting();
-          // still exists
-          cats.forEach(c => chai.expect(catHandler.hasCategory(c.getName())).eql(true));
-
-          // after moving in time (max(+11 secs, CATEGORY_LIFE_TIME_SECS) should not exists anymore
-          MockDate.set(Date.now() + 9 * 1000);
-          catHandler.doDailyAccounting();
-          cats.forEach(c => chai.expect(catHandler.hasCategory(c.getName())).eql(true));
-          MockDate.set(Date.now() + CATEGORY_LIFE_TIME_SECS * 1000);
-          catHandler.doDailyAccounting();
-          cats.forEach(c => chai.expect(catHandler.hasCategory(c.getName())).eql(false));
         });
 
         it('/basic url events works 1', function () {
@@ -674,6 +643,58 @@ export default describeModule('offers-v2/categories/category-handler',
             catHandler.doDailyAccounting();
 
             chai.expect(accountingMock).to.be.calledTwice;
+          });
+        });
+
+        context('/learn targeting', () => {
+          it('/do not fail on missed parameters or category', () => {
+            catHandler.learnTargeting('no-such-category');
+          });
+
+          it('/hit a targeting category', () => {
+            const cat = createCategory(GENERIC_CAT_DATA, 'Segment.AmazonPrime');
+            catHandler.addCategory(cat);
+            const hitMock = sinon.stub(cat, 'hit');
+
+            catHandler.learnTargeting('AmazonPrime');
+
+            chai.expect(hitMock).to.be.calledOnce;
+          });
+        });
+
+        context('/update categories from backend', () => {
+          let cat1;
+          let cat3;
+          beforeEach(() => {
+            const cats = createCategories([
+              { name: 'cat1' },
+              { name: 'cat2' },
+              { name: 'cat3' },
+              { name: 'cat4' },
+            ]);
+            cats.forEach(cat => catHandler.addCategory(cat));
+            cat1 = cats[0];
+            cat3 = cats[2];
+          });
+
+          function getCategoryNames() {
+            return catHandler.catTree
+              .getAllSubCategories('')
+              .map(node => node.name);
+          }
+
+          it('/delete categories that are not on backend', () => {
+            catHandler.syncCategories([cat1, cat3]);
+
+            chai.expect(getCategoryNames().sort()).to.eql(['', 'cat1', 'cat3']);
+          });
+
+          it('/retain categories if backend provided no update', () => {
+            catHandler.syncCategories([]);
+
+            chai.expect(getCategoryNames().sort()).to.eql(
+              ['', 'cat1', 'cat2', 'cat3', 'cat4']
+            );
           });
         });
       });

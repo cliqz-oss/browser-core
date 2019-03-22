@@ -36,6 +36,7 @@ const PRODUCT_TESTS = [
   { signal: { agent: '', channel: 'MI00', version_host: '', version_dist: '', version: '' }, result: 'cliqz/mobile/cliqz-for-ios' },
   { signal: { agent: '', channel: 'MA50', version_host: '', version_dist: '', version: '' }, result: 'ghostery/mobile/ghostery-for-android' },
   { signal: { agent: '', channel: 'MI50', version_host: '', version_dist: '', version: '' }, result: 'ghostery/mobile/ghostery-for-ios' },
+  { signal: { agent: '', channel: 'MI60', version_host: '', version_dist: '', version: '' }, result: 'lumen/mobile/lumen-for-ios' },
   { signal: { agent: '', channel: 'NONE', version_host: '', version_dist: '', version: '' }, result: 'other/none' },
   { signal: { agent: 'Android', channel: '04', version_host: '', version_dist: '', version: '2.9.0' }, result: 'cliqz/add-on/cliqz-for-firefox' },
   { signal: { agent: 'Android', channel: 'SA00', version_host: '', version_dist: '', version: '2.7.0-beta5' }, result: 'other/sa00' },

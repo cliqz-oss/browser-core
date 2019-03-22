@@ -3,7 +3,7 @@ import UrlWhitelist from '../core/url-whitelist';
 
 import WebRequest, { VALID_RESPONSE_PROPERTIES, EXTRA_INFO_SPEC } from '../core/webrequest';
 import Pipeline from './pipeline';
-import { createWebRequestContext } from './webrequest-context';
+import WebRequestContext from './webrequest-context';
 import PageStore from './page-store';
 import logger from './logger';
 import { isWebExtension } from '../core/platform';
@@ -129,7 +129,7 @@ export default background({
     const listener = (details) => {
       const response = createResponse(details);
 
-      const webRequestContext = createWebRequestContext(details, this.pageStore);
+      const webRequestContext = WebRequestContext.fromDetails(details, this.pageStore, event);
 
       // Request is not supported, so do not alter
       if (webRequestContext === null) {

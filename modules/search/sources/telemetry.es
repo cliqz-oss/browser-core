@@ -99,12 +99,13 @@ const telemetry = (focus$, query$, results$, selection$) => {
         { results, ts: resultsTs },
         selection,
         hasUserInput,
-        { ts: blurTs }
+        { ts: blurTs, entryPoint }
       ]) => {
         const selectedResult = selection.rawResult || {};
         const metric = {
-          version: 2,
+          version: 3,
           hasUserInput,
+          entryPoint,
           results: results.map(({ kind }) => parseKind(kind)),
           // TODO: add session duration
           selection: {
@@ -114,7 +115,7 @@ const telemetry = (focus$, query$, results$, selection$) => {
             isAutocomplete: !!selection.isFromAutocompletedURL,
             // note: is false for origin 'other', only applies to 'cliqz' and
             //       'direct' selections
-            isSearchEngine: isSearchEngine(selectedResult.url),
+            isSearchEngine: ('isSearchEngine' in selection) ? selection.isSearchEngine : isSearchEngine(selectedResult.url),
             // TODO: verify that 'kind' contains the correct information for deep results
             ...parseKind(selectedResult.kind || []),
             origin: getOrigin(selectedResult),

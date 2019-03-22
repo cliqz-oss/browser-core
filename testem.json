@@ -15,14 +15,14 @@
         "args": ["tests/runners/firefox-web-ext.js"],
         "protocol": "tap"
       },
-      "ghostery-selenium": {
+      "ghostery-headless": {
         "exe": "node",
-        "args": ["tests/runners/ghostery-selenium.js"],
+        "args": ["tests/runners/ghostery-headless.js"],
         "protocol": "tap"
       },
-      "chromium-selenium": {
+      "chromium-headless": {
         "exe": "node",
-        "args": ["tests/runners/chromium-selenium.js"],
+        "args": ["tests/runners/chromium-headless.js"],
         "protocol": "tap"
       },
       "react-native":{

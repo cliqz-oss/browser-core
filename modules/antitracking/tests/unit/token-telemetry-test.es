@@ -3,8 +3,8 @@
 const Rx = require('rxjs');
 const operators = require('rxjs/operators');
 const rxSandbox = require('rx-sandbox').rxSandbox;
-const fastUrlParser = require('fast-url-parser');
 const tldts = require('tldts');
+const punycode = require('punycode');
 const mockDexie = require('../../core/unit/utils/dexie');
 // const rxSandbox = require('rx-sandbox').rxSandbox;
 const { Subject } = Rx;
@@ -69,9 +69,6 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
     },
   },
   'platform/lib/tldts': tldts,
-  'core/fast-url-parser': {
-    default: fastUrlParser
-  },
   'core/kord/inject': {
     default: {
       service() {
@@ -80,7 +77,10 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
         };
       }
     }
-  }
+  },
+  'platform/lib/punycode': {
+    default: punycode,
+  },
 }), () => {
   describe('TokenTelemetry', () => {
     let TokenTelemetry;
@@ -113,10 +113,10 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
       let emitted;
       const testUrls = [{
         url: 'https://track.tracker.com/tracker?safe=helloworld&other=callback&bad=2349023jnfdsa&short=hi',
-        sourceUrl: 'https://cliqz.com',
+        tabUrl: 'https://cliqz.com',
       }, {
         url: 'https://cdn.notatracker.com/tracker?safe=helloworld&other=callback&bad=2349023jnfdsa&short=hi',
-        sourceUrl: 'https://www.cliqz.com',
+        tabUrl: 'https://www.cliqz.com',
       }];
       const expectedEmitted = [{
         key: 'safe',
@@ -136,12 +136,12 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
         emitted = [];
         telemetry.subjectTokens.subscribe(obj => emitted.push(obj));
 
-        testUrls.map(({ url, sourceUrl }) => ({
+        testUrls.map(({ url, tabUrl }) => ({
           isPrivate,
           url,
-          sourceUrl,
+          tabUrl,
           urlParts: URLInfo.get(url),
-          sourceUrlParts: URLInfo.get(sourceUrl),
+          tabUrlParts: URLInfo.get(tabUrl),
         })).forEach(telemetry.extractKeyTokens.bind(telemetry));
       }
 

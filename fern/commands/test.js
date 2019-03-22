@@ -15,6 +15,7 @@ const setConfigPath = common.setConfigPath;
 const createBuildWatcher = common.createBuildWatcher;
 
 program.command(`test ${common.configParameter}`)
+  .option('--lint', 'Lint code')
   .option('--ci [output]', 'Starts Testem in CI mode')
   .option('--keep-open', 'do not close the browser after tests')
   .option('--grep [pattern]', 'only run tests matching <pattern>')
@@ -29,6 +30,13 @@ program.command(`test ${common.configParameter}`)
     const CONFIG = cfg.CONFIG;
     const OUTPUT_PATH = cfg.OUTPUT_PATH;
     let watcher;
+
+    // Enabled code linting
+    process.env.CLIQZ_ESLINT = (
+      (options.lint || (configPath || process.env.CLIQZ_CONFIG_PATH).includes('unit-tests.js'))
+        ? 'true'
+        : 'false'
+    );
 
     if (options.grep) {
       process.env.MOCHA_GREP = options.grep;

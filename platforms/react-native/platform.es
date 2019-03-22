@@ -20,3 +20,7 @@ export const OS = userAgent.OS;
 export function isBetaVersion() {
   return false;
 }
+
+export function getResourceUrl(path) {
+  return path;
+}

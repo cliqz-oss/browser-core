@@ -9,7 +9,6 @@ export default {
     core: null,
     'core-cliqz': null,
     dropdown: null,
-    'firefox-specific': null,
     static: null,
     search: {
       visible: true,
@@ -366,7 +365,6 @@ export default {
       isWhitelisted: false,
       state: 'active'
     },
-    'context-menu': null,
     freshtab: {
       visible: true,
       enabled: true
@@ -1091,10 +1089,8 @@ export default {
     'video-downloader': null,
     'market-analysis': null,
     p2p: null,
-    proxyPeer: null,
     pairing: null,
     'antitracking-blocker': null,
-    'green-ads': null,
     adult: {
       visible: true,
       state: {

@@ -1,5 +1,5 @@
 import templates from './templates';
-import { equals, isCliqzAction } from '../core/content/url';
+import { URLInfo } from '../core/url-info';
 
 const getEventTarget = (ev) => {
   let targetElement = ev.originalTarget || ev.target;
@@ -22,7 +22,7 @@ export default class Dropdown {
     this.rootElement.innerHTML = templates.main();
     this.dropdownElement.addEventListener('click', this.onClick);
     this.dropdownElement.addEventListener('auxclick', this.onClick);
-    this.dropdownElement.addEventListener('mousemove', this.onMouseMove);
+    this.dropdownElement.addEventListener('mousemove', this.onMouseMove, { passive: true });
   }
 
   get dropdownElement() {
@@ -65,7 +65,7 @@ export default class Dropdown {
     if (!result) {
       return null;
     }
-    return [...this.rootElement.querySelectorAll('a')].find(a => equals(a.dataset.url, result.url)) || null;
+    return [...this.rootElement.querySelectorAll('a')].find(a => a.dataset.url === result.url) || null;
   }
 
   selectResult(result) {
@@ -127,13 +127,6 @@ export default class Dropdown {
 
     if (urlbarAttributes) {
       this.dropdownElement.style.setProperty('--content-padding-start', `${urlbarAttributes.padding}px`);
-
-      const urlbarBottomLine = this.window.document.createElement('div');
-      urlbarBottomLine.setAttribute('class', 'urlbar-bottom-line');
-      urlbarBottomLine.style.left = `${urlbarAttributes.left}px`;
-      urlbarBottomLine.style.width = `${urlbarAttributes.width}px`;
-
-      this.dropdownElement.prepend(urlbarBottomLine);
     }
 
     // Nofify results that have been rendered
@@ -146,7 +139,6 @@ export default class Dropdown {
 
     [...this.rootElement.querySelectorAll('a')].forEach((anchor) => {
       anchor.addEventListener('mousedown', ev => ev.preventDefault());
-      anchor.addEventListener('auxclick', ev => ev.preventDefault());
       anchor.addEventListener('click', ev => ev.preventDefault());
     });
 
@@ -161,10 +153,11 @@ export default class Dropdown {
   }
 
   onClick = (ev) => {
-    // We use the same listener for events 'click' (for handling left clicks)
-    // and 'auxclick' (for handlings middle and right clicks).
+    // We use the same listener for events 'click' for handling left clicks
+    // and 'auxclick' for handlings middle clicks.
     // Make sure we don't handle same event twice.
-    if (ev.type === 'click' && ev.button !== 0) {
+    if ((ev.type === 'click' && ev.button !== 0)
+      || (ev.type === 'auxclick' && ev.button !== 1)) {
       return;
     }
 
@@ -182,17 +175,23 @@ export default class Dropdown {
       return;
     }
 
-    if (ev.button === 2) {
-      const subresult = isCliqzAction(href) ? result : result.findResultByUrl(href);
+    // We cannot prevent Firefox from opening a new page on middle click
+    // (see https://bugzilla.mozilla.org/show_bug.cgi?id=1374096 for details).
+    // So we let browser do it, while setting `handledByBrowser` flag,
+    // in order to skip handling middleclick ourselves, but still report telemetry.
+    const handledByBrowser = ev.type === 'auxclick'
+      && ev.button === 1
+      && resultElement.hasAttribute('href')
+      // Firefox won't open "about:" page from webextension page
+      && URLInfo.get(href)
+      && URLInfo.get(href).protocol !== 'about';
 
-      this.actions.openContextMenu(subresult.serialize(), { x: ev.screenX, y: ev.screenY });
-    } else {
-      const elementName = targetElement.getAttribute('data-extra');
-      result.click(href, ev, { elementName });
-      // In web-ext clicking on result doesn't focus on iframe,
-      // hence we don't give focus back to urlbar
-      window.focus();
-    }
+    const elementName = targetElement.getAttribute('data-extra');
+    result.click(href, ev, { elementName, handledByBrowser });
+
+    // In web-ext clicking on result doesn't focus on iframe,
+    // hence we don't give focus back to urlbar
+    // window.focus();
   };
 
   onMouseMove = (ev) => {
@@ -224,7 +223,7 @@ export default class Dropdown {
     }
 
     const href = resultElement.dataset.url;
-    const resultIndex = this.results.selectableResults.findIndex(r => equals(r.url, href));
+    const resultIndex = this.results.selectableResults.findIndex(r => r.url === href);
 
     this.clearSelection();
 

@@ -1,27 +1,26 @@
 import { NativeModules } from 'react-native';
-// import { History } from './history/history';
-// import osAPI from './os-api';
 import { getPref } from './prefs';
 
 const unsupportedError = () => {
   // throw new Error('BrowserActions not supported by native');
 };
 
-const BrowserActions = NativeModules.BrowserActions || {
-  searchHistory: () => {},
-  openLink: unsupportedError,
-  openMap: unsupportedError,
-  callNumber: unsupportedError,
-  hideKeyboard: unsupportedError,
-  queryCliqz: unsupportedError,
-  getReminders: unsupportedError,
-  getOpenTabs: () => [],
-  importBookmarks: unsupportedError,
-};
+const BrowserActions = NativeModules.BrowserActions;
 
 export function historySearch(q, callback) {
-  const results = { ready: true, results: [] };
-  callback(results); return Promise.resolve(results);
+  BrowserActions.searchHistory(q).then((data = []) => {
+    const results = data.map(item => ({
+      style: 'favicon',
+      value: item.url,
+      image: '',
+      comment: item.title || 'no comment',
+      label: ''
+    }));
+    const res = { ready: true, results };
+    if (callback) {
+      callback(res);
+    }
+  });
 }
 
 export function handleAutocompletion(url = '', query = '') {

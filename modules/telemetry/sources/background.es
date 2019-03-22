@@ -119,7 +119,6 @@ export default background({
     this.telemetryService.installProvider(this.telemetryProvider);
 
     const sendEnvironmentalSignal = async ({ startup, instantPush }) => {
-      const historyStats = await History.stats();
       const info = {
         type: 'environment',
         agent: navigator.userAgent,
@@ -129,7 +128,7 @@ export default background({
         prefs: getCliqzPrefs(),
         defaultSearchEngine: (getDefaultSearchEngine() || {}).name,
         isDefaultBrowser: await isDefaultBrowser(),
-        distribution: prefs.get('distribution', ''),
+        distribution: prefs.get('distribution', '', 'extensions.cliqz.'),
         version_host: prefs.get('gecko.mstone', '', ''),
         version_dist: prefs.get('distribution.version', '', ''),
         health_report_enabled: prefs.get('uploadEnabled', true, 'datareporting.healthreport.')
@@ -139,6 +138,12 @@ export default background({
       // through telemetry service.
       telemetry(info, instantPush);
 
+      let historyStats = {};
+      try {
+        historyStats = await History.stats();
+      } catch (e) {
+        // on android history stats are not available
+      }
       // Not sent in case of opt-out. Sent through utils.telemetry which is
       // using telemetry service, in turn checking opt-out from user.
       utils.telemetry({
@@ -176,6 +181,6 @@ export default background({
   actions: {
     getTrk() {
       return JSON.parse(JSON.stringify(this.trk));
-    }
+    },
   },
 });

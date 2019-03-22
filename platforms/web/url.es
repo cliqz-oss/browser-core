@@ -1,4 +1,4 @@
-export { URI, LocalUrlRegExp, UrlRegExp } from '../platform-webextension/url';
+export { LocalUrlRegExp, UrlRegExp } from '../platform-webextension/url';
 const KNOWN_PROTOCOLS = new Set(['http', 'https', 'ftp', 'file', 'about', 'mailto', 'chrome', 'data']);
 
 export function isKnownProtocol(protocol) {

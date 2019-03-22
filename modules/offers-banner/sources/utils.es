@@ -1,7 +1,6 @@
 import { chrome } from '../platform/globals';
 import { getTab } from '../platform/tabs';
 import { getActiveTab } from '../core/browser';
-import { getDetailsFromUrl } from '../core/url';
 import utils from '../core/utils';
 
 const BLACK_LIST = [
@@ -29,8 +28,7 @@ export function getTitleColor(templateData = {}) {
     call_to_action: { url } = {},
   } = templateData;
   if (headlineColor) { return headlineColor; }
-  const urlDetails = getDetailsFromUrl(url);
-  const logoDetails = utils.getLogoDetails(urlDetails) || {};
+  const logoDetails = utils.getLogoDetails(url) || {};
   return `#${logoDetails.brandTxtColor}`;
 }
 
@@ -58,4 +56,14 @@ export async function toggleApp(data) {
 export function getOfferNotificationType(data = {}) {
   const { offer_data: { ui_info: uiInfo = {} } = {} } = data;
   return uiInfo.notif_type;
+}
+
+export function filterValues(obj, predicate) {
+  const newObj = {};
+  Object.keys(obj).forEach((key) => {
+    if (predicate(obj[key])) {
+      newObj[key] = obj[key];
+    }
+  });
+  return newObj;
 }

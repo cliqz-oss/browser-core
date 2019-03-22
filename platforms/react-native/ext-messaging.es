@@ -1,3 +1,7 @@
+import { NativeModules } from 'react-native';
+
+const Bridge = NativeModules.Bridge;
+
 export default {
   onMessage: {
     addListener() {
@@ -7,13 +11,10 @@ export default {
       // return chrome.runtime.onMessageExternal.removeListener(fn);
     },
   },
-  sendMessage() {
-    // chrome.runtime.sendMessage(extensionId, message, (args) => {
-    //   if (chrome.runtime.lastError) {
-    //     callback(undefined);
-    //   }
-
-    //   callback(args);
-    // });
+  sendMessage(extensionId, message) {
+    if (!Bridge || !Bridge.sendExternalMessage) {
+      return;
+    }
+    Bridge.sendExternalMessage(extensionId, message);
   }
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Platform } from 'react-native';
 import Link from '../Link';
 import Icon from './Icon';
 import NativeDrawable, { normalizeUrl } from '../custom/NativeDrawable';
@@ -138,6 +138,11 @@ export default class HistoryUrls extends React.Component {
     const props = this.props;
     const theme = props.theme;
     const color = (theme === 'light') ? '#551A8B' : themeDetails[theme].textColor;
+    const historyIconColor = (theme === 'light') ? '#000000' : '#FFFFFF';
+    const historyIcon = Platform.select({
+      default: `PanelIconCliqzHistory_${theme}.svg`,
+      android: 'ic_history_white.svg'
+    });
 
     if (!props.urls || !props.urls.length) {
       return null;
@@ -157,8 +162,8 @@ export default class HistoryUrls extends React.Component {
         >
           <NativeDrawable
             style={styles(theme, color).historyIcon}
-            source={normalizeUrl(`PanelIconCliqzHistory_${theme}.svg`)}
-            color={themeDetails[theme].textColor}
+            source={normalizeUrl(historyIcon, { isNative: true })}
+            color={historyIconColor}
           />
           <Text style={styles(theme, color).title}>{getMessage('mobile_history_card_title')}</Text>
         </View>

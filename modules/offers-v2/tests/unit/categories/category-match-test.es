@@ -171,7 +171,9 @@ export default describeModule('offers-v2/categories/category-match',
 
         const reason = new OfferMatchTraits(catMatches, offerCategories);
 
-        chai.expect(reason.getReason()).to.eql(['p1', 'pat2']);
+        const expected = [{ pattern: 'p1', domainHash: undefined },
+          { pattern: 'pat2', domainHash: undefined }];
+        chai.expect(reason.getReason()).to.eql(expected);
       });
 
       it('/missed categories matches is not an error', () => {
@@ -195,8 +197,11 @@ export default describeModule('offers-v2/categories/category-match',
         const offerCategories = ['cat1', 'cat2'];
 
         const reason = new OfferMatchTraits(catMatches, offerCategories);
+        const expected = [{ pattern: 'p1', domainHash: undefined },
+          { pattern: 'p2', domainHash: undefined },
+          { pattern: 'p3', domainHash: undefined }];
 
-        chai.expect(reason.getReason()).to.eql(['p1', 'p2', 'p3']);
+        chai.expect(reason.getReason()).to.eql(expected);
       });
 
       it('/Store only unique patterns', () => {
@@ -206,8 +211,10 @@ export default describeModule('offers-v2/categories/category-match',
         const offerCategories = ['cat1'];
 
         const reason = new OfferMatchTraits(catMatches, offerCategories);
+        const expected = [{ pattern: 'spam', domainHash: undefined },
+          { pattern: 'more spam', domainHash: undefined }];
 
-        chai.expect(reason.getReason()).to.eql(['spam', 'more spam']);
+        chai.expect(reason.getReason()).to.eql(expected);
       });
     });
   });

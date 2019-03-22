@@ -1,10 +1,10 @@
-/* globals ChromeUtils, ExtensionAPI, FileUtils */
+/* globals ChromeUtils, ExtensionAPI */
 import config from '../../../core/config';
 
 const isAMO = config.settings.channel === '04';
 
-ChromeUtils.import('resource://gre/modules/FileUtils.jsm');
-ChromeUtils.import('resource://gre/modules/Services.jsm');
+const { FileUtils } = ChromeUtils.import('resource://gre/modules/FileUtils.jsm');
+const { Services } = ChromeUtils.import('resource://gre/modules/Services.jsm');
 
 const FILES_AND_FOLDERS = [
   // cliqz folders

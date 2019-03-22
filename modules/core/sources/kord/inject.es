@@ -98,7 +98,7 @@ export default {
   },
   service: (serviceName, props = []) => props.reduce((curr, prop) => ({ ...curr,
     [prop]: (...args) => {
-      const api = (app && app.services[serviceName].api);
+      const api = (app && app.services[serviceName] && app.services[serviceName].api);
       if (!api) {
         throw new Error(`Service "${serviceName}" is not available. Make sure it appears
         in the "requiresServices" property of the module's background where is it used.`);

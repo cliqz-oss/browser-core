@@ -4,6 +4,7 @@ import {
   getResourceUrl,
   newTab,
   queryHTML,
+  waitFor,
   waitForElement,
 } from '../../../tests/core/integration/helpers';
 import { isBootstrap } from '../../../core/platform';
@@ -53,13 +54,17 @@ export default function () {
 
       uiElementsToCheck.forEach((element) => {
         it(`with correct ${element.name}`, async function () {
-          const $el = await queryHTML(transparencyUrl, `[data-i18n=${element.selector}]`, 'textContent');
           const i18nText = new DOMParser().parseFromString(getMessage(element.selector), 'text/html');
-
           expect(i18nText.children).to.have.length(1);
 
-          expect($el).to.have.length(1);
-          expect($el[0]).to.equal(i18nText.children[0].textContent);
+          await waitFor(
+            async () => {
+              const $el = await queryHTML(transparencyUrl, `[data-i18n=${element.selector}]`, 'textContent');
+              expect($el).to.have.length(1);
+              return expect($el[0]).to.equal(i18nText.children[0].textContent);
+            },
+            2000
+          );
         });
       });
 
@@ -67,14 +72,20 @@ export default function () {
         it(`with existing ${element.name} data`, async function () {
           const dataSelector = element.selector;
           const $dataContainer = await queryHTML(transparencyUrl, dataSelector, 'textContent');
-          const $dataElements = await queryHTML(transparencyUrl, `${dataSelector} ${dataItemSelector}`, 'textContent');
 
           expect($dataContainer).to.have.length(1);
-          expect($dataElements).to.have.length.above(0);
 
-          if ($dataElements.length === 1) {
-            expect($dataElements[0]).to.contain(getMessage('transparency_activity_buttons'));
-          }
+          await waitFor(
+            async () => {
+              const $dataElements = await queryHTML(transparencyUrl, `${dataSelector} ${dataItemSelector}`, 'textContent');
+              expect($dataElements).to.have.length.above(0);
+              if ($dataElements.length === 1) {
+                return expect($dataElements[0]).to.contain(getMessage('transparency_activity_buttons'));
+              }
+              return true;
+            },
+            2000
+          );
         });
       });
     });

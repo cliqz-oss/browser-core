@@ -16,6 +16,7 @@ module.exports = {
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
     "RESULTS_PROVIDER_ORDER": ["calculator", "history", "cliqz", "querySuggestions", "instant"],
     "CLEAR_RESULTS_AT_SESSION_START": false,
+    "telemetryExtensionId": "firefox@ghostery.com",
   }),
   "default_prefs" : {},
   "modules": [
@@ -24,6 +25,7 @@ module.exports = {
     "search",
     "static",
     "mobile-cards",
+    "mobile-cards-vertical",
     "geolocation",
     "anolysis-remote",
   ],

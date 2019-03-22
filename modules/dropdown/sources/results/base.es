@@ -1,6 +1,5 @@
 /* eslint no-use-before-define: ["error", { "classes": false }] */
 import {
-  equals,
   urlStripProtocol,
   cleanMozillaActions,
 } from '../../core/content/url';
@@ -170,7 +169,7 @@ export default class BaseResult {
   }
 
   isUrlMatch(href) {
-    return equals(this.url, href);
+    return this.url === href;
   }
 
   findResultByUrl(href) {
@@ -200,7 +199,7 @@ export default class BaseResult {
       // relative index: index amongst other sub results of same type
       index: topResult.selectableResults
         .filter(({ type }) => type === this.type)
-        .findIndex(({ url }) => equals(url, this.url)),
+        .findIndex(({ url }) => url === this.url),
     } : {};
 
     return {
@@ -231,7 +230,7 @@ export default class BaseResult {
         meta,
       });
     } else {
-      this.findResultByUrl(href).click(href, ev);
+      this.findResultByUrl(href).click(href, ev, meta);
     }
   }
 

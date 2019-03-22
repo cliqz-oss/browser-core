@@ -1,20 +1,26 @@
 const moment = require('moment');
 
+function isInRecursion() {
+  const a = new Error().stack
+    .split('\n')
+    .filter(s => s.includes('unit/utils/time.js'));
+  return (new Set(a)).size !== a.length;
+}
+
 module.exports = {
   'core/helpers/timeout': {
-    default: function () { // setTimeoutInterval
-      console.warn('unmocked setTimeoutInterval is used');
-      const stop = () => {}; return { stop };
+    default: function (f, _, ...args) { // setTimeoutInterval
+      f(...args);
     },
   },
   'core/timers': {
-    setTimeout: function () {
-      console.warn('unmocked setTimeout is used');
-      cb => cb();
+    setTimeout: function (f, _, ...args) {
+      if (!isInRecursion()) {
+        f(...args);
+      }
     },
-    setInterval: function () {
-      console.warn('unmocked setInterval is used');
-      cb => cb();
+    setInterval: function (f, _, ...args) {
+      f(...args);
     },
   },
   'platform/lib/moment': {

@@ -39,11 +39,11 @@ import HistoryManager from '../core/history-manager';
 import * as searchUtils from '../core/search-engines';
 import {
   equals as areUrlsEqual,
-  getDetailsFromUrl,
   stripTrailingSlash,
   tryEncodeURIComponent,
   tryDecodeURIComponent,
 } from '../core/url';
+import { URLInfo } from '../core/url-info';
 import extChannel from '../platform/ext-messaging';
 import { isBetaVersion } from '../platform/platform';
 
@@ -103,7 +103,6 @@ export default background({
   ui: inject.module('ui'),
   offersV2: inject.module('offers-v2'),
   insights: inject.module('insights'),
-  friends: inject.module('cliqz-for-friends'),
   requiresServices: ['logos', 'utils', 'session'],
   searchReminderCounter: 0,
 
@@ -192,7 +191,7 @@ export default background({
   },
 
   isAdult(url) {
-    return this.adultDomainChecker.isAdult(getDetailsFromUrl(url).domain);
+    return this.adultDomainChecker.isAdult(URLInfo.get(url).generalDomain);
   },
 
   get blueTheme() {
@@ -262,7 +261,6 @@ export default background({
         isPrivateResult: utils.isPrivateResultType(selection.kind),
         tabId,
       };
-
       delete report.kind;
 
       events.pub('ui:click-on-url', report);
@@ -584,6 +582,14 @@ export default background({
     },
 
     /**
+    * A speed dial has been clicked
+    * @method speedDialClicked
+    */
+    speedDialClicked() {
+      this.insights.action('insertSearchStats', { speedDialClicked: 1 });
+    },
+
+    /**
     * Reset all history speed dials
     * @method resetAllHistory
     */
@@ -626,8 +632,8 @@ export default background({
           news: newsList.map(r => ({
             title: r.title_hyphenated || r.title,
             description: r.description,
-            displayUrl: getDetailsFromUrl(r.url).cleanHost || r.title,
-            logo: utils.getLogoDetails(getDetailsFromUrl(r.url)),
+            displayUrl: URLInfo.get(r.url).cleanHost || r.title,
+            logo: utils.getLogoDetails(r.url),
             url: r.url,
             type: r.type,
             breaking_label: r.breaking_label,
@@ -673,7 +679,10 @@ export default background({
       let promoData = {};
 
       if (product === 'CLIQZ' && this.insights.isPresent()) {
-        const summary = await this.insights.action('getDashboardStats');
+        const [summary, searchTimeSaved] = await Promise.all([
+          this.insights.action('getDashboardStats'),
+          this.insights.action('getSearchTimeSaved'),
+        ]);
         const isAntitrackingDisabled = !prefs.get('modules.antitracking.enabled', true);
         const isAdBlockerDisabled = prefs.get('cliqz-adb', 1) === 0;
 
@@ -697,10 +706,10 @@ export default background({
           {
             title: `${getMessage('freshtab_stats_time_saved')}`,
             icon: 'images/cliqz-time.svg',
-            val: formatTime(summary.timeSaved),
+            val: formatTime((summary.timeSaved || 0) + searchTimeSaved),
             description: `${getMessage('freshtab_stats_time_saved_desc')}`,
             link: 'https://cliqz.com/support/privacy-statistics#time-saved',
-            disabled: isAdBlockerDisabled,
+            disabled: false, // Always active
           },
         ];
       } else if (product === 'GHOSTERY') {
@@ -823,8 +832,7 @@ export default background({
             titleColor = templateData.styles.headline_color;
           } else {
             const url = templateData.call_to_action.url;
-            const urlDetails = getDetailsFromUrl(url);
-            const logoDetails = utils.getLogoDetails(urlDetails);
+            const logoDetails = utils.getLogoDetails(url);
             titleColor = `#${logoDetails.brandTxtColor}`;
           }
           templateData.titleColor = titleColor;
@@ -863,12 +871,6 @@ export default background({
       }
 
       const { id: tabIndex } = await getActiveTab();
-      let displayFriendsIcon = false;
-      try {
-        displayFriendsIcon = await this.friends.action('displayFreshtabIcon');
-      } catch (e) {
-        // module might be missing
-      }
 
       return {
         searchReminderCounter: this.searchReminderCounter,
@@ -887,10 +889,8 @@ export default background({
         developer: prefs.get('developer', false),
         cliqzPostPosition: prefs.get('freshtab.post.position', 'bottom-right'), // bottom-left, top-right
         isStatsSupported: this.settings.freshTabStats,
-        displayFriendsIcon,
         NEW_TAB_URL: '',
         HISTORY_URL,
-        CLIQZ_FOR_FRIENDS: this.settings.CLIQZ_FOR_FRIENDS ? getResourceUrl(this.settings.CLIQZ_FOR_FRIENDS) : '',
         isBetaVersion: isBetaVersion(),
       };
     },

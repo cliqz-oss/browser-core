@@ -3,6 +3,7 @@
 
 const tldts = require('tldts');
 const URL = require('url').URL;
+const punycode = require('punycode');
 
 if (!global.URL) {
   // node version less than 10
@@ -110,6 +111,10 @@ const URLS = [
   'http:weird-local-domain.dev',
   'maghratea:8080',
   'cliqz-test:4300',
+
+  // other weirdness
+  'http://www.f',
+  'http:////a',
 ];
 
 const QUERIES = [
@@ -166,6 +171,9 @@ export default describeModule('core/url',
 
           set() {}
         },
+      },
+      'platform/lib/punycode': {
+        default: punycode,
       },
     };
   },
@@ -322,6 +330,14 @@ export default describeModule('core/url',
             .to.deep.equal(urlDetails);
         });
 
+        it('with trailing spaces, returns the same as without', function () {
+          const detailsFromUrl1 = getDetailsFromUrl('https://cliqz.com');
+          const detailsFromUrl2 = getDetailsFromUrl('https://cliqz.com  ');
+
+          chai.expect(detailsFromUrl1)
+            .to.deep.equal(detailsFromUrl2);
+        });
+
         it('should handle no scheme, no path, no query, no fragment', function () {
           const parts = getDetailsFromUrl('www.facebook.com');
           chai.expect(parts.domain).to.equal('facebook.com');
@@ -329,7 +345,7 @@ export default describeModule('core/url',
           chai.expect(parts.name).to.equal('facebook');
           chai.expect(parts.subdomains[0]).to.equal('www');
           chai.expect(parts.tld).to.equal('com');
-          chai.expect(parts.path).to.equal('');
+          chai.expect(parts.path).to.equal('/');
           chai.expect(parts.query).to.equal('');
           chai.expect(parts.fragment).to.equal('');
           chai.expect(parts.scheme).to.equal('');
@@ -357,7 +373,7 @@ export default describeModule('core/url',
           chai.expect(parts.name).to.equal('facebook');
           chai.expect(parts.subdomains[0]).to.equal('www');
           chai.expect(parts.tld).to.equal('co.uk');
-          chai.expect(parts.path).to.equal('');
+          chai.expect(parts.path).to.equal('/');
           chai.expect(parts.query).to.equal('');
           chai.expect(parts.fragment).to.equal('blah');
         });
@@ -442,6 +458,49 @@ export default describeModule('core/url',
           chai.expect(parts.query).to.equal('test=fdsaf');
           chai.expect(parts.fragment).to.equal('blah');
           chai.expect(parts.port).to.equal('8080');
+        });
+
+        it('should handle special network addresses', function () {
+          const parts = getDetailsFromUrl('http://magrathea:8000/');
+          chai.expect(parts.ssl).to.equal(false);
+          chai.expect(parts.domain).to.equal('magrathea');
+          chai.expect(parts.host).to.equal('magrathea');
+          chai.expect(parts.name).to.equal('magrathea');
+          chai.expect(parts.subdomains.length).to.equal(0);
+          chai.expect(parts.tld).to.equal('magrathea');
+          chai.expect(parts.path).to.equal('/');
+          chai.expect(parts.query).to.equal('');
+          chai.expect(parts.fragment).to.equal('');
+          chai.expect(parts.port).to.equal('8000');
+        });
+
+        it('about url', function () {
+          const parts = getDetailsFromUrl('about:supp');
+          chai.expect(parts.ssl).to.equal(false);
+          chai.expect(parts.domain).to.equal('');
+          chai.expect(parts.host).to.equal('');
+          chai.expect(parts.name).to.equal('supp');
+          chai.expect(parts.subdomains.length).to.equal(0);
+          chai.expect(parts.tld).to.equal('');
+          chai.expect(parts.path).to.equal('supp');
+          chai.expect(parts.query).to.equal('');
+          chai.expect(parts.fragment).to.equal('');
+          chai.expect(parts.port).to.equal('');
+        });
+
+        it('localhost', function () {
+          const parts = getDetailsFromUrl('localhost');
+          chai.expect(parts.domain).to.equal('');
+          chai.expect(parts.ssl).to.equal(false);
+          chai.expect(parts.domain).to.equal('');
+          chai.expect(parts.host).to.equal('localhost');
+          chai.expect(parts.name).to.equal('localhost');
+          chai.expect(parts.subdomains.length).to.equal(0);
+          chai.expect(parts.tld).to.equal('');
+          chai.expect(parts.path).to.equal('/');
+          chai.expect(parts.query).to.equal('');
+          chai.expect(parts.fragment).to.equal('');
+          chai.expect(parts.port).to.equal('');
         });
       });
     });

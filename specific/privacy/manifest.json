@@ -1,0 +1,67 @@
+{
+  "name": "Cliqz privacy",
+  "description": "Cliqz Antitracking and adblocking",
+  "version": "{{version}}",
+  "manifest_version": 2,
+  "default_locale": "de",
+  "applications": {
+    "gecko": {
+      "id": "firefox@ghostery.com"
+    }
+  },
+  "experiment_apis": {
+    "cliqzAppConstants": {
+      "schema": "modules/cliqz-android/schemas/cliqz-app-constants.json",
+      "child": {
+        "scopes": ["addon_child"],
+        "script": "modules/cliqz-android/cliqz-app-constants.bundle.js",
+        "paths": [["cliqzAppConstants"]]
+      }
+    },
+    "cliqz": {
+      "schema": "modules/webextension-specific/experimental-apis/cliqz/schema.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "paths": [["cliqz"]],
+        "script": "modules/webextension-specific/experimental-apis/cliqz/api.bundle.js"
+      }
+    },
+    "cliqzSynchronous": {
+      "schema": "modules/webextension-specific/experimental-apis/cliqzSynchronous/schema.json",
+      "child": {
+        "scopes": ["addon_child"],
+        "paths": [["cliqzSynchronous"]],
+        "script": "modules/webextension-specific/experimental-apis/cliqzSynchronous/api.bundle.js"
+      }
+    }
+  },
+  "permissions": [
+    "webNavigation",
+    "webRequest",
+    "webRequestBlocking",
+    "cookies",
+    "tabs",
+    "http://*/*",
+    "https://*/*",
+    "storage",
+    "history",
+    "geolocation",
+    "<all_urls>",
+    "topSites",
+    "unlimitedStorage"
+  ],
+  "background": {
+    "scripts": [
+      "modules/vendor/dexie.min.js",
+      "modules/cliqz-android/app.bundle.js"
+    ]
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "run_at": "document_start",
+      "match_about_blank": true,
+      "js": ["modules/core/content-script.bundle.js"]
+    }
+  ]
+}

@@ -9,7 +9,6 @@ export default {
     core: null,
     'core-cliqz': null,
     dropdown: null,
-    'firefox-specific': null,
     static: null,
     search: {
       visible: true,
@@ -366,7 +365,6 @@ export default {
       isWhitelisted: false,
       state: 'active'
     },
-    'context-menu': null,
     freshtab: {
       visible: true,
       enabled: true

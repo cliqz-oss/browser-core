@@ -527,12 +527,12 @@ export default class TokenTelemetry {
     // ignore private requests
     if (state.isPrivate) return true;
 
-    const keyTokens = state.urlParts.getKeyValues();
+    const keyTokens = state.urlParts.extractKeyValues().params;
     if (keyTokens.length > 0) {
       // const truncatedDomain = truncateDomain(state.urlParts.host, this.config.tpDomainDepth);
       // const domain = md5(truncatedDomain).substr(0, 16);
-      const firstParty = md5(state.sourceUrlParts.generalDomain).substr(0, 16);
-      const generalDomain = md5(state.urlParts.generalDomain).substr(0, 16);
+      const firstParty = state.tabUrlParts.generalDomainHash;
+      const generalDomain = state.urlParts.generalDomainHash;
       this._saveKeyTokens({
         // thirdParty: truncatedDomain,
         kv: keyTokens,
@@ -554,7 +554,7 @@ export default class TokenTelemetry {
     }
 
     /* eslint camelcase: 'off' */
-    kv.forEach(({ k, v }) => {
+    kv.forEach(([k, v]) => {
       if (v.length < 6) {
         return;
       }

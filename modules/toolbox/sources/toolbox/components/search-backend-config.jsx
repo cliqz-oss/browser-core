@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import Button from './partials/button';
 import RadioInput from './partials/radio-input';
 import Row from './partials/row';
+import TableHeader from './partials/table-header';
 import TextInput from './partials/text-input';
 
 const labels = [
@@ -20,19 +21,29 @@ class SearchBackendConfig extends React.Component {
     super(props, ...args);
     this.state = {
       customEndpoint: this.getCustomLocalStorageEndpoint() || initCustomEndpoint,
+      endpointsUrl: '',
     };
+  }
+
+  componentDidMount() {
+    this.syncState();
+  }
+
+  syncState = async () => {
+    const newState = await this.props.cliqz.getEndpointsState();
+    this.setState(newState);
   }
 
   onRadioUpdate = async (address) => {
     this.props.cliqz.setEndpoints(address);
-    this.props.syncState();
+    this.syncState();
   }
 
   isRadioChecked = (label) => {
     const valueToCheck = label.name === 'custom'
       ? this.state.customEndpoint
       : label.address;
-    return this.props.endpointsUrl.includes(valueToCheck);
+    return this.state.endpointsUrl.includes(valueToCheck);
   }
 
   setTextInputValue = (value) => {
@@ -48,13 +59,13 @@ class SearchBackendConfig extends React.Component {
     this.setState({
       customEndpoint: initCustomEndpoint,
     });
-    this.props.syncState();
+    this.syncState();
   }
 
   applyCustomEndpoint = () => {
     this.setCustomLocalStorageEndpoint(this.state.customEndpoint);
     this.props.cliqz.setEndpoints(this.state.customEndpoint);
-    this.props.syncState();
+    this.syncState();
   }
 
   getCustomLocalStorageEndpoint = () => localStorage.getItem('CustomEndpoint')
@@ -70,9 +81,9 @@ class SearchBackendConfig extends React.Component {
     return (
       <table>
         <tbody>
-          <Row idxOfChildToSpan={0}>
-            {`Current endpoint: ${this.props.endpointsUrl}`}
-          </Row>
+          <TableHeader
+            header={`Current endpoint: ${this.state.endpointsUrl}`}
+          />
 
           {labels.map(label =>
             (
@@ -131,8 +142,6 @@ class SearchBackendConfig extends React.Component {
 
 SearchBackendConfig.propTypes = {
   cliqz: PropTypes.object.isRequired,
-  endpointsUrl: PropTypes.string.isRequired,
-  syncState: PropTypes.func.isRequired,
 };
 
 export default SearchBackendConfig;

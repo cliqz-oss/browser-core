@@ -11,7 +11,10 @@ export default class ContentDropdownManager extends BaseDropdownManager {
     return this.view.textInput;
   }
 
-  // _telemetry() {}
+  get entryPoint() {
+    return 'newTab';
+  }
+
   _copyToClipboard(val) {
     const input = window.document.createElement('input');
     input.value = val;
@@ -49,7 +52,9 @@ export default class ContentDropdownManager extends BaseDropdownManager {
     };
 
     this._reportClick(selection);
-    this.cliqz.core.openLink(url, { newTab });
+    if (!meta.handledByBrowser) {
+      this.cliqz.core.openLink(url, { newTab });
+    }
 
     if (!newTab) {
       this.close();
@@ -148,7 +153,15 @@ export default class ContentDropdownManager extends BaseDropdownManager {
   _getMaxHeight() {
     return window.innerHeight - 140;
   }
-  // _createIframe() {}
+
+  close() {
+    this.setHeight(0);
+    this.cliqz.search.stopSearch({ entryPoint: this.entryPoint });
+  }
+
+  onBlur() {
+    this.close();
+  }
 
   onKeydown(ev) {
     ev.stopPropagation();

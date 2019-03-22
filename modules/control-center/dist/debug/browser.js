@@ -9,7 +9,6 @@ DATA.push({
     "core": null,
     "core-cliqz": null,
     "dropdown": null,
-    "firefox-specific": null,
     "static": null,
     "autocomplete": {
       "visible": true,
@@ -1088,10 +1087,8 @@ DATA.push({
     "video-downloader": null,
     "market-analysis": null,
     "p2p": null,
-    "proxyPeer": null,
     "pairing": null,
     "antitracking-blocker": null,
-    "green-ads": null,
     "adult": {
       "visible": true,
       "state": {

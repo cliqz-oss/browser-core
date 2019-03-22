@@ -18,6 +18,9 @@ const ActionID = {
   // whenever the offer will be broadcasted / pushed to all the real estates when
   // the offers should be displayed (before, known as offer_added / offer_displayed).
   AID_OFFER_PUSHED: 'offer_pushed',
+  // whenever the offer will be broadcasted / pushed to all the real estates and
+  // it has a deep link and a corresponding image. In addition to 'offer_pushed'
+  AID_DYNAMIC_OFFER_PUSHED: 'dynamic_offer_pushed',
   // Notification type when an offer is pushed to the Reward box (Hub or offers-cc)
   // it can be a small tooltip, or full pop-up of the window
   AID_OFFER_NOTIF_T: 'offer_notif_tooltip',

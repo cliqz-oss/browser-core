@@ -54,13 +54,15 @@ export default class HistoryFeature extends Feature {
   async performQueryOnHistory({ pid, index, start_ms: startMs, end_ms: endMs }) {
     const after = startMs - 1;
     const before = endMs + 1;
-
-    // Group matched urls per day
     const days = new DefaultMap(() => 0);
-    const visits = await this.history.queryVisitsForTimespan({
-      frameStartsAt: after,
-      frameEndsAt: before,
-    });
+
+    // Empty index (no patterns) is possible for segmentation categories
+    const visits = index.isEmpty()
+      ? []
+      : await this.history.queryVisitsForTimespan({
+        frameStartsAt: after,
+        frameEndsAt: before,
+      });
     for (const { ts, url } of visits) {
       const urlData = new UrlData(url);
       if (index.match(urlData.getPatternRequest())) {

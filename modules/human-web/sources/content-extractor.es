@@ -1,5 +1,6 @@
 import logger from './logger';
 import { parseURL } from './network';
+import { URLInfo } from '../core/url-info';
 
 export function parseQueryString(query) {
   if (query.length === 0) {
@@ -220,7 +221,8 @@ export class ContentExtractor {
 
     for (let i = 0; i < rArray.length; i += 1) {
       if (rArray[i].test(url)) {
-        this._extractContent(i, pageContent, url, ruleset);
+        const baseURI = URLInfo.get(url).origin;
+        this._extractContent(i, pageContent, url, baseURI, ruleset);
 
         // Do not want to continue after search engines...
         if (searchEngines.indexOf(String(i)) !== -1) {
@@ -290,7 +292,7 @@ export class ContentExtractor {
     return -1;
   }
 
-  _extractContent(ind, cd, url, ruleset) {
+  _extractContent(ind, cd, url, baseURI, ruleset) {
     const scrapeResults = {};
 
     const patterns = this.patterns[ruleset];
@@ -328,7 +330,8 @@ export class ContentExtractor {
             rules[key][eachKey].item,
             rules[key][eachKey].etype,
             rules[key][eachKey].keyName,
-            rules[key][eachKey].functionsApplied || null
+            rules[key][eachKey].functionsApplied || null,
+            baseURI
           );
           innerDict[eachKey] = urlArray;
           if (ruleset === 'normal') {
@@ -347,7 +350,8 @@ export class ContentExtractor {
             rules[key][eachKey].item,
             rules[key][eachKey].etype,
             rules[key][eachKey].keyName,
-            rules[key][eachKey].functionsApplied || null
+            rules[key][eachKey].functionsApplied || null,
+            baseURI
           );
           innerDict[eachKey] = urlArray;
         }
@@ -372,14 +376,26 @@ export class ContentExtractor {
     }
   }
 
-  _getAttribute(cd, parentItem, item, attrib, keyName, functionsApplied) {
+  _getAttribute(cd, parentItem, item, attrib, keyName, functionsApplied, baseURI) {
     const arr = [];
     const rootElement = Array.prototype.slice.call(cd.querySelectorAll(parentItem));
     for (let i = 0; i < rootElement.length; i += 1) {
       const val = rootElement[i].querySelector(item);
       if (val) {
         // Check if the value needs to be refined or not.
-        let attribVal = val[attrib] || val.getAttribute(attrib);
+        let attribVal;
+        if (attrib === 'href') {
+          // Unless there is a <base> tag, DOMParser will use the extension id
+          // as the implicit <base> for all relative links.
+          try {
+            const rawLink = val.getAttribute(attrib);
+            attribVal = rawLink ? new URL(rawLink, baseURI).href : null;
+          } catch (e) {
+            attribVal = null;
+          }
+        } else {
+          attribVal = val[attrib] || val.getAttribute(attrib);
+        }
         if (functionsApplied) {
           attribVal = functionsApplied.reduce((accum, e) => {
             if (Object.prototype.hasOwnProperty.call(this.refineFuncMappings, e[0])) {

@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 const mockBrowser = require('mock-browser');
+const punycode = require('punycode');
 
 const expect = chai.expect;
 const R = require('ramda');
@@ -75,6 +76,9 @@ export default describeModule('human-web/content-extractor',
         };
       } }
     },
+    'platform/lib/punycode': {
+      default: punycode,
+    },
   }),
   () => {
     describe('ContentExtractor', function () {
@@ -143,7 +147,11 @@ export default describeModule('human-web/content-extractor',
         }
       };
 
+      const oldURL = global.URL;
       beforeEach(function () {
+        /* eslint-disable-next-line global-require */
+        global.URL = global.URL || require('url').URL;
+
         this.timeout(10000);
         ContentExtractor = this.module().ContentExtractor;
         CliqzHumanWeb = {
@@ -171,6 +179,7 @@ export default describeModule('human-web/content-extractor',
       afterEach(function () {
         document = null;
         fixture = null;
+        global.URL = oldURL;
 
         if (mockWindow) {
           mockWindow.close();

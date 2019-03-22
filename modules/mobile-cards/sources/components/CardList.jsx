@@ -71,7 +71,7 @@ class CardList extends React.Component {
     }
   }
 
-  renderItem(result, index, { length }, theme) {
+  renderItem(result, index, { length }, theme, meta) {
     if (result.type === 'supplementary-search') {
       return (
         <SearchEngineCard
@@ -79,6 +79,7 @@ class CardList extends React.Component {
           result={result}
           noResults={length < 2}
           width={getCardWidth()}
+          meta={meta}
         />
       );
     }
@@ -88,6 +89,7 @@ class CardList extends React.Component {
         width={getCardWidth()}
         result={result}
         theme={theme}
+        meta={meta}
       />
     );
   }
@@ -95,6 +97,7 @@ class CardList extends React.Component {
   render() {
     const results = this.props.results;
     const theme = this.props.theme;
+    const meta = this.props.meta;
     return (
       <Carousel
         onLayout={() => {
@@ -109,7 +112,9 @@ class CardList extends React.Component {
         }}
         ref={(c) => { this._carousel = c; }}
         data={results}
-        renderItem={({ item: result, index }) => this.renderItem(result, index, results, theme)}
+        renderItem={
+          ({ item: result, index }) => this.renderItem(result, index, results, theme, meta)
+        }
         sliderWidth={this.state.vp.width}
         itemWidth={getCardWidth()}
         onSnapToItem={index => this.handleSwipe(index)}

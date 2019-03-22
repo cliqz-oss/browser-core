@@ -54,7 +54,8 @@ export default describeModule('insights/background',
               return mockKord.get(mod)[action];
             }
             return Promise.reject();
-          }
+          },
+          isPresent: () => true,
         }),
         service: () => {},
       }
@@ -69,7 +70,10 @@ export default describeModule('insights/background',
         },
         getDomainOwner() {
           return mockApps[1];
-        }
+        },
+        getTrackerDetails(wtmOrAppId) {
+          return this.getAppOwner(wtmOrAppId);
+        },
       },
     },
     'platform/lib/moment': {
@@ -167,6 +171,10 @@ export default describeModule('insights/background',
         day: mockDay,
         pages: 1,
         trackers: [...expectedTrackers],
+        trackersDetailed: [
+          { name: 'Tracker 1', cat: 'tracker' },
+          { name: 'Tracker 2', cat: 'cdn' },
+        ],
       });
     });
 
@@ -215,6 +223,11 @@ export default describeModule('insights/background',
         day: mockDay,
         pages: 1,
         trackers: [...expectedTrackers],
+        trackersDetailed: [
+          { name: 'Tracker 1', cat: 'tracker' },
+          { name: 'Tracker 2', cat: 'cdn' },
+          undefined, // extra tracker not in db
+        ],
       });
     });
 
@@ -263,6 +276,10 @@ export default describeModule('insights/background',
         day: mockDay,
         pages: 1,
         trackers: [...expectedTrackers],
+        trackersDetailed: [
+          { name: 'Tracker 1', cat: 'tracker' },
+          { name: 'Tracker 2', cat: 'cdn' },
+        ],
       });
     });
 
@@ -292,6 +309,10 @@ export default describeModule('insights/background',
         adsBlocked: 0,
         dataSaved: 0,
         trackers: [1, 2],
+        trackersDetailed: [
+          { name: 'Tracker 1', cat: 'tracker' },
+          { name: 'Tracker 2', cat: 'cdn' },
+        ],
       });
     });
 
@@ -322,6 +343,10 @@ export default describeModule('insights/background',
         adsBlocked: 0,
         dataSaved: 0,
         trackers: [1, 2],
+        trackersDetailed: [
+          { name: 'Tracker 1', cat: 'tracker' },
+          { name: 'Tracker 2', cat: 'cdn' },
+        ],
       });
       const dayStats = {
         day: mockDay,
@@ -337,7 +362,13 @@ export default describeModule('insights/background',
         dataSaved: 0,
         trackers: [1, 2],
       };
-      chai.expect(await insights.actions.getDashboardStats('day')).to.eql(dayStats);
+      chai.expect(await insights.actions.getDashboardStats('day')).to.eql({
+        ...dayStats,
+        trackersDetailed: [
+          { name: 'Tracker 1', cat: 'tracker' },
+          { name: 'Tracker 2', cat: 'cdn' },
+        ],
+      });
 
       chai.expect(await insights.actions.getStatsTimeline(mockDay, mockDay, true, true)).to.eql([
         dayStats,

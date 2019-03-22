@@ -3,6 +3,7 @@
 const expect = chai.expect;
 const tldts = require('tldts');
 const crypto = require('crypto');
+const punycode = require('punycode');
 
 const MOCK = {
   'core/events': {
@@ -48,9 +49,6 @@ const MOCK = {
   'platform/human-web/opentabs': {
     getAllOpenPages: {},
   },
-  'core/fast-url-parser': {
-    default: {},
-  },
   'platform/browser': {
     getActiveTab: {},
   },
@@ -65,9 +63,6 @@ const MOCK = {
   },
   'platform/fetch': {
     default: {},
-  },
-  'platform/human-web/tabInfo': {
-    getTabInfo: {},
   },
   'platform/text-encoder': {
     default: function () {
@@ -123,6 +118,9 @@ const MOCK = {
     }
   },
   'platform/lib/tldts': tldts,
+  'platform/lib/punycode': {
+    default: punycode,
+  },
 };
 
 export default describeModule('human-web/human-web',

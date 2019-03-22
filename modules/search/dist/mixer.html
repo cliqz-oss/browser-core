@@ -68,11 +68,12 @@
       #popup {
         border: 1px solid black;
         background-color: rgb(202, 202, 202);
-        position: relative;
+        position: absolute;
         z-index: 10;
         width: 800px;
         height: 800px;
         left: calc(50% - 400px);
+        top: 50px;
       }
 
       .close {
@@ -102,6 +103,11 @@
       img.image[src=''] {
         display: none;
       }
+
+      #full-json {
+        width: 90%;
+        height: 300px;
+      }
     </style>
 </head>
 <body>
@@ -109,6 +115,11 @@
     <div id="mixer">
       <div id="results"></div>
     </div>
+
+    <div id="fullJson">
+      <textarea id="full-json">{}</textarea>
+    </div>
+
     <div id="popup" class="hidden">
       <div class="close">X</div>
       <textarea id="data-json" />

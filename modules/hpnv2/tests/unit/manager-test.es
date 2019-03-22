@@ -160,4 +160,65 @@ export default describeModule('hpnv2/manager',
         });
       });
     });
+
+    describe('#InitState', () => {
+      let InitState;
+      let uut;
+
+      beforeEach(function () {
+        InitState = this.module().InitState;
+        uut = new InitState();
+      });
+
+      it('should start in UNINITIALIZED state', function () {
+        expect(uut.isUninitialized()).to.be.true;
+      });
+
+      it('should support "happy path" state transitions', function () {
+        expect(uut.isUninitialized()).to.be.true;
+        expect(uut.isUnloaded()).to.be.true;
+        expect(uut.isReady()).to.be.false;
+
+        uut.updateState(InitState.INIT_PENDING);
+        expect(uut.isUninitialized()).to.be.false;
+        expect(uut.isUnloaded()).to.be.false;
+        expect(uut.isReady()).to.be.false;
+
+        uut.updateState(InitState.READY);
+        expect(uut.isUninitialized()).to.be.false;
+        expect(uut.isUnloaded()).to.be.false;
+        expect(uut.isReady()).to.be.true;
+
+
+        uut.updateState(InitState.DESTROYED);
+        expect(uut.isUninitialized()).to.be.false;
+        expect(uut.isUnloaded()).to.be.true;
+        expect(uut.isReady()).to.be.false;
+      });
+
+      it('should support staying in destroyed state', function () {
+        uut.updateState(InitState.DESTROYED);
+        uut.updateState(InitState.DESTROYED);
+      });
+
+      [0, 1, 30000].forEach((timeoutInMs) => {
+        it(`during initialization should allow to wait for state READY (timeout: ${timeoutInMs})`, function (done) {
+          uut.updateState(InitState.INIT_PENDING);
+          uut.waitUntilReady(timeoutInMs).then(() => {
+            done();
+          });
+
+          uut.updateState(InitState.READY);
+        });
+
+        it(`should give up if the state gets destroyed (timeout: ${timeoutInMs})`, function (done) {
+          uut.waitUntilReady(timeoutInMs).catch(() => {
+            // immediate error is expected
+            done();
+          });
+
+          uut.updateState(InitState.DESTROYED);
+        });
+      });
+    });
   });

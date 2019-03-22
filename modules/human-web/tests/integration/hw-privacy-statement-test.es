@@ -1,22 +1,18 @@
-import prefs from '../../../core/prefs';
-import { isWebExtension } from '../../../core/platform';
 import {
   app,
   click,
   expect,
   getLocalisedString,
+  getResourceUrl,
   newTab,
+  prefs,
   queryHTML,
   waitFor,
   waitForPrefChange,
 } from '../../../tests/core/integration/helpers';
 
 export default function () {
-  if (isWebExtension) {
-    return;
-  }
-
-  const privacyStatementUrl = 'resource://cliqz/human-web/humanweb.html';
+  const privacyStatementUrl = getResourceUrl('human-web/humanweb.html');
   const privacyCheckboxSelector = '#enableHumanWeb';
 
   describe('HumanWeb privacy statement page', function () {
@@ -46,11 +42,12 @@ export default function () {
       });
 
       it('with "humanWebOptOut" pref set to false and ticked checkbox as default', async function () {
-        expect(Boolean(prefs.get('humanWebOptOut'))).to.be.false;
-
-        privacyCheckboxState = await queryHTML(privacyStatementUrl, privacyCheckboxSelector, 'checked');
-        expect(privacyCheckboxState).to.have.length(1);
-        expect(privacyCheckboxState[0]).to.be.true;
+        expect(Boolean(prefs.get('humanWebOptOut'), false)).to.be.false;
+        await waitFor(async () => {
+          privacyCheckboxState = await queryHTML(privacyStatementUrl, privacyCheckboxSelector, 'checked');
+          expect(privacyCheckboxState).to.have.length(1);
+          return expect(privacyCheckboxState[0]).to.be.true;
+        });
       });
     });
 

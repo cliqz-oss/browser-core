@@ -37,6 +37,7 @@ export default describeModule('history-analyzer/indexed-stream',
     'platform/lib/tldts': tldts,
     'core/platform': {},
     'platform/url': {},
+    'platform/lib/punycode': {},
   }),
   () => {
     let stream;

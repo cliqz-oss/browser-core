@@ -5,12 +5,9 @@ import AsideElement from './partials/aside-element';
 import t from '../i18n';
 
 function AsideLeft({
-  cliqzForFriends,
-  displayFriendsIcon,
   historyUrl,
   isHistoryEnabled,
   newTabUrl,
-  onFriendsClick,
   onHistoryClick,
 }) {
   return (
@@ -31,25 +28,14 @@ function AsideLeft({
         label="History"
         title={t('history_button')}
       />
-      <AsideElement
-        condition={displayFriendsIcon}
-        href={cliqzForFriends}
-        id="cliqz-for-friends"
-        onClick={onFriendsClick}
-        label="Cliqz for Friends"
-        title={t('cliqz_for_friends_button')}
-      />
     </aside>
   );
 }
 
 AsideLeft.propTypes = {
-  cliqzForFriends: PropTypes.string,
-  displayFriendsIcon: PropTypes.bool,
   historyUrl: PropTypes.string,
   isHistoryEnabled: PropTypes.bool,
   newTabUrl: PropTypes.string,
-  onFriendsClick: PropTypes.func,
   onHistoryClick: PropTypes.func,
 };
 

@@ -1,143 +1,185 @@
 import tabs from '../platform/tabs';
-import windows from '../platform/windows';
+import logger from './logger';
 
-import console from '../core/console';
-import { chrome } from '../platform/globals';
 
+function makeTabContext({ url, incognito }) {
+  return {
+    url,
+    isRedirect: false,
+    isPrivate: incognito,
+    lastRequestId: -1,
+    frames: new Map([[0, {
+      parentFrameId: -1,
+      url,
+    }]]),
+  };
+}
 
 export default class PageStore {
   constructor() {
-    this.tabs = {};
-    this.windows = {};
+    this.tabs = new Map();
 
     this.onTabCreated = this.onTabCreated.bind(this);
     this.onTabUpdated = this.onTabUpdated.bind(this);
     this.onTabRemoved = this.onTabRemoved.bind(this);
-    this.onWindowCreated = this.onWindowCreated.bind(this);
-    this.onWindowRemoved = this.onWindowRemoved.bind(this);
   }
 
   init() {
     tabs.onCreated.addListener(this.onTabCreated);
     tabs.onUpdated.addListener(this.onTabUpdated);
     tabs.onRemoved.addListener(this.onTabRemoved);
-
-    // windows API may be undefined on Firefox for Android.
-    if (windows) {
-      windows.onCreated.addListener(this.onWindowCreated);
-      windows.onRemoved.addListener(this.onWindowRemoved);
-    }
   }
 
   unload() {
     tabs.onCreated.removeListener(this.onTabCreated);
     tabs.onUpdated.removeListener(this.onTabUpdated);
     tabs.onRemoved.removeListener(this.onTabRemoved);
-
-    if (windows) {
-      windows.onCreated.removeListener(this.onWindowCreated);
-      windows.onRemoved.removeListener(this.onWindowRemoved);
-    }
   }
 
-  onFullPage({ tabId, url, isPrivate, requestId }) {
-    // update last request id from the tab
-    if (this.tabs[tabId] === undefined) {
-      this.tabs[tabId] = {
-        url,
-        isPrivate,
-      };
-    }
-
-    this.tabs[tabId].lastRequestId = requestId;
-  }
-
-  isRedirect(details) {
-    if (details.type === 'main_frame' && details.parentFrameId === -1) {
-      if (details.tabId !== undefined && details.tabId !== null
-        && this.tabs[details.tabId] !== undefined) {
-        if (details.requestId === this.tabs[details.tabId].lastRequestId) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  getWindowStatus(windowId) {
-    let isPrivate = null;
-    if (windowId) {
-      if (!this.windows[windowId]) {
-        chrome.windows.get(windowId, (window) => {
-          this.windows[window.id] = {
-            isPrivate: window.incognito
-          };
-        });
-      } else {
-        isPrivate = this.windows[windowId].isPrivate;
-      }
-    }
-    return isPrivate;
-  }
-
+  /**
+   * Create a new `tabContext` for the new tab
+   */
   onTabCreated(tab) {
-    if (tab.id > -1) {
-      this.tabs[tab.id] = {
-        url: tab.url,
-        isPrivate: tab.incognito,
-      };
+    this.tabs.set(tab.id, makeTabContext(tab));
+  }
+
+  /**
+   * Update an existing tab or create it if we do not have a context yet.
+   */
+  onTabUpdated(tabId, info, tab) {
+    let tabContext = this.tabs.get(tabId);
+    if (tabContext === undefined) {
+      tabContext = makeTabContext(tab);
+      this.tabs.set(tabId, tabContext);
+    }
+
+    // Update `isPrivate` and `url` if available
+    tabContext.isPrivate = tab.incognito;
+    if (info.url !== undefined) {
+      tabContext.url = info.url;
     }
   }
 
-  onTabUpdated(tabId, changeInfo, tab) {
-    if (tabId > -1 && tab.url) {
-      if (this.tabs[tabId]) {
-        this.tabs[tabId].url = tab.url;
-        this.tabs[tabId].isPrivate = tab.incognito;
-      } else {
-        this.tabs[tabId] = {
-          url: tab.url,
-          isPrivate: tab.incognito,
-        };
-      }
-    }
-  }
-
+  /**
+   * Remove tab context for `tabId`.
+   */
   onTabRemoved(tabId) {
-    if (tabId > -1) {
-      delete this.tabs[tabId];
-    }
+    this.tabs.delete(tabId);
   }
 
-  onWindowCreated(window) {
-    this.windows[window.id] = {
-      isPrivate: window.incognito
-    };
-  }
-
-  onWindowRemoved(windowId) {
-    delete this.windows[windowId];
-  }
-
-  getSourceURL(details) {
-    if (details.type === 'main_frame' && details.parentFrameId === -1) {
-      return details.url;
+  onMainFrame({ tabId, url, requestId }, event) {
+    // Update last request id from the tab
+    let tabContext = this.tabs.get(tabId);
+    if (tabContext === undefined) {
+      tabContext = makeTabContext({ url, incognito: null });
+      this.tabs.set(tabId, tabContext);
     }
 
-    const { tabId, initiator } = details;
-    if (tabId > -1 && tabId in this.tabs) {
-      return this.tabs[tabId].url;
-    }
-    if (tabId !== -1) {
-      if (initiator && initiator !== 'null') {
-        // Sometimes requests from iframes can have different tabid,
-        // try to use `initiator` as the source url
-        return initiator;
+    if (event === 'onBeforeRequest') {
+      // Detect redirect: if the last request on this tab had the same id and
+      // this was from the same `onBeforeRequest` hook, we can assume this is a
+      // redirection.
+      if (tabContext.lastRequestId === requestId) {
+        tabContext.isRedirect = true;
       }
-      console.warn(tabId, this.tabs, 'Cannot locate tabId');
+
+      // Only keep track of `lastRequestId` with `onBeforeRequest` listener
+      // since we need this information for redirect detection only and this can
+      // be detected with this hook.
+      tabContext.lastRequestId = requestId;
     }
 
-    return null;
+    // Update context of tab with `url` and main frame information
+    tabContext.url = url;
+    tabContext.frames.set(0, {
+      parentFrameId: -1,
+      url,
+    });
+  }
+
+  onSubFrame(details) {
+    const { tabId, frameId, parentFrameId, url } = details;
+    const tab = this.tabs.get(tabId);
+    if (tab === undefined) {
+      logger.log('Could not find tab for sub_frame request', details);
+      return;
+    }
+
+    // Keep track of frameUrl as well as parent frame
+    tab.frames.set(frameId, {
+      parentFrameId,
+      url,
+    });
+  }
+
+  isRedirect({ tabId, type }) {
+    const tabContext = this.tabs.get(tabId);
+    return (
+      type === 'main_frame'
+      && tabContext !== undefined
+      && tabContext.isRedirect
+    );
+  }
+
+  isPrivateTab(tabId) {
+    const tab = this.tabs.get(tabId);
+    return tab === undefined ? null : tab.isPrivate;
+  }
+
+  getFrameAncestors({ tabId, parentFrameId }) {
+    const tab = this.tabs.get(tabId);
+    const ancestors = [];
+
+    // Reconstruct frame ancestors
+    if (tab !== undefined) {
+      let currentFrameId = parentFrameId;
+      while (currentFrameId !== -1) {
+        const frame = tab.frames.get(currentFrameId);
+        ancestors.push({
+          frameId: currentFrameId,
+          url: frame.url,
+        });
+        currentFrameId = frame.parentFrameId;
+      }
+    }
+
+    return ancestors;
+  }
+
+  /**
+   * Return the URL of the frame.
+   */
+  getFrameUrl(context) {
+    const { tabId, frameId } = context;
+    const tab = this.tabs.get(tabId);
+
+    if (tab === undefined) {
+      return null;
+    }
+
+    const frame = tab.frames.get(frameId);
+
+    // In some cases, frame creation does not trigger a webRequest event (e.g.:
+    // if the iframe is specified in the HTML of the page directly). In this
+    // case we try to fall-back to something else: documentUrl, originUrl,
+    // initiator.
+    if (frame === undefined) {
+      return context.documentUrl || context.originUrl || context.initiator;
+    }
+
+    return frame.url;
+  }
+
+  /**
+   * Return the URL of top-level document (i.e.: tab URL).
+   */
+  getTabUrl({ tabId }) {
+    const tab = this.tabs.get(tabId);
+
+    if (tab === undefined) {
+      return null;
+    }
+
+    return tab.url;
   }
 }

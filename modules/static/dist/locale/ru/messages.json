@@ -107,6 +107,9 @@
     "cinema_movie_cast": {
         "message": "Cast"
     },
+    "cinema_movie_director": {
+        "message": "Director"
+    },
     "cinema_movie_full_cast": {
         "message": "Full cast and crew"
     },
@@ -171,7 +174,7 @@
         "message": "List of advertisers on this page"
     },
     "control_center_adblock_description": {
-        "message": "Ads have been blocked on this website"
+        "message": "ads have been blocked on this website"
     },
     "control_center_adblock_description_off_all": {
         "message": "Turned off for all websites"
@@ -201,7 +204,7 @@
         "message": "Clear Tracking Cache"
     },
     "control_center_datapoints": {
-        "message": "Private data points have been removed"
+        "message": "private data points have been removed"
     },
     "control_center_datapoints_inactive": {
         "message": "Turned off for this domain"
@@ -231,7 +234,7 @@
         "message": "You can choose to block or show advertisements on all or selected websites."
     },
     "control_center_info_ads_title": {
-        "message": "Ad Blocking"
+        "message": "Ad-block"
     },
     "control_center_info_cliqz_tab": {
         "message": "Cliqz Tab enhances new tabs with short-cuts to your most visited and favorite websites, and curated top news to keep you up to speed."
@@ -240,7 +243,7 @@
         "message": "Вы хотите исключить веб-сайты которые связаны с порнографией или насилием из результатов поиска?"
     },
     "control_center_info_explicit_title": {
-        "message": "Block adult content"
+        "message": "Block adult websites"
     },
     "control_center_info_forget_mode": {
         "message": "Websites that contain explicit content are automatically opened in Forget tabs. Visits to such sites are therefore not saved to your history."
@@ -252,7 +255,7 @@
         "message": "If you wish to hide your IP address while searching the web, you can send your search queries through a network of proxy servers."
     },
     "control_center_info_hpn_title": {
-        "message": "Search via Proxy"
+        "message": "Search via proxy"
     },
     "control_center_info_https": {
         "message": "This function is provided by the open-source service HTTPS Everywhere. It improves the level of security by forcing encrypted HTTPS connections to websites whenever possible."
@@ -707,17 +710,26 @@
     "freshtab_your_news": {
         "message": "Your News Sources"
     },
+    "general_collapse_button": {
+        "message": "Less"
+    },
     "general_expand_button": {
         "message": "More"
     },
     "ghost": {
         "message": "Ghost"
     },
+    "ghost_search_is_private": {
+        "message": "Ghost search is private"
+    },
     "ghosteryTabAppDesc": {
-        "message": "Get more out of Chrome. More privacy, more favorites, more freedom, more style and more news on each new tab!"
+        "message": "More privacy, more favorites, more freedom, more style and more news on each new tab!"
     },
     "ghosteryTabAppName": {
         "message": "Ghostery Start Tab with Private Search (Beta)"
+    },
+    "ghosteryTabAppNameFirefox": {
+        "message": "Ghostery Start Tab"
     },
     "ghosteryTabAppNameNightly": {
         "message": "Ghostery Start Tab (Nightly)"
@@ -1010,6 +1022,9 @@
     "offersAppNameNightly": {
         "message": "MyOffrz (Nightly)"
     },
+    "onboarding_data_collection": {
+        "message": "By sending anonymized usage statistics to Cliqz, you help us improve your browsing experience."
+    },
     "onboarding_fast": {
         "message": "Fast"
     },
@@ -1018,6 +1033,9 @@
     },
     "onboarding_secure": {
         "message": "Secure"
+    },
+    "onboarding_share_btn": {
+        "message": "Choose what to share"
     },
     "onboarding_start_btn": {
         "message": "Start"
@@ -1106,6 +1124,9 @@
     "results_found_in_history": {
         "message": "Show results found in history"
     },
+    "search_use_complementary": {
+        "message": "Use complementary search?"
+    },
     "searchWith": {
         "message": "Search with $1"
     },
@@ -1176,16 +1197,16 @@
         "message": "Received by Cliqz"
     },
     "transparency_content": {
-        "message": "We respect your privacy and aim to protect it. Cliqz does not collect or store any personal data. Our Transparency Cockpit was built to give you insight into which data is generated when using the Cliqz browser. In real-time, it displays the data we receive when you start typing a search term into the address bar or when you visit a website. To protect your privacy, some data is blocked. I.e., these do not even leave your browser (e.g. geo-data, per your Cliqz settings)."
+        "message": "We respect your privacy and aim to protect it. Cliqz does not collect or store any personal data. Our Transparency Monitor was built to give you insight into which data is generated when using the Cliqz browser. In real-time, it displays the data we receive when you start typing a search term into the address bar or when you visit a website. To protect your privacy, some data is blocked. I.e., these do not even leave your browser (e.g. geo-data, per your Cliqz settings)."
     },
     "transparency_content_title": {
-        "message": "Transparency Cockpit"
+        "message": "Transparency Monitor"
     },
     "transparency_document_title": {
-        "message": "Transparency Cockpit"
+        "message": "Transparency Monitor"
     },
     "transparency_html_title": {
-        "message": "Cliqz | Transparency Cockpit"
+        "message": "Cliqz | Transparency Monitor"
     },
     "transparency_humanweb_content": {
         "message": "Our Human Web technology uses statistical methods and algorithms to continuously enhance the quality of our search results. The collected anonymous, statistical data are related to queries and shown results displayed by one of the complementary search engines. The chosen data architecture prevents any inference about a natural person. The transfer of Human Web data is encrypted and routed through a network of proxy servers. Find more information <a target='_blank' rel='noopener noreferrer' href='https://cliqz.com/en/whycliqz/transparency#human-web'>here</a>."

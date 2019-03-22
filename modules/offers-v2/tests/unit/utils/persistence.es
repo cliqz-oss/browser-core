@@ -101,6 +101,10 @@ module.exports = {
       offerIds.forEach(offerId => odb.eraseOfferObject(offerId));
       odb.imageDownloader.markBatch(0);
       return odb;
-    }
+    },
+    reset() {
+      persistenceMap = {};
+      simpleDb = {};
+    },
   },
 };

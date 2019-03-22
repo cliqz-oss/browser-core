@@ -19,8 +19,8 @@ setGlobal(app);
 function mockGlobalState() {
   // Store all telemetry signals globally so that tests can use them
   win.allTelemetry = [];
-  CliqzUtils.telemetry = (signal) => {
-    win.allTelemetry.push(signal);
+  CliqzUtils.telemetry = (signal, instant, schema) => {
+    win.allTelemetry.push({ signal, schema, instant });
   };
 
   // We only need the tests for the regular cliqz dropdown

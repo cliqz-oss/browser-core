@@ -24,7 +24,6 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
     instant: Object.create(null),
     calculator: Object.create(null),
     history: Object.create(null),
-    historyLookup: Object.create(null),
     historyView: Object.create(null),
     cliqz: Object.create(null),
     querySuggestions: Object.create(null),
@@ -33,7 +32,6 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
   const searchParams = [query, config, params];
   // TODO: also dedup within history results
   results.history.source$ = providers.history.search(...searchParams).pipe(share());
-  results.historyLookup.source$ = providers.historyLookup.search(...searchParams).pipe(share());
   results.historyView.source$ = searchOnNotEmpty(
     providers.historyView,
     results.history.source$,
@@ -116,7 +114,6 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
   results.instant.latest$ = results.instant.source$;
   results.calculator.latest$ = results.calculator.source$;
   results.history.latest$ = results.history.annotated$;
-  results.historyLookup.latest$ = results.historyLookup.source$;
   results.historyView.latest$ = results.historyView.source$;
   results.cliqz.latest$ = results.cliqz.deduplicated$;
   results.querySuggestions.latest$ = results.querySuggestions.source$;
@@ -129,7 +126,6 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
         .filter(({ condition }) => condition({
           query,
           keyCode: params.keyCode,
-          provider: config.providers[id],
         }));
 
       // no dependencies

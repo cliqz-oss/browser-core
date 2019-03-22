@@ -46,15 +46,31 @@ export default class Popup {
     return chrome.extension.getViews().find(view => view.location.href === href);
   }
 
+  _sendShowSignal(payload) {
+    const { data: { vouchers = [] } = {} } = payload;
+    const action = 'sendTelemetry';
+    const data = { action: 'show', offersCount: vouchers.length };
+    transport.dispatcher('offers-cc', null, { action, data }, false);
+  }
+
+  _sendCloseSignalIfNeeded(action, popup) {
+    if (action === 'hideBanner' && popup) {
+      const data = { target: 'close' };
+      transport.dispatcher('offers-cc', null, { action: 'sendTelemetry', data }, false);
+    }
+  }
+
   _dispatcher = async (action, { noVouchersLeft = false } = {}) => {
     if (!['getEmptyFrameAndData', 'hideBanner'].includes(action)) { return; }
     if (noVouchersLeft || action === 'hideBanner') {
       const popup = this._getPopup();
+      this._sendCloseSignalIfNeeded(action, popup);
       if (popup) { popup.close(); }
     } else {
       this.onPopupOpen();
       const payload = await this.getOffers();
       this._sendToPopup(payload.data);
+      this._sendShowSignal(payload);
     }
   }
 }

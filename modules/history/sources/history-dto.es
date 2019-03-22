@@ -2,6 +2,7 @@ import utils from '../core/utils';
 import config from '../core/config';
 import deepFreeze from '../core/helpers/deep-freeze';
 import { getDetailsFromUrl } from '../core/url';
+import { URLInfo } from '../core/url-info';
 
 function createBaseStructure() {
   return {};
@@ -21,21 +22,20 @@ function mergePlaces(history, places) {
     let host;
 
     if (isCliqz) {
-      const details = getDetailsFromUrl(config.settings.HOMPAGE_URL);
       host = 'CLIQZ';
 
       domains[host] = domains[host] || {
-        logo: utils.getLogoDetails(details),
+        logo: utils.getLogoDetails(config.settings.HOMEPAGE_URL),
         lastVisitedAt: entry.visit_date,
         baseUrl: '',
         visits: [],
       };
     } else {
-      const details = getDetailsFromUrl(entry.url);
-      host = details.host;
+      const details = URLInfo.get(entry.url);
+      host = details.hostname;
 
       domains[host] = domains[host] || {
-        logo: utils.getLogoDetails(details),
+        logo: utils.getLogoDetails(entry.url),
         lastVisitedAt: entry.visit_date,
         baseUrl: `${details.scheme}//${details.host}/`,
         visits: [],

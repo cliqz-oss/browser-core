@@ -15,13 +15,14 @@
       "48": "assets/icon48.png",
       "16": "assets/icon16.png"
     },
+    {{CUSTOM_MANIFEST_PAGE_ACTION_POPUP}}
     "default_title": "Ghostery Tab"
   },
   "permissions": [
     "<all_urls>",
+    {{CUSTOM_MANIFEST_PERMISSIONS}}
     "bookmarks",
     "clipboardWrite",
-    "commands",
     "cookies",
     "geolocation",
     "history",
@@ -52,7 +53,7 @@
   "commands": {
     "toggle-quicksearch": {
       "suggested_key": {
-        "default": "Ctrl+K"
+        "default": "{{QUICK_SEARCH_TOGGLE}}"
       },
       "description": "Toggle in-page quick search"
     }
@@ -70,4 +71,5 @@
     "modules/overlay/styles/overlay.css",
     "modules/freshtab/images/ghostery-tab-search-icon.svg"
   ]
+  {{CUSTOM_MANIFEST_ENTRY}}
 }

@@ -69,7 +69,7 @@ We have integration tests that run both on Firefox and Chrome.
 
 
 ### Google Chrome
-```./fern.js test configs/ci/webextension.js -l chromium-selenium --grep Freshtab```
+```./fern.js test configs/ci/webextension.js -l chromium-headless --grep Freshtab```
 
 
 ## Unit tests

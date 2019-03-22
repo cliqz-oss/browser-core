@@ -85,7 +85,7 @@ export default background({
     // filter page loads: must stay on site for 10s before it is logged
     this.pageStream = this.subjectPages.pipe(
       observeOn(asyncScheduler),
-      groupBy(({ tabId }) => tabId, undefined, () => timer(300000)),
+      groupBy(({ tabId }) => tabId, undefined, () => timer(10000)),
       flatMap(group => group.pipe(
         distinctUntilChanged((a, b) => a.domain === b.domain),
         debounceTime(10000)
@@ -143,10 +143,10 @@ export default background({
       });
 
     if (chrome.cliqzdbmigration && !prefs.has('cookie-monster.migrated')) {
+      prefs.set('cookie-monster.migrated', true);
       chrome.cliqzdbmigration.exportDexieTable('cookie-monster', 2, 'visits').then(async (rows) => {
         await this.db.visits.bulkPut(rows);
         await chrome.cliqzdbmigration.deleteDatabase('cookie-monster');
-        prefs.set('cookie-monster.migrated', true);
       }, logger.debug);
     }
 
@@ -160,6 +160,9 @@ export default background({
     this.pruneStream.unsubscribe();
     this.pageStream.unsubscribe();
     WebRequest.onHeadersReceived.removeListener(this.onPage);
+    if (this.db) {
+      this.db.close();
+    }
   },
 
   telemetry(signal, value) {

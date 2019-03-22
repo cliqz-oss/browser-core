@@ -8,7 +8,7 @@ import prefs from '../core/prefs';
 import events from '../core/events';
 import inject from '../core/kord/inject';
 import { getMessage } from '../core/i18n';
-import { isDesktopBrowser, isAMO, isGhostery, getResourceUrl } from '../core/platform';
+import { isDesktopBrowser, isAMO, isGhostery } from '../core/platform';
 import background from '../core/base/background';
 import { getActiveTab } from '../platform/browser';
 import { openLink } from '../platform/browser-actions';
@@ -117,8 +117,7 @@ export default background({
     }
     // wait for tab content to load
     if (!url
-      || url === 'about:blank'
-      || url.startsWith(getResourceUrl(''))) {
+      || url === 'about:blank') {
       return;
     }
 
@@ -255,7 +254,8 @@ export default background({
       let { url } = await getActiveTab();
       let friendlyURL = url;
       let isSpecialUrl = false;
-      let urlDetails = getDetailsFromUrl(url);
+      // TODO: Switch to URL
+      const urlDetails = getDetailsFromUrl(url);
       if (url.indexOf('about:') === 0) {
         friendlyURL = url;
         isSpecialUrl = true;
@@ -276,7 +276,6 @@ export default background({
         // we need to get the actual url instead of the warning page
         url = url.split('chrome://cliqz/content/anti-phishing/phishing-warning.html?u=')[1];
         url = decodeURIComponent(url);
-        urlDetails = getDetailsFromUrl(url);
         isSpecialUrl = true;
         friendlyURL = getMessage('anti-phishing-txt0');
       }

@@ -1,16 +1,16 @@
-/* global ChromeUtils, EventEmitter, ExtensionParent, EventManager,
-   addMessageListener, sendAsyncMessage, E10SUtils, windowTracker */
+/* global ChromeUtils, EventManager, addMessageListener, sendAsyncMessage,  windowTracker */
 import Defer from '../../../core/helpers/defer';
 
-ChromeUtils.import('resource://gre/modules/E10SUtils.jsm');
-ChromeUtils.import('resource://gre/modules/ExtensionParent.jsm');
-ChromeUtils.import('resource://gre/modules/EventEmitter.jsm');
+const { E10SUtils } = ChromeUtils.import('resource://gre/modules/E10SUtils.jsm');
+const { ExtensionParent } = ChromeUtils.import('resource://gre/modules/ExtensionParent.jsm');
+const { EventEmitter } = ChromeUtils.import('resource://gre/modules/EventEmitter.jsm');
 
-const { promiseEvent } = ChromeUtils.import('resource://gre/modules/ExtensionUtils.jsm');
+const { ExtensionUtils } = ChromeUtils.import('resource://gre/modules/ExtensionUtils.jsm');
 const STYLESHEET_URL = '/modules/dropdown/styles/xul.css';
 const AC_PROVIDER_NAME = 'cliqz-results';
 const { ExtensionError } = ExtensionParent;
 
+const { promiseEvent } = ExtensionUtils;
 
 function addStylesheet(document, url) {
   const stylesheet = document.createElementNS('http://www.w3.org/1999/xhtml', 'h:link');
@@ -301,6 +301,12 @@ export default class Dropdown extends EventEmitter {
     cliqzToolbar.appendChild(container);
     parentElement.insertBefore(cliqzToolbar, navToolbar.nextSibling);
 
+    // Create a new stacking context around browser element (it has z-index 100000)
+    // so nav-bar element gets higher above on z-axis.
+    cliqzToolbar.style.position = 'relative';
+    cliqzToolbar.style.zIndex = 1;
+    navToolbar.style.zIndex = 2;
+
     ExtensionParent.apiManager.emit('extension-browser-inserted', browser);
     try {
       browser.loadURI(this._url, { triggeringPrincipal: this._principal });
@@ -349,6 +355,10 @@ export default class Dropdown extends EventEmitter {
     } = dropdown;
 
     if (!initialized) return;
+
+    const navToolbar = window.document.getElementById('nav-bar');
+    navToolbar.setAttribute('overflowable', 'true');
+    navToolbar.style.zIndex = 'auto';
 
     removeStylesheet(window.document, this._stylesheetURL);
 
@@ -427,7 +437,7 @@ export default class Dropdown extends EventEmitter {
       throw new ExtensionError('Dropdown is not overriden, cannot change its height.');
     }
     await this._overriden;
-    const { browser } = this._getDropdown(windowId);
+    const { browser, window } = this._getDropdown(windowId);
     const newHeight = Math.min(this._getMaxHeight(windowId), height);
     this.setState(windowId, {
       height: newHeight,
@@ -435,6 +445,16 @@ export default class Dropdown extends EventEmitter {
     });
     const heightInPx = `${newHeight}px`;
     browser.style.height = heightInPx;
+
+    const navToolbar = window.document.getElementById('nav-bar');
+    // If newHeight equals 0 then we remove attribute overflowable which results in showing a
+    // shadow line under search url bar.
+    // Otherwise we need to set this attribute back to nav-bar.
+    if (newHeight === 0) {
+      navToolbar.setAttribute('overflowable', 'true');
+    } else {
+      navToolbar.removeAttribute('overflowable');
+    }
   }
 
   _generateEventManager(context, eventName) {

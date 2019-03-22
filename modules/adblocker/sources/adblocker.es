@@ -118,6 +118,11 @@ const CliqzADB = {
 
       CliqzADB.onHeadersReceivedPipeline = new Pipeline('adblocker', [
         {
+          name: 'checkContext',
+          spec: 'blocking',
+          fn: CliqzADB.stepCheckContext,
+        },
+        {
           name: 'checkWhitelist',
           spec: 'break',
           fn: CliqzADB.stepCheckWhitelist,
@@ -218,21 +223,8 @@ const CliqzADB = {
       return false;
     }
 
-    const url = state.url;
-
-    if (!url || !isSupportedProtocol(url)) {
-      return false;
-    }
-
-    // This is the Url
-    const sourceUrl = state.sourceUrl || '';
-    if (!isSupportedProtocol(sourceUrl)) {
-      return false;
-    }
-
-    if (state.cpt === 6) {
-      // Loading document
-      CliqzADB.adbStats.addNewPage(sourceUrl, state.tabId);
+    // We need both
+    if (!state.urlParts || !state.frameUrlParts) {
       return false;
     }
 
@@ -240,21 +232,27 @@ const CliqzADB = {
   },
 
   stepCheckWhitelist(state) {
-    if (CliqzADB.urlWhitelist.isWhitelisted(state.sourceUrl || '')) {
+    if (CliqzADB.urlWhitelist.isWhitelisted(state.tabUrl || '')) {
       return false;
     }
     return true;
   },
 
   stepOnBeforeRequest(state, response) {
-    const result = CliqzADB.adBlocker.match(Adblocker.makeRequest({
+    if (state.isMainFrame) {
+      // Loading document, we do not block
+      CliqzADB.adbStats.addNewPage(state.tabUrl, state.tabId);
+      return false;
+    }
+
+    const request = Adblocker.makeRequest({
       url: state.url,
       hostname: state.urlParts.hostname,
       domain: state.urlParts.generalDomain,
 
-      sourceUrl: state.sourceUrl,
-      sourceHostname: state.sourceUrlParts.hostname,
-      sourceDomain: state.sourceUrlParts.generalDomain,
+      sourceUrl: state.frameUrl,
+      sourceHostname: state.frameUrlParts.hostname,
+      sourceDomain: state.frameUrlParts.generalDomain,
 
       type: state.type,
     }, {
@@ -263,7 +261,9 @@ const CliqzADB = {
       // utilities (usually we would pass in `tldts`).
       getDomain: () => '',
       getHostname: () => '',
-    }));
+    });
+
+    const result = CliqzADB.adBlocker.match(request);
 
     if (result.redirect) {
       response.redirectTo(result.redirect);
@@ -271,7 +271,7 @@ const CliqzADB = {
     }
 
     if (result.match) {
-      CliqzADB.adbStats.addBlockedUrl(state.sourceUrl, state.url, state.tabId, state.ghosteryBug);
+      CliqzADB.adbStats.addBlockedUrl(state.tabUrl, state.url, state.tabId, state.ghosteryBug);
       response.block();
       return false;
     }
@@ -280,7 +280,7 @@ const CliqzADB = {
   },
 
   stepOnHeadersReceived(state, response) {
-    if (state.type === 'main_frame') {
+    if (state.isMainFrame) {
       const directives = CliqzADB.adBlocker.engine.getCSPDirectives(Adblocker.makeRequest({
         url: state.url,
         hostname: state.urlParts.hostname,

@@ -3,15 +3,23 @@
 const mock = {
   'core/url': {
     tryDecodeURI: u => u,
-    getDetailsFromUrl: () => ({ domain: 'domain' }),
     urlStripProtocol: () => 'STRIPPED_URL',
+    cleanMozillaActions: url => [undefined, url],
+  },
+  'core/url-info': {
+    URLInfo: {
+      get: () => ({
+        hostname: 'domain',
+        generalDomain: 'domain'
+      })
+    }
   }
 };
 
 const prototype = {
-  url: undefined,
-  href: undefined,
-  friendlyUrl: undefined,
+  url: '',
+  href: '',
+  friendlyUrl: '',
   title: '',
   description: undefined,
   extra: {},

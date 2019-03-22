@@ -19,6 +19,9 @@ export default describeModule('offers-v2/offers/image-downloader',
   () => ({
     ...commonMocks,
     ...fetchMocks,
+    'core/timers': {
+      setTimeout: function () { },
+    },
   }),
   () => {
     describe('/offers image downloader', function () {

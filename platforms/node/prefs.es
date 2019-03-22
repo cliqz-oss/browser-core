@@ -2,6 +2,8 @@ import storage from 'node-persist';
 import events from '../core/events';
 import config from '../core/config';
 
+export const PLATFORM_TELEMETRY_WHITELIST = [];
+
 const prefs = config.default_prefs || {};
 let started = false;
 

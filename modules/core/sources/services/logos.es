@@ -3,6 +3,7 @@ import config from '../config';
 import inject from '../kord/inject';
 import prefs from '../prefs';
 import { isOnionModeFactory } from '../platform';
+import { URLInfo } from '../url-info';
 
 const isOnionMode = isOnionModeFactory(prefs);
 
@@ -16,8 +17,9 @@ export async function service() {
   });
 
   return {
-    getLogoDetails: (urlDetails) => {
-      const base = urlDetails.name;
+    getLogoDetails: (url) => {
+      const parsedUrl = URLInfo.get(url);
+      const base = parsedUrl.generalDomainMinusTLD || parsedUrl.hostname || parsedUrl.pathname;
       const baseCore = base.replace(/[-]/g, '');
       const check = (host, rule) => {
         const address = host.lastIndexOf(base);
@@ -39,7 +41,7 @@ export async function service() {
           // r = rule, b = background-color, l = logo, t = text, c = color
           const rule = domains[base][i];
 
-          if (check(urlDetails.host, rule.r)) {
+          if (check(parsedUrl.hostname, rule.r)) {
             result = {
               backgroundColor: rule.b ? rule.b : null,
               backgroundImage: rule.l

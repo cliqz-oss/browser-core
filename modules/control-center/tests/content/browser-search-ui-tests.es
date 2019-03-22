@@ -56,8 +56,8 @@ describe('Search options UI browser', function () {
         expect(subject.queryAll('.accordion #accordion-2 .bullet').length).to.equal(7);
       });
 
-      context('"Alternative Search Engine" block', function () {
-        it('renders "Alternative Search Engine"', function () {
+      context('"Alternative search engine" block', function () {
+        it('renders "Alternative search engine"', function () {
           const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_search_engine"]';
           expect(subject.query(titleSelector)).to.exist;
           expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_search_engine');
@@ -204,8 +204,8 @@ describe('Search options UI browser', function () {
         shareLocation('no');
       });
 
-      context('"Search Results for" block', function () {
-        it('renders "Search Results for"', function () {
+      context('"Search results for" block', function () {
+        it('renders "Search results for"', function () {
           const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_backend_country"]';
           expect(subject.query(titleSelector)).to.exist;
           expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_backend_country');
@@ -429,8 +429,8 @@ describe('AMO Search options tests', function () {
         expect(subject.queryAll('.accordion #accordion-2 .bullet').length).to.equal(7);
       });
 
-      context('"Alternative Search Engine" block', function () {
-        it('renders "Alternative Search Engine"', function () {
+      context('"Alternative search engine" block', function () {
+        it('renders "Alternative search engine"', function () {
           const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_search_engine"]';
           expect(subject.query(titleSelector)).to.exist;
           expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_search_engine');
@@ -577,8 +577,8 @@ describe('AMO Search options tests', function () {
         shareLocation('no');
       });
 
-      context('"Search Results for" block', function () {
-        it('renders "Search Results for"', function () {
+      context('"Search results for" block', function () {
+        it('renders "Search results for"', function () {
           const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_backend_country"]';
           expect(subject.query(titleSelector)).to.exist;
           expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_backend_country');

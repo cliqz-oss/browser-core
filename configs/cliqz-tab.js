@@ -22,7 +22,7 @@ module.exports = {
   }),
   default_prefs: {
     'modules.human-web.enabled': false,
-    'modules.hpnv2.enabled': false,
+    'modules.hpnv2.enabled': true,
     'freshtab.search.mode': 'search',
     showConsoleLogs: true,
     developer: true,
@@ -57,6 +57,7 @@ module.exports = {
     'freshtab/home.bundle.js',
     'dropdown/dropdown.bundle.js',
     'control-center/control-center.bundle.js',
+    "human-web/page.bundle.js",
     'human-web/rusha.bundle.js',
   ],
   system: Object.assign({}, base.systemConfig, {

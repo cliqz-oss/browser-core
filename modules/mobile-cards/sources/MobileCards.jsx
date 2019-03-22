@@ -3,6 +3,15 @@ import SearchUI from './SearchUI';
 import Cliqz from './cliqz-android/cliqz';
 import { Provider as CliqzProvider } from './cliqz';
 
+function metaInfo(resp) {
+  const response = JSON.parse(resp);
+
+  return {
+    ...response.meta,
+    query: response.query
+  };
+}
+
 export default class MobileCards extends React.Component {
   constructor() {
     super();
@@ -11,13 +20,18 @@ export default class MobileCards extends React.Component {
   }
 
   state = {
-    results: '[]',
+    results: [],
     theme: 'light'
   }
 
   actions = {
-    renderResults: results => this.setState({ results }),
-    changeTheme: theme => this.setState({ theme, results: '[]' })
+    renderResults: (response) => {
+      this.setState({
+        results: JSON.parse(response).results,
+        meta: metaInfo(response),
+      });
+    },
+    changeTheme: theme => this.setState({ theme, results: [] })
   }
 
   async init() {
@@ -27,15 +41,16 @@ export default class MobileCards extends React.Component {
   }
 
   render() {
-    const results = JSON.parse(this.state.results);
+    const results = this.state.results;
     const theme = this.state.theme;
+    const meta = this.state.meta;
     if (!results.length) {
       return null;
     }
     /* eslint-disable */
     return (
       <CliqzProvider value={this.cliqz}>
-        <SearchUI results={results} theme={theme} />
+        <SearchUI results={results} theme={theme} meta={meta} />
       </CliqzProvider>
     );
     /* eslint-enable */

@@ -24,7 +24,7 @@ export default class AdBlockerBase {
   logBlocking(request, matchResult, totalTime) {
     // Only enabled when the diagnosis page is opened
     if (this.diagnosisEnabled) {
-      if (request.cpt === 6 || !this.blockingLogger.has(request.sourceUrl)) {
+      if (request.rawType === 'main_frame' || !this.blockingLogger.has(request.sourceUrl)) {
         this.blockingLogger.set(request.sourceUrl, [`<tr>
           <th>Time</th>
           <th>Blocked</th>
@@ -50,7 +50,7 @@ export default class AdBlockerBase {
         <td>${matchResult.match}</td>
         <td>${!!matchResult.redirect}</td>
         <td>${matchResult.filter || matchResult.exception || ''}</td>
-        <td>${request.type}</td>
+        <td>${request.rawType}</td>
         <td>${request.url}</td>
       </tr>`);
     }

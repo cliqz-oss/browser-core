@@ -63,8 +63,11 @@ export default class CookieContext {
   }
 
   assignCookieTrust(state) {
-    if (state.isFullPage() && state.getReferrer()) {
+    if (state.isMainFrame && state.getReferrer()) {
       const referrer = URLInfo.get(state.getReferrer());
+      if (!referrer) {
+        return true;
+      }
       const trustedHost = state.urlParts.hostname;
       const trustedOn = referrer.hostname;
 
@@ -82,8 +85,8 @@ export default class CookieContext {
   }
 
   checkCookieTrust(state) {
-    const stage = state.responseStatus !== undefined ? 'set_cookie' : 'cookie';
-    const sourceHost = state.sourceUrlParts.hostname;
+    const stage = state.statusCode !== undefined ? 'set_cookie' : 'cookie';
+    const sourceHost = state.tabUrlParts.hostname;
     const requestHost = state.urlParts.hostname;
     const key = `${sourceHost}:${requestHost}`;
     if (this.config.cookieTrustReferers && this.trustedThirdParties.has(key)) {
@@ -99,7 +102,7 @@ export default class CookieContext {
 
   checkVisitCache(state) {
     // check if the response has been received yet
-    const stage = state.responseStatus !== undefined ? 'set_cookie' : 'cookie';
+    const stage = state.statusCode !== undefined ? 'set_cookie' : 'cookie';
     const tabId = state.tabId;
     const diff = Date.now() - (this.visitCache[`${tabId}:${state.hostGD}`] || 0);
     if (diff < this.timeActive && this.visitCache[`${tabId}:${state.sourceGD}`]) {
@@ -111,12 +114,12 @@ export default class CookieContext {
 
   checkContextFromEvent(state) {
     if (this.contextFromEvent) {
-      const stage = state.responseStatus !== undefined ? 'set_cookie' : 'cookie';
+      const stage = state.statusCode !== undefined ? 'set_cookie' : 'cookie';
       const time = Date.now();
       const url = state.url;
       const tabId = state.tabId;
       const urlParts = state.urlParts;
-      const sourceGD = state.sourceUrlParts.generalDomain;
+      const sourceGD = state.tabUrlParts.generalDomain;
       const hostGD = state.urlParts.generalDomain;
 
       const diff = time - (this.contextFromEvent.ts || 0);

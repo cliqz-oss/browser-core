@@ -229,8 +229,8 @@ export default class UI {
         is_success: true
       });
 
-      if (origin && browser.cliqz) {
-        browser.cliqz.history.fillFromVisit(url, origin);
+      if (origin && browser.cliqzHistory) {
+        browser.cliqzHistory.history.fillFromVisit(url, origin);
       }
 
       console.log('Download started');

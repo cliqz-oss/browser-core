@@ -8,6 +8,8 @@ import { buildSimplePatternIndex } from '../common/pattern-utils';
 import { ThrottleWithRejection } from '../common/throttle-with-rejection';
 import OffersConfigs from '../offers_configs';
 
+const USER_PROFILE_CATEGORIES_ROOT = 'Segment.';
+
 /**
  * @class CategoryHandler
  */
@@ -97,9 +99,6 @@ export default class CategoryHandler {
     }
     this._applyToAllSubCategories('', (cat) => {
       cat.cleanUp();
-      if (cat.isObsolete()) {
-        this.removeCategory(cat);
-      }
     });
     this.dayKeyOfLastAccountingRun = todayKey;
   }
@@ -141,28 +140,68 @@ export default class CategoryHandler {
       this.catTree.clear();
       this.catMatch.clear();
 
-      const obsoleteCategories = [];
       for (let i = 0; i < catList.length; i += 1) {
         const category = catList[i];
-        if (category.isObsolete()) {
-          obsoleteCategories.push(category);
-        } else {
-          this.catTree.addCategory(category);
-          this.catMatch.addCategoryPatterns(category.getName(), category.getPatterns());
-        }
+        this.catTree.addCategory(category);
+        this.catMatch.addCategoryPatterns(category.getName(), category.getPatterns());
       }
-
-      // remove obsolete from the DB
-      obsoleteCategories.forEach((cat) => {
-        logger.debug(`Removing obsolete category: ${cat.getName()}`);
-        this.persistentHelper.categoryRemoved(cat);
-      });
 
       // build the pattern index here
       this.build();
     });
   }
 
+  learnTargeting(featureName) {
+    if (!featureName) {
+      logger.warn('learnTargeting: expected parameter "featureName"');
+      return;
+    }
+    const fullName = USER_PROFILE_CATEGORIES_ROOT + featureName;
+    const cat = this.getCategory(fullName);
+    if (!cat) {
+      logger.warn(`learnTargeting: targeting category not found: ${fullName}`);
+      return;
+    }
+    cat.hit();
+  }
+
+  /**
+   * Add new categories, update existing, delete ones do not exist anymore.
+   * If the update is empty, do nothing.
+   *
+   * @method syncCategories
+   * @param {Iterator<Category>} categoriesIterator
+   */
+  syncCategories(categoriesIterator) {
+    //
+    // Add new, update existing. Remember the names of backend categories.
+    //
+    const seenNames = [];
+    for (const category of categoriesIterator) {
+      this.addCategory(category);
+      seenNames.push(category.getName());
+    }
+    //
+    // Do nothing if the update is empty
+    //
+    if (!seenNames.length) {
+      return;
+    }
+    //
+    // Delete categories that are not on the backend.
+    //
+    const namesToRemove = [];
+    this._applyToAllSubCategories('', (cat) => {
+      if (!seenNames.includes(cat.getName())) {
+        namesToRemove.push(cat);
+      }
+    });
+    namesToRemove.forEach(cat => this.removeCategory(cat));
+    //
+    // Bring categories to working state
+    //
+    this.build();
+  }
 
   // ///////////////////////////////////////////////////////////////////////////
   //                            QUERY METHODS

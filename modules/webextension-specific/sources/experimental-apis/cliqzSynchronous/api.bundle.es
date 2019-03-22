@@ -1,5 +1,5 @@
 /* globals ExtensionAPI, ChromeUtils */
-ChromeUtils.import('resource://gre/modules/Services.jsm');
+const { Services } = ChromeUtils.import('resource://gre/modules/Services.jsm');
 
 const prefSvc = Services.prefs;
 const COMPLEX_VALUE_RE = /^chrome:\/\/.+\/locale\/.+\.properties/;

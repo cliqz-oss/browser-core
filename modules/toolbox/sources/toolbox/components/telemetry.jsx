@@ -2,10 +2,21 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import Row from './partials/row';
+import TableHeader from './partials/table-header';
 
 class Telemetry extends React.Component {
+  state = {
+    telemetryStatus: [],
+  }
+
   componentDidMount() {
-    this.updateID = setInterval(this.props.syncState, 500);
+    this.updateID = setInterval(this.syncState, 500);
+    this.syncState();
+  }
+
+  syncState = async () => {
+    const newState = await this.props.cliqz.getTelemetryState();
+    this.setState(newState);
   }
 
   componentWillUnmount() {
@@ -23,7 +34,7 @@ class Telemetry extends React.Component {
       return <Row>No telemetry</Row>;
     }
     return telemetry.map(t => (
-      <Row key={t.session}>
+      <Row key={`${t.session}${t.seq}`}>
         <pre title={JSON.stringify(t, null, 2)}>
           {JSON.stringify(this.removeSessionKey(t))}
         </pre>
@@ -35,8 +46,10 @@ class Telemetry extends React.Component {
     return (
       <table>
         <tbody>
-          <Row>Telemetry updates every 500ms</Row>
-          {this.showTelemetryStatus(this.props.telemetryStatus)}
+          <TableHeader
+            header="Telemetry updates every 500ms"
+          />
+          {this.showTelemetryStatus(this.state.telemetryStatus)}
         </tbody>
       </table>
     );
@@ -44,8 +57,7 @@ class Telemetry extends React.Component {
 }
 
 Telemetry.propTypes = {
-  syncState: PropTypes.func.isRequired,
-  telemetryStatus: PropTypes.array.isRequired,
+  cliqz: PropTypes.object.isRequired,
 };
 
 export default Telemetry;

@@ -1,5 +1,7 @@
 import Storage from '../core/storage';
 
+export const PLATFORM_TELEMETRY_WHITELIST = [];
+
 const storage = new Storage();
 
 export function getPref(pref, fallback) {

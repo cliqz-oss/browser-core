@@ -315,7 +315,7 @@ export default class Lotto extends React.Component {
           accessibilityLabel="lotto-header"
         >
           <Text style={styles(theme).subText}>
-            {`${getMessage('lotto_gewinnzahlen')} &#8226; ${this.localeDate}`}
+            {`${getMessage('lotto_gewinnzahlen')} • ${this.localeDate}`}
           </Text>
         </View>
         <View

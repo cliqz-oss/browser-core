@@ -58,8 +58,12 @@ HumanWebCheck.propTypes = {
     PropTypes.number,
     PropTypes.object,
     PropTypes.string
-  ]).isRequired,
+  ]),
   name: PropTypes.string.isRequired,
+};
+
+HumanWebCheck.defaultProps = {
+  currentValue: '',
 };
 
 export default HumanWebCheck;

@@ -4,21 +4,30 @@ import PropTypes from 'prop-types';
 import Row from './partials/row';
 import Switch from './partials/switch';
 
-function AppModules({
-  cliqz,
-  modules,
-  syncState,
-}) {
-  const moduleStateChangeAction = async (moduleId, { isEnabled }) => {
+class AppModules extends React.Component {
+  state = {
+    modules: [],
+  }
+
+  componentDidMount() {
+    this.syncState();
+  }
+
+  syncState = async () => {
+    const newState = await this.props.cliqz.getModulesState();
+    this.setState(newState);
+  }
+
+  moduleStateChangeAction = async (moduleId, { isEnabled }) => {
     if (isEnabled) {
-      await cliqz.enableModule(moduleId);
+      await this.props.cliqz.enableModule(moduleId);
     } else {
-      cliqz.disableModule(moduleId);
+      this.props.cliqz.disableModule(moduleId);
     }
-    await syncState();
+    await this.syncState();
   };
 
-  const renderModuleList = () => modules.map(item =>
+  renderModuleList = () => this.state.modules.map(item =>
     (
       <Row key={item.name}>
         {`${item.name} (loading time: ${item.loadingTime})`}
@@ -26,24 +35,24 @@ function AppModules({
         <Switch
           isChecked={item.isEnabled}
           toggleComponent={() =>
-            moduleStateChangeAction(item.name, { isEnabled: !item.isEnabled })}
+            this.moduleStateChangeAction(item.name, { isEnabled: !item.isEnabled })}
         />
       </Row>
     ));
 
-  return (
-    <table>
-      <tbody>
-        {renderModuleList()}
-      </tbody>
-    </table>
-  );
+  render() {
+    return (
+      <table>
+        <tbody>
+          {this.renderModuleList()}
+        </tbody>
+      </table>
+    );
+  }
 }
 
 AppModules.propTypes = {
   cliqz: PropTypes.object.isRequired,
-  modules: PropTypes.array.isRequired,
-  syncState: PropTypes.func.isRequired,
 };
 
 export default AppModules;

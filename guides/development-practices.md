@@ -1,6 +1,6 @@
 # Development practices
 
-Development process in Frontend department goes strongly in line with our project management practices.  
+Development process in Frontend department goes strongly in line with our project management practices.
 It is bug tracker oriented, so all development should start with a bug tracker ticket.
 
 The process can be summarized in few steps:
@@ -13,7 +13,7 @@ The process can be summarized in few steps:
 * a Github pull request is created
   * the developer assigns one or more reviewers to the PR,
   * continuous integration starts automated test suites:
-    * integration tests for supported versions of Firefox, that is 52+
+    * integration tests for supported versions of Firefox, that is 56+
     * unit tests, running on `nodejs`
     * ui tests, running on headless browser,
     * mobile codebase integration tests, running on chromium,

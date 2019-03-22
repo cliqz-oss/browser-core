@@ -134,5 +134,13 @@ export default describeModule('offers-v2/features/history-feature',
         chai.expect(frameStartsAt).is.eq(777 - 1);
         chai.expect(frameEndsAt).is.eq(888 + 1);
       });
+
+      it('/do not query if no patterns', async () => {
+        const query = boilerplateQuery([]);
+
+        await hfeature.performQueryOnHistory(query);
+
+        chai.expect(historyMock).to.be.not.called;
+      });
     });
   });

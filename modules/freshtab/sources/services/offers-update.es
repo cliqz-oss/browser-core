@@ -3,7 +3,6 @@
 import prefs from '../../core/prefs';
 import utils from '../../core/utils';
 import { getMessage } from '../../core/i18n';
-import { getDetailsFromUrl } from '../../core/url';
 
 const REAL_ESTATE_ID = 'cliqz-tab';
 
@@ -71,8 +70,7 @@ export default class OffersUpdate {
           titleColor = templateData.styles.headline_color;
         } else {
           const url = templateData.call_to_action.url;
-          const urlDetails = getDetailsFromUrl(url);
-          const logoDetails = utils.getLogoDetails(urlDetails);
+          const logoDetails = utils.getLogoDetails(url);
           titleColor = `#${logoDetails.brandTxtColor}`;
         }
         templateData.titleColor = titleColor;

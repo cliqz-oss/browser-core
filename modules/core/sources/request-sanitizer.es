@@ -3,6 +3,7 @@ import { isSafeToRemoveHeaders } from './helpers/strip-api-headers';
 import { isTrackableOriginHeaderFromOurExtension } from '../platform/fetch';
 import console from './console';
 import { extractHostname } from './tlds';
+import PermissionManager from '../platform/permission-manager';
 
 function findHeader(requestHeaders, header) {
   const x = requestHeaders.find(({ name }) => name.toLowerCase() === header);
@@ -41,11 +42,17 @@ function safeFilter(req) {
   return undefined;
 }
 
-export function enableRequestSanitizer() {
+let HAS_RIGHT_PERMISSIONS = false;
+
+export async function enableRequestSanitizer() {
   // WebExtension might not have webRequest API permission
-  if (!webRequest || !webRequest.onBeforeSendHeaders) {
+  HAS_RIGHT_PERMISSIONS = await PermissionManager.contains([
+    PermissionManager.PERMISSIONS.WEB_REQUEST, PermissionManager.PERMISSIONS.WEB_REQUEST_BLOCKING]);
+
+  if (!HAS_RIGHT_PERMISSIONS) {
     return;
   }
+
   const networkFilters = {
     urls: ['<all_urls>'],
     tabId: -1,
@@ -58,7 +65,7 @@ export function enableRequestSanitizer() {
 }
 
 export function disableRequestSanitizer() {
-  if (!webRequest) {
+  if (!HAS_RIGHT_PERMISSIONS) {
     return;
   }
   webRequest.onBeforeSendHeaders.removeListener(safeFilter);

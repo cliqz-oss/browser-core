@@ -452,7 +452,6 @@ export const defaultConfig = Object.freeze({
   module: 'freshtab',
   action: 'getConfig',
   response: {
-    CLIQZ_FOR_FRIENDS: '/cliqz-for-friends/dashboard.html',
     componentsState: {
       historyDials: {
         visible: false
@@ -474,7 +473,6 @@ export const defaultConfig = Object.freeze({
         visible: false,
       }
     },
-    displayFriendsIcon: true,
     hasActiveNotifications: false,
     HISTORY_URL: '/cliqz-history/index.html',
     isBetaVersion: false,

@@ -23,7 +23,6 @@ import Calculator from './providers/calculator';
 import Cliqz from './providers/cliqz';
 import History from './providers/history';
 import HistoryView from './providers/history-view';
-import HistoryLookup from './providers/history-lookup';
 import Instant from './providers/instant';
 import QuerySuggestions from './providers/query-suggestions';
 import RichHeader, { getRichHeaderQueryString } from './providers/rich-header';
@@ -32,6 +31,7 @@ import getThrottleQueries from './operators/streams/throttle-queries';
 
 import logger from './logger';
 import telemetry from './telemetry';
+import performance from './performanceTelemetry';
 import telemetryLatency from './telemetry-latency';
 import getConfig from './config';
 import search from './search';
@@ -43,7 +43,9 @@ import LocationAssistant from './assistants/location';
 import * as offersAssistant from './assistants/offers';
 import settingsAssistant from './assistants/settings';
 import pluckResults from './operators/streams/pluck-results';
-import { isMobile } from '../core/platform';
+import config from '../core/config';
+import { bindAll } from '../core/helpers/bind-functions';
+import { chrome } from '../platform/globals';
 
 /**
   @namespace search
@@ -55,6 +57,7 @@ export default background({
 
   core: inject.module('core'),
   search: inject.module('search'),
+  insights: inject.module('insights'),
 
   /**
     @method init
@@ -77,11 +80,15 @@ export default background({
       cliqz: new Cliqz(),
       history: new History(),
       historyView: new HistoryView(),
-      historyLookup: new HistoryLookup(),
       instant: new Instant(),
       querySuggestions: new QuerySuggestions(),
       richHeader: new RichHeader(settings), //
     };
+
+    if (chrome.webRequest) {
+      // some platforms might not have webRequest
+      performance.init();
+    }
   },
 
   resetAssistantStates() {
@@ -90,7 +97,9 @@ export default background({
   },
 
   unload() {
-
+    if (chrome.webRequest) {
+      performance.unload();
+    }
   },
 
   beforeBrowserShutdown() {
@@ -105,6 +114,7 @@ export default background({
       prefs.clear('backend_country.override');
       prefs.set('backend_country', country);
     },
+    ...bindAll(performance.events, performance),
   },
 
   actions: {
@@ -121,7 +131,6 @@ export default background({
     },
     reportSelection(selectionReport, { contextId, tab: { id: tabId } = {} } = { tab: {} }) {
       const sessionId = tabId || contextId;
-
       if (!this.searchSessions.has(sessionId)) {
         return;
       }
@@ -130,7 +139,10 @@ export default background({
 
       selectionEventProxy.next(selectionReport);
     },
-    stopSearch({ contextId, tab: { id: tabId } = {} } = { tab: {} }) {
+    stopSearch(
+      { entryPoint } = {},
+      { contextId, tab: { id: tabId } = {} } = { tab: {} }
+    ) {
       const sessionId = tabId || contextId;
 
       this.resetAssistantStates();
@@ -140,15 +152,17 @@ export default background({
 
       const {
         telemetrySubscription,
+        telemetryResultsSubscription,
         telemetryLatencySubscription,
         resultsSubscription,
         focusEventProxy,
       } = this.searchSessions.get(sessionId);
 
-      focusEventProxy.next({ event: 'blur' });
+      focusEventProxy.next({ event: 'blur', entryPoint });
 
       resultsSubscription.unsubscribe();
       telemetrySubscription.unsubscribe();
+      telemetryResultsSubscription.unsubscribe();
       telemetryLatencySubscription.unsubscribe();
 
       this.searchSessions.delete(sessionId);
@@ -167,7 +181,7 @@ export default background({
         isPrivate = false,
         isTyped = true,
         keyCode,
-        forceUpdate = !isMobile,
+        forceUpdate = !config.isMobile,
       } = {},
       { contextId, tab: { id: tabId } = {} } = { tab: {} },
     ) {
@@ -226,6 +240,34 @@ export default background({
         error => logger.error('Failed preparing telemetry', error)
       );
 
+      // For insights module to calculate search time saved
+      const telemetryResultsSubscription = telemetry$.subscribe(
+        (data) => {
+          if (_config.isPrivateMode) {
+            return; // Don't count in private mode
+          }
+
+          if (Number.isInteger(data.selection.index)) { // If user selected a result
+            if (data.selection.sources[0] === 'custom-search') {
+              return; // Alternative search engine, we don't count this
+            }
+
+            if (['C', 'H'].indexOf(data.selection.sources[0]) !== -1) { // History result
+              this.insights.action('insertSearchStats', { historySelected: 1 });
+            } else { // Organic result
+              this.insights.action('insertSearchStats', { organicSelected: 1 });
+            }
+            return;
+          }
+          // When no result was selected, check if a smartcliqz was shown
+          if (data.results && data.results.some(result =>
+            result.sources[0] === 'X' && result.classes[0] !== 'EntityGeneric')) {
+            this.insights.action('insertSearchStats', { smartCliqzTriggered: 1 });
+          }
+        },
+        error => logger.error('Failed preparing telemetry', error),
+      );
+
       const telemetryLatency$ = telemetryLatency(focus$, query$, results$);
       const telemetryLatencySubscription = telemetryLatency$.subscribe(
         data => utils.telemetry(data, false, 'metrics.search.latency'),
@@ -241,33 +283,35 @@ export default background({
           ...meta,
         } = responses.query;
 
-        if (tabId) {
-          this.core.action(
-            'broadcastActionToWindow',
-            tabId,
-            'overlay',
-            'renderResults',
-            results
-          );
-        } else {
-          this.core.action(
-            'broadcast',
-            {
-              action: 'renderResults',
-              args: [JSON.stringify(results)],
-              contextId,
-            },
-          );
-        }
-
-        events.pub('search:results', {
+        const response = {
           tabId: _tabId,
           query: _query,
           queriedAt,
           meta,
           results,
           windowId: sessionId,
-        });
+        };
+
+        if (config.isMobile) {
+          this.core.action(
+            'broadcast',
+            {
+              action: 'renderResults',
+              args: [JSON.stringify(response)],
+              contextId,
+            },
+          );
+        } else if (tabId) {
+          this.core.action(
+            'broadcastActionToWindow',
+            tabId,
+            'overlay',
+            'renderResults',
+            response
+          );
+        }
+
+        events.pub('search:results', response);
       });
 
       focusEventProxy.next({ event: 'focus' });
@@ -289,6 +333,7 @@ export default background({
         highlightEventProxy,
         selectionEventProxy,
         telemetrySubscription,
+        telemetryResultsSubscription,
         resultsSubscription,
         telemetryLatencySubscription,
       });

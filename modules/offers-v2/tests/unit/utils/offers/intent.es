@@ -154,6 +154,12 @@ class CategoryHandlerMock {
   doDailyAccounting() {
   }
 
+  syncCategories(catsIter) {
+    for (const cat of catsIter) {
+      this.addCategory(cat);
+    }
+  }
+
   build() {}
 }
 

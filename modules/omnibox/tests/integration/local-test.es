@@ -11,6 +11,7 @@ import {
   prefs,
   waitFor,
   waitForPopup,
+  waitForPrefChange,
   win,
   withHistory,
 } from './helpers';
@@ -32,12 +33,21 @@ export default function () {
     context('with "Always ask" settings', function () {
       before(async function () {
         await blurUrlBar();
-        prefs.set('share_location', 'ask');
+        const prefValue = prefs.get('share_location');
+        if (prefValue !== 'ask') {
+          const prefChange = waitForPrefChange('share_location');
+          prefs.set('share_location', 'ask');
+          await prefChange;
+        }
+
         withHistory([]);
         await mockSearch({ results: resultsWithoutLocal });
         fillIn(query);
-        await waitForPopup(1);
-        await waitFor(() => $cliqzResults.querySelector(`.result[data-url="${resultsWithoutLocal[0].url}"]`));
+        await waitFor(async () => {
+          await waitForPopup(1);
+          const $res = await $cliqzResults.querySelector(`.result[data-url="${resultsWithoutLocal[0].url}"]`);
+          return $res;
+        });
       });
 
       after(function () {
@@ -52,12 +62,21 @@ export default function () {
     context('with "Never" settings', function () {
       before(async function () {
         await blurUrlBar();
-        prefs.set('share_location', 'no');
+        const prefValue = prefs.get('share_location');
+        if (prefValue !== 'no') {
+          const prefChange = waitForPrefChange('share_location');
+          prefs.set('share_location', 'no');
+          await prefChange;
+        }
+
         withHistory([]);
         await mockSearch({ results: resultsWithoutLocal });
         fillIn(query);
-        await waitForPopup(1);
-        await waitFor(() => $cliqzResults.querySelector(`.result[data-url="${resultsWithoutLocal[0].url}"]`));
+        await waitFor(async () => {
+          await waitForPopup(1);
+          const $res = await $cliqzResults.querySelector(`.result[data-url="${resultsWithoutLocal[0].url}"]`);
+          return $res;
+        });
       });
 
       after(function () {
@@ -73,12 +92,20 @@ export default function () {
     context('with "Always" settings', function () {
       before(async function () {
         await blurUrlBar();
-        prefs.set('share_location', 'yes');
+        const prefValue = prefs.get('share_location');
+        if (prefValue !== 'yes') {
+          const prefChange = waitForPrefChange('share_location');
+          prefs.set('share_location', 'yes');
+          await prefChange;
+        }
         withHistory([]);
         await mockSearch({ results: resultsWithLocal });
         fillIn(query);
-        await waitForPopup(1);
-        await waitFor(() => $cliqzResults.querySelector(`.result[data-url="${resultsWithLocal[0].url}"]`));
+        await waitFor(async () => {
+          await waitForPopup(1);
+          const $res = await $cliqzResults.querySelector(`.result[data-url="${resultsWithLocal[0].url}"]`);
+          return $res;
+        });
       });
 
       after(function () {

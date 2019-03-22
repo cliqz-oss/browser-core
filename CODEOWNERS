@@ -13,7 +13,6 @@
 /modules/antitracking/ @sammacbeth @zhonghao-cliqz @remusao
 /modules/autocomplete/ @dominik-s @luciancor
 /modules/browser-panel/ @luciancor @giota-cliqz
-/modules/context-menu/ @alex-cliqz
 /modules/context-search/ @alexandra-cliqz
 /modules/control-center/ @mai-cliqz @giota-cliqz
 /modules/core/ @chrmod @luciancor
@@ -22,34 +21,30 @@
 /modules/geolocation/ @chrmod
 /modules/green-ads/ @remusao
 /modules/history/ @chrmod
-/modules/hpn/ @alex-cliqz @philipp-classen @konark-cliqz
-/modules/hpnv2/ @alex-cliqz @philipp-classen @konark-cliqz
+/modules/hpnv2/ @philipp-classen @konark-cliqz
 /modules/https-everywhere/ @luciancor
 /modules/human-web/ @konark-cliqz @philipp-classen
 /modules/integration-tests/ @remusao @zhonghao-cliqz @chrmod @marta-cliqz @tamara-cliqz @sammacbeth
-/modules/last-query/ @chrmod
 /modules/market-analysis @eleniS
 /modules/mobile-cards/ @khaled-cliqz
 /modules/mobile-dev/ @khaled-cliqz
 /modules/mobile-history/ @khaled-cliqz
 /modules/mobile-ui/ @khaled-cliqz
-/modules/new-tab-button/ @chrmod @giota-cliqz
 /modules/notifications/ @chrmod
 /modules/offboarding/ @luciancor
 /modules/offers-banner/ @aleksandr-cliqz
 /modules/offers-cc/ @gabriel-cliqz @giota-cliqz @mai-cliqz
 /modules/offers-v2/ @zhonghao-cliqz @eleniS
 /modules/onboarding-v3/ @mai-cliqz @luciancor
-/modules/p2p/ @alex-cliqz
-/modules/pairing/ @alex-cliqz
+/modules/p2p/ @philipp-classen
+/modules/pairing/ @philipp-classen
 /modules/popup-notification/ @aleksandr-cliqz @olpa-cliqz
 /modules/privacy-dashboard/ @private-face
 /modules/privacy/ @ecnmst
-/modules/proxyPeer/ @alex-cliqz @remusao
 /modules/search/ @dominik-s @chrmod @private-face
 /modules/static/ @marta-cliqz
 /modules/theme/ @gabriel-cliqz @mai-cliqz
-/modules/video-downloader/ @mai-cliqz @alex-cliqz
+/modules/video-downloader/ @mai-cliqz
 /modules/webrequest-pipeline/ @remusao @zhonghao-cliqz
 
 /platforms/ @chrmod

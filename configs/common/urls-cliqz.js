@@ -8,4 +8,7 @@ module.exports = Object.assign(urls('cliqz.com'), {
   MYOFFRZ_URL: 'https://cliqz.com/myoffrz',
   REPORT_SITE_URL: 'https://cliqz.com/report-url',
   NEW_TAB_URL: "/freshtab/home.html",
+
+  // Available proxies are: https://proxy[1-100].(cliqz|ghostery).foxyproxy.com
+  ENDPOINT_HPNV2_ANONYMOUS: 'https://proxy*.cliqz.foxyproxy.com', // hpnv2/sources/endpoints.es
 });

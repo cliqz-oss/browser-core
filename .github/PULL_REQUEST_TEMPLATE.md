@@ -1,13 +1,14 @@
 
 
-* **Issue/Jira ticket**:
-* **Description**:
-* **Who might need to know about this?** (e.g.: @other_contributor):
+To help you create a successful pull request, here are a few points you should consider:
 
-### Checklist
+* **Issue/Jira ticket**: if applicable.
+* **Description**: what did you change, how, why was this needed. Be as descriptive as possible.
+* **Who might need to know about this?**: other people collaborating or when review is required.
+* **Add Labels**: try to tag your PR with meaningful labels (e.g.: `ad-blocker`, `bug`, `core`, etc.)
 
-* [ ] Label have been added on the PR if needed (e.g.: `hpn`, `anolysis`, etc.)
-* [ ] Test have been added to cover the changes
-* [ ] Unit tests are green: `./fern.js test configs/ci/unit-tests.js -l unit-node`
-* [ ] Linter errors have been checked (see: `./fern.js build`)
-* [ ] Guidelines have been read [CONTRIBUTING.md](./CONTRIBUTING.md)?
+To make the review process more enjoyable for everyone, also consider the following (these steps can be done *locally*):
+* Test have been added to cover the changes (unit tests or integration tests)
+* Unit tests are green: `./fern.js test configs/ci/unit-tests.js -l unit-node`
+* Linter errors have been checked: `./fern.js lint`
+* Guidelines have been read [CONTRIBUTING.md](./CONTRIBUTING.md)?

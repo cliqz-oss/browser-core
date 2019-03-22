@@ -4,7 +4,7 @@
     ".search.yahoo\\..*?[#?&;]p=[^$&]+",
     ".linkedin.*?\\/pub\\/dir+",
     "\\.bing\\..*?[#?&;]q=[^$&]+",
-    "\\.amazon\\.[^/]+\\/.*[?&]field-keywords=[^$&]+",
+    "\\.amazon\\.[^/]+\\/(s[?]k=[^$&]+|.*[?&]field-keywords=[^$&]+)",
     "\\.amazon\\..*(/dp/|/gp/product/)"
   ],
   "searchEngines": [
@@ -91,6 +91,14 @@
       "#search-main-wrapper": {
         "q": {
           "item": "form > input[name=\"keywords\"]",
+          "type": "searchQuery",
+          "etype": "value",
+          "keyName": "query"
+        }
+      },
+      "[data-component-type=\"s-result-sort\"]": {
+        "q": {
+          "item": "form > input[name=\"k\"]",
           "type": "searchQuery",
           "etype": "value",
           "keyName": "query"

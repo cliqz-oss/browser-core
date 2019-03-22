@@ -9,7 +9,6 @@ DATA.push({
     core: null,
     'core-cliqz': null,
     dropdown: null,
-    'firefox-specific': null,
     static: null,
     geolocation: {
       name: 'geolocation',
@@ -37,7 +36,6 @@ DATA.push({
       visible: true
     },
     ui: null,
-    'last-query': null,
     'human-web': {
       name: 'human-web',
       isEnabled: true,
@@ -50,7 +48,6 @@ DATA.push({
       state: true,
       visible: true
     },
-    'context-menu': null,
     freshtab: {
       name: 'freshtab',
       isEnabled: true,
@@ -129,7 +126,6 @@ DATA.push({
     'video-downloader': null,
     'market-analysis': null,
     p2p: null,
-    proxyPeer: null,
     pairing: null,
     'antitracking-blocker': null,
     search: {

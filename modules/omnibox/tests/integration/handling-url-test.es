@@ -47,8 +47,8 @@ export default function () {
       { query: 'anything://test', isUrl: false },
     ];
 
-    before(function () {
-      blurUrlBar();
+    before(async function () {
+      await blurUrlBar();
     });
 
     testArray.forEach(function (testCase) {

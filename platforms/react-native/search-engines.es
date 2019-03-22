@@ -1,4 +1,4 @@
-import { NativeModules } from 'react-native';
+import { NativeModules, DeviceEventEmitter } from 'react-native';
 import { getDetailsFromUrl } from '../core/url';
 
 const SearchEnginesModule = NativeModules.SearchEnginesModule;
@@ -43,6 +43,11 @@ export function getDefaultSearchEngine() {
 
 export async function loadSearchEngines() {
   let engines;
+
+  if (searchEngines.length > 0) {
+    return searchEngines;
+  }
+
   if (SearchEnginesModule) {
     engines = await SearchEnginesModule.getSearchEngines();
   } else {
@@ -76,6 +81,7 @@ export async function loadSearchEngines() {
         .replace(e.LocaleTermComponent, locale);
     },
   }));
+  return searchEngines;
 }
 
 export function setDefaultSearchEngine() {}
@@ -101,4 +107,11 @@ export function restoreHiddenSearchEngines() {
 export function updateAlias() {
 }
 export function removeEngine() {
+}
+
+if (SearchEnginesModule) {
+  DeviceEventEmitter.addListener('SearchEngines:SetDefault', () => {
+    searchEngines = [];
+    loadSearchEngines();
+  });
 }

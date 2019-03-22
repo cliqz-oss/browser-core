@@ -66,5 +66,5 @@ export function disableChangeEvents() {}
 export function resetOriginalPrefs() {}
 
 export function isDefaultBrowser() {
-  return null;
+  return Promise.resolve(null);
 }

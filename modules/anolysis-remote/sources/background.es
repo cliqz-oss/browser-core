@@ -3,11 +3,11 @@ import inject from '../core/kord/inject';
 import config from '../core/config';
 import extMessaging from '../platform/ext-messaging';
 
-function sendTelemetry(...args) {
+function sendTelemetry(signal, schema, instant) {
   extMessaging.sendMessage(config.settings.telemetryExtensionId, {
     moduleName: 'core',
     action: 'sendTelemetry',
-    args,
+    args: [signal, instant, schema],
   });
 }
 

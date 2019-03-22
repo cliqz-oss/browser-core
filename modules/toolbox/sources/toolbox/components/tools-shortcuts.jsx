@@ -21,6 +21,15 @@ function ToolsShortcuts() {
       >
         OPEN HISTORY TOOL
       </a>
+      <br />
+      <a
+        href={getResourceUrl('anolysis-cc/index.html')}
+        rel="noopener noreferrer"
+        tabIndex="-1"
+        target="_blank"
+      >
+        OPEN ANOLYSIS TOOL
+      </a>
     </div>
   );
 }

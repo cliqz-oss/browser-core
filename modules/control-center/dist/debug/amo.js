@@ -9,7 +9,6 @@ DATA.push({
     "core": null,
     "core-cliqz": null,
     "dropdown": null,
-    "firefox-specific": null,
     "static": null,
     "autocomplete": {
       "visible": true,
@@ -366,7 +365,6 @@ DATA.push({
       "isWhitelisted": false,
       "state": "active"
     },
-    "context-menu": null,
     "freshtab": {
       "visible": true,
       "enabled": false

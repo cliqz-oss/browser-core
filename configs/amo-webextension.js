@@ -39,7 +39,6 @@ module.exports = {
     "freshtab",
     "webrequest-pipeline",
     'antitracking',
-    "performance",
     "hpnv2",
     "myoffrz-helper",
     "offers-banner",
@@ -69,6 +68,7 @@ module.exports = {
     "offers-banner/app.bundle.js",
     "human-web/page.bundle.js",
     "human-web/rusha.bundle.js",
+    "webextension-specific/experimental-apis/cliqzmigration/api.bundle.js",
   ],
   system: Object.assign({}, base.systemConfig, {
     map: Object.assign({}, base.systemConfig.map, {

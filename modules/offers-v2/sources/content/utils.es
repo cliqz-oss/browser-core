@@ -149,6 +149,11 @@ function hasValidText(element) {
 }
 
 const getPurchaseButtons = (window) => {
+  // Filter out potential product pages
+  if (window.location.href.split(/[/|-]/).length > 8) {
+    return [];
+  }
+
   const document = window.document;
   const candidates = [];
   const selector = [

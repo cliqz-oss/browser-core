@@ -42,38 +42,57 @@ function buildUrls(engineWrapper) {
   return urls;
 }
 
-const searchServiceGlobalPromise = new Promise((onFulfill, onReject) => {
-  searchService.init({
-    onInitComplete: (initStatus) => {
-      if (initStatus === 0) {
-        onFulfill();
-      } else {
-        onReject();
-      }
-    }
-  });
+const searchServiceGlobalPromise = new Promise((resolve) => {
+  const isPromised = searchService.init(resolve);
+
+  // from Fx67 the init function returns a promise
+  if (isPromised) isPromised.then(resolve);
 });
 
 export async function getSearchEngines() {
   return searchServiceGlobalPromise.then(() => {
     const defaultEngine = searchService.getDefaultEngineInfo();
+    const visibleEngines = searchService.getVisibleEngines();
 
-    return searchService.getVisibleEngines().map((engineWrapper) => {
-      const engine = {
-        alias: engineWrapper.alias,
-        default: engineWrapper.name === defaultEngine.name,
-        description: engineWrapper.description,
-        encoding: 'UTF-8',
-        icon: engineWrapper.iconURI.spec,
-        identifier: engineWrapper.identifier,
-        name: engineWrapper.name,
-        searchForm: engineWrapper.searchForm,
-        urls: buildUrls(engineWrapper)
-      };
-      return engine;
-    });
-  }, () => {
-    throw new Error('Reason: SearchService has not been initialized');
+    if (visibleEngines.length > 0) {
+      return searchService.getVisibleEngines().map((engineWrapper) => {
+        const engine = {
+          alias: engineWrapper.alias,
+          default: engineWrapper.name === defaultEngine.name,
+          description: engineWrapper.description,
+          encoding: 'UTF-8',
+          icon: engineWrapper.iconURI.spec,
+          identifier: engineWrapper.identifier,
+          name: engineWrapper.name,
+          searchForm: engineWrapper.searchForm,
+          urls: buildUrls(engineWrapper)
+        };
+        return engine;
+      });
+    }
+
+    // TODO: the shape of visibleEngines seems to be changed in Fx67 but
+    //       even the Firefox tests are not updated to the right version yet
+    //
+    // !!!!  to be updated before this goes live
+    Services.console.logStringMessage('getSearchEngines failed');
+
+    // we return a dummy engine for now
+    return [{
+      alias: '',
+      default: true,
+      description: 'Cliqz Search',
+      encoding: 'UTF-8',
+      icon: '',
+      identifier: 'Cliqz',
+      name: 'Cliqz',
+      searchForm: 'https://suchen.cliqz.com/',
+      urls: { 'text/html': {
+        method: 'GET',
+        template: decodeURIComponent('https://suchen.cliqz.com/#{searchTerms}'),
+        params: []
+      } }
+    }];
   });
 }
 

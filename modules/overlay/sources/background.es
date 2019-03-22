@@ -20,6 +20,7 @@ export default background({
           chrome.tabs.sendMessage(tab.id, {
             module: 'overlay',
             action: 'toggle-quicksearch',
+            trigger: 'ByKeyboard',
           });
         });
       }

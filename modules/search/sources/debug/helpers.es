@@ -2,7 +2,6 @@ import { RESULT_SOURCE_MAP } from '../../anolysis/metrics/search';
 
 export const COLORS = {
   history: '990099',
-  historyLookup: '00AEF0',
   backend: '009900',
   cliqz: '009900',
   instant: 'ee2200',

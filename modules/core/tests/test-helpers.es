@@ -1,5 +1,5 @@
 /* globals chai */
-import { queryHTML, testServer, win, wrap, app } from '../../platform/test-helpers/helpers';
+import { app, queryHTML, testServer, win, wrap } from '../../platform/test-helpers/helpers';
 import { waitFor, wait } from '../../core/helpers/wait';
 import { getCurrentgBrowser } from '../../platform/tabs';
 

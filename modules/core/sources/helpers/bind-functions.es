@@ -6,7 +6,7 @@
  * @param {Object} to - An object, which will be the context (this) of processed functions.
  */
 
-export default function bindObjectFunctions(from, to) {
+export function bindObjectFunctions(from, to) {
   for (const funcName in from) {
     if (Object.prototype.hasOwnProperty.call(from, funcName)) {
       const func = from[funcName];
@@ -16,4 +16,13 @@ export default function bindObjectFunctions(from, to) {
       }
     }
   }
+}
+
+
+export function bindAll(obj, target) {
+  return Object.entries(obj).reduce((acc, [key, cb]) => {
+    const bound = cb.bind(target);
+    acc[key] = (...args) => bound(...args);
+    return acc;
+  }, {});
 }

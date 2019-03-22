@@ -17,8 +17,7 @@ class Icon extends React.Component {
     const height = this.props.height || 50;
     const borderRadius = this.props.borderRadius || 8;
     if (url) {
-      const urlDetails = getDetailsFromUrl(url);
-      logoDetails = utils.getLogoDetails(urlDetails);
+      logoDetails = utils.getLogoDetails(url);
     }
 
     if (logoDetails.backgroundImage) {

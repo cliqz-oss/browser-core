@@ -63,6 +63,11 @@ queryAutocompleteArray.forEach((obj) => {
       results: [{ url: 'http://facebook.com/testing?random=query' }],
       friendlyUrl: `${obj.friendlyUrl}/testing?random=query`,
     },
+    {
+      query: obj.query,
+      results: [{ url: 'http://facebook.com/Case/Sensitive?charset=UTF-8' }],
+      friendlyUrl: `${obj.friendlyUrl}/Case/Sensitive?charset=UTF-8`,
+    },
   );
 });
 

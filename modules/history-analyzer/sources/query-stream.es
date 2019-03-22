@@ -7,31 +7,26 @@ import TIME_LIMIT_MS from './config';
 import logger from './logger';
 import tokenize from './utils';
 
-
+const queryKeys = ['q', 'query', 'search_query', 'keywords', 'field-keywords', 'p'];
 /**
  * Try to extract a query from an URL.
  */
 export function extractQueryFromUrl(url) {
   const urlParts = URLInfo.get(url);
   if (urlParts !== null) {
-    const queryParams = urlParts.query_keys;
-    if (queryParams !== undefined) {
-      const query = (
-        queryParams.q
-        || queryParams.query
-        || queryParams.search_query
-        || queryParams.keywords
-        || queryParams['field-keywords']
-        || queryParams.p
-        || null
-      );
-
-      if (query !== null) {
-        return {
-          source: urlParts.generalDomain.split('.')[0],
-          query: query.replace(/\+/g, ' ').toLowerCase(),
-        };
+    let query = null;
+    for (const [key, value] of urlParts.searchParams.entries()) {
+      if (queryKeys.indexOf(key) !== -1) {
+        query = value;
+        break;
       }
+    }
+
+    if (query !== null) {
+      return {
+        source: urlParts.generalDomain.split('.')[0],
+        query: query.replace(/\+/g, ' ').toLowerCase(),
+      };
     }
   }
 

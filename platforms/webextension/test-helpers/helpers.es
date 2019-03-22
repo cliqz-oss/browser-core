@@ -93,6 +93,10 @@ const contentQueryComputedStyle = async (...args) => {
   return response;
 };
 
+export function getUrl(path) {
+  return chrome.runtime.getURL(path);
+}
+
 export function queryHTML(url, ...rest) {
   if (url.startsWith(chrome.runtime.getURL(''))) {
     return chromeQueryHtml(url, ...rest);

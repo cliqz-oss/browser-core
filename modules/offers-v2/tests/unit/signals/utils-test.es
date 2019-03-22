@@ -2,6 +2,7 @@
 /* global describeModule */
 /* global require */
 /* eslint-disable func-names */
+const moment = require('moment');
 const commonMocks = require('../utils/common');
 
 const actionValue = 'offer_added'; // should be real one
@@ -18,6 +19,9 @@ export default describeModule('offers-v2/signals/utils',
     'core/config': {
       default: {
       }
+    },
+    'platform/lib/moment': {
+      default: moment,
     },
   }),
   () => {

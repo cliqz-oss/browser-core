@@ -39,6 +39,23 @@ require('../telemetry-schemas-test-helpers')({
       check(signals[0]);
     };
 
+    context('entryPoints', function () {
+      context('counting entry points', function () {
+        it('no entry points', () =>
+          test([{ results: [] }],
+            signal => chai.expect(signal.entryPoints).to.deep.eql({})));
+
+        it('some entry points', () =>
+          test([
+            { hasUserInput: true, entryPoint: 'newTab', results: [] },
+            { hasUserInput: true, entryPoint: 'browserBar', results: [] }
+          ], (signal) => {
+            chai.expect(signal.entryPoints.newTab).to.be.eql(1);
+            chai.expect(signal.entryPoints.browserBar).to.be.eql(1);
+          }));
+      });
+    });
+
     context('results', function () {
       context('total count', function () {
         it('empty results', () =>

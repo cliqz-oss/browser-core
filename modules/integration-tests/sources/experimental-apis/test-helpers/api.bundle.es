@@ -1,14 +1,9 @@
-/* globals Components ChromeUtils, ExtensionAPI,
-           ExtensionParent, addMessageListener, sendAsyncMessage, content */
+/* globals Components, ChromeUtils, ExtensionAPI, addMessageListener, sendAsyncMessage, content */
 import Defer from '../../../core/helpers/defer';
 
-ChromeUtils.import('resource://gre/modules/ExtensionParent.jsm');
-ChromeUtils.import('resource://gre/modules/Services.jsm');
-const {
-  Management: {
-    global: { windowTracker }
-  }
-} = ChromeUtils.import('resource://gre/modules/Extension.jsm', {});
+const { ExtensionParent } = ChromeUtils.import('resource://gre/modules/ExtensionParent.jsm');
+const { Services } = ChromeUtils.import('resource://gre/modules/Services.jsm');
+const { Management: { global: { windowTracker } } } = ChromeUtils.import('resource://gre/modules/Extension.jsm', null);
 const { ExtensionError } = ExtensionParent;
 
 const TIP = Components

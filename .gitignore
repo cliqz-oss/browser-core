@@ -1,6 +1,7 @@
 *.xpi
 *.zip
 *.pyc
+*.tgz
 *~
 *#
 tmp

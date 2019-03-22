@@ -10,6 +10,7 @@ export default describeModule('dropdown/dropdown',
       '../core/events': {},
       './context-menu': {},
       '../platform/browser': {},
+      '../platform/lib/punycode': {},
     };
   },
   function () {

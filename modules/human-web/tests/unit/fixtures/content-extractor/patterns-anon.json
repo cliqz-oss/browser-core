@@ -4,7 +4,7 @@
     ".search.yahoo\\..*?[#?&;][pq]=[^$&]+",
     ".linkedin.*?\\/pub\\/dir+",
     "\\.bing\\..*?[#?&;]q=[^$&]+",
-    "\\.amazon\\.[^/]+\\/.*[?&]field-keywords=[^$&]+"
+    "\\.amazon\\.[^/]+\\/(s[?]k=[^$&]+|.*[?&]field-keywords=[^$&]+)"
   ],
   "searchEngines": [
     "0",
@@ -446,6 +446,14 @@
           "keyName": "query"
         }
       },
+      "[data-component-type=\"s-result-sort\"]": {
+        "q": {
+          "item": "form > input[name=\"k\"]",
+          "type": "searchQuery",
+          "etype": "value",
+          "keyName": "query"
+        }
+      },
       "li[id^='result_']": {
         "t": {
           "item": "h2",
@@ -455,6 +463,37 @@
         },
         "u": {
           "item": "a.a-link-normal",
+          "type": "arr",
+          "etype": "href",
+          "keyName": "u",
+          "functionsApplied": [
+            [
+              "splitF",
+              "&url=",
+              1
+            ],
+            [
+              "splitF",
+              "/ref=",
+              0
+            ],
+            [
+              "maskU",
+              false,
+              false
+            ]
+          ]
+        }
+      },
+      "[data-component-type='s-product-image']": {
+        "t": {
+          "item": "img",
+          "type": "arr",
+          "etype": "alt",
+          "keyName": "t"
+        },
+        "u": {
+          "item": "a",
           "type": "arr",
           "etype": "href",
           "keyName": "u",
@@ -852,7 +891,7 @@
       }
     },
     "4": {
-      "q": {
+      "li[id^='result_']": {
         "type": "query",
         "results": "clustered",
         "action": "query-am",
@@ -864,6 +903,30 @@
           ],
           [
             "#search-main-wrapper",
+            "q"
+          ],
+          [
+            "qurl",
+            "qurl"
+          ],
+          [
+            "ctry",
+            "ctry"
+          ]
+        ]
+      },
+      "[data-component-type='s-product-image']": {
+        "type": "query",
+        "results": "clustered",
+        "action": "query-am",
+        "fields": [
+          [
+            "[data-component-type='s-product-image']",
+            "r",
+            "join"
+          ],
+          [
+            "[data-component-type=\"s-result-sort\"]",
             "q"
           ],
           [

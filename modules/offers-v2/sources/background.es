@@ -27,11 +27,12 @@ import CategoryFetcher from './categories/category-fetcher';
 import GreenAdsHandler from './green-ads/manager';
 import UrlData from './common/url_data';
 import ActionID from './offers/actions-defs';
-import {oncePerInterval} from './utils';
+import { oncePerInterval } from './utils';
 import md5 from '../core/helpers/md5';
 import OfferDB from './offers/offers-db';
 import PatternsStat from './patterns_stat';
 import patternsStatMigrationCheck from './patterns_stat_migration_check';
+import JourneyHandler from './user-journey/journey-handler';
 
 // /////////////////////////////////////////////////////////////////////////////
 // consts
@@ -59,6 +60,7 @@ export default background({
   requiresServices: ['cliqz-config', 'telemetry'],
   popupNotification: inject.module('popup-notification'),
   helper: inject.module('myoffrz-helper'),
+  anolysis: inject.module('anolysis'),
 
   // Support the constraint for managed real estate modules:
   // - if a module is initialized, it is in "registeredRealEstates"
@@ -131,6 +133,7 @@ export default background({
       offersTelemetryFreq: ${OffersConfigs.SIGNALS_OFFERS_FREQ_SECS}
       '------------------------------------------------------------------------\n`);
 
+    this.dropdownOfferData = null;
     this.purchaseCache = new Set();
     // create the DB to be used over all offers module
     this.db = new Database('cliqz-offers');
@@ -155,11 +158,23 @@ export default background({
     );
     await this.patternsStat.init();
 
+    const isUserJourneyEnabled = prefs.get('offers.user-journey.enabled', false);
+    if (isUserJourneyEnabled) {
+      this.journeyHandler = new JourneyHandler({
+        eventHandler: this.eventHandler
+      });
+      await this.journeyHandler.init();
+    } else {
+      this.journeyHandler = null;
+    }
+
     // campaign signals
     this.signalsHandler = new SignalHandler(
       this.db,
       null, /* sender mock */
-      this.patternsStat
+      this.patternsStat,
+      this.journeyHandler && this.journeyHandler.getSignalHandler(),
+      () => this.anolysis.action('getGID')
     );
     await this.signalsHandler.init();
 
@@ -183,7 +198,6 @@ export default background({
       this.db
     );
     await this.categoryFetcher.init();
-
 
     // offers handling system
     this.offersHandler = new OffersHandler({
@@ -254,12 +268,23 @@ export default background({
       await this.featureHandler.unload();
       this.featureHandler = null;
     }
+    if (this.offersHandler) {
+      await this.offersHandler.destroy();
+      this.offersHandler = null;
+    }
 
-    // this.categoryHandler = null;
+    this.intentHandler = null;
+
+    if (this.journeyHandler) {
+      await this.journeyHandler.destroy();
+      this.journeyHandler = null;
+    }
+
     if (this.categoryFetcher) {
       await this.categoryFetcher.unload();
       this.categoryFetcher = null;
     }
+    this.categoryHandler = null;
 
     this._publishPopupPushEventCached = null;
     this.offersDB = null;
@@ -326,6 +351,7 @@ export default background({
       logger.debug('Categories hit', urlData, matches.getCategoriesIDs());
     }
     this.onCategoriesHit(matches, urlData);
+    this.onCategoryHitByFakeUrlIfNeeded(urlData);
   },
 
 
@@ -441,6 +467,20 @@ export default background({
     }
   },
 
+  onCategoryHitByFakeUrlIfNeeded(urlData) {
+    if (!this.dropdownOfferData) { return; }
+    const {fakeUrl, ctaUrl} = this.dropdownOfferData;
+    const ctaUrlData = new UrlData(ctaUrl);
+    const normalizedCtaUrl = ctaUrlData.getNormalizedUrl();
+    const {query: ctaQuery = ''} = ctaUrlData.getUrlDetails();
+    const {cleanHost, path} = urlData.getUrlDetails();
+    if (normalizedCtaUrl === urlData.getNormalizedUrl()
+      || decodeURIComponent(ctaQuery).includes(cleanHost + path)) { // affiliated network
+      this.dropdownOfferData = null;
+      this._categoryHitByFakeUrl({ fakeUrl });
+    }
+  },
+
   // ///////////////////////////////////////////////////////////////////////////
   events: {
     'offers-recv-ch': function onRealEstateMessage(message) {
@@ -534,11 +574,11 @@ export default background({
     },
 
     processRealEstateMessage(message) {
-      const {origin, data: {action_id: actionId, offer_id: offerId} = {}} = message;
-      if (origin === 'dropdown' && actionId === 'offer_ca_action') {
+      const {origin, data: {action_id: actionId, offer_id: offerId, ctaUrl = ''} = {}} = message;
+      if (origin === 'dropdown' && actionId === 'offer_ca_action' && ctaUrl) {
         const campaignId = this.offersHandler.getCampaignId(offerId);
         const fakeUrl = `https://fake.url/landing/${campaignId}`;
-        this._categoryHitByFakeUrl({fakeUrl});
+        this.dropdownOfferData = {fakeUrl, ctaUrl};
       }
 
       if (this.offersAPI) {
@@ -621,10 +661,34 @@ export default background({
       }
     },
 
+    async learnTargeting(feature, ...rest) {
+      if ((feature === 'page-class') || (feature === 'action')) {
+        return this.journeyHandler.addEvent({ feature: rest[0] });
+      }
+      return this.categoryHandler.learnTargeting(feature);
+    },
+
     async softReloadOffers() {
       await this.softUnload();
       await this.softInit();
     },
+
+    getOffersStatus() {
+      return {
+        activeCategories: this.categoryHandler.catTree
+          .getAllSubCategories('')
+          .map(node => node.getCategory())
+          .filter(cat => cat && cat.isActive())
+          .map(cat => cat.getName()),
+        activeIntents: this.intentHandler.activeIntents.keys(),
+        activeOffers: this.offersHandler.offersDB.offersIndexMap.keys(),
+        activeRealEstates: this.registeredRealEstates,
+        categories: this.categoryHandler.catTree.getAllSubCategories('')
+          .map(catNode => catNode.name),
+        initialized: this.initialized,
+        triggerCache: Object.keys(this.globObjects.trigger_cache.triggerIndex),
+      };
+    }
   },
 
 });

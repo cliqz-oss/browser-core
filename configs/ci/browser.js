@@ -11,6 +11,7 @@ module.exports = Object.assign({}, browserBase, {
         image: 'bg-default'
       }
     }),
+    historyLookupEnabled: false,
   }),
   modules: browserBase.modules
     .concat([
@@ -20,5 +21,6 @@ module.exports = Object.assign({}, browserBase, {
   bundles: browserBase.bundles.concat([
     'core/content-tests.bundle.js',
     'integration-tests/run.bundle.js',
+    'integration-tests/experimental-apis/test-helpers/api.bundle.js',
   ]),
 });

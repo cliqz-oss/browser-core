@@ -4,6 +4,7 @@
 // Component description see the comment to `OffersHandler` class below
 
 import MessageQueue from '../../core/message-queue';
+import md5 from '../../core/helpers/md5';
 import OffersGeneralStats from './offers-general-stats';
 import logger from '../common/offers_v2_logger';
 import OfferStatus from './offers-status';
@@ -23,6 +24,8 @@ import Blacklist from './blacklist';
 import chooseBestOffer from './best-offer';
 import { OfferMatchTraits } from '../categories/category-match';
 import { ImageDownloaderForPush } from './image-downloader';
+import { getDynamicContent } from './dynamic-offer';
+import prefs from '../../core/prefs';
 
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -239,11 +242,12 @@ export default class OffersHandler {
       url: [urlData.getRawUrl()],
       display_time_secs: offer.ruleInfo.display_time_secs,
     };
+    const domainHash = md5(urlData.getDomain() || '');
     const result = this.offersAPI.pushOffer(
       offer,
       displayRuleInfo,
       null, /* originID */
-      new OfferMatchTraits(catMatches, offer.categories)
+      new OfferMatchTraits(catMatches, offer.categories, domainHash)
     );
     return Promise.resolve(result);
   }
@@ -278,9 +282,12 @@ export default class OffersHandler {
     if (!offers) {
       return false;
     }
-    const bestOffer = this._chooseBestOffer(offers, urlData, catMatches);
+    let bestOffer = this._chooseBestOffer(offers, urlData, catMatches);
     if (!bestOffer) {
       return false;
+    }
+    if (prefs.get('dynamic-offers.enabled', false)) {
+      bestOffer = await getDynamicContent(bestOffer, urlData, catMatches);
     }
     await this._preloadImages(bestOffer);
     await this._pushOffersToRealEstates(bestOffer, urlData, catMatches);
@@ -338,6 +345,7 @@ export default class OffersHandler {
       offer.getPictureDataurl(),
       dataurl => offer.setPictureDataurl(dataurl),
     );
+
     await Promise.all([logo, picture]);
   }
 

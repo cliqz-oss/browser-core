@@ -30,7 +30,8 @@ export default describeModule('offers-v2/patterns_stat',
         await patternsStat.add('success', data);
         const r = await patternsStat.group('success');
         delete data.id;
-        chai.expect(r[0]).to.deep.eq({ ...data, counter: 1, type: 'success' });
+        const expected = { ...data, counter: 1, type: 'success', domainHash: undefined };
+        chai.expect(r[0]).to.deep.eq(expected);
       });
       it('should add item correct twice', async () => {
         const data = { campaignId: 1, pattern: 'abc' };
@@ -38,7 +39,8 @@ export default describeModule('offers-v2/patterns_stat',
         await patternsStat.add('success', data);
         const r = await patternsStat.group('success');
         delete data.id;
-        chai.expect(r[0]).to.deep.eq({ ...data, counter: 2, type: 'success' });
+        const expected = { ...data, counter: 2, type: 'success', domainHash: undefined };
+        chai.expect(r[0]).to.deep.eq(expected);
       });
       it('should return empty set when moveAll data', async () => {
         const data = { campaignId: 1, pattern: 'abc' };
@@ -61,18 +63,19 @@ export default describeModule('offers-v2/patterns_stat',
         delete data2.id;
         delete data3.id;
         chai.expect(r.find(x => x.pattern === 'abc'))
-          .to.deep.eq({ ...data, counter: 2, type: 'success' });
+          .to.deep.eq({ ...data, counter: 2, type: 'success', domainHash: undefined });
         chai.expect(r.find(x => x.pattern === 'abz'))
-          .to.deep.eq({ ...data2, counter: 2, type: 'success' });
+          .to.deep.eq({ ...data2, counter: 2, type: 'success', domainHash: undefined });
         chai.expect(r.find(x => x.pattern === 'xyz'))
-          .to.deep.eq({ ...data3, counter: 1, type: 'success' });
+          .to.deep.eq({ ...data3, counter: 1, type: 'success', domainHash: undefined });
       });
       it('should moveAll data correctly', async () => {
         const data = { campaignId: 1, pattern: 'abc' };
         await patternsStat.add('success', data);
         const r = await patternsStat.moveAll('success');
         delete data.id;
-        chai.expect(r).to.deep.eq([{ ...data, counter: 1, type: 'success' }]);
+        chai.expect(r)
+          .to.deep.eq([{ ...data, counter: 1, type: 'success', domainHash: undefined }]);
       });
     });
 
@@ -91,11 +94,15 @@ export default describeModule('offers-v2/patterns_stat',
       }
 
       function getExpectedForPattern(pattern) {
-        return ['landing', { campaignId: 'cid', pattern }];
+        const result = ['landing', { campaignId: 'cid', pattern }];
+        if (['<empty>', '<null>'].includes(pattern)) { return result; }
+        result[1].domainHash = undefined;
+        return result;
       }
 
       it('/ report each pattern', async () => {
-        returnPatternsNextTime(['Pattern1', 'Pattern2', 'Pattern3']);
+        const patterns = ['Pattern1', 'Pattern2', 'Pattern3'];
+        returnPatternsNextTime(patterns.map(p => ({ pattern: p, domainHash: undefined })));
 
         patternsStat.reinterpretCampaignSignalSync('cid', 'oid', 'landing');
 

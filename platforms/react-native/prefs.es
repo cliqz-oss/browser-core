@@ -1,25 +1,46 @@
-import { AsyncStorage } from 'react-native';
+import { AsyncStorage, NativeModules, DeviceEventEmitter } from 'react-native';
 import events from '../core/events';
 import config from '../core/config';
-import console from './console';
 
-const PREFIX = '@cliqzprefs:';
+
+let PREFIX = '@cliqzprefs:';
+export const PLATFORM_TELEMETRY_WHITELIST = [];
 
 const prefs = config.default_prefs || {};
 
-// load prefs from storage
-export function init() {
-  console.log('load prefs from storage');
+let _setPref = (key, value) => AsyncStorage.setItem(key, JSON.stringify(value));
+let _getAllPrefs = () => {
+  const allPrefs = {};
   return AsyncStorage.getAllKeys().then((keys) => {
     const prefKeys = keys.filter(k => k.startsWith(PREFIX));
     return AsyncStorage.multiGet(prefKeys).then((result) => {
-      if (!result) {
-        return;
-      }
       result.forEach((prefPair) => {
-        prefs[prefPair[0].substring(PREFIX.length)] = JSON.parse(prefPair[1]);
+        allPrefs[prefPair[0].substring(PREFIX.length)] = JSON.parse(prefPair[1]);
       });
-      console.log(prefs);
+      return allPrefs;
+    });
+  });
+};
+let _clearPref = AsyncStorage.removeItem.bind(AsyncStorage);
+
+if (NativeModules.Prefs) {
+  _clearPref = NativeModules.Prefs.clearPref;
+  _setPref = NativeModules.Prefs.setPref;
+  _getAllPrefs = NativeModules.Prefs.getAllPrefs;
+  PREFIX = '';
+
+  DeviceEventEmitter.addListener('prefchange', ([prefKey, value]) => {
+    prefs[prefKey] = value;
+    events.pub('prefchange', prefKey);
+  });
+}
+
+// load prefs from storage
+export function init() {
+  return _getAllPrefs().then((allPrefs) => {
+    Object.keys(allPrefs).forEach((key) => {
+      const value = allPrefs[key];
+      prefs[key.substring(PREFIX.length)] = value;
     });
   });
 }
@@ -36,7 +57,7 @@ export function setPref(prefKey, value) {
 
   if (changed) {
     prefs[prefKey] = value;
-    AsyncStorage.setItem(PREFIX + prefKey, JSON.stringify(value));
+    _setPref(PREFIX + prefKey, value);
 
     // trigger prefchange event
     events.pub('prefchange', prefKey);
@@ -49,5 +70,5 @@ export function hasPref(prefKey) {
 
 export function clearPref(prefKey) {
   delete prefs[prefKey];
-  AsyncStorage.removeItem(PREFIX + prefKey);
+  _clearPref(PREFIX + prefKey);
 }

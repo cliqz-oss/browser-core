@@ -107,6 +107,9 @@
     "cinema_movie_cast": {
         "message": "Casting"
     },
+    "cinema_movie_director": {
+        "message": "Réalisateur"
+    },
     "cinema_movie_full_cast": {
         "message": "Casting complet et équipe technique"
     },
@@ -201,7 +204,7 @@
         "message": "Vider le cache"
     },
     "control_center_datapoints": {
-        "message": "Données personnelles sécurisées"
+        "message": "données personnelles sécurisées"
     },
     "control_center_datapoints_inactive": {
         "message": "Désactivé pour ce domaine"
@@ -576,7 +579,7 @@
         "message": "Médias U.S."
     },
     "freshtab_app_settings_privacy_stats": {
-        "message": "Statistiques de protection de la vie privée"
+        "message": "Statistiques"
     },
     "freshtab_app_settings_search_label": {
         "message": "Barre de recherche"
@@ -693,7 +696,7 @@
         "message": "Temps économisé"
     },
     "freshtab_stats_time_saved_desc": {
-        "message": "Temps estimé que vous avez gagné en utilisant le bloqueur de publicités de Cliqz"
+        "message": "Temps estimé que vous avez economisé en utilisant Cliqz."
     },
     "freshtab_top_news": {
         "message": "Top News"
@@ -707,17 +710,26 @@
     "freshtab_your_news": {
         "message": "Vos sources d'informations"
     },
+    "general_collapse_button": {
+        "message": "Moins"
+    },
     "general_expand_button": {
         "message": "Montrer plus"
     },
     "ghost": {
         "message": "Ghost"
     },
+    "ghost_search_is_private": {
+        "message": "La recherche Ghost est anonyme"
+    },
     "ghosteryTabAppDesc": {
-        "message": "Ghostery Start Tab replaces Chrome's default new tab page and adds backgrounds, favorites, news and Ghostery's anonymous quick search."
+        "message": "More privacy, more favorites, more freedom, more style and more news on each new tab!"
     },
     "ghosteryTabAppName": {
         "message": "Ghostery Start Tab with Private Search (Beta)"
+    },
+    "ghosteryTabAppNameFirefox": {
+        "message": "Ghostery Start Tab"
     },
     "ghosteryTabAppNameNightly": {
         "message": "Ghostery Start Tab (Nightly)"
@@ -1010,6 +1022,9 @@
     "offersAppNameNightly": {
         "message": "MyOffrz (Nightly)"
     },
+    "onboarding_data_collection": {
+        "message": "By sending anonymized usage statistics to Cliqz, you help us improve your browsing experience."
+    },
     "onboarding_fast": {
         "message": "Fast"
     },
@@ -1018,6 +1033,9 @@
     },
     "onboarding_secure": {
         "message": "Secure"
+    },
+    "onboarding_share_btn": {
+        "message": "Choose what to share"
     },
     "onboarding_start_btn": {
         "message": "Start"
@@ -1105,6 +1123,9 @@
     },
     "results_found_in_history": {
         "message": "Afficher les résultats provenant de l'historique"
+    },
+    "search_use_complementary": {
+        "message": "Utiliser le moteur de recherche complémentaire?"
     },
     "searchWith": {
         "message": "Rechercher avec $1"

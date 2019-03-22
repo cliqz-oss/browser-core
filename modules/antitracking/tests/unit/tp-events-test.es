@@ -3,20 +3,20 @@
 /* eslint no-param-reassign: off */
 
 const tldts = require('tldts');
-const urlParser = require('fast-url-parser');
+const punycode = require('punycode');
 
 const url = {
   toString: () => 'https://test.com/path?ref=cliqz.com/tracking',
   hostname: 'test.com',
   protocol: 'https',
-  path: 'path',
+  pathname: 'path',
 };
 
 const rediretUrl = {
   toString: () => 'https://test2.com/path?ref=cliqz.com/tracking',
   hostname: 'test2.com',
   protocol: 'https',
-  path: 'path'
+  pathname: 'path'
 };
 
 const tabID = 1;
@@ -52,9 +52,6 @@ export default describeModule('antitracking/tp_events',
     },
     'core/encoding': {},
     'core/gzip': {},
-    'fast-url-parser': {
-      default: urlParser
-    },
     'core/prefs': {
       default: {
         get() { return null; },
@@ -63,6 +60,9 @@ export default describeModule('antitracking/tp_events',
     },
     'core/http': {
       fetch: () => Promise.reject(),
+    },
+    'platform/lib/punycode': {
+      default: punycode,
     },
   }),
   function () {

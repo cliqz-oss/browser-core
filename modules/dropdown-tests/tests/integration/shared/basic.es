@@ -9,13 +9,13 @@ import {
 } from '../../../../tests/core/integration/search-helpers';
 
 export default function ({
-  waitForTestPage,
-  injectTestUtils,
-  getIframeStyle,
   checkIframeExists,
-  triggerIframeCreation,
   fillIn,
+  getIframeStyle,
+  injectTestUtils,
   testPageUrl,
+  triggerIframeCreation,
+  waitForTestPage,
 }) {
   let tabId;
   let view;

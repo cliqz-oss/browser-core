@@ -1,3 +1,5 @@
+const VALID_OFFER_LANDING_URL = 'https://github.com/cliqz/aws-infrastructure-data';
+
 const VALID_OFFER_OBJ = {
   action_info: {
     on_click: 'https://www.cliqz.com'
@@ -37,9 +39,20 @@ const VALID_OFFER_OBJ = {
     },
     template_name: 'ticket_template'
   },
+  monitorData: [
+    {
+      params: {
+        filter_last_secs: 5,
+        referrer_cat: true,
+        store: false
+      },
+      patterns: [`||${VALID_OFFER_LANDING_URL.replace('https://', '')}$script`],
+      signalID: 'landing',
+      type: 'urlchange'
+    },
+  ],
   rs_dest: ['offers-cc'],
   types: ['type1', 'type2'],
-  monitorData: [],
   displayPriority: 0.0,
   version: '',
   categories: ['cat1'],
@@ -100,6 +113,7 @@ const VALID_OOTW_OFFER_OBJ = {
 };
 
 module.exports = {
+  VALID_OFFER_LANDING_URL,
   VALID_OFFER_OBJ: Object.freeze(VALID_OFFER_OBJ),
   VALID_OOTW_OFFER_OBJ: Object.freeze(VALID_OOTW_OFFER_OBJ),
 };

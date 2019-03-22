@@ -1,17 +1,19 @@
 /* global window, document, Handlebars */
 import { fromEvent, merge } from 'rxjs';
-import { map, switchMap, mapTo, share } from 'rxjs/operators';
+import { map, switchMap, mapTo, share, tap } from 'rxjs/operators';
 import background from '../background';
 import getThrottleQueries from '../operators/streams/throttle-queries';
 import getConfig from '../config';
 import search from '../search';
 import templates from '../templates';
 import globalConfig from '../../core/config';
+import prefs from '../../core/prefs';
 import pluckResults from '../operators/streams/pluck-results';
 import { setGlobal } from '../../core/kord/inject';
 import { parseKind } from '../telemetry';
 import createModuleWrapper from '../../core/helpers/spanan-module-wrapper';
 import { COLORS, COLOR_MAP, IGNORED_PROVIDERS, IMAGE_PATHS } from './helpers';
+import utils from '../../core/utils';
 
 const historySearch = createModuleWrapper('history-search').createProxy();
 
@@ -39,28 +41,58 @@ const app = {
   },
 };
 
+let fullJson = {};
+
 setGlobal(app);
 
 const $ = window.document.querySelector.bind(window.document);
-const onlyHistory = window.location.href.endsWith('onlyhistory=true');
 
-if (!onlyHistory) {
-  browser.cliqz._unifiedSearch = browser.cliqz.unifiedSearch;
-  let lastQ = null;
-  // issuing same query multiple times gets trottled by the history search function
-  browser.cliqz.unifiedSearch = function _(q) {
-    if (lastQ !== q) {
-      lastQ = q;
-      return browser.cliqz._unifiedSearch(q);
+browser.cliqzHistory._unifiedSearch = browser.cliqzHistory.unifiedSearch;
+let lastQ = null;
+// issuing same query multiple times gets trottled by the history search function
+browser.cliqzHistory.unifiedSearch = function _(q) {
+  if (lastQ !== q) {
+    lastQ = q;
+    return browser.cliqzHistory._unifiedSearch(q)
+      .then((searchResults) => {
+        fullJson.history = searchResults.results;
+        return searchResults;
+      });
+  }
+
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      browser.cliqzHistory._unifiedSearch(q)
+        .then((searchResults) => {
+          fullJson.history = searchResults.results;
+          return searchResults;
+        })
+        .then(resolve);
+    }, 300);
+  });
+};
+
+const rawConfig = getConfig({ isPrivateMode: false }, globalConfig.settings);
+utils._fetchFactory = utils.fetchFactory;
+utils.fetchFactory = () => {
+  const newFetch = utils._fetchFactory();
+  return (url, ...args) => {
+    if (url.startsWith(rawConfig.settings.RESULTS_PROVIDER)) {
+      return newFetch(url, ...args)
+        .then(fetchResults => fetchResults.json())
+        .then((z) => {
+          // prevent shallow copy of results
+          fullJson.cliqz = JSON.parse(JSON.stringify(z.results));
+          return {
+            json() {
+              return Promise.resolve(z);
+            }
+          };
+        });
     }
-
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        browser.cliqz._unifiedSearch(q).then(resolve);
-      }, 300);
-    });
+    return newFetch(url, ...args);
   };
-}
+};
 
 const createProviderContainer = (provider) => {
   const container = document.createElement('div');
@@ -89,6 +121,12 @@ const showPopup = (event) => {
   }
 };
 
+const updateTextArea = () => {
+  const jsonTextArea = document.getElementById('full-json');
+
+  jsonTextArea.innerHTML = JSON.stringify(fullJson, null, 2);
+};
+
 Handlebars.registerPartial('parseKind', templates['partials/parseKind']);
 Handlebars.registerPartial('resultContent', templates['partials/resultContent']);
 
@@ -111,36 +149,19 @@ Handlebars.registerHelper('checkImg', (json) => {
 });
 
 window.addEventListener('load', () => {
+  prefs.set('historyLookupEnabled', false);
   const $urlbar = $('#urlbar');
   const $mixer = $('#mixer');
 
   $urlbar.value = '';
   setTimeout(() => $urlbar.focus(), 100);
 
-  const rawConfig = getConfig({ isPrivateMode: false }, globalConfig.settings);
-  // Enable both history and historyLookup
-  const config = {
-    ...rawConfig,
-    providers: {
-      ...rawConfig.providers,
-      history: {
-        ...rawConfig.providers.history,
-        isEnabled: true,
-      },
-      historyLookup: {
-        ...rawConfig.providers.historyLookup,
-        isEnabled: true,
-      }
-    },
-  };
-
-  const ignoredHistoryProvider = rawConfig.providers.history.isEnabled ? 'historyLookup' : 'history';
-  const ignoredProviders = IGNORED_PROVIDERS.concat(onlyHistory
-    ? ['backend', 'cliqz', 'instant', 'custom-search']
-    : [ignoredHistoryProvider]);
+  const config = getConfig({ isPrivateMode: false }, globalConfig.settings);
 
   const query$ = fromEvent($urlbar, 'keyup')
     .pipe(
+      // make sure displayed JSON does not have data from the previous search
+      tap(() => { fullJson = {}; }),
       map(() => ({ query: $urlbar.value })),
       getThrottleQueries(config),
       share(),
@@ -160,12 +181,12 @@ window.addEventListener('load', () => {
 
   background.init();
 
-  const results$ = search({ query$, focus$ },
-    background.providers, config).pipe(pluckResults());
+  const results$ = search({ query$, focus$ }, background.providers, config)
+    .pipe(pluckResults());
 
   Object.keys(background.providers).forEach((name) => {
     // needs additional input for search: depends on previous results
-    if (ignoredProviders.indexOf(name) !== -1) return;
+    if (IGNORED_PROVIDERS.indexOf(name) !== -1) return;
 
     const provider = background.providers[name];
     query1$
@@ -173,21 +194,29 @@ window.addEventListener('load', () => {
         switchMap(query => provider.search(query, config, {})),
       )
       .subscribe((response) => {
-        if (ignoredProviders.indexOf(response.provider) !== -1) return;
+        if (IGNORED_PROVIDERS.indexOf(response.provider) !== -1) return;
 
         if (!$(`#${response.provider}`)) {
           $mixer.appendChild(createProviderContainer(response.provider));
         }
 
         $(`#${response.provider}`).innerHTML = templates.mixerProviderResult(response);
+
+        if (
+          (response.provider === 'instant')
+          && (response.results.length > 0)
+        ) {
+          fullJson.instant = response.results[0].links;
+        }
+        updateTextArea();
       });
   });
 
-  if (!onlyHistory) {
-    results$.subscribe((r) => {
-      $('#results').innerHTML = templates.mixerFinalResult(r);
-    });
-  }
+  results$.subscribe((r) => {
+    $('#results').innerHTML = templates.mixerFinalResult(r);
+    fullJson.final = r;
+    updateTextArea();
+  });
 
   document.addEventListener('click', showPopup);
 });

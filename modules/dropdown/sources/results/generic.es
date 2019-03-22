@@ -1,4 +1,4 @@
-import fastUrlParser from '../../core/fast-url-parser';
+import URL from '../../core/fast-url-parser';
 import { cleanMozillaActions, urlStripProtocol } from '../../core/content/url';
 import BaseResult, { Subresult } from './base';
 import LocalResult, { ShareLocationButton } from './local';
@@ -109,7 +109,7 @@ export default class GenericResult extends BaseResult {
   get newsResults() {
     const deepLinks = getDeepResults(this.rawResult, 'news');
     const hostname = this.url
-      && urlStripProtocol(fastUrlParser.parse(cleanMozillaActions(this.url)[1]).hostname);
+      && urlStripProtocol(new URL(cleanMozillaActions(this.url)[1]).hostname);
     return deepLinks.map(({ url, title, extra = {} } = {}) => new NewsResult(this, {
       ...this.topResultProps,
       url,
@@ -119,7 +119,7 @@ export default class GenericResult extends BaseResult {
       description: extra.description,
       creation_time: extra.creation_timestamp,
       tweet_count: extra.tweet_count,
-      showLogo: hostname && hostname !== urlStripProtocol(fastUrlParser.parse(url).hostname),
+      showLogo: hostname && hostname !== urlStripProtocol(new URL(url).hostname),
       text: this.query,
       isBreakingNews: extra.breaking,
     }));

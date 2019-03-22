@@ -30,9 +30,11 @@ function passStringToWasm(arg) {
 * @param {string} arg1
 * @param {number} arg2
 * @param {string} arg3
+* @param {boolean} arg4
+* @param {number} arg5
 * @returns {void}
 */
-export function add_history_item(arg0, arg1, arg2, arg3) {
+export function add_history_item(arg0, arg1, arg2, arg3, arg4, arg5) {
     const ptr0 = passStringToWasm(arg0);
     const len0 = WASM_VECTOR_LEN;
     const ptr1 = passStringToWasm(arg1);
@@ -40,7 +42,7 @@ export function add_history_item(arg0, arg1, arg2, arg3) {
     const ptr3 = passStringToWasm(arg3);
     const len3 = WASM_VECTOR_LEN;
     try {
-        return wasm.add_history_item(ptr0, len0, ptr1, len1, arg2, ptr3, len3);
+        return wasm.add_history_item(ptr0, len0, ptr1, len1, arg2, ptr3, len3, arg4, arg5);
 
     } finally {
         wasm.__wbindgen_free(ptr0, len0 * 1);
@@ -73,9 +75,11 @@ export function remove_history_item(arg0) {
 * @param {string} arg1
 * @param {number} arg2
 * @param {string} arg3
+* @param {boolean} arg4
+* @param {number} arg5
 * @returns {void}
 */
-export function update_history_item(arg0, arg1, arg2, arg3) {
+export function update_history_item(arg0, arg1, arg2, arg3, arg4, arg5) {
     const ptr0 = passStringToWasm(arg0);
     const len0 = WASM_VECTOR_LEN;
     const ptr1 = passStringToWasm(arg1);
@@ -83,7 +87,7 @@ export function update_history_item(arg0, arg1, arg2, arg3) {
     const ptr3 = passStringToWasm(arg3);
     const len3 = WASM_VECTOR_LEN;
     try {
-        return wasm.update_history_item(ptr0, len0, ptr1, len1, arg2, ptr3, len3);
+        return wasm.update_history_item(ptr0, len0, ptr1, len1, arg2, ptr3, len3, arg4, arg5);
 
     } finally {
         wasm.__wbindgen_free(ptr0, len0 * 1);

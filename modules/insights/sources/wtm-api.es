@@ -21,6 +21,13 @@ export default class WTMApi {
     });
   }
 
+  unload() {
+    if (this.cache !== null) {
+      this.cache.close();
+      this.cache = null;
+    }
+  }
+
   async getTrackerInfo(trackers) {
     const results = await this.cache.trackers.where('id').anyOf(trackers).toArray();
     const stats = results.reduce(idReducer, {});

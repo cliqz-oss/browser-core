@@ -379,5 +379,5 @@ export function loadURIIntoGBrowser(gBrowser, uri) {
 }
 
 export function isDefaultBrowser() {
-  return null;
+  return Promise.resolve(null);
 }

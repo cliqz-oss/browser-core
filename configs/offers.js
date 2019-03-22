@@ -25,6 +25,7 @@ module.exports = {
     'modules.browser-panel.enabled': false,
     'modules.offers-cc.enabled': false,
     'modules.history-analyzer.enabled': false,
+    'offers.user-journey.enabled': true,
   },
   'modules': [
     'core',

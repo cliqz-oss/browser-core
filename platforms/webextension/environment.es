@@ -15,7 +15,6 @@ port.onMessage.addListener((response) => {
 });
 
 const CLIQZEnvironment = {
-  SKIN_PATH: 'modules/static/skin/',
   RESULTS_TIMEOUT: 1000, // 1 second
   Promise,
   OS: 'chromium',

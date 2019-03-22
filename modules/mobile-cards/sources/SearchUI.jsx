@@ -66,6 +66,7 @@ export default class SearchUI extends React.Component {
   render() {
     const results = this.props.results;
     const theme = this.props.theme;
+    const meta = this.props.meta;
     const filteredResults = this.filterResults(results);
     if (!filteredResults.length) {
       return null;
@@ -78,7 +79,7 @@ export default class SearchUI extends React.Component {
         accessibilityLabel="search-results"
         style={styles.container}
       >
-        <CardList results={regroupedResults} theme={theme} />
+        <CardList results={regroupedResults} theme={theme} meta={meta} />
       </View>
     );
   }

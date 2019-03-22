@@ -1,29 +1,12 @@
 import Logos from '../../../core/services/logos';
-import { getDetailsFromUrl } from '../../../core/url';
 
-const URL_KEYS = ['website', 'url'];
-
-function getUrls(obj) {
-  const list = [];
-  if (typeof obj === 'object' && obj !== null) {
-    Object.keys(obj).forEach((key) => {
-      if (URL_KEYS.includes(key) && typeof obj[key] === 'string') {
-        list.push(obj[key]);
-      }
-      list.push(...getUrls(obj[key]));
-    });
+let kickerLogo = null;
+function getKickerLogo() {
+  if (kickerLogo) {
+    return kickerLogo;
   }
-  return list;
-}
-
-function getExtraLogos(extra = {}) {
-  const extraLogos = Object.create(null);
-  getUrls(extra).forEach((url) => {
-    if (!extraLogos[url]) {
-      extraLogos[url] = Logos.getLogoDetails(getDetailsFromUrl(url));
-    }
-  });
-  return extraLogos;
+  kickerLogo = Logos.getLogoDetails('https://kicker.de');
+  return kickerLogo;
 }
 
 export default results => results.map(result => ({
@@ -32,10 +15,10 @@ export default results => results.map(result => ({
     ...link,
     meta: {
       ...link.meta,
-      logo: link.url && Logos.getLogoDetails(getDetailsFromUrl(link.url)),
-      extraLogos: getExtraLogos(link.extra),
+      logo: link.url && Logos.getLogoDetails(link.url),
+      extraLogos: {},
       externalProvidersLogos: {
-        kicker: Logos.getLogoDetails(getDetailsFromUrl('kicker.de'))
+        kicker: getKickerLogo(),
       }
     },
   }))

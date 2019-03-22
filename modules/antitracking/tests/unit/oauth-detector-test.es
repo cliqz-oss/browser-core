@@ -3,8 +3,8 @@
 
 const Rx = require('rxjs');
 const operators = require('rxjs/operators');
-const fastUrlParser = require('fast-url-parser');
 const tldts = require('tldts');
+const punycode = require('punycode');
 
 function mockSender(tab, url) {
   return {
@@ -32,12 +32,12 @@ export default describeModule('antitracking/steps/oauth-detector',
     'rxjs/operators': operators,
     'core/helpers/md5': {},
     'platform/lib/tldts': tldts,
-    'core/fast-url-parser': {
-      default: fastUrlParser
-    },
     'core/console': {
       default: console,
-    }
+    },
+    'platform/lib/punycode': {
+      default: punycode,
+    },
   }),
   () => {
     describe('OAuthDetector', () => {
@@ -148,13 +148,13 @@ export default describeModule('antitracking/steps/oauth-detector',
         let events;
         let detectorInstance;
 
-        function mockState(tabId, url, sourceUrl, fullPage = false) {
+        function mockState(tabId, url, tabUrl, fullPage = false) {
           return {
             tabId,
             url,
             urlParts: URLInfo.get(url),
-            sourceUrlParts: URLInfo.get(sourceUrl),
-            isFullPage: () => fullPage,
+            tabUrlParts: URLInfo.get(tabUrl),
+            isMainFrame: fullPage,
             incrementStat: () => null,
           };
         }
@@ -187,9 +187,9 @@ export default describeModule('antitracking/steps/oauth-detector',
 
         it('returns true when there is only a click', (done) => {
           const tab = 5;
-          const sourceUrl = 'https://cliqz.com/';
-          events.pub('core:mouse-down', null, '', '', mockSender(tab, sourceUrl));
-          const state = mockState(tab, 'https://auth.ghostery.com/oauth', sourceUrl);
+          const tabUrl = 'https://cliqz.com/';
+          events.pub('core:mouse-down', null, '', '', mockSender(tab, tabUrl));
+          const state = mockState(tab, 'https://auth.ghostery.com/oauth', tabUrl);
           delayedTest(() => {
             chai.expect(detectorInstance.checkIsOAuth(state)).to.be.true;
           }, done, 5);
@@ -197,10 +197,10 @@ export default describeModule('antitracking/steps/oauth-detector',
 
         it('returns false with click and page', (done) => {
           const tab = 5;
-          const sourceUrl = 'https://cliqz.com/';
-          events.pub('core:mouse-down', null, '', '', mockSender(tab, sourceUrl));
+          const tabUrl = 'https://cliqz.com/';
+          events.pub('core:mouse-down', null, '', '', mockSender(tab, tabUrl));
           const fullPageState = mockState(tab + 1, 'https://auth.ghostery.com/', '', true);
-          const state = mockState(tab, 'https://auth.ghostery.com/oauth', sourceUrl);
+          const state = mockState(tab, 'https://auth.ghostery.com/oauth', tabUrl);
           setTimeout(() => detectorInstance.checkMainFrames(fullPageState), 2);
           delayedTest(() => {
             chai.expect(detectorInstance.checkIsOAuth(state)).to.be.false;
@@ -209,10 +209,10 @@ export default describeModule('antitracking/steps/oauth-detector',
 
         it('returns true if page domain does not match', (done) => {
           const tab = 5;
-          const sourceUrl = 'https://cliqz.com/';
-          events.pub('core:mouse-down', null, '', '', mockSender(tab, sourceUrl));
+          const tabUrl = 'https://cliqz.com/';
+          events.pub('core:mouse-down', null, '', '', mockSender(tab, tabUrl));
           const fullPageState = mockState(tab + 1, 'https://www.ghostery.com/', '', true);
-          const state = mockState(tab, 'https://auth.ghostery.com/oauth', sourceUrl);
+          const state = mockState(tab, 'https://auth.ghostery.com/oauth', tabUrl);
           setTimeout(() => detectorInstance.checkMainFrames(fullPageState), 2);
           delayedTest(() => {
             chai.expect(detectorInstance.checkIsOAuth(state)).to.be.true;
@@ -221,11 +221,11 @@ export default describeModule('antitracking/steps/oauth-detector',
 
         it('returns true if click domain does not match', (done) => {
           const tab = 5;
-          const sourceUrl = 'https://cliqz.com/';
-          const sourceUrl2 = 'https://www.cliqz.com/';
-          events.pub('core:mouse-down', null, '', '', mockSender(tab, sourceUrl));
+          const tabUrl = 'https://cliqz.com/';
+          const tabUrl2 = 'https://www.cliqz.com/';
+          events.pub('core:mouse-down', null, '', '', mockSender(tab, tabUrl));
           const fullPageState = mockState(tab + 1, 'https://www.ghostery.com/', '', true);
-          const state = mockState(tab, 'https://auth.ghostery.com/oauth', sourceUrl2);
+          const state = mockState(tab, 'https://auth.ghostery.com/oauth', tabUrl2);
           setTimeout(() => detectorInstance.checkMainFrames(fullPageState), 2);
           delayedTest(() => {
             chai.expect(detectorInstance.checkIsOAuth(state)).to.be.true;

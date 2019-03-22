@@ -257,19 +257,8 @@
                     margin-top: map-get($base-configs, section-padding);
                     margin-bottom: map-get($base-configs, section-padding);
                 }
-
-                @include speed-dials(map-merge($speed-dials-configs, $speed-dials-theme)...);
-                @include url-bar(map-merge($url-bar-configs, $url-bar-theme)...);
-                @include url-bar-with-results(map-merge($url-bar-configs, $url-bar-theme)...);
-                @include news(map-merge($news-configs, $news-theme)...);
-                @include stats(map-merge($stats-configs, $news-theme)...);
-                @include middle-notifications(map-merge($middle-notifications-configs, $middle-notifications-theme)...);
-                @include offer-middle-notifications(map-merge($offer-middle-notifications-configs, $offer-middle-notifications-theme)...);
-                @include offer-middle-feedback(map-merge($offer-middle-feedback-configs, $offer-middle-feedback-theme)...);
             }
         }
-
-        @include top-notifications(map-merge($top-notifications-configs, $top-notifications-theme)...);
 
         &:before {
             display: block;
@@ -283,6 +272,16 @@
             content: ' ';
         }
     }
+
+    @include speed-dials(map-merge($speed-dials-configs, $speed-dials-theme)...);
+    @include top-notifications(map-merge($top-notifications-configs, $top-notifications-theme)...);
+    @include url-bar(map-merge($url-bar-configs, $url-bar-theme)...);
+    @include url-bar-with-results(map-merge($url-bar-configs, $url-bar-theme)...);
+    @include news(map-merge($news-configs, $news-theme)...);
+    @include stats(map-merge($stats-configs, $news-theme)...);
+    @include middle-notifications(map-merge($middle-notifications-configs, $middle-notifications-theme)...);
+    @include offer-middle-notifications(map-merge($offer-middle-notifications-configs, $offer-middle-notifications-theme)...);
+    @include offer-middle-feedback(map-merge($offer-middle-feedback-configs, $offer-middle-feedback-theme)...);
 }
 
 @mixin responsive($theme) {
@@ -376,10 +375,10 @@ body {
         }
     }
 
-    $light-theme: map-get($themes, light);
+    $dark-theme: map-get($themes, dark);
 
-    @include responsive($light-theme);
-    @include undo-notifications(map-get($light-theme, base)...);
+    @include responsive($dark-theme);
+    @include undo-notifications(map-get($dark-theme, base)...);
 
     &::before {
         display: block;
@@ -489,25 +488,10 @@ body {
         background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab-dark.jpg);
     }
 
-    &.theme-bg-ghostery-forest,
-    &.theme-bg-ghostery-city,
-    &.theme-bg-ghostery-net,
-    &.theme-bg-ghostery-ghosties,
-    &.theme-bg-ghostery-ghosty,
-    &.theme-bg-ghostery-dark,
+    &.theme-bg-default {
+        $light-theme: map-get($themes, light);
 
-    &.theme-bg-matterhorn,
-    &.theme-bg-alps,
-    &.theme-bg-light,
-    &.theme-bg-dark,
-    &.theme-bg-winter,
-    &.theme-bg-spring,
-    &.theme-bg-worldcup,
-    &.theme-bg-summer,
-    &.theme-bg-autumn {
-        $dark-theme: map-get($themes, dark);
-
-        @include responsive($dark-theme);
-        @include undo-notifications(map-get($dark-theme, base)...);
+        @include responsive($light-theme);
+        @include undo-notifications(map-get($light-theme, base)...);
     }
 }

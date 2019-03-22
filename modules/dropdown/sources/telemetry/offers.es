@@ -77,13 +77,14 @@ export default class OffersReporter {
   /**
    * @private
    */
-  report(offerId, actionId) {
+  report(offerId, actionId, { ctaUrl } = {}) {
     this.offers.action('processRealEstateMessage', {
       origin: 'dropdown',
       type: 'offer-action-signal',
       data: {
         offer_id: offerId,
         action_id: actionId,
+        ctaUrl,
       },
     });
   }
@@ -139,7 +140,7 @@ export default class OffersReporter {
       .findIndex(r => r.url === clickedResult.url);
     position += 1;
 
-    this.report(offerId, 'offer_ca_action');
+    this.report(offerId, 'offer_ca_action', { ctaUrl: clickedResult.url });
 
     if (isAttached) {
       this.report(offerId, 'offer_ca_action_attached');

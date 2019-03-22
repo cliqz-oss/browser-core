@@ -3,12 +3,14 @@ import { getResourceUrl } from '../core/platform';
 import Worker from '../platform/worker';
 import { chrome } from '../platform/globals';
 
-const LIMIT = 30;
+const LIMIT = 50; // TODO: reduce this limit
 
 const isValidUrl = url => (url.indexOf('chrome://cliqz') !== 0
   && url.indexOf('resource://cliqz') !== 0
   && url.indexOf('moz-extension://') !== 0
   && url.indexOf('https://cliqz.com/search?q=') !== 0);
+
+const isValidBookmarkUrl = url => url && url.startsWith('http');
 
 const confidence = (matchingScore, length) => {
   const z = 1.281551565545;
@@ -19,10 +21,12 @@ const confidence = (matchingScore, length) => {
   return (left - right) / under;
 };
 
-const redditScore = (count, time, matchingScore, fieldLength) => {
+const redditScore = (count, time, matchingScore, fieldLength, isBookmarked, typedCount) => {
   const rankingScore = Math.log10(count) + (3600 / (Date.now() - time));
   const confidenceScore = confidence(matchingScore, fieldLength);
-  return (rankingScore + confidenceScore) * matchingScore;
+  const bookmarkScore = isBookmarked ? 1.1 : 1;
+  const typedCountScore = 1 + (typedCount * 0.05);
+  return (rankingScore * bookmarkScore * typedCountScore + confidenceScore) * matchingScore;
 };
 
 export default class WorkerManager {
@@ -35,9 +39,11 @@ export default class WorkerManager {
   };
 
   constructor() {
+    this.bookmarksObj = {};
     this.isWorkerReady = false;
 
     chrome.history.onVisited.addListener(this.onVisited);
+    chrome.history.onVisitRemoved.addListener(this.onVisitRemoved);
     const url = getResourceUrl('history-search/worker.bundle.js');
     const worker = new Worker(url);
 
@@ -64,26 +70,78 @@ export default class WorkerManager {
     return this.importedActions[action]({ data });
   }
 
+  addBookmarks = (bookmarks) => {
+    for (let i = 0; i < bookmarks.length; i += 1) {
+      const bookmark = bookmarks[i];
+      if (isValidBookmarkUrl(bookmark.url)) {
+        this.bookmarksObj[bookmark.url] = bookmark;
+      }
+
+      if (bookmark.children) {
+        this.addBookmarks(bookmark.children);
+      }
+    }
+  }
+
   addHistoryItems() {
     const limit = 50000;
     const ONE_MONTH = 30 * 24 * 60 * 60 * 1000; // ms
     const startDate = Date.now() - (ONE_MONTH * 6); // TODO: to be edited
 
-    chrome.history.search(
-      { text: '', startTime: startDate, maxResults: limit },
-      (results) => {
-        this.sendMessageToWorker({
-          action: 'addHistoryItems',
-          data: results.filter(res => isValidUrl(res.url) && res.visitCount > 0),
-        });
-      }
-    );
+    chrome.bookmarks.getTree((data) => {
+      this.addBookmarks(data);
+      chrome.history.search(
+        { text: '', startTime: startDate, maxResults: limit },
+        (rawResults) => {
+          const results = rawResults.reduce((filtered, res) => {
+            let isBookmarked = false;
+            if (isValidUrl(res.url) && res.visitCount > 0) {
+              if (this.bookmarksObj[res.url]) {
+                isBookmarked = true;
+                delete this.bookmarksObj[res.url];
+              }
+
+              filtered.push({
+                url: res.url,
+                title: res.title,
+                visitCount: res.visitCount,
+                lastVisitTime: res.lastVisitTime,
+                isBookmarked,
+                typedCount: res.typedCount,
+              });
+            }
+
+            return filtered;
+          }, []);
+          // Left over, i.e unvisited bookmarks
+          const unvisitedBookmarks = Object.keys(this.bookmarksObj).map(key => ({
+            url: key,
+            title: this.bookmarksObj[key].title,
+            visitCount: 1, // Has to be greater than 0
+            lastVisitTime: this.bookmarksObj[key].dateAdded,
+            isBookmarked: true,
+            typedCount: 0,
+          }));
+          this.sendMessageToWorker({
+            action: 'addHistoryItems',
+            data: results.concat(unvisitedBookmarks),
+          });
+        }
+      );
+    });
   }
 
   updateHistoryItem(item) {
     this.sendMessageToWorker({
       action: 'updateHistoryItem',
       data: item,
+    });
+  }
+
+  removeHistoryItems(urls) {
+    this.sendMessageToWorker({
+      action: 'removeHistoryItems',
+      data: urls,
     });
   }
 
@@ -98,10 +156,16 @@ export default class WorkerManager {
         comment: result[0].match_fields.Title.field,
         value: result[0].match_fields.Url.field,
         label: result[0].match_fields.Url.field,
-        style: 'favicon',
+        style: result[0].is_bookmarked ? 'favicon bookmark' : 'favicon',
         image: `page-icon:${result[0].match_fields.Url.field}`, // TODO: do we need this ?
-        score: redditScore(result[0].visit_count, result[0].last_visit_date,
-          result[1], result[0].match_fields.Url.field_len),
+        score: redditScore(
+          result[0].visit_count,
+          result[0].last_visit_date,
+          result[1],
+          result[0].match_fields.Url.field_len + result[0].match_fields.Title.field_len,
+          result[0].is_bookmarked,
+          result[0].typed_count,
+        ),
       })).sort((a, b) => b.score - a.score)
         .slice(0, 10);
 
@@ -153,11 +217,18 @@ export default class WorkerManager {
     }, 1000);
   }
 
+  onVisitRemoved = ({ urls = [] }) => {
+    if (urls.length) {
+      this.removeHistoryItems(urls);
+    }
+  }
+
   unload() {
     if (this.worker) {
       this.worker.terminate();
       this.worker = null;
     }
     chrome.history.onVisited.removeListener(this.onVisited);
+    chrome.history.onVisitRemoved.removeListener(this.onVisitRemoved);
   }
 }

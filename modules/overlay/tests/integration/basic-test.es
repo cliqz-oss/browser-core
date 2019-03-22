@@ -1,7 +1,6 @@
 import {
   queryHTML,
   testServer,
-  sleep,
   waitFor,
 } from '../../../tests/core/integration/helpers';
 import basicTest from '../../../tests/dropdown-tests/integration/shared/basic';
@@ -18,7 +17,7 @@ const testPageUrl = testServer.getBaseUrl('testpage');
 const waitForTestPage = async tabId => getTab(tabId);
 const injectTestUtils = async () => {};
 const checkIframeExists = async tab => runCodeAt(tab.id, `(() => {
-  const overlay = document.querySelector('body > span:last-of-type');
+  const overlay = document.querySelector('html > span:last-of-type');
   if (!overlay || !overlay.shadowRoot) {
     return false;
   }
@@ -37,18 +36,25 @@ const triggerIframeCreation = async (tab) => {
 
 const getIframeStyle = async () => {
   const style = await queryHTML(testPageUrl, '#cliqz-dropdown', 'style', {
-    shadowRootSelector: 'body > span:last-of-type',
+    shadowRootSelector: 'html > span:last-of-type',
     attributeType: 'attribute',
   });
   return style[0];
 };
-const fillIn = async ({ view: tab, query }) => {
-  chrome.tabs.executeScript(tab.id, {
-    code: 'window.CLIQZ.tests.overlay.toggle();',
-  });
 
-  // TODO: should go away after exectureScript will be wrapped by async helper
-  await sleep(50);
+const getUIStyle = async tab => runCodeAt(tab.id, `(() => {
+  const overlay = document.querySelector('html > span:last-of-type');
+  if (!overlay || !overlay.shadowRoot) {
+    return false;
+  }
+  return !overlay.shadowRoot.querySelector('.ui').classList.contains('hidden');
+})()`);
+
+const fillIn = async ({ view: tab, query }) => {
+  await new Promise(resolve => chrome.tabs
+    .executeScript(tab.id, { code: 'window.CLIQZ.tests.overlay.toggle();' }, resolve));
+
+  await waitFor(async () => getUIStyle(tab));
 
   chrome.tabs.executeScript(tab.id, {
     code: `window.CLIQZ.tests.overlay.fillIn("${query}");`,
@@ -67,13 +73,13 @@ export default function () {
       });
 
       basicTest({
-        waitForTestPage,
-        injectTestUtils,
         checkIframeExists,
-        triggerIframeCreation,
-        getIframeStyle,
         fillIn,
+        getIframeStyle,
+        injectTestUtils,
         testPageUrl,
+        triggerIframeCreation,
+        waitForTestPage,
       });
     });
   });

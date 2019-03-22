@@ -164,13 +164,14 @@ export default class UrlbarWithResults extends Urlbar {
       if (this.textInput === document.activeElement) {
         return;
       }
-      cliqz.search.stopSearch();
+
+      this.dropdown.close();
 
       this.setState({
         iframeHeight: 0,
         focused: false,
       });
-    }, 400);
+    }, 200);
   }
 
   toggleSettings = () => {

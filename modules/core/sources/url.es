@@ -2,26 +2,24 @@
 /* eslint camelcase: 'off'  */
 /* eslint no-multi-spaces: 'off'  */
 
-import platformEquals, {
-  URI,
-  isKnownProtocol,
+import {
   UrlRegExp,
   LocalUrlRegExp,
 } from '../platform/url';
-import { getPublicSuffix } from './tlds';
-import MapCache from './helpers/fixed-size-cache';
 import {
-  equals as urlEqual,
   cleanMozillaActions,
 } from './content/url';
-import { isBootstrap } from './platform';
+import URL, { isKnownProtocol } from './fast-url-parser';
+import {
+  URLInfo,
+} from './url-info';
 
 export {
   urlStripProtocol,
   cleanMozillaActions,
   isCliqzAction
 } from './content/url';
-export { fixURL } from '../platform/url';
+export { equals } from './url-info';
 
 function tryFn(fn) {
   return (...args) => {
@@ -48,6 +46,20 @@ export function isIpv6Address(host) {
 
 export function isIpAddress(host) {
   return isIpv4Address(host) || isIpv6Address(host);
+}
+
+export function fixURL(url) {
+  try {
+    // detect if we have a url already
+    /* eslint-disable no-new */
+    new URL(url);
+    /* eslint-enable no-new */
+  } catch (e) {
+    // if not a url, we make up one
+    return `http://${url}`;
+  }
+
+  return url;
 }
 
 /**
@@ -105,21 +117,20 @@ export function isUrl(_input) {
     if (host) {
       if (isKnownProtocol(proto)) {
         try {
-          const uri = new URI(input);
-          return !!(uri.host || uri.path !== '/');
+          const uri = new URL(input);
+          return !!(uri.host || uri.pathname !== '/') && uri.isValidHost();
         } catch (e) {
           return false;
         }
       }
 
-      // If there were no slashes after colon, iț might be in fact an 'auth' or 'port' delimiter.
+      // If there were no slashes after colon, iț might be in fact an 'auth' or 'port' delimiter.
       // I.e. 'localhost:3000' or 'username:password@somewhere.com'
       if (!slashes) {
         const newhost = auth ? host : `${proto}:${host}`;
         return isUrlLike(newhost);
       }
     }
-
     // cases like 'http://?q=0' or 'unknown-protocol://whatever'
     return false;
   }
@@ -138,23 +149,13 @@ export function isLocalhost(host, isIPv4, isIPv6) {
 
 // IP Validation
 export function extractSimpleURI(url) {
-  return new URI(url);
+  return new URL(url);
 }
 
 export const tryDecodeURI = tryFn(decodeURI);
 export const tryDecodeURIComponent = tryFn(decodeURIComponent);
 export const tryEncodeURI = tryFn(encodeURI);
 export const tryEncodeURIComponent = tryFn(encodeURIComponent);
-
-export function equals(url1, url2) {
-  const equal = urlEqual(url1, url2);
-
-  if (platformEquals(url1, url2)) {
-    return true;
-  }
-
-  return equal;
-}
 
 export function stripTrailingSlash(str) {
   if (str.substr(-1) === '/') {
@@ -163,186 +164,87 @@ export function stripTrailingSlash(str) {
   return str;
 }
 
-function _getDetailsFromUrl(_originalUrl) {
-  const [action, originalUrl] = cleanMozillaActions(_originalUrl);
+/**
+ * Thinking about using this function? Use URLInfo instead!
+ * @param _originalUrl
+ */
+export function getDetailsFromUrl(_originalUrl) {
+  const [action, originalUrl] = cleanMozillaActions(_originalUrl.trim());
   // exclude protocol
-  let url = originalUrl;
-  let scheme = '';
-  let slashes = '';
-  let name = '';
-  let tld = '';
-  let subdomains = [];
-  let path = '';
-  let query = '';
-  let fragment = '';
+  const url = URLInfo.get(originalUrl) || URLInfo.get(`://${originalUrl}`);
+  // remove trailing `.` from hostname - https://github.com/cliqz/navigation-extension/pull/6768
+  url.hostname = url.hostname.replace(/\.$/, '');
+  const cleanHost = url.cleanHost;
+  const extra = url.pathname + url.search;
+  const friendly_url = url.friendlyUrl;
 
-  // remove scheme
-  const schemeMatch = schemeRE.exec(url);
-  if (schemeMatch) {
-    scheme = schemeMatch[1];
-    slashes = schemeMatch[2] || '';
-    url = schemeMatch[3];
-  }
-
-  const ssl = scheme === 'https';
-
-  // separate hostname from path, etc. Could be separated from rest by /, ? or #
-  let host = url.split(/[/#?]/)[0].toLowerCase();
-  path = url.replace(host, '');
-  // Remove `single` dot (if any) from the end of the host, after obtaining correct path
-  host = host.replace(/\.$/, '');
-
-  // separate username:password@ from host
-  const userpassHost = host.split('@');
-  if (userpassHost.length > 1) {
-    host = userpassHost[1];
-  }
-
-  // Parse Port number
-  let port = '';
-
-  let isIPv4 = isIpv4Address(host);
-  let isIPv6 = isIpv6Address(host);
-
-  const indexOfColon = host.indexOf(':');
-  if ((!isIPv6 || isIPv4) && indexOfColon >= 0) {
-    port = host.substr(indexOfColon + 1);
-    host = host.substr(0, indexOfColon);
-  } else if (isIPv6) {
-    // If an IPv6 address has a port number,
-    // it will be right after a closing bracket ] : format [ip_v6]:port
-    const endOfIP = host.indexOf(']:');
-    if (endOfIP >= 0) {
-      port = host.split(']:')[1];
-      host = host.split(']:')[0].replace('[', '').replace(']', '');
-    }
-  }
-
-  // extract query and fragment from url
-  query = '';
-  const queryIdx = path.indexOf('?');
-  if (queryIdx !== -1) {
-    query = path.substr(queryIdx + 1);
-  }
-
-  fragment = '';
-  const fragmentIdx = path.indexOf('#');
-  if (fragmentIdx !== -1) {
-    fragment = path.substr(fragmentIdx + 1);
-  }
-
-  // remove query and fragment from path
-  path = path.replace(`?${query}`, '');
-  path = path.replace(`#${fragment}`, '');
-  query = query.replace(`#${fragment}`, '');
-
-  // extra - all path, query and fragment
-  let extra = path;
-  if (query) {
-    extra += `?${query}`;
-  }
-  if (fragment) {
-    extra += `#${fragment}`;
-  }
-
-  isIPv4 = isIpv4Address(host);
-  isIPv6 = isIpv6Address(host);
-  const localhost = isLocalhost(host, isIPv4, isIPv6);
-
-  // find parts of hostname
-  if (!isIPv4 && !isIPv6 && !localhost) {
-    try {
-      let hostWithoutTld = host;
-      tld = getPublicSuffix(host);
-
-      if (tld) {
-        hostWithoutTld = host.slice(0, -(tld.length + 1)); // +1 for the '.'
-      }
-
-      // Get subdomains
-      subdomains = hostWithoutTld.split('.');
-      // Get the domain name w/o subdomains and w/o TLD
-      name = subdomains.pop();
-
-      // remove www if exists
-      // TODO: I don't think this is the right place to do this.
-      //       Disabled for now, but check there are no issues.
-      // host = host.indexOf('www.') == 0 ? host.slice(4) : host;
-    } catch (e) {
-      name = '';
-      host = '';
-    }
+  let domainDetails;
+  if (url.hostIsIp) {
+    domainDetails = {
+      name: 'IP',
+      domain: '',
+      host: url.hostname,
+      subdomains: [],
+      tld: '',
+    };
+  } else if (!url.hostname) {
+    domainDetails = {
+      name: url.pathname,
+      domain: '',
+      host: '',
+      subdomains: [],
+      tld: '',
+    };
+  } else if (!url.isValidHost()) {
+    domainDetails = {
+      name: url.hostname,
+      domain: url.hostname,
+      host: url.hostname,
+      subdomains: [],
+      tld: '',
+    };
   } else {
-    name = localhost ? 'localhost' : 'IP';
-  }
-
-  // remove www from beginning, we need cleanHost in the friendly url
-  let cleanHost = host;
-  if (host.toLowerCase().indexOf('www.') === 0) {
-    cleanHost = host.slice(4);
-  }
-
-  let friendly_url = cleanHost + extra;
-  if (scheme && scheme !== 'http' && scheme !== 'https') {
-    friendly_url = `${scheme}:${slashes}${friendly_url}`;
-  }
-  // remove trailing slash from the end
-  friendly_url = stripTrailingSlash(friendly_url);
-
-  // Handle case where we have only tld for example http://cliqznas
-  if (cleanHost === tld) {
-    name = tld;
+    domainDetails = {
+      name: url.generalDomainMinusTLD,
+      domain: url.generalDomain,
+      host: url.domain,
+      subdomains: url.domainInfo.subdomain ? url.domainInfo.subdomain.split('.') : [],
+      tld: url.domainInfo.publicSuffix,
+    };
   }
 
   const urlDetails = {
     action,
     originalUrl,
-    scheme: scheme ? `${scheme}:` : '',
-    name,
-    domain: tld ? `${name}.${tld}` : '',
-    tld,
-    subdomains,
-    path,
-    query,
-    fragment,
+    scheme: url.protocol === ':' ? '' : url.protocol,
+    path: url.pathname,
+    query: url.search ? url.search.substring(1) : '',
+    fragment: url.hash ? url.hash.substring(1) : '',
     extra,
-    host,
     cleanHost,
-    ssl,
-    port,
-    friendly_url
+    ssl: url.protocol === 'https:',
+    port: url.port,
+    friendly_url,
+    ...domainDetails
   };
+  // special cases
+  if (urlDetails.domain === 'localhost') {
+    urlDetails.name = urlDetails.domain;
+    urlDetails.host = urlDetails.domain;
+    urlDetails.domain = '';
+    urlDetails.subdomains = [];
+    urlDetails.tld = '';
+  }
 
   return urlDetails;
 }
 
-const urlDetailsCache = new MapCache(_getDetailsFromUrl, 50);
-
-export function getDetailsFromUrl(url) {
-  return urlDetailsCache.get(url);
-}
-
-export function getSearchEngineUrl(engine, query, rawQuery) {
-  if (!isBootstrap) {
-    return engine.getSubmissionForQuery(query);
-  }
-
-  return `moz-action:searchengine,${JSON.stringify({
-    engineName: engine.name,
-    input: encodeURIComponent(query),
-    searchQuery: encodeURIComponent(rawQuery),
-    alias: engine.alias,
-  })}`;
+export function getSearchEngineUrl(engine, query) {
+  return engine.getSubmissionForQuery(query);
 }
 
 export function getVisitUrl(url) {
-  if (!isBootstrap) {
-    return url;
-  }
-
-  return `moz-action:visiturl,${JSON.stringify({
-    url: encodeURIComponent(url)
-  })}`;
+  return url;
 }
 
 export function cleanUrlProtocol(url, cleanWWW) {

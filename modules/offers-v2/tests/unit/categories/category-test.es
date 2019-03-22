@@ -65,7 +65,6 @@ export default describeModule('offers-v2/categories/category',
           chai.expect(c1.getPatterns()).eql(['p1', 'p2']);
           chai.expect(c1.isHistoryDataSettedUp(), 'isHistoryDataSettedUp').eql(false);
           chai.expect(c1.getTimeRangeSecs()).eql(10);
-          chai.expect(c1.isObsolete()).eql(false);
           chai.expect(c1.getTotalMatches()).eql(0);
           chai.expect(c1.getLastMatchTs()).eql(null);
           chai.expect(c1.getFirstMatchTs()).eql(null);
@@ -95,19 +94,6 @@ export default describeModule('offers-v2/categories/category',
           chai.expect(c1.getFirstMatchTs()).eql(lastMockedTS);
           chai.expect(c1.getTotalMatches()).eql(2);
           chai.expect(c1.countDaysWithMatches()).eql(2);
-        });
-
-        it('/isObsolete works', function () {
-          const c1 = new Category('test', ['p1', 'p2'], 1, 10);
-          chai.expect(c1.isObsolete()).eql(false);
-          MockDate.set(Date.now() + 9 * 1000);
-          chai.expect(c1.isObsolete()).eql(false);
-          MockDate.set(Date.now() + (2 * 1000) + (CATEGORY_LIFE_TIME_SECS * 1000));
-          chai.expect(c1.isObsolete()).eql(true);
-          c1.hit();
-          chai.expect(c1.isObsolete()).eql(false);
-          MockDate.set(Date.now() + (1 * 1000) + (CATEGORY_LIFE_TIME_SECS * 1000));
-          chai.expect(c1.isObsolete(), 'should be obsolete').eql(true);
         });
       });
 

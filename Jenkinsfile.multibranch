@@ -18,11 +18,26 @@ if (env.BRANCH_NAME.startsWith('v1.')) {
     matrix['browser-pre'] = [
         'config': 'releases/browser.js',
     ]
+    matrix['mobile-cards-android'] = [
+        'config': 'mobile-cards-android.js',
+    ]
+    matrix['ghostery-mobile'] = [
+        'config': 'ghostery-mobile.js',
+    ]
+}
+
+if (env.BRANCH_NAME.startsWith('v3.') || env.BRANCH_NAME == 'mobile-cards-android') {
+    matrix['mobile-cards-android'] = [
+        'config': 'mobile-cards-android.js',
+    ]
 }
 
 if (env.BRANCH_NAME.startsWith('v7.')) {
     matrix['ghostery'] = [
         'config': 'ghostery.js',
+    ]
+    matrix['ghostery-mobile'] = [
+        'config': 'ghostery-mobile.js',
     ]
 }
 
@@ -33,8 +48,11 @@ if (env.BRANCH_NAME.startsWith('v9.')) {
 }
 
 if (env.BRANCH_NAME.startsWith('v10.')) {
-    matrix['ghostery-tab'] = [
+    matrix['ghostery-tab-chrome'] = [
         'config': 'releases/ghostery-tab-chrome.js',
+    ]
+    matrix['ghostery-tab-firefox'] = [
+        'config': 'releases/ghostery-tab-firefox.js',
     ]
 }
 
@@ -47,6 +65,18 @@ if (env.BRANCH_NAME.startsWith('v11.')) {
     ]
     matrix['offers-edge'] = [
         'config': 'releases/offers-edge.js',
+    ]
+}
+
+if (env.BRANCH_NAME.startsWith('v12.')) {
+    matrix['privacy'] = [
+        'config': 'privacy.js',
+    ]
+}
+
+if (env.BRANCH_NAME.startsWith('v13.')) {
+    matrix['lumen-ios'] = [
+        'config': 'lumen-ios.js',
     ]
 }
 
@@ -113,14 +143,17 @@ if (isIntegrationBranch) {
         'cert_pass_credentials_id': 'cae4ee4b-bb2c-4aec-99b0-040919318d87',
     ]
 
-    matrix['black-friday'] = [
-        'config': 'black-friday.js',
-    ]
-
     matrix['ghostery-mobile'] = [
         'config': 'ghostery-mobile.js',
     ]
 
+    matrix['privacy'] = [
+        'config': 'privacy.js',
+    ]
+    
+    matrix['lumen-ios'] = [
+        'config': 'lumen-ios.js',
+    ]
 }
 
 def codeImageName

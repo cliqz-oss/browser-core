@@ -1,5 +1,6 @@
 const encoding = require('text-encoding');
 const fetchMock = require('fetch-mock');
+const nodeFetch = require('node-fetch');
 
 // fetch-mock documentation:
 // http://www.wheresrhys.co.uk/fetch-mock/
@@ -46,9 +47,20 @@ function onFakeFetch(url) {
 
 fetchFunc.mock('begin:fake://', onFakeFetch);
 
+fetchFunc.mock('begin:https://offers-api.cliqz.com/api/v1/categories', {
+  categories: [],
+  revision: 123,
+});
+fetchFunc.mock('begin:https://offers-api.cliqz.com/api/v1/loadsubtriggers', []);
+fetchFunc.mock('begin:https://cdn.cliqz.com/offers/display_rules/rules.json.gz', {});
+fetchFunc.mock('begin:/offers-v2/rules.json.gz', {});
+fetchFunc.mock('begin:https://cdn.cliqz.com/extension/offers/test/resources', {});
+
 module.exports = {
   'platform/fetch': {
     fetch: fetchFunc,
+    Headers: nodeFetch.Headers,
+    Request: nodeFetch.Request,
   },
   'platform/gzip': { },
   'platform/xmlhttprequest': { },

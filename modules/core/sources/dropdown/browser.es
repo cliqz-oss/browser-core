@@ -8,6 +8,8 @@ import utils from '../../core/utils';
 import events from '../../core/events';
 import { closeTabsWithUrl } from '../../platform/tabs';
 
+const KEYS_TO_IGNORE = new Set(['Unidentified', 'Dead']);
+
 export default class BrowserDropdownManager extends BaseDropdownManager {
   constructor({ cliqz }) {
     super();
@@ -54,7 +56,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   _endSession() {
     const { windowId } = this._urlbarDetails;
     this._incrementSessionId();
-    this._cliqz.search.action('stopSearch', { contextId: windowId });
+    this._cliqz.search.action('stopSearch', { entryPoint: 'browserBar' }, { contextId: windowId });
   }
 
   updateURLBarCache(details) {
@@ -85,13 +87,13 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     return utils.telemetry(...args);
   }
 
-  _reportHighlight(result) {
-    this.selectedResult = result;
-    this._cliqz.search.action('reportHighlight', result);
+  _reportHighlight() {
+    const { tabId } = this._urlbarDetails;
+    this._cliqz.search.action('reportHighlight', { tab: { id: tabId } });
   }
 
   _adultAction(actionName) {
-    return this._cliqz.search.action('adultAction', actionName)
+    return this._cliqz.search.action('adultAction', actionName, this._getQuery())
       .then(() => {
         this.render({ rawResults: this.previousResults });
       });
@@ -163,8 +165,11 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
       this._shouldIgnoreNextBlur = true;
     }
 
-    await omniboxapi.update({ value: href });
-    await omniboxapi.enter(newTab);
+    if (!meta.handledByBrowser) {
+      await omniboxapi.update({ value: href });
+      await omniboxapi.enter(newTab);
+    }
+
     if (newTab) {
       await omniboxapi.updateMany([{
         focused: true,
@@ -316,6 +321,10 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   }
 
   onInput(details) {
+    if (this.lastEvent && KEYS_TO_IGNORE.has(this.lastEvent.key)) {
+      // No need to trigger search on "dead" and "unidentified" keystrokes
+      return false;
+    }
     this.updateURLBarCache(details);
     if (details.isPasted) {
       this._telemetry({
@@ -400,6 +409,10 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
 
   cancelClose() {
     clearTimeout(this.closeTimeout);
+  }
+
+  close() {
+    this._scheduleClose();
   }
 
   onDropmarker() {

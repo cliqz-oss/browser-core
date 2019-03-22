@@ -175,18 +175,6 @@ export default class Category {
     }
   }
 
-  isObsolete() {
-    const now = timestampMS();
-    const expireMsCount = Math.max(CATEGORY_LIFE_TIME_SECS * 1000, this.timeRangeSecs * 1000);
-    let isObsolete = false;
-    if (this.matchData.lastMatchTs === null) {
-      isObsolete = (now - this.createdTs) > expireMsCount;
-    } else {
-      isObsolete = (now - this.matchData.lastMatchTs) > expireMsCount;
-    }
-    return isObsolete;
-  }
-
   hit() {
     const now = timestampMS();
     if (this.matchData.firstMatchTs === null) {

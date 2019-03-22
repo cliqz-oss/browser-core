@@ -64,5 +64,5 @@ export function getCookies() {
 }
 
 export function isDefaultBrowser() {
-  return null;
+  return Promise.resolve(null);
 }

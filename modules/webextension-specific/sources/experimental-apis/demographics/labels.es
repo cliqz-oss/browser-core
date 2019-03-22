@@ -142,7 +142,7 @@ export function isProfileDefault() {
 export function getWindowsManufacturer() {
   return new Promise((resolve) => {
     const subprocessOpts = {
-      command: 'c:\\Windows\\System32\\webm\\WMIC.exe',
+      command: 'c:\\Windows\\System32\\wbem\\WMIC.exe',
       arguments: ['COMPUTERSYSTEM', 'GET', 'MANUFACTURER'],
       stderr: 'pipe'
     };
@@ -166,7 +166,7 @@ export function getWindowsManufacturer() {
 export function getWindowsModel() {
   return new Promise((resolve) => {
     const subprocessOpts = {
-      command: 'c:\\Windows\\System32\\webm\\WMIC.exe',
+      command: 'c:\\Windows\\System32\\wbem\\WMIC.exe',
       arguments: ['COMPUTERSYSTEM', 'GET', 'MODEL'],
       stderr: 'pipe'
     };
@@ -190,7 +190,7 @@ export function getWindowsModel() {
 export function getWindowsSerialNumber() {
   return new Promise((resolve) => {
     const subprocessOpts = {
-      command: 'c:\\Windows\\System32\\webm\\WMIC.exe',
+      command: 'c:\\Windows\\System32\\wbem\\WMIC.exe',
       arguments: ['BIOS', 'GET', 'SERIALNUMBER'],
       stderr: 'pipe'
     };

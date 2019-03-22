@@ -2,6 +2,8 @@
 import { Observable } from 'rxjs';
 import { map, scan, share, filter } from 'rxjs/operators';
 import utils from '../../core/utils';
+import prefs from '../../core/prefs';
+import inject from '../../core/kord/inject';
 import BaseProvider from './base';
 
 // operators
@@ -33,10 +35,11 @@ const mapResults = (results, query) =>
 export default class History extends BaseProvider {
   constructor() {
     super('history');
+    this.historyLookup = inject.module('history-search');
   }
 
   search(query, config, { allowEmptyQuery = false }) {
-    if (!config.providers[this.id].isEnabled || (!query && !allowEmptyQuery)) {
+    if (!query && !allowEmptyQuery) {
       return this.getEmptySearch(config);
     }
 
@@ -66,8 +69,17 @@ export default class History extends BaseProvider {
   }
 
   historySearch(query = '', config) {
+    const searchFunc = (q, cb) => {
+      const useHistoryLookup = prefs.get('historyLookupEnabled', false);
+      if (useHistoryLookup) {
+        return this.historyLookup.action('search', q).then(cb);
+      }
+
+      return utils.historySearch(q, cb);
+    };
+
     return Observable.create((observer) => {
-      utils.historySearch(query, (results) => {
+      searchFunc(query, (results) => {
         const r = mapResults(results.results, query);
 
         observer.next(getResponse(

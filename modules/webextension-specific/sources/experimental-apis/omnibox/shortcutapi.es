@@ -1,5 +1,6 @@
-/* globals ChromeUtils, windowTracker, tabTracker, EventManager, EventEmitter, ExtensionParent */
-ChromeUtils.import('resource://gre/modules/ExtensionParent.jsm');
+/* globals ChromeUtils, windowTracker, tabTracker, EventManager */
+const { ExtensionParent } = ChromeUtils.import('resource://gre/modules/ExtensionParent.jsm');
+const { EventEmitter } = ChromeUtils.import('resource://gre/modules/EventEmitter.jsm');
 
 const { ExtensionError } = ExtensionParent;
 const SHORTCUT_BOX_ID = 'cliqzShortcutBox';

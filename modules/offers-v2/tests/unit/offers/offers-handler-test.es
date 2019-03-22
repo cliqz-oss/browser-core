@@ -873,7 +873,9 @@ export default describeModule('offers-v2/offers/offers-handler',
             await triggerOffers([offer]);
 
             const r = offersDB.getReasonForHaving(offer.offer_id);
-            chai.expect(r.getReason()).is.eql(['SomeMatchPattern']);
+            const expected = [{ pattern: 'SomeMatchPattern',
+              domainHash: '1d5920f4b44b27a802bd77c4f0536f5a' }];
+            chai.expect(r.getReason()).is.eql(expected);
           });
 
           it('/check offer of the week is pushed', async () => {

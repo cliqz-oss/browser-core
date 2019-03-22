@@ -21,7 +21,10 @@ export default class MobileCards extends React.Component {
   }
 
   state = {
-    results: [],
+    results: {
+      results: [],
+      meta: {}
+    },
     theme: 'light'
   }
 
@@ -53,17 +56,18 @@ export default class MobileCards extends React.Component {
     });
   }
 
-  updateResults = ({ results }) => this.setState({ results });
+  updateResults = results => this.setState({ results });
 
   render() {
-    const results = this.state.results;
+    const results = this.state.results.results;
+    const meta = this.state.results.meta;
     const theme = this.state.theme;
     if (!results.length) {
       return null;
     }
     return (
       <CliqzProvider value={this.cliqz}>
-        <SearchUI results={results} theme={theme} />
+        <SearchUI results={results} meta={meta} theme={theme} />
       </CliqzProvider>
     );
   }

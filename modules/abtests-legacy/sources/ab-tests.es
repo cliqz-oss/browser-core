@@ -437,10 +437,8 @@ const CliqzABTests = {
         }
         break;
       case '1116_A':
-        prefs.set('modules.cookie-monster.enabled', false);
         break;
       case '1116_B':
-        prefs.set('modules.cookie-monster.enabled', true);
         break;
       case '1117_A':
         prefs.set('cookie-monster.expireSession', false);
@@ -477,6 +475,12 @@ const CliqzABTests = {
         break;
       case '1121_B':
         prefs.set('ui.newtab.settings-button-style', 'button', 'host.');
+        break;
+      case '1122_A':
+        prefs.set('modules.cookie-monster.enabled', false);
+        break;
+      case '1122_B':
+        prefs.set('modules.cookie-monster.enabled', true);
         break;
       default:
         ruleExecuted = false;
@@ -795,10 +799,6 @@ const CliqzABTests = {
           prefs.clear('network.http.referer.XOriginTrimmingPolicy');
         }
         break;
-      case '1116_A':
-      case '1116_B':
-        prefs.set('modules.cookie-monster.enabled', false);
-        break;
       case '1117_A':
       case '1117_B':
         prefs.clear('cookie-monster.expireSession');
@@ -818,6 +818,16 @@ const CliqzABTests = {
       case '1120_B':
       case '1120_C':
         prefs.clear('freshtab.post.position');
+        break;
+      case '1122_A':
+      case '1122_B':
+        prefs.set('modules.cookie-monster.enabled', false);
+        break;
+      case '1123_A':
+        prefs.set('dynamic-offers.enabled', false);
+        break;
+      case '1123_B':
+        prefs.set('dynamic-offers.enabled', true);
         break;
       default:
         ruleExecuted = false;

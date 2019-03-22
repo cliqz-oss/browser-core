@@ -51,7 +51,6 @@ window.addEventListener("message", function (ev) {
 
 
 function show() {
-
   // === Telemetry
   telemetrySig({
     action: 'show',
@@ -73,22 +72,51 @@ function finishOnboarding() {
     module: 'onboarding-v3',
     action: 'finishOnboarding'
   });
+
+  telemetrySig({
+    action: 'click',
+    view: 'intro',
+    target: 'start'
+  });
+}
+
+async function openPrivacySection() {
+  chrome.tabs.create({});
+  chrome.omnibox2.update({ value: 'about:preferences#privacy-reports' });
+  chrome.omnibox2.enter();
+
+  telemetrySig({
+    action: 'click',
+    view: 'intro',
+    target: 'share-data-btn',
+  });
 }
 
 // =================
 // == Document Ready
 // =================
 
-$( document ).ready(function() {
+document.addEventListener('DOMContentLoaded', () => {
+  const raw = navigator.userAgent.match(/Firefox\/([0-9]+)\./);
+  const majorVer = raw ? parseInt(raw[1], 10) : false;
+  if (majorVer >= 66) {
+    document.getElementsByClassName('data_collection_container')[0].classList += ' show';
+  }
+
   localizeDocument();
 
   show();
 
-  $("#cqb-start-btn").click(function (e) {
+  document.getElementById('cqb-start-btn').addEventListener('click', (e) => {
     e.preventDefault();
     finishOnboarding();
   });
 
-  //Call Telemetry Timer
+  document.getElementById('share-data-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    openPrivacySection();
+  });
+
+  // Call Telemetry Timer
   tlmTimerFn();
 });

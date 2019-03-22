@@ -48,31 +48,6 @@ program.command('addon-id [file]')
           console.log(CONFIG.settings.id || 'cliqz@cliqz.com')
         });
 
-program.command('test-webext')
-       .action(() => {
-         const cfg = setConfigPath('./configs/cliqzium.json');
-         const CONFIG = cfg.CONFIG;
-         const OUTPUT_PATH = cfg.OUTPUT_PATH;
-         const watcher = createBuildWatcher();
-         let runner;
-
-         watcher.on('change', () => {
-           notifier.notify({
-             title: 'Fern',
-             message: 'Build complete',
-             time: 1500
-           });
-
-           if (runner) {
-             runner.kill('SIGTERM');
-           }
-
-           runner = childProcess.spawn('node', [path.join(process.cwd(), 'fern/run_selenium_tests.es')]);
-
-           process.on('exit', () => { runner.kill('SIGTERM'); });
-         });
-       });
-
 program.command('generate <type> <moduleName>')
        .description('available types: module')
        .action((type, moduleName) => {

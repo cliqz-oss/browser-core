@@ -6,6 +6,7 @@ export default describeModule('core/prefs',
       '../platform/prefs': {
         getAllCliqzPrefs: '[dynamic]',
         getPref: '[dynamic]',
+        PLATFORM_TELEMETRY_WHITELIST: [],
       },
     };
   },

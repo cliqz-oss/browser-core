@@ -1,7 +1,5 @@
 /* global chai, describeModule */
 
-const urlParser = require('fast-url-parser');
-
 export default describeModule('dropdown/results/generic',
   function () {
     return {
@@ -11,9 +9,7 @@ export default describeModule('dropdown/results/generic',
         urlStripProtocol() { return 'STRIPPED_URL'; }
       },
       '../../core/console': {},
-      'fast-url-parser': {
-        default: urlParser
-      },
+      '../../platform/lib/punycode': {},
     };
   },
   function () {

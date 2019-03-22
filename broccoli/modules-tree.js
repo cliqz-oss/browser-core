@@ -150,6 +150,10 @@ System.register("tests/${`${fileName.substr(0, fileName.lastIndexOf('.'))}.lint-
 
 
 function getLintTestsTree() {
+  if (process.env.CLIQZ_ESLINT !== 'true') {
+    return new MergeTrees([]);
+  }
+
   // Load .eslintignore
   let eslintIgnore;
   try {

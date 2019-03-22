@@ -168,7 +168,7 @@ export function service(app) {
       // a window is available, the check is performed before calling
       // `telemetry.push`. The following check is simply a fallback, to catch as
       // many cases as possible (although it is not bullet-proof).
-      if (utils.isPrivateMode(utils.getWindow())) {
+      if (utils.getWindow() && utils.isPrivateMode(utils.getWindow())) {
         logger.log('Could not push telemetry: private window.', schemaName, payload);
         return Promise.resolve();
       }

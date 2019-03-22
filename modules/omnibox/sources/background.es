@@ -70,7 +70,7 @@ export default background({
   },
 
   get _lastResult() {
-    return this._dropdownManager.lastResult;
+    return this._dropdownManager.selectedResult;
   },
 
   _updateData(details) {

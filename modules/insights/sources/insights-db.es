@@ -27,20 +27,40 @@ export default class InsightsDb {
   async init() {
     const Dexie = await getDexie();
     this.db = new Dexie('insights');
+    this.db.version(2).stores({
+      daily: 'day',
+      search: 'day',
+    });
+    // Always keep the declarations previous versions
+    // as long as there might be users having them running.
     this.db.version(1).stores({
       daily: 'day',
     });
   }
 
-  async insertPageStats(counters) {
+  unload() {
+    if (this.db !== null) {
+      this.db.close();
+      this.db = null;
+    }
+  }
+
+  async insertStats(table, counters) {
     const today = moment().format(DATE_FORMAT);
-    await this.db.transaction('rw', this.db.daily, async () => {
-      const stats = (await this.db.daily.get(today)) || { day: today };
+    await this.db.transaction('rw', this.db[table], async () => {
+      const stats = (await this.db[table].get(today)) || { day: today };
       mergeStats(stats, counters);
-      mergeStats(stats, { pages: 1 });
+      if (table === 'daily') {
+        mergeStats(stats, { pages: 1 });
+      }
       logger.debug('Aggregated stats for day:', stats);
-      await this.db.daily.put(stats);
+      await this.db[table].put(stats);
     });
+  }
+
+  async getSearchStats() {
+    const days = await this.db.search.toArray();
+    return days.reduce(mergeStats, {});
   }
 
   async getDashboardStats(period) {
@@ -62,8 +82,8 @@ export default class InsightsDb {
     return days.reduce(mergeStats, {});
   }
 
-  getStatsForDay(day) {
-    return this.db.daily.get(moment(day).format(DATE_FORMAT));
+  async getStatsForDay(day) {
+    return (await this.db.daily.get(moment(day).format(DATE_FORMAT))) || { day };
   }
 
   getStatsTimeline(from, to, includeFrom = true, includeTo = false) {

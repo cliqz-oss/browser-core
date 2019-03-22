@@ -49,7 +49,7 @@ node('docker && !gpu && eu-central-1') {
       }
 
       stage('benchmark') {
-        sh 'cp /app/benchmark/session.jl ./benchmarks/'
+        sh 'cp /app/benchmarks/session.jl ./benchmarks/'
         sh 'cd ./benchmarks && node run_benchmarks.js | tee results.txt'
         // read cputime results
         def cputime = sh(returnStdout: true, script: 'cat ./benchmarks/results.txt | grep -v \'=\' | jq .cputime | awk \'{ sum+=$1 } END { print sum }\'')

@@ -1,4 +1,4 @@
-FROM node:10.14.0-stretch
+FROM node:11-stretch
 
 ARG DEBIAN_FRONTEND=noninteractive
 

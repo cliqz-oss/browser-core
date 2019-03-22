@@ -111,6 +111,7 @@ class Generic extends React.Component {
                     <NativeDrawable
                       style={styles(theme).lock}
                       source={normalizeUrl('https_lock.svg')}
+                      color={theme === 'dark' ? '#FFFFFF' : '#000000'}
                     />
                   </View>
                 )

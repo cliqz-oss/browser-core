@@ -127,16 +127,16 @@ export class OfferMatchTraits {
    * @param {CategoriesMatchTraits} catMatches
    * @param {IterableIterator<string>} offerCategories
    */
-  constructor(catMatches, offerCategories) {
+  constructor(catMatches, offerCategories, domainHash) {
     // After introduction of `addReason`, we could refactor `this.reason`
     // to be a `Set`. However, as this object is used in the persistent
     // storage, then we would have to support loading of an old version.
     this.reason = [];
-    if (!catMatches) {
+    if (!catMatches || !offerCategories) {
       return;
     }
-    for (const reason of catMatches.getMatchPatterns(offerCategories)) {
-      this.addReason(reason);
+    for (const pattern of catMatches.getMatchPatterns(offerCategories)) {
+      this.addReason({ pattern, domainHash });
     }
   }
 
@@ -147,9 +147,14 @@ export class OfferMatchTraits {
    * @returns {OfferMatchTraits}
    */
   static fromStorage(reasonJson) {
-    const obj = new OfferMatchTraits(null, null);
-    obj.reason = (reasonJson && reasonJson.reason) || [];
+    const obj = new OfferMatchTraits(null, null, '');
+    const reason = (reasonJson && reasonJson.reason) || [];
+    obj.reason = reason.map(OfferMatchTraits._transform);
     return obj;
+  }
+
+  static _transform(pattern) {
+    return (typeof pattern === 'string') ? { pattern } : pattern;
   }
 
   /**
@@ -164,9 +169,10 @@ export class OfferMatchTraits {
    * @method addReason
    * @param newReason
    */
-  addReason(newReason) {
-    if (!this.reason.includes(newReason)) {
-      this.reason.push(newReason);
+  addReason({ pattern, domainHash }) {
+    const patterns = this.reason.map(r => r.pattern);
+    if (!patterns.includes(pattern)) {
+      this.reason.push({ pattern, domainHash });
     }
   }
 

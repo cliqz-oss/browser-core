@@ -111,7 +111,7 @@ table {
     }
 }
 
-.human-web-state {
+.bordered-table {
     margin: 5px 0;
 
     th {
@@ -125,6 +125,10 @@ table {
 
     td:first-child {
         width: 60%;
+    }
+
+    ul {
+        margin: 0 20px;
     }
 }
 

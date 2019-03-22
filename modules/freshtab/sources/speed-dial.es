@@ -1,10 +1,7 @@
 /* eslint no-param-reassign: 'off' */
 
 import utils from '../core/utils';
-import UrlParser from '../core/fast-url-parser';
-import { getDetailsFromUrl } from '../core/url';
-
-const parseURL = UrlParser.parse;
+import { URLInfo } from '../core/url-info';
 
 function getAlias(host, searchEngines) {
   const engine = searchEngines.find(
@@ -15,35 +12,34 @@ function getAlias(host, searchEngines) {
   return engine.alias;
 }
 
-const ALLOWED_SCHEMES = ['http', 'https', 'ftp', 'resource'];
+const ALLOWED_SCHEMES = ['http:', 'https:', 'ftp:', 'resource:'];
 
 export default class SpeedDial {
   static getValidUrl(url) {
-    let uri = parseURL(url);
+    let uri = URLInfo.get(url);
     if (!uri || !uri.protocol) {
       url = url.replace(/^:?\/*/, '');
       url = `http://${url}`;
-      uri = parseURL(url);
+      uri = URLInfo.get(url);
     }
 
     return (
       uri
-      && ALLOWED_SCHEMES.indexOf(uri._protocol) !== -1
+      && ALLOWED_SCHEMES.indexOf(uri.protocol) !== -1
       && url
     ) || null;
   }
 
   static updateLogo(item) {
-    const details = getDetailsFromUrl(item.url);
-    const logoDetails = utils.getLogoDetails(details);
+    const logoDetails = utils.getLogoDetails(item.url);
 
     item.logo = logoDetails;
     return item;
   }
 
   constructor({ url, title = '', isCustom = true }, searchEngines) {
-    const details = getDetailsFromUrl(url);
-    const logoDetails = utils.getLogoDetails(details);
+    const details = URLInfo.get(url);
+    const logoDetails = utils.getLogoDetails(url);
     this.title = url;
     const displayTitle = title;
     const protocolPos = url.indexOf('://');
@@ -54,9 +50,9 @@ export default class SpeedDial {
     }
     this.id = id;
     this.url = url;
-    this.displayTitle = displayTitle || details.cleanHost || details.friendly_url || url;
+    this.displayTitle = displayTitle || details.cleanHost || url;
     this.custom = isCustom;
     this.logo = logoDetails;
-    this.searchAlias = getAlias(details.host, searchEngines);
+    this.searchAlias = getAlias(details.hostname, searchEngines);
   }
 }

@@ -1,5 +1,5 @@
 import { chrome } from './globals';
-import { OS } from './platform';
+import config from '../core/config';
 import { cleanMozillaActions } from '../core/content/url';
 
 const TARGET_ANDROID = 'ANDROID_BROWSER';
@@ -33,7 +33,7 @@ export function openLinkAndroid(url) {
 }
 
 export function openLink(url, focused = false) {
-  if (OS === 'android') {
+  if (config.isMobile) {
     sendMessageToAndroid('openUrl', url);
   } else {
     const [, originalUrl] = cleanMozillaActions(url);

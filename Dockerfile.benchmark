@@ -1,4 +1,4 @@
-FROM node:10.14.0-stretch
+FROM node:11-stretch
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -17,5 +17,6 @@ COPY package-lock.json /app/
 
 WORKDIR /app/
 
-RUN mkdir -p /app/benchmark && wget -O - https://s3.amazonaws.com/cdncliqz/extension-profiles/session_2018-10-15.jl.gz | gunzip > /app//benchmark/session.jl
+RUN mkdir -p /app/benchmarks && wget -O - https://s3.amazonaws.com/cdncliqz/extension-profiles/session_2018-10-15.jl.gz | gunzip > /app/benchmarks/session.jl
+RUN wget -O - https://cdn.cliqz.com/adblocking/requests_top500.json.gz | gunzip > /app/benchmarks/requests.jl
 RUN npm ci

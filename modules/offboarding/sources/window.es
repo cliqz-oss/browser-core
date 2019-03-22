@@ -18,7 +18,7 @@ export default class Win {
     const version = this.settings.version;
     const window = this.window;
     if (window === utils.getWindow()) {
-      this.coreCliqz.action('setSupportInfo', 'disabled');
+      prefs.set('ext_status', 'disabled');
       try {
         const UNINSTALL_PREF = 'uninstallVersion';
         const lastUninstallVersion = prefs.get(UNINSTALL_PREF, '');

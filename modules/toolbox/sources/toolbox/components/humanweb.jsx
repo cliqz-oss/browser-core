@@ -1,24 +1,45 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import Button from './partials/button';
 import HumanWebCheck from './partials/human-web-check';
+import RefreshState from './partials/refresh-state';
 import Row from './partials/row';
+import TableHeader from './partials/table-header';
 import TextInput from './partials/text-input';
 
-function HumanWeb({
-  HWCheckUrlStatus,
-  HWStatus,
-  onTextInputChange,
-  syncState,
-  timestamp,
-  urlToCheck,
-}) {
-  const onButtonClick = () => {
-    syncState();
-  };
+class HumanWeb extends React.Component {
+  state = {
+    HWCheckUrlStatus: {
+      host: '',
+      isHostPrivate: null,
+      isPagePrivate: null,
+      quorumConsent: '',
+    },
+    HWStatus: {
+      allOpenPages: [],
+      counter: -1,
+      countryCode: '',
+      oc: null,
+      quorumOtherUrl: '',
+      rulesets: [],
+      state: {},
+      strictQueries: [],
+      trk: [],
+    },
+    timestamp: null,
+    urlToCheck: 'twitter.com',
+  }
 
-  const displayError = error => (
+  componentDidMount() {
+    this.syncState();
+  }
+
+  syncState = async () => {
+    const newState = await this.props.cliqz.getHumanWebState(this.state.urlToCheck);
+    this.setState(newState);
+  }
+
+  displayError = error => (
     <div>
       <p>{`ERROR: ${error.message}`}</p>
 
@@ -27,163 +48,146 @@ function HumanWeb({
     </div>
   );
 
-  if (HWStatus.message !== undefined || HWCheckUrlStatus.message !== undefined) {
-    const error = HWStatus.message !== undefined
-      ? HWStatus
-      : HWCheckUrlStatus;
-    return displayError(error);
+  onTextInputChange = (v) => {
+    this.setState({
+      urlToCheck: v,
+    });
   }
-  return (
-    <div>
-      <table>
-        <tbody>
-          <Row>
-            <a href="https://github.com/cliqz/navigation-extension/wiki/Human-web-Tests">Test cases for reference</a>
-          </Row>
 
-          <Row>
-            <p>URL to be checked</p>
-            <TextInput
-              onTextChange={onTextInputChange}
-              textInputValue={urlToCheck}
+  render() {
+    if (
+      this.state.HWStatus.message !== undefined
+      || this.state.HWCheckUrlStatus.message !== undefined
+    ) {
+      const error = this.state.HWStatus.message !== undefined
+        ? this.state.HWStatus
+        : this.state.HWCheckUrlStatus;
+      return this.displayError(error);
+    }
+    return (
+      <div>
+        <table>
+          <tbody>
+            <Row>
+              <a href="https://github.com/cliqz/navigation-extension/wiki/Human-web-Tests">Test cases for reference</a>
+            </Row>
+
+            <Row>
+              <p>URL to be checked</p>
+              <TextInput
+                onTextChange={this.onTextInputChange}
+                textInputValue={this.state.urlToCheck}
+              />
+            </Row>
+
+            <RefreshState
+              refreshButtonValue="UPDATE URL / REFRESH STATE"
+              syncState={this.syncState}
             />
-          </Row>
+          </tbody>
+        </table>
 
-          <Row>
-            <Button
-              onClick={onButtonClick}
-              value="UPDATE URL / REFRESH STATE"
+        <table className="bordered-table">
+          <tbody>
+            <TableHeader
+              header="Objects related to checking URLs"
             />
-          </Row>
-        </tbody>
-      </table>
 
-      <table className="human-web-state">
-        <tbody>
-          <tr>
-            <th colSpan="2">
-              Objects related to checking URLs
-            </th>
-          </tr>
-          <tr>
-            <th>Object</th>
-            <th>Current value</th>
-          </tr>
+            <tr>
+              <th>Object</th>
+              <th>Current value</th>
+            </tr>
 
-          <HumanWebCheck
-            currentValue={HWCheckUrlStatus.isHostPrivate}
-            name={`CLIQZ.app.modules['human-web'].background.humanWeb.network.isHostNamePrivate('${urlToCheck}')`}
-          />
+            <HumanWebCheck
+              currentValue={this.state.HWCheckUrlStatus.isHostPrivate}
+              name={`CLIQZ.app.modules['human-web'].background.humanWeb.network.isHostNamePrivate('${this.state.urlToCheck}')`}
+            />
 
-          <HumanWebCheck
-            currentValue={HWCheckUrlStatus.isPagePrivate}
-            name={`CLIQZ.app.modules['human-web'].background.humanWeb.isAlreadyMarkedPrivate('${urlToCheck}')`}
-          />
+            <HumanWebCheck
+              currentValue={this.state.HWCheckUrlStatus.isPagePrivate}
+              name={`CLIQZ.app.modules['human-web'].background.humanWeb.isAlreadyMarkedPrivate('${this.state.urlToCheck}')`}
+            />
 
-          <HumanWebCheck
-            currentValue={HWCheckUrlStatus.quorumConsent}
-            name={`CLIQZ.app.modules['human-web'].background.humanWeb.quorumConsent('${urlToCheck}')`}
-          />
+            <HumanWebCheck
+              currentValue={this.state.HWCheckUrlStatus.quorumConsent}
+              name={`CLIQZ.app.modules['human-web'].background.humanWeb.quorumConsent('${this.state.urlToCheck}')`}
+            />
 
-          <HumanWebCheck
-            currentValue={HWCheckUrlStatus.host}
-            name={`CLIQZ.app.modules['human-web'].background.humanWeb.network.dns.resolveHost('${urlToCheck}')`}
-          />
-        </tbody>
-      </table>
+            <HumanWebCheck
+              currentValue={this.state.HWCheckUrlStatus.host}
+              name={`CLIQZ.app.modules['human-web'].background.humanWeb.network.dns.resolveHost('${this.state.urlToCheck}')`}
+            />
+          </tbody>
+        </table>
 
-      <table className="human-web-state">
-        <tbody>
-          <tr>
-            <th colSpan="2">
-              Generic HumanWeb status
-            </th>
-          </tr>
-          <tr>
-            <th>Object</th>
-            <th>Current value</th>
-          </tr>
+        <table className="bordered-table">
+          <tbody>
+            <TableHeader
+              header="Generic HumanWeb status"
+            />
+            <tr>
+              <th>Object</th>
+              <th>Current value</th>
+            </tr>
 
-          <HumanWebCheck
-            currentValue={HWStatus.counter}
-            name="CLIQZ.app.modules['human-web'].background.humanWeb.counter"
-          />
+            <HumanWebCheck
+              currentValue={this.state.HWStatus.counter}
+              name="CLIQZ.app.modules['human-web'].background.humanWeb.counter"
+            />
 
-          <HumanWebCheck
-            currentValue={HWStatus.countryCode}
-            name="CLIQZ.app.modules['human-web'].background.humanWeb.getCountryCode()"
-          />
+            <HumanWebCheck
+              currentValue={this.state.HWStatus.countryCode}
+              name="CLIQZ.app.modules['human-web'].background.humanWeb.getCountryCode()"
+            />
 
-          <HumanWebCheck
-            currentValue={timestamp}
-            name="CLIQZ.prefs.get('config_ts')"
-          />
+            <HumanWebCheck
+              currentValue={this.state.timestamp}
+              name="CLIQZ.prefs.get('config_ts')"
+            />
 
-          <HumanWebCheck
-            currentValue={HWStatus.rulesets}
-            name="CLIQZ.app.modules['human-web'].background.humanWeb.contentExtractor.patterns.normal.extractRules"
-          />
+            <HumanWebCheck
+              currentValue={this.state.HWStatus.rulesets}
+              name="CLIQZ.app.modules['human-web'].background.humanWeb.contentExtractor.patterns.normal.extractRules"
+            />
 
-          <HumanWebCheck
-            currentValue={HWStatus.state.v}
-            name="CLIQZ.app.modules['human-web'].background.humanWeb.state.v"
-          />
+            <HumanWebCheck
+              currentValue={this.state.HWStatus.state.v}
+              name="CLIQZ.app.modules['human-web'].background.humanWeb.state.v"
+            />
 
-          <HumanWebCheck
-            currentValue={HWStatus.strictQueries}
-            name="CLIQZ.app.modules['human-web'].background.humanWeb.strictQueries"
-          />
+            <HumanWebCheck
+              currentValue={this.state.HWStatus.strictQueries}
+              name="CLIQZ.app.modules['human-web'].background.humanWeb.strictQueries"
+            />
 
-          <HumanWebCheck
-            currentValue={HWStatus.oc}
-            name="CLIQZ.app.modules['human-web'].background.humanWeb.oc'"
-          />
+            <HumanWebCheck
+              currentValue={this.state.HWStatus.oc}
+              name="CLIQZ.app.modules['human-web'].background.humanWeb.oc'"
+            />
 
-          <HumanWebCheck
-            currentValue={HWStatus.allOpenPages}
-            name="CLIQZ.app.modules['human-web'].background.humanWeb.allOpenPages()"
-          />
+            <HumanWebCheck
+              currentValue={this.state.HWStatus.allOpenPages}
+              name="CLIQZ.app.modules['human-web'].background.humanWeb.allOpenPages()"
+            />
 
-          <HumanWebCheck
-            currentValue={HWStatus.quorumOtherUrl}
-            name="CLIQZ.app.modules['human-web'].background.humanWeb.quorumCheckOtherUrls"
-          />
+            <HumanWebCheck
+              currentValue={this.state.HWStatus.quorumOtherUrl}
+              name="CLIQZ.app.modules['human-web'].background.humanWeb.quorumCheckOtherUrls"
+            />
 
-          <HumanWebCheck
-            currentValue={HWStatus.trk}
-            name="CLIQZ.app.modules['human-web'].background.humanWeb.trk"
-          />
-        </tbody>
-      </table>
-    </div>
-  );
+            <HumanWebCheck
+              currentValue={this.state.HWStatus.trk}
+              name="CLIQZ.app.modules['human-web'].background.humanWeb.trk"
+            />
+          </tbody>
+        </table>
+      </div>
+    );
+  }
 }
 
 HumanWeb.propTypes = {
-  HWCheckUrlStatus: PropTypes.shape({
-    host: PropTypes.string.isRequired,
-    isHostPrivate: PropTypes.bool.isRequired,
-    isPagePrivate: PropTypes.object.isRequired,
-    quorumConsent: PropTypes.bool.isRequired,
-  }),
-  HWStatus: PropTypes.shape({
-    allOpenPages: PropTypes.array.isRequired,
-    counter: PropTypes.number.isRequired,
-    countryCode: PropTypes.string.isRequired,
-    oc: PropTypes.number.isRequired,
-    quorumOtherUrl: PropTypes.object.isRequired,
-    rulesets: PropTypes.array.isRequired,
-    state: PropTypes.shape({
-      v: PropTypes.object.isRequired,
-    })
-      .isRequired,
-    strictQueries: PropTypes.array.isRequired,
-    trk: PropTypes.array.isRequired,
-  }).isRequired,
-  syncState: PropTypes.func.isRequired,
-  timestamp: PropTypes.string.isRequired,
-  urlToCheck: PropTypes.string.isRequired,
+  cliqz: PropTypes.object.isRequired,
 };
-
 
 export default HumanWeb;

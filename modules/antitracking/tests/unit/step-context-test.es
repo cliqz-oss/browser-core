@@ -30,7 +30,7 @@ export default describeModule('antitracking/steps/check-context',
           urlParts: {
             generalDomain: requestDomain,
           },
-          sourceUrlParts: {
+          tabUrlParts: {
             generalDomain: sourceDomain,
           }
         };

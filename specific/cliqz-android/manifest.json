@@ -45,6 +45,7 @@
     "tabs",
     "topSites",
     "webNavigation",
+    "webRequest",
     "clipboardWrite"
   ],
   "background": {

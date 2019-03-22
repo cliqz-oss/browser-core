@@ -1,6 +1,8 @@
 import background from '../core/base/background';
+import events from '../core/events';
 import inject from '../core/kord/inject';
 import prefs from '../core/prefs';
+import ResourceLoader from '../core/resource-loader';
 import { getDetailsFromUrl } from '../core/url';
 
 const _setScheme = (url) => {
@@ -84,37 +86,59 @@ export default background({
   events: {},
 
   actions: {
-    async getState(url) {
+    getEndpointsState() {
       return {
         endpointsUrl: _getFullURLWithoutParameters(this.settings.RICH_HEADER),
-        modules: await this.actions.getCliqzStatus(),
-        preferencesStatus: {
-          configLocation: prefs.get('config_location', ''),
-          developer: prefs.get('developer', true),
-          extensionsLegacyEnabled: prefs.get('enabled', true, 'extensions.legacy.'),
-          loggerLevel: prefs.get('logger.offers-v2.level', ''),
-          offersDevFlag: prefs.get('offersDevFlag', true),
-          offersLoadSignalsFromDB: prefs.get('offersLoadSignalsFromDB', true),
-          offersLogsEnabled: prefs.get('offersLogsEnabled', true),
-          offersTelemetryFreq: prefs.get('offersTelemetryFreq', ''),
-          showConsoleLogs: prefs.get('showConsoleLogs', true),
-          triggersBE: prefs.get('triggersBE', ''),
-        },
-        signaturesRequired: prefs.get('required', false, 'xpinstall.signatures.'),
+      };
+    },
+    async getHumanWebState(url) {
+      return {
         HWCheckUrlStatus: await this.deps.humanWeb.action('getURLCheckStatus', url)
           .catch(e => ({ message: e.message, stack: e.stack })),
         HWStatus: await this.deps.humanWeb.action(
           'getState',
           { msg },
         ).catch(e => ({ message: e.message, stack: e.stack })),
-        timestamp: prefs.get('config_ts', null),
-
-        // state for telemetry
+      };
+    },
+    async getModulesState() {
+      return {
+        modules: await this.actions.getCliqzStatus(),
+      };
+    },
+    async getOffersState() {
+      return {
+        offersStatus: await this.deps['offers-v2'].action('getOffersStatus'),
+      };
+    },
+    getPreferencesState() {
+      return {
+        preferencesStatus: {
+          config_location: prefs.get('config_location', ''),
+          developer: prefs.get('developer', true),
+          'logger.offers-v2.level': prefs.get('logger.offers-v2.level', ''),
+          offersDevFlag: prefs.get('offersDevFlag', true),
+          offersLoadSignalsFromDB: prefs.get('offersLoadSignalsFromDB', true),
+          offersLogsEnabled: prefs.get('offersLogsEnabled', true),
+          offersTelemetryFreq: prefs.get('offersTelemetryFreq', ''),
+          showConsoleLogs: prefs.get('showConsoleLogs', true),
+          signaturesRequired: prefs.get('required', false, 'xpinstall.signatures.'),
+          triggersBE: prefs.get('triggersBE', ''),
+        },
+      };
+    },
+    async getResourceLoadersState() {
+      return {
+        RLStatus: await this.actions.getResourceLoaders(),
+      };
+    },
+    async getTelemetryState() {
+      return {
         telemetryStatus: await this.deps.telemetry.action('getTrk'),
       };
     },
-    setPref(name, value, prefix) {
-      prefs.set(name, value, prefix);
+    setPref(name, value) {
+      prefs.set(name, value);
       return true;
     },
     setEndpoints(address) {
@@ -152,5 +176,35 @@ export default background({
     reloadOffers() {
       return this.deps['offers-v2'].action('softReloadOffers');
     },
+
+    async getResourceLoaders() {
+      const loaders = await ResourceLoader.loaders;
+      const loadersLastUpdate = loaders.map((loader) => {
+        const path = loader.resource.name.join('/');
+        const pref = prefs.get(`resource-loader.lastUpdates.${path}`, 0);
+        const lastUpdate = new Date(Number.parseInt(pref, 10));
+        Object.assign(loader, { lastUpdate });
+        return loader;
+      });
+      return loadersLastUpdate;
+    },
+
+    async updateFromRemote(loader) {
+      const allLoaders = await ResourceLoader.loaders;
+      const updatedLoader = allLoaders
+        .find(el => el.resource.name.toString() === loader.resource.name.toString());
+      const path = updatedLoader.resource.name.join('/');
+      const pref = `resource-loader.lastUpdates.${path}`;
+      const prefChanged = new Promise((resolve) => {
+        const onPrefChanged = events.subscribe('prefchange', (changedPref) => {
+          if (changedPref === pref) {
+            onPrefChanged.unsubscribe();
+            resolve();
+          }
+        });
+      });
+      await updatedLoader.updateFromRemote({ force: true });
+      await prefChanged;
+    }
   },
 });

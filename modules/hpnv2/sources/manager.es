@@ -14,7 +14,7 @@ import { digest } from './digest';
 import { MsgQuotaError, NotReadyError, InvalidMsgError, NoCredentialsError, BadCredentialsError,
   SignMsgError, InitSignerError, OldVersionError,
   ClockOutOfSyncWhileJoining } from './errors';
-import { formatDate, reflectPromise, encodeWithPadding } from './utils';
+import { formatDate, formatHoursAsYYYYMMDD, reflectPromise, encodeWithPadding } from './utils';
 import logger from './logger';
 import MessageQueue from '../core/message-queue';
 import { decompress } from '../core/gzip';
@@ -33,19 +33,159 @@ const JOIN_STATE = {
   WAITING_FOR_CLOCK_SYNC: 2,
 };
 
+function ppState(state) {
+  return ['READY', 'UNINITIALIZED', 'INIT_PENDING', 'DESTROYED'][state] || '<??>';
+}
+
 /**
- * Returns a string, for example: "20190122"
+ * Helper class to encapsulate the different phases of the
+ * initialization and allows to wait for them to complete.
+ *
+ * Normally, you will expect these transitions:
+ *
+ * Startup: UNINITIALIZED -> INIT_PENDING -> READY
+ * Shutdown: READY -> DESTROYED
+ *
+ * (visible for testing)
  */
-function formatHoursAsYYYYMMDD(hoursSinceEpoch) {
-  return formatDate(hoursSinceEpoch).slice(0, 8);
+export class InitState {
+  // The default state:
+  // The module is fully initialized and is ready to send messages.
+  static get READY() {
+    return 0;
+  }
+
+  // Initial state after construction.
+  static get UNINITIALIZED() {
+    return 1;
+  }
+
+  // Initialization has been started. As it involves network
+  // requests, it normally takes a few seconds to complete.
+  // However, if there are network issues, it can stay in this
+  // state for longer.
+  static get INIT_PENDING() {
+    return 2;
+  }
+
+  // Final state:
+  // Once that state is reached, all processing should stop as it is likely
+  // that you will otherwise operate on dangling objects, or even worse
+  // on new ones which do not match the expected state.
+  static get DESTROYED() {
+    return 3;
+  }
+
+  constructor() {
+    this.state = InitState.UNINITIALIZED;
+    this._pendingInit = new Promise((resolve, reject) => {
+      this._onReady = resolve;
+      this._onDestroy = reject;
+    });
+  }
+
+  isReady() {
+    return this.state === InitState.READY;
+  }
+
+  isUnloaded() {
+    return this.state === InitState.UNINITIALIZED || this.state === InitState.DESTROYED;
+  }
+
+  isUninitialized() {
+    return this.state === InitState.UNINITIALIZED;
+  }
+
+  updateState(state_) {
+    if (state_ === this.state) {
+      // nothing to do
+      return;
+    }
+    if (this.state_ === InitState.DESTROYED) {
+      throw new Error(`Internal error: already dead (cannot change to ${ppState(state_)})`);
+    }
+
+    switch (state_) {
+      case InitState.UNINITIALIZED:
+        throw new Error(`Internal error: Cannot go back to uninitialized state (${ppState(this.state)})`);
+
+      case InitState.INIT_PENDING:
+        if (this.state !== InitState.UNINITIALIZED) {
+          throw new Error(`Internal error: expected INIT_PENDING, but came from state=${ppState(this.state)}`);
+        }
+        this.state = state_;
+        break;
+
+      case InitState.READY:
+        if (this.state !== InitState.INIT_PENDING) {
+          throw new Error(`Internal error: expected INIT_PENDING (current=${ppState(this.state)})`);
+        }
+        this.state = state_;
+        this._onReady();
+        break;
+
+      case InitState.DESTROYED:
+        this.state = state_;
+        this._onDestroy();
+        break;
+
+      default:
+        throw new Error(`Unexpected state: new=${state_} (current=${ppState(this.state)})`);
+    }
+
+    logger.info(`Changing state to ${ppState(this.state)}`);
+  }
+
+  /**
+   * @param timeoutInMs  0 means wait forever
+   */
+  async waitUntilReady(timeoutInMs) {
+    if (this.state === InitState.READY) {
+      return;
+    }
+
+    if (this.state === InitState.DESTROYED) {
+      logger.warn('Trying to wait to initialization, but the object is already dead.');
+      throw new NotReadyError();
+    }
+
+    if (timeoutInMs && timeoutInMs > 0) {
+      let timer;
+      const timeout = new Promise((_, reject) => {
+        timer = setTimeout(() => {
+          reject(new NotReadyError());
+        }, timeoutInMs);
+      });
+      try {
+        await Promise.race([this._pendingInit, timeout]);
+      } finally {
+        clearTimeout(timer);
+      }
+    } else {
+      await this._pendingInit;
+    }
+
+    if (this.state === InitState.DESTROYED) {
+      logger.info('Give up. After waking up, the module was unloaded.');
+      throw new NotReadyError();
+    }
+
+    if (this.state !== InitState.READY) {
+      logger.error('Still not ready after waking up. Unexpected state:', ppState(this.state));
+      throw new NotReadyError();
+    }
+  }
 }
 
 export default class Manager {
   _initDefaults() {
+    if (this.initState) {
+      this.initState.updateState(InitState.DESTROYED);
+    }
+    this.initState = new InitState();
+
     this.configFailures = 0;
     this.signerInitialized = false;
-    this.isInit = false;
-    this.unloaded = false;
 
     this.db = new Database();
     this.endpoints = new Endpoints();
@@ -108,7 +248,7 @@ export default class Manager {
 
       try {
         await this.updateConfig(config);
-        this.isInit = true;
+        this.initState.updateState(InitState.READY);
       } catch (e) {
         // this should not be reached unless the server sends garbage
         logger.error('Failed to update config', e);
@@ -126,9 +266,11 @@ export default class Manager {
   }
 
   async init() {
-    if (this.unloaded) {
+    if (!this.initState.isUninitialized()) {
       return;
     }
+    this.initState.updateState(InitState.INIT_PENDING);
+
     this.trustedClock.init();
 
     // Wait for signer, db (Dexie or memory fallback) and user long-lived private key
@@ -155,7 +297,7 @@ export default class Manager {
   }
 
   unload() {
-    this.unloaded = true;
+    this.initState.updateState(InitState.DESTROYED);
     if (this.signer) {
       this.signer.unload();
     }
@@ -192,18 +334,27 @@ export default class Manager {
     if (!ok) {
       await this.punish();
     } else {
-      const oldGroupKeys = Object.keys(this.groupPubKeys);
-      const newGroupPubKeys = Object.keys(groupPubKeys).filter(x => !oldGroupKeys.includes(x));
+      let newGroupPubKeys = Object.keys(groupPubKeys);
 
-      // Special case: if a new key is published, not all clients should immediately
-      // attempt to join the group, for two reasons:
-      // 1) It leads to a sudden spike of join requests
-      // 2) (worse) not all servers might yet have synchronized and are aware of that key
-      if (newGroupPubKeys.length === 1) {
-        const latestKey = newGroupPubKeys[0];
-        const randomDelayInMs = 30 * MINUTE + Math.random() * 2 * HOUR;
-        this.log('Delay joining the latest group', latestKey, 'by', randomDelayInMs, 'ms');
-        this._joinScheduler.cooldowns.set(latestKey, Date.now() + randomDelayInMs);
+      // Filter for new keys (ignoring all keys that we already know
+      // or that are older than the oldest key that we remember):
+      const oldGroupKeys = Object.keys(this.groupPubKeys);
+      if (oldGroupKeys.length > 0) {
+        const oldestKnownKey = Object.keys(this.groupPubKeys).sort()[0];
+        newGroupPubKeys = newGroupPubKeys
+          .filter(x => x > oldestKnownKey)
+          .filter(x => !oldGroupKeys.includes(x));
+
+        // Special case: if a new key is published, not all clients should immediately
+        // attempt to join the group, for two reasons:
+        // 1) It leads to a sudden spike of join requests
+        // 2) (worse) not all servers might yet have synchronized and are aware of that key
+        if (newGroupPubKeys.length === 1) {
+          const latestKey = newGroupPubKeys[0];
+          const randomDelayInMs = 30 * MINUTE + Math.random() * 2 * HOUR;
+          this.log('Delay joining the latest group', latestKey, 'by', randomDelayInMs, 'ms');
+          this._joinScheduler.cooldowns.set(latestKey, Date.now() + randomDelayInMs);
+        }
       }
 
       // Update server public keys in db.
@@ -222,13 +373,16 @@ export default class Manager {
       this.db.setSourceMapAction(action, sourceMap.actions[action]);
     });
 
-    try {
-      const { inSync, hoursSinceEpoch } = this.trustedClock.checkTime();
-      if (inSync) {
-        await this.db.purgeTags(hoursSinceEpoch);
-      }
-    } catch (e) {
-      this.logError('Failed to purge old tags in the database:', e);
+    // Database cleanup:
+    const { inSync, hoursSinceEpoch } = this.trustedClock.checkTime();
+    if (inSync) {
+      const purgeTags = this.db.purgeTags(hoursSinceEpoch).catch((e) => {
+        logger.error('Failed to purge old tags in the database', e);
+      });
+      const purgeOldPubKeys = this.db.purgeOldPubKeys(hoursSinceEpoch).catch((e) => {
+        logger.error('Failed to purge old keys in the database', e);
+      });
+      await Promise.all([purgeTags, purgeOldPubKeys]);
     }
   }
 
@@ -332,7 +486,7 @@ export default class Manager {
   // Loads server ECDH pubKey (but does not fetch them).
   // if !skipGroupKeys, also loads locally stored credentials into the signer.
   async loadKeys(skipGroupKeys) {
-    if (this.unloaded) {
+    if (this.initState.isUnloaded()) {
       throw new NotReadyError();
     }
 
@@ -374,11 +528,9 @@ export default class Manager {
     }
 
     this.logDebug('Loading credentials', pk.date);
-
     try {
       await this.signer.setGroupPubKey(groupPubKey);
       await this.signer.setUserCredentials(credentials);
-      await this.db.purgeOldPubKeys(date);
       this.loadedCredentialsDate = date;
     } catch (e) {
       this.logError('Error loading credentials', e);
@@ -482,24 +634,52 @@ export default class Manager {
   //   ServerError: Unexpected server error.
   //
   //   (Should never happen, but theoretically possible): SignMsgError, BadCredentialsError
-  async send(msg, { proxyBucket } = {}) {
+  //
+  // When other modules are sending messages before hpn is ready, sending is blocked.
+  // If hpn is unable to connect because of network issues, eventually it will have to
+  // give up. By default, the timeout is very conservative, but the sender can
+  // overwrite the default if needed. If do not want any timeout at all, you can pass 0
+  // to wait forever. When sending times out, it will fail with an "NotReadyError".
+  async send(msg, { proxyBucket, waitForInitTimeoutInMs = 3 * MINUTE } = {}) {
     try {
       if (this.isOldVersion) {
+        // Refusing to send messages, as the client runs an old version of the protocol
+        // that is not longer supported. Note that even if the changes are backward
+        // compatible, we might actively want to stop old clients from sending once their
+        // population gets too small.
+        //
+        // TODO: Dropping non-instant messages is always safe, as these are fire-and-forget
+        // messages, where the user does not expect a response. For instant messages, maybe
+        // trying to send is preferable, as the client expects a result. In other words,
+        // dropping non-instant messages will never break client functionality, but
+        // dropping instant messages might (e.g., search via proxy).
+        //
+        // The advantage of having not to fear client breakage would be that we could
+        // more aggressively stop old clients from sending (to protect them when their
+        // population size becomes too small).
         throw new OldVersionError();
       }
-
-      if (!this.isInit || this.unloaded) {
-        throw new NotReadyError();
+      if (!msg || typeof msg !== 'object') {
+        throw new InvalidMsgError('msg must be an object');
       }
 
-      if (!msg || typeof msg !== 'object') {
-        throw (new InvalidMsgError('msg must be an object'));
+      // handle races during startup when hpn is just starting up and other modules
+      // are already trying to send messages:
+      if (!this.initState.isReady()) {
+        if (this.initState.isUnloaded()) {
+          // Although we could wait and speculate that loading will soon be initialized,
+          // it is more likely that it will not happen, and it will just block.
+          logger.info('Module is not initialized. Instead of waiting until we hit the timeout, give up immediately.');
+          throw new NotReadyError();
+        }
+
+        logger.debug('Initialization is still pending. Waiting for it to complete...');
+        await this.initState.waitUntilReady(waitForInitTimeoutInMs);
+        logger.debug('Initialization is still pending. Waiting for it to complete...DONE');
       }
 
       const { action, payload } = msg;
-
       const config = this.sourceMap[action];
-
       if (!config) {
         throw (new InvalidMsgError(`unknown action ${action}`));
       }
@@ -730,13 +910,13 @@ export default class Manager {
   }
 
   isHealthy() {
-    if (this.unloaded) {
-      logger.warn('hpnv2 unloaded');
+    if (this.isOldVersion) {
+      logger.warn('Client is too old. The protocol is no longer accepted by the server');
       return false;
     }
 
-    if (!this.isInit) {
-      logger.warn('hpnv2 initialization not completed');
+    if (!this.initState.isReady()) {
+      logger.warn(`hpnv2 is not loaded (current state: ${ppState(this.initState.state)})`);
       return false;
     }
 

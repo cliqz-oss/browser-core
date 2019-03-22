@@ -105,10 +105,10 @@ export default background({
     }
     // migration of bootstrap DB to webextensions
     if (chrome.cliqzdbmigration && !prefs.has('insights.migrated')) {
+      prefs.set('insights.migrated', true);
       chrome.cliqzdbmigration.exportDexieTable('insights', 1, 'daily').then(async (rows) => {
         await this.db.db.daily.bulkPut(rows);
         await chrome.cliqzdbmigration.deleteDatabase('insights');
-        prefs.set('insights.migrated', true);
       }, logger.debug);
     }
   },
@@ -122,13 +122,15 @@ export default background({
       // or we can get partial information from the anti-tracking module.
       const result = await this.getStatsForTab(tabId);
       this.pageInfo.delete(tabId);
-      return this.db.insertPageStats(result);
+      return this.db.insertStats('daily', result);
     }
     this.pageInfo.delete(tabId);
     return null;
   },
 
   unload() {
+    this.db.unload();
+    this.api.unload();
   },
 
   beforeBrowserShutdown() {
@@ -184,14 +186,19 @@ export default background({
     // Stats from anti-tracking modules, merged into a single result.
     const antitrackingStats = this.getAntitrackingReport(tabId, pageInfo.host);
     const adblockerStats = this.getAdblockerReport(tabId, pageInfo.host);
-    const {
-      cookies,
-      fingerprints,
-      ads
-    } = await Promise.all([
+    const cliqzModuleStats = await Promise.all([
       antitrackingStats.then(mergeStatPair, () => { }),
       adblockerStats.then(mergeStatPair, () => { }),
     ]).then(mergeStats);
+    const { cookies, fingerprints } = cliqzModuleStats;
+    let ads = cliqzModuleStats.ads;
+
+    // if there is no adblocker, calculate ads block from Advertising trackers
+    if (!this.adblocker.isPresent()) {
+      const owners = Object.keys(bugs).map(bid => domainInfo.getBugOwner(bid))
+        .filter(owner => owner.cat === 'advertising');
+      ads += owners.length;
+    }
 
     // Count the total number of trackers we blocked on this page
     // Combine bugs blocked by ghostery with ones blocked by the adblocker
@@ -321,8 +328,24 @@ export default background({
     async pushGhosteryPageStats(tabId, pageInfo, apps, bugs) {
       logger.debug(`page stats were pushed for tab ${tabId} - ${pageInfo.host}`);
       const result = await this.aggregatePageStats(tabId, pageInfo, apps, bugs);
-      await this.db.insertPageStats(result);
+      await this.db.insertStats('daily', result);
       return result;
+    },
+
+    /**
+     * Get stats that *would* be added, given current tab state. Does not add stats
+     * to the day counter. Arguments match #pushGhosteryPageStats().
+     * @param tabId
+     * @param pageInfo
+     * @param apps
+     * @param bugs
+     */
+    async getGhosteryPageStats(tabId, pageInfo, apps, bugs) {
+      const pageStats = await this.aggregatePageStats(tabId, pageInfo, apps, bugs);
+      // pageStats.trackers is a set which is not serialisable so we convert it to an array.
+      pageStats.trackers = [...pageStats.trackers];
+      pageStats.trackersDetailed = pageStats.trackers.map(this.actions.getTrackerDetails);
+      return pageStats;
     },
 
     async getDashboardStats(period, tabs) {
@@ -343,7 +366,26 @@ export default background({
         );
         result = activeTabStats.reduce(statReducer, result);
       }
-      return statReducer(result, await historicalStats);
+      const stats = statReducer(result, await historicalStats);
+      // detailed tracker stats: `name`, `cat` and `wtm` ID (optional) for each tracker.
+      if (stats.trackers) {
+        stats.trackersDetailed = stats.trackers.map(this.actions.getTrackerDetails);
+      }
+      return stats;
+    },
+
+    async insertSearchStats(counters) {
+      this.db.insertStats('search', counters);
+    },
+
+    // Get result in milliseconds to be consistent with timeSaved from getDashboardStats
+    async getSearchTimeSaved() {
+      const searchStats = await this.db.getSearchStats();
+
+      return (searchStats.historySelected || 0) * 1000
+        + (searchStats.organicSelected || 0) * 3000
+        + (searchStats.speedDialClicked || 0) * 4000
+        + (searchStats.smartCliqzTriggered || 0) * 5000;
     },
 
     /**
@@ -379,6 +421,10 @@ export default background({
 
     recordPageInfo(info, sender) {
       this.pageInfo.set(sender.tab.id, info);
+    },
+
+    getTrackerDetails(wtmOrAppId) {
+      return domainInfo.getTrackerDetails(wtmOrAppId);
     },
   },
 });

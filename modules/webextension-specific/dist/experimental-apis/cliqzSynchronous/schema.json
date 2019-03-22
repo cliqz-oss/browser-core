@@ -31,15 +31,6 @@
         "returns": {
           "description": "Constant value"
         }
-      }, 
-      {
-        "name": "isDefaultBrowser",
-        "type": "function",
-        "description": "checks if the browser is default",
-        "parameters": [],
-        "returns": {
-          "description": "default browser state"
-        }
       }
     ]
   }

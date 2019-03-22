@@ -108,15 +108,16 @@ export default class TokenExaminer {
       // create a Map of key => set(values) from the url data
       const cachedKvs = this.requestKeyValue.get(tracker) || new Map();
       const reachedThreshold = new Set();
-      const kvs = state.urlParts.getKeyValues().reduce((hash, kv) => {
-        if (kv.v.length < this.config.shortTokenLength) {
+      const kvs = state.urlParts.extractKeyValues().params.reduce((hash, kv) => {
+        const [k, v] = kv;
+        if (v.length < this.config.shortTokenLength) {
           return hash;
         }
-        const key = this.hashTokens ? md5(kv.k) : kv.k;
+        const key = this.hashTokens ? md5(k) : k;
         if (this.qsWhitelist.isSafeKey(tracker, key)) {
           return hash;
         }
-        const tok = this.hashTokens ? md5(kv.v) : kv.v;
+        const tok = this.hashTokens ? md5(v) : v;
         if (!hash.has(key)) {
           hash.set(key, new TokenSet());
         }

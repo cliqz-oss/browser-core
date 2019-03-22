@@ -16,7 +16,7 @@ import t from '../i18n';
 import UndoDialRemoval from './undo-dial-removal';
 import HistoryTitle from './history-title';
 import { historyClickSignal, settingsClickSignal, homeConfigsStatusSignal,
-  sendHomeUnloadSignal, sendHomeBlurSignal, sendHomeFocusSignal, friendsClickSignal } from '../services/telemetry/home';
+  sendHomeUnloadSignal, sendHomeBlurSignal, sendHomeFocusSignal } from '../services/telemetry/home';
 import localStorage from '../services/storage';
 import { deleteUndoSignal, undoCloseSignal } from '../services/telemetry/speed-dial';
 import { settingsRestoreTopSitesSignal, settingsComponentsToggleSignal, newsSelectionChangeSignal } from '../services/telemetry/settings';
@@ -30,19 +30,7 @@ class App extends React.Component {
     super(props);
     this.freshtab = cliqz.freshtab;
     this.state = {
-      config: {
-        searchReminderCounter: 0,
-        componentsState: {
-          background: {},
-          blueTheme: false,
-          customDials: {},
-          historyDials: {},
-          news: {},
-          search: {},
-          stats: {},
-        },
-        product: '',
-      },
+      config: this.getConfigWithBGImage(props.config),
       dials: {
         custom: [],
         history: [],
@@ -59,7 +47,7 @@ class App extends React.Component {
       isOfferMenuOpen: false,
       isOverlayOpen: false,
       isSettingsOpen: false,
-      messages: {},
+      messages: props.config.messages,
       modules: {},
       removedDials: [],
       results: [],
@@ -76,8 +64,8 @@ class App extends React.Component {
   }
 
   async componentDidMount() {
-    /* Make sure all the configs have been received */
-    await this.getConfig();
+    this.updateTheme(this.state.config.componentsState.background.image);
+
     /* tabindex is now returned by getconfig, so as to avoid double message passing */
     const tabIndex = this.state.config.tabIndex;
     this.tabIndex = tabIndex;
@@ -86,9 +74,8 @@ class App extends React.Component {
     window.addEventListener('blur', () => sendHomeBlurSignal({ tabIndex }));
     window.addEventListener('focus', () => sendHomeFocusSignal({ tabIndex }));
 
-    await this.getSpeedDials();
-
     Promise.all([
+      this.getSpeedDials(),
       this.getNews(),
       this.getStats(),
     ]).then(() => {
@@ -191,32 +178,35 @@ class App extends React.Component {
     homeConfigsStatusSignal(this.state, this.tabIndex);
   }
 
+  getConfigWithBGImage(freshtabConfig) {
+    let bgImage = freshtabConfig.componentsState.background.image;
+    const { product } = freshtabConfig;
+
+    // Fall back to default background if current config contains
+    // non-existing name of the background
+    if ((bgImage !== config.constants.NO_BG)
+      && (Object.keys(config.backgrounds[product]).indexOf(bgImage) === -1)) {
+      bgImage = getDefaultWallpaper(product);
+    }
+
+    return {
+      ...freshtabConfig,
+      componentsState: {
+        ...freshtabConfig.componentsState,
+        background: {
+          ...freshtabConfig.componentsState.background,
+          image: bgImage
+        }
+      }
+    };
+  }
+
   getConfig() {
     return this.freshtab.getConfig().then((freshtabConfig) => {
-      let bgImage = freshtabConfig.componentsState.background.image;
-      const { product } = freshtabConfig;
+      const bgImageConfig = this.getConfigWithBGImage(freshtabConfig);
 
-      // Fall back to default background if current config contains
-      // non-existing name of the background
-      if ((bgImage !== config.constants.NO_BG)
-        && (Object.keys(config.backgrounds[product]).indexOf(bgImage) === -1)) {
-        bgImage = getDefaultWallpaper(product);
-      }
-
-      this.updateTheme(bgImage);
-      this.setState({ config: freshtabConfig, messages: freshtabConfig.messages });
-      this.setState(prevState => ({
-        config: {
-          ...prevState.config,
-          componentsState: {
-            ...prevState.config.componentsState,
-            background: {
-              ...prevState.config.componentsState.background,
-              image: bgImage
-            }
-          }
-        }
-      }));
+      this.updateTheme(bgImageConfig.componentsState.background.image);
+      this.setState({ config: bgImageConfig, messages: freshtabConfig.messages });
     });
   }
 
@@ -568,14 +558,10 @@ class App extends React.Component {
               positioning={this.state.config.cliqzPostPosition}
               position="post"
             />
-
             <AsideLeft
-              cliqzForFriends={this.state.config.CLIQZ_FOR_FRIENDS}
-              displayFriendsIcon={this.state.config.displayFriendsIcon}
               historyUrl={this.state.config.HISTORY_URL}
               isHistoryEnabled={this.state.config.isHistoryEnabled}
               newTabUrl={config.settings.NEW_TAB_URL}
-              onFriendsClick={async () => friendsClickSignal()}
               onHistoryClick={() => historyClickSignal()}
             />
 

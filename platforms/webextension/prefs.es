@@ -6,6 +6,12 @@ const PREFS_KEY = 'cliqzprefs';
 let initialised = false;
 const prefs = {};
 
+export const PLATFORM_TELEMETRY_WHITELIST = (!chrome.cliqzSynchronous) ? [] : [
+  'pref.cliqz.blue.theme',
+  'pref.search.quicksearch.enabled',
+  'searchui.cards.layout',
+];
+
 function syncToStorage() {
   chrome.storage.local.set({ [PREFS_KEY]: prefs });
 }

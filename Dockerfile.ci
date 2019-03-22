@@ -1,6 +1,6 @@
-FROM node:10.14.0-stretch
+FROM node:11-stretch
 
-ARG DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update --no-install-recommends  \
  && apt-get install -y \
@@ -87,11 +87,6 @@ RUN npm install -g npm@latest yarn@latest
 
 USER node
 
-RUN wget https://ftp.mozilla.org/pub/firefox/releases/52.0.2/linux-x86_64/en-US/firefox-52.0.2.tar.bz2 -O /home/node/firefox.tar.bz2 \
- && mkdir /home/node/firefox52 \
- && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox52 \
- && rm -f /home/node/firefox.tar.bz2
-
 RUN wget https://ftp.mozilla.org/pub/devedition/releases/60.0b16/linux-x86_64/en-US/firefox-60.0b16.tar.bz2 -O /home/node/firefox.tar.bz2 \
   && mkdir /home/node/firefox60 \
   && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox60 \
@@ -101,6 +96,11 @@ RUN wget https://ftp.mozilla.org/pub/devedition/releases/62.0b20/linux-x86_64/en
   && mkdir /home/node/firefox62 \
   && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox62 \
   && rm -f /home/node/firefox.tar.bz2
+
+RUN wget https://ftp.mozilla.org/pub/devedition/releases/66.0b9/linux-x86_64/en-US/firefox-66.0b9.tar.bz2 -O /home/node/firefox.tar.bz2 \
+ && mkdir /home/node/firefox66 \
+ && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox66 \
+ && rm -f /home/node/firefox.tar.bz2
 
 RUN wget 'https://download.mozilla.org/?product=firefox-devedition-latest&os=linux64&lang=en-US' -O /home/node/firefox.tar.bz2 \
   && mkdir /home/node/firefoxBeta \
@@ -112,18 +112,17 @@ RUN wget 'https://download.mozilla.org/?product=firefox-nightly-latest&os=linux6
   && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefoxNightly \
   && rm -f /home/node/firefox.tar.bz2
 
+# Cliqz Beta
+RUN wget 'https://repository.cliqz.com/dist/beta/latest/cliqz.en-US.linux-x86_64.tar.bz2' -O /home/node/cliqz.tar.bz2 \
+  && mkdir /home/node/cliqzBeta \
+  && tar xjvf /home/node/cliqz.tar.bz2 -C /home/node/cliqzBeta \
+  && rm -f /home/node/cliqz.tar.bz2
+
 # Cliqz Stable
 RUN wget 'https://cdn.cliqz.com/browser-f/download/linux/cliqz.en-US.release.x86_64.tar.bz2' -O /home/node/cliqz.tar.bz2 \
   && mkdir /home/node/cliqzStable \
   && tar xjvf /home/node/cliqz.tar.bz2 -C /home/node/cliqzStable \
   && rm -f /home/node/cliqz.tar.bz2
-
-# Get chrome driver
-RUN wget --no-verbose -O /tmp/chromedriver_linux64.zip https://chromedriver.storage.googleapis.com/2.40/chromedriver_linux64.zip \
-  && rm -rf /app/chromedriver \
-  && unzip /tmp/chromedriver_linux64.zip -d /app \
-  && rm /tmp/chromedriver_linux64.zip \
-  && chmod 755 /app/chromedriver
 
 COPY package.json /app/
 COPY package-lock.json /app/

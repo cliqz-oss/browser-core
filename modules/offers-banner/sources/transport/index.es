@@ -4,6 +4,7 @@ import { copyToClipboard } from '../../core/clipboard';
 import inject from '../../core/kord/inject';
 import * as browserPanel from './browser-panel';
 import * as rewardBox from './reward-box';
+import { filterValues } from '../utils';
 
 const core = inject.module('core');
 
@@ -18,11 +19,18 @@ export function send(data, type) {
 
 function commonTelemetry(msg, view = 'box') {
   if (!msg) { return; }
-  const { target, action = 'click', vote, comments } = msg;
-  const signal = { type: 'offrz', view, action, target };
-  if (vote) { signal.vote = vote; }
-  if (comments) { signal.comments = comments; }
-  send(signal, 'telemetry');
+  const { target, action = 'click', vote, comments, offersCount } = msg;
+  const signal = {
+    action,
+    comments,
+    offer_count: offersCount,
+    target,
+    type: 'offrz',
+    view,
+    vote,
+  };
+  const newSignal = filterValues(signal, value => value !== undefined);
+  send(newSignal, 'telemetry');
 }
 
 export function dispatcher(type, offerId, msg = {}, autoTrigger) {

@@ -1,11 +1,12 @@
-import { getDetailsFromUrl, urlStripProtocol, tryDecodeURI } from '../../core/url';
+import { urlStripProtocol, tryDecodeURI, cleanMozillaActions } from '../../core/url';
+import { URLInfo } from '../../core/url-info';
 
 const clean = (result) => {
-  const details = getDetailsFromUrl(result.url || '');
-  const host = urlStripProtocol(details.host || '');
+  const details = URLInfo.get(cleanMozillaActions(result.url)[1]) || {};
+  const host = urlStripProtocol((details && details.hostname) || '');
   let hostAndPort = host;
-  const friendlyUrl = tryDecodeURI(result.friendlyUrl || details.friendly_url);
-  const url = tryDecodeURI(result.url);
+  const friendlyUrl = tryDecodeURI(result.friendlyUrl || details.friendlyUrl || '');
+  const url = result.url ? tryDecodeURI(result.url) : '';
 
   if (details.port) {
     hostAndPort += `:${details.port}`;
@@ -32,7 +33,7 @@ const clean = (result) => {
       ...result.meta,
       isIncomplete: result._incomplete,
       triggerMethod: result.trigger_method,
-      domain: details.domain,
+      domain: details.generalDomain,
       host,
       hostAndPort,
       port: details.port,

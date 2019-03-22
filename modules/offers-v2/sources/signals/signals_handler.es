@@ -55,10 +55,12 @@ export default class SignalHandler {
    *   If not given, `httpdPost` is used.
    * @param {PatternsStat} patternsStat
    */
-  constructor(offersDB, sender, patternsStat) {
+  constructor(offersDB, sender, patternsStat, journeySignals, getGID) {
     this.db = new SimpleDB(offersDB, logger, 'doc_data');
     this.sender = sender || { httpPost };
     this.patternsStat = patternsStat;
+    this.journeySignals = journeySignals;
+    this.getGID = getGID;
     this.sigMap = {}; // map from sig_type -> (sig_id -> sig_data)
     this.sigBuilder = {
       campaign: this._sigBuilderCampaign.bind(this),
@@ -117,6 +119,7 @@ export default class SignalHandler {
     }
 
     await this._savePersistenceData();
+    this.getGID = null;
   }
 
   // ///////////////////////////////////////////////////////////////////////////
@@ -195,6 +198,9 @@ export default class SignalHandler {
       + `new signal added: ${cid} - ${oid} - ${origID} - ${sid} - +${count}`);
 
     this.patternsStat.reinterpretCampaignSignalAsync(cid, oid, sid);
+    if (this.journeySignals) {
+      this.journeySignals.reinterpretCampaignSignalAsync(sid);
+    }
 
     return true;
   }
@@ -410,10 +416,32 @@ export default class SignalHandler {
     return Promise.resolve();
   }
 
+  async _getGID() {
+    try {
+      const gid = await this.getGID();
+      return gid;
+    } catch (e) {
+      logger.warn(`anolysis getGID throws, ${e}`);
+      return {};
+    }
+  }
+
   async _sendSignalsToBE(typeToSend, sigIDToSend) {
+    if (this.sendSignalsPromise) {
+      return this.sendSignalsPromise;
+    }
+    this.sendSignalsPromise = this._sendSignalsToBEunguarded(typeToSend, sigIDToSend);
+    this.sendSignalsPromise.catch(() => {}).then(() => {
+      this.sendSignalsPromise = null;
+    });
+    return this.sendSignalsPromise;
+  }
+
+  async _sendSignalsToBEunguarded(typeToSend, sigIDToSend) {
     const sigsKeysToSend = Object.keys(this.sigsToSend);
     const numSignalsToSend = sigsKeysToSend.length;
     const batch = [];
+    const gid = await this._getGID();
     sigsKeysToSend.forEach((signalType) => {
       if (typeToSend && typeToSend !== signalType) {
         return;
@@ -430,7 +458,7 @@ export default class SignalHandler {
         const sigDataToSend = this.sigBuilder[signalType](sigID, sigInfo);
         sigInfo.seq += 1;
         if (!sigDataToSend) { return; }
-        const payload = JSON.stringify(constructSignal(sigID, signalType, sigDataToSend));
+        const payload = JSON.stringify(constructSignal(sigID, signalType, sigDataToSend, gid));
         batch.push({ payload, signalType, sigID, numSignalsToSend });
       });
     });
@@ -451,21 +479,31 @@ export default class SignalHandler {
     await this.sendBatch(batch);
 
     // Now send additional signals
-    let anotherBatch = await this.behavior.getSignals();
-    anotherBatch = anotherBatch.map(payload =>
-      ({ payload: JSON.stringify(constructSignal('behavior', payload.type, payload)) }));
+    let behaviorBatch = await this.behavior.getSignals();
+    behaviorBatch = behaviorBatch.map(payload =>
+      ({ payload: JSON.stringify(constructSignal('behavior', payload.type, payload, gid)) }));
 
     const patternPromises = Array.from(
       this.patternsStat.getPatternSignals(),
       signalName => this.patternsStat.moveAll(signalName)
     );
     const patternBatches = await Promise.all(patternPromises);
-    const patternBatch = patternBatches
-      .filter(payload => payload.length !== 0)
+    const patternBatch = [].concat(...patternBatches)
       .map(payload =>
-        ({ payload: JSON.stringify(constructSignal('patterns-stats', payload.type, payload)) }));
+        ({ payload: JSON.stringify(constructSignal('patterns-stats', payload.type, payload, gid)) }));
 
-    await this.sendBatch(anotherBatch.concat(patternBatch));
+    const collectJourneyBatch = async () => {
+      const journeys = await this.journeySignals.moveSignals();
+      return journeys.map(payload =>
+        ({ payload: JSON.stringify(constructSignal('journey', payload.type, payload)) }));
+    };
+    const journeyBatch = this.journeySignals ? await collectJourneyBatch() : [];
+
+    await this.sendBatch([
+      ...behaviorBatch,
+      ...patternBatch,
+      ...journeyBatch,
+    ]);
     await this.behavior.clearSignals();
     return this.behavior.clearOldBehavior();
   }

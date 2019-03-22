@@ -29,7 +29,7 @@ export default class IntegrationTestsWindow extends BaseWindow {
 
   async startTests() {
     // Optionally get options from data url opened from the launcher. This is
-    // useful when the browser is launched by Selenium (in the case of Chromium
+    // useful when the browser is launched by puppeteer (in the case of Chromium
     // tests), since we cannot set prefs directly.
     const { url } = await getActiveTab();
     const prefix = 'data:text/plain,';

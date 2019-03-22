@@ -4,6 +4,7 @@
 const adblocker = require('@cliqz/adblocker');
 const moment = require('moment');
 const tldts = require('tldts');
+const punycode = require('punycode');
 const mockDexie = require('../../core/unit/utils/dexie');
 
 export default describeModule('history-analyzer/history-stream',
@@ -40,6 +41,9 @@ export default describeModule('history-analyzer/history-stream',
     'platform/lib/tldts': tldts,
     'core/platform': {},
     'platform/url': {},
+    'platform/lib/punycode': {
+      default: punycode,
+    },
   }),
   () => {
     let history;

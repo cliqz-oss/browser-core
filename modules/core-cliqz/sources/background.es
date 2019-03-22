@@ -5,7 +5,6 @@ import prefs from '../core/prefs';
 import inject from '../core/kord/inject';
 import config from '../core/config';
 import Storage from '../core/storage';
-import console from '../core/console';
 
 export default background({
   requiresServices: ['utils', 'session'],
@@ -18,7 +17,6 @@ export default background({
     this.report = setTimeout(this.reportStartupTime.bind(this), 1000 * 60);
 
     this.supportInfo = setTimeout(() => {
-      this.actions.setSupportInfo();
       if (config.settings.channel === 40) {
         this.browserDetection();
       }
@@ -78,27 +76,18 @@ export default background({
   },
 
   actions: {
-    setSupportInfo(status) {
+    getSupportInfo() {
       const version = this.settings.version;
       const host = prefs.get('distribution.id', '', '');
       const hostVersion = prefs.get('distribution.version', '', '');
-      const info = JSON.stringify({
+      const info = {
         version,
         host,
         hostVersion,
         country: prefs.get('config_location', ''),
-        status: status || 'active',
-      });
-
-
-      try {
-        ['http://cliqz.com', 'https://cliqz.com'].forEach((url) => {
-          const ls = new Storage(url);
-          ls.setItem('extension-info', info);
-        });
-      } catch (e) {
-        console.log('Error setting localstorage', e);
-      }
+        status: prefs.get('ext_status', '') || 'active',
+      };
+      return info;
     }
   }
 

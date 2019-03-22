@@ -198,7 +198,7 @@ export default class EventHandler {
       return;
     }
     // we have callbacks then we call them
-    this._publish(this.httpReqCbs.get(domainName), { reqObj: ctx, url_data: urlData });
+    this._publish(this.httpReqCbs.get(domainName), { url_data: urlData });
   }
 
   //

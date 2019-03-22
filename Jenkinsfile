@@ -17,34 +17,29 @@ def matrix = [
         'config': 'configs/ci/unit-tests.js',
         'testParams': '-l unit-node',
     ],
+    'amo': [
+        'gpu': true,
+        'config': 'configs/ci/amo.js',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox60/firefox/firefox',
+    ],
     'browser: content': [
         'gpu': true,
         'config': 'configs/ci/browser.js',
         'testParams': '-l chromium',
     ],
-    'browser-webextension': [
+    'cliqz-beta': [
         'gpu': true,
         'config': 'configs/ci/browser.js',
-        'testParams': '-l firefox-web-ext --firefox ~/firefox62/firefox/firefox',
+        'testParams': '-l firefox-web-ext --firefox ~/cliqzBeta/cliqz/cliqz',
     ],
     'cliqz-stable': [
         'gpu': true,
         'config': 'configs/ci/browser.js',
         'testParams': '-l firefox-web-ext --firefox ~/cliqzStable/cliqz/cliqz',
     ],
-    'firefox 52': [
-        'gpu': true,
-        'config': 'configs/ci/browser-legacy.js',
-        'testParams': '-l firefox-web-ext --firefox ~/firefox52/firefox/firefox',
-    ],
-    'firefox 60': [
-        'gpu': true,
-        'config': 'configs/ci/browser-legacy.js',
-        'testParams': '-l firefox-web-ext --firefox ~/firefox60/firefox/firefox',
-    ],
     'firefox 62': [
         'gpu': true,
-        'config': 'configs/ci/browser-legacy.js',
+        'config': 'configs/ci/browser.js',
         'testParams': '-l firefox-web-ext --firefox ~/firefox62/firefox/firefox',
     ],
     'firefox 62 offers': [
@@ -52,17 +47,31 @@ def matrix = [
         'config': 'configs/ci/offers.js',
         'testParams': '-l firefox-web-ext --firefox ~/firefox62/firefox/firefox',
     ],
-    /*
-    'firefox stresstest (52)': [
+    'firefox 66 offers': [
         'gpu': true,
-        'config': 'configs/ci/browser-legacy.js',
-        'testParams': '-l firefox-web-ext-stresstest --firefox ~/firefox52/firefox/firefox',
+        'config': 'configs/ci/offers.js',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox66/firefox/firefox',
     ],
-    */
+    'firefox 66': [
+        'gpu': true,
+        'config': 'configs/ci/browser.js',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox66/firefox/firefox',
+    ],
+    'firefox beta': [
+        'gpu': true,
+        'config': 'configs/ci/browser.js',
+        'testParams': '-l firefox-web-ext --firefox ~/firefoxBeta/firefox/firefox',
+    ],
+    'firefox nightly': [
+        'gpu': true,
+        'config': 'configs/ci/browser.js',
+        'testParams': '-l firefox-web-ext --firefox ~/firefoxNightly/firefox/firefox',
+        'ignoreFailure': true
+    ],
     'cliqz-tab': [
         'gpu': true,
         'config': 'configs/ci/cliqz-tab.js',
-        'testParams': '-l chromium-selenium',
+        'testParams': '-l chromium-headless',
     ],
     'cliqz-android': [
         'gpu': true,
@@ -72,7 +81,7 @@ def matrix = [
     'ghostery': [
         'gpu': false,
         'config': 'configs/ci/ghostery.js',
-        'testParams': '-l ghostery-selenium',
+        'testParams': '-l ghostery-headless',
     ],
     'cliqz-ios': [
         'gpu': false,

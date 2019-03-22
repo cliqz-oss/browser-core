@@ -18,7 +18,6 @@ const CliqzUtils = {
   telemetryService: inject.service('telemetry', ['push']),
   environment: CLIQZEnvironment,
   RESULTS_TIMEOUT: CLIQZEnvironment.RESULTS_TIMEOUT,
-  SKIN_PATH: CLIQZEnvironment.SKIN_PATH,
   init() {
     // cutting cyclic dependency
     CLIQZEnvironment.getLogoDetails = CliqzUtils.getLogoDetails;
@@ -138,7 +137,6 @@ const CliqzUtils = {
     const d = R * c; // Distance in km
     return d;
   },
-  isDefaultBrowser: CLIQZEnvironment.isDefaultBrowser,
   updateAlias: CLIQZEnvironment.updateAlias,
   openLink: CLIQZEnvironment.openLink,
 };

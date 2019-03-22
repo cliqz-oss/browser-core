@@ -1,7 +1,7 @@
 import inject from '../../core/kord/inject';
 
 const mobileCards = inject.module('mobile-cards');
-const callAction = (module, action, ...args) => mobileCards.action({ args, module, action });
+const callAction = (module, action, ...args) => mobileCards.action(action, ...args);
 const createModuleWrapper = (module, actions) =>
   actions.reduce((all, action) =>
     ({ ...all, [action]: callAction.bind(null, module, action) }), {});

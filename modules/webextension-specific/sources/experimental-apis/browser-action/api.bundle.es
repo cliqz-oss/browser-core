@@ -1,10 +1,9 @@
-/* globals ChromeUtils, ExtensionCommon,
-           EventEmitter, CustomizableUI, ExtensionParent, DefaultWeakMap */
-ChromeUtils.import('resource://gre/modules/ExtensionCommon.jsm');
-ChromeUtils.import('resource://gre/modules/ExtensionParent.jsm');
-ChromeUtils.import('resource://gre/modules/Services.jsm');
-ChromeUtils.import('resource://gre/modules/EventEmitter.jsm');
-ChromeUtils.import('resource:///modules/CustomizableUI.jsm');
+/* globals ChromeUtils, DefaultWeakMap */
+const { ExtensionCommon } = ChromeUtils.import('resource://gre/modules/ExtensionCommon.jsm');
+const { ExtensionParent } = ChromeUtils.import('resource://gre/modules/ExtensionParent.jsm');
+const { Services } = ChromeUtils.import('resource://gre/modules/Services.jsm');
+const { EventEmitter } = ChromeUtils.import('resource://gre/modules/EventEmitter.jsm');
+const { CustomizableUI } = ChromeUtils.import('resource:///modules/CustomizableUI.jsm', {});
 
 const browserAreas = {
   navbar: CustomizableUI.AREA_NAVBAR,
@@ -14,7 +13,7 @@ const browserAreas = {
 };
 
 const { EventManager } = ExtensionCommon;
-const { Management: { global: { windowTracker, tabTracker } } } = ChromeUtils.import('resource://gre/modules/Extension.jsm', {});
+const { Management: { global: { windowTracker, tabTracker } } } = ChromeUtils.import('resource://gre/modules/Extension.jsm', null);
 const {
   IconDetails,
   StartupCache,

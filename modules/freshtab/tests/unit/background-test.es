@@ -1,5 +1,8 @@
 /* global chai, describeModule */
 
+const tldts = require('tldts');
+const punycode = require('punycode');
+
 export default describeModule('freshtab/background',
   function () {
     return {
@@ -40,18 +43,11 @@ export default describeModule('freshtab/background',
         isSearchServiceReady() { return Promise.resolve(); },
         getSearchEngines: '[dynamic]'
       },
-      'core/tlds': {
-        default: {},
-      },
       'core/utils': {
         default: {
           telemetry() {},
           getLogoDetails() { return ''; },
         },
-      },
-      'fast-url-parser': {
-        /* eslint-disable-next-line global-require */
-        default: require('fast-url-parser'),
       },
       'core/url': {
         getDetailsFromUrl() { return {}; },
@@ -102,7 +98,11 @@ export default describeModule('freshtab/background',
           removeFromHistory() {},
           removeFromBookmarks() {},
         }
-      }
+      },
+      'platform/lib/tldts': tldts,
+      'platform/lib/punycode': {
+        default: punycode,
+      },
     };
   },
   function () {

@@ -16,8 +16,8 @@ The following launchers are available at the moment:
 * unit-node,
 * firefox-web-ext,
 * firefox-web-ext-stresstest,
-* chromium-selenium,
-* ghostery-selenium,
+* chromium-headless,
+* ghostery-headless,
 * react-native.
 
 They are used as a parameter for [`fern.js test`](#fern-js-test).
@@ -156,13 +156,13 @@ Usage:
 Available arguments for fern.js:
  '-l unit-node'
  '-l chromium'
- '-l firefox-web-ext --firefox ~/firefox52/firefox/firefox'
+ '-l firefox-web-ext --firefox ~/firefox56/firefox/firefox'
  '-l firefox-web-ext --firefox ~/firefox60/firefox/firefox'
  '-l firefox-web-ext --firefox ~/firefoxBeta/firefox/firefox'
  '-l firefox-web-ext --firefox ~/firefoxNightly/firefox/firefox'
- '-l firefox-web-ext-stresstest --firefox ~/firefox52/firefox/firefox'
- '-l chromium-selenium'
- '-l ghostery-selenium'
+ '-l firefox-web-ext-stresstest --firefox ~/firefox56/firefox/firefox'
+ '-l chromium-headless'
+ '-l ghostery-headless'
  '-l react-native'
 ```
 
@@ -238,7 +238,7 @@ The code can be tested on different levels. Currently the following types of tes
 
 The lowest level of testing, covering the simplest blocks of code. Should be written at the same time as development of new features.
 
-The `unit-node` [test runner](#unit-node) browses the project tree using the following pattern:  
+The `unit-node` [test runner](#unit-node) browses the project tree using the following pattern:
 `/**/tests/**/unit/**/*-test.js`.
 
 Therefore, to include new unit tests:
@@ -266,9 +266,6 @@ To include new tests:
 These tests check the whole system (extension) and the way its components are working together. A typical usage of integration testing would be checks of telemetry/signal/messaging (e.g. Freshtab opened in a new tab to check if offer-related signals have been sent).
 
 While it's a good idea to implement basic tests of static content elements as part of integration suites, detailed tests of this type should be part of content testing for the sake of simplicity and speed.
-
-For tests running in Chrome / Chromium, it is necessary to download chromedriver from [chromedriver.chromium.org](http://chromedriver.chromium.org/) into the root directory of navigation-extension.  
-Currently we make use of chromedriver 2.40. Current version can always be checked in ```Dockerfile.ci```.
 
 You also need to update your hosts file with following
 

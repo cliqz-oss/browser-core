@@ -8,12 +8,17 @@ import { DEFAULT_ACTION_PREF, updateDefaultTrackerTxtRule } from './tracker-txt'
 import utils from '../core/utils';
 import prefs from '../core/prefs';
 import telemetry from './telemetry';
-import Config, { MIN_BROWSER_VERSION } from './config';
+import Config, { MIN_BROWSER_VERSION, TELEMETRY } from './config';
 import { updateTimestamp } from './time';
 import domainInfo from '../core/services/domain-info';
-import bindObjectFunctions from '../core/helpers/bind-functions';
+import { bindObjectFunctions } from '../core/helpers/bind-functions';
 import inject from '../core/kord/inject';
-import { isMobile } from '../core/platform';
+import { isMobile, isEdge } from '../core/platform';
+
+function humanwebExistsAndDisabled() {
+  const humanweb = inject.module('human-web');
+  return humanweb.isPresent() && !humanweb.isEnabled();
+}
 
 /**
 * @namespace antitracking
@@ -56,10 +61,21 @@ export default background({
       telemetry.loadFromProvider(settings.ATTRACK_TELEMETRY_PROVIDER || 'human-web', settings.HW_CHANNEL);
     }
 
-
     // load config
     this.config = new Config({}, () => this.core.action('refreshAppState'));
-    return this.config.init().then(() => this.attrack.init(this.config, settings));
+    if (isEdge) {
+      this.config.databaseEnabled = false;
+    }
+    return this.config.init().then(() => {
+      // check HW status (for telemetry)
+      // - On Cliqz humanweb opt-out is flagged via 'humanWebOptOut' pref.
+      // - On Ghostery the module is disabled
+      // - On other platforms, where humanweb is not in the build, opt-out should be done directly.
+      if (prefs.get('humanWebOptOut', true) || humanwebExistsAndDisabled()) {
+        this.config.telemetryMode = TELEMETRY.DISABLED;
+      }
+      return this.attrack.init(this.config, settings);
+    });
   },
 
   /**
@@ -262,6 +278,12 @@ export default background({
       } else if (pref === 'config_ts') {
         // update date timestamp set in humanweb
         updateTimestamp(prefs.get('config_ts', null));
+      } else if (pref === 'humanWebOptOut') {
+        if (prefs.get('humanWebOptOut', false)) {
+          this.attrack.setHWTelemetryMode(false);
+        } else {
+          this.attrack.setHWTelemetryMode(true);
+        }
       }
       this.config.onPrefChange(pref);
     },

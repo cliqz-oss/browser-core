@@ -135,7 +135,7 @@ export default class Blocker {
       if (state.app) {
         const company = domainInfo.getBugOwner(state.app);
         // rule precedence: company > category > default
-        action = this._getOverrideAction(state.sourceUrlParts.hostname, company.name, company.cat)
+        action = this._getOverrideAction(state.tabUrlParts.hostname, company.name, company.cat)
          || action;
         const annotations = state.getPageAnnotations();
         if (annotations.apps) {

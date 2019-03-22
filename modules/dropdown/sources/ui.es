@@ -7,7 +7,6 @@ import Defer from '../core/helpers/defer';
 
 export default class Ui {
   deps = {
-    'last-query': inject.module('last-query'),
     search: inject.module('search'),
   };
 

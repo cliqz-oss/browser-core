@@ -22,9 +22,6 @@ export default describeModule('browser-panel/window',
         openLink() {}
       }
     },
-    'core/url': {
-      getDetailsFromUrl() {}
-    },
     'browser-panel/background': {
       default: {
         actions: {

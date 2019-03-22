@@ -128,8 +128,10 @@ export default () => [
     schema: {
       required: ['version', 'hasUserInput', 'results'],
       properties: {
-        version: { type: 'integer', value: 2 },
+        version: { type: 'integer', value: 3 },
         hasUserInput: { type: 'boolean' },
+        entryPoint: { type: 'string',
+          enum: ['newTab', 'browserBar', 'overlayByKeyboard', 'overlayByMouse'] },
         // results as in last results shown
         results: {
           type: 'array',

@@ -23,7 +23,8 @@ export default class WeatherResult extends BaseResult {
     super(...args);
     this.currentDay = 0;
     this.currentSelection = 'temperature';
-    this.currentUnit = this._main.default_unit;
+    const userSelectedUnit = localStorage && localStorage.getItem('weatherSCSelectedUnit');
+    this.currentUnit = userSelectedUnit || this._main.default_unit;
   }
 
   get template() {
@@ -245,6 +246,9 @@ export default class WeatherResult extends BaseResult {
         const target = e.target.id;
         if (target && target !== this.currentUnit) {
           this.currentUnit = target;
+          if (localStorage) {
+            localStorage.setItem('weatherSCSelectedUnit', target);
+          }
           this.resultTools.actions.replaceResult(this, this);
         }
       });

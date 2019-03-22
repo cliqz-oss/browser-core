@@ -198,9 +198,9 @@ export function disableChangeEvents() {
 export function resetOriginalPrefs() {}
 
 export function isDefaultBrowser() {
-  if (browser.cliqzSynchronus && browser.cliqzSynchronus.isDefaultBrowser) {
-    return browser.cliqzSynchronus.isDefaultBrowser();
+  if (chrome.cliqz && chrome.cliqz.isDefaultBrowser) {
+    return chrome.cliqz.isDefaultBrowser();
   }
 
-  return null;
+  return Promise.resolve(null);
 }

@@ -107,6 +107,9 @@
     "cinema_movie_cast": {
         "message": "Besetzung"
     },
+    "cinema_movie_director": {
+        "message": "Regisseur"
+    },
     "cinema_movie_full_cast": {
         "message": "Volle Besetzung"
     },
@@ -201,7 +204,7 @@
         "message": "Tracking Cache leeren"
     },
     "control_center_datapoints": {
-        "message": "Persönliche Daten wurden entfernt"
+        "message": "persönliche Daten wurden entfernt"
     },
     "control_center_datapoints_inactive": {
         "message": "Deaktiviert für diese Domain"
@@ -576,7 +579,7 @@
         "message": "U.S. Medien"
     },
     "freshtab_app_settings_privacy_stats": {
-        "message": "Datenschutz-Statistiken"
+        "message": "Statistiken"
     },
     "freshtab_app_settings_search_label": {
         "message": "Suchleiste"
@@ -693,7 +696,7 @@
         "message": "Gesparte Zeit"
     },
     "freshtab_stats_time_saved_desc": {
-        "message": "Geschätzte Zeit, die du dank Cliqz-Werbeblocker gespart hast."
+        "message": "Geschätzte Zeit, die du dank Cliqz gespart hast."
     },
     "freshtab_top_news": {
         "message": "Top Nachrichten"
@@ -707,17 +710,26 @@
     "freshtab_your_news": {
         "message": "Deine Nachrichtenseiten"
     },
+    "general_collapse_button": {
+        "message": "Weniger anzeigen"
+    },
     "general_expand_button": {
         "message": "Mehr anzeigen"
     },
     "ghost": {
         "message": "Ghost"
     },
+    "ghost_search_is_private": {
+        "message": "Ghost Suche ist anonym"
+    },
     "ghosteryTabAppDesc": {
-        "message": "Mach mehr aus Chrome. Mehr Privatsphäre, mehr Favoriten, mehr Freiheit, mehr Style und mehr News in jedem neuen Tab."
+        "message": "Mehr Privatsphäre, mehr Favoriten, mehr Freiheit, mehr Style und mehr News in jedem neuen Tab."
     },
     "ghosteryTabAppName": {
         "message": "Ghostery Start Tab mit Anonymer Suche (Beta)"
+    },
+    "ghosteryTabAppNameFirefox": {
+        "message": "Ghostery Start Tab"
     },
     "ghosteryTabAppNameNightly": {
         "message": "Ghostery Start Tab (Nightly)"
@@ -759,7 +771,7 @@
         "message": "Zubereitungsschritte"
     },
     "KickerSponsor": {
-        "message": "powered by kicker online"
+        "message": "Powered by Kicker Online"
     },
     "lang_code": {
         "message": "de"
@@ -831,7 +843,7 @@
         "message": "Anrufen"
     },
     "mobile_more_results_title": {
-        "message": "Nichts gefunden?"
+        "message": "Nicht das Richtige gefunden?"
     },
     "mobile_no_result_title": {
         "message": "Dieses Mal haben wir leider keinen guten Vorschlag."
@@ -1010,6 +1022,9 @@
     "offersAppNameNightly": {
         "message": "MyOffrz (Nightly)"
     },
+    "onboarding_data_collection": {
+        "message": "Cliqz nutzt anonymisierte Nutzungsdaten um den Browser für dich besser zu machen."
+    },
     "onboarding_fast": {
         "message": "Schnell"
     },
@@ -1018,6 +1033,9 @@
     },
     "onboarding_secure": {
         "message": "Sicher"
+    },
+    "onboarding_share_btn": {
+        "message": "Zu übermittelnde Daten festlegen"
     },
     "onboarding_start_btn": {
         "message": "Start"
@@ -1106,6 +1124,9 @@
     "results_found_in_history": {
         "message": "Ergebnisse in der Chronik anzeigen"
     },
+    "search_use_complementary": {
+        "message": "Ergänzende Suchmaschine verwenden?"
+    },
     "searchWith": {
         "message": "Mit $1 suchen"
     },
@@ -1176,16 +1197,16 @@
         "message": "Wird von Cliqz empfangen"
     },
     "transparency_content": {
-        "message": "Deine Privatsphäre ist uns heilig. Cliqz erhebt keine persönlichen Daten. Damit du überprüfen kannst, welche Daten bei der Nutzung des Cliqz-Browser generiert werden, haben wir das Transparenz Cockpit entwickelt. Dieses zeigt Dir in Echtzeit, die Daten, die wir erhalten. Um deine Privatsphäre zu schützen, werden manche Daten blockiert. Das heißt, sie veranlassen entweder gar nicht erst den Browser (z.B. Geo-Daten, sofern diese nicht erlaubt wurden) oder werden nicht weiterverarbeit bzw. mit anderen Daten kombiniert. Mach dir dein eigenes Bild!"
+        "message": "Deine Privatsphäre ist uns heilig. Cliqz erhebt keine persönlichen Daten. Damit du überprüfen kannst, welche Daten bei der Nutzung des Cliqz-Browser generiert werden, haben wir das Transparenz Monitor entwickelt. Dieses zeigt Dir in Echtzeit, die Daten, die wir erhalten. Um deine Privatsphäre zu schützen, werden manche Daten blockiert. Das heißt, sie veranlassen entweder gar nicht erst den Browser (z.B. Geo-Daten, sofern diese nicht erlaubt wurden) oder werden nicht weiterverarbeit bzw. mit anderen Daten kombiniert. Mach dir dein eigenes Bild!"
     },
     "transparency_content_title": {
-        "message": "Transparenz Cockpit"
+        "message": "Transparenz Monitor"
     },
     "transparency_document_title": {
-        "message": "Transparenz Cockpit"
+        "message": "Transparenz Monitor"
     },
     "transparency_html_title": {
-        "message": "Cliqz | Transparenz Cockpit"
+        "message": "Cliqz | Transparenz Monitor"
     },
     "transparency_humanweb_content": {
         "message": "Human Web ist unsere Technologie, mit der wir die Qualität unserer Suchergebnisse mittels statistischer Methoden ständig verbessern. Die anonymem statistischen Daten, die hier gesammelt werden, beziehen sich auch auf Suchanfragen und die jeweils erzielten Ergebnisse, unabhängig davon, welche Suchmaschine du nutzt. Die Datenarchitektur ist dabei so konzipiert, dass theoretisch mögliche Rückschlüsse auf Personen durch die Verknüpfung verschiedener Daten unmöglich sind. Die Übertragung der Human Web-Daten ist durch ein Proxy-Netzwerk und Verschlüsselung geschützt. Weitere Information findest du <a target='_blank' rel='noopener noreferrer' href='https://cliqz.com/whycliqz/transparency#human-web'>hier</a>."

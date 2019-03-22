@@ -12,6 +12,7 @@ import {
 } from '../core/content/helpers';
 import CouponFormObserver from './content/coupon/observer';
 import { getPurchaseButtons } from './content/utils';
+import amazonPrimeDetection from './content/profile/amazon-prime';
 
 function couponsHandlingScript(window, chrome, CLIQZ) {
   if (window.parent !== window) { return; }
@@ -83,6 +84,11 @@ function couponsHandlingScript(window, chrome, CLIQZ) {
     // Check if there is a purchase button
     // TODO: This does not work with dynamic page content yet
     const buyButtons = getPurchaseButtons(window);
+    // Do nothing if this page is full of buy buttons
+    if (buyButtons.length > 5) {
+      // Todo: add a different signal to this action
+      return;
+    }
     if (buyButtons.length > 0) {
       buyButtons.forEach((button) => {
         button.addEventListener('click', onBuyButtonClicked);
@@ -107,3 +113,4 @@ function couponsHandlingScript(window, chrome, CLIQZ) {
 
 
 registerContentScript('offers-v2', 'http*', couponsHandlingScript);
+registerContentScript('offers-v2', 'https://*.amazon.*', amazonPrimeDetection);

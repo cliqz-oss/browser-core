@@ -41,8 +41,11 @@ class DomainInfo {
     };
   }
 
-  getTrackerDetails(tracker) {
-    return this.apps[tracker];
+  getTrackerDetails(wtmOrAppId) {
+    if (this.apps[wtmOrAppId]) {
+      return this.apps[wtmOrAppId];
+    }
+    return Object.values(this.apps).find(app => app.wtm === wtmOrAppId);
   }
 }
 
@@ -77,4 +80,4 @@ export const service = async function service() {
   return domainInfo;
 };
 
-export default inject.service('domainInfo', ['getAppOwner', 'getBugOwner', 'getAppForBug', 'getDomainOwner', 'getTrackerDetails']);
+export default inject.service('domainInfo', ['getAppOwner', 'getBugOwner', 'getAppForBug', 'getDomainOwner', 'getTrackerDetails', 'domains']);

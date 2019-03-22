@@ -3,8 +3,8 @@
 
 const Rx = require('rxjs');
 const operators = require('rxjs/operators');
-const fastUrlParser = require('fast-url-parser');
 const tldts = require('tldts');
+const punycode = require('punycode');
 const encoding = require('text-encoding');
 const moment = require('moment');
 const jsonData = require('../../../antitracking/prob.json');
@@ -79,9 +79,6 @@ export default describeModule('antitracking/attrack',
       default: {},
       fetch: url => Promise.reject(new Error(`fetch rejected for ${url}`)),
     },
-    'core/fast-url-parser': {
-      default: fastUrlParser
-    },
     'core/zlib': {},
     'core/resource-manager': {
       default: {
@@ -98,7 +95,10 @@ export default describeModule('antitracking/attrack',
     'platform/browser': {
       getBrowserMajorVersion() {
         return 60;
-      }
+      },
+      checkIsWindowActive() {
+        return Promise.resolve(false);
+      },
     },
     'platform/url': {},
     'platform/crypto': {},
@@ -156,7 +156,7 @@ export default describeModule('antitracking/attrack',
         },
         setItem() {},
         removeItem() {},
-      }
+      },
     },
     'antitracking/legacy/database': {
       default: () => {},
@@ -171,6 +171,9 @@ export default describeModule('antitracking/attrack',
     },
     'platform/lib/moment': {
       default: moment,
+    },
+    'platform/lib/punycode': {
+      default: punycode,
     },
   }), function () {
     let attrack;
@@ -217,6 +220,7 @@ export default describeModule('antitracking/attrack',
       attrack.qs_whitelist.isReady = function () { return true; };
       config.cookieEnabled = false;
       config.qsEnabled = false;
+      config.placeHolder = '<removed>';
     });
 
     afterEach(() => {
@@ -432,29 +436,29 @@ export default describeModule('antitracking/attrack',
       it('removes all occurances of uid in the request', function () {
         const mainDoc = pipeline.onBeforeRequest({
           tabId: 34,
-          frameId: 34,
-          parentFrameId: 34,
+          frameId: 0,
+          parentFrameId: -1,
           method: 'GET',
-          type: 6,
+          type: 'main_frame',
           url: 'http://cliqztest.com/',
           requestHeaders: mockRequestHeaders,
-          originUrl: '',
-          sourceUrl: '',
+          frameAncestors: [],
         });
+        // chai.expect(attrack.tp_events._active).to.equal([]);
         chai.expect(mainDoc).to.not.have.property('cancel');
         chai.expect(mainDoc).to.not.have.property('redirectUrl');
         chai.expect(mainDoc).to.not.have.property('requestHeaders');
         const response = pipeline.onBeforeRequest({
           tabId: 34,
-          frameId: 34,
-          parentFrameId: 34,
+          frameId: 0,
+          parentFrameId: -1,
           method: 'GET',
-          type: 11,
+          type: 'xmlhttprequest',
           url: `http://tracker.com/track;uid=${uid}?uid2=${uid}&encuid=${encodeURIComponent(uid)}`,
           requestHeaders: mockRequestHeaders,
-          originUrl: 'http://cliqztest.com',
-          sourceUrl: 'http://cliqztest.com',
+          initiator: 'http://cliqztest.com',
           isPrivate: false,
+          frameAncestors: [],
         });
         chai.expect(response).to.have.property('redirectUrl');
         chai.expect(response.redirectUrl).to.not.contain(uid);
@@ -467,11 +471,12 @@ export default describeModule('antitracking/attrack',
           frameId: 34,
           parentFrameId: 34,
           method: 'GET',
-          type: 6,
+          type: 'main_frame',
           url: 'http://cliqztest.com/',
           requestHeaders: mockRequestHeaders,
           originUrl: '',
-          sourceUrl: '',
+          tabUrl: '',
+          frameAncestors: [],
         });
         chai.expect(mainDoc).to.not.have.property('cancel');
         chai.expect(mainDoc).to.not.have.property('redirectUrl');
@@ -481,12 +486,13 @@ export default describeModule('antitracking/attrack',
           frameId: 34,
           parentFrameId: 34,
           method: 'GET',
-          type: 11,
+          type: 'xmlhttprequest',
           url: `http://tracker.com/track;uid=${uid}?uid2=${uid}&encuid=${encodeURIComponent(uid)}`,
           requestHeaders: mockRequestHeaders,
           originUrl: 'http://cliqztest.com',
-          sourceUrl: 'http://cliqztest.com',
+          tabUrl: 'http://cliqztest.com',
           isPrivate: false,
+          frameAncestors: [],
         });
         chai.expect(response).to.have.property('redirectUrl');
         chai.expect(response.redirectUrl).to.not.contain(uid);
@@ -497,12 +503,13 @@ export default describeModule('antitracking/attrack',
           frameId: 34,
           parentFrameId: 34,
           method: 'GET',
-          type: 11,
+          type: 'xmlhttprequest',
           url: `http://tracker.com/track;uid=cliqz.com/tracking&uid2=cliqz.com/tracking&uid=${uid}?uid2=${uid}&encuid=${encodeURIComponent(uid)}`,
           requestHeaders: mockRequestHeaders,
           originUrl: 'http://cliqztest.com',
-          sourceUrl: 'http://cliqztest.com',
+          tabUrl: 'http://cliqztest.com',
           isPrivate: false,
+          frameAncestors: [],
         });
         chai.expect(response).to.have.property('redirectUrl');
         chai.expect(response.redirectUrl).to.not.contain(uid);

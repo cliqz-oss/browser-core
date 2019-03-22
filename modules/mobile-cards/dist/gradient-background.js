@@ -5,12 +5,12 @@ end = end >= 0 ? end : params.length;
 let bg = params.substring(start, end);
 function drawBackground() {
   const root = document.body;
-  if (bg === 'white') {
-    root.style.backgroundImage = '';
-    root.style.backgroundColor = 'white';
-    return;
-  }
   browser.tabs.query({ active: true, currentWindow: true }).then(([{ incognito } = {}]) => {
+    if (bg === 'white') {
+      root.style.backgroundImage = '';
+      root.style.backgroundColor = incognito ? '#0D0F22' : 'white';
+      return;
+    }
     const color = incognito ? '#0080b1' : '#00AEF0';
     const height = window.screen.availHeight;
     const width = window.screen.availWidth;

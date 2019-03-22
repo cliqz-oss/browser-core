@@ -8,9 +8,6 @@ const cliqzConfig = require('./config');
 const modules = require('./modules-tree');
 const util = require('./util');
 
-// input trees
-const mobileSpecific  = new Funnel('specific/web', { exclude: ['skin/sass/**/*', '*.py'] });
-
 console.log('Source maps:', cliqzConfig.sourceMaps);
 console.log(cliqzConfig);
 const configFile = writeFile('cliqz.json', JSON.stringify(cliqzConfig));
@@ -42,7 +39,6 @@ const mobile = new MergeTrees([
   configFile,
   otherModulesTree,
   serpTree,
-  mobileSpecific,
 ]);
 
 const outputList = [
@@ -62,7 +58,6 @@ if (process.env['CLIQZ_ENVIRONMENT'] !== 'production') {
     sourceMapConfig: { enabled: cliqzConfig.sourceMaps },
   });
   const mobileDev = new MergeTrees([
-    mobileSpecific,
     modules.modules,
     modules.styleTests,
   ]);

@@ -5,7 +5,6 @@ import prefs from '../core/prefs';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import config from '../core/config';
 import { getMessage } from '../core/i18n';
-import { getDetailsFromUrl } from '../core/url';
 import { forEachWindow } from '../core/browser';
 import logger from './logger';
 import DefaultMap from '../core/helpers/default-map';
@@ -170,8 +169,7 @@ export default class Win {
         backgroundColor = uiInfo.template_data.styles.headline_color;
       } else {
         const CTAUrl = uiInfo.template_data.call_to_action.url;
-        const urlDetails = getDetailsFromUrl(CTAUrl);
-        const logoDetails = utils.getLogoDetails(urlDetails);
+        const logoDetails = utils.getLogoDetails(CTAUrl);
         backgroundColor = `#${logoDetails.backgroundColor}`;
       }
 
@@ -378,8 +376,7 @@ export default class Win {
           backgroundColor = uiInfo.template_data.styles.headline_color;
         } else {
           const CTAUrl = uiInfo.template_data.call_to_action.url;
-          const urlDetails = getDetailsFromUrl(CTAUrl);
-          const logoDetails = utils.getLogoDetails(urlDetails);
+          const logoDetails = utils.getLogoDetails(CTAUrl);
           backgroundColor = `#${logoDetails.brandTxtColor}`;
         }
 

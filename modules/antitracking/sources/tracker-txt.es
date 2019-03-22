@@ -68,7 +68,7 @@ const TrackerTXT = function (baseurl) {
 TrackerTXT._cache = new MapCache(baseurl => new TrackerTXT(baseurl), 1000);
 
 TrackerTXT.get = (urlParts) => {
-  const baseurl = `${urlParts.protocol}://${urlParts.hostname}(${urlParts.port} !== 80 ? :${urlParts.port} : '')`;
+  const baseurl = `${urlParts.protocol}://${urlParts.hostname}(${urlParts.port !== 80 ? urlParts.port : ''})`;
   return TrackerTXT._cache.get(baseurl);
 };
 

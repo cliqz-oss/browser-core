@@ -1,6 +1,7 @@
 import { Services, Components } from './globals';
 import console from './console';
 
+export const PLATFORM_TELEMETRY_WHITELIST = [];
 const prefs = typeof Services !== 'undefined' ? Services.prefs.getBranch('') : undefined;
 const complexRegEx = /^chrome:\/\/.+\/locale\/.+\.properties/;
 

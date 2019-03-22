@@ -6,7 +6,7 @@ const URL_PREFIX_BLACKLIST = [
   'moz-extension://',
   'chrome-extension://',
 ];
-const unifiedSearchAvailable = chrome.cliqz && chrome.cliqz.unifiedSearch;
+const unifiedSearchAvailable = chrome.cliqzHistory && chrome.cliqzHistory.unifiedSearch;
 
 function isURLBlacklisted(url) {
   return URL_PREFIX_BLACKLIST.find(prefix => url.indexOf(prefix) === 0);
@@ -57,7 +57,7 @@ if (chrome.tabs && !unifiedSearchAvailable) {
 export default function getHistory(query, callback) {
   // we use the unified search experimental API in the Cliqz browser
   if (unifiedSearchAvailable) {
-    chrome.cliqz.unifiedSearch(query).then(callback);
+    chrome.cliqzHistory.unifiedSearch(query).then(callback);
     return;
   }
 

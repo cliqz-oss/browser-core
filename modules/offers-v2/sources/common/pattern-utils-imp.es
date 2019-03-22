@@ -4,6 +4,9 @@ import PatternMatching from '../../platform/lib/adblocker';
 /**
  * Accelerating data structure for network filters matching. Makes use of the
  * reverse index structure defined above.
+ * @param {[PatternMatching.NetworkFilter]} filters
+ * @param {Map<string, string>>} id2patterns
+ * @param {Map<string, string>>} id2categories
  */
 class PatternIndex {
   constructor(filters, id2pattern, id2categories = new Map()) {
@@ -27,6 +30,10 @@ class PatternIndex {
    */
   match(/* request */) {
     throw new Error('should be implemented by the inherited class ');
+  }
+
+  isEmpty() {
+    return this.id2pattern.size === 0;
   }
 }
 

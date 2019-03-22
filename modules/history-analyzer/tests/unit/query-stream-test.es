@@ -2,9 +2,9 @@
 /* global describeModule */
 
 const adblocker = require('@cliqz/adblocker');
-const fastUrlParser = require('fast-url-parser');
 const moment = require('moment');
 const tldts = require('tldts');
+const punycode = require('punycode');
 
 const mockDexie = require('../../core/unit/utils/dexie');
 
@@ -45,9 +45,6 @@ export default describeModule('history-analyzer/query-stream',
         subscribe() { return { unsubscribe() {} }; }
       },
     },
-    'core/fast-url-parser': {
-      default: fastUrlParser
-    },
     'core/helpers/md5': {},
     'history-analyzer/logger': {
       default: {
@@ -55,6 +52,9 @@ export default describeModule('history-analyzer/query-stream',
         log() {},
         error() {},
       },
+    },
+    'platform/lib/punycode': {
+      default: punycode,
     },
   }),
   () => {

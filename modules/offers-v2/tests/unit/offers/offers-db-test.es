@@ -869,8 +869,8 @@ export default describeModule('offers-v2/offers/offers-db',
             db.addReasonForHaving(offerID, { toStorage: () => ({ reason: ['smth'] }) });
 
             const reasonObj = db.getReasonForHaving(offerID);
-
-            chai.expect(reasonObj.getReason()).is.eql(['smth']);
+            const expected = [{ pattern: 'smth' }];
+            chai.expect(reasonObj.getReason()).is.eql(expected);
           });
         });
 

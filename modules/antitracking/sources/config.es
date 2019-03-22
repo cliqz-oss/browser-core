@@ -39,6 +39,7 @@ export const DEFAULTS = {
   tpDomainDepth: 2,
   firstPartyIsolation: false,
   tokenTelemetry: {},
+  databaseEnabled: true,
 };
 
 export const PREFS = {

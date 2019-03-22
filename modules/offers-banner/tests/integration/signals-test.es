@@ -14,6 +14,26 @@ import triggerOffer from './preparation';
 
 const offers = app.modules['offers-v2'].background;
 
+function isSomeOfferShown(offersModule) {
+  try {
+    const allCampaigns = offersModule.signalsHandler.sigMap.campaign;
+    for (const campaign of Object.values(allCampaigns)) {
+      const sigOffers = campaign.data.offers;
+      for (const offer of Object.values(sigOffers)) {
+        const origins = offer.origins;
+        for (const signals of Object.values(origins)) {
+          for (const sigName of Object.keys(signals)) {
+            if (sigName === 'offer_shown') {
+              return true;
+            }
+          }
+        }
+      }
+    }
+  } catch (err) { } // eslint-disable-line no-empty
+  return false;
+}
+
 function signalsTests(dest, config) {
   let tabId;
 
@@ -22,7 +42,7 @@ function signalsTests(dest, config) {
 
     beforeEach(async function () {
       tabId = await triggerOffer(dest);
-      await wait(4000); // timeout before banner's appearance
+      await waitFor(() => isSomeOfferShown(offers)); // wait for banner's appearance
       allCampaigns = app.modules['offers-v2'].background.signalsHandler.sigMap.campaign;
     });
 
@@ -47,7 +67,7 @@ function signalsTests(dest, config) {
         describe('server-side', function () {
           let hits;
           beforeEach(async function () {
-            offers.signalsHandler._sendSignalsToBE();
+            await offers.signalsHandler.flush();
             await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 15000);
             hits = await testServer.getHits();
           });
@@ -91,7 +111,7 @@ function signalsTests(dest, config) {
         describe('server-side', function () {
           let hits;
           beforeEach(async function () {
-            offers.signalsHandler._sendSignalsToBE();
+            await offers.signalsHandler.flush();
             await waitFor(() => testServer.hasHit('/api/v1/savesignal'), 10000);
             hits = await testServer.getHits();
           });
