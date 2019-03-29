@@ -34,7 +34,7 @@ class PageLoadData {
     this.url = url.href;
     this.hostname = url.hostname;
     this.path = this._shortHash(truncatePath(url.pathname));
-    this.scheme = url.protocol;
+    this.scheme = url.scheme;
     this.private = isPrivate;
     this.c = 1;
     this.s = Date.now();

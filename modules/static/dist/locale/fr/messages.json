@@ -533,6 +533,18 @@
     "freshtab_app_settings_background_label": {
         "message": "Fond d'écran"
     },
+    "freshtab_app_settings_browser_theme": {
+        "message": "Thème navigateur"
+    },
+    "freshtab_app_settings_browser_theme_blue": {
+        "message": "Onglets bleus"
+    },
+    "freshtab_app_settings_browser_theme_dark": {
+        "message": "Foncé"
+    },
+    "freshtab_app_settings_browser_theme_light": {
+        "message": "Clair"
+    },
     "freshtab_app_settings_favorites_label": {
         "message": "Favoris"
     },

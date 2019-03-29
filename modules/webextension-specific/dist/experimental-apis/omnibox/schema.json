@@ -586,6 +586,20 @@
           }
         }
       }]
+    },
+    {
+      "name": "onGotoAddress",
+      "type": "function",
+      "parameters": [{
+        "name": "details",
+        "type": "object",
+        "properties": {
+          "windowId": {
+            "type": "number",
+            "minimum": -2
+          }
+        }
+      }]
     }
   ]
 }]

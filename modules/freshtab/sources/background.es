@@ -1,6 +1,7 @@
 /* eslint no-param-reassign: 'off' */
 /* eslint func-names: 'off' */
 
+import { chrome } from '../platform/globals';
 import inject from '../core/kord/inject';
 import NewTabPage from './main';
 import News from './news';
@@ -14,6 +15,7 @@ import SpeedDial from './speed-dial';
 import AdultDomain from './adult-domain';
 import OffersUpdateService from './services/offers-update';
 import background from '../core/base/background';
+import telemetry from '../core/services/telemetry';
 import {
   forEachWindow,
   Window,
@@ -26,7 +28,6 @@ import {
   isCliqzBrowser,
   isCliqzAtLeastInVersion,
   isChromium,
-  isWebExtension,
   isAMO,
   product,
 } from '../core/platform';
@@ -99,7 +100,6 @@ export default background({
   geolocation: inject.module('geolocation'),
   messageCenter: inject.module('message-center'),
   search: inject.module('search'),
-  theme: inject.module('theme'),
   ui: inject.module('ui'),
   offersV2: inject.module('offers-v2'),
   insights: inject.module('insights'),
@@ -195,21 +195,29 @@ export default background({
   },
 
   get blueTheme() {
-    return prefs.get(BLUE_THEME_PREF, false);
+    return prefs.get(BLUE_THEME_PREF, false, 'extensions.cliqz.');
+  },
+
+  async browserTheme() {
+    if (chrome.cliqz) {
+      let browserTheme = await chrome.cliqz.getTheme();
+      if (browserTheme === undefined) {
+        browserTheme = 'light';
+      }
+      return browserTheme;
+    }
+    return '';
   },
 
   /*
   * Blue theme is supported only for CLIQZ users above 1.16.0
   */
   get isBlueThemeSupported() {
-    const CLIQZ_1_21_OR_ABOVE = isCliqzAtLeastInVersion('1.21.0');
+    return isCliqzBrowser || prefs.get(DEVELOPER_FLAG_PREF, false);
+  },
 
-    if (isWebExtension || (isCliqzBrowser && CLIQZ_1_21_OR_ABOVE)) {
-      return false;
-    }
-
-    const CLIQZ_1_16_OR_ABOVE = isCliqzAtLeastInVersion('1.16.0');
-    return (isCliqzBrowser && CLIQZ_1_16_OR_ABOVE) || prefs.get(DEVELOPER_FLAG_PREF, false);
+  get isBrowserThemeSupported() {
+    return isCliqzBrowser || prefs.get(DEVELOPER_FLAG_PREF, false);
   },
 
   getNewsEdition() {
@@ -876,7 +884,9 @@ export default background({
         searchReminderCounter: this.searchReminderCounter,
         locale: getLanguageFromLocale(i18n.PLATFORM_LOCALE),
         blueTheme: this.blueTheme,
-        isBlueThemeSupported: this.isBlueThemeEnabled,
+        browserTheme: await this.browserTheme(),
+        isBlueThemeSupported: this.isBlueThemeSupported,
+        isBrowserThemeSupported: this.isBrowserThemeSupported,
         wallpapers: getWallpapers(product),
         product,
         tabIndex,
@@ -895,6 +905,13 @@ export default background({
       };
     },
 
+    async setBrowserTheme(theme) {
+      if (chrome.cliqz) {
+        telemetry.push({ theme }, 'freshtab.prefs.browserTheme');
+        await chrome.cliqz.setTheme(`firefox-compact-${theme}@mozilla.org`);
+      }
+    },
+
     /**
     * @method toggleBlueTheme
     */
@@ -906,18 +923,14 @@ export default background({
       }
 
       if (this.blueTheme) {
-        prefs.set(BLUE_THEME_PREF, false);
+        prefs.set(BLUE_THEME_PREF, false, 'extensions.cliqz.');
       } else {
-        prefs.set(BLUE_THEME_PREF, true);
+        prefs.set(BLUE_THEME_PREF, true, 'extensions.cliqz.');
       }
     },
 
     toggleBlueClassForFFTesting() {
-      if (this.blueTheme) {
-        this.theme.action('removeBlueClass');
-      } else {
-        this.theme.action('addBlueClass');
-      }
+      // TODO
     },
 
     /**
@@ -980,6 +993,10 @@ export default background({
 
     isBlueThemeEnabled() {
       return this.blueTheme;
+    },
+
+    getBrowserTheme() {
+      return this.browserTheme();
     },
 
     getComponentsState() {

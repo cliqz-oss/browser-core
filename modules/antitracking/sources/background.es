@@ -71,7 +71,7 @@ export default background({
       // - On Cliqz humanweb opt-out is flagged via 'humanWebOptOut' pref.
       // - On Ghostery the module is disabled
       // - On other platforms, where humanweb is not in the build, opt-out should be done directly.
-      if (prefs.get('humanWebOptOut', true) || humanwebExistsAndDisabled()) {
+      if (prefs.get('humanWebOptOut', false) || humanwebExistsAndDisabled()) {
         this.config.telemetryMode = TELEMETRY.DISABLED;
       }
       return this.attrack.init(this.config, settings);

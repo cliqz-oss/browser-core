@@ -26,6 +26,7 @@ import activeUser from './analyses/active-user';
 
 import freshtabActivity from './analyses/freshtab-activity';
 import freshtabSettings from './analyses/freshtab-settings';
+import freshtabSettingsInteractions from './analyses/freshtab-settings-interactions'
 import freshtabBackground from './analyses/freshtab-background';
 
 import newsPagination from './analyses/news-pagination';
@@ -88,6 +89,7 @@ const analyses = () => [
   controlCenter,
   freshtabActivity,
   freshtabSettings,
+  freshtabSettingsInteractions,
   freshtabBackground,
   mobile,
   newsPagination,

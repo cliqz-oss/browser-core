@@ -75,6 +75,7 @@ export default class WebRequestContext {
 
     this.urlParts = URLInfo.get(this.url);
     this.tabUrlParts = URLInfo.get(this.tabUrl);
+    this.originUrlParts = URLInfo.get(this.originUrl);
   }
 
   get frameUrlParts() {

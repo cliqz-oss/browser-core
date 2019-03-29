@@ -314,11 +314,6 @@ export default class CliqzAttrack {
       // ----------------------------------- \\
       this.pipelines.onBeforeRequest = new Pipeline('antitracking.onBeforeRequest', [
         {
-          name: 'redirectTagger.checkRedirect',
-          spec: 'break',
-          fn: state => steps.redirectTagger.checkRedirect(state),
-        },
-        {
           name: 'oauthDetector.checkMainFrames',
           spec: 'break',
           fn: state => steps.oauthDetector.checkMainFrames(state),
@@ -327,6 +322,11 @@ export default class CliqzAttrack {
           name: 'pageLogger.logMainDocument',
           spec: 'break',
           fn: state => steps.pageLogger.logMainDocument(state),
+        },
+        {
+          name: 'redirectTagger.checkRedirect',
+          spec: 'break',
+          fn: state => steps.redirectTagger.checkRedirect(state),
         },
         {
           name: 'skipInvalidSource',

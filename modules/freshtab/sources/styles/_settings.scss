@@ -90,6 +90,21 @@
                 vertical-align: top
             }
 
+            .btns-wrapper {
+                margin-top: 4px;
+                color: rgba(0, 0, 0, 0.7);
+                font-size: 12px;
+
+                input[type=radio] {
+                    cursor: pointer;
+                }
+
+                label {
+                    cursor: pointer;
+                    padding-left: 6px;
+                }
+            }
+
             .label {
                 font-size: 14px;
                 color: rgba(0, 0, 0, 0.7);

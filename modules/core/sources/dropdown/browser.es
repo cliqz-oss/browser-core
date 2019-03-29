@@ -87,8 +87,9 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     return utils.telemetry(...args);
   }
 
-  _reportHighlight() {
+  _reportHighlight(result) {
     const { tabId } = this._urlbarDetails;
+    this.selectedResult = result;
     this._cliqz.search.action('reportHighlight', { tab: { id: tabId } });
   }
 
@@ -417,6 +418,10 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
 
   onDropmarker() {
     this._queryCliqz('', { allowEmptyQuery: true });
+  }
+
+  onGotoAddress() {
+    this._handleEnter(false);
   }
 
   createIframeWrapper() {

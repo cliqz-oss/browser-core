@@ -20,6 +20,38 @@
     ]
   },
   {
+    "name": "setTheme",
+    "type": "function",
+    "description": "Set browser theme",
+    "async": "callback",
+    "parameters": [
+      {
+        "name": "themeId",
+        "type": "string",
+        "description": "themeId"
+      },
+      {
+        "name": "callback",
+        "type": "function",
+        "parameters": []
+      }
+    
+    ]
+  },
+  {
+    "name": "getTheme",
+    "type": "function",
+    "description": "gerlhrt browser theme",
+    "async": "callback",
+    "parameters": [
+      {
+        "name": "callback",
+        "type": "function",
+        "parameters": []
+      }
+    ]
+  },
+  {
     "name": "getSearchEngines",
     "type": "function",
     "description": "Returns all complementary search engines that come from the browser searchplugins/list.json",

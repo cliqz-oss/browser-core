@@ -2,7 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Switch from './partials/switch';
 import Button from './partials/button';
+import Radio from './partials/radio';
 import BackgroundImage from './background-image';
+import cliqz from '../cliqz';
 import t from '../i18n';
 import { settingsCloseSignal, settingsBackgroundSelectSignal } from '../services/telemetry/settings';
 import config from '../../config';
@@ -83,6 +85,9 @@ export default class Settings extends React.Component {
     this.props.toggle();
   }
 
+  async handleThemeChange(ev) {
+    cliqz.freshtab.setBrowserTheme(ev.target.value);
+  }
 
   render() {
     /* eslint-disable jsx-a11y/no-static-element-interactions */
@@ -102,10 +107,38 @@ export default class Settings extends React.Component {
             <h1>{t('app_settings_header')}</h1>
           </div>
 
+          {this.props.isBrowserThemeSupported
+            && (
+            <div className="settings-row">
+              <span className="label">{t('app_settings_browser_theme')}</span>
+              <div className="btns-wrapper">
+                <Radio
+                  id="light"
+                  labelValue={t('app_settings_browser_theme_light')}
+                  name="browser_theme"
+                  onChange={this.handleThemeChange}
+                  type="radio"
+                  value="light"
+                  checked={this.props.browserTheme === 'light'}
+                />
+                <Radio
+                  id="dark"
+                  labelValue={t('app_settings_browser_theme_dark')}
+                  name="browser_theme"
+                  onChange={this.handleThemeChange}
+                  type="radio"
+                  value="dark"
+                  checked={this.props.browserTheme === 'dark'}
+                />
+              </div>
+            </div>
+            )
+          }
+
           {this.props.isBlueThemeSupported
             && (
               <div className="settings-row">
-                <span className="label">Cliqz Theme</span>
+                <span className="label">{t('app_settings_browser_theme_blue')}</span>
                 <Switch
                   isChecked={this.props.blueTheme}
                   name="blueTheme"
@@ -238,7 +271,8 @@ export default class Settings extends React.Component {
 Settings.propTypes = {
   blueTheme: PropTypes.bool,
   hasHistorySpeedDialsToRestore: PropTypes.bool,
-  isBlueThemeSupported: PropTypes.func,
+  isBlueThemeSupported: PropTypes.bool,
+  isBrowserThemeSupported: PropTypes.bool,
   isOpen: PropTypes.bool,
   isStatsSupported: PropTypes.bool,
   onBackgroundImageChanged: PropTypes.func,

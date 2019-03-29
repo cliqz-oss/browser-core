@@ -19,6 +19,7 @@ const PASSIVE_EVENTS = [
 const PREVENTABLE_EVENTS = [
   'keydown',
   'keypress',
+  'mouseup',
 ];
 
 const PASSIVE_LISTENER_OPTIONS = {
@@ -29,6 +30,12 @@ const PASSIVE_LISTENER_OPTIONS = {
 const PREVENTABLE_LISTENER_OPTIONS = {
   passive: false,
 };
+
+function stopEvent(event) {
+  event.stopImmediatePropagation();
+  event.stopPropagation();
+  event.preventDefault();
+}
 
 export default class URLBar extends EventEmitter {
   _oldPlaceholder = null;
@@ -97,6 +104,7 @@ export default class URLBar extends EventEmitter {
     PREVENTABLE_EVENTS.forEach(eventName =>
       urlbar.addEventListener(eventName, this, PREVENTABLE_LISTENER_OPTIONS));
     window.addEventListener('resize', this, PASSIVE_LISTENER_OPTIONS);
+    urlbar.goButton.addEventListener('click', stopEvent, true);
 
     if (this._oldPlaceholder === null) {
       this._oldPlaceholder = urlbar.mInputField.placeholder;
@@ -128,6 +136,8 @@ export default class URLBar extends EventEmitter {
     if (this._oldPlaceholder !== null) {
       urlbar.mInputField.placeholder = this._oldPlaceholder;
     }
+
+    urlbar.goButton.removeEventListener('click', stopEvent, true);
     this._windows.delete(window);
   }
 
@@ -220,6 +230,9 @@ export default class URLBar extends EventEmitter {
       case 'mouseup':
         if (event.originalTarget.getAttribute('anonid') === 'historydropmarker') {
           this.emit('dropmarker', window, this._getURLBarDetails(window));
+        } else if (event.originalTarget.getAttribute('anonid') === 'urlbar-go-button') {
+          this.emit('gotoaddress', window, this._getURLBarDetails(window));
+          preventDefault = true;
         }
         break;
       case 'drop':
@@ -504,6 +517,7 @@ export default class URLBar extends EventEmitter {
       onBlur: this._generateEventManager(context, 'blur'),
       onDrop: this._generateEventManager(context, 'drop'),
       onDropmarker: this._generateEventManager(context, 'dropmarker'),
+      onGotoAddress: this._generateEventManager(context, 'gotoaddress'),
     };
   }
 }

@@ -28,9 +28,11 @@ function AsideRight({
     <aside className="aside">
       <Settings
         blueTheme={config.blueTheme}
+        browserTheme={config.browserTheme}
         componentsState={config.componentsState}
         hasHistorySpeedDialsToRestore={state.hasHistorySpeedDialsToRestore}
         isBlueThemeSupported={config.isBlueThemeSupported}
+        isBrowserThemeSupported={config.isBrowserThemeSupported}
         isOpen={state.isSettingsOpen}
         isStatsSupported={config.isStatsSupported}
         onBackgroundImageChanged={onBackgroundImageChanged}

@@ -49,8 +49,8 @@ export default class PageLogger {
       const request = this.tpEvents.get(
         state.url,
         urlParts,
-        state.tabUrl,
-        state.tabUrlParts,
+        state.originUrl,
+        state.originUrlParts,
         state.tabId
       );
       state.reqLog = request;

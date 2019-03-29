@@ -142,7 +142,7 @@ export default describeModule('antitracking/tp_events',
 
           chai.expect(page.hostname).to.equal(pageUrl.hostname);
           chai.expect(page.path).to.equal(mockMd5('/user'));
-          chai.expect(page.scheme).to.equal(pageUrl.protocol);
+          chai.expect(page.scheme).to.equal(pageUrl.scheme);
         });
 
         it('truncates the hostname when prepared for sending', () => {

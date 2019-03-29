@@ -76,6 +76,7 @@ export default class PageStore {
     }
 
     if (event === 'onBeforeRequest') {
+      tabContext.frames.clear();
       // Detect redirect: if the last request on this tab had the same id and
       // this was from the same `onBeforeRequest` hook, we can assume this is a
       // redirection.

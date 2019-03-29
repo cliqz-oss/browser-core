@@ -128,7 +128,7 @@ export default background({
     this.UPDATE_DATA_EVENTS
       .forEach(eventName => omniboxapi[eventName].addListener(this.updateData));
 
-    this._handlers = ['onInput', 'onKeydown', 'onBlur', 'onDropmarker'].reduce((h, eventName) => {
+    this._handlers = ['onInput', 'onKeydown', 'onBlur', 'onDropmarker', 'onGotoAddress'].reduce((h, eventName) => {
       h.set(eventName, this._dropdownManager[eventName].bind(this._dropdownManager));
       omniboxapi[eventName].addListener(h.get(eventName));
       return h;
