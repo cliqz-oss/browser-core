@@ -1,0 +1,209 @@
+{
+    "always": {
+        "message": "Immer"
+    },
+    "always_ask": {
+        "message": "Immer fragen"
+    },
+    "control_center_adblock_advertisers": {
+        "message": "Liste der Werbetreibenden auf dieser Seite"
+    },
+    "control_center_adblock_description": {
+        "message": "Werbungen wurden geblockt"
+    },
+    "control_center_adblock_description_off_all": {
+        "message": "Deaktiviert für alle Websites"
+    },
+    "control_center_adblock_description_off_domain": {
+        "message": "Deaktiviert für diese Domain"
+    },
+    "control_center_adblock_description_off_website": {
+        "message": "Deaktiviert für diese Seite"
+    },
+    "control_center_adblock_title": {
+        "message": "Werbeblocker"
+    },
+    "control_center_all_sites": {
+        "message": "Alle Websites"
+    },
+    "control_center_backend_country": {
+        "message": "Suchergebnisse für"
+    },
+    "control_center_check_hideMyIP": {
+        "message": "IP maskieren"
+    },
+    "control_center_check_strict": {
+        "message": "Streng"
+    },
+    "control_center_clear_trCache": {
+        "message": "Tracking Cache leeren"
+    },
+    "control_center_datapoints": {
+        "message": "persönliche Daten wurden entfernt"
+    },
+    "control_center_datapoints_inactive": {
+        "message": "Deaktiviert für diese Domain"
+    },
+    "control_center_datapoints_off": {
+        "message": "Deaktiviert für alle Websites"
+    },
+    "control_center_disabled": {
+        "message": "Deaktiviert"
+    },
+    "control_center_enabled": {
+        "message": "Aktiviert"
+    },
+    "control_center_explicit": {
+        "message": "18+ Seiten blockieren"
+    },
+    "control_center_footer": {
+        "message": "BEREITGESTELLT VON CLIQZ"
+    },
+    "control_center_humanweb": {
+        "message": "Human Web"
+    },
+    "control_center_icon_tooltip": {
+        "message": "Cliqz Control Center"
+    },
+    "control_center_info_ads": {
+        "message": "Mit dieser Funktion können Werbungen generell oder nur für bestimmte Websites ausgeblendet werden."
+    },
+    "control_center_info_ads_title": {
+        "message": "Werbeblocker"
+    },
+    "control_center_info_cliqz_tab": {
+        "message": "Auf neuen Tabs zeigt dir Cliqz Tab Schnellzugriffe für deine meistbesuchten und favorisierten Websites und bringt dich mit aktuellen News flott auf den neuesten Stand."
+    },
+    "control_center_info_explicit": {
+        "message": "Sollen Websites, die Pornographie oder Gewalt beinhalten, aus den Suchergebnissen ausgeschlossen werden?"
+    },
+    "control_center_info_explicit_title": {
+        "message": "18+ Seiten blockieren"
+    },
+    "control_center_info_forget_mode": {
+        "message": "Websites mit nicht-jugendfreien Inhalten werden automatisch in einem Vergessen Tab geöffnet. Das heißt, Besuche dieser Seiten werden nicht in der Chronik gespeichert."
+    },
+    "control_center_info_forget_mode_title": {
+        "message": "Automatischer Vergessen Modus"
+    },
+    "control_center_info_hpn": {
+        "message": "Wer bei der Internet-Suche erweiterte Anonymität wünscht und die eigene IP-Adresse verbergen möchte, kann die Suchanfragen über ein Netzwerk aus Proxyservern laufen lassen."
+    },
+    "control_center_info_hpn_title": {
+        "message": "Suche über Proxy"
+    },
+    "control_center_info_https": {
+        "message": "Diese Funktion erhöht die Sicherheit beim Surfen, indem sie immer verschlüsselte HTTPS Verbindungen zu Seiten anfordert, wenn das möglich ist. Wir haben dafür den quelloffenen Service HTTPS Everywhere eingebunden."
+    },
+    "control_center_info_https_title": {
+        "message": "HTTPS bevorzugen"
+    },
+    "control_center_info_hw": {
+        "message": "Die Human Web Technologie erhebt komplett anonymisierte Daten über Suchanfragen und Website-Besuche von der Gemeinschaft der Nutzer. Sie bildet daraus den Web-Index, der die Suchfunktion speist."
+    },
+    "control_center_info_hw_title": {
+        "message": "Human Web"
+    },
+    "control_center_info_phishing": {
+        "message": "Betrügerische Websites, die es auf Passwörter und Kontodaten abgesehen haben, werden mit der Anti-Phishing Technologie vorzeitig erkannt und blockiert."
+    },
+    "control_center_info_phishing_title": {
+        "message": "Anti-Phishing"
+    },
+    "control_center_info_share_location": {
+        "message": "Die relevantesten Suchergebnisse werden gezeigt, wenn \"Standort teilen\" auf <strong>\"Immer\"</strong> eingestellt ist. Die Standort-Daten dienen dabei nur der automatischen Verbesserung der Suchergebnisse und werden niemals anderweitig verwendet."
+    },
+    "control_center_info_share_location_link": {
+        "message": "Mehr erfahren"
+    },
+    "control_center_info_share_location_title": {
+        "message": "Standort teilen"
+    },
+    "control_center_info_trackers": {
+        "message": "Integrierte Tracker zeichnen auf fast allen Websites Nutzer-Aktivitäten auf. Anti-Tracking verhindert, dass Daten, anhand derer einzelne Nutzer identifiziert werden könnten, an diese Tracking Dienste gesendet werden. Die Zahl zeigt die Menge der blockierten Datensätze auf der aktiven Seite."
+    },
+    "control_center_location": {
+        "message": "Standort teilen"
+    },
+    "control_center_offers_location": {
+        "message": "MyOffrz in der Nähe anzeigen"
+    },
+    "control_center_offers_location_info": {
+        "message": "Verpasse keine Angebote in deiner Nähe! Wenn du die Option aktivierst, registriert MyOffrz, in welcher Region du dich gerade aufhältst. Diese Information ist nötig, um dir lokale Angebote anzuzeigen. Sie wird nicht auf Servern gespeichert."
+    },
+    "control_center_offers_options": {
+        "message": "MyOffrz Optionen"
+    },
+    "control_center_offers_show": {
+        "message": "MyOffrz anzeigen"
+    },
+    "control_center_offers_show_info": {
+        "message": "Sichere dir attraktive Rabatte und Schnäppchen! MyOffrz zeigt dir nur Angebote, wenn sie für dich nützlich sind. MyOffrz erfüllt höchste Datenschutzstandards. Es werden keine personenbezogene Daten auf Servern gespeichert."
+    },
+    "control_center_open": {
+        "message": "Öffnen"
+    },
+    "control_center_othersettings": {
+        "message": "Einstellungen"
+    },
+    "control_center_phishing_deceptive_not": {
+        "message": "Nicht als betrügerisch gemeldet"
+    },
+    "control_center_phishing_report": {
+        "message": "Phishing Seite melden"
+    },
+    "control_center_privacy_policy": {
+        "message": "Datenschutz"
+    },
+    "control_center_proxy": {
+        "message": "Suche über Proxy"
+    },
+    "control_center_quicksearch": {
+        "message": "Sichere Ghost-Suche"
+    },
+    "control_center_report_url": {
+        "message": "URL melden"
+    },
+    "control_center_search_engine": {
+        "message": "Ergänzende Suchmaschine"
+    },
+    "control_center_searchoptions": {
+        "message": "Sucheinstellungen"
+    },
+    "control_center_support": {
+        "message": "Support"
+    },
+    "control_center_switch_off": {
+        "message": "AUS"
+    },
+    "control_center_switch_on": {
+        "message": "AN"
+    },
+    "control_center_telemetry": {
+        "message": "Anonyme Datenübermittlung"
+    },
+    "control_center_telemetry_info": {
+        "message": "Es werden streng anonyme Daten zu technischen Details und Interaktionen übermittelt. Zu keinem Zeitpunkt wird eine personenbezogene Information erfasst."
+    },
+    "control_center_this_domain": {
+        "message": "Diese Domain"
+    },
+    "control_center_this_site": {
+        "message": "Diese Seite"
+    },
+    "control_center_trackers": {
+        "message": "Tracking Unternehmen auf dieser Seite"
+    },
+    "control_center_transparency": {
+        "message": "Transparenz Monitor"
+    },
+    "control_center_txt_header": {
+        "message": "Deine Daten sind geschützt"
+    },
+    "control_center_txt_header_not": {
+        "message": "Deine Daten sind nicht geschützt"
+    },
+    "never": {
+        "message": "Nie"
+    }
+}

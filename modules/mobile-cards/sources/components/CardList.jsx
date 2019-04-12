@@ -98,6 +98,9 @@ class CardList extends React.Component {
     const results = this.props.results;
     const theme = this.props.theme;
     const meta = this.props.meta;
+    if (!results.length) {
+      return null;
+    }
     return (
       <Carousel
         onLayout={() => {

@@ -58,7 +58,7 @@ export default function () {
         it('renders question', async function () {
           const $question = await $cliqzResults
             .querySelector(`${mainResultSelector} ${questionSelector}`);
-          const questionText = getLocalisedString('adultInfo');
+          const questionText = getLocalisedString('adult_info');
 
           expect($question).to.exist;
           expect($question).to.contain.text(questionText);

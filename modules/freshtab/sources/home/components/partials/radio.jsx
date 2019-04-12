@@ -12,6 +12,7 @@ function Radio({
   return (
     <div>
       <input
+        tabIndex="-1"
         id={id}
         name={name}
         onChange={onChange}

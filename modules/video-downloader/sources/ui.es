@@ -1,4 +1,5 @@
-import utils from '../core/utils';
+import telemetry from '../core/services/telemetry';
+import { openLink } from '../core/browser';
 import prefs from '../core/prefs';
 import { cleanUrlProtocol, stripTrailingSlash } from '../core/url';
 import { isVideoURL, getVideoInfo } from './video-downloader';
@@ -31,7 +32,7 @@ export default class UI {
     CliqzEvents.sub('pairing.onPairingDone', this.onPaired);
 
     chrome.pageAction.onClicked.addListener(() => {
-      utils.telemetry({
+      telemetry.push({
         type: TELEMETRY_TYPE,
         version: TELEMETRY_VERSION,
         target: 'icon',
@@ -47,7 +48,7 @@ export default class UI {
   }
 
   onPaired() {
-    utils.telemetry({
+    telemetry.push({
       type: TELEMETRY_TYPE,
       version: TELEMETRY_VERSION,
       action: 'connect',
@@ -64,14 +65,14 @@ export default class UI {
   }
 
   openConnectPage() {
-    utils.telemetry({
+    telemetry.push({
       type: TELEMETRY_TYPE,
       version: TELEMETRY_VERSION,
       action: 'click',
       target: 'connect_settings',
     });
 
-    utils.openLink(this.window, 'about:preferences#connect', true, false, false, true);
+    openLink(this.window, 'about:preferences#connect', true, false, false, true);
   }
 
   hideButton(tabId) {
@@ -92,7 +93,7 @@ export default class UI {
       quality: format
     }));
 
-    utils.telemetry({
+    telemetry.push({
       type: TELEMETRY_TYPE,
       version: TELEMETRY_VERSION,
       view: 'mobile',
@@ -103,7 +104,7 @@ export default class UI {
 
     this.PeerComm.getObserver('YTDOWNLOADER').sendVideo({ url, format: type, title })
       .then(() => {
-        utils.telemetry({
+        telemetry.push({
           type: 'connect',
           version: TELEMETRY_VERSION,
           action: 'send_video',
@@ -111,7 +112,7 @@ export default class UI {
         });
       })
       .catch(() => {
-        utils.telemetry({
+        telemetry.push({
           type: 'connect',
           version: TELEMETRY_VERSION,
           action: 'send_video',
@@ -164,7 +165,7 @@ export default class UI {
         return result;
       }
 
-      utils.telemetry({
+      telemetry.push({
         type: TELEMETRY_TYPE,
         version: TELEMETRY_VERSION,
         action: 'popup_open',
@@ -174,7 +175,7 @@ export default class UI {
       return { unSupportedFormat: true };
     } catch (e) {
       console.error('Error getting video links', e);
-      utils.telemetry({
+      telemetry.push({
         type: TELEMETRY_TYPE,
         version: TELEMETRY_VERSION,
         action: 'popup_open',
@@ -202,11 +203,11 @@ export default class UI {
     if (data.size) {
       signal.size = data.size;
     }
-    utils.telemetry(signal);
+    telemetry.push(signal);
   }
 
   download({ url, filename, size, format, origin }) {
-    utils.telemetry({
+    telemetry.push({
       type: TELEMETRY_TYPE,
       version: TELEMETRY_VERSION,
       view: 'desktop',
@@ -221,7 +222,7 @@ export default class UI {
     }));
 
     const onStartedDownload = () => {
-      utils.telemetry({
+      telemetry.push({
         type: TELEMETRY_TYPE,
         version: TELEMETRY_VERSION,
         action: 'download',
@@ -237,7 +238,7 @@ export default class UI {
     };
 
     const onFailed = (error) => {
-      utils.telemetry({
+      telemetry.push({
         type: TELEMETRY_TYPE,
         version: TELEMETRY_VERSION,
         action: 'download',
@@ -249,10 +250,18 @@ export default class UI {
     };
 
     if (typeof browser !== 'undefined') {
-      browser.downloads.download({
-        url,
-        filename,
-      }).then(onStartedDownload, onFailed);
+      browser.tabs.query({
+        active: true,
+        currentWindow: true,
+      }).then((tabs) => {
+        const tab = tabs[tabs.length - 1];
+
+        browser.downloads.download({
+          url,
+          filename: filename.trim(),
+          incognito: tab.incognito,
+        }).then(onStartedDownload, onFailed);
+      });
     }
   }
 }

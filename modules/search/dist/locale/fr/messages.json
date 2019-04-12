@@ -1,0 +1,92 @@
+{
+  "calculator_decimal_separator": {
+    "message": ","
+  },
+  "calculator_thousands_separator": {
+      "message": "."
+  },
+  "country_code_": {
+      "message": "Détection automatique"
+  },
+  "country_code_AT": {
+      "message": "Autriche"
+  },
+  "country_code_AU": {
+      "message": "Australie"
+  },
+  "country_code_BR": {
+      "message": "Brésil"
+  },
+  "country_code_CA": {
+      "message": "Canada"
+  },
+  "country_code_CH": {
+      "message": "Suisse"
+  },
+  "country_code_DE": {
+      "message": "Allemagne"
+  },
+  "country_code_EE": {
+      "message": "Estonie"
+  },
+  "country_code_ES": {
+      "message": "Espagne"
+  },
+  "country_code_FR": {
+      "message": "France"
+  },
+  "country_code_GB": {
+      "message": "Royaume-Uni"
+  },
+  "country_code_GR": {
+      "message": "Grèce"
+  },
+  "country_code_HR": {
+      "message": "Croatie"
+  },
+  "country_code_HU": {
+      "message": "Hongrie"
+  },
+  "country_code_ID": {
+      "message": "Indonésie"
+  },
+  "country_code_IT": {
+      "message": "Italie"
+  },
+  "country_code_NL": {
+      "message": "Pays-Bas"
+  },
+  "country_code_PL": {
+      "message": "Pologne"
+  },
+  "country_code_PS": {
+      "message": "Palestine"
+  },
+  "country_code_RO": {
+      "message": "Roumanie"
+  },
+  "country_code_RS": {
+      "message": "Serbie"
+  },
+  "country_code_RU": {
+      "message": "Russie"
+  },
+  "country_code_SG": {
+      "message": "Singapour"
+  },
+  "country_code_TH": {
+      "message": "Thaïlande"
+  },
+  "country_code_TR": {
+      "message": "Turquie"
+  },
+  "country_code_US": {
+      "message": "États-Unis"
+  },
+  "country_code_VN": {
+      "message": "Vietnam"
+  },
+  "locale_lang_code": {
+      "message": "fr-FR"
+  }
+}

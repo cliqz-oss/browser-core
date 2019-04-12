@@ -74,16 +74,9 @@ export default class WebRequestContext {
     this._responseHeadersMap = null;
 
     this.urlParts = URLInfo.get(this.url);
+    this.frameUrlParts = URLInfo.get(this.frameUrl);
     this.tabUrlParts = URLInfo.get(this.tabUrl);
     this.originUrlParts = URLInfo.get(this.originUrl);
-  }
-
-  get frameUrlParts() {
-    if (this._frameUrlParts === null) {
-      this._frameUrlParts = URLInfo.get(this.frameUrl);
-    }
-
-    return this._frameUrlParts;
   }
 
   getRequestHeader(name) {
@@ -108,5 +101,9 @@ export default class WebRequestContext {
 
   getReferrer() {
     return this.getRequestHeader('Referer');
+  }
+
+  isBackgroundRequest() {
+    return this.tabId === -1;
   }
 }

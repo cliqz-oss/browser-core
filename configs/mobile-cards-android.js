@@ -23,7 +23,6 @@ module.exports = {
     "core",
     "core-cliqz",
     "search",
-    "static",
     "mobile-cards",
     "mobile-cards-vertical",
     "geolocation",

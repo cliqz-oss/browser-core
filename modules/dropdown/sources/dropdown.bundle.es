@@ -146,6 +146,7 @@ const exportedActions = {
       urlbarAttributes,
       extensionId: assistantStates.settings.id,
       channelId: assistantStates.settings.channel,
+      sessionId,
     });
 
     const height = container$.scrollHeight;

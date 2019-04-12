@@ -65,6 +65,10 @@ export default class UrlData {
     return this.domain;
   }
 
+  getGeneralDomain() {
+    return this.getDomain();
+  }
+
   /**
    * @method getPatternRequest
    * @returns {PatternMatchRequest}

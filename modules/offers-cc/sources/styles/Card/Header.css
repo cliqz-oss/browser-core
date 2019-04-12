@@ -1,0 +1,69 @@
+.card-header__container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 5px;
+}
+
+.card-header__left-item {
+  padding-left: 5px;
+}
+
+.card-header__right-item {
+  display: flex;
+}
+
+.card-header__title {
+  font-weight: 500;
+}
+
+.card-header__description {
+  font-size: 11.5px;
+  color: #B2B2B2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 142px;
+}
+
+.card-header__label {
+  padding-left: 16px;
+  color: #B2B2B2;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 8.5px;
+  font-weight: 400;
+}
+
+.card-header__exclusive {
+  background: url('../images/exclusive.svg') no-repeat left;
+}
+
+.card-header__best_offer {
+  background: url('../images/best-offer.svg') no-repeat left;
+}
+
+.card-header__offer_of_the_week {
+  background: url('../images/offer-of-the-week.svg') no-repeat left;
+}
+
+.card-header__image {
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: right;
+  width: 83px;
+  height: 34px;
+  cursor: pointer;
+}
+
+.card-header__trash {
+  background: url('../images/trash.svg') no-repeat bottom;
+  background-size: contain;
+  cursor: pointer;
+  width: 28px;
+  height: 34px;
+  margin-right: -9px;
+}
+.card-header__trash:hover {
+  filter: brightness(0);
+}

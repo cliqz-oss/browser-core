@@ -1,0 +1,26 @@
+{
+    "offers_best_offer": {
+        "message": "Best offer"
+    },
+    "offers_code_copied": {
+        "message": "Copied"
+    },
+    "offers_conditions": {
+        "message": "Conditions"
+    },
+    "offers_exclusive": {
+        "message": "Exclusive"
+    },
+    "offers_hub_copy_btn": {
+        "message": "Copy code"
+    },
+    "offers_offer_of_the_week": {
+        "message": "Weekly offer"
+    },
+    "popup_apply_code_button": {
+        "message": "Apply code"
+    },
+    "popup_cancel_button": {
+        "message": "Cancel"
+    }
+}

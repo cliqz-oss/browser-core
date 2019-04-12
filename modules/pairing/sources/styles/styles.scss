@@ -4,6 +4,7 @@ body {
 }
 
 #connect-in-progress {
+    display: none;
     border: 1px solid #9B9B9B;
     font: small-caption;
     font-weight: normal;
@@ -27,7 +28,7 @@ body {
 }
 
 #page-container {
-    display: none;
+    display: block;
     font: small-caption;
     font-weight: normal;
     font-size: 13.75px;

@@ -2,6 +2,7 @@ import {
   closeTab,
   expect,
   newTab,
+  prefs,
   waitFor,
   waitForElement,
   win,
@@ -18,18 +19,13 @@ import {
 
 import { getDetailsFromUrl } from '../../../core/url';
 
-import { isWebExtension } from '../../../core/platform';
-
 import { getMessage } from '../../../core/i18n';
 
 import historyResults from '../../../tests/core/integration/fixtures/historyResultsHistoryCluster';
 
 export default function () {
-  if (!isWebExtension) {
-    return;
-  }
-
   describe('for history mobile cards', function () {
+    const logoVersion = prefs.get('config_logoVersion');
     const historyContainerSelector = '[aria-label="history-container"]';
     const historyHeaderSelector = '[aria-label="history-header"]';
     const historyResultSelector = '[aria-label="history-result"]';
@@ -109,7 +105,7 @@ export default function () {
           await waitFor(() => {
             $logo = $cardHeaders[0].querySelector('[aria-label="generic-logo"] img');
             expect($logo).to.exist;
-            return expect($logo.src).to.contain('https://cdn.cliqz.com/brands-database/database/1521469421408/logos/amazon/$.svg');
+            return expect($logo.src).to.contain(`https://cdn.cliqz.com/brands-database/database/${logoVersion}/logos/amazon/$.svg`);
           }, 10000);
         });
       });
@@ -191,7 +187,7 @@ export default function () {
           await waitFor(() => {
             $logo = $cardHeaders[0].querySelector('[aria-label="generic-logo"] img');
             expect($logo).to.exist;
-            return expect($logo.src).to.contain('https://cdn.cliqz.com/brands-database/database/1521469421408/logos/amazon/$.svg');
+            return expect($logo.src).to.contain(`https://cdn.cliqz.com/brands-database/database/${logoVersion}/logos/amazon/$.svg`);
           }, 10000);
         });
       });
@@ -366,7 +362,7 @@ export default function () {
           await waitFor(() => {
             $logo = $cardHeaders[0].querySelector('[aria-label="generic-logo"] img');
             expect($logo).to.exist;
-            return expect($logo.src).to.contain('https://cdn.cliqz.com/brands-database/database/1521469421408/logos/amazon/$.svg');
+            return expect($logo.src).to.contain(`https://cdn.cliqz.com/brands-database/database/${logoVersion}/logos/amazon/$.svg`);
           }, 10000);
         });
       });

@@ -62,7 +62,7 @@ export default describeModule('offers-v2/utils',
         it('should set offersUserGroup pref', () => {
           const r = shouldKeepResource(0);
           chai.expect(r).to.be.true;
-          chai.expect(Number(prefs.get('offersUserGroup')) > 0).to.be.true;
+          chai.expect(Number(prefs.get('offersUserGroup')) >= 0).to.be.true;
         });
         it('should return false for weight 100', () => {
           const r = shouldKeepResource(100);

@@ -3,6 +3,7 @@ import {
   getElements,
   getLocalisedString,
   getResourceUrl,
+  prefs,
   queryComputedStyle,
   queryHTML,
   waitFor,
@@ -122,7 +123,9 @@ export function checkHeader({ url, results, isDefault = false, imageName }) {
     });
 
     it('renders correct logo', async function () {
+      const logoVersion = prefs.get('config_logoVersion');
       let $logo;
+
       await waitFor(async function () {
         const $cardHeaders = await getElements({
           elementSelector: headerSelector,
@@ -139,7 +142,7 @@ export function checkHeader({ url, results, isDefault = false, imageName }) {
 
         $logo = $cardHeaders[0].querySelector('[aria-label="header-container"] [aria-label="generic-logo"] img');
         expect($logo).to.exist;
-        return expect($logo.src).to.contain(`https://cdn.cliqz.com/brands-database/database/1521469421408/logos/${imageName}/$.svg`);
+        return expect($logo.src).to.contain(`https://cdn.cliqz.com/brands-database/database/${logoVersion}/logos/${imageName}/$.svg`);
       }, 5000);
     });
   });
@@ -174,6 +177,7 @@ export function checkComplementarySearchCard({
     });
 
     it('with correct search engine logo', async function () {
+      const logoVersion = prefs.get('config_logoVersion');
       const $comSearchCardsLogos = await getElements({
         elementSelector: '[aria-label="complementary-search-card"] [aria-label="generic-logo"] img',
         parentElementSelector: '.carousel-track',
@@ -182,7 +186,7 @@ export function checkComplementarySearchCard({
 
       expect($comSearchCardsLogos).to.have.length(1);
       expect($comSearchCardsLogos[0].src).to.exist;
-      expect($comSearchCardsLogos[0].src).to.contain(`https://cdn.cliqz.com/brands-database/database/1521469421408/logos/${searchEngine}/$.svg`);
+      expect($comSearchCardsLogos[0].src).to.contain(`https://cdn.cliqz.com/brands-database/database/${logoVersion}/logos/${searchEngine}/$.svg`);
     });
 
     it('with correct search engine url', async function () {
@@ -267,7 +271,7 @@ export function checkPoweredBySection({ url }) {
       });
 
       expect($poweredByText).to.have.length(1);
-      expect($poweredByText[0]).to.have.text(getMessage('KickerSponsor'));
+      expect($poweredByText[0]).to.have.text(getMessage('kicker_sponsor'));
     });
   });
 }

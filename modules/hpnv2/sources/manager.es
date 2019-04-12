@@ -9,6 +9,7 @@ import GroupSigner from './group-signer';
 import Endpoints from './endpoints';
 import TrustedClock from './trusted-clock';
 import ConfigLoader from './config-loader';
+import MessageThrottler from './message-throttler';
 import md5 from '../core/helpers/md5';
 import { digest } from './digest';
 import { MsgQuotaError, NotReadyError, InvalidMsgError, NoCredentialsError, BadCredentialsError,
@@ -183,9 +184,12 @@ export default class Manager {
       this.initState.updateState(InitState.DESTROYED);
     }
     this.initState = new InitState();
-
-    this.configFailures = 0;
     this.signerInitialized = false;
+
+    if (this.throttler) {
+      this.throttler.cancelPendingTimers();
+    }
+    this.throttler = new MessageThrottler();
 
     this.db = new Database();
     this.endpoints = new Endpoints();
@@ -323,7 +327,7 @@ export default class Manager {
   // add a new one (append-only).
   // For group public keys we could add a protection: if we find out that
   // the server is changing the group public key for a day, we do not send any data.
-  async updateConfig({ groupPubKeys, pubKeys, sourceMap, minVersion }) {
+  async updateConfig({ groupPubKeys, pubKeys, sourceMap, minVersion, trafficHints }) {
     if (VERSION < minVersion) {
       this.logError(`We are running an old version of the protocol, which is no longer supported by the server. All communication will be stopped. Our version: ${VERSION} does not meet the minimum version required by the server: ${minVersion}`);
       this.isOldVersion = true;
@@ -352,7 +356,7 @@ export default class Manager {
         if (newGroupPubKeys.length === 1) {
           const latestKey = newGroupPubKeys[0];
           const randomDelayInMs = 30 * MINUTE + Math.random() * 2 * HOUR;
-          this.log('Delay joining the latest group', latestKey, 'by', randomDelayInMs, 'ms');
+          this.log('Delay joining the latest group', latestKey, 'by', randomDelayInMs / MINUTE, 'minutes');
           this._joinScheduler.cooldowns.set(latestKey, Date.now() + randomDelayInMs);
         }
       }
@@ -372,6 +376,7 @@ export default class Manager {
     Object.keys(sourceMap.actions).forEach((action) => {
       this.db.setSourceMapAction(action, sourceMap.actions[action]);
     });
+    this.throttler.updateConfig(trafficHints, sourceMap);
 
     // Database cleanup:
     const { inSync, hoursSinceEpoch } = this.trustedClock.checkTime();
@@ -419,7 +424,7 @@ export default class Manager {
         this._joinScheduler.state = JOIN_STATE.WAITING_FOR_CLOCK_SYNC;
       }
       const timeoutInMs = MINUTE + Math.random() * 10 * MINUTE;
-      logger.warn('Failed to join group. Retrying again in', timeoutInMs, 'ms');
+      logger.warn('Failed to join group. Retrying again in', timeoutInMs / MINUTE, 'min');
 
       this._joinScheduler.nextJoinTimer = setTimeout(() => {
         this.scheduleJoinGroup();
@@ -504,15 +509,37 @@ export default class Manager {
     const { groupPubKey, credentials, date, pubKey } = pk;
 
     if (pubKey && this.ecdhPubKey.date !== date) {
-      const key = await crypto.subtle.importKey(
-        'raw',
-        pubKey,
-        { name: 'ECDH', namedCurve: 'P-256' },
-        false,
-        []
-      );
-
-      this.ecdhPubKey = { key, date };
+      try {
+        const key = await crypto.subtle.importKey(
+          'raw',
+          pubKey,
+          { name: 'ECDH', namedCurve: 'P-256' },
+          false,
+          []
+        );
+        this.ecdhPubKey = { key, date };
+      } catch (e) {
+        // Workaround for (non Chromium-based) Edge:
+        // ECDH is not supported, which is needed to agree on an encryption key
+        // for the request body. As long as we directly send (over https) to our servers,
+        // this is not a problem. The purpose of the extra encryption of the message body
+        // is to prevent a 3rd party proxy from reading the data.
+        //
+        // Test page to see, which crypto APIs a browser supports:
+        // https://diafygi.github.io/webcrypto-examples/
+        //
+        // Note: As the workaround is currently only relevant for Ghostery/MyOffrz, be extra
+        // paranoid and make sure that the Ghostery/MyOfferz endpoints are used. That is only
+        // to rule out any misconfigurations.
+        if (this.endpoints.ENDPOINT_HPNV2_ANONYMOUS === this.endpoints.ENDPOINT_HPNV2_DIRECT
+            && (this.endpoints.ENDPOINT_HPNV2_DIRECT === 'https://collector-hpn.ghostery.net'
+                || this.endpoints.ENDPOINT_HPNV2_DIRECT === 'https://collector-hpn.cliqz.com')) {
+          logger.debug('The browser does not support ECDH, but as we are not sending through a proxy, TLS encryption is sufficient.');
+        } else {
+          logger.error('ECDH is not supported by the browser. Cannot send unencrypted data through a 3rd proxy proxy.', e);
+          throw e;
+        }
+      }
     }
 
     if (skipGroupKeys) {
@@ -665,8 +692,9 @@ export default class Manager {
 
       // handle races during startup when hpn is just starting up and other modules
       // are already trying to send messages:
-      if (!this.initState.isReady()) {
-        if (this.initState.isUnloaded()) {
+      const initState = this.initState;
+      if (!initState.isReady()) {
+        if (initState.isUnloaded()) {
           // Although we could wait and speculate that loading will soon be initialized,
           // it is more likely that it will not happen, and it will just block.
           logger.info('Module is not initialized. Instead of waiting until we hit the timeout, give up immediately.');
@@ -674,7 +702,7 @@ export default class Manager {
         }
 
         logger.debug('Initialization is still pending. Waiting for it to complete...');
-        await this.initState.waitUntilReady(waitForInitTimeoutInMs);
+        await initState.waitUntilReady(waitForInitTimeoutInMs);
         logger.debug('Initialization is still pending. Waiting for it to complete...DONE');
       }
 
@@ -694,12 +722,25 @@ export default class Manager {
 
       const publicKey = Manager.clearText ? undefined : this.ecdhPubKey;
 
-      // Do not queue noverify messages, these are ok to do in parallel
-      if (noverify) {
-        return await this._sendNoVerify({ msg, config, publicKey, proxyBucket });
-      }
+      const throttler = this.throttler;
+      try {
+        await throttler.startRequest(msg, this.trustedClock);
+        if (initState.isUnloaded()) {
+          // protection against races during shutdown
+          const info = 'hpnv2 was stopped. The pending message could not be sent.';
+          logger.warn(info);
+          throw new NotReadyError(info);
+        }
 
-      return await this.msgQueue.push({ msg, config, publicKey, proxyBucket });
+        // Do not queue noverify messages, these are ok to do in parallel
+        if (noverify) {
+          return await this._sendNoVerify({ msg, config, publicKey, proxyBucket });
+        }
+
+        return await this.msgQueue.push({ msg, config, publicKey, proxyBucket });
+      } finally {
+        throttler.endRequest(msg);
+      }
     } catch (e) {
       this.logError('Send error', e);
       throw e;

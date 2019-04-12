@@ -12,11 +12,6 @@ const _fs = FSBuilder(_path);
 
 export default describeModule('core/incremental-storage',
   () => ({
-    'core/utils': {
-      default: {
-        log: () => {},
-      },
-    },
     'core/helpers/md5': {
       default: data => crypto.createHash('md5').update(data).digest('hex'),
     },

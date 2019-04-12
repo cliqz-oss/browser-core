@@ -109,7 +109,6 @@ export default function () {
       it('then press arrowDown and arrowUp', async function () {
         press({ key: 'ArrowDown' });
         await waitFor(async () => {
-          console.log('>>>>>', await $cliqzResults.querySelector('.selected'));
           await expectSelection(result2Selector, visibleValue(results[1].url));
         }, 3000);
         press({ key: 'ArrowUp' });

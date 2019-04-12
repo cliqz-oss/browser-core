@@ -1,6 +1,6 @@
-import utils from '../core/utils';
+import { fetch } from '../core/http';
 
-const _getSnippet = (url, data) => utils.fetchFactory()(url, { method: 'PUT', body: data, credentials: 'omit', cache: 'no-store' })
+const _getSnippet = (url, data) => fetch(url, { method: 'PUT', body: data, credentials: 'omit', cache: 'no-store' })
   .then(r => r.json())
   .then((response) => {
     const oldResult = JSON.parse(data).results[0];

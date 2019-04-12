@@ -1,6 +1,6 @@
 import background from '../core/base/background';
 import WorkerManager from './worker-manager';
-
+import prefs from '../core/prefs';
 
 /**
   @namespace <namespace>
@@ -17,11 +17,26 @@ export default background({
     @param settings
   */
   init() {
-    this.workerManager = new WorkerManager();
+    if (prefs.get('historyLookupEnabled', false)) {
+      this.startWorker();
+    }
   },
 
   unload() {
-    this.workerManager.unload();
+    this.stopWorker();
+  },
+
+  startWorker() {
+    if (!this.workerManager) {
+      this.workerManager = new WorkerManager();
+    }
+  },
+
+  stopWorker() {
+    if (this.workerManager) {
+      this.workerManager.unload();
+      this.workerManager = null;
+    }
   },
 
   beforeBrowserShutdown() {
@@ -29,7 +44,15 @@ export default background({
   },
 
   events: {
-
+    prefchange: function onPrefChanged(pref) {
+      if (pref === 'historyLookupEnabled') {
+        if (prefs.get('historyLookupEnabled', false)) {
+          this.startWorker();
+        } else {
+          this.stopWorker();
+        }
+      }
+    },
   },
 
   actions: {

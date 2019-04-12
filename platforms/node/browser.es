@@ -66,3 +66,7 @@ export function getCookies() {
 export function isDefaultBrowser() {
   return Promise.resolve(null);
 }
+
+export function isPrivateMode() {
+  return false;
+}

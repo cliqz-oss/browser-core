@@ -6,7 +6,7 @@
  */
 
 import logger from '../common/offers_v2_logger';
-import utils from '../../core/utils';
+import telemetry from '../../core/services/telemetry';
 import { httpPost } from '../../core/http';
 import OffersConfigs from '../offers_configs';
 import SimpleDB from '../../core/persistence/simple-db';
@@ -387,7 +387,7 @@ export default class SignalHandler {
         OffersConfigs.SIGNALS_HPN_BE_ADDR,
         () => {
           if (signalType && sigID) {
-            utils.telemetry(telMonitorSignal);
+            telemetry.push(telMonitorSignal);
             this._removeFromSigsToSend(signalType, sigID);
             this._removeNumRetriesRecord(signalType, sigID);
           }
@@ -397,7 +397,7 @@ export default class SignalHandler {
         () => {
           if (signalType && sigID) {
             telMonitorSignal.msg_delivered = false;
-            utils.telemetry(telMonitorSignal);
+            telemetry.push(telMonitorSignal);
             this._increaseNumRetriesRecord(signalType, sigID);
           }
           resolve();

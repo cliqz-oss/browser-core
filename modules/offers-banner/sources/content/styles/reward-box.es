@@ -1,8 +1,8 @@
 export function wrapper() {
   return {
     position: 'fixed',
-    top: '55px',
-    right: '290px',
+    top: '20px',
+    right: '281px',
     'z-index': '2147483647',
     opacity: '0',
   };

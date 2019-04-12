@@ -77,7 +77,7 @@ export default describeModule('static/main',
 
       langs.forEach((lang, i) => {
         it(`Keys of locale ${langs[i]} are sorted`, () => {
-          chai.expect(rawLocales[i]).to.eql(formatLocales(rawLocales[i]));
+          chai.expect(rawLocales[i].trim()).to.eql(formatLocales(rawLocales[i]).trim());
         });
       });
 

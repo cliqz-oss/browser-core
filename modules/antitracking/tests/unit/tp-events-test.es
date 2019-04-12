@@ -28,7 +28,6 @@ function mockMd5(s) {
 export default describeModule('antitracking/tp_events',
   () => ({
     'platform/browser': {},
-    'core/utils': { default: {} },
     'platform/lib/tldts': tldts,
     'core/console': {
       default: {

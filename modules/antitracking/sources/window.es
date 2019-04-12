@@ -22,7 +22,7 @@ export default class Win {
   }
 
   getBadgeData(info) {
-    if (AttrackBG.attrack.urlWhitelist.isWhitelisted(info.hostname)) {
+    if (AttrackBG.attrack.urlWhitelist.isWhitelisted(info.url)) {
       // do not display number if site is whitelisted
       return 0;
     }
@@ -35,7 +35,11 @@ export default class Win {
         const url = URLInfo.get(info.url);
         const ps = info.ps;
         const hostname = url ? url.hostname : '';
-        const isWhitelisted = AttrackBG.attrack.urlWhitelist.isWhitelisted(hostname);
+        const isWhitelisted = url !== null && AttrackBG.attrack.urlWhitelist.isWhitelisted(
+          url.href,
+          url.hostname,
+          url.generalDomain,
+        );
         const enabled = prefs.get('modules.antitracking.enabled', true) && !isWhitelisted;
         let s;
 

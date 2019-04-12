@@ -795,7 +795,14 @@ class OfferDB {
     try {
       return offerData.ui_info.template_data.validity < Date.now() / 1000;
     } catch (e) {
-      logger.debug('Missing validity', offerData);
+      if (!(
+        offerData
+        && offerData.rs_dest
+        && offerData.rs_dest.includes
+        && offerData.rs_dest.includes('dropdown')
+      )) {
+        logger.warn('Missing "validity" field', offerData);
+      }
       return false;
     }
   }

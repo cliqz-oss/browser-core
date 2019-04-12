@@ -1,0 +1,140 @@
+{
+    "ago1Hour": {
+        "message": "1 hour ago"
+    },
+    "ago1Minute": {
+        "message": "1 minute ago"
+    },
+    "ago1Month": {
+        "message": "1 month ago"
+    },
+    "ago1year": {
+        "message": "1 year ago"
+    },
+    "agoXDays": {
+        "message": "$1 days ago"
+    },
+    "agoXHours": {
+        "message": "$1 hours ago"
+    },
+    "agoXMinutes": {
+        "message": "$1 minutes ago"
+    },
+    "agoXMonths": {
+        "message": "$1 months ago"
+    },
+    "agoXYears": {
+        "message": "$1 years ago"
+    },
+    "agoYesterday": {
+        "message": "yesterday"
+    },
+    "cinema_movie_showtimes": {
+        "message": "Showtimes"
+    },
+    "collapse": {
+        "message": "Less"
+    },
+    "cook_time": {
+        "message": "Total time: $1 minutes"
+    },
+    "copied": {
+        "message": "Copied"
+    },
+    "expand": {
+        "message": "More"
+    },
+    "ghost_search_is_private": {
+        "message": "Ghost search is private"
+    },
+    "kicker_sponsor": {
+        "message": "powered by kicker online"
+    },
+    "lang_code": {
+        "message": "en"
+    },
+    "locale_lang_code": {
+        "message": "en-US"
+    },
+    "lotto_2aus8": {
+        "message": "2 aus 10"
+    },
+    "lotto_5aus50": {
+        "message": "5 aus 50"
+    },
+    "lotto_gewinnklasse7": {
+        "message": "Gewinnklasse 7"
+    },
+    "lotto_gewinnzahlen": {
+        "message": "Gewinnzahlen"
+    },
+    "lotto_superzahl": {
+        "message": "Superzahl"
+    },
+    "mobile_calc_copy_ans": {
+        "message": "Tap anywhere to copy"
+    },
+    "mobile_card_look_shared_via": {
+        "message": "Hey! Look at this screenshot shared via $1 Browser"
+    },
+    "mobile_flight_gate": {
+        "message": "Gate"
+    },
+    "mobile_flight_hotline": {
+        "message": "Call Lufthansa Hotline ($1)"
+    },
+    "mobile_flight_no_updates": {
+        "message": "No further updates for this flight"
+    },
+    "mobile_flight_scheduled_departure": {
+        "message": "Departure Time"
+    },
+    "mobile_flight_scheduled_landing": {
+        "message": "Arrival Time"
+    },
+    "mobile_history_card_title": {
+        "message": "History Results"
+    },
+    "mobile_more_results_title": {
+        "message": "No result you liked?"
+    },
+    "mobile_no_result_title": {
+        "message": "We don't have great results this time."
+    },
+    "mobile_soccer_subscribe": {
+        "message": "Subscribe"
+    },
+    "mobile_soccer_subscribe_league": {
+        "message": "Do not miss any goal of $1 and subscibe to the free livescore service!"
+    },
+    "mobile_soccer_subscribe_league_done": {
+        "message": "You are always up-to-date. You are subscribed to all games for $1."
+    },
+    "mobile_soccer_subscribe_team": {
+        "message": "Do not miss any goal of $1 and subscibe to the free livescore service!"
+    },
+    "mobile_soccer_subscribed_to_both": {
+        "message": "You are subscribed to these teams."
+    },
+    "mobile_soccer_subscribed_to_one": {
+        "message": "You are subscribed to one of the teams."
+    },
+    "mobile_soccer_unsubscribe": {
+        "message": "Unsubscribe"
+    },
+    "more_on": {
+        "message": "More on"
+    },
+    "no_legal_disclaimer": {
+        "message": "without guarantee"
+    },
+    "search_use_complementary": {
+        "message": "Use your complementary search engine?"
+    },
+    "search_with": {
+        "message": "Search with $1"
+    },
+    "updated": {
+        "message": "Updated"
+    }
+}

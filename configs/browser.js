@@ -20,7 +20,7 @@ module.exports = {
   "specific": "browser",
   "baseURL": "/modules/",
   "pack": "web-ext build -s build -a .",
-  'sign': "python ./xpi-sign/xpisign.py -k $CLIQZ_CERT_PATH --signer openssl --passin file:$CLIQZ_CERT_PASS_PATH "+packageName+"-$VERSION.zip "+packageName+"-$PACKAGE_VERSION.xpi",
+  'sign': "python ./xpi-sign/xpisign.py -k $CLIQZ_CERT_PATH --signer openssl --passin file:$CLIQZ_CERT_PASS_PATH " + packageName + "-$VERSION.zip " + packageName + "-$PACKAGE_VERSION.xpi",
   'publish': `${publish.toEdge(packageName, channel, 'xpi')} && \
      aws s3 cp build/updates.json ${updateS3Url} --acl public-read && \
      python ./fern/submitter.py -a "http://balrog-admin.10e99.net/api" -r "${channel}" --addon-id "${id}" --addon-version $VERSION --addon-url "${artifactUrl}"`,
@@ -58,7 +58,7 @@ module.exports = {
     "antitrackingHeader": "CLIQZ-AntiTracking",
     "FRESHTAB_TITLE": "Cliqz Tab",
   }),
-  'default_prefs' : {
+  'default_prefs': {
     "modules.context-search.enabled": false,
     "modules.history.enabled": true,
     "modules.dropdown.enabled": false,
@@ -144,7 +144,7 @@ module.exports = {
     "anti-phishing/phishing-warning.bundle.js",
     "webextension-specific/experimental-apis/browser-action/api.bundle.js",
     "webextension-specific/experimental-apis/cliqz/api.bundle.js",
-    "webextension-specific/experimental-apis/cliqzSynchronous/api.bundle.js",
+    "webextension-specific/experimental-apis/cliqz/api-child.bundle.js",
     "webextension-specific/experimental-apis/cliqzmigration/api.bundle.js",
     "webextension-specific/experimental-apis/cliqzdbmigration/api.bundle.js",
     "webextension-specific/experimental-apis/demographics/api.bundle.js",

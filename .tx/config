@@ -1,0 +1,10 @@
+[main]
+host = https://www.transifex.com
+
+[cliqz-navigation-extension.messages-json]
+file_filter = modules/mobile-cards/dist/locale/<lang>/messages.json
+minimum_perc = 0
+source_file = modules/mobile-cards/dist/locale/en/messages.json
+source_lang = en
+type = CHROME
+

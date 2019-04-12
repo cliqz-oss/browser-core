@@ -1,4 +1,5 @@
 import inject from '../core/kord/inject';
+import { nextTick } from '../core/decorators';
 
 import logger from './logger';
 import LatencyMetrics from './latency-metrics';
@@ -40,36 +41,11 @@ export default class Pipeline {
 
   unload({ shallow = false } = {}) {
     this.pipeline = [];
-    this.stepFns = new Map();
+    this.stepNames = new Set();
 
     if (this.measureLatency && !shallow) {
       this.latencyMetrics.unload();
     }
-  }
-
-  /**
-   * Add a function to the pipeline
-   * @param {Function} fn     function to add
-   * @param {String}   name   (optional) infered from function if undefined
-   */
-  add({ fn, name, spec }) {
-    if (!name) {
-      throw new Error(`Every step of the pipeline should be given a name in ${this.name}`);
-    }
-
-    if (!spec) {
-      throw new Error(`Every step of the pipeline should be given a spec ${name} in ${this.name}`);
-    }
-
-    if (spec === 'break' && !this.isBreakable) {
-      throw new Error(`Cannot add a break step '${name}' to an unbreakable pipline`);
-    }
-
-    return this.addPipelineStep({
-      name,
-      fn, // TODO: needed? this.stepFns.get(name) || fn, // Relax function duplication constraint
-      spec: spec || 'all',
-    });
   }
 
   /**
@@ -78,56 +54,88 @@ export default class Pipeline {
    */
   addAll(steps) {
     for (let i = 0; i < steps.length; i += 1) {
-      this.add(steps[i]);
+      this.addPipelineStep(steps[i]);
     }
   }
 
   /**
    * Adds a step to the pipeline with the given constraints.
    *
-   * By default the step is placed at the end of the pipeline. If after or before
-   * are specified, the step is placed at the first available position which satisfies
-   * these constraints.
+   * By default the step is placed at the end of the pipeline. If after or
+   * before are specified, the step is placed at the first available position
+   * which satisfies these constraints.
    *
-   * @param {String} options.name   the name of the function. Must be unique.
-   * @param {Array.<String>}  options.stages The pipeline stages to which this function should
-   * be added
-   * @param {Function} options.fn     the step function
-   * @param {Array.<String>} options.after  array of step names for which this step should be
+   * @param {String} step.name The name of the function. Must be unique.
+   * @param {String} step.spec The kind of step: collect, break, blocking, annotate.
+   * @param {Function} options.fn The step function
+   * @param {Array.<String>} options.after Array of step names for which this step should be
    * put afterwards
-   * @param {Array.<String>} options.before array of step names for which this step should be
+   * @param {Array.<String>} options.before Array of step names for which this step should be
    * put before
    */
-  addPipelineStep({ name, fn, after, before, spec }) {
-    // check if step already exists
-    if (this.stepFns.has(name)) {
-      throw new Error(`trying to overwrite existing stepFn ${name} in ${this.name}`);
+  addPipelineStep(step) {
+    const { name, fn, after = [], before = [], spec } = step;
+
+    if (name === undefined) {
+      throw new Error(`Every step of the pipeline should be given a name in ${this.name}`);
     }
 
-    this.stepFns.set(name, { fn, spec });
-    const afterArr = after || [];
-    const beforeArr = before || [];
+    if (this.stepNames.has(name)) {
+      throw new Error(`Trying to overwrite existing ${this.name}.${name}`);
+    }
+
+    if (spec !== 'annotate' && spec !== 'collect' && spec !== 'blocking' && spec !== 'break') {
+      throw new Error(`Every step of the pipeline should be given a valid spec (got ${spec}): ${this.name}.${name}`);
+    }
+
+    if (fn === undefined) {
+      throw new Error(`Every step of the pipeline should have a function ('fn' argument): ${this.name}.${name}`);
+    }
+
+    if (spec === 'break' && !this.isBreakable) {
+      throw new Error(`Cannot add a break step '${name}' to an unbreakable pipeline`);
+    }
+
+    this.stepNames.add(name);
 
     const emptyPipeline = this.pipeline.length === 0;
-    const hasAfter = afterArr.length > 0;
-    const hasBefore = beforeArr.length > 0;
+    const hasAfter = after.length > 0;
+    const hasBefore = before.length > 0;
 
     if ((!hasAfter && !hasBefore) || emptyPipeline) {
       // just put it at the end
-      this.pipeline.push(name);
+      this.pipeline.push(step);
     } else if (hasAfter && !hasBefore) {
-      // find where the dependencies are in the pipeline
-      const afterIndices = afterArr.map(s => this.pipeline.indexOf(s));
-      const insertMin = Math.max(...afterIndices);
-      if (afterIndices.indexOf(-1) >= 0) {
-        throw new Error(`missing steps from 'after' list, after=${afterArr}, pipeline=${this.pipeline}`);
+      // Find the first index which is after any of the step names in `after`
+      let insertAt = -1;
+      for (let i = 0; i < this.pipeline.length; i += 1) {
+        if (after.indexOf(this.pipeline[i].name) !== -1) {
+          insertAt = i + 1;
+        }
       }
 
-      this.pipeline.splice(insertMin + 1, 0, name);
+      if (insertAt === -1) {
+        throw new Error(`no step from 'after' list found, after=${JSON.stringify(after)}, pipeline=${this.name}`);
+      } else if (insertAt === this.pipeline.length) {
+        this.pipeline.push(step);
+      } else {
+        this.pipeline.splice(insertAt, 0, step);
+      }
     } else if (hasBefore && !hasAfter) {
-      const beforeIndices = beforeArr.map(s => this.pipeline.indexOf(s)).filter(i => i !== -1);
-      const insertMax = Math.min(...beforeIndices);
-      this.pipeline.splice(insertMax, 0, name);
+      // Find the last index which is before any of the step names in `before`
+      let insertAt = -1;
+      for (let i = 0; i < this.pipeline.length; i += 1) {
+        if (before.indexOf(this.pipeline[i].name) !== -1) {
+          insertAt = i;
+          break;
+        }
+      }
+
+      if (insertAt === -1) {
+        this.pipeline.push(step);
+      } else {
+        this.pipeline.splice(insertAt, 0, step);
+      }
     } else {
       throw new Error('cannot take both before and after constraints');
     }
@@ -138,100 +146,82 @@ export default class Pipeline {
    * @param  {String} name of the step
    */
   removePipelineStep(name) {
-    const index = this.pipeline.indexOf(name);
-    if (index !== -1) {
-      this.pipeline.splice(index, 1);
-    }
-
-    // remove from function map
-    this.stepFns.delete(name);
+    this.pipeline = this.pipeline.filter(step => step.name !== name);
+    this.stepNames.delete(name);
   }
 
   /**
-   * Runs the pipeline for the name stage, using the specified initial state
-   * @param  {Object} initialState State passed to the pipeline
+   * Run pipeline on the given `webRequestContext`. The `response` argument can
+   * be altered by steps and will be used to generate the blocking response for
+   * the webrequest listener.
    */
   execute(webRequestContext, response, canAlterRequest = true) {
+    const measureLatency = this.measureLatency === true && webRequestContext.isPrivate === false;
     for (let i = 0; i < this.pipeline.length; i += 1) {
       // Measure time elapsed while running this step
-      const t0 = Date.now();
-
-      const name = this.pipeline[i];
-      const { fn, spec } = this.stepFns.get(name);
-      let cont;
+      const t0 = measureLatency === true ? performance.now() : 0;
+      const { name, fn, spec } = this.pipeline[i];
+      let cont = true;
 
       // Execute step
-      try {
-        switch (spec) {
-          case 'break':
-            // A `break` step is usually used to disrupt the pipeline
-            // life-cycle. It does not have access to the response (cannot
-            // block/redirect/change headers) and shall not mutate the
-            // webRequestContext.
-            cont = fn(webRequestContext);
-            break;
-          case 'annotate':
-            // An `annotate` step is used to mutate/annotate the
-            // webRequestContext. For example it might be used to keep track of
-            // some information on the page-load (statistics about number of
-            // cookies blocked, etc.). It does not have access to the response
-            // (cannot block/redirect/change headers).
-            cont = fn(webRequestContext);
-            break;
-          case 'collect':
-            // A `collect` step is used to only observe the http life-cycle and
-            // is never used to alter it in any way. It does not have access to
-            // the response either. Because of these constraints, we can safely
-            // run these steps asynchronously to not block the processing of
-            // requests.
-            setTimeout(
-              () => fn(webRequestContext),
-              0,
-            );
-            break;
-          case 'blocking':
-            // A `blocking` step is used to alter the life-cycle of a request:
-            // blocking, redirecting, modifying headers. It can also mutate the
-            // webRequestContext, although it would be better to use an
-            // `annotate` step for this purpose.
-            //
-            // When `canAlterRequest` is `false`, blocking steps are ignored.
-            // This can be the case if a domain has been white-listed at the
-            // webrequest-pipeline level.
-            if (canAlterRequest) {
-              cont = fn(webRequestContext, response);
-            }
-            break;
-          default:
-            logger.error('Invalid spec for step', { spec, name, pipeline: this.name });
-            break;
-        }
-      } catch (e) {
-        logger.error('Exception in pipeline', {
-          pipeline: this.name,
-          url: webRequestContext.url,
-          step: name,
-          spec,
-        }, e);
-        break;
+      switch (spec) {
+        case 'break':
+          // A `break` step is usually used to disrupt the pipeline
+          // life-cycle. It does not have access to the response (cannot
+          // block/redirect/change headers) and shall not mutate the
+          // webRequestContext.
+          cont = fn(webRequestContext);
+          break;
+        case 'annotate':
+          // An `annotate` step is used to mutate/annotate the
+          // webRequestContext. For example it might be used to keep track of
+          // some information on the page-load (statistics about number of
+          // cookies blocked, etc.). It does not have access to the response
+          // (cannot block/redirect/change headers).
+          cont = fn(webRequestContext);
+          break;
+        case 'collect':
+          // A `collect` step is used to only observe the http life-cycle and
+          // is never used to alter it in any way. It does not have access to
+          // the response either. Because of these constraints, we can safely
+          // run these steps asynchronously to not block the processing of
+          // requests.
+          nextTick(() => fn(webRequestContext));
+          break;
+        case 'blocking':
+          // A `blocking` step is used to alter the life-cycle of a request:
+          // blocking, redirecting, modifying headers. It can also mutate the
+          // webRequestContext, although it would be better to use an
+          // `annotate` step for this purpose.
+          //
+          // When `canAlterRequest` is `false`, blocking steps are ignored.
+          // This can be the case if a domain has been white-listed at the
+          // webrequest-pipeline level.
+          if (canAlterRequest === true) {
+            cont = fn(webRequestContext, response);
+          }
+          break;
+        default:
+          logger.error('Invalid spec for step', this.pipeline[i]);
+          break;
       }
 
       // Register this step's execution time
-      if (this.measureLatency && !webRequestContext.isPrivate) {
-        this.latencyMetrics.addTiming(name, Date.now() - t0);
+      if (measureLatency === true) {
+        this.latencyMetrics.addTiming(name, performance.now() - t0);
       }
 
       // Handle early termination of the pipeline. If a step returns `false` and
       // this pipeline is allowed to be 'broken', then we ignore the remaining
       // steps.
       if (cont === false) {
-        if (this.isBreakable) {
+        if (this.isBreakable === true) {
           logger.debug(this.name, webRequestContext.url, 'Break at', name);
           break;
         }
         // we only reach here if the pipeline is not breakable: show a warning
         // that we ignored the break
-        logger.debug(this.name, webRequestContext.url, 'ignoring attempted break of unbreakable pipeline at', name);
+        logger.error(this.name, webRequestContext.url, 'ignoring attempted break of unbreakable pipeline at', name);
       }
     }
   }

@@ -142,6 +142,34 @@ export default describeModule('antitracking/attrack',
       default: encoding.TextDecoder,
     },
     'platform/webrequest': {
+      VALID_RESPONSE_PROPERTIES: {
+        onBeforeRequest: [
+          'cancel',
+          'redirectUrl',
+        ],
+        onBeforeSendHeaders: [
+          'cancel',
+          'requestHeaders',
+        ],
+        onSendHeaders: [
+        ],
+        onHeadersReceived: [
+          'cancel',
+          'redirectUrl',
+          'responseHeaders',
+        ],
+        onAuthRequired: [
+          'cancel',
+        ],
+        onResponseStarted: [
+        ],
+        onBeforeRedirect: [
+        ],
+        onCompleted: [
+        ],
+        onErrorOccurred: [
+        ],
+      },
       default: {
         onBeforeRequest: listenerStub,
         onBeforeSendHeaders: listenerStub,
@@ -234,7 +262,6 @@ export default describeModule('antitracking/attrack',
     function simulatePageLoad(pageSpec) {
       return {
         onBeforeRequest: pageSpec.onBeforeRequest.map(function (reqData) {
-          reqData.requestHeaders = mockRequestHeaders;
           const response = pipeline.onBeforeRequest(reqData);
           return { url: reqData.url, response };
         }),

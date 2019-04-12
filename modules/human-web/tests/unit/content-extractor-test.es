@@ -7,6 +7,7 @@ const path = require('path');
 const zlib = require('zlib');
 const mockBrowser = require('mock-browser');
 const punycode = require('punycode');
+const tldts = require('tldts');
 
 const expect = chai.expect;
 const R = require('ramda');
@@ -79,6 +80,7 @@ export default describeModule('human-web/content-extractor',
     'platform/lib/punycode': {
       default: punycode,
     },
+    'platform/lib/tldts': tldts,
   }),
   () => {
     describe('ContentExtractor', function () {

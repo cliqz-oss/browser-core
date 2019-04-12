@@ -152,6 +152,14 @@ export default class Endpoints {
   }
 
   get ENDPOINT_HPNV2_CONFIG() {
+    // It is important that we never use the anonymous endpoint here!
+    // If /config requests would go through a 3rd party proxy, we would
+    // be open to man-in-the-middle attacks.
+    //
+    // The reason is that it breaks the Diffie-Hellman key exchange,
+    // as a malicious proxy could modify the server's public key.
+    // The consequence would be that a malicious proxy could trick
+    // the client into encrypting with a secret known to the proxy.
     return `${this.ENDPOINT_HPNV2_DIRECT}/config`;
   }
 

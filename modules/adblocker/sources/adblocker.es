@@ -1,312 +1,217 @@
-import AdblockerWrapper from './mobile';
-import events from '../core/events';
-import inject, { ifModuleEnabled } from '../core/kord/inject';
-import prefs from '../core/prefs';
+import AdblockerLib from '../platform/lib/adblocker';
+
+import { ifModuleEnabled } from '../core/kord/inject';
 import UrlWhitelist from '../core/url-whitelist';
 
-import Adblocker from '../platform/lib/adblocker';
-
-import AdbStats from './adb-stats';
-import logger from './logger';
-
-import Pipeline from '../webrequest-pipeline/pipeline';
-
-import {
-  ADB_DISK_CACHE,
-  ADB_PREF,
-  ADB_PREF_VALUES,
-  ADB_USER_LANG,
-  DEFAULT_OPTIONS,
-  adbABTestEnabled,
-} from './config';
+import AdbStats from './statistics';
+import EngineManager from './manager';
 
 
-export function isSupportedProtocol(url) {
-  return (
-    url.startsWith('http://')
-    || url.startsWith('https://')
-    || url.startsWith('ws://')
-    || url.startsWith('wss://'));
+/**
+ * Given a webrequest context from webrequest pipeline, create a `Request`
+ * instance as expected by the adblocker engine.
+ */
+function makeRequestFromContext({
+  type,
+  url = '',
+  urlParts,
+
+  frameUrl,
+  frameUrlParts,
+} = {}) {
+  return new AdblockerLib.Request({
+    type,
+
+    domain: urlParts.generalDomain || '',
+    hostname: urlParts.hostname || '',
+    url,
+
+    sourceDomain: frameUrlParts.generalDomain || '',
+    sourceHostname: frameUrlParts.hostname || '',
+    sourceUrl: frameUrl || '',
+  });
 }
 
-const CliqzADB = {
-  adblockInitialized: false,
-  adbStats: new AdbStats(),
-  adBlocker: null,
-  MIN_BROWSER_VERSION: 35,
-  timers: [],
-  webRequestPipeline: inject.module('webrequest-pipeline'),
-  urlWhitelist: new UrlWhitelist('adb-blacklist'),
-  humanWeb: null,
-  paused: false,
-  onBeforeRequestPipeline: null,
-  whitelistChecks: [],
 
-  adbEnabled() {
-    // 0 = Disabled
-    // 1 = Enabled
-    return (
-      !CliqzADB.paused
-      && adbABTestEnabled()
-      && prefs.get(ADB_PREF, ADB_PREF_VALUES.Disabled) !== ADB_PREF_VALUES.Disabled
+/**
+ * Wrap @cliqz/adblocker's FilterEngine as well as additions needed for
+ * Cliqz/Ghostery products.
+ */
+export default class Adblocker {
+  constructor(webRequestPipeline) {
+    this.webRequestPipeline = webRequestPipeline;
+
+    this.whitelistChecks = [];
+    this.whitelist = new UrlWhitelist('adb-blacklist');
+    this.stats = new AdbStats();
+    this.manager = new EngineManager();
+  }
+
+  async init() {
+    // Make sure the engine is always initialized before we start listening for requests.
+    await this.manager.init();
+    await Promise.all([
+      this.stats.init(),
+      this.whitelist.init(),
+      this.webRequestPipeline.action('addPipelineStep', 'onBeforeRequest', {
+        name: 'adblocker',
+        spec: 'blocking',
+        fn: (context, response) => { this.onBeforeRequest(context, response); },
+        before: ['antitracking.onBeforeRequest'],
+      }),
+      this.webRequestPipeline.action('addPipelineStep', 'onHeadersReceived', {
+        name: 'adblocker',
+        spec: 'blocking',
+        fn: (context, response) => { this.onHeadersReceived(context, response); },
+      }),
+    ]);
+  }
+
+  unload() {
+    this.stats.unload();
+    this.manager.unload();
+
+    ifModuleEnabled(
+      this.webRequestPipeline.action('removePipelineStep', 'onBeforeRequest', 'adblocker'),
     );
-  },
+    ifModuleEnabled(
+      this.webRequestPipeline.action('removePipelineStep', 'onHeadersReceived', 'adblocker'),
+    );
+  }
+
+  async reset() {
+    await this.manager.reset();
+    await this.manager.update();
+  }
+
+  async update() {
+    await this.manager.update();
+  }
+
+  isReady() {
+    return this.manager.isEngineReady();
+  }
 
   addWhiteListCheck(fn) {
-    CliqzADB.whitelistChecks.push(fn);
-  },
+    this.whitelistChecks.push(fn);
+  }
 
-  cliqzWhitelisted(url) {
-    return CliqzADB.urlWhitelist.isWhitelisted(url);
-  },
-
-  isAdbActive(url) {
-    return CliqzADB.adbEnabled()
-    && CliqzADB.adblockInitialized
-    && !CliqzADB.whitelistChecks.some(fn => fn(url));
-  },
-
-  logActionHW(url, action, type) {
-    const checkProcessing = CliqzADB.humanWeb.action('isProcessingUrl', url);
-    checkProcessing.catch(() => {
-      logger.log('no humanweb -> black/whitelist will not be logged');
-    });
-    const existHW = checkProcessing.then((exists) => {
-      if (exists) {
-        return Promise.resolve();
-      }
-      return Promise.reject();
-    });
-    existHW.then(() => {
-      const data = {};
-      data[action] = type;
-      return CliqzADB.humanWeb.action('addDataToUrl', url, 'adblocker_blacklist', data);
-    }, () => logger.log('url does not exist in hw'));
-  },
-
-  init(humanWeb) {
-    CliqzADB.humanWeb = humanWeb;
-    // Set `cliqz-adb` default to 'Disabled'
-    if (prefs.get(ADB_PREF, null) === null) {
-      prefs.set(ADB_PREF, ADB_PREF_VALUES.Disabled);
-    }
-
-    const initAdBlocker = () => {
-      CliqzADB.adblockInitialized = true;
-      CliqzADB.adBlocker = new AdblockerWrapper({
-        onDiskCache: prefs.get(ADB_DISK_CACHE, DEFAULT_OPTIONS.onDiskCache),
-        useCountryList: prefs.get(ADB_USER_LANG, DEFAULT_OPTIONS.useCountryList),
-      });
-
-      CliqzADB.onBeforeRequestPipeline = new Pipeline('adblocker', [
-        {
-          name: 'checkContext',
-          spec: 'blocking',
-          fn: CliqzADB.stepCheckContext,
-        },
-        {
-          name: 'checkWhitelist',
-          spec: 'break',
-          fn: CliqzADB.stepCheckWhitelist,
-        },
-        {
-          name: 'checkBlocklist',
-          spec: 'blocking',
-          fn: CliqzADB.stepOnBeforeRequest,
-        },
-      ]);
-
-      CliqzADB.onHeadersReceivedPipeline = new Pipeline('adblocker', [
-        {
-          name: 'checkContext',
-          spec: 'blocking',
-          fn: CliqzADB.stepCheckContext,
-        },
-        {
-          name: 'checkWhitelist',
-          spec: 'break',
-          fn: CliqzADB.stepCheckWhitelist,
-        },
-        {
-          name: 'checkBlocklist',
-          spec: 'blocking',
-          fn: CliqzADB.stepOnHeadersReceived,
-        },
-      ]);
-
-      CliqzADB.whitelistChecks.push(CliqzADB.cliqzWhitelisted);
-
-      return CliqzADB.adBlocker.init().then(() => {
-        CliqzADB.initPacemaker();
-        return Promise.all([
-          CliqzADB.webRequestPipeline.action(
-            'addPipelineStep',
-            'onBeforeRequest',
-            {
-              name: 'adblocker',
-              spec: 'blocking',
-              fn: (...args) => CliqzADB.onBeforeRequestPipeline.execute(...args),
-              before: ['antitracking.onBeforeRequest'],
-            },
-          ),
-          CliqzADB.webRequestPipeline.action(
-            'addPipelineStep',
-            'onHeadersReceived',
-            {
-              name: 'adblocker',
-              spec: 'blocking',
-              fn: (...args) => CliqzADB.onHeadersReceivedPipeline.execute(...args),
-            },
-          ),
-        ]);
-      });
-    };
-
-    this.onPrefChangeEvent = events.subscribe('prefchange', (pref) => {
-      if (pref === ADB_PREF) {
-        if (!CliqzADB.adblockInitialized && CliqzADB.adbEnabled()) {
-          initAdBlocker();
-        } else if (CliqzADB.adblockInitialized && !CliqzADB.adbEnabled()) {
-          // Shallow unload
-          CliqzADB.unload(false);
-        }
-      }
-    });
-
-    if (CliqzADB.adbEnabled()) {
-      return CliqzADB.urlWhitelist.init()
-        .then(() => initAdBlocker());
-    }
-
-    return Promise.resolve();
-  },
-
-  unload(fullUnload = true) {
-    if (CliqzADB.adblockInitialized) {
-      CliqzADB.adBlocker.unload();
-      CliqzADB.adBlocker = null;
-      CliqzADB.adblockInitialized = false;
-
-      CliqzADB.unloadPacemaker();
-
-      ifModuleEnabled(CliqzADB.webRequestPipeline.action('removePipelineStep', 'onBeforeRequest', 'adblocker'));
-      ifModuleEnabled(CliqzADB.webRequestPipeline.action('removePipelineStep', 'onHeadersReceived', 'adblocker'));
-    }
-
-    // If this is full unload, we also remove the pref listener
-    if (fullUnload) {
-      if (this.onPrefChangeEvent) {
-        this.onPrefChangeEvent.unsubscribe();
-      }
-    }
-  },
-
-  initPacemaker() {
-    const t1 = setInterval(() => {
-      CliqzADB.adbStats.clearStats();
-    }, 10 * 60 * 1000);
-    CliqzADB.timers.push(t1);
-  },
-
-  unloadPacemaker() {
-    CliqzADB.timers.forEach(clearTimeout);
-  },
-
-  stepCheckContext(state, response) {
-    if (!(CliqzADB.adbEnabled() && CliqzADB.adblockInitialized)) {
+  isAdblockerEnabledForUrl(url = '', hostname = null, domain = null) {
+    if (this.isReady() === false) {
       return false;
     }
 
-    // Due to unbreakable pipelines, blocked requests might still come to
-    // adblocker, we can simply ignore them
-    if (response.cancel === true || response.redirectUrl) {
+    if (this.whitelist.isWhitelisted(url, hostname, domain)) {
       return false;
     }
 
-    // We need both
-    if (!state.urlParts || !state.frameUrlParts) {
+    if (this.addWhiteListCheck.length === 0) {
+      return true;
+    }
+
+    for (let i = 0; i < this.whitelistChecks.length; i += 1) {
+      if (this.whitelistChecks[i](url) === true) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Given a `context` from webrequest pipeline, check if the request should be
+   * processed by the adblocker.
+   */
+  shouldProcessRequest(context, response) {
+    // Ignore background requests
+    if (context.isBackgroundRequest()) {
+      return false;
+    }
+
+    // If this request was either canceled or redirected by another step, then
+    // we do not try to perform any matching on it.
+    if (response.cancel === true || response.redirectUrl !== undefined) {
+      return false;
+    }
+
+    // Make sure that we have a valid `url` and `frameUrl` for this request
+    if (context.urlParts === null || context.frameUrlParts === null) {
+      return false;
+    }
+
+    // Make sure page is not white-listed
+    if (
+      context.tabUrl
+      && context.tabUrlParts !== null
+      && this.isAdblockerEnabledForUrl(
+        context.tabUrl,
+        context.tabUrlParts.hostname,
+        context.tabUrlParts.generalDomain,
+      ) === false
+    ) {
       return false;
     }
 
     return true;
-  },
+  }
 
-  stepCheckWhitelist(state) {
-    if (CliqzADB.urlWhitelist.isWhitelisted(state.tabUrl || '')) {
-      return false;
-    }
-    return true;
-  },
-
-  stepOnBeforeRequest(state, response) {
-    if (state.isMainFrame) {
-      // Loading document, we do not block
-      CliqzADB.adbStats.addNewPage(state.tabUrl, state.tabId);
+  /**
+   * Process onBeforeRequest event from webrequest pipeline. This can result in
+   * requests being blocked, redirected or allowed based on what the adblocker
+   * engine decides.
+   */
+  onBeforeRequest(context, response) {
+    if (context.isMainFrame) {
+      this.stats.addNewPage(context);
       return false;
     }
 
-    const request = Adblocker.makeRequest({
-      url: state.url,
-      hostname: state.urlParts.hostname,
-      domain: state.urlParts.generalDomain,
+    if (this.shouldProcessRequest(context, response) === false) {
+      return false;
+    }
 
-      sourceUrl: state.frameUrl,
-      sourceHostname: state.frameUrlParts.hostname,
-      sourceDomain: state.frameUrlParts.generalDomain,
+    const result = this.manager.engine.match(makeRequestFromContext(context));
 
-      type: state.type,
-    }, {
-      // Because we already provide information about `hostname` and `domain`
-      // from the webrequest context, we do not need to provide parsing
-      // utilities (usually we would pass in `tldts`).
-      getDomain: () => '',
-      getHostname: () => '',
-    });
-
-    const result = CliqzADB.adBlocker.match(request);
-
-    if (result.redirect) {
+    let ret = true;
+    if (result.redirect !== undefined) {
+      this.stats.addBlockedUrl(context);
       response.redirectTo(result.redirect);
-      return false;
-    }
-
-    if (result.match) {
-      CliqzADB.adbStats.addBlockedUrl(state.tabUrl, state.url, state.tabId, state.ghosteryBug);
+      ret = false;
+    } else if (result.match === true) {
+      this.stats.addBlockedUrl(context);
       response.block();
+      ret = false;
+    }
+
+    return ret;
+  }
+
+  /**
+   * Process onHeadersReceived event from webrequest pipeline. Only 'main_frame'
+   * requests are processed. The only possible outcome for this step is the
+   * injection of extra CSP headers to harden the page or defuse anti-adblocker
+   * mechanisms.
+   */
+  onHeadersReceived(context, response) {
+    // Only consider 'main_frame' requests
+    if (context.isMainFrame === false) {
       return false;
     }
 
-    return true;
-  },
+    if (this.shouldProcessRequest(context, response) === false) {
+      return false;
+    }
 
-  stepOnHeadersReceived(state, response) {
-    if (state.isMainFrame) {
-      const directives = CliqzADB.adBlocker.engine.getCSPDirectives(Adblocker.makeRequest({
-        url: state.url,
-        hostname: state.urlParts.hostname,
-        domain: state.urlParts.generalDomain,
-
-        type: state.type,
-      }, {
-        // Because we already provide information about `hostname` and `domain`
-        // from the webrequest context, we do not need to provide parsing
-        // utilities (usually we would pass in `tldts`).
-        getDomain: () => '',
-        getHostname: () => '',
-      }));
-
-      if (directives !== undefined) {
-        const cspHeader = 'content-security-policy';
-        const existingCSP = state.getResponseHeader(cspHeader);
-        response.modifyResponseHeader(
-          cspHeader,
-          existingCSP === undefined ? directives : `${existingCSP}; ${directives}`,
-        );
-      }
+    const directives = this.manager.engine.getCSPDirectives(makeRequestFromContext(context));
+    if (directives !== undefined) {
+      const cspHeader = 'content-security-policy';
+      const existingCSP = context.getResponseHeader(cspHeader);
+      response.modifyResponseHeader(
+        cspHeader,
+        existingCSP === undefined ? directives : `${existingCSP}; ${directives}`,
+      );
     }
 
     return true;
-  },
-};
-
-export default CliqzADB;
+  }
+}

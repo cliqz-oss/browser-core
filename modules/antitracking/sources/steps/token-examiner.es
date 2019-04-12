@@ -39,16 +39,16 @@ export default class TokenExaminer {
   constructor(qsWhitelist, config, db) {
     this.qsWhitelist = qsWhitelist;
     this.config = config;
-    this.db = db;
     this.hashTokens = true;
     this.requestKeyValue = new Map();
     this._syncTimer = null;
     this._lastPrune = null;
     this._currentDay = null;
+    this._cleanLegacyDb = db.requestKeyValue.clear();
   }
 
   init() {
-    return this.loadAndPrune();
+    return this._cleanLegacyDb;
   }
 
   unload() {
@@ -59,7 +59,7 @@ export default class TokenExaminer {
 
   clearCache() {
     this.requestKeyValue.clear();
-    return this.db.requestKeyValue.clear();
+    return Promise.resolve();
   }
 
   addRequestKeyValueEntry(tracker, key, tokens) {
@@ -152,26 +152,12 @@ export default class TokenExaminer {
     return datetime.dateString(day);
   }
 
-  pruneDb() {
-    const cutoff = this.getPruneCutoff();
-    return this.db.requestKeyValue.where('day').below(cutoff).delete().then(() => {
-      this._lastPrune = this.currentDay;
-    });
-  }
-
-  loadAndPrune() {
-    return this.pruneDb();
-  }
-
-  _scheduleSync(prune) {
+  _scheduleSync() {
     if (this._syncTimer) {
       return;
     }
     this._syncTimer = setTimeout(async () => {
       try {
-        if (prune) {
-          await this.pruneDb();
-        }
         await this._syncDb();
       } finally {
         this._syncTimer = null;
@@ -180,54 +166,25 @@ export default class TokenExaminer {
   }
 
   async _syncDb() {
-    const rows = [];
-    const trackerKeys = [];
+    const cutoff = this.getPruneCutoff();
     for (const [tracker, keys] of this.requestKeyValue.entries()) {
       for (const [key, tokens] of keys.entries()) {
-        if (tokens.dirty) {
-          tokens.items.forEach((day, value) => {
-            rows.push({
-              tracker,
-              key,
-              value,
-              day,
-            });
-          });
-          if (!this.qsWhitelist.isSafeKey(tracker, key)) {
-            trackerKeys.push({ tracker, key });
+        tokens.items.forEach((day, value) => {
+          if (day < cutoff) {
+            tokens.items.delete(value);
           }
-          tokens.setDirty(false);
+        });
+        tokens.setDirty(false);
+        if (tokens.size() > this.config.safekeyValuesThreshold
+            && !this.qsWhitelist.isSafeKey(tracker, key)) {
+          this.qsWhitelist.addSafeKey(
+            tracker,
+            this.hashTokens ? key : md5(key),
+            tokens.size(),
+          );
+          this.removeRequestKeyValueEntry(tracker, key);
         }
       }
     }
-    // insert requestKeyValue rows
-    await this.db.requestKeyValue.bulkPut(rows);
-    // fetch tokens for trackerKeys
-    const searchKeys = trackerKeys.map(({ tracker, key }) => [tracker, key]);
-    const matchingTokens = await this.db.requestKeyValue.where('[tracker+key]')
-      .anyOf(searchKeys).toArray();
-    // count number of tokens for key
-    const tokenCounts = matchingTokens.reduce((obj, { tracker, key }) => {
-      const hash = `${tracker}:${key}`;
-      if (!obj[hash]) {
-        obj[hash] = { tracker, key, count: 0 };
-      }
-      obj[hash].count += 1;
-      return obj;
-    }, {});
-    Object.keys(tokenCounts).forEach((hash) => {
-      const { tracker, key, count } = tokenCounts[hash];
-      if (count > this.config.safekeyValuesThreshold) {
-        if (this.config.debugMode) {
-          console.log('Add safekey', tracker, key);
-        }
-        this.qsWhitelist.addSafeKey(
-          tracker,
-          this.hashTokens ? key : md5(key),
-          count,
-        );
-      }
-      this.removeRequestKeyValueEntry(tracker, key);
-    });
   }
 }

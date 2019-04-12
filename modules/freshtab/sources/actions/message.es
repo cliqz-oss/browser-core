@@ -1,7 +1,7 @@
 import prefs from '../../core/prefs';
 import events from '../../core/events';
 import console from '../../core/console';
-import utils from '../../core/utils';
+import telemetry from '../../core/services/telemetry';
 
 export const saveMessageDismission = (message) => {
   prefs.setObject('dismissedAlerts', (prevValue) => {
@@ -46,10 +46,6 @@ const pause = (messageId, handler) => {
   events.pub('msg_center:pause_message', { id: messageId }, handler);
 };
 
-export function dismissOffer(messageId, handler) {
-  hide(messageId, handler);
-}
-
 export function pauseMessage(messageId, handler) {
   try {
     saveMessagePausing({
@@ -58,7 +54,7 @@ export function pauseMessage(messageId, handler) {
     });
     pause(messageId, handler);
 
-    utils.telemetry({
+    telemetry.push({
       type: 'notification',
       topic: messageId,
       context: 'home',
@@ -78,7 +74,7 @@ export function dismissMessage(messageId, handler) {
     });
     hide(messageId, handler);
 
-    utils.telemetry({
+    telemetry.push({
       type: 'notification',
       topic: messageId,
       context: 'home',

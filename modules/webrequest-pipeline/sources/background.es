@@ -1,67 +1,79 @@
 import background from '../core/base/background';
-import UrlWhitelist from '../core/url-whitelist';
-
 import WebRequest, { VALID_RESPONSE_PROPERTIES, EXTRA_INFO_SPEC } from '../core/webrequest';
+import { isWebExtension } from '../core/platform';
+
 import Pipeline from './pipeline';
 import WebRequestContext from './webrequest-context';
 import PageStore from './page-store';
 import logger from './logger';
-import { isWebExtension } from '../core/platform';
+
+
+function modifyHeaderByType(headers, name, value) {
+  const lowerCaseName = name.toLowerCase();
+  const filteredHeaders = headers.filter(h => h.name.toLowerCase() !== lowerCaseName);
+  if (!isWebExtension || value) {
+    filteredHeaders.push({ name, value });
+  }
+  return filteredHeaders;
+}
 
 
 /**
- *
+ * Small abstraction on top of blocking responses expected by WebRequest API. It
+ * provides a few helpers to block, redirect or modify headers. It is also able
+ * to create a valid blocking response taking into account platform-specific
+ * allowed capabilities.
  */
-function sanitizeResponse(response, event) {
-  // make sure when response.cancel is true, no other properties are set
-  if (response.cancel === true) {
-    return { cancel: true };
+class BlockingResponse {
+  constructor(details) {
+    this.details = details;
+
+    // Blocking response
+    this.redirectUrl = undefined;
+    this.cancel = undefined;
+    this.responseHeaders = undefined;
+    this.requestHeaders = undefined;
+    this.shouldIncrementCounter = undefined;
   }
 
-  const allowedProperties = VALID_RESPONSE_PROPERTIES[event];
-
-  if (allowedProperties.length === 0) {
-    return {};
+  redirectTo(url) {
+    this.redirectUrl = url;
   }
 
-  const result = Object.create(null);
+  block() {
+    this.cancel = true;
+  }
 
-  for (let i = 0; i < allowedProperties.length; i += 1) {
-    const prop = allowedProperties[i];
-    if (response[prop] !== undefined) {
-      result[prop] = response[prop];
+  modifyHeader(name, value) {
+    this.requestHeaders = modifyHeaderByType(
+      this.requestHeaders || this.details.requestHeaders || [],
+      name,
+      value,
+    );
+  }
+
+  modifyResponseHeader(name, value) {
+    this.responseHeaders = modifyHeaderByType(
+      this.responseHeaders || this.details.responseHeaders || [],
+      name,
+      value,
+    );
+  }
+
+  toWebRequestResponse(event) {
+    const allowedProperties = VALID_RESPONSE_PROPERTIES[event];
+    const response = {};
+
+    for (let i = 0; i < allowedProperties.length; i += 1) {
+      const prop = allowedProperties[i];
+      const value = this[prop];
+      if (value !== undefined) {
+        response[prop] = value;
+      }
     }
+
+    return response;
   }
-
-  return result;
-}
-
-function createResponse(details) {
-  return {
-    redirectTo(url) {
-      this.redirectUrl = url;
-    },
-    block() {
-      this.cancel = true;
-    },
-    _modifyHeaderByType(key, name, value) {
-      if (!this[key]) {
-        this[key] = [...(details[key] || [])];
-      }
-      const name_ = name.toLowerCase();
-      // remove all headers with this name
-      this[key] = this[key].filter(h => h.name.toLowerCase() !== name_);
-      if (!isWebExtension || value) {
-        this[key].push({ name, value });
-      }
-    },
-    modifyHeader(name, value) {
-      this._modifyHeaderByType('requestHeaders', name, value);
-    },
-    modifyResponseHeader(name, value) {
-      this._modifyHeaderByType('responseHeaders', name, value);
-    },
-  };
 }
 
 
@@ -76,7 +88,6 @@ export default background({
       return;
     }
 
-    this.whitelist = new UrlWhitelist('webRequestPipeline-whitelist');
     this.pipelines = new Map();
     this.pageStore = new PageStore();
     this.pageStore.init();
@@ -127,8 +138,6 @@ export default background({
 
     // Register listener for this event
     const listener = (details) => {
-      const response = createResponse(details);
-
       const webRequestContext = WebRequestContext.fromDetails(details, this.pageStore, event);
 
       // Request is not supported, so do not alter
@@ -136,16 +145,19 @@ export default background({
         return {};
       }
 
-      // TODO - handle domain whitelisting
-      pipeline.execute(
-        webRequestContext,
-        response,
-        !this.whitelist.isWhitelisted(webRequestContext.url),
-      );
-      if (isWebExtension) {
-        return sanitizeResponse(response, event);
+      const response = new BlockingResponse(details);
+
+      try {
+        pipeline.execute(
+          webRequestContext,
+          response,
+          true,
+        );
+      } catch (ex) {
+        logger.error('While running pipeline', event, webRequestContext, ex);
       }
-      return response;
+
+      return response.toWebRequestResponse(event);
     };
 
     this.pipelines.set(event, {
@@ -182,18 +194,6 @@ export default background({
   },
 
   actions: {
-    isWhitelisted(url) {
-      return this.whitelist.isWhitelisted(url);
-    },
-
-    changeWhitelistState(url, type, action) {
-      return this.whitelist.changeState(url, type, action);
-    },
-
-    getWhitelistState(url) {
-      return this.whitelist.getState(url);
-    },
-
     addPipelineStep(stage, opts) {
       if (this.initialized) {
         const pipeline = this.getPipeline(stage);

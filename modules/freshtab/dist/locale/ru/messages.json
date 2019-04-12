@@ -1,0 +1,260 @@
+{
+    "add_to_browser": {
+        "message": "Добавить в $1"
+    },
+    "freshtab_app_conditions": {
+        "message": "Conditions"
+    },
+    "freshtab_app_middle_box_blue_theme_cta": {
+        "message": "Customize now"
+    },
+    "freshtab_app_middle_box_blue_theme_desc": {
+        "message": "Cliqz now has a blue tab bar and a beautiful panorama of the Alps as a background image."
+    },
+    "freshtab_app_middle_box_blue_theme_hdr": {
+        "message": "Blue is beautiful!"
+    },
+    "freshtab_app_middle_box_french_news_cta": {
+        "message": "Essayez dès maintenant !"
+    },
+    "freshtab_app_middle_box_french_news_desc": {
+        "message": "L'édition française de Top News sélectionne les informations les plus importantes, parmis les journaux les plus respectés en France."
+    },
+    "freshtab_app_middle_box_french_news_hdr": {
+        "message": "Lisez Top News en français dès maintenant !"
+    },
+    "freshtab_app_middle_box_ft_amo_cta": {
+        "message": "Customize now"
+    },
+    "freshtab_app_middle_box_ft_amo_desc": {
+        "message": "Go to $1 Tab settings for options or to Cliqz control center to turn it on/off."
+    },
+    "freshtab_app_middle_box_ft_amo_hdr": {
+        "message": "New tabs got a fresh look! Customize it to your wishes."
+    },
+    "freshtab_app_middle_box_new_cliqz_tab_cta": {
+        "message": "TRY IT NOW"
+    },
+    "freshtab_app_middle_box_new_cliqz_tab_desc": {
+        "message": "Now you can change the style on $1 Tab."
+    },
+    "freshtab_app_middle_box_new_cliqz_tab_hdr": {
+        "message": "It’s not only the inner values that count!"
+    },
+    "freshtab_app_middle_box_promote_mobile_desc": {
+        "message": "Benefit from quick search, privacy protection and ad blocking on the go. Download Cliqz as a free mobile app!"
+    },
+    "freshtab_app_middle_box_promote_mobile_hdr": {
+        "message": "Cliqz for Android and iOS"
+    },
+    "freshtab_app_news_breaking_news": {
+        "message": "Breaking"
+    },
+    "freshtab_app_news_read_more": {
+        "message": "Read more"
+    },
+    "freshtab_app_settings_background_label": {
+        "message": "Фон"
+    },
+    "freshtab_app_settings_browser_theme": {
+        "message": "Browser theme"
+    },
+    "freshtab_app_settings_browser_theme_blue": {
+        "message": "Blue browser tab"
+    },
+    "freshtab_app_settings_browser_theme_dark": {
+        "message": "Dark"
+    },
+    "freshtab_app_settings_browser_theme_light": {
+        "message": "Light"
+    },
+    "freshtab_app_settings_favorites_label": {
+        "message": "Избранные"
+    },
+    "freshtab_app_settings_header": {
+        "message": "Настройка"
+    },
+    "freshtab_app_settings_most_visited_label": {
+        "message": "Самые посещаемые сайты"
+    },
+    "freshtab_app_settings_most_visited_restore": {
+        "message": "Восстановить все"
+    },
+    "freshtab_app_settings_news_label": {
+        "message": "Новости"
+    },
+    "freshtab_app_settings_news_language_de": {
+        "message": "Немецкие СМИ"
+    },
+    "freshtab_app_settings_news_language_de_tr_en": {
+        "message": "Немецкие СМИ на английском"
+    },
+    "freshtab_app_settings_news_language_en": {
+        "message": "СМИ Великобритании и США"
+    },
+    "freshtab_app_settings_news_language_es": {
+        "message": "Испанские СМИ"
+    },
+    "freshtab_app_settings_news_language_fr": {
+        "message": "Француские СМИ"
+    },
+    "freshtab_app_settings_news_language_gb": {
+        "message": "СМИ Великобритании"
+    },
+    "freshtab_app_settings_news_language_it": {
+        "message": "Итальянские СМИ"
+    },
+    "freshtab_app_settings_news_language_pl": {
+        "message": "Polish media"
+    },
+    "freshtab_app_settings_news_language_ru": {
+        "message": "Русские СМИ"
+    },
+    "freshtab_app_settings_news_language_us": {
+        "message": "СМИ США"
+    },
+    "freshtab_app_settings_privacy_stats": {
+        "message": "Статистика конфиденциальности"
+    },
+    "freshtab_app_settings_search_label": {
+        "message": "Поиск"
+    },
+    "freshtab_app_speed_dial_add": {
+        "message": "Add"
+    },
+    "freshtab_app_speed_dial_add_header": {
+        "message": "Add to $1 Tab"
+    },
+    "freshtab_app_speed_dial_delete": {
+        "message": "Uдалить"
+    },
+    "freshtab_app_speed_dial_edit_address_header": {
+        "message": "Изменить адрес"
+    },
+    "freshtab_app_speed_dial_edit_header": {
+        "message": "Изменить название или адрес"
+    },
+    "freshtab_app_speed_dial_edit_title_header": {
+        "message": "Изменить название"
+    },
+    "freshtab_app_speed_dial_exists_already": {
+        "message": "Address already exists"
+    },
+    "freshtab_app_speed_dial_input_address_placeholder": {
+        "message": "Enter Address"
+    },
+    "freshtab_app_speed_dial_input_title_placeholder": {
+        "message": "Enter Title (optional)"
+    },
+    "freshtab_app_speed_dial_not_valid": {
+        "message": "Address is not valid"
+    },
+    "freshtab_app_speed_dial_removed": {
+        "message": "Удалено"
+    },
+    "freshtab_app_speed_dial_save": {
+        "message": "Сохранить"
+    },
+    "freshtab_app_speed_dial_undo": {
+        "message": "Отмена"
+    },
+    "freshtab_app_speed_dials_row_custom": {
+        "message": "Избранные"
+    },
+    "freshtab_app_speed_dials_row_history": {
+        "message": "Самые посещаемые сайты"
+    },
+    "freshtab_app_speed_dials_row_history_onboarding": {
+        "message": "Your most visited pages will appear here"
+    },
+    "freshtab_app_top_box_import_bookmarks_cta": {
+        "message": "Import now"
+    },
+    "freshtab_app_top_box_import_bookmarks_hdr": {
+        "message": "Import bookmarks, passwords, and history from other browsers."
+    },
+    "freshtab_app_top_box_import_bookmarks_later": {
+        "message": "Later"
+    },
+    "freshtab_cliqz_for_friends_button": {
+        "message": "Cliqz for friends"
+    },
+    "freshtab_cliqz_modules_button": {
+        "message": "Cliqz Modules"
+    },
+    "freshtab_cliqz_modules_list": {
+        "message": "Cliqz modules list"
+    },
+    "freshtab_cliqz_post_remind_later": {
+        "message": "Remind me later"
+    },
+    "freshtab_cliqz_tab_button": {
+        "message": "$1 Tab"
+    },
+    "freshtab_cliqz_tab_settings_button": {
+        "message": "$1 Tab Settings"
+    },
+    "freshtab_history_button": {
+        "message": "History"
+    },
+    "freshtab_search_reminder": {
+        "message": "Hey! Want to search privately?"
+    },
+    "freshtab_search_reminder_action": {
+        "message": "Click Tab"
+    },
+    "freshtab_stats_ads_blocked": {
+        "message": "Анонимизировано персональных данных"
+    },
+    "freshtab_stats_ads_blocked_by_desc": {
+        "message": "Количество рекламных объявлений было заблокировано $1"
+    },
+    "freshtab_stats_cliqz_trackers_blocked": {
+        "message": "Заблокировано отслеживающих (tracking-)cookie"
+    },
+    "freshtab_stats_cliqz_trackers_blocked_desc": {
+        "message": "Количество отслеживающих cookie было заблокировано Cliqz"
+    },
+    "freshtab_stats_data_anonymized_by_desc": {
+        "message": "Количество отслеживающих cookie было заблокировано $1"
+    },
+    "freshtab_stats_dp_anonymized": {
+        "message": "Заблокировано отслеживающих(tracking-) cookie"
+    },
+    "freshtab_stats_gt_trackers_blocked": {
+        "message": "Заблокировано трекеров"
+    },
+    "freshtab_stats_gt_trackers_seen": {
+        "message": "Из $1 трекеров, обнаруженных Ghostery"
+    },
+    "freshtab_stats_time_saved": {
+        "message": "Заблокировано рекламы"
+    },
+    "freshtab_stats_time_saved_desc": {
+        "message": "Количество рекламных объявлений было заблокировано Cliqz Ad-Blocker"
+    },
+    "freshtab_top_news": {
+        "message": "Top News"
+    },
+    "freshtab_top_sites": {
+        "message": "Top Sites"
+    },
+    "freshtab_urlbar_placeholder": {
+        "message": "Анонимный поиск"
+    },
+    "freshtab_your_news": {
+        "message": "Your News Sources"
+    },
+    "learn_more": {
+        "message": "Learn more"
+    },
+    "promo_data_brand_name": {
+        "message": "Ghostery - персональный блокировщик рекламы"
+    },
+    "promo_data_description": {
+        "message": "Дополните свой браузер мощным расширением конфиденциальности."
+    },
+    "promo_data_description_2": {
+        "message": "Блокирует рекламу, останавливает трекеры и ускоряет загрузку сайтов."
+    }
+}

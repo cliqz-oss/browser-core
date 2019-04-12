@@ -450,40 +450,6 @@ class WeekDayExpr extends Expression {
 }
 
 /**
- * Handle matching of green-ads conditions.
- * @version 6.0
- */
-class MatchGAExpr extends Expression {
-  constructor(data) {
-    super(data);
-    this.raw = null;
-    this.ga_handler = null;
-  }
-
-  isBuilt() {
-    return this.raw !== null;
-  }
-
-  build() {
-    this.raw = this.data.raw_op.args[0];
-    this.ga_handler = this.data.ga_handler;
-  }
-
-  destroy() {
-  }
-
-  getExprValue() {
-    // TODO - pre-hash `this.raw` to not have to do it every time we eval
-    return this.ga_handler.getCondition(this.raw)
-      .then(condition =>
-        this.ga_handler.getNewMatches(condition.lastEventTs || 0)
-          .then(events => condition.match(events))
-          .catch(ex => logger.error('exception in MatchGAExpr', ex)));
-  }
-}
-
-
-/**
  * this method will check if the user is in a particular area / place
  * @param  {Object} args
  * <pre>
@@ -715,7 +681,7 @@ class ProbeSegmentExpr extends Expression {
   }
 
   async getExprValue(ctx) {
-    const categoryHandler = ctx.category_handler;
+    const categoryHandler = this.data.category_handler;
     const setConfidenceVariable = (confidence) => {
       ctx.vars.segment_confidence = confidence;
     };
@@ -841,7 +807,6 @@ const ops = {
   $timestamp: TimestampExpr,
   $day_hour: DayHourExpr,
   $week_day: WeekDayExpr,
-  $match_ga: MatchGAExpr,
   $geo_check: GeoCheckExpr,
   $is_feature_enabled: IsFeatureEnabledExpr,
   $probe_segment: ProbeSegmentExpr,

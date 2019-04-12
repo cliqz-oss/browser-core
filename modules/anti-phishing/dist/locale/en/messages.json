@@ -1,0 +1,23 @@
+{
+    "anti_phishing_txt0": {
+        "message": "Security Warning"
+    },
+    "anti_phishing_txt1": {
+        "message": "Cliqz has blocked access to "
+    },
+    "anti_phishing_txt2": {
+        "message": " because it has been reported as a phishing website. Phishing websites disguise as other sites you may trust in order to trick you into disclosing your login, password or other sensitive information."
+    },
+    "anti_phishing_txt3": {
+        "message": "Learn more"
+    },
+    "anti_phishing_txt4": {
+        "message": "Go to safe website"
+    },
+    "anti_phishing_txt5": {
+        "message": "Report this page as safe"
+    },
+    "anti_phishing_txt6": {
+        "message": "Proceed despite risks"
+    }
+}

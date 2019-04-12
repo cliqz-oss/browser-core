@@ -36,15 +36,12 @@ class App extends React.Component {
         history: [],
         isLoaded: false,
       },
-      offers: [],
       news: {
         data: [],
         version: '',
       },
       hasHistorySpeedDialsToRestore: false,
       isModalOpen: false,
-      isOfferInfoOpen: false,
-      isOfferMenuOpen: false,
       isOverlayOpen: false,
       isSettingsOpen: false,
       messages: props.config.messages,
@@ -312,22 +309,6 @@ class App extends React.Component {
       .then(has => this.setState({ hasHistorySpeedDialsToRestore: has }));
   }
 
-  getOfferInfoOpen = () => this.state.isOfferInfoOpen;
-
-  setOfferInfoOpen = (state) => {
-    this.setState({
-      isOfferInfoOpen: state
-    });
-  }
-
-  getOfferMenuOpen = () => this.state.isOfferMenuOpen;
-
-  setOfferMenuOpen = (state) => {
-    this.setState({
-      isOfferMenuOpen: state
-    });
-  }
-
   handleClick = (el) => {
     if (this.urlbarElem) {
       this.urlbarElem.textInput.style.visibility = 'visible';
@@ -341,14 +322,6 @@ class App extends React.Component {
       && el.target.id !== 'undo-close'
       && this.state.isSettingsOpen) {
       this.setState({ isSettingsOpen: false });
-    }
-    const middleboxPanel = document.querySelector('.offer-unit');
-    if (middleboxPanel && !middleboxPanel.contains(el.target)
-        && el.target.className !== 'why-info') {
-      this.setState({
-        isOfferMenuOpen: false,
-        isOfferInfoOpen: false,
-      });
     }
   }
 
@@ -558,6 +531,7 @@ class App extends React.Component {
               positioning={this.state.config.cliqzPostPosition}
               position="post"
             />
+
             <AsideLeft
               historyUrl={this.state.config.HISTORY_URL}
               isHistoryEnabled={this.state.config.isHistoryEnabled}

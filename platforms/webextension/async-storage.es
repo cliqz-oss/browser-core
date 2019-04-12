@@ -1,4 +1,5 @@
 import { chrome } from './globals';
+import MemoryAsyncStorage from '../core/helpers/memory-async-storage';
 
 class ChromeAsyncStorage {
   constructor(storageArea) {
@@ -59,4 +60,6 @@ class ChromeAsyncStorage {
   }
 }
 
-export default new ChromeAsyncStorage(chrome.storage.local);
+export default (chrome && chrome.storage && chrome.storage.local)
+  ? new ChromeAsyncStorage(chrome.storage.local)
+  : MemoryAsyncStorage;

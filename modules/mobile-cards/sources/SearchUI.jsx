@@ -68,9 +68,6 @@ export default class SearchUI extends React.Component {
     const theme = this.props.theme;
     const meta = this.props.meta;
     const filteredResults = this.filterResults(results);
-    if (!filteredResults.length) {
-      return null;
-    }
     // TODO: Move this whole logic to search module
     const regroupedResults = this.regroupHistory(filteredResults);
     return (

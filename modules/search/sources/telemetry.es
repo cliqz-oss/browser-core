@@ -65,7 +65,7 @@ const isSearchEngine = (url) => {
   }
 };
 
-const telemetry = (focus$, query$, results$, selection$) => {
+const telemetry = (focus$, query$, results$, selection$, highlight$) => {
   // streams latest result and selection (of ongoing search session)
   const sessions$ = focus$
     .pipe(
@@ -83,7 +83,11 @@ const telemetry = (focus$, query$, results$, selection$) => {
               scan((hasUserInput, { isPasted, isTyped }) =>
                 hasUserInput || isPasted || isTyped, false),
               startWith(false)
-            ))
+            ),
+            highlight$.pipe(
+              startWith(0),
+              scan(count => count + 1),
+            )),
         )),
       share()
     );
@@ -99,13 +103,15 @@ const telemetry = (focus$, query$, results$, selection$) => {
         { results, ts: resultsTs },
         selection,
         hasUserInput,
+        highlightCount,
         { ts: blurTs, entryPoint }
       ]) => {
         const selectedResult = selection.rawResult || {};
         const metric = {
-          version: 3,
+          version: 4,
           hasUserInput,
           entryPoint,
+          highlightCount,
           results: results.map(({ kind }) => parseKind(kind)),
           // TODO: add session duration
           selection: {

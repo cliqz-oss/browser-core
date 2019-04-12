@@ -3,28 +3,28 @@ export const locale = {};
 export function loadTranslation(localeCode) {
   switch (localeCode) {
     case 'de':
-      locale[localeCode] = require('../static/locale/de/messages.json');
+      locale[localeCode] = require('../../_locales/de/messages.json');
       break;
     case 'fr':
-      locale[localeCode] = require('../static/locale/fr/messages.json');
+      locale[localeCode] = require('../../_locales/fr/messages.json');
       break;
     case 'es':
-      locale[localeCode] = require('../static/locale/es/messages.json');
+      locale[localeCode] = require('../../_locales/es/messages.json');
       break;
     case 'pt':
-      locale[localeCode] = require('../static/locale/pt/messages.json');
+      locale[localeCode] = require('../../_locales/pt/messages.json');
       break;
     case 'pl':
-      locale[localeCode] = require('../static/locale/pl/messages.json');
+      locale[localeCode] = require('../../_locales/pl/messages.json');
       break;
     case 'ru':
-      locale[localeCode] = require('../static/locale/ru/messages.json');
+      locale[localeCode] = require('../../_locales/ru/messages.json');
       break;
     case 'it':
-      locale[localeCode] = require('../static/locale/it/messages.json');
+      locale[localeCode] = require('../../_locales/it/messages.json');
       break;
     default:
-      locale[localeCode] = require('../static/locale/en/messages.json');
+      locale[localeCode] = require('../../_locales/en/messages.json');
   }
 }
 

@@ -24,7 +24,6 @@ module.exports = {
     "core",
     "core-cliqz",
     "search",
-    "static",
     "p2p",
     "pairing",
     "mobile-pairing",

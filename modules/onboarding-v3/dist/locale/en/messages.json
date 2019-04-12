@@ -1,0 +1,26 @@
+{
+    "onboarding_data_collection": {
+        "message": "By sending anonymized usage statistics to Cliqz, you help us improve your browsing experience."
+    },
+    "onboarding_fast": {
+        "message": "Fast"
+    },
+    "onboarding_private": {
+        "message": "Private"
+    },
+    "onboarding_secure": {
+        "message": "Secure"
+    },
+    "onboarding_share_btn": {
+        "message": "Choose what to share"
+    },
+    "onboarding_start_btn": {
+        "message": "Start"
+    },
+    "onboarding_text": {
+        "message": "The no-compromise browser"
+    },
+    "onboarding_welcome": {
+        "message": "Welcome to Cliqz!"
+    }
+}

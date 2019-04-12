@@ -16,6 +16,7 @@ export default class Dropdown {
     this.rootElement = element;
     this.window = window;
     this.actions = actions;
+    this.currentSessionId = -1;
   }
 
   init() {
@@ -55,10 +56,18 @@ export default class Dropdown {
     return this.updateSelection();
   }
 
-  clearSelection() {
+  clearResultClass(className) {
     [...this.rootElement.querySelectorAll('a')].forEach(
-      anchor => anchor.classList.remove('selected')
+      anchor => anchor.classList.remove(className)
     );
+  }
+
+  setResultClass(result, className) {
+    this.clearResultClass(className);
+    const el = this.getResultElement(result);
+    if (el) {
+      el.classList.add(className);
+    }
   }
 
   getResultElement(result) {
@@ -69,10 +78,11 @@ export default class Dropdown {
   }
 
   selectResult(result) {
-    const el = this.getResultElement(result);
-    if (el) {
-      el.classList.add('selected');
-    }
+    this.setResultClass(result, 'selected');
+  }
+
+  highlightResult(result) {
+    this.setResultClass(result, 'hovered');
   }
 
   scrollToResult(result) {
@@ -96,19 +106,42 @@ export default class Dropdown {
   }
 
   updateSelection() {
-    this.clearSelection();
     this.selectResult(this.selectedResult);
     this.actions.reportHighlight(this.selectedResult.serialize());
     return this.selectedResult;
   }
 
   clear() {
+    this.selectedIndex = 0;
     this.dropdownElement.innerHTML = '';
   }
 
-  renderResults(results, { urlbarAttributes, extensionId, channelId, isRerendering } = {}) {
-    this.selectedIndex = 0;
+  getSelectedResultIndex(newResults, sessionId) {
+    if (this.currentSessionId === sessionId
+      && this.selectedIndex > 0
+      && this.results && newResults
+      && this.results.query === newResults.query
+      && this.selectedResult
+    ) {
+      const keepResult = this.newResults.findSelectable(this.selectedResult.url);
+      if (keepResult) {
+        return this.newResults.indexOf(keepResult);
+      }
+    }
+
+    return 0;
+  }
+
+  renderResults(results, {
+    urlbarAttributes,
+    extensionId,
+    channelId,
+    isRerendering,
+    sessionId,
+  } = {}) {
+    this.selectedIndex = this.getSelectedResultIndex(results, sessionId);
     this.results = results;
+    this.currentSessionId = sessionId;
 
     if (extensionId) {
       this.dropdownElement.dataset.extensionId = extensionId;
@@ -143,7 +176,7 @@ export default class Dropdown {
     });
 
     if (!isRerendering) {
-      this.selectResult(this.results.firstResult);
+      this.selectResult(this.selectedResult);
     }
 
     const historyResults = this.rootElement.querySelectorAll('.history');
@@ -188,19 +221,13 @@ export default class Dropdown {
 
     const elementName = targetElement.getAttribute('data-extra');
     result.click(href, ev, { elementName, handledByBrowser });
-
-    // In web-ext clicking on result doesn't focus on iframe,
-    // hence we don't give focus back to urlbar
-    // window.focus();
   };
 
   onMouseMove = (ev) => {
     const targetElement = getEventTarget(ev);
-
     if (this.lastTarget === targetElement) {
       return;
     }
-
     this.lastTarget = targetElement;
 
     const now = Date.now();
@@ -209,27 +236,20 @@ export default class Dropdown {
     }
     this.lastMouseMove = now;
 
-    // TODO: merge with onMouseUp handler
     const resultElement = targetElement.closest('.result');
-
-    if (!resultElement) {
-      this.clearSelection();
-      this.selectedIndex = 0;
-      return;
-    }
-
-    if (resultElement.classList.contains('non-selectable')) {
+    if (!resultElement || resultElement.classList.contains('non-selectable')) {
       return;
     }
 
     const href = resultElement.dataset.url;
     const resultIndex = this.results.selectableResults.findIndex(r => r.url === href);
-
-    this.clearSelection();
-
-    if (resultIndex !== -1) {
-      this.selectedIndex = resultIndex;
-      this.updateSelection();
+    const result = this.results.get(resultIndex);
+    if (this.lastHoveredResult === result || resultIndex === -1) {
+      return;
     }
+
+    this.lastHoveredResult = result;
+    this.highlightResult(result);
+    this.actions.reportHover(result.serialize());
   };
 }

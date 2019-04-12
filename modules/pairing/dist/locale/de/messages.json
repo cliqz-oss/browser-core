@@ -1,0 +1,62 @@
+{
+    "connect_in_progress_header": {
+        "message": "Entschuldigung!"
+    },
+    "connect_in_progress_message": {
+        "message": "Diese Funktion wird überarbeitet und ist aktuell nicht verfügbar."
+    },
+    "pairing_all_features_title": {
+        "message": "Schalte diese Funktionen auf deinem mobilen Gerät frei"
+    },
+    "pairing_browser_pair_with": {
+        "message": "Dieser Browser ist jetzt verknüpft mit:"
+    },
+    "pairing_contact_learn_more": {
+        "message": "Weitere Informationen"
+    },
+    "pairing_contact_support": {
+        "message": "Möchtest du mehr über die Funktionen erfahren?"
+    },
+    "pairing_enabled_features_title": {
+        "message": "Diese Funktionen sind jetzt auf deinem mobilen Gerät freigeschaltet"
+    },
+    "pairing_instructions_appstore": {
+        "message": "Hol dir die Cliqz App vom App Store › Öffne die Cliqz App › Einstellungen › Connect"
+    },
+    "pairing_instructions_playstore": {
+        "message": "Hol dir die Cliqz App vom Play Store › Öffne die Cliqz App › Menü › Connect"
+    },
+    "pairing_instructions_title": {
+        "message": "1. Cliqz App herunterladen"
+    },
+    "pairing_offline": {
+        "message": "OFFLINE"
+    },
+    "pairing_on_disconnected_tip": {
+        "message": "Connect funktioniert nur, wenn dein mobiles Gerät online und aktiv ist."
+    },
+    "pairing_online": {
+        "message": "ONLINE"
+    },
+    "pairing_receive_tab_title": {
+        "message": "Tabs empfangen"
+    },
+    "pairing_scan_title": {
+        "message": "2. Mit Cliqz App scannen"
+    },
+    "pairing_send_tab_title": {
+        "message": "Tabs senden"
+    },
+    "pairing_status_title": {
+        "message": "Du bist verbunden"
+    },
+    "pairing_title": {
+        "message": "Connect"
+    },
+    "pairing_unpair": {
+        "message": "Verbindung trennen"
+    },
+    "pairing_video_title": {
+        "message": "Videos herunterladen"
+    }
+}

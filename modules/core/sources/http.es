@@ -4,7 +4,7 @@
 import console from './console';
 import { compress } from './gzip';
 import { XMLHttpRequestFactory, setPrivateFlags, setBackgroundRequest } from '../platform/xmlhttprequest';
-import { fetch as _fetch } from '../platform/fetch';
+import { fetch as _fetch, fetchArrayBuffer as _fetchArrayBuffer } from '../platform/fetch';
 import { chromeUrlHandler } from '../platform/chrome-url-handler';
 
 const listeners = new Set();
@@ -19,15 +19,30 @@ const notifyListeners = (params) => {
   });
 };
 
+let fetchHandler = _fetch;
+
+export function resetFetchHandler() {
+  fetchHandler = _fetch;
+}
+
+export function overrideFetchHandler(handler) {
+  fetchHandler = handler;
+}
+
 export function fetch(...args) {
   notifyListeners({
     url: args[0],
   });
-  return _fetch(...args);
+  return fetchHandler(...args);
 }
 
-export function fetchFactory() {
-  return fetch;
+// Fetch with array buffer support - required for platforms where fetch does not support
+// arrayBuffer() method (react-native)
+export function fetchArrayBuffer(...args) {
+  notifyListeners({
+    url: args[0],
+  });
+  return (_fetchArrayBuffer || _fetch)(...args);
 }
 
 export { Headers, Request, Response } from '../platform/fetch';
@@ -187,4 +202,43 @@ export function addListener(listener) {
 
 export function removeListener(listener) {
   listeners.delete(listener);
+}
+
+/**
+ * Fetch a JSON resource from `url`.
+ */
+export async function fetchJSON(url) {
+  const response = await fetch(url);
+  if (response.ok === false) {
+    throw new Error(`Could not fetch JSON: ${response.statusText} (${url})`);
+  }
+
+  const json = await response.json();
+  return json;
+}
+
+/**
+ * Fetch a typed array resource from `url`.
+ */
+export async function fetchTypedArray(url) {
+  const response = await fetchArrayBuffer(url);
+  if (response.ok === false) {
+    throw new Error(`Could not fetch typed array: ${response.statusText} (${url})`);
+  }
+
+  const array = new Uint8Array(await response.arrayBuffer());
+  return array;
+}
+
+/**
+ * Fetch a plain text resource from `url`.
+ */
+export async function fetchText(url) {
+  const response = await fetch(url);
+  if (response.ok === false) {
+    throw new Error(`Could not fetch text: ${response.statusText} (${url})`);
+  }
+
+  const text = await response.text();
+  return text;
 }

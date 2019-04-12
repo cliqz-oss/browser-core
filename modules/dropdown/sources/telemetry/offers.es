@@ -1,5 +1,3 @@
-// TODO: this module public API has to be completely covered with unit tests
-
 class OfferResult {
   constructor(rawResult, allResults) {
     this.rawResult = rawResult;
@@ -60,18 +58,26 @@ class OfferResult {
 export default class OffersReporter {
   constructor(offers) {
     this.offers = offers;
-    this.offerSignalSent = new WeakMap();
+    this.offerSignalSent = new Set();
   }
 
-  registerResults(results) {
-    this.offerSignalSent.set(results, false);
+  registerResults() {
+    this.offerSignalSent.clear();
   }
 
   /**
    * @private
    */
-  hasSentTelemetry(results) {
-    return this.offerSignalSent.get(results);
+  hasSentTelemetry(offerId) {
+    return this.offerSignalSent.has(offerId);
+  }
+
+  async notifyThatOfferExists(offer) {
+    await this.offers.action('createExternalOffer', {
+      origin: 'dropdown',
+      data: offer.offerData,
+    });
+    this.offerSignalSent.add(offer.offerId);
   }
 
   /**
@@ -90,12 +96,10 @@ export default class OffersReporter {
   }
 
   reportShows(results) {
-    const report = async ({ offerId, offerData, index, hasOffer }) => {
-      await this.offers.action('createExternalOffer', {
-        origin: 'dropdown',
-        data: offerData,
-      });
+    const report = async (offer) => {
+      await this.notifyThatOfferExists(offer);
 
+      const { offerId, index, hasOffer } = offer;
       this.report(offerId, 'offer_dsp_session');
       this.report(offerId, 'offer_shown');
 
@@ -110,29 +114,28 @@ export default class OffersReporter {
       }
     };
 
-    if (this.hasSentTelemetry(results)) {
-      return Promise.resolve();
-    }
-
-    this.offerSignalSent.set(results, true);
-
     return Promise.all(
       results
         .map(r => new OfferResult(r, results))
         .filter(r => r.shouldCountShowStats)
+        .filter(r => !this.hasSentTelemetry(r.offerId))
         .map(report)
     );
   }
 
-  reportClick(results, clickedResult) {
-    const offerResult = new OfferResult(clickedResult);
+  async reportClick(results, clickedResult) {
+    const offerResult = new OfferResult(clickedResult, results);
     if (!offerResult.isOffer) {
       return;
     }
-    const { offerId, shouldCountStats, isAttached } = offerResult;
 
+    const { offerId, shouldCountStats, isAttached } = offerResult;
     if (!shouldCountStats) {
       return;
+    }
+
+    if (!this.hasSentTelemetry(offerId)) {
+      await this.notifyThatOfferExists(offerResult);
     }
 
     let position = results

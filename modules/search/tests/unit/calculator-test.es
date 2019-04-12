@@ -149,9 +149,6 @@ export default describeModule('search/providers/calculator/internal',
       math: {
         default: mathJs,
       },
-      'core/utils': {
-        default: {}
-      },
       'core/i18n': {
         getMessage: '[dynamic]'
       },

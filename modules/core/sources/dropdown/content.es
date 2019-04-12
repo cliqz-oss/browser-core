@@ -115,7 +115,7 @@ export default class ContentDropdownManager extends BaseDropdownManager {
           keyCode: this.lastEvent && this.lastEvent.code,
         });
     } else {
-      this.setHeight(0);
+      this.collapse();
     }
   }
 
@@ -155,7 +155,7 @@ export default class ContentDropdownManager extends BaseDropdownManager {
   }
 
   close() {
-    this.setHeight(0);
+    this.collapse();
     this.cliqz.search.stopSearch({ entryPoint: this.entryPoint });
   }
 
@@ -172,6 +172,13 @@ export default class ContentDropdownManager extends BaseDropdownManager {
 
     if (ev.key === 'Escape') {
       this._setUrlbarValue('');
+    }
+
+    if (ev.key === 'Tab') {
+      if (!this.isOpen) {
+        this._queryCliqz('', { allowEmptyQuery: true });
+        return true;
+      }
     }
 
     return super.onKeydown(ev);

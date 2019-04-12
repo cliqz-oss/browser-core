@@ -6,6 +6,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
       && !tab.url.startsWith('about:')
       && !tab.url.startsWith('chrome:')
       && !tab.url.startsWith('moz-extension')
+      && !tab.url.startsWith('chrome-extension')
     ) {
       chrome.tabs.sendMessage(tab.id, {
         module: 'overlay',

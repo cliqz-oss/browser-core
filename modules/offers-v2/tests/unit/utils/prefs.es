@@ -1,4 +1,4 @@
-const defaultPrefs = new Map([['offers.user-journey.enabled', true]]);
+const defaultPrefs = new Map();
 const prefs = new Map(defaultPrefs);
 
 module.exports = {
@@ -29,4 +29,12 @@ module.exports = {
       },
     }
   },
+  'core/config': {
+    default: {
+      settings: {
+        OFFERS_BE_BASE_URL: 'https://offers-api.cliqz.com',
+        'offers.user-journey.enabled': true,
+      }
+    }
+  }
 };

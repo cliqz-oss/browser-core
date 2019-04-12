@@ -37,18 +37,22 @@ if (chrome.bookmarks && !unifiedSearchAvailable) {
 
 let openedURLs = new Set();
 
-function updateOpenedTabsCache() {
+function updateOpenedTabsCache(type, id) {
   if (chrome.windows) {
     chrome.windows.getAll({ populate: true, windowTypes: ['normal'] }, (windows) => {
       openedURLs = new Set();
-      windows.forEach(w => w.tabs.forEach(tab => openedURLs.add(tab.url)));
+      windows.forEach(w => w.tabs.forEach((tab) => {
+        if (type !== 'onremoved' || tab.id !== id) {
+          openedURLs.add(tab.url);
+        }
+      }));
     });
   }
 }
 
 if (chrome.tabs && !unifiedSearchAvailable) {
   chrome.tabs.onCreated.addListener(updateOpenedTabsCache);
-  chrome.tabs.onRemoved.addListener(updateOpenedTabsCache);
+  chrome.tabs.onRemoved.addListener(updateOpenedTabsCache.bind(null, 'onremoved'));
   chrome.tabs.onUpdated.addListener(updateOpenedTabsCache);
   chrome.tabs.onReplaced.addListener(updateOpenedTabsCache);
   updateOpenedTabsCache();

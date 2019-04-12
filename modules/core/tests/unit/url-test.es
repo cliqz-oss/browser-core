@@ -55,6 +55,7 @@ const URLS = [
   'view-source:https://cliqz.com',
   'data:text/plain,hello',
   'data:text,hello',
+  'resource://devtools-client-jsonview/',
 
   // urls without protocols
   'cliqz.com',

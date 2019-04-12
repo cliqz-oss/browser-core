@@ -45,7 +45,7 @@ export default function () {
           lastRenderedResult = renderedText;
           expect(renderedText).to.equal(expectedResult);
           expect(renderedResult.textContent.trim().split('\n')[2].trim())
-            .to.equal(getLocalisedString('Click_anywhere_to_copy'));
+            .to.equal(getLocalisedString('click_anywhere_to_copy'));
         });
       });
     });

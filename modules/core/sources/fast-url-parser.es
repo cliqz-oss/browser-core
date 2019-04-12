@@ -21,7 +21,7 @@ const BREAK_HOST_ON = [
 
 const KNOWN_PROTOCOLS = new Set([
   'http', 'https', 'ftp', 'file', 'about', 'mailto', 'chrome', 'moz-extension', 'chrome-extension',
-  'view-source', 'data', 'dat'
+  'view-source', 'data', 'dat', 'resource'
 ]);
 
 function isValidProtocolChar(code) {

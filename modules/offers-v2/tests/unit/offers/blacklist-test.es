@@ -1,28 +1,20 @@
 /* global chai */
 /* global describeModule */
 /* global require */
+const adblocker = require('@cliqz/adblocker');
 const commonMocks = require('../utils/common');
-
-class EngineFake {
-  constructor() { this.filters = ''; }
-
-  updateList({ list }) { this.filters = list; }
-
-  deleteLists() { }
-
-  match({ url }) {
-    const result = this.filters.split('\n').includes(url);
-    return { match: result };
-  }
-}
-
-class LoaderFake {
-  stop() {}
-}
 
 export default describeModule('offers-v2/offers/blacklist',
   () => ({
     ...commonMocks,
+    'platform/lib/adblocker': {
+      default: adblocker,
+    },
+    'core/resource-loader': {
+      default: class LoaderFake {
+        stop() {}
+      },
+    },
   }),
   () => {
     describe('black\'s basic cases', () => {
@@ -31,7 +23,7 @@ export default describeModule('offers-v2/offers/blacklist',
       describe('basic cases', () => {
         beforeEach(function () {
           const Blacklist = this.module().default;
-          blacklist = new Blacklist({ engine: new EngineFake(), loader: new LoaderFake() });
+          blacklist = new Blacklist();
         });
         afterEach(function () {
           blacklist.unload();

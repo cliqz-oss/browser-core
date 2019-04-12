@@ -1,5 +1,16 @@
 import background from '../core/base/background';
 import { chrome } from '../platform/globals';
+import { getMessage } from '../platform/i18n';
+import config from '../core/config';
+
+function triggerOverlay(tab, triggeredBy, query = '') {
+  chrome.tabs.sendMessage(tab.id, {
+    module: 'overlay',
+    action: 'toggle-quicksearch',
+    trigger: triggeredBy,
+    query,
+  });
+}
 
 /**
   @namespace <namespace>
@@ -11,17 +22,27 @@ export default background({
     @param settings
   */
   init() {
+    chrome.contextMenus.create({
+      id: 'context-search',
+      title: getMessage('context_menu_search_item', [config.settings.appName, '%s']),
+      contexts: ['selection'],
+      documentUrlPatterns: [
+        'http://*/*',
+        'https://*/*',
+      ]
+    });
+
+    chrome.contextMenus.onClicked.addListener((info, tab) => {
+      triggerOverlay(tab, 'ByContextMenu', info.selectionText);
+    });
+
     chrome.commands.onCommand.addListener((command) => {
       if (command === 'toggle-quicksearch') {
         chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
           if (!tab) {
             return;
           }
-          chrome.tabs.sendMessage(tab.id, {
-            module: 'overlay',
-            action: 'toggle-quicksearch',
-            trigger: 'ByKeyboard',
-          });
+          triggerOverlay(tab, 'ByKeyboard');
         });
       }
     });

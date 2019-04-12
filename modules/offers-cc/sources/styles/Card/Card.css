@@ -1,0 +1,82 @@
+.card__wrapper {
+  margin: 2px 7px;
+  padding: 2px 7px 0px;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.25);
+}
+
+.card__image {
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  height: 120px;
+  cursor: pointer;
+}
+
+.card__benefit {
+  font-size: 34px;
+  color: #494949;
+}
+
+.card__headline {
+  font-size: 16px;
+  hyphens: auto;
+}
+
+.card__description {
+  hyphens: auto;
+  font-size: 12.5px;
+}
+
+.card__conditions {
+  color: #999;
+  font-size: 13px;
+  line-height: 1.4em;
+}
+
+.card__text {
+  margin: 0px 10px 0px 13px;
+  cursor: pointer;
+}
+
+.card__myoffrz-button {
+  background-color: #00AEF0;
+}
+.card__myoffrz-button:hover {
+  background-color: #0078CA;
+}
+.card__chip-button {
+  background-color: #DA3434;
+}
+.card__chip-button:hover {
+  background-color: #c93636;
+}
+
+.card__button {
+  display: inline-block;
+  width: 100%;
+  height: 41px;
+  color: #fff;
+  font-weight: 500;
+  font-size: 14px;
+  text-align: center;
+  padding: 2px 7px;
+  margin-left: -7px;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+  cursor: pointer;
+  line-height: 41px;
+}
+
+.card__screen-container {
+  margin: 0px -7px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.card__screen-secondary {
+  position: absolute;
+  top: 0;
+}

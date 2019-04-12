@@ -1,6 +1,6 @@
 import { from, empty, merge } from 'rxjs';
 import { share, map, delay } from 'rxjs/operators';
-import utils from '../../core/utils';
+import { fetch } from '../../core/http';
 import prefs from '../../core/prefs';
 import cliqzConfig from '../../core/config';
 import CliqzLanguage from '../../core/language';
@@ -88,25 +88,32 @@ const getBackendResults = (originalQuery, config, params = {}) => {
 
   const url = config.settings.RESULTS_PROVIDER + getResultsProviderQueryString(q, params);
 
-  utils._sessionSeq += 1;
+  const searchSessionService = inject.service('search-session', [
+    'incrementSessionSeq',
+    'getQueryLastDraw',
+    'setQueryLastDraw',
+    'incrementQueryCount',
+  ]);
+  searchSessionService.incrementSessionSeq();
 
   // if the user sees the results more than 500ms we consider that he starts a new query
-  if (utils._queryLastDraw && (Date.now() > utils._queryLastDraw + 500)) {
-    utils._queryCount += 1;
+  const queryLastDraw = searchSessionService.getQueryLastDraw();
+  if (queryLastDraw && (Date.now() > queryLastDraw + 500)) {
+    searchSessionService.incrementQueryCount();
   }
-  utils._queryLastDraw = 0; // reset last Draw - wait for the actual draw
+  searchSessionService.setQueryLastDraw(0);
   const privacyOptions = {
     credentials: 'omit',
     cache: 'no-store',
   };
 
   // If private mode or query proxying is enabled, go through hpnv2
-  const fetch = (hpnv2Available && (config.isPrivateMode || prefs.get('hpn-query', false)))
+  const fetchHandler = (hpnv2Available && (config.isPrivateMode || prefs.get('hpn-query', false)))
     ? (...args) => inject.module('hpnv2').action('search', ...args)
-    : utils.fetchFactory();
+    : fetch;
 
   const startTs = Date.now();
-  const backendPromise = fetch(url, privacyOptions, params)
+  const backendPromise = fetchHandler(url, privacyOptions, params)
     .then(res => res.json())
     .then((response) => {
       response.latency = Date.now() - startTs;

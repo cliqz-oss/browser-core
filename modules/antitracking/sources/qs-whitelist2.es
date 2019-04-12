@@ -1,12 +1,12 @@
 import PackedBloomFilter from '../core/bloom-filter-packed';
 import { Resource } from '../core/resource-loader';
-import { fetch } from '../core/http';
+import { fetch, fetchArrayBuffer } from '../core/http';
 import moment from '../platform/lib/moment';
 import setInterval from '../core/helpers/timeout';
 import logger from './logger';
 
 async function fetchPackedBloomFilter(url) {
-  const response = await fetch(url);
+  const response = await fetchArrayBuffer(url);
   if (!response.ok) {
     throw new Error(response.error);
   }

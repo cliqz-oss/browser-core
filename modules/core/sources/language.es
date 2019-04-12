@@ -198,7 +198,7 @@ const CliqzLanguage = {
     return str;
   },
   // the function that decided which languages the person understands
-  state() {
+  state(exposeWeights = false) {
     let langVec = [];
     Object.keys(CliqzLanguage.currentState).forEach(
       (lang) => {
@@ -211,10 +211,13 @@ const CliqzLanguage = {
 
     langVec = langVec.sort((a, b) => a[1] - b[1]);
 
-    // returns only lang names
-    const langVecClean = langVec.map(l => l[0]);
+    // If `exposeWeights` is true then we return both lang names and weigths
+    if (exposeWeights === true) {
+      return langVec;
+    }
 
-    return langVecClean;
+    // returns only lang names
+    return langVec.map(l => l[0]);
   },
   // remove doubled values, normalize languages
   cleanCurrentState() {

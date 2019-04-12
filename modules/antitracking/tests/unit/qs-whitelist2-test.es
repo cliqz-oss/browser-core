@@ -1,5 +1,6 @@
 /* global chai, describeModule */
 const moment = require('moment');
+const pako = require('pako');
 const { TextEncoder, TextDecoder } = require('text-encoding');
 
 const mockStorage = new Map();
@@ -65,11 +66,13 @@ export default describeModule('antitracking/qs-whitelist2',
     'core/console': {
       default: console,
     },
+    'platform/lib/zlib': pako,
     'platform/resource-loader-storage': {
       default: MockStorage,
     },
     'core/http': {
       fetch: mockFetch,
+      fetchArrayBuffer: mockFetch,
     },
     'platform/lib/moment': {
       default: (...args) => {

@@ -16,9 +16,6 @@ function getCurrentDate() {
 export default describeModule('anolysis/internals/signals-queue',
   () => ({
     ...mockDexie,
-    'core/utils': {
-      default: {},
-    },
     'core/console': { default: {} },
     'core/helpers/timeout': {
       default: () => ({ stop: () => {} }),

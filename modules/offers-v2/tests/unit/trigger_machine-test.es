@@ -680,6 +680,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
         describe('/handle errors in triggers', () => {
           let objs;
           let triggerMachine;
+          const ctx = { vars: {} };
           const triggerAction = sinon.stub();
 
           beforeEach(() => {
@@ -721,7 +722,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
           it('/do not execute actions for a failing trigger', async () => {
             setTriggers([getInvalidTrigger()]);
 
-            await triggerMachine.runRoot(objs);
+            await triggerMachine.runRoot(ctx);
 
             chai.expect(triggerAction).to.be.not.called;
           });
@@ -729,7 +730,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
           it('/skip subtrigger with an error, execute other subtriggers', async () => {
             setTriggers([getInvalidTrigger(), getValidTrigger()]);
 
-            await triggerMachine.runRoot(objs);
+            await triggerMachine.runRoot(ctx);
 
             chai.expect(triggerAction).to.be.calledOnce;
           });
@@ -741,6 +742,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
           let categoryHandler;
           let intentHandler;
           let segmentCat;
+          const ctx = { vars: {} };
           const queryMock = sinon.stub();
 
           function resetQueryMock(perDayStat) {
@@ -815,12 +817,12 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             // Arrange: load history
             const yesterdayKey = moment().subtract(1, 'd').format('YYYYMMDD');
             resetQueryMock({ [yesterdayKey]: { m: 3 } });
-            await triggerMachine.runRoot(objs);
+            await triggerMachine.runRoot(ctx);
             await waitForHistoryLoaded();
             resetQueryMock({});
 
             // Act
-            await triggerMachine.runRoot(objs);
+            await triggerMachine.runRoot(ctx);
 
             // Assert: no offer
             const isIntentActive = intentHandler.isIntentActiveByName('mytoys_intent');
@@ -834,12 +836,12 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
           it('/show offer based on history data', async () => {
             // Arrange: load history
             resetQueryMock({});
-            await triggerMachine.runRoot(objs);
+            await triggerMachine.runRoot(ctx);
             await waitForHistoryLoaded();
             resetQueryMock({});
 
             // Act
-            await triggerMachine.runRoot(objs);
+            await triggerMachine.runRoot(ctx);
 
             // Assert: offer
             const isIntentActive = intentHandler.isIntentActiveByName('mytoys_intent');
@@ -853,7 +855,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
           it('/disable offer if probe_segment returns low confidence', async () => {
             queryMock.throws(new ThrottleError('UnitTest'));
 
-            await triggerMachine.runRoot(objs);
+            await triggerMachine.runRoot(ctx);
 
             // Assert: no offer
             const isIntentActive = intentHandler.isIntentActiveByName('mytoys_intent');

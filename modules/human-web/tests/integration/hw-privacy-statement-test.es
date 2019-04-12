@@ -27,7 +27,7 @@ export default function () {
       beforeEach(async function () {
         await newTab(privacyStatementUrl);
         await waitFor(async () => {
-          const $pageHeaders = await queryHTML(privacyStatementUrl, 'h1[key="humanWeb1"]', 'innerText');
+          const $pageHeaders = await queryHTML(privacyStatementUrl, 'h1[key="hw_page_header"]', 'innerText');
           return (($pageHeaders.length !== 0) && ($pageHeaders[0] !== ''));
         });
       });
@@ -64,7 +64,7 @@ export default function () {
 
           await newTab(privacyStatementUrl);
           await waitFor(async () => {
-            const $pageHeaders = await queryHTML(privacyStatementUrl, 'h1[key="humanWeb1"]', 'innerText');
+            const $pageHeaders = await queryHTML(privacyStatementUrl, 'h1[key="hw_page_header"]', 'innerText');
             return (($pageHeaders.length !== 0) && ($pageHeaders[0] !== ''));
           });
         });
@@ -113,9 +113,10 @@ export default function () {
           await prefChanged;
         });
 
-        it('flips "humanWebOptOut" pref to true', function () {
-          expect(prefs.get('humanWebOptOut')).to.equal(true);
-        });
+        it('flips "humanWebOptOut" pref to true', () => waitFor(
+          () => expect(prefs.get('humanWebOptOut')).to.equal(true),
+          2000,
+        ));
       });
 
       context('twice', function () {
@@ -133,9 +134,10 @@ export default function () {
           });
         });
 
-        it('flips "humanWebOptOut" pref to false', function () {
-          expect(prefs.get('humanWebOptOut')).to.equal(false);
-        });
+        it('flips "humanWebOptOut" pref to false', () => waitFor(
+          () => expect(prefs.get('humanWebOptOut')).to.equal(false),
+          2000,
+        ));
       });
     });
   });

@@ -17,16 +17,26 @@ export default describeModule('freshtab/news',
       },
       'core/url': { extractSimpleURI: '[dynamic]' },
       'freshtab/news-cache': { default: function () { } },
-      'core/utils': {
-        default: {},
+      'core/storage': {
+        default: class Storage {
+          getItem() { return true; }
+
+          setItem() { return true; }
+        },
       },
       'core/console': {
+        isLoggingEnabled: () => false,
         default: {
           log() {},
-        }
+        },
       },
       'core/prefs': {
-        default: {}
+        default: {
+          get(name, def) {
+            return def;
+          },
+          set() { },
+        },
       },
       'core/i18n': {
         default: {}
@@ -59,16 +69,6 @@ export default describeModule('freshtab/news',
       }
 
       beforeEach(function () {
-        this.deps('core/prefs').default.get = function (prefName, defaultPref) {
-          return defaultPref;
-        };
-
-        this.deps('core/prefs').default.set = function () {
-          return true;
-        };
-
-        this.deps('core/utils').default.log = function () {};
-
         this.deps('core/url').extractSimpleURI = function (url) {
           const data = {
             'http://www.test.com/': {
@@ -89,20 +89,6 @@ export default describeModule('freshtab/news',
             }
           };
           return data[url];
-        };
-
-
-        this.deps('core/utils').default.encodeLocale = function () { return ''; };
-
-        this.deps('core/utils').default.hash = cliqzHash;
-
-        this.deps('core/utils').default.log = function () {};
-
-        this.deps('core/utils').default.getLocalStorage = function () {
-          return {
-            getItem() { return true; },
-            setItem: function () { return true; }
-          };
         };
       });
 

@@ -9,9 +9,6 @@ export default describeModule('offers-v2/features/geo_checker',
     'platform/gzip': {
       default: {}
     },
-    'core/utils': {
-      default: {}
-    },
     'core/http': {
       default: {}
     },

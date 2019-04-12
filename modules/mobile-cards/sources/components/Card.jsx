@@ -50,7 +50,7 @@ class Card extends React.Component {
       isNewTab: false,
       isPrivateMode: false,
       isPrivateResult: meta.isPrivate,
-      query: meta.query,
+      query: result.text,
       rawResult: {
         index: props.index,
         ...props.result,

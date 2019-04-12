@@ -111,19 +111,20 @@ export default background({
         offersStatus: await this.deps['offers-v2'].action('getOffersStatus'),
       };
     },
-    getPreferencesState() {
+    getPreferencesState(prefName) {
       return {
         preferencesStatus: {
           config_location: prefs.get('config_location', ''),
-          developer: prefs.get('developer', true),
+          custom: prefs.get(prefName, 'N/A'),
+          developer: prefs.get('developer', 'N/A'),
           'logger.offers-v2.level': prefs.get('logger.offers-v2.level', ''),
-          offersDevFlag: prefs.get('offersDevFlag', true),
-          offersLoadSignalsFromDB: prefs.get('offersLoadSignalsFromDB', true),
-          offersLogsEnabled: prefs.get('offersLogsEnabled', true),
-          offersTelemetryFreq: prefs.get('offersTelemetryFreq', ''),
-          showConsoleLogs: prefs.get('showConsoleLogs', true),
-          signaturesRequired: prefs.get('required', false, 'xpinstall.signatures.'),
-          triggersBE: prefs.get('triggersBE', ''),
+          offersDevFlag: prefs.get('offersDevFlag', 'N/A'),
+          offersLoadSignalsFromDB: prefs.get('offersLoadSignalsFromDB', 'N/A'),
+          offersLogsEnabled: prefs.get('offersLogsEnabled', 'N/A'),
+          offersTelemetryFreq: prefs.get('offersTelemetryFreq', 'N/A'),
+          showConsoleLogs: prefs.get('showConsoleLogs', 'N/A'),
+          signaturesRequired: prefs.get('required', 'N/A', 'xpinstall.signatures.'),
+          triggersBE: prefs.get('triggersBE', 'N/A'),
         },
       };
     },

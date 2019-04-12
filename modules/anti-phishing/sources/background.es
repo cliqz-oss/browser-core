@@ -5,7 +5,7 @@ import background from '../core/base/background';
 import inject from '../core/kord/inject';
 import * as datetime from '../antitracking/time';
 import console from '../core/console';
-import utils from '../core/utils';
+import telemetry from '../core/services/telemetry';
 
 function addDataToUrl(...args) {
   const hw = inject.module('human-web');
@@ -138,7 +138,7 @@ export default background({
         action: 'click',
         target,
       };
-      utils.telemetry(signal);
+      telemetry.push(signal);
     },
 
     markAsSafe(url) {

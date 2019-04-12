@@ -2,7 +2,7 @@
 
 import globalConfig from '../core/config';
 import moduleConfig from './config';
-import utils from '../core/utils';
+import telemetry from '../core/services/telemetry';
 import { getDetailsFromUrl } from '../core/url';
 import prefs from '../core/prefs';
 import events from '../core/events';
@@ -10,7 +10,7 @@ import inject from '../core/kord/inject';
 import { getMessage } from '../core/i18n';
 import { isDesktopBrowser, isAMO, isGhostery } from '../core/platform';
 import background from '../core/base/background';
-import { getActiveTab } from '../platform/browser';
+import { getActiveTab, getWindow } from '../core/browser';
 import { openLink } from '../platform/browser-actions';
 import { queryTabs, getCurrentTabId } from '../core/tabs';
 
@@ -72,10 +72,11 @@ class IntervalManager {
 }
 
 export default background({
-  // injecting ourselfs to get access to windowModule on webextensions
   core: inject.module('core'),
   antitracking: inject.module('antitracking'),
-  geolocation: inject.module('geolocation'),
+  geolocation: inject.service('geolocation', ['setLocationPermission']),
+
+  requiresServices: ['geolocation', 'telemetry'],
 
 
   init(settings) {
@@ -159,7 +160,7 @@ export default background({
     // TODO do I have access to the window here?
     return this.core.action(
       'getWindowStatus',
-      utils.getWindow()
+      getWindow()
     ).then((mData) => {
       const moduleData = mData;
       return this.actions.getFrameData().then((ccData) => {
@@ -186,7 +187,7 @@ export default background({
     // its a guessing game but as it is triggered by
     // user interaction we may be right here
     // idealy we infer the current tab from action sender
-    const window = utils.getWindow();
+    const window = getWindow();
     const tabId = await getCurrentTabId(window);
     return tabId;
   },
@@ -213,10 +214,7 @@ export default background({
           events.pub('control-center:toggleHumanWeb');
           break;
         case 'extensions.cliqz.share_location':
-          this.geolocation.action(
-            'setLocationPermission',
-            data.value
-          );
+          this.geolocation.setLocationPermission(data.value);
           events.pub('message-center:handlers-freshtab:clear-message', {
             id: 'share-location',
             template: 'share-location'
@@ -240,7 +238,7 @@ export default background({
       }
 
       if (!data.isPrivateMode) {
-        utils.telemetry({
+        telemetry.push({
           type: TELEMETRY_TYPE,
           target: data.target,
           state: data.value,
@@ -352,7 +350,7 @@ export default background({
       openLink(data.url, true);
 
       if (!data.isPrivateMode) {
-        utils.telemetry({
+        telemetry.push({
           type: TELEMETRY_TYPE,
           target: data.target,
           action: 'click',
@@ -378,13 +376,13 @@ export default background({
       if (data.index) {
         signal.index = data.index;
       }
-      utils.telemetry(signal);
+      telemetry.push(signal);
     },
 
     'antitracking-strict': function antitrackingStrict({ isPrivateMode, status }) {
       events.pub('control-center:antitracking-strict');
       if (!isPrivateMode) {
-        utils.telemetry({
+        telemetry.push({
           type: TELEMETRY_TYPE,
           target: 'attrack_fair',
           action: 'click',
@@ -396,7 +394,7 @@ export default background({
     'complementary-search': function complementarySearch({ defaultSearch, isPrivateMode }) {
       events.pub('control-center:setDefault-search', defaultSearch);
       if (!isPrivateMode) {
-        utils.telemetry({
+        telemetry.push({
           type: TELEMETRY_TYPE,
           target: 'complementary_search',
           state: `search_engine_change_${defaultSearch}`,
@@ -408,7 +406,7 @@ export default background({
     'search-index-country': function searchIndexCountry({ defaultCountry, isPrivateMode }) {
       events.pub('control-center:setDefault-indexCountry', defaultCountry);
       if (!isPrivateMode) {
-        utils.telemetry({
+        telemetry.push({
           type: TELEMETRY_TYPE,
           target: 'search-index-country',
           state: `search_index_country_${defaultCountry}`,
@@ -420,7 +418,7 @@ export default background({
     'cliqz-tab': function cliqzTab({ status, isPrivateMode }) {
       events.pub('control-center:cliqz-tab');
       if (!isPrivateMode) {
-        utils.telemetry({
+        telemetry.push({
           type: TELEMETRY_TYPE,
           target: 'cliqz_tab',
           action: 'click',
@@ -468,7 +466,7 @@ export default background({
       }
 
       if (!data.isPrivateMode) {
-        utils.telemetry({
+        telemetry.push({
           type: TELEMETRY_TYPE,
           target: `attrack_${data.type}`,
           state,
@@ -488,7 +486,7 @@ export default background({
       }
 
       if (!data.isPrivateMode) {
-        utils.telemetry({
+        telemetry.push({
           type: TELEMETRY_TYPE,
           target: `antiphishing_${data.type}`,
           state,
@@ -507,7 +505,7 @@ export default background({
       }
 
       if (!data.isPrivateMode) {
-        utils.telemetry({
+        telemetry.push({
           type: TELEMETRY_TYPE,
           target: `adblock_${data.type}`,
           state,
@@ -521,10 +519,10 @@ export default background({
     },
 
     'adb-optimized': function adbOptimized(data) {
-      events.pub('control-center:adb-optimized');
+      events.pub('control-center:adb-optimized', data.status);
 
       if (!data.isPrivateMode) {
-        utils.telemetry({
+        telemetry.push({
           type: TELEMETRY_TYPE,
           target: 'adblock_fair',
           action: 'click',
