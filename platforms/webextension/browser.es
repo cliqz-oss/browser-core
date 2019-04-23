@@ -1,4 +1,6 @@
 import { window, chrome } from './globals';
+import windows from './windows';
+import events from '../core/events';
 
 export * from './tabs';
 export * from './windows';
@@ -58,12 +60,20 @@ export function getBrowserMajorVersion() {
 }
 
 export function setOurOwnPrefs() { }
-export function enableChangeEvents() {}
+
+const healthReportPrefObserver = () => events.pub('healthReportChange');
+
+export function enableChangeEvents() {
+  if (chrome.cliqz && chrome.cliqz.onPrefChange) {
+    chrome.cliqz.onPrefChange.addListener(healthReportPrefObserver, 'datareporting.healthreport.', 'uploadEnabled');
+    chrome.cliqz.onPrefChange.addListener(healthReportPrefObserver, 'toolkit.telemetry.', 'enabled');
+  }
+}
 
 const windowObservers = new WeakMap();
 
 export function addWindowObserver(fn) {
-  if (!chrome.windows) {
+  if (windows === undefined) {
     return;
   }
   const observer = {
@@ -72,19 +82,19 @@ export function addWindowObserver(fn) {
     close: windowId => fn({ id: windowId }, 'closed'),
   };
   windowObservers.set(fn, observer);
-  chrome.windows.onCreated.addListener(observer.open);
-  chrome.windows.onFocusChanged.addListener(observer.focus);
-  chrome.windows.onRemoved.addListener(observer.close);
+  windows.onCreated.addListener(observer.open);
+  windows.onFocusChanged.addListener(observer.focus);
+  windows.onRemoved.addListener(observer.close);
 }
 
 export function removeWindowObserver(fn) {
-  if (!chrome.windows) {
+  if (windows === undefined) {
     return;
   }
   const observer = windowObservers.get(fn);
-  chrome.windows.onCreated.removeListener(observer.open);
-  chrome.windows.onFocusChanged.removeListener(observer.focus);
-  chrome.windows.onRemoved.removeListener(observer.close);
+  windows.onCreated.removeListener(observer.open);
+  windows.onFocusChanged.removeListener(observer.focus);
+  windows.onRemoved.removeListener(observer.close);
 }
 
 export function addSessionRestoreObserver() {}
@@ -105,10 +115,10 @@ function windowObserver(win, event) {
   }
 }
 
-if (chrome.windows) {
+if (windows !== undefined) {
   addWindowObserver(windowObserver);
-  chrome.windows.getAll(
-    windows => windows.forEach(win => windowObserver(win, 'opened'))
+  windows.getAll(
+    wins => wins.forEach(win => windowObserver(win, 'opened'))
   );
 } else {
   currentWindow = window;
@@ -181,6 +191,38 @@ export function getCookies(url) {
 
 export function reportError() {}
 
-export function disableChangeEvents() {}
+export function disableChangeEvents() {
+  if (chrome.cliqz && chrome.cliqz.onPrefChange) {
+    chrome.cliqz.onPrefChange.removeListener(healthReportPrefObserver);
+  }
+}
 
 export function resetOriginalPrefs() {}
+
+export function isDefaultBrowser() {
+  if (chrome.cliqz && chrome.cliqz.isDefaultBrowser) {
+    return chrome.cliqz.isDefaultBrowser();
+  }
+
+  return Promise.resolve(null);
+}
+
+export function isPrivateMode(win) {
+  if (!win) {
+    throw new Error('isPrivateMode was called without a window object');
+  }
+  return win.incognito || chrome.extension.inIncognitoContext;
+}
+
+export function openLink(win, url, newTab = false, active = true) {
+  if (newTab) {
+    chrome.tabs.create({ url, active });
+  } else {
+    chrome.windows.getCurrent({ populate: true }, ({ tabs }) => {
+      const activeTab = tabs.find(tab => tab.active);
+      chrome.tabs.update(activeTab.id, {
+        url
+      });
+    });
+  }
+}

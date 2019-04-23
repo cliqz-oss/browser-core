@@ -51,6 +51,10 @@ export default class SpeedDialsRow extends React.Component {
 
   visitSpeedDial(index) {
     speedDialClickSignal(this.state.isCustom, index);
+    const isPrivateMode = !!(chrome && chrome.extension && chrome.extension.inIncognitoContext);
+    if (!isPrivateMode) {
+      cliqz.freshtab.speedDialClicked();
+    }
   }
 
   resetAll = () => {

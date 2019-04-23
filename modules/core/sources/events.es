@@ -25,12 +25,19 @@ const CliqzEvents = {
   queue: [],
 
   pub(id, ...args) {
-    const callbacks = (CliqzEvents.cache[id] || []).map(ev =>
-      nextTick(() => {
-        ev.call(null, ...args);
-      }).catch((e) => {
-        console.error(`CliqzEvents error: ${id}`, e);
-      }));
+    const listeners = (CliqzEvents.cache[id] || []);
+    if (listeners.length === 0) {
+      return;
+    }
+
+    const callbacks = [];
+    const onError = (e) => {
+      console.error(`CliqzEvents error: ${id}`, e);
+    };
+
+    for (let i = 0; i < listeners.length; i += 1) {
+      callbacks.push(nextTick(listeners[i].bind(null, ...args)).catch(onError));
+    }
 
     const finishedPromise = Promise.all(callbacks).then(() => {
       const index = this.queue.indexOf(finishedPromise);

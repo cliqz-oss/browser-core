@@ -18,7 +18,6 @@ import CinemaResult from './results/cinema';
 import NavigateToResult from './results/navigate-to';
 import NewsStory from './results/news-story';
 import TopNews from './results/top-news';
-import { equals } from '../core/content/url';
 
 class ResultFactory {
   static create(rawResult, resultTools) {
@@ -206,7 +205,7 @@ export default class Results {
   }
 
   findSelectable(href) {
-    return this.selectableResults.find(r => equals(r.url, href));
+    return this.selectableResults.find(r => r.url === href);
   }
 
   indexOf(result) {

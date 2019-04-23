@@ -16,12 +16,11 @@ export default function getLocalMessages() {
       position: 'top',
       rules: [
         {
-          fn: 'cliqzVersionCheck',
-          value: '1.20.0',
-        },
-        {
           fn: 'installDaysLesserThan',
           value: 14,
+        },
+        {
+          fn: 'isDesktopBrowser'
         }
       ]
     }

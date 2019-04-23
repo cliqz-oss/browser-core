@@ -11,13 +11,17 @@ const removeEmptyResults = ({ results, ...response }) => ({
     .filter(result => getMainLink(result).template !== 'empty'),
 });
 
-const removeCompletedLinks = links =>
-  links.filter(link => link.meta.isIncomplete);
+const splitCompleteFromIncomplete = links =>
+  ({
+    incomplete: links.filter(link => link.meta.isIncomplete),
+    complete: links.filter(link => !link.meta.isIncomplete)
+  });
 
-const isNotEmpty = links => links.length > 0;
+
+const isNotEmpty = links => links.incomplete.length > 0;
 
 const getKey = link =>
-  (link.meta.triggerMethod === 'query' ? 'query' : link.url);
+  (['partial_url', 'query', 'suggestion', 'domain'].indexOf(link.meta.triggerMethod) !== -1 ? link.meta.triggerMethod : link.url);
 
 const merge = ([{ results: completed }, { results: original, ...rest }]) => {
   const indices = new Map();
@@ -50,9 +54,9 @@ export default function update(richHeader, cliqz$, query, config) {
     cliqz$,
     cliqz$.pipe(
       map(getMainLinks),
-      map(removeCompletedLinks),
+      map(splitCompleteFromIncomplete),
       filter(isNotEmpty),
-      flatMap(links => richHeader.search(query, links, config)),
+      flatMap(links => richHeader.search(query, [links.complete[0]], config)),
       withLatestFrom(cliqz$),
       map(merge)
     )

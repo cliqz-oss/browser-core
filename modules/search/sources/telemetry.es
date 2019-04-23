@@ -65,7 +65,7 @@ const isSearchEngine = (url) => {
   }
 };
 
-const telemetry = (focus$, query$, results$, selection$) => {
+const telemetry = (focus$, query$, results$, selection$, highlight$) => {
   // streams latest result and selection (of ongoing search session)
   const sessions$ = focus$
     .pipe(
@@ -83,7 +83,11 @@ const telemetry = (focus$, query$, results$, selection$) => {
               scan((hasUserInput, { isPasted, isTyped }) =>
                 hasUserInput || isPasted || isTyped, false),
               startWith(false)
-            ))
+            ),
+            highlight$.pipe(
+              startWith(0),
+              scan(count => count + 1),
+            )),
         )),
       share()
     );
@@ -99,12 +103,15 @@ const telemetry = (focus$, query$, results$, selection$) => {
         { results, ts: resultsTs },
         selection,
         hasUserInput,
-        { ts: blurTs }
+        highlightCount,
+        { ts: blurTs, entryPoint }
       ]) => {
         const selectedResult = selection.rawResult || {};
         const metric = {
-          version: 2,
+          version: 4,
           hasUserInput,
+          entryPoint,
+          highlightCount,
           results: results.map(({ kind }) => parseKind(kind)),
           // TODO: add session duration
           selection: {
@@ -114,7 +121,7 @@ const telemetry = (focus$, query$, results$, selection$) => {
             isAutocomplete: !!selection.isFromAutocompletedURL,
             // note: is false for origin 'other', only applies to 'cliqz' and
             //       'direct' selections
-            isSearchEngine: isSearchEngine(selectedResult.url),
+            isSearchEngine: ('isSearchEngine' in selection) ? selection.isSearchEngine : isSearchEngine(selectedResult.url),
             // TODO: verify that 'kind' contains the correct information for deep results
             ...parseKind(selectedResult.kind || []),
             origin: getOrigin(selectedResult),

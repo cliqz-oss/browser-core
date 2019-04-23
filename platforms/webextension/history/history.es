@@ -2,7 +2,7 @@ import { chrome } from '../globals';
 
 export default class {
   static deleteVisit(visitId) {
-    return chrome.cliqz.history.deleteVisit(+visitId);
+    return chrome.cliqzHistory.history.deleteVisit(+visitId);
   }
 
   static deleteVisits(visitIds) {
@@ -13,19 +13,19 @@ export default class {
   }
 
   static showHistoryDeletionPopup() {
-    return chrome.cliqz.history.showHistoryDeletionPopup();
+    return chrome.cliqzHistory.history.showHistoryDeletionPopup();
   }
 
   static fillFromVisit(url, triggeringUrl) {
-    return chrome.cliqz.history.fillFromVisit(url, triggeringUrl);
+    return chrome.cliqzHistory.history.fillFromVisit(url, triggeringUrl);
   }
 
   static markAsHidden(url) {
-    return chrome.cliqz.history.markAsHidden(url);
+    return chrome.cliqzHistory.history.markAsHidden(url);
   }
 
   static cleanupEmptySearches() {
-    return chrome.cliqz.history.cleanupEmptySearches();
+    return chrome.cliqzHistory.history.cleanupEmptySearches();
   }
 
   static addVisit({ url, title, transition, visitTime }) {
@@ -64,7 +64,7 @@ export default class {
       // eslint-disable-next-line
       frameEndsAt = +frameEndsAt;
     }
-    return chrome.cliqz.history.query({ limit, frameStartsAt, frameEndsAt, domain, query });
+    return chrome.cliqzHistory.history.query({ limit, frameStartsAt, frameEndsAt, domain, query });
   }
 
   static queryVisitsForTimespan({ frameStartsAt, frameEndsAt }) {
@@ -72,8 +72,8 @@ export default class {
       if (chrome.history) {
         chrome.history.search({
           text: '',
-          startTime: frameStartsAt / 1000,
-          endTime: frameEndsAt / 1000,
+          startTime: Math.floor(frameStartsAt / 1000), // only integer values are allowed
+          endTime: Math.floor(frameEndsAt / 1000),
         }, (items) => {
           resolve(items.map(({ url, lastVisitTime }) => ({
             url,
@@ -84,5 +84,16 @@ export default class {
         resolve([]);
       }
     });
+  }
+
+  static async stats() {
+    if (chrome.cliqzHistory && chrome.cliqzHistory.history && chrome.cliqzHistory.history.stats) {
+      return chrome.cliqzHistory.history.stats();
+    }
+
+    return {
+      size: -1,
+      days: -1
+    };
   }
 }

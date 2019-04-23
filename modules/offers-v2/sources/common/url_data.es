@@ -15,7 +15,7 @@ import { getGeneralDomain } from '../../core/tlds';
 export default class UrlData {
   constructor(rawUrl, referrerName = null) {
     if ((typeof rawUrl) !== 'string') {
-      throw new Error('invalid raw url type');
+      throw new Error(`invalid raw url type: ${typeof rawUrl}`);
     }
     this.rawUrl = rawUrl;
     this.referrerName = referrerName;
@@ -63,6 +63,10 @@ export default class UrlData {
       this.domain = getGeneralDomain(this.rawUrl);
     }
     return this.domain;
+  }
+
+  getGeneralDomain() {
+    return this.getDomain();
   }
 
   /**

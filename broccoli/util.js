@@ -127,6 +127,30 @@ module.exports = {
           match: /\{\{FRESHTAB_TITLE\}\}/g,
           replacement: config => config.settings.FRESHTAB_TITLE || ''
         },
+        {
+          match: /\{\{CUSTOM_MANIFEST_ENTRY\}\}/g,
+          replacement: config => config.CUSTOM_MANIFEST_ENTRY || ''
+        },
+        {
+          match: /\{\{CUSTOM_MANIFEST_PAGE_ACTION_POPUP\}\}/g,
+          replacement: config => config.CUSTOM_MANIFEST_PAGE_ACTION_POPUP || ''
+        },
+        {
+          match: /\{\{CUSTOM_MANIFEST_PERMISSIONS\}\}/g,
+          replacement: config => config.CUSTOM_MANIFEST_PERMISSIONS || ''
+        },
+        {
+          match: /\{\{QUICK_SEARCH_TOGGLE\}\}/g,
+          replacement: config => config.QUICK_SEARCH_TOGGLE || ''
+        },
+        {
+          match: /\{\{OFFERS_PRODUCT_PREFIX\}\}/g,
+          replacement: config => config.OFFERS_PRODUCT_PREFIX || ''
+        },
+        {
+          match: /\{\{OFFERS_PRODUCT_TITLE\}\}/g,
+          replacement: config => config.OFFERS_PRODUCT_TITLE || ''
+        },
       ]
     });
   }

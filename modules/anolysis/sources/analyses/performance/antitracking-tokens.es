@@ -1,6 +1,6 @@
 /* eslint no-param-reassign: 'off' */
-import Stats from '../../../platform/lib/simple-statistics';
 import { SOURCES } from '../../metrics/performance/antitracking-tokens';
+import { mean, median } from '../../analyses-utils';
 
 const distribution = {
   properties: {
@@ -13,10 +13,10 @@ const distribution = {
 
 function getDistribution(arr) {
   return {
-    min: Stats.min(arr),
-    max: Stats.max(arr),
-    mean: Math.round(Stats.mean(arr)),
-    median: Stats.median(arr),
+    min: Math.min(...arr),
+    max: Math.max(...arr),
+    mean: Math.round(mean(arr)),
+    median: median(arr),
   };
 }
 
@@ -85,8 +85,8 @@ export default [{
         return {
           source: sourceBatches[0].source,
           runs: metrics.dbSize.length,
-          dbSize: Math.round(Stats.mean(metrics.dbSize)),
-          cacheSize: Math.round(Stats.mean(metrics.cacheSize)),
+          dbSize: Math.round(mean(metrics.dbSize)),
+          cacheSize: Math.round(mean(metrics.cacheSize)),
           dbDelete: getDistribution(metrics.dbDelete),
           cacheDeleted: getDistribution(metrics.cacheDeleted),
           processed: getDistribution(metrics.processed),

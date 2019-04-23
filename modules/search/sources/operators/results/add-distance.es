@@ -1,4 +1,4 @@
-import utils from '../../../core/utils';
+import inject from '../../../core/kord/inject';
 
 export default results => results.map(result => ({
   ...result,
@@ -15,7 +15,13 @@ export default results => results.map(result => ({
       return link;
     }
 
-    const distance = utils.distance(link.extra.lon, link.extra.lat);
+    let distance = -1;
+    try {
+      distance = inject.service('geolocation', ['distance']).distance(link.extra.lon, link.extra.lat);
+    } catch (ex) {
+      /* No geolocation available */
+    }
+
     if (distance !== -1) {
       return {
         ...link,

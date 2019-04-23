@@ -4,6 +4,7 @@
 // Component description see the comment to `OffersHandler` class below
 
 import MessageQueue from '../../core/message-queue';
+import md5 from '../../core/helpers/md5';
 import OffersGeneralStats from './offers-general-stats';
 import logger from '../common/offers_v2_logger';
 import OfferStatus from './offers-status';
@@ -23,6 +24,8 @@ import Blacklist from './blacklist';
 import chooseBestOffer from './best-offer';
 import { OfferMatchTraits } from '../categories/category-match';
 import { ImageDownloaderForPush } from './image-downloader';
+import { getDynamicContent } from './dynamic-offer';
+import prefs from '../../core/prefs';
 
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -86,7 +89,6 @@ export default class OffersHandler {
    * @param intentHandler
    * @param backendConnector
    * @param presentRealEstates
-   * @param historyMatcher
    * @param featuresHandler
    * @param sigHandler
    * @param eventHandler
@@ -97,7 +99,6 @@ export default class OffersHandler {
     intentHandler,
     backendConnector,
     presentRealEstates,
-    historyMatcher,
     featuresHandler,
     sigHandler,
     eventHandler,
@@ -125,11 +126,8 @@ export default class OffersHandler {
     this.offerStatus = new OfferStatus();
     this.offerStatus.setStatusChangedCallback(this._updateOffersStatusCallback.bind(this));
 
-    // we assume here that the offersDB is already loaded
-    if (this.offersDB.dbLoaded) {
-      this.offersGeneralStats.buildFromOffers(this.offersDB.getOffers({ includeRemoved: true }));
-      this.offersDBObserver.observeExpirations();
-    }
+    this.offersGeneralStats.buildFromOffers(this.offersDB.getOffers({ includeRemoved: true }));
+    this.offersDBObserver.observeExpirations();
 
     this._offersDBCallback = this._offersDBCallback.bind(this);
     this.offersDB.registerCallback(this._offersDBCallback);
@@ -142,7 +140,6 @@ export default class OffersHandler {
     this.context = {
       presentRealEstates,
       geoChecker,
-      historyMatcher,
       offersDB: this.offersDB,
       categoryHandler,
       intentHandler,
@@ -245,11 +242,12 @@ export default class OffersHandler {
       url: [urlData.getRawUrl()],
       display_time_secs: offer.ruleInfo.display_time_secs,
     };
+    const domainHash = md5(urlData.getDomain() || '');
     const result = this.offersAPI.pushOffer(
       offer,
       displayRuleInfo,
       null, /* originID */
-      new OfferMatchTraits(catMatches, offer.categories)
+      new OfferMatchTraits(catMatches, offer.categories, domainHash)
     );
     return Promise.resolve(result);
   }
@@ -284,9 +282,12 @@ export default class OffersHandler {
     if (!offers) {
       return false;
     }
-    const bestOffer = this._chooseBestOffer(offers, urlData, catMatches);
+    let bestOffer = this._chooseBestOffer(offers, urlData, catMatches);
     if (!bestOffer) {
       return false;
+    }
+    if (prefs.get('dynamic-offers.enabled', false)) {
+      bestOffer = await getDynamicContent(bestOffer, urlData, catMatches);
     }
     await this._preloadImages(bestOffer);
     await this._pushOffersToRealEstates(bestOffer, urlData, catMatches);
@@ -344,16 +345,13 @@ export default class OffersHandler {
       offer.getPictureDataurl(),
       dataurl => offer.setPictureDataurl(dataurl),
     );
+
     await Promise.all([logo, picture]);
   }
 
   _offersDBCallback(message) {
     if (message.evt === 'offer-action') {
       this.offersGeneralStats.newOfferAction(message);
-    } else if (message.evt === 'offers-db-loaded') {
-      const allOffersMeta = this.offersDB.getOffers({ includeRemoved: true });
-      this.offersGeneralStats.buildFromOffers(allOffersMeta);
-      this.offersDBObserver.observeExpirations();
     } else if (message.evt === 'offer-added') {
       // we will add the action to the offer to keep track of it
       const offerID = message.offer.offer_id;

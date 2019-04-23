@@ -15,7 +15,9 @@ function renderBanner(payload, CLIQZ, handler) {
     CLIQZ,
     autoTrigger,
   });
-  handler.payload = data;
+  handler.payload = data.isPair
+    ? { ...data, popup: { ...data.popup, autoTrigger } }
+    : { ...data, autoTrigger };
   handler.config = config;
   handler.onaction = action;
 
@@ -38,5 +40,6 @@ registerContentScript('offers-banner', 'http*', function contentScript(window, c
   };
   return {
     renderBanner: onMessage.bind(this),
+    closeBanner: () => handler.removeBanner(),
   };
 });

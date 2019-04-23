@@ -21,7 +21,7 @@ export default class BlockRules {
   }
 
   applyBlockRules(state, response) {
-    if (this.shouldBlock(state.urlParts.hostname, state.sourceUrlParts.hostname)) {
+    if (this.shouldBlock(state.urlParts.hostname, state.tabUrlParts.hostname)) {
       state.incrementStat('req_rule_aborted');
       response.cancel = true;
       return false;

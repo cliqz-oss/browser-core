@@ -4,11 +4,23 @@ import PatternMatching from '../../platform/lib/adblocker';
 /**
  * Accelerating data structure for network filters matching. Makes use of the
  * reverse index structure defined above.
+ * @param {[PatternMatching.NetworkFilter]} filters
+ * @param {Map<string, string>>} id2patterns
+ * @param {Map<string, string>>} id2categories
  */
 class PatternIndex {
-  constructor(filters) {
-    this.index = new PatternMatching.ReverseIndex(cb => filters.forEach(cb));
-    this.tokens = PatternMatching.compactTokens(new Uint32Array(this.index.index.keys()));
+  constructor(filters, id2pattern, id2categories = new Map()) {
+    // Keep track of original pattern for each filter
+    this.id2pattern = id2pattern;
+
+    // Keep track of categories for each filter
+    this.id2categories = id2categories;
+
+    this.index = new PatternMatching.ReverseIndex({
+      filters,
+      deserialize: PatternMatching.NetworkFilter.deserialize,
+    });
+    this.tokens = PatternMatching.compactTokens(this.index.getTokens());
   }
 
   /**
@@ -18,6 +30,10 @@ class PatternIndex {
    */
   match(/* request */) {
     throw new Error('should be implemented by the inherited class ');
+  }
+
+  isEmpty() {
+    return this.id2pattern.size === 0;
   }
 }
 
@@ -34,7 +50,7 @@ export class SimplePatternIndex extends PatternIndex {
   match(request) {
     let matched = false;
     this.index.iterMatchingFilters(request.getTokens(), (pattern) => {
-      matched = PatternMatching.matchNetworkFilter(pattern, request);
+      matched = pattern.match(request);
 
       // returning true we will continue iterating but is not needed anymore
       return !matched;
@@ -54,7 +70,7 @@ export class MultiPatternIndex extends PatternIndex {
   /**
    * @method match
    * @param {PatternMatchRequest} request
-   * @returns {Map<string, PatternString>}
+   * @returns {Map<string, PatternString[]>}
    */
   match(request) {
     return new Set(this.matchWithPatterns(request).keys());
@@ -64,15 +80,13 @@ export class MultiPatternIndex extends PatternIndex {
     const matchedIDs = new Map();
 
     this.index.iterMatchingFilters(request.getTokens(), (pattern) => {
-      if (PatternMatching.matchNetworkFilter(pattern, request)) {
-        const patternGroupID = (pattern.groupID instanceof Array)
-          ? pattern.groupID
-          : [pattern.groupID];
-
-        patternGroupID.forEach((groupID) => {
-          // we will add the pattern id if it matches and is new
-          if (!matchedIDs.has(groupID)) {
-            matchedIDs.set(groupID, pattern.rawLine);
+      if (pattern.match(request)) {
+        this.id2categories.get(pattern.getId()).forEach((groupID) => {
+          const rawPattern = this.id2pattern.get(pattern.getId());
+          if (matchedIDs.has(groupID)) {
+            matchedIDs.get(groupID).push(rawPattern);
+          } else {
+            matchedIDs.set(groupID, [rawPattern]);
           }
         });
       }

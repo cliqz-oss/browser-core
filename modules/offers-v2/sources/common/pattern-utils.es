@@ -3,11 +3,7 @@
  * @class PatternUtils
  * @static
  */
-import {
-  extractHostname as getHostname,
-  getGeneralDomain as getDomain,
-} from '../../core/tlds';
-
+import { parse } from '../../core/tlds';
 import logger from '../common/offers_v2_logger';
 import PatternMatching from '../../platform/lib/adblocker';
 import { MultiPatternIndex, SimplePatternIndex } from './pattern-utils-imp';
@@ -27,7 +23,7 @@ export default function tokenizeUrl(url, cpt = 2) {
       url,
       type: cpt,
       sourceUrl: url,
-    }, { getDomain, getHostname });
+    }, parse);
   }
   return null;
 }
@@ -41,53 +37,47 @@ export default function tokenizeUrl(url, cpt = 2) {
  */
 function buildMultiPatternIndex(multiPatternsList) {
   // Group categories by pattern id
-  const id2filter = new Map();
+  const filters = [];
+  const id2categories = new Map();
+  const id2pattern = new Map();
 
-  multiPatternsList.forEach((patternTuple) => {
-    patternTuple.patterns.forEach((pattern) => {
-      const filter = PatternMatching.parseNetworkFilter(pattern);
+  multiPatternsList.forEach(({ patterns, groupID }) => {
+    patterns.forEach((pattern) => {
+      const filter = PatternMatching.NetworkFilter.parse(pattern);
       if (filter) {
-        // Keep track of original pattern
-        filter.rawLine = pattern;
+        // Keep track of original pattern for each filter
+        id2pattern.set(filter.getId(), pattern);
+        filters.push(filter);
 
-        if (!id2filter.has(filter.getId())) {
-          id2filter.set(filter.getId(), {
-            filter,
-            categories: new Set([patternTuple.groupID]),
-          });
-        } else {
-          id2filter.get(filter.getId()).categories.add(patternTuple.groupID);
-        }
+        // Attach a list of categories for each pattern
+        const categories = id2categories.get(filter.getId()) || new Set();
+        categories.add(groupID);
+        id2categories.set(filter.getId(), categories);
       } else {
         logger.error('Error parsing the filter / pattern ', pattern);
       }
     });
   });
 
-  const parsedFilters = [];
-  id2filter.forEach(({ filter, categories }) => {
-    // eslint-disable-next-line no-param-reassign
-    filter.groupID = [...categories];
-    parsedFilters.push(filter);
-  });
-
-  return new MultiPatternIndex(parsedFilters);
+  return new MultiPatternIndex(filters, id2pattern, id2categories);
 }
 
 
 function buildMultiPatternIndexPatternAsID(multiPatternsList) {
   const parsedFilters = [];
+  const id2pattern = new Map();
+  const id2categories = new Map();
   multiPatternsList.forEach((pattern) => {
-    const filter = PatternMatching.parseNetworkFilter(pattern);
+    const filter = PatternMatching.NetworkFilter.parse(pattern);
     if (filter) {
-      filter.rawLine = pattern;
-      filter.groupID = pattern;
       parsedFilters.push(filter);
+      id2pattern.set(filter.getId(), pattern);
+      id2categories.set(filter.getId(), new Set([pattern]));
     } else {
       logger.error('Error parsing the filter / pattern ', pattern);
     }
   });
-  return new MultiPatternIndex(parsedFilters);
+  return new MultiPatternIndex(parsedFilters, id2pattern, id2categories);
 }
 
 /**
@@ -95,15 +85,16 @@ function buildMultiPatternIndexPatternAsID(multiPatternsList) {
  */
 function buildSimplePatternIndex(patternList) {
   const filterList = [];
+  const id2pattern = new Map();
   for (let i = 0; i < patternList.length; i += 1) {
     const pattern = patternList[i];
-    const filter = PatternMatching.parseNetworkFilter(pattern);
+    const filter = PatternMatching.NetworkFilter.parse(pattern);
     if (filter) {
-      filter.rawLine = pattern;
+      id2pattern.set(filter.getId(), pattern);
       filterList.push(filter);
     }
   }
-  return new SimplePatternIndex(filterList);
+  return new SimplePatternIndex(filterList, id2pattern);
 }
 
 

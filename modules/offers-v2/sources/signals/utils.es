@@ -1,7 +1,8 @@
 /* eslint no-param-reassign: off */
 
+import moment from '../../platform/lib/moment';
 import prefs from '../../core/prefs';
-import utils from '../../core/utils';
+import inject from '../../core/kord/inject';
 import ActionID from '../offers/actions-defs';
 import OffersConfigs from '../offers_configs';
 import logger from '../common/offers_v2_logger';
@@ -14,12 +15,16 @@ const addOrCreate = (d, field, value = 1) => {
 const isDeveloper = () =>
   prefs.get('developer', false) || prefs.get('offersDevFlag', false);
 
-const getGID = () => prefs.getObject('anolysisGID');
-
 // (EX-4191) Fix hpn-ts format to "yyyyMMdd"
 const getHpnTimeStamp = () => prefs.get('config_ts', '19700101');
 
-const getMinuteTimestamp = () => Math.floor((Date.now() / 1000) / 60);
+const getMinuteTimestamp = () => {
+  const today = +moment(getHpnTimeStamp(), 'YYYYMMDD');
+  const todayInMinutes = Math.floor(today / 1000 / 60);
+  const now = new Date();
+  const result = todayInMinutes + now.getHours() * 60 + now.getMinutes();
+  return result;
+};
 
 const _modifyOriginDataInplace = (originData) => {
   const m = new Set(Object.values(ActionID));
@@ -45,7 +50,7 @@ const _modifySignalDataInplace = (data) => {
   });
 };
 
-const constructSignal = (signalID, signalType, signalData) => {
+const constructSignal = (signalID, signalType, signalData, gid) => {
   const tmp = JSON.parse(JSON.stringify(signalData || {})); // deep copy
   _modifySignalDataInplace(tmp);
   return {
@@ -54,9 +59,9 @@ const constructSignal = (signalID, signalType, signalData) => {
     timestamp: getHpnTimeStamp(),
     payload: {
       v: OffersConfigs.SIGNALS_VERSION,
-      ex_v: utils.extensionVersion,
+      ex_v: inject.app.version,
       is_developer: isDeveloper(),
-      gid: getGID(),
+      gid,
       type: signalType,
       sent_ts: getMinuteTimestamp(),
       data: tmp,
@@ -67,7 +72,6 @@ const constructSignal = (signalID, signalType, signalData) => {
 export {
   addOrCreate,
   constructSignal,
-  getGID,
   getHpnTimeStamp,
   getMinuteTimestamp,
   isDeveloper

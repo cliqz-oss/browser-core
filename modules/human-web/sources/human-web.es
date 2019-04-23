@@ -1,26 +1,23 @@
 import CliqzEvents from '../core/events';
-import CliqzBloomFilter from './cliqz-bloom-filter';
-import utils from '../core/utils';
+import BloomFilter from '../core/bloom-filter';
 import md5 from '../core/helpers/md5';
 import { sha1 } from '../core/crypto/utils';
 import random from '../core/crypto/random';
-import { fetch, httpGet } from '../core/http';
-import { equals as urlEquals, getDetailsFromUrl, isIpAddress } from '../core/url';
+import { fetch, httpGet, promiseHttpHandler } from '../core/http';
+import { getDetailsFromUrl, isIpAddress } from '../core/url';
+import URL from '../core/fast-url-parser';
 import Storage from '../platform/human-web/storage';
 import config from '../core/config';
 import { getAllOpenPages } from '../platform/human-web/opentabs';
-import fastUrl from '../core/fast-url-parser';
 import { normalizeAclkUrl } from './ad-detection';
-import { getActiveTab } from '../platform/browser';
+import { getActiveTab, isPrivateMode, getWindow } from '../core/browser';
 import DoublefetchHandler from './doublefetch-handler';
 import ContentExtractionPatternsLoader from './content-extraction-patterns-loader';
 import { ContentExtractor, parseQueryString } from './content-extractor';
-import { getTabInfo } from '../platform/human-web/tabInfo';
 import logger from './logger';
 import { parseHtml, getContentDocument } from './html-helpers';
 import { parseURL, Network } from './network';
 import prefs from '../core/prefs';
-import { promiseHttpHandler } from '../core/http';
 import setTimeoutInterval from '../core/helpers/timeout';
 import { isEdge } from '../core/platform';
 import Worker from '../platform/worker';
@@ -144,7 +141,19 @@ const CliqzHumanWeb = {
     _md5: function(str) {
         return md5(str);
     },
-    maskURL: function(url){
+
+    // There should be no reason for these URLs to show up, but if they do
+    // we should never send them to the backend. Especially, "moz-extension"
+    // is problematic, as it includes an id that is unique per user and
+    // can be used to link messages.
+    urlLeaksExtensionId(url) {
+      return url.startsWith('moz-extension://') || url.startsWith('chrome-extension://');
+    },
+    maskURL(url) {
+        if (CliqzHumanWeb.urlLeaksExtensionId(url)) {
+          _log('Dropping URL with extension id:', url);
+          return '';
+        }
         var url_parts = null;
         var masked_url = null;
         url_parts = parseURL(url);
@@ -170,7 +179,11 @@ const CliqzHumanWeb = {
         }
         return url;
     },
-    maskURLStrict: function(url){
+    maskURLStrict(url) {
+        if (CliqzHumanWeb.urlLeaksExtensionId(url)) {
+          _log('Dropping URL with extension id:', url);
+          return '';
+        }
         var url_parts = null;
         var masked_url = null;
         // Fix
@@ -483,15 +496,7 @@ const CliqzHumanWeb = {
     httpObserver: {
         // check the non 2xx page and report if this is one of the cliqz result
         observeActivity: function({ url: aUrl, type, responseStatus, statusCode, responseHeaders, isPrivate, tabId }) {
-
-          // For bootstrap, we can rely on isPrivate.
-          // For web-extensions, we need to get the tab.incognito property,
-          // That is why we have an implementation in platforms.
-          // The platform/firefox, just mocks the needed properties.
-
-          // If isPrivate true, then drop it. Works for bootstrap.
-          // Once #4705 lands in master, isPrivate should work for web-extension.
-
+          // If isPrivate true, then drop it.
           if (isPrivate) {
             return;
           }
@@ -503,52 +508,39 @@ const CliqzHumanWeb = {
             return;
           }
 
-          // If it's webextension and private mode, it will still reach this point,
-          // so we need to get the details from tab, which is async.
-          // The platform/firefox/human-web/tabInfo.es is just a mock of properties required.
-          // For bootstrap-privateMode it should never reach here, hence the mocked properties.
+          // Detect ad click
+          try {
+            CliqzHumanWeb.detectAdClick(aUrl);
 
-          getTabInfo(tabId, type)
-            .then( (tab) => {
+            const url = decodeURIComponent(aUrl);
+            const status = responseStatus || statusCode;
+            const headers = responseHeaders;
 
-                if (tab.isWebExtension && tab.isPrivate) {
-                    return;
-                } else {
-
-                  // Detect ad click
-                  CliqzHumanWeb.detectAdClick(aUrl);
-
-                  const url = decodeURIComponent(aUrl);
-                  const status = responseStatus || statusCode;
-                  const headers = responseHeaders;
-
-                  if (status === 301 || status === 302) {
-                    let location;
-                    headers.forEach( eachHeader => {
-                      if (eachHeader.name && eachHeader.name.toLowerCase() === 'location') {
-                        location = eachHeader.value;
-                      }
-                    });
-                    CliqzHumanWeb.httpCache[url] = {
-                      status: status,
-                      time: CliqzHumanWeb.counter,
-                      location,
-                    };
-                  } else if (status === 401) {
-                    CliqzHumanWeb.httpCache401[url] = {
-                      time: CliqzHumanWeb.counter
-                    };
-                  } else if(status) {
-                    CliqzHumanWeb.httpCache[url] = {
-                      status: status,
-                      time: CliqzHumanWeb.counter
-                    };
-                  }
+            if (status === 301 || status === 302) {
+              let location;
+              headers.forEach( eachHeader => {
+                if (eachHeader.name && eachHeader.name.toLowerCase() === 'location') {
+                  location = eachHeader.value;
                 }
-            }).catch((e) => {
-              _log(e);
-            });
-
+              });
+              CliqzHumanWeb.httpCache[url] = {
+                status: status,
+                time: CliqzHumanWeb.counter,
+                location,
+              };
+            } else if (status === 401) {
+              CliqzHumanWeb.httpCache401[url] = {
+                time: CliqzHumanWeb.counter
+              };
+            } else if(status) {
+              CliqzHumanWeb.httpCache[url] = {
+                status: status,
+                time: CliqzHumanWeb.counter
+              };
+            }
+          } catch (e) {
+            _log(e);
+          }
         }
     },
     onVisitRemoved({ urls, allHistory }) {
@@ -636,11 +628,13 @@ const CliqzHumanWeb = {
         var ihttp = targetURL.lastIndexOf('http://')
         if (ihttps>0 || ihttp>0) {
             // contains either http or https not ont he query string, very suspicious
-            let parqs  = fastUrl.parse(targetURL, true, true, true);
-
-            if (parqs && parqs._query && parqs._query.url) {
-                return decodeURIComponent(parqs._query.url);
-            }
+            try {
+                const parqs = new URL(targetURL);
+                const urlParam = parqs.searchParams.params.find(kv => kv[0] === 'url');
+                if (urlParam) {
+                    return decodeURIComponent(urlParam[1]);
+                }
+            } catch (e) {}
         }
         else return null;
     },
@@ -1754,13 +1748,14 @@ const CliqzHumanWeb = {
             CliqzHumanWeb.sendActionStatsIfNeeded();
         }
 
-        // To avoid sending duplicate call when extension starts, it's already in init.
-        if (CliqzHumanWeb.counter > 10 && ((CliqzHumanWeb.counter/CliqzHumanWeb.tmult) % (60 * 20 * 1) == 0)) {
-            CliqzHumanWeb.fetchSafeQuorumConfig();
-        }
-
         CliqzHumanWeb.counter += 1;
 
+        const periodIfLoaded = 4 * 60 * 60; // 4 hours
+        const periodIfNotLoaded = 20;        // 20 seconds
+        const period = CliqzHumanWeb.loadedQuorumConfig ? periodIfLoaded : periodIfNotLoaded;
+        if (CliqzHumanWeb.counter % (CliqzHumanWeb.tmult * period) === 0) {
+          CliqzHumanWeb.fetchSafeQuorumConfig();
+        }
     },
     cleanUserTransitions: function(force) {
         for(var query in CliqzHumanWeb.userTransitions['search']) {
@@ -2331,7 +2326,7 @@ const CliqzHumanWeb = {
                 // For navigational queries, like 'facebook', 'web', 'sueddeutsche', although
                 // there are billions of results, only few of them are on the first page.
                 // That it where we currently set the threshold.
-                if (cleanR.length < 6) {
+                if (cleanR.length < 4) {
                   _log(`Dropping message for query ${msg.payload.q}, as there are too few search results.`);
                   return null;
                 }
@@ -2387,7 +2382,7 @@ const CliqzHumanWeb = {
           prefs.get('humanWebOptOut', false)) {
         return discard('human web disabled');
       }
-      if (utils.isPrivateMode()) {
+      if (isPrivateMode(getWindow())) {
         return discard('private mode');
       }
 
@@ -2902,11 +2897,11 @@ const CliqzHumanWeb = {
         CliqzHumanWeb.db.loadRecordTelemetry('bf', function(data) {
             if (data==null) {
                 _log("There was no data on CliqzHumanWeb.bf");
-                CliqzHumanWeb.bloomFilter = new CliqzBloomFilter.BloomFilter(Array(bloomFilterSize).join('0'),bloomFilterNHashes);
+                CliqzHumanWeb.bloomFilter = new BloomFilter(Array(bloomFilterSize).join('0'),bloomFilterNHashes);
             }
             else {
                 var _data = data.split("|").map(Number);
-                CliqzHumanWeb.bloomFilter = new CliqzBloomFilter.BloomFilter(_data,bloomFilterNHashes);
+                CliqzHumanWeb.bloomFilter = new BloomFilter(_data,bloomFilterNHashes);
             }
 
         });
@@ -3265,7 +3260,7 @@ const CliqzHumanWeb = {
             if (Object.keys(CliqzHumanWeb.quorumBloomFilters).indexOf(currentDay) === -1) {
                 _log("Need to create quorum bloom filter for: " + currentDay);
                 let bloomFilterSize = 10000; // User is unlikely to visit more than 10000 URLs in day. Size is approx. 12 KB. per Bloom filter.
-                let bloomFilter = new CliqzBloomFilter.BloomFilter(Array(bloomFilterSize).join('0'),bloomFilterNHashes);
+                let bloomFilter = new BloomFilter(Array(bloomFilterSize).join('0'),bloomFilterNHashes);
                 CliqzHumanWeb.quorumBloomFilters[currentDay] = bloomFilter;
             }
 
@@ -3314,7 +3309,7 @@ const CliqzHumanWeb = {
                 _log("Loading quorum bloom filter");
                 Object.keys(jData).forEach( eachDay => {
                     let _data = jData[eachDay].split("|").map(Number);
-                    let bloomFilter = new CliqzBloomFilter.BloomFilter(_data,bloomFilterNHashes);
+                    let bloomFilter = new BloomFilter(_data,bloomFilterNHashes);
                     CliqzHumanWeb.quorumBloomFilters[eachDay] = bloomFilter;
                 });
             }
@@ -3347,6 +3342,7 @@ const CliqzHumanWeb = {
           CliqzHumanWeb.keyExpire = json.expiry * (24 * 60 * 60 * 1000); // Backend sends it in days;
           CliqzHumanWeb.oc = json.oc;
           CliqzHumanWeb.quorumThreshold = json.threshold;
+          CliqzHumanWeb.loadedQuorumConfig = true;
         }
       } catch (e) {
         _log('Error loading config.', e);

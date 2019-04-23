@@ -9,6 +9,13 @@ export function formatDate(hours) {
     .replace(/[^0-9]/g, '');
 }
 
+/**
+ * Returns a string, for example: "20190122"
+ */
+export function formatHoursAsYYYYMMDD(hoursSinceEpoch) {
+  return formatDate(hoursSinceEpoch).slice(0, 8);
+}
+
 export function formatError(e, original = true) {
   const name = e && e.constructor && e.constructor.name;
   const msg = e && e.message;

@@ -1,14 +1,12 @@
 import background from '../core/base/background';
-import utils from '../core/utils';
 import language from '../core/language';
 import prefs from '../core/prefs';
 import inject from '../core/kord/inject';
 import config from '../core/config';
 import Storage from '../core/storage';
-import console from '../core/console';
 
 export default background({
-  requiresServices: ['utils', 'session'],
+  requiresServices: ['session'],
 
   init(settings = {}) {
     this.settings = settings;
@@ -18,7 +16,6 @@ export default background({
     this.report = setTimeout(this.reportStartupTime.bind(this), 1000 * 60);
 
     this.supportInfo = setTimeout(() => {
-      this.actions.setSupportInfo();
       if (config.settings.channel === 40) {
         this.browserDetection();
       }
@@ -31,31 +28,42 @@ export default background({
     language.unload();
   },
 
-  reportStartupTime() {
-    inject.module('core').action(
-      'status'
-    ).then((status) => {
-      utils.telemetry({
-        type: 'startup',
-        modules: status.modules,
-      });
+  async reportStartupTime() {
+    const core = inject.module('core');
+    const status = await core.action('status');
 
-      inject.service('telemetry').push(
-        Object.keys(status.modules).map((module) => {
-          const moduleStatus = status.modules[module];
-          return {
-            module,
-            isEnabled: moduleStatus.isEnabled,
-            loadingTime: moduleStatus.loadingTime,
-            loadingTimeSync: moduleStatus.loadingTimeSync,
-            windows: Object.keys(moduleStatus.windows).map(id => ({
-              id, loadingTime: moduleStatus.windows[id].loadingTime,
-            }))
-          };
-        }),
-        'metrics.performance.app.startup'
-      );
+    const telemetry = inject.service('telemetry', ['push']);
+
+    telemetry.push({
+      type: 'startup',
+      modules: status.modules,
     });
+
+    await telemetry.push(
+      Object.keys(status.modules).map((module) => {
+        const moduleStatus = status.modules[module];
+        return {
+          module,
+          isEnabled: moduleStatus.isEnabled,
+          loadingTime: moduleStatus.loadingTime,
+          loadingTimeSync: moduleStatus.loadingTimeSync,
+          windows: Object.keys(moduleStatus.windows).map(id => ({
+            id, loadingTime: moduleStatus.windows[id].loadingTime,
+          }))
+        };
+      }),
+      'metrics.performance.app.startup',
+    );
+
+    const resourceLoaderReport = await core.action('reportResourceLoaders');
+
+    telemetry.push(
+      Object.keys(resourceLoaderReport).map(name => ({
+        name,
+        size: resourceLoaderReport[name].size,
+      })),
+      'metrics.performance.app.resource-loaders',
+    );
   },
 
   browserDetection() {
@@ -67,27 +75,18 @@ export default background({
   },
 
   actions: {
-    setSupportInfo(status) {
+    getSupportInfo() {
       const version = this.settings.version;
       const host = prefs.get('distribution.id', '', '');
       const hostVersion = prefs.get('distribution.version', '', '');
-      const info = JSON.stringify({
+      const info = {
         version,
         host,
         hostVersion,
         country: prefs.get('config_location', ''),
-        status: status || 'active',
-      });
-
-
-      try {
-        ['http://cliqz.com', 'https://cliqz.com'].forEach((url) => {
-          const ls = new Storage(url);
-          ls.setItem('extension-info', info);
-        });
-      } catch (e) {
-        console.log('Error setting localstorage', e);
-      }
+        status: prefs.get('ext_status', '') || 'active',
+      };
+      return info;
     }
   }
 

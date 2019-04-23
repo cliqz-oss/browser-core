@@ -1,4 +1,5 @@
 import webrequest, { VALID_RESPONSE_PROPERTIES } from '../platform/webrequest';
+import { isEdge } from './platform';
 
 export default webrequest;
 
@@ -25,7 +26,7 @@ function getOptionArray(options) {
 }
 
 // build allowed extraInfo options from <Step>Options objects.
-export const EXTRA_INFO_SPEC = {
+export const EXTRA_INFO_SPEC = !isEdge ? {
   onBeforeRequest: getOptionArray(webrequest.OnBeforeRequestOptions),
   onBeforeSendHeaders: getOptionArray(webrequest.OnBeforeSendHeadersOptions),
   onSendHeaders: getOptionArray(webrequest.OnSendHeadersOptions),
@@ -34,5 +35,15 @@ export const EXTRA_INFO_SPEC = {
   onResponseStarted: getOptionArray(webrequest.OnResponseStartedOptions),
   onBeforeRedirect: getOptionArray(webrequest.OnBeforeRedirectOptions),
   onCompleted: getOptionArray(webrequest.OnCompletedOptions),
+  onErrorOccurred: undefined,
+} : {
+  onBeforeRequest: ['blocking'],
+  onBeforeSendHeaders: ['blocking', 'requestHeaders'],
+  onSendHeaders: ['requestHeaders'],
+  onHeadersReceived: ['blocking', 'requestHeaders'],
+  onAuthRequired: ['responseHeaders', 'blocking'],
+  onResponseStarted: ['responseHeaders'],
+  onBeforeRedirect: ['responseHeaders'],
+  onCompleted: ['responseHeaders'],
   onErrorOccurred: undefined,
 };

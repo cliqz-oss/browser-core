@@ -57,11 +57,6 @@ const subprojects = {
     include: ['moment-range.js'],
     dest: 'vendor',
   },
-  'simple-statistics': {
-    src: 'node_modules/simple-statistics/dist',
-    include: ['simple-statistics.min.js'],
-    dest: 'vendor',
-  },
   '@cliqz/adblocker': {
     src: 'node_modules/@cliqz/adblocker/dist',
     include: [
@@ -111,7 +106,7 @@ const subprojects = {
   },
   tldts: {
     src: 'node_modules/tldts/dist',
-    include: ['tldts.umd.min.js'],
+    include: ['tldts-experimental.umd.min.js'],
     dest: 'vendor',
   },
   sinon: {

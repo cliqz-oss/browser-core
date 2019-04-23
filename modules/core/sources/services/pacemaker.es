@@ -92,4 +92,4 @@ export const service = async function service() {
   return pm;
 };
 
-export default inject.service('pacemaker');
+export default inject.service('pacemaker', ['start', 'stop', 'register', 'deregister']);

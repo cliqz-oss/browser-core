@@ -1,8 +1,9 @@
-import utils from '../core/utils';
+import { isPrivateMode, openLink } from '../core/browser';
+import logos from '../core/services/logos';
+import telemetry from '../core/services/telemetry';
 import console from '../core/console';
 import config from '../core/config';
 import { REAL_ESTATE_ID } from './consts';
-import { getDetailsFromUrl } from '../core/url';
 import { copyToClipboard } from '../core/clipboard';
 import { addStylesheet, removeStylesheet } from '../core/helpers/stylesheet';
 import prefs from '../core/prefs';
@@ -73,7 +74,7 @@ export default class Win {
 
   init() {
     addStylesheet(this.window.document, this.cssUrl);
-    this.isPrivateMode = utils.isPrivateMode(this.window);
+    this.isPrivateMode = isPrivateMode(this.window);
     if (this.isPrivateMode) {
       linfo('we are in private mode, avoid any logic here');
       return Promise.resolve('Private mode active');
@@ -118,7 +119,7 @@ export default class Win {
       view: 'bar',
       action: 'show'
     };
-    utils.telemetry(signal);
+    telemetry.push(signal);
   }
 
   //
@@ -315,8 +316,7 @@ export default class Win {
       titleColor = templateData.styles.headline_color;
     } else {
       const url = templateData.call_to_action.url;
-      const urlDetails = getDetailsFromUrl(url);
-      const logoDetails = utils.getLogoDetails(urlDetails);
+      const logoDetails = logos.getLogoDetails(url);
       titleColor = `#${logoDetails.brandTxtColor}`;
     }
     data.template_data.titleColor = titleColor;
@@ -541,7 +541,7 @@ export default class Win {
       action: 'click',
       target,
     };
-    utils.telemetry(signal);
+    telemetry.push(signal);
   }
 
   sendTelemetry(message) {
@@ -554,14 +554,14 @@ export default class Win {
       action,
       target,
     };
-    utils.telemetry(signal);
+    telemetry.push(signal);
   }
 
   openURL(data) {
     if (!data || !data.data) {
       return;
     }
-    const tab = utils.openLink(this.window, data.data.url, true);
+    const tab = openLink(this.window, data.data.url, true);
     this.window.gBrowser.selectedTab = tab;
 
     // Send telemetry for all call to action elements
@@ -575,7 +575,7 @@ export default class Win {
           action: 'click',
           target: 'use',
         };
-        utils.telemetry(signal);
+        telemetry.push(signal);
       }
     }
   }

@@ -384,7 +384,7 @@ export default class GidManager {
         return (await this._getGID()) || '';
       } catch (ex) {
         logger.error('Could not get GID', ex);
-        inject.service('telemetry').push(
+        inject.service('telemetry', ['push']).push(
           { context: 'gid-manager', exception: `${ex}` },
           'metrics.anolysis.health.exception',
         );

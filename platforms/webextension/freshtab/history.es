@@ -7,8 +7,8 @@ const CliqzFreshTabHistory = {
    * @returns {Array} Array of objects { url, title, total_count }
    */
   getTopUrls() {
-    if (chrome.cliqz && chrome.cliqz.topDomains) {
-      return chrome.cliqz.topDomains();
+    if (chrome.cliqzHistory) {
+      return chrome.cliqzHistory.topDomains();
     }
 
     return new Promise(resolve => chrome.topSites.get(resolve));

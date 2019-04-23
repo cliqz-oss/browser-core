@@ -16,7 +16,7 @@ import t from '../i18n';
 import UndoDialRemoval from './undo-dial-removal';
 import HistoryTitle from './history-title';
 import { historyClickSignal, settingsClickSignal, homeConfigsStatusSignal,
-  sendHomeUnloadSignal, sendHomeBlurSignal, sendHomeFocusSignal, friendsClickSignal } from '../services/telemetry/home';
+  sendHomeUnloadSignal, sendHomeBlurSignal, sendHomeFocusSignal } from '../services/telemetry/home';
 import localStorage from '../services/storage';
 import { deleteUndoSignal, undoCloseSignal } from '../services/telemetry/speed-dial';
 import { settingsRestoreTopSitesSignal, settingsComponentsToggleSignal, newsSelectionChangeSignal } from '../services/telemetry/settings';
@@ -30,36 +30,21 @@ class App extends React.Component {
     super(props);
     this.freshtab = cliqz.freshtab;
     this.state = {
-      config: {
-        searchReminderCounter: 0,
-        componentsState: {
-          background: {},
-          blueTheme: false,
-          customDials: {},
-          historyDials: {},
-          news: {},
-          search: {},
-          stats: {},
-        },
-        product: '',
-      },
+      config: this.getConfigWithBGImage(props.config),
       dials: {
         custom: [],
         history: [],
         isLoaded: false,
       },
-      offers: [],
       news: {
         data: [],
         version: '',
       },
       hasHistorySpeedDialsToRestore: false,
       isModalOpen: false,
-      isOfferInfoOpen: false,
-      isOfferMenuOpen: false,
       isOverlayOpen: false,
       isSettingsOpen: false,
-      messages: {},
+      messages: props.config.messages,
       modules: {},
       removedDials: [],
       results: [],
@@ -76,8 +61,8 @@ class App extends React.Component {
   }
 
   async componentDidMount() {
-    /* Make sure all the configs have been received */
-    await this.getConfig();
+    this.updateTheme(this.state.config.componentsState.background.image);
+
     /* tabindex is now returned by getconfig, so as to avoid double message passing */
     const tabIndex = this.state.config.tabIndex;
     this.tabIndex = tabIndex;
@@ -86,9 +71,8 @@ class App extends React.Component {
     window.addEventListener('blur', () => sendHomeBlurSignal({ tabIndex }));
     window.addEventListener('focus', () => sendHomeFocusSignal({ tabIndex }));
 
-    await this.getSpeedDials();
-
     Promise.all([
+      this.getSpeedDials(),
       this.getNews(),
       this.getStats(),
     ]).then(() => {
@@ -191,32 +175,35 @@ class App extends React.Component {
     homeConfigsStatusSignal(this.state, this.tabIndex);
   }
 
+  getConfigWithBGImage(freshtabConfig) {
+    let bgImage = freshtabConfig.componentsState.background.image;
+    const { product } = freshtabConfig;
+
+    // Fall back to default background if current config contains
+    // non-existing name of the background
+    if ((bgImage !== config.constants.NO_BG)
+      && (Object.keys(config.backgrounds[product]).indexOf(bgImage) === -1)) {
+      bgImage = getDefaultWallpaper(product);
+    }
+
+    return {
+      ...freshtabConfig,
+      componentsState: {
+        ...freshtabConfig.componentsState,
+        background: {
+          ...freshtabConfig.componentsState.background,
+          image: bgImage
+        }
+      }
+    };
+  }
+
   getConfig() {
     return this.freshtab.getConfig().then((freshtabConfig) => {
-      let bgImage = freshtabConfig.componentsState.background.image;
-      const { product } = freshtabConfig;
+      const bgImageConfig = this.getConfigWithBGImage(freshtabConfig);
 
-      // Fall back to default background if current config contains
-      // non-existing name of the background
-      if ((bgImage !== config.constants.NO_BG)
-        && (Object.keys(config.backgrounds[product]).indexOf(bgImage) === -1)) {
-        bgImage = getDefaultWallpaper(product);
-      }
-
-      this.updateTheme(bgImage);
-      this.setState({ config: freshtabConfig, messages: freshtabConfig.messages });
-      this.setState(prevState => ({
-        config: {
-          ...prevState.config,
-          componentsState: {
-            ...prevState.config.componentsState,
-            background: {
-              ...prevState.config.componentsState.background,
-              image: bgImage
-            }
-          }
-        }
-      }));
+      this.updateTheme(bgImageConfig.componentsState.background.image);
+      this.setState({ config: bgImageConfig, messages: freshtabConfig.messages });
     });
   }
 
@@ -322,22 +309,6 @@ class App extends React.Component {
       .then(has => this.setState({ hasHistorySpeedDialsToRestore: has }));
   }
 
-  getOfferInfoOpen = () => this.state.isOfferInfoOpen;
-
-  setOfferInfoOpen = (state) => {
-    this.setState({
-      isOfferInfoOpen: state
-    });
-  }
-
-  getOfferMenuOpen = () => this.state.isOfferMenuOpen;
-
-  setOfferMenuOpen = (state) => {
-    this.setState({
-      isOfferMenuOpen: state
-    });
-  }
-
   handleClick = (el) => {
     if (this.urlbarElem) {
       this.urlbarElem.textInput.style.visibility = 'visible';
@@ -351,14 +322,6 @@ class App extends React.Component {
       && el.target.id !== 'undo-close'
       && this.state.isSettingsOpen) {
       this.setState({ isSettingsOpen: false });
-    }
-    const middleboxPanel = document.querySelector('.offer-unit');
-    if (middleboxPanel && !middleboxPanel.contains(el.target)
-        && el.target.className !== 'why-info') {
-      this.setState({
-        isOfferMenuOpen: false,
-        isOfferInfoOpen: false,
-      });
     }
   }
 
@@ -570,12 +533,9 @@ class App extends React.Component {
             />
 
             <AsideLeft
-              cliqzForFriends={config.settings.CLIQZ_FOR_FRIENDS}
-              displayFriendsIcon={this.state.config.displayFriendsIcon}
               historyUrl={this.state.config.HISTORY_URL}
               isHistoryEnabled={this.state.config.isHistoryEnabled}
               newTabUrl={config.settings.NEW_TAB_URL}
-              onFriendsClick={async () => friendsClickSignal()}
               onHistoryClick={() => historyClickSignal()}
             />
 
@@ -592,9 +552,7 @@ class App extends React.Component {
                           product={this.state.config.product}
                           ref={(c) => { this.urlbarElem = c; }}
                           results={this.state.results}
-                          shouldShowReminder={
-                            this.state.config.componentsState.searchReminder.visible
-                          }
+                          shouldShowReminder={false}
                           showOverlay={this.showOverlay}
                           toggleComponent={this.toggleComponent}
                           visible={this.state.config.componentsState.search.visible}

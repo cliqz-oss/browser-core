@@ -11,7 +11,10 @@ export default class ContentDropdownManager extends BaseDropdownManager {
     return this.view.textInput;
   }
 
-  // _telemetry() {}
+  get entryPoint() {
+    return 'newTab';
+  }
+
   _copyToClipboard(val) {
     const input = window.document.createElement('input');
     input.value = val;
@@ -49,7 +52,13 @@ export default class ContentDropdownManager extends BaseDropdownManager {
     };
 
     this._reportClick(selection);
-    this.cliqz.core.openLink(url, { newTab });
+    if (!meta.handledByBrowser) {
+      this.cliqz.core.openLink(url, { newTab });
+    }
+
+    if (!newTab) {
+      this.close();
+    }
   }
 
   // setHeight: () => {},
@@ -106,7 +115,7 @@ export default class ContentDropdownManager extends BaseDropdownManager {
           keyCode: this.lastEvent && this.lastEvent.code,
         });
     } else {
-      this.setHeight(0);
+      this.collapse();
     }
   }
 
@@ -144,7 +153,15 @@ export default class ContentDropdownManager extends BaseDropdownManager {
   _getMaxHeight() {
     return window.innerHeight - 140;
   }
-  // _createIframe() {}
+
+  close() {
+    this.collapse();
+    this.cliqz.search.stopSearch({ entryPoint: this.entryPoint });
+  }
+
+  onBlur() {
+    this.close();
+  }
 
   onKeydown(ev) {
     ev.stopPropagation();
@@ -155,6 +172,13 @@ export default class ContentDropdownManager extends BaseDropdownManager {
 
     if (ev.key === 'Escape') {
       this._setUrlbarValue('');
+    }
+
+    if (ev.key === 'Tab') {
+      if (!this.isOpen) {
+        this._queryCliqz('', { allowEmptyQuery: true });
+        return true;
+      }
     }
 
     return super.onKeydown(ev);

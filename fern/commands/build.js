@@ -13,6 +13,7 @@ const cleanupDefaultBuild = common.cleanupDefaultBuild;
 const getExtensionVersion = common.getExtensionVersion;
 
 program.command(`build ${common.configParameter}`)
+  .option('--lint', 'Lint code')
   .option('--no-maps', 'disables source maps')
   .option('--no-debug', 'disables debug pages')
   .option('--version [version]', 'sets extension version', 'package')
@@ -29,6 +30,14 @@ program.command(`build ${common.configParameter}`)
 
     const cfg = setConfigPath(configPath, options.toSubdir);
     const OUTPUT_PATH = cfg.OUTPUT_PATH;
+    const CONFIG = cfg.CONFIG;
+
+    // Enabled code linting
+    process.env.CLIQZ_ESLINT = (
+      (options.lint || (configPath || process.env.CLIQZ_CONFIG_PATH).includes('unit-tests.js'))
+        ? 'true'
+        : 'false'
+    );
 
     assert(OUTPUT_PATH);
 
@@ -66,4 +75,3 @@ program.command(`build ${common.configParameter}`)
         });
     }).catch(e => console.log(e));
   });
-

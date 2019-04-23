@@ -10,9 +10,8 @@ class Cliqz {
     const freshtab = createSpananForModule('freshtab');
     const core = createSpananForModule('core');
     const search = createSpananForModule('search');
-    const offersV2 = createSpananForModule('offers-v2');
     const controlCenter = createSpananForModule('control-center');
-    const cliqzForFriends = createSpananForModule('cliqz-for-friends');
+    const antiPhishing = createSpananForModule('anti-phishing');
     const api = new Spanan();
     const cliqz = this;
     this.state = {};
@@ -20,9 +19,9 @@ class Cliqz {
     this.export = api.export;
 
     api.export({
-      renderResults(results) {
+      renderResults(response) {
         cliqz.storage.setState(() => ({
-          results,
+          results: response.results,
         }));
       },
       closeNotification(messageId) {
@@ -71,11 +70,10 @@ class Cliqz {
 
       core.handleMessage(msg);
       freshtab.handleMessage(msg);
-      offersV2.handleMessage(msg);
       controlCenter.handleMessage(msg);
       search.handleMessage(msg);
       api.handleMessage(msg);
-      cliqzForFriends.handleMessage(msg);
+      antiPhishing.handleMessage(msg);
     };
 
     checkIfChromeReady().then(() => {
@@ -84,10 +82,6 @@ class Cliqz {
       window.addEventListener('unload', () => {
         chrome.runtime.onMessage.removeListener(onMessage);
       });
-
-      if (chrome.omnibox2) {
-        chrome.omnibox2.focus();
-      }
     }).catch((ex) => {
       // eslint-disable-next-line no-console
       console.error('Chrome was never ready', ex);
@@ -95,10 +89,9 @@ class Cliqz {
 
     this.freshtab = freshtab.createProxy();
     this.core = core.createProxy();
-    this.offersV2 = offersV2.createProxy();
     this.search = search.createProxy();
     this.controlCenter = controlCenter.createProxy();
-    this.cliqzForFriends = cliqzForFriends.createProxy();
+    this.antiPhishing = antiPhishing.createProxy();
   }
 
   static getInstance() {

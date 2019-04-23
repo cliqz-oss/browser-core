@@ -1,0 +1,130 @@
+[{
+  "namespace": "cliqzHistory",
+  "description": "Access to history APIs like PlacesUtils or unifiedcomplete",
+  "types": [{
+    "id": "CliqzHistoryNamespace",
+    "type": "object",
+    "description": "Namespace for browser.cliqzHistory.history namespace",
+    "functions": [
+      {
+        "name": "deleteVisit",
+        "type": "function",
+        "description": "Delete a history visit by given `visitId`",
+        "async": true,
+        "parameters": [{
+          "name": "visitId",
+          "type": "number",
+          "minimum": 0
+        }]
+      },
+      {
+        "name": "fillFromVisit",
+        "type": "function",
+        "description": "Mark visit of given `url` as being triggered by visit of specified `triggeringUrl`.",
+        "async": true,
+        "parameters": [{
+          "name": "url",
+          "type": "string"
+        },
+        {
+          "name": "triggeringUrl",
+          "type": "string"
+        }]
+      },
+      {
+        "name": "showHistoryDeletionPopup",
+        "type": "function",
+        "description": "Show the browser history deletion dialog",
+        "async": true,
+        "parameters": []
+      },
+      {
+        "name": "markAsHidden",
+        "type": "function",
+        "description": "Hide the last visit of specified `url` from history",
+        "async": true,
+        "parameters": [{
+          "name": "url",
+          "type": "string"
+        }]
+      },
+      {
+        "name": "cleanupEmptySearches",
+        "type": "function",
+        "description": "Deletes all search sessions consisting of a single cliqz search",
+        "async": true,
+        "parameters": []
+      },
+      {
+        "name": "query",
+        "type": "function",
+        "description": "Query history",
+        "async": true,
+        "parameters": [{
+          "name": "details",
+          "type": "object",
+          "optional": true,
+          "default": {},
+          "properties": {
+            "query": {
+              "type": "string",
+              "optional": true
+            },
+            "limit": {
+              "type": "number",
+              "optional": true,
+              "minimum": 1
+            },
+            "domain": {
+              "type": "string",
+              "optional": true
+            },
+            "frameStartsAt": {
+              "type": "number",
+              "optional": true,
+              "minimum": 0
+            },
+            "frameEndsAt": {
+              "type": "number",
+              "optional": true,
+              "minimum": 0
+            }
+          }
+        }]
+      },
+      {
+        "name": "stats",
+        "type": "function",
+        "description": "Returns stats for the history DB",
+        "async": "callback",
+        "parameters": []
+      }
+    ]
+  }],
+  "properties": {
+    "history": {
+      "$ref": "CliqzHistoryNamespace"
+    }
+  },
+  "functions": [
+    {
+      "name": "unifiedSearch",
+      "type": "function",
+      "description": "Changes the state of an addon enabled/disabled",
+      "async": "callback",
+      "parameters": [
+        {
+          "name": "query",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "topDomains",
+      "type": "function",
+      "description": "Returns the top domains from the user's history",
+      "async": "callback",
+      "parameters": []
+    }
+  ]
+}]

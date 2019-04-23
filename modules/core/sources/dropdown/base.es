@@ -3,7 +3,9 @@ import Spanan from 'spanan';
 export default class BaseDropdownManager {
   constructor() {
     this.selectedResult = null;
+    this.hoveredResult = null;
     this.hasAutocompleted = false;
+    this._sessionId = 0;
   }
 
   actions = {
@@ -11,7 +13,13 @@ export default class BaseDropdownManager {
     copyToClipboard: val => this._copyToClipboard(val),
     openLink: (...args) => this._openLink(...args),
     focus: (...args) => this._focus(...args),
-    reportHighlight: (...args) => this._reportHighlight(...args),
+    reportHighlight: (result) => {
+      this.selectedResult = result;
+      return this._reportHighlight(result);
+    },
+    reportHover: (result) => {
+      this.hoveredResult = result;
+    },
     adultAction: (...args) => this._adultAction(...args),
     locationAction: (...args) => this._locationAction(...args),
     setHeight: height => this.setHeight(height),
@@ -68,7 +76,13 @@ export default class BaseDropdownManager {
 
   _createIframe() {}
 
-  _getSessionId() {}
+  _getSessionId() {
+    return this._sessionId;
+  }
+
+  _incrementSessionId() {
+    this._sessionId = (this._sessionId + 1) % 1e3;
+  }
 
   get isOpen() {
     return this._getHeight() > 0;
@@ -131,8 +145,8 @@ export default class BaseDropdownManager {
 
   removeFromHistoryAndBookmarks(url) {
     Promise.all([
-      this._removeFromHistory(url),
-      this._removeFromBookmarks(url),
+      this._removeFromHistory(url, { strict: false }),
+      this._removeFromBookmarks(url, { strict: false }),
     ])
       .then(() => this._closeTabsWithUrl(url))
       .then(() => this._queryCliqz());
@@ -184,7 +198,12 @@ export default class BaseDropdownManager {
 
   close() {
     this.selectedResult = null;
+    this.collapse();
+  }
+
+  collapse() {
     this.setHeight(0);
+    this._incrementSessionId();
   }
 
   unload() {
@@ -213,11 +232,9 @@ export default class BaseDropdownManager {
         break;
       }
       case 'Tab': {
-        if (this.isOpen || this.textInput.value) {
+        if (this.isOpen) {
           (ev.shiftKey ? this.previousResult() : this.nextResult())
             .then(this.setUrlbarValue);
-        }
-        if (this.isOpen) {
           preventDefault = true;
         }
         break;
@@ -236,7 +253,7 @@ export default class BaseDropdownManager {
       }
       case 'Escape': {
         if (this.isOpen) {
-          this.setHeight(0);
+          this.collapse();
         } else {
           this.close();
         }
@@ -327,12 +344,13 @@ export default class BaseDropdownManager {
   }) {
     this.hasAutocompleted = false;
     this.selectedResult = null;
+    this.hoveredResult = null;
 
     let urlbarQuery = this._getQuery();
     const firstResult = rawResults && rawResults[0];
     if (!firstResult || !this.hasRelevantResults(urlbarQuery, rawResults)) {
       if (!urlbarQuery) {
-        this.setHeight(0);
+        this.collapse();
       }
       return;
     }
@@ -375,7 +393,7 @@ export default class BaseDropdownManager {
     }
 
     if (renderedSessionId !== this._getSessionId() || urlbarQuery === '') {
-      this.setHeight(0);
+      this.collapse();
     }
   }
 }

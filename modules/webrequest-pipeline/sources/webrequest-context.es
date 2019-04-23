@@ -1,40 +1,16 @@
 import { URLInfo } from '../core/url-info';
+import logger from './logger';
 
 
-const TYPE_LOOKUP = {
-  // maps string (web-ext) to int (FF cpt)
-  other: 1,
-  script: 2,
-  image: 3,
-  stylesheet: 4,
-  object: 5,
-  main_frame: 6,
-  sub_frame: 7,
-  xbl: 9,
-  ping: 10,
-  xmlhttprequest: 11,
-  object_subrequest: 12,
-  xml_dtd: 13,
-  font: 14,
-  media: 15,
-  websocket: 16,
-  csp_report: 17,
-  xslt: 18,
-  beacon: 19,
-  imageset: 21,
-  web_manifest: 22,
-};
-
-const TYPE_LOOKUP_REVERSE = Object.keys(TYPE_LOOKUP)
-  .reduce((obj, key) => Object.assign(obj, { [TYPE_LOOKUP[key]]: key }), {});
-
-
+/**
+ * Transform an array of headers (i.e.: `{ name, value }`) into a `Map`.
+ */
 function createHeadersGetter(headers) {
   const headersMap = new Map();
 
   for (let i = 0; i < headers.length; i += 1) {
-    const header = headers[i];
-    headersMap.set(header.name.toLowerCase(), header.value);
+    const { name, value } = headers[i];
+    headersMap.set(name.toLowerCase(), value);
   }
 
   return headersMap;
@@ -42,108 +18,81 @@ function createHeadersGetter(headers) {
 
 
 /**
- * Implements WebRequest Context API
+ * Wrap webRequest's details to provide convenient helpers.
  */
-class WebRequestContext {
-  constructor(details) {
-    // The following are NOT supported in bootstrap extension
-    this.requestId = details.requestId;
-    this.timeStamp = details.timeStamp;
-    this.method = details.method;
-    this.ip = details.ip;
-    this.error = details.error;
-    this.proxyInfo = details.proxyInfo; // FF web-ext only
+export default class WebRequestContext {
+  /**
+  * "Smart" constructor for `WebRequestContext`. It will make sure that the same
+  * information is provided for different browsers (e.g.: Chrome and Firefox) as
+  * well as provide convenient helpers for parsed URLs, etc. It will also not
+  * return a wrapper for background requests.
+  */
+  static fromDetails(details, pageStore, event) {
+    const context = details;
 
-    // Frame ids: tabId -> parentFrameId -> frameId
-    this.frameId = details.frameId;
-    this.parentFrameId = details.parentFrameId;
-    this.tabId = details.tabId;
-
-    // Urls:  sourceUrl -> originUrl -> url
-    this.url = details.url;
-    this._urlParts = null;
-    this.originUrl = details.originUrl;
-    this._originUrlParts = null;
-    this.sourceUrl = details.sourceUrl;
-    this._sourceUrlParts = null;
-
-    this.trigger = details.trigger || details.originUrl;
-    this.documentUrl = details.documentUrl;
-    this.frameAncestors = details.frameAncestors;
-
-    // Content type
-    // We should still use the interger type (cpt) from LegacyContext
-    this.type = details.type;
-    if (typeof details.type === 'string') {
-      this.typeInt = TYPE_LOOKUP[details.type];
-    } else {
-      this.typeInt = this.type;
-      this.type = TYPE_LOOKUP_REVERSE[details.type];
+    // Check if we have a URL
+    if (!context.url) {
+      logger.log('Ignoring request with empty url', context);
+      return null;
     }
 
-    // Headers
-    this.requestHeaders = details.requestHeaders;
+    // Main frames book keeping
+    if (context.type === 'main_frame') {
+      pageStore.onMainFrame(context, event);
+    }
+
+    // Sub frames book keeping
+    if (context.type === 'sub_frame') {
+      pageStore.onSubFrame(context);
+    }
+
+    // **Chromium addition**
+    // frameAncestors
+    if (context.frameAncestors === undefined) {
+      context.frameAncestors = pageStore.getFrameAncestors(context);
+    }
+
+    // Cliqz-specific extensions to webRequest details
+    context.tabUrl = context.tabUrl || pageStore.getTabUrl(context);
+    context.frameUrl = context.frameUrl || pageStore.getFrameUrl(context);
+    context.isRedirect = pageStore.isRedirect(context);
+    context.isPrivate = pageStore.isPrivateTab(context.tabId);
+    context.isMainFrame = context.type === 'main_frame';
+
+    context.originUrl = context.originUrl || context.initiator;
+
+    return new WebRequestContext(context);
+  }
+
+  constructor(details) {
+    Object.assign(this, details);
+
+    // Lazy attributes
+    this._frameUrlParts = null;
+
     this._requestHeadersMap = null;
-    this.responseHeaders = details.responseHeaders;
     this._responseHeadersMap = null;
 
-    // Extra metadata
-    this.isRedirect = details.isRedirect;
-    this.statusCode = details.statusCode;
-    this.fromCache = details.fromCache;
-    this.isPrivate = details.isPrivate || false;
-  }
-
-  get urlParts() {
-    if (this._urlParts === null) {
-      this._urlParts = URLInfo.get(this.url);
-    }
-
-    return this._urlParts;
-  }
-
-  get originUrlParts() {
-    if (this._originUrlParts === null) {
-      this._originUrlParts = URLInfo.get(this.originUrl);
-    }
-
-    return this._originUrlParts;
-  }
-
-  get sourceUrlParts() {
-    if (this._sourceUrlParts === null) {
-      this._sourceUrlParts = URLInfo.get(this.sourceUrl);
-    }
-
-    return this._sourceUrlParts;
+    this.urlParts = URLInfo.get(this.url);
+    this.frameUrlParts = URLInfo.get(this.frameUrl);
+    this.tabUrlParts = URLInfo.get(this.tabUrl);
+    this.originUrlParts = URLInfo.get(this.originUrl);
   }
 
   getRequestHeader(name) {
-    if (this.requestHeaders) {
-      if (this._requestHeadersMap === null) {
-        this._requestHeadersMap = createHeadersGetter(this.requestHeaders);
-      }
-
-      return this._requestHeadersMap.get(name.toLowerCase());
+    if (this._requestHeadersMap === null) {
+      this._requestHeadersMap = createHeadersGetter(this.requestHeaders || []);
     }
 
-    return undefined;
+    return this._requestHeadersMap.get(name.toLowerCase());
   }
 
   getResponseHeader(name) {
-    if (this.responseHeaders) {
-      if (this._responseHeadersMap === null) {
-        this._responseHeadersMap = createHeadersGetter(this.responseHeaders);
-      }
-
-      return this._responseHeadersMap.get(name.toLowerCase());
+    if (this._responseHeadersMap === null) {
+      this._responseHeadersMap = createHeadersGetter(this.responseHeaders || []);
     }
 
-    return undefined;
-  }
-
-  isFullPage() {
-    return this.type === 'main_frame';
+    return this._responseHeadersMap.get(name.toLowerCase());
   }
 
   getCookieData() {
@@ -154,39 +103,7 @@ class WebRequestContext {
     return this.getRequestHeader('Referer');
   }
 
-  getWindowDepth() {
-    let windowDepth = 0;
-    if (this.frameId !== this.tabId) {
-      if (this.frameId === this.parentFrameId) {
-        // frame in document
-        windowDepth = 1;
-      } else {
-        // deeper than 1st level iframe
-        windowDepth = 2;
-      }
-    }
-    return windowDepth;
-  }
-}
-
-
-/**
- * Implements Legacy API on top of WebRequestContext
- */
-export default class LegacyContext extends WebRequestContext {
-  get cpt() {
-    return this.typeInt;
-  }
-
-  get tabUrl() {
-    return this.sourceUrl;
-  }
-
-  get responseStatus() {
-    return this.statusCode;
-  }
-
-  get isCached() {
-    return this.fromCache;
+  isBackgroundRequest() {
+    return this.tabId === -1;
   }
 }

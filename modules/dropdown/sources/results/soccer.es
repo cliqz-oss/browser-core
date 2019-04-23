@@ -222,8 +222,8 @@ export default class SoccerResult extends GenericResult {
 
   newsResultsLimit = 2;
 
-  constructor(...args) {
-    super(...args);
+  constructor(rawResult, resultTools) {
+    super(rawResult, resultTools);
     this.itemsLimit = this.rowsLimit;
   }
 
@@ -349,6 +349,9 @@ export default class SoccerResult extends GenericResult {
     if (!this.extra.url || !this.extra.title) {
       return null;
     }
+    const deduplicatedUrl = this.resultTools.results.genericResults
+      .find(element => this.extra.url === element.rawResult.url);
+    if (deduplicatedUrl) return null;
 
     return new SoccerSubResult(this, {
       url: this.extra.url,

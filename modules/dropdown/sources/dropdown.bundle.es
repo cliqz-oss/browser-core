@@ -40,7 +40,6 @@ const dropdown = new Dropdown(container$, window, importedActions);
 dropdown.init();
 
 let previousResults;
-let maximumHeight;
 
 const updateNavbarColor = (color) => {
   if (!color) {
@@ -54,22 +53,13 @@ const updateNavbarColor = (color) => {
   lastNavbarColor = color;
 };
 
-const adjustScroll = (height) => {
-  if (height > maximumHeight) {
-    window.document.body.style.overflowY = 'auto';
-  } else {
-    window.document.body.style.overflowY = 'hidden';
-  }
-};
-
 const updateHeight = () => {
   const height = container$.scrollHeight;
-  adjustScroll(height);
   importedActions.setHeight(height);
 };
 
 const rerender = () => {
-  dropdown.renderResults(previousResults);
+  dropdown.renderResults(previousResults, { isRerendering: true });
   updateHeight();
 };
 
@@ -118,10 +108,7 @@ const exportedActions = {
   }, {
     assistantStates,
     urlbarAttributes,
-    maxHeight,
   } = {}) {
-    maximumHeight = maxHeight;
-
     // Recreating assistants from state and actions
     const assistants = {};
     Object.keys(assistantStates).forEach((assistantName) => {
@@ -159,11 +146,10 @@ const exportedActions = {
       urlbarAttributes,
       extensionId: assistantStates.settings.id,
       channelId: assistantStates.settings.channel,
+      sessionId,
     });
 
     const height = container$.scrollHeight;
-
-    adjustScroll(height);
 
     return {
       result: dropdown.selectedResult && dropdown.selectedResult.serialize(),

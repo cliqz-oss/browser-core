@@ -1,10 +1,12 @@
-import utils from '../../core/utils';
 import i18n from '../../core/i18n';
 import prefs from '../../core/prefs';
 import CONFIG from '../../core/config';
+import inject from '../../core/kord/inject';
 import { isMobile } from '../../core/platform';
 
-export const encodeSessionParams = utils.encodeSessionParams;
+const geolocationService = inject.service('geolocation', ['getGeolocation']);
+
+export const encodeSessionParams = () => inject.service('search-session', ['encodeSessionParams']).encodeSessionParams();
 
 export const encodeLocale = () => `&locale=${i18n.PLATFORM_LOCALE || ''}`;
 
@@ -34,14 +36,9 @@ export const encodeLocation = (lat, lng) => {
   }
   let qs = `&loc_pref=${locationPref}`;
 
-  if ((utils.USER_LAT && utils.USER_LNG) || (lat && lng)) {
-    qs += [
-      '&loc=',
-      lat || utils.USER_LAT,
-      ',',
-      lng || utils.USER_LNG,
-      ',U' // Specify source for both richheader and search
-    ].join('');
+  const { latitude, longitude } = geolocationService.getGeolocation();
+  if ((latitude && longitude) || (lat && lng)) {
+    qs += `&loc=${latitude || lat},${longitude || lng},U`;
   }
 
   return qs;

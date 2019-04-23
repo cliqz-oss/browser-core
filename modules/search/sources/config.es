@@ -48,7 +48,7 @@ const DEFAULT_CONFIG = {
     'rich-header': {
       retry: {
         count: 10,
-        delay: 100,
+        delay: 300,
       },
     },
     querySuggestions: {
@@ -104,7 +104,12 @@ if (typeof clearResultsOnSessionStart === 'boolean') {
   DEFAULT_CONFIG.clearResultsOnSessionStart = clearResultsOnSessionStart;
 }
 
-deepFreeze(DEFAULT_CONFIG);
+// deepFreeze has a cost and we probably do not need to pay it on mobile. If
+// there are issues with config mutations they can be catched on other
+// platforms, during tests and during dev.
+if (config.isMobile !== true) {
+  deepFreeze(DEFAULT_CONFIG);
+}
 
 export default function ({ isPrivateMode }, settings = {}) {
   return {
@@ -124,12 +129,21 @@ export default function ({ isPrivateMode }, settings = {}) {
     },
     providers: {
       ...DEFAULT_CONFIG.providers,
+      history: {
+        ...DEFAULT_CONFIG.providers.history,
+        get isHistoryLookupEnabled() {
+          return prefs.get('historyLookupEnabled', false);
+        },
+        get isTabSearchEnabled() {
+          return prefs.get('tabSearchEnabled', false);
+        },
+      },
       historyView: {
         ...DEFAULT_CONFIG.providers.historyView,
         get isEnabled() {
           return prefs.get(
             'modules.history.enabled',
-            DEFAULT_CONFIG.providers.history.isEnabled
+            DEFAULT_CONFIG.providers.historyView.isEnabled
           );
         },
       },
@@ -150,7 +164,7 @@ export default function ({ isPrivateMode }, settings = {}) {
           return typeof res === 'boolean'
             ? res
             : true;
-        }
+        },
       },
       cliqz: {
         ...DEFAULT_CONFIG.providers.cliqz,

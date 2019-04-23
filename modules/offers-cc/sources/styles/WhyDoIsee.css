@@ -1,0 +1,55 @@
+.why-do-i-see__container {
+  padding-bottom: 30px;
+  max-height: 500px;
+}
+.why-do-i-see__wrapper {
+  margin: 2px 7px;
+  padding: 2px 7px 0px;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.25);
+  height: 100%;
+}
+
+.why-do-i-see__chip-title {
+  color: #DA3434;
+}
+.why-do-i-see__myoffrz-title {
+  color: #00AEF0;
+}
+
+.why-do-i-see__title {
+  font-weight: 500;
+  font-size: 19px;
+  margin: 10px 0;
+  padding: 0 10px;
+}
+
+.why-do-i-see__description {
+  font-size: 13px;
+  margin-bottom: 20px;
+  line-height: 17px;
+  padding: 0 10px;
+}
+.why-do-i-see__link {
+  font-size: 12px;
+  font-weight: 300;
+  text-decoration: underline;
+  padding: 0 10px;
+  color: #494949;
+  font-weight: 400;
+  cursor: pointer;
+}
+.why-do-i-see__cross {
+  width: 12px;
+  height: 12px;
+  background: url(../images/close-offer.svg) no-repeat right;
+  background-size: contain;
+  opacity: 0.3;
+  display: inline-block;
+  float: right;
+  margin-right: 6px;
+}
+.why-do-i-see__cross:hover {
+  cursor: pointer;
+}

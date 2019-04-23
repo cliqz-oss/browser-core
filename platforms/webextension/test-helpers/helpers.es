@@ -79,7 +79,7 @@ const chromeClick = async (url, selector, ind) => {
 };
 
 const bgWindow = wrap(() => chrome.extension.getBackgroundPage().window);
-export const win = wrap(() => bgWindow.CLIQZ.utils.getWindow());
+export const win = wrap(() => bgWindow);
 export const CLIQZ = wrap(() => bgWindow.CLIQZ);
 export const app = wrap(() => bgWindow.CLIQZ.app);
 
@@ -92,6 +92,10 @@ const contentQueryComputedStyle = async (...args) => {
   const response = await app.modules.core.action('queryComputedStyle', ...args);
   return response;
 };
+
+export function getUrl(path) {
+  return chrome.runtime.getURL(path);
+}
 
 export function queryHTML(url, ...rest) {
   if (url.startsWith(chrome.runtime.getURL(''))) {
@@ -185,6 +189,9 @@ export const urlbar = {
     return chrome.omnibox2.get()
       .then(data => data.value);
   },
+  get lastQuery() {
+    return chrome.testHelpers.getLastQuery();
+  }
 };
 export const EventUtils = {
   sendString(text) {
@@ -233,6 +240,10 @@ export const $cliqzResults = {
 };
 
 export async function blurUrlBar() {
+  const dropdownHeight = await chrome.testHelpers.getDropdownHeight();
+  if (dropdownHeight === 0) {
+    return Promise.resolve();
+  }
   await chrome.omnibox2.blur();
   return waitFor(async () => {
     const height = await chrome.testHelpers.getDropdownHeight();
@@ -285,4 +296,16 @@ export function focusOnTab(tabId) {
   return new Promise(r => chrome.tabs.update(tabId, updateProperties, () => {
     r();
   }));
+}
+
+export function mockGetSearchEngines(engines) {
+  const getSearchEngines = bgWindow.browser.cliqz.getSearchEngines;
+  bgWindow.browser.cliqz.getSearchEngines = function mockedGetSearchEngines() {
+    return Promise.resolve(engines);
+  };
+  return getSearchEngines;
+}
+
+export function unmockGetSearchEngines(realFunction) {
+  bgWindow.browser.cliqz.getSearchEngines = realFunction;
 }

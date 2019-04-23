@@ -10,6 +10,7 @@ import enrich from '../mixers/enrich';
 import { searchOnEmpty, searchOnNotEmpty } from '../mixers/search-on-empty';
 import updateIncompleteResults from '../mixers/update-incomplete-results';
 import addOffers from '../mixers/add-offers';
+import addSnippets from '../mixers/add-snippets';
 import removeOffers from '../operators/remove-offers';
 import waitForResultsFrom from '../operators/streams/wait-for-results-from';
 import combineAnyLatest from '../operators/streams/static/combine-any-latest';
@@ -51,8 +52,18 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
     share()
   );
 
-  results.cliqz.resultsWithOffers$ = addOffers(
+  results.cliqz.snippets$ = results.cliqz.source$.pipe(
+    filter(({ provider }) => provider === 'cliqz::snippets'),
+    share()
+  );
+
+  results.cliqz.resultsWithSnippets$ = addSnippets(
     results.cliqz.results$,
+    results.cliqz.snippets$,
+  );
+
+  results.cliqz.resultsWithOffers$ = addOffers(
+    results.cliqz.resultsWithSnippets$,
     results.cliqz.offers$,
     config,
   );

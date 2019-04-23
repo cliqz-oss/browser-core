@@ -3,6 +3,7 @@ import Manager from './manager';
 import config from '../core/config';
 import { overRideCliqzResults, unload } from './http-handler-patch';
 import prefs from '../core/prefs';
+import logger from './logger';
 
 export default background({
   requiresServices: ['cliqz-config'],
@@ -12,7 +13,9 @@ export default background({
       overRideCliqzResults();
     }
     this.manager = new Manager();
-    return this.manager.init();
+    this.manager.init().catch((e) => {
+      logger.error('Unexpected error when trying to initialize hpnv2', e);
+    });
   },
 
   unload() {
@@ -26,8 +29,8 @@ export default background({
     }
   },
   actions: {
-    async send(msg) {
-      return this.manager.send(msg);
+    async send(...args) {
+      return this.manager.send(...args);
     },
     async sendLegacy(msg) {
       const { action, payload, body, rp } = msg;
@@ -46,12 +49,6 @@ export default background({
             throw new Error('Could not parse result from quorum server (expected "result" field)');
           }
           return result;
-        }
-
-        if (rp.startsWith(config.settings.RESULTS_PROVIDER_PING)) {
-          const res = await this.manager.send({ action: 'search', method: 'HEAD', path: '/ping', payload: {} });
-          const text = await res.text();
-          return text;
         }
 
         throw new Error(`hpnv2: instant not implemented ${rp}`);
@@ -92,6 +89,15 @@ export default background({
     },
     async telemetry(msg) {
       return this.actions.sendTelemetry(msg);
+    },
+    async search(url) {
+      const { pathname, search, searchParams } = new URL(url);
+      return this.actions.send({
+        action: 'search',
+        method: 'GET',
+        payload: search,
+        path: pathname,
+      }, { proxyBucket: searchParams.get('s') });
     },
   },
 });

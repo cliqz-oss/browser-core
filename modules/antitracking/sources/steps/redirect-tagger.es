@@ -17,7 +17,7 @@ export default class RedirectTagger {
   }
 
   checkRedirectStatus(state) {
-    if (state.responseStatus === 302) {
+    if (state.statusCode === 302) {
       const location = state.getResponseHeader('Location');
       if (!location) {
         // 302 without "Location" in header?
@@ -49,7 +49,7 @@ export default class RedirectTagger {
       return false;
     }
 
-    if (details.isFullPage() && details.isRedirect) {
+    if (details.isMainFrame && details.isRedirect) {
       return false;
     }
 

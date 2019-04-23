@@ -47,7 +47,7 @@ export const NEWS_EDITIONS = [
   'ru',
 ];
 
-export default [
+export default () => [
   /**
    * metrics.freshtab.state informs us about how many of our users have freshtab enabled.
    */
@@ -90,6 +90,17 @@ export default [
       required: ['enabled'],
       properties: {
         enabled: { type: 'boolean' },
+      },
+    },
+  },
+  {
+    name: 'freshtab.prefs.browserTheme',
+    schema: {
+      required: ['theme'],
+      properties: {
+        theme: {
+          type: 'string', enum: ['dark', 'light']
+        },
       },
     },
   },
@@ -214,6 +225,15 @@ export default [
     { key: 'action', value: 'click' },
     { key: 'target', value: 'settings' },
   ], false),
+
+  mkFreshtabSchema([
+    { key: 'type', value: 'home' },
+    { key: 'view', value: 'settings' },
+    { key: 'action', value: 'click' },
+    { key: 'target', value: 'cliqz_theme' },
+  ], false, {
+    state: { enum: ['on', 'off'] },
+  }),
 
   // History button
   // =========

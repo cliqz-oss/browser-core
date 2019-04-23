@@ -7,8 +7,6 @@
 
 import logger from './common/offers_v2_logger';
 import inject from '../core/kord/inject';
-import { isWebExtension } from '../core/platform';
-import utils from '../core/utils';
 import { getGeneralDomain, extractHostname } from '../core/tlds';
 import prefs from '../core/prefs';
 import config from '../core/config';
@@ -22,30 +20,27 @@ import FeatureHandler from './features/feature-handler';
 import IntentHandler from './intent/intent-handler';
 import OffersHandler from './offers/offers-handler';
 import BEConnector from './backend-connector';
-import HistoryMatcher from './history/history-matching';
 import CategoryHandler from './categories/category-handler';
 import CategoryFetcher from './categories/category-fetcher';
-import GreenAdsHandler from './green-ads/manager';
 import UrlData from './common/url_data';
 import ActionID from './offers/actions-defs';
-import {oncePerInterval} from './utils';
+import { oncePerInterval } from './utils';
 import md5 from '../core/helpers/md5';
 import OfferDB from './offers/offers-db';
 import PatternsStat from './patterns_stat';
+import patternsStatMigrationCheck from './patterns_stat_migration_check';
+import JourneyHandler from './user-journey/journey-handler';
 
 // /////////////////////////////////////////////////////////////////////////////
 // consts
 const POPUPS_INTERVAL = 30 * 60 * 1000; // 30 minutes
 const PRINT_ONBOARDING = 'print_onboarding';
+const DEBUG_DEXIE_MIGRATION = false;
 
 // If the offers are toggled on/off, the real estate modules should
 // be activated or deactivated.
-// The module "freshtab" has more responsibility than showing offers
-// and should not be touched from offers-v2.
 function touchManagedRealEstateModules(isEnabled) {
-  const managedRealEstateModules = isWebExtension
-    ? ['offers-banner']
-    : ['offers-cc', 'browser-panel'];
+  const managedRealEstateModules = ['offers-banner', 'popup-notification', 'myoffrz-helper'];
   managedRealEstateModules.forEach(moduleName =>
     prefs.set(`modules.${moduleName}.enabled`, isEnabled));
 }
@@ -58,14 +53,16 @@ export default background({
   requiresServices: ['cliqz-config', 'telemetry'],
   popupNotification: inject.module('popup-notification'),
   helper: inject.module('myoffrz-helper'),
+  anolysis: inject.module('anolysis'),
 
   // Support the constraint for managed real estate modules:
   // - if a module is initialized, it is in "registeredRealEstates"
   // - if a module is unloaded, it is not in "registeredRealEstates"
   //
   // Retain the list of real estates even if the offers are toggled on
-  // and off (handled by functions "softInit" and "softUnload").
-  // In particular, do not lose an entry for "freshtab".
+  // and off (handled by functions "softInit" and "softUnload"). Reason
+  // is that some real estates might be permanent and register themselves
+  // only once on startup.
   async init() {
     if (!this.registeredRealEstates) {
       this.registeredRealEstates = new Map();
@@ -108,6 +105,10 @@ export default background({
       OffersConfigs.SEND_SIG_OP_SHOULD_LOAD = false;
     }
 
+    if (DEBUG_DEXIE_MIGRATION) {
+      this.patternsStatMigrationCheck = patternsStatMigrationCheck;
+    }
+
     // set some extra variables
     if (prefs.get('offersTelemetryFreq')) {
       OffersConfigs.SIGNALS_OFFERS_FREQ_SECS = prefs.get('offersTelemetryFreq');
@@ -126,11 +127,16 @@ export default background({
       offersTelemetryFreq: ${OffersConfigs.SIGNALS_OFFERS_FREQ_SECS}
       '------------------------------------------------------------------------\n`);
 
+    this.dropdownOfferData = null;
     this.purchaseCache = new Set();
     // create the DB to be used over all offers module
     this.db = new Database('cliqz-offers');
     await this.db.init();
+
+    // OffersDB
     this.offersDB = new OfferDB(this.db);
+    await this.offersDB.loadPersistentData();
+
     // the backend connector
     this.backendConnector = new BEConnector();
 
@@ -146,19 +152,29 @@ export default background({
     );
     await this.patternsStat.init();
 
+    const isUserJourneyEnabled = config.settings['offers.user-journey.enabled'];
+    if (isUserJourneyEnabled) {
+      this.journeyHandler = new JourneyHandler({
+        eventHandler: this.eventHandler
+      });
+      await this.journeyHandler.init();
+    } else {
+      this.journeyHandler = null;
+    }
+
     // campaign signals
     this.signalsHandler = new SignalHandler(
       this.db,
       null, /* sender mock */
-      this.patternsStat
+      this.patternsStat,
+      this.journeyHandler && this.journeyHandler.getSignalHandler(),
+      () => this.anolysis.action('getGID')
     );
     await this.signalsHandler.init();
 
     // init the features here
     this.featureHandler = new FeatureHandler();
     const historyFeature = this.featureHandler.getFeature('history');
-
-    this.historyMatcher = new HistoryMatcher(historyFeature);
 
     // intent system
     this.intentHandler = new IntentHandler();
@@ -177,13 +193,11 @@ export default background({
     );
     await this.categoryFetcher.init();
 
-
     // offers handling system
     this.offersHandler = new OffersHandler({
       intentHandler: this.intentHandler,
       backendConnector: this.backendConnector,
       presentRealEstates: this.registeredRealEstates,
-      historyMatcher: this.historyMatcher,
       featuresHandler: this.featureHandler,
       sigHandler: this.signalsHandler,
       eventHandler: this.eventHandler,
@@ -194,20 +208,15 @@ export default background({
     //
     this.offersAPI = this.offersHandler.offersAPI;
 
-    this.gaHandler = new GreenAdsHandler();
-    await this.gaHandler.init();
-
     // create the trigger machine executor
     this.globObjects = {
       db: this.db,
       feature_handler: this.featureHandler,
       intent_handler: this.intentHandler,
       be_connector: this.backendConnector,
-      history_matcher: this.historyMatcher,
       category_handler: this.categoryHandler,
       offers_status_handler: this.offersHandler.offerStatus,
-      ga_handler: this.gaHandler,
-      telemetry: inject.service('telemetry'),
+      telemetry: inject.service('telemetry', ['onTelemetryEnabled', 'onTelemetryDisabled', 'isEnabled', 'push', 'removeListener']),
     };
     this.triggerMachineExecutor = new TriggerMachineExecutor(this.globObjects);
 
@@ -249,12 +258,23 @@ export default background({
       await this.featureHandler.unload();
       this.featureHandler = null;
     }
+    if (this.offersHandler) {
+      await this.offersHandler.destroy();
+      this.offersHandler = null;
+    }
 
-    // this.categoryHandler = null;
+    this.intentHandler = null;
+
+    if (this.journeyHandler) {
+      await this.journeyHandler.destroy();
+      this.journeyHandler = null;
+    }
+
     if (this.categoryFetcher) {
       await this.categoryFetcher.unload();
       this.categoryFetcher = null;
     }
+    this.categoryHandler = null;
 
     this._publishPopupPushEventCached = null;
     this.offersDB = null;
@@ -321,6 +341,7 @@ export default background({
       logger.debug('Categories hit', urlData, matches.getCategoriesIDs());
     }
     this.onCategoriesHit(matches, urlData);
+    this.onCategoryHitByFakeUrlIfNeeded(urlData);
   },
 
 
@@ -356,7 +377,7 @@ export default background({
         // check if it is a normal pref or a particular
         switch (prefName) {
           case 'offersInstallInfo':
-            prefs.set(prefName, `${utils.extensionVersion}|${prefValue}`);
+            prefs.set(prefName, `${inject.app.version}|${prefValue}`);
             break;
           default:
             prefs.set(prefName, prefValue);
@@ -433,6 +454,20 @@ export default background({
     if (matches.matches.size > 0) {
       logger.log('Matching categories by fake url:', matches.getCategoriesIDs(), fakeUrl);
       this.onCategoriesHit(matches, fakeUrlData);
+    }
+  },
+
+  onCategoryHitByFakeUrlIfNeeded(urlData) {
+    if (!this.dropdownOfferData) { return; }
+    const {fakeUrl, ctaUrl} = this.dropdownOfferData;
+    const ctaUrlData = new UrlData(ctaUrl);
+    const normalizedCtaUrl = ctaUrlData.getNormalizedUrl();
+    const {query: ctaQuery = ''} = ctaUrlData.getUrlDetails();
+    const {cleanHost, path} = urlData.getUrlDetails();
+    if (normalizedCtaUrl === urlData.getNormalizedUrl()
+      || decodeURIComponent(ctaQuery).includes(cleanHost + path)) { // affiliated network
+      this.dropdownOfferData = null;
+      this._categoryHitByFakeUrl({ fakeUrl });
     }
   },
 
@@ -529,11 +564,11 @@ export default background({
     },
 
     processRealEstateMessage(message) {
-      const {origin, data: {action_id: actionId, offer_id: offerId} = {}} = message;
-      if (origin === 'dropdown' && actionId === 'offer_ca_action') {
+      const {origin, data: {action_id: actionId, offer_id: offerId, ctaUrl = ''} = {}} = message;
+      if (origin === 'dropdown' && actionId === 'offer_ca_action' && ctaUrl) {
         const campaignId = this.offersHandler.getCampaignId(offerId);
         const fakeUrl = `https://fake.url/landing/${campaignId}`;
-        this._categoryHitByFakeUrl({fakeUrl});
+        this.dropdownOfferData = {fakeUrl, ctaUrl};
       }
 
       if (this.offersAPI) {
@@ -614,6 +649,42 @@ export default background({
           domain: md5(getGeneralDomain(sender.url)), categories, price, ...msg
         });
       }
+    },
+
+    async learnTargeting(feature, ...rest) {
+      if ((feature === 'page-class') || (feature === 'action')) {
+        if (!rest.length) {
+          logger.warn('learnTargeting got bad input:', rest);
+          return Promise.resolve();
+        }
+        if (this.journeyHandler) {
+          return this.journeyHandler.addFeature(rest[0]);
+        }
+        return Promise.resolve();
+      }
+      return this.categoryHandler.learnTargeting(feature);
+    },
+
+    async softReloadOffers() {
+      await this.softUnload();
+      await this.softInit();
+    },
+
+    getOffersStatus() {
+      return {
+        activeCategories: this.categoryHandler.catTree
+          .getAllSubCategories('')
+          .map(node => node.getCategory())
+          .filter(cat => cat && cat.isActive())
+          .map(cat => cat.getName()),
+        activeIntents: this.intentHandler.activeIntents.keys(),
+        activeOffers: this.offersHandler.offersDB.offersIndexMap.keys(),
+        activeRealEstates: this.registeredRealEstates,
+        categories: this.categoryHandler.catTree.getAllSubCategories('')
+          .map(catNode => catNode.name),
+        initialized: this.initialized,
+        triggerCache: Object.keys(this.globObjects.trigger_cache.triggerIndex),
+      };
     }
   },
 

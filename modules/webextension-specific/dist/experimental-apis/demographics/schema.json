@@ -1,0 +1,22 @@
+[
+  {
+    "namespace": "demographics",
+    "description": "Wrapper for accessing sqlite databses",
+    "functions": [
+      {
+        "name": "getMacDistribution",
+        "type": "function",
+        "description": "Return distribution ID",
+        "async": true,
+        "parameters": []
+      },
+      {
+        "name": "getTroubleShootInfo",
+        "type": "function",
+        "description": "Return troubleshoot info",
+        "async": true,
+        "parameters": []
+      }
+    ]
+  }
+]

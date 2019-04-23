@@ -1,16 +1,18 @@
 import events from '../../core/events';
-import utils from '../../core/utils';
+import { openLink } from '../../core/browser';
+import telemetry from '../../core/services/telemetry';
 import { copyToClipboard } from '../../core/clipboard';
 import inject from '../../core/kord/inject';
 import * as browserPanel from './browser-panel';
 import * as rewardBox from './reward-box';
+import { filterValues } from '../utils';
 
 const core = inject.module('core');
 
 export function send(data, type) {
   const mapper = {
     offers: payload => events.pub('offers-recv-ch', payload),
-    telemetry: utils.telemetry,
+    telemetry: (...args) => telemetry.push(...args),
   };
   const noop = () => {};
   (mapper[type] || noop)(data);
@@ -18,11 +20,18 @@ export function send(data, type) {
 
 function commonTelemetry(msg, view = 'box') {
   if (!msg) { return; }
-  const { target, action = 'click', vote, comments } = msg;
-  const signal = { type: 'offrz', view, action, target };
-  if (vote) { signal.vote = vote; }
-  if (comments) { signal.comments = comments; }
-  send(signal, 'telemetry');
+  const { target, action = 'click', vote, comments, offersCount } = msg;
+  const signal = {
+    action,
+    comments,
+    offer_count: offersCount,
+    target,
+    type: 'offrz',
+    view,
+    vote,
+  };
+  const newSignal = filterValues(signal, value => value !== undefined);
+  send(newSignal, 'telemetry');
 }
 
 export function dispatcher(type, offerId, msg = {}, autoTrigger) {
@@ -38,20 +47,21 @@ export function dispatcher(type, offerId, msg = {}, autoTrigger) {
     copyToClipboard,
     openUrlHandler: ({ el_id: elId, url } = {}) => {
       browserPanel.specificTelemetry(elId);
-      utils.openLink(window, url, true);
+      openLink(window, url, true);
     },
   };
 
   const mapperRewardBox = {
     sendUserFeedback: payload => core.action('sendUserFeedback', { view: 'box', ...payload }),
     sendActionSignal: rewardBox.commonAction,
+    copyToClipboard,
     getEmptyFrameAndData: rewardBox.hideTooltipIfShould,
     sendOfferActionSignal: rewardBox.actions,
     seenOffer: payload => rewardBox.seenOffer(offerId, payload, autoTrigger),
     sendTelemetry: payload => commonTelemetry(payload, 'box'),
     openURL: (payload) => {
       rewardBox.callToAction(payload);
-      utils.openLink(window, payload.url, true, !payload.isBackgroundTab);
+      openLink(window, payload.url, true, !payload.isBackgroundTab);
     },
   };
   const noop = () => {};

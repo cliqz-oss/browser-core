@@ -1,0 +1,62 @@
+.tooltip__container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #00AEF0;
+  height: 60px;
+}
+
+.tooltip__left-item {
+  padding-left: 5px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.tooltip__image {
+  background: url(../images/offers-cc-icon-white.svg) no-repeat center;
+  background-size: contain;
+  width: 29px;
+  height: 28px;
+  padding-left: 10px;
+}
+
+.tooltip__right-item {
+  display: flex;
+  width: 22px;
+  height: 21px;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  align-items: center;
+  transition: all linear 0.3s;
+  background-color: #fff;
+  margin-top: -32px;
+  margin-right: 4px;
+}
+
+.tooltip__close {
+  background: url(../images/close-offer.svg) no-repeat center;
+  width: 12.5px;
+  height: 12.5px;
+  border-radius: 50%;
+  background-size: contain;
+  filter: brightness(0.7);
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+.tooltip__text {
+  padding-left: 8px;
+  margin-right: -8px;
+  padding-top: 4px;
+  color: #fff;
+  font-size: 13.5px;
+}
+
+.tooltip__not-visible {
+  opacity: 0;
+}
+.tooltip__visible {
+  opacity: 1;
+}

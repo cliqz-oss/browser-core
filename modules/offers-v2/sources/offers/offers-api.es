@@ -120,6 +120,14 @@ export default class OffersAPI {
       originID,
       ActionID.AID_OFFER_PUSHED
     );
+    if (offer.hasDynamicContent()) {
+      this.sigHandler.setCampaignSignal(
+        offer.campaignID,
+        offer.uniqueID,
+        originID,
+        ActionID.AID_DYNAMIC_OFFER_PUSHED
+      );
+    }
 
     // broadcast the message
     const displayRule = newDisplayRule || offer.ruleInfo;
@@ -510,7 +518,7 @@ export default class OffersAPI {
     if (isCodeHidden && ['offer_ca_action', 'code_copied'].includes(msg.data.action_id)) {
       this.offersDB.addOfferAttribute(offerID, 'isCodeHidden', false);
       const code = this.offersDB.getOfferTemplateData(offerID).code;
-      const url = `offers/${offerID}/code-was-used/`;
+      const url = `offers/${encodeURIComponent(offerID)}/code-was-used/`;
       if (code) { this.backendConnector.sendApiRequest(url, { code }, 'POST'); }
     }
 

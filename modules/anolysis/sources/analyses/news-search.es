@@ -82,7 +82,7 @@ const selectionsFilter = (sessions, filterFunction) =>
  * topNewsSC: smart cliqz top news is triggred by type top news ....
  * news-search analysis depends on search metric "search.session" and search analysis
 */
-export default [
+export default () => [
   {
     name: 'news-search',
     version: 2,

@@ -93,7 +93,13 @@
                     width: calc(#{$news-container} / 3);
                     overflow: hidden;
                     transition: transform 0.5s ease-in, height .2s ease-out, opacity .5s ease-in;
-
+                    > a {
+                        display: flex;
+                        flex-wrap: nowrap;
+                        flex-direction: column;
+                        justify-content: space-between;
+                        height: 100%
+                    }
                     a {
                         text-decoration: none;
                         color: $news-a-color;
@@ -167,13 +173,13 @@
                         }
                     }
                     .read-more-button {
-                        position: absolute;
-                        bottom: 11px;
-                        left: 20px;
+                        display: block;
+                        margin-left: 20px;
                         padding: 0 5px;
                         font-size: 11.5px;
                         color: $news-read-more-btn-color;
                         visibility: hidden;
+                        padding-bottom: 10px
                     }
 
                     &.with-animation {

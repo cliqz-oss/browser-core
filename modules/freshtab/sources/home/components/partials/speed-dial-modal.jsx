@@ -84,7 +84,7 @@ export default function SpeedDialModal({
             />
             {state.showError && <i className="errorIcon" />}
 
-            <div className={formInputClass}>
+            <div className={formInputClass || 'field'}>
               <TextInput
                 className="title"
                 id="title"

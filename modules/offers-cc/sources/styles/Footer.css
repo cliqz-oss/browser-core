@@ -1,0 +1,53 @@
+.footer__container {
+  height: 19px;
+  display: flex;
+  justify-content: space-between;
+  margin: 5px;
+  align-items: center;
+  padding-bottom: 1px;
+}
+.footer__left-item {
+  display: flex;
+  align-items: center;
+}
+.footer__right-item {
+  display: flex;
+}
+.footer__face {
+  background: url('../images/feedback-face.svg') no-repeat center;
+  background-size: contain;
+  width: 19px;
+  height: 19px;
+  cursor: pointer;
+}
+
+.footer__logo {
+  cursor: pointer;
+}
+
+.footer__cliqz-logo {
+  background: url('../images/cliqz-logo.svg') no-repeat center;
+  width: 19px;
+  height: 19px;
+}
+
+.footer__myoffrz-logo {
+  background: url('../images/myoffrz-logo.svg') no-repeat center;
+  background-size: contain;
+  width: 18px;
+  height: 19px;
+}
+.footer__chip-logo {
+  background: url('../images/chip-icon-logo-gray.svg') no-repeat center;
+  background-size: contain;
+  width: 55px;
+  height: 14px;
+}
+
+.footer__space {
+  width: 6px;
+}
+.footer__feedback {
+  font-size: 10px;
+  cursor: pointer;
+}

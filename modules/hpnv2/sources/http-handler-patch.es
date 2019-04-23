@@ -4,7 +4,6 @@ import * as http from '../core/http';
 import config from '../core/config';
 import inject from '../core/kord/inject';
 import console from '../core/console';
-import utils from '../core/utils';
 
 // HPN will only route based on the build config,
 // changes in prefs (`triggersBE`) will make the singals escape hpn
@@ -34,28 +33,6 @@ export function overRideCliqzResults() {
     }
   }
 
-  function fetchHandler(url, options) {
-    if (typeof url !== 'string') {
-      return undefined;
-    }
-    // TODO: check other api.cliqz.com calls
-    if (prefs.get('hpn-query', false) || utils.isPrivateMode()) {
-      if (url.startsWith(config.settings.RESULTS_PROVIDER)) {
-        const { pathname, search } = new URL(url);
-        const method = (options.method || 'GET').toUpperCase();
-        if (method === 'GET') {
-          return hpnv2.action('send', {
-            action: 'search',
-            method: 'GET',
-            payload: search,
-            path: pathname,
-          });
-        }
-      }
-    }
-    return undefined;
-  }
-
   function httpHandler(method, url, callback, onerror, timeout, data, ...rest) {
     if (url.startsWith(config.settings.BW_URL)) {
       const query = url.replace((config.settings.BW_URL), '');
@@ -69,35 +46,6 @@ export function overRideCliqzResults() {
       }, callback, onerror);
 
       return null;
-    }
-
-    if (prefs.get('hpn-query', false) || utils.isPrivateMode(utils.getWindow())) {
-      if (url.startsWith(config.settings.RESULTS_PROVIDER_PING)) {
-        sendMessageOverHpn({
-          action: 'instant',
-          type: 'cliqz',
-          ts: '',
-          ver: '1.5',
-          payload: {},
-          rp: config.settings.RESULTS_PROVIDER_PING,
-        }, callback, onerror);
-
-        return null;
-      }
-
-      if (url.startsWith(config.settings.RESULTS_PROVIDER)) {
-        const query = url.replace((config.settings.RESULTS_PROVIDER), '');
-        sendMessageOverHpn({
-          action: 'instant',
-          type: 'cliqz',
-          ts: '',
-          ver: '1.5',
-          payload: query,
-          rp: config.settings.RESULTS_PROVIDER,
-        }, callback, onerror);
-
-        return null;
-      }
     }
 
     if (url.startsWith(config.settings.RESULTS_PROVIDER_LOG)) {
@@ -142,10 +90,8 @@ export function overRideCliqzResults() {
 
   http.overrideHttpHandler(httpHandler);
   http.addCompressionExclusion(config.settings.SAFE_BROWSING);
-  http.overrideFetchHandler(fetchHandler);
 }
 
 
 export function unload() {
-  http.resetFetchHandler();
 }

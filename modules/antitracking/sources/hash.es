@@ -14,7 +14,7 @@ export class HashProb {
 
     this.probLoader = new ResourceLoader(['antitracking', 'prob.json'], {
       remoteURL: `${config.settings.CDN_BASEURL}/anti-tracking/prob.json`,
-      cron: 24 * 60 * 60 * 1000 // daily
+      cron: 7 * 24 * 60 * 60 * 1000, // weekly
     });
   }
 

@@ -23,8 +23,7 @@ definitions:
 * **Urlbar-with-results** Search field with Cliqz results only on Google Chrome
 * **Top news**: News from top domains that are displayed to all users.
 * **History based news**: Most frequent news domains present in user's history
-* **Middle-messages / top-messages**: Static or dymanic messages displayed on middle/top part of Freshtab regarding feature updates
-* **Middle-messages-offers**: Offers displayed in the middle section of Freshtab based on user's navigation
+* **Top-messages**: Static or dynamic messages displayed on top part of Freshtab regarding feature updates
 * **Message-center**: All type of messages mentioned above are managed by message-center
 
 
@@ -35,10 +34,9 @@ HTML, CSS, React.js
 1. Speed dials
 2. Search
 3. Notifications
-4. Offers
-5. News
-6. Settings
-7. History UI
+4. News
+5. Settings
+6. History UI
 
 ![freshtab-components](https://s3.amazonaws.com/cdn.cliqz.com/extension/newtab/freshtab-components.png)
 
@@ -46,10 +44,10 @@ HTML, CSS, React.js
 New tab page doesn't have a storage, it relies on background to get all its data. We have 2 dataflows, pull and push.
 
 ## Pull workflow
-When we open a new tab, Freshtab will ask background for information to render. For example it will ask for user's speed-dials, news, notifications and offers.
+When we open a new tab, Freshtab will ask background for information to render. For example it will ask for user's speed-dials, news and notifications.
 
 ## Push workflow
-Once Freshtab is running, due to different user interactions we might want to update the contents of Freshtab. For example some notifications or offers might be pushed to an open tab, whenever they are available. These notifications are routed by another module, message-center, which basically holds a queue of messages that will be sent to Freshtab.
+Once Freshtab is running, due to different user interactions we might want to update the contents of Freshtab. For example some notifications might be pushed to an open tab, whenever they are available. These notifications are routed by another module, message-center, which basically holds a queue of messages that will be sent to Freshtab.
 
 
 # Testing
@@ -69,7 +67,7 @@ We have integration tests that run both on Firefox and Chrome.
 
 
 ### Google Chrome
-```./fern.js test configs/ci/webextension.js -l chromium-selenium --grep Freshtab```
+```./fern.js test configs/ci/webextension.js -l chromium-headless --grep Freshtab```
 
 
 ## Unit tests

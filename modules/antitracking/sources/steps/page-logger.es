@@ -1,5 +1,29 @@
 /* eslint no-param-reassign: 'off' */
 
+// maps string (web-ext) to int (FF cpt). Anti-tracking still uses these legacy types.
+const TYPE_LOOKUP = {
+  other: 1,
+  script: 2,
+  image: 3,
+  stylesheet: 4,
+  object: 5,
+  main_frame: 6,
+  sub_frame: 7,
+  xbl: 9,
+  ping: 10,
+  xmlhttprequest: 11,
+  object_subrequest: 12,
+  xml_dtd: 13,
+  font: 14,
+  media: 15,
+  websocket: 16,
+  csp_report: 17,
+  xslt: 18,
+  beacon: 19,
+  imageset: 21,
+  web_manifest: 22,
+};
+
 export default class PageLogger {
   constructor(tpEvents) {
     this.tpEvents = tpEvents;
@@ -7,7 +31,7 @@ export default class PageLogger {
   }
 
   logMainDocument(state) {
-    if (state.isFullPage()) {
+    if (state.isMainFrame) {
       this.tpEvents.onFullPage(state.urlParts, state.tabId, state.isPrivate, state.requestId);
       // if (CliqzAttrack.isTrackerTxtEnabled()) {
       //   TrackerTXT.get(url_parts).update();
@@ -25,8 +49,8 @@ export default class PageLogger {
       const request = this.tpEvents.get(
         state.url,
         urlParts,
-        state.sourceUrl,
-        state.sourceUrlParts,
+        state.originUrl,
+        state.originUrlParts,
         state.tabId
       );
       state.reqLog = request;
@@ -46,19 +70,22 @@ export default class PageLogger {
       }
 
       // add triggeringPrinciple info
-      if (state.trigger) {
+      if (state.ghosteryBug) {
         const pageLoad = this.tpEvents.getPage(
           state.url,
           urlParts,
-          state.sourceUrl,
-          state.sourceUrlParts,
+          state.tabUrl,
+          state.tabUrlParts,
           state.tabId
         );
         if (pageLoad) {
-          pageLoad.addTrigger(state.urlParts.hostname, state.trigger, state.frameId);
-        }
-        if (state.ghosteryBug) {
-          pageLoad.addGhosteryBug(state.urlParts.hostname, state.ghosteryBug);
+          // TODO - Sam
+          // if (state.trigger) {
+          //   pageLoad.addTrigger(state.urlParts.hostname, state.trigger, state.frameId);
+          // }
+          if (state.ghosteryBug) {
+            pageLoad.addGhosteryBug(state.urlParts.hostname, state.ghosteryBug);
+          }
         }
       }
     }
@@ -92,30 +119,28 @@ export default class PageLogger {
 
     // add metadata for this request
     incrementStat('c');
-    if (urlParts.query.length > 0) {
+    if (urlParts.search.length > 0) {
       incrementStat('has_qs');
     }
-    if (urlParts.parameters.length > 0) {
+    if (urlParts.hasParameterString() > 0) {
       incrementStat('has_ps');
     }
-    if (urlParts.fragment.length > 0) {
+    if (urlParts.hash.length > 0) {
       incrementStat('has_fragment');
     }
     if (state.method === 'POST') {
       incrementStat('has_post');
     }
 
-    // eslint-disable-next-line prefer-template
-    const displayContentType = contentType => (!contentType ? 'unknown' : '' + contentType);
-    incrementStat(`type_${displayContentType(state.cpt)}`);
+    incrementStat(`type_${TYPE_LOOKUP[state.type] || 'unknown'}`);
 
     // log protocol (secure or not)
-    const isHTTP = protocol => protocol === 'http' || protocol === 'https';
-    const scheme = isHTTP(urlParts.protocol) ? urlParts.protocol : 'other';
+    const isHTTP = protocol => protocol === 'http:' || protocol === 'https:';
+    const scheme = isHTTP(urlParts.protocol) ? urlParts.scheme : 'other';
     incrementStat(`scheme_${scheme}`);
 
     // find frame depth
-    incrementStat(`window_depth_${state.getWindowDepth()}`);
+    incrementStat(`window_depth_${Math.min(state.frameAncestors.length, 2)}`);
 
     return true;
   }

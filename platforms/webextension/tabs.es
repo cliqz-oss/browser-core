@@ -58,12 +58,15 @@ export function closeTab(tabId) {
 
 export function getCurrentTab(id) {
   const windowId = typeof id === 'number' ? id : chrome.windows.WINDOW_ID_CURRENT;
-  return new Promise(resolve => chrome.tabs.query({ windowId, active: true }, resolve));
+  return new Promise(resolve => chrome.tabs.query(
+    { windowId, active: true },
+    ([tab]) => resolve(tab)
+  ));
 }
 
 export function closeTabsWithUrl(url) {
   return new Promise((resolve) => {
-    chrome.tabs.query({ url }, (tabs) => {
+    chrome.tabs.query({ url }, (tabs = []) => {
       Promise.all(tabs.map(tab => closeTab(tab.id))).then(resolve);
     });
   });
@@ -115,4 +118,4 @@ export function reloadTab(tabId) {
   });
 }
 
-export default chrome.tabs;
+export default (chrome && chrome.tabs) || undefined;

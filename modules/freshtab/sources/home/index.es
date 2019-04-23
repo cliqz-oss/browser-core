@@ -3,14 +3,18 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './components/app';
 import checkIfChromeReady from '../../core/content/ready-promise';
+import cliqz from './cliqz';
 import config from '../../core/config';
 
 const EXPECTED_ONBOARDING_VERSION = '3.1';
 
 const renderDOM = async (rootElement) => {
   await checkIfChromeReady();
+  const freshtabConfig = await cliqz.freshtab.getConfig();
   ReactDOM.render(
-    React.createElement(App, {}, null),
+    React.createElement(App, {
+      config: freshtabConfig
+    }, null),
     rootElement
   );
 };

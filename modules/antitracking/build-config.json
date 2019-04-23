@@ -1,6 +1,5 @@
 {
   "subprojects": [
-    "jquery",
     "moment",
     "tldts"
   ]

@@ -1,16 +1,16 @@
 import background from '../core/base/background';
-import utils from '../core/utils';
 import inject from '../core/kord/inject';
 import prefs, { getCliqzPrefs } from '../core/prefs';
 import console from '../core/console';
 import config from '../core/config';
 import { promiseHttpHandler } from '../core/http';
-import { isOnionModeFactory } from '../core/platform';
 import { getDaysSinceInstall } from '../core/demographics';
 import setTimeoutInterval from '../core/helpers/timeout';
+import History from '../platform/history/history';
+import { isDefaultBrowser } from '../platform/browser';
+import { getDefaultSearchEngine } from '../core/search-engines';
 
 const INFO_INTERVAL = 60 * 60 * 1e3; // 1 hour
-const isOnionMode = isOnionModeFactory(prefs);
 
 /* eslint-disable no-param-reassign */
 const createTelemetry = (bg) => {
@@ -33,7 +33,7 @@ const createTelemetry = (bg) => {
       const response = JSON.parse(req.response);
 
       if (response.new_session) {
-        prefs.set('session', response.new_session);
+        bg.sessionService.saveSession(response.new_session);
       }
       telemetrySending = [];
       telemetryReq = null;
@@ -75,23 +75,10 @@ const createTelemetry = (bg) => {
   }
 
   return (msg, instantPush) => {
-    // no telemetry in private windows & tabs
-    if (msg.type !== 'environment' && utils.isPrivateMode()) {
-      return;
-    }
-
-    if (isOnionMode()) {
-      return;
-    }
-
     console.log(msg, 'Utils.telemetry');
-    if (msg.type !== 'environment' && !inject.service('telemetry').isEnabled()) {
-      return;
-    }
 
-    // datareporting.healthreport.uploadEnabled
     bg.trk.push({
-      session: prefs.get('session'),
+      session: bg.sessionService.getSession(),
       ts: Date.now(),
       seq: getNextSeq(),
       ...msg,
@@ -106,32 +93,65 @@ const createTelemetry = (bg) => {
 };
 /* eslint-enable no-param-reassign */
 
-async function sendEnvironmentalSignal({ startup, instantPush }) {
-  const info = {
-    type: 'environment',
-    agent: navigator.userAgent,
-    language: navigator.language,
-    version: utils.extensionVersion,
-    history_days: -1, // TODO ?
-    history_urls: -1, // TODO ?
-    startup,
-    prefs: getCliqzPrefs(),
-    install_date: await getDaysSinceInstall(),
-  };
-  utils.telemetry(info, instantPush);
-}
-
-
 export default background({
-  requiresServices: ['cliqz-config'],
+  requiresServices: ['cliqz-config', 'telemetry', 'session'],
+  telemetryService: inject.service('telemetry', ['installProvider', 'uninstallProvider', 'push', 'isBrowserTelemetryEnabled']),
+  sessionService: inject.service('session', ['getSession', 'saveSession']),
 
   init() {
     this.trk = [];
-    this.telemetry = createTelemetry(this);
-    const index = utils.telemetryHandlers.indexOf(this.telemetry);
-    if (index === -1) {
-      utils.telemetryHandlers.push(this.telemetry);
-    }
+
+    // Instantiate legacy telemetry manager. It is stored in the closure only to
+    // not be accessible from outside. Any user of telemetry should go through
+    // telemetry service and not use providers directly.
+    const telemetry = createTelemetry(this);
+
+    this.telemetryProvider = {
+      name: 'telemetry',
+      send: (message, schema, instant) => {
+        if (schema) {
+          return Promise.resolve();
+        }
+        return telemetry(message, instant);
+      },
+    };
+    this.telemetryService.installProvider(this.telemetryProvider);
+
+    const sendEnvironmentalSignal = async ({ startup, instantPush }) => {
+      const info = {
+        type: 'environment',
+        agent: navigator.userAgent,
+        language: navigator.language,
+        version: inject.app.version,
+        startup,
+        prefs: getCliqzPrefs(),
+        defaultSearchEngine: (getDefaultSearchEngine() || {}).name,
+        isDefaultBrowser: await isDefaultBrowser(),
+        distribution: prefs.get('distribution', '', 'extensions.cliqz.'),
+        version_host: prefs.get('gecko.mstone', '', ''),
+        version_dist: prefs.get('distribution.version', '', ''),
+        health_report_enabled: this.telemetryService.isBrowserTelemetryEnabled(),
+      };
+
+      // This signal is always sent as an "alive signal" and thus does not go
+      // through telemetry service.
+      telemetry(info, instantPush);
+
+      let historyStats = {};
+      try {
+        historyStats = await History.stats();
+      } catch (e) {
+        // on android history stats are not available
+      }
+      // Not sent in case of opt-out. Sent through telemetry service which
+      // checks for opt-out from user.
+      this.telemetryService.push({
+        type: 'environment.extended',
+        history_days: historyStats.days,
+        history_urls: historyStats.size,
+        install_date: await getDaysSinceInstall(),
+      });
+    };
 
     sendEnvironmentalSignal({ startup: true, instantPush: true });
     this.whoAmItimer = setTimeoutInterval(
@@ -141,10 +161,7 @@ export default background({
   },
 
   unload() {
-    const index = utils.telemetryHandlers.indexOf(this.telemetry);
-    if (index !== -1) {
-      utils.telemetryHandlers.splice(index, 1);
-    }
+    this.telemetryService.uninstallProvider(this.telemetryProvider);
 
     if (this.whoAmItimer !== null) {
       this.whoAmItimer.stop();
@@ -161,6 +178,8 @@ export default background({
   },
 
   actions: {
-
+    getTrk() {
+      return JSON.parse(JSON.stringify(this.trk));
+    },
   },
 });

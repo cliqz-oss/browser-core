@@ -1,7 +1,0 @@
-{
-  "subprojects": [
-    "jquery",
-    "handlebars",
-    "moment-range"
-  ]
-}

@@ -65,7 +65,7 @@ function generateForType(type, { records }) {
   return [analysis];
 }
 
-export default CONSENT_TYPES.map(type => ({
+export default () => CONSENT_TYPES.map(type => ({
   name: `analysis.consentric.${type}`,
   version: 1,
   generate: ({ records }) => generateForType(type, { records }),

@@ -9,6 +9,7 @@ import OffersConfigs from '../offers_configs';
 import { timestampMS } from '../utils';
 import { buildCachedMap } from '../common/cached-map-ext';
 import { ImageDownloaderForOfferDB } from './image-downloader';
+import { OfferMatchTraits } from '../categories/category-match';
 
 /**
  * The class OfferDB wraps a persistent collections of
@@ -33,7 +34,6 @@ import { ImageDownloaderForOfferDB } from './image-downloader';
  * - 'offer-updated'
  * - 'offer-action'
  * - 'offer-removed'
- * - 'offers-db-loaded'
  *
  * Issues
  *
@@ -51,7 +51,6 @@ class OfferDB {
    */
   constructor({ imageDownloader = new ImageDownloaderForOfferDB() } = {}) {
     this.imageDownloader = imageDownloader;
-    this._dbLoaded = false;
 
     this.offersIndexMap = buildCachedMap('offers-db-index', OffersConfigs.LOAD_OFFERS_STORAGE_DATA);
     this.displayIdIndexMap = buildCachedMap('offers-db-display-index', OffersConfigs.LOAD_OFFERS_STORAGE_DATA);
@@ -66,11 +65,21 @@ class OfferDB {
     // callbacks list
     this.callbacks = new Map();
 
-    // load
-    this._loadPersistentData().then(() => {
-      this._dbLoaded = true;
-      this._pushCallbackEvent('offers-db-loaded', {});
-    });
+    // Caller should call `loadPersistentData` to finish initialization
+  }
+
+  loadPersistentData() {
+    if (!OffersConfigs.LOAD_OFFERS_STORAGE_DATA) {
+      return Promise.resolve(true);
+    }
+    return Promise
+      .all([
+        this.offersIndexMap.init(),
+        this.displayIdIndexMap.init(),
+      ])
+      .then(() => {
+        this._buildIndexTables();
+      });
   }
 
   registerCallback(cb) {
@@ -79,10 +88,6 @@ class OfferDB {
 
   unregisterCallback(cb) {
     this.callbacks.delete(cb);
-  }
-
-  get dbLoaded() {
-    return this._dbLoaded;
   }
 
   // ---------------------------------------------------------------------------
@@ -513,7 +518,7 @@ class OfferDB {
    * @returns {boolean} true on success
    */
   addReasonForHaving(offerID, reason) {
-    return this.addOfferAttribute(offerID, 'reason', reason);
+    return this.addOfferAttribute(offerID, 'reason', reason && reason.toStorage());
   }
 
   /**
@@ -521,15 +526,11 @@ class OfferDB {
    *
    * @method getReasonForHaving
    * @param {string} offerID
-   * @returns {OfferMatchTraits} or null
+   * @returns {OfferMatchTraits}
    */
   getReasonForHaving(offerID) {
     const reasonObj = this.getOfferAttribute(offerID, 'reason');
-    if (reasonObj && (!reasonObj.getReason)) {
-      // Duck-cast a JSON object (from storage) to OfferMatchTraits
-      reasonObj.getReason = () => reasonObj.reason;
-    }
-    return reasonObj;
+    return OfferMatchTraits.fromStorage(reasonObj);
   }
 
   /**
@@ -794,7 +795,14 @@ class OfferDB {
     try {
       return offerData.ui_info.template_data.validity < Date.now() / 1000;
     } catch (e) {
-      logger.debug('Missing validity', offerData);
+      if (!(
+        offerData
+        && offerData.rs_dest
+        && offerData.rs_dest.includes
+        && offerData.rs_dest.includes('dropdown')
+      )) {
+        logger.warn('Missing "validity" field', offerData);
+      }
       return false;
     }
   }
@@ -928,20 +936,6 @@ class OfferDB {
       msgToSend.extraData = extraData;
     }
     this.callbacks.forEach(cb => cb(msgToSend));
-  }
-
-  _loadPersistentData() {
-    if (!OffersConfigs.LOAD_OFFERS_STORAGE_DATA) {
-      return Promise.resolve(true);
-    }
-    return Promise
-      .all([
-        this.offersIndexMap.init(),
-        this.displayIdIndexMap.init(),
-      ])
-      .then(() => {
-        this._buildIndexTables();
-      });
   }
 }
 

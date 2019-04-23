@@ -1,18 +1,19 @@
 /* eslint no-param-reassign: 'off' */
 /* eslint func-names: 'off' */
 
+import { chrome } from '../platform/globals';
 import inject from '../core/kord/inject';
+import telemetry from '../core/services/telemetry';
 import NewTabPage from './main';
 import News from './news';
 import config from './config';
 import { getWallpapers, getDefaultWallpaper } from './wallpapers';
 import History from '../platform/freshtab/history';
 import openImportDialog from '../platform/freshtab/browser-import-dialog';
-import utils from '../core/utils';
+import logos from '../core/services/logos';
 import events from '../core/events';
 import SpeedDial from './speed-dial';
 import AdultDomain from './adult-domain';
-import OffersUpdateService from './services/offers-update';
 import background from '../core/base/background';
 import {
   forEachWindow,
@@ -24,14 +25,12 @@ import console from '../core/console';
 import {
   getResourceUrl,
   isCliqzBrowser,
-  isCliqzAtLeastInVersion,
   isChromium,
-  isWebExtension,
   isAMO,
   product,
 } from '../core/platform';
 import prefs from '../core/prefs';
-import { pauseMessage, dismissMessage, countMessageClick, dismissOffer, saveMessageDismission } from './actions/message';
+import { pauseMessage, dismissMessage, countMessageClick, saveMessageDismission } from './actions/message';
 import i18n, { getLanguageFromLocale, getMessage } from '../core/i18n';
 import hash from '../core/helpers/hash';
 import HistoryService from '../platform/history-service';
@@ -39,18 +38,18 @@ import HistoryManager from '../core/history-manager';
 import * as searchUtils from '../core/search-engines';
 import {
   equals as areUrlsEqual,
-  getDetailsFromUrl,
   stripTrailingSlash,
   tryEncodeURIComponent,
   tryDecodeURIComponent,
 } from '../core/url';
+import { URLInfo } from '../core/url-info';
 import extChannel from '../platform/ext-messaging';
+import { isBetaVersion } from '../platform/platform';
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 const BLUE_THEME_PREF = 'freshtab.blueTheme.enabled';
 const DEVELOPER_FLAG_PREF = 'developer';
-const REAL_ESTATE_ID = 'cliqz-tab';
 
 const blackListedEngines = [
   'Google Images',
@@ -94,16 +93,18 @@ function makeErrorObject(reason) {
  * @class Background
  */
 export default background({
+  // Modules dependencies
   core: inject.module('core'),
-  geolocation: inject.module('geolocation'),
   messageCenter: inject.module('message-center'),
   search: inject.module('search'),
-  theme: inject.module('theme'),
   ui: inject.module('ui'),
-  offersV2: inject.module('offers-v2'),
   insights: inject.module('insights'),
-  friends: inject.module('cliqz-for-friends'),
-  requiresServices: ['logos', 'utils', 'session'],
+
+  // Services dependencies
+  geolocation: inject.service('geolocation', ['setLocationPermission']),
+  searchSession: inject.service('search-session', ['setSearchSession']),
+
+  requiresServices: ['logos', 'session', 'geolocation', 'telemetry', 'search-session'],
   searchReminderCounter: 0,
 
   /**
@@ -136,17 +137,6 @@ export default background({
     this.onVisitRemoved = this._onVisitRemoved.bind(this);
 
     HistoryService.onVisitRemoved.addListener(this.onVisitRemoved);
-
-    // Unconditionally register real estate
-    this._registerToOffersCore();
-
-    // offers-update-service
-    this.offersUpdateService = new OffersUpdateService({
-      messageCenter: this.messageCenter,
-      offers: this.offersV2
-    });
-
-    this.offersUpdateService.init();
   },
   /**
   * @method unload
@@ -161,8 +151,6 @@ export default background({
     }
 
     HistoryService.onVisitRemoved.removeListener(this.onVisitRemoved);
-    this._unregisterFromOffersCore();
-    this.offersUpdateService.unload();
   },
 
   _onVisitRemoved(removed) {
@@ -182,34 +170,34 @@ export default background({
     });
   },
 
-  _unregisterFromOffersCore() {
-    this.offersV2.action('unregisterRealEstate', { realEstateID: REAL_ESTATE_ID }).catch(() => {});
-  },
-
-  _registerToOffersCore() {
-    this.offersV2.action('registerRealEstate', { realEstateID: REAL_ESTATE_ID }).catch(error => console.log(error));
-  },
-
   isAdult(url) {
-    return this.adultDomainChecker.isAdult(getDetailsFromUrl(url).domain);
+    return this.adultDomainChecker.isAdult(URLInfo.get(url).generalDomain);
   },
 
   get blueTheme() {
-    return prefs.get(BLUE_THEME_PREF, false);
+    return prefs.get(BLUE_THEME_PREF, false, 'extensions.cliqz.');
+  },
+
+  async browserTheme() {
+    if (chrome.cliqz) {
+      let browserTheme = await chrome.cliqz.getTheme();
+      if (browserTheme === undefined) {
+        browserTheme = 'light';
+      }
+      return browserTheme;
+    }
+    return '';
   },
 
   /*
   * Blue theme is supported only for CLIQZ users above 1.16.0
   */
   get isBlueThemeSupported() {
-    const CLIQZ_1_21_OR_ABOVE = isCliqzAtLeastInVersion('1.21.0');
+    return isCliqzBrowser || prefs.get(DEVELOPER_FLAG_PREF, false);
+  },
 
-    if (isWebExtension || (isCliqzBrowser && CLIQZ_1_21_OR_ABOVE)) {
-      return false;
-    }
-
-    const CLIQZ_1_16_OR_ABOVE = isCliqzAtLeastInVersion('1.16.0');
-    return (isCliqzBrowser && CLIQZ_1_16_OR_ABOVE) || prefs.get(DEVELOPER_FLAG_PREF, false);
+  get isBrowserThemeSupported() {
+    return isCliqzBrowser || prefs.get(DEVELOPER_FLAG_PREF, false);
   },
 
   getNewsEdition() {
@@ -258,10 +246,9 @@ export default background({
     ) {
       const report = {
         ...selection,
-        isPrivateResult: utils.isPrivateResultType(selection.kind),
+        isPrivateResult: searchUtils.isPrivateResultType(selection.kind),
         tabId,
       };
-
       delete report.kind;
 
       events.pub('ui:click-on-url', report);
@@ -311,17 +298,16 @@ export default background({
 
     dismissMessage,
     pauseMessage,
-    dismissOffer,
     countMessageClick,
     saveMessageDismission,
 
     checkForHistorySpeedDialsToRestore() {
-      const history = JSON.parse(prefs.get(DIALUPS, '{}', '')).history || {};
+      const history = JSON.parse(prefs.get(DIALUPS, '{}')).history || {};
       return Object.keys(history).length > 0;
     },
 
     hasCustomDialups() {
-      return (JSON.parse(prefs.get(DIALUPS, '{}', '')).custom || []).length;
+      return (JSON.parse(prefs.get(DIALUPS, '{}')).custom || []).length;
     },
 
     /**
@@ -329,7 +315,7 @@ export default background({
     * @method getSpeedDials
     */
     async getSpeedDials() {
-      const dialUps = prefs.has(DIALUPS, '') ? JSON.parse(prefs.get(DIALUPS, '', '')) : [];
+      const dialUps = prefs.has(DIALUPS) ? JSON.parse(prefs.get(DIALUPS, '')) : [];
       let historyDialups = [];
       let customDialups = dialUps.custom ? dialUps.custom : [];
       await searchUtils.isSearchServiceReady();
@@ -432,7 +418,7 @@ export default background({
     removeSpeedDial(item) {
       const isCustom = item.custom;
       const url = isCustom ? item.url : hash(item.url);
-      const dialUps = JSON.parse(prefs.get(DIALUPS, '{}', ''));
+      const dialUps = JSON.parse(prefs.get(DIALUPS, '{}'));
 
       if (isCustom) {
         dialUps.custom = dialUps.custom.filter(dialup =>
@@ -444,7 +430,7 @@ export default background({
         dialUps.history[url] = { hidden: true };
       }
 
-      prefs.set(DIALUPS, JSON.stringify(dialUps), '');
+      prefs.set(DIALUPS, JSON.stringify(dialUps));
     },
 
     /**
@@ -474,7 +460,7 @@ export default background({
         return makeErrorObject('duplicate');
       }
 
-      const savedDials = prefs.getObject(DIALUPS, '');
+      const savedDials = prefs.getObject(DIALUPS);
       if (!savedDials.custom) {
         savedDials.custom = [];
       }
@@ -492,7 +478,7 @@ export default background({
           },
           ...savedDials.custom.slice(index + 1),
         ],
-      }, '');
+      });
 
       return new SpeedDial({ url: validUrl, title }, searchEngines);
     },
@@ -526,7 +512,7 @@ export default background({
         return makeErrorObject('duplicate');
       }
 
-      const savedDials = prefs.getObject(DIALUPS, '');
+      const savedDials = prefs.getObject(DIALUPS);
       if (!savedDials.custom) {
         savedDials.custom = [];
       }
@@ -549,7 +535,7 @@ export default background({
 
       prefs.setObject(DIALUPS, {
         ...savedDials
-      }, '');
+      });
       // prefs.set(DIALUPS, JSON.stringify(dialUps), '');
       return new SpeedDial(dialSpecs, searchEngines);
     },
@@ -559,7 +545,7 @@ export default background({
     * @method parseSpeedDials
     */
     parseSpeedDials() {
-      return JSON.parse(prefs.get(DIALUPS, '{}', ''));
+      return JSON.parse(prefs.get(DIALUPS, '{}'));
     },
 
     /**
@@ -568,7 +554,7 @@ export default background({
     * @param dialUps object
     */
     saveSpeedDials(dialUps) {
-      prefs.set(DIALUPS, JSON.stringify(dialUps), '');
+      prefs.set(DIALUPS, JSON.stringify(dialUps));
     },
 
     /**
@@ -580,6 +566,16 @@ export default background({
       const dialUps = this.actions.parseSpeedDials();
       delete dialUps.history[hash(url)];
       this.actions.saveSpeedDials(dialUps);
+    },
+
+    /**
+    * A speed dial has been clicked
+    * @method speedDialClicked
+    */
+    speedDialClicked() {
+      if (this.insights.isPresent()) {
+        this.insights.action('insertSearchStats', { speedDialClicked: 1 });
+      }
     },
 
     /**
@@ -625,8 +621,8 @@ export default background({
           news: newsList.map(r => ({
             title: r.title_hyphenated || r.title,
             description: r.description,
-            displayUrl: getDetailsFromUrl(r.url).cleanHost || r.title,
-            logo: utils.getLogoDetails(getDetailsFromUrl(r.url)),
+            displayUrl: URLInfo.get(r.url).cleanHost || r.title,
+            logo: logos.getLogoDetails(r.url),
             url: r.url,
             type: r.type,
             breaking_label: r.breaking_label,
@@ -672,9 +668,14 @@ export default background({
       let promoData = {};
 
       if (product === 'CLIQZ' && this.insights.isPresent()) {
-        const summary = await this.insights.action('getDashboardStats');
+        const [summary, searchTimeSaved] = await Promise.all([
+          this.insights.action('getDashboardStats'),
+          this.insights.action('getSearchTimeSaved'),
+        ]);
         const isAntitrackingDisabled = !prefs.get('modules.antitracking.enabled', true);
-        const isAdBlockerDisabled = prefs.get('cliqz-adb', 1) === 0;
+
+        const adbPref = prefs.get('cliqz-adb', false);
+        const isAdBlockerDisabled = adbPref === false || adbPref === 0;
 
         data = [
           {
@@ -696,10 +697,10 @@ export default background({
           {
             title: `${getMessage('freshtab_stats_time_saved')}`,
             icon: 'images/cliqz-time.svg',
-            val: formatTime(summary.timeSaved),
+            val: formatTime((summary.timeSaved || 0) + searchTimeSaved),
             description: `${getMessage('freshtab_stats_time_saved_desc')}`,
             link: 'https://cliqz.com/support/privacy-statistics#time-saved',
-            disabled: isAdBlockerDisabled,
+            disabled: false, // Always active
           },
         ];
       } else if (product === 'GHOSTERY') {
@@ -751,7 +752,7 @@ export default background({
             },
             description: `${getMessage('promo_data_description')} ${getMessage('promo_data_description_2')}`,
             learnMore: {
-              text: `${getMessage('learnMore')}`,
+              text: `${getMessage('learn_more')}`,
               link: 'https://www.ghostery.com/',
             },
             buttons: [
@@ -769,73 +770,6 @@ export default background({
         isEmpty: !data.length,
         promoData,
       };
-    },
-
-    /**
-    * Get offers
-    * @method getOffers
-    */
-    getOffers() {
-      const args = {
-        filters: {
-          by_rs_dest: REAL_ESTATE_ID,
-          ensure_has_dest: true
-        }
-      };
-      const offers = this.offersV2.action('getStoredOffers', args);
-      return offers.then((results) => {
-        results.forEach((offer) => {
-          offer.id = offer.offer_id;
-          offer.position = 'middle';
-          offer.type = 'offer';
-          let validity = {};
-          const templateData = offer.offer_info.ui_info.template_data;
-          // calculate the expiration time if we have the new field #EX-7028
-          const expirationTime = offer.offer_info.expirationMs
-            ? (offer.created_ts + offer.offer_info.expirationMs) / 1000
-            : templateData.validity;
-          if (expirationTime) {
-            const timeDiff = Math.abs((expirationTime * 1000) - Date.now());
-            let difference = Math.floor(timeDiff / 86400000);
-            const isExpiredSoon = difference <= 2;
-            let diffUnit = difference === 1 ? 'offers_expires_day' : 'offers_expires_days';
-
-            if (difference < 1) {
-              difference = Math.floor((timeDiff % 86400000) / 3600000);
-              diffUnit = difference === 1 ? 'offers_expires_hour' : 'offers_expires_hours';
-
-              if (difference < 1) {
-                difference = Math.floor(((timeDiff % 86400000) % 3600000) / 60000);
-                diffUnit = difference === 1 ? 'offers_expires_minute' : 'offers_expires_minutes';
-              }
-            }
-
-            validity = {
-              text: `${getMessage('offers_expires_in')} ${difference} ${getMessage(diffUnit)}`,
-              isExpiredSoon,
-            };
-
-            offer.validity = validity;
-          }
-          let titleColor;
-          if (templateData.styles && templateData.styles.headline_color) {
-            titleColor = templateData.styles.headline_color;
-          } else {
-            const url = templateData.call_to_action.url;
-            const urlDetails = getDetailsFromUrl(url);
-            const logoDetails = utils.getLogoDetails(urlDetails);
-            titleColor = `#${logoDetails.brandTxtColor}`;
-          }
-          templateData.titleColor = titleColor;
-
-          this.messageCenter.action(
-            'showMessage',
-            'MESSAGE_HANDLER_FRESHTAB_OFFERS',
-            offer
-          );
-        });
-        return results;
-      });
     },
 
     /**
@@ -862,18 +796,14 @@ export default background({
       }
 
       const { id: tabIndex } = await getActiveTab();
-      let displayFriendsIcon = false;
-      try {
-        displayFriendsIcon = await this.friends.action('displayFreshtabIcon');
-      } catch (e) {
-        // module might be missing
-      }
 
       return {
         searchReminderCounter: this.searchReminderCounter,
         locale: getLanguageFromLocale(i18n.PLATFORM_LOCALE),
         blueTheme: this.blueTheme,
-        isBlueThemeSupported: this.isBlueThemeEnabled,
+        browserTheme: await this.browserTheme(),
+        isBlueThemeSupported: this.isBlueThemeSupported,
+        isBrowserThemeSupported: this.isBrowserThemeSupported,
         wallpapers: getWallpapers(product),
         product,
         tabIndex,
@@ -886,35 +816,29 @@ export default background({
         developer: prefs.get('developer', false),
         cliqzPostPosition: prefs.get('freshtab.post.position', 'bottom-right'), // bottom-left, top-right
         isStatsSupported: this.settings.freshTabStats,
-        displayFriendsIcon,
         NEW_TAB_URL: '',
         HISTORY_URL,
-        CLIQZ_FOR_FRIENDS: this.settings.CLIQZ_FOR_FRIENDS ? getResourceUrl(this.settings.CLIQZ_FOR_FRIENDS) : '',
+        isBetaVersion: isBetaVersion(),
       };
+    },
+
+    async setBrowserTheme(theme) {
+      if (chrome.cliqz) {
+        telemetry.push({ theme }, 'freshtab.prefs.browserTheme');
+        await chrome.cliqz.setTheme(`firefox-compact-${theme}@mozilla.org`);
+      }
     },
 
     /**
     * @method toggleBlueTheme
     */
     toggleBlueTheme() {
-      // toggle blue class only on FF for testing.
       // Cliqz browser listens for pref change and takes care of toggling the class
-      if (prefs.get(DEVELOPER_FLAG_PREF, false)) {
-        this.actions.toggleBlueClassForFFTesting();
-      }
-
+      // For dev mode there is webextension API which listens to pref change
       if (this.blueTheme) {
-        prefs.set(BLUE_THEME_PREF, false);
+        prefs.set(BLUE_THEME_PREF, false, 'extensions.cliqz.');
       } else {
-        prefs.set(BLUE_THEME_PREF, true);
-      }
-    },
-
-    toggleBlueClassForFFTesting() {
-      if (this.blueTheme) {
-        this.theme.action('removeBlueClass');
-      } else {
-        this.theme.action('addBlueClass');
+        prefs.set(BLUE_THEME_PREF, true, 'extensions.cliqz.');
       }
     },
 
@@ -928,12 +852,12 @@ export default background({
 
     shareLocation(decision) {
       events.pub('msg_center:hide_message', { id: 'share-location' }, 'MESSAGE_HANDLER_FRESHTAB');
-      this.geolocation.action('setLocationPermission', decision);
+      this.geolocation.setLocationPermission(decision);
 
       const target = (decision === 'yes')
         ? 'always_share' : 'never_share';
 
-      utils.telemetry({
+      telemetry.push({
         type: 'notification',
         action: 'click',
         topic: 'share-location',
@@ -980,12 +904,16 @@ export default background({
       return this.blueTheme;
     },
 
+    getBrowserTheme() {
+      return this.browserTheme();
+    },
+
     getComponentsState() {
       return this.getComponentsState();
     },
     reportEvent({ type }) {
       if (type === 'urlbar-focus') {
-        utils.setSearchSession();
+        this.searchSession.setSearchSession();
         if (this.searchReminderCounter < 7) {
           this.searchReminderCounter = 0;
         }
@@ -994,9 +922,6 @@ export default background({
   },
 
   events: {
-    'offers-send-ch': function () {
-      this.offersUpdateService.refresh();
-    },
     'control-center:cliqz-tab': function () {
       if (this.newTabPage.isActive) {
         this.newTabPage.rollback();

@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 function Radio({
+  checked,
   id,
   labelValue,
   name,
@@ -11,11 +12,13 @@ function Radio({
   return (
     <div>
       <input
+        tabIndex="-1"
         id={id}
         name={name}
         onChange={onChange}
         type="radio"
         value={value}
+        defaultChecked={checked}
       />
       <label htmlFor={id}>
         {labelValue}

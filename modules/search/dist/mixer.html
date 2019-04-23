@@ -42,6 +42,7 @@
         border: 1px solid gray;
         margin: 6px;
         padding: 1px;
+        min-height: 90px;
       }
       .ellipsis {
         white-space: nowrap;
@@ -63,12 +64,65 @@
         height: 20px;
         border-radius: 50%;
       }
+
+      #popup {
+        border: 1px solid black;
+        background-color: rgb(202, 202, 202);
+        position: absolute;
+        z-index: 10;
+        width: 800px;
+        height: 800px;
+        left: calc(50% - 400px);
+        top: 50px;
+      }
+
+      .close {
+        position: absolute;
+        right: 20px;
+        font-size: 2em;
+        cursor: pointer;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      #data-json {
+        position: absolute;
+        left: 0;
+        margin: 5%;
+        width: 90%;
+        height: 90%;
+      }
+
+      .image {
+        max-height: 75px;
+        margin: 5px;
+      }
+
+      img.image[src=''] {
+        display: none;
+      }
+
+      #full-json {
+        width: 90%;
+        height: 300px;
+      }
     </style>
 </head>
 <body>
     <input id="urlbar"/>
     <div id="mixer">
       <div id="results"></div>
+    </div>
+
+    <div id="fullJson">
+      <textarea id="full-json">{}</textarea>
+    </div>
+
+    <div id="popup" class="hidden">
+      <div class="close">X</div>
+      <textarea id="data-json" />
     </div>
 </body>
 </html>

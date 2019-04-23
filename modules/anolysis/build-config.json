@@ -1,8 +1,6 @@
 {
   "subprojects": [
     "ajv",
-    "moment",
-    "simple-statistics",
-    "ua-parser-js"
+    "moment"
   ]
 }

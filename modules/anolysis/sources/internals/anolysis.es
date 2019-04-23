@@ -6,10 +6,10 @@ import moment from '../../platform/lib/moment';
 import GIDManager from './gid-manager';
 import Preprocessor from './preprocessor';
 import SignalQueue from './signals-queue';
-import Task from './task';
 import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
 import logger from './logger';
 import updateRetentionState from './retention';
+import signalDefinitions from '../telemetry-schemas';
 
 export default class Anolysis {
   constructor(config) {
@@ -19,7 +19,7 @@ export default class Anolysis {
     // Store available definitions for telemetry signals. New definitions can
     // be added using 'registerSignalDefinitions', which is needed before they
     // can be used using the telemetry function.
-    this.availableDefinitions = new Map();
+    this._availableDefinitions = null;
 
     // The preprocessor is used to process incoming telemetry signals (from
     // `log` method). It is able to: convert environment signals to new
@@ -100,17 +100,14 @@ export default class Anolysis {
     return this.storage.destroy();
   }
 
-  registerSignalDefinitions(definitions) {
-    for (let i = 0; i < definitions.length; i += 1) {
-      const definition = definitions[i];
-      const name = definition.name;
-      logger.debug('Register definition', name);
-      if (!this.availableDefinitions.has(name)) {
-        this.availableDefinitions.set(name, new Task(definition));
-      } else {
-        throw new Error(`Signal ${name} already exists with value ${JSON.stringify(definition)}`);
-      }
+  get availableDefinitions() {
+    if (this._availableDefinitions === null) {
+      this._availableDefinitions = new Map(
+        signalDefinitions.schemas.map(task => [task.name, task]),
+      );
     }
+
+    return this._availableDefinitions;
   }
 
   async onNewDay(date) {

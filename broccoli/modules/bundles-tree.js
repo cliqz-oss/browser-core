@@ -10,90 +10,100 @@ const helpers = require('./helpers');
 
 const walk = helpers.walk;
 
-const bundlesSourceMapPaths = {};
+const bundleFiles = cliqzConfig.bundles;
+const includeAllBundles = typeof bundleFiles === 'undefined';
+const includedBundles = bundleFiles || [];
+const prefix = 'modules';
 
-function saveBundleSourceMapPath(bundleName, bundlePath, basePath) {
-  bundlesSourceMapPaths[bundleName] = bundlePath
-    .replace(/^(modules|platforms)\//, basePath)
-    .replace('/firefox/', '/')
-    .replace('/sources/', '/')
-    .replace(/bundle\.es$/, 'bundle.js.map');
-}
+function extractBundleProps(bundlePath) {
+  // Firefox can't normally use source maps in WebExtensions
+  // (see https://bugzilla.mozilla.org/show_bug.cgi?id=1437937 for details)
+  // The possible solutions are either to inline them (very slow) or serve them from http server.
 
-function replaceFileExtension(filename) {
-  const filenameParts = filename.split('.');
-  filenameParts.pop();
-  filenameParts.push('js');
-  return filenameParts.join('.');
+  // We'll use this address later in order to construct `sourceMapPath`
+  const basePath = cliqzConfig.testsBasePath
+    ? `http://localhost:4300/${cliqzConfig.testsBasePath.slice(8)}`
+    : `http://localhost:4300/${prefix}`;
+
+  // Remove `sources` part of the path
+  const bundlePathParts = bundlePath.split(path.sep).filter(p => p !== 'sources');
+
+  // Extract bundle name from the path
+  const bundleName = bundlePathParts.pop();
+
+  // Create new bundle name by changing file extension from `.es` to `.js`
+  const bundleNameParts = bundleName.split('.');
+  bundleNameParts.pop();
+  bundleNameParts.push('js');
+  const newBundleName = bundleNameParts.join('.');
+
+  // Depending on the target build platform, bundles from `platforms/${PLATFORM_NAME}/..`
+  // should be placed either to `platform/..` or to `platform-${PLATFORM_NAME}/..`
+  let pathPrefix = bundlePathParts.shift();
+  const currentPlatformName = cliqzConfig.platform;
+  if (pathPrefix === 'platforms') {
+    const platformName = bundlePathParts.shift();
+    pathPrefix = currentPlatformName === platformName ? 'platform' : `platform-${platformName}`;
+    // remove /platforms/{platformName}/ part of the original path
+    bundlePathParts.shift();
+    bundlePathParts.unshift(pathPrefix);
+  }
+
+  // Finally construct full output bundle path
+  bundlePathParts.push(newBundleName);
+  const outputPath = bundlePathParts.join(path.sep);
+
+  // And path to source map
+  const sourceMapPath = `${[basePath].concat(bundlePathParts).join(path.sep)}.map`;
+
+  // Check if bundle should not be built
+  const exclude = !includeAllBundles && !includedBundles.find(b => outputPath.endsWith(b));
+
+  return {
+    exclude,
+    bundleName: newBundleName,
+    outputPath,
+    sourceMapPath,
+  };
 }
 
 function getBundlesTree(modulesTree) {
-  const prefix = 'modules';
-  const bundleFiles = cliqzConfig.bundles;
-  const platformName = cliqzConfig.platform;
-  const allBundleFiles = [].concat(
-    // modules
-    cliqzConfig.modules.map((moduleName) => {
-      const modulePath = path.join('modules', moduleName);
-      const inputFiles = walk(modulePath, fileName => fileName.endsWith('.bundle.es'));
-      return inputFiles.map((bundlePath) => {
-        const bundlePathParts = bundlePath.split(path.sep);
-        let bundleName = bundlePathParts[bundlePathParts.length - 1];
-        bundleName = replaceFileExtension(bundleName);
-        const basePath = cliqzConfig.testsBasePath
-          ? `http://localhost:4300/${cliqzConfig.testsBasePath.slice(8)}/`
-          : 'http://localhost:4300/cliqz@cliqz.com/chrome/content/';
-        saveBundleSourceMapPath(bundleName, bundlePath, basePath);
+  const bundleSourceMapPaths = [];
+  const excludeBundles = new Set();
 
+  // Take the bundle path and either add it to the set of bundles we should not build
+  // or store its source maps path (we gonna need it later).
+  function processBundle(bundlePath) {
+    const { exclude, outputPath, bundleName, sourceMapPath } = extractBundleProps(bundlePath);
+    if (exclude) {
+      // Add the bundle to the set of excluded bundles.
+      excludeBundles.add(outputPath);
+    } else {
+      // For bundles we are going to build, save the mapping [bundleName -> sourceMapPath]
+      // We use Array instead of Map, because there can be different bundles with the same name,
+      // and we need to have them all.
+      bundleSourceMapPaths.push([bundleName, sourceMapPath]);
+    }
+  }
 
-        return `${moduleName}/${bundleName}`;
-      });
-    }).reduce((all, curr) => all.concat(curr), []),
+  // modules
+  cliqzConfig.modules.forEach((moduleName) => {
+    const modulePath = path.join('modules', moduleName);
+    const inputFiles = walk(modulePath, fileName => fileName.endsWith('.bundle.es'));
+    inputFiles.forEach(processBundle);
+  });
 
-    // platform
-    walk(path.join('platforms', platformName), fileName => fileName.endsWith('.bundle.es'))
-      .map((bundlePath) => {
-        const bundlePathParts = bundlePath.split(path.sep);
-        let bundleName = bundlePathParts[bundlePathParts.length - 1];
-        bundleName = replaceFileExtension(bundleName);
-        const basePath = cliqzConfig.testsBasePath
-          ? `http://localhost:4300/${cliqzConfig.testsBasePath.slice(8)}/platform/`
-          : 'http://localhost:4300/cliqz@cliqz.com/chrome/content/platform/';
-        saveBundleSourceMapPath(bundleName, bundlePath, basePath);
-
-        return `platform/${bundleName}`;
-      }),
-    // other platforms
-    walk(path.join('platforms'), fileName => fileName.endsWith('.bundle.es'))
-      .filter(p => p.split(path.sep)[0] !== platformName)
-      .map((bundlePath) => {
-        const bundlePathParts = bundlePath.split(path.sep);
-        let bundleName = bundlePathParts[bundlePathParts.length - 1];
-        const platformName = bundlePathParts[1];
-        const basePath = cliqzConfig.testsBasePath
-          ? `http://localhost:4300/${cliqzConfig.testsBasePath.slice(8)}/platform-${platformName}/`
-          : `http://localhost:4300/cliqz@cliqz.com/chrome/content/platform-${platformName}/`;
-
-        // remove "platforms"
-        bundlePathParts.shift();
-        // remove platform name
-        bundlePathParts.shift();
-
-        bundleName = replaceFileExtension(bundlePathParts.join('/'));
-        saveBundleSourceMapPath(bundleName, bundlePath, basePath);
-
-        return `platform-${platformName}/${bundleName}`;
-      })
-  );
+  // platforms
+  walk(path.join('platforms'), fileName => fileName.endsWith('.bundle.es'))
+    .forEach(processBundle);
 
   let excludedBundleFiles;
-
   if (typeof bundleFiles === 'undefined') {
     excludedBundleFiles = [];
   } else if (bundleFiles.length === 0) {
     excludedBundleFiles = ['**/*'];
   } else {
-    excludedBundleFiles = allBundleFiles.filter(f => bundleFiles.indexOf(f) === -1);
+    excludedBundleFiles = Array.from(excludeBundles);
   }
 
   const input = new Funnel(modulesTree, {
@@ -149,8 +159,6 @@ function getBundlesTree(modulesTree) {
     sourceMapContents: true,
     // required in case source module format is not esmb
     globalName: 'CliqzGlobal',
-    // format: 'esm',
-    // sourceMaps: cliqzConfig.PRODUCTION ? false : 'inline'
     rollup: !cliqzConfig.TESTING,
   };
 
@@ -166,8 +174,10 @@ function getBundlesTree(modulesTree) {
     }
   );
 
+  let bundleSourceMapPathsCopy = bundleSourceMapPaths.concat();
+
   // Replace source map references with served from localhost:4300,
-  // otherwise sourcemaps will not work in firefox devtools.
+  // using the `bundleSourceMapPaths` we have contructed above
   return replace(output, {
     files: [
       '**/*.bundle.js'
@@ -179,7 +189,16 @@ function getBundlesTree(modulesTree) {
         const bundleNameParts = bundleMapName.split('.');
         bundleNameParts.pop();
         const bundleName = bundleNameParts.join('.');
-        return `//# sourceMappingURL=${bundlesSourceMapPaths[bundleName]}`;
+
+        let sourceMapPath = bundleMapName;
+        const index = bundleSourceMapPathsCopy.findIndex(([b]) => b === bundleName);
+        if (index !== -1) {
+          [[, sourceMapPath]] = bundleSourceMapPathsCopy.splice(index, 1);
+          if (bundleSourceMapPathsCopy.length === 0) {
+            bundleSourceMapPathsCopy = bundleSourceMapPaths.concat();
+          }
+        }
+        return `//# sourceMappingURL=${sourceMapPath}`;
       }
     },
   });

@@ -4,10 +4,6 @@ import logger from '../common/offers_v2_logger';
 import { buildCachedMap } from '../common/cached-map-ext';
 import prefs from '../../core/prefs';
 
-const METADATA_DOC_ID = 'cliqz-cat-metadata';
-const DAY_COUNTER_DOC_ID = 'cliqz-cat-day-counter';
-
-
 /**
  * will return the intersection of 2 lists
  */
@@ -49,6 +45,13 @@ export default class CategoryPersistentDataHelper {
     const loadPersistentData = !prefs.get('offersDevFlag', false);
     this.categoriesDataMap = buildCachedMap('cliqz-categories-data', loadPersistentData);
     this.categoriesPatternsMap = buildCachedMap('cliqz-categories-patterns', loadPersistentData);
+    // The tables are not used anymore, cleanup user storage
+    const METADATA_DOC_ID = 'cliqz-cat-metadata';
+    const DAY_COUNTER_DOC_ID = 'cliqz-cat-day-counter';
+    if (this.db) {
+      this.db.remove(METADATA_DOC_ID);
+      this.db.remove(DAY_COUNTER_DOC_ID);
+    }
   }
 
   unloadDB() {
@@ -60,22 +63,6 @@ export default class CategoryPersistentDataHelper {
    */
   destroyDB() {
     return Promise.all([this.categoriesDataMap.clear(), this.categoriesPatternsMap.clear()]);
-  }
-
-  loadMetadata() {
-    return this.db.get(METADATA_DOC_ID);
-  }
-
-  saveMetadata(metadata) {
-    return this.db.upsert(METADATA_DOC_ID, metadata);
-  }
-
-  loadDayCounterData() {
-    return this.db.get(DAY_COUNTER_DOC_ID);
-  }
-
-  saveDayCounterData(data) {
-    return this.db.upsert(DAY_COUNTER_DOC_ID, data);
   }
 
   /**

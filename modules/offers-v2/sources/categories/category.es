@@ -1,10 +1,10 @@
 import logger from '../common/offers_v2_logger';
 import { timestampMS } from '../utils';
 import {
-  getDaysFromTimeRange,
   getDateFromDateKey,
   getTodayDayKey,
 } from '../../core/time';
+import { getStartDayKey } from './day-counter-helper';
 
 
 // This constant will be used to define for how long we want to keep the category
@@ -13,34 +13,17 @@ import {
 // it from the DB.
 const CATEGORY_LIFE_TIME_SECS = 60 * 60 * 24 * 15; // for at least 15 days
 
-
-const getValidDaysFromHistory = (timeRangeSecs, historyData) => {
-  const now = timestampMS();
-  const startMS = now - (timeRangeSecs * 1000);
-  const endMS = now;
-  const supportedDays = new Set(getDaysFromTimeRange(startMS, endMS));
-  const result = {};
-  const dataDays = Object.keys(historyData.per_day);
-  for (let i = 0; i < dataDays.length; i += 1) {
-    const day = dataDays[i];
-    if (supportedDays.has(day)
-        && historyData.per_day[day]
-        && historyData.per_day[day].m > 0) {
-      result[day] = historyData.per_day[day];
-    }
-  }
-  return result;
-};
+/**
+ * Extra information defining when the category will be considered active or not
+ * {
+ *   func: "simpleCount", // in past also "normalized"
+ *   args: Object, // arguments to `func`
+ *   activationTimeSecs: number, // how long the category will be active
+ * }
+ * @class CategoryActivationData
+ */
 
 /**
- * A category will be basically:
- * - name identifying the category (or id)
- * - list of patterns that identify the category
- * - the version of the category (for further updates)
- * - time window in seconds for the category (for how much time we want to track
- *   the category)
- * - extra information defining when the category will be considered active or not
- *
  * We will hold basically the following information:
  * - total number of urls processed.
  * - total number of matches of the category
@@ -48,9 +31,19 @@ const getValidDaysFromHistory = (timeRangeSecs, historyData) => {
  * - last timestamp we saw a match
  * - first timestamp we saw a match
  *
- *
+ * @class Category
  */
 export default class Category {
+  /**
+   *
+   * @param {string} name: identifying the category (or id)
+   * @param {string[]} patterns: list of patterns that identify the category
+   * @param {number} version: the version of the category (for further updates)
+   * @param {number} timeRangeSecs: time window in seconds for the category
+   *   (for how much time we want to track the category)
+   * @param {ActivationDate} activationData
+   * @constructor
+   */
   constructor(name, patterns, version, timeRangeSecs, activationData) {
     // general category data
     this.name = name;
@@ -69,22 +62,9 @@ export default class Category {
 
     this.isHistoryDataSet = false;
 
-    // temporary cache data (not persistent)
-    this.todayKey = null;
-    this.tmpActivationValue = null;
-
     this.activationFunctionMap = {
-      normalized: this._normalizedResults.bind(this),
       simpleCount: this._simpleCountResults.bind(this),
     };
-  }
-
-  /**
-   * we need to set this shared structure to be able to calculate if the category
-   * is active or not
-   */
-  setTotalDayHandler(totalDayHandler) {
-    this.totalDayHandler = totalDayHandler;
   }
 
   // serialize
@@ -149,14 +129,6 @@ export default class Category {
       this.lastActivationTS = null;
     }
 
-    // do a clean up if today key changed (since for now we check at a day level
-    // we should modify this when we change to more granular ts)
-    const todayKey = getTodayDayKey();
-    if (todayKey !== this.todayKey) {
-      this.todayKey = todayKey;
-      this.cleanUp();
-    }
-
     // we need to check
     const activationFun = this.activationFunctionMap[this.activationData.func];
     if (!activationFun) {
@@ -203,18 +175,6 @@ export default class Category {
     }
   }
 
-  isObsolete() {
-    const now = timestampMS();
-    const expireMsCount = Math.max(CATEGORY_LIFE_TIME_SECS * 1000, this.timeRangeSecs * 1000);
-    let isObsolete = false;
-    if (this.matchData.lastMatchTs === null) {
-      isObsolete = (now - this.createdTs) > expireMsCount;
-    } else {
-      isObsolete = (now - this.matchData.lastMatchTs) > expireMsCount;
-    }
-    return isObsolete;
-  }
-
   hit() {
     const now = timestampMS();
     if (this.matchData.firstMatchTs === null) {
@@ -234,36 +194,47 @@ export default class Category {
     this.lastUpdateTs = now;
   }
 
+  /**
+   * Transfer per-day counting of matches from history to local accounting.
+   *
+   * There are complications:
+   * - local counting can already exist
+   * - history can be disabled, and therefore `data` is empty
+   *
+   * In case local and history counts are different, if the history count
+   * is bigger, then we use it. Otherwise, the local count is retained.
+   *
+   * @method updateWithHistoryData
+   * @param {DayCounter} data
+   * @returns void
+   * Set `isHistoryDatSet` to true.
+   * Update `matchData`, in particular `perDay`, `total.matches`,
+   * `firstMatchTs` and `lastMatchTs`.
+   */
   updateWithHistoryData(data) {
     if (!data || !data.per_day) {
-      throw new Error('invalid history data', data);
+      logger.error('invalid history data', data);
+      return;
     }
-    // reset match data
-    this.matchData = this._defaultMatchData();
-    this.isHistoryDataSet = true;
 
     let updated = false;
-    const validDays = getValidDaysFromHistory(this.timeRangeSecs, data);
-    const dayList = Object.keys(validDays);
-    for (let i = 0; i < dayList.length; i += 1) {
-      const day = dayList[i];
-      const dataDay = validDays[day];
-      const dayTS = getDateFromDateKey(day, 12);
 
-      this.matchData.perDay[day] = { matches: dataDay.m };
-      this.matchData.total.matches += dataDay.m;
-      this.matchData.firstMatchTs = Math.min(this.matchData.firstMatchTs, dayTS);
-      this.matchData.lastMatchTs = Math.max(this.matchData.lastMatchTs, dayTS);
-      updated = true;
-      // note: it can happen that if todayKey == day then we need to do more
-      // deep checks since we may miss some hit to the category here (the
-      // history query can be delayed and the user can navigate on the category.
-      // still is not so probably)
-    }
+    Object.entries(data.per_day).forEach(([day, { m: historyCount }]) => {
+      const localCount = (this.matchData.perDay[day] || {}).matches || 0;
+      if (historyCount > localCount) {
+        this.matchData.perDay[day] = { matches: historyCount };
+        this.matchData.total.matches += (historyCount - localCount);
+        const dayTS = getDateFromDateKey(day, 12);
+        this.matchData.firstMatchTs = Math.min(this.matchData.firstMatchTs, dayTS);
+        this.matchData.lastMatchTs = Math.max(this.matchData.lastMatchTs, dayTS);
+        updated = true;
+      }
+    });
 
     if (updated) {
       this.lastUpdateTs = timestampMS();
     }
+    this.isHistoryDataSet = true;
   }
 
   getTotalMatches() {
@@ -300,91 +271,78 @@ export default class Category {
     };
   }
 
-  // ///////////////////////////////////////////////////////////////////////////
-  //                      Activation functions here
-  // ///////////////////////////////////////////////////////////////////////////
+  /**
+   * Check if the category is matched at least `minMatchesIn` times
+   * during the last `durationDays`.
+   *
+   * @method match
+   * @param {number} minMatchesIn
+   *   How many matches required. Default is 1.
+   * @param {number} durationDays
+   *   Number of days between the begin and the end of the time range.
+   *   If undefined, consider the whole history.
+   * @param now
+   * @returns {[boolean, number]} [isMatched, confidence]
+   *   `confidence` is a value 0 or 1 (in far future in range [0, 1]).
+   *   If the answer is `isMatched=false` and history is not loaded,
+   *   then confidence is zero. Otherwise it is 1.
+   */
+  probe(minMatchesIn, durationDays, now = new Date()) {
+    const minMatches = minMatchesIn || 1;
+    const startDay = getStartDayKey(durationDays, now);
 
-  _simpleCountResults({ numDays, totNumHits }) {
-    return ((numDays === undefined) || (this.countDaysWithMatches() >= numDays))
-           && ((totNumHits === undefined) || (this.getTotalMatches() >= totNumHits));
-  }
-
-  _normalizedResults(args) {
-    // check cached results:
-    const todayKey = getTodayDayKey();
-    if (todayKey !== this.todayKey
-        || this._sumTotalCount === undefined) {
-      this._sumTotalCount = 0;
-      this._sumTotMatches = 0;
-      if (args.endDayIdx > 0) {
-        const prevResults = this._gatherPrevDaysData(args.endDayIdx, args.startDayIdx);
-        for (let i = 0; i < prevResults.length; i += 1) {
-          this._sumTotalCount += prevResults[i].t;
-          this._sumTotMatches += prevResults[i].m;
+    let matchesOverRange = 0;
+    for (const [day, { matches }] of Object.entries(this.matchData.perDay)) {
+      if (day >= startDay) {
+        matchesOverRange += matches;
+        if (matchesOverRange >= minMatches) {
+          // matched
+          return [true, 1];
         }
       }
     }
 
-    let sumTotal = this._sumTotalCount;
-    let sumMatches = this._sumTotMatches;
-    // check if we have to get today as well
-    if (args.startDayIdx === 0) {
-      const todayData = this._gatherTodayData();
-      sumTotal += todayData.t;
-      sumMatches += todayData.m;
-    }
-    const resultValue = sumTotal > 0.0 ? (sumMatches / sumTotal) : 0.0;
-    return resultValue >= args.threshold;
+    // not matched
+    const confidence = Number(this.isHistoryDataSettedUp());
+    return [false, confidence];
   }
 
   /**
-   * This method will gather all the data for all the days this category will
-   * use except today (since will change)
-   * The return value will be a list of { t: total urls, m: matches }
-   * @return {[type]} [description]
+   * Helper for a caller that caches result of `match`. Each time the
+   * sentinel is changed, the caller should call `match` again.
+   *
+   * @method getCacheSentinel
+   * @returns {string}
    */
-  _gatherPrevDaysData(startDayIdx, endDayIdx) {
-    // calculate the days except today
-    const todayKey = getTodayDayKey();
-    const dayMS = 1000 * 60 * 60 * 25;
-    const now = timestampMS();
-    const start = now - (dayMS * startDayIdx);
-    const end = now - (dayMS * endDayIdx);
-    const activationDays = getDaysFromTimeRange(start, end).filter(x => x !== todayKey);
-
-    // get the values
-    const result = [];
-    for (let i = 0; i < activationDays.length; i += 1) {
-      const ad = activationDays[i];
-      const totCount = this.totalDayHandler.getCount(ad);
-      const matchValue = this.matchData.perDay[ad]
-        ? this.matchData.perDay[ad].matches
-        : undefined;
-      if (totCount === undefined || matchValue === undefined) {
-        logger.info(`Warning: we do not have information yet for the day ${ad}`);
-        // we need to avoid calculating it now and we should calculate it later
-        return -1;
-      }
-      result.push({ t: totCount, m: matchValue });
-    }
-
-    return result;
+  getCacheSentinel() {
+    return `${getTodayDayKey()}-${this.getLastMatchTs()}`;
   }
 
-  /**
-   * will return the {t: total urls, m: total matches} for today
-   */
-  _gatherTodayData() {
-    const todayKey = getTodayDayKey();
-    const totToday = this.totalDayHandler.getCount(todayKey);
-    let totMathes = 0;
-    if (totToday > 0.0 && this.matchData.perDay[todayKey]) {
-      totMathes = this.matchData.perDay[todayKey].matches;
-    }
-    return { t: totToday, m: totMathes };
+  //
+  // Handler of the activation function `simpleCount`.
+  // Object `CategoryActivationData` from the backend looks like:
+  //
+  // activationData: {
+  //   activationTimeSecs: 10,
+  //   func: 'simpleCount',
+  //   args: {
+  //     totNumHits: 8,
+  //     numDays: 2,
+  //   }
+  // }
+  //
+  // `numDays` defines the minimum number of different days we have to
+  //   see on the category being activated to use this.
+  // `totNumHits`: the number of total hits that we saw in all the
+  //   times for the category.
+  // We can use, one of them or both, if both then we should met both
+  // conditions (AND).
+  //
+  _simpleCountResults({ numDays, totNumHits }) {
+    return ((numDays === undefined) || (this.countDaysWithMatches() >= numDays))
+           && ((totNumHits === undefined) || (this.getTotalMatches() >= totNumHits));
   }
 }
-
 
 export {
   CATEGORY_LIFE_TIME_SECS

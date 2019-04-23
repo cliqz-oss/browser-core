@@ -4,7 +4,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Link from './partials/link';
 import { tt } from '../i18n';
-import { statsHoverSignal, statsClickSignal } from '../services/telemetry/stats';
+import { statsHoverSignal, statsClickSignal, statsDownloadClickSignal } from '../services/telemetry/stats';
 
 function StatsBox({
   clickFn,
@@ -33,7 +33,7 @@ function StatsBox({
         <span>{val}</span>
       </p>
       <p className="stats-description">{description}</p>
-      <p className="learn-more">{tt('learnMore')}</p>
+      <p className="learn-more">{tt('learn_more')}</p>
     </Link>
   );
 }
@@ -52,12 +52,9 @@ StatsBox.propTypes = {
 };
 
 function StatsEmptyBox({
+  clickFn,
   promoData: {
     brand,
-    brand: {
-      icon,
-      name,
-    },
     buttons,
     description,
     learnMore,
@@ -68,6 +65,8 @@ function StatsEmptyBox({
   if (!brand) {
     return null;
   }
+
+  const { icon, name } = brand;
 
   return (
     <div className="stats-empty-box">
@@ -99,6 +98,7 @@ function StatsEmptyBox({
                 key={button.label}
                 className={`stats-btn ${button.className}`}
                 href={button.link}
+                onClick={() => clickFn()}
                 tabIndex="-1"
               >
                 {button.label}
@@ -114,12 +114,12 @@ function StatsEmptyBox({
 StatsEmptyBox.propTypes = {
   promoData: PropTypes.shape({
     brand: PropTypes.shape({
-      icon: PropTypes.object,
+      icon: PropTypes.string,
       name: PropTypes.string,
     }),
     buttons: PropTypes.array,
     description: PropTypes.string,
-    learnMore: PropTypes.string,
+    learnMore: PropTypes.object,
   }),
   toggleComponent: PropTypes.func,
 };
@@ -138,6 +138,10 @@ export default function Stats({
 
   const handleClick = (card) => {
     statsClickSignal(card);
+  };
+
+  const handleDownloadClick = () => {
+    statsDownloadClickSignal();
   };
 
   return (
@@ -160,6 +164,7 @@ export default function Stats({
               && (
                 <StatsEmptyBox
                   promoData={promoData}
+                  clickFn={handleDownloadClick}
                   toggleComponent={toggleComponent}
                 />)
           }

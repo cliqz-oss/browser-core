@@ -1,9 +1,11 @@
 import { from, empty, merge } from 'rxjs';
 import { share, map, delay } from 'rxjs/operators';
-import utils from '../../core/utils';
+import { fetch } from '../../core/http';
 import prefs from '../../core/prefs';
+import cliqzConfig from '../../core/config';
 import CliqzLanguage from '../../core/language';
 import { isOnionModeFactory } from '../../core/platform';
+import inject from '../../core/kord/inject';
 import BackendProvider from './backend';
 import { getResponse, getEmptyResponse } from '../responses';
 import { handleQuerySuggestions } from '../../platform/browser-actions';
@@ -16,11 +18,12 @@ import {
   encodeLocation,
   encodeSessionParams,
 } from './cliqz-helpers';
-import { PROVIDER_CLIQZ, PROVIDER_OFFERS } from '../consts';
+import { PROVIDER_CLIQZ, PROVIDER_OFFERS, PROVIDER_SNIPPETS } from '../consts';
 import { QuerySanitizerWithHistory } from './cliqz/query-sanitizer';
 
 const querySanitizer = new QuerySanitizerWithHistory();
 const isOnionMode = isOnionModeFactory(prefs);
+const hpnv2Available = cliqzConfig.modules.indexOf('hpnv2') !== -1;
 
 function getEmptyBackendResponse(query) {
   return {
@@ -84,22 +87,33 @@ const getBackendResults = (originalQuery, config, params = {}) => {
   }
 
   const url = config.settings.RESULTS_PROVIDER + getResultsProviderQueryString(q, params);
-  const fetch = utils.fetchFactory();
 
-  utils._sessionSeq += 1;
+  const searchSessionService = inject.service('search-session', [
+    'incrementSessionSeq',
+    'getQueryLastDraw',
+    'setQueryLastDraw',
+    'incrementQueryCount',
+  ]);
+  searchSessionService.incrementSessionSeq();
 
   // if the user sees the results more than 500ms we consider that he starts a new query
-  if (utils._queryLastDraw && (Date.now() > utils._queryLastDraw + 500)) {
-    utils._queryCount += 1;
+  const queryLastDraw = searchSessionService.getQueryLastDraw();
+  if (queryLastDraw && (Date.now() > queryLastDraw + 500)) {
+    searchSessionService.incrementQueryCount();
   }
-  utils._queryLastDraw = 0; // reset last Draw - wait for the actual draw
+  searchSessionService.setQueryLastDraw(0);
   const privacyOptions = {
     credentials: 'omit',
     cache: 'no-store',
   };
 
+  // If private mode or query proxying is enabled, go through hpnv2
+  const fetchHandler = (hpnv2Available && (config.isPrivateMode || prefs.get('hpn-query', false)))
+    ? (...args) => inject.module('hpnv2').action('search', ...args)
+    : fetch;
+
   const startTs = Date.now();
-  const backendPromise = fetch(url, privacyOptions, params)
+  const backendPromise = fetchHandler(url, privacyOptions, params)
     .then(res => res.json())
     .then((response) => {
       response.latency = Date.now() - startTs;
@@ -144,6 +158,7 @@ export default class Cliqz extends BackendProvider {
     return from([
       getEmptyResponse(this.id, config),
       getEmptyResponse(PROVIDER_OFFERS, config),
+      getEmptyResponse(PROVIDER_SNIPPETS, config),
     ]);
   }
 
@@ -152,7 +167,9 @@ export default class Cliqz extends BackendProvider {
       return this.getEmptySearch(config);
     }
 
-    const { providers: { cliqz: { includeOffers, count, jsonp } = {} } = {} } = config;
+    const { providers: {
+      cliqz: { includeSnippets, includeOffers, count, jsonp } = {}
+    } = {} } = config;
 
     // TODO: only get at beginning of search session
     Object.assign(params, {
@@ -195,9 +212,23 @@ export default class Cliqz extends BackendProvider {
         this.getOperators.call(offersProvider, config)
       );
 
+    const snippetsProvider = Object.assign({}, this, { id: PROVIDER_SNIPPETS });
+    const snippets$ = cliqz$
+      .pipe(
+        map(({ snippets = [] }) => getResponse(
+          PROVIDER_SNIPPETS,
+          config,
+          query,
+          this.mapResults(snippets, query, snippetsProvider.id),
+          'done',
+        )),
+        this.getOperators.call(snippetsProvider, config)
+      );
+
     return merge(
       results$,
       includeOffers ? offers$ : empty(),
+      includeSnippets ? snippets$ : empty(),
     ).pipe(
       // TODO: check if this is really needed
       delay(0)

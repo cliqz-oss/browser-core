@@ -1,4 +1,3 @@
-import { equals } from '../../core/content/url';
 import { Subresult } from './base';
 import GenericResult from './generic';
 import LottoResult from './lotto';
@@ -41,7 +40,7 @@ export default class HistoryCluster extends GenericResult {
   get internalResults() {
     const resultUrls = this.results.map(r => r.url);
     return super.internalResults
-      .filter(result => !resultUrls.some(url => equals(result.url, url)));
+      .filter(result => !resultUrls.some(url => result.url === url));
   }
 
   get selectableResults() {

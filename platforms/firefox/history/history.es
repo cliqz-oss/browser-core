@@ -15,6 +15,13 @@ function observableFromSql(sql, columns = [], params = {}) {
       let doNothing = false;
       let pendingStatement;
 
+      if (typeof PlacesUtils === 'undefined') {
+        // history api is not available for Android
+        return {
+          dispose() {},
+        };
+      }
+
       // use promiseDBConnection to avoid connection duplicates
       //   PlacesUtils.promiseDBConnection().then((conn) => {
       // IMPORTANT withConnectionWrapper is used instead as
@@ -389,5 +396,12 @@ export default class {
       places[i].ts = Math.floor(places[i].ts / 1000);
     }
     return places;
+  }
+
+  static async stats() {
+    return {
+      size: -1,
+      days: -1
+    };
   }
 }

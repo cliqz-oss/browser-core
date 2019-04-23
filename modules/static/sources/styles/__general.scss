@@ -1,8 +1,3 @@
- @font-face {
-    font-family: "Lato";
-    src: url("../skin/fonts/Lato-Regular.ttf");
-}
-
 .hidden {
     visibility: hidden;
     display: none !important;
@@ -15,36 +10,9 @@
 }
 
 
-#PopupAutoCompleteRichResultCliqz {
-    overflow: hidden;
-    display: none;
-}
-
 #urlbar[focused="true"] {
     box-shadow: 0 0 1px #3B99FC inset;
 }
-
-.cqz-popup {
-    overflow: hidden;
-    position: relative;
-    min-width: 500px;
-    padding: 0;
-    margin: 0;
-    color: #333333;
-    font-size: 14px;
-    line-height: 1.2em;
-    font-family: Lato, Helvetica, sans-serif;
-    border-top: none;
-    background: #fff; /* override linux default grey color */
-}
-
-.cqz-results {
-    height: 350px;
-    position: relative;
-    overflow-x: hidden;
-    overflow-y: scroll;
-}
-
 
 /* ====== Last Search ====== the gray container in the search bar*/
 

@@ -1,5 +1,7 @@
 import { Services, Components } from './globals';
 
+export { LocalUrlRegExp, UrlRegExp } from '../platform-webextension/url';
+
 const KNOWN_PROTOCOLS = new Set(['http', 'https', 'ftp', 'file', 'about', 'mailto', 'chrome', 'moz-extension', 'resource', 'dat', 'view-source', 'data']);
 let ExternalProtocolService = null;
 

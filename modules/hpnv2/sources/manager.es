@@ -7,33 +7,190 @@ import { fromBase64, toBase64, toUTF8, fromHex } from '../core/encoding';
 import Database from './database';
 import GroupSigner from './group-signer';
 import Endpoints from './endpoints';
+import TrustedClock from './trusted-clock';
+import ConfigLoader from './config-loader';
+import MessageThrottler from './message-throttler';
 import md5 from '../core/helpers/md5';
 import { digest } from './digest';
 import { MsgQuotaError, NotReadyError, InvalidMsgError, NoCredentialsError, BadCredentialsError,
-  SignMsgError, FetchConfigError,
-  JoinGroupsError, InitSignerError, OldVersionError } from './errors';
-import { formatDate, reflectPromise, encodeWithPadding } from './utils';
+  SignMsgError, InitSignerError, OldVersionError,
+  ClockOutOfSyncWhileJoining } from './errors';
+import { formatDate, formatHoursAsYYYYMMDD, reflectPromise, encodeWithPadding } from './utils';
 import logger from './logger';
 import MessageQueue from '../core/message-queue';
 import { decompress } from '../core/gzip';
-import random from '../core/crypto/random';
-import setTimeoutInterval from '../core/helpers/timeout';
 import { VERSION } from './constants';
 import prefs from '../core/prefs';
-import events from '../core/events';
-
-const LOAD_CONFIG_SUCCESS_MIN_INTERVAL = 60 * 60 * 1000; // 1 hour
-const LOAD_CONFIG_SUCCESS_MAX_INTERVAL = 4 * 60 * 60 * 1000; // 4 hours
-const LOAD_CONFIG_FAILURE_INTERVAL = 10 * 1000; // 10 seconds
 
 const MSG_SIGNED = 0x03;
 
+const SECOND = 1000;
+const MINUTE = 60 * SECOND;
+const HOUR = 60 * MINUTE;
+
+const JOIN_STATE = {
+  PENDING_JOINS: 0,
+  JOINED: 1,
+  WAITING_FOR_CLOCK_SYNC: 2,
+};
+
+function ppState(state) {
+  return ['READY', 'UNINITIALIZED', 'INIT_PENDING', 'DESTROYED'][state] || '<??>';
+}
+
+/**
+ * Helper class to encapsulate the different phases of the
+ * initialization and allows to wait for them to complete.
+ *
+ * Normally, you will expect these transitions:
+ *
+ * Startup: UNINITIALIZED -> INIT_PENDING -> READY
+ * Shutdown: READY -> DESTROYED
+ *
+ * (visible for testing)
+ */
+export class InitState {
+  // The default state:
+  // The module is fully initialized and is ready to send messages.
+  static get READY() {
+    return 0;
+  }
+
+  // Initial state after construction.
+  static get UNINITIALIZED() {
+    return 1;
+  }
+
+  // Initialization has been started. As it involves network
+  // requests, it normally takes a few seconds to complete.
+  // However, if there are network issues, it can stay in this
+  // state for longer.
+  static get INIT_PENDING() {
+    return 2;
+  }
+
+  // Final state:
+  // Once that state is reached, all processing should stop as it is likely
+  // that you will otherwise operate on dangling objects, or even worse
+  // on new ones which do not match the expected state.
+  static get DESTROYED() {
+    return 3;
+  }
+
+  constructor() {
+    this.state = InitState.UNINITIALIZED;
+    this._pendingInit = new Promise((resolve, reject) => {
+      this._onReady = resolve;
+      this._onDestroy = reject;
+    });
+  }
+
+  isReady() {
+    return this.state === InitState.READY;
+  }
+
+  isUnloaded() {
+    return this.state === InitState.UNINITIALIZED || this.state === InitState.DESTROYED;
+  }
+
+  isUninitialized() {
+    return this.state === InitState.UNINITIALIZED;
+  }
+
+  updateState(state_) {
+    if (state_ === this.state) {
+      // nothing to do
+      return;
+    }
+    if (this.state_ === InitState.DESTROYED) {
+      throw new Error(`Internal error: already dead (cannot change to ${ppState(state_)})`);
+    }
+
+    switch (state_) {
+      case InitState.UNINITIALIZED:
+        throw new Error(`Internal error: Cannot go back to uninitialized state (${ppState(this.state)})`);
+
+      case InitState.INIT_PENDING:
+        if (this.state !== InitState.UNINITIALIZED) {
+          throw new Error(`Internal error: expected INIT_PENDING, but came from state=${ppState(this.state)}`);
+        }
+        this.state = state_;
+        break;
+
+      case InitState.READY:
+        if (this.state !== InitState.INIT_PENDING) {
+          throw new Error(`Internal error: expected INIT_PENDING (current=${ppState(this.state)})`);
+        }
+        this.state = state_;
+        this._onReady();
+        break;
+
+      case InitState.DESTROYED:
+        this.state = state_;
+        this._onDestroy();
+        break;
+
+      default:
+        throw new Error(`Unexpected state: new=${state_} (current=${ppState(this.state)})`);
+    }
+
+    logger.info(`Changing state to ${ppState(this.state)}`);
+  }
+
+  /**
+   * @param timeoutInMs  0 means wait forever
+   */
+  async waitUntilReady(timeoutInMs) {
+    if (this.state === InitState.READY) {
+      return;
+    }
+
+    if (this.state === InitState.DESTROYED) {
+      logger.warn('Trying to wait to initialization, but the object is already dead.');
+      throw new NotReadyError();
+    }
+
+    if (timeoutInMs && timeoutInMs > 0) {
+      let timer;
+      const timeout = new Promise((_, reject) => {
+        timer = setTimeout(() => {
+          reject(new NotReadyError());
+        }, timeoutInMs);
+      });
+      try {
+        await Promise.race([this._pendingInit, timeout]);
+      } finally {
+        clearTimeout(timer);
+      }
+    } else {
+      await this._pendingInit;
+    }
+
+    if (this.state === InitState.DESTROYED) {
+      logger.info('Give up. After waking up, the module was unloaded.');
+      throw new NotReadyError();
+    }
+
+    if (this.state !== InitState.READY) {
+      logger.error('Still not ready after waking up. Unexpected state:', ppState(this.state));
+      throw new NotReadyError();
+    }
+  }
+}
+
 export default class Manager {
   _initDefaults() {
-    this.configFailures = 0;
+    if (this.initState) {
+      this.initState.updateState(InitState.DESTROYED);
+    }
+    this.initState = new InitState();
     this.signerInitialized = false;
-    this.isInit = false;
-    this.unloaded = false;
+
+    if (this.throttler) {
+      this.throttler.cancelPendingTimers();
+    }
+    this.throttler = new MessageThrottler();
+
     this.db = new Database();
     this.endpoints = new Endpoints();
     this.loadedCredentialsDate = null;
@@ -42,12 +199,70 @@ export default class Manager {
     this.configLoader = null;
     this.signer = null;
     this.ecdhPubKey = {};
-    this.minutesLocal = 0;
-    this.timeDrift = 0;
+
+    // local state to coordinate join attempts:
+    this._joinScheduler = {
+      state: JOIN_STATE.PENDING_JOINS,
+      nextJoinTimer: null,
+
+      // protection against races:
+      // do not allow multiple overlapping join requests
+      pending: 0,
+
+      // Normally, it is safe to immediately join all groups. However, a
+      // special case is when a new key has just been published. In that
+      // situation, it is preferable that clients do not all try to join
+      // immediately, but instead wait for a randomized duration.
+      cooldowns: new Map(),
+    };
 
     this.logError = logger.error;
     this.log = logger.log;
     this.logDebug = logger.debug;
+
+    // There is a mutual dependence between clock and config-loader:
+    this.trustedClock = new TrustedClock();
+    this.configLoader = new ConfigLoader(this.endpoints);
+
+    // 1) When fetching the configuration, the config loader
+    //    has access to the server timestamp, which is then
+    //    used to synchronize the trusted clock.
+    this.trustedClock.onClockOutOfSync = () => {
+      this.configLoader.synchronizeClocks();
+
+      // react on a hint: if the last, we failed to join because of the clock,
+      // we can now bypass the timer and immediately try to join again
+      if (this._joinScheduler.state === JOIN_STATE.WAITING_FOR_CLOCK_SYNC) {
+        this._joinScheduler.state = JOIN_STATE.PENDING_JOINS;
+        this.scheduleJoinGroup();
+      }
+    };
+
+    // 2) When the trusted clock gets out of sync with the system
+    //    time, it requires a current time stamp from the server
+    //    to get in sync again.
+    this.configLoader.onServerTimestampRefresh = (serverTs) => {
+      this.trustedClock.syncWithServerTimestamp(serverTs);
+    };
+    this.configLoader.onConfigUpdate = async (config) => {
+      this.isOldVersion = VERSION < config.minVersion;
+      if (this.isOldVersion) {
+        return;
+      }
+
+      try {
+        await this.updateConfig(config);
+        this.initState.updateState(InitState.READY);
+      } catch (e) {
+        // this should not be reached unless the server sends garbage
+        logger.error('Failed to update config', e);
+        return;
+      }
+      logger.log('Configuration successfully updated.');
+
+      // Join groups if not already done.
+      this.scheduleJoinGroup();
+    };
   }
 
   constructor() {
@@ -55,9 +270,12 @@ export default class Manager {
   }
 
   async init() {
-    if (this.unloaded) {
+    if (!this.initState.isUninitialized()) {
       return;
     }
+    this.initState.updateState(InitState.INIT_PENDING);
+
+    this.trustedClock.init();
 
     // Wait for signer, db (Dexie or memory fallback) and user long-lived private key
     // initialization.
@@ -73,69 +291,26 @@ export default class Manager {
       this.logError('Could not init (indexed)DB, will switch to memory-only DB');
     }
     await this.initUserPK();
+    this.configLoader.init();
 
-    // Trigger config load, but do not wait for it. It will periodically be reloaded
-    // with some increasing timeout in case of repeated failures.
-    let minCooldown;
-    let randomExtraCooldown;
-    try {
-      await this._loadConfig();
-      if (this.unloaded || this.isOldVersion) {
-        return;
-      }
-      this.logDebug('Config loaded successfully!');
-      this.configFailures = 0;
-      this.isInit = true;
-      minCooldown = LOAD_CONFIG_SUCCESS_MIN_INTERVAL;
-      randomExtraCooldown = LOAD_CONFIG_SUCCESS_MAX_INTERVAL - LOAD_CONFIG_SUCCESS_MIN_INTERVAL;
-    } catch (e) {
-      if (this.unloaded) {
-        return;
-      }
-      this.logDebug('Config could not be loaded successfully!', e);
-      this.configFailures += 1;
-      minCooldown = this.configFailures * LOAD_CONFIG_FAILURE_INTERVAL;
-      randomExtraCooldown = minCooldown;
-    }
-
-    // Note: random noise is added, so the collector cannot use
-    // time-based attacks to target individual users by serving
-    // them different group keys.
-    this.configLoader = setTimeout(
-      () => this.init(),
-      Math.floor(minCooldown + (random() * randomExtraCooldown))
-    );
+    // This is the first network request that the module will do on init.
+    // We do not skip in order to check whether the system clock is correct or not
+    // based on the Date response header. If there is significant drift, loading
+    // will fail.
+    await this.configLoader.fetchConfig();
   }
 
   unload() {
-    this.unloaded = true;
-    clearTimeout(this.configLoader);
+    this.initState.updateState(InitState.DESTROYED);
     if (this.signer) {
       this.signer.unload();
     }
+    clearTimeout(this._joinScheduler.nextJoinTimer);
     this.endpoints.unload();
+    this.configLoader.unload();
+    this.trustedClock.unload();
+
     this._initDefaults();
-  }
-
-  _wrongClock() {
-    this.logError('Wrong system clock! Syncing...');
-    clearTimeout(this.configLoader);
-    this.configLoader = null;
-    this.init();
-  }
-
-  hours() {
-    const minutesLocal = this.minutesLocal;
-    const minutesSystem = Math.round((this.timeDrift + Date.now()) / (1000 * 60));
-    const hours = Math.floor(minutesSystem / 60);
-    if (Math.abs(minutesLocal - minutesSystem) > Endpoints.MAX_MINUTES_DRIFT) {
-      this._wrongClock();
-    } else if (formatDate(hours).slice(0, 8) !== prefs.get('config_ts')) {
-      // Let's try to keep config_ts in sync.
-      this.log('Syncing config_ts');
-      events.pub('cliqz-config:triggerUpdate');
-    }
-    return hours;
   }
 
   async punish() {
@@ -146,37 +321,48 @@ export default class Manager {
     }));
   }
 
-  async fetchConfig() {
-    // This is the first network request that the module will do on init.
-    // We do not skip in order to check whether the system clock is correct or not
-    // based on the Date response header. If there is significant drift, loading
-    // will fail.
-    const { groupPubKeys, pubKeys, sourceMap, minVersion, ts } = await this.endpoints.getConfig();
-    const time = (new Date(ts)).getTime();
-    this.timeDrift = time - Date.now();
-    this.minutesLocal = Math.round(time / (1000 * 60));
-    const hours = Math.floor(this.minutesLocal / 60);
-
+  // This loads sourceMap and group public keys that were fetched from the server,
+  // and joins groups if needed. Only will add sourceMap actions and public keys we
+  // do not already have. Therefore, server should never change an action, always
+  // add a new one (append-only).
+  // For group public keys we could add a protection: if we find out that
+  // the server is changing the group public key for a day, we do not send any data.
+  async updateConfig({ groupPubKeys, pubKeys, sourceMap, minVersion, trafficHints }) {
     if (VERSION < minVersion) {
+      this.logError(`We are running an old version of the protocol, which is no longer supported by the server. All communication will be stopped. Our version: ${VERSION} does not meet the minimum version required by the server: ${minVersion}`);
       this.isOldVersion = true;
       return;
     }
-
-    // Now we can trust system clock, so start our timer to detect further changes to it...
-    if (this.clock) {
-      this.clock.stop();
-    }
-    this.clock = setTimeoutInterval(() => {
-      this.minutesLocal += 1;
-      this.hours(); // Check out of sync clock
-    }, 60 * 1000);
 
     const ok = Manager.checkGroupPublicKeys(groupPubKeys, pubKeys, this.groupPubKeys);
     if (!ok) {
       await this.punish();
     } else {
+      let newGroupPubKeys = Object.keys(groupPubKeys);
+
+      // Filter for new keys (ignoring all keys that we already know
+      // or that are older than the oldest key that we remember):
+      const oldGroupKeys = Object.keys(this.groupPubKeys);
+      if (oldGroupKeys.length > 0) {
+        const oldestKnownKey = Object.keys(this.groupPubKeys).sort()[0];
+        newGroupPubKeys = newGroupPubKeys
+          .filter(x => x > oldestKnownKey)
+          .filter(x => !oldGroupKeys.includes(x));
+
+        // Special case: if a new key is published, not all clients should immediately
+        // attempt to join the group, for two reasons:
+        // 1) It leads to a sudden spike of join requests
+        // 2) (worse) not all servers might yet have synchronized and are aware of that key
+        if (newGroupPubKeys.length === 1) {
+          const latestKey = newGroupPubKeys[0];
+          const randomDelayInMs = 30 * MINUTE + Math.random() * 2 * HOUR;
+          this.log('Delay joining the latest group', latestKey, 'by', randomDelayInMs / MINUTE, 'minutes');
+          this._joinScheduler.cooldowns.set(latestKey, Date.now() + randomDelayInMs);
+        }
+      }
+
       // Update server public keys in db.
-      await Promise.all(Object.keys(groupPubKeys).map((shortDate) => {
+      await Promise.all(newGroupPubKeys.map((shortDate) => {
         const key = this.groupPubKeys[shortDate] || {};
         key.groupPubKey = fromBase64(groupPubKeys[shortDate]);
         key.pubKey = pubKeys[shortDate] && fromBase64(pubKeys[shortDate]);
@@ -190,8 +376,19 @@ export default class Manager {
     Object.keys(sourceMap.actions).forEach((action) => {
       this.db.setSourceMapAction(action, sourceMap.actions[action]);
     });
+    this.throttler.updateConfig(trafficHints, sourceMap);
 
-    await this.db.purgeTags(hours);
+    // Database cleanup:
+    const { inSync, hoursSinceEpoch } = this.trustedClock.checkTime();
+    if (inSync) {
+      const purgeTags = this.db.purgeTags(hoursSinceEpoch).catch((e) => {
+        logger.error('Failed to purge old tags in the database', e);
+      });
+      const purgeOldPubKeys = this.db.purgeOldPubKeys(hoursSinceEpoch).catch((e) => {
+        logger.error('Failed to purge old keys in the database', e);
+      });
+      await Promise.all([purgeTags, purgeOldPubKeys]);
+    }
   }
 
   getPublicKey(date) {
@@ -210,62 +407,99 @@ export default class Manager {
       .map(x => this.groupPubKeys[x]);
   }
 
-  today() {
-    return formatDate(this.hours()).slice(0, 8);
+  async scheduleJoinGroup() {
+    clearTimeout(this._joinScheduler.nextJoinTimer);
+    try {
+      this._joinScheduler.pending += 1;
+      if (this._joinScheduler.pending > 1) {
+        return;
+      }
+
+      await this.joinGroups();
+      this._joinScheduler.state = JOIN_STATE.JOINED;
+    } catch (e) {
+      if (e instanceof ClockOutOfSyncWhileJoining) {
+        // Remember that is was the clock, so we can immediately
+        // retry when when the clock gets synched.
+        this._joinScheduler.state = JOIN_STATE.WAITING_FOR_CLOCK_SYNC;
+      }
+      const timeoutInMs = MINUTE + Math.random() * 10 * MINUTE;
+      logger.warn('Failed to join group. Retrying again in', timeoutInMs / MINUTE, 'min');
+
+      this._joinScheduler.nextJoinTimer = setTimeout(() => {
+        this.scheduleJoinGroup();
+      }, timeoutInMs);
+    } finally {
+      this._joinScheduler.pending -= 1;
+    }
   }
 
   async joinGroups() {
+    const { inSync, hoursSinceEpoch } = this.trustedClock.checkTime();
+    if (!inSync) {
+      logger.info('Skipping join attempt, as the clock is currently off.');
+      throw new ClockOutOfSyncWhileJoining();
+    }
+    const today = formatHoursAsYYYYMMDD(hoursSinceEpoch);
+
     const sortedDates = Object.keys(this.groupPubKeys).sort();
-    const smaller = sortedDates.filter(x => x <= this.today());
+    const smaller = sortedDates.filter(x => x <= today);
     if (smaller.length <= 0) {
       throw new Error('No valid group public key is available');
     }
+    const activeKey = smaller[smaller.length - 1];
+
+    const isCooldownExceeded = (date) => {
+      const cooldown = this._joinScheduler.cooldowns.get(date);
+      if (!cooldown) {
+        // no cooldown configured -> join immediately
+        return true;
+      }
+
+      if (date === activeKey || Date.now() >= cooldown) {
+        this.log('Group', date, 'exceeded the join cooldown. Ready to join now.');
+        this._joinScheduler.cooldowns.delete(date);
+        return true;
+      }
+
+      // Do not join the group yet. It is not active yet, so we can
+      // wait for the cooldown to run off before we attempt to join.
+      return false;
+    };
+
+    const joinDates = sortedDates
+      .filter(x => x >= activeKey)
+      .filter(x => isCooldownExceeded(x));
 
     // Make sure join promises are resolved via reflectPromise
-    const joinDates = sortedDates.filter(x => x >= smaller[smaller.length - 1]);
     const results = await Promise.all(joinDates.map(x => reflectPromise(this.joinGroup(x))));
     const error = results.find(({ isError }) => isError);
     if (error) {
-      throw error.error;
-    }
-  }
-
-  // This loads sourceMap and group public keys from the server, and joins groups if needed.
-  // Only will add sourceMap actions and public keys we do not already have.
-  // Therefore, server should never change an action, always add a new one (append-only).
-  // For group public keys we could add a protection: if we find out that
-  // the server is changing the group public key for a day, we do not send any data.
-  async _loadConfig() {
-    if (this.unloaded) {
-      return;
-    }
-
-    async function waitAndWrap(fn, ErrorClass) {
-      try {
-        await fn();
-      } catch (e) {
-        throw new ErrorClass(e.message);
+      // For all non-active keys, joining is not a time-critical operation.
+      // If there was an error, there will be reattempts soon to join again.
+      // In that case, exclude the non-active keys for a while.
+      for (const key of joinDates) {
+        if (key !== activeKey && !this._joinScheduler.cooldown.has(key)) {
+          const randomBackoff = 5 * MINUTE + 30 * MINUTE * Math.random();
+          this._joinScheduler.cooldown.set(key, Date.now() + randomBackoff);
+        }
       }
-    }
-
-    this.logDebug('Loading config');
-
-    // Fetch config (group public keys, sourcemap). Will punish if server behaves inconsistently.
-    await waitAndWrap(() => this.fetchConfig(), FetchConfigError);
-
-    // Joins groups if not already done.
-    if (!this.isOldVersion) {
-      await waitAndWrap(() => this.joinGroups(), JoinGroupsError);
+      throw error.error;
     }
   }
 
   // Loads server ECDH pubKey (but does not fetch them).
   // if !skipGroupKeys, also loads locally stored credentials into the signer.
   async loadKeys(skipGroupKeys) {
-    if (this.unloaded) {
+    if (this.initState.isUnloaded()) {
       throw new NotReadyError();
     }
-    const today = this.today();
+
+    const { inSync, hoursSinceEpoch } = this.trustedClock.checkTime();
+    const today = formatHoursAsYYYYMMDD(hoursSinceEpoch);
+    if (!inSync) {
+      logger.info('Clock time is out of sync. Loading of today\'s key might fail:', today);
+    }
     const pk = this.getPublicKey(today);
 
     if (!pk) {
@@ -275,15 +509,37 @@ export default class Manager {
     const { groupPubKey, credentials, date, pubKey } = pk;
 
     if (pubKey && this.ecdhPubKey.date !== date) {
-      const key = await crypto.subtle.importKey(
-        'raw',
-        pubKey,
-        { name: 'ECDH', namedCurve: 'P-256' },
-        false,
-        []
-      );
-
-      this.ecdhPubKey = { key, date };
+      try {
+        const key = await crypto.subtle.importKey(
+          'raw',
+          pubKey,
+          { name: 'ECDH', namedCurve: 'P-256' },
+          false,
+          []
+        );
+        this.ecdhPubKey = { key, date };
+      } catch (e) {
+        // Workaround for (non Chromium-based) Edge:
+        // ECDH is not supported, which is needed to agree on an encryption key
+        // for the request body. As long as we directly send (over https) to our servers,
+        // this is not a problem. The purpose of the extra encryption of the message body
+        // is to prevent a 3rd party proxy from reading the data.
+        //
+        // Test page to see, which crypto APIs a browser supports:
+        // https://diafygi.github.io/webcrypto-examples/
+        //
+        // Note: As the workaround is currently only relevant for Ghostery/MyOffrz, be extra
+        // paranoid and make sure that the Ghostery/MyOfferz endpoints are used. That is only
+        // to rule out any misconfigurations.
+        if (this.endpoints.ENDPOINT_HPNV2_ANONYMOUS === this.endpoints.ENDPOINT_HPNV2_DIRECT
+            && (this.endpoints.ENDPOINT_HPNV2_DIRECT === 'https://collector-hpn.ghostery.net'
+                || this.endpoints.ENDPOINT_HPNV2_DIRECT === 'https://collector-hpn.cliqz.com')) {
+          logger.debug('The browser does not support ECDH, but as we are not sending through a proxy, TLS encryption is sufficient.');
+        } else {
+          logger.error('ECDH is not supported by the browser. Cannot send unencrypted data through a 3rd proxy proxy.', e);
+          throw e;
+        }
+      }
     }
 
     if (skipGroupKeys) {
@@ -299,11 +555,9 @@ export default class Manager {
     }
 
     this.logDebug('Loading credentials', pk.date);
-
     try {
       await this.signer.setGroupPubKey(groupPubKey);
       await this.signer.setUserCredentials(credentials);
-      await this.db.purgeOldPubKeys(date);
       this.loadedCredentialsDate = date;
     } catch (e) {
       this.logError('Error loading credentials', e);
@@ -407,24 +661,53 @@ export default class Manager {
   //   ServerError: Unexpected server error.
   //
   //   (Should never happen, but theoretically possible): SignMsgError, BadCredentialsError
-  async send(msg) {
+  //
+  // When other modules are sending messages before hpn is ready, sending is blocked.
+  // If hpn is unable to connect because of network issues, eventually it will have to
+  // give up. By default, the timeout is very conservative, but the sender can
+  // overwrite the default if needed. If do not want any timeout at all, you can pass 0
+  // to wait forever. When sending times out, it will fail with an "NotReadyError".
+  async send(msg, { proxyBucket, waitForInitTimeoutInMs = 3 * MINUTE } = {}) {
     try {
       if (this.isOldVersion) {
+        // Refusing to send messages, as the client runs an old version of the protocol
+        // that is not longer supported. Note that even if the changes are backward
+        // compatible, we might actively want to stop old clients from sending once their
+        // population gets too small.
+        //
+        // TODO: Dropping non-instant messages is always safe, as these are fire-and-forget
+        // messages, where the user does not expect a response. For instant messages, maybe
+        // trying to send is preferable, as the client expects a result. In other words,
+        // dropping non-instant messages will never break client functionality, but
+        // dropping instant messages might (e.g., search via proxy).
+        //
+        // The advantage of having not to fear client breakage would be that we could
+        // more aggressively stop old clients from sending (to protect them when their
+        // population size becomes too small).
         throw new OldVersionError();
       }
-
-      if (!this.isInit || this.unloaded) {
-        throw new NotReadyError();
+      if (!msg || typeof msg !== 'object') {
+        throw new InvalidMsgError('msg must be an object');
       }
 
-      if (!msg || typeof msg !== 'object') {
-        throw (new InvalidMsgError('msg must be an object'));
+      // handle races during startup when hpn is just starting up and other modules
+      // are already trying to send messages:
+      const initState = this.initState;
+      if (!initState.isReady()) {
+        if (initState.isUnloaded()) {
+          // Although we could wait and speculate that loading will soon be initialized,
+          // it is more likely that it will not happen, and it will just block.
+          logger.info('Module is not initialized. Instead of waiting until we hit the timeout, give up immediately.');
+          throw new NotReadyError();
+        }
+
+        logger.debug('Initialization is still pending. Waiting for it to complete...');
+        await initState.waitUntilReady(waitForInitTimeoutInMs);
+        logger.debug('Initialization is still pending. Waiting for it to complete...DONE');
       }
 
       const { action, payload } = msg;
-
       const config = this.sourceMap[action];
-
       if (!config) {
         throw (new InvalidMsgError(`unknown action ${action}`));
       }
@@ -439,12 +722,25 @@ export default class Manager {
 
       const publicKey = Manager.clearText ? undefined : this.ecdhPubKey;
 
-      // Do not queue noverify messages, these are ok to do in parallel
-      if (noverify) {
-        return await this._sendNoVerify({ msg, config, publicKey });
-      }
+      const throttler = this.throttler;
+      try {
+        await throttler.startRequest(msg, this.trustedClock);
+        if (initState.isUnloaded()) {
+          // protection against races during shutdown
+          const info = 'hpnv2 was stopped. The pending message could not be sent.';
+          logger.warn(info);
+          throw new NotReadyError(info);
+        }
 
-      return await this.msgQueue.push({ msg, config, publicKey });
+        // Do not queue noverify messages, these are ok to do in parallel
+        if (noverify) {
+          return await this._sendNoVerify({ msg, config, publicKey, proxyBucket });
+        }
+
+        return await this.msgQueue.push({ msg, config, publicKey, proxyBucket });
+      } finally {
+        throttler.endRequest(msg);
+      }
     } catch (e) {
       this.logError('Send error', e);
       throw e;
@@ -506,18 +802,18 @@ export default class Manager {
     return Manager.compressAndPad(Manager.encodeMessage(MSG_SIGNED, data));
   }
 
-  async _sendNoVerify({ msg, config, publicKey }) {
+  async _sendNoVerify({ msg, config, publicKey, proxyBucket }) {
     const { instant = false } = config;
 
     // Hack: this uses the first '{' as the message code.
     this.log('Sending noverify msg', msg);
     return this.endpoints.send(
       Manager.compressAndPad(toUTF8(JSON.stringify(msg))),
-      { instant, publicKey }
+      { instant, publicKey, proxyBucket }
     );
   }
 
-  async _send({ msg: _msg, config, publicKey }, skipQuotaCheck = false) {
+  async _send({ msg: _msg, config, publicKey, proxyBucket }, skipQuotaCheck = false) {
     const msg = _msg;
     const { action } = msg;
 
@@ -530,7 +826,12 @@ export default class Manager {
 
     const { limit = 1, period = 24, keys = [], instant = false } = config;
     const dig = digest(keys, payload);
-    const hours = period * Math.floor(this.hours() / period);
+
+    const { inSync, hoursSinceEpoch } = this.trustedClock.checkTime();
+    if (!inSync) {
+      logger.info('Sending could fail, as the clock is out of sync with the server.');
+    }
+    const hours = period * Math.floor(hoursSinceEpoch / period);
 
     const ts = formatDate(hours).slice(0, period % 24 === 0 ? 8 : 10);
 
@@ -562,7 +863,7 @@ export default class Manager {
     this.log('Sending signed msg', msg);
     return this.endpoints.send(
       Manager.encodeSignedMessage(utf8Msg, sig, cnt),
-      { instant, publicKey }
+      { instant, publicKey, proxyBucket }
     );
   }
 
@@ -644,6 +945,42 @@ export default class Manager {
       if (!dates.every(check)) {
         return false;
       }
+    }
+
+    return true;
+  }
+
+  isHealthy() {
+    if (this.isOldVersion) {
+      logger.warn('Client is too old. The protocol is no longer accepted by the server');
+      return false;
+    }
+
+    if (!this.initState.isReady()) {
+      logger.warn(`hpnv2 is not loaded (current state: ${ppState(this.initState.state)})`);
+      return false;
+    }
+
+    if (!this.configLoader.isHealthy()) {
+      logger.warn('Config loader not healthy');
+      return false;
+    }
+
+    if (!this.trustedClock.isHealthy()) {
+      logger.warn('Clock out of sync');
+      return false;
+    }
+
+    const today = formatHoursAsYYYYMMDD(this.trustedClock.checkTime().hoursSinceEpoch);
+    const pk = this.getPublicKey(today);
+    if (!pk) {
+      logger.warn('Not joined with current group');
+      return false;
+    }
+
+    if (this._joinScheduler.state !== JOIN_STATE.JOINED) {
+      logger.warn('Unable to complete join operations.');
+      return false;
     }
 
     return true;

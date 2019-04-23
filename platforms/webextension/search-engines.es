@@ -31,10 +31,10 @@ const getEngineCode = name => ENGINE_CODES.indexOf(name.toLowerCase()) + 1;
 
 function buildSearchEngines(engines, isMobile) {
   let defaultSearchEngine;
-  if (isMobile) {
-    defaultSearchEngine = engines.find(e => e.isDefault).name;
-  } else if (browserCliqzExists) {
-    defaultSearchEngine = engines.filter(engine => engine.default)[0].name;
+  const nativeEngine = engines.find(e => e.isDefault || e.default);
+
+  if (nativeEngine && (isMobile || browserCliqzExists)) {
+    defaultSearchEngine = nativeEngine.name;
   } else {
     defaultSearchEngine = storage.getItem('defaultSearchEngine') || ORIGINAL_SEARCH_ENGINE_NAME;
   }

@@ -21,7 +21,7 @@ export async function getDistribution() {
 
 export function getChannel() {
   if (chrome.cliqzAppConstants) { // Android
-    return chrome.cliqzAppConstants.get('CLIQZ_CHANNEL') || '';
+    return chrome.cliqzAppConstants.get('CLIQZ_CHANNEL') || config.settings.channel || '';
   }
   return config.settings.channel || '';
 }

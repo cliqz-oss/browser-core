@@ -17,6 +17,8 @@ import {
 import Logger from './logger';
 import getSynchronizedDate from './synchronized-time';
 
+export { getChannel } from '../platform/demographics';
+
 const logger = Logger.get('core', {
   level: 'log',
   prefix: '[demographics]',
@@ -192,6 +194,8 @@ function parseProduct(channel, platform) {
     } else if (channel.startsWith('MI')) {
       if (channel.startsWith('MI5')) {
         product = 'Ghostery/mobile/Ghostery for iOS';
+      } else if (channel.startsWith('MI6')) {
+        product = 'Lumen/mobile/Lumen for iOS';
       } else {
         product = 'CLIQZ/mobile/Cliqz for iOS';
       }

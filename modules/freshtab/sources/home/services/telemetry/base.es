@@ -1,5 +1,7 @@
 import cliqz from '../../cliqz';
 
+const isPrivateMode = !!(chrome && chrome.extension && chrome.extension.inIncognitoContext);
+
 /**
  * Automatically derive anolysis schema name from `signal`.
  * Format should be: 'freshtab.{type}.{action}[.{target}[.{element}]]
@@ -17,9 +19,11 @@ function mkAnolysisSchemaName({ type, action, view = '', target }) {
 }
 
 export default function (signal) {
-  cliqz.core.sendTelemetry(
-    { ...signal, version: '2.0' },
-    false, // not instant push
-    mkAnolysisSchemaName(signal),
-  );
+  if (!isPrivateMode) {
+    cliqz.core.sendTelemetry(
+      { ...signal, version: '2.0' },
+      false, // not instant push
+      mkAnolysisSchemaName(signal),
+    );
+  }
 }

@@ -1,15 +1,11 @@
 {
   "subprojects": [
-    "ajv",
     "@cliqz-oss/dexie",
     "@cliqz/adblocker",
-    "jsep",
-    "handlebars",
     "math",
     "moment",
     "moment-range",
     "pako",
-    "simple-statistics",
     "tldts",
     "ua-parser-js"
   ]

@@ -1,23 +1,24 @@
 /* eslint no-param-reassign: 'off' */
 
 import events from './events';
-import utils from './utils';
+import telemetry from './services/telemetry';
 import console from './console';
 import language from './language';
 import config from './config';
 import ProcessScriptManager from '../platform/process-script-manager';
 import background from './base/background';
-import { getCookies, Window } from '../platform/browser';
+import { getCookies, Window } from './browser';
 import resourceManager from './resource-manager';
 import logger from './logger';
 import inject from './kord/inject';
 import { queryCliqz, openLink, openTab, getOpenTabs, getReminders } from '../platform/browser-actions';
 import providesServices from './services';
 import { httpHandler } from './http';
-import { updateTab, closeTab, query } from './tabs';
+import { updateTab, closeTab, query, getCurrentTab } from './tabs';
 import { enableRequestSanitizer, disableRequestSanitizer } from './request-sanitizer';
 import { cleanMozillaActions } from './content/url';
-
+import ResourceLoader from './resource-loader';
+import { getResourceUrl } from './platform';
 
 let lastRequestId = 1;
 const callbacks = {};
@@ -35,10 +36,8 @@ export default background({
     enableRequestSanitizer();
 
     this.settings = settings;
-    this.utils = utils;
     this.app = app;
 
-    utils.CliqzLanguage = language;
     this.dispatchMessage = this.dispatchMessage.bind(this);
 
     this.mm = new ProcessScriptManager(this.dispatchMessage);
@@ -234,25 +233,8 @@ export default background({
           return result;
         });
     },
-    sendTelemetry(...args) {
-      // Get rid of latest argument, which is the information about sender
-      if (args.length > 1) {
-        args.pop();
-      }
-      return Promise.resolve(utils.telemetry(...args));
-    },
-
-    refreshPopup(q = '') {
-      if (q.trim() !== '') {
-        return this.actions.queryCliqz(q);
-      }
-      const doc = utils.getWindow().document;
-      const urlBar = doc.getElementById('urlbar');
-      const dropmarker = doc.getAnonymousElementByAttribute(urlBar, 'anonid', 'historydropmarker');
-      setTimeout(() => {
-        dropmarker.click();
-      }, 0);
-      return undefined;
+    sendTelemetry(signal, instant, schema) {
+      return telemetry.push(signal, schema, instant);
     },
 
     queryCliqz(q) {
@@ -269,11 +251,17 @@ export default background({
       let id = tabId;
 
       if (action === 'switchtab') {
-        const [tab] = await query({ url: originalUrl });
+        const tabs = await query({
+          url: originalUrl.replace(/#.*$/, ''),
+        });
+        const tab = tabs.find(t => t.url === originalUrl);
         if (tab) {
+          const currentTab = await getCurrentTab();
           id = tab.id;
           updateTab(id, { active: true });
-          closeTab(tabId);
+          if (currentTab && currentTab.url === getResourceUrl(config.settings.NEW_TAB_URL)) {
+            closeTab(tabId);
+          }
           return;
         }
       }
@@ -291,10 +279,6 @@ export default background({
     getReminders(domain) {
       return getReminders(domain);
     },
-    setUrlbar(value) {
-      const urlBar = utils.getWindow().document.getElementById('urlbar');
-      urlBar.mInputField.value = value;
-    },
     recordMeta(url, meta, sender) {
       // TODO: there is not need for two events doing almost the same
       // also the tabId, windowId, should be propagated with the event
@@ -309,9 +293,6 @@ export default background({
     },
     disableModule(moduleName) {
       this.app.disableModule(moduleName);
-    },
-    resizeWindow(width, height) {
-      utils.getWindow().resizeTo(width, height);
     },
     click(url, selector) {
       return this.callContentAction('click', url, selector);
@@ -360,6 +341,10 @@ export default background({
 
     refreshAppState() {
       this.mm.shareAppState(this.app);
+    },
+
+    reportResourceLoaders() {
+      return ResourceLoader.report();
     },
   },
 });

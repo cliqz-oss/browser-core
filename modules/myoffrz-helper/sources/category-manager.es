@@ -4,10 +4,7 @@ import config from '../core/config';
 import CachedMap from '../core/persistence/cached-map';
 import logger from './logger';
 import pacemaker from '../core/services/pacemaker';
-import {
-  extractHostname as getHostname,
-  getGeneralDomain as getDomain,
-} from '../core/tlds';
+import { parse } from '../core/tlds';
 
 // Common durations
 const ONE_SECOND = 1000;
@@ -20,16 +17,11 @@ export default class ContentCategoryManager {
     this.cache = {};
     this.storage = new CachedMap('category');
     this.filtersData = {};
-    this.engine = new Adblocker.FiltersEngine({
-      version: 0.1,
-      loadNetworkFilters: true,
-      loadCosmeticFilters: false,
-      // We currently disable the optimizations since this module relies on the
-      // fact that original filters can always be retrieved if there is a match.
-      // Moreover, the number of filters is very small so this should not make
-      // any difference.
-      enableOptimizations: false,
-    });
+
+    this.engine = null;
+    this.id2pattern = new Map();
+    this.resetEngine();
+
     this.loader = new ResourceLoader(
       ['myoffrz-helper', 'category-pattern.json'],
       {
@@ -39,6 +31,27 @@ export default class ContentCategoryManager {
         remoteURL: `${config.settings.CDN_BASEURL}/offers/category/category-pattern.json`
       }
     );
+  }
+
+  resetEngine(raw = '') {
+    const filters = Adblocker.parseFilters(raw, { debug: true }).networkFilters;
+
+    // Initialize mapping from filter id to original pattern
+    this.id2pattern = new Map(filters.map(filter => [filter.getId(), filter.rawLine]));
+
+    // Remove original pattern which will be kept in `this.id2pattern` instead.
+    filters.forEach((filter) => { filter.rawLine = undefined; });
+
+    // Reset engine with new filters
+    this.engine = new Adblocker.FiltersEngine({
+      networkFilters: filters,
+      loadCosmeticFilters: false,
+      // We currently disable the optimizations since this module relies on the fact
+      // that original filters can always be retrieved if there is a match.
+      // Moreover, the number of filters is very small so this should not make any
+      // difference.
+      enableOptimizations: false,
+    });
   }
 
   async init() {
@@ -74,11 +87,11 @@ export default class ContentCategoryManager {
     const result = { styles: null, productId: null };
     const match = this.engine.match(Adblocker.makeRequest(
       { url, type: 2, sourceUrl: url },
-      { getDomain, getHostname },
+      parse,
     ));
     if (match.match) {
       // Get the matching filter
-      const filterData = this.filtersData[match.filter.rawLine];
+      const filterData = this.filtersData[this.id2pattern.get(match.filter.getId())];
       logger.log(`found rules for ${url}`, match.filter, filterData);
       if (filterData) {
         // Check if there is a regex to extract the product id,
@@ -129,13 +142,7 @@ export default class ContentCategoryManager {
   }
 
   updatePatterns(filtersData) {
-    const filters = Object.keys(filtersData).join('\n');
-    // The patterns are small so we still build it every time
-    this.engine.onUpdateFilters(
-      [{ checksum: '', asset: 'asset', filters }],
-      new Set(['asset']),
-      true, // debug so that we can access the original filter
-    );
+    this.resetEngine(Object.keys(filtersData).join('\n'));
     this.filtersData = filtersData;
   }
 

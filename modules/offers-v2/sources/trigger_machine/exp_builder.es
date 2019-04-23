@@ -142,10 +142,8 @@ export default class ExpressionBuilder {
       feature_handler: this.globObjs.feature_handler,
       intent_handler: this.globObjs.intent_handler,
       be_connector: this.globObjs.be_connector,
-      history_matcher: this.globObjs.history_matcher,
       category_handler: this.globObjs.category_handler,
       offers_status_handler: this.globObjs.offers_status_handler,
-      ga_handler: this.globObjs.ga_handler,
     };
     const Builder = this.buildMap.ops[opName];
     return new Builder(buildData);

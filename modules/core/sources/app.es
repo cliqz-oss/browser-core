@@ -5,9 +5,9 @@ import events, { subscribe } from './events';
 import prefs from './prefs';
 import Module from './app/module';
 import { setApp } from './kord';
-import console, { enable as enableConsole, disable as disableConsole } from './console';
+import console, { isLoggingEnabled, enable as enableConsole, disable as disableConsole } from './console';
 import Logger from './logger';
-import utils from './utils';
+import telemetry from './services/telemetry';
 import { Window, mapWindows, forEachWindow, addWindowObserver,
   removeWindowObserver, reportError, mustLoadWindow,
   setOurOwnPrefs, resetOriginalPrefs, enableChangeEvents,
@@ -27,7 +27,7 @@ export function shouldEnableModule(name) {
 const isOnionMode = isOnionModeFactory(prefs);
 
 function setupConsole() {
-  if (prefs.get('showConsoleLogs')) {
+  if (isLoggingEnabled()) {
     enableConsole();
     Logger.enable();
   } else {
@@ -49,7 +49,11 @@ export default class App {
    * @constructor
    * @param {object} config
    */
-  constructor({ version, debug } = {}) {
+  // Cliqz products extract `version` from the manifest.
+  // But if `App` is instantiated by a third-party that uses
+  // `browser-core` as a library, then no `version` is given
+  // and therefore `App` should find out the version self.
+  constructor({ version = config.EXTENSION_VERSION, debug } = {}) {
     this.settings = createSettings(config.settings, { version });
     this.isFullyLoaded = false;
 
@@ -92,7 +96,6 @@ export default class App {
       Object.assign(this.services, module.providedServices);
     });
 
-    utils.extensionVersion = version;
     setApp(this);
     this.isRunning = false;
     this.onMigrationEnded = (_, topic) => {
@@ -103,7 +106,6 @@ export default class App {
   }
 
   injectHelpers() {
-    this.utils = utils;
     this.events = events;
     this.prefs = prefs;
     this.i18n = i18n;
@@ -272,11 +274,11 @@ export default class App {
     // NOTE: Disable this warning locally since the solution is hacky anyway.
     /* eslint-disable no-param-reassign */
 
-    utils.telemetry({
+    telemetry.push({
       type: 'activity',
       action: telemetrySignal,
       lifecyle: 'stop'
-    }, true /* force push */);
+    }, undefined, true /* force push */);
 
     /*
      *
@@ -347,7 +349,8 @@ export default class App {
 
       if ('default_prefs' in config) {
         Object.keys(config.default_prefs).forEach((pref) => {
-          if (!prefs.has(pref)) {
+          // TODO remove check for config.settings.channel after relaseing Cliqz 1.25
+          if (config.settings.channel === '99' || !prefs.has(pref)) {
             console.log('App', 'set up preference', `"${pref}"`);
             prefs.set(pref, config.default_prefs[pref]);
           }
@@ -368,7 +371,7 @@ export default class App {
     return Promise.all(
       serviceNames.map(
         // service is initialized only once, so calling init multiple times is fine
-        serviceName => this.services[serviceName].init()
+        serviceName => this.services[serviceName].init(this)
       )
     );
   }

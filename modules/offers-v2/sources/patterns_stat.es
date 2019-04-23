@@ -26,9 +26,14 @@ export default class PatternsStat {
 
   async init() {
     const Dexie = await getDexie();
-    this.db = new Dexie('offers-patterns-stat');
-    this.db.version(1).stores({ views: '++id' });
-    this.db.version(2).stores(dexieSchema);
+    await Dexie
+      .delete('offers-patterns-stat')
+      .catch(e => logger.error(`delete offers-patterns-stat failed, ${e.message}`))
+      .then(() => {
+        this.db = new Dexie('offers-patterns-stat-v2');
+        this.db.version(1).stores(dexieSchema);
+      });
+
     this.threadCount = 0; // For unit tests to know that operations are done
   }
 
@@ -46,7 +51,7 @@ export default class PatternsStat {
    * @returns {Promise}
    */
   async add(collection, data = {}) {
-    if (!(collection in dexieSchema)) {
+    if (!(collection in dexieSchema) || !this.db) {
       logger.warn(`PatternsStat: unknown collection name '${collection}'`);
       return;
     }
@@ -71,7 +76,7 @@ export default class PatternsStat {
    * </pre>
    */
   async moveAll(collection) {
-    if (!(collection in dexieSchema)) {
+    if (!(collection in dexieSchema) || !this.db) {
       logger.warn(`PatternsStat: unknown collection name '${collection}'`);
       return [];
     }
@@ -84,6 +89,7 @@ export default class PatternsStat {
   }
 
   async group(collection) {
+    if (!this.db) { return []; }
     const map = new Map();
     const db = await this.db;
     await db[collection]
@@ -92,13 +98,14 @@ export default class PatternsStat {
     return [...map.values()];
   }
 
-  collector(collection, { campaignId, pattern }, map) {
-    const key = `${campaignId},${pattern}`;
+  collector(collection, { campaignId, pattern, domainHash }, map) {
+    const key = `${campaignId},${pattern},${domainHash}`;
     const defaultValue = {
       counter: 0,
       campaignId,
       pattern,
-      type: collection
+      domainHash,
+      type: collection,
     };
     const item = map.get(key) || defaultValue;
     item.counter += 1;
@@ -149,8 +156,8 @@ export default class PatternsStat {
       } else if (!reasonArr.length) {
         this.add(signalID, { campaignId, pattern: '<empty>' });
       } else {
-        reasonArr.forEach(reason =>
-          this.add(signalID, { campaignId, pattern: reason }));
+        reasonArr.forEach(({ pattern, domainHash }) =>
+          this.add(signalID, { campaignId, pattern, domainHash }));
       }
     }
     this.threadCount -= 1;

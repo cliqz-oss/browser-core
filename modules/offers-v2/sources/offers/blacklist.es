@@ -1,29 +1,16 @@
 import Adblocker from '../../platform/lib/adblocker';
 import ResourceLoader from '../../core/resource-loader';
 import config from '../../core/config';
-import {
-  extractHostname as getHostname,
-  getGeneralDomain as getDomain,
-} from '../../core/tlds';
-
+import { parse } from '../../core/tlds';
+import logger from '../common/offers_v2_logger';
 
 const ONE_HOUR = 60 * 60 * 1000;
 const ONE_DAY = 24 * ONE_HOUR;
 
-const ENGINES = {
-  adblocker: () => {
-    const engine = new Adblocker.FiltersEngine({
-      version: 0.1,
-      loadNetworkFilters: true,
-      loadCosmeticFilters: false,
-    });
-    return engine;
-  },
-};
-
-const LOADERS = {
-  'resource-loader': () => {
-    const loader = new ResourceLoader(
+export default class Blacklist {
+  constructor() {
+    this.engine = new Adblocker.FiltersEngine({ loadCosmeticFilters: false });
+    this.loader = new ResourceLoader(
       ['offers-v2', 'rules.json.gz'],
       {
         cron: ONE_DAY,
@@ -32,14 +19,6 @@ const LOADERS = {
         remoteURL: `${config.settings.CDN_BASEURL}/offers/display_rules/rules.json.gz`
       }
     );
-    return loader;
-  },
-};
-
-export default class Blacklist {
-  constructor({ engine = 'adblocker', loader = 'resource-loader' } = {}) {
-    this.engine = typeof engine === 'string' ? ENGINES[engine]() : engine;
-    this.loader = typeof loader === 'string' ? LOADERS[loader]() : loader;
   }
 
   init() {
@@ -48,7 +27,7 @@ export default class Blacklist {
       .onUpdate(({ negation_rules: negationRules = [] } = {}) => {
         this.update({ filters: negationRules });
       });
-    this.loader.load();
+    this.loader.load().catch(e => logger.warn(`Can't load blacklist rules: ${e}`));
   }
 
   unload() {
@@ -59,17 +38,16 @@ export default class Blacklist {
   }
 
   update({ filters = [] }) {
-    this.engine.onUpdateFilters(
-      [{ checksum: '', asset: 'asset', filters: filters.join('\n') }],
-      new Set(['asset']),
+    this.engine = Adblocker.FiltersEngine.parse(
+      filters.join('\n'),
+      { loadCosmeticFilters: false },
     );
   }
 
   has(url) {
-    const result = this.engine.match(Adblocker.makeRequest(
+    return this.engine.match(Adblocker.makeRequest(
       { url, type: 2, sourceUrl: url },
-      { getDomain, getHostname },
-    ));
-    return result.match;
+      parse,
+    )).match;
   }
 }

@@ -548,7 +548,19 @@ export function composeNewsList(historyObject, topNewsCache, hbasedResults) {
         artAdd.type = sourceArticleType;
       }
 
-      returnList.push(artAdd);
+      // Insert `artAdd` after the last article of same type already in `returnList`.
+      let articleIndex = -1;
+      returnList.forEach(({ type }, index) => {
+        if (type === artAdd.type) {
+          articleIndex = index;
+        }
+      });
+
+      if (articleIndex === -1) {
+        returnList.push(artAdd);
+      } else {
+        returnList.splice(articleIndex + 1, 0, artAdd);
+      }
     }
 
     let numToMerge = numberOfNewsToMerge;

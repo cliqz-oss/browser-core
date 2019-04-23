@@ -1,8 +1,22 @@
-import { getResourceUrl } from '../../core/platform';
+import { getResourceUrl, isCliqzBrowser, isWebExtension } from '../../core/platform';
 import config from '../../core/config';
 import { getMessage } from '../../core/i18n';
+import prefs from '../../core/prefs';
 import { getTitleColor } from '../utils';
 import calculateValidity from './helpers';
+
+function commonData() {
+  return {
+    products: {
+      cliqz: isCliqzBrowser,
+      chip: prefs.get('is-offers-chip-standalone'),
+    },
+
+    // the next two for browser-panel
+    isCliqzBrowser,
+    isWebExtension,
+  };
+}
 
 function popup(uiInfo, {
   createdTs,
@@ -19,7 +33,7 @@ function popup(uiInfo, {
     : templateData.validity;
 
   const [diff, diffUnit, isExpiredSoon] = calculateValidity(expirationTime);
-  const validity = expirationTime
+  const validity = expirationTime && diff != null
     ? {
       text: `${getMessage('offers_expires_in')} ${diff} ${getMessage(diffUnit)}`,
       isExpiredSoon,
@@ -59,6 +73,7 @@ function tooltip(uiInfo) {
 
   if (notifType === 'tooltip_extra') {
     return {
+      ...commonData(),
       showTooltip: true,
       logo: uiInfo.template_data.logo_dataurl,
       headline: headline || title,
@@ -67,16 +82,15 @@ function tooltip(uiInfo) {
       backgroundColor,
       logoClass,
       backgroundImage: logoDataurl,
-      isWebExtension: config.platform === 'webextension',
     };
   }
 
   return {
+    ...commonData(),
     showTooltip: true,
     isGeneric: true,
     headline: getMessage('offers_hub_tooltip_new_offer'),
     icon: `${config.baseURL}offers-cc/images/offers-cc-icon-white.svg`,
-    isWebExtension: config.platform === 'webextension',
   };
 }
 
@@ -95,9 +109,9 @@ function popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs }) {
       type: 'offers-cc',
     },
     data: {
+      ...commonData(),
       vouchers: [offer],
       showExpandButton: false,
-      isWebExtension: config.platform === 'webextension',
     }
   };
   return [true, payload];
@@ -114,9 +128,9 @@ function tooltipWrapper(offerId, {
       isPair: true,
       tooltip: tooltip(uiInfo),
       popup: {
+        ...commonData(),
         vouchers: [popup(uiInfo, { offerId, expirationMs, createdTs, attrs })],
         showExpandButton: false,
-        isWebExtension: config.platform === 'webextension',
       },
     },
     offerId,
@@ -175,9 +189,9 @@ export function transformMany({ offers, preferredOffer } = {}) {
     return {
       config: offersConfig,
       data: {
+        ...commonData(),
         vouchers: [newPreferredOffer].concat(withoutPreferred),
         showExpandButton: withoutPreferred.length > 0,
-        isWebExtension: config.platform === 'webextension',
       }
     };
   }
@@ -185,10 +199,10 @@ export function transformMany({ offers, preferredOffer } = {}) {
   return {
     config: offersConfig,
     data: {
+      ...commonData(),
       vouchers: newOffers,
       noVoucher: newOffers.length === 0,
       showExpandButton: false,
-      isWebExtension: config.platform === 'webextension',
     }
   };
 }

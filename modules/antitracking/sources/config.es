@@ -1,9 +1,10 @@
 import * as persist from '../core/persistent-state';
-import events from '../core/events';
-import ResourceLoader from '../core/resource-loader';
-import resourceManager from '../core/resource-manager';
 import prefs from '../core/prefs';
 import config from '../core/config';
+import asyncPrefs from '../platform/async-storage';
+import { getConfigTs } from './time';
+import events from '../core/events';
+import { fetch } from '../core/http';
 
 const SETTINGS = config.settings;
 const VERSIONCHECK_URL = `${SETTINGS.CDN_BASEURL}/anti-tracking/whitelist/versioncheck.json`;
@@ -13,7 +14,6 @@ const PROTECTION = 'antitrackingProtectionEnabled';
 
 
 export const VERSION = '0.102';
-export const MIN_BROWSER_VERSION = 35;
 
 export const TELEMETRY = {
   DISABLED: 0,
@@ -32,12 +32,13 @@ export const DEFAULTS = {
   qsEnabled: Object.prototype.hasOwnProperty.call(SETTINGS, PROTECTION)
     ? SETTINGS[PROTECTION] : true,
   bloomFilterEnabled: true,
-  telemetryMode: TELEMETRY.ALL,
+  telemetryMode: TELEMETRY.TRACKERS_ONLY,
   sendAntiTrackingHeader: true,
   blockCookieNewToken: false,
   tpDomainDepth: 2,
   firstPartyIsolation: false,
   tokenTelemetry: {},
+  databaseEnabled: true,
 };
 
 export const PREFS = {
@@ -109,41 +110,40 @@ export default class Config {
     }
   }
 
-  init() {
-    const versionCheckLoader = new ResourceLoader(['antitracking', 'versioncheck.json'], {
-      remoteURL: this.versionCheckUrl,
-      cron: 1000 * 60 * 60 * 12,
-      remoteOnly: true
+  async init() {
+    await this._loadConfig();
+    this._prefListener = events.subscribe('prefchange', (pref) => {
+      if (pref === 'config_ts') {
+        this._loadConfig();
+      }
     });
-    resourceManager.addResourceLoader(versionCheckLoader, this._updateVersionCheck.bind(this));
-
-    const configLoader = new ResourceLoader(['antitracking', 'config.json'], {
-      remoteURL: CONFIG_URL,
-      cron: 1000 * 60 * 60 * 12,
-    });
-    resourceManager.addResourceLoader(configLoader, this._updateConfig.bind(this));
-    return Promise.resolve();
   }
 
   unload() {
+    if (this._prefListener) {
+      this._prefListener.unsubscribe();
+      this._prefListener = null;
+    }
   }
 
-  _updateVersionCheck(versioncheck) {
-    // config in versioncheck
-
-    if (versioncheck.shortTokenLength) {
-      persist.setValue('shortTokenLength', versioncheck.shortTokenLength);
-      this.shortTokenLength = parseInt(versioncheck.shortTokenLength, 10) || this.shortTokenLength;
+  async _loadConfig() {
+    const storedConfig = await asyncPrefs.multiGet(['attrack.configLastUpdate', 'attrack.config']);
+    const lastUpdate = storedConfig.reduce((obj, kv) => Object.assign(obj, { [kv[0]]: kv[1] }), {});
+    const day = prefs.get('config_ts', null) || getConfigTs();
+    if (storedConfig.length === 2 && lastUpdate['attrack.configLastUpdate'] === day) {
+      this._updateConfig(JSON.parse(lastUpdate['attrack.config']));
+      return;
     }
-
-    if (versioncheck.safekeyValuesThreshold) {
-      persist.setValue('safekeyValuesThreshold', versioncheck.safekeyValuesThreshold);
-      this.safekeyValuesThreshold = parseInt(versioncheck.safekeyValuesThreshold, 10)
-                                    || this.safekeyValuesThreshold;
+    try {
+      const conf = await (await fetch(CONFIG_URL)).json();
+      this._updateConfig(conf);
+      await asyncPrefs.multiSet([
+        ['attrack.configLastUpdate', day],
+        ['attrack.config', JSON.stringify(conf)],
+      ]);
+    } catch (e) {
+      setTimeout(this._loadConfig.bind(this), 30000);
     }
-
-    // fire events for list update
-    events.pub('attrack:updated_config', versioncheck);
   }
 
   _updateConfig(conf) {

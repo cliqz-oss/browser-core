@@ -44,19 +44,19 @@ export default class BlockLog {
 
   /**
    * Add an entry to the block log
-   * @param {String} sourceUrl domain name of where this block happened
+   * @param {String} tabUrl domain name of where this block happened
    * @param {String} tracker   the 3rd party tracker hostname which was blocked
    * @param {String} key       the key for the blocked value
    * @param {String} value     the blocked value
    * @param {String} type      the type of blocked value
    */
-  add(sourceUrl, tracker, key, value, type) {
+  add(tabUrl, tracker, key, value, type) {
     const hour = datetime.getTime();
 
-    this.offerToReporter(sourceUrl, tracker, key, value, type);
+    this.offerToReporter(tabUrl, tracker, key, value, type);
 
     // local logging of blocked tokens
-    this._addLocalBlocked(sourceUrl, tracker, key, value, hour);
+    this._addLocalBlocked(tabUrl, tracker, key, value, hour);
   }
 
   clear() {
@@ -137,13 +137,13 @@ export default class BlockLog {
   /**
    * Check if this block event should be reported via telemetry, and if so, add to the
    * block log
-   * @param  {String} sourceUrl
+   * @param  {String} tabUrl
    * @param  {String} tracker
    * @param  {String} key
    * @param  {String} value
    * @param  {String} type
    */
-  offerToReporter(sourceUrl, tracker, key, value, type) {
+  offerToReporter(tabUrl, tracker, key, value, type) {
     if (this.isInBlockReportList(tracker, key, value)) {
       this._addBlocked(tracker, key, md5(value), type);
     }

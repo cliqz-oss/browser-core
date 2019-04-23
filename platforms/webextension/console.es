@@ -1,3 +1,3 @@
 import { window } from './globals';
 
-export default window.console;
+export default (window && window.console) || console;

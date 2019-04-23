@@ -128,7 +128,7 @@ export default class OAuthDetector {
   }
 
   checkMainFrames(state) {
-    if (state.isFullPage()) {
+    if (state.isMainFrame) {
       this.subjectMainFrames.next(state);
     }
   }
@@ -145,14 +145,14 @@ export default class OAuthDetector {
    */
   checkIsOAuth(state, type) {
     const oAuthUrls = ['/oauth', '/authorize'];
-    const mapper = oAuthUrl => state.urlParts.path.indexOf(oAuthUrl) > -1;
+    const mapper = oAuthUrl => state.urlParts.pathname.indexOf(oAuthUrl) > -1;
     const reducer = (accumulator, currentValue) => accumulator || currentValue;
     const isOAuthFlow = oAuthUrls.map(mapper).reduce(reducer);
 
     if (isOAuthFlow
       && this.clickActivity[state.tabId] && this.siteActivitiy[state.urlParts.hostname]) {
       const clickedPage = URLInfo.get(this.clickActivity[state.tabId]);
-      if (clickedPage !== null && clickedPage.hostname === state.sourceUrlParts.hostname) {
+      if (clickedPage !== null && clickedPage.hostname === state.tabUrlParts.hostname) {
         state.incrementStat(`${type}_allow_oauth`);
         return false;
       }

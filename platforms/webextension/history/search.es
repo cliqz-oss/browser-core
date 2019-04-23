@@ -6,7 +6,7 @@ const URL_PREFIX_BLACKLIST = [
   'moz-extension://',
   'chrome-extension://',
 ];
-const unifiedSearchAvailable = chrome.cliqz && chrome.cliqz.unifiedSearch;
+const unifiedSearchAvailable = chrome.cliqzHistory && chrome.cliqzHistory.unifiedSearch;
 
 function isURLBlacklisted(url) {
   return URL_PREFIX_BLACKLIST.find(prefix => url.indexOf(prefix) === 0);
@@ -37,18 +37,22 @@ if (chrome.bookmarks && !unifiedSearchAvailable) {
 
 let openedURLs = new Set();
 
-function updateOpenedTabsCache() {
+function updateOpenedTabsCache(type, id) {
   if (chrome.windows) {
     chrome.windows.getAll({ populate: true, windowTypes: ['normal'] }, (windows) => {
       openedURLs = new Set();
-      windows.forEach(w => w.tabs.forEach(tab => openedURLs.add(tab.url)));
+      windows.forEach(w => w.tabs.forEach((tab) => {
+        if (type !== 'onremoved' || tab.id !== id) {
+          openedURLs.add(tab.url);
+        }
+      }));
     });
   }
 }
 
 if (chrome.tabs && !unifiedSearchAvailable) {
   chrome.tabs.onCreated.addListener(updateOpenedTabsCache);
-  chrome.tabs.onRemoved.addListener(updateOpenedTabsCache);
+  chrome.tabs.onRemoved.addListener(updateOpenedTabsCache.bind(null, 'onremoved'));
   chrome.tabs.onUpdated.addListener(updateOpenedTabsCache);
   chrome.tabs.onReplaced.addListener(updateOpenedTabsCache);
   updateOpenedTabsCache();
@@ -57,7 +61,7 @@ if (chrome.tabs && !unifiedSearchAvailable) {
 export default function getHistory(query, callback) {
   // we use the unified search experimental API in the Cliqz browser
   if (unifiedSearchAvailable) {
-    chrome.cliqz.unifiedSearch(query).then(callback);
+    chrome.cliqzHistory.unifiedSearch(query).then(callback);
     return;
   }
 

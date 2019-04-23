@@ -1,5 +1,5 @@
 import templates from './templates';
-import { equals, isCliqzAction } from '../core/content/url';
+import { URLInfo } from '../core/url-info';
 
 const getEventTarget = (ev) => {
   let targetElement = ev.originalTarget || ev.target;
@@ -16,13 +16,14 @@ export default class Dropdown {
     this.rootElement = element;
     this.window = window;
     this.actions = actions;
+    this.currentSessionId = -1;
   }
 
   init() {
     this.rootElement.innerHTML = templates.main();
     this.dropdownElement.addEventListener('click', this.onClick);
     this.dropdownElement.addEventListener('auxclick', this.onClick);
-    this.dropdownElement.addEventListener('mousemove', this.onMouseMove);
+    this.dropdownElement.addEventListener('mousemove', this.onMouseMove, { passive: true });
   }
 
   get dropdownElement() {
@@ -55,24 +56,33 @@ export default class Dropdown {
     return this.updateSelection();
   }
 
-  clearSelection() {
+  clearResultClass(className) {
     [...this.rootElement.querySelectorAll('a')].forEach(
-      anchor => anchor.classList.remove('selected')
+      anchor => anchor.classList.remove(className)
     );
+  }
+
+  setResultClass(result, className) {
+    this.clearResultClass(className);
+    const el = this.getResultElement(result);
+    if (el) {
+      el.classList.add(className);
+    }
   }
 
   getResultElement(result) {
     if (!result) {
       return null;
     }
-    return [...this.rootElement.querySelectorAll('a')].find(a => equals(a.dataset.url, result.url)) || null;
+    return [...this.rootElement.querySelectorAll('a')].find(a => a.dataset.url === result.url) || null;
   }
 
   selectResult(result) {
-    const el = this.getResultElement(result);
-    if (el) {
-      el.classList.add('selected');
-    }
+    this.setResultClass(result, 'selected');
+  }
+
+  highlightResult(result) {
+    this.setResultClass(result, 'hovered');
   }
 
   scrollToResult(result) {
@@ -96,19 +106,42 @@ export default class Dropdown {
   }
 
   updateSelection() {
-    this.clearSelection();
     this.selectResult(this.selectedResult);
     this.actions.reportHighlight(this.selectedResult.serialize());
     return this.selectedResult;
   }
 
   clear() {
+    this.selectedIndex = 0;
     this.dropdownElement.innerHTML = '';
   }
 
-  renderResults(results, { urlbarAttributes, extensionId, channelId } = {}) {
-    this.selectedIndex = 0;
+  getSelectedResultIndex(newResults, sessionId) {
+    if (this.currentSessionId === sessionId
+      && this.selectedIndex > 0
+      && this.results && newResults
+      && this.results.query === newResults.query
+      && this.selectedResult
+    ) {
+      const keepResult = this.newResults.findSelectable(this.selectedResult.url);
+      if (keepResult) {
+        return this.newResults.indexOf(keepResult);
+      }
+    }
+
+    return 0;
+  }
+
+  renderResults(results, {
+    urlbarAttributes,
+    extensionId,
+    channelId,
+    isRerendering,
+    sessionId,
+  } = {}) {
+    this.selectedIndex = this.getSelectedResultIndex(results, sessionId);
     this.results = results;
+    this.currentSessionId = sessionId;
 
     if (extensionId) {
       this.dropdownElement.dataset.extensionId = extensionId;
@@ -127,13 +160,6 @@ export default class Dropdown {
 
     if (urlbarAttributes) {
       this.dropdownElement.style.setProperty('--content-padding-start', `${urlbarAttributes.padding}px`);
-
-      const urlbarBottomLine = this.window.document.createElement('div');
-      urlbarBottomLine.setAttribute('class', 'urlbar-bottom-line');
-      urlbarBottomLine.style.left = `${urlbarAttributes.left}px`;
-      urlbarBottomLine.style.width = `${urlbarAttributes.width}px`;
-
-      this.dropdownElement.prepend(urlbarBottomLine);
     }
 
     // Nofify results that have been rendered
@@ -146,11 +172,12 @@ export default class Dropdown {
 
     [...this.rootElement.querySelectorAll('a')].forEach((anchor) => {
       anchor.addEventListener('mousedown', ev => ev.preventDefault());
-      anchor.addEventListener('auxclick', ev => ev.preventDefault());
       anchor.addEventListener('click', ev => ev.preventDefault());
     });
 
-    this.selectResult(this.results.firstResult);
+    if (!isRerendering) {
+      this.selectResult(this.selectedResult);
+    }
 
     const historyResults = this.rootElement.querySelectorAll('.history');
     if (historyResults.length > 0) {
@@ -159,10 +186,11 @@ export default class Dropdown {
   }
 
   onClick = (ev) => {
-    // We use the same listener for events 'click' (for handling left clicks)
-    // and 'auxclick' (for handlings middle and right clicks).
+    // We use the same listener for events 'click' for handling left clicks
+    // and 'auxclick' for handlings middle clicks.
     // Make sure we don't handle same event twice.
-    if (ev.type === 'click' && ev.button !== 0) {
+    if ((ev.type === 'click' && ev.button !== 0)
+      || (ev.type === 'auxclick' && ev.button !== 1)) {
       return;
     }
 
@@ -180,26 +208,26 @@ export default class Dropdown {
       return;
     }
 
-    if (ev.button === 2) {
-      const subresult = isCliqzAction(href) ? result : result.findResultByUrl(href);
+    // We cannot prevent Firefox from opening a new page on middle click
+    // (see https://bugzilla.mozilla.org/show_bug.cgi?id=1374096 for details).
+    // So we let browser do it, while setting `handledByBrowser` flag,
+    // in order to skip handling middleclick ourselves, but still report telemetry.
+    const handledByBrowser = ev.type === 'auxclick'
+      && ev.button === 1
+      && resultElement.hasAttribute('href')
+      // Firefox won't open "about:" page from webextension page
+      && URLInfo.get(href)
+      && URLInfo.get(href).protocol !== 'about';
 
-      this.actions.openContextMenu(subresult.serialize(), { x: ev.screenX, y: ev.screenY });
-    } else {
-      const elementName = targetElement.getAttribute('data-extra');
-      result.click(href, ev, { elementName });
-      // In web-ext clicking on result doesn't focus on iframe,
-      // hence we don't give focus back to urlbar
-      window.focus();
-    }
+    const elementName = targetElement.getAttribute('data-extra');
+    result.click(href, ev, { elementName, handledByBrowser });
   };
 
   onMouseMove = (ev) => {
     const targetElement = getEventTarget(ev);
-
     if (this.lastTarget === targetElement) {
       return;
     }
-
     this.lastTarget = targetElement;
 
     const now = Date.now();
@@ -208,27 +236,20 @@ export default class Dropdown {
     }
     this.lastMouseMove = now;
 
-    // TODO: merge with onMouseUp handler
     const resultElement = targetElement.closest('.result');
-
-    if (!resultElement) {
-      this.clearSelection();
-      this.selectedIndex = 0;
-      return;
-    }
-
-    if (resultElement.classList.contains('non-selectable')) {
+    if (!resultElement || resultElement.classList.contains('non-selectable')) {
       return;
     }
 
     const href = resultElement.dataset.url;
-    const resultIndex = this.results.selectableResults.findIndex(r => equals(r.url, href));
-
-    this.clearSelection();
-
-    if (resultIndex !== -1) {
-      this.selectedIndex = resultIndex;
-      this.updateSelection();
+    const resultIndex = this.results.selectableResults.findIndex(r => r.url === href);
+    const result = this.results.get(resultIndex);
+    if (this.lastHoveredResult === result || resultIndex === -1) {
+      return;
     }
+
+    this.lastHoveredResult = result;
+    this.highlightResult(result);
+    this.actions.reportHover(result.serialize());
   };
 }

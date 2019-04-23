@@ -200,7 +200,7 @@ to send to our backend.
 
 Example (this would be in the file: `analyses/adblocker-loading-time.es`):
 ```javascript
-import Stats from '../../platform/lib/simple-statistics';
+import { mean } from '../analyses-utils';
 
 export default {
   name: 'adblocker-loading-time',
@@ -216,7 +216,7 @@ export default {
     }
 
     return [{
-      loading_time: Stats.mean(loading_times.map(({ ms }) => ms)),
+      loading_time: mean(loading_times.map(({ ms }) => ms)),
     }];
   },
   schema: {

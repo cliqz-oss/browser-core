@@ -23,10 +23,10 @@ const systemConfig = {
     'qrcodejs': 'node_modules/qrcodejs/qrcode.min.js',
     'plugin-json': 'node_modules/systemjs-plugin-json/json.js',
     'pako': 'node_modules/pako/dist/pako.js',
-    'fast-url-parser': 'modules/platform/lib/fast-url-parser',
     'react-tooltip': 'react-tooltip/standalone/react-tooltip.js',
     'rxjs/operators': 'rxjs/operators/index',
     'deep-equal': 'modules/platform/lib/deep-equal',
+    'tldts': 'node_modules/tldts/dist/tldts-experimental.umd.min.js',
   },
   paths: {
     'specific/*': './specific/firefox/*',
@@ -50,9 +50,6 @@ const systemConfig = {
     modules: {
       defaultJSExtensions: true,
       //format: 'system',
-      map: {
-        './platform/tldts': 'node_modules/tldts/dist/tldts.umd.min.js'
-      },
       meta: {
         './platform*/lib/zlib.lib.js': {
           'format': 'cjs'
@@ -64,9 +61,6 @@ const systemConfig = {
           'format': 'system'
         },
         './platform*/video-downloader/lib/ytdl-core.js': {
-          'format': 'system'
-        },
-        './platform*/lib/fast-url-parser.js': {
           'format': 'system'
         },
         './platform*/lib/deep-equal.js': {

@@ -1,0 +1,166 @@
+[{
+  "namespace": "cliqz",
+  "description": "API giving overring various low level functionalities",
+  "functions": [{
+    "name": "changeAddonState",
+    "type": "function",
+    "description": "Changes the state of an addon enabled/disabled",
+    "async": "callback",
+    "parameters": [
+      {
+        "name": "id",
+        "type": "string",
+        "description": "ID of the add-on to enable/disable."
+      },
+      {
+        "name": "enabled",
+        "type": "boolean",
+        "description": "Whether to enable or disable the add-on."
+      }
+    ]
+  },
+  {
+    "name": "setTheme",
+    "type": "function",
+    "description": "Set browser theme",
+    "async": "callback",
+    "parameters": [
+      {
+        "name": "themeId",
+        "type": "string",
+        "description": "themeId"
+      },
+      {
+        "name": "callback",
+        "type": "function",
+        "parameters": []
+      }
+    
+    ]
+  },
+  {
+    "name": "getTheme",
+    "type": "function",
+    "description": "gerlhrt browser theme",
+    "async": "callback",
+    "parameters": [
+      {
+        "name": "callback",
+        "type": "function",
+        "parameters": []
+      }
+    ]
+  },
+  {
+    "name": "initTheme",
+    "type": "function",
+    "description": "Add stylesheet",
+    "async": "callback",
+    "parameters": [
+      {
+        "name": "url",
+        "type": "string"
+      }
+    ]
+  },
+  {
+    "name": "getSearchEngines",
+    "type": "function",
+    "description": "Returns all complementary search engines that come from the browser searchplugins/list.json",
+    "async": "callback",
+    "parameters": []
+  },
+  {
+    "name": "setSelectedSearchEngine",
+    "type": "function",
+    "description": "Sets a new selected complementary search engine as a default",
+    "async": "callback",
+    "parameters": [
+      {
+        "name": "nextSearchEngineName",
+        "type": "string"
+      }
+    ]
+  },
+  {
+    "name": "openImportDialog",
+    "type": "function",
+    "description": "Open the Import Settings and Data dialog",
+    "async": "callback",
+    "parameters": []
+  },
+  {
+    "name": "setPref",
+    "type": "function",
+    "async": "callback",
+    "description": "set the value of browser pref",
+    "parameters": [
+      {
+        "type": "string",
+        "name": "prefName",
+        "description": "Browser pref name"
+      },
+      {
+        "type": "any",
+        "name": "value",
+        "description": "Browser pref value"
+      }
+    ]
+  },
+  {
+    "name": "getPref",
+    "type": "function",
+    "description": "get the value of browser pref",
+    "parameters": [
+      {
+        "type": "string",
+        "name": "prefName",
+        "description": "Browser pref name"
+      }
+    ],
+    "returns": {
+      "description": "Constant value"
+    }
+  },
+  {
+    "name": "hasPref",
+    "type": "function",
+    "description": "checks if browser pref is set",
+    "parameters": [
+      {
+        "type": "string",
+        "name": "prefName",
+        "description": "Browser pref name"
+      }
+    ],
+    "returns": {
+      "description": "Constant value"
+    }
+  },
+  {
+    "name": "isDefaultBrowser",
+    "type": "function",
+    "description": "checks if the browser is default",
+    "async": "callback",
+    "parameters": []
+  }],
+  "events": [
+    {
+      "name": "onPrefChange",
+      "type": "function",
+      "description": "Listen to pref change",
+      "extraParameters": [
+        {
+          "name": "prefix",
+          "description": "prefix of pref name",
+          "type": "string"
+        },
+        {
+          "name": "key",
+          "description": "key of pref without prefix",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}]

@@ -195,7 +195,8 @@
 
                 &.plus-dial-icon {
                     opacity: $dial-button-plus-opacity;
-                    margin-top: 12px;
+                    margin-top: 10px;
+                    border-radius: 4px;
                     width: $logo-size;
                     height: $logo-size;
                     background: $dial-button-plus-background;

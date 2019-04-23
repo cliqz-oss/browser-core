@@ -1,3 +1,6 @@
+import Task from './internals/task';
+import logger from './internals/logger';
+
 // Import metrics
 import freshtabSignalDefinitions from './metrics/freshtab';
 import mobileSignalDefinitions from './metrics/mobile/favorites-migration-folders';
@@ -14,8 +17,8 @@ import coreMetrics from './metrics/core';
 import antitrackingTokenMetrics from './metrics/performance/antitracking-tokens';
 import consentricDefinitions from './metrics/consentric';
 import moduleStartupPerformanceMetrics from './metrics/performance/modules-startup';
+import resourceLoadersPerformanceMetrics from './metrics/performance/resource-loaders';
 import adblockerMetrics from './metrics/adblocker';
-import cliqzForFriendsMetrics from './metrics/cliqz-for-friends';
 
 // Analyses
 import retention from './analyses/retention';
@@ -42,7 +45,6 @@ import webrequestPipelinePerformances from './analyses/performance/webrequest-pi
 import generalPerformances from './analyses/performance/general';
 import antitrackingTokenAnalyses from './analyses/performance/antitracking-tokens';
 import consentric from './analyses/consentric';
-import cliqzForFriendsAnalyses from './analyses/cliqz-for-friends';
 
 /**
  * This file is used to list all available metrics and analyses in use by
@@ -55,13 +57,13 @@ import cliqzForFriendsAnalyses from './analyses/cliqz-for-friends';
 // used by analyses to generate aggregated signals.
 //
 // This behavior can be overriden in each signal, by setting "sendToBackend" to true.
-const metrics = [
+const metrics = () => [
   abtestsSignalDefinition,
   ...controlCenterSignalDefinitions,
-  ...freshtabSignalDefinitions,
+  ...freshtabSignalDefinitions(),
   ...mobileSignalDefinitions,
   ...cookieMonsterDefinitions,
-  ...searchSignalDefinitions,
+  ...searchSignalDefinitions(),
   ...experimentsSignalDefinitions,
   ...historyVisitsSignalDefinitions,
   ...internalAnolysisMetrics,
@@ -70,9 +72,9 @@ const metrics = [
   generalPerformancesMetrics,
   ...antitrackingTokenMetrics,
   ...consentricDefinitions,
-  ...cliqzForFriendsMetrics,
   ...adblockerMetrics,
   moduleStartupPerformanceMetrics,
+  resourceLoadersPerformanceMetrics,
 ].map(schema => ({
   ...schema,
   description: schema.description || 'missing description',
@@ -82,7 +84,7 @@ const metrics = [
 // Analyses are only generated once a day, and make use of metrics to generate
 // aggregations. They are always "sendToBackend", which means that once generated
 // they are sent to Cliqz' backend.
-const analyses = [
+const analyses = () => [
   controlCenter,
   freshtabActivity,
   freshtabSettings,
@@ -93,25 +95,62 @@ const analyses = [
   cookieMonsterPerf,
   ...activeUser,
   ...retention,
-  ...searchSchemas,
+  ...searchSchemas(),
   ...dropdownSchemas,
-  ...serpSchemas,
+  ...serpSchemas(),
   ...serpAlternativeSchemas,
   ...serpRetentionWeeklySchemas,
-  ...newsSearchSchemas,
+  ...newsSearchSchemas(),
   ...historyVisitsSchemas,
   webrequestPipelinePerformances,
   generalPerformances,
   ...antitrackingTokenAnalyses,
-  ...consentric,
-  ...cliqzForFriendsAnalyses,
+  ...consentric(),
 ].map(schema => ({
   ...schema,
   description: schema.description || 'missing description',
   sendToBackend: true,
 }));
 
-export default [
-  ...metrics,
-  ...analyses,
-];
+function createTasksFromDefinitions(definitions) {
+  const tasks = [];
+  for (let i = 0; i < definitions.length; i += 1) {
+    const definition = definitions[i];
+    const name = definition.name;
+    logger.debug('Register definition', name);
+    tasks.push(new Task(definition));
+  }
+  return tasks;
+}
+
+class SchemasManager {
+  constructor() {
+    this._metrics = null;
+    this._analyses = null;
+  }
+
+  get metrics() {
+    if (this._metrics === null) {
+      this._metrics = createTasksFromDefinitions(metrics());
+    }
+
+    return this._metrics;
+  }
+
+  get analyses() {
+    if (this._analyses === null) {
+      this._analyses = createTasksFromDefinitions(analyses());
+    }
+
+    return this._analyses;
+  }
+
+  get schemas() {
+    return [
+      ...this.metrics,
+      ...this.analyses,
+    ];
+  }
+}
+
+export default new SchemasManager();

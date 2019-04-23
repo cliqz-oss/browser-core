@@ -5,6 +5,7 @@ import {
   clearPref,
   init,
   getAllCliqzPrefs,
+  PLATFORM_TELEMETRY_WHITELIST,
 } from '../platform/prefs';
 
 export default {
@@ -80,6 +81,9 @@ const TELEMETRY_WHITELIST = new Set([
   'hpn-query', // query (search) though HPN
   'humanWebOptOut', // human web state
   'install_date', // self explanatory :)
+  // TODO: Lumen protection state should be independent from environment signal;
+  //       to be moved to a dedicated metric and analysis if Lumen is continued
+  'lumen.protection.isEnabled', // Lumen: protection state (blocking + anti-phishing)
   'offers_location', // local offers
   'offers2UserEnabled', // offers state
   'offersDevFlag', // offers dev flag
@@ -97,6 +101,10 @@ export function getCliqzPrefs() {
   for (let i = 0; i < cliqzPrefsKeys.length; i += 1) {
     cliqzPrefs[cliqzPrefsKeys[i]] = getPref(cliqzPrefsKeys[i]);
   }
+
+  PLATFORM_TELEMETRY_WHITELIST.forEach((key) => {
+    cliqzPrefs[key] = getPref(key, undefined, '');
+  });
 
   return cliqzPrefs;
 }

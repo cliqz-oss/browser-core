@@ -1,26 +1,6 @@
+
 export function isCliqzAction(url) {
   return url.match(/^cliqz-actions,/);
-}
-
-// TODO: @chrmod - bring back something like platform quals
-export function equals(url1, url2) {
-  if (!url1 || !url2) {
-    return false;
-  }
-
-  if (url1 === url2) {
-    return true;
-  }
-
-  try {
-    if (decodeURI(url1) === decodeURI(url2)) {
-      return true;
-    }
-  } catch (e) {
-    return false;
-  }
-
-  return false;
 }
 
 export function cleanMozillaActions(url = '') {
@@ -44,7 +24,8 @@ export function cleanMozillaActions(url = '') {
 }
 
 export function urlStripProtocol(url, { stripTrailingSlash } = { stripTrailingSlash: true }) {
-  let resultUrl = url.toLowerCase();
+  let lowerCaseURL = url.toLowerCase();
+  let resultUrl = url;
   const toRemove = [
     'https://', 'http://',
     'www2.', 'www.',
@@ -53,8 +34,9 @@ export function urlStripProtocol(url, { stripTrailingSlash } = { stripTrailingSl
 
   for (let i = 0; i < toRemove.length; i += 1) {
     const part = toRemove[i];
-    if (resultUrl.startsWith(part)) {
+    if (lowerCaseURL.startsWith(part)) {
       resultUrl = resultUrl.substr(part.length);
+      lowerCaseURL = lowerCaseURL.substr(part.length);
     }
   }
 

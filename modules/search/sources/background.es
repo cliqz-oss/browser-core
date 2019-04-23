@@ -1,6 +1,7 @@
 import { share } from 'rxjs/operators';
 import background from '../core/base/background';
-import utils from '../core/utils';
+import telemetry from '../core/services/telemetry';
+import { getWindow } from '../core/browser';
 import prefs from '../core/prefs';
 import inject from '../core/kord/inject';
 import { promiseHttpHandler } from '../core/http';
@@ -30,19 +31,23 @@ import RichHeader, { getRichHeaderQueryString } from './providers/rich-header';
 import getThrottleQueries from './operators/streams/throttle-queries';
 
 import logger from './logger';
-import telemetry from './telemetry';
+import searchTelemetry from './telemetry';
+import performance from './performanceTelemetry';
 import telemetryLatency from './telemetry-latency';
 import getConfig from './config';
 import search from './search';
 import getSnippet from './rich-header-snippet';
 import addCustomSearchEngines from './search-engines/add-custom-search-engines';
+import searchSessionService from './services/search-session';
 
 import AdultAssistant from './assistants/adult';
 import LocationAssistant from './assistants/location';
 import * as offersAssistant from './assistants/offers';
 import settingsAssistant from './assistants/settings';
 import pluckResults from './operators/streams/pluck-results';
-import { isMobile } from '../core/platform';
+import config from '../core/config';
+import { bindAll } from '../core/helpers/bind-functions';
+import { chrome } from '../platform/globals';
 
 /**
   @namespace search
@@ -50,10 +55,20 @@ import { isMobile } from '../core/platform';
   @class Background
  */
 export default background({
-  requiresServices: ['search-services', 'logos'],
+  requiresServices: ['search-services', 'logos', 'cliqz-config', 'geolocation', 'telemetry', 'search-session'],
+  providesServices: {
+    'search-session': searchSessionService,
+  },
 
   core: inject.module('core'),
   search: inject.module('search'),
+  insights: inject.module('insights'),
+
+  geolocation: inject.service('geolocation', [
+    'updateGeoLocation',
+    'resetGeoLocation',
+    'waitForGeolocation',
+  ]),
 
   /**
     @method init
@@ -61,12 +76,11 @@ export default background({
   */
   init(settings) {
     this.settings = settings;
-    const geolocation = inject.module('geolocation');
     this.searchSessions = new Map();
     this.adultAssistant = new AdultAssistant();
     this.locationAssistant = new LocationAssistant({
-      updateGeoLocation: geolocation.action.bind(geolocation, 'updateGeoLocation'),
-      resetGeoLocation: geolocation.action.bind(geolocation, 'resetGeoLocation'),
+      updateGeoLocation: () => this.geolocation.updateGeoLocation(),
+      resetGeoLocation: () => this.geolocation.resetGeoLocation(),
     });
 
     addCustomSearchEngines();
@@ -80,10 +94,22 @@ export default background({
       querySuggestions: new QuerySuggestions(),
       richHeader: new RichHeader(settings), //
     };
+
+    if (chrome.webRequest) {
+      // some platforms might not have webRequest
+      performance.init();
+    }
+  },
+
+  resetAssistantStates() {
+    this.adultAssistant.resetAllowOnce();
+    this.locationAssistant.resetAllowOnce();
   },
 
   unload() {
-
+    if (chrome.webRequest) {
+      performance.unload();
+    }
   },
 
   beforeBrowserShutdown() {
@@ -98,6 +124,7 @@ export default background({
       prefs.clear('backend_country.override');
       prefs.set('backend_country', country);
     },
+    ...bindAll(performance.events, performance),
   },
 
   actions: {
@@ -114,7 +141,6 @@ export default background({
     },
     reportSelection(selectionReport, { contextId, tab: { id: tabId } = {} } = { tab: {} }) {
       const sessionId = tabId || contextId;
-
       if (!this.searchSessions.has(sessionId)) {
         return;
       }
@@ -123,24 +149,30 @@ export default background({
 
       selectionEventProxy.next(selectionReport);
     },
-    stopSearch({ contextId, tab: { id: tabId } = {} } = { tab: {} }) {
+    stopSearch(
+      { entryPoint } = {},
+      { contextId, tab: { id: tabId } = {} } = { tab: {} }
+    ) {
       const sessionId = tabId || contextId;
 
+      this.resetAssistantStates();
       if (!this.searchSessions.has(sessionId)) {
         return;
       }
 
       const {
         telemetrySubscription,
+        telemetryResultsSubscription,
         telemetryLatencySubscription,
         resultsSubscription,
         focusEventProxy,
       } = this.searchSessions.get(sessionId);
 
-      focusEventProxy.next({ event: 'blur' });
+      focusEventProxy.next({ event: 'blur', entryPoint });
 
       resultsSubscription.unsubscribe();
       telemetrySubscription.unsubscribe();
+      telemetryResultsSubscription.unsubscribe();
       telemetryLatencySubscription.unsubscribe();
 
       this.searchSessions.delete(sessionId);
@@ -159,7 +191,7 @@ export default background({
         isPrivate = false,
         isTyped = true,
         keyCode,
-        forceUpdate = !isMobile,
+        forceUpdate = !config.isMobile,
       } = {},
       { contextId, tab: { id: tabId } = {} } = { tab: {} },
     ) {
@@ -212,15 +244,43 @@ export default background({
           share()
         );
 
-      const telemetry$ = telemetry(focus$, query$, results$, selection$);
+      const telemetry$ = searchTelemetry(focus$, query$, results$, selection$, highlight$);
       const telemetrySubscription = telemetry$.subscribe(
-        data => utils.telemetry(data, false, 'search.session'),
+        data => telemetry.push(data, 'search.session'),
         error => logger.error('Failed preparing telemetry', error)
+      );
+
+      // For insights module to calculate search time saved
+      const telemetryResultsSubscription = telemetry$.subscribe(
+        (data) => {
+          if (_config.isPrivateMode || !this.insights.isPresent()) {
+            return; // Don't count in private mode
+          }
+
+          if (Number.isInteger(data.selection.index)) { // If user selected a result
+            if (data.selection.sources[0] === 'custom-search') {
+              return; // Alternative search engine, we don't count this
+            }
+
+            if (['C', 'H'].indexOf(data.selection.sources[0]) !== -1) { // History result
+              this.insights.action('insertSearchStats', { historySelected: 1 });
+            } else { // Organic result
+              this.insights.action('insertSearchStats', { organicSelected: 1 });
+            }
+            return;
+          }
+          // When no result was selected, check if a smartcliqz was shown
+          if (data.results && data.results.some(result =>
+            result.sources[0] === 'X' && result.classes[0] !== 'EntityGeneric')) {
+            this.insights.action('insertSearchStats', { smartCliqzTriggered: 1 });
+          }
+        },
+        error => logger.error('Failed preparing telemetry', error),
       );
 
       const telemetryLatency$ = telemetryLatency(focus$, query$, results$);
       const telemetryLatencySubscription = telemetryLatency$.subscribe(
-        data => utils.telemetry(data, false, 'metrics.search.latency'),
+        data => telemetry.push(data, 'metrics.search.latency'),
         error => logger.error('Failed preparing latency telemetry', error)
       );
 
@@ -233,33 +293,35 @@ export default background({
           ...meta,
         } = responses.query;
 
-        if (tabId) {
-          this.core.action(
-            'broadcastActionToWindow',
-            tabId,
-            'overlay',
-            'renderResults',
-            results
-          );
-        } else {
-          this.core.action(
-            'broadcast',
-            {
-              action: 'renderResults',
-              args: [results],
-              contextId,
-            },
-          );
-        }
-
-        events.pub('search:results', {
+        const response = {
           tabId: _tabId,
           query: _query,
           queriedAt,
           meta,
           results,
           windowId: sessionId,
-        });
+        };
+
+        if (config.isMobile) {
+          this.core.action(
+            'broadcast',
+            {
+              action: 'renderResults',
+              args: [JSON.stringify(response)],
+              contextId,
+            },
+          );
+        } else if (tabId) {
+          this.core.action(
+            'broadcastActionToWindow',
+            tabId,
+            'overlay',
+            'renderResults',
+            response
+          );
+        }
+
+        events.pub('search:results', response);
       });
 
       focusEventProxy.next({ event: 'focus' });
@@ -281,6 +343,7 @@ export default background({
         highlightEventProxy,
         selectionEventProxy,
         telemetrySubscription,
+        telemetryResultsSubscription,
         resultsSubscription,
         telemetryLatencySubscription,
       });
@@ -288,11 +351,15 @@ export default background({
     /**
      * fetches extra info for result from rich header
      */
-    getSnippet(query, result) {
-      const loc = {
-        latitude: utils.USER_LAT,
-        longitude: utils.USER_LNG,
-      };
+    async getSnippet(query, result) {
+      // Get location from `geolocation` module if available
+      let loc = { latitude: null, longitude: null };
+      try {
+        loc = await this.geolocation.waitForGeolocation();
+      } catch (ex) {
+        /* Could not get geolocation */
+      }
+
       const url = this.settings.RICH_HEADER + getRichHeaderQueryString(
         query,
         loc,
@@ -352,7 +419,7 @@ export default background({
     },
 
     getBackendCountries() {
-      return this.search.windowAction(utils.getWindow(), 'getBackendCountries');
+      return this.search.windowAction(getWindow(), 'getBackendCountries');
     },
 
     setAdultFilter(filter) {
@@ -395,11 +462,6 @@ export default background({
         offers: offersAssistant.getState(),
         settings: settingsAssistant.getState(),
       };
-    },
-
-    resetAssistantStates() {
-      this.adultAssistant.resetAllowOnce();
-      this.locationAssistant.resetAllowOnce();
     },
 
     queryToUrl(query = '') {

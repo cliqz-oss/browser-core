@@ -17,3 +17,12 @@ export function statsHoverSignal(card) {
     target: card,
   });
 }
+
+export function statsDownloadClickSignal() {
+  telemetry({
+    type: 'home',
+    view: 'stats',
+    action: 'click',
+    target: 'download',
+  });
+}

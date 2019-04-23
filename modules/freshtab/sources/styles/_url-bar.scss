@@ -27,7 +27,7 @@
             border: $search-input-border;
             box-shadow: $search-input-box-shadow;
             width: $inner-content-width;
-            padding: 0 40px 0 $search-text-indent;
+            padding: 0 47px 0 $search-text-indent;
             background-repeat: no-repeat;
             font-size: $search-font-size;
             color: $search-input-color;
@@ -42,7 +42,7 @@
         }
 
         &.with-dropdown input {
-            border-radius: 2px 2px 0 0;
+            border-radius: 4px 4px 0 0;
         }
 
         ::-moz-placeholder {

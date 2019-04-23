@@ -2,15 +2,15 @@
 
 import globalConfig from '../core/config';
 import moduleConfig from './config';
-import utils from '../core/utils';
+import telemetry from '../core/services/telemetry';
 import { getDetailsFromUrl } from '../core/url';
 import prefs from '../core/prefs';
 import events from '../core/events';
 import inject from '../core/kord/inject';
 import { getMessage } from '../core/i18n';
-import { isDesktopBrowser, isAMO, isGhostery, getResourceUrl } from '../core/platform';
+import { isDesktopBrowser, isAMO, isGhostery } from '../core/platform';
 import background from '../core/base/background';
-import { getActiveTab } from '../platform/browser';
+import { getActiveTab, getWindow } from '../core/browser';
 import { openLink } from '../platform/browser-actions';
 import { queryTabs, getCurrentTabId } from '../core/tabs';
 
@@ -72,10 +72,11 @@ class IntervalManager {
 }
 
 export default background({
-  // injecting ourselfs to get access to windowModule on webextensions
   core: inject.module('core'),
   antitracking: inject.module('antitracking'),
-  geolocation: inject.module('geolocation'),
+  geolocation: inject.service('geolocation', ['setLocationPermission']),
+
+  requiresServices: ['geolocation', 'telemetry'],
 
 
   init(settings) {
@@ -117,15 +118,18 @@ export default background({
     }
     // wait for tab content to load
     if (!url
-      || url === 'about:blank'
-      || url.startsWith(getResourceUrl(''))) {
+      || url === 'about:blank') {
       return;
     }
 
     const updateBadgeForUrl = async () => {
       if (tabId !== undefined && url) {
-        const info = await this.antitracking.action('getBadgeData', { tabId, url });
-        this.updateBadge(tabId, info);
+        try {
+          const info = await this.antitracking.action('getBadgeData', { tabId, url });
+          this.updateBadge(tabId, info);
+        } catch (e) {
+          // pass
+        }
       }
     };
 
@@ -144,7 +148,11 @@ export default background({
 
   updateBadge(tabId, info) {
     if (typeof chrome !== 'undefined' && chrome.browserAction2 && info !== undefined) {
-      chrome.browserAction2.setBadgeText({ text: `${info}`, tabId });
+      chrome.browserAction2.setBadgeText({ text: `${info}`, tabId }, () => {
+        if (chrome.runtime.lastError) {
+          // do nothing in case something went wrong
+        }
+      });
     }
   },
 
@@ -152,7 +160,7 @@ export default background({
     // TODO do I have access to the window here?
     return this.core.action(
       'getWindowStatus',
-      utils.getWindow()
+      getWindow()
     ).then((mData) => {
       const moduleData = mData;
       return this.actions.getFrameData().then((ccData) => {
@@ -179,7 +187,7 @@ export default background({
     // its a guessing game but as it is triggered by
     // user interaction we may be right here
     // idealy we infer the current tab from action sender
-    const window = utils.getWindow();
+    const window = getWindow();
     const tabId = await getCurrentTabId(window);
     return tabId;
   },
@@ -206,10 +214,7 @@ export default background({
           events.pub('control-center:toggleHumanWeb');
           break;
         case 'extensions.cliqz.share_location':
-          this.geolocation.action(
-            'setLocationPermission',
-            data.value
-          );
+          this.geolocation.setLocationPermission(data.value);
           events.pub('message-center:handlers-freshtab:clear-message', {
             id: 'share-location',
             template: 'share-location'
@@ -228,15 +233,18 @@ export default background({
           if (data.prefType === 'integer') {
             prefValue = parseInt(prefValue, 10);
           }
-          prefs.set(data.pref, prefValue, '' /* full pref name required! */);
+          prefs.set(data.pref, prefValue);
         }
       }
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: data.target,
-        state: data.value,
-        action: 'click'
-      });
+
+      if (!data.isPrivateMode) {
+        telemetry.push({
+          type: TELEMETRY_TYPE,
+          target: data.target,
+          state: data.value,
+          action: 'click'
+        });
+      }
     },
     // creates the static frame data without any module details
     // re-used for fast first render and onboarding
@@ -244,7 +252,8 @@ export default background({
       let { url } = await getActiveTab();
       let friendlyURL = url;
       let isSpecialUrl = false;
-      let urlDetails = getDetailsFromUrl(url);
+      // TODO: Switch to URL
+      const urlDetails = getDetailsFromUrl(url);
       if (url.indexOf('about:') === 0) {
         friendlyURL = url;
         isSpecialUrl = true;
@@ -254,6 +263,9 @@ export default background({
       } else if (url.endsWith('modules/cliqz-history/index.html')) {
         friendlyURL = `${getMessage('freshtab_history_button')}`;
         isSpecialUrl = true;
+      } else if (url.endsWith('modules/privacy-dashboard/index.html')) {
+        friendlyURL = `${getMessage('control_center_transparency')}`;
+        isSpecialUrl = true;
       } else if (url.indexOf(globalConfig.settings.ONBOARDING_URL) === 0) {
         friendlyURL = moduleConfig.settings.BRAND;
         isSpecialUrl = true;
@@ -262,7 +274,6 @@ export default background({
         // we need to get the actual url instead of the warning page
         url = url.split('chrome://cliqz/content/anti-phishing/phishing-warning.html?u=')[1];
         url = decodeURIComponent(url);
-        urlDetails = getDetailsFromUrl(url);
         isSpecialUrl = true;
         friendlyURL = getMessage('anti-phishing-txt0');
       }
@@ -338,15 +349,21 @@ export default background({
     openURL(data) {
       openLink(data.url, true);
 
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: data.target,
-        action: 'click',
-        index: data.index
-      });
+      if (!data.isPrivateMode) {
+        telemetry.push({
+          type: TELEMETRY_TYPE,
+          target: data.target,
+          action: 'click',
+          index: data.index
+        });
+      }
     },
 
     sendTelemetry(data) {
+      if (data.isPrivateMode) {
+        return;
+      }
+
       const signal = {
         type: TELEMETRY_TYPE,
         target: data.target,
@@ -359,47 +376,55 @@ export default background({
       if (data.index) {
         signal.index = data.index;
       }
-      utils.telemetry(signal);
+      telemetry.push(signal);
     },
 
-    'antitracking-strict': function antitrackingStrict(data) {
+    'antitracking-strict': function antitrackingStrict({ isPrivateMode, status }) {
       events.pub('control-center:antitracking-strict');
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: 'attrack_fair',
-        action: 'click',
-        state: data.status === true ? 'on' : 'off'
-      });
+      if (!isPrivateMode) {
+        telemetry.push({
+          type: TELEMETRY_TYPE,
+          target: 'attrack_fair',
+          action: 'click',
+          state: status === true ? 'on' : 'off'
+        });
+      }
     },
 
-    'complementary-search': function complementarySearch(data) {
-      events.pub('control-center:setDefault-search', data.defaultSearch);
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: 'complementary_search',
-        state: `search_engine_change_${data.defaultSearch}`,
-        action: 'click'
-      });
+    'complementary-search': function complementarySearch({ defaultSearch, isPrivateMode }) {
+      events.pub('control-center:setDefault-search', defaultSearch);
+      if (!isPrivateMode) {
+        telemetry.push({
+          type: TELEMETRY_TYPE,
+          target: 'complementary_search',
+          state: `search_engine_change_${defaultSearch}`,
+          action: 'click'
+        });
+      }
     },
 
-    'search-index-country': function searchIndexCountry(data) {
-      events.pub('control-center:setDefault-indexCountry', data.defaultCountry);
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: 'search-index-country',
-        state: `search_index_country_${data.defaultCountry}`,
-        action: 'click',
-      });
+    'search-index-country': function searchIndexCountry({ defaultCountry, isPrivateMode }) {
+      events.pub('control-center:setDefault-indexCountry', defaultCountry);
+      if (!isPrivateMode) {
+        telemetry.push({
+          type: TELEMETRY_TYPE,
+          target: 'search-index-country',
+          state: `search_index_country_${defaultCountry}`,
+          action: 'click',
+        });
+      }
     },
 
-    'cliqz-tab': function cliqzTab(data) {
+    'cliqz-tab': function cliqzTab({ status, isPrivateMode }) {
       events.pub('control-center:cliqz-tab');
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: 'cliqz_tab',
-        action: 'click',
-        state: data.status === true ? 'on' : 'off'
-      });
+      if (!isPrivateMode) {
+        telemetry.push({
+          type: TELEMETRY_TYPE,
+          target: 'cliqz_tab',
+          action: 'click',
+          state: status === true ? 'on' : 'off'
+        });
+      }
     },
 
     'type-filter': function typeFilter(data) {
@@ -412,16 +437,16 @@ export default background({
       switch (data.status) {
         case 'active':
           this.core.action('enableModule', 'antitracking').then(() => {
-            events.pub('antitracking:whitelist:remove', data.hostname);
+            events.pub('antitracking:whitelist:remove', data.hostname, data.isPrivateMode);
           });
           break;
         case 'inactive':
           this.core.action('enableModule', 'antitracking').then(() => {
-            events.pub('antitracking:whitelist:add', data.hostname, utils.isPrivateMode(this.window));
+            events.pub('antitracking:whitelist:add', data.hostname, data.isPrivateMode);
           });
           break;
         case 'critical':
-          events.pub('antitracking:whitelist:remove', data.hostname);
+          events.pub('antitracking:whitelist:remove', data.hostname, data.isPrivateMode);
           events.nextTick(() => {
             this.core.action('disableModule', 'antitracking');
           });
@@ -440,17 +465,18 @@ export default background({
         state = data.state;
       }
 
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: `attrack_${data.type}`,
-        state,
-        action: 'click',
-      });
+      if (!data.isPrivateMode) {
+        telemetry.push({
+          type: TELEMETRY_TYPE,
+          target: `attrack_${data.type}`,
+          state,
+          action: 'click',
+        });
+      }
     },
 
     'anti-phishing-activator': function antiphishingActivator(data) {
-      const ph = inject.module('anti-phishing');
-      ph.action('activator', data.state, data.url);
+      inject.module('anti-phishing').action('activator', data.state, data.url);
 
       let state;
       if (data.type === 'switch') {
@@ -458,12 +484,15 @@ export default background({
       } else {
         state = data.state;
       }
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: `antiphishing_${data.type}`,
-        state,
-        action: 'click',
-      });
+
+      if (!data.isPrivateMode) {
+        telemetry.push({
+          type: TELEMETRY_TYPE,
+          target: `antiphishing_${data.type}`,
+          state,
+          action: 'click',
+        });
+      }
     },
 
     'adb-activator': function adbActivator(data) {
@@ -474,26 +503,32 @@ export default background({
       } else {
         state = data.state;
       }
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: `adblock_${data.type}`,
-        state,
-        action: 'click',
-      });
+
+      if (!data.isPrivateMode) {
+        telemetry.push({
+          type: TELEMETRY_TYPE,
+          target: `adblock_${data.type}`,
+          state,
+          action: 'click',
+        });
+      }
     },
 
-    'antitracking-clearcache': function antitrackingClearCache() {
-      events.pub('control-center:antitracking-clearcache');
+    'antitracking-clearcache': function antitrackingClearCache({ isPrivateMode }) {
+      events.pub('control-center:antitracking-clearcache', isPrivateMode);
     },
 
     'adb-optimized': function adbOptimized(data) {
-      events.pub('control-center:adb-optimized');
-      utils.telemetry({
-        type: TELEMETRY_TYPE,
-        target: 'adblock_fair',
-        action: 'click',
-        state: data.status === true ? 'on' : 'off'
-      });
+      events.pub('control-center:adb-optimized', data.status);
+
+      if (!data.isPrivateMode) {
+        telemetry.push({
+          type: TELEMETRY_TYPE,
+          target: 'adblock_fair',
+          action: 'click',
+          state: data.status === true ? 'on' : 'off'
+        });
+      }
     },
 
     'quick-search-state': function quickSearchState(data) {

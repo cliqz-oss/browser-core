@@ -1,8 +1,10 @@
 /* global Components */
 import { Observable } from 'rxjs';
 import { map, scan, share, filter } from 'rxjs/operators';
-import utils from '../../core/utils';
+import historySearch from '../../core/history-search';
+import inject from '../../core/kord/inject';
 import BaseProvider from './base';
+import { queryTabs } from '../../core/tabs';
 
 // operators
 import apply from '../operators/apply';
@@ -33,6 +35,7 @@ const mapResults = (results, query) =>
 export default class History extends BaseProvider {
   constructor() {
     super('history');
+    this.historyLookup = inject.module('history-search');
   }
 
   search(query, config, { allowEmptyQuery = false }) {
@@ -66,8 +69,26 @@ export default class History extends BaseProvider {
   }
 
   historySearch(query = '', config) {
+    const searchFunc = (q, cb) => {
+      if (config.providers.history.isHistoryLookupEnabled) {
+        return this.historyLookup.action('search', q).then(cb);
+      }
+
+      return historySearch(q, cb);
+    };
+
     return Observable.create((observer) => {
-      utils.historySearch(query, (results) => {
+      let readyCtr = 0;
+      const tabSearchEnabled = config.providers.history.isTabSearchEnabled;
+      const expectedResults = tabSearchEnabled ? 2 : 1;
+      const completeIfLast = () => {
+        readyCtr += 1;
+        if (readyCtr >= expectedResults) {
+          observer.complete();
+        }
+      };
+
+      searchFunc(query, (results) => {
         const r = mapResults(results.results, query);
 
         observer.next(getResponse(
@@ -79,9 +100,37 @@ export default class History extends BaseProvider {
         ));
 
         if (results.ready) {
-          observer.complete();
+          completeIfLast();
         }
-      }, utils.isPrivateMode(config.window));
+      }, config.isPrivateMode);
+
+      if (tabSearchEnabled) {
+        queryTabs().then((tabs) => {
+          const lq = query.toLowerCase();
+          // basic filtering: match keyword in url or title
+          const results = tabs.filter(tab => !tab.active
+            && !tab.incognito
+            && (tab.url.indexOf(lq) !== -1 || tab.title.toLowerCase().indexOf(lq) !== -1))
+            .sort((a, b) => b.lastAccessed - a.lastAccessed) // most recently used first
+            .map(tab => ({
+              originalUrl: tab.url,
+              provider: 'tabs',
+              text: query,
+              url: tab.url,
+              style: 'action switchtab',
+              type: 'action switchtab',
+              title: tab.title,
+            }));
+          observer.next(getResponse(
+            this.id,
+            config,
+            query,
+            results,
+            'done',
+          ));
+          completeIfLast();
+        });
+      }
     });
   }
 }

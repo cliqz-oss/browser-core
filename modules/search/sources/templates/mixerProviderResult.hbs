@@ -1,0 +1,9 @@
+<span class='provider' style="background-color: #{{kindColor provider}}" >{{provider}}</span>
+{{#each results}}
+  {{#with links.[0]}}
+    <div class='result' data-json='{{json this}}'>
+      {{> resultContent}}
+    </div>
+  {{/with}}
+{{/each}}
+

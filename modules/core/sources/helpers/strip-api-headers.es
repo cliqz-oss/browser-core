@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
-// Ends with .ghostery.net or .ghostery.com or .cliqz.com
-const regexpMatcher = /(?:[.]ghostery[.](?:net|com)|[.]cliqz[.]com)$/;
+// Ends with .ghostery.net or .ghostery.com or .cliqz.com or .foxyproxy.com
+const regexpMatcher = /(?:[.]ghostery[.](?:net|com)|[.]cliqz[.]com|[.]foxyproxy[.]com)$/;
 
 // Do not remove headers for these
 const whitelist = new Set([

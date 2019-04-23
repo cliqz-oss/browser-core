@@ -12,7 +12,7 @@ function createDefaultExportName(parts) {
 const imports = [];
 const defaults = [];
 
-if (config.modules) {
+if (config.modules && config.modules.indexOf('integration-tests') !== -1) {
   config.modules.forEach((moduleName) => {
     const prefix = `./modules/${moduleName}/tests/integration`;
     glob.sync(`${prefix}/**/*-test.es`).forEach((f) => {

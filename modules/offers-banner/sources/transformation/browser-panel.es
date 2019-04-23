@@ -4,6 +4,7 @@ import prefs from '../../core/prefs';
 import {
   getResourceUrl,
   isWebExtension,
+  isCliqzBrowser,
 } from '../../core/platform';
 import { getTitleColor } from '../utils';
 
@@ -19,7 +20,8 @@ export function transform(data = {}) {
         titleColor: getTitleColor(templateData)
       },
       template_name: templateName,
-      isWebExtension
+      isWebExtension,
+      isCliqzBrowser
     },
     offerId,
     config: {

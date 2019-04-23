@@ -138,10 +138,7 @@ export default class OffersMonitorHandler {
     this.monitors[WEBREQUEST_TYPE] = { patterns: {}, index: null };
     this.monitors[COUPON_TYPE] = { patterns: {}, index: null };
 
-    // check if the offers db is loaded
-    if (offersDB.dbLoaded) {
-      this._loadAndRebuild();
-    }
+    this._getOffersAndRebuildMonitors();
 
     this.handlers = {
       sigHandler: this.sigHandler,
@@ -424,7 +421,7 @@ export default class OffersMonitorHandler {
     this.checkUrl(urlData, WEBREQUEST_TYPE);
   }
 
-  _loadAndRebuild() {
+  _getOffersAndRebuildMonitors() {
     this.monitors = {};
     this.monitors[URLCHANGE_TYPE] = { patterns: {}, index: null };
     this.monitors[WEBREQUEST_TYPE] = { patterns: {}, index: null };
@@ -449,6 +446,6 @@ export default class OffersMonitorHandler {
     // this is definetely excessive and probably expensive
     // still we would need to change a lot of messages to update all of them
     // with the missing information
-    this._loadAndRebuild();
+    this._getOffersAndRebuildMonitors();
   }
 }

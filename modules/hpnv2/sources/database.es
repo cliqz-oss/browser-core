@@ -1,6 +1,8 @@
 import getDexie from '../platform/lib/dexie';
 import crypto from '../platform/crypto';
 import md5 from '../core/helpers/md5';
+import logger from './logger';
+import { formatHoursAsYYYYMMDD } from './utils';
 import { fromHex, toHex } from '../core/encoding';
 import { randomInt } from '../core/crypto/random';
 
@@ -20,6 +22,7 @@ export default class Database {
   }
 
   async setUserPK(value) {
+    logger.info('DB: setUserPK');
     this.userPK = value;
     return this.db ? this.db.meta.put({ key: 'userPK', value }) : Promise.resolve();
   }
@@ -29,6 +32,7 @@ export default class Database {
   }
 
   async setGroupPubKey(date, { groupPubKey, pubKey, credentials, gsk, joinmsg, banned }) {
+    logger.info('DB: setGroupPubKey:', date);
     this.groupPubKeys[date] = {
       groupPubKey,
       credentials,
@@ -172,15 +176,28 @@ export default class Database {
   }
 
   /**
-   * Removes public keys older than the specified date
-   * @param {String} date - "YYYYMMDD" format
+   * Removes old public keys.
+   *
+   * In general, keys from yesterday could be immediately deleted. However,
+   * to avoid races in the very first seconds after midnight, only purge
+   * them after some cooldown period.
    */
-  async purgeOldPubKeys(date) {
-    // Lexicographical order preserves time order.
-    Object.keys(this.groupPubKeys).forEach((x) => {
-      if (x < date) {
-        delete this.groupPubKeys[x];
-      }
+  async purgeOldPubKeys(currentHours) {
+    // Give the servers some time to agree on which keys are active.
+    // Normally, it takes a few minutes until all have updated to the
+    // latest keys, so two hours should be more than enough.
+    const ttlInHours = 2;
+    const expireDate = formatHoursAsYYYYMMDD(currentHours - ttlInHours);
+    logger.debug('DB: purgeOldPubKeys: looking for keys older than', expireDate);
+
+    function isSafeToDelete(dateAsYYYYMMDD) {
+      // Lexicographical order preserves time order.
+      return dateAsYYYYMMDD < expireDate;
+    }
+
+    Object.keys(this.groupPubKeys).filter(isSafeToDelete).forEach((x) => {
+      logger.info('DB: purgeOldPubKeys: remove old key', x);
+      delete this.groupPubKeys[x];
     });
     return this.db ? this.db.meta.put({ key: 'groupPubKeys', value: this.groupPubKeys }) : Promise.resolve();
   }

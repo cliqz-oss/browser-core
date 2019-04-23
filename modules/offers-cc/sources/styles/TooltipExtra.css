@@ -1,0 +1,108 @@
+.tooltip-extra__wrapper {
+  border-left: 5px solid;
+}
+
+.tooltip-extra__top-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  height: 34px;
+}
+
+.tooltip-extra__top-left-item {
+  padding-left: 5px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.tooltip-extra__top-right-item {
+  display: flex;
+  width: 22px;
+  height: 21px;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  align-items: center;
+  transition: all linear 0.3s;
+  background-color: #fff;
+  margin-right: 4px;
+}
+
+.tooltip-extra__bottom-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.tooltip-extra__bottom-left-item {
+  padding-left: 14px;
+}
+
+.tooltip-extra__bottom-right-item {
+  display: flex;
+  padding-right: 12px;
+}
+.tooltip-extra__label {
+  padding-left: 14px;
+  color: #B2B2B2;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 8.5px;
+  font-weight: 400;
+}
+
+.tooltip-extra__exclusive {
+  background: url('../images/exclusive.svg') no-repeat left;
+}
+
+.tooltip-extra__best_offer {
+  background: url('../images/best-offer.svg') no-repeat left;
+}
+
+.tooltip-extra__offer_of_the_week {
+  background: url('../images/offer-of-the-week.svg') no-repeat left;
+}
+
+.tooltip-extra__image {
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: right;
+  width: 83px;
+  height: 34px;
+  cursor: pointer;
+}
+
+.tooltip-extra__close {
+  background: url(../images/close-offer.svg) no-repeat center;
+  width: 12.5px;
+  height: 12.5px;
+  border-radius: 50%;
+  background-size: contain;
+  filter: brightness(0.7);
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+.tooltip-extra__text {
+  padding-left: 10px;
+  padding-top: 4px;
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #494949;
+  width: 183px;
+}
+
+.tooltip-extra__not-visible {
+  opacity: 0;
+}
+
+.tooltip-extra__visible {
+  opacity: 1;
+}

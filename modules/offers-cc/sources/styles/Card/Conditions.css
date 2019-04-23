@@ -1,0 +1,60 @@
+.card-conditions__container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-conditions__right-item {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.card-conditions__till {
+  font-size: 11.5px;
+  color: #B2B2B2;
+  padding-left: 3px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 150px;
+}
+
+.card-conditions__label {
+  display: flex;
+  padding-right: 3px;
+  user-select: none;
+  font-size: 11.5px;
+}
+.card-conditions__label-default {
+  color: #B2B2B2;
+}
+.card-conditions__label-active {
+  color: #494949;
+}
+
+.card-conditions__myoffrz-red-label {
+  color: #ff0000;
+}
+.card-conditions__chip-red-label {
+  color: orange;
+}
+
+.card-conditions__icon {
+  display: flex;
+  background-size: contain;
+  width: 15px;
+  height: 15px;
+}
+
+.card-conditions__icon-default {
+  background: url('../images/info-icon.svg') no-repeat center;
+}
+
+.card-conditions__icon-myoffrz-active {
+  background: url('../images/info-icon-hover.svg') no-repeat center;
+}
+
+.card-conditions__icon-chip-active {
+  background: url('../images/info-icon-hover-red.svg') no-repeat center;
+}

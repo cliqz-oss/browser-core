@@ -72,10 +72,10 @@ const mapCliqzSources = (sources) => {
   });
 };
 
-export default [
+export default () => [
   {
     name: 'search.sessions',
-    version: 1,
+    version: 3,
     needsGid: true,
     sendToBackend: true,
     generate: ({ records }) => {
@@ -118,6 +118,15 @@ export default [
       // selections (i.e., selected results) across sessions
       const selections = sessions.map(({ selection = [] }) => selection);
 
+      // entry points of search sessions
+      const entryPoints = sessions.reduce((acc, session) => {
+        if (session.entryPoint) {
+          acc[session.entryPoint] = (acc[session.entryPoint] || 0) + 1;
+        }
+        return acc;
+      }, {});
+
+
       // sources of last results, mapped to history vs. backend
       const sources = results
         // flatten result sources per session
@@ -145,6 +154,13 @@ export default [
         .map(({ sources: s = [] }) => mapCliqzSources(s));
 
       return [{
+        // entry points of search sessions
+        entryPoints,
+        // highlight (swipe) counts across search sessions
+        highlightCounts: integersToHistogram(
+          sessions.map(({ highlightCount }) => highlightCount),
+          { binSize: 1, binCount: 16 }
+        ),
         // statistics on non-empty last results across sessions
         results: {
           // count of all sessions with non-empty (last) results; note that
@@ -256,6 +272,17 @@ export default [
     schema: {
       required: [],
       properties: {
+        entryPoints: {
+          required: [],
+          properties: {
+            newTab: { type: 'integer', minimum: 0 },
+            browserBar: { type: 'integer', minimum: 0 },
+            overlayByKeyboard: { type: 'integer', minimum: 0 },
+            overlayByMouse: { type: 'integer', minimum: 0 },
+            overlayByContextMenu: { type: 'integer', minimum: 0 },
+          }
+        },
+        highlightCounts: { ...mkHistogramSchema(16) },
         results: {
           required: [],
           properties: {

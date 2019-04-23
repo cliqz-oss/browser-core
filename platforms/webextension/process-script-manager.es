@@ -1,15 +1,16 @@
 /* eslint no-param-reassign: 'off' */
 
 import events from '../core/events';
-import { chrome, isContentScriptsSupported, window } from './globals';
+import { chrome, isContentScriptsSupported } from './globals';
 import { equals as urlEquals } from '../core/url';
 
+const cliqzConfigScript = `
 function cliqzConfigScript(cliqz) {
   window.CLIQZ = cliqz;
   if (window.runCliqz) {
     window.runCliqz(window.CLIQZ);
   }
-}
+}`;
 
 function supressLastError() {
   if (chrome.runtime.lastError) {
@@ -18,7 +19,7 @@ function supressLastError() {
 }
 
 function generateContentScript(cliqz) {
-  return `(${cliqzConfigScript.toString()})(${JSON.stringify(cliqz)});`;
+  return `(${cliqzConfigScript})(${JSON.stringify(cliqz)});`;
 }
 
 function createCliqzObject(app) {

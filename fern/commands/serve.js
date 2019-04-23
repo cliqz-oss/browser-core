@@ -14,6 +14,7 @@ const getExtensionVersion = common.getExtensionVersion;
 const createBuildWatcher = common.createBuildWatcher;
 
 program.command(`serve ${common.configParameter}`)
+  .option('--lint', 'Lint code')
   .option('--no-maps', 'disables source maps')
   .option('--no-debug', 'disables debug pages')
   .option('--version [version]', 'sets extension version', 'package')
@@ -35,6 +36,13 @@ program.command(`serve ${common.configParameter}`)
     const cfg = setConfigPath(configPath);
     const CONFIG = cfg.CONFIG;
     const OUTPUT_PATH = cfg.OUTPUT_PATH;
+
+    // Enabled code linting
+    process.env.CLIQZ_ESLINT = (
+      (options.lint || (configPath || process.env.CLIQZ_CONFIG_PATH).includes('unit-tests.js'))
+        ? 'true'
+        : 'false'
+    );
 
     let customPrefs = {};
     let server;

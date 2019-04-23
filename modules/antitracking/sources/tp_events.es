@@ -31,10 +31,10 @@ function _newStatCounter() {
 class PageLoadData {
   constructor(url, isPrivate, reloaded, hasPlaceHolder, requestId) {
     this.initiatingRequest = requestId;
-    this.url = url.toString();
+    this.url = url.href;
     this.hostname = url.hostname;
-    this.path = this._shortHash(truncatePath(url.path));
-    this.scheme = url.protocol;
+    this.path = this._shortHash(truncatePath(url.pathname));
+    this.scheme = url.scheme;
     this.private = isPrivate;
     this.c = 1;
     this.s = Date.now();
@@ -97,6 +97,7 @@ class PageLoadData {
     return this._plainObject || this._buildPlainObject();
   }
 
+  // TODO - Sam
   addTrigger(host, triggeredBy, frameId) {
     if (triggeredBy.indexOf('://') > 0) {
       let triggerDomain = truncateDomain(parseHost(triggeredBy), 1);
@@ -306,8 +307,8 @@ class PageEventTracker {
       return null;
     }
     // truncate the third-party domain before adding
-    const truncDomain = truncateDomain(urlParts.host, this.config.tpDomainDepth);
-    return pageGraph.getTpUrl(truncDomain, urlParts.path);
+    const truncDomain = truncateDomain(urlParts.domainInfo, this.config.tpDomainDepth);
+    return pageGraph.getTpUrl(truncDomain, urlParts.pathname);
   }
 
   // Move the PageLoadData object for windowID to the staging area.

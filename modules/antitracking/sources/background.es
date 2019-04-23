@@ -2,18 +2,22 @@
 /* eslint func-names: 'off' */
 
 import background from '../core/base/background';
-import * as browser from '../platform/browser';
+import telemetryService from '../core/services/telemetry';
 import Attrack from './attrack';
 import { DEFAULT_ACTION_PREF, updateDefaultTrackerTxtRule } from './tracker-txt';
-import utils from '../core/utils';
 import prefs from '../core/prefs';
 import telemetry from './telemetry';
-import Config, { MIN_BROWSER_VERSION } from './config';
+import Config, { TELEMETRY } from './config';
 import { updateTimestamp } from './time';
 import domainInfo from '../core/services/domain-info';
-import bindObjectFunctions from '../core/helpers/bind-functions';
+import { bindObjectFunctions } from '../core/helpers/bind-functions';
 import inject from '../core/kord/inject';
-import { isMobile } from '../core/platform';
+import { isMobile, isEdge } from '../core/platform';
+
+function humanwebExistsAndDisabled() {
+  const humanweb = inject.module('human-web');
+  return humanweb.isPresent() && !humanweb.isEnabled();
+}
 
 /**
 * @namespace antitracking
@@ -40,10 +44,6 @@ export default background({
 
     this.attrack = new Attrack();
 
-    if (browser.getBrowserMajorVersion() < MIN_BROWSER_VERSION) {
-      return Promise.resolve();
-    }
-
     // indicates if the antitracking background is initiated
     this.enabled = true;
     this.clickCache = {};
@@ -56,21 +56,27 @@ export default background({
       telemetry.loadFromProvider(settings.ATTRACK_TELEMETRY_PROVIDER || 'human-web', settings.HW_CHANNEL);
     }
 
-
     // load config
     this.config = new Config({}, () => this.core.action('refreshAppState'));
-    return this.config.init().then(() => this.attrack.init(this.config, settings));
+    if (isEdge) {
+      this.config.databaseEnabled = false;
+    }
+    return this.config.init().then(() => {
+      // check HW status (for telemetry)
+      // - On Cliqz humanweb opt-out is flagged via 'humanWebOptOut' pref.
+      // - On Ghostery the module is disabled
+      // - On other platforms, where humanweb is not in the build, opt-out should be done directly.
+      if (prefs.get('humanWebOptOut', false) || humanwebExistsAndDisabled()) {
+        this.config.telemetryMode = TELEMETRY.DISABLED;
+      }
+      return this.attrack.init(this.config, settings);
+    });
   },
 
   /**
   * @method unload
   */
   unload() {
-    if (browser.getBrowserMajorVersion() < MIN_BROWSER_VERSION) {
-      this.enabled = false;
-      return;
-    }
-
     if (this.attrack !== null) {
       this.attrack.unload();
       this.attrack = null;
@@ -92,7 +98,7 @@ export default background({
   actions: {
     getBadgeData({ tabId, url }) {
       return this.attrack.getTabBlockingInfo(tabId, url).then((info) => {
-        if (this.attrack.urlWhitelist.isWhitelisted(info.hostname)) {
+        if (this.attrack.urlWhitelist.isWhitelisted(url)) {
           // do not display number if site is whitelisted
           return 0;
         }
@@ -211,46 +217,6 @@ export default background({
   },
 
   popupActions: {
-    /**
-    * @method popupActions.toggleAttrack
-    * @param args
-    * @param cb Callback
-    */
-    toggleAttrack(args, cb) {
-      const currentState = prefs.get('modules.antitracking.enabled', true);
-
-      if (currentState) {
-        this.attrack.disableModule();
-      } else {
-        this.attrack.enableModule();
-      }
-
-      cb();
-
-      this.popupActions.telemetry({ action: 'click', target: (currentState ? 'deactivate' : 'activate') });
-    },
-    /**
-    * @method popupActions.closePopup
-    */
-    closePopup(_, cb) {
-      cb();
-    },
-    /**
-    * @method popupActions.toggleWhiteList
-    * @param args
-    * @param cb Callback
-    */
-    toggleWhiteList(args, cb) {
-      const hostname = args.hostname;
-      if (this.attrack.urlWhitelist.isWhitelisted(hostname)) {
-        this.popupActions.telemetry({ action: 'click', target: 'unwhitelist_domain' });
-      } else {
-        this.popupActions.telemetry({ action: 'click', target: 'whitelist_domain' });
-      }
-      this.attrack.urlWhitelist.changeState(hostname, 'hostname', 'toggle');
-      cb();
-    },
-
     _isDuplicate(info) {
       const now = Date.now();
       const key = info.tab + info.hostname + info.path;
@@ -281,7 +247,7 @@ export default background({
         msg.special = info.error !== undefined;
       }
       msg.type = 'antitracking';
-      utils.telemetry(msg);
+      telemetryService.push(msg);
     }
   },
 
@@ -302,6 +268,12 @@ export default background({
       } else if (pref === 'config_ts') {
         // update date timestamp set in humanweb
         updateTimestamp(prefs.get('config_ts', null));
+      } else if (pref === 'humanWebOptOut') {
+        if (prefs.get('humanWebOptOut', false)) {
+          this.attrack.setHWTelemetryMode(false);
+        } else {
+          this.attrack.setHWTelemetryMode(true);
+        }
       }
       this.config.onPrefChange(pref);
     },
@@ -316,22 +288,24 @@ export default background({
       domChecker.recordLinksForURL(url);
       domChecker.clearDomLinks();
     },
-    'antitracking:whitelist:add': function (hostname, isPrivate) {
+    'antitracking:whitelist:add': function (hostname, isPrivateMode) {
       this.attrack.urlWhitelist.changeState(hostname, 'hostname', 'add');
       this.attrack.logWhitelist(hostname);
-      if (!isPrivate) {
+      if (!isPrivateMode) {
         this.popupActions.telemetry({
           action: 'click',
           target: 'whitelist_domain'
         });
       }
     },
-    'antitracking:whitelist:remove': function (hostname) {
+    'antitracking:whitelist:remove': function (hostname, isPrivateMode) {
       this.attrack.urlWhitelist.changeState(hostname, 'hostname', 'remove');
-      this.popupActions.telemetry({
-        action: 'click',
-        target: 'unwhitelist_domain'
-      });
+      if (!isPrivateMode) {
+        this.popupActions.telemetry({
+          action: 'click',
+          target: 'unwhitelist_domain'
+        });
+      }
     },
     'control-center:antitracking-strict': () => {
       prefs.set('attrackForceBlock', !prefs.get('attrackForceBlock', false));
@@ -342,12 +316,14 @@ export default background({
           .call(this.attrack.pipelineSteps.cookieContext, ...args);
       }
     },
-    'control-center:antitracking-clearcache': function () {
+    'control-center:antitracking-clearcache': function (isPrivateMode) {
       this.attrack.clearCache();
-      this.popupActions.telemetry({
-        action: 'click',
-        target: 'clearcache',
-      });
+      if (!isPrivateMode) {
+        this.popupActions.telemetry({
+          action: 'click',
+          target: 'clearcache',
+        });
+      }
     },
   },
 });

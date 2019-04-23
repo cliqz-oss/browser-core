@@ -18,16 +18,6 @@ function decodeToken(token) {
   return decodedToken;
 }
 
-function b64Encode(token) {
-  let b64 = null;
-  try {
-    b64 = atob(token);
-  } catch (e) {
-    // empty
-  }
-  return b64;
-}
-
 /**
  * This class checks url components for UIDs and exposes any 'badTokens' found.
  *
@@ -63,8 +53,8 @@ export default class TokenChecker {
   findBadTokens(state) {
     const stats = {};
     state.isTracker = this.qsWhitelist.shouldCheckDomainTokens(state.urlParts.generalDomainHash);
-    state.badTokens = this.checkTokens(state.urlParts, state.sourceUrl, state.cookieValues,
-      stats, state.sourceUrlParts, state.isTracker, state.isPrivate);
+    state.badTokens = this.checkTokens(state.urlParts, state.tabUrl,
+      stats, state.tabUrlParts, state.isTracker, state.isPrivate);
     // set stats
     if (state.incrementStat) {
       Object.keys(stats).forEach((key) => {
@@ -94,39 +84,34 @@ export default class TokenChecker {
    * party domains (this.config.tokenDomainCountThreshold).
    *
    * @param  {Object} urlParts        Parts of the request url, as parsed by parseURL
-   * @param  {String} sourceUrl       The first party url for this request
+   * @param  {String} tabUrl          The first party url for this request
      A map of cookie values in the first party page - keys are values
-   * @param  {Object} cookievalue
    * @param  {Object} stats            An object to write stats to
-   * @param  {Object} sourceUrlParts Parts of the source url, as parsed by parseURL
+   * @param  {Object} tabUrlParts Parts of the source url, as parsed by parseURL
    * @param  {Boolean} tracker         True if the request host is a tracker
      Array of values which we think are uids and should be removed.
    * @return {Array}
    */
-  checkTokens(urlParts, sourceUrl, cookievalue, stats, sourceUrlParts, tracker, isPrivate) {
+  checkTokens(urlParts, tabUrl, stats, tabUrlParts, tracker, isPrivate) {
     // This check is only done for trackers
     if (!tracker) {
       return [];
     }
 
     // if there are no query parameters, there is nothing to check
-    if (urlParts.query.length === 0 && urlParts.parameters.length === 0) {
+    const keyTokens = urlParts.extractKeyValues().params;
+    if (keyTokens.length === 0) {
       return [];
     }
 
     const trackerDomain = urlParts.generalDomainHash;
-    const sourceDomain = sourceUrlParts.generalDomainHash;
+    const sourceDomain = tabUrlParts.generalDomainHash;
     const badTokens = [];
 
-    const longCookies = Object.keys(cookievalue)
-      .filter(c => c.length >= this.config.shortTokenLength);
-    const privateValues = Object.keys(this.privateValues);
-
     // check for each kv in the url
-    const tokenStatus = urlParts.getKeyValues().map((kv) => {
-      const key = kv.k;
-      // eslint-disable-next-line prefer-template
-      const tok = '' + kv.v;
+    const tokenStatus = keyTokens.map((kv) => {
+      const key = kv[0];
+      const tok = kv[1];
 
       // ignore short values
       if (tok.length < this.config.shortTokenLength) {
@@ -134,84 +119,49 @@ export default class TokenChecker {
       }
 
       // if the value is in the main url, ignore
-      if (sourceUrl.indexOf(tok) > -1) {
+      if (tabUrl.indexOf(tok) > -1) {
         return 'sourceUrl';
       }
 
       // make different possible encodings of the token
       const decodedToken = decodeToken(tok);
-      const tokenVariants = [tok, decodedToken, b64Encode(tok), b64Encode(decodedToken)]
-        .filter(t => t && t.length > 0);
-
-      function tokenMatches(val) {
-        // check if the value is in the cookie or the value is in the token
-        return tokenVariants.some(t => t.indexOf(val) > -1 || val.indexOf(t) > -1);
-      }
-
-      // check for cookie or private values - presence of these override the global
-      // safe key and token lists
-      const cookieMatch = longCookies.some(tokenMatches);
-      const privateMatch = privateValues.some(tokenMatches);
-      const overrideGlobalLists = privateMatch;
 
       // if we didn't already match a cookie or private value, do these steps
-      if (!overrideGlobalLists) {
-        if (this.qsWhitelist.isSafeKey(trackerDomain, md5(key))) {
-          return 'safekey';
-        }
-
-        if (this.qsWhitelist.isSafeToken(trackerDomain, md5(tok))) {
-          return 'whitelisted';
-        }
-
-        // check for short non-hashes
-        if (decodedToken.length < 12 && !isMostlyNumeric(decodedToken)
-          && !this.hashProb.isHash(decodedToken)) {
-          return 'short_no_hash';
-        }
+      if (this.qsWhitelist.isSafeKey(trackerDomain, md5(key))) {
+        return 'safekey';
       }
 
-      let tokenType;
-      if (cookieMatch) {
-        tokenType = 'cookie';
-      } else if (privateMatch) {
-        tokenType = 'private';
-      } else {
-        tokenType = 'qs';
+      if (this.qsWhitelist.isSafeToken(trackerDomain, md5(tok))) {
+        return 'whitelisted';
       }
+
+      // check for short non-hashes
+      if (decodedToken.length < 12 && !isMostlyNumeric(decodedToken)
+        && !this.hashProb.isHash(decodedToken)) {
+        return 'short_no_hash';
+      }
+
+      const tokenType = 'qs';
 
       // count thresholds for token values
-      if (!overrideGlobalLists) {
-        if (!isPrivate) {
-          // increment that this token has been seen on this site
-          this.tokenDomain.addTokenOnFirstParty(md5(tok), sourceDomain);
-        }
-        // check if the threshold for cross-domain tokens has been reached
-        if (!this.tokenDomain.isTokenDomainThresholdReached(md5(tok))) {
-          // special case: cookieMatch is blocked on first seen if config enables it
-          if (cookieMatch && this.config.blockCookieNewToken) {
-            this.blockLog.add(
-              sourceUrlParts.generalDomain,
-              urlParts.hostname,
-              key,
-              tok,
-              tokenType
-            );
-            badTokens.push(tok);
-          }
-          return `${tokenType}_newToken`;
-        }
+      if (!isPrivate) {
+        // increment that this token has been seen on this site
+        this.tokenDomain.addTokenOnFirstParty(md5(tok), sourceDomain);
+      }
+      // check if the threshold for cross-domain tokens has been reached
+      if (!this.tokenDomain.isTokenDomainThresholdReached(md5(tok))) {
+        return `${tokenType}_newToken`;
       }
 
       // push to block log and bad tokens list
-      this.blockLog.add(sourceUrlParts.generalDomain, urlParts.hostname, key, tok, tokenType);
+      this.blockLog.add(tabUrlParts.generalDomain, urlParts.hostname, key, tok, tokenType);
       badTokens.push(tok);
       return `${tokenType}_countThreshold`;
     });
 
     if (this.debug) {
       // debug message: labeled key values
-      const tokenReport = urlParts.getKeyValues()
+      const tokenReport = keyTokens
         .map((kv, i) => Object.assign(kv, { class: tokenStatus[i] }));
       console.log('tokens', urlParts.hostname, tokenReport);
     }
