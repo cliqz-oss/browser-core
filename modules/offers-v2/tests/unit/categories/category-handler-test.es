@@ -119,9 +119,9 @@ export default describeModule('offers-v2/categories/category-handler',
           await catHandler.loadPersistentData();
         });
 
-        afterEach(() => {
-          catHandler.persistentHelper.destroyDB();
-          MockDate.reset();
+        afterEach(async () => {
+          await catHandler.persistentHelper.destroyDB();
+          await MockDate.reset();
         });
 
         async function waitForHistoryReady(cat) {
@@ -346,18 +346,16 @@ export default describeModule('offers-v2/categories/category-handler',
         });
 
         it('/check history works', function () {
-          const catData = [
-            {
-              name: 'c1',
-              patterns: ['||google.com'],
-              timeRangeSecs: (4 * DAY_MS) / 1000
-            },
-          ];
-          const cats = createCategories(catData);
-          cats.forEach(c => catHandler.addCategory(c));
+          const catData = {
+            name: 'c42',
+            patterns: ['||google.com'],
+            timeRangeSecs: (4 * DAY_MS) / 1000
+          };
+          const [cat] = createCategories([catData]);
+          catHandler.addCategory(cat);
           catHandler.build();
-          return waitForHistoryReady(cats[0]).then(() => {
-            chai.expect(catHandler.getMatchesForCategory('c1')).eql(3 * 5);
+          return waitForHistoryReady(cat).then(() => {
+            chai.expect(catHandler.getMatchesForCategory('c42')).eql(3 * 5);
             return Promise.resolve();
           });
         });

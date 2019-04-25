@@ -52,7 +52,13 @@ class Config {
   }
 
   get abtestEnabled() {
-    return prefs.get(ADB_ABTEST_PREF, false) === true;
+    // By default, we consider the adblocker module should be enabled (note:
+    // enabled means that it will appear in the control-center but will still
+    // require the user to start by toggling the switch). This makes sure that
+    // having the abtest not updating the pref does not kill the adblocker. On
+    // the other hand, if the abtest of the adblocker is disabled, the pref will
+    // be set to false.
+    return prefs.get(ADB_ABTEST_PREF, true) === true;
   }
 
   set abtestEnabled(value) {

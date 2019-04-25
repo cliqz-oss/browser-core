@@ -4,7 +4,7 @@ import { nextIdle } from '../core/decorators';
 import { setTimeoutIntervalInstant } from '../core/helpers/timeout';
 import stopwatch from '../core/helpers/stopwatch';
 import { fetchJSON, fetchText, fetchTypedArray } from '../core/http';
-import PersistentMap from '../core/persistence/map';
+import persistentMapFactory from '../core/persistence/map';
 import Language from '../core/language';
 
 import logger from './logger';
@@ -75,6 +75,8 @@ export default class EngineManager {
 
   async init() {
     logger.log('engine manager: init');
+
+    const PersistentMap = await persistentMapFactory();
     this.db = new PersistentMap('cliqz-adb');
     await this.db.init();
     await this.load();

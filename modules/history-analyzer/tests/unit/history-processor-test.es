@@ -56,7 +56,7 @@ export default describeModule('history-analyzer/history-processor',
       },
     },
     'core/persistence/map': {
-      default: class PersistentMap {
+      default: () => class PersistentMap {
         init() {}
 
         unload() {}

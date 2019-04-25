@@ -151,7 +151,8 @@ export default background({
       const tabUrl = sender.tab.url;
       const url = sender.url;
 
-      if (!isSupportedProtocol(tabUrl) || !isSupportedProtocol(url)) {
+      if (!isSupportedProtocol(tabUrl) || !isSupportedProtocol(url)
+        || !this.adblocker.isAdblockerEnabledForUrl(tabUrl)) {
         return { active: false };
       }
 
