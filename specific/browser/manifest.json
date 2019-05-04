@@ -76,6 +76,21 @@
         "paths": [["cliqzHistory"]],
         "script": "modules/webextension-specific/experimental-apis/cliqzHistory/api.bundle.js"
       }
+    },
+    "skeleton": {
+      "schema": "experiments/skeleton/schema.json",
+      "parent": {
+        "scopes": [
+          "addon_parent"
+        ],
+        "script": "experiments/skeleton/api.js",
+        "paths": [
+          [
+            "experiments",
+            "skeleton"
+          ]
+        ]
+      }
     }
   },
   "browser_action": {
@@ -116,6 +131,7 @@
   ],
   "background": {
     "scripts": [
+      "background_intermediate.js",
       "modules/vendor/math-expression-evaluator.min.js",
       "modules/vendor/dexie.min.js",
       "modules/webextension-specific/app.bundle.js",
