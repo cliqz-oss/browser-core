@@ -84,7 +84,7 @@ export default background({
         this._setIconBadge(RED_DOT_TYPE);
         return;
       }
-      const [ok, payload] = transform(banner, data);
+      const [ok, payload] = transform(banner, data, { abtestPopupsType: true });
       if (ok) { this._renderBanner({ ...payload, autoTrigger: true }); }
     },
   },

@@ -64,6 +64,7 @@ const constructSignal = (signalID, signalType, signalData, gid) => {
       gid,
       type: signalType,
       sent_ts: getMinuteTimestamp(),
+      abtest_popups_tmpl: prefs.get('offers-popup.type', 'card'),
       data: tmp,
     },
   };

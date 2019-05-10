@@ -19,7 +19,7 @@ export default class Popup {
 
   onMessage(msg, sender, sendResponse) {
     const { message: { action, data } = {}, target } = msg;
-    if (target !== 'cliqz-offers-cc') { return true; }
+    if (target !== 'cliqz-offers-cc') { return false; }
     this._dispatcher(action, sendResponse);
     const offerId = null; // transport layer will get offerId from the data
     const autoTrigger = false;
@@ -39,6 +39,8 @@ export default class Popup {
       const payload = await this.getOffers();
       sendResponse({ action: 'pushData', data: payload.data });
       this._sendTelemetry();
+    } else {
+      sendResponse({});
     }
   }
 }

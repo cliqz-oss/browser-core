@@ -482,6 +482,21 @@ const CliqzABTests = {
       case '1122_B':
         prefs.set('modules.cookie-monster.enabled', true);
         break;
+      case '1123_A':
+        prefs.set('dynamic-offers.enabled', false);
+        break;
+      case '1123_B':
+        prefs.set('dynamic-offers.enabled', true);
+        break;
+      case '1124_A':
+        prefs.set('offers-popup.type', 'card');
+        break;
+      case '1124_B':
+        prefs.set('offers-popup.type', 'lodgev1');
+        break;
+      case '1124_C':
+        prefs.set('offers-popup.type', 'lodgev2');
+        break;
       default:
         ruleExecuted = false;
     }
@@ -824,10 +839,13 @@ const CliqzABTests = {
         prefs.set('modules.cookie-monster.enabled', false);
         break;
       case '1123_A':
-        prefs.set('dynamic-offers.enabled', false);
-        break;
       case '1123_B':
-        prefs.set('dynamic-offers.enabled', true);
+        prefs.clear('dynamic-offers.enabled');
+        break;
+      case '1124_A':
+      case '1124_B':
+      case '1124_C':
+        prefs.clear('offers-popup.type');
         break;
       default:
         ruleExecuted = false;

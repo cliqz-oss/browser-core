@@ -1,4 +1,3 @@
-/* global window */
 import App from '../core/app';
 import { newTab, query } from '../platform/tabs';
 import { chrome } from '../platform/globals';

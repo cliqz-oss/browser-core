@@ -2,12 +2,13 @@ import { chrome } from '../../platform/content/globals';
 import { IS_POPUP, SEARCH_PARAMS } from './common/utils';
 import draw from './view';
 
+function response(payload = {}) {
+  if (payload.action === 'pushData') { draw(payload.data); }
+}
+
 export default function send(action, data = {}) {
   const message = { action, data };
   if (IS_POPUP) {
-    const response = (payload = {}) => {
-      if (payload.action === 'pushData') { draw(payload.data); }
-    };
     chrome.runtime.sendMessage({ message, target: 'cliqz-offers-cc' }, response);
   } else {
     const isCrossOrigin = SEARCH_PARAMS.get('cross-origin') !== null;

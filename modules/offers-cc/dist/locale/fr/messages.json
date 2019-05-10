@@ -5,6 +5,9 @@
     "help": {
         "message": "Help"
     },
+    "hot_deal": {
+      "message": "Hot deal"
+    },
     "offers_best_offer": {
         "message": "Meilleure Offre"
     },
@@ -61,6 +64,9 @@
     },
     "offers_send_feedback": {
         "message": "Envoyer"
+    },
+    "show_code": {
+      "message": "Show code"
     },
     "why_offers_text": {
         "message": "Vos données privées ne quittent jamais votre appareil. Votre navigateur détecte automatiquement ce qui est susceptible de vous intéressez selon vos précédentes utilisations."

@@ -5,6 +5,9 @@
     "help": {
         "message": "Help"
     },
+    "hot_deal": {
+      "message": "Hot deal"
+    },
     "offers_best_offer": {
         "message": "Best offer"
     },
@@ -61,6 +64,9 @@
     },
     "offers_send_feedback": {
         "message": "Send"
+    },
+    "show_code": {
+      "message": "Show code"
     },
     "why_offers_text": {
         "message": "No personal data leaves your device. Your browser automatically identifies what you might be interested in based on your previous use. "

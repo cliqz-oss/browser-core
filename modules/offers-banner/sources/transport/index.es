@@ -54,7 +54,6 @@ export function dispatcher(type, offerId, msg = {}, autoTrigger) {
   const mapperRewardBox = {
     sendUserFeedback: payload => core.action('sendUserFeedback', { view: 'box', ...payload }),
     sendActionSignal: rewardBox.commonAction,
-    copyToClipboard,
     getEmptyFrameAndData: rewardBox.hideTooltipIfShould,
     sendOfferActionSignal: rewardBox.actions,
     seenOffer: payload => rewardBox.seenOffer(offerId, payload, autoTrigger),

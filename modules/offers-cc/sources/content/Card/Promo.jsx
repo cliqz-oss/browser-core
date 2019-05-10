@@ -52,8 +52,7 @@ export default class Promo extends React.Component {
       element_id: 'code_copied',
       offer_id: offerId,
     });
-    send('sendTelemetry', { target: 'copy-code' });
-    if (templateData.code) { send('copyToClipboard', templateData.code); }
+    send('sendTelemetry', { target: 'copy_code' });
   }
 
   /* eslint-disable  jsx-a11y/no-static-element-interactions */
@@ -67,6 +66,7 @@ export default class Promo extends React.Component {
             ref={(input) => {
               if (!input || !copied) { return; }
               input.select();
+              window.document.execCommand('copy');
               if (copied) { this.setState({ copied: false }); }
             }}
             readOnly

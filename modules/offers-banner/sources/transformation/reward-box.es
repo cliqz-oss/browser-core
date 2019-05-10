@@ -94,7 +94,7 @@ function tooltip(uiInfo) {
   };
 }
 
-function popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs }) {
+function popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs }, options = {}) {
   const offer = popup(uiInfo, {
     offerId,
     expirationMs,
@@ -112,6 +112,9 @@ function popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs }) {
       ...commonData(),
       vouchers: [offer],
       showExpandButton: false,
+      popupsType: options.abtestPopupsType
+        ? prefs.get('offers-popup.type', 'card')
+        : 'card',
     }
   };
   return [true, payload];
@@ -122,7 +125,7 @@ function tooltipWrapper(offerId, {
   expirationMs,
   createdTs,
   attrs,
-}) {
+}, options = {}) {
   const payload = {
     data: {
       isPair: true,
@@ -131,6 +134,9 @@ function tooltipWrapper(offerId, {
         ...commonData(),
         vouchers: [popup(uiInfo, { offerId, expirationMs, createdTs, attrs })],
         showExpandButton: false,
+        popupsType: options.abtestPopupsType
+          ? prefs.get('offers-popup.type', 'card')
+          : 'card',
       },
     },
     offerId,
@@ -142,7 +148,7 @@ function tooltipWrapper(offerId, {
   return [true, payload];
 }
 
-export function transform(data = {}) {
+export function transform(data = {}, options = {}) {
   const {
     createdTs,
     offer_data: { ui_info: uiInfo, expirationMs } = {},
@@ -151,8 +157,8 @@ export function transform(data = {}) {
   } = data;
   const { notif_type: notifType } = uiInfo;
   return notifType === 'pop-up'
-    ? popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs })
-    : tooltipWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs });
+    ? popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs }, options)
+    : tooltipWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs }, options);
 }
 
 export function transformMany({ offers, preferredOffer } = {}) {

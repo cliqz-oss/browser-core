@@ -26,6 +26,7 @@ export default class Main extends React.Component {
   }
 
   onClickMenuOption = (option) => {
+    const { currentView } = this.state;
     if (option === 'help') {
       send('openURL', {
         url: 'https://myoffrz.com/kontakt/',
@@ -37,7 +38,7 @@ export default class Main extends React.Component {
     this.setState({
       currentView: option === 'why-do-i-see'
         ? 'why-do-i-see'
-        : 'cards',
+        : currentView,
       isMenuOpen: false,
     }, () => {
       if (option === 'why-do-i-see') { resize(); }
