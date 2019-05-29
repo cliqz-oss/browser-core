@@ -6,19 +6,19 @@
   "manifest_version": 2,
   "default_locale": "de",
   "icons": {
-    "16": "assets/{{OFFERS_PRODUCT_PREFIX}}-icon16.png",
-    "25": "assets/{{OFFERS_PRODUCT_PREFIX}}-icon25.png",
-    "48": "assets/{{OFFERS_PRODUCT_PREFIX}}-icon48.png",
-    "128": "assets/{{OFFERS_PRODUCT_PREFIX}}-icon128.png"
+    "16": "assets/icon16.png",
+    "25": "assets/icon25.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
   },
   "browser_action": {
     "default_icon": {
-      "16": "assets/{{OFFERS_PRODUCT_PREFIX}}-icon16.png",
-      "25": "assets/{{OFFERS_PRODUCT_PREFIX}}-icon25.png",
-      "48": "assets/{{OFFERS_PRODUCT_PREFIX}}-icon48.png",
-      "128": "assets/{{OFFERS_PRODUCT_PREFIX}}-icon128.png"
+      "16": "assets/icon16.png",
+      "25": "assets/icon25.png",
+      "48": "assets/icon48.png",
+      "128": "assets/icon128.png"
     },
-    "default_title": "{{OFFERS_PRODUCT_TITLE}}",
+    "default_title": "MyOffrz",
     "default_popup": "modules/offers-cc/index.html?popup"
   },
   "permissions": [
@@ -65,7 +65,6 @@
   ],
   "web_accessible_resources": [
     "modules/browser-panel/index.html",
-    "modules/offers-cc/index.html",
-    "modules/popup-notification/images/*"
+    "modules/offers-cc/index.html"
   ]
 }

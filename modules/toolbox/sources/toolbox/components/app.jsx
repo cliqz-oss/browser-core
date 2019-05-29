@@ -17,7 +17,7 @@ const tabs = [
   'Tool shortcuts',
   'Modules list',
   'Backend endpoints',
-  'Set / get prefs',
+  'Change prefs',
   'Action buttons',
   'HumanWeb',
   'Telemetry',
@@ -44,7 +44,7 @@ export default class App extends React.Component {
     if (this.state.view === 'Backend endpoints') {
       return <SearchBackendConfig cliqz={this.background} />;
     }
-    if (this.state.view === 'Set / get prefs') {
+    if (this.state.view === 'Change prefs') {
       return <Preferences cliqz={this.background} />;
     }
     if (this.state.view === 'Action buttons') {

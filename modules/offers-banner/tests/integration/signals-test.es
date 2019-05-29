@@ -34,13 +34,7 @@ function isSomeOfferShown(offersModule) {
   return false;
 }
 
-function findOriginData(req, dest) {
-  const offersData = req.body.payload.data.c_data.offers[0].offer_data;
-  const offerData = offersData.find(o => o.origin === dest) || {};
-  return offerData.origin_data || {};
-}
-
-function signalsTests(dest) {
+function signalsTests(dest, config) {
   let tabId;
 
   describe(`offers-banner-${dest}`, function () {
@@ -80,14 +74,14 @@ function signalsTests(dest) {
           it('should check server-side', function () {
             expect(hits.get('/api/v1/savesignal')[0].body.action).to.equal('offers-signal');
             const req = hits.get('/api/v1/savesignal').find(r => Boolean(r.body.payload.data.c_data));
+            const originData = idx =>
+              req.body.payload.data.c_data.offers[0].offer_data[idx].origin_data;
 
-            expect(findOriginData(req, 'processor'), 'offer_triggered, server-side')
-              .to.have.property('offer_triggered').to.equal(1);
-            expect(findOriginData(req, 'processor'), 'offer_pushed, server-side')
-              .to.have.property('offer_pushed').to.equal(1);
-            expect(findOriginData(req, dest), 'offer_dsp_session, server-side')
+            expect(originData(0), 'offer_triggered, server-side').to.have.property('offer_triggered').to.equal(1);
+            expect(originData(0), 'offer_pushed, server-side').to.have.property('offer_pushed').to.equal(1);
+            expect(originData(config.serverSideIndex), 'offer_dsp_session, server-side')
               .to.have.property('offer_dsp_session').to.equal(1);
-            expect(findOriginData(req, dest), 'offer_shown, server-side')
+            expect(originData(config.serverSideIndex), 'offer_shown, server-side')
               .to.have.property('offer_shown').to.equal(1);
           });
         });
@@ -135,6 +129,6 @@ function signalsTests(dest) {
 }
 
 export default function () {
-  signalsTests('browser-panel');
-  signalsTests('offers-cc');
+  signalsTests('browser-panel', { serverSideIndex: 1 });
+  signalsTests('offers-cc', { serverSideIndex: 2 });
 }

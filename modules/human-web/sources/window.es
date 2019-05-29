@@ -1,5 +1,4 @@
-import { isPrivateMode, openLink } from '../core/browser';
-import telemetry from '../core/services/telemetry';
+import utils from '../core/utils';
 import prefs from '../core/prefs';
 import HumanWeb from './human-web';
 import background from './background';
@@ -15,7 +14,7 @@ export default class Win {
   enabled() {
     return prefs.get('humanWeb', false)
            && !prefs.get('humanWebOptOut', false)
-           && !isPrivateMode(this.window);
+           && !utils.isPrivateMode(this.window);
   }
 
   init() {
@@ -60,7 +59,7 @@ export default class Win {
     }
 
     function updateDataCollectionState(state) {
-      telemetry.push({
+      utils.telemetry({
         type: 'dataCollectionMessage',
         state
       });
@@ -70,13 +69,13 @@ export default class Win {
 
     browser.notifications.create({
       type: 'basic',
-      message: getMessage('hw_data_collection'),
+      message: getMessage('dataCollection'),
       title: 'Human Web',
     });
 
     browser.notifications.onClicked.addListener(() => {
       const learnMoreUrl = browser.runtime.getURL('modules/human-web/humanweb.html');
-      openLink(this.window, learnMoreUrl, true, false, false, true);
+      utils.openLink(this.window, learnMoreUrl, true, false, false, true);
       updateDataCollectionState(3);
     });
 

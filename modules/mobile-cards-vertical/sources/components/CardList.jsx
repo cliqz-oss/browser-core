@@ -24,7 +24,7 @@ class CardList extends React.PureComponent {
       isNewTab: false,
       isPrivateMode: false,
       isPrivateResult: meta.isPrivate,
-      query: result.text,
+      query: meta.query,
       rawResult: {
         index: props.index,
         ...result,
@@ -85,9 +85,6 @@ class CardList extends React.PureComponent {
 
   render() {
     const { results, cliqz } = this.props;
-    if (!results.length) {
-      return null;
-    }
     return (
       <FlatList
         ref={(cardsList) => { this._cardsList = cardsList; }}

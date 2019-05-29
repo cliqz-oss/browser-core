@@ -1,3 +1,4 @@
+import utils from './utils';
 import events from './events';
 import prefs from './prefs';
 import * as i18n from './i18n';
@@ -13,12 +14,14 @@ export default class Win {
 
   init() {
     // expose globals
+    this.window.CliqzUtils = utils;
     this.window.CliqzEvents = events;
     this.window.CLIQZ.prefs = prefs;
     this.window.CLIQZ.i18n = i18n;
   }
 
   unload() {
+    delete this.window.CliqzUtils;
     delete this.window.CliqzEvents;
     delete this.window.CLIQZ.prefs;
     delete this.window.CLIQZ.i18n;

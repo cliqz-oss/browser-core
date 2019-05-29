@@ -1,84 +1,49 @@
-import RNFS from 'react-native-fs';
-import { toBase64, fromBase64 } from '../core/encoding';
-
-const BASEDIR = RNFS.DocumentDirectoryPath;
+function notImplemented() {
+  throw new Error('persistent-map: not implemented');
+}
 
 export default class PersistentMap {
-  constructor(dbName) {
-    this.dbName = dbName;
-    this._mapDir = `${BASEDIR}/pmap/${dbName}`;
+  constructor(/* dbName */) {
+    notImplemented();
   }
 
-  async init() {
-    await RNFS.mkdir(this._mapDir);
-    return Promise.resolve();
+  init() {
+    notImplemented();
   }
 
   unload() {
+    notImplemented();
   }
 
-  destroy() {
-    try {
-      return RNFS.unlink(this._mapDir);
-    } catch (e) {
-      return Promise.resolve();
-    }
+  get(/* key */) {
+    notImplemented();
   }
 
-  async _getFileForKey(key) {
-    const dir = await RNFS.readdir(this._mapDir);
-    return dir.find(v => v.startsWith(`${key}.`));
+  set(/* key, value */) {
+    notImplemented();
   }
 
-  async get(key) {
-    const file = await this._getFileForKey(key);
-    if (!file) {
-      return Promise.resolve(undefined);
-    }
-    if (file.endsWith('.bin')) {
-      const contents = await RNFS.readFile(`${this._mapDir}/${file}`, 'base64');
-      return fromBase64(contents);
-    }
-    return JSON.parse(await RNFS.readFile(`${this._mapDir}/${file}`));
+  has(/* key */) {
+    notImplemented();
   }
 
-  set(key, value) {
-    if (value.buffer) {
-      const b64Enc = toBase64(value.buffer);
-      return RNFS.writeFile(`${this._mapDir}/${key}.bin`, b64Enc, 'base64');
-    }
-    return RNFS.writeFile(`${this._mapDir}/${key}.str`, JSON.stringify(value));
-  }
-
-  async has(key) {
-    return !!(await this._getFileForKey(key));
-  }
-
-  async delete(key) {
-    const file = await this._getFileForKey(key);
-    if (file) {
-      return RNFS.unlink(`${this._mapDir}/${file}`);
-    }
-    return Promise.resolve();
+  delete(/* key */) {
+    notImplemented();
   }
 
   clear() {
-    return this.destroy();
+    notImplemented();
   }
 
-  async size() {
-    return (await RNFS.readdir(this._mapDir)).length;
+  size() {
+    notImplemented();
   }
 
-  async keys() {
-    return (await RNFS.readdir(this._mapDir)).map(fileName => fileName.split('.', 2)[0]);
-  }
-
-  values() {
-    throw new Error('no implemented');
+  keys() {
+    notImplemented();
   }
 
   entries() {
-    throw new Error('no implemented');
+    notImplemented();
   }
 }

@@ -11,4 +11,3 @@ export {
   Response,
   isTrackableOriginHeaderFromOurExtension
 };
-export const fetchArrayBuffer = fetch;

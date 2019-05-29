@@ -24,7 +24,7 @@ import telemetry from './telemetry';
 import { HashProb } from './hash';
 import { getDefaultTrackerTxtRule } from './tracker-txt';
 import { URLInfo, shuffle } from '../core/url-info';
-import { VERSION, TELEMETRY } from './config';
+import { VERSION, MIN_BROWSER_VERSION, TELEMETRY } from './config';
 import { checkInstalledPrivacyAddons } from '../platform/addon-check';
 import { compressionAvailable, compressJSONToBase64, generateAttrackPayload } from './utils';
 import AttrackDatabase from './database';
@@ -45,6 +45,7 @@ import { skipInternalProtocols, skipInvalidSource, checkSameGeneralDomain } from
 export default class CliqzAttrack {
   constructor() {
     this.VERSION = VERSION;
+    this.MIN_BROWSER_VERSION = MIN_BROWSER_VERSION;
     this.LOG_KEY = 'attrack';
     this.debug = false;
     this.msgType = 'attrack';
@@ -81,6 +82,7 @@ export default class CliqzAttrack {
   getPrivateValues(window) {
     // creates a list of return values of functions may leak private info
     const p = {};
+    // var navigator = utils.getWindow().navigator;
     const navigator = window.navigator;
     // plugins
     for (let i = 0; i < navigator.plugins.length; i += 1) {
@@ -104,12 +106,8 @@ export default class CliqzAttrack {
     return this.config.enabled;
   }
 
-  isCookieEnabled({ tabUrlParts }) {
-    if (tabUrlParts !== null && this.urlWhitelist.isWhitelisted(
-      tabUrlParts.href,
-      tabUrlParts.hostname,
-      tabUrlParts.generalDomain,
-    )) {
+  isCookieEnabled(url) {
+    if (url !== undefined && this.urlWhitelist.isWhitelisted(url)) {
       return false;
     }
     return this.config.cookieEnabled;
@@ -189,6 +187,10 @@ export default class CliqzAttrack {
   init(config, settings) {
     const initPromises = [];
     this.config = config;
+    // disable for older browsers
+    if (browser.getBrowserMajorVersion() < this.MIN_BROWSER_VERSION) {
+      return Promise.resolve();
+    }
 
     // Replace getWindow functions with window object used in init.
     if (this.debug) console.log('Init function called:', this.LOG_KEY);
@@ -409,11 +411,7 @@ export default class CliqzAttrack {
           name: 'checkSourceWhitelisted',
           spec: 'break',
           fn: (state) => {
-            if (this.urlWhitelist.isWhitelisted(
-              state.tabUrl,
-              state.tabUrlParts.hostname,
-              state.tabUrlParts.generalDomain,
-            )) {
+            if (this.urlWhitelist.isWhitelisted(state.tabUrlParts.hostname)) {
               state.incrementStat('source_whitelisted');
               return false;
             }
@@ -590,7 +588,8 @@ export default class CliqzAttrack {
           name: 'shouldBlockCookie',
           spec: 'break',
           fn: (state) => {
-            const shouldBlock = this.isCookieEnabled(state) && !this.config.paused;
+            const shouldBlock = this.isCookieEnabled(state.tabUrlParts.hostname)
+                                && !this.config.paused;
             if (!shouldBlock) {
               state.incrementStat('bad_cookie_sent');
             }
@@ -726,7 +725,7 @@ export default class CliqzAttrack {
         {
           name: 'shouldBlockCookie',
           spec: 'break',
-          fn: state => this.isCookieEnabled(state),
+          fn: state => this.isCookieEnabled(state.tabUrlParts.hostname),
         },
         {
           name: 'checkIsCookieWhitelisted',
@@ -853,26 +852,32 @@ export default class CliqzAttrack {
   /** Per-window module initialisation
   */
   initWindow(window) {
+    if (browser.getBrowserMajorVersion() < this.MIN_BROWSER_VERSION) {
+      return;
+    }
     this.getPrivateValues(window);
   }
 
   unload() {
-    // Check is active usage, was sent
-    this.hashProb.unload();
-    this.qs_whitelist.destroy();
+    // don't need to unload if disabled
+    if (browser.getBrowserMajorVersion() >= this.MIN_BROWSER_VERSION) {
+      // Check is active usage, was sent
+      this.hashProb.unload();
+      this.qs_whitelist.destroy();
 
-    // force send tab telemetry data
-    // NOTE - this is an async operation
-    this.tp_events.commit(true, true);
-    this.tp_events.push(true);
+      // force send tab telemetry data
+      // NOTE - this is an async operation
+      this.tp_events.commit(true, true);
+      this.tp_events.push(true);
 
-    this.tp_events.removeEventListener('stage', this._onPageStaged);
+      this.tp_events.removeEventListener('stage', this._onPageStaged);
 
-    this.unloadPipeline();
+      this.unloadPipeline();
 
-    this.db.unload();
+      this.db.unload();
 
-    this.onSafekeysUpdated.unsubscribe();
+      this.onSafekeysUpdated.unsubscribe();
+    }
   }
 
   checkInstalledAddons() {

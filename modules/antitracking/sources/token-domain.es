@@ -1,5 +1,5 @@
 import { Subject, asyncScheduler, merge, from } from 'rxjs';
-import { observeOn, pluck, distinctUntilChanged, delay, map } from 'rxjs/operators';
+import { observeOn, auditTime, pluck, distinctUntilChanged, delay, map } from 'rxjs/operators';
 import console from '../core/console';
 import * as datetime from './time';
 
@@ -19,10 +19,7 @@ export default class TokenDomain {
 
   init() {
     // load current tokens over threshold
-    const startup = this.db.ready.then(async () => {
-      await this.loadBlockedTokens();
-      await this.db.tokenDomain.clear();
-    });
+    const startup = this.db.ready.then(() => this.loadBlockedTokens());
 
     // listen to the token tuples and update staged token data
     // emit when a new token is added to the blockedTokens set
@@ -30,6 +27,19 @@ export default class TokenDomain {
       .subscribe((v) => {
         this._addTokenOnFirstParty(v);
       });
+
+    // sample token events to trigger database persist a most
+    // once per minute.
+    // While a previous persist is running these messages will be suppressed.
+    const persistWhen = this.subjectTokens.pipe(
+      observeOn(asyncScheduler),
+      auditTime(60000)
+    );
+
+    // Persist to disk controlled by the persistWhen Observable
+    this._persistSubscription = persistWhen.subscribe(() => {
+      this._persist();
+    });
 
     // when cleanup is due: after startup, or when day changes
     this._cleanupSubscription = merge(
@@ -129,25 +139,52 @@ export default class TokenDomain {
     return this.config.tokenDomainCountThreshold < 2 || this.blockedTokens.has(token);
   }
 
+  _persist() {
+    const rows = [];
+    const tokens = [];
+    this.stagedTokenDomain.forEach((fps, token) => {
+      tokens.push(token);
+      fps.forEach((mtime, fp) => {
+        rows.push({
+          token,
+          fp,
+          mtime,
+        });
+      });
+    });
+
+    // upsert rows from staging to the db.
+    return this.db.tokenDomain.bulkPut(rows).catch((errors) => {
+      console.error('tokendomain', 'bulkPut errors', errors);
+    }).then(() =>
+      // for the tokens we have updated, check to see if the count exceeds the
+      // threshold. In these cases, save the blocked token
+      Promise.all(tokens.map(token =>
+        this.db.tokenDomain.where('token').equals(token).count((n) => {
+          if (n >= this.config.tokenDomainCountThreshold) {
+            this.stagedTokenDomain.delete(token);
+            return this.addBlockedToken(token);
+          }
+          return Promise.resolve();
+        }))))
+      .catch((e) => {
+        console.error('tokendomain', 'count error', e);
+      });
+  }
+
   clean() {
     const day = datetime.newUTCDate();
     day.setDate(day.getDate() - DAYS_EXPIRE);
     const dayCutoff = datetime.dateString(day);
 
-    this.stagedTokenDomain.forEach((fps, token) => {
-      const toPrune = [];
-      fps.forEach((mtime, fp) => {
-        if (mtime < dayCutoff) {
-          toPrune.push(fp);
-        }
-      });
-      toPrune.forEach((fp) => {
-        fps.delete(fp);
-      });
-      if (fps.size === 0) {
-        this.stagedTokenDomain.delete(token);
-      }
-    });
+    const cleanTokenBlocked = this.db.tokenBlocked.where('expires')
+      .below(this.currentDay)
+      .delete()
+      .then(() => this.loadBlockedTokens());
+    const cleanTokeDomain = this.db.tokenDomain.where('mtime')
+      .below(dayCutoff)
+      .delete();
+    return Promise.all([cleanTokenBlocked, cleanTokeDomain]);
   }
 
   clear() {

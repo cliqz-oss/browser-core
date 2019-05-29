@@ -1,5 +1,6 @@
 import inject from '../../core/kord/inject';
-import { mapWindows, openLink, getWindow } from '../../core/browser';
+import utils from '../../core/utils';
+import { mapWindows } from '../../core/browser';
 import { queryActiveTabs as getTabs, pinTab } from '../../core/tabs';
 import { getDetailsFromUrl } from '../../core/url';
 
@@ -50,14 +51,14 @@ export default class PinTab {
   }
 
   activate() {
-    const window = getWindow();
+    const window = utils.getWindow();
     const domain = this.domain;
     let tab = getTabs(window).find(
       _tab => isUrlBelongToDomain(domain, _tab.url)
     );
 
     if (!tab) {
-      tab = openLink(window, domain, true);
+      tab = utils.openLink(window, domain, true);
     }
 
     if (tab) {

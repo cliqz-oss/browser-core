@@ -1,28 +1,26 @@
-import persistentMapFactory from './map';
+import PersistentMap from './map';
 
 // Like PersistentMap, but getters are synchronous
-export default class CachedMap {
-  constructor(name) {
-    this.name = name;
+
+export default class CachedMap extends PersistentMap {
+  constructor(...args) {
+    super(...args);
     this.data = new Map();
-    this.db = null;
   }
 
-  async init() {
-    const PersistentMap = await persistentMapFactory();
-    this.db = new PersistentMap(this.name);
-    await this.db.init();
-    (await this.db.entries()).forEach(([key, value]) => {
-      this.data.set(key, value);
-    });
+  init() {
+    return super.init()
+      .then(() => super.entries())
+      .then((entries) => {
+        entries.forEach(([key, value]) => {
+          this.data.set(key, value);
+        });
+      });
   }
 
   unload() {
     this.data.clear();
-    if (this.db !== null) {
-      this.db.unload();
-      this.db = null;
-    }
+    return super.unload();
   }
 
   get(key) {
@@ -31,10 +29,7 @@ export default class CachedMap {
 
   set(key, value) {
     this.data.set(key, value);
-    if (this.db !== null) {
-      return this.db.set(key, value);
-    }
-    return Promise.resolve();
+    return super.set(key, value);
   }
 
   has(key) {
@@ -43,18 +38,12 @@ export default class CachedMap {
 
   delete(key) {
     this.data.delete(key);
-    if (this.db !== null) {
-      return this.db.delete(key);
-    }
-    return Promise.resolve();
+    return super.delete(key);
   }
 
   clear() {
     this.data.clear();
-    if (this.db !== null) {
-      return this.db.clear();
-    }
-    return Promise.resolve();
+    return super.clear();
   }
 
   size() {

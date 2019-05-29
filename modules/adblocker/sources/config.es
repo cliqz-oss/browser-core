@@ -1,78 +1,30 @@
 import prefs from '../core/prefs';
-import cliqzConfig from '../core/config';
-import { isMobile } from '../core/platform';
+import { platformName } from '../core/platform';
 
 // Preferences
+export const ADB_DISK_CACHE = 'cliqz-adb-disk-cache';
 export const ADB_PREF = 'cliqz-adb';
-export const ADB_PREF_STRICT = 'cliqz-adb-strict';
+export const ADB_PREF_OPTIMIZED = 'cliqz-adb-optimized';
 export const ADB_ABTEST_PREF = 'cliqz-adb-abtest';
+export const ADB_PREF_VALUES = {
+  Enabled: 1,
+  Disabled: 0,
+};
+export const ADB_DEFAULT_VALUE = ADB_PREF_VALUES.Disabled;
 export const ADB_USER_LANG = 'cliqz-adb-lang';
 
-function buildAllowedListsUrl(type) {
-  return `${cliqzConfig.settings.ADBLOCKER_BASE_URL}/${type}/allowed-lists.json`;
+export function adbABTestEnabled() {
+  return prefs.get(ADB_ABTEST_PREF, ADB_PREF_VALUES.Enabled);
 }
 
-class Config {
-  get allowedListsUrl() {
-    // react-native has a custom set of lists to avoid hitting incompatible code
-    if (cliqzConfig.platform === 'react-native') {
-      return this.strictMode
-        ? buildAllowedListsUrl('mobile-react-native-ads-trackers')
-        : buildAllowedListsUrl('mobile-react-native-ads');
-    }
-    if (isMobile) {
-      return this.strictMode
-        ? buildAllowedListsUrl('mobile-ads-trackers')
-        : buildAllowedListsUrl('mobile-ads');
-    }
-    return this.strictMode
-      ? buildAllowedListsUrl('desktop-ads-trackers')
-      : buildAllowedListsUrl('desktop-ads');
-  }
+export const DEFAULT_OPTIONS = {
+  onDiskCache: true,
+  useCountryList: true,
+  loadNetworkFilters: true,
 
-  get strictMode() {
-    return prefs.get(ADB_PREF_STRICT, false);
-  }
-
-  set strictMode(value) {
-    prefs.set(ADB_PREF_STRICT, value);
-  }
-
-  get regionsOverride() {
-    const value = prefs.get(ADB_USER_LANG);
-
-    if (value === undefined) {
-      return [];
-    }
-
-    return value
-      .split(';')
-      .map(region => region.trim())
-      .filter(region => region.length !== 0);
-  }
-
-  get abtestEnabled() {
-    // By default, we consider the adblocker module should be enabled (note:
-    // enabled means that it will appear in the control-center but will still
-    // require the user to start by toggling the switch). This makes sure that
-    // having the abtest not updating the pref does not kill the adblocker. On
-    // the other hand, if the abtest of the adblocker is disabled, the pref will
-    // be set to false.
-    return prefs.get(ADB_ABTEST_PREF, true) === true;
-  }
-
-  set abtestEnabled(value) {
-    prefs.set(ADB_ABTEST_PREF, value);
-  }
-
-  get enabled() {
-    const adbPref = prefs.get(ADB_PREF, false);
-    return this.abtestEnabled && (adbPref === true || adbPref === 1);
-  }
-
-  set enabled(value) {
-    prefs.set(ADB_PREF, value);
-  }
-}
-
-export default new Config();
+  // We don't support cosmetics filters on mobile, so no need
+  // to parse them, store them, etc.
+  // This will reduce both: loading time, memory footprint, and size of
+  // the serialized index on disk.
+  loadCosmeticFilters: platformName !== 'mobile',
+};

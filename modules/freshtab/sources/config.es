@@ -108,6 +108,10 @@ export default {
     PREF_SEARCH_MODE: 'freshtab.search.mode',
     NO_BG: 'bg-default',
     MAX_SPOTS: 6,
+    WHY_OFFERS_URL: {
+      CLIQZ: 'https://cliqz.com/cliqz-angebote',
+      GHOSTERY: 'https://www.ghostery.com/faqs/what-is-ghostery-rewards/',
+    },
   },
   backgrounds: {
     CLIQZ: CLIQZ_BACKGROUNDS,

@@ -10,4 +10,5 @@ $modal-edit-button-background: url(../images/pencil.svg) no-repeat;
 $modal-dial-delete-active-background: url(../images/trashcan-active.svg) no-repeat;
 $modal-dial-delete-hover-background: url(../images/trashcan-hover.svg) no-repeat;
 $modal-dial-invalid-url-background: url(../images/error-icon.svg) no-repeat;
-$overlay-background-color: rgba(0, 0, 0, .24);
+$overlay-blur-amount: 5px;
+$overlay-background-color: rgba(0, 0, 0, .4);

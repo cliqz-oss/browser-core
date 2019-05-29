@@ -6,6 +6,7 @@ $themes: (
             cliqz-worldcup-bg: url(../images/soccer-icon-black.svg) no-repeat center center,
             cliqz-settings-bg: url(../images/settings-icon_black.svg) no-repeat center center,
             cliqz-modules-bg: url(../images/cliqz-modules-icon_black.svg) no-repeat center center,
+            cliqz-for-friends-bg: url(../images/friends-icon.svg) no-repeat center center,
 
             button-color: #00aef0,
             button-color-hover: #0078CA,
@@ -51,9 +52,22 @@ $themes: (
             news-read-more-btn-color: #00AEF0,
             news-breaking-news-color: #E64C66,
         ),
+        middle-notifications: (
+            close-bg: url(../images/close-icon_black.svg) no-repeat center center,
+            middle-box-bg-color: rgba(255, 255, 255, 0.2),
+            middle-box-content-color: #333,
+        ),
         top-notifications: (
             close-bg: url(../images/top-message-close.svg) no-repeat center center,
         ),
+        offer-middle-notifications: (
+            offer-mn-color: #494949,
+            offer-mn-code-border-color: #c1c1c1,
+        ),
+        offer-middle-feedback: (
+            offer-mn-color: #494949,
+            close-bg: url(../images/close-icon_black.svg) no-repeat center center,
+        )
     ),
 
     dark: (
@@ -63,6 +77,7 @@ $themes: (
             cliqz-worldcup-bg: url(../images/soccer-tooltip.svg) no-repeat center center,
             cliqz-settings-bg: url(../images/settings-icon.svg) no-repeat center center,
             cliqz-modules-bg: url(../images/cliqz-modules-icon.svg) no-repeat center center,
+            cliqz-for-friends-bg: url(../images/friends-icon-w.svg) no-repeat center center,
 
             button-color: #64d4ff,
             button-color-hover: #64d4ff,
@@ -108,8 +123,21 @@ $themes: (
             news-read-more-btn-color: #00AEF0,
             news-breaking-news-color: #E64C66,
         ),
+        middle-notifications: (
+            close-bg: url(../images/close-icon.svg) no-repeat center center,
+            middle-box-bg-color: rgba(255, 255, 255, 0.2),
+            middle-box-content-color: #fff,
+        ),
         top-notifications: (
             close-bg: url(../images/top-message-close.svg) no-repeat center center,
         ),
+        offer-middle-notifications: (
+            offer-mn-color: #494949,
+            offer-mn-code-border-color: #c1c1c1,
+        ),
+        offer-middle-feedback: (
+            offer-mn-color: #494949,
+            close-bg: url(../images/close-undo.svg) no-repeat center center,
+        )
     )
 );

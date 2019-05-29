@@ -37,12 +37,6 @@ export function historyPaginationClickSignal(index) {
   });
 }
 
-export function friendsClickSignal() {
-  return cliqz.cliqzForFriends.report({
-    click: 1,
-  });
-}
-
 export function settingsClickSignal() {
   telemetry({
     type: 'home',

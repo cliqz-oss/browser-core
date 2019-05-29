@@ -37,8 +37,7 @@
     "unlimitedStorage",
     "webNavigation",
     "webRequest",
-    "webRequestBlocking",
-    "contextMenus"
+    "webRequestBlocking"
   ],
   "background": {
     "scripts": [
@@ -69,7 +68,6 @@
   ],
   "web_accessible_resources": [
     "modules/dropdown/dropdown.html",
-    "modules/freshtab/home.html",
     "modules/overlay/styles/overlay.css",
     "modules/freshtab/images/ghostery-tab-search-icon.svg"
   ]

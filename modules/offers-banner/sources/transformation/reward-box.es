@@ -1,22 +1,14 @@
 import { getResourceUrl, isCliqzBrowser, isWebExtension } from '../../core/platform';
 import config from '../../core/config';
 import { getMessage } from '../../core/i18n';
-import prefs from '../../core/prefs';
 import { getTitleColor } from '../utils';
 import calculateValidity from './helpers';
 
-function commonData() {
-  return {
-    products: {
-      cliqz: isCliqzBrowser,
-      chip: prefs.get('is-offers-chip-standalone'),
-    },
-
-    // the next two for browser-panel
-    isCliqzBrowser,
-    isWebExtension,
-  };
-}
+// should be read-only
+const COMMON_DATA = {
+  isCliqzBrowser,
+  isWebExtension,
+};
 
 function popup(uiInfo, {
   createdTs,
@@ -33,7 +25,7 @@ function popup(uiInfo, {
     : templateData.validity;
 
   const [diff, diffUnit, isExpiredSoon] = calculateValidity(expirationTime);
-  const validity = expirationTime && diff != null
+  const validity = expirationTime
     ? {
       text: `${getMessage('offers_expires_in')} ${diff} ${getMessage(diffUnit)}`,
       isExpiredSoon,
@@ -73,7 +65,7 @@ function tooltip(uiInfo) {
 
   if (notifType === 'tooltip_extra') {
     return {
-      ...commonData(),
+      ...COMMON_DATA,
       showTooltip: true,
       logo: uiInfo.template_data.logo_dataurl,
       headline: headline || title,
@@ -86,7 +78,7 @@ function tooltip(uiInfo) {
   }
 
   return {
-    ...commonData(),
+    ...COMMON_DATA,
     showTooltip: true,
     isGeneric: true,
     headline: getMessage('offers_hub_tooltip_new_offer'),
@@ -109,7 +101,7 @@ function popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs }) {
       type: 'offers-cc',
     },
     data: {
-      ...commonData(),
+      ...COMMON_DATA,
       vouchers: [offer],
       showExpandButton: false,
     }
@@ -128,7 +120,7 @@ function tooltipWrapper(offerId, {
       isPair: true,
       tooltip: tooltip(uiInfo),
       popup: {
-        ...commonData(),
+        ...COMMON_DATA,
         vouchers: [popup(uiInfo, { offerId, expirationMs, createdTs, attrs })],
         showExpandButton: false,
       },
@@ -189,7 +181,7 @@ export function transformMany({ offers, preferredOffer } = {}) {
     return {
       config: offersConfig,
       data: {
-        ...commonData(),
+        ...COMMON_DATA,
         vouchers: [newPreferredOffer].concat(withoutPreferred),
         showExpandButton: withoutPreferred.length > 0,
       }
@@ -199,7 +191,7 @@ export function transformMany({ offers, preferredOffer } = {}) {
   return {
     config: offersConfig,
     data: {
-      ...commonData(),
+      ...COMMON_DATA,
       vouchers: newOffers,
       noVoucher: newOffers.length === 0,
       showExpandButton: false,

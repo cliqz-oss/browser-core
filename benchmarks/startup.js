@@ -1,6 +1,6 @@
 const fs = require('fs');
 const perf = require('@cliqz/webextension-emulator');
-const experimentalAPIs = require('./mock_apis');
+const cliqzApi = require('./cliqz-api');
 
 const Emulator = perf.default;
 
@@ -11,9 +11,10 @@ const emulator = new Emulator('../build', {
   indexedDBPath: './data/idb',
   timeMultiplier: 10,
 });
-Object.keys(experimentalAPIs).forEach((api) => {
-  emulator.addChromeApi(api, experimentalAPIs[api]);
+Object.keys(perf.experimentalAPIs).forEach((api) => {
+  emulator.addChromeApi(api, perf.experimentalAPIs[api]);
 });
+emulator.addChromeApi('cliqz', cliqzApi);
 emulator.createSandbox();
 emulator.mock.createTab({
   id: 3,

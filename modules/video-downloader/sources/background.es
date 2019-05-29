@@ -5,8 +5,6 @@ import { getActiveTab } from '../platform/browser';
 import { chrome } from '../platform/globals';
 
 export default background({
-  requiresServices: ['telemetry'],
-
   init() {
     // The UI's constructor receives Peercomm as the first param.
     // If pairing module is available, we pass it.
@@ -17,7 +15,7 @@ export default background({
       .catch(() => {})
       .then((peerComm) => {
         this.UI = new UI(peerComm);
-        if (chrome.i18n) {
+        if (chrome) {
           this.UI.init();
         }
       });

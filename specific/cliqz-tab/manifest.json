@@ -36,8 +36,7 @@
     "unlimitedStorage",
     "webNavigation",
     "webRequest",
-    "webRequestBlocking",
-    "contextMenus"
+    "webRequestBlocking"
   ],
   "background": {
     "scripts": [

@@ -1,4 +1,4 @@
-import { URLInfo } from './url-info';
+import { cleanUrlProtocol } from './url';
 import prefs from './prefs';
 import { getGeneralDomain, extractHostname } from './tlds';
 import { LazyPersistentObject } from '../core/persistent-state';
@@ -70,33 +70,15 @@ export default class UrlWhitelist {
     this.persistWhitelist();
   }
 
-  isWhitelisted(url, hostname = null, domain = null) {
-    if (this.whitelist.size === 0) {
-      return false;
-    }
-
-    if (this.whitelist.has(`u:${url}`)) {
-      return true;
-    }
-
-    if (hostname === null || domain === null) {
-      const info = URLInfo.get(url);
-      if (info === null) {
-        return false;
-      }
-
-      // eslint-disable-next-line no-param-reassign
-      hostname = hostname === null ? info.hostname : hostname;
-      // eslint-disable-next-line no-param-reassign
-      domain = domain === null ? info.generalDomain : domain;
-    }
-
-    return this.whitelist.has(`g:${domain}`) || this.whitelist.has(`h:${hostname}`);
+  isWhitelisted(url) {
+    return this.whitelist.has(`u:${cleanUrlProtocol(url, true)}`)
+      || this.whitelist.has(`h:${extractHostname(url)}`)
+      || this.whitelist.has(`g:${getGeneralDomain(url)}`);
   }
 
   getState(url) {
     return {
-      url: this.whitelist.has(`u:${url}`),
+      url: this.whitelist.has(`u:${cleanUrlProtocol(url, true)}`),
       hostname: this.whitelist.has(`h:${extractHostname(url)}`),
       generalDomain: this.whitelist.has(`g:${getGeneralDomain(url)}`)
     };
@@ -114,7 +96,7 @@ export default class UrlWhitelist {
     let processed;
     switch (type) {
       case 'url':
-        processed = `u:${url}`;
+        processed = `u:${cleanUrlProtocol(url, true)}`;
         break;
       case 'hostname':
         processed = `h:${extractHostname(url)}`;

@@ -1,6 +1,6 @@
 import random from '../core/crypto/random';
 import prefs from '../core/prefs';
-import inject from '../core/kord/inject';
+import utils from '../core/utils';
 
 // generate a new UUID
 function generateUUID() {
@@ -29,7 +29,7 @@ function dayHour() {
 }
 
 function getLatestOfferInstallTs() {
-  const extensionVersion = String(inject.app.version);
+  const extensionVersion = String(utils.extensionVersion);
   const ts = +timestampMS();
 
   const installInfo = prefs.get('offersInstallInfo', null);

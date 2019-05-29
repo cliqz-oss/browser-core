@@ -50,6 +50,9 @@ const tests = () => {
 export default describeModule('core/app',
   function () {
     return {
+      'core/utils': {
+        default: {},
+      },
       'core/events': {
         default: {},
       },
@@ -61,7 +64,6 @@ export default describeModule('core/app',
         },
       },
       'core/console': {
-        isLoggingEnabled: () => false,
         default: {},
       },
       'core/i18n': {

@@ -1,15 +1,24 @@
-export function addStylesheet(document, url, className = 'cliqz-theme') {
+import { isBootstrap, isAMO } from '../platform';
+
+export function addStylesheet(document, url) {
+  if (!isBootstrap && !isAMO) {
+    return;
+  }
   const stylesheet = document.createElementNS('http://www.w3.org/1999/xhtml', 'h:link');
   stylesheet.rel = 'stylesheet';
   stylesheet.href = url;
   stylesheet.type = 'text/css';
   stylesheet.style.display = 'none';
-  stylesheet.classList.add(className);
+  stylesheet.classList.add('cliqz-theme');
+
   document.documentElement.appendChild(stylesheet);
 }
 
-export function removeStylesheet(document, url, className = 'cliqz-theme') {
-  const styles = [].slice.call(document.getElementsByClassName(className));
+export function removeStylesheet(document, url) {
+  if (!isBootstrap && !isAMO) {
+    return;
+  }
+  const styles = [].slice.call(document.getElementsByClassName('cliqz-theme'));
   styles.filter(style => style.href === url)
     .forEach((stylesheet) => {
       if (!stylesheet.parentNode) {

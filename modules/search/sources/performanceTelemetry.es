@@ -1,8 +1,9 @@
 import { interval } from 'rxjs';
 import { mergeMap, withLatestFrom, take, map, filter } from 'rxjs/operators';
-import telemetry from '../core/services/telemetry';
+import utils from '../core/utils';
 import { generalizeUrl } from '../core/url';
 import ObservableProxy from '../core/helpers/observable-proxy';
+import inject from '../core/kord/inject';
 import { chrome } from '../platform/globals';
 
 const regexGoogleRef = /\.google\..*?\/(?:url|aclk)\?/;
@@ -84,7 +85,7 @@ export default {
       ))
     )
       .subscribe(({ statusCode, resultType }) => {
-        telemetry.push({
+        utils.telemetry({
           type: 'performance',
           action: 'response',
           response_code: statusCode,
@@ -105,7 +106,7 @@ export default {
   events: {
     'content:location-change': function onTabLocationChange({ url }) {
       // create a telemetry signal for each location change
-      telemetry.push({
+      utils.telemetry({
         type: 'navigation',
         action: 'location_change',
       });
@@ -187,7 +188,7 @@ export default {
       is_ad: options.isGoogleAd,
       v: 1,
     };
-    telemetry.push(action);
+    utils.telemetry(action);
   },
 
   onHeadersReceived({ url, statusCode }) {
@@ -198,7 +199,7 @@ export default {
   },
 
   onVisited() {
-    telemetry.push({ visitsCount: 1 }, 'metrics.history.visits.count');
+    inject.service('telemetry', ['push']).push({ visitsCount: 1 }, 'metrics.history.visits.count');
   },
 
 };

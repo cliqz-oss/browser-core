@@ -33,7 +33,7 @@ module.exports = {
     "modules.insights.enabled": false,
     "offersLogsEnabled": true,
     "showConsoleLogs": false,
-    "cliqz-adb": 1,
+    "cliqz-adb": true,
     "cliqz-adb-abtest": true,
     "attrackBloomFilter": true,
     "humanWeb": true,

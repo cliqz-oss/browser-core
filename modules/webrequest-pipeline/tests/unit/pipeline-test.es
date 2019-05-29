@@ -10,8 +10,18 @@ export default describeModule('webrequest-pipeline/pipeline',
         has() { return true; },
       },
     },
-    'platform/console': {
-      default: console,
+    'core/utils': {
+      default: {
+        setTimeout(fn) { fn(); },
+      },
+    },
+    'core/console': {
+      default: {
+        debug() {},
+        log() {},
+        error() {},
+        warning() {},
+      },
     },
     'core/kord/inject': {
       default: {
@@ -51,16 +61,18 @@ export default describeModule('webrequest-pipeline/pipeline',
       });
 
       it('adds a step to the pipeline', () => {
-        const step = { name: 'test', spec: 'blocking', fn: () => true };
-        p.addPipelineStep(step);
-        chai.expect(p.pipeline).to.eql([step]);
+        p.addPipelineStep({ name: 'test', spec: 'blocking', fn: () => true });
+        chai.expect(p.pipeline).to.have.length(1);
+        chai.expect(p.pipeline).to.contain('test');
       });
 
       it('adds to stage to the end of the pipeline', () => {
-        const step1 = { name: 'part1', spec: 'blocking', fn: () => true };
-        const step2 = { name: 'part2', spec: 'blocking', fn: () => true };
-        p.addAll([step1, step2]);
-        chai.expect(p.pipeline).to.eql([step1, step2]);
+        p.addPipelineStep({ name: 'part1', spec: 'blocking', fn: () => true });
+        p.addPipelineStep({ name: 'part2', spec: 'blocking', fn: () => true });
+
+        chai.expect(p.pipeline).to.contain('part1');
+        chai.expect(p.pipeline).to.contain('part2');
+        chai.expect(p.pipeline.indexOf('part2')).to.equal(1);
       });
 
       it('throws an Error if function with the same name as already been added', () => {
@@ -70,39 +82,26 @@ export default describeModule('webrequest-pipeline/pipeline',
 
       context('before option', () => {
         it('inserts the step before the named steps', () => {
-          const step1 = { name: 'part1', spec: 'blocking', fn: () => true };
-          const step2 = { name: 'part2', spec: 'blocking', fn: () => true, before: ['part3'] };
-          const step3 = { name: 'part3', spec: 'blocking', fn: () => true };
-          p.addAll([step1, step3, step2]);
-          chai.expect(p.pipeline).to.eql([step1, step2, step3]);
+          p.addPipelineStep({ name: 'part1', spec: 'blocking', fn: () => true });
+          p.addPipelineStep({ name: 'part3', spec: 'blocking', fn: () => true });
+          p.addPipelineStep({ name: 'part2', spec: 'blocking', fn: () => true, before: ['part3'] });
+
+          chai.expect(p.pipeline).to.eql(['part1', 'part2', 'part3']);
         });
 
         it('does not an Error if before dependencies do not exist', () => {
-          const step1 = { name: 'part1', spec: 'blocking', fn: () => true };
-          const step2 = { name: 'part2', spec: 'blocking', fn: () => true, before: ['part3'] };
-          p.addAll([step1, step2]);
-          chai.expect(p.pipeline).to.eql([step1, step2]);
+          p.addPipelineStep({ name: 'part1', spec: 'blocking', fn: () => true });
+          p.addPipelineStep({ name: 'part2', spec: 'blocking', fn: () => true, before: ['part3'] });
         });
       });
 
       context('after option', () => {
         it('inserts the step after the named steps', () => {
-          const step1 = { name: 'part1', spec: 'blocking', fn: () => true };
-          const step2 = { name: 'part2', spec: 'blocking', fn: () => true, after: ['part1'] };
-          const step3 = { name: 'part3', spec: 'blocking', fn: () => true };
-          const step4 = { name: 'part4', spec: 'blocking', fn: () => true };
-          p.addAll([step1, step3, step4, step2]);
+          p.addPipelineStep({ name: 'part1', spec: 'blocking', fn: () => true });
+          p.addPipelineStep({ name: 'part3', spec: 'blocking', fn: () => true });
+          p.addPipelineStep({ name: 'part2', spec: 'blocking', fn: () => true, after: ['part1'] });
 
-          chai.expect(p.pipeline).to.eql([step1, step2, step3, step4]);
-        });
-
-        it('inserts the step in last position', () => {
-          const step1 = { name: 'part1', spec: 'blocking', fn: () => true };
-          const step2 = { name: 'part2', spec: 'blocking', fn: () => true };
-          const step3 = { name: 'part3', spec: 'blocking', fn: () => true, after: ['part2'] };
-          p.addAll([step1, step2, step3]);
-
-          chai.expect(p.pipeline).to.eql([step1, step2, step3]);
+          chai.expect(p.pipeline).to.eql(['part1', 'part2', 'part3']);
         });
 
         it('throws an Error if after dependencies do not exist', () => {
@@ -156,8 +155,8 @@ export default describeModule('webrequest-pipeline/pipeline',
           fn2Called += 1;
         }
 
-        p.addPipelineStep({ fn: fn1, name: 'fn1', spec: 'blocking' });
-        p.addPipelineStep({ fn: fn2, name: 'fn2', spec: 'blocking' });
+        p.add({ fn: fn1, name: 'fn1', spec: 'blocking' });
+        p.add({ fn: fn2, name: 'fn2', spec: 'blocking' });
 
         const response = {};
         p.execute({}, response);
@@ -179,8 +178,8 @@ export default describeModule('webrequest-pipeline/pipeline',
           fn2Called += 1;
           return true;
         }
-        p.addPipelineStep({ fn: fn1, name: 'fn1', spec: 'blocking' });
-        p.addPipelineStep({ fn: fn2, name: 'fn2', spec: 'blocking' });
+        p.add({ fn: fn1, name: 'fn1', spec: 'blocking' });
+        p.add({ fn: fn2, name: 'fn2', spec: 'blocking' });
 
         const response = {};
         p.execute({}, response);
@@ -200,13 +199,38 @@ export default describeModule('webrequest-pipeline/pipeline',
           res.fn2 = -4;
           return true;
         }
-        p.addPipelineStep({ fn: fn1, name: 'fn1', spec: 'blocking' });
-        p.addPipelineStep({ fn: fn2, name: 'fn2', spec: 'blocking' });
+        p.add({ fn: fn1, name: 'fn1', spec: 'blocking' });
+        p.add({ fn: fn2, name: 'fn2', spec: 'blocking' });
 
         const response = {};
         p.execute({}, response);
         chai.expect(response.fn1).to.eql(5);
         chai.expect(response.fn2).to.eql(-4);
+      });
+
+      it('stops when a function throws', () => {
+        let fn1Called = 0;
+        let fn2Called = 0;
+
+        function fn1(state, res) {
+          fn1Called += 1;
+          res.beforeError = 1;
+          throw new Error();
+          // res.afterError = 2;
+        }
+
+        function fn2() {
+          fn2Called += 1;
+          return true;
+        }
+        p.add({ fn: fn1, name: 'fn1', spec: 'blocking' });
+        p.add({ fn: fn2, name: 'fn2', spec: 'blocking' });
+
+        const response = {};
+        p.execute({}, response);
+        chai.expect(fn1Called).to.eql(1);
+        chai.expect(fn2Called).to.eql(0);
+        chai.expect(response.beforeError).to.eql(1);
       });
     });
   });

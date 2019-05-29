@@ -28,10 +28,8 @@ const numericPrefList = [
 
 class Preferences extends React.Component {
   state = {
-    customPrefName: '',
     preferencesStatus: {
       configLocation: '',
-      custom: 'N/A',
       developer: false,
       extensionsLegacyEnabled: false,
       loggerLevel: 'debug',
@@ -49,8 +47,8 @@ class Preferences extends React.Component {
     this.syncState();
   }
 
-  syncState = async ({ customPrefName = '' } = {}) => {
-    const newState = await this.props.cliqz.getPreferencesState(customPrefName);
+  syncState = async () => {
+    const newState = await this.props.cliqz.getPreferencesState();
     this.setState(newState);
   }
 
@@ -63,36 +61,19 @@ class Preferences extends React.Component {
     await this.setPref({ name, value });
   };
 
-  onGetTextInputChange = async ({ value }) => {
-    this.setState({
-      customPrefName: value,
-    });
-    await this.syncState({ customPrefName: value });
-  }
+  renderRadioPrefList = () => radioPrefList.map(pref => (
+    <Row key={pref}>
+      {`${pref}:`}
 
-  renderRadioPrefList = () => radioPrefList.map((pref) => {
-    const prefStatus = this.state.preferencesStatus[pref];
-    const isChecked = prefStatus !== 'N/A'
-      ? Boolean(prefStatus)
-      : false;
-
-    return (
-      <Row key={pref}>
-        {`${pref}:`}
-
-        <Switch
-          toggleComponent={ev => this.setPref({
-            name: pref,
-            value: ev.target.checked,
-          })}
-          isChecked={isChecked}
-        />
-
-        {this.renderErrorValue(pref)}
-
-      </Row>
-    );
-  });
+      <Switch
+        toggleComponent={ev => this.setPref({
+          name: pref,
+          value: ev.target.checked,
+        })}
+        isChecked={Boolean(this.state.preferencesStatus[pref])}
+      />
+    </Row>
+  ));
 
   renderTextPrefList = () => textPrefList.map(pref => (
     <Row key={pref}>
@@ -120,26 +101,8 @@ class Preferences extends React.Component {
         })}
         textInputValue={this.state.preferencesStatus.offersTelemetryFreq}
       />
-
-      {this.renderErrorValue(pref)}
-
     </Row>
   ));
-
-  renderErrorValue = prefName =>
-    (this.state.preferencesStatus[prefName] === 'N/A') && 'N/A (default value used)'
-
-  renderPrefGetter = () => (
-    <Row>
-      <TextInput
-        onTextChange={value => this.onGetTextInputChange({ value })}
-        placeholder="Custom pref name"
-        textInputValue={this.state.customPrefName}
-      />
-
-      {`Value: ${this.state.preferencesStatus.custom.toString()}`}
-    </Row>
-  );
 
   render() {
     return (
@@ -148,15 +111,6 @@ class Preferences extends React.Component {
           <CustomPref
             setPref={this.setPref}
           />
-        </table>
-
-        <table>
-          <tbody>
-            <TableHeader
-              header="Get a custom pref:"
-            />
-            {this.renderPrefGetter()}
-          </tbody>
         </table>
 
         <table>

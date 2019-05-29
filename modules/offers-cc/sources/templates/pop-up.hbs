@@ -1,0 +1,98 @@
+<div class="page-container {{#if isWebExtension }}web-ext{{/if}}">
+    <div class="overlay"></div>
+    <header>
+        <p>
+            <img class="gift_icon" src="./images/offers-cc-icon.svg" alt="">
+            {{#if isCliqzBrowser}}
+                <span class="offers_label" data-i18n="cliqz_offers"></span>
+            {{else}}
+                <span class="offers_label" data-i18n="offers_hub_title"></span>
+            {{/if}}
+
+            <span></span>
+            <span class="setting" data-telemetry-id="menu">
+                <a
+                   data-url="https://cliqz.com/myoffrz"
+                >
+                </a>
+            </span>
+             {{#if isWebExtension }}<span class="hide-reward-box"></span>{{/if}}
+        </p>
+        <ul class="setting-menu">
+            {{#unless isWebExtension}}
+            <li class="feedback"
+                data-i18n="offers_menu_give_feedback"
+                data-telemetry-id="feedback">
+            </li>
+            {{/unless}}
+            <li class="why"
+                data-i18n="why_see_this"
+                data-telemetry-id="why">
+            </li>
+            <li
+                data-telemetry-id="learn_more">
+                <a
+                {{#if isWebExtension }}
+                href="https://myoffrz.com/kontakt/"
+                {{else}}
+                href="https://cliqz.com/support"
+                {{/if}}
+                data-i18n="help" target="_blank"></a>
+            </li>
+        </ul>
+    </header>
+
+    <section id="cqz-vouchers-wrapper">
+        {{#if noVoucher}}
+        {{> no-voucher}}
+        {{else}}
+        <ul
+          class="{{#if isSmallScreen}} small-screen {{/if}}"
+          id="cqz-vouchers-holder">
+            {{#each vouchers}}
+            <li data-offer-id="{{offer_id}}"
+                class="voucher-wrapper {{#if preferred}}preferred{{/if}} {{#if @first}}active{{/if}}"
+            >
+                {{> voucher}}
+            </li>
+            {{/each}}
+        </ul>
+        {{/if}}
+    </section>
+
+    <footer>
+        <p>
+            {{#unless isWebExtension}}<span class="ad-label">{{#unless noVoucher}}{{local 'ad_label'}}{{/unless}}</span>{{/unless}}
+            {{#if isWebExtension }}
+            <a class="feedback" href="#" target="_blank" data-telemetry-id="general_feedback">
+                <img src="./images/feedback-face.svg" alt="">
+                <label>{{ local 'offers_hub_feedback_title'}}</label>
+            </a>
+            {{/if}}
+            <span>
+                {{#if showExpandButton}}
+                <button id="expand-button"></button>
+                {{/if}}
+            </span>
+            {{#if isWebExtension}}
+            <span
+                title="{{local 'offers_hub_powered_by_offrz'}}"
+                {{#if isCliqzBrowser}}
+                class="cliqz-logo"
+                {{/if}}
+                >
+            {{else}}
+            <span title="{{local 'offers_hub_powered_by'}}"></span>
+            {{/if}}
+                <a
+                {{#if isCliqzBrowser}}
+                href="https://cliqz.com/myoffrz"
+                {{else}}
+                href="https://myoffrz.com/fuer-nutzer"
+                {{/if}}
+                target="_blank"></a>
+            </span>
+        </p>
+    </footer>
+</div>
+

@@ -2,11 +2,11 @@
 export function loadTranslation(url, locale) {
   switch (locale) {
     case 'de':
-      return require('../../_locales/de/cliqz.json');
+      return require('../static/locale/de/cliqz.json');
     case 'fr':
-      return require('../../_locales/fr/cliqz.json');
+      return require('../static/locale/fr/cliqz.json');
     default:
-      return require('../../_locales/en/cliqz.json');
+      return require('../static/locale/en/cliqz.json');
   }
 }
 /* eslint-enable global-require */

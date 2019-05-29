@@ -56,39 +56,6 @@ require('../telemetry-schemas-test-helpers')({
       });
     });
 
-    context('highlightCounts', function () {
-      it('single session', () =>
-        test([
-          { hasUserInput: true, highlightCount: 0 },
-        ], signal => chai.expect(signal.highlightCounts).to.deep.eql({
-          0: 1,
-        })));
-
-      it('multiple sessions', () =>
-        test([
-          { hasUserInput: true, highlightCount: 0 },
-          { hasUserInput: true, highlightCount: 0 },
-          { hasUserInput: true, highlightCount: 1 },
-          { hasUserInput: true, highlightCount: 3 },
-        ], signal => chai.expect(signal.highlightCounts).to.deep.eql({
-          0: 2,
-          1: 1,
-          3: 1,
-        })));
-
-      it('multiple sessions with overflow', () =>
-        test([
-          { hasUserInput: true, highlightCount: 0 },
-          { hasUserInput: true, highlightCount: 1 },
-          { hasUserInput: true, highlightCount: 17 },
-          { hasUserInput: true, highlightCount: 20 },
-        ], signal => chai.expect(signal.highlightCounts).to.deep.eql({
-          0: 1,
-          1: 1,
-          rest: 2,
-        })));
-    });
-
     context('results', function () {
       context('total count', function () {
         it('empty results', () =>

@@ -1,1 +1,0 @@
-browser.experiments.skeleton.doTheThing();

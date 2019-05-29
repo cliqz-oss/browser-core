@@ -1,6 +1,5 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
 
-import prefs from '../../../core/prefs';
 import Expression from '../expression';
 import logger from '../../common/offers_v2_logger';
 import { timestampMS, shouldKeepResource } from '../../utils';
@@ -56,10 +55,9 @@ class ActivateSubtriggersExpr extends Expression {
         ctx['#httpLoadMs'] = (ctx['#httpLoadMs'] || 0) + thisLoadMs;
       };
 
-      const country = prefs.get('config_location', '') || '';
       const downloadedSubtriggers = await this.data.be_connector.sendApiRequest(
         'loadsubtriggers',
-        { parent_id: this.parentTriggerId, country },
+        { parent_id: this.parentTriggerId },
         'GET'
       );
       recordLoadMs();

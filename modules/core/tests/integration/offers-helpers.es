@@ -1,4 +1,5 @@
 import prefs from '../../../core/prefs';
+import utils from '../../../core/utils';
 import { isWebExtension } from '../../../core/platform';
 import config from '../../../core/config';
 
@@ -298,7 +299,7 @@ export const mockOffersBackend = async ({ dest, timeout } = {}) => {
     triggersBE: testServer.getBaseUrl(),
   });
 
-  prefs.set('offersInstallInfo', `${app.version}|1`);
+  prefs.set('offersInstallInfo', `${utils.extensionVersion}|1`);
 
   // Clear state
   await app.disableModule('offers-v2');

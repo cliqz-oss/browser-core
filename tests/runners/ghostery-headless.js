@@ -59,32 +59,7 @@ const TESTS = [
     it: 'checks adblocker injects cosmetics',
     fn: async (page) => {
       await page.goto('https://www.google.com/search?q=ghostery');
-
-      // Create a fake element which should be hidden
-      await page.evaluate(() => {
-        const newElement = document.createElement('div');
-        newElement.id = 'integration-tests';
-        newElement.className = 'ads-ad';
-        newElement.innerText = 'This is an ad';
-        document.body.appendChild(newElement);
-      });
-
-      // Give time to Ghostery to have started and ad-blocker to be initialized
-      await wait(2000);
-
-      // Make sure the element inserted was hidden
-      const visible = await page.evaluate(() => {
-        const newElement = document.getElementById('integration-tests');
-        return (
-          window.getComputedStyle(newElement).getPropertyValue('display') !== 'none'
-          && newElement.offsetHeight
-          && newElement.offsetWidth
-        );
-      });
-
-      if (visible) {
-        throw new Error('ads element should have been hidden');
-      }
+      await page.waitForSelector('#cliqz-adblokcer-css-rules');
     },
   },
 ];

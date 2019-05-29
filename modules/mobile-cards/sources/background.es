@@ -17,7 +17,7 @@ import {
  */
 export default background({
 
-  requiresServices: ['logos', 'cliqz-config', 'telemetry', 'domainInfo'],
+  requiresServices: ['logos', 'cliqz-config', 'utils', 'telemetry', 'domainInfo'],
   search: inject.module('search'),
 
   /**
@@ -51,7 +51,7 @@ export default background({
       if (selection) {
         await this.search.action('reportSelection', selection, { contextId: 'mobile-cards' });
       }
-      openLink(url, selection.query);
+      openLink(url);
     },
     callNumber,
     openMap,

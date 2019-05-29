@@ -2,7 +2,7 @@
 
 import moment from '../../platform/lib/moment';
 import prefs from '../../core/prefs';
-import inject from '../../core/kord/inject';
+import utils from '../../core/utils';
 import ActionID from '../offers/actions-defs';
 import OffersConfigs from '../offers_configs';
 import logger from '../common/offers_v2_logger';
@@ -59,7 +59,7 @@ const constructSignal = (signalID, signalType, signalData, gid) => {
     timestamp: getHpnTimeStamp(),
     payload: {
       v: OffersConfigs.SIGNALS_VERSION,
-      ex_v: inject.app.version,
+      ex_v: utils.extensionVersion,
       is_developer: isDeveloper(),
       gid,
       type: signalType,

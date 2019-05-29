@@ -74,7 +74,7 @@ class CustomPref extends React.Component {
     return (
       <tbody>
         <TableHeader
-          header="Set custom pref:"
+          header="Custom pref (for extensions.cliqz.* prefs only):"
         />
 
         <Row>

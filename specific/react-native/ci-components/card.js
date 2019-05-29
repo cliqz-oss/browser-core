@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableHighlight } from 'react-native';
+import utils from '../modules/core/utils';
 
 import { width, height, cardWidth } from '../styles/CardStyle';
 import Generic from './generic';

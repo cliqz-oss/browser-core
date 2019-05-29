@@ -1,7 +1,6 @@
 import { share } from 'rxjs/operators';
 import background from '../core/base/background';
-import telemetry from '../core/services/telemetry';
-import { getWindow } from '../core/browser';
+import utils from '../core/utils';
 import prefs from '../core/prefs';
 import inject from '../core/kord/inject';
 import { promiseHttpHandler } from '../core/http';
@@ -31,14 +30,13 @@ import RichHeader, { getRichHeaderQueryString } from './providers/rich-header';
 import getThrottleQueries from './operators/streams/throttle-queries';
 
 import logger from './logger';
-import searchTelemetry from './telemetry';
+import telemetry from './telemetry';
 import performance from './performanceTelemetry';
 import telemetryLatency from './telemetry-latency';
 import getConfig from './config';
 import search from './search';
 import getSnippet from './rich-header-snippet';
 import addCustomSearchEngines from './search-engines/add-custom-search-engines';
-import searchSessionService from './services/search-session';
 
 import AdultAssistant from './assistants/adult';
 import LocationAssistant from './assistants/location';
@@ -55,20 +53,11 @@ import { chrome } from '../platform/globals';
   @class Background
  */
 export default background({
-  requiresServices: ['search-services', 'logos', 'cliqz-config', 'geolocation', 'telemetry', 'search-session'],
-  providesServices: {
-    'search-session': searchSessionService,
-  },
+  requiresServices: ['search-services', 'logos', 'cliqz-config'],
 
   core: inject.module('core'),
   search: inject.module('search'),
   insights: inject.module('insights'),
-
-  geolocation: inject.service('geolocation', [
-    'updateGeoLocation',
-    'resetGeoLocation',
-    'waitForGeolocation',
-  ]),
 
   /**
     @method init
@@ -76,11 +65,12 @@ export default background({
   */
   init(settings) {
     this.settings = settings;
+    const geolocation = inject.module('geolocation');
     this.searchSessions = new Map();
     this.adultAssistant = new AdultAssistant();
     this.locationAssistant = new LocationAssistant({
-      updateGeoLocation: () => this.geolocation.updateGeoLocation(),
-      resetGeoLocation: () => this.geolocation.resetGeoLocation(),
+      updateGeoLocation: geolocation.action.bind(geolocation, 'updateGeoLocation'),
+      resetGeoLocation: geolocation.action.bind(geolocation, 'resetGeoLocation'),
     });
 
     addCustomSearchEngines();
@@ -244,16 +234,16 @@ export default background({
           share()
         );
 
-      const telemetry$ = searchTelemetry(focus$, query$, results$, selection$, highlight$);
+      const telemetry$ = telemetry(focus$, query$, results$, selection$);
       const telemetrySubscription = telemetry$.subscribe(
-        data => telemetry.push(data, 'search.session'),
+        data => utils.telemetry(data, false, 'search.session'),
         error => logger.error('Failed preparing telemetry', error)
       );
 
       // For insights module to calculate search time saved
       const telemetryResultsSubscription = telemetry$.subscribe(
         (data) => {
-          if (_config.isPrivateMode || !this.insights.isPresent()) {
+          if (_config.isPrivateMode) {
             return; // Don't count in private mode
           }
 
@@ -280,7 +270,7 @@ export default background({
 
       const telemetryLatency$ = telemetryLatency(focus$, query$, results$);
       const telemetryLatencySubscription = telemetryLatency$.subscribe(
-        data => telemetry.push(data, 'metrics.search.latency'),
+        data => utils.telemetry(data, false, 'metrics.search.latency'),
         error => logger.error('Failed preparing latency telemetry', error)
       );
 
@@ -351,15 +341,11 @@ export default background({
     /**
      * fetches extra info for result from rich header
      */
-    async getSnippet(query, result) {
-      // Get location from `geolocation` module if available
-      let loc = { latitude: null, longitude: null };
-      try {
-        loc = await this.geolocation.waitForGeolocation();
-      } catch (ex) {
-        /* Could not get geolocation */
-      }
-
+    getSnippet(query, result) {
+      const loc = {
+        latitude: utils.USER_LAT,
+        longitude: utils.USER_LNG,
+      };
       const url = this.settings.RICH_HEADER + getRichHeaderQueryString(
         query,
         loc,
@@ -419,7 +405,7 @@ export default background({
     },
 
     getBackendCountries() {
-      return this.search.windowAction(getWindow(), 'getBackendCountries');
+      return this.search.windowAction(utils.getWindow(), 'getBackendCountries');
     },
 
     setAdultFilter(filter) {

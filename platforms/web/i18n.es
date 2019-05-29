@@ -1,6 +1,7 @@
+import config from '../core/config';
 import { httpHandler } from '../core/http';
 
-export const LOCALE_PATH = '/_locales';
+export const LOCALE_PATH = `${config.baseURL}static/locale`;
 export const SUPPORTED_LANGS = ['de', 'en', 'fr'];
 export const IMPLEMENTS_GET_MESSAGE = false;
 export const locale = {};

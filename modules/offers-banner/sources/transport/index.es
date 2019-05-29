@@ -1,6 +1,5 @@
 import events from '../../core/events';
-import { openLink } from '../../core/browser';
-import telemetry from '../../core/services/telemetry';
+import utils from '../../core/utils';
 import { copyToClipboard } from '../../core/clipboard';
 import inject from '../../core/kord/inject';
 import * as browserPanel from './browser-panel';
@@ -12,7 +11,7 @@ const core = inject.module('core');
 export function send(data, type) {
   const mapper = {
     offers: payload => events.pub('offers-recv-ch', payload),
-    telemetry: (...args) => telemetry.push(...args),
+    telemetry: utils.telemetry.bind(utils),
   };
   const noop = () => {};
   (mapper[type] || noop)(data);
@@ -47,21 +46,20 @@ export function dispatcher(type, offerId, msg = {}, autoTrigger) {
     copyToClipboard,
     openUrlHandler: ({ el_id: elId, url } = {}) => {
       browserPanel.specificTelemetry(elId);
-      openLink(window, url, true);
+      utils.openLink(window, url, true);
     },
   };
 
   const mapperRewardBox = {
     sendUserFeedback: payload => core.action('sendUserFeedback', { view: 'box', ...payload }),
     sendActionSignal: rewardBox.commonAction,
-    copyToClipboard,
     getEmptyFrameAndData: rewardBox.hideTooltipIfShould,
     sendOfferActionSignal: rewardBox.actions,
     seenOffer: payload => rewardBox.seenOffer(offerId, payload, autoTrigger),
     sendTelemetry: payload => commonTelemetry(payload, 'box'),
     openURL: (payload) => {
       rewardBox.callToAction(payload);
-      openLink(window, payload.url, true, !payload.isBackgroundTab);
+      utils.openLink(window, payload.url, true, !payload.isBackgroundTab);
     },
   };
   const noop = () => {};

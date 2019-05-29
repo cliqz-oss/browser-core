@@ -1,5 +1,4 @@
 import { window, chrome } from './globals';
-import windows from './windows';
 import events from '../core/events';
 
 export * from './tabs';
@@ -66,14 +65,13 @@ const healthReportPrefObserver = () => events.pub('healthReportChange');
 export function enableChangeEvents() {
   if (chrome.cliqz && chrome.cliqz.onPrefChange) {
     chrome.cliqz.onPrefChange.addListener(healthReportPrefObserver, 'datareporting.healthreport.', 'uploadEnabled');
-    chrome.cliqz.onPrefChange.addListener(healthReportPrefObserver, 'toolkit.telemetry.', 'enabled');
   }
 }
 
 const windowObservers = new WeakMap();
 
 export function addWindowObserver(fn) {
-  if (windows === undefined) {
+  if (!chrome.windows) {
     return;
   }
   const observer = {
@@ -82,19 +80,19 @@ export function addWindowObserver(fn) {
     close: windowId => fn({ id: windowId }, 'closed'),
   };
   windowObservers.set(fn, observer);
-  windows.onCreated.addListener(observer.open);
-  windows.onFocusChanged.addListener(observer.focus);
-  windows.onRemoved.addListener(observer.close);
+  chrome.windows.onCreated.addListener(observer.open);
+  chrome.windows.onFocusChanged.addListener(observer.focus);
+  chrome.windows.onRemoved.addListener(observer.close);
 }
 
 export function removeWindowObserver(fn) {
-  if (windows === undefined) {
+  if (!chrome.windows) {
     return;
   }
   const observer = windowObservers.get(fn);
-  windows.onCreated.removeListener(observer.open);
-  windows.onFocusChanged.removeListener(observer.focus);
-  windows.onRemoved.removeListener(observer.close);
+  chrome.windows.onCreated.removeListener(observer.open);
+  chrome.windows.onFocusChanged.removeListener(observer.focus);
+  chrome.windows.onRemoved.removeListener(observer.close);
 }
 
 export function addSessionRestoreObserver() {}
@@ -115,10 +113,10 @@ function windowObserver(win, event) {
   }
 }
 
-if (windows !== undefined) {
+if (chrome.windows) {
   addWindowObserver(windowObserver);
-  windows.getAll(
-    wins => wins.forEach(win => windowObserver(win, 'opened'))
+  chrome.windows.getAll(
+    windows => windows.forEach(win => windowObserver(win, 'opened'))
   );
 } else {
   currentWindow = window;
@@ -205,24 +203,4 @@ export function isDefaultBrowser() {
   }
 
   return Promise.resolve(null);
-}
-
-export function isPrivateMode(win) {
-  if (!win) {
-    throw new Error('isPrivateMode was called without a window object');
-  }
-  return win.incognito || chrome.extension.inIncognitoContext;
-}
-
-export function openLink(win, url, newTab = false, active = true) {
-  if (newTab) {
-    chrome.tabs.create({ url, active });
-  } else {
-    chrome.windows.getCurrent({ populate: true }, ({ tabs }) => {
-      const activeTab = tabs.find(tab => tab.active);
-      chrome.tabs.update(activeTab.id, {
-        url
-      });
-    });
-  }
 }

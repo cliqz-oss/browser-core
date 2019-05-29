@@ -1,4 +1,4 @@
-import telemetry from '../core/services/telemetry';
+import utils from '../core/utils';
 
 export function dropdownContextMenuSignal({ action = 'click', context = 'dropdown', target }) {
   const signal = {
@@ -11,7 +11,7 @@ export function dropdownContextMenuSignal({ action = 'click', context = 'dropdow
     signal.target = target;
   }
 
-  telemetry.push(signal);
+  utils.telemetry(signal);
 }
 
 
@@ -22,5 +22,5 @@ export function removeFromHistorySignal({ withBookmarks = false }) {
     action: withBookmarks ? 'remove_from_history_and_bookmarks' : 'remove_from_history'
   };
 
-  telemetry.push(signal);
+  utils.telemetry(signal);
 }

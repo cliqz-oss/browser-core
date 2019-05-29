@@ -75,7 +75,7 @@ const mapCliqzSources = (sources) => {
 export default () => [
   {
     name: 'search.sessions',
-    version: 3,
+    version: 2,
     needsGid: true,
     sendToBackend: true,
     generate: ({ records }) => {
@@ -126,7 +126,6 @@ export default () => [
         return acc;
       }, {});
 
-
       // sources of last results, mapped to history vs. backend
       const sources = results
         // flatten result sources per session
@@ -156,11 +155,6 @@ export default () => [
       return [{
         // entry points of search sessions
         entryPoints,
-        // highlight (swipe) counts across search sessions
-        highlightCounts: integersToHistogram(
-          sessions.map(({ highlightCount }) => highlightCount),
-          { binSize: 1, binCount: 16 }
-        ),
         // statistics on non-empty last results across sessions
         results: {
           // count of all sessions with non-empty (last) results; note that
@@ -279,10 +273,8 @@ export default () => [
             browserBar: { type: 'integer', minimum: 0 },
             overlayByKeyboard: { type: 'integer', minimum: 0 },
             overlayByMouse: { type: 'integer', minimum: 0 },
-            overlayByContextMenu: { type: 'integer', minimum: 0 },
           }
         },
-        highlightCounts: { ...mkHistogramSchema(16) },
         results: {
           required: [],
           properties: {

@@ -63,7 +63,7 @@ export default class SearchEngineCard extends React.Component {
       isNewTab: false,
       isPrivateMode: false,
       isPrivateResult: meta.isPrivate,
-      query: result.text,
+      query: meta.query,
       rawResult: {
         index: props.index,
         ...props.result,

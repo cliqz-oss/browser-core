@@ -31,14 +31,15 @@ function getLocationPermState() {
 
 export default class Win {
   constructor() {
-    this.geolocation = inject.service('geolocation', ['updateGeoLocation']);
+    this.geolocation = inject.module('geolocation');
   }
 
   init() {
-    this.geolocation.updateGeoLocation();
+    this.geolocation.action('updateGeoLocation');
   }
 
   unload() {
+
   }
 
   status() {

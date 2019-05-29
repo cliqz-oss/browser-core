@@ -13,6 +13,9 @@ const getFormattedCurrentDate = () => getCurrentMoment().format(DATE_FORMAT);
 export default describeModule('anolysis/internals/storage/dexie',
   () => ({
     ...mockDexie,
+    'core/utils': {
+      default: {},
+    },
     'anolysis/internals/synchronized-date': {
       DATE_FORMAT,
       default() {

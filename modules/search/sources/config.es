@@ -129,15 +129,6 @@ export default function ({ isPrivateMode }, settings = {}) {
     },
     providers: {
       ...DEFAULT_CONFIG.providers,
-      history: {
-        ...DEFAULT_CONFIG.providers.history,
-        get isHistoryLookupEnabled() {
-          return prefs.get('historyLookupEnabled', false);
-        },
-        get isTabSearchEnabled() {
-          return prefs.get('tabSearchEnabled', false);
-        },
-      },
       historyView: {
         ...DEFAULT_CONFIG.providers.historyView,
         get isEnabled() {

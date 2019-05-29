@@ -36,7 +36,6 @@ module.exports = {
     "anolysis",
     "telemetry",
     "insights",
-    "video-downloader",
   ],
   "bundles": [
   ]

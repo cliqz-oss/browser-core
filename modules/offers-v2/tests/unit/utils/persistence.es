@@ -41,7 +41,7 @@ module.exports = {
       persistenceMap = {};
     },
 
-    default: () => class MockMap {
+    default: class MockMap {
       constructor(dbName) {
         persistenceMap[dbName] = (persistenceMap[dbName] || new Map());
         this.db = persistenceMap[dbName];

@@ -28,8 +28,6 @@ class OverlayDropdown extends Dropdown {
 
   _stylesLoaded = new Defer();
 
-  _iframeLoaded = new Defer();
-
   constructor({ cliqz }) {
     const view = {
       hideSettings() {},
@@ -67,19 +65,15 @@ class OverlayDropdown extends Dropdown {
     return !this.ui.classList.contains('hidden');
   }
 
-  async toggle(trigger, query = '') {
+  async toggle(trigger) {
     await this._stylesLoaded.promise;
-    await this._iframeLoaded.promise;
     this.ui.classList.toggle('hidden');
-    this.collapse();
+    this.setHeight(0);
     if (this.isOverlayVisible) {
       this.root.style = this.ON_STYLES;
       this._trigger = trigger;
-      this._setUrlbarValue(query);
+      this._setUrlbarValue('');
       this._focus();
-      if (query) {
-        this._queryCliqz(query);
-      }
     } else {
       this.root.style = this.OFF_STYLES;
     }
@@ -99,7 +93,6 @@ class OverlayDropdown extends Dropdown {
         </div>
       </div>`;
     shadow.innerHTML = html;
-    shadow.querySelector('iframe').onload = this._iframeLoaded.resolve;
     root.style = this.OFF_STYLES;
     root.addEventListener('click', ev => ev.stopImmediatePropagation());
     root.setAttribute('onclick', 'this.parentNode.removeChild(this)');
@@ -189,7 +182,7 @@ function onLoad(_window, chrome) {
   chrome.runtime.onMessage.addListener((message) => {
     if (message.module === 'overlay' && message.action === 'toggle-quicksearch') {
       createFrame(dropdown);
-      dropdown.toggle(message.trigger, message.query || '');
+      dropdown.toggle(message.trigger);
     }
     coreWrapper.handleMessage(message);
     searchWrapper.handleMessage(message);
@@ -211,7 +204,7 @@ function onLoad(_window, chrome) {
       },
       fillIn(query) {
         dropdown.input.value = query;
-        search.startSearch(query, { keyCode: 75, isTyped: true });
+        search.startSearch(query, { key: 'KeyT', isTyped: true });
       },
       close: () => {
         dropdown.close();

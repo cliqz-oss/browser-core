@@ -2,6 +2,7 @@ import { from } from 'rxjs';
 import { map } from 'rxjs/operators';
 import BaseProvider from './base';
 import { getResponse } from '../responses';
+import utils from '../../core/utils';
 import { getSearchEngineUrl } from '../../core/url';
 import * as searchUtils from '../../core/search-engines';
 
@@ -28,7 +29,7 @@ export default class QuerySuggestionProvider extends BaseProvider {
 
     const engine = searchUtils.getDefaultSearchEngine();
 
-    return from(searchUtils.getSuggestions(query))
+    return from(utils.getSuggestions(query))
       .pipe(
         map(([q, suggestions]) => (getResponse(
           this.id,

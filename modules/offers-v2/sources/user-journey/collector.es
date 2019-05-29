@@ -1,110 +1,49 @@
-import { getGeneralDomain } from '../../core/tlds';
-import logger from '../common/offers_v2_logger';
-import annotateWithShopId from './features/shop-id';
-import annotateAsClickShop from './features/click-shop';
+import { timestampMS } from '../utils';
 
-const MAX_JOURNEY_SIZE = 48;
-
-//
-// Annotate the step. Drop an `unk` placeholder
-//
-export function putFeatureToStep(step, feature) {
-  const features = step.features;
-  features.push(feature);
-  if (features[0] === 'unk') {
-    features.shift();
-  }
-}
+const SAME_STEP_TIMESTAMP_DELTA_MS = 100;
+const JOURNEY_SIZE = 16;
 
 /**
  * Store recent user behavior and convert it to a journey.
- *
- * A new step is created each time a new page is loaded. Then feature
- * extractors annotate the step using `addFeature`.
  *
  * @class JourneyCollector
  */
 export default class JourneyCollector {
   constructor() {
-    /*
-     * Journey is a list of steps, a step is:
-     * {string[]} features: a set of features
-     * {string}   url
-     * {string}   domain
-     * {string}   referrer (optional)
-     */
     this.journey = [];
+    this.lastTs = 0;
   }
 
   /**
+   * Journey is a list of steps, a step is a set of features.
+   *
    * @method getJourney
    * @returns {string[][]}
    */
   getJourney() {
-    return this.journey.map(step => [...step.features]);
+    return this.journey;
   }
 
   /**
-   * Create a new step and remember its url
+   * Features are joined into one step if they happen simultaneously
+   * up to the time delta `SAME_STEP_TIMESTAMP_DELTA_MS`.
    *
-   * @method addStep
+   * @method addEvent
+   * @param {number} ts -- timestamp of `feature` in milliseconds.
    * @param {string} feature
-   * @param {string} url
    */
-  addStep({ feature, url }) {
-    const step = {
-      features: [feature],
-      url,
-      domain: getGeneralDomain(url)
-    };
-    this.journey.push(step);
-    //
-    // Limit size of journey
-    //
-    if (this.journey.length > MAX_JOURNEY_SIZE) {
+  addEvent({ ts = timestampMS(), feature }) {
+    if ((!this.journey.length)
+      || (Math.abs(this.lastTs - ts) > SAME_STEP_TIMESTAMP_DELTA_MS)
+    ) {
+      this.journey.push([feature]);
+    } else {
+      const commonStep = this.journey[this.journey.length - 1];
+      commonStep.push(feature);
+    }
+    this.lastTs = ts;
+    if (this.journey.length > JOURNEY_SIZE) {
       this.journey.shift();
-    }
-  }
-
-  /**
-   * @method addFeature
-   * @param {string} feature
-   * @param {string} url  where from the feature is extracted
-   * @param {string} referrer  optional
-   */
-  addFeature({ feature, url, referrer }) {
-    //
-    // Get the last step
-    //
-    if (!this.journey.length) {
-      logger.log(`journey:addFeature: no steps to add feature ${feature}:${url}`);
-      return;
-    }
-    //
-    // Merge the feature into the last step, or drop the feature
-    // if it belongs to some other step.
-    //
-    const step = this.journey[this.journey.length - 1];
-    if (step.url !== url) {
-      logger.log(`journey:addFeature: url mismatch feature ${feature}:${url} to step ${step.url}`);
-      return;
-    }
-    putFeatureToStep(step, feature);
-    //
-    // In the ideal world, the referrer would be set in `addStep`.
-    // But in the reality the caller of `addStep` doesn't have the
-    // referrer. Instead, the referrer is sent by the shop detection
-    // content script.
-    //
-    if (referrer) {
-      step.referrer = referrer;
-    }
-    //
-    // Derive features
-    //
-    if (feature === 'shop') {
-      annotateWithShopId(this.journey);
-      annotateAsClickShop(this.journey);
     }
   }
 }

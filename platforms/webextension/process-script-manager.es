@@ -1,7 +1,7 @@
 /* eslint no-param-reassign: 'off' */
 
 import events from '../core/events';
-import { chrome, isContentScriptsSupported } from './globals';
+import { chrome, isContentScriptsSupported, window } from './globals';
 import { equals as urlEquals } from '../core/url';
 
 const cliqzConfigScript = `

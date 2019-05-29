@@ -66,7 +66,7 @@ class SearchEngineCard extends React.Component {
   render() {
     const { result, classes, openLink } = this.props;
     const { data, meta, url } = result;
-    const searchWith = getMessage('search_with', data.extra.searchEngineName);
+    const searchWith = getMessage('searchWith', data.extra.searchEngineName);
     return (
       <View style={classes.container}>
         <Text style={classes.text}>{getMessage('search_use_complementary')}</Text>

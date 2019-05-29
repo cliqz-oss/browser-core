@@ -6,7 +6,7 @@ function TableHeader({
 }) {
   return (
     <tr>
-      <th colSpan="100%">
+      <th colSpan="2">
         {header}
       </th>
     </tr>

@@ -1,6 +1,6 @@
 /* eslint no-param-reassign: 'off' */
 
-import logos from '../core/services/logos';
+import utils from '../core/utils';
 import { URLInfo } from '../core/url-info';
 
 function getAlias(host, searchEngines) {
@@ -31,7 +31,7 @@ export default class SpeedDial {
   }
 
   static updateLogo(item) {
-    const logoDetails = logos.getLogoDetails(item.url);
+    const logoDetails = utils.getLogoDetails(item.url);
 
     item.logo = logoDetails;
     return item;
@@ -39,7 +39,7 @@ export default class SpeedDial {
 
   constructor({ url, title = '', isCustom = true }, searchEngines) {
     const details = URLInfo.get(url);
-    const logoDetails = logos.getLogoDetails(url);
+    const logoDetails = utils.getLogoDetails(url);
     this.title = url;
     const displayTitle = title;
     const protocolPos = url.indexOf('://');

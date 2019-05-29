@@ -1,4 +1,3 @@
-/* global KEY_EVENTS_RECORDER */
 import React from 'react';
 import cliqz from '../../cliqz';
 import t from '../../i18n';
@@ -21,14 +20,6 @@ class Urlbar extends React.Component {
   }
 
   componentDidMount() {
-    this.textInput.focus();
-    try {
-      this.textInput.value += KEY_EVENTS_RECORDER.text;
-      KEY_EVENTS_RECORDER.stop();
-    } catch (e) {
-      // eslint-disable-next-line
-      console.warn('KEY_EVENTS_RECORDER seems to be missing. Make sure it still needed here.');
-    }
     this.textInput.addEventListener('focus', urlBarFocusSignal);
     this.textInput.addEventListener('blur', urlBarBlurSignal);
   }

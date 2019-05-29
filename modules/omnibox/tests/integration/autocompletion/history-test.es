@@ -27,11 +27,7 @@ export default function () {
           withHistory([{ value: testCase.results[0].url }]);
           await mockSearch({ results: [] });
           fillIn(testCase.query);
-          await waitForPopup();
-          await waitFor(async () => {
-            const $res = await $cliqzResults.querySelector(`a.result[data-url="${testCase.results[0].url}"]`);
-            return $res;
-          });
+          await waitForPopup(2);
           await waitFor(async () => await urlbar.textValue === testCase.friendlyUrl);
         });
 
@@ -48,7 +44,7 @@ export default function () {
           withHistory([{ value: testCase.results[0].url }]);
           await mockSearch({ results: [] });
           fillIn(testCase.query);
-          await waitForPopup();
+          await waitForPopup(2);
           await waitFor(async () => {
             const $result = await $cliqzResults.querySelector(`.result[href="${testCase.results[0].url}"]`);
             return $result;

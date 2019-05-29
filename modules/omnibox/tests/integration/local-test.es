@@ -17,7 +17,6 @@ import {
 } from './helpers';
 import config from '../../../core/config';
 import { resultsWithLocal, resultsWithoutLocal } from '../../core/integration/fixtures/resultsLocal';
-import inject from '../../../core/kord/inject';
 
 export default function () {
   describe('local results', function () {
@@ -99,9 +98,6 @@ export default function () {
           prefs.set('share_location', 'yes');
           await prefChange;
         }
-
-        await inject.service('geolocation', ['updateGeoLocation']).updateGeoLocation();
-
         withHistory([]);
         await mockSearch({ results: resultsWithLocal });
         fillIn(query);

@@ -14,6 +14,9 @@ function mockNow() {
 
 export default describeModule('market-analysis/market_analyzer_main',
   () => ({
+    'core/utils': {
+      default: {}
+    },
     'core/url': {
       getDetailsFromUrl: (url) => {
         if (url.indexOf('amazon.de') !== -1) {

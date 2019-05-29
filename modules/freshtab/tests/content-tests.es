@@ -14,3 +14,4 @@ import './content/home-news-ui-test';
 import './content/home-search-ui-test';
 import './content/home-settings-int-test';
 import './content/home-settings-ui-test';
+// import './content/home-offer-ui-test';

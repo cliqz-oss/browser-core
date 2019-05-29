@@ -1,5 +1,6 @@
 import CliqzEvents from '../core/events';
 import BloomFilter from '../core/bloom-filter';
+import utils from '../core/utils';
 import md5 from '../core/helpers/md5';
 import { sha1 } from '../core/crypto/utils';
 import random from '../core/crypto/random';
@@ -10,7 +11,7 @@ import Storage from '../platform/human-web/storage';
 import config from '../core/config';
 import { getAllOpenPages } from '../platform/human-web/opentabs';
 import { normalizeAclkUrl } from './ad-detection';
-import { getActiveTab, isPrivateMode, getWindow } from '../core/browser';
+import { getActiveTab } from '../platform/browser';
 import DoublefetchHandler from './doublefetch-handler';
 import ContentExtractionPatternsLoader from './content-extraction-patterns-loader';
 import { ContentExtractor, parseQueryString } from './content-extractor';
@@ -495,7 +496,7 @@ const CliqzHumanWeb = {
     },
     httpObserver: {
         // check the non 2xx page and report if this is one of the cliqz result
-        observeActivity: function({ url: aUrl, type, responseStatus, statusCode, responseHeaders, isPrivate, tabId }) {
+        observeActivity: function({ url: aUrl, type, statusCode, responseHeaders, isPrivate, tabId }) {
           // If isPrivate true, then drop it.
           if (isPrivate) {
             return;
@@ -2382,7 +2383,7 @@ const CliqzHumanWeb = {
           prefs.get('humanWebOptOut', false)) {
         return discard('human web disabled');
       }
-      if (isPrivateMode(getWindow())) {
+      if (utils.isPrivateMode(utils.getWindow())) {
         return discard('private mode');
       }
 

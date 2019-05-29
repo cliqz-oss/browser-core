@@ -52,6 +52,7 @@ module.exports = {
     "cliqz-android/cliqz-native-bridge.bundle.js",
     "cliqz-android/cliqz-app-constants.bundle.js",
     "webextension-specific/experimental-apis/cliqz/api.bundle.js",
+    "webextension-specific/experimental-apis/cliqzSynchronous/api.bundle.js",
   ],
   "modules": [
     "core",

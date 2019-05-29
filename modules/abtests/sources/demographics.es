@@ -1,4 +1,4 @@
-import inject from '../core/kord/inject';
+import utils from '../core/utils';
 
 
 const CORRECT_VERSION_PART = /^\d+$/;
@@ -8,7 +8,7 @@ const CORRECT_OPTIONAL_PART = /^\w+$/;
  * Parse version in format A.B.C.1bN.
  */
 export default function getCoreVersion() {
-  let version = inject.app.version;
+  let version = utils.extensionVersion;
 
   // Caused by a bug in versions, at some point
   if (version === '3.9.0-beta.3') {

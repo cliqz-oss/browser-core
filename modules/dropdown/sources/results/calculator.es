@@ -41,7 +41,7 @@ export default class CalculatorResult extends BaseResult {
 
   click() {
     this.resultTools.actions.copyToClipboard(this.result);
-    this.$tooltip.innerText = i18n.getMessage('copied');
+    this.$tooltip.innerText = i18n.getMessage('Copied');
     setTimeout(() => {
       this.$tooltip.style.display = 'none';
     }, 1000);

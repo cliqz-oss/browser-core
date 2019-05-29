@@ -31,12 +31,6 @@ const PREVENTABLE_LISTENER_OPTIONS = {
   passive: false,
 };
 
-function stopEvent(event) {
-  event.stopImmediatePropagation();
-  event.stopPropagation();
-  event.preventDefault();
-}
-
 export default class URLBar extends EventEmitter {
   _oldPlaceholder = null;
 
@@ -104,7 +98,6 @@ export default class URLBar extends EventEmitter {
     PREVENTABLE_EVENTS.forEach(eventName =>
       urlbar.addEventListener(eventName, this, PREVENTABLE_LISTENER_OPTIONS));
     window.addEventListener('resize', this, PASSIVE_LISTENER_OPTIONS);
-    urlbar.goButton.addEventListener('click', stopEvent, true);
 
     if (this._oldPlaceholder === null) {
       this._oldPlaceholder = urlbar.mInputField.placeholder;
@@ -136,8 +129,6 @@ export default class URLBar extends EventEmitter {
     if (this._oldPlaceholder !== null) {
       urlbar.mInputField.placeholder = this._oldPlaceholder;
     }
-
-    urlbar.goButton.removeEventListener('click', stopEvent, true);
     this._windows.delete(window);
   }
 

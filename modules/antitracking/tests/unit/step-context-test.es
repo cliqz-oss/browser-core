@@ -3,6 +3,10 @@
 
 export default describeModule('antitracking/steps/check-context',
   () => ({
+    'core/utils': {
+      default: {
+      },
+    },
     'core/console': {
       default: {
         debug() {},

@@ -1,10 +1,11 @@
 /* global $ */
 import { getMessage } from '../../../core/i18n';
-import inject from '../../../core/kord/inject';
 
 import {
   CLIQZ,
+  CliqzUtils,
   EventUtils,
+  app,
   expect,
   getComputedStyle,
   lang,
@@ -50,42 +51,46 @@ export function click(el, opt) {
 export function respondWithSuggestions(options) {
   // eslint-disable-next-line no-param-reassign
   options = options || {};
-  win.CLIQZ.TestHelpers.searchEngines.overrideSuggestionsHandler(
-    () => Promise.resolve([options.query, options.results]),
-  );
+  CliqzUtils.getSuggestions = function () {
+    return Promise.resolve([options.query, options.results]);
+  };
 }
 
 
 // patches getSnippet which calls RichHeader directly
 export function respondWithSnippet(res) {
-  win.CLIQZ.TestHelpers.http.overrideFetchHandler(() =>
-    Promise.resolve({
-      json() {
-        return Promise.resolve(res);
-      },
-    }));
+  CliqzUtils.fetchFactory = function () {
+    return () =>
+      Promise.resolve({
+        json() {
+          return Promise.resolve(res);
+        },
+      });
+  };
 }
 
 
 export function withMultipleHistory(resultsArray) {
-  win.CLIQZ.TestHelpers.historySearch.overrideHistorySearchHandler((q, cb) => resultsArray.reduce(
-    (chain, current, index) =>
-      chain
-        .then(() =>
-          new Promise((resolve) => {
-            const callback = (...args) => { cb(...args); resolve(); };
-            setTimeout(callback, current.ms, {
-              query: q,
-              results: current.res,
-              ready: index === resultsArray.length - 1,
-            });
-          })),
-    Promise.resolve()
-  ));
+  CliqzUtils.historySearch = function (q, cb) {
+    return resultsArray.reduce(
+      (chain, current, index) =>
+        chain
+          .then(() =>
+            new Promise((resolve) => {
+              const callback = (...args) => { cb(...args); resolve(); };
+              setTimeout(callback, current.ms, {
+                query: q,
+                results: current.res,
+                ready: index === resultsArray.length - 1,
+              });
+            })),
+      Promise.resolve()
+    );
+  };
 }
 
 export function patchGeolocation(geo) {
-  inject.service('geolocation', ['setGeolocationProvider']).setGeolocationProvider(() => Promise.resolve(geo));
+  app.modules.geolocation.background.getRawGeolocationData = () => Promise.resolve(geo);
 }
 
 
@@ -1308,6 +1313,10 @@ export function checkMap({ $result, results, isDistanceShown = true, scType = 'c
   const mapAddressSelector = '.address';
   const mapDistanceSelector = '.distance';
   const mapPhoneSelector = '.local-phone';
+  const extra = results[0].snippet.extra || {};
+
+  const distance = (extra.data && extra.data.cinema && extra.data.cinema.distance)
+    || CliqzUtils.distance(extra.lat, extra.lon, CliqzUtils.USER_LAT, CliqzUtils.USER_LNG);
 
   context('renders map area', function () {
     it('successfully', async function () {
@@ -1333,7 +1342,7 @@ export function checkMap({ $result, results, isDistanceShown = true, scType = 'c
 
       expect($mapContact).to.exist;
       expect($mapAddress).to.exist;
-      if (isDistanceShown) {
+      if (isDistanceShown && distance !== -1) {
         expect($mapDistance).to.exist;
       } else {
         expect($mapDistance).to.not.exist;

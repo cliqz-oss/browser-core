@@ -1,5 +1,5 @@
 import inject from '../core/kord/inject';
-import { openLink, getWindow } from '../core/browser';
+import utils from '../core/utils';
 import prefs from '../core/prefs';
 import config from '../core/config';
 
@@ -17,7 +17,7 @@ export default class Win {
   disable() {
     const version = this.settings.version;
     const window = this.window;
-    if (window === getWindow()) {
+    if (window === utils.getWindow()) {
       prefs.set('ext_status', 'disabled');
       try {
         const UNINSTALL_PREF = 'uninstallVersion';
@@ -25,7 +25,7 @@ export default class Win {
 
         if (version && (lastUninstallVersion !== version)) {
           prefs.set(UNINSTALL_PREF, version);
-          openLink(
+          utils.openLink(
             window,
             config.settings.UNINSTALL,
             true, // newTab

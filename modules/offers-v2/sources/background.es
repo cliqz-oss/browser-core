@@ -7,6 +7,8 @@
 
 import logger from './common/offers_v2_logger';
 import inject from '../core/kord/inject';
+import { isWebExtension } from '../core/platform';
+import utils from '../core/utils';
 import { getGeneralDomain, extractHostname } from '../core/tlds';
 import prefs from '../core/prefs';
 import config from '../core/config';
@@ -22,6 +24,7 @@ import OffersHandler from './offers/offers-handler';
 import BEConnector from './backend-connector';
 import CategoryHandler from './categories/category-handler';
 import CategoryFetcher from './categories/category-fetcher';
+import GreenAdsHandler from './green-ads/manager';
 import UrlData from './common/url_data';
 import ActionID from './offers/actions-defs';
 import { oncePerInterval } from './utils';
@@ -39,8 +42,12 @@ const DEBUG_DEXIE_MIGRATION = false;
 
 // If the offers are toggled on/off, the real estate modules should
 // be activated or deactivated.
+// The module "freshtab" has more responsibility than showing offers
+// and should not be touched from offers-v2.
 function touchManagedRealEstateModules(isEnabled) {
-  const managedRealEstateModules = ['offers-banner', 'popup-notification', 'myoffrz-helper'];
+  const managedRealEstateModules = isWebExtension
+    ? ['offers-banner']
+    : ['offers-cc', 'browser-panel'];
   managedRealEstateModules.forEach(moduleName =>
     prefs.set(`modules.${moduleName}.enabled`, isEnabled));
 }
@@ -60,9 +67,8 @@ export default background({
   // - if a module is unloaded, it is not in "registeredRealEstates"
   //
   // Retain the list of real estates even if the offers are toggled on
-  // and off (handled by functions "softInit" and "softUnload"). Reason
-  // is that some real estates might be permanent and register themselves
-  // only once on startup.
+  // and off (handled by functions "softInit" and "softUnload").
+  // In particular, do not lose an entry for "freshtab".
   async init() {
     if (!this.registeredRealEstates) {
       this.registeredRealEstates = new Map();
@@ -152,7 +158,7 @@ export default background({
     );
     await this.patternsStat.init();
 
-    const isUserJourneyEnabled = config.settings['offers.user-journey.enabled'];
+    const isUserJourneyEnabled = prefs.get('offers.user-journey.enabled', false);
     if (isUserJourneyEnabled) {
       this.journeyHandler = new JourneyHandler({
         eventHandler: this.eventHandler
@@ -208,6 +214,9 @@ export default background({
     //
     this.offersAPI = this.offersHandler.offersAPI;
 
+    this.gaHandler = new GreenAdsHandler();
+    await this.gaHandler.init();
+
     // create the trigger machine executor
     this.globObjects = {
       db: this.db,
@@ -216,6 +225,7 @@ export default background({
       be_connector: this.backendConnector,
       category_handler: this.categoryHandler,
       offers_status_handler: this.offersHandler.offerStatus,
+      ga_handler: this.gaHandler,
       telemetry: inject.service('telemetry', ['onTelemetryEnabled', 'onTelemetryDisabled', 'isEnabled', 'push', 'removeListener']),
     };
     this.triggerMachineExecutor = new TriggerMachineExecutor(this.globObjects);
@@ -377,7 +387,7 @@ export default background({
         // check if it is a normal pref or a particular
         switch (prefName) {
           case 'offersInstallInfo':
-            prefs.set(prefName, `${inject.app.version}|${prefValue}`);
+            prefs.set(prefName, `${utils.extensionVersion}|${prefValue}`);
             break;
           default:
             prefs.set(prefName, prefValue);
@@ -653,14 +663,7 @@ export default background({
 
     async learnTargeting(feature, ...rest) {
       if ((feature === 'page-class') || (feature === 'action')) {
-        if (!rest.length) {
-          logger.warn('learnTargeting got bad input:', rest);
-          return Promise.resolve();
-        }
-        if (this.journeyHandler) {
-          return this.journeyHandler.addFeature(rest[0]);
-        }
-        return Promise.resolve();
+        return this.journeyHandler.addEvent({ feature: rest[0] });
       }
       return this.categoryHandler.learnTargeting(feature);
     },

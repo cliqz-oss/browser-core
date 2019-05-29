@@ -5,7 +5,6 @@ module.exports = (base) => ({
   BACKGROUND_IMAGE_URL: 'https://cdn.'+base+'/brands-database/database/', // core/sources/utils.es
   BW_URL: 'https://antiphishing.'+base+'/api/bwlist?md5=', // anti-phishing/sources/anti-phishing.es
   CDN_BASEURL: 'https://cdn.'+base,
-  ADBLOCKER_BASE_URL: `https://cdn.${base}/adblocker/configs`,
   CLIQZ_SAVE_URL: 'https://'+base+'/q=', // core/sources/utils.es (Need to find a more suitable name for this.)
   CONFIG_PROVIDER: 'https://api.'+base+'/api/v1/config',
   ENDPOINT_ANONPATTERNSURL: 'https://cdn.'+base+'/human-web/patterns-anon',

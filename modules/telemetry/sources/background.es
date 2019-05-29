@@ -1,4 +1,5 @@
 import background from '../core/base/background';
+import utils from '../core/utils';
 import inject from '../core/kord/inject';
 import prefs, { getCliqzPrefs } from '../core/prefs';
 import console from '../core/console';
@@ -76,7 +77,7 @@ const createTelemetry = (bg) => {
 
   return (msg, instantPush) => {
     console.log(msg, 'Utils.telemetry');
-
+    // datareporting.healthreport.uploadEnabled
     bg.trk.push({
       session: bg.sessionService.getSession(),
       ts: Date.now(),
@@ -95,7 +96,7 @@ const createTelemetry = (bg) => {
 
 export default background({
   requiresServices: ['cliqz-config', 'telemetry', 'session'],
-  telemetryService: inject.service('telemetry', ['installProvider', 'uninstallProvider', 'push', 'isBrowserTelemetryEnabled']),
+  telemetryService: inject.service('telemetry', ['installProvider', 'uninstallProvider']),
   sessionService: inject.service('session', ['getSession', 'saveSession']),
 
   init() {
@@ -122,7 +123,7 @@ export default background({
         type: 'environment',
         agent: navigator.userAgent,
         language: navigator.language,
-        version: inject.app.version,
+        version: utils.extensionVersion,
         startup,
         prefs: getCliqzPrefs(),
         defaultSearchEngine: (getDefaultSearchEngine() || {}).name,
@@ -130,7 +131,7 @@ export default background({
         distribution: prefs.get('distribution', '', 'extensions.cliqz.'),
         version_host: prefs.get('gecko.mstone', '', ''),
         version_dist: prefs.get('distribution.version', '', ''),
-        health_report_enabled: this.telemetryService.isBrowserTelemetryEnabled(),
+        health_report_enabled: prefs.get('uploadEnabled', true, 'datareporting.healthreport.')
       };
 
       // This signal is always sent as an "alive signal" and thus does not go
@@ -143,9 +144,9 @@ export default background({
       } catch (e) {
         // on android history stats are not available
       }
-      // Not sent in case of opt-out. Sent through telemetry service which
-      // checks for opt-out from user.
-      this.telemetryService.push({
+      // Not sent in case of opt-out. Sent through utils.telemetry which is
+      // using telemetry service, in turn checking opt-out from user.
+      utils.telemetry({
         type: 'environment.extended',
         history_days: historyStats.days,
         history_urls: historyStats.size,

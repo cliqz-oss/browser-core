@@ -4,16 +4,11 @@ import { chrome } from '../platform/content/globals';
 import { sendMessageToWindow } from './content/data';
 import templates from './templates';
 import helpers from './helpers';
-import { isCliqzBrowser } from '../core/platform';
 
 Handlebars.partials = templates;
 Object.keys(helpers).forEach((helperName) => {
   Handlebars.registerHelper(helperName, helpers[helperName]);
 });
-
-if (isCliqzBrowser) {
-  $('.cqz-offers-wrapper').addClass('cliqz-browser');
-}
 
 function localizeDocument() {
   Array.prototype.forEach.call(document.querySelectorAll('[data-i18n]'), (el) => {

@@ -3,7 +3,6 @@
 const program = require('commander');
 const execa = require('execa');
 const git = require('ggit');
-const child = require('child_process');
 
 const common = require('./common');
 
@@ -121,23 +120,13 @@ program.command('publish [file]')
         if (!CONFIG.publish) {
           throw new Error('Publish not defined in config file');
         }
+        const output = execa.shellSync(CONFIG.publish, { shell: '/bin/bash' }).output;
 
-        var output = child.spawn('set -x; export PATH=$PATH:`npm bin`; '+CONFIG.publish, { shell: '/bin/bash' });
-        var stdout = '';
-        var stderr = '';
-        output.stdout.on('data', (buf) => {
-          console.log('[STR] stdout %s',String(buf));
-          stdout += buf;
-        }); 
-        output.stderr.on('data', (buf) => {
-          console.log('[STR] stderr %s',String(buf));
-          stderr += buf;
-        });
-        output.on('close', (code) =>{
-          console.log('[END] code', code);
-          if (code !== 0) {
-            process.exit(code);
-          }
-        });
-      })  
+        const urls = Array.from(new Set((output[1] || '').match(urlRegex)));
+        urls.map(url => url.trim()).filter(noFileUrls).forEach(url => console.log(rewrite(url)));
+      })
+      .catch((e) => {
+        console.error('Something went wrong', e);
+        process.exit(1);
+      });
   });

@@ -50,28 +50,19 @@ node('docker && !gpu && eu-central-1') {
 
       stage('benchmark') {
         sh 'cp /app/benchmarks/session.jl ./benchmarks/'
-        sh 'cp /app/benchmarks/requests.jl ./benchmarks/'
-        try {
-            dir('./benchmarks') {
-                sh 'node run_benchmarks.js > results.txt'
-                sh 'cat results.txt'
-            }
-            // read cputime results
-            def cputime = sh(returnStdout: true, script: 'cat ./benchmarks/results.txt | grep -v \'=\' | jq .cputime | awk \'{ sum+=$1 } END { print sum }\'')
-            def memory = sh(returnStdout: true, script: 'cat ./benchmarks/results.txt | grep -v \'=\' | jq .memory | awk \'{ sum+=$1 } END { print sum }\'')
-            def summary = "CPU Time: ${(cputime as Double).round(2)}, Memory: ${((memory as Integer) / (5 * 1024 * 1024)) as Integer}MB"
-            currentBuild.description = summary
-            sh 'du -hs ./benchmarks/data/idb/*'
-            setGithubCommitStatus(triggeringCommitHash, 'success', summary)
+        sh 'cd ./benchmarks && node run_benchmarks.js | tee results.txt'
+        // read cputime results
+        def cputime = sh(returnStdout: true, script: 'cat ./benchmarks/results.txt | grep -v \'=\' | jq .cputime | awk \'{ sum+=$1 } END { print sum }\'')
+        def memory = sh(returnStdout: true, script: 'cat ./benchmarks/results.txt | grep -v \'=\' | jq .memory | awk \'{ sum+=$1 } END { print sum }\'')
+        def summary = "CPU Time: ${(cputime as Double).round(2)}, Memory: ${((memory as Integer) / (5 * 1024 * 1024)) as Integer}MB"
+        currentBuild.description = summary
+        sh 'du -hs ./benchmarks/data/idb/*'
+        setGithubCommitStatus(triggeringCommitHash, 'success', summary)
 
-            sh "cat ./benchmarks/results.txt | node ./benchmarks/post_results.js ${triggeringCommitHash}"
-            // print diagnostics
-            sh 'cat ./benchmarks/diagnostics.jl | jq .'
-            sh 'rm -r ./benchmarks/data ./benchmarks/diagnostics.jl'
-        } catch (e) {
-            currentBuild.result = 'FAILURE'
-            setGithubCommitStatus(triggeringCommitHash, 'failure', 'Benchmark failed')
-        }
+        sh "cat ./benchmarks/results.txt | node ./benchmarks/post_results.js ${triggeringCommitHash}"
+        // print diagnostics
+        sh 'cat ./benchmarks/diagnostics.jl | jq .'
+        sh 'rm -r ./benchmarks/data ./benchmarks/diagnostics.jl'
       }
     }
   }

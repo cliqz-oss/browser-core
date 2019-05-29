@@ -14,8 +14,8 @@ $firefox-red: #DD3C32;
 
 body,
 html {
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow-y: hidden;
+    overflow-x: auto;
     height: 100%;
 }
 
@@ -804,6 +804,7 @@ html {
 
             .accordion {
                 background-color: #F9F9F9;
+                height: 205px;
                 overflow-y: auto;
 
                 .accordion-section-title {

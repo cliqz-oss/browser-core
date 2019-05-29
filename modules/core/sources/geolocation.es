@@ -1,1 +1,3 @@
-export { default } from '../platform/geolocation';
+import getGeo from '../platform/geolocation';
+
+export default getGeo;

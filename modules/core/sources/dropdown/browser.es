@@ -4,11 +4,9 @@ import BaseDropdownManager from './base';
 import copyToClipboard from '../../platform/clipboard';
 import HistoryManager from '../../core/history-manager';
 import { cleanMozillaActions, isUrl } from '../../core/url';
-import telemetry from '../../core/services/telemetry';
+import utils from '../../core/utils';
 import events from '../../core/events';
-import inject from '../../core/kord/inject';
 import { closeTabsWithUrl } from '../../platform/tabs';
-import { isPrivateResultType } from '../../core/search-engines';
 
 const KEYS_TO_IGNORE = new Set(['Unidentified', 'Dead']);
 
@@ -47,6 +45,14 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     return this._cache.dropdown;
   }
 
+  _getSessionId() {
+    return this._sessionId;
+  }
+
+  _incrementSessionId() {
+    this._sessionId = (this._sessionId + 1) % 1e3;
+  }
+
   _endSession() {
     const { windowId } = this._urlbarDetails;
     this._incrementSessionId();
@@ -78,12 +84,13 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   }
 
   _telemetry(...args) {
-    return telemetry.push(...args);
+    return utils.telemetry(...args);
   }
 
-  _reportHighlight() {
-    const { windowId } = this._urlbarDetails;
-    this._cliqz.search.action('reportHighlight', { contextId: windowId });
+  _reportHighlight(result) {
+    const { tabId } = this._urlbarDetails;
+    this.selectedResult = result;
+    this._cliqz.search.action('reportHighlight', { tab: { id: tabId } });
   }
 
   _adultAction(actionName) {
@@ -175,7 +182,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
       }]);
       this._shouldIgnoreNextBlur = false;
     } else {
-      this.collapse();
+      this._setHeight(0);
     }
 
     const onUrlClickedPayload = {
@@ -185,7 +192,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
       resultOrder,
       isNewTab: Boolean(newTab),
       isPrivateMode: incognito,
-      isPrivateResult: isPrivateResultType(result.kind),
+      isPrivateResult: utils.isPrivateResultType(result.kind),
       isFromAutocompletedURL,
       windowId,
       tabId,
@@ -281,7 +288,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
         contextId: windowId
       });
     } else {
-      this.collapse();
+      this.setHeight(0);
     }
   }
 
@@ -373,7 +380,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
         case 'Enter':
         case 'NumpadEnter':
           if (!ev.altKey && !ev.metaKey && !ev.ctrlKey) {
-            this.collapse();
+            this._setHeight(0);
           }
           break;
         default:
@@ -393,12 +400,12 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   _scheduleClose(callback) {
     this.cancelClose();
     this.closeTimeout = setTimeout(() => {
-      this.collapse();
+      this._setHeight(0);
       this.dropdownAction.clear();
       if (callback) {
         callback();
       }
-    }, 100);
+    }, 50);
   }
 
   cancelClose() {
@@ -444,9 +451,12 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   }
 
   render(...args) {
-    return super.render(...args)
-      .then(() => {
-        inject.service('search-session', ['setQueryLastDraw']).setQueryLastDraw(Date.now());
-      });
+    if (this._urlbarDetails.focused) {
+      return super.render(...args)
+        .then(() => {
+          utils._queryLastDraw = Date.now();
+        });
+    }
+    return Promise.resolve();
   }
 }

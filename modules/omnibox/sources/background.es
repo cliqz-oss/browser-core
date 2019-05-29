@@ -1,4 +1,5 @@
 import inject from '../core/kord/inject';
+import utils from '../core/utils';
 import background from '../core/base/background';
 import omniboxapi from '../platform/omnibox/omnibox';
 import { getMessage } from '../core/i18n';
@@ -18,10 +19,6 @@ export default background({
   search: inject.module('search'),
   history: inject.module('history'),
   offers: inject.module('offers-v2'),
-
-  searchSession: inject.service('search-session', ['setSearchSession']),
-
-  requiresServices: ['geolocation', 'search-session'],
 
   events: {
     'ui:click-on-url': async function onClick({ rawResult }) {
@@ -86,11 +83,10 @@ export default background({
     if (!info.contexts.includes('link') || info.pageUrl !== DROPDOWN_URL) {
       return;
     }
-    this._hoveredResult = this._dropdownManager.hoveredResult;
-    if (this._hoveredResult && this._hoveredResult.isDeletable) {
+    if (this._lastResult && this._lastResult.isDeletable) {
       await contextmenuapi.create({
         id: 'remove-from-history',
-        title: getMessage('cMenuRemoveFromHistory'),
+        title: 'Remove from History',
         icons: null,
         contexts: ['link']
       });
@@ -98,14 +94,17 @@ export default background({
     contextmenuapi.refresh();
   },
 
-  _onContextMenuHidden() {
-    this._hoveredResult = null;
-  },
-
   _onContextMenuItemClicked({ menuItemId }) {
     if (menuItemId === 'remove-from-history') {
-      this._dropdownManager.removeFromHistoryAndBookmarks(this._hoveredResult.historyUrl);
+      this._dropdownManager.removeFromHistoryAndBookmarks(this._lastResult.historyUrl);
     }
+  },
+
+  onBlur: details => events.pub('urlbar:blur', details),
+
+  onFocus: (details) => {
+    utils.setSearchSession();
+    events.pub('urlbar:focus', details);
   },
 
   async init(settings) {
@@ -121,13 +120,6 @@ export default background({
     this.updateData = this._updateData.bind(this);
     this.onContextMenuShown = this._onContextMenuShown.bind(this);
     this.onContextMenuItemClicked = this._onContextMenuItemClicked.bind(this);
-    this.onContextMenuHidden = this._onContextMenuHidden.bind(this);
-
-    this.onBlur = details => events.pub('urlbar:blur', details);
-    this.onFocus = (details) => {
-      this.searchSession.setSearchSession();
-      events.pub('urlbar:focus', details);
-    };
 
     omniboxapi.setPlaceholder(getMessage('freshtab_urlbar_placeholder'));
     omniboxapi.onBlur.addListener(this.onBlur);
@@ -144,7 +136,6 @@ export default background({
 
     this.offersReporter = new OffersReporter(this.offers);
     contextmenuapi.onShown.addListener(this.onContextMenuShown);
-    contextmenuapi.onHidden.addListener(this.onContextMenuHidden);
     contextmenuapi.onClicked.addListener(this.onContextMenuItemClicked);
   },
 

@@ -66,7 +66,7 @@ class MockMap {
 export default describeModule('core/persistence/cached-map',
   () => ({
     'core/persistence/map': {
-      default: () => MockMap,
+      default: MockMap,
     },
   }),
   () => {

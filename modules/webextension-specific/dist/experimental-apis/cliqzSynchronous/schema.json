@@ -1,0 +1,37 @@
+[
+  {
+    "namespace": "cliqzSynchronous",
+    "functions": [
+      {
+        "name": "getPref",
+        "type": "function",
+        "description": "get the value of browser pref",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "prefName",
+            "description": "Browser pref name"
+          }
+        ],
+        "returns": {
+          "description": "Constant value"
+        }
+      },
+      {
+        "name": "hasPref",
+        "type": "function",
+        "description": "checks if browser pref is set",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "prefName",
+            "description": "Browser pref name"
+          }
+        ],
+        "returns": {
+          "description": "Constant value"
+        }
+      }
+    ]
+  }
+]

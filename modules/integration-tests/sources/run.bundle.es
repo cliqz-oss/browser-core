@@ -1,10 +1,12 @@
 import { window } from '../platform/globals';
 import * as tabs from '../platform/tabs';
 
-import inject, { setGlobal } from '../core/kord/inject';
+import { setGlobal } from '../core/kord/inject';
 
 import {
+  CliqzUtils,
   app,
+  prefs,
   testServer,
   win,
 } from '../tests/core/integration/helpers';
@@ -13,6 +15,19 @@ import {
 import '../module-integration-tests';
 
 setGlobal(app);
+
+function mockGlobalState() {
+  // Store all telemetry signals globally so that tests can use them
+  win.allTelemetry = [];
+  CliqzUtils.telemetry = (signal, instant, schema) => {
+    win.allTelemetry.push({ signal, schema, instant });
+  };
+
+  // We only need the tests for the regular cliqz dropdown
+  prefs.set('dropDownABCGroup', 'cliqz');
+  prefs.clear('dropDownStyle');
+}
+
 
 const TEST_URL = window.location.href;
 
@@ -34,38 +49,49 @@ async function closeAllTabs() {
     testFunction();
   });
 
-  // Intercept all telemetry
-  win.allTelemetry = [];
-  const integrationTestsTelemetryProvider = {
-    name: 'integration-tests',
-    send: (signal, schema, instant) => {
-      win.allTelemetry.push({
-        signal, schema, instant,
-      });
-    }
-  };
+  // Keep track of original versions of mocked objects
+  const fetchFactory = CliqzUtils.fetchFactory;
+  const getSuggestions = CliqzUtils.getSuggestions;
+  const historySearch = CliqzUtils.historySearch;
+  const telemetry = CliqzUtils.telemetry;
+
+  // Check with which frequency the extension should be restarted between tests
+  const reloadExtensionCounterInc = Number(prefs.get('integration-tests.forceExtensionReload', 0));
+  let reloadExtensionCounter = 0;
 
   before(async () => {
     await closeAllTabs();
     await testServer.reset();
-    inject.service('telemetry', ['installProvider']).installProvider(integrationTestsTelemetryProvider);
   });
 
   after(async () => {
     await closeAllTabs();
     await testServer.reset();
-    inject.service('telemetry', ['uninstallProvider']).uninstallProvider(integrationTestsTelemetryProvider);
   });
 
   beforeEach(async () => {
-    win.allTelemetry = [];
+    if (reloadExtensionCounterInc === 0) {
+      mockGlobalState();
+    } else if (win.preventRestarts) {
+      mockGlobalState();
+    } else {
+      reloadExtensionCounter += reloadExtensionCounterInc;
+      if (reloadExtensionCounter >= 1) {
+        reloadExtensionCounter = 0;
+        await app.extensionRestart(mockGlobalState);
+      } else {
+        mockGlobalState();
+      }
+    }
   });
 
   afterEach(async () => {
+    CliqzUtils.telemetry = telemetry;
+    CliqzUtils.fetchFactory = fetchFactory;
+    CliqzUtils.getSuggestions = getSuggestions;
+    CliqzUtils.historySearch = historySearch;
+
     // Reset global state
-    win.CLIQZ.TestHelpers.http.resetFetchHandler();
-    win.CLIQZ.TestHelpers.historySearch.resetHistorySearchHandler();
-    win.CLIQZ.TestHelpers.searchEngines.resetSuggestionsHandler();
     await testServer.reset();
     if (!win.preventRestarts) {
       await closeAllTabs();

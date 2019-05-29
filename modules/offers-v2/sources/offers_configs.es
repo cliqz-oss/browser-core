@@ -33,7 +33,7 @@ const OffersConfigs = {
   OFFERS_HISTORY_LIVE_TIME_SECS: 20 * 60 * 24 * 60,
 
   // the current trigger engine version
-  TRIGGER_ENGINE_VERSION: '24',
+  TRIGGER_ENGINE_VERSION: '23',
 
   // offer storage
   LOAD_OFFERS_STORAGE_DATA: true,

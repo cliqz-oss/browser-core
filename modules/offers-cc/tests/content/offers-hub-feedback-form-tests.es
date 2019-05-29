@@ -38,6 +38,9 @@ context('Offers Hub feedback form tests', function () {
     context('renders feedback header', function () {
       it('with correct text', function () {
         expect(subject.query(`${feedbackBoxSelector} header`)).to.exist;
+        expect(subject.query(`${feedbackBoxSelector} [data-i18n="offers_menu_give_feedback"]`)).to.exist;
+        expect(subject.query(`${feedbackBoxSelector} [data-i18n="offers_menu_give_feedback"]`))
+          .to.have.text('offers_menu_give_feedback');
       });
 
       it('with "close" button', function () {
@@ -49,6 +52,7 @@ context('Offers Hub feedback form tests', function () {
       it('renders text', function () {
         const textSelector = `${feedbackVoteSelector} .feedback-text`;
         expect(subject.query(textSelector)).to.exist;
+        expect(subject.query(textSelector)).to.have.text('offers_feedback_feature');
       });
 
       it('renders "up" and "down" buttons', function () {
@@ -63,6 +67,7 @@ context('Offers Hub feedback form tests', function () {
       it('renders text', function () {
         const textSelector = `${feedbackCommentSelector} label`;
         expect(subject.query(textSelector)).to.exist;
+        expect(subject.query(textSelector)).to.have.text('offers_hub_feedback_comments');
       });
 
       it('renders textarea', function () {
@@ -75,6 +80,7 @@ context('Offers Hub feedback form tests', function () {
       it('renders "Submit" button', function () {
         const buttonSelector = `${feedbackCommentSelector} button#submit-feedback`;
         expect(subject.query(buttonSelector)).to.exist;
+        expect(subject.query(buttonSelector)).to.have.text('offers_hub_feedback_send');
       });
     });
   });
@@ -129,6 +135,8 @@ context('Offers Hub feedback form tests', function () {
 
           it('"thank you" was rendered', function () {
             expect(subject.query('.feedback-box.thank-you')).to.exist;
+            expect(subject.query('.feedback-box.thank-you h2')).to.have.text('offers_hub_feedback_thank_you');
+            expect(subject.query('.feedback-box.thank-you p')).to.have.text('offers_feedback_thank_you');
           });
         });
       });
@@ -161,6 +169,8 @@ context('Offers Hub feedback form tests', function () {
 
       it('"thank you" was rendered', function () {
         expect(subject.query('.feedback-box.thank-you')).to.exist;
+        expect(subject.query('.feedback-box.thank-you h2')).to.have.text('offers_hub_feedback_thank_you');
+        expect(subject.query('.feedback-box.thank-you p')).to.have.text('offers_feedback_thank_you');
       });
     });
   });

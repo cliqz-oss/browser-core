@@ -14,6 +14,11 @@ const MOCK = {
   },
   'core/platform': {
   },
+  'core/utils': {
+    utils: {
+      extensionVersion: null,
+    },
+  },
   'core/crypto/random': {
     default: Math.random.bind(Math),
   },
@@ -23,12 +28,8 @@ const MOCK = {
   'core/http': {
     fetch: {},
   },
-  'core/kord/inject': {
-    default: {
-      app: {
-        version: null,
-      },
-    },
+  'core/inject': {
+    default: {},
   },
   'platform/human-web/storage': {
     default: {},

@@ -143,14 +143,6 @@ module.exports = {
           match: /\{\{QUICK_SEARCH_TOGGLE\}\}/g,
           replacement: config => config.QUICK_SEARCH_TOGGLE || ''
         },
-        {
-          match: /\{\{OFFERS_PRODUCT_PREFIX\}\}/g,
-          replacement: config => config.OFFERS_PRODUCT_PREFIX || ''
-        },
-        {
-          match: /\{\{OFFERS_PRODUCT_TITLE\}\}/g,
-          replacement: config => config.OFFERS_PRODUCT_TITLE || ''
-        },
       ]
     });
   }

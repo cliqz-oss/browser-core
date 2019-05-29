@@ -23,7 +23,6 @@ function lwarn(msg) {
  */
 export default background({
   offersV2: inject.module('offers-v2'),
-  requiresServices: ['telemetry', 'logos'],
 
   /**
     @method init

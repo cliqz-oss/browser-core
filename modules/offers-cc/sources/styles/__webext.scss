@@ -1,0 +1,88 @@
+
+#cqz-offer-cc-content{
+    .web-ext {
+        header {
+            > p {
+                .hide-reward-box {
+                    display: flex;
+                    flex: 0 0 auto;
+                    width: 14px;
+                    height: 14px;
+                    background: url('../images/close-offer.svg') no-repeat center;
+                    background-size: 14px 14px;
+                    opacity: 0.6;
+                    display: inline-block;
+                    margin-right: 2px;
+                    margin-top: 4px;
+                    &:hover {
+                        opacity: 1;
+                        -webkit-filter: brightness(0);
+                    }
+                }
+            }
+        }
+        #cqz-vouchers-wrapper{
+            #cqz-vouchers-holder {
+                .voucher-wrapper {
+                    .logo-wrapper {
+                        .close {
+                            background: url('../images/trash.svg') no-repeat right;
+                            background-size: contain;
+                            width: 34px;
+                            height: 34px;
+                            margin-right: -12px;
+                            margin-left: -6px;
+                            opacity: 0.6;
+                        }
+                    }
+                }
+            }
+        }
+        footer {
+            > p {
+                .feedback {
+                    display: flex;
+                    align-items: center;
+                    font-size: 10px;
+                    background: transparent;
+                    text-decoration: none;
+                    color: #494949;
+                    cursor: pointer;
+                    label {
+                        cursor: pointer
+                    }
+                    img {
+                        margin-right: 5px
+                    }
+                }
+                span {
+                    &:last-child {
+                        background: url("../images/myoffrz-logo.svg") no-repeat right center;
+                        background-size: 16px 16px;
+                        mask: none;
+                        -webkit-mask: none;
+                        height: 16px;
+                        margin-top: 2px;
+                        margin-right: 2px;
+                    }
+                }
+            }
+        }
+        .show {
+            &~ footer {
+                > p {
+                    span {
+                        &:last-child {
+                            background: url("../images/myoffrz-logo.svg") no-repeat right center;
+                            background-size: 16px 16px;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+

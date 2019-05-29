@@ -16,11 +16,7 @@ module.exports = {
   'baseURL': '/modules/',
   'pack': 'web-ext build -s build -a .',
   'publish': publish.toPrerelease('myoffrz_nightly_', 'offers_beta', 'zip'),
-  'settings': Object.assign({}, urls, settings, {
-    'name': 'offersAppNameNightly',
-    'offers.user-journey.enabled': true,
-    id
-  }),
+  'settings': Object.assign({}, urls, settings, { 'name': 'offersAppNameNightly', id }),
   versionInfix: '.',
   versionPrefix: '11',
   'default_prefs': {
@@ -29,6 +25,7 @@ module.exports = {
     'modules.browser-panel.enabled': false,
     'modules.offers-cc.enabled': false,
     'modules.history-analyzer.enabled': false,
+    'offers.user-journey.enabled': true,
   },
   'modules': [
     'core',
@@ -66,7 +63,5 @@ module.exports = {
     globalDeps: Object.assign({}, base.builderConfig.globalDeps, {
       '@cliqz-oss/dexie': 'Dexie',
     }),
-  }),
-  OFFERS_PRODUCT_PREFIX: 'myoffrz',
-  OFFERS_PRODUCT_TITLE: 'MyOffrz',
+  })
 }

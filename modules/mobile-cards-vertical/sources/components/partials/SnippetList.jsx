@@ -55,7 +55,7 @@ class SnippetList extends React.PureComponent {
     if (this.props.list.length <= this.props.limit) {
       return null;
     }
-    const footerText = getMessage(isCollapsed ? 'expand' : 'collapse');
+    const footerText = getMessage(isCollapsed ? 'general_expand_button' : 'general_collapse_button');
     const arrowImage = normalizeUrl('arrow-down.svg');
     const arrowAngle = { transform: [{ rotateX: isCollapsed ? '0deg' : '180deg' }] };
     return (

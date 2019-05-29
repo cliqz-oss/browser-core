@@ -11,7 +11,7 @@ import initializeHelpers from './initialize-test-helpers';
 export default class IntegrationTestsWindow extends BaseWindow {
   init() {
     prefs.set('integration-tests.started', true);
-    initializeHelpers(chrome.extension.getBackgroundPage().window);
+    initializeHelpers(this.window);
     this.startTestsWhenExtensionLoaded();
   }
 

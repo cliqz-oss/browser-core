@@ -3,7 +3,6 @@ import {
   expect,
   waitFor,
   win,
-  CliqzEvents,
 } from '../../core/test-helpers';
 import { isMobile } from '../../../core/platform';
 import { mockSearch, withHistory } from '../../core/integration/search-helpers';
@@ -29,7 +28,7 @@ export default ({ isWithHistory = false, query, results }) => {
     }
     await app.modules.search.action('startSearch', query);
 
-    searchResultsSub = CliqzEvents.subscribe('search:results', (r) => {
+    searchResultsSub = win.CliqzEvents.subscribe('search:results', (r) => {
       searchResults = r;
     });
 

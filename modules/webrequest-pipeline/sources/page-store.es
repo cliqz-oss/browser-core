@@ -136,6 +136,16 @@ export default class PageStore {
       let currentFrameId = parentFrameId;
       while (currentFrameId !== -1) {
         const frame = tab.frames.get(currentFrameId);
+
+        // For some reason (maybe a timing issue), it happens that at this point
+        // we do not yet have the information about the parent frame in
+        // `tab.frames`. Since this information is not very critical we're
+        // defensing and just abort in case the information we need is not
+        // there.
+        if (frame === undefined) {
+          break;
+        }
+
         ancestors.push({
           frameId: currentFrameId,
           url: frame.url,

@@ -17,7 +17,7 @@ const RED_DOT_TYPE = 'dot';
 export default background({
   core: inject.module('core'),
   offersV2: inject.module('offers-v2'),
-  requiresServices: ['logos', 'cliqz-config', 'telemetry'],
+  requiresServices: ['logos', 'cliqz-config'],
 
   init() {
     REAL_ESTATE_IDS.forEach(realEstateID =>

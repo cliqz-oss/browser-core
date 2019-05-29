@@ -34,7 +34,7 @@ export default function ({ logo, theme }) {
           accessible={false}
           accessibilityLabel="powered-by-text"
         >
-          <Text style={styles(theme).text}>{getMessage('kicker_sponsor')}</Text>
+          <Text style={styles(theme).text}>{getMessage('KickerSponsor')}</Text>
         </View>
       </View>
     </Link>

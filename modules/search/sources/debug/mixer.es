@@ -13,7 +13,7 @@ import { setGlobal } from '../../core/kord/inject';
 import { parseKind } from '../telemetry';
 import createModuleWrapper from '../../core/helpers/spanan-module-wrapper';
 import { COLORS, COLOR_MAP, IGNORED_PROVIDERS, IMAGE_PATHS } from './helpers';
-import { overrideFetchHandler, fetch } from '../../core/http';
+import utils from '../../core/utils';
 
 const historySearch = createModuleWrapper('history-search').createProxy();
 
@@ -73,22 +73,26 @@ browser.cliqzHistory.unifiedSearch = function _(q) {
 };
 
 const rawConfig = getConfig({ isPrivateMode: false }, globalConfig.settings);
-overrideFetchHandler(() => (url, ...args) => {
-  if (url.startsWith(rawConfig.settings.RESULTS_PROVIDER)) {
-    return fetch(url, ...args)
-      .then(fetchResults => fetchResults.json())
-      .then((z) => {
-        // prevent shallow copy of results
-        fullJson.cliqz = JSON.parse(JSON.stringify(z.results));
-        return {
-          json() {
-            return Promise.resolve(z);
-          }
-        };
-      });
-  }
-  return fetch(url, ...args);
-});
+utils._fetchFactory = utils.fetchFactory;
+utils.fetchFactory = () => {
+  const newFetch = utils._fetchFactory();
+  return (url, ...args) => {
+    if (url.startsWith(rawConfig.settings.RESULTS_PROVIDER)) {
+      return newFetch(url, ...args)
+        .then(fetchResults => fetchResults.json())
+        .then((z) => {
+          // prevent shallow copy of results
+          fullJson.cliqz = JSON.parse(JSON.stringify(z.results));
+          return {
+            json() {
+              return Promise.resolve(z);
+            }
+          };
+        });
+    }
+    return newFetch(url, ...args);
+  };
+};
 
 const createProviderContainer = (provider) => {
   const container = document.createElement('div');

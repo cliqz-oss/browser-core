@@ -336,9 +336,8 @@ export default describeModule('offers-v2/offers/offers-db',
             o = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
           });
 
-          it('stored offers remains', async function () {
+          it('stored offers remains', function () {
             const odb = new OffersDB();
-            await waitForDBLoaded(odb);
             chai.expect(odb.addOfferObject(o.offer_id, o)).to.equal(true);
 
             // check exists
@@ -369,11 +368,9 @@ export default describeModule('offers-v2/offers/offers-db',
             return Promise.all([p1, p2]);
           });
 
-          it('stored offers and attributes remains', async function () {
+          it('stored offers and attributes remains', function () {
             // const database = new Database('offers-test');
             const odb = new OffersDB();
-            await waitForDBLoaded(odb);
-
             chai.expect(odb.addOfferObject(o.offer_id, o)).to.equal(true);
             chai.expect(odb.incOfferAction(o.offer_id, 'h1')).to.equal(true);
             chai.expect(odb.incOfferAction(o.offer_id, 'h2')).to.equal(true);
@@ -442,11 +439,10 @@ export default describeModule('offers-v2/offers/offers-db',
           let db;
           let baseDB;
 
-          beforeEach(async function () {
+          beforeEach(function () {
             baseDB = {};
             persistenceMocks['core/persistence/map'].reset();
             db = new OffersDB(baseDB);
-            await waitForDBLoaded(db);
           });
 
           it('invalid campaign has not offers', function () {

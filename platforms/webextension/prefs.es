@@ -6,13 +6,11 @@ const PREFS_KEY = 'cliqzprefs';
 let initialised = false;
 const prefs = {};
 
-export const PLATFORM_TELEMETRY_WHITELIST = (chrome === undefined || chrome.cliqz === undefined)
-  ? []
-  : [
-    'pref.cliqz.blue.theme',
-    'pref.search.quicksearch.enabled',
-    'searchui.cards.layout',
-  ];
+export const PLATFORM_TELEMETRY_WHITELIST = (!chrome.cliqzSynchronous) ? [] : [
+  'pref.cliqz.blue.theme',
+  'pref.search.quicksearch.enabled',
+  'searchui.cards.layout',
+];
 
 function syncToStorage() {
   chrome.storage.local.set({ [PREFS_KEY]: prefs });
@@ -40,13 +38,8 @@ export function getAllCliqzPrefs() {
 }
 
 export function getPref(prefKey, notFound, browserPrefix = null) {
-  if (browserPrefix !== null) {
-    if (chrome && chrome.cliqz && chrome.cliqz.getPref) {
-      return chrome.cliqz.getPref(`${browserPrefix}${prefKey}`);
-    }
-
-    console.warn(`getting pref ${browserPrefix}${prefKey} with browser prefix when chrome.cliqz is not available (ignored)`);
-    return notFound;
+  if (browserPrefix !== null && chrome.cliqzSynchronous) {
+    return chrome.cliqzSynchronous.getPref(`${browserPrefix}${prefKey}`);
   }
 
   const pref = cleanPref(prefKey);
@@ -62,11 +55,9 @@ export function getPref(prefKey, notFound, browserPrefix = null) {
 }
 
 export function setPref(prefKey, value, browserPrefix = null) {
-  if (browserPrefix !== null) {
-    if (chrome && chrome.cliqz && chrome.cliqz.setPref) {
-      return chrome.cliqz.setPref(`${browserPrefix}${prefKey}`, value);
-    }
-    console.warn(`setting pref ${browserPrefix}${prefKey} with browser prefix when chrome.cliqz is not available (ignored)`);
+  if (browserPrefix !== null && chrome.cliqz) {
+    chrome.cliqz.setPref(`${browserPrefix}${prefKey}`, value);
+    return;
   }
 
   const pref = cleanPref(prefKey);
@@ -75,29 +66,21 @@ export function setPref(prefKey, value, browserPrefix = null) {
   prefs[pref] = value;
 
   // trigger prefchange event
-  if (changed) {
-    events.pub('prefchange', pref, 'set');
-  }
+  events.pub('prefchange', pref);
 
   if (!initialised) {
     console.warn(`setting pref ${pref} before prefs were initialised, you will not get the correct result`);
-    return Promise.resolve();
+    return;
   }
 
   if (changed) {
     syncToStorage();
   }
-  return Promise.resolve();
 }
 
 export function hasPref(prefKey, browserPrefix = null) {
-  if (browserPrefix !== null) {
-    if (chrome && chrome.cliqz && chrome.cliqz.hasPref) {
-      return chrome.cliqz.hasPref(`${browserPrefix}${prefKey}`);
-    }
-
-    console.warn(`getting pref ${browserPrefix}${prefKey} with browser prefix when chrome.cliqz is not available (ignored)`);
-    return false;
+  if (browserPrefix !== null && chrome.cliqzSynchronous) {
+    return chrome.cliqzSynchronous.hasPref(`${browserPrefix}${prefKey}`);
   }
 
   const pref = cleanPref(prefKey);
@@ -109,7 +92,7 @@ export function clearPref(prefKey) {
   delete prefs[pref];
 
   // trigger prefchange event
-  events.pub('prefchange', pref, 'clear');
+  events.pub('prefchange', pref);
 
   syncToStorage();
 }

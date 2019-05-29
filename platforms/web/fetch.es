@@ -60,4 +60,3 @@ export {
   fetchLocal,
   isTrackableOriginHeaderFromOurExtension
 };
-export const fetchArrayBuffer = _fetch;

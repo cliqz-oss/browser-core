@@ -10,6 +10,9 @@ export default describeModule('core/helpers/serial-executor',
         error() {},
       },
     },
+    'core/utils': {
+      default: {}
+    },
   }),
   () => {
     let SerialExecutor;

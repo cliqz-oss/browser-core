@@ -3,17 +3,17 @@
 
 import { chrome } from '../platform/globals';
 import inject from '../core/kord/inject';
-import telemetry from '../core/services/telemetry';
 import NewTabPage from './main';
 import News from './news';
 import config from './config';
 import { getWallpapers, getDefaultWallpaper } from './wallpapers';
 import History from '../platform/freshtab/history';
 import openImportDialog from '../platform/freshtab/browser-import-dialog';
-import logos from '../core/services/logos';
+import utils from '../core/utils';
 import events from '../core/events';
 import SpeedDial from './speed-dial';
 import AdultDomain from './adult-domain';
+import OffersUpdateService from './services/offers-update';
 import background from '../core/base/background';
 import {
   forEachWindow,
@@ -25,12 +25,13 @@ import console from '../core/console';
 import {
   getResourceUrl,
   isCliqzBrowser,
+  isCliqzAtLeastInVersion,
   isChromium,
   isAMO,
   product,
 } from '../core/platform';
 import prefs from '../core/prefs';
-import { pauseMessage, dismissMessage, countMessageClick, saveMessageDismission } from './actions/message';
+import { pauseMessage, dismissMessage, countMessageClick, dismissOffer, saveMessageDismission } from './actions/message';
 import i18n, { getLanguageFromLocale, getMessage } from '../core/i18n';
 import hash from '../core/helpers/hash';
 import HistoryService from '../platform/history-service';
@@ -50,6 +51,7 @@ const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 const BLUE_THEME_PREF = 'freshtab.blueTheme.enabled';
 const DEVELOPER_FLAG_PREF = 'developer';
+const REAL_ESTATE_ID = 'cliqz-tab';
 
 const blackListedEngines = [
   'Google Images',
@@ -93,18 +95,14 @@ function makeErrorObject(reason) {
  * @class Background
  */
 export default background({
-  // Modules dependencies
   core: inject.module('core'),
+  geolocation: inject.module('geolocation'),
   messageCenter: inject.module('message-center'),
   search: inject.module('search'),
   ui: inject.module('ui'),
+  offersV2: inject.module('offers-v2'),
   insights: inject.module('insights'),
-
-  // Services dependencies
-  geolocation: inject.service('geolocation', ['setLocationPermission']),
-  searchSession: inject.service('search-session', ['setSearchSession']),
-
-  requiresServices: ['logos', 'session', 'geolocation', 'telemetry', 'search-session'],
+  requiresServices: ['logos', 'utils', 'session'],
   searchReminderCounter: 0,
 
   /**
@@ -137,6 +135,17 @@ export default background({
     this.onVisitRemoved = this._onVisitRemoved.bind(this);
 
     HistoryService.onVisitRemoved.addListener(this.onVisitRemoved);
+
+    // Unconditionally register real estate
+    this._registerToOffersCore();
+
+    // offers-update-service
+    this.offersUpdateService = new OffersUpdateService({
+      messageCenter: this.messageCenter,
+      offers: this.offersV2
+    });
+
+    this.offersUpdateService.init();
   },
   /**
   * @method unload
@@ -151,6 +160,8 @@ export default background({
     }
 
     HistoryService.onVisitRemoved.removeListener(this.onVisitRemoved);
+    this._unregisterFromOffersCore();
+    this.offersUpdateService.unload();
   },
 
   _onVisitRemoved(removed) {
@@ -168,6 +179,14 @@ export default background({
         }
       );
     });
+  },
+
+  _unregisterFromOffersCore() {
+    this.offersV2.action('unregisterRealEstate', { realEstateID: REAL_ESTATE_ID }).catch(() => {});
+  },
+
+  _registerToOffersCore() {
+    this.offersV2.action('registerRealEstate', { realEstateID: REAL_ESTATE_ID }).catch(error => console.log(error));
   },
 
   isAdult(url) {
@@ -246,7 +265,7 @@ export default background({
     ) {
       const report = {
         ...selection,
-        isPrivateResult: searchUtils.isPrivateResultType(selection.kind),
+        isPrivateResult: utils.isPrivateResultType(selection.kind),
         tabId,
       };
       delete report.kind;
@@ -298,6 +317,7 @@ export default background({
 
     dismissMessage,
     pauseMessage,
+    dismissOffer,
     countMessageClick,
     saveMessageDismission,
 
@@ -573,9 +593,7 @@ export default background({
     * @method speedDialClicked
     */
     speedDialClicked() {
-      if (this.insights.isPresent()) {
-        this.insights.action('insertSearchStats', { speedDialClicked: 1 });
-      }
+      this.insights.action('insertSearchStats', { speedDialClicked: 1 });
     },
 
     /**
@@ -622,7 +640,7 @@ export default background({
             title: r.title_hyphenated || r.title,
             description: r.description,
             displayUrl: URLInfo.get(r.url).cleanHost || r.title,
-            logo: logos.getLogoDetails(r.url),
+            logo: utils.getLogoDetails(r.url),
             url: r.url,
             type: r.type,
             breaking_label: r.breaking_label,
@@ -673,9 +691,7 @@ export default background({
           this.insights.action('getSearchTimeSaved'),
         ]);
         const isAntitrackingDisabled = !prefs.get('modules.antitracking.enabled', true);
-
-        const adbPref = prefs.get('cliqz-adb', false);
-        const isAdBlockerDisabled = adbPref === false || adbPref === 0;
+        const isAdBlockerDisabled = prefs.get('cliqz-adb', 1) === 0;
 
         data = [
           {
@@ -752,7 +768,7 @@ export default background({
             },
             description: `${getMessage('promo_data_description')} ${getMessage('promo_data_description_2')}`,
             learnMore: {
-              text: `${getMessage('learn_more')}`,
+              text: `${getMessage('learnMore')}`,
               link: 'https://www.ghostery.com/',
             },
             buttons: [
@@ -770,6 +786,72 @@ export default background({
         isEmpty: !data.length,
         promoData,
       };
+    },
+
+    /**
+    * Get offers
+    * @method getOffers
+    */
+    getOffers() {
+      const args = {
+        filters: {
+          by_rs_dest: REAL_ESTATE_ID,
+          ensure_has_dest: true
+        }
+      };
+      const offers = this.offersV2.action('getStoredOffers', args);
+      return offers.then((results) => {
+        results.forEach((offer) => {
+          offer.id = offer.offer_id;
+          offer.position = 'middle';
+          offer.type = 'offer';
+          let validity = {};
+          const templateData = offer.offer_info.ui_info.template_data;
+          // calculate the expiration time if we have the new field #EX-7028
+          const expirationTime = offer.offer_info.expirationMs
+            ? (offer.created_ts + offer.offer_info.expirationMs) / 1000
+            : templateData.validity;
+          if (expirationTime) {
+            const timeDiff = Math.abs((expirationTime * 1000) - Date.now());
+            let difference = Math.floor(timeDiff / 86400000);
+            const isExpiredSoon = difference <= 2;
+            let diffUnit = difference === 1 ? 'offers_expires_day' : 'offers_expires_days';
+
+            if (difference < 1) {
+              difference = Math.floor((timeDiff % 86400000) / 3600000);
+              diffUnit = difference === 1 ? 'offers_expires_hour' : 'offers_expires_hours';
+
+              if (difference < 1) {
+                difference = Math.floor(((timeDiff % 86400000) % 3600000) / 60000);
+                diffUnit = difference === 1 ? 'offers_expires_minute' : 'offers_expires_minutes';
+              }
+            }
+
+            validity = {
+              text: `${getMessage('offers_expires_in')} ${difference} ${getMessage(diffUnit)}`,
+              isExpiredSoon,
+            };
+
+            offer.validity = validity;
+          }
+          let titleColor;
+          if (templateData.styles && templateData.styles.headline_color) {
+            titleColor = templateData.styles.headline_color;
+          } else {
+            const url = templateData.call_to_action.url;
+            const logoDetails = utils.getLogoDetails(url);
+            titleColor = `#${logoDetails.brandTxtColor}`;
+          }
+          templateData.titleColor = titleColor;
+
+          this.messageCenter.action(
+            'showMessage',
+            'MESSAGE_HANDLER_FRESHTAB_OFFERS',
+            offer
+          );
+        });
+        return results;
+      });
     },
 
     /**
@@ -824,7 +906,7 @@ export default background({
 
     async setBrowserTheme(theme) {
       if (chrome.cliqz) {
-        telemetry.push({ theme }, 'freshtab.prefs.browserTheme');
+        utils.telemetry({ theme }, 'freshtab.prefs.browserTheme');
         await chrome.cliqz.setTheme(`firefox-compact-${theme}@mozilla.org`);
       }
     },
@@ -833,13 +915,21 @@ export default background({
     * @method toggleBlueTheme
     */
     toggleBlueTheme() {
+      // toggle blue class only on FF for testing.
       // Cliqz browser listens for pref change and takes care of toggling the class
-      // For dev mode there is webextension API which listens to pref change
+      if (prefs.get(DEVELOPER_FLAG_PREF, false)) {
+        this.actions.toggleBlueClassForFFTesting();
+      }
+
       if (this.blueTheme) {
         prefs.set(BLUE_THEME_PREF, false, 'extensions.cliqz.');
       } else {
         prefs.set(BLUE_THEME_PREF, true, 'extensions.cliqz.');
       }
+    },
+
+    toggleBlueClassForFFTesting() {
+      // TODO
     },
 
     /**
@@ -852,12 +942,12 @@ export default background({
 
     shareLocation(decision) {
       events.pub('msg_center:hide_message', { id: 'share-location' }, 'MESSAGE_HANDLER_FRESHTAB');
-      this.geolocation.setLocationPermission(decision);
+      this.geolocation.action('setLocationPermission', decision);
 
       const target = (decision === 'yes')
         ? 'always_share' : 'never_share';
 
-      telemetry.push({
+      utils.telemetry({
         type: 'notification',
         action: 'click',
         topic: 'share-location',
@@ -913,7 +1003,7 @@ export default background({
     },
     reportEvent({ type }) {
       if (type === 'urlbar-focus') {
-        this.searchSession.setSearchSession();
+        utils.setSearchSession();
         if (this.searchReminderCounter < 7) {
           this.searchReminderCounter = 0;
         }
@@ -922,6 +1012,9 @@ export default background({
   },
 
   events: {
+    'offers-send-ch': function () {
+      this.offersUpdateService.refresh();
+    },
     'control-center:cliqz-tab': function () {
       if (this.newTabPage.isActive) {
         this.newTabPage.rollback();

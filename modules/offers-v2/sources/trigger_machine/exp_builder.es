@@ -144,6 +144,7 @@ export default class ExpressionBuilder {
       be_connector: this.globObjs.be_connector,
       category_handler: this.globObjs.category_handler,
       offers_status_handler: this.globObjs.offers_status_handler,
+      ga_handler: this.globObjs.ga_handler,
     };
     const Builder = this.buildMap.ops[opName];
     return new Builder(buildData);

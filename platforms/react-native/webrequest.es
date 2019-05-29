@@ -3,17 +3,6 @@
 
 import console from './console';
 
-const CPT_TO_TYPE = {
-  1: 'other',
-  2: 'script',
-  3: 'image',
-  4: 'stylesheet',
-  6: 'main_frame',
-  7: 'sub_frame',
-  11: 'xhr',
-  14: 'font',
-};
-
 const webRequest = {
   onBeforeRequest: {
     listeners: [],
@@ -39,10 +28,9 @@ const webRequest = {
     },
 
     _trigger(requestInfo) {
+      requestInfo.sourceUrl = requestInfo.source;
       // getter for request headers
       requestInfo.getRequestHeader = header => requestInfo.requestHeaders[header];
-      requestInfo.cpt = requestInfo.type;
-      requestInfo.type = CPT_TO_TYPE[requestInfo.cpt];
       const blockingResponse = this.listeners.map((listener) => {
         const { fn, extraInfo } = listener;
         if (extraInfo.indexOf('blocking') === -1) {
@@ -79,12 +67,7 @@ const webRequest = {
   onErrorOccurred: {
     addListener() {},
     removeListener() {}
-  },
-
-  OnBeforeRequestOptions: {
-    BLOCKING: 'blocking',
-    REQUEST_HEADERS: 'requestHeaders',
-  },
+  }
 };
 
 

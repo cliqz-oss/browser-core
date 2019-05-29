@@ -2,7 +2,7 @@ import History from '../platform/history/history';
 import moment from '../platform/lib/moment';
 
 import EventEmitter from '../core/event-emitter';
-import persistentMapFactory from '../core/persistence/map';
+import PersistentMap from '../core/persistence/map';
 import setTimeoutInterval from '../core/helpers/timeout';
 import PatternMatching from '../platform/lib/adblocker';
 
@@ -39,14 +39,11 @@ export default class HistoryProcessor extends EventEmitter {
   constructor() {
     super(['processedVisits']);
 
-    this.processedHours = null;
+    this.processedHours = new PersistentMap('history-analyzer-processor');
     this.processInterval = null;
   }
 
   async init() {
-    const PersistentMap = await persistentMapFactory();
-    this.processedHours = new PersistentMap('history-analyzer-processor');
-
     await this.processedHours.init();
 
     // Make sure we only keep keys which are valid timestamps

@@ -72,8 +72,8 @@ export default class {
       if (chrome.history) {
         chrome.history.search({
           text: '',
-          startTime: Math.floor(frameStartsAt / 1000), // only integer values are allowed
-          endTime: Math.floor(frameEndsAt / 1000),
+          startTime: frameStartsAt / 1000,
+          endTime: frameEndsAt / 1000,
         }, (items) => {
           resolve(items.map(({ url, lastVisitTime }) => ({
             url,

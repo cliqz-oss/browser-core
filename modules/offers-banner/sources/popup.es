@@ -46,12 +46,11 @@ export default class Popup {
     return chrome.extension.getViews().find(view => view.location.href === href);
   }
 
-  _sendShowSignals(payload) {
+  _sendShowSignal(payload) {
     const { data: { vouchers = [] } = {} } = payload;
     const action = 'sendTelemetry';
     const data = { action: 'show', offersCount: vouchers.length };
     transport.dispatcher('offers-cc', null, { action, data }, false);
-    transport.dispatcher('offers-cc', null, { action, data: { target: 'icon' } }, false);
   }
 
   _sendCloseSignalIfNeeded(action, popup) {
@@ -61,18 +60,17 @@ export default class Popup {
     }
   }
 
-  _dispatcher = async (action, { closePopup = false } = {}) => {
-    const allowedActions = ['getEmptyFrameAndData', 'hideBanner', 'openURL'];
-    if (!allowedActions.includes(action)) { return; }
-    if (action === 'getEmptyFrameAndData') {
-      this.onPopupOpen();
-      const payload = await this.getOffers();
-      this._sendToPopup(payload.data);
-      this._sendShowSignals(payload);
-    } else if (action === 'hideBanner' || closePopup) {
+  _dispatcher = async (action, { noVouchersLeft = false } = {}) => {
+    if (!['getEmptyFrameAndData', 'hideBanner'].includes(action)) { return; }
+    if (noVouchersLeft || action === 'hideBanner') {
       const popup = this._getPopup();
       this._sendCloseSignalIfNeeded(action, popup);
       if (popup) { popup.close(); }
+    } else {
+      this.onPopupOpen();
+      const payload = await this.getOffers();
+      this._sendToPopup(payload.data);
+      this._sendShowSignal(payload);
     }
   }
 }

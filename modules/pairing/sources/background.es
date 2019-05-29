@@ -1,5 +1,4 @@
-import { openLink, getWindow } from '../core/browser';
-import telemetry from '../core/services/telemetry';
+import CliqzUtils from '../core/utils';
 import PeerSlave from './peer-slave';
 import YoutubeApp from './apps/youtube';
 import TabsharingApp from './apps/tabsharing';
@@ -20,8 +19,6 @@ function isValidURL(url) {
 
 export default background({
   core: inject.module('core'),
-  requiresServices: ['telemetry'],
-
   init() {
     this.initContextMenus();
     const PeerComm = new PeerSlave();
@@ -33,9 +30,9 @@ export default background({
     const tabsharing = new TabsharingApp(() => {}, (tabs) => {
       tabs.forEach((tab) => {
         if (tab.isPrivate) {
-          openLink(getWindow(), tab.url, false, false, true);
+          CliqzUtils.openLink(CliqzUtils.getWindow(), tab.url, false, false, true);
         } else {
-          openLink(getWindow(), tab.url, true);
+          CliqzUtils.openLink(CliqzUtils.getWindow(), tab.url, true);
         }
       });
     });
@@ -43,7 +40,7 @@ export default background({
 
     const observer = new PairingObserver();
     observer.onpaired = () => {
-      telemetry.push({
+      CliqzUtils.telemetry({
         type: 'connect',
         version: 1,
         action: 'connect',
@@ -54,16 +51,22 @@ export default background({
 
 
     function sendUI(action) {
-      const target = 'about:preferences#connect';
+      const targets = [
+        'resource://cliqz/pairing/index.html',
+        'chrome://cliqz/content/pairing/index.html',
+        getResourceUrl('pairing/index.html'),
+      ];
 
-      this.core.action(
-        'broadcastMessage',
-        target,
-        {
-          action,
-          message: this.peerSlave.pairingInfo,
-        }
-      );
+      targets.forEach((target) => {
+        this.core.action(
+          'broadcastMessage',
+          target,
+          {
+            action,
+            message: this.peerSlave.pairingInfo,
+          }
+        );
+      });
       events.pub(`pairing.${action}`, this.peerSlave.pairingInfo);
     }
 
@@ -188,7 +191,7 @@ export default background({
   sendTab(data) {
     this.peerSlave.getObserver('TABSHARING').sendTab([data], this.peerSlave.masterID)
       .then(() => {
-        telemetry.push({
+        CliqzUtils.telemetry({
           type: 'connect',
           version: 1,
           action: 'send_tab',
@@ -196,7 +199,7 @@ export default background({
         });
       })
       .catch(() => {
-        telemetry.push({
+        CliqzUtils.telemetry({
           type: 'connect',
           version: 1,
           action: 'send_tab',

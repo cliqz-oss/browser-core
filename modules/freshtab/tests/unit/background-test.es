@@ -6,20 +6,10 @@ const punycode = require('punycode');
 export default describeModule('freshtab/background',
   function () {
     return {
-      'core/services/telemetry': {
-        default: {
-          push: () => {},
-        },
-      },
-      'core/http': {
-        default: {
-        },
-      },
       'core/console': {
-        isLoggingEnabled: () => false,
         default: {
-          log() {},
-        },
+          log() {}
+        }
       },
       'core/events': {
         default: {
@@ -53,8 +43,9 @@ export default describeModule('freshtab/background',
         isSearchServiceReady() { return Promise.resolve(); },
         getSearchEngines: '[dynamic]'
       },
-      'core/services/logos': {
+      'core/utils': {
         default: {
+          telemetry() {},
           getLogoDetails() { return ''; },
         },
       },
@@ -219,6 +210,13 @@ export default describeModule('freshtab/background',
               urlDetails: {},
             }
           ]);
+
+        this.deps('core/utils').default.hash = function (url) {
+          if (url === 'http://cliqz.com/') {
+            return '171601621';
+          }
+          return Math.floor(Math.random(0, 1) * 10000);
+        };
 
         this.deps('core/url').stripTrailingSlash = function (url) { return url; };
       });

@@ -12,17 +12,21 @@ context('Offers Hub Interaction tests for removing offer', function () {
   let subject;
   let data;
   const target = 'cliqz-offers-cc';
+  const offersSelector = '#cqz-vouchers-wrapper .voucher-wrapper';
 
   context('with four offers', function () {
+    let firstOfferSelector;
+
     before(async function () {
       data = dataNewOffer;
+      firstOfferSelector = `#cqz-vouchers-wrapper [data-offer-id="${data.vouchers[0].offer_id}"]`;
       subject = new Subject();
       await subject.load();
       await subject.pushData(target, data);
-      subject.query('.card-header__trash').click();
+      subject.query(`${firstOfferSelector} .logo-wrapper button.close`).click();
       await waitFor(() =>
-        subject.messages.find(message => message.message.action === 'resize'));
-      subject.query('.feedback__myoffrz-secondary').click();
+        subject.query(`${firstOfferSelector} .feedback`).classList.contains('show'));
+      subject.query(`${firstOfferSelector} .skip`).click();
       await waitFor(() =>
         subject.messages.find(message => message.message.action === 'resize'));
     });
@@ -31,56 +35,49 @@ context('Offers Hub Interaction tests for removing offer', function () {
       subject.unload();
     });
 
+    it('the offer was deleted', function () {
+      expect(subject.query(firstOfferSelector)).to.not.exist;
+    });
+
     it('three other offers are rendered', function () {
-      expect(subject.query('.card__wrapper')).to.exist;
-      expect(subject.queryAll('.badge__container')).to.have.length(2);
-    });
-
-    it('card benefit is rendered', function () {
-      const shift = 1; // skip `deleted`
-      expect(subject.query('.card__benefit')).to.exist;
-      expect(subject.query('.card__benefit'))
-        .to.contain.text(data.vouchers[shift].template_data.benefit);
-    });
-
-    it('card headline is rendered', function () {
-      const shift = 1; // skip `deleted`
-      expect(subject.query('.card__headline')).to.exist;
-      expect(subject.query('.card__headline'))
-        .to.contain.text(data.vouchers[shift].template_data.headline);
-    });
-
-    it('card logo is rendered', function () {
-      const shift = 1; // skip `deleted`
-      expect(subject.query('.card-header__image')).to.exist;
-      expect(subject.query('.card-header__image').style.backgroundImage)
-        .to.equal(`url("${data.vouchers[shift].template_data.logo_dataurl}")`);
-    });
-
-    it('for each badge benefit is rendered', function () {
-      subject.queryAll('.badge__container').forEach(function (badge, i) {
-        const shift = 2; // skip `deleted` and `active`
-        expect(badge.querySelector('.badge__title')).to.exist;
-        expect(badge.querySelector('.badge__title'))
-          .to.contain.text(data.vouchers[i + shift].template_data.benefit);
+      data.vouchers.forEach((offer, ind) => {
+        if (ind !== 0) {
+          const offerSelector = `#cqz-vouchers-wrapper [data-offer-id="${offer.offer_id}"]`;
+          expect(subject.query(offerSelector)).to.exist;
+        }
       });
     });
 
-    it('for each badge headline is rendered', function () {
-      subject.queryAll('.badge__container').forEach(function (badge, i) {
-        const shift = 2; // skip `deleted` and `active`
-        expect(badge.querySelector('.badge__description')).to.exist;
-        expect(badge.querySelector('.badge__description'))
-          .to.contain.text(data.vouchers[i + shift].template_data.headline);
+    it('for each offer benefit is rendered', function () {
+      subject.queryAll(offersSelector).forEach(function (offer, i) {
+        expect(offer.querySelector('.overview .benefit')).to.exist;
+        expect(offer.querySelector('.overview .benefit'))
+          .to.contain.text(data.vouchers[i + 1].template_data.benefit);
+      });
+    });
+
+    it('for each offer headline is rendered', function () {
+      subject.queryAll(offersSelector).forEach(function (offer, i) {
+        expect(offer.querySelector('.overview .headline')).to.exist;
+        expect(offer.querySelector('.overview .headline'))
+          .to.contain.text(data.vouchers[i + 1].template_data.headline);
       });
     });
 
     it('for each offer logo is rendered', function () {
-      subject.queryAll('.badge__container').forEach(function (badge, i) {
-        const shift = 2; // skip `deleted` and `active`
-        expect(badge.querySelector('.badge__image')).to.exist;
-        expect(badge.querySelector('.badge__image').style.backgroundImage)
-          .to.equal(`url("${data.vouchers[i + shift].template_data.logo_dataurl}")`);
+      subject.queryAll(offersSelector).forEach(function (offer, i) {
+        expect(offer.querySelector('.logo-wrapper .logo')).to.exist;
+        expect(offer.querySelector('.logo-wrapper .logo').style.backgroundImage)
+          .to.equal(`url("${data.vouchers[i + 1].template_data.logo_dataurl}")`);
+      });
+    });
+
+    it('for each offer nothing else is rendered', function () {
+      subject.queryAll(offersSelector).forEach(function (offer) {
+        expect(subject.getComputedStyleOfElement(offer.querySelector('.details')).overflow)
+          .to.equal('hidden');
+        expect(subject.getComputedStyleOfElement(offer.querySelector('.settings')).display)
+          .to.equal('none');
       });
     });
   });
@@ -91,20 +88,19 @@ context('Offers Hub Interaction tests for removing offer', function () {
       subject = new Subject();
       await subject.load();
       await subject.pushData(target, data);
-      subject.query('.card-header__trash').click();
-      await waitFor(() =>
-        subject.messages.find(message => message.message.action === 'resize'));
-      subject.query('.feedback__myoffrz-secondary').click();
-      await waitFor(() =>
-        subject.messages.find(message => message.message.action === 'resize'));
     });
 
     after(function () {
       subject.unload();
     });
 
-    it('render the empty view', async function () {
-      expect(subject.query('.empty__container')).to.exist;
+    it('sends message after deleting the offer', async function () {
+      subject.query('.logo-wrapper button.close').click();
+      await waitFor(() => subject.query('.details div.feedback').classList.contains('show'));
+      subject.query('.feedback .skip').click();
+      const getEmptyFrameMessage = await waitFor(() =>
+        subject.messages.find(message => message.message.action === 'getEmptyFrameAndData'));
+      expect(getEmptyFrameMessage).to.have.nested.property('message.data').that.is.empty;
     });
   });
 });

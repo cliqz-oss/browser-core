@@ -298,9 +298,7 @@ export default class AnolysisStorage {
 
   async destroy() {
     const keys = await getKeysWithPrefix(getAnolysisKey());
-    if (keys.length > 0) {
-      await AsyncStorage.multiRemove(keys.map(k => getAnolysisKey(k)));
-    }
+    await AsyncStorage.multiRemove(keys.map(k => getAnolysisKey(k)));
   }
 
   unload() {}

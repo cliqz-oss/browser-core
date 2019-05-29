@@ -5,10 +5,9 @@ import SQLite from 'react-native-sqlite-2';
 setGlobalVars(
   global,
   {
-    checkOrigin: true,
+    checkOrigin: false,
     win: SQLite,
     deleteDatabaseFiles: false,
     useSQLiteIndexes: true,
-    origin: 'cliqz.com',
   }
 );

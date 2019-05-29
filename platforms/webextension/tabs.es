@@ -118,4 +118,4 @@ export function reloadTab(tabId) {
   });
 }
 
-export default (chrome && chrome.tabs) || undefined;
+export default chrome.tabs;

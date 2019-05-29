@@ -1,5 +1,6 @@
 /* eslint func-names: 'off' */
 
+import utils from '../core/utils';
 import background from '../core/base/background';
 import ContextSearch from './context-search';
 
@@ -17,9 +18,8 @@ class ContextSearchReranker {
   duringResults(input) {
     const qExt = this.contextSearch.getQExt(input.query, false);
     if (qExt && qExt.trim() !== input.query.trim()) {
-      return new Promise(() => {
-        // TODO - fix
-        // utils.getBackendResults(qExt).then(resolve);
+      return new Promise((resolve) => {
+        utils.getBackendResults(qExt).then(resolve);
       });
     }
     return Promise.resolve(input);

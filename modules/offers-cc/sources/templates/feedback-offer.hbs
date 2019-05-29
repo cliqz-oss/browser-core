@@ -1,0 +1,26 @@
+<div id="feedback-vote-wrapper">
+    {{!-- check if Cliqz browser  --}}
+    {{#if isCliqzBrowser}}
+    <span class="feedback-text" data-i18n="offers_feedback_feature_cliqz"></span>
+    {{else}}
+    <span class="feedback-text" data-i18n="offers_feedback_feature"></span>
+    {{/if}}
+    <p>
+        <button
+          class="feedback-button"
+          data-vote="up"
+        >
+        </button>
+        <button
+          class="feedback-button"
+          data-vote="down"
+        >
+        </button>
+    </p>
+</div>
+
+<div id="feedback-comment-wrapper">
+    <label data-i18n="offers_hub_feedback_comments"></label>
+    <textarea id="feedback-textarea" autofocus='autofocus' placeholder="Optional"></textarea>
+    <button id="submit-feedback" data-i18n="offers_hub_feedback_send"></button>
+</div>

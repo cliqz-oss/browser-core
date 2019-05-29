@@ -2,6 +2,9 @@
 
 export default describeModule('antitracking/utils',
   () => ({
+    'core/utils': {
+      default: {}
+    },
     './config': {
     },
     'core/encoding': {},

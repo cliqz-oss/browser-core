@@ -8,6 +8,8 @@ import { dataNewOffer } from './fixtures/offers';
 context('Offers Hub Interaction tests for one offer', function () {
   let subject;
   const data = dataNewOffer;
+  const offerSelector = '#cqz-vouchers-wrapper #cqz-vouchers-holder '
+        + `[data-offer-id="${data.vouchers[0].offer_id}"] .details`;
   const target = 'cliqz-offers-cc';
 
   beforeEach(async function () {
@@ -21,28 +23,36 @@ context('Offers Hub Interaction tests for one offer', function () {
   });
 
   context('code button', function () {
+    const codeButtonSelector = `${offerSelector} .promocode-wrapper button.copy-code`;
+
     it('exists', function () {
-      expect(subject.query('.card-promo__myoffrz-copy-code')).to.exist;
+      expect(subject.query(codeButtonSelector)).to.exist;
     });
 
     it('with the text \'copy code\'', function () {
-      expect(subject.query('.card-promo__myoffrz-copy-code')).to.have.text('offers_hub_copy_btn');
+      expect(subject.query(codeButtonSelector)).to.have.text('offers_hub_copy_btn');
     });
 
     context('click on the code button', function () {
+      let execCommand;
       let codeSelected = false;
       const eventHandler = () => { codeSelected = true; };
 
       beforeEach(async function () {
-        subject.query('.card-promo__input').addEventListener('select', eventHandler);
-        subject.query('.card-promo__myoffrz-copy-code').click();
+        subject.query(`${offerSelector} .promocode-wrapper input.code`)
+          .addEventListener('select', eventHandler);
+        execCommand = subject.iframe.contentWindow.document.execCommand;
+        subject.iframe.contentWindow.document.execCommand = () => true;
+        subject.query(codeButtonSelector).click();
 
         await waitFor(() =>
-          subject.query('.card-promo__myoffrz-copy-code').textContent.trim() !== 'offers_hub_copy_btn');
+          subject.query(codeButtonSelector).textContent.trim() !== 'offers_hub_copy_btn');
       });
 
       afterEach(function () {
-        subject.query('.card-promo__input').removeEventListener('select', eventHandler);
+        subject.query(`${offerSelector} .promocode-wrapper input.code`)
+          .removeEventListener('select', eventHandler);
+        subject.iframe.contentWindow.document.execCommand = execCommand;
       });
 
       it('the code was selected', function () {
@@ -50,7 +60,7 @@ context('Offers Hub Interaction tests for one offer', function () {
       });
 
       it('renders \'code copied\'', function () {
-        expect(subject.query('.card-promo__myoffrz-copy-code')).to.have.text('offers_hub_code_copy');
+        expect(subject.query(codeButtonSelector)).to.have.text('offers_hub_code_copy');
       });
     });
   });

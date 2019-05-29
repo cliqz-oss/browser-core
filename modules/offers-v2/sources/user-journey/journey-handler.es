@@ -1,12 +1,12 @@
 import JourneyCollector from './collector';
 import JourneySignals from './signal-connector';
-import NewPage from './features/new-page';
+import UnknownPage from './features/unknown-page';
 
 /**
  * Journey collection
  *
  * Journey is stored in `JourneyCollector` and collected by calling
- * its `addStep` and `addFeature` methods.
+ * its `addEvent` method.
  *
  * `JourneySignals` remembers current user journey on important events,
  * such as the user clicked on an offer. Later, the signal system of
@@ -23,15 +23,15 @@ export default class JourneyHandler {
     this.journeySignals = new JourneySignals(this.journeyCollector);
     await this.journeySignals.init();
 
-    this.newPageFeature = new NewPage(
+    this.unknownPageFeature = new UnknownPage(
       this.eventHandler,
       this.journeyCollector
     );
-    this.newPageFeature.init(); // sync
+    this.unknownPageFeature.init(); // sync
   }
 
   async destroy() {
-    this.newPageFeature.destroy(); // sync
+    this.unknownPageFeature.destroy(); // sync
     await this.journeySignals.destroy();
   }
 
@@ -39,7 +39,7 @@ export default class JourneyHandler {
     return this.journeySignals;
   }
 
-  addFeature(...args) {
-    return this.journeyCollector.addFeature(...args);
+  addEvent(...args) {
+    return this.journeyCollector.addEvent(...args);
   }
 }

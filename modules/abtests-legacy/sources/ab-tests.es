@@ -4,7 +4,7 @@
  * This module implements a mechanism which enables/disables AB tests
  *
  */
-import telemetry from '../core/services/telemetry';
+import CliqzUtils from '../core/utils';
 import prefs from '../core/prefs';
 import console from '../core/console';
 import config from '../core/config';
@@ -491,7 +491,7 @@ const CliqzABTests = {
         action: 'enter',
         name: abtest
       };
-      telemetry.push(action);
+      CliqzUtils.telemetry(action);
 
       return true;
     }
@@ -839,7 +839,7 @@ const CliqzABTests = {
         name: abtest,
         disable
       };
-      telemetry.push(action);
+      CliqzUtils.telemetry(action);
       return true;
     }
     return false;

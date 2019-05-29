@@ -18,6 +18,9 @@ export default describeModule('antitracking/config',
       default: {}
     },
     'core/console': console,
+    'core/utils': {
+      default: {},
+    },
     'core/prefs': {
       default: {
         get: (p, d) => (mockPrefs[p] || d),

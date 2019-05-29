@@ -1,6 +1,6 @@
 /* eslint func-names: 'off' */
 
-import telemetry from '../core/services/telemetry';
+import utils from '../core/utils';
 import prefs from '../core/prefs';
 import background from '../core/base/background';
 import HumanWeb from './human-web';
@@ -15,11 +15,9 @@ import { fixURL, getDetailsFromUrl } from '../core/url';
 * @class Background
 */
 export default background({
-  requiresServices: ['cliqz-config', 'telemetry'],
+  requiresServices: ['cliqz-config'],
 
   hpn: inject.module('hpnv2'),
-  searchSession: inject.service('search-session', ['encodeSessionParams']),
-  telemetry: inject.service('telemetry', ['isEnabled']),
   /**
   * @method enabled
   * @return pref
@@ -28,6 +26,7 @@ export default background({
     return prefs.get('humanWeb', true)
       && !prefs.get('humanWebOptOut', false);
   },
+
 
   /**
   * @method init
@@ -123,7 +122,7 @@ export default background({
       if (pref === 'humanWebOptOut') {
         try {
           await this.reload();
-          await telemetry.push({
+          await utils.telemetry({
             type: 'humanWebStatus',
             state: this.actions.getStatus(),
           });
@@ -151,7 +150,7 @@ export default background({
       const signal = {
         type: 'extension-result-telemetry',
         q: data.query,
-        s: this.searchSession.encodeSessionParams(),
+        s: utils.encodeSessionParams(),
         msg: {
           i: data.rawResult.index,
           o: `&o=${encodeURIComponent(JSON.stringify(data.resultOrder))}`,
@@ -162,11 +161,9 @@ export default background({
         method: 'GET',
       };
 
-      if (this.telemetry.isEnabled()) {
-        HumanWeb.sanitizeResultTelemetry(signal)
-          .then(({ query, url, data: _data }) => HumanWeb.sendResultTelemetry(query, url, _data))
-          .catch(logger.error);
-      }
+      HumanWeb.sanitizeResultTelemetry(signal)
+        .then(({ query, url, data: _data }) => HumanWeb.sendResultTelemetry(query, url, _data))
+        .catch(logger.error);
     },
 
     /**

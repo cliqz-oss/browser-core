@@ -2,6 +2,7 @@
 /* global describeModule */
 /* global require */
 /* global sinon */
+const MockDate = require('mockdate');
 const commonMocks = require('../utils/common');
 const persistenceMocks = require('../utils/persistence');
 const fixture = require('../utils/offers/data');
@@ -26,6 +27,7 @@ export default describeModule('offers-v2/user-journey/journey-handler',
 
         afterEach(async () => {
           await bg.unload();
+          MockDate.reset();
         });
 
         it('/send journey to backend on click on offer', async () => {
@@ -40,13 +42,15 @@ export default describeModule('offers-v2/user-journey/journey-handler',
           //
           // Arrange: do journey
           //
-          let url = 'https://some.unclassified.con/aaa';
-          await bg.eventHandler.onLocationChangeHandler(url);
-          bg.actions.learnTargeting('page-class', { feature: 'c1', url });
-          url = 'https://some.unclassified.con/bbb';
-          await bg.eventHandler.onLocationChangeHandler(url);
-          bg.actions.learnTargeting('page-class', { feature: 'c2', url });
-          bg.actions.learnTargeting('action', { feature: 'a', url });
+          await bg.eventHandler.onLocationChangeHandler('https://some.unclassified.con/aaa');
+          MockDate.set(Date.now() + 10000);
+          bg.actions.learnTargeting('page-class', 'c1');
+          MockDate.set(Date.now() + 10000);
+          await bg.eventHandler.onLocationChangeHandler('https://some.unclassified.con/bbb');
+          MockDate.set(Date.now() + 10000);
+          bg.actions.learnTargeting('page-class', 'c2');
+          bg.actions.learnTargeting('action', 'a');
+          MockDate.set(Date.now() + 10000);
 
           //
           // Act: click on an offer
@@ -64,7 +68,7 @@ export default describeModule('offers-v2/user-journey/journey-handler',
           chai.expect(wantSignals.length).to.eql(1, 'signal is sent');
           chai.expect(wantSignals[0].payload.data).to.be.eql({
             type: 'click',
-            journey: [['c1'], ['c2', 'a']],
+            journey: [['unk'], ['c1'], ['unk'], ['c2', 'a']],
           });
         });
       });

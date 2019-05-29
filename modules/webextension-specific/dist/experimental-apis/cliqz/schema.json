@@ -52,18 +52,6 @@
     ]
   },
   {
-    "name": "initTheme",
-    "type": "function",
-    "description": "Add stylesheet",
-    "async": "callback",
-    "parameters": [
-      {
-        "name": "url",
-        "type": "string"
-      }
-    ]
-  },
-  {
     "name": "getSearchEngines",
     "type": "function",
     "description": "Returns all complementary search engines that come from the browser searchplugins/list.json",
@@ -92,7 +80,6 @@
   {
     "name": "setPref",
     "type": "function",
-    "async": "callback",
     "description": "set the value of browser pref",
     "parameters": [
       {
@@ -106,36 +93,6 @@
         "description": "Browser pref value"
       }
     ]
-  },
-  {
-    "name": "getPref",
-    "type": "function",
-    "description": "get the value of browser pref",
-    "parameters": [
-      {
-        "type": "string",
-        "name": "prefName",
-        "description": "Browser pref name"
-      }
-    ],
-    "returns": {
-      "description": "Constant value"
-    }
-  },
-  {
-    "name": "hasPref",
-    "type": "function",
-    "description": "checks if browser pref is set",
-    "parameters": [
-      {
-        "type": "string",
-        "name": "prefName",
-        "description": "Browser pref name"
-      }
-    ],
-    "returns": {
-      "description": "Constant value"
-    }
   },
   {
     "name": "isDefaultBrowser",

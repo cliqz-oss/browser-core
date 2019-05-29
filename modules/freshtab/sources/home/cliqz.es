@@ -10,6 +10,7 @@ class Cliqz {
     const freshtab = createSpananForModule('freshtab');
     const core = createSpananForModule('core');
     const search = createSpananForModule('search');
+    const offersV2 = createSpananForModule('offers-v2');
     const controlCenter = createSpananForModule('control-center');
     const antiPhishing = createSpananForModule('anti-phishing');
     const api = new Spanan();
@@ -70,6 +71,7 @@ class Cliqz {
 
       core.handleMessage(msg);
       freshtab.handleMessage(msg);
+      offersV2.handleMessage(msg);
       controlCenter.handleMessage(msg);
       search.handleMessage(msg);
       api.handleMessage(msg);
@@ -89,6 +91,7 @@ class Cliqz {
 
     this.freshtab = freshtab.createProxy();
     this.core = core.createProxy();
+    this.offersV2 = offersV2.createProxy();
     this.search = search.createProxy();
     this.controlCenter = controlCenter.createProxy();
     this.antiPhishing = antiPhishing.createProxy();

@@ -27,6 +27,11 @@ const MOCK = {
       };
     } },
   },
+  'core/utils': {
+    default: {
+      setInterval() {},
+    },
+  },
   'core/prefs': {
     default: {
       get(pref, defaultValue) {

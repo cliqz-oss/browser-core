@@ -75,7 +75,7 @@ export default class Recipe extends React.Component {
             accessible={false}
             accessibilityLabel="recipe-cooking-time"
           >
-            <Text style={styles(theme).cookTime}>{getMessage('cook_time', richData.cook_time)}</Text>
+            <Text style={styles(theme).cookTime}>{getMessage('CookTime', richData.cook_time)}</Text>
           </View>
         </View>
         <View style={elementTopMargin}>

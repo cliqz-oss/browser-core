@@ -304,8 +304,8 @@ export default class Dropdown extends EventEmitter {
     // Create a new stacking context around browser element (it has z-index 100000)
     // so nav-bar element gets higher above on z-axis.
     cliqzToolbar.style.position = 'relative';
-    cliqzToolbar.style.zIndex = 2;
-    navToolbar.style.zIndex = 3;
+    cliqzToolbar.style.zIndex = 1;
+    navToolbar.style.zIndex = 2;
 
     ExtensionParent.apiManager.emit('extension-browser-inserted', browser);
     try {

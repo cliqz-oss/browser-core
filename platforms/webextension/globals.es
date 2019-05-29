@@ -1,5 +1,7 @@
-import window from './globals-window';
-import chrome from './globals-chrome';
+/* global window */
+
+// For ghostery compatibility
+const chrome = window.browser || window.chrome;
 
 export {
   chrome,
@@ -7,5 +9,5 @@ export {
 };
 
 export function isContentScriptsSupported() {
-  return window !== undefined && typeof window.browser !== 'undefined' && window.browser.contentScripts;
+  return typeof window.browser !== 'undefined' && window.browser.contentScripts;
 }

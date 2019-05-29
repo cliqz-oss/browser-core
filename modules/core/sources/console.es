@@ -1,34 +1,17 @@
 import console from '../platform/console';
 import prefs from './prefs';
-import config from './config';
 import { isBetaVersion } from '../platform/platform';
 
 function noop() {}
 
-export function isLoggingEnabled() {
+function isLoggingEnabled() {
+  // detect dev flag on react-native
+  const devMode = (typeof global !== 'undefined' && global.__DEV__ === true) || isBetaVersion();
+  // either take flag from prefs, or global dev mode flag We need to put a try,
+  // catch, to avoid content-scripts throwing error, while trying to get the
+  // prefs. Should look for a cleaner solutions at some point.
   try {
-    // Detect dev flag on react-native
-    if (typeof global !== 'undefined' && global.__DEV__ === true) {
-      return true;
-    }
-
-    // Extension built in development mode
-    if (config.environment === 'development') {
-      return true;
-    }
-
-    // Extension is on beta channel
-    if (isBetaVersion()) {
-      return true;
-    }
-
-    // 'developer' pref set
-    if (prefs.get('developer', false)) {
-      return true;
-    }
-
-    // Fall-back to value of 'showConsoleLogs' pref
-    return prefs.get('showConsoleLogs', false);
+    return prefs.get('showConsoleLogs', devMode || false);
   } catch (ee) {
     return false;
   }
@@ -42,9 +25,6 @@ export function enable() {
   _console.error = console.error.bind(console, 'Cliqz [error]');
   _console.warn = console.warn.bind(console, 'Cliqz [warning]');
   _console.warning = _console.warn;
-
-  _console.time = (console.time || noop).bind(console);
-  _console.timeEnd = (console.timeEnd || noop).bind(console);
 }
 
 export function disable() {
@@ -53,9 +33,6 @@ export function disable() {
   _console.warn = noop;
   _console.warning = noop;
   _console.error = noop;
-
-  _console.time = noop;
-  _console.timeEnd = noop;
 }
 
 if (isLoggingEnabled()) {

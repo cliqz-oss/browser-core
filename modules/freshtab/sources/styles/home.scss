@@ -8,7 +8,10 @@
 @import 'stats.scss';
 @import 'settings.scss';
 @import 'switch.scss';
+@import 'middle-notifications.scss';
 @import 'top-notifications.scss';
+@import 'offers-middle-notifications.scss';
+@import 'offer-middle-feedback.scss';
 @import 'modal.scss';
 @import 'overlay.scss';
 @import 'cliqz-post.scss';
@@ -21,13 +24,19 @@
     $url-bar-configs: map-merge($base-configs, map-get($config, url-bar));
     $news-configs: map-get($config, news);
     $stats-configs: map-merge($news-configs, map-get($config, stats));
+    $middle-notifications-configs: map-get($config, middle-notifications);
     $top-notifications-configs: map-get($config, top-notifications);
+    $offer-middle-notifications-configs: map-merge($base-configs, map-get($config, offer-middle-notifications));
+    $offer-middle-feedback-configs: map-get($config, offer-middle-feedback);
 
     $base-theme: map-get($theme, base);
     $speed-dials-theme: map-get($theme, speed-dials);
     $url-bar-theme: map-get($theme, url-bar);
     $news-theme: map-get($theme, news);
+    $middle-notifications-theme: map-merge(map-get($theme, middle-notifications), $base-theme);
     $top-notifications-theme: map-get($theme, top-notifications);
+    $offer-middle-notifications-theme: map-get($theme, offer-middle-notifications);
+    $offer-middle-feedback-theme: map-merge($base-configs, map-get($theme, offer-middle-feedback));
 
     #app {
         display: flex;
@@ -68,6 +77,10 @@
 
                 &#cliqz-history {
                     background: map-get($base-theme, cliqz-history-bg);
+                }
+
+                &#cliqz-for-friends {
+                    background: map-get($base-theme, cliqz-for-friends-bg);
                 }
 
                 &#cliqz-worldcup {
@@ -266,6 +279,9 @@
     @include url-bar-with-results(map-merge($url-bar-configs, $url-bar-theme)...);
     @include news(map-merge($news-configs, $news-theme)...);
     @include stats(map-merge($stats-configs, $news-theme)...);
+    @include middle-notifications(map-merge($middle-notifications-configs, $middle-notifications-theme)...);
+    @include offer-middle-notifications(map-merge($offer-middle-notifications-configs, $offer-middle-notifications-theme)...);
+    @include offer-middle-feedback(map-merge($offer-middle-feedback-configs, $offer-middle-feedback-theme)...);
 }
 
 @mixin responsive($theme) {
@@ -273,6 +289,15 @@
     @include container($config, $theme);
     $modal-configs: map-get($config, modal);
     @include modal($modal-configs...);
+
+    #main-content .fixed-container .offer-middle-notification.offer-notification-box {
+        .content {
+            h1 {
+                font-size: 13px;
+                font-weight: bold;
+            }
+        }
+    }
 
     @media only screen and (min-width: 650px) {
         $config: map-get($configs, small);
@@ -329,6 +354,14 @@ button::-moz-focus-inner {
 body {
     background: #fff no-repeat center center fixed;
     background-size: cover;
+
+    .openOverlay {
+        #section-most-visited,
+        #section-favorites,
+        #section-news {
+            visibility: hidden;
+        }
+    }
 
     #overlay {
         display: none;

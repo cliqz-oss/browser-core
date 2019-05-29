@@ -10,13 +10,9 @@
 import {
   registerContentScript,
 } from '../core/content/helpers';
-import config from '../core/config';
 import CouponFormObserver from './content/coupon/observer';
 import { getPurchaseButtons } from './content/utils';
 import amazonPrimeDetection from './content/profile/amazon-prime';
-import { serpPageDetection } from './content/profile/serp';
-import { shopPageDetection } from './content/profile/shop';
-import { classifyByOutgoingLinks } from './content/profile/outgoing-link';
 
 function couponsHandlingScript(window, chrome, CLIQZ) {
   if (window.parent !== window) { return; }
@@ -118,8 +114,3 @@ function couponsHandlingScript(window, chrome, CLIQZ) {
 
 registerContentScript('offers-v2', 'http*', couponsHandlingScript);
 registerContentScript('offers-v2', 'https://*.amazon.*', amazonPrimeDetection);
-if (config.settings['offers.user-journey.enabled']) {
-  registerContentScript('offers-v2', 'http*', serpPageDetection);
-  registerContentScript('offers-v2', 'http*', shopPageDetection);
-  registerContentScript('offers-v2', 'http*', classifyByOutgoingLinks);
-}

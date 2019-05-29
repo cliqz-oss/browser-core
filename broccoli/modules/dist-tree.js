@@ -23,7 +23,6 @@ module.exports = function getDistTree(modulesTree) {
   const modulesTrees = [
     new Funnel(modulesTree, {
       include: cliqzConfig.modules.map( name => `${name}/dist/**/*` ),
-      exclude: ['**/messages.json'], // remove translations
       getDestinationPath(path) {
         return path.replace("/dist", "");
       },

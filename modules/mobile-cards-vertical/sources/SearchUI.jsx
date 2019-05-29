@@ -69,6 +69,9 @@ class SearchUI extends React.Component {
     const results = this.props.results;
     const meta = this.props.meta;
     const filteredResults = results.filter(isResultAllowed);
+    if (!filteredResults.length) {
+      return null;
+    }
     return (
       <View
         accessible={false}

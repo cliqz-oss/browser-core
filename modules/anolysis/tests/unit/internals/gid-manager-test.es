@@ -57,6 +57,9 @@ export default describeModule('anolysis/internals/gid-manager',
         pub() {},
       },
     },
+    'core/utils': {
+      default: {},
+    },
     'core/console': { default: {} },
     'core/kord/inject': {
       default: {

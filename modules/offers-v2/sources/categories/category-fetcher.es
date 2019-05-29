@@ -92,10 +92,9 @@ export default class CategoryFetcher {
    * Will perform the fetch and set the categories if any
    */
   _performFetch() {
-    const country = prefs.get('config_location', '') || '';
     return this.beConnector.sendApiRequest(
       'categories',
-      { last_rev: this.lastRevision, country },
+      { last_rev: this.lastRevision },
       'GET'
     ).then((payload) => {
       let categories = payload.categories;

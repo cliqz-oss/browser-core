@@ -26,7 +26,6 @@ const systemConfig = {
     'react-tooltip': 'react-tooltip/standalone/react-tooltip.js',
     'rxjs/operators': 'rxjs/operators/index',
     'deep-equal': 'modules/platform/lib/deep-equal',
-    'tldts': 'node_modules/tldts/dist/tldts-experimental.umd.min.js',
   },
   paths: {
     'specific/*': './specific/firefox/*',
@@ -50,6 +49,10 @@ const systemConfig = {
     modules: {
       defaultJSExtensions: true,
       //format: 'system',
+      map: {
+        './adblocker/mobile': './adblocker/desktop',
+        './platform/tldts': 'node_modules/tldts/dist/tldts.umd.min.js'
+      },
       meta: {
         './platform*/lib/zlib.lib.js': {
           'format': 'cjs'

@@ -22,10 +22,6 @@
             border: 1px solid #CFE6FF;
             background-color: rgba(255, 255, 255, 0.7);
 
-            &:hover {
-                background: #E7ECEE;
-            }
-
             &.selected {
                 border-color: #2385E7;
                 background-color: #2385E7;
@@ -50,7 +46,7 @@
         background-position: 0 center;
         cursor: pointer;
 
-        &.hovered {
+        &:hover {
             color: #0078CA;
         }
     }

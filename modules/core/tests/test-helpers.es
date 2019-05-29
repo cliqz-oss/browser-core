@@ -1,5 +1,5 @@
 /* globals chai */
-import { app, queryHTML, testServer, wrap } from '../../platform/test-helpers/helpers';
+import { app, queryHTML, testServer, win, wrap } from '../../platform/test-helpers/helpers';
 import { waitFor, wait } from '../../core/helpers/wait';
 import { getCurrentgBrowser } from '../../platform/tabs';
 
@@ -24,6 +24,8 @@ export { checkIsWindowActive } from '../../platform/windows';
  * directly in core.
  */
 
+export const CliqzUtils = wrap(() => app.utils);
+
 export const CliqzEvents = wrap(() => app.events);
 
 export const lang = wrap(() => app.i18n.getMessage('locale_lang_code'));
@@ -38,7 +40,7 @@ export function clone(obj) {
 
 export function waitForPrefChange(changedPref) {
   return new Promise(function (resolve) {
-    const onPrefChanged = CliqzEvents.subscribe('prefchange', (pref) => {
+    const onPrefChanged = win.CliqzEvents.subscribe('prefchange', (pref) => {
       if (pref === changedPref) {
         onPrefChanged.unsubscribe();
         resolve();

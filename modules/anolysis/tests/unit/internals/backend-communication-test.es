@@ -41,6 +41,9 @@ const MOCK = {
       );
     },
   },
+  'core/utils': {
+    default: {},
+  },
   'core/crypto/random': {
     randomInt() { return 0; },
   },

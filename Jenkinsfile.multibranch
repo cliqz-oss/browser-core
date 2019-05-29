@@ -18,6 +18,12 @@ if (env.BRANCH_NAME.startsWith('v1.')) {
     matrix['browser-pre'] = [
         'config': 'releases/browser.js',
     ]
+    matrix['mobile-cards-android'] = [
+        'config': 'mobile-cards-android.js',
+    ]
+    matrix['ghostery-mobile'] = [
+        'config': 'ghostery-mobile.js',
+    ]
 }
 
 if (env.BRANCH_NAME.startsWith('v3.') || env.BRANCH_NAME == 'mobile-cards-android') {
@@ -71,12 +77,6 @@ if (env.BRANCH_NAME.startsWith('v12.')) {
 if (env.BRANCH_NAME.startsWith('v13.')) {
     matrix['lumen-ios'] = [
         'config': 'lumen-ios.js',
-    ]
-}
-
-if (env.BRANCH_NAME.startsWith('v14.')) {
-    matrix['offers-chip-firefox'] = [
-        'config': 'releases/offers-chip-firefox.js',
     ]
 }
 
@@ -150,7 +150,7 @@ if (isIntegrationBranch) {
     matrix['privacy'] = [
         'config': 'privacy.js',
     ]
-
+    
     matrix['lumen-ios'] = [
         'config': 'lumen-ios.js',
     ]
@@ -312,7 +312,7 @@ def build(Map m) {
 
                         echo output
 
-                        def urls = getUrls(output)
+                        def urls = output.split('\n')
 
                         for (url in urls) {
                             currentBuild.description += "${url}\n"
@@ -429,16 +429,4 @@ def getIssueList(re) {
         list.add(y.group().toString())
     }
     return list
-}
-
-@NonCPS
-def getUrls(output) {
-    def out = []
-    def log = output
-    def y = log =~ /(^|[ \t\r\n])((s3|ftp|http|https|gopher|mailto|news|nntp|telnet|wais|file|prospero|aim|webcal):(([A-Za-z0-9$_.+!*(),;?:@&~=-])|%[A-Fa-f0-9]{2}){2,}(#([a-zA-Z0-9][a-zA-Z0-9$_.+!*(),;?:@&~=%-]*))?([A-Za-z0-9$_+!*();?:~-]))/
-
-    while (y) {
-        out.add(y.group().toString())
-    }
-    return out
 }

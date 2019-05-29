@@ -1,8 +1,14 @@
-import { isAmazonDomain } from '../utils';
-
 function isPrimeHtml(document) {
   const links = [...document.getElementsByTagName('a')];
   return links.some(a => a.href && a.href.endsWith('/ref=nav_logo_prime'));
+}
+
+//
+// Amazon has a lot of domains, some of them are:
+// 'amazon.com.au', 'amazon.de', 'amazon.co.uk', 'amazon.com'
+//
+export function isAmazonDomain(domain) {
+  return /(^|\.)amazon\..{2,6}$/i.test(domain);
 }
 
 function amazonPrimeDetection(window, chrome, CLIQZ) {

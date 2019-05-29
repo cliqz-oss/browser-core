@@ -5,16 +5,14 @@
  * Functions to handle collecting to selecting / preparing signals for the dashboard
  */
 
-import inject from '../core/kord/inject';
 import events from '../core/events';
+import utils from '../core/utils';
 import prefs from '../core/prefs';
 import { addListener, removeListener } from '../core/http';
 import { getMessage } from '../core/i18n';
 import CliqzHumanWeb from '../human-web/human-web';
 import { getDetailsFromUrl, tryDecodeURIComponent } from '../core/url';
 import telemetry from '../telemetry/background';
-
-const TELEMETRY_SERVICE = inject.service('telemetry', ['installProvider', 'uninstallProvider']);
 
 let streamMode = false;
 
@@ -68,6 +66,7 @@ const QUERY_LOG_PARAM = {
 };
 
 const SignalListener = {
+  telemetryOrigin: utils.telemetry,
   hwOrigin: CliqzHumanWeb.telemetry, // todo: handle the case hw is inited AFTER this module
 
   SigCache: {
@@ -96,13 +95,20 @@ const SignalListener = {
       });
   },
 
-  monkeyPatchTelemetry() {
-    SignalListener.SigCache.tel = {
-      sig: [lastElementArray(telemetry.trk)],
-      timestamp: Date.now()
-    };
+  monkeyPatchTelemetry(...args) {
+    SignalListener.telemetryOrigin.apply(this, args)
+      .then(() => {
+        // aggregate data within the predefined aggregation window
+        // To use ONLY the LAST SIGNAL, use this line below instead of the if block,
+        // OR set SignalListener.telSigAggregatePeriod = 0
 
-    SignalListener.fireNewDataEvent('tel');
+        SignalListener.SigCache.tel = {
+          sig: [lastElementArray(telemetry.trk)],
+          timestamp: Date.now()
+        };
+
+        SignalListener.fireNewDataEvent('tel');
+      });
   },
 
   onCliqzBackendRequest({ url }) {
@@ -126,14 +132,15 @@ const SignalListener = {
 
   init(settings) {
     this.settings = settings;
-    if (!SignalListener.monkeyPatchHmw) {
+    if (!(SignalListener.monkeyPatchTelemetry && SignalListener.monkeyPatchHmw)) {
+      SignalListener.telemetryOrigin = utils.telemetry;
       SignalListener.hwOrigin = CliqzHumanWeb.telemetry;
     }
 
     addListener(this.onCliqzBackendRequest.bind(this));
 
     if (SignalListener.monkeyPatchTelemetry && SignalListener.monkeyPatchHmw) {
-      TELEMETRY_SERVICE.installProvider(SignalListener.monkeyPatchTelemetry);
+      utils.telemetry = SignalListener.monkeyPatchTelemetry;
       CliqzHumanWeb.telemetry = SignalListener.monkeyPatchHmw;
 
       // if Signals only start listens only when someone open the dashboard
@@ -158,7 +165,9 @@ const SignalListener = {
   },
 
   stopListen() {
-    TELEMETRY_SERVICE.uninstallProvider(SignalListener.monkeyPatchTelemetry);
+    if (SignalListener.telemetryOrigin) {
+      utils.telemetry = SignalListener.telemetryOrigin;
+    }
     removeListener(this.onCliqzBackendRequest);
 
     if (SignalListener.hwOrigin) {

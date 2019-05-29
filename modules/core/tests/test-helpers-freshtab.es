@@ -402,6 +402,14 @@ export class Subject {
     });
   }
 
+  respondsWithEmptyOffers() {
+    this.respondsWith({
+      module: 'freshtab',
+      action: 'getOffers',
+      response: []
+    });
+  }
+
   respondsWithEmptyStats() {
     this.respondsWith({
       module: 'freshtab',
@@ -465,7 +473,6 @@ export const defaultConfig = Object.freeze({
         visible: false,
       }
     },
-    displayFriendsIcon: true,
     hasActiveNotifications: false,
     HISTORY_URL: '/cliqz-history/index.html',
     isBetaVersion: false,

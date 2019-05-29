@@ -2,6 +2,7 @@ import background from '../core/base/background';
 import getDemographics from '../core/demographics';
 import getSynchronizedDate from '../core/synchronized-time';
 import prefs from '../core/prefs';
+import utils from '../core/utils';
 import { shouldEnableModule } from '../core/app';
 import { platformName } from '../core/platform';
 import inject from '../core/kord/inject';
@@ -65,7 +66,7 @@ async function instantiateAnolysis() {
   const isHealthy = await anolysis.init();
 
   if (!isHealthy) {
-    telemetry.push({ type: 'anolysis.health_check' });
+    utils.telemetry({ type: 'anolysis.health_check' });
 
     // Try to send a 'health check' metric to backend, which should be sent
     // straight away since storage is not working properly.
@@ -131,7 +132,7 @@ export default background({
     // TODO - send ping_anolysis signal with legacy telemetry system
     // This is only meant for testing purposes and will be remove in
     // the future.
-    telemetry.push({
+    utils.telemetry({
       type: 'anolysis.start_init',
     });
 
@@ -181,7 +182,7 @@ export default background({
 
       // TODO - send ping_anolysis signal with legacy telemetry system This is
       // only meant for testing purposes and will be remove in the future.
-      telemetry.push({
+      utils.telemetry({
         type: 'anolysis.start_end',
       });
     } catch (ex) {
@@ -190,7 +191,7 @@ export default background({
       // the future.
       logger.error('Exception while init anolysis', ex);
       this.unload();
-      telemetry.push({
+      utils.telemetry({
         type: 'anolysis.start_exception',
         exception: `${ex}`,
       });

@@ -22,74 +22,37 @@ export default describeModule('offers-v2/user-journey/collector',
         chai.expect(journey).to.eql([]);
       });
 
-      it('/unconditionally create new steps', () => {
-        collector.addStep({ feature: 'f1' });
-        collector.addStep({ feature: 'amazon' });
-        collector.addStep({ feature: 'ebay' });
+      it('/return several steps from several events', () => {
+        collector.addEvent({ ts: 10000, feature: 'f1' });
+        collector.addEvent({ ts: 20000, feature: 'f2' });
+        collector.addEvent({ ts: 30000, feature: 'f3' });
+
+        const journey = collector.getJourney();
+
+        chai.expect(journey).to.eql([['f1'], ['f2'], ['f3']]);
+      });
+
+      it('/join nearly simultaneous events to one step', () => {
+        collector.addEvent({ ts: 10000, feature: 'f1' });
+        collector.addEvent({ ts: 20010, feature: 'f2' });
+        collector.addEvent({ ts: 20020, feature: 'f3' });
+        collector.addEvent({ ts: 20030, feature: 'f4' });
+        collector.addEvent({ ts: 30000, feature: 'f5' });
 
         const journey = collector.getJourney();
 
         chai.expect(journey).to.eql(
-          [['f1'], ['amazon'], ['ebay']]
+          [['f1'], ['f2', 'f3', 'f4'], ['f5']]
         );
-      });
-
-      it('remember url of a created step', () => {
-        collector.addStep({ feature: 'f', url: 'some.com' });
-
-        const lastStep = collector.journey.pop();
-        chai.expect(lastStep.url).to.eq('some.com');
-      });
-
-      it('merge a feature if urls match', () => {
-        collector.addStep({ feature: 'f1', url: 'some.com' });
-        collector.addFeature({ feature: 'f2', url: 'some.com' });
-
-        const journey = collector.getJourney();
-
-        chai.expect(journey).to.eql([['f1', 'f2']]);
-      });
-
-      it('drop a feature if urls mismatch', () => {
-        collector.addStep({ feature: 'f1', url: 'some.com' });
-        collector.addFeature({ feature: 'will-be-dropped', url: 'another.com' });
-
-        const journey = collector.getJourney();
-
-        chai.expect(journey).to.eql([['f1']]);
-      });
-
-      it('drop a feature if journey is empty', () => {
-        collector.addFeature({ feature: 'will-be-dropped', url: 'some.com' });
-
-        const journey = collector.getJourney();
-
-        chai.expect(journey).to.eql([]);
       });
 
       it('/limit size of journey', () => {
         Array(100).fill().forEach((_, i) => {
-          collector.addStep({ feature: `f${i}` });
+          collector.addEvent({ ts: i * 10000, feature: `f${i}` });
         });
 
         const journey = collector.getJourney();
-        chai.expect(journey.length).to.be.below(50, 'journey size');
-      });
-
-      it('/retain "unk" placeholder if no features added', () => {
-        collector.addStep({ feature: 'unk' });
-        collector.addStep({ feature: 'unk' });
-
-        const journey = collector.getJourney();
-        chai.expect(journey).to.eql([['unk'], ['unk']]);
-      });
-
-      it('/drop "unk" placeholder when a feature added', () => {
-        collector.addStep({ feature: 'unk', url: 'some' });
-        collector.addFeature({ feature: 'feature', url: 'some' });
-
-        const journey = collector.getJourney();
-        chai.expect(journey).to.eql([['feature']]);
+        chai.expect(journey.length).to.be.below(20, 'journey size');
       });
     });
   });

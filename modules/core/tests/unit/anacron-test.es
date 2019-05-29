@@ -8,6 +8,7 @@ export default describeModule('core/anacron',
       'platform/lib/moment': {
         default: moment,
       },
+      'core/utils': { default: { } },
     };
   },
   function () {

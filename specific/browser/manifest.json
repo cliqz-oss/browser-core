@@ -62,11 +62,6 @@
         "scopes": ["addon_parent"],
         "paths": [["cliqz"]],
         "script": "modules/webextension-specific/experimental-apis/cliqz/api.bundle.js"
-      },
-      "child": {
-        "scopes": ["addon_child"],
-        "paths": [["cliqz"]],
-        "script": "modules/webextension-specific/experimental-apis/cliqz/api-child.bundle.js"
       }
     },
     "cliqzHistory": {
@@ -77,19 +72,12 @@
         "script": "modules/webextension-specific/experimental-apis/cliqzHistory/api.bundle.js"
       }
     },
-    "skeleton": {
-      "schema": "experiments/skeleton/schema.json",
-      "parent": {
-        "scopes": [
-          "addon_parent"
-        ],
-        "script": "experiments/skeleton/api.js",
-        "paths": [
-          [
-            "experiments",
-            "skeleton"
-          ]
-        ]
+    "cliqzSynchronous": {
+      "schema": "modules/webextension-specific/experimental-apis/cliqzSynchronous/schema.json",
+      "child": {
+        "scopes": ["addon_child"],
+        "paths": [["cliqzSynchronous"]],
+        "script": "modules/webextension-specific/experimental-apis/cliqzSynchronous/api.bundle.js"
       }
     }
   },
@@ -131,7 +119,6 @@
   ],
   "background": {
     "scripts": [
-      "background_intermediate.js",
       "modules/vendor/math-expression-evaluator.min.js",
       "modules/vendor/dexie.min.js",
       "modules/webextension-specific/app.bundle.js",

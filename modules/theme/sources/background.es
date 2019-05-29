@@ -1,33 +1,52 @@
 import background from '../core/base/background';
-import { getResourceUrl } from '../core/platform';
-import { OS } from '../platform/platform';
-import prefs from '../core/prefs';
+import inject from '../core/kord/inject';
+import { forEachWindow } from '../platform/browser';
+
+const BLUE_THEME_CLASS = 'cliqz-blue';
 
 export default background({
+  theme: inject.module('theme'),
+
   enabled() {
     return true;
   },
 
-  init() {
-    if (prefs.get('developer', false)) {
-      let url;
-      if (OS.startsWith('Mac')) {
-        url = getResourceUrl('theme/styles/theme-mac.css');
-      } else if (OS.startsWith('Windows')) {
-        url = getResourceUrl('theme/styles/theme-win.css');
-      } else if (OS.startsWith('Linux')) {
-        url = getResourceUrl('theme/styles/theme-linux.css');
-      }
 
-      if (url) {
-        chrome.cliqz.initTheme(url);
-      }
-    }
+  init() {
   },
 
-  unload() {},
+  unload() {
+  },
 
-  events: {},
+  actions: {
+    addClass(className) {
+      forEachWindow((window) => {
+        this.theme.windowAction(window, 'addClass', className);
+      });
+    },
 
-  actions: {}
+    removeClass(className) {
+      forEachWindow((window) => {
+        this.theme.windowAction(window, 'removeClass', className);
+      });
+    },
+
+
+    addBlueClass() {
+      this.actions.addClass(BLUE_THEME_CLASS);
+    },
+
+    removeBlueClass() {
+      this.actions.removeClass(BLUE_THEME_CLASS);
+    },
+
+    toggleBlueTheme(enabled) {
+      if (enabled) {
+        this.actions.removeBlueClass();
+      } else {
+        this.actions.addBlueClass();
+      }
+    }
+  }
+
 });

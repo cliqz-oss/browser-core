@@ -6,39 +6,69 @@ import Subject from './local-helpers';
 
 context('Offers Hub three dots menu', function () {
   let subject;
+  const settingsMenuSelector = '.setting-menu';
   const target = 'cliqz-offers-cc';
 
-  async function init() {
-    const s = new Subject();
-    await s.load();
-    await s.pushData(target, { noVoucher: true });
-    s.query('.header__menu').click();
-    await waitFor(() => s.query('.header__menu').classList.contains('header__menu-active'));
-    return s;
-  }
-
   context('UI', function () {
-    before(async function () { subject = await init(); });
-    after(function () { subject.unload(); });
+    before(async function () {
+      subject = new Subject();
+      await subject.load();
+      await subject.pushData(target, {
+        noVoucher: true,
+      });
+      subject.query('.setting').click();
+      await waitFor(() =>
+        subject.query(settingsMenuSelector).classList.contains('show'));
+    });
+
+    after(function () {
+      subject.unload();
+    });
+
+    it('renders "Give Feedback"', function () {
+      expect(subject.query(`${settingsMenuSelector} .feedback`)).to.exist;
+      expect(subject.query(`${settingsMenuSelector} .feedback`))
+        .to.have.text('offers_menu_give_feedback');
+    });
 
     it('renders "Why do I see this?"', function () {
-      expect(subject.query('.menu__item')).to.exist;
-      expect(subject.query('.menu__item')).to.contain.text('why_see_this');
+      expect(subject.query(`${settingsMenuSelector} .why`)).to.exist;
+      expect(subject.query(`${settingsMenuSelector} .why`)).to.contain.text('why_see_this');
     });
 
     it('renders "Help"', function () {
-      expect([...subject.queryAll('.menu__item')][1]).to.exist;
-      expect([...subject.queryAll('.menu__item')][1]).to.contain.text('help');
+      expect(subject.query(`${settingsMenuSelector} [data-telemetry-id="learn_more"]`)).to.exist;
+      expect(subject.query(`${settingsMenuSelector} [data-telemetry-id="learn_more"]`))
+        .to.contain.text('help');
+    });
+
+    it('"Help" contains a link to the support page', function () {
+      expect(subject.query(`${settingsMenuSelector} [data-telemetry-id="learn_more"] a`))
+        .to.exist;
+      expect(subject.query(`${settingsMenuSelector} [data-telemetry-id="learn_more"] a`)
+        .getAttribute('href')).to.equal('https://cliqz.com/support');
     });
   });
 
   context('click on three dots menu icon', function () {
-    before(async function () { subject = await init(); });
-    afterEach(function () { subject.unload(); });
+    beforeEach(async function () {
+      subject = new Subject();
+      await subject.load();
+      await subject.pushData(target, {
+        noVoucher: true,
+      });
+      subject.query('.setting').click();
+      await waitFor(() =>
+        subject.query(settingsMenuSelector).classList.contains('show'));
+    });
+
+    afterEach(function () {
+      subject.unload();
+    });
 
     it('click second time -> menu removed', async function () {
-      subject.query('.header__menu').click();
-      await waitFor(() => expect(subject.query('.header__menu')).to.not.have.class('header__menu-active'));
+      subject.query('.setting').click();
+      await waitFor(() => expect(subject.query(settingsMenuSelector)).to.not.have.class('show'));
     });
   });
 });

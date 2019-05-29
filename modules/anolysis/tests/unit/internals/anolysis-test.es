@@ -38,6 +38,9 @@ export default describeModule('anolysis/internals/anolysis',
         },
       },
     },
+    'core/utils': {
+      default: {},
+    },
     'core/prefs': {
       default: {
         get(k, d) { return d; },

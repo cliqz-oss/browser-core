@@ -43,16 +43,13 @@ function difference(values1, values2) {
 }
 
 /**
- * Assert that there are no keys in `moduleLocale`
- * which already exist in `locale` with different message.
+ * Assert that there are no keys in `moduleKeys` which already exist in `keys`.
  */
-function assertIntersectionIsEmpty(locale, module, moduleLocale) {
-  const keys = Object.keys(locale || {});
-  const moduleKeys = Object.keys(moduleLocale || {});
+function assertIntersectionIsEmpty(keys, module, moduleKeys) {
   const existingKeys = new Set(keys);
   moduleKeys.forEach((key) => {
-    if (existingKeys.has(key) && locale[key].message !== moduleLocale[key].message) {
-      throw new Error(`Module ${module} specifies key '${key}' which was already defined with different message`);
+    if (existingKeys.has(key)) {
+      throw new Error(`Module ${module} specifies key '${key}' which was already defined`);
     }
   });
 }
@@ -158,25 +155,17 @@ module.exports = (() => {
       });
 
       // Make sure that all locales provided by this module have the same keys
-      // and they all contain 'message'
       const expectedKeys = Object.keys(locales[DEFAULT_LANGUAGE]).sort(compareMessageKeys);
       Object.entries(locales).forEach(([lang, messages]) => {
-        Object.entries(messages).forEach(([key, message]) => {
-          if (message.message === undefined) {
-            throw new Error(
-              `Key ${key} in module ${moduleName} for language ${lang} does not contain 'message'`,
-            );
-          }
-        });
         assertMessagesHaveKeys(moduleName, lang, expectedKeys, messages);
       });
 
       // Merge locales from all modules together + format
       LANGUAGES.forEach((lang) => {
         assertIntersectionIsEmpty(
-          LOCALES[lang],
+          Object.keys(LOCALES[lang] || {}),
           moduleName,
-          locales[lang],
+          Object.keys(locales[lang]),
         );
         LOCALES[lang] = {
           ...(LOCALES[lang] || {}),
@@ -186,7 +175,11 @@ module.exports = (() => {
     });
   }
 
-  return new MergeTrees(
-    LANGUAGES.map(lang => writeFile(`_locales/${lang}/messages.json`, formatLocales(LOCALES[lang] || {}))),
-  );
+  if (Object.keys(LOCALES).length !== 0) {
+    return new MergeTrees(
+      LANGUAGES.map(lang => writeFile(`_locales/${lang}/messages.json`, formatLocales(LOCALES[lang]))),
+    );
+  }
+
+  return new MergeTrees([]);
 })();

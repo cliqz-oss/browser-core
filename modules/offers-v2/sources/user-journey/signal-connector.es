@@ -59,6 +59,10 @@ export default class JourneySignals {
     });
   }
 
+  async addMatchedJourney(journey) {
+    await this._addSignal({ type: 'match', journey });
+  }
+
   /**
    * Get the collected signals and clear the storage.
    *

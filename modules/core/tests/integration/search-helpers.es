@@ -1,7 +1,8 @@
+import { isWebExtension } from '../../../core/platform';
 import {
   app,
+  CliqzUtils,
   testServer,
-  win,
 } from '../test-helpers';
 
 export { waitForPopup, $cliqzResults } from '../../../platform/test-helpers/helpers';
@@ -11,12 +12,16 @@ export async function mockSearch(response, timeout = 0) {
   app.settings.RESULTS_PROVIDER = testServer.getBaseUrl('/api/v2/results?nrh=1&q=');
 }
 
+export function testsEnabled() {
+  return !isWebExtension;
+}
+
 export function withHistory(res, ms = 0) {
-  win.CLIQZ.TestHelpers.historySearch.overrideHistorySearchHandler((q, cb) => {
+  CliqzUtils.historySearch = function (q, cb) {
     setTimeout(cb, ms, {
       query: q,
       results: res,
       ready: true,
     });
-  });
+  };
 }

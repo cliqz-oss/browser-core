@@ -1,5 +1,4 @@
 import URL from './fast-url-parser';
-import Cache from './helpers/string-cache';
 
 function dURIC(s) {
   // avoide error from decodeURIComponent('%2')
@@ -7,6 +6,32 @@ function dURIC(s) {
     return decodeURIComponent(s);
   } catch (e) {
     return s;
+  }
+}
+
+class Cache {
+  constructor(size) {
+    this.size = size;
+    this.cache = [];
+    for (let i = 0; i < size; i += 1) {
+      this.cache.push({ key: null, value: null });
+    }
+  }
+
+  get(key) {
+    const val = this.cache[key.length % this.size];
+
+    if (val.key !== key) {
+      return undefined;
+    }
+
+    return val.value;
+  }
+
+  set(key, value) {
+    const current = this.cache[key.length % this.size];
+    current.key = key;
+    current.value = value;
   }
 }
 
@@ -23,7 +48,7 @@ const URLInfo = {
   get(url) {
     try {
       let res = urlCache.get(url);
-      if (res === undefined) {
+      if (!res) {
         res = new URL(url);
         urlCache.set(url, res);
       }

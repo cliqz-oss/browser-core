@@ -1,6 +1,7 @@
 import {
   app,
   blurUrlBar,
+  CliqzUtils,
   expect,
   fillIn,
   mockPref,
@@ -12,7 +13,6 @@ import {
   waitForPopup,
   withHistory,
 } from './helpers';
-import inject from '../../../core/kord/inject';
 
 async function getSearchParams(query, { resultsNumber = 1, blur = true } = {}) {
   if (blur) {
@@ -258,16 +258,14 @@ export default function () {
       context('set to "yes"', function () {
         beforeEach(async function () {
           restorePref = await mockPref('share_location', 'yes');
-          inject.service('geolocation', ['setGeolocation']).setGeolocation({
-            latitude: 1.234,
-            longitude: 5.678,
-          });
+          CliqzUtils.USER_LAT = 1.234;
+          CliqzUtils.USER_LNG = 5.678;
           parameters = await getSearchParams(query);
         });
 
         afterEach(async function () {
           restorePref();
-          await inject.service('geolocation', ['updateGeoLocation']).updateGeoLocation();
+          await app.modules.geolocation.background.actions.updateGeoLocation();
         });
 
         it('location setting "yes" received by server', function () {

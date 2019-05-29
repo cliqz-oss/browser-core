@@ -1,6 +1,5 @@
 import * as searchUtils from '../platform/search-engines';
 import { cleanMozillaActions, getDetailsFromUrl } from './url';
-import { fetch } from './http';
 
 export * from '../platform/search-engines';
 
@@ -116,44 +115,4 @@ export function getSearchEngineQuery(engine, query) {
     return query.replace(engine.alias, '').trim();
   }
   return query;
-}
-
-// eg types: [ "H", "m" ], [ "H|instant", "X|11" ]
-export function isPrivateResultType(type = []) {
-  if (type.length === 0) {
-    return false;
-  }
-
-  const onlyType = type[0].split('|')[0];
-  const hasCluster = type.some(a => a.split('|')[0] === 'C');
-
-  if (hasCluster) {
-    // we want to be extra carefull and do not send back any cluster information
-    return true;
-  }
-
-  return 'HBTCS'.indexOf(onlyType) !== -1 && type.length === 1;
-}
-
-function defaultSuggestionsHandler(query) {
-  const defaultEngine = searchUtils.getDefaultSearchEngine();
-  const url = defaultEngine.getSubmissionForQuery(query, 'application/x-suggestions+json');
-  if (url) {
-    return fetch(url, { credentials: 'omit', cache: 'no-store' }).then(res => res.json());
-  }
-  return Promise.resolve([query, []]);
-}
-
-let suggestionsHandler = defaultSuggestionsHandler;
-
-export function overrideSuggestionsHandler(handler) {
-  suggestionsHandler = handler;
-}
-
-export function resetSuggestionsHandler() {
-  suggestionsHandler = defaultSuggestionsHandler;
-}
-
-export function getSuggestions(query) {
-  return suggestionsHandler(query);
 }

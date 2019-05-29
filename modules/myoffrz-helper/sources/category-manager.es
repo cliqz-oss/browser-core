@@ -4,7 +4,10 @@ import config from '../core/config';
 import CachedMap from '../core/persistence/cached-map';
 import logger from './logger';
 import pacemaker from '../core/services/pacemaker';
-import { parse } from '../core/tlds';
+import {
+  extractHostname as getHostname,
+  getGeneralDomain as getDomain,
+} from '../core/tlds';
 
 // Common durations
 const ONE_SECOND = 1000;
@@ -87,7 +90,7 @@ export default class ContentCategoryManager {
     const result = { styles: null, productId: null };
     const match = this.engine.match(Adblocker.makeRequest(
       { url, type: 2, sourceUrl: url },
-      parse,
+      { getDomain, getHostname },
     ));
     if (match.match) {
       // Get the matching filter

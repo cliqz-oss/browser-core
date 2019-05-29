@@ -225,6 +225,9 @@ module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) =
     'core/platform': {
       isBootstrap: false,
     },
+    'core/utils': {
+      default: {},
+    },
     'core/kord/inject': {
       default: {
         module: () => ({

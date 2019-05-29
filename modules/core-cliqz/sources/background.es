@@ -1,4 +1,5 @@
 import background from '../core/base/background';
+import utils from '../core/utils';
 import language from '../core/language';
 import prefs from '../core/prefs';
 import inject from '../core/kord/inject';
@@ -6,7 +7,7 @@ import config from '../core/config';
 import Storage from '../core/storage';
 
 export default background({
-  requiresServices: ['session'],
+  requiresServices: ['utils', 'session'],
 
   init(settings = {}) {
     this.settings = settings;
@@ -32,12 +33,12 @@ export default background({
     const core = inject.module('core');
     const status = await core.action('status');
 
-    const telemetry = inject.service('telemetry', ['push']);
-
-    telemetry.push({
+    utils.telemetry({
       type: 'startup',
       modules: status.modules,
     });
+
+    const telemetry = inject.service('telemetry', ['push']);
 
     await telemetry.push(
       Object.keys(status.modules).map((module) => {
