@@ -1,0 +1,25 @@
+
+trigger:
+- ghostery
+
+jobs:
+- job: Build_Ghostery
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/ghostery')
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '10.x'
+    displayName: 'Install Node.js'
+  - script: |
+      npm ci
+      ./fern.js build configs/ghostery.js --environment=production --no-debug
+      ./fern.js pack configs/ghostery.js
+      mkdir -p artifacts/
+      cp browser-core-* artifacts/
+    displayName: 'Fern build and pack'
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: 'artifacts/'
+      artifactName: release
