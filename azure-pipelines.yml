@@ -1,10 +1,11 @@
 
 trigger:
-- ghostery
+  tags:
+    include:
+    - 7.*
 
 jobs:
 - job: Build_Ghostery
-  condition: eq(variables['Build.SourceBranch'], 'refs/heads/ghostery')
   pool:
     vmImage: 'ubuntu-latest'
   steps:
