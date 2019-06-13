@@ -4,6 +4,10 @@ html, body {
     background-color: white;
 }
 
+html {
+    overflow-x: hidden;
+}
+
 body {
     display: table;
     width: 100%;
@@ -80,6 +84,7 @@ $basic-line-height: (16 / 14) + 0em;
     }
 
     /* We always have the line on the top as the first element */
+    & > div:nth-child(1),
     & > div:nth-child(2) {
         padding-top: 4px;
     }
@@ -185,6 +190,10 @@ $basic-line-height: (16 / 14) + 0em;
                     margin-right: 4px;
                     margin-left: 1px;
                 }
+            }
+
+            &.hovered {
+                border-color: #E7ECEE;
             }
 
             &.selected, &.selected:visited {
@@ -409,6 +418,10 @@ $basic-line-height: (16 / 14) + 0em;
                     font-size: 14px;
                 }
             }
+        }
+
+        &.hovered {
+            background: #E7ECEE;
         }
 
         &.selected, &.selected:visited {
@@ -685,10 +698,18 @@ $basic-line-height: (16 / 14) + 0em;
             padding-bottom: 0.6em;
         }
 
+        &:hover {
+            background: #fff;
+        }
+
         .buttons {
             .result.btn {
                 color: #8D2CB1;
                 border-color: #EAD5F1;
+
+                &.hovered {
+                    background: #E7ECEE;
+                }
 
                 &.selected {
                     background-color: #8D2CB1;
@@ -776,6 +797,7 @@ $basic-line-height: (16 / 14) + 0em;
 
                 span.breaking-news {
                     margin-top: -1px;
+                    margin-right: 6px;
                     font-size: 0.67em;
                     padding: 7px 5px;
                     background-color: #E4E4E4;

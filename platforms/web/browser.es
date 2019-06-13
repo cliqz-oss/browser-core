@@ -47,6 +47,10 @@ export function getLocale() {
   return window.navigator.language || window.navigator.userLanguage || 'en';
 }
 
+export function getWindow() {
+  return window;
+}
+
 export function isTabURL() {
   return false;
 }
@@ -68,3 +72,20 @@ export function resetOriginalPrefs() {}
 export function isDefaultBrowser() {
   return Promise.resolve(null);
 }
+
+export function isPrivateMode() {
+  return false;
+}
+
+/* eslint-disable no-param-reassign */
+export function openLink(win, url) {
+  if (url !== '#') {
+    if (url.indexOf('http') === -1) {
+      url = `http://${url}`;
+    }
+    win.location.href = url;
+  }
+
+  return false;
+}
+/* eslint-enable no-param-reassign */

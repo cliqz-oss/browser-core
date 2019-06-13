@@ -9,6 +9,7 @@ import { getMessage } from '../../../core/i18n';
 import {
   queryHTML,
   waitFor,
+  CliqzEvents,
 } from '../test-helpers';
 
 export function getLocalisedString(key) {
@@ -42,7 +43,7 @@ export async function getElements({
   });
 }
 export const waitForPageLoad = url => new Promise((resolve) => {
-  const pageLoad = win.CliqzEvents.subscribe('content:dom-ready', (_url) => {
+  const pageLoad = CliqzEvents.subscribe('content:dom-ready', (_url) => {
     if (_url === url) {
       pageLoad.unsubscribe();
       resolve();

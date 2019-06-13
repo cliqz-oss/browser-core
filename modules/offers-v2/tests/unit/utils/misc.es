@@ -1,16 +1,21 @@
 const punycode = require('punycode');
+const jsep = require('jsep');
+const pako = require('pako');
 
 module.exports = {
   'platform/crypto': { },
+  'platform/lib/zlib': pako,
+  'platform/lib/jsep': {
+    default: jsep,
+  },
   'core/crypto/random': {
     default: function () { // random
       return Math.random();
     }
   },
-  'core/utils': {
+  'core/services/telemetry': {
     default: {
-      extensionVersion: '1.28.1',
-      telemetry: () => {},
+      push: () => {},
     },
   },
   'core/platform': {
@@ -20,7 +25,8 @@ module.exports = {
   },
   'platform/globals': {
   },
-  'platform/console': {
+  'core/console': {
+    isLoggingEnabled: () => false,
     default: {}
   },
   'platform/history/history': {
@@ -41,6 +47,9 @@ module.exports = {
       module: () => ({
         action: () => {},
       }),
+      app: {
+        version: '1.28.1',
+      },
     },
   },
   'platform/lib/punycode': {

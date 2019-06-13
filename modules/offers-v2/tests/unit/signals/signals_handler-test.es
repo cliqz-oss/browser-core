@@ -60,12 +60,8 @@ export default describeModule('offers-v2/signals/signals_handler',
   () => ({
     ...commonMocks,
     ...persistenceMocks,
-    'core/utils': {
-      default: {
-        setInterval: function () {},
-        getLocalStorage: function () {},
-        telemetry() {}
-      }
+    'core/database': {
+      default: class Storage { },
     },
     'core/http': {
       httpPost: () => {},

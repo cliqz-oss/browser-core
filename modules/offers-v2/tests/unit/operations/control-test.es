@@ -1111,6 +1111,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
       describe('$probe_segment', () => {
         const defaultDuration = 90;
         const defaultMinMatches = 3;
+        const ctx = { };
 
         context('/parsing', () => {
           it('/sets values', () => {
@@ -1172,7 +1173,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           const category = new Category('someCategory', /* patterns */ [], /* version */ 1);
           const pmock = sinon.stub(category, 'probe');
           categoryHandler.addCategory(category);
-          buildDataGen.vars = { segment_confidence: 777 };
+          ctx.vars = { segment_confidence: 777 };
           return { op, category, probeMock: pmock };
         }
 
@@ -1188,7 +1189,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           });
 
           it('/pass parameters to category', async () => {
-            await op.evalExpr(buildDataGen);
+            await op.evalExpr(ctx);
 
             chai.expect(probeMock).calledWithExactly(77, 88);
           });
@@ -1196,8 +1197,8 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           it('/return (false, sure) if no category', async () => {
             categoryHandler.removeCategory(category);
 
-            const isMatched = await op.evalExpr(buildDataGen);
-            const confidence = buildDataGen.vars.segment_confidence;
+            const isMatched = await op.evalExpr(ctx);
+            const confidence = ctx.vars.segment_confidence;
 
             chai.expect(isMatched).to.be.false;
             chai.expect(confidence).to.eq(1);
@@ -1207,7 +1208,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
             probeMock.reset();
             probeMock.returns(['true/false', false]);
 
-            const isMatched = await op.evalExpr(buildDataGen);
+            const isMatched = await op.evalExpr(ctx);
 
             chai.expect(isMatched).to.eql('true/false');
           });
@@ -1216,9 +1217,9 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
             probeMock.reset();
             probeMock.returns(['true/false', 0.222]);
 
-            await op.evalExpr(buildDataGen);
+            await op.evalExpr(ctx);
 
-            chai.expect(buildDataGen.vars.segment_confidence).to.eql(0.222);
+            chai.expect(ctx.vars.segment_confidence).to.eql(0.222);
           });
 
           it('/call `probe` second time if history loaded fast', async () => {
@@ -1226,7 +1227,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
             probeMock.onCall(0).returns([false, 0]); // not matched, maybe
             probeMock.onCall(1).returns(['from second call', 1]); // matched, sure
 
-            const isMatched = await op.evalExpr(buildDataGen);
+            const isMatched = await op.evalExpr(ctx);
 
             chai.expect(isMatched).to.eql('from second call');
             chai.expect(probeMock.callCount).to.eq(2);
@@ -1235,21 +1236,22 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           context('/caching', () => {
             beforeEach(() => {
               category.updateWithHistoryData({ per_day: [] }); // make confidence=1
+              ctx.vars = {};
             });
 
             it('/caches calls', async () => {
-              await op.evalExpr(buildDataGen);
-              await op.evalExpr(buildDataGen);
-              await op.evalExpr(buildDataGen);
+              await op.evalExpr(ctx);
+              await op.evalExpr(ctx);
+              await op.evalExpr(ctx);
 
               sinon.assert.calledOnce(probeMock);
             });
 
             it('/do not cache if the cache sentinel is changed', async () => {
-              await op.evalExpr(buildDataGen);
+              await op.evalExpr(ctx);
               category.hit();
 
-              await op.evalExpr(buildDataGen);
+              await op.evalExpr(ctx);
 
               sinon.assert.calledTwice(probeMock);
             });
@@ -1258,9 +1260,9 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
               probeMock.reset();
               probeMock.returns(['true/false', 0]);
 
-              await op.evalExpr(buildDataGen);
-              await op.evalExpr(buildDataGen);
-              await op.evalExpr(buildDataGen);
+              await op.evalExpr(ctx);
+              await op.evalExpr(ctx);
+              await op.evalExpr(ctx);
 
               // 2 calls in first `evalExpr`, 1 call in the rest
               chai.expect(probeMock.callCount).is.eq(4);
@@ -1287,7 +1289,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           it('/load history', async () => {
             probeMock.returns([false, 0]); // [!matched, maybe]
 
-            await op.evalExpr(buildDataGen);
+            await op.evalExpr(ctx);
 
             sinon.assert.called(historyMock); //
           });
@@ -1297,7 +1299,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
             cat.timeRangeSecs = 777;
             probeMock.returns([false, 0]); // [!matched, maybe]
 
-            await op.evalExpr(buildDataGen);
+            await op.evalExpr(ctx);
 
             sinon.assert.calledOnce(historyMock);
             const { start_ms: startMs, end_ms: endMs } = historyMock.firstCall.args[0];
@@ -1308,7 +1310,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           it('/do not load history if the result is for sure', async () => {
             probeMock.returns([false, 1]); // [!matched, sure]
 
-            await op.evalExpr(buildDataGen);
+            await op.evalExpr(ctx);
 
             sinon.assert.notCalled(historyMock);
           });
@@ -1318,7 +1320,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
             historyMock.throws(new Error('intended to fail'));
 
             await chai.expect(
-              op.evalExpr(buildDataGen)
+              op.evalExpr(ctx)
             )
 
               .to.be.eventually.rejectedWith('intended to fail');
@@ -1346,7 +1348,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
             //
 
             // Act
-            await op.evalExpr(buildDataGen);
+            await op.evalExpr(ctx);
 
             // Assert: no exception raised
           });

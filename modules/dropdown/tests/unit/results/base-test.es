@@ -1,15 +1,17 @@
 /* global chai, describeModule */
 
+const tldts = require('tldts');
+
 export default describeModule('dropdown/results/generic',
   function () {
     return {
       '../../core/events': {},
-      '../../core/utils': {},
       '../../core/url': {
         urlStripProtocol() { return 'STRIPPED_URL'; }
       },
       '../../core/console': {},
       '../../platform/lib/punycode': {},
+      'platform/lib/tldts': tldts,
     };
   },
   function () {

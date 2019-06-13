@@ -1,0 +1,209 @@
+{
+    "always": {
+        "message": "Always"
+    },
+    "always_ask": {
+        "message": "Always ask"
+    },
+    "control_center_adblock_advertisers": {
+        "message": "List of advertisers on this page"
+    },
+    "control_center_adblock_description": {
+        "message": "ads have been blocked on this website"
+    },
+    "control_center_adblock_description_off_all": {
+        "message": "Turned off for all websites"
+    },
+    "control_center_adblock_description_off_domain": {
+        "message": "Turned off for this domain"
+    },
+    "control_center_adblock_description_off_website": {
+        "message": "Turned off for this page"
+    },
+    "control_center_adblock_title": {
+        "message": "Ad-block"
+    },
+    "control_center_all_sites": {
+        "message": "All websites"
+    },
+    "control_center_backend_country": {
+        "message": "Search results for"
+    },
+    "control_center_check_hideMyIP": {
+        "message": "Hide My IP"
+    },
+    "control_center_check_strict": {
+        "message": "Strict"
+    },
+    "control_center_clear_trCache": {
+        "message": "Clear Tracking Cache"
+    },
+    "control_center_datapoints": {
+        "message": "private data points have been removed"
+    },
+    "control_center_datapoints_inactive": {
+        "message": "Turned off for this domain"
+    },
+    "control_center_datapoints_off": {
+        "message": "Turned off for all websites"
+    },
+    "control_center_disabled": {
+        "message": "Disabled"
+    },
+    "control_center_enabled": {
+        "message": "Enabled"
+    },
+    "control_center_explicit": {
+        "message": "Block adult websites"
+    },
+    "control_center_footer": {
+        "message": "POWERED BY CLIQZ"
+    },
+    "control_center_humanweb": {
+        "message": "Human Web"
+    },
+    "control_center_icon_tooltip": {
+        "message": "Cliqz Control Center"
+    },
+    "control_center_info_ads": {
+        "message": "You can choose to block or show advertisements on all or selected websites."
+    },
+    "control_center_info_ads_title": {
+        "message": "Ad-block"
+    },
+    "control_center_info_cliqz_tab": {
+        "message": "Cliqz Tab enhances new tabs with short-cuts to your most visited and favorite websites, and curated top news to keep you up to speed."
+    },
+    "control_center_info_explicit": {
+        "message": "Would you like to block websites with explicit content from the search results?"
+    },
+    "control_center_info_explicit_title": {
+        "message": "Block adult websites"
+    },
+    "control_center_info_forget_mode": {
+        "message": "Websites that contain explicit content are automatically opened in Forget tabs. Visits to such sites are therefore not saved to your history."
+    },
+    "control_center_info_forget_mode_title": {
+        "message": "Automatic Forget Mode"
+    },
+    "control_center_info_hpn": {
+        "message": "If you wish to hide your IP address while searching the web, you can send your search queries through a network of proxy servers."
+    },
+    "control_center_info_hpn_title": {
+        "message": "Search via proxy"
+    },
+    "control_center_info_https": {
+        "message": "This function is provided by the open-source service HTTPS Everywhere. It improves the level of security by forcing encrypted HTTPS connections to websites whenever possible."
+    },
+    "control_center_info_https_title": {
+        "message": "Prefer HTTPS"
+    },
+    "control_center_info_hw": {
+        "message": "The Human Web technology collects anonymized data of search queries and website visits by the community of users. It uses this data to build the web index that feeds the search function."
+    },
+    "control_center_info_hw_title": {
+        "message": "Human Web"
+    },
+    "control_center_info_phishing": {
+        "message": "This technology identifies and blocks deceptive websites that try to get your passwords or account data."
+    },
+    "control_center_info_phishing_title": {
+        "message": "Anti-Phishing"
+    },
+    "control_center_info_share_location": {
+        "message": "You will see the most relevant search results by setting \"Share location\" to <strong>\"Always\"</strong>. Location data is used solely to automatically enhance search results."
+    },
+    "control_center_info_share_location_link": {
+        "message": "Learn more"
+    },
+    "control_center_info_share_location_title": {
+        "message": "Share location"
+    },
+    "control_center_info_trackers": {
+        "message": "Integrated trackers record user activities on and across most websites. Anti-Tracking removes all data that could be used to identify you before it can be collected by these trackers. The figure shows how many data points have been removed on the active site."
+    },
+    "control_center_location": {
+        "message": "Share location"
+    },
+    "control_center_offers_location": {
+        "message": "Show local MyOffrz"
+    },
+    "control_center_offers_location_info": {
+        "message": "Don’t miss any local offers! Your location is used on a city or district level. It is not stored on any server, and is only used locally on your computer."
+    },
+    "control_center_offers_options": {
+        "message": "MyOffrz Options"
+    },
+    "control_center_offers_show": {
+        "message": "Show MyOffrz"
+    },
+    "control_center_offers_show_info": {
+        "message": "Receive attractive discounts and bargains! MyOffrz only shows relevant content to you. It is developed according to the most stringent data privacy standards. None of your personal data is stored on any server."
+    },
+    "control_center_open": {
+        "message": "Open"
+    },
+    "control_center_othersettings": {
+        "message": "Settings"
+    },
+    "control_center_phishing_deceptive_not": {
+        "message": "Not reported as deceptive"
+    },
+    "control_center_phishing_report": {
+        "message": "Report phishing Site"
+    },
+    "control_center_privacy_policy": {
+        "message": "Privacy Policy"
+    },
+    "control_center_proxy": {
+        "message": "Search via proxy"
+    },
+    "control_center_quicksearch": {
+        "message": "Safe Ghost-Search"
+    },
+    "control_center_report_url": {
+        "message": "Report URL"
+    },
+    "control_center_search_engine": {
+        "message": "Alternative search engine"
+    },
+    "control_center_searchoptions": {
+        "message": "Search Options"
+    },
+    "control_center_support": {
+        "message": "Support"
+    },
+    "control_center_switch_off": {
+        "message": "OFF"
+    },
+    "control_center_switch_on": {
+        "message": "ON"
+    },
+    "control_center_telemetry": {
+        "message": "Share anonymous data"
+    },
+    "control_center_telemetry_info": {
+        "message": "Strictly anonymous technical and interaction data is collected. Personally identifiable information (“PII”) is never transferred."
+    },
+    "control_center_this_domain": {
+        "message": "This domain"
+    },
+    "control_center_this_site": {
+        "message": "This page"
+    },
+    "control_center_trackers": {
+        "message": "Tracking companies on this page"
+    },
+    "control_center_transparency": {
+        "message": "Transparency Monitor"
+    },
+    "control_center_txt_header": {
+        "message": "Your data is protected"
+    },
+    "control_center_txt_header_not": {
+        "message": "Your data is not protected"
+    },
+    "never": {
+        "message": "Never"
+    }
+}

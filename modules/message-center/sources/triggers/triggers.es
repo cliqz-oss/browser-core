@@ -2,7 +2,7 @@ import i18n from '../../core/i18n';
 import inject from '../../core/kord/inject';
 import prefs from '../../core/prefs';
 import { getDaysSinceInstall } from '../../core/demographics';
-import { isDesktopBrowser, isCliqzAtLeastInVersion, isAMO } from '../../core/platform';
+import { isAMO } from '../../core/platform';
 import getLocalMessages from './local';
 import getRemoteMessages from './remote';
 
@@ -12,13 +12,6 @@ const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 const VERSION = 2;
 
 const messageFunctions = {
-  cliqzVersionCheck(value) {
-    if (!isDesktopBrowser) {
-      return false;
-    }
-
-    return isCliqzAtLeastInVersion(value) || prefs.get('developer', false);
-  },
   locale(value) {
     return value === i18n.PLATFORM_LOCALE || value === i18n.PLATFORM_LANGUAGE;
   },

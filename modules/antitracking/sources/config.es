@@ -14,12 +14,17 @@ const PROTECTION = 'antitrackingProtectionEnabled';
 
 
 export const VERSION = '0.102';
-export const MIN_BROWSER_VERSION = 35;
 
 export const TELEMETRY = {
   DISABLED: 0,
   TRACKERS_ONLY: 1,
   ALL: 2,
+};
+
+export const COOKIE_MODE = {
+  THIRD_PARTY: 'thirdparty',
+  TRACKERS: 'trackers',
+  GHOSTERY: 'ghostery',
 };
 
 export const DEFAULTS = {
@@ -40,6 +45,7 @@ export const DEFAULTS = {
   firstPartyIsolation: false,
   tokenTelemetry: {},
   databaseEnabled: true,
+  cookieMode: COOKIE_MODE.THIRD_PARTY,
 };
 
 export const PREFS = {
@@ -56,6 +62,7 @@ export const PREFS = {
   telemetryMode: 'attrackTelemetryMode',
   sendAntiTrackingHeader: 'attrackSendHeader',
   firstPartyIsolation: 'attrack.firstPartyIsolation',
+  cookieMode: 'attrack.cookieMode',
 };
 
 /**
@@ -143,7 +150,7 @@ export default class Config {
         ['attrack.config', JSON.stringify(conf)],
       ]);
     } catch (e) {
-      setTimeout(this._loadRemoteConfig.bind(this), 30000);
+      setTimeout(this._loadConfig.bind(this), 30000);
     }
   }
 

@@ -4,8 +4,10 @@
 
 const expect = chai.expect;
 
+const pako = require('pako');
 const crypto = require('crypto');
 const { TextDecoder, TextEncoder } = require('text-encoding');
+const mockDexie = require('../../core/unit/utils/dexie');
 
 function hash512(x) {
   return crypto.createHash('sha512').update(x).digest();
@@ -24,9 +26,8 @@ function makeFakeGroupPublicKey(str) {
 
 export default describeModule('hpnv2/manager',
   () => ({
-    'core/utils': {
-      default: {},
-    },
+    ...mockDexie,
+    'platform/lib/zlib': pako,
     'platform/crypto': {
       default: {},
     },
@@ -52,6 +53,10 @@ export default describeModule('hpnv2/manager',
       default: {},
     },
     'platform/console': {
+      default: {},
+    },
+    'core/console': {
+      isLoggingEnabled: () => false,
       default: {},
     },
     'core/gzip': {

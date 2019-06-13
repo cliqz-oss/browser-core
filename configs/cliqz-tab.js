@@ -12,6 +12,7 @@ module.exports = {
   "versionPrefix": "9",
   "settings": Object.assign({}, urls, {
     "id": id,
+    "appName": "Cliqz",
     "name": "appNameNightly",
     "channel": "CT12", // Cliqz Tab Chrome Beta
     "MSGCHANNEL": "cliqz-tab",

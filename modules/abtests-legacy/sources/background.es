@@ -6,7 +6,7 @@ import ABTests from './ab-tests';
   @class Background
  */
 export default background({
-  requiresServices: ['session'],
+  requiresServices: ['session', 'telemetry'],
   /**
     @method init
     @param settings

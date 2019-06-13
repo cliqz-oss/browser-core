@@ -528,13 +528,12 @@ export default class Manager {
         // Test page to see, which crypto APIs a browser supports:
         // https://diafygi.github.io/webcrypto-examples/
         //
-        // Note: As the workaround is currently only relevant for Ghostery, be extra
-        // paranoid and make sure that the Ghostery endpoint is used. That is only
-        // to rule out any misconfigurations. It would be safe though to leave out the
-        // extra check for Ghostery, or extend it to "https://collector-hpn.cliqz.com"
-        // if needed.
+        // Note: As the workaround is currently only relevant for Ghostery/MyOffrz, be extra
+        // paranoid and make sure that the Ghostery/MyOfferz endpoints are used. That is only
+        // to rule out any misconfigurations.
         if (this.endpoints.ENDPOINT_HPNV2_ANONYMOUS === this.endpoints.ENDPOINT_HPNV2_DIRECT
-            && this.endpoints.ENDPOINT_HPNV2_DIRECT === 'https://collector-hpn.ghostery.net') {
+            && (this.endpoints.ENDPOINT_HPNV2_DIRECT === 'https://collector-hpn.ghostery.net'
+                || this.endpoints.ENDPOINT_HPNV2_DIRECT === 'https://collector-hpn.cliqz.com')) {
           logger.debug('The browser does not support ECDH, but as we are not sending through a proxy, TLS encryption is sufficient.');
         } else {
           logger.error('ECDH is not supported by the browser. Cannot send unencrypted data through a 3rd proxy proxy.', e);

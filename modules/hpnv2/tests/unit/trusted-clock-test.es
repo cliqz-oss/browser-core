@@ -3,6 +3,8 @@
 /* global describeModule */
 /* global require */
 
+const pako = require('pako');
+
 const expect = chai.expect;
 
 const SECOND = 1000;
@@ -24,7 +26,8 @@ const MOCKED_PREFS = {
 
 export default describeModule('hpnv2/trusted-clock',
   () => ({
-    './logger': {
+    'platform/lib/zlib': pako,
+    'hpnv2/logger': {
       default: {
         debug() {},
         log() {},
@@ -32,7 +35,7 @@ export default describeModule('hpnv2/trusted-clock',
         error() {},
       }
     },
-    '../core/prefs': {
+    'core/prefs': {
       default: {
         get: (...args) => MOCKED_PREFS.get(...args),
         set: (...args) => MOCKED_PREFS.set(...args),

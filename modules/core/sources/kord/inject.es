@@ -93,6 +93,13 @@ export default {
    * Gets a module wrapper.
    * @param {string} -  moduleName Name of the module to be injected
    */
+  get app() {
+    return {
+      get version() {
+        return app.version;
+      },
+    };
+  },
   module(moduleName) {
     return new ModuleWrapper(moduleName);
   },

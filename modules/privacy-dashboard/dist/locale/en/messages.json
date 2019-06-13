@@ -1,0 +1,80 @@
+{
+    "signals_count_action": {
+        "message": "Count action"
+    },
+    "signals_humanweb_inactive": {
+        "message": "inactive"
+    },
+    "signals_humanweb_inactive_message": {
+        "message": "Human Web is not activated"
+    },
+    "signals_page_info": {
+        "message": "Page info"
+    },
+    "signals_private_urls": {
+        "message": "private URLs"
+    },
+    "signals_redirected_links": {
+        "message": "Redirected links"
+    },
+    "signals_search_results": {
+        "message": "Search result"
+    },
+    "signals_visited_page": {
+        "message": "Visited page"
+    },
+    "signals_what_you_search": {
+        "message": "your search term"
+    },
+    "signals_your_ip_address": {
+        "message": "Your IP-Addresse"
+    },
+    "signals_your_ip_id": {
+        "message": "your IP/IDs: "
+    },
+    "signals_your_location": {
+        "message": "your location"
+    },
+    "transparency_activity_buttons": {
+        "message": "No activity was captured"
+    },
+    "transparency_blocked1": {
+        "message": "Blocked to protect your privacy"
+    },
+    "transparency_blocked2": {
+        "message": "Received by Cliqz"
+    },
+    "transparency_content": {
+        "message": "We respect your privacy and aim to protect it. Cliqz does not collect or store any personal data. Our Transparency Monitor was built to give you insight into which data is generated when using the Cliqz browser. In real-time, it displays the data we receive when you start typing a search term into the address bar or when you visit a website. To protect your privacy, some data is blocked. I.e., these do not even leave your browser (e.g. geo-data, per your Cliqz settings)."
+    },
+    "transparency_content_title": {
+        "message": "Transparency Monitor"
+    },
+    "transparency_document_title": {
+        "message": "Transparency Monitor"
+    },
+    "transparency_html_title": {
+        "message": "Cliqz | Transparency Monitor"
+    },
+    "transparency_humanweb_content": {
+        "message": "Our Human Web technology uses statistical methods and algorithms to continuously enhance the quality of our search results. The collected anonymous, statistical data are related to queries and shown results displayed by one of the complementary search engines. The chosen data architecture prevents any inference about a natural person. The transfer of Human Web data is encrypted and routed through a network of proxy servers. Find more information <a target='_blank' rel='noopener noreferrer' href='https://cliqz.com/en/whycliqz/transparency#human-web'>here</a>."
+    },
+    "transparency_humanweb_title": {
+        "message": "Human Web"
+    },
+    "transparency_legend_title": {
+        "message": "Legend:"
+    },
+    "transparency_search_content": {
+        "message": "The following are data signals concerning the Cliqz search function and display queries and URLs you enter or visit. They help us to optimize your search experience. As you can see, these data do not contain any personally identifiable information (“PII”). You are anonymous to Cliqz. You can route your searches through a network of proxy servers for an even stronger protection. Find more information <a target='_blank' rel='noopener noreferrer' href='https://cliqz.com/en/whycliqz/transparency#your-search'>here</a>."
+    },
+    "transparency_search_title": {
+        "message": "Your search with Cliqz"
+    },
+    "transparency_telemetry_content": {
+        "message": "Telemetry includes all data concerning the usage and performance of the browser and its features. We use these data to continuously improve your Cliqz experience. These data include e.g. the version number of the browser, or the time it takes to display Cliqz search results. Telemetry data do not contain any information about queries, search results or visited URLs. Find more information <a target='_blank' rel='noopener noreferrer' href='https://cliqz.com/en/whycliqz/transparency#telemetry'>here</a>."
+    },
+    "transparency_telemetry_title": {
+        "message": "Telemetry"
+    }
+}

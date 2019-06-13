@@ -1,4 +1,4 @@
-import utils from '../../core/utils';
+import inject from '../../core/kord/inject';
 import prefs from '../../core/prefs';
 
 export default [
@@ -11,7 +11,7 @@ export default [
     sendToBackend: true,
     version: 1,
     generate: () => [{
-      version: utils.extensionVersion,
+      version: inject.app.version,
     }],
     schema: {
       required: ['version'],

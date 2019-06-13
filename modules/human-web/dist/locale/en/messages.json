@@ -1,0 +1,35 @@
+{
+    "hw_data_collection": {
+        "message": "To improve the search and browsing experience, Cliqz for Firefox sends data about web searches and website visits to Cliqz’s servers in a completely anonymous, privacy-safe way."
+    },
+    "hw_page_choice": {
+        "message": "You can choose if you want Cliqz to submit anonymous statistical data to improve relevance and safety via the Human Web."
+    },
+    "hw_page_cliqz_desc": {
+        "message": "By using Cliqz, you benefit from the wisdom of the crowd.  The community of users contributes – totally anonymously – to statistical web data. Our search technology uses this data to rate the relevance, trustworthiness and security of websites. We call this technology that indexes the Internet  with the help oft he users \"Human Web\"."
+    },
+    "hw_page_cliqz_desc_extended": {
+        "message": "Also completely anonymously, and separately from its web traffic data, Cliqz for Firefox records what the community of users search the web for and what they enter into the Cliqz universal browser bar (the combined search box and address bar at the top of your browser window). Each of such entries and site visits are evaluated only as a single event. We never combine data from multiple entries or multiple visits and do not attempt to draw even theoretically possible conclusions about our users. We also never associate any personal data (such as your IP or email address) with any events."
+    },
+    "hw_page_cliqz_hw_desc": {
+        "message": "Cliqz's Human Web technology calculates web traffic statistics for websites that are visited by all users who participate in the Human Web, e.g. the sites’ addresses (URLs) and the amount of time people spend there. This is carried out entirely anonymously, without reference to any personal data or user identity. IP addresses are removed automatically from the Human Web data."
+    },
+    "hw_page_data_collection": {
+        "message": "Human Web collects Cliqz usage data in a completely anonymous, privacy-safe way."
+    },
+    "hw_page_header": {
+        "message": "Human Web"
+    },
+    "hw_page_one_for_all": {
+        "message": "One for all. All for one. Together for a better web."
+    },
+    "hw_page_participate": {
+        "message": "I participate in the Human Web"
+    },
+    "hw_page_participation_disclaimer": {
+        "message": "Participating in Human Web is optional"
+    },
+    "hw_page_privacy_statement": {
+        "message": "Privacy Statement"
+    }
+}

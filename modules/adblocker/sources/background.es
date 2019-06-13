@@ -1,60 +1,111 @@
-import { getBrowserMajorVersion } from '../platform/browser';
+import tabs from '../platform/tabs';
+import { chrome } from '../platform/globals';
 
 import background from '../core/base/background';
 import inject from '../core/kord/inject';
-import prefs from '../core/prefs';
+import stopwatch from '../core/helpers/stopwatch';
+import { parse } from '../core/tlds';
 
-import { extractHostname, getGeneralDomain } from '../core/tlds';
-
-import CliqzADB, { isSupportedProtocol } from './adblocker';
-import {
-  ADB_PREF_VALUES,
+import logger from './logger';
+import Adblocker from './adblocker';
+import config, {
+  ADB_ABTEST_PREF,
   ADB_PREF,
-  ADB_PREF_OPTIMIZED,
+  ADB_PREF_STRICT,
   ADB_USER_LANG,
 } from './config';
 
+function isSupportedProtocol(url) {
+  return (
+    url.startsWith('http://')
+    || url.startsWith('https://')
+    || url.startsWith('ws://')
+    || url.startsWith('wss://')
+  );
+}
 
 export default background({
   humanWeb: inject.module('human-web'),
-  core: inject.module('core'),
+  webRequestPipeline: inject.module('webrequest-pipeline'),
 
   requiresServices: ['domainInfo'],
 
-  enabled() { return true; },
-
-  init() {
-    if (getBrowserMajorVersion() < CliqzADB.MIN_BROWSER_VERSION) {
-      return Promise.resolve();
+  async shallowInit() {
+    this.adblocker = null;
+    if (config.enabled) {
+      this.adblocker = new Adblocker(this.webRequestPipeline);
+      await this.adblocker.init();
     }
-    this.adb = CliqzADB;
-    return CliqzADB.init(this.humanWeb);
+  },
+
+  async init() {
+    await this.shallowInit();
+  },
+
+  shallowUnload() {
+    if (this.adblocker !== null) {
+      this.adblocker.unload();
+      this.adblocker = null;
+    }
   },
 
   unload() {
-    if (getBrowserMajorVersion() < CliqzADB.MIN_BROWSER_VERSION) {
-      return;
-    }
-    CliqzADB.unload();
+    this.shallowUnload();
+  },
+
+  isAdblockerReady() {
+    // This makes sure that adblocker is enabled and that the engine is ready.
+    // Whenever the module is loading of the adblocker is being updated, it can
+    // happen that the `engine` is `null` for a short period of time until
+    // initialization is complete.
+    return this.adblocker !== null && this.adblocker.isReady();
+  },
+
+  logActionHW(url, action, type) {
+    const checkProcessing = this.humanWeb.action('isProcessingUrl', url);
+    checkProcessing.catch(() => {
+      logger.log('no humanweb -> black/whitelist will not be logged');
+    });
+    const existHW = checkProcessing.then((exists) => {
+      if (exists) {
+        return Promise.resolve();
+      }
+      return Promise.reject();
+    });
+    existHW.then(
+      () => {
+        const data = {};
+        data[action] = type;
+        return this.humanWeb.action('addDataToUrl', url, 'adblocker_blacklist', data);
+      },
+      () => logger.log('url does not exist in hw'),
+    );
   },
 
   events: {
-    'control-center:adb-optimized': () => {
-      prefs.set(ADB_PREF_OPTIMIZED, !prefs.get(ADB_PREF_OPTIMIZED, false));
+    'control-center:adb-optimized': function adbOptimized(status) {
+      config.strictMode = status;
     },
 
-    'control-center:adb-activator': (data) => {
-      if (CliqzADB.adblockInitialized) {
-        CliqzADB.urlWhitelist.clearState(data.url);
+    'control-center:adb-activator': function adbActivator(data) {
+      if (this.adblocker !== null) {
+        logger.log('Clear url from whitelist', data.url);
+        this.adblocker.whitelist.clearState(data.url);
       }
 
       if (data.status === 'active') {
-        prefs.set(ADB_PREF, ADB_PREF_VALUES.Enabled);
+        // Control center switch for the adblocker was turned-on
+        logger.log('Turn adblocker ON');
+        config.enabled = true;
       } else if (data.status === 'off') {
+        // Control center switch for the adblocker was turned-off: check which
+        // option was specified: domain, page, all sites.
         if (data.option === 'all-sites') {
-          prefs.set(ADB_PREF, ADB_PREF_VALUES.Disabled);
+          logger.log('Turn adblocker OFF: all sites');
+          config.enabled = false;
         } else {
-          prefs.set(ADB_PREF, ADB_PREF_VALUES.Enabled);
+          logger.log(`Turn adblocker OFF: current ${data.option}`);
+          config.enabled = true;
           let type = data.option;
           if (data.option === 'domain') {
             type = 'hostname';
@@ -62,104 +113,136 @@ export default background({
           if (data.option === 'page') {
             type = 'url';
           }
-          CliqzADB.urlWhitelist.changeState(data.url, type, 'add');
-          CliqzADB.logActionHW(data.url, type, 'add');
+          this.adblocker.whitelist.changeState(data.url, type, 'add');
+          this.logActionHW(data.url, type, 'add');
         }
       }
     },
 
-    prefchange: (pref) => {
-      if (pref === ADB_USER_LANG) {
-        if (CliqzADB.adblockInitialized) {
-          CliqzADB.adBlocker.reset();
+    async prefchange(pref) {
+      if (pref === ADB_PREF_STRICT) {
+        logger.log('Strict mode pref changed: reset');
+        if (this.adblocker !== null) {
+          await this.adblocker.reset();
+        }
+      } else if (pref === ADB_USER_LANG) {
+        if (this.adblocker !== null) {
+          logger.log('Regions override pref changed: update');
+          await this.adblocker.update();
+        }
+      } else if (pref === ADB_PREF || pref === ADB_ABTEST_PREF) {
+        if (this.adblocker === null && config.enabled) {
+          logger.log('Adblocker pref switched: init');
+          await this.shallowInit();
+        } else if (this.adblocker !== null && config.enabled === false) {
+          logger.log('Adblocker pref switched: unload');
+          this.shallowUnload();
         }
       }
     },
   },
 
   actions: {
-    // handles messages coming from process script
     getCosmeticsFilters(sender) {
-      const tabUrl = sender.tab.url;
-      const url = sender.url;
-
-      if (!isSupportedProtocol(tabUrl) || !CliqzADB.isAdbActive(tabUrl)) {
+      if (this.isAdblockerReady() === false) {
         return { active: false };
       }
 
-      const hostname = extractHostname(url);
-      const domain = getGeneralDomain(hostname);
-      return CliqzADB.adBlocker.engine.getCosmeticsFilters(
-        hostname, domain,
-      );
+      const tabUrl = sender.tab.url;
+      const url = sender.url;
+
+      if (!isSupportedProtocol(tabUrl) || !isSupportedProtocol(url)
+        || !this.adblocker.isAdblockerEnabledForUrl(tabUrl)) {
+        return { active: false };
+      }
+
+      let timer = stopwatch('getCosmeticsFilters', 'adblocker');
+      const { hostname, domain } = parse(url);
+      const { active, styles, scripts } = this.adblocker.manager.engine.getCosmeticsFilters({
+        url,
+        hostname: hostname || '',
+        domain: domain || '',
+      });
+      timer.stop();
+
+      // This can happen if cosmetic filters are disabled in the adblocker
+      if (active === false) {
+        return { active: false };
+      }
+
+      // Use tabs API to inject cosmetics
+      if (styles.length > 0) {
+        timer = stopwatch('injectCSS', 'adblocker');
+        const cb = () => {
+          timer.stop();
+          if (chrome.runtime.lastError) {
+            logger.error('Error while injecting CSS', chrome.runtime.lastError.message);
+          }
+        };
+
+        const promise = tabs.insertCSS(
+          sender.tab.id,
+          {
+            allFrames: false,
+            code: styles,
+            cssOrigin: 'user',
+            frameId: sender.frameId,
+            matchAboutBlank: false,
+            runAt: 'document_start',
+          },
+          cb,
+        );
+
+        if (promise !== undefined) {
+          promise.then(cb).catch(cb);
+        }
+      }
+
+      // Inject scripts from content script
+      return { active, scripts };
     },
 
-    getAdBlockInfo(tabId) {
-      return CliqzADB.adbStats.report(tabId);
-    },
-
+    /**
+     * Return statistics about a specific tab (used in Ghostery).
+     */
     getAdBlockInfoForTab(tabId) {
-      return CliqzADB.adbStats.report(tabId);
+      if (this.adblocker === null) {
+        return {};
+      }
+
+      return this.adblocker.stats.report(tabId);
     },
 
+    /**
+     * Return trackers statistics about a specific tab (used in insights module).
+     */
     getGhosteryStats(tabId) {
-      return CliqzADB.adbStats.reportTrackers(tabId);
+      if (this.adblocker === null) {
+        return {
+          bugs: {},
+          others: {},
+        };
+      }
+
+      return this.adblocker.stats.reportTrackers(tabId);
     },
 
     isWhitelisted(url) {
-      return CliqzADB.urlWhitelist.isWhitelisted(url);
-    },
-
-    changeWhitelistState(url, type, action) {
-      return CliqzADB.urlWhitelist.changeState(url, type, action);
-    },
-
-    getWhitelistState(url) {
-      return CliqzADB.urlWhitelist.getState(url);
-    },
-
-    // legacy api for mobile
-    isDomainInBlacklist(domain) {
-      return this.actions.isWhitelisted(domain);
-    },
-
-    toggleUrl(url, domain) {
-      if (domain) {
-        this.actions.changeWhitelistState(url, 'hostname', 'toggle');
-      } else {
-        this.actions.changeWhitelistState(url, 'url', 'toggle');
-      }
-    },
-
-    pause() {
-      this.adb.paused = true;
-    },
-
-    resume() {
-      this.adb.paused = false;
-    },
-
-    addPipelineStep(opts) {
-      if (!this.adb.onBeforeRequestPipeline) {
-        return Promise.reject(new Error(`Could not add pipeline step: ${opts.name}`));
+      if (this.adblocker === null) {
+        return false;
       }
 
-      return Promise.all([this.adb.onBeforeRequestPipeline, this.adb.onHeadersReceivedPipeline]
-        .map(pipeline => pipeline.addPipelineStep(opts)));
+      return this.adblocker.whitelist.isWhitelisted(url);
     },
-    removePipelineStep(name) {
-      if (this.adb && this.adb.onBeforeRequestPipeline) {
-        [this.adb.onBeforeRequestPipeline, this.adb.onHeadersReceivedPipeline]
-          .forEach((pipeline) => {
-            pipeline.removePipelineStep(name);
-          });
-      }
-    },
+
     addWhiteListCheck(fn) {
-      CliqzADB.addWhiteListCheck(fn);
+      if (this.adblocker !== null) {
+        this.adblocker.addWhiteListCheck(fn);
+      }
     },
+
     isEnabled() {
-      return CliqzADB.adbEnabled();
+      return this.adblocker !== null;
     },
   },
 });

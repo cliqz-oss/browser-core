@@ -1,6 +1,6 @@
-import utils from '../core/utils';
 import prefs from '../core/prefs';
 import console from '../core/console';
+import Storage from '../core/storage';
 
 import config from './config';
 
@@ -13,7 +13,7 @@ export default class NewsCache {
     this.cacheName = cacheName;
     this.timerName = `${cacheName}_timer`;
     this.updateInterval = updateInterval;
-    this.localStore = utils.getLocalStorage(config.settings.NEW_TAB_URL);
+    this.localStore = new Storage(config.settings.NEW_TAB_URL);
     this.updateFunction = updateFunction;
 
     // remove old versions of the caches

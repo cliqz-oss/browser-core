@@ -1,0 +1,260 @@
+{
+    "add_to_browser": {
+        "message": "Zu $1 hinzufügen"
+    },
+    "freshtab_app_conditions": {
+        "message": "Konditionen"
+    },
+    "freshtab_app_middle_box_blue_theme_cta": {
+        "message": "Jetzt anpassen"
+    },
+    "freshtab_app_middle_box_blue_theme_desc": {
+        "message": "Cliqz hat jetzt eine Tableiste in schönem Blau. Zudem gibt es ein entspannendes Alpenpanorama als neuen Hintergrund."
+    },
+    "freshtab_app_middle_box_blue_theme_hdr": {
+        "message": "Mach doch mal blau!"
+    },
+    "freshtab_app_middle_box_french_news_cta": {
+        "message": "Essayez dès maintenant !"
+    },
+    "freshtab_app_middle_box_french_news_desc": {
+        "message": "L'édition française de Top News sélectionne les informations les plus importantes, parmis les journaux les plus respectés en France."
+    },
+    "freshtab_app_middle_box_french_news_hdr": {
+        "message": "Lisez Top News en français dès maintenant !"
+    },
+    "freshtab_app_middle_box_ft_amo_cta": {
+        "message": "Jetzt anpassen"
+    },
+    "freshtab_app_middle_box_ft_amo_desc": {
+        "message": "Klicken Sie auf das Einstellungen-Zahnrad um $1 Tab anzupassen. Ein- und Ausschalten können Sie es im Cliqz Control Center."
+    },
+    "freshtab_app_middle_box_ft_amo_hdr": {
+        "message": "Frisches Aussehen für neue Tabs! Und so leicht anpassbar."
+    },
+    "freshtab_app_middle_box_new_cliqz_tab_cta": {
+        "message": "Probier es aus"
+    },
+    "freshtab_app_middle_box_new_cliqz_tab_desc": {
+        "message": "Ab sofort kannst du $1 Tab für dich anpassen."
+    },
+    "freshtab_app_middle_box_new_cliqz_tab_hdr": {
+        "message": "Nicht nur die inneren Werte zählen!"
+    },
+    "freshtab_app_middle_box_promote_mobile_desc": {
+        "message": "Profitiere auch unterwegs von Schnellsuche, Datenschutz und Werbeblocker. Lade jetzt die kostenlose Cliqz-App herunter!"
+    },
+    "freshtab_app_middle_box_promote_mobile_hdr": {
+        "message": "Cliqz für Android und iOS"
+    },
+    "freshtab_app_news_breaking_news": {
+        "message": "Eilmeldung:"
+    },
+    "freshtab_app_news_read_more": {
+        "message": "Weiterlesen"
+    },
+    "freshtab_app_settings_background_label": {
+        "message": "Hintergrund"
+    },
+    "freshtab_app_settings_browser_theme": {
+        "message": "Browser Theme"
+    },
+    "freshtab_app_settings_browser_theme_blue": {
+        "message": "Blaue Tab-Leiste"
+    },
+    "freshtab_app_settings_browser_theme_dark": {
+        "message": "Dunkel"
+    },
+    "freshtab_app_settings_browser_theme_light": {
+        "message": "Hell"
+    },
+    "freshtab_app_settings_favorites_label": {
+        "message": "Favoriten"
+    },
+    "freshtab_app_settings_header": {
+        "message": "Anpassen"
+    },
+    "freshtab_app_settings_most_visited_label": {
+        "message": "Meistbesuchte Seiten"
+    },
+    "freshtab_app_settings_most_visited_restore": {
+        "message": "Alle zurücksetzen"
+    },
+    "freshtab_app_settings_news_label": {
+        "message": "Nachrichten"
+    },
+    "freshtab_app_settings_news_language_de": {
+        "message": "Deutsche Medien"
+    },
+    "freshtab_app_settings_news_language_de_tr_en": {
+        "message": "Deutsche Medien auf Englisch"
+    },
+    "freshtab_app_settings_news_language_en": {
+        "message": "UK & U.S. Medien"
+    },
+    "freshtab_app_settings_news_language_es": {
+        "message": "Spanische Medien"
+    },
+    "freshtab_app_settings_news_language_fr": {
+        "message": "Französische Medien"
+    },
+    "freshtab_app_settings_news_language_gb": {
+        "message": "Britische Medien"
+    },
+    "freshtab_app_settings_news_language_it": {
+        "message": "Italienische Medien"
+    },
+    "freshtab_app_settings_news_language_pl": {
+        "message": "Polnische Medien"
+    },
+    "freshtab_app_settings_news_language_ru": {
+        "message": "Russische Medien"
+    },
+    "freshtab_app_settings_news_language_us": {
+        "message": "U.S. Medien"
+    },
+    "freshtab_app_settings_privacy_stats": {
+        "message": "Statistiken"
+    },
+    "freshtab_app_settings_search_label": {
+        "message": "Suchleiste"
+    },
+    "freshtab_app_speed_dial_add": {
+        "message": "Hinzufügen"
+    },
+    "freshtab_app_speed_dial_add_header": {
+        "message": "Zum $1 Tab hinzufügen"
+    },
+    "freshtab_app_speed_dial_delete": {
+        "message": "Entfernen"
+    },
+    "freshtab_app_speed_dial_edit_address_header": {
+        "message": "Adresse ändern"
+    },
+    "freshtab_app_speed_dial_edit_header": {
+        "message": "Name oder Adresse ändern"
+    },
+    "freshtab_app_speed_dial_edit_title_header": {
+        "message": "Name ändern"
+    },
+    "freshtab_app_speed_dial_exists_already": {
+        "message": "Adresse existiert bereits"
+    },
+    "freshtab_app_speed_dial_input_address_placeholder": {
+        "message": "Adresse eingeben"
+    },
+    "freshtab_app_speed_dial_input_title_placeholder": {
+        "message": "Name eingeben (optional)"
+    },
+    "freshtab_app_speed_dial_not_valid": {
+        "message": "Adresse ist nicht gültig"
+    },
+    "freshtab_app_speed_dial_removed": {
+        "message": "wurde entfernt"
+    },
+    "freshtab_app_speed_dial_save": {
+        "message": "Speichern"
+    },
+    "freshtab_app_speed_dial_undo": {
+        "message": "Rückgängig"
+    },
+    "freshtab_app_speed_dials_row_custom": {
+        "message": "Favoriten"
+    },
+    "freshtab_app_speed_dials_row_history": {
+        "message": "Meistbesuchte Seiten"
+    },
+    "freshtab_app_speed_dials_row_history_onboarding": {
+        "message": "Deine meistbesuchten Seiten werden hier erscheinen"
+    },
+    "freshtab_app_top_box_import_bookmarks_cta": {
+        "message": "Jetzt Importieren"
+    },
+    "freshtab_app_top_box_import_bookmarks_hdr": {
+        "message": "Importiere jetzt Lesezeichen, Passwörter und Chronik."
+    },
+    "freshtab_app_top_box_import_bookmarks_later": {
+        "message": "Später"
+    },
+    "freshtab_cliqz_for_friends_button": {
+        "message": "Cliqz for friends"
+    },
+    "freshtab_cliqz_modules_button": {
+        "message": "Cliqz Modules"
+    },
+    "freshtab_cliqz_modules_list": {
+        "message": "Cliqz modules list"
+    },
+    "freshtab_cliqz_post_remind_later": {
+        "message": "Später erinnern"
+    },
+    "freshtab_cliqz_tab_button": {
+        "message": "$1 Tab"
+    },
+    "freshtab_cliqz_tab_settings_button": {
+        "message": "$1 Tab Einstellungen"
+    },
+    "freshtab_history_button": {
+        "message": "Chronik"
+    },
+    "freshtab_search_reminder": {
+        "message": "Drücke die Tab-Taste, um zur anonymen Suche zu wechseln!"
+    },
+    "freshtab_search_reminder_action": {
+        "message": ""
+    },
+    "freshtab_stats_ads_blocked": {
+        "message": "Blockierte Werbungen"
+    },
+    "freshtab_stats_ads_blocked_by_desc": {
+        "message": "Summe der von $1 blockierten Werbungen"
+    },
+    "freshtab_stats_cliqz_trackers_blocked": {
+        "message": "Anonymisierte Daten"
+    },
+    "freshtab_stats_cliqz_trackers_blocked_desc": {
+        "message": "Summe der von Cliqz entfernten persönlichen Tracking-Daten"
+    },
+    "freshtab_stats_data_anonymized_by_desc": {
+        "message": "Deine privaten Daten wurden von $1 anonymisiert."
+    },
+    "freshtab_stats_dp_anonymized": {
+        "message": "Datenpunkte anonymisiert"
+    },
+    "freshtab_stats_gt_trackers_blocked": {
+        "message": "Tracker blockiert"
+    },
+    "freshtab_stats_gt_trackers_seen": {
+        "message": "von $1 der insgesamt von Ghostery entdeckten Tracker"
+    },
+    "freshtab_stats_time_saved": {
+        "message": "Gesparte Zeit"
+    },
+    "freshtab_stats_time_saved_desc": {
+        "message": "Geschätzte Zeit, die du dank Cliqz gespart hast."
+    },
+    "freshtab_top_news": {
+        "message": "Top Nachrichten"
+    },
+    "freshtab_top_sites": {
+        "message": "Top Seiten"
+    },
+    "freshtab_urlbar_placeholder": {
+        "message": "Anonym suchen"
+    },
+    "freshtab_your_news": {
+        "message": "Deine Nachrichtenseiten"
+    },
+    "learn_more": {
+        "message": "Mehr erfahren"
+    },
+    "promo_data_brand_name": {
+        "message": "Ghostery - datenschutzorientierter Werbeblocker"
+    },
+    "promo_data_description": {
+        "message": "Füge deinem Browser die leistungsstarke Datenschutz-Erweiterung hinzu."
+    },
+    "promo_data_description_2": {
+        "message": "Blockiere Werbung, stoppe Tracker und beschleunige Websites."
+    }
+}

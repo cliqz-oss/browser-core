@@ -4,7 +4,7 @@ import { NetInfo } from 'react-native';
 import console from '../core/console';
 import config from '../core/config';
 import { fetch, Request } from './fetch';
-import Database from '../core/database-migrate';
+import getDexie from './lib/dexie';
 import ua from './user-agent';
 
 const VERSION = '2.2';
@@ -12,47 +12,46 @@ const QUEUE_MAX_SIZE = 100;
 const MAX_BATCH_SIZE = 5;
 
 class MessageBatch {
-  constructor(_queue, docs) {
-    this.queue = _queue;
+  constructor(collection, docs) {
+    this.collection = collection;
     this.docs = docs;
   }
 
   getMessages() {
-    return this.docs.rows.map(row => row.doc.msg);
+    return this.docs.map(row => row.msg);
   }
 
   delete() {
-    const deleteDocs = this.docs.rows.map(row => ({
-      _id: row.doc._id,
-      _rev: row.doc._rev,
-      _deleted: true,
-    }));
-    return this.queue.bulkDocs(deleteDocs);
+    return this.collection.delete();
   }
 }
 
 class MessageQueue {
   constructor(maxSize) {
     this.maxSize = maxSize;
-    this.queue = new Database('telemetry-queue', { auto_compaction: true });
   }
 
-  init() {
-    return this.queue.init();
+  async init() {
+    const Dexie = await getDexie();
+    this.db = new Dexie('telemetry-queue2');
+    this.db.version(1).stores({
+      queue: 'id',
+    });
+    this.queue = this.db.queue;
+    return this.db.open();
   }
 
   getSize() {
-    return this.queue.info().then((info) => {
-      console.log(`MessageQueue has ${info.doc_count} messages`);
-      return info.doc_count;
+    return this.queue.count().then((count) => {
+      console.log(`MessageQueue has ${count} messages`);
+      return count;
     });
   }
 
-  getMessageBatch(maxSize) {
-    return this.queue.allDocs({
-      include_docs: true,
-      limit: maxSize,
-    }).then(docs => new MessageBatch(this.queue, docs));
+  async getMessageBatch(maxSize) {
+    const batchCollection = this.queue.limit(maxSize);
+    const entries = await batchCollection.toArray();
+    return new MessageBatch(batchCollection, entries);
   }
 
   prune() {
@@ -77,7 +76,7 @@ class MessageQueue {
 
   push(msg) {
     return this.queue.put({
-      _id: MessageQueue.generateMessageId(),
+      id: MessageQueue.generateMessageId(),
       msg,
     });
   }

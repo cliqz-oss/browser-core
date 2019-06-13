@@ -33,7 +33,7 @@ module.exports = {
     "modules.insights.enabled": false,
     "offersLogsEnabled": true,
     "showConsoleLogs": false,
-    "cliqz-adb": true,
+    "cliqz-adb": 1,
     "cliqz-adb-abtest": true,
     "attrackBloomFilter": true,
     "humanWeb": true,
@@ -44,6 +44,7 @@ module.exports = {
     "sendAntiTrackingHeader": false,
     "telemetry": false,
     "attrackCookieTrustReferers": true,
+    "attrack.cookieMode": 'ghostery',
   },
   "bundles": [
     "core/content-script.bundle.js",

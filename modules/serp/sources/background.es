@@ -1,5 +1,5 @@
 import background from '../core/base/background';
-import utils from '../core/utils';
+import telemetry from '../core/services/telemetry';
 import Storage from '../core/storage';
 import prefs from '../core/prefs';
 import { getDefaultEngine } from '../core/search-engines';
@@ -9,6 +9,8 @@ import { getDefaultEngine } from '../core/search-engines';
   @class Background
  */
 export default background({
+  requiresServices: ['telemetry'],
+
   /**
     @method init
     @param settings
@@ -31,8 +33,10 @@ export default background({
     const group = prefs.get('serp_test', null);
     const serpAlternativeSearchEngine = (this.storage.getItem('alternative-search-engine') || 'Google').toLowerCase();
     const isCliqzDefaultEngine = getDefaultEngine().name === 'Cliqz';
-    utils.telemetry({ group, isCliqzDefaultEngine, serpAlternativeSearchEngine },
-      false, 'metrics.experiments.serp.state');
+    telemetry.push(
+      { group, isCliqzDefaultEngine, serpAlternativeSearchEngine },
+      'metrics.experiments.serp.state',
+    );
 
     // resend after 24h
     this.supportABtest = setTimeout(this.sendSERPtelemetry.bind(this), 24 * 60 * 60 * 1000);

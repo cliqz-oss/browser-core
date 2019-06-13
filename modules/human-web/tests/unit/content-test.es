@@ -138,8 +138,12 @@ export default describeModule('human-web/content',
         checkDetectedAds(loadFixture('shoe-ads'));
       });
 
+      it('should find all ads on the Google results page of "gardening shoes"', function () {
+        checkDetectedAds(loadFixture('gardening-shoes-2019-04-08'));
+      });
+
       it('should find all potato ads on the Google results page of "Kartoffeln kaufen"', function () {
-        checkDetectedAds(loadFixture('potato-ads'));
+        checkDetectedAds(loadFixture('potato-ads-2019-04-08'));
       });
 
       it('should find all coffee ads on the Google results page of "Der beste Kaffee der Welt"', function () {
@@ -165,13 +169,17 @@ export default describeModule('human-web/content',
       });
 
       it('Android user agent: page without ads', function () {
-        checkDetectedAds(loadFixture('android-user-agent-page-without-ads'));
+        checkDetectedAds(loadFixture('android-user-agent-page-without-ads-2019-04-08'));
       });
 
       // Note: I leave this test in, but only as a documentation if we
       // want to support mobile. It is not meant to define what is expected.
-      // Even though the page/ shows ads, the list of expected urls in this
-      // test is empty.
+      // Even though the page shows ads, not all of them are detected.
+      //
+      // ----------------------------------------------------------------------
+      //
+      // (Note: The rest is an old comment from 2017. Be skeptical if it
+      // still applies today.)
       //
       // On mobile, the mechanism is different from Desktop. The target url
       // does not show up the original html, instead you are redirected by

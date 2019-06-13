@@ -1,0 +1,5 @@
+{
+    "context_menu_search_item": {
+        "message": "Найти \"$2\" в $1"
+    }
+}

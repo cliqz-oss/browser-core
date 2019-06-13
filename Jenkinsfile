@@ -73,11 +73,6 @@ def matrix = [
         'config': 'configs/ci/cliqz-tab.js',
         'testParams': '-l chromium-headless',
     ],
-    'cliqz-android': [
-        'gpu': true,
-        'config': 'configs/ci/cliqz-android.js',
-        'testParams': '-l firefox-web-ext --firefox ~/firefox60/firefox/firefox',
-    ],
     'ghostery': [
         'gpu': false,
         'config': 'configs/ci/ghostery.js',

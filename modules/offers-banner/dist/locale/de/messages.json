@@ -1,0 +1,29 @@
+{
+    "offers_badge_text_new": {
+        "message": "NEU"
+    },
+    "offers_expires_day": {
+        "message": "Tag"
+    },
+    "offers_expires_days": {
+        "message": "Tage"
+    },
+    "offers_expires_hour": {
+        "message": "Stunde"
+    },
+    "offers_expires_hours": {
+        "message": "Stunden"
+    },
+    "offers_expires_in": {
+        "message": "Noch"
+    },
+    "offers_expires_minute": {
+        "message": "Minute"
+    },
+    "offers_expires_minutes": {
+        "message": "Minuten"
+    },
+    "offers_hub_tooltip_new_offer": {
+        "message": "Du hast ein neues Angebot"
+    }
+}

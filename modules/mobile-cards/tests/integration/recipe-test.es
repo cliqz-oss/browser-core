@@ -122,7 +122,7 @@ export default function () {
 
         expect($recipes[0].querySelector(timeSelector)).to.exist;
         expect($recipes[0].querySelector(timeSelector))
-          .to.have.text(getMessage('CookTime', results[0].snippet.extra.rich_data.cook_time));
+          .to.have.text(getMessage('cook_time', results[0].snippet.extra.rich_data.cook_time));
       });
     });
 

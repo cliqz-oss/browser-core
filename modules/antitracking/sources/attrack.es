@@ -23,8 +23,9 @@ import md5 from '../core/helpers/md5';
 import telemetry from './telemetry';
 import { HashProb } from './hash';
 import { getDefaultTrackerTxtRule } from './tracker-txt';
+import { isPrivateIP } from '../core/url';
 import { URLInfo, shuffle } from '../core/url-info';
-import { VERSION, MIN_BROWSER_VERSION, TELEMETRY } from './config';
+import { VERSION, TELEMETRY, COOKIE_MODE } from './config';
 import { checkInstalledPrivacyAddons } from '../platform/addon-check';
 import { compressionAvailable, compressJSONToBase64, generateAttrackPayload } from './utils';
 import AttrackDatabase from './database';
@@ -35,7 +36,6 @@ import BlockRules from './steps/block-rules';
 import CookieContext from './steps/cookie-context';
 import PageLogger from './steps/page-logger';
 import RedirectTagger from './steps/redirect-tagger';
-import SubdomainChecker from './steps/subdomain-check';
 import TokenChecker from './steps/token-checker';
 import TokenExaminer from './steps/token-examiner';
 import TokenTelemetry from './steps/token-telemetry';
@@ -45,13 +45,13 @@ import { skipInternalProtocols, skipInvalidSource, checkSameGeneralDomain } from
 export default class CliqzAttrack {
   constructor() {
     this.VERSION = VERSION;
-    this.MIN_BROWSER_VERSION = MIN_BROWSER_VERSION;
     this.LOG_KEY = 'attrack';
     this.debug = false;
     this.msgType = 'attrack';
     this.similarAddon = false;
     this.tp_events = null;
     this.recentlyModified = new TempSet();
+    this.whitelistedRequestCache = new Set();
     this.urlWhitelist = new UrlWhitelist('attrack-url-whitelist');
 
     // Web request pipelines
@@ -59,7 +59,28 @@ export default class CliqzAttrack {
     this.pipelineSteps = {};
     this.pipelines = {};
 
+    this.ghosteryDomains = {};
+
     this.db = new AttrackDatabase();
+  }
+
+  checkIsWhitelisted(state) {
+    if (this.whitelistedRequestCache.has(state.requestId)) {
+      return true;
+    }
+    if (this.isWhitelisted(state)) {
+      this.whitelistedRequestCache.add(state.requestId);
+      return true;
+    }
+    return false;
+  }
+
+  isWhitelisted(state) {
+    return state.tabUrlParts !== null && this.urlWhitelist.isWhitelisted(
+      state.tabUrl,
+      state.tabUrlParts.hostname,
+      state.tabUrlParts.generalDomain,
+    );
   }
 
   obfuscate(s, method) {
@@ -82,7 +103,6 @@ export default class CliqzAttrack {
   getPrivateValues(window) {
     // creates a list of return values of functions may leak private info
     const p = {};
-    // var navigator = utils.getWindow().navigator;
     const navigator = window.navigator;
     // plugins
     for (let i = 0; i < navigator.plugins.length; i += 1) {
@@ -106,10 +126,7 @@ export default class CliqzAttrack {
     return this.config.enabled;
   }
 
-  isCookieEnabled(url) {
-    if (url !== undefined && this.urlWhitelist.isWhitelisted(url)) {
-      return false;
-    }
+  isCookieEnabled() {
     return this.config.cookieEnabled;
   }
 
@@ -187,10 +204,6 @@ export default class CliqzAttrack {
   init(config, settings) {
     const initPromises = [];
     this.config = config;
-    // disable for older browsers
-    if (browser.getBrowserMajorVersion() < this.MIN_BROWSER_VERSION) {
-      return Promise.resolve();
-    }
 
     // Replace getWindow functions with window object used in init.
     if (this.debug) console.log('Init function called:', this.LOG_KEY);
@@ -275,7 +288,6 @@ export default class CliqzAttrack {
         blockRules: new BlockRules(this.config),
         cookieContext: new CookieContext(this.config, this.tp_events, this.qs_whitelist),
         redirectTagger: new RedirectTagger(),
-        subdomainChecker: new SubdomainChecker(this.config),
         oauthDetector: new OAuthDetector(),
       };
       if (this.config.databaseEnabled && this.config.telemetryMode !== TELEMETRY.DISABLED) {
@@ -349,11 +361,6 @@ export default class CliqzAttrack {
           fn: (state, response) => this.cancelRecentlyModified(state, response),
         },
         {
-          name: 'subdomainChecker.checkBadSubdomain',
-          spec: 'blocking',
-          fn: (state, response) => steps.subdomainChecker.checkBadSubdomain(state, response),
-        },
-        {
           name: 'pageLogger.attachStatCounter',
           spec: 'annotate',
           fn: state => steps.pageLogger.attachStatCounter(state),
@@ -371,6 +378,11 @@ export default class CliqzAttrack {
               const annotations = state.getPageAnnotations();
               annotations.counter = annotations.counter || new TrackerCounter();
               annotations.counter.addTrackerSeen(state.ghosteryBug, state.urlParts.hostname);
+            }
+            if (state.ghosteryBug && this.config.cookieMode === COOKIE_MODE.GHOSTERY) {
+              // track domains used by ghostery rules so that we only block cookies for these
+              // domains
+              this.ghosteryDomains[state.urlParts.generalDomain] = state.ghosteryBug;
             }
           },
         },
@@ -411,7 +423,7 @@ export default class CliqzAttrack {
           name: 'checkSourceWhitelisted',
           spec: 'break',
           fn: (state) => {
-            if (this.urlWhitelist.isWhitelisted(state.tabUrlParts.hostname)) {
+            if (this.checkIsWhitelisted(state)) {
               state.incrementStat('source_whitelisted');
               return false;
             }
@@ -491,11 +503,6 @@ export default class CliqzAttrack {
           fn: checkSameGeneralDomain,
         },
         {
-          name: 'subdomainChecker.checkBadSubdomain',
-          spec: 'blocking',
-          fn: (state, response) => steps.subdomainChecker.checkBadSubdomain(state, response),
-        },
-        {
           name: 'pageLogger.attachStatCounter',
           spec: 'annotate',
           fn: state => steps.pageLogger.attachStatCounter(state),
@@ -565,6 +572,11 @@ export default class CliqzAttrack {
           fn: state => this.checkCompatibilityList(state),
         },
         {
+          name: 'checkCookieBlockingMode',
+          spec: 'break',
+          fn: state => this.checkCookieBlockingMode(state),
+        },
+        {
           name: 'cookieContext.checkCookieTrust',
           spec: 'break',
           fn: state => steps.cookieContext.checkCookieTrust(state),
@@ -588,8 +600,8 @@ export default class CliqzAttrack {
           name: 'shouldBlockCookie',
           spec: 'break',
           fn: (state) => {
-            const shouldBlock = this.isCookieEnabled(state.tabUrlParts.hostname)
-                                && !this.config.paused;
+            const shouldBlock = !this.checkIsWhitelisted(state)
+              && this.isCookieEnabled(state) && !this.config.paused;
             if (!shouldBlock) {
               state.incrementStat('bad_cookie_sent');
             }
@@ -725,7 +737,8 @@ export default class CliqzAttrack {
         {
           name: 'shouldBlockCookie',
           spec: 'break',
-          fn: state => this.isCookieEnabled(state.tabUrlParts.hostname),
+          fn: state => !this.checkIsWhitelisted(state)
+            && this.isCookieEnabled(state),
         },
         {
           name: 'checkIsCookieWhitelisted',
@@ -736,6 +749,11 @@ export default class CliqzAttrack {
           name: 'checkCompatibilityList',
           spec: 'break',
           fn: state => this.checkCompatibilityList(state),
+        },
+        {
+          name: 'checkCookieBlockingMode',
+          spec: 'break',
+          fn: state => this.checkCookieBlockingMode(state),
         },
         {
           name: 'cookieContext.checkCookieTrust',
@@ -773,6 +791,20 @@ export default class CliqzAttrack {
 
       this.pipelines.onCompleted = new Pipeline('antitracking.onCompleted', [
         {
+          name: 'logPrivateDocument',
+          spec: 'break',
+          fn: (state) => {
+            if (state.isMainFrame && state.ip) {
+              if (isPrivateIP(state.ip)) {
+                const pageInfo = this.tp_events.getPageForTab(state.tabId);
+                pageInfo.private = true;
+              }
+              return false;
+            }
+            return true;
+          }
+        },
+        {
           name: 'pageLogger.reattachStatCounter',
           spec: 'annotate',
           fn: state => steps.pageLogger.reattachStatCounter(state),
@@ -781,6 +813,7 @@ export default class CliqzAttrack {
           name: 'logIsCached',
           spec: 'collect',
           fn: (state) => {
+            this.whitelistedRequestCache.delete(state.requestId);
             state.incrementStat(state.fromCache ? 'cached' : 'not_cached');
           }
         }
@@ -795,6 +828,7 @@ export default class CliqzAttrack {
           name: 'logError',
           spec: 'collect',
           fn: (state) => {
+            this.whitelistedRequestCache.delete(state.requestId);
             if (state.error && state.error.indexOf('ABORT')) {
               state.incrementStat('error_abort');
             }
@@ -852,32 +886,26 @@ export default class CliqzAttrack {
   /** Per-window module initialisation
   */
   initWindow(window) {
-    if (browser.getBrowserMajorVersion() < this.MIN_BROWSER_VERSION) {
-      return;
-    }
     this.getPrivateValues(window);
   }
 
   unload() {
-    // don't need to unload if disabled
-    if (browser.getBrowserMajorVersion() >= this.MIN_BROWSER_VERSION) {
-      // Check is active usage, was sent
-      this.hashProb.unload();
-      this.qs_whitelist.destroy();
+    // Check is active usage, was sent
+    this.hashProb.unload();
+    this.qs_whitelist.destroy();
 
-      // force send tab telemetry data
-      // NOTE - this is an async operation
-      this.tp_events.commit(true, true);
-      this.tp_events.push(true);
+    // force send tab telemetry data
+    // NOTE - this is an async operation
+    this.tp_events.commit(true, true);
+    this.tp_events.push(true);
 
-      this.tp_events.removeEventListener('stage', this._onPageStaged);
+    this.tp_events.removeEventListener('stage', this._onPageStaged);
 
-      this.unloadPipeline();
+    this.unloadPipeline();
 
-      this.db.unload();
+    this.db.unload();
 
-      this.onSafekeysUpdated.unsubscribe();
-    }
+    this.onSafekeysUpdated.unsubscribe();
   }
 
   checkInstalledAddons() {
@@ -971,6 +999,23 @@ export default class CliqzAttrack {
     if (this.config.compabilityList
         && this.config.compatibilityList[tpGd]
         && this.config.compatibilityList[tpGd].indexOf(fpGd) !== -1) {
+      return false;
+    }
+    return true;
+  }
+
+  checkCookieBlockingMode(state) {
+    const mode = this.config.cookieMode;
+    if (mode === COOKIE_MODE.TRACKERS
+        && !this.qs_whitelist.isTrackerDomain(state.urlParts.generalDomainHash)) {
+      state.incrementStat('cookie_allow_nottracker');
+      return false;
+    }
+    if (mode === COOKIE_MODE.GHOSTERY && !this.ghosteryDomains[state.urlParts.generalDomain]
+        && !state.urlParts.generalDomainMinusTLD !== 'google') {
+      // in Ghostery mode: if the domain did not match a ghostery bug we allow it. One exception
+      // are third-party google.tld cookies, which we do not allow with this mechanism.
+      state.incrementStat('cookie_allow_ghostery');
       return false;
     }
     return true;

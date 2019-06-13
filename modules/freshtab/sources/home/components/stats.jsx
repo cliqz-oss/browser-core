@@ -33,7 +33,7 @@ function StatsBox({
         <span>{val}</span>
       </p>
       <p className="stats-description">{description}</p>
-      <p className="learn-more">{tt('learnMore')}</p>
+      <p className="learn-more">{tt('learn_more')}</p>
     </Link>
   );
 }

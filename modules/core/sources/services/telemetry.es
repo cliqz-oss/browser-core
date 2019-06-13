@@ -1,10 +1,10 @@
 import prefs from '../prefs';
 import { isDesktopBrowser, isOnionModeFactory } from '../platform';
 import { subscribe } from '../events';
+import { isPrivateMode, getWindow } from '../browser';
 import inject from '../kord/inject';
 import EventEmitter from '../event-emitter';
 import Logger from '../logger';
-import utils from '../utils';
 
 const logger = Logger.get('telemetry', {
   level: 'log',
@@ -13,9 +13,17 @@ const logger = Logger.get('telemetry', {
 
 const isOnionMode = isOnionModeFactory(prefs);
 
+function isBrowserTelemetryEnabled() {
+  // This check uses 'host prefs' which are present in Cliqz Browsers only.
+  // In non Cliqz products like Chrome or Firefox the default value will be used.
+  return isDesktopBrowser
+    ? prefs.get('uploadEnabled', true, 'datareporting.healthreport.')
+    // on Android different pref is in use
+    : prefs.get('enabled', true, 'toolkit.telemetry.');
+}
+
 function isTelemetryEnabled() {
-  // Anolysis is disabled if the healthreport is turned off in Cliqz or Ghostery Browser.
-  if (isDesktopBrowser && prefs.get('uploadEnabled', true, 'datareporting.healthreport.') !== true) {
+  if (!isBrowserTelemetryEnabled()) {
     logger.log('Telemetry disabled because of user opt-out');
     return false;
   }
@@ -151,6 +159,10 @@ export function service(app) {
     isEnabled() {
       return enabled;
     },
+    verifyStatus() {
+      updateTelemetryState();
+    },
+    isBrowserTelemetryEnabled,
     push(payload, schemaName, instant) {
       logger.debug('signal pushed', payload, schemaName, instant);
 
@@ -168,7 +180,8 @@ export function service(app) {
       // a window is available, the check is performed before calling
       // `telemetry.push`. The following check is simply a fallback, to catch as
       // many cases as possible (although it is not bullet-proof).
-      if (utils.getWindow() && utils.isPrivateMode(utils.getWindow())) {
+      const currentWindow = getWindow();
+      if (currentWindow && isPrivateMode(currentWindow)) {
         logger.log('Could not push telemetry: private window.', schemaName, payload);
         return Promise.resolve();
       }

@@ -138,7 +138,6 @@ export default class UrlbarWithResults extends Urlbar {
 
   handleFocus = async () => {
     await this.createIframe();
-    this.textInput.select();
     this.setState({
       focused: true,
     });
@@ -153,8 +152,6 @@ export default class UrlbarWithResults extends Urlbar {
       });
       if (this.textInput.value) {
         this.dropdown._queryCliqz(this.textInput.value);
-      } else {
-        this.dropdown._queryCliqz('', { allowEmptyQuery: true });
       }
     }
   }

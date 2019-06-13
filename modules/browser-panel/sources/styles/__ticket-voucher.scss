@@ -8,10 +8,7 @@ body {
 #cqz-browser-panel-re {
   position: relative;
   margin-top: 6px;
-
-  &:before {
-    content: " ";
-    display: none;
+  .logo-link {
     width: 20px;
     height: 19px;
     mask: url("../images/ticket-tmpl/cliqz-logo-offrz.svg");
@@ -20,13 +17,22 @@ body {
     bottom: 10px;
     left: -30px;
     background: rgba(0,0,0,0.4);
+
   }
 
-  &.web-ext:before {
+  &.web-ext .logo-link {
     background: url("../images/ticket-tmpl/myoffrz-logo.svg") no-repeat right center;
     background-size: 19px 19px;
     mask: none;
     -webkit-mask: none;
+    pointer-events: none
+  }
+
+  &.web-ext.cliqz-browser .logo-link {
+    mask: url("../images/ticket-tmpl/cliqz-logo-offrz.svg");
+    -webkit-mask: url("../images/ticket-tmpl/cliqz-logo-offrz.svg");
+    background: rgba(0,0,0,0.4);
+    pointer-events: all;
   }
 
   //blue theme customization
@@ -70,7 +76,7 @@ body {
     writing-mode: vertical-lr;
     font-size: 9px;
     text-transform: uppercase;
-    color: rgba(0,0,0,.5);
+    color: rgba(0,0,0,.7);
     letter-spacing: 1px;
     font-weight: 100;
     font-family: "-mac-system", "-apple-system", "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif

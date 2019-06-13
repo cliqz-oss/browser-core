@@ -1,7 +1,7 @@
 import {
   expect,
   sleep,
-  win,
+  CliqzEvents,
 } from '../../../tests/core/integration/helpers';
 import { isBootstrap } from '../../../core/platform';
 
@@ -18,7 +18,7 @@ export default function () {
     });
 
     function onMousedown(callback) {
-      mdSubscription = win.CliqzEvents.subscribe('core:mouse-down', () => {
+      mdSubscription = CliqzEvents.subscribe('core:mouse-down', () => {
         callback();
       });
     }

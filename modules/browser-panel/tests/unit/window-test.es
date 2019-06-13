@@ -2,8 +2,20 @@
 /* global sinon */
 /* global describeModule */
 
+let telemetrySpy = null;
+let privateMode = false;
+
 export default describeModule('browser-panel/window',
   () => ({
+    'core/services/telemetry': {
+      default: {
+        push: (...args) => telemetrySpy(...args),
+      },
+    },
+    'core/browser': {
+      isPrivateMode() { return privateMode; },
+      openLink() {},
+    },
     'core/config': {
       default: {
         baseURL: 'chrome://cliqz/content/'
@@ -14,13 +26,10 @@ export default describeModule('browser-panel/window',
         log() {}
       }
     },
-    'core/utils': {
+    'core/services/logos': {
       default: {
-        isPrivateMode() {},
-        telemetry() {},
         getLogoDetails() {},
-        openLink() {}
-      }
+      },
     },
     'browser-panel/background': {
       default: {
@@ -41,6 +50,7 @@ export default describeModule('browser-panel/window',
     let bg;
 
     beforeEach(function () {
+      privateMode = false;
       bg = this.deps('browser-panel/background').default;
       bg.is_enabled = true;
 
@@ -53,19 +63,18 @@ export default describeModule('browser-panel/window',
     });
 
     describe('init()', function () {
+      beforeEach(() => {
+        privateMode = true;
+      });
+
       it('in private mode', function () {
-        const privateMode = this.deps('core/utils').default;
-        privateMode.isPrivateMode = function () { return true; };
         return chai.expect(subject.init()).to.eventually.equal('Private mode active');
       });
     });
 
     context('telemetry', function () {
-      let telemetrySpy;
-
       beforeEach(function () {
         telemetrySpy = sinon.spy(() => {});
-        this.deps('core/utils').default.telemetry = telemetrySpy;
 
         // subject.iframe is created in the init(), but we don't call it
         subject.iframe = {
@@ -78,10 +87,6 @@ export default describeModule('browser-panel/window',
           style: {}
         };
         subject.sendOffersTemplateDataToIframe = () => {};
-      });
-
-      afterEach(function () {
-        this.deps('core/utils').default.telemetry = () => {};
       });
 
       describe('showing the promo bar', function () {

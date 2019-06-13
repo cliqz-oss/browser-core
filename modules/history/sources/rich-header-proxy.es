@@ -1,4 +1,4 @@
-import utils from '../core/utils';
+// import utils from '../core/utils';
 import _hash from '../core/helpers/hash';
 import NEWS_DOMAINS from '../freshtab/news-domains';
 import config from '../core/config';
@@ -18,7 +18,12 @@ export default class RichHeaderProxy {
 
     const hash = _hash(domain);
 
-    const richHeaderUrl = this.settings.RICH_HEADER + utils.getRichHeaderQueryString(`[${hash}]`);
+    // TODO - is this still in use?
+    // const richHeaderUrl = (
+    //   this.settings.RICH_HEADER
+    //   + utils.getRichHeaderQueryString(`[${hash}]`)
+    // );
+    const richHeaderUrl = this.settings.RICH_HEADER;
 
     if (!(hash in NEWS_DOMAINS)) {
       return Promise.resolve(null);

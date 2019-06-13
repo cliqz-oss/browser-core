@@ -13,9 +13,9 @@ export default function () {
   let today;
   let anolysis;
 
-  const clearTelemetryPrefs = () => {
+  const clearTelemetryPrefs = async () => {
     prefs.clear('telemetry');
-    prefs.clear('uploadEnabled', 'datareporting.healthreport.');
+    await prefs.set('uploadEnabled', true, 'datareporting.healthreport.');
   };
 
   context('opt-out from anolysis tests', function () {
@@ -32,7 +32,7 @@ export default function () {
     [
       { telemetryEnabled: true, uploadEnabled: true, telemetryExpected: true },
       { telemetryEnabled: false, uploadEnabled: true, telemetryExpected: false },
-      { telemetryEnabled: true, uploadEnabled: false, telemetryExpected: true },
+      { telemetryEnabled: true, uploadEnabled: false, telemetryExpected: !chrome.cliqz },
       { telemetryEnabled: false, uploadEnabled: false, telemetryExpected: false },
     ].forEach(({ telemetryEnabled, uploadEnabled, telemetryExpected }) => {
       context(`telemetry: ${telemetryEnabled}, uploadEnabled: ${uploadEnabled} == ${telemetryExpected}`, function () {
@@ -42,7 +42,7 @@ export default function () {
           app.services.telemetry.api.push = () => {};
 
           // Reset prefs to default
-          clearTelemetryPrefs();
+          await clearTelemetryPrefs();
           await waitFor(() => anolysis.isAnolysisInitialized());
 
           // Reset Anolysis
@@ -56,7 +56,7 @@ export default function () {
 
           // Set telemetry prefs
           prefs.set('telemetry', telemetryEnabled);
-          prefs.set('uploadEnabled', uploadEnabled, 'datareporting.healthreport.');
+          await prefs.set('uploadEnabled', uploadEnabled, 'datareporting.healthreport.');
         });
 
         afterEach(async () => {

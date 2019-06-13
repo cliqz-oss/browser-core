@@ -18,7 +18,7 @@ export default describeModule('core/http',
         default: {}
       },
       '../platform/fetch': {
-        fetchFactory() {},
+        default: {}
       },
     };
   },

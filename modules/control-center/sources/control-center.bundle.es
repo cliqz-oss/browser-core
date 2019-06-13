@@ -157,7 +157,7 @@ $('#control-center').on('click', '[role="adBlockerStatusChanger"]', function () 
     state,
     status: frame.attr('data-status'),
     url: frame.attr('data-url'),
-    // TODO instead of dropdown-scope selece the active button
+    // TODO instead of dropdown-scope select the active button
     option
   });
 });

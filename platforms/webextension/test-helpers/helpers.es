@@ -79,7 +79,7 @@ const chromeClick = async (url, selector, ind) => {
 };
 
 const bgWindow = wrap(() => chrome.extension.getBackgroundPage().window);
-export const win = wrap(() => bgWindow.CLIQZ.utils.getWindow());
+export const win = wrap(() => bgWindow);
 export const CLIQZ = wrap(() => bgWindow.CLIQZ);
 export const app = wrap(() => bgWindow.CLIQZ.app);
 
@@ -240,6 +240,10 @@ export const $cliqzResults = {
 };
 
 export async function blurUrlBar() {
+  const dropdownHeight = await chrome.testHelpers.getDropdownHeight();
+  if (dropdownHeight === 0) {
+    return Promise.resolve();
+  }
   await chrome.omnibox2.blur();
   return waitFor(async () => {
     const height = await chrome.testHelpers.getDropdownHeight();

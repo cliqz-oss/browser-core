@@ -1,30 +1,21 @@
 import { getActiveTab } from '../platform/browser';
 
 import { isUrl } from '../core/url';
-import prefs from '../core/prefs';
 
-import CliqzADB from './adblocker';
-import {
-  adbABTestEnabled,
-  ADB_PREF_VALUES,
-  ADB_PREF_OPTIMIZED,
-  ADB_PREF,
-} from './config';
-
+import AdblockerBackground from './background';
+import config from './config';
 
 export default class Win {
   constructor({ window }) {
     this.window = window;
   }
 
-  init() {
-  }
+  init() {}
 
-  unload() {
-  }
+  unload() {}
 
   status() {
-    if (!adbABTestEnabled()) {
+    if (config.abtestEnabled === false) {
       return undefined;
     }
 
@@ -35,14 +26,21 @@ export default class Win {
       let disabledEverywhere = false;
 
       // Check if adblocker is disabled on this page
-      if (isCorrectUrl && CliqzADB.adblockInitialized) {
-        const whitelist = CliqzADB.urlWhitelist.getState(url);
+      if (isCorrectUrl && AdblockerBackground.adblocker !== null) {
+        const whitelist = AdblockerBackground.adblocker.whitelist.getState(url);
         disabledForDomain = whitelist.hostname;
         disabledForUrl = whitelist.url;
       }
 
-      const report = CliqzADB.adbStats.report(id);
-      const enabled = prefs.get(ADB_PREF, false) !== ADB_PREF_VALUES.Disabled;
+      const report = AdblockerBackground.adblocker !== null
+        ? AdblockerBackground.adblocker.stats.report(id)
+        : {
+          totalCount: 0,
+          advertisersList: {},
+          advertisersInfo: {},
+        };
+
+      const enabled = AdblockerBackground.adblocker !== null;
       disabledEverywhere = !enabled && !disabledForUrl && !disabledForDomain;
 
       // Check stat of the adblocker
@@ -70,7 +68,7 @@ export default class Win {
       return {
         visible: true,
         enabled: enabled && !disabledForDomain && !disabledForUrl,
-        optimized: prefs.get(ADB_PREF_OPTIMIZED, false) === true,
+        optimized: config.strictMode,
         disabledForUrl,
         disabledForDomain,
         disabledEverywhere,

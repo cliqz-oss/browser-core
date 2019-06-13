@@ -1,9 +1,8 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import ImageButton from './image-button';
-import { getDetailsFromUrl } from '../modules/core/url';
 
-import utils from '../modules/core/utils';
+import logos from '../modules/core/services/logos';
 
 // to be cleaned
 
@@ -17,7 +16,7 @@ class Icon extends React.Component {
     const height = this.props.height || 50;
     const borderRadius = this.props.borderRadius || 8;
     if (url) {
-      logoDetails = utils.getLogoDetails(url);
+      logoDetails = logos.getLogoDetails(url);
     }
 
     if (logoDetails.backgroundImage) {

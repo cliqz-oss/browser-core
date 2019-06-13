@@ -1,0 +1,92 @@
+{
+  "calculator_decimal_separator": {
+    "message": "."
+  },
+  "calculator_thousands_separator": {
+      "message": ","
+  },
+  "country_code_": {
+      "message": "Automatic"
+  },
+  "country_code_AT": {
+      "message": "Austria"
+  },
+  "country_code_AU": {
+      "message": "Australia"
+  },
+  "country_code_BR": {
+      "message": "Brasil"
+  },
+  "country_code_CA": {
+      "message": "Canada"
+  },
+  "country_code_CH": {
+      "message": "Switzerland"
+  },
+  "country_code_DE": {
+      "message": "Germany"
+  },
+  "country_code_EE": {
+      "message": "Estonia"
+  },
+  "country_code_ES": {
+      "message": "Spain"
+  },
+  "country_code_FR": {
+      "message": "France"
+  },
+  "country_code_GB": {
+      "message": "United Kingdom"
+  },
+  "country_code_GR": {
+      "message": "Greece"
+  },
+  "country_code_HR": {
+      "message": "Croatia"
+  },
+  "country_code_HU": {
+      "message": "Hungary"
+  },
+  "country_code_ID": {
+      "message": "Indonesia"
+  },
+  "country_code_IT": {
+      "message": "Italy"
+  },
+  "country_code_NL": {
+      "message": "Netherlands"
+  },
+  "country_code_PL": {
+      "message": "Poland"
+  },
+  "country_code_PS": {
+      "message": "Palestine"
+  },
+  "country_code_RO": {
+      "message": "Romania"
+  },
+  "country_code_RS": {
+      "message": "Serbia"
+  },
+  "country_code_RU": {
+      "message": "Russia"
+  },
+  "country_code_SG": {
+      "message": "Singapore"
+  },
+  "country_code_TH": {
+      "message": "Thailand"
+  },
+  "country_code_TR": {
+      "message": "Turkey"
+  },
+  "country_code_US": {
+      "message": "United States"
+  },
+  "country_code_VN": {
+      "message": "Vietnam"
+  },
+  "locale_lang_code": {
+      "message": "en-US"
+  }
+}

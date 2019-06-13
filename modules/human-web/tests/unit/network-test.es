@@ -3,6 +3,8 @@
 /* eslint camelcase: off */
 
 const expect = chai.expect;
+const punycode = require('punycode');
+const tldts = require('tldts');
 
 /**
  * Dumped out "page" message.
@@ -66,37 +68,12 @@ export default describeModule('human-web/network',
         error() {},
       }
     },
+    'platform/lib/punycode': {
+      default: punycode,
+    },
+    'platform/lib/tldts': tldts,
   }),
   () => {
-    describe('isIPInternal', function () {
-      let isIPInternal;
-
-      beforeEach(function () {
-        isIPInternal = this.module().isIPInternal;
-      });
-
-      it('should detect private ipv4 subnets', function () {
-        expect(isIPInternal('127.0.0.1')).to.be.true;
-        expect(isIPInternal('192.168.2.107')).to.be.true;
-        expect(isIPInternal('192.168.1.41')).to.be.true;
-        expect(isIPInternal('10.0.5.250')).to.be.true;
-      });
-
-      it('should detect public ipv4 subnets', function () {
-        expect(isIPInternal('93.184.216.34')).to.be.false;
-      });
-
-      // once we add support for ipv6, this test is expected to pass
-      it.skip('should detect private ipv6 subnets', function () {
-        expect(isIPInternal('::1')).to.be.true;
-        expect(isIPInternal('0:0:0:0:0:0:0:1')).to.be.true;
-      });
-
-      it('should detect public ipv6 address', function () {
-        expect(isIPInternal('2001:0db8:85a3:0000:0000:8a2e:0370:7334')).to.be.false;
-      });
-    });
-
     describe('parseHostname', function () {
       let parseHostname;
 

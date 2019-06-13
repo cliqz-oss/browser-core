@@ -30,23 +30,22 @@ export function isPlatformAtLeastInVersion() {
 }
 
 // this should differentiate between cliqz and ghostery apps for mobile
-export const appName = chrome.cliqzAppConstants
-  ? chrome.cliqzAppConstants.get('MOZ_APP_NAME') : window.navigator.appName;
+export const appName = (chrome && chrome.cliqzAppConstants)
+  ? chrome.cliqzAppConstants.get('MOZ_APP_NAME') : undefined;
 
-export const OS = chrome.cliqzAppConstants
-  ? chrome.cliqzAppConstants.get('platform') : window.navigator.platform;
-
-export function isCliqzAtLeastInVersion() {
-  // TODO
-  return true;
-}
+export const OS = (
+  (chrome && chrome.cliqzAppConstants && chrome.cliqzAppConstants.get('platform'))
+  || (window && window.navigator && window.navigator.platform)
+  || undefined
+);
 
 export function getResourceUrl(path) {
   return chrome.runtime.getURL(`modules/${path}`.replace(/\/+/g, '/'));
 }
 
 export function isBetaVersion() {
-  const manifest = (chrome.runtime
+  const manifest = (chrome
+    && chrome.runtime
     && chrome.runtime.getManifest
     && chrome.runtime.getManifest())
     || false;

@@ -2,12 +2,13 @@
 import App from '../core/app';
 import { newTab, query } from '../platform/tabs';
 import { chrome } from '../platform/globals';
-import utils from '../core/utils';
+import telemetry from '../core/services/telemetry';
 import config from '../core/config';
 import prefs from '../core/prefs';
 import { ONBOARDING_URL, OFFBOARDING_URL } from './common/constant';
 
 const CLIQZ = {};
+
 CLIQZ.app = new App({
   version: chrome.runtime.getManifest().version
 });
@@ -19,14 +20,15 @@ CLIQZ.app.start().then(() => {
 });
 window.CLIQZ = CLIQZ;
 
+
 function sendInstallSignal(referrerUrl, advertId, error) {
-  utils.telemetry({
+  telemetry.push({
     type: 'activity',
     action: 'install',
     referrer_url: referrerUrl,
     advert_id: advertId,
     error
-  }, true);
+  }, undefined, true);
 }
 
 async function onboarding(details) {
@@ -39,21 +41,22 @@ async function onboarding(details) {
     } else {
       await newTab(ONBOARDING_URL, { focus: true });
     }
-
-    utils.telemetry({
-      type: 'activity',
-      action: 'onboarding-show',
-    }, true);
-    query({ url: 'https://myoffrz.com/lp*' }).then((tabs) => {
-      tabs.forEach((tab) => {
-        const url = new URL(tab.url);
-        sendInstallSignal(url.pathname + url.search, url.searchParams.get('pk_campaign'));
+    CLIQZ.app.ready().then(() => {
+      telemetry.push({
+        type: 'activity',
+        action: 'onboarding-show',
       });
-      if (tabs.length === 0) {
-        sendInstallSignal('', 'no-referal');
-      }
-    }).catch((err) => {
-      sendInstallSignal('', '', err.message);
+      query({ url: 'https://myoffrz.com/lp*' }).then((tabs) => {
+        tabs.forEach((tab) => {
+          const url = new URL(tab.url);
+          sendInstallSignal(url.pathname + url.search, url.searchParams.get('pk_campaign'));
+        });
+        if (tabs.length === 0) {
+          sendInstallSignal('', 'no-referal');
+        }
+      }).catch((err) => {
+        sendInstallSignal('', '', err.message);
+      });
     });
   }
 }

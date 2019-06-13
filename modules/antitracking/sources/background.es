@@ -2,13 +2,12 @@
 /* eslint func-names: 'off' */
 
 import background from '../core/base/background';
-import * as browser from '../platform/browser';
+import telemetryService from '../core/services/telemetry';
 import Attrack from './attrack';
 import { DEFAULT_ACTION_PREF, updateDefaultTrackerTxtRule } from './tracker-txt';
-import utils from '../core/utils';
 import prefs from '../core/prefs';
 import telemetry from './telemetry';
-import Config, { MIN_BROWSER_VERSION, TELEMETRY } from './config';
+import Config, { TELEMETRY } from './config';
 import { updateTimestamp } from './time';
 import domainInfo from '../core/services/domain-info';
 import { bindObjectFunctions } from '../core/helpers/bind-functions';
@@ -45,10 +44,6 @@ export default background({
 
     this.attrack = new Attrack();
 
-    if (browser.getBrowserMajorVersion() < MIN_BROWSER_VERSION) {
-      return Promise.resolve();
-    }
-
     // indicates if the antitracking background is initiated
     this.enabled = true;
     this.clickCache = {};
@@ -82,11 +77,6 @@ export default background({
   * @method unload
   */
   unload() {
-    if (browser.getBrowserMajorVersion() < MIN_BROWSER_VERSION) {
-      this.enabled = false;
-      return;
-    }
-
     if (this.attrack !== null) {
       this.attrack.unload();
       this.attrack = null;
@@ -108,7 +98,7 @@ export default background({
   actions: {
     getBadgeData({ tabId, url }) {
       return this.attrack.getTabBlockingInfo(tabId, url).then((info) => {
-        if (this.attrack.urlWhitelist.isWhitelisted(info.hostname)) {
+        if (this.attrack.urlWhitelist.isWhitelisted(url)) {
           // do not display number if site is whitelisted
           return 0;
         }
@@ -224,6 +214,10 @@ export default background({
     resume() {
       this.config.paused = false;
     },
+
+    setWhiteListCheck(fn) {
+      this.attrack.isWhitelisted = fn;
+    }
   },
 
   popupActions: {
@@ -257,7 +251,7 @@ export default background({
         msg.special = info.error !== undefined;
       }
       msg.type = 'antitracking';
-      utils.telemetry(msg);
+      telemetryService.push(msg);
     }
   },
 

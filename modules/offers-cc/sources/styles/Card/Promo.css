@@ -1,0 +1,42 @@
+.card-promo__wrapper {
+  border: 1px solid #DADADA;
+  background-color: #F2F2F2;
+  border-radius: 4px;
+}
+
+.card-promo__container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-promo__input {
+  border: none;
+  width: 110px;
+  color: transparent;
+  text-shadow: 0 0 0 #000;
+  background-color: transparent;
+  height: 30px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-left: 5px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.card-promo__myoffrz-copy-code,
+.card-promo__chip-copy-code {
+  text-transform: uppercase;
+  font-size: 10.5px;
+  color: #687E90;
+  display: inline-block;
+  margin-right: 8px;
+  cursor: pointer;
+}
+.card-promo__myoffrz-copy-code:hover {
+  color: #00AEF0;
+}
+.card-promo__chip-copy-code:hover {
+  color: #DA3434;
+}

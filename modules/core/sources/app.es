@@ -5,9 +5,9 @@ import events, { subscribe } from './events';
 import prefs from './prefs';
 import Module from './app/module';
 import { setApp } from './kord';
-import console, { enable as enableConsole, disable as disableConsole } from './console';
+import console, { isLoggingEnabled, enable as enableConsole, disable as disableConsole } from './console';
 import Logger from './logger';
-import utils from './utils';
+import telemetry from './services/telemetry';
 import { Window, mapWindows, forEachWindow, addWindowObserver,
   removeWindowObserver, reportError, mustLoadWindow,
   setOurOwnPrefs, resetOriginalPrefs, enableChangeEvents,
@@ -27,7 +27,7 @@ export function shouldEnableModule(name) {
 const isOnionMode = isOnionModeFactory(prefs);
 
 function setupConsole() {
-  if (prefs.get('showConsoleLogs')) {
+  if (isLoggingEnabled()) {
     enableConsole();
     Logger.enable();
   } else {
@@ -96,7 +96,6 @@ export default class App {
       Object.assign(this.services, module.providedServices);
     });
 
-    utils.extensionVersion = version;
     setApp(this);
     this.isRunning = false;
     this.onMigrationEnded = (_, topic) => {
@@ -107,7 +106,6 @@ export default class App {
   }
 
   injectHelpers() {
-    this.utils = utils;
     this.events = events;
     this.prefs = prefs;
     this.i18n = i18n;
@@ -276,11 +274,11 @@ export default class App {
     // NOTE: Disable this warning locally since the solution is hacky anyway.
     /* eslint-disable no-param-reassign */
 
-    utils.telemetry({
+    telemetry.push({
       type: 'activity',
       action: telemetrySignal,
       lifecyle: 'stop'
-    }, true /* force push */);
+    }, undefined, true /* force push */);
 
     /*
      *

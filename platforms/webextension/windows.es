@@ -16,4 +16,4 @@ export function checkIsWindowActive(tabId) {
 }
 
 
-export default chrome.windows;
+export default (chrome && chrome.windows) || undefined;

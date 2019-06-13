@@ -64,6 +64,8 @@ export function getLocale() {
   return LocaleConstants ? LocaleConstants.lang : defaultLocale;
 }
 
+export function getWindow() {}
+
 export function isTabURL() {
   return false;
 }
@@ -86,4 +88,11 @@ export class Window {
 
 export function isDefaultBrowser() {
   return null;
+}
+
+export function isPrivateMode() {
+  return false;
+}
+
+export function openLink() {
 }

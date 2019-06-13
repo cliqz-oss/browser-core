@@ -31,7 +31,11 @@ export default function () {
         await mockSearch({ results: [{ url }] });
         withHistory([]);
         fillIn(query);
-        await waitForPopup(1, 2000);
+        await waitForPopup(1);
+        await waitFor(async () => {
+          const $result = await $cliqzResults.querySelector(`a.result[data-url="${url}"]`);
+          return $result;
+        });
       });
 
       it('on Enter sends correct metric', async function () {
@@ -48,9 +52,10 @@ export default function () {
 
         const signal = win.allTelemetry.filter(el => el.schema === 'search.session')[0].signal;
         expect(signal).to.deep.include({
-          version: 3,
+          version: 4,
           hasUserInput: true,
           entryPoint: 'browserBar',
+          highlightCount: 1,
           results: [
             {
               sources: [
@@ -97,7 +102,11 @@ export default function () {
         await mockSearch({ results: [{ url }] });
         withHistory([]);
         fillIn(query);
-        await waitForPopup(1, 1000);
+        await waitForPopup(1);
+        await waitFor(async () => {
+          const $result = await $cliqzResults.querySelector(`a.result[data-url="${url}"]`);
+          return $result;
+        });
       });
 
       it('on Enter sends correct metric', async function () {
@@ -110,9 +119,10 @@ export default function () {
         const signal = win.allTelemetry.filter(el => el.schema === 'search.session')[0].signal;
 
         expect(signal).to.deep.include({
-          version: 3,
+          version: 4,
           hasUserInput: true,
           entryPoint: 'browserBar',
+          highlightCount: 0,
           results: [
             {
               sources: [

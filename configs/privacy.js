@@ -16,7 +16,6 @@ module.exports = {
   "sourceMaps": false,
   "versionInfix": ".",
   "versionPrefix": "12",
-  "isMobile": true,
   "settings": Object.assign({}, urls, {
     "channel": "MA50",
     "MSGCHANNEL": "web-extension",
@@ -29,8 +28,9 @@ module.exports = {
   "default_prefs": {
     "modules.insights.enabled": false,
     "modules.webextension-specific.enabled": false,
-    "cliqz-adb": true,
+    "cliqz-adb": 1,
     "cliqz-adb-abtest": true,
+    "cliqz-adb-strict": true,
     "attrackBloomFilter": false,
     "attrackTelemetryMode": 0,
     "attrackDefaultAction": "placeholder",
@@ -56,12 +56,7 @@ module.exports = {
     "telemetry",
     "control-center"
   ],
-  system: Object.assign({}, base.systemConfig, {
-    map: Object.assign({}, base.systemConfig.map, {
-      "ajv": "node_modules/ajv/dist/ajv.min.js",
-      "jsep": "modules/vendor/jsep.min.js",
-    })
-  }),
+  system: base.systemConfig,
   builderDefault: Object.assign({}, base.builderConfig, {
     externals: base.builderConfig.externals.concat('@cliqz-oss/dexie'),
     globalDeps: Object.assign({}, base.builderConfig.globalDeps, {

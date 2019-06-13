@@ -1,4 +1,4 @@
-import getDexie from './lib/dexie';
+import getDexie from '../platform/lib/dexie';
 
 export default class PersistentMap {
   constructor(dbName) {

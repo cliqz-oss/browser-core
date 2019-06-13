@@ -2,22 +2,21 @@ import {
   app,
   expect,
   prefs,
-  waitForPrefChange,
 } from '../../../tests/core/test-helpers';
 
 import inject from '../../../core/kord/inject';
 
 export default function () {
   context('telemetry tests', function () {
-    afterEach(function () {
+    afterEach(async function () {
       prefs.clear('telemetry');
-      prefs.clear('uploadEnabled', 'datareporting.healthreport.');
+      await prefs.set('uploadEnabled', true, 'datareporting.healthreport.');
     });
 
     [
       { telemetryEnabled: true, uploadEnabled: true, telemetryExpected: true },
       { telemetryEnabled: false, uploadEnabled: true, telemetryExpected: false },
-      { telemetryEnabled: true, uploadEnabled: false, telemetryExpected: true },
+      { telemetryEnabled: true, uploadEnabled: false, telemetryExpected: !chrome.cliqz },
       { telemetryEnabled: false, uploadEnabled: false, telemetryExpected: false },
     ].forEach(({ telemetryEnabled, uploadEnabled, telemetryExpected }) => {
       context(`telemetry: ${telemetryEnabled}, uploadEnabled: ${uploadEnabled}`, function () {
@@ -25,15 +24,13 @@ export default function () {
 
         beforeEach(async function () {
           telemetryModule = app.modules.telemetry.background;
-
-          const p = waitForPrefChange('telemetry');
-          prefs.set('uploadEnabled', uploadEnabled, 'datareporting.healthreport.');
+          await prefs.set('uploadEnabled', uploadEnabled, 'datareporting.healthreport.');
           prefs.set('telemetry', telemetryEnabled);
-          await p;
+
+          await inject.service('telemetry', ['verifyStatus']).verifyStatus();
           telemetryModule.trk = [];
 
-          // Use `utils.telemetry` since it goes through the telemetry service,
-          // which checks for telemetry enabled and private mode.
+          // Use telemetry service, which checks for telemetry enabled and private mode.
           await inject.service('telemetry', ['push']).push({ test: 'test' });
         });
 

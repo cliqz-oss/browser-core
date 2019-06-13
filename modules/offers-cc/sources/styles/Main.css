@@ -1,0 +1,21 @@
+.main__container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  max-width: 264px;
+}
+
+.main__header {
+  flex-shrink: 0;
+}
+.main__content {
+  flex-grow: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 2em;
+}
+.main__footer {
+  flex-shrink: 0;
+}

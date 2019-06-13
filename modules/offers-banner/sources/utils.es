@@ -1,7 +1,7 @@
 import { chrome } from '../platform/globals';
 import { getTab } from '../platform/tabs';
 import { getActiveTab } from '../core/browser';
-import utils from '../core/utils';
+import logos from '../core/services/logos';
 
 const BLACK_LIST = [
   'accounts-static.cdn.mozilla.net',
@@ -28,7 +28,7 @@ export function getTitleColor(templateData = {}) {
     call_to_action: { url } = {},
   } = templateData;
   if (headlineColor) { return headlineColor; }
-  const logoDetails = utils.getLogoDetails(url) || {};
+  const logoDetails = logos.getLogoDetails(url) || {};
   return `#${logoDetails.brandTxtColor}`;
 }
 

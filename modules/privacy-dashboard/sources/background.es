@@ -6,6 +6,8 @@ import PrivacyRep from './main';
 * @class Background
 */
 export default background({
+  requiresServices: ['telemetry'],
+
   /**
   * @method init
   */

@@ -1,12 +1,12 @@
 const fs = require('fs');
 const perf = require('@cliqz/webextension-emulator');
-const cliqzApi = require('./cliqz-api');
 const readline = require('readline');
+const experimentalAPIs = require('./mock_apis');
 
 const sessionFile = process.argv[2];
 
 const Emulator = perf.default;
-const timeMultiplier = 100;
+const timeMultiplier = 10;
 const emulator = new Emulator('../build/', {
   injectWebextenionPolyfill: true,
   quiet: true,
@@ -14,16 +14,11 @@ const emulator = new Emulator('../build/', {
   indexedDBPath: './data/idb',
   timeMultiplier,
 });
-Object.keys(perf.experimentalAPIs).forEach((api) => {
-  emulator.addChromeApi(api, perf.experimentalAPIs[api]);
+Object.keys(experimentalAPIs).forEach((api) => {
+  emulator.addChromeApi(api, experimentalAPIs[api]);
 });
-emulator.addChromeApi('cliqz', cliqzApi);
 
 emulator.createSandbox();
-
-const prefFile = './data/storage/storage_local.json';
-fs.writeFileSync(prefFile, JSON.stringify({ cliqzprefs: { 'cliqz-adb': 1 }}));
-
 emulator.startExtension();
 
 const lineReader = readline.createInterface({
@@ -59,11 +54,11 @@ const WEBREQUEST_OPTIONS = {
 };
 
 process.on('unhandledRejection', (e) => {
-  emulator._probe('errors.promiserejection', e.message + '\n' + e.stack);
+  emulator._probe('errors.promiserejection', e.message);
 });
 
 const windowId = 1;
-const tabId = 3;
+const tabId = 1;
 emulator.chrome.windows.onCreated.trigger({
   id: windowId,
   incognito: false,
@@ -82,7 +77,6 @@ emulator.mock.createTab({
 let requestId = 1;
 let tick = new Promise(resolve => setTimeout(resolve, 5000));
 
-let lines = [];
 lineReader.on('line', async (line) => {
   const { frameUrl, url, cpt } = JSON.parse(line);
 
@@ -108,16 +102,24 @@ lineReader.on('line', async (line) => {
       }
     }
     requestId += 1;
-    await new Promise(resolve => setTimeout(resolve, 1));
+    if (requestId % 100 === 0) {
+      // leave some ticks in between requests to allow extension timers to run.
+      await new Promise(resolve => setTimeout(resolve, 10));
+    }
+    if ((requestId % 10000) === 0) {
+      global.gc();
+      const usage = process.memoryUsage().heapUsed;
+      emulator._probe('memory.heap', usage);
+    }
   });
 });
 
 lineReader.on('close', async () => {
   await tick;
-  lines.forEach(() => {
-    const { frameUrl, url, cpt } = JSON.parse(line);
-  })
   emulator.stopExtension();
+  emulator.probeStorage();
+  console.log(JSON.stringify(emulator.getProbeSummary()));
+  fs.appendFileSync('./diagnostics.jl', JSON.stringify(emulator.probes))
   setTimeout(() => {
     process.exit();
   }, 1000);

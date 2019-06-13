@@ -1,0 +1,26 @@
+{
+    "onboarding_data_collection": {
+        "message": "Cliqz nutzt anonymisierte Nutzungsdaten um den Browser für dich besser zu machen."
+    },
+    "onboarding_fast": {
+        "message": "Schnell"
+    },
+    "onboarding_private": {
+        "message": "Privat"
+    },
+    "onboarding_secure": {
+        "message": "Sicher"
+    },
+    "onboarding_share_btn": {
+        "message": "Zu übermittelnde Daten festlegen"
+    },
+    "onboarding_start_btn": {
+        "message": "Start"
+    },
+    "onboarding_text": {
+        "message": "Surfen ohne Kompromisse"
+    },
+    "onboarding_welcome": {
+        "message": "Willkommen!"
+    }
+}

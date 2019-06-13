@@ -1,0 +1,62 @@
+{
+    "connect_in_progress_header": {
+        "message": "Sorry!"
+    },
+    "connect_in_progress_message": {
+        "message": "This function is under construction and currently not available."
+    },
+    "pairing_all_features_title": {
+        "message": "Unlock these features on your mobile device"
+    },
+    "pairing_browser_pair_with": {
+        "message": "This browser is now connected with:"
+    },
+    "pairing_contact_learn_more": {
+        "message": "Learn More"
+    },
+    "pairing_contact_support": {
+        "message": "Do you want to know more about these features?"
+    },
+    "pairing_enabled_features_title": {
+        "message": "These features are now available on your mobile device"
+    },
+    "pairing_instructions_appstore": {
+        "message": "Get the Cliqz App from the App Store › Open Cliqz App › Settings › Connect"
+    },
+    "pairing_instructions_playstore": {
+        "message": "Get the Cliqz App from the Play Store › Open Cliqz App › Menu › Connect"
+    },
+    "pairing_instructions_title": {
+        "message": "1. Download Cliqz App"
+    },
+    "pairing_offline": {
+        "message": "OFFLINE"
+    },
+    "pairing_on_disconnected_tip": {
+        "message": "Connect requires that your mobile device is awake and online."
+    },
+    "pairing_online": {
+        "message": "ONLINE"
+    },
+    "pairing_receive_tab_title": {
+        "message": "Receive Tabs"
+    },
+    "pairing_scan_title": {
+        "message": "2. Scan with Cliqz App"
+    },
+    "pairing_send_tab_title": {
+        "message": "Send Tabs"
+    },
+    "pairing_status_title": {
+        "message": "You are now connected"
+    },
+    "pairing_title": {
+        "message": "Connect"
+    },
+    "pairing_unpair": {
+        "message": "Disconnect"
+    },
+    "pairing_video_title": {
+        "message": "Download Videos"
+    }
+}

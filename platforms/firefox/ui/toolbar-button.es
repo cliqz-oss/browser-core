@@ -1,5 +1,6 @@
 import { Components } from '../globals';
 import utils from '../../core/utils';
+import { isPrivateMode } from '../../core/browser';
 import { getWindowByTabId } from '../../core/tabs';
 import getContainer from './helpers';
 import DefaultWeakMap from '../../core/helpers/default-weak-map';
@@ -154,7 +155,7 @@ export default class BrowserAction {
 
     const onMessage = (ev) => {
       const data = JSON.parse(ev.data);
-      data.isPrivate = utils.isPrivateMode(win);
+      data.isPrivate = isPrivateMode(win);
 
       if (data.origin !== 'iframe') {
         return;

@@ -1,11 +1,9 @@
 import inject from '../core/kord/inject';
 import config from '../core/config';
 import History from '../platform/history/history';
-import { getActiveTab } from '../platform/browser';
+import { getActiveTab, openLink, getWindow } from '../core/browser';
 import HistoryService from '../core/history-service';
 import background from '../core/base/background';
-import utils from '../core/utils';
-import { queryActiveTabs } from '../core/tabs';
 import createHistoryDTO from './history-dto';
 import { equals, getDetailsFromUrl } from '../core/url';
 import RichHeaderProxy from './rich-header-proxy';
@@ -30,6 +28,7 @@ const CLIQZ_INTERFACE_PAGES = [
 * @class Background
 */
 export default background({
+  requiresServices: ['logos'],
   core: inject.module('core'),
   /**
   * @method init
@@ -214,7 +213,7 @@ export default background({
         domain,
         query,
       }).then(({ places, from, to }) => {
-        // const activeTabs = queryActiveTabs ? queryActiveTabs(utils.getWindow()) : undefined;
+        // const activeTabs = queryActiveTabs ? queryActiveTabs(getWindow()) : undefined;
         const dtoP = createHistoryDTO({
           places,
           // activeTabs,
@@ -229,27 +228,11 @@ export default background({
     },
 
     openUrl(url, newTab = false) {
-      utils.openLink(utils.getWindow(), url, newTab);
+      openLink(getWindow(), url, newTab);
     },
 
-    selectTabAtIndex(index) {
-      utils.getWindow().gBrowser.selectTabAtIndex(index);
-    },
-
-    newTab(inCurrentTab = false) {
-      const window = utils.getWindow();
-      const activeTabs = queryActiveTabs(window);
-
-      if (!inCurrentTab) {
-        const freshTab = activeTabs.find(tab => tab.url === NEW_TAB_URL);
-        if (freshTab) {
-          window.gBrowser.selectTabAtIndex(freshTab.index);
-          return;
-        }
-      }
-
-      const tab = utils.openLink(window, NEW_TAB_URL, !inCurrentTab);
-      window.gBrowser.selectedTab = tab;
+    newTab() {
+      openLink(null, NEW_TAB_URL);
     },
 
     recordMeta(/* url, meta */) {
@@ -266,7 +249,7 @@ export default background({
     },
 
     showHistoryDeletionPopup() {
-      return this.history.showHistoryDeletionPopup(utils.getWindow());
+      return this.history.showHistoryDeletionPopup(getWindow());
     },
 
     sendUserFeedback(data) {

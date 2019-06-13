@@ -9,21 +9,3 @@
   background: $overlay-background-color;
 }
 
-body {
-  &.ReactModal__Body--open,
-  &.show-overlay {
-      &::before,
-      .aside, .undo-notification-box,
-      .fixed-container > section:not(#section-top),
-      #section-most-visited,
-      #section-favorites {
-          filter: blur($overlay-blur-amount);
-      }
-  }
-
-  &.ReactModal__Body--open {
-    .fixed-container > section {
-      filter: blur($overlay-blur-amount);
-    }
-  }
-}

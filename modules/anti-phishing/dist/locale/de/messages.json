@@ -1,0 +1,23 @@
+{
+    "anti_phishing_txt0": {
+        "message": "Sicherheits-Warnung"
+    },
+    "anti_phishing_txt1": {
+        "message": "Cliqz hat den Zugriff auf ("
+    },
+    "anti_phishing_txt2": {
+        "message": ") blockiert, weil diese Seite als Phishing-Website gemeldet wurde. Phishing-Websites geben vor, vertrauenswürdig zu sein, damit du deine Anmeldedaten, dein Passwort oder andere vertrauliche Informationen preisgibst."
+    },
+    "anti_phishing_txt3": {
+        "message": "Mehr erfahren"
+    },
+    "anti_phishing_txt4": {
+        "message": "Zurück zu sicherer Seite"
+    },
+    "anti_phishing_txt5": {
+        "message": "Diese Seite als sicher melden"
+    },
+    "anti_phishing_txt6": {
+        "message": "Trotz der Warnung fortfahren"
+    }
+}

@@ -6,11 +6,12 @@ import OffersConfigs from '../offers-v2/offers_configs';
 import ActionID from '../offers-v2/offers/actions-defs';
 import prefs from '../core/prefs';
 import console from '../core/console';
+import Storage from '../core/storage';
 
 ChromeUtils.import('chrome://cliqzmodules/content/CLIQZ.jsm');
 
 const Offers = CLIQZ.app.modules['offers-v2'].background;
-const localStorage = CLIQZ.CliqzUtils.getLocalStorage('chrome://cliqz/content/offers-debug/offers-debug.json');
+const localStorage = new Storage('chrome://cliqz/content/offers-debug/offers-debug.json');
 
 // todo create a class for this where we will wrap some of the signals
 // and we can register to get signals in here

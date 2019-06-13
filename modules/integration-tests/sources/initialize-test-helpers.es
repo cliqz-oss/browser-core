@@ -6,10 +6,13 @@ import * as i18n from '../core/i18n';
 import * as http from '../core/http';
 import * as searchEngines from '../core/search-engines';
 import testServer from '../tests/core/http-server';
+import events from '../core/events';
+import * as historySearch from '../core/history-search';
 
 export default function (window) {
   Object.assign(window.CLIQZ, {
     TestHelpers: {
+      events,
       testServer,
       browser,
       gzip,
@@ -18,6 +21,7 @@ export default function (window) {
       i18n,
       searchEngines,
       webrequest,
+      historySearch,
     },
   });
 }

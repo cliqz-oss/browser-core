@@ -1,0 +1,35 @@
+{
+    "hw_data_collection": {
+        "message": "Cliqz for Firefox übermittelt anonyme Daten über Web-Suchen und Website-Besuche an Server von Cliqz um die Such- und Browser-Funktionen zu verbessern."
+    },
+    "hw_page_choice": {
+        "message": "Du kannst bestimmen, ob Human Web von dir die oben beschriebenen anonymen statistischen Daten zur Verbesserung von Cliqz sammeln darf."
+    },
+    "hw_page_cliqz_desc": {
+        "message": "Cliqz basiert auf der Weisheit der Masse. Die Gemeinschaft der Nutzer trägt auf vollständig anonyme Weise statistische Daten zusammen. Und mit diesem Daten bewertet unsere Suchtechnologie die Relevanz und Sicherheit von Websites. Die selbst entwickelte Technologie, mithilfe der Nutzer das Internet zu indexieren, nennen wir Human Web. Als Teilnehmer am Human Web trägst du zu einem sichereren Web und zu besseren Suchergebnissen bei."
+    },
+    "hw_page_cliqz_desc_extended": {
+        "message": "Getrennt von diesen Web-Traffic-Daten speichert Cliqz, ebenfalls völlig anonym, was die Gesamtheit der Nutzer im Web sucht und was sie in die kombinierte Such- und Adresszeile oben im Browserfenster eingibt. Diese Eingaben und Website-Besuche werden jeweils ausschließlich als Einzelereignis ausgewertet. Eine Verkettung von Daten aus mehreren Eingaben sowie Besuchen und damit theoretisch mögliche Rückschlüsse auf Nutzer findet nicht statt. Human Web verknüpft auch niemals personenbezogene Daten (z.B. IP-Adresse oder Email-Adresse) mit irgendwelchen Ereignissen."
+    },
+    "hw_page_cliqz_hw_desc": {
+        "message": "Die Human Web-Technologie berechnet statistische Web-Traffic-Daten, also z.B. URLs (Website-Adressen) und Verweildauern auf Websites, die von der Gesamtheit jener Nutzer besucht werden, die am Human Web teilnehmen. Dies geschieht völlig anonym, ohne Bezug zu personenbezogenen Daten. IP-Adressen werden automatisch aus den Human Web-Datensätzen gelöscht."
+    },
+    "hw_page_data_collection": {
+        "message": "Human Web sammelt anonyme statistische Daten. Deine Privatsphäre wird nicht angetastet."
+    },
+    "hw_page_header": {
+        "message": "Human Web"
+    },
+    "hw_page_one_for_all": {
+        "message": "Einer für alle. Alle für einen. Gemeinsam für ein besseres Internet. "
+    },
+    "hw_page_participate": {
+        "message": "Ich nehme am Human Web teil"
+    },
+    "hw_page_participation_disclaimer": {
+        "message": "Die Teilnahme am Human Web ist optional"
+    },
+    "hw_page_privacy_statement": {
+        "message": "Datenschutzerklärung"
+    }
+}

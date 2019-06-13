@@ -1,0 +1,67 @@
+.header__container {
+  height: 25px;
+  display: flex;
+  justify-content: space-between;
+  margin: 5px;
+  align-items: center;
+}
+
+.header__left-item {
+  display: flex;
+}
+.header__right-item {
+  display: flex;
+}
+
+.header__label {
+  font-size: 15px;
+  color: #494949;
+}
+
+.header__chip-logo {
+  background: url('../images/chip-icon-logo.svg') no-repeat right;
+  background-size: contain;
+  width: 80px;
+  height: 19px;
+  margin-left: 2px;
+}
+
+.header__myoffrz-logo {
+  background: url('../images/offers-cc-icon.svg') no-repeat right;
+  background-size: contain;
+  width: 18px;
+  height: 17px;
+  margin-left: 1px;
+}
+
+.header__menu {
+  background: url('../images/3dots-menu.svg') no-repeat top;
+  background-size: contain;
+  transform: rotate(-90deg);
+  width: 17px;
+  height: 17px;
+  padding-right: 25px;
+  cursor: pointer;
+}
+.header__menu:hover {
+  filter: brightness(0);
+}
+.header__menu-active {
+  filter: brightness(0);
+}
+
+.header__close {
+  background: url('../images/close-offer.svg') no-repeat center;
+  width: 14px;
+  height: 14px;
+  padding-top: 2px;
+  margin-right: 4px;
+  cursor: pointer;
+}
+.header__close:hover {
+  filter: brightness(0);
+}
+
+.header__space {
+  width: 8px;
+}

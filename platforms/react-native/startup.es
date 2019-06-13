@@ -4,10 +4,10 @@ import { setPref, getPref } from './prefs';
 import console from '../core/console';
 import App from '../core/app';
 import Bridge from './native-bridge';
-import utils from '../core/utils';
 import crypto from './crypto';
 import { fromBase64, toBase64 } from '../core/encoding';
 import inject from '../core/kord/inject';
+import logos from '../core/services/logos';
 import modules from '../core/app/modules';
 import window from './window';
 import webRequest from './webrequest';
@@ -58,7 +58,7 @@ const startup = Promise.all([seedPromise]).then(() => {
     getPref(prefname, defaultValue));
   bridge.registerAction('core:setPref', setPref);
   bridge.registerAction('getLogoDetails',
-    url => utils.getLogoDetails(url));
+    url => logos.getLogoDetails(url));
   bridge.registerAction('webRequest', webRequest.onBeforeRequest._trigger.bind(webRequest.onBeforeRequest));
   return app.modules.search.getWindowLoadingPromise(window);
 }).then(() => {

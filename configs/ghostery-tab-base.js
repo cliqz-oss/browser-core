@@ -12,6 +12,7 @@ module.exports = {
   versionPrefix: '10',
   settings: Object.assign({}, urls, {
     id: id,
+    appName: "Ghostery",
     name: 'ghosteryTabAppNameNightly',
     channel: 'GT12', // Ghostery Tab Chrome Beta
     MSGCHANNEL: 'ghostery-tab',
@@ -47,6 +48,7 @@ module.exports = {
     'freshtab',
     'offers-v2',
     'human-web',
+    'insights',
     'hpnv2',
     'webrequest-pipeline',
     'webextension-specific',

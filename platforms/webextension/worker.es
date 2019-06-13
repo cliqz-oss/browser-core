@@ -1,3 +1,3 @@
 /* eslint no-restricted-globals: 'off' */
 
-export default Worker;
+export default typeof Worker !== 'undefined' ? Worker : undefined;

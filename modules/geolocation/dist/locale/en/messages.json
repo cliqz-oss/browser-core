@@ -1,0 +1,11 @@
+{
+    "always": {
+        "message": "Always"
+    },
+    "always_ask": {
+        "message": "Always ask"
+    },
+    "never": {
+        "message": "Never"
+    }
+}

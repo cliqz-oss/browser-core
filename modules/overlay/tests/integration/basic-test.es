@@ -24,13 +24,17 @@ const checkIframeExists = async tab => runCodeAt(tab.id, `(() => {
   return overlay.shadowRoot.querySelector('#cliqz-dropdown') !== null;
 })()`);
 
-const triggerIframeCreation = async (tab) => {
+const testHelpersExistFunc = async (tab) => {
   await waitFor(async () => {
     const testHelpersExist = await runCodeAt(tab.id, `
       window.CLIQZ && window.CLIQZ && !!window.CLIQZ.tests;
     `);
     return testHelpersExist;
   });
+};
+
+const triggerIframeCreation = async (tab) => {
+  await testHelpersExistFunc(tab);
   return runCodeAt(tab.id, 'window.CLIQZ.tests.overlay.toggle(); window.CLIQZ.tests.overlay.close();');
 };
 
@@ -51,6 +55,7 @@ const getUIStyle = async tab => runCodeAt(tab.id, `(() => {
 })()`);
 
 const fillIn = async ({ view: tab, query }) => {
+  await testHelpersExistFunc(tab);
   await new Promise(resolve => chrome.tabs
     .executeScript(tab.id, { code: 'window.CLIQZ.tests.overlay.toggle();' }, resolve));
 

@@ -1,4 +1,4 @@
-import utils from '../core/utils';
+import logos from '../core/services/logos';
 import config from '../core/config';
 import deepFreeze from '../core/helpers/deep-freeze';
 import { getDetailsFromUrl } from '../core/url';
@@ -25,7 +25,7 @@ function mergePlaces(history, places) {
       host = 'CLIQZ';
 
       domains[host] = domains[host] || {
-        logo: utils.getLogoDetails(config.settings.HOMEPAGE_URL),
+        logo: logos.getLogoDetails(config.settings.HOMEPAGE_URL),
         lastVisitedAt: entry.visit_date,
         baseUrl: '',
         visits: [],
@@ -35,7 +35,7 @@ function mergePlaces(history, places) {
       host = details.hostname;
 
       domains[host] = domains[host] || {
-        logo: utils.getLogoDetails(entry.url),
+        logo: logos.getLogoDetails(entry.url),
         lastVisitedAt: entry.visit_date,
         baseUrl: `${details.scheme}//${details.host}/`,
         visits: [],
