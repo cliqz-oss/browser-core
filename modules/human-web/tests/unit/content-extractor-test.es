@@ -315,6 +315,48 @@ export default describeModule('human-web/content-extractor',
       });
     });
 
+    describe('#_jsonPath', function () {
+      let _jsonPath;
+
+      beforeEach(function () {
+        _jsonPath = this.module()._jsonPath;
+      });
+
+      it('should extract fields from JSON', function () {
+        expect(_jsonPath('{"a":1}', 'a')).to.equal('1');
+        expect(_jsonPath('{"a":1, "b":"2"}', 'b')).to.equal('2');
+      });
+
+      it('should extract nested fields from JSON', function () {
+        expect(_jsonPath('{ "a": { "nested": true } }', 'a.nested')).to.equal('true');
+        expect(_jsonPath('{ "a": { "b": { "c": "3" } } }', 'a.b.c')).to.equal('3');
+      });
+
+      it('should reject unexpected normal text', function () {
+        expect(_jsonPath('Some example text', '')).to.equal('');
+        expect(_jsonPath('Some example text', 'key')).to.equal('');
+        expect(_jsonPath('Some example text {"key":"1"}', 'key')).to.equal('');
+      });
+
+      it('should by default not extract non-trivial objects', function () {
+        expect(_jsonPath('{"a":[1,2,3]}', 'a')).to.equal('');
+        expect(_jsonPath('{"a":{"b":1}"}', 'a')).to.equal('');
+      });
+
+      it('should extract non-trivial objects when enabled', function () {
+        expect(JSON.parse(_jsonPath('{"a":[1,2,3]}', 'a', true))).to.deep.equal([1, 2, 3]);
+        expect(JSON.parse(_jsonPath('{"a":[1,2,3]}', 'a', true))).to.deep.equal([1, 2, 3]);
+        expect(JSON.parse(_jsonPath('{"a":{"b":1}}', 'a', true))).to.deep.equal({ b: 1 });
+      });
+
+      it('should ignore incorrect JSON', function () {
+        expect(_jsonPath('', 'a')).to.equal('');
+        expect(_jsonPath('][', 'a')).to.equal('');
+        expect(_jsonPath('a:3', 'a')).to.equal('');
+        expect(_jsonPath('a:3}', 'a')).to.equal('');
+      });
+    });
+
     describe('#_mergeArr', function () {
       let _mergeArr;
 

@@ -1,6 +1,6 @@
 {
   "name": "browser-core",
-  "version": "7.36.3",
+  "version": "7.36.4",
   "description": "",
   "main": "build/index.js",
   "scripts": {
