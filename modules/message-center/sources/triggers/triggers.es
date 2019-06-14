@@ -1,8 +1,8 @@
 import i18n from '../../core/i18n';
 import inject from '../../core/kord/inject';
 import prefs from '../../core/prefs';
-import { getDaysSinceInstall } from '../../core/demographics';
-import { isAMO } from '../../core/platform';
+import { getDaysSinceInstall, getInstallDateAsDaysSinceEpoch } from '../../core/demographics';
+import { isAMO, isDesktopBrowser } from '../../core/platform';
 import getLocalMessages from './local';
 import getRemoteMessages from './remote';
 
@@ -42,9 +42,18 @@ const messageFunctions = {
   async installDaysGreaterThan(numDays) {
     return (await getDaysSinceInstall()) >= numDays;
   },
+  async installDaysSinceEpochLessThan(numDays) {
+    return (await getInstallDateAsDaysSinceEpoch()) < numDays;
+  },
   isAMO() {
     return isAMO;
-  }
+  },
+  isDesktopBrowser() {
+    return isDesktopBrowser;
+  },
+  prefHasNotChanged(prefName) {
+    return !prefs.has(prefName);
+  },
 };
 
 async function checkRulesForMessage(message) {

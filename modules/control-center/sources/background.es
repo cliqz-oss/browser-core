@@ -7,6 +7,7 @@ import { getDetailsFromUrl } from '../core/url';
 import prefs from '../core/prefs';
 import events from '../core/events';
 import inject from '../core/kord/inject';
+import pacemaker from '../core/services/pacemaker';
 import { getMessage } from '../core/i18n';
 import { isDesktopBrowser, isAMO, isGhostery } from '../core/platform';
 import background from '../core/base/background';
@@ -59,8 +60,7 @@ class IntervalManager {
   }
 
   remove(windowId) {
-    const interval = this.intervals.get(windowId);
-    clearInterval(interval);
+    pacemaker.clearTimeout(this.intervals.get(windowId));
     this.intervals.delete(windowId);
   }
 
@@ -76,7 +76,7 @@ export default background({
   antitracking: inject.module('antitracking'),
   geolocation: inject.service('geolocation', ['setLocationPermission']),
 
-  requiresServices: ['geolocation', 'telemetry'],
+  requiresServices: ['geolocation', 'telemetry', 'pacemaker'],
 
 
   init(settings) {
@@ -136,7 +136,7 @@ export default background({
     this.refreshState(tabId);
     updateBadgeForUrl();
     let counter = 12;
-    const interval = setInterval(() => {
+    const interval = pacemaker.setTimeout(() => {
       updateBadgeForUrl();
       counter -= 1;
       if (counter <= 0) {
@@ -322,7 +322,7 @@ export default background({
       const tabs = await queryTabs();
       tabs.forEach((tab) => {
         // some modules need time to start eg: antitracking
-        setTimeout(() => {
+        pacemaker.setTimeout(() => {
           this.refreshState(tab.id);
         }, 3000);
       });

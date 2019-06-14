@@ -1,5 +1,4 @@
 import { chrome } from '../platform/globals';
-import { getResourceUrl } from '../core/platform';
 import * as transport from './transport/index';
 
 export default class Popup {
@@ -18,61 +17,30 @@ export default class Popup {
     this.onPopupOpen = null;
   }
 
-  onMessage(msg) {
+  onMessage(msg, sender, sendResponse) {
     const { message: { action, data } = {}, target } = msg;
-    if (target !== 'cliqz-offers-cc') { return; }
-    this._dispatcher(action, data);
+    if (target !== 'cliqz-offers-cc') { return false; }
+    this._dispatcher(action, sendResponse);
     const offerId = null; // transport layer will get offerId from the data
     const autoTrigger = false;
     transport.dispatcher('offers-cc', offerId, { action, data }, autoTrigger);
+    return true; // we have to return true, because of passing sendResponse to a function
   }
 
-  _sendToPopup(data = {}) {
-    const popup = this._getPopup();
-    if (!popup) { return; }
-
-    popup.postMessage(JSON.stringify({
-      target: 'cliqz-offers-cc',
-      origin: 'window',
-      message: {
-        data,
-        action: 'pushData',
-      }
-    }), '*');
-  }
-
-  _getPopup() {
-    const href = getResourceUrl('offers-cc/index.html?popup');
-    return chrome.extension.getViews().find(view => view.location.href === href);
-  }
-
-  _sendShowSignals(payload) {
-    const { data: { vouchers = [] } = {} } = payload;
+  _sendTelemetry() {
     const action = 'sendTelemetry';
-    const data = { action: 'show', offersCount: vouchers.length };
+    const data = { target: 'icon' };
     transport.dispatcher('offers-cc', null, { action, data }, false);
-    transport.dispatcher('offers-cc', null, { action, data: { target: 'icon' } }, false);
   }
 
-  _sendCloseSignalIfNeeded(action, popup) {
-    if (action === 'hideBanner' && popup) {
-      const data = { target: 'close' };
-      transport.dispatcher('offers-cc', null, { action: 'sendTelemetry', data }, false);
-    }
-  }
-
-  _dispatcher = async (action, { closePopup = false } = {}) => {
-    const allowedActions = ['getEmptyFrameAndData', 'hideBanner', 'openURL'];
-    if (!allowedActions.includes(action)) { return; }
+  _dispatcher = async (action, sendResponse) => {
     if (action === 'getEmptyFrameAndData') {
       this.onPopupOpen();
       const payload = await this.getOffers();
-      this._sendToPopup(payload.data);
-      this._sendShowSignals(payload);
-    } else if (action === 'hideBanner' || closePopup) {
-      const popup = this._getPopup();
-      this._sendCloseSignalIfNeeded(action, popup);
-      if (popup) { popup.close(); }
+      sendResponse({ action: 'pushData', data: payload.data });
+      this._sendTelemetry();
+    } else {
+      sendResponse({});
     }
   }
 }

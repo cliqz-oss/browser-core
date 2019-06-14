@@ -27,7 +27,7 @@ class PersistenceHandler {
     this.target = target;
     this.dirty = dirty || false;
     // write dirty pages every minute
-    pacemaker.register(this.persistState.bind(this), 60000, this.isDirty.bind(this));
+    pacemaker.register(this.persistState.bind(this), { timeout: 60000 });
 
     // propegate proxy down object leaves
     Object.keys(this.target).forEach((k) => {
@@ -207,6 +207,6 @@ export class PersistentObject {
 export class AutoPersistentObject extends PersistentObject {
   constructor(name, setter, saveInterval) {
     super(name, setter);
-    pacemaker.register(this.save.bind(this), saveInterval, this.isDirty.bind(this));
+    pacemaker.register(this.save.bind(this), { interval: saveInterval });
   }
 }

@@ -1,4 +1,6 @@
 /* global chai, describeModule */
+const tldts = require('tldts');
+const punycode = require('punycode');
 
 const nonNumeric = ['', 'ithinkthereis1numberhere', '1240abcd'];
 const mostlyNumeric = ['4902', '1024x768'];
@@ -9,6 +11,10 @@ export default describeModule('antitracking/hash', function () {
   return {
     'core/resource-loader': {
       default: class MockResourceLoader {},
+    },
+    'platform/lib/tldts': tldts,
+    'platform/lib/punycode': {
+      default: punycode,
     },
   };
 },
@@ -47,7 +53,9 @@ function () {
       'anti-tracking',
       'front/ng',
       'javascript',
-      'callback'
+      'callback',
+      'compress-format-enhance',
+      'compress%2Cformat%2Cenhance',
     ];
 
     const hashes = [
@@ -70,6 +78,37 @@ function () {
     hashes.forEach(function (str) {
       it(`'${str}' is a hash`, function () {
         chai.expect(hashProb.isHash(str)).to.be.true;
+      });
+    });
+
+    describe('shouldCheckToken', function () {
+      let shouldCheckToken;
+      beforeEach(function () {
+        shouldCheckToken = this.module().shouldCheckToken;
+      });
+
+      it('returns false for short tokens', () => {
+        chai.expect(shouldCheckToken(hashProb, 6, '1234')).to.be.false;
+      });
+
+      it('returns false for timestamps', () => {
+        chai.expect(shouldCheckToken(hashProb, 6, `${Date.now()}`)).to.be.false;
+      });
+
+      it('returns false for IP addresses', () => {
+        chai.expect(shouldCheckToken(hashProb, 6, '192.168.3.4')).to.be.false;
+      });
+
+      notHash.forEach(function (str) {
+        it(`should not check '${str}'`, function () {
+          chai.expect(shouldCheckToken(hashProb, 6, str)).to.be.false;
+        });
+      });
+
+      hashes.forEach(function (str) {
+        it(`should check '${str}'`, function () {
+          chai.expect(shouldCheckToken(hashProb, 6, str)).to.be.true;
+        });
       });
     });
   });

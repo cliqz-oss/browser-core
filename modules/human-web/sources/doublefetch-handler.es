@@ -3,6 +3,7 @@ import { equals as urlEquals } from '../core/url';
 import inject, { ifModuleEnabled } from '../core/kord/inject';
 import logger from './logger';
 import { parseURL } from './network';
+import pacemaker from '../core/services/pacemaker';
 
 const State = {
   DISABLED: 'DISABLED',
@@ -392,7 +393,10 @@ export default class DoublefetchHandler {
     const waitForHandlersPromise = new Promise((resolve, reject) => {
       entry.onCompletedHandlerFinished = () => {
         installTimeout = false;
-        clearTimeout(timeoutTimer);
+
+        pacemaker.clearTimeout(timeoutTimer);
+        timeoutTimer = undefined;
+
         resolve();
       };
       handlerTimedOut = () => {
@@ -410,7 +414,7 @@ export default class DoublefetchHandler {
       // To avoid that we hang forever if we fail to correlated requests,
       // install a timeout and give up eventually.
       if (installTimeout) {
-        timeoutTimer = setTimeout(() => {
+        timeoutTimer = pacemaker.setTimeout(() => {
           logger.warn('Waiting for the "onCompleted" handler timed out for url', url);
           handlerTimedOut();
         }, onCompletedHandlerTimeoutInMs);

@@ -21,12 +21,12 @@ module.exports = {
     "MSGCHANNEL": "web-extension",
     "OFFERS_CHANNEL": "ghostery",
     "ATTRACK_TELEMETRY_PROVIDER": "hpnv2",
+    "ADBLOCKER_PLATFORM": 'desktop',
     "HW_CHANNEL": "ghostery",
     "antitrackingPlaceholder": "ghostery",
     "antitrackingHeader": "Ghostery-AntiTracking",
   }),
   "default_prefs": {
-    "modules.insights.enabled": false,
     "modules.webextension-specific.enabled": false,
     "cliqz-adb": 1,
     "cliqz-adb-abtest": true,
@@ -36,17 +36,16 @@ module.exports = {
     "attrackDefaultAction": "placeholder",
     "sendAntiTrackingHeader": false,
     "attrackCookieTrustReferers": true,
+    "attrack.cookieMode": "trackers",
   },
   "bundles": [
     "cliqz-android/app.bundle.js",
     "core/content-script.bundle.js",
-    "cliqz-android/cliqz-app-constants.bundle.js",
   ],
   "modules": [
     "core",
     "antitracking",
     "webrequest-pipeline",
-    "static",
     "adblocker",
     "anolysis",
     "core-cliqz",
@@ -54,7 +53,7 @@ module.exports = {
     "cliqz-android",
     "webextension-specific",
     "telemetry",
-    "control-center"
+    "cookie-monster",
   ],
   system: base.systemConfig,
   builderDefault: Object.assign({}, base.builderConfig, {

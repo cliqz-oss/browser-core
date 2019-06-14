@@ -21,18 +21,12 @@ module.exports = {
   "publish": publish.toEdge('browser-core-lumen-ios', 'lumen-ios'),
   "isMobile": true,
   "settings": Object.assign({}, urls, {
-    "RESULTS_TIMEOUT": 3000,
-    "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],
-    "RESULTS_PROVIDER_ORDER": ["calculator", "history", "cliqz", "querySuggestions", "instant"],
-    "CLEAR_RESULTS_AT_SESSION_START": false,
   }),
   "default_prefs" : {
-    "modules.insights.enabled": false,
   },
   "modules": [
     "core",
     "core-cliqz",
-    "static",
     "anolysis",
     "telemetry",
     "insights",

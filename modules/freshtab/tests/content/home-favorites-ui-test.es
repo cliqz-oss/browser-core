@@ -38,9 +38,10 @@ describe('Freshtab favorites UI', function () {
     });
 
     context('when set to be visible', function () {
-      before(function () {
+      before(async function () {
         subject.respondsWith(favConfig);
-        return subject.load();
+        await subject.load();
+        return subject.query('#settings-btn').click();
       });
 
       after(function () {
@@ -59,9 +60,10 @@ describe('Freshtab favorites UI', function () {
     });
 
     context('when set to not be visible', function () {
-      before(function () {
+      before(async function () {
         subject.respondsWith(defaultConfig);
-        return subject.load();
+        await subject.load();
+        return subject.query('#settings-btn').click();
       });
 
       after(function () {

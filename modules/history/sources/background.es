@@ -1,5 +1,6 @@
 import inject from '../core/kord/inject';
 import config from '../core/config';
+import pacemaker from '../core/services/pacemaker';
 import History from '../platform/history/history';
 import { getActiveTab, openLink, getWindow } from '../core/browser';
 import HistoryService from '../core/history-service';
@@ -28,7 +29,7 @@ const CLIQZ_INTERFACE_PAGES = [
 * @class Background
 */
 export default background({
-  requiresServices: ['logos'],
+  requiresServices: ['logos', 'pacemaker'],
   core: inject.module('core'),
   /**
   * @method init
@@ -44,9 +45,18 @@ export default background({
     if (HistoryService && HistoryService.onVisitRemoved) {
       this.onVisitRemovedListener = this._onVisitRemovedListener.bind(this);
       this.onVisitedListener = this._onVisitedListener.bind(this);
+      this.onRedirectListener = this._onRedirectListener.bind(this);
 
       HistoryService.onVisitRemoved.addListener(this.onVisitRemovedListener);
       HistoryService.onVisited.addListener(this.onVisitedListener);
+      chrome.webRequest.onBeforeRedirect.addListener(this.onRedirectListener, {
+        urls: ['*://*/*'],
+        types: ['main_frame'],
+      });
+      chrome.webRequest.onCompleted.addListener(this.onRedirectListener, {
+        urls: ['*://*/*'],
+        types: ['main_frame'],
+      });
     }
 
     if (isCliqzBrowser && !prefs.get('modules.history.cleanupComplete', false)) {
@@ -74,6 +84,16 @@ export default background({
     this.dbMigration.dispose();
   },
 
+  _onRedirectListener({ url, originUrl, redirectUrl }) {
+    if (redirectUrl) {
+      this.redirectMap.set(redirectUrl, url);
+    }
+
+    if (originUrl) {
+      this.redirectMap.set(url, originUrl);
+    }
+  },
+
   _onVisitRemovedListener(...args) {
     getActiveTab().then(({ id, url }) => {
       if (url.indexOf(HISTORY_URL) !== 0) {
@@ -90,6 +110,11 @@ export default background({
     const isCliqzInterfacePage = CLIQZ_INTERFACE_PAGES.find(page => url.startsWith(page));
     if (isCliqzInterfacePage) {
       HistoryService.deleteUrl({ url });
+      return;
+    }
+    const sourceUrl = this.getSourceUrl(url);
+    if (url && sourceUrl && (!equals(url, sourceUrl))) {
+      this.fillFromVisit(url, sourceUrl);
     }
   },
 
@@ -145,7 +170,7 @@ export default background({
       visitTime
     }).then(() => {
       // TODO don't
-      setTimeout(() => {
+      pacemaker.setTimeout(() => {
         this.fillFromVisit(url, queryUrl).catch(({ visitId }) => {
           if (!visitId) {
             // If there is no visitId, it may be Automatic Forget Tab
@@ -169,10 +194,6 @@ export default background({
       this.onResult({ query, url, isPrivateMode, isFromAutocompletedURL });
     },
 
-    'ui:enter': function onUIEnter({ query, url, isPrivateMode, isFromAutocompletedURL }) {
-      this.onResult({ query, url, isPrivateMode, isFromAutocompletedURL });
-    },
-
     /**
     * @event core:url-meta
     * @param url {string}
@@ -180,21 +201,6 @@ export default background({
     */
     'core:url-meta': function onUrlMeta(url, meta) {
       this.actions.recordMeta(url, meta);
-    },
-    'content:state-change': function onStateChange({ url, originalUrl, triggeringUrl }) {
-      if (url && triggeringUrl) {
-        this.redirectMap.set(url, triggeringUrl);
-      }
-
-      if (originalUrl && triggeringUrl) {
-        this.redirectMap.set(originalUrl, triggeringUrl);
-      }
-    },
-    'content:location-change': function onLocationChange({ url, triggeringUrl }) {
-      const sourceUrl = this.getSourceUrl(triggeringUrl);
-      if (url && sourceUrl && (!equals(url, triggeringUrl))) {
-        this.fillFromVisit(url, sourceUrl);
-      }
     },
   },
 

@@ -3,7 +3,16 @@
 export default describeModule('core/language',
   function () {
     return {
-      'core/console': console,
+      'core/console': {
+        isLoggingEnabled() { return false; },
+        default: console,
+      },
+      'core/services/pacemaker': {
+        default: {
+          everyFewMinutes() {},
+          clearTimeout() {},
+        },
+      },
       'core/i18n': {
         default: {
           PLATFORM_LANGUAGE_FILTERED: 'strange_language'

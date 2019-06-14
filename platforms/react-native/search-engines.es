@@ -84,7 +84,11 @@ export async function loadSearchEngines() {
   return searchEngines;
 }
 
-export function setDefaultSearchEngine() {}
+export function setDefaultSearchEngine() {
+  // CLIQZ
+  searchEngines = [];
+  loadSearchEngines();
+}
 
 export function getSearchEngines() {
   return searchEngines;
@@ -111,6 +115,7 @@ export function removeEngine() {
 
 if (SearchEnginesModule) {
   DeviceEventEmitter.addListener('SearchEngines:SetDefault', () => {
+    // GHOSTERY
     searchEngines = [];
     loadSearchEngines();
   });

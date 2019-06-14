@@ -1,0 +1,18 @@
+[
+  {
+    "namespace": "experiments.skeleton",
+    "description": "Skeleton",
+    "functions": [
+      {
+        "name": "doTheThing",
+        "type": "function",
+        "description": "Do the thing",
+        "async": true,
+        "parameters": []
+      }
+    ],
+
+    "events": [
+    ]
+  }
+]

@@ -40,7 +40,7 @@ export default describeModule('hpnv2/trusted-clock',
         get: (...args) => MOCKED_PREFS.get(...args),
         set: (...args) => MOCKED_PREFS.set(...args),
       }
-    }
+    },
   }),
   () => {
     describe('#TrustedClock', () => {

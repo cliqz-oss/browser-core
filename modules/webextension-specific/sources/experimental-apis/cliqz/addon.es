@@ -1,4 +1,4 @@
-/* globals AddonManager  */
+/* globals AddonManager, Components */
 
 Components.utils.import('resource://gre/modules/AddonManager.jsm');
 

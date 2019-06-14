@@ -6,6 +6,10 @@ const crypto = require('crypto');
 const punycode = require('punycode');
 
 const MOCK = {
+  'core/services/pacemaker': {
+    default: {
+    },
+  },
   'core/events': {
     default: {},
   },
@@ -22,6 +26,13 @@ const MOCK = {
   },
   'core/http': {
     fetch: {},
+  },
+  'core/prefs': {
+    default: {
+      set() {},
+      has() { return false; },
+      get(_, def) { return def; },
+    },
   },
   'core/kord/inject': {
     default: {
@@ -40,11 +51,6 @@ const MOCK = {
       },
     },
   },
-  'core/prefs': {
-    default: {
-      get(n, v) { return v; },
-    }
-  },
   'platform/human-web/opentabs': {
     getAllOpenPages: {},
   },
@@ -55,6 +61,9 @@ const MOCK = {
     default: class {},
   },
   'human-web/content-extraction-patterns-loader': {
+    default: class {},
+  },
+  'human-web/safebrowsing-endpoint': {
     default: class {},
   },
   'platform/crypto': {

@@ -4,6 +4,7 @@ import Card from './Card';
 import SearchEngineCard from './SearchEngineCard';
 import { getVPWidth, getCardWidth } from '../styles/CardStyle';
 import { withCliqz } from '../cliqz';
+import { ResultProvider } from '../ResultProvider';
 
 const INITIAL_PAGE_INDEX = 0;
 
@@ -20,7 +21,7 @@ class CardList extends React.Component {
 
   componentWillReceiveProps(nextProps) {
     const carousel = this._carousel;
-    if (!carousel) {
+    if (!carousel || !nextProps.results.length || !this.props.results.length) {
       return;
     }
     if (carousel.currentIndex !== INITIAL_PAGE_INDEX
@@ -72,25 +73,22 @@ class CardList extends React.Component {
   }
 
   renderItem(result, index, { length }, theme, meta) {
+    let Component = Card;
     if (result.type === 'supplementary-search') {
-      return (
-        <SearchEngineCard
-          index={index}
-          result={result}
-          noResults={length < 2}
-          width={getCardWidth()}
-          meta={meta}
-        />
-      );
+      Component = SearchEngineCard;
     }
     return (
-      <Card
-        index={index}
-        width={getCardWidth()}
+      <ResultProvider
         result={result}
-        theme={theme}
         meta={meta}
-      />
+        index={index}
+      >
+        <Component
+          noResults={length < 2}
+          width={getCardWidth()}
+          theme={theme}
+        />
+      </ResultProvider>
     );
   }
 

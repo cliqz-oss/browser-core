@@ -69,7 +69,8 @@ export default describeModule('offers-v2/signals/signals_handler',
     'offers-v2/utils': {
       generateUUID: function () {
         return Math.random();
-      }
+      },
+      isDeveloper: () => true,
     },
   }),
   () => {

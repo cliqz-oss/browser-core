@@ -1,8 +1,4 @@
 /* eslint-disable no-param-reassign */
-
-/*
- * This module prevents user from 3rd party tracking
- */
 import * as persist from '../core/persistent-state';
 import UrlWhitelist from '../core/url-whitelist';
 import console from '../core/console';
@@ -21,7 +17,7 @@ import QSWhitelist2 from './qs-whitelist2';
 import TempSet from './temp-set';
 import md5 from '../core/helpers/md5';
 import telemetry from './telemetry';
-import { HashProb } from './hash';
+import { HashProb, shouldCheckToken } from './hash';
 import { getDefaultTrackerTxtRule } from './tracker-txt';
 import { isPrivateIP } from '../core/url';
 import { URLInfo, shuffle } from '../core/url-info';
@@ -41,6 +37,7 @@ import TokenExaminer from './steps/token-examiner';
 import TokenTelemetry from './steps/token-telemetry';
 import OAuthDetector from './steps/oauth-detector';
 import { skipInternalProtocols, skipInvalidSource, checkSameGeneralDomain } from './steps/check-context';
+import webNavigation from '../platform/webnavigation';
 
 export default class CliqzAttrack {
   constructor() {
@@ -53,6 +50,10 @@ export default class CliqzAttrack {
     this.recentlyModified = new TempSet();
     this.whitelistedRequestCache = new Set();
     this.urlWhitelist = new UrlWhitelist('attrack-url-whitelist');
+
+    // Intervals
+    this.hourChangedInterval = null;
+    this.tpEventInterval = null;
 
     // Web request pipelines
     this.webRequestPipeline = inject.module('webrequest-pipeline');
@@ -157,32 +158,18 @@ export default class CliqzAttrack {
   initPacemaker() {
     const twoMinutes = 2 * 60 * 1000;
 
-    // create a constraint which returns true when the time changes at the specified fidelity
-    const timeChangeConstraint = (name, fidelity) => {
-      if (fidelity === 'day') fidelity = 8;
-      else if (fidelity === 'hour') fidelity = 10;
-      return () => {
-        const timestamp = datetime.getTime().slice(0, fidelity);
-        const lastHour = persist.getValue(`${name}lastRun`) || timestamp;
-        persist.setValue(`${name}lastRun`, timestamp);
-        return timestamp !== lastHour;
-      };
-    };
-
     // pacemaker.register(this.updateConfig, 3 * 60 * 60 * 1000);
 
     // if the hour has changed
-    pacemaker.register(
-      this.hourChanged.bind(this),
-      twoMinutes,
-      timeChangeConstraint('hourChanged', 'hour')
-    );
+    this.hourChangedInterval = pacemaker.register(this.hourChanged.bind(this), {
+      timeout: twoMinutes,
+    });
 
-    pacemaker.register(() => {
+    this.tpEventInterval = pacemaker.register(() => {
       this.tp_events.commit().then(() => {
         this.tp_events.push();
       });
-    }, twoMinutes);
+    }, { timeout: twoMinutes });
   }
 
   telemetry({ message, raw = false, compress = false, ts = undefined }) {
@@ -284,7 +271,7 @@ export default class CliqzAttrack {
     return this.unloadPipeline().then(() => {
       // Initialise classes which are used as steps in listeners
       const steps = {
-        pageLogger: new PageLogger(this.tp_events),
+        pageLogger: new PageLogger(this.tp_events, webNavigation),
         blockRules: new BlockRules(this.config),
         cookieContext: new CookieContext(this.config, this.tp_events, this.qs_whitelist),
         redirectTagger: new RedirectTagger(),
@@ -296,15 +283,21 @@ export default class CliqzAttrack {
           this.qs_whitelist,
           this.config,
           this.db,
+          this.shouldCheckToken.bind(this),
           this.config.tokenTelemetry
         );
       }
       if (this.config.databaseEnabled) {
-        steps.tokenExaminer = new TokenExaminer(this.qs_whitelist, this.config, this.db);
+        steps.tokenExaminer = new TokenExaminer(
+          this.qs_whitelist,
+          this.config,
+          this.db,
+          this.shouldCheckToken.bind(this)
+        );
         steps.tokenChecker = new TokenChecker(
           this.qs_whitelist,
           {},
-          this.hashProb,
+          this.shouldCheckToken.bind(this),
           this.config,
           this.telemetry,
           this.db
@@ -906,6 +899,12 @@ export default class CliqzAttrack {
     this.db.unload();
 
     this.onSafekeysUpdated.unsubscribe();
+
+    pacemaker.clearTimeout(this.hourChangedInterval);
+    this.hourChangedInterval = null;
+
+    pacemaker.clearTimeout(this.tpEventInterval);
+    this.tpEventInterval = null;
   }
 
   checkInstalledAddons() {
@@ -917,6 +916,17 @@ export default class CliqzAttrack {
   }
 
   hourChanged() {
+    const name = 'hourChanged';
+    const fidelity = 10; // hour
+
+    const timestamp = datetime.getTime().slice(0, fidelity);
+    const lastHour = persist.getValue(`${name}lastRun`) || timestamp;
+    persist.setValue(`${name}lastRun`, timestamp);
+
+    if (timestamp === lastHour) {
+      return;
+    }
+
     // trigger other hourly events
     events.pub('attrack:hour_changed');
   }
@@ -1242,5 +1252,9 @@ export default class CliqzAttrack {
       host: page.hostname,
       report,
     });
+  }
+
+  shouldCheckToken(tok) {
+    return shouldCheckToken(this.hashProb, this.config.shortTokenLength, tok);
   }
 }

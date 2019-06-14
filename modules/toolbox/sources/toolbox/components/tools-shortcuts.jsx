@@ -30,6 +30,15 @@ function ToolsShortcuts() {
       >
         OPEN ANOLYSIS TOOL
       </a>
+      <br />
+      <a
+        href={getResourceUrl('adblocker/index.html')}
+        rel="noopener noreferrer"
+        tabIndex="-1"
+        target="_blank"
+      >
+        OPEN ADBLOCKER TOOL
+      </a>
     </div>
   );
 }

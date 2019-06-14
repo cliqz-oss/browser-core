@@ -3,7 +3,7 @@ import domainInfo from '../core/services/domain-info';
 import { nextIdle } from '../core/decorators';
 import TrackerCounter from '../core/helpers/tracker-counter';
 import events from '../core/events';
-import setTimeoutInterval from '../core/helpers/timeout';
+import pacemaker from '../core/services/pacemaker';
 
 const FIRSTPARTY = 'First party';
 
@@ -130,17 +130,11 @@ export default class AdbStats {
   }
 
   init() {
-    this.clearInterval = setTimeoutInterval(
-      () => { this.clearStats(); },
-      10 * 60 * 1000,
-    );
+    this.clearInterval = pacemaker.everyFewMinutes(() => { this.clearStats(); });
   }
 
   unload() {
-    if (this.clearInterval !== null) {
-      this.clearInterval.stop();
-      this.clearInterval = null;
-    }
+    pacemaker.clearTimeout(this.clearInterval);
   }
 
   addBlockedUrl(context) {

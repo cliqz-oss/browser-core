@@ -223,4 +223,56 @@ export default describeModule('offers-v2/utils',
         });
       });
     });
+
+    describe('rewrite Google serp url', () => {
+      let rewriteUrlForOfferMatching;
+
+      beforeEach(function () {
+        rewriteUrlForOfferMatching = this.module().rewriteUrlForOfferMatching;
+      });
+
+      it('/rewrite', () => {
+        const url1 = 'https://www.GoOgLe.com/search?client=firefox-b-d&q=%6captop+kaufen';
+        const url2 = 'https://www.GoOgLe.com/search?client=firefox-b-d&query=%6captop+kaufen';
+
+        const newUrl1 = rewriteUrlForOfferMatching(url1);
+        const newUrl2 = rewriteUrlForOfferMatching(url2);
+
+        const expectedUrl = 'https://www.GoOgLe.com/search?q=%6captop+kaufen';
+        chai.expect(newUrl1).to.eq(expectedUrl);
+        chai.expect(newUrl2).to.eq(expectedUrl);
+      });
+
+      it('/retain url if not a google domain', () => {
+        const url = 'https://www.nota.google.xxx.com/search?client=firefox-b-d&q=laptop+kaufen';
+
+        const newUrl = rewriteUrlForOfferMatching(url);
+
+        chai.expect(newUrl).to.eq(url);
+      });
+
+      it('/retain url if not a search path', () => {
+        const url = 'https://www.google.com/SEARCH?client=firefox-b-d&q=laptop+kaufen';
+
+        const newUrl = rewriteUrlForOfferMatching(url);
+
+        chai.expect(newUrl).to.eq(url);
+      });
+
+      it('/retain url if no search parameter', () => {
+        const url = 'https://www.google.com/search?client=firefox-b-d&Q=laptop+kaufen';
+
+        const newUrl = rewriteUrlForOfferMatching(url);
+
+        chai.expect(newUrl).to.eq(url);
+      });
+
+      it('/retain url if no search string at all', () => {
+        const url = 'https://www.google.com/search';
+
+        const newUrl = rewriteUrlForOfferMatching(url);
+
+        chai.expect(newUrl).to.eq(url);
+      });
+    });
   });

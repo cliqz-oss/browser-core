@@ -1,0 +1,25 @@
+.lodge-header__container {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 5px;
+}
+
+.lodge-header__image {
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: left;
+  /* width should be set dynamically */
+  height: 34px;
+  cursor: pointer;
+}
+
+.lodge-header__close {
+  background: url('../images/close-offer.svg') no-repeat center;
+  width: 14px;
+  height: 14px;
+  margin-right: -4px;
+  cursor: pointer;
+}
+.lodge-header__close:hover {
+  filter: brightness(0);
+}

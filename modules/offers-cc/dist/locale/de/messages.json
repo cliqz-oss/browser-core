@@ -5,6 +5,9 @@
     "help": {
         "message": "Hilfe"
     },
+    "hot_deal": {
+      "message": "Heißer Deal"
+    },
     "offers_best_offer": {
         "message": "Top Angebot"
     },
@@ -50,8 +53,11 @@
     "offers_hub_tooltip_new_offer": {
         "message": "Du hast ein neues Angebot"
     },
+    "offers_hub_welcome_link": {
+        "message": "Wie es funktioniert"
+    },
     "offers_hub_welcome_text": {
-        "message": "Wir stöbern für dich nach Angeboten. Sobald wir ein passendes finden, zeigen wir es dir hier."
+        "message": "Während du im Internet surfst, suchen wir nach attraktiven Angeboten, die zu deinen Interessen passen."
     },
     "offers_hub_welcome_title": {
         "message": "Hallo!"
@@ -61,6 +67,9 @@
     },
     "offers_send_feedback": {
         "message": "Senden"
+    },
+    "show_code": {
+      "message": "Code anzeigen"
     },
     "why_offers_text": {
         "message": "Keinerlei persönliche Daten verlassen dein Gerät. Dein Browser erkennt selbständig anhand deiner bisherigen Nutzung, wofür du dich interessieren könntest."

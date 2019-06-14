@@ -47,7 +47,6 @@ require('../telemetry-schemas-test-helpers')({
         'gb',
         'intl',
         'it',
-        'pl',
         'us',
       ],
       ['click', 'hover'], // action

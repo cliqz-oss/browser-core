@@ -13,6 +13,7 @@ export const saveMessageDismission = (message) => {
       ...prevValue,
       [message.id]: {
         ...oldMessage,
+        isDismissed: true,
         count: oldMessage.count + 1,
       }
     };

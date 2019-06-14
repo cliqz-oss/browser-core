@@ -2,10 +2,14 @@
 
 const tldts = require('tldts');
 const punycode = require('punycode');
+const moment = require('moment');
 
 export default describeModule('freshtab/background',
   function () {
     return {
+      'platform/lib/moment': {
+        default: moment,
+      },
       'core/services/telemetry': {
         default: {
           push: () => {},

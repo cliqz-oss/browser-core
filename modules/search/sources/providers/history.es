@@ -1,4 +1,3 @@
-/* global Components */
 import { Observable } from 'rxjs';
 import { map, scan, share, filter } from 'rxjs/operators';
 import historySearch from '../../core/history-search';
@@ -91,13 +90,13 @@ export default class History extends BaseProvider {
       searchFunc(query, (results) => {
         const r = mapResults(results.results, query);
 
-        observer.next(getResponse(
-          this.id,
+        observer.next(getResponse({
+          provider: this.id,
           config,
           query,
-          r,
-          results.ready ? 'done' : 'pending'
-        ));
+          results: r,
+          state: results.ready ? 'done' : 'pending'
+        }));
 
         if (results.ready) {
           completeIfLast();
@@ -121,13 +120,15 @@ export default class History extends BaseProvider {
               type: 'action switchtab',
               title: tab.title,
             }));
-          observer.next(getResponse(
-            this.id,
-            config,
-            query,
-            results,
-            'done',
-          ));
+          observer.next(
+            getResponse({
+              provider: this.id,
+              config,
+              query,
+              results,
+              state: 'done',
+            })
+          );
           completeIfLast();
         });
       }

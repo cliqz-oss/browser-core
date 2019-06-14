@@ -14,6 +14,13 @@ function buildAllowedListsUrl(type) {
 
 class Config {
   get allowedListsUrl() {
+    const platformOverride = cliqzConfig.settings.ADBLOCKER_PLATFORM;
+    if (platformOverride) {
+      return this.strictMode
+        ? buildAllowedListsUrl(`${platformOverride}-ads-trackers`)
+        : buildAllowedListsUrl(`${platformOverride}-ads`);
+    }
+
     // react-native has a custom set of lists to avoid hitting incompatible code
     if (cliqzConfig.platform === 'react-native') {
       return this.strictMode
@@ -66,12 +73,24 @@ class Config {
   }
 
   get enabled() {
-    const adbPref = prefs.get(ADB_PREF, false);
+    const adbPref = prefs.get(ADB_PREF, true); // adblocker is ON by default
     return this.abtestEnabled && (adbPref === true || adbPref === 1);
   }
 
   set enabled(value) {
     prefs.set(ADB_PREF, value);
+  }
+
+  get status() {
+    return {
+      isMobile,
+      adbModulePref: prefs.get('modules.adblocker.enabled', true),
+      adbPref: prefs.get(ADB_PREF, false),
+      adbAbtestPref: prefs.get(ADB_ABTEST_PREF, false),
+      adbStrict: prefs.get(ADB_PREF_STRICT, false),
+      configUrl: this.allowedListsUrl,
+      regionsOverride: prefs.get(ADB_USER_LANG, ''),
+    };
   }
 }
 

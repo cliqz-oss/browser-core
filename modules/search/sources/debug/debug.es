@@ -12,6 +12,7 @@ import Dropdown from '../../dropdown/dropdown';
 import templates from '../../dropdown/templates';
 import helpers from '../../dropdown/helpers';
 import { setGlobal } from '../../core/kord/inject';
+import { setTimeout } from '../../core/timers';
 import pluckResults from '../operators/streams/pluck-results';
 
 const app = {

@@ -14,6 +14,7 @@ import { parseKind } from '../telemetry';
 import createModuleWrapper from '../../core/helpers/spanan-module-wrapper';
 import { COLORS, COLOR_MAP, IGNORED_PROVIDERS, IMAGE_PATHS } from './helpers';
 import { overrideFetchHandler, fetch } from '../../core/http';
+import { setTimeout } from '../../core/timers';
 
 const historySearch = createModuleWrapper('history-search').createProxy();
 

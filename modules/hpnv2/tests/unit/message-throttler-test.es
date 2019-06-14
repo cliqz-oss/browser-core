@@ -1,7 +1,6 @@
 /* global chai */
 /* global sinon */
 /* global describeModule */
-/* global require */
 
 const expect = chai.expect;
 
@@ -39,6 +38,12 @@ export default describeModule('hpnv2/message-throttler',
         warn() {},
         error() {},
       }
+    },
+    'core/services/pacemaker': {
+      default: {
+        setTimeout(...args) { return setTimeout(...args); },
+        clearTimeout(...args) { return clearTimeout(...args); },
+      },
     },
     'core/crypto/random': {
       default: Math.random.bind(Math),

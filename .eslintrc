@@ -11,18 +11,7 @@
         "webextensions": true,
         "worker": true
     },
-    "globals": {
-        "Components": {},
-        "Services": {},
-        "dump": {},
-        "System": {},
-        "Cc": {},
-        "Ci": {},
-        "Promise": {},
-        "setTimeout": {},
-        "setInterval": {},
-        "clearTimeout": {}
-    },
+    "globals": {},
     "plugins": [
         "compat",
         "class-property"

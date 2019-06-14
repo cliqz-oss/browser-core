@@ -1,4 +1,5 @@
 import { equals as urlEquals } from '../../core/url';
+import { setTimeout } from '../../core/timers';
 
 // There needs to proper implementation, to avoid cases like:
 // 1. Downloading streams.

@@ -848,23 +848,23 @@ export default describeModule('offers-v2/offers/offers-db',
           });
 
           it('/zero for unknown offer', () => {
-            const count = db.getDisplayCount('no-such-offer');
+            const count = db.getPushCount('no-such-offer');
 
             chai.expect(count).to.eql(0);
           });
 
           it('/zero for a just added offer', () => {
-            const count = db.getDisplayCount(offerID);
+            const count = db.getPushCount(offerID);
 
             chai.expect(count).to.eql(0);
           });
 
           it('/counts', () => {
-            db.incOfferAction(offerID, 'offer_shown');
-            db.incOfferAction(offerID, 'offer_shown');
-            db.incOfferAction(offerID, 'offer_shown');
+            db.incOfferAction(offerID, 'offer_pushed');
+            db.incOfferAction(offerID, 'offer_pushed');
+            db.incOfferAction(offerID, 'offer_pushed');
 
-            const count = db.getDisplayCount(offerID);
+            const count = db.getPushCount(offerID);
 
             chai.expect(count).to.eql(3);
           });

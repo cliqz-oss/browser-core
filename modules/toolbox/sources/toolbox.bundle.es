@@ -1,5 +1,3 @@
-/* global window, chrome */
-
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './toolbox/components/app';

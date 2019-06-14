@@ -6,7 +6,6 @@
 
     $dial-height,
     $dial-padding,
-    $dial-header-height,
     $dial-header-title,
     $dial-title-font-size,
     $dial-delete-background,
@@ -34,17 +33,21 @@
     $dial-title-color,
     $dial-title-color-hover,
     $add-dial-form-box-shadow,
-    $dial-empty-bg-color
+    $dial-empty-bg-color,
 ){
     $dial-edit-background: url(../images/pencil.svg) no-repeat center;
     $dial-logo-color: #fff;
+    $pagination-header: 30px;
+    $dial-header-height: 15px;
 
     #section-most-visited {
         margin-top: 12px;
+        min-height: $dial-height + $dial-header-height + $pagination-header;
     }
 
     #section-favorites {
         margin-top: 20px;
+        min-height: $dial-height + $dial-header-height + $pagination-header;
     }
 
     .dial-header {

@@ -52,11 +52,6 @@ const subprojects = {
     include: ['moment.min.js'],
     dest: 'vendor',
   },
-  'moment-range': {
-    src: 'node_modules/moment-range/dist',
-    include: ['moment-range.js'],
-    dest: 'vendor',
-  },
   '@cliqz/adblocker': {
     src: 'node_modules/@cliqz/adblocker/dist',
     include: [

@@ -13,8 +13,6 @@ export const i18n = (key, params = []) => chrome.i18n.getMessage(key, params);
 
 /** **************************************************************** */
 
-const POPUP_WIDTH = 264;
-const TOOLTIP_WIDTH = 240;
 const MAX_WINDOW_HEIGHT = 600;
 
 function popupHeight() {
@@ -29,17 +27,33 @@ function tooltipHeight() {
   return $('#cliqz-offers-cc').outerHeight();
 }
 
-function getHeight(tooltip = false) {
-  const height = tooltip ? tooltipHeight() : popupHeight();
+function getHeight(type = 'card') {
+  const heightMapper = {
+    tooltip: tooltipHeight,
+    card: popupHeight,
+    lodgev1: tooltipHeight,
+    lodgev2: tooltipHeight,
+  };
+  const height = heightMapper[type]() || 0;
   return Math.min(height, MAX_WINDOW_HEIGHT);
+}
+
+function getWidth(type = 'card') {
+  const widthMapper = {
+    tooltip: 240,
+    card: 264,
+    lodgev1: 294,
+    lodgev2: 294,
+  };
+  return widthMapper[type] || 0;
 }
 
 /** **************************************************************** */
 
-export function resize({ tooltip = false } = {}) {
-  const width = tooltip ? TOOLTIP_WIDTH : POPUP_WIDTH;
+export function resize({ type = 'card' } = {}) {
+  const width = getWidth(type);
   $('#cliqz-offers-cc').css({ 'min-width': width });
-  const height = getHeight(tooltip);
+  const height = getHeight(type);
 
   if (IS_POPUP) {
     $('html').css({ height, width });

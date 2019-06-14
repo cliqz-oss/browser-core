@@ -25,14 +25,8 @@ function getWeightedReward(offer, envCategoryWeighter) {
     envCategoryWeighter.weightsIter(cats),
     item => item[1]
   );
-  // Example: the weights vector could be
-  // [0; 0.33; 0.33; 0.33; 0; 0]
-  // In general case, we should do scalar multiplication of the two
-  // vectors. But we know that the offer's vector has N entries with
-  // the value 1/N and can optimize calculations.
-  const sum = envCatWeights.reduce((a, b) => a + b, 0);
-  const likeCosineSimilarity = sum / cats.length;
-  return offer.getReward() * likeCosineSimilarity;
+  const totalWeight = envCatWeights.reduce((a, b) => a + b, 0);
+  return offer.getReward() * totalWeight;
 }
 
 /**
@@ -50,7 +44,7 @@ function chooseBestOfferByRewardPerDisplay(
     ([bestOffer, bestScore, bestReward], offer) => {
       const reward = getWeightedReward(offer, envCategoryWeighter);
       const count = displayCountFunc(offer);
-      const score = reward / (count || 1);
+      const score = reward / (count || 0.01);
 
       const isBetterOffer = (score > bestScore)
         || ((score === bestScore) && (reward > bestReward));
@@ -86,6 +80,9 @@ function chooseBestOfferByRewardPerDisplay(
 export default function chooseBestOffer(offers, envCategoryWeighter, displayCountFunc) {
   if (!offers.length) {
     return [null, 0, 0];
+  }
+  if (offers.length === 1) {
+    return [offers[0], 1, 1];
   }
   return chooseBestOfferByRewardPerDisplay(offers, envCategoryWeighter, displayCountFunc);
 }

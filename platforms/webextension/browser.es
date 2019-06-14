@@ -5,6 +5,7 @@ import events from '../core/events';
 export * from './tabs';
 export * from './windows';
 
+// TODO: Refactor
 export class Window {
   constructor(win) {
     this.window = win;

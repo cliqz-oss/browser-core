@@ -68,8 +68,6 @@ const QUERY_LOG_PARAM = {
 };
 
 const SignalListener = {
-  hwOrigin: CliqzHumanWeb.telemetry, // todo: handle the case hw is inited AFTER this module
-
   SigCache: {
     hw: { sig: null, timestamp: 0 },
     tel: { sig: [], timestamp: 0 },
@@ -85,24 +83,34 @@ const SignalListener = {
     }
   },
 
-  monkeyPatchHmw(...args) {
-    SignalListener.hwOrigin.apply(this, args)
-      .then(() => {
-        SignalListener.SigCache.hw = {
-          sig: lastElementArray(CliqzHumanWeb.trk),
-          timestamp: Date.now()
-        };
-        SignalListener.fireNewDataEvent('hw');
-      });
+  startListeningToHumanWeb() {
+    SignalListener.stopListeningToHumanWeb();
+    SignalListener.humanWebSubscription = events.subscribe('human-web:signal-sent', (msg) => {
+      SignalListener.SigCache.hw = {
+        sig: msg,
+        timestamp: Date.now()
+      };
+      SignalListener.fireNewDataEvent('hw');
+    });
   },
 
-  monkeyPatchTelemetry() {
-    SignalListener.SigCache.tel = {
-      sig: [lastElementArray(telemetry.trk)],
-      timestamp: Date.now()
-    };
+  stopListeningToHumanWeb() {
+    if (SignalListener.humanWebSubscription) {
+      SignalListener.humanWebSubscription.unsubscribe();
+      SignalListener.humanWebSubscription = null;
+    }
+  },
 
-    SignalListener.fireNewDataEvent('tel');
+  monkeyPatchTelemetry: {
+    name: 'monkeyPatch',
+    send() {
+      SignalListener.SigCache.tel = {
+        sig: [lastElementArray(telemetry.trk)],
+        timestamp: Date.now()
+      };
+
+      SignalListener.fireNewDataEvent('tel');
+    },
   },
 
   onCliqzBackendRequest({ url }) {
@@ -132,9 +140,9 @@ const SignalListener = {
 
     addListener(this.onCliqzBackendRequest.bind(this));
 
-    if (SignalListener.monkeyPatchTelemetry && SignalListener.monkeyPatchHmw) {
+    if (SignalListener.monkeyPatchTelemetry) {
       TELEMETRY_SERVICE.installProvider(SignalListener.monkeyPatchTelemetry);
-      CliqzHumanWeb.telemetry = SignalListener.monkeyPatchHmw;
+      SignalListener.startListeningToHumanWeb();
 
       // if Signals only start listens only when someone open the dashboard
       // -> there'll be no data to be shown
@@ -148,10 +156,14 @@ const SignalListener = {
         timestamp: Date.now()
       };
       // last human web signal
-      SignalListener.SigCache.hw = {
-        sig: lastElementArray(CliqzHumanWeb.trk),
-        timestamp: Date.now()
-      };
+      try {
+        SignalListener.SigCache.hw = {
+          sig: lastElementArray(CliqzHumanWeb.safebrowsingEndpoint.getSendQueue()),
+          timestamp: Date.now(),
+        };
+      } catch (e) {
+        // cannot initialize, but the UI will update with the next sent signal
+      }
       return true;
     }
     return false;
@@ -160,10 +172,7 @@ const SignalListener = {
   stopListen() {
     TELEMETRY_SERVICE.uninstallProvider(SignalListener.monkeyPatchTelemetry);
     removeListener(this.onCliqzBackendRequest);
-
-    if (SignalListener.hwOrigin) {
-      CliqzHumanWeb.telemetry = SignalListener.hwOrigin;
-    }
+    SignalListener.stopListeningToHumanWeb();
   }
 };
 

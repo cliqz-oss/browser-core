@@ -5,7 +5,6 @@ const Rx = require('rxjs');
 const operators = require('rxjs/operators');
 const tldts = require('tldts');
 const punycode = require('punycode');
-const encoding = require('text-encoding');
 const moment = require('moment');
 const jsonData = require('../../../antitracking/prob.json');
 const mockDexie = require('../../core/unit/utils/dexie');
@@ -102,16 +101,16 @@ export default describeModule('antitracking/attrack',
     },
     'platform/url': {},
     'platform/crypto': {},
-    'core/search-engines': {},
-    'platform/environment': {
+    'core/services/pacemaker': {
       default: {
-        getWindow() { return null; },
-        setInterval() {},
+        register() {},
+        everyFewMinutes() {},
         setTimeout() {},
-        clearInterval() {},
         clearTimeout() {},
-      }
+        everyHour() {},
+      },
     },
+    'core/search-engines': {},
     'core/prefs': {
       default: {
         get() { return null; },
@@ -120,7 +119,9 @@ export default describeModule('antitracking/attrack',
     },
     'platform/fetch': {
     },
-    'platform/globals': {},
+    'platform/globals': {
+      chrome: {},
+    },
     'platform/platform': {
       default: {},
       isBetaVersion: () => false,
@@ -134,12 +135,6 @@ export default describeModule('antitracking/attrack',
         onUpdated: listenerStub,
         onRemoved: listenerStub,
       }
-    },
-    'platform/text-encoder': {
-      default: encoding.TextEncoder,
-    },
-    'platform/text-decoder': {
-      default: encoding.TextDecoder,
     },
     'platform/webrequest': {
       VALID_RESPONSE_PROPERTIES: {
@@ -190,12 +185,6 @@ export default describeModule('antitracking/attrack',
       default: () => {},
       migrateTokenDomain: () => Promise.resolve(),
       migrateRequestKeyValue: () => Promise.resolve(),
-    },
-    'core/services/pacemaker': {
-      default: {
-        register() {},
-        deregister() {},
-      },
     },
     'platform/lib/moment': {
       default: moment,

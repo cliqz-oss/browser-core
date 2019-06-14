@@ -3,37 +3,14 @@ import Overlay from '../overlay';
 import Urlbar from './index';
 import SearchSettings from './search-settings';
 import cliqz from '../../cliqz';
-import Dropdown from '../../../../core/dropdown/content';
+import FreshtabDropdownManager from '../../../../dropdown/managers/freshtab';
 import t from '../../i18n';
 import Button from '../partials/button';
-
-class CliqzTabDropdown extends Dropdown {
-  _getUrlbarAttributes() {
-    const searchInputStyle = window.getComputedStyle(this.textInput);
-    const extraSpace = 22;
-    const defaultPadding = 35;
-
-    let padding = (searchInputStyle.paddingLeft && searchInputStyle.paddingLeft.replace('px', ''))
-                  || defaultPadding;
-
-    if (padding > 50) {
-      padding -= extraSpace;
-    }
-
-    return {
-      padding,
-    };
-  }
-
-  _getMaxHeight() {
-    return window.innerHeight - this.iframe.getBoundingClientRect().y - 20;
-  }
-}
 
 export default class UrlbarWithResults extends Urlbar {
   constructor(props) {
     super(props);
-    this.dropdown = new CliqzTabDropdown({
+    this.dropdown = new FreshtabDropdownManager({
       view: this,
       cliqz,
     });
@@ -67,18 +44,29 @@ export default class UrlbarWithResults extends Urlbar {
     return this.state.isSearchSettingsOpen;
   }
 
-  handlePaste = () => {}
+  handlePaste = (ev) => {
+    // Dropdown saves 'keydown' 'paste', and 'drop' events for later use
+    // that is why we should prevent React from reusing this object.
+    ev.persist();
+    this.dropdown.onPaste(ev);
+  }
+
+  handleKeyDown = (ev) => {
+    ev.persist();
+    if (this.dropdown.onKeydown(ev)) {
+      ev.preventDefault();
+    }
+  }
+
+  handleDrop = (ev) => {
+    ev.persist();
+    this.dropdown.onDrop(ev);
+  }
 
   setHeight = (height) => {
     this.setState({
       iframeHeight: Math.min(this.maxHeight, height),
     });
-  }
-
-  handleKeyDown = (ev) => {
-    if (this.dropdown.onKeydown(ev)) {
-      ev.preventDefault();
-    }
   }
 
   handleKeyPress = (ev) => {
@@ -91,17 +79,6 @@ export default class UrlbarWithResults extends Urlbar {
     if (this.dropdown.onInput(ev)) {
       ev.preventDefault();
     }
-  }
-
-  async componentWillReceiveProps(props) {
-    if (props.results === this.props.results
-      || props.results.length === 0) {
-      return;
-    }
-
-    this.dropdown.render({
-      rawResults: props.results
-    });
   }
 
   componentDidUpdate() {
@@ -136,11 +113,13 @@ export default class UrlbarWithResults extends Urlbar {
     });
   }
 
-  handleFocus = async () => {
+  handleFocus = async (ev) => {
     await this.createIframe();
     this.setState({
       focused: true,
     });
+
+    this.dropdown.onFocus(ev);
 
     if (this.props.shouldShowReminder) {
       this.props.toggleComponent('searchReminder');
@@ -151,24 +130,14 @@ export default class UrlbarWithResults extends Urlbar {
         type: 'urlbar-focus',
       });
       if (this.textInput.value) {
+        this.hideSettings();
         this.dropdown._queryCliqz(this.textInput.value);
       }
     }
   }
 
-  handleBlur = () => {
-    setTimeout(() => {
-      if (this.textInput === document.activeElement) {
-        return;
-      }
-
-      this.dropdown.close();
-
-      this.setState({
-        iframeHeight: 0,
-        focused: false,
-      });
-    }, 200);
+  handleBlur = (ev) => {
+    this.dropdown.onBlur(ev);
   }
 
   toggleSettings = () => {

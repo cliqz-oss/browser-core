@@ -5,7 +5,7 @@ export default function stopwatch(name, module) {
   const now = Date.now();
   return {
     stop: () => {
-      console.log(`${key}: ${Date.now() - now}`);
+      console.log(`${key}: ${Date.now() - now} ms`);
     },
   };
 }

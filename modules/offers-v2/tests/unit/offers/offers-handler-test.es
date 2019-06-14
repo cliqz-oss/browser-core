@@ -116,6 +116,7 @@ export default describeModule('offers-v2/offers/offers-handler',
         return latestOffersInstalledTs;
       },
       shouldKeepResource: () => 1,
+      isDeveloper: () => true,
     },
     'core/url': {
       getDetailsFromUrl: function (url) {
@@ -310,7 +311,7 @@ export default describeModule('offers-v2/offers/offers-handler',
 
           it('/check if offer is fresh installed we do not show an offer', function () {
             const mockData = {
-              backendResult: { 'intent-1': [VALID_OFFER_OBJ] },
+              backendResult: { 'intent-1': [VALID_OOTW_OFFER_OBJ] },
             };
             configureMockData(mockData);
 
@@ -328,7 +329,7 @@ export default describeModule('offers-v2/offers/offers-handler',
               const urls = [
                 'http://www.google.com',
               ];
-              setActiveCategoriesFromOffers([VALID_OFFER_OBJ]);
+              setActiveCategoriesFromOffers([VALID_OOTW_OFFER_OBJ]);
               return simulateUrlEventsAndWait(urls).then(() => {
                 // check no offer were pushed
                 checkZeroOfferPushed();
@@ -777,7 +778,7 @@ export default describeModule('offers-v2/offers/offers-handler',
             });
           });
 
-          it('/we can show the same offer multiple times if no filter happens', function () {
+          it('/we can show the same offer multiple times if no filter happens', async function () {
             const offersList = [
               buildOffer('o1', 'cid1', 'client1', 0.1),
               buildOffer('o2', 'cid2', 'client2', 0.9),
@@ -793,32 +794,23 @@ export default describeModule('offers-v2/offers/offers-handler',
             ];
             intents.forEach(i => intentHandlerMock.activateIntentMock(i));
 
-            // wait for the fetch
-            return waitForBEPromise().then(() => {
-              const urls = [
-                'http://www.google.com',
-              ];
-              setActiveCategoriesFromOffers(offersList);
-              return simulateUrlEventsAndWait(urls).then(() => {
-                // check that we could push the
-                checkOfferPushed('o2');
-                // sim again and we should show now the o1 offer
-                events.clearAll();
-                // again
-                setActiveCategoriesFromOffers(offersList);
-                return simulateUrlEventsAndWait(urls).then(() => {
-                  checkOfferPushed('o2');
-                  events.clearAll();
+            await waitForBEPromise();
+            const urls = ['http://www.google.com'];
+            setActiveCategoriesFromOffers(offersList);
 
-                  // and again
-                  setActiveCategoriesFromOffers(offersList);
-                  return simulateUrlEventsAndWait(urls).then(() => {
-                    // check that we could push the
-                    checkOfferPushed('o2');
-                  });
-                });
-              });
-            });
+            // activate offer selection
+            await simulateUrlEventsAndWait(urls);
+            checkOfferPushed('o2');
+            events.clearAll();
+
+            // again (but this time the competing offer wins)
+            await simulateUrlEventsAndWait(urls);
+            checkOfferPushed('o1');
+            events.clearAll();
+
+            // and again (the first offer wins and is shown again)
+            await simulateUrlEventsAndWait(urls);
+            checkOfferPushed('o2');
           });
 
           it('/context filters works for offers categories not activated recently', async () => {
@@ -961,7 +953,7 @@ export default describeModule('offers-v2/offers/offers-handler',
             sigHandlerMock.clear();
             const offerWinner = buildOffer('oidWinner', 'cid', 'client', 1);
             const offerLoser = buildOffer('oidLoser', 'cid', 'client', 1);
-            offerLoser.categories.push('YetAnotherCat');
+            offerWinner.categories.push('YetAnotherCat');
             prepareTriggerOffers([offerLoser, offerWinner]);
 
             // Actually triggers the both offers, but without activating

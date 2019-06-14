@@ -1,10 +1,10 @@
-/* global ChromeUtils */
+/* global ChromeUtils, Components */
 
 import { cleanMozillaActions } from '../../../core/content/url';
 import { URLInfo } from '../../../core/url-info';
 import Defer from '../../../core/helpers/defer';
 
-export { default } from '../../../platform-firefox/history/history';
+export { default } from './history-firefox';
 
 const { PlacesUtils } = ChromeUtils.import('resource://gre/modules/PlacesUtils.jsm');
 

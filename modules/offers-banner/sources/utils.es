@@ -28,7 +28,7 @@ export function getTitleColor(templateData = {}) {
     call_to_action: { url } = {},
   } = templateData;
   if (headlineColor) { return headlineColor; }
-  const logoDetails = logos.getLogoDetails(url) || {};
+  const logoDetails = logos.getLogoDetails(url) || { brandTxtColor: '2d2d2d' };
   return `#${logoDetails.brandTxtColor}`;
 }
 

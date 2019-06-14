@@ -1,4 +1,5 @@
 import network from '../../platform/network';
+import { isBetaVersion } from '../../platform/platform';
 
 import md5 from '../../core/helpers/md5';
 import prefs from '../../core/prefs';
@@ -78,6 +79,10 @@ export default class Backend {
       // were aggregated to create it via an analysis, or the date of today if
       // it was not specified yet.
       date: getSynchronizedDate().format(DATE_FORMAT),
+
+      // If this is a beta version of the extension. Allows us to compare changes
+      // on master with the current production version.
+      beta: isBetaVersion(),
     };
 
     // We return a copy of the signal with updated meta-data

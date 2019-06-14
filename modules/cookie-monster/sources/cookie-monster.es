@@ -74,7 +74,11 @@ export default class CookieMonster {
 
         // timestamps are in seconds for compatibility with cookie expirations
         const nows = Date.now() / 1000;
-        const actions = results.filter(cookie => !cookie.removed).map((cookie) => {
+        const actions = results.map((cookie) => {
+          if (cookie.removed) {
+            this.deleteCookie(cookie);
+            return 'expired';
+          }
           const isTracker = this.isTrackerDomain(cookieGeneralDomain(cookie.domain));
           // non trackers: 30 day expiry.
           // trackers: 1 hour
@@ -141,6 +145,7 @@ export default class CookieMonster {
             visited: Object.keys(visited).length,
             deleted: actions.filter(a => a === 'delete').length,
             modified: actions.filter(a => a === 'update').length,
+            expired: actions.filter(a => a === 'expired').length,
           });
         }
         return actions;
@@ -176,8 +181,8 @@ export default class CookieMonster {
       .anyOf(ckis.map(({ cookie }) => cookieKeyCols.map(col => cookie[col] || '')))
       .each((cookie) => {
         const key = cookieId(cookie);
-        // created time should persist, the rest can be updated
-        cookieMap[key].created = cookie.created;
+        // created time should persist if the value is still the same. The rest can be updated
+        cookieMap[key].created = cookieMap[key].value !== cookie.value ? created : cookie.created;
       }).then(() =>
         // update db, then return the results
         this.db.trackerCookies.bulkPut(Object.values(cookieMap))

@@ -30,6 +30,7 @@ export default describeModule('antitracking/tp_events',
     'platform/browser': {},
     'platform/lib/tldts': tldts,
     'core/console': {
+      isLoggingEnabled() { return false; },
       default: {
         log() {}
       }

@@ -1,1 +1,0 @@
-export { chrome, window };

@@ -100,6 +100,7 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
         whitelist,
         mockConfig,
         db,
+        s => s.length > 6,
         {
           TOKEN_MESSAGE_SIZE: 2,
         });

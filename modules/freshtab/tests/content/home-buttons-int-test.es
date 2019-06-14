@@ -53,12 +53,10 @@ describe('Freshtab interactions with buttons', function () {
       beforeEach(function () {
         const settingsCloseButtonSelector = '#settings-panel button.close';
         subject.query(settingsCloseButtonSelector).click();
-        return waitFor(() => !subject.query(settingsPanelSelector).classList.contains('visible'));
       });
 
       it('hides settings panel', function () {
-        expect(subject.query('#settings-panel')).to.exist;
-        expect(subject.query('#settings-panel').className).to.not.contain('visible');
+        expect(subject.query('#settings-panel')).to.not.exist;
       });
 
       it('sends a "settings > close > click" telemetry signal', function () {

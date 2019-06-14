@@ -7,21 +7,32 @@ function isInRecursion() {
   return (new Set(a)).size !== a.length;
 }
 
+function instantRunTimeout(fn, _, ...args) {
+  if (!isInRecursion()) {
+    fn(...args);
+  }
+}
+
 module.exports = {
-  'core/helpers/timeout': {
-    default: function (f, _, ...args) { // setTimeoutInterval
-      f(...args);
+  'core/decorators': {
+    nextTick(fn) { fn(); },
+    deadline(p) { return p; },
+  },
+  'core/services/pacemaker': {
+    default: {
+      setTimeout: instantRunTimeout,
+      register: instantRunTimeout,
+      everyHour() {},
+      everyFewMinutes: instantRunTimeout,
+      clearTimeout() {},
     },
   },
+  'core/helpers/timeout': {
+    default: instantRunTimeout,
+  },
   'core/timers': {
-    setTimeout: function (f, _, ...args) {
-      if (!isInRecursion()) {
-        f(...args);
-      }
-    },
-    setInterval: function (f, _, ...args) {
-      f(...args);
-    },
+    setTimeout: instantRunTimeout,
+    setInterval: instantRunTimeout,
   },
   'platform/lib/moment': {
     default: moment,

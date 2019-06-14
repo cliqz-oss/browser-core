@@ -1,4 +1,3 @@
-const encoding = require('text-encoding');
 const fetchMock = require('fetch-mock');
 const nodeFetch = require('node-fetch');
 
@@ -64,10 +63,4 @@ module.exports = {
   },
   'platform/gzip': { },
   'platform/xmlhttprequest': { },
-  'platform/text-decoder': {
-    default: encoding.TextDecoder,
-  },
-  'platform/text-encoder': {
-    default: encoding.TextEncoder,
-  },
 };

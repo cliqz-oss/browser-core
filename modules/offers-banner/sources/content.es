@@ -15,7 +15,9 @@ function renderBanner(payload, CLIQZ, handler) {
     CLIQZ,
     autoTrigger,
   });
-  handler.payload = { ...data, autoTrigger };
+  handler.payload = data.isPair
+    ? { ...data, popup: { ...data.popup, autoTrigger } }
+    : { ...data, autoTrigger };
   handler.config = config;
   handler.onaction = action;
 

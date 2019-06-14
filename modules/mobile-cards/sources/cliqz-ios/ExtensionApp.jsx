@@ -59,8 +59,8 @@ export default class MobileCards extends React.Component {
   updateResults = results => this.setState({ results });
 
   render() {
-    const results = this.state.results.results;
-    const meta = this.state.results.meta;
+    const results = this.state.results.results || [];
+    const meta = this.state.results.meta || {};
     const theme = this.state.theme;
     if (!results.length) {
       return null;

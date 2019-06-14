@@ -1,5 +1,6 @@
 import { getGeneralDomain } from '../../core/tlds';
 import logger from '../common/offers_v2_logger';
+import { rewriteUrlForOfferMatching } from '../utils';
 import annotateWithShopId from './features/shop-id';
 import annotateAsClickShop from './features/click-shop';
 
@@ -72,7 +73,8 @@ export default class JourneyCollector {
    * @param {string} url  where from the feature is extracted
    * @param {string} referrer  optional
    */
-  addFeature({ feature, url, referrer }) {
+  addFeature({ feature, url: urlIn, referrer }) {
+    const url = urlIn && rewriteUrlForOfferMatching(urlIn);
     //
     // Get the last step
     //
@@ -85,7 +87,7 @@ export default class JourneyCollector {
     // if it belongs to some other step.
     //
     const step = this.journey[this.journey.length - 1];
-    if (step.url !== url) {
+    if (url && (step.url !== url)) {
       logger.log(`journey:addFeature: url mismatch feature ${feature}:${url} to step ${step.url}`);
       return;
     }

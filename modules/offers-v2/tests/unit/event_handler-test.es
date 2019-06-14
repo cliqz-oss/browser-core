@@ -3,12 +3,8 @@
 /* global require */
 /* global sinon */
 
-const encoding = require('text-encoding');
 const commonMocks = require('./utils/common');
 const eventsMock = require('./utils/events');
-
-const TextDecoder = encoding.TextDecoder;
-const TextEncoder = encoding.TextEncoder;
 
 let getDetailsFromUrlReal;
 
@@ -16,12 +12,6 @@ export default describeModule('offers-v2/event_handler',
   () => ({
     ...commonMocks,
     ...eventsMock,
-    'platform/text-decoder': {
-      default: TextDecoder,
-    },
-    'platform/text-encoder': {
-      default: TextEncoder,
-    },
     'core/url': {
       getDetailsFromUrl: function (url) {
         // we should extract the name here

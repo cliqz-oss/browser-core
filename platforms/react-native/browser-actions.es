@@ -54,9 +54,6 @@ export function handleAutocompletion(url = '', query = '') {
 }
 
 export function handleQuerySuggestions(query = '', suggestions = []) {
-  if (!NativeModules.QuerySuggestion) {
-    return;
-  }
   if (NativeModules.QuerySuggestion && getPref('suggestionsEnabled', false)) {
     NativeModules.QuerySuggestion.showQuerySuggestions(query, suggestions);
   }

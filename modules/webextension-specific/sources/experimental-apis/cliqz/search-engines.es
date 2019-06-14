@@ -1,4 +1,3 @@
-/* global Components */
 const { Services } = ChromeUtils.import('resource://gre/modules/Services.jsm', {}); // eslint-disable-line no-undef
 const searchService = Services.search;
 

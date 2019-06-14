@@ -45,8 +45,7 @@ module.exports = {
     'offers-banner',
     'offers-cc',
     'offers-v2',
-    'popup-notification',
-    'static',
+    'popup-notification'
   ],
   'bundles': [
     'browser-panel/browser-panel.bundle.js',

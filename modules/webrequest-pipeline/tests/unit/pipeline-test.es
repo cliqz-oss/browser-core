@@ -13,14 +13,16 @@ export default describeModule('webrequest-pipeline/pipeline',
     'platform/console': {
       default: console,
     },
-    'core/kord/inject': {
+    'core/services/telemetry': {
       default: {
-        service() {
-          return {
-            push: () => {},
-            isEnabled: () => true,
-          };
-        },
+        push() {},
+        isEnabled() { return true; },
+      },
+    },
+    'core/services/pacemaker': {
+      default: {
+        everyFewMinutes() {},
+        clearTimeout() {},
       },
     },
     'core/helpers/timeout': {

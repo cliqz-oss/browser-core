@@ -21,7 +21,6 @@ class Urlbar extends React.Component {
   }
 
   componentDidMount() {
-    this.textInput.focus();
     try {
       this.textInput.value += KEY_EVENTS_RECORDER.text;
       KEY_EVENTS_RECORDER.stop();
@@ -50,7 +49,7 @@ class Urlbar extends React.Component {
     cliqz.core.sendTelemetry({
       type: 'home',
       action: 'search_keystroke'
-    });
+    }, false, '');
 
     setTimeout(() => {
       this.textInput.value = '';
@@ -98,6 +97,17 @@ class Urlbar extends React.Component {
 
   }
 
+  handleDragOver = (ev) => {
+    ev.stopPropagation();
+  }
+
+  handleDrop = (ev) => {
+    const dTypes = ev.dataTransfer.types;
+    if (dTypes && dTypes.includes('text/plain')) {
+      this._queryCliqz(ev.dataTransfer.getData('text'));
+    }
+  }
+
   get classes() {
     const { product } = this.props;
     return `search ${product.toLowerCase()}-search`;
@@ -120,6 +130,8 @@ class Urlbar extends React.Component {
           onPaste={this.handlePaste}
           onBlur={this.handleBlur}
           onFocus={this.handleFocus}
+          onDragOver={this.handleDragOver}
+          onDrop={this.handleDrop}
         />
       </div>
     );

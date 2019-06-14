@@ -1,4 +1,5 @@
-/* global windowTracker, MigrationUtils */
+/* global windowTracker, MigrationUtils, ChromeUtils, Components */
+const { ExtensionCommon } = ChromeUtils.import('resource://gre/modules/ExtensionCommon.jsm');
 
 export function openImportDialog() {
   if (typeof MigrationUtils === 'undefined') {
@@ -11,6 +12,17 @@ export function openImportDialog() {
   const win = windowTracker.getCurrentWindow();
   MigrationUtils.showMigrationWizard(win, [MigrationUtils.MIGRATION_ENTRYPOINT_PLACES]);
 }
+
+export function openPageActionPopup(extensionId) {
+  const CLIQZ_ACTION_ID = ExtensionCommon.makeWidgetId(extensionId);
+  const win = windowTracker.getCurrentWindow();
+  const pageActionNode = win.BrowserPageActions.urlbarButtonNodeForActionID(CLIQZ_ACTION_ID);
+
+  if (pageActionNode && win.BrowserPageActions.actionForNode(pageActionNode)) {
+    pageActionNode.click();
+  }
+}
+
 
 export function isDefaultBrowser() {
   try {

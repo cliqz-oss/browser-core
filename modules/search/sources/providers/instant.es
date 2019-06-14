@@ -80,13 +80,13 @@ export default class InstantProvider extends BaseProvider {
         : [supplementarySearchResult];
 
       next(
-        getResponse(
-          this.id,
+        getResponse({
+          provider: this.id,
           config,
           query,
           results,
-          'done',
-        ),
+          state: 'done',
+        }),
       );
     });
 

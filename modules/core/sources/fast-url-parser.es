@@ -372,6 +372,14 @@ export default class URL {
     return this;
   }
 
+  /**
+   * Converts URL object to URL string. Unlike `this.toString` method it takes into account
+   * any changes made to url properties like `protocol`, `hostname`, etc.
+   */
+  stringify() {
+    return `${this.protocol}${this.slashes}${this.hostname}${this.pathname}${this.search}${this.hash}`;
+  }
+
   _extractHostname(start, end) {
     let portIndex = 0;
     let stopped = false;

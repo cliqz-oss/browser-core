@@ -4,7 +4,7 @@ import config from '../core/config';
 
 
 let PREFIX = '@cliqzprefs:';
-export const PLATFORM_TELEMETRY_WHITELIST = [];
+export const PLATFORM_TELEMETRY_WHITELIST = ['lumen.protection.isEnabled'];
 
 const prefs = config.default_prefs || {};
 
@@ -40,7 +40,7 @@ export function init() {
   return _getAllPrefs().then((allPrefs) => {
     Object.keys(allPrefs).forEach((key) => {
       const value = allPrefs[key];
-      prefs[key.substring(PREFIX.length)] = value;
+      prefs[key] = value;
     });
   });
 }
@@ -71,4 +71,8 @@ export function hasPref(prefKey) {
 export function clearPref(prefKey) {
   delete prefs[prefKey];
   _clearPref(PREFIX + prefKey);
+}
+
+export function getAllCliqzPrefs() {
+  return Object.keys(prefs);
 }

@@ -1,0 +1,14 @@
+{
+    "cMenuRemoveFromHistory": {
+        "message": "Supprimer de l'historique"
+    },
+    "cMenuRemoveFromHistoryAndBookmarks": {
+        "message": "Supprimer des favoris et de l'historique"
+    },
+    "cMenuRemoveFromHistoryAndBookmarksAndCloseTab": {
+        "message": "Supprimer des favoris, de l'historique puis fermer l'onglet "
+    },
+    "cMenuRemoveFromHistoryAndCloseTab": {
+        "message": "Supprimer de l'historique puis fermer l'onglet"
+    }
+}

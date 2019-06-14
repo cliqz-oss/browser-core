@@ -296,38 +296,52 @@ export function generalizeUrl(url, skipCorrection) {
   return url[url.length - 1] === '/' ? url.slice(0, -1) : url;
 }
 
-function flipTrailingSlash(urlObj) {
-  if (urlObj.pathname.endsWith('/')) {
-    urlObj.pathname = urlObj.pathname.slice(0, -1);
-  } else {
-    urlObj.pathname = `${urlObj.pathname}/`;
+function* flipTrailingSlash(urlObj, enabled) {
+  if (enabled) {
+    yield urlObj;
+    if (urlObj.pathname.endsWith('/')) {
+      urlObj.pathname = urlObj.pathname.slice(0, -1);
+    } else {
+      urlObj.pathname = `${urlObj.pathname}/`;
+    }
   }
+  yield urlObj;
 }
 
-function filpWWW(urlObj) {
-  if (urlObj.hostname.startsWith('www.')) {
-    urlObj.hostname = urlObj.hostname.slice(4);
-  } else {
-    urlObj.hostname = `www.${urlObj.hostname}`;
+function* filpWWW(urlObj, enabled) {
+  if (enabled) {
+    yield urlObj;
+    if (urlObj.hostname.startsWith('www.')) {
+      urlObj.hostname = urlObj.hostname.slice(4);
+    } else {
+      urlObj.hostname = `www.${urlObj.hostname}`;
+    }
   }
+  yield urlObj;
 }
 
-export function getUrlVariations(url) {
-  let protocols = ['http:', 'https:'];
+export function getUrlVariations(url, {
+  protocol = true,
+  www = true,
+  trailingSlash = true,
+} = {}) {
+  let protocols = protocol ? ['http:', 'https:'] : [];
   const u = new URL(url);
-  const urlSet = new Set();
+  const urlSet = new Set([url]);
 
   if (!protocols.includes(u.protocol)) {
     protocols = [u.protocol];
   }
 
-  protocols.forEach((protocol) => {
-    u.protocol = protocol;
-    urlSet.add(u.toString());
-    filpWWW(u);
-    urlSet.add(u.toString());
-    flipTrailingSlash(u);
-    urlSet.add(u.toString());
+  protocols.forEach((proto) => {
+    u.protocol = proto;
+    /* eslint-disable no-unused-vars, no-shadow */
+    for (const _ of filpWWW(u, www)) {
+      for (const _ of flipTrailingSlash(u, trailingSlash)) {
+        urlSet.add(u.stringify());
+      }
+    }
+    /* eslint-enable */
   });
 
   return Array.from(urlSet);

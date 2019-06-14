@@ -70,32 +70,37 @@ export default describeModule('history-analyzer/history-processor',
         values() { return mapKeysMock; }
       },
     },
-    'core/helpers/timeout': {
-      default: (fn) => {
-        let enabled = true;
-        const run = async () => {
-          if (enabled) {
-            try { await fn(); } catch (ex) { /* Ignore */ }
-          }
+    'core/services/pacemaker': {
+      default: {
+        everyFewSeconds(fn) {
+          let enabled = true;
+          const run = async () => {
+            if (enabled) {
+              try { await fn(); } catch (ex) { /* Ignore */ }
+            }
 
-          if (enabled) { timeout = setTimeout(run, 0); }
-        };
+            if (enabled) { timeout = setTimeout(run, 0); }
+          };
 
-        const stop = () => {
-          enabled = false;
-          clearTimeout(timeout);
-        };
+          const stop = () => {
+            enabled = false;
+            clearTimeout(timeout);
+          };
 
-        timeout = setTimeout(run, 0);
+          timeout = setTimeout(run, 0);
 
-        return { stop };
-      },
+          return { stop };
+        },
+        clearTimeout(t) { console.log('TIMEOUT?', t); if (t) { t.stop(); } },
+      }
     },
     'core/url': {
       tryDecodeURI(url) { return url; },
     },
     'core/console': {
+      isLoggingEnabled() { return false; },
       default: {
+        warn() { },
         debug() { },
         log() { },
         error() { },

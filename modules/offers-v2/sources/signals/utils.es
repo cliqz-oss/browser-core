@@ -6,14 +6,12 @@ import inject from '../../core/kord/inject';
 import ActionID from '../offers/actions-defs';
 import OffersConfigs from '../offers_configs';
 import logger from '../common/offers_v2_logger';
+import { isDeveloper } from '../utils';
 
 const addOrCreate = (d, field, value = 1) => {
   const newValue = d[field] ? d[field] + value : value;
   d[field] = newValue;
 };
-
-const isDeveloper = () =>
-  prefs.get('developer', false) || prefs.get('offersDevFlag', false);
 
 // (EX-4191) Fix hpn-ts format to "yyyyMMdd"
 const getHpnTimeStamp = () => prefs.get('config_ts', '19700101');
@@ -64,6 +62,7 @@ const constructSignal = (signalID, signalType, signalData, gid) => {
       gid,
       type: signalType,
       sent_ts: getMinuteTimestamp(),
+      abtest_popups_tmpl: prefs.get('offers-popup.type', 'card'),
       data: tmp,
     },
   };
@@ -73,6 +72,5 @@ export {
   addOrCreate,
   constructSignal,
   getHpnTimeStamp,
-  getMinuteTimestamp,
-  isDeveloper
+  getMinuteTimestamp
 };

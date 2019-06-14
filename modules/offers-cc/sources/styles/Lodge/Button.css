@@ -1,0 +1,19 @@
+.lodge-button__container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lodge-button__cta-button {
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 700;
+  color: #FFFFFF;
+  display: inline-block;
+  cursor: pointer;
+  background-color: #001FA0;
+  width: 100%;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+}

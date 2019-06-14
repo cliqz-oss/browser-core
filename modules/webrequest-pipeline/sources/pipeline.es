@@ -1,4 +1,4 @@
-import inject from '../core/kord/inject';
+import telemetry from '../core/services/telemetry';
 import { nextTick } from '../core/decorators';
 
 import logger from './logger';
@@ -23,7 +23,7 @@ export default class Pipeline {
     this.isBreakable = isBreakable;
 
     // Collect timings for steps of the pipeline
-    this.measureLatency = inject.service('telemetry', ['isEnabled']).isEnabled();
+    this.measureLatency = telemetry.isEnabled();
     if (this.measureLatency) {
       this.latencyMetrics = new LatencyMetrics(name);
       this.latencyMetrics.init();

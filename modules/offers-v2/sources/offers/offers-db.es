@@ -739,13 +739,13 @@ class OfferDB {
   }
 
   /**
-   * @method getDisplayCount
+   * @method getPushCount
    * @param offerID
    * @returns {number}
    * For unknown offers, return zero.
    */
-  getDisplayCount(offerID) {
-    const meta = this.getOfferActionMeta(offerID, 'offer_shown');
+  getPushCount(offerID) {
+    const meta = this.getOfferActionMeta(offerID, 'offer_pushed');
     return meta && meta.count ? meta.count : 0;
   }
 

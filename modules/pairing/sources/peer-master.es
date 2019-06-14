@@ -5,6 +5,7 @@ import { encryptPairedMessage, decryptPairedMessage, ERRORS, getMessageTargets, 
 import { toBase64 } from '../core/encoding';
 import CliqzPeer from '../p2p/cliqz-peer';
 import inject from '../core/kord/inject';
+import { setTimeout } from '../core/timers';
 import crypto from '../platform/crypto';
 
 const PAIRING_ERRORS = {

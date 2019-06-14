@@ -21,7 +21,6 @@ module.exports = {
   },
   'modules': [
     'core',
-    'static',
     'search',
     'dropdown',
     'serp',

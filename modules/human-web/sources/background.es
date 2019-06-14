@@ -9,13 +9,14 @@ import inject from '../core/kord/inject';
 import WebRequest from '../core/webrequest';
 import logger from './logger';
 import { fixURL, getDetailsFromUrl } from '../core/url';
+import { tryPromise } from '../core/decorators';
 
 /**
 * @namespace human-web
 * @class Background
 */
 export default background({
-  requiresServices: ['cliqz-config', 'telemetry'],
+  requiresServices: ['cliqz-config', 'telemetry', 'pacemaker'],
 
   hpn: inject.module('hpnv2'),
   searchSession: inject.service('search-session', ['encodeSessionParams']),
@@ -194,32 +195,42 @@ export default background({
   },
 
   actions: {
+    // used by toolbox/sources/toolbox/components/humanweb.jsx
     async getURLCheckStatus(url) {
       const cleanHost = getDetailsFromUrl(url).cleanHost;
       return {
         host: await HumanWeb.doublefetchHandler
           .anonymousHttpGet(`https://${cleanHost}`)
           .then(() => HumanWeb.network.dns.resolveHost(cleanHost)),
-        isHostPrivate: await HumanWeb.network.isHostNamePrivate(fixURL(url)),
-        isPagePrivate: await HumanWeb.isAlreadyMarkedPrivate(url, () => { }),
-        quorumConsent: await HumanWeb.sha1(url)
-          .then(e => HumanWeb.getQuorumConsent(e)),
+        isHostPrivate: await tryPromise(HumanWeb.network.isHostNamePrivate(fixURL(url))),
+        isPagePrivate: await tryPromise(HumanWeb.isAlreadyMarkedPrivate(url, () => { })),
+        quorumConsent: await tryPromise(HumanWeb.sha1(url)
+          .then(e => HumanWeb.getQuorumConsent(e))),
       };
     },
 
+    // used by toolbox/sources/toolbox/components/humanweb.jsx
     async getState({
       msg,
     }) {
+      const allOpenPages = await tryPromise(HumanWeb.getAllOpenPages());
+      const quorumOtherUrl = await tryPromise(HumanWeb.quorumCheckOtherUrls(msg));
+      const hist = HumanWeb.safebrowsingEndpoint.history;
       return {
-        allOpenPages: await HumanWeb.getAllOpenPages(),
+        allOpenPages,
         counter: HumanWeb.counter,
         countryCode: HumanWeb.getCountryCode(),
         oc: HumanWeb.oc,
-        quorumOtherUrl: await HumanWeb.quorumCheckOtherUrls(msg),
+        quorumOtherUrl,
         rulesets: Object.values(HumanWeb.contentExtractor.patterns.normal.extractRules),
         state: HumanWeb.state,
         strictQueries: HumanWeb.strictQueries,
-        trk: HumanWeb.trk,
+
+        sendQueue: HumanWeb.safebrowsingEndpoint.getSendQueue(),
+        dlq: HumanWeb.safebrowsingEndpoint.dlq,
+        sent: hist.sent,
+        history: hist.values().slice(0, 6),
+        historySummary: hist.values().map(x => ({ action: x.msg.action, sentAt: x.sentAt })),
       };
     },
 

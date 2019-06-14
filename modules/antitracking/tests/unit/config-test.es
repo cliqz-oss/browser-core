@@ -17,7 +17,10 @@ export default describeModule('antitracking/config',
     'core/resource-manager': {
       default: {}
     },
-    'core/console': console,
+    'core/console': {
+      isLoggingEnabled() { return false; },
+      default: console,
+    },
     'core/prefs': {
       default: {
         get: (p, d) => (mockPrefs[p] || d),

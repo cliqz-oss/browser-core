@@ -1,4 +1,5 @@
 import console from '../console';
+import { nextTick } from '../decorators';
 
 /**
  * @module core
@@ -29,7 +30,7 @@ export default class SerialExecutor {
     this._tasks.push(task);
 
     if (!this._running && this._autostart) {
-      setTimeout(this.start.bind(this), 0);
+      nextTick(this.start.bind(this));
     }
   }
 

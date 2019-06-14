@@ -12,13 +12,13 @@ const writeFile = require('broccoli-file-creator');
 const env = require('./cliqz-env');
 
 const cliqzConfig = require('./config');
+const useV6Build = cliqzConfig.use_v6_build;
 const modulesList = require('./modules/modules-list');
 const contentScriptsImport = require('./modules/content-script-imports');
 const contentTestsImport = require('./modules/content-tests-imports');
 const integrationTestsImport = require('./modules/integration-tests-imports');
 const localesTree = require('./modules/locale-tree');
 
-const Instrument = require('./instrument');
 const helpers = require('./modules/helpers');
 const getBundlesTree = require('./modules/bundles-tree');
 const getHandlebarsTree = require('./modules/handlebars-tree');
@@ -65,11 +65,6 @@ const babelOptions = {
     'transform-async-generator-functions',
   ].concat(cliqzConfig.babelPlugins || []).concat(babelModulePlugin || []),
 };
-
-if (cliqzConfig.instrumentFunctions) {
-  // TODO: make sure this works
-  babelOptions.plugins.push(Instrument);
-}
 
 const eslintOptions = {
   configFile: `${process.cwd()}/.eslintrc`,
@@ -325,9 +320,12 @@ function getSourceTree() {
   );
 
   const sourceTrees = [
-    getBrowserifyTree(),
     transpiledSources,
   ];
+
+  if (!useV6Build) {
+    sourceTrees.unshift(getBrowserifyTree());
+  }
 
   const exclude = ['**/*.jshint.js'];
 
@@ -346,11 +344,15 @@ function getSourceTree() {
   );
 }
 
+const sourceTreeOptions = {};
+if (!useV6Build) {
+  sourceTreeOptions.overwrite = true;
+}
 const sourceTree = new MergeTrees([
   getPlatformTree(),
   getSourceTree(),
   getHandlebarsTree(modulesTree),
-]);
+], sourceTreeOptions);
 
 const staticTree = new MergeTrees([
   getDistTree(modulesTree),

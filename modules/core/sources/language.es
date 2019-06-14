@@ -8,6 +8,7 @@ import console from '../core/console';
 import i18n from '../core/i18n';
 import prefs from '../core/prefs';
 import { cleanUrlProtocol } from '../core/url';
+import pacemaker from '../core/services/pacemaker';
 
 const fallbackWhitelist = JSON.stringify([
   'de,en',
@@ -42,7 +43,6 @@ const CliqzLanguage = {
   currentState: {},
   qs: '',
   cron: 24 * 60 * 60 * 1000, // default one day
-  checkInterval: 5 * 60 * 1000, // default 5 min
   removeHashId: null,
 
   getLocale() {
@@ -54,7 +54,7 @@ const CliqzLanguage = {
     CliqzLanguage.window = window;
 
     if (this.removeHashId === null) {
-      this.removeHashId = setInterval(this.updateTicker.bind(this), this.checkInterval);
+      this.removeHashId = pacemaker.everyFewMinutes(this.updateTicker.bind(this));
     }
 
     if (prefs.has('extensions.cliqz-lang.data')) {
@@ -110,10 +110,8 @@ const CliqzLanguage = {
     console.log(CliqzLanguage.stateToQueryString(), CliqzLanguage.LOG_KEY);
   },
   unload() {
-    if (this.removeHashId !== null) {
-      clearInterval(this.removeHashId);
-      this.removeHashId = null;
-    }
+    pacemaker.clearTimeout(this.removeHashId);
+    this.removeHashId = null;
   },
   updateTicker() {
     let lastUpdate = 0;

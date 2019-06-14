@@ -21,15 +21,3 @@ chrome.browserAction.onClicked.addListener(() => {
     }
   });
 });
-
-chrome.webRequest.onBeforeRequest.addListener((details) => {
-  const u = new URL(details.url);
-  if (u.search === '') {
-    return {
-      redirectUrl: `data:text/html,<script>location.replace("${chrome.runtime.getURL('modules/freshtab/home.html')}?ntp")</script>`
-    };
-  }
-  return {};
-},
-{ urls: [chrome.runtime.getURL('modules/freshtab/home.html')], types: ['main_frame'] },
-['blocking']);

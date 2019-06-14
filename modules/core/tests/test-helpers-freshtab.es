@@ -25,7 +25,11 @@ export function generateFavResponse() {
     favoritesResponse.push(
       {
         history: [],
-        custom: range(a).map(favoritesDial)
+        custom: range(a).map(favoritesDial),
+        speedDialsTimers: {
+          customDials: 0,
+          historyDials: 0,
+        },
       }
     );
   }
@@ -52,7 +56,11 @@ export function generateHistoryResponse() {
     historyResponse.push(
       {
         history: range(a).map(historyDial),
-        custom: []
+        custom: [],
+        speedDialsTimers: {
+          customDials: 0,
+          historyDials: 0,
+        },
       }
     );
   }
@@ -378,7 +386,11 @@ export class Subject {
       action: 'getSpeedDials',
       response: {
         history: [],
-        custom: []
+        custom: [],
+        speedDialsTimers: {
+          customDials: 0,
+          historyDials: 0,
+        },
       },
     });
   }
@@ -538,7 +550,7 @@ export function getActiveConfig() {
   return activeConfig;
 }
 
-export const allNewsLanguages = ['de', 'de-tr-en', 'fr', 'intl', 'us', 'gb', 'es', 'pl', 'it', 'ru'];
+export const allNewsLanguages = ['de', 'de-tr-en', 'fr', 'intl', 'us', 'gb', 'es', 'it'];
 
 function checkCommon({
   defaultState,
@@ -602,7 +614,8 @@ function checkCommon({
     expect(telemetrySignals.length).to.be.above(0);
 
     count = telemetrySignals.filter(({ args: [arg] }) => (
-      arg.type === 'home'
+      arg !== undefined
+      && arg.type === 'home'
       && arg.view === 'settings'
       && arg.target === telemetryName
       && arg.action === 'click'
@@ -693,7 +706,8 @@ function checkAllElements({
               expect(telemetrySignals.length).to.be.above(0);
 
               count = telemetrySignals.filter(({ args: [arg] }) => (
-                arg.type === 'home'
+                arg !== undefined
+                && arg.type === 'home'
                 && arg.view === 'settings'
                 && arg.target === 'news_language'
                 && arg.action === 'click'
@@ -876,9 +890,11 @@ export function checkTelemetry({
   let count = 0;
 
   expect(telemetrySignals.length).to.be.above(0);
+
   if (index && element && view) {
     count = telemetrySignals.filter(({ args: [arg] }) => (
-      arg.action === action
+      arg !== undefined
+      && arg.action === action
       && arg.element === element
       && arg.index === index
       && arg.target === target
@@ -887,21 +903,24 @@ export function checkTelemetry({
     )).length;
   } else if (index) {
     count = telemetrySignals.filter(({ args: [arg] }) => (
-      arg.action === action
+      arg !== undefined
+      && arg.action === action
       && arg.index === index
       && arg.target === target
       && arg.type === type
     )).length;
   } else if (view) {
     count = telemetrySignals.filter(({ args: [arg] }) => (
-      arg.action === action
+      arg !== undefined
+      && arg.action === action
       && arg.target === target
       && arg.type === type
       && arg.view === view
     )).length;
   } else {
     count = telemetrySignals.filter(({ args: [arg] }) => (
-      arg.action === action
+      arg !== undefined
+      && arg.action === action
       && arg.target === target
       && arg.type === type
     )).length;

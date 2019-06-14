@@ -32,8 +32,13 @@ export default class BackendProvider extends BaseProvider {
     return '';
   }
 
-  // TODO: Clean this up by putting params into an object
-  mapResults(results, query, _provider, latency, backendCountry) {
+  mapResults({
+    results,
+    query,
+    provider: _provider,
+    latency,
+    backendCountry,
+  }) {
     const provider = _provider || this.id;
 
     return results.map((result) => {

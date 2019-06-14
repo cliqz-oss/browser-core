@@ -4,7 +4,6 @@ import md5 from '../../core/helpers/md5';
 import { dURIC } from '../../core/url-info';
 import console from '../../core/console';
 
-import { isMostlyNumeric } from '../hash';
 import TokenDomain from '../token-domain';
 import BlockLog from '../block-log';
 
@@ -25,12 +24,12 @@ function decodeToken(token) {
  * @namespace antitracking.steps
  */
 export default class TokenChecker {
-  constructor(qsWhitelist, privateValues, hashProb, config, telemetry, db) {
+  constructor(qsWhitelist, privateValues, shouldCheckToken, config, telemetry, db) {
     this.qsWhitelist = qsWhitelist;
     this.config = config;
     this.debug = false;
     this.privateValues = privateValues;
-    this.hashProb = hashProb;
+    this.shouldCheckToken = shouldCheckToken;
     this.tokenDomain = new TokenDomain(config, db);
     this.blockLog = new BlockLog(telemetry, config);
   }
@@ -113,9 +112,9 @@ export default class TokenChecker {
       const key = kv[0];
       const tok = kv[1];
 
-      // ignore short values
-      if (tok.length < this.config.shortTokenLength) {
-        return 'short';
+      // ignore values which don't look like identifiers
+      if (!this.shouldCheckToken(tok)) {
+        return 'no_check';
       }
 
       // if the value is in the main url, ignore
@@ -124,7 +123,9 @@ export default class TokenChecker {
       }
 
       // make different possible encodings of the token
-      const decodedToken = decodeToken(tok);
+      if (!this.shouldCheckToken(decodeToken(tok))) {
+        return 'no_check_decoded';
+      }
 
       // if we didn't already match a cookie or private value, do these steps
       if (this.qsWhitelist.isSafeKey(trackerDomain, md5(key))) {
@@ -133,12 +134,6 @@ export default class TokenChecker {
 
       if (this.qsWhitelist.isSafeToken(trackerDomain, md5(tok))) {
         return 'whitelisted';
-      }
-
-      // check for short non-hashes
-      if (decodedToken.length < 12 && !isMostlyNumeric(decodedToken)
-        && !this.hashProb.isHash(decodedToken)) {
-        return 'short_no_hash';
       }
 
       const tokenType = 'qs';

@@ -24,7 +24,11 @@ class HumanWeb extends React.Component {
       rulesets: [],
       state: {},
       strictQueries: [],
-      trk: [],
+      sendQueue: [],
+      dlq: [],
+      sent: 0,
+      history: [],
+      historySummary: [],
     },
     timestamp: null,
     urlToCheck: 'twitter.com',
@@ -176,9 +180,26 @@ class HumanWeb extends React.Component {
             />
 
             <HumanWebCheck
-              currentValue={this.state.HWStatus.trk}
-              name="CLIQZ.app.modules['human-web'].background.humanWeb.trk"
+              currentValue={this.state.HWStatus.sendQueue}
+              name="CLIQZ.app.modules['human-web'].background.humanWeb.safebrowsingEndpoint.getSendQueue()"
             />
+            <HumanWebCheck
+              currentValue={this.state.HWStatus.dlq}
+              name="CLIQZ.app.modules['human-web'].background.humanWeb.safebrowsingEndpoint.dlq"
+            />
+            <HumanWebCheck
+              currentValue={this.state.HWStatus.sent}
+              name="CLIQZ.app.modules['human-web'].background.humanWeb.safebrowsingEndpoint.history.sent"
+            />
+            <HumanWebCheck
+              currentValue={this.state.HWStatus.history}
+              name="CLIQZ.app.modules['human-web'].background.humanWeb.safebrowsingEndpoint.history.values()"
+            />
+            <HumanWebCheck
+              currentValue={this.state.HWStatus.historySummary}
+              name="CLIQZ.app.modules['human-web'].background.humanWeb.safebrowsingEndpoint.history.values().map(x => ({ action: x.msg.action, sentAt: x.sentAt }))"
+            />
+
           </tbody>
         </table>
       </div>

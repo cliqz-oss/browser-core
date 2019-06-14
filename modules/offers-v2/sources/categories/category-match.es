@@ -13,7 +13,7 @@ import { buildMultiPatternIndex } from '../common/pattern-utils';
 export class CategoriesMatchTraits {
   /**
    * @constructor
-   * @param {Map<string, string[]>} matches
+   * @param {Map<string, MultiIndexMatchDetails[]>} matches
    *   Matched category ID to the pattern that caused the match
    */
   constructor(matches) {
@@ -41,7 +41,7 @@ export class CategoriesMatchTraits {
     for (const [, , activeCat] of this.weightsIter(trialCategories)) {
       const patterns = this.matches.get(activeCat);
       for (const pattern of patterns) {
-        yield pattern;
+        yield pattern.rawPattern;
       }
     }
   }
@@ -58,7 +58,12 @@ export class CategoriesMatchTraits {
    * @returns {Map<string, number>}
    */
   weights(trialCategories) {
-    return new Map(this.weightsIter(trialCategories));
+    const ws = new Map();
+    for (const [cat, weight] of this.weightsIter(trialCategories)) {
+      const oldWeight = ws.get(cat) || 0;
+      ws.set(cat, oldWeight + weight);
+    }
+    return ws;
   }
 
   * weightsIter(trialCategories) {
@@ -97,7 +102,7 @@ export class CategoriesMatchTraits {
    *
    * @method _scoreCatMatch
    * @param {string} activeCat
-   * @param {StringPattern} pattern
+   * @param {MultiIndexMatchDetails} pattern
    * @param {string} trialCat
    * @returns {number}
    * @private
@@ -106,10 +111,13 @@ export class CategoriesMatchTraits {
     if (!trialCat.startsWith(activeCat)) {
       return 0;
     }
-    let score = pattern.indexOf('$');
-    if (score < 0) {
-      score = pattern.length;
+    const rawPattern = pattern.rawPattern || '';
+    let tokenCount = Math.min(pattern.tokenCount || 0, 10);
+    if ((rawPattern[0] === '|') && (rawPattern[1] === '|')) {
+      tokenCount -= 1; // do not count .com/.de/etc
     }
+    tokenCount = Math.max(tokenCount, 0);
+    const score = Math.E ** tokenCount;
     return (activeCat.length === trialCat.length) ? score : score / 2;
   }
 }

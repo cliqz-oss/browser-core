@@ -1,0 +1,239 @@
+<div class="card">
+  <div class="card-header">
+    <div class="card-title h5">Status</div>
+  </div>
+  <div class="card-body">
+    <ul>
+        <div class="divider text-center" data-content="Adblocker Module State"></div>
+        <br/>
+
+        <li>
+            <i>Enabled </i>
+            <div class="popover popover-left">
+                <abbr title="">?</abbr>
+                <div class="popover-container">
+                    <div class="card">
+                        <div class="card-header"><h6>Regions?</h6></div>
+                        <div class="card-body">
+                            Is the adblocker feature enabled?
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="chip">{{enabled}}</span>
+        </li>
+
+{{#if enabled}}
+        <li>
+            <i>Ready </i>
+            <div class="popover popover-left">
+                <abbr title="">?</abbr>
+                <div class="popover-container">
+                    <div class="card">
+                        <div class="card-header"><h6>Regions?</h6></div>
+                        <div class="card-body">
+                            Is the adblocker fully ready? In case the adblocker is enabled but not yet ready, it could mean that the initialization is still on-going.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="chip">{{enabled}}</span>
+        </li>
+
+        <li>
+            <i>Enabled Regions </i>
+            <div class="popover popover-left">
+                <abbr title="">?</abbr>
+                <div class="popover-container">
+                    <div class="card">
+                        <div class="card-header"><h6>Regions?</h6></div>
+                        <div class="card-body">
+                            Most adblockers require you to manually hand-pick the lists you want to load to fine-tune your experience. Instead, Cliqz will locally analyze the languages of the websites you visit and automatically load country-specific rules to optimize the experience (e.g.: if you visit German websites, <span class="label">easylist-germany</span> will be automatically enabled for you).
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{#each regions}}
+                <span class="chip">{{this}}</span>
+            {{/each}}
+        </li>
+
+        <li>
+            <i>Available Regions </i>
+            <div class="popover popover-left">
+                <abbr title="">?</abbr>
+                <div class="popover-container">
+                    <div class="card">
+                        <div class="card-header"><h6>Regions?</h6></div>
+                        <div class="card-body">
+                            This is the full list of all supported regions for the adblocker; they are not enabled by default. This list has been currated to make sure it does not introduce too many breakages for our users. These can be enabled either automatically by the mechanism described above, or manually using the overriding pref <span class="label">cliqz-adb-lang</span>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{#each availableRegions}}
+                <span class="chip">{{this}}</span>
+            {{/each}}
+        </li>
+
+        <li>
+            <i>Platform </i>
+            <div class="popover popover-left">
+                <abbr title="">?</abbr>
+                <div class="popover-container">
+                    <div class="card">
+                        <div class="card-header">Platform?</div>
+                        <div class="card-body">
+                            Different devices have different characteristics. To make sure you get the best experience, Cliqz will fine-tune the adblocker depending on the platform.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="chip">{{#if isMobile}}mobile{{else}}desktop{{/if}}</span>
+        </li>
+
+        <li>
+            <i>Config URL </i>
+            <div class="popover popover-left">
+                <abbr title="">?</abbr>
+                <div class="popover-container">
+                    <div class="card">
+                        <div class="card-header">Config?</div>
+                        <div class="card-body">
+                            Available lists are specified in a JSON file hosted on Cliqz' CDN. The adblocker is using this information to know which rules to load and check if updates are available. Additionally, pre-initialized blocking engines are created on the backend and can be fetched by clients to remove the need for heavy-lifting.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="chip">{{configUrl}}</span>
+        </li>
+
+        <li>
+            <i>Last Update </i>
+            <div class="popover popover-left">
+                <abbr title="">?</abbr>
+                <div class="popover-container">
+                    <div class="card">
+                        <div class="card-header">Updates?</div>
+                        <div class="card-body">
+                            The adblocker will automatically check for updates every hour. This indicates the last time an update happened.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="chip">{{lastUpdate}}</span>
+        </li>
+
+        <br/>
+        <div class="divider text-center" data-content="Internal Adblocker Engine"></div>
+        <br/>
+
+        <li>
+            <i>Engine Size </i>
+            <div class="popover popover-left">
+                <abbr title="">?</abbr>
+                <div class="popover-container">
+                    <div class="card">
+                        <div class="card-header">Engine?</div>
+                        <div class="card-body">
+                            The <span class="label">engine</span> is the master-mind of the adblocker, it contains all the rules from enabled lists and is in charge of deciding what to do to block ads. To allow fast cold-starts, it can be serialized to a very compact representation which is persisted on disk and loaded when the browser starts. It can also be shipped directly from the CDN.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="chip">{{engineSerializedSize}}</span>
+        </li>
+
+        <li>
+            <i>Engine Optimizations </i>
+            <div class="popover popover-left">
+                <abbr title="">?</abbr>
+                <div class="popover-container">
+                    <div class="card">
+                        <div class="card-header">Engine Optimizations?</div>
+                        <div class="card-body">
+                            To maximize performance, the adblocker is able to perform dynamic optimizations on its internal rules. For examples, similar rules can be fused into one. Due to platform-specific limitations, this option can be disabled.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="chip">{{enableOptimizations}}</span>
+        </li>
+
+        <li>
+            <i>Engine Debug </i>
+            <div class="popover popover-left">
+                <abbr title="">?</abbr>
+                <div class="popover-container">
+                    <div class="card">
+                        <div class="card-header">Engine Debug?</div>
+                        <div class="card-body">
+                            This option indicates if the adblocker was initialized in <span class="label">debug</span> mode. This means that extra information is kept at runtime to ease debugging. In particular, it is possible to retrieve the original text form of each rule. This should always be <span class="label">false</span> in production.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="chip">{{debug}}</span>
+        </li>
+
+        <li>
+            <i>Engine Enable Network Filters </i>
+            <div class="popover popover-left">
+                <abbr title="">?</abbr>
+                <div class="popover-container">
+                    <div class="card">
+                        <div class="card-header">Network Filters?</div>
+                        <div class="card-body">
+                            Indicates if network filtering rules are currently enabled, this should always be <span class="label">true</span>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="chip">{{loadNetworkFilters}}</span>
+        </li>
+
+        <li>
+            <i>Engine Enable Cosmetic Filters </i>
+            <div class="popover popover-left">
+                <abbr title="">?</abbr>
+                <div class="popover-container">
+                    <div class="card">
+                        <div class="card-header">Cosmetic Filters?</div>
+                        <div class="card-body">
+                            Indicates if cosmetic filtering rules are currently enabled, this should always be <span class="label">true</span>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="chip">{{loadCosmeticFilters}}</span>
+        </li>
+
+        <li>
+            <i>Engine Enable Generic Cosmetic Filters </i>
+            <div class="popover popover-left">
+                <abbr title="">?</abbr>
+                <div class="popover-container">
+                    <div class="card">
+                        <div class="card-header">Generic Cosmetic Filters?</div>
+                        <div class="card-body">
+                            Indicates if generic cosmetic filtering rules are currently enabled. Generic cosmetic rules do not specify a specific domain on which they should be applied, but instead are used on any website. This should usually be <span class="label">true</span> but could be disabled on some platforms (e.g.: some mobile configs).
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="chip">{{loadGenericCosmeticsFilters}}</span>
+        </li>
+
+        <br/>
+        <div class="divider text-center" data-content="Whitelisted Domains"></div>
+        <br/>
+
+        <ul>
+            {{#each whitelist}}
+                <li>{{this}}</li>
+            {{/each}}
+        </ul>
+    </ul>
+{{/if}}
+  </div>
+</div>

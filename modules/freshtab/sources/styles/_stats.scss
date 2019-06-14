@@ -34,6 +34,7 @@
 ){
     #section-stats {
         margin-top: 18px;
+        min-height: $news-height;
 
         .stats-container {
             width: $news-container;

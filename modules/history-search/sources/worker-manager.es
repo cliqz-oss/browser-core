@@ -1,6 +1,8 @@
 import Spanan from 'spanan';
 import { getResourceUrl } from '../core/platform';
+import pacemaker from '../core/services/pacemaker';
 import Worker from '../platform/worker';
+import { hasOpenedTabWithUrl } from '../core/tabs';
 import { chrome } from '../platform/globals';
 
 const LIMIT = 50; // TODO: reduce this limit
@@ -27,6 +29,17 @@ const redditScore = (count, time, matchingScore, fieldLength, isBookmarked, type
   const bookmarkScore = isBookmarked ? 1.1 : 1;
   const typedCountScore = 1 + (typedCount * 0.05);
   return (rankingScore * bookmarkScore * typedCountScore + confidenceScore) * matchingScore;
+};
+
+const resultStyle = (result) => {
+  const styles = ['favicon'];
+  if (result[0].is_bookmarked) {
+    styles.push('bookmark');
+  }
+  if (hasOpenedTabWithUrl(result[0].match_fields.Url.field)) {
+    styles.push('switchtab');
+  }
+  return styles.join(' ');
 };
 
 export default class WorkerManager {
@@ -156,7 +169,7 @@ export default class WorkerManager {
         comment: result[0].match_fields.Title.field,
         value: result[0].match_fields.Url.field,
         label: result[0].match_fields.Url.field,
-        style: result[0].is_bookmarked ? 'favicon bookmark' : 'favicon',
+        style: resultStyle(result),
         image: `page-icon:${result[0].match_fields.Url.field}`, // TODO: do we need this ?
         score: redditScore(
           result[0].visit_count,
@@ -205,7 +218,7 @@ export default class WorkerManager {
   }
 
   onVisited = (visit) => {
-    setTimeout(() => {
+    pacemaker.setTimeout(() => {
       chrome.history.search(
         { text: visit.url, startTime: Math.floor(visit.lastVisitTime), maxResults: 1 },
         (results) => {

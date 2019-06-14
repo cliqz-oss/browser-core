@@ -1,6 +1,5 @@
 /* global chai */
 /* global describeModule */
-/* global require */
 /* eslint-disable func-names */
 
 export default describeModule('market-analysis/common/regex_helper',

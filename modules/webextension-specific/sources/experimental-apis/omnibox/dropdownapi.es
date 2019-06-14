@@ -1,16 +1,21 @@
-/* global ChromeUtils, EventManager, addMessageListener, sendAsyncMessage,  windowTracker */
+/* global ChromeUtils, EventManager,
+   addMessageListener, sendAsyncMessage,  windowTracker, tabTracker */
 import Defer from '../../../core/helpers/defer';
+import { nextTick } from '../../../core/decorators';
+import BrowserDropdownManager from '../../../dropdown/managers/browser';
+import { PASSIVE_LISTENER_OPTIONS } from '../../../dropdown/managers/utils';
+import LastQuery from './last-query';
 
 const { E10SUtils } = ChromeUtils.import('resource://gre/modules/E10SUtils.jsm');
 const { ExtensionParent } = ChromeUtils.import('resource://gre/modules/ExtensionParent.jsm');
 const { EventEmitter } = ChromeUtils.import('resource://gre/modules/EventEmitter.jsm');
-
+const { Services } = ChromeUtils.import('resource://gre/modules/Services.jsm');
 const { ExtensionUtils } = ChromeUtils.import('resource://gre/modules/ExtensionUtils.jsm');
-const STYLESHEET_URL = '/modules/dropdown/styles/xul.css';
-const AC_PROVIDER_NAME = 'cliqz-results';
-const { ExtensionError } = ExtensionParent;
+const { promiseEvent, ExtensionError } = ExtensionUtils;
 
-const { promiseEvent } = ExtensionUtils;
+const STYLESHEET_URL = `modules/dropdown/styles/xul.css?${Date.now()}`;
+const DROPDOWN_URL = '/modules/dropdown/dropdown.html';
+const AC_PROVIDER_NAME = 'cliqz-results';
 
 function addStylesheet(document, url) {
   const stylesheet = document.createElementNS('http://www.w3.org/1999/xhtml', 'h:link');
@@ -66,8 +71,9 @@ const frameScript = () => {
   }, true, true);
 };
 
-// TODO extract common parts
 export default class Dropdown extends EventEmitter {
+  _oldPlaceholder = null;
+
   constructor(extension) {
     super();
     const { remote, principal, groupFrameLoader } = extension;
@@ -77,6 +83,7 @@ export default class Dropdown extends EventEmitter {
     this._groupFrameLoader = groupFrameLoader || null;
     this._overriden = null;
     this._windows = new Map();
+    this._onThemeChange();
   }
 
   get overriden() {
@@ -97,6 +104,18 @@ export default class Dropdown extends EventEmitter {
 
   _resolveURL(url) {
     return this._extension.baseURI.resolve(url);
+  }
+
+  getWindowByTabId(tabId) {
+    if (!tabId) {
+      return this._currentWindow();
+    }
+
+    const tab = tabTracker.getTab(tabId);
+    if (!tab) {
+      throw new ExtensionError(`Cannot find tab with ID ${tabId}`);
+    }
+    return tab.ownerGlobal;
   }
 
   _getDropdown(windowId /* or window */) {
@@ -120,14 +139,26 @@ export default class Dropdown extends EventEmitter {
     return w.innerHeight - 140;
   }
 
-  override(url) {
-    if (this._overriden) {
-      return Promise.reject(new Error('Dropdown is already overriden'));
+  override(context, { placeholder } = {}) {
+    if (context.viewType !== 'background') {
+      throw new ExtensionError('Dropdown override only allowed in the background context');
     }
+
+    const url = this._resolveURL(DROPDOWN_URL);
+    if (this._overriden) {
+      throw new ExtensionError('Dropdown is already overriden');
+    }
+
+    if (placeholder) {
+      this._placeholder = placeholder;
+    }
+
     const readyPromises = [];
     this._url = url;
     this.onWindowOpened = this._onWindowOpened.bind(this);
     this.onWindowClosed = this._onWindowClosed.bind(this);
+    this._themePref = Services.prefs.getBranch('lightweightThemes.selectedThemeID');
+    this._themePref.addObserver('', this);
     windowTracker.addOpenListener(this.onWindowOpened);
     windowTracker.addCloseListener(this.onWindowClosed);
     for (const window of windowTracker.browserWindows()) {
@@ -160,14 +191,19 @@ export default class Dropdown extends EventEmitter {
     }
   }
 
-  restore() {
+  restore(context) {
+    if (context.viewType !== 'background') {
+      throw ExtensionError('Dropdown override only allowed in the background context');
+    }
+
     if (!this._overriden) {
       throw new ExtensionError('Dropdown is not overriden');
     }
-    this.destroy();
+    this.close();
   }
 
-  destroy() {
+  close() {
+    this._themePref.removeObserver('', this);
     windowTracker.removeCloseListener(this.onWindowClosed);
     windowTracker.removeOpenListener(this.onWindowOpened);
     for (const [window] of this._windows) {
@@ -182,7 +218,8 @@ export default class Dropdown extends EventEmitter {
     const dropdown = this._replaceDropdown(window);
     if (dropdown) {
       this._windows.set(window, dropdown);
-      return dropdown.readyDefer.promise;
+      this.emit('dropdownreplaced', dropdown);
+      return dropdown.isReady;
     }
     return Promise.resolve();
   }
@@ -194,36 +231,36 @@ export default class Dropdown extends EventEmitter {
     }
     this._revertDropdown(dropdown);
     this._windows.delete(window);
+    this.emit('dropdowndestroyed', dropdown);
   }
 
   updateMaxHeight(window) {
-    // update maxHeight
     const dropdown = this._windows.get(window);
     if (dropdown) {
       dropdown.maxHeight = window.innerHeight - 140;
     }
   }
 
-  _replaceDropdown(window) {
-    // do not initialize the UI if locationbar is invisible in this window
-    if (!window.locationbar.visible) return null;
-
-    const readyDefer = new Defer();
-    // create a new panel for cliqz to avoid inconsistencies at FF startup
+  _overrideDefaultAutocomplete(window) {
+    const windowId = this._getWindowId(window);
     const document = window.document;
     const urlbar = window.gURLBar;
-    let initialized = false;
-
-    addStylesheet(window.document, this._stylesheetURL);
 
     const autocompletesearch = urlbar.getAttribute('autocompletesearch');
     urlbar.setAttribute('autocompletesearch', AC_PROVIDER_NAME);
     urlbar.setAttribute('pastetimeout', 0);
+    urlbar.style.maxWidth = '100%';
+    urlbar.style.margin = '0px 0px';
 
+    // create BrowserDropdownManager and LastQuery
+    const lastQuery = new LastQuery(window);
+    const dropdownManager = new BrowserDropdownManager({ window, windowId, lastQuery }, this);
+
+    // create a new panel for cliqz to avoid inconsistencies at FF startup
     const popup = document.createElementNS('http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul', 'panel');
     // mock default FF function
     popup.enableOneOffSearches = () => {};
-    popup.closePopup = () => {};
+    popup.closePopup = () => dropdownManager.close();
     popup.richlistbox = {
       children: []
     };
@@ -247,10 +284,50 @@ export default class Dropdown extends EventEmitter {
       item.setAttribute('command', 'Browser:OpenLocation');
     });
 
-    // create a browser
-    const parentElement = document.getElementById('navigator-toolbox');
-    const navToolbar = document.getElementById('nav-bar');
+    return {
+      urlbar,
+      popup,
+      lastQuery,
+      dropdownManager,
+      autocompletesearch,
+      autocompletepopup,
+      disableKeyNavigation,
+      searchShortcutElements,
+    };
+  }
 
+  _restoreDefaultAutocomplete({
+    urlbar,
+    popup,
+    lastQuery,
+    dropdownManager,
+    autocompletesearch,
+    autocompletepopup,
+    disableKeyNavigation,
+    searchShortcutElements,
+  }) {
+    [].forEach.call(searchShortcutElements, (item) => {
+      item.setAttribute('command', item.getAttribute('original_command'));
+    });
+
+    /* eslint-disable no-param-reassign */
+    urlbar.disableKeyNavigation = disableKeyNavigation;
+    urlbar.setAttribute('autocompletesearch', autocompletesearch);
+    urlbar.setAttribute('autocompletepopup', autocompletepopup);
+    urlbar.style.maxWidth = '';
+    urlbar.style.margin = '';
+    /* eslint-enable no-param-reassign */
+
+    if (popup && popup.parentNode) {
+      popup.parentNode.removeChild(popup);
+    }
+
+    lastQuery.unload();
+    dropdownManager.destroy();
+  }
+
+  _createToolbarAndBrowser(document) {
+    const readyDefer = new Defer();
     const browser = document.createElement('browser');
     browser.setAttribute('type', 'content');
     browser.setAttribute('id', 'cliqz-popup');
@@ -291,6 +368,8 @@ export default class Dropdown extends EventEmitter {
       readyDefer.resolve();
     });
 
+    const parentElement = document.getElementById('navigator-toolbox');
+    const navToolbar = document.getElementById('nav-bar');
     const container = document.createElement('div');
     container.appendChild(browser);
 
@@ -314,27 +393,76 @@ export default class Dropdown extends EventEmitter {
       browser.loadURI(this._url);
     }
 
-    // Add search history dropdown
+    return {
+      browser,
+      isReady: readyDefer.promise,
+      cliqzToolbar,
+    };
+  }
+
+  _destroyToolbarAndBrowser({ window, browser, cliqzToolbar }) {
+    browser.messageManager.removeMessageListener('Dropdown:MessageOut', this);
+
+    const navToolbar = window.document.getElementById('nav-bar');
+    navToolbar.setAttribute('overflowable', 'true');
+    navToolbar.style.zIndex = 'auto';
+
+    cliqzToolbar.parentNode.removeChild(cliqzToolbar);
+  }
+
+  _replaceDropdown(window) {
+    let initialized = false;
+
+    // do not initialize the UI if locationbar is invisible in this window
+    if (!window.locationbar.visible) return null;
+
+    addStylesheet(window.document, this._stylesheetURL);
+
+    const windowId = this._getWindowId(window);
+    // replace default firefox autocomplete service with an empty stub
+    const {
+      urlbar,
+      popup,
+      lastQuery,
+      dropdownManager,
+      autocompletesearch,
+      autocompletepopup,
+      disableKeyNavigation,
+      searchShortcutElements,
+    } = this._overrideDefaultAutocomplete(window);
+
+    // create a browser
+    const { browser, isReady, cliqzToolbar } = this._createToolbarAndBrowser(window.document);
+
+    // Reload urlbar to apply changes done to it
     this._reloadUrlbar(urlbar);
+    dropdownManager.init();
+    dropdownManager.createIframeWrapper();
+
+    // update placeholder
+    this._setURLBarPlaceholder(urlbar, this._placeholder);
+
+    // update dropdown dimensions on resize
+    window.addEventListener('resize', this, PASSIVE_LISTENER_OPTIONS);
 
     initialized = true;
 
-    const originalUrlbarPlaceholder = this._applyAdditionalThemeStyles(window);
-    urlbar.focus();
-
     return {
+      windowId,
       window,
       urlbar,
+      lastQuery,
+      dropdownManager,
       popup,
       autocompletesearch,
       autocompletepopup,
       disableKeyNavigation,
       initialized,
       searchShortcutElements,
-      originalUrlbarPlaceholder,
       cliqzToolbar,
       browser,
-      readyDefer,
+      isReady,
+      urlbarAttributes: this._calculateURLBarAttributes(window),
       state: this.DEFAULT_STATE
     };
   }
@@ -343,65 +471,20 @@ export default class Dropdown extends EventEmitter {
     const {
       window,
       urlbar,
-      popup,
-      autocompletesearch,
-      autocompletepopup,
-      disableKeyNavigation,
       initialized,
-      searchShortcutElements,
-      originalUrlbarPlaceholder,
-      cliqzToolbar,
-      browser,
     } = dropdown;
 
     if (!initialized) return;
 
-    const navToolbar = window.document.getElementById('nav-bar');
-    navToolbar.setAttribute('overflowable', 'true');
-    navToolbar.style.zIndex = 'auto';
+    window.removeEventListener('resize', this, PASSIVE_LISTENER_OPTIONS);
 
-    removeStylesheet(window.document, this._stylesheetURL);
-
-    urlbar.setAttribute('autocompletesearch', autocompletesearch);
-    urlbar.setAttribute('autocompletepopup', autocompletepopup);
-    urlbar.disableKeyNavigation = disableKeyNavigation;
-
-    // revert onclick handler
-    [].forEach.call(searchShortcutElements, (item) => {
-      item.setAttribute('command', item.getAttribute('original_command'));
-    });
-
-    browser.messageManager.removeMessageListener('Dropdown:MessageOut', this);
-    const searchContainer = window.document.getElementById('search-container');
-    if (searchContainer) {
-      searchContainer.setAttribute('class', searchContainer);
+    if (this._oldPlaceholder !== null) {
+      urlbar.mInputField.placeholder = this._oldPlaceholder;
     }
+    this._destroyToolbarAndBrowser(dropdown);
+    this._restoreDefaultAutocomplete(dropdown);
     this._reloadUrlbar(urlbar);
-    this._revertAdditionalThemeStyles(window, originalUrlbarPlaceholder);
-
-    if (popup && popup.parentNode) {
-      popup.parentNode.removeChild(popup);
-    }
-
-    cliqzToolbar.parentNode.removeChild(cliqzToolbar);
-  }
-
-  _applyAdditionalThemeStyles(window) {
-    const urlbar = window.gURLBar;
-    const originalUrlbarPlaceholder = urlbar.mInputField.placeholder;
-
-    urlbar.style.maxWidth = '100%';
-    urlbar.style.margin = '0px 0px';
-
-    return originalUrlbarPlaceholder;
-  }
-
-  _revertAdditionalThemeStyles(window, originalUrlbarPlaceholder) {
-    const urlbar = window.gURLBar;
-
-    urlbar.style.maxWidth = '';
-    urlbar.style.margin = '';
-    urlbar.mInputField.placeholder = originalUrlbarPlaceholder;
+    removeStylesheet(window.document, this._stylesheetURL);
   }
 
   _reloadUrlbar(urlbar) {
@@ -413,30 +496,100 @@ export default class Dropdown extends EventEmitter {
       el.parentNode.insertBefore(el, el.nextSibling);
       el.value = oldVal;
     }
+    urlbar.focus();
   }
 
-  async _sendMessage(windowId, payload) {
-    if (!this._overriden) {
-      throw new ExtensionError('Dropdown is not overriden, no target to send message.');
+  _onThemeChange() {
+    nextTick(() => {
+      const window = windowTracker.getCurrentWindow();
+      const CHANNEL_TRESHOLD = 220;
+      const toolbar = window.document.getElementById('nav-bar');
+      const bgColor = window.getComputedStyle(toolbar)['background-color'];
+
+      // Check if toolbar background color is light-grey-ish and non-transparent
+      const [, r, g, b, a] = bgColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+))?/) || ['', '0', '0', '0', '0'];
+      if (r > CHANNEL_TRESHOLD
+          && g > CHANNEL_TRESHOLD
+          && b > CHANNEL_TRESHOLD
+          && (a === undefined || a >= 1)
+      ) {
+        this._color = bgColor;
+      } else {
+        this._color = null;
+      }
+    });
+  }
+
+  _setURLBarPlaceholder(urlbar, placeholder) {
+    if (!placeholder) {
+      return;
     }
+
+    if (this._oldPlaceholder === null) {
+      this._oldPlaceholder = urlbar.mInputField.placeholder;
+    }
+    urlbar.mInputField.placeholder = placeholder; // eslint-disable-line
+  }
+
+  getURLBarAttributes(window) {
+    const dropdown = this._getDropdown(window);
+    if (dropdown) {
+      return dropdown.urlbarAttributes;
+    }
+    return this._calculateURLBarAttributes(window);
+  }
+
+  _calculateURLBarAttributes(window) {
+    const urlbar = window.gURLBar;
+
+    const urlbarRect = urlbar.getBoundingClientRect();
+    const urlbarLeftPos = Math.round(urlbarRect.left || urlbarRect.x || 0);
+    const urlbarWidth = urlbarRect.width;
+    const extraPadding = 10;
+    let contentPadding = extraPadding + urlbarLeftPos;
+
+    // Reset padding when there is a big space on the left of the urlbar
+    // or when the browser's window is too narrow
+    if (contentPadding > 500 || window.innerWidth < 650) {
+      contentPadding = 50;
+    }
+
+    return {
+      padding: contentPadding,
+      left: urlbarLeftPos,
+      width: urlbarWidth,
+      navbarColor: this._color,
+    };
+  }
+
+  _updateURLBarAttributes(window) {
+    const dropdown = this._getDropdown(window);
+    if (!dropdown) {
+      return;
+    }
+    dropdown.urlbarAttributes = this._calculateURLBarAttributes(window);
+  }
+
+  observe(subject, topic, data) {
+    if (topic === 'nsPref:changed') {
+      this._onThemeChange(subject, topic, data);
+    }
+  }
+
+  handleEvent(event) {
+    if (event.type === 'resize') {
+      const window = event.view || windowTracker.getCurrentWindow();
+      this._updateURLBarAttributes(window);
+    }
+  }
+
+  async sendMessage(windowId, payload) {
     await this._overriden;
     const { browser } = this._getDropdown(windowId);
     browser.messageManager.sendAsyncMessage('Dropdown:MessageIn', payload);
   }
 
-  async close(windowId) {
-    if (!this._overriden) {
-      throw new ExtensionError('Dropdown is not overriden, nothing to close.');
-    }
-    await this._overriden;
-    this.setHeight(windowId, 0);
-  }
-
-  async setHeight(windowId, height) {
-    if (!this._overriden) {
-      throw new ExtensionError('Dropdown is not overriden, cannot change its height.');
-    }
-    await this._overriden;
+  setHeight(windowId, height) {
     const { browser, window } = this._getDropdown(windowId);
     const newHeight = Math.min(this._getMaxHeight(windowId), height);
     this.setState(windowId, {
@@ -455,6 +608,19 @@ export default class Dropdown extends EventEmitter {
     } else {
       navToolbar.removeAttribute('overflowable');
     }
+  }
+
+  getCurrentTab(window) {
+    const tabData = this._extension.tabManager.convert(window.gBrowser.selectedTab);
+    const incognito = tabData.incognito
+      // autofrget tab
+      || (window.gBrowser.selectedBrowser.loadContext
+          && window.gBrowser.selectedBrowser.loadContext.usePrivateBrowsing);
+
+    return {
+      incognito,
+      ...tabData
+    };
   }
 
   _generateEventManager(context, eventName) {
@@ -479,17 +645,58 @@ export default class Dropdown extends EventEmitter {
   }
 
   receiveMessage({ target, data }) {
-    return this.emit('message', target.ownerGlobal, data);
+    return this.emit('message', this._getWindowId(target.ownerGlobal), data);
+  }
+
+  navigateTo(windowId, url, options) {
+    const { urlbar } = this._getDropdown(windowId);
+    const { selectionStart, selectionEnd, value, focused } = urlbar;
+    const searchString = urlbar.controller.searchString;
+    const visibleValue = urlbar.mInputField.value;
+
+    urlbar.value = url;
+    urlbar.handleCommand(null, options.target);
+    if (options.target === 'tabshifted') {
+      if (focused) {
+        urlbar.focus();
+      }
+      urlbar.value = value;
+      urlbar.controller.searchString = searchString;
+      urlbar.mInputField.value = visibleValue;
+      urlbar.selectionStart = selectionStart;
+      urlbar.selectionEnd = selectionEnd;
+    }
   }
 
   getAPI(context) {
     return {
-      override: url => this.override(this._resolveURL(url)),
-      restore: () => this.restore(),
-      close: windowId => this.close(windowId),
-      setHeight: (windowId = null, height) => this.setHeight(windowId, height),
-      sendMessage: (windowId = null, payload) => this._sendMessage(windowId, payload),
-      onMessage: this._generateEventManager(context, 'message'),
+      override: options => this.override(context, options),
+      restore: () => this.restore(context),
+      getResult: (windowId) => {
+        const { dropdownManager } = this._getDropdown(windowId);
+        const selected = dropdownManager.selectedResult || null;
+        const hovered = dropdownManager.hoveredResult || null;
+        return {
+          selected,
+          hovered,
+        };
+      },
+      query: (windowId = null, query, options) => {
+        const { urlbar, dropdownManager } = this._getDropdown(windowId);
+        if (options.focus) {
+          urlbar.focus();
+        }
+        if (options.openLocation) {
+          const command = urlbar.ownerDocument.getElementById('Browser:OpenLocation');
+          command.doCommand();
+        }
+        urlbar.value = query;
+        urlbar.mInputField.value = query;
+        urlbar.controller.searchString = query;
+        dropdownManager.onInput();
+      },
+      navigateTo: (windowId, url, options) => this.navigateTo(windowId, url, options),
+      onTelemetryPush: this._generateEventManager(context, 'telemetry'),
     };
   }
 }

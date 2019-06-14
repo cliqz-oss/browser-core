@@ -1,10 +1,4 @@
 {
-    "connect_in_progress_header": {
-        "message": "Entschuldigung!"
-    },
-    "connect_in_progress_message": {
-        "message": "Diese Funktion wird überarbeitet und ist aktuell nicht verfügbar."
-    },
     "video_downloader_audio_label": {
         "message": "Audio Datei"
     },
@@ -16,6 +10,12 @@
     },
     "video_downloader_live_video": {
         "message": "Sorry! Wir können Live Stream Videos leider nicht herunterladen."
+    },
+    "video_downloader_mobile_android_app": {
+        "message": "https://play.google.com/store/apps/details?hl=de&id=com.cliqz.browser"
+    },
+    "video_downloader_mobile_ios_app": {
+        "message": "https://itunes.apple.com/de/app/cliqz-browser-suchmaschine/id1065837334?mt=8"
     },
     "video_downloader_open_connect_page": {
         "message": "Öffne die Connect Einstellungen"
@@ -37,6 +37,24 @@
     },
     "video_downloader_title": {
         "message": "Video herunterladen"
+    },
+    "video_downloader_uitour_btn_skip": {
+        "message": "Später"
+    },
+    "video_downloader_uitour_btn_try": {
+        "message": "Jetzt ausprobieren"
+    },
+    "video_downloader_uitour_description": {
+        "message": "Schaue dir das Video offline an. Lade es auf deinen Computer oder dein mobiles Gerät herunter."
+    },
+    "video_downloader_uitour_downloads_description": {
+        "message": "Du kannst Videos auch auf dein Mobilgerät herunterladen. Probier’s!"
+    },
+    "video_downloader_uitour_downloads_title": {
+        "message": "Download läuft..."
+    },
+    "video_downloader_uitour_title": {
+        "message": "Video Downloader"
     },
     "video_downloader_unsupported_format": {
         "message": "Sorry! Wir können das Video leider nicht herunterladen."

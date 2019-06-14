@@ -1,0 +1,32 @@
+.lodge-promo-v2__container {
+}
+
+.lodge-promo-v2__input {
+  border: none;
+  width: 99.5%;
+  color: transparent;
+  text-shadow: 0 0 0 #000;
+  height: 30px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  text-align: center;
+  background-color: #F2F2F2;
+  font-family: monospace, monospace;
+  letter-spacing: -1px;
+}
+
+.lodge-promo-v2__copy-code {
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 12px;
+  color: #FFFFFF;
+  display: inline-block;
+  cursor: pointer;
+  background-color: #001FA0;
+  width: 100%;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+}

@@ -1,4 +1,4 @@
-/* global window, chrome */
+/* global window */
 
 import App from '../core/app';
 

@@ -1,0 +1,14 @@
+{
+    "cMenuRemoveFromHistory": {
+        "message": "Remove from history"
+    },
+    "cMenuRemoveFromHistoryAndBookmarks": {
+        "message": "Remove from bookmarks and history"
+    },
+    "cMenuRemoveFromHistoryAndBookmarksAndCloseTab": {
+        "message": "Remove from bookmarks and history and close tab"
+    },
+    "cMenuRemoveFromHistoryAndCloseTab": {
+        "message": "Remove from history and close tab"
+    }
+}

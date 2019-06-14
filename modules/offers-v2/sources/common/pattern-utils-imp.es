@@ -61,6 +61,12 @@ export class SimplePatternIndex extends PatternIndex {
 }
 
 /**
+ * @class MultiIndexMatchDetails
+ * - rawPattern: the original string pattern
+ * - tokenCount: number of tokens inside the pattern
+ */
+
+/**
  * Accelerating data structure for network filters matching for multiple patterns
  * match detection. Makes use of the reverse index structure defined above.
  *
@@ -70,7 +76,7 @@ export class MultiPatternIndex extends PatternIndex {
   /**
    * @method match
    * @param {PatternMatchRequest} request
-   * @returns {Map<string, PatternString[]>}
+   * @returns {Map<string, MultiIndexMatchDetails[]>}
    */
   match(request) {
     return new Set(this.matchWithPatterns(request).keys());
@@ -82,11 +88,14 @@ export class MultiPatternIndex extends PatternIndex {
     this.index.iterMatchingFilters(request.getTokens(), (pattern) => {
       if (pattern.match(request)) {
         this.id2categories.get(pattern.getId()).forEach((groupID) => {
-          const rawPattern = this.id2pattern.get(pattern.getId());
+          const matchDetails = {
+            rawPattern: this.id2pattern.get(pattern.getId()),
+            tokenCount: pattern.getTokens()[0].length,
+          };
           if (matchedIDs.has(groupID)) {
-            matchedIDs.get(groupID).push(rawPattern);
+            matchedIDs.get(groupID).push(matchDetails);
           } else {
-            matchedIDs.set(groupID, [rawPattern]);
+            matchedIDs.set(groupID, [matchDetails]);
           }
         });
       }

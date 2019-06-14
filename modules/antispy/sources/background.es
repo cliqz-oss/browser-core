@@ -14,7 +14,7 @@ import SuspiciousUrlCheck from './suspicious-url-check';
  * @class  Background
  */
 export default background({
-
+  requiresServices: ['pacemaker'],
   antitracking: inject.module('antitracking'),
 
   init() {

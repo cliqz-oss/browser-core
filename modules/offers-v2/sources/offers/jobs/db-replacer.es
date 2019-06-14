@@ -44,9 +44,7 @@ const replaceOffersOnDB = (offerList, offersDB) => {
         // failed to update, still log the issue
         logger.error(`Couldnt update offer on DB for offer id: ${offer.uniqueID}, discarding it`);
       } else {
-        // TODO: remove this debug once it is all stable
         result.push(offer);
-        logger.debug(`Replacing db offer ${offer.uniqueID} from the backend one`);
       }
     } else {
       // its a new one or is the same than the DB
@@ -61,8 +59,6 @@ const getSameOffersFromDB = (offerList, offersDB) => {
   offerList.forEach((offer) => {
     if (offersDB.isOfferPresent(offer.uniqueID)
         && offersDB.getOfferObject(offer.uniqueID).version === offer.version) {
-      // TODO: remove this debug once it is all stable
-      logger.debug(`Replacing backend offer ${offer.uniqueID} from the db one`);
       resultList.push(new Offer(offersDB.getOfferObject(offer.uniqueID)));
     } else {
       resultList.push(offer);

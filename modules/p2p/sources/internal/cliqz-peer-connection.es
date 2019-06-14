@@ -1,6 +1,7 @@
 /* eslint no-param-reassign: off */
 
 import random from '../../core/crypto/random';
+import { setTimeout } from '../../core/timers';
 import constants from './constants';
 
 // CliqzPeerConnection: encapsulates a RTCDataChannel and RTCPeerConnection

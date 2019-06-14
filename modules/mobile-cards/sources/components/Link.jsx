@@ -2,17 +2,19 @@ import React from 'react';
 import { TouchableWithoutFeedback, View, Platform } from 'react-native';
 import console from '../../core/console';
 import { withCliqz } from '../cliqz';
+import { withResult, getSelection } from '../ResultProvider';
 
 class Link extends React.Component {
   _onPress = (e) => {
     e.stopPropagation();
-    const mobileCards = this.props.cliqz.mobileCards;
+    const { result, meta, index, cliqz } = this.props;
+    const mobileCards = cliqz.mobileCards;
     const url = this.props.url;
     const action = url ? 'openLink' : this.props.action;
     const param = url || this.props.param;
     if (action) {
       console.debug(`Browser action ${action} is called`);
-      mobileCards[action](param, this.props.getSelection ? this.props.getSelection() : null);
+      mobileCards[action](param, getSelection(result, meta, index));
     }
     // callback onPress
     if (this.props.onPress) {
@@ -43,4 +45,4 @@ class Link extends React.Component {
   }
 }
 
-export default withCliqz(Link);
+export default withCliqz(withResult(Link));

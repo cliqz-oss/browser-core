@@ -39,16 +39,8 @@ const newsEditions = [
     text: 'app_settings_news_language_es',
   },
   {
-    value: 'pl',
-    text: 'app_settings_news_language_pl',
-  },
-  {
     value: 'it',
     text: 'app_settings_news_language_it',
-  },
-  {
-    value: 'ru',
-    text: 'app_settings_news_language_ru',
   },
 ];
 

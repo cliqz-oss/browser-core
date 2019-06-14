@@ -5,6 +5,7 @@ import asyncPrefs from '../platform/async-storage';
 import { getConfigTs } from './time';
 import events from '../core/events';
 import { fetch } from '../core/http';
+import pacemaker from '../core/services/pacemaker';
 
 const SETTINGS = config.settings;
 const VERSIONCHECK_URL = `${SETTINGS.CDN_BASEURL}/anti-tracking/whitelist/versioncheck.json`;
@@ -150,7 +151,7 @@ export default class Config {
         ['attrack.config', JSON.stringify(conf)],
       ]);
     } catch (e) {
-      setTimeout(this._loadConfig.bind(this), 30000);
+      pacemaker.setTimeout(this._loadConfig.bind(this), 30000);
     }
   }
 

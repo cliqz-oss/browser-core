@@ -33,8 +33,8 @@
 /modules/notifications/ @chrmod
 /modules/offboarding/ @luciancor
 /modules/offers-banner/ @aleksandr-cliqz
-/modules/offers-cc/ @gabriel-cliqz @giota-cliqz @mai-cliqz
-/modules/offers-v2/ @zhonghao-cliqz @eleniS
+/modules/offers-cc/ @aleksandr-cliqz @gabriel-cliqz @giota-cliqz @mai-cliqz
+/modules/offers-v2/ @zhonghao-cliqz @eleniS @aleksandr-cliqz @olpa-cliqz
 /modules/onboarding-v3/ @mai-cliqz @luciancor
 /modules/p2p/ @philipp-classen
 /modules/pairing/ @philipp-classen
@@ -42,7 +42,6 @@
 /modules/privacy-dashboard/ @private-face
 /modules/privacy/ @ecnmst
 /modules/search/ @dominik-s @chrmod @private-face
-/modules/static/ @marta-cliqz
 /modules/theme/ @gabriel-cliqz @mai-cliqz
 /modules/video-downloader/ @mai-cliqz
 /modules/webrequest-pipeline/ @remusao @zhonghao-cliqz

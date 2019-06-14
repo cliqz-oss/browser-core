@@ -1,4 +1,5 @@
 const fs = require('fs');
+const Funnel = require('broccoli-funnel');
 const Source = require('broccoli-source');
 const MergeTrees = require('broccoli-merge-trees');
 const writeFile = require('broccoli-file-creator');
@@ -56,4 +57,6 @@ specificTree = new MergeTrees([
   configTree,
 ], { overwrite: true });
 
-module.exports = specificTree;
+module.exports = new Funnel(specificTree, {
+  exclude: ['**/locale'],
+});

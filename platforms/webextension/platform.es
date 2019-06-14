@@ -11,7 +11,6 @@ function checkUserAgent(pattern) {
 }
 
 const def = {
-  isBootstrap: false,
   isMobile: checkUserAgent('Mobile'),
   isFirefox: checkUserAgent('Firefox'),
   isChromium: checkUserAgent('Chrome'),
@@ -23,10 +22,6 @@ export default def;
 
 export function isOnionModeFactory(prefs) {
   return () => prefs && prefs.get('onion-mode');
-}
-
-export function isPlatformAtLeastInVersion() {
-  return true;
 }
 
 // this should differentiate between cliqz and ghostery apps for mobile

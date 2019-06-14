@@ -26,6 +26,12 @@ export default describeModule('anolysis/internals/anolysis',
     'platform/lib/ajv': {
       default: ajv,
     },
+    'core/services/pacemaker': {
+      default: {
+        setTimeout(cb) { cb(); },
+        clearTimeout() {},
+      }
+    },
     'core/crypto/random': {
       randomInt() { return 0; },
     },
@@ -103,21 +109,13 @@ export default describeModule('anolysis/internals/anolysis',
     afterEach(() => anolysis.storage.destroy());
 
     describe('#runDailyTasks', () => {
-      let oldTimeout;
       let DefaultMap;
 
       beforeEach(async function () {
-        oldTimeout = global.setTimeout;
-        global.setTimeout = (cb) => { cb(); };
-
         DefaultMap = (await this.system.import('core/helpers/default-map')).default;
 
         // Register tasks
         await anolysis.updateRetentionState();
-      });
-
-      afterEach(() => {
-        global.setTimeout = oldTimeout;
       });
 
       it('generates no signals if no metrics', async () => {

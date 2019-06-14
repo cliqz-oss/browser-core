@@ -47,9 +47,10 @@ describe('Freshtab search UI', function () {
   });
 
   context('when set to be visible', function () {
-    before(function () {
+    before(async function () {
       subject.respondsWith(searchConfig);
-      return subject.load();
+      await subject.load();
+      return subject.query('#settings-btn').click();
     });
 
     after(function () {
@@ -68,11 +69,12 @@ describe('Freshtab search UI', function () {
   });
 
   context('when set to not be visible', function () {
-    before(function () {
+    before(async function () {
       const configNotVisible = clone(defaultConfig);
       configNotVisible.response.componentsState.search.visible = false;
       subject.respondsWith(configNotVisible);
-      return subject.load();
+      await subject.load();
+      return subject.query('#settings-btn').click();
     });
 
     after(function () {

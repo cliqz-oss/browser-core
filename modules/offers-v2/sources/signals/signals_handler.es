@@ -10,13 +10,9 @@ import telemetry from '../../core/services/telemetry';
 import { httpPost } from '../../core/http';
 import OffersConfigs from '../offers_configs';
 import SimpleDB from '../../core/persistence/simple-db';
-import setTimeoutInterval from '../../core/helpers/timeout';
-import { generateUUID } from '../utils';
-import {
-  isDeveloper,
-  constructSignal,
-  addOrCreate,
-} from './utils';
+import pacemaker from '../../core/services/pacemaker';
+import { generateUUID, isDeveloper } from '../utils';
+import { constructSignal, addOrCreate } from './utils';
 import Behavior from '../behavior';
 
 const STORAGE_DB_DOC_ID = 'offers-signals';
@@ -84,12 +80,12 @@ export default class SignalHandler {
 
     // save signals in a frequent way
     if (OffersConfigs.SIGNALS_LOAD_FROM_DB) {
-      this.saveInterval = setTimeoutInterval(() => {
+      this.saveInterval = pacemaker.register(() => {
         if (this.dbDirty) {
           this._savePersistenceData();
         }
       },
-      OffersConfigs.SIGNALS_AUTOSAVE_FREQ_SECS * 1000);
+      { timeout: OffersConfigs.SIGNALS_AUTOSAVE_FREQ_SECS * 1000 });
     }
   }
 
@@ -322,7 +318,17 @@ export default class SignalHandler {
     return true;
   }
 
-  async flush() {
+  //
+  // The parameter `includeSilent=true` is used in tests only
+  //
+  async flush(includeSilent = false) {
+    if (includeSilent) {
+      Object.entries(this.sigMap).forEach(([sigType, container]) => {
+        Object.keys(container).forEach((cid) => {
+          this._markSignalAsModified(sigType, cid, true /* shouldSend */);
+        });
+      });
+    }
     return this._sendSignalsToBE();
   }
 
@@ -534,12 +540,12 @@ export default class SignalHandler {
 
   // this method will configure the interval call to
   _startSendSignalsLoop(timeToSendSecs) {
-    this.sendIntervalTimer = setTimeoutInterval(() => {
+    this.sendIntervalTimer = pacemaker.register(() => {
       // here we need to process this particular bucket
       if (Object.keys(this.sigsToSend).length > 0) {
         this._sendSignalsToBE();
       }
-    }, timeToSendSecs * 1000);
+    }, { timeout: timeToSendSecs * 1000 });
   }
 
   // save persistence data

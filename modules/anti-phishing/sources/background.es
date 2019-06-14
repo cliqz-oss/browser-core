@@ -6,6 +6,7 @@ import inject from '../core/kord/inject';
 import * as datetime from '../antitracking/time';
 import console from '../core/console';
 import telemetry from '../core/services/telemetry';
+import pacemaker from '../core/services/pacemaker';
 
 function addDataToUrl(...args) {
   const hw = inject.module('human-web');
@@ -44,6 +45,7 @@ function checkStatus(url, md5Prefix, md5Surfix) {
 }
 
 export default background({
+  requiresServices: ['pacemaker'],
   core: inject.module('core'),
   init(/* settitng */) {
     CliqzAntiPhishing.init();
@@ -73,7 +75,7 @@ export default background({
       const forceWhiteList = CliqzAntiPhishing.forceWhiteList.value;
       if (md5Prefix in forceWhiteList) {
         if (forceWhiteList[md5Prefix] === CliqzAntiPhishing.WHITELISTED_TEMPORARY) {
-          setTimeout(() => {
+          pacemaker.setTimeout(() => {
             delete forceWhiteList[md5Prefix];
           }, 1000);
         }

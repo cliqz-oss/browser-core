@@ -3,6 +3,7 @@
 
 import { queryActiveTabs } from '../core/tabs';
 import * as urlHelpers from '../core/url';
+import pacemaker from '../core/services/pacemaker';
 import { forEachWindow } from '../platform/browser';
 import CliqzHumanWeb from '../human-web/human-web';
 
@@ -31,10 +32,7 @@ class ContextSearch {
     this.totalCountersFirst = { A: 0, B: 0, C: 0, D: 0 };
 
     // this.sendMessageInterval = 4 * 60 * 1000; // default 4 min
-    this.checkClosedTabs = 5 * 60 * 1000; // default 5 min
-    this.checkOldEntries = 30 * 60 * 1000; // default 30 min
     this.oldEntriesTTL = 60 * 60 * 1000; // default 60 min
-    this.dropOldHashes = 2 * 60 * 60 * 1000;// default 2 hours
 
     // from nltk.corpus.stopwords.words('english')
     this.stopwordsEN = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours',
@@ -94,42 +92,32 @@ class ContextSearch {
     this.stopwords = new Set(this.stopwordsDE.concat(this.stopwordsEN).concat(this.stopwordsFR));
 
     // debug versions
-    // this.checkClosedTabs = 30 * 1000; //  30 sec
-    // this.checkOldEntries = 4 * 60 * 1000; //  4 min
     // this.oldEntriesTTL = 1*60*1000; //  1 min
-    // this.dropOldHashes = 2 * 60 * 1000; // 2 min
   }
 
   init() {
     if (this.checkClosedTabsId == null) {
-      this.checkClosedTabsId = setInterval(this.removeClosedTabs.bind(this),
-        this.checkClosedTabs);
+      this.checkClosedTabsId = pacemaker.everyFewMinutes(this.removeClosedTabs.bind(this));
     }
     if (this.checkOldEntriesId == null) {
-      this.checkOldEntriesId = setInterval(this.removeOldEntries.bind(this),
-        this.checkOldEntries);
+      this.checkOldEntriesId = pacemaker.everyFewMinutes(this.removeOldEntries.bind(this));
     }
     if (this.dropOldHashesId == null) {
-      this.dropOldHashesId = setInterval(this.dropDeletedHashes.bind(this),
-        this.dropOldHashes);
+      this.dropOldHashesId = pacemaker.everyHour(this.dropDeletedHashes.bind(this));
     }
-    // if (this.sendMessageIntervalId == null) {
-    //   this.sendMessageIntervalId = setInterval(this.sendMessage.bind(this),
-    //     this.sendMessageInterval);
-    // }
   }
 
   unload() {
     if (this.checkClosedTabsId !== null) {
-      clearInterval(this.checkClosedTabsId);
+      this.checkClosedTabsId.stop();
       this.checkClosedTabsId = null;
     }
     if (this.checkOldEntriesId !== null) {
-      clearInterval(this.checkOldEntriesId);
+      this.checkOldEntriesId.stop();
       this.checkOldEntriesId = null;
     }
     if (this.dropOldHashesId !== null) {
-      clearInterval(this.dropOldHashesId);
+      this.dropOldHashesId.stop();
       this.dropOldHashesId = null;
     }
     // if (this.sendMessageIntervalId !== null) {

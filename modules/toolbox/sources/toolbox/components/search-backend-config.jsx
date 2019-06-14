@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import PropTypes from 'prop-types';
 
@@ -35,7 +33,7 @@ class SearchBackendConfig extends React.Component {
   }
 
   onRadioUpdate = async (address) => {
-    this.props.cliqz.setEndpoints(address);
+    this.props.cliqz.setEndpoints({ address });
     this.syncState();
   }
 
@@ -54,7 +52,10 @@ class SearchBackendConfig extends React.Component {
   }
 
   resetToInitialState = () => {
-    this.props.cliqz.setEndpoints('https://api.cliqz.com');
+    this.props.cliqz.setEndpoints({
+      address: 'https://api.cliqz.com',
+      reset: true,
+    });
     this.resetCustomLocalStorageEndpoint();
     this.setState({
       customEndpoint: initCustomEndpoint,
@@ -64,7 +65,7 @@ class SearchBackendConfig extends React.Component {
 
   applyCustomEndpoint = () => {
     this.setCustomLocalStorageEndpoint(this.state.customEndpoint);
-    this.props.cliqz.setEndpoints(this.state.customEndpoint);
+    this.props.cliqz.setEndpoints({ address: this.state.customEndpoint });
     this.syncState();
   }
 
@@ -82,7 +83,7 @@ class SearchBackendConfig extends React.Component {
       <table>
         <tbody>
           <TableHeader
-            header={`Current endpoint: ${this.state.endpointsUrl}`}
+            header={`Current endpoint host: ${this.state.endpointsUrl}`}
           />
 
           {labels.map(label =>
@@ -106,13 +107,11 @@ class SearchBackendConfig extends React.Component {
               />
               custom (format: protocol + domain + port)
               <br />
-              Default protocol: https
+              Default protocol: http
               <br />
               Domain: obligatory
               <br />
               Default port: none
-              <br />
-              If using localhost, please specify protocol
             </label>
           </Row>
 

@@ -3,20 +3,10 @@
   "description": "Cliqz Antitracking and adblocking",
   "version": "{{version}}",
   "manifest_version": 2,
-  "default_locale": "de",
+  "default_locale": "en",
   "applications": {
     "gecko": {
-      "id": "firefox@ghostery.com"
-    }
-  },
-  "experiment_apis": {
-    "cliqzAppConstants": {
-      "schema": "modules/cliqz-android/schemas/cliqz-app-constants.json",
-      "child": {
-        "scopes": ["addon_child"],
-        "script": "modules/cliqz-android/cliqz-app-constants.bundle.js",
-        "paths": [["cliqzAppConstants"]]
-      }
+      "id": "privacy@cliqz.com"
     }
   },
   "permissions": [
@@ -32,6 +22,7 @@
     "geolocation",
     "<all_urls>",
     "topSites",
+    "nativeMessaging",
     "unlimitedStorage"
   ],
   "background": {

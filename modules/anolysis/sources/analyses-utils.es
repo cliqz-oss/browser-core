@@ -1,3 +1,5 @@
+import { ModuleDisabledError, ModuleMissingError } from '../core/app/module-errors';
+
 /**
  * This file is meant to contain re-usable code related analyses. You can think
  * of it as a toolbox containing building blocks that can be used for aggregated
@@ -35,13 +37,7 @@ export function indicesHistogramToArray(counter) {
  *     .catch(actionFallback({}));
  */
 export const actionFallback = fallbackValue => (error) => {
-  if (
-    error
-    && (
-      error.name === 'ModuleDisabledError'
-      || error.name === 'ModuleMissingError'
-    )
-  ) {
+  if (error instanceof ModuleDisabledError || error instanceof ModuleMissingError) {
     return fallbackValue;
   }
   throw error;

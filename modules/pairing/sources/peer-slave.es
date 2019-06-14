@@ -4,6 +4,8 @@ import { encryptPairedMessage, decryptPairedMessage, ERRORS, VERSION } from './s
 import CliqzPeer from '../p2p/cliqz-peer';
 import { fromBase64 } from '../core/encoding';
 import inject from '../core/kord/inject';
+import { setTimeout } from '../core/timers';
+import pacemaker from '../core/services/pacemaker';
 import { getDeviceName } from '../platform/device-info';
 
 // This class has the responsibility of handling the desktop-mobile pairing
@@ -363,8 +365,10 @@ export default class CliqzPairing {
     this.devices = devices;
     this.pairingMaster = null;
     this.pairingToken = null;
-    clearInterval(this.pairingTimer);
-    this.pairingTimer = null;
+    if (this.pairingTimer) {
+      this.pairingTimer.stop();
+      this.pairingTimer = null;
+    }
     this.pairingName = null;
     this.cancelPairing = false;
     this.peer.open();
@@ -403,8 +407,10 @@ export default class CliqzPairing {
     this.aesKey = null;
     this.masterID = null;
     this.devices = [];
-    clearInterval(this.pairingTimer);
-    this.pairingTimer = null;
+    if (this.pairingTimer) {
+      this.pairingTimer.stop();
+      this.pairingTimer = null;
+    }
     this.pairingName = null;
     this.pairingMaster = null;
     this.randomToken = null;
@@ -458,7 +464,7 @@ export default class CliqzPairing {
     this.status = CliqzPairing.STATUS_PAIRING;
     this.pairingRemaining = this.pairingTimeout;
     this.pairingName = slaveName;
-    this.pairingTimer = setInterval(() => {
+    this.pairingTimer = pacemaker.everySecond(() => {
       this.pairingRemaining -= 1;
       if (this.pairingRemaining <= 0) {
         if (this.isPairing) {
@@ -468,7 +474,7 @@ export default class CliqzPairing {
       if (this.onpairingtick) {
         this.onpairingtick(this.pairingRemaining);
       }
-    }, 1000);
+    });
     this.peer.open();
     this.peer.onconnect = peerID => this.sendPairingMessage(peerID);
     this.peer.ondisconnect = null;

@@ -1,4 +1,3 @@
-/* global System */
 import { NativeModules } from 'react-native';
 import { setPref, getPref } from './prefs';
 import console from '../core/console';
@@ -60,7 +59,10 @@ const startup = Promise.all([seedPromise]).then(() => {
   bridge.registerAction('getLogoDetails',
     url => logos.getLogoDetails(url));
   bridge.registerAction('webRequest', webRequest.onBeforeRequest._trigger.bind(webRequest.onBeforeRequest));
-  return app.modules.search.getWindowLoadingPromise(window);
+  if (app.modules.search) {
+    return app.modules.search.getWindowLoadingPromise(window);
+  }
+  return Promise.resolve();
 }).then(() => {
   bridge.activate();
   return app;

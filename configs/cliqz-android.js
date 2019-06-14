@@ -39,7 +39,6 @@ module.exports = {
     "antitracking",
     "antitracking-blocker",
     "adblocker",
-    "static",
     "p2p",
     "pairing",
     "mobile-pairing",

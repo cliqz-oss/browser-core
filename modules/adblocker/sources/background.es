@@ -8,6 +8,7 @@ import { parse } from '../core/tlds';
 
 import logger from './logger';
 import Adblocker from './adblocker';
+import getEnabledRegions from './regions';
 import config, {
   ADB_ABTEST_PREF,
   ADB_PREF,
@@ -27,15 +28,33 @@ function isSupportedProtocol(url) {
 export default background({
   humanWeb: inject.module('human-web'),
   webRequestPipeline: inject.module('webrequest-pipeline'),
+  requiresServices: ['domainInfo', 'pacemaker'],
 
-  requiresServices: ['domainInfo'],
+  // Global instance of the adblocker
+  adblocker: null,
 
   async shallowInit() {
-    this.adblocker = null;
-    if (config.enabled) {
-      this.adblocker = new Adblocker(this.webRequestPipeline);
-      await this.adblocker.init();
+    // Adblocker is already initialized
+    if (this.adblocker !== null) {
+      return;
     }
+
+    // Adblocker is not enabled
+    if (config.enabled === false) {
+      return;
+    }
+
+    // Create a new instance of the adblocker and initialize it
+    this.adblocker = new Adblocker(this.webRequestPipeline);
+    this.adblocker.init().then(() => {
+      // Make sure that adblocker should still be enabled and that it was not
+      // initialized concurrently. Because `init` is async and could take some
+      // time to resolve; it is possible that the adblocker was disabled in the
+      // meanwhile (e.g.: via a prefchange event).
+      if (config.enabled === false && this.adblocker !== null) {
+        this.adblocker.unload();
+      }
+    });
   },
 
   async init() {
@@ -170,6 +189,12 @@ export default background({
         return { active: false };
       }
 
+      // If the platform does not support `tabs.insertCSS` then we inject
+      // everything through content-script (e.g.: react-native).
+      if (!tabs.insertCSS) {
+        return { active, scripts, styles };
+      }
+
       // Use tabs API to inject cosmetics
       if (styles.length > 0) {
         timer = stopwatch('injectCSS', 'adblocker');
@@ -244,5 +269,20 @@ export default background({
     isEnabled() {
       return this.adblocker !== null;
     },
+
+    async status() {
+      return {
+        ...config.status,
+        regions: getEnabledRegions(),
+        enabled: this.adblocker !== null,
+        ready: this.isAdblockerReady(),
+        ...this.adblocker !== null && (await this.adblocker.manager.status()),
+        whitelist: (
+          this.adblocker === null
+            ? []
+            : [...this.adblocker.whitelist.whitelist].map(d => d.slice(2))
+        ),
+      };
+    }
   },
 });

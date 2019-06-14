@@ -25,30 +25,8 @@ function getProviders() {
 
 export default class SearchWindow extends AppWindow {
   events = {
-    'urlbar:input': (ev) => {
-      if (!ev.isTyped) {
-        return;
-      }
 
-      this.background.actions.startSearch(ev.query, ev, { contextId: this.windowId });
-    },
-
-    'ui:click-on-url': (ev) => {
-      this.background.actions.reportSelection(ev, { contextId: this.windowId });
-    },
-
-    'dropdown:result-highlight': () => {
-      this.background.actions.reportHighlight({ contextId: this.windowId });
-    },
-
-    'urlbar:dropmarker-click': () => {
-      this.background.actions.startSearch(
-        '',
-        { allowEmptyQuery: true },
-        { contextId: this.windowId },
-      );
-    },
-  };
+  }
 
   constructor(settings) {
     super(settings);

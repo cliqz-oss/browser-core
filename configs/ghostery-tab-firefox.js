@@ -15,6 +15,7 @@ module.exports = Object.assign({}, configBase, {
   QUICK_SEARCH_TOGGLE: 'Ctrl+Shift+Space',
   publish: `web-ext sign -a . -s build/ --api-key=$UPLOAD_API_KEY --api-secret=$UPLOAD_API_SECRET --timeout=360000 && ${publish.toEdgeForGhostery('ghostery_start_tab_nightly', 'ghostery-tab-firefox', 'xpi')}`,
   settings: Object.assign({}, configBase.settings, {
-    id
+    id,
+    channel: "GT02",
   }),
 })

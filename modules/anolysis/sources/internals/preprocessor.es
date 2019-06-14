@@ -1,9 +1,7 @@
+/* eslint-disable max-len */
 import prefs from '../../core/prefs';
-import { isBootstrap } from '../../core/platform';
-
 import legacyPreprocessor from './preprocessors/legacy';
 import logger from './logger';
-
 
 export default class Preprocessor {
   constructor() {
@@ -47,7 +45,7 @@ export default class Preprocessor {
 
     // Check JSON schema using Ajv library if it is `sendToBackend`.
     // We currently perform the schema validation only in developper mode.
-    if (this.isDev && isBootstrap && schema.sendToBackend) {
+    if (this.isDev && schema.sendToBackend) {
       const { valid, errors } = schema.validate(signal);
       if (!valid) {
         logger.error(

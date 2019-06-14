@@ -4,6 +4,7 @@ import SearchboxLayout from './searchbox-layout';
 import FooterV1 from './variations/v1/footer';
 import FooterV3 from './variations/v3/footer';
 import Storage from '../../../core/storage';
+import { setTimeout } from '../../../core/timers';
 
 const ENTER_KEY = 'Enter';
 const SEARCH_SUGGESTIONS = 'search:suggestions';

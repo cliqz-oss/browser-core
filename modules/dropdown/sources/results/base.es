@@ -63,6 +63,22 @@ export default class BaseResult {
     return url;
   }
 
+  get isPrivateResult() {
+    if (this.kind.length === 0) {
+      return false;
+    }
+
+    const onlyType = this.kind[0].split('|')[0];
+    const hasCluster = this.kind.some(a => a.startsWith('C|'));
+
+    if (hasCluster) {
+      // we want to be extra carefull and do not send back any cluster information
+      return true;
+    }
+
+    return this.kind.length === 1 && 'HBTCS'.indexOf(onlyType) !== -1;
+  }
+
   get isActionSwitchTab() {
     return this.localSource.indexOf('switchtab') !== -1;
   }
@@ -210,6 +226,8 @@ export default class BaseResult {
       isBookmark: this.isBookmark,
       isDeletable: this.isDeletable,
       historyUrl: this.historyUrl,
+      isPrivateResult: this.isPrivateResult,
+      urlbarValue: this.urlbarValue,
       subResult,
     };
   }

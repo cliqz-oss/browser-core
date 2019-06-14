@@ -22,6 +22,7 @@ describe('Freshtab interactions with background', function () {
     subject.respondsWith(defaultConfig);
 
     await subject.load();
+    subject.query('#settings-btn').click();
     subject.getElementSwitch('background').click();
     await waitFor(() => subject.query('ul.background-selection-list'));
   });

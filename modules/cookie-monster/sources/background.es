@@ -19,13 +19,12 @@ import console from '../core/console';
 import WebRequest from '../core/webrequest';
 import tabs from '../platform/tabs';
 import prefs from '../core/prefs';
-import { chrome } from '../platform/globals';
 import CookieMonster, { cookieId } from './cookie-monster';
 import logger from './logger';
 
 const TELEMETRY_PREFIX = 'cookie-monster';
 
-const BATCH_UPDATE_FREQUENCY = 30000;
+const BATCH_UPDATE_FREQUENCY = 180000;
 
 function isPrivateTab(tabId) {
   return new Promise((resolve) => {
@@ -114,14 +113,6 @@ export default background({
       .subscribe(() => {
         this.cookieMonster.pruneDb();
       });
-
-    if (chrome.cliqzdbmigration && !prefs.has('cookie-monster.migrated')) {
-      prefs.set('cookie-monster.migrated', true);
-      chrome.cliqzdbmigration.exportDexieTable('cookie-monster', 2, 'visits').then(async (rows) => {
-        await this.db.visits.bulkPut(rows);
-        await chrome.cliqzdbmigration.deleteDatabase('cookie-monster');
-      }, logger.debug);
-    }
 
     return Promise.all([initDb, initTrackerList]);
   },

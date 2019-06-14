@@ -2,12 +2,13 @@ import config from '../core/config';
 import { fetch, Headers, Response } from '../core/http';
 import random, { randomInt } from '../core/crypto/random';
 import logger from './logger';
-import { TransportError, ServerError } from './errors';
+import { TransportError, ServerError, NotReadyError } from './errors';
 import { VERSION, ECDH_P256_AES_128_GCM } from './constants';
 import { inflate } from '../core/zlib';
 import { fromUTF8, toUTF8, toByteArray, toBase64, fromBase64 } from '../core/encoding';
 import crypto from '../platform/crypto';
 import LRU from '../core/LRU';
+import pacemaker from '../core/services/pacemaker';
 
 const MAX_PROXY_BUCKETS = 10;
 
@@ -96,11 +97,16 @@ async function myfetch(url, { method = 'GET', body, publicKey = {}, timeoutInMs 
   }
 
   return new Promise(async (resolve, reject) => {
-    const timer = setTimeout(() => reject(new TransportError('timeout')), timeoutInMs);
+    const timer = pacemaker.setTimeout(() => reject(new TransportError('timeout')), timeoutInMs);
     try {
-      let response = await fetch(url, options);
-      const { status, statusText, ok } = response;
+      let response;
+      try {
+        response = await fetch(url, options);
+      } catch (e) {
+        throw new ServerError(e);
+      }
 
+      const { status, statusText, ok } = response;
       if (!ok) {
         throw new ServerError(statusText);
       }
@@ -115,7 +121,7 @@ async function myfetch(url, { method = 'GET', body, publicKey = {}, timeoutInMs 
     } catch (e) {
       reject(e);
     } finally {
-      clearTimeout(timer);
+      pacemaker.clearTimeout(timer);
     }
   });
 }
@@ -130,9 +136,12 @@ export default class Endpoints {
   }
 
   _reset() {
+    const oldMessages = this.messages || [];
     this.messages = [];
     this.sendTimer = null;
     this.unloaded = false;
+
+    oldMessages.forEach(x => x.reject(new NotReadyError('Request cancelled because of unload')));
   }
 
   get ENDPOINT_HPNV2_ANONYMOUS() {
@@ -167,17 +176,18 @@ export default class Endpoints {
     if (this.unloaded || this.sendTimer !== null) {
       return;
     }
-    this.sendTimer = setTimeout(() => {
+    this.sendTimer = pacemaker.setTimeout(() => {
       const n = Math.floor(random() * this.messages.length);
-      const [url, msg, cnt, publicKey] = this.messages.splice(n, 1)[0];
+      const { url, msg, cnt, publicKey, resolve, reject } = this.messages.splice(n, 1)[0];
       myfetch(url, { method: 'POST', body: msg, publicKey })
-        .catch((e) => {
+        .then(resolve, (e) => {
           if (cnt < this.maxRetries) {
             logger.log('Will retry sending msg after error', e);
-            this.messages.push([url, msg, cnt + 1, publicKey]);
+            this.messages.push({ url, msg, cnt: cnt + 1, publicKey, resolve, reject });
           } else {
-            logger.error('_scheduleSend failed (gave up after', this.maxRetries,
+            logger.warn('_scheduleSend failed (gave up after', this.maxRetries,
               'retry attempts)', e);
+            reject(e);
           }
         })
         .then(() => {
@@ -219,8 +229,18 @@ export default class Endpoints {
         throw new TransportError(e.message);
       }
     }
-    this.messages.push([url, msg, 0, publicKey]);
+
+    // non-instance message
+    const pendingSend = new Promise((resolve, reject) => {
+      this.messages.push({ url, msg, cnt: 0, publicKey, resolve, reject });
+    });
     this._scheduleSend();
+
+    // The server response is not too interesting, as it will always confirm
+    // with an empty response. Still, waiting for the response is useful
+    // to make sure that the server got the message, also we only will
+    // know for sure that the network request was successful.
+    await pendingSend;
     return new Response();
   }
 
@@ -234,7 +254,7 @@ export default class Endpoints {
   }
 
   unload() {
-    clearTimeout(this.sendTimer);
+    pacemaker.clearTimeout(this.sendTimer);
     this._reset();
     this.proxyBuckets.reset();
     this.unloaded = true;

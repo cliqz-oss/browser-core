@@ -20,6 +20,112 @@
     ]
   },
   {
+    "name": "createUITourTarget",
+    "type": "function",
+    "description": "Create a new target for UITour",
+    "async": "callback",
+    "parameters": [
+      {
+        "name": "targetId",
+        "type": "string",
+        "description": "targetId"
+      },
+      {
+        "name": "widgetQuery",
+        "type": "string",
+        "description": "widgetQuery"
+      },
+      {
+        "name": "widgetName",
+        "type": "string",
+        "description": "widgetName"
+      }
+    ]
+  },
+  {
+    "name": "deleteUITourTarget",
+    "type": "function",
+    "description": "Delete a target from UITour",
+    "async": "callback",
+    "parameters": [
+      {
+        "name": "targetId",
+        "type": "string",
+        "description": "targetId"
+      }
+    ]
+  },
+  {
+    "name": "hideUITour",
+    "type": "function",
+    "description": "Hide UITour in the active window",
+    "async": "callback",
+    "parameters": []
+  },
+  {
+    "name": "showUITour",
+    "type": "function",
+    "description": "Show the UITour on a specified target in the active window",
+    "async": "callback",
+    "parameters": [
+      {
+        "name": "settings",
+        "type": "object",
+        "properties": {
+          "targetId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "optional": true
+          },
+          "text": {
+            "type": "string",
+            "optional": true
+          },
+          "icon": {
+            "type": "string",
+            "optional": true
+          }
+        }
+      },
+      {
+        "name": "ctaButton",
+        "type": "object",
+        "optional": true,
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "style": {
+            "type": "string"
+          }
+        }
+      },
+      {
+        "name": "skipButton",
+        "type": "object",
+        "optional": true,
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "style": {
+            "type": "string"
+          }
+        }
+      },
+      {
+        "name": "callback",
+        "type": "function",
+        "parameters": [{
+          "name": "button",
+          "type": "string"
+        }]
+      }
+    ]
+  },
+  {
     "name": "setTheme",
     "type": "function",
     "description": "Set browser theme",
@@ -35,7 +141,7 @@
         "type": "function",
         "parameters": []
       }
-    
+
     ]
   },
   {
@@ -60,8 +166,19 @@
       {
         "name": "url",
         "type": "string"
+      },
+      {
+        "name": "className",
+        "type": "string"
       }
     ]
+  },
+  {
+    "name": "enableBlueTheme",
+    "type": "function",
+    "description": "Enable blue theme pref observer",
+    "async": "callback",
+    "parameters": []
   },
   {
     "name": "getSearchEngines",
@@ -86,6 +203,13 @@
     "name": "openImportDialog",
     "type": "function",
     "description": "Open the Import Settings and Data dialog",
+    "async": "callback",
+    "parameters": []
+  },
+  {
+    "name": "openPageActionPopup",
+    "type": "function",
+    "description": "Open the popup of a page/browser action",
     "async": "callback",
     "parameters": []
   },

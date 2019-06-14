@@ -1,0 +1,36 @@
+<div class="columns">
+    <div class="column col-3">
+        <ul class="nav">
+            <figure class="avatar avatar-xl centered" data-initial="A" style="background-color: #5755d9;">
+                {{#if enabled}}
+                    {{#if ready }}
+                        <i class="avatar-presence online"></i>
+                    {{else}}
+                        <i class="avatar-presence away"></i>
+                    {{/if}}
+                {{else}}
+                    <i class="avatar-presence busy"></i>
+                {{/if}}
+            </figure>
+            <div class="divider text-center" data-content="adblocker"></div>
+            <li class="nav-item">
+                <a href="{{path}}#status">Status</a>
+            </li>
+            <li class="nav-item">
+                <a href="{{path}}#settings">Settings</a>
+            </li>
+            <li class="nav-item">
+                <a href="{{path}}#lists">Lists</a>
+            </li>
+            <li class="nav-item">
+                <a href="{{path}}#Logs">Logs</a>
+            </li>
+        </ul>
+    </div>
+    <div class="column col-9">
+        <div id="status"></div>
+        <div id="settings"></div>
+        <div id="lists"></div>
+        <div id="logs"></div>
+    </div>
+</div>

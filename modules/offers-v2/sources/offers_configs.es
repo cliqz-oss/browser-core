@@ -41,6 +41,7 @@ const OffersConfigs = {
 
   //
   THROTTLE_HISTORY_QUERIES_SECS: 180,
+  THROTTLE_PUSH_TO_REWARD_BOX_SECS: 180,
 
   // ///////////////////////////////////////////////////////////////////////////
   // SIGNALS

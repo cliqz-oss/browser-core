@@ -79,7 +79,7 @@ class BlockingResponse {
 
 export default background({
   initialized: false,
-  requiresServices: ['telemetry'],
+  requiresServices: ['telemetry', 'pacemaker'],
 
   enabled() { return true; },
 
