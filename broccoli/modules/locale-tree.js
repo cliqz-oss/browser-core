@@ -43,21 +43,22 @@ function difference(values1, values2) {
 }
 
 /**
- * Assert that there are no keys in `moduleLocale`
- * which already exist in `locale` with different message.
- */
-function assertIntersectionIsEmpty(locale, module, moduleLocale) {
-  const keys = Object.keys(locale || {});
-  const moduleKeys = Object.keys(moduleLocale || {});
+* Assert that there are no keys in locales to be merged
+* which already exist in merged locales with different message.
+*/
+function assertIntersectionIsEmpty(mergedLocales, localesToMerge) {
+  const keys = Object.keys(mergedLocales || {});
+  const moduleKeys = Object.keys(localesToMerge || {});
   const existingKeys = new Set(keys);
   moduleKeys.forEach((key) => {
-    if (existingKeys.has(key) && locale[key].message !== moduleLocale[key].message) {
-      throw new Error(`Module ${module} specifies key '${key}' which was already defined with different message`);
+    if (existingKeys.has(key) && mergedLocales[key].message !== localesToMerge[key].message) {
+      throw new Error(`One of the modules tries to specify key '${key}' which was already defined.`);
     }
   });
 }
 
 /**
+
  * Make sure that `messages` contains the same keys as `keys` (which would be
  * the ones specified in the DEFAULT_LANGUAGE file). If we find inconsistencies,
  * raise an exception explaining what's missing.
@@ -129,62 +130,96 @@ function formatLocales(messages) {
   return JSON.stringify(sorted, null, 4);
 }
 
+function loadLocales({ dir, localeDir }) {
+  const logMsg = localeDir.includes(`/${config.specific}/`)
+    ? `specific (${config.specific})`
+    : `module ${dir}`;
+  const loadedLocales = {};
+  const hasLocale = fs.existsSync(localeDir);
+
+  if (hasLocale) {
+    LANGUAGES.forEach((lang) => {
+      const pathToLocale = `${localeDir}/${lang}/messages.json`;
+      if (fs.existsSync(pathToLocale)) {
+        console.log(`Loading locale for ${logMsg}: ${lang}`);
+        loadedLocales[lang] = JSON.parse(fs.readFileSync(pathToLocale));
+      } else {
+        if (
+          (loadedLocales[DEFAULT_LANGUAGE] === undefined)
+          && hasLocale // do not force locales in "specific" subfolders
+        ) {
+          throw new Error(
+            `${logMsg} does not provide ${DEFAULT_LANGUAGE} locale file`,
+          );
+        }
+
+        // Un-specified locales default to DEFAULT_LANGUAGE
+        loadedLocales[lang] = loadedLocales[DEFAULT_LANGUAGE];
+      }
+    });
+
+    // Make sure that all locales have the same keys
+    // and they all contain 'message'
+    const expectedKeys = Object.keys(loadedLocales[DEFAULT_LANGUAGE]).sort(compareMessageKeys);
+    Object.entries(loadedLocales).forEach(([lang, messages]) => {
+      Object.entries(messages).forEach(([key, message]) => {
+        if (message.message === undefined) {
+          throw new Error(
+            `Key ${key} in ${logMsg} for language ${lang} does not contain 'message'`,
+          );
+        }
+      });
+      assertMessagesHaveKeys(dir, lang, expectedKeys, messages);
+    });
+  }
+
+  return loadedLocales;
+}
+
+function mergeLocales({ LOCALES, localesToMerge }) {
+  const mergedLocales = LOCALES;
+
+  LANGUAGES.forEach((lang) => {
+    assertIntersectionIsEmpty(
+      mergedLocales[lang],
+      localesToMerge[lang],
+    );
+    mergedLocales[lang] = {
+      ...(mergedLocales[lang] || {}),
+      ...localesToMerge[lang],
+    };
+  });
+
+  return mergedLocales;
+}
+
 module.exports = (() => {
-  const LOCALES = {};
+  let localeDir;
+  let modulesLocales = {};
+  let specificLocale = {};
+  let LOCALES = {};
+
+  if (config.specific) {
+    localeDir = `./specific/${config.specific}/locale`;
+    specificLocale = loadLocales({ dir: config.specific, localeDir });
+  }
 
   if (config.modules) {
     config.modules.forEach((moduleName) => {
-      const localeDir = `./modules/${moduleName}/dist/locale`;
+      localeDir = `./modules/${moduleName}/dist/locale`;
       if (!fs.existsSync(localeDir)) {
         return;
       }
 
-      const locales = {};
-      LANGUAGES.forEach((lang) => {
-        const pathToLocale = `${localeDir}/${lang}/messages.json`;
-        if (fs.existsSync(pathToLocale)) {
-          console.log(`Loading locale for ${moduleName}: ${lang}`);
-          locales[lang] = JSON.parse(fs.readFileSync(pathToLocale));
-        } else {
-          if (locales[DEFAULT_LANGUAGE] === undefined) {
-            throw new Error(
-              `Module ${moduleName} does not provide ${DEFAULT_LANGUAGE} locale file`,
-            );
-          }
+      modulesLocales = loadLocales({ dir: moduleName, localeDir });
 
-          // Un-specified locales default to DEFAULT_LANGUAGE
-          locales[lang] = locales[DEFAULT_LANGUAGE];
-        }
-      });
-
-      // Make sure that all locales provided by this module have the same keys
-      // and they all contain 'message'
-      const expectedKeys = Object.keys(locales[DEFAULT_LANGUAGE]).sort(compareMessageKeys);
-      Object.entries(locales).forEach(([lang, messages]) => {
-        Object.entries(messages).forEach(([key, message]) => {
-          if (message.message === undefined) {
-            throw new Error(
-              `Key ${key} in module ${moduleName} for language ${lang} does not contain 'message'`,
-            );
-          }
-        });
-        assertMessagesHaveKeys(moduleName, lang, expectedKeys, messages);
-      });
-
-      // Merge locales from all modules together + format
-      LANGUAGES.forEach((lang) => {
-        assertIntersectionIsEmpty(
-          LOCALES[lang],
-          moduleName,
-          locales[lang],
-        );
-        LOCALES[lang] = {
-          ...(LOCALES[lang] || {}),
-          ...locales[lang],
-        };
-      });
+      // Merge locales from all modules
+      LOCALES = mergeLocales({ LOCALES, localesToMerge: modulesLocales });
     });
   }
+
+  // Merge locales from modules and specific
+  LOCALES = mergeLocales({ LOCALES, localesToMerge: specificLocale });
 
   return new MergeTrees(
     LANGUAGES.map(lang => writeFile(`_locales/${lang}/messages.json`, formatLocales(LOCALES[lang] || {}))),

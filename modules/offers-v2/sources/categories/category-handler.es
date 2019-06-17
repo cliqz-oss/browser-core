@@ -128,7 +128,7 @@ export default class CategoryHandler {
         catNode.getCategory().hit();
         this._catModified(catNode.getCategory());
 
-        logger.debug(`Category hitted: ${catID}`);
+        logger.debug(`Category hit: ${catID}`);
       }
     }
 

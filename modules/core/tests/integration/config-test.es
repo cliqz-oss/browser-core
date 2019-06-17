@@ -6,8 +6,6 @@ import {
   waitForPrefChange,
 } from '../test-helpers';
 
-import { isBootstrap } from '../../../core/platform';
-
 const expectedConfigs = [
   'backends',
   'language_whitelist',
@@ -28,10 +26,6 @@ function mockConfigReponse(response) {
 }
 
 export default function () {
-  if (isBootstrap) {
-    return;
-  }
-
   describe('config tests', function () {
     context('whitelist configs', function () {
       const response = {

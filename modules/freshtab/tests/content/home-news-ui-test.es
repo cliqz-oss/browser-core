@@ -35,9 +35,10 @@ describe('Freshtab news UI', function () {
     });
 
     describe('when set to be visible', function () {
-      before(function () {
+      before(async function () {
         subject.respondsWith(configVisible);
-        return subject.load({ iframeWidth: 1025 });
+        await subject.load({ iframeWidth: 1025 });
+        return subject.query('#settings-btn').click();
       });
 
       after(function () {
@@ -61,16 +62,17 @@ describe('Freshtab news UI', function () {
       });
 
       it('has no extra elements (selectors)', function () {
-        expect(subject.queryAll('.news-edition-option')).to.have.lengthOf(10);
+        expect(subject.queryAll('.news-edition-option')).to.have.lengthOf(allNewsLanguages.length);
       });
     });
 
     describe('when set to not be visible', function () {
-      before(function () {
+      before(async function () {
         const configNotVisible = clone(defaultConfig);
         configNotVisible.response.componentsState.news.visible = false;
         subject.respondsWith(configNotVisible);
-        return subject.load({ iframeWidth: 1025 });
+        await subject.load({ iframeWidth: 1025 });
+        return subject.query('#settings-btn').click();
       });
 
       after(function () {
@@ -90,12 +92,13 @@ describe('Freshtab news UI', function () {
 
     allNewsLanguages.forEach((lang) => {
       describe(`when set to use ${lang.toUpperCase()} sources`, function () {
-        before(function () {
+        before(async function () {
           const configNewsDe = clone(defaultConfig);
           configNewsDe.response.componentsState.news.visible = true;
           configNewsDe.response.componentsState.news.preferedCountry = lang;
           subject.respondsWith(configNewsDe);
-          return subject.load({ iframeWidth: 1025 });
+          await subject.load({ iframeWidth: 1025 });
+          return subject.query('#settings-btn').click();
         });
 
         after(function () {

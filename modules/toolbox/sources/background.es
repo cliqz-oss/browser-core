@@ -3,23 +3,25 @@ import events from '../core/events';
 import inject from '../core/kord/inject';
 import prefs from '../core/prefs';
 import ResourceLoader from '../core/resource-loader';
-import { getDetailsFromUrl } from '../core/url';
+import { URLInfo } from '../core/url-info';
 
-const _setScheme = (url) => {
-  const details = getDetailsFromUrl(url);
-  const hasScheme = (details.scheme !== '') && (details.originalUrl.includes(details.scheme));
-  return hasScheme ? details.scheme : 'https:';
+const _getURLWithProtocol = (url) => {
+  const fullUrl = url.startsWith('http')
+    ? url
+    : `http://${url}`;
+  return fullUrl;
 };
 
-const _getFullURLWithoutParameters = (url) => {
-  const details = getDetailsFromUrl(url);
-  const port = (details.port !== '') ? `:${details.port}` : '';
-  return `${_setScheme(url)}//${details.cleanHost}${port}`;
-};
+const _getFullURL = ({ newUrl, prevUrl }) => {
+  let fullUrl = _getURLWithProtocol(newUrl);
+  const hostInfo = URLInfo.get(prevUrl);
+  const parameters = hostInfo.href.replace(hostInfo.origin, '');
 
-const _getFullURL = (url) => {
-  const details = getDetailsFromUrl(url);
-  return `${_getFullURLWithoutParameters(url)}${details.extra}`;
+  if (fullUrl[fullUrl.length - 1] === '/') {
+    fullUrl = fullUrl.substr(0, fullUrl.length - 1);
+  }
+
+  return `${fullUrl}${parameters}`;
 };
 
 const msg = {
@@ -88,7 +90,7 @@ export default background({
   actions: {
     getEndpointsState() {
       return {
-        endpointsUrl: _getFullURLWithoutParameters(this.settings.RICH_HEADER),
+        endpointsUrl: URLInfo.get(this.settings.RESULTS_PROVIDER).href,
       };
     },
     async getHumanWebState(url) {
@@ -142,11 +144,15 @@ export default background({
       prefs.set(name, value);
       return true;
     },
-    setEndpoints(address) {
+    setEndpoints({ address = '', reset = false }) {
+      const prevUrl = reset
+        ? 'https://api.cliqz.com/api/v2/results?nrh=1&q='
+        : this.settings.RESULTS_PROVIDER;
+      const fullUrl = _getFullURL({ newUrl: address, prevUrl });
+
       ['RICH_HEADER', 'RESULTS_PROVIDER', 'RESULTS_PROVIDER_LOG']
         .forEach((endpoint) => {
-          const parameters = getDetailsFromUrl(this.settings[endpoint]).extra;
-          this.settings[endpoint] = `${_getFullURL(address)}${parameters}`;
+          this.settings[endpoint] = fullUrl;
         });
     },
     async getCliqzStatus() {

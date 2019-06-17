@@ -4,6 +4,7 @@ import prefs from '../core/prefs';
 import HumanWeb from './human-web';
 import background from './background';
 import { getMessage } from '../core/i18n';
+import pacemaker from '../core/services/pacemaker';
 
 export default class Win {
   constructor(settings) {
@@ -23,12 +24,15 @@ export default class Win {
       return;
     }
 
-    this._dataCollectionTimer = setTimeout(this.showDataCollectionMessage.bind(this), 1000);
+    this._dataCollectionTimer = pacemaker.setTimeout(
+      this.showDataCollectionMessage.bind(this),
+      1000,
+    );
   }
 
   unload() {
     if (this._dataCollectionTimer) {
-      clearTimeout(this._dataCollectionTimer);
+      pacemaker.clearTimeout(this._dataCollectionTimer);
       this._dataCollectionTimer = undefined;
     }
 

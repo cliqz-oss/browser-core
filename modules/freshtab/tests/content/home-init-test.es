@@ -31,10 +31,9 @@ describe('Initializing Freshtab', function () {
       .to.contain('freshtab/home.html');
   });
 
-  it('renders the settings panel closed', function () {
+  it('does not render the settings panel closed', function () {
     const settingsPanelSelector = '#settings-panel';
-    expect(subject.query(settingsPanelSelector)).to.exist;
-    expect(subject.query(settingsPanelSelector).className).to.not.contain('visible');
+    expect(subject.query(settingsPanelSelector)).to.not.exist;
   });
 
   it('sends a "home > show" telemetry signal', function () {
@@ -45,19 +44,18 @@ describe('Initializing Freshtab', function () {
 
     expect(telemetrySignals.length).to.be.above(0);
 
-    count = telemetrySignals.filter(function (s) {
-      return (
-        s.args[0].type === 'home'
-        && s.args[0].action === 'show'
-        && (typeof s.args[0].favorite_count !== 'undefined')
-        && (typeof s.args[0].is_favorites_on !== 'undefined')
-        && (typeof s.args[0].is_news_on !== 'undefined')
-        && (typeof s.args[0].is_search_bar_on !== 'undefined')
-        && (typeof s.args[0].is_topsites_on !== 'undefined')
-        && (typeof s.args[0].topsite_count !== 'undefined')
-        && (typeof s.args[0].is_stats_on !== 'undefined')
-      );
-    }).length;
+    count = telemetrySignals.filter(({ args: [arg] }) => (
+      arg !== undefined
+      && arg.type === 'home'
+      && arg.action === 'show'
+      && (typeof arg.favorite_count !== 'undefined')
+      && (typeof arg.is_favorites_on !== 'undefined')
+      && (typeof arg.is_news_on !== 'undefined')
+      && (typeof arg.is_search_bar_on !== 'undefined')
+      && (typeof arg.is_topsites_on !== 'undefined')
+      && (typeof arg.topsite_count !== 'undefined')
+      && (typeof arg.is_stats_on !== 'undefined')
+    )).length;
 
     expect(count).to.equal(1);
   });

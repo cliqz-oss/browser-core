@@ -9,7 +9,6 @@ DATA.push({
     "core": null,
     "core-cliqz": null,
     "dropdown": null,
-    "static": null,
     "autocomplete": {
       "visible": true,
       "state": [

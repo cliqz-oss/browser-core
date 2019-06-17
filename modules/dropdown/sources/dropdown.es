@@ -16,7 +16,7 @@ export default class Dropdown {
     this.rootElement = element;
     this.window = window;
     this.actions = actions;
-    this.currentSessionId = -1;
+    this.currentQuery = null;
   }
 
   init() {
@@ -113,19 +113,19 @@ export default class Dropdown {
 
   clear() {
     this.selectedIndex = 0;
-    this.dropdownElement.innerHTML = '';
+    this.currentQuery = null;
   }
 
-  getSelectedResultIndex(newResults, sessionId) {
-    if (this.currentSessionId === sessionId
-      && this.selectedIndex > 0
+  getSelectedResultIndex(newResults, preventAutocomplete) {
+    if (this.selectedIndex > 0
+      && !preventAutocomplete
       && this.results && newResults
-      && this.results.query === newResults.query
+      && this.currentQuery === newResults.query
       && this.selectedResult
     ) {
-      const keepResult = this.newResults.findSelectable(this.selectedResult.url);
+      const keepResult = newResults.findSelectable(this.selectedResult.url);
       if (keepResult) {
-        return this.newResults.indexOf(keepResult);
+        return newResults.indexOf(keepResult);
       }
     }
 
@@ -136,12 +136,12 @@ export default class Dropdown {
     urlbarAttributes,
     extensionId,
     channelId,
+    preventAutocomplete,
     isRerendering,
-    sessionId,
   } = {}) {
-    this.selectedIndex = this.getSelectedResultIndex(results, sessionId);
+    this.selectedIndex = this.getSelectedResultIndex(results, preventAutocomplete);
+    this.currentQuery = results.query;
     this.results = results;
-    this.currentSessionId = sessionId;
 
     if (extensionId) {
       this.dropdownElement.dataset.extensionId = extensionId;

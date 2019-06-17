@@ -296,39 +296,78 @@ export function generalizeUrl(url, skipCorrection) {
   return url[url.length - 1] === '/' ? url.slice(0, -1) : url;
 }
 
-function flipTrailingSlash(urlObj) {
-  if (urlObj.pathname.endsWith('/')) {
-    urlObj.pathname = urlObj.pathname.slice(0, -1);
-  } else {
-    urlObj.pathname = `${urlObj.pathname}/`;
+function* flipTrailingSlash(urlObj, enabled) {
+  if (enabled) {
+    yield urlObj;
+    if (urlObj.pathname.endsWith('/')) {
+      urlObj.pathname = urlObj.pathname.slice(0, -1);
+    } else {
+      urlObj.pathname = `${urlObj.pathname}/`;
+    }
   }
+  yield urlObj;
 }
 
-function filpWWW(urlObj) {
-  if (urlObj.hostname.startsWith('www.')) {
-    urlObj.hostname = urlObj.hostname.slice(4);
-  } else {
-    urlObj.hostname = `www.${urlObj.hostname}`;
+function* filpWWW(urlObj, enabled) {
+  if (enabled) {
+    yield urlObj;
+    if (urlObj.hostname.startsWith('www.')) {
+      urlObj.hostname = urlObj.hostname.slice(4);
+    } else {
+      urlObj.hostname = `www.${urlObj.hostname}`;
+    }
   }
+  yield urlObj;
 }
 
-export function getUrlVariations(url) {
-  let protocols = ['http:', 'https:'];
+export function getUrlVariations(url, {
+  protocol = true,
+  www = true,
+  trailingSlash = true,
+} = {}) {
+  let protocols = protocol ? ['http:', 'https:'] : [];
   const u = new URL(url);
-  const urlSet = new Set();
+  const urlSet = new Set([url]);
 
   if (!protocols.includes(u.protocol)) {
     protocols = [u.protocol];
   }
 
-  protocols.forEach((protocol) => {
-    u.protocol = protocol;
-    urlSet.add(u.toString());
-    filpWWW(u);
-    urlSet.add(u.toString());
-    flipTrailingSlash(u);
-    urlSet.add(u.toString());
+  protocols.forEach((proto) => {
+    u.protocol = proto;
+    /* eslint-disable no-unused-vars, no-shadow */
+    for (const _ of filpWWW(u, www)) {
+      for (const _ of flipTrailingSlash(u, trailingSlash)) {
+        urlSet.add(u.stringify());
+      }
+    }
+    /* eslint-enable */
   });
 
   return Array.from(urlSet);
+}
+
+export function isPrivateIP(ip) {
+  // Need to check for ipv6.
+  if (ip.indexOf(':') !== -1) {
+    // ipv6
+    if (ip === '::1') {
+      return true;
+    }
+    const ipParts = ip.split(':');
+    return ipParts[0].startsWith('fd')
+      || ipParts.every((d, i) => {
+        if (i === ipParts.length - 1) {
+          // last group of address
+          return d === '1';
+        }
+        return d === '0' || !d;
+      });
+  }
+  const ipParts = ip.split('.').map(d => parseInt(d, 10));
+  return ipParts[0] === 10
+      || (ipParts[0] === 192 && ipParts[1] === 168)
+      || (ipParts[0] === 172 && ipParts[1] >= 16 && ipParts[1] < 32)
+      || ipParts[0] === 127
+      || ipParts[0] === 0;
 }

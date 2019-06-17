@@ -4,6 +4,11 @@ import { convertMainLinkToHistorySubLink } from './links/utils';
 const group = (a, b) =>
   a.set(b.domain, [...(a.get(b.domain) || []), b]);
 
+const flatten = (a, b) => {
+  a.push(...b);
+  return a;
+};
+
 // based https://stackoverflow.com/a/1917041
 const sharedStart = (array) => {
   const A = array.concat().sort();
@@ -54,8 +59,8 @@ const cluster = (({ results, ...response }) => {
       .reduce(group, new Map())
       .entries())
     .map(([domain, grouped]) => {
-      if (grouped.length === 1) {
-        return grouped[0];
+      if (grouped.length === 1 || domain === '') {
+        return grouped;
       }
 
       const prefix = extractCommonPrefix(grouped);
@@ -101,7 +106,7 @@ const cluster = (({ results, ...response }) => {
 
       const rest = grouped.filter(result => result !== main);
 
-      return {
+      return [{
         links: [
           header,
           // additional links (buttons etc.) from main result
@@ -114,8 +119,9 @@ const cluster = (({ results, ...response }) => {
               return convertMainLinkToHistorySubLink(link);
             }),
         ],
-      };
-    });
+      }];
+    })
+    .reduce(flatten, []);
 
   return {
     ...response,

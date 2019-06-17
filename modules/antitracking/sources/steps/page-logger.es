@@ -1,4 +1,5 @@
 /* eslint no-param-reassign: 'off' */
+import { URLInfo } from '../../core/url-info';
 
 // maps string (web-ext) to int (FF cpt). Anti-tracking still uses these legacy types.
 const TYPE_LOOKUP = {
@@ -25,9 +26,37 @@ const TYPE_LOOKUP = {
 };
 
 export default class PageLogger {
-  constructor(tpEvents) {
+  constructor(tpEvents, webNavigation) {
     this.tpEvents = tpEvents;
     this._requestCounters = new Map();
+    if (webNavigation) {
+      this.onBeforeNavigate = this.onBeforeNavigate.bind(this);
+      this.onNavigationCommitted = this.onNavigationCommitted.bind(this);
+      webNavigation.onBeforeNavigate.addListener(this.onBeforeNavigate);
+      webNavigation.onCommitted.addListener(this.onNavigationCommitted);
+      this.unload = () => {
+        webNavigation.onBeforeNavigate.removeListener(this.onBeforeNavigate);
+        webNavigation.onCommitted.removeListener(this.onNavigationCommitted);
+      };
+    }
+  }
+
+  onBeforeNavigate(details) {
+    if (details.frameId === 0) {
+      // when a tab is navigated, ensure data is staged.
+      this.tpEvents.stage(details.tabId);
+    }
+  }
+
+  onNavigationCommitted(details) {
+    if (details.frameId === 0) {
+      if (!this.tpEvents._active[details.tabId]) {
+        // if no tab has been registered by this point, this page was loaded without a
+        // main_frame request (i.e. the request was handled via a service work).
+        // we need to simulate a main_frame request so that the pageload object is created.
+        this.tpEvents.onFullPage(URLInfo.get(details.url), details.tabId, false, '0');
+      }
+    }
   }
 
   logMainDocument(state) {
@@ -37,6 +66,12 @@ export default class PageLogger {
       //   TrackerTXT.get(url_parts).update();
       // }
       return false;
+    }
+    if (this.tpEvents._active[state.tabId]
+        && this.tpEvents._active[state.tabId].private !== state.isPrivate) {
+      // if the tab information was created from a navigation, the object may not yet have the
+      // current private tab setting. We can use the value from the webRequests in the same tab.
+      this.tpEvents._active[state.tabId].private = state.isPrivate;
     }
     return true;
   }

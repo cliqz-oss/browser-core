@@ -3,6 +3,7 @@
 import * as datetime from '../time';
 import md5 from '../../core/helpers/md5';
 import console from '../../core/console';
+import pacemaker from '../../core/services/pacemaker';
 
 class TokenSet {
   constructor() {
@@ -36,9 +37,10 @@ class TokenSet {
  * Manages the local safekey list
  */
 export default class TokenExaminer {
-  constructor(qsWhitelist, config, db) {
+  constructor(qsWhitelist, config, db, shouldCheckToken) {
     this.qsWhitelist = qsWhitelist;
     this.config = config;
+    this.shouldCheckToken = shouldCheckToken;
     this.hashTokens = true;
     this.requestKeyValue = new Map();
     this._syncTimer = null;
@@ -52,9 +54,8 @@ export default class TokenExaminer {
   }
 
   unload() {
-    if (this._syncTimer) {
-      clearTimeout(this._syncTimer);
-    }
+    pacemaker.clearTimeout(this._syncTimer);
+    this._syncTimer = null;
   }
 
   clearCache() {
@@ -110,7 +111,7 @@ export default class TokenExaminer {
       const reachedThreshold = new Set();
       const kvs = state.urlParts.extractKeyValues().params.reduce((hash, kv) => {
         const [k, v] = kv;
-        if (v.length < this.config.shortTokenLength) {
+        if (!this.shouldCheckToken(v)) {
           return hash;
         }
         const key = this.hashTokens ? md5(k) : k;
@@ -156,7 +157,7 @@ export default class TokenExaminer {
     if (this._syncTimer) {
       return;
     }
-    this._syncTimer = setTimeout(async () => {
+    this._syncTimer = pacemaker.setTimeout(async () => {
       try {
         await this._syncDb();
       } finally {

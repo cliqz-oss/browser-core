@@ -13,6 +13,7 @@ import Link from './Link';
 import ShareCard from './partials/ShareCard';
 import { withCliqz } from '../cliqz';
 import themeDetails from '../themes';
+import { withResult } from '../ResultProvider';
 
 const styles = (width, theme) => StyleSheet.create({
   container: {
@@ -37,28 +38,6 @@ class Card extends React.Component {
     const layoutChanged = nextProps.width !== this.props.width;
     const themeChanged = nextProps.theme !== this.props.theme;
     return resultChanged || layoutChanged || themeChanged;
-  }
-
-  getSelection = () => {
-    const props = this.props;
-    const meta = props.meta;
-    const result = props.result;
-    const selection = {
-      action: 'click',
-      elementName: 'title',
-      isFromAutoCompletedUrl: false,
-      isNewTab: false,
-      isPrivateMode: false,
-      isPrivateResult: meta.isPrivate,
-      query: result.text,
-      rawResult: {
-        index: props.index,
-        ...props.result,
-      },
-      resultOrder: meta.resultOrder,
-      url: result.url,
-    };
-    return selection;
   }
 
   render() {
@@ -95,7 +74,6 @@ class Card extends React.Component {
             <Link
               label="main-url"
               url={result.url}
-              getSelection={this.getSelection}
             >
               <Generic result={result} theme={theme} />
             </Link>
@@ -106,4 +84,4 @@ class Card extends React.Component {
   }
 }
 
-export default withCliqz(Card);
+export default withResult(withCliqz(Card));

@@ -8,11 +8,9 @@ import WTMApi from './wtm-api';
 import InsightsDb, { mergeStats as statReducer } from './insights-db';
 import logger from './logger';
 import { query as getTabs } from '../core/tabs';
-import { chrome } from '../platform/globals';
 
-// check whether we should collect stats ourselves, or
-// if they will be triggered externally (i.e. by Ghostery).
-const isFirefox = config.settings.channel !== 'CH80';
+// True if the module responsible for triggering tab stats itself, otherwise triggering is external.
+const isInternalTriggering = config.platform === 'webextension' && config.settings.channel !== 'CH80';
 
 function mergeStats(stats) {
   return stats.reduce((_agg, elem) => {
@@ -85,7 +83,7 @@ export default background({
       this.api.init(),
       this.db.init()
     ]);
-    if (isFirefox) {
+    if (isInternalTriggering) {
       try {
         this.tabInfo = await this.antitracking.action('getTabTracker');
       } catch (e) {
@@ -103,21 +101,13 @@ export default background({
         },
       });
     }
-    // migration of bootstrap DB to webextensions
-    if (chrome.cliqzdbmigration && !prefs.has('insights.migrated')) {
-      prefs.set('insights.migrated', true);
-      chrome.cliqzdbmigration.exportDexieTable('insights', 1, 'daily').then(async (rows) => {
-        await this.db.db.daily.bulkPut(rows);
-        await chrome.cliqzdbmigration.deleteDatabase('insights');
-      }, logger.debug);
-    }
   },
 
   async onPageEnd({ tabId, isPrivate }) {
     if (isPrivate) {
       return null;
     }
-    if (isFirefox) {
+    if (isInternalTriggering) {
       // we either have page stats for a completed load from pageinfo (sent from content-script),
       // or we can get partial information from the anti-tracking module.
       const result = await this.getStatsForTab(tabId);
@@ -162,7 +152,7 @@ export default background({
   },
 
   async getStatsForTab(tabId) {
-    if (isFirefox) {
+    if (isInternalTriggering) {
       if ((this.pageInfo.has(tabId) || (this.tabInfo && this.tabInfo._active[tabId]))) {
         // we either have page stats for a completed load from pageinfo (sent from content-script),
         // or we can get partial information from the anti-tracking module.
@@ -280,7 +270,7 @@ export default background({
       this.onPageEnd(tab);
     },
     'antitracking:tracker-report': function onAntitracking({ tabId, url, host, report }) {
-      if (isFirefox) {
+      if (isInternalTriggering) {
         this.antitrackStaged.set(tabId, {
           url,
           host,
@@ -289,7 +279,7 @@ export default background({
       }
     },
     'adblocker:tracker-report': function onAdblocker({ tabId, url, host, report }) {
-      if (isFirefox) {
+      if (isInternalTriggering) {
         this.adblockerStaged.set(tabId, {
           url,
           host,

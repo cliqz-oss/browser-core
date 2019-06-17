@@ -23,10 +23,11 @@ export default function () {
       const query = 'test';
 
       beforeEach(async function () {
+        // trigger search.session signals that may left from previous tests and clear allTelemetry
+        await blurUrlBar();
+        win.allTelemetry = [];
         await testServer.registerPathHandler('/url-test', { result: '<html><body><p>success</p></body></html>' });
-
         await newTab(freshtabUrl);
-
         await blurUrlBar();
         await mockSearch({ results: [{ url }] });
         withHistory([]);

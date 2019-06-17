@@ -1,4 +1,4 @@
-const defaultPrefs = new Map();
+const defaultPrefs = new Map([['developer', true]]);
 const prefs = new Map(defaultPrefs);
 
 module.exports = {

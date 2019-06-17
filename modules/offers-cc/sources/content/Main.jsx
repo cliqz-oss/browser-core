@@ -16,6 +16,12 @@ export default class Main extends React.Component {
     };
   }
 
+  componentDidMount() {
+    const { data: { vouchers = [], autoTrigger = false } = {} } = this.props;
+    const offersCount = autoTrigger ? null : vouchers.length;
+    send('sendTelemetry', { action: 'show', offersCount });
+  }
+
   onClickMenu = (e) => {
     e.preventDefault();
     const { isMenuOpen } = this.state;
@@ -26,6 +32,7 @@ export default class Main extends React.Component {
   }
 
   onClickMenuOption = (option) => {
+    const { currentView } = this.state;
     if (option === 'help') {
       send('openURL', {
         url: 'https://myoffrz.com/kontakt/',
@@ -37,7 +44,7 @@ export default class Main extends React.Component {
     this.setState({
       currentView: option === 'why-do-i-see'
         ? 'why-do-i-see'
-        : 'cards',
+        : currentView,
       isMenuOpen: false,
     }, () => {
       if (option === 'why-do-i-see') { resize(); }
@@ -67,6 +74,7 @@ export default class Main extends React.Component {
         <div className={_css('header')}>
           <Header
             products={products}
+            autoTrigger={autoTrigger}
             activeMenu={isMenuOpen}
             onClickMenu={this.onClickMenu}
           />

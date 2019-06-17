@@ -1,6 +1,5 @@
 /* global chai */
 /* global describeModule */
-/* global require */
 
 export default describeModule('offers-banner/transformation/helpers',
   () => ({}),

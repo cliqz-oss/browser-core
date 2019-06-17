@@ -1,4 +1,5 @@
 import tabs from '../platform/tabs';
+import webNavigation from '../platform/webnavigation';
 import logger from './logger';
 
 
@@ -22,18 +23,25 @@ export default class PageStore {
     this.onTabCreated = this.onTabCreated.bind(this);
     this.onTabUpdated = this.onTabUpdated.bind(this);
     this.onTabRemoved = this.onTabRemoved.bind(this);
+    this.onNavigationCommitted = this.onNavigationCommitted.bind(this);
   }
 
   init() {
     tabs.onCreated.addListener(this.onTabCreated);
     tabs.onUpdated.addListener(this.onTabUpdated);
     tabs.onRemoved.addListener(this.onTabRemoved);
+    if (webNavigation) {
+      webNavigation.onCommitted.addListener(this.onNavigationCommitted);
+    }
   }
 
   unload() {
     tabs.onCreated.removeListener(this.onTabCreated);
     tabs.onUpdated.removeListener(this.onTabUpdated);
     tabs.onRemoved.removeListener(this.onTabRemoved);
+    if (webNavigation) {
+      webNavigation.onCommitted.removeListener(this.onNavigationCommitted);
+    }
   }
 
   /**
@@ -65,6 +73,13 @@ export default class PageStore {
    */
   onTabRemoved(tabId) {
     this.tabs.delete(tabId);
+  }
+
+  onNavigationCommitted(details) {
+    const { frameId, tabId, url } = details;
+    if (frameId === 0 && this.tabs.get(tabId) !== url) {
+      this.onMainFrame({ tabId, url, requestId: 0 }, 'onBeforeRequest');
+    }
   }
 
   onMainFrame({ tabId, url, requestId }, event) {

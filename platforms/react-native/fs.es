@@ -1,39 +1,16 @@
-/* eslint no-param-reassign: off */
+/* eslint-disable global-require */
+import { NativeModules } from 'react-native';
+import console from './console';
 
-// import RNFS from 'react-native-fs';
-import { AsyncStorage } from 'react-native';
+let fs;
 
-const PREFIX = '@fs:';
-
-function getFullPath(filePath) {
-  if (typeof filePath === 'string') {
-    filePath = [filePath];
-  }
-  return filePath.join('_');
+if (NativeModules.RNFSManager) {
+  fs = require('./fs-native');
+} else {
+  console.debug('fs: Falling back to async storage implementation');
+  fs = require('./fs-async-storage');
 }
 
-function getKey(filePath) {
-  return `${PREFIX}${getFullPath(filePath)}`;
-}
-
-export function readFile(filePath) {
-  const key = getKey(filePath);
-  return AsyncStorage.getItem(key).then((value) => {
-    if (value === null) {
-      return Promise.reject();
-    }
-    return Promise.resolve(value);
-  });
-}
-
-export function writeFile(filePath, data) {
-  const key = getKey(filePath);
-  if (typeof data !== 'string') {
-    data = JSON.stringify(data);
-  }
-  return AsyncStorage.setItem(key, data);
-}
-
-export function mkdir() {
-  return Promise.resolve();
-}
+export const readFile = fs.readFile;
+export const readFileAssets = fs.readFileAssets;
+export const writeFile = fs.writeFile;

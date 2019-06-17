@@ -1,4 +1,5 @@
 import { getDetailsFromUrl } from '../core/url';
+import { setTimeout } from '../core/timers';
 
 // import utilities
 import { getTopLevelCategory, joinKeyVal, splitKeyVal, generateItems } from './common/utils';

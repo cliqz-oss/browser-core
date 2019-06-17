@@ -3,6 +3,7 @@ import telemetry from '../core/services/telemetry';
 import Storage from '../core/storage';
 import prefs from '../core/prefs';
 import { getDefaultEngine } from '../core/search-engines';
+import { setTimeout } from '../core/timers';
 
 /**
   @namespace <namespace>

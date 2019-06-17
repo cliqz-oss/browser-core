@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import CardList from './components/CardList';
+import QuerySuggestions from './components/QuerySuggestions';
 import { withStyles } from './withTheme';
 
 const styles = (theme, themeDetails) => StyleSheet.create({
@@ -66,8 +67,7 @@ class SearchUI extends React.Component {
   }
 
   render() {
-    const results = this.props.results;
-    const meta = this.props.meta;
+    const { results = [], suggestions = [], meta = {} } = this.props;
     const filteredResults = results.filter(isResultAllowed);
     return (
       <View
@@ -76,6 +76,7 @@ class SearchUI extends React.Component {
         style={this.props.classes.container}
       >
         <CardList results={filteredResults} meta={meta} />
+        <QuerySuggestions query={results[0] && results[0].text} suggestions={suggestions} />
       </View>
     );
   }

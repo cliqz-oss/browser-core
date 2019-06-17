@@ -107,38 +107,10 @@ html {
         }
     }
 
-    #vd-tab-content:not(.mobile) #connect-in-progress {
-        display: none;
-    }
-
-    #vd-tab-content.mobile #connect-content {
-        display: none;
-    }
-
     #vd-tab-content {
         position: relative;
         padding-top: 10px;
         padding-bottom: 4px;
-
-        #connect-in-progress {
-            color: #9B9B9B;
-
-            #connect-in-progress-header {
-                font-size: 17.05px;
-                font-weight: 600;
-                margin-top: 3px;
-                text-align: center;
-            }
-
-            #connect-in-progress-message {
-                line-height: 20px;
-                font: small-caption;
-                font-weight: normal;
-                font-size: 13.75px;
-                text-align: center;
-                margin: 30px;
-            }
-        }
 
         .link-button {
             margin: 5px 5px 5px 10px;

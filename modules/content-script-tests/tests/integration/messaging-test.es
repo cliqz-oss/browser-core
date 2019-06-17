@@ -3,14 +3,9 @@ import {
   sleep,
   CliqzEvents,
 } from '../../../tests/core/integration/helpers';
-import { isBootstrap } from '../../../core/platform';
 
 export default function () {
-  if (!isBootstrap) {
-    return;
-  }
-
-  describe('content-script', () => {
+  describe.skip('content-script', () => {
     let mdSubscription = null;
 
     afterEach(() => {

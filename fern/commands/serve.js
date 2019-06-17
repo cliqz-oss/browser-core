@@ -19,19 +19,19 @@ program.command(`serve ${common.configParameter}`)
   .option('--no-debug', 'disables debug pages')
   .option('--version [version]', 'sets extension version', 'package')
   .option('--environment <environment>')
-  .option('--instrument-functions', 'enable function instrumentation for profiling')
   .option('--port [port]', 'dev server port', 4300)
   .option('--firefox-profile [name|path]', 'firefox profile name or absolute path (web-ext)')
   .option('--firefox [firefox]', 'firefox path (web-ext)', 'nightly')
   .option('--firefox-keep-changes', 'keep profile changes (web-ext)')
   .option('--no-launch', 'do not launch a browser')
   .option('--include-tests', 'include tests files in build')
+  .option('--v6', 'include fast v6 build - v-shaped 6 cylinder engine')
   .action((configPath, options) => {
     process.env.CLIQZ_ENVIRONMENT = options.environment || 'development';
     process.env.CLIQZ_SOURCE_MAPS = options.maps;
     process.env.CLIQZ_SOURCE_DEBUG = options.debug;
-    process.env.CLIQZ_INSTRUMENT_FUNCTIONS = options.instrumentFunctions || '';
     process.env.CLIQZ_INCLUDE_TESTS = options.includeTests || '';
+    process.env.CLIQZ_V6_BUILD = options.v6 || '';
 
     const cfg = setConfigPath(configPath);
     const CONFIG = cfg.CONFIG;

@@ -49,6 +49,9 @@ export default class AntitrackingStatCounter {
   }
 
   onPage(rawPage) {
+    if (!rawPage) {
+      return;
+    }
     const page = rawPage.asPlainObject();
     if (rawPage.private || page.t < 10000 || ['http', 'https'].indexOf(page.scheme) === -1) {
       return;

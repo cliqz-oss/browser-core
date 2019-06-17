@@ -1,6 +1,6 @@
 import * as labels from './labels';
 
-/* global ExtensionAPI, FileUtils */
+/* global Components, Services, ExtensionAPI, FileUtils */
 
 Components.utils.import('resource://gre/modules/Services.jsm');
 Components.utils.import('resource://gre/modules/FileUtils.jsm');

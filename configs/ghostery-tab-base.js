@@ -41,7 +41,6 @@ module.exports = {
     'telemetry',
     'core-cliqz',
     'abtests-legacy',
-    'static',
     'geolocation',
     'search',
     'dropdown',

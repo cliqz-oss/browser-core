@@ -1,0 +1,17 @@
+{
+    "browserAppDesc": {
+        "message": "Get search results faster, directly in the browser. Start typing and see suggestions from around the Web in real time, right below the URL bar. And because Cliqz avoids collecting personally identifiable data, or building user profiles, your results are more private."
+    },
+    "browserAppName": {
+        "message": "Cliqz"
+    },
+    "browserAppNameNightly": {
+        "message": "Cliqz (Nightly)"
+    },
+    "offers_hub_title": {
+        "message": "MyOffrz"
+    },
+    "video_downloader_title": {
+        "message": "Télécharger la vidéo"
+    }
+}

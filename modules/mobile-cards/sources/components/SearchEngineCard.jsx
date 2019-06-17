@@ -4,6 +4,7 @@ import Link from './Link';
 import Icon from './partials/Icon';
 import { elementSideMargins, cardMargins, getVPHeight, cardBorderTopRadius, cardBorderBottomRadius } from '../styles/CardStyle';
 import { getMessage } from '../../core/i18n';
+import { withResult } from '../ResultProvider';
 
 const styles = (backgroundColor, width) =>
   StyleSheet.create({
@@ -31,7 +32,7 @@ const styles = (backgroundColor, width) =>
     }
   });
 
-export default class SearchEngineCard extends React.Component {
+class SearchEngineCard extends React.Component {
   sendResultClickTelemetry(/* event */) {
     // @khaled: please send telemetry to background
     /*
@@ -52,28 +53,6 @@ export default class SearchEngineCard extends React.Component {
     // telemetry.push(signal, 'mobile_result_selection');
   }
 
-  getSelection = () => {
-    const props = this.props;
-    const meta = props.meta;
-    const result = props.result;
-    const selection = {
-      action: 'click',
-      elementName: 'title',
-      isFromAutoCompletedUrl: false,
-      isNewTab: false,
-      isPrivateMode: false,
-      isPrivateResult: meta.isPrivate,
-      query: result.text,
-      rawResult: {
-        index: props.index,
-        ...props.result,
-      },
-      resultOrder: meta.resultOrder,
-      url: result.url,
-    };
-    return selection;
-  }
-
   render() {
     const result = this.props.result;
     const url = result.url;
@@ -90,7 +69,6 @@ export default class SearchEngineCard extends React.Component {
         <Link
           label="complementary-search-link"
           url={url}
-          getSelection={this.getSelection}
         >
           <View
             accessible={false}
@@ -98,10 +76,12 @@ export default class SearchEngineCard extends React.Component {
             style={styles(logoDetails.backgroundColor, width).card}
           >
             <Text style={styles(logoDetails.backgroundColor, width).text}>{title}</Text>
-            <Icon logoDetails={logoDetails} width={50} height={50} />
+            <Icon key={logoDetails.style || ''} logoDetails={logoDetails} width={50} height={50} />
           </View>
         </Link>
       </View>
     );
   }
 }
+
+export default withResult(SearchEngineCard);

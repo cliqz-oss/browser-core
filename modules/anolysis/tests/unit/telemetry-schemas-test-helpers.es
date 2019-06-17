@@ -222,8 +222,14 @@ module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) =
         },
       },
     },
-    'core/platform': {
-      isBootstrap: false,
+    'core/platform': {},
+    'core/services/pacemaker': {
+      default: {
+        clearTimeout(timeout) { clearTimeout(timeout); },
+        sleep() { },
+        setTimeout() { return { stop() {} }; },
+        register(fn, { timeout }) { return setInterval(fn, timeout); },
+      }
     },
     'core/kord/inject': {
       default: {
@@ -242,8 +248,11 @@ module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) =
             return 'session';
           }
           if (k === 'signalQueue.sendInterval') {
-            // Speed-up signal queue by waiting only 5ms between each interval
-            return 5;
+            // Speed-up signal queue by waiting only 100ms between each interval
+            return 100;
+          }
+          if (k === 'signalQueue.batchSize') {
+            return 100;
           }
           return d;
         },

@@ -1,101 +1,47 @@
-import inject from '../core/kord/inject';
 import background from '../core/base/background';
-import omniboxapi from '../platform/omnibox/omnibox';
+import inject from '../core/kord/inject';
 import { getMessage } from '../core/i18n';
-import OffersReporter from '../dropdown/telemetry/offers';
-import prefs from '../core/prefs';
-import BrowserDropdownManager from '../core/dropdown/browser';
-import contextmenuapi from '../platform/context-menu';
+import telemetry from '../core/services/telemetry';
+import { chrome } from '../platform/globals';
 import { getResourceUrl } from '../core/platform';
-import events from '../core/events';
+import { hasOpenedTabWithUrl } from '../core/tabs';
 
 const DROPDOWN_URL = getResourceUrl('dropdown/dropdown.html');
 
+function getContextMenuTitleForResult(result) {
+  let messageKey = 'cMenuRemoveFromHistory';
+  if (result.isBookmark) {
+    messageKey += 'AndBookmarks';
+  }
+  if (hasOpenedTabWithUrl(result.historyUrl, { strict: false })) {
+    messageKey += 'AndCloseTab';
+  }
+  return getMessage(messageKey);
+}
+
 export default background({
-  UPDATE_DATA_EVENTS: ['onInput', 'onKeydown', 'onFocus', 'onBlur', 'onDrop', 'onDropmarker'],
-
-  core: inject.module('core'),
-  search: inject.module('search'),
-  history: inject.module('history'),
-  offers: inject.module('offers-v2'),
-
-  searchSession: inject.service('search-session', ['setSearchSession']),
-
-  requiresServices: ['geolocation', 'search-session'],
-
-  events: {
-    'ui:click-on-url': async function onClick({ rawResult }) {
-      if (!this.inOffersAB) {
-        return;
-      }
-
-      if (
-        this.currentResults && this.currentResults[0]
-        && (rawResult.text === this.currentResults[0].text)
-      ) {
-        await this.offersReporter.reportShows(this.currentResults);
-      }
-
-      this.offersReporter.reportClick(this.currentResults, rawResult);
-    },
-
-    'search:session-end': function onBlur() {
-      if (
-        !this.inOffersAB
-        || !this.currentResults
-      ) {
-        return;
-      }
-
-      this.offersReporter.reportShows(this.currentResults);
-    },
-
-    'search:results': function onResults(results) {
-      this._dropdownManager.render({
-        query: results.query,
-        rawResults: results.results,
-      });
-
-      if (!this.inOffersAB) {
-        return;
-      }
-
-      this.currentResults = results.results;
-      this.offersReporter.registerResults(results.results);
-    },
-    'core:tab_select': function onTabChange() {
-      this._dropdownManager.close();
-    }
-  },
-
-  get inOffersAB() {
-    return prefs.get('offers2UserEnabled', true);
-  },
-
-  get _lastResult() {
-    return this._dropdownManager.selectedResult;
-  },
-
-  _updateData(details) {
-    this._dropdownManager.updateURLBarCache(details);
-  },
+  dropdown: inject.module('dropdown'),
 
   async _onContextMenuShown(info) {
-    contextmenuapi.remove('remove-from-history');
-    this._dropdownManager.cancelClose();
-    if (!info.contexts.includes('link') || info.pageUrl !== DROPDOWN_URL) {
+    chrome.contextMenus.remove('remove-from-history');
+    if (!info.contexts.includes('link')
+      || info.pageUrl !== DROPDOWN_URL
+      // "about: pages are not real history results and cannot be removed
+      || info.linkUrl.startsWith('about:')) {
       return;
     }
-    this._hoveredResult = this._dropdownManager.hoveredResult;
+    const { hovered } = await chrome.omnibox2.getResult();
+    this._hoveredResult = hovered;
     if (this._hoveredResult && this._hoveredResult.isDeletable) {
-      await contextmenuapi.create({
+      const title = getContextMenuTitleForResult(this._hoveredResult);
+      await chrome.contextMenus.create({
         id: 'remove-from-history',
-        title: getMessage('cMenuRemoveFromHistory'),
+        title,
         icons: null,
         contexts: ['link']
       });
     }
-    contextmenuapi.refresh();
+    chrome.contextMenus.refresh();
   },
 
   _onContextMenuHidden() {
@@ -104,60 +50,40 @@ export default background({
 
   _onContextMenuItemClicked({ menuItemId }) {
     if (menuItemId === 'remove-from-history') {
-      this._dropdownManager.removeFromHistoryAndBookmarks(this._hoveredResult.historyUrl);
+      const url = this._hoveredResult.historyUrl;
+      const query = this._hoveredResult.query;
+      this.dropdown
+        .action('removeFromHistory', url, {
+          strict: false,
+          bookmarks: true,
+          closeTabs: true,
+        })
+        .then(() => {
+          chrome.omnibox2.query(query);
+        });
     }
   },
 
-  async init(settings) {
-    await omniboxapi.override('modules/dropdown/dropdown.html');
-    this._settings = settings;
-    this._dropdownManager = new BrowserDropdownManager({
-      cliqz: {
-        core: this.core,
-        search: this.search,
-      },
-    });
-    this._dropdownManager.createIframeWrapper();
-    this.updateData = this._updateData.bind(this);
+  init() {
+    chrome.omnibox2.override({ placeholder: getMessage('freshtab_urlbar_placeholder') });
+    this.onTelemetryPush = (signal) => {
+      telemetry.push(signal.data);
+    };
+    chrome.omnibox2.onTelemetryPush.addListener(this.onTelemetryPush);
+
     this.onContextMenuShown = this._onContextMenuShown.bind(this);
     this.onContextMenuItemClicked = this._onContextMenuItemClicked.bind(this);
     this.onContextMenuHidden = this._onContextMenuHidden.bind(this);
-
-    this.onBlur = details => events.pub('urlbar:blur', details);
-    this.onFocus = (details) => {
-      this.searchSession.setSearchSession();
-      events.pub('urlbar:focus', details);
-    };
-
-    omniboxapi.setPlaceholder(getMessage('freshtab_urlbar_placeholder'));
-    omniboxapi.onBlur.addListener(this.onBlur);
-    omniboxapi.onFocus.addListener(this.onFocus);
-
-    this.UPDATE_DATA_EVENTS
-      .forEach(eventName => omniboxapi[eventName].addListener(this.updateData));
-
-    this._handlers = ['onInput', 'onKeydown', 'onBlur', 'onDropmarker', 'onGotoAddress'].reduce((h, eventName) => {
-      h.set(eventName, this._dropdownManager[eventName].bind(this._dropdownManager));
-      omniboxapi[eventName].addListener(h.get(eventName));
-      return h;
-    }, new Map());
-
-    this.offersReporter = new OffersReporter(this.offers);
-    contextmenuapi.onShown.addListener(this.onContextMenuShown);
-    contextmenuapi.onHidden.addListener(this.onContextMenuHidden);
-    contextmenuapi.onClicked.addListener(this.onContextMenuItemClicked);
+    chrome.contextMenus.onShown.addListener(this.onContextMenuShown);
+    chrome.contextMenus.onHidden.addListener(this.onContextMenuHidden);
+    chrome.contextMenus.onClicked.addListener(this.onContextMenuItemClicked);
   },
 
   unload() {
-    omniboxapi.restore();
-    omniboxapi.onBlur.removeListener(this.onBlur);
-    omniboxapi.onFocus.removeListener(this.onFocus);
-
-    for (const [eventName, handler] of this._handlers) {
-      omniboxapi[eventName].removeListener(handler);
-    }
-
-    this.UPDATE_DATA_EVENTS
-      .forEach(eventName => omniboxapi[eventName].removeListener(this.updateData));
+    chrome.contextMenus.onShown.removeListener(this.onContextMenuShown);
+    chrome.contextMenus.onHidden.removeListener(this.onContextMenuHidden);
+    chrome.contextMenus.onClicked.removeListener(this.onContextMenuItemClicked);
+    chrome.omnibox2.onTelemetryPush.removeListener(this.onTelemetryPush);
+    chrome.omnibox2.restore();
   }
 });

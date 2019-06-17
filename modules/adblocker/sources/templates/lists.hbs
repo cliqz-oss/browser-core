@@ -1,0 +1,18 @@
+<div class="card">
+    <div class="card-header">
+        <div class="card-title h5">Lists</div>
+        <div class="card-subtitle text-gray">
+            To block ads, the adblocker relies on <i>filters lists</i>. These are the ones currently enabled.
+            <div class="divider"></div>
+        </div>
+    </div>
+    <div class="card-body">
+        {{#if enabled}}
+        <ul>
+            {{#each lists}}
+                <li>{{this}}</li>
+            {{/each}}
+        </ul>
+        {{/if}}
+    </div>
+</div>

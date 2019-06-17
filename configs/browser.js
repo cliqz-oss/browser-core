@@ -61,7 +61,6 @@ module.exports = {
   'default_prefs': {
     "modules.context-search.enabled": false,
     "modules.history.enabled": true,
-    "modules.dropdown.enabled": false,
     "modules.type-filter.enabled": false,
     "modules.antitracking-blocker.enabled": false,
     "modules.history-analyzer.enabled": false,
@@ -69,7 +68,6 @@ module.exports = {
     "modules.offers-cc.enabled": false,
     "modules.cookie-monster.enabled": true,
     "friends.enable.level": "development",
-    'historyLookupEnabled': true,
   },
   "modules": [
     'core',
@@ -78,7 +76,6 @@ module.exports = {
     'dropdown',
     'abtests-legacy',
     'webextension-specific',
-    'static',
     'geolocation',
     'omnibox',
     'human-web',
@@ -121,6 +118,7 @@ module.exports = {
   ],
   "bundles": [
     "anolysis-cc/dashboard/anolysis.bundle.js",
+    "adblocker/dashboard/adblocker.bundle.js",
     "hpnv2/worker.wasm.bundle.js",
     "hpnv2/worker.asmjs.bundle.js",
     "core/content-script.bundle.js",
@@ -145,10 +143,9 @@ module.exports = {
     "webextension-specific/experimental-apis/browser-action/api.bundle.js",
     "webextension-specific/experimental-apis/cliqz/api.bundle.js",
     "webextension-specific/experimental-apis/cliqz/api-child.bundle.js",
-    "webextension-specific/experimental-apis/cliqzmigration/api.bundle.js",
-    "webextension-specific/experimental-apis/cliqzdbmigration/api.bundle.js",
     "webextension-specific/experimental-apis/demographics/api.bundle.js",
     "webextension-specific/experimental-apis/omnibox/api.bundle.js",
+    "webextension-specific/experimental-apis/omnibox/api-child.bundle.js",
     "webextension-specific/experimental-apis/cliqzHistory/api.bundle.js",
   ],
   system: Object.assign({}, base.systemConfig, {

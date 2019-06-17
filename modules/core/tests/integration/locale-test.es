@@ -1,8 +1,6 @@
 import { httpGet } from '../../../core/http';
 import { LOCALE_PATH } from '../../../core/i18n';
 import console from '../../../core/console';
-import { isBootstrap } from '../../../core/platform';
-
 import {
   expect,
   waitFor,
@@ -32,13 +30,7 @@ function loadResource(url, callback, onerror) {
 }
 
 export default function () {
-  // Check if we are on Firefox bootstrap. These tests will not run on
-  // webextension at the moment.
-  if (!isBootstrap) {
-    return;
-  }
-
-  describe('Should load locales', function () {
+  describe.skip('Should load locales', function () {
     this.retries(1);
 
     it('should load locales files', function () {

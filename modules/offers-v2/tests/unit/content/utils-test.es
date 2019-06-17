@@ -1,6 +1,5 @@
 /* global chai */
 /* global describeModule */
-/* global require */
 
 export default describeModule('offers-v2/content/utils',
   () => ({

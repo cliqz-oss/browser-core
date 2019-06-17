@@ -16,28 +16,17 @@
     }
   },
   "experiment_apis": {
-    "cliqzmigration": {
-      "schema": "modules/webextension-specific/experimental-apis/cliqzmigration/schema.json",
-      "parent": {
-        "scopes": ["addon_parent"],
-        "paths": [["cliqzmigration"]],
-        "script": "modules/webextension-specific/experimental-apis/cliqzmigration/api.bundle.js"
-      }
-    },
-    "cliqzdbmigration": {
-      "schema": "modules/webextension-specific/experimental-apis/cliqzdbmigration/schema.json",
-      "parent": {
-        "scopes": ["addon_parent"],
-        "paths": [["cliqzdbmigration"]],
-        "script": "modules/webextension-specific/experimental-apis/cliqzdbmigration/api.bundle.js"
-      }
-    },
     "omnibox2": {
       "schema": "modules/webextension-specific/experimental-apis/omnibox/schema.json",
       "parent": {
         "scopes": ["addon_parent"],
         "paths": [["omnibox2"]],
         "script": "modules/webextension-specific/experimental-apis/omnibox/api.bundle.js"
+      },
+      "child": {
+        "scopes": ["addon_child"],
+        "paths": [["omnibox2"]],
+        "script": "modules/webextension-specific/experimental-apis/omnibox/api-child.bundle.js"
       }
     },
     "browserAction2": {
@@ -150,7 +139,6 @@
     }
   ],
   "web_accessible_resources": [
-    "modules/dropdown/dropdown.html",
     "modules/browser-panel/index.html",
     "modules/offers-cc/index.html",
     "modules/cliqz-history/index.html",

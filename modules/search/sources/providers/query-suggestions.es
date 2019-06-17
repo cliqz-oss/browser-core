@@ -4,6 +4,7 @@ import BaseProvider from './base';
 import { getResponse } from '../responses';
 import { getSearchEngineUrl } from '../../core/url';
 import * as searchUtils from '../../core/search-engines';
+import { PREVENT_AUTOCOMPLETE_KEYS } from '../consts';
 
 export default class QuerySuggestionProvider extends BaseProvider {
   constructor() {
@@ -17,7 +18,7 @@ export default class QuerySuggestionProvider extends BaseProvider {
     return !query
       || query.trim().startsWith('htt')
       || params.isPasted
-      || ['Backspace', 'Delete'].includes(params.keyCode);
+      || PREVENT_AUTOCOMPLETE_KEYS.includes(params.keyCode);
   }
 
   search(query, config, params) {
@@ -30,28 +31,30 @@ export default class QuerySuggestionProvider extends BaseProvider {
 
     return from(searchUtils.getSuggestions(query))
       .pipe(
-        map(([q, suggestions]) => (getResponse(
-          this.id,
-          config,
-          query,
-          suggestions
-            .filter(suggestion => suggestion !== query)
-            .map(suggestion => ({
-              query: q,
-              url: engine.getSubmissionForQuery(suggestion),
-              text: suggestion,
-              data: {
-                suggestion,
-                kind: ['Z'],
-                extra: {
-                  searchEngineName: engine.name,
-                  mozActionUrl: getSearchEngineUrl(engine, suggestion, suggestion),
+        map(([q, suggestions]) => (
+          getResponse({
+            provider: this.id,
+            config,
+            query,
+            results: suggestions
+              .filter(suggestion => suggestion !== query)
+              .map(suggestion => ({
+                query: q,
+                url: engine.getSubmissionForQuery(suggestion),
+                text: suggestion,
+                data: {
+                  suggestion,
+                  kind: ['Z'],
+                  extra: {
+                    searchEngineName: engine.name,
+                    mozActionUrl: getSearchEngineUrl(engine, suggestion, suggestion),
+                  },
                 },
-              },
-              type: 'supplementary-search',
-            })),
-          'done'
-        ))),
+                type: 'supplementary-search',
+              })),
+            state: 'done'
+          })
+        )),
         this.getOperators()
       );
   }

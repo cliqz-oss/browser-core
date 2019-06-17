@@ -85,7 +85,7 @@ const selectionsFilter = (sessions, filterFunction) =>
 export default () => [
   {
     name: 'news-search',
-    version: 2,
+    version: 3,
     needsGid: true,
     sendToBackend: true,
     generate: ({ records }) => {
@@ -359,8 +359,10 @@ export default () => [
             selections: {
               required: [],
               properties: {
+                ...mkCountSchema('domainHistory'),
                 ...mkCountSchema('total'),
                 ...mkCountSchema('history'),
+                ...mkCountSchema('otherHistory'),
                 index: { ...mkHistogramSchema(16) },
                 subResult: {
                   required: [],
@@ -410,8 +412,6 @@ export default () => [
               properties: {
                 ...mkCountSchema('total'),
                 ...mkCountSchema('history'),
-                ...mkCountSchema('domainHistory'),
-                ...mkCountSchema('otherHistory'),
                 index: { ...mkHistogramSchema(16) },
                 subResult: {
                   required: [],

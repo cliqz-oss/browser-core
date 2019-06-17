@@ -171,22 +171,22 @@ export const urlbar = {
   _updateCache(data) {
     Object.assign(this._cache, data);
   },
-  blur: () => chrome.omnibox2.blur(),
-  focus: () => chrome.omnibox2.focus(),
+  blur: () => chrome.testHelpers.blur(),
+  focus: () => chrome.testHelpers.focus(),
   get textValue() {
-    return chrome.omnibox2.get()
+    return chrome.testHelpers.get()
       .then(data => data.visibleValue);
   },
   get selectionStart() {
-    return chrome.omnibox2.get()
+    return chrome.testHelpers.get()
       .then(data => data.selectionStart);
   },
   get selectionEnd() {
-    return chrome.omnibox2.get()
+    return chrome.testHelpers.get()
       .then(data => data.selectionEnd);
   },
   get value() {
-    return chrome.omnibox2.get()
+    return chrome.testHelpers.get()
       .then(data => data.value);
   },
   get lastQuery() {
@@ -244,7 +244,7 @@ export async function blurUrlBar() {
   if (dropdownHeight === 0) {
     return Promise.resolve();
   }
-  await chrome.omnibox2.blur();
+  await chrome.testHelpers.blur();
   return waitFor(async () => {
     const height = await chrome.testHelpers.getDropdownHeight();
     return height === 0;
@@ -263,8 +263,7 @@ export function clearDB(dbNames) {
 }
 
 export function fillIn(text) {
-  return chrome.omnibox2.focus()
-    .then(chrome.omnibox2.update({ value: '' }))
+  return chrome.testHelpers.update({ focused: true, value: '', visibleValue: '', searchString: '' })
     .then(() => EventUtils.sendString(text));
 }
 

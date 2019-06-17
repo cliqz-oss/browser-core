@@ -18,6 +18,7 @@ import { getChannel } from '../platform/demographics';
 import { isOnionModeFactory } from './platform';
 import createSettings from './settings';
 import * as i18n from './i18n';
+import migrate from './app/migrations';
 
 export function shouldEnableModule(name) {
   const pref = `modules.${name}.enabled`;
@@ -215,6 +216,8 @@ export default class App {
 
     await this.setupPrefs();
 
+    await migrate();
+
     // If we are Onion mode, remove non onion-ready modules from 'this.modules'.
     // We do it here not to break code relying on 'this.modules' before calling
     // 'start()' (e.g. Ghostery). Besides, we need to load prefs before 'isOnionMode()'.
@@ -371,7 +374,13 @@ export default class App {
     return Promise.all(
       serviceNames.map(
         // service is initialized only once, so calling init multiple times is fine
-        serviceName => this.services[serviceName].init(this)
+        async (serviceName) => {
+          try {
+            await this.services[serviceName].init(this);
+          } catch (e) {
+            console.error('App', 'cannot load service', serviceName, e);
+          }
+        }
       )
     );
   }
@@ -416,6 +425,11 @@ export default class App {
     const allModules = this.moduleList;
     const core = allModules.find(x => x.name === 'core');
     const modules = allModules.filter(x => x.name !== 'core' && shouldEnableModule(x.name));
+    const disabledModules = allModules.filter(x => !shouldEnableModule(x.name));
+
+    // all modules start in undefined state
+    // they have to be marked as disabled so they wont accept kord actions
+    disabledModules.forEach(m => m.markAsDisabled());
 
     // we load core first before any other module
     return this.loadModule(core)

@@ -1,0 +1,17 @@
+{
+    "browserAppDesc": {
+        "message": "Schneller zu Suchergebnissen, direkt als Auswahlmenü im Browser. Schon beim Eintippen der Suchanfrage werden Ihnen in Echtzeit Resultate und Website-Vorschläge unter der Adressleiste angezeigt. Da Cliqz keine personenbezogenen Daten sammelt oder Benutzerprofile anlegt, bleibt Ihre Suche privat."
+    },
+    "browserAppName": {
+        "message": "Cliqz"
+    },
+    "browserAppNameNightly": {
+        "message": "Cliqz (Nightly)"
+    },
+    "offers_hub_title": {
+        "message": "MyOffrz"
+    },
+    "video_downloader_title": {
+        "message": "Video herunterladen"
+    }
+}

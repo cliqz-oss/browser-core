@@ -10,9 +10,9 @@ import background from '../core/base/background';
 import CachedMap from '../core/persistence/cached-map';
 import inject from '../core/kord/inject';
 import events from '../core/events';
-import { getResourceUrl } from '../core/platform';
 import contextmenuapi from '../platform/context-menu';
 import { getMessage } from '../core/i18n';
+import { chrome } from '../platform/globals';
 
 function isValidURL(url) {
   return url.indexOf('https:') === 0 || url.indexOf('http:') === 0;
@@ -20,7 +20,7 @@ function isValidURL(url) {
 
 export default background({
   core: inject.module('core'),
-  requiresServices: ['telemetry'],
+  requiresServices: ['telemetry', 'pacemaker'],
 
   init() {
     this.initContextMenus();
@@ -54,16 +54,10 @@ export default background({
 
 
     function sendUI(action) {
-      const target = 'about:preferences#connect';
-
-      this.core.action(
-        'broadcastMessage',
-        target,
-        {
-          action,
-          message: this.peerSlave.pairingInfo,
-        }
-      );
+      chrome.runtime.sendMessage({
+        action,
+        message: this.peerSlave.pairingInfo,
+      });
       events.pub(`pairing.${action}`, this.peerSlave.pairingInfo);
     }
 

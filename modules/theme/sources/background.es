@@ -20,7 +20,8 @@ export default background({
       }
 
       if (url) {
-        chrome.cliqz.initTheme(url);
+        chrome.cliqz.initTheme(url, 'theme-stylesheet');
+        chrome.cliqz.enableBlueTheme();
       }
     }
   },

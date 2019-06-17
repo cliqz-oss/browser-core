@@ -1,6 +1,7 @@
 import DefaultMap from '../core/helpers/default-map';
 import logger from './logger';
 import random from '../core/crypto/random';
+import pacemaker from '../core/services/pacemaker';
 
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
@@ -264,7 +265,7 @@ export default class MessageThrottler {
 
   async delay(timeInMs) {
     await new Promise((resolve) => {
-      const timer = setTimeout(() => {
+      const timer = pacemaker.setTimeout(() => {
         this.timers.delete(timer);
         resolve();
       }, timeInMs);
@@ -274,7 +275,7 @@ export default class MessageThrottler {
 
   cancelPendingTimers() {
     this.timers.forEach((wakeUp, timer) => {
-      clearTimeout(timer);
+      pacemaker.clearTimeout(timer);
       wakeUp();
     });
     this.timers.clear();

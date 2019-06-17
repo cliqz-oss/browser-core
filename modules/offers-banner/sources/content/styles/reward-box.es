@@ -2,7 +2,7 @@ export function wrapper() {
   return {
     position: 'fixed',
     top: '20px',
-    right: '281px',
+    right: '311px',
     'z-index': '2147483647',
     opacity: '0',
   };

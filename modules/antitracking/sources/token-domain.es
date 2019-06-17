@@ -111,7 +111,7 @@ export default class TokenDomain {
     return this.blockedTokens.has(token);
   }
 
-  addBlockedToken(token) {
+  async addBlockedToken(token) {
     if (this.config.debugMode) {
       console.log('tokenDomain', 'will be blocked:', token);
     }
@@ -119,6 +119,7 @@ export default class TokenDomain {
     day.setDate(day.getDate() + DAYS_EXPIRE);
     const expires = datetime.dateString(day);
     this.blockedTokens.add(token);
+    await this.db.ready;
     return this.db.tokenBlocked.put({
       token,
       expires,
@@ -150,7 +151,8 @@ export default class TokenDomain {
     });
   }
 
-  clear() {
+  async clear() {
+    await this.db.ready;
     this.blockedTokens.clear();
     this.stagedTokenDomain.clear();
     return Promise.all([

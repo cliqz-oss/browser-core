@@ -4,7 +4,7 @@ import { css } from './common/utils';
 
 const _css = css('header__');
 export default function Header(props) {
-  const { products, onClickMenu, activeMenu } = props;
+  const { products, onClickMenu, activeMenu, autoTrigger } = props;
   const labels = [
     ['cliqz', 'Cliqz Offers'],
     ['chip', ''],
@@ -25,7 +25,14 @@ export default function Header(props) {
           className={_css('menu', activeMenu ? 'menu-active' : '')}
         />
         <div
-          onClick={() => send('hideBanner')}
+          onClick={() => {
+            send('sendTelemetry', { target: 'close' });
+            if (autoTrigger) {
+              send('hideBanner');
+            } else {
+              window.close();
+            }
+          }}
           className={_css('close')}
         />
       </div>

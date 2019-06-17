@@ -7,24 +7,6 @@ import DefaultMap from './helpers/default-map';
 
 function noop() {}
 
-
-/**
- * Provide a similar behavior as `console`, but based on `dump`.
- */
-function multiArgsDump(...args) {
-  if (args.length > 0) {
-    dump(args[0]);
-
-    for (let i = 1; i < args.length; i += 1) {
-      dump(' ');
-      dump(args[i]);
-    }
-
-    dump('\n');
-  }
-}
-
-
 const LOG_LEVEL_PREF_PREFIX = 'logger.';
 const DEFAULT_LOG_LEVEL = 'log';
 const SUPPORTED_LOG_LEVELS = new Map([
@@ -42,9 +24,10 @@ function getModuleLogLevelPref(module) {
   return `${LOG_LEVEL_PREF_PREFIX}${module}.level`;
 }
 
+let observerFunc;
 
 class Logger {
-  constructor({ getLevel, setLevel, prefix, useDump }) {
+  constructor({ getLevel, setLevel, prefix }) {
     this.getLevel = getLevel;
     this.setLevel = setLevel;
 
@@ -54,19 +37,39 @@ class Logger {
     this._warning = console.warn || noop;
     this._error = console.error || noop;
 
-    if (useDump) {
-      this._debug = multiArgsDump.bind(null, '[debug]');
-      this._log = multiArgsDump.bind(null, '[log]');
-      this._warning = multiArgsDump.bind(null, '[warning]');
-      this._error = multiArgsDump.bind(null, '[error]');
-    }
-
     if (prefix) {
       this._debug = this._debug.bind(null, prefix);
       this._log = this._log.bind(null, prefix);
       this._warning = this._warning.bind(null, prefix);
       this._error = this._error.bind(null, prefix);
     }
+  }
+
+  //
+  // We want to use the console.<funcName> directly because it preserves
+  // the line and file they were invoked from. If it is wrapped, then
+  // the logs in the browser console will have `logger.es` as an origin.
+  // There is no way to wrap a console function and retain the origin.
+  //
+  // In a normal extension run, we return the native console functions.
+  // In case of integration tests and streaming of logger messages,
+  // we have to use a wrapper, and then the wrapper augments messages
+  // with the caller origin.
+  //
+  withObserverFunc(consoleFunc, level) {
+    if (!observerFunc) {
+      return consoleFunc;
+    }
+    return (...args) => {
+      let callerLoc = (new Error()).stack.split('\n')[1];
+      const i = callerLoc.lastIndexOf('/');
+      if (i >= 0) {
+        callerLoc = callerLoc.substring(i + 1, callerLoc.length - 1);
+      }
+      const augmentedArgs = [level, ...args, callerLoc];
+      consoleFunc(...augmentedArgs);
+      observerFunc(...augmentedArgs);
+    };
   }
 
   setLevel(level) {
@@ -93,7 +96,7 @@ class Logger {
 
   get debug() {
     if (this.isEnabledFor('debug')) {
-      return this._debug;
+      return this.withObserverFunc(this._debug, 'debug');
     }
     return noop;
   }
@@ -102,7 +105,7 @@ class Logger {
 
   get log() {
     if (this.isEnabledFor('log')) {
-      return this._log;
+      return this.withObserverFunc(this._log, 'log');
     }
     return noop;
   }
@@ -111,14 +114,14 @@ class Logger {
 
   get warning() {
     if (this.isEnabledFor('warn')) {
-      return this._warning;
+      return this.withObserverFunc(this._warning, 'warning');
     }
     return noop;
   }
 
   get error() {
     if (this.isEnabledFor('error')) {
-      return this._error;
+      return this.withObserverFunc(this._error, 'error');
     }
     return noop;
   }
@@ -148,6 +151,12 @@ class LoggerManager {
         this.loggingEnabled = prefs.get(pref);
       }
     });
+  }
+
+  // Logging is observed only from integration tests module. No need to
+  // implement the complete generic subscribe/unsubscribe functionality.
+  addObserver(cb) {
+    observerFunc = cb;
   }
 
   enable() {

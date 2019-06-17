@@ -3,6 +3,7 @@ import prefs from '../core/prefs';
 import ResourceLoader from '../core/resource-loader';
 import { auditInstalledAddons } from '../platform/addon-check';
 import config from '../core/config';
+import pacemaker from '../core/services/pacemaker';
 
 const REPORTED_PREF = 'spywareLastSuspiciousReported';
 
@@ -37,7 +38,7 @@ export default class SuspiciousUrlCheck {
    *  - Creates a ResourceLoader to load the latest version of the patterns list
    */
   init() {
-    this._pmsend = setInterval(this.sendSuspiciousReports.bind(this), 10 * 60 * 1000);
+    this._pmsend = pacemaker.everyFewMinutes(this.sendSuspiciousReports.bind(this));
     this._loader = new ResourceLoader(['antispy', 'suspicious_patterns.json'], {
       remoteURL: `${config.settings.CDN_BASEURL}/anti-tracking/suspicious_patterns.json`,
       cron: 24 * 60 * 60 * 1000,
@@ -54,7 +55,9 @@ export default class SuspiciousUrlCheck {
     if (this._loader) {
       this._loader.stop();
     }
-    clearInterval(this._pmsend);
+
+    pacemaker.clearTimeout(this._pmsend);
+    this._pmsend = null;
   }
 
   /**

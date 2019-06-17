@@ -1,5 +1,4 @@
 /* global describeModule */
-/* global require */
 /* global describe */
 /* eslint no-param-reassign: off */
 

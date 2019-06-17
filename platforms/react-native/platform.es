@@ -1,7 +1,6 @@
 import userAgent from './user-agent';
 
 export default {
-  isBootstrap: false,
   isMobile: true,
   isFirefox: false,
   isChromium: false,

@@ -1,0 +1,147 @@
+@mixin tooltip (
+    $tooltip-visible
+){
+    .tooltip {
+        display: $tooltip-visible;
+        padding: 18px 20px;
+        width: 340px;
+        position: absolute; 
+        right: 5px;
+        top: 58px;
+        background: #00AEF0;
+        opacity: 1;
+        pointer-events: none;
+        color:#fff;
+        font-size: 12px;
+        box-shadow: 0 0 25px rgba(0,0,0,0.3);
+        z-index: 300; // The notification should be on top of everything, also over `url-bar` from `_url-bar-with-results.scss`
+        transition: opacity .3s, top .3s;     
+
+        &.close {
+            top: 63px;
+            opacity: 0
+        }
+
+        h1 {
+            padding: 2px 0 10px;
+            font-weight: 600;
+            font-size: 19px;
+        }
+
+        p {
+            padding-bottom: 18px;
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        span {
+            white-space: nowrap;
+        }
+
+        button {
+            background: none;
+            border-radius: 2px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            color:#fff;
+            padding: 5px 10px;
+            pointer-events: initial;
+            font-size: 16px;
+            font-weight: 500;
+
+            &.explore {
+                color:#00AFF0;
+                background-color: #fff;
+                border-radius: 2px;
+                margin-right: 20px;
+
+                &:hover {
+                    background-color: #00AFF0;
+                    border-color: #fff;
+                    color: #fff;
+                    
+                }
+            }
+
+            &.later {
+                &:hover {
+                    border-color: #fff;
+                }
+            }
+
+        }
+
+        a {
+            pointer-events: initial;
+        }
+
+        &-content {
+            display: inline-block;
+            width: calc(100% - 50px)
+        }
+
+        &-icon {
+            vertical-align: top;
+            display: inline-block;
+            margin-right: 15px;
+            position: relative;
+            width: 28px;
+            color: transparent;
+
+            &:after {
+                content: "";
+                position: absolute;
+                top: -28px;
+                left: 278px;
+                width: 0;
+                height: 0;
+                border-left: 10px solid transparent;
+                border-bottom: 10px solid #00AFF0;
+                border-right: 10px solid transparent;
+            }
+        }
+
+        &-close {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            top: 6px;
+            right: 6px;
+
+            button {
+                position: relative;
+                display: block;
+                text-indent: -9999px;
+                cursor: pointer;
+                width: 30px;
+                height: 22px;
+                margin: 0px;
+                color: #fff;
+
+                &:after, &:before {
+                    content:"";
+                    background: #fff;
+                    position: absolute;
+                    top: 0;
+                    right: 10px;
+                    height: 15px;
+                    width: 1.5px;
+                    transform: rotate(-45deg);
+                    opacity: 0.55;
+                }
+
+                &:before {
+                    transform: rotate(45deg);
+                }
+
+                &:hover {
+                    &:before, &:after {
+                        opacity: 1;
+                    }
+                }
+            }
+        }
+    }
+}
+

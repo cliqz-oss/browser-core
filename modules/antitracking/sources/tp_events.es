@@ -316,8 +316,11 @@ class PageEventTracker {
   stage(windowID) {
     if (windowID in this._active) {
       this._active[windowID].setAsStaged();
-      // push object to staging and save its id
-      this._old_tab_idx[windowID] = this._staged.push(this._active[windowID]) - 1;
+      // make sure that we only stage http(s) pages
+      if (['http', 'https'].indexOf(this._active[windowID].scheme) !== -1) {
+        // push object to staging and save its id
+        this._old_tab_idx[windowID] = this._staged.push(this._active[windowID]) - 1;
+      }
       delete this._active[windowID];
       // return the staged object
       const stagedPage = this._staged[this._old_tab_idx[windowID]];

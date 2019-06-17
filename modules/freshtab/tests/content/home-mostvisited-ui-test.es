@@ -42,9 +42,10 @@ describe('Freshtab most visited UI', function () {
     });
 
     context('when set to be visible', function () {
-      beforeEach(function () {
+      beforeEach(async function () {
         subject.respondsWith(mostVisitedConfig);
-        return subject.load();
+        await subject.load();
+        return subject.query('#settings-btn').click();
       });
 
       afterEach(function () {
@@ -63,9 +64,10 @@ describe('Freshtab most visited UI', function () {
     });
 
     context('when set to not be visible', function () {
-      beforeEach(function () {
+      beforeEach(async function () {
         subject.respondsWith(defaultConfig);
-        return subject.load();
+        await subject.load();
+        return subject.query('#settings-btn').click();
       });
 
       afterEach(function () {
@@ -85,7 +87,7 @@ describe('Freshtab most visited UI', function () {
   });
 
   context('when has no deleted items', function () {
-    beforeEach(function () {
+    beforeEach(async function () {
       subject.respondsWith({
         module: 'freshtab',
         action: 'checkForHistorySpeedDialsToRestore',
@@ -93,8 +95,8 @@ describe('Freshtab most visited UI', function () {
       });
       respondWithOneElement();
       subject.respondsWith(mostVisitedConfig);
-
-      return subject.load();
+      await subject.load();
+      return subject.query('#settings-btn').click();
     });
 
     afterEach(function () {

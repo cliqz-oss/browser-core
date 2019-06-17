@@ -56,12 +56,12 @@ export default class RichHeader extends BackendProvider {
   }
 
   // links is an array of main links from normalized results
-  search(query, links, _config) {
+  search(query, links, config) {
     if (!query) {
-      return this.getEmptySearch(_config);
+      return this.getEmptySearch(config);
     }
 
-    const { retry } = _config.providers[this.id];
+    const { retry } = config.providers[this.id];
 
     return defer(() => this.fetch(query, links))
       .pipe(
@@ -70,13 +70,13 @@ export default class RichHeader extends BackendProvider {
             delay(retry.delay),
             take(retry.count)
           )),
-        map(results => getResponse(
-          this.id,
-          _config,
+        map(results => getResponse({
+          provider: this.id,
+          config,
           query,
-          this.mapResults(results, query),
-          'done',
-        )),
+          results: this.mapResults({ results, query }),
+          state: 'done',
+        })),
         // TODO: do not emit empty result
         this.getOperators()
       );

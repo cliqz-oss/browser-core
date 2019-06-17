@@ -5,6 +5,8 @@ import constants from './constants';
 import { has, isArrayBuffer } from './utils';
 import { importRSAKey, signRSA, generateRSAKeypair } from '../../core/crypto/utils';
 import * as _messages from './messages';
+import { setTimeout } from '../../core/timers';
+import pacemaker from '../../core/services/pacemaker';
 
 const InMessage = _messages.InMessage;
 const OutMessage = _messages.OutMessage;
@@ -359,7 +361,7 @@ export default class CliqzPeer {
           });
       };
       tryCreateSocket();
-      this.signalingConnector = setInterval(tryCreateSocket, 1000);
+      this.signalingConnector = pacemaker.everySecond(tryCreateSocket);
     }
   }
 
@@ -373,8 +375,10 @@ export default class CliqzPeer {
   disableSignaling() {
     if (this.signalingEnabled) {
       this.signalingEnabled = false;
-      clearInterval(this.signalingConnector);
-      this.signalingConnector = null;
+      if (this.signalingConnector) {
+        this.signalingConnector.stop();
+        this.signalingConnector = null;
+      }
       this.closeSocket();
     }
   }

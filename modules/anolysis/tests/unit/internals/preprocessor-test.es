@@ -4,9 +4,7 @@
 
 export default describeModule('anolysis/internals/preprocessor',
   () => ({
-    'core/platform': {
-      isBootstrap: true,
-    },
+    'core/platform': {},
     'core/prefs': {
       default: {
         get(pref, def) {

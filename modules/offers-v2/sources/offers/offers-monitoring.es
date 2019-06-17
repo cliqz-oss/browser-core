@@ -440,10 +440,10 @@ export default class OffersMonitorHandler {
     // so loadAndRebuild wouldn't be enough
     const shouldRemove = e.evt === 'offer-removed' || e.evt === 'offer-updated';
     if (shouldRemove) {
-      logger.log('SHOULD REMOVE EVT:', e);
+      logger.log('Monitoring, should remove evt:', e);
       this.removeOfferMonitors(e);
     }
-    // this is definetely excessive and probably expensive
+    // this is definitely excessive and probably expensive
     // still we would need to change a lot of messages to update all of them
     // with the missing information
     this._getOffersAndRebuildMonitors();

@@ -3,6 +3,8 @@
  *
  * @class NewPage
  */
+import FastURL from '../../../core/fast-url-parser';
+
 export default class NewPage {
   constructor(eventHandler, journeyCollector) {
     this.eventHandler = eventHandler;
@@ -69,11 +71,17 @@ export default class NewPage {
       return;
     }
     const url = urlData.getRawUrl();
-    const domain = urlData.getGeneralDomain() || '';
-    const company = domain.split('.')[0];
+    //
+    // Categorize the page
+    //
+    const domain = urlData.getGeneralDomain() || ''; // automatically lowercase
+    const company = domain.split('.', 1)[0];
     let category = this.domainToClass[domain]
       || this.companyToClass[company]
       || 'unk';
+    //
+    // Special case: the category 'portal-search' is used for heuristic
+    //
     if (category === 'portal-search') {
       if (url.toLowerCase().includes('suche')) {
         category = 'metasearch';
@@ -81,6 +89,22 @@ export default class NewPage {
         category = 'unk';
       }
     }
+    //
+    // Special case: Google services are not 'search-top'
+    //
+    if (company === 'google') {
+      category = 'unk';
+      try {
+        const path = (new FastURL(url)).pathname;
+        if (path.startsWith('/search')) {
+          category = 'search-top';
+        }
+      } catch (e) { } // eslint-disable-line no-empty
+    }
+    //
+    // Store the category of the page, then append additional features
+    // that can't be heuristically detected
+    //
     this.journeyCollector.addStep({ feature: category, url });
     const feature = this.companyToFeature[company];
     if (feature) {

@@ -1,0 +1,21 @@
+.lodge-conditions__wrapper {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 250px;
+  margin-right: -11px;
+  max-width: 270px; /* firefox's popup needs it */
+}
+
+.lodge-conditions__conditions {
+  font-size: 11px;
+  color: #000000;
+  letter-spacing: 0.3px;
+  padding-right: 20px;
+  padding-left: 16px;
+}
+.lodge-conditions__benefit {
+  font-weight: 700;
+  color: #000000;
+  padding-left: 16px;
+  font-size: 13px;
+}

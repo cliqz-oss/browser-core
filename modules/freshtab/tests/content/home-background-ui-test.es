@@ -47,6 +47,7 @@ describe('Freshtab background UI', function () {
     before(async function () {
       subject.respondsWith(defaultConfig);
       await subject.load();
+      subject.query('#settings-btn').click();
       backgroundSwitch = subject.queryByI18n('freshtab_app_settings_background_label')
         .querySelector('input.switch');
     });
@@ -80,6 +81,7 @@ describe('Freshtab background UI', function () {
       customConfig.response.componentsState.background.image = 'bg-testtest';
       subject.respondsWith(customConfig);
       await subject.load();
+      subject.query('#settings-btn').click();
       backgroundSwitch = subject.queryByI18n('freshtab_app_settings_background_label')
         .querySelector('input.switch');
     });
@@ -115,6 +117,7 @@ describe('Freshtab background UI', function () {
           customConfig.response.componentsState.background.image = `bg-${background}`;
           subject.respondsWith(customConfig);
           await subject.load({ iframeWidth: 1400 });
+          subject.query('#settings-btn').click();
           backgroundSwitch = subject.queryByI18n('freshtab_app_settings_background_label')
             .querySelector('input.switch');
         });

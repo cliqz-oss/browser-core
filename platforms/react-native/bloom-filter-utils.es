@@ -2,3 +2,5 @@
 export const BloomFilterUtils = {
   loadFromInput() {}
 };
+
+export default BloomFilterUtils;

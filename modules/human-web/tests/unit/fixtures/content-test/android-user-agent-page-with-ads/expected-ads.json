@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "key": "sa=l&ai=DChcSEwjYttKVlbTWAhUUFtMKHQOoB_0YABAAGgJ3Yg&sig=AOD64_1OzNdFiAXEXjeG6znV956CvzZKeA&rct=j",
+    "url":"https://www.otto.de/sport/adidas/adidas-originals/"
+  },
+  {
+    "key": "sa=l&ai=DChcSEwjYttKVlbTWAhUUFtMKHQOoB_0YABADGgJ3Yg&sig=AOD64_3nT0jRU50jzqCGUGeP3jznp7vSmA&rct=j",
+    "url": "http://www.adidas.de/"
+  }
+]

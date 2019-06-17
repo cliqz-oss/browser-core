@@ -1,0 +1,14 @@
+{
+    "cMenuRemoveFromHistory": {
+        "message": "Aus Chronik entfernen"
+    },
+    "cMenuRemoveFromHistoryAndBookmarks": {
+        "message": "Aus Lesezeichen und Chronik entfernen"
+    },
+    "cMenuRemoveFromHistoryAndBookmarksAndCloseTab": {
+        "message": "Aus Lesezeichen und Chronik entfernen und den offenen Tab schließen"
+    },
+    "cMenuRemoveFromHistoryAndCloseTab": {
+        "message": "Aus Chronik entfernen und den offenen Tab schließen"
+    }
+}

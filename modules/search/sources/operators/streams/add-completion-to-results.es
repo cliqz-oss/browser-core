@@ -58,8 +58,9 @@ export default config => pipe(map((result) => {
   return {
     ...result,
     // TODO: handle other parts of the response (like providers)
-    responses: result.responses.map(({ results }) => ({
-      results: results.map(r => ({
+    responses: result.responses.map(response => ({
+      ...response,
+      results: response.results.map(r => ({
         // TODO: handle other parts of the result (what is there?)
         links: r.links.map((l) => {
           if (options.providerBlacklist.indexOf(l.provider) >= 0) {

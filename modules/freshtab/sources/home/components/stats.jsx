@@ -1,5 +1,3 @@
-/* global window */
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import Link from './partials/link';
@@ -8,7 +6,7 @@ import { statsHoverSignal, statsClickSignal, statsDownloadClickSignal } from '..
 
 function StatsBox({
   clickFn,
-  item,
+  index,
   item: {
     description,
     disabled,
@@ -24,8 +22,8 @@ function StatsBox({
     <Link
       className={boxClassName}
       href={link}
-      onClick={() => clickFn(item)}
-      onMouseEnter={() => hoverFn(item)}
+      onClick={() => clickFn(index)}
+      onMouseEnter={() => hoverFn(index)}
     >
       <p className="stats-title" title={title}>{title}</p>
       <p className="stats-value">
@@ -40,6 +38,7 @@ function StatsBox({
 
 StatsBox.propTypes = {
   clickFn: PropTypes.func,
+  index: PropTypes.number,
   item: PropTypes.shape({
     description: PropTypes.string,
     disabled: PropTypes.bool,
@@ -132,12 +131,12 @@ export default function Stats({
   },
   toggleComponent,
 }) {
-  const handleHover = (card) => {
-    statsHoverSignal(card);
+  const handleHover = (index) => {
+    statsHoverSignal(index);
   };
 
-  const handleClick = (card) => {
-    statsClickSignal(card);
+  const handleClick = (index) => {
+    statsClickSignal(index);
   };
 
   const handleDownloadClick = () => {
@@ -150,13 +149,14 @@ export default function Stats({
         <div className={`stats-content ${isEmpty ? 'with-empty-box' : ''}`}>
           {
             (
-              data || []).map(item =>
+              data || []).map((item, index) =>
               (
                 <StatsBox
                   clickFn={handleClick}
                   item={item}
                   key={item.title}
                   hoverFn={handleHover}
+                  index={index}
                 />))
           }
           {

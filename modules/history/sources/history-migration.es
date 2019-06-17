@@ -1,11 +1,12 @@
 import History from '../platform/history/history';
 import prefs from '../core/prefs';
+import pacemaker from '../core/services/pacemaker';
 
 const MIGRATION_PREF = 'modules.history.migrationVersion';
 
 export default function () {
   const migrationVersion = prefs.get(MIGRATION_PREF, 0);
-  const migrationTimeout = setTimeout(() => {
+  const migrationTimeout = pacemaker.setTimeout(() => {
     History.migrate(migrationVersion).then(
       () => prefs.set(MIGRATION_PREF, migrationVersion + 1)
     );
@@ -13,7 +14,7 @@ export default function () {
 
   return {
     dispose() {
-      clearTimeout(migrationTimeout);
+      pacemaker.clearTimeout(migrationTimeout);
     },
   };
 }

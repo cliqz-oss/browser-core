@@ -1,7 +1,3 @@
-/* global window */
-export {
-  window // eslint-disable-line
-};
-
-const chrome = null;
-export { chrome };
+const $chrome = null;
+const $window = window;
+export { $chrome as chrome, $window as window };

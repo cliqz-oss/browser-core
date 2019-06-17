@@ -20,10 +20,9 @@ module.exports = {
   }),
   "default_prefs" : {
     "freshtab.search.mode": "search",
-    "modules.dropdown.enabled": false,
     "modules.history-analyzer.enabled": false,
     "modules.anolysis.enabled": false,
-    "showConsoleLogs": true,
+    "showConsoleLogs": false,
     "modules.browser-panel.enabled": false,
     "modules.offers-cc.enabled": false,
   },
@@ -33,7 +32,6 @@ module.exports = {
     "core-cliqz",
     "dropdown",
     'abtests-legacy',
-    "static",
     "geolocation",
     "human-web",
     "freshtab",
@@ -68,7 +66,6 @@ module.exports = {
     "offers-banner/app.bundle.js",
     "human-web/page.bundle.js",
     "human-web/rusha.bundle.js",
-    "webextension-specific/experimental-apis/cliqzmigration/api.bundle.js",
   ],
   system: Object.assign({}, base.systemConfig, {
     map: Object.assign({}, base.systemConfig.map, {

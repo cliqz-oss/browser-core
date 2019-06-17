@@ -68,9 +68,6 @@
     "click_anywhere_to_copy": {
         "message": "Click to copy"
     },
-    "cMenuRemoveFromHistory": {
-        "message": "Remove from history"
-    },
     "copied": {
         "message": "Copied"
     },

@@ -4,6 +4,8 @@
  * in order to create patterns for detecing bogus instances of browsers.
  */
 
+/* global Components */
+
 const { Subprocess } = Components.utils.import('resource://gre/modules/Subprocess.jsm');
 const { Troubleshoot } = Components.utils.import('resource://gre/modules/Troubleshoot.jsm');
 

@@ -27,7 +27,6 @@ node_modules
 firefox-autoconfigs
 
 *.scssc
-generic/static/styles/css/
 npm.err
 npm-debug.log
 testem.log

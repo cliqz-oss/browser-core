@@ -5,12 +5,10 @@ import console from '../core/console';
 import config from '../core/config';
 import { promiseHttpHandler } from '../core/http';
 import { getDaysSinceInstall } from '../core/demographics';
-import setTimeoutInterval from '../core/helpers/timeout';
+import pacemaker from '../core/services/pacemaker';
 import History from '../platform/history/history';
 import { isDefaultBrowser } from '../platform/browser';
 import { getDefaultSearchEngine } from '../core/search-engines';
-
-const INFO_INTERVAL = 60 * 60 * 1e3; // 1 hour
 
 /* eslint-disable no-param-reassign */
 const createTelemetry = (bg) => {
@@ -83,18 +81,21 @@ const createTelemetry = (bg) => {
       seq: getNextSeq(),
       ...msg,
     });
-    clearTimeout(trkTimer);
+
+    pacemaker.clearTimeout(trkTimer);
+    trkTimer = null;
+
     if (instantPush || bg.trk.length % 100 === 0) {
       pushTelemetry();
     } else {
-      trkTimer = setTimeout(pushTelemetry, 60000);
+      trkTimer = pacemaker.setTimeout(pushTelemetry, 60000);
     }
   };
 };
 /* eslint-enable no-param-reassign */
 
 export default background({
-  requiresServices: ['cliqz-config', 'telemetry', 'session'],
+  requiresServices: ['cliqz-config', 'telemetry', 'session', 'pacemaker'],
   telemetryService: inject.service('telemetry', ['installProvider', 'uninstallProvider', 'push', 'isBrowserTelemetryEnabled']),
   sessionService: inject.service('session', ['getSession', 'saveSession']),
 
@@ -154,9 +155,8 @@ export default background({
     };
 
     sendEnvironmentalSignal({ startup: true, instantPush: true });
-    this.whoAmItimer = setTimeoutInterval(
+    this.whoAmItimer = pacemaker.everyHour(
       sendEnvironmentalSignal.bind(null, { startup: false }),
-      INFO_INTERVAL
     );
   },
 

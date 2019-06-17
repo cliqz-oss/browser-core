@@ -6,13 +6,9 @@ import {
   waitFor,
   waitForElement,
 } from '../../../tests/core/integration/helpers';
-import { isBootstrap } from '../../../core/platform';
 
 export default function () {
   const url = getResourceUrl('freshtab/home.html');
-  if (isBootstrap) {
-    return;
-  }
 
   context('Freshtab', function () {
     describe('opened in a new tab', function () {

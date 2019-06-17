@@ -5,6 +5,9 @@
     "help": {
         "message": "Help"
     },
+    "hot_deal": {
+      "message": "Hot deal"
+    },
     "offers_best_offer": {
         "message": "Best offer"
     },
@@ -50,8 +53,11 @@
     "offers_hub_tooltip_new_offer": {
         "message": "You have a new offer"
     },
+    "offers_hub_welcome_link": {
+        "message": "How It Works"
+    },
     "offers_hub_welcome_text": {
-        "message": "We are looking for offers for you. As soon as we come across the right one, we'll notify you here."
+        "message": "As you browse the Internet, we are searching for attractive offers based on your interests."
     },
     "offers_hub_welcome_title": {
         "message": "Hello!"
@@ -61,6 +67,9 @@
     },
     "offers_send_feedback": {
         "message": "Send"
+    },
+    "show_code": {
+      "message": "Show code"
     },
     "why_offers_text": {
         "message": "No personal data leaves your device. Your browser automatically identifies what you might be interested in based on your previous use. "

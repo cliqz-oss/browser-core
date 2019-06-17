@@ -1,0 +1,88 @@
+<div class="card">
+  <div class="card-header">
+    <div class="card-title h5">Settings</div>
+  </div>
+  <div class="card-body">
+    <ul>
+        <li>
+            <i>Regions Manual Override </i>
+            <div class="popover popover-left">
+                <abbr title="">?</abbr>
+                <div class="popover-container">
+                    <div class="card">
+                        <div class="card-header"><h6>cliqz-adb-lang?</h6></div>
+                        <div class="card-body">
+                            The <span class="label">cliqz-adb-lang</span> pref can be used to manually force the enabling of region-specific lists, overriding the automatice mechanism described above. This can be useful for debugging. Its format should be a semi-colon separated list of alpha2 codes, for example: <span class="label">de;fr</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="chip">{{regionsOverride}}</span>
+        </li>
+
+        <li>
+            <i>Module Enabled (modules.adblocker.enabled) </i>
+            <div class="popover popover-left">
+                <abbr title="">?</abbr>
+                <div class="popover-container">
+                    <div class="card">
+                        <div class="card-header">adblocker module enabled?</div>
+                        <div class="card-body">
+                            The <span class="label">modules.adblocker.enabled</span> pref is used to toggle the loading of the adblocker's background code. It should always be <span class="label">true</span>. To turn the adblocker <span class="label">on</span> or <span class="label">off</span>, the <span class="label">cliqz-adb</span> pref should be used instead.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="chip">{{adbModulePref}}</span>
+        </li>
+
+        <li>
+            <i>Adblocker Enabled (cliqz-adb) </i>
+            <div class="popover popover-left">
+                <abbr title="">?</abbr>
+                <div class="popover-container">
+                    <div class="card">
+                        <div class="card-header">cliqz-adb?</div>
+                        <div class="card-body">
+                            The <span class="label">cliqz-adb</span> pref is used to decide if the adblocker should be enabled or not. Its value can be set to <span class="label">true</span> or <span class="label">false</span> and can be toggled from the control-center when clicking on the ON/OFF button in the <span class="label">Ad-block</span> section (OFF = on all websites).
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="chip">{{adbPref}}</span>
+        </li>
+
+        <li>
+            <i>Adblocker AB Test (cliqz-adb-abtest) </i>
+            <div class="popover popover-left">
+                <abbr title="">?</abbr>
+                <div class="popover-container">
+                    <div class="card">
+                        <div class="card-header">cliqz-adb-abtest?</div>
+                        <div class="card-body">
+                            The <span class="label">cliqz-adb-abtest</span> pref should be <span class="label">true</span> for all platforms supporting the adblocker. It could be use as a "chicken switch" to turn-off the feature in case of major breakage; otherwise, it should always be <span class="label">true</span> (its state is managed by the <span class="label">abtests-legacy</span> module).
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="chip">{{adbAbtestPref}}</span>
+        </li>
+
+        <li>
+            <i>Strict mode (experimental) </i>
+            <div class="popover popover-left">
+                <abbr title="">?</abbr>
+                <div class="popover-container">
+                    <div class="card">
+                        <div class="card-header">cliqz-adb-strict?</div>
+                        <div class="card-body">
+                            The <span class="label">cliqz-adb-strict</span> pref can be set to <span class="label">true</span> to enabled an experimental tracking-blocking mode of the adblocker. By default, only ads are blocked. Using this option, extra lists such as <span class="label">EasyPrivacy</span> will be enabled, allowing more aggressive blocking. It is important to note that blocking ads only does not put privacy at risk, as Anti-Tracking makes sure no requests containing identifiers can leave the browser. On the other end, blocking trackers can speed-up the loading of webpages, but also increases the probability of site breakage.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="chip">{{adbStrict}}</span>
+        </li>
+    </ul>
+  </div>
+</div>

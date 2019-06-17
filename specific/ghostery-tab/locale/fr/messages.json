@@ -1,0 +1,14 @@
+{
+    "ghosteryTabAppDesc": {
+        "message": "More privacy, more favorites, more freedom, more style and more news on each new tab!"
+    },
+    "ghosteryTabAppName": {
+        "message": "Ghostery Start Tab with Private Search (Beta)"
+    },
+    "ghosteryTabAppNameFirefox": {
+        "message": "Ghostery Start Tab"
+    },
+    "ghosteryTabAppNameNightly": {
+        "message": "Ghostery Start Tab (Nightly)"
+    }
+}

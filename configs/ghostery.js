@@ -44,6 +44,7 @@ module.exports = {
     "sendAntiTrackingHeader": false,
     "telemetry": false,
     "attrackCookieTrustReferers": true,
+    "attrack.cookieMode": 'ghostery',
   },
   "bundles": [
     "core/content-script.bundle.js",

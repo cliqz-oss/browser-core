@@ -2,6 +2,7 @@ import {
   registerContentScript,
 } from '../core/content/helpers';
 import config from '../core/config';
+import { setTimeout } from '../core/timers';
 
 registerContentScript('insights', 'http*', (window, chrome, CLIQZ) => {
   if (config.platform !== 'firefox' && !CLIQZ.app.modules.insights.isEnabled) {

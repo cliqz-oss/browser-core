@@ -50,6 +50,15 @@ export default describeModule('offers-v2/user-journey/collector',
         chai.expect(journey).to.eql([['f1', 'f2']]);
       });
 
+      it('merge a feature if no urls', () => {
+        collector.addStep({ feature: 'f1', url: 'some.com' });
+        collector.addFeature({ feature: 'f2' });
+
+        const journey = collector.getJourney();
+
+        chai.expect(journey).to.eql([['f1', 'f2']]);
+      });
+
       it('drop a feature if urls mismatch', () => {
         collector.addStep({ feature: 'f1', url: 'some.com' });
         collector.addFeature({ feature: 'will-be-dropped', url: 'another.com' });

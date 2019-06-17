@@ -1,7 +1,6 @@
 /* global chai, describeModule */
 const moment = require('moment');
 const pako = require('pako');
-const { TextEncoder, TextDecoder } = require('text-encoding');
 
 const mockStorage = new Map();
 
@@ -63,6 +62,12 @@ let momentMock = false;
 
 export default describeModule('antitracking/qs-whitelist2',
   () => ({
+    'core/services/pacemaker': {
+      default: {
+        everyHour() { },
+        clearTimeout() {},
+      },
+    },
     'core/console': {
       default: console,
     },
@@ -81,12 +86,6 @@ export default describeModule('antitracking/qs-whitelist2',
         }
         return moment(...args);
       },
-    },
-    'platform/text-encoder': {
-      default: TextEncoder,
-    },
-    'platform/text-decoder': {
-      default: TextDecoder,
     },
     'core/logger': {
       default: {

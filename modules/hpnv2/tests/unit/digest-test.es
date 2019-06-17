@@ -1,6 +1,5 @@
 /* global chai */
 /* global describeModule */
-/* global require */
 
 export default describeModule('hpnv2/digest',
   function () {

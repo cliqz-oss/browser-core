@@ -2,6 +2,7 @@
 /* eslint-disable no-await-in-loop */
 
 import moment from '../../platform/lib/moment';
+import pacemaker from '../../core/services/pacemaker';
 
 import GIDManager from './gid-manager';
 import Preprocessor from './preprocessor';
@@ -82,7 +83,8 @@ export default class Anolysis {
   }
 
   unload() {
-    clearTimeout(this.runTasksTimeout);
+    pacemaker.clearTimeout(this.runTasksTimeout);
+
     this.signalQueue.unload();
     this.storage.unload();
     this.running = false;
@@ -157,7 +159,7 @@ export default class Anolysis {
       // Wait a few seconds before aggregating the next day, to not overload the
       // browser.
       await new Promise((resolve) => {
-        this.runTasksTimeout = setTimeout(resolve, 5000);
+        this.runTasksTimeout = pacemaker.setTimeout(resolve, 5000);
       });
 
       date = date.subtract(1, 'days');

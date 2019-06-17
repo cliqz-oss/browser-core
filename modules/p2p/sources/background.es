@@ -3,6 +3,8 @@ import { getBackgroundWindow, destroyBackgroundWindow } from '../platform/p2p/wi
 import CliqzPeer from './cliqz-peer';
 
 export default background({
+  requiresServices: ['pacemaker'],
+
   init() {
     this.peers = [];
     return getBackgroundWindow()

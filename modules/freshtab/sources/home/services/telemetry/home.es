@@ -1,5 +1,4 @@
 import telemetry from './base';
-import cliqz from '../../cliqz';
 
 let start = 0;
 let focusTotalTime = 0;
@@ -34,12 +33,6 @@ export function historyPaginationClickSignal(index) {
     action: 'click',
     target: 'history_pagination',
     index,
-  });
-}
-
-export function friendsClickSignal() {
-  return cliqz.cliqzForFriends.report({
-    click: 1,
   });
 }
 
@@ -123,5 +116,44 @@ export function sendHomeFocusSignal({ tabIndex }) {
     type: 'home',
     action: 'focus',
     home_id: tabIndex
+  });
+}
+
+export function sendTooltipShowSignal() {
+  telemetry({
+    type: 'home',
+    view: 'notification',
+    topic: 'personalize',
+    action: 'show',
+  });
+}
+
+export function sendTooltipExploreSignal() {
+  telemetry({
+    type: 'home',
+    view: 'notification',
+    topic: 'personalize',
+    action: 'click',
+    target: 'try',
+  });
+}
+
+export function sendTooltipLaterSignal() {
+  telemetry({
+    type: 'home',
+    view: 'notification',
+    topic: 'personalize',
+    action: 'click',
+    target: 'later',
+  });
+}
+
+export function sendTooltipCloseSignal() {
+  telemetry({
+    type: 'home',
+    view: 'notification',
+    topic: 'personalize',
+    action: 'click',
+    target: 'close',
   });
 }

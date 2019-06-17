@@ -1,0 +1,11 @@
+{
+    "appDesc": {
+        "message": "Cliqz Tab replaces Chrome's default new tab page and adds backgrounds, favorites, news and Cliqz's anonymous quick search."
+    },
+    "appName": {
+        "message": "Cliqz Tab (Beta)"
+    },
+    "appNameNightly": {
+        "message": "Cliqz Tab (Nightly)"
+    }
+}

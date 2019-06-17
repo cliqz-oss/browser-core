@@ -1,12 +1,6 @@
 import { app, expect, newTab, updateTab, getTab, testServer, waitFor } from '../../../tests/core/integration/helpers';
 
-import { isBootstrap } from '../../../core/platform';
-
 export default () => {
-  if (isBootstrap) {
-    return;
-  }
-
   describe('WebrequestPipeline tests', () => {
     const magic = `${Date.now()}`;
     const getSuffix = (path = 'base') => `/${magic}_${path}`;

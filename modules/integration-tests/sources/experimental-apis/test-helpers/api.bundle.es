@@ -212,7 +212,7 @@ global.testHelpers = class extends ExtensionAPI {
         getLastQuery: async (windowId) => {
           const window = await this._getWindow(windowId);
           const lastQueryBox = Array.from(window.gURLBar.mInputField.parentElement.childNodes)
-            .find(node => node.id === 'cliqzShortcutBox');
+            .find(node => node.id === 'cliqzLastQueryBox');
           const visible = !!lastQueryBox && lastQueryBox.style.display !== 'none';
           return {
             visible,
@@ -308,7 +308,54 @@ global.testHelpers = class extends ExtensionAPI {
           });
           TIP.beginInputTransaction(window, () => {});
           TIP.keyup(event);
-        }
+        },
+
+        focus: (windowId) => {
+          const window = this._getWindow(windowId);
+          window.gURLBar.focus();
+        },
+        blur: (windowId) => {
+          const window = this._getWindow(windowId);
+          window.gURLBar.blur();
+        },
+        get: (windowId) => {
+          const window = this._getWindow(windowId);
+          const urlbar = window.gURLBar;
+          return {
+            value: urlbar.value,
+            visibleValue: urlbar.mInputField.value,
+            searchString: urlbar.controller.searchString,
+            selectionStart: urlbar.selectionStart,
+            selectionEnd: urlbar.selectionEnd,
+          };
+        },
+        update: (windowId, details) => {
+          const window = this._getWindow(windowId);
+          const urlbar = window.gURLBar;
+          // 1. focus/blur
+          if (details.focused !== null) {
+            if (urlbar.focused !== details.focused) {
+              urlbar[details.focused ? 'focus' : 'blur']();
+            }
+          }
+
+          // 2. value/selection change
+          if (typeof details.value === 'string' && urlbar.value !== details.value) {
+            urlbar.value = details.value;
+          }
+          if (typeof details.visibleValue === 'string' && urlbar.mInputField.value !== details.visibleValue) {
+            urlbar.mInputField.value = details.visibleValue;
+          }
+          if (typeof details.searchString === 'string' && urlbar.controller.searchString !== details.searchString) {
+            urlbar.controller.searchString = details.searchString;
+          }
+          if (typeof details.selectionStart === 'number' && urlbar.selectionStart !== details.selectionStart) {
+            urlbar.selectionStart = details.selectionStart;
+          }
+          if (typeof details.selectionEnd === 'number' && urlbar.selectionEnd !== details.selectionEnd) {
+            urlbar.selectionEnd = details.selectionEnd;
+          }
+        },
       }
     };
   }

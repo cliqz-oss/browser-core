@@ -1,9 +1,7 @@
 import config from '../core/config';
 import deepFreeze from '../core/helpers/deep-freeze';
 import prefs from '../core/prefs';
-
-// TODO: copied from 'trim'
-const PREVENT_AUTOCOMPLETE_KEYS = ['Backspace', 'Delete'];
+import { PREVENT_AUTOCOMPLETE_KEYS } from './consts';
 
 // do not emit instant or Cliqz results until history has emitted,
 // unless the query is long enough or the user is deleting characters
@@ -180,7 +178,7 @@ export default function ({ isPrivateMode }, settings = {}) {
         get isEnabled() {
           return prefs.get('browser.urlbar.autoFill', true, '');
         },
-        providerBlacklist: ['instant', 'querySuggestions'],
+        providerBlacklist: ['instant', 'querySuggestions', 'historyView'],
       },
       offers: {
         position: DEFAULT_CONFIG.operators.offers.position,

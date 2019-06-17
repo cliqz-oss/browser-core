@@ -1,4 +1,5 @@
 import { Subresult } from './base';
+import { setTimeout } from '../../core/timers';
 
 class LocalInfoResult extends Subresult {
   get mapImg() {

@@ -9,7 +9,6 @@ export default {
     core: null,
     'core-cliqz': null,
     dropdown: null,
-    static: null,
     search: {
       visible: true,
       state: [

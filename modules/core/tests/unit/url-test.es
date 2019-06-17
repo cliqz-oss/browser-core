@@ -505,4 +505,33 @@ export default describeModule('core/url',
         });
       });
     });
+
+    describe('#isPrivateIP', function () {
+      let isPrivateIP;
+      beforeEach(function () {
+        isPrivateIP = this.module().isPrivateIP;
+      });
+
+      it('should detect private ipv4 subnets', function () {
+        chai.expect(isPrivateIP('127.0.0.1')).to.be.true;
+        chai.expect(isPrivateIP('192.168.2.107')).to.be.true;
+        chai.expect(isPrivateIP('192.168.1.41')).to.be.true;
+        chai.expect(isPrivateIP('10.0.5.250')).to.be.true;
+      });
+
+      it('should detect public ipv4 subnets', function () {
+        chai.expect(isPrivateIP('93.184.216.34')).to.be.false;
+      });
+
+      // once we add support for ipv6, this test is expected to pass
+      it('should detect private ipv6 subnets', function () {
+        chai.expect(isPrivateIP('::1')).to.be.true;
+        chai.expect(isPrivateIP('0:0:0:0:0:0:0:1')).to.be.true;
+        chai.expect(isPrivateIP('fd12:3456:789a:1::1')).to.be.true;
+      });
+
+      it('should detect public ipv6 address', function () {
+        chai.expect(isPrivateIP('2001:0db8:85a3:0000:0000:8a2e:0370:7334')).to.be.false;
+      });
+    });
   });

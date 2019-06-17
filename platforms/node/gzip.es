@@ -1,3 +1,2 @@
-
 export const compress = false;
-export const uncompress = false;
+export const decompress = false;

@@ -53,6 +53,39 @@ function refineParseURIFunc(url, extractType, keyName) {
   return url;
 }
 
+/**
+ * Helper to implement the "json" function (part of the DSL used
+ * in the patterns description).
+ *
+ * Takes a JSON string object, parses it and extract the data under the
+ * given path. By default, it will only extract safe types (strings,
+ * numbers, booleans), mostly to prevent accidentally extracting
+ * more than intended.
+ *
+ * (exported for tests only)
+ */
+export function _jsonPath(json, path, extractObjects = false) {
+  try {
+    let obj = JSON.parse(json);
+    for (const field of path.split('.')) {
+      obj = obj[field];
+    }
+    if (typeof obj === 'string') {
+      return obj;
+    }
+    if (typeof obj === 'number' || typeof obj === 'boolean') {
+      return obj.toString();
+    }
+    if (extractObjects && obj) {
+      return JSON.stringify(obj);
+    }
+    // prevent uncontrolled text extraction
+    return '';
+  } catch (e) {
+    return '';
+  }
+}
+
 // (exported for tests only)
 export function _mergeArr(arrS) {
   const messageList = [];
@@ -192,6 +225,7 @@ export class ContentExtractor {
       splitF: refineSplitFunc,
       parseU: refineParseURIFunc,
       maskU: url => this._CliqzHumanWeb.maskURL(url),
+      json: _jsonPath,
     };
 
     // TODO: can this state be avoided?!
@@ -380,7 +414,7 @@ export class ContentExtractor {
     const arr = [];
     const rootElement = Array.prototype.slice.call(cd.querySelectorAll(parentItem));
     for (let i = 0; i < rootElement.length; i += 1) {
-      const val = rootElement[i].querySelector(item);
+      const val = item ? rootElement[i].querySelector(item) : rootElement[i];
       if (val) {
         // Check if the value needs to be refined or not.
         let attribVal;

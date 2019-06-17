@@ -3,6 +3,36 @@
   "description": "API giving read access to 'extensions.cliqz.' branch of firefox prefs (needed for migration).",
   "types": [
     {
+      "id": "UrlbarOverrideDetails",
+      "type": "object",
+      "description": "An object containing details of overriden omnibox.",
+      "properties": {
+        "focused": {
+          "type": "boolean",
+          "optional": true
+        },
+        "value": {
+          "type": "string",
+          "optional": true
+        },
+        "visibleValue": {
+          "type": "string",
+          "optional": true
+        },
+        "searchString": {
+          "type": "string",
+          "optional": true
+        },
+        "selectionStart": {
+          "type": "integer",
+          "optional": true
+        },
+        "selectionEnd": {
+          "type": "integer",
+          "optional": true
+        }
+      }
+    }, {
       "id": "QueryNodeOptions",
       "type": "object",
       "description": "",
@@ -273,6 +303,88 @@
         "parameters": [{
           "name": "dropdown",
           "type": "any"
+        }]
+      }
+    ]
+  }, {
+    "name": "focus",
+    "type": "function",
+    "description": "Focus urlbar in given window.",
+    "async": "callback",
+    "parameters": [{
+        "name": "windowId",
+        "type": "number",
+        "minimum": -2,
+        "optional": true
+      },
+      {
+        "type": "function",
+        "name": "callback",
+        "parameters": [{
+          "type": "any"
+        }]
+      }
+    ]
+  }, {
+    "name": "blur",
+    "type": "function",
+    "description": "Remove focus from urlbar in given window.",
+    "async": "callback",
+    "parameters": [{
+        "name": "windowId",
+        "type": "number",
+        "minimum": -2,
+        "optional": true
+      },
+      {
+        "type": "function",
+        "name": "callback",
+        "parameters": [{
+          "type": "any"
+        }]
+      }
+    ]
+  }, {
+    "name": "get",
+    "type": "function",
+    "description": "Get dropdown params for given window",
+    "async": "callback",
+    "parameters": [{
+        "name": "windowId",
+        "type": "number",
+        "minimum": -2,
+        "optional": true
+      },
+      {
+        "type": "function",
+        "name": "callback",
+        "parameters": [{
+          "name": "status",
+          "type": "object"
+        }]
+      }
+    ]
+  }, {
+    "name": "update",
+    "type": "function",
+    "description": "Get omnibox API for current window",
+    "async": "callback",
+    "parameters": [{
+        "name": "windowId",
+        "type": "number",
+        "minimum": -2,
+        "optional": true
+      },
+      {
+        "name": "details",
+        "$ref": "UrlbarOverrideDetails"
+      },
+      {
+        "type": "function",
+        "name": "callback",
+        "parameters": [{
+          "name": "omnibox",
+          "type": "object"
         }]
       }
     ]

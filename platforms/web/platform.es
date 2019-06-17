@@ -5,7 +5,6 @@ function checkUserAgent(pattern = '') {
 }
 
 export default {
-  isBootstrap: false,
   isMobile: checkUserAgent('Mobile'),
   isFirefox: false,
   isChromium: false,
@@ -20,18 +19,9 @@ export function isOnionModeFactory() {
 const userAgent = window.navigator.userAgent.toLowerCase();
 export const mobilePlatformName = /iphone|ipod|ipad/.test(userAgent) ? 'ios' : 'android';
 
-export function isPlatformAtLeastInVersion() {
-  return true;
-}
-
 export const OS = {
   // TODO
 };
-
-export function isCliqzAtLeastInVersion() {
-  // TODO
-  return true;
-}
 
 export function getResourceUrl() {}
 

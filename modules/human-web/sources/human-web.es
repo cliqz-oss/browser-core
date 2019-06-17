@@ -3,7 +3,7 @@ import BloomFilter from '../core/bloom-filter';
 import md5 from '../core/helpers/md5';
 import { sha1 } from '../core/crypto/utils';
 import random from '../core/crypto/random';
-import { fetch, httpGet, promiseHttpHandler } from '../core/http';
+import { fetch, httpGet } from '../core/http';
 import { getDetailsFromUrl, isIpAddress } from '../core/url';
 import URL from '../core/fast-url-parser';
 import Storage from '../platform/human-web/storage';
@@ -18,10 +18,11 @@ import logger from './logger';
 import { parseHtml, getContentDocument } from './html-helpers';
 import { parseURL, Network } from './network';
 import prefs from '../core/prefs';
-import setTimeoutInterval from '../core/helpers/timeout';
 import { isEdge } from '../core/platform';
 import Worker from '../platform/worker';
 import { toUTF8 } from '../core/encoding';
+import pacemaker from '../core/services/pacemaker';
+import SafebrowsingEndpoint from './safebrowsing-endpoint';
 
 /*
 Configuration for Bloomfilter
@@ -130,6 +131,7 @@ const CliqzHumanWeb = {
     oc: null,
     SAFE_QUORUM_ENDPOINT: config.settings.ENDPOINT_SAFE_QUORUM_ENDPOINT,
     SAFE_QUORUM_PROVIDER: config.settings.ENDPOINT_SAFE_QUORUM_PROVIDER,
+    safebrowsingEndpoint: new SafebrowsingEndpoint(),
     quorumBloomFilters: {},
     safeQuorumProvider: null,
     getAllOpenPages: getAllOpenPages,
@@ -202,7 +204,7 @@ const CliqzHumanWeb = {
             if (!url_parts) return true;
 
             if ((url_parts.hostname.length < 8) && (url_parts.path.length > 4)) {
-                var v = url_parts.path.split('/')
+                var v = url_parts.path.split('/');
                 for(var i=0;i<v.length;i++) if (CliqzHumanWeb.isHash(v[i])) return true;
             }
             return false;
@@ -210,27 +212,22 @@ const CliqzHumanWeb = {
             return true;
         }
     },
-    getTime:function() {
-        // Need to fix.
-        try { var ts = prefs.get('config_ts', null)} catch(ee){};
-        if(!ts){
-            var d = null;
-            var m = null;
-            var y = null;
-            var h = null;
-            var hr = null;
-            var _ts = null;
-            d = (new Date().getDate()  < 10 ? "0" : "" ) + new Date().getDate();
-            m = (new Date().getMonth() < 9 ? "0" : "" ) + parseInt((new Date().getMonth()) + 1);
-            h = (new Date().getUTCHours() < 10 ? "0" : "" ) + new Date().getUTCHours();
-            y = new Date().getFullYear();
-            _ts = y + "" + m + "" + d + "" + h;
-        }
-        else{
-            h = (new Date().getUTCHours() < 10 ? "0" : "" ) + new Date().getUTCHours();
-            _ts = ts + "" + h;
-        }
-        return _ts;
+    getTime() {
+      const now = new Date();
+      const utcHours = now.getUTCHours();
+      const ts = prefs.get('config_ts', null);
+      if (!ts) {
+        const date = now.getDate();
+        const month = now.getMonth();
+        const d = (date < 10 ? "0" : "") + date;
+        const m = (month < 9 ? "0" : "") + (month + 1);
+        const h = (utcHours < 10 ? "0" : "") + utcHours;
+        const y = now.getFullYear();
+        return y + "" + m + "" + d + "" + h;
+      } else {
+        const h = (utcHours < 10 ? "0" : "") + utcHours;
+        return ts + "" + h;
+      }
     },
     isSuspiciousDomainName: function(hostname) {
         /*
@@ -1152,7 +1149,7 @@ const CliqzHumanWeb = {
                                 }
                             },
                             function(url, page_doc, original_url, error_message) {
-                                _log("failure on clean_url doubleFetch! " + "structure did not match");
+                                _log("failure on clean_url doubleFetch! structure did not match");
                                 // there was a failure, the clean_url does not go to the same place, therefore it's better
                                 // not to replace
 
@@ -1461,7 +1458,7 @@ const CliqzHumanWeb = {
                 if (CliqzHumanWeb.state['v'][activeURL] == null) {
 
                     if (CliqzHumanWeb.contentExtractor.isSearchEngineUrl(activeURL)) {
-                        setTimeout(function(url, originalURL) {
+                        pacemaker.setTimeout(function(url, originalURL) {
                           if (!CliqzHumanWeb) {
                             return;
                           }
@@ -1552,7 +1549,7 @@ const CliqzHumanWeb = {
                         }
                     }
 
-                    setTimeout(function(currURL) {
+                    pacemaker.setTimeout(function(currURL) {
 
                         // Extract info about the page, title, length of the page, number of links, hash signature,
                         // 404, soft-404, you name it
@@ -1621,8 +1618,12 @@ const CliqzHumanWeb = {
             }
         },
     },
-    pacemaker: function() {
+    startPacemaker: function() {
+      const tasks = [];
 
+      // TODO - replace with some event to detect when currentURL changes
+      // Every second (used to be 250 ms)
+      tasks.push(pacemaker.register(function hwCheckCurrentURL() {
         CliqzHumanWeb.currentURL()
         .then( (activeURL) => {
             if (activeURL && (activeURL).indexOf('about:') !== 0) {
@@ -1640,8 +1641,13 @@ const CliqzHumanWeb = {
             _log('Error fetching fetching the currentURL: ' + e);
         });
 
-        if ((CliqzHumanWeb.counter/CliqzHumanWeb.tmult) % 5 == 0) {
+        CliqzHumanWeb.counter += 4;
+      }, { timeout: 1000 })); // 1 second
 
+
+      // TODO - could be replaced by tab events (closed, updated, new)
+      // Every 5 seconds
+      tasks.push(pacemaker.register(function hwCheckAllOpenPages() {
             CliqzHumanWeb.getAllOpenPages()
             .then((openPages) => {
                 var tt = new Date().getTime();
@@ -1683,32 +1689,10 @@ const CliqzHumanWeb = {
             }).catch((ee) => {
               _log(ee);
             });
-        }
+        }, { timeout: 5000 }));
 
-        if ((CliqzHumanWeb.counter/CliqzHumanWeb.tmult) % 10 == 0) {
-            let counter = CliqzHumanWeb.counter;
-            CliqzHumanWeb.currentURL()
-              .then( (activeURL) => {
-                _log('Pacemaker: ' + counter/CliqzHumanWeb.tmult + ' ' + activeURL);
-              })
-              .catch((e) => {
-                _log('Error fetching fetching the currentURL: ' + e);
-              });
-
-
-            CliqzHumanWeb.cleanHttpCache();
-            CliqzHumanWeb.cleanDocCache();
-            CliqzHumanWeb.cleanLinkCache();
-            CliqzHumanWeb.purgeAdLookUp();
-        }
-
-        if ((CliqzHumanWeb.counter/CliqzHumanWeb.tmult) % (1*60) == 0) {
-            // every minute
-            CliqzHumanWeb.listOfUnchecked(1, CliqzHumanWeb.doubleFetchTimeInSec, null, CliqzHumanWeb.processUnchecks);
-            CliqzHumanWeb.auxGetQuery();
-        }
-
-        if ((CliqzHumanWeb.counter/CliqzHumanWeb.tmult) % 10 == 0) {
+      // Every 10 seconds
+      tasks.push(pacemaker.register(function hwLoadBloomFilterCheck() {
             var ll = CliqzHumanWeb.state['m'].length;
             if (ll > 0) {
                 var v = CliqzHumanWeb.state['m'].slice(0, ll);
@@ -1718,44 +1702,71 @@ const CliqzHumanWeb = {
             if(!CliqzHumanWeb.bloomFilter){
                 CliqzHumanWeb.loadBloomFilter();
             }
-        }
+        }, { timeout: 10 * 1000 })); // 10 seconds
 
-        if ((CliqzHumanWeb.counter / CliqzHumanWeb.tmult) % (60 * 5) == 0) {
+      // Clean http cache (when >1 hour)
+      tasks.push(pacemaker.register(function hwCleanHttpCache() {
+            CliqzHumanWeb.cleanHttpCache();
+        }, { timeout: 15 * 1000 })); // 15 seconds
+
+      // Purge clean link cache (when >1 minute)
+      tasks.push(pacemaker.register(function hwCleanLinkCache() {
+            CliqzHumanWeb.cleanLinkCache();
+        }, { timeout: 15 * 1000 })); // 15 seconds
+
+      // Purge ad lookup (when >15 minutes)
+      tasks.push(pacemaker.register(function hwPurgeAdLookUp() {
+            CliqzHumanWeb.purgeAdLookUp();
+        }, { timeout: 15 * 1000 })); // 15 seconds
+
+      // Clean doc cache (>1 hour)
+      tasks.push(pacemaker.register(function hwCleanDocCache() {
+            CliqzHumanWeb.cleanDocCache();
+        }, { timeout: 60 * 1000 })); // 1 minute
+
+      // Every minute
+      tasks.push(pacemaker.register(function hwProcessUnchecked() {
+            CliqzHumanWeb.listOfUnchecked(1, CliqzHumanWeb.doubleFetchTimeInSec, null, CliqzHumanWeb.processUnchecks);
+            CliqzHumanWeb.auxGetQuery();
+        }, { timeout: 60 * 1000 })); // 1 minute
+
+      // Every 5 minutes
+      tasks.push(pacemaker.register(function hwFlushExpiredCacheEntries() {
           logger.debug('human-web: flush network cache');
           CliqzHumanWeb.network.flushExpiredCacheEntries();
-        }
+        }, { timeout: 5 * 60 * 1000 })); // 5 minutes
 
-        //Load ts config
-        if ((CliqzHumanWeb.counter/CliqzHumanWeb.tmult) % (60 * 20 * 1) == 0) {
+      // Every 20 minutes
+      tasks.push(pacemaker.register(function hwExpireQuorumBloomFilter() {
             if (CliqzHumanWeb.debug) {
                 _log('Load ts config');
             }
             CliqzHumanWeb.expireQuorumBloomFilter();
-        }
+        }, { timeout: 20 * 60 * 1000 })); // 20 minutes
 
-        if ((CliqzHumanWeb.counter/CliqzHumanWeb.tmult) % (60 * 20 * 1) == 0) {
+      // Every 20 minutes
+      tasks.push(pacemaker.register(function hwCheckActiveUsage() {
             if (CliqzHumanWeb.debug) {
                 _log('Check if alive');
             }
             CliqzHumanWeb.checkActiveUsage();
-        }
+        }, { timeout: 20 * 60 * 1000 })); // 20 minutes
 
-        if ((CliqzHumanWeb.counter/CliqzHumanWeb.tmult) % (60 * 20 * 1) == 0) {
+      // Every 20 minutes
+      tasks.push(pacemaker.register(function hwSaveActionStats() {
             if (CliqzHumanWeb.debug) {
                 _log('Save actions stats');
             }
             CliqzHumanWeb.saveActionStats();
             CliqzHumanWeb.sendActionStatsIfNeeded();
-        }
+        }, { timeout: 20 * 60 * 1000 })); // 20 minutes
 
-        CliqzHumanWeb.counter += 1;
+      // Every 4 hours
+      tasks.push(pacemaker.register(function hwCheckAllOpenPages() {
+        CliqzHumanWeb.fetchSafeQuorumConfig();
+      }, { timeout: 4 * 60 * 60 * 1000 })); // 4 hours
 
-        const periodIfLoaded = 4 * 60 * 60; // 4 hours
-        const periodIfNotLoaded = 20;        // 20 seconds
-        const period = CliqzHumanWeb.loadedQuorumConfig ? periodIfLoaded : periodIfNotLoaded;
-        if (CliqzHumanWeb.counter % (CliqzHumanWeb.tmult * period) === 0) {
-          CliqzHumanWeb.fetchSafeQuorumConfig();
-        }
+      return tasks;
     },
     cleanUserTransitions: function(force) {
         for(var query in CliqzHumanWeb.userTransitions['search']) {
@@ -1778,39 +1789,7 @@ const CliqzHumanWeb = {
         }
 
     },
-    pushAllData: function() {
 
-        // force send user Transitions sessions even if not elapsed because the browser is shutting down
-        CliqzHumanWeb.cleanUserTransitions(true);
-
-        var tt = new Date().getTime();
-        var res = [];
-        for (var url in CliqzHumanWeb.state['v']) {
-            if (CliqzHumanWeb.state['v'][url]) res.push(url);
-        }
-
-        for (var i=0; i<res.length; i++) {
-            // move all the pages to m set
-            var url = res[i];
-            if (CliqzHumanWeb.state['v'][url]) {
-                if (CliqzHumanWeb.state['v'][url]['tend']==null) {
-                    CliqzHumanWeb.state['v'][url]['tend'] = tt;
-                }
-                CliqzHumanWeb.addURLtoDB(url, CliqzHumanWeb.state['v'][url]['ref'], CliqzHumanWeb.state['v'][url]);
-                CliqzHumanWeb.state['m'].push(CliqzHumanWeb.state['v'][url]);
-                delete CliqzHumanWeb.state['v'][url];
-                delete CliqzHumanWeb.queryCache[url];
-            }
-        }
-
-        // send them to telemetry if needed
-        var ll = CliqzHumanWeb.state['m'].length;
-        if (ll > 0) {
-            var v = CliqzHumanWeb.state['m'].slice(0, ll);
-            CliqzHumanWeb.state['m'] = CliqzHumanWeb.state['m'].slice(ll, CliqzHumanWeb.state['m'].length);
-            CliqzHumanWeb.pushTelemetry();
-        }
-    },
     unload: function() {
       if (CliqzHumanWeb.rushaWorker) {
         delete CliqzHumanWeb.rushaCallbacks;
@@ -1821,16 +1800,15 @@ const CliqzHumanWeb = {
       //Check is active usage, was sent
       CliqzHumanWeb.checkActiveUsage();
       // send all the data
-      CliqzHumanWeb.pushTelemetry();
+      CliqzHumanWeb.safebrowsingEndpoint.flushSendQueue();
 
-      if (CliqzHumanWeb.pacemakerId) {
-        CliqzHumanWeb.pacemakerId.stop();
-        CliqzHumanWeb.pacemakerId = undefined;
+      if (CliqzHumanWeb.pacemakerTasks) {
+        CliqzHumanWeb.pacemakerTasks.forEach((task) => {
+          task.stop();
+        });
+        CliqzHumanWeb.pacemakerTasks = null;
       }
-      if (CliqzHumanWeb.trkTimer) {
-        clearTimeout(CliqzHumanWeb.trkTimer);
-        CliqzHumanWeb.trkTimer = undefined;
-      }
+      CliqzHumanWeb.safebrowsingEndpoint.unload();
 
       CliqzHumanWeb.patternsLoader.unload();
       CliqzHumanWeb.doublefetchHandler.unload();
@@ -1846,7 +1824,7 @@ const CliqzHumanWeb = {
         if (url!=null || url!=undefined) return url;
         else return null;
     },
-    pacemakerId: null,
+    pacemakerTasks: null,
     // load from the about:config settings
     captureKeyPressPage: function(ev) {
         if ((CliqzHumanWeb.counter - (CliqzHumanWeb.lastEv['keypresspage']|0)) > 1 * CliqzHumanWeb.tmult) {
@@ -1894,40 +1872,8 @@ const CliqzHumanWeb = {
         return null;
     },
     contextFromEvent: null,
-    setContextFromEvent: function(ev) {
-        try {
-            var tar = ev.target;
 
-            var found = false;
-            var count = 0;
-            var def_html = null;
-
-            while(!found) {
-
-                var html = tar.innerHTML;
-
-                if (html.indexOf('http://')!=-1 || html.indexOf('https://')!=-1) {
-                    found = true;
-                    def_html = html;
-                    break;
-                }
-
-                tar = tar.parentNode;
-
-                count+=1;
-                if (count > 4) break;
-            }
-
-            if (found && def_html) {
-                CliqzHumanWeb.contextFromEvent = {'html': def_html, 'ts': (new Date()).getTime()};
-            }
-        }
-        catch(ee) {
-            CliqzHumanWeb.contextFromEvent = null;
-        }
-    },
-    captureMouseClickPage: function(ev, contextHTML, href) {
-
+    captureMouseClickPage(ev, contextHTML, href) {
         // if the target is a link of type hash it does not work, it will create a new page without referral
         //
 
@@ -2122,8 +2068,9 @@ const CliqzHumanWeb = {
               });
 
               return Promise.all(promises).then(() => {
-                if (CliqzHumanWeb.pacemakerId == null) {
-                  CliqzHumanWeb.pacemakerId = setTimeoutInterval(CliqzHumanWeb.pacemaker, CliqzHumanWeb.tpace, null);
+                CliqzHumanWeb.safebrowsingEndpoint.init();
+                if (CliqzHumanWeb.pacemakerTasks === null) {
+                  CliqzHumanWeb.pacemakerTasks = CliqzHumanWeb.startPacemaker();
                 }
               });
             });
@@ -2347,8 +2294,6 @@ const CliqzHumanWeb = {
     // ****************************
     // telemetry, PREFER NOT TO SHARE WITH utils for safety, blatant rip-off though
     // ****************************
-    trk: [],
-    trkTimer: null,
     notification: function(payload){
       try {var location = CliqzHumanWeb.getCountryCode();} catch(ee){};
 
@@ -2424,50 +2369,24 @@ const CliqzHumanWeb = {
 
       // message passed all checks and is ready to be sent
       CliqzHumanWeb.incrActionStats(msg.action);
-      CliqzHumanWeb.trk.push(msg);
 
-      clearTimeout(CliqzHumanWeb.trkTimer);
-      if (instantPush || CliqzHumanWeb.trk.length % 100 === 0) {
-        CliqzHumanWeb.pushTelemetry();
-      } else {
-        CliqzHumanWeb.trkTimer = setTimeout(CliqzHumanWeb.pushTelemetry, 60000);
-      }
+      // do not wait for the promise to complete (keeping the old fire-and-forget API)
+      const start = Date.now();
+      CliqzHumanWeb.safebrowsingEndpoint.send(msg)
+        .then(() => {
+          logger.debug('Successfully sent message after', (Date.now() - start) / 1000.0, 'sec', msg);
+        })
+        .catch((e) => {
+          logger.info(`Finally giving up on sending message (reason: ${e}, elapsed: ${(Date.now() - start) / 1000.0} sec)`, msg);
+        });
+
       return accept();
     },
 
-    _telemetry_req: null,
-    _telemetry_sending: [],
-    telemetry_MAX_SIZE: 500,
-    pushTelemetry: function() {
-        if(CliqzHumanWeb._telemetry_req) return;
-
-        // put current data aside in case of failure
-        CliqzHumanWeb._telemetry_sending = CliqzHumanWeb.trk.splice(0);
-        var data = JSON.stringify(CliqzHumanWeb._telemetry_sending);
-        CliqzHumanWeb._telemetry_req = promiseHttpHandler('POST', config.settings.SAFE_BROWSING, data, 60000, true);
-        CliqzHumanWeb._telemetry_req.then( CliqzHumanWeb.pushTelemetryCallback );
-        CliqzHumanWeb._telemetry_req.catch( CliqzHumanWeb.pushTelemetryError );
+    pushTelemetry() {
+      CliqzHumanWeb.safebrowsingEndpoint.flushSendQueue();
     },
-    pushTelemetryCallback: function(req){
-        try {
-            var response = JSON.parse(req.response);
-            CliqzHumanWeb._telemetry_sending = [];
-            CliqzHumanWeb._telemetry_req = null;
-        } catch(e){}
-    },
-    pushTelemetryError: function(req){
-        // pushTelemetry failed, put data back in queue to be sent again later
-        CliqzHumanWeb.trk = CliqzHumanWeb._telemetry_sending.concat(CliqzHumanWeb.trk);
 
-        // Remove some old entries if too many are stored, to prevent unbounded growth when problems with network.
-        var slice_pos = CliqzHumanWeb.trk.length - CliqzHumanWeb.telemetry_MAX_SIZE + 100;
-        if(slice_pos > 0){
-            CliqzHumanWeb.trk = CliqzHumanWeb.trk.slice(slice_pos);
-        }
-
-        CliqzHumanWeb._telemetry_sending = [];
-        CliqzHumanWeb._telemetry_req = null;
-    },
     // ************************ Database ***********************
     // source modules/CliqzHistory
     // *********************************************************
@@ -3695,35 +3614,37 @@ const CliqzHumanWeb = {
       });
     }
   },
-  detectAdClick: function(targetURL) {
+  detectAdClick(targetURL) {
     // The first URL observed after clicking the ad has the pattern,
     // google and aclk? in it.
-    if (targetURL.indexOf('google') > -1 && targetURL.indexOf('aclk?') > -1) {
-        let clickedU = normalizeAclkUrl(targetURL);
+    if (targetURL.includes('google') && targetURL.includes('aclk?')) {
+      const clickedU = normalizeAclkUrl(targetURL);
+      _log('ad-ctr: targetURL:', targetURL, 'normalized to', clickedU);
 
-        if (CliqzHumanWeb.adDetails[clickedU]) {
-          let payload = {
-              action: 'ad-ctr',
-              'anti-duplicates': Math.floor(random() * 10000000),
-              type: 'humanweb',
-              channel: CliqzHumanWeb.CHANNEL,
-              payload: {
-                  ctry: CliqzHumanWeb.getCountryCode(),
-
-              }
-          }
-
-            let query = CliqzHumanWeb.adDetails[clickedU].query;
-            if (CliqzHumanWeb.isSuspiciousQuery(query)) {
-                query = ' (PROTECTED) ';
-            }
-
-            payload.payload.query = query;
-            payload.payload.domain = cleanFinalUrl(CliqzHumanWeb.adDetails[clickedU].furl[0], CliqzHumanWeb.adDetails[clickedU].furl[1]);
-
-            _log(`AD CTR Payload : ${JSON.stringify(payload)}`);
-        CliqzHumanWeb.telemetry(payload);
+      if (CliqzHumanWeb.adDetails[clickedU]) {
+        let query = CliqzHumanWeb.adDetails[clickedU].query;
+        if (CliqzHumanWeb.isSuspiciousQuery(query)) {
+          query = ' (PROTECTED) ';
         }
+        const domain = cleanFinalUrl(
+          CliqzHumanWeb.adDetails[clickedU].furl[0],
+          CliqzHumanWeb.adDetails[clickedU].furl[1]);
+
+        const payload = {
+          action: 'ad-ctr',
+          'anti-duplicates': Math.floor(random() * 10000000),
+          type: 'humanweb',
+          channel: CliqzHumanWeb.CHANNEL,
+          payload: {
+            query,
+            domain,
+            ctry: CliqzHumanWeb.getCountryCode(),
+          }
+        };
+
+        _log('ad-ctr payload:', payload);
+        CliqzHumanWeb.telemetry(payload);
+      }
     }
   },
   purgeAdLookUp: function() {

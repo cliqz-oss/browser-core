@@ -1,5 +1,6 @@
 import BaseResult from './base';
 import i18n from '../../core/content/i18n';
+import { setTimeout } from '../../core/timers';
 
 export default class CalculatorResult extends BaseResult {
   get template() {

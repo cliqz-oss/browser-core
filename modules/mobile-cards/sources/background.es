@@ -8,6 +8,7 @@ import {
   hideKeyboard,
   sendUIReadySignal,
   handleAutocompletion,
+  queryCliqz,
 } from '../platform/browser-actions';
 
 
@@ -58,5 +59,6 @@ export default background({
     hideKeyboard,
     sendUIReadySignal,
     handleAutocompletion,
+    queryCliqz,
   },
 });

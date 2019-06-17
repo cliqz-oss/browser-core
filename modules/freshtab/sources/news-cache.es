@@ -1,6 +1,7 @@
 import prefs from '../core/prefs';
 import console from '../core/console';
 import Storage from '../core/storage';
+import pacemaker from '../core/services/pacemaker';
 
 import config from './config';
 
@@ -26,7 +27,7 @@ export default class NewsCache {
 
     this.cacheWasRetrieved = false;
     if (updateAsynchronously) {
-      this.updateTimer = setTimeout(this.asynchronousUpdate.bind(this), 5 * 1000);
+      this.updateTimer = pacemaker.setTimeout(this.asynchronousUpdate.bind(this), 5 * 1000);
     }
   }
 
@@ -37,13 +38,13 @@ export default class NewsCache {
 
   asynchronousUpdate() {
     if (!this.cacheWasRetrieved) {
-      this.updateTimer = setTimeout(this.asynchronousUpdate.bind(this), 5 * ONE_MINUTE);
+      this.updateTimer = pacemaker.setTimeout(this.asynchronousUpdate.bind(this), 5 * ONE_MINUTE);
     } else {
       this.cacheWasRetrieved = false;
       Promise.resolve(this.isStale())
         .then(isStale => (isStale ? this.updateCache() : Promise.resolve()))
         .then(() => {
-          this.updateTimer = setTimeout(
+          this.updateTimer = pacemaker.setTimeout(
             this.asynchronousUpdate.bind(this),
             Math.max(this.getTimeToNextUpdate(), 1000)
           );

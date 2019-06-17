@@ -1,8 +1,7 @@
 import { pipe } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { getMainLink } from '../normalize';
-
-const PREVENT_AUTOCOMPLETE_KEYS = ['Backspace', 'Delete'];
+import { PREVENT_AUTOCOMPLETE_KEYS } from '../../consts';
 
 // TODO: add tests
 

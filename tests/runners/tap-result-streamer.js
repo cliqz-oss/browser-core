@@ -1,7 +1,9 @@
 const WebSocket = require('ws');
+const fs = require('fs');
 
 exports.TapStreamer = class TapStreamer {
   constructor(port = 3001) {
+    this.logFile = process.env.EXTENSION_LOG;
     // Listener to close event
     this.onclose = () => {};
 
@@ -24,6 +26,9 @@ exports.TapStreamer = class TapStreamer {
           // Forward logs from browser to stdin
           // eslint-disable-next-line no-console
           console.log(parsed.tap);
+        } else if (this.logFile && parsed.log) {
+          const s = `${(new Date()).toISOString()} ${parsed.log}`;
+          fs.appendFileSync(this.logFile, s);
         } else if (parsed.action === 'END') {
           this.onclose();
         }

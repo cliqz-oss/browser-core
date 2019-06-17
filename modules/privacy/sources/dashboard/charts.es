@@ -1,4 +1,4 @@
-/* global document, Chart */
+/* global Chart */
 import moment from 'moment';
 
 export default function plotBar(ctx, dailyStats, metric, label) {

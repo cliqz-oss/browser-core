@@ -45,11 +45,13 @@ import {
 import { URLInfo } from '../core/url-info';
 import extChannel from '../platform/ext-messaging';
 import { isBetaVersion } from '../platform/platform';
+import moment from '../platform/lib/moment';
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 const BLUE_THEME_PREF = 'freshtab.blueTheme.enabled';
 const DEVELOPER_FLAG_PREF = 'developer';
+const DISMISSED_ALERTS = 'dismissedAlerts';
 
 const blackListedEngines = [
   'Google Images',
@@ -104,7 +106,14 @@ export default background({
   geolocation: inject.service('geolocation', ['setLocationPermission']),
   searchSession: inject.service('search-session', ['setSearchSession']),
 
-  requiresServices: ['logos', 'session', 'geolocation', 'telemetry', 'search-session'],
+  requiresServices: [
+    'geolocation',
+    'logos',
+    'pacemaker',
+    'search-session',
+    'session',
+    'telemetry',
+  ],
   searchReminderCounter: 0,
 
   /**
@@ -200,8 +209,48 @@ export default background({
     return isCliqzBrowser || prefs.get(DEVELOPER_FLAG_PREF, false);
   },
 
+  get tooltip() {
+    let activeTooltip = '';
+
+    const freshtabConfig = prefs.getObject(FRESHTAB_CONFIG_PREF);
+    const dismissedMessages = prefs.getObject(DISMISSED_ALERTS);
+    const defaultNews = News.getNewsLanguage();
+
+    const isActive = (id) => {
+      const meta = dismissedMessages[id] || {};
+      if (meta.isDismissed) {
+        return false;
+      }
+
+      // check if freshtab settings were changed
+      if (!(Object.keys(freshtabConfig).length === 1
+        && freshtabConfig.news
+        && freshtabConfig.news.preferedCountry === defaultNews
+      )) {
+        return false;
+      }
+
+      if (meta.skippedAt) {
+        return moment().diff(meta.skippedAt, 'hours') >= 48;
+      }
+
+      return true;
+    };
+
+    if (isActive('tooltip-settings')) {
+      activeTooltip = 'tooltip-settings';
+    }
+
+    return activeTooltip;
+  },
+
   getNewsEdition() {
-    return this.getComponentsState().news.preferedCountry;
+    const { preferedCountry } = this.getComponentsState().news;
+    if (!News.NEWS_BACKENDS.includes(preferedCountry)) {
+      this.actions.updateTopNewsCountry('intl');
+      return 'intl';
+    }
+    return preferedCountry;
   },
 
   getComponentsState() {
@@ -239,7 +288,33 @@ export default background({
     };
   },
 
+  isUserOnboarded() {
+    if (!config.settings.onBoardingPref) return false;
+    return prefs.get(config.settings.onBoardingPref, false);
+  },
+
+  updateComponentState(component, state) {
+    const _config = prefs.getObject(FRESHTAB_CONFIG_PREF);
+    _config[component] = Object.assign({}, _config[component], state);
+    prefs.setObject(FRESHTAB_CONFIG_PREF, _config);
+  },
+
   actions: {
+    markTooltipAsSkipped() {
+      const tooltip = this.tooltip;
+      if (!tooltip) {
+        return;
+      }
+      const dismissedMessages = prefs.getObject(DISMISSED_ALERTS);
+      prefs.setObject(DISMISSED_ALERTS, {
+        ...dismissedMessages,
+        [tooltip]: {
+          ...dismissedMessages[tooltip],
+          skippedAt: Date.now()
+        },
+      });
+    },
+
     selectResult(
       selection,
       { tab: { id: tabId } = {} } = {},
@@ -265,33 +340,27 @@ export default background({
     },
 
     toggleComponent(component) {
-      const _config = JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}'));
+      const _config = prefs.getObject(FRESHTAB_CONFIG_PREF);
       // component might be uninitialized
       const COMPONENT_DEFAULT_STATE = component !== 'customDials' || this.actions.hasCustomDialups()
         ? COMPONENT_STATE_VISIBLE
         : COMPONENT_STATE_INVISIBLE;
       _config[component] = Object.assign({}, COMPONENT_DEFAULT_STATE, _config[component]);
       _config[component].visible = !_config[component].visible;
-      prefs.set(FRESHTAB_CONFIG_PREF, JSON.stringify(_config));
+      prefs.setObject(FRESHTAB_CONFIG_PREF, _config);
     },
 
     saveBackgroundImage(name, index) {
-      prefs.set(FRESHTAB_CONFIG_PREF, JSON.stringify({
-        ...JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}')),
-        background: {
-          image: name,
-          index
-        }
-      }));
+      this.updateComponentState('background', {
+        image: name,
+        index
+      });
     },
 
-    updateTopNewsCountry(country) {
-      prefs.set(FRESHTAB_CONFIG_PREF, JSON.stringify({
-        ...JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}')),
-        news: {
-          preferedCountry: country,
-        }
-      }));
+    updateTopNewsCountry(preferedCountry) {
+      this.updateComponentState('news', {
+        preferedCountry,
+      });
 
       News.resetTopNews();
     },
@@ -315,6 +384,8 @@ export default background({
     * @method getSpeedDials
     */
     async getSpeedDials() {
+      const start = Date.now();
+      const speedDialsTimers = { customDials: 0, historyDials: 0 };
       const dialUps = prefs.has(DIALUPS) ? JSON.parse(prefs.get(DIALUPS, '')) : [];
       let historyDialups = [];
       let customDialups = dialUps.custom ? dialUps.custom : [];
@@ -364,19 +435,21 @@ export default background({
           return url.startsWith('moz-extension://');
         }
 
-        results = results.filter(history =>
-          !isDeleted(history.hashedUrl) && !isCustom(history.url)
-                  && !this.isAdult(history.url) && !isCliqz(history.url)
-                  && !isMozUrl(history.url));
-
-        return results.map((r) => {
-          const dialSpecs = {
-            url: r.url,
-            title: r.title,
-            isCustom: false
-          };
-          return new SpeedDial(dialSpecs, searchEngines);
-        });
+        results = results
+          .filter(history =>
+            !isDeleted(history.hashedUrl) && !isCustom(history.url)
+                    && !this.isAdult(history.url) && !isCliqz(history.url)
+                    && !isMozUrl(history.url))
+          .map((r) => {
+            const dialSpecs = {
+              url: r.url,
+              title: r.title,
+              isCustom: false
+            };
+            return new SpeedDial(dialSpecs, searchEngines);
+          });
+        speedDialsTimers.historyDials = Date.now() - start;
+        return results;
       });
 
       if (customDialups.length > 0) {
@@ -388,6 +461,7 @@ export default background({
           };
           return new SpeedDial(dialSpecs, searchEngines);
         });
+        speedDialsTimers.customDials = Date.now() - start;
       }
 
       // Promise all concatenate results and return
@@ -406,7 +480,8 @@ export default background({
 
         ({
           history: results[0],
-          custom: results[1]
+          custom: results[1],
+          speedDialsTimers,
         }));
     },
 
@@ -674,7 +749,7 @@ export default background({
         ]);
         const isAntitrackingDisabled = !prefs.get('modules.antitracking.enabled', true);
 
-        const adbPref = prefs.get('cliqz-adb', false);
+        const adbPref = prefs.get('cliqz-adb', true);
         const isAdBlockerDisabled = adbPref === false || adbPref === 0;
 
         data = [
@@ -814,11 +889,13 @@ export default background({
         ),
         componentsState: this.getComponentsState(),
         developer: prefs.get('developer', false),
-        cliqzPostPosition: prefs.get('freshtab.post.position', 'bottom-right'), // bottom-left, top-right
+        cliqzPostPosition: 'bottom-left', // bottom-right, top-right
         isStatsSupported: this.settings.freshTabStats,
         NEW_TAB_URL: '',
         HISTORY_URL,
         isBetaVersion: isBetaVersion(),
+        isUserOnboarded: this.isUserOnboarded(),
+        tooltip: this.tooltip,
       };
     },
 

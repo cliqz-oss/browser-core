@@ -1,4 +1,21 @@
+const VALID_CATEGORY = {
+  name: 'cat1',
+  timeRangeSecs: 900,
+  patterns: [
+    'http://www.domain1.de/',
+    'http://www.google.co.uk/',
+  ],
+  revHash: 'f91dd7bd96',
+  activationData: {
+    activationTimeSecs: 86400,
+    args: { totNumHits: 1 },
+    func: 'simpleCount'
+  },
+  user_group: 0
+};
+
 const VALID_OFFER_LANDING_URL = 'https://github.com/cliqz/aws-infrastructure-data';
+const VALID_OFFER_SUCCESS_URL = 'https://github.com/cliqz/socorro';
 
 const VALID_OFFER_OBJ = {
   action_info: {
@@ -48,14 +65,25 @@ const VALID_OFFER_OBJ = {
       },
       patterns: [`||${VALID_OFFER_LANDING_URL.replace('https://', '')}$script`],
       signalID: 'landing',
-      type: 'urlchange'
+      type: 'urlchange',
+    },
+    {
+      params: {
+        filter_last_secs: 5,
+        referrer_cat: true,
+        store: false
+      },
+      patterns: [`||${VALID_OFFER_SUCCESS_URL.replace('https://', '')}$script`],
+      signalID: 'success',
+      type: 'urlchange',
     },
   ],
   rs_dest: ['offers-cc'],
   types: ['type1', 'type2'],
   displayPriority: 0.0,
   version: '',
-  categories: ['cat1'],
+  categories: [VALID_CATEGORY.name],
+  targeted: true,
 };
 
 // Offer of the week
@@ -113,7 +141,9 @@ const VALID_OOTW_OFFER_OBJ = {
 };
 
 module.exports = {
+  VALID_CATEGORY,
   VALID_OFFER_LANDING_URL,
+  VALID_OFFER_SUCCESS_URL,
   VALID_OFFER_OBJ: Object.freeze(VALID_OFFER_OBJ),
   VALID_OOTW_OFFER_OBJ: Object.freeze(VALID_OOTW_OFFER_OBJ),
 };

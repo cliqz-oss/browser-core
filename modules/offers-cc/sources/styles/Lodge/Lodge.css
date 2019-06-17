@@ -1,0 +1,75 @@
+.lodge__wrapper {
+  padding: 2px 11px 0px;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.25);
+  overflow-x: hidden;
+}
+
+.lodge__benefit {
+  font-size: 29px;
+  color: #000000;
+  letter-spacing: -0.2px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.lodge__ends-in {
+  color: #000000;
+  font-size: 11px;
+  text-align: center;
+}
+
+.lodge__hot-deal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #DF780E;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.lodge__fire {
+  display: inline-block;
+  background: url('../images/bigger-fire.svg') no-repeat center;
+  width: 14px;
+  height: 14px;
+  padding-right: 11px;
+  font-weight: 600;
+}
+
+.lodge__conditions {
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.lodge__triangle {
+  display: inline-block;
+}
+
+.lodge__triangle-rotated {
+  transform: rotate(90deg);
+  display: inline-block;
+  transition: transform 0.2s ease-in-out
+}
+
+.lodge__show-code-button {
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 700;
+  color: #FFFFFF;
+  display: inline-block;
+  cursor: pointer;
+  width: 100%;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  background: repeating-linear-gradient(
+    135deg,
+    #737172,
+    #737172 3px,
+    #69777e 3px,
+    #69777e 4px
+  );
+}

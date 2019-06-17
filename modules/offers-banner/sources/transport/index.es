@@ -20,10 +20,9 @@ export function send(data, type) {
 
 function commonTelemetry(msg, view = 'box') {
   if (!msg) { return; }
-  const { target, action = 'click', vote, comments, offersCount } = msg;
+  const { target, action = 'click', vote, offersCount } = msg;
   const signal = {
     action,
-    comments,
     offer_count: offersCount,
     target,
     type: 'offrz',
@@ -54,7 +53,6 @@ export function dispatcher(type, offerId, msg = {}, autoTrigger) {
   const mapperRewardBox = {
     sendUserFeedback: payload => core.action('sendUserFeedback', { view: 'box', ...payload }),
     sendActionSignal: rewardBox.commonAction,
-    copyToClipboard,
     getEmptyFrameAndData: rewardBox.hideTooltipIfShould,
     sendOfferActionSignal: rewardBox.actions,
     seenOffer: payload => rewardBox.seenOffer(offerId, payload, autoTrigger),

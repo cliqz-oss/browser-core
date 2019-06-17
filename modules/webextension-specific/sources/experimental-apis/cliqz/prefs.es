@@ -1,4 +1,4 @@
-/* globals ChromeUtils */
+/* globals ChromeUtils, Components */
 
 const { ExtensionCommon } = ChromeUtils.import('resource://gre/modules/ExtensionCommon.jsm');
 const { Services } = ChromeUtils.import('resource://gre/modules/Services.jsm');

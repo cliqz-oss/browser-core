@@ -1,5 +1,6 @@
 import { chrome } from './globals';
 import { getActiveTab } from './browser';
+import { getUrlVariations } from '../core/url';
 
 export function newTab(url, { focus = true } = {}) {
   let resolver;
@@ -64,9 +65,13 @@ export function getCurrentTab(id) {
   ));
 }
 
-export function closeTabsWithUrl(url) {
+export function closeTabsWithUrl(url, { strict = true } = {}) {
+  let urls = [url];
+  if (!strict) {
+    urls = getUrlVariations(url);
+  }
   return new Promise((resolve) => {
-    chrome.tabs.query({ url }, (tabs = []) => {
+    chrome.tabs.query({ url: urls }, (tabs = []) => {
       Promise.all(tabs.map(tab => closeTab(tab.id))).then(resolve);
     });
   });

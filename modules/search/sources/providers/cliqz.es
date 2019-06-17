@@ -8,7 +8,6 @@ import { isOnionModeFactory } from '../../core/platform';
 import inject from '../../core/kord/inject';
 import BackendProvider from './backend';
 import { getResponse, getEmptyResponse } from '../responses';
-import { handleQuerySuggestions } from '../../platform/browser-actions';
 import {
   encodeLocale,
   encodePlatform,
@@ -181,17 +180,22 @@ export default class Cliqz extends BackendProvider {
     const cliqz$ = from(this.fetch(query, config, params))
       .pipe(share());
 
-    cliqz$.subscribe(({ q, suggestions }) => handleQuerySuggestions(q, suggestions));
-
     const results$ = cliqz$
       .pipe(
-        map(({ results = [], latency }) => getResponse(
-          this.id,
+        map(({ results = [], latency, suggestions }) => getResponse({
+          provider: this.id,
           config,
           query,
-          this.mapResults(results, query, null, latency, params.backendCountry),
-          'done',
-        )),
+          suggestions,
+          results: this.mapResults({
+            results,
+            query,
+            provider: null,
+            latency,
+            backendCountry: params.backendCountry,
+          }),
+          state: 'done',
+        })),
         this.getOperators()
       );
 
@@ -202,26 +206,26 @@ export default class Cliqz extends BackendProvider {
     const offersProvider = Object.assign({}, this, { id: PROVIDER_OFFERS });
     const offers$ = cliqz$
       .pipe(
-        map(({ offers = [] }) => getResponse(
-          PROVIDER_OFFERS,
+        map(({ offers = [] }) => getResponse({
+          provider: PROVIDER_OFFERS,
           config,
           query,
-          this.mapResults(offers, query, offersProvider.id),
-          'done',
-        )),
+          results: this.mapResults({ results: offers, query, provider: offersProvider.id }),
+          state: 'done',
+        })),
         this.getOperators.call(offersProvider, config)
       );
 
     const snippetsProvider = Object.assign({}, this, { id: PROVIDER_SNIPPETS });
     const snippets$ = cliqz$
       .pipe(
-        map(({ snippets = [] }) => getResponse(
-          PROVIDER_SNIPPETS,
+        map(({ snippets = [] }) => getResponse({
+          provider: PROVIDER_SNIPPETS,
           config,
           query,
-          this.mapResults(snippets, query, snippetsProvider.id),
-          'done',
-        )),
+          results: this.mapResults({ results: snippets, query, provider: snippetsProvider.id }),
+          state: 'done',
+        })),
         this.getOperators.call(snippetsProvider, config)
       );
 

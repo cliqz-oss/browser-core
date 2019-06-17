@@ -52,11 +52,16 @@ function _fetch(url, options, { jsonp } = {}) {
 const isTrackableOriginHeaderFromOurExtension = () => false;
 
 export default _fetch;
+
+const _Headers = Headers;
+const _Request = Request;
+const _Response = Response;
+
 export {
   _fetch as fetch,
-  Headers,
-  Request,
-  Response,
+  _Headers as Headers,
+  _Request as Request,
+  _Response as Response,
   fetchLocal,
   isTrackableOriginHeaderFromOurExtension
 };

@@ -1,6 +1,5 @@
 /* global chai */
 /* global describeModule */
-/* global require */
 
 const yt = [
   ['https://www.youtube.com/watch?v=DFYRQ_zQ-gk', 'DFYRQ_zQ-gk'],

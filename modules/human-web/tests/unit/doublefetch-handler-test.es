@@ -294,6 +294,17 @@ export default describeModule('human-web/doublefetch-handler',
       // for testing purposes, it should be sufficient.
       equals: (url1, url__) => url1 === url__
     },
+    'core/services/pacemaker': {
+      default: {
+        setTimeout() {
+          return { stop() {} };
+        },
+        register() {
+          return { stop() {} };
+        },
+        clearTimeout() { },
+      },
+    },
     'core/kord/inject': {
       ifModuleEnabled(promise) {
         return promise.catch(() => {

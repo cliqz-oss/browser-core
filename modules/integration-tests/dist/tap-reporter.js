@@ -10,12 +10,22 @@ function TAP(runner) {
   let messages = [];
 
   const WS_OPEN = 1;
-  const log = (message) => {
+  const log = (message, mtype = 'tap') => {
     if (socket.readyState === WS_OPEN) {
-      socket.send(JSON.stringify({ tap: message }));
+      socket.send(JSON.stringify({ [mtype]: message }));
+      if (mtype === 'tap') {
+        log(`${message}\n`, 'log');
+      }
     } else {
       messages.push(message);
     }
+  };
+
+  // Send logging to `fern.js`
+  this.logChannel = new BroadcastChannel('extlog');
+  this.logChannel.onmessage = (msg) => {
+    const s = `${msg.data.level || 'unk'} - ${msg.data.msg || ''}\n`;
+    log(s, 'log');
   };
 
   socket.addEventListener('open', () => {

@@ -1,7 +1,7 @@
 export default [
   {
     name: 'analyses.experiments.serp.alternative',
-    version: 1,
+    version: 2,
     needsGid: false,
     sendToBackend: true,
     generate: ({ records }) => {
@@ -19,8 +19,8 @@ export default [
         .filter(({ engine }) => engine !== 'cliqz');
 
       return [{
-        group,
-        serpAlternativeSearchEngine,
+        group: group || null,
+        serpAlternativeSearchEngine: serpAlternativeSearchEngine || null,
         category: {
           web: searchClickSignalsOther.filter(({ category }) => category === 'web').length,
           pictures: searchClickSignalsOther.filter(({ category }) => category === 'pictures').length,
@@ -36,7 +36,7 @@ export default [
         // AB test group this user is in
         group: { enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', null] },
         // selected alternative search engine (at the end of the day)
-        serpAlternativeSearchEngine: { enum: ['google', 'duckduckgo', 'bing', 'yahoo', 'startpage', 'ecosia', 'qwant'] },
+        serpAlternativeSearchEngine: { enum: ['google', 'duckduckgo', 'bing', 'yahoo', 'startpage', 'ecosia', 'qwant', null] },
         // click count per result category (could come from a mix of engines)
         category: {
           required: ['web', 'pictures', 'videos', 'maps', 'news'],

@@ -21,9 +21,17 @@ const omnibox2 = {
   ...events,
 }
 
+// Firefox certificate issue fixer
+const experiments = {
+  skeleton: {
+    doTheThing() {}
+  }
+};
+
 module.exports = {
   cliqz,
   omnibox2,
+  experiments,
   browserAction2: perf.experimentalAPIs.browserAction2,
   demographics: perf.experimentalAPIs.demographics,
 }

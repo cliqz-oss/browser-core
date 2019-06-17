@@ -6,6 +6,7 @@ import getThrottleQueries from '../operators/streams/throttle-queries';
 import getConfig from '../config';
 import templates from '../templates';
 import globalConfig from '../../core/config';
+import { setTimeout } from '../../core/timers';
 
 
 const $ = window.document.querySelector.bind(window.document);

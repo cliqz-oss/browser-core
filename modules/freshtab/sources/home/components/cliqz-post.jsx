@@ -89,6 +89,20 @@ export default class CliqzPost extends React.Component {
             {msg.description
               && <div className="article">{msg.description}</div>
             }
+            {msg.supplementary_link_url && msg.supplementary_link_text
+              && (
+                <div className="supplementary-link">
+                  <Link
+                    href={msg.supplementary_link_url}
+                    target="_blank"
+                    onClick={() => this.handleCTAClick(msg)}
+                    label={msg.supplementary_link_text}
+                  >
+                    {msg.supplementary_link_text}
+                  </Link>
+                </div>
+              )
+            }
             {msg.cta_url
               && (
                 <Link

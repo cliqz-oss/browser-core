@@ -2,7 +2,6 @@
 
 const expect = chai.expect;
 
-const encoding = require('text-encoding');
 const encodingData = require('./encoding-data');
 
 const b641 = encodingData.b641;
@@ -40,14 +39,7 @@ const utf8 = new Uint8Array(
 );
 
 export default describeModule('core/encoding',
-  () => ({
-    'platform/text-encoder': {
-      default: encoding.TextEncoder,
-    },
-    'platform/text-decoder': {
-      default: encoding.TextDecoder,
-    },
-  }),
+  () => ({}),
   () => {
     describe('Encoding tests', function () {
       it('base64', function () {

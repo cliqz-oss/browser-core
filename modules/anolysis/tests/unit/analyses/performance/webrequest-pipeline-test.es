@@ -1,5 +1,6 @@
 /* globals describeModule, chai */
-
+const punycode = require('punycode');
+const tldts = require('tldts');
 require('../../telemetry-schemas-test-helpers')({
   name: 'analysis.performance.webrequest-pipeline.timings',
   metrics: [
@@ -54,6 +55,10 @@ describeModule('webrequest-pipeline/latency-metrics',
       default: () => ({
         stop() {},
       }),
+    },
+    'platform/lib/tldts': tldts,
+    'platform/lib/punycode': {
+      default: punycode,
     },
   }),
   () => {

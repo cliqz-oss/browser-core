@@ -81,9 +81,7 @@ function finishOnboarding() {
 }
 
 async function openPrivacySection() {
-  chrome.tabs.create({});
-  chrome.omnibox2.update({ value: 'about:preferences#privacy-reports' });
-  chrome.omnibox2.enter();
+  chrome.omnibox2.navigateTo('about:preferences#privacy-reports', { target: 'tab' });
 
   telemetrySig({
     action: 'click',

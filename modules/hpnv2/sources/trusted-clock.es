@@ -1,6 +1,7 @@
 import { formatHoursAsYYYYMMDD } from './utils';
 import logger from './logger';
 import prefs from '../core/prefs';
+import { setInterval, clearInterval } from '../core/timers';
 
 // After we adjusted "config_ts" to sync with the server clock, it is
 // more likely that it will trigger time-based messages in other modules.
