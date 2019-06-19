@@ -1,7 +1,6 @@
 import Adblocker from '../../platform/lib/adblocker';
 import ResourceLoader from '../../core/resource-loader';
 import config from '../../core/config';
-import { parse } from '../../core/tlds';
 import logger from '../common/offers_v2_logger';
 
 const ONE_HOUR = 60 * 60 * 1000;
@@ -45,9 +44,6 @@ export default class Blacklist {
   }
 
   has(url) {
-    return this.engine.match(Adblocker.makeRequest(
-      { url, type: 2, sourceUrl: url },
-      parse,
-    )).match;
+    return this.engine.match(Adblocker.makeRequest({ url })).match;
   }
 }

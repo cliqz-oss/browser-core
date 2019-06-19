@@ -17,9 +17,7 @@ export default describeModule('core/app/module', () => ({
   'platform/lib/punycode': {
     default: punycode,
   },
-  'platform/lib/tldts': {
-    default: tldts,
-  },
+  'platform/lib/tldts': tldts,
 }), () => {
   describe('module lifecycle states', () => {
     let Module;

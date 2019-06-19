@@ -73,7 +73,7 @@ export default class UrlData {
    * @method getPatternRequest
    * @returns {PatternMatchRequest}
    */
-  getPatternRequest(cpt = 2) {
+  getPatternRequest(cpt = 'script') {
     if (this.patternsRequest === null) {
       this.patternsRequest = tokenizeUrl(this.getNormalizedUrl(), cpt);
     }

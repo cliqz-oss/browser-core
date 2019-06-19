@@ -1,6 +1,6 @@
 import { registerContentScript } from '../core/content/helpers';
 
-import Adblocker from '../platform/lib/adblocker-cosmetics';
+import { Cosmetics, Circumvention } from '../platform/lib/adblocker-cosmetics';
 
 function isChrome() {
   try {
@@ -11,18 +11,20 @@ function isChrome() {
 }
 
 registerContentScript('adblocker', 'http*', (window, chrome, CLIQZ) => {
-  if (!window.location.href) {
-    return;
-  }
-
   /**
    * This function will immediatly query the background for cosmetics (scripts,
    * CSS) to inject in the page using its second argument function; then proceed
-   * to the injection.
+   * to the injection. It will also monitor the DOM using a MutationObserver to
+   * know which cosmetics/scriptlets to inject.
    */
-  Adblocker.injectCosmetics(
+  Cosmetics.injectCosmetics(
     window,
-    () => CLIQZ.app.modules.adblocker.action('getCosmeticsFilters'),
-    isChrome(), // enable Instart Logic defusing for Chrome only
+    payload => CLIQZ.app.modules.adblocker.action('getCosmeticsFilters', payload),
+    true, /* enable mutation observer */
   );
+
+  if (isChrome()) {
+    // Enable Instart Logic defusing for Chrome only
+    Circumvention.injectCircumvention(window);
+  }
 });

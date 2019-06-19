@@ -170,7 +170,8 @@ export default class Adblocker {
       return false;
     }
 
-    const result = this.manager.engine.match(makeRequestFromContext(context));
+    const request = makeRequestFromContext(context);
+    const result = this.manager.engine.match(request);
 
     let ret = true;
     if (result.redirect !== undefined) {

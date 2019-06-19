@@ -1,3 +1,7 @@
-import * as adblocker from '@cliqz/adblocker';
+import * as Cosmetics from '@cliqz/adblocker/dist/cosmetics.esm';
+import * as Circumvention from '@cliqz/adblocker/dist/circumvention.esm';
 
-export default adblocker;
+export {
+  Circumvention,
+  Cosmetics
+};

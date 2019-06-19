@@ -162,7 +162,7 @@ function getBundlesTree(modulesTree) {
     sourceMapContents: true,
     // required in case source module format is not esmb
     globalName: 'CliqzGlobal',
-    rollup: !cliqzConfig.TESTING,
+    rollup: true,
   };
 
   const output = new Funnel(

@@ -26,7 +26,7 @@ const systemConfig = {
     'react-tooltip': 'react-tooltip/standalone/react-tooltip.js',
     'rxjs/operators': 'rxjs/operators/index',
     'deep-equal': 'modules/platform/lib/deep-equal',
-    'tldts': `node_modules/tldts/dist/tldts-experimental.${cliqzEnv.DEVELOPMENT ? 'umd.min' : 'esm'}.js`,
+    'tldts': 'node_modules/tldts/dist/tldts-experimental.esm.js',
   },
   paths: {
     'specific/*': './specific/firefox/*',

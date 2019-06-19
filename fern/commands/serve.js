@@ -30,7 +30,12 @@ program.command(`serve ${common.configParameter}`)
     process.env.CLIQZ_ENVIRONMENT = options.environment || 'development';
     process.env.CLIQZ_SOURCE_MAPS = options.maps;
     process.env.CLIQZ_SOURCE_DEBUG = options.debug;
-    process.env.CLIQZ_INCLUDE_TESTS = options.includeTests || '';
+    process.env.CLIQZ_INCLUDE_TESTS = options.includeTests || (
+      (configPath || process.env.CLIQZ_CONFIG_PATH).includes('/ci/')
+        ? 'true'
+        : ''
+    );
+
     process.env.CLIQZ_V6_BUILD = options.v6 || '';
 
     const cfg = setConfigPath(configPath);

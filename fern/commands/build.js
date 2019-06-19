@@ -25,12 +25,15 @@ program.command(`build ${common.configParameter}`)
     process.env.CLIQZ_ENVIRONMENT = options.environment;
     process.env.CLIQZ_SOURCE_MAPS = options.maps;
     process.env.CLIQZ_SOURCE_DEBUG = options.debug;
-    process.env.CLIQZ_INCLUDE_TESTS = options.includeTests || '';
+    process.env.CLIQZ_INCLUDE_TESTS = options.includeTests || (
+      (configPath || process.env.CLIQZ_CONFIG_PATH).includes('/ci/')
+        ? 'true'
+        : ''
+    );
     process.env.CLIQZ_V6_BUILD = options.v6 || '';
 
     const cfg = setConfigPath(configPath, options.toSubdir);
     const OUTPUT_PATH = cfg.OUTPUT_PATH;
-    const CONFIG = cfg.CONFIG;
 
     // Enabled code linting
     process.env.CLIQZ_ESLINT = (

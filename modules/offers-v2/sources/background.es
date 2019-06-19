@@ -637,7 +637,7 @@ export default background({
       const fakeUrlData = new UrlData(fakeUrl);
       // Here we pass a cpt (11) to make request, so it will only match to
       // the special pattern for the categories extracted from the page
-      const matches = this.categoryHandler.newUrlEvent(fakeUrlData.getPatternRequest(11));
+      const matches = this.categoryHandler.newUrlEvent(fakeUrlData.getPatternRequest('xhr'));
       if (matches.matches.size > 0) {
         logger.log('Matching categories from content category', categories, matches.getCategoriesIDs(), url);
         // As if the category hit happens on the real page

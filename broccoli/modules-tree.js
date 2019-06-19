@@ -292,7 +292,7 @@ function getSourceTree() {
   let sources = getSourceFunnel();
   const config = writeFile('core/config.es', `export default ${JSON.stringify(cliqzConfig, null, 2)}`);
 
-  const includeTests = process.env.CLIQZ_INCLUDE_TESTS || env.TESTING;
+  const includeTests = env.INCLUDE_TESTS;
 
   sources = new MergeTrees([
     sources,

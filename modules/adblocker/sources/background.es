@@ -1,10 +1,5 @@
-import tabs from '../platform/tabs';
-import { chrome } from '../platform/globals';
-
 import background from '../core/base/background';
 import inject from '../core/kord/inject';
-import stopwatch from '../core/helpers/stopwatch';
-import { parse } from '../core/tlds';
 
 import logger from './logger';
 import Adblocker from './adblocker';
@@ -162,7 +157,7 @@ export default background({
   },
 
   actions: {
-    getCosmeticsFilters(sender) {
+    getCosmeticsFilters(payload, sender) {
       if (this.isAdblockerReady() === false) {
         return { active: false };
       }
@@ -170,61 +165,21 @@ export default background({
       const tabUrl = sender.tab.url;
       const url = sender.url;
 
-      if (!isSupportedProtocol(tabUrl) || !isSupportedProtocol(url)
-        || !this.adblocker.isAdblockerEnabledForUrl(tabUrl)) {
+      if (
+        isSupportedProtocol(tabUrl) === false
+        || isSupportedProtocol(url) === false
+        || this.adblocker.isAdblockerEnabledForUrl(tabUrl) === false
+      ) {
         return { active: false };
       }
 
-      let timer = stopwatch('getCosmeticsFilters', 'adblocker');
-      const { hostname, domain } = parse(url);
-      const { active, styles, scripts } = this.adblocker.manager.engine.getCosmeticsFilters({
-        url,
-        hostname: hostname || '',
-        domain: domain || '',
-      });
-      timer.stop();
-
-      // This can happen if cosmetic filters are disabled in the adblocker
-      if (active === false) {
-        return { active: false };
-      }
-
-      // If the platform does not support `tabs.insertCSS` then we inject
-      // everything through content-script (e.g.: react-native).
-      if (!tabs.insertCSS) {
-        return { active, scripts, styles };
-      }
-
-      // Use tabs API to inject cosmetics
-      if (styles.length > 0) {
-        timer = stopwatch('injectCSS', 'adblocker');
-        const cb = () => {
-          timer.stop();
-          if (chrome.runtime.lastError) {
-            logger.error('Error while injecting CSS', chrome.runtime.lastError.message);
-          }
-        };
-
-        const promise = tabs.insertCSS(
-          sender.tab.id,
-          {
-            allFrames: false,
-            code: styles,
-            cssOrigin: 'user',
-            frameId: sender.frameId,
-            matchAboutBlank: false,
-            runAt: 'document_start',
-          },
-          cb,
+      return new Promise((resolve) => {
+        this.adblocker.manager.engine.onRuntimeMessage(
+          { action: 'getCosmeticsFilters', ...payload },
+          sender,
+          resolve,
         );
-
-        if (promise !== undefined) {
-          promise.then(cb).catch(cb);
-        }
-      }
-
-      // Inject scripts from content script
-      return { active, scripts };
+      });
     },
 
     /**

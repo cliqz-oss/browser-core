@@ -27,7 +27,7 @@ program.command(`test ${common.configParameter}`)
   .option('--extension-log [output]', 'save extension logger messages to the file. When using with `run_tests_in_docker.sh`, the file should be in the directory `report`.')
   .option('--v6', 'include fast v6 build - v-shaped 6 cylinder engine')
   .action((configPath, options) => {
-    process.env.CLIQZ_ENVIRONMENT = options.environment || 'testing';
+    process.env.CLIQZ_INCLUDE_TESTS = 'true';
     const cfg = setConfigPath(configPath);
     const CONFIG = cfg.CONFIG;
     const OUTPUT_PATH = cfg.OUTPUT_PATH;
