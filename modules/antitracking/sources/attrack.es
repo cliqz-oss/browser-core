@@ -1238,6 +1238,9 @@ export default class CliqzAttrack {
   }
 
   onPageStaged(tabId, page) {
+    if (!page) {
+      return;
+    }
     let report = {
       bugs: {},
       others: {},

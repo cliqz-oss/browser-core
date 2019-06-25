@@ -26,7 +26,7 @@ module.exports = {
   "default_prefs": {
     "modules.human-web.enabled": true,
     "modules.offers-v2.enabled": true,
-    "modules.message-center.enabled": false,
+    "modules.message-center.enabled": true,
     "modules.antitracking.enabled": true,
     "modules.anti-phishing.enabled": false,
     "modules.adblocker.enabled": true,
