@@ -49,5 +49,28 @@ export default describeModule('core/app/module', () => ({
       m.disable();
       chai.expect(m.isDisabled).to.be.true;
     });
+
+    it('reports correct isReady status if markedAsEnabling twice', async () => {
+      const m = new Module('test');
+      await m.markAsEnabling();
+      const isReady = m.isReady();
+      await m.markAsEnabling();
+      chai.expect(m.isReady()).to.be.equal(isReady);
+    });
+  });
+
+  describe('when enabling module previously marked as disabled', function () {
+    let Module;
+
+    beforeEach(function () {
+      Module = this.module().default;
+    });
+
+    it('reports correct isReady status', async () => {
+      const m = new Module('test');
+      await m.markAsDisabled();
+      await m.enable();
+      await chai.expect(m.isReady()).to.be.fulfilled;
+    });
   });
 });
