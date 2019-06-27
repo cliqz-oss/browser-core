@@ -105,11 +105,6 @@ export default class IntentOffersHandler {
 
       const intentOffers = aIntentOffers.filter(keepOffer);
 
-      if (logger.LOG_LEVEL === 'debug') {
-        logger.debug('Following offers were fetched');
-        logger.logObject(intentOffers.map(offer => offer.offer_id));
-      }
-
       this.setIntentOffers(intent, intentOffers);
       return Promise.resolve(true);
     });

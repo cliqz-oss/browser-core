@@ -18,14 +18,10 @@ function sendMessageToAndroid(action, ...args) {
 }
 
 export async function queryCliqz(q) {
-  return chrome.omnibox2.updateMany([{
-    focused: true,
-    triggerOpenLocation: true,
-  }, {
-    value: q,
-    searchString: q,
-    triggerInputEvent: true,
-  }]);
+  return chrome.omnibox2.query(q, {
+    focus: true,
+    openLocation: true
+  });
 }
 
 export function openLinkAndroid(url) {

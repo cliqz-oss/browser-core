@@ -410,7 +410,7 @@ export class KeyPipeline extends CachedEntryPipeline {
  * persistence, or load old data.
  */
 export default class TokenTelemetry {
-  constructor(telemetry, qsWhitelist, config, database, options) {
+  constructor(telemetry, qsWhitelist, config, database, shouldCheckToken, options) {
     const opts = Object.assign({}, DEFAULT_CONFIG, options);
     Object.keys(DEFAULT_CONFIG).forEach((confKey) => {
       this[confKey] = opts[confKey];
@@ -418,6 +418,7 @@ export default class TokenTelemetry {
     this.telemetry = telemetry;
     this.qsWhitelist = qsWhitelist;
     this.config = config;
+    this.shouldCheckToken = shouldCheckToken;
     this.subjectTokens = new Subject();
     this.tokenSendQueue = new Subject();
     this.keySendQueue = new Subject();
@@ -555,7 +556,7 @@ export default class TokenTelemetry {
 
     /* eslint camelcase: 'off' */
     kv.forEach(([k, v]) => {
-      if (v.length < 6) {
+      if (!this.shouldCheckToken(v)) {
         return;
       }
       const token = md5(v);

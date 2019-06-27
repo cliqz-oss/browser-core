@@ -8,14 +8,11 @@
 import Category from './category';
 import logger from '../common/offers_v2_logger';
 import SimpleDB from '../../core/persistence/simple-db';
-import setTimeoutInterval from '../../core/helpers/timeout';
-import { setTimeout } from '../../core/timers';
+import pacemaker from '../../core/services/pacemaker';
 import { shouldKeepResource } from '../utils';
 import prefs from '../../core/prefs';
 import initialCategories from './initial-categories';
 
-// Constant defining how frequently we want to fetch categories from BE
-const FETCH_FREQ_MS = 1000 * 60 * 60 * 1;
 // name of the key on the DB
 const CATEGORY_FETCHER_DB_ID = 'cliqz-cat-fetcher';
 
@@ -59,9 +56,11 @@ export default class CategoryFetcher {
   init() {
     const startIntervalFetch = () => {
       if (this.intervalTimer === null) {
-        this.intervalTimer = setTimeoutInterval(this._performFetch.bind(this), FETCH_FREQ_MS);
         // we want to perform the fetch in a while not right now
-        this.startTimer = setTimeout(this._performFetch.bind(this), 1000 * 5);
+        this.startTimer = pacemaker.setTimeout(() => {
+          this._performFetch();
+          this.intervalTimer = pacemaker.everyHour(this._performFetch.bind(this));
+        }, 1000 * 5);
       }
     };
 
@@ -84,8 +83,10 @@ export default class CategoryFetcher {
     if (this.intervalTimer) {
       this.intervalTimer.stop();
       this.intervalTimer = null;
-      clearTimeout(this.startTimer);
     }
+
+    pacemaker.clearTimeout(this.startTimer);
+    this.startTimer = null;
   }
 
   /**
@@ -115,9 +116,6 @@ export default class CategoryFetcher {
       this._setLatestRevision(revision);
 
       logger.info(`Fetched ${categories.length} categories from backend`);
-      if (logger.LOG_LEVEL === 'debug') {
-        logger.logObject(categories);
-      }
 
       // for each category now we do the update, for now the backend will return
       // an empty list if the revision is the same, meaning that there is nothing

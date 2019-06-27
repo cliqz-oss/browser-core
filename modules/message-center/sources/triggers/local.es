@@ -23,7 +23,34 @@ export default function getLocalMessages() {
           fn: 'isDesktopBrowser'
         }
       ]
-    }
+    },
+    {
+      id: 'adblocker',
+      active: true,
+      version: 1,
+      type: 'notification',
+      title: getMessage('freshtab_cliqz_post_adblock_title'),
+      description: getMessage('freshtab_cliqz_post_adblock_description'),
+      icon: './images/adblocker-on.png',
+      supplementary_link_text: getMessage('freshtab_cliqz_post_adblock_learn_more_text'),
+      supplementary_link_url: getMessage('freshtab_cliqz_post_adblock_learn_more_url'),
+      cta_text: '',
+      cta_url: '',
+      cta_tooltip: '',
+      handler: 'MESSAGE_HANDLER_FRESHTAB_CLIQZPOST',
+      position: 'post',
+      show_later: false,
+      rules: [
+        {
+          fn: 'prefHasNotChanged',
+          value: 'cliqz-adb',
+        },
+        {
+          fn: 'installDaysSinceEpochLessThan',
+          value: 18052, // Tue, Jun 05, 2019 - 1.37.0 released date
+        },
+      ],
+    },
   ];
 
   return Promise.resolve(LOCAL_DATA);

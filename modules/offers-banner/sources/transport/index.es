@@ -20,10 +20,9 @@ export function send(data, type) {
 
 function commonTelemetry(msg, view = 'box') {
   if (!msg) { return; }
-  const { target, action = 'click', vote, comments, offersCount } = msg;
+  const { target, action = 'click', vote, offersCount } = msg;
   const signal = {
     action,
-    comments,
     offer_count: offersCount,
     target,
     type: 'offrz',

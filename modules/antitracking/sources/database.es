@@ -24,7 +24,7 @@ export default class AttrackDatabase {
 
       this.db.version(1).stores(tables);
 
-      return this.db;
+      return this.db.open();
     });
     return this._ready;
   }

@@ -214,6 +214,10 @@ export default background({
     resume() {
       this.config.paused = false;
     },
+
+    setWhiteListCheck(fn) {
+      this.attrack.isWhitelisted = fn;
+    }
   },
 
   popupActions: {

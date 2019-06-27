@@ -1,4 +1,4 @@
-import setTimeoutInterval from '../../core/helpers/timeout';
+import pacemaker from '../../core/services/pacemaker';
 
 import Backend from './backend-communication';
 import logger from './logger';
@@ -23,6 +23,7 @@ export default class SignalsQueue {
 
     this.initialized = false;
     this.interval = null;
+    this.sleepTimeout = null;
 
     // Send signals by chunks, at regular intervals
     this.batchSize = config.get('signalQueue.batchSize'); // 5
@@ -42,11 +43,10 @@ export default class SignalsQueue {
   unload() {
     logger.debug('unload signal queue');
     this.initialized = false;
-    if (this.interval !== null) {
-      this.interval.stop();
-      this.interval = null;
-    }
-    clearTimeout(this.sleepTimeout);
+    this.stopListening();
+
+    pacemaker.clearTimeout(this.sleepTimeout);
+    this.sleepTimeout = null;
   }
 
   getSize() {
@@ -56,7 +56,7 @@ export default class SignalsQueue {
   sleep(time) {
     return new Promise((resolve) => {
       logger.debug('signal queue sleeps for', time, 'ms');
-      this.sleepTimeout = setTimeout(
+      this.sleepTimeout = pacemaker.setTimeout(
         resolve,
         time,
       );
@@ -68,7 +68,7 @@ export default class SignalsQueue {
    */
   startListening() {
     logger.debug('signal queue start listening');
-    this.interval = setTimeoutInterval(
+    this.interval = pacemaker.register(
       async () => {
         // Only try to send a new batch if the signal queue is initialized
         if (this.initialized) {
@@ -87,8 +87,13 @@ export default class SignalsQueue {
           }
         }
       },
-      this.sendInterval,
+      { timeout: this.sendInterval },
     );
+  }
+
+  stopListening() {
+    pacemaker.clearTimeout(this.interval);
+    this.interval = null;
   }
 
   /**

@@ -17,7 +17,7 @@ class AdultAnswerResult extends Subresult {
     const action = JSON.parse(href.split('cliqz-actions,')[1]);
     const adultAssistant = this.resultTools.assistants.adult;
     const actionName = action.actionName;
-    adultAssistant[actionName]();
+    adultAssistant[actionName](this.query);
   }
 }
 

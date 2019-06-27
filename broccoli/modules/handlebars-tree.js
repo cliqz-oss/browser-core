@@ -7,6 +7,7 @@ const MergeTrees = require('broccoli-merge-trees');
 const broccoliHandlebars = require('broccoli-handlebars-precompiler');
 
 const cliqzConfig = require('../config');
+const useV6Build = cliqzConfig.use_v6_build;
 
 module.exports = function getHandlebarsTree(modulesTree) {
   const trees = cliqzConfig.modules.filter( name => {
@@ -37,7 +38,7 @@ module.exports = function getHandlebarsTree(modulesTree) {
       inputFiles: [
         "**/*.js"
       ],
-      header: `
+      header: useV6Build ? `'use strict'; import Handlebars from 'handlebars';` : `
         'use strict';
         System.register(['handlebars'], function (_export) {
         if (typeof Handlebars === 'undefined') { var Handlebars; }
@@ -48,7 +49,7 @@ module.exports = function getHandlebarsTree(modulesTree) {
             }],
             execute: function () {
       `,
-      footer: `
+      footer: useV6Build ? `export default templates;` : `
               _export('default', templates);
             }
           };

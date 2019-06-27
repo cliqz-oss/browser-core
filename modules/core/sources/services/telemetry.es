@@ -5,6 +5,7 @@ import { isPrivateMode, getWindow } from '../browser';
 import inject from '../kord/inject';
 import EventEmitter from '../event-emitter';
 import Logger from '../logger';
+import { deadline } from '../decorators';
 
 const logger = Logger.get('telemetry', {
   level: 'log',
@@ -125,12 +126,9 @@ export function service(app) {
     return send(...args);
   };
 
-  Promise.race([
-    app.ready(),
-    // we should still start the telemetry service even in the
-    // extreme case in which app start does not resolve
-    new Promise(resolve => setTimeout(resolve, 30000)),
-  ]).then(() => {
+  // we should still start the telemetry service even in the
+  // extreme case in which app start does not resolve
+  deadline(app.ready(), 30000).then(() => {
     logger.log(`starting telemetry service with ${startupQueue.length} signals in the queue`);
     ready = true;
     while (startupQueue.length > 0) {
@@ -191,4 +189,4 @@ export function service(app) {
   };
 }
 
-export default inject.service('telemetry', ['push']);
+export default inject.service('telemetry', ['push', 'isEnabled']);

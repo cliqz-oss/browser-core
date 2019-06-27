@@ -1,20 +1,22 @@
 import telemetry from './base';
 
-export function statsClickSignal(card) {
+export function statsClickSignal(index) {
   telemetry({
     type: 'home',
     view: 'stats',
     action: 'click',
-    target: card,
+    target: 'card',
+    index,
   });
 }
 
-export function statsHoverSignal(card) {
+export function statsHoverSignal(index) {
   telemetry({
     type: 'home',
     view: 'stats',
     action: 'hover',
-    target: card,
+    target: 'card',
+    index,
   });
 }
 

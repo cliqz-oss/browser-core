@@ -9,8 +9,9 @@ import events from '../core/events';
 import { getDetailsFromUrl } from '../core/url';
 import UrlData from './common/url_data';
 import inject from '../core/kord/inject';
-import { setTimeout } from '../core/timers';
+import { nextTick } from '../core/decorators';
 import LRU from '../core/LRU';
+import { rewriteUrlForOfferMatching } from './utils';
 
 export default class EventHandler {
   constructor() {
@@ -20,9 +21,9 @@ export default class EventHandler {
 
     this.onTabLocChanged = this.onTabLocChanged.bind(this);
 
-    // We need to subscribe here to get events everytime the location is
-    // changing and is the a new url. We had issues since everytime we switch
-    // the tabs we got the event from core.locaiton_change and this is not correct
+    // We need to subscribe here to get events every time the location is
+    // changing and is the a new url. We had issues since every time we switch
+    // the tabs we got the event from core.location_change and this is not correct
     // for our project.
     events.sub('content:location-change', this.onTabLocChanged);
 
@@ -31,11 +32,15 @@ export default class EventHandler {
     this.requestListenerAdded = false;
 
     // Don't execute triggers on localhost, IPs and "internal" urls
-    this.notAllowedUrls = RegExp('(admin|login|logout|^https?://localhost|^https?://(\\d+\\.){3}\\d+|\\.(dev|foo)\\b)');
+    const admin = 'admin|login|logout';
+    const localhost = '^https?://localhost|^https?://(\\d+\\.){3}\\d+';
+    const dev = '\\.(dev|foo)\\b';
+    const googleRedirect = '\\bgoogle\\.[^/]+/url\\?';
+    this.notAllowedUrls = RegExp(`${admin}|${localhost}|${dev}|${googleRedirect}`, 'i');
 
     // Ignore and do not propagate reloads: if a reload happens on
     // a checkout page, we would register a false conversion. See EX-7839.
-    // As of technical implmentation, the best solution would be a weak
+    // As of technical implementation, the best solution would be a weak
     // map from tabs to last urls, but in this place we have only tab IDs.
     // To avoid memory leaks (each new tab adds a new entry to the map),
     // we allow old entries to expire. The time-to-live value is selected
@@ -151,8 +156,10 @@ export default class EventHandler {
     }
     this.tabToLastUrl.set(data.tabId, data.url);
 
+    const handlerUrl = rewriteUrlForOfferMatching(data.url);
+
     // else we emit the event here
-    this.onLocationChangeHandler(data.url, data.referrer);
+    this.onLocationChangeHandler(handlerUrl, data.referrer);
   }
 
   // ///////////////////////////////////////////////////////////////////////////
@@ -175,7 +182,7 @@ export default class EventHandler {
       this._publish(this.urlChangeCbs, urlData);
     } catch (e) {
       // log this error, is nasty, something went wrong
-      logger.error('Exception catched when processing a new event: ', e);
+      logger.error('Exception caught when processing a new event: ', e);
     }
   }
 
@@ -207,13 +214,13 @@ export default class EventHandler {
   //
   _publish(callbacksMap, args) {
     callbacksMap.forEach((cargs, cb) => {
-      setTimeout(() => {
+      nextTick(() => {
         try {
           cb(args, cargs);
         } catch (e) {
           logger.error('Error on publishing an event:', e);
         }
-      }, 0);
+      });
     });
   }
 

@@ -2,14 +2,6 @@
 import App from '../core/app';
 import config from '../core/config';
 
-async function cleanLegacyDatabases() {
-  if (chrome.cliqzdbmigration) {
-    await chrome.cliqzdbmigration.deleteDatabase('antitracking');
-    await chrome.cliqzdbmigration.deleteDatabase('cliqz-adb');
-    await chrome.cliqzdbmigration.deleteDatabase('anolysis');
-  }
-}
-
 const CLIQZ = {};
 CLIQZ.app = new App({
   version: chrome.runtime.getManifest().version

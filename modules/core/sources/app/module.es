@@ -8,12 +8,20 @@ import Service from './service';
 import inject from '../kord/inject';
 import { Window, mapWindows } from '../../platform/browser';
 import EventEmitter from '../event-emitter';
+import { ModuleDisabledError } from './module-errors';
 
 export const lifecycleEvents = {
   enabled: 'enabled',
   disabled: 'disabled',
 };
 const eventNames = Object.keys(lifecycleEvents).map(k => lifecycleEvents[k]);
+
+const AppStates = Object.freeze({
+  NOT_INITIALIZED: Symbol('NOT_INITIALIZED'),
+  ENABLING: Symbol('ENABLING'),
+  ENABLED: Symbol('ENABLED'),
+  DISABLED: Symbol('DISABLED'),
+});
 
 class DefaultWindowMap extends DefaultMap {
   get(_key) {
@@ -32,14 +40,14 @@ class DefaultWindowMap extends DefaultMap {
 }
 
 export default class Module extends EventEmitter {
-  constructor(name, settings) {
+  constructor(name, settings = {}) {
     super(eventNames);
     this.name = name;
     this.loadingTime = 0;
     this.loadingTimeSync = 0;
     this.settings = settings;
     this._bgReadyDefer = new Defer();
-    this._state = 'disabled';
+    this._state = AppStates.NOT_INITIALIZED;
     this._stat = {
       init: 0,
       load: 0
@@ -88,24 +96,34 @@ export default class Module extends EventEmitter {
     return !!modules[this.name].isOnionReady;
   }
 
+  get isNotInitialized() {
+    return this._state === AppStates.NOT_INITIALIZED;
+  }
+
   get isEnabled() {
-    return this._state === 'enabled';
+    return this._state === AppStates.ENABLED;
   }
 
   get isEnabling() {
-    return this._state === 'enabling';
+    return this._state === AppStates.ENABLING;
   }
 
   get isDisabled() {
-    return this._state === 'disabled';
+    return this._state === AppStates.DISABLED;
   }
 
   markAsEnabling() {
-    this._state = 'enabling';
+    this._state = AppStates.ENABLING;
+  }
+
+  markAsDisabled() {
+    this._state = AppStates.DISABLED;
+    this._bgReadyDefer.reject(new ModuleDisabledError(this.name));
   }
 
   enable(app = null) {
     console.log('Module', this.name, 'start loading');
+    this.markAsEnabling();
     const loadingStartedAt = Date.now();
     return Promise.resolve(this.backgroundModule)
       .then((background) => {
@@ -116,14 +134,14 @@ export default class Module extends EventEmitter {
         return initPromise;
       })
       .then(() => {
-        this._state = 'enabled';
+        this._state = AppStates.ENABLED;
         this.loadingTime = Date.now() - loadingStartedAt;
         console.log('Module: ', this.name, ' -- Background loaded');
         this._bgReadyDefer.resolve();
         this.emit(lifecycleEvents.enabled);
       })
       .catch((e) => {
-        this._state = 'disabled';
+        this._state = AppStates.DISABLED;
         this._bgReadyDefer.reject(e);
         throw e;
       });
@@ -133,6 +151,8 @@ export default class Module extends EventEmitter {
     console.log('Module', this.name, 'start unloading');
     const background = this.background;
 
+    // TODO: remove quick disable because it's not needed anymore
+    // TODO: remove quick disable usages
     if (quick) {
       // background does not need to have beforeBrowserShutdown defined
       const quickShutdown = background.beforeBrowserShutdown
@@ -140,7 +160,7 @@ export default class Module extends EventEmitter {
       quickShutdown.call(background);
     } else {
       background.unload();
-      this._state = 'disabled';
+      this._state = AppStates.DISABLED;
       this.loadingTime = null;
       this._bgReadyDefer = new Defer();
     }

@@ -5,7 +5,6 @@ import platform, * as platformAll from '../platform/platform';
 const { OS } = platformAll;
 
 export {
-  isPlatformAtLeastInVersion,
   getResourceUrl
 } from '../platform/platform';
 
@@ -15,7 +14,6 @@ export function notImplemented() {
 
 const { channel = '' } = config.settings;
 
-export const isBootstrap = platform.isBootstrap;
 export const isFirefox = platform.isFirefox;
 export const isMobile = platform.isMobile || Boolean(config.isMobile);
 export const isChromium = platform.isChromium;

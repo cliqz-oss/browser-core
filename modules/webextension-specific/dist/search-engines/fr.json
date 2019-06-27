@@ -10,7 +10,8 @@
         "template": "https://suchen.cliqz.com/#{searchTerms}"
       }
     },
-    "searchForm": "https://suchen.cliqz.com"
+    "searchForm": "https://suchen.cliqz.com",
+    "alias": "#cl"
   },
   {
     "name": "Google",
@@ -40,7 +41,8 @@
         ]
       }
     },
-    "searchForm": "https://www.google.com/search"
+    "searchForm": "https://www.google.com/search",
+    "alias": "#go"
   },
   {
     "name": "Bing",
@@ -79,7 +81,8 @@
         ]
       }
     },
-    "searchForm": "https://www.bing.com/search"
+    "searchForm": "https://www.bing.com/search",
+    "alias": "#bi"
   },
   {
     "name": "Amazon.fr",
@@ -113,7 +116,8 @@
           }
         ]
       }
-    }
+    },
+    "alias": "#am"
   },
   {
     "name": "DuckDuckGo",
@@ -144,7 +148,8 @@
         ]
       }
     },
-    "searchForm": "https://duckduckgo.com/"
+    "searchForm": "https://duckduckgo.com/",
+    "alias": "#dd"
   },
   {
     "name": "eBay",
@@ -177,7 +182,8 @@
           }
         ]
       }
-    }
+    },
+    "alias": "#eb"
   },
   {
     "name": "Portail Lexical - CNRTL",
@@ -199,7 +205,8 @@
           }
         ]
       }
-    }
+    },
+    "alias": "#pl"
   },
   {
     "name": "Qwant",
@@ -235,7 +242,8 @@
         ]
       }
     },
-    "searchForm": "https://www.qwant.com/"
+    "searchForm": "https://www.qwant.com/",
+    "alias": "#qw"
   },
   {
     "name": "Wikipédia (fr)",
@@ -271,6 +279,7 @@
         ]
       }
     },
-    "searchForm": "https://fr.wikipedia.org/wiki/Spécial:Recherche"
+    "searchForm": "https://fr.wikipedia.org/wiki/Spécial:Recherche",
+    "alias": "#wi"
   }
 ]

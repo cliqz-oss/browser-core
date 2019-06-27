@@ -288,6 +288,10 @@ function draw(data) {
   const cc = document.getElementById('control-center');
   cc.innerHTML = templates.template(data);
 
+  if (data.compactView) {
+    $('#control-center').addClass('isCompact');
+  }
+
   function closeSettingAccordionSection() {
     $('.setting-accordion .accordion-active-title').removeClass('active');
     $('.setting-accordion .setting-accordion-section-content').slideUp(150, () => {

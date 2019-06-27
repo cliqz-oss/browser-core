@@ -2,11 +2,11 @@ import History from '../platform/history/history';
 import moment from '../platform/lib/moment';
 
 import EventEmitter from '../core/event-emitter';
-import PersistentMap from '../core/persistence/map';
-import setTimeoutInterval from '../core/helpers/timeout';
+import persistentMapFactory from '../core/persistence/map';
+import pacemaker from '../core/services/pacemaker';
 import PatternMatching from '../platform/lib/adblocker';
 
-import tokenize, { HOUR, SECOND } from './utils';
+import tokenize, { HOUR } from './utils';
 import logger from './logger';
 
 // 90 days of 24 hours
@@ -39,11 +39,14 @@ export default class HistoryProcessor extends EventEmitter {
   constructor() {
     super(['processedVisits']);
 
-    this.processedHours = new PersistentMap('history-analyzer-processor');
+    this.processedHours = null;
     this.processInterval = null;
   }
 
   async init() {
+    const PersistentMap = await persistentMapFactory();
+    this.processedHours = new PersistentMap('history-analyzer-processor');
+
     await this.processedHours.init();
 
     // Make sure we only keep keys which are valid timestamps
@@ -85,7 +88,7 @@ export default class HistoryProcessor extends EventEmitter {
     );
 
     // Start processing one bucket at a time.
-    this.processInterval = setTimeoutInterval(
+    this.processInterval = pacemaker.everyFewSeconds(
       async () => {
         if (hoursToProcess.length <= 0) {
           // Stop history-analyzer if there is nothing more to process
@@ -98,15 +101,12 @@ export default class HistoryProcessor extends EventEmitter {
           }
         }
       },
-      3 * SECOND, // Process one hour of history every 3 second
     );
   }
 
   unload() {
-    if (this.processInterval !== null) {
-      this.processInterval.stop();
-      this.processInterval = null;
-    }
+    pacemaker.clearTimeout(this.processInterval);
+    this.processInterval = null;
     this.processedHours.unload();
   }
 

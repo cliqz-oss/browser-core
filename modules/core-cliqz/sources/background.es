@@ -4,18 +4,19 @@ import prefs from '../core/prefs';
 import inject from '../core/kord/inject';
 import config from '../core/config';
 import Storage from '../core/storage';
+import pacemaker from '../core/services/pacemaker';
 
 export default background({
-  requiresServices: ['session'],
+  requiresServices: ['session', 'pacemaker'],
 
   init(settings = {}) {
     this.settings = settings;
 
     language.init();
 
-    this.report = setTimeout(this.reportStartupTime.bind(this), 1000 * 60);
+    this.report = pacemaker.setTimeout(this.reportStartupTime.bind(this), 1000 * 60);
 
-    this.supportInfo = setTimeout(() => {
+    this.supportInfo = pacemaker.setTimeout(() => {
       if (config.settings.channel === 40) {
         this.browserDetection();
       }
@@ -23,8 +24,12 @@ export default background({
   },
 
   unload() {
-    clearTimeout(this.report);
-    clearTimeout(this.supportInfo);
+    pacemaker.clearTimeout(this.report);
+    this.report = null;
+
+    pacemaker.clearTimeout(this.supportInfo);
+    this.supportInfo = null;
+
     language.unload();
   },
 

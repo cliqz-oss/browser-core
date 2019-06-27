@@ -7,7 +7,7 @@ import language from './language';
 import config from './config';
 import ProcessScriptManager from '../platform/process-script-manager';
 import background from './base/background';
-import { getCookies, Window } from './browser';
+import { getCookies } from './browser';
 import resourceManager from './resource-manager';
 import logger from './logger';
 import inject from './kord/inject';
@@ -19,6 +19,8 @@ import { enableRequestSanitizer, disableRequestSanitizer } from './request-sanit
 import { cleanMozillaActions } from './content/url';
 import ResourceLoader from './resource-loader';
 import { getResourceUrl } from './platform';
+import pacemaker from './services/pacemaker';
+import { ModuleDisabledError } from './app/module-errors';
 
 let lastRequestId = 1;
 const callbacks = {};
@@ -29,7 +31,7 @@ const callbacks = {};
  * @class Background
  */
 export default background({
-
+  requiresServices: ['pacemaker', 'telemetry'],
   providesServices,
 
   init(settings, app) {
@@ -79,7 +81,7 @@ export default background({
       .module(module)
       .action(action, ...[...(args || []), sender])
       .catch((e) => {
-        if (e.name === 'ModuleDisabledError') {
+        if (e instanceof ModuleDisabledError) {
           return {
             moduleDisabled: true,
           };
@@ -126,7 +128,7 @@ export default background({
         resolve(attributeValues);
       };
 
-      setTimeout(() => {
+      pacemaker.setTimeout(() => {
         delete callbacks[requestId];
         reject(new Error(`${action} timeout`));
       }, 1000);
@@ -151,35 +153,6 @@ export default background({
     notifyProcessInit(processId) {
       events.pub('process:init', processId);
       this.mm.onNewProcess(processId);
-    },
-    notifyLocationChange(msg) {
-      const windowWrapper = Window.findByTabId(msg.domWindowId);
-
-      if (!windowWrapper) {
-        return;
-      }
-
-      const locationChangeMesssage = {
-        ...msg,
-        windowId: windowWrapper ? windowWrapper.id : null,
-        tabId: msg.windowTreeInformation.tabId,
-      };
-
-      events.pub('content:location-change', locationChangeMesssage);
-    },
-    notifyStateChange(...args) {
-      const ev = args[0];
-
-      // TODO: design proper property list for the event
-      events.pub('content:state-change', {
-        url: ev.urlSpec,
-        originalUrl: ev.originalUrl,
-        triggeringUrl: ev.triggeringUrl,
-        windowTreeInformation: ev.windowTreeInformation,
-      });
-
-      // DEPRECATED - use content:state-change instead
-      events.pub('core.tab_state_change', ...args);
     },
     recordMouseDown(...args) {
       events.pub('core:mouse-down', ...args);
@@ -319,7 +292,7 @@ export default background({
       };
 
       return new Promise((resolve) => {
-        setTimeout(() => {
+        pacemaker.setTimeout(() => {
           delete callbacks[requestId];
           resolve(documents);
         }, timeout);

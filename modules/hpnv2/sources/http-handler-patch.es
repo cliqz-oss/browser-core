@@ -60,17 +60,6 @@ export function overRideCliqzResults() {
       return null;
     }
 
-    if (url === config.settings.SAFE_BROWSING) {
-      const batch = JSON.parse(data);
-      if (batch.length > 0) {
-        batch.forEach(eachMsg => hpnv2.action('telemetry', eachMsg));
-      }
-      if (callback) {
-        callback({ response: '{"success":true}' });
-      }
-      return null;
-    }
-
     if (url.startsWith(OFFER_TELEMETRY_PREFIX)) {
       const query = url.replace(OFFER_TELEMETRY_PREFIX, '');
       sendMessageOverHpn({
@@ -89,7 +78,6 @@ export function overRideCliqzResults() {
   }
 
   http.overrideHttpHandler(httpHandler);
-  http.addCompressionExclusion(config.settings.SAFE_BROWSING);
 }
 
 

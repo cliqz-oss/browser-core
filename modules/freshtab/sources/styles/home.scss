@@ -8,6 +8,7 @@
 @import 'stats.scss';
 @import 'settings.scss';
 @import 'switch.scss';
+@import 'tooltip.scss';
 @import 'top-notifications.scss';
 @import 'modal.scss';
 @import 'overlay.scss';
@@ -22,6 +23,7 @@
     $news-configs: map-get($config, news);
     $stats-configs: map-merge($news-configs, map-get($config, stats));
     $top-notifications-configs: map-get($config, top-notifications);
+    $tooltip-configs: map-get($config, tooltip);
 
     $base-theme: map-get($theme, base);
     $speed-dials-theme: map-get($theme, speed-dials);
@@ -32,6 +34,7 @@
     #app {
         display: flex;
         min-height: 100vh;
+
 
         .aside {
             flex: 0 0 map-get($base-configs, aside-width);
@@ -86,119 +89,6 @@
 
                 &:hover {
                     opacity: 1;
-                }
-                /* tooltip style */
-                .tooltip {
-                    position: absolute;
-                    padding:10px 20px;
-                    left: 50px;
-                    top: -20px;
-                    background: #fff;
-                    opacity: 1;
-                    pointer-events: none;
-                    color:#000;
-                    font-size: 14px;
-                    min-width: 330px;
-                    box-shadow: 0 0 25px rgba(0,0,0,0.3);
-                    z-index: 300;
-                    transition: all linear .3s;
-
-                    &.close {
-                        left: 15px;
-                        opacity: 0
-                    }
-
-                    h1 {
-                        padding-bottom: 10px;
-                        font-weight: 400;
-                    }
-
-                    p {
-                        padding-bottom: 10px;
-                    }
-
-                    button {
-                        border: none;
-                        cursor: pointer;
-                        background: none;
-                        pointer-events: initial;
-                        font-size: 14px;
-                        &.explore {
-                            color:#fff;
-                            background: #00AFF0;
-                            padding: 5px 10px;
-                            border-radius: 3px;
-                            margin-right: 10px;
-                        }
-                    }
-
-                    a {
-                        pointer-events: initial;
-                    }
-
-                    &:hover {
-                        animation: none;
-                    }
-
-                    &-content {
-                        display: inline-block;
-                        width: calc(100% - 50px)
-                    }
-
-                    &-icon {
-                        vertical-align: top;
-                        display: inline-block;
-                        margin-right: 15px;
-                        padding-top: 10px;
-                        position: relative;
-                        width:32px;
-                        color: transparent;
-
-                        &:after {
-                            content: "";
-                            top:10px;
-                            position: absolute;
-                            left:-34px;
-                            width: 0;
-                            height: 0;
-                            border-top: 15px solid transparent;
-                            border-right: 20px solid rgba(255,255,255,01);
-                            border-bottom: 15px solid transparent;
-                        }
-                    }
-
-                    &-close {
-                        position: absolute;
-                        width: 25px;
-                        height: 25px;
-                        top: 8px;
-                        right: 8px;
-
-                        button {
-                            position: relative;
-                            display: block;
-                            text-indent: -9999px;
-                            cursor: pointer;
-                            width: 30px;
-                            height: 22px;
-                            margin: 0px;
-
-                            &:after, &:before {
-                                content:"";
-                                background: rgba(0,0,0,1);
-                                position: absolute;
-                                top: 0;
-                                right: 10px;
-                                height: 15px;
-                                width: 1px;
-                                transform: rotate(-45deg);
-                            }
-
-                            &:before {
-                                transform: rotate(45deg);
-                            }
-                        }
-                    }
                 }
             }
 
@@ -266,6 +156,7 @@
     @include url-bar-with-results(map-merge($url-bar-configs, $url-bar-theme)...);
     @include news(map-merge($news-configs, $news-theme)...);
     @include stats(map-merge($stats-configs, $news-theme)...);
+    @include tooltip($tooltip-configs...);
 }
 
 @mixin responsive($theme) {

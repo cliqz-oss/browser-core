@@ -27,7 +27,7 @@ export default function Header(props) {
               closePopup: false,
               isCallToAction: true,
             });
-            send('sendTelemetry', { target: 'icon' });
+            send('sendTelemetry', { target: 'use' });
           }}
           style={{ backgroundImage: `url(${templateData.logo_dataurl})` }}
           className={_css('image')}

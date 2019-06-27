@@ -1,8 +1,4 @@
 /* eslint-disable no-param-reassign */
-
-/*
- * This module prevents user from 3rd party tracking
- */
 import * as persist from '../core/persistent-state';
 import UrlWhitelist from '../core/url-whitelist';
 import console from '../core/console';
@@ -21,10 +17,11 @@ import QSWhitelist2 from './qs-whitelist2';
 import TempSet from './temp-set';
 import md5 from '../core/helpers/md5';
 import telemetry from './telemetry';
-import { HashProb } from './hash';
+import { HashProb, shouldCheckToken } from './hash';
 import { getDefaultTrackerTxtRule } from './tracker-txt';
+import { isPrivateIP } from '../core/url';
 import { URLInfo, shuffle } from '../core/url-info';
-import { VERSION, TELEMETRY } from './config';
+import { VERSION, TELEMETRY, COOKIE_MODE } from './config';
 import { checkInstalledPrivacyAddons } from '../platform/addon-check';
 import { compressionAvailable, compressJSONToBase64, generateAttrackPayload } from './utils';
 import AttrackDatabase from './database';
@@ -35,12 +32,12 @@ import BlockRules from './steps/block-rules';
 import CookieContext from './steps/cookie-context';
 import PageLogger from './steps/page-logger';
 import RedirectTagger from './steps/redirect-tagger';
-import SubdomainChecker from './steps/subdomain-check';
 import TokenChecker from './steps/token-checker';
 import TokenExaminer from './steps/token-examiner';
 import TokenTelemetry from './steps/token-telemetry';
 import OAuthDetector from './steps/oauth-detector';
 import { skipInternalProtocols, skipInvalidSource, checkSameGeneralDomain } from './steps/check-context';
+import webNavigation from '../platform/webnavigation';
 
 export default class CliqzAttrack {
   constructor() {
@@ -51,14 +48,40 @@ export default class CliqzAttrack {
     this.similarAddon = false;
     this.tp_events = null;
     this.recentlyModified = new TempSet();
+    this.whitelistedRequestCache = new Set();
     this.urlWhitelist = new UrlWhitelist('attrack-url-whitelist');
+
+    // Intervals
+    this.hourChangedInterval = null;
+    this.tpEventInterval = null;
 
     // Web request pipelines
     this.webRequestPipeline = inject.module('webrequest-pipeline');
     this.pipelineSteps = {};
     this.pipelines = {};
 
+    this.ghosteryDomains = {};
+
     this.db = new AttrackDatabase();
+  }
+
+  checkIsWhitelisted(state) {
+    if (this.whitelistedRequestCache.has(state.requestId)) {
+      return true;
+    }
+    if (this.isWhitelisted(state)) {
+      this.whitelistedRequestCache.add(state.requestId);
+      return true;
+    }
+    return false;
+  }
+
+  isWhitelisted(state) {
+    return state.tabUrlParts !== null && this.urlWhitelist.isWhitelisted(
+      state.tabUrl,
+      state.tabUrlParts.hostname,
+      state.tabUrlParts.generalDomain,
+    );
   }
 
   obfuscate(s, method) {
@@ -104,14 +127,7 @@ export default class CliqzAttrack {
     return this.config.enabled;
   }
 
-  isCookieEnabled({ tabUrlParts }) {
-    if (tabUrlParts !== null && this.urlWhitelist.isWhitelisted(
-      tabUrlParts.href,
-      tabUrlParts.hostname,
-      tabUrlParts.generalDomain,
-    )) {
-      return false;
-    }
+  isCookieEnabled() {
     return this.config.cookieEnabled;
   }
 
@@ -142,32 +158,18 @@ export default class CliqzAttrack {
   initPacemaker() {
     const twoMinutes = 2 * 60 * 1000;
 
-    // create a constraint which returns true when the time changes at the specified fidelity
-    const timeChangeConstraint = (name, fidelity) => {
-      if (fidelity === 'day') fidelity = 8;
-      else if (fidelity === 'hour') fidelity = 10;
-      return () => {
-        const timestamp = datetime.getTime().slice(0, fidelity);
-        const lastHour = persist.getValue(`${name}lastRun`) || timestamp;
-        persist.setValue(`${name}lastRun`, timestamp);
-        return timestamp !== lastHour;
-      };
-    };
-
     // pacemaker.register(this.updateConfig, 3 * 60 * 60 * 1000);
 
     // if the hour has changed
-    pacemaker.register(
-      this.hourChanged.bind(this),
-      twoMinutes,
-      timeChangeConstraint('hourChanged', 'hour')
-    );
+    this.hourChangedInterval = pacemaker.register(this.hourChanged.bind(this), {
+      timeout: twoMinutes,
+    });
 
-    pacemaker.register(() => {
+    this.tpEventInterval = pacemaker.register(() => {
       this.tp_events.commit().then(() => {
         this.tp_events.push();
       });
-    }, twoMinutes);
+    }, { timeout: twoMinutes });
   }
 
   telemetry({ message, raw = false, compress = false, ts = undefined }) {
@@ -269,11 +271,10 @@ export default class CliqzAttrack {
     return this.unloadPipeline().then(() => {
       // Initialise classes which are used as steps in listeners
       const steps = {
-        pageLogger: new PageLogger(this.tp_events),
+        pageLogger: new PageLogger(this.tp_events, webNavigation),
         blockRules: new BlockRules(this.config),
         cookieContext: new CookieContext(this.config, this.tp_events, this.qs_whitelist),
         redirectTagger: new RedirectTagger(),
-        subdomainChecker: new SubdomainChecker(this.config),
         oauthDetector: new OAuthDetector(),
       };
       if (this.config.databaseEnabled && this.config.telemetryMode !== TELEMETRY.DISABLED) {
@@ -282,15 +283,21 @@ export default class CliqzAttrack {
           this.qs_whitelist,
           this.config,
           this.db,
+          this.shouldCheckToken.bind(this),
           this.config.tokenTelemetry
         );
       }
       if (this.config.databaseEnabled) {
-        steps.tokenExaminer = new TokenExaminer(this.qs_whitelist, this.config, this.db);
+        steps.tokenExaminer = new TokenExaminer(
+          this.qs_whitelist,
+          this.config,
+          this.db,
+          this.shouldCheckToken.bind(this)
+        );
         steps.tokenChecker = new TokenChecker(
           this.qs_whitelist,
           {},
-          this.hashProb,
+          this.shouldCheckToken.bind(this),
           this.config,
           this.telemetry,
           this.db
@@ -347,11 +354,6 @@ export default class CliqzAttrack {
           fn: (state, response) => this.cancelRecentlyModified(state, response),
         },
         {
-          name: 'subdomainChecker.checkBadSubdomain',
-          spec: 'blocking',
-          fn: (state, response) => steps.subdomainChecker.checkBadSubdomain(state, response),
-        },
-        {
           name: 'pageLogger.attachStatCounter',
           spec: 'annotate',
           fn: state => steps.pageLogger.attachStatCounter(state),
@@ -369,6 +371,11 @@ export default class CliqzAttrack {
               const annotations = state.getPageAnnotations();
               annotations.counter = annotations.counter || new TrackerCounter();
               annotations.counter.addTrackerSeen(state.ghosteryBug, state.urlParts.hostname);
+            }
+            if (state.ghosteryBug && this.config.cookieMode === COOKIE_MODE.GHOSTERY) {
+              // track domains used by ghostery rules so that we only block cookies for these
+              // domains
+              this.ghosteryDomains[state.urlParts.generalDomain] = state.ghosteryBug;
             }
           },
         },
@@ -409,11 +416,7 @@ export default class CliqzAttrack {
           name: 'checkSourceWhitelisted',
           spec: 'break',
           fn: (state) => {
-            if (this.urlWhitelist.isWhitelisted(
-              state.tabUrl,
-              state.tabUrlParts.hostname,
-              state.tabUrlParts.generalDomain,
-            )) {
+            if (this.checkIsWhitelisted(state)) {
               state.incrementStat('source_whitelisted');
               return false;
             }
@@ -493,11 +496,6 @@ export default class CliqzAttrack {
           fn: checkSameGeneralDomain,
         },
         {
-          name: 'subdomainChecker.checkBadSubdomain',
-          spec: 'blocking',
-          fn: (state, response) => steps.subdomainChecker.checkBadSubdomain(state, response),
-        },
-        {
           name: 'pageLogger.attachStatCounter',
           spec: 'annotate',
           fn: state => steps.pageLogger.attachStatCounter(state),
@@ -567,6 +565,11 @@ export default class CliqzAttrack {
           fn: state => this.checkCompatibilityList(state),
         },
         {
+          name: 'checkCookieBlockingMode',
+          spec: 'break',
+          fn: state => this.checkCookieBlockingMode(state),
+        },
+        {
           name: 'cookieContext.checkCookieTrust',
           spec: 'break',
           fn: state => steps.cookieContext.checkCookieTrust(state),
@@ -590,7 +593,8 @@ export default class CliqzAttrack {
           name: 'shouldBlockCookie',
           spec: 'break',
           fn: (state) => {
-            const shouldBlock = this.isCookieEnabled(state) && !this.config.paused;
+            const shouldBlock = !this.checkIsWhitelisted(state)
+              && this.isCookieEnabled(state) && !this.config.paused;
             if (!shouldBlock) {
               state.incrementStat('bad_cookie_sent');
             }
@@ -726,7 +730,8 @@ export default class CliqzAttrack {
         {
           name: 'shouldBlockCookie',
           spec: 'break',
-          fn: state => this.isCookieEnabled(state),
+          fn: state => !this.checkIsWhitelisted(state)
+            && this.isCookieEnabled(state),
         },
         {
           name: 'checkIsCookieWhitelisted',
@@ -737,6 +742,11 @@ export default class CliqzAttrack {
           name: 'checkCompatibilityList',
           spec: 'break',
           fn: state => this.checkCompatibilityList(state),
+        },
+        {
+          name: 'checkCookieBlockingMode',
+          spec: 'break',
+          fn: state => this.checkCookieBlockingMode(state),
         },
         {
           name: 'cookieContext.checkCookieTrust',
@@ -774,6 +784,20 @@ export default class CliqzAttrack {
 
       this.pipelines.onCompleted = new Pipeline('antitracking.onCompleted', [
         {
+          name: 'logPrivateDocument',
+          spec: 'break',
+          fn: (state) => {
+            if (state.isMainFrame && state.ip) {
+              if (isPrivateIP(state.ip)) {
+                const pageInfo = this.tp_events.getPageForTab(state.tabId);
+                pageInfo.private = true;
+              }
+              return false;
+            }
+            return true;
+          }
+        },
+        {
           name: 'pageLogger.reattachStatCounter',
           spec: 'annotate',
           fn: state => steps.pageLogger.reattachStatCounter(state),
@@ -782,6 +806,7 @@ export default class CliqzAttrack {
           name: 'logIsCached',
           spec: 'collect',
           fn: (state) => {
+            this.whitelistedRequestCache.delete(state.requestId);
             state.incrementStat(state.fromCache ? 'cached' : 'not_cached');
           }
         }
@@ -796,6 +821,7 @@ export default class CliqzAttrack {
           name: 'logError',
           spec: 'collect',
           fn: (state) => {
+            this.whitelistedRequestCache.delete(state.requestId);
             if (state.error && state.error.indexOf('ABORT')) {
               state.incrementStat('error_abort');
             }
@@ -873,6 +899,12 @@ export default class CliqzAttrack {
     this.db.unload();
 
     this.onSafekeysUpdated.unsubscribe();
+
+    pacemaker.clearTimeout(this.hourChangedInterval);
+    this.hourChangedInterval = null;
+
+    pacemaker.clearTimeout(this.tpEventInterval);
+    this.tpEventInterval = null;
   }
 
   checkInstalledAddons() {
@@ -884,6 +916,17 @@ export default class CliqzAttrack {
   }
 
   hourChanged() {
+    const name = 'hourChanged';
+    const fidelity = 10; // hour
+
+    const timestamp = datetime.getTime().slice(0, fidelity);
+    const lastHour = persist.getValue(`${name}lastRun`) || timestamp;
+    persist.setValue(`${name}lastRun`, timestamp);
+
+    if (timestamp === lastHour) {
+      return;
+    }
+
     // trigger other hourly events
     events.pub('attrack:hour_changed');
   }
@@ -966,6 +1009,23 @@ export default class CliqzAttrack {
     if (this.config.compabilityList
         && this.config.compatibilityList[tpGd]
         && this.config.compatibilityList[tpGd].indexOf(fpGd) !== -1) {
+      return false;
+    }
+    return true;
+  }
+
+  checkCookieBlockingMode(state) {
+    const mode = this.config.cookieMode;
+    if (mode === COOKIE_MODE.TRACKERS
+        && !this.qs_whitelist.isTrackerDomain(state.urlParts.generalDomainHash)) {
+      state.incrementStat('cookie_allow_nottracker');
+      return false;
+    }
+    if (mode === COOKIE_MODE.GHOSTERY && !this.ghosteryDomains[state.urlParts.generalDomain]
+        && !state.urlParts.generalDomainMinusTLD !== 'google') {
+      // in Ghostery mode: if the domain did not match a ghostery bug we allow it. One exception
+      // are third-party google.tld cookies, which we do not allow with this mechanism.
+      state.incrementStat('cookie_allow_ghostery');
       return false;
     }
     return true;
@@ -1178,6 +1238,9 @@ export default class CliqzAttrack {
   }
 
   onPageStaged(tabId, page) {
+    if (!page) {
+      return;
+    }
     let report = {
       bugs: {},
       others: {},
@@ -1192,5 +1255,9 @@ export default class CliqzAttrack {
       host: page.hostname,
       report,
     });
+  }
+
+  shouldCheckToken(tok) {
+    return shouldCheckToken(this.hashProb, this.config.shortTokenLength, tok);
   }
 }

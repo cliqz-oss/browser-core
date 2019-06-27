@@ -26,7 +26,7 @@ const systemConfig = {
     'react-tooltip': 'react-tooltip/standalone/react-tooltip.js',
     'rxjs/operators': 'rxjs/operators/index',
     'deep-equal': 'modules/platform/lib/deep-equal',
-    'tldts': 'node_modules/tldts/dist/tldts-experimental.umd.min.js',
+    'tldts': `node_modules/tldts/dist/tldts-experimental.${cliqzEnv.DEVELOPMENT ? 'umd.min' : 'esm'}.js`,
   },
   paths: {
     'specific/*': './specific/firefox/*',
@@ -55,9 +55,6 @@ const systemConfig = {
           'format': 'cjs'
         },
         './platform*/lib/sanitize-filename.js': {
-          'format': 'system'
-        },
-        './platform*/lib/cron-parser.js': {
           'format': 'system'
         },
         './platform*/video-downloader/lib/ytdl-core.js': {

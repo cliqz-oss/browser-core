@@ -1,4 +1,6 @@
 // TODO: use in TabObserver and others
+import { setTimeout } from '../timers';
+
 export default base => class extends base {
   constructor() {
     super();

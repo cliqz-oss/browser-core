@@ -53,8 +53,11 @@
     "offers_hub_tooltip_new_offer": {
         "message": "You have a new offer"
     },
+    "offers_hub_welcome_link": {
+        "message": "How It Works"
+    },
     "offers_hub_welcome_text": {
-        "message": "We are looking for offers for you. As soon as we come across the right one, we'll notify you here."
+        "message": "As you browse the Internet, we are searching for attractive offers based on your interests."
     },
     "offers_hub_welcome_title": {
         "message": "Hello!"

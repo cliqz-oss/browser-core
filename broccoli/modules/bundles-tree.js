@@ -2,11 +2,14 @@ const path = require('path');
 const Funnel = require('broccoli-funnel');
 const deepAssign = require('deep-assign');
 const replace = require('broccoli-string-replace');
-const SystemBuilder = require('./broccoli-systemjs');
 
 const cliqzEnv = require('../cliqz-env');
 const cliqzConfig = require('../config');
 const helpers = require('./helpers');
+const systemBuilderPath = cliqzConfig.use_v6_build ?
+  './broccoli-systemjs.v6' :
+  './broccoli-systemjs';
+const SystemBuilder = require(systemBuilderPath);
 
 const walk = helpers.walk;
 

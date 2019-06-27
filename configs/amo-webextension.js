@@ -20,7 +20,6 @@ module.exports = {
   }),
   "default_prefs" : {
     "freshtab.search.mode": "search",
-    "modules.dropdown.enabled": false,
     "modules.history-analyzer.enabled": false,
     "modules.anolysis.enabled": false,
     "showConsoleLogs": false,
@@ -33,7 +32,6 @@ module.exports = {
     "core-cliqz",
     "dropdown",
     'abtests-legacy',
-    "static",
     "geolocation",
     "human-web",
     "freshtab",

@@ -1,5 +1,6 @@
 .empty__container {
   max-height: 500px;
+  padding-bottom: 10px;
 }
 
 .empty__stars {
@@ -39,7 +40,17 @@
 }
 
 .empty__text {
-  padding: 5px 20px 15px;
+  padding: 5px 20px 5px;
   font-size: 14px;
   margin: 5px;
+}
+
+.empty__link {
+  font-size: 12px;
+  font-weight: 300;
+  text-decoration: underline;
+  padding: 0 10px;
+  color: #494949;
+  font-weight: 400;
+  cursor: pointer;
 }

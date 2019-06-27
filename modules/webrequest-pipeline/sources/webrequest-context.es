@@ -59,7 +59,8 @@ export default class WebRequestContext {
     context.isPrivate = pageStore.isPrivateTab(context.tabId);
     context.isMainFrame = context.type === 'main_frame';
 
-    context.originUrl = context.originUrl || context.initiator;
+    context.originUrl = context.originUrl || context.initiator || context.frameUrl
+      || context.tabUrl;
 
     return new WebRequestContext(context);
   }

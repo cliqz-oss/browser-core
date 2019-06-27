@@ -6,10 +6,12 @@
  */
 
 import logger from './common/offers_v2_logger';
+import { chrome } from '../platform/globals';
 import inject from '../core/kord/inject';
 import { getGeneralDomain, extractHostname } from '../core/tlds';
 import prefs from '../core/prefs';
 import config from '../core/config';
+import { isCliqzBrowser } from '../core/platform';
 import background from '../core/base/background';
 import OffersConfigs from './offers_configs';
 import EventHandler from './event_handler';
@@ -50,7 +52,7 @@ function touchManagedRealEstateModules(isEnabled) {
  */
 export default background({
   // to be able to read the config prefs
-  requiresServices: ['cliqz-config', 'telemetry'],
+  requiresServices: ['cliqz-config', 'telemetry', 'pacemaker'],
   popupNotification: inject.module('popup-notification'),
   helper: inject.module('myoffrz-helper'),
   anolysis: inject.module('anolysis'),
@@ -82,6 +84,7 @@ export default background({
     // check if we need to do something or not
     if (!prefs.get('offers2UserEnabled', true)) {
       this.initialized = false;
+      if (isCliqzBrowser) { chrome.browserAction.disable(); }
       return;
     }
 
@@ -134,7 +137,7 @@ export default background({
     await this.db.init();
 
     // OffersDB
-    this.offersDB = new OfferDB(this.db);
+    this.offersDB = new OfferDB();
     await this.offersDB.loadPersistentData();
 
     // the backend connector
@@ -219,6 +222,10 @@ export default background({
       telemetry: inject.service('telemetry', ['onTelemetryEnabled', 'onTelemetryDisabled', 'isEnabled', 'push', 'removeListener']),
     };
     this.triggerMachineExecutor = new TriggerMachineExecutor(this.globObjects);
+
+    if (prefs.get('offers2UserEnabled', true) && isCliqzBrowser) {
+      chrome.browserAction.enable();
+    }
 
     // to be checked on unload
     this.initialized = true;
@@ -338,7 +345,7 @@ export default background({
     // activated for that given url
     const matches = this.categoryHandler.newUrlEvent(urlData.getPatternRequest());
     if (matches.matches.size > 0) {
-      logger.debug('Categories hit', urlData, matches.getCategoriesIDs());
+      logger.debug('Categories hit', [...matches.getCategoriesIDs()]);
     }
     this.onCategoriesHit(matches, urlData);
     this.onCategoryHitByFakeUrlIfNeeded(urlData);
@@ -372,7 +379,7 @@ export default background({
       const prefValue = flags[prefName];
       if (validPrefNames.has(prefName)) {
         // we can set this one
-        logger.debug(`Setting offers pref ${prefName} with vaue: ${prefValue}`);
+        logger.debug(`Setting offers pref ${prefName} with value: ${prefValue}`);
 
         // check if it is a normal pref or a particular
         switch (prefName) {

@@ -2,6 +2,7 @@ import getDexie from '../platform/lib/dexie';
 import crypto from '../platform/crypto';
 import md5 from '../core/helpers/md5';
 import logger from './logger';
+import { MsgQuotaError } from './errors';
 import { formatHoursAsYYYYMMDD } from './utils';
 import { fromHex, toHex } from '../core/encoding';
 import { randomInt } from '../core/crypto/random';
@@ -117,7 +118,7 @@ export default class Database {
         obj = { tag, expireat, seed, n: 0 };
       }
       if (obj.n >= limit) {
-        throw new Error('Message limit exceeded');
+        throw new MsgQuotaError('Message limit exceeded');
       }
       const num = Database.getPermutationElem(obj.seed, obj.n, limit);
       obj.n += 1;

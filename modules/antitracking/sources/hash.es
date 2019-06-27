@@ -2,6 +2,7 @@
 
 import ResourceLoader from '../core/resource-loader';
 import config from '../core/config';
+import { isIpv4Address } from '../core/url';
 
 export class HashProb {
   constructor() {
@@ -70,4 +71,35 @@ export function isMostlyNumeric(str) {
     }
   }
   return numbers / length > numberThreshold;
+}
+
+const BEGIN_DATE = (new Date(2010, 1, 1)).getTime();
+const END_DATE = Date.now() + (1000 * 60 * 60 * 24 * 365 * 5);
+
+export function isTimestamp(str) {
+  const intVal = parseInt(str, 10);
+  return !isNaN(intVal) && intVal > BEGIN_DATE && intVal < END_DATE;
+}
+
+/**
+ * Check if this value should be considered as a potential identifier and subject to token checks
+ * @param str
+ */
+export function shouldCheckToken(hashProb, minLength, str) {
+  if (str.length < minLength) {
+    return false;
+  }
+  // exclude IP addresses
+  if (isIpv4Address(str)) {
+    return false;
+  }
+  // numeric short (< 13 digits)
+  if (str.length < 13 && isMostlyNumeric(str)) {
+    return true;
+  }
+  // is a timestamp?
+  if (str.length === 13 && isTimestamp(str)) {
+    return false;
+  }
+  return hashProb.isHash(str);
 }

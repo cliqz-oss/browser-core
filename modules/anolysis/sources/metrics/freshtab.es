@@ -42,9 +42,7 @@ export const NEWS_EDITIONS = [
   'gb',
   'intl',
   'it',
-  'pl',
   'us',
-  'ru',
 ];
 
 export default () => [

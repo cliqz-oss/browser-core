@@ -1437,17 +1437,60 @@ html {
     pointer-events: auto;
 }
 
+/* Tooltip styles for Control Center */
+
+.first:not(.isCompact) ~ .tooltipster-base .tooltipster-box {
+    margin-left: 15px;
+    margin-right: 15px
+}
+
+/* Tooltip styles for Ghostery / Cliqz tab settings */
+/*
+ * !important is needed to override widths with higher specificity
+ * coming directly from tooltipster's CSS
+*/
+
+.first.isCompact ~ .tooltipster-base .tooltipster-box {
+    margin-left: 20px;
+    margin-right: 20px
+}
+
+@media only screen and (min-width: 650px) and (max-width: 920px) {
+    .first.isCompact ~ .tooltipster-base {
+        width: 540px !important;
+    }
+}
+
+@media only screen and (min-width: 920px) and (max-width: 1024px) {
+    .first.isCompact ~ .tooltipster-base {
+        width: 630px !important;
+    }
+}
+
+@media only screen and (min-width: 1024px) {
+    .first.isCompact ~ .tooltipster-base {
+        width: 700px !important;
+    }
+}
+
+/* Common tooltip styles */
+
 .tooltipster-sidetip.tooltipster-shadow.tooltipster-shadow-customized .tooltipster-box {
-    padding-top: 5px;
-    padding-bottom: 7px;
+    margin: 0 15px;
+    padding: 0;
     font-family: "-mac-system", "-apple-system", "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
     font-size: 11.5px;
     color: #858585;
 
-    .title {
-        display: block;
-        margin-bottom: 5px;
-        font-size: 13.5px;
-        color: #000;
+    .tooltipster-content {
+        margin: 0;
+        padding: 15px;
+
+        .title {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13.5px;
+            color: #000;
+        }
     }
 }

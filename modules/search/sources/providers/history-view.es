@@ -22,21 +22,24 @@ export default class HistoryView extends BaseProvider {
       return this.getEmptySearch(config, query);
     }
 
-    return from([getResponse(
-      this.id,
-      config,
-      query,
-      [{
-        url: sessionsUrl(query),
-        text: query,
+    return from([
+      getResponse({
+        provider: this.id,
+        config,
         query,
-        data: {
-          kind: ['history-ui'],
-          template: 'sessions',
-        },
-      }],
-      'done'
-    )])
+        results: [{
+          provider: this.id,
+          url: sessionsUrl(query),
+          text: query,
+          query,
+          data: {
+            kind: ['history-ui'],
+            template: 'sessions',
+          },
+        }],
+        state: 'done',
+      })
+    ])
       .pipe(this.getOperators());
   }
 }
