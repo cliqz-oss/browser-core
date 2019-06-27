@@ -24,12 +24,16 @@ program.command(`test ${common.configParameter}`)
   .option('--firefox [firefox]', 'firefox path', 'nightly')
   .option('--no-build', 'skip the build, run tests only')
   .option('-l --launchers [launchers]', 'comma separted list of launchers')
+  .option('--extension-log [output]', 'save extension logger messages to the file. When using with `run_tests_in_docker.sh`, the file should be in the directory `report`.')
+  .option('--v6', 'include fast v6 build - v-shaped 6 cylinder engine')
   .action((configPath, options) => {
     process.env.CLIQZ_ENVIRONMENT = options.environment || 'testing';
     const cfg = setConfigPath(configPath);
     const CONFIG = cfg.CONFIG;
     const OUTPUT_PATH = cfg.OUTPUT_PATH;
     let watcher;
+
+    process.env.CLIQZ_V6_BUILD = options.v6 || '';
 
     // Enabled code linting
     process.env.CLIQZ_ESLINT = (
@@ -52,6 +56,10 @@ program.command(`test ${common.configParameter}`)
 
     if (options.keepOpen) {
       process.env.KEEP_OPEN = 'true';
+    }
+
+    if (options.extensionLog) {
+      process.env.EXTENSION_LOG = options.extensionLog;
     }
 
     process.env.OUTPUT_PATH = untildify(OUTPUT_PATH);

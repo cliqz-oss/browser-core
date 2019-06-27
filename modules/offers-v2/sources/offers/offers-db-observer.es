@@ -2,7 +2,7 @@
  * This module will provide a helper observer class to detect changes on offers.
  *  - offers expiration
  */
-import { setTimeout } from '../../core/timers';
+import pacemaker from '../../core/services/pacemaker';
 import { timestampMS } from '../utils';
 import logger from '../common/offers_v2_logger';
 import OffersConfigs from '../offers_configs';
@@ -51,7 +51,6 @@ const calcExpirationTimeMs = (offerElement) => {
 export const isOfferExpired = offerElement => calcExpirationTimeMs(offerElement) <= 0;
 
 const getExpiredOffers = offerList => offerList.filter(oe => isOfferExpired(oe));
-const getNonExpiredOffers = offerList => offerList.filter(oe => !isOfferExpired(oe));
 
 const getNextExpirationTimeMs = (offerList) => {
   // just set a random number here
@@ -72,10 +71,11 @@ const removeExpiredOffers = (offersDB) => {
   });
 };
 
+// Return number of milliseconds after which a next offer expires.
+// The value can be negative if there are already expired offers.
 const calculateNextExpirationTimeMs = (offersDB) => {
-  const validOffers = getAllValidOffers(offersDB);
-  const nonExpiredOffers = getNonExpiredOffers(validOffers);
-  return getNextExpirationTimeMs(nonExpiredOffers);
+  const offers = getAllValidOffers(offersDB);
+  return getNextExpirationTimeMs(offers);
 };
 
 
@@ -100,10 +100,8 @@ export default class OfferDBObserver {
   }
 
   _resetTimer() {
-    if (!this._timerId) {
-      clearTimeout(this._timerId);
-      this._timerId = null;
-    }
+    pacemaker.clearTimeout(this._timerId);
+    this._timerId = null;
   }
 
   observeExpirations() {
@@ -114,17 +112,16 @@ export default class OfferDBObserver {
   _observeExpirations() {
     removeExpiredOffers(this.offersDB);
     const nextExpirationTimeMs = calculateNextExpirationTimeMs(this.offersDB);
-    if (!nextExpirationTimeMs || nextExpirationTimeMs <= 0) {
+    if (!nextExpirationTimeMs) {
       return;
     }
-    this._timerId = setTimeout(() => {
+    this._timerId = pacemaker.setTimeout(() => {
       this._observeExpirations();
     }, Math.min(Math.max(nextExpirationTimeMs + 10, MIN_TIMEOUT_DELAY), MAX_TIMEOUT_DELAY));
   }
 
   _offersDBCallback(msg) {
-    if (msg.evt === 'offer-added') {
-      // renew expirations when an offer is added, other case are not important
+    if ((msg.evt === 'offer-added') || (msg.evt === 'offer-updated')) {
       this.observeExpirations();
     }
   }

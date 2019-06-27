@@ -27,6 +27,7 @@ export default class Content extends React.Component {
   componentDidMount() {
     if (this.props.vouchers.length !== 0) { // not empty reward box
       send('seenOffer', { offer_id: this.state.activeCard });
+      send('sendTelemetry', { action: 'show_offer' });
     }
   }
 
@@ -38,6 +39,7 @@ export default class Content extends React.Component {
       offer_id: offerId,
     });
     send('seenOffer', { offer_id: offerId });
+    send('sendTelemetry', { action: 'show_offer' });
     send('sendTelemetry', { target: 'expand' });
   }
 
@@ -137,7 +139,7 @@ export default class Content extends React.Component {
   }
 
   renderVouchers = () => {
-    const { vouchers, products } = this.props;
+    const { vouchers, products, autoTrigger } = this.props;
     const { activeCard, cards } = this.state;
     const activeVouchers = vouchers.filter((voucher) => {
       const cardStatus = cards[voucher.offer_id].status;
@@ -146,7 +148,7 @@ export default class Content extends React.Component {
     });
     const activeIndex = activeVouchers.findIndex(v => v.offer_id === activeCard);
     return activeVouchers.length === 0
-      ? <Empty products={products} />
+      ? <Empty products={products} autoTrigger={autoTrigger} />
       : activeVouchers.map(this.renderVoucher(activeIndex));
   }
 

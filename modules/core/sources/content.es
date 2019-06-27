@@ -7,7 +7,6 @@ import {
   registerContentScript,
   isTopWindow,
 } from '../core/content/helpers';
-import { throttle } from '../core/decorators';
 import { waitFor } from '../core/helpers/wait';
 import createSpananWrapper from '../core/helpers/spanan-module-wrapper';
 import { chrome, window } from '../platform/content/globals';

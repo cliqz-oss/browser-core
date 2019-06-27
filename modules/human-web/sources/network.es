@@ -1,5 +1,6 @@
 import logger from './logger';
 import { nextTick } from '../core/decorators';
+import { isPrivateIP as isIPInternal } from '../core/url';
 import Dns from './fallback-dns';
 
 export function parseHostname(hostname) {
@@ -89,23 +90,6 @@ export function parseURL(url) {
   }
 
   return o;
-}
-
-// TODO: suppress for now, fix later
-/* eslint-disable radix */
-export function isIPInternal(ip) {
-  // Need to check for ipv6.
-  const ipSplit = ip.split('.');
-  if (parseInt(ipSplit[0]) === 10
-      || (parseInt(ipSplit[0]) === 172
-       && (parseInt(ipSplit[1]) >= 16 && parseInt(ipSplit[1]) <= 31))
-      || (parseInt(ipSplit[0]) === 192 && parseInt(ipSplit[1]) === 168)
-      || (parseInt(ipSplit[0]) === 127)
-      || (parseInt(ipSplit[0]) === 0)) {
-    return true;
-  }
-
-  return false;
 }
 
 export class Network {

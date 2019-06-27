@@ -4,7 +4,6 @@
     "@cliqz/adblocker",
     "math",
     "moment",
-    "moment-range",
     "pako",
     "tldts",
     "ua-parser-js"

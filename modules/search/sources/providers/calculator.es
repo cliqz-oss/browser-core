@@ -24,7 +24,15 @@ export default class Calculator extends BaseProvider {
     result.provider = 'calculator';
     result.text = query;
 
-    return from([getResponse(this.id, config, query, [result], 'done')])
+    return from([
+      getResponse({
+        provider: this.id,
+        config,
+        query,
+        results: [result],
+        state: 'done'
+      })
+    ])
       .pipe(
         delay(1),
         this.getOperators()

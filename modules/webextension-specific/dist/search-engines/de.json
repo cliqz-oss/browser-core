@@ -10,7 +10,8 @@
         "template": "https://suchen.cliqz.com/#{searchTerms}"
       }
     },
-    "searchForm": "https://suchen.cliqz.com"
+    "searchForm": "https://suchen.cliqz.com",
+    "alias": "#cl"
   },
   {
     "name": "Google",
@@ -40,7 +41,8 @@
         ]
       }
     },
-    "searchForm": "https://www.google.com/search"
+    "searchForm": "https://www.google.com/search",
+    "alias": "#go"
   },
   {
     "name": "Yahoo",
@@ -84,7 +86,8 @@
           }
         ]
       }
-    }
+    },
+    "alias": "#ya"
   },
   {
     "name": "Bing",
@@ -123,7 +126,8 @@
         ]
       }
     },
-    "searchForm": "https://www.bing.com/search"
+    "searchForm": "https://www.bing.com/search",
+    "alias": "#bi"
   },
   {
     "name": "DuckDuckGo",
@@ -154,7 +158,8 @@
         ]
       }
     },
-    "searchForm": "https://duckduckgo.com/"
+    "searchForm": "https://duckduckgo.com/",
+    "alias": "#dd"
   },
   {
     "name": "YouTube",
@@ -172,7 +177,8 @@
         ]
       }
     },
-    "searchForm": "https://www.youtube.de/results"
+    "searchForm": "https://www.youtube.de/results",
+    "alias": "#yt"
   },
   {
     "name": "Ecosia",
@@ -208,7 +214,8 @@
           }
         ]
       }
-    }
+    },
+    "alias": "#ec"
   },
   {
     "name": "Twitter",
@@ -234,7 +241,8 @@
         ]
       }
     },
-    "searchForm": "https://twitter.com/search"
+    "searchForm": "https://twitter.com/search",
+    "alias": "#tw"
   },
   {
     "name": "Amazon.de",
@@ -268,7 +276,8 @@
           }
         ]
       }
-    }
+    },
+    "alias": "#am"
   },
   {
     "name": "eBay",
@@ -301,7 +310,8 @@
           }
         ]
       }
-    }
+    },
+    "alias": "#eb"
   },
   {
     "name": "Wikipedia (de)",
@@ -337,7 +347,8 @@
         ]
       }
     },
-    "searchForm": "https://de.wikipedia.org/wiki/Spezial:Suche"
+    "searchForm": "https://de.wikipedia.org/wiki/Spezial:Suche",
+    "alias": "#wi"
   },
   {
     "name": "LEO Eng-Deu",
@@ -367,7 +378,8 @@
           }
         ]
       }
-    }
+    },
+    "alias": "#le"
   },
   {
     "name": "Google Maps",
@@ -385,7 +397,8 @@
         ]
       }
     },
-    "searchForm": "https://www.google.de/maps"
+    "searchForm": "https://www.google.de/maps",
+    "alias": "#gm"
   },
   {
     "name": "Google Images",
@@ -415,7 +428,8 @@
         ]
       }
     },
-    "searchForm": "https://www.google.de/search"
+    "searchForm": "https://www.google.de/search",
+    "alias": "#gi"
   },
   {
     "name": "Start Page",
@@ -445,7 +459,8 @@
         ]
       }
     },
-    "searchForm": "https://www.startpage.com/do/dsearch"
+    "searchForm": "https://www.startpage.com/do/dsearch",
+    "alias": "#st"
   },
   {
     "name": "Qwant",
@@ -481,6 +496,7 @@
         ]
       }
     },
-    "searchForm": "https://www.qwant.com/"
+    "searchForm": "https://www.qwant.com/",
+    "alias": "#qw"
   }
 ]

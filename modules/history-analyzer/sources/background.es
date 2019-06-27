@@ -17,6 +17,7 @@ const VERSION = 3;
   @class Background
  */
 export default background({
+  requiresServices: ['pacemaker'],
   historyProcessor: null,
   historyStream: null,
   queryStream: null,

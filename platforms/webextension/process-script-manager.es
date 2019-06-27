@@ -3,6 +3,7 @@
 import events from '../core/events';
 import { chrome, isContentScriptsSupported } from './globals';
 import { equals as urlEquals } from '../core/url';
+import { setTimeout } from '../core/timers';
 
 const cliqzConfigScript = `
 function cliqzConfigScript(cliqz) {

@@ -9,6 +9,7 @@ function Link({
   onClick,
   onMouseEnter,
   onMouseLeave,
+  target,
 }) {
   return (
     <a
@@ -19,6 +20,7 @@ function Link({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       tabIndex="-1"
+      target={target}
     >
       {children}
     </a>
@@ -31,6 +33,7 @@ Link.propTypes = {
   onClick: PropTypes.func.isRequired,
   onMouseEnter: PropTypes.func,
   onMouseLeave: PropTypes.func,
+  target: PropTypes.string,
 };
 
 export default Link;

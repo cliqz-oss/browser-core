@@ -4,7 +4,7 @@ import inject from '../core/kord/inject';
 import { getActiveTab } from '../core/browser';
 import prefs from '../core/prefs';
 import { getMessage } from '../core/i18n';
-
+import SearchReporter from './search/reporter';
 import { dispatcher } from './transport/index';
 import { transform, transformMany } from './transformation/index';
 import { getOfferNotificationType } from './utils';
@@ -33,6 +33,7 @@ export default background({
     });
     this.popup.init();
     chrome.browserAction.enable();
+    this.searchReporter = new SearchReporter(this.offersV2);
   },
 
   unload() {
@@ -45,6 +46,7 @@ export default background({
       this.popup.unload();
       this.popup = null;
     }
+    this.searchReporter = null;
   },
 
   beforeBrowserShutdown() { },
@@ -86,6 +88,15 @@ export default background({
       }
       const [ok, payload] = transform(banner, data, { abtestPopupsType: true });
       if (ok) { this._renderBanner({ ...payload, autoTrigger: true }); }
+    },
+    'ui:click-on-url': function onSearchResultClick(results) {
+      this.searchReporter.onSearchResultClick(results);
+    },
+    'search:session-end': function onSearchSessionEnd() {
+      this.searchReporter.onSearchSessionEnd();
+    },
+    'search:results': function onSearchResults(results) {
+      this.searchReporter.onSearchResults(results);
     },
   },
 

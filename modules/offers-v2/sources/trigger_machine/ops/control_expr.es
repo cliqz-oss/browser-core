@@ -1,6 +1,7 @@
 import Expression from '../expression';
 import i18n from '../../../core/i18n';
 import prefs from '../../../core/prefs';
+import { deadline } from '../../../core/decorators';
 import logger from '../../common/offers_v2_logger';
 import { timestampMS, weekDay, dayHour } from '../../utils';
 import { isThrottleError } from '../../common/throttle-with-rejection';
@@ -719,8 +720,7 @@ class ProbeSegmentExpr extends Expression {
       //
       // Wait only a little
       //
-      const limitWait = new Promise(resolve => setTimeout(resolve, 50));
-      const noticeIfFail = Promise.race([limitWait, queryHistory]);
+      const noticeIfFail = deadline(queryHistory, 50);
       try {
         await noticeIfFail;
       } catch (err) {

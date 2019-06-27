@@ -4,15 +4,18 @@ const number = { type: 'number' };
 
 export default {
   name: 'cookie-monster-performance',
-  version: 1,
+  version: 2,
   generate: ({ records }) => {
     const cookieBatchSignals = records.get('cookie-monster.cookieBatch');
     const cookiePruneSignals = records.get('cookie-monster.prune');
+    const cookieConfigSignals = records.get('cookie-monster.config');
+    const config = cookieConfigSignals[0] || {};
 
     const summaryStats = {
       moduleActive: cookieBatchSignals.length > 0 || cookiePruneSignals.length > 0,
       batches: cookieBatchSignals.length,
       prunes: cookiePruneSignals.length,
+      ...config,
     };
     if (cookieBatchSignals.length > 0) {
       const batchSignals = cookieBatchSignals.reduce((combined, signal) => {
@@ -30,6 +33,7 @@ export default {
         meanVisited: mean(batchSignals.visited),
         deleted: sum(batchSignals.deleted),
         modified: sum(batchSignals.modified),
+        expired: sum(batchSignals.expired),
       });
     }
 
@@ -59,11 +63,16 @@ export default {
       meanVisited: number,
       deleted: number,
       modified: number,
+      expired: number,
       prunes: number,
       cookiesSize: number,
       visitsSize: number,
       visitsPruned: number,
       cookiesPruned: number,
+      sessionExpiryEnabled: { type: 'boolean' },
+      nonTrackerEnabled: { type: 'boolean' },
+      cookieMode: { type: 'string', enum: ['thirdparty', 'trackers', 'ghostery'] },
+      cookieBehavior: { type: 'number', enum: [0, 1, 2, 3, 4, 5] },
     },
   }
 };

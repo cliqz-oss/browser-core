@@ -17,6 +17,8 @@ import DBReplacer from './jobs/db-replacer';
 import HardFilters from './jobs/hard-filters';
 import SoftFilters from './jobs/soft-filters';
 import ContextFilter from './jobs/context-filters';
+import ThrottlePushToRewardsFilter from './jobs/throttle';
+import ShuffleFilter from './jobs/shuffle';
 import config from '../../core/config';
 import ActionID from './actions-defs';
 import OffersConfigs from '../offers_configs';
@@ -39,14 +41,16 @@ import prefs from '../../core/prefs';
  *
  * Returns the resulting offersList given by the last job
  */
-const executeJobList = (jobList, offersList, ctx, idx = 0) => {
-  if (!jobList || idx >= jobList.length) {
-    return Promise.resolve(offersList);
+async function executeJobList(jobList, ctx) {
+  let offers = [];
+  const sizes = [];
+  for (const job of jobList) {
+    offers = await job.process(offers, ctx); // eslint-disable-line no-await-in-loop
+    sizes.push(offers.length);
   }
-  const first = jobList[idx];
-  return first.process(offersList, ctx).then(newResult =>
-    executeJobList(jobList, newResult, ctx, idx + 1));
-};
+  logger.debug(`Number of offers for job steps: ${sizes.join('/')}`);
+  return offers;
+}
 
 /**
  * This method will check global things like total amount of offers per day,
@@ -152,20 +156,27 @@ export default class OffersHandler {
 
     // we build the process pipeline here that will basically produce the list
     // of prioritized offers
+    this.throttlePushRewardsBoxFilter = new ThrottlePushToRewardsFilter();
     this.jobsPipeline = [
       new IntentGatherer(),
       new DBReplacer(),
       new HardFilters(),
+      this.throttlePushRewardsBoxFilter,
       new ContextFilter(),
       new SoftFilters(),
+      ShuffleFilter, // for competing offers, avoid first-offer-from-backend bias
     ];
+
+    this.nEventsProcessed = 0; // Used as a wait marker by tests
   }
 
   async init() {
+    this.throttlePushRewardsBoxFilter.init();
     return Promise.resolve(true);
   }
 
   destroy() {
+    this.throttlePushRewardsBoxFilter.unload();
     this.blacklist.unload();
     this.blacklist = null;
     this.offersDB.unregisterCallback(this._offersDBCallback);
@@ -262,14 +273,20 @@ export default class OffersHandler {
       offersHandler: this,
       offerIsFilteredOutCb: this._onOfferIsFilteredOut.bind(this)
     };
-    return next.then(() => executeJobList(this.jobsPipeline, [], jobContext));
+    return next.then(() => executeJobList(this.jobsPipeline, jobContext));
   }
 
   /**
    * @param {UrlData} urlData
    * @param {CategoriesMatchTraits} catMatches
    */
-  async _processEvent({ urlData, catMatches }) {
+  async _processEvent(evt) {
+    const ret = await this._processEventWrapped(evt);
+    this.nEventsProcessed += 1;
+    return ret;
+  }
+
+  async _processEventWrapped({ urlData, catMatches }) {
     logger.debug('Offers handler processing a new event', urlData.getRawUrl());
 
     if (!shouldWeShowAnyOffer(this.offersGeneralStats)) {
@@ -299,11 +316,10 @@ export default class OffersHandler {
     //
     // Prepare calculations
     //
-    logger.debug(`We have ${offers.length} on the queue`);
     if (!offers.length) {
       return false;
     }
-    const getOfferDisplayCount = o => this.offersDB.getDisplayCount(o.uniqueID);
+    const getOfferDisplayCount = o => this.offersDB.getPushCount(o.uniqueID);
 
     //
     // Make the choice
@@ -312,7 +328,7 @@ export default class OffersHandler {
     if (!(bestOffer && score)) {
       return false;
     }
-    logger.debug(`Offer selected with score ${score}:`, bestOffer);
+    logger.debug(`Offer selected with score ${score}:`, bestOffer.uniqueID);
     //
     // Notify backend
     //

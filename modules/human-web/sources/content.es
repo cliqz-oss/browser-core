@@ -72,8 +72,8 @@ export function parseDom(url, window, hw) {
       },
       adSections: ['.ads-ad', '.pla-unit-container', '.pla-hovercard-content-ellip', '.cu-container tr'],
       0: {
-        cu: ".ad_cclk h3 a[id^='s0p'],.ad_cclk h3 a[id^='n1s0p'],.ad_cclk h3 a[id^='s3p']",
-        fu: ".ad_cclk h3 a[id^='vs0p'],.ad_cclk h3 a[id^='vn1s0p'],.ad_cclk h3 a[id^='vs3p']"
+        cu: ".ad_cclk a[id^='s0p'],.ad_cclk a[id^='n1s0p'],.ad_cclk a[id^='s3p']",
+        fu: ".ad_cclk a[id^='vs0p'],.ad_cclk a[id^='vn1s0p'],.ad_cclk a[id^='vs3p']"
       },
       1: {
         cu: "a[id^='plaurlg']",

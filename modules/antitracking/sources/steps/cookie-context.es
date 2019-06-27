@@ -23,11 +23,15 @@ export default class CookieContext {
   }
 
   init() {
-    this._pmclean = pacemaker.register(this.cleanCookieCache.bind(this), 2 * 60 * 1000);
+    this._pmclean = pacemaker.register(
+      this.cleanCookieCache.bind(this),
+      { timeout: 2 * 60 * 1000 },
+    );
   }
 
   unload() {
-    pacemaker.deregister(this._pmclean);
+    pacemaker.clearTimeout(this._pmclean);
+    this._pmclean = null;
   }
 
   cleanCookieCache(currTime) {

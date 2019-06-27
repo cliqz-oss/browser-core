@@ -8,6 +8,7 @@ import telemetry from '../core/services/telemetry';
 import prefs from '../core/prefs';
 import console from '../core/console';
 import config from '../core/config';
+import pacemaker from '../core/services/pacemaker';
 import { getDefaultEngine, revertToOriginalEngine } from '../core/search-engines';
 import { httpGet } from '../core/http';
 import { isDesktopBrowser } from '../core/platform';
@@ -55,7 +56,7 @@ const CliqzABTests = {
     }
 
     // set a new timer to be triggered after 1 hour
-    this.timer = setTimeout(async () => {
+    this.timer = pacemaker.setTimeout(async () => {
       try {
         await CliqzABTests.check();
       } catch (e) {
@@ -67,9 +68,7 @@ const CliqzABTests = {
   },
 
   stop() {
-    if (this.timer) {
-      clearTimeout(this.timer);
-    }
+    pacemaker.clearTimeout(this.timer);
     this.timer = null;
   },
 
@@ -461,15 +460,6 @@ const CliqzABTests = {
       case '1119_C':
         prefs.set('friends.enable.level', 'production');
         break;
-      case '1120_A':
-        prefs.set('freshtab.post.position', 'top');
-        break;
-      case '1120_B':
-        prefs.set('freshtab.post.position', 'bottom-left');
-        break;
-      case '1120_C':
-        prefs.set('freshtab.post.position', 'bottom-right');
-        break;
       case '1121_A':
         prefs.set('ui.newtab.settings-button-style', 'text', 'host.');
         break;
@@ -480,7 +470,24 @@ const CliqzABTests = {
         prefs.set('modules.cookie-monster.enabled', false);
         break;
       case '1122_B':
+        // B: cookie monster on for trackers only
         prefs.set('modules.cookie-monster.enabled', true);
+        prefs.set('cookie-monster.expireSession', false);
+        prefs.set('cookie-monster.nonTracker', false);
+        break;
+      case '1122_C':
+        // C: cookie monster on for trackers and non-trackers
+        prefs.set('modules.cookie-monster.enabled', true);
+        prefs.set('cookie-monster.expireSession', true);
+        prefs.set('cookie-monster.nonTracker', true);
+        break;
+      case '1122_D':
+        // D: cookie monster on for trackers and non-trackers, and anti-tracking only blocking
+        // tracker cookies
+        prefs.set('modules.cookie-monster.enabled', true);
+        prefs.set('cookie-monster.expireSession', true);
+        prefs.set('cookie-monster.nonTracker', true);
+        prefs.set('attrack.cookieMode', 'trackers');
         break;
       case '1123_A':
         prefs.set('dynamic-offers.enabled', false);
@@ -496,6 +503,15 @@ const CliqzABTests = {
         break;
       case '1124_C':
         prefs.set('offers-popup.type', 'lodgev2');
+        break;
+      case '1125_B':
+        // changes browser cookie setting to enable Firefox blocking cookies and storage for
+        // tracker domains in third-party contexts. We do not join the test if user already has a
+        // custom cookie behaviour
+        if (prefs.get('network.cookie.cookieBehavior', '') !== 0) {
+          return false;
+        }
+        prefs.set('network.cookie.cookieBehavior', 4, '');
         break;
       default:
         ruleExecuted = false;
@@ -836,7 +852,12 @@ const CliqzABTests = {
         break;
       case '1122_A':
       case '1122_B':
+      case '1122_C':
+      case '1122_D':
         prefs.set('modules.cookie-monster.enabled', false);
+        prefs.clear('cookie-monster.expireSession');
+        prefs.clear('cookie-monster.nonTracker');
+        prefs.clear('attrack.cookieMode');
         break;
       case '1123_A':
       case '1123_B':
@@ -846,6 +867,10 @@ const CliqzABTests = {
       case '1124_B':
       case '1124_C':
         prefs.clear('offers-popup.type');
+        break;
+      case '1125_A':
+      case '1125_B':
+        prefs.set('network.cookie.cookieBehavior', 4, '');
         break;
       default:
         ruleExecuted = false;

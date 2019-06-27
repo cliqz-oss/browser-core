@@ -60,16 +60,16 @@ export default class ContentCategoryManager {
     this.updatePatterns(filtersData);
     await this.storage.init();
     this.cache = this.storage.get('cache') || {};
-    pacemaker.register(
-      this.clearCache.bind(this),
-      ONE_HOUR
-    );
+    this.clearCacheInterval = pacemaker.everyHour(this.clearCache.bind(this));
   }
 
   async unload() {
     this.loader.stop();
     await this.storage.set('cache', this.cache);
     this.storage.unload();
+
+    pacemaker.clearTimeout(this.clearCacheInterval);
+    this.clearCacheInterval = null;
   }
 
   clearCache() {

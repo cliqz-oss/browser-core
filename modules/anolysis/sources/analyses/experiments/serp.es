@@ -45,7 +45,7 @@ const countSessions = (selector, sessions) => Object.values(sessions).reduce((ac
 export default () => [
   {
     name: 'analyses.experiments.serp',
-    version: 4,
+    version: 5,
     needsGid: false,
     sendToBackend: true,
     generate: ({ records }) => {
@@ -109,8 +109,8 @@ export default () => [
 
       return [{
         experiment: id,
-        group,
-        isCliqzDefaultEngine,
+        group: group || null,
+        isCliqzDefaultEngine: !!isCliqzDefaultEngine,
         dropdownSelections: {
           cliqz: {
             total: cliqzSelections.length,

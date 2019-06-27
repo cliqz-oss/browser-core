@@ -2,7 +2,7 @@ import PackedBloomFilter from '../core/bloom-filter-packed';
 import { Resource } from '../core/resource-loader';
 import { fetch, fetchArrayBuffer } from '../core/http';
 import moment from '../platform/lib/moment';
-import setInterval from '../core/helpers/timeout';
+import pacemaker from '../core/services/pacemaker';
 import logger from './logger';
 
 async function fetchPackedBloomFilter(url) {
@@ -68,7 +68,7 @@ export default class QSWhitelist2 {
       }
     }
     // check for updates once per hour
-    this._updateChecker = setInterval(this._checkForUpdates.bind(this), 3600000);
+    this._updateChecker = pacemaker.everyHour(this._checkForUpdates.bind(this));
   }
 
   async _fetchUpdateURL() {
@@ -132,9 +132,7 @@ export default class QSWhitelist2 {
   }
 
   async destroy() {
-    if (this._updateChecker) {
-      this._updateChecker.stop();
-    }
+    pacemaker.clearTimeout(this._updateChecker);
     await this._persistBloomFilter();
   }
 

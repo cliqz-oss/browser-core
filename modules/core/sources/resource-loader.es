@@ -6,6 +6,7 @@ import Storage from '../platform/resource-loader-storage';
 import { fromUTF8 } from '../core/encoding';
 import { inflate, deflate } from './zlib';
 import { isWebExtension, platformName, isMobile } from '../core/platform';
+import pacemaker from '../core/services/pacemaker';
 
 const logger = Logger.get('core', {
   level: 'log',
@@ -182,7 +183,6 @@ export default class ResourceLoader extends UpdateCallbackHandler {
 
     this.resource = new Resource(resourceName, options);
     this.cron = options.cron || ONE_HOUR;
-    this.updateInterval = options.updateInterval || 10 * ONE_MINUTE;
     this.intervalTimer = null;
 
     this.constructor.loaders.push(this);
@@ -191,7 +191,6 @@ export default class ResourceLoader extends UpdateCallbackHandler {
   report() {
     return {
       size: this.resource.size,
-      updateInterval: this.updateInterval,
       cron: this.cron,
       remoteURL: this.resource.remoteURL,
       compress: this.resource.compress,
@@ -200,10 +199,7 @@ export default class ResourceLoader extends UpdateCallbackHandler {
 
   init() {
     if (!this.intervalTimer && this.resource.remoteURL) {
-      this.intervalTimer = setInterval(
-        this.updateFromRemote.bind(this),
-        this.updateInterval
-      );
+      this.intervalTimer = pacemaker.everyFewMinutes(this.updateFromRemote.bind(this));
     }
   }
 
@@ -222,7 +218,7 @@ export default class ResourceLoader extends UpdateCallbackHandler {
    * time frame).
    *
    * @returns a Promise which never fails, since this update will be
-   * triggered by `setInterval` and thus you cannot catch. If the update
+   * triggered by interval and thus you cannot catch. If the update
    * fails, then the callback won't be called.
    */
   /* eslint-disable consistent-return */
@@ -259,6 +255,7 @@ export default class ResourceLoader extends UpdateCallbackHandler {
   }
 
   stop() {
-    clearInterval(this.intervalTimer);
+    pacemaker.clearTimeout(this.intervalTimer);
+    this.intervalTimer = null;
   }
 }

@@ -67,7 +67,7 @@ export default class SpeedDialsRow extends React.Component {
       type: 'home',
       action: 'click',
       target_type: 'reset-all-history'
-    });
+    }, false, '');
   }
 
   getRealIndex(index) {

@@ -1,11 +1,16 @@
 import loadLogoDb from '../../platform/services/logos';
 import config from '../config';
+import Logger from '../logger';
 import inject from '../kord/inject';
 import prefs from '../prefs';
 import { isOnionModeFactory } from '../platform';
 import { URLInfo } from '../url-info';
 
 const isOnionMode = isOnionModeFactory(prefs);
+const logger = Logger.get('core', {
+  level: 'log',
+  prefix: '[logos]',
+});
 
 export async function service() {
   let BRANDS_DATABASE_VERSION = 1521469421408;
@@ -19,6 +24,10 @@ export async function service() {
   return {
     getLogoDetails: (url) => {
       const parsedUrl = URLInfo.get(url);
+      if (!parsedUrl) {
+        logger.warn('getLogoDetails: not valid url ', url);
+        return null;
+      }
       const base = parsedUrl.generalDomainMinusTLD || parsedUrl.hostname || parsedUrl.pathname;
       const baseCore = base.replace(/[-]/g, '');
       const check = (host, rule) => {

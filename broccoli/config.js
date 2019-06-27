@@ -18,6 +18,8 @@ if (!cliqzConfig.modules) {
 // TODO remove outdated
 cliqzConfig.environment = process.env.CLIQZ_ENVIRONMENT || 'development';
 
+cliqzConfig.use_v6_build = process.env.CLIQZ_V6_BUILD || false;
+
 // source maps
 cliqzConfig.sourceMaps = !(process.env.CLIQZ_SOURCE_MAPS === 'false');
 cliqzConfig.debugPages = !(process.env.CLIQZ_SOURCE_DEBUG === 'false');
@@ -25,6 +27,8 @@ cliqzConfig.debugPages = !(process.env.CLIQZ_SOURCE_DEBUG === 'false');
 cliqzConfig.EXTENSION_VERSION = process.env.EXTENSION_VERSION;
 cliqzConfig.VERSION = process.env.VERSION;
 
-cliqzConfig.instrumentFunctions = process.env.CLIQZ_INSTRUMENT_FUNCTIONS;
+if (process.env.EXTENSION_LOG) {
+  cliqzConfig.EXTENSION_LOG = process.env.EXTENSION_LOG;
+}
 
 module.exports = cliqzConfig;

@@ -35,12 +35,12 @@ if (chrome.bookmarks && !unifiedSearchAvailable) {
   updateBookmarksCache();
 }
 
-let openedURLs = new Set();
+export const openedURLs = new Set();
 
 function updateOpenedTabsCache(type, id) {
   if (chrome.windows) {
     chrome.windows.getAll({ populate: true, windowTypes: ['normal'] }, (windows) => {
-      openedURLs = new Set();
+      openedURLs.clear();
       windows.forEach(w => w.tabs.forEach((tab) => {
         if (type !== 'onremoved' || tab.id !== id) {
           openedURLs.add(tab.url);
@@ -50,7 +50,7 @@ function updateOpenedTabsCache(type, id) {
   }
 }
 
-if (chrome.tabs && !unifiedSearchAvailable) {
+if (chrome.tabs) {
   chrome.tabs.onCreated.addListener(updateOpenedTabsCache);
   chrome.tabs.onRemoved.addListener(updateOpenedTabsCache.bind(null, 'onremoved'));
   chrome.tabs.onUpdated.addListener(updateOpenedTabsCache);

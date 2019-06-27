@@ -1,6 +1,6 @@
 import App from '../core/app';
 import { newTab, query } from '../platform/tabs';
-import { chrome } from '../platform/globals';
+import { chrome, window } from '../platform/globals';
 import telemetry from '../core/services/telemetry';
 import config from '../core/config';
 import prefs from '../core/prefs';

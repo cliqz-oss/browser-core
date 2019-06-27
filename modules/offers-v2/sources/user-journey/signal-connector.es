@@ -50,11 +50,29 @@ export default class JourneySignals {
    * @returns {Promise<void>}
    */
   async reinterpretCampaignSignalAsync(signalId) {
-    if (signalId !== actions.AID_OFFER_CALL_TO_ACTION) {
+    let sigType = '';
+    //
+    // Add signals from monitors as features
+    //
+    switch (signalId) { // eslint-disable-line default-case
+      case actions.AID_OFFER_CALL_TO_ACTION:
+        sigType = sigType || 'click'; // fallthrough
+      case actions.AID_SUCCESS:
+        sigType = sigType || 'purchase'; // fallthrough
+      case actions.AID_LANDING:
+      case actions.AID_PAGE_IMP:
+      case actions.AID_PAYMENT:
+      case actions.AID_CART:
+        this.collector.addFeature({ feature: signalId });
+    }
+    //
+    // Snapshot the journey
+    //
+    if (!sigType) {
       return;
     }
     await this._addSignal({
-      type: 'click',
+      type: sigType,
       journey: this.collector.getJourney()
     });
   }

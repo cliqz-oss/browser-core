@@ -101,6 +101,7 @@ export default {
     ROTATED_TOP_NEWS: 'rotated-top-news.cliqz.com',
     SUGGESTIONS_URL: config.settings.SUGGESTIONS_URL,
     frameScriptWhitelist: config.settings.frameScriptWhitelist,
+    onBoardingPref: config.settings.onBoardingPref,
   },
   constants: {
     TOOLTIP_WORLDCUP_GROUP: 'worldcup-group',

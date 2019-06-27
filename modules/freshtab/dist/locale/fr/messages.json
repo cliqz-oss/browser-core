@@ -185,6 +185,18 @@
     "freshtab_cliqz_modules_list": {
         "message": "Cliqz modules list"
     },
+    "freshtab_cliqz_post_adblock_description": {
+        "message": "We activated the ad-blocker for you to try out. You can change the settings in the Control Center next to the address bar at any time."
+    },
+    "freshtab_cliqz_post_adblock_learn_more_text": {
+        "message": "Learn more"
+    },
+    "freshtab_cliqz_post_adblock_learn_more_url": {
+        "message": "https://cliqz.com/en/whycliqz/adblocking"
+    },
+    "freshtab_cliqz_post_adblock_title": {
+        "message": "Did you know that Cliqz can remove ads from websites?"
+    },
     "freshtab_cliqz_post_remind_later": {
         "message": "Remind me later"
     },
@@ -232,6 +244,18 @@
     },
     "freshtab_stats_time_saved_desc": {
         "message": "Temps estimé que vous avez economisé en utilisant Cliqz."
+    },
+    "freshtab_tooltip_description": {
+        "message": "Choisissez parmis différentes options afin que Cliqz vous convienne le mieux."
+    },
+    "freshtab_tooltip_later_button": {
+        "message": "Plus tard"
+    },
+    "freshtab_tooltip_title": {
+        "message": "Personnaliser Cliqz"
+    },
+    "freshtab_tooltip_try_now_button": {
+        "message": "Essayer maintenant"
     },
     "freshtab_top_news": {
         "message": "Top News"

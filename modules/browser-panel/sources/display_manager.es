@@ -1,5 +1,6 @@
 import { forEachWindow } from '../platform/browser';
 import { queryActiveTabs } from '../core/tabs';
+import { setTimeout } from '../core/timers';
 import inject from '../core/kord/inject';
 import logger from './logger';
 

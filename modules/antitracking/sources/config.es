@@ -5,6 +5,7 @@ import asyncPrefs from '../platform/async-storage';
 import { getConfigTs } from './time';
 import events from '../core/events';
 import { fetch } from '../core/http';
+import pacemaker from '../core/services/pacemaker';
 
 const SETTINGS = config.settings;
 const VERSIONCHECK_URL = `${SETTINGS.CDN_BASEURL}/anti-tracking/whitelist/versioncheck.json`;
@@ -19,6 +20,12 @@ export const TELEMETRY = {
   DISABLED: 0,
   TRACKERS_ONLY: 1,
   ALL: 2,
+};
+
+export const COOKIE_MODE = {
+  THIRD_PARTY: 'thirdparty',
+  TRACKERS: 'trackers',
+  GHOSTERY: 'ghostery',
 };
 
 export const DEFAULTS = {
@@ -39,6 +46,7 @@ export const DEFAULTS = {
   firstPartyIsolation: false,
   tokenTelemetry: {},
   databaseEnabled: true,
+  cookieMode: COOKIE_MODE.THIRD_PARTY,
 };
 
 export const PREFS = {
@@ -55,6 +63,7 @@ export const PREFS = {
   telemetryMode: 'attrackTelemetryMode',
   sendAntiTrackingHeader: 'attrackSendHeader',
   firstPartyIsolation: 'attrack.firstPartyIsolation',
+  cookieMode: 'attrack.cookieMode',
 };
 
 /**
@@ -142,7 +151,7 @@ export default class Config {
         ['attrack.config', JSON.stringify(conf)],
       ]);
     } catch (e) {
-      setTimeout(this._loadConfig.bind(this), 30000);
+      pacemaker.setTimeout(this._loadConfig.bind(this), 30000);
     }
   }
 

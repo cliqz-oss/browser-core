@@ -4,7 +4,8 @@ import events from '../events';
 import i18n from '../i18n';
 import prefs from '../prefs';
 import console from '../console';
-import setTimeoutInterval from '../helpers/timeout';
+import pacemaker from './pacemaker';
+import { nextTick } from '../decorators';
 import inject from '../kord/inject';
 import { isOnionModeFactory } from '../platform';
 
@@ -81,7 +82,11 @@ export function service() {
     return Promise.resolve();
   }
 
-  let interval = setTimeoutInterval(updateCliqzConfig, 1000 * 60 * 60);
+  let interval = null;
+  nextTick(() => {
+    interval = pacemaker.everyHour(updateCliqzConfig);
+  });
+
   service.unload = () => {
     if (interval !== null) {
       interval.stop();

@@ -319,8 +319,9 @@ export default class OffersAPI {
       ActionID.AID_OFFER_EXPIRED
     );
     // we force the signal handler to send the signal now
-    this.sigHandler.sendCampaignSignalNow(campaignID);
-    this.sigHandler.removeCampaignSignals(campaignID);
+    this.sigHandler.sendCampaignSignalNow(campaignID).then(
+      () => this.sigHandler.removeCampaignSignals(campaignID)
+    );
   }
 
   // /////////////////////////////////////////////////////////////////////////////

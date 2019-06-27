@@ -70,6 +70,11 @@ export default background({
     'waitForGeolocation',
   ]),
 
+  searchSession: inject.service('search-session', [
+    'setSearchSession',
+    'setQueryLastDraw',
+  ]),
+
   /**
     @method init
     @param settings
@@ -141,6 +146,14 @@ export default background({
     },
     reportSelection(selectionReport, { contextId, tab: { id: tabId } = {} } = { tab: {} }) {
       const sessionId = tabId || contextId;
+
+      if (selectionReport.action === 'enter' && !selectionReport.rawResult) {
+        // User hit 'Enter' before any results arrived
+        events.pub('ui:enter', selectionReport);
+      } else {
+        events.pub('ui:click-on-url', selectionReport);
+      }
+
       if (!this.searchSessions.has(sessionId)) {
         return;
       }
@@ -285,7 +298,7 @@ export default background({
       );
 
       const resultsSubscription = responses$.subscribe((responses) => {
-        const results = (responses.responses[0] && responses.responses[0].results) || [];
+        const { results = [], suggestions = [] } = responses.responses[0] || {};
         const {
           tabId: _tabId,
           query: _query,
@@ -299,7 +312,9 @@ export default background({
           queriedAt,
           meta,
           results,
+          suggestions,
           windowId: sessionId,
+          assistantStates: this.actions.getAssistantStates(),
         };
 
         if (config.isMobile) {
@@ -315,10 +330,17 @@ export default background({
           this.core.action(
             'broadcastActionToWindow',
             tabId,
-            'overlay',
+            'dropdown',
             'renderResults',
             response
           );
+        } else {
+          this.core.action('broadcast', '', {
+            module: 'dropdown',
+            action: 'renderResults',
+            contextId,
+            args: [response],
+          });
         }
 
         events.pub('search:results', response);
@@ -477,6 +499,14 @@ export default background({
       }
 
       return handledQuery;
-    }
+    },
+
+    setSearchSession() {
+      this.searchSession.setSearchSession();
+    },
+
+    setQueryLastDraw(ts) {
+      this.searchSession.setQueryLastDraw(ts);
+    },
   },
 });

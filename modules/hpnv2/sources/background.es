@@ -6,7 +6,7 @@ import prefs from '../core/prefs';
 import logger from './logger';
 
 export default background({
-  requiresServices: ['cliqz-config'],
+  requiresServices: ['cliqz-config', 'pacemaker'],
   init() {
     if (prefs.get('proxyNetwork', true)) {
       this.proxy = true;

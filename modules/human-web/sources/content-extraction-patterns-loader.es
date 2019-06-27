@@ -1,6 +1,7 @@
 import config from '../core/config';
 import logger from './logger';
 import ResourceLoader from '../core/resource-loader';
+import pacemaker from '../core/services/pacemaker';
 
 // Default polling interval for patterns from the backend
 const DEFAULT_UPDATE_INTERVAL_IN_MS = 60 * 60 * 1000; // 1 hour
@@ -98,7 +99,7 @@ export default class ContentExtractionPatternsLoader {
           logger.error(`Failed to initialize "${ruleset}" content extraction patterns: ${e}`);
 
           // make one retry attempt, in case that the network was only unavailable for a short time
-          const timer = setTimeout(() => {
+          const timer = pacemaker.setTimeout(() => {
             logger.debug(`Retry to update "${ruleset}" content extraction patterns`);
             resourceLoader.updateFromRemote({ force: true }).catch(() => {});
             this._activeTimers.delete(timer);
@@ -107,7 +108,7 @@ export default class ContentExtractionPatternsLoader {
         });
 
       const timeout = new Promise((resolve, reject) => {
-        setTimeout(reject, this.initTimeoutInMs);
+        pacemaker.setTimeout(reject, this.initTimeoutInMs);
       });
 
       return Promise.race([loading, timeout]).catch(() => {
@@ -124,7 +125,7 @@ export default class ContentExtractionPatternsLoader {
     this.resourceLoaders = {};
 
     // cancel all retry attempts
-    this._activeTimers.forEach(x => clearTimeout(x));
+    this._activeTimers.forEach((x) => { pacemaker.clearTimeout(x); });
     this._activeTimers = new Set();
 
     return Promise.resolve();

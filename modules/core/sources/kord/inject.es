@@ -1,21 +1,7 @@
 import Logger from '../logger';
+import { ModuleMissingError, ModuleDisabledError } from '../app/module-errors';
 
 let app;
-
-export class ModuleMissingError extends Error {
-  constructor(moduleName) {
-    super(`module '${moduleName}' is missing`);
-    this.name = 'ModuleMissingError';
-  }
-}
-
-export class ModuleDisabledError extends Error {
-  constructor(moduleName) {
-    super(`module '${moduleName}' is disabled`);
-    this.name = 'ModuleDisabledError';
-  }
-}
-
 /**
  * Given the promise resulting from a call to `action`, ignore errors resulting
  * from a disabled module. This can be especially useful during extension
@@ -24,7 +10,7 @@ export class ModuleDisabledError extends Error {
  */
 export function ifModuleEnabled(promise) {
   return promise.catch((err) => {
-    if (err.name === ModuleDisabledError.name) {
+    if (err instanceof ModuleDisabledError) {
       Logger.get('core').debug(
         'Ignoring disabled module exception while calling action,'
         + ' the following exception can be safely ignored. This log'

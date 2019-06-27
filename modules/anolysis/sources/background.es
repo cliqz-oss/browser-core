@@ -86,7 +86,7 @@ async function instantiateAnolysis() {
  */
 export default background({
   // to be able to read the config prefs
-  requiresServices: ['cliqz-config', 'session', 'telemetry'],
+  requiresServices: ['cliqz-config', 'session', 'telemetry', 'pacemaker'],
 
   isBackgroundInitialized: false,
   app: null,

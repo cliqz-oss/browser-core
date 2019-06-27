@@ -1,5 +1,5 @@
-import inject from '../core/kord/inject';
-import setTimeoutInterval from '../core/helpers/timeout';
+import telemetry from '../core/services/telemetry';
+import pacemaker from '../core/services/pacemaker';
 
 
 const BINS = [
@@ -93,17 +93,12 @@ export default class Latency {
   }
 
   init() {
-    this.flushInterval = setTimeoutInterval(
-      () => this.flush(),
-      10 * 60 * 1000, // 10 minutes
-    );
+    this.flushInterval = pacemaker.everyFewMinutes(this.flush.bind(this));
   }
 
   unload() {
-    if (this.flushInterval) {
-      this.flushInterval.stop();
-      this.flushInterval = null;
-    }
+    pacemaker.clearTimeout(this.flushInterval);
+    this.flushInterval = null;
   }
 
   addTiming(step, elapsedTime) {
@@ -136,7 +131,7 @@ export default class Latency {
     }));
 
     this.resetTimings();
-    await inject.service('telemetry', ['push']).push(
+    await telemetry.push(
       histogramsMetric,
       'metrics.performance.webrequest-pipeline.timings',
     );

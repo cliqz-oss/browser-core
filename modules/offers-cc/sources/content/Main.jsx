@@ -16,6 +16,12 @@ export default class Main extends React.Component {
     };
   }
 
+  componentDidMount() {
+    const { data: { vouchers = [], autoTrigger = false } = {} } = this.props;
+    const offersCount = autoTrigger ? null : vouchers.length;
+    send('sendTelemetry', { action: 'show', offersCount });
+  }
+
   onClickMenu = (e) => {
     e.preventDefault();
     const { isMenuOpen } = this.state;

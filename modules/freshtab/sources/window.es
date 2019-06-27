@@ -1,5 +1,5 @@
 import prefs from '../core/prefs';
-import { isDesktopBrowser, isWindows, isPlatformAtLeastInVersion } from '../core/platform';
+import { isDesktopBrowser, isWindows } from '../core/platform';
 
 import config from './config';
 
@@ -64,7 +64,7 @@ export default class Win {
       return;
     }
 
-    if (isDesktopBrowser && isPlatformAtLeastInVersion('7.0')) {
+    if (isDesktopBrowser) {
       return;
     }
 

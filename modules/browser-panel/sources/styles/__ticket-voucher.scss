@@ -21,8 +21,9 @@ body {
   }
 
   &.web-ext .logo-link {
+    height: 20px;
     background: url("../images/ticket-tmpl/myoffrz-logo.svg") no-repeat right center;
-    background-size: 19px 19px;
+    background-size: cover;
     mask: none;
     -webkit-mask: none;
     pointer-events: none

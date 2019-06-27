@@ -1,6 +1,7 @@
 /* eslint-disable spaced-comment */
 import logger from './logger';
 import random from '../core/crypto/random';
+import pacemaker from '../core/services/pacemaker';
 
 // source: https://stackoverflow.com/a/1353711/783510
 function isValidDate(d) {
@@ -41,11 +42,14 @@ export default class ConfigLoader {
   }
 
   unload() {
-    clearTimeout(this.nextConfigUpdate);
+    pacemaker.clearTimeout(this.nextConfigUpdate);
+    this.nextConfigUpdate = null;
   }
 
   async fetchConfig() {
-    clearTimeout(this.nextConfigUpdate);
+    pacemaker.clearTimeout(this.nextConfigUpdate);
+    this.nextConfigUpdate = null;
+
     try {
       this.pendingUpdates += 1;
       if (this.pendingUpdates > 1) {
@@ -105,8 +109,8 @@ export default class ConfigLoader {
     // them different group keys.
     const timeoutInMs = Math.floor(minCooldown + (random() * randomExtraCooldown));
 
-    clearTimeout(this.nextConfigUpdate);
-    this.nextConfigUpdate = setTimeout(() => {
+    pacemaker.clearTimeout(this.nextConfigUpdate);
+    this.nextConfigUpdate = pacemaker.setTimeout(() => {
       this.fetchConfig().catch(logger.error);
     }, timeoutInMs);
   }

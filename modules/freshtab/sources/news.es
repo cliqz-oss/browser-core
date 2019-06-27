@@ -25,12 +25,12 @@ const hbasedNewsTypeKey = 'yournews';
 const prClBurdaNewsTypeKey = 'pr-cl-burda-news';
 const breakingNewsTypeKey = 'breaking-news';
 
-const NEWS_BACKENDS = ['de', 'fr', 'us', 'gb', 'es', 'pl', 'it', 'ru'];
+const NEWS_BACKENDS = ['de', 'de-tr-en', 'fr', 'us', 'gb', 'es', 'it'];
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 
 const log = console.log.bind(console, 'freshtab.news');
 
-let hbasedRecommendCacheObject;
+let hbasedRecommendCacheObject = null;
 
 function checkNewsTypeForHbasedRequest(newsPlacingRecord) {
   return (newsPlacingRecord.type === hbasedNewsTypeKey)
@@ -69,12 +69,7 @@ function getTopNewsList() {
   });
 }
 
-const topNewsCacheObject = new NewsCache(
-  'freshTab-topnews-cache',
-  TOP_NEWS_CACHE_UPDATE_INTERVAL,
-  getTopNewsList,
-  false
-);
+let topNewsCacheObject = null;
 
 function getHbasedNewsObject() {
   function filterNotRequiredDomains(reqData, hbasedRecom) {
@@ -121,12 +116,7 @@ function getHbasedNewsObject() {
   return hbasedRecommendCacheObject.getData().then(requestHbasedNewsList);
 }
 
-const hbasedNewsCacheObject = new NewsCache(
-  'freshTab-hbased-cache',
-  HABASED_NEWS_CACHE_UPDATE_INTERVAL,
-  getHbasedNewsObject,
-  true
-);
+let hbasedNewsCacheObject = null;
 
 export function mergeToGlobalVisitCount(urlDesc, visitCount, globalVisitCount) {
   function subUrlCheck(subUrl) {
@@ -464,13 +454,6 @@ export function getHistoryBasedRecommendations(oldCacheData) {
   });
 }
 
-hbasedRecommendCacheObject = new NewsCache(
-  'freshTab-recommend-cache',
-  HBASED_RECOM_CACHE_UPDATE_INTERVAL,
-  getHistoryBasedRecommendations,
-  true
-);
-
 function getTopNewsArticles(topNCache) {
   return (topNCache
         && topNCache.results
@@ -790,6 +773,33 @@ const CliqzFreshTabNews = {
     let topNewsL;
     let hbObject;
 
+    if (topNewsCacheObject === null) {
+      topNewsCacheObject = new NewsCache(
+        'freshTab-topnews-cache',
+        TOP_NEWS_CACHE_UPDATE_INTERVAL,
+        getTopNewsList,
+        false
+      );
+    }
+
+    if (hbasedNewsCacheObject === null) {
+      hbasedNewsCacheObject = new NewsCache(
+        'freshTab-hbased-cache',
+        HABASED_NEWS_CACHE_UPDATE_INTERVAL,
+        getHbasedNewsObject,
+        true
+      );
+    }
+
+    if (hbasedRecommendCacheObject === null) {
+      hbasedRecommendCacheObject = new NewsCache(
+        'freshTab-recommend-cache',
+        HBASED_RECOM_CACHE_UPDATE_INTERVAL,
+        getHistoryBasedRecommendations,
+        true
+      );
+    }
+
     return Promise.all([
       topNewsCacheObject.getData().then(checkTopNewsIfInHistory),
       hbasedNewsCacheObject.getData().then(checkHbasedNewsIfInHistory),
@@ -801,7 +811,9 @@ const CliqzFreshTabNews = {
   },
   resetTopNews: () => {
     topNewsCacheObject.reset();
-  }
+  },
+  NEWS_BACKENDS,
+  getNewsLanguage
 };
 
 export default CliqzFreshTabNews;
