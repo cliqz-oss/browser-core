@@ -58,7 +58,11 @@ export default class PairingUI {
   }
 
   startPairing() {
-    this.PeerComm.startPairing();
+    this.PeerComm.startPairing()
+      .then(info => this.onpairing(info))
+      .catch(() => {
+        // This ensures silent rejection in case startpairing is triggered while unload.
+      });
   }
 
   updatePairingStatus(status) {
@@ -132,7 +136,6 @@ export default class PairingUI {
       connectInProgressMessage: this.i18n('connect_in_progress_message'),
       instructionsTitle: this.i18n('pairing_instructions_title'),
       instructionsAndroid: this.i18n('pairing_instructions_playstore'),
-      instructionsIOs: this.i18n('pairing_instructions_appstore'),
 
       videoDownloaderTitle: this.i18n('pairing_video_title'),
       receiveTabTitle: this.i18n('pairing_receive_tab_title'),

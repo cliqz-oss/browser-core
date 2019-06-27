@@ -10,7 +10,9 @@ import background from '../core/base/background';
 import CachedMap from '../core/persistence/cached-map';
 import inject from '../core/kord/inject';
 import events from '../core/events';
+import console from '../core/console';
 import contextmenuapi from '../platform/context-menu';
+import { getTabsWithUrl } from '../platform/tabs';
 import { getMessage } from '../core/i18n';
 import { chrome } from '../platform/globals';
 
@@ -52,8 +54,23 @@ export default background({
     };
     PeerComm.addObserver('TELEMETRY', observer);
 
+    const sendToPreferenceTab = (obj) => {
+      getTabsWithUrl('about:preferences#connect').then((tabs) => {
+        for (const t of tabs) {
+          chrome.tabs.sendMessage(t.id, obj);
+        }
+      }).catch((e) => {
+        console.log('something went wrong', e);
+      });
+    };
 
     function sendUI(action) {
+      // since migration to webext iframe do not receive runtime message.
+      sendToPreferenceTab({
+        action,
+        message: this.peerSlave.pairingInfo,
+      });
+
       chrome.runtime.sendMessage({
         action,
         message: this.peerSlave.pairingInfo,
@@ -209,7 +226,7 @@ export default background({
       }
     },
     startPairing() {
-      return this.peerSlave.startPairing();
+      return this.peerSlave.startPairing().catch(() => {});
     },
     unpair() {
       return this.peerSlave.unpair();

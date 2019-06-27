@@ -1,7 +1,5 @@
-import getInfo from 'ytdl-core/lib/info';
+export { getInfo as default } from 'ytdl-core';
 
 if (!global.location) {
   global.location = { protocol: 'https://' };
 }
-
-export default getInfo;

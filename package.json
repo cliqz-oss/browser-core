@@ -1,6 +1,6 @@
 {
   "name": "browser-core",
-  "version": "1.37.0",
+  "version": "1.37.1",
   "description": "",
   "main": "build/index.js",
   "scripts": {
@@ -51,7 +51,7 @@
     "tooltipster": "^4.2.6",
     "ua-parser-js": "^0.7.12",
     "whatwg-fetch": "^3.0.0",
-    "ytdl-core": "^0.20.2"
+    "ytdl-core": "^0.29.2"
   },
   "peerDependencies": {
     "@cliqz/indexeddbshim": "^4.1.2",

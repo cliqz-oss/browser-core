@@ -1,1 +1,1 @@
-export { default } from 'ytdl-core/lib/info';
+export { getInfo as default } from 'ytdl-core';

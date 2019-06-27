@@ -89,9 +89,11 @@ export default class CliqzPairing {
       if (this.status === CliqzPairing.STATUS_PAIRING) {
         this.pairingRemaining = this.pairingTimeout;
       }
-      return;
+      // this is encountered while waiting for connection.
+      return Promise.reject();
     }
-    this.setPairing(slaveName);
+
+    return this.setPairing(slaveName);
   }
 
   // private
@@ -459,7 +461,7 @@ export default class CliqzPairing {
 
   setPairing(slaveName) {
     if (this.destroyed) {
-      return;
+      return Promise.reject();
     }
     this.status = CliqzPairing.STATUS_PAIRING;
     this.pairingRemaining = this.pairingTimeout;
@@ -481,7 +483,7 @@ export default class CliqzPairing {
     this.peer.clearPeerWhitelist();
     this.peer.onmessage = this.onPairingMessage.bind(this);
 
-    Promise.all([this.generatePairingKey(), this.peer.createConnection()])
+    return Promise.all([this.generatePairingKey(), this.peer.createConnection()])
       .then(() => {
         const b64 = fromByteArray(toByteArray(this.peer.peerID, 'hex'), 'b64');
         this.pairingToken = [b64, this.randomToken].join(':');
@@ -491,6 +493,7 @@ export default class CliqzPairing {
         if (this.cancelPairing) {
           this.setUnpaired();
         }
+        return this.pairingInfo;
       })
       .catch((e) => {
         // TODO: Errors here should be handled properly, server might be down, etc -> notifications

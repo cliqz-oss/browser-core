@@ -3668,6 +3668,11 @@ const CliqzHumanWeb = {
         return;
     }
 
+    if (CliqzHumanWeb.isSuspiciousQuery(query)) {
+      _log('Dropping suspicious query before double-fetch:', query);
+      return;
+    }
+
     const { isSearchEngineUrl, queryUrl } = CliqzHumanWeb.contentExtractor.checkAnonSearchURL(url, query);
     if (isSearchEngineUrl) {
         try {

@@ -28,8 +28,10 @@ export function queryActiveTabs() {
   return [];
 }
 
-export function getTabsWithUrl(/* window, url */) {
-  throw new Error('not implemented');
+export function getTabsWithUrl(exacturl = '') {
+  return new Promise(resolve =>
+    chrome.tabs.query({},
+      tabs => resolve(tabs.filter(t => t.url === exacturl))));
 }
 
 export function getCurrentgBrowser() {
