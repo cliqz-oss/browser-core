@@ -146,7 +146,7 @@ export default class EngineManager {
     // As a last resort, we initialize an empty instance of the engine. It will
     // then be updated by parsing full-versions of the lists.
     if (this.engine === null) {
-      this.engine = new AdblockerLib.WebExtensionEngine();
+      this.engine = new AdblockerLib.WebExtensionBlocker();
     }
 
     return this.engine;
@@ -254,7 +254,10 @@ export default class EngineManager {
       try {
         // Create new diff and update version of the list in `this.engine`
         diffs.push({
-          added: Array.from(AdblockerLib.getLinesWithFilters(await fetchText(url))),
+          added: Array.from(AdblockerLib.getLinesWithFilters(
+            await fetchText(url),
+            this.engine.config,
+          )),
         });
         this.engine.lists.set(name, checksum);
       } catch (ex) {
@@ -367,7 +370,7 @@ export default class EngineManager {
     } else {
       timer = this.stopwatch('deserialize engine from cache', 'adblocker');
       try {
-        this.engine = AdblockerLib.WebExtensionEngine.deserialize(serialized);
+        this.engine = AdblockerLib.WebExtensionBlocker.deserialize(serialized);
       } catch (ex) {
         // In case there is a mismatch between the version of the code
         // and the serialization format of the engine on disk, we might
@@ -412,7 +415,7 @@ export default class EngineManager {
 
     timer = this.stopwatch('deserialize remote engine', 'adblocker');
     try {
-      this.engine = AdblockerLib.WebExtensionEngine.deserialize(serialized);
+      this.engine = AdblockerLib.WebExtensionBlocker.deserialize(serialized);
     } catch (ex) {
       logger.error('exception while loading remote engine', ex);
       return null;
