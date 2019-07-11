@@ -22,7 +22,7 @@ export default background({
     @param settings
   */
   init() {
-    chrome.contextMenus.create({
+    chrome.contextMenus && chrome.contextMenus.create({
       id: 'context-search',
       title: getMessage('context_menu_search_item', [config.settings.appName, '%s']),
       contexts: ['selection'],
@@ -32,28 +32,30 @@ export default background({
       ]
     });
 
-    chrome.contextMenus.onClicked.addListener((info, tab) => {
+    chrome.contextMenus && chrome.contextMenus.onClicked.addListener((info, tab) => {
       triggerOverlay(tab, 'ByContextMenu', info.selectionText);
     });
 
-    chrome.commands.onCommand.addListener((command) => {
-      if (command === 'toggle-quicksearch') {
-        chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-          if (!tab) {
-            return;
-          }
-          triggerOverlay(tab, 'ByKeyboard');
-        });
-      }
-    });
+    chrome.commands.onCommand.addListener(this.onCommand);
   },
 
   unload() {
-
+    chrome.commands.onCommand.removeListener(this.onCommand);
   },
 
   beforeBrowserShutdown() {
 
+  },
+
+  onCommand(command) {
+    if (command === 'toggle-quicksearch') {
+      chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+        if (!tab) {
+          return;
+        }
+        triggerOverlay(tab, 'ByKeyboard');
+      });
+    }
   },
 
   events: {

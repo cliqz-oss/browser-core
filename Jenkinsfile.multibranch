@@ -41,7 +41,7 @@ if (env.BRANCH_NAME.startsWith('v3.')) {
     ]
 }
 
-if (env.BRANCH_NAME.startsWith('v7.')) {
+if (env.BRANCH_NAME.startsWith('v7.') || env.BRANCH_NAME == 'ghostery-search') {
     matrix['ghostery'] = [
         'config': 'ghostery.js',
     ]
@@ -265,7 +265,7 @@ def build(Map m) {
                     "GIT_COMMIT=${getCommitId()}",
                     "VERSION=${version}",
                 ]) {
-                    sh "cd /app && ./fern.js build --environment=production ${isIntegrationBranch ? '' : '--no-debug'}"
+                    sh "cd /app && ./fern.js build --environment=production --v6 ${isIntegrationBranch ? '' : '--no-debug'}"
 
                     sh 'cd /app && ./fern.js pack'
 

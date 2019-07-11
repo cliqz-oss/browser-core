@@ -88,7 +88,7 @@ export default class OverlayDropdownManager extends FreshtabDropdownManager {
         <div class="container">
           <input type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="${chrome.i18n.getMessage('freshtab_urlbar_placeholder')}" tabindex="0">
           <div class="dropdown">
-            <iframe id="cliqz-dropdown" src="${chrome.runtime.getURL('modules/dropdown/dropdown.html?cross-origin')}" style="height: 0px;">
+            <iframe id="cliqz-dropdown" src="${chrome.runtime.getURL('cliqz/dropdown/dropdown.html?cross-origin')}" style="height: 0px;">
           </div>
         </div>
       </div>`;
@@ -101,7 +101,7 @@ export default class OverlayDropdownManager extends FreshtabDropdownManager {
 
     const link = document.createElement('link');
     link.setAttribute('rel', 'stylesheet');
-    link.href = chrome.runtime.getURL('modules/overlay/styles/overlay.css');
+    link.href = chrome.runtime.getURL('cliqz/overlay/styles/overlay.css');
     link.addEventListener('load', this._stylesLoaded.resolve, { once: true });
     shadow.appendChild(link);
     document.documentElement.appendChild(root);

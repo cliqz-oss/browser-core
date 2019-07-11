@@ -4,6 +4,7 @@
 
 const urls = require('./common/urls-ghostery');
 const publish = require('./common/publish');
+const base = require('./common/system');
 
 module.exports = {
   "platform": "webextension",
@@ -22,6 +23,7 @@ module.exports = {
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "be", "se", "dk", "fi", "cz", "gr", "hu", "ro", "no", "ca", "au", "ru", "ua", "in", "pl", "jp", "br", "mx", "cn", "ar"],
     "antitrackingPlaceholder": "ghostery",
     "antitrackingHeader": "Ghostery-AntiTracking",
+    "appName": "Ghostery",
   }),
   "default_prefs": {
     "modules.human-web.enabled": true,
@@ -31,6 +33,9 @@ module.exports = {
     "modules.anti-phishing.enabled": false,
     "modules.adblocker.enabled": true,
     "modules.insights.enabled": false,
+    "modules.search.enabled": true,
+    "modules.dropdown.enabled": false,
+    "modules.overlay.enabled": true,
     "offersLogsEnabled": true,
     "showConsoleLogs": false,
     "cliqz-adb": 1,
@@ -51,6 +56,7 @@ module.exports = {
     "hpnv2/worker.wasm.bundle.js",
     "hpnv2/worker.asmjs.bundle.js",
     "human-web/rusha.bundle.js",
+    "dropdown/dropdown.bundle.js",
   ],
   "modules": [
     "core",
@@ -66,5 +72,16 @@ module.exports = {
     "myoffrz-helper",
     "popup-notification",
     "insights",
-  ]
+    "search",
+    "dropdown",
+    "overlay",
+    "geolocation",
+  ],
+  system: base.systemConfig,
+  builderDefault: Object.assign({}, base.builderConfig, {
+    externals: base.builderConfig.externals.concat('@cliqz-oss/dexie'),
+    globalDeps: Object.assign({}, base.builderConfig.globalDeps, {
+      '@cliqz-oss/dexie': 'Dexie',
+    }),
+  }),
 }

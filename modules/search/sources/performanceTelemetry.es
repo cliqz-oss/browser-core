@@ -94,11 +94,11 @@ export default {
       });
 
     this.onVisited = this.onVisited.bind(this);
-    chrome.history.onVisited.addListener(this.onVisited);
+    chrome.history && chrome.history.onVisited.addListener(this.onVisited);
   },
 
   unload() {
-    chrome.history.onVisited.removeListener(this.onVisited);
+    chrome.history && chrome.history.onVisited.removeListener(this.onVisited);
     chrome.webRequest.onHeadersReceived.removeListener(this.onHeadersReceived);
   },
 
