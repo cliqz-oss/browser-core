@@ -84,6 +84,8 @@ export default describeModule('human-web/content-extractor',
   }),
   () => {
     describe('ContentExtractor', function () {
+      this.timeout(20000);
+
       let ContentExtractor;
       let CliqzHumanWeb;
       let uut;
@@ -154,7 +156,6 @@ export default describeModule('human-web/content-extractor',
         /* eslint-disable-next-line global-require */
         global.URL = global.URL || require('url').URL;
 
-        this.timeout(10000);
         ContentExtractor = this.module().ContentExtractor;
         CliqzHumanWeb = {
           debug: enableLogging,
