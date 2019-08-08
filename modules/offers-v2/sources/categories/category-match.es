@@ -1,4 +1,5 @@
 import { buildMultiPatternIndex } from '../common/pattern-utils';
+import logger from '../common/offers_v2_logger';
 
 /**
  * Store how categories where matched. Hide technical implementation
@@ -226,7 +227,20 @@ export class CategoryMatch {
     const patternsList = [];
     this.patterns.forEach((patterns, catID) =>
       patternsList.push({ groupID: catID, patterns }));
-    this.multiPatternObj = buildMultiPatternIndex(patternsList);
+    //
+    // Adblocker fails if there are too many patterns.
+    // The code should not propagate the error to the caller:
+    // the caller can't distinguish an error here from some other
+    // initialization error. If the caller is module initialization,
+    // then the whole module is not initialized, and therefore there
+    // is no chance for recovery forever.
+    // This `build` function is the best place to handle the error.
+    //
+    try {
+      this.multiPatternObj = buildMultiPatternIndex(patternsList);
+    } catch (e) {
+      logger.error('Failed to build an index of patterns:', e);
+    }
   }
 
   /**

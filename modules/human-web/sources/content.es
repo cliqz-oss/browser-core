@@ -67,7 +67,7 @@ export function parseDom(url, window, hw) {
     let noAdsOnThisPage = 0;
     const detectAdRules = {
       query: {
-        element: '#ires',
+        element: '#rso',
         attribute: 'data-async-context'
       },
       adSections: ['.ads-ad', '.pla-unit-container', '.pla-hovercard-content-ellip', '.cu-container tr'],
