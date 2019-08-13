@@ -11,7 +11,6 @@ import UrlData from './common/url_data';
 import inject from '../core/kord/inject';
 import { nextTick } from '../core/decorators';
 import LRU from '../core/LRU';
-import { rewriteUrlForOfferMatching } from './utils';
 
 export default class EventHandler {
   constructor() {
@@ -156,14 +155,12 @@ export default class EventHandler {
     }
     this.tabToLastUrl.set(data.tabId, data.url);
 
-    const handlerUrl = rewriteUrlForOfferMatching(data.url);
-
     // else we emit the event here
-    this.onLocationChangeHandler(handlerUrl, data.referrer);
+    this.onLocationChangeHandler(data.url, data.referrer, data.tabId);
   }
 
   // ///////////////////////////////////////////////////////////////////////////
-  onLocationChangeHandler(url, referrer) {
+  onLocationChangeHandler(url, referrer, tabId) {
     if (!url
         || !(url.startsWith('http://') || url.startsWith('https://'))
         || this.notAllowedUrls.test(url)) {
@@ -177,7 +174,7 @@ export default class EventHandler {
       referrerName = referrerUrlDetails.name;
     }
 
-    const urlData = new UrlData(url, referrerName);
+    const urlData = new UrlData(url, referrerName, tabId);
     try {
       this._publish(this.urlChangeCbs, urlData);
     } catch (e) {

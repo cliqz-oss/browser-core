@@ -2829,7 +2829,7 @@ export const weatherResults = [
         },
         units_label: 'Scale'
       },
-      friendlyUrl: 'wunderground.com/cgi-bin/findweather/getforecast',
+      friendlyUrl: 'weather.com',
       title: 'München, Deutschland'
     },
     type: 'rh',
@@ -2844,6 +2844,7 @@ export const weatherResults = [
   {
     url: 'https://www.wunderground.com/cgi-bin/findweather/getForecast?query=51.6167,13.3167',
     snippet: {
+      friendlyUrl: 'wunderground.com/cgi-bin/findweather/getForecast?query=51.6167,13.3167',
       description: 'Get the Munich weather forecast. Access hourly, 10 day and 15 day forecasts along with up to the minute reports and videos for Munich, Germany from AccuWeather.com',
       extra: {
         alternatives: [

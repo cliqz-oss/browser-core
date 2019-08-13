@@ -33,20 +33,27 @@ export default class Main extends React.Component {
 
   onClickMenuOption = (option) => {
     const { currentView } = this.state;
-    if (option === 'help') {
-      send('openURL', {
-        url: 'https://myoffrz.com/kontakt/',
-        closePopup: false,
-      });
-    }
-    const target = option === 'help' ? 'help' : 'why';
-    send('sendTelemetry', { target });
-    this.setState({
-      currentView: option === 'why-do-i-see'
-        ? 'why-do-i-see'
-        : currentView,
-      isMenuOpen: false,
-    }, () => {
+    const mapper = {
+      'why-do-i-see': {
+        view: 'why-do-i-see',
+        telemetry: 'why',
+      },
+      help: {
+        telemetry: 'help',
+        action: () => send('openURL', {
+          url: 'https://myoffrz.com/kontakt/',
+          closePopup: false,
+        }),
+      },
+      settings: {
+        telemetry: 'settings',
+        action: () => send('openOptions'),
+      }
+    };
+    const { view = currentView, telemetry = 'help', action = () => {} } = mapper[option];
+    action();
+    send('sendTelemetry', { target: telemetry });
+    this.setState({ currentView: view, isMenuOpen: false }, () => {
       if (option === 'why-do-i-see') { resize(); }
     });
   }
@@ -73,13 +80,14 @@ export default class Main extends React.Component {
       <div onClick={this.onOutsideClick} className={_css('container')}>
         <div className={_css('header')}>
           <Header
+            vouchers={vouchers}
             products={products}
             autoTrigger={autoTrigger}
             activeMenu={isMenuOpen}
             onClickMenu={this.onClickMenu}
           />
         </div>
-        {isMenuOpen && <Menu onClick={this.onClickMenuOption} />}
+        {isMenuOpen && <Menu products={products} onClick={this.onClickMenuOption} />}
         <div className={_css('content')}>
           <Content
             products={products}

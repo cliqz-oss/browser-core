@@ -1,15 +1,11 @@
 /* global chai */
 /* global describeModule */
 /* global require */
-const adblocker = require('@cliqz/adblocker');
 const commonMocks = require('../utils/common');
 
 export default describeModule('offers-v2/offers/blacklist',
   () => ({
     ...commonMocks,
-    'platform/lib/adblocker': {
-      default: adblocker,
-    },
     'core/resource-loader': {
       default: class LoaderFake {
         stop() {}

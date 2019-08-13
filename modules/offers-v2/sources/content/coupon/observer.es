@@ -10,7 +10,7 @@
  */
 
 import CouponForm from './form';
-import { getCouponsForm, findCouponApplication } from '../utils';
+import { getCouponsForm, findCouponApplication } from './utils';
 
 /**
  * This class will find the form and listen for any webpage modification to get the
@@ -68,8 +68,8 @@ export default class CouponFormObserver {
     this.onFindCouponApplication(result);
   }
 
-  processForms(targets) {
-    const { input, button, ok } = getCouponsForm(targets);
+  processForms(window) {
+    const { input, button, ok } = getCouponsForm(window);
     if (!ok) { return; }
     if (this.offerInfo && this.offerInfo.autoFillField) {
       const tmp = new CouponForm({ input, button, onClick: this._onClick });

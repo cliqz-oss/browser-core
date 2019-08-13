@@ -22,7 +22,8 @@ export default class LastQuery extends EventEmitter {
     this.container = this.window.document.createElement('hbox');
     this.container.id = LAST_QUERY_BOX_ID;
     this.container.appendChild(this.lastQueryBox);
-    const $targetPosition = this.window.gURLBar.mInputField.parentElement;
+    this.urlbar = this.window.gURLBar.textbox || this.window.gURLBar;
+    const $targetPosition = this.urlbar.mInputField.parentElement;
     $targetPosition.insertBefore(this.container, $targetPosition.firstChild);
     this.addEventListeners();
     this.attached = true;
@@ -54,6 +55,17 @@ export default class LastQuery extends EventEmitter {
         this.showLastQuery(tabId);
         break;
       }
+      case 'TabPrivateModeChanged': {
+        const target = event.target;
+        const isPrivate = event.detail.private;
+        const currentTab = Array.from(this.window.gBrowser.tabContainer.children)
+          .find(tab => tab.linkedBrowser === target);
+        if (currentTab && currentTab.tabId && isPrivate) {
+          this.clear(currentTab.tabId);
+          this.hideLastQuery(currentTab.tabId);
+        }
+        break;
+      }
       case 'click': {
         this.emit('click', {
           windowId: this.id,
@@ -71,8 +83,9 @@ export default class LastQuery extends EventEmitter {
     ['TabClose', 'TabSelect'].forEach((event) => {
       this.window.gBrowser.tabContainer.addEventListener(event, this, PASSIVE_LISTENER_OPTIONS);
     });
+    this.window.gBrowser.addEventListener('TabPrivateModeChanged', this);
     ['focus', 'blur'].forEach((event) => {
-      this.window.gURLBar.addEventListener(event, this, PASSIVE_LISTENER_OPTIONS);
+      this.urlbar.addEventListener(event, this, PASSIVE_LISTENER_OPTIONS);
     });
     this.container.addEventListener('click', this, PASSIVE_LISTENER_OPTIONS);
   }
@@ -81,8 +94,9 @@ export default class LastQuery extends EventEmitter {
     ['TabOpen', 'TabClose', 'TabSelect'].forEach((event) => {
       this.window.gBrowser.tabContainer.removeEventListener(event, this, PASSIVE_LISTENER_OPTIONS);
     });
+    this.window.gBrowser.removeEventListener('TabPrivateModeChanged', this);
     ['focus', 'blur'].forEach((event) => {
-      this.window.gURLBar.removeEventListener(event, this, PASSIVE_LISTENER_OPTIONS);
+      this.urlbar.removeEventListener(event, this, PASSIVE_LISTENER_OPTIONS);
     });
     this.container.removeEventListener('click', this, PASSIVE_LISTENER_OPTIONS);
   }

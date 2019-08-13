@@ -3,8 +3,8 @@ const webextensionBase = require('../cliqz-tab');
 module.exports = Object.assign({}, webextensionBase, {
   settings: Object.assign({}, webextensionBase.settings, {
     channel: '99',
-    antitrackingPlaceholder: "cliqz.com/tracking",
-    antitrackingHeader: "CLIQZ-AntiTracking",
+    antitrackingPlaceholder: 'cliqz.com/tracking',
+    antitrackingHeader: 'CLIQZ-AntiTracking',
   }),
   modules: webextensionBase.modules.concat([
     'antitracking',

@@ -4,7 +4,7 @@ import config from '../core/config';
 
 
 let PREFIX = '@cliqzprefs:';
-export const PLATFORM_TELEMETRY_WHITELIST = ['lumen.protection.isEnabled'];
+export const PLATFORM_TELEMETRY_WHITELIST = ['lumen.protection.isEnabled', 'lumen.subscription'];
 
 const prefs = config.default_prefs || {};
 

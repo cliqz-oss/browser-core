@@ -1086,7 +1086,6 @@ export default {
     history: null,
     'offers-cc': null,
     'video-downloader': null,
-    'market-analysis': null,
     p2p: null,
     pairing: null,
     'antitracking-blocker': null,

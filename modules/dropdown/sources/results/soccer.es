@@ -349,8 +349,13 @@ export default class SoccerResult extends GenericResult {
     if (!this.extra.url || !this.extra.title) {
       return null;
     }
-    const deduplicatedUrl = this.resultTools.results.genericResults
+    let deduplicatedUrl = this.resultTools.results.genericResults
       .find(element => this.extra.url === element.rawResult.url);
+    if (deduplicatedUrl) return null;
+
+    deduplicatedUrl = this.resultTools.results.historyResults
+      .some(element => Array.isArray(element.historyResults) === true
+        && element.historyResults.some(el => this.extra.url === el.rawResult.url));
     if (deduplicatedUrl) return null;
 
     return new SoccerSubResult(this, {

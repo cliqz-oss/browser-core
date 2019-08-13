@@ -1,4 +1,4 @@
-/* globals chai */
+import chai from 'chai';
 import { app, queryHTML, testServer, wrap } from '../../platform/test-helpers/helpers';
 import { waitFor, wait } from '../../core/helpers/wait';
 import { getCurrentgBrowser } from '../../platform/tabs';

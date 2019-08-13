@@ -125,4 +125,10 @@ export function reloadTab(tabId) {
   });
 }
 
+export function findTabs(url) {
+  return new Promise(resolve =>
+    chrome.tabs.query({ url },
+      tabs => resolve(chrome.runtime.lastError ? [] : tabs)));
+}
+
 export default (chrome && chrome.tabs) || undefined;

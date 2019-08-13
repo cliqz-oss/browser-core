@@ -35,6 +35,7 @@ export default class SearchReporter {
     }
 
     this.offersReporter.reportShows(this.currentResults);
+    this.currentResults = null;
   }
 
   onSearchResults(results) {

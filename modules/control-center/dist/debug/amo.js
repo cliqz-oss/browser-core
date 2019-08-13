@@ -416,7 +416,6 @@ DATA.push({
     "message-center": null,
     "offboarding": null,
     "anolysis": null,
-    "market-analysis": null,
     "abtests": null,
     "adult": {
       "visible": true,

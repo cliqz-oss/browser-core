@@ -1,32 +1,23 @@
 /* global Handlebars */
-import SimpleResult from './fixtures/simple';
-import HistoryAndNews from './fixtures/history-and-news';
-import NewsInHistory from './fixtures/news-in-history';
-import YoutubeInHistory from './fixtures/youtube-in-history';
-import Weather from './fixtures/weather';
-import DialingCode from './fixtures/dialing-code';
-import Youtube from './fixtures/youtube';
 import Calculator from './fixtures/calculator';
-import AdultQuestion from './fixtures/adult-question';
-import LocationSharing from './fixtures/location-sharing';
-import UiCutOff from './fixtures/ui-cut-off';
-import Lotto from './fixtures/lotto';
-import Offers from './fixtures/offers';
-import OffersResult from './fixtures/offer';
-import Soccer from './fixtures/soccer';
-import Suggestions from './fixtures/suggestions';
-import Time from './fixtures/time';
+import Company from './fixtures/company';
+import DialingCode from './fixtures/dialing-code';
 import Flight from './fixtures/flight';
+import Lotto from './fixtures/lotto';
 import MovieCinema from './fixtures/movie-cinema';
-import NewsStory from './fixtures/news-story';
-import TopNews from './fixtures/top-news';
+import News from './fixtures/news';
+import Offers from './fixtures/offers';
+import SimpleResult from './fixtures/simple';
+import Soccer from './fixtures/soccer';
+import Time from './fixtures/time';
+import Youtube from './fixtures/youtube';
+import Weather from './fixtures/weather';
+
 import templates from '../templates';
 import helpers from '../helpers';
 
 import Dropdown from '../dropdown';
 import Results from '../results';
-import NavigateToResult from '../results/navigate-to';
-import SupplementarySearchResult from '../results/supplementary-search';
 import config from '../../core/config';
 
 Handlebars.partials = templates;
@@ -35,27 +26,19 @@ Object.keys(helpers).forEach((helperName) => {
 });
 
 const tests = {
-  ...SimpleResult,
-  ...HistoryAndNews,
-  ...NewsInHistory,
-  ...YoutubeInHistory,
-  ...Weather,
-  ...DialingCode,
-  ...Youtube,
   ...Calculator,
-  ...AdultQuestion,
-  ...LocationSharing,
-  ...UiCutOff,
-  ...Lotto,
-  ...Offers,
-  ...Soccer,
-  ...Suggestions,
-  ...Time,
+  ...Company,
+  ...DialingCode,
   ...Flight,
+  ...Lotto,
   ...MovieCinema,
-  ...NewsStory,
-  ...TopNews,
-  ...OffersResult,
+  ...News,
+  ...Offers,
+  ...SimpleResult,
+  ...Soccer,
+  ...Time,
+  ...Youtube,
+  ...Weather,
 };
 
 const stylesheet = document.createElement('link');
@@ -100,15 +83,6 @@ function render(id, query, rawResults) {
     },
   });
 
-  if (query === 'query') {
-    results.prepend(
-      new SupplementarySearchResult({ text: query, meta: {}, data: { extra: {}, suggestion: `${query} suggestion 1` } })
-    );
-  } else {
-    results.prepend(
-      new NavigateToResult({ text: 'https://cliqz.com', meta: {}, data: { extra: {} } })
-    );
-  }
   dropdown.renderResults(results);
 }
 

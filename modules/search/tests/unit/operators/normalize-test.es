@@ -4,7 +4,6 @@ const mock = {
   'core/url': {
     tryDecodeURI: u => u,
     urlStripProtocol: () => 'STRIPPED_URL',
-    cleanMozillaActions: url => [undefined, url],
   },
   'core/url-info': {
     URLInfo: {

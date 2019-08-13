@@ -1,7 +1,6 @@
 import random from '../core/crypto/random';
 import prefs from '../core/prefs';
 import inject from '../core/kord/inject';
-import FastURL from '../core/fast-url-parser';
 
 // generate a new UUID
 function generateUUID() {
@@ -124,35 +123,6 @@ function isDeveloper() {
   return prefs.get('developer', false) || prefs.get('offersDevFlag', false);
 }
 
-// rewrite google serp url to avoid that blacklisting reacts on
-// google tracking with words like "firefox" and "ubuntu"
-function rewriteGoogleSerpUrl(url) {
-  let fu;
-  try {
-    fu = new FastURL(url);
-  } catch (e) {
-    return url;
-  }
-  const domain = fu.generalDomain;
-  if (!(domain && domain.startsWith('google.'))) {
-    return url;
-  }
-  if (fu.pathname !== '/search') {
-    return url;
-  }
-  const searchParams = new Map(fu.searchParams.params);
-  const query = searchParams.get('q') || searchParams.get('query');
-  if (!query) {
-    return url;
-  }
-  const prefix = url.substr(0, url.indexOf('?'));
-  return `${prefix}?q=${query}`;
-}
-
-function rewriteUrlForOfferMatching(url) {
-  return rewriteGoogleSerpUrl(url);
-}
-
 export {
   generateUUID,
   timestamp,
@@ -165,6 +135,5 @@ export {
   oncePerInterval,
   randRange,
   shouldKeepResource,
-  isDeveloper,
-  rewriteUrlForOfferMatching
+  isDeveloper
 };

@@ -14,7 +14,7 @@ import AntitrackingStatCounter from './antitracking-stats';
  * @class  Background
  */
 export default background({
-
+  requiresServices: ['domainInfo'],
   antitracking: inject.module('antitracking'),
 
   async init() {

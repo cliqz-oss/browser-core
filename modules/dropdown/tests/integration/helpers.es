@@ -93,17 +93,6 @@ export function $cliqzMessageContainer() {
   return $(win.document.getElementById('cliqz-message-container'));
 }
 
-
-export async function waitForPopupClosed() {
-  await waitFor(() => {
-    const cliqzPopup = win.document.querySelector('#cliqz-popup');
-    return cliqzPopup && cliqzPopup.scrollHeight === 0;
-  });
-
-  return wait(200);
-}
-
-
 export async function waitForResult() {
   await waitFor(() => $cliqzResults().find('.cqz-result-box').length > 0);
 

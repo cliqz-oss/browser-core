@@ -73,7 +73,15 @@
   background: #fff;
 }
 .feedback__chip-secondary {
-  color: #DA3434;
+  color: var(--chip-secondary-color, #eb443f);
+  background: #fff;
+}
+.feedback__freundin-secondary {
+  color: var(--freundin-secondary-color, #da3434);
+  background: #fff;
+}
+.feedback__incent-secondary {
+  color: var(--incent-secondary-color, #5c8fa6);
   background: #fff;
 }
 .feedback__myoffrz-primary {
@@ -81,18 +89,32 @@
   color: #fff;
 }
 .feedback__chip-primary {
-  background: #DA3434;
+  background: var(--chip-secondary-color, #eb443f);
   color: #fff;
+}
+.feedback__freundin-primary {
+  background: var(--freundin-secondary-color, #da3434);
+  color: #fff;
+}
+.feedback__incent-primary {
+  background: var(--incent-secondary-color, #5c8fa6);
+  color: #fff;
+}
+
+.feedback__disabled {
+  color: #fff;
+  opacity: 0.4;
+  cursor: unset;
 }
 .feedback__myoffrz-disabled {
   background: #00AEF0;
-  color: #fff;
-  opacity: 0.4;
-  cursor: unset;
 }
 .feedback__chip-disabled {
-  background: #DA3434;
-  color: #fff;
-  opacity: 0.4;
-  cursor: unset;
+  background: var(--chip-secondary-color, #eb443f);
+}
+.feedback__freundin-disabled {
+  background: var(--freundin-secondary-color, #da3434);
+}
+.feedback__incent-disabled {
+  background: var(--incent-secondary-color, #5c8fa6);
 }

@@ -102,6 +102,7 @@ export default {
     SUGGESTIONS_URL: config.settings.SUGGESTIONS_URL,
     frameScriptWhitelist: config.settings.frameScriptWhitelist,
     onBoardingPref: config.settings.onBoardingPref,
+    onboardingVersion: config.settings.onboardingVersion,
   },
   constants: {
     TOOLTIP_WORLDCUP_GROUP: 'worldcup-group',

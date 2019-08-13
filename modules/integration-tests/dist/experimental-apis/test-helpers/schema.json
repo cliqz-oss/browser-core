@@ -19,10 +19,6 @@
           "type": "string",
           "optional": true
         },
-        "searchString": {
-          "type": "string",
-          "optional": true
-        },
         "selectionStart": {
           "type": "integer",
           "optional": true
@@ -257,6 +253,52 @@
         "items": {
           "type": "any",
           "minimum": 0
+        }
+      },
+      {
+        "type": "function",
+        "name": "callback",
+        "parameters": [{
+          "name": "dropdown",
+          "type": "any"
+        }]
+      }
+    ]
+  }, {
+    "name": "callMethodExt",
+    "type": "function",
+    "description": "",
+    "async": "callback",
+    "parameters": [
+      {
+        "type": "string",
+        "name": "selector"
+      },
+      {
+        "name": "method",
+        "type": "string"
+      },
+      {
+        "name": "opt",
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "number",
+            "minimum": 0
+          },
+          "mouseEventOptions": {
+            "$ref": "KeyEventOptions",
+            "type": "object",
+            "optional": true
+          },
+          "args": {
+            "type": "array",
+            "optional": true,
+            "items":  {
+              "type":  "any",
+              "minimum":  0
+            }
+          }
         }
       },
       {

@@ -6,7 +6,7 @@ import t from '../i18n';
 
 function renderError(errorMessage = '') {
   return (
-    <div className="errorMessage">
+    <div className="error-message">
       <p>
         {t('cliqz_modules_loading_error')}
       </p>
@@ -29,7 +29,7 @@ const ModulesDeveloperModal = ({
   >
     <div className="modules-developer-modal">
       <Button
-        className="closeForm"
+        className="close-form"
         onClick={closeAction}
       />
 
@@ -37,6 +37,7 @@ const ModulesDeveloperModal = ({
         ? renderError(error)
         : (
           <iframe
+            className="modal-iframe"
             tabIndex="-1"
             src="../toolbox/index.html"
             title="Module list"

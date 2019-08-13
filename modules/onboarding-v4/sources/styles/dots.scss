@@ -1,0 +1,56 @@
+@import 'variables.scss';
+
+.dots {
+    position: fixed;
+    top: calc(50% - 55px);
+    right: 30px;
+    display: flex;
+    flex-direction: column;
+    height: 100px;
+    justify-content: space-between;
+    z-index: 1;
+
+    button {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        align-self: center;
+        transition: width 100ms ease-out, height 100ms ease-out;
+        cursor: pointer;
+
+        &.disabled {
+            pointer-events: none;
+            background-color: transparent;
+            border: 2px solid $grey;
+        }
+
+        &.visited {
+            border: none;
+            background-color: $grey;
+        }
+
+        &.enabled {
+            border: none;
+            background: url('../images/check.svg') center/60% no-repeat;
+            background-color: $grey;
+        }
+
+        &.current {
+            width: 20px;
+            height: 20px;
+            background-color: $dark-grey;
+        }
+    }
+}
+
+@media only screen and (max-width: 630px) {
+    .dots {
+        display: none;
+    }
+}
+
+@media only screen and (max-height: 215px) {
+    .dots {
+        display: none;
+    }
+}

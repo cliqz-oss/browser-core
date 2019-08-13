@@ -68,6 +68,9 @@
     "offers_send_feedback": {
         "message": "Envoyer"
     },
+    "settings": {
+      "message": "Settings"
+    },
     "show_code": {
       "message": "Montrer le code"
     },

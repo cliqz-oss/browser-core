@@ -22,10 +22,6 @@ export default class NavigateToResult extends BaseResult {
     return ['navigate-to'];
   }
 
-  get url() {
-    return this.rawResult.data.extra.mozActionUrl;
-  }
-
   get displayUrl() {
     return this.rawResult.text;
   }

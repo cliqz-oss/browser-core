@@ -27,7 +27,6 @@ export default describeModule('search/operators/responses/rerank',
                 href: 'https://www.google.com/search?q=simple++&ie=utf-8&oe=utf-8&client=firefox-b-ab',
                 friendlyUrl: 'google.com/search?q=simple++&ie=utf-8&oe=utf-8&client=firefox-b-ab',
                 extra: {
-                  mozActionUrl: 'moz-action:searchengine,{"engineName":"Google","input":"simple  ","searchQuery":"simple  ","alias":null}',
                   searchEngineName: 'Google'
                 },
                 kind: ['custom-search'],

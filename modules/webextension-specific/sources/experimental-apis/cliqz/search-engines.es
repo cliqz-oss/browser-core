@@ -60,7 +60,7 @@ export async function getSearchEngines() {
           default: engineWrapper.name === defaultEngine.name,
           description: engineWrapper.description,
           encoding: 'UTF-8',
-          icon: engineWrapper.iconURI.spec,
+          icon: engineWrapper.iconURI && engineWrapper.iconURI.spec,
           identifier: engineWrapper.identifier,
           name: engineWrapper.name,
           searchForm: engineWrapper.searchForm,
@@ -75,11 +75,11 @@ export async function getSearchEngines() {
     return visibleEngines.then(engines =>
       engines.map((engineWrapper) => {
         const engine = {
-          alias: null,
+          alias: (engineWrapper._metaData && engineWrapper._metaData.alias) || null,
           default: engineWrapper.name === defaultEngine.name,
           description: engineWrapper.description,
           encoding: 'UTF-8',
-          icon: engineWrapper.iconURI.spec,
+          icon: engineWrapper.iconURI && engineWrapper.iconURI.spec,
           identifier: engineWrapper.shortName,
           name: engineWrapper.name,
           searchForm: engineWrapper.searchForm,

@@ -1,5 +1,6 @@
 import * as rewardBox from './reward-box';
 import * as browserPanel from './browser-panel';
+import * as reminder from './reminder';
 import logger from '../logger';
 
 /*
@@ -14,6 +15,7 @@ export function transform(type, data, options = {}) {
   const mapper = {
     'offers-cc': rewardBox.transform,
     'browser-panel': browserPanel.transform,
+    'offers-reminder': reminder.transform,
   };
   if (!mapper[type]) { logger.warn('receive wrong type of real estate: ', type); }
   const noop = () => {};

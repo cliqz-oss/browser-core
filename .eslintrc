@@ -94,8 +94,8 @@
         },
         {
             "files": [
-                "fern/commands/*.*"
-
+                "fern/commands/*.*",
+                "broccoli/**/*.*"
             ],
             "rules": {
                 "import/no-extraneous-dependencies": "off",

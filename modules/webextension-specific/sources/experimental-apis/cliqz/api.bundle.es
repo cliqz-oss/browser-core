@@ -4,8 +4,8 @@ import changeAddonState from './addon';
 import { setSelectedSearchEngine, getSearchEngines } from './search-engines';
 import { setTheme, getTheme } from './theme-manager';
 import { enableBlueTheme, initTheme } from './browser-theme';
-import { openImportDialog, openPageActionPopup, isDefaultBrowser } from './browser';
-import { setPref, prefObserver } from './prefs';
+import { openImportDialog, openPageActionPopup, isDefaultBrowser, openBrowserActionPopup } from './browser';
+import { setPref, clearPref, prefObserver } from './prefs';
 import { createUITourTarget, deleteUITourTarget, hideUITour, showUITour } from './ui-tour';
 
 global.cliqz = class extends ExtensionAPI {
@@ -25,8 +25,10 @@ global.cliqz = class extends ExtensionAPI {
         changeAddonState,
         openImportDialog,
         openPageActionPopup: openPageActionPopup.bind(null, context.extension.id),
+        openBrowserActionPopup,
         isDefaultBrowser,
         setPref,
+        clearPref,
         onPrefChange: prefObserver(context),
       }
     };

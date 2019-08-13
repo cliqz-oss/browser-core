@@ -23,6 +23,7 @@ export default class PageStore {
     this.onTabCreated = this.onTabCreated.bind(this);
     this.onTabUpdated = this.onTabUpdated.bind(this);
     this.onTabRemoved = this.onTabRemoved.bind(this);
+    this.onBeforeNavigate = this.onBeforeNavigate.bind(this);
     this.onNavigationCommitted = this.onNavigationCommitted.bind(this);
   }
 
@@ -31,6 +32,7 @@ export default class PageStore {
     tabs.onUpdated.addListener(this.onTabUpdated);
     tabs.onRemoved.addListener(this.onTabRemoved);
     if (webNavigation) {
+      webNavigation.onBeforeNavigate.addListener(this.onBeforeNavigate);
       webNavigation.onCommitted.addListener(this.onNavigationCommitted);
     }
   }
@@ -40,6 +42,7 @@ export default class PageStore {
     tabs.onUpdated.removeListener(this.onTabUpdated);
     tabs.onRemoved.removeListener(this.onTabRemoved);
     if (webNavigation) {
+      webNavigation.onBeforeNavigate.removeListener(this.onBeforeNavigate);
       webNavigation.onCommitted.removeListener(this.onNavigationCommitted);
     }
   }
@@ -75,10 +78,22 @@ export default class PageStore {
     this.tabs.delete(tabId);
   }
 
+  onBeforeNavigate(details) {
+    const { frameId, tabId, url } = details;
+    const tabContext = this.tabs.get(tabId);
+    if (frameId === 0 && tabContext) {
+      tabContext.navigating = url;
+    }
+  }
+
   onNavigationCommitted(details) {
     const { frameId, tabId, url } = details;
-    if (frameId === 0 && this.tabs.get(tabId) !== url) {
+    const tabContext = this.tabs.get(tabId);
+    if (frameId === 0 && (tabContext !== undefined && tabContext.url !== url)) {
       this.onMainFrame({ tabId, url, requestId: 0 }, 'onBeforeRequest');
+    }
+    if (tabContext) {
+      tabContext.navigating = null;
     }
   }
 
@@ -189,11 +204,16 @@ export default class PageStore {
   /**
    * Return the URL of top-level document (i.e.: tab URL).
    */
-  getTabUrl({ tabId }) {
+  getTabUrl({ tabId, type }) {
     const tab = this.tabs.get(tabId);
 
     if (tab === undefined) {
       return null;
+    }
+    // any xmlhttprequest between webnavigation events is a fetch from the service-worker for the
+    // destination page, so we return the future tab url, which we saved in `navigating`.
+    if (tab.navigating && type === 'xmlhttprequest') {
+      return tab.navigating;
     }
 
     return tab.url;

@@ -1,41 +1,46 @@
+function markChanges() {
+  const node = document.querySelector('.form-message');
+  if (!node) { return; }
+  node.style.visibility = 'visible';
+  const date = new Date().toTimeString().replace(/.*(\d{2}:\d{2}:\d{2}).*/, "$1");
+  node.innerHTML = '&#10004; Einstellungen gespeichert ' + date;
+}
+
 function saveOptions(e) {
-  e.preventDefault();
+  const obj = {};
+  document
+    .querySelectorAll('input[type=checkbox]')
+    .forEach(box => obj[box.id] = box.checked);
 
-  function handleResponse(message) {
-    console.log(`Message from the background script:  ${JSON.stringify(message.response)}`);
-  }
+  // toggle bacause system and user treats it differently
+  if (obj['humanWebOptOut'] !== undefined) { obj['humanWebOptOut'] = !obj['humanWebOptOut']; }
 
-  function handleError(error) {
-    console.log(`Error: ${error}`);
-  }
-  const sending = (chrome || browser).runtime.sendMessage({
+  (chrome || browser).runtime.sendMessage({
     module: 'offers-banner',
-    args: [{ prefKey: 'telemetry', prefValue: document.querySelector('#telemetry_enabled').checked }],
+    args: [obj],
     action: 'setPref',
-  }, handleResponse);
-  if (sending && sending.then) {
-    sending.then(handleResponse, handleError);
-  }
+  });
+  markChanges();
 }
 
 function restoreOptions() {
-  function handleResponse(message) {
-    document.querySelector('#telemetry_enabled').checked = message.response;
-  }
-
-  function handleError(error) {
-    console.log(`Error: ${error}`);
-  }
-  const sending = (chrome || browser).runtime.sendMessage({
+  (chrome || browser).runtime.sendMessage({
     module: 'offers-banner',
-    args: [{ prefKey: 'telemetry' }],
+    args: [['telemetry', 'humanWebOptOut']],
     action: 'getPref'
-  }, handleResponse);
-  if (sending && sending.then) {
-    sending.then(handleResponse, handleError);
-  }
+  }, ({ response: prefs = {} }) =>
+    Object.keys(prefs).forEach((key) => {
+      const node = document.getElementById(key);
+      if (!node) { return; }
+      node.checked = key === 'humanWebOptOut' ? !prefs[key] : prefs[key];
+    })
+  );
 }
 
 document.addEventListener('DOMContentLoaded', restoreOptions);
+document.querySelector('button').addEventListener('click', saveOptions);
 
-document.querySelector('form').addEventListener('submit', saveOptions);
+if (document.location.hash) {
+  const product = document.location.hash.substring(1);
+  document.body.classList.add(product);
+}

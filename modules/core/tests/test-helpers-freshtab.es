@@ -448,7 +448,7 @@ export class Subject {
   }
 
   getElementSwitch(name) {
-    return this.getSettingsElementByName(name).querySelector('.switch');
+    return this.getSettingsElementByName(name).querySelector('.toggle');
   }
 }
 
@@ -577,7 +577,6 @@ function checkCommon({
     const $settingsPanel = subject().query('#settings-panel');
 
     expect($settingsPanel).to.exist;
-    expect($settingsPanel.className).to.contain('visible');
   });
 
   it(`renders "Restore all" button as ${defaultState ? 'active' : 'inactive'}`, function () {
@@ -639,7 +638,7 @@ async function waitForSettingsPanel({
   subject
 }) {
   subject().query('#settings-btn').click();
-  await waitFor(() => subject().query('#settings-panel').classList.contains('visible'));
+  await waitFor(() => subject().query('#settings-panel'));
 }
 
 function checkAllElements({

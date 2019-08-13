@@ -1,4 +1,5 @@
 import { app, expect, newTab, updateTab, getTab, testServer, waitFor } from '../../../tests/core/integration/helpers';
+import { isChromium } from '../../../core/platform';
 
 export default () => {
   describe('WebrequestPipeline tests', () => {
@@ -15,6 +16,7 @@ export default () => {
       await waitFor(() => pipeline.pageStore.tabs.has(tabId), 2000);
       updateTab(tabId, { url });
       await waitFor(async () => (await getTab(tabId)).url !== 'about:blank', 2000);
+      return tabId;
     };
 
     const collectRequestDetails = (ctx) => {
@@ -122,7 +124,7 @@ export default () => {
       // 3. /303 redirects to /target
       const body = '<html><body></body></html>';
 
-      addPipeline((ctx, response) => {
+      await addPipeline((ctx, response) => {
         collectRequestDetails(ctx);
         if (ctx.url === getUrl()) {
           response.redirectTo(getUrl('js'));
@@ -151,84 +153,146 @@ export default () => {
       await openTab(getUrl());
       await waitFor(() => {
         expect(details).to.have.length(5);
-
-        // starting point, which should be redirected via webrequest answer
-        expect(details[0], '/').to.deep.include({
-          frameAncestors: [],
-          frameId: 0,
-          url: getUrl(),
-          frameUrl: getUrl(),
-          tabUrl: getUrl(),
-          isMainFrame: true,
-          isPrivate: false,
-          isRedirect: false,
-          method: 'GET',
-          parentFrameId: -1,
-          type: 'main_frame',
-        });
-
-        // /js
-        expect(details[1], '/js').to.deep.include({
-          frameAncestors: [],
-          frameId: 0,
-          url: getUrl('js'),
-          frameUrl: getUrl('js'),
-          tabUrl: getUrl('js'),
-          isMainFrame: true,
-          isPrivate: false,
-          isRedirect: true,
-          method: 'GET',
-          parentFrameId: -1,
-          type: 'main_frame',
-        });
-
-        // /302
-        expect(details[2], '/302').to.deep.include({
-          frameAncestors: [],
-          frameId: 0,
-          url: getUrl('302'),
-          frameUrl: getUrl('302'),
-          tabUrl: getUrl('302'),
-          isMainFrame: true,
-          isPrivate: false,
-          isRedirect: true,
-          method: 'GET',
-          parentFrameId: -1,
-          type: 'main_frame',
-        });
-
-        // /303
-        expect(details[3], '/303').to.deep.include({
-          frameAncestors: [],
-          frameId: 0,
-          url: getUrl('303'),
-          frameUrl: getUrl('303'),
-          tabUrl: getUrl('303'),
-          isMainFrame: true,
-          isPrivate: false,
-          isRedirect: true,
-          method: 'GET',
-          parentFrameId: -1,
-          type: 'main_frame',
-        });
-
-        // /target
-        expect(details[4], '/target').to.deep.include({
-          frameAncestors: [],
-          frameId: 0,
-          url: getUrl('target'),
-          frameUrl: getUrl('target'),
-          tabUrl: getUrl('target'),
-          isMainFrame: true,
-          isPrivate: false,
-          isRedirect: true,
-          method: 'GET',
-          parentFrameId: -1,
-          type: 'main_frame',
-        });
-
         return true;
       }, 10000);
+
+      // starting point, which should be redirected via webrequest answer
+      expect(details[0], '/').to.deep.include({
+        frameAncestors: [],
+        frameId: 0,
+        url: getUrl(),
+        frameUrl: getUrl(),
+        tabUrl: getUrl(),
+        isMainFrame: true,
+        isPrivate: false,
+        isRedirect: false,
+        method: 'GET',
+        parentFrameId: -1,
+        type: 'main_frame',
+      });
+
+      // /js
+      expect(details[1], '/js').to.deep.include({
+        frameAncestors: [],
+        frameId: 0,
+        url: getUrl('js'),
+        frameUrl: getUrl('js'),
+        tabUrl: getUrl('js'),
+        isMainFrame: true,
+        isPrivate: false,
+        isRedirect: true,
+        method: 'GET',
+        parentFrameId: -1,
+        type: 'main_frame',
+      });
+
+      // /302
+      expect(details[2], '/302').to.deep.include({
+        frameAncestors: [],
+        frameId: 0,
+        url: getUrl('302'),
+        frameUrl: getUrl('302'),
+        tabUrl: getUrl('302'),
+        isMainFrame: true,
+        isPrivate: false,
+        isRedirect: true,
+        method: 'GET',
+        parentFrameId: -1,
+        type: 'main_frame',
+      });
+
+      // /303
+      expect(details[3], '/303').to.deep.include({
+        frameAncestors: [],
+        frameId: 0,
+        url: getUrl('303'),
+        frameUrl: getUrl('303'),
+        tabUrl: getUrl('303'),
+        isMainFrame: true,
+        isPrivate: false,
+        isRedirect: true,
+        method: 'GET',
+        parentFrameId: -1,
+        type: 'main_frame',
+      });
+
+      // /target
+      expect(details[4], '/target').to.deep.include({
+        frameAncestors: [],
+        frameId: 0,
+        url: getUrl('target'),
+        frameUrl: getUrl('target'),
+        tabUrl: getUrl('target'),
+        isMainFrame: true,
+        isPrivate: false,
+        isRedirect: true,
+        method: 'GET',
+        parentFrameId: -1,
+        type: 'main_frame',
+      });
     });
+
+
+    if (!isChromium) {
+      describe('Service workers', () => {
+        const testScope = 'swtests';
+
+        function setupServiceWorker() {
+          return Promise.all([
+            testServer.registerPathHandler(getSuffix(`${testScope}/service-worker-test.html`), {
+              result: `<!DOCTYPE html>
+              <html>
+                <body>
+                  <p>Service worker</p>
+                  <script src="./index.js"></script>
+                </body>
+              </html>`,
+            }),
+            testServer.registerPathHandler(getSuffix(`${testScope}/index.js`), {
+              result: `
+              navigator.serviceWorker.register("./sw.js", {
+                scope: './',
+              });
+              `
+            }),
+            testServer.registerPathHandler(getSuffix(`${testScope}/ping`), {
+              result: '{}'
+            }),
+            testServer.registerPathHandler(getSuffix(`${testScope}/sw.js`), {
+              result: `
+              self.addEventListener('fetch', function(event) {
+                if (new URL(event.request.url).pathname.endsWith('service-worker-from-cache.html')) {
+                  console.log('response from cache');
+                  fetch('./ping');
+                  event.respondWith(new Response("<html><body><p>Cached</p><script>fetch('./ping')</script><body></html>", { status: 200, headers: {"content-type": "text/html"}}));
+                  return;
+                }
+                event.respondWith(fetch(event.request));
+              });
+              `
+            }),
+          ]);
+        }
+
+        const filterPings = r => r.url.endsWith('ping') && r.tabId > 0;
+
+        it('correct tabUrl when page load intercepted by service worker', async () => {
+          await setupServiceWorker();
+          addPipeline(collectRequestDetails);
+          // setup: load landing page to trigger SW-install and wait for it to be loaded
+          const tabId = await newTab(getUrl(`${testScope}/service-worker-test.html`));
+          await waitFor(() => details.some(d => d.url.indexOf('sw.js') !== -1), 30000);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          details = [];
+          // Switch url: this request is served from the service-worker.
+          // Then wait for the request triggered from the cached document.
+          updateTab(tabId, { url: getUrl(`${testScope}/service-worker-from-cache.html`) });
+          await waitFor(() => details.filter(filterPings).length >= 1, 30000);
+          details.filter(filterPings).forEach((r) => {
+            expect(r.tabUrl).to.equal(getUrl(`${testScope}/service-worker-from-cache.html`), 'tabUrl should match SW-served document');
+          });
+        });
+      });
+    }
   });
 };

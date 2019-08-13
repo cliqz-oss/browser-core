@@ -1,5 +1,3 @@
-"use strict";
-
 const Funnel = require('broccoli-funnel');
 
 const outputTree = require('./Brocfile.webextension.js');

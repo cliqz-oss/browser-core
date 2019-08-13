@@ -229,7 +229,6 @@ export default describeModule('core/url',
 
         it('with simple url return correct details', function () {
           const urlDetails = {
-            action: undefined,
             originalUrl: 'https://cliqz.com/',
             scheme: 'https:',
             name: 'cliqz',
@@ -285,32 +284,8 @@ export default describeModule('core/url',
             .that.deep.equal(['www', 'affiliate-program']);
         });
 
-        it('with moz-action should return correct action and url', function () {
-          const urlDetails = {
-            action: 'visiturl',
-            originalUrl: 'https://cliqz.com/',
-            scheme: 'https:',
-            name: 'cliqz',
-            domain: 'cliqz.com',
-            tld: 'com',
-            subdomains: [],
-            path: '/',
-            query: '',
-            fragment: '',
-            extra: '/',
-            host: 'cliqz.com',
-            cleanHost: 'cliqz.com',
-            ssl: true,
-            port: '',
-            friendly_url: 'cliqz.com',
-          };
-          chai.expect(getDetailsFromUrl('moz-action:visiturl,{"url":"https://cliqz.com/"}'))
-            .to.deep.equal(urlDetails);
-        });
-
         it('with host name, followed by a `single` dot, should return correct url', function () {
           const urlDetails = {
-            action: undefined,
             originalUrl: 'https://cliqz.com./support',
             scheme: 'https:',
             name: 'cliqz',

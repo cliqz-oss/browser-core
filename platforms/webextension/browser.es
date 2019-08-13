@@ -60,8 +60,6 @@ export function getBrowserMajorVersion() {
   return majorVer;
 }
 
-export function setOurOwnPrefs() { }
-
 const healthReportPrefObserver = () => events.pub('healthReportChange');
 
 export function enableChangeEvents() {
@@ -197,8 +195,6 @@ export function disableChangeEvents() {
     chrome.cliqz.onPrefChange.removeListener(healthReportPrefObserver);
   }
 }
-
-export function resetOriginalPrefs() {}
 
 export function isDefaultBrowser() {
   if (chrome.cliqz && chrome.cliqz.isDefaultBrowser) {

@@ -3,18 +3,50 @@
 <html>
 
 <head>
-    <meta charset="utf-8">
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="/options.css">
 </head>
 
 <body>
-
-    <form>
-        <label>Allow MyOffrz to send technical and interacion data  <input type="checkbox" id="telemetry_enabled"></label>
-        <button type="submit">Save</button>
-    </form>
-
-    <script src="./options.js"></script>
-
+  <div class='wrapper'>
+    <div class='logo-wrapper'>
+      <div class='logo'></div>
+    </div>
+    <div class='form-wrapper'>
+      <div class='form-container'>
+        <div class='form-container-columns'>
+          <div class='form-column1'></div>
+          <div class='form-column2'>
+            <div class='form-title'>Einstellungen</div>
+            <div class='form-option'>
+              <input class='form-checkbox' type='checkbox' id='humanWebOptOut' />
+              <label for="humanWebOptOut" class='form-option-name'>Humanweb zulassen</label>
+            </div>
+            <div class='form-option-description'>
+              Die Human Web Technologie erhebt komplett anonymisierte Daten über Suchanfragen und Website-Besuche von der Gemeinschaft der Nutzer. Sie bildet daraus den Web-Index, der die Suchfunktion speist.
+            </div>
+          </div>
+          <div class='form-column3'></div>
+        </div>
+        <div class='form-separator'></div>
+        <div class='form-container-columns'>
+          <div class='form-column1'></div>
+          <div class='form-column2'>
+            <div class='form-option'>
+              <input class='form-checkbox' type='checkbox' id='telemetry' />
+              <label for='telemetry' class='form-option-name'>Senden von Nutzungsdaten zulassen</label>
+            </div>
+            <div class='form-option-billet'></div>
+          </div>
+          <div class='form-column3'></div>
+        </div>
+        <div >
+          <button tabIndex='-1' class='form-button'>Speichern</button>
+        </div>
+      </div>
+      <div class='form-message'>&#10004;&nbsp;Einstellungen gespeichert<div>
+    </div>
+  </div>
+  <script src="./options.js"></script>
 </body>
-
 </html>

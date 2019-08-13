@@ -1,7 +1,7 @@
 /* global chai */
 /* global describeModule */
 /* global require */
-const JSDOM = require('jsdom').jsdom;
+const { JSDOM } = require('jsdom');
 
 export default describeModule('offers-v2/content/profile/outgoing-link',
   () => ({
@@ -16,7 +16,7 @@ export default describeModule('offers-v2/content/profile/outgoing-link',
 
       context('classifyOutgoingLinks', function () {
         it('/return empty set for uninteresting domains', () => {
-          const doc = new JSDOM('<a href="http://google.com"></a><a href="/local_page.html"></a><a href="http://www.yahoo.com"></a>');
+          const doc = JSDOM.fragment('<a href="http://google.com"></a><a href="/local_page.html"></a><a href="http://www.yahoo.com"></a>');
 
           const cats = classifyOutgoingLinks(doc);
 
@@ -24,7 +24,7 @@ export default describeModule('offers-v2/content/profile/outgoing-link',
         });
 
         it('/detect amazon', () => {
-          const doc = new JSDOM('<a href="https://www.amazon.de/dp/1617290890/"></a>');
+          const doc = JSDOM.fragment('<a href="https://www.amazon.de/dp/1617290890/"></a>');
 
           const cats = classifyOutgoingLinks(doc);
 
@@ -32,7 +32,7 @@ export default describeModule('offers-v2/content/profile/outgoing-link',
         });
 
         it('/detect ebay', () => {
-          const doc = new JSDOM('<a href="https://www.ebay.com.au/sch/i.html?_from=R40&_trksid=m570.l1313&_nkw=kangaroo&_sacat=0&LH_TitleDesc=0&_odkw=kanger&_osacat=0"></a>');
+          const doc = JSDOM.fragment('<a href="https://www.ebay.com.au/sch/i.html?_from=R40&_trksid=m570.l1313&_nkw=kangaroo&_sacat=0&LH_TitleDesc=0&_odkw=kanger&_osacat=0"></a>');
 
           const cats = classifyOutgoingLinks(doc);
 
@@ -40,7 +40,7 @@ export default describeModule('offers-v2/content/profile/outgoing-link',
         });
 
         it('/detect both amazon and ebay', () => {
-          const doc = new JSDOM(
+          const doc = JSDOM.fragment(
             `<p>
               <a href="http://google.com"></a>
               <a href="http://amazon.de"></a><a href="http://ebay.com"></a>

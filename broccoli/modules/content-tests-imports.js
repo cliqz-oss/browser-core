@@ -1,5 +1,4 @@
-'use strict';
-var fs = require('fs');
+const fs = require('fs');
 const writeFile = require('broccoli-file-creator');
 const config = require('../config');
 
@@ -9,7 +8,7 @@ if (config.modules) {
     if (fs.existsSync(`modules/${moduleName}/tests/content-tests.es`)) {
       fileContents += `import './tests/${moduleName}/content-tests';\n`;
     }
-  })
+  });
 }
 
 module.exports = writeFile('module-content-tests.es', fileContents);

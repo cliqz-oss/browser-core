@@ -4,11 +4,6 @@
   "version": "{{version}}",
   "manifest_version": 2,
   "default_locale": "de",
-  "icons": {
-    "16": "assets/icon16.png",
-    "48": "assets/icon48.png",
-    "128": "assets/icon128.png"
-  },
   "applications": {
     "gecko": {
       "id": "cliqz@cliqz.com",
@@ -141,7 +136,6 @@
   "web_accessible_resources": [
     "modules/browser-panel/index.html",
     "modules/offers-cc/index.html",
-    "modules/cliqz-history/index.html",
-    "modules/anti-phishing/phishing-warning.html"
+    "modules/offers-reminder/index.html"
   ]
 }

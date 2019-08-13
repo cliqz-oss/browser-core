@@ -1,6 +1,6 @@
 import { checkIsWindowActive } from '../platform/browser';
 import domainInfo from '../core/services/domain-info';
-import { nextIdle } from '../core/decorators';
+import { nextTick } from '../core/decorators';
 import TrackerCounter from '../core/helpers/tracker-counter';
 import events from '../core/events';
 import pacemaker from '../core/services/pacemaker';
@@ -156,7 +156,7 @@ export default class AdbStats {
     const existingPage = this.tabs.get(context.tabId);
     if (existingPage !== undefined) {
       // Emit summary of stats from previous page
-      nextIdle(() => {
+      nextTick(() => {
         events.pub('adblocker:tracker-report', {
           tabId: context.tabId,
           url: existingPage.tabUrl,

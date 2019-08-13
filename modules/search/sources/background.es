@@ -14,8 +14,6 @@ import ObservableProxy from '../core/helpers/observable-proxy';
 import events from '../core/events';
 import {
   isUrl,
-  getSearchEngineUrl,
-  getVisitUrl,
   fixURL,
 } from '../core/url';
 
@@ -32,7 +30,7 @@ import getThrottleQueries from './operators/streams/throttle-queries';
 
 import logger from './logger';
 import searchTelemetry from './telemetry';
-import performance from './performanceTelemetry';
+import performance from './performance-telemetry';
 import telemetryLatency from './telemetry-latency';
 import getConfig from './config';
 import search from './search';
@@ -48,6 +46,8 @@ import pluckResults from './operators/streams/pluck-results';
 import config from '../core/config';
 import { bindAll } from '../core/helpers/bind-functions';
 import { chrome } from '../platform/globals';
+
+const performanceTelemetryEnabled = !!chrome.webRequest;
 
 /**
   @namespace search
@@ -100,7 +100,7 @@ export default background({
       richHeader: new RichHeader(settings), //
     };
 
-    if (chrome.webRequest) {
+    if (performanceTelemetryEnabled) {
       // some platforms might not have webRequest
       performance.init();
     }
@@ -112,7 +112,7 @@ export default background({
   },
 
   unload() {
-    if (chrome.webRequest) {
+    if (performanceTelemetryEnabled) {
       performance.unload();
     }
   },
@@ -129,7 +129,7 @@ export default background({
       prefs.clear('backend_country.override');
       prefs.set('backend_country', country);
     },
-    ...bindAll(performance.events, performance),
+    ...bindAll(performanceTelemetryEnabled ? performance.events : {}, performance),
   },
 
   actions: {
@@ -167,6 +167,9 @@ export default background({
       { contextId, tab: { id: tabId } = {} } = { tab: {} }
     ) {
       const sessionId = tabId || contextId;
+      events.pub('search:session-end', {
+        windowId: sessionId,
+      });
 
       this.resetAssistantStates();
       if (!this.searchSessions.has(sessionId)) {
@@ -189,10 +192,6 @@ export default background({
       telemetryLatencySubscription.unsubscribe();
 
       this.searchSessions.delete(sessionId);
-
-      events.pub('search:session-end', {
-        windowId: sessionId,
-      });
     },
 
     // TODO: debounce (see observables/urlbar)
@@ -210,6 +209,7 @@ export default background({
     ) {
       const sessionId = tabId || contextId;
       const now = Date.now();
+      const assistantStates = this.actions.getAssistantStates();
 
       if (this.searchSessions.has(sessionId)) {
         const queryEventProxy = this.searchSessions.get(sessionId).queryEventProxy;
@@ -222,6 +222,7 @@ export default background({
           isPasted,
           forceUpdate,
           allowEmptyQuery,
+          assistantStates,
           ts: now,
         });
         return;
@@ -356,6 +357,7 @@ export default background({
         keyCode,
         isPasted,
         allowEmptyQuery,
+        assistantStates,
         ts: now,
       });
 
@@ -490,12 +492,12 @@ export default background({
       let handledQuery = '';
 
       if (isUrl(query)) {
-        handledQuery = getVisitUrl(fixURL(query));
+        handledQuery = fixURL(query);
       } else {
         const engine = getEngineByQuery(query);
         const rawQuery = getSearchEngineQuery(engine, query);
 
-        handledQuery = getSearchEngineUrl(engine, query, rawQuery);
+        handledQuery = engine.getSubmissionForQuery(rawQuery);
       }
 
       return handledQuery;

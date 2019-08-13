@@ -22,7 +22,7 @@ function toSerializable(engine) {
   return serialized;
 }
 
-this.cliqzSearchEngines = class extends ExtensionAPI {
+global.cliqzSearchEngines = class extends ExtensionAPI {
   getAPI() {
     return {
       cliqzSearchEngines: {

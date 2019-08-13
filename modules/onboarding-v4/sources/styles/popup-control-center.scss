@@ -1,0 +1,14 @@
+.popup-cc {
+    background: url('../images/matterhorn-bg.jpg') center center no-repeat fixed;
+    background-size: cover;
+
+    &:after {
+        position: absolute;
+        content: "";
+        background: rgba(0, 0, 0, 0.2);
+        height: 100%;
+        width: 100%;
+        top: 0;
+        left: 0;
+    }
+}

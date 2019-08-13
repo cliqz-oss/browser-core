@@ -20,7 +20,7 @@ function Radio({
         value={value}
         defaultChecked={checked}
       />
-      <label htmlFor={id}>
+      <label className="input-label" htmlFor={id}>
         {labelValue}
       </label>
     </div>

@@ -23,6 +23,13 @@ export function openPageActionPopup(extensionId) {
   }
 }
 
+export function openBrowserActionPopup() {
+  const win = windowTracker.getCurrentWindow();
+  const ccNode = win.document.getElementById('cliqz_cliqz_com-browser-action2');
+  if (ccNode) {
+    ccNode.click();
+  }
+}
 
 export function isDefaultBrowser() {
   try {

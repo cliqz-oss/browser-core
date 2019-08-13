@@ -170,14 +170,15 @@ export default class Adblocker {
       return false;
     }
 
-    const result = this.manager.engine.match(makeRequestFromContext(context));
+    const request = makeRequestFromContext(context);
+    const { match, redirect } = this.manager.engine.match(request);
 
     let ret = true;
-    if (result.redirect !== undefined) {
+    if (redirect !== undefined) {
       this.stats.addBlockedUrl(context);
-      response.redirectTo(result.redirect);
+      response.redirectTo(redirect.dataUrl);
       ret = false;
-    } else if (result.match === true) {
+    } else if (match === true) {
       this.stats.addBlockedUrl(context);
       response.block();
       ret = false;

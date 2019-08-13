@@ -66,7 +66,7 @@ def matrix = [
         'gpu': true,
         'config': 'configs/ci/browser.js',
         'testParams': '-l firefox-web-ext --firefox ~/firefoxNightly/firefox/firefox',
-        'ignoreFailure': true
+        'ignoreFailure': true,
     ],
     'cliqz-tab': [
         'gpu': true,
@@ -170,7 +170,6 @@ node('docker && !gpu && us-east-1') {
 }
 
 def build(Map m) {
-    def context = m.context
     def getCodeDockerImage = m.getCodeDockerImage
     def config = m.config
     def stashName = "${env.JOB_BASE_NAME}_${env.BUILD_NUMBER}_${config.bytes.encodeBase64().toString()}"
@@ -191,7 +190,7 @@ def build(Map m) {
                             sh """#!/bin/bash
                                 set -x
                                 cd /app
-                                ./fern.js build --environment testing
+                                ./fern.js build --include-tests --environment testing
                             """
                         }
                         stash includes: "${stashName}/**/*", name: "${stashName}"
@@ -208,7 +207,8 @@ def test(Map m) {
     def config = m.config
     def testParams = m.testParams
     def gpu = m.gpu
-    def stashName = "${env.JOB_BASE_NAME}_${env.BUILD_NUMBER}_${config.bytes.encodeBase64().toString()}"
+    def stashName =
+    "${env.JOB_BASE_NAME}_${env.BUILD_NUMBER}_${config.bytes.encodeBase64().toString()}"
     def getCodeDockerImage = m.getCodeDockerImage
     def getTriggeringCommitHash = m.getTriggeringCommitHash
     def ignoreFailure = m.ignoreFailure
@@ -273,7 +273,7 @@ def test(Map m) {
                                         x11vnc -storepasswd vnc /tmp/vncpass
                                         x11vnc -rfbport 5900 -rfbauth /tmp/vncpass -forever > /dev/null 2>&1 &
 
-                                        ./fern.js test ${testParams} --no-build --environment testing --ci report.xml > /dev/null; true
+                                        ./fern.js test ${testParams} --environment testing --no-build --ci report.xml > /dev/null; true
 
                                         cp report.xml ${env.WORKSPACE}
                                     """
@@ -332,7 +332,7 @@ def getStepsForParallel(matrix) {
     def buildSteps = [:]
 
     matrix.each { name, params ->
-        buildSteps[params.get('config')] = 1
+        buildSteps[params.get('config')] = params
     }
 
     return buildSteps
@@ -346,13 +346,13 @@ def stepsForParallelTests = helpers.entries(matrix).collectEntries {
         gpu: it[1]['gpu'],
         getCodeDockerImage: { codeDockerImage },
         getTriggeringCommitHash: { triggeringCommitHash },
-        ignoreFailure: it[1]['ignoreFailure']
+        ignoreFailure: it[1]['ignoreFailure'],
     )]
 }
 
 def stepsForParallelBuilds = helpers.entries(getStepsForParallel(matrix)).collectEntries {
     [("Build ${it[0]}"): build(
-        config: it[0],
+        config: it[1]['config'],
         getCodeDockerImage: { codeDockerImage }
     )]
 }

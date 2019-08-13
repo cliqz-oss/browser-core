@@ -1,4 +1,3 @@
-'use strict';
 const writeFile = require('broccoli-file-creator');
 const config = require('./config');
 

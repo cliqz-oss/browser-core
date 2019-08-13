@@ -1,0 +1,27 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  overflow-y: hidden;
+  overflow-x: auto;
+  height: 100%;
+}
+
+#cliqz-offers-reminder {
+  font-family: "-mac-system", "-apple-system", BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif,     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-weight: normal;
+}
+
+:root {
+  --freundin-primary-color: #cd071e;
+  --freundin-secondary-color: #da3434;
+  --freundin-primary-hover-color: #da3434;
+
+  --chip-primary-color: #eb443f;
+  --chip-secondary-color: #eb443f;
+  --chip-primary-hover-color: #c93636;
+}
+
+@import "Main";
+@import "Content";
+@import "Promo";
+@import "Header";

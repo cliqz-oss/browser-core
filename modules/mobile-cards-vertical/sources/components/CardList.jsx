@@ -83,18 +83,28 @@ class CardList extends React.PureComponent {
     this._cardsList = null;
   }
 
+  getSeparator = () => (this.props.separator || <View style={{ marginTop: 16 }} />)
+
   render() {
     const { results, cliqz } = this.props;
     if (!results.length) {
       return null;
     }
+    const listStyle = {
+      paddingLeft: 10,
+      paddingRight: 10,
+      ...(this.props.style || {}),
+    };
+
     return (
       <FlatList
         ref={(cardsList) => { this._cardsList = cardsList; }}
         data={results}
         keyExtractor={item => item.url}
         renderItem={this.getComponent}
-        ItemSeparatorComponent={() => <View style={{ marginTop: 16 }} />}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+        ItemSeparatorComponent={this.getSeparator}
         ListHeaderComponent={() => <View style={{ marginTop: 16 }} />}
         ListFooterComponent={() => <View style={{ marginTop: 16 }} />}
         onTouchStart={() => cliqz.mobileCards.hideKeyboard()}
@@ -102,6 +112,7 @@ class CardList extends React.PureComponent {
         viewabilityConfig={this.viewabilityConfig}
         onViewableItemsChanged={this.onViewableItemsChanged}
         listKey="cards"
+        style={listStyle}
       />
     );
   }

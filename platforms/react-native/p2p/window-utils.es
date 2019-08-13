@@ -1,10 +1,8 @@
-import WebRTC from 'react-native-webrtc';
-
-const {
+import {
   RTCPeerConnection,
   RTCIceCandidate,
   RTCSessionDescription,
-} = WebRTC;
+} from 'react-native-webrtc';
 
 const window = {
   WebSocket,

@@ -1,0 +1,31 @@
+@import 'variables.scss'; 
+ 
+.final {
+    background-color: $cliqz-blue;
+
+    &:after {
+        position: absolute;
+        content: "";
+        background: url('../images/matterhorn-bg.jpg') center center no-repeat fixed;
+        background-size: cover;
+        height: 100%;
+        width: 100%;
+        top: 0;
+        left: 0;
+    }
+
+    .info {
+        left: calc(50% - #{$final-info-x-offset});
+        width: $final-info-width;
+
+
+        .check {
+            height: 100px;
+            width: 100px;
+            display: block;
+            margin: 30px auto 0;
+            border: none;
+            background: url('../images/final-check.svg') center no-repeat;
+        }
+    }
+}

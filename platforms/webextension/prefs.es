@@ -104,7 +104,16 @@ export function hasPref(prefKey, browserPrefix = null) {
   return pref in prefs;
 }
 
-export function clearPref(prefKey) {
+export function clearPref(prefKey, browserPrefix = null) {
+  if (browserPrefix !== null) {
+    if (chrome && chrome.cliqz && chrome.cliqz.clearPref) {
+      return chrome.cliqz.clearPref(`${browserPrefix}${prefKey}`);
+    }
+
+    console.warn(`getting pref ${browserPrefix}${prefKey} with browser prefix when chrome.cliqz is not available (ignored)`);
+    return false;
+  }
+
   const pref = cleanPref(prefKey);
   delete prefs[pref];
 
@@ -112,6 +121,7 @@ export function clearPref(prefKey) {
   events.pub('prefchange', pref, 'clear');
 
   syncToStorage();
+  return true;
 }
 
 export function getCliqzPrefs() {

@@ -26,12 +26,12 @@ export default describeModule('offers-v2/offers/image-downloader',
   () => {
     describe('/offers image downloader', function () {
       let ImageDownloaderPush;
-      let ImageDownloaderDb;
+      let ImageDownloaderBatch;
       const cb = sinon.stub();
 
       beforeEach(function () {
         ImageDownloaderPush = this.module().ImageDownloaderForPush;
-        ImageDownloaderDb = this.module().ImageDownloaderForOfferDB;
+        ImageDownloaderBatch = this.module().ImageDownloaderForBatch;
         FALLBACK_IMAGE = this.module().FALLBACK_IMAGE;
         cb.reset();
       });
@@ -120,7 +120,7 @@ export default describeModule('offers-v2/offers/image-downloader',
       describe('/downloader for OfferDB', () => {
         let downloader;
         beforeEach(() => {
-          downloader = new ImageDownloaderDb();
+          downloader = new ImageDownloaderBatch();
         });
 
         it('/download an image', async () => {
@@ -171,7 +171,7 @@ export default describeModule('offers-v2/offers/image-downloader',
 
         it('/do not download too often', async () => {
           const fetch = sinon.stub();
-          const dl = new ImageDownloaderDb({ fetch });
+          const dl = new ImageDownloaderBatch({ fetch });
 
           dl.nThreads = 1;
           dl.markBatch();
@@ -182,7 +182,7 @@ export default describeModule('offers-v2/offers/image-downloader',
 
         it('/do not mark batches if no active downloads', async () => {
           const fetch = sinon.stub();
-          const dl = new ImageDownloaderDb({ fetch });
+          const dl = new ImageDownloaderBatch({ fetch });
 
           dl.markBatch();
           dl.markBatch();

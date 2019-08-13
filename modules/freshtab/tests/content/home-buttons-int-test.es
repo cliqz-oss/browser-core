@@ -9,7 +9,6 @@ import {
 } from '../../core/test-helpers-freshtab';
 
 describe('Freshtab interactions with buttons', function () {
-  const settingsPanelSelector = '#settings-panel';
   let subject;
 
   beforeEach(async function () {
@@ -30,14 +29,8 @@ describe('Freshtab interactions with buttons', function () {
   describe('clicking on a settings button', function () {
     beforeEach(function () {
       subject.startListening();
-      const settingsButtonSelector = '#settings-btn';
-      subject.query(settingsButtonSelector).click();
-      return waitFor(() => subject.query(settingsPanelSelector).classList.contains('visible'));
-    });
-
-    it('show settings panel', function () {
-      expect(subject.query('#settings-panel')).to.exist;
-      expect(subject.query('#settings-panel').className).to.contain('visible');
+      subject.query('#settings-btn').click();
+      return waitFor(() => subject.query('#settings-panel'));
     });
 
     it('sends a "settings > click" telemetry signal', function () {
@@ -51,7 +44,7 @@ describe('Freshtab interactions with buttons', function () {
 
     describe('and then clicking on a close button', function () {
       beforeEach(function () {
-        const settingsCloseButtonSelector = '#settings-panel button.close';
+        const settingsCloseButtonSelector = '#settings-panel .close';
         subject.query(settingsCloseButtonSelector).click();
       });
 

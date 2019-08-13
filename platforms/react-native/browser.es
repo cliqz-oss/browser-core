@@ -1,9 +1,19 @@
 import { NativeModules } from 'react-native';
 import window from './window';
 
+
 const nativeWebRequest = NativeModules.WebRequest;
 const LocaleConstants = NativeModules.LocaleConstants;
 const defaultLocale = 'en';
+
+const formattedLocale = () => {
+  const deviceLocale = (NativeModules.I18nManager
+    && NativeModules.I18nManager.localeIdentifier
+    && typeof NativeModules.I18nManager.localeIdentifier === 'string')
+    ? NativeModules.I18nManager.localeIdentifier
+    : defaultLocale;
+  return deviceLocale.split('_')[0];
+};
 
 export function currentURI() {}
 
@@ -35,9 +45,6 @@ export function mustLoadWindow() {
   return true;
 }
 
-export function setOurOwnPrefs() {
-}
-
 export function addWindowObserver() {
 }
 
@@ -61,7 +68,7 @@ export function mapWindows() {
 }
 
 export function getLocale() {
-  return LocaleConstants ? LocaleConstants.lang : defaultLocale;
+  return LocaleConstants ? LocaleConstants.lang : formattedLocale();
 }
 
 export function getWindow() {}

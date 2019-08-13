@@ -1,4 +1,5 @@
 /* global $, Handlebars */
+/* eslint-disable no-console */
 import QRCode from 'qrcodejs';
 import templates from '../templates';
 
@@ -16,18 +17,21 @@ export default class PairingUI {
     this.PeerComm = PeerComm;
     this.telemetry = telemetry;
 
-
     this.TEMPLATE_NAMES = ['template'];
     this.TEMPLATE_CACHE = {};
     this.start();
 
     this.connectionChecker = setInterval(() => {
+      console.log('PairingUI: connectionChecker -> startPairing...');
       this.startPairing();
-      PeerComm.checkMasterConnection().catch(() => {});
+      PeerComm.checkMasterConnection().catch((e) => {
+        console.error('PairingUI error:', e);
+      });
     }, PairingUI.checkInterval);
 
     // Pairing events
     this.oninit = (info) => {
+      console.log('PairingUI: oninit');
       this.renderInitial();
       if (info.isPaired) {
         this.renderPaired(info);
@@ -43,6 +47,7 @@ export default class PairingUI {
     this.onunpaired = ({ isUnpaired }) => {
       this.renderUnpaired();
       if (isUnpaired) {
+        console.log('PairingUI: onunpaired -> startPairing...');
         this.startPairing();
       }
     };
@@ -54,15 +59,19 @@ export default class PairingUI {
       if (info.isInit) {
         this.oninit(info);
       }
+    }).catch((e) => {
+      console.error(e);
     });
   }
 
-  startPairing() {
-    this.PeerComm.startPairing()
-      .then(info => this.onpairing(info))
-      .catch(() => {
-        // This ensures silent rejection in case startpairing is triggered while unload.
-      });
+  async startPairing() {
+    try {
+      const info = await this.PeerComm.startPairing();
+      console.log('PeerComm.startPairing returned:', info);
+      this.onpairing(info);
+    } catch (e) {
+      console.error('PairingUI: startPairing failed:', e);
+    }
   }
 
   updatePairingStatus(status) {
@@ -157,6 +166,7 @@ export default class PairingUI {
     $('#content').html(templates.main(data));
 
     $('#unpair-button').click(() => {
+      console.log('unpair clicked');
       this.PeerComm.unpair();
 
       this.telemetry({

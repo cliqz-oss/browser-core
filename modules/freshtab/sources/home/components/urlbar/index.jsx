@@ -120,6 +120,7 @@ class Urlbar extends React.Component {
         style={{ ...styles, opacity: this.state.visible }}
       >
         <input
+          className="urlbarSearch"
           type="text"
           spellCheck="false"
           ref={(input) => { this.textInput = input; }}

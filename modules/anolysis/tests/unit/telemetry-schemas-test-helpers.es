@@ -11,8 +11,6 @@
  *   can define arbitrary tests.
  * - `currentDate`: mock when a different config_ts date is desired for this
  *   test.
- * - `retentionState`: allows to inject a different retention state (only used
- *   for retention analyses tests currently)
  *
  * Please read anolysis/README.md for more information. You can also have a look
  * into `anolysis/tests/unit/analyses` for examples.
@@ -139,7 +137,6 @@ async function generateAnalysisResults({
   //
   // We then force the aggregation of the daily signals, and expect the message
   // queue to receive at least one signal.
-  await anolysis.updateRetentionState();
   await anolysis.runTasksForDay(currentDate, 0);
   await anolysis.runTasksForDay(currentDate, 1);
 
@@ -170,19 +167,13 @@ async function generateAnalysisResults({
       chai.expect(signal.meta.dev).to.be.true;
       chai.expect(signal.meta.date).to.be.eql(currentDate);
       chai.expect(signal.meta.session).to.be.eql('session');
-
-      if (schema.needsGid) {
-        chai.expect(signal.meta.gid).to.be.eql('gid');
-      } else {
-        chai.expect(signal.meta.gid).to.be.eql('');
-      }
     }
   });
 
   return signals.map(({ behavior }) => behavior);
 }
 
-module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) => describeModule('anolysis/telemetry-schemas',
+module.exports = ({ name, metrics, currentDate, mock, tests }) => describeModule('anolysis/telemetry-schemas',
   () => ({
     ...mockDexie,
     'core/http': {
@@ -273,19 +264,6 @@ module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) =
         return moment(currentDate || '2018-10-01', DATE_FORMAT);
       },
     },
-    'anolysis/internals/gid-manager': {
-      default: class GIDManager {
-        init() {
-          return Promise.resolve();
-        }
-
-        getNewInstallDate() { return '2000-01-01'; }
-
-        getGID() {
-          return Promise.resolve('gid');
-        }
-      },
-    },
     'anolysis/internals/logger': {
       default: {
         // debug(...args) { console.log('DEBUG', ...args); },
@@ -316,11 +294,6 @@ module.exports = ({ name, metrics, currentDate, mock, tests, retentionState }) =
 
       availableDefinitions = anolysis.availableDefinitions;
       onlyKeepAnalysisWithName(availableDefinitions, name, metrics);
-
-      // Optionally mock retention state before each test
-      if (retentionState) {
-        anolysis.storage.retention.getState = () => Promise.resolve(retentionState);
-      }
 
       // Reset list of signals received from httpPost
       httpPostMessages = new Map();

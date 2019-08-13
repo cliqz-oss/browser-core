@@ -206,13 +206,14 @@ export default background({
           is_success: true,
         });
       })
-      .catch(() => {
+      .catch((e) => {
         telemetry.push({
           type: 'connect',
           version: 1,
           action: 'send_tab',
           is_success: false,
         });
+        console.error('Failed to send tab:', e);
       });
   },
 
@@ -226,7 +227,7 @@ export default background({
       }
     },
     startPairing() {
-      return this.peerSlave.startPairing().catch(() => {});
+      return this.peerSlave.startPairing();
     },
     unpair() {
       return this.peerSlave.unpair();

@@ -1,0 +1,35 @@
+@import 'variables.scss';
+
+.step.import-data {
+    background-color: #fff;
+    background: url('../images/import-bookmarks.svg') bottom/100% no-repeat;
+
+    .info {
+        .headline {
+            margin-top: 10px;
+        }
+
+        button.import {
+            display: block;
+            height: 35px;
+            margin: 37px auto 0;
+            padding: 0 18px;
+            color: #fff;
+            background-color: $cliqz-blue;
+            border: none;
+            border-radius: 22px;
+            font-family: "Montserrat", sans-serif;
+            font-weight: 600;
+            font-size: 18px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            cursor: pointer;
+        }
+
+        .description-area {
+            margin-top: 25px;
+            transition: none;
+        }
+    }
+}

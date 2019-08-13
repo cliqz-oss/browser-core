@@ -73,8 +73,7 @@ export default function () {
 
     describe('human-web.allowedCountryCode', function () {
       const allowed = [
-        'de',
-        'us'
+        'de'
       ];
 
       const notAllowed = ['gr', null, undefined, 'in', 'mm'];

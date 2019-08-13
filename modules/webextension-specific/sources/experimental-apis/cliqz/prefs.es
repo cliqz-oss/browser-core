@@ -57,6 +57,10 @@ export function setPref(key, value) {
   }
 }
 
+export function clearPref(key) {
+  prefSvc.clearUserPref(key);
+}
+
 export function prefObserver(context) {
   return new EventManager({
     context,

@@ -1,5 +1,6 @@
 const configBase = require('./ghostery-tab-base');
 const publish = require('./common/publish');
+
 const id = '{0ea88bc4-03bd-4baa-8153-acc861589c1c}';
 const CUSTOM_MANIFEST_ENTRY = `
   ,"applications": {
@@ -16,6 +17,6 @@ module.exports = Object.assign({}, configBase, {
   publish: `web-ext sign -a . -s build/ --api-key=$UPLOAD_API_KEY --api-secret=$UPLOAD_API_SECRET --timeout=360000 && ${publish.toEdgeForGhostery('ghostery_start_tab_nightly', 'ghostery-tab-firefox', 'xpi')}`,
   settings: Object.assign({}, configBase.settings, {
     id,
-    channel: "GT02",
+    channel: 'GT02',
   }),
-})
+});

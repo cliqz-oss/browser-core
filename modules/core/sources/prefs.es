@@ -7,6 +7,7 @@ import {
   getAllCliqzPrefs,
   PLATFORM_TELEMETRY_WHITELIST,
 } from '../platform/prefs';
+import config from './config';
 
 export default {
   /**
@@ -15,7 +16,13 @@ export default {
    * @param {*=}      defautlValue - returned value in case pref is not defined
    * @param {string=} prefix - prefix for pref
    */
-  get: getPref,
+  get(pref, defaultValue, prefix) {
+    let value = defaultValue;
+    if (!prefix) {
+      value = typeof config.default_prefs[pref] === 'undefined' ? defaultValue : config.default_prefs[pref];
+    }
+    return getPref(pref, value, prefix);
+  },
   /**
    * Set a value in preferences db
    * @param {string}  pref - preference identifier
@@ -87,6 +94,7 @@ const TELEMETRY_WHITELIST = new Set([
   'offers_location', // local offers
   'offers2UserEnabled', // offers state
   'offersDevFlag', // offers dev flag
+  'onboardingVersion', // AB Test for onboarding version
   'serp_test', // AB Test running from 1.27.2, possible values A/B/C
   'session', // user session
   'share_location', // use location for enhanced local results

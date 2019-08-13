@@ -1,0 +1,101 @@
+{
+    "adblocking_headline": {
+        "message": "Werbung lenkt dich ab und stiehlt dir deine Zeit?"
+    },
+    "adblocking_toggle_off": {
+        "message": "Entferne sie"
+    },
+    "adblocking_toggle_on": {
+        "message": "Jetzt kannst du ungestört surfen und webseiten laden schneller"
+    },
+    "antiphishing_headline": {
+        "message": "Phishing-Seiten versuchen, deine Passwörter und Kreditkartendaten zu stehlen"
+    },
+    "antiphishing_headline_on": {
+        "message": "*************** ********** ***** ********** *** ***************** ** ********"
+    },
+    "antiphishing_toggle_off": {
+        "message": "Schütze dich"
+    },
+    "antiphishing_toggle_on": {
+        "message": "Du bist jetzt vor phishing-seiten und identitätsdiebstahl geschützt"
+    },
+    "antitracking_headline": {
+        "message": "Tracker überwachen alles, was du im Internet machst"
+    },
+    "antitracking_toggle_off": {
+        "message": "Blockiere neugierige tracker"
+    },
+    "antitracking_toggle_on": {
+        "message": "Jetzt bist du für tracker unsichtbar"
+    },
+    "antitracking_tooltip_headline": {
+        "message": "Wir blockieren Drittanbieter-Tracker"
+    },
+    "antitracking_tooltip_learn_more": {
+        "message": "Erfahre mehr"
+    },
+    "antitracking_tooltip_text": {
+        "message": "Das bedeutet, dass sie keine privaten Daten mehr sammeln können, um daraus ein persönliches Profil von dir zu erstellen."
+    },
+    "button_next": {
+        "message": "weiter"
+    },
+    "button_skip": {
+        "message": "überspringen"
+    },
+    "import_data_button": {
+        "message": "jetzt importieren"
+    },
+    "import_data_description": {
+        "message": "Importiere jetzt Lesezeichen, Passwörter und Chronik"
+    },
+    "import_data_headline": {
+        "message": "Fühl dich wie zu Hause"
+    },
+    "popup_button_skip": {
+        "message": "überspringen"
+    },
+    "popup_button_try": {
+        "message": "Jetzt ausprobieren"
+    },
+    "popup_explanation": {
+        "message": "Hier kannst du deine Privatsphäre- und Sucheinstellungen jederzeit ändern"
+    },
+    "popup_protection_action_button": {
+        "message": "aktivieren"
+    },
+    "popup_protection_description": {
+        "message": "Aktiviere alle Funktionen zum Schutz deiner Privatsphäre."
+    },
+    "popup_protection_headline": {
+        "message": "Du bist noch nicht vollständig geschützt"
+    },
+    "popup_protection_skip_button": {
+        "message": "trotzdem fortfahren"
+    },
+    "popup_skip_action_button": {
+        "message": "fortsetzen"
+    },
+    "popup_skip_description": {
+        "message": "Beim Überspringen werden alle Schutzfunktionen aktiviert."
+    },
+    "popup_skip_headline": {
+        "message": "Einrichten des Browsers überspringen?"
+    },
+    "popup_skip_skip_button": {
+        "message": "überspringen"
+    },
+    "protection_explanation": {
+        "message": "Hier kannst du deine Privatsphäre- und Sucheinstellungen jederzeit ändern"
+    },
+    "protection_full_headline": {
+        "message": "Du bist vollständig geschützt"
+    },
+    "protection_partial_headline": {
+        "message": "Browser fertig eingerichtet"
+    },
+    "welcome": {
+        "message": "Willkommen"
+    }
+}

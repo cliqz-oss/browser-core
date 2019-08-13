@@ -1,15 +1,8 @@
-@mixin hyphenate() {
-  -ms-hyphens: auto;
-  -moz-hyphens: auto;
-  -webkit-hyphens: auto;
-  hyphens: auto;
-}
-
 @mixin cliqzCloseBtn($width, $thickness) {
 
     .cliqz-close-btn {
-        position: relative;
         display: inline-block;
+        position: relative;
         height: $width;
         width: $width;
         cursor: pointer;
@@ -26,14 +19,10 @@
         }
 
         &:before {
-            -webkit-transform: rotate(45deg);
-            -moz-transform:    rotate(45deg);
             transform:         rotate(45deg);
         }
 
         &:after {
-            -webkit-transform: rotate(-45deg);
-            -moz-transform:    rotate(-45deg);
             transform:         rotate(-45deg);
         }
 

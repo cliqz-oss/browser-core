@@ -1,992 +1,792 @@
 export default {
   'movie-showtimes': {
-    query: 'tomb raider',
+    query: 'avengers endgame',
     results: [
       {
-        url: 'http://www.imdb.com/title/tt1365519?random=true',
-        href: 'http://www.imdb.com/title/tt1365519?random=true',
-        friendlyUrl: 'imdb.com/title/tt1365519',
-        type: 'rh',
-        text: 'tomb raider',
+        url: 'https://www.imdb.com/showtimes/title/tt4154796',
+        href: 'https://www.imdb.com/showtimes/title/tt4154796',
+        friendlyUrl: 'imdb.com/showtimes/title/tt4154796',
+        title: 'Avengers: Endgame - Showtimes',
+        description: 'Showtimes and Cinemas on IMDb: Get local movie times.',
+        kind: [
+          'X|{"class":"EntityMovie"}'
+        ],
         provider: 'cliqz',
+        template: 'movie-showtimes',
+        text: 'avengers endgam',
+        type: 'rh',
+        meta: {
+          level: 0,
+          type: 'main',
+          triggerMethod: 'partial_url',
+          domain: 'imdb.com',
+          host: 'imdb.com',
+          hostAndPort: 'imdb.com',
+          port: '',
+          url: 'imdb.com/showtimes/title/tt4154796',
+          score: 0,
+          subType: {
+            class: 'EntityMovie',
+            id: 'dab3d695a4672201824692c6c44c121010e31ab78dc9cc9561102b93c6342528_noloc',
+            name: 'movie_by_domain'
+          },
+          latency: 117,
+          backendCountry: 'de',
+          completion: '',
+          logo: {
+            backgroundColor: 'e3b613',
+            backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/imdb/$.svg)',
+            text: 'im',
+            color: '#fff',
+            brandTxtColor: 'e3b613',
+            buttonsClass: 'cliqz-brands-button-10',
+            style: 'background-color: #e3b613;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/imdb/$.svg); text-indent: -10em;'
+          },
+          extraLogos: {},
+          externalProvidersLogos: {
+            kicker: {
+              backgroundColor: 'd7011d',
+              backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg)',
+              text: 'ki',
+              color: '#fff',
+              brandTxtColor: 'd7011d',
+              buttonsClass: 'cliqz-brands-button-1',
+              style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg); text-indent: -10em;'
+            }
+          }
+        },
         data: {
-          deepResults: [
-
-          ],
+          deepResults: [],
           extra: {
             data: {
-              city: 'Berlin',
-              title: 'Tomb Raider',
+              city: 'Saint Louis',
               showdates: [
                 {
-                  date: 'Heute',
                   cinema_list: [
                     {
-                      website: 'http://www.cinestar.de',
-                      name: 'CineStar Berlin - CUBIX am Alexanderplatz',
-                      telephone: '030/257610',
-                      address: 'Rathausstrasse 1, 10178 Berlin',
+                      address: '68 rue Saint Louis, 97450, Saint-Louis',
+                      name: 'Le Plaza',
                       showtimes: [
                         {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/46776/125158',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-28T11:00:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/46776/125159',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-28T14:00:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/46776/125160',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-28T17:00:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/46776/125161',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-28T20:00:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/46776/125162',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-28T23:00:00+02:00',
-                          language: 'de'
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-09T20:30:00+04:00'
                         }
                       ]
                     },
                     {
-                      website: 'http://www.uci-kinowelt.de',
-                      name: 'UCI KINOWELT Friedrichshain',
-                      telephone: '030/42 20 4-2 20',
-                      address: 'Landsberger Allee 52, 10249 Berlin',
+                      address: 'Route du Village, 20600, Furiani',
+                      name: 'Cinéma Le 7ème Art',
                       showtimes: [
                         {
-                          booking_link: 'http://www.uci-kinowelt.de/kino-buchung/performanceId/BF1E1000023IMUEMAF/siteId/42/145195097',
-                          subtitle_language: null,
+                          booking_link: null,
                           is_3d: false,
-                          start_at: '2018-03-28T14:00:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'http://www.uci-kinowelt.de/kino-buchung/performanceId/4D1E1000023IMUEMAF/siteId/42/229044589',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-28T17:00:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'http://www.uci-kinowelt.de/kino-buchung/performanceId/DD1E1000023IMUEMAF/siteId/42/1419017453',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-28T20:00:00+02:00',
-                          language: 'de'
+                          language: 'fr',
+                          start_at: '2019-05-09T21:15:00+02:00'
                         }
                       ]
                     },
                     {
-                      website: 'http://www.cinestar.de',
-                      name: 'CineStar Berlin - Treptower Park',
-                      telephone: '030/538940',
-                      address: 'Elsenstrasse 115 - 116, 12435 Berlin',
+                      address: '5 ter, rue César Campinchi, 20200, Bastia',
+                      name: 'Le Regent',
                       showtimes: [
                         {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/32381/95663',
-                          subtitle_language: null,
+                          booking_link: null,
                           is_3d: false,
-                          start_at: '2018-03-28T17:00:00+02:00',
-                          language: 'de'
+                          language: 'fr',
+                          start_at: '2019-05-09T14:00:00+02:00'
                         },
                         {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/32381/95664',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-28T19:55:00+02:00',
-                          language: 'de'
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-09T21:00:00+02:00'
                         }
                       ]
                     },
                     {
-                      website: 'http://www.cineplex.de',
-                      name: 'Cineplex Neukölln',
-                      telephone: '01805/050644',
-                      address: 'Karl-Marx-Str. 66, 12043 Berlin',
+                      address: 'Faubourg Saint-Antoine, 20250, Corte',
+                      name: "L'Alba",
                       showtimes: [
                         {
-                          booking_link: 'https://booking.cineplex.de/#/site/24/performance/F2B92000023BAQTIKB/mode/sale/',
-                          subtitle_language: null,
+                          booking_link: null,
                           is_3d: false,
-                          start_at: '2018-03-28T16:50:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://booking.cineplex.de/#/site/24/performance/77B92000023BAQTIKB/mode/sale/',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-28T19:45:00+02:00',
-                          language: 'de'
+                          language: 'fr',
+                          start_at: '2019-05-09T21:15:00+02:00'
                         }
                       ]
                     },
                     {
-                      website: 'https://www.cinemaxx.de/berlin/',
-                      name: 'CinemaxX Berlin',
-                      telephone: '040 80 80 69 69',
-                      address: 'Potsdamer Straße 5 (Eingang Voxstraße 2), 10785 Berlin',
+                      address: 'Rue des Magnolias - La Rocade, 20090, Ajaccio',
+                      name: 'Ellipse',
                       showtimes: [
                         {
-                          booking_link: 'https://www.cinemaxx.de/ticketshop/24149/12/1001/16E57000023JJMSGMG/sitz-auswahlen',
-                          subtitle_language: null,
+                          booking_link: null,
                           is_3d: false,
-                          start_at: '2018-03-28T14:15:00+02:00',
-                          language: 'de'
+                          language: 'fr',
+                          start_at: '2019-05-09T13:00:00+02:00'
                         },
                         {
-                          booking_link: 'https://www.cinemaxx.de/ticketshop/24149/12/1001/23E57000023JJMSGMG/sitz-auswahlen',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-28T17:10:00+02:00',
-                          language: 'de'
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-09T18:00:00+02:00'
                         },
                         {
-                          booking_link: 'https://www.cinemaxx.de/ticketshop/24149/12/1001/09E57000023JJMSGMG/sitz-auswahlen',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-28T20:15:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://www.cinemaxx.de/ticketshop/24149/12/1001/69E57000023JJMSGMG/sitz-auswahlen',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-28T23:15:00+02:00',
-                          language: 'de'
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-09T21:00:00+02:00'
                         }
                       ]
                     }
-                  ]
+                  ],
+                  date: 'Today'
                 },
                 {
-                  date: 'Morgen',
                   cinema_list: [
                     {
-                      website: 'http://www.cinestar.de',
-                      name: 'CineStar Berlin - CUBIX am Alexanderplatz',
-                      telephone: '030/257610',
-                      address: 'Rathausstrasse 1, 10178 Berlin',
+                      address: '68 rue Saint Louis, 97450, Saint-Louis',
+                      name: 'Le Plaza',
                       showtimes: [
                         {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/46776/125469',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-29T12:00:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/46776/125463',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-29T17:10:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/46776/125462',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-29T20:00:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/46776/125461',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-29T23:00:00+02:00',
-                          language: 'de'
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-10T20:30:00+04:00'
                         }
                       ]
                     },
                     {
-                      website: 'http://www.uci-kinowelt.de',
-                      name: 'UCI KINOWELT Friedrichshain',
-                      telephone: '030/42 20 4-2 20',
-                      address: 'Landsberger Allee 52, 10249 Berlin',
+                      address: 'Route du Village, 20600, Furiani',
+                      name: 'Cinéma Le 7ème Art',
                       showtimes: [
                         {
-                          booking_link: 'http://www.uci-kinowelt.de/kino-buchung/performanceId/9D2E1000023IMUEMAF/siteId/42/507920014',
-                          subtitle_language: null,
+                          booking_link: null,
                           is_3d: false,
-                          start_at: '2018-03-29T17:00:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'http://www.uci-kinowelt.de/kino-buchung/performanceId/7B2E1000023IMUEMAF/siteId/42/1814762385',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-29T19:50:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'http://www.uci-kinowelt.de/kino-buchung/performanceId/3B2E1000023IMUEMAF/siteId/42/481332401',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-29T22:50:00+02:00',
-                          language: 'de'
+                          language: 'fr',
+                          start_at: '2019-05-10T21:15:00+02:00'
                         }
                       ]
                     },
                     {
-                      website: 'http://www.cinestar.de',
-                      name: 'CineStar Berlin - Treptower Park',
-                      telephone: '030/538940',
-                      address: 'Elsenstrasse 115 - 116, 12435 Berlin',
+                      address: '5 ter, rue César Campinchi, 20200, Bastia',
+                      name: 'Le Regent',
                       showtimes: [
                         {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/32381/95889',
-                          subtitle_language: null,
+                          booking_link: null,
                           is_3d: false,
-                          start_at: '2018-03-29T17:00:00+02:00',
-                          language: 'de'
+                          language: 'fr',
+                          start_at: '2019-05-10T14:00:00+02:00'
                         },
                         {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/32381/95890',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-29T19:55:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/32381/96131',
-                          subtitle_language: null,
+                          booking_link: null,
                           is_3d: false,
-                          start_at: '2018-03-29T23:00:00+02:00',
-                          language: 'de'
+                          language: 'fr',
+                          start_at: '2019-05-10T21:00:00+02:00'
                         }
                       ]
                     },
                     {
-                      website: 'http://www.cineplex.de',
-                      name: 'Cineplex Neukölln',
-                      telephone: '01805/050644',
-                      address: 'Karl-Marx-Str. 66, 12043 Berlin',
+                      address: 'Faubourg Saint-Antoine, 20250, Corte',
+                      name: "L'Alba",
                       showtimes: [
                         {
-                          booking_link: 'https://booking.cineplex.de/#/site/24/performance/70C92000023BAQTIKB/mode/sale/',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-29T19:40:00+02:00',
-                          language: 'de'
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-10T17:30:00+02:00'
+                        },
+                        {
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-10T21:15:00+02:00'
                         }
                       ]
                     },
                     {
-                      website: 'https://www.cinemaxx.de/berlin/',
-                      name: 'CinemaxX Berlin',
-                      telephone: '040 80 80 69 69',
-                      address: 'Potsdamer Straße 5 (Eingang Voxstraße 2), 10785 Berlin',
+                      address: 'Rue des Magnolias - La Rocade, 20090, Ajaccio',
+                      name: 'Ellipse',
                       showtimes: [
                         {
-                          booking_link: 'https://www.cinemaxx.de/ticketshop/24149/12/1001/15A7A700023FVUVQLG/sitz-auswahlen',
-                          subtitle_language: null,
+                          booking_link: null,
                           is_3d: false,
-                          start_at: '2018-03-29T14:10:00+02:00',
-                          language: 'de'
+                          language: 'fr',
+                          start_at: '2019-05-10T15:30:00+02:00'
                         },
                         {
-                          booking_link: 'https://www.cinemaxx.de/ticketshop/24149/12/1001/25A7A700023FVUVQLG/sitz-auswahlen',
-                          subtitle_language: null,
+                          booking_link: null,
                           is_3d: true,
-                          start_at: '2018-03-29T17:00:00+02:00',
-                          language: 'de'
+                          language: 'fr',
+                          start_at: '2019-05-10T18:00:00+02:00'
                         },
                         {
-                          booking_link: 'https://www.cinemaxx.de/ticketshop/24149/12/1001/83A7A700023FVUVQLG/sitz-auswahlen',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-29T19:50:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://www.cinemaxx.de/ticketshop/24149/12/1001/93A7A700023FVUVQLG/sitz-auswahlen',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-29T23:00:00+02:00',
-                          language: 'de'
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-10T21:30:00+02:00'
                         }
                       ]
                     }
-                  ]
+                  ],
+                  date: 'Tomorrow'
                 },
                 {
-                  date: 'Fr., 30. März',
                   cinema_list: [
                     {
-                      website: 'http://www.cinestar.de',
-                      name: 'CineStar Berlin - CUBIX am Alexanderplatz',
-                      telephone: '030/257610',
-                      address: 'Rathausstrasse 1, 10178 Berlin',
+                      address: '68 rue Saint Louis, 97450, Saint-Louis',
+                      name: 'Le Plaza',
                       showtimes: [
                         {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/46776/125792',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-30T12:00:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/46776/125775',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-30T17:10:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/46776/125776',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-30T20:00:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/46776/125777',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-30T23:00:00+02:00',
-                          language: 'de'
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-11T20:30:00+04:00'
                         }
                       ]
                     },
                     {
-                      website: 'http://www.uci-kinowelt.de',
-                      name: 'UCI KINOWELT Friedrichshain',
-                      telephone: '030/42 20 4-2 20',
-                      address: 'Landsberger Allee 52, 10249 Berlin',
+                      address: 'Route du Village, 20600, Furiani',
+                      name: 'Cinéma Le 7ème Art',
                       showtimes: [
                         {
-                          booking_link: 'http://www.uci-kinowelt.de/kino-buchung/performanceId/AD2E1000023IMUEMAF/siteId/42/494252041',
-                          subtitle_language: null,
+                          booking_link: null,
                           is_3d: false,
-                          start_at: '2018-03-30T17:00:00+02:00',
-                          language: 'de'
+                          language: 'fr',
+                          start_at: '2019-05-11T14:30:00+02:00'
                         },
                         {
-                          booking_link: 'http://www.uci-kinowelt.de/kino-buchung/performanceId/8B2E1000023IMUEMAF/siteId/42/1095709359',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-30T19:50:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'http://www.uci-kinowelt.de/kino-buchung/performanceId/4B2E1000023IMUEMAF/siteId/42/936867907',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-30T22:50:00+02:00',
-                          language: 'de'
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-11T21:15:00+02:00'
                         }
                       ]
                     },
                     {
-                      website: 'http://www.cinestar.de',
-                      name: 'CineStar Berlin - Treptower Park',
-                      telephone: '030/538940',
-                      address: 'Elsenstrasse 115 - 116, 12435 Berlin',
+                      address: '5 ter, rue César Campinchi, 20200, Bastia',
+                      name: 'Le Regent',
                       showtimes: [
                         {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/32381/95934',
-                          subtitle_language: null,
+                          booking_link: null,
                           is_3d: false,
-                          start_at: '2018-03-30T17:00:00+02:00',
-                          language: 'de'
+                          language: 'fr',
+                          start_at: '2019-05-11T14:00:00+02:00'
                         },
                         {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/32381/95935',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-30T19:55:00+02:00',
-                          language: 'de'
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-11T18:00:00+02:00'
                         },
                         {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/32381/96132',
-                          subtitle_language: null,
+                          booking_link: null,
                           is_3d: false,
-                          start_at: '2018-03-30T23:00:00+02:00',
-                          language: 'de'
+                          language: 'fr',
+                          start_at: '2019-05-11T21:00:00+02:00'
                         }
                       ]
                     },
                     {
-                      website: 'http://www.cineplex.de',
-                      name: 'Cineplex Neukölln',
-                      telephone: '01805/050644',
-                      address: 'Karl-Marx-Str. 66, 12043 Berlin',
+                      address: 'Faubourg Saint-Antoine, 20250, Corte',
+                      name: "L'Alba",
                       showtimes: [
                         {
-                          booking_link: 'https://booking.cineplex.de/#/site/24/performance/DDC92000023BAQTIKB/mode/sale/',
-                          subtitle_language: null,
+                          booking_link: null,
                           is_3d: false,
-                          start_at: '2018-03-30T19:40:00+02:00',
-                          language: 'de'
+                          language: 'fr',
+                          start_at: '2019-05-11T14:00:00+02:00'
+                        },
+                        {
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-11T17:30:00+02:00'
+                        },
+                        {
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-11T21:15:00+02:00'
                         }
                       ]
                     },
                     {
-                      website: 'https://www.cinemaxx.de/berlin/',
-                      name: 'CinemaxX Berlin',
-                      telephone: '040 80 80 69 69',
-                      address: 'Potsdamer Straße 5 (Eingang Voxstraße 2), 10785 Berlin',
+                      address: 'Rue des Magnolias - La Rocade, 20090, Ajaccio',
+                      name: 'Ellipse',
                       showtimes: [
                         {
-                          booking_link: 'https://www.cinemaxx.de/ticketshop/24149/12/1001/E9A7A700023FVUVQLG/sitz-auswahlen',
-                          subtitle_language: null,
+                          booking_link: null,
+                          is_3d: true,
+                          language: 'fr',
+                          start_at: '2019-05-11T13:00:00+02:00'
+                        },
+                        {
+                          booking_link: null,
                           is_3d: false,
-                          start_at: '2018-03-30T14:10:00+02:00',
-                          language: 'de'
+                          language: 'fr',
+                          start_at: '2019-05-11T15:30:00+02:00'
                         },
                         {
-                          booking_link: 'https://www.cinemaxx.de/ticketshop/24149/12/1001/F9A7A700023FVUVQLG/sitz-auswahlen',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-30T17:00:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://www.cinemaxx.de/ticketshop/24149/12/1001/88A7A700023FVUVQLG/sitz-auswahlen',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-30T19:50:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://www.cinemaxx.de/ticketshop/24149/12/1001/98A7A700023FVUVQLG/sitz-auswahlen',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-30T23:00:00+02:00',
-                          language: 'de'
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-11T21:30:00+02:00'
                         }
                       ]
                     }
-                  ]
+                  ],
+                  date: 'Sat, 11 May'
                 },
                 {
-                  date: 'Sa., 31. März',
                   cinema_list: [
                     {
-                      website: 'http://www.cinestar.de',
-                      name: 'CineStar Berlin - CUBIX am Alexanderplatz',
-                      telephone: '030/257610',
-                      address: 'Rathausstrasse 1, 10178 Berlin',
+                      address: '68 rue Saint Louis, 97450, Saint-Louis',
+                      name: 'Le Plaza',
                       showtimes: [
                         {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/46776/125830',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-31T12:00:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/46776/125843',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-31T17:10:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/46776/125844',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-31T20:00:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/46776/125845',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-31T23:00:00+02:00',
-                          language: 'de'
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-12T20:30:00+04:00'
                         }
                       ]
                     },
                     {
-                      website: 'http://www.uci-kinowelt.de',
-                      name: 'UCI KINOWELT Friedrichshain',
-                      telephone: '030/42 20 4-2 20',
-                      address: 'Landsberger Allee 52, 10249 Berlin',
+                      address: 'Route du Village, 20600, Furiani',
+                      name: 'Cinéma Le 7ème Art',
                       showtimes: [
                         {
-                          booking_link: 'http://www.uci-kinowelt.de/kino-buchung/performanceId/BD2E1000023IMUEMAF/siteId/42/150444711',
-                          subtitle_language: null,
+                          booking_link: null,
                           is_3d: false,
-                          start_at: '2018-03-31T17:00:00+02:00',
-                          language: 'de'
+                          language: 'fr',
+                          start_at: '2019-05-12T14:30:00+02:00'
                         },
                         {
-                          booking_link: 'http://www.uci-kinowelt.de/kino-buchung/performanceId/9B2E1000023IMUEMAF/siteId/42/2129030411',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-31T19:50:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'http://www.uci-kinowelt.de/kino-buchung/performanceId/5B2E1000023IMUEMAF/siteId/42/579178550',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-31T22:50:00+02:00',
-                          language: 'de'
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-12T21:15:00+02:00'
                         }
                       ]
                     },
                     {
-                      website: 'http://www.cinestar.de',
-                      name: 'CineStar Berlin - Treptower Park',
-                      telephone: '030/538940',
-                      address: 'Elsenstrasse 115 - 116, 12435 Berlin',
+                      address: '5 ter, rue César Campinchi, 20200, Bastia',
+                      name: 'Le Regent',
                       showtimes: [
                         {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/32381/96090',
-                          subtitle_language: null,
+                          booking_link: null,
                           is_3d: false,
-                          start_at: '2018-03-31T17:00:00+02:00',
-                          language: 'de'
+                          language: 'fr',
+                          start_at: '2019-05-12T14:00:00+02:00'
                         },
                         {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/32381/96091',
-                          subtitle_language: null,
+                          booking_link: null,
                           is_3d: true,
-                          start_at: '2018-03-31T19:55:00+02:00',
-                          language: 'de'
+                          language: 'fr',
+                          start_at: '2019-05-12T17:30:00+02:00'
                         },
                         {
-                          booking_link: 'https://webticketing2.cinestar.de/#/init/32381/96133',
-                          subtitle_language: null,
+                          booking_link: null,
                           is_3d: false,
-                          start_at: '2018-03-31T23:00:00+02:00',
-                          language: 'de'
+                          language: 'fr',
+                          start_at: '2019-05-12T17:30:00+02:00'
+                        },
+                        {
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-12T21:00:00+02:00'
                         }
                       ]
                     },
                     {
-                      website: 'http://www.cineplex.de',
-                      name: 'Cineplex Neukölln',
-                      telephone: '01805/050644',
-                      address: 'Karl-Marx-Str. 66, 12043 Berlin',
+                      address: 'Rue des Magnolias - La Rocade, 20090, Ajaccio',
+                      name: 'Ellipse',
                       showtimes: [
                         {
-                          booking_link: 'https://booking.cineplex.de/#/site/24/performance/EDC92000023BAQTIKB/mode/sale/',
-                          subtitle_language: null,
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-12T10:30:00+02:00'
+                        },
+                        {
+                          booking_link: null,
                           is_3d: true,
-                          start_at: '2018-03-31T19:40:00+02:00',
-                          language: 'de'
+                          language: 'fr',
+                          start_at: '2019-05-12T15:30:00+02:00'
+                        },
+                        {
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-12T21:30:00+02:00'
                         }
                       ]
                     },
                     {
-                      website: 'https://www.cinemaxx.de/berlin/',
-                      name: 'CinemaxX Berlin',
-                      telephone: '040 80 80 69 69',
-                      address: 'Potsdamer Straße 5 (Eingang Voxstraße 2), 10785 Berlin',
+                      address: 'Maximilianstr. 9, 83471 Berchtesgaden',
+                      name: 'Kino im Kongresshaus',
                       showtimes: [
                         {
-                          booking_link: 'https://www.cinemaxx.de/ticketshop/24149/12/1001/EEA7A700023FVUVQLG/sitz-auswahlen',
-                          subtitle_language: null,
-                          is_3d: false,
-                          start_at: '2018-03-31T14:10:00+02:00',
-                          language: 'de'
+                          booking_link: 'https://www.kinoheld.de/kino-berchtesgaden/kino-berchtesgaden-im-kongresshaus?rb=0&mode=widget&appView=1&ref=cinepass&showId=2067192421',
+                          is_3d: true,
+                          language: 'de',
+                          start_at: '2019-05-12T16:30:00+02:00'
                         },
                         {
-                          booking_link: 'https://www.cinemaxx.de/ticketshop/24149/12/1001/FEA7A700023FVUVQLG/sitz-auswahlen',
-                          subtitle_language: null,
+                          booking_link: 'https://www.kinoheld.de/kino-berchtesgaden/kino-berchtesgaden-im-kongresshaus?rb=0&mode=widget&appView=1&ref=cinepass&showId=2067192483',
                           is_3d: true,
-                          start_at: '2018-03-31T17:00:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://www.cinemaxx.de/ticketshop/24149/12/1001/5DA7A700023FVUVQLG/sitz-auswahlen',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-31T19:50:00+02:00',
-                          language: 'de'
-                        },
-                        {
-                          booking_link: 'https://www.cinemaxx.de/ticketshop/24149/12/1001/6DA7A700023FVUVQLG/sitz-auswahlen',
-                          subtitle_language: null,
-                          is_3d: true,
-                          start_at: '2018-03-31T23:00:00+02:00',
-                          language: 'de'
+                          language: 'de',
+                          start_at: '2019-05-12T20:15:00+02:00'
                         }
                       ]
                     }
-                  ]
+                  ],
+                  date: 'Sun, 12 May'
+                },
+                {
+                  cinema_list: [
+                    {
+                      address: '68 rue Saint Louis, 97450, Saint-Louis',
+                      name: 'Le Plaza',
+                      showtimes: [
+                        {
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-13T20:30:00+04:00'
+                        }
+                      ]
+                    },
+                    {
+                      address: 'Route du Village, 20600, Furiani',
+                      name: 'Cinéma Le 7ème Art',
+                      showtimes: [
+                        {
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-13T21:15:00+02:00'
+                        }
+                      ]
+                    },
+                    {
+                      address: '5 ter, rue César Campinchi, 20200, Bastia',
+                      name: 'Le Regent',
+                      showtimes: [
+                        {
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-13T14:00:00+02:00'
+                        },
+                        {
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'en',
+                          start_at: '2019-05-13T21:00:00+02:00'
+                        }
+                      ]
+                    },
+                    {
+                      address: 'Faubourg Saint-Antoine, 20250, Corte',
+                      name: "L'Alba",
+                      showtimes: [
+                        {
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-13T21:15:00+02:00'
+                        }
+                      ]
+                    },
+                    {
+                      address: 'Rue des Magnolias - La Rocade, 20090, Ajaccio',
+                      name: 'Ellipse',
+                      showtimes: [
+                        {
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-13T13:00:00+02:00'
+                        },
+                        {
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-13T18:00:00+02:00'
+                        },
+                        {
+                          booking_link: null,
+                          is_3d: false,
+                          language: 'fr',
+                          start_at: '2019-05-13T21:00:00+02:00'
+                        }
+                      ]
+                    }
+                  ],
+                  date: 'Mon, 13 May'
                 }
-              ]
+              ],
+              title: 'Avengers: Endgame',
+              title_prefix: 'Showtimes'
             },
             no_location: true
           },
           kind: [
             'X|{"class":"EntityMovie"}'
           ],
-          template: 'movie-showtimes',
-        },
-        maxNumberOfSlots: 3
-      }
+          template: 'movie-showtimes'
+        }
+      },
     ]
   },
   movie: {
-    query: 'black panther',
+    query: 'avengers',
     results: [
       {
-        url: 'https://www.moviepilot.de/movies/black-panther',
-        href: 'https://www.moviepilot.de/movies/black-panther',
-        title: 'Black Panther',
-        description: 'Alle Infos zum Film Black Panther (2018): Chadwick Boseman erhält die Ehre, mit Black Panther den ersten schwarzen Marvel-Helden zu verkörpern...',
-        data: {
-          deepResults: [
-            {
-              type: 'buttons',
-              links: [
-                {
-                  url: 'http://www.moviepilot.de/movies/black-panther/images',
-                  href: 'http://www.moviepilot.de/movies/black-panther/images',
-                  title: 'Photos',
-                  kind: [
-
-                  ],
-                  meta: {
-                    level: 1,
-                    type: 'buttons',
-                    domain: 'moviepilot.de',
-                    host: 'moviepilot.de',
-                    hostAndPort: 'moviepilot.de',
-                    port: '',
-                    url: 'moviepilot.de/movies/black-panther/images',
-                    subType: {
-
-                    },
-                    completion: ''
-                  }
-                },
-                {
-                  url: 'http://www.moviepilot.de/movies/black-panther/casts',
-                  href: 'http://www.moviepilot.de/movies/black-panther/casts',
-                  title: 'Cast',
-                  kind: [
-
-                  ],
-                  meta: {
-                    level: 1,
-                    type: 'buttons',
-                    domain: 'moviepilot.de',
-                    host: 'moviepilot.de',
-                    hostAndPort: 'moviepilot.de',
-                    port: '',
-                    url: 'moviepilot.de/movies/black-panther/casts',
-                    subType: {
-
-                    },
-                    completion: ''
-                  }
-                }
-              ]
-            }
-          ],
-          extra: {
-            language: {
-              de: 0.7599999904632568
-            },
-            m_url: 'https://m.moviepilot.de/movies/black-panther',
-            og: {
-              image: 'https://assets.cdn.moviepilot.de/files/28749813b631d1cfdb00231590c4fa6bec5e0879802384e57518fa370ccc/fill/200/200/blackpantherposter.jpg',
-              type: 'moviepilotde:movie',
-              description: 'Black Panther, 2018, Abenteuerfilm, von Ryan Coogler',
-              title: 'Black Panther'
-            },
-            alternatives: [
-              'https://www.moviepilot.de/movies/black-panther'
-            ],
-            mobile_links: {
-              android: [
-                'android-app://de.moviepilot.home/mphome/open/movie?code_movie=9011'
-              ]
-            },
-            rich_data: {
-              rating: {
-                scale: 10,
-                img: 'http://cdn.cliqz.com/extension/EZ/richresult/stars4.svg',
-                val: 7.199999809265137,
-                nVote: 5237
-              },
-              name: 'Black Panther',
-              image: 'https://assets.cdn.moviepilot.de/files/28749813b631d1cfdb00231590c4fa6bec5e0879802384e57518fa370ccc/fill/200/200/blackpantherposter.jpg',
-              des: 'Alle Infos zum Film Black Panther (2018): Chadwick Boseman erhält die Ehre, mit Black Panther den ersten schwarzen Marvel-Helden zu verkörpern...',
-              director: {
-                info: {
-                  url: 'http://www.moviepilot.de/people/ryan-coogler',
-                  name: 'Ryan Coogler'
-                },
-                title: 'Director'
-              },
-              cast: [
-                {
-                  url: 'http://www.moviepilot.de/people/chadwick-boseman',
-                  name: 'Chadwick Boseman'
-                },
-                {
-                  url: 'http://www.moviepilot.de/people/lupita-nyongo',
-                  name: 'Lupita'
-                },
-                {
-                  url: 'http://www.moviepilot.de/people/michael-b-jordan',
-                  name: 'Michael Jordan'
-                },
-                {
-                  url: 'http://www.moviepilot.de/people/danai-jekesai-gurira',
-                  name: 'Danai Gurira'
-                },
-                {
-                  url: 'http://www.moviepilot.de/people/winston-duke',
-                  name: 'Winston Duke'
-                },
-                {
-                  url: 'http://www.moviepilot.de/people/martin-freeman',
-                  name: 'Martin Freeman'
-                },
-                {
-                  url: 'http://www.moviepilot.de/people/daniel-kaluuya',
-                  name: 'Daniel Kaluuya'
-                },
-                {
-                  url: 'http://www.moviepilot.de/people/angela-bassett',
-                  name: 'Angela Bassett'
-                },
-                {
-                  url: 'http://www.moviepilot.de/people/forest-whitaker',
-                  name: 'Forest Whitaker'
-                },
-                {
-                  url: 'http://www.moviepilot.de/people/andy-serkis',
-                  name: 'Andy Serkis'
-                },
-                {
-                  url: 'http://www.moviepilot.de/people/florence-kasumba',
-                  name: 'Florence Kasumba'
-                },
-                {
-                  url: 'http://www.moviepilot.de/people/sterling-k-brown',
-                  name: 'Sterling K. Brown'
-                },
-                {
-                  url: 'http://www.moviepilot.de/people/letitia-wright',
-                  name: 'Letitia Wright'
-                },
-                {
-                  url: 'http://www.moviepilot.de/people/phylicia-rashad',
-                  name: 'Phylicia Rashad'
-                },
-                {
-                  url: 'http://www.moviepilot.de/people/stan-lee',
-                  name: 'Stan Lee'
-                },
-                {
-                  url: 'http://www.moviepilot.de/people/david-lee',
-                  name: 'David S. Lee'
-                },
-                {
-                  url: 'http://www.moviepilot.de/people/isaach-de-bankol',
-                  name: 'Isaach de Bankolé'
-                },
-                {
-                  url: 'http://www.moviepilot.de/people/shaunette-renee-wilson',
-                  name: 'Shaunette Renée Wilson'
-                },
-                {
-                  url: 'http://www.moviepilot.de/people/shad-gaspard',
-                  name: 'Shad Gaspard'
-                },
-                {
-                  url: 'http://www.moviepilot.de/people/bambadjan-bamba',
-                  name: 'Bambadjan Bamba'
-                }
-              ],
-              length: '_',
-              type: 'bm',
-              categories: [
-                {
-                  url: 'http://www.moviepilot.de/movies/black-panther/trailer',
-                  title: 'Trailer'
-                }
-              ]
-            }
-          },
-          kind: [
-            'o'
-          ],
-          template: 'movie',
-        },
+        url: 'https://www.imdb.com/title/tt0848228',
+        href: 'https://www.imdb.com/title/tt0848228',
+        friendlyUrl: 'imdb.com/title/tt0848228',
+        title: 'The Avengers (2012) - IMDb',
+        description: "Directed by Joss Whedon. With Robert Downey Jr., Chris Evans, Scarlett Johansson, Jeremy Renner. Earth's mightiest heroes must come together and learn to fight as a team if they are going to stop the mischievous Loki and his alien army from enslaving humanity.",
         kind: [
           'o'
         ],
         provider: 'cliqz',
         template: 'movie',
-        text: 'black panther',
+        text: 'avengers',
         type: 'bm',
         meta: {
           level: 0,
           type: 'main',
-          domain: 'moviepilot.de',
-          host: 'moviepilot.de',
-          hostAndPort: 'moviepilot.de',
+          domain: 'imdb.com',
+          host: 'imdb.com',
+          hostAndPort: 'imdb.com',
           port: '',
-          url: 'moviepilot.de/movies/black-panther',
-          score: 133.00000620657593,
-          subType: {
-
+          url: 'imdb.com/title/tt0848228',
+          score: 586.24994,
+          subType: {},
+          latency: 94,
+          backendCountry: 'de',
+          completion: '',
+          logo: {
+            backgroundColor: 'e3b613',
+            backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/imdb/$.svg)',
+            text: 'im',
+            color: '#fff',
+            brandTxtColor: 'e3b613',
+            buttonsClass: 'cliqz-brands-button-10',
+            style: 'background-color: #e3b613;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/imdb/$.svg); text-indent: -10em;'
           },
-          completion: ''
+          extraLogos: {},
+          externalProvidersLogos: {
+            kicker: {
+              backgroundColor: 'd7011d',
+              backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg)',
+              text: 'ki',
+              color: '#fff',
+              brandTxtColor: 'd7011d',
+              buttonsClass: 'cliqz-brands-button-1',
+              style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg); text-indent: -10em;'
+            }
+          }
         },
-        maxNumberOfSlots: 3
-      }
+        data: {
+          deepResults: [],
+          extra: {
+            alternatives: [
+              'https://www.imdb.com/title/tt0848228'
+            ],
+            language: {
+              en: 0.99
+            },
+            m_url: 'https://m.imdb.com/title/tt0848228/',
+            og: {
+              description: "Directed by Joss Whedon.  With Robert Downey Jr., Chris Evans, Scarlett Johansson, Jeremy Renner. Earth's mightiest heroes must come together and learn to fight as a team if they are going to stop the mischievous Loki and his alien army from enslaving humanity.",
+              image: 'https://imgr.cliqz.com/Ffl7IcNxJNVeZOPQAauaM4ih-YK9dJorb6Ia0FHyz_I/fill/0/200/no/1/aHR0cHM6Ly9tLm1lZGlhLWFtYXpvbi5jb20vaW1hZ2VzL00vTVY1Qk5EWXhOalF5TWpBdE5UZGlPUzAwTkdZd0xXRm1OVEF0TlRobVlqVTVaR0kyWVRJMVhrRXlYa0ZxY0dkZVFYVnlNVE14T0RrMk9UVUAuX1YxX1VZMTIwMF9DUjkwLDAsNjMwLDEyMDBfQUxfLmpwZw.jpg',
+              site_name: 'IMDb',
+              title: 'The Avengers (2012)',
+              type: 'video.movie',
+              url: 'http://www.imdb.com/title/tt0848228/'
+            },
+            rich_data: {
+              cast: [
+                {
+                  name: 'Robert Downey Jr.',
+                  url: 'https://www.imdb.com/name/nm0000375/'
+                },
+                {
+                  name: 'Chris Evans',
+                  url: 'https://www.imdb.com/name/nm0262635/'
+                },
+                {
+                  name: 'Scarlett Johansson',
+                  url: 'https://www.imdb.com/name/nm0424060/'
+                },
+                {
+                  name: 'Jeremy Renner',
+                  url: 'https://www.imdb.com/name/nm0719637/'
+                }
+              ],
+              categories: [
+                {
+                  title: 'Trailer',
+                  url: 'https://www.imdb.com/video/imdb/vi1891149081'
+                }
+              ],
+              des: "Directed by Joss Whedon. With Robert Downey Jr., Chris Evans, Scarlett Johansson, Jeremy Renner. Earth's mightiest heroes must come together and learn to fight as a team if they are going to stop the mischievous Loki and his alien army from enslaving humanity.",
+              director: {
+                info: {
+                  name: 'Joss Whedon',
+                  url: 'https://www.imdb.com/name/nm0923736/'
+                },
+                title: 'Director'
+              },
+              full_cast: 'https://www.imdb.com/title/tt0848228/fullcredits',
+              image: 'https://imgr.cliqz.com/pWkAKkA9bAaufzsitKVsuj7E5LbdC2bzUVaxbQC-FEs/fill/0/200/no/1/aHR0cHM6Ly9tLm1lZGlhLWFtYXpvbi5jb20vaW1hZ2VzL00vTVY1Qk5EWXhOalF5TWpBdE5UZGlPUzAwTkdZd0xXRm1OVEF0TlRobVlqVTVaR0kyWVRJMVhrRXlYa0ZxY0dkZVFYVnlNVE14T0RrMk9UVUAuX1YxXy5qcGc.jpg',
+              length: '143',
+              name: 'The Avengers (2012) - IMDb',
+              rating: {
+                img: 'https://cdn.cliqz.com/extension/EZ/richresult/stars4.svg',
+                nVote: 1140027,
+                scale: 10,
+                url: 'https://www.imdb.com/title/tt0848228/ratings',
+                val: 8.1
+              },
+              type: 'bm'
+            }
+          },
+          kind: [
+            'o'
+          ],
+          template: 'movie'
+        }
+      },
     ]
   },
   cinema: {
     query: 'yorck.de',
     results: [
       {
-        title: 'Yorck Kinos Berlin',
         url: 'https://www.yorck.de/',
+        href: 'https://www.yorck.de/',
+        friendlyUrl: 'yorck.de',
+        title: 'Yorck Kinos Berlin',
         description: 'Yorck',
-        originalUrl: 'https://www.yorck.de/',
-        type: 'cliqz-extra',
-        text: 'yorck.de',
+        kind: [
+          'X|{"class":"EntityCinema"}'
+        ],
+        provider: 'cliqz',
+        template: 'cinemaEZ',
+        text: 'yorck',
+        type: 'rh',
+        meta: {
+          level: 0,
+          type: 'main',
+          triggerMethod: 'domain',
+          domain: 'yorck.de',
+          host: 'yorck.de',
+          hostAndPort: 'yorck.de',
+          port: '',
+          url: 'yorck.de',
+          score: 728.6645,
+          subType: {
+            class: 'EntityCinema',
+            id: '986e0c8538087131a2f48a9cad9417145a3a434f3ecfe0242b5dff9258663361_noloc',
+            name: 'multi'
+          },
+          latency: 386,
+          backendCountry: 'de',
+          completion: '.de',
+          logo: {
+            text: 'yo',
+            backgroundColor: 'f97136',
+            brandTxtColor: '2d2d2d',
+            buttonsClass: 'cliqz-brands-button-2',
+            style: 'background-color: #f97136;color:#fff;'
+          },
+          extraLogos: {},
+          externalProvidersLogos: {
+            kicker: {
+              backgroundColor: 'd7011d',
+              backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg)',
+              text: 'ki',
+              color: '#fff',
+              brandTxtColor: 'd7011d',
+              buttonsClass: 'cliqz-brands-button-1',
+              style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg); text-indent: -10em;'
+            }
+          }
+        },
         data: {
-          description: 'Yorck',
+          deepResults: [],
           extra: {
             alternatives: [
               'https://www.yorck.de/'
             ],
             data: {
-              city: 'Berlin',
               cinema: {
-                name: 'Yorck Kino Berlin',
-                address: 'Yva Bogen -, Kantstraße 10, 10623 Berlin',
-                distance: 6627.994908495932,
-                mu: 'https://google.com/maps/search/Delphi LUX+Yva Bogen -, Kantstraße 10, 10623 Berlin/',
-                phonenumber: '0162 65 70 878'
+                address: 'Dresdener Str. 126, 10999 Berlin',
+                mu: 'https://google.com/maps/search/Yorck Babylon Kreuzberg+Dresdener Str. 126, 10999 Berlin/',
+                name: 'Yorck Babylon Kreuzberg',
+                phonenumber: '0 30/ 61 60 96 93'
               },
+              city: 'Berlin',
               showdates: [
                 {
                   date: 'Heute',
                   movie_list: [
                     {
-                      original_title: null,
                       showtimes: [
                         {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=672&siteid=1001',
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2961&siteid=1002',
                           is_3d: false,
                           language: 'de',
-                          start_at: '2017-09-28T15:00:00+02:00',
-                          subtitle_language: null
+                          start_at: '2019-05-09T17:15:00+02:00'
+                        },
+                        {
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2962&siteid=1002',
+                          is_3d: false,
+                          language: 'de',
+                          start_at: '2019-05-09T19:30:00+02:00'
+                        },
+                        {
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2963&siteid=1002',
+                          is_3d: false,
+                          language: 'de',
+                          start_at: '2019-05-09T21:45:00+02:00'
                         }
                       ],
-                      title: 'Amelie Rennt',
-                      website: null
+                      title: 'Nur eine Frau',
+                      website: 'Nur eine Frau'
                     },
                     {
-                      original_title: null,
                       showtimes: [
                         {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=703&siteid=1001',
-                          is_3d: false,
-                          language: 'de',
-                          start_at: '2017-09-28T19:30:00+02:00',
-                          subtitle_language: null
-                        },
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=701&siteid=1001',
-                          is_3d: false,
-                          language: 'de',
-                          start_at: '2017-09-28T15:45:00+02:00',
-                          subtitle_language: null
-                        }
-                      ],
-                      title: 'Lost in Paris',
-                      website: null
-                    },
-                    {
-                      original_title: null,
-                      showtimes: [
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=734&siteid=1001',
-                          is_3d: false,
-                          language: 'de',
-                          start_at: '2017-09-28T15:20:00+02:00',
-                          subtitle_language: null
-                        },
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=735&siteid=1001',
-                          is_3d: false,
-                          language: 'de',
-                          start_at: '2017-09-28T18:00:00+02:00',
-                          subtitle_language: null
-                        },
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=736&siteid=1001',
-                          is_3d: false,
-                          language: 'de',
-                          start_at: '2017-09-28T20:40:00+02:00',
-                          subtitle_language: null
-                        }
-                      ],
-                      title: 'Logan Lucky',
-                      website: null
-                    },
-                    {
-                      original_title: null,
-                      showtimes: [
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=675&siteid=1001',
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2984&siteid=1002',
                           is_3d: false,
                           language: 'en',
-                          start_at: '2017-09-28T21:45:00+02:00',
-                          subtitle_language: 'de'
-                        }
-                      ],
-                      title: 'The Circle',
-                      website: 'http://wearethecircle.com/'
-                    },
-                    {
-                      original_title: null,
-                      showtimes: [
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=602&siteid=1001',
-                          is_3d: false,
-                          language: 'en',
-                          start_at: '2017-09-28T20:00:00+02:00',
-                          subtitle_language: 'de'
+                          start_at: '2019-05-09T16:40:00+02:00'
                         },
                         {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=600&siteid=1001',
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2985&siteid=1002',
                           is_3d: false,
                           language: 'en',
-                          start_at: '2017-09-28T15:00:00+02:00',
-                          subtitle_language: 'de'
+                          start_at: '2019-05-09T19:00:00+02:00'
                         },
                         {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=601&siteid=1001',
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2986&siteid=1002',
                           is_3d: false,
                           language: 'en',
-                          start_at: '2017-09-28T17:30:00+02:00',
-                          subtitle_language: 'de'
+                          start_at: '2019-05-09T21:20:00+02:00'
                         }
                       ],
-                      title: 'Victoria & Abdul',
-                      website: 'http://www.focusfeatures.com/victoriaandabdul/'
+                      title: 'Van Gogh - An der Schwelle zur Ewigkeit',
+                      website: 'Van Gogh - An der Schwelle zur Ewigkeit'
                     }
                   ]
                 },
@@ -994,349 +794,260 @@ export default {
                   date: 'Morgen',
                   movie_list: [
                     {
-                      original_title: null,
                       showtimes: [
                         {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=676&siteid=1001',
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2964&siteid=1002',
                           is_3d: false,
                           language: 'de',
-                          start_at: '2017-09-29T15:00:00+02:00',
-                          subtitle_language: null
+                          start_at: '2019-05-10T17:15:00+02:00'
+                        },
+                        {
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2965&siteid=1002',
+                          is_3d: false,
+                          language: 'de',
+                          start_at: '2019-05-10T19:30:00+02:00'
+                        },
+                        {
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2966&siteid=1002',
+                          is_3d: false,
+                          language: 'de',
+                          start_at: '2019-05-10T21:45:00+02:00'
                         }
                       ],
-                      title: 'Amelie Rennt',
-                      website: null
+                      title: 'Nur eine Frau',
+                      website: 'Nur eine Frau'
                     },
                     {
-                      original_title: null,
                       showtimes: [
                         {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=705&siteid=1001',
-                          is_3d: false,
-                          language: 'de',
-                          start_at: '2017-09-29T15:45:00+02:00',
-                          subtitle_language: null
-                        },
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=707&siteid=1001',
-                          is_3d: false,
-                          language: 'de',
-                          start_at: '2017-09-29T19:30:00+02:00',
-                          subtitle_language: null
-                        }
-                      ],
-                      title: 'Lost in Paris',
-                      website: null
-                    },
-                    {
-                      original_title: null,
-                      showtimes: [
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=737&siteid=1001',
-                          is_3d: false,
-                          language: 'de',
-                          start_at: '2017-09-29T15:20:00+02:00',
-                          subtitle_language: null
-                        },
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=738&siteid=1001',
-                          is_3d: false,
-                          language: 'de',
-                          start_at: '2017-09-29T18:00:00+02:00',
-                          subtitle_language: null
-                        },
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=739&siteid=1001',
-                          is_3d: false,
-                          language: 'de',
-                          start_at: '2017-09-29T20:40:00+02:00',
-                          subtitle_language: null
-                        }
-                      ],
-                      title: 'Logan Lucky',
-                      website: null
-                    },
-                    {
-                      original_title: null,
-                      showtimes: [
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=679&siteid=1001',
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2987&siteid=1002',
                           is_3d: false,
                           language: 'en',
-                          start_at: '2017-09-29T21:45:00+02:00',
-                          subtitle_language: 'de'
-                        }
-                      ],
-                      title: 'The Circle',
-                      website: 'http://wearethecircle.com/'
-                    },
-                    {
-                      original_title: null,
-                      showtimes: [
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=603&siteid=1001',
-                          is_3d: false,
-                          language: 'en',
-                          start_at: '2017-09-29T15:00:00+02:00',
-                          subtitle_language: 'de'
+                          start_at: '2019-05-10T16:40:00+02:00'
                         },
                         {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=604&siteid=1001',
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2988&siteid=1002',
                           is_3d: false,
                           language: 'en',
-                          start_at: '2017-09-29T17:30:00+02:00',
-                          subtitle_language: 'de'
+                          start_at: '2019-05-10T19:00:00+02:00'
                         },
                         {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=605&siteid=1001',
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2989&siteid=1002',
                           is_3d: false,
                           language: 'en',
-                          start_at: '2017-09-29T20:00:00+02:00',
-                          subtitle_language: 'de'
+                          start_at: '2019-05-10T21:20:00+02:00'
                         }
                       ],
-                      title: 'Victoria & Abdul',
-                      website: 'http://www.focusfeatures.com/victoriaandabdul/'
+                      title: 'Van Gogh - An der Schwelle zur Ewigkeit',
+                      website: 'Van Gogh - An der Schwelle zur Ewigkeit'
                     }
                   ]
                 },
                 {
-                  date: 'Sa., 30. Sept.',
+                  date: 'Sa., 11. Mai',
                   movie_list: [
                     {
-                      original_title: null,
                       showtimes: [
                         {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=680&siteid=1001',
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2982&siteid=1002',
                           is_3d: false,
                           language: 'de',
-                          start_at: '2017-09-30T15:00:00+02:00',
-                          subtitle_language: null
+                          start_at: '2019-05-11T15:00:00+02:00'
+                        },
+                        {
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2967&siteid=1002',
+                          is_3d: false,
+                          language: 'de',
+                          start_at: '2019-05-11T17:15:00+02:00'
+                        },
+                        {
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2968&siteid=1002',
+                          is_3d: false,
+                          language: 'de',
+                          start_at: '2019-05-11T19:30:00+02:00'
+                        },
+                        {
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2969&siteid=1002',
+                          is_3d: false,
+                          language: 'de',
+                          start_at: '2019-05-11T21:45:00+02:00'
                         }
                       ],
-                      title: 'Amelie Rennt',
-                      website: null
+                      title: 'Nur eine Frau',
+                      website: 'Nur eine Frau'
                     },
                     {
-                      original_title: null,
                       showtimes: [
                         {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=709&siteid=1001',
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2990&siteid=1002',
                           is_3d: false,
-                          language: 'de',
-                          start_at: '2017-09-30T13:45:00+02:00',
-                          subtitle_language: null
-                        },
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=710&siteid=1001',
-                          is_3d: false,
-                          language: 'de',
-                          start_at: '2017-09-30T15:45:00+02:00',
-                          subtitle_language: null
-                        },
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=712&siteid=1001',
-                          is_3d: false,
-                          language: 'de',
-                          start_at: '2017-09-30T19:30:00+02:00',
-                          subtitle_language: null
-                        }
-                      ],
-                      title: 'Lost in Paris',
-                      website: null
-                    },
-                    {
-                      original_title: null,
-                      showtimes: [
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=740&siteid=1001',
-                          is_3d: true,
-                          language: 'de',
-                          start_at: '2017-09-30T15:20:00+02:00',
-                          subtitle_language: null
-                        },
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=741&siteid=1001',
-                          is_3d: true,
-                          language: 'de',
-                          start_at: '2017-09-30T18:00:00+02:00',
-                          subtitle_language: null
-                        },
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=742&siteid=1001',
-                          is_3d: true,
-                          language: 'de',
-                          start_at: '2017-09-30T20:40:00+02:00',
-                          subtitle_language: null
-                        }
-                      ],
-                      title: 'Logan Lucky',
-                      website: null
-                    },
-                    {
-                      original_title: null,
-                      showtimes: [
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=683&siteid=1001',
-                          is_3d: true,
                           language: 'en',
-                          start_at: '2017-09-30T21:45:00+02:00',
-                          subtitle_language: 'de'
-                        }
-                      ],
-                      title: 'The Circle',
-                      website: 'http://wearethecircle.com/'
-                    },
-                    {
-                      original_title: null,
-                      showtimes: [
+                          start_at: '2019-05-11T16:40:00+02:00'
+                        },
                         {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=788&siteid=1001',
-                          is_3d: true,
-                          language: 'de',
-                          start_at: '2017-09-30T14:15:00+02:00',
-                          subtitle_language: null
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2991&siteid=1002',
+                          is_3d: false,
+                          language: 'en',
+                          start_at: '2019-05-11T19:00:00+02:00'
+                        },
+                        {
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2992&siteid=1002',
+                          is_3d: false,
+                          language: 'en',
+                          start_at: '2019-05-11T21:20:00+02:00'
                         }
                       ],
-                      title: 'Die Pfefferkörner und der Fluch des schwarzen Königs',
-                      website: 'http://www.wildbunch-germany.de/movie/die-pfefferkoerner-und-der-fluch-des-schwarzen-koenigs'
+                      title: 'Van Gogh - An der Schwelle zur Ewigkeit',
+                      website: 'Van Gogh - An der Schwelle zur Ewigkeit'
                     }
                   ]
                 },
                 {
-                  date: 'So., 1. Okt.',
+                  date: 'So., 12. Mai',
                   movie_list: [
                     {
-                      original_title: null,
                       showtimes: [
                         {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=685&siteid=1001',
-                          is_3d: true,
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2983&siteid=1002',
+                          is_3d: false,
                           language: 'de',
-                          start_at: '2017-10-01T15:00:00+02:00',
-                          subtitle_language: null
-                        }
-                      ],
-                      title: 'Amelie Rennt',
-                      website: null
-                    },
-                    {
-                      original_title: null,
-                      showtimes: [
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=772&siteid=1001',
-                          is_3d: true,
-                          language: 'de',
-                          start_at: '2017-10-01T13:45:00+02:00',
-                          subtitle_language: null
-                        }
-                      ],
-                      title: null,
-                      website: null
-                    },
-                    {
-                      original_title: null,
-                      showtimes: [
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=715&siteid=1001',
-                          is_3d: true,
-                          language: 'de',
-                          start_at: '2017-10-01T13:45:00+02:00',
-                          subtitle_language: null
+                          start_at: '2019-05-12T15:00:00+02:00'
                         },
                         {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=716&siteid=1001',
-                          is_3d: true,
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2970&siteid=1002',
+                          is_3d: false,
                           language: 'de',
-                          start_at: '2017-10-01T15:45:00+02:00',
-                          subtitle_language: null
+                          start_at: '2019-05-12T17:15:00+02:00'
                         },
                         {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=718&siteid=1001',
-                          is_3d: true,
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2971&siteid=1002',
+                          is_3d: false,
                           language: 'de',
-                          start_at: '2017-10-01T19:30:00+02:00',
-                          subtitle_language: null
+                          start_at: '2019-05-12T19:30:00+02:00'
+                        },
+                        {
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2972&siteid=1002',
+                          is_3d: false,
+                          language: 'de',
+                          start_at: '2019-05-12T21:45:00+02:00'
                         }
                       ],
-                      title: 'Lost in Paris',
-                      website: null
+                      title: 'Nur eine Frau',
+                      website: 'Nur eine Frau'
                     },
                     {
-                      original_title: null,
                       showtimes: [
                         {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=745&siteid=1001',
-                          is_3d: true,
-                          language: 'de',
-                          start_at: '2017-10-01T15:20:00+02:00',
-                          subtitle_language: null
-                        },
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=747&siteid=1001',
-                          is_3d: true,
-                          language: 'de',
-                          start_at: '2017-10-01T20:40:00+02:00',
-                          subtitle_language: null
-                        },
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=746&siteid=1001',
-                          is_3d: true,
-                          language: 'de',
-                          start_at: '2017-10-01T18:00:00+02:00',
-                          subtitle_language: null
-                        }
-                      ],
-                      title: 'Logan Lucky',
-                      website: null
-                    },
-                    {
-                      original_title: null,
-                      showtimes: [
-                        {
-                          booking_link: 'https://www.yorck.de/checkout/step01?showid=688&siteid=1001',
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2993&siteid=1002',
                           is_3d: false,
                           language: 'en',
-                          start_at: '2017-10-01T21:45:00+02:00',
-                          subtitle_language: 'de'
+                          start_at: '2019-05-12T16:40:00+02:00'
+                        },
+                        {
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2994&siteid=1002',
+                          is_3d: false,
+                          language: 'en',
+                          start_at: '2019-05-12T19:00:00+02:00'
+                        },
+                        {
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2995&siteid=1002',
+                          is_3d: false,
+                          language: 'en',
+                          start_at: '2019-05-12T21:20:00+02:00'
                         }
                       ],
-                      title: 'The Circle',
-                      website: 'http://wearethecircle.com/'
+                      title: 'Van Gogh - An der Schwelle zur Ewigkeit',
+                      website: 'Van Gogh - An der Schwelle zur Ewigkeit'
+                    },
+                    {
+                      showtimes: [
+                        {
+                          booking_link: 'https://yorck.de/checkout/step01?showid=3005&siteid=1002',
+                          is_3d: false,
+                          language: 'de',
+                          start_at: '2019-05-12T14:30:00+02:00'
+                        }
+                      ],
+                      title: 'Atlas',
+                      website: 'Atlas'
+                    }
+                  ]
+                },
+                {
+                  date: 'Mo., 13. Mai',
+                  movie_list: [
+                    {
+                      showtimes: [
+                        {
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2973&siteid=1002',
+                          is_3d: false,
+                          language: 'de',
+                          start_at: '2019-05-13T17:15:00+02:00'
+                        },
+                        {
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2974&siteid=1002',
+                          is_3d: false,
+                          language: 'de',
+                          start_at: '2019-05-13T19:30:00+02:00'
+                        },
+                        {
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2975&siteid=1002',
+                          is_3d: false,
+                          language: 'de',
+                          start_at: '2019-05-13T21:45:00+02:00'
+                        }
+                      ],
+                      title: 'Nur eine Frau',
+                      website: 'Nur eine Frau'
+                    },
+                    {
+                      showtimes: [
+                        {
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2996&siteid=1002',
+                          is_3d: false,
+                          language: 'en',
+                          start_at: '2019-05-13T16:40:00+02:00'
+                        },
+                        {
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2997&siteid=1002',
+                          is_3d: false,
+                          language: 'en',
+                          start_at: '2019-05-13T19:00:00+02:00'
+                        },
+                        {
+                          booking_link: 'https://yorck.de/checkout/step01?showid=2998&siteid=1002',
+                          is_3d: false,
+                          language: 'en',
+                          start_at: '2019-05-13T21:20:00+02:00'
+                        }
+                      ],
+                      title: 'Van Gogh - An der Schwelle zur Ewigkeit',
+                      website: 'Van Gogh - An der Schwelle zur Ewigkeit'
                     }
                   ]
                 }
-              ]
+              ],
+              title_prefix: 'Spielzeiten'
             },
             language: {
-              de: 1
+              de: 0.9400000000000001
             },
+            no_location: true,
             og: {
               description: 'Yorck Kinogruppe GmbH',
-              image: 'https://yorck.de/yorck_icon_google.png',
+              image: 'https://imgr.cliqz.com/6lmxpG5pJyoUfVxiFev17AEu4SfniL9DA_REl_xjGbE/fill/0/200/no/1/aHR0cHM6Ly95b3Jjay5kZS95b3Jja19pY29uX2dvb2dsZS5wbmc.png',
+              site_name: 'Yorck Kinogruppe GmbH',
               title: 'Yorck Kinos Berlin',
-              type: 'website'
+              type: 'website',
+              url: 'https://www.yorck.de/'
             }
           },
-          friendlyUrl: 'yorck.de',
-          title: 'Yorck Kinos Berlin',
-          subType: {
-            class: 'EntityMovie',
-            trigger_method: 'rh_query',
-            ez: 'deprecated',
-            i: 0,
-            cs: 0
-          },
-          template: 'cinemaEZ',
           kind: [
-            'X|{"class":"EntityMovie","trigger_method":"rh_query","ez":"deprecated","i":0,"cs":0}'
+            'X|{"class":"EntityCinema"}'
           ],
-          deepResults: [
-
-          ]
-        },
-        maxNumberOfSlots: 3
-      }
+          template: 'cinemaEZ'
+        }
+      },
     ]
   }
 };

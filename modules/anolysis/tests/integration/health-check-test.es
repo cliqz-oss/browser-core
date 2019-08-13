@@ -124,38 +124,5 @@ export default function () {
         });
       });
     });
-
-    context('gid cannot be updated', function () {
-      beforeEach(async () => {
-        await mockAnolysisBackend();
-
-        // Fake throwing `_getGID` from gidManager
-        Anolysis.anolysis.gidManager._getGID = () => { throw new Error('Random error'); };
-        Anolysis.anolysis.gidManager.getGIDPromise = null;
-
-        // Speed-up signalQueue
-        Anolysis.anolysis.unload();
-        Anolysis.anolysis.signalQueue.sendInterval = 10;
-        await Anolysis.anolysis.init();
-
-        // Provoke a failing `_getGID`
-        Anolysis.anolysis.gidManager.getGID();
-      });
-
-      afterEach(async () => {
-        await unMockAnolysisBackend();
-      });
-
-      it('health metric is emitted', async () => {
-        await waitFor(async () => {
-          const hasHits = await testServer.hasHit('/collect');
-          if (hasHits) {
-            const collectHits = (await testServer.getHits()).get('/collect');
-            return collectHits.some(({ body }) => body.type === 'metrics.anolysis.health.exception');
-          }
-          return false;
-        });
-      });
-    });
   });
 }

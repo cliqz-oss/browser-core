@@ -54,7 +54,7 @@ export default function () {
           visibleValue(results[0].snippet.deepResults[0].links[1].url)), 600);
         press({ key: 'ArrowDown' });
         await waitFor(() => expectSelection(resultSelector,
-          visibleValue(results[0].snippet.friendlyUrl)), 600);
+          results[0].snippet.friendlyUrl), 600);
       });
     });
 
@@ -71,7 +71,7 @@ export default function () {
           visibleValue(results[0].snippet.extra.url)), 600);
         press({ key: 'ArrowUp' });
         await waitFor(() => expectSelection(resultSelector,
-          visibleValue(results[0].snippet.friendlyUrl)), 600);
+          results[0].snippet.friendlyUrl), 600);
       });
     });
 
@@ -88,7 +88,7 @@ export default function () {
           visibleValue(results[0].snippet.deepResults[0].links[1].url)), 600);
         press({ key: 'Tab' });
         await waitFor(() => expectSelection(resultSelector,
-          visibleValue(results[0].snippet.friendlyUrl)), 600);
+          results[0].snippet.friendlyUrl), 600);
       });
     });
 
@@ -109,7 +109,7 @@ export default function () {
           visibleValue(results[0].snippet.extra.url)), 600);
         press({ key: 'Tab', shiftKey: true });
         await waitFor(() => expectSelection(resultSelector,
-          visibleValue(results[0].snippet.friendlyUrl)), 600);
+          results[0].snippet.friendlyUrl), 600);
       });
     });
   });

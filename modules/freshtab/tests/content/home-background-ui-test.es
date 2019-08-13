@@ -49,7 +49,7 @@ describe('Freshtab background UI', function () {
       await subject.load();
       subject.query('#settings-btn').click();
       backgroundSwitch = subject.queryByI18n('freshtab_app_settings_background_label')
-        .querySelector('input.switch');
+        .querySelector('.toggle');
     });
 
     after(function () {
@@ -83,7 +83,7 @@ describe('Freshtab background UI', function () {
       await subject.load();
       subject.query('#settings-btn').click();
       backgroundSwitch = subject.queryByI18n('freshtab_app_settings_background_label')
-        .querySelector('input.switch');
+        .querySelector('.toggle');
     });
 
     after(function () {
@@ -119,7 +119,7 @@ describe('Freshtab background UI', function () {
           await subject.load({ iframeWidth: 1400 });
           subject.query('#settings-btn').click();
           backgroundSwitch = subject.queryByI18n('freshtab_app_settings_background_label')
-            .querySelector('input.switch');
+            .querySelector('.toggle');
         });
 
         after(function () {

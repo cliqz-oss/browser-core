@@ -1,5 +1,5 @@
 import React from 'react';
-import { css, i18n } from './common/utils';
+import { css, i18n, chooseProduct } from './common/utils';
 
 const _css = css('feedback__');
 export default class Feedback extends React.Component {
@@ -15,14 +15,15 @@ export default class Feedback extends React.Component {
     const { products } = this.props;
     const { text, vote } = this.state;
     const disabled = !text && !vote;
-    const prefix = products.chip ? 'chip' : 'myoffrz';
+    const prefix = chooseProduct(products);
+    const cls = disabled ? ['disabled', `${prefix}-disabled`] : ['', `${prefix}-primary`];
     return (
       <li className={_css('buttons')}>
         <button
           disabled={disabled}
           type="button"
           onClick={() => !disabled && this.props.onChange({ text, vote })}
-          className={_css('button', disabled ? `${prefix}-disabled` : `${prefix}-primary`)}
+          className={_css('button', ...cls)}
         >
           {i18n('offers_send_feedback')}
         </button>

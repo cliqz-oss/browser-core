@@ -13,7 +13,5 @@ module.exports = Object.assign({}, configBase, {
   }),
   modules: configBase.modules.filter(m => MODULE_BLACKLIST.indexOf(m) === -1),
   default_prefs: Object.assign({}, configBase.default_prefs, {
-    showConsoleLogs: false,
-    developer: false,
   }),
 });

@@ -1,0 +1,16 @@
+@import 'variables.scss';
+ 
+.skip-button {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    border: none;
+    background: transparent;
+    color: $dark-grey;
+    text-transform: uppercase;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 300;
+    font-size: 13px;
+    cursor: pointer;
+    z-index: 10;
+}   

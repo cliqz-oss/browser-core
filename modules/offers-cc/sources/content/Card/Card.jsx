@@ -3,7 +3,7 @@ import send from '../transport';
 import Header from './Header';
 import Promo from './Promo';
 import Conditions from './Conditions';
-import { css, resize } from '../common/utils';
+import { css, resize, chooseProduct } from '../common/utils';
 
 const _css = css('card__');
 export default class Card extends React.Component {
@@ -92,6 +92,8 @@ export default class Card extends React.Component {
     const { voucher = {}, onChangeCodeStatus, products } = this.props;
     const { template_data: templateData = {}, offer_id: offerId } = voucher;
     const { call_to_action: { text, url } = {} } = templateData;
+    const prefix = chooseProduct(products);
+
     /* eslint-disable jsx-a11y/no-static-element-interactions */
     return (
       <div
@@ -105,7 +107,7 @@ export default class Card extends React.Component {
           });
           send('sendTelemetry', { target: 'use' });
         }}
-        className={_css('button', `${products.chip ? 'chip' : 'myoffrz'}-button`)}
+        className={_css('button', `${prefix}-button`)}
       >
         {text}
       </div>

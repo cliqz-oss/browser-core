@@ -1,0 +1,52 @@
+@import 'variables.scss';
+
+@keyframes pulse {
+    0%   {box-shadow: 0 0 1px 0 rgba(0, 174, 240, 1);}
+    10%  {box-shadow: 0 0 1px 3px rgba(0, 174, 240, 0.9);}
+    20%  {box-shadow: 0 0 1px 6px rgba(0, 174, 240, 0.8);}
+    30%  {box-shadow: 0 0 1px 9px rgba(0, 174, 240, 0.7);}
+    40%  {box-shadow: 0 0 1px 12px rgba(0, 174, 240, 0.6);}
+    50%  {box-shadow: 0 0 1px 15px rgba(0, 174, 240, 0.5);}
+    60%  {box-shadow: 0 0 1px 18px rgba(0, 174, 240, 0.4);}
+    70%  {box-shadow: 0 0 1px 21px rgba(0, 174, 240, 0.3);}
+    80%  {box-shadow: 0 0 1px 24px rgba(0, 174, 240, 0.2);}
+    90%  {box-shadow: 0 0 1px 27px rgba(0, 174, 240, 0.1);}
+    100% {box-shadow: 0 0 1px 30px rgba(0, 174, 240, 0.1);}
+}
+
+.step {
+    height: 0;
+    opacity: 0;
+    transition: height 400ms linear, opacity 400ms linear;
+    position: relative;
+    overflow: hidden;
+    background-color: $light-grey;
+
+    &.welcome {
+        z-index: 1;
+        width: 100%;
+        background-color: $light-grey;
+
+        .welcome-text {
+            margin-top: 235px;
+            color: black;
+            font-family: "Montserrat", sans-serif;
+            font-weight: 700;
+            font-size: 25px;
+            text-align: center;
+        }
+    }
+
+    &.show {
+        height: 100%;
+        opacity: 1;
+
+        .slider:before {
+            animation: pulse 1.1s infinite 3s;
+        }
+
+        input:checked + .slider:before {
+            animation: none;
+        }
+    }
+}

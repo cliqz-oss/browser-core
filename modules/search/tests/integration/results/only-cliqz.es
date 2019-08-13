@@ -6,7 +6,6 @@ export default {
       href: 'https://www.google.com/search?q=headphones&ie=utf-8&oe=utf-8&client=firefox-b',
       friendlyUrl: 'google.com/search?q=headphones&ie=utf-8&oe=utf-8&client=firefox-b',
       extra: {
-        mozActionUrl: 'https://www.google.com/search?q=headphones&ie=utf-8&oe=utf-8&client=firefox-b',
         searchEngineName: 'Google'
       },
       kind: [
@@ -58,7 +57,6 @@ export default {
       data: {
         deepResults: [],
         extra: {
-          mozActionUrl: 'https://www.google.com/search?q=headphones&ie=utf-8&oe=utf-8&client=firefox-b',
           searchEngineName: 'Google'
         },
         kind: [

@@ -131,7 +131,7 @@ describe('Freshtab interactions with favorites', function () {
 
       describe("then clicking on the form's close button", function () {
         beforeEach(function () {
-          subject.query('button.closeForm').click();
+          subject.query('button.close-form').click();
           return waitFor(() => expect(subject.query('.modal')).to.be.null);
         });
 
@@ -261,7 +261,7 @@ describe('Freshtab interactions with favorites', function () {
 
       describe("then clicking on the edit form's close button", function () {
         beforeEach(function () {
-          subject.query('button.closeForm').click();
+          subject.query('button.close-form').click();
           return waitFor(() => expect(subject.query('.modal')).to.be.null);
         });
 

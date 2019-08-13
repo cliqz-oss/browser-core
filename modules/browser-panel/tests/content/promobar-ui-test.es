@@ -121,12 +121,12 @@ describe('Promo bar', function () {
 
       context('the code container', function () {
         it('has an existing and correct code', function () {
-          const promoCodeSelector = '.code';
+          const promoCodeSelector = '.hidden-code-value';
           const $promoCode = $promoCodeContainer.querySelector(promoCodeSelector);
 
           expect($promoCode).to.exist;
           expect(subject.getComputedStyle($promoCode).display).to.not.equal('none');
-          expect($promoCode).to.have.text(data.template_data.code);
+          expect($promoCode.value).to.equal(data.template_data.code);
         });
 
         it('has an existing divider', function () {

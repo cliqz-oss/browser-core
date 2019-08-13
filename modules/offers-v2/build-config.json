@@ -1,8 +1,6 @@
 {
   "subprojects": [
-    "@cliqz/adblocker",
     "jsep",
-    "moment",
-    "tldts"
+    "moment"
   ]
 }

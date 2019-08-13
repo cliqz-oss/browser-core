@@ -2,6 +2,7 @@
  * @module offers-v2
  */
 import { getDetailsFromUrl } from '../../core/url';
+import FastURL from '../../core/fast-url-parser';
 import tokenizeUrl from './pattern-utils';
 import { getGeneralDomain } from '../../core/tlds';
 
@@ -13,12 +14,13 @@ import { getGeneralDomain } from '../../core/tlds';
  * @class UrlData
  */
 export default class UrlData {
-  constructor(rawUrl, referrerName = null) {
+  constructor(rawUrl, referrerName = null, tabId = null) {
     if ((typeof rawUrl) !== 'string') {
       throw new Error(`invalid raw url type: ${typeof rawUrl}`);
     }
     this.rawUrl = rawUrl;
     this.referrerName = referrerName;
+    this.tabId = tabId;
 
     // all the fields we will handle and share
     this.normalizedUrl = null;
@@ -36,17 +38,23 @@ export default class UrlData {
     return this.referrerName;
   }
 
+  getTabId() { return this.tabId; }
+
   getRawUrl() {
     return this.rawUrl;
   }
 
+  static _getNormalizedUrl(url) {
+    try {
+      return decodeURIComponent(url.replace(/\+/g, '%20')).toLowerCase();
+    } catch (err) {
+      return url.toLowerCase();
+    }
+  }
+
   getNormalizedUrl() {
     if (this.normalizedUrl === null) {
-      try {
-        this.normalizedUrl = decodeURIComponent(this.rawUrl.replace(/\+/g, '%20')).toLowerCase();
-      } catch (err) {
-        this.normalizedUrl = this.rawUrl.toLowerCase();
-      }
+      this.normalizedUrl = UrlData._getNormalizedUrl(this.rawUrl);
     }
     return this.normalizedUrl;
   }
@@ -73,9 +81,12 @@ export default class UrlData {
    * @method getPatternRequest
    * @returns {PatternMatchRequest}
    */
-  getPatternRequest(cpt = 2) {
+  getPatternRequest(cpt = 'script') {
     if (this.patternsRequest === null) {
-      this.patternsRequest = tokenizeUrl(this.getNormalizedUrl(), cpt);
+      let url = this.rawUrl;
+      url = UrlData._rewriteGoogleSerpUrl(url);
+      url = UrlData._getNormalizedUrl(url);
+      this.patternsRequest = tokenizeUrl(url, cpt);
     }
     return this.patternsRequest;
   }
@@ -94,5 +105,30 @@ export default class UrlData {
    */
   getCategoriesMatchTraits() {
     return this.categoriesMatches;
+  }
+
+  // rewrite google serp url to avoid that blacklisting reacts on
+  // google tracking with words like "firefox" and "ubuntu"
+  static _rewriteGoogleSerpUrl(url) {
+    let fu;
+    try {
+      fu = new FastURL(url);
+    } catch (e) {
+      return url;
+    }
+    const domain = fu.generalDomain;
+    if (!(domain && domain.startsWith('google.'))) {
+      return url;
+    }
+    if (fu.pathname !== '/search') {
+      return url;
+    }
+    const searchParams = new Map(fu.searchParams.params);
+    const query = searchParams.get('q') || searchParams.get('query');
+    if (!query) {
+      return url;
+    }
+    const prefix = url.substr(0, url.indexOf('?'));
+    return `${prefix}?q=${query}`;
   }
 }

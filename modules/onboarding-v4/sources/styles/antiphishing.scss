@@ -1,0 +1,56 @@
+ .step.antiphishing {
+    background-color: white;
+
+    .antiphishing-background {
+        height: inherit;
+        background:
+            url('../images/hook1.gif') 5% 0px/auto 50% no-repeat,
+            url('../images/hook2.gif') 16% 0px/auto 90% no-repeat,
+            url('../images/hook3.gif') 77% 0px/auto 85% no-repeat,
+            url('../images/hook4.gif') 90% 0px/auto 45% no-repeat;
+        opacity: 1;
+        transition: opacity 600ms linear;
+
+        &.toggled {
+            opacity: 0;
+        }
+    }
+
+    .antiphishing-footer-before, .antiphishing-footer-after {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: inherit;
+        background-color: white;
+        transition: opacity 700ms;
+    }
+
+    .antiphishing-footer-before {
+        background: url('../images/password-visible.svg') bottom/100% no-repeat;
+        opacity: 1;
+
+        &.toggled {
+            opacity: 0;
+        }
+    }
+
+    .antiphishing-footer-after {
+        background: url('../images/password-invisible.svg') bottom/100% no-repeat;
+        opacity: 0;
+
+        &.toggled {
+            opacity: 1;
+        }
+    }
+
+    .info {
+        .headline {
+            line-height: 1.2;
+        }
+
+        .switch {
+            margin-top: 30px;
+        }
+    }
+}

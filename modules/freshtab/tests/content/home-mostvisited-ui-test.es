@@ -16,7 +16,7 @@ describe('Freshtab most visited UI', function () {
   const areaSelector = '#section-most-visited';
   const headerSelector = '#section-most-visited .dial-header';
   const dialSelector = '#section-most-visited a.dial';
-  const restoreOptionSelector = '#settings-panel button.link';
+  const restoreOptionSelector = '#settings-panel .link';
   const historyResponse = generateHistoryResponse();
   const respondWithOneElement = () => {
     subject.respondsWith({
@@ -54,7 +54,7 @@ describe('Freshtab most visited UI', function () {
 
       it('with the visibility switch turned on', function () {
         const mostVisitedSwitch = subject.queryByI18n('freshtab_app_settings_most_visited_label')
-          .querySelector('input.switch');
+          .querySelector('.toggle');
         expect(mostVisitedSwitch).to.have.property('checked', true);
       });
 
@@ -76,7 +76,7 @@ describe('Freshtab most visited UI', function () {
 
       it('with the visibility switch turned off', function () {
         const mostVisitedSwitch = subject.queryByI18n('freshtab_app_settings_most_visited_label')
-          .querySelector('input.switch');
+          .querySelector('.toggle');
         expect(mostVisitedSwitch).to.have.property('checked', false);
       });
 

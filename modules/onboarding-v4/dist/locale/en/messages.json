@@ -1,0 +1,101 @@
+{
+    "adblocking_headline": {
+        "message": "Ads distract you and steal your precious time?"
+    },
+    "adblocking_toggle_off": {
+        "message": "Remove them"
+    },
+    "adblocking_toggle_on": {
+        "message": "Now you can browse undisturbed and websites load faster"
+    },
+    "antiphishing_headline": {
+        "message": "Phishing sites try to steal your passwords and credit card information"
+    },
+    "antiphishing_headline_on": {
+        "message": "******** ***** *** ** ***** **** ******** *** ****** **** ************"
+    },
+    "antiphishing_toggle_off": {
+        "message": "Protect yourself"
+    },
+    "antiphishing_toggle_on": {
+        "message": "You are now protected from phishing sites and identity theft"
+    },
+    "antitracking_headline": {
+        "message": "Trackers monitor everything you do on the Internet"
+    },
+    "antitracking_toggle_off": {
+        "message": "Block nosy trackers"
+    },
+    "antitracking_toggle_on": {
+        "message": "Now you're invisible to trackers"
+    },
+    "antitracking_tooltip_headline": {
+        "message": "We're blocking third-party trackers"
+    },
+    "antitracking_tooltip_learn_more": {
+        "message": "Learn more"
+    },
+    "antitracking_tooltip_text": {
+        "message": "This means that they can no longer collect private data to create a personal profile of you."
+    },
+    "button_next": {
+        "message": "Next"
+    },
+    "button_skip": {
+        "message": "Skip"
+    },
+    "import_data_button": {
+        "message": "Import now"
+    },
+    "import_data_description": {
+        "message": "Import bookmarks, passwords and history"
+    },
+    "import_data_headline": {
+        "message": "Make yourself at home"
+    },
+    "popup_button_skip": {
+        "message": "Skip"
+    },
+    "popup_button_try": {
+        "message": "Try now"
+    },
+    "popup_explanation": {
+        "message": "Here you can change your privacy and search settings at any time"
+    },
+    "popup_protection_action_button": {
+        "message": "activate"
+    },
+    "popup_protection_description": {
+        "message": "Activate all features to fully protect your privacy"
+    },
+    "popup_protection_headline": {
+        "message": "You are not fully protected yet"
+    },
+    "popup_protection_skip_button": {
+        "message": "proceed anyway"
+    },
+    "popup_skip_action_button": {
+        "message": "continue"
+    },
+    "popup_skip_description": {
+        "message": "Skipping will set your browser to full protection."
+    },
+    "popup_skip_headline": {
+        "message": "Skip setting up your browser?"
+    },
+    "popup_skip_skip_button": {
+        "message": "skip"
+    },
+    "protection_explanation": {
+        "message": "Here you can change your privacy and search settings at any time"
+    },
+    "protection_full_headline": {
+        "message": "Now you are fully protected"
+    },
+    "protection_partial_headline": {
+        "message": "Setup complete"
+    },
+    "welcome": {
+        "message": "Welcome"
+    }
+}

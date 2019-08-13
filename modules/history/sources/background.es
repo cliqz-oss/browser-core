@@ -140,11 +140,8 @@ export default background({
   },
 
   fillFromVisit(url, triggeringUrl) {
-    const { action, scheme, path, originalUrl } = getDetailsFromUrl(url);
+    const { scheme, path, originalUrl } = getDetailsFromUrl(url);
     let cleanUrl = originalUrl;
-    if (action && action !== 'visiturl') {
-      return Promise.resolve();
-    }
 
     // normalize url
     if (!scheme) {

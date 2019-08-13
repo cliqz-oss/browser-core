@@ -8,12 +8,7 @@ module.exports = Object.assign({}, configBase, {
   settings: Object.assign({}, configBase.settings, {
     id,
     name: 'offersAppName',
+    storeName: 'myoffrz',
     channel: 'MO00', // MyOffrz Firefox Release
-
-  }),
-  modules: configBase.modules,
-  default_prefs: Object.assign({}, configBase.default_prefs, {
-    showConsoleLogs: false,
-    developer: false,
   }),
 });

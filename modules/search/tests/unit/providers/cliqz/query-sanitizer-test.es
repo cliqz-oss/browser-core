@@ -58,24 +58,21 @@ function allPrefixes(query) {
  */
 export default describeModule('search/providers/cliqz/query-sanitizer',
   () => ({
+    'core/fast-url-parser': {
+      /* eslint-disable-next-line global-require */
+      default: (global.URL || require('url').URL)
+    }
   }),
   () => {
     describe('query-sanitizer module:', function () {
       let sanitizeSearchQuery;
       let QuerySanitizerWithHistory;
       let BoundedMap;
-      const oldURL = global.URL;
 
       beforeEach(function () {
         sanitizeSearchQuery = this.module().sanitizeSearchQuery;
         QuerySanitizerWithHistory = this.module().QuerySanitizerWithHistory;
         BoundedMap = this.module().BoundedMap;
-        /* eslint-disable-next-line global-require */
-        global.URL = global.URL || require('url').URL;
-      });
-
-      afterEach(function () {
-        global.URL = oldURL;
       });
 
       const ok = (query) => {

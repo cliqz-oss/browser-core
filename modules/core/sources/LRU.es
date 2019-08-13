@@ -70,6 +70,12 @@ export default class LRU {
     }
   }
 
+  toMap() {
+    const map = new Map();
+    for (const [key, { value }] of this.cache.entries()) { map.set(key, value); }
+    return map;
+  }
+
   // Private interface (Linked List)
 
   /* Create a new node (key, value) to store in the cache */

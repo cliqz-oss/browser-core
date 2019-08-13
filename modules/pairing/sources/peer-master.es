@@ -518,11 +518,17 @@ export default class PeerMaster {
         this.masterPeer.encryptSignaling = (data, peerID) =>
           this.loadPairingAESKey(peerID)
             .then(aesKey => PeerMaster.sendEncrypted(data, aesKey))
-            .catch(() => data);
+            .catch((e) => {
+              console.error('createPeer: failed to send message:', data, e);
+              throw e;
+            });
         this.masterPeer.decryptSignaling = (data, peerID) =>
           this.loadPairingAESKey(peerID)
             .then(aesKey => PeerMaster.receiveEncrypted(data, aesKey))
-            .catch(() => data);
+            .catch((e) => {
+              console.error('createPeer: failed to receive message:', data, e);
+              throw e;
+            });
         this.masterPeer.setMessageSizeLimit(maxSize);
       });
   }

@@ -10,7 +10,7 @@ import config from './config';
 import getEnabledRegions from './regions';
 
 /**
- * Manages the adblocker FiltersEngine state. It allows to initialize, update,
+ * Manages the adblocker WebExtensionEngine state. It allows to initialize, update,
  * cache and reload the engine. It takes care of fetching and using the
  * allowed-lists.json file to check if the engine is up-to-date.
  */
@@ -146,7 +146,7 @@ export default class EngineManager {
     // As a last resort, we initialize an empty instance of the engine. It will
     // then be updated by parsing full-versions of the lists.
     if (this.engine === null) {
-      this.engine = new AdblockerLib.FiltersEngine();
+      this.engine = new AdblockerLib.WebExtensionBlocker();
     }
 
     return this.engine;
@@ -243,11 +243,7 @@ export default class EngineManager {
     // At this point we know that no list needs to be removed anymore. What
     // remains to be done is: *add new lists* and *update existing lists with
     // their respective diffs*.
-    let newNetworkFilters = [];
-    let newCosmeticFilters = [];
-    let removedNetworkFilters = [];
-    let removedCosmeticFilters = [];
-    const engineOptions = this.engine === null ? {} : this.engine.config;
+    const diffs = [];
 
     /**
      * Helper function used to fetch a full list, parse it, accumulate
@@ -256,14 +252,13 @@ export default class EngineManager {
      */
     const processListToAdd = async ({ name, checksum, url }) => {
       try {
-        const { networkFilters, cosmeticFilters } = AdblockerLib.parseFilters(
-          await fetchText(url),
-          engineOptions,
-        );
-        newCosmeticFilters = newCosmeticFilters.concat(cosmeticFilters);
-        newNetworkFilters = newNetworkFilters.concat(networkFilters);
-
-        // Update checksum in engine
+        // Create new diff and update version of the list in `this.engine`
+        diffs.push({
+          added: Array.from(AdblockerLib.getLinesWithFilters(
+            await fetchText(url),
+            this.engine.config,
+          )),
+        });
         this.engine.lists.set(name, checksum);
       } catch (ex) {
         logger.error(`Could not add list ${name}`, ex);
@@ -277,24 +272,8 @@ export default class EngineManager {
      */
     const fetchListToUpdate = async ({ name, checksum, url }) => {
       try {
-        const { added, removed } = await fetchJSON(url);
-
-        if (removed.length !== 0) {
-          const { networkFilters, cosmeticFilters } = AdblockerLib.parseFilters(
-            removed.join('\n'),
-            engineOptions,
-          );
-          removedCosmeticFilters = removedCosmeticFilters.concat(cosmeticFilters);
-          removedNetworkFilters = removedNetworkFilters.concat(networkFilters);
-        }
-
-        if (added.length !== 0) {
-          const { networkFilters, cosmeticFilters } = AdblockerLib.parseFilters(added.join('\n'));
-          newCosmeticFilters = newCosmeticFilters.concat(cosmeticFilters);
-          newNetworkFilters = newNetworkFilters.concat(networkFilters);
-        }
-
-        // Update checksum in engine
+        // Create new diff and update version of the list in `this.engine`
+        diffs.push(await fetchJSON(url));
         this.engine.lists.set(name, checksum);
       } catch (ex) {
         logger.error(`Could not update list ${name}`, ex);
@@ -336,20 +315,14 @@ export default class EngineManager {
     // issue as the `engine.update` method will return `true` if anything was
     // updated and `false` otherwise.
     timer = this.stopwatch('update engine (update)', 'adblocker');
-    let updated = this.engine.update({
-      newNetworkFilters,
-      newCosmeticFilters,
-      removedCosmeticFilters,
-      removedNetworkFilters,
-    });
+    const cumulativeDiff = AdblockerLib.mergeDiffs(diffs);
+    let updated = this.engine.updateFromDiff(cumulativeDiff);
     timer.stop();
 
     if (updated === true) {
       this.log('updated engine with:', {
-        newNetworkFilters: newNetworkFilters.length,
-        newCosmeticFilters: newCosmeticFilters.length,
-        removedNetworkFilters: removedNetworkFilters.length,
-        removedCosmeticFilters: removedCosmeticFilters.length,
+        added: cumulativeDiff.added.length,
+        removed: cumulativeDiff.removed.length,
       });
     } else {
       this.log('no update was required');
@@ -397,13 +370,15 @@ export default class EngineManager {
     } else {
       timer = this.stopwatch('deserialize engine from cache', 'adblocker');
       try {
-        this.engine = AdblockerLib.FiltersEngine.deserialize(serialized);
+        this.engine = AdblockerLib.WebExtensionBlocker.deserialize(serialized);
       } catch (ex) {
         // In case there is a mismatch between the version of the code
         // and the serialization format of the engine on disk, we might
         // not be able to load the engine from disk. Then we just start
         // fresh!
-        logger.error('exception while loading engine', ex);
+        this.log('exception while loading cached engine', ex);
+        this.log('reseting local cache and recovering...');
+        this.log('this can happen whenever the adblocker is updated! If it happens again, please report an issue.');
         await this.clearCache();
         return null;
       } finally {
@@ -439,8 +414,14 @@ export default class EngineManager {
     timer.stop();
 
     timer = this.stopwatch('deserialize remote engine', 'adblocker');
-    this.engine = AdblockerLib.FiltersEngine.deserialize(serialized);
-    timer.stop();
+    try {
+      this.engine = AdblockerLib.WebExtensionBlocker.deserialize(serialized);
+    } catch (ex) {
+      logger.error('exception while loading remote engine', ex);
+      return null;
+    } finally {
+      timer.stop();
+    }
 
     timer = this.stopwatch('persist remote engine', 'adblocker');
     await this.db.set('engine', serialized);

@@ -934,18 +934,16 @@ export default describeModule('offers-v2/offers/offers-handler',
               checkDataurlInOffer();
             });
 
-            it('/on error, use url for pushed offer, use fallback for db offer', async () => {
+            it('/on error, use url for pushed offer', async () => {
               const fakeFailUrl = 'fake://?status=404';
               offer.ui_info.template_data.logo_url = fakeFailUrl;
               offer.ui_info.template_data.picture_url = fakeFailUrl;
 
               await triggerOffer();
 
-              const [pushedOffer, dbOffer] = getPushedAndDbOfers();
+              const [pushedOffer] = getPushedAndDbOfers();
               chai.expect(pushedOffer.getLogoDataurl()).to.eq(fakeFailUrl);
               chai.expect(pushedOffer.getPictureDataurl()).to.eq(fakeFailUrl);
-              chai.expect(dbOffer.getLogoDataurl()).to.eq(ImageDownloaderMod.FALLBACK_IMAGE);
-              chai.expect(dbOffer.getPictureDataurl()).to.eq(ImageDownloaderMod.FALLBACK_IMAGE);
             });
           });
 

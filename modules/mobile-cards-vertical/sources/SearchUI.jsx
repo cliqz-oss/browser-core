@@ -69,13 +69,22 @@ class SearchUI extends React.Component {
   render() {
     const { results = [], suggestions = [], meta = {} } = this.props;
     const filteredResults = results.filter(isResultAllowed);
+    const style = {
+      ...this.props.classes.container,
+      ...(this.props.style || {})
+    };
     return (
       <View
         accessible={false}
         accessibilityLabel="search-results"
-        style={this.props.classes.container}
+        style={style}
       >
-        <CardList results={filteredResults} meta={meta} />
+        <CardList
+          results={filteredResults}
+          meta={meta}
+          separator={this.props.separator}
+          style={this.props.cardListStyle}
+        />
         <QuerySuggestions query={results[0] && results[0].text} suggestions={suggestions} />
       </View>
     );

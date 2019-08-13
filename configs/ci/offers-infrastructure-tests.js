@@ -3,8 +3,8 @@ const offersBase = require('../offers');
 module.exports = Object.assign({}, offersBase, {
   settings: Object.assign({}, offersBase.settings, {
     channel: '99',
-    antitrackingPlaceholder: "cliqz.com/tracking",
-    antitrackingHeader: "CLIQZ-AntiTracking",
+    antitrackingPlaceholder: 'cliqz.com/tracking',
+    antitrackingHeader: 'CLIQZ-AntiTracking',
     offersInfraTests: true,
   }),
   modules: offersBase.modules.concat([

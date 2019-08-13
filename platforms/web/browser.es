@@ -20,9 +20,6 @@ export function waitWindowReady() {
   return Promise.resolve();
 }
 
-export function setOurOwnPrefs() {
-}
-
 export function enableChangeEvents() {}
 
 export function addWindowObserver() {
@@ -66,8 +63,6 @@ export function getCookies() {
 export function reportError() {}
 
 export function disableChangeEvents() {}
-
-export function resetOriginalPrefs() {}
 
 export function isDefaultBrowser() {
   return Promise.resolve(null);

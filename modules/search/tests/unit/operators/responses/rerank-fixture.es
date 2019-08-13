@@ -6,7 +6,6 @@ const resultsBeforeRerank = [
         href: 'https://www.google.com/search?q=fc+bayern+&ie=utf-8&oe=utf-8&client=firefox-b-ab',
         friendlyUrl: 'google.com/search?q=fc+bayern+&ie=utf-8&oe=utf-8&client=firefox-b-ab',
         extra: {
-          mozActionUrl: 'moz-action:searchengine,{"engineName":"Google","input":"fc%20bayern%20","searchQuery":"fc%20bayern","alias":"#go"}',
           searchEngineName: 'Google'
         },
         kind: [
@@ -320,7 +319,6 @@ const resultsAfterRerank = [
         href: 'https://www.google.com/search?q=fc+bayern+&ie=utf-8&oe=utf-8&client=firefox-b-ab',
         friendlyUrl: 'google.com/search?q=fc+bayern+&ie=utf-8&oe=utf-8&client=firefox-b-ab',
         extra: {
-          mozActionUrl: 'moz-action:searchengine,{"engineName":"Google","input":"fc%20bayern%20","searchQuery":"fc%20bayern","alias":"#go"}',
           searchEngineName: 'Google'
         },
         kind: [

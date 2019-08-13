@@ -22,10 +22,15 @@ export default class ContentDropdownManager extends BaseDropdownManager {
     input.select();
     window.document.execCommand('copy');
     window.document.body.removeChild(input);
+    this._focus();
   }
 
   _navigateTo(url, newTab) {
     return this.cliqz.core.openLink(url, { newTab });
+  }
+
+  _switchToTab(url) {
+    return this.cliqz.core.openLink(url, { newTab: false, switchTab: true });
   }
 
   _focus() {
@@ -69,14 +74,6 @@ export default class ContentDropdownManager extends BaseDropdownManager {
 
   _getHeight() {
     return this.view.state.iframeHeight;
-  }
-
-  _getQuery() {
-    const query = this.textInput.value;
-    if (this.hasCompletion) {
-      return query.slice(0, this.textInput.selectionStart);
-    }
-    return query;
   }
 
   _getUrlbarAttributes() {

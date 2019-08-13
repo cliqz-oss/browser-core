@@ -17,8 +17,10 @@ class PatternIndex {
     this.id2categories = id2categories;
 
     this.index = new PatternMatching.ReverseIndex({
-      filters,
+      config: { enableCompression: false },
       deserialize: PatternMatching.NetworkFilter.deserialize,
+      filters,
+      optimize: fs => fs,
     });
     this.tokens = PatternMatching.compactTokens(this.index.getTokens());
   }

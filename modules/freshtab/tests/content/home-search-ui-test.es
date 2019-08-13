@@ -59,7 +59,7 @@ describe('Freshtab search UI', function () {
 
     it('has the visibility switch turned on', function () {
       const newsSwitch = subject.queryByI18n('freshtab_app_settings_search_label')
-        .querySelector('input.switch');
+        .querySelector('.toggle');
       expect(newsSwitch).to.have.property('checked', true);
     });
 
@@ -83,7 +83,7 @@ describe('Freshtab search UI', function () {
 
     it('has the visibility switch turned off', function () {
       const newsSwitch = subject.queryByI18n('freshtab_app_settings_search_label')
-        .querySelector('input.switch');
+        .querySelector('.toggle');
       expect(newsSwitch).to.have.property('checked', false);
     });
 

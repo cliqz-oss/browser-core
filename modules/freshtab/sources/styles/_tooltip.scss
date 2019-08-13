@@ -1,3 +1,5 @@
+@import 'variables';
+
 @mixin tooltip (
     $tooltip-visible
 ){
@@ -5,75 +7,70 @@
         display: $tooltip-visible;
         padding: 18px 20px;
         width: 340px;
-        position: absolute; 
+        position: absolute;
         right: 5px;
         top: 58px;
-        background: #00AEF0;
+        background: $color-cliqz-blue;
         opacity: 1;
         pointer-events: none;
-        color:#fff;
+        color: #fff;
         font-size: 12px;
-        box-shadow: 0 0 25px rgba(0,0,0,0.3);
-        z-index: 300; // The notification should be on top of everything, also over `url-bar` from `_url-bar-with-results.scss`
-        transition: opacity .3s, top .3s;     
+        box-shadow: 0 0 25px get-color-black-opacity(0.3);
+        z-index: 101; // The notification should be on top of everything, also over `url-bar` from `_url-bar-with-results.scss`
+        transition: opacity .3s, top .3s;
 
-        &.close {
+        &.closed {
             top: 63px;
             opacity: 0
         }
 
-        h1 {
+        .header {
             padding: 2px 0 10px;
             font-weight: 600;
             font-size: 19px;
         }
 
-        p {
+        .description {
             padding-bottom: 18px;
             font-weight: 400;
             font-size: 14px;
             line-height: 1.4;
         }
 
-        span {
+        .btn-wrap {
             white-space: nowrap;
         }
 
-        button {
+        .explore, .later, .close {
             background: none;
             border-radius: 2px;
             border: 1px solid transparent;
             cursor: pointer;
-            color:#fff;
+            color: #fff;
             padding: 5px 10px;
             pointer-events: initial;
             font-size: 16px;
             font-weight: 500;
-
-            &.explore {
-                color:#00AFF0;
-                background-color: #fff;
-                border-radius: 2px;
-                margin-right: 20px;
-
-                &:hover {
-                    background-color: #00AFF0;
-                    border-color: #fff;
-                    color: #fff;
-                    
-                }
-            }
-
-            &.later {
-                &:hover {
-                    border-color: #fff;
-                }
-            }
-
         }
 
-        a {
-            pointer-events: initial;
+        .explore {
+            color: $color-cliqz-blue;
+            background-color: #fff;
+            border-radius: 2px;
+            margin-right: 20px;
+
+            &:hover {
+                background-color: $color-cliqz-blue;
+                border-color: #fff;
+                color: #fff;
+
+            }
+        }
+
+        .later {
+            &:hover {
+                border-color: #fff;
+            }
         }
 
         &-content {
@@ -97,7 +94,7 @@
                 width: 0;
                 height: 0;
                 border-left: 10px solid transparent;
-                border-bottom: 10px solid #00AFF0;
+                border-bottom: 10px solid $color-cliqz-blue;
                 border-right: 10px solid transparent;
             }
         }
@@ -109,7 +106,7 @@
             top: 6px;
             right: 6px;
 
-            button {
+            .close {
                 position: relative;
                 display: block;
                 text-indent: -9999px;

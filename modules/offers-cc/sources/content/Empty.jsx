@@ -1,13 +1,13 @@
 import React from 'react';
 import send from './transport';
-import { css, i18n } from './common/utils';
+import { css, i18n, chooseProduct } from './common/utils';
 
 const _css = css('empty__');
-function renderChipHeader() {
+function renderWhiteLabelHeader(prefix) {
   return (
     <div className={_css('stars')}>
       <div style={{ height: '50px' }} />
-      <h1 className={_css('title', 'chip-title')}>
+      <h1 className={_css('title', `${prefix}-title`)}>
         {i18n('offers_hub_welcome_title')}
       </h1>
     </div>
@@ -32,10 +32,17 @@ function renderMyOffrzHeader() {
 export default function Empty(props) {
   const { products } = props;
   /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
+  const prefix = chooseProduct(products);
+  const mapper = {
+    chip: renderWhiteLabelHeader,
+    freundin: renderWhiteLabelHeader,
+    incent: renderWhiteLabelHeader,
+    myoffrz: renderMyOffrzHeader,
+  };
   return (
     <div className={_css('wrapper')}>
       <div className={_css('container')}>
-        {products.chip ? renderChipHeader() : renderMyOffrzHeader() }
+        {mapper[prefix](prefix)}
         <p className={_css('text')}>{i18n('offers_hub_welcome_text')}</p>
         <p
           onClick={() => {

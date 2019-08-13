@@ -70,7 +70,7 @@ const TESTS = [
       });
 
       // Give time to Ghostery to have started and ad-blocker to be initialized
-      await wait(2000);
+      await wait(10000);
 
       // Make sure the element inserted was hidden
       const visible = await page.evaluate(() => {
@@ -100,14 +100,14 @@ const TESTS = [
  */
 async function switchToGhosteryPage(driver) {
   let index = 0;
-  while (index < 10) {
+  while (index < 15) {
     const ghosteryPages = (await driver.pages()).filter(page => page.url().startsWith('chrome-extension'));
     if (ghosteryPages.length !== 0) {
       await ghosteryPages[0].bringToFront();
       return ghosteryPages[0];
     }
 
-    await wait(1000);
+    await wait(2000);
     index += 1;
   }
 
@@ -164,7 +164,7 @@ async function _withGhosteryDriver(ghosteryExtension, fn) {
     // Run test
     await Promise.race([
       fn(page),
-      new Promise((resolve, reject) => setTimeout(() => reject(new Error('Timeout')), 10000)),
+      new Promise((resolve, reject) => setTimeout(() => reject(new Error('Timeout')), 20000)),
     ]);
 
     // Graceful shutdown

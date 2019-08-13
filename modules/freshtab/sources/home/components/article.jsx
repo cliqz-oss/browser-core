@@ -51,6 +51,7 @@ function Article({
 
   return (
     <Link
+      className="news-url"
       href={article.url}
       idx={`${index}`}
       onClick={ev => newsClickSignal(

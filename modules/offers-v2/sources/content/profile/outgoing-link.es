@@ -2,7 +2,7 @@ import { isAmazonDomain, isEbayDomain } from '../utils';
 
 export function classifyOutgoingLinks(document) {
   const cats = new Set();
-  const links = document.querySelectorAll('a[href*=amazon i], a[href*=ebay i]');
+  const links = document.querySelectorAll('a[href*=amazon], a[href*=ebay]');
   links.forEach((link) => {
     if (isAmazonDomain(link.hostname)) {
       cats.add('link-amazon');

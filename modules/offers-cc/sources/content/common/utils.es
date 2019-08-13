@@ -40,7 +40,7 @@ function getHeight(type = 'card') {
 
 function getWidth(type = 'card') {
   const widthMapper = {
-    tooltip: 240,
+    tooltip: 260,
     card: 264,
     lodgev1: 294,
     lodgev2: 294,
@@ -60,6 +60,16 @@ export function resize({ type = 'card' } = {}) {
   } else {
     send('resize', { width, height });
   }
+}
+
+/** **************************************************************** */
+
+const ALLOWED_PRODUCTS = ['chip', 'freundin', 'incent'];
+
+export function chooseProduct(products = {}, { cliqz = false } = {}) {
+  return (cliqz ? ['cliqz'] : [])
+    .concat(ALLOWED_PRODUCTS)
+    .find(product => products[product]) || 'myoffrz';
 }
 
 /** **************************************************************** */

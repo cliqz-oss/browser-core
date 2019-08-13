@@ -1,4 +1,4 @@
-import { isValidUrl, isSearchEngineResult } from '../../core/search-engines';
+import { isValidUrl } from '../../core/search-engines';
 
 /*
  * Removes search engine results.
@@ -9,6 +9,6 @@ export default function clean({ links, ...result }) {
   return {
     ...result,
     links: links.filter(({ template, url }) => template === 'sessions'
-      || (!isSearchEngineResult(url) && isValidUrl(url))),
+      || isValidUrl(url)),
   };
 }

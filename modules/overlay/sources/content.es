@@ -93,6 +93,7 @@ function onLoad(_window, chrome) {
       },
       fillIn(query) {
         dropdown.input.value = query;
+        dropdown._syncQueryWithUrlbar();
         dropdown._queryCliqz(query);
       },
       close: () => {

@@ -1,7 +1,7 @@
 /* globals ChromeUtils, ExtensionAPI, Components */
 const { Services } = ChromeUtils.import('resource://gre/modules/Services.jsm');
 
-this.cliqzNativeBridge = class extends ExtensionAPI {
+global.cliqzNativeBridge = class extends ExtensionAPI {
   getAPI() {
     return {
       cliqzNativeBridge: {

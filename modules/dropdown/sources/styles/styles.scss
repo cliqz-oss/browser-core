@@ -256,8 +256,7 @@ $basic-line-height: (16 / 14) + 0em;
             background-color: transparent;
             color: #660099;
         }
-        &:visited .abstract .url,
-        &[data-url^="moz-action:switchtab"] .abstract .url {
+        &:visited .abstract .url {
             color: #660099;
         }
 
@@ -366,10 +365,9 @@ $basic-line-height: (16 / 14) + 0em;
 
 
             .thumbnail {
-                width: 83px;
+                width: 73px;
                 height: 46px;
                 border-radius: 3px;
-                padding-right: 10px;
                 display: flex;
                 flex: 0 0 auto;
                 position: relative;
@@ -406,6 +404,7 @@ $basic-line-height: (16 / 14) + 0em;
                     background-repeat: no-repeat;
                     background-position: center center;
                     background-size: 20%;
+                    filter: brightness(0.7);
                 }
             }
         }
@@ -432,6 +431,10 @@ $basic-line-height: (16 / 14) + 0em;
 
         &.hovered {
             background: #E7ECEE;
+
+            .abstract .thumbnail {
+                background-color: #f4f6f7;
+            }
         }
 
         &.selected, &.selected:visited {
@@ -515,7 +518,7 @@ $basic-line-height: (16 / 14) + 0em;
                 width: 1px;
                 height: calc(100% - 40px);
                 left: 53px;
-                z-index: 0;
+                z-index: 1;
                 top: 20px;
                 opacity: 0.25;
             }
@@ -744,6 +747,7 @@ $basic-line-height: (16 / 14) + 0em;
                     padding: 0;
                     background: url("../images/news-placeholder.svg") no-repeat center center;
                     background-size: 50%;
+                    filter: brightness(0.7);
                 }
             }
 
@@ -753,6 +757,8 @@ $basic-line-height: (16 / 14) + 0em;
             }
             .abstract {
                 .content {
+                    margin-left: 10px;
+
                     .divider, .url[data-extra="url"] {
                         visibility: hidden;
                     }

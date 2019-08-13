@@ -31,7 +31,6 @@ const finalWithoutHistoryView = {
       data: {
         deepResults: [],
         extra: {
-          mozActionUrl: 'https://www.google.com/search?q=highest%20peaks%20in%20europe&ie=utf-8&oe=utf-8&client=firefox-b',
           searchEngineName: 'Google'
         },
         kind: [
@@ -275,7 +274,6 @@ const finalWithHistoryView = {
       data: {
         deepResults: [],
         extra: {
-          mozActionUrl: 'https://www.google.com/search?q=highest%20peaks%20in%20europe&ie=utf-8&oe=utf-8&client=firefox-b',
           searchEngineName: 'Google'
         },
         kind: [
@@ -529,7 +527,6 @@ const results = {
       href: 'https://www.google.com/search?q=highest peaks in europe&ie=utf-8&oe=utf-8&client=firefox-b',
       friendlyUrl: 'google.com/search?q=highest peaks in europe&ie=utf-8&oe=utf-8&client=firefox-b',
       extra: {
-        mozActionUrl: 'https://www.google.com/search?q=highest%20peaks%20in%20europe&ie=utf-8&oe=utf-8&client=firefox-b',
         searchEngineName: 'Google'
       },
       kind: [

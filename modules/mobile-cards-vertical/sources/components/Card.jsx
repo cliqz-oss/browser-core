@@ -15,8 +15,6 @@ const cardStyle = (theme, themeDetails) => StyleSheet.create({
     paddingRight: cardSidePadding,
     backgroundColor: themeDetails[theme].card.bgColor,
     borderRadius: 9,
-    marginLeft: 10,
-    marginRight: 10,
   },
 });
 

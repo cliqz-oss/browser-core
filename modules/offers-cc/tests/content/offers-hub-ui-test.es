@@ -121,7 +121,7 @@ describe('Offers Hub UI tests', function () {
     });
 
     it('with the gift icon', function () {
-      expect(subject.query('.tooltip__image')).to.exist;
+      expect(subject.query('.tooltip__myoffrz-image')).to.exist;
     });
 
     it('with the correct text', function () {

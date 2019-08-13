@@ -1,6 +1,4 @@
 /* global ChromeUtils, Components */
-
-import { cleanMozillaActions } from '../../../core/content/url';
 import { URLInfo } from '../../../core/url-info';
 import Defer from '../../../core/helpers/defer';
 
@@ -11,6 +9,24 @@ const { PlacesUtils } = ChromeUtils.import('resource://gre/modules/PlacesUtils.j
 Components.utils.importGlobalProperties(['URL']);
 
 let searchProvider;
+
+function cleanMozillaActions(url = '') {
+  let href = url;
+  if (url.startsWith('moz-action:')) {
+    const parts = url.match(/^moz-action:[^,]+,(.*)$/);
+    href = parts[1];
+    try {
+      // handle cases like: moz-action:visiturl,{"url": "..."}
+      const mozActionUrl = JSON.parse(href).url;
+      if (mozActionUrl) {
+        href = decodeURIComponent(mozActionUrl);
+      }
+    } catch (e) {
+      // empty
+    }
+  }
+  return href;
+}
 
 function today() {
   return Math.floor(new Date().getTime() / 86400000);
@@ -95,41 +111,23 @@ export function unifiedSearch(query) {
         const results = [];
         for (let i = 0; result && i < result.matchCount; i += 1) {
           const style = result.getStyleAt(i);
-          const value = result.getValueAt(i);
+          const value = cleanMozillaActions(result.getValueAt(i));
+          const label = style.indexOf('switchtab') !== -1 ? value : result.getLabelAt(i);
 
           if (value.indexOf('https://cliqz.com/search?q=') !== 0
             && value.indexOf('moz-extension://') !== 0
+            && value.indexOf('resource://cliqz') !== 0
+            && value.indexOf('chrome://cliqz') !== 0
             && !style.includes('heuristic')
-            && !style.includes('searchengine')) {
-            if (style.indexOf('switchtab') !== -1) {
-              try {
-                const [, cleanURL] = cleanMozillaActions(value);
-
-                // ignore freshtab, history and cliqz search
-                if (cleanURL.indexOf('chrome://cliqz') !== 0
-                    && cleanURL.indexOf('resource://cliqz') !== 0
-                    && cleanURL.indexOf('moz-extension://') !== 0
-                    && cleanURL.indexOf('https://cliqz.com/search?q=') !== 0) {
-                  results.push({
-                    style,
-                    value: cleanURL,
-                    image: result.getImageAt(i),
-                    comment: result.getCommentAt(i),
-                    label: cleanURL
-                  });
-                }
-              } catch (e) {
-                // bummer
-              }
-            } else {
-              results.push({
-                style,
-                value,
-                image: result.getImageAt(i),
-                comment: result.getCommentAt(i),
-                label: result.getLabelAt(i)
-              });
-            }
+            && !style.includes('searchengine')
+          ) {
+            results.push({
+              style,
+              value,
+              image: result.getImageAt(i),
+              comment: result.getCommentAt(i),
+              label,
+            });
           }
         }
 

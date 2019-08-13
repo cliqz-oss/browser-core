@@ -1,8 +1,6 @@
 import { Observable } from 'rxjs';
 import {
   isUrl,
-  getSearchEngineUrl,
-  getVisitUrl,
   fixURL,
 } from '../../core/url';
 import {
@@ -50,9 +48,6 @@ export default class InstantProvider extends BaseProvider {
         friendlyUrl: url,
         text: query,
         data: {
-          extra: {
-            mozActionUrl: getVisitUrl(url),
-          },
           kind: ['navigate-to'],
         }
       };
@@ -63,21 +58,26 @@ export default class InstantProvider extends BaseProvider {
       const supplementarySearchResult = {
         ...result,
         type: 'supplementary-search',
-        url: engine.getSubmissionForQuery(query),
+        url: engine.getSubmissionForQuery(rawQuery),
         text: rawQuery,
         data: {
           kind: this.getKind(query),
           suggestion: query,
           extra: {
-            mozActionUrl: getSearchEngineUrl(engine, query, rawQuery),
             searchEngineName: engine.name,
           },
         }
       };
 
-      const results = isQueryUrl
-        ? [navigateResult, supplementarySearchResult]
-        : [supplementarySearchResult];
+      let results;
+      const { settings } = config;
+      if (settings['search.config.providers.complementarySearch.disabled']) {
+        results = isQueryUrl ? [navigateResult] : [];
+      } else {
+        results = isQueryUrl
+          ? [navigateResult, supplementarySearchResult]
+          : [supplementarySearchResult];
+      }
 
       next(
         getResponse({

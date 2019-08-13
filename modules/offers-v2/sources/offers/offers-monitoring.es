@@ -46,7 +46,8 @@ const buildMonitorsFromOffer = (offer) => {
       patterns: md.patterns,
       click: offer.click,
       view: offer.view,
-      last_update: offer.last_update
+      last_update: offer.last_update,
+      offerReminder: { ...md.offerReminder },
     };
     if (md.type === 'webrequest') {
       monitorInfo.domain = md.domain;
@@ -138,8 +139,6 @@ export default class OffersMonitorHandler {
     this.monitors[WEBREQUEST_TYPE] = { patterns: {}, index: null };
     this.monitors[COUPON_TYPE] = { patterns: {}, index: null };
 
-    this._getOffersAndRebuildMonitors();
-
     this.handlers = {
       sigHandler: this.sigHandler,
       offersDB: this.offersDB,
@@ -155,9 +154,11 @@ export default class OffersMonitorHandler {
     this.onUrlChange = this.onUrlChange.bind(this);
     this.eventHandler.subscribeUrlChange(this.onUrlChange);
 
-
     // Register for webrequests
     this.webRequestCallback = this.webRequestCallback.bind(this);
+
+    // Rebuild monitors. Only now, after `this` is bound.
+    this._getOffersAndRebuildMonitors();
   }
 
   destroy() {
@@ -212,6 +213,38 @@ export default class OffersMonitorHandler {
     });
   }
 
+  activeMonitorsForType(monitorsType, urlData) {
+    if (!this.monitors[monitorsType].index) { return []; }
+    const patterns = this.monitors[monitorsType].index.match(urlData.getPatternRequest());
+    return [...patterns].map(pattern => this.monitors[monitorsType].patterns[pattern])
+      .reduce((activeMonitors, monitor) => activeMonitors.concat(monitor), []);
+  }
+
+  getAutoFillInfo(couponsMonitors = []) {
+    if (couponsMonitors.length === 0) {
+      return { activate: false };
+    }
+    const activeOffer = selectActiveMonitors(couponsMonitors)[0];
+    const couponInfo = JSON.parse(JSON.stringify(activeOffer.couponInfo)); // deep copy
+    couponInfo.pattern = activeOffer.patterns[0];
+    const pastDay = moment() - 24 * 60 * 60 * 1000;
+    const autoFillField = couponInfo.autoFillField
+      && (activeOffer.click > pastDay || activeOffer.view > pastDay);
+    couponInfo.autoFillField = autoFillField;
+    logger.log('shouldActivateOfferForUrl: autoFillField:', autoFillField, ' for:', JSON.stringify(activeOffer));
+    return {
+      offerID: activeOffer.offerID,
+      offerInfo: couponInfo,
+      activate: true
+    };
+  }
+
+  detectOfferReminderMonitor(urlChangeMonitors = []) {
+    const monitor = urlChangeMonitors.find(m => (m.offerReminder || {}).active);
+    if (!monitor) { return {}; }
+    return { ...monitor.offerReminder, offerID: monitor.offerID };
+  }
+
   // ///////////////////////////////////////////////////////////////////////////
 
   /**
@@ -224,36 +257,15 @@ export default class OffersMonitorHandler {
    *     monitorID: the offer id associated to that url,
    *     code: the coupon code if any associated to that offer,
    *     autoFillField: true | false // saying if we should autofill or not the field
-   *   }
+   *   },
    * }
    */
   shouldActivateOfferForUrl(urlData) {
-    if (!this.monitors[COUPON_TYPE].index) {
-      return { activate: false };
-    }
-    const patterns = this.monitors[COUPON_TYPE].index.match(urlData.getPatternRequest());
-
-    if (patterns.size === 0) {
-      // nothing to activate here
-      return { activate: false };
-    }
-
-    const allActiveMonitors = [...patterns].map(pattern =>
-      this.monitors[COUPON_TYPE].patterns[pattern])
-      .reduce((activeMonitors, monitor) => activeMonitors.concat(monitor), []);
-
-    const activeOffer = selectActiveMonitors(allActiveMonitors)[0];
-    const couponInfo = JSON.parse(JSON.stringify(activeOffer.couponInfo));
-    couponInfo.pattern = activeOffer.patterns[0];
-    const pastDay = moment() - 24 * 60 * 60 * 1000;
-    const autoFillField = couponInfo.autoFillField
-      && (activeOffer.click > pastDay || activeOffer.view > pastDay);
-    couponInfo.autoFillField = autoFillField;
-    logger.log('shouldActivateOfferForUrl: autoFillField:', autoFillField, ' for:', JSON.stringify(activeOffer));
+    const couponActiveMonitors = this.activeMonitorsForType(COUPON_TYPE, urlData);
+    const urlChangeActiveMonitors = this.activeMonitorsForType(URLCHANGE_TYPE, urlData);
     return {
-      offerID: activeOffer.offerID,
-      offerInfo: couponInfo,
-      activate: true
+      ...this.getAutoFillInfo(couponActiveMonitors),
+      detectOfferReminder: this.detectOfferReminderMonitor(urlChangeActiveMonitors),
     };
   }
 

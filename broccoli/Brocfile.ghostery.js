@@ -1,6 +1,5 @@
-"use strict";
-var Funnel = require('broccoli-funnel');
-var build = require('./Brocfile.ghostery-mobile');
+const Funnel = require('broccoli-funnel');
+const build = require('./Brocfile.ghostery-mobile');
 
 // Output
 module.exports = new Funnel(build, {

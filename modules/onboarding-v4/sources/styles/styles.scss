@@ -1,0 +1,89 @@
+@import 'variables.scss';
+@import 'adblocking.scss';
+@import 'antiphishing.scss';
+@import 'antitracking.scss';
+@import 'dots.scss';
+@import 'final.scss';
+@import 'import-data.scss';
+@import 'info.scss';
+@import 'next-button.scss';
+@import 'popup-confirmation.scss';
+@import 'popup-control-center.scss';
+@import 'skip-button.scss';
+@import 'step.scss';
+@import 'tooltip.scss';
+
+@font-face {
+    font-family: "Montserrat";
+    src: url(../fonts/Montserrat-Light.ttf);
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Montserrat";
+    src: url(../fonts/Montserrat-Medium.ttf);
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Montserrat";
+    src: url(../fonts/Montserrat-SemiBold.ttf);
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Montserrat";
+    src: url(../fonts/Montserrat-Bold.ttf);
+    font-weight: 700;
+    font-style: normal;
+}
+
+body,
+html {
+    overflow: hidden;
+    height: 100%;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "-mac-system", "-apple-system", BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+}
+
+.clearfix:after {
+    clear: both;
+    content: " ";
+    display: block;
+    font-size: 0;
+    height: 0;
+    visibility: hidden;
+}
+
+#container {
+    height: 100%;
+}
+
+.app {
+    height: 100%;
+
+    .main {
+        height: inherit;
+
+        &.blur {
+            filter: blur(2px);
+
+            .step {
+                .slider:before, .background .ad {
+                    animation: none!important;
+                }
+            }
+        }
+    }   
+}

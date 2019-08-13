@@ -113,9 +113,6 @@ export default describeModule('anolysis/internals/anolysis',
 
       beforeEach(async function () {
         DefaultMap = (await this.system.import('core/helpers/default-map')).default;
-
-        // Register tasks
-        await anolysis.updateRetentionState();
       });
 
       it('generates no signals if no metrics', async () => {

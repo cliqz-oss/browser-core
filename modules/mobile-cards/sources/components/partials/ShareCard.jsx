@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Image, TouchableWithoutFeedback, Platform, NativeModules } from 'react-native';
-import ViewShot from 'react-native-view-shot';
+import ViewShot from '../../external-libs/react-native-view-shot';
 import NativeDrawabale, { normalizeUrl } from '../custom/NativeDrawable';
 
 const PermissionManager = NativeModules.PermissionManagerModule;

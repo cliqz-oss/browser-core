@@ -1,4 +1,3 @@
-"use strict";
 const Funnel = require('broccoli-funnel');
 const MergeTrees = require('broccoli-merge-trees');
 const writeFile = require('broccoli-file-creator');
@@ -45,14 +44,14 @@ const outputList = [
   mobile,
 ];
 
-if (process.env['CLIQZ_ENVIRONMENT'] !== 'production') {
-  const platformTests = new Funnel('platforms/'+cliqzConfig.platform, {
+if (process.env.CLIQZ_ENVIRONMENT !== 'production') {
+  const platformTests = new Funnel(`platforms/${cliqzConfig.platform}`, {
     include: ['tests/**/*']
   });
   const testsTree = concat(platformTests, {
     outputFile: 'tests.js',
     inputFiles: [
-      "**/*.js"
+      '**/*.js'
     ],
     allowNone: true,
     sourceMapConfig: { enabled: cliqzConfig.sourceMaps },
@@ -63,9 +62,9 @@ if (process.env['CLIQZ_ENVIRONMENT'] !== 'production') {
   ]);
   const outputTreeDev = new MergeTrees([
     mobileDev,
-    new Funnel(testsTree, { destDir: 'tests'})
+    new Funnel(testsTree, { destDir: 'tests' })
   ]);
-  outputList.push(new Funnel(testsTree, { destDir: 'tests'}));
+  outputList.push(new Funnel(testsTree, { destDir: 'tests' }));
   outputList.push(new Funnel(outputTreeDev, { destDir: 'dev' }));
 }
 
