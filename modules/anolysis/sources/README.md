@@ -234,16 +234,10 @@ information you get out of the box:
    keys are names of metrics and values are arrays of all signals received for
    one day. This is the standard way of getting metrics for a day to aggregate
    them.
-2. `retention`: This object contains information about the current retention of
-   the user. Which days was the user active in the path. It also has information
-   about weekly/monthly retention; how many days each user was active during
-   weeks in the past as well as how many weeks the user was active during months
-   in the past. This is used both to generate retention signals and to analyze
-   how some features might impact user retention (with an ABTest for example).
-3. `date`: This is the day we are currently aggregating. For example, if today
+2. `date`: This is the day we are currently aggregating. For example, if today
    is `2018-01-02` and Anolysis triggers the aggregation of signals for the
    previous day (`2018-01-01`), then date will have value: `2018-01-01`.
-4. `dateMoment`: This is the same as `date` but as a `moment` object, for easier
+3. `dateMoment`: This is the same as `date` but as a `moment` object, for easier
    manipulation of date.
 
 ## Testing a New Analysis

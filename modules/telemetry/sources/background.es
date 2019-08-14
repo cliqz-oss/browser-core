@@ -110,7 +110,7 @@ export default background({
     this.telemetryProvider = {
       name: 'telemetry',
       send: (message, schema, instant) => {
-        if (schema) {
+        if (schema && schema.indexOf('.legacy.') === -1) {
           return Promise.resolve();
         }
         return telemetry(message, instant);
@@ -151,7 +151,7 @@ export default background({
         history_days: historyStats.days,
         history_urls: historyStats.size,
         install_date: await getDaysSinceInstall(),
-      });
+      }, 'metrics.legacy.environment.extended');
     };
 
     sendEnvironmentalSignal({ startup: true, instantPush: true });

@@ -22,10 +22,15 @@ export default class ContentDropdownManager extends BaseDropdownManager {
     input.select();
     window.document.execCommand('copy');
     window.document.body.removeChild(input);
+    this._focus();
   }
 
   _navigateTo(url, newTab) {
     return this.cliqz.core.openLink(url, { newTab });
+  }
+
+  _switchToTab(url) {
+    return this.cliqz.core.openLink(url, { newTab: false, switchTab: true });
   }
 
   _focus() {
@@ -35,7 +40,9 @@ export default class ContentDropdownManager extends BaseDropdownManager {
   }
 
   _isUrlbarFocused() {
-    return this.textInput === document.activeElement;
+    // Both page and urlbar input should be focused
+    return document.visibilityState === 'visible'
+      && this.textInput === document.activeElement;
   }
 
   _setUrlbarValue(value) {
@@ -71,14 +78,6 @@ export default class ContentDropdownManager extends BaseDropdownManager {
     return this.view.state.iframeHeight;
   }
 
-  _getQuery() {
-    const query = this.textInput.value;
-    if (this.hasCompletion) {
-      return query.slice(0, this.textInput.selectionStart);
-    }
-    return query;
-  }
-
   _getUrlbarAttributes() {
     const searchInputStyle = window.getComputedStyle(this.textInput);
     const extraSpace = 22;
@@ -101,8 +100,8 @@ export default class ContentDropdownManager extends BaseDropdownManager {
   }
 
   close() {
+    super.close();
     this.view.setState({
-      iframeHeight: 0,
       focused: false,
     });
   }

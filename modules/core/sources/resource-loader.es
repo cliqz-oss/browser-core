@@ -197,7 +197,7 @@ export default class ResourceLoader extends UpdateCallbackHandler {
     };
   }
 
-  init() {
+  startListeningForUpdates() {
     if (!this.intervalTimer && this.resource.remoteURL) {
       this.intervalTimer = pacemaker.everyFewMinutes(this.updateFromRemote.bind(this));
     }
@@ -208,9 +208,20 @@ export default class ResourceLoader extends UpdateCallbackHandler {
    * a failed promise. Please read `Resource.load` doc string for
    * further information.
    */
-  load() {
-    this.init();
-    return this.resource.load();
+  async load() {
+    const resource = await this.resource.load();
+
+    // Only start listening for updates once we got resource from `load`. This
+    // is necessary because `ResourceLoader` can be used from services (e.g.:
+    // domainInfo), but `startListeningForUpdates` requires `pacemaker` to be
+    // fully initialized for its update interval; doing it on nextTick prevents
+    // any issue due to race condition at initialization time. What could happen
+    // if `startListeningForUpdates` is called before the `pacemaker` service is
+    // initialized is: an exception can be raised from `core/kord/inject` saying
+    // that 'Service "pacemaker" is not available'.
+    this.startListeningForUpdates();
+
+    return resource;
   }
 
   /**

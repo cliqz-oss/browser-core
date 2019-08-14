@@ -183,6 +183,8 @@ function parseProduct(channel, platform) {
     } else if (intChannel !== null && intChannel < 40) {
       // Navigation extension
       product = 'CLIQZ/add-on/Cliqz for Firefox';
+    } else if (channel === 'MA60') {
+      product = 'CLIQZ/android/Concept Browser';
     } else if (channel === 'MA10') {
       product = 'third-party/mobile/Telefonica';
     } else if (channel.startsWith('MA')) {

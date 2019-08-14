@@ -35,7 +35,9 @@ class Pagination extends React.Component {
 
   componentDidMount() {
     this.timer = setInterval(() => this.tick(), ROTATION_INTERVAL);
-    window.addEventListener('keydown', this.onKeyDown);
+    if (this.props.contentType === 'news') {
+      window.addEventListener('keydown', this.onKeyDown);
+    }
     this.setPage(1, { shouldAnimate: false });
   }
 

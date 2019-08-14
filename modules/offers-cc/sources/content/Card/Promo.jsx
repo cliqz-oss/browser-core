@@ -1,6 +1,6 @@
 import React from 'react';
 import send from '../transport';
-import { css, i18n } from '../common/utils';
+import { css, i18n, chooseProduct } from '../common/utils';
 
 const _css = css('card-promo__');
 export default class Promo extends React.Component {
@@ -59,6 +59,7 @@ export default class Promo extends React.Component {
   render() {
     const { products } = this.props;
     const { code, buttonText, copied, isCodeHidden } = this.state;
+    const prefix = chooseProduct(products);
     return (
       <div className={_css('wrapper')}>
         <div className={_css('container')}>
@@ -75,7 +76,7 @@ export default class Promo extends React.Component {
           />
           <span
             onClick={this.onClickCopyCode.bind(this)}
-            className={_css(`${products.chip ? 'chip' : 'myoffrz'}-copy-code`)}
+            className={_css(`${prefix}-copy-code`)}
           >
             {buttonText}
           </span>

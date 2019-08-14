@@ -1,11 +1,11 @@
 import events from '../../core/events';
 import { openLink } from '../../core/browser';
 import telemetry from '../../core/services/telemetry';
-import { copyToClipboard } from '../../core/clipboard';
 import inject from '../../core/kord/inject';
 import * as browserPanel from './browser-panel';
 import * as rewardBox from './reward-box';
-import { filterValues } from '../utils';
+import * as reminder from './reminder';
+import { filterValues, products, chooseProduct } from '../utils';
 
 const core = inject.module('core');
 
@@ -13,6 +13,7 @@ export function send(data, type) {
   const mapper = {
     offers: payload => events.pub('offers-recv-ch', payload),
     telemetry: (...args) => telemetry.push(...args),
+    reminder: payload => events.pub('offers-reminder-recv-ch', payload),
   };
   const noop = () => {};
   (mapper[type] || noop)(data);
@@ -35,15 +36,14 @@ function commonTelemetry(msg, view = 'box') {
 
 export function dispatcher(type, offerId, msg = {}, autoTrigger) {
   const { handler, data, action } = msg;
-  const isRewardBox = type === 'offers-cc';
-  if (!(isRewardBox ? action : handler) || !data) { return; }
+  const isBrowserPanel = type === 'browser-panel';
+  if (!(isBrowserPanel ? handler : action) || !data) { return; }
 
   const mapperBrowserPanel = {
     offersIFrameHandler: payload => browserPanel.actions(offerId, payload),
     sendTelemetry: payload => commonTelemetry(payload, 'bar'),
     offerShown: payload => browserPanel.offerShown(offerId, payload),
     offersFirstAppearance: payload => browserPanel.offersFirstAppearance(offerId, payload),
-    copyToClipboard,
     openUrlHandler: ({ el_id: elId, url } = {}) => {
       browserPanel.specificTelemetry(elId);
       openLink(window, url, true);
@@ -61,9 +61,21 @@ export function dispatcher(type, offerId, msg = {}, autoTrigger) {
       rewardBox.callToAction(payload);
       openLink(window, payload.url, true, !payload.isBackgroundTab);
     },
+    openOptions: () => openLink(window, `/options.html#${chooseProduct(products())}`, true, true),
   };
+
+  const mapperReminder = {
+    sendTelemetry: payload => commonTelemetry(payload, 'reminder'),
+    remindersAction: reminder.actions,
+    sendOfferActionSignal: rewardBox.actions,
+  };
+  const mapper = {
+    'offers-cc': mapperRewardBox,
+    'browser-panel': mapperBrowserPanel,
+    'offers-reminder': mapperReminder,
+  };
+  if (!mapper[type]) { return; }
+  const actionOrHandler = isBrowserPanel ? handler : action;
   const noop = () => {};
-  const mapper = isRewardBox ? mapperRewardBox : mapperBrowserPanel;
-  const actionOrHandler = isRewardBox ? action : handler;
-  (mapper[actionOrHandler] || noop)(data);
+  (mapper[type][actionOrHandler] || noop)(data);
 }

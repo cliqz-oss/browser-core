@@ -58,6 +58,12 @@ export default class CliqzPost extends React.Component {
     this.setState({ displayTooltip: false });
   }
 
+  handleLinkButtonClick = (msg) => {
+    messageClickSignal(this.props.messages[0].id);
+    this.props.handleLinkClick(msg);
+    this.handleCloseCliqzPost(msg);
+  }
+
   handleCTAClick = (msg) => {
     messageClickSignal(this.props.messages[0].id);
     this.handleCloseCliqzPost(msg);
@@ -103,6 +109,15 @@ export default class CliqzPost extends React.Component {
                 </div>
               )
             }
+            {msg.link_button_url && (
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.handleLinkButtonClick(msg)}
+              >
+                {msg.link_button_text}
+              </button>
+            )}
             {msg.cta_url
               && (
                 <Link

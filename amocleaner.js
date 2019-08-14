@@ -67,7 +67,7 @@ cleanFolders('modules', ['tests'], true);
 cleanFolders('modules', ['debug'], true);
 cleanFolders('modules/webextension-specific/dist', ['experimental-apis'], true);
 cleanFolders('modules/webextension-specific/sources', ['experimental-apis'], true);
-cleanFolders('specific', ['cliqz-android', 'firefox', 'node','react-native', 'browser', 'cliqz-tab', 'ghostery-tab', 'offers', 'web'], false);
+cleanFolders('specific', ['cliqz-android', 'firefox', 'node', 'react-native', 'browser', 'cliqz-tab', 'ghostery-tab', 'offers', 'web'], false);
 cleanFolders('platforms', ['node', 'react-native', 'web'], false);
 cleanFolders('configs', ['ci', 'experiments', 'releases'], false);
 

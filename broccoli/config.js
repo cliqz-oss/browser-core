@@ -1,7 +1,3 @@
-/* eslint-disable strict, no-console */
-
-'use strict';
-
 const fs = require('fs');
 const path = require('path');
 
@@ -17,8 +13,6 @@ if (!cliqzConfig.modules) {
 }
 // TODO remove outdated
 cliqzConfig.environment = process.env.CLIQZ_ENVIRONMENT || 'development';
-
-cliqzConfig.use_v6_build = process.env.CLIQZ_V6_BUILD || false;
 
 // source maps
 cliqzConfig.sourceMaps = !(process.env.CLIQZ_SOURCE_MAPS === 'false');

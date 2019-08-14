@@ -1,6 +1,6 @@
 import React from 'react';
 import send from './transport';
-import { css, i18n } from './common/utils';
+import { css, i18n, chooseProduct } from './common/utils';
 
 const _css = css('tooltip__');
 export default class Tooltip extends React.Component {
@@ -14,6 +14,8 @@ export default class Tooltip extends React.Component {
   /* eslint-disable jsx-a11y/no-static-element-interactions */
   render() {
     const { mouseInside } = this.state;
+    const { data: { products = {} } = {} } = this.props;
+    const product = chooseProduct(products);
     return (
       <div
         onMouseEnter={() => this.setState({ mouseInside: true })}
@@ -24,7 +26,7 @@ export default class Tooltip extends React.Component {
           onClick={() => send('getEmptyFrameAndData', { hideTooltip: true })}
           className={_css('left-item')}
         >
-          <div className={_css('image')} />
+          <div className={_css('image-base', `${product}-image`)} />
           <div className={_css('text')}>{i18n('offers_hub_tooltip_new_offer')}</div>
         </div>
         <div

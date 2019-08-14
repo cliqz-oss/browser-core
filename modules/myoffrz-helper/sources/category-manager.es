@@ -4,7 +4,6 @@ import config from '../core/config';
 import CachedMap from '../core/persistence/cached-map';
 import logger from './logger';
 import pacemaker from '../core/services/pacemaker';
-import { parse } from '../core/tlds';
 
 // Common durations
 const ONE_SECOND = 1000;
@@ -34,7 +33,10 @@ export default class ContentCategoryManager {
   }
 
   resetEngine(raw = '') {
-    const filters = Adblocker.parseFilters(raw, { debug: true }).networkFilters;
+    const filters = Adblocker.parseFilters(raw, {
+      debug: true,
+      loadCosmeticFilters: false,
+    }).networkFilters;
 
     // Initialize mapping from filter id to original pattern
     this.id2pattern = new Map(filters.map(filter => [filter.getId(), filter.rawLine]));
@@ -45,12 +47,14 @@ export default class ContentCategoryManager {
     // Reset engine with new filters
     this.engine = new Adblocker.FiltersEngine({
       networkFilters: filters,
-      loadCosmeticFilters: false,
+
       // We currently disable the optimizations since this module relies on the fact
       // that original filters can always be retrieved if there is a match.
       // Moreover, the number of filters is very small so this should not make any
       // difference.
-      enableOptimizations: false,
+      config: new Adblocker.Config({
+        enableOptimizations: false,
+      }),
     });
   }
 
@@ -86,8 +90,7 @@ export default class ContentCategoryManager {
     logger.debug(`check rules for ${url}`);
     const result = { styles: null, productId: null };
     const match = this.engine.match(Adblocker.makeRequest(
-      { url, type: 2, sourceUrl: url },
-      parse,
+      { url, type: 'script', sourceUrl: url },
     ));
     if (match.match) {
       // Get the matching filter

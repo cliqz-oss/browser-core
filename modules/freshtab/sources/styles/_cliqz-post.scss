@@ -1,3 +1,5 @@
+@import 'variables';
+
 .cliqz-post {
 	display:flex;
 	flex-direction: column;
@@ -8,7 +10,7 @@
 	max-height: 80vH;
 	transition: visibility 200s linear 300ms;
 	z-index: 200000;
-	box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.24);
+	box-shadow: 0px 1px 2px 0px get-color-black-opacity(0.24);
 
 	.cliqz-post-icon {
 		display: inline-block;
@@ -17,8 +19,8 @@
 		width: 26px;
 		height: 26px;
 		box-sizing: border-box;
-		background-size: contain;
 		background: url('../images/cliqz_icon.svg') center no-repeat;
+		background-size: contain;
 		z-index: 2;
 	}
 
@@ -59,7 +61,7 @@
 			height:130px;
 			padding:0px;
 			background-size: contain;
-			background-color: #00AEF0;
+			background-color: $color-cliqz-blue;
 			background-position: center;
 			background-repeat: no-repeat;
 		}
@@ -72,7 +74,7 @@
 		left:0;
 		width: 100%;
 		height: 100%;
-		background-color: rgba(0,0,0,0.2);
+		background-color: get-color-black-opacity(0.2);
 	}
 
 	.content {
@@ -82,7 +84,7 @@
 		font-size: 13.5px;
 		font-weight: 400;
 		padding: 18px 18px 18px 18px;
-		color: #525353;
+		color: $color-dark-grey;
 		background-color: #FFFFFF;
 
 		.title {
@@ -112,22 +114,31 @@
 
 	.cta-button-1 {
 		border: 0.5px solid #D1E1F0;
-		color: #0078CA;
+		color: $color-dark-blue;
 		background-color: #F6FAFB;
 
 		&:hover, &:active {
-			border: 0.5px solid #0078CA;
+			border: 0.5px solid $color-dark-blue;
 		}
 	}
 
 	.cta-button-2 {
 		border: none;
 		color: #FFFFFF;
-		background-color: #00AEF0;
+		background-color: $color-cliqz-blue;
 
 		&:hover, &:active {
-		  	background-color: #0078CA;
+		  	background-color: $color-dark-blue;
 		}
+	}
+
+	.link-button {
+		margin-top: 5px;
+		border: none;
+		background: none;
+		color: #00AEF0;
+		font-size: 13.5px;
+		cursor: pointer;
 	}
 
 	.footer {
@@ -146,7 +157,7 @@
 		float: left;
 
 		&:hover {
-			color: #0078CA;
+			color: $color-dark-blue;
 		}
 	}
 
@@ -187,8 +198,8 @@
 		text-align: left;
 		background: #FFF;
 		border-radius: 4px;
-		color: #525353;
-		box-shadow: 3px 5px 10px 1px rgba(0,0,0,0.18);
+		color: $color-dark-grey;
+		box-shadow: 3px 5px 10px 1px get-color-black-opacity(0.18);
 
 		&::after {
 			content: '';
@@ -219,7 +230,7 @@
 		background: url(../images/delete.svg) no-repeat center;
 		background-color: white;
 		border-radius: 18px;
-		box-shadow: 0px 2px 3px -1px rgba(0,0,0,0.18);
+		box-shadow: 0px 2px 3px -1px get-color-black-opacity(0.18);
 		border: 0px;
 		cursor: pointer;
 		overflow: hidden;
@@ -230,7 +241,7 @@
 	}
 
 	&:hover {
-		box-shadow: 0px 3px 8px 0px rgba(0, 0, 0, 0.2);
+		box-shadow: 0px 3px 8px 0px get-color-black-opacity(0.2);
 		transition: box-shadow 300ms;
 	}
 
@@ -250,7 +261,6 @@
 	bottom: 30px;
 	right: 60px;
 }
-
 
 
 

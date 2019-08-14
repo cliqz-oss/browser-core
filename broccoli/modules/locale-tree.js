@@ -221,7 +221,12 @@ module.exports = (() => {
   // Merge locales from modules and specific
   LOCALES = mergeLocales({ LOCALES, localesToMerge: specificLocale });
 
+  // the output must have only the `SUPPORTED_LANGS` from config
+  // but we should keep all the previous steps in place to ensure
+  // that all the locale files are in sync and compatible for
+  // all the configs
+  let supportedLangs = config.settings.SUPPORTED_LANGS || LANGUAGES;
   return new MergeTrees(
-    LANGUAGES.map(lang => writeFile(`_locales/${lang}/messages.json`, formatLocales(LOCALES[lang] || {}))),
+    supportedLangs.map(lang => writeFile(`_locales/${lang}/messages.json`, formatLocales(LOCALES[lang] || {}))),
   );
 })();

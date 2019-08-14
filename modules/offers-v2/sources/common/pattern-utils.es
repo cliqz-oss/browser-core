@@ -3,7 +3,6 @@
  * @class PatternUtils
  * @static
  */
-import { parse } from '../../core/tlds';
 import logger from '../common/offers_v2_logger';
 import PatternMatching from '../../platform/lib/adblocker';
 import { MultiPatternIndex, SimplePatternIndex } from './pattern-utils-imp';
@@ -17,13 +16,13 @@ import { MultiPatternIndex, SimplePatternIndex } from './pattern-utils-imp';
  * @param  {string} theUrl
  * @return {PatternMatchRequest} will be the object needed to parse later
  */
-export default function tokenizeUrl(url, cpt = 2) {
+export default function tokenizeUrl(url, cpt = 'script') {
   if (url) {
     return PatternMatching.makeRequest({
       url,
       type: cpt,
       sourceUrl: url,
-    }, parse);
+    });
   }
   return null;
 }

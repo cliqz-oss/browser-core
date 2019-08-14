@@ -1,13 +1,35 @@
 $color-cliqz-blue: #00AEF0;
-$modal-error-color: #D12F2E;
-$modal-header-color: #464646;
-$modal-button-active-background: #00AEF0;
-$modal-button-hover-background: #0078CA;
-$modal-input-inactive-color: #979797;
+$color-dark-grey: #525353;
+$color-dark-blue: #0078CA;
+$color-green: #54BF30;
+$color-beige: #A7A7A7;
+$color-dark-beige: #979797;
+$color-off-white: #F7F7F7;
+$color-red: #D12F2E;
+
+@function get-color-opacity($color, $opacity) {
+  @if ($color == 'white') {
+    @return rgba(255, 255, 255, $opacity);
+  } @else {
+    @return rgba(0, 0, 0, $opacity);
+  }
+}
+
+@function get-color-black-opacity($opacity) {
+  $get-color: get-color-opacity('black', $opacity);
+  @return $get-color;
+}
+
+@function get-color-white-opacity($opacity) {
+  $get-color: get-color-opacity('white', $opacity);
+  @return $get-color;
+}
+
 $modal-form-width: 440px;
 $modal-form-padding: 35px;
+
+$modal-header-color: #464646;
 $modal-edit-button-background: url(../images/pencil.svg) no-repeat;
 $modal-dial-delete-active-background: url(../images/trashcan-active.svg) no-repeat;
 $modal-dial-delete-hover-background: url(../images/trashcan-hover.svg) no-repeat;
 $modal-dial-invalid-url-background: url(../images/error-icon.svg) no-repeat;
-$overlay-background-color: rgba(0, 0, 0, .24);

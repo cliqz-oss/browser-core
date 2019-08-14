@@ -170,12 +170,14 @@ export default class SafebrowsingEndpoint {
   }
 
   unload() {
-    this.loaded = false;
-    this.hpnv2Sender.unload();
-    this.httpFallback.unload();
+    if (this.loaded) {
+      this.loaded = false;
+      this.hpnv2Sender.unload();
+      this.httpFallback.unload();
 
-    this.pending.clear();
-    this.history.clear();
+      this.pending.clear();
+      this.history.clear();
+    }
   }
 
   async send(msg, { instantPush = false } = {}) {

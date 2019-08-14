@@ -2,7 +2,6 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import ToggleDisplay from 'react-toggle-display';
 
 import Button from './button';
 import Modal from '../modal';
@@ -42,24 +41,27 @@ export default function SpeedDialModal({
       onClick={mainElementOnClick}
       role="presentation"
     >
-      <ToggleDisplay show={state.show}>
-        <Button
-          className={buttonClass}
-          onClick={buttonOnClick}
-          title={buttonTitle}
-        />
-      </ToggleDisplay>
+      {state.show
+        && (
+          <Button
+            className={buttonClass}
+            onClick={buttonOnClick}
+            title={buttonTitle}
+          />
+        )
+      }
+
       <Modal
         className="modal"
         closeAction={handleCloseModal}
         showModal={state.showModal}
       >
         <form
-          className={formClass}
+          className={`modal-form ${formClass}`}
           onSubmit={formOnSubmit}
         >
           <Button
-            className="closeForm"
+            className="close-form"
             onClick={handleCloseModal}
           />
           <div className="modal-header">
@@ -68,12 +70,12 @@ export default function SpeedDialModal({
           <div>
             <TextInput
               autoFocus={!state.showError}
-              className={urlClass}
+              className={`modal-input ${urlClass}`}
               disabled={isFieldDisabled}
               id="url"
               labelClassName={state.showError
-                ? 'errorMessage'
-                : ''}
+                ? 'input-label error-message'
+                : 'input-label'}
               labelValue={state.showError
                 ? errorStr
                 : urlLabel}
@@ -86,8 +88,9 @@ export default function SpeedDialModal({
 
             <div className={formInputClass || 'field'}>
               <TextInput
-                className="title"
+                className="modal-input title"
                 id="title"
+                labelClassName="input-label"
                 labelValue={titleLabel}
                 name="title"
                 onChange={handleFieldChange}

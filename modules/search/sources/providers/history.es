@@ -120,15 +120,17 @@ export default class History extends BaseProvider {
               type: 'action switchtab',
               title: tab.title,
             }));
-          observer.next(
-            getResponse({
-              provider: this.id,
-              config,
-              query,
-              results,
-              state: 'done',
-            })
-          );
+          if (results.length > 0) {
+            observer.next(
+              getResponse({
+                provider: this.id,
+                config,
+                query,
+                results,
+                state: 'done',
+              })
+            );
+          }
           completeIfLast();
         });
       }

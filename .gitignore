@@ -1,6 +1,7 @@
 *.xpi
 *.zip
 *.pyc
+*.tgz
 *~
 *#
 tmp
@@ -26,7 +27,6 @@ node_modules
 firefox-autoconfigs
 
 *.scssc
-generic/static/styles/css/
 npm.err
 npm-debug.log
 testem.log
@@ -38,7 +38,6 @@ report.xml
 subprojects/**/dist
 /docs
 mocha.log
-/guides/build_docs
 chromedriver
 results.xml
 jsengine.bundle.js

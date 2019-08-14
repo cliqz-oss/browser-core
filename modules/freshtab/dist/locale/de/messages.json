@@ -197,6 +197,12 @@
     "freshtab_cliqz_post_adblock_title": {
         "message": "Wusstest du, dass Cliqz einen integrierten Werbeblocker hat?"
     },
+    "freshtab_cliqz_post_privacy_description": {
+        "message": "Cliqz nutzt anonymisierte Nutzungsdaten um den Browser für dich besser zu machen."
+    },
+    "freshtab_cliqz_post_privacy_link": {
+        "message": "Datenübermittlung verwalten"
+    },
     "freshtab_cliqz_post_remind_later": {
         "message": "Später erinnern"
     },
@@ -208,12 +214,6 @@
     },
     "freshtab_history_button": {
         "message": "Chronik"
-    },
-    "freshtab_search_reminder": {
-        "message": "Drücke die Tab-Taste, um zur anonymen Suche zu wechseln!"
-    },
-    "freshtab_search_reminder_action": {
-        "message": ""
     },
     "freshtab_stats_ads_blocked": {
         "message": "Blockierte Werbungen"
@@ -271,6 +271,9 @@
     },
     "learn_more": {
         "message": "Mehr erfahren"
+    },
+    "onboarding_tab_name": {
+        "message": "Willkommen"
     },
     "promo_data_brand_name": {
         "message": "Ghostery - datenschutzorientierter Werbeblocker"

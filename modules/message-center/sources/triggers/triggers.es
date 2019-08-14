@@ -1,3 +1,4 @@
+import config from '../../core/config';
 import i18n from '../../core/i18n';
 import inject from '../../core/kord/inject';
 import prefs from '../../core/prefs';
@@ -50,6 +51,9 @@ const messageFunctions = {
   },
   isDesktopBrowser() {
     return isDesktopBrowser;
+  },
+  onboardingVersion(version) {
+    return prefs.get('onboardingVersion', config.settings.onboardingVersion) === version;
   },
   prefHasNotChanged(prefName) {
     return !prefs.has(prefName);

@@ -2,6 +2,10 @@ import * as tldts from '../platform/lib/tldts';
 
 
 const TLDTS_OPTIONS = {
+  detectIp: true,
+  extractHostname: true,
+  mixedInputs: false,
+  validateHostname: true,
   validHosts: [
     'localhost',
   ],

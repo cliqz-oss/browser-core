@@ -1,0 +1,49 @@
+.promo__wrapper {
+  border: 1px solid #DADADA;
+  background-color: #F2F2F2;
+  border-radius: 4px;
+  width: 225px;
+}
+
+.promo__container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.promo__input {
+  border: none;
+  width: 103px;
+  color: #464646;
+  text-shadow: 0 0 0 #000;
+  background-color: transparent;
+  height: 26px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-left: 5px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.promo__chip-copy-code,
+.promo__freundin-copy-code,
+.promo__myoffrz-copy-code {
+  text-transform: uppercase;
+  font-size: 13px;
+  color: #607c85;
+  display: inline-block;
+  margin-right: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.promo__myoffrz-copy-code:hover {
+  color: #00AEF0;
+}
+.promo__chip-copy-code:hover {
+  color: var(--chip-primary-hover-color, #c93636);
+}
+.promo__freundin-copy-code:hover {
+  color: var(--freundin-primary-hover-color, #da3434);
+}

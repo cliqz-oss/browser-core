@@ -1,6 +1,5 @@
-configs/
+modules/adblocker/sources/mobile.es
 
 modules/core/sources/content.es
-modules/core/sources/pattern-matching.es
 
 modules/human-web/sources/human-web.es

@@ -197,6 +197,12 @@
     "freshtab_cliqz_post_adblock_title": {
         "message": "Did you know that Cliqz can remove ads from websites?"
     },
+    "freshtab_cliqz_post_privacy_description": {
+        "message": "By sending anonymized usage statistics to Cliqz, you help us improve your browsing experience."
+    },
+    "freshtab_cliqz_post_privacy_link": {
+        "message": "Choose what to share"
+    },
     "freshtab_cliqz_post_remind_later": {
         "message": "Remind me later"
     },
@@ -208,12 +214,6 @@
     },
     "freshtab_history_button": {
         "message": "History"
-    },
-    "freshtab_search_reminder": {
-        "message": "Hey! Want to search privately?"
-    },
-    "freshtab_search_reminder_action": {
-        "message": "Click Tab"
     },
     "freshtab_stats_ads_blocked": {
         "message": "Анонимизировано персональных данных"
@@ -271,6 +271,9 @@
     },
     "learn_more": {
         "message": "Learn more"
+    },
+    "onboarding_tab_name": {
+        "message": "Welcome"
     },
     "promo_data_brand_name": {
         "message": "Ghostery - персональный блокировщик рекламы"

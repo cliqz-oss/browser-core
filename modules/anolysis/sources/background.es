@@ -218,7 +218,7 @@ export default background({
 
   events: {
     prefchange(pref) {
-      // Detect new days and trigger retention signals/aggregation accordingly.
+      // Detect new days and trigger aggregation accordingly.
       if (pref === 'config_ts') {
         if (this.isAnolysisInitialized()) {
           // Notify anolysis that the date just changed.

@@ -1,4 +1,5 @@
 import { chrome } from '../platform/globals';
+import events from '../core/events';
 import * as transport from './transport/index';
 
 export default class Popup {
@@ -39,6 +40,7 @@ export default class Popup {
       const payload = await this.getOffers();
       sendResponse({ action: 'pushData', data: payload.data });
       this._sendTelemetry();
+      events.pub('ui:click-on-reward-box-icon', {});
     } else {
       sendResponse({});
     }

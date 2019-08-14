@@ -1,10 +1,11 @@
 import { fetch } from '../../core/http';
 import logger from '../common/offers_v2_logger';
+import { fromUTF8 } from '../../core/encoding';
 
 
 const clients = {
   mytoys: {
-    searchUrl: 'https://www.mytoys.de/suche/{#QUERY#}',
+    searchUrl: 'https://www.mytoys.de/suche/{#QUERY#}/',
   },
   cyberport: {
     searchUrl: 'https://www.cyberport.de/tools/search-results.html?autosuggest=false&q={#QUERY#}',
@@ -80,7 +81,18 @@ function _getResultCountFromText(pageText, query) {
 
 function arrayBufferToString(buffer, encoding) {
   const byteArray = new Uint8Array(buffer);
-  const string = new TextDecoder(encoding).decode(byteArray);
+  let string;
+  // No support for TextDecoder on Edge
+  if (encoding.toLowerCase() === 'utf-8') {
+    string = fromUTF8(byteArray);
+  } else {
+    try {
+      string = new TextDecoder(encoding).decode(byteArray);
+    } catch (e) {
+      logger.error(e);
+      string = '';
+    }
+  }
   return string;
 }
 
@@ -105,7 +117,7 @@ function getSearchUrl(query, monitors) {
   const client = selectClient(monitors);
   if (client && client in clients) {
     searchUrlTemplate = clients[client].searchUrl;
-    const searchUrl = searchUrlTemplate.replace('{#QUERY#}', encodeURI(query));
+    const searchUrl = searchUrlTemplate.replace('{#QUERY#}', encodeURIComponent(query));
     return searchUrl;
   }
   return undefined;
@@ -146,7 +158,8 @@ function getImageSrc(node) {
  * Groups page images based on the class of the tag and its parent
  */
 function groupImagesByStyle(dom) {
-  const nodes = [...dom.getElementsByTagName('img')];
+  // Edge compatible
+  const nodes = Array.from(dom.getElementsByTagName('img'));
   const groups = {};
   nodes.forEach((node) => {
     const key = `${node.parentNode.tagName}#${node.parentNode.getAttribute('class')}#${node.getAttribute('class')}`;
@@ -203,13 +216,17 @@ async function getDynamicContent(offer, urlData, catMatches) {
     if (!offer.shouldShowDynamicOffer()) {
       return offer;
     }
-    const key = offer.offerObj.categories.find(cat => catMatches.matches.has(cat));
-    const query = _guessQuery(urlData.getNormalizedUrl(), catMatches.matches.get(key)[0]);
-    if (!query) {
-      logger.log('_guessQuery: No query found for', urlData.getNormalizedUrl(), catMatches.matches.get(key)[0]);
+    const matchPatterns = catMatches.getMatchPatterns(offer.categories);
+    const pattern = matchPatterns.next().value;
+    if (!pattern) {
       return offer;
     }
-    logger.log(`_guessQuery: "${query}" found for url: ${urlData.getNormalizedUrl()} and pattern: ${catMatches.matches.get(key)[0]}`);
+    const query = _guessQuery(urlData.getNormalizedUrl(), pattern);
+    if (!query) {
+      logger.log('_guessQuery: No query found for', urlData.getNormalizedUrl(), pattern);
+      return offer;
+    }
+    logger.log(`_guessQuery: "${query}" found for url: ${urlData.getNormalizedUrl()} and pattern: ${pattern}`);
 
     const searchUrl = getSearchUrl(query, offer.offerObj.monitorData);
     if (!searchUrl) {

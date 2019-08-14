@@ -1,6 +1,5 @@
 import { getGeneralDomain } from '../../core/tlds';
 import logger from '../common/offers_v2_logger';
-import { rewriteUrlForOfferMatching } from '../utils';
 import annotateWithShopId from './features/shop-id';
 import annotateAsClickShop from './features/click-shop';
 
@@ -73,8 +72,7 @@ export default class JourneyCollector {
    * @param {string} url  where from the feature is extracted
    * @param {string} referrer  optional
    */
-  addFeature({ feature, url: urlIn, referrer }) {
-    const url = urlIn && rewriteUrlForOfferMatching(urlIn);
+  addFeature({ feature, url, referrer }) {
     //
     // Get the last step
     //

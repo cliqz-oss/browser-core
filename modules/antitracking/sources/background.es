@@ -239,7 +239,7 @@ export default background({
       return false;
     },
 
-    telemetry(msg) {
+    telemetry(msg, schema) {
       if (msg.includeUnsafeCount) {
         delete msg.includeUnsafeCount;
         const info = this.attrack.getCurrentTabBlockingInfo();
@@ -251,7 +251,7 @@ export default background({
         msg.special = info.error !== undefined;
       }
       msg.type = 'antitracking';
-      telemetryService.push(msg);
+      telemetryService.push(msg, schema);
     }
   },
 
@@ -299,7 +299,7 @@ export default background({
         this.popupActions.telemetry({
           action: 'click',
           target: 'whitelist_domain'
-        });
+        }, 'metrics.legacy.antitracking');
       }
     },
     'antitracking:whitelist:remove': function (hostname, isPrivateMode) {
@@ -308,7 +308,7 @@ export default background({
         this.popupActions.telemetry({
           action: 'click',
           target: 'unwhitelist_domain'
-        });
+        }, 'metrics.legacy.antitracking');
       }
     },
     'control-center:antitracking-strict': () => {
@@ -326,7 +326,7 @@ export default background({
         this.popupActions.telemetry({
           action: 'click',
           target: 'clearcache',
-        });
+        }, 'metrics.legacy.antitracking');
       }
     },
   },

@@ -28,7 +28,7 @@
   "background": {
     "scripts": [
       "modules/vendor/dexie.min.js",
-      "modules/cliqz-android/app.bundle.js"
+      "modules/webextension-specific/app.bundle.js"
     ]
   },
   "content_scripts": [

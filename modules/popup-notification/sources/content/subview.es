@@ -1,11 +1,11 @@
 import { getTemplate } from './template';
-import { createElement, copySelectedText } from './utils';
+import { createElement, copySelectedText, chooseProduct } from './utils';
 
 export default function subview({ chrome, window, config, onCancel, onApply, onCopyCode }) {
   const container = createElement(window, { tag: 'div', className: 'container' });
   container.innerHTML = getTemplate(chrome, {
     ...config,
-    logoText: config.ghostery ? '&nbsp;' : 'MyOffrz',
+    logoText: chooseProduct(config.products) !== 'myoffrz' ? '&nbsp;' : 'MyOffrz',
   });
 
   ['btn-close', 'btn-cancel'].forEach((cls) => {

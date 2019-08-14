@@ -24,6 +24,8 @@ function Modal({
   );
 }
 
+ReactModal.setAppElement('#root');
+
 Modal.propTypes = {
   className: PropTypes.string,
   closeAction: PropTypes.func,

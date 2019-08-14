@@ -2,15 +2,12 @@ import { getResourceUrl, isCliqzBrowser, isWebExtension } from '../../core/platf
 import config from '../../core/config';
 import { getMessage } from '../../core/i18n';
 import prefs from '../../core/prefs';
-import { getTitleColor } from '../utils';
-import calculateValidity from './helpers';
+import { getTitleColor, products } from '../utils';
+import { calculateValidity } from './helpers';
 
 function commonData() {
   return {
-    products: {
-      cliqz: isCliqzBrowser,
-      chip: prefs.get('is-offers-chip-standalone'),
-    },
+    products: products(),
 
     // the next two for browser-panel
     isCliqzBrowser,
@@ -23,6 +20,7 @@ function popup(uiInfo, {
   offerId,
   lastUpdateTs,
   expirationMs,
+  relevant,
   attrs: { state: offerState = 'new', isCodeHidden },
 }) {
   const { template_data: templateData = {}, template_name: templateName = {} } = uiInfo;
@@ -42,6 +40,7 @@ function popup(uiInfo, {
   return {
     created: createdTs,
     last_update: lastUpdateTs,
+    relevant,
     state: offerState,
     template_name: templateName,
     template_data: templateData,
@@ -107,6 +106,7 @@ function popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs }, optio
     config: {
       url: getResourceUrl('offers-cc/index.html?cross-origin'),
       type: 'offers-cc',
+      products: products(),
     },
     data: {
       ...commonData(),
@@ -143,6 +143,7 @@ function tooltipWrapper(offerId, {
     config: {
       url: getResourceUrl('offers-cc/index.html?cross-origin'),
       type: 'offers-cc',
+      products: products(),
     },
   };
   return [true, payload];
@@ -167,6 +168,7 @@ export function transformMany({ offers, preferredOffer } = {}) {
     const {
       last_update_ts: lastUpdateTs,
       created_ts: createdTs,
+      relevant,
       attrs,
       offer_id: offerId,
       offer_info: offerInfo = {}
@@ -177,16 +179,18 @@ export function transformMany({ offers, preferredOffer } = {}) {
       createdTs,
       offerId,
       lastUpdateTs,
+      relevant,
       expirationMs,
       attrs,
     });
   }).filter(Boolean);
 
-  newOffers.sort((a, b) => (b.last_update - a.last_update));
+  newOffers.sort((a, b) => (b.relevant - a.relevant || b.last_update - a.last_update));
   const offersConfig = {
     url: getResourceUrl('offers-cc/index.html?cross-origin'),
     type: 'offers-cc',
     waitBeforeShowing: 15,
+    products: products(),
   };
   const newPreferredOffer = newOffers.find(elem => elem.offer_id === preferredOfferId);
   if (newPreferredOffer) {

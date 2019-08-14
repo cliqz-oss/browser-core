@@ -5,8 +5,9 @@ import App from './components/app';
 import checkIfChromeReady from '../../core/content/ready-promise';
 import cliqz from './cliqz';
 import config from '../../core/config';
+import { tt } from './i18n';
 
-const EXPECTED_ONBOARDING_VERSION = '3.1';
+const EXPECTED_ONBOARDING_VERSION = 3;
 
 const renderDOM = async (rootElement, freshtabConfig) => {
   ReactDOM.render(
@@ -21,21 +22,14 @@ const renderDOM = async (rootElement, freshtabConfig) => {
   const rootElement = document.getElementById('root');
   await checkIfChromeReady();
   const freshtabConfig = await cliqz.freshtab.getConfig();
-  if (config.settings.onBoardingVersion === EXPECTED_ONBOARDING_VERSION) {
-    const { isUserOnboarded } = freshtabConfig;
-    if (!isUserOnboarded) {
-      document.body.className = '';
-      const iframe = document.createElement('iframe');
-      iframe.src = chrome.runtime.getURL('modules/onboarding-v3/index.html');
-      iframe.style.position = 'fixed';
-      iframe.style.width = '100%';
-      iframe.style.height = '100%';
-      iframe.style.border = '0';
-      rootElement.appendChild(iframe);
-    } else {
-      renderDOM(rootElement, freshtabConfig);
-    }
-  } else {
-    renderDOM(rootElement, freshtabConfig);
+  const { isUserOnboarded, onboardingVersion } = freshtabConfig;
+  if (config.settings.onboardingVersion >= EXPECTED_ONBOARDING_VERSION && !isUserOnboarded) {
+    document.title = tt('onboarding_tab_name');
+    document.body.className = '';
+    const iframe = document.createElement('iframe');
+    iframe.src = chrome.runtime.getURL(`modules/onboarding-v${onboardingVersion}/index.html`);
+    iframe.id = 'onboarding';
+    document.body.appendChild(iframe);
   }
+  renderDOM(rootElement, freshtabConfig);
 })();

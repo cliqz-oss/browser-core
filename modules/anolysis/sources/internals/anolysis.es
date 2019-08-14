@@ -4,12 +4,10 @@
 import moment from '../../platform/lib/moment';
 import pacemaker from '../../core/services/pacemaker';
 
-import GIDManager from './gid-manager';
 import Preprocessor from './preprocessor';
 import SignalQueue from './signals-queue';
 import getSynchronizedDate, { DATE_FORMAT } from './synchronized-date';
 import logger from './logger';
-import updateRetentionState from './retention';
 import signalDefinitions from '../telemetry-schemas';
 
 export default class Anolysis {
@@ -39,11 +37,6 @@ export default class Anolysis {
     // messages are sent by batch, so that we can control the throughput.
     this.signalQueue = new SignalQueue(config);
 
-    // Manage demographics and safe group ids. This will ensure that the user
-    // reports safely at any point of time. The `getGID` method of this object
-    // will be called before sending any telemetry to check for an existing GID.
-    this.gidManager = new GIDManager(config);
-
     // Healthy until proven otherwise!
     this.isHealthy = true;
   }
@@ -72,7 +65,6 @@ export default class Anolysis {
     }
 
     if (this.isHealthy) {
-      this.gidManager.init(this.storage.gid);
       this.signalQueue.init(this.storage.signals);
       this.running = true;
     } else {
@@ -114,37 +106,18 @@ export default class Anolysis {
 
   async onNewDay(date) {
     if (date !== this.currentDate) {
-      // This can be run async since calling two times the same method will
-      // resolve to the same Promise object.
-      this.gidManager.getGID();
-
       logger.log('Generate aggregated signals (new day)', this.currentDate, date);
       this.currentDate = date;
-
-      await this.updateRetentionState();
 
       logger.log('Run aggregation tasks');
       await this.runDailyTasks();
     }
   }
 
-  async updateRetentionState() {
-    const state = await this.storage.retention.getState();
-    logger.debug('retention state', state);
-
-    // `state` is updated by the `updateRetentionState` function to keep
-    // track of the current activity. This state will be made available to
-    // aggregation tasks.
-    await this.storage.retention.setState(updateRetentionState(state));
-  }
-
   async runDailyTasks() {
     let offset = 0; // offset 0 means 'today', offset 1 = 'yesterday', etc.
     const startDay = getSynchronizedDate();
-    const stopDay = moment.max(
-      moment(this.gidManager.getNewInstallDate(), DATE_FORMAT),
-      getSynchronizedDate().subtract(30, 'days'),
-    );
+    const stopDay = getSynchronizedDate().subtract(30, 'days');
 
     let date = startDay;
     while (this.running && stopDay.isSameOrBefore(date, 'day')) {
@@ -175,23 +148,12 @@ export default class Anolysis {
    * in a queue (persisted on disk), and then sent async.
    */
   async runTasksForDay(date, offset) {
-    // Retrieve retention state to be used by analyses. Because the
-    // retention state is already updated with the activity of today, it means
-    // that aggregation for past days have access "to the future" of the user.
-    const retention = await this.storage.retention.getState();
-
     // Most of the time, aggregations will be performed using metrics from the
     // past (usually from the previous day). An `offset` of value 0 means that
     // we are running an aggregation task for the current day; consequently,
     // metrics are not fully collected and it is not possible to get access to
     // the metrics, as they would give a partial (and wrong) view of the user's
-    // activity. You can still access retention data though. This is useful for
-    // a few things:
-    //
-    // 1. generating retention signals, which needs to happen every day as soon
-    // as possible and we do not need to access metrics from the past.
-    // 2. sending activity signals (similar to retention)
-    // 3. emitting metrics from aggregation functions (e.g.: abtest metrics).
+    // activity.
     let records = null;
     let numberOfSignals = 0;
     if (offset !== 0) {
@@ -228,7 +190,6 @@ export default class Anolysis {
                 date,
                 dateMoment: moment(date, DATE_FORMAT),
                 records,
-                retention,
               });
 
               await Promise.all(signals.map(
@@ -293,21 +254,26 @@ export default class Anolysis {
         if (isSendToBackend && !isLegacy) {
           logger.debug('Signal is sendToBackend', processedSignal);
 
-          return (schema.needsGid ? this.gidManager.getGID() : Promise.resolve(''))
-            .then((gid) => {
-              processedSignal.meta = meta;
+          let gid = '';
+          if (schema.needsGid) {
+            const demographics = this.config.get('demographics');
+            if (demographics) {
+              gid = JSON.stringify(demographics);
+            }
+          }
 
-              // NOTE: If `gid` is empty, it's also fine, as we still want
-              // to receive signals for users not having a safe GID. In
-              // this case, such users will form a group on their own.
-              processedSignal.meta.gid = gid;
+          processedSignal.meta = meta;
 
-              // Allow versioning of signals.
-              processedSignal.meta.version = schema.version;
+          // NOTE: If `gid` is empty, it's also fine, as we still want
+          // to receive signals for users not having a safe GID. In
+          // this case, such users will form a group on their own.
+          processedSignal.meta.gid = gid;
 
-              // Push signal to be sent as soon as possible.
-              return this.signalQueue.push(processedSignal, { force });
-            });
+          // Allow versioning of signals.
+          processedSignal.meta.version = schema.version;
+
+          // Push signal to be sent as soon as possible.
+          return this.signalQueue.push(processedSignal, { force });
         }
 
         // if (!isSendToBackend || isLegacy) {

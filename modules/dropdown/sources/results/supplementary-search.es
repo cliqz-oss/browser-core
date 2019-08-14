@@ -43,10 +43,6 @@ export default class SupplementarySearchResult extends BaseResult {
     return this.rawResult.data.extra.searchEngineName;
   }
 
-  get url() {
-    return this.rawResult.data.extra.mozActionUrl;
-  }
-
   get defaultSearchResult() {
     return this.rawResult.provider === 'instant';
   }

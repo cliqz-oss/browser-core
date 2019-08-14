@@ -1,31 +1,18 @@
-/* eslint no-param-reassign: off */
-
 import { registerContentScript } from '../core/content/helpers';
 import Handler from './content/handler';
 
-const onAction = ({ type, offerId, CLIQZ, autoTrigger }) => (msg) => {
+const onAction = (CLIQZ, { type, offerId, autoTrigger }) => (msg) => {
   CLIQZ.app.modules['offers-banner'].action('send', type, offerId, msg, autoTrigger);
 };
 
 function renderBanner(payload, CLIQZ, handler) {
   const { offerId, config, autoTrigger, data } = payload;
-  const action = onAction({
-    type: config.type,
-    offerId,
-    CLIQZ,
-    autoTrigger,
-  });
-  handler.payload = data.isPair
+  const onaction = onAction(CLIQZ, { type: config.type, offerId, autoTrigger });
+  const newPayload = data.isPair
     ? { ...data, popup: { ...data.popup, autoTrigger } }
     : { ...data, autoTrigger };
-  handler.config = config;
-  handler.onaction = action;
 
-  if (autoTrigger) {
-    handler.showBanner();
-  } else {
-    handler.toggleBanner();
-  }
+  handler.showBanner({ config, onaction, payload: newPayload });
 }
 
 registerContentScript('offers-banner', 'http*', function contentScript(window, chrome, CLIQZ) {

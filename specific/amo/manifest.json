@@ -64,6 +64,7 @@
   ],
   "web_accessible_resources": [
     "modules/browser-panel/index.html",
-    "modules/offers-cc/index.html"
+    "modules/offers-cc/index.html",
+    "modules/offers-reminder/index.html"
   ]
 }

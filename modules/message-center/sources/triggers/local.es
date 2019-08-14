@@ -21,6 +21,10 @@ export default function getLocalMessages() {
         },
         {
           fn: 'isDesktopBrowser'
+        },
+        {
+          fn: 'onboardingVersion',
+          value: 3,
         }
       ]
     },
@@ -49,6 +53,31 @@ export default function getLocalMessages() {
           fn: 'installDaysSinceEpochLessThan',
           value: 18052, // Tue, Jun 05, 2019 - 1.37.0 released date
         },
+      ],
+    },
+    {
+      id: 'data-banner',
+      active: true,
+      version: 1,
+      type: 'notification',
+      title: '',
+      description: getMessage('freshtab_cliqz_post_privacy_description'),
+      icon: '',
+      supplementary_link_text: '',
+      supplementary_link_url: '',
+      cta_text: '',
+      cta_url: '',
+      cta_tooltip: '',
+      link_button_text: getMessage('freshtab_cliqz_post_privacy_link'),
+      link_button_url: 'home-action:openPrivacySettings',
+      handler: 'MESSAGE_HANDLER_FRESHTAB_CLIQZPOST',
+      position: 'post',
+      show_later: false,
+      rules: [
+        {
+          fn: 'onboardingVersion',
+          value: 4,
+        }
       ],
     },
   ];

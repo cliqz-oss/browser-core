@@ -27,8 +27,8 @@ function StatsBox({
     >
       <p className="stats-title" title={title}>{title}</p>
       <p className="stats-value">
-        <span style={{ '--mask-image': `url(../${icon})` }} />
-        <span>{val}</span>
+        <span className="stats-mask" style={{ '--mask-image': `url(../${icon})` }} />
+        <span className="stats-val">{val}</span>
       </p>
       <p className="stats-description">{description}</p>
       <p className="learn-more">{tt('learn_more')}</p>
@@ -81,7 +81,7 @@ function StatsEmptyBox({
           {name}
         </p>
         <p className="description">
-          <span>
+          <span className="description-text">
             {description}
           </span>
           <a className="learn-more" href={learnMore.link}>
@@ -90,7 +90,7 @@ function StatsEmptyBox({
         </p>
       </div>
       <div className="buttons">
-        <div>
+        <div className="btn-wrap">
           {buttons.map(button =>
             (
               <a

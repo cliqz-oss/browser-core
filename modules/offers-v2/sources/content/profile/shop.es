@@ -8,7 +8,7 @@ function hasWordShopInTitle(document) {
 }
 
 function hasClassCart(document) {
-  const classed = document.querySelectorAll('*[class*=cart i], *[class*=basket i]');
+  const classed = document.querySelectorAll('*[class*=cart], *[class*=basket]');
   for (const node of classed) {
     const className = node.className;
     if (reCart.test(className) || reBasket.test(className)) {
@@ -19,13 +19,16 @@ function hasClassCart(document) {
 }
 
 function hasKeywordInIconProperties(document) {
+  // MS Edge doesn't support case-insensitive queries.
+  // Let's hope nobody writes in upper case,
+  // but support title case but dropping a first letter
   const images = document.querySelectorAll(`
-    img[src*="cart" i],
-    img[src*="warenkorb" i],
-    img[title*="cart" i],
-    img[title*="warenkorb" i],
-    img[alt*="cart" i],
-    img[alt*="warenkorb" i]
+    img[src*="cart"],
+    img[src*="warenkorb"],
+    img[title*="art"],
+    img[title*="arenkorb"],
+    img[alt*="art"],
+    img[alt*="arenkorb"]
    `);
   for (const img of images) {
     for (const re of [reCart, reWarenkorb]) {

@@ -12,6 +12,7 @@
  */
 import events from '../../core/events';
 import logger from '../common/offers_v2_logger';
+import { ImageDownloaderForBatch } from './image-downloader';
 import ActionID from './actions-defs';
 import Offer from './offer';
 
@@ -51,6 +52,7 @@ export default class OffersAPI {
 
     // signal handler
     this.sigHandler = sigHandler;
+    this.imageDownloader = new ImageDownloaderForBatch();
   }
 
   // /////////////////////////////////////////////////////////////////////////////
@@ -194,30 +196,63 @@ export default class OffersAPI {
    * }
    * </pre>
    * @return {[type]}      [description]
+   *
+   * Downloading offer images:
+   *
+   * - Offer images should have been downloaded before offer-push.
+   *   An offer without images in OfferDB is an error path.
+   * - Image is already successfully downloaded if `dataurl` field
+   *   is indeed encoded as data url.
+   * - Otherwise, there was an error downloading image, and then
+   *   the field contains FALLBACK_IMAGE (from `image-downloader.es`)
+   * - In transition between extension versions, the field can be empty.
+   *   For the first moment, the image downloader uses `url` as a fallback
+   *   and then starts to download the image.
+   *
    */
   getStoredOffers(args) {
     const rawOffers = this.offersDB.getOffers();
     const filters = args ? args.filters : null;
-    if (!filters) { return rawOffers.map(o => this._transformRawOffer(o)); }
-    const result = rawOffers
-      .filter((offerElement) => {
-        const rsDest = (offerElement.offer && offerElement.offer.rs_dest) || [];
-        if (filters.ensure_has_dest && rsDest.length === 0) { return false; }
-        if (!filters.by_rs_dest || rsDest.length === 0) { return true; }
+    let result;
+    if (!filters) {
+      result = rawOffers.map(o => this._transformRawOffer(o));
+    } else {
+      result = rawOffers
+        .filter((offerElement) => {
+          const rsDest = (offerElement.offer && offerElement.offer.rs_dest) || [];
+          if (filters.ensure_has_dest && rsDest.length === 0) { return false; }
+          if (!filters.by_rs_dest || rsDest.length === 0) { return true; }
 
-        const realEstatesSet = typeof filters.by_rs_dest === 'string'
-          ? new Set([filters.by_rs_dest])
-          : new Set(filters.by_rs_dest);
-        const hasDest = rsDest.some(dre => realEstatesSet.has(dre));
-        return hasDest;
-      })
-      .map(o => this._transformRawOffer(o));
+          const realEstatesSet = typeof filters.by_rs_dest === 'string'
+            ? new Set([filters.by_rs_dest])
+            : new Set(filters.by_rs_dest);
+          const hasDest = rsDest.some(dre => realEstatesSet.has(dre));
+          return hasDest;
+        })
+        .map(o => this._transformRawOffer(o));
+    }
+    this.imageDownloader.markBatch();
     return result;
   }
 
   /* eslint-disable camelcase */
   _transformRawOffer({ offer_id, offer, created, last_update }) {
   /* eslint-enable camelcase */
+    // sync fill `dataurl` fields with an image or fallback
+    // async download an image and update `dataurl` fields
+    const tpl = offer.ui_info.template_data;
+    if (tpl) { // Quicksearch offers are stored without `template_data`
+      this.imageDownloader.download(
+        tpl.logo_url,
+        tpl.logo_dataurl,
+        (dataurl) => { tpl.logo_dataurl = dataurl; }
+      );
+      this.imageDownloader.download(
+        tpl.picture_url,
+        tpl.picture_dataurl,
+        (dataurl) => { tpl.picture_dataurl = dataurl; }
+      );
+    }
     return {
       offer_info: offer,
       created_ts: created,
@@ -519,8 +554,11 @@ export default class OffersAPI {
     if (isCodeHidden && ['offer_ca_action', 'code_copied'].includes(msg.data.action_id)) {
       this.offersDB.addOfferAttribute(offerID, 'isCodeHidden', false);
       const code = this.offersDB.getOfferTemplateData(offerID).code;
+      const [dest] = this._getDestRealStatesForOffer(offerID);
       const url = `offers/${encodeURIComponent(offerID)}/code-was-used/`;
-      if (code) { this.backendConnector.sendApiRequest(url, { code }, 'POST'); }
+      if (code && dest) {
+        this.backendConnector.sendApiRequest(url, { code, real_estate: dest }, 'POST');
+      }
     }
 
     // send signal and add it as action on the offer list

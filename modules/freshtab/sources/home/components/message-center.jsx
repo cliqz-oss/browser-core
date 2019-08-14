@@ -45,6 +45,7 @@ export default class MessageCenter extends React.Component {
     if (position === 'post' && this.state.cliqzpost.length > 0) {
       return (
         <CliqzPost
+          handleLinkClick={this.props.handleLinkClick}
           positioning={this.props.positioning}
           messages={this.state.cliqzpost}
         />

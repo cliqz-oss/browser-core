@@ -1,9 +1,18 @@
-var ConfigReplace = require('broccoli-config-replace');
+const ConfigReplace = require('broccoli-config-replace');
 
-function injectVars(str, config) {
-  return str.replace(/\{\{(.*?)\}\}/g, function(i, match) {
-    return config[match];
-  });
+function injectconsts(str, config) {
+  return str.replace(/\{\{(.*?)\}\}/g, (i, match) => config[match]);
+}
+
+function updateUrl(url, config) {
+  if (url) {
+    return [
+      '<em:updateURL>',
+      injectconsts(url, config),
+      '</em:updateURL>',
+    ].join('');
+  }
+  return '';
 }
 
 const now = Date.now();
@@ -17,139 +26,115 @@ module.exports = {
       patterns: [
         {
           match: /\{\{CONFIG\}\}/g,
-          replacement: config => JSON.stringify(config)
+          replacement: JSON.stringify,
         },
         {
-          match: /\_\_CONFIG\_\_/g,
-          replacement: config => JSON.stringify(config)
+          match: /__CONFIG__/g,
+          replacement: JSON.stringify,
         },
         {
           match: /\{\{id\}\}/g,
-          replacement: config => config.settings.id
+          replacement: ({ settings: { id } }) => id,
         },
         {
           match: /\{\{key\}\}/g,
-          replacement: config => config.key,
+          replacement: ({ key }) => key,
         },
         {
           match: /\{\{description\}\}/g,
-          replacement: config => config.settings.description
+          replacement: ({ settings: { description } }) => description,
         },
         {
           match: /\{\{name\}\}/g,
-          replacement: config => config.settings.name
+          replacement: ({ settings: { name } }) => name,
         },
         {
           match: /\{\{timestamp\}\}/g,
-          replacement: config => now,
+          replacement: () => now,
         },
         {
           match: /\{\{codeVersion\}\}/g,
-          replacement: config => config.EXTENSION_VERSION
+          replacement: ({ EXTENSION_VERSION }) => EXTENSION_VERSION,
         },
         {
           match: /\{\{version\}\}/g,
-          replacement: config => config.VERSION
+          replacement: ({ VERSION }) => VERSION,
         },
         {
           match: /\{\{artifactUrl\}\}/g,
-          replacement: config => config.artifactUrl
+          replacement: ({ artifactUrl }) => artifactUrl,
         },
         {
           match: /\{\{updateUrl\}\}/g,
-          replacement: config => process.env['CLIQZ_BETA'] === 'True' ? config.updateURLbeta : config.updateURL,
+          replacement: _config => (process.env.CLIQZ_BETA === 'True' ? _config.updateURLbeta : _config.updateURL),
         },
         {
           match: /\{\{rdfUpdateURL\}\}/g,
-          replacement: config => {
-            if (config.updateURL) {
-              var url = config.updateURL;
-              url = injectVars(url, config);
-              return [
-                "<em:updateURL>",
-                url,
-                "</em:updateURL>",
-              ].join("");
-            } else {
-              return "";
-            }
-          }
+          replacement: (_config) => { updateUrl(_config.updateURL, _config); }
         },
         {
           match: /\{\{rdfUpdateURLbeta\}\}/g,
-          replacement: config => {
-            if (config.updateURLbeta) {
-              var url = config.updateURLbeta;
-              url = injectVars(url, config);
-              return [
-                "<em:updateURL>",
-                url,
-                "</em:updateURL>",
-              ].join("");
-            } else {
-              return "";
-            }
-          }
+          replacement: (_config) => { updateUrl(_config.updateURLbeta, _config); }
         },
         {
           match: /\{\{rdfHomepageURL\}\}/g,
-          replacement: config => config.settings.homepageURL || ''
+          replacement: ({ settings: { homepageURL } }) => homepageURL || ''
         },
         {
           match: /\{\{ENDPOINT_PATTERNSURL\}\}/g,
-          replacement: config => config.settings.ENDPOINT_PATTERNSURL || ''
+          replacement: ({ settings: { ENDPOINT_PATTERNSURL } }) => ENDPOINT_PATTERNSURL || ''
         },
         {
           match: /\{\{ENDPOINT_ANONPATTERNSURL\}\}/g,
-          replacement: config => config.settings.ENDPOINT_ANONPATTERNSURL || ''
+          replacement: ({ settings: { ENDPOINT_ANONPATTERNSURL } }) => ENDPOINT_ANONPATTERNSURL || ''
         },
         {
           match: /\{\{ENDPOINT_SAFE_QUORUM_ENDPOINT\}\}/g,
-          replacement: config => config.settings.ENDPOINT_SAFE_QUORUM_ENDPOINT || ''
+          replacement: ({ settings: { ENDPOINT_SAFE_QUORUM_ENDPOINT } }) => ENDPOINT_SAFE_QUORUM_ENDPOINT || ''
         },
         {
           match: /\{\{ENDPOINT_SAFE_QUORUM_PROVIDER\}\}/g,
-          replacement: config => config.settings.ENDPOINT_SAFE_QUORUM_PROVIDER || ''
+          replacement: ({ settings: { ENDPOINT_SAFE_QUORUM_PROVIDER } }) => ENDPOINT_SAFE_QUORUM_PROVIDER || ''
         },
         {
           match: /\{\{MSGCHANNEL\}\}/g,
-          replacement: config => config.settings.MSGCHANNEL || ''
+          replacement: ({ settings: { MSGCHANNEL } }) => MSGCHANNEL || ''
         },
         {
           match: /\{\{HW_CHANNEL\}\}/g,
-          replacement: config => config.settings.HW_CHANNEL || ''
+          replacement: ({ settings: { HW_CHANNEL } }) => HW_CHANNEL || ''
         },
         {
           match: /\{\{CONFIG_PROVIDER\}\}/g,
-          replacement: config => config.settings.CONFIG_PROVIDER || ''
+          replacement: ({ settings: { CONFIG_PROVIDER } }) => CONFIG_PROVIDER || ''
         },
         {
           match: /\{\{FRESHTAB_TITLE\}\}/g,
-          replacement: config => config.settings.FRESHTAB_TITLE || ''
+          replacement: ({ settings: { FRESHTAB_TITLE } }) => FRESHTAB_TITLE || ''
         },
         {
           match: /\{\{CUSTOM_MANIFEST_ENTRY\}\}/g,
-          replacement: config => config.CUSTOM_MANIFEST_ENTRY || ''
+          replacement: ({ CUSTOM_MANIFEST_ENTRY }) => CUSTOM_MANIFEST_ENTRY || ''
         },
         {
           match: /\{\{CUSTOM_MANIFEST_PAGE_ACTION_POPUP\}\}/g,
-          replacement: config => config.CUSTOM_MANIFEST_PAGE_ACTION_POPUP || ''
+          replacement: ({ CUSTOM_MANIFEST_PAGE_ACTION_POPUP }) => CUSTOM_MANIFEST_PAGE_ACTION_POPUP || ''
         },
         {
           match: /\{\{CUSTOM_MANIFEST_PERMISSIONS\}\}/g,
-          replacement: config => config.CUSTOM_MANIFEST_PERMISSIONS || ''
+          replacement: ({ CUSTOM_MANIFEST_PERMISSIONS }) => CUSTOM_MANIFEST_PERMISSIONS || ''
         },
         {
           match: /\{\{QUICK_SEARCH_TOGGLE\}\}/g,
-          replacement: config => config.QUICK_SEARCH_TOGGLE || ''
+          replacement: ({ QUICK_SEARCH_TOGGLE }) => QUICK_SEARCH_TOGGLE || ''
         },
         {
           match: /\{\{OFFERS_PRODUCT_PREFIX\}\}/g,
-          replacement: config => config.OFFERS_PRODUCT_PREFIX || ''
+          replacement: ({ OFFERS_PRODUCT_PREFIX }) => OFFERS_PRODUCT_PREFIX || ''
         },
         {
           match: /\{\{OFFERS_PRODUCT_TITLE\}\}/g,
-          replacement: config => config.OFFERS_PRODUCT_TITLE || ''
+          replacement: ({ OFFERS_PRODUCT_TITLE }) => OFFERS_PRODUCT_TITLE || ''
         },
       ]
     });

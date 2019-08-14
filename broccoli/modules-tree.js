@@ -5,27 +5,22 @@ const MergeTrees = require('broccoli-merge-trees');
 const Babel = require('broccoli-babel-transpiler');
 const ESLint = require('broccoli-lint-eslint');
 const broccoliSource = require('broccoli-source');
-const watchify = require('broccoli-watchify');
 
 const WatchedDir = broccoliSource.WatchedDir;
 const writeFile = require('broccoli-file-creator');
 const env = require('./cliqz-env');
 
 const cliqzConfig = require('./config');
-const useV6Build = cliqzConfig.use_v6_build;
 const modulesList = require('./modules/modules-list');
 const contentScriptsImport = require('./modules/content-script-imports');
 const contentTestsImport = require('./modules/content-tests-imports');
 const integrationTestsImport = require('./modules/integration-tests-imports');
 const localesTree = require('./modules/locale-tree');
 
-const helpers = require('./modules/helpers');
 const getBundlesTree = require('./modules/bundles-tree');
 const getHandlebarsTree = require('./modules/handlebars-tree');
 const getSassTree = require('./modules/sass-tree');
 const getDistTree = require('./modules/dist-tree');
-
-const walk = helpers.walk;
 
 const modulesTree = new WatchedDir('modules');
 
@@ -79,8 +74,10 @@ function getPlatformFunnel() {
 }
 
 function getTestsFunnel() {
+  const inc1 = cliqzConfig.modules.map(name => `${name}/**/tests/**/*.es`);
+  const inc2 = cliqzConfig.modules.map(name => `${name}/**/tests/unit/dist/**/*`);
   return new Funnel(modulesTree, {
-    include: cliqzConfig.modules.map(name => `${name}/**/tests/**/*.es`),
+    include: [...inc1, ...inc2],
     exclude: cliqzConfig.modules.map(name => `${name}/**/tests/**/*lint-test.js`),
   });
 }
@@ -103,7 +100,7 @@ function getPlatformTree() {
       new Funnel(platform, {
         srcDir: p,
         destDir: `platform-${p}`,
-      }), ),
+      })),
   ]);
 }
 
@@ -111,8 +108,8 @@ function getSourceFunnel() {
   return new Funnel(modulesTree, {
     include: cliqzConfig.modules.map(name => `${name}/sources/**/*.es`).concat(cliqzConfig.modules.map(name => `${name}/sources/**/*.jsx`)),
     exclude: cliqzConfig.modules.map(name => `${name}/sources/**/*.browserify`),
-    getDestinationPath(path) {
-      return path.replace('/sources', '');
+    getDestinationPath(_path) {
+      return _path.replace('/sources', '');
     }
   });
 }
@@ -198,101 +195,11 @@ function getLintTestsTree() {
 }
 
 
-function getBrowserifyTree() {
-  const browserifyTrees = [];
-  const basePath = path.join(__dirname, '..');
-
-  // Browserify modules
-  cliqzConfig.modules.forEach((name) => {
-    const modulePath = path.join('modules', name);
-    walk(modulePath, p => p.endsWith('.browserify'))
-      .forEach((p) => {
-        const rel = path.relative('modules', p);
-        const options = {
-          browserify: {
-            entries: [rel],
-            debug: false,
-            paths: [
-              path.join(basePath, 'node_modules'),
-            ],
-          },
-          outputFile: rel.replace(/\.browserify$/, '.js'),
-          cache: true,
-        };
-        browserifyTrees.push(new Funnel(watchify(modulesTree, options), {
-          getDestinationPath(p) {
-            return p.replace('/sources', '');
-          },
-        }));
-      });
-  });
-
-  // Browserify platform
-  const basePlatformPath = path.join('platforms/', cliqzConfig.platform);
-  walk(basePlatformPath, p => p.endsWith('.browserify'))
-    .forEach((p) => {
-      const rel = path.relative(basePlatformPath, p);
-      const options = {
-        browserify: {
-          entries: [rel],
-          debug: false,
-          paths: [
-            path.join(basePath, 'node_modules'),
-          ],
-        },
-        outputFile: rel.replace(/\.browserify$/, '.js'),
-        cache: true,
-      };
-      browserifyTrees.push(new Funnel(watchify(basePlatformPath, options), {
-        getDestinationPath(p) {
-          return `platform/${p}`;
-        },
-      }));
-    });
-
-  // Browserify platform
-  const platformPath = path.join('platforms/');
-
-  walk('platforms', p => p.endsWith('.browserify'))
-    .forEach((p) => {
-      const pathParts = p.split(path.sep);
-      if (pathParts[1] === cliqzConfig.platform) {
-        return;
-      }
-
-      const rel = path.relative(platformPath, p);
-      const options = {
-        browserify: {
-          entries: [rel],
-          debug: false,
-          paths: [
-            path.join(basePath, 'node_modules'),
-          ],
-        },
-        outputFile: rel.replace(/\.browserify$/, '.js'),
-        cache: true,
-      };
-
-      browserifyTrees.push(
-        new Funnel(
-          watchify(platformPath, options),
-          {
-            getDestinationPath(p) {
-              return `platform-${p}`;
-            },
-          }
-        )
-      );
-    });
-
-  return new MergeTrees(browserifyTrees);
-}
-
 function getSourceTree() {
   let sources = getSourceFunnel();
   const config = writeFile('core/config.es', `export default ${JSON.stringify(cliqzConfig, null, 2)}`);
 
-  const includeTests = process.env.CLIQZ_INCLUDE_TESTS || env.TESTING;
+  const includeTests = env.INCLUDE_TESTS;
 
   sources = new MergeTrees([
     sources,
@@ -305,8 +212,8 @@ function getSourceTree() {
 
   const moduleTestsTree = new Funnel(modulesTree, {
     include: cliqzConfig.modules.map(name => `${name}/tests/**/*.es`),
-    getDestinationPath(path) {
-      return path.replace('/tests', '');
+    getDestinationPath(_path) {
+      return _path.replace('/tests', '');
     }
   });
 
@@ -322,10 +229,6 @@ function getSourceTree() {
   const sourceTrees = [
     transpiledSources,
   ];
-
-  if (!useV6Build) {
-    sourceTrees.unshift(getBrowserifyTree());
-  }
 
   const exclude = ['**/*.jshint.js'];
 
@@ -345,9 +248,6 @@ function getSourceTree() {
 }
 
 const sourceTreeOptions = {};
-if (!useV6Build) {
-  sourceTreeOptions.overwrite = true;
-}
 const sourceTree = new MergeTrees([
   getPlatformTree(),
   getSourceTree(),

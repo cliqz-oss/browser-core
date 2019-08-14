@@ -12,7 +12,7 @@ export function wrapper() {
   };
 }
 
-export function banner({ blueTheme = true }) {
+export function banner({ blueTheme = true } = {}) {
   return {
     width: '100%',
     height: '100%',
@@ -22,3 +22,5 @@ export function banner({ blueTheme = true }) {
     'box-shadow': 'inset rgba(0, 0, 0, 0.19) 0px 2px 4px 2px',
   };
 }
+
+export function animate() { }

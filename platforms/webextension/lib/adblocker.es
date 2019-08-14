@@ -1,3 +1,3 @@
-import * as adblocker from '@cliqz/adblocker';
+import * as adblocker from '@cliqz/adblocker/dist/adblocker.esm';
 
 export default adblocker;

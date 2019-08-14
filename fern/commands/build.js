@@ -20,17 +20,18 @@ program.command(`build ${common.configParameter}`)
   .option('--environment <environment>', 'the name of build environment', 'development')
   .option('--to-subdir', 'build into a subdirectory named after the config')
   .option('--include-tests', 'include tests files in build')
-  .option('--v6', 'include fast v6 build - v-shaped 6 cylinder engine')
   .action((configPath, options) => {
-    process.env.CLIQZ_ENVIRONMENT = options.environment;
+    process.env.CLIQZ_ENVIRONMENT = process.env.CLIQZ_ENVIRONMENT || options.environment;
     process.env.CLIQZ_SOURCE_MAPS = options.maps;
     process.env.CLIQZ_SOURCE_DEBUG = options.debug;
-    process.env.CLIQZ_INCLUDE_TESTS = options.includeTests || '';
-    process.env.CLIQZ_V6_BUILD = options.v6 || '';
+    process.env.CLIQZ_INCLUDE_TESTS = options.includeTests || (
+      (configPath || process.env.CLIQZ_CONFIG_PATH).includes('/ci/')
+        ? 'true'
+        : ''
+    );
 
     const cfg = setConfigPath(configPath, options.toSubdir);
     const OUTPUT_PATH = cfg.OUTPUT_PATH;
-    const CONFIG = cfg.CONFIG;
 
     // Enabled code linting
     process.env.CLIQZ_ESLINT = (
