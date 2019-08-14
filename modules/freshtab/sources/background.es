@@ -101,6 +101,7 @@ export default background({
   search: inject.module('search'),
   ui: inject.module('ui'),
   insights: inject.module('insights'),
+  history: inject.module('history'),
 
   // Services dependencies
   geolocation: inject.service('geolocation', ['setLocationPermission']),
@@ -114,7 +115,6 @@ export default background({
     'session',
     'telemetry',
   ],
-  searchReminderCounter: 0,
 
   /**
   * @method init
@@ -273,7 +273,6 @@ export default background({
         index: getWallpapers(product).findIndex(bg => bg.name === backgroundName),
       },
       stats: Object.assign({}, COMPONENT_STATE_VISIBLE, freshtabConfig.stats),
-      searchReminder: Object.assign({}, COMPONENT_STATE_VISIBLE, freshtabConfig.searchReminder),
     };
   },
 
@@ -291,6 +290,18 @@ export default background({
   isUserOnboarded() {
     if (!config.settings.onBoardingPref) return false;
     return prefs.get(config.settings.onBoardingPref, false);
+  },
+
+  onboardingVersion() {
+    // if we set the onboardingVersion pref via AB test then it will be set later
+    // than we call this function (on which onboarding version depends)
+    const onboardingVersion = prefs.get('onboardingVersion', 3);
+    if (onboardingVersion) {
+      return onboardingVersion;
+    }
+    const randomVersion = Math.random() < 0.5 ? 3 : 4;
+    prefs.set('onboardingVersion', randomVersion);
+    return randomVersion;
   },
 
   updateComponentState(component, state) {
@@ -854,15 +865,6 @@ export default background({
     async getConfig(sender) {
       const windowWrapper = Window.findByTabId(sender.tab.id);
 
-      // Count when the search reminder is not shown
-      if (!this.getComponentsState().searchReminder.visible) {
-        if (this.searchReminderCounter === 6) {
-          this.actions.toggleComponent('searchReminder');
-        }
-        this.searchReminderCounter += 1;
-      }
-
-      // and set it on focus if missing
       if (windowWrapper) {
         this.ui.windowAction(windowWrapper.window, 'setUrlbarValue', '', {
           match: NEW_TAB_URL,
@@ -872,8 +874,12 @@ export default background({
 
       const { id: tabIndex } = await getActiveTab();
 
+      // delete import bookmarks top notification in case of onboarding v4
+      if (this.onboardingVersion() === 4) {
+        delete this.messages.import;
+      }
+
       return {
-        searchReminderCounter: this.searchReminderCounter,
         locale: getLanguageFromLocale(i18n.PLATFORM_LOCALE),
         blueTheme: this.blueTheme,
         browserTheme: await this.browserTheme(),
@@ -884,7 +890,7 @@ export default background({
         tabIndex,
         messages: this.messages,
         isHistoryEnabled: (
-          prefs.get('modules.history.enabled', false)
+          this.history.isEnabled()
           && config.settings.HISTORY_URL !== undefined
         ),
         componentsState: this.getComponentsState(),
@@ -895,6 +901,7 @@ export default background({
         HISTORY_URL,
         isBetaVersion: isBetaVersion(),
         isUserOnboarded: this.isUserOnboarded(),
+        onboardingVersion: this.onboardingVersion(),
         tooltip: this.tooltip,
       };
     },
@@ -970,6 +977,10 @@ export default background({
 
     openImportDialog,
 
+    openPrivacySettings() {
+      chrome.omnibox2.navigateTo('about:preferences#privacy-reports', { target: 'tab' });
+    },
+
     // The following three actions are used to emit Anolysis metrics about
     // freshtab's state.
 
@@ -988,14 +999,6 @@ export default background({
     getComponentsState() {
       return this.getComponentsState();
     },
-    reportEvent({ type }) {
-      if (type === 'urlbar-focus') {
-        this.searchSession.setSearchSession();
-        if (this.searchReminderCounter < 7) {
-          this.searchReminderCounter = 0;
-        }
-      }
-    }
   },
 
   events: {

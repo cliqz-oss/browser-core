@@ -30,6 +30,7 @@ export default class SearchSettings extends React.Component {
           className="settings-panel"
         >
           <iframe
+            id="cliqz-control-center-iframe"
             tabIndex="-1"
             title="Settings"
             ref={(iframe) => { this.iframe = iframe; }}

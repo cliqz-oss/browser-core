@@ -16,7 +16,6 @@ import providesServices from './services';
 import { httpHandler } from './http';
 import { updateTab, closeTab, query, getCurrentTab } from './tabs';
 import { enableRequestSanitizer, disableRequestSanitizer } from './request-sanitizer';
-import { cleanMozillaActions } from './content/url';
 import ResourceLoader from './resource-loader';
 import { getResourceUrl } from './platform';
 import pacemaker from './services/pacemaker';
@@ -31,7 +30,7 @@ const callbacks = {};
  * @class Background
  */
 export default background({
-  requiresServices: ['pacemaker', 'telemetry'],
+  requiresServices: ['pacemaker', 'telemetry', 'domainInfo'],
   providesServices,
 
   init(settings, app) {
@@ -214,20 +213,23 @@ export default background({
       queryCliqz(q);
     },
 
-    async openLink(url, { newTab = true } = {}, { tab: { id: tabId } } = { tab: {} }) {
+    async openLink(
+      url,
+      { newTab = true, switchTab = false } = {},
+      { tab: { id: tabId } = {} } = {}
+    ) {
       if (newTab) {
         openLink(url);
         return;
       }
 
-      const [action, originalUrl] = cleanMozillaActions(url);
       let id = tabId;
 
-      if (action === 'switchtab') {
+      if (switchTab) {
         const tabs = await query({
-          url: originalUrl.replace(/#.*$/, ''),
+          url: url.replace(/#.*$/, ''),
         });
-        const tab = tabs.find(t => t.url === originalUrl);
+        const tab = tabs.find(t => t.url === url);
         if (tab) {
           const currentTab = await getCurrentTab();
           id = tab.id;
@@ -238,7 +240,7 @@ export default background({
           return;
         }
       }
-      updateTab(id, { url: originalUrl });
+      updateTab(id, { url });
     },
 
     openTab(tabId) {

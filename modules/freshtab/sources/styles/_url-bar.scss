@@ -8,7 +8,6 @@
     $search-input-height,
     $search-font-size,
     $search-text-indent,
-    $search-reminder-indent,
 
     $search-input-box-shadow,
     $search-input-border,
@@ -21,67 +20,52 @@
         margin: 0 auto;
         position: relative;
 
-        input {
-            height: $search-input-height;
-            border-radius: 4px;
-            border: $search-input-border;
-            box-shadow: $search-input-box-shadow;
-            width: $inner-content-width;
-            padding: 0 47px 0 $search-text-indent;
-            background-repeat: no-repeat;
-            font-size: $search-font-size;
-            color: $search-input-color;
-            transition: box-shadow 180ms cubic-bezier(0.4, 0.0, 0.2, 1);
-            overflow: hidden;
-            text-overflow: ellipsis;
-
-
-            &:focus, &:hover {
-                box-shadow: $search-input-box-shadow-focus;
-            }
-        }
-
-        &.with-dropdown input {
-            border-radius: 4px 4px 0 0;
-        }
-
-        ::-moz-placeholder {
-            font-size: $search-font-size;
-            color: $search-input-color;
-        }
-
-        ::-webkit-input-placeholder { /* WebKit, Blink, Edge */
-            font-size: $search-font-size;
-            color:    $search-input-color;
-        }
-
-        :-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+        ::placeholder {
             font-size: $search-font-size;
             color:    $search-input-color;
             opacity:  1;
         }
-        ::-moz-placeholder { /* Mozilla Firefox 19+ */
-            font-size: $search-font-size;
-            color:    $search-input-color;
-            opacity:  1;
-        }
+    }
 
-        &.ghostery-search input {
-            background-image: $search-input-ghostery-bg-image;
+    .urlbarSearch {
+        height: $search-input-height;
+        border-radius: 4px;
+        border: $search-input-border;
+        box-shadow: $search-input-box-shadow;
+        width: $inner-content-width;
+        padding: 0 47px 0 $search-text-indent;
+        background-repeat: no-repeat;
+        font-size: $search-font-size;
+        color: $search-input-color;
+        transition: box-shadow 180ms cubic-bezier(0.4, 0.0, 0.2, 1);
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        &:focus, &:hover {
+            box-shadow: $search-input-box-shadow-focus;
+        }
+    }
+
+    .with-dropdown .urlbarSearch {
+        border-radius: 4px 4px 0 0;
+    }
+
+    .ghostery-search, .cliqz-search {
+        .urlbarSearch {
             background-size: auto 50%;
             background-position: 2% center;
         }
+    }
 
-        &.cliqz-search {
-            input {
-                background-image: $search-input-cliqz-bg-image;
-                background-size: auto 50%;
-                background-position: 2% center;
-            }
-        }
+    .ghostery-search .urlbarSearch {
+        background-image: $search-input-ghostery-bg-image;
+    }
 
-        &:not(.with-results) {
-            margin-top: $search-input-height;
-        }
+    .cliqz-search .urlbarSearch {
+            background-image: $search-input-cliqz-bg-image;
+    }
+
+    .search:not(.with-results) {
+        margin-top: $search-input-height;
     }
 }

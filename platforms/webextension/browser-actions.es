@@ -1,6 +1,5 @@
 import { chrome } from './globals';
 import config from '../core/config';
-import { cleanMozillaActions } from '../core/content/url';
 
 const TARGET_ANDROID = 'ANDROID_BROWSER';
 
@@ -32,9 +31,8 @@ export function openLink(url, focused = false) {
   if (config.isMobile) {
     sendMessageToAndroid('openUrl', url);
   } else {
-    const [, originalUrl] = cleanMozillaActions(url);
     chrome.tabs.create({
-      url: originalUrl,
+      url,
       active: focused
     });
   }

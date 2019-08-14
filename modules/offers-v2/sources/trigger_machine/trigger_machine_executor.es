@@ -119,7 +119,7 @@ export default class TriggerMachineExecutor {
           const processMs = timestampMS() - startMs - (ctx['#httpLoadMs'] || 0);
           return this.telemetry.push(
             { action: 'offers-v2.trigger.process', ms: processMs },
-            'metrics.performance.general'
+            'metrics.legacy.performance.general'
           );
         };
         if (this.telemetry) {

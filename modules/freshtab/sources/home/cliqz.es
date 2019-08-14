@@ -3,8 +3,6 @@ import Spanan from 'spanan';
 import checkIfChromeReady from '../../core/content/ready-promise';
 import createSpananForModule from '../../core/helpers/spanan-module-wrapper';
 
-let INSTANCE = null;
-
 class Cliqz {
   constructor() {
     const freshtab = createSpananForModule('freshtab');
@@ -94,18 +92,9 @@ class Cliqz {
     this.antiPhishing = antiPhishing.createProxy();
   }
 
-  static getInstance() {
-    if (!INSTANCE) {
-      INSTANCE = new Cliqz();
-    }
-
-    return INSTANCE;
-  }
-
   setStorage(storage) {
     this.storage = storage;
   }
 }
 
-
-export default Cliqz.getInstance();
+export default new Cliqz();

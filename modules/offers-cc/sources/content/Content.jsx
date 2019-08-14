@@ -11,7 +11,6 @@ export default class Content extends React.Component {
   constructor(props) {
     super(props);
     const cards = {};
-    // assert voucher.length > 0
     props.vouchers.forEach((v) => {
       cards[v.offer_id] = {
         isCodeHidden: v.isCodeHidden,

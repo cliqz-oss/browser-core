@@ -29,7 +29,13 @@
   color: #00AEF0;
 }
 .empty__chip-title {
-  color: #DA3434;
+  color: var(--chip-secondary-color, #eb443f);
+}
+.empty__freundin-title {
+  color: var(--freundin-secondary-color, #da3434);
+}
+.empty__incent-title {
+  color: var(--incent-secondary-color, #5c8fa6);
 }
 
 .empty__title {

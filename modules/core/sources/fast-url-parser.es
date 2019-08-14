@@ -197,7 +197,7 @@ export default class URL {
    * Returns the hostname of the URL after parsing by tldts. This includes some error correction.
    */
   get domain() {
-    return this.domainInfo.hostname;
+    return this.domainInfo.hostname || this.hostname;
   }
 
   /**

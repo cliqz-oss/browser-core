@@ -18,6 +18,19 @@ export default class NewsResult extends Subresult {
     return null;
   }
 
+  removeInvalidThumbnail(image) {
+    if (image.height === 0) {
+      image.parentNode.removeChild(image);
+    }
+  }
+
+  didRender($dropdown) {
+    const images = $dropdown.querySelectorAll('.news-story [data-extra="image"]');
+    if (images.length > 0) {
+      images.forEach(image => this.removeInvalidThumbnail(image));
+    }
+  }
+
   get logoDetails() {
     if (this.thumbnail === '') {
       return super.logo;

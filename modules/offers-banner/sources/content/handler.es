@@ -4,7 +4,6 @@ export default class Handler {
   constructor({
     window,
   }) {
-    // will be set by client
     this.onaction = null;
     this.config = null;
     this.payload = null;
@@ -31,16 +30,11 @@ export default class Handler {
     this._dispatcher(message);
   }
 
-  toggleBanner() {
-    if (this.observer) {
-      this.removeBanner();
-    } else {
-      this.showBanner();
-    }
-  }
-
-  showBanner() {
+  showBanner({ config, onaction, payload }) {
     if (this.observer) { return; }
+    this.config = config;
+    this.onaction = onaction;
+    this.payload = payload;
     this.observer = new Observer({
       onmessage: this.onmessage,
       onaction: this.onaction,
@@ -70,17 +64,24 @@ export default class Handler {
   }
 
   _dispatcher({ data, handler, action } = {}) {
-    const isRewardBox = this.config.type === 'offers-cc';
-    if (!data || !(isRewardBox ? action : handler)) { return; }
-    const mapper = isRewardBox
-      ? {
+    const isBrowserPanel = this.config.type === 'browser-panel';
+    if (!data || !(isBrowserPanel ? handler : action)) { return; }
+
+    const mapper = {
+      'offers-cc': {
         openURL: this._closePopupIf.bind(this),
         getEmptyFrameAndData: this._closeBoxIf.bind(this),
         hideBanner: this.removeBanner,
-      } : {
+      },
+      'browser-panel': {
         offersIFrameHandler: this._closePanelIf.bind(this),
-      };
+      },
+      'offers-reminder': {
+        hideBanner: this.removeBanner,
+      }
+    };
     const noop = () => {};
-    (mapper[isRewardBox ? action : handler] || noop)(data);
+    if (!mapper[this.config.type]) { return; }
+    (mapper[this.config.type][isBrowserPanel ? handler : action] || noop)(data);
   }
 }

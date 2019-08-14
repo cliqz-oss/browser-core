@@ -1,12 +1,13 @@
 import React from 'react';
 import { chrome } from '../../platform/content/globals';
 import send from './transport';
-import { css, i18n } from './common/utils';
+import { css, i18n, chooseProduct } from './common/utils';
 
 const _css = css('footer__');
 export default function Footer(props) {
   const { products } = props;
-  const prefix = ['cliqz', 'chip'].find(product => products[product]) || 'myoffrz';
+  const prefix = chooseProduct(products, { cliqz: true });
+
   /* eslint-disable jsx-a11y/no-static-element-interactions */
   return (
     <div className={_css('container')}>

@@ -67,25 +67,6 @@ class BehaviorView {
   }
 }
 
-class RetentionView {
-  constructor() {
-    this.state = {
-      daily: {},
-      weekly: {},
-      monthly: {},
-    };
-  }
-
-  getState() {
-    return Promise.resolve(this.state);
-  }
-
-  setState(state) {
-    this.state = state;
-    return Promise.resolve();
-  }
-}
-
 class SignalQueueView {
   constructor() {
     this.id = 1;
@@ -135,32 +116,6 @@ class SignalQueueView {
   }
 }
 
-class GidManagerView {
-  constructor() {
-    this.db = new Map();
-  }
-
-  get(key) {
-    return this.db.get(key);
-  }
-
-  set(key, value) {
-    this.db.set(key, value);
-    return Promise.resolve();
-  }
-
-  entries() {
-    const entries = [];
-    this.db.forEach((value, key) => {
-      entries.push({
-        key,
-        value,
-      });
-    });
-    return entries;
-  }
-}
-
 export default class AnolysisStorage {
   constructor() {
     this.unload();
@@ -173,14 +128,6 @@ export default class AnolysisStorage {
 
     if (this.behavior === null) {
       this.behavior = new BehaviorView();
-    }
-
-    if (this.gid === null) {
-      this.gid = new GidManagerView();
-    }
-
-    if (this.retention === null) {
-      this.retention = new RetentionView();
     }
 
     if (this.signals === null) {
@@ -201,8 +148,6 @@ export default class AnolysisStorage {
   unload() {
     this.aggregated = null;
     this.behavior = null;
-    this.retention = null;
     this.signals = null;
-    this.gid = null;
   }
 }

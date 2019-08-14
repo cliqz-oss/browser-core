@@ -1,20 +1,21 @@
 import prefs from '../../core/prefs';
+import config from '../../core/config';
 import { subscribe } from '../../core/events';
 import ResourceLoader from '../../core/resource-loader';
 
 function getBrandsDBUrl(version) {
-  return `https://cdn.cliqz.com/brands-database/database/${version}/data/database.json`;
+  return `${config.settings.BACKGROUND_IMAGE_URL}${version}/data/database.json`;
 }
 
 export default function (BRANDS_DATABASE_VERSION, { updateVersion, updateDatabase }) {
-  const config = prefs.get('config_logoVersion');
+  const versionOverride = prefs.get('config_logoVersion');
   const dev = prefs.get('brands-database-version');
   let version = BRANDS_DATABASE_VERSION; // default fallback value
 
   if (dev) {
     version = dev;
-  } else if (config) {
-    version = config;
+  } else if (versionOverride) {
+    version = versionOverride;
   }
 
   // use the proper database version for generating logo paths

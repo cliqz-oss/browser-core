@@ -103,7 +103,7 @@ export default background({
   },
 
   refreshState(tabId) {
-    this.prepareData(tabId).then((data) => {
+    return this.prepareData(tabId).then((data) => {
       this.actions.setState(tabId, data.generalState);
     });
   },
@@ -136,13 +136,13 @@ export default background({
     this.refreshState(tabId);
     updateBadgeForUrl();
     let counter = 12;
-    const interval = pacemaker.setTimeout(() => {
+    const interval = pacemaker.register(() => {
       updateBadgeForUrl();
       counter -= 1;
       if (counter <= 0) {
         this.intervals.remove(windowId);
       }
-    }, 2000);
+    }, { timeout: 2000 });
     this.intervals.add(windowId, interval);
   },
 
@@ -243,7 +243,7 @@ export default background({
           target: data.target,
           state: data.value,
           action: 'click'
-        });
+        }, `metrics.legacy.control_center.${data.target}`);
       }
     },
     // creates the static frame data without any module details
@@ -328,6 +328,12 @@ export default background({
       });
     },
 
+    async updateInstantly(state) {
+      const tabId = await this.getCurrentTabId();
+      this.actions.setState(tabId, state);
+      return this.refreshState(tabId);
+    },
+
     setState(tabId, state) {
       if (!chrome.browserAction2) {
         return;
@@ -355,7 +361,7 @@ export default background({
           target: data.target,
           action: 'click',
           index: data.index
-        });
+        }, `metrics.legacy.control_center.${data.target}`);
       }
     },
 
@@ -376,7 +382,7 @@ export default background({
       if (data.index) {
         signal.index = data.index;
       }
-      telemetry.push(signal);
+      telemetry.push(signal, `metrics.legacy.control_center.${data.target}`);
     },
 
     'antitracking-strict': function antitrackingStrict({ isPrivateMode, status }) {
@@ -387,7 +393,7 @@ export default background({
           target: 'attrack_fair',
           action: 'click',
           state: status === true ? 'on' : 'off'
-        });
+        }, 'metrics.legacy.control_center.attrack_fair');
       }
     },
 
@@ -399,7 +405,7 @@ export default background({
           target: 'complementary_search',
           state: `search_engine_change_${defaultSearch}`,
           action: 'click'
-        });
+        }, 'metrics.legacy.control_center.complementary_search');
       }
     },
 
@@ -411,7 +417,7 @@ export default background({
           target: 'search-index-country',
           state: `search_index_country_${defaultCountry}`,
           action: 'click',
-        });
+        }, 'metrics.legacy.control_center.search-index-country');
       }
     },
 
@@ -423,7 +429,7 @@ export default background({
           target: 'cliqz_tab',
           action: 'click',
           state: status === true ? 'on' : 'off'
-        });
+        }, 'metrics.legacy.control_center.cliqz_tab');
       }
     },
 
@@ -471,7 +477,7 @@ export default background({
           target: `attrack_${data.type}`,
           state,
           action: 'click',
-        });
+        }, `metrics.legacy.control_center.attrack_${data.type}`);
       }
     },
 
@@ -491,7 +497,7 @@ export default background({
           target: `antiphishing_${data.type}`,
           state,
           action: 'click',
-        });
+        }, `metrics.legacy.control_center.antiphishing_${data.type}`);
       }
     },
 
@@ -510,7 +516,7 @@ export default background({
           target: `adblock_${data.type}`,
           state,
           action: 'click',
-        });
+        }, `metrics.legacy.control_center.adblock_${data.type}`);
       }
     },
 
@@ -527,7 +533,7 @@ export default background({
           target: 'adblock_fair',
           action: 'click',
           state: data.status === true ? 'on' : 'off'
-        });
+        }, 'metrics.legacy.control_center.adblock_fair');
       }
     },
 

@@ -52,14 +52,6 @@ const subprojects = {
     include: ['moment.min.js'],
     dest: 'vendor',
   },
-  '@cliqz/adblocker': {
-    src: 'node_modules/@cliqz/adblocker/dist',
-    include: [
-      'adblocker.umd.min.js',
-      'adblocker-cosmetics.umd.js',
-    ],
-    dest: 'vendor',
-  },
   'cliqz-history': {
     src: 'node_modules/cliqz-history/dist',
     dest: 'cliqz-history'
@@ -98,11 +90,6 @@ const subprojects = {
     src: 'node_modules/tooltipster/dist/css/plugins/tooltipster/sideTip/themes',
     include: ['tooltipster-sideTip-shadow.min.css'],
     dest: 'vendor'
-  },
-  tldts: {
-    src: 'node_modules/tldts/dist',
-    include: ['tldts-experimental.umd.min.js'],
-    dest: 'vendor',
   },
   sinon: {
     src: 'node_modules/sinon/pkg',

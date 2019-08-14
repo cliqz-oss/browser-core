@@ -1,3 +1,7 @@
-import * as adblockerCosmetics from '@cliqz/adblocker/dist/adblocker-cosmetics.umd';
+import * as Cosmetics from '@cliqz/adblocker/dist/cosmetics.esm';
+import * as Circumvention from '@cliqz/adblocker/dist/circumvention.esm';
 
-export default adblockerCosmetics;
+export {
+  Circumvention,
+  Cosmetics
+};

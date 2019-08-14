@@ -29,6 +29,7 @@ export default class PageLogger {
   constructor(tpEvents, webNavigation) {
     this.tpEvents = tpEvents;
     this._requestCounters = new Map();
+    this._betweenPages = new Set();
     if (webNavigation) {
       this.onBeforeNavigate = this.onBeforeNavigate.bind(this);
       this.onNavigationCommitted = this.onNavigationCommitted.bind(this);
@@ -43,6 +44,7 @@ export default class PageLogger {
 
   onBeforeNavigate(details) {
     if (details.frameId === 0) {
+      this._betweenPages.add(details.tabId);
       // when a tab is navigated, ensure data is staged.
       this.tpEvents.stage(details.tabId);
     }
@@ -50,6 +52,7 @@ export default class PageLogger {
 
   onNavigationCommitted(details) {
     if (details.frameId === 0) {
+      this._betweenPages.delete(details.tabId);
       if (!this.tpEvents._active[details.tabId]) {
         // if no tab has been registered by this point, this page was loaded without a
         // main_frame request (i.e. the request was handled via a service work).
@@ -60,11 +63,10 @@ export default class PageLogger {
   }
 
   logMainDocument(state) {
-    if (state.isMainFrame) {
+    // A new page is signalled either by a `main_frame` type, or a request in between the
+    // `onBeforeNavigate` and `onNavigationCommitted` events that is not a `beacon`.
+    if (state.isMainFrame || (this._betweenPages.has(state.tabId) && state.type !== 'beacon')) {
       this.tpEvents.onFullPage(state.urlParts, state.tabId, state.isPrivate, state.requestId);
-      // if (CliqzAttrack.isTrackerTxtEnabled()) {
-      //   TrackerTXT.get(url_parts).update();
-      // }
       return false;
     }
     if (this.tpEvents._active[state.tabId]

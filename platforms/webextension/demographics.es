@@ -1,8 +1,9 @@
-import { getPref, setPref } from './prefs';
+import { getPref, setPref, hasPref } from './prefs';
 import config from '../core/config';
 import { chrome } from './globals';
 
 const DEFAULT_DIST_VAL = 'web0003';
+const DISTRIBUTION_PREF = 'offers.distribution.channel.ID';
 
 export function getUserAgent() {
   return navigator.userAgent;
@@ -22,6 +23,9 @@ export async function getDistribution() {
 export function getChannel() {
   if (chrome.cliqzAppConstants) { // Android
     return chrome.cliqzAppConstants.get('CLIQZ_CHANNEL') || config.settings.channel || '';
+  }
+  if (hasPref(DISTRIBUTION_PREF)) {
+    return config.settings.channel + getPref(DISTRIBUTION_PREF, '');
   }
   return config.settings.channel || '';
 }

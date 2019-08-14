@@ -115,7 +115,7 @@ export default background({
      *
      * In Cliqz, the user has two ways to opt-out:
      * - Control Center UI (Search Options --> Human Web)
-     * - chrome://cliqz/content/human-web/humanweb.html (AMO only)
+     * - moz-extension://<EXTENSION_ID>/modules/human-web/humanweb.html
      *
      * In Ghostery, the mechanism is different. If the user
      * opts-out, the whole 'human-web' module gets unloaded.

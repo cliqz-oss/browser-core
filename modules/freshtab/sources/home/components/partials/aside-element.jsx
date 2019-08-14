@@ -16,6 +16,7 @@ function AsideElement({
   const returnedEl = isButton
     ? (
       <Button
+        className="aside-button"
         id={id}
         label={label}
         onClick={onClick}
@@ -24,6 +25,7 @@ function AsideElement({
     )
     : (
       <a
+        className="aside-button"
         href={href}
         id={id}
         onClick={onClick}

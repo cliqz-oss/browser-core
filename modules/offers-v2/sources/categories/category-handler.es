@@ -103,16 +103,20 @@ export default class CategoryHandler {
     this.dayKeyOfLastAccountingRun = todayKey;
   }
 
+  newUrlEvent(tokenizedUrl) {
+    return this.getMatches(tokenizedUrl);
+  }
+
   /**
    * we will call this method whenever there is a new location change so we
    * can evaluate all the categories for this case.
    * We will return the set of categories ids that had been activated for this url
    *
-   * @method newUrlEvent
+   * @method getMatches
    * @param {PatternMatchRequest} tokenizedUrl
    * @returns {CategoriesMatchTraits}
   */
-  newUrlEvent(tokenizedUrl) {
+  getMatches(tokenizedUrl) {
     if (!tokenizedUrl) {
       logger.error('skipping invalid tokenizedUrl', tokenizedUrl);
       return new CategoriesMatchTraits();

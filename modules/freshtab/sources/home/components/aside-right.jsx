@@ -33,7 +33,6 @@ function AsideRight({
           hasHistorySpeedDialsToRestore={hasHistorySpeedDialsToRestore}
           isBlueThemeSupported={config.isBlueThemeSupported}
           isBrowserThemeSupported={config.isBrowserThemeSupported}
-          isOpen={isSettingsOpen}
           isStatsSupported={config.isStatsSupported}
           onBackgroundImageChanged={onBackgroundImageChanged}
           onNewsSelectionChanged={onNewsSelectionChanged}

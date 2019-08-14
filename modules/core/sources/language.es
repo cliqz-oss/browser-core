@@ -54,7 +54,7 @@ const CliqzLanguage = {
     CliqzLanguage.window = window;
 
     if (this.removeHashId === null) {
-      this.removeHashId = pacemaker.everyFewMinutes(this.updateTicker.bind(this));
+      this.removeHashId = pacemaker.everyHour(this.updateTicker.bind(this));
     }
 
     if (prefs.has('extensions.cliqz-lang.data')) {

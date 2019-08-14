@@ -1,5 +1,5 @@
 import URL from '../../core/fast-url-parser';
-import { cleanMozillaActions, urlStripProtocol } from '../../core/content/url';
+import { urlStripProtocol } from '../../core/content/url';
 import BaseResult, { Subresult } from './base';
 import LocalResult, { ShareLocationButton } from './local';
 import { OfferResult } from './offer';
@@ -109,10 +109,11 @@ export default class GenericResult extends BaseResult {
   get newsResults() {
     const deepLinks = getDeepResults(this.rawResult, 'news');
     const hostname = this.url
-      && urlStripProtocol(new URL(cleanMozillaActions(this.url)[1]).hostname);
-    return deepLinks.map(({ url, title, extra = {} } = {}) => new NewsResult(this, {
+      && urlStripProtocol(new URL(this.url).hostname);
+    return deepLinks.map(({ url, title, extra = {}, meta = {} } = {}) => new NewsResult(this, {
       ...this.topResultProps,
       url,
+      meta,
       domain: extra.domain,
       title,
       thumbnail: extra.thumbnail,
@@ -127,10 +128,11 @@ export default class GenericResult extends BaseResult {
 
   get videoResults() {
     const deepLinks = getDeepResults(this.rawResult, 'videos');
-    return deepLinks.map(({ url, title, extra }) => new VideoResult(this, {
+    return deepLinks.map(({ url, title, extra = {}, meta = {} } = {}) => new VideoResult(this, {
       ...this.topResultProps,
       url,
       title,
+      meta,
       thumbnail: extra.thumbnail,
       duration: extra.duration,
       views: extra.views,

@@ -1,16 +1,34 @@
 /* eslint-disable import/prefer-default-export */
+import { chooseProduct } from './utils';
 
 function styles({
-  ghostery = false,
+  products = {},
   logo_class: logoClass,
   styles: { headline_color: headlineColor } = {},
   baseUrl,
 } = {}) {
-  const rewardIconPath = ghostery ? 'ghostery-rewards-beta.svg' : 'offers-cc-icon.svg';
-  const offerLogoSize = ghostery ? '111px' : '20px';
-  const [mainColor, secondaryColor, tertiaryColor] = ghostery
-    ? ['#930194', '#920094', '#850587']
-    : ['#00AEF0', '#0078CA', '#0078CA'];
+  const product = chooseProduct(products);
+  const colors = {
+    ghostery: ['#930194', '#920094', '#850587'],
+    myoffrz: ['#00AEF0', '#0078CA', '#0078CA'],
+    chip: ['#EB443F', '#EB443F', '#c93636'],
+    freundin: ['#CD071E', '#CD071E', '#da3434'],
+  };
+  const icons = {
+    ghostery: 'ghostery-rewards-beta.svg',
+    myoffrz: 'offers-cc-icon.svg',
+    chip: 'chip-logo.svg',
+    freundin: 'freundin-logo.svg',
+  };
+  const iconsSizes = {
+    ghostery: '111px',
+    myoffrz: '20px',
+    chip: '111px',
+    freundin: '111px',
+  };
+  const [mainColor, secondaryColor, tertiaryColor] = colors[product];
+  const rewardIconPath = icons[product];
+  const offerLogoSize = iconsSizes[product];
   const sizesByClass = { square: '30px', short: '55px', normal: '70px', long: '105px' };
   const logoSize = sizesByClass[logoClass] || '70px';
   return `
@@ -45,7 +63,6 @@ function styles({
 
     .header > .offer-logo {
       height: 100%;
-      font-size: 16.5px;
       font-weight: 500;
       color: #363636;
       text-align: left;
@@ -54,6 +71,12 @@ function styles({
       background-repeat: no-repeat;
       background-image: url(${baseUrl}images/${rewardIconPath});
       background-position: center;
+      background-size: contain;
+    }
+
+    .header > .offer-logo-text {
+      padding-left: 5px;
+      font-size: 16.5px;
     }
 
     .header > .btn-close {
@@ -100,17 +123,18 @@ function styles({
       flex-direction: column;
       white-space: nowrap;
       margin-left: 35px;
+      text-align: left;
     }
 
-    .sub-header > .labels > .exclusive{
+    .sub-header > .labels > .exclusive {
       background-image: url(${baseUrl}images/exclusive.svg);
     }
 
-    .sub-header > .labels > .best_offer{
+    .sub-header > .labels > .best_offer {
       background-image: url(${baseUrl}images/best_offer.svg);
     }
 
-    .sub-header > .labels > .offer_of_the_week{
+    .sub-header > .labels > .offer_of_the_week {
       background-image: url(${baseUrl}images/offer_of_the_week.svg);
     }
 

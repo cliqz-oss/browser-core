@@ -26,7 +26,9 @@
 }
 
 .card-promo__myoffrz-copy-code,
-.card-promo__chip-copy-code {
+.card-promo__chip-copy-code,
+.card-promo__incent-copy-code,
+.card-promo__freundin-copy-code {
   text-transform: uppercase;
   font-size: 10.5px;
   color: #687E90;
@@ -34,9 +36,16 @@
   margin-right: 8px;
   cursor: pointer;
 }
+
 .card-promo__myoffrz-copy-code:hover {
   color: #00AEF0;
 }
 .card-promo__chip-copy-code:hover {
-  color: #DA3434;
+  color: var(--chip-primary-hover-color, #c93636);
+}
+.card-promo__freundin-copy-code:hover {
+  color: var(--freundin-primary-hover-color, #da3434);
+}
+.card-promo__incent-copy-code:hover {
+  color: var(--incent-primary-color, #5c8fa6);
 }

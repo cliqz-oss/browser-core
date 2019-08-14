@@ -99,6 +99,10 @@ const buildGeoMap = (geoData) => {
  *   //     couponInfo: {
  *   //       code: (THIS WILL BE AUTOMATICALLY SET ON THE EXTENSION, taking it from the offer)
  *   //       autoFillField: true | false // saying if we should autofill or not the field
+ *   //     },
+ *   //     offerReminder: {
+ *   //       active: true | false,
+ *   //       description: string,
  *   //     }
  *   //   }
  *   //

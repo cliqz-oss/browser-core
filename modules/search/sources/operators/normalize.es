@@ -1,8 +1,8 @@
-import { urlStripProtocol, tryDecodeURI, cleanMozillaActions } from '../../core/url';
+import { urlStripProtocol, tryDecodeURI } from '../../core/url';
 import { URLInfo } from '../../core/url-info';
 
 const clean = (result) => {
-  const details = URLInfo.get(cleanMozillaActions(result.url)[1]) || {};
+  const details = URLInfo.get(result.url) || {};
   const host = urlStripProtocol((details && details.hostname) || '');
   let hostAndPort = host;
   const friendlyUrl = tryDecodeURI(result.friendlyUrl || details.friendlyUrl || '');

@@ -24,11 +24,12 @@ export default function BackgroundImage({
               data-bg={bg}
               width="71"
               src={src}
-              className={isActive ? 'active' : ''}
+              className={`image ${isActive ? 'active' : ''}`}
             />
             <span className="selected-img">
               <img
                 alt=""
+                className="checkIcon"
                 src="./images/bg-check.svg"
               />
             </span>

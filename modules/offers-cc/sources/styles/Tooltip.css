@@ -2,7 +2,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #00AEF0;
+  background-color: white;
   height: 60px;
 }
 
@@ -13,11 +13,21 @@
   cursor: pointer;
 }
 
-.tooltip__image {
-  background: url(../images/offers-cc-icon-white.svg) no-repeat center;
+.tooltip__myoffrz-image {
+  background: url(../images/myoffrz-tooltip-logo.svg) no-repeat center;
+}
+.tooltip__chip-image {
+  background: url(../images/chip-tooltip-logo.svg) no-repeat center;
+}
+.tooltip__freundin-image {
+  background: url(../images/freundin-tooltip-logo.svg) no-repeat center;
+}
+
+.tooltip__image-base {
   background-size: contain;
-  width: 29px;
-  height: 28px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
   padding-left: 10px;
 }
 
@@ -26,7 +36,6 @@
   width: 22px;
   height: 21px;
   border-radius: 50%;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   cursor: pointer;
   align-items: center;
   transition: all linear 0.3s;
@@ -47,11 +56,10 @@
 }
 
 .tooltip__text {
-  padding-left: 8px;
+  padding-left: 5px;
   margin-right: -8px;
-  padding-top: 4px;
-  color: #fff;
-  font-size: 13.5px;
+  color: #494949;
+  font-size: 14px;
 }
 
 .tooltip__not-visible {

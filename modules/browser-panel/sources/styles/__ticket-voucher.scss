@@ -136,8 +136,21 @@ body {
         }
       }
 
+      .hidden-input-wrapper {
+        position: relative;
+      }
+
+      .hidden-input {
+        border: none;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0px;
+        top: 2px;
+      }
+
       .divider {
-        padding: 0 4px;
+        padding: 0 4px 0 0;
         color: #ccc;
         position: relative;
         top: 2px;

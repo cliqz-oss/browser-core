@@ -14,16 +14,16 @@ function Tooltip({
   return (
     <div
       role="presentation"
-      className={`tooltip ${isOpen ? '' : 'close'}`}
+      className={`tooltip ${isOpen ? '' : 'closed'}`}
     >
       <div className="row">
         <aside className="tooltip-icon">
           <img src="./images/settings-icon.svg" alt="settings icon" />
         </aside>
         <div className="tooltip-content">
-          <h1>{title}</h1>
-          <p>{description}</p>
-          <span>
+          <h1 className="header">{title}</h1>
+          <p className="description">{description}</p>
+          <span className="btn-wrap">
             <button
               id="explore"
               type="button"
@@ -42,7 +42,7 @@ function Tooltip({
           </span>
         </div>
         <aside className="tooltip-close">
-          <button onClick={closeTooltip} type="button">X</button>
+          <button className="close" onClick={closeTooltip} type="button">X</button>
         </aside>
       </div>
     </div>

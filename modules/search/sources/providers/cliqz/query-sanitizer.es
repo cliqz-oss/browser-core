@@ -1,3 +1,4 @@
+import URL from '../../../core/fast-url-parser';
 // List of blocked schemas. All queries of the form "<schema>://<...>"
 // will be blocked. Should not contain the special cases "http" and "https".
 //

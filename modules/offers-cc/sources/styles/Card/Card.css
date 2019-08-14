@@ -47,10 +47,22 @@
   background-color: #0078CA;
 }
 .card__chip-button {
-  background-color: #DA3434;
+  background-color: var(--chip-primary-color, #eb443f);
 }
 .card__chip-button:hover {
-  background-color: #c93636;
+  background-color: var(--chip-primary-hover-color, #c93636);
+}
+.card__freundin-button {
+  background-color: var(--freundin-primary-color, #ed1b23);
+}
+.card__freundin-button:hover {
+  background-color: var(--freundin-primary-hover-color, #da3434);
+}
+.card__incent-button {
+  background-color: var(--incent-primary-color, #5c8fa6);
+}
+.card__incent-button:hover {
+  background-color: var(--incent-primary-hover-color, #487386);
 }
 
 .card__button {

@@ -80,7 +80,6 @@ export default class Settings extends React.Component {
             <div>
               <div
                 id="settings-panel"
-                className={(this.props.isOpen ? 'visible ' : '')}
                 tabIndex="-1"
               >
                 <Button
@@ -89,7 +88,7 @@ export default class Settings extends React.Component {
                   onClick={() => this.onCloseButtonClick()}
                 />
                 <div className="settings-header">
-                  <h1>{t('app_settings_header')}</h1>
+                  <h1 className="header">{t('app_settings_header')}</h1>
                 </div>
 
                 {this.props.isBrowserThemeSupported
@@ -148,7 +147,10 @@ export default class Settings extends React.Component {
                     <ul className="background-selection-list">
                       { this.props.wallpapers && this.props.wallpapers.map((background, index) =>
                         (
-                          <li key={`${background.alias}`}>
+                          <li
+                            className="background-item"
+                            key={`${background.alias}`}
+                          >
                             <BackgroundImage
                               bg={background.name}
                               index={index}
@@ -261,7 +263,6 @@ Settings.propTypes = {
   hasHistorySpeedDialsToRestore: PropTypes.bool,
   isBlueThemeSupported: PropTypes.bool,
   isBrowserThemeSupported: PropTypes.bool,
-  isOpen: PropTypes.bool,
   isStatsSupported: PropTypes.bool,
   onBackgroundImageChanged: PropTypes.func,
   onNewsSelectionChanged: PropTypes.func,

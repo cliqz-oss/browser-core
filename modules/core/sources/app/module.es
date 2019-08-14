@@ -113,7 +113,10 @@ export default class Module extends EventEmitter {
   }
 
   markAsEnabling() {
-    this._state = AppStates.ENABLING;
+    if (!this.isEnabling) {
+      this._state = AppStates.ENABLING;
+      this._bgReadyDefer = new Defer();
+    }
   }
 
   markAsDisabled() {

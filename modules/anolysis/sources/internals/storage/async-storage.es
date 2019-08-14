@@ -123,31 +123,6 @@ class BehaviorView {
   }
 }
 
-class RetentionView {
-  static key(k = '') {
-    return getAnolysisKey(`retention_${k}`);
-  }
-
-  async getState() {
-    const state = await AsyncStorage.getItem(RetentionView.key('state'));
-    if (!state) {
-      const defaultState = {
-        daily: {},
-        weekly: {},
-        monthly: {},
-      };
-      await this.setState(defaultState);
-      return defaultState;
-    }
-
-    return JSON.parse(state);
-  }
-
-  async setState(state) {
-    await AsyncStorage.setItem(RetentionView.key('state'), JSON.stringify(state));
-  }
-}
-
 class SignalQueueView {
   static key(k = '') {
     return getAnolysisKey(`signals_${k}`);
@@ -230,63 +205,18 @@ class SignalQueueView {
   }
 }
 
-class GidManagerView {
-  static key(k = '') {
-    return getAnolysisKey(`gid_${k}`);
-  }
-
-  constructor() {
-    this.cache = new Map();
-  }
-
-  async init() {
-    const baseKey = GidManagerView.key();
-    const keys = await getKeysWithPrefix(baseKey);
-    const values = await AsyncStorage.multiGet(keys.map(k => GidManagerView.key(k)));
-    for (let i = 0; i < keys.length; i += 1) {
-      this.cache.set(values[i][0].slice(baseKey.length), values[i][1]);
-    }
-  }
-
-  get(key) {
-    return this.cache.get(key);
-  }
-
-  async set(key, value) {
-    this.cache.set(key, value);
-    await AsyncStorage.setItem(GidManagerView.key(key), value);
-  }
-
-  entries() {
-    const entries = [];
-    this.cache.forEach((value, key) => {
-      entries.push({
-        key,
-        value,
-      });
-    });
-    return entries;
-  }
-}
-
 export default class AnolysisStorage {
   constructor() {
     this.aggregated = null;
     this.behavior = null;
-    this.retention = null;
     this.signals = null;
-    this.gid = null;
   }
 
   async init() {
     this.aggregated = new AggregatedView();
-    this.retention = new RetentionView();
 
     this.behavior = new BehaviorView();
     await this.behavior.init();
-
-    this.gid = new GidManagerView();
-    await this.gid.init();
 
     this.signals = new SignalQueueView();
     await this.signals.init();

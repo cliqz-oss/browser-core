@@ -6,9 +6,6 @@ import {
   UrlRegExp,
   LocalUrlRegExp,
 } from '../platform/url';
-import {
-  cleanMozillaActions,
-} from './content/url';
 import URL, { isKnownProtocol } from './fast-url-parser';
 import {
   URLInfo,
@@ -16,7 +13,6 @@ import {
 
 export {
   urlStripProtocol,
-  cleanMozillaActions,
   isCliqzAction
 } from './content/url';
 export { equals } from './url-info';
@@ -169,7 +165,7 @@ export function stripTrailingSlash(str) {
  * @param _originalUrl
  */
 export function getDetailsFromUrl(_originalUrl) {
-  const [action, originalUrl] = cleanMozillaActions(_originalUrl.trim());
+  const originalUrl = _originalUrl.trim();
   // exclude protocol
   const url = URLInfo.get(originalUrl) || URLInfo.get(`://${originalUrl}`);
   // remove trailing `.` from hostname - https://github.com/cliqz/navigation-extension/pull/6768
@@ -214,7 +210,6 @@ export function getDetailsFromUrl(_originalUrl) {
   }
 
   const urlDetails = {
-    action,
     originalUrl,
     scheme: url.protocol === ':' ? '' : url.protocol,
     path: url.pathname,
@@ -237,14 +232,6 @@ export function getDetailsFromUrl(_originalUrl) {
   }
 
   return urlDetails;
-}
-
-export function getSearchEngineUrl(engine, query) {
-  return engine.getSubmissionForQuery(query);
-}
-
-export function getVisitUrl(url) {
-  return url;
 }
 
 export function cleanUrlProtocol(url, cleanWWW) {

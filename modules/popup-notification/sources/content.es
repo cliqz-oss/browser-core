@@ -5,9 +5,12 @@ import {
 import { onApplyActions, preShowActions } from './content/processing';
 import { pop, log } from './content/transport';
 import { render } from './content/view';
-import { once } from './content/utils';
+import { once, retryFunctionSeveralTimes } from './content/utils';
 
-const renderPopup = (window, chrome, CLIQZ, renderOnce) => (msg) => {
+let timerId = null;
+
+// eslint-disable-next-line import/prefer-default-export
+export const renderPopup = (window, chrome, CLIQZ, renderOnce) => async (msg) => {
   const {action, module, target = 'nobody', data = {}, url} = msg;
   const href = window.location.href;
   if (url !== href || module !== 'popup-notification' || action !== 'push') {
@@ -15,7 +18,17 @@ const renderPopup = (window, chrome, CLIQZ, renderOnce) => (msg) => {
   }
 
   const {config = {}, onApply = '', preShow = '', back} = data;
-  const {ok, config: newConfig} = preShowActions(preShow)(window, config);
+
+  const {ok, config: newConfig} = await retryFunctionSeveralTimes(
+    window,
+    () => {
+      const result = preShowActions(preShow)(window, config);
+      const tryAgain = result.config.shouldHideButtons && config.isDynamicPage;
+      return { result, tryAgain };
+    },
+    (waitTimerId) => { timerId = waitTimerId; }
+  );
+
   const info = {back, url: href};
   log(CLIQZ, {target, data: {...info, type: 'pre-show', ok}});
   if (newConfig.shouldPreventRender) { return; }
@@ -43,6 +56,9 @@ registerContentScript('popup-notification', 'http*', (window, chrome, CLIQZ) => 
     });
     window.addEventListener('unload', () => {
       chrome.runtime.onMessage.removeListener(onMessage);
+      if (timerId) {
+        window.clearTimeout(timerId);
+      }
     });
   }
 });

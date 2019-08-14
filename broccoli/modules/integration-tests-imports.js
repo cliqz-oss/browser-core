@@ -1,7 +1,7 @@
 const writeFile = require('broccoli-file-creator');
-const config = require('../config');
 const glob = require('glob');
 const camelCase = require('camelcase');
+const config = require('../config');
 
 function createDefaultExportName(parts) {
   return camelCase(

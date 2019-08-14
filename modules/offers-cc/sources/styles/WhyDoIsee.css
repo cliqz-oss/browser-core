@@ -11,8 +11,14 @@
   height: 100%;
 }
 
+.why-do-i-see__freundin-title {
+  color: var(--freundin-secondary-color, #da3434);
+}
+.why-do-i-see__incent-title {
+  color: var(--incent-secondary-color, #5c8fa6);
+}
 .why-do-i-see__chip-title {
-  color: #DA3434;
+  color: var(--chip-secondary-color, #eb443f);
 }
 .why-do-i-see__myoffrz-title {
   color: #00AEF0;

@@ -2,7 +2,6 @@ import { from } from 'rxjs';
 import { map } from 'rxjs/operators';
 import BaseProvider from './base';
 import { getResponse } from '../responses';
-import { getSearchEngineUrl } from '../../core/url';
 import * as searchUtils from '../../core/search-engines';
 import { PREVENT_AUTOCOMPLETE_KEYS } from '../consts';
 
@@ -47,7 +46,6 @@ export default class QuerySuggestionProvider extends BaseProvider {
                   kind: ['Z'],
                   extra: {
                     searchEngineName: engine.name,
-                    mozActionUrl: getSearchEngineUrl(engine, suggestion, suggestion),
                   },
                 },
                 type: 'supplementary-search',

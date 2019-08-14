@@ -3,16 +3,18 @@ import background from '../core/base/background';
 import inject from '../core/kord/inject';
 import { getActiveTab } from '../core/browser';
 import prefs from '../core/prefs';
-import { getMessage } from '../core/i18n';
-import SearchReporter from './search/reporter';
-import { dispatcher } from './transport/index';
+import { findTabs } from '../core/tabs';
+import { dispatcher as transportDispatcher } from './transport/index';
 import { transform, transformMany } from './transformation/index';
-import { getOfferNotificationType } from './utils';
+import { getOfferNotificationType, products, chooseProduct } from './utils';
+import { setIconBadge, resetIconBadge } from './icon-badge';
 import Popup from './popup';
+import SearchReporter from './search/reporter';
 
-const REAL_ESTATE_IDS = ['browser-panel', 'offers-cc'];
-const ALLOWED_PREFS = ['telemetry'];
+const REAL_ESTATE_IDS = ['browser-panel', 'offers-cc', 'offers-reminder'];
+const ALLOWED_PREFS = ['telemetry', 'humanWebOptOut'];
 const RED_DOT_TYPE = 'dot';
+const SILENT_TYPE = 'silent';
 
 export default background({
   core: inject.module('core'),
@@ -26,7 +28,7 @@ export default background({
         .catch(() => {}));
     this.popup = new Popup({
       onPopupOpen: () => {
-        this._setIconBadge('');
+        resetIconBadge();
         this._closeBanner();
       },
       getOffers: this.actions.getOffers.bind(this),
@@ -52,25 +54,29 @@ export default background({
   beforeBrowserShutdown() { },
   actions: {
     send(type, offerId, msg, autoTrigger) {
-      dispatcher(type, offerId, msg, autoTrigger);
+      transportDispatcher(type, offerId, msg, autoTrigger);
     },
 
-    getOffers(preferredOffer, banner = 'offers-cc') {
+    async getOffers(preferredOffer, banner = 'offers-cc') {
       const args = { filters: { by_rs_dest: banner } };
-      return this.offersV2
-        .action('getStoredOffers', args)
-        .then(offers => transformMany(banner, { offers, preferredOffer }));
+      const tab = await getActiveTab();
+      const offers = await this.offersV2.action('getStoredOffers', args, tab ? tab.url : undefined);
+      return transformMany(banner, { offers, preferredOffer });
     },
 
-    setPref(args) {
-      if (!(ALLOWED_PREFS.includes(args.prefKey))) { return false; }
-      prefs.set(args.prefKey, args.prefValue);
-      return true;
+    setPref(preferences = {}) {
+      if (!Object.keys(preferences).every(pref => ALLOWED_PREFS.includes(pref))) { return; }
+      Object.keys(preferences).forEach(pref => prefs.set(pref, preferences[pref]));
     },
 
-    getPref(args) {
-      if (!(ALLOWED_PREFS.includes(args.prefKey))) { return undefined; }
-      return prefs.get(args.prefKey, true);
+    getPref(preferences = []) {
+      if (!preferences.every(pref => ALLOWED_PREFS.includes(pref))) { return {}; }
+      const obj = {};
+      // default pref for telemetry is true, for others prefs let's assume false
+      preferences.forEach((pref) => {
+        obj[pref] = prefs.get(pref, pref === 'telemetry');
+      });
+      return obj;
     }
   },
 
@@ -80,15 +86,13 @@ export default background({
       const { dest = [], type = '', data } = msg;
       if (type !== 'push-offer' || !data) { return; }
       const banner = REAL_ESTATE_IDS.find(estate => dest.includes(estate));
-      if (!banner) { return; }
-
-      if (getOfferNotificationType(data) === RED_DOT_TYPE) {
-        this._setIconBadge(RED_DOT_TYPE);
-        return;
-      }
-      const [ok, payload] = transform(banner, data, { abtestPopupsType: true });
-      if (ok) { this._renderBanner({ ...payload, autoTrigger: true }); }
+      if (banner) { this._dispatcher(banner, data); }
     },
+    'offers-notification:unreaded-offers-count': function onMessage({ count, tabId }) {
+      if (tabId !== undefined) { setIconBadge(chooseProduct(products()), { tabId, count }); }
+    },
+
+    // dropdown
     'ui:click-on-url': function onSearchResultClick(results) {
       this.searchReporter.onSearchResultClick(results);
     },
@@ -98,20 +102,43 @@ export default background({
     'search:results': function onSearchResults(results) {
       this.searchReporter.onSearchResults(results);
     },
+    // dropdown end
   },
 
-  async _renderBanner(data) { this._broadcastActionToActiveTab('renderBanner', data); },
+  _dispatcher(banner, data) {
+    const notificationType = getOfferNotificationType(data);
+    if (notificationType === SILENT_TYPE) { return; }
 
-  async _closeBanner() { this._broadcastActionToActiveTab('closeBanner'); },
+    if (notificationType === RED_DOT_TYPE) {
+      setIconBadge(chooseProduct(products()));
+      return;
+    }
+    const { display_rule: { url } = {} } = data;
+    const exactMatch = banner === 'offers-reminder';
+    const [ok, payload] = transform(banner, data, { abtestPopupsType: true });
+    if (ok) { this._renderBanner({ ...payload, autoTrigger: true }, { url, exactMatch }); }
+  },
 
-  async _broadcastActionToActiveTab(action, data) {
+  async _renderBanner(data, { url, exactMatch }) {
+    this._broadcastActionToTab('renderBanner', data, { activeTab: false, url, exactMatch });
+  },
+
+  async _closeBanner() {
+    this._broadcastActionToTab('closeBanner');
+  },
+
+  async _broadcastActionToTab(action, data, { activeTab = true, url, exactMatch = false } = {}) {
     /*
-      Between event `content:change` in offers-v2 and event `offers-send-ch`
-      in this module exist complex business-logic, so it's not very easy
-      to send data about tab. Also exists other module which can trigger offer
-      without passing info about tab.id
+      We trying to find a tab by `url` (and push the data),
+      if not we fallback to activeTab.
+      If client provides:
+        `exactMatch` -- we do not fallback to activeTab,
+        `activeTab` -- we do not try to find a tab by url
     */
-    const tab = await getActiveTab();
+    const isUrlEmpty = !url || url.length === 0; // types of url: string | [string]
+    const tabs = (activeTab || isUrlEmpty) ? [] : await findTabs(url);
+    if (tabs.length === 0 && exactMatch) { return; }
+    const tab = tabs.length === 0 ? await getActiveTab() : tabs.pop();
     this.core.action(
       'broadcastActionToWindow',
       tab.id,
@@ -119,16 +146,5 @@ export default background({
       action,
       data
     );
-  },
-
-  _setIconBadge(type) {
-    if (type === RED_DOT_TYPE) {
-      const badgeText = getMessage('offers_badge_text_new');
-      chrome.browserAction.setBadgeText({ text: badgeText });
-      chrome.browserAction.setBadgeBackgroundColor({ color: 'rgb(255, 80, 55)' });
-      chrome.browserAction.setBadgeTextColor({ color: 'white' });
-    } else {
-      chrome.browserAction.setBadgeText({ text: '' });
-    }
   },
 });

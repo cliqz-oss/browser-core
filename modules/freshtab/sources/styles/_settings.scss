@@ -1,31 +1,23 @@
 @import 'variables';
 
-@mixin transitionAll() {
-    transition: transform .3s ease-out;
-}
+$settings-panel-width: 270px;
 
 @mixin settings (
     $cliqz-settings-bg
 ){
 
     #settings-panel {
-        @include transitionAll();
-
-        width: 270px;
+        width: $settings-panel-width;
         background: #fff;
         position: absolute;
         top: 0px;
-        right: -280px;
+        right: 0px;
         height: 100%;
         overflow: auto;
-        box-shadow: 0px 1px 2px 0px rgba(0,0,0,0.24);
+        box-shadow: 0px 1px 2px 0px get-color-black-opacity(0.24);
         z-index: 2000;
 
-        &.visible {
-            transform: translate3d(-280px, 0, 0);
-        }
-
-        button.close {
+        .close {
             background: url(../images/settings-close.svg) no-repeat center center;
             background-size: 14px;
             position: absolute;
@@ -46,13 +38,12 @@
             }
         }
 
-        button.link {
+        .link {
             margin-top: 4px;
             font-size: 9px;
             text-transform: uppercase;
             color: $color-cliqz-blue;
             border: 0;
-            background: transparent;
             display: block;
             cursor: pointer;
             background: url(../images/restore.png) no-repeat 0 0;
@@ -61,7 +52,7 @@
             line-height: 15px;
 
             &:hover {
-                color: #0078CA;
+                color: $color-dark-blue;
                 background-position: 0 -14px;
             }
 
@@ -76,115 +67,98 @@
         .settings-header {
             padding: 20px 0 20px 20px;
 
-            h1 {
+            .header {
                 font-size: 18px;
                 font-weight: 500;
-                color: rgba(0, 0, 0, 0.8);
+                color: get-color-black-opacity(0.8);
             }
         }
 
         .settings-row {
-            padding: 12px 0px 12px 20px;
+            padding: 12px 20px;
             line-height: 21px;
-            span {
-                vertical-align: top
+            width: $settings-panel-width;
+        }
+
+        .btns-wrapper {
+            margin-top: 4px;
+            color: get-color-black-opacity(0.7);
+            font-size: 12px;
+
+            input[type=radio] {
+                cursor: pointer;
             }
 
-            .btns-wrapper {
-                margin-top: 4px;
-                color: rgba(0, 0, 0, 0.7);
-                font-size: 12px;
-
-                input[type=radio] {
-                    cursor: pointer;
-                }
-
-                label {
-                    cursor: pointer;
-                    padding-left: 6px;
-                }
+            .input-label {
+                cursor: pointer;
+                padding-left: 6px;
             }
+        }
 
-            .label {
-                font-size: 14px;
-                color: rgba(0, 0, 0, 0.7);
-                padding-left: 1px;
+        .label {
+            font-size: 14px;
+            color: get-color-black-opacity(0.7);
+        }
+
+        .news-editions-wrapper {
+            padding-top: 7px;
+            padding-right: 25px;
+        }
+
+        .news-editions-select {
+            width: 100%;
+            cursor: pointer;
+            height: 30px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 12px;
+            appearance: none;
+            -webkit-appearance: none;
+            padding: 1px 18px 1px 5px;
+            background-image: url("../images/dropmarker.png");
+            background-repeat: no-repeat;
+            background-position: 96% center;
+
+            &:-moz-focusring {
+                color: transparent;
+                text-shadow: 0 0 0 #000;
             }
+        }
 
-            .news-editions-wrapper {
-                padding-top: 7px;
-                padding-right: 25px;
+        .background-selection-list {
+            list-style: none;
+        }
 
-                .news-editions-select {
-                    width: 100%;
-                    cursor: pointer;
-                    height: 30px;
-                    border: 1px solid #ccc;
-                    border-radius: 4px;
-                    font-size: 12px;
-                    -webkit-appearance: none;
-                    -moz-appearance: none;
-                    padding: 1px 18px 1px 5px;
-                    background-image: url("../images/dropmarker.png");
-                    background-repeat: no-repeat;
-                    background-position: 96% center;
+        .selected-img {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: calc(100% - 5px);
+            height: 100%;
+            display: none;
+        }
 
-                    &:-moz-focusring {
-                        color: transparent;
-                        text-shadow: 0 0 0 #000;
-                    }
-                }
+        .background-item {
+            display: inline-block;
+            padding-right: 5px;
+            position: relative;
+            cursor: pointer;
+            margin-bottom: 4px;
+
+            &:hover .selected-img,
+            .active + .selected-img {
+                display: flex;
+                align-items: center;
+                justify-content: center
             }
+        }
 
-            .background-selection-list {
-                list-style: none;
-                li {
-                    display: inline-block;
-                    padding-right: 5px;
-                    position: relative;
-                    cursor: pointer;
-                    margin-bottom: 4px;
-                    &:first-child,
-                    &:last-child {
-                        padding-left: 0;
-                    }
+        .image {
+            box-shadow: 0px 0px 2px 0px get-color-black-opacity(0.15);
+        }
 
-                    &:hover {
-                       .selected-img {
-                            display: flex;
-                            align-items: center;
-                            justify-content: center
-                       }
-                    }
-
-                    .selected-img {
-                        position: absolute;
-                        top: 0px;
-                        left: 0px;
-                        width: calc(100% - 5px);
-                        height: 100%;
-                        display: none;
-                        img {
-                            box-shadow: none !important;
-
-                        }
-                    }
-
-                    img {
-                        box-shadow: 0px 0px 2px 0px rgba(0,0,0,0.15);
-
-                        &.active + .selected-img {
-                            display: flex;
-                            align-items: center;
-                            justify-content: center
-                        }
-                    }
-                }
-            }
-
-            &.background-selection-wrapper {
-                padding-top: 0;
-            }
+        .background-selection-wrapper {
+            padding-top: 0;
         }
     }
 }

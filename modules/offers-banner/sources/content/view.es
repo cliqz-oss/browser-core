@@ -2,13 +2,11 @@ import { afterIframeRemoved, beforeIframeShown } from './sites-specific';
 import { createElement } from './utils';
 import * as styles from './styles/index';
 
-const WAIT_BEFORE_SHOWING = 500;
+const WAIT_BEFORE_SHOWING = 50;
 const DEBUG = false;
-const SMALL_SCREEN_HEIGHT = 725;
 
 export default class View {
   constructor({ onaction, window, config }) {
-    this.isRewardBox = config.type === 'offers-cc';
     this.window = window;
     this.onaction = onaction;
     this.iframe = null;
@@ -17,7 +15,7 @@ export default class View {
   }
 
   unload() {
-    if (!this.isRewardBox) { afterIframeRemoved(this.window); }
+    if (this.config.type === 'browser-panel') { afterIframeRemoved(this.window); }
     if (this.shadowRoot) { this.shadowRoot.remove(); }
     this.iframe.remove();
     this.wrapper.remove();
@@ -29,13 +27,15 @@ export default class View {
 
   makeVisible() {
     setTimeout(() => {
-      if (!this.isRewardBox) { beforeIframeShown(this.window); }
+      const isBrowserPanel = this.config.type === 'browser-panel';
+      if (isBrowserPanel) { beforeIframeShown(this.window); }
       this.wrapper.style.opacity = 1;
       this.iframe.style.opacity = 1;
-      if (!this.isRewardBox) {
+      if (isBrowserPanel) {
         this.onaction({ handler: 'offerShown', data: {} });
         this.onaction({ handler: 'offersFirstAppearance', data: {} });
       }
+      styles.animate(this.config.type, this.wrapper, this.config.styles);
     }, this.config.waitBeforeShowing || WAIT_BEFORE_SHOWING);
   }
 
@@ -44,23 +44,38 @@ export default class View {
     this.iframe.style.width = `${width}px`;
   }
 
+  changePositionWithAnimation({ deltaRight = 0, duration }) {
+    const right = Number((this.wrapper.style.right || '0').replace(/\D/g, ''));
+    const animationsOptions = { animation: true, duration, first: right, last: right + deltaRight };
+    styles.animate(this.config.type, this.wrapper, animationsOptions);
+  }
+
+  changePosition({ deltaRight = 0 }) {
+    const right = Number((this.wrapper.style.right || '0').replace(/\D/g, ''));
+    this.wrapper.style.right = `${right + deltaRight}px`;
+  }
+
   sendToIframe(payload) {
-    const isSmallScreen = this.window.innerHeight < SMALL_SCREEN_HEIGHT;
+    const mapper = {
+      'offers-cc': ['cliqz-offers-cc', 'pushData'],
+      'browser-panel': ['cqz-browser-panel-re', 'render_template'],
+      'offers-reminder': ['cliqz-offers-reminder', 'pushData'],
+    };
+    const [target, action] = mapper[this.config.type] || ['cliqz-offers-cc', 'pushData'];
     this.iframe.contentWindow.postMessage(JSON.stringify({
-      target: this.isRewardBox ? 'cliqz-offers-cc' : 'cqz-browser-panel-re',
+      target,
       origin: 'window',
-      message: {
-        action: this.isRewardBox ? 'pushData' : 'render_template',
-        data: { ...payload, isSmallScreen },
-      }
+      message: { action, data: payload },
     }), '*');
   }
 
   render(bannerId) {
+    if (this.window.document.getElementById(bannerId)) { return; }
+
     const wrapper = createElement(this.window, { tag: 'div' });
     const iframe = createElement(this.window, { tag: 'iframe' });
-    Object.assign(wrapper.style, styles.wrapper(this.isRewardBox));
-    Object.assign(iframe.style, styles.banner(this.isRewardBox, this.config));
+    Object.assign(wrapper.style, styles.wrapper(this.config.type, this.config.styles));
+    Object.assign(iframe.style, styles.banner(this.config.type, this.config.styles));
 
     iframe.frameBorder = 0;
     wrapper.appendChild(iframe);

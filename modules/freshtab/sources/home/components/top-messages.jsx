@@ -62,8 +62,9 @@ export default class TopMessages extends React.Component {
                   onClick={() => this.handleCloseClick(message)}
                 />
                 <div className="content">
-                  <div>
+                  <div className="first">
                     <h1
+                      className="header"
                       title={message.title}
                       style={{
                         backgroundImage: `url(${message.icon})`,
@@ -73,7 +74,7 @@ export default class TopMessages extends React.Component {
                       {message.title}
                     </h1>
                   </div>
-                  <div>
+                  <div className="second">
                     <Button
                       className="cta-btn"
                       label={message.cta_text}
