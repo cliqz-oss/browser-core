@@ -1,7 +1,16 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint no-param-reassign: 'off' */
 
 import logos from '../core/services/logos';
 import { URLInfo } from '../core/url-info';
+import { getCleanHost } from '../core/url';
 
 function getAlias(host, searchEngines) {
   const engine = searchEngines.find(
@@ -50,7 +59,7 @@ export default class SpeedDial {
     }
     this.id = id;
     this.url = url;
-    this.displayTitle = displayTitle || details.cleanHost || url;
+    this.displayTitle = displayTitle || getCleanHost(details) || url;
     this.custom = isCustom;
     this.logo = logoDetails;
     this.searchAlias = getAlias(details.hostname, searchEngines);

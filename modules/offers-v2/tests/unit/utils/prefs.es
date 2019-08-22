@@ -1,6 +1,17 @@
 const defaultPrefs = new Map([['developer', true]]);
 const prefs = new Map(defaultPrefs);
 
+const defaultSettings = {
+  OFFERS_BE_BASE_URL: 'https://offers-api.cliqz.com',
+  'offers.user-journey.enabled': true,
+};
+const settings = {};
+function resetSettings() {
+  Object.keys(settings).forEach(p => delete settings[p]);
+  Object.assign(settings, defaultSettings);
+}
+resetSettings();
+
 module.exports = {
   'core/prefs': {
     default: {
@@ -31,9 +42,10 @@ module.exports = {
   },
   'core/config': {
     default: {
-      settings: {
-        OFFERS_BE_BASE_URL: 'https://offers-api.cliqz.com',
-        'offers.user-journey.enabled': true,
+      settings,
+      reset: resetSettings,
+      set: function (k, v) {
+        settings[k] = v;
       }
     }
   }

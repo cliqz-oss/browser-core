@@ -1,0 +1,61 @@
+{
+  "url": "https://www.google.com/search?hl=en&q=green%20apple",
+
+  "mustContain": [
+    {
+      "type": "humanweb",
+      "action": "img-p",
+      "payload": {
+        "q": "green apple",
+        "qurl": "https://www.google.com/search?hl=en&q=green%20apple",
+        "r": {
+          "0": {
+            "u": "https://www.angryorchard.com/our-ciders/green-apple"
+          },
+          "1": {
+            "u": "https://www.youtube.com/channel/UCQeiPAD0CkpteGUzm5LxTHg"
+          },
+          "2": {
+            "u": "https://www.vapango.de/green-apple-liquid-zazo"
+          },
+          "3": {
+            "u": "https://www.hufworldwide.com/huf_en_us/summerland-green-apple-ac00364"
+          },
+          "4": {
+            "u": "https://marenlubbe.de/2019/04/13/green-apple-apfelmousse-torte/"
+          },
+          "5": {
+            "u": "https://www.douglas.de/Pflege-Korean%20Beauty-Lippenpflege-Tonymoly-Lippenpflege-Green-Apple_productbrand_3001009470.html"
+          },
+          "6": {
+            "u": "https://marenlubbe.de/2019/04/13/green-apple-apfelmousse-torte/"
+          },
+          "7": {
+            "u": "https://www.dampftbeidir.de/MyBlu-Podpacks-2-Stueck-Green-Apple"
+          },
+          "8": {
+            "u": "https://therecoveringcpa.com/green-apple-podcast/"
+          },
+          "9": {
+            "u": "https://dampfdorado.de/aromen/capella/aroma-green-apple-ca"
+          }
+        },
+        "ctry": "de"
+      }
+    },
+
+    {
+      "type": "humanweb",
+      "action": "place",
+      "payload": {
+        "t": "Green Apple Pilates GmbH",
+        "u": "http://www.sunyardpilatesclub.com/",
+        "addr": "Adresse: Daphnestraße 21, 81925 München",
+        "loc": "48.15029,11.6248599,15z",
+        "ctry": "de"
+      }
+    }
+  ],
+
+  "mustNotContain": []
+}

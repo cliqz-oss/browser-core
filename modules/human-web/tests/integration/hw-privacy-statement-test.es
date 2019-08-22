@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import {
   app,
   click,
@@ -13,7 +21,7 @@ import {
 
 export default function () {
   const privacyStatementUrl = getResourceUrl('human-web/humanweb.html');
-  const privacyCheckboxSelector = '#enableHumanWeb';
+  const privacyCheckboxSelector = 'input#enableHumanWeb';
 
   describe('HumanWeb privacy statement page', function () {
     let privacyPageContent;
@@ -36,9 +44,13 @@ export default function () {
         privacyPageContent = await queryHTML(privacyStatementUrl, '#container', 'innerHTML');
 
         expect(privacyPageContent).to.have.length(1);
-        for (let index = 1; index < 11; index += 1) {
-          expect(privacyPageContent[0]).to.contain(getLocalisedString(`humanWeb${index}`));
-        }
+
+
+        ['header', 'privacy_statement', 'data_collection', 'one_for_all',
+          'cliqz_desc', 'cliqz_hw_desc', 'cliqz_desc_extended',
+          'participation_disclaimer', 'choice', 'participate'].forEach((k) => {
+          expect(privacyPageContent[0]).to.contain(getLocalisedString(`hw_page_${k}`));
+        });
       });
 
       it('with "humanWebOptOut" pref set to false and ticked checkbox as default', async function () {
@@ -100,7 +112,7 @@ export default function () {
 
       context('once', function () {
         beforeEach(async function () {
-          await click(privacyStatementUrl, 'input#enableHumanWeb');
+          await click(privacyStatementUrl, privacyCheckboxSelector);
           await waitFor(async () => {
             privacyCheckboxState = await queryHTML(privacyStatementUrl, privacyCheckboxSelector, 'checked');
             return ((privacyCheckboxState.length > 0) && (privacyCheckboxState[0] === false));
@@ -121,13 +133,13 @@ export default function () {
 
       context('twice', function () {
         beforeEach(async function () {
-          await click(privacyStatementUrl, 'input#enableHumanWeb');
+          await click(privacyStatementUrl, privacyCheckboxSelector);
           await waitFor(async () => {
             privacyCheckboxState = await queryHTML(privacyStatementUrl, privacyCheckboxSelector, 'checked');
             return ((privacyCheckboxState.length > 0) && (privacyCheckboxState[0] === false));
           });
 
-          await click(privacyStatementUrl, 'input#enableHumanWeb');
+          await click(privacyStatementUrl, privacyCheckboxSelector);
           await waitFor(async () => {
             privacyCheckboxState = await queryHTML(privacyStatementUrl, privacyCheckboxSelector, 'checked');
             return ((privacyCheckboxState.length > 0) && (privacyCheckboxState[0] === true));

@@ -1,9 +1,27 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { NativeModules } from 'react-native';
 import window from './window';
+
 
 const nativeWebRequest = NativeModules.WebRequest;
 const LocaleConstants = NativeModules.LocaleConstants;
 const defaultLocale = 'en';
+
+const formattedLocale = () => {
+  const deviceLocale = (NativeModules.I18nManager
+    && NativeModules.I18nManager.localeIdentifier
+    && typeof NativeModules.I18nManager.localeIdentifier === 'string')
+    ? NativeModules.I18nManager.localeIdentifier
+    : defaultLocale;
+  return deviceLocale.split('_')[0];
+};
 
 export function currentURI() {}
 
@@ -35,9 +53,6 @@ export function mustLoadWindow() {
   return true;
 }
 
-export function setOurOwnPrefs() {
-}
-
 export function addWindowObserver() {
 }
 
@@ -61,7 +76,7 @@ export function mapWindows() {
 }
 
 export function getLocale() {
-  return LocaleConstants ? LocaleConstants.lang : defaultLocale;
+  return LocaleConstants ? LocaleConstants.lang : formattedLocale();
 }
 
 export function getWindow() {}

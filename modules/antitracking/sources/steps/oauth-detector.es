@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { Subject, merge, fromEventPattern, asyncScheduler } from 'rxjs';
 import { map, groupBy, flatMap, scan, observeOn, debounceTime } from 'rxjs/operators';
 import events from '../../core/events';

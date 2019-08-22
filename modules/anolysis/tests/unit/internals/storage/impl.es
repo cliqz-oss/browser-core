@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai */
 
 export default function sortBy(signals, by = (v => v)) {
@@ -44,34 +52,6 @@ module.exports = ({
   afterEach(async () => {
     await storage.destroy();
     storage = undefined;
-  });
-
-  describe('retention', () => {
-    it('default to empty state the first time', async () => (
-      chai.expect(await storage.retention.getState()).to.eql({
-        daily: {},
-        weekly: {},
-        monthly: {},
-      })
-    ));
-
-    it('it gets back the state set previously', async () => {
-      // Insert initial value
-      await storage.retention.setState({ foo: 'bar' });
-
-      // Force reload to check `init()`
-      await reloadStorage();
-
-      chai.expect(await storage.retention.getState()).to.eql({
-        foo: 'bar',
-      });
-
-      // Change value
-      await storage.retention.setState({ foo: 'baz' });
-      chai.expect(await storage.retention.getState()).to.eql({
-        foo: 'baz',
-      });
-    });
   });
 
   describe('aggregated', () => {
@@ -346,52 +326,6 @@ module.exports = ({
         { id: 5, signal: {}, attempts: 0, date: '2017-01-01' },
         { id: 6, signal: {}, attempts: 0, date: '2017-01-01' },
       ], ({ id }) => id));
-    });
-  });
-
-  describe('gid', () => {
-    describe('get/set', () => {
-      it('returns undefined if key does not exist', () => {
-        chai.expect(storage.gid.get('foo')).to.be.undefined;
-      });
-
-      it('returns set value', async () => {
-        await storage.gid.set('foo', 'bar');
-
-        // Force reload to check `init()`
-        await reloadStorage();
-
-        chai.expect(storage.gid.get('foo')).to.be.eql('bar');
-      });
-
-      it('overrides existing value', async () => {
-        await storage.gid.set('foo', 'bar');
-        await storage.gid.set('foo', 'baz');
-
-        // Force reload to check `init()`
-        await reloadStorage();
-
-        chai.expect(storage.gid.get('foo')).to.be.eql('baz');
-      });
-    });
-
-    describe('#entries', () => {
-      it('returns all entries', async () => {
-        await Promise.all([
-          storage.gid.set('foo', JSON.stringify({ value: 1 })),
-          storage.gid.set('bar', JSON.stringify({ value: 2 })),
-          storage.gid.set('baz', JSON.stringify({ value: 3 })),
-        ]);
-
-        // Force reload to check `init()`
-        await reloadStorage();
-
-        chai.expect(sortBy(storage.gid.entries(), ({ key }) => key)).to.be.eql(sortBy([
-          { key: 'foo', value: JSON.stringify({ value: 1 }) },
-          { key: 'bar', value: JSON.stringify({ value: 2 }) },
-          { key: 'baz', value: JSON.stringify({ value: 3 }) },
-        ], ({ key }) => key));
-      });
     });
   });
 

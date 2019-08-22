@@ -1,0 +1,134 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+@import 'variables.scss';
+
+.popup-confirmation {
+    position: fixed;
+    height: 100%;
+    width: 100%;
+    left: 0;
+    top: 0;
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.5);
+
+    &-overlay {
+        height: inherit;
+        width: inherit;
+    }
+
+    &-container {
+        position: absolute;
+        top: 190px;
+        left: 50%;
+        width: auto;
+        transform: translateX(-50%);
+        padding: 0 45px;
+        border-radius: 3px;
+        background-color: white;
+
+        .headline {
+            margin-top: 45px;
+            color: #000;
+            font-size: 19px;
+            font-weight: 700;
+        }
+
+        .description {
+            margin-top: 15px;
+            color: #000;
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        .buttons-wrapper {
+            display: flex;
+            justify-content: flex-end;
+            width: auto;
+            text-align: right;
+            margin-top: 30px;
+            margin-bottom: 35px;
+
+        }
+
+        button {
+            border: none;
+            background: none;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            cursor: pointer;
+
+            &.action {
+                color: $cliqz-blue;
+            }
+
+            &.skip {
+                color: $grey;
+            }
+
+            &.close {
+                margin: 0;
+                padding: 0;
+                position: absolute;
+                right: 15px;
+                top: 15px;
+                width: 30px;
+                height: 30px;
+
+                &:before, &:after {
+                    position: absolute;
+                    top: -2px;
+                    right: 7px;
+                    content: "";
+                    height: 20px;
+                    width: 1.5px;
+                    background-color: $grey;
+                    opacity: 0.55;
+                }
+
+                &:hover {
+                    &:before, &:after {
+                        opacity: 1;
+                    }
+                }
+
+                &:before {
+                    transform: rotate(45deg);
+                }
+
+                &:after {
+                    transform: rotate(-45deg);
+                }
+            }
+        }
+    }
+
+    &.popup_protection {
+        .action {
+            order: 1;
+        }
+
+        .skip {
+            order: 0;
+            margin-right: 25px;
+        }
+
+    }
+
+    &.popup_skip {
+        .action {
+            order: 0;
+            margin-right: 25px;
+        }
+
+        .skip {
+            order: 1;
+        }
+    }
+}

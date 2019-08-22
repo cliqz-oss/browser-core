@@ -1,6 +1,7 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
 import { fetch, Request, Headers } from '../core/http';
 import config from '../core/config';
+import prefs from '../core/prefs';
 import logger from './common/offers_v2_logger';
 import OffersConfigs from './offers_configs';
 import { timestampMS } from './utils';
@@ -57,7 +58,7 @@ export default class BEConnector {
     this._expireCache();
 
     params.t_eng_ver = OffersConfigs.TRIGGER_ENGINE_VERSION;
-    params.channel = config.settings.OFFERS_CHANNEL || 'cliqz';
+    params.channel = prefs.get('offers.distribution.channel') || config.settings.OFFERS_CHANNEL || 'cliqz';
 
     const url = this._buildUrl(endpoint, params, method);
 

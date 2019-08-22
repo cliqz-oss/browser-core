@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint no-underscore-dangle: off */
 /* eslint no-param-reassign: off */
 export default class LRU {
@@ -68,6 +76,12 @@ export default class LRU {
       this.cache.set(key, node);
       this._pushFront(node);
     }
+  }
+
+  toMap() {
+    const map = new Map();
+    for (const [key, { value }] of this.cache.entries()) { map.set(key, value); }
+    return map;
   }
 
   // Private interface (Linked List)

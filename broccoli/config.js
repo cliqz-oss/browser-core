@@ -1,6 +1,10 @@
-/* eslint-disable strict, no-console */
-
-'use strict';
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 
 const fs = require('fs');
 const path = require('path');
@@ -17,8 +21,6 @@ if (!cliqzConfig.modules) {
 }
 // TODO remove outdated
 cliqzConfig.environment = process.env.CLIQZ_ENVIRONMENT || 'development';
-
-cliqzConfig.use_v6_build = process.env.CLIQZ_V6_BUILD || false;
 
 // source maps
 cliqzConfig.sourceMaps = !(process.env.CLIQZ_SOURCE_MAPS === 'false');

@@ -19,9 +19,11 @@ export default class PatternsStat {
    * @constructor
    * @param {id => OfferMatchTraits} offerIdToReasonFunc
    */
-  constructor(offerIdToReasonFunc) {
+  constructor(offerIdToReasonFunc, signalReEmitter) {
     this.offerIdToReason = offerIdToReasonFunc;
     this.db = null;
+    this.signalReEmitter = signalReEmitter;
+    this.reinterpretCampaignSignalAsync = this.reinterpretCampaignSignalAsync.bind(this);
   }
 
   async init() {
@@ -33,11 +35,13 @@ export default class PatternsStat {
         this.db = new Dexie('offers-patterns-stat-v2');
         this.db.version(1).stores(dexieSchema);
       });
+    this.signalReEmitter.on('signal', this.reinterpretCampaignSignalAsync);
 
     this.threadCount = 0; // For unit tests to know that operations are done
   }
 
   destroy() {
+    this.signalReEmitter.unsubscribe('signal', this.reinterpretCampaignSignalAsync);
     if (this.db) {
       this.db.close(); // sync operation
       this.db = null;
@@ -126,9 +130,8 @@ export default class PatternsStat {
    *
    * Offer could matched against several patterns. Report them all.
    *
-   * There are two pseudo-patterns to report data inconsistency:
-   * - `<null>` means the matching information is not stored
-   * - `<empty>` means that information is found, but emptry
+   * There is a pseudo-patterns to report data inconsistency:
+   * `<null>` means the matching information is not stored.
    *
    * @method reinterpretCampaignSignalAsync
    * @param {string} campaignID
@@ -136,16 +139,16 @@ export default class PatternsStat {
    * @param {string} signalID
    * @returns {Promise}
    */
-  reinterpretCampaignSignalAsync(campaignID, offerID, signalID) {
+  reinterpretCampaignSignalAsync(signalID, campaignID, offerID) {
     if (!(signalID in dexieSchema)) {
       return Promise.resolve(true);
     }
     this.threadCount += 1;
     return Promise.resolve().then(() =>
-      this.reinterpretCampaignSignalSync(campaignID, offerID, signalID));
+      this.reinterpretCampaignSignalSync(signalID, campaignID, offerID));
   }
 
-  reinterpretCampaignSignalSync(campaignId, offerID, signalID) {
+  reinterpretCampaignSignalSync(signalID, campaignId, offerID) {
     const reasonObj = this.offerIdToReason(offerID);
     if (!reasonObj) {
       this.add(signalID, { campaignId, pattern: '<null>' });
@@ -153,8 +156,6 @@ export default class PatternsStat {
       const reasonArr = reasonObj.getReason();
       if (!reasonArr) {
         this.add(signalID, { campaignId, pattern: '<null>' });
-      } else if (!reasonArr.length) {
-        this.add(signalID, { campaignId, pattern: '<empty>' });
       } else {
         reasonArr.forEach(({ pattern, domainHash }) =>
           this.add(signalID, { campaignId, pattern, domainHash }));

@@ -1,70 +1,74 @@
-/* eslint-disable */
-
-'use strict';
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 
 const urls = require('../common/urls-cliqz');
 const publish = require('../common/publish');
 
 module.exports = {
-  "platform": "webextension",
-  "brocfile": "Brocfile.ghostery.js",
-  "baseURL": "/cliqz/",
-  "pack": "npm pack",
-  "publish": publish.toEdge('browser-core', 'antitracking'),
-  "sourceMaps": false,
-  "format": "common",
-  "settings": Object.assign({}, urls, {
-    "channel": "AT01",
-    "MSGCHANNEL": "web-extension",
-    "ATTRACK_TELEMETRY_PROVIDER": "hpnv2",
+  platform: 'webextension',
+  brocfile: 'Brocfile.ghostery.js',
+  baseURL: '/cliqz/',
+  pack: 'npm pack',
+  publish: publish.toEdge('browser-core', 'antitracking'),
+  sourceMaps: false,
+  format: 'common',
+  settings: Object.assign({}, urls, {
+    channel: 'AT01',
+    MSGCHANNEL: 'web-extension',
+    ATTRACK_TELEMETRY_PROVIDER: 'hpnv2',
     // "channel" on HPN messages from anti-tracking - to distinguish data sources
-    "HW_CHANNEL": "antitracking",
+    HW_CHANNEL: 'antitracking',
     // Countries for which we may send the user country in messages (to measure region effects) -
     // Requires a threshold of users from that region for this channel
-    "ALLOWED_COUNTRY_CODES": [],
+    ALLOWED_COUNTRY_CODES: [],
     // String to use in place of user-identifiers in request query parameters.
-    "antitrackingPlaceholder": "anonymized",
+    antitrackingPlaceholder: 'anonymized',
     // Header to send when request has been anonymised
-    "antitrackingHeader": "Antitracking",
+    antitrackingHeader: 'Antitracking',
   }),
-  "default_prefs": {
+  default_prefs: {
     // start with antitracking module enabled
-    "modules.antitracking.enabled": true,
+    'modules.antitracking.enabled': true,
     // Enable hpnv2 module for anonymised data collection
-    "modules.hpnv2.enabled": true,
+    'modules.hpnv2.enabled': true,
     // Show logs from Cliqz modules
-    "showConsoleLogs": false,
+    showConsoleLogs: false,
     // Enable third-party cookie blocking
-    "attrackBlockCookieTracking": true,
+    attrackBlockCookieTracking: true,
     // Enable removal of unique query parameters
-    "attrackRemoveQueryStringTracking": true,
+    attrackRemoveQueryStringTracking: true,
     // Only send data for trackers. 0 = off, 2 = for all third parties
-    "attrackTelemetryMode": 1,
+    attrackTelemetryMode: 1,
     // Action on user id in url parameters. Options are:
     // - placeholder: replace with "antitrackingPlaceHolder" value (above)
     // - block: block request
     // - empty: empty string placeholder
     // - replace: Randomise value
-    "attrackDefaultAction": "placeholder",
+    attrackDefaultAction: 'placeholder',
     // Overrides above, and blocks requests instead
-    "attrackForceBlock": false,
+    attrackForceBlock: false,
     // Send an extra header when anti-tracking modifies a request
-    "attrackSendHeader": false,
+    attrackSendHeader: false,
     // Enable referrer trust mechanism - Prevents issues with some site logins when blocking third
     // party cookies.
-    "attrackCookieTrustReferers": true,
+    attrackCookieTrustReferers: true,
     // Change the user-agent for modified requests to "CLIQZ"
-    "attrackOverrideUserAgent": false,
+    attrackOverrideUserAgent: false,
   },
-  "bundles": [
-    "core/content-script.bundle.js",
-    "hpnv2/worker.wasm.bundle.js",
-    "hpnv2/worker.asmjs.bundle.js",
+  bundles: [
+    'core/content-script.bundle.js',
+    'hpnv2/worker.wasm.bundle.js',
+    'hpnv2/worker.asmjs.bundle.js',
   ],
-  "modules": [
-    "core",
-    "hpnv2",
-    "antitracking",
-    "webrequest-pipeline",
+  modules: [
+    'core',
+    'hpnv2',
+    'antitracking',
+    'webrequest-pipeline',
   ]
-}
+};

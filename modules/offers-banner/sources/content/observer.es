@@ -1,8 +1,5 @@
 import View from './view';
 
-const BANNER_ID = 'cliqz-offers-banner';
-const AUTO_HIDE_TIMEOUT = 10 * 60 * 1000;
-
 export default class Observer {
   constructor({ window, onmessage, onaction, config, onremove, payload }) {
     this.onaction = onaction;
@@ -13,7 +10,6 @@ export default class Observer {
 
     this.view = new View({ onaction, window, config });
     this._initialPayloadWasSent = false;
-    this.isRewardBox = config.type === 'offers-cc';
     this.config = config;
 
     this._onvisibilitychange = this._onvisibilitychange.bind(this);
@@ -27,21 +23,13 @@ export default class Observer {
     this.window.addEventListener('message', this._onmessage, true);
     this.window.document.addEventListener('visibilitychange', this._onvisibilitychange);
     this.window.document.addEventListener('scroll', this._onscroll);
-
-    this.interval = this.window.setTimeout(() => {
-      if (window.document.getElementById(BANNER_ID)) {
-        this.onremove();
-      }
-    }, AUTO_HIDE_TIMEOUT);
-
-    this.view.render(BANNER_ID);
+    this.view.render(this._getBannerId());
   }
 
   unload() {
     this.window.removeEventListener('message', this._onmessage, true);
     this.window.document.removeEventListener('visibilitychange', this._onvisibilitychange);
     this.window.document.removeEventListener('scroll', this._onscroll);
-    this.window.clearInterval(this.interval);
 
     this.window = null;
     this.onaction = null;
@@ -56,7 +44,12 @@ export default class Observer {
   _onmessage({ data, origin } = {}) {
     if (!data || !this.config.url.startsWith(origin)) { return; }
     const { target, origin: targetOrigin, message = {} } = JSON.parse(data);
-    const desirableTarget = this.isRewardBox ? 'cliqz-offers-cc' : 'cqz-browser-panel-re';
+    const mapper = {
+      'offers-cc': 'cliqz-offers-cc',
+      'browser-panel': 'cqz-browser-panel-re',
+      'offers-reminder': 'cliqz-offers-reminder',
+    };
+    const desirableTarget = mapper[this.config.type] || 'cliqz-offers-cc';
     if (target !== desirableTarget || targetOrigin !== 'iframe') {
       return;
     }
@@ -83,21 +76,36 @@ export default class Observer {
   }
 
   _dispatcher({ data, handler, action } = {}) {
-    if (!data || !(this.isRewardBox ? action : handler)) { return; }
-    const mapper = this.isRewardBox
-      ? {
+    if (!data || !(this._isBrowserPanel() ? handler : action)) { return; }
+    const mapper = {
+      'offers-cc': {
         resize: this.view.resize.bind(this.view),
         getEmptyFrameAndData: this._send.bind(this),
-      } : {
+      },
+      'browser-panel': {
         offersIFrameHandler: this._send.bind(this),
-      };
+      },
+      'offers-reminder': {
+        changePositionWithAnimation: this.view.changePositionWithAnimation.bind(this.view),
+        changePosition: this.view.changePosition.bind(this.view),
+        resize: this.view.resize.bind(this.view),
+        getEmptyFrameAndData: this._send.bind(this),
+      }
+    };
     const noop = () => {};
-    (mapper[this.isRewardBox ? action : handler] || noop)(data);
+    if (!mapper[this.config.type]) { return; }
+    (mapper[this.config.type][this._isBrowserPanel() ? handler : action] || noop)(data);
+  }
+
+  _getBannerId() {
+    const products = this.config.products || {};
+    const prefix = ['freundin', 'chip', 'cliqz'].find(product => products[product]);
+    return `${prefix || 'myoffrz'}-offers-banner`;
   }
 
   _onvisibilitychange() {
-    if (this.isRewardBox) { return; }
-    const node = this.window.document.getElementById(BANNER_ID);
+    if (!this._isBrowserPanel()) { return; }
+    const node = this.window.document.getElementById(this._getBannerId());
     const isVisible = this.window.document.visibilityState === 'visible';
     if (node && isVisible) {
       this.onaction({ handler: 'offerShown', data: {} });
@@ -105,12 +113,14 @@ export default class Observer {
   }
 
   _onscroll() {
-    if (this.isRewardBox) { return; }
-    const node = this.window.document.getElementById(BANNER_ID);
+    if (!this._isBrowserPanel()) { return; }
+    const node = this.window.document.getElementById(this._getBannerId());
     const scrollY = this.window.pageYOffset;
-    const partOfBannersHeight = 100; // 70 percent of banner's height
+    const partOfBannersHeight = 100; // 70 percents of banner's height
     if (node && scrollY > partOfBannersHeight) {
       this.onremove();
     }
   }
+
+  _isBrowserPanel() { return this.config.type === 'browser-panel'; }
 }

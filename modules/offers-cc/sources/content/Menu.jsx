@@ -3,6 +3,7 @@ import { css, i18n } from './common/utils';
 
 const _css = css('menu__');
 export default function Menu(props) {
+  const { products = {} } = props;
   /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
   return (
     <ul className={_css('container')}>
@@ -12,6 +13,14 @@ export default function Menu(props) {
       >
         {i18n('why_see_this')}
       </li>
+      {!(products.cliqz || products.amo) && (
+      <li
+        onClick={() => props.onClick('settings')}
+        className={_css('item')}
+      >
+        {i18n('settings')}
+      </li>
+      )}
       <li
         onClick={() => props.onClick('help')}
         className={_css('item')}

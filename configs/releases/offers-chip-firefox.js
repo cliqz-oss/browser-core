@@ -1,23 +1,32 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 const configBase = require('../offers');
 const publish = require('../common/publish');
 
-const id = 'chip@myoffrz.com';
+const id = 'sparalarm@chip.de';
 
 module.exports = Object.assign({}, configBase, {
-  publish: publish.toPrereleaseFullName('chip_offers', 'offers_pre', 'firefox', 'zip'),
+  publish: publish.toPrereleaseFullName('chip_sparalarm', 'offers_pre', 'firefox', 'zip'),
   settings: Object.assign({}, configBase.settings, {
     id,
-    name: 'offersChipAppName',
-    channel: 'MC00', // Chip Offers Firefox Release
+    name: 'chipAppName',
+    description: 'chipAppDesc',
+    storeName: 'sparalarm',
+    channel: 'MC00', // CHIP Sparalarm Firefox Release
+    OFFERS_CHANNEL: 'chip',
+    'chip-standalone.enabled': true,
+    ONBOARDING_URL: 'https://sparalarm.chip.de/onboarding',
+    OFFBOARDING_URL: 'https://sparalarm.chip.de/offboarding',
+    SUPPORTED_LANGS: ['de'],
   }),
   versionPrefix: '14',
   specific: 'offers',
-  modules: configBase.modules,
-  default_prefs: Object.assign({}, configBase.default_prefs, {
-    developer: false,
-    showConsoleLogs: false,
-    'is-offers-chip-standalone': true,
-  }),
   OFFERS_PRODUCT_PREFIX: 'chip',
-  OFFERS_PRODUCT_TITLE: 'Chip Offers',
+  OFFERS_PRODUCT_TITLE: 'CHIP Sparalarm',
 });

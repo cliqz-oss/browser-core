@@ -125,12 +125,6 @@
     "control_center_location": {
         "message": "Standort teilen"
     },
-    "control_center_offers_location": {
-        "message": "MyOffrz in der Nähe anzeigen"
-    },
-    "control_center_offers_location_info": {
-        "message": "Verpasse keine Angebote in deiner Nähe! Wenn du die Option aktivierst, registriert MyOffrz, in welcher Region du dich gerade aufhältst. Diese Information ist nötig, um dir lokale Angebote anzuzeigen. Sie wird nicht auf Servern gespeichert."
-    },
     "control_center_offers_options": {
         "message": "MyOffrz Optionen"
     },

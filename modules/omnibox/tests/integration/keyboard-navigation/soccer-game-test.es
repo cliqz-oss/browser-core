@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import {
   blurUrlBar,
   $cliqzResults,
@@ -54,7 +62,7 @@ export default function () {
           visibleValue(results[0].snippet.deepResults[0].links[1].url)), 600);
         press({ key: 'ArrowDown' });
         await waitFor(() => expectSelection(resultSelector,
-          visibleValue(results[0].snippet.friendlyUrl)), 600);
+          results[0].snippet.friendlyUrl), 600);
       });
     });
 
@@ -71,7 +79,7 @@ export default function () {
           visibleValue(results[0].snippet.extra.url)), 600);
         press({ key: 'ArrowUp' });
         await waitFor(() => expectSelection(resultSelector,
-          visibleValue(results[0].snippet.friendlyUrl)), 600);
+          results[0].snippet.friendlyUrl), 600);
       });
     });
 
@@ -88,7 +96,7 @@ export default function () {
           visibleValue(results[0].snippet.deepResults[0].links[1].url)), 600);
         press({ key: 'Tab' });
         await waitFor(() => expectSelection(resultSelector,
-          visibleValue(results[0].snippet.friendlyUrl)), 600);
+          results[0].snippet.friendlyUrl), 600);
       });
     });
 
@@ -109,7 +117,7 @@ export default function () {
           visibleValue(results[0].snippet.extra.url)), 600);
         press({ key: 'Tab', shiftKey: true });
         await waitFor(() => expectSelection(resultSelector,
-          visibleValue(results[0].snippet.friendlyUrl)), 600);
+          results[0].snippet.friendlyUrl), 600);
       });
     });
   });

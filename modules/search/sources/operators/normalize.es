@@ -1,14 +1,22 @@
-import { urlStripProtocol, tryDecodeURI, cleanMozillaActions } from '../../core/url';
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import { urlStripProtocol, tryDecodeURI, getFriendlyUrl } from '../../core/url';
 import { URLInfo } from '../../core/url-info';
 
 const clean = (result) => {
-  const details = URLInfo.get(cleanMozillaActions(result.url)[1]) || {};
+  const details = URLInfo.get(result.url);
   const host = urlStripProtocol((details && details.hostname) || '');
   let hostAndPort = host;
-  const friendlyUrl = tryDecodeURI(result.friendlyUrl || details.friendlyUrl || '');
+  const friendlyUrl = tryDecodeURI(result.friendlyUrl || getFriendlyUrl(details) || '');
   const url = result.url ? tryDecodeURI(result.url) : '';
 
-  if (details.port) {
+  if (details && details.port) {
     hostAndPort += `:${details.port}`;
   }
 
@@ -33,10 +41,10 @@ const clean = (result) => {
       ...result.meta,
       isIncomplete: result._incomplete,
       triggerMethod: result.trigger_method,
-      domain: details.generalDomain,
+      domain: details ? details.generalDomain : undefined,
       host,
       hostAndPort,
-      port: details.port,
+      port: details ? details.port : undefined,
       url: urlStripProtocol(result.url || ''),
       score: result.score,
       subType: result.subType || {},

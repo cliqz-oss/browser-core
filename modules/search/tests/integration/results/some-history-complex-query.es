@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { getUrl } from '../../../core/test-helpers';
 
 const finalWithoutHistoryView = {
@@ -31,7 +39,6 @@ const finalWithoutHistoryView = {
       data: {
         deepResults: [],
         extra: {
-          mozActionUrl: 'https://www.google.com/search?q=highest%20peaks%20in%20europe&ie=utf-8&oe=utf-8&client=firefox-b',
           searchEngineName: 'Google'
         },
         kind: [
@@ -275,7 +282,6 @@ const finalWithHistoryView = {
       data: {
         deepResults: [],
         extra: {
-          mozActionUrl: 'https://www.google.com/search?q=highest%20peaks%20in%20europe&ie=utf-8&oe=utf-8&client=firefox-b',
           searchEngineName: 'Google'
         },
         kind: [
@@ -529,7 +535,6 @@ const results = {
       href: 'https://www.google.com/search?q=highest peaks in europe&ie=utf-8&oe=utf-8&client=firefox-b',
       friendlyUrl: 'google.com/search?q=highest peaks in europe&ie=utf-8&oe=utf-8&client=firefox-b',
       extra: {
-        mozActionUrl: 'https://www.google.com/search?q=highest%20peaks%20in%20europe&ie=utf-8&oe=utf-8&client=firefox-b',
         searchEngineName: 'Google'
       },
       kind: [

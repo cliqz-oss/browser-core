@@ -1,6 +1,7 @@
 /* eslint-disable import/prefer-default-export */
+import { getCouponsForm } from './shared-code';
 
-const COUPON_KEYWORDS = ['voucher', 'discount', 'coupon', 'rabatt', 'gutschein', 'promo'];
+const ALLOWED_PRODUCTS = ['ghostery', 'chip', 'freundin'];
 
 function createElement(window, { tag, className, textContent, id }) {
   const element = window.document.createElement(tag);
@@ -30,62 +31,40 @@ function once(f) {
   };
 }
 
-/**
- * this method will retrieve all the potential fields that we thing that are for
- * inserting coupon codes.
- */
-function _getInputFieldsFromTarget(target) {
-  const inputFileds = target.querySelectorAll('input');
-  const includes = (str, substr) => str && str.toLowerCase().includes(substr);
-  return [...inputFileds].filter(x =>
-    x.type !== 'hidden'
-    && x.type !== 'password'
-    && COUPON_KEYWORDS.some(key => includes(x.name, key) || includes(x.id, key)));
-}
-
-function _getButtonFieldsFromTarget(target) {
-  // for some cases we have buttons, for some others we have
-  // <input class="btn" data-action="save" value="Einlösen" type="submit">
-  const buttons = [...target.querySelectorAll('button')] || [];
-  const inputs = ([...target.querySelectorAll('input')] || [])
-    .filter(t => t && (t.type && t.type.toLowerCase() === 'submit'));
-  return buttons.concat(inputs);
-}
-
-function _predicate(form) {
-  // the way it work, probably we need to improve this is:
-  // for each form:
-  //  - get input fields that seems to be associated to voucher
-  //  - get associated buttons (submit)
-  //  - if none or more than one input field => discard?
-  //  - if none button or more than two => discard result completely
-  const inputFields = _getInputFieldsFromTarget(form);
-  if (inputFields.length !== 1) {
-    // continue with the next one, note that actually here we may want
-    // to choose the most probable one instead of none, for now none is fine
-    return { ok: false, input: null, button: null };
-  }
-  const buttons = _getButtonFieldsFromTarget(form);
-  if (![1, 2].includes(buttons.length)) {
-    return { ok: false, input: null, button: null };
-  }
-  return { ok: true, input: inputFields[0], button: buttons[0] };
+function chooseProduct(products = {}) {
+  return ALLOWED_PRODUCTS.find(product => products[product]) || 'myoffrz';
 }
 
 /**
- * __copied__ from offers-v2 module
- *
- * Will get the list of buttons, inputFields targets from a list of forms we see
- * on the page and filtering those ones that we consider they are to an .
+ * Execute a function several times.
+ * `tryFunction` should return an object with two fields:
+ * - tryAgain {boolean}  if `true`, call `tryFunction` again
+ * - result {*} resolves the returned promise
  */
-function getCouponsForm(forms) {
-  const result = forms.reduce((acc, form) => {
-    if (!form) { return acc; }
-    if (acc.ok) { return acc; }
-    return _predicate(form);
-  }, { ok: false, input: null, button: null });
-
-  return result;
+function retryFunctionSeveralTimes(window, tryFunction, timerIdCallback) {
+  let tryN = 0;
+  const maxTries = 4; // last check on 3rd second
+  const waitIntervalMs = 1000;
+  return new Promise((resolve) => {
+    function tryFunctionWrapper() {
+      const { result, tryAgain } = tryFunction();
+      if (tryAgain && (tryN < maxTries)) {
+        tryN += 1;
+        const timerId = window.setTimeout(tryFunctionWrapper, waitIntervalMs);
+        timerIdCallback(timerId);
+      } else {
+        resolve(result);
+      }
+    }
+    tryFunctionWrapper();
+  });
 }
 
-export { once, createElement, copySelectedText, getCouponsForm };
+export {
+  once,
+  createElement,
+  copySelectedText,
+  chooseProduct,
+  getCouponsForm,
+  retryFunctionSeveralTimes
+};

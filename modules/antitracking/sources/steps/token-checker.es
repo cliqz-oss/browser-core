@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint no-param-reassign: 'off' */
 
 import md5 from '../../core/helpers/md5';
@@ -6,6 +14,7 @@ import console from '../../core/console';
 
 import TokenDomain from '../token-domain';
 import BlockLog from '../block-log';
+import { truncatedHash } from '../utils';
 
 function decodeToken(token) {
   let decodedToken = dURIC(token);
@@ -51,7 +60,9 @@ export default class TokenChecker {
    */
   findBadTokens(state) {
     const stats = {};
-    state.isTracker = this.qsWhitelist.shouldCheckDomainTokens(state.urlParts.generalDomainHash);
+    state.isTracker = this.qsWhitelist.shouldCheckDomainTokens(
+      truncatedHash(state.urlParts.generalDomain)
+    );
     state.badTokens = this.checkTokens(state.urlParts, state.tabUrl,
       stats, state.tabUrlParts, state.isTracker, state.isPrivate);
     // set stats
@@ -103,8 +114,8 @@ export default class TokenChecker {
       return [];
     }
 
-    const trackerDomain = urlParts.generalDomainHash;
-    const sourceDomain = tabUrlParts.generalDomainHash;
+    const trackerDomain = truncatedHash(urlParts.generalDomain);
+    const sourceDomain = truncatedHash(tabUrlParts.generalDomain);
     const badTokens = [];
 
     // check for each kv in the url

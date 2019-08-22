@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import React from 'react';
 import { FlatList, View } from 'react-native';
 import Card from './Card';
@@ -83,25 +91,41 @@ class CardList extends React.PureComponent {
     this._cardsList = null;
   }
 
+  getSeparator = () => (this.props.separator || <View style={{ marginTop: 16 }} />)
+
+  getFooter = () => (this.props.footer || <View style={{ marginTop: 16 }} />)
+
+  getHeader = () => (this.props.header || <View style={{ marginTop: 16 }} />)
+
   render() {
     const { results, cliqz } = this.props;
     if (!results.length) {
       return null;
     }
+    const listStyle = {
+      paddingLeft: 10,
+      paddingRight: 10,
+      ...(this.props.style || {}),
+    };
+
     return (
       <FlatList
         ref={(cardsList) => { this._cardsList = cardsList; }}
+        bounces={false}
         data={results}
         keyExtractor={item => item.url}
         renderItem={this.getComponent}
-        ItemSeparatorComponent={() => <View style={{ marginTop: 16 }} />}
-        ListHeaderComponent={() => <View style={{ marginTop: 16 }} />}
-        ListFooterComponent={() => <View style={{ marginTop: 16 }} />}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+        ItemSeparatorComponent={this.getSeparator}
+        ListHeaderComponent={this.getHeader}
+        ListFooterComponent={this.getFooter}
         onTouchStart={() => cliqz.mobileCards.hideKeyboard()}
         onScrollEndDrag={() => cliqz.search.reportHighlight()}
         viewabilityConfig={this.viewabilityConfig}
         onViewableItemsChanged={this.onViewableItemsChanged}
         listKey="cards"
+        style={listStyle}
       />
     );
   }

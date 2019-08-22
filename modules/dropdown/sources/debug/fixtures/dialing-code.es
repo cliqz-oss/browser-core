@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 export default {
   'dialing-code': {
     query: 'germany dialing code',
@@ -6,8 +14,6 @@ export default {
         url: 'https://countrycode.org/germany',
         href: 'https://countrycode.org/germany',
         friendlyUrl: 'countrycode.org/germany',
-        title: 'Germany Country Code 49 Country Code DE',
-        description: "EASY TO REMEMBER URL: 'CountryCode.org/germany' for Germany country code 49 country codes DE and Germany phone number",
         kind: [
           'X|{"class":"EntityDialingCode"}'
         ],
@@ -18,35 +24,48 @@ export default {
         meta: {
           level: 0,
           type: 'main',
-          triggerMethod: 'url',
+          triggerMethod: 'domain',
           domain: 'countrycode.org',
           host: 'countrycode.org',
           hostAndPort: 'countrycode.org',
           port: '',
           url: 'countrycode.org/germany',
-          score: 5.703000163123267,
+          score: 0,
           subType: {
-            id: '-3481798505982424047',
-            name: 'countrycode',
-            class: 'EntityDialingCode'
+            class: 'EntityDialingCode',
+            id: 'fba9c26c59799d122eed56dbce9eb460e32a7987ce330063cb5629c14f776431',
+            name: 'countrycode'
           },
-          completion: ''
+          latency: 153,
+          backendCountry: 'de',
+          completion: '',
+          logo: {
+            text: 'co',
+            backgroundColor: '2fc4fc',
+            brandTxtColor: '2d2d2d',
+            buttonsClass: 'cliqz-brands-button-6',
+            style: 'background-color: #2fc4fc;color:#fff;'
+          },
+          extraLogos: {},
+          externalProvidersLogos: {
+            kicker: {
+              backgroundColor: 'd7011d',
+              backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg)',
+              text: 'ki',
+              color: '#fff',
+              brandTxtColor: 'd7011d',
+              buttonsClass: 'cliqz-brands-button-1',
+              style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg); text-indent: -10em;'
+            }
+          }
         },
         data: {
-          deepResults: [
-
-          ],
+          deepResults: [],
           extra: {
-            dialing_prefix: 49,
             country_code: 'DE',
-            language: {
-              en: 0.9399999976158142
-            },
             country_name: 'Germany',
-            alternatives: [
-              'https://countrycode.org/germany'
-            ],
-            flag_uri: 'https://cdn.rawgit.com/hjnilsson/country-flags/master/svg/de.svg'
+            dialing_prefix: 49,
+            flag_uri: 'https://cdn.cliqz.com/extension/countries/flags/svg/de.svg'
           },
           kind: [
             'X|{"class":"EntityDialingCode"}'
@@ -55,12 +74,61 @@ export default {
         }
       },
       {
-        template: 'result',
-        title: 'Spielen - Kostenlose Spiele Spielen',
-        url: "http://www.royalgames.com/Murphy's_law",
-        description: 'Kostenlose Spiele spielen, Kartenspiele, Puzzlespiele, Wortspiele, Actionspiele, Brettspiele, Sportspiele, Denkspiele, Strategiespiele und Flashspiele bei Royalgames.com.',
-        data: {},
-      }
+        url: 'https://de.wikipedia.org/wiki/Historische_Vorwahlen_(Deutschland)',
+        href: 'https://de.wikipedia.org/wiki/Historische_Vorwahlen_(Deutschland)',
+        friendlyUrl: 'de.wikipedia.org/wiki/Historische_Vorwahlen_(Deutschland)',
+        title: 'Historische Vorwahlen (Deutschland)',
+        description: 'Im Laufe der Entwicklung des Telefonnetzes wurden Vorwahlen immer wieder geändert, um bestimmte Nummernbereiche freizuräumen. Wenn in einem Ortsnetz der Nummernvorrat knapp wurde, wurde die Ortsvorwahl verkürzt, da die Gesamtzahl der Ziffern auf 10 Stellen begrenzt war. Diese Zahl ergibt sich gemäß ITU-Empfehlung E.163, wonach die internationale Rufnummer maximal 12 Stellen haben durfte, abzüglich des Ländercodes „49“ für Deutschland. 1997 wurde die Empfehlung durch E.164 ersetzt, die nun 15 Ste',
+        kind: [
+          'h'
+        ],
+        provider: 'cliqz',
+        template: 'hq',
+        text: 'germany dialing code',
+        type: 'bm',
+        meta: {
+          level: 0,
+          type: 'main',
+          domain: 'wikipedia.org',
+          host: 'de.wikipedia.org',
+          hostAndPort: 'de.wikipedia.org',
+          port: '',
+          url: 'de.wikipedia.org/wiki/Historische_Vorwahlen_(Deutschland)',
+          score: 3.1819937,
+          subType: {},
+          latency: 153,
+          backendCountry: 'de',
+          completion: '',
+          logo: {
+            backgroundColor: '999999',
+            backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/wikipedia/$.svg)',
+            text: 'wi',
+            color: '#fff',
+            brandTxtColor: '999999',
+            buttonsClass: 'cliqz-brands-button-10',
+            style: 'background-color: #999999;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/wikipedia/$.svg); text-indent: -10em;'
+          },
+          extraLogos: {},
+          externalProvidersLogos: {
+            kicker: {
+              backgroundColor: 'd7011d',
+              backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg)',
+              text: 'ki',
+              color: '#fff',
+              brandTxtColor: 'd7011d',
+              buttonsClass: 'cliqz-brands-button-1',
+              style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg); text-indent: -10em;'
+            }
+          }
+        },
+        data: {
+          deepResults: [],
+          kind: [
+            'h'
+          ],
+          template: 'hq'
+        }
+      },
     ]
   }
 };

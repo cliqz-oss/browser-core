@@ -105,9 +105,9 @@ class ImageDownloaderForPush {
 }
 
 /**
- * @class ImageDownloadForOfferDB
+ * @class ImageDownloadForBatch
  */
-class ImageDownloaderForOfferDB {
+class ImageDownloaderForBatch {
   constructor({ fetch = httpFetch } = {}) {
     this.fetch = fetch;
     this.lastActiveBatchTsMs = 0;
@@ -155,7 +155,7 @@ class ImageDownloaderForOfferDB {
       }).then(() => {
         this.nThreads -= 1;
         if (this.nThreads < 0) {
-          logger.warn('ImageDownloaderForOfferDB: number of threads is below zero');
+          logger.warn('ImageDownloaderForBatch: number of threads is below zero');
         }
       });
   }
@@ -174,4 +174,4 @@ class ImageDownloaderForOfferDB {
   }
 }
 
-export { ImageDownloaderForPush, ImageDownloaderForOfferDB };
+export { ImageDownloaderForPush, ImageDownloaderForBatch };

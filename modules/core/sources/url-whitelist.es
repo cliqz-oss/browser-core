@@ -1,9 +1,18 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { URLInfo } from './url-info';
 import prefs from './prefs';
 import { getGeneralDomain, extractHostname } from './tlds';
 import { LazyPersistentObject } from '../core/persistent-state';
 import Logger from './logger';
 import { isOnionModeFactory } from './platform';
+import md5 from './helpers/md5';
 
 const isOnionMode = isOnionModeFactory(prefs);
 
@@ -23,7 +32,8 @@ export default class UrlWhitelist {
     return this.whitelistPersist.load().then((value) => {
       if (value.urls !== undefined) {
         this.whitelist = new Set(value.urls);
-        if (value.urls.some(url => url.charAt(1) !== ':')) {
+        // old format: `h:example.com` - presence of `.` indicates upgrade required
+        if (value.urls.some(url => url.indexOf('.') !== -1)) {
           this.upgrade();
         }
       }
@@ -47,15 +57,9 @@ export default class UrlWhitelist {
   upgrade() {
     const w = new Set();
     this.whitelist.forEach((value) => {
-      let newValue;
-      if (value === getGeneralDomain(value)) {
-        newValue = `g:${value}`;
-      } else if (value === extractHostname(value)) {
-        newValue = `h:${value}`;
-      } else {
-        newValue = `u:${value}`;
-      }
-      w.add(newValue);
+      const type = value.slice(0, 1);
+      const url = value.slice(2);
+      w.add(`${type}:${md5(url)}`);
     });
     this.whitelist = w;
     this.persistWhitelist();
@@ -75,7 +79,7 @@ export default class UrlWhitelist {
       return false;
     }
 
-    if (this.whitelist.has(`u:${url}`)) {
+    if (this.whitelist.has(`u:${md5(url)}`)) {
       return true;
     }
 
@@ -91,14 +95,14 @@ export default class UrlWhitelist {
       domain = domain === null ? info.generalDomain : domain;
     }
 
-    return this.whitelist.has(`g:${domain}`) || this.whitelist.has(`h:${hostname}`);
+    return this.whitelist.has(`g:${md5(domain)}`) || this.whitelist.has(`h:${md5(hostname)}`);
   }
 
   getState(url) {
     return {
-      url: this.whitelist.has(`u:${url}`),
-      hostname: this.whitelist.has(`h:${extractHostname(url)}`),
-      generalDomain: this.whitelist.has(`g:${getGeneralDomain(url)}`)
+      url: this.whitelist.has(`u:${md5(url)}`),
+      hostname: this.whitelist.has(`h:${md5(extractHostname(url))}`),
+      generalDomain: this.whitelist.has(`g:${md5(getGeneralDomain(url))}`)
     };
   }
 
@@ -114,13 +118,13 @@ export default class UrlWhitelist {
     let processed;
     switch (type) {
       case 'url':
-        processed = `u:${url}`;
+        processed = `u:${md5(url)}`;
         break;
       case 'hostname':
-        processed = `h:${extractHostname(url)}`;
+        processed = `h:${md5(extractHostname(url))}`;
         break;
       case 'generalDomain':
-        processed = `g:${getGeneralDomain(url)}`;
+        processed = `g:${md5(getGeneralDomain(url))}`;
         break;
       default:
         throw new Error('Supported types: url, hostname, generalDomain', type);

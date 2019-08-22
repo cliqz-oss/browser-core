@@ -3,6 +3,8 @@ import OffersConfigs from '../../offers_configs';
 import OfferJob from './job';
 import { isDeveloper } from '../../utils';
 
+const SILENT_OFFER_NOTIF_TYPE = 'silent';
+
 function containsPopupRealEstate(estates) {
   return estates.includes('offers-cc') || estates.includes('ghostery');
 }
@@ -23,11 +25,12 @@ export default class Throttle extends OfferJob {
   }
 
   onOffersSendCh(msg) {
-    if ((msg.type === 'push-offer')
-        && msg.dest
-        && msg.dest.includes
-        && containsPopupRealEstate(msg.dest)
-    ) {
+    const { dest = [], type = '', data } = msg;
+    if (type !== 'push-offer' || !data) { return; }
+    if (!containsPopupRealEstate(dest)) { return; }
+    const { offer_data: { ui_info: uiInfo = {} } = {} } = data;
+    const { notif_type: notifType = 'pop-up' } = uiInfo;
+    if (notifType !== SILENT_OFFER_NOTIF_TYPE) {
       this.lastRewardBoxTsMs = Date.now();
     }
   }

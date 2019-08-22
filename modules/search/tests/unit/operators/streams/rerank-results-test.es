@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai, describeModule */
 
 const mock = {
@@ -27,7 +35,6 @@ export default describeModule('search/operators/responses/rerank',
                 href: 'https://www.google.com/search?q=simple++&ie=utf-8&oe=utf-8&client=firefox-b-ab',
                 friendlyUrl: 'google.com/search?q=simple++&ie=utf-8&oe=utf-8&client=firefox-b-ab',
                 extra: {
-                  mozActionUrl: 'moz-action:searchengine,{"engineName":"Google","input":"simple  ","searchQuery":"simple  ","alias":null}',
                   searchEngineName: 'Google'
                 },
                 kind: ['custom-search'],

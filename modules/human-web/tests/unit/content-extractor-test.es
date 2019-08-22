@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai */
 /* global describeModule */
 /* global sinon */
@@ -6,14 +14,13 @@ const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 const mockBrowser = require('mock-browser');
-const punycode = require('punycode');
-const tldts = require('tldts');
 
 const expect = chai.expect;
 const R = require('ramda');
 const FileHound = require('filehound');
 
 const stripJsonComments = require('strip-json-comments');
+const urlImports = require('../../core/unit/utils/url-parser');
 
 function jsonParse(text) {
   return JSON.parse(stripJsonComments(text));
@@ -77,10 +84,7 @@ export default describeModule('human-web/content-extractor',
         };
       } }
     },
-    'platform/lib/punycode': {
-      default: punycode,
-    },
-    'platform/lib/tldts': tldts,
+    ...urlImports,
   }),
   () => {
     describe('ContentExtractor', function () {
@@ -123,6 +127,8 @@ export default describeModule('human-web/content-extractor',
         }
 
         const messages = groupTelemetryCallsByAction(CliqzHumanWeb.telemetry);
+        // uncomment to export expectations:
+        // fs.writeFileSync('/tmp/failing-test-expected-messages.json', JSON.stringify(messages));
         if (fixture.mustContain) {
           for (const check of fixture.mustContain) {
             if (!messages[check.action]) {
@@ -201,7 +207,7 @@ export default describeModule('human-web/content-extractor',
 
         describe('when searching in Google for "Angela Merkel"', function () {
           beforeEach(function () {
-            initFixture('go/angela-merkel-2018-12-05');
+            initFixture('go/angela-merkel-2019-07-22');
           });
 
           it('should not find any data (ruleset: "normal")', function () {
@@ -251,7 +257,7 @@ export default describeModule('human-web/content-extractor',
 
         describe('when searching in Google for "Angela Merkel"', function () {
           beforeEach(function () {
-            initFixture('go/angela-merkel-2018-12-05');
+            initFixture('go/angela-merkel-2019-07-22');
           });
 
           it('should find search results (ruleset: "normal")', function () {

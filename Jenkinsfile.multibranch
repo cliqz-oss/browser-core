@@ -41,7 +41,13 @@ if (env.BRANCH_NAME.startsWith('v3.')) {
     ]
 }
 
-if (env.BRANCH_NAME.startsWith('v7.') || env.BRANCH_NAME == 'ghostery-search') {
+if (env.BRANCH_NAME == 'cliqz-mobile') {
+    matrix['instant-search'] = [
+        'config': 'instant-search.js',
+    ]
+}
+
+if (env.BRANCH_NAME.startsWith('v7.')) {
     matrix['ghostery'] = [
         'config': 'ghostery.js',
     ]
@@ -90,6 +96,21 @@ if (env.BRANCH_NAME.startsWith('v14.')) {
     matrix['offers-chip-firefox'] = [
         'config': 'releases/offers-chip-firefox.js',
     ]
+    matrix['offers-chip-chrome'] = [
+        'config': 'releases/offers-chip-chrome.js',
+    ]
+}
+
+if (env.BRANCH_NAME.startsWith('v15.')) {
+    matrix['offers-freundin-firefox'] = [
+        'config': 'releases/offers-freundin-firefox.js',
+    ]
+}
+
+if (env.BRANCH_NAME.startsWith('v16.')) {
+    matrix['offers-incent-firefox'] = [
+        'config': 'releases/offers-incent-firefox.js',
+    ]
 }
 
 if (isIntegrationBranch || env.BRANCH_NAME == 'serp') {
@@ -107,7 +128,9 @@ if (isIntegrationBranch) {
     matrix['cliqz-tab-chrome-nightly'] = [
         'config': 'cliqz-tab-chrome.js',
     ]
-
+    matrix['instant-search'] = [
+        'config': 'instant-search.js',
+    ]
     // matrix['cliqz-tab-firefox-nightly'] = [
     //     'config': 'cliqz-tab-firefox.js',
     //     'upload_api_id': '17f59394-d13b-476e-84d5-7888c9737ced',
@@ -265,7 +288,7 @@ def build(Map m) {
                     "GIT_COMMIT=${getCommitId()}",
                     "VERSION=${version}",
                 ]) {
-                    sh "cd /app && ./fern.js build --environment=production --v6 ${isIntegrationBranch ? '' : '--no-debug'}"
+                    sh "cd /app && ./fern.js build --environment=production ${isIntegrationBranch ? '' : '--no-debug'}"
 
                     sh 'cd /app && ./fern.js pack'
 

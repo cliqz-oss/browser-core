@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import background from '../core/base/background';
 import inject from '../core/kord/inject';
 import prefs, { getCliqzPrefs } from '../core/prefs';
@@ -8,7 +16,7 @@ import { getDaysSinceInstall } from '../core/demographics';
 import pacemaker from '../core/services/pacemaker';
 import History from '../platform/history/history';
 import { isDefaultBrowser } from '../platform/browser';
-import { getDefaultSearchEngine } from '../core/search-engines';
+import { getDefaultSearchEngine, loadSearchEngines } from '../core/search-engines';
 
 /* eslint-disable no-param-reassign */
 const createTelemetry = (bg) => {
@@ -110,7 +118,7 @@ export default background({
     this.telemetryProvider = {
       name: 'telemetry',
       send: (message, schema, instant) => {
-        if (schema) {
+        if (schema && schema.indexOf('.legacy.') === -1) {
           return Promise.resolve();
         }
         return telemetry(message, instant);
@@ -119,6 +127,7 @@ export default background({
     this.telemetryService.installProvider(this.telemetryProvider);
 
     const sendEnvironmentalSignal = async ({ startup, instantPush }) => {
+      await loadSearchEngines();
       const info = {
         type: 'environment',
         agent: navigator.userAgent,
@@ -151,7 +160,7 @@ export default background({
         history_days: historyStats.days,
         history_urls: historyStats.size,
         install_date: await getDaysSinceInstall(),
-      });
+      }, 'metrics.legacy.environment.extended');
     };
 
     sendEnvironmentalSignal({ startup: true, instantPush: true });

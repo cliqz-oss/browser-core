@@ -1,21 +1,19 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import * as searchUtils from '../platform/search-engines';
-import { cleanMozillaActions, getDetailsFromUrl } from './url';
+import { getDetailsFromUrl } from './url';
 import { fetch } from './http';
 
 export * from '../platform/search-engines';
 
 function log() {
   // console.log('search-engines', msg);
-}
-
-
-// Filters out results with value:
-// 'moz-action:searchengine,{'engineName':'Google','input':'awz','searchQuery':'awz'}'
-// that are returned from the unifiedcomplete history provider
-// that is the only provider from Firefox 49.0 on
-export function isSearchEngineResult(resultValue) {
-  const [action] = cleanMozillaActions(resultValue);
-  return action === 'searchengine';
 }
 
 function getParamValue(params, query) {

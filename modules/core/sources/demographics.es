@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import UAParser from '../platform/lib/ua-parser';
 import {
   getChannel,
@@ -183,6 +191,8 @@ function parseProduct(channel, platform) {
     } else if (intChannel !== null && intChannel < 40) {
       // Navigation extension
       product = 'CLIQZ/add-on/Cliqz for Firefox';
+    } else if (channel === 'MA60') {
+      product = 'CLIQZ/android/Concept Browser';
     } else if (channel === 'MA10') {
       product = 'third-party/mobile/Telefonica';
     } else if (channel.startsWith('MA')) {

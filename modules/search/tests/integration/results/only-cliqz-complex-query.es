@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 export default {
   history: [],
   instant: [
@@ -6,7 +14,6 @@ export default {
       href: 'https://www.google.com/search?q=best songs in 2018&ie=utf-8&oe=utf-8&client=firefox-b',
       friendlyUrl: 'google.com/search?q=best songs in 2018&ie=utf-8&oe=utf-8&client=firefox-b',
       extra: {
-        mozActionUrl: 'https://www.google.com/search?q=best%20songs%20in%202018&ie=utf-8&oe=utf-8&client=firefox-b',
         searchEngineName: 'Google'
       },
       kind: [
@@ -58,7 +65,6 @@ export default {
       data: {
         deepResults: [],
         extra: {
-          mozActionUrl: 'https://www.google.com/search?q=best%20songs%20in%202018&ie=utf-8&oe=utf-8&client=firefox-b',
           searchEngineName: 'Google'
         },
         kind: [

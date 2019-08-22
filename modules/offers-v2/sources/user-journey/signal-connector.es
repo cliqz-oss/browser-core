@@ -11,10 +11,12 @@ import actions from '../offers/actions-defs';
  * @class JourneySignals
  */
 export default class JourneySignals {
-  constructor(collector) {
+  constructor(collector, signalReEmitter) {
     this.collector = collector;
     this.signals = [];
     this.db = null;
+    this.signalReEmitter = signalReEmitter;
+    this.reinterpretCampaignSignalAsync = this.reinterpretCampaignSignalAsync.bind(this);
   }
 
   async init() {
@@ -22,9 +24,11 @@ export default class JourneySignals {
     this.db = new Dexie('offers-journey');
     this.db.version(1).stores({ signals: '++id' });
     await this.db;
+    this.signalReEmitter.on('signal', this.reinterpretCampaignSignalAsync);
   }
 
   async destroy() {
+    this.signalReEmitter.unsubscribe('signal', this.reinterpretCampaignSignalAsync);
     if (this.db) {
       this.db.close();
       this.db = null;

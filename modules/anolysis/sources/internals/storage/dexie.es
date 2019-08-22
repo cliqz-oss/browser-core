@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import getDexie from '../../../platform/lib/dexie';
 
 import DefaultMap from '../../../core/helpers/default-map';
@@ -81,37 +89,6 @@ class BehaviorView {
   }
 }
 
-class RetentionView {
-  constructor(db) {
-    this.db = db;
-    this.key = 'state';
-  }
-
-  init() {}
-
-  getState() {
-    return this.db.get(this.key)
-      .then((state) => {
-        if (!state) {
-          return {
-            daily: {},
-            weekly: {},
-            monthly: {},
-          };
-        }
-
-        return state.value;
-      });
-  }
-
-  setState(state) {
-    return this.db.put({
-      key: this.key,
-      value: state,
-    });
-  }
-}
-
 class SignalQueueView {
   constructor(db) {
     this.db = db;
@@ -152,39 +129,6 @@ class SignalQueueView {
   }
 }
 
-class GidManagerView {
-  constructor(db) {
-    this.db = db;
-    this.cache = new Map();
-  }
-
-  init() {
-    return this.db.each(({ key, value }) => {
-      this.cache.set(key, value);
-    });
-  }
-
-  get(key) {
-    return this.cache.get(key);
-  }
-
-  set(key, value) {
-    this.cache.set(key, value);
-    return this.db.put({ key, value });
-  }
-
-  entries() {
-    const entries = [];
-    this.cache.forEach((value, key) => {
-      entries.push({
-        key,
-        value,
-      });
-    });
-    return entries;
-  }
-}
-
 export default class AnolysisStorage {
   constructor() {
     this.db = null;
@@ -208,20 +152,21 @@ export default class AnolysisStorage {
       retention: 'key',
       signals: '++id,date',
     });
+    this.db.version(2).stores({
+      gid: null,
+      retention: null,
+    });
+
     await this.db.open();
 
     // Create views
     this.aggregated = new AggregatedView(this.db.aggregated);
     this.behavior = new BehaviorView(this.db.behavior);
-    this.gid = new GidManagerView(this.db.gid);
-    this.retention = new RetentionView(this.db.retention);
     this.signals = new SignalQueueView(this.db.signals);
 
     await Promise.all([
       this.aggregated.init(),
       this.behavior.init(),
-      this.gid.init(),
-      this.retention.init(),
       this.signals.init(),
     ]);
 

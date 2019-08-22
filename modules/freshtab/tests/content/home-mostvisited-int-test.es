@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import {
   clone,
   expect,
@@ -82,11 +90,11 @@ describe('Freshtab interactions with most visited', function () {
     describe('clicking on the "Restore all" button in settings panel', function () {
       const settingsButtonSelector = '#settings-btn';
       const settingsPanelSelector = '#settings-panel';
-      const restoreBtnSelector = '#settings-panel button.link';
+      const restoreBtnSelector = '#settings-panel .link';
 
       beforeEach(async function () {
         subject.query(settingsButtonSelector).click();
-        await waitFor(() => subject.query(settingsPanelSelector).classList.contains('visible'));
+        await waitFor(() => subject.query(settingsPanelSelector));
 
         subject.startListening();
         subject.query(restoreBtnSelector).click();

@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 'use strict';
 
 const program = require('commander');
@@ -25,9 +33,8 @@ program.command(`serve ${common.configParameter}`)
   .option('--firefox-keep-changes', 'keep profile changes (web-ext)')
   .option('--no-launch', 'do not launch a browser')
   .option('--include-tests', 'include tests files in build')
-  .option('--v6', 'include fast v6 build - v-shaped 6 cylinder engine')
   .action((configPath, options) => {
-    process.env.CLIQZ_ENVIRONMENT = options.environment || 'development';
+    process.env.CLIQZ_ENVIRONMENT = process.env.CLIQZ_ENVIRONMENT || options.environment || 'development';
     process.env.CLIQZ_SOURCE_MAPS = options.maps;
     process.env.CLIQZ_SOURCE_DEBUG = options.debug;
     process.env.CLIQZ_INCLUDE_TESTS = options.includeTests || (
@@ -35,8 +42,6 @@ program.command(`serve ${common.configParameter}`)
         ? 'true'
         : ''
     );
-
-    process.env.CLIQZ_V6_BUILD = options.v6 || '';
 
     const cfg = setConfigPath(configPath);
     const CONFIG = cfg.CONFIG;
@@ -76,6 +81,9 @@ program.command(`serve ${common.configParameter}`)
       'browser.tabs.warnonclose': true,
       'dom.min_background_timeout_value': 50,
       'browser.tabs.remote.autostart': true,
+      'extensions.systemAddon.update.enabled': false,
+      'extensions.systemAddon.update.url': '',
+      'devtools.aboutdebugging.new-enabled': false,
     }, customPrefs);
 
     if (options.includeTests) {

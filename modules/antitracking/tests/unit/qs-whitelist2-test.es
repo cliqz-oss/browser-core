@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai, describeModule */
 const moment = require('moment');
 const pako = require('pako');
@@ -70,6 +78,9 @@ export default describeModule('antitracking/qs-whitelist2',
     },
     'core/console': {
       default: console,
+    },
+    'platform/globals': {
+      chrome: {},
     },
     'platform/lib/zlib': pako,
     'platform/resource-loader-storage': {

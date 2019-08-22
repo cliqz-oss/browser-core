@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 export default [
   {
     url: 'https://www.wunderground.com/cgi-bin/findweather/getForecast?query=51.6167,13.3167',
@@ -2829,7 +2837,7 @@ export const weatherResults = [
         },
         units_label: 'Scale'
       },
-      friendlyUrl: 'wunderground.com/cgi-bin/findweather/getforecast',
+      friendlyUrl: 'weather.com',
       title: 'München, Deutschland'
     },
     type: 'rh',
@@ -2844,6 +2852,7 @@ export const weatherResults = [
   {
     url: 'https://www.wunderground.com/cgi-bin/findweather/getForecast?query=51.6167,13.3167',
     snippet: {
+      friendlyUrl: 'wunderground.com/cgi-bin/findweather/getForecast?query=51.6167,13.3167',
       description: 'Get the Munich weather forecast. Access hourly, 10 day and 15 day forecasts along with up to the minute reports and videos for Munich, Germany from AccuWeather.com',
       extra: {
         alternatives: [

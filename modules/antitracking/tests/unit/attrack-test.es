@@ -1,13 +1,20 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai, describeModule */
 /* eslint no-param-reassign : off */
 
 const Rx = require('rxjs');
 const operators = require('rxjs/operators');
-const tldts = require('tldts');
-const punycode = require('punycode');
 const moment = require('moment');
 const jsonData = require('../../../antitracking/prob.json');
 const mockDexie = require('../../core/unit/utils/dexie');
+const urlImports = require('../../core/unit/utils/url-parser');
 
 const testPages = require('./attrack-test-data');
 
@@ -69,6 +76,7 @@ const listenerStub = {
 export default describeModule('antitracking/attrack',
   () => ({
     ...mockDexie,
+    ...urlImports,
     rxjs: Rx,
     'rxjs/operators': operators,
     'platform/console': {
@@ -87,7 +95,6 @@ export default describeModule('antitracking/attrack',
     'core/gzip': {
       compress: false,
     },
-    'platform/lib/tldts': tldts,
     'platform/addon-check': {
       checkInstalledPrivacyAddons() { return Promise.resolve([]); }
     },
@@ -188,9 +195,6 @@ export default describeModule('antitracking/attrack',
     },
     'platform/lib/moment': {
       default: moment,
-    },
-    'platform/lib/punycode': {
-      default: punycode,
     },
   }), function () {
     let attrack;

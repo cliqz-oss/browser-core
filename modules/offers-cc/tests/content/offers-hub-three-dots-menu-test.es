@@ -23,7 +23,7 @@ context('Offers Hub three dots menu', function () {
     before(async function () {
       subject = await init();
       menuItems = subject.queryAll('.menu__item');
-      expect(menuItems).to.have.length(2);
+      expect(menuItems).to.have.length(3);
     });
     after(function () { subject.unload(); });
 
@@ -31,8 +31,12 @@ context('Offers Hub three dots menu', function () {
       expect(menuItems[0]).to.contain.text('why_see_this');
     });
 
+    it('renders "Settings"', function () {
+      expect(menuItems[1]).to.contain.text('settings');
+    });
+
     it('renders "Help"', function () {
-      expect(menuItems[1]).to.contain.text('help');
+      expect(menuItems[2]).to.contain.text('help');
     });
   });
 

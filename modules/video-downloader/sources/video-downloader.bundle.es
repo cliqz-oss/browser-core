@@ -1,11 +1,18 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global document, window, $, Handlebars */
 /* eslint-disable no-param-reassign */
 import helpers from './content/helpers';
 import templates from './templates';
-import createSpananForModule from '../core/helpers/spanan-module-wrapper';
+import createModuleWrapper from '../core/helpers/action-module-wrapper';
 
-const videoDownloaderModule = createSpananForModule('video-downloader');
-const actions = videoDownloaderModule.createProxy();
+const videoDownloader = createModuleWrapper('video-downloader');
 Handlebars.partials = templates;
 
 function localizeDocument() {
@@ -33,7 +40,7 @@ $(() => {
 
   $('#video-downloader').html(templates.template({ loading: true }));
 
-  actions.getVideoLinks(undefined).then(draw);
+  videoDownloader.getVideoLinks(undefined).then(draw);
 });
 
 let lastClickedId;
@@ -47,7 +54,7 @@ $(document).on('click', 'ul.vd-tabs li', function itemClick(e) {
 
   lastClickedId = tabId;
 
-  actions.telemetry({
+  videoDownloader.telemetry({
     action: 'click',
     target: tabId,
   });
@@ -71,7 +78,7 @@ $(document).on('click', '.link-button', function btnClick(e) {
   const buttonId = $(this)[0].id;
 
   if (buttonId === 'download-desktop') {
-    actions.download({
+    videoDownloader.download({
       url,
       filename,
       size,
@@ -79,7 +86,7 @@ $(document).on('click', '.link-button', function btnClick(e) {
       origin,
     }).then(window.close);
   } else if (buttonId === 'download-mobile') {
-    actions.sendToMobile({
+    videoDownloader.sendToMobile({
       url,
       title,
       type,
@@ -94,5 +101,5 @@ $(document).on('click', '.link-button', function btnClick(e) {
 });
 
 $(document).on('click', '.connect-page-link', () => {
-  actions.openConnectPage();
+  videoDownloader.openConnectPage();
 });

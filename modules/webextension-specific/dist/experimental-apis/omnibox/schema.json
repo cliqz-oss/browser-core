@@ -58,6 +58,35 @@
       }]
     },
     {
+      "name": "update",
+      "type": "function",
+      "description": "Update urlbar value",
+      "async": "callback",
+      "parameters": [{
+        "type": "number",
+        "name": "windowId",
+        "optional": true
+      },
+      {
+        "type": "object",
+        "name": "options",
+        "default": {},
+        "properties": {
+          "value": {
+            "type": "string",
+            "default": "",
+            "optional": true
+          }
+        }
+      },
+      {
+        "type": "function",
+        "name": "callback",
+        "optional": true,
+        "parameters": []
+      }]
+    },
+    {
       "name": "query",
       "type": "function",
       "description": "Sets a urlbar value and triggers dropdown",

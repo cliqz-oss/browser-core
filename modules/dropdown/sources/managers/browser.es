@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* globals Components */
 import Spanan from 'spanan';
 import BaseDropdownManager from './base';
@@ -5,6 +13,7 @@ import { isUrl } from '../../core/url';
 import {
   PASSIVE_EVENTS,
   PREVENTABLE_EVENTS,
+  TAB_CHANGE_EVENTS,
   PASSIVE_LISTENER_OPTIONS,
   PREVENTABLE_LISTENER_OPTIONS,
   stopEvent,
@@ -18,7 +27,8 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     this.shortcutAPI = lastQuery;
     this.windowId = windowId;
     this.window = window;
-    this.urlbar = window.gURLBar;
+    this.urlbar = window.gURLBar.textbox || window.gURLBar;
+    this._syncQueryWithUrlbar();
   }
 
   get entryPoint() {
@@ -30,7 +40,10 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
       this.urlbar.addEventListener(eventName, this, PASSIVE_LISTENER_OPTIONS));
     PREVENTABLE_EVENTS.forEach(eventName =>
       this.urlbar.addEventListener(eventName, this, PREVENTABLE_LISTENER_OPTIONS));
-    this.urlbar.goButton.addEventListener('click', stopEvent, true);
+    this.window.gURLBar.goButton.addEventListener('click', stopEvent, true);
+    const tabContainer = this.window.gBrowser.tabContainer;
+    TAB_CHANGE_EVENTS.forEach(eventName =>
+      tabContainer.addEventListener(eventName, this, PASSIVE_LISTENER_OPTIONS));
 
     this.shortcutAPI.on('click', this._onShortcutClicked);
   }
@@ -38,12 +51,15 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   destroy() {
     this.shortcutAPI.off('click', this._onShortcutClicked);
     this.dropdownAPI.off('message', this._onMessage);
-    this.urlbar.goButton.removeEventListener('click', stopEvent, true);
+    this.window.gURLBar.goButton.removeEventListener('click', stopEvent, true);
 
     PASSIVE_EVENTS.forEach(eventName =>
       this.urlbar.removeEventListener(eventName, this, PASSIVE_LISTENER_OPTIONS));
     PREVENTABLE_EVENTS.forEach(eventName =>
       this.urlbar.removeEventListener(eventName, this, PREVENTABLE_LISTENER_OPTIONS));
+    const tabContainer = this.window.gBrowser.tabContainer;
+    TAB_CHANGE_EVENTS.forEach(eventName =>
+      tabContainer.removeEventListener(eventName, this, PASSIVE_LISTENER_OPTIONS));
   }
 
   createIframeWrapper() {
@@ -93,6 +109,26 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     this.dropdownAPI.navigateTo(this.windowId, url, { target: newTab ? 'tabshifted' : 'current' });
   }
 
+  _switchToTab(url) {
+    this.window.gURLBar.handleRevert();
+
+    const { Services, switchToTabHavingURI } = this.window;
+    const prevTab = this.window.gBrowser.selectedTab;
+    const browser = prevTab.linkedBrowser;
+    const isPrevTabEmpty = prevTab.isEmpty // Firefox 65+
+      // Firefox 64:
+      || (!prevTab.hasAttribute('busy')
+        && !prevTab.hasAttribute('customizemode')
+        && !browser.canGoForward && !browser.canGoBack
+        && this.window.isBlankPageURL(browser.currentURI.spec)
+        && this.window.checkEmptyPageOrigin(browser)
+      );
+
+    if (switchToTabHavingURI(Services.io.newURI(url), false, {}) && isPrevTabEmpty) {
+      this.window.gBrowser.removeTab(prevTab);
+    }
+  }
+
   _openLink(
     url,
     {
@@ -124,24 +160,42 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     }
   }
 
+  _handleEnter(newTab) {
+    super._handleEnter(newTab);
+
+    const query = this.query;
+    const { id: tabId } = this.dropdownAPI.getCurrentTab(this.window);
+
+    if (newTab
+      || this.hasCompletion
+      || this._isPrivate()
+      || isUrl(query)
+    ) {
+      this.shortcutAPI.hideLastQuery(tabId);
+    } else {
+      this.shortcutAPI.update(tabId, query);
+    }
+  }
+
   _onShortcutClicked = (_, { text }) => {
-    this._setSearchStringValue(text);
-    this._setUrlbarValue(text);
     this._queryCliqz(text);
     this._focus();
     this._setSelectionRange(0, text.length);
   }
 
   _focus() {
-    this.urlbar.focus();
+    this.window.gURLBar.focus();
   }
 
   _isUrlbarFocused() {
-    return this.urlbar.focused;
+    // gURLBar.focused is not a reliable source of information to determine
+    // wether urlbar is focused or not (see EX-9048).
+    // Instead we compare currently focused element with urlbar html:input tag.
+    return this.window.Services.focus.focusedElement === this.urlbar.mInputField;
   }
 
   _setUrlbarValue(value) {
-    this.urlbar.value = value;
+    this.window.gURLBar.value = value;
   }
 
   _setUrlbarVisibleValue(value) {
@@ -181,20 +235,8 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     return this.dropdownAPI.getState(this.window).height;
   }
 
-  _getQuery() {
-    return this.urlbar.controller.searchString;
-  }
-
-  _setSearchStringValue(value) {
-    this.urlbar.controller.searchString = value;
-  }
-
   onKeydown(event) {
     if (event.code === 'ArrowLeft' || event.code === 'ArrowRight') {
-      // In case when part of the urlbar value is selected (ex. autocompleted)
-      // pressing Left/Right resets selection.
-      // Here we sync searchString with urlbar visible value.
-      this._setSearchStringValue(this.urlbar.mInputField.value);
       this.collapse();
     }
     return super.onKeydown(event);
@@ -219,6 +261,14 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
         preventDefault = this.onInput();
         break;
       case 'keydown':
+        if (event.key === 'Escape' && this.window.gURLBar.controller.input) {
+          // On pressing 'Escape' discard the user query and restore the original urlbar value.
+          // In Firefox prior to version 68 it was done by the browser.
+          // After Firefox 68 we do it ourselves,
+          const previousValue = this.window.gURLBar.controller.input.value;
+          this._setUrlbarValue(previousValue);
+          this._setSelectionRange(0, previousValue.length);
+        }
         preventDefault = this.onKeydown(event);
         break;
       case 'mouseup':
@@ -233,15 +283,16 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
         if (event.ctrlKey || event.altKey || event.metaKey) {
           break;
         }
-        const urlbar = this.window.gURLBar;
+        const urlbar = this.urlbar;
         const mInputField = urlbar.mInputField;
         const hasCompletion = mInputField.selectionEnd !== mInputField.selectionStart
+          && mInputField.selectionEnd === urlbar.mInputField.value.length
           && mInputField.value.length > 1;
         if (
           hasCompletion
           && mInputField.value[mInputField.selectionStart] === String.fromCharCode(event.charCode)
         ) {
-          let query = urlbar.value;
+          let query = mInputField.value;
           const queryWithCompletion = mInputField.value;
           const start = mInputField.selectionStart;
           query = query.slice(0, urlbar.selectionStart) + String.fromCharCode(event.charCode);
@@ -261,6 +312,13 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
         }
         break;
       }
+      // EX-9184: Opening, closing or switching tab should collapse the dropdown
+      // (but don't reset search session as long as the urlbar is in focus)
+      case 'TabClose':
+      case 'TabSelect': {
+        this.collapse();
+        break;
+      }
       default:
         break;
     }
@@ -271,7 +329,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   }
 
   _resultsDidRender(...args) {
-    if (this.urlbar.focused) {
+    if (this._isUrlbarFocused()) {
       super._resultsDidRender(...args);
     }
   }

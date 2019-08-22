@@ -1,5 +1,16 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* globals ChromeUtils, windowTracker, tabTracker */
-import { PASSIVE_LISTENER_OPTIONS } from '../../../dropdown/managers/utils';
+import {
+  TAB_CHANGE_EVENTS,
+  PASSIVE_LISTENER_OPTIONS,
+} from '../../../dropdown/managers/utils';
 
 const { EventEmitter } = ChromeUtils.import('resource://gre/modules/EventEmitter.jsm');
 const LAST_QUERY_BOX_ID = 'cliqzLastQueryBox';
@@ -22,7 +33,8 @@ export default class LastQuery extends EventEmitter {
     this.container = this.window.document.createElement('hbox');
     this.container.id = LAST_QUERY_BOX_ID;
     this.container.appendChild(this.lastQueryBox);
-    const $targetPosition = this.window.gURLBar.mInputField.parentElement;
+    this.urlbar = this.window.gURLBar.textbox || this.window.gURLBar;
+    const $targetPosition = this.urlbar.mInputField.parentElement;
     $targetPosition.insertBefore(this.container, $targetPosition.firstChild);
     this.addEventListeners();
     this.attached = true;
@@ -54,6 +66,17 @@ export default class LastQuery extends EventEmitter {
         this.showLastQuery(tabId);
         break;
       }
+      case 'TabPrivateModeChanged': {
+        const target = event.target;
+        const isPrivate = event.detail.private;
+        const currentTab = Array.from(this.window.gBrowser.tabContainer.children)
+          .find(tab => tab.linkedBrowser === target);
+        if (currentTab && currentTab.tabId && isPrivate) {
+          this.clear(currentTab.tabId);
+          this.hideLastQuery(currentTab.tabId);
+        }
+        break;
+      }
       case 'click': {
         this.emit('click', {
           windowId: this.id,
@@ -68,21 +91,23 @@ export default class LastQuery extends EventEmitter {
   }
 
   addEventListeners() {
-    ['TabClose', 'TabSelect'].forEach((event) => {
+    TAB_CHANGE_EVENTS.forEach((event) => {
       this.window.gBrowser.tabContainer.addEventListener(event, this, PASSIVE_LISTENER_OPTIONS);
     });
+    this.window.gBrowser.addEventListener('TabPrivateModeChanged', this);
     ['focus', 'blur'].forEach((event) => {
-      this.window.gURLBar.addEventListener(event, this, PASSIVE_LISTENER_OPTIONS);
+      this.urlbar.addEventListener(event, this, PASSIVE_LISTENER_OPTIONS);
     });
     this.container.addEventListener('click', this, PASSIVE_LISTENER_OPTIONS);
   }
 
   removeEventListeners() {
-    ['TabOpen', 'TabClose', 'TabSelect'].forEach((event) => {
+    TAB_CHANGE_EVENTS.forEach((event) => {
       this.window.gBrowser.tabContainer.removeEventListener(event, this, PASSIVE_LISTENER_OPTIONS);
     });
+    this.window.gBrowser.removeEventListener('TabPrivateModeChanged', this);
     ['focus', 'blur'].forEach((event) => {
-      this.window.gURLBar.removeEventListener(event, this, PASSIVE_LISTENER_OPTIONS);
+      this.urlbar.removeEventListener(event, this, PASSIVE_LISTENER_OPTIONS);
     });
     this.container.removeEventListener('click', this, PASSIVE_LISTENER_OPTIONS);
   }

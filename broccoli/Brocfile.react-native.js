@@ -1,32 +1,38 @@
-"use strict";
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 
-var Funnel = require('broccoli-funnel');
-var MergeTrees = require('broccoli-merge-trees');
-var writeFile = require('broccoli-file-creator');
+const Funnel = require('broccoli-funnel');
+const MergeTrees = require('broccoli-merge-trees');
+const writeFile = require('broccoli-file-creator');
 
-var util = require('./util');
-var cliqzConfig = require('./config');
-var modules = require('./modules-tree');
-var components = require('./react-components');
-var resources = require('./resources');
+const util = require('./util');
+const cliqzConfig = require('./config');
+const modules = require('./modules-tree');
+const components = require('./react-components');
+const resources = require('./resources');
 
 // cliqz.json should be saved after not transpiled modules are removed from configration
-var config          = writeFile('cliqz.json', JSON.stringify(cliqzConfig));
+const config = writeFile('cliqz.json', JSON.stringify(cliqzConfig));
 console.log('Source maps:', cliqzConfig.sourceMaps);
 console.log(cliqzConfig);
 // cliqz.json is finalized
 
-var v8 = new MergeTrees([
+const v8 = new MergeTrees([
   new Funnel(modules.static, { destDir: 'modules' }),
   new Funnel(modules.modules, { destDir: 'modules' }),
   new Funnel(modules.bundles, { destDir: 'modules' }),
   modules.locales,
-  new Funnel(config,  { destDir: 'config'}),
+  new Funnel(config, { destDir: 'config' }),
   new Funnel('specific/react-native'),
   new Funnel(components),
   new Funnel(resources),
 ], { overwrite: true });
 
-var configTree = util.injectConfig(v8, config, 'cliqz.json', ['modules/core/config.js']);
+const configTree = util.injectConfig(v8, config, 'cliqz.json', ['modules/core/config.js']);
 
 module.exports = new MergeTrees([v8, configTree], { overwrite: true });

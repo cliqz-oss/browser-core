@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import {
   clone,
   expect,
@@ -50,7 +58,7 @@ describe('Freshtab favorites UI', function () {
 
       it('with the visibility switch turned on', function () {
         const $favoritesSwitch = subject.queryByI18n('freshtab_app_settings_favorites_label')
-          .querySelector('input.switch');
+          .querySelector('.toggle');
         expect($favoritesSwitch).to.have.property('checked', true);
       });
 
@@ -72,7 +80,7 @@ describe('Freshtab favorites UI', function () {
 
       it('with the visibility switch turned off', function () {
         const $favoritesSwitch = subject.queryByI18n('freshtab_app_settings_favorites_label')
-          .querySelector('input.switch');
+          .querySelector('.toggle');
         expect($favoritesSwitch).to.have.property('checked', false);
       });
 
@@ -83,12 +91,12 @@ describe('Freshtab favorites UI', function () {
   });
 
   context('when a "+" button has been clicked', function () {
-    const favoritesPlusBtnSelector = 'button.plus-dial-icon';
-    const addFormSelector = 'form.addDialForm';
-    const formClose = 'form.addDialForm button.closeForm';
-    const urlSelector = 'form.addDialForm input.addUrl';
-    const titleSelector = 'form.addDialForm input.title';
-    const placeholderSelector = 'form.addDialForm label';
+    const favoritesPlusBtnSelector = '.plus-dial-icon';
+    const addFormSelector = '.addDialForm';
+    const formClose = '.addDialForm .close-form';
+    const urlSelector = '.addDialForm .addUrl';
+    const titleSelector = '.addDialForm .title';
+    const placeholderSelector = '.addDialForm label';
 
     before(async function () {
       subject.respondsWith({
@@ -156,7 +164,7 @@ describe('Freshtab favorites UI', function () {
     const urlSelector = 'form.editForm input.url';
     const titleSelector = 'form.editForm input.title';
     const placeholderSelector = 'form.editForm label';
-    const formClose = 'form.editForm button.closeForm';
+    const formClose = 'form.editForm button.close-form';
 
     before(async function () {
       subject.respondsWith({

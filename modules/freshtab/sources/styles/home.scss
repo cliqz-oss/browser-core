@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 @import 'configs.scss';
 @import 'themes.scss';
 @import 'undo-notifications.scss';
@@ -35,108 +43,6 @@
         display: flex;
         min-height: 100vh;
 
-
-        .aside {
-            flex: 0 0 map-get($base-configs, aside-width);
-
-            & > a, & > button {
-                display: block;
-                margin: 20px auto;
-                width: 24px;
-                height: 24px;
-                color: transparent;
-                font-size: 0;
-                text-decoration: none;
-                border: 0;
-                cursor: pointer;
-                position: relative;
-                opacity:0.6;
-
-                &:after {
-                    content:"";
-                    position: absolute;
-                    width: 100%;
-                    height:100%;
-                    opacity: 0.75;
-
-                    &:hover {
-                        opacity: 1;
-                    }
-                }
-
-                &#cliqz-home {
-                    opacity: 1;
-                    background: map-get($base-theme, cliqz-home-bg);
-                }
-
-                &#cliqz-history {
-                    background: map-get($base-theme, cliqz-history-bg);
-                }
-
-                &#cliqz-worldcup {
-                    &:after {
-                        background: map-get($base-theme, cliqz-worldcup-bg);
-                    }
-                }
-
-                &#settings-btn {
-                    background: map-get($base-theme, cliqz-settings-bg);
-                }
-
-                &#cliqz-modules-btn {
-                    background: map-get($base-theme, cliqz-modules-bg);
-                }
-
-                &:hover {
-                    opacity: 1;
-                }
-            }
-
-            /* SPECIAL CASE: SIDE-BAR BUTTONS ON SMALL SCREENS */
-            @media only screen and (max-width: 507px) {
-                a, button {
-                    display: none;
-                }
-            }
-
-            @media only screen and (min-width: 508px) and (max-width: 648px) {
-                a, button {
-                    margin-left: 13px;
-                    margin-right: 13px;
-                }
-            }
-
-            @include settings(map-get($base-theme, cliqz-settings-bg));
-        }
-
-        #main-content {
-            display: flex;
-            flex: 1;
-            justify-content: center;
-            max-width: 100%;
-
-            .fixed-container {
-                max-width: map-get($base-configs, container-width);
-                display: flex;
-                flex: 1;
-                justify-content: space-evenly;
-                align-items: center;
-                flex-direction: column;
-                overflow-x: auto;
-                overflow-y: hidden;
-
-                > section {
-                    width: 100%;
-                    text-align: center;
-                }
-
-                #section-middle {
-                    margin-top: map-get($base-configs, section-padding);
-                    margin-bottom: map-get($base-configs, section-padding);
-                }
-            }
-        }
-
         &:before {
             display: block;
             position: fixed;
@@ -148,6 +54,105 @@
             background-color: map-get($base-theme, background-mask-color);
             content: ' ';
         }
+    }
+
+    @include settings(map-get($base-theme, cliqz-settings-bg));
+
+    #cliqz-home {
+        opacity: 1;
+        background: map-get($base-theme, cliqz-home-bg);
+    }
+
+    #cliqz-history {
+        background: map-get($base-theme, cliqz-history-bg);
+    }
+
+    #cliqz-worldcup:after {
+        background: map-get($base-theme, cliqz-worldcup-bg);
+    }
+
+    #settings-btn {
+        background: map-get($base-theme, cliqz-settings-bg);
+    }
+
+    #cliqz-modules-btn {
+        background: map-get($base-theme, cliqz-modules-bg);
+    }
+
+    .aside {
+            flex: 0 0 map-get($base-configs, aside-width);
+    }
+
+    .aside-button {
+        display: block;
+        margin: 20px auto;
+        width: 24px;
+        height: 24px;
+        color: transparent;
+        font-size: 0;
+        text-decoration: none;
+        border: 0;
+        cursor: pointer;
+        position: relative;
+        opacity:0.6;
+
+        &:after {
+            content:"";
+            position: absolute;
+            width: 100%;
+            height:100%;
+            opacity: 0.75;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+
+    /* SPECIAL CASE: SIDE-BAR BUTTONS ON SMALL SCREENS */
+    @media only screen and (max-width: 507px) {
+        .aside-button {
+            display: none;
+        }
+    }
+
+    @media only screen and (min-width: 508px) and (max-width: 648px) {
+        .aside-button {
+            margin-left: 13px;
+            margin-right: 13px;
+        }
+    }
+
+    #main-content {
+        display: flex;
+        flex: 1;
+        justify-content: center;
+        max-width: 100%;
+    }
+
+    .fixed-container {
+        max-width: map-get($base-configs, container-width);
+        display: flex;
+        flex: 1;
+        justify-content: space-evenly;
+        align-items: center;
+        flex-direction: column;
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    .content-section {
+        width: 100%;
+        text-align: center;
+    }
+
+    #section-middle {
+        margin-top: map-get($base-configs, section-padding);
+        margin-bottom: map-get($base-configs, section-padding);
     }
 
     @include speed-dials(map-merge($speed-dials-configs, $speed-dials-theme)...);
@@ -221,18 +226,6 @@ body {
     background: #fff no-repeat center center fixed;
     background-size: cover;
 
-    #overlay {
-        display: none;
-        z-index: 10;
-        opacity: 0;
-        transition: opacity .15s;
-
-        &.open {
-            display: block;
-            opacity: 1;
-        }
-    }
-
     $dark-theme: map-get($themes, dark);
 
     @include responsive($dark-theme);
@@ -250,106 +243,131 @@ body {
         background-size: cover;
         content: ' ';
     }
+}
 
-    &.theme-bg-light,
-    &.theme-bg-light::before {
-        background-color: #7a888f;
-        background-image: cdnUrl('extension/newtab/background/light2.jpg');
-    }
+#onboarding {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    z-index: 102;
+    border: 0;
+}
 
-    &.theme-bg-dark,
-    &.theme-bg-dark::before {
-        background-color: #11324b;
-        background-image: cdnUrl('extension/newtab/background/dark2.jpg');
-    }
+#overlay {
+    display: none;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity .15s;
 
-    &.theme-bg-alps,
-    &.theme-bg-alps::before {
-        background-color: #00a6ae;
-        background-image: cdnUrl('extension/newtab/background/alps2.jpg');
+    &.open {
+        display: block;
+        opacity: 1;
     }
+}
 
-    &.theme-bg-winter,
-    &.theme-bg-winter::before {
-        background-color: #1185a8;
-        background-image: cdnUrl('extension/newtab/background/winter2.jpg');
-    }
+.theme-bg-light,
+.theme-bg-light::before {
+    background-color: #7a888f;
+    background-image: cdnUrl('extension/newtab/background/light2.jpg');
+}
 
-    &.theme-bg-matterhorn,
-    &.theme-bg-matterhorn::before {
-        background-color: #138ab0;
-        background-image: cdnUrl('extension/newtab/background/matterhorn2.jpg');
-    }
+.theme-bg-dark,
+.theme-bg-dark::before {
+    background-color: #11324b;
+    background-image: cdnUrl('extension/newtab/background/dark2.jpg');
+}
 
-    &.theme-bg-spring,
-    &.theme-bg-spring::before {
-        background-color: #3383a5;
-        background-image: cdnUrl('extension/newtab/background/spring2.jpg');
-    }
+.theme-bg-alps,
+.theme-bg-alps::before {
+    background-color: #00a6ae;
+    background-image: cdnUrl('extension/newtab/background/alps2.jpg');
+}
 
-    &.theme-bg-worldcup,
-    &.theme-bg-worldcup::before {
-        background-color: #00080c;
-        background-image: cdnUrl('extension/newtab/background/worldcup2.jpg');
-    }
+.theme-bg-winter,
+.theme-bg-winter::before {
+    background-color: #1185a8;
+    background-image: cdnUrl('extension/newtab/background/winter2.jpg');
+}
 
-    &.theme-bg-summer,
-    &.theme-bg-summer::before {
-        background-color: #007296;
-        background-image: cdnUrl('extension/newtab/background/summer2.jpg');
-    }
+.theme-bg-matterhorn,
+.theme-bg-matterhorn::before {
+    background-color: #138ab0;
+    background-image: cdnUrl('extension/newtab/background/matterhorn2.jpg');
+}
 
-    &.theme-bg-autumn,
-    &.theme-bg-autumn::before {
-        background-color: #436b8d;
-        background-image: cdnUrl('extension/newtab/background/autumn2.jpg');
-    }
+.theme-bg-spring,
+.theme-bg-spring::before {
+    background-color: #3383a5;
+    background-image: cdnUrl('extension/newtab/background/spring2.jpg');
+}
 
-    &.theme-bg-ghostery,
-    &.theme-bg-ghostery::before {
-        background-color: #00adf3;
-        background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab.jpg);
-    }
+.theme-bg-worldcup,
+.theme-bg-worldcup::before {
+    background-color: #00080c;
+    background-image: cdnUrl('extension/newtab/background/worldcup2.jpg');
+}
 
-    &.theme-bg-ghostery-forest,
-    &.theme-bg-ghostery-forest::before {
-        background-color: #1D3D42;
-        background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab-forest.jpg);
-    }
+.theme-bg-summer,
+.theme-bg-summer::before {
+    background-color: #007296;
+    background-image: cdnUrl('extension/newtab/background/summer2.jpg');
+}
 
-    &.theme-bg-ghostery-city,
-    &.theme-bg-ghostery-city::before {
-        background-color: #161523;
-        background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab-city.jpg);
-    }
+.theme-bg-autumn,
+.theme-bg-autumn::before {
+    background-color: #436b8d;
+    background-image: cdnUrl('extension/newtab/background/autumn2.jpg');
+}
 
-    &.theme-bg-ghostery-net,
-    &.theme-bg-ghostery-net::before {
-        background-color: #1A303F;
-        background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab-net.jpg);
-    }
+.theme-bg-ghostery,
+.theme-bg-ghostery::before {
+    background-color: #00adf3;
+    background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab.jpg);
+}
 
-    &.theme-bg-ghostery-ghosties,
-    &.theme-bg-ghostery-ghosties::before {
-        background-color: #1A9FD7;
-        background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab-ghosties.jpg);
-    }
+.theme-bg-ghostery-forest,
+.theme-bg-ghostery-forest::before {
+    background-color: #1D3D42;
+    background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab-forest.jpg);
+}
 
-    &.theme-bg-ghostery-ghosty,
-    &.theme-bg-ghostery-ghosty::before {
-        background-color: #595B58;
-        background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab-ghosty.jpg);
-    }
-    &.theme-bg-ghostery-dark,
-    &.theme-bg-ghostery-dark::before {
-        background-color: #23A5D7;
-        background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab-dark.jpg);
-    }
+.theme-bg-ghostery-city,
+.theme-bg-ghostery-city::before {
+    background-color: #161523;
+    background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab-city.jpg);
+}
 
-    &.theme-bg-default {
-        $light-theme: map-get($themes, light);
+.theme-bg-ghostery-net,
+.theme-bg-ghostery-net::before {
+    background-color: #1A303F;
+    background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab-net.jpg);
+}
 
-        @include responsive($light-theme);
-        @include undo-notifications(map-get($light-theme, base)...);
-    }
+.theme-bg-ghostery-ghosties,
+.theme-bg-ghostery-ghosties::before {
+    background-color: #1A9FD7;
+    background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab-ghosties.jpg);
+}
+
+.theme-bg-ghostery-ghosty,
+.theme-bg-ghostery-ghosty::before {
+    background-color: #595B58;
+    background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab-ghosty.jpg);
+}
+.theme-bg-ghostery-dark,
+.theme-bg-ghostery-dark::before {
+    background-color: #23A5D7;
+    background-image: url(https://cdn2.ghostery.com/extension/newtab/background/ghostery-tab-dark.jpg);
+}
+
+.theme-bg-default {
+    $light-theme: map-get($themes, light);
+
+    @include responsive($light-theme);
+    @include undo-notifications(map-get($light-theme, base)...);
 }

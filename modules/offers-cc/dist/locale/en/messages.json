@@ -1,4 +1,10 @@
 {
+    "affiliate_link": {
+      "message": "affiliate link"
+    },
+    "copy_and_go": {
+      "message": "copy & go"
+    },
     "feedback_skip": {
         "message": "Skip"
     },
@@ -67,6 +73,9 @@
     },
     "offers_send_feedback": {
         "message": "Send"
+    },
+    "settings": {
+      "message": "Settings"
     },
     "show_code": {
       "message": "Show code"

@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global window */
 /* global document */
 
@@ -631,9 +639,9 @@ class App extends React.Component {
               )}
               <section id="main-content">
                 <div className="fixed-container" tabIndex="-1">
-                  <section id="section-top-space" />
+                  <section id="section-top-space" className="content-section" />
 
-                  <section id="section-top">
+                  <section id="section-top" className="content-section">
                     {this.shouldShowTopUrlBar && (
                       <section id="section-url-bar">
                         <UrlbarWithResults
@@ -641,7 +649,6 @@ class App extends React.Component {
                           product={freshtabConfig.product}
                           ref={(c) => { this.urlbarElem = c; }}
                           results={this.state.results}
-                          shouldShowReminder={false}
                           showOverlay={this.showOverlay}
                           toggleComponent={this.toggleComponent}
                           visible={visibleComponents.includes('search')}
@@ -669,7 +676,7 @@ class App extends React.Component {
                       timer={this.timer}
                     >
                       {visibleComponents.includes('historyDials') && (
-                        <section id="section-most-visited">
+                        <section id="section-most-visited" className="content-section">
                           {isDialLoaded && (
                             <React.Fragment>
                               <Pagination
@@ -703,7 +710,7 @@ class App extends React.Component {
                       timer={this.timer}
                     >
                       {visibleComponents.includes('customDials') && (
-                        <section id="section-favorites">
+                        <section id="section-favorites" className="content-section">
                           {isDialLoaded && (
                             <React.Fragment>
                               <div className="dial-header with-line">
@@ -725,9 +732,9 @@ class App extends React.Component {
                     </ProfilerComponent>
                   </section>
 
-                  <section id="section-middle-space" />
+                  <section id="section-middle-space" className="content-section" />
 
-                  <section id="section-middle">
+                  <section id="section-middle" className="content-section">
                     {this.shouldShowStats && (
                       <div id="section-stats">
                         {Object.keys(stats).length !== 0 && (
@@ -745,7 +752,7 @@ class App extends React.Component {
                       </div>
                     )}
                     {visibleComponents.includes('news') && (
-                      <section id="section-news">
+                      <section id="section-news" className="content-section">
                         {newsData.length > 0 && (
                           <ProfilerComponent
                             id="news"
@@ -763,7 +770,7 @@ class App extends React.Component {
                     )}
                   </section>
 
-                  <section id="section-bottom-space" />
+                  <section id="section-bottom-space" className="content-section" />
                 </div>
                 {modules.isOpen && (
                   <ModulesDeveloperModal

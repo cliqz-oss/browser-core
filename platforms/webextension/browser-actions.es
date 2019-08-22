@@ -1,6 +1,13 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { chrome } from './globals';
 import config from '../core/config';
-import { cleanMozillaActions } from '../core/content/url';
 
 const TARGET_ANDROID = 'ANDROID_BROWSER';
 
@@ -32,9 +39,8 @@ export function openLink(url, focused = false) {
   if (config.isMobile) {
     sendMessageToAndroid('openUrl', url);
   } else {
-    const [, originalUrl] = cleanMozillaActions(url);
     chrome.tabs.create({
-      url: originalUrl,
+      url,
       active: focused
     });
   }

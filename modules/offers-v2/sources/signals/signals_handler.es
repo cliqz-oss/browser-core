@@ -4,18 +4,28 @@
  * Each signal (id) will be kept on the DB till OffersConfigs.SIGNALS_OFFERS_EXPIRATION_SECS
  * is reached from the last modification time.
  */
+import { chrome } from '../../platform/globals';
 
-import logger from '../common/offers_v2_logger';
 import telemetry from '../../core/services/telemetry';
 import { httpPost } from '../../core/http';
-import OffersConfigs from '../offers_configs';
 import SimpleDB from '../../core/persistence/simple-db';
 import pacemaker from '../../core/services/pacemaker';
+
+import logger from '../common/offers_v2_logger';
+import OffersConfigs from '../offers_configs';
 import { generateUUID, isDeveloper } from '../utils';
 import { constructSignal, addOrCreate } from './utils';
 import Behavior from '../behavior';
+import ActionID from '../offers/actions-defs';
 
 const STORAGE_DB_DOC_ID = 'offers-signals';
+
+const ACTIONS_TO_SAVE = new Set([
+  ActionID.AID_LANDING,
+  ActionID.AID_CART,
+  ActionID.AID_PAYMENT,
+  ActionID.AID_SUCCESS
+]);
 
 /**
  * [v3.0] we will not use bucket anymore so now we will have the following
@@ -42,21 +52,29 @@ export default class SignalHandler {
   /**
    * @constructor
    * @method constructor
-   * @param {OffersDB} offersDB
-   * @param {object|null} sender
+   * @param {Database} db
+   * @param {object | null} sender
    *   Interface to be use to sent messages, it will take:
    *   <pre>
    *   sender.httpPost args: (url, success_callback, data, onerror_callback, timeout)
    *   </pre>
    *   If not given, `httpdPost` is used.
    * @param {PatternsStat} patternsStat
+   * @param {JourneySignals | null} journeySignals
+   * @param {EventEmitter} signalReEmitter
+   *   to get events of name 'signal' and 3 string parameters
+   *   (signal ID, campaign ID, offer ID)
+   * @param {TrustedClock} trustedClock
+   *   Interface with one function
+   *   `async getMinutesSinceEpochAsync()`
    */
-  constructor(offersDB, sender, patternsStat, journeySignals, getGID) {
-    this.db = new SimpleDB(offersDB, logger, 'doc_data');
+  constructor({ db, sender, patternsStat, journeySignals, signalReEmitter, trustedClock }) {
+    this.db = new SimpleDB(db, logger, 'doc_data');
     this.sender = sender || { httpPost };
     this.patternsStat = patternsStat;
     this.journeySignals = journeySignals;
-    this.getGID = getGID;
+    this.signalReEmitter = signalReEmitter;
+    this.trustedClock = trustedClock;
     this.sigMap = {}; // map from sig_type -> (sig_id -> sig_data)
     this.sigBuilder = {
       campaign: this._sigBuilderCampaign.bind(this),
@@ -69,6 +87,8 @@ export default class SignalHandler {
     this.dbDirty = false;
     this.signalsQueue = [];
     this.behavior = new Behavior();
+    this.gid = this._getGID();
+    this.reinterpretSignalsAsync = this.reinterpretSignalsAsync.bind(this);
   }
 
   async init() {
@@ -77,6 +97,8 @@ export default class SignalHandler {
     // set the interval timer method to send the signals
     this.sendIntervalTimer = null;
     this._startSendSignalsLoop(OffersConfigs.SIGNALS_OFFERS_FREQ_SECS);
+
+    this.signalReEmitter.on('signal', this.reinterpretSignalsAsync);
 
     // save signals in a frequent way
     if (OffersConfigs.SIGNALS_LOAD_FROM_DB) {
@@ -105,6 +127,7 @@ export default class SignalHandler {
 
   // destructor
   async destroy() {
+    this.signalReEmitter.unsubscribe('signal', this.reinterpretSignalsAsync);
     // stop interval
     if (this.sendIntervalTimer) {
       this.sendIntervalTimer.stop();
@@ -193,10 +216,7 @@ export default class SignalHandler {
     logger.info(`setCampaignSignal${shouldSend ? '' : ' (silent)'}:`
       + `new signal added: ${cid} - ${oid} - ${origID} - ${sid} - +${count}`);
 
-    this.patternsStat.reinterpretCampaignSignalAsync(cid, oid, sid);
-    if (this.journeySignals) {
-      this.journeySignals.reinterpretCampaignSignalAsync(sid);
-    }
+    this.signalReEmitter.emit('signal', sid, cid, oid);
 
     return true;
   }
@@ -422,12 +442,12 @@ export default class SignalHandler {
     return Promise.resolve();
   }
 
-  async _getGID() {
+  _getGID() {
     try {
-      const gid = await this.getGID();
+      const gid = { platform: chrome.extension.getURL('/').split(':')[0] };
       return gid;
     } catch (e) {
-      logger.warn(`anolysis getGID throws, ${e}`);
+      logger.warn(` getGID throws, ${e}`);
       return {};
     }
   }
@@ -447,7 +467,7 @@ export default class SignalHandler {
     const sigsKeysToSend = Object.keys(this.sigsToSend);
     const numSignalsToSend = sigsKeysToSend.length;
     const batch = [];
-    const gid = await this._getGID();
+    const timestamp = await this.trustedClock.getMinutesSinceEpochAsync();
     sigsKeysToSend.forEach((signalType) => {
       if (typeToSend && typeToSend !== signalType) {
         return;
@@ -464,7 +484,9 @@ export default class SignalHandler {
         const sigDataToSend = this.sigBuilder[signalType](sigID, sigInfo);
         sigInfo.seq += 1;
         if (!sigDataToSend) { return; }
-        const payload = JSON.stringify(constructSignal(sigID, signalType, sigDataToSend, gid));
+        const payload = JSON.stringify(constructSignal(
+          sigID, signalType, sigDataToSend, this.gid, timestamp
+        ));
         batch.push({ payload, signalType, sigID, numSignalsToSend });
       });
     });
@@ -487,7 +509,7 @@ export default class SignalHandler {
     // Now send additional signals
     let behaviorBatch = await this.behavior.getSignals();
     behaviorBatch = behaviorBatch.map(payload =>
-      ({ payload: JSON.stringify(constructSignal('behavior', payload.type, payload, gid)) }));
+      ({ payload: JSON.stringify(constructSignal('behavior', payload.type, payload, this.gid, timestamp)) }));
 
     const patternPromises = Array.from(
       this.patternsStat.getPatternSignals(),
@@ -496,12 +518,12 @@ export default class SignalHandler {
     const patternBatches = await Promise.all(patternPromises);
     const patternBatch = [].concat(...patternBatches)
       .map(payload =>
-        ({ payload: JSON.stringify(constructSignal('patterns-stats', payload.type, payload, gid)) }));
+        ({ payload: JSON.stringify(constructSignal('patterns-stats', payload.type, payload, this.gid, timestamp)) }));
 
     const collectJourneyBatch = async () => {
       const journeys = await this.journeySignals.moveSignals();
       return journeys.map(payload =>
-        ({ payload: JSON.stringify(constructSignal('journey', payload.type, payload)) }));
+        ({ payload: JSON.stringify(constructSignal('journey', payload.type, payload, timestamp)) }));
     };
     const journeyBatch = this.journeySignals ? await collectJourneyBatch() : [];
 
@@ -619,6 +641,20 @@ export default class SignalHandler {
     });
   }
 
+  /**
+   * If user closes the browser immediately after a purchase,
+   * as there is no guarantee for cleanup calls,
+   * then the conversion signal will be lost.
+   * As a workaround, immediately save/send signals on conversion.
+   */
+  async reinterpretSignalsAsync(signalID) {
+    if (ACTIONS_TO_SAVE.has(signalID)) {
+      await this._savePersistenceData();
+    }
+    if (signalID === ActionID.AID_SUCCESS) {
+      await this.flush();
+    }
+  }
 
   // ///////////////////////////////////////////////////////////////////////////
   //                      SIGNALS STRUCTURE BUILDERS

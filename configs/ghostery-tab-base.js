@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 const urls = require('./common/urls-ghostery');
 const base = require('./common/system');
 
@@ -11,8 +19,8 @@ module.exports = {
   versionInfix: '.',
   versionPrefix: '10',
   settings: Object.assign({}, urls, {
-    id: id,
-    appName: "Ghostery",
+    id,
+    appName: 'Ghostery',
     name: 'ghosteryTabAppNameNightly',
     channel: 'GT12', // Ghostery Tab Chrome Beta
     MSGCHANNEL: 'ghostery-tab',
@@ -24,17 +32,15 @@ module.exports = {
     DEFAULT_SEARCH_ENGINE: 'DuckDuckGo',
     FRESHTAB_TITLE: 'Ghostery Tab',
     offboardingURLs: {
-      "en": "https://www.surveymonkey.de/r/StartTabEng",
-      "de": "https://www.surveymonkey.de/r/StartTabDE",
+      en: 'https://www.surveymonkey.de/r/StartTabEng',
+      de: 'https://www.surveymonkey.de/r/StartTabDE',
     },
+    INSIGHTS_INTERNAL: true,
   }),
   default_prefs: {
     'modules.human-web.enabled': false,
     'modules.hpnv2.enabled': true,
     'freshtab.search.mode': 'search',
-    showConsoleLogs: true,
-    developer: true,
-    offers2FeatureEnabled: true,
   },
   modules: [
     'core',
@@ -67,14 +73,8 @@ module.exports = {
     'dropdown/dropdown.bundle.js',
     'control-center/control-center.bundle.js',
     'human-web/rusha.bundle.js',
-    "toolbox/toolbox.bundle.js",
+    'toolbox/toolbox.bundle.js',
   ],
-  system: Object.assign({}, base.systemConfig, {
-    map: Object.assign({}, base.systemConfig.map, {
-      ajv: 'node_modules/ajv/dist/ajv.min.js',
-      jsep: 'modules/vendor/jsep.min.js',
-    })
-  }),
   builderDefault: Object.assign({}, base.builderConfig, {
     externals: base.builderConfig.externals.concat('@cliqz-oss/dexie'),
     globalDeps: Object.assign({}, base.builderConfig.globalDeps, {

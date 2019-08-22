@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import inject from '../core/kord/inject';
 
 const ANDROID_ID = 'ANDROID_BROWSER';
@@ -6,6 +14,7 @@ export default class {
   init() {
     this.promises = Object.create(null);
     this.promiseCounter = 0;
+
     chrome.runtime.onMessage.addListener((message) => {
       // Message from Android
       if (message.source === ANDROID_ID) {

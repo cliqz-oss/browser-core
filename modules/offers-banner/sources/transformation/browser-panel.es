@@ -1,12 +1,11 @@
 /* eslint-disable import/prefer-default-export */
-
 import prefs from '../../core/prefs';
 import {
   getResourceUrl,
   isWebExtension,
   isCliqzBrowser,
 } from '../../core/platform';
-import { getTitleColor } from '../utils';
+import { getTitleColor, products } from '../utils';
 
 export function transform(data = {}) {
   const { offer_data: { ui_info: uiInfo } = {}, offer_id: offerId } = data;
@@ -27,7 +26,10 @@ export function transform(data = {}) {
     config: {
       type: 'browser-panel',
       url: getResourceUrl('browser-panel/index.html?cross-origin'),
-      blueTheme: prefs.get('freshtab.blueTheme.enabled', false)
+      styles: {
+        blueTheme: prefs.get('freshtab.blueTheme.enabled', false)
+      },
+      products: products(),
     },
   };
   return [true, payload];

@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 const resultsBeforeRerank = [
   {
     links: [
@@ -6,7 +14,6 @@ const resultsBeforeRerank = [
         href: 'https://www.google.com/search?q=fc+bayern+&ie=utf-8&oe=utf-8&client=firefox-b-ab',
         friendlyUrl: 'google.com/search?q=fc+bayern+&ie=utf-8&oe=utf-8&client=firefox-b-ab',
         extra: {
-          mozActionUrl: 'moz-action:searchengine,{"engineName":"Google","input":"fc%20bayern%20","searchQuery":"fc%20bayern","alias":"#go"}',
           searchEngineName: 'Google'
         },
         kind: [
@@ -320,7 +327,6 @@ const resultsAfterRerank = [
         href: 'https://www.google.com/search?q=fc+bayern+&ie=utf-8&oe=utf-8&client=firefox-b-ab',
         friendlyUrl: 'google.com/search?q=fc+bayern+&ie=utf-8&oe=utf-8&client=firefox-b-ab',
         extra: {
-          mozActionUrl: 'moz-action:searchengine,{"engineName":"Google","input":"fc%20bayern%20","searchQuery":"fc%20bayern","alias":"#go"}',
           searchEngineName: 'Google'
         },
         kind: [

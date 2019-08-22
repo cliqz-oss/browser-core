@@ -1,5 +1,12 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import Spanan from 'spanan';
-import { cleanMozillaActions } from '../../core/url';
 import Defer from '../../core/helpers/defer';
 
 const KEYS_TO_IGNORE = new Set(['Unidentified', 'Dead']);
@@ -11,14 +18,23 @@ export default class BaseDropdownManager {
     this._lastEvent = null;
     this._iframeWrapperDefer = new Defer();
     this._delayedBlur = null;
+    this._resetQuery();
   }
 
   get entryPoint() {
     throw new Error('Not implemented');
   }
 
+  get targetModule() {
+    return 'dropdown';
+  }
+
   get iframeWrapperReady() {
     return this._iframeWrapperDefer.promise;
+  }
+
+  get query() {
+    return this._queryString;
   }
 
   actions = {
@@ -42,6 +58,8 @@ export default class BaseDropdownManager {
 
   _navigateTo() {}
 
+  _switchToTab() {}
+
   _focus() {}
 
   _setUrlbarValue() {}
@@ -58,8 +76,6 @@ export default class BaseDropdownManager {
 
   _getHeight() {}
 
-  _getQuery() {}
-
   _isPrivate() {}
 
   _createIframe() {}
@@ -74,21 +90,37 @@ export default class BaseDropdownManager {
     return this._setUrlbarValue(value);
   }
 
+  _resetQuery() {
+    this._queryString = '';
+  }
+
+  _syncQueryWithUrlbar() {
+    const query = this._getUrlbarValue() || '';
+    const { selectionStart } = this._getSelectionRange();
+    this._queryString = this.hasCompletion
+      ? query.slice(0, selectionStart)
+      : query;
+  }
+
   async _queryCliqz(_query, { allowEmptyQuery = false } = {}) {
     await this.iframeWrapperReady;
-    const query = _query || this._getQuery();
+    if (_query) {
+      this._setUrlbarValue(_query);
+      this._syncQueryWithUrlbar();
+    }
     const incognito = this._isPrivate();
     const keyCode = this._lastEvent && this._lastEvent.key;
     const isPasted = this._lastEvent ? this._lastEvent.type === 'paste' : false;
     const isTyped = this._lastEvent ? this._lastEvent !== 'drop' : false;
 
-    if (query || allowEmptyQuery) {
-      this.dropdownAction.startSearch(query, {
+    if (this.query || allowEmptyQuery) {
+      this.dropdownAction.startSearch(this.query, {
         allowEmptyQuery,
         isPasted,
         isPrivate: incognito,
         isTyped,
         keyCode,
+        targetModule: this.targetModule,
       }, {
         urlbarAttributes: this._getUrlbarAttributes(),
       });
@@ -107,15 +139,7 @@ export default class BaseDropdownManager {
       meta = {},
     },
   ) {
-    let href = url;
-    if (newTab) {
-      const [action, originalUrl] = cleanMozillaActions(href);
-      if (action === 'switchtab') {
-        href = originalUrl;
-      }
-    }
-
-    const selection = {
+    this._reportClick({
       url,
       query: result.query,
       rawResult: result,
@@ -127,28 +151,32 @@ export default class BaseDropdownManager {
       isFromAutocompletedURL: this.fromAutocompledURL,
       action: eventType === 'keyboard' ? 'enter' : 'click',
       elementName: meta.elementName,
-    };
-
-    this._reportClick(selection);
-    if (!meta.handledByBrowser) {
-      this._navigateTo(url, newTab);
-    }
+    });
 
     if (!newTab) {
       this.close();
     }
+
+    if (meta.handledByBrowser) {
+      return;
+    }
+
+    if (result.isSwitchtab && !newTab) {
+      this._switchToTab(url);
+    } else {
+      this._navigateTo(url, newTab);
+    }
   }
 
   _handleEnter(newTab = false) {
-    const query = this._getQuery();
-    if (!query) {
+    if (!this.query) {
       return;
     }
 
     const visibleValue = this._getUrlbarVisibleValue();
     this._reportClick({
       url: visibleValue,
-      query,
+      query: this.query,
       isNewTab: newTab,
       isPrivateMode: this._isPrivate(),
       isFromAutocompletedURL: this.fromAutocompledURL,
@@ -188,9 +216,7 @@ export default class BaseDropdownManager {
   }
 
   setUrlbarValue = (result) => {
-    const currentQuery = this._getQuery();
-    if (result.text === currentQuery
-      && result.meta && result.meta.completion) {
+    if (result.meta && result.meta.completion) {
       this._autocompleteQuery(result.text, result.meta.completion);
     } else {
       this._setUrlbarValue(result.urlbarValue);
@@ -218,7 +244,7 @@ export default class BaseDropdownManager {
   }
 
   async _removeFromHistoryAndBookmarks(url) {
-    const query = (this.selectedResult && this.selectedResult.query) || this._getQuery();
+    const query = (this.selectedResult && this.selectedResult.query) || this.query;
     await this.dropdownAction.removeFromHistoryAndBookmarks(url);
     this._setUrlbarVisibleValue(query);
     this._queryCliqz();
@@ -275,6 +301,7 @@ export default class BaseDropdownManager {
   }
 
   collapse() {
+    this._syncQueryWithUrlbar();
     this.selectedResult = null;
     this.setHeight(0);
     this.dropdownAction.clear();
@@ -291,11 +318,12 @@ export default class BaseDropdownManager {
       // No need to trigger search on "dead" and "unidentified" keystrokes
       return false;
     }
+    this._syncQueryWithUrlbar();
     if (this._lastEvent && this._lastEvent.type === 'paste') {
       this._telemetry({
         type: 'activity',
         action: 'paste',
-        current_length: this._getQuery().length,
+        current_length: this.query.length,
       });
     }
     this._queryCliqz();
@@ -329,10 +357,15 @@ export default class BaseDropdownManager {
     this._lastEvent = ev;
     let preventDefault = false;
     switch (ev.key) {
+      case 'ArrowLeft':
+      case 'ArrowRight':
+        this._syncQueryWithUrlbar();
+        break;
       case 'ArrowUp':
       case 'ArrowDown': {
         preventDefault = true;
         if (!this.isOpen) {
+          this._syncQueryWithUrlbar();
           this._queryCliqz('', { allowEmptyQuery: true });
           break;
         }
@@ -351,8 +384,12 @@ export default class BaseDropdownManager {
       case 'Enter':
       case 'NumpadEnter': {
         const newTab = ev.altKey || ev.metaKey || ev.ctrlKey;
+        const query = this.query;
+        const urlbarValueMatchesResultQuery = !this.selectedResult
+          || this.selectedResult.query === query
+          || this.selectedResult.urlbarValue === query;
 
-        if (this.isOpen) {
+        if (this.isOpen && urlbarValueMatchesResultQuery) {
           this.dropdownAction.handleEnter({ newTab });
         } else {
           this._handleEnter(newTab);
@@ -407,6 +444,7 @@ export default class BaseDropdownManager {
       && query[selectionStart] === String.fromCharCode(charCode)
     ) {
       this._setSelectionRange(selectionStart + 1, query.length);
+      this._syncQueryWithUrlbar();
       this._queryCliqz();
       preventDefault = true;
     }
@@ -429,9 +467,8 @@ export default class BaseDropdownManager {
 
   _autocompleteQuery(query, completion) {
     const { selectionEnd } = this._getSelectionRange();
-    const currentQuery = this._getQuery();
-    if (query === currentQuery
-      && selectionEnd < currentQuery.length) {
+    if (query === this.query
+      && selectionEnd < this.query.length) {
       // We should not apply completion if user is editing the query.
       return;
     }
@@ -440,11 +477,35 @@ export default class BaseDropdownManager {
       this._setUrlbarVisibleValue(query);
       return;
     }
+    const prevSelectionRange = this._getSelectionRange();
+
     const value = `${query}${completion}`;
     if (this._getUrlbarVisibleValue() !== value) {
       this._setUrlbarVisibleValue(value);
     }
-    this._setSelectionRange(query.length, value.length);
+
+    let nextSelectionStart = query.length;
+    let nextSelectionEnd = value.length;
+
+    // EX-6780: we need to take into account a previous selection range
+    // which might be there if a user selected chars in a url bar before
+    // _autocompleteQuery finished and reset the value of the url bar.
+    // We do that to let a user take precedence over a computed selection.
+    // To define a final selection range we have to add the following if-clauses.
+    // If a user's selection start is less than a computed selection start then
+    // we reset the latter one to the user's one.
+    // If a user's selection end is greater than a computed selection end then
+    // we reset the latter one further to the user's defined.
+    // That way would allow us to include user's selected range as well (if any).
+    if (prevSelectionRange.selectionStart < nextSelectionStart) {
+      nextSelectionStart = prevSelectionRange.selectionStart;
+    }
+
+    if (prevSelectionRange.selectionEnd > nextSelectionEnd) {
+      nextSelectionEnd = prevSelectionRange.selectionEnd;
+    }
+
+    this._setSelectionRange(nextSelectionStart, nextSelectionEnd);
   }
 
   hasRelevantResults(query, results) {
@@ -454,10 +515,9 @@ export default class BaseDropdownManager {
   }
 
   _resultsDidRender({ height, result, rawResults }) {
-    const urlbarQuery = this._getQuery();
-    if (this.hasRelevantResults(urlbarQuery, rawResults)) {
+    if (this.hasRelevantResults(this.query, rawResults)) {
       this._autocompleteQuery(
-        urlbarQuery,
+        this.query,
         result.meta.completion,
       );
       this.dropdownAction.setQueryLastDraw(Date.now());
@@ -466,7 +526,7 @@ export default class BaseDropdownManager {
       return;
     }
 
-    if (urlbarQuery === '') {
+    if (this.query === '') {
       this.collapse();
     }
   }

@@ -40,8 +40,6 @@ context('Offers Hub Why do I see this', function () {
     it('renders link "Learn more"', function () {
       expect(subject.query('.why-do-i-see__link')).to.exist;
       expect(subject.query('.why-do-i-see__link')).to.have.text('learn_more');
-      expect(subject.query('.why-do-i-see__link').getAttribute('href')).to.exist;
-      expect(subject.query('.why-do-i-see__link').getAttribute('href')).to.equal('https://myoffrz.com/fuer-nutzer');
     });
   });
 

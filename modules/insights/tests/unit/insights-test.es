@@ -1,5 +1,13 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai, describeModule */
-const tldts = require('tldts');
+const tldts = require('tldts-experimental');
 const moment = require('moment');
 const mockDexie = require('../../core/unit/utils/dexie');
 
@@ -22,6 +30,9 @@ let mockDay = '2018-11-01';
 export default describeModule('insights/background',
   () => ({
     ...mockDexie,
+    'platform/globals': {
+      chrome: {},
+    },
     'platform/console': {
       default: console,
     },

@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /*
  * This module determines the language of visited pages and
  * creates a list of known languages for a user
@@ -54,7 +62,7 @@ const CliqzLanguage = {
     CliqzLanguage.window = window;
 
     if (this.removeHashId === null) {
-      this.removeHashId = pacemaker.everyFewMinutes(this.updateTicker.bind(this));
+      this.removeHashId = pacemaker.everyHour(this.updateTicker.bind(this));
     }
 
     if (prefs.has('extensions.cliqz-lang.data')) {

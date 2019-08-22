@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import {
   app,
   expect,
@@ -119,39 +127,6 @@ export default function () {
               collectHits.some(({ body }) => body.type === 'metrics.anolysis.health.exception')
               && collectHits.some(({ body }) => body.type === 'metrics.anolysis.health.storage')
             );
-          }
-          return false;
-        });
-      });
-    });
-
-    context('gid cannot be updated', function () {
-      beforeEach(async () => {
-        await mockAnolysisBackend();
-
-        // Fake throwing `_getGID` from gidManager
-        Anolysis.anolysis.gidManager._getGID = () => { throw new Error('Random error'); };
-        Anolysis.anolysis.gidManager.getGIDPromise = null;
-
-        // Speed-up signalQueue
-        Anolysis.anolysis.unload();
-        Anolysis.anolysis.signalQueue.sendInterval = 10;
-        await Anolysis.anolysis.init();
-
-        // Provoke a failing `_getGID`
-        Anolysis.anolysis.gidManager.getGID();
-      });
-
-      afterEach(async () => {
-        await unMockAnolysisBackend();
-      });
-
-      it('health metric is emitted', async () => {
-        await waitFor(async () => {
-          const hasHits = await testServer.hasHit('/collect');
-          if (hasHits) {
-            const collectHits = (await testServer.getHits()).get('/collect');
-            return collectHits.some(({ body }) => body.type === 'metrics.anolysis.health.exception');
           }
           return false;
         });

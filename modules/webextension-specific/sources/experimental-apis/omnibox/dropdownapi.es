@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global ChromeUtils, EventManager,
    addMessageListener, sendAsyncMessage,  windowTracker, tabTracker */
 import Defer from '../../../core/helpers/defer';
@@ -244,7 +252,12 @@ export default class Dropdown extends EventEmitter {
   _overrideDefaultAutocomplete(window) {
     const windowId = this._getWindowId(window);
     const document = window.document;
-    const urlbar = window.gURLBar;
+    const urlbar = window.gURLBar.textbox || window.gURLBar;
+
+    if (urlbar.getAttribute('quantumbar') === 'true') {
+      // For compatibility with older versions of Firefox, switch to legacy urlbar
+      urlbar.setAttribute('quantumbar', 'false');
+    }
 
     const autocompletesearch = urlbar.getAttribute('autocompletesearch');
     urlbar.setAttribute('autocompletesearch', AC_PROVIDER_NAME);
@@ -328,7 +341,9 @@ export default class Dropdown extends EventEmitter {
 
   _createToolbarAndBrowser(document) {
     const readyDefer = new Defer();
-    const browser = document.createElement('browser');
+    const browser = document.createXULElement
+      ? document.createXULElement('browser')
+      : document.createElement('browser');
     browser.setAttribute('type', 'content');
     browser.setAttribute('id', 'cliqz-popup');
     browser.setAttribute('disableglobalhistory', 'true');
@@ -352,6 +367,7 @@ export default class Dropdown extends EventEmitter {
     if (this._remote) {
       browser.setAttribute('remote', 'true');
       browser.setAttribute('remoteType', E10SUtils.EXTENSION_REMOTE_TYPE);
+      browser.setAttribute('renderroot', 'content');
     }
 
     let readyPromise;
@@ -377,6 +393,7 @@ export default class Dropdown extends EventEmitter {
     cliqzToolbar.setAttribute('fullscreentoolbar', 'true');
     cliqzToolbar.id = 'cliqz-toolbar';
     cliqzToolbar.style.height = '0px';
+    cliqzToolbar.style.display = 'block';
     cliqzToolbar.appendChild(container);
     parentElement.insertBefore(cliqzToolbar, navToolbar.nextSibling);
 
@@ -496,7 +513,14 @@ export default class Dropdown extends EventEmitter {
       el.parentNode.insertBefore(el, el.nextSibling);
       el.value = oldVal;
     }
+    // We should keep current cursor position in case user already
+    // started typed somehting by this moment (see EX-4940)
+    /* eslint-disable no-param-reassign */
+    const { selectionStart, selectionEnd } = urlbar;
     urlbar.focus();
+    urlbar.selectionStart = selectionStart;
+    urlbar.selectionEnd = selectionEnd;
+    /* eslint-enable no-param-reassign */
   }
 
   _onThemeChange() {
@@ -540,7 +564,7 @@ export default class Dropdown extends EventEmitter {
   }
 
   _calculateURLBarAttributes(window) {
-    const urlbar = window.gURLBar;
+    const urlbar = window.gURLBar.textbox || window.gURLBar;
 
     const urlbarRect = urlbar.getBoundingClientRect();
     const urlbarLeftPos = Math.round(urlbarRect.left || urlbarRect.x || 0);
@@ -650,18 +674,21 @@ export default class Dropdown extends EventEmitter {
 
   navigateTo(windowId, url, options) {
     const { urlbar } = this._getDropdown(windowId);
+    const gURLBar = urlbar.ownerGlobal.gURLBar;
+    const controller = gURLBar.controller;
     const { selectionStart, selectionEnd, value, focused } = urlbar;
-    const searchString = urlbar.controller.searchString;
     const visibleValue = urlbar.mInputField.value;
 
     urlbar.value = url;
-    urlbar.handleCommand(null, options.target);
+    if (controller.input) {
+      controller.input.value = url;
+    }
+    gURLBar.handleCommand(null, options.target);
     if (options.target === 'tabshifted') {
       if (focused) {
         urlbar.focus();
       }
       urlbar.value = value;
-      urlbar.controller.searchString = searchString;
       urlbar.mInputField.value = visibleValue;
       urlbar.selectionStart = selectionStart;
       urlbar.selectionEnd = selectionEnd;
@@ -681,6 +708,12 @@ export default class Dropdown extends EventEmitter {
           hovered,
         };
       },
+      update: (windowId = null, { value }) => {
+        const { urlbar } = this._getDropdown(windowId);
+        if (typeof value === 'string') {
+          urlbar.value = value;
+        }
+      },
       query: (windowId = null, query, options) => {
         const { urlbar, dropdownManager } = this._getDropdown(windowId);
         if (options.focus) {
@@ -692,7 +725,6 @@ export default class Dropdown extends EventEmitter {
         }
         urlbar.value = query;
         urlbar.mInputField.value = query;
-        urlbar.controller.searchString = query;
         dropdownManager.onInput();
       },
       navigateTo: (windowId, url, options) => this.navigateTo(windowId, url, options),

@@ -209,7 +209,14 @@
   {
     "name": "openPageActionPopup",
     "type": "function",
-    "description": "Open the popup of a page/browser action",
+    "description": "Open the popup of a page action",
+    "async": "callback",
+    "parameters": []
+  },
+  {
+    "name": "openBrowserActionPopup",
+    "type": "function",
+    "description": "Open the popup of a browser action",
     "async": "callback",
     "parameters": []
   },
@@ -260,6 +267,18 @@
     "returns": {
       "description": "Constant value"
     }
+  },
+  {
+    "name": "clearPref",
+    "type": "function",
+    "description": "clears a browser pref",
+    "parameters": [
+      {
+        "type": "string",
+        "name": "prefName",
+        "description": "Browser pref name"
+      }
+    ]
   },
   {
     "name": "isDefaultBrowser",

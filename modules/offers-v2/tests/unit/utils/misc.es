@@ -1,6 +1,6 @@
-const punycode = require('punycode');
 const jsep = require('jsep');
 const pako = require('pako');
+const urlImports = require('../../../core/unit/utils/url-parser');
 
 module.exports = {
   'platform/crypto': { },
@@ -45,14 +45,22 @@ module.exports = {
     default: {
       service: () => {},
       module: () => ({
-        action: () => {},
+        action: (aname) => {
+          if (aname !== 'getTime') { // hpn2
+            return {};
+          }
+          const now = new Date();
+          return {
+            inSync: true,
+            utcTimestamp: now,
+            minutesSinceEpoch: Math.floor(now.valueOf() / 1000 / 60),
+          };
+        },
       }),
       app: {
         version: '1.28.1',
       },
     },
   },
-  'platform/lib/punycode': {
-    default: punycode,
-  },
+  ...urlImports,
 };

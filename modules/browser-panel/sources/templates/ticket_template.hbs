@@ -15,9 +15,17 @@
   >
     <div class="bevel tl tr">
       <div class="content">
-        <span class="code" data-cqz-of-btn-id="code_copied">{{code}}</span>
+        <span class="hidden-input-wrapper">
+          {{code}}
+          <input
+            class='hidden-code-value hidden-input'
+            data-cqz-of-btn-id='code_copied'
+            value='{{code}}' />
+        </span>
         <span class="divider">&middot;</span>
-        <span class="code-copy" data-cqz-of-btn-id="code_copied" data-i18n="offers_copy_code">{{local offers_copy_code}}</span>
+        <span class="code-copy" data-cqz-of-btn-id="code_copied" data-i18n="offers_copy_code">
+          {{local offers_copy_code}}
+        </span>
         <span class="code-copied" data-i18n="offers_code_copied">{{local offers_code_copied}}</span>
       </div>
     </div>

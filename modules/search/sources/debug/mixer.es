@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global window, document, Handlebars */
 import { fromEvent, merge } from 'rxjs';
 import { map, switchMap, mapTo, share, tap } from 'rxjs/operators';
@@ -11,12 +19,12 @@ import prefs from '../../core/prefs';
 import pluckResults from '../operators/streams/pluck-results';
 import { setGlobal } from '../../core/kord/inject';
 import { parseKind } from '../telemetry';
-import createModuleWrapper from '../../core/helpers/spanan-module-wrapper';
+import createModuleWrapper from '../../core/helpers/action-module-wrapper';
 import { COLORS, COLOR_MAP, IGNORED_PROVIDERS, IMAGE_PATHS } from './helpers';
 import { overrideFetchHandler, fetch } from '../../core/http';
 import { setTimeout } from '../../core/timers';
 
-const historySearch = createModuleWrapper('history-search').createProxy();
+const historySearch = createModuleWrapper('history-search');
 
 const app = {
   modules: {

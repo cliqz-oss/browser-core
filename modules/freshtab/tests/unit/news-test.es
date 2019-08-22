@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai, describeModule */
 /* eslint no-param-reassign: off */
 /* eslint no-bitwise: off */
@@ -7,6 +15,9 @@ const fs = require('fs');
 export default describeModule('freshtab/news',
   function () {
     return {
+      'platform/globals': {
+        chrome: {},
+      },
       'core/config': {
         default: {
           settings: {
@@ -15,7 +26,10 @@ export default describeModule('freshtab/news',
           },
         },
       },
-      'core/url': { extractSimpleURI: '[dynamic]' },
+      'core/url': {
+        extractSimpleURI: '[dynamic]',
+        getCleanHost: s => s.cleanHost
+      },
       'freshtab/news-cache': { default: function () { } },
       'core/storage': {
         default: class Storage {

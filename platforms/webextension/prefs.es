@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import events from '../core/events';
 import console from '../core/console';
 import { chrome } from '../platform/globals';
@@ -104,7 +112,16 @@ export function hasPref(prefKey, browserPrefix = null) {
   return pref in prefs;
 }
 
-export function clearPref(prefKey) {
+export function clearPref(prefKey, browserPrefix = null) {
+  if (browserPrefix !== null) {
+    if (chrome && chrome.cliqz && chrome.cliqz.clearPref) {
+      return chrome.cliqz.clearPref(`${browserPrefix}${prefKey}`);
+    }
+
+    console.warn(`getting pref ${browserPrefix}${prefKey} with browser prefix when chrome.cliqz is not available (ignored)`);
+    return false;
+  }
+
   const pref = cleanPref(prefKey);
   delete prefs[pref];
 
@@ -112,6 +129,7 @@ export function clearPref(prefKey) {
   events.pub('prefchange', pref, 'clear');
 
   syncToStorage();
+  return true;
 }
 
 export function getCliqzPrefs() {

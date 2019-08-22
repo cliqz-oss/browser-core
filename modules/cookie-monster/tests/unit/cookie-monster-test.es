@@ -1,7 +1,15 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai, describeModule */
 const Rx = require('rxjs');
 const operators = require('rxjs/operators');
-const tldts = require('tldts');
+const tldts = require('tldts-experimental');
 const mockDexie = require('../../core/unit/utils/dexie');
 
 function mockIsTrackerDomain(d) {
@@ -74,6 +82,9 @@ export default describeModule('cookie-monster/cookie-monster',
     ...mockDexie,
     rxjs: Rx,
     'rxjs/operators': operators,
+    'platform/globals': {
+      chrome: {},
+    },
     'platform/lib/tldts': tldts,
     'platform/cookies': {
       default: cookieMock,

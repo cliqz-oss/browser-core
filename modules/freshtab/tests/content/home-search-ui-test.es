@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import {
   clone,
   expect,
@@ -59,7 +67,7 @@ describe('Freshtab search UI', function () {
 
     it('has the visibility switch turned on', function () {
       const newsSwitch = subject.queryByI18n('freshtab_app_settings_search_label')
-        .querySelector('input.switch');
+        .querySelector('.toggle');
       expect(newsSwitch).to.have.property('checked', true);
     });
 
@@ -83,7 +91,7 @@ describe('Freshtab search UI', function () {
 
     it('has the visibility switch turned off', function () {
       const newsSwitch = subject.queryByI18n('freshtab_app_settings_search_label')
-        .querySelector('input.switch');
+        .querySelector('.toggle');
       expect(newsSwitch).to.have.property('checked', false);
     });
 

@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import Task from './internals/task';
 import logger from './internals/logger';
 
@@ -19,11 +27,10 @@ import consentricDefinitions from './metrics/consentric';
 import moduleStartupPerformanceMetrics from './metrics/performance/modules-startup';
 import resourceLoadersPerformanceMetrics from './metrics/performance/resource-loaders';
 import adblockerMetrics from './metrics/adblocker';
+import legacyMetrics from './metrics/legacy';
+import legacyCCMetrics from './metrics/legacy-control-center';
 
 // Analyses
-import retention from './analyses/retention';
-import activeUser from './analyses/active-user';
-
 import freshtabActivity from './analyses/freshtab-activity';
 import freshtabSettings from './analyses/freshtab-settings';
 import freshtabBackground from './analyses/freshtab-background';
@@ -36,7 +43,6 @@ import searchSchemas from './analyses/search';
 import dropdownSchemas from './analyses/experiments/dropdown';
 import serpSchemas from './analyses/experiments/serp';
 import serpAlternativeSchemas from './analyses/experiments/serp-alternative';
-import serpRetentionWeeklySchemas from './analyses/experiments/serp-retention-weekly';
 import controlCenter from './analyses/control-center-interactions';
 import mobile from './analyses/mobile/favorites-migration-folders';
 import newsSearchSchemas from './analyses/news-search';
@@ -45,6 +51,8 @@ import webrequestPipelinePerformances from './analyses/performance/webrequest-pi
 import generalPerformances from './analyses/performance/general';
 import antitrackingTokenAnalyses from './analyses/performance/antitracking-tokens';
 import consentric from './analyses/consentric';
+import legacyControlCenter from './analyses/legacy-control-center';
+import legacyNavigation from './analyses/navigations';
 
 /**
  * This file is used to list all available metrics and analyses in use by
@@ -75,6 +83,8 @@ const metrics = () => [
   ...adblockerMetrics,
   moduleStartupPerformanceMetrics,
   resourceLoadersPerformanceMetrics,
+  ...legacyMetrics,
+  ...legacyCCMetrics,
 ].map(schema => ({
   ...schema,
   description: schema.description || 'missing description',
@@ -93,19 +103,18 @@ const analyses = () => [
   newsPagination,
   newsSnippets,
   cookieMonsterPerf,
-  ...activeUser,
-  ...retention,
   ...searchSchemas(),
   ...dropdownSchemas,
   ...serpSchemas(),
   ...serpAlternativeSchemas,
-  ...serpRetentionWeeklySchemas,
   ...newsSearchSchemas(),
   ...historyVisitsSchemas,
   webrequestPipelinePerformances,
   generalPerformances,
   ...antitrackingTokenAnalyses,
   ...consentric(),
+  ...legacyControlCenter,
+  legacyNavigation,
 ].map(schema => ({
   ...schema,
   description: schema.description || 'missing description',

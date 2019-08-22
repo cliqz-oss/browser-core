@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* globals chai */
 import { chrome } from '../globals';
 import { waitFor } from '../../core/helpers/wait';
@@ -119,6 +127,11 @@ export function click(url, selector, ind = 0) {
   }
   return contentClick(url, selector);
 }
+
+export function setUrlbarSelection(selectionStart, selectionEnd) {
+  return chrome.testHelpers.update({ selectionStart, selectionEnd });
+}
+
 export function press(options) {
   return chrome.testHelpers.press(options);
 }
@@ -163,8 +176,12 @@ export const getComputedStyle = async (_selectorOrEl, property) => {
   });
   return styles[property];
 };
+
 export const dropdownClick = async selector =>
   chrome.testHelpers.callMethod(selector, 'click', []);
+
+export const dropdownClickExt = async (selector, opt) =>
+  chrome.testHelpers.callMethodExt(selector, 'click', opt);
 
 export const urlbar = {
   _cache: {},
@@ -240,15 +257,27 @@ export const $cliqzResults = {
 };
 
 export async function blurUrlBar() {
-  const dropdownHeight = await chrome.testHelpers.getDropdownHeight();
-  if (dropdownHeight === 0) {
+  const { height, focused } = await chrome.testHelpers.get();
+  if (!focused && height === 0) {
     return Promise.resolve();
   }
+
+  let onSessionEnd = null;
   await chrome.testHelpers.blur();
-  return waitFor(async () => {
-    const height = await chrome.testHelpers.getDropdownHeight();
-    return height === 0;
-  });
+  return Promise.all([
+    new Promise((resolve) => {
+      onSessionEnd = resolve;
+      CLIQZ.app.events.sub('search:session-end', resolve);
+      setTimeout(resolve, 1000);
+    }),
+    waitFor(async () => {
+      const { height: h, focused: f } = await chrome.testHelpers.get();
+      return !f && h === 0;
+    }),
+  ])
+    .then(() => {
+      CLIQZ.app.events.un_sub('search:session-end', onSessionEnd);
+    });
 }
 
 function clearSingleDB(dbName) {
@@ -263,7 +292,7 @@ export function clearDB(dbNames) {
 }
 
 export function fillIn(text) {
-  return chrome.testHelpers.update({ focused: true, value: '', visibleValue: '', searchString: '' })
+  return chrome.testHelpers.update({ focused: true, value: '', visibleValue: '' })
     .then(() => EventUtils.sendString(text));
 }
 
@@ -288,6 +317,13 @@ export async function waitForPopup(resultsCount, timeout = 700) {
   }
 
   return null;
+}
+
+export async function waitForPopupClosed(timeout) {
+  await waitFor(async () => {
+    const height = await chrome.testHelpers.getDropdownHeight();
+    return height === 0;
+  }, timeout);
 }
 
 export function focusOnTab(tabId) {

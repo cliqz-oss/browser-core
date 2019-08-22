@@ -14,11 +14,16 @@ export default describeModule('offers-v2/user-journey/signal-connector',
       let JourneySignals;
       let journeySignals;
 
+      const reemitter = {
+        on: () => {},
+        unsubscribe: () => {},
+      };
+
       beforeEach(async function () {
         const JourneyCollector = (await this.system.import('offers-v2/user-journey/collector')).default;
         collector = new JourneyCollector();
         JourneySignals = this.module().default;
-        journeySignals = new JourneySignals(collector);
+        journeySignals = new JourneySignals(collector, reemitter);
         await journeySignals.init();
       });
 
@@ -59,7 +64,7 @@ export default describeModule('offers-v2/user-journey/signal-connector',
         await journeySignals.reinterpretCampaignSignalAsync('offer_ca_action');
         await journeySignals.destroy();
 
-        journeySignals = new JourneySignals(null);
+        journeySignals = new JourneySignals(null, reemitter);
         await journeySignals.init();
 
         const signals = await journeySignals.moveSignals();

@@ -1,8 +1,19 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint no-use-before-define: ["error", { "classes": false }] */
 import {
   urlStripProtocol,
-  cleanMozillaActions,
 } from '../../core/content/url';
+
+import {
+  isCliqzBrowser,
+} from '../../core/platform';
 
 export default class BaseResult {
   constructor(rawResult, resultTools) {
@@ -22,7 +33,7 @@ export default class BaseResult {
   }
 
   get urlbarValue() {
-    return this.displayUrl || this.url;
+    return (isCliqzBrowser ? this.displayUrl : urlStripProtocol(this.displayUrl)) || this.url;
   }
 
   get cssClasses() {
@@ -59,8 +70,7 @@ export default class BaseResult {
   }
 
   get historyUrl() {
-    const [, url] = cleanMozillaActions(this.meta.originalUrl || this.url);
-    return url;
+    return this.meta.originalUrl || this.url;
   }
 
   get isPrivateResult() {
@@ -132,9 +142,6 @@ export default class BaseResult {
       url = this.urlAd;
     }
 
-    if (this.isActionSwitchTab) {
-      return `moz-action:switchtab,${JSON.stringify({ url: encodeURIComponent(url) })}`;
-    }
     return url;
   }
 
@@ -225,6 +232,7 @@ export default class BaseResult {
       index: this.resultTools.results.indexOf(topResult),
       isBookmark: this.isBookmark,
       isDeletable: this.isDeletable,
+      isSwitchtab: this.isActionSwitchTab,
       historyUrl: this.historyUrl,
       isPrivateResult: this.isPrivateResult,
       urlbarValue: this.urlbarValue,

@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 const fs = require('fs');
 
 const writeFile = require('broccoli-file-creator');
@@ -221,7 +229,12 @@ module.exports = (() => {
   // Merge locales from modules and specific
   LOCALES = mergeLocales({ LOCALES, localesToMerge: specificLocale });
 
+  // the output must have only the `SUPPORTED_LANGS` from config
+  // but we should keep all the previous steps in place to ensure
+  // that all the locale files are in sync and compatible for
+  // all the configs
+  let supportedLangs = config.settings.SUPPORTED_LANGS || LANGUAGES;
   return new MergeTrees(
-    LANGUAGES.map(lang => writeFile(`_locales/${lang}/messages.json`, formatLocales(LOCALES[lang] || {}))),
+    supportedLangs.map(lang => writeFile(`_locales/${lang}/messages.json`, formatLocales(LOCALES[lang] || {}))),
   );
 })();

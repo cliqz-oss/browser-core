@@ -1,5 +1,6 @@
 {
   "urlPatterns": [
+    "\\.google\\..*?[#?&;]((q=[^&]+&tbm=isch)|(tbm=isch&([^&]+&)*q=[^&]+))",
     "\\.google\\..*?[#?&;]q=[^$&]+",
     ".search.yahoo\\..*?[#?&;][pq]=[^$&]+",
     ".linkedin.*?\\/pub\\/dir+",
@@ -9,11 +10,69 @@
   "searchEngines": [
     "0",
     "1",
-    "3",
-    "4"
+    "2",
+    "4",
+    "5"
   ],
   "scrape": {
     "0": {
+      "#searchform": {
+        "q": {
+          "item": "form input[name=\"q\"]",
+          "type": "searchQuery",
+          "etype": "value",
+          "keyName": "q"
+        }
+      },
+      "qurl": {
+        "qurl": {
+          "type": "standard",
+          "etype": "url",
+          "keyName": "qurl",
+          "functionsApplied": [
+            [
+              "maskU",
+              false,
+              false
+            ]
+          ]
+        }
+      },
+      "ctry": {
+        "ctry": {
+          "type": "standard",
+          "etype": "ctry",
+          "keyName": "ctry"
+        }
+      },
+      "div.rg_bx > div.rg_meta.notranslate": {
+        "u": {
+          "type": "json",
+          "etype": "textContent",
+          "keyName": "u",
+          "functionsApplied": [
+            [
+              "json",
+              "ou",
+              false
+            ]
+          ]
+        },
+        "ru": {
+          "type": "json",
+          "etype": "textContent",
+          "keyName": "img",
+          "functionsApplied": [
+            [
+              "json",
+              "ru",
+              false
+            ]
+          ]
+        }
+      }
+    },
+    "1": {
       "#mobile-search #sfcnt": {
         "q": {
           "item": "input",
@@ -22,7 +81,7 @@
           "keyName": "q"
         }
       },
-      ".srg .g .rc": {
+      "#rso .g": {
         "t": {
           "item": ".r a > h3",
           "type": "arr",
@@ -30,15 +89,20 @@
           "keyName": "t"
         },
         "u": {
-          "item": ".r a",
+          "item": ".r > a",
           "type": "arr",
           "etype": "href",
           "keyName": "u",
           "functionsApplied": [
             [
-              "maskU",
-              false,
-              false
+              "splitF",
+              "url=",
+              1
+            ],
+            [
+              "splitF",
+              "&usg=",
+              0
             ]
           ]
         },
@@ -82,25 +146,10 @@
       },
       ".med #search": {
         "q": {
-          "item": "#ires",
+          "item": "#rso",
           "type": "searchQuery",
           "etype": "data-async-context",
           "keyName": "q",
-          "functionsApplied": [
-            [
-              "splitF",
-              "query:",
-              1
-            ]
-          ]
-        }
-      },
-      ".med div#search": {
-        "oq": {
-          "item": "#ires",
-          "type": "searchQuery",
-          "etype": "data-async-context",
-          "keyName": "oq",
           "functionsApplied": [
             [
               "splitF",
@@ -319,10 +368,81 @@
           "type": "arr",
           "etype": "textContent",
           "keyName": "oq"
+        },
+        "type": {
+          "item": "#lu_map",
+          "type": "arr",
+          "etype": "id",
+          "keyName": "type",
+          "functionsApplied": [
+            ["splitF",
+             "lu_",
+             1
+            ]
+          ]
+        }
+      },
+      "#main .VkpGBb": {
+        "t": {
+          "item": ".cXedhc div.dbg0pd",
+          "type": "arr",
+          "etype": "textContent",
+          "keyName": "t"
+        },
+        "addr": {
+          "item": "div span.rllt__details.lqhpac > div:nth-child(2) > span:not(.BTtC6e):nth-child(1)",
+          "type": "arr",
+          "etype": "textContent",
+          "keyName": "addr"
+        }
+      },
+      "#imagebox_bigimages g-img > img": {
+        "u": {
+          "type": "arr",
+          "etype": "title",
+          "keyName": "u"
+        }
+      },
+      "#rhs_block": {
+        "t": {
+          "item": "div[data-attrid=\"title\"] > span",
+          "type": "arr",
+          "etype": "textContent",
+          "keyName": "t"
+        },
+        "u": {
+          "item": "div.QqG1Sd:nth-child(1) > a[role=\"button\"]:not([data-url])",
+          "type": "arr",
+          "etype": "href",
+          "keyName": "u"
+        },
+        "addr": {
+          "item": "div[data-attrid=\"kc:/location/location:address\"]",
+          "type": "arr",
+          "etype": "textContent",
+          "keyName": "addr"
+        },
+        "loc": {
+          "item": "a[data-url^='/maps/place/']",
+          "type": "arr",
+          "etype": "data-url",
+          "keyName": "loc",
+          "functionsApplied": [
+            [
+              "splitF",
+              "/",
+              4
+            ],
+            [
+              "splitF",
+              "@",
+              1
+            ]
+          ]
         }
       }
     },
-    "1": {
+    "2": {
       ".dd.algo": {
         "t": {
           "item": "h3 [href]",
@@ -384,8 +504,8 @@
         }
       }
     },
-    "2": {},
-    "3": {
+    "3": {},
+    "4": {
       ".b_algo": {
         "t": {
           "item": "h2 [href]",
@@ -437,7 +557,7 @@
         }
       }
     },
-    "4": {
+    "5": {
       "#search-main-wrapper": {
         "q": {
           "item": "form > input[name=\"keywords\"]",
@@ -541,13 +661,39 @@
   },
   "payloads": {
     "0": {
-      ".srg .g .rc": {
+      "#searchform": {
+        "type": "query",
+        "results": "clustered",
+        "action": "img",
+        "fields": [
+          [
+            "#searchform",
+            "q"
+          ],
+          [
+            "qurl",
+            "qurl"
+          ],
+          [
+            "div.rg_bx > div.rg_meta.notranslate",
+            "r",
+            "join"
+          ],
+          [
+            "ctry",
+            "ctry"
+          ]
+        ]
+      }
+    },
+    "1": {
+      "#rso .g": {
         "type": "query",
         "results": "clustered",
         "action": "query",
         "fields": [
           [
-            ".srg .g .rc",
+            "#rso .g",
             "r",
             "join"
           ],
@@ -793,7 +939,7 @@
           ]
         ]
       },
-      "#main": {
+      "#searchform": {
         "type": "query",
         "results": "clustered",
         "action": "sq",
@@ -835,9 +981,122 @@
             "ctry"
           ]
         ]
+      },
+      "#lu_map": {
+        "type": "query",
+        "results": "clustered",
+        "action": "item",
+        "fields": [
+          [
+            ".med #search",
+            "q"
+          ],
+          [
+            "#main",
+            "item"
+          ],
+          [
+            "qurl",
+            "qurl"
+          ],
+          [
+            "ctry",
+            "ctry"
+          ]
+        ]
+      },
+      "#lu_map": {
+        "type": "query",
+        "results": "clustered",
+        "action": "places2",
+        "fields": [
+          [
+            ".med #search",
+            "q"
+          ],
+          [
+            "#main",
+            "type"
+          ],
+          [
+            "qurl",
+            "qurl"
+          ],
+          [
+            "ctry",
+            "ctry"
+          ]
+        ]
+      },
+      "#main .VkpGBb": {
+        "type": "query",
+        "results": "clustered",
+        "action": "places",
+        "fields": [
+          [
+            "#main .VkpGBb",
+            "r",
+            "join"
+          ],
+          [
+            "ctry",
+            "ctry"
+          ]
+        ]
+      },
+      "#rhs_block": {
+        "type": "query",
+        "results": "clustered",
+        "action": "place",
+        "fields": [
+          [
+            "#rhs_block",
+            "t"
+          ],
+          [
+            "#rhs_block",
+            "u"
+          ],
+          [
+            "#rhs_block",
+            "addr"
+          ],
+          [
+            "#rhs_block",
+            "loc"
+          ],
+          [
+            "ctry",
+            "ctry"
+          ]
+        ]
+      },
+      "#imagebox_bigimages g-img > img": {
+        "type": "query",
+        "results": "clustered",
+        "action": "img-p",
+        "fields": [
+          [
+            ".med #search",
+            "q"
+          ],
+          [
+            "qurl",
+            "qurl"
+          ],
+          [
+            "#imagebox_bigimages g-img > img",
+            "r",
+            "join"
+          ],
+          [
+            "ctry",
+            "ctry"
+          ]
+        ]
       }
     },
-    "1": {
+    "2": {
       ".dd.algo": {
         "type": "query",
         "results": "clustered",
@@ -863,8 +1122,8 @@
         ]
       }
     },
-    "2": {},
-    "3": {
+    "3": {},
+    "4": {
       ".b_algo": {
         "type": "query",
         "results": "clustered",
@@ -890,7 +1149,7 @@
         ]
       }
     },
-    "4": {
+    "5": {
       "li[id^='result_']": {
         "type": "query",
         "results": "clustered",
@@ -942,15 +1201,19 @@
     }
   },
   "queryTemplate": {
-    "4": {
+    "0": {
+      "prefix": "search?tbm=isch&q="
+    },
+    "5": {
       "prefix": "s/?field-keywords="
     }
   },
   "idMapping": {
-    "0": "go",
-    "1": "ya",
-    "2": "lnkd",
-    "3": "bing",
-    "4": "am"
+    "0": "goi",
+    "1": "go",
+    "2": "ya",
+    "3": "lnkd",
+    "4": "bing",
+    "5": "am"
   }
 }

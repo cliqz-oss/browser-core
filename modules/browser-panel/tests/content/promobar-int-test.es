@@ -105,7 +105,7 @@ describe('Promo bar interactions', function () {
   });
 
   const codeContainerElements = [
-    { name: 'code', selector: '.code' },
+    { name: 'code', selector: '.hidden-code-value' },
     { name: 'copy link', selector: '.code-copy' }
   ];
 

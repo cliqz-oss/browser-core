@@ -11,6 +11,13 @@
 
 .card-header__right-item {
   display: flex;
+  align-items: center;
+}
+
+.card-header__affiliate-link {
+  text-transform: uppercase;
+  font-size: 9px;
+  color: silver;
 }
 
 .card-header__title {
@@ -26,31 +33,10 @@
   max-width: 142px;
 }
 
-.card-header__label {
-  padding-left: 16px;
-  color: #B2B2B2;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  font-size: 8.5px;
-  font-weight: 400;
-}
-
-.card-header__exclusive {
-  background: url('../images/exclusive.svg') no-repeat left;
-}
-
-.card-header__best_offer {
-  background: url('../images/best-offer.svg') no-repeat left;
-}
-
-.card-header__offer_of_the_week {
-  background: url('../images/offer-of-the-week.svg') no-repeat left;
-}
-
 .card-header__image {
   background-size: contain;
   background-repeat: no-repeat;
-  background-position: right;
+  background-position: left;
   width: 83px;
   height: 34px;
   cursor: pointer;

@@ -1,5 +1,13 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import Logger from '../logger';
-import { ModuleMissingError, ModuleDisabledError } from '../app/module-errors';
+import { ModuleMissingError, ModuleDisabledError, ActionMissingError } from '../app/module-errors';
 
 let app;
 /**
@@ -57,9 +65,13 @@ class ModuleWrapper {
     return !!(this.module && !this.module.isDisabled);
   }
 
-  action(actionName, ...args) {
-    return this.isReady()
-      .then(() => this.module.background.actions[actionName](...args));
+  async action(actionName, ...args) {
+    await this.isReady();
+    const action = this.module.background.actions[actionName];
+    if (!action) {
+      throw new ActionMissingError(this.module.name, actionName);
+    }
+    return action(...args);
   }
 
   windowAction(window, actionName, ...args) {

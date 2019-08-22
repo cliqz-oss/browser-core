@@ -15,7 +15,9 @@ function instantRunTimeout(fn, _, ...args) {
 
 module.exports = {
   'core/decorators': {
-    nextTick(fn) { fn(); },
+    nextTick(fn) {
+      return Promise.resolve(fn());
+    },
     deadline(p) { return p; },
   },
   'core/services/pacemaker': {

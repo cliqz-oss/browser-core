@@ -43,6 +43,19 @@ export default describeModule('offers-v2/signals/utils',
         addOrCreate(d, 'field', 5);
         chai.expect(d.field).to.eql(12);
       });
+
+      it('support string operations', () => {
+        const d = {};
+        addOrCreate(d, 'field', 'abc');
+        addOrCreate(d, 'field', '123');
+        chai.expect(d.field).to.be.eql('abc123');
+      });
+
+      it('limit size of a string signal', () => {
+        const d = { field: 'a'.repeat(512) };
+        addOrCreate(d, 'field', 'b');
+        chai.expect(d.field).to.eql(`*CUT*${'a'.repeat(127)}b`);
+      });
     });
 
     describe('constructSignal function', () => {

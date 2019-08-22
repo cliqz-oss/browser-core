@@ -1,7 +1,7 @@
 {
   "author": "__MSG_{{name}}__",
   "name": "__MSG_{{name}}__",
-  "description": "__MSG_offersAppDesc__",
+  "description": "__MSG_{{description}}__",
   "version": "{{version}}",
   "manifest_version": 2,
   "default_locale": "de",
@@ -29,7 +29,6 @@
     "storage",
     "tabs",
     "unlimitedStorage",
-    "clipboardWrite",
     "webNavigation",
     "webRequest",
     "webRequestBlocking"
@@ -48,7 +47,7 @@
     "persistent": true
   },
   "options_ui": {
-    "page": "options.html",
+    "page": "options.html?#{{OFFERS_PRODUCT_PREFIX}}",
     "open_in_tab": true
   },
   "content_scripts": [
@@ -66,6 +65,7 @@
   "web_accessible_resources": [
     "modules/browser-panel/index.html",
     "modules/offers-cc/index.html",
+    "modules/offers-reminder/index.html",
     "modules/popup-notification/images/*"
   ]
 }

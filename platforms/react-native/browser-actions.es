@@ -1,7 +1,16 @@
-import { NativeModules } from 'react-native';
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import { Keyboard, Linking, NativeModules } from 'react-native';
 import { History } from './history/history';
 import osAPI from './os-api';
 import { getPref } from './prefs';
+import console from './console';
 
 const unsupportedError = () => {
   throw new Error('BrowserActions not supported by native');
@@ -17,14 +26,23 @@ const BrowserActions = NativeModules.BrowserActions || {
       callback([]);
     }
   },
-  openLink: unsupportedError,
   openMap: unsupportedError,
   callNumber: unsupportedError,
-  hideKeyboard: unsupportedError,
   queryCliqz: unsupportedError,
   getReminders: unsupportedError,
   getOpenTabs: () => [],
   importBookmarks: unsupportedError,
+  openLink: (url) => {
+    if (!Linking) return;
+    Linking.canOpenURL(url).then((supported) => {
+      if (supported) {
+        Linking.openURL(url);
+      } else {
+        console.log(`Don't know how to open URI: ${url}`);
+      }
+    });
+  },
+  hideKeyboard: () => Keyboard && Keyboard.dismiss(),
 };
 
 export function historySearch(q, callback) {

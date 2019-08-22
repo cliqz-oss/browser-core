@@ -3,7 +3,7 @@
 /* global require */
 /* global sinon */
 
-const MockBrowser = require('mock-browser').mocks.MockBrowser;
+const { JSDOM } = require('jsdom');
 
 const PRIME_HTML = `
 <header class = "nav-opt-sprite nav-locale-de nav-lang-de nav-ssl nav-rec">
@@ -59,24 +59,13 @@ export default describeModule('offers-v2/content/profile/amazon-prime',
 
         function visitPage(hostname, html) {
           let detectionFunc = () => {};
-          //
-          // Setup a mock browser. I can't find how to change `location`
-          // of the object from `getWindow`, so `window` is mocked manually.
-          //
-          const doc = (new MockBrowser()).getDocument();
-          doc.documentElement.innerHTML = html;
-          const wnd = {
-            location: { hostname },
-            addEventListener: (_, func) => { detectionFunc = func; },
-            removeEventListener: () => {},
-            document: doc,
-          };
-          wnd.parent = wnd;
+          const jsdom = new JSDOM(html, { url: `https://${hostname}/` });
+          jsdom.window.addEventListener = (_, func) => { detectionFunc = func; };
           const cliqzMock = { app: { modules: { 'offers-v2': { action: actionMock } } } };
           //
           // Reproduce content script workflow
           //
-          amazonPrimeDetection(wnd, {}, cliqzMock);
+          amazonPrimeDetection(jsdom.window, {}, cliqzMock);
           detectionFunc();
         }
 

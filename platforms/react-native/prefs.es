@@ -1,10 +1,18 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { AsyncStorage, NativeModules, DeviceEventEmitter } from 'react-native';
 import events from '../core/events';
 import config from '../core/config';
 
 
 let PREFIX = '@cliqzprefs:';
-export const PLATFORM_TELEMETRY_WHITELIST = ['lumen.protection.isEnabled'];
+export const PLATFORM_TELEMETRY_WHITELIST = ['lumen.protection.isEnabled', 'lumen.subscription'];
 
 const prefs = config.default_prefs || {};
 

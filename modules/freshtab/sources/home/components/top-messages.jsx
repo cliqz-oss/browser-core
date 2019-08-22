@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import cliqz from '../cliqz';
@@ -62,8 +70,9 @@ export default class TopMessages extends React.Component {
                   onClick={() => this.handleCloseClick(message)}
                 />
                 <div className="content">
-                  <div>
+                  <div className="first">
                     <h1
+                      className="header"
                       title={message.title}
                       style={{
                         backgroundImage: `url(${message.icon})`,
@@ -73,7 +82,7 @@ export default class TopMessages extends React.Component {
                       {message.title}
                     </h1>
                   </div>
-                  <div>
+                  <div className="second">
                     <Button
                       className="cta-btn"
                       label={message.cta_text}
@@ -85,11 +94,13 @@ export default class TopMessages extends React.Component {
                           className="later-btn"
                           label={message.later_text}
                           onClick={() => this.handleLaterClick(message)}
-                        />)
+                        />
+                      )
                     }
                   </div>
                 </div>
-              </div>))
+              </div>
+            ))
         }
       </div>
     );

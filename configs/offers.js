@@ -1,65 +1,72 @@
-/* eslint-disable */
-
-'use strict';
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 
 const base = require('./common/system');
-const urls = require('./common/urls-cliqz');
-const settings = require('./common/offers-settings');
+const urls = require('./common/urls-myoffrz');
 const publish = require('./common/publish');
 
 const id = 'myoffrz-nightly@cliqz.com';
 
 
 module.exports = {
-  'platform': 'webextension',
-  'specific': 'offers',
-  'baseURL': '/modules/',
-  'pack': 'web-ext build -s build -a .',
-  'publish': publish.toPrerelease('myoffrz_nightly_', 'offers_beta', 'zip'),
-  'settings': Object.assign({}, urls, settings, {
-    'name': 'offersAppNameNightly',
+  platform: 'webextension',
+  specific: 'offers',
+  baseURL: '/modules/',
+  pack: 'web-ext build -s build -a .',
+  publish: publish.toPrerelease('myoffrz_nightly_', 'offers_beta', 'zip'),
+  settings: Object.assign({}, urls, {
+    id,
+    name: 'offersAppNameNightly',
+    description: 'offersAppDesc',
     'offers.user-journey.enabled': true,
-    id
+    channel: 'MO02',
+    homepageURL: 'https://cliqz.com/',
+    OFFERS_CHANNEL: 'myoffrz',
+    HW_CHANNEL: 'myoffrz',
+    ALLOWED_COUNTRY_CODES: ['de'],
+    ONBOARDING_URL: 'https://myoffrz.com/on-boarding/',
+    OFFBOARDING_URL: 'https://myoffrz.com/off-boarding/',
   }),
   versionInfix: '.',
   versionPrefix: '11',
-  'default_prefs': {
-    developer: true,
-    showConsoleLogs: true,
+  default_prefs: {
     'modules.browser-panel.enabled': false,
     'modules.offers-cc.enabled': false,
-    'modules.history-analyzer.enabled': false,
+    'modules.offers-reminder.enabled': false,
+    'dynamic-offers.enabled': true,
   },
-  'modules': [
+  modules: [
     'core',
     'core-cliqz',
     'abtests-legacy',
     'telemetry',
+    'human-web',
     'webrequest-pipeline',
-    'anolysis',
     'browser-panel',
-    'history-analyzer',
     'hpnv2',
-    'market-analysis',
     'myoffrz-helper',
     'offers-banner',
     'offers-cc',
+    'offers-reminder',
     'offers-v2',
     'popup-notification'
   ],
-  'bundles': [
+  bundles: [
     'browser-panel/browser-panel.bundle.js',
     'core/content-script.bundle.js',
     'hpnv2/worker.wasm.bundle.js',
     'hpnv2/worker.asmjs.bundle.js',
+    'human-web/page.bundle.js',
+    'human-web/rusha.bundle.js',
     'offers-banner/app.bundle.js',
     'offers-cc/offers-cc.bundle.js',
+    'offers-reminder/offers-reminder.bundle.js',
   ],
-  system: Object.assign({}, base.systemConfig, {
-    map: Object.assign({}, base.systemConfig.map, {
-      'jsep': 'modules/vendor/jsep.min.js',
-    })
-  }),
   builderDefault: Object.assign({}, base.builderConfig, {
     externals: base.builderConfig.externals.concat('@cliqz-oss/dexie'),
     globalDeps: Object.assign({}, base.builderConfig.globalDeps, {
@@ -68,4 +75,4 @@ module.exports = {
   }),
   OFFERS_PRODUCT_PREFIX: 'myoffrz',
   OFFERS_PRODUCT_TITLE: 'MyOffrz',
-}
+};

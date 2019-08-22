@@ -1,4 +1,12 @@
-import { registerContentScript } from '../core/content/helpers';
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import { registerContentScript } from '../core/content/register';
 
 function searchbox(doc) {
   return doc.getElementById('searchbox');
@@ -127,7 +135,7 @@ function serpTelemetry(win, sendTelemetry) {
   });
 }
 
-function registerScript(window, CLIQZ) {
+function contentScript(window, _, CLIQZ) {
   function sendTelemetry(signal, schema) {
     CLIQZ.app.modules.core.action('sendTelemetry', signal, false, schema);
   }
@@ -140,9 +148,11 @@ function registerScript(window, CLIQZ) {
   }
 }
 
-registerContentScript('core-cliqz', 'https://suchen.cliqz.com/', (window, _, CLIQZ) => {
-  registerScript(window, CLIQZ);
-});
-registerContentScript('core-cliqz', 'https://s3.amazonaws.com/cdncliqz/update/edge/serp/master/*', (window, _, CLIQZ) => {
-  registerScript(window, CLIQZ);
+registerContentScript({
+  module: 'core-cliqz',
+  matches: [
+    'https://suchen.cliqz.com/',
+    'https://s3.amazonaws.com/cdncliqz/update/edge/serp/master/*',
+  ],
+  js: [contentScript],
 });

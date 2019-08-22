@@ -36,7 +36,9 @@
 .card-conditions__myoffrz-red-label {
   color: #ff0000;
 }
-.card-conditions__chip-red-label {
+.card-conditions__incent-red-label,
+.card-conditions__chip-red-label,
+.card-conditions__freundin-red-label {
   color: orange;
 }
 
@@ -55,6 +57,11 @@
   background: url('../images/info-icon-hover.svg') no-repeat center;
 }
 
-.card-conditions__icon-chip-active {
+.card-conditions__icon-chip-active,
+.card-conditions__icon-freundin-active {
   background: url('../images/info-icon-hover-red.svg') no-repeat center;
+}
+
+.card-conditions__icon-incent-active {
+  background: url('../images/info-icon-hover-incent.svg') no-repeat center;
 }

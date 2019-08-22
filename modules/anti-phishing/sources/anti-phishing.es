@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint no-restricted-syntax: 'off' */
 /* eslint no-param-reassign: 'off' */
 
@@ -63,9 +71,7 @@ function checkSingleScript(script) {
 }
 
 function checkHTML(url, callback) {
-  getHTML(url).then((htmls) => {
-    const html = htmls[0];
-
+  getHTML(url).then((html) => {
     if (!html) {
       return;
     }

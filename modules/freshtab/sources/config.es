@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import config from '../core/config';
 
 const CLIQZ_BACKGROUNDS = {
@@ -102,6 +110,8 @@ export default {
     SUGGESTIONS_URL: config.settings.SUGGESTIONS_URL,
     frameScriptWhitelist: config.settings.frameScriptWhitelist,
     onBoardingPref: config.settings.onBoardingPref,
+    onboardingVersion: config.settings.onboardingVersion,
+    NEW_TAB_URL: config.settings.NEW_TAB_URL,
   },
   constants: {
     TOOLTIP_WORLDCUP_GROUP: 'worldcup-group',

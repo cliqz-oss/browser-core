@@ -1,8 +1,15 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint no-param-reassign: 'off' */
 /* eslint no-restricted-syntax: 'off' */
 
-import { toBase64 } from '../core/encoding';
-import { compress } from '../core/gzip';
+import md5 from '../core/helpers/md5';
 import { VERSION } from './config';
 import { getHourTimestamp } from './time';
 import prefs from '../core/prefs';
@@ -10,15 +17,6 @@ import prefs from '../core/prefs';
 
 function getCountryCode() {
   return prefs.get('config_location', '--');
-}
-
-export function compressionAvailable() {
-  return compress !== false;
-}
-
-export function compressJSONToBase64(obj) {
-  const bytes = compress(JSON.stringify(obj));
-  return toBase64(bytes);
 }
 
 export function splitTelemetryData(data, bucketSize) {
@@ -96,4 +94,8 @@ export function truncateDomain(host, depth) {
     .split('.')
     .filter(p => p.length > 0);
   return `${subdomains.slice(Math.max(subdomains.length - depth, 0)).join('.')}.${generalDomain}`;
+}
+
+export function truncatedHash(string) {
+  return md5(string).slice(0, 16);
 }

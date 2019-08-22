@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint-disable no-return-assign */
 
 import crypto from '../platform/crypto';
@@ -557,9 +565,9 @@ export default class Manager {
       // If there was an error, there will be reattempts soon to join again.
       // In that case, exclude the non-active keys for a while.
       for (const key of joinDates) {
-        if (key !== activeKey && !this._joinScheduler.cooldown.has(key)) {
+        if (key !== activeKey && !this._joinScheduler.cooldowns.has(key)) {
           const randomBackoff = 5 * MINUTE + 30 * MINUTE * Math.random();
-          this._joinScheduler.cooldown.set(key, Date.now() + randomBackoff);
+          this._joinScheduler.cooldowns.set(key, Date.now() + randomBackoff);
         }
       }
       throw error.error;
@@ -745,7 +753,7 @@ export default class Manager {
   // give up. By default, the timeout is very conservative, but the sender can
   // overwrite the default if needed. If do not want any timeout at all, you can pass 0
   // to wait forever. When sending times out, it will fail with an "NotReadyError".
-  async send(msg, { proxyBucket, waitForInitTimeoutInMs = 3 * MINUTE } = {}) {
+  async send(msg, { proxyBucket, waitForInitTimeoutInMs = 3 * MINUTE, ttl } = {}) {
     if (this.isOldVersion) {
       // Refusing to send messages, as the client runs an old version of the protocol
       // that is not longer supported. Note that even if the changes are backward
@@ -766,6 +774,7 @@ export default class Manager {
     if (!msg || typeof msg !== 'object') {
       throw new InvalidMsgError('msg must be an object');
     }
+    const absoluteTimeout = ttl && ttl > 0 ? Date.now() + ttl : undefined;
 
     // handle races during startup when hpn is just starting up and other modules
     // are already trying to send messages:
@@ -810,11 +819,12 @@ export default class Manager {
       }
 
       // Do not queue noverify messages, these are ok to do in parallel
+      const options = { msg, config, publicKey, proxyBucket, absoluteTimeout };
       if (noverify) {
-        return await this._sendNoVerify({ msg, config, publicKey, proxyBucket });
+        return await this._sendNoVerify(options);
       }
 
-      return await this.msgQueue.push({ msg, config, publicKey, proxyBucket });
+      return await this.msgQueue.push(options);
     } finally {
       throttler.endRequest(msg);
     }
@@ -875,14 +885,14 @@ export default class Manager {
     return Manager.compressAndPad(Manager.encodeMessage(MSG_SIGNED, data));
   }
 
-  async _sendNoVerify({ msg, config, publicKey, proxyBucket }) {
+  async _sendNoVerify({ msg, config, publicKey, proxyBucket, absoluteTimeout }) {
     const { instant = false } = config;
 
     // Hack: this uses the first '{' as the message code.
     this.log('Sending noverify msg', msg);
     return this.endpoints.send(
       Manager.compressAndPad(toUTF8(JSON.stringify(msg))),
-      { instant, publicKey, proxyBucket }
+      { instant, publicKey, proxyBucket, absoluteTimeout }
     );
   }
 

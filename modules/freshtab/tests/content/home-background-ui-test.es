@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import {
   clone,
   expect,
@@ -49,7 +57,7 @@ describe('Freshtab background UI', function () {
       await subject.load();
       subject.query('#settings-btn').click();
       backgroundSwitch = subject.queryByI18n('freshtab_app_settings_background_label')
-        .querySelector('input.switch');
+        .querySelector('.toggle');
     });
 
     after(function () {
@@ -83,7 +91,7 @@ describe('Freshtab background UI', function () {
       await subject.load();
       subject.query('#settings-btn').click();
       backgroundSwitch = subject.queryByI18n('freshtab_app_settings_background_label')
-        .querySelector('input.switch');
+        .querySelector('.toggle');
     });
 
     after(function () {
@@ -119,7 +127,7 @@ describe('Freshtab background UI', function () {
           await subject.load({ iframeWidth: 1400 });
           subject.query('#settings-btn').click();
           backgroundSwitch = subject.queryByI18n('freshtab_app_settings_background_label')
-            .querySelector('input.switch');
+            .querySelector('.toggle');
         });
 
         after(function () {

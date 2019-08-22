@@ -1,8 +1,15 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 
 import AsideElement from './partials/aside-element';
-// import Button from './partials/button';
 import Settings from './settings';
 import t from '../i18n';
 
@@ -33,7 +40,7 @@ function AsideRight({
           hasHistorySpeedDialsToRestore={hasHistorySpeedDialsToRestore}
           isBlueThemeSupported={config.isBlueThemeSupported}
           isBrowserThemeSupported={config.isBrowserThemeSupported}
-          isOpen={isSettingsOpen}
+          isAllPrefsLinkSupported={config.isAllPrefsLinkSupported}
           isStatsSupported={config.isStatsSupported}
           onBackgroundImageChanged={onBackgroundImageChanged}
           onNewsSelectionChanged={onNewsSelectionChanged}

@@ -2,13 +2,13 @@ const WebSocket = require('ws');
 const fs = require('fs');
 
 exports.TapStreamer = class TapStreamer {
-  constructor(port = 3001) {
+  constructor(host = '127.0.0.1', port = 3001) {
     this.logFile = process.env.EXTENSION_LOG;
     // Listener to close event
-    this.onclose = () => {};
+    this.onclose = () => { };
 
     // Start listening for client
-    this.wss = new WebSocket.Server({ port });
+    this.wss = new WebSocket.Server({ host, port });
     this.sockets = new Set();
 
     this.wss.on('error', (err) => {

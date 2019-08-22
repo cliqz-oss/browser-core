@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 $configs: (
     xsmall: (
         base: (
@@ -25,7 +33,6 @@ $configs: (
             search-input-height: 34px,
             search-font-size: 17px,
             search-text-indent: 40px,
-            search-reminder-indent: 7px,
         ),
         stats: (
             stats-value-display: block,
@@ -38,7 +45,7 @@ $configs: (
             stats-buttons-padding-right: 0,
             stats-font-size: (
                 title: 11px,
-                value: 24px,
+                value: 18px,
                 description: 11px,
             ),
         ),
@@ -98,7 +105,6 @@ $configs: (
             search-input-height: 34px,
             search-font-size: 17px,
             search-text-indent: 40px,
-            search-reminder-indent: 7px,
         ),
         stats: (
             stats-value-display: block,
@@ -111,7 +117,7 @@ $configs: (
             stats-buttons-padding-right: 0,
             stats-font-size: (
                 title: 13px,
-                value: 24px,
+                value: 21px,
                 description: 11px,
             ),
         ),
@@ -171,7 +177,6 @@ $configs: (
             search-input-height: 48px,
             search-font-size: 21px,
             search-text-indent: 57px,
-            search-reminder-indent: 16px,
         ),
         stats: (
             stats-value-display: inline-block,
@@ -184,7 +189,7 @@ $configs: (
             stats-buttons-padding-right: 25px,
             stats-font-size: (
                 title: 13px,
-                value: 26px,
+                value: 22px,
                 description: 12px,
             ),
         ),
@@ -244,7 +249,6 @@ $configs: (
             search-input-height: 48px,
             search-font-size: 21px,
             search-text-indent: 57px,
-            search-reminder-indent: 16px,
         ),
         stats: (
             stats-value-display: inline-block,
@@ -257,7 +261,7 @@ $configs: (
             stats-buttons-padding-right: 25px,
             stats-font-size: (
                 title: 14px,
-                value: 32px,
+                value: 27px,
                 description: 14px,
             ),
         ),
@@ -317,7 +321,6 @@ $configs: (
             search-input-height: 63px,
             search-font-size: 24px,
             search-text-indent: 74px,
-            search-reminder-indent: 28px,
         ),
         stats: (
             stats-value-display: inline-block,

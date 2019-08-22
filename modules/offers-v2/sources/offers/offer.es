@@ -99,6 +99,10 @@ const buildGeoMap = (geoData) => {
  *   //     couponInfo: {
  *   //       code: (THIS WILL BE AUTOMATICALLY SET ON THE EXTENSION, taking it from the offer)
  *   //       autoFillField: true | false // saying if we should autofill or not the field
+ *   //     },
+ *   //     offerReminder: {
+ *   //       active: true | false,
+ *   //       description: string,
  *   //     }
  *   //   }
  *   //
@@ -345,6 +349,12 @@ export default class Offer {
 
   setPictureDataurl(dataurl) {
     this.offerObj.ui_info.template_data.picture_dataurl = dataurl;
+  }
+
+  getMonitorPatterns(monitorType) {
+    const monitor = (this.monitorData || [])
+      .find(m => m.signalID === monitorType) || {};
+    return monitor.patterns || [];
   }
 
   setDynamicContent(productPictureUrl, productCtaUrl) {

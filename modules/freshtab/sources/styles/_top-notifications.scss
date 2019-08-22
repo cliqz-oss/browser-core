@@ -1,9 +1,18 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+@import 'variables';
+
 @mixin top-notifications (
     $buttons-wrapper-width,
     $box-size,
     $box-height,
     $content-max-width,
-
     $close-bg
 ){
     #topNotificationBox {
@@ -11,8 +20,8 @@
         top: 0;
         left: 0;
         right: 0;
-        background-color: #FBFBFB;
-        box-shadow: rgba(0, 0, 0, 0.19) 0 1px 1px 0;
+        background-color: $color-off-white;
+        box-shadow: get-color-black-opacity(0.18) 0 1px 1px 0;
         transition: opacity 600ms ease-out;
 
         .top-notification-box {
@@ -54,64 +63,62 @@
                 color: #333;
                 height: 26px;
                 text-align: center;
+            }
 
-                div:first-child {
-                    margin-bottom: 6px;
-                    display: inline-block;
-                    padding-right: 24px;
-                    max-width: $content-max-width;
+            .first {
+                margin-bottom: 6px;
+                display: inline-block;
+                padding-right: 24px;
+                max-width: $content-max-width;
+            }
 
-                    h1 {
-                        font-size: 16px;
-                        font-weight: 500;
-                        line-height: 26px;
-                        white-space: nowrap;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        background-size: 26px 25px;
-                        background-repeat: no-repeat;
-                        background-position: left top;
-                    }
+            .header {
+                font-size: 16px;
+                font-weight: 500;
+                line-height: 26px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                background-size: 26px 25px;
+                background-repeat: no-repeat;
+                background-position: left top;
+            }
+
+            .second {
+                white-space: nowrap;
+                display: inline-block;
+                vertical-align: top;
+                width: $buttons-wrapper-width;
+            }
+
+            .cta-btn, .later-btn {
+                font-size: 14px;
+                padding: 4px 20px;
+                cursor: pointer;
+                border: 0;
+                border: 1px solid $color-cliqz-blue;
+                border-radius: 3px;
+            }
+
+            .cta-btn {
+                color: #fff;
+                background-color: $color-cliqz-blue;
+
+                &:hover {
+                    border-color: $color-dark-blue;
+                    background-color: $color-dark-blue;
                 }
+            }
 
-                div:last-child {
-                    white-space: nowrap;
-                    display: inline-block;
-                    vertical-align: top;
-                    width: $buttons-wrapper-width;
+            .later-btn {
+                color: $color-cliqz-blue;
+                margin-left: 7px;
+                background-color: #fff;
+                font-weight: 500;
 
-                    button {
-                        font-size: 14px;
-                        padding: 4px 20px;
-                        cursor: pointer;
-                        border: 0;
-                        border: 1px solid #00AEF0;
-                        border-radius: 3px;
-
-                        &:hover {
-                            border-color: #0078CA;
-                        }
-
-                        &.cta-btn {
-                            color: #fff;
-                            background-color: #00AEF0;
-
-                            &:hover {
-                                background-color: #0078CA;
-                            }
-                        }
-
-                        &.later-btn {
-                            color: #00AEF0;
-                            margin-left: 7px;
-                            background-color: #fff;
-                            font-weight: 500;
-
-                            &:hover {
-                                color: #0078CA;
-                            }
-                        }
-                    }
+                &:hover {
+                    border-color: $color-dark-blue;
+                    color: $color-dark-blue;
                 }
             }
         }

@@ -1,10 +1,17 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global window, document */
 import templates from './templates';
-import createSpananForModule from '../core/helpers/spanan-module-wrapper';
+import createModuleWrapper from '../core/helpers/action-module-wrapper';
 
 
-const privacyModule = createSpananForModule('privacy-dashboard');
-const actions = privacyModule.createProxy();
+const privacyModule = createModuleWrapper('privacy-dashboard');
 
 function localizeDocument() {
   Array.from(document.querySelectorAll('[data-i18n]'))
@@ -31,7 +38,7 @@ function renderSignal(signals, sigType) {
 }
 
 function renderDashboard() {
-  actions.getData().then((data) => {
+  privacyModule.getData().then((data) => {
     Object.keys(data).forEach(sigType => renderSignal(data, sigType));
     localizeDocument();
   });
@@ -40,7 +47,7 @@ function renderDashboard() {
 // TEMP force refresh whole dashboard
 setInterval(renderDashboard, 2000);
 
-actions.register();
+privacyModule.register();
 renderDashboard();
 
-window.addEventListener('unload', actions.unregister);
+window.addEventListener('unload', privacyModule.unregister);

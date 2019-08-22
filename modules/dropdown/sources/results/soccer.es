@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import BaseResult, { Subresult } from './base';
 import GenericResult from './generic';
 import i18n from '../../core/content/i18n';
@@ -349,8 +357,13 @@ export default class SoccerResult extends GenericResult {
     if (!this.extra.url || !this.extra.title) {
       return null;
     }
-    const deduplicatedUrl = this.resultTools.results.genericResults
+    let deduplicatedUrl = this.resultTools.results.genericResults
       .find(element => this.extra.url === element.rawResult.url);
+    if (deduplicatedUrl) return null;
+
+    deduplicatedUrl = this.resultTools.results.historyResults
+      .some(element => Array.isArray(element.historyResults) === true
+        && element.historyResults.some(el => this.extra.url === el.rawResult.url));
     if (deduplicatedUrl) return null;
 
     return new SoccerSubResult(this, {

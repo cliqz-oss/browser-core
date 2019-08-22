@@ -1,9 +1,14 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 @import "variables.scss";
-@mixin transition($time_ms:150ms) {
-    -ms-transition: all $time_ms ease-in-out;
-    -moz-transition: all $time_ms ease-in-out;
-    -webkit-transition: all $time_ms ease-in-out;
-    -o-transition: all $time_ms ease;
+
+@mixin transition($time_ms: 150ms) {
     transition: all $time_ms ease-in-out;
 }
 
@@ -57,18 +62,16 @@
       font-weight: 500;
     }
 
-    .closeForm {
+    .close-form {
       position: absolute;
       background: url(../images/delete-icon.svg) no-repeat center;
       background-size: cover;
-      position: absolute;
       float: right;
       right: 20px;
       top: 25px;
       margin: 0px;
       width: 34px;
       height: 34px;
-      // display: inline;
       opacity: 0.7;
       cursor: pointer;
       text-align: right;
@@ -83,7 +86,7 @@
       }
     }
 
-    form {
+    .modal-form {
       background: #FFF;
       width: $modal-form-width;
       min-height: 237px;
@@ -92,12 +95,11 @@
       overflow: hidden;
       border: none;
       border-radius: 4px;
-      box-shadow: 0px 2px 35px rgba(0,0,0,0.27);
+      box-shadow: 0px 2px 35px get-color-black-opacity(0.27);
     }
 
     .field {
       display: flex;
-      flex-direction: column;
       font-size: 14px;
       color: #fff;
       font-weight: 500;
@@ -107,17 +109,17 @@
     }
 
 
-    iframe {
+    .modal-iframe {
       height: 100%;
       width: 100%;
       overflow-y: auto;
       border: none;
       padding: 0;
-      }
+    }
 
     /* LABEL ======================================= */
-    label {
-      color: $modal-input-inactive-color;
+    .input-label {
+      color: $color-dark-beige;
       display: inline;
       font-size: 10px;
       min-height: 14px;
@@ -126,28 +128,29 @@
       z-index: 0;
     }
 
-    label, input {
+    .input-label, .modal-input {
       @include transition(200ms);
       position: relative;
       touch-action: manipulation;
     }
 
-    input {
+    .modal-input {
       font-size:14px;
       position: relative;
       border: 0;
-      border-bottom: 1px solid $modal-input-inactive-color;
+      border-bottom: 1px solid $color-dark-beige;
+      appearance: none;
       -webkit-appearance: none;
       padding-bottom: 2px;
       border-radius: 0;
-      min-width: calc($modal-form-width - (2 * $modal-form-padding));
+      min-width: calc(#{$modal-form-width} - (2 * #{$modal-form-padding}));
       cursor: text;
       z-index: 10;
       background: transparent;
       height: 22px;
     }
 
-    input:focus {
+    .modal-input:focus {
       outline: 0;
       padding-bottom: 1px;
       border-bottom: 2px solid $color-cliqz-blue;
@@ -159,7 +162,7 @@
     * Also make sure the label is only on one row, at max 2/3rds of the
     * field—to make sure it scales properly and doesn't wrap.
     */
-    input + label {
+    .modal-input + .input-label {
       cursor: text;
       max-width: 66.66%;
       white-space: nowrap;
@@ -176,7 +179,8 @@
     * there's something in the input at all.
     */
 
-    input:focus + label, input:not([value=""]) + label {
+    .modal-input:focus + .input-label,
+    .modal-input:not([value=""]) + .input-label {
       padding-bottom: 2px;
       transform: translate(0, 0) scale(1);
       color:$color-cliqz-blue;
@@ -206,12 +210,12 @@
       }
 
       &:hover:enabled, &:focus:enabled {
-        background-color: $modal-button-hover-background;
+        background-color: $color-dark-blue;
       }
     }
 
-    .errorMessage {
-       color: $modal-error-color !important;
+    .error-message {
+       color: $color-red !important;
     }
 
     .errorIcon {
@@ -239,7 +243,7 @@
       &:hover, &:focus {
         @include transition;
         background: $modal-dial-delete-hover-background;
-        color: $modal-error-color;
+        color: $color-red;
       }
     }
 
@@ -261,7 +265,6 @@
     overflow: hidden;
     border: none;
     border-radius: 4px;
-    box-shadow: 0px 2px 35px rgba(0,0,0,0.27);
+    box-shadow: 0px 2px 35px get-color-black-opacity(0.27);
   }
 }
-

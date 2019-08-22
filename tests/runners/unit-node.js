@@ -151,6 +151,10 @@ function describeModule(moduleName, loadDeps, testFn) {
             dependencies.dependencies = dependencies.dependencies || deps;
             return dependencies.dependencies[name];
           };
+          this.fixtureDir = function () {
+            const moduleBase = moduleName.split('/')[0];
+            return 'build/tests/tests/' + moduleBase + '/tests/unit/dist';
+          };
         });
       });
 
