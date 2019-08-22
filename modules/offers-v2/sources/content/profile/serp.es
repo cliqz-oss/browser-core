@@ -1,5 +1,5 @@
 function getInputFields(document) {
-  return document.querySelectorAll('input[type=text i], input[type=search i]');
+  return document.querySelectorAll('input[type=text], input[type=search]');
 }
 
 function doesTitleContainWordSearch(document, inputs) {

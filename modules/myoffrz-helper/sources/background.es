@@ -41,10 +41,10 @@ export default background({
       if (payload.rules) {
         logger.debug(`Send rules to page ${url}`, payload.rules);
         this.core.action(
-          'broadcastActionToWindow',
-          sender.tab.id,
+          'callContentAction',
           'myoffrz-helper',
           'rulesFromBackground',
+          { windowId: sender.tab.id },
           payload,
         );
       }

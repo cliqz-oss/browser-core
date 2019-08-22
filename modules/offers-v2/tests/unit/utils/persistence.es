@@ -99,7 +99,6 @@ module.exports = {
       }
       const offerIds = odb.getOffers(/* includeRemoved */ true).map(o => o.offer_id);
       offerIds.forEach(offerId => odb.eraseOfferObject(offerId));
-      odb.imageDownloader.markBatch(0);
       return odb;
     },
     reset() {

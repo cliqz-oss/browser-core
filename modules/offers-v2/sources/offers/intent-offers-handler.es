@@ -89,9 +89,11 @@ export default class IntentOffersHandler {
     if (this.intentOffers.has(intent.getName())) {
       return Promise.resolve(true);
     }
+
+    const country = prefs.get('config_location', '') || '';
     return this.backendConnector.sendApiRequest(
       'offers',
-      { intent_name: intentName },
+      { intent_name: intentName, country },
       'GET'
     ).then((aIntentOffers) => {
       if (!aIntentOffers) {

@@ -1,15 +1,26 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import Handlebars from 'handlebars';
 import Spanan from 'spanan';
+
+import createModuleWrapper from '../core/helpers/action-module-wrapper';
+import runtime from '../platform/runtime';
+import { PREVENT_AUTOCOMPLETE_KEYS } from '../search/consts';
+
 import helpers from './helpers';
 import templates from './templates';
 import Dropdown from './dropdown';
 import Results from './results';
-import createSpananForModule from '../core/helpers/spanan-module-wrapper';
-import { PREVENT_AUTOCOMPLETE_KEYS } from '../search/consts';
 
-let contextId = null;
+let currentContextId;
 if (chrome.omnibox2) {
-  contextId = chrome.omnibox2.getContext();
+  currentContextId = chrome.omnibox2.getContext();
 }
 
 let urlbarAttributes = {};
@@ -41,10 +52,8 @@ const spanan = new Spanan(({ action, ...rest }) => {
 });
 const importedActions = spanan.createProxy();
 
-const searchBridge = createSpananForModule('search');
-const dropdownBridge = createSpananForModule('dropdown');
-const searchModule = searchBridge.createProxy();
-const dropdownModule = dropdownBridge.createProxy();
+const searchModule = createModuleWrapper('search');
+const dropdownModule = createModuleWrapper('dropdown');
 
 const container$ = document.querySelector('#container');
 const dropdown = new Dropdown(container$, window, {
@@ -149,17 +158,19 @@ const exportedActions = {
   }
 };
 
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.action !== 'renderResults'
-    || (message.contextId !== contextId && message.contextId !== undefined)) {
-    return;
+runtime.onMessage.addListener(({ module, action, args, contextId }) => {
+  if (module !== 'dropdown'
+    || action !== 'renderResults'
+    || (contextId !== undefined && contextId !== currentContextId)
+  ) {
+    return undefined;
   }
 
-  const response = message.args[0];
+  const response = args[0];
   const { query, queriedAt, results: rawResults, assistantStates, meta } = response;
   if (!rawResults[0]
     || (rawResults[0].text !== currentQuery && rawResults[0].suggestion !== currentQuery)) {
-    return;
+    return undefined;
   }
 
   const resultTools = {
@@ -195,6 +206,8 @@ chrome.runtime.onMessage.addListener((message) => {
     height,
     rawResults,
   });
+
+  return undefined;
 });
 
 spanan.export(exportedActions, {

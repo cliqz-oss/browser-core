@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { share } from 'rxjs/operators';
 import background from '../core/base/background';
 import telemetry from '../core/services/telemetry';
@@ -14,8 +22,6 @@ import ObservableProxy from '../core/helpers/observable-proxy';
 import events from '../core/events';
 import {
   isUrl,
-  getSearchEngineUrl,
-  getVisitUrl,
   fixURL,
 } from '../core/url';
 
@@ -32,7 +38,7 @@ import getThrottleQueries from './operators/streams/throttle-queries';
 
 import logger from './logger';
 import searchTelemetry from './telemetry';
-import performance from './performanceTelemetry';
+import performance from './performance-telemetry';
 import telemetryLatency from './telemetry-latency';
 import getConfig from './config';
 import search from './search';
@@ -48,6 +54,8 @@ import pluckResults from './operators/streams/pluck-results';
 import config from '../core/config';
 import { bindAll } from '../core/helpers/bind-functions';
 import { chrome } from '../platform/globals';
+
+const performanceTelemetryEnabled = !!chrome.webRequest;
 
 /**
   @namespace search
@@ -100,7 +108,7 @@ export default background({
       richHeader: new RichHeader(settings), //
     };
 
-    if (chrome.webRequest) {
+    if (performanceTelemetryEnabled) {
       // some platforms might not have webRequest
       performance.init();
     }
@@ -112,7 +120,7 @@ export default background({
   },
 
   unload() {
-    if (chrome.webRequest) {
+    if (performanceTelemetryEnabled) {
       performance.unload();
     }
   },
@@ -129,7 +137,7 @@ export default background({
       prefs.clear('backend_country.override');
       prefs.set('backend_country', country);
     },
-    ...bindAll(performance.events, performance),
+    ...bindAll(performanceTelemetryEnabled ? performance.events : {}, performance),
   },
 
   actions: {
@@ -167,6 +175,9 @@ export default background({
       { contextId, tab: { id: tabId } = {} } = { tab: {} }
     ) {
       const sessionId = tabId || contextId;
+      events.pub('search:session-end', {
+        windowId: sessionId,
+      });
 
       this.resetAssistantStates();
       if (!this.searchSessions.has(sessionId)) {
@@ -189,10 +200,6 @@ export default background({
       telemetryLatencySubscription.unsubscribe();
 
       this.searchSessions.delete(sessionId);
-
-      events.pub('search:session-end', {
-        windowId: sessionId,
-      });
     },
 
     // TODO: debounce (see observables/urlbar)
@@ -206,10 +213,11 @@ export default background({
         keyCode,
         forceUpdate = !config.isMobile,
       } = {},
-      { contextId, tab: { id: tabId } = {} } = { tab: {} },
+      { contextId, frameId, tab: { id: tabId } = {} } = { tab: {} },
     ) {
       const sessionId = tabId || contextId;
       const now = Date.now();
+      const assistantStates = this.actions.getAssistantStates();
 
       if (this.searchSessions.has(sessionId)) {
         const queryEventProxy = this.searchSessions.get(sessionId).queryEventProxy;
@@ -222,6 +230,7 @@ export default background({
           isPasted,
           forceUpdate,
           allowEmptyQuery,
+          assistantStates,
           ts: now,
         });
         return;
@@ -319,28 +328,28 @@ export default background({
 
         if (config.isMobile) {
           this.core.action(
-            'broadcast',
-            {
-              action: 'renderResults',
-              args: [JSON.stringify(response)],
-              contextId,
-            },
-          );
-        } else if (tabId) {
-          this.core.action(
-            'broadcastActionToWindow',
-            tabId,
-            'dropdown',
+            'callContentAction',
+            'mobile-cards',
             'renderResults',
-            response
+            { windowId: tabId },
+            JSON.stringify(response),
           );
-        } else {
+        } else if (!tabId) {
           this.core.action('broadcast', '', {
             module: 'dropdown',
             action: 'renderResults',
             contextId,
             args: [response],
           });
+        } else {
+          this.core.action(
+            'callContentAction',
+            'dropdown',
+            // targetModule,
+            'renderResults',
+            { windowId: tabId, frameId },
+            response
+          );
         }
 
         events.pub('search:results', response);
@@ -356,6 +365,7 @@ export default background({
         keyCode,
         isPasted,
         allowEmptyQuery,
+        assistantStates,
         ts: now,
       });
 
@@ -490,12 +500,12 @@ export default background({
       let handledQuery = '';
 
       if (isUrl(query)) {
-        handledQuery = getVisitUrl(fixURL(query));
+        handledQuery = fixURL(query);
       } else {
         const engine = getEngineByQuery(query);
         const rawQuery = getSearchEngineQuery(engine, query);
 
-        handledQuery = getSearchEngineUrl(engine, query, rawQuery);
+        handledQuery = engine.getSubmissionForQuery(rawQuery);
       }
 
       return handledQuery;

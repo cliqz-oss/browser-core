@@ -1,9 +1,15 @@
-"use strict";
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 
 const writeFile = require('broccoli-file-creator');
 const Funnel = require('broccoli-funnel');
-const config = require('./config');
 const MergeTrees = require('broccoli-merge-trees');
+const config = require('./config');
 const modules = require('./modules-tree');
 
 let fileContents = '';
@@ -11,13 +17,13 @@ let fileContents = '';
 if (config.resources && config.resources.bundling === 'require') {
   const pathVariable = path => path.replace('/', '_').replace('.', '_').replace('-', '_');
   const assets = config.resources.include.map(path => [pathVariable(path), path]);
-  const importStatements = assets.map(args => {
+  const importStatements = assets.map((args) => {
     const varName = args.varName;
     const resourceName = args.resourcePath;
     const resourcePath = `./modules/${resourceName}`;
     return `import ${varName} from '${resourcePath}';`;
   }).join('\n');
-  const resourcesList = assets.map(args => {
+  const resourcesList = assets.map((args) => {
     const varName = args.varName;
     const resourceName = args.resourcePath;
     return `'${resourceName}': ${varName}`;

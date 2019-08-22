@@ -1,5 +1,14 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import prefs from '../prefs';
 import console from '../console';
+import config from '../config';
 
 const MIGRATION_VERSION_PREF = 'migrationVersion';
 /**
@@ -8,6 +17,21 @@ const MIGRATION_VERSION_PREF = 'migrationVersion';
 const MIGRATIONS = [
   () => prefs.clear('historyLookupEnabled'),
   () => prefs.clear('modules.dropdown.enabled'),
+  // remove prefs default values from storage - default value should be
+  // fetched from config on every call to prefs.get
+  () => Object.keys(config.default_prefs || {}).forEach((key) => {
+    const value = prefs.get(key);
+    if (value === config.default_prefs[key]) {
+      prefs.clear(key);
+    }
+  }),
+  // Import `extensions.cliqz.full_distribution` pref from Firefox prefs (see: EX-9174)
+  () => {
+    const distribution = prefs.get('full_distribution', null, 'extensions.cliqz.');
+    if (distribution !== null) {
+      prefs.set('full_distribution', distribution);
+    }
+  }
 ];
 
 /**

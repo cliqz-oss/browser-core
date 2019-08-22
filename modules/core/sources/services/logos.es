@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import loadLogoDb from '../../platform/services/logos';
 import config from '../config';
 import Logger from '../logger';
@@ -5,6 +13,7 @@ import inject from '../kord/inject';
 import prefs from '../prefs';
 import { isOnionModeFactory } from '../platform';
 import { URLInfo } from '../url-info';
+import { getGeneralDomainMinusTLD } from '../url';
 
 const isOnionMode = isOnionModeFactory(prefs);
 const logger = Logger.get('core', {
@@ -28,7 +37,7 @@ export async function service() {
         logger.warn('getLogoDetails: not valid url ', url);
         return null;
       }
-      const base = parsedUrl.generalDomainMinusTLD || parsedUrl.hostname || parsedUrl.pathname;
+      const base = getGeneralDomainMinusTLD(parsedUrl) || parsedUrl.hostname || parsedUrl.pathname;
       const baseCore = base.replace(/[-]/g, '');
       const check = (host, rule) => {
         const address = host.lastIndexOf(base);

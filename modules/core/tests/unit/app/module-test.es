@@ -1,9 +1,18 @@
-/* global chai, describeModule, require */
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 
-const punycode = require('punycode');
-const tldts = require('tldts');
+/* global chai, describeModule, require */
+const urlImports = require('../utils/url-parser');
 
 export default describeModule('core/app/module', () => ({
+  'platform/globals': {
+    chrome: {},
+  },
   'core/app/modules': {
     default: {
       test: {
@@ -14,10 +23,7 @@ export default describeModule('core/app/module', () => ({
       }
     },
   },
-  'platform/lib/punycode': {
-    default: punycode,
-  },
-  'platform/lib/tldts': tldts,
+  ...urlImports,
 }), () => {
   describe('module lifecycle states', () => {
     let Module;

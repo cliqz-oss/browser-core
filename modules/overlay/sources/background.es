@@ -1,15 +1,24 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import background from '../core/base/background';
 import { chrome } from '../platform/globals';
 import { getMessage } from '../platform/i18n';
 import config from '../core/config';
+import inject from '../core/kord/inject';
 
 function triggerOverlay(tab, triggeredBy, query = '') {
-  chrome.tabs.sendMessage(tab.id, {
-    module: 'overlay',
-    action: 'toggle-quicksearch',
-    trigger: triggeredBy,
-    query,
-  });
+  inject.module('core').action(
+    'callContentAction', 'overlay', 'toggle-quicksearch', { windowId: tab.id }, {
+      trigger: triggeredBy,
+      query,
+    },
+  );
 }
 
 /**

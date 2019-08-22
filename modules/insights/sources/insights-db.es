@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import getDexie from '../platform/lib/dexie';
 import moment from '../platform/lib/moment';
 import logger from './logger';
@@ -27,6 +35,11 @@ export default class InsightsDb {
   async init() {
     const Dexie = await getDexie();
     this.db = new Dexie('insights');
+    this.db.version(3).stores({
+      daily: 'day',
+      search: 'day',
+      tabs: 'tabId'
+    });
     this.db.version(2).stores({
       daily: 'day',
       search: 'day',
@@ -35,6 +48,15 @@ export default class InsightsDb {
     // as long as there might be users having them running.
     this.db.version(1).stores({
       daily: 'day',
+    });
+
+    // migrate staged tabs (from the last session) to daily stats
+    const stagedTabs = await this.db.tabs.toArray();
+    await this.db.transaction('rw', [this.db.daily, this.db.tabs], async () => {
+      stagedTabs.forEach(async ({ tabId, ...counters }) => {
+        await this.insertStats('daily', counters, counters.day);
+        await this.db.tabs.delete(tabId);
+      });
     });
   }
 
@@ -45,16 +67,37 @@ export default class InsightsDb {
     }
   }
 
-  async insertStats(table, counters) {
-    const today = moment().format(DATE_FORMAT);
+  async insertStats(table, counters, date = undefined) {
+    const day = moment(date).format(DATE_FORMAT);
     await this.db.transaction('rw', this.db[table], async () => {
-      const stats = (await this.db[table].get(today)) || { day: today };
+      const stats = (await this.db[table].get(day)) || { day };
       mergeStats(stats, counters);
       if (table === 'daily') {
         mergeStats(stats, { pages: 1 });
       }
       logger.debug('Aggregated stats for day:', stats);
       await this.db[table].put(stats);
+    });
+  }
+
+  async insertPageStats(tabId, counters) {
+    return this.db.transaction('rw', [this.db.daily, this.db.tabs], async () => {
+      this.db.tabs.delete(tabId);
+      return this.insertStats('daily', counters);
+    });
+  }
+
+  /**
+   * Stage stats for a tab: save current state of stats so that on browser close then can be later
+   * added to the daily stats
+   * @param tabId
+   * @param counters
+   */
+  stagePageStats(tabId, counters) {
+    return this.db.tabs.put({
+      tabId,
+      day: moment().format(DATE_FORMAT),
+      ...counters,
     });
   }
 

@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 'use strict';
 
 const program = require('commander');
@@ -25,15 +33,13 @@ program.command(`test ${common.configParameter}`)
   .option('--no-build', 'skip the build, run tests only')
   .option('-l --launchers [launchers]', 'comma separted list of launchers')
   .option('--extension-log [output]', 'save extension logger messages to the file. When using with `run_tests_in_docker.sh`, the file should be in the directory `report`.')
-  .option('--v6', 'include fast v6 build - v-shaped 6 cylinder engine')
   .action((configPath, options) => {
+    process.env.CLIQZ_ENVIRONMENT = process.env.CLIQZ_ENVIRONMENT || options.environment;
     process.env.CLIQZ_INCLUDE_TESTS = 'true';
     const cfg = setConfigPath(configPath);
     const CONFIG = cfg.CONFIG;
     const OUTPUT_PATH = cfg.OUTPUT_PATH;
     let watcher;
-
-    process.env.CLIQZ_V6_BUILD = options.v6 || '';
 
     // Enabled code linting
     process.env.CLIQZ_ESLINT = (

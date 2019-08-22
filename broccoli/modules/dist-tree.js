@@ -1,4 +1,10 @@
-'use strict';
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 
 const path = require('path');
 const Funnel = require('broccoli-funnel');
@@ -14,7 +20,7 @@ const subprojects = require(path.resolve(__dirname, '../../configs/common/subpro
 const UnwatchedDir = broccoliSource.UnwatchedDir;
 
 const FILES_WITH_PLACEHOLDERS = {
-  'freshtab': [
+  freshtab: [
     'home.html',
   ],
 };
@@ -22,10 +28,10 @@ const FILES_WITH_PLACEHOLDERS = {
 module.exports = function getDistTree(modulesTree) {
   const modulesTrees = [
     new Funnel(modulesTree, {
-      include: cliqzConfig.modules.map( name => `${name}/dist/**/*` ),
+      include: cliqzConfig.modules.map(name => `${name}/dist/**/*`),
       exclude: ['**/messages.json'], // remove translations
-      getDestinationPath(path) {
-        return path.replace("/dist", "");
+      getDestinationPath(_path) {
+        return _path.replace('/dist', '');
       },
     })
   ];
@@ -55,9 +61,7 @@ module.exports = function getDistTree(modulesTree) {
           include: subproject.include || ['**/*'],
           destDir: subproject.dest,
           getDestinationPath(filename) {
-            filename = filename.replace('.development', '');
-            filename = filename.replace('.production.min', '');
-            return filename;
+            return filename.replace('.development', '').replace('.production.min', '').replace('.profiling.min', '');
           },
         })
     )
@@ -68,7 +72,7 @@ module.exports = function getDistTree(modulesTree) {
   const config = writeFile('cliqz.json', JSON.stringify(cliqzConfig));
 
   const files = cliqzConfig.modules.reduce((all, module) => {
-    const fileNames = (FILES_WITH_PLACEHOLDERS[module] || []).map(name => module + '/' + name);
+    const fileNames = (FILES_WITH_PLACEHOLDERS[module] || []).map(name => `${module}/${name}`);
     return all.concat(fileNames);
   }, []);
 

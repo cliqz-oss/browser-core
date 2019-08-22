@@ -1,9 +1,16 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai */
 /* global describeModule */
 
-const tldts = require('tldts');
 const URL = require('url').URL;
-const punycode = require('punycode');
+const urlImports = require('./utils/url-parser');
 
 if (!global.URL) {
   // node version less than 10
@@ -163,7 +170,6 @@ const QUERIES = [
 export default describeModule('core/url',
   function () {
     return {
-      'platform/lib/tldts': tldts,
       'core/platform': {
       },
       'core/LRU': {
@@ -173,9 +179,7 @@ export default describeModule('core/url',
           set() {}
         },
       },
-      'platform/lib/punycode': {
-        default: punycode,
-      },
+      ...urlImports,
     };
   },
   function () {
@@ -229,7 +233,6 @@ export default describeModule('core/url',
 
         it('with simple url return correct details', function () {
           const urlDetails = {
-            action: undefined,
             originalUrl: 'https://cliqz.com/',
             scheme: 'https:',
             name: 'cliqz',
@@ -285,32 +288,8 @@ export default describeModule('core/url',
             .that.deep.equal(['www', 'affiliate-program']);
         });
 
-        it('with moz-action should return correct action and url', function () {
-          const urlDetails = {
-            action: 'visiturl',
-            originalUrl: 'https://cliqz.com/',
-            scheme: 'https:',
-            name: 'cliqz',
-            domain: 'cliqz.com',
-            tld: 'com',
-            subdomains: [],
-            path: '/',
-            query: '',
-            fragment: '',
-            extra: '/',
-            host: 'cliqz.com',
-            cleanHost: 'cliqz.com',
-            ssl: true,
-            port: '',
-            friendly_url: 'cliqz.com',
-          };
-          chai.expect(getDetailsFromUrl('moz-action:visiturl,{"url":"https://cliqz.com/"}'))
-            .to.deep.equal(urlDetails);
-        });
-
         it('with host name, followed by a `single` dot, should return correct url', function () {
           const urlDetails = {
-            action: undefined,
             originalUrl: 'https://cliqz.com./support',
             scheme: 'https:',
             name: 'cliqz',

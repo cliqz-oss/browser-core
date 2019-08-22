@@ -1,4 +1,13 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global $, Handlebars */
+/* eslint-disable no-console */
 import QRCode from 'qrcodejs';
 import templates from '../templates';
 
@@ -16,18 +25,21 @@ export default class PairingUI {
     this.PeerComm = PeerComm;
     this.telemetry = telemetry;
 
-
     this.TEMPLATE_NAMES = ['template'];
     this.TEMPLATE_CACHE = {};
     this.start();
 
     this.connectionChecker = setInterval(() => {
+      console.log('PairingUI: connectionChecker -> startPairing...');
       this.startPairing();
-      PeerComm.checkMasterConnection().catch(() => {});
+      PeerComm.checkMasterConnection().catch((e) => {
+        console.error('PairingUI error:', e);
+      });
     }, PairingUI.checkInterval);
 
     // Pairing events
     this.oninit = (info) => {
+      console.log('PairingUI: oninit');
       this.renderInitial();
       if (info.isPaired) {
         this.renderPaired(info);
@@ -43,6 +55,7 @@ export default class PairingUI {
     this.onunpaired = ({ isUnpaired }) => {
       this.renderUnpaired();
       if (isUnpaired) {
+        console.log('PairingUI: onunpaired -> startPairing...');
         this.startPairing();
       }
     };
@@ -54,11 +67,19 @@ export default class PairingUI {
       if (info.isInit) {
         this.oninit(info);
       }
+    }).catch((e) => {
+      console.error(e);
     });
   }
 
-  startPairing() {
-    this.PeerComm.startPairing();
+  async startPairing() {
+    try {
+      const info = await this.PeerComm.startPairing();
+      console.log('PeerComm.startPairing returned:', info);
+      this.onpairing(info);
+    } catch (e) {
+      console.error('PairingUI: startPairing failed:', e);
+    }
   }
 
   updatePairingStatus(status) {
@@ -132,7 +153,6 @@ export default class PairingUI {
       connectInProgressMessage: this.i18n('connect_in_progress_message'),
       instructionsTitle: this.i18n('pairing_instructions_title'),
       instructionsAndroid: this.i18n('pairing_instructions_playstore'),
-      instructionsIOs: this.i18n('pairing_instructions_appstore'),
 
       videoDownloaderTitle: this.i18n('pairing_video_title'),
       receiveTabTitle: this.i18n('pairing_receive_tab_title'),
@@ -154,6 +174,7 @@ export default class PairingUI {
     $('#content').html(templates.main(data));
 
     $('#unpair-button').click(() => {
+      console.log('unpair clicked');
       this.PeerComm.unpair();
 
       this.telemetry({

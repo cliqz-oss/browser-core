@@ -1,10 +1,17 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import React from 'react';
 import Overlay from '../overlay';
 import Urlbar from './index';
 import SearchSettings from './search-settings';
 import cliqz from '../../cliqz';
 import FreshtabDropdownManager from '../../../../dropdown/managers/freshtab';
-import t from '../../i18n';
 import Button from '../partials/button';
 
 export default class UrlbarWithResults extends Urlbar {
@@ -121,14 +128,7 @@ export default class UrlbarWithResults extends Urlbar {
 
     this.dropdown.onFocus(ev);
 
-    if (this.props.shouldShowReminder) {
-      this.props.toggleComponent('searchReminder');
-    }
-
     if (!this.dropdown.isOpen) {
-      cliqz.freshtab.reportEvent({
-        type: 'urlbar-focus',
-      });
       if (this.textInput.value) {
         this.hideSettings();
         this.dropdown._queryCliqz(this.textInput.value);
@@ -173,21 +173,6 @@ export default class UrlbarWithResults extends Urlbar {
           isOpen={this.state.isOverlayOpen}
           onClick={this.closeAll}
         />
-        <div className="search-reminder">
-          {this.props.shouldShowReminder
-            && (
-              <span>
-                <span>
-                  {t('search_reminder')}
-                  <em>
-                    &nbsp;{t('search_reminder_action')}
-                  </em>
-                </span>
-                <span className="cliqz-close-btn" onClick={() => this.props.toggleComponent('searchReminder')} />
-              </span>
-            )
-          }
-        </div>
         {super.render()}
         <div className="inner-container">
           <Button
@@ -199,7 +184,7 @@ export default class UrlbarWithResults extends Urlbar {
               <SearchSettings maxHeight={this.maxHeight} isOpen={this.state.isSearchSettingsOpen} />
             </div>
             <iframe
-              id="cliqz-dropdown"
+              id="cliqz-dropdown-iframe"
               tabIndex="-1"
               title="Results"
               ref={(iframe) => { this.iframe = iframe; }}

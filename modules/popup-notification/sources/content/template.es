@@ -1,6 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 import escape from './escape';
+import { chooseProduct } from './utils';
 
 function _getLabelsTemplate(chrome, labels = []) {
   const locale = key => chrome.i18n.getMessage(key);
@@ -21,7 +22,7 @@ function _getConditions(chrome, conditions) {
 }
 
 function getTemplate(chrome, {
-  ghostery,
+  products = {},
   logoText,
   benefit,
   headline,
@@ -29,7 +30,9 @@ function getTemplate(chrome, {
   labels,
   conditions,
   shouldHideButtons,
+  logo_dataurl: logoDataurl,
 }) {
+  const product = chooseProduct(products);
   return `
     <div class="content">
       <div class="header">
@@ -39,10 +42,10 @@ function getTemplate(chrome, {
         <div class="btn-close"></div>
       </div>
       <div class="sub-header">
-        <div class="labels">${_getLabelsTemplate(chrome, ghostery ? [] : labels)} </div>
+        <div class="labels">${_getLabelsTemplate(chrome, product === 'ghostery' ? [] : labels)} </div>
         <div class="billet"></div>
         <div class="wrapper">
-          <div class="logo"></div>
+          <div class="logo" style="background-image: url(${logoDataurl})"></div>
         </div>
         <div class="billet"></div>
       </div>

@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import Link from './partials/link';
@@ -27,8 +35,8 @@ function StatsBox({
     >
       <p className="stats-title" title={title}>{title}</p>
       <p className="stats-value">
-        <span style={{ '--mask-image': `url(../${icon})` }} />
-        <span>{val}</span>
+        <span className="stats-mask" style={{ '--mask-image': `url(../${icon})` }} />
+        <span className="stats-val">{val}</span>
       </p>
       <p className="stats-description">{description}</p>
       <p className="learn-more">{tt('learn_more')}</p>
@@ -81,7 +89,7 @@ function StatsEmptyBox({
           {name}
         </p>
         <p className="description">
-          <span>
+          <span className="description-text">
             {description}
           </span>
           <a className="learn-more" href={learnMore.link}>
@@ -90,7 +98,7 @@ function StatsEmptyBox({
         </p>
       </div>
       <div className="buttons">
-        <div>
+        <div className="btn-wrap">
           {buttons.map(button =>
             (
               <a
@@ -157,7 +165,8 @@ export default function Stats({
                   key={item.title}
                   hoverFn={handleHover}
                   index={index}
-                />))
+                />
+              ))
           }
           {
             isEmpty
@@ -166,7 +175,8 @@ export default function Stats({
                   promoData={promoData}
                   clickFn={handleDownloadClick}
                   toggleComponent={toggleComponent}
-                />)
+                />
+              )
           }
         </div>
       </div>

@@ -87,7 +87,6 @@ Example:
 ```json
 {
   "extensions.cliqz.triggersBE": " http://10.1.21.104",
-  "extensions.cliqz.offers2FeatureEnabled": true,
   "extensions.cliqz.offersDevFlag": true,
   "extensions.cliqz.offersHubTrigger": "auto"
 }

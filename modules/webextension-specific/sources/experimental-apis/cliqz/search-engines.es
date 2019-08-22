@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 const { Services } = ChromeUtils.import('resource://gre/modules/Services.jsm', {}); // eslint-disable-line no-undef
 const searchService = Services.search;
 
@@ -60,7 +68,7 @@ export async function getSearchEngines() {
           default: engineWrapper.name === defaultEngine.name,
           description: engineWrapper.description,
           encoding: 'UTF-8',
-          icon: engineWrapper.iconURI.spec,
+          icon: engineWrapper.iconURI && engineWrapper.iconURI.spec,
           identifier: engineWrapper.identifier,
           name: engineWrapper.name,
           searchForm: engineWrapper.searchForm,
@@ -75,11 +83,11 @@ export async function getSearchEngines() {
     return visibleEngines.then(engines =>
       engines.map((engineWrapper) => {
         const engine = {
-          alias: null,
+          alias: (engineWrapper._metaData && engineWrapper._metaData.alias) || null,
           default: engineWrapper.name === defaultEngine.name,
           description: engineWrapper.description,
           encoding: 'UTF-8',
-          icon: engineWrapper.iconURI.spec,
+          icon: engineWrapper.iconURI && engineWrapper.iconURI.spec,
           identifier: engineWrapper.shortName,
           name: engineWrapper.name,
           searchForm: engineWrapper.searchForm,

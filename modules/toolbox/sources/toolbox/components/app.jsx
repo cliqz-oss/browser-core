@@ -1,5 +1,13 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import React from 'react';
-import createSpananWrapper from '../../../core/helpers/spanan-module-wrapper';
+import createActionWrapper from '../../../core/helpers/action-module-wrapper';
 
 import AppModules from './app-modules';
 import ActionButtons from './action-buttons';
@@ -31,7 +39,7 @@ export default class App extends React.Component {
   }
 
   componentDidMount() {
-    this.background = createSpananWrapper('toolbox').createProxy();
+    this.background = createActionWrapper('toolbox');
   }
 
   checkView = () => {

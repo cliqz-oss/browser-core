@@ -1206,6 +1206,39 @@ export default describeModule('offers-v2/offers/offers-monitoring',
             callCouponFormUsed(r1.offerInfo, '', url);
             checkCampaignSignal(offer.cid, offer.offer_id, 'trigger', 'coupon_empty', 1);
           });
+
+          it('provide hints for coupon input and submit in html forms', () => {
+            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } } };
+            const couponInfo = {
+              autoFillField: false,
+              inputID: 'iid',
+              submitID: 'sid',
+              isDynamicPage: true,
+              clickEvent: 'mouseup',
+              someFutureParameter: 'smth',
+            };
+            const monitors = [{
+              signalID: 's1',
+              type: 'coupon',
+              params: {},
+              patterns: [
+                '||google.de/activate_second',
+              ],
+              couponInfo: JSON.parse(JSON.stringify(couponInfo)),
+            }
+            ];
+            buildAndAddOffer(offer, monitors);
+
+            const urlData = buildUrlData('http://google.de/activate_second');
+            const r = omh.shouldActivateOfferForUrl(urlData);
+
+            const generatedOfferInfo = r.offerInfo;
+            chai.expect(generatedOfferInfo).to.eql({
+              ...couponInfo,
+              code: 'TEST_CODE',
+              pattern: '||google.de/activate_second',
+            });
+          });
         });
       });
     });

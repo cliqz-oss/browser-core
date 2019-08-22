@@ -16,6 +16,7 @@ const VALID_CATEGORY = {
 
 const VALID_OFFER_LANDING_URL = 'https://github.com/cliqz/aws-infrastructure-data';
 const VALID_OFFER_SUCCESS_URL = 'https://github.com/cliqz/socorro';
+const VALID_OFFER_COUPON_URL_PATTERN = '||github.com/cliqz/cart$script';
 
 const VALID_OFFER_OBJ = {
   action_info: {
@@ -41,6 +42,7 @@ const VALID_OFFER_OBJ = {
         text: 'Jetzt Anfordern',
         url: 'http://newurl'
       },
+      code: 'SomeCoupon',
       conditions: 'Some conditions',
       desc: 'Some description',
       title: 'This is the title',
@@ -76,6 +78,19 @@ const VALID_OFFER_OBJ = {
       patterns: [`||${VALID_OFFER_SUCCESS_URL.replace('https://', '')}$script`],
       signalID: 'success',
       type: 'urlchange',
+    },
+    {
+      couponInfo: {
+        autoFillField: true
+      },
+      params: {
+        filter_last_secs: 5,
+        referrer_cat: true,
+        store: false
+      },
+      patterns: [VALID_OFFER_COUPON_URL_PATTERN],
+      signalID: '_coupon_',
+      type: 'coupon',
     },
   ],
   rs_dest: ['offers-cc'],
@@ -144,6 +159,7 @@ module.exports = {
   VALID_CATEGORY,
   VALID_OFFER_LANDING_URL,
   VALID_OFFER_SUCCESS_URL,
+  VALID_OFFER_COUPON_URL_PATTERN,
   VALID_OFFER_OBJ: Object.freeze(VALID_OFFER_OBJ),
   VALID_OOTW_OFFER_OBJ: Object.freeze(VALID_OOTW_OFFER_OBJ),
 };

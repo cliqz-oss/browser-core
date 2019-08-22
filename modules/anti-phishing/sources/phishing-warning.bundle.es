@@ -1,9 +1,14 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global window, document */
 import checkIfChromeReady from '../core/content/ready-promise';
-import createSpananForModule from '../core/helpers/spanan-module-wrapper';
-
-const antiPhishingBridge = createSpananForModule('anti-phishing');
-const antiPhishing = antiPhishingBridge.createProxy();
+import createModuleWrapper from '../core/helpers/action-module-wrapper';
 
 let phishingURL = '';
 
@@ -76,13 +81,7 @@ function updateButtons(aph, url) {
 
 format();
 checkIfChromeReady().then(() => {
-  chrome.runtime.onMessage.addListener((message) => {
-    antiPhishingBridge.handleMessage({
-      uuid: message.requestId,
-      response: message.respone,
-    });
-  });
-  updateButtons(antiPhishing, phishingURL);
+  updateButtons(createModuleWrapper('anti-phishing'), phishingURL);
 }).catch((ex) => {
   // eslint-disable-next-line no-console
   console.error('Chrome was never ready', ex);

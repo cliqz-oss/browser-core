@@ -45,11 +45,11 @@ function cqzOfferBtnClicked(ev) {
   }
 
   if (ev.target.getAttribute('data-cqz-of-btn-id') === 'code_copied') {
-    sendMessageToWindow({
-      handler: 'copyToClipboard',
-      data: document.querySelector('.code').innerText,
-    });
-
+    const hiddenInput = $(ev.target).parent().find('.hidden-code-value')[0];
+    if (hiddenInput) {
+      hiddenInput.select();
+      document.execCommand('copy');
+    }
     document.querySelector('.code-box').className += ' copied';
   }
 

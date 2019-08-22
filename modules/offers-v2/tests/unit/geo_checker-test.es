@@ -12,6 +12,9 @@ export default describeModule('offers-v2/features/geo_checker',
     'core/http': {
       default: {}
     },
+    'platform/globals': {
+      chrome: {},
+    },
     'platform/xmlhttprequest': {
       default: {}
     },

@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { openLink, getWindow } from '../core/browser';
 import telemetry from '../core/services/telemetry';
 import PeerSlave from './peer-slave';
@@ -10,9 +18,12 @@ import background from '../core/base/background';
 import CachedMap from '../core/persistence/cached-map';
 import inject from '../core/kord/inject';
 import events from '../core/events';
+import console from '../core/console';
 import contextmenuapi from '../platform/context-menu';
+import { getTabsWithUrl } from '../platform/tabs';
 import { getMessage } from '../core/i18n';
-import { chrome } from '../platform/globals';
+import { browser } from '../platform/globals';
+import runtime from '../platform/runtime';
 
 function isValidURL(url) {
   return url.indexOf('https:') === 0 || url.indexOf('http:') === 0;
@@ -52,9 +63,24 @@ export default background({
     };
     PeerComm.addObserver('TELEMETRY', observer);
 
+    const sendToPreferenceTab = (obj) => {
+      getTabsWithUrl('about:preferences#connect').then((tabs) => {
+        for (const t of tabs) {
+          browser.tabs.sendMessage(t.id, obj);
+        }
+      }).catch((e) => {
+        console.log('something went wrong', e);
+      });
+    };
 
     function sendUI(action) {
-      chrome.runtime.sendMessage({
+      // since migration to webext iframe do not receive runtime message.
+      sendToPreferenceTab({
+        action,
+        message: this.peerSlave.pairingInfo,
+      });
+
+      runtime.sendMessage({
         action,
         message: this.peerSlave.pairingInfo,
       });
@@ -189,13 +215,14 @@ export default background({
           is_success: true,
         });
       })
-      .catch(() => {
+      .catch((e) => {
         telemetry.push({
           type: 'connect',
           version: 1,
           action: 'send_tab',
           is_success: false,
         });
+        console.error('Failed to send tab:', e);
       });
   },
 

@@ -1,6 +1,7 @@
 /* global chai */
 /* global describeModule */
 /* global require */
+/* global sinon */
 /* eslint no-param-reassign: off */
 
 const commonMocks = require('../utils/common');
@@ -8,6 +9,7 @@ const persistenceMocks = require('../utils/persistence');
 const eventsMock = require('../utils/events');
 const signalsMock = require('../utils/offers/signals');
 const VALID_OFFER_OBJ = require('../utils/offers/data').VALID_OFFER_OBJ;
+const waitFor = require('../utils/waitfor');
 
 const CH = 'offers-send-ch';
 
@@ -233,14 +235,68 @@ export default describeModule('offers-v2/offers/offers-api',
             });
           });
 
-          // TODO: check removed offer sent AID_OFFER_DB_REMOVED signal
+          context('/download offer images', () => {
+            let offerObj;
+            let templateData;
 
-          // check display offer
+            const isDownloderFinished = () => !op.imageDownloader.nThreads;
 
-          // check the different APIs get methods
+            beforeEach(async function () {
+              db.addOfferObject(VALID_OFFER_OBJ.offer_id, VALID_OFFER_OBJ);
+              offerObj = db.getOfferObject(VALID_OFFER_OBJ.offer_id);
+              templateData = offerObj.ui_info.template_data;
+              templateData.logo_url = 'fake://?body=some data&header.content-type=image/smth';
+              templateData.picture_url = 'fake://?body=another data&header.content-type=image/smth';
+              templateData.logo_dataurl = undefined;
+              templateData.picture_dataurl = undefined;
+            });
 
-          // do more complex tests sending signals from outside sending messages
-          // and getting the responses
+            it('/download missed images', async () => {
+              const expectedLogoDataurl = 'data:image/smth;base64,c29tZSBkYXRh';
+              const expectedPictureDataurl = 'data:image/smth;base64,YW5vdGhlciBkYXRh';
+
+              const offers = op.getStoredOffers();
+              await waitFor(isDownloderFinished);
+
+              const offer = new Offer(offers[0].offer_info);
+              await waitFor(() => {
+                chai.expect(offer.getLogoDataurl()).to.eq(expectedLogoDataurl);
+                chai.expect(offer.getPictureDataurl()).to.eq(expectedPictureDataurl);
+              });
+            });
+
+            context('/do not download', () => {
+              let fetch;
+
+              beforeEach(() => {
+                fetch = sinon.spy(op.imageDownloader, 'fetch');
+              });
+
+              it('/do not download already downloaded images', async () => {
+                templateData.logo_dataurl = 'data:image/smth;base64,etc';
+                templateData.picture_dataurl = 'data:image/smth;base64,etc';
+
+                op.getStoredOffers();
+                await waitFor(isDownloderFinished);
+
+                chai.expect(fetch).to.have.not.been.called;
+              });
+
+              it('/do not download images often', async () => {
+                op.getStoredOffers();
+                await waitFor(isDownloderFinished);
+
+                templateData.logo_dataurl = undefined;
+                templateData.picture_dataurl = undefined;
+                fetch.resetHistory();
+
+                op.getStoredOffers();
+                await waitFor(isDownloderFinished);
+
+                chai.expect(fetch).to.have.not.been.called;
+              });
+            });
+          });
         });
       });
     });

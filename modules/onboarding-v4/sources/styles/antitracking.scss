@@ -1,0 +1,106 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+@import 'variables.scss';
+
+.step.antitracking {
+    .eyes-container {
+        opacity: 0;
+        transition: opacity .4s linear;
+
+        &.visible {
+            opacity: 1;
+        }
+
+       .eyes {
+            position: absolute;
+            display: flex;
+            justify-content: space-between;
+            width: 142px;
+            height: 55px;
+            z-index: 1;
+
+            span {
+                width: 55px;
+                height: 100%;
+                background-color: #fff;
+                border-radius: 50%;
+                position: relative;
+
+                &:before {
+                    content: "";
+                    width: 32px;
+                    height: 32px;
+                    background-color: #000;
+                    border-radius: 50%;
+                    position: absolute;
+                    top: 2px;
+                    left: 7px;
+                }
+
+                &:after {
+                    visibility: hidden;
+                    content: "";
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 50%;
+                    border: 3px solid #000;
+                    top: 0;
+                    left: 0;
+                    display: inline-block;
+                    box-sizing: border-box;
+                    border-top-color: transparent;
+                    border-left-color: transparent;
+                    transform: rotateZ(45deg);
+                }
+            }
+
+            &.closed {
+                span {
+                    transform: rotate(0deg) !important;
+                    background-color: transparent;
+
+                    &:before {
+                        visibility: hidden;
+                    }
+
+                    &:after {
+                        visibility: visible;
+                    }
+                }
+            }
+        }
+    }
+
+    .info {
+        box-shadow: none;
+
+        .headline .toggled {
+            background: #000;
+        }
+
+        .description-area {
+            .description {
+                padding-bottom: 10px;
+                position: relative;
+
+                &:hover .tooltip {
+                    display: block;
+                }
+            }
+
+            &:not(.toggled) .description {
+                text-decoration: underline;
+            }
+
+            &.toggled {
+                text-decoration: none;
+            }
+        }
+    }
+}

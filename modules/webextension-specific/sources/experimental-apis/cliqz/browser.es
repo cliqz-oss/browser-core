@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global windowTracker, MigrationUtils, ChromeUtils, Components */
 const { ExtensionCommon } = ChromeUtils.import('resource://gre/modules/ExtensionCommon.jsm');
 
@@ -23,6 +31,13 @@ export function openPageActionPopup(extensionId) {
   }
 }
 
+export function openBrowserActionPopup() {
+  const win = windowTracker.getCurrentWindow();
+  const ccNode = win.document.getElementById('cliqz_cliqz_com-browser-action2');
+  if (ccNode) {
+    ccNode.click();
+  }
+}
 
 export function isDefaultBrowser() {
   try {

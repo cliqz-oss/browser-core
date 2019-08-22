@@ -1,0 +1,418 @@
+{
+  "url": "https://www.google.de/search?tbm=isch&q=konrad zuse bilder",
+
+  "mustContain": [{
+      "type": "humanweb",
+      "action": "img",
+      "payload": {
+        "r": {
+          "0": {
+            "u": "https://upload.wikimedia.org/wikipedia/commons/2/29/Konrad_Zuse_Denkmal_im_Huenfelder_Stadtpark.JPG",
+            "ru": "https://de.wikipedia.org/wiki/Konrad_Zuse"
+          },
+          "1": {
+            "u": "https://www.br.de/radio/bayern2/sendungen/iq-wissenschaft-und-forschung/zuse-100~_v-img__16__9__xl_-d31c35f8186ebeb80b0cd843a7c267a0e0c81647.jpg?version=1c348",
+            "ru": "https://www.br.de/themen/wissen/konrad-zuse-computer100.html"
+          },
+          "2": {
+            "u": "https://img1.osthessen-news.de/images/15/12/xl/11518263-dsc-0013.jpg",
+            "ru": "https://osthessen-news.de/n11518263/20-todestag-von-konrad-zuse-bad-hersfeld-ehrt-mit-ausstellung.html"
+          },
+          "3": {
+            "u": "https://www.zib.de/sites/default/files/room_images/DSC_7966_klein.jpg",
+            "ru": "https://www.zib.de/de/institute/konrad_zuse"
+          },
+          "4": {
+            "u": "https://media-cdn.sueddeutsche.de/image/sz.1.962892/920x613?cropRatios=0:0-BiGa-www&cropRatios=3:2&cropRatios=2:3&method=resize&v=1528328461",
+            "ru": "https://www.sueddeutsche.de/digital/konrad-zuse-papa-der-steinzeitcomputer-1.962856-7"
+          },
+          "5": {
+            "u": "https://www.rnz.de/cms_media/module_img/314/157141_1_org_image_0af8b3de85077dd29297dc2f959f8513.jpg",
+            "ru": "https://www.rnz.de/panorama/magazin_artikel,-Magazin-Computer-Alles-begann-mit-Konrad-Zuse-_arid,191493.html"
+          },
+          "6": {
+            "u": "https://www.br.de/themen/wissen/konrad-zuse-100~_v-img__3__4__xl_-f4c197f4ebda83c772171de6efadd3b29843089f.jpg?version=6a06d",
+            "ru": "https://www.br.de/themen/wissen/konrad-zuse-computer100.html"
+          },
+          "7": {
+            "u": "https://media0.faz.net/ppmedia/video/4141352038/1.1001746/default/konrad-zuse-widmete-sich-auch.jpg",
+            "ru": "https://www.faz.net/aktuell/wirtschaft/wirtschaftswissen/konrad-zuse-er-war-unser-aller-vormacher-1994501/konrad-zuse-widmete-sich-auch-11001746.html"
+          },
+          "8": {
+            "u": "https://www.osthessen-zeitung.de/uploads/pics/zuse_01.jpg",
+            "ru": "https://www.osthessen-zeitung.de/einzelansicht/news/2015/dezember/erinnerungen-an-konrad-zuse-20-todestag-am-kommenden-freitag.html"
+          },
+          "9": {
+            "u": "https://www.bilder-fuchs.de/wp-content/uploads/2015/10/Konrad-Zuse-Sechs-Kunstdrucke-web.jpg",
+            "ru": "https://www.bilder-fuchs.de/produkt/konrad-zuse-mappenwerk-siebdrucke-handsigniert-format-47-x-62-cm/"
+          },
+          "10": {
+            "u": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Grab_von_Konrad_Zuse_in_H%C3%BCnfeld.jpg/1280px-Grab_von_Konrad_Zuse_in_H%C3%BCnfeld.jpg",
+            "ru": "https://de.wikipedia.org/wiki/Datei:Grab_von_Konrad_Zuse_in_H%C3%BCnfeld.jpg"
+          },
+          "11": {
+            "u": "https://image.invaluable.com/housePhotos/henrys/81/584681/H3419-L91349732_mid.jpg",
+            "ru": "https://www.invaluable.com/artist/zuse-konrad-smxqcw2o4n/sold-at-auction-prices/"
+          },
+          "12": {
+            "u": "http://www.artnet.de/WebServices/images/ll07601lldJ1MJFg8GECfDrCWQFHPKcDEBF/konrad-zuse-abstrakte-komposition.jpg",
+            "ru": "http://www.artnet.de/artists/konrad-zuse/"
+          },
+          "13": {
+            "u": "https://i.pinimg.com/originals/cc/e8/17/cce817181616ca5564e21e06b79251f7.jpg",
+            "ru": "https://www.pinterest.co.kr/pin/509117932854431711/"
+          },
+          "14": {
+            "u": "https://www.welt.de/img/wirtschaft/webwelt/mobile101238864/6312504637-ci102l-w1024/konrad-zuse-BM-Bayern-Huenfeld-jpg.jpg",
+            "ru": "https://www.welt.de/wirtschaft/webwelt/article8137712/Konrad-Zuse-baute-den-ersten-Computer-der-Welt.html"
+          },
+          "15": {
+            "u": "https://www.wut.de/pics/article/e-17410-10-piww-000.jpg",
+            "ru": "https://www.wut.de/e-174ww-ww-dade-000.php"
+          },
+          "16": {
+            "u": "https://huenfeld.de/images/Konrad_Zuse/z3-300dpi-image-9.jpg",
+            "ru": "https://huenfeld.de/site_content/136-konrad-zuse.html"
+          },
+          "17": {
+            "u": "https://blog.hnf.de/wp-content/uploads/2015/12/Konrad_Zuse.jpg",
+            "ru": "https://blog.hnf.de/warum-konrad-zuse-nicht-den-nobelpreis-bekam/"
+          },
+          "18": {
+            "u": "https://www.bilder-fuchs.de/wp-content/uploads/2015/12/635-55x80.jpg",
+            "ru": "https://www.bilder-fuchs.de/produkt/konrad-zuse-explosion-und-dynamik-oelgemaeldeleinwand-format-55x80-cm-jahr-1963/"
+          },
+          "19": {
+            "u": "https://www.fuldaerzeitung.de/documents/10165/0/mode_32/image_content_bildausschnitt1_823841194_20151217174346.jpg",
+            "ru": "https://www.fuldaerzeitung.de/regional/huenfeld/erfinder-des-weltweit-ersten-computers-vor-20-jahren-starb-konrad-zuse-in-hunfeld-XD4612202"
+          },
+          "20": {
+            "u": "https://www.schloss-hopferau.com/images/Pressebild_Konrad_Zuse.jpg",
+            "ru": "https://www.schloss-hopferau.com/en/jubilaeumsevents/konrad-zuse.html"
+          },
+          "21": {
+            "u": "http://zuse-computer-museum.com/wp-content/uploads/2015/06/Kunst_6.jpg",
+            "ru": "https://zuse-computer-museum.com/2015/06/01/kunst-des-zuse/"
+          },
+          "22": {
+            "u": "https://nat.museum-digital.de/data/owl/images/201706/28142506808.jpg",
+            "ru": "https://nat.museum-digital.de/index.php?t=objekt&oges=179385"
+          },
+          "23": {
+            "u": "https://www.ingenieur.de/wp-content/uploads/2017/11/2016/12727_Z3-von-Konrad-Zuse-im-Jahr-1960.jpg",
+            "ru": "https://www.ingenieur.de/technik/produkte/konrad-zuses-z3-computer-welt-75/"
+          },
+          "24": {
+            "u": "https://www.tagesspiegel.de/images/heprodimagesfotos82620160511zuse_498_1_20160510102207178-jpg/13577038/3-format6001.jpg?inIsFirst=true",
+            "ru": "https://www.tagesspiegel.de/wissen/digitale-pioniere-75-konrad-zuse-die-zukunft/13577012.html"
+          },
+          "25": {
+            "u": "https://www.deutsches-museum.de/fileadmin/Content/010_DM/050_Forschung/060_Sammlungsbezogene_Forschung/010_Sammlungstiefenerschlie%C3%9Fung_Objektforschung/Forschung_Zuse_Archivprojekt_Z1.jpg",
+            "ru": "https://www.deutsches-museum.de/forschung/forschungsbereiche/sammlungen/objektforschung/digitalisierung-nachlass-konrad-zuse/"
+          },
+          "26": {
+            "u": "https://www.zib.de/sites/default/files/institute/0723.jpg",
+            "ru": "https://www.zib.de/de/institute/konrad_zuse"
+          },
+          "27": {
+            "u": "https://www.bestwestern.de/images/hotels/H%C3%BCnfeld/Best-Western-Plus-Konrad-Zuse-Hotel/960/1_24406-Best-Western-Plus-Konrad-Zuse-Hotel-Hotel-Motive%2C-Au%C3%9Fenansicht%2FHotelansicht-Hotel-Motive.jpg",
+            "ru": "https://www.bestwestern.de/hotels/Huenfeld/Best-Western-Plus-Konrad-Zuse-Hotel"
+          },
+          "28": {
+            "u": "https://www.wissen.de/sites/default/files/wissensserver/styles/small/wissensserver/jadis/incoming/232377.jpeg?itok=QsKZ4wox",
+            "ru": "https://www.wissen.de/der-vater-des-pc"
+          },
+          "29": {
+            "u": "https://www.zuse-gemeinschaft.de/images/ueber-uns/zuse-590.jpg",
+            "ru": "https://www.zuse-gemeinschaft.de/ueber-uns/konrad-zuse"
+          },
+          "30": {
+            "u": "https://images3.lottissimo.com/?57,144,13027225,d",
+            "ru": "https://lot-tissimo.com/de/i/13027225"
+          },
+          "31": {
+            "u": "https://i.ebayimg.com/images/g/N-AAAOSw9sZa-u~V/s-l300.jpg",
+            "ru": "https://www.ebay.de/itm/KONRAD-ZUSE-original-signiert-6-10-/293020417057"
+          },
+          "32": {
+            "u": "https://huenfeld.de/images/headerbilder/headerimg_zuse.jpg",
+            "ru": "https://huenfeld.de/geschichte-stadtteile,-partnerstaedte/konrad-zuse.html"
+          },
+          "33": {
+            "u": "https://www.bilder-fuchs.de/wp-content/uploads/2015/12/6332-80x55.jpg",
+            "ru": "https://www.bilder-fuchs.de/produkt/konrad-zuse-wind-oelgemaeldeleinwand-format-80x55-cm-jahr-1963/"
+          },
+          "34": {
+            "u": "https://www.tagblatt.de/Bilder/Das-Schloss-Hopferau-in-dem-eine-Ausstellung-ueber-den-592890h.jpg",
+            "ru": "https://www.tagblatt.de/Nachrichten/Ausstellung-erinnert-an-Computerpionier-Konrad-Zuse-391766.html"
+          },
+          "35": {
+            "u": "https://gi.de/fileadmin/_processed_/8/0/csm_Konrad-Zuse_39600e9e5f.jpg",
+            "ru": "https://gi.de/persoenlichkeiten/konrad-zuse/"
+          },
+          "36": {
+            "u": "https://media1.faz.net/ppmedia/aktuell/rhein-main/2134433595/1.3973725/format_top1_breit/pionier-konrad-zuse-der.jpg",
+            "ru": "https://www.faz.net/aktuell/rhein-main/vor-20-jahren-starb-konrad-zuse-13972269.html"
+          },
+          "37": {
+            "u": "http://www.zdb.de/zdb-cms.nsf/res/84F067426847E29DC12582BB00300604/$file/Casimir_KatzIII_Quelle_SOFiSTiK_std.JPG",
+            "ru": "http://www.zdb.de/zdb-cms.nsf/id/baugewerbe-konrad-zuse-medaille-geht-in-diesem-jahr-an-prof-dr-ing--casimir-katz-de"
+          },
+          "38": {
+            "u": "https://apps-cloud.n-tv.de/img/14814806-1427797180000/16-9/750/20500805.jpg",
+            "ru": "https://www.n-tv.de/technik/Konrad-Zuses-Urcomputer-laeutet-neue-Ara-ein-Z3-wird-75-article17646766.html"
+          },
+          "39": {
+            "u": "https://oiger.de/wp-content/uploads/Zusemuseum-2017-045.jpg",
+            "ru": "https://oiger.de/2017/02/03/zuse-war-zu-faul-zum-rechnen/162589"
+          },
+          "40": {
+            "u": "https://www.bestwestern.de/images/hotels/H%C3%BCnfeld/Best-Western-Plus-Konrad-Zuse-Hotel/960/1_27175-Best-Western-Plus-Konrad-Zuse-Hotel-Hotel-Motive%2C-Au%C3%9Fenansicht%2FHotelansicht-Hotel-Motive.jpg",
+            "ru": "https://www.bestwestern.de/hotels/Huenfeld/Best-Western-Plus-Konrad-Zuse-Hotel"
+          },
+          "41": {
+            "u": "https://www.br.de/themen/wissen/konrad-zuse-z3-rechner-100~_v-img__16__9__xl_-d31c35f8186ebeb80b0cd843a7c267a0e0c81647.jpg?version=6a06d",
+            "ru": "https://www.br.de/themen/wissen/konrad-zuse-computer100.html"
+          },
+          "42": {
+            "u": "https://i.ebayimg.com/images/g/VyYAAOSw~xtb~H44/s-l300.jpg",
+            "ru": "https://www.ebay.de/itm/KONRAD-ZUSE-orig-Autogramm-Erfinder-des-Computer-/123512932780"
+          },
+          "43": {
+            "u": "https://science-match.tagesspiegel.de/system/images/772/medium/1_Zuse.jpg",
+            "ru": "https://science-match.tagesspiegel.de/digital-future-2018/hall-of-fame/konrad-zuse"
+          },
+          "44": {
+            "u": "http://www.rtd-net.de/ZukunftG.gif",
+            "ru": "http://www.rtd-net.de/Z08.html"
+          },
+          "45": {
+            "u": "https://www.hnf.de/uploads/tx_templavoila/Konrad_Zuse_1943.jpg",
+            "ru": "https://www.hnf.de/dauerausstellung/ausstellungsbereiche/galerie-der-pioniere/konrad-zuse-1910-1995.html"
+          },
+          "46": {
+            "u": "http://www.ytti.de/wp-content/uploads/2015/05/P1070823zuse.jpg",
+            "ru": "https://www.ytti.de/buchtipp-groessten-erfinder-103449/p1070823zuse/"
+          },
+          "47": {
+            "u": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Gedenktafel_Stra%C3%9Fe_des_17_Juni_135_%28Charl%29_Konrad_Zuse.jpg/220px-Gedenktafel_Stra%C3%9Fe_des_17_Juni_135_%28Charl%29_Konrad_Zuse.jpg",
+            "ru": "https://de.wikipedia.org/wiki/Konrad_Zuse"
+          },
+          "48": {
+            "u": "https://huenfeld.de/images/Konrad_Zuse/zuse_als_junger_ingennieur.jpg",
+            "ru": "https://huenfeld.de/site_content/136-konrad-zuse.html"
+          },
+          "49": {
+            "u": "https://www.deutsches-museum.de/fileadmin/Content/010_DM/050_Forschung/070_Wissenschafts-Technik-und_Umweltgeschichte/010_Wissenschafts-und_Technikgeschichte/020_Digitale_Technik-und_Wissenskulturen/Forschung_Zuse_CD_62471_Kriegsauftrag.jpg",
+            "ru": "https://www.deutsches-museum.de/forschung/forschungsbereiche/wissenschaftsgesch/digitale-kulturen/konrad-zuse/"
+          },
+          "50": {
+            "u": "https://heise.cloudimg.io/width/662/q50.png-lossy-50.webp-lossy-50.foil1/_www-heise-de_/imgs/18/2/5/2/9/7/6/3/Bild_aus_flyer-4e46f057efa57faf.png",
+            "ru": "https://www.heise.de/thema/Konrad-Zuse"
+          },
+          "51": {
+            "u": "https://www.konrad-zuse-hotel.de/images/portal_95376/1015/aussenansichtabends-1015177_w456.jpg",
+            "ru": "https://www.konrad-zuse-hotel.de/seiten/hotel.html"
+          },
+          "52": {
+            "u": "https://media101.thueringer-allgemeine.de/content/50/25/91/5I/5025915ITOKSEPSHI_FH5JHFOERKKAOWDCWPKKSYU525112014/D943291909050.JPG",
+            "ru": "https://www.thueringer-allgemeine.de/web/zgt/leben/detail/-/specific/Mietshaus-entwickelt-sich-zu-einem-Brennpunkt-in-Erfurt-Polizei-oft-vor-Ort-1754515941"
+          },
+          "53": {
+            "u": "http://www.artnet.de/WebServices/images/ll08366lldSMvGFg8GECfDrCWQFHPKc8oVD/konrad-zuse-bunte-blitze.jpg",
+            "ru": "http://www.artnet.de/artists/konrad-zuse/"
+          },
+          "54": {
+            "u": "https://www.fuldaerzeitung.de/documents/10165/0/mode_32/image_content_bildausschnitt1_822828660_20150628202713.jpg",
+            "ru": "https://www.fuldaerzeitung.de/regional/huenfeld/185-fos-absolventen-der-konrad-zuse-schule-bei-entlassfeier-verabschiedet-MH3944538"
+          },
+          "55": {
+            "u": "https://www.bz-berlin.de/data/uploads/2015/06/47769142_1435016215-1024x576.jpg",
+            "ru": "https://www.bz-berlin.de/media/konrad-zuse"
+          },
+          "56": {
+            "u": "https://cdn1.spiegel.de/images/image-101420-galleryV9-xukt-101420.jpg",
+            "ru": "https://www.spiegel.de/fotostrecke/konrad-zuse-der-tueftler-der-nicht-selbst-rechnen-wollte-fotostrecke-56183.html"
+          },
+          "57": {
+            "u": "https://c8.alamy.com/compde/rmdxea/konrad-zuse-1910-1995-ist-der-erfinder-des-ersten-programms-angesehen-gesteuerten-universalrechner-undatiertes-foto-rmdxea.jpg",
+            "ru": "https://www.alamy.de/fotos-bilder/konrad-zuse.html"
+          },
+          "58": {
+            "u": "https://www.nae.edu/File.aspx?id=31912&v=339968fe",
+            "ru": "https://www.nae.edu/28084/Dr-Konrad-Zuse"
+          },
+          "59": {
+            "u": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Konrad_Zuse_in_der_Bundesallee.jpg/220px-Konrad_Zuse_in_der_Bundesallee.jpg",
+            "ru": "https://de.wikipedia.org/wiki/Konrad_Zuse"
+          },
+          "60": {
+            "u": "https://i.colnect.net/f/1412/298/Konrad-Zuse---Eizo.jpg",
+            "ru": "https://colnect.com/de/phonecards/phonecard/195926-Konrad_Zuse_-_Eizo-Chip_O-Deutsche_Telekom-Deutschland"
+          },
+          "61": {
+            "u": "https://www.move36.de/wp-content/uploads/2018/05/180530_Kooperation_Konrad-Zuse-Schule.jpg",
+            "ru": "https://www.move36.de/karriere/neue-kooperation-neue-moeglichkeiten-konrad-zuse-schule-wird-move36-partner/"
+          },
+          "62": {
+            "u": "https://kasimir-bau.de/cms/wp-content/uploads/2018/06/konrad-zuse-ring_02-1.jpg",
+            "ru": "https://kasimir-bau.de/cms/referenzen/industrie_gewerbe/cube-thinkcampus-konrad-zuse-ring-potsdam/"
+          },
+          "63": {
+            "u": "https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=1597659036934148",
+            "ru": "https://de-de.facebook.com/fieldsinstitute/photos/happy-birthday-to-konrad-zuse-often-regarded-as-the-inventor-of-the-modern-compu/1597659036934148/"
+          },
+          "64": {
+            "u": "https://kasimir-bau.de/cms/wp-content/uploads/2018/06/konrad-zuse-ring_03-1.jpg",
+            "ru": "https://kasimir-bau.de/cms/referenzen/industrie_gewerbe/cube-thinkcampus-konrad-zuse-ring-potsdam/"
+          },
+          "65": {
+            "u": "https://img.zeit.de/kultur/kunst/2012-06/documenta-bild/wide__250x141__desktop",
+            "ru": "https://www.zeit.de/thema/konrad-zuse"
+          },
+          "66": {
+            "u": "https://i.ebayimg.com/images/g/JeUAAOSwbERcpiqw/s-l300.jpg",
+            "ru": "https://www.ebay.de/itm/KONRAD-ZUSE-1910-BERLIN-1995-HUHNFELD-ABSTRAKTE-WALDANSICHT-OFFSETDRUCK-/323766107348"
+          },
+          "67": {
+            "u": "https://www.hskg-kamenz.de/wordpress/wp-content/uploads/Bild-14_BSZ-Konrad-Zuse-HY-1-1200x768.jpg",
+            "ru": "https://www.hskg-kamenz.de/portfolio/referenz-test-01/"
+          },
+          "68": {
+            "u": "https://www.bestwestern.de/images/hotels/H%C3%BCnfeld/Best-Western-Plus-Konrad-Zuse-Hotel/960/1_24410-Best-Western-Plus-Konrad-Zuse-Hotel-Hotel-Motive%2C-Gastronomie%2C-Fr%C3%BChst%C3%BCck-Hotel-Motive.jpg",
+            "ru": "https://www.bestwestern.de/hotels/Huenfeld/Best-Western-Plus-Konrad-Zuse-Hotel"
+          },
+          "69": {
+            "u": "https://history-computer.com/ModernComputer/Relays/images/Zuse_drawing.jpg",
+            "ru": "https://history-computer.com/People/ZuseBio.html"
+          },
+          "70": {
+            "u": "https://www.lr-online.de/imgs/16/3/6/5/4/0/3/6/tok_8095a02a2e005d573c71eb326209fc1b/w540_h303_x480_y463_CH_20140214979-G2U4QVTV4.1_wwr-G224VC0VT.1-ORG-3bfc6bbc32a88b4b.jpg",
+            "ru": "https://www.lr-online.de/lausitz/weisswasser/stiftung-fuer-konrad-zuse-computermuseum_aid-3191544"
+          },
+          "71": {
+            "u": "https://www.picclickimg.com/d/l400/pict/253836162461_/Telefonkarte-Konrad-Zuse-Erfinder-des-Computers.jpg",
+            "ru": "https://picclick.de/Telefonkarte-Konrad-Zuse-handsigniert-Erfinder-des-Computer-323404187756.html"
+          },
+          "72": {
+            "u": "https://hessentag2019.de/wp-content/uploads/z25-2010-1jpg-1024x712.jpg",
+            "ru": "https://hessentag2019.de/konrad-zuse-in-der-sparkasse/"
+          },
+          "73": {
+            "u": "https://upload.wikimedia.org/wikipedia/commons/f/f2/Erlangen_Konrad-Zuse-Stra%C3%9Fe_3-5_001.JPG",
+            "ru": "https://de.wikipedia.org/wiki/Datei:Erlangen_Konrad-Zuse-Stra%C3%9Fe_3-5_001.JPG"
+          },
+          "74": {
+            "u": "https://r-ec.bstatic.com/images/hotel/max1024x768/110/110255001.jpg",
+            "ru": "https://www.booking.com/hotel/de/konrad-zuse.de.html"
+          },
+          "75": {
+            "u": "https://cdn1.spiegel.de/images/image-101420-thumb-xukt-101420.jpg",
+            "ru": "https://www.spiegel.de/thema/konrad_zuse/"
+          },
+          "76": {
+            "u": "http://zuse-computer-museum.com/wp-content/uploads/2015/06/Kunst_1.jpg",
+            "ru": "https://zuse-computer-museum.com/2015/06/01/kunst-des-zuse/"
+          },
+          "77": {
+            "u": "https://www.luftbildsuche.de/foto/detail/luftbilder-baustelle-zum-neubau-oberschule-zwischen-konrad-zuse-strasse-claus-stauffenberg-strasse-hoyerswerda-sachsen-deutschland-407862.jpg",
+            "ru": "https://www.luftbildsuche.de/info/luftbilder/baustelle-zum-neubau-oberschule-zwischen-konrad-zuse-strasse-claus-stauffenberg-strasse-hoyerswerda-sachsen-deutschland-407862.html"
+          },
+          "78": {
+            "u": "http://view.stern.de/de/picture/2987730/kunst-dueren-peter-kaul-fotografien-reproduktion-konrad-940.jpg",
+            "ru": "http://view.stern.de/de/rubriken/kreativ/kunst-dueren-peter-kaul-fotografien-reproduktion-konrad-original-2987730.html"
+          },
+          "79": {
+            "u": "https://www.planet-wissen.de/technik/computer_und_roboter/geschichte_des_computers/computer-grossrechner-100~_v-gseapremiumxl.jpg",
+            "ru": "https://www.planet-wissen.de/technik/computer_und_roboter/geschichte_des_computers/pwiegrossrechner100.html"
+          },
+          "80": {
+            "u": "https://www.bilder-fuchs.de/wp-content/uploads/2015/12/Collage-1-1080x675.jpeg",
+            "ru": "https://www.bilder-fuchs.de/konrad-zuse-grosse-auswahl-an-original-gemaelden-aus-den-jahren-1963-1976/"
+          },
+          "81": {
+            "u": "http://www.horst-zuse.homepage.t-online.de/_wp_generated/wp15df4962_05_06.jpg",
+            "ru": "http://www.konrad-zuse.de/"
+          },
+          "82": {
+            "u": "http://www.horst-zuse.homepage.t-online.de/_wp_generated/wp743b1813_05_06.jpg",
+            "ru": "http://www.horst-zuse.homepage.t-online.de/malerei.html"
+          },
+          "83": {
+            "u": "https://www.hnf.de/fileadmin/_processed_/csm_Konrad_Zuse_Stadt_ff4f69fda2.jpg",
+            "ru": "https://www.hnf.de/ausstellungen/rueckblick/showroom/zuse-extra-der-computererfinder-und-seine-ideen.html"
+          },
+          "84": {
+            "u": "http://www.horst-zuse.homepage.t-online.de/_wp_generated/wp667ead42_05_06.jpg",
+            "ru": "http://www.konrad-zuse.de/"
+          },
+          "85": {
+            "u": "http://www.horst-zuse.homepage.t-online.de/_wp_generated/wp4292f468_05_06.jpg",
+            "ru": "http://www.konrad-zuse.de/"
+          },
+          "86": {
+            "u": "http://www.artnet.de/WebServices/images/ll07488lld7b9GFg8GECfDrCWQFHPKckRTE/konrad-zuse-abstrakte-komposition.jpg",
+            "ru": "http://www.artnet.de/artists/konrad-zuse/"
+          },
+          "87": {
+            "u": "https://www.zdf.de/assets/konrad-zuse-100~768x432?cb=1504096080741",
+            "ru": "https://www.zdf.de/kinder/logo/wer-war-konrad-zuse-100.html"
+          },
+          "88": {
+            "u": "http://www.horst-zuse.homepage.t-online.de/_wp_generated/wpf55ead19_05_06.jpg",
+            "ru": "http://www.horst-zuse.homepage.t-online.de/malerei.html"
+          },
+          "89": {
+            "u": "http://www.horst-zuse.homepage.t-online.de/_wp_generated/wp44663e25_05_06.jpg",
+            "ru": "http://www.horst-zuse.homepage.t-online.de/malerei.html"
+          },
+          "90": {
+            "u": "http://www.artnet.de/WebServices/images/ll07600lldJ1MJFg8GECfDrCWQFHPKcDEBF/konrad-zuse-abstrakte-komposition.jpg",
+            "ru": "http://www.artnet.de/artists/konrad-zuse/"
+          },
+          "91": {
+            "u": "https://www.wut.de/pics/article/e-17400-10-piww-000.jpg",
+            "ru": "https://www.wut.de/e-174ww-ww-dade-000.php"
+          },
+          "92": {
+            "u": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Konrad_Zuse_%281992%29.jpg/170px-Konrad_Zuse_%281992%29.jpg",
+            "ru": "https://de.wikipedia.org/wiki/Konrad_Zuse"
+          },
+          "93": {
+            "u": "http://if-blog.de/wp-content/uploads/2008/09/k_zuse.jpg",
+            "ru": "http://if-blog.de/rd/konrad-zuse-it-und-wolkenkratzer/"
+          },
+          "94": {
+            "u": "https://www.hs.uni-hamburg.de/DE/GNT/bild/zuse2.jpg",
+            "ru": "https://www.hs.uni-hamburg.de/DE/GNT/hh/biogr/zuse.htm"
+          },
+          "95": {
+            "u": "https://media04.all-in.de/article/2013/02/08/2/288332_L.jpg?1563084306",
+            "ru": "https://www.all-in.de/fuessen/c-lokales/ausstellungseroeffnung-gemaelde-von-konrad-zuse_a1271329"
+          },
+          "96": {
+            "u": "https://www.swr.de/-/id=20713442/property=full/vsar46/Konrad%20Zuse%20mit%20seinem%20Nachbau%20des%20sogenannten%20Z1%20(1989).jpg",
+            "ru": "https://www.swr.de/swr2/wissen/archivradio/konrad-zuse-erfindung-computer-z1-z3/-/id=2847740/did=10367584/nid=2847740/1o6l130/index.html"
+          },
+          "97": {
+            "u": "https://www.lr-online.de/imgs/16/2/5/3/1/5/2/0/5/tok_bad34e6c99f9ae83c7c66d55c4843c03/w540_h303_x846_y620_LR_25300403_516361769_RGB_190_1_1_e94a963db7732e5b9edc9fe9cddcb585_1525011328_516361769_ca68025417-be6891c8f3a182db.jpg",
+            "ru": "https://www.lr-online.de/nachrichten/kultur/konrad-zuse-vom-erfinder-des-computers-zum-kuenstler_aid-22206757"
+          },
+          "98": {
+            "u": "https://image.invaluable.com/housePhotos/henrys/81/584681/H3419-L91349733_mid.jpg",
+            "ru": "https://www.invaluable.com/artist/zuse-konrad-smxqcw2o4n/sold-at-auction-prices/"
+          },
+          "99": {
+            "u": "https://i.ytimg.com/vi/n8Yo-wD-QTo/maxresdefault.jpg",
+            "ru": "https://www.youtube.com/watch?v=n8Yo-wD-QTo"
+          }
+        },
+        "q": "konrad zuse bilder",
+        "qurl": "https://www.google.de/search?tbm=isch&q=konrad zuse bilder",
+        "ctry": "de"
+      }
+    }    
+  ],
+
+  "mustNotContain": [{ "action": "query" }]
+}

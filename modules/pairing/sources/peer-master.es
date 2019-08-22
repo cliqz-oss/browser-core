@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import MessageStorage from './message-storage';
 import { sha256, toByteArray, deriveAESKey, fromByteArray, encryptStringAES, decryptStringAES } from '../core/crypto/utils';
 import console from '../core/console';
@@ -518,11 +526,17 @@ export default class PeerMaster {
         this.masterPeer.encryptSignaling = (data, peerID) =>
           this.loadPairingAESKey(peerID)
             .then(aesKey => PeerMaster.sendEncrypted(data, aesKey))
-            .catch(() => data);
+            .catch((e) => {
+              console.error('createPeer: failed to send message:', data, e);
+              throw e;
+            });
         this.masterPeer.decryptSignaling = (data, peerID) =>
           this.loadPairingAESKey(peerID)
             .then(aesKey => PeerMaster.receiveEncrypted(data, aesKey))
-            .catch(() => data);
+            .catch((e) => {
+              console.error('createPeer: failed to receive message:', data, e);
+              throw e;
+            });
         this.masterPeer.setMessageSizeLimit(maxSize);
       });
   }

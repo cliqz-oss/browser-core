@@ -1,8 +1,12 @@
 import { chrome } from '../platform/globals';
 import { getTab } from '../platform/tabs';
+import adblocker from '../platform/lib/adblocker';
 import { getActiveTab } from '../core/browser';
 import logos from '../core/services/logos';
+import { isCliqzBrowser, isAMO } from '../core/platform';
+import config from '../core/config';
 
+const ALLOWED_PRODUCTS = ['chip', 'freundin'];
 const BLACK_LIST = [
   'accounts-static.cdn.mozilla.net',
   'accounts.firefox.com',
@@ -66,4 +70,26 @@ export function filterValues(obj, predicate) {
     }
   });
   return newObj;
+}
+
+export function products() {
+  return {
+    cliqz: isCliqzBrowser,
+    amo: isAMO,
+    chip: config.settings['chip-standalone.enabled'],
+    freundin: config.settings['freundin-standalone.enabled'],
+    incent: config.settings['incent-standalone.enabled'],
+  };
+}
+
+export function chooseProduct(options = {}) {
+  return ALLOWED_PRODUCTS.find(product => options[product]) || 'myoffrz';
+}
+
+export function matchPatternsByUrl(patterns, url) {
+  const request = adblocker.Request.fromRawDetails({ url, type: 'script' });
+  return (patterns).reduce((acc, pattern) => {
+    const filter = adblocker.NetworkFilter.parse(pattern);
+    return acc || filter.match(request);
+  }, false);
 }

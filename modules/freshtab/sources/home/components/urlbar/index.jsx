@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global KEY_EVENTS_RECORDER */
 import React from 'react';
 import cliqz from '../../cliqz';
@@ -120,6 +128,7 @@ class Urlbar extends React.Component {
         style={{ ...styles, opacity: this.state.visible }}
       >
         <input
+          className="urlbarSearch"
           type="text"
           spellCheck="false"
           ref={(input) => { this.textInput = input; }}

@@ -1,15 +1,19 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 const path = require('path');
 const Funnel = require('broccoli-funnel');
-const deepAssign = require('deep-assign');
 const replace = require('broccoli-string-replace');
 
 const cliqzEnv = require('../cliqz-env');
 const cliqzConfig = require('../config');
 const helpers = require('./helpers');
-const systemBuilderPath = cliqzConfig.use_v6_build ?
-  './broccoli-systemjs.v6' :
-  './broccoli-systemjs';
-const SystemBuilder = require(systemBuilderPath);
+const SystemBuilder = require('./broccoli-webpack');
 
 const walk = helpers.walk;
 
@@ -114,45 +118,7 @@ function getBundlesTree(modulesTree) {
     exclude: excludedBundleFiles,
   });
 
-  const cliqzConfigSystem = cliqzConfig.system || {};
   const cliqzConfigBundler = cliqzConfig.bundler || {};
-
-  const systemConfig = {
-    transpiler: false,
-    packageConfigPaths: [
-      'node_modules/*/package.json',
-      'node_modules/@*/*/package.json',
-    ],
-    map: Object.assign({
-      'plugin-json': 'node_modules/systemjs-plugin-json/json.js',
-    }, cliqzConfigSystem.map || {}),
-    paths: {
-      'specific/*': `./specific/${cliqzConfig.platform}/*`,
-      'modules/*': 'modules/*',
-      modules: 'modules',
-      'node_modules/*': './node_modules/*',
-      '*': './node_modules/*',
-    },
-    meta: Object.assign({
-      'specific/*': {
-        format: 'global',
-      },
-      '*.json': {
-        loader: 'plugin-json',
-      },
-    }, cliqzConfigSystem.meta || {}),
-    packages: deepAssign({
-      [prefix]: {
-        defaultJSExtensions: true,
-        // format: 'system',
-        meta: {
-          '*/templates.js': {
-            format: 'system',
-          },
-        },
-      },
-    }, cliqzConfigSystem.packages || {}),
-  };
 
   const builderConfig = {
     externals: cliqzConfigBundler.externals || [],
@@ -167,7 +133,6 @@ function getBundlesTree(modulesTree) {
 
   const output = new Funnel(
     new SystemBuilder(input, {
-      systemConfig: cliqzConfig.systemDefault || systemConfig,
       builderConfig: cliqzConfig.builderDefault || builderConfig,
       bundleConfigs: cliqzConfig.bundleConfigs || {}
     }),

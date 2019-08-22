@@ -185,7 +185,6 @@ const CURRENT_RESULTS = [{
       deepResults: [],
       extra:
         {
-          mozActionUrl: 'https://www.google.com/search?client=firefox-b&q=fla',
           searchEngineName: 'Google',
         },
       kind: ['custom-search'],

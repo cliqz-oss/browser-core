@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { window } from './globals';
 
 export class Window {
@@ -18,9 +26,6 @@ export function mustLoadWindow() {
 
 export function waitWindowReady() {
   return Promise.resolve();
-}
-
-export function setOurOwnPrefs() {
 }
 
 export function enableChangeEvents() {}
@@ -66,8 +71,6 @@ export function getCookies() {
 export function reportError() {}
 
 export function disableChangeEvents() {}
-
-export function resetOriginalPrefs() {}
 
 export function isDefaultBrowser() {
   return Promise.resolve(null);

@@ -2,14 +2,17 @@
 /* global describeModule */
 
 export default describeModule('offers-banner/transformation/helpers',
-  () => ({}),
+  () => ({
+    'core/platform': { default: {} },
+    'core/prefs': { default: {} },
+  }),
   () => {
     describe('calculateValidity function', () => {
       let calculateValidity;
 
       describe('basic cases', () => {
         beforeEach(function () {
-          calculateValidity = this.module().default;
+          calculateValidity = this.module().calculateValidity;
         });
 
         it('expired in the next 70 years', () => {
@@ -40,7 +43,7 @@ export default describeModule('offers-banner/transformation/helpers',
 
       describe('null and zero cases', () => {
         beforeEach(function () {
-          calculateValidity = this.module().default;
+          calculateValidity = this.module().calculateValidity;
         });
 
         it('should return null', () => {
@@ -60,7 +63,7 @@ export default describeModule('offers-banner/transformation/helpers',
 
       describe('past time case', () => {
         beforeEach(function () {
-          calculateValidity = this.module().default;
+          calculateValidity = this.module().calculateValidity;
         });
 
         it('should return null', () => {
@@ -74,7 +77,7 @@ export default describeModule('offers-banner/transformation/helpers',
 
       describe('two equals dates', () => {
         beforeEach(function () {
-          calculateValidity = this.module().default;
+          calculateValidity = this.module().calculateValidity;
         });
 
         it('should return null', () => {

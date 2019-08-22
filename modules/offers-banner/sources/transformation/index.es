@@ -1,5 +1,6 @@
 import * as rewardBox from './reward-box';
 import * as browserPanel from './browser-panel';
+import * as reminder from './reminder';
 import logger from '../logger';
 
 /*
@@ -10,14 +11,15 @@ import logger from '../logger';
  *  This library provides wrapper around offers model.
 */
 
-export function transform(type, data, options = {}) {
+export function transform(type, data) {
   const mapper = {
     'offers-cc': rewardBox.transform,
     'browser-panel': browserPanel.transform,
+    'offers-reminder': reminder.transform,
   };
   if (!mapper[type]) { logger.warn('receive wrong type of real estate: ', type); }
   const noop = () => {};
-  return (mapper[type] || noop)(data, options);
+  return (mapper[type] || noop)(data);
 }
 
 export function transformMany(type, data) {

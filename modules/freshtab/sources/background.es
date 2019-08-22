@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint no-param-reassign: 'off' */
 /* eslint func-names: 'off' */
 
@@ -41,11 +49,13 @@ import {
   stripTrailingSlash,
   tryEncodeURIComponent,
   tryDecodeURIComponent,
+  getCleanHost,
 } from '../core/url';
 import { URLInfo } from '../core/url-info';
 import extChannel from '../platform/ext-messaging';
 import { isBetaVersion } from '../platform/platform';
 import moment from '../platform/lib/moment';
+import formatTime from './utils';
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
@@ -101,6 +111,7 @@ export default background({
   search: inject.module('search'),
   ui: inject.module('ui'),
   insights: inject.module('insights'),
+  history: inject.module('history'),
 
   // Services dependencies
   geolocation: inject.service('geolocation', ['setLocationPermission']),
@@ -114,7 +125,6 @@ export default background({
     'session',
     'telemetry',
   ],
-  searchReminderCounter: 0,
 
   /**
   * @method init
@@ -169,12 +179,11 @@ export default background({
     }
     historyWhitelist.forEach((url) => {
       this.core.action(
-        'broadcastMessage',
-        url,
-        {
-          action: 'updateHistoryUrls',
-          message: { urls: removed.urls },
-        }
+        'callContentAction',
+        'history',
+        'updateHistoryUrls',
+        { url },
+        { urls: removed.urls }
       );
     });
   },
@@ -207,6 +216,10 @@ export default background({
 
   get isBrowserThemeSupported() {
     return isCliqzBrowser || prefs.get(DEVELOPER_FLAG_PREF, false);
+  },
+
+  get isAllPreferencesLinkSupported() {
+    return isCliqzBrowser;
   },
 
   get tooltip() {
@@ -273,7 +286,6 @@ export default background({
         index: getWallpapers(product).findIndex(bg => bg.name === backgroundName),
       },
       stats: Object.assign({}, COMPONENT_STATE_VISIBLE, freshtabConfig.stats),
-      searchReminder: Object.assign({}, COMPONENT_STATE_VISIBLE, freshtabConfig.searchReminder),
     };
   },
 
@@ -291,6 +303,24 @@ export default background({
   isUserOnboarded() {
     if (!config.settings.onBoardingPref) return false;
     return prefs.get(config.settings.onBoardingPref, false);
+  },
+
+  onboardingVersion() {
+    // if we set the onboardingVersion pref via AB test then it will be set later
+    // than we call this function (on which onboarding version depends)
+    const onboardingVersion = prefs.get('onboardingVersion', 3);
+    if (onboardingVersion) {
+      return onboardingVersion;
+    }
+    const randomVersion = Math.random() < 0.5 ? 3 : 4;
+    prefs.set('onboardingVersion', randomVersion);
+    return randomVersion;
+  },
+
+  updateComponentState(component, state) {
+    const _config = prefs.getObject(FRESHTAB_CONFIG_PREF);
+    _config[component] = Object.assign({}, _config[component], state);
+    prefs.setObject(FRESHTAB_CONFIG_PREF, _config);
   },
 
   actions: {
@@ -334,33 +364,27 @@ export default background({
     },
 
     toggleComponent(component) {
-      const _config = JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}'));
+      const _config = prefs.getObject(FRESHTAB_CONFIG_PREF);
       // component might be uninitialized
       const COMPONENT_DEFAULT_STATE = component !== 'customDials' || this.actions.hasCustomDialups()
         ? COMPONENT_STATE_VISIBLE
         : COMPONENT_STATE_INVISIBLE;
       _config[component] = Object.assign({}, COMPONENT_DEFAULT_STATE, _config[component]);
       _config[component].visible = !_config[component].visible;
-      prefs.set(FRESHTAB_CONFIG_PREF, JSON.stringify(_config));
+      prefs.setObject(FRESHTAB_CONFIG_PREF, _config);
     },
 
     saveBackgroundImage(name, index) {
-      prefs.set(FRESHTAB_CONFIG_PREF, JSON.stringify({
-        ...JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}')),
-        background: {
-          image: name,
-          index
-        }
-      }));
+      this.updateComponentState('background', {
+        image: name,
+        index
+      });
     },
 
-    updateTopNewsCountry(country) {
-      prefs.set(FRESHTAB_CONFIG_PREF, JSON.stringify({
-        ...JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}')),
-        news: {
-          preferedCountry: country,
-        }
-      }));
+    updateTopNewsCountry(preferedCountry) {
+      this.updateComponentState('news', {
+        preferedCountry,
+      });
 
       News.resetTopNews();
     },
@@ -696,7 +720,7 @@ export default background({
           news: newsList.map(r => ({
             title: r.title_hyphenated || r.title,
             description: r.description,
-            displayUrl: URLInfo.get(r.url).cleanHost || r.title,
+            displayUrl: getCleanHost(URLInfo.get(r.url)) || r.title,
             logo: logos.getLogoDetails(r.url),
             url: r.url,
             type: r.type,
@@ -721,23 +745,7 @@ export default background({
           .toLocaleString();
       };
 
-      const formatTime = (ms) => {
-        if (!ms) {
-          return '0 s';
-        }
-
-        const seconds = Math.floor(ms / 1000);
-
-        if (seconds >= 3600) {
-          const hours = Math.floor(seconds / 3600);
-          return `${hours} h`;
-        }
-        if (seconds >= 60) {
-          const minutes = Math.floor(seconds / 60);
-          return `${minutes} min`;
-        }
-        return `${seconds} s`;
-      };
+      const locale = getLanguageFromLocale(i18n.PLATFORM_LOCALE);
 
       let data = [];
       let promoData = {};
@@ -772,7 +780,7 @@ export default background({
           {
             title: `${getMessage('freshtab_stats_time_saved')}`,
             icon: 'images/cliqz-time.svg',
-            val: formatTime((summary.timeSaved || 0) + searchTimeSaved),
+            val: formatTime((summary.timeSaved || 0) + searchTimeSaved, locale),
             description: `${getMessage('freshtab_stats_time_saved_desc')}`,
             link: 'https://cliqz.com/support/privacy-statistics#time-saved',
             disabled: false, // Always active
@@ -781,10 +789,7 @@ export default background({
       } else if (product === 'GHOSTERY') {
         const ghosteryExtId = isChromium
           ? 'mlomiejdfkolichcflejclcbmpeaniij' : 'firefox@ghostery.com';
-        const summary = await new Promise((resolve) => {
-          extChannel.sendMessage(ghosteryExtId, { name: 'getStatsAndSettings' },
-            ({ historicalDataAndSettings } = {}) => resolve(historicalDataAndSettings));
-        });
+        const summary = await extChannel.sendMessage(ghosteryExtId, { name: 'getStatsAndSettings' });
 
         if (summary) {
           // TODO: update links
@@ -854,15 +859,6 @@ export default background({
     async getConfig(sender) {
       const windowWrapper = Window.findByTabId(sender.tab.id);
 
-      // Count when the search reminder is not shown
-      if (!this.getComponentsState().searchReminder.visible) {
-        if (this.searchReminderCounter === 6) {
-          this.actions.toggleComponent('searchReminder');
-        }
-        this.searchReminderCounter += 1;
-      }
-
-      // and set it on focus if missing
       if (windowWrapper) {
         this.ui.windowAction(windowWrapper.window, 'setUrlbarValue', '', {
           match: NEW_TAB_URL,
@@ -872,19 +868,24 @@ export default background({
 
       const { id: tabIndex } = await getActiveTab();
 
+      // delete import bookmarks top notification in case of onboarding v4
+      if (this.onboardingVersion() === 4) {
+        delete this.messages.import;
+      }
+
       return {
-        searchReminderCounter: this.searchReminderCounter,
         locale: getLanguageFromLocale(i18n.PLATFORM_LOCALE),
         blueTheme: this.blueTheme,
         browserTheme: await this.browserTheme(),
         isBlueThemeSupported: this.isBlueThemeSupported,
         isBrowserThemeSupported: this.isBrowserThemeSupported,
+        isAllPrefsLinkSupported: this.isAllPreferencesLinkSupported,
         wallpapers: getWallpapers(product),
         product,
         tabIndex,
         messages: this.messages,
         isHistoryEnabled: (
-          prefs.get('modules.history.enabled', false)
+          this.history.isEnabled()
           && config.settings.HISTORY_URL !== undefined
         ),
         componentsState: this.getComponentsState(),
@@ -895,6 +896,7 @@ export default background({
         HISTORY_URL,
         isBetaVersion: isBetaVersion(),
         isUserOnboarded: this.isUserOnboarded(),
+        onboardingVersion: this.onboardingVersion(),
         tooltip: this.tooltip,
       };
     },
@@ -970,6 +972,10 @@ export default background({
 
     openImportDialog,
 
+    openBrowserSettings() {
+      chrome.omnibox2.navigateTo('about:preferences', { target: 'tab' });
+    },
+
     // The following three actions are used to emit Anolysis metrics about
     // freshtab's state.
 
@@ -988,14 +994,6 @@ export default background({
     getComponentsState() {
       return this.getComponentsState();
     },
-    reportEvent({ type }) {
-      if (type === 'urlbar-focus') {
-        this.searchSession.setSearchSession();
-        if (this.searchReminderCounter < 7) {
-          this.searchReminderCounter = 0;
-        }
-      }
-    }
   },
 
   events: {
@@ -1014,12 +1012,11 @@ export default background({
       if (!(id in this.messages)) {
         this.messages[id] = message;
         this.core.action(
-          'broadcastMessage',
-          NEW_TAB_URL,
-          {
-            action: 'addMessage',
-            message,
-          }
+          'callContentAction',
+          'freshtab',
+          'addMessage',
+          { url: NEW_TAB_URL },
+          message,
         );
       }
     },
@@ -1027,12 +1024,11 @@ export default background({
       const id = message.id;
       delete this.messages[id];
       this.core.action(
-        'broadcastMessage',
-        NEW_TAB_URL,
-        {
-          action: 'closeNotification',
-          messageId: id,
-        }
+        'callContentAction',
+        'freshtab',
+        'closeNotification',
+        { url: NEW_TAB_URL },
+        id,
       );
     },
     'geolocation:wake-notification': function onWake() {

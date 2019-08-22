@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 DATA.push({
   activeURL: 'https://www.focus.de/',
   friendlyURL: 'https://www.focus.de/',
@@ -87,8 +95,6 @@ DATA.push({
       locationEnabled: true
     },
     'popup-notification': null,
-    'history-analyzer': null,
-    'offers-debug': null,
     'browser-panel': null,
     'message-center': null,
     offboarding: null,
@@ -123,7 +129,6 @@ DATA.push({
     history: null,
     'offers-cc': null,
     'video-downloader': null,
-    'market-analysis': null,
     p2p: null,
     pairing: null,
     'antitracking-blocker': null,

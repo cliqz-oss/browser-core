@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint func-names: 'off' */
 
 import telemetry from '../core/services/telemetry';
@@ -115,7 +123,7 @@ export default background({
      *
      * In Cliqz, the user has two ways to opt-out:
      * - Control Center UI (Search Options --> Human Web)
-     * - chrome://cliqz/content/human-web/humanweb.html (AMO only)
+     * - moz-extension://<EXTENSION_ID>/modules/human-web/humanweb.html
      *
      * In Ghostery, the mechanism is different. If the user
      * opts-out, the whole 'human-web' module gets unloaded.

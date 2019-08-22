@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import background from '../core/base/background';
 import inject from '../core/kord/inject';
 
@@ -5,7 +13,6 @@ import logger from './logger';
 import Adblocker from './adblocker';
 import getEnabledRegions from './regions';
 import config, {
-  ADB_ABTEST_PREF,
   ADB_PREF,
   ADB_PREF_STRICT,
   ADB_USER_LANG,
@@ -144,7 +151,7 @@ export default background({
           logger.log('Regions override pref changed: update');
           await this.adblocker.update();
         }
-      } else if (pref === ADB_PREF || pref === ADB_ABTEST_PREF) {
+      } else if (pref === ADB_PREF) {
         if (this.adblocker === null && config.enabled) {
           logger.log('Adblocker pref switched: init');
           await this.shallowInit();

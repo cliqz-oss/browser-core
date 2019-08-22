@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint no-param-reassign: 'off' */
 
 import config from './config';
@@ -10,7 +18,7 @@ import Logger from './logger';
 import telemetry from './services/telemetry';
 import { Window, mapWindows, forEachWindow, addWindowObserver,
   removeWindowObserver, reportError, mustLoadWindow,
-  setOurOwnPrefs, resetOriginalPrefs, enableChangeEvents,
+  enableChangeEvents,
   disableChangeEvents, waitWindowReady, addMigrationObserver, removeMigrationObserver,
   addSessionRestoreObserver, removeSessionRestoreObserver } from '../platform/browser';
 import Defer from './helpers/defer';
@@ -22,7 +30,7 @@ import migrate from './app/migrations';
 
 export function shouldEnableModule(name) {
   const pref = `modules.${name}.enabled`;
-  return !prefs.has(pref) || prefs.get(pref) === true;
+  return prefs.get(pref) !== false;
 }
 
 const isOnionMode = isOnionModeFactory(prefs);
@@ -216,8 +224,6 @@ export default class App {
 
     await this.setupPrefs();
 
-    await migrate();
-
     // If we are Onion mode, remove non onion-ready modules from 'this.modules'.
     // We do it here not to break code relying on 'this.modules' before calling
     // 'start()' (e.g. Ghostery). Besides, we need to load prefs before 'isOnionMode()'.
@@ -320,10 +326,6 @@ export default class App {
 
     this.unload();
 
-    if (disable) {
-      this.restorePrefs();
-    }
-
     removeWindowObserver(this.windowWatcher);
     removeSessionRestoreObserver(this.sessionRestoreObserver);
 
@@ -339,35 +341,20 @@ export default class App {
     return this.moduleList.filter(module => module.isEnabled);
   }
 
-  setupPrefs() {
+  async setupPrefs() {
     const initPrefs = prefs.init || Promise.resolve.bind(Promise);
-    return initPrefs().then(() => {
-      if (config.environment === 'development' || this.debug) {
-        prefs.set('developer', true);
-      }
 
-      // Ensure prefs are set to our custom values
-      /** Change some prefs for a better cliqzperience -- always do a backup! */
-      setOurOwnPrefs(this.version);
+    await initPrefs();
 
-      if ('default_prefs' in config) {
-        Object.keys(config.default_prefs).forEach((pref) => {
-          // TODO remove check for config.settings.channel after relaseing Cliqz 1.25
-          if (config.settings.channel === '99' || !prefs.has(pref)) {
-            console.log('App', 'set up preference', `"${pref}"`);
-            prefs.set(pref, config.default_prefs[pref]);
-          }
-        });
-      }
+    if (config.environment === 'development' || this.debug) {
+      prefs.set('developer', true);
+    }
 
-      setupConsole();
+    setupConsole();
 
-      this.prefchangeEventListener = subscribe('prefchange', this.onPrefChange, this);
-    });
-  }
+    await migrate();
 
-  restorePrefs() {
-    resetOriginalPrefs();
+    this.prefchangeEventListener = subscribe('prefchange', this.onPrefChange, this);
   }
 
   prepareServices(serviceNames) {

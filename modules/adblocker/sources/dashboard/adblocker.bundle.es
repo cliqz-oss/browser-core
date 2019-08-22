@@ -1,18 +1,17 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import checkIfChromeReady from '../../core/content/ready-promise';
-import createSpananForModule from '../../core/helpers/spanan-module-wrapper';
+import createModuleWrapper from '../../core/helpers/action-module-wrapper';
 import siteBuilder from './app';
 
-const adblockerBridge = createSpananForModule('adblocker');
-const adblocker = adblockerBridge.createProxy();
-
 checkIfChromeReady().then(() => {
-  chrome.runtime.onMessage.addListener((message) => {
-    adblockerBridge.handleMessage({
-      uuid: message.requestId,
-      response: message.response
-    });
-  });
-  siteBuilder(adblocker);
+  siteBuilder(createModuleWrapper('adblocker'));
 }).catch((ex) => {
   // eslint-disable-next-line no-console
   console.error('Chrome was never ready', ex);

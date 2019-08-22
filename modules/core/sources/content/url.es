@@ -1,26 +1,13 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 
 export function isCliqzAction(url) {
   return url.match(/^cliqz-actions,/);
-}
-
-export function cleanMozillaActions(url = '') {
-  let action;
-  let href = url;
-  if (url.indexOf('moz-action:') === 0) {
-    const parts = url.match(/^moz-action:([^,]+),(.*)$/);
-    action = parts[1];
-    href = parts[2];
-    try {
-      // handle cases like: moz-action:visiturl,{"url": "..."}
-      const mozActionUrl = JSON.parse(href).url;
-      if (mozActionUrl) {
-        href = decodeURIComponent(mozActionUrl);
-      }
-    } catch (e) {
-      // empty
-    }
-  }
-  return [action, href];
 }
 
 export function urlStripProtocol(url, { stripTrailingSlash } = { stripTrailingSlash: true }) {

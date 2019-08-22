@@ -1,25 +1,31 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai, describeModule, sinon  */
 
+let getMessage;
+
 export default describeModule('core/content/i18n',
-  () => ({}),
+  () => ({
+    'platform/content/globals': {
+      chrome: {
+        i18n: {
+          getMessage: (...args) => getMessage(...args),
+        },
+      },
+    },
+  }),
   () => {
     describe('#getMessage', function () {
       let i18n;
-      let getMessage;
 
       beforeEach(function () {
         i18n = this.module().default;
-        global.chrome = {
-          i18n: {
-            getMessage(...args) {
-              return getMessage(...args);
-            },
-          },
-        };
-      });
-
-      afterEach(function () {
-        delete global.chrome;
       });
 
       it('getMessage without substitutions correctly', function () {

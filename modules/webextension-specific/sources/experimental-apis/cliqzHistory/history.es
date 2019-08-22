@@ -1,7 +1,14 @@
-/* global ChromeUtils, Components */
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 
-import { cleanMozillaActions } from '../../../core/content/url';
+/* global ChromeUtils, Components */
 import { URLInfo } from '../../../core/url-info';
+import { getCleanHost } from '../../../core/url';
 import Defer from '../../../core/helpers/defer';
 
 export { default } from './history-firefox';
@@ -11,6 +18,24 @@ const { PlacesUtils } = ChromeUtils.import('resource://gre/modules/PlacesUtils.j
 Components.utils.importGlobalProperties(['URL']);
 
 let searchProvider;
+
+function cleanMozillaActions(url = '') {
+  let href = url;
+  if (url.startsWith('moz-action:')) {
+    const parts = url.match(/^moz-action:[^,]+,(.*)$/);
+    href = parts[1];
+    try {
+      // handle cases like: moz-action:visiturl,{"url": "..."}
+      const mozActionUrl = JSON.parse(href).url;
+      if (mozActionUrl) {
+        href = decodeURIComponent(mozActionUrl);
+      }
+    } catch (e) {
+      // empty
+    }
+  }
+  return href;
+}
 
 function today() {
   return Math.floor(new Date().getTime() / 86400000);
@@ -95,41 +120,23 @@ export function unifiedSearch(query) {
         const results = [];
         for (let i = 0; result && i < result.matchCount; i += 1) {
           const style = result.getStyleAt(i);
-          const value = result.getValueAt(i);
+          const value = cleanMozillaActions(result.getValueAt(i));
+          const label = style.indexOf('switchtab') !== -1 ? value : result.getLabelAt(i);
 
           if (value.indexOf('https://cliqz.com/search?q=') !== 0
             && value.indexOf('moz-extension://') !== 0
+            && value.indexOf('resource://cliqz') !== 0
+            && value.indexOf('chrome://cliqz') !== 0
             && !style.includes('heuristic')
-            && !style.includes('searchengine')) {
-            if (style.indexOf('switchtab') !== -1) {
-              try {
-                const [, cleanURL] = cleanMozillaActions(value);
-
-                // ignore freshtab, history and cliqz search
-                if (cleanURL.indexOf('chrome://cliqz') !== 0
-                    && cleanURL.indexOf('resource://cliqz') !== 0
-                    && cleanURL.indexOf('moz-extension://') !== 0
-                    && cleanURL.indexOf('https://cliqz.com/search?q=') !== 0) {
-                  results.push({
-                    style,
-                    value: cleanURL,
-                    image: result.getImageAt(i),
-                    comment: result.getCommentAt(i),
-                    label: cleanURL
-                  });
-                }
-              } catch (e) {
-                // bummer
-              }
-            } else {
-              results.push({
-                style,
-                value,
-                image: result.getImageAt(i),
-                comment: result.getCommentAt(i),
-                label: result.getLabelAt(i)
-              });
-            }
+            && !style.includes('searchengine')
+          ) {
+            results.push({
+              style,
+              value,
+              image: result.getImageAt(i),
+              comment: result.getCommentAt(i),
+              label,
+            });
           }
         }
 
@@ -148,7 +155,7 @@ export async function topDomains() {
   const history = await topHistory();
 
   return history.reduce((acc, curr) => {
-    const host = URLInfo.get(curr.url).cleanHost;
+    const host = getCleanHost(URLInfo.get(curr.url));
     // we only want to show one url per host
     if (!Object.prototype.hasOwnProperty.call(acc.domains, host)) {
       acc.result.push(curr);

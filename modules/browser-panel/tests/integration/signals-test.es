@@ -45,6 +45,7 @@ export default function () {
         windowTreeInformation: {
           tabId: 0,
         },
+        tabId: 0,
       });
 
       await waitFor(() => testServer.hasHit('/api/v1/categories'));

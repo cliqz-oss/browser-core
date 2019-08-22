@@ -1,0 +1,82 @@
+{
+  "url": "https://www.google.com/search?hl=en&q=ursula+von+der+leyen",
+
+  "mustContain": [{
+    "type": "humanweb",
+    "action": "query",
+    "payload": {
+      "r": {
+        "0": {
+          "t": "Ursula von der Leyen – Wikipedia",
+          "u": "https://de.wikipedia.org/wiki/Ursula_von_der_Leyen",
+          "age": null
+        },
+        "1": {
+          "t": "Ursula von der Leyen: Die Ohnmacht der Ursula von der Leyen - WELT",
+          "u": "https://www.welt.de/politik/ausland/article197192795/Ursula-von-der-Leyen-Die-Ohnmacht-der-Ursula-von-der-Leyen.html",
+          "age": "vor 23 Stunden - "
+        },
+        "2": {
+          "t": "Ursula von der Leyen | Bundesministerin der Verteidigung",
+          "u": "https://www.ursula-von-der-leyen.de/",
+          "age": null
+        },
+        "3": {
+          "t": "Ursula von der Leyen - SPIEGEL ONLINE",
+          "u": "https://www.spiegel.de/thema/ursula_von_der_leyen/",
+          "age": null
+        },
+        "4": {
+          "t": "Ursula von der Leyen: Die neue EU-Kommissionspräsidentin | ZEIT ...",
+          "u": "https://www.zeit.de/thema/ursula-von-der-leyen",
+          "age": "vor 5 Tagen - "
+        },
+        "5": {
+          "t": "Ursula von der Leyen: Aktuelle News zur CDU-Politikerin - FAZ",
+          "u": "https://www.faz.net/aktuell/politik/thema/ursula-von-der-leyen",
+          "age": null
+        },
+        "6": {
+          "t": "Ursula von der Leyen - Starporträt, News, Bilder | GALA.de",
+          "u": "https://www.gala.de/stars/starportraets/ursula-von-der-leyen-20540344.html",
+          "age": null
+        },
+        "7": {
+          "t": "Künftige EU-Kommissionschefin: Von der Leyen greift Frankreichs ...",
+          "u": "https://www.tagesspiegel.de/politik/kuenftige-eu-kommissionschefin-von-der-leyen-greift-frankreichs-klima-ideen-auf/24683882.html",
+          "age": "vor 1 Tag - "
+        }
+      },
+      "q": "ursula von der leyen",
+      "qurl": "https://www.google.com/search?hl=en&q=ursula+von+der+leyen",
+      "ctry": "de"
+    }
+  }, {
+    "type": "humanweb",
+    "action": "top-stories",
+    "payload": {
+      "r": {
+        "0": {
+          "u": "https://www.welt.de/politik/ausland/plus197222751/Ursula-von-der-Leyen-Out-of-Niedersachsen.html",
+          "lu": "vor 22 Stunden",
+          "h": "Ursula von der Leyen: Out of Niedersachsen"
+        },
+        "1": {
+          "u": "https://www.spiegel.de/politik/ausland/emmanuel-macron-grosse-freude-in-paris-ueber-ursula-von-der-leyen-a-1278056.html",
+          "lu": "vor 1 Tag",
+          "h": "Neue Kommissionschefin von der Leyen: Partystimmung in Paris"
+        },
+        "2": {
+          "u": "https://www.welt.de/debatte/kommentare/plus197043299/Von-der-Leyen-Wahl-Und-der-Gewinner-ist-Emmanuel-Macron.html",
+          "lu": "vor 1 Stunde",
+          "h": "Von-der-Leyen-Wahl: Und der Gewinner ist Emmanuel Macron - WELT"
+        }
+      },
+      "q": "ursula von der leyen",
+      "qurl": "https://www.google.com/search?hl=en&q=ursula+von+der+leyen",
+      "ctry": "de"
+    }
+  }],
+
+  "mustNotContain": [{ "action": "ads_*" }]
+}

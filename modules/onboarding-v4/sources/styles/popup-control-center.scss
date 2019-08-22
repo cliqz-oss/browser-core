@@ -1,0 +1,22 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+.popup-cc {
+    background: url('../images/matterhorn-bg.jpg') center center no-repeat fixed;
+    background-size: cover;
+
+    &:after {
+        position: absolute;
+        content: "";
+        background: rgba(0, 0, 0, 0.2);
+        height: 100%;
+        width: 100%;
+        top: 0;
+        left: 0;
+    }
+}

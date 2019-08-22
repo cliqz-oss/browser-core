@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import PropTypes from 'prop-types';
 import React from 'react';
 import Modal from './modal';
@@ -6,7 +14,7 @@ import t from '../i18n';
 
 function renderError(errorMessage = '') {
   return (
-    <div className="errorMessage">
+    <div className="error-message">
       <p>
         {t('cliqz_modules_loading_error')}
       </p>
@@ -29,7 +37,7 @@ const ModulesDeveloperModal = ({
   >
     <div className="modules-developer-modal">
       <Button
-        className="closeForm"
+        className="close-form"
         onClick={closeAction}
       />
 
@@ -37,6 +45,7 @@ const ModulesDeveloperModal = ({
         ? renderError(error)
         : (
           <iframe
+            className="modal-iframe"
             tabIndex="-1"
             src="../toolbox/index.html"
             title="Module list"

@@ -151,7 +151,7 @@ export default describeModule('offers-v2/offers/best-offer',
           chai.expect(rpd).be.eq(0);
         });
 
-        it('/sum categories weights when offer has several', () => {
+        it('/use max categories weight when offer has several categories', () => {
           const offerJson = JSON.parse(JSON.stringify(fixture.VALID_OFFER_OBJ));
           offerJson.categories = ['c1', 'c2'];
           offerJson.displayPriority = 1000;
@@ -161,7 +161,7 @@ export default describeModule('offers-v2/offers/best-offer',
           const [choosen, rpd] = chooseBestOffer(offers, categoryMatchTraits, displayCount);
 
           chai.expect(choosen).to.eq(multicatOffer);
-          chai.expect(rpd).be.eq(1000 * (Math.E + (Math.E ** 2)));
+          chai.expect(rpd).be.eq(1000 * (Math.E ** 2));
         });
       });
     });
@@ -245,10 +245,9 @@ export default describeModule('offers-v2/offers/best-offer',
         // Assert
         //
         const pushes = countNumberOfPushesPerOffer(pushMock);
-        const e = Math.E;
-        chai.expect(pushes.o4 / pushes.o32).closeTo((e ** 4) / ((e ** 3) + (e ** 2)), 0.2);
-        chai.expect(pushes.o32 / pushes.o3).closeTo(((e ** 3) + (e ** 2)) / (e ** 3), 0.2);
-        chai.expect(pushes.o3 / pushes.o2).closeTo(e, 0.8);
+        chai.expect(pushes.o4 / pushes.o32).closeTo(Math.E, 0.3);
+        chai.expect(pushes.o32 / pushes.o3).closeTo(1, 0.01);
+        chai.expect(pushes.o3 / pushes.o2).closeTo(Math.E, 0.8);
       });
     });
   });

@@ -1,10 +1,18 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint no-param-reassign: 'off' */
 /* eslint no-restricted-syntax: off */
 
 import console from './console';
 import { compress } from './gzip';
 import { XMLHttpRequestFactory, setPrivateFlags, setBackgroundRequest } from '../platform/xmlhttprequest';
-import { fetch as _fetch, fetchArrayBuffer as _fetchArrayBuffer } from '../platform/fetch';
+import { fetch as _fetch, fetchArrayBuffer as _fetchArrayBuffer, AbortController as _AbortController } from '../platform/fetch';
 import { chromeUrlHandler } from '../platform/chrome-url-handler';
 
 const listeners = new Set();
@@ -35,6 +43,8 @@ export function fetch(...args) {
   });
   return fetchHandler(...args);
 }
+
+export const AbortController = _AbortController;
 
 // Fetch with array buffer support - required for platforms where fetch does not support
 // arrayBuffer() method (react-native)

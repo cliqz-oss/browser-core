@@ -29,7 +29,8 @@ function render({
   let popup = null;
   let shadow = null;
   if (isShadow) {
-    shadow = paranja.attachShadow({ mode: DEBUG ? 'open' : 'closed' });
+    const mode = DEBUG || window.navigator.userAgent.includes('jsdom') ? 'open' : 'closed';
+    shadow = paranja.attachShadow({ mode });
     popup = createElement(window, { tag: 'div' });
   } else {
     popup = createElement(window, { tag: 'iframe', id: 'cliqz-offers-iframe' });
@@ -60,6 +61,8 @@ function render({
     popup.remove();
   });
 
+  window.document.body.appendChild(paranja);
+  window.document.body.appendChild(isShadow ? shadow : popup);
   const style = createElement(window, { tag: 'style', textContent: styles(config) });
   window.setTimeout(() => {
     paranja.style.opacity = 1;
@@ -70,11 +73,9 @@ function render({
       shadow.appendChild(popup);
     } else {
       popup.contentDocument.body.appendChild(container);
-      popup.contentDocument.head.append(style);
+      popup.contentDocument.head.appendChild(style);
     }
   }, 1500);
-  window.document.body.appendChild(paranja);
-  window.document.body.appendChild(isShadow ? shadow : popup);
 }
 
 export { render };

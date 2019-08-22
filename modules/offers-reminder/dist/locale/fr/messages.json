@@ -1,0 +1,17 @@
+{
+    "offers_hub_code_copy": {
+        "message": "Copié"
+    },
+    "offers_hub_copy_btn": {
+        "message": "Copier le code"
+    },
+    "offers_hub_get_code_btn": {
+        "message": "Obtenir le code"
+    },
+    "offers_hub_powered_by_offrz": {
+        "message": "FOURNI PAR MyOffrz"
+    },
+    "show_code": {
+      "message": "Montrer le code"
+    }
+}

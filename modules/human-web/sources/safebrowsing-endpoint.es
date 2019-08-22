@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { promiseHttpHandler } from '../core/http';
 import config from '../core/config';
 import inject from '../core/kord/inject';
@@ -170,12 +178,14 @@ export default class SafebrowsingEndpoint {
   }
 
   unload() {
-    this.loaded = false;
-    this.hpnv2Sender.unload();
-    this.httpFallback.unload();
+    if (this.loaded) {
+      this.loaded = false;
+      this.hpnv2Sender.unload();
+      this.httpFallback.unload();
 
-    this.pending.clear();
-    this.history.clear();
+      this.pending.clear();
+      this.history.clear();
+    }
   }
 
   async send(msg, { instantPush = false } = {}) {

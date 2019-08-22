@@ -2,4 +2,6 @@
 
 const pop = (CLIQZ, data) => CLIQZ.app.modules['popup-notification'].action('pop', data);
 const log = (CLIQZ, data) => CLIQZ.app.modules['popup-notification'].action('log', data);
-export { pop, log };
+const openAndClosePinnedURL = (CLIQZ, data) =>
+  CLIQZ.app.modules['popup-notification'].action('openAndClosePinnedURL', data);
+export { pop, log, openAndClosePinnedURL };

@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint no-restricted-syntax: 'off' */
 
 /*
@@ -242,12 +250,6 @@ const CliqzABTests = {
       case '1071_B':
         prefs.set('browser.privatebrowsing.apt', true, '');
         break;
-      case '1074_A':
-        prefs.set('cliqz-adb-abtest', false);
-        break;
-      case '1074_B':
-        prefs.set('cliqz-adb-abtest', true);
-        break;
       case '1078_A':
         prefs.set('modules.anolysis.enabled', false);
         break;
@@ -311,33 +313,6 @@ const CliqzABTests = {
       case '1097_B':
         prefs.set('dropdownAdCampaignPosition', 'bottom');
         break;
-      case '1098_A': // ADB turned OFF
-        if (prefs.get('cliqz-adb-onboarding-ab', false) === true) {
-          // turn ADB back OFF only if it was set ON by this test
-          prefs.clear('cliqz-adb-onboarding-ab');
-          prefs.clear('cliqz-adb-onboarding-message');
-          prefs.set('cliqz-adb', 0);
-        }
-        break;
-      case '1098_B': // ADB turned ON
-        if (prefs.get('cliqz-adb', 0) === 1) {
-          // ADB already turned ON by the user so leave this test
-          CliqzABTests.disable('1098_B');
-        } else {
-          prefs.set('cliqz-adb-onboarding-ab', true);
-          prefs.set('cliqz-adb', 1);
-        }
-        break;
-      case '1098_C': // ADB turned ON + message
-        if (prefs.get('cliqz-adb', 0) === 1) {
-          // ADB already turned ON by the user so leave this test
-          CliqzABTests.disable('1098_C');
-        } else {
-          prefs.set('cliqz-adb-onboarding-ab', true);
-          prefs.set('cliqz-adb', 1);
-          prefs.set('cliqz-adb-onboarding-message', true);
-        }
-        break;
       case '1099_A':
         prefs.set('attrackCookieTrustReferers', false);
         break;
@@ -365,15 +340,6 @@ const CliqzABTests = {
         prefs.set('antitrackingBlocklist', 'ghostery');
         prefs.set('modules.antitracking-blocker.enabled', true);
         break;
-      case '1103_A':
-        prefs.set('offersDropdownAdPosition', 'top');
-        break;
-      case '1103_B':
-        prefs.set('offersDropdownAdPosition', 'bottom');
-        break;
-      case '1103_C':
-        prefs.set('offersDropdownAdPosition', 'right');
-        break;
       case '1106_A':
         prefs.set('greenads', 'green');
         break;
@@ -383,23 +349,11 @@ const CliqzABTests = {
       case '1106_C':
         prefs.set('greenads', 'disabled');
         break;
-      case '1107_A':
-        prefs.set('MarketAnalysisEnabled', false);
-        break;
-      case '1107_B':
-        prefs.set('MarketAnalysisEnabled', true);
-        break;
       case '1108_A':
         prefs.set('extOnboardNewSearchUI', false);
         break;
       case '1108_B':
         prefs.set('extOnboardNewSearchUI', true);
-        break;
-      case '1111_A':
-        prefs.set('modules.history-analyzer.enabled', false);
-        break;
-      case '1111_B':
-        prefs.set('modules.history-analyzer.enabled', true);
         break;
       case '1112_A':
         prefs.set('experiment_svm', false);
@@ -489,12 +443,6 @@ const CliqzABTests = {
         prefs.set('cookie-monster.nonTracker', true);
         prefs.set('attrack.cookieMode', 'trackers');
         break;
-      case '1123_A':
-        prefs.set('dynamic-offers.enabled', false);
-        break;
-      case '1123_B':
-        prefs.set('dynamic-offers.enabled', true);
-        break;
       case '1124_A':
         prefs.set('offers-popup.type', 'card');
         break;
@@ -513,6 +461,25 @@ const CliqzABTests = {
         }
         prefs.set('network.cookie.cookieBehavior', 4, '');
         break;
+      case '1126_A':
+      case '1126_B':
+        prefs.clear('browser.privatebrowsing.apt', '');
+        break;
+      case '1127_A':
+        prefs.set('offers-popup.image', 'with-image');
+        break;
+      case '1127_B':
+        prefs.set('offers-popup.image', 'with-no-image');
+        break;
+      case '1128_A':
+        prefs.set('offers-popup.copy-code', 'current');
+        break;
+      case '1128_B':
+        prefs.set('offers-popup.copy-code', 'one-step');
+        break;
+      case '1128_C':
+        prefs.set('offers-popup.copy-code', 'two-step');
+        break;
       default:
         ruleExecuted = false;
     }
@@ -522,7 +489,7 @@ const CliqzABTests = {
         action: 'enter',
         name: abtest
       };
-      telemetry.push(action);
+      telemetry.push(action, 'metrics.legacy.abtests');
 
       return true;
     }
@@ -800,10 +767,6 @@ const CliqzABTests = {
       case '1110_B':
         prefs.clear('cliqzTabOffersNotification');
         break;
-      case '1111_A':
-      case '1111_B':
-        prefs.set('modules.history-analyzer.enabled', false);
-        break;
       case '1112_A':
       case '1112_B':
         prefs.clear('experiment_svm');
@@ -859,10 +822,6 @@ const CliqzABTests = {
         prefs.clear('cookie-monster.nonTracker');
         prefs.clear('attrack.cookieMode');
         break;
-      case '1123_A':
-      case '1123_B':
-        prefs.clear('dynamic-offers.enabled');
-        break;
       case '1124_A':
       case '1124_B':
       case '1124_C':
@@ -871,6 +830,15 @@ const CliqzABTests = {
       case '1125_A':
       case '1125_B':
         prefs.set('network.cookie.cookieBehavior', 4, '');
+        break;
+      case '1127_A':
+      case '1127_B':
+        prefs.clear('offers-popup.image');
+        break;
+      case '1128_A':
+      case '1128_B':
+      case '1128_C':
+        prefs.clear('offers-popup.copy-code');
         break;
       default:
         ruleExecuted = false;
@@ -882,7 +850,7 @@ const CliqzABTests = {
         name: abtest,
         disable
       };
-      telemetry.push(action);
+      telemetry.push(action, 'metrics.legacy.abtests');
       return true;
     }
     return false;

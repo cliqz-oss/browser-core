@@ -9,10 +9,15 @@ export default describeModule('offers-v2/patterns_stat',
     ...commonMocks,
   }),
   () => {
+    const reemitter = {
+      on: () => {},
+      unsubscribe: () => {},
+    };
+
     let patternsStat;
     beforeEach(async function () {
       const PatternsStat = this.module().default;
-      patternsStat = new PatternsStat();
+      patternsStat = new PatternsStat(() => {}, reemitter);
       await patternsStat.init(() => ({ getReason: () => ['pattern'] }));
       for (const signalName of patternsStat.getPatternSignals()) {
         // eslint-disable-next-line no-await-in-loop
@@ -95,7 +100,9 @@ export default describeModule('offers-v2/patterns_stat',
 
       function getExpectedForPattern(pattern) {
         const result = ['landing', { campaignId: 'cid', pattern }];
-        if (['<empty>', '<null>'].includes(pattern)) { return result; }
+        if (pattern === '<null>') {
+          return result;
+        }
         result[1].domainHash = undefined;
         return result;
       }
@@ -104,7 +111,7 @@ export default describeModule('offers-v2/patterns_stat',
         const patterns = ['Pattern1', 'Pattern2', 'Pattern3'];
         returnPatternsNextTime(patterns.map(p => ({ pattern: p, domainHash: undefined })));
 
-        patternsStat.reinterpretCampaignSignalSync('cid', 'oid', 'landing');
+        patternsStat.reinterpretCampaignSignalSync('landing', 'cid', 'oid');
 
         chai.expect(addFunc.firstCall.args).to.eql(getExpectedForPattern('Pattern1'));
         chai.expect(addFunc.secondCall.args).to.eql(getExpectedForPattern('Pattern2'));
@@ -114,7 +121,7 @@ export default describeModule('offers-v2/patterns_stat',
       it('/ report for a offer which is not anymore in db', async () => {
         patternsStat.offerIdToReason = () => null;
 
-        patternsStat.reinterpretCampaignSignalSync('cid', 'oid', 'landing');
+        patternsStat.reinterpretCampaignSignalSync('landing', 'cid', 'oid');
 
         chai.expect(addFunc.firstCall.args).to.eql(getExpectedForPattern('<null>'));
       });
@@ -122,17 +129,17 @@ export default describeModule('offers-v2/patterns_stat',
       it('/ report about missed information object', async () => {
         returnPatternsNextTime(null);
 
-        patternsStat.reinterpretCampaignSignalSync('cid', 'oid', 'landing');
+        patternsStat.reinterpretCampaignSignalSync('landing', 'cid', 'oid');
 
         chai.expect(addFunc.firstCall.args).to.eql(getExpectedForPattern('<null>'));
       });
 
-      it('/ report about empty information object', async () => {
+      it('/ do not report for empty natches', async () => {
         returnPatternsNextTime([]);
 
-        patternsStat.reinterpretCampaignSignalSync('cid', 'oid', 'landing');
+        patternsStat.reinterpretCampaignSignalSync('landing', 'cid', 'oid');
 
-        chai.expect(addFunc.firstCall.args).to.eql(getExpectedForPattern('<empty>'));
+        chai.expect(addFunc).to.be.not.called;
       });
     });
   });

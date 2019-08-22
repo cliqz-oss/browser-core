@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { getMessage } from '../../core/i18n';
 
 export default function getLocalMessages() {
@@ -21,6 +29,10 @@ export default function getLocalMessages() {
         },
         {
           fn: 'isDesktopBrowser'
+        },
+        {
+          fn: 'onboardingVersion',
+          value: 3,
         }
       ]
     },
@@ -47,7 +59,7 @@ export default function getLocalMessages() {
         },
         {
           fn: 'installDaysSinceEpochLessThan',
-          value: 18044, // Tue, May 28, 2019 - 1.37.0 released date
+          value: 18052, // Tue, Jun 05, 2019 - 1.37.0 released date
         },
       ],
     },

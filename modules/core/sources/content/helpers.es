@@ -1,34 +1,29 @@
-import globToRegexp from './glob';
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 
-const CONTENT_SCRIPTS = {};
-
+/**
+ * Check if `window` is the top-level window.
+ */
 export function isTopWindow(window) {
   return window.self === window.top;
 }
 
-export function registerContentScript(moduleName, urlPattern, script) {
-  CONTENT_SCRIPTS[urlPattern] = CONTENT_SCRIPTS[urlPattern] || [];
-  CONTENT_SCRIPTS[urlPattern].push({ moduleName, contentScript: script });
-}
+/**
+ * Return a `Promise` which resolves once `window.document.body` exists. If it's
+ * already the case when the function is invoked, then the promise resolves
+ * immediately, otherwise it waits for the `DOMContentLoaded` event to trigger.
+ */
+export function documentBodyReady() {
+  if (window.document && window.document.body) {
+    return Promise.resolve();
+  }
 
-export function runContentScripts(window, chrome, CLIQZ) {
-  const currentUrl = window.location.href;
-  const matchingPatterns = Object.keys(CONTENT_SCRIPTS)
-    .filter((pattern) => {
-      const regexp = globToRegexp(pattern);
-      return regexp.test(currentUrl);
-    });
-  const contentScriptsOnMessage = {};
-  matchingPatterns.forEach((pattern) => {
-    CONTENT_SCRIPTS[pattern]
-      .filter(({ moduleName }) => (CLIQZ.app.modules[moduleName] || {}).isEnabled)
-      .forEach(({ contentScript, moduleName }) => {
-        try {
-          contentScriptsOnMessage[moduleName] = contentScript(window, chrome, CLIQZ) || {};
-        } catch (e) {
-          window.console.error(`CLIQZ content-script failed: ${e} ${e.stack}`);
-        }
-      });
+  return new Promise((resolve) => {
+    window.addEventListener('DOMContentLoaded', resolve, { once: true });
   });
-  return contentScriptsOnMessage;
 }

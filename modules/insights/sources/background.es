@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import background from '../core/base/background';
 import inject from '../core/kord/inject';
 import domainInfo from '../core/services/domain-info';
@@ -10,7 +18,7 @@ import logger from './logger';
 import { query as getTabs } from '../core/tabs';
 
 // True if the module responsible for triggering tab stats itself, otherwise triggering is external.
-const isInternalTriggering = config.platform === 'webextension' && config.settings.channel !== 'CH80';
+const isInternalTriggering = config.settings.INSIGHTS_INTERNAL;
 
 function mergeStats(stats) {
   return stats.reduce((_agg, elem) => {
@@ -77,8 +85,8 @@ export default background({
     this.db = new InsightsDb();
     this.antitrackStaged = new Map();
     this.adblockerStaged = new Map();
-    this.suggestionsSet = new Set();
     this.pageInfo = new Map();
+    this.tabStagingState = new Map();
     await Promise.all([
       this.api.init(),
       this.db.init()
@@ -110,9 +118,10 @@ export default background({
     if (isInternalTriggering) {
       // we either have page stats for a completed load from pageinfo (sent from content-script),
       // or we can get partial information from the anti-tracking module.
-      const result = await this.getStatsForTab(tabId);
+      const result = await this.getStatsForTab(tabId, { stageResult: false });
       this.pageInfo.delete(tabId);
-      return this.db.insertStats('daily', result);
+      this.tabStagingState.delete(tabId);
+      return this.db.insertPageStats(tabId, result);
     }
     this.pageInfo.delete(tabId);
     return null;
@@ -151,7 +160,16 @@ export default background({
     return this.adblocker.action('getGhosteryStats', tabId);
   },
 
-  async getStatsForTab(tabId) {
+  /**
+   * Get the current stats for a specific tab (for non-Ghostery builds).
+   * @param {number} tabId  Id of tab
+   * @param {Object} options
+   * @param {boolean} options.stageResult   If true, stats should be cached to protect against data
+   * loss.
+   * @returns {Object} Stats
+   */
+  async getStatsForTab(tabId, options = { stageResult: true }) {
+    const { stageResult } = options;
     if (isInternalTriggering) {
       if ((this.pageInfo.has(tabId) || (this.tabInfo && this.tabInfo._active[tabId]))) {
         // we either have page stats for a completed load from pageinfo (sent from content-script),
@@ -160,7 +178,12 @@ export default background({
           host: this.tabInfo._active[tabId].hostname,
           timestamp: this.tabInfo._active[tabId].s
         };
-        return this.aggregatePageStats(tabId, info, [], {});
+        const result = await this.aggregatePageStats(tabId, info, [], {});
+        if (stageResult) {
+          this.tabStagingState.set(tabId, Date.now());
+          await this.db.stagePageStats(tabId, result);
+        }
+        return result;
       }
       return {};
     }
@@ -318,7 +341,7 @@ export default background({
     async pushGhosteryPageStats(tabId, pageInfo, apps, bugs) {
       logger.debug(`page stats were pushed for tab ${tabId} - ${pageInfo.host}`);
       const result = await this.aggregatePageStats(tabId, pageInfo, apps, bugs);
-      await this.db.insertStats('daily', result);
+      await this.db.insertPageStats(tabId, result);
       return result;
     },
 
@@ -343,7 +366,7 @@ export default background({
       let result = {};
       if (!tabs && getTabs) {
         // on firefox, instead of providing tabs we can pull in data.
-        const currentTabs = await getTabs({});
+        const currentTabs = (await getTabs({})).filter(({ url }) => url.startsWith('http'));
         const activeTabStats = await Promise.all(
           currentTabs.map(({ id }) => this.getStatsForTab(id))
         );
@@ -351,8 +374,12 @@ export default background({
       } else if (tabs) {
         // active tabs provided by the caller - merge with antitracking and adblocker data
         const activeTabStats = await Promise.all(
-          tabs.map(({ tabId, pageInfo, apps, bugs }) =>
-            this.aggregatePageStats(tabId, pageInfo, apps, bugs))
+          tabs.map(async ({ tabId, pageInfo, apps, bugs }) => {
+            const tabStats = await this.aggregatePageStats(tabId, pageInfo, apps, bugs);
+            // also stage result so it can be restored after crash/force close
+            this.db.stagePageStats(tabId, tabStats);
+            return tabStats;
+          })
         );
         result = activeTabStats.reduce(statReducer, result);
       }
@@ -410,7 +437,22 @@ export default background({
     },
 
     recordPageInfo(info, sender) {
-      this.pageInfo.set(sender.tab.id, info);
+      const tabId = sender.tab.id;
+      this.pageInfo.set(tabId, info);
+      if (isInternalTriggering) {
+        // periodically check the stats for this tab and save them in the DB
+        [1000, 7000, 30000].forEach((t) => {
+          setTimeout(async () => {
+            const now = Date.now();
+            const lastStaged = this.tabStagingState.get(tabId);
+            // proceed with staging if there was at least 5s since the last stage
+            if (!lastStaged || now - lastStaged > 5000) {
+              logger.info(`saving state of tab: ${tabId}`);
+              await this.getStatsForTab(tabId, { stageResult: true });
+            }
+          }, t);
+        });
+      }
     },
 
     getTrackerDetails(wtmOrAppId) {

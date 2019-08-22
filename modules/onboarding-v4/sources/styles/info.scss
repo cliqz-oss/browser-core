@@ -1,0 +1,111 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+@import 'variables.scss';
+
+@media only screen and (max-height: 225px) {
+    .info {
+        top: 45px;
+    }
+}
+
+@media only screen and (min-height: 225px) {
+    .info {
+        top: 20%;
+    }
+}
+
+.info {
+    position: absolute;
+    padding: 55px;
+    border-radius: 10px;
+    left: calc(50% - #{$info-x-offset});
+    width: $info-width;
+    height: $info-height;
+    box-shadow: 2px 2px 15px -5px #535353;
+    background-color: #fff;
+    z-index: 5;
+
+    .headline {
+        text-align: center;
+        font-family: "Montserrat", sans-serif;
+        line-height: 1.5;
+        font-weight: 700;
+        font-size: 25px;
+    }
+
+    .switch {
+        position: relative;
+        margin-top: 40px;
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+        height: $toggle-height;
+        width: $toggle-width;
+
+        .toggle {
+            position: absolute;
+            width: 0;
+            height: 0;
+            opacity: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            height: $slider-height;
+            width: $slider-width;
+            left: calc(50% - #{$slider-width}/2);
+            border-radius: 34px;
+            background-color: $grey;
+            transition: .4s;
+            margin-top: calc(#{$toggle-height}/2 - #{$slider-height}/2);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: $button-size;
+            width: $button-size;
+            border-radius: 50%;
+            border: 2px solid $grey;
+            box-shadow: 2px 2px 15px -5px $dark-grey;
+            background-color: #fff;
+            transition: .4s;
+            margin-top: calc(#{-$slider-height}/2 + #{$button-border-offset});
+            margin-left: calc((#{-$button-size} - 2*#{$button-border-offset})/2);
+        }
+
+        input:checked + .slider {
+            background-color: $light-blue;
+        }
+
+        input:checked + .slider:before {
+            border: 2px solid $cliqz-blue;
+            background-color: $cliqz-blue;
+            box-shadow: 2px 2px 15px -5px $dark-grey;
+            transform: translateX($slider-width);
+        }
+    }
+
+    .description-area {
+        margin-top: 20px;
+        text-align: center;
+        font-family: "Montserrat", sans-serif;
+        font-weight: 600;
+        font-size: 14px;
+        text-transform: uppercase;
+        color: #000;
+        transition: color 0.1s linear;
+
+        &.toggled {
+            color: $cliqz-blue;
+            transition: color 0.2s linear 0.6s;
+        }
+    }
+}

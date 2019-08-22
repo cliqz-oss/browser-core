@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import inject from '../core/kord/inject';
 import config from '../core/config';
 import pacemaker from '../core/services/pacemaker';
@@ -101,7 +109,7 @@ export default background({
       }
 
       this.core.action(
-        'broadcastActionToWindow', id, 'history', 'updateHistoryUrls', args
+        'callContentAction', 'history', 'updateHistoryUrls', { windowId: id }, args,
       );
     });
   },
@@ -140,11 +148,8 @@ export default background({
   },
 
   fillFromVisit(url, triggeringUrl) {
-    const { action, scheme, path, originalUrl } = getDetailsFromUrl(url);
+    const { scheme, path, originalUrl } = getDetailsFromUrl(url);
     let cleanUrl = originalUrl;
-    if (action && action !== 'visiturl') {
-      return Promise.resolve();
-    }
 
     // normalize url
     if (!scheme) {

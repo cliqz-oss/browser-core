@@ -1,0 +1,41 @@
+.main__container {
+  display: flex;
+}
+
+.main__myoffrz-floating-button {
+  background: url('../images/myoffrz-floating-button.svg') no-repeat center;
+}
+.main__chip-floating-button.main__floating-button-base {
+  border-radius: 25%;
+  background: url('../images/chip-floating-button.svg') no-repeat center;
+  width: 52px;
+  height: 52px;
+}
+.main__freundin-floating-button {
+  background: url('../images/freundin-floating-button.svg') no-repeat center;
+}
+
+.main__floating-button-base {
+  border-radius: 50%;
+  width: 55px;
+  height: 55px;
+  box-shadow: rgba(0, 0, 0, 0.12) 2px 3px 3px;
+}
+
+.main__freundin-floating-button:hover,
+.main__chip-floating-button:hover,
+.main__myoffrz-floating-button:hover {
+  cursor: pointer;
+}
+
+.main__floating-button-area {
+  width: 55px;
+  height: 55px;
+  padding-right: 5px;
+}
+
+.main__content {
+  box-shadow: rgba(0, 0, 0, 0.12) 0px 2px 6px, rgba(0, 0, 0, 0.12) 0px 0px 2px 0px;
+  border-radius: 4px;
+  margin-top: 1px;
+}

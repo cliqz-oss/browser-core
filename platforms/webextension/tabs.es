@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { chrome } from './globals';
 import { getActiveTab } from './browser';
 import { getUrlVariations } from '../core/url';
@@ -28,8 +36,10 @@ export function queryActiveTabs() {
   return [];
 }
 
-export function getTabsWithUrl(/* window, url */) {
-  throw new Error('not implemented');
+export function getTabsWithUrl(exacturl = '') {
+  return new Promise(resolve =>
+    chrome.tabs.query({},
+      tabs => resolve(tabs.filter(t => t.url === exacturl))));
 }
 
 export function getCurrentgBrowser() {
@@ -121,6 +131,12 @@ export function reloadTab(tabId) {
   return new Promise((resolve) => {
     chrome.tabs.reload(tabId, resolve);
   });
+}
+
+export function findTabs(url) {
+  return new Promise(resolve =>
+    chrome.tabs.query({ url },
+      tabs => resolve(chrome.runtime.lastError ? [] : tabs)));
 }
 
 export default (chrome && chrome.tabs) || undefined;

@@ -1,5 +1,12 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import background from '../core/base/background';
-import domainInfo from '../core/services/domain-info';
 import inject from '../core/kord/inject';
 import {
   openLink,
@@ -18,7 +25,7 @@ import {
  */
 export default background({
 
-  requiresServices: ['logos', 'cliqz-config', 'telemetry', 'domainInfo'],
+  requiresServices: ['logos', 'cliqz-config', 'telemetry'],
   search: inject.module('search'),
 
   /**
@@ -47,12 +54,13 @@ export default background({
         tabId: sender.tab.id,
       };
     },
-    getTrackerDetails: domainInfo.getTrackerDetails,
     async openLink(url, selection) {
+      let isSearchEngine = false;
       if (selection) {
         await this.search.action('reportSelection', selection, { contextId: 'mobile-cards' });
+        isSearchEngine = selection.rawResult.type === 'supplementary-search';
       }
-      openLink(url, selection.query);
+      openLink(url, selection.query, isSearchEngine);
     },
     callNumber,
     openMap,

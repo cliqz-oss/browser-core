@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint no-param-reassign: 'off' */
 /* eslint no-restricted-syntax: 'off' */
 
@@ -259,26 +267,26 @@ const Signals = {
         info = info.concat(reformatSignalsFlat(s));
       });
       info = info.concat(reformatSignalsFlat({
-        GPS: local('signals-your-location'),
-        query: local('signals-what-you-search')
+        GPS: local('signals_your_location'),
+        query: local('signals_what_you_search')
       }, [], 'blocked'));
     }
 
     if (sigType === 'ql') {
       info = reformatSignalsFlat(sig)
         .concat(reformatSignalsFlat({
-          'search history': local('signals-private-urls')
+          'search history': local('signals_private_urls')
         }, [], 'blocked'));
 
       if (info.length > 0) {
         if (sig.loc === undefined) {
           info = info.concat(reformatSignalsFlat({
-            GPS: local('signals-your-location')
+            GPS: local('signals_your_location')
           }, [], 'blocked'));
         }
         if (prefs.get('hpn-query') === true) {
           info = info.concat(reformatSignalsFlat({
-            'your identity': local('signals-your-ip-id') + Signals.IPs
+            'your identity': local('signals_your_ip_id') + Signals.IPs
           }, [], 'blocked'));
         }
       }
@@ -288,7 +296,7 @@ const Signals = {
       info = HumanwebSignal.reformatSignals(sig);
       if (info.length > 0) {
         info = info.concat(reformatSignalsFlat({
-          'your identity': local('signals-your-ip-id') + Signals.IPs
+          'your identity': local('signals_your_ip_id') + Signals.IPs
         }, [], 'blocked'));
       }
     }
@@ -302,8 +310,8 @@ const Signals = {
       if (sigType === 'hw' && prefs.get('humanWebOptOut') === true) {
         info[sigType] = [{
           name: '',
-          val: local('signals-humanweb-inactive-message'),
-          send: local('signals-humanweb-inactive'),
+          val: local('signals_humanweb_inactive_message'),
+          send: local('signals_humanweb_inactive'),
           unique: true,
           des: ''
         }];

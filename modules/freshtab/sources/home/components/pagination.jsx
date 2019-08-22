@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global window */
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -35,7 +43,9 @@ class Pagination extends React.Component {
 
   componentDidMount() {
     this.timer = setInterval(() => this.tick(), ROTATION_INTERVAL);
-    window.addEventListener('keydown', this.onKeyDown);
+    if (this.props.contentType === 'news') {
+      window.addEventListener('keydown', this.onKeyDown);
+    }
     this.setPage(1, { shouldAnimate: false });
   }
 

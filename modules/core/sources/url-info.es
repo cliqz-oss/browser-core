@@ -1,4 +1,12 @@
-import URL from './fast-url-parser';
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import URL, { getPunycodeEncoded } from './fast-url-parser';
 import Cache from './helpers/string-cache';
 
 function dURIC(s) {
@@ -97,7 +105,7 @@ function equals(url1, url2) {
       && pUrl1.search === pUrl2.search
       && pUrl1.hash === pUrl2.hash
       && (pUrl1.hostname === pUrl2.hostname
-          || pUrl1.getPunycodeEncoded().hostname === pUrl2.getPunycodeEncoded().hostname);
+          || getPunycodeEncoded(pUrl1).hostname === getPunycodeEncoded(pUrl2).hostname);
 }
 
 export {

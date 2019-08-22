@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import {
   blurUrlBar,
   $cliqzResults,
@@ -11,7 +19,7 @@ import {
 } from '../helpers';
 import {
   expectSelection,
-  visibleValue,
+  visibleAutocompetedValue,
 } from './common';
 import { newsResults } from '../../../core/integration/fixtures/resultsNews';
 
@@ -43,16 +51,16 @@ export default function () {
       it('selected element and urlbar value are correct', async function () {
         press({ key: 'ArrowDown' });
         await waitFor(() => expectSelection(news1Selector,
-          visibleValue(results[0].snippet.deepResults[0].links[0].url)), 600);
+          visibleAutocompetedValue(results[0].snippet.deepResults[0].links[0].url)), 600);
         press({ key: 'ArrowDown' });
         await waitFor(() => expectSelection(news2Selector,
-          visibleValue(results[0].snippet.deepResults[0].links[1].url)), 600);
+          visibleAutocompetedValue(results[0].snippet.deepResults[0].links[1].url)), 600);
         press({ key: 'ArrowDown' });
         await waitFor(() => expectSelection(news3Selector,
-          visibleValue(results[0].snippet.deepResults[0].links[2].url)), 600);
+          visibleAutocompetedValue(results[0].snippet.deepResults[0].links[2].url)), 600);
         press({ key: 'ArrowDown' });
         await waitFor(() => expectSelection(resultSelector,
-          visibleValue(results[0].snippet.friendlyUrl)), 600);
+          results[0].snippet.friendlyUrl), 600);
       });
     });
 
@@ -60,16 +68,16 @@ export default function () {
       it('selected element and urlbar value are correct', async function () {
         press({ key: 'ArrowUp' });
         await waitFor(() => expectSelection(news3Selector,
-          visibleValue(results[0].snippet.deepResults[0].links[2].url)), 600);
+          visibleAutocompetedValue(results[0].snippet.deepResults[0].links[2].url)), 600);
         press({ key: 'ArrowUp' });
         await waitFor(() => expectSelection(news2Selector,
-          visibleValue(results[0].snippet.deepResults[0].links[1].url)), 600);
+          visibleAutocompetedValue(results[0].snippet.deepResults[0].links[1].url)), 600);
         press({ key: 'ArrowUp' });
         await waitFor(() => expectSelection(news1Selector,
-          visibleValue(results[0].snippet.deepResults[0].links[0].url)), 600);
+          visibleAutocompetedValue(results[0].snippet.deepResults[0].links[0].url)), 600);
         press({ key: 'ArrowUp' });
         await waitFor(() => expectSelection(resultSelector,
-          visibleValue(results[0].snippet.friendlyUrl)), 600);
+          results[0].snippet.friendlyUrl), 600);
       });
     });
 
@@ -77,16 +85,16 @@ export default function () {
       it('selected element and urlbar value are correct', async function () {
         press({ key: 'Tab' });
         await waitFor(() => expectSelection(news1Selector,
-          visibleValue(results[0].snippet.deepResults[0].links[0].url)), 600);
+          visibleAutocompetedValue(results[0].snippet.deepResults[0].links[0].url)), 600);
         press({ key: 'Tab' });
         await waitFor(() => expectSelection(news2Selector,
-          visibleValue(results[0].snippet.deepResults[0].links[1].url)), 600);
+          visibleAutocompetedValue(results[0].snippet.deepResults[0].links[1].url)), 600);
         press({ key: 'Tab' });
         await waitFor(() => expectSelection(news3Selector,
-          visibleValue(results[0].snippet.deepResults[0].links[2].url)), 600);
+          visibleAutocompetedValue(results[0].snippet.deepResults[0].links[2].url)), 600);
         press({ key: 'Tab' });
         await waitFor(() => expectSelection(resultSelector,
-          visibleValue(results[0].snippet.friendlyUrl)), 600);
+          results[0].snippet.friendlyUrl), 600);
       });
     });
 
@@ -98,16 +106,16 @@ export default function () {
       it('selected element and urlbar value are correct', async function () {
         press({ key: 'Tab', shiftKey: true });
         await waitFor(() => expectSelection(news3Selector,
-          visibleValue(results[0].snippet.deepResults[0].links[2].url)), 600);
+          visibleAutocompetedValue(results[0].snippet.deepResults[0].links[2].url)), 600);
         press({ key: 'Tab', shiftKey: true });
         await waitFor(() => expectSelection(news2Selector,
-          visibleValue(results[0].snippet.deepResults[0].links[1].url)), 600);
+          visibleAutocompetedValue(results[0].snippet.deepResults[0].links[1].url)), 600);
         press({ key: 'Tab', shiftKey: true });
         await waitFor(() => expectSelection(news1Selector,
-          visibleValue(results[0].snippet.deepResults[0].links[0].url)), 600);
+          visibleAutocompetedValue(results[0].snippet.deepResults[0].links[0].url)), 600);
         press({ key: 'Tab', shiftKey: true });
         await waitFor(() => expectSelection(resultSelector,
-          visibleValue(results[0].snippet.friendlyUrl)), 600);
+          results[0].snippet.friendlyUrl), 600);
       });
     });
   });

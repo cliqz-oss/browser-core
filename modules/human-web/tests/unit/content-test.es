@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai */
 /* global describeModule */
 
@@ -14,14 +22,28 @@ function loadFixture(name) {
   return { html, expectedAds };
 }
 
+const FAKE_CONSOLE = {
+  debug() {},
+  log() {},
+  error() {},
+};
+
 export default describeModule('human-web/content',
   () => ({
-    'human-web/logger': {
-      default: {
-        debug() {},
-        log() {},
-        error() {},
+    'platform/runtime': {
+      default: {},
+    },
+    'platform/globals': {
+      chrome: {},
+    },
+    'platform/content/globals': {
+      chrome: {},
+      window: {
+        console: FAKE_CONSOLE,
       },
+    },
+    'human-web/logger': {
+      default: FAKE_CONSOLE,
     },
   }),
   () => {

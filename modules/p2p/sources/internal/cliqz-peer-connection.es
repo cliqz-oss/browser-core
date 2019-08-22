@@ -1,8 +1,17 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint no-param-reassign: off */
 
 import random from '../../core/crypto/random';
 import { setTimeout } from '../../core/timers';
 import constants from './constants';
+import logger from './logger';
 
 // CliqzPeerConnection: encapsulates a RTCDataChannel and RTCPeerConnection
 // TODO: everything that changes CliqzPeerConnection state should be done
@@ -21,10 +30,12 @@ export default class CliqzPeerConnection {
 
   constructor(cliqzPeer, peerOptions, peer, isLocal, minSDP = false) {
     this.minSDP = minSDP;
-    this.logDebug = cliqzPeer.logDebug.bind(null, `[${peer}]`);
-    this.log = cliqzPeer.log.bind(null, `[${peer}]`);
-    this.logError = cliqzPeer.logError.bind(null, `[${peer}]`);
+    this.logDebug = logger.debug.bind(null, 'peer', peer, ':');
+    this.log = logger.info.bind(null, peer, ':');
+    this.logError = logger.error.bind(null, 'peer', peer, ':');
     this.id = Math.round(random() * 2000000000);
+    this.log('CliqzPeerConnection created with id:', this.id);
+
     this.remoteId = null;
     this.cliqzPeer = cliqzPeer;
     this.peerOptions = peerOptions;
@@ -92,30 +103,9 @@ export default class CliqzPeerConnection {
     this.onmessage = null;
   }
 
-  getStats() {
-    function _getStats(conn, cb) {
-      conn.getStats((res) => {
-        const items = [];
-        res.result().forEach((result) => {
-          const item = {};
-          result.names().forEach((name) => {
-            item[name] = result.stat(name);
-          });
-          item.id = result.id;
-          item.type = result.type;
-          item.timestamp = result.timestamp;
-          items.push(item);
-        });
-        cb(items);
-      });
-    }
-    return new Promise((resolve, reject) => {
-      try {
-        _getStats(this.connection, stats => resolve(stats));
-      } catch (e) {
-        reject(e);
-      }
-    });
+  async getStats() {
+    const rtcStats = await this.connection.getStats();
+    return [...rtcStats.values()];
   }
 
   isRelayed() {
@@ -123,108 +113,59 @@ export default class CliqzPeerConnection {
       .then(x => x.localCandidateType === 'relayed' || x.remoteCandidateType === 'relayed');
   }
 
-  getCandidatesInfo() {
-    const window = this.cliqzPeer.window;
-    // FF
-    // FIXME: not all windows in FF seem to have WebrtcGlobalInformation,
-    // probably only privileged ones like ChromeWindow.
-    // need to find a workaround for this.
-    if (window.WebrtcGlobalInformation) {
-      return new Promise((resolve, reject) => {
-        window.WebrtcGlobalInformation.getAllStats((stats) => {
-          if (!stats) {
-            return reject(new Error('no stats'));
-          }
-          const reports = stats.reports;
-          if (!reports) {
-            return reject(new Error('no reports'));
-          }
-          const conn = reports.find(x => x.pcid === this.connection.id);
-          if (!conn) {
-            return reject(new Error('no conn'));
-          }
-          const pairs = conn.iceCandidatePairStats.filter(x => x.selected);
-          if (pairs.length === 0) {
-            return reject(new Error('no candidate pairs'));
-          }
-          if (pairs.length > 1) {
-            return reject(new Error('more than one candidate pair'));
-          }
-          const localCandidate = conn.iceCandidateStats.find(x =>
-            x.type.indexOf('local') === 0 && x.id === pairs[0].localCandidateId);
-          const remoteCandidate = conn.iceCandidateStats.find(x =>
-            x.type.indexOf('remote') === 0 && x.id === pairs[0].remoteCandidateId);
-          if (!localCandidate) {
-            return reject(new Error('no local candidate'));
-          }
-          if (!remoteCandidate) {
-            return reject(new Error('no remote candidate'));
-          }
-          return resolve({
-            localPeer: this.cliqzPeer.peerID,
-            remotePeer: this.peer,
-            timestamp: Math.floor(pairs[0].timestamp / 1000),
-            localCandidateType: localCandidate.candidateType,
-            localIp: localCandidate.ipAddress,
-            localPort: localCandidate.portNumber,
-            remoteCandidateType: remoteCandidate.candidateType,
-            remoteIp: remoteCandidate.ipAddress,
-            remotePort: remoteCandidate.portNumber,
-          });
-        });
-      });
+  async getCandidatesInfo() {
+    const stats = await this.getStats();
+    if (!stats) {
+      throw new Error('no stats');
     }
-    // Chrome/WebView/NodeJS
-    return this.getStats()
-      .then((stats) => {
-        if (!stats) {
-          throw new Error('no stats');
-        }
-        const pairs = stats.filter(x => x.type === 'googCandidatePair' && x.googActiveConnection === 'true');
-        if (pairs.length === 0) {
-          throw new Error('no candidate pairs');
-        } else if (pairs.length > 1) {
-          throw new Error('more than one candidate pair');
-        }
-        const localCandidate = stats.find(x => x.type === 'localcandidate' && x.id === pairs[0].localCandidateId);
-        const remoteCandidate = stats.find(x => x.type === 'remotecandidate' && x.id === pairs[0].remoteCandidateId);
-        if (!localCandidate) {
-          throw new Error('no local candidate');
-        }
-        if (!remoteCandidate) {
-          throw new Error('no remote candidate');
-        }
-        return {
-          localPeer: this.cliqzPeer.peerID,
-          remotePeer: this.peer,
-          timestamp: Math.floor(pairs[0].timestamp.getTime() / 1000),
-          localCandidateType: localCandidate.candidateType,
-          localIp: localCandidate.ipAddress,
-          localPort: localCandidate.portNumber,
-          remoteCandidateType: remoteCandidate.candidateType,
-          remoteIp: remoteCandidate.ipAddress,
-          remotePort: remoteCandidate.portNumber,
-        };
-      });
+
+    // Note: The selection used to be based on Chromium's non-standard API:
+    // 'googCandidatePair' && x.googActiveConnection === 'true'
+    // For Firefox, it had a specialized implementation based on a now-removed API.
+    const pairs = stats.filter(x => x.selected);
+    if (pairs.length === 0) {
+      throw new Error('no candidate pairs');
+    }
+    if (pairs.length > 1) {
+      throw new Error('more than one candidate pair');
+    }
+    const localCandidate = stats.find(x => x.type === 'local-candidate' && x.id === pairs[0].localCandidateId);
+    const remoteCandidate = stats.find(x => x.type === 'remote-candidate' && x.id === pairs[0].remoteCandidateId);
+    if (!localCandidate) {
+      throw new Error('no local candidate');
+    }
+    if (!remoteCandidate) {
+      throw new Error('no remote candidate');
+    }
+    const info = {
+      localPeer: this.cliqzPeer.peerID,
+      remotePeer: this.peer,
+      timestamp: pairs[0].timestamp,
+      localCandidateType: localCandidate.candidateType,
+      localIp: localCandidate.address,
+      localPort: localCandidate.port,
+      remoteCandidateType: remoteCandidate.candidateType,
+      remoteIp: remoteCandidate.address,
+      remotePort: remoteCandidate.port,
+    };
+    logger.debug('WebRTC candidates info:', info);
+    return info;
   }
 
-  createOffer() {
+  async createOffer() {
     const connection = this.connection;
-    connection.createOffer((description) => {
+    const description = await connection.createOffer();
+    try {
       this.logDebug('Created offer', description);
-      connection.setLocalDescription(new this.cliqzPeer.RTCSessionDescription(description), () => {
-        this.cliqzPeer._sendSignaling(this.peer, { type: 'offer', description }, this.id);
-      }, (error) => {
-        this.logError(error, 'create offer error');
-        this.close('create offer error');
-      });
-    }, (error) => {
-      this.logError(error, 'offer error');
+      await connection.setLocalDescription(new this.cliqzPeer.RTCSessionDescription(description));
+      this.cliqzPeer._sendSignaling(this.peer, { type: 'offer', description }, this.id);
+    } catch (error) {
+      this.logError(error, 'failed to create offer');
       this.close('offer error');
-    });
+    }
   }
 
-  receiveICECandidate(candidate, id) {
+  async receiveICECandidate(candidate, id) {
     const from = this.peer;
     const connection = this.connection;
     if (connection && connection.remoteDescription) {
@@ -232,11 +173,12 @@ export default class CliqzPeerConnection {
         if (candidate) {
           this.logDebug('Received candidate', from, candidate, id, this.remoteId);
           this.remoteId = id;
-          connection.addIceCandidate(new this.cliqzPeer.RTCIceCandidate(candidate), () => {
+          try {
+            await connection.addIceCandidate(new this.cliqzPeer.RTCIceCandidate(candidate));
             this.logDebug('candidate ok', candidate);
-          }, (e) => {
+          } catch (e) {
             this.logError(e, 'candidate wrong', candidate);
-          });
+          }
         } else {
           // TODO: should we do sth here? Chromium and Firefox seem to handle this differently...
           this.logDebug('Received end of candidates', from, candidate, id, this.remoteId);
@@ -252,7 +194,7 @@ export default class CliqzPeerConnection {
     }
   }
 
-  receiveOffer(offer, id) {
+  async receiveOffer(offer, id) {
     const from = this.peer;
     // TODO: Does it really make sense to receive two offers from same id?
     if (!this.remoteId || this.remoteId === id) {
@@ -260,42 +202,42 @@ export default class CliqzPeerConnection {
       this.remoteId = id;
       const connection = this.connection;
       const description = new this.cliqzPeer.RTCSessionDescription(offer.description);
-      connection.setRemoteDescription(description, () => {
-        (this.savedICECandidates || []).forEach(([candidate, _id]) => {
-          this.receiveICECandidate(candidate, _id);
-        });
-        connection.createAnswer((answer) => {
-          connection.setLocalDescription(answer, () => {
-            this.cliqzPeer._sendSignaling(from, { type: 'answer', description: answer }, this.id);
-          }, (error) => {
-            this.logError(error, 'error setting receiver local description');
-          });
-        }, (error) => {
-          this.logError(error, 'error creating answer');
-        });
-      }, (error) => {
-        this.logError(error, 'error setting receiver remote description');
-      });
+
+      await connection.setRemoteDescription(description);
+      await Promise.all(
+        (this.savedICECandidates || []).map(async ([candidate, _id]) => {
+          try {
+            await this.receiveICECandidate(candidate, _id);
+          } catch (e) {
+            this.logError('Failed to receive ICE candidate', e);
+          }
+        })
+      );
+      const answer = await connection.createAnswer();
+      await connection.setLocalDescription(answer);
+      this.cliqzPeer._sendSignaling(from, { type: 'answer', description: answer }, this.id);
     } else {
       this.logDebug('Warning: wrong offer received', from, id, this.remoteId);
     }
   }
 
-  receiveAnswer(answer, id) {
+  async receiveAnswer(answer, id) {
     if (!this.remoteId || this.remoteId === id) {
       const from = this.peer;
       this.logDebug('Received answer', answer.description, from, answer, id, this.remoteId);
       this.remoteId = id;
       const connection = this.connection;
       const description = new this.cliqzPeer.RTCSessionDescription(answer.description);
-      connection.setRemoteDescription(description, () => {
-        (this.savedICECandidates || []).forEach(([candidate, _id]) => {
-          this.receiveICECandidate(candidate, _id);
-        });
-        this.logDebug('set originator remote description');
-      }, (error) => {
-        this.logError(error, 'error setting originator remote description');
-      });
+      await connection.setRemoteDescription(description);
+      await Promise.all(
+        (this.savedICECandidates || []).map(async ([candidate, _id]) => {
+          try {
+            await this.receiveICECandidate(candidate, _id);
+          } catch (e) {
+            this.logError('Failed to receive ICE candidate', e);
+          }
+        })
+      );
     }
   }
 

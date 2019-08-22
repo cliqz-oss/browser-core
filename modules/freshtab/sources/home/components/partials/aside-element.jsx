@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 
@@ -16,6 +24,7 @@ function AsideElement({
   const returnedEl = isButton
     ? (
       <Button
+        className="aside-button"
         id={id}
         label={label}
         onClick={onClick}
@@ -24,6 +33,7 @@ function AsideElement({
     )
     : (
       <a
+        className="aside-button"
         href={href}
         id={id}
         onClick={onClick}

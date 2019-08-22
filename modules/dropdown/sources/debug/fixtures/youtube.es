@@ -1,141 +1,560 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 export default {
   'youtube video': {
     query: 'yout',
     results: [
       {
-        data: {
-          deepResults: [
-            {
-              links: [
-                {
-                  extra: {
-                    duration: 117,
-                    thumbnail: 'https://i.ytimg.com/vi/bnKFaAS30X8/hqdefault.jpg',
-                    views: '1807250'
-                  },
-                  title: 'NASA & TRAPPIST-1: A Treasure Trove of Planets Found',
-                  url: 'https://www.youtube.com/watch?v=bnKFaAS30X8'
-                },
-                {
-                  extra: {
-                    duration: 1253,
-                    thumbnail: 'https://i.ytimg.com/vi/VYWyz3cwSPE/hqdefault.jpg',
-                    views: '66334'
-                  },
-                  title: 'University’s Update on NCAA Case',
-                  url: 'https://www.youtube.com/watch?v=VYWyz3cwSPE'
-                },
-                {
-                  extra: {
-                    thumbnail: 'https://i.ytimg.com/vi/5xMXQLoEGCg/hqdefault.jpg',
-                    views: '1365327'
-                  },
-                  title: 'Alex Trebek Reading The Rap Category Proves He Might Be The Best Rapper Alive',
-                  url: 'https://www.youtube.com/watch?v=5xMXQLoEGCg'
-                }
-              ],
-              type: 'videos'
-            },
-            {
-              links: [
-                {
-                  title: 'PietSmiet',
-                  url: 'https://www.youtube.com/user/PietSmittie'
-                },
-                {
-                  title: 'Gronkh',
-                  url: 'https://www.youtube.com/user/Gronkh'
-                },
-                {
-                  title: 'Musik',
-                  url: 'https://www.youtube.com/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ'
-                },
-                {
-                  title: 'Verlauf',
-                  url: 'https://www.youtube.com/feed/history'
-                }
-              ],
-              type: 'buttons'
-            }
-          ],
-          description: 'Zeige deine Videos deinen Freunden, Familienmitgliedern und der ganzen Welt.',
-          extra: {
-            __message__: {
-              buttons: [
-                {
-                  action: 'dismiss',
-                  text: 'dismiss'
-                }
-              ],
-              pref: 'showYoutubeDynamicMsg',
-              searchTerm: 'myQuery',
-              text: 'ytDynamicSearch'
-            },
-            name_cat: 'ez_video-recommended'
-          },
-          friendlyUrl: 'youtube.com',
-          title: 'YouTube',
-          subType: {
-            class: 'EntityVideo',
-            trigger_method: 'rh_query',
-            ez: 'deprecated',
-            i: 0,
-            cs: 0
-          },
-          template: 'entity-video-1',
-          kind: [
-            'X|{\'class\':\'EntityVideo\',\'trigger_method\':\'rh_query\',\'ez\':\'deprecated\',\'i\':0,\'cs\':0}'
-          ]
-        },
+        url: 'https://www.youtube.com/?hl=de&gl=DE',
+        href: 'https://www.youtube.com/?hl=de&gl=DE',
+        friendlyUrl: 'youtube.com',
         title: 'YouTube',
-        url: 'https://www.youtube.com/?gl=DE&hl=de',
         description: 'Zeige deine Videos deinen Freunden, Familienmitgliedern und der ganzen Welt.',
-        originalUrl: 'https://www.youtube.com/?gl=DE&hl=de',
-        type: 'cliqz-extra',
-        text: 'yout',
-        maxNumberOfSlots: 3
-      },
-      {
-        url: 'https://www.youtube.com/watch?v=f0UB06v7yLY',
-        friendlyUrl: 'youtube.com/watch',
-        href: 'https://www.youtube.com/watch?v=f0UB06v7yLY',
-        title: "Donald Trump's best lines during his 2016 speech",
-        description: 'Donald Trump announced he is running for president; here are some of the best lines from his speech.',
         kind: [
-          'v'
+          'X|{"class":"EntityVideo"}'
         ],
         provider: 'cliqz',
-        template: 'single-video',
-        text: 'youtb donald trump',
-        type: 'bm',
-        meta: { },
+        template: 'entity-video-1',
+        text: 'youtube',
+        type: 'rh',
+        meta: {
+          level: 0,
+          type: 'main',
+          triggerMethod: 'url',
+          domain: 'youtube.com',
+          host: 'youtube.com',
+          hostAndPort: 'youtube.com',
+          port: '',
+          url: 'youtube.com/?hl=de&gl=DE',
+          score: 881189.8,
+          subType: {
+            class: 'EntityVideo',
+            id: '5f0005aa412d38ae6614bfa968b5b2bb4d5c70b0fa7be845d586cbca2b10d39a',
+            name: 'multi:YoutubeVideo'
+          },
+          latency: 82,
+          backendCountry: 'de',
+          completion: '.com/?hl=de&gl=DE',
+          logo: {
+            backgroundColor: 'd7011d',
+            backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/youtube/$.svg)',
+            text: 'yo',
+            color: '#fff',
+            brandTxtColor: 'd7011d',
+            buttonsClass: 'cliqz-brands-button-1',
+            style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/youtube/$.svg); text-indent: -10em;'
+          },
+          extraLogos: {},
+          externalProvidersLogos: {
+            kicker: {
+              backgroundColor: 'd7011d',
+              backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg)',
+              text: 'ki',
+              color: '#fff',
+              brandTxtColor: 'd7011d',
+              buttonsClass: 'cliqz-brands-button-1',
+              style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg); text-indent: -10em;'
+            }
+          }
+        },
         data: {
           deepResults: [
-
+            {
+              type: 'videos',
+              links: [
+                {
+                  url: 'https://www.youtube.com/watch?v=kzotUEInDbo',
+                  href: 'https://www.youtube.com/watch?v=kzotUEInDbo',
+                  friendlyUrl: 'youtube.com/watch?v=kzotUEInDbo',
+                  title: 'Ecken-Trick lässt Anfield beben | Liverpool - Barcelona 4:0 | Highlights - Champions League 2018/19',
+                  extra: {
+                    duration: null,
+                    thumbnail: 'https://imgr.cliqz.com/Fx-c2pfQiO6IqKVr5nw4TrpFxW-gGMNgx2odaX0aD5A/fill/0/200/no/1/aHR0cHM6Ly9pLnl0aW1nLmNvbS92aS9rem90VUVJbkRiby9tcWRlZmF1bHQuanBn.jpg',
+                    views: '3783439'
+                  },
+                  kind: [
+                    'X|{"class":"EntityVideo"}'
+                  ],
+                  meta: {
+                    level: 1,
+                    type: 'videos',
+                    domain: 'youtube.com',
+                    host: 'youtube.com',
+                    hostAndPort: 'youtube.com',
+                    port: '',
+                    url: 'youtube.com/watch?v=kzotUEInDbo',
+                    subType: {},
+                    completion: '.com/watch?v=kzotUEInDbo',
+                    logo: {
+                      backgroundColor: 'd7011d',
+                      backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/youtube/$.svg)',
+                      text: 'yo',
+                      color: '#fff',
+                      brandTxtColor: 'd7011d',
+                      buttonsClass: 'cliqz-brands-button-1',
+                      style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/youtube/$.svg); text-indent: -10em;'
+                    },
+                    extraLogos: {},
+                    externalProvidersLogos: {
+                      kicker: {
+                        backgroundColor: 'd7011d',
+                        backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg)',
+                        text: 'ki',
+                        color: '#fff',
+                        brandTxtColor: 'd7011d',
+                        buttonsClass: 'cliqz-brands-button-1',
+                        style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg); text-indent: -10em;'
+                      }
+                    }
+                  }
+                },
+                {
+                  url: 'https://www.youtube.com/watch?v=h3KXjE8r1zo',
+                  href: 'https://www.youtube.com/watch?v=h3KXjE8r1zo',
+                  friendlyUrl: 'youtube.com/watch?v=h3KXjE8r1zo',
+                  title: 'o2 Free - Jetzt auch nach Verbrauch des Datenvolumens mit LTE weitersurfen',
+                  extra: {
+                    duration: null,
+                    thumbnail: 'https://imgr.cliqz.com/3LCc0DCkfelobt_zcT_grbB7UU-pLl_NpyMaOtGRMJY/fill/0/200/no/1/aHR0cHM6Ly9pLnl0aW1nLmNvbS92aS9oM0tYakU4cjF6by9tcWRlZmF1bHQuanBn.jpg',
+                    views: '235000'
+                  },
+                  kind: [
+                    'X|{"class":"EntityVideo"}'
+                  ],
+                  meta: {
+                    level: 1,
+                    type: 'videos',
+                    domain: 'youtube.com',
+                    host: 'youtube.com',
+                    hostAndPort: 'youtube.com',
+                    port: '',
+                    url: 'youtube.com/watch?v=h3KXjE8r1zo',
+                    subType: {},
+                    completion: '.com/watch?v=h3KXjE8r1zo',
+                    logo: {
+                      backgroundColor: 'd7011d',
+                      backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/youtube/$.svg)',
+                      text: 'yo',
+                      color: '#fff',
+                      brandTxtColor: 'd7011d',
+                      buttonsClass: 'cliqz-brands-button-1',
+                      style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/youtube/$.svg); text-indent: -10em;'
+                    },
+                    extraLogos: {},
+                    externalProvidersLogos: {
+                      kicker: {
+                        backgroundColor: 'd7011d',
+                        backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg)',
+                        text: 'ki',
+                        color: '#fff',
+                        brandTxtColor: 'd7011d',
+                        buttonsClass: 'cliqz-brands-button-1',
+                        style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg); text-indent: -10em;'
+                      }
+                    }
+                  }
+                },
+                {
+                  url: 'https://www.youtube.com/watch?v=7ZtAH0x6GYU',
+                  href: 'https://www.youtube.com/watch?v=7ZtAH0x6GYU',
+                  friendlyUrl: 'youtube.com/watch?v=7ZtAH0x6GYU',
+                  title: 'Jürgen Klopp im DAZN Interview nach Liverpool vs Barcelona',
+                  extra: {
+                    duration: null,
+                    thumbnail: 'https://imgr.cliqz.com/ADIJHtB0_O30igW8Kg4C08ElRbI6q6o-T48BVa1mD7c/fill/0/200/no/1/aHR0cHM6Ly9pLnl0aW1nLmNvbS92aS83WnRBSDB4NkdZVS9tcWRlZmF1bHQuanBn.jpg',
+                    views: '1159784'
+                  },
+                  kind: [
+                    'X|{"class":"EntityVideo"}'
+                  ],
+                  meta: {
+                    level: 1,
+                    type: 'videos',
+                    domain: 'youtube.com',
+                    host: 'youtube.com',
+                    hostAndPort: 'youtube.com',
+                    port: '',
+                    url: 'youtube.com/watch?v=7ZtAH0x6GYU',
+                    subType: {},
+                    completion: '.com/watch?v=7ZtAH0x6GYU',
+                    logo: {
+                      backgroundColor: 'd7011d',
+                      backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/youtube/$.svg)',
+                      text: 'yo',
+                      color: '#fff',
+                      brandTxtColor: 'd7011d',
+                      buttonsClass: 'cliqz-brands-button-1',
+                      style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/youtube/$.svg); text-indent: -10em;'
+                    },
+                    extraLogos: {},
+                    externalProvidersLogos: {
+                      kicker: {
+                        backgroundColor: 'd7011d',
+                        backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg)',
+                        text: 'ki',
+                        color: '#fff',
+                        brandTxtColor: 'd7011d',
+                        buttonsClass: 'cliqz-brands-button-1',
+                        style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg); text-indent: -10em;'
+                      }
+                    }
+                  }
+                }
+              ]
+            }
           ],
           extra: {
-            rich_data: {
-              duration: 132,
-              views: '1212054',
-              thumbnail: 'https://i.ytimg.com/vi/f0UB06v7yLY/mqdefault.jpg'
-            },
-            image: {
-              src: 'https://i.ytimg.com/vi/f0UB06v7yLY/default.jpg'
-            },
-            alternatives: [
-
-            ],
-            m_url: 'https://m.youtube.com/watch?v=f0UB06v7yLY',
+            alternatives: [],
             language: {
-
+              de: 0.9500000000000001
+            },
+            m_url: 'https://m.youtube.com/?hl=de&gl=DE',
+            og: {
+              image: 'https://imgr.cliqz.com/BKxVO7Cd1jIr0r4CODDWc_KjqjYmlEEnOvQC0J8f07c/fill/0/200/no/1/aHR0cDovL3MueXRpbWcuY29tL3l0cy9pbWcveW91dHViZV9sb2dvX3N0YWNrZWQtdmZsMjI1WlR4LnBuZw.png'
             }
           },
           kind: [
-            'v'
+            'X|{"class":"EntityVideo"}'
           ],
-          template: 'single-video'
+          template: 'entity-video-1'
         }
-      }
+      },
     ]
-  }
+  },
+  'youtube-in-history': {
+    query: 'youtube',
+    results: [
+      {
+        url: 'https://www.youtube.com/',
+        href: 'https://www.youtube.com/',
+        friendlyUrl: 'youtube.com',
+        title: 'YouTube',
+        description: 'Zeige deine Videos deinen Freunden, Familienmitgliedern und der ganzen Welt.',
+        kind: [
+          'C'
+        ],
+        style: '',
+        provider: 'history',
+        template: 'entity-video-1',
+        text: 'youtube',
+        type: 'rh',
+        meta: {
+          level: 0,
+          type: 'main',
+          isConstructed: true,
+          domain: 'youtube.com',
+          host: 'youtube.com',
+          hostAndPort: 'youtube.com',
+          port: '',
+          url: 'youtube.com',
+          subType: {},
+          isCluster: true,
+          originalUrl: 'https://youtube.com/',
+          isEnriched: true,
+          completion: '.com',
+          logo: {
+            backgroundColor: 'd7011d',
+            backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/youtube/$.svg)',
+            text: 'yo',
+            color: '#fff',
+            brandTxtColor: 'd7011d',
+            buttonsClass: 'cliqz-brands-button-1',
+            style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/youtube/$.svg); text-indent: -10em;'
+          },
+          extraLogos: {},
+          externalProvidersLogos: {
+            kicker: {
+              backgroundColor: 'd7011d',
+              backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg)',
+              text: 'ki',
+              color: '#fff',
+              brandTxtColor: 'd7011d',
+              buttonsClass: 'cliqz-brands-button-1',
+              style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg); text-indent: -10em;'
+            }
+          }
+        },
+        data: {
+          deepResults: [
+            {
+              type: 'videos',
+              links: [
+                {
+                  url: 'https://www.youtube.com/watch?v=kzotUEInDbo',
+                  href: 'https://www.youtube.com/watch?v=kzotUEInDbo',
+                  friendlyUrl: 'youtube.com/watch?v=kzotUEInDbo',
+                  title: 'Ecken-Trick lässt Anfield beben | Liverpool - Barcelona 4:0 | Highlights - Champions League 2018/19',
+                  extra: {
+                    duration: null,
+                    thumbnail: 'https://imgr.cliqz.com/Fx-c2pfQiO6IqKVr5nw4TrpFxW-gGMNgx2odaX0aD5A/fill/0/200/no/1/aHR0cHM6Ly9pLnl0aW1nLmNvbS92aS9rem90VUVJbkRiby9tcWRlZmF1bHQuanBn.jpg',
+                    views: '3783439'
+                  },
+                  kind: [
+                    'C'
+                  ],
+                  style: 'favicon',
+                  provider: 'history',
+                  meta: {
+                    level: 1,
+                    type: 'videos',
+                    domain: 'youtube.com',
+                    host: 'youtube.com',
+                    hostAndPort: 'youtube.com',
+                    port: '',
+                    url: 'youtube.com/watch?v=kzotUEInDbo',
+                    subType: {},
+                    completion: '.com/watch?v=kzotUEInDbo',
+                    logo: {
+                      backgroundColor: 'd7011d',
+                      backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/youtube/$.svg)',
+                      text: 'yo',
+                      color: '#fff',
+                      brandTxtColor: 'd7011d',
+                      buttonsClass: 'cliqz-brands-button-1',
+                      style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/youtube/$.svg); text-indent: -10em;'
+                    },
+                    extraLogos: {},
+                    externalProvidersLogos: {
+                      kicker: {
+                        backgroundColor: 'd7011d',
+                        backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg)',
+                        text: 'ki',
+                        color: '#fff',
+                        brandTxtColor: 'd7011d',
+                        buttonsClass: 'cliqz-brands-button-1',
+                        style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg); text-indent: -10em;'
+                      }
+                    }
+                  }
+                },
+                {
+                  url: 'https://www.youtube.com/watch?v=7ZtAH0x6GYU',
+                  href: 'https://www.youtube.com/watch?v=7ZtAH0x6GYU',
+                  friendlyUrl: 'youtube.com/watch?v=7ZtAH0x6GYU',
+                  title: 'Jürgen Klopp im DAZN Interview nach Liverpool vs Barcelona',
+                  extra: {
+                    duration: null,
+                    thumbnail: 'https://imgr.cliqz.com/ADIJHtB0_O30igW8Kg4C08ElRbI6q6o-T48BVa1mD7c/fill/0/200/no/1/aHR0cHM6Ly9pLnl0aW1nLmNvbS92aS83WnRBSDB4NkdZVS9tcWRlZmF1bHQuanBn.jpg',
+                    views: '1159784'
+                  },
+                  kind: [
+                    'C'
+                  ],
+                  style: 'favicon',
+                  provider: 'history',
+                  meta: {
+                    level: 1,
+                    type: 'videos',
+                    domain: 'youtube.com',
+                    host: 'youtube.com',
+                    hostAndPort: 'youtube.com',
+                    port: '',
+                    url: 'youtube.com/watch?v=7ZtAH0x6GYU',
+                    subType: {},
+                    completion: '.com/watch?v=7ZtAH0x6GYU',
+                    logo: {
+                      backgroundColor: 'd7011d',
+                      backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/youtube/$.svg)',
+                      text: 'yo',
+                      color: '#fff',
+                      brandTxtColor: 'd7011d',
+                      buttonsClass: 'cliqz-brands-button-1',
+                      style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/youtube/$.svg); text-indent: -10em;'
+                    },
+                    extraLogos: {},
+                    externalProvidersLogos: {
+                      kicker: {
+                        backgroundColor: 'd7011d',
+                        backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg)',
+                        text: 'ki',
+                        color: '#fff',
+                        brandTxtColor: 'd7011d',
+                        buttonsClass: 'cliqz-brands-button-1',
+                        style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg); text-indent: -10em;'
+                      }
+                    }
+                  }
+                },
+                {
+                  url: 'https://www.youtube.com/watch?v=h3KXjE8r1zo',
+                  href: 'https://www.youtube.com/watch?v=h3KXjE8r1zo',
+                  friendlyUrl: 'youtube.com/watch?v=h3KXjE8r1zo',
+                  title: 'o2 Free - Jetzt auch nach Verbrauch des Datenvolumens mit LTE weitersurfen',
+                  extra: {
+                    duration: null,
+                    thumbnail: 'https://imgr.cliqz.com/3LCc0DCkfelobt_zcT_grbB7UU-pLl_NpyMaOtGRMJY/fill/0/200/no/1/aHR0cHM6Ly9pLnl0aW1nLmNvbS92aS9oM0tYakU4cjF6by9tcWRlZmF1bHQuanBn.jpg',
+                    views: '235000'
+                  },
+                  kind: [
+                    'C'
+                  ],
+                  meta: {
+                    level: 1,
+                    type: 'videos',
+                    domain: 'youtube.com',
+                    host: 'youtube.com',
+                    hostAndPort: 'youtube.com',
+                    port: '',
+                    url: 'youtube.com/watch?v=h3KXjE8r1zo',
+                    subType: {},
+                    completion: '.com/watch?v=h3KXjE8r1zo',
+                    logo: {
+                      backgroundColor: 'd7011d',
+                      backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/youtube/$.svg)',
+                      text: 'yo',
+                      color: '#fff',
+                      brandTxtColor: 'd7011d',
+                      buttonsClass: 'cliqz-brands-button-1',
+                      style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/youtube/$.svg); text-indent: -10em;'
+                    },
+                    extraLogos: {},
+                    externalProvidersLogos: {
+                      kicker: {
+                        backgroundColor: 'd7011d',
+                        backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg)',
+                        text: 'ki',
+                        color: '#fff',
+                        brandTxtColor: 'd7011d',
+                        buttonsClass: 'cliqz-brands-button-1',
+                        style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg); text-indent: -10em;'
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          extra: {
+            alternatives: [],
+            language: {
+              en: 0.91
+            },
+            m_url: 'https://m.youtube.com/',
+            og: {
+              image: 'https://imgr.cliqz.com/BKxVO7Cd1jIr0r4CODDWc_KjqjYmlEEnOvQC0J8f07c/fill/0/200/no/1/aHR0cDovL3MueXRpbWcuY29tL3l0cy9pbWcveW91dHViZV9sb2dvX3N0YWNrZWQtdmZsMjI1WlR4LnBuZw.png'
+            }
+          },
+          kind: [
+            'C'
+          ],
+          template: 'entity-video-1'
+        }
+      },
+      {
+        url: 'moz-extension://b83b4d62-77eb-5b4d-a5af-794591c1711a/modules/cliqz-history/index.html#/?query=youtube',
+        href: 'moz-extension://b83b4d62-77eb-5b4d-a5af-794591c1711a/modules/cliqz-history/index.html#/?query=youtube',
+        friendlyUrl: 'moz-extension://b83b4d62-77eb-5b4d-a5af-794591c1711a/modules/cliqz-history/index.html',
+        kind: [
+          'history-ui'
+        ],
+        provider: 'historyView',
+        template: 'sessions',
+        text: 'youtube',
+        meta: {
+          level: 0,
+          type: 'main',
+          domain: 'b83b4d62-77eb-5b4d-a5af-794591c1711a',
+          host: 'b83b4d62-77eb-5b4d-a5af-794591c1711a',
+          hostAndPort: 'b83b4d62-77eb-5b4d-a5af-794591c1711a',
+          port: '',
+          url: 'moz-extension://b83b4d62-77eb-5b4d-a5af-794591c1711a/modules/cliqz-history/index.html#/?query=youtube',
+          subType: {},
+          logo: {
+            text: 'b8',
+            backgroundColor: '1747a6',
+            brandTxtColor: '2d2d2d',
+            buttonsClass: 'cliqz-brands-button-6',
+            style: 'background-color: #1747a6;color:#fff;'
+          },
+          extraLogos: {},
+          externalProvidersLogos: {
+            kicker: {
+              backgroundColor: 'd7011d',
+              backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg)',
+              text: 'ki',
+              color: '#fff',
+              brandTxtColor: 'd7011d',
+              buttonsClass: 'cliqz-brands-button-1',
+              style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg); text-indent: -10em;'
+            }
+          }
+        },
+        data: {
+          deepResults: [],
+          extra: {},
+          kind: [
+            'history-ui'
+          ],
+          template: 'sessions'
+        }
+      },
+      {
+        url: 'https://www.youtube.com/?hl=de&gl=DE',
+        href: 'https://www.youtube.com/?hl=de&gl=DE',
+        friendlyUrl: 'youtube.com',
+        title: 'YouTube',
+        description: 'Zeige deine Videos deinen Freunden, Familienmitgliedern und der ganzen Welt.',
+        kind: [
+          'm'
+        ],
+        provider: 'cliqz',
+        template: 'generic',
+        text: 'youtube',
+        type: 'rh',
+        meta: {
+          level: 0,
+          type: 'main',
+          triggerMethod: 'url',
+          domain: 'youtube.com',
+          host: 'youtube.com',
+          hostAndPort: 'youtube.com',
+          port: '',
+          url: 'youtube.com/?hl=de&gl=DE',
+          score: 881189.8,
+          subType: {
+            class: 'EntityVideo',
+            id: '5f0005aa412d38ae6614bfa968b5b2bb4d5c70b0fa7be845d586cbca2b10d39a',
+            name: 'multi:YoutubeVideo'
+          },
+          latency: 120,
+          backendCountry: 'de',
+          completion: '.com/?hl=de&gl=DE',
+          logo: {
+            backgroundColor: 'd7011d',
+            backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/youtube/$.svg)',
+            text: 'yo',
+            color: '#fff',
+            brandTxtColor: 'd7011d',
+            buttonsClass: 'cliqz-brands-button-1',
+            style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/youtube/$.svg); text-indent: -10em;'
+          },
+          extraLogos: {},
+          externalProvidersLogos: {
+            kicker: {
+              backgroundColor: 'd7011d',
+              backgroundImage: 'url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg)',
+              text: 'ki',
+              color: '#fff',
+              brandTxtColor: 'd7011d',
+              buttonsClass: 'cliqz-brands-button-1',
+              style: 'background-color: #d7011d;color:#fff;background-image:url(https://cdn.cliqz.com/brands-database/database/1554882466943/logos/kicker/$.svg); text-indent: -10em;'
+            }
+          }
+        },
+        data: {
+          deepResults: [],
+          kind: [
+            'm'
+          ],
+          template: 'generic'
+        }
+      },
+    ]
+  },
 };

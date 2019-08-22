@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 DATA.push({
   "activeURL": "http://www.spiegel.de/",
   "friendlyURL": "http://www.spiegel.de/",
@@ -1084,7 +1092,6 @@ DATA.push({
     "history": null,
     "offers-cc": null,
     "video-downloader": null,
-    "market-analysis": null,
     "p2p": null,
     "pairing": null,
     "antitracking-blocker": null,

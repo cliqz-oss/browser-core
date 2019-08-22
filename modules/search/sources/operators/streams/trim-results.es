@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { pipe } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { getMainLink } from '../normalize';
@@ -21,6 +29,7 @@ export default () =>
     //       there is always one response)
     let trimmedResults = firstResponse.results.concat();
     const shouldKeepInstantResult = PREVENT_AUTOCOMPLETE_KEYS.includes(query.keyCode);
+    const { isBlockingAdult, isAskingForAdult } = query.assistantStates.adult;
 
     // Remove instant result(s) if autocompletable result comes right after it
     let lastIndexOfInstantResult = -1;
@@ -33,10 +42,13 @@ export default () =>
     }
 
     if (lastIndexOfInstantResult > -1 && (trimmedResults.length > lastIndexOfInstantResult + 1)) {
-      const nextResultIsAutocompletable = getMainLink(trimmedResults[lastIndexOfInstantResult + 1])
-        .meta.completion;
+      const nextResult = getMainLink(trimmedResults[lastIndexOfInstantResult + 1]);
+      const nextResultIsAutocompletable = nextResult.meta.completion;
+      const nextResultIsNotAdult = !nextResult.extra || !nextResult.extra.adult;
+      const shouldShowAdultResults = !isBlockingAdult && !isAskingForAdult;
 
-      if (nextResultIsAutocompletable && !shouldKeepInstantResult) {
+      if (nextResultIsAutocompletable && !shouldKeepInstantResult
+        && (nextResultIsNotAdult || shouldShowAdultResults)) {
         trimmedResults = trimmedResults.filter(res => getMainLink(res).provider !== 'instant');
       }
     }

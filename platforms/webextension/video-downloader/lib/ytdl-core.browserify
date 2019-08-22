@@ -7,7 +7,9 @@ System.register([], function (_export) {
       if (!global.location) {
         global.location = { protocol: 'https://' };
       }
-      _export('default', require('ytdl-core/lib/info'));
+
+      var ytdl = require('ytdl-core');
+      _export('default', ytdl.getInfo);
     }
   };
 });

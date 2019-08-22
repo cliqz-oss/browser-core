@@ -1,6 +1,6 @@
 /* global chai */
 /* global describeModule */
-const JSDOM = require('jsdom').jsdom;
+const { JSDOM } = require('jsdom');
 const commonMocks = require('../utils/common');
 
 
@@ -60,7 +60,7 @@ export default describeModule('offers-v2/offers/dynamic-offer',
         chai.expect(query).to.eql('blumen kaufen münchen');
       });
       it('/Evaluate result page', () => {
-        const mockDom = new JSDOM(`<html><body><h1 class="pop-main__title">
+        const mockDom = JSDOM.fragment(`<html><body><h1 class="pop-main__title">
           Suchergebnis für "zombiehöhle"
           </h1 >
           <span id="tau-pop-main-title-count"
@@ -68,21 +68,21 @@ export default describeModule('offers-v2/offers/dynamic-offer',
           </div >
           <div class="pop-main__empty-filtering-and-search-msg js-empty-search">
           </div></body></html>`);
-        chai.expect(getResultCountFromText(mockDom.body.textContent, 'zombiehöhle')).to.eql(0);
+        chai.expect(getResultCountFromText(mockDom.textContent, 'zombiehöhle')).to.eql(0);
       });
       it('/Evaluate result page 10 results', () => {
-        const mockDom = new JSDOM(`<html><body><h1 class="pop-main__title">
+        const mockDom = JSDOM.fragment(`<html><body><h1 class="pop-main__title">
           Suchergebnis für "zombiehöhle"
           </h1 >
           <span id="tau-pop-main-title-count"
           class="pop-main__title-count">( 10 Artikel)</span>
           </div >
           <div class="pop-main__empty-filtering-and-search-msg js-empty-search"></div></body></html>`);
-        const res = getResultCountFromText(mockDom.body.textContent, 'zombiehöhle');
+        const res = getResultCountFromText(mockDom.textContent, 'zombiehöhle');
         chai.expect(res).to.eql(10);
       });
       it('/Evaluate result page - Multiple "Artikel" appearances ', () => {
-        const mockDom = new JSDOM(`<html><body>
+        const mockDom = JSDOM.fragment(`<html><body>
           <div class="wishlistHeader">
             <span data-sly-call="" class="icon-check"></span>
               Artikel wurde dem Merkzettel hinzugefügt.
@@ -90,11 +90,11 @@ export default describeModule('offers-v2/offers/dynamic-offer',
           <div class="filterTopLine">
             <span class="resultCount">1329</span> Artikel zur Suche <span class="resultQuery">apple magic mouse</span>. <span class="hint hidden-xs">Liste weiter eingrenzen:</span>
           </div></body></html>`);
-        const res = getResultCountFromText(mockDom.body.textContent, 'apple magic mouse');
+        const res = getResultCountFromText(mockDom.textContent, 'apple magic mouse');
         chai.expect(res).to.eql(1329);
       });
       it('/Evaluate result page - Query with numbers ', () => {
-        const mockDom = new JSDOM(`<html><body>
+        const mockDom = JSDOM.fragment(`<html><body>
           <div class="wishlistHeader">
             <span data-sly-call="" class="icon-check"></span>
               Artikel wurde dem Merkzettel hinzugefügt.
@@ -102,7 +102,7 @@ export default describeModule('offers-v2/offers/dynamic-offer',
           <div class="filterTopLine">
             zur Suche <span class="resultQuery">channel 5</span> <span class="resultCount">1329</span> Artikel. <span class="hint hidden-xs">Liste weiter eingrenzen:</span>
           </div></body></html>`);
-        const res = getResultCountFromText(mockDom.body.textContent, 'channel 5');
+        const res = getResultCountFromText(mockDom.textContent, 'channel 5');
         chai.expect(res).to.eql(1329);
       });
     });

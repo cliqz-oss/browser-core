@@ -37,11 +37,15 @@
   width: 18px;
   height: 19px;
 }
-.footer__chip-logo {
-  background: url('../images/chip-icon-logo-gray.svg') no-repeat center;
+
+.footer__chip-logo,
+.footer__incent-logo,
+.footer__freundin-logo {
+  background: url('../images/freundin-powered-by.svg') no-repeat center;
   background-size: contain;
-  width: 55px;
-  height: 14px;
+  width: 72px;
+  height: 21px;
+  margin-bottom: 3px;
 }
 
 .footer__space {

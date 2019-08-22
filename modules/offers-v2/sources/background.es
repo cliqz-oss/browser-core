@@ -4,38 +4,44 @@
  * @module offers-v2
  * @main offers-v2
  */
-
-import logger from './common/offers_v2_logger';
 import { chrome } from '../platform/globals';
 import inject from '../core/kord/inject';
 import { getGeneralDomain, extractHostname } from '../core/tlds';
 import prefs from '../core/prefs';
 import config from '../core/config';
+import events from '../core/events';
 import { isCliqzBrowser } from '../core/platform';
 import background from '../core/base/background';
-import OffersConfigs from './offers_configs';
-import EventHandler from './event_handler';
-import SignalHandler from './signals/signals_handler';
 import Database from '../core/database-migrate';
-import TriggerMachineExecutor from './trigger_machine/trigger_machine_executor';
-import FeatureHandler from './features/feature-handler';
-import IntentHandler from './intent/intent-handler';
+import EventEmitter from '../core/event-emitter';
+import md5 from '../core/helpers/md5';
+
 import OffersHandler from './offers/offers-handler';
-import BEConnector from './backend-connector';
+import Offer from './offers/offer';
+import ActionID from './offers/actions-defs';
+import OfferDB from './offers/offers-db';
+import IntentHandler from './intent/intent-handler';
+import Intent from './intent/intent';
 import CategoryHandler from './categories/category-handler';
 import CategoryFetcher from './categories/category-fetcher';
+import SignalHandler from './signals/signals_handler';
+import TriggerMachineExecutor from './trigger_machine/trigger_machine_executor';
+import FeatureHandler from './features/feature-handler';
+import logger from './common/offers_v2_logger';
 import UrlData from './common/url_data';
-import ActionID from './offers/actions-defs';
-import { oncePerInterval } from './utils';
-import md5 from '../core/helpers/md5';
-import OfferDB from './offers/offers-db';
-import PatternsStat from './patterns_stat';
-import patternsStatMigrationCheck from './patterns_stat_migration_check';
+import { LANDING_MONITOR_TYPE } from './common/constant';
+import BEConnector from './backend-connector';
 import JourneyHandler from './user-journey/journey-handler';
+import CouponHandler from './coupon/coupon-handler';
+import OffersConfigs from './offers_configs';
+import EventHandler from './event_handler';
+import ShopReminder from './shop_reminder';
+import patternsStatMigrationCheck from './patterns_stat_migration_check';
+import PatternsStat from './patterns_stat';
+import ChipdeHandler from './whitelabel/chipde/handler';
 
 // /////////////////////////////////////////////////////////////////////////////
 // consts
-const POPUPS_INTERVAL = 30 * 60 * 1000; // 30 minutes
 const PRINT_ONBOARDING = 'print_onboarding';
 const DEBUG_DEXIE_MIGRATION = false;
 
@@ -54,8 +60,9 @@ export default background({
   // to be able to read the config prefs
   requiresServices: ['cliqz-config', 'telemetry', 'pacemaker'],
   popupNotification: inject.module('popup-notification'),
+  core: inject.module('core'),
   helper: inject.module('myoffrz-helper'),
-  anolysis: inject.module('anolysis'),
+  hpnv2: inject.module('hpnv2'),
 
   // Support the constraint for managed real estate modules:
   // - if a module is initialized, it is in "registeredRealEstates"
@@ -87,11 +94,6 @@ export default background({
       if (isCliqzBrowser) { chrome.browserAction.disable(); }
       return;
     }
-
-    this._publishPopupPushEventCached = oncePerInterval(
-      this._publishPopupPushEvent,
-      POPUPS_INTERVAL
-    );
 
     // check if we need to set dev flags or not
     // extensions.cliqz.offersDevFlag
@@ -149,16 +151,20 @@ export default background({
     this.onUrlChange = this.onUrlChange.bind(this);
     this.eventHandler.subscribeUrlChange(this.onUrlChange);
 
+    this.signalReEmitter = new EventEmitter(['signal']);
+
     // campaign signals with match patterns
     this.patternsStat = new PatternsStat(
-      offerID => this.offersDB.getReasonForHaving(offerID)
+      offerID => this.offersDB.getReasonForHaving(offerID),
+      this.signalReEmitter
     );
-    await this.patternsStat.init();
+    await this.patternsStat.init(this.db);
 
     const isUserJourneyEnabled = config.settings['offers.user-journey.enabled'];
     if (isUserJourneyEnabled) {
       this.journeyHandler = new JourneyHandler({
-        eventHandler: this.eventHandler
+        eventHandler: this.eventHandler,
+        signalReEmitter: this.signalReEmitter,
       });
       await this.journeyHandler.init();
     } else {
@@ -166,13 +172,18 @@ export default background({
     }
 
     // campaign signals
-    this.signalsHandler = new SignalHandler(
-      this.db,
-      null, /* sender mock */
-      this.patternsStat,
-      this.journeyHandler && this.journeyHandler.getSignalHandler(),
-      () => this.anolysis.action('getGID')
-    );
+    this.signalsHandler = new SignalHandler({
+      db: this.db,
+      patternsStat: this.patternsStat,
+      journeySignals: this.journeyHandler && this.journeyHandler.getSignalHandler(),
+      signalReEmitter: this.signalReEmitter,
+      trustedClock: {
+        getMinutesSinceEpochAsync: async () => {
+          const time = await this.hpnv2.action('getTime');
+          return time.minutesSinceEpoch;
+        }
+      },
+    });
     await this.signalsHandler.init();
 
     // init the features here
@@ -196,6 +207,15 @@ export default background({
     );
     await this.categoryFetcher.init();
 
+    const activateChipde = config.settings['chip-standalone.enabled'];
+    if (activateChipde) {
+      this.chipdeHandler = new ChipdeHandler(
+        this.db,
+        this.eventHandler.getWebrequestPipeline()
+      );
+      await this.chipdeHandler.init();
+    }
+
     // offers handling system
     this.offersHandler = new OffersHandler({
       intentHandler: this.intentHandler,
@@ -206,10 +226,21 @@ export default background({
       eventHandler: this.eventHandler,
       categoryHandler: this.categoryHandler,
       offersDB: this.offersDB,
+      chipdeHandler: this.chipdeHandler,
     });
     await this.offersHandler.init();
     //
     this.offersAPI = this.offersHandler.offersAPI;
+
+    this.shopReminder = new ShopReminder({ db: this.db });
+    await this.shopReminder.init();
+
+    this.couponHandler = new CouponHandler({
+      offersHandler: this.offersHandler,
+      core: this.core,
+      popupNotification: this.popupNotification,
+      offersDB: this.offersDB,
+    });
 
     // create the trigger machine executor
     this.globObjects = {
@@ -249,6 +280,11 @@ export default background({
     if (this.globObjects) {
       this.globObjects = null;
     }
+    this.couponHandler = null;
+    if (this.shopReminder) {
+      this.shopReminder.unload();
+      this.shopReminder = null;
+    }
     if (this.signalsHandler) {
       await this.signalsHandler.destroy();
       this.signalsHandler = null;
@@ -257,6 +293,7 @@ export default background({
       await this.patternsStat.destroy();
       this.patternsStat = null;
     }
+    this.signalReEmitter = null;
     if (this.eventHandler) {
       await this.eventHandler.destroy();
       this.eventHandler = null;
@@ -268,6 +305,10 @@ export default background({
     if (this.offersHandler) {
       await this.offersHandler.destroy();
       this.offersHandler = null;
+    }
+    if (this.chipdeHandler) {
+      this.chipdeHandler.unload();
+      this.chipdeHandler = null;
     }
 
     this.intentHandler = null;
@@ -283,7 +324,6 @@ export default background({
     }
     this.categoryHandler = null;
 
-    this._publishPopupPushEventCached = null;
     this.offersDB = null;
     this.initialized = false;
   },
@@ -293,7 +333,18 @@ export default background({
     // nothing to do
   },
 
+  status() {
+    return {
+      visible: true,
+      userEnabled: prefs.get('offers2UserEnabled', true) === true,
+      locationEnabled: true,
+    };
+  },
+
   // ///////////////////////////////////////////////////////////////////////////
+
+  // No guarantee it is called. And if called, no guarantee that browser
+  // resources (such as index db) are still initialized and usable.
   beforeBrowserShutdown() {
     // check if we have the feature  enabled
     if (!this.initialized) {
@@ -416,43 +467,54 @@ export default background({
       const urlData = new UrlData(url);
       const result = this.offersHandler.shouldActivateOfferForUrl(urlData)
         || { activate: false };
-      return {...result, url, module: 'offers-v2' };
+      return { ...result, url, module: 'offers-v2' };
     }
     return { url, activate: false, module: 'offers-v2' };
   },
 
-  /**
-   * This action will be called from the coupon-content script whenever we detect
-   * a coupon has being used on the frontend.
-   * @param offerInfo is the object containing the following information:
-   *   offerInfo: {
-   *     offerID: 'xyz', // the offer id
-   *     code: 'xyz', // the coupon code of the offer (to inject it)
-   *   },
-   * @param couponValue the value of the code used, or empty if none
-   * @param url where it was used
-   *
-   * format of args: { offerInfo, couponValue, url }
-   */
-  _couponFormUsed(args) {
-    if (this.offersHandler) {
-      // eslint-disable-next-line no-param-reassign
-      args.urlData = new UrlData(args.url);
-      this.offersHandler.couponFormUsed(args);
+  _publishOfferReminderPushEventIfNeeded(url = '', detectOfferReminder = {}) {
+    const { active = false, offerID: offerId, description = '' } = detectOfferReminder;
+    const domain = extractHostname(url); // by design
+    if (active && domain) { this.shopReminder.add(domain, offerId); }
+    const [ok, notification] = this.shopReminder.notification(domain);
+    if (!ok) { return; }
+    if (notification.state === 'new') {
+      // to make sure that client receive in state 'new' only once
+      this.shopReminder.receive(domain, 'minimize');
     }
+    this._publishOfferReminderPushEvent({
+      offerId: notification.offerId,
+      domain,
+      notification,
+      description,
+      url,
+    });
   },
 
-  _publishPopupPushEvent({templateData = {}, offerInfo = {}, ghostery = false}) {
-    const msg = {
-      target: 'offers-v2',
-      data: {
-        back: offerInfo,
-        config: {...templateData, ghostery},
-        preShow: 'try-to-find-coupon',
-        onApply: 'insert-coupon-form'
-      }
+  _publishOfferReminderPushEvent({ offerId, domain, notification, description, url: currentUrl }) {
+    const offer = this.offersHandler.getOfferObject(offerId);
+    const meta = this.offersDB.getOfferMeta(offerId);
+    if (!offer || meta.removed) { return; }
+    const { ui_info: { template_data: templateData } = {} } = offer;
+    if (!templateData) { return; }
+    const isCodeHidden = this.offersDB.getOfferAttribute(offerId, 'isCodeHidden') || false;
+    const { call_to_action: { url: ctaurl = '' } = {} } = templateData;
+    const voucher = {
+      description,
+      benefit: templateData.benefit,
+      code: templateData.code,
+      logo: templateData.logo_dataurl,
+      logoClass: templateData.logo_class,
+      isCodeHidden,
+      offerId,
+      landing: new Offer(offer).getMonitorPatterns(LANDING_MONITOR_TYPE),
+      ctaurl,
     };
-    this.popupNotification.action('push', msg);
+    const { rule_info: { url = [] } = {} } = offer;
+    const newUrl = url && url.length !== 0 ? url : currentUrl;
+    const data = { state: notification.state, voucher, domain, display_rule: { url: newUrl } };
+    const payload = { dest: ['offers-reminder'], type: 'push-offer', data };
+    events.pub('offers-send-ch', payload);
   },
 
   _categoryHitByFakeUrl({fakeUrl}) {
@@ -461,6 +523,14 @@ export default background({
     if (matches.matches.size > 0) {
       logger.log('Matching categories by fake url:', matches.getCategoriesIDs(), fakeUrl);
       this.onCategoriesHit(matches, fakeUrlData);
+    }
+  },
+
+  _notifyClientsIfNeeded(url) {
+    const monitorCheck = this._shouldActivateOfferForUrl(url) || {};
+    const isPopNotShown = this.couponHandler && this.couponHandler.onDomReady(monitorCheck);
+    if (!isPopNotShown && this.shopReminder) {
+      this._publishOfferReminderPushEventIfNeeded(url, monitorCheck.detectOfferReminder || {});
     }
   },
 
@@ -498,68 +568,36 @@ export default background({
         await this.softUnload();
       }
     },
-    'content:dom-ready': function onDomReady(url) {
-      if (!this.offersHandler) { return; }
-      const result = this._shouldActivateOfferForUrl(url);
-      const {activate = false, offerID, offerInfo} = result;
-      if (!activate) { return; }
-      const offer = this.offersHandler.getOfferObject(offerID);
-      if (!offer) { return; }
-
-      const {ui_info: {template_data: templateData = {}} = {}} = offer;
-      if (Object.keys(templateData).length === 0) {
-        logger.log('offer for popup-notification with empty template_data: ', offer);
-        return;
-      }
-      const domain = getGeneralDomain(url);
-      if (!(offerInfo.autoFillField || false)) {
-        return;
-      }
-      this._publishPopupPushEventCached({
-        ghostery: config.settings.channel === 'CH80', // ghostery
-        key: domain,
-        templateData,
-        offerInfo,
-      });
+    // we need it here because we want listen events on page reload too
+    // for comparison see please event_handler
+    'content:location-change': function onLocationChange(tab) {
+      // for winning the last click with pinned tab
+      if (tab.pinned && !tab.active) { return; }
+      if (tab.url) { this._notifyClientsIfNeeded(tab.url); }
     },
     'popup-notification:pop': function onPopupPop(msg) {
-      const {target, data: {ok, url, back, type} = {}} = msg;
-      if (target !== 'offers-v2') { return; }
-      const m = {
-        cancel: 'coupon_autofill_field_cancel_action',
-        x: 'coupon_autofill_field_x_action',
-        outside: 'coupon_autofill_field_outside_action',
-      };
-      const couponValue = ok
-        ? 'coupon_autofill_field_apply_action'
-        : m[type] || 'coupon_autofill_field_unknown';
-      this._couponFormUsed({
-        url,
-        offerInfo: back,
-        couponValue,
-      });
+      return this.couponHandler && this.couponHandler.onPopupPop(msg);
     },
     'popup-notification:log': function onPopupLog(msg) {
-      const {target, data: {url, back, type, ok} = {}} = msg;
-      if (target !== 'offers-v2') { return; }
-      const m = {
-        'pre-show': ['coupon_autofill_field_failed', false],
-        'copy-code': ['coupon_autofill_field_copy_code', true],
-        show: ['coupon_autofill_field_show', true],
-      };
-      const [couponValue, expectedResult] = m[type] || ['coupon_autofill_field_unknown', true];
-      if (expectedResult !== ok) { return; }
-      this._couponFormUsed({
-        url,
-        offerInfo: back,
-        couponValue,
-      });
+      return this.couponHandler && this.couponHandler.onPopupLog(msg);
+    },
+    'offers-reminder-recv-ch': function onOffersReminderReceive(msg) {
+      const { origin, data: { action = '', domain = '' } = {} } = msg;
+      if (origin !== 'offers-reminder') { return; }
+      this.shopReminder.receive(domain, action);
+    },
+    'ui:click-on-reward-box-icon': function onClickRewardBoxIcon() {
+      this.offersHandler.markOffersAsRead();
     },
   },
 
   actions: {
-    getStoredOffers(args) {
-      return (this.offersAPI) ? this.offersAPI.getStoredOffers(args) : [];
+    getStoredOffers(filters, url) {
+      if (!url) { return this.offersHandler.getStoredOffersWithMarkRelevant(filters); }
+      const urlData = new UrlData(url);
+      const matches = this.categoryHandler.getMatches(urlData.getPatternRequest());
+      return this.offersHandler
+        .getStoredOffersWithMarkRelevant(filters, { catMatches: matches, url });
     },
 
     createExternalOffer(args) {
@@ -599,12 +637,8 @@ export default background({
       }
     },
 
-    activateCouponDetectionOnUrl(url) {
-      return this._shouldActivateOfferForUrl(url);
-    },
-
     couponFormUsed(args) {
-      this._couponFormUsed(args);
+      return this.couponHandler && this.couponHandler.couponFormUsed(args);
     },
 
     /**
@@ -692,7 +726,21 @@ export default background({
         initialized: this.initialized,
         triggerCache: Object.keys(this.globObjects.trigger_cache.triggerIndex),
       };
+    },
+
+    async triggerOfferByIntent(name, duration) {
+      this.intentHandler.activateIntent(new Intent(name, duration));
+      await this.offersHandler.updateIntentOffers();
+      const offers = this.offersHandler.getOffersForIntent(name) || [];
+      try {
+        const imageLoaders = offers.map(
+          offer => this.offersHandler._preloadImages(offer)
+        );
+        await Promise.all(imageLoaders);
+      } catch (e) {
+        logger.warning('Can not preload images for bootstrap offers:', e);
+      }
+      offers.forEach(offer => this.offersAPI.pushOffer(offer));
     }
   },
-
 });

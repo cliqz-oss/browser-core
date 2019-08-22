@@ -268,20 +268,6 @@
                 <option {{#unless module.offers-v2.userEnabled}}selected{{/unless}} value="false" data-i18n="control_center_disabled"></option>
           </select>
         </span>
-        <span class="bullet">
-          <div id="offers-location-tooltip" class="tooltip-content">
-            <span class="title" data-i18n="control_center_offers_location"></span>
-            <span data-i18n="control_center_offers_location_info"></span>
-          </div>
-          <span class="cc-tooltip" data-tooltip-content="#offers-location-tooltip" data-i18n="control_center_offers_location"></span>
-          <select class="custom-dropdown"
-                  data-update-pref="extensions.cliqz.offers_location"
-                  data-update-pref-type="integer"
-                  data-target="offerz_location">
-                <option {{#if module.offers-v2.locationEnabled}}selected{{/if}} value="1" data-i18n="control_center_enabled"></option>
-                <option {{#unless module.offers-v2.locationEnabled}}selected{{/unless}} value="0" data-i18n="control_center_disabled"></option>
-          </select>
-        </span>
       </div>
     </div>
   <!-- end offerz -->

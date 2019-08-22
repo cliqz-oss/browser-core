@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint no-param-reassign: 'off' */
 /* eslint func-names: 'off' */
 
@@ -239,7 +247,7 @@ export default background({
       return false;
     },
 
-    telemetry(msg) {
+    telemetry(msg, schema) {
       if (msg.includeUnsafeCount) {
         delete msg.includeUnsafeCount;
         const info = this.attrack.getCurrentTabBlockingInfo();
@@ -251,7 +259,7 @@ export default background({
         msg.special = info.error !== undefined;
       }
       msg.type = 'antitracking';
-      telemetryService.push(msg);
+      telemetryService.push(msg, schema);
     }
   },
 
@@ -299,7 +307,7 @@ export default background({
         this.popupActions.telemetry({
           action: 'click',
           target: 'whitelist_domain'
-        });
+        }, 'metrics.legacy.antitracking');
       }
     },
     'antitracking:whitelist:remove': function (hostname, isPrivateMode) {
@@ -308,7 +316,7 @@ export default background({
         this.popupActions.telemetry({
           action: 'click',
           target: 'unwhitelist_domain'
-        });
+        }, 'metrics.legacy.antitracking');
       }
     },
     'control-center:antitracking-strict': () => {
@@ -326,7 +334,7 @@ export default background({
         this.popupActions.telemetry({
           action: 'click',
           target: 'clearcache',
-        });
+        }, 'metrics.legacy.antitracking');
       }
     },
   },

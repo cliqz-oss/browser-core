@@ -1,6 +1,4 @@
-import {
-  registerContentScript,
-} from '../core/content/helpers';
+import { registerContentScript } from '../core/content/register';
 
 const MAX_TOP_OFFSET = 250;
 const MODULE_NAME = 'myoffrz-helper';
@@ -17,18 +15,6 @@ class CategoryHelper {
     this.backgroundModule = backgroundModule;
     this.categoriesRules = [];
     this.refetchUrl = null;
-  }
-
-  onBackgroundMsg(msg) {
-    if (msg.module !== MODULE_NAME) {
-      // There can be push messages from different modules
-      return;
-    }
-
-    if (msg.action === 'rulesFromBackground') {
-      const payload = msg.args[0];
-      this.handleRules(payload);
-    }
   }
 
   sendToBackground({ categories, titles, links, productId, prefix, price }) {
@@ -181,18 +167,22 @@ class CategoryHelper {
   }
 }
 
-registerContentScript(MODULE_NAME, 'http*', (window, chrome, CLIQZ) => {
-  if (window.top === window) { // We need only top window (no iframes)
-    const backgroundModule = CLIQZ.app.modules[MODULE_NAME];
-    const categoryHelper = new CategoryHelper(window, backgroundModule);
-    const callback = categoryHelper.onBackgroundMsg.bind(categoryHelper);
-    chrome.runtime.onMessage.addListener(callback);
+function contentScript(window, chrome, CLIQZ) {
+  const backgroundModule = CLIQZ.app.modules[MODULE_NAME];
+  const categoryHelper = new CategoryHelper(window, backgroundModule);
 
-    const onUnload = () => {
-      chrome.runtime.onMessage.removeListener(callback);
-      window.removeEventListener('unload', onUnload);
-    };
+  return {
+    rulesFromBackground: (payload) => {
+      categoryHelper.handleRules(payload);
+    },
+  };
+}
 
-    window.addEventListener('unload', onUnload);
-  }
+registerContentScript({
+  module: MODULE_NAME,
+  matches: [
+    'http://*/*',
+    'https://*/*',
+  ],
+  js: [contentScript],
 });

@@ -203,17 +203,14 @@
     "freshtab_cliqz_tab_button": {
         "message": "$1 Tab"
     },
+    "freshtab_cliqz_tab_settings_all_prefs_link": {
+        "message": "All browser settings"
+    },
     "freshtab_cliqz_tab_settings_button": {
         "message": "Paramètres de $1 Tab"
     },
     "freshtab_history_button": {
         "message": "Historique"
-    },
-    "freshtab_search_reminder": {
-        "message": "Hey! Vous voulez faire des recherches anonymement?"
-    },
-    "freshtab_search_reminder_action": {
-        "message": "Pressez TAB"
     },
     "freshtab_stats_ads_blocked": {
         "message": "Publicités bloquées"
@@ -272,6 +269,9 @@
     "learn_more": {
         "message": "En savoir plus"
     },
+    "onboarding_tab_name": {
+        "message": "Welcome"
+    },
     "promo_data_brand_name": {
         "message": "Ghostery - Bloqueur de publicités protégeant votre vie privée"
     },
@@ -280,5 +280,14 @@
     },
     "promo_data_description_2": {
         "message": "Bloquer les publicités, suspendre les mouchards et accélérer les sites webs."
+    },
+    "time_saved_hours": {
+        "message": "h"
+    },
+    "time_saved_minutes": {
+        "message": "min"
+    },
+    "time_saved_seconds": {
+        "message": "s"
     }
 }

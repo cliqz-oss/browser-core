@@ -1,21 +1,27 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global window */
 
-import Spanan from 'spanan';
+import RemoteActionProvider from '../../core/helpers/remote-action-provider';
+import createModuleWrapper from '../../core/helpers/action-module-wrapper';
 import checkIfChromeReady from '../../core/content/ready-promise';
-import createSpananWrapper from '../../core/helpers/spanan-module-wrapper';
+
 import PairingUI from './ui';
 
 class Cliqz {
   constructor() {
-    const pairingBridge = createSpananWrapper('pairing');
-    const coreBridge = createSpananWrapper('core');
-    const api = new Spanan();
-    this.pairing = pairingBridge.createProxy();
-    this.core = coreBridge.createProxy();
+    this.pairing = createModuleWrapper('pairing');
+    this.core = createModuleWrapper('core');
 
     const UI = new PairingUI();
 
-    api.export({
+    this.actions = new RemoteActionProvider('pairing', {
       onPairingInit(message) {
         UI.oninit(message);
       },
@@ -37,32 +43,10 @@ class Cliqz {
       onPairingMasterDisconnected(message) {
         UI.onmasterdisconnected(message);
       },
-    }, {
-      filter(message) {
-        return Object.keys(this.actions).indexOf(message.action) >= 0;
-      },
-      transform: message => ({
-        action: message.action,
-        args: [message.message],
-      }),
     });
 
-
     checkIfChromeReady().then(() => {
-      chrome.runtime.onMessage.addListener((message) => {
-        if (message.requestId) {
-          pairingBridge.handleMessage({
-            uuid: message.requestId,
-            response: message.response
-          });
-          coreBridge.handleMessage({
-            uuid: message.requestId,
-            response: message.response
-          });
-        } else {
-          api.handleMessage(message);
-        }
-      });
+      this.actions.init();
       UI.init(window, this.pairing, this.core.sendTelemetry.bind(this.core));
     }).catch((ex) => {
       // eslint-disable-next-line no-console

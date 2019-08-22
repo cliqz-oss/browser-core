@@ -22,7 +22,7 @@
     "react-native-share": "^1.0.23",
     "react-native-snap-carousel": "3.7.5",
     "react-native-sqlite-2": ">=1.4.0",
-    "react-native-view-shot": "^2.2.0",
+    "react-native-view-shot": "2.2.0",
     "react-native-webrtc": ">=1.58.1",
     "stream-browserify": "2.0.1",
     "stream-http": "2.7.2",

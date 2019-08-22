@@ -1,3 +1,12 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import 'abortcontroller-polyfill/dist/abortcontroller-polyfill-only';
 import * as FETCH from 'whatwg-fetch';
 import { chrome } from './globals';
 
@@ -7,6 +16,8 @@ const {
   Request,
   Response,
 } = FETCH;
+
+const AbortController = window.AbortController;
 
 export default fetch;
 
@@ -56,6 +67,7 @@ export {
   Headers,
   Request,
   Response,
+  AbortController,
   isTrackableOriginHeaderFromOurExtension
 };
 export const fetchArrayBuffer = fetch;

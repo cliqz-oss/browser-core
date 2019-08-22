@@ -1,5 +1,5 @@
 import React from 'react';
-import { css, i18n } from '../common/utils';
+import { css, i18n, chooseProduct } from '../common/utils';
 
 /* eslint-disable  jsx-a11y/no-static-element-interactions */
 const _css = css('card-conditions__');
@@ -20,7 +20,7 @@ export default class Conditions extends React.Component {
     } = voucher;
 
     const isActive = active || mouseInside;
-    const prefix = products.chip ? 'chip' : 'myoffrz';
+    const prefix = chooseProduct(products);
     return (
       <div className={_css('container')}>
         <div

@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* globals ChromeUtils, Components */
 
 const { ExtensionCommon } = ChromeUtils.import('resource://gre/modules/ExtensionCommon.jsm');
@@ -55,6 +63,10 @@ export function setPref(key, value) {
     case 'string': prefSvc.setCharPref(key, value); break;
     default: Services.console.logStringMessage(`WARNING: Unable to save "${key}"`); break;
   }
+}
+
+export function clearPref(key) {
+  prefSvc.clearUserPref(key);
 }
 
 export function prefObserver(context) {

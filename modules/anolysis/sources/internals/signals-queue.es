@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import pacemaker from '../../core/services/pacemaker';
 
 import Backend from './backend-communication';
@@ -68,10 +76,15 @@ export default class SignalsQueue {
    */
   startListening() {
     logger.debug('signal queue start listening');
+    let sending = false;
     this.interval = pacemaker.register(
       async () => {
-        // Only try to send a new batch if the signal queue is initialized
-        if (this.initialized) {
+        // Only try to send a new batch if the signal queue is initialized and
+        // we are not already sending a batch: this could happen if previous
+        // batch is delayed by an amount of time longer than the pacemaker
+        // interval.
+        if (sending === false && this.initialized) {
+          sending = true; // lock
           try {
             await this.processNextBatch(this.batchSize);
             // Reset failure timeout after we could send a batch successfuly
@@ -84,6 +97,8 @@ export default class SignalsQueue {
               this.failureTimeout *= 5;
               await this.sleep(timeout);
             }
+          } finally {
+            sending = false; // unlock
           }
         }
       },

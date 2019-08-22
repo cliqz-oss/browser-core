@@ -1,42 +1,31 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global window */
-import Spanan from 'spanan';
-import createSpananForModule from '../../core/helpers/spanan-module-wrapper';
+
+import RemoteActionProvider from '../../core/helpers/remote-action-provider';
+import createModuleWrapper from '../../core/helpers/action-module-wrapper';
 
 export default class Cliqz {
   constructor(actions = {}) {
-    this.mobileCardsWrapper = createSpananForModule('mobile-cards');
-    this.coreWrapper = createSpananForModule('core');
-    this.searchWrapper = createSpananForModule('search');
-    this.geolocationWrapper = createSpananForModule('geolocation');
+    this.mobileCards = createModuleWrapper('mobile-cards');
+    this.core = createModuleWrapper('core');
+    this.search = createModuleWrapper('search');
+    this.geolocation = createModuleWrapper('geolocation');
 
-    this.mobileCards = this.mobileCardsWrapper.createProxy();
-    this.core = this.coreWrapper.createProxy();
-    this.search = this.searchWrapper.createProxy();
-    this.geolocation = this.geolocationWrapper.createProxy();
-
-    this.api = new Spanan();
-    this.actions = actions;
+    // Exported actions
+    this.actions = new RemoteActionProvider('mobile-cards', actions);
+    this.actions.init();
   }
 
-  onMessage = (message) => {
-    const msg = {
-      uuid: message.requestId,
-      response: message.response,
-      action: message.action,
-      args: message.args,
-    };
-    this.coreWrapper.handleMessage(msg);
-    this.mobileCardsWrapper.handleMessage(msg);
-    this.api.handleMessage(msg);
-  };
-
   init() {
-    this.api.export(this.actions);
-
-    chrome.runtime.onMessage.addListener(this.onMessage);
-
     window.addEventListener('unload', () => {
-      chrome.runtime.onMessage.removeListener(this.onMessage);
+      this.actions.unload();
     });
   }
 }

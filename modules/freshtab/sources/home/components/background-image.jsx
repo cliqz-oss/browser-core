@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import AppContext from './app-context';
@@ -24,11 +32,12 @@ export default function BackgroundImage({
               data-bg={bg}
               width="71"
               src={src}
-              className={isActive ? 'active' : ''}
+              className={`image ${isActive ? 'active' : ''}`}
             />
             <span className="selected-img">
               <img
                 alt=""
+                className="checkIcon"
                 src="./images/bg-check.svg"
               />
             </span>

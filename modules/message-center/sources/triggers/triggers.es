@@ -1,3 +1,12 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import config from '../../core/config';
 import i18n from '../../core/i18n';
 import inject from '../../core/kord/inject';
 import prefs from '../../core/prefs';
@@ -50,6 +59,9 @@ const messageFunctions = {
   },
   isDesktopBrowser() {
     return isDesktopBrowser;
+  },
+  onboardingVersion(version) {
+    return prefs.get('onboardingVersion', config.settings.onboardingVersion) === version;
   },
   prefHasNotChanged(prefName) {
     return !prefs.has(prefName);

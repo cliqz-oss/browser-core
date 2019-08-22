@@ -7,6 +7,9 @@ let privateMode = false;
 
 export default describeModule('browser-panel/window',
   () => ({
+    'platform/globals': {
+      chrome: {},
+    },
     'core/services/telemetry': {
       default: {
         push: (...args) => telemetrySpy(...args),

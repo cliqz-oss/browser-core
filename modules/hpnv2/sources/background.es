@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import background from '../core/base/background';
 import Manager from './manager';
 import config from '../core/config';
@@ -90,14 +98,46 @@ export default background({
     async telemetry(msg) {
       return this.actions.sendTelemetry(msg);
     },
-    async search(url) {
+
+    /**
+     * ttl:
+     *   Optional timeout. If set, it is the number of milliseconds to wait before we can
+     *   assume that the user has moved on and is no longer interested in the results.
+     */
+    async search(url, { ttl = 15000 } = {}) {
       const { pathname, search, searchParams } = new URL(url);
       return this.actions.send({
         action: 'search',
         method: 'GET',
         payload: search,
         path: pathname,
-      }, { proxyBucket: searchParams.get('s') });
+      }, { proxyBucket: searchParams.get('s'), ttl });
     },
+
+    /**
+     * Provides an interface to the trusted clock in hpnv2.
+     *
+     * It provides a server synchronized, low-resolution clock (expect no
+     * higher resolution than to the nearest minute).
+     *
+     * In hpnv2, the synchronization is needed to to eliminate drift (if the
+     * system clock is unreliable on the user's machine) and to detect edge case
+     * where the local system time jumps (typcially it jumps ahead, for example,
+     * if a machine awakes from suspend).
+     *
+     * Warning: Be careful if "inSync" is false. You will still get an estimate
+     * of the time, but if possible you should discard it and wait for the
+     * clock to get in sync again.
+     */
+    getTime() {
+      const { inSync, minutesSinceEpoch } = this.manager.trustedClock.checkTime();
+      const msSinceEpoche = minutesSinceEpoch * 60 * 1000;
+      const utcTimestamp = new Date(msSinceEpoche);
+      return {
+        inSync,
+        minutesSinceEpoch,
+        utcTimestamp,
+      };
+    }
   },
 });

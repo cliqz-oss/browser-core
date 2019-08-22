@@ -1,7 +1,15 @@
-import Spanan from 'spanan';
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 
-import { registerContentScript, isTopWindow /* , CHROME_MSG_SOURCE */} from '../core/content/helpers';
-import createSpananWrapper from '../core/helpers/spanan-module-wrapper';
+import { registerContentScript } from '../core/content/register';
+import { documentBodyReady } from '../core/content/helpers';
+import createModuleWrapper from '../core/helpers/action-module-wrapper';
+
 import OverlayDropdownManager from '../dropdown/managers/overlay';
 import config from '../core/config';
 
@@ -42,14 +50,10 @@ function createFrame(dropdown) {
   }, true);
 }
 
-function onLoad(_window, chrome) {
-  const window = _window;
-  const searchWrapper = createSpananWrapper('search');
-  const search = searchWrapper.createProxy();
-  const coreWrapper = createSpananWrapper('core');
-  const core = coreWrapper.createProxy();
-  const freshtabWrapper = createSpananWrapper('freshtab');
-  const freshtab = freshtabWrapper.createProxy();
+function onLoad(window) {
+  const search = createModuleWrapper('search');
+  const core = createModuleWrapper('core');
+  const freshtab = createModuleWrapper('freshtab');
   const cliqz = {
     core,
     search,
@@ -60,32 +64,17 @@ function onLoad(_window, chrome) {
     cliqz,
     debug: DEBUG,
   });
-  const api = new Spanan();
-  api.export({
-    renderResults: (response) => {
-      dropdown.render({
-        rawResults: response.results,
-      });
-    },
-  });
-  chrome.runtime.onMessage.addListener((message) => {
-    if (message.module === 'overlay' && message.action === 'toggle-quicksearch') {
-      createFrame(dropdown);
-      dropdown.toggle(message.trigger, message.query || '');
-    }
-    coreWrapper.handleMessage(message);
-    searchWrapper.handleMessage(message);
-    freshtabWrapper.handleMessage(message);
-    api.handleMessage(message);
-  });
 
   if (DEBUG) {
     if (!window.CLIQZ) {
+      // eslint-disable-next-line no-param-reassign
       window.CLIQZ = {};
     }
     if (!window.CLIQZ.tests) {
+      // eslint-disable-next-line no-param-reassign
       window.CLIQZ.tests = {};
     }
+    // eslint-disable-next-line no-param-reassign
     window.CLIQZ.tests.overlay = {
       toggle: () => {
         createFrame(dropdown);
@@ -93,6 +82,7 @@ function onLoad(_window, chrome) {
       },
       fillIn(query) {
         dropdown.input.value = query;
+        dropdown._syncQueryWithUrlbar();
         dropdown._queryCliqz(query);
       },
       close: () => {
@@ -100,14 +90,19 @@ function onLoad(_window, chrome) {
       }
     };
   }
+
+  // Return content action handlers
+  return {
+    'toggle-quicksearch': async ({ trigger, query }) => {
+      await documentBodyReady(); // make sure `document.body` exists
+      createFrame(dropdown);
+      dropdown.toggle(trigger, query || '');
+    },
+  };
 }
 
-registerContentScript('overlay', '*', (window, chrome) => {
-  if (isTopWindow(window)) {
-    if (window.document && window.document.body) {
-      onLoad(window, chrome);
-    } else {
-      window.addEventListener('DOMContentLoaded', () => onLoad(window, chrome));
-    }
-  }
+registerContentScript({
+  module: 'overlay',
+  matches: ['<all_urls>'],
+  js: [onLoad],
 });

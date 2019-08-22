@@ -1,0 +1,152 @@
+body {
+  background: #f7faff;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  font-family: "-mac-system", "-apple-system", BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  padding-bottom: 25px;
+}
+
+.logo {
+  content: url(./images/myoffrz-logo.svg);
+}
+
+.form-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+}
+
+.form-container-columns {
+  display: flex;
+}
+.form-container {
+  background: white;
+  border-radius: 7px;
+  padding-top: 20px;
+  box-shadow: rgba(0, 0, 0, 0.19) 0px 0px 3px 0px;
+}
+
+.form-column1 {
+  width: 20px;
+}
+.form-column3 {
+  width: 29px;
+}
+
+.form-option-description {
+  max-width: 550px;
+  color: #a8b0ba;
+  font-size: 14px;
+  padding-bottom: 20px;
+}
+
+.form-title {
+  color: #32afe6;
+  font-size: 16px;
+  padding-bottom: 25px;
+}
+
+.form-option {
+  margin-left: -3px;
+  padding-bottom: 8px;
+}
+
+.form-option-name {
+  color: #6d7278;
+  font-size: 14px;
+  padding-left: 5px;
+  cursor: pointer;
+}
+
+.form-button {
+  height: 50px;
+  color: white;
+  width: 100%;
+  background: #32AFE6;
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.form-separator {
+  border-top: 1px solid #dfdfe3;
+  padding: 10px;
+}
+
+.form-option-billet {
+  height: 12px;
+}
+
+.form-checkbox {
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.form-message {
+  background: #f7faff;
+  color: #32afe6;
+  padding: 15px;
+  visibility: hidden;
+  font-family: initial;
+}
+
+body.chip {
+  background: #f0f0f0;
+}
+
+body.chip .form-message {
+  background: #f0f0f0;
+  color: #eb443f;
+}
+
+body.chip .logo {
+  content: url(./images/chip-logo.svg);
+  width: 200px;
+}
+
+body.chip .form-title {
+  color: #eb443f;
+}
+
+body.chip .form-button {
+  background: #eb443f;
+}
+
+body.chip a {
+  color: #eb443f;
+  text-decoration: none;
+}
+
+body.freundin {
+  background: #f7f7f7;
+}
+
+body.freundin .form-message {
+  background: #f7f7f7;
+  color: #cd071e;
+}
+
+body.freundin .logo {
+  content: url(./images/freundin-logo.svg);
+}
+
+body.freundin .form-title {
+  color: #cd071e;
+}
+
+body.freundin .form-button {
+  background: #cd071e;
+}

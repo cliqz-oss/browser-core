@@ -1,0 +1,112 @@
+{
+  "url": "https://www.google.com/search?hl=en&q=kuckucksuhr%20kaufen",
+
+  "mustContain": [{
+    "type": "humanweb",
+    "action": "query",
+    "payload": {
+      "r": {
+        "0": {
+          "t": "Original Kuckucksuhren aus dem Schwarzwald",
+          "u": "https://www.schwarzwaldpalast.de/",
+          "age": null
+        },
+        "1": {
+          "t": "Kuckucksuhren günstig kaufen | eBay",
+          "u": "https://www.ebay.de/b/Kuckucksuhren/79644/bn_2394739",
+          "age": "Ergebnissen 1 - 48 von 4852 - "
+        },
+        "2": {
+          "t": "Kuckucksuhren - Amazon.de",
+          "u": "https://www.amazon.de/Kuckucksuhren/b?ie=UTF8&node=2970892031",
+          "age": "Ergebnissen 1 - 24 von 126 - "
+        },
+        "3": {
+          "t": "Kuckucksuhr, Kunst und Antiquitäten gebraucht kaufen | eBay ...",
+          "u": "https://www.ebay-kleinanzeigen.de/s-kunst/kuckucksuhr/k0c240",
+          "age": null
+        },
+        "4": {
+          "t": "Kuckucksuhren Shop - Original Kuckucksuhren aus dem Schwarzwald",
+          "u": "https://www.hausder1000uhren.de/",
+          "age": null
+        },
+        "5": {
+          "t": "Der Kuckucksuhren-Shop für original Kuckucksuhren aus dem ...",
+          "u": "https://www.kuckucksuhr.net/",
+          "age": null
+        },
+        "6": {
+          "t": "Kuckucksuhren günstig online kaufen | LadenZeile",
+          "u": "https://www.ladenzeile.de/uhren/kuckucksuhr/",
+          "age": null
+        },
+        "7": {
+          "t": "Kuckucksuhren vom Uhrmachermeister - Eble Uhren-Park",
+          "u": "https://www.uhren-park.de/index.php/cat/c1_Kuckucksuhren.html",
+          "age": null
+        },
+        "8": {
+          "t": "Kuckucksuhren München - Herrmann Geschenke München",
+          "u": "http://www.herrmann-geschenke.de/sortiment/kuckucksuhren/",
+          "age": null
+        }
+      },
+      "q": "kuckucksuhr kaufen",
+      "qurl": "https://www.google.com/search?hl=en&q=kuckucksuhr%20kaufen",
+      "ctry": "de"
+    }
+  }, {
+    "type": "humanweb",
+    "action": "ads_A",
+    "payload": {
+      "r": {
+        "0": {
+          "u": "www.hausder1000uhren.de/"
+        },
+        "1": {
+          "u": "www.schwarzwaldpalast.de/Kuckucksuhren"
+        },
+        "2": {
+          "u": "www.amazon.de/wohnen/moebel"
+        },
+        "3": {
+          "u": "www.haus-der-schwarzwalduhren.de/Kuckucksuhren"
+        }
+      },
+      "q": "kuckucksuhr kaufen",
+      "qurl": "https://www.google.com/search?hl=en&q=kuckucksuhr%20kaufen",
+      "ctry": "de"
+    }
+  }, {
+    "type": "humanweb",
+    "action": "ads_C",
+    "payload": {
+     "r": {
+        "0": {
+          "u": "https://www.schwarzwaldpalast.de/Geschnitzte-Schwarzwaelder-Kuckucksuhren/Kuckucksuhr-1-Tag-Uhrwerk-geschnitzt-26cm-von-Anton-Schneider::786.html?utm_campaign=shopping&utm_source=merchantcenter&utm_medium=googleshopping&utm_content=google-de"
+        },
+        "1": {
+          "u": "https://www.schwarzwaldpalast.de/Chalet-Kuckucksuhren/Kuckucksuhr-Quarz-Uhrwerk-Chalet-Stil-31cm-von-Engstler::1047.html?utm_campaign=shopping&utm_source=merchantcenter&utm_medium=googleshopping&utm_content=google-de"
+        },
+        "2": {
+          "u": "https://www.schwarzwaldpalast.de/Preisguenstige-Souvenir-Kuckucksuhren-Wetterhaeusschen/Kuckucksuhr-Kettenzug-Uhrwerk-25cm-von-Trenkle-Uhren::814.html?utm_campaign=shopping&utm_source=merchantcenter&utm_medium=googleshopping&utm_content=google-de"
+        },
+        "3": {
+          "u": "https://www.schwarzwaldpalast.de/Preisguenstige-Souvenir-Kuckucksuhren-Wetterhaeusschen/Schwarzwaelder-Pendeluhr-14cm-Quarz-Uhrwerk-von-Trenkle::433.html?utm_campaign=shopping&utm_source=merchantcenter&utm_medium=googleshopping&utm_content=google-de"
+        },
+        "4": {
+          "u": "https://www.schwarzwaldpalast.de/Preisguenstige-Souvenir-Kuckucksuhren-Wetterhaeusschen/Schwarzwaelder-Pendeluhr-25cm-Quarz-Uhrwerk-von-Trenkle::441.html?utm_campaign=shopping&utm_source=merchantcenter&utm_medium=googleshopping&utm_content=google-de"
+        },
+        "5": {
+          "u": "https://www.made.com/de/lark-cuckoo-pendulum-wall-clock-charcoal-grey?dani=1"
+        }
+      },
+      "q": "kuckucksuhr kaufen",
+      "qurl": "https://www.google.com/search?hl=en&q=kuckucksuhr%20kaufen",
+      "ctry": "de"
+    }
+  }],
+
+  "mustNotContain": [{ "action": "top-stories" }, { "action": "ads_D" }]
+}

@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import {
   clone,
   expect,
@@ -131,7 +139,7 @@ describe('Freshtab interactions with favorites', function () {
 
       describe("then clicking on the form's close button", function () {
         beforeEach(function () {
-          subject.query('button.closeForm').click();
+          subject.query('button.close-form').click();
           return waitFor(() => expect(subject.query('.modal')).to.be.null);
         });
 
@@ -261,7 +269,7 @@ describe('Freshtab interactions with favorites', function () {
 
       describe("then clicking on the edit form's close button", function () {
         beforeEach(function () {
-          subject.query('button.closeForm').click();
+          subject.query('button.close-form').click();
           return waitFor(() => expect(subject.query('.modal')).to.be.null);
         });
 

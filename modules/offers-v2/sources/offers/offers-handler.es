@@ -5,13 +5,28 @@
 
 import MessageQueue from '../../core/message-queue';
 import md5 from '../../core/helpers/md5';
-import OffersGeneralStats from './offers-general-stats';
+import events from '../../core/events';
+import prefs from '../../core/prefs';
+import config from '../../core/config';
+import { isGhostery } from '../../core/platform';
+import OffersConfigs from '../offers_configs';
 import logger from '../common/offers_v2_logger';
+
+import OffersGeneralStats from './offers-general-stats';
 import OfferStatus from './offers-status';
 import OffersAPI from './offers-api';
 import OfferDBObserver from './offers-db-observer';
 import IntentOffersHandler from './intent-offers-handler';
 import OffersMonitorHandler from './offers-monitoring';
+import ActionID from './actions-defs';
+import Blacklist from './blacklist';
+import OffersToPageRelationStats from './relation-stats/offers-to-page';
+import { mock as mockOffersToPageRelationStats } from './relation-stats/offers-to-page-utils';
+import chooseBestOffer from './best-offer';
+import { OfferMatchTraits } from '../categories/category-match';
+import { ImageDownloaderForPush } from './image-downloader';
+import { getDynamicContent } from './dynamic-offer';
+
 import IntentGatherer from './jobs/intent-gather';
 import DBReplacer from './jobs/db-replacer';
 import HardFilters from './jobs/hard-filters';
@@ -19,16 +34,6 @@ import SoftFilters from './jobs/soft-filters';
 import ContextFilter from './jobs/context-filters';
 import ThrottlePushToRewardsFilter from './jobs/throttle';
 import ShuffleFilter from './jobs/shuffle';
-import config from '../../core/config';
-import ActionID from './actions-defs';
-import OffersConfigs from '../offers_configs';
-import Blacklist from './blacklist';
-import chooseBestOffer from './best-offer';
-import { OfferMatchTraits } from '../categories/category-match';
-import { ImageDownloaderForPush } from './image-downloader';
-import { getDynamicContent } from './dynamic-offer';
-import prefs from '../../core/prefs';
-
 
 // /////////////////////////////////////////////////////////////////////////////
 //                              Helper methods
@@ -108,6 +113,7 @@ export default class OffersHandler {
     eventHandler,
     categoryHandler,
     offersDB,
+    chipdeHandler,
     offersImageDownloader = new ImageDownloaderForPush(),
   }) {
     this.intentHandler = intentHandler;
@@ -125,6 +131,10 @@ export default class OffersHandler {
 
     this.blacklist = new Blacklist();
     this.blacklist.init();
+
+    this.offersToPageRelationStats = isGhostery
+      ? mockOffersToPageRelationStats()
+      : new OffersToPageRelationStats();
 
     // manage the status changes here
     this.offerStatus = new OfferStatus();
@@ -166,6 +176,11 @@ export default class OffersHandler {
       new SoftFilters(),
       ShuffleFilter, // for competing offers, avoid first-offer-from-backend bias
     ];
+    if (chipdeHandler) {
+      // Add after `DBReplacer`, so that offers in `OffersDB` can be
+      // updated to new versions from the backend.
+      this.jobsPipeline.splice(2, 0, chipdeHandler.getOffersJobFilter());
+    }
 
     this.nEventsProcessed = 0; // Used as a wait marker by tests
   }
@@ -179,6 +194,7 @@ export default class OffersHandler {
     this.throttlePushRewardsBoxFilter.unload();
     this.blacklist.unload();
     this.blacklist = null;
+    this.offersToPageRelationStats = null;
     this.offersDB.unregisterCallback(this._offersDBCallback);
     this.offersDBObserver.unload();
     // TODO: unregister intent handler callback?
@@ -207,12 +223,40 @@ export default class OffersHandler {
     this.offersMonitorHandler.couponFormUsed(args);
   }
 
+  onCouponActivity(couponMsg, serializer) {
+    this.offersMonitorHandler.addCouponSignal(couponMsg, serializer);
+  }
+
   getOfferObject(offerId) {
     return this.offersDB.getOfferObject(offerId);
   }
 
   getCampaignId(offerId) {
     return this.offersDB.getCampaignID(offerId);
+  }
+
+  markOffersAsRead() {
+    const offers = isGhostery ? [] : this.offersDB.getOffers();
+    const [counter, action] = [1, 'offer_read'];
+    offers.forEach(({ offer }) => this.offersDB.incOfferAction(offer.offer_id, action, counter));
+    this.offersToPageRelationStats.invalidateCache();
+  }
+
+  getStoredOffersWithMarkRelevant(filters, { catMatches, url } = {}) {
+    if (!this.offersAPI) { return []; }
+    const offers = this.offersAPI.getStoredOffers(filters);
+    if (!url || !catMatches) { return offers; }
+    const offersForStats = isGhostery ? [] : this.offersDB.getOffers();
+    const stats = this.offersToPageRelationStats.stats(offersForStats, catMatches, url);
+    return offers.map(o => ({ ...o, relevant: stats.related.includes(o.offer_id) }));
+  }
+
+  updateIntentOffers() {
+    return this.intentOffersHandler.updateIntentOffers();
+  }
+
+  getOffersForIntent(intentName) {
+    return this.intentOffersHandler.getOffersForIntent(intentName);
   }
 
   // ///////////////////////////////////////////////////////////////////////////
@@ -288,6 +332,11 @@ export default class OffersHandler {
 
   async _processEventWrapped({ urlData, catMatches }) {
     logger.debug('Offers handler processing a new event', urlData.getRawUrl());
+
+    // we need notify before process a new offer,
+    // otherwise from user point of view we notify her twice:
+    // new offer and reddot in the icon
+    this._notifyAboutUnreadOffers(catMatches, urlData);
 
     if (!shouldWeShowAnyOffer(this.offersGeneralStats)) {
       logger.debug('we should not show any offer now');
@@ -372,11 +421,13 @@ export default class OffersHandler {
       // we will add the action to the offer to keep track of it
       const offerID = message.offer.offer_id;
       this.offersDB.incOfferAction(offerID, ActionID.AID_OFFER_DB_ADDED);
+      this.offersToPageRelationStats.invalidateCache();
     } else if (message.evt === 'offer-removed') {
       const offerID = message.offer.offer_id;
       const campaignID = message.offer.campaign_id;
       const erased = message.extraData && message.extraData.erased === true;
       this.offersAPI.offerRemoved(offerID, campaignID, erased);
+      this.offersToPageRelationStats.invalidateCache();
     }
   }
 
@@ -396,5 +447,14 @@ export default class OffersHandler {
         this.offersDB.removeOfferObject(offerElement.offer_id);
       }
     });
+  }
+
+  _notifyAboutUnreadOffers(catMatches, urlData) {
+    const url = urlData.getRawUrl();
+    const offers = isGhostery ? [] : this.offersDB.getOffers();
+    const stats = this.offersToPageRelationStats.statsCached(offers, catMatches, url);
+    const count = stats.related.filter(oid => !stats.touched.includes(oid)).length;
+    const tabId = urlData.getTabId();
+    if (count) { events.pub('offers-notification:unread-offers-count', { count, tabId }); }
   }
 }

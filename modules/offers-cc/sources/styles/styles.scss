@@ -2,7 +2,7 @@ body, html {
   margin: 0;
   padding: 0;
   overflow-y: hidden;
-  overflow-x: auto;
+  overflow-x: hidden;
   height: 100%;
   background-color: #f2f2f2;
 }
@@ -10,6 +10,20 @@ body, html {
 #cliqz-offers-cc {
   font-family: "-mac-system", "-apple-system", BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif,     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   font-weight: normal;
+}
+
+:root {
+  --freundin-primary-color: #ed1b23;
+  --freundin-secondary-color: #da3434;
+  --freundin-primary-hover-color: #da3434;
+
+  --incent-primary-color: #5c8fa6;
+  --incent-secondary-color: #5c8fa6;
+  --incent-primary-hover-color: #487386;
+
+  --chip-primary-color: #eb443f;
+  --chip-secondary-color: #eb443f;
+  --chip-primary-hover-color: #c93636;
 }
 
 @import "Tooltip";
@@ -26,10 +40,5 @@ body, html {
 @import "Card/Conditions";
 @import "Card/Card";
 @import "Card/Promo";
+@import "Card/PromoAB";
 @import "Card/Header";
-@import "Lodge/Conditions";
-@import "Lodge/Lodge";
-@import "Lodge/Promo";
-@import "Lodge/PromoV2";
-@import "Lodge/Header";
-@import "Lodge/Button";

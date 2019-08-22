@@ -1,9 +1,18 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint no-param-reassign: 'off' */
 
 import * as datetime from '../time';
 import md5 from '../../core/helpers/md5';
 import console from '../../core/console';
 import pacemaker from '../../core/services/pacemaker';
+import { truncatedHash } from '../utils';
 
 class TokenSet {
   constructor() {
@@ -101,10 +110,11 @@ export default class TokenExaminer {
 
   examineTokens(state) {
     // do not do anything for private tabs and non-tracker domains
-    if (!state.isPrivate && this.qsWhitelist.isTrackerDomain(state.urlParts.generalDomainHash)) {
+    if (!state.isPrivate
+        && this.qsWhitelist.isTrackerDomain(truncatedHash(state.urlParts.generalDomain))) {
       const today = this.currentDay;
 
-      const tracker = state.urlParts.generalDomainHash;
+      const tracker = truncatedHash(state.urlParts.generalDomain);
 
       // create a Map of key => set(values) from the url data
       const cachedKvs = this.requestKeyValue.get(tracker) || new Map();
@@ -125,7 +135,7 @@ export default class TokenExaminer {
         hash.get(key).add(tok, today);
         // whitelist any keys which reached the threshold
         if (!reachedThreshold.has(key)
-          && hash.get(key).size() > this.config.safekeyValuesThreshold) {
+            && hash.get(key).size() > this.config.safekeyValuesThreshold) {
           reachedThreshold.add(key);
           if (this.config.debugMode) {
             console.log('Add safekey', state.urlParts.generalDomain, key, hash.get(key));
@@ -133,7 +143,7 @@ export default class TokenExaminer {
           this.qsWhitelist.addSafeKey(
             tracker,
             this.hashTokens ? key : md5(key),
-            this.config.safekeyValuesThreshold
+            this.config.safekeyValuesThreshold,
           );
         }
         return hash;
@@ -178,11 +188,7 @@ export default class TokenExaminer {
         tokens.setDirty(false);
         if (tokens.size() > this.config.safekeyValuesThreshold
             && !this.qsWhitelist.isSafeKey(tracker, key)) {
-          this.qsWhitelist.addSafeKey(
-            tracker,
-            this.hashTokens ? key : md5(key),
-            tokens.size(),
-          );
+          this.qsWhitelist.addSafeKey(tracker, this.hashTokens ? key : md5(key), tokens.size());
           this.removeRequestKeyValueEntry(tracker, key);
         }
       }
